@@ -92,6 +92,15 @@ func (k *Key) Hex() string {
 	return hex.EncodeToString(k.raw)
 }
 
+// ID names the key without giving it away, so a backup can tell whether the
+// instance restoring it runs on the same key. It is empty without a key.
+func (k *Key) ID() string {
+	if k == nil {
+		return ""
+	}
+	return hex.EncodeToString(k.MAC("key id", nil)[:8])
+}
+
 func (k *Key) derive(purpose string) []byte {
 	m := hmac.New(sha256.New, k.raw)
 	m.Write([]byte("knightloader:" + purpose))

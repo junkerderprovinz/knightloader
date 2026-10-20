@@ -117,7 +117,7 @@ func main() {
 
 	// A staged restore has to land before anything opens the store or
 	// settings.json; see internal/backup.
-	if applied, manifest, err := backup.ApplyPending(dataDir); err != nil {
+	if applied, manifest, err := backup.ApplyPending(dataDir, key); err != nil {
 		// By the time ApplyPending can fail, either nothing live was touched or
 		// only its cleanup is left, so starting up is safe.
 		log.Printf("a staged restore could not be fully applied (%v); starting with the data already on disk", err)

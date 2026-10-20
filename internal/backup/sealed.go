@@ -21,8 +21,8 @@ var (
 	// ErrNeedsKey is a sealed archive uploaded to an instance without an app
 	// key.
 	ErrNeedsKey = errors.New("this backup is encrypted with an app key and this instance has none; " +
-		"start it with the " + appkey.EnvVar + " of the instance that made the backup, then restore again")
-	// ErrWrongKey is a sealed archive the instance's app key does not open.
+		"send the " + appkey.EnvVar + " of the instance that made the backup along with it")
+	// ErrWrongKey is a sealed archive no key at hand opens.
 	ErrWrongKey = errors.New("this backup is encrypted with a different app key; " +
 		"restoring it needs the " + appkey.EnvVar + " of the instance that made it")
 )
@@ -39,17 +39,25 @@ func Seal(key *appkey.Key, archive []byte) ([]byte, error) {
 }
 
 // Unseal returns the archive inside a sealed upload, and an unsealed upload
-// as it is, so a backup made before the key still restores.
-func Unseal(key *appkey.Key, upload []byte) ([]byte, error) {
+// as it is, so a backup made before the key still restores. It tries each of
+// keys, which are the instance's own and one given with the upload for a
+// backup made under another; nil ones are skipped.
+func Unseal(upload []byte, keys ...*appkey.Key) ([]byte, error) {
 	if !bytes.HasPrefix(upload, sealedMagic) {
 		return upload, nil
 	}
-	if key == nil {
+	tried := false
+	for _, key := range keys {
+		if key == nil {
+			continue
+		}
+		tried = true
+		if archive, err := key.OpenForeign(sealPurpose, upload[len(sealedMagic):]); err == nil {
+			return archive, nil
+		}
+	}
+	if !tried {
 		return nil, ErrNeedsKey
 	}
-	archive, err := key.OpenForeign(sealPurpose, upload[len(sealedMagic):])
-	if err != nil {
-		return nil, ErrWrongKey
-	}
-	return archive, nil
+	return nil, ErrWrongKey
 }

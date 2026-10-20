@@ -1,13 +1,15 @@
 // Package backup builds the downloadable snapshot an install can be restored
 // from, and validates and stages an uploaded one.
 //
-// The snapshot is the SQLite store plus settings.json, which also holds the
-// rule sets and the schedule. A restore never replaces the live files, since
-// the running process holds them open (Windows refuses the replacement, and
-// the single-connection store cannot be told to reopen). Stage validates an
-// upload against a throwaway copy and leaves the result for ApplyPending to
-// put in place at the next start-up, before anything in the data directory
-// is opened.
+// The snapshot is the SQLite store, settings.json, which also holds the rule
+// sets and the schedule, and the state files that make up the rest of the
+// instance (StateFiles). Every secret in it is in the clear, so it restores
+// under another app key or none; the archive as a whole is sealed instead. A
+// restore never replaces the live files, since the running process holds them
+// open (Windows refuses the replacement, and the single-connection store
+// cannot be told to reopen). Stage validates an upload against a throwaway
+// copy and leaves the result for ApplyPending to put in place at the next
+// start-up, before anything in the data directory is opened.
 package backup
 
 import (
@@ -18,11 +20,18 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
+	"log"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"golang.org/x/mod/semver"
@@ -49,6 +58,12 @@ const (
 	// pendingDirName only once complete, so ApplyPending never sees a
 	// half-written attempt.
 	stagingDirName = "restore-pending.staging"
+	// readyDirName is where ApplyPending seals the staged files with the
+	// running instance's key before any of them replaces a live one.
+	readyDirName = "restore-ready"
+	// previousDirName holds the live files a restore replaces until every new
+	// one is in place, so a failed swap can put them back.
+	previousDirName = "restore-previous"
 )
 
 // Manifest identifies one bundle: what build made it and when.
@@ -56,16 +71,22 @@ type Manifest struct {
 	Version    string    `json:"version"`
 	Deployment string    `json:"deployment"`
 	CreatedAt  time.Time `json:"createdAt"`
+	// Files are the state files the bundle speaks for. It carries those the
+	// instance had, and a restore removes the live copy of the others.
+	Files []string `json:"files,omitempty"`
+	// KeyID is the ID of the app key the login password was set under
+	// (appkey.Key.ID), empty without a key.
+	KeyID string `json:"keyId,omitempty"`
 }
 
 // Build writes one backup archive to w.
 //
-// settingsJSON includes every secret (router and proxy passwords, event
-// target headers such as push tokens), because a restore that cannot put them
-// back is not a restore. The caller's route is responsible for requiring a
-// session. dbPath must be a consistent snapshot from store.Store.BackupTo,
-// not the live file.
-func Build(w io.Writer, manifest Manifest, settingsJSON []byte, dbPath string) (err error) {
+// settingsJSON and files carry every secret in the clear, because a restore
+// that cannot put them back is not a restore. The caller's route is
+// responsible for requiring a session. dbPath must be a consistent snapshot
+// from store.Store.BackupTo, not the live file. files maps names out of
+// StateFiles to their content.
+func Build(w io.Writer, manifest Manifest, settingsJSON []byte, dbPath string, files map[string][]byte) (err error) {
 	zw := zip.NewWriter(w)
 	defer func() {
 		if cerr := zw.Close(); err == nil {
@@ -82,6 +103,11 @@ func Build(w io.Writer, manifest Manifest, settingsJSON []byte, dbPath string) (
 	}
 	if err := writeEntry(zw, settingsEntry, settingsJSON); err != nil {
 		return err
+	}
+	for _, name := range slices.Sorted(maps.Keys(files)) {
+		if err := writeEntry(zw, name, files[name]); err != nil {
+			return err
+		}
 	}
 
 	dbf, err := os.Open(dbPath)
@@ -159,7 +185,12 @@ func Stage(dataDir string, zipBytes []byte, runningVersion string) (Manifest, er
 				"upgrade the server first, then restore", manifest.Version, runningVersion)
 	}
 
-	if err := stageFiles(dataDir, settingsRaw, dbRaw, manifest); err != nil {
+	files, err := readStateFiles(zr, manifest.Files)
+	if err != nil {
+		return Manifest{}, err
+	}
+
+	if err := stageFiles(dataDir, settingsRaw, dbRaw, manifest, files); err != nil {
 		return Manifest{}, err
 	}
 	return manifest, nil
@@ -388,14 +419,14 @@ func leadingWords(stmt string, n int) []string {
 
 // stageFiles writes the restore into a fresh staging directory and commits it
 // with one rename. A restore staged earlier and not yet applied is replaced.
-func stageFiles(dataDir string, settingsRaw, dbRaw []byte, manifest Manifest) error {
+func stageFiles(dataDir string, settingsRaw, dbRaw []byte, manifest Manifest, files map[string][]byte) error {
 	staging := filepath.Join(dataDir, stagingDirName)
 	final := filepath.Join(dataDir, pendingDirName)
 
 	if err := os.RemoveAll(staging); err != nil {
 		return fmt.Errorf("backup: could not clear a previous staging attempt: %w", err)
 	}
-	if err := os.MkdirAll(staging, 0o755); err != nil {
+	if err := os.MkdirAll(staging, 0o700); err != nil {
 		return fmt.Errorf("backup: could not prepare to stage the restore: %w", err)
 	}
 	if err := os.WriteFile(filepath.Join(staging, settingsEntry), settingsRaw, 0o600); err != nil {
@@ -411,6 +442,11 @@ func stageFiles(dataDir string, settingsRaw, dbRaw []byte, manifest Manifest) er
 	if err := os.WriteFile(filepath.Join(staging, manifestEntry), mf, 0o644); err != nil {
 		return fmt.Errorf("backup: could not stage %s: %w", manifestEntry, err)
 	}
+	for name, b := range files {
+		if err := os.WriteFile(filepath.Join(staging, name), b, 0o600); err != nil {
+			return fmt.Errorf("backup: could not stage %s: %w", name, err)
+		}
+	}
 
 	if err := os.RemoveAll(final); err != nil {
 		return fmt.Errorf("backup: could not replace a previously staged restore: %w", err)
@@ -421,44 +457,43 @@ func stageFiles(dataDir string, settingsRaw, dbRaw []byte, manifest Manifest) er
 	return nil
 }
 
-// ApplyPending puts a restore left by Stage in place of the live store and
-// settings file. Call it at start-up, before store.Open or settings.Load.
+// ApplyPending puts a restore left by Stage in place of the live files. Call
+// it at start-up, before anything in dataDir is opened, with the key the
+// instance runs on: every secret is sealed with it before a live file is
+// touched.
 //
-// It copies rather than moves the staged files and removes the pending
-// directory only after both copies succeed, so a crash in between leaves
-// everything needed to finish on the next start-up. applied reports whether
-// there was anything to apply.
-func ApplyPending(dataDir string) (applied bool, manifest Manifest, err error) {
+// It is all or nothing. The staged files are prepared in a folder of their
+// own first, so one that cannot be prepared changes nothing. The swap moves
+// each live file aside before its replacement goes in, and a failure puts
+// them back. The staged copy is removed only once every file is in place, so
+// a crash in between leaves everything needed to finish on the next start-up.
+// applied reports whether there was anything to apply.
+func ApplyPending(dataDir string, key *appkey.Key) (applied bool, manifest Manifest, err error) {
 	pending := filepath.Join(dataDir, pendingDirName)
 	if _, statErr := os.Stat(pending); errors.Is(statErr, os.ErrNotExist) {
 		return false, Manifest{}, nil
 	} else if statErr != nil {
 		return false, Manifest{}, fmt.Errorf("restore: could not check for a staged restore: %w", statErr)
 	}
+	if err := undoSwap(dataDir); err != nil {
+		return false, Manifest{}, fmt.Errorf("restore: could not put back the files of an interrupted restore: %w", err)
+	}
 
 	if mf, readErr := os.ReadFile(filepath.Join(pending, manifestEntry)); readErr == nil {
 		_ = json.Unmarshal(mf, &manifest) // a broken manifest must not block the restore
 	}
+	if err := checkStateNames(manifest.Files); err != nil {
+		return false, manifest, fmt.Errorf("restore: %w", err)
+	}
 
-	// The database is made ready before anything live is replaced, so a
-	// restore that cannot be prepared leaves the settings as they were too.
-	live := filepath.Join(dataDir, dbEntry)
-	ready, err := prepareDatabase(filepath.Join(pending, dbEntry), live)
+	ready := filepath.Join(dataDir, readyDirName)
+	defer os.RemoveAll(ready)
+	install, remove, err := prepare(pending, ready, dataDir, key, manifest)
 	if err != nil {
-		return false, manifest, fmt.Errorf("restore: could not prepare %s: %w", dbEntry, err)
+		return false, manifest, fmt.Errorf("restore: could not prepare the staged files: %w", err)
 	}
-	if err := copyFile(filepath.Join(pending, settingsEntry), filepath.Join(dataDir, settingsEntry)); err != nil {
-		os.Remove(ready)
-		return false, manifest, fmt.Errorf("restore: could not put %s in place: %w", settingsEntry, err)
-	}
-	if err := os.Rename(ready, live); err != nil {
-		os.Remove(ready)
-		return false, manifest, fmt.Errorf("restore: could not put %s in place: %w", dbEntry, err)
-	}
-	// A journal left by the replaced database would be reconciled against
-	// content it has never seen.
-	for _, suffix := range []string{"-journal", "-wal", "-shm"} {
-		_ = os.Remove(filepath.Join(dataDir, dbEntry+suffix))
+	if err := swap(dataDir, ready, install, remove); err != nil {
+		return false, manifest, fmt.Errorf("restore: could not put the restored files in place, and the old ones are back: %w", err)
 	}
 
 	if err := os.RemoveAll(pending); err != nil {
@@ -469,28 +504,65 @@ func ApplyPending(dataDir string) (applied bool, manifest Manifest, err error) {
 	return true, manifest, nil
 }
 
-// prepareDatabase copies the staged database beside the live one and returns
-// the copy's path, ready to be renamed into place. The copy is stripped again,
-// for a restore staged by a build that did not strip it, brought to this
-// build's schema, and given the live database's passkeys in place of its own:
-// the login of the running server is what stays.
-func prepareDatabase(staged, live string) (string, error) {
-	ready := live + ".restoring"
-	if err := copyTo(staged, ready); err != nil {
-		return "", err
+// prepare copies the staged files into ready and seals them there with key,
+// each through its own package's open, and returns the names to put in place
+// and the live ones to remove.
+//
+// The database is stripped again, for a restore staged by a build that did
+// not strip it, brought to this build's schema, and given the live database's
+// passkeys in place of its own: the passkeys of the running server stay. So
+// does its login when the backup's password was set under another app key,
+// which this instance could never check.
+func prepare(pending, ready, dataDir string, key *appkey.Key, manifest Manifest) (install, remove []string, err error) {
+	if err := os.RemoveAll(ready); err != nil {
+		return nil, nil, err
 	}
-	if err := carryLogin(ready, live); err != nil {
-		os.Remove(ready)
-		return "", err
+	if err := os.MkdirAll(ready, 0o700); err != nil {
+		return nil, nil, err
 	}
-	return ready, nil
+	for _, name := range append([]string{dbEntry, settingsEntry}, manifest.Files...) {
+		err := copyTo(filepath.Join(pending, name), filepath.Join(ready, name), 0o600)
+		switch {
+		case err == nil:
+			install = append(install, name)
+		case errors.Is(err, fs.ErrNotExist) && name != dbEntry && name != settingsEntry:
+			remove = append(remove, name)
+		default:
+			return nil, nil, err
+		}
+	}
+
+	if err := prepareDatabase(filepath.Join(ready, dbEntry), filepath.Join(dataDir, dbEntry), key); err != nil {
+		return nil, nil, fmt.Errorf("%s: %w", dbEntry, err)
+	}
+	if _, err := settings.LoadWithKey(ready, key); err != nil {
+		return nil, nil, err
+	}
+	if state, err := os.ReadFile(filepath.Join(ready, auth.FileName)); err == nil {
+		needsKey, err := auth.HashNeedsItsKey(state)
+		if err != nil {
+			return nil, nil, err
+		}
+		if needsKey && manifest.KeyID != key.ID() {
+			log.Print("restore: the login password in the backup was set under another app key and cannot be checked here, so this instance keeps its own login")
+			install = slices.DeleteFunc(install, func(n string) bool { return n == auth.FileName })
+		} else if _, err := auth.OpenWithKey(ready, key); err != nil {
+			return nil, nil, err
+		}
+	}
+	if _, err := os.Stat(filepath.Join(ready, accounts.KeyringName)); err == nil {
+		if _, err := accounts.OpenWithKey(ready, key); err != nil {
+			return nil, nil, err
+		}
+	}
+	return install, remove, nil
 }
 
-func carryLogin(ready, live string) error {
+func prepareDatabase(ready, live string, key *appkey.Key) error {
 	if err := stripDatabase(ready); err != nil {
 		return err
 	}
-	s, err := store.Open(ready)
+	s, err := store.OpenWithKey(ready, key)
 	if err != nil {
 		return err
 	}
@@ -501,25 +573,97 @@ func carryLogin(ready, live string) error {
 	return s.Close()
 }
 
-// copyFile copies src to dst through a temporary file renamed into place, so
-// a crash mid-copy leaves the old dst intact. src is never modified, which
-// keeps ApplyPending retryable.
-func copyFile(src, dst string) error {
-	tmp := dst + ".restoring"
-	if err := copyTo(src, tmp); err != nil {
+// renameFile is os.Rename, replaced by a test that makes one fail.
+var renameFile = os.Rename
+
+// swapJournal lists, in previousDirName, the restored files that had no live
+// copy before, so they can be taken out again when a swap is undone. It is
+// written once every live file is aside and before any new one goes in.
+const swapJournal = "swap.json"
+
+// swap moves every live file named in install or remove into previousDirName,
+// the journals of the database with them, and then the prepared files from
+// ready into their place. A failure puts every live file back.
+func swap(dataDir, ready string, install, remove []string) error {
+	prev := filepath.Join(dataDir, previousDirName)
+	if err := os.RemoveAll(prev); err != nil {
 		return err
 	}
-	return os.Rename(tmp, dst)
+	if err := os.MkdirAll(prev, 0o700); err != nil {
+		return err
+	}
+	aside := append(slices.Clone(install), remove...)
+	for _, suffix := range []string{"-journal", "-wal", "-shm"} {
+		aside = append(aside, dbEntry+suffix)
+	}
+	var fresh []string
+	for _, name := range aside {
+		err := renameFile(filepath.Join(dataDir, name), filepath.Join(prev, name))
+		switch {
+		case errors.Is(err, fs.ErrNotExist):
+			if slices.Contains(install, name) {
+				fresh = append(fresh, name)
+			}
+		case err != nil:
+			return errors.Join(err, undoSwap(dataDir))
+		}
+	}
+	journal, err := json.Marshal(fresh)
+	if err != nil {
+		return errors.Join(err, undoSwap(dataDir))
+	}
+	if err := os.WriteFile(filepath.Join(prev, swapJournal), journal, 0o600); err != nil {
+		return errors.Join(err, undoSwap(dataDir))
+	}
+	for _, name := range install {
+		if err := renameFile(filepath.Join(ready, name), filepath.Join(dataDir, name)); err != nil {
+			return errors.Join(err, undoSwap(dataDir))
+		}
+	}
+	return os.RemoveAll(prev)
 }
 
-func copyTo(src, dst string) error {
+// undoSwap puts back what a failed or interrupted swap moved aside, and takes
+// out the restored files that had no live copy before.
+func undoSwap(dataDir string) error {
+	prev := filepath.Join(dataDir, previousDirName)
+	entries, err := os.ReadDir(prev)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if journal, err := os.ReadFile(filepath.Join(prev, swapJournal)); err == nil {
+		var fresh []string
+		if err := json.Unmarshal(journal, &fresh); err != nil {
+			return err
+		}
+		for _, name := range fresh {
+			if err := os.Remove(filepath.Join(dataDir, name)); err != nil && !errors.Is(err, fs.ErrNotExist) {
+				return err
+			}
+		}
+	}
+	for _, e := range entries {
+		if e.Name() == swapJournal {
+			continue
+		}
+		if err := renameFile(filepath.Join(prev, e.Name()), filepath.Join(dataDir, e.Name())); err != nil {
+			return err
+		}
+	}
+	return os.RemoveAll(prev)
+}
+
+func copyTo(src, dst string, mode fs.FileMode) error {
 	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer in.Close()
 
-	out, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
 	if err != nil {
 		return err
 	}

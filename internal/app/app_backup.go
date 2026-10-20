@@ -10,17 +10,23 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/diskspace"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
 // BackupParts are what a backup archive is built from.
@@ -29,12 +35,18 @@ type BackupParts struct {
 	// Settings is settings.json with every secret in the clear, because a
 	// backup that cannot put a router or proxy password back is not a backup.
 	Settings []byte
-	// DBPath is a consistent snapshot of the store, never the live file.
+	// DBPath is a consistent snapshot of the store, never the live file, with
+	// the task passwords in the clear.
 	DBPath string
+	// Files are the instance's state files (backup.StateFiles) it has, the
+	// login and the credential key in the clear.
+	Files map[string][]byte
 }
 
 // PrepareBackup snapshots the store to dbPath, which must not exist yet, and
-// collects the rest of an archive. The caller removes dbPath afterwards.
+// collects the rest of an archive. Everything the app key seals is put in the
+// clear, so the archive restores under another key or none; the caller seals
+// the archive as a whole. The caller removes dbPath afterwards.
 func (a *App) PrepareBackup(dbPath string) (BackupParts, error) {
 	// VACUUM INTO through the connection every other write goes through, never
 	// a raw copy of the live file, which hands back a torn database if a task
@@ -42,19 +54,56 @@ func (a *App) PrepareBackup(dbPath string) (BackupParts, error) {
 	if err := a.Store.BackupTo(dbPath); err != nil {
 		return BackupParts{}, fmt.Errorf("could not snapshot the database: %w", err)
 	}
+	if err := store.OpenPasswordsIn(dbPath, a.AppKey); err != nil {
+		return BackupParts{}, fmt.Errorf("could not open the task passwords in the snapshot: %w", err)
+	}
 	settingsJSON, err := json.MarshalIndent(a.Settings.Get(), "", "  ")
 	if err != nil {
 		return BackupParts{}, fmt.Errorf("could not encode settings: %w", err)
+	}
+	files, err := a.stateFiles()
+	if err != nil {
+		return BackupParts{}, err
 	}
 	return BackupParts{
 		Manifest: backup.Manifest{
 			Version:    buildinfo.Version,
 			Deployment: buildinfo.Deployment,
 			CreatedAt:  time.Now().UTC(),
+			Files:      backup.StateFiles,
+			KeyID:      a.AppKey.ID(),
 		},
 		Settings: settingsJSON,
 		DBPath:   dbPath,
+		Files:    files,
 	}, nil
+}
+
+// stateFiles reads the state files this instance has. The login and the
+// credential key come from the stores holding them open, in the clear; the
+// others are read off the disk as they are, since none is sealed.
+func (a *App) stateFiles() (map[string][]byte, error) {
+	files := map[string][]byte{}
+	state, err := a.Auth.State()
+	if err != nil {
+		return nil, fmt.Errorf("could not read the login: %w", err)
+	}
+	files[auth.FileName] = state
+	files[accounts.KeyringName] = a.Accounts.Keyring()
+	for _, name := range backup.StateFiles {
+		if _, ok := files[name]; ok {
+			continue
+		}
+		b, err := os.ReadFile(filepath.Join(a.DataDir, name))
+		if errors.Is(err, fs.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("could not read %s: %w", name, err)
+		}
+		files[name] = b
+	}
+	return files, nil
 }
 
 // WriteBackup writes the archive for parts to w, sealed with the app key when
@@ -62,10 +111,10 @@ func (a *App) PrepareBackup(dbPath string) (BackupParts, error) {
 // built in memory and written in one piece.
 func (a *App) WriteBackup(w io.Writer, parts BackupParts) error {
 	if a.AppKey == nil {
-		return backup.Build(w, parts.Manifest, parts.Settings, parts.DBPath)
+		return backup.Build(w, parts.Manifest, parts.Settings, parts.DBPath, parts.Files)
 	}
 	var buf bytes.Buffer
-	if err := backup.Build(&buf, parts.Manifest, parts.Settings, parts.DBPath); err != nil {
+	if err := backup.Build(&buf, parts.Manifest, parts.Settings, parts.DBPath, parts.Files); err != nil {
 		return err
 	}
 	sealed, err := backup.Seal(a.AppKey, buf.Bytes())

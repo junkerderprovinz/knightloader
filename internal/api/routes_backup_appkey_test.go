@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"testing"
@@ -136,5 +137,54 @@ func TestAuthStateSaysWhetherAnAppKeyIsSet(t *testing.T) {
 	until, _ := read()["appKeyCopiesUntil"].(string)
 	if got, err := time.Parse(time.RFC3339, until); err != nil || got.Before(made.Add(appkey.CopiesKept-time.Second)) {
 		t.Fatalf("appKeyCopiesUntil = %q, want about seven days from now", until)
+	}
+}
+
+// postRestoreWithKey uploads archive with the app key of the instance that
+// made it.
+func postRestoreWithKey(t *testing.T, url string, archive []byte, key string) (int, []byte) {
+	t.Helper()
+	var buf bytes.Buffer
+	mw := multipart.NewWriter(&buf)
+	if err := mw.WriteField("appKey", key); err != nil {
+		t.Fatal(err)
+	}
+	fw, err := mw.CreateFormFile("file", "backup.zip.sealed")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := fw.Write(archive); err != nil {
+		t.Fatal(err)
+	}
+	if err := mw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	resp, err := http.Post(url, mw.FormDataContentType(), &buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	return resp.StatusCode, body
+}
+
+func TestASealedBackupRestoresElsewhereWithItsKeyGiven(t *testing.T) {
+	t.Parallel()
+	a, srv := backupServer(t)
+	a.AppKey = newAppKey(t)
+	_, archive := downloadArchive(t, srv.URL)
+
+	for name, key := range map[string]*appkey.Key{"another key": newAppKey(t), "no key": nil} {
+		b, other := backupServer(t)
+		b.AppKey = key
+		if status, body := postRestoreWithKey(t, other.URL+"/api/system/restore", archive, a.AppKey.Hex()); status != http.StatusAccepted {
+			t.Errorf("%s: restore with the source's key = %d %s", name, status, body)
+		}
+	}
+
+	_, other := backupServer(t)
+	status, body := postRestoreWithKey(t, other.URL+"/api/system/restore", archive, "not a key")
+	if status != http.StatusBadRequest || !strings.Contains(string(body), "restore.appKeyInvalid") {
+		t.Errorf("a key that does not parse = %d %s, want restore.appKeyInvalid", status, body)
 	}
 }

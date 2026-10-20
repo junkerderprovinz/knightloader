@@ -19,6 +19,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/keepawake"
@@ -51,6 +52,13 @@ func main() {
 	key, err := loadAppKey(osKeyStore{}, dataDir)
 	if err != nil {
 		log.Fatalf("start: %v", err)
+	}
+	// A restore uploaded in the window waits for this start; see internal/backup.
+	if applied, manifest, err := backup.ApplyPending(dataDir, key); err != nil {
+		log.Printf("a staged restore could not be fully applied (%v); starting with the data already on disk", err)
+	} else if applied {
+		log.Printf("restored from a backup made by %s (%s build) on %s",
+			manifest.Version, manifest.Deployment, manifest.CreatedAt.Format(time.RFC3339))
 	}
 	a, err := app.NewWithKey(dataDir, key)
 	if err != nil {

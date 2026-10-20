@@ -112,7 +112,7 @@ func TestARestoreBringsNoTriggerOrViewAlong(t *testing.T) {
 	if n := schemaCode(t, staged); n != 0 {
 		t.Fatalf("the staged database still has %d triggers or views", n)
 	}
-	if _, _, err := ApplyPending(dataDir); err != nil {
+	if _, _, err := ApplyPending(dataDir, nil); err != nil {
 		t.Fatalf("ApplyPending: %v", err)
 	}
 	live := filepath.Join(dataDir, dbEntry)
@@ -149,7 +149,7 @@ func TestApplyingAnUnstrippedRestoreStripsIt(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if _, _, err := ApplyPending(dataDir); err != nil {
+	if _, _, err := ApplyPending(dataDir, nil); err != nil {
 		t.Fatalf("ApplyPending: %v", err)
 	}
 	live := filepath.Join(dataDir, dbEntry)
@@ -180,7 +180,7 @@ func TestARestoreKeepsTheRunningServersPasskeys(t *testing.T) {
 	if ids := passkeyIDs(t, filepath.Join(dataDir, pendingDirName, dbEntry)); len(ids) != 0 {
 		t.Errorf("the staged database carries the backup's passkeys %v", ids)
 	}
-	if _, _, err := ApplyPending(dataDir); err != nil {
+	if _, _, err := ApplyPending(dataDir, nil); err != nil {
 		t.Fatalf("ApplyPending: %v", err)
 	}
 	ids := passkeyIDs(t, filepath.Join(dataDir, dbEntry))
