@@ -114,7 +114,7 @@ func TestAFolderThatHoldsTheDataFolderIsRefused(t *testing.T) {
 		}
 	}
 	for _, f := range folderFields {
-		if f.inData {
+		if f.backupTo {
 			// The backup folder; see TestABackupFolderInsideTheDataFolderIsAllowed.
 			continue
 		}
@@ -164,7 +164,7 @@ func TestCheckFoldersRefusesEveryFolderInTheDataFolder(t *testing.T) {
 	data := dataFolder(t)
 	inside := filepath.Join(data, "tools")
 	for _, f := range folderFields {
-		if f.inData {
+		if f.backupTo {
 			// The backup folder; see TestABackupFolderInsideTheDataFolderIsAllowed.
 			continue
 		}

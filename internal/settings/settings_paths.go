@@ -84,12 +84,13 @@ func (p *PathProblem) Unwrap() error { return p.Err }
 // since every download writes there. The others only have to be absolute, the
 // rule sanitize holds them to. The first job that writes into one of these
 // folders creates it, except the watch folder, which nothing writes into: the
-// watcher polls it until somebody creates it. The backup folder alone may lie
-// in the data folder, where its default is.
+// watcher polls it until somebody creates it. The backup folder has a check
+// of its own (checkBackupDir) and may lie in the data folder, where its
+// default is.
 var folderFields = []struct {
-	key, what               string
-	get                     func(Settings) string
-	probe, template, inData bool
+	key, what                 string
+	get                       func(Settings) string
+	probe, template, backupTo bool
 }{
 	{"downloadDir", "the download folder", func(s Settings) string { return s.DownloadDir }, true, false, false},
 	{"workDir", "the working folder", func(s Settings) string { return s.WorkDir }, true, false, false},
@@ -112,11 +113,13 @@ func CheckFolders(dataDir string, s Settings, named func(key string) bool) error
 		dir := strings.TrimSpace(f.get(s))
 		var err error
 		switch {
+		case f.backupTo:
+			err = checkBackupDir(f.what, dir)
 		case f.probe:
 			err = Validate(dataDir, f.what, dir)
 		case relative(dir, f.template):
 			err = &PathProblem{What: f.what, Code: "notAbsolute", Dir: dir}
-		case !f.inData:
+		default:
 			err = dataFolderProblem(dataDir, f.what, dir)
 		}
 		if err != nil {

@@ -22,7 +22,7 @@ func TestARelativeFolderIsRefusedAndTheStoredOneKept(t *testing.T) {
 		t.Fatalf("an absolute watch folder answered %d: %s", code, msg)
 	}
 
-	for _, field := range []string{"watchDir", "downloadDir", "workDir", "extractTo", "extractMoveTo"} {
+	for _, field := range []string{"watchDir", "downloadDir", "workDir", "extractTo", "extractMoveTo", "backupDir"} {
 		code, _, msg := patchSettings(t, srv.URL, fmt.Sprintf(`{%q:"C:"}`, field))
 		if code != http.StatusBadRequest {
 			t.Errorf("%s = \"C:\" answered %d, want it refused", field, code)
@@ -208,5 +208,38 @@ func TestARenameIntoTheDataFolderIsRefusedWithItsCode(t *testing.T) {
 	_ = json.Unmarshal(body, &refusal)
 	if code != http.StatusBadRequest || refusal.Code != "dataFolder" || refusal.Params["name"] != name {
 		t.Errorf("renaming the package after the data folder answered %d %s, want 400 with code dataFolder and the name", code, body)
+	}
+}
+
+// A backup folder the process cannot make is refused at its field, and the
+// check leaves nothing on the disk for a folder it could make.
+func TestABackupFolderIsTriedOnTheDiskWhenSaved(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	blocker := filepath.Join(t.TempDir(), "file")
+	if err := os.WriteFile(blocker, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	code, _, msg := patchSettings(t, srv.URL, fmt.Sprintf(`{"backupDir":%q}`, filepath.Join(blocker, "backups")))
+	var body struct {
+		Field string `json:"field"`
+		Code  string `json:"code"`
+	}
+	_ = json.Unmarshal([]byte(msg), &body)
+	if code != http.StatusBadRequest || body.Field != "backupDir" || body.Code != "pathProblem.cannotCreate" {
+		t.Errorf("a backup folder under a file answered %d %s", code, msg)
+	}
+
+	root := t.TempDir()
+	good := filepath.Join(root, "backups")
+	if code, _, msg := patchSettings(t, srv.URL, fmt.Sprintf(`{"backupDir":%q}`, good)); code != http.StatusOK {
+		t.Fatalf("a backup folder that can be made answered %d: %s", code, msg)
+	}
+	if got := a.Settings.Get().BackupDir; got != good {
+		t.Errorf("stored backup folder = %q, want %q", got, good)
+	}
+	if entries, _ := os.ReadDir(root); len(entries) != 0 {
+		t.Errorf("saving left %v on the disk", entries)
 	}
 }

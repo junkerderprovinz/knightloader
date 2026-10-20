@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -33,4 +34,32 @@ func sanitizeBackup(n Settings) Settings {
 		n.BackupDir = ""
 	}
 	return n
+}
+
+// checkBackupDir refuses a backup folder that is not absolute, cannot be made
+// or cannot be written, which it finds out by making the folder and writing a
+// probe file into it. What the check made is removed again, since the settings
+// page saves while a path is still being typed; the first backup makes the
+// folder for good. Empty is the default folder and always passes.
+func checkBackupDir(what, dir string) error {
+	if dir == "" {
+		return nil
+	}
+	if !filepath.IsAbs(dir) {
+		return &PathProblem{What: what, Code: "notAbsolute", Dir: dir}
+	}
+	existing := nearestExisting(dir)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return &PathProblem{What: what, Code: "cannotCreate", Dir: dir, Err: err}
+	}
+	defer func() {
+		for d := dir; d != existing; d = filepath.Dir(d) {
+			os.Remove(d)
+		}
+	}()
+	probe := filepath.Join(dir, WriteProbeName)
+	if err := os.WriteFile(probe, []byte("ok"), 0o600); err != nil {
+		return &PathProblem{What: what, Code: "cannotWrite", Dir: dir, Err: err}
+	}
+	return os.Remove(probe)
 }
