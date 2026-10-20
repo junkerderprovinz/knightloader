@@ -116,3 +116,27 @@ func TestAReadOnlyBackupFolderIsRefused(t *testing.T) {
 		t.Errorf("CheckFolders = %v, want backupDir refused as not writable", err)
 	}
 }
+
+// A path that climbs out of folders it names is checked as the folder it
+// leads to, so the clean-up takes out neither that folder nor leaves the
+// climbed ones behind.
+func TestABackupFolderWithDotDotIsCheckedWhereItLeads(t *testing.T) {
+	root := t.TempDir()
+	empty := filepath.Join(root, "empty")
+	if err := os.Mkdir(empty, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	dir := filepath.Join(root, "x", "y") + string(filepath.Separator) + filepath.Join("..", "..", "empty")
+	if err := CheckFolders(t.TempDir(), Settings{BackupDir: dir}, nil); err != nil {
+		t.Fatalf("CheckFolders refused %s: %v", dir, err)
+	}
+	if _, err := os.Stat(empty); err != nil {
+		t.Errorf("the check removed the folder the path leads to: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "x")); !os.IsNotExist(err) {
+		t.Errorf("the check left the climbed folders behind: %v", err)
+	}
+	if got := sanitize(Settings{BackupDir: dir}).BackupDir; got != empty {
+		t.Errorf("the folder is stored as %q, want %q", got, empty)
+	}
+}

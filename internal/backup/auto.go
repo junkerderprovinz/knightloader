@@ -106,15 +106,14 @@ func NextAuto(files []AutoFile, intervalDays int) time.Time {
 	return files[0].CreatedAt.AddDate(0, 0, intervalDays)
 }
 
-// WriteAuto writes the automatic backup made at t into dir. write gets the
-// file to write the archive to and scratch, an unused path in dir for the
-// database snapshot.
+// WriteAuto writes the automatic backup made at t into dir, from what write
+// writes to the file it is given.
 //
 // The archive is renamed to its real name only once it is complete and
 // synced, so a failed or killed run never leaves a file that looks finished,
 // and whatever such a run left is removed first. It carries every secret in
 // the settings, so like settings.json only this account can read it.
-func WriteAuto(dir string, t time.Time, sealed bool, write func(w io.Writer, scratch string) error) (AutoFile, error) {
+func WriteAuto(dir string, t time.Time, sealed bool, write func(w io.Writer) error) (AutoFile, error) {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return AutoFile{}, fmt.Errorf("backup: could not create %s: %w", dir, err)
 	}
@@ -124,14 +123,12 @@ func WriteAuto(dir string, t time.Time, sealed bool, write func(w io.Writer, scr
 	name := AutoName(t, sealed)
 	final := filepath.Join(dir, name)
 	tmp := filepath.Join(dir, "."+name+tempSuffix)
-	scratch := filepath.Join(dir, "."+autoPrefix+t.UTC().Format(autoStamp)+".db"+tempSuffix)
-	defer os.Remove(scratch)
 
 	f, err := os.OpenFile(tmp, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		return AutoFile{}, fmt.Errorf("backup: could not create %s: %w", tmp, err)
 	}
-	err = write(f, scratch)
+	err = write(f)
 	if err == nil {
 		err = f.Sync()
 	}

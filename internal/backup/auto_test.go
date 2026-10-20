@@ -34,7 +34,7 @@ func names(dir string) []string {
 	return out
 }
 
-func writeArchive(w io.Writer, _ string) error {
+func writeArchive(w io.Writer) error {
 	_, err := w.Write([]byte("archive"))
 	return err
 }
@@ -165,22 +165,12 @@ func TestARestartBeforeTheIntervalMakesNoExtraBackup(t *testing.T) {
 
 func TestWriteAutoLeavesOnlyTheFinishedArchive(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), AutoDirName)
-	var scratch string
-	file, err := WriteAuto(dir, at(0), true, func(w io.Writer, s string) error {
-		scratch = s
-		if err := os.WriteFile(s, []byte("snapshot"), 0o600); err != nil {
-			return err
-		}
-		return writeArchive(w, s)
-	})
+	file, err := WriteAuto(dir, at(0), true, writeArchive)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if file.Name != AutoName(at(0), true) || file.Bytes != int64(len("archive")) {
 		t.Errorf("WriteAuto = %+v", file)
-	}
-	if filepath.Dir(scratch) != dir {
-		t.Errorf("the scratch path %s is outside the backup folder", scratch)
 	}
 	if got := names(dir); !slices.Equal(got, []string{file.Name}) {
 		t.Errorf("the folder holds %v, want only %s", got, file.Name)
@@ -195,10 +185,7 @@ func TestAFailedWriteLeavesNoArchiveBehind(t *testing.T) {
 	dir := t.TempDir()
 	touch(t, dir, AutoName(at(-1), false))
 	boom := errors.New("disk full")
-	_, err := WriteAuto(dir, at(0), false, func(w io.Writer, s string) error {
-		if err := os.WriteFile(s, []byte("snapshot"), 0o600); err != nil {
-			return err
-		}
+	_, err := WriteAuto(dir, at(0), false, func(w io.Writer) error {
 		if _, err := w.Write([]byte("half an arch")); err != nil {
 			return err
 		}

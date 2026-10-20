@@ -30,8 +30,12 @@ func sanitizeBackup(n Settings) Settings {
 	n.BackupIntervalDays = min(max(n.BackupIntervalDays, 1), maxBackupIntervalDays)
 	n.BackupKeep = min(max(n.BackupKeep, 1), maxBackupKeep)
 	n.BackupDir = strings.TrimSpace(n.BackupDir)
-	if n.BackupDir != "" && !filepath.IsAbs(n.BackupDir) {
+	switch {
+	case n.BackupDir == "":
+	case !filepath.IsAbs(n.BackupDir):
 		n.BackupDir = ""
+	default:
+		n.BackupDir = filepath.Clean(n.BackupDir)
 	}
 	return n
 }
@@ -48,6 +52,9 @@ func checkBackupDir(what, dir string) error {
 	if !filepath.IsAbs(dir) {
 		return &PathProblem{What: what, Code: "notAbsolute", Dir: dir}
 	}
+	// Cleaned, or the walk back below would stop short of a folder ".."
+	// climbed out of and take out one it leads to.
+	dir = filepath.Clean(dir)
 	existing := nearestExisting(dir)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return &PathProblem{What: what, Code: "cannotCreate", Dir: dir, Err: err}
