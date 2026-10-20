@@ -47,9 +47,17 @@ const (
 	manifestEntry = "manifest.json"
 )
 
-// MaxUploadBytes bounds an uploaded bundle, and each entry read from one. An
-// install with years of history is a few megabytes.
+// MaxUploadBytes bounds an uploaded bundle, and everything read out of one
+// together. An install with years of history is a few megabytes.
 const MaxUploadBytes = 512 << 20
+
+// The bounds of single entries, since the size an uploaded entry declares
+// cannot be trusted (a decompression bomb). The database takes what is left
+// of MaxUploadBytes and is read to a file rather than into memory.
+const (
+	maxSettingsBytes  = 16 << 20
+	maxStateFileBytes = 4 << 20
+)
 
 const (
 	// pendingDirName is where a validated restore waits for the next
@@ -65,6 +73,10 @@ const (
 	// previousDirName holds the live files a restore replaces until every new
 	// one is in place, so a failed swap can put them back.
 	previousDirName = "restore-previous"
+	// pendingArchive is the one file in pendingDirName: the validated bundle,
+	// sealed with the instance's key when it has one, since it holds every
+	// secret of the backup in the clear.
+	pendingArchive = "archive"
 )
 
 // Manifest identifies one bundle: what build made it and when.
@@ -138,34 +150,79 @@ func writeEntry(zw *zip.Writer, name string, data []byte) error {
 }
 
 // Stage validates an uploaded bundle and, once every check has passed, writes
-// it into dataDir for ApplyPending. Nothing under dataDir is touched before
-// that final step.
+// it into dataDir for ApplyPending, sealed with key. Nothing under dataDir is
+// touched before that final step.
 //
 // A bundle made by a newer version than runningVersion is refused. The
 // comparison is skipped when either side is not a release version, such as
 // "dev".
-func Stage(dataDir string, zipBytes []byte, runningVersion string) (Manifest, error) {
+func Stage(dataDir string, zipBytes []byte, runningVersion string, key *appkey.Key) (Manifest, error) {
 	u, err := validate(zipBytes, runningVersion)
 	if err != nil {
 		return Manifest{}, err
 	}
-	if err := stageFiles(dataDir, u.settings, u.db, u.manifest, u.files); err != nil {
+	if err := stageArchive(dataDir, u, key); err != nil {
 		return Manifest{}, err
 	}
 	return u.manifest, nil
 }
 
+// What a restore does with the login, as Check reports it.
+const (
+	// LoginRestored is the backup's password replacing this instance's.
+	LoginRestored = "restored"
+	// LoginKept is this instance keeping its own password, because the backup
+	// has none it could check.
+	LoginKept = "kept"
+	// LoginNone is an instance without a password after the restore: neither
+	// side has one it could check.
+	LoginNone = "none"
+)
+
+// Report is what Check finds in an upload.
+type Report struct {
+	Manifest Manifest `json:"manifest"`
+	// Paired is whether the instance the backup was made on was in a pairing
+	// group, whose identity the restore takes over.
+	Paired bool `json:"paired"`
+	// Login is LoginRestored, LoginKept or LoginNone.
+	Login string `json:"login"`
+}
+
 // Check validates an uploaded bundle as Stage does and writes nothing, so a
-// restore can be confirmed knowing what it brings. paired reports whether the
-// instance it was made on was in a pairing group, whose identity the restore
-// takes over.
-func Check(zipBytes []byte, runningVersion string) (manifest Manifest, paired bool, err error) {
+// restore can be confirmed knowing what it brings. key and livePassword are
+// the instance's app key and whether it has a login password.
+func Check(zipBytes []byte, runningVersion string, key *appkey.Key, livePassword bool) (Report, error) {
 	u, err := validate(zipBytes, runningVersion)
 	if err != nil {
-		return Manifest{}, false, err
+		return Report{}, err
+	}
+	login, err := loginOutcome(u.files[auth.FileName], u.manifest.KeyID, key, livePassword)
+	if err != nil {
+		return Report{}, err
 	}
 	group, ok := u.files["group.json"]
-	return u.manifest, ok && federation.GroupJoined(group), nil
+	return Report{Manifest: u.manifest, Paired: ok && federation.GroupJoined(group), Login: login}, nil
+}
+
+// loginOutcome decides what a restore does with the login, from the backup's
+// auth.json (nil when it has none). A password only replaces this instance's
+// when it can be checked here, and no password never replaces one, which
+// would leave the instance open to whoever reaches it.
+func loginOutcome(state []byte, keyID string, key *appkey.Key, livePassword bool) (string, error) {
+	if state != nil {
+		set, needsKey, err := auth.PasswordIn(state)
+		if err != nil {
+			return "", err
+		}
+		if set && (!needsKey || keyID == key.ID()) {
+			return LoginRestored, nil
+		}
+	}
+	if livePassword {
+		return LoginKept, nil
+	}
+	return LoginNone, nil
 }
 
 // upload is a bundle that passed every check.
@@ -180,8 +237,9 @@ func validate(zipBytes []byte, runningVersion string) (upload, error) {
 	if err != nil {
 		return upload{}, fmt.Errorf("this is not a valid backup archive: %w", err)
 	}
+	budget := int64(MaxUploadBytes)
 
-	manifestRaw, err := readEntry(zr, manifestEntry)
+	manifestRaw, err := readEntry(zr, manifestEntry, maxStateFileBytes, &budget)
 	if err != nil {
 		return upload{}, err
 	}
@@ -190,7 +248,7 @@ func validate(zipBytes []byte, runningVersion string) (upload, error) {
 		return upload{}, fmt.Errorf("the backup's manifest.json is not readable: %w", err)
 	}
 
-	settingsRaw, err := readEntry(zr, settingsEntry)
+	settingsRaw, err := readEntry(zr, settingsEntry, maxSettingsBytes, &budget)
 	if err != nil {
 		return upload{}, err
 	}
@@ -201,14 +259,11 @@ func validate(zipBytes []byte, runningVersion string) (upload, error) {
 		return upload{}, fmt.Errorf("the backup's settings.json does not match this build's settings shape: %w", err)
 	}
 
-	dbRaw, err := readEntry(zr, dbEntry)
+	dbRaw, err := cleanDatabase(zr, budget)
 	if err != nil {
 		return upload{}, err
 	}
-	dbRaw, err = cleanDatabase(dbRaw)
-	if err != nil {
-		return upload{}, err
-	}
+	budget -= int64(len(dbRaw))
 
 	if semver.IsValid(manifest.Version) && semver.IsValid(runningVersion) &&
 		semver.Compare(manifest.Version, runningVersion) > 0 {
@@ -217,41 +272,62 @@ func validate(zipBytes []byte, runningVersion string) (upload, error) {
 				"upgrade the server first, then restore", manifest.Version, runningVersion)
 	}
 
-	files, err := readStateFiles(zr, manifest.Files)
+	files, err := readStateFiles(zr, manifest.Files, &budget)
 	if err != nil {
 		return upload{}, err
 	}
+
 	return upload{manifest: manifest, settings: settingsRaw, db: dbRaw, files: files}, nil
 }
 
-// readEntry reads one zip entry, bounded by MaxUploadBytes because the
-// declared size of an uploaded entry cannot be trusted (a decompression
-// bomb).
-func readEntry(zr *zip.Reader, name string) ([]byte, error) {
+// readEntry reads one zip entry of at most limit bytes and takes it off
+// budget, the uncompressed bytes the whole upload may still yield.
+func readEntry(zr *zip.Reader, name string, limit int64, budget *int64) ([]byte, error) {
 	f, err := zr.Open(name)
 	if err != nil {
 		return nil, fmt.Errorf("the backup is missing %s; it is not one this build can restore from", name)
 	}
 	defer f.Close()
-	b, err := io.ReadAll(io.LimitReader(f, MaxUploadBytes))
+	limit = min(limit, *budget)
+	b, err := io.ReadAll(io.LimitReader(f, limit+1))
 	if err != nil {
 		return nil, fmt.Errorf("could not read %s from the backup: %w", name, err)
 	}
+	if int64(len(b)) > limit {
+		return nil, fmt.Errorf("the backup's %s is larger than this build takes", name)
+	}
+	*budget -= int64(len(b))
 	return b, nil
 }
 
-// cleanDatabase opens raw as a standalone SQLite file, checks that it passes
-// SQLite's integrity check and has a tasks table, and returns it stripped (see
-// stripDatabase).
-func cleanDatabase(raw []byte) ([]byte, error) {
+// cleanDatabase writes the upload's database to a file of its own, at most
+// limit bytes, checks that it passes SQLite's integrity check and has a tasks
+// table, and returns it stripped (see stripDatabase).
+func cleanDatabase(zr *zip.Reader, limit int64) ([]byte, error) {
+	f, err := zr.Open(dbEntry)
+	if err != nil {
+		return nil, fmt.Errorf("the backup is missing %s; it is not one this build can restore from", dbEntry)
+	}
+	defer f.Close()
 	dir, err := os.MkdirTemp("", "kl-restore-validate-")
 	if err != nil {
 		return nil, fmt.Errorf("backup: could not stage a copy to validate: %w", err)
 	}
 	defer os.RemoveAll(dir)
 	path := filepath.Join(dir, dbEntry)
-	if err := os.WriteFile(path, raw, 0o600); err != nil {
+	out, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+	if err != nil {
 		return nil, fmt.Errorf("backup: could not stage a copy to validate: %w", err)
+	}
+	n, err := io.Copy(out, io.LimitReader(f, limit+1))
+	if cerr := out.Close(); err == nil {
+		err = cerr
+	}
+	if err != nil {
+		return nil, fmt.Errorf("could not read %s from the backup: %w", dbEntry, err)
+	}
+	if n > limit {
+		return nil, fmt.Errorf("the backup's %s is larger than this build takes", dbEntry)
 	}
 	if err := checkDatabase(path); err != nil {
 		return nil, err
@@ -445,37 +521,44 @@ func leadingWords(stmt string, n int) []string {
 	return words
 }
 
-// stageFiles writes the restore into a fresh staging directory and commits it
-// with one rename. A restore staged earlier and not yet applied is replaced.
-func stageFiles(dataDir string, settingsRaw, dbRaw []byte, manifest Manifest, files map[string][]byte) error {
+// stageArchive writes the validated bundle, sealed with key, into a fresh
+// staging directory and commits it with one rename. A restore staged earlier
+// and not yet applied is replaced.
+func stageArchive(dataDir string, u upload, key *appkey.Key) error {
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	mf, err := json.MarshalIndent(u.manifest, "", "  ")
+	if err != nil {
+		return fmt.Errorf("backup: could not stage the manifest: %w", err)
+	}
+	entries := map[string][]byte{manifestEntry: mf, settingsEntry: u.settings, dbEntry: u.db}
+	maps.Copy(entries, u.files)
+	for _, name := range slices.Sorted(maps.Keys(entries)) {
+		if err := writeEntry(zw, name, entries[name]); err != nil {
+			return err
+		}
+	}
+	if err := zw.Close(); err != nil {
+		return fmt.Errorf("backup: could not stage the restore: %w", err)
+	}
+	archive := buf.Bytes()
+	if key != nil {
+		if archive, err = Seal(key, archive); err != nil {
+			return fmt.Errorf("backup: could not seal the staged restore: %w", err)
+		}
+	}
+
 	staging := filepath.Join(dataDir, stagingDirName)
 	final := filepath.Join(dataDir, pendingDirName)
-
 	if err := os.RemoveAll(staging); err != nil {
 		return fmt.Errorf("backup: could not clear a previous staging attempt: %w", err)
 	}
 	if err := os.MkdirAll(staging, 0o700); err != nil {
 		return fmt.Errorf("backup: could not prepare to stage the restore: %w", err)
 	}
-	if err := os.WriteFile(filepath.Join(staging, settingsEntry), settingsRaw, 0o600); err != nil {
-		return fmt.Errorf("backup: could not stage %s: %w", settingsEntry, err)
+	if err := os.WriteFile(filepath.Join(staging, pendingArchive), archive, 0o600); err != nil {
+		return fmt.Errorf("backup: could not stage the restore: %w", err)
 	}
-	if err := os.WriteFile(filepath.Join(staging, dbEntry), dbRaw, 0o644); err != nil {
-		return fmt.Errorf("backup: could not stage %s: %w", dbEntry, err)
-	}
-	mf, err := json.MarshalIndent(manifest, "", "  ")
-	if err != nil {
-		return fmt.Errorf("backup: could not stage the manifest: %w", err)
-	}
-	if err := os.WriteFile(filepath.Join(staging, manifestEntry), mf, 0o644); err != nil {
-		return fmt.Errorf("backup: could not stage %s: %w", manifestEntry, err)
-	}
-	for name, b := range files {
-		if err := os.WriteFile(filepath.Join(staging, name), b, 0o600); err != nil {
-			return fmt.Errorf("backup: could not stage %s: %w", name, err)
-		}
-	}
-
 	if err := os.RemoveAll(final); err != nil {
 		return fmt.Errorf("backup: could not replace a previously staged restore: %w", err)
 	}
@@ -507,7 +590,11 @@ func ApplyPending(dataDir string, key *appkey.Key) (applied bool, manifest Manif
 		return false, Manifest{}, fmt.Errorf("restore: could not put back the files of an interrupted restore: %w", err)
 	}
 
-	if mf, readErr := os.ReadFile(filepath.Join(pending, manifestEntry)); readErr == nil {
+	staged, err := openPending(pending, key)
+	if err != nil {
+		return false, Manifest{}, fmt.Errorf("restore: %w", err)
+	}
+	if mf, readErr := readStaged(staged, manifestEntry); readErr == nil {
 		_ = json.Unmarshal(mf, &manifest) // a broken manifest must not block the restore
 	}
 	if err := checkStateNames(manifest.Files); err != nil {
@@ -516,7 +603,7 @@ func ApplyPending(dataDir string, key *appkey.Key) (applied bool, manifest Manif
 
 	ready := filepath.Join(dataDir, readyDirName)
 	defer os.RemoveAll(ready)
-	install, remove, err := prepare(pending, ready, dataDir, key, manifest)
+	install, remove, err := prepare(staged, ready, dataDir, key, manifest)
 	if err != nil {
 		return false, manifest, fmt.Errorf("restore: could not prepare the staged files: %w", err)
 	}
@@ -532,16 +619,42 @@ func ApplyPending(dataDir string, key *appkey.Key) (applied bool, manifest Manif
 	return true, manifest, nil
 }
 
-// prepare copies the staged files into ready and seals them there with key,
+// openPending opens the archive Stage left in pending.
+func openPending(pending string, key *appkey.Key) (*zip.Reader, error) {
+	b, err := os.ReadFile(filepath.Join(pending, pendingArchive))
+	if err != nil {
+		return nil, fmt.Errorf("could not read the staged restore: %w", err)
+	}
+	if b, err = Unseal(b, key); err != nil {
+		return nil, fmt.Errorf("the staged restore does not open with this instance's app key: %w", err)
+	}
+	zr, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
+	if err != nil {
+		return nil, fmt.Errorf("the staged restore is damaged: %w", err)
+	}
+	return zr, nil
+}
+
+// readStaged reads an entry of the staged archive, which Stage has already
+// bounded and checked.
+func readStaged(zr *zip.Reader, name string) ([]byte, error) {
+	f, err := zr.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return io.ReadAll(f)
+}
+
+// prepare writes the staged files into ready and seals them there with key,
 // each through its own package's open, and returns the names to put in place
 // and the live ones to remove.
 //
-// The database is stripped again, for a restore staged by a build that did
-// not strip it, brought to this build's schema, and given the live database's
-// passkeys in place of its own: the passkeys of the running server stay. So
-// does its login when the backup's password was set under another app key,
-// which this instance could never check.
-func prepare(pending, ready, dataDir string, key *appkey.Key, manifest Manifest) (install, remove []string, err error) {
+// The database is stripped again and brought to this build's schema, and
+// given the live database's passkeys in place of its own: the passkeys of the
+// running server stay. Its login stays too unless the backup brings a
+// password this instance can check (see loginOutcome).
+func prepare(staged *zip.Reader, ready, dataDir string, key *appkey.Key, manifest Manifest) (install, remove []string, err error) {
 	if err := os.RemoveAll(ready); err != nil {
 		return nil, nil, err
 	}
@@ -549,14 +662,17 @@ func prepare(pending, ready, dataDir string, key *appkey.Key, manifest Manifest)
 		return nil, nil, err
 	}
 	for _, name := range append([]string{dbEntry, settingsEntry}, manifest.Files...) {
-		err := copyTo(filepath.Join(pending, name), filepath.Join(ready, name), 0o600)
+		b, err := readStaged(staged, name)
 		switch {
 		case err == nil:
+			if err := os.WriteFile(filepath.Join(ready, name), b, 0o600); err != nil {
+				return nil, nil, err
+			}
 			install = append(install, name)
 		case errors.Is(err, fs.ErrNotExist) && name != dbEntry && name != settingsEntry:
 			remove = append(remove, name)
 		default:
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("%s: %w", name, err)
 		}
 	}
 
@@ -566,18 +682,35 @@ func prepare(pending, ready, dataDir string, key *appkey.Key, manifest Manifest)
 	if _, err := settings.LoadWithKey(ready, key); err != nil {
 		return nil, nil, err
 	}
-	if state, err := os.ReadFile(filepath.Join(ready, auth.FileName)); err == nil {
-		needsKey, err := auth.HashNeedsItsKey(state)
-		if err != nil {
-			return nil, nil, err
-		}
-		if needsKey && manifest.KeyID != key.ID() {
-			log.Print("restore: the login password in the backup was set under another app key and cannot be checked here, so this instance keeps its own login")
-			install = slices.DeleteFunc(install, func(n string) bool { return n == auth.FileName })
-		} else if _, err := auth.OpenWithKey(ready, key); err != nil {
-			return nil, nil, err
-		}
+
+	state, err := os.ReadFile(filepath.Join(ready, auth.FileName))
+	if errors.Is(err, fs.ErrNotExist) {
+		state, err = nil, nil
 	}
+	if err != nil {
+		return nil, nil, err
+	}
+	livePassword, err := auth.HasPassword(dataDir, key)
+	if err != nil {
+		return nil, nil, err
+	}
+	login, err := loginOutcome(state, manifest.KeyID, key, livePassword)
+	if err != nil {
+		return nil, nil, err
+	}
+	if login == LoginRestored {
+		if _, err := auth.OpenWithKey(ready, key); err != nil {
+			return nil, nil, err
+		}
+	} else {
+		if state != nil && login == LoginKept {
+			log.Print("restore: the backup brings no login password this instance can check, so it keeps its own")
+		}
+		notLogin := func(n string) bool { return n == auth.FileName }
+		install = slices.DeleteFunc(install, notLogin)
+		remove = slices.DeleteFunc(remove, notLogin)
+	}
+
 	if _, err := os.Stat(filepath.Join(ready, accounts.KeyringName)); err == nil {
 		if _, err := accounts.OpenWithKey(ready, key); err != nil {
 			return nil, nil, err
@@ -682,27 +815,4 @@ func undoSwap(dataDir string) error {
 		}
 	}
 	return os.RemoveAll(prev)
-}
-
-func copyTo(src, dst string, mode fs.FileMode) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-
-	out, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
-	if err != nil {
-		return err
-	}
-	if _, err := io.Copy(out, in); err != nil {
-		out.Close()
-		os.Remove(dst)
-		return err
-	}
-	if err := out.Close(); err != nil {
-		os.Remove(dst)
-		return err
-	}
-	return nil
 }

@@ -490,6 +490,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	if err := keepCopiesBeforeSealing(dataDir, key); err != nil {
 		return nil, err
 	}
+	removeBackupSnapshots(dataDir)
 	st, err := store.OpenWithKey(filepath.Join(dataDir, "knightloader.db"), key)
 	if err != nil {
 		return nil, err

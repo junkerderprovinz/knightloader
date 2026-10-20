@@ -57,17 +57,17 @@ func registerBackup(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/system/restore/check",
-		"validate an uploaded backup without staging it, and say whether it comes from an instance in a pairing group",
+		"validate an uploaded backup without staging it, and say whether it comes from an instance in a pairing group and what becomes of the login",
 		func(w http.ResponseWriter, r *http.Request) {
 			data, ok := readUpload(w, r, a)
 			if !ok {
 				return
 			}
-			manifest, paired, err := backup.Check(data, buildinfo.Version)
+			report, err := backup.Check(data, buildinfo.Version, a.AppKey, a.Auth.Enabled())
 			if !refuseStage(w, err) {
 				return
 			}
-			writeJSON(w, map[string]any{"manifest": manifest, "paired": paired})
+			writeJSON(w, report)
 		})
 
 	reg.Add(http.MethodPost, "/api/system/restore",
@@ -78,24 +78,14 @@ func registerBackup(reg *Registry, a *app.App) {
 }
 
 func downloadBackup(w http.ResponseWriter, a *app.App) {
-	// A folder of this account's alone, since the snapshot holds the task
-	// passwords in the clear. BackupTo makes the file and refuses one that
-	// already exists.
-	tmpDir, err := os.MkdirTemp("", "kl-backup-")
-	if err != nil {
-		http.Error(w, "could not prepare the backup", http.StatusInternalServerError)
-		return
-	}
-	defer os.RemoveAll(tmpDir)
-	tmpPath := filepath.Join(tmpDir, "knightloader.db")
-
 	// Unredacted. Unlike GET /api/settings this is never served to a page on
 	// load, only to a session that asked for the download.
-	parts, err := a.PrepareBackup(tmpPath)
+	parts, err := a.PrepareBackup()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer parts.Discard()
 
 	filename := fmt.Sprintf("knightloader-backup-%s.zip", time.Now().UTC().Format("20060102-150405"))
 	if a.AppKey != nil {
@@ -212,7 +202,7 @@ func uploadRestore(w http.ResponseWriter, r *http.Request, a *app.App) {
 	if !ok {
 		return
 	}
-	manifest, err := backup.Stage(a.DataDir, data, buildinfo.Version)
+	manifest, err := backup.Stage(a.DataDir, data, buildinfo.Version, a.AppKey)
 	if !refuseStage(w, err) {
 		return
 	}

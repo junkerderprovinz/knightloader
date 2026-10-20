@@ -39,8 +39,10 @@ func liveInstance(t *testing.T, apiKey, password string) (string, map[string][]b
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := g.SetPassword("", password); err != nil {
-		t.Fatal(err)
+	if password != "" {
+		if err := g.SetPassword("", password); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if err := os.WriteFile(filepath.Join(dir, "scripts.json"), []byte(`[]`), 0o600); err != nil {
 		t.Fatal(err)
@@ -103,7 +105,7 @@ func archiveOfInstance(t *testing.T, dir string) []byte {
 func TestARestoreBringsTheAccountsAndTheLoginAlong(t *testing.T) {
 	source, _ := liveInstance(t, "source-key", "source-password")
 	target, _ := liveInstance(t, "target-key", "target-password")
-	if _, err := Stage(target, archiveOfInstance(t, source), "v1.2.3"); err != nil {
+	if _, err := Stage(target, archiveOfInstance(t, source), "v1.2.3", nil); err != nil {
 		t.Fatal(err)
 	}
 	if applied, _, err := ApplyPending(target, nil); err != nil || !applied {
@@ -142,7 +144,7 @@ func TestAStateFileTheBackupLacksIsRemoved(t *testing.T) {
 	if err := Build(&archive, manifest, testSettingsJSON(t), snapshotDB(t, filepath.Join(source, dbEntry)), files); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Stage(target, archive.Bytes(), "v1.2.3"); err != nil {
+	if _, err := Stage(target, archive.Bytes(), "v1.2.3", nil); err != nil {
 		t.Fatal(err)
 	}
 	if _, _, err := ApplyPending(target, nil); err != nil {
@@ -163,7 +165,7 @@ func TestAnInterruptedRestoreLeavesTheOldStateIntact(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			source, _ := liveInstance(t, "source-key", "source-password")
 			target, before := liveInstance(t, "target-key", "target-password")
-			if _, err := Stage(target, archiveOfInstance(t, source), "v1.2.3"); err != nil {
+			if _, err := Stage(target, archiveOfInstance(t, source), "v1.2.3", nil); err != nil {
 				t.Fatal(err)
 			}
 
@@ -215,7 +217,7 @@ func TestStageRefusesAStateFileItDoesNotKnow(t *testing.T) {
 	if err := Build(&archive, manifest, testSettingsJSON(t), snapshotDB(t, filepath.Join(source, dbEntry)), nil); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Stage(t.TempDir(), archive.Bytes(), "v1.2.3"); err == nil {
+	if _, err := Stage(t.TempDir(), archive.Bytes(), "v1.2.3", nil); err == nil {
 		t.Error("Stage took a manifest naming a file outside the data directory")
 	}
 }
@@ -227,13 +229,14 @@ func TestStageRefusesAccountsItCannotOpen(t *testing.T) {
 	// The keyring of another instance does not open these accounts.
 	acc, _ := accounts.Open(other)
 	tampered := rebuildWith(t, archive, accounts.KeyringName, acc.Keyring())
-	if _, err := Stage(t.TempDir(), tampered, "v1.2.3"); err == nil {
+	if _, err := Stage(t.TempDir(), tampered, "v1.2.3", nil); err == nil {
 		t.Error("Stage took accounts its keyring does not open")
 	}
 }
 
-// rebuildWith returns archive with the entry name replaced by data.
-func rebuildWith(t *testing.T, archive []byte, name string, data []byte) []byte {
+// rebuildWith returns archive with the entry name replaced by data, or left
+// out with drop.
+func rebuildWith(t *testing.T, archive []byte, name string, data []byte, drop ...bool) []byte {
 	t.Helper()
 	zr, err := zip.NewReader(bytes.NewReader(archive), int64(len(archive)))
 	if err != nil {
@@ -242,6 +245,9 @@ func rebuildWith(t *testing.T, archive []byte, name string, data []byte) []byte 
 	var out bytes.Buffer
 	zw := zip.NewWriter(&out)
 	for _, f := range zr.File {
+		if f.Name == name && len(drop) > 0 && drop[0] {
+			continue
+		}
 		b := data
 		if f.Name != name {
 			r, err := f.Open()
@@ -277,9 +283,9 @@ func TestCheckSaysWhetherTheBackupCameFromAPairedInstance(t *testing.T) {
 			if c.group != "" {
 				archive = rebuildWith(t, appendEntry(t, plain, "group.json"), "group.json", []byte(c.group))
 			}
-			_, paired, err := Check(archive, "v1.2.3")
-			if err != nil || paired != c.paired {
-				t.Errorf("Check = paired %v, %v; want %v", paired, err, c.paired)
+			report, err := Check(archive, "v1.2.3", nil, false)
+			if err != nil || report.Paired != c.paired {
+				t.Errorf("Check = %+v, %v; want paired %v", report, err, c.paired)
 			}
 		})
 	}
