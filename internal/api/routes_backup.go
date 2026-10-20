@@ -39,12 +39,7 @@ func registerBackup(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/system/backups",
 		"the automatic backups in the data directory, when the next one is due and how the last run went",
 		func(w http.ResponseWriter, r *http.Request) {
-			st, err := a.AutoBackupState()
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			writeJSON(w, st)
+			writeJSON(w, a.AutoBackupState())
 		})
 
 	reg.Add(http.MethodGet, "/api/system/backups/{name}",

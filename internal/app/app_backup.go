@@ -214,13 +214,12 @@ func (a *App) AutoBackupDir() string {
 
 // AutoBackupState lists the automatic backups and says when the next one is
 // due and how the last run went.
-func (a *App) AutoBackupState() (AutoBackupState, error) {
+func (a *App) AutoBackupState() AutoBackupState {
 	cfg := a.Settings.Get()
 	dir := a.AutoBackupDir()
-	files, err := backup.ListAuto(dir)
-	if err != nil {
-		return AutoBackupState{}, err
-	}
+	// A folder that cannot be read is the failure the run itself records, and
+	// the card has to show that failure rather than none at all.
+	files, _ := backup.ListAuto(dir)
 	out := AutoBackupState{Dir: dir, DefaultDir: filepath.Join(a.DataDir, backup.AutoDirName), Files: files}
 	if out.Files == nil {
 		out.Files = []backup.AutoFile{}
@@ -243,7 +242,7 @@ func (a *App) AutoBackupState() (AutoBackupState, error) {
 		}
 		out.NextRunAt = &next
 	}
-	return out, nil
+	return out
 }
 
 // runAutoBackupIfDue is the schedule, called once a minute from sweep(). The
