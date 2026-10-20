@@ -4078,8 +4078,11 @@ export interface RestoreResult {
   status: string;
 }
 
-export async function uploadRestore(file: File): Promise<RestoreResult> {
+/** uploadRestore stages a backup. appKey is the KL_APP_KEY of the instance
+ *  that made it, for one sealed under another key than this instance's. */
+export async function uploadRestore(file: File, appKey = ''): Promise<RestoreResult> {
   const body = new FormData();
+  if (appKey.trim()) body.append('appKey', appKey.trim());
   body.append('file', file);
   return json(await fetch('/api/system/restore', { method: 'POST', body }));
 }
