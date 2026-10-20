@@ -46,13 +46,15 @@ export function AutoBackupSection({ hue, locked }: { hue: number; locked: boolea
   const newest = data.files[0];
   return (
     <div className="flex flex-col gap-4">
-      <ToggleRow
-        hue={hue}
-        label={t('settings.autoBackup.title')}
-        hint={t('settings.autoBackup.titleHint')}
-        checked={on}
-        onChange={(backupAuto) => patch({ backupAuto })}
-      />
+      <div data-new="auto-backups">
+        <ToggleRow
+          hue={hue}
+          label={t('settings.autoBackup.title')}
+          hint={t('settings.autoBackup.titleHint')}
+          checked={on}
+          onChange={(backupAuto) => patch({ backupAuto })}
+        />
+      </div>
 
       {on && (
         <>

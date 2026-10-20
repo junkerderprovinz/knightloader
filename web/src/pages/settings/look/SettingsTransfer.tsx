@@ -11,9 +11,7 @@ import { AutoBackupSection } from './AutoBackups';
 
 /**
  * SettingsTransfer saves this box and puts a saved one back: one archive of
- * the whole install, restored wholesale at the next start. It does not carry
- * the logins, header profiles, captcha keys, login password or user scripts,
- * which live outside settings.json; the title's (i) says so. A restore that
+ * the whole install, restored wholesale at the next start. A restore that
  * restarts the server reports through `onShutdown`.
  */
 export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown: () => void }) {
@@ -94,7 +92,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         }}
       />
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div data-new="backup-everything" className="flex flex-wrap items-center gap-3">
         <Button
           kind="secondary"
           icon={<IconDownload width={16} height={16} />}

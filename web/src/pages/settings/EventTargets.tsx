@@ -174,7 +174,12 @@ export function EventTargetsCard({ hue }: { hue: number }) {
       className="flex flex-col gap-4"
       titleHint={t('settings.eventTargets.titleHint')}
       titleRight={
-        <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setPicking(true)}>
+        <Button
+          kind="secondary"
+          icon={<IconAdd width={16} height={16} />}
+          data-new="discord-target"
+          onClick={() => setPicking(true)}
+        >
           {t('settings.eventTargets.add')}
         </Button>
       }
