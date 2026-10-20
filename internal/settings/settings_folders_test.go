@@ -22,6 +22,11 @@ func TestCheckFoldersRefusesWhatSanitizeClears(t *testing.T) {
 			}
 			refused := CheckFolders("", s, func(key string) bool { return key == f.key }) != nil
 			kept := f.get(sanitize(s)) == dir
+			// The backup folder is also tried on the disk, so a save may refuse
+			// a path sanitize keeps, such as one Windows cannot name.
+			if f.backupTo && refused && kept {
+				continue
+			}
 			if refused == kept {
 				t.Errorf("%s = %q: refused %v, kept by sanitize %v", f.key, dir, refused, kept)
 			}

@@ -2,7 +2,9 @@ package settings
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -59,5 +61,58 @@ func TestABackupFolderInsideTheDataFolderIsAllowed(t *testing.T) {
 	s := Settings{BackupDir: filepath.Join(data, "elsewhere")}
 	if err := CheckFolders(data, s, nil); err != nil {
 		t.Errorf("CheckFolders refused a backup folder inside the data folder: %v", err)
+	}
+}
+
+func TestAMissingBackupFolderPassesAndIsNotLeftBehind(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, "kl", "backups")
+	if err := CheckFolders(t.TempDir(), Settings{BackupDir: dir}, nil); err != nil {
+		t.Fatalf("CheckFolders refused a folder that can be made: %v", err)
+	}
+	if entries, _ := os.ReadDir(root); len(entries) != 0 {
+		t.Errorf("the check left %v behind; a path half typed into the box would stay on disk", entries)
+	}
+}
+
+func TestTheBackupFolderProbeLeavesItsContentsAlone(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "mine.txt"), []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := CheckFolders(t.TempDir(), Settings{BackupDir: dir}, nil); err != nil {
+		t.Fatalf("CheckFolders refused a writable folder: %v", err)
+	}
+	entries, _ := os.ReadDir(dir)
+	if len(entries) != 1 || entries[0].Name() != "mine.txt" {
+		t.Errorf("after the check the folder holds %v", entries)
+	}
+}
+
+func TestABackupFolderThatCannotBeMadeIsRefusedAtItsField(t *testing.T) {
+	blocker := filepath.Join(t.TempDir(), "a-file")
+	if err := os.WriteFile(blocker, []byte("in the way"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	err := CheckFolders(t.TempDir(), Settings{BackupDir: filepath.Join(blocker, "backups")}, nil)
+	var p *PathProblem
+	if !errors.As(err, &p) || p.Field != "backupDir" || p.Code != "cannotCreate" {
+		t.Errorf("CheckFolders = %v, want backupDir refused as impossible to create", err)
+	}
+}
+
+func TestAReadOnlyBackupFolderIsRefused(t *testing.T) {
+	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
+		t.Skip("needs unix modes that bind this process")
+	}
+	dir := t.TempDir()
+	if err := os.Chmod(dir, 0o500); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.Chmod(dir, 0o700) })
+	err := CheckFolders(t.TempDir(), Settings{BackupDir: dir}, nil)
+	var p *PathProblem
+	if !errors.As(err, &p) || p.Field != "backupDir" || p.Code != "cannotWrite" {
+		t.Errorf("CheckFolders = %v, want backupDir refused as not writable", err)
 	}
 }
