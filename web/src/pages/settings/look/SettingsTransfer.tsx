@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Button, Card, Modal, SectionTitle, TextInput } from '../../../components/ui';
 import { IconClose, IconDownload, IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
-import { ApiError, BACKUP_DOWNLOAD_URL, checkRestore, uploadRestore } from '../../../lib/api';
+import { ApiError, BACKUP_DOWNLOAD_URL, checkRestore, uploadRestore, type RestoreReport } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { withBase } from '../../../lib/basePath';
 import { passwordPath, usePasswordFirst } from '../../../lib/passwordFirst';
@@ -26,9 +26,9 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   // key may be needed to open it.
   const [pendingSealed, setPendingSealed] = useState(false);
   const [sourceKey, setSourceKey] = useState('');
-  // Whether the chosen backup comes from an instance in a pairing group. A
-  // check that fails leaves it false; the restore itself names the problem.
-  const [pendingPaired, setPendingPaired] = useState(false);
+  // What the chosen backup brings, said before the restore is confirmed. A
+  // check that fails leaves it unknown; the restore itself names the problem.
+  const [report, setReport] = useState<RestoreReport | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [restoreStatus, setRestoreStatus] = useState('');
   // The failure counter of the confirm button, so a repeated refusal shakes it again.
@@ -42,16 +42,16 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   async function choose(file: File) {
     setPendingSealed(new TextDecoder().decode(await file.slice(0, SEALED_MAGIC.length).arrayBuffer()) === SEALED_MAGIC);
     setSourceKey('');
-    setPendingPaired(false);
+    setReport(null);
     setPendingFile(file);
-    void checkPaired(file, '');
+    void check(file, '');
   }
 
-  async function checkPaired(file: File, key: string) {
+  async function check(file: File, key: string) {
     try {
-      setPendingPaired((await checkRestore(file, key)).paired);
+      setReport(await checkRestore(file, key));
     } catch {
-      setPendingPaired(false);
+      setReport(null);
     }
   }
 
@@ -155,8 +155,12 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
           }
         >
           <p className="text-sm text-carbon-text">{t('settings.system.restoreConfirmBody', { name: pendingFile.name })}</p>
-          <p className="mt-2 text-sm text-carbon-text">{t('settings.system.restoreKeepsLogin')}</p>
-          {pendingPaired && <p className="mt-2 text-sm text-statusWarn">{t('settings.system.restorePairing')}</p>}
+          {report && (
+            <p className={`mt-2 text-sm ${report.login === 'none' ? 'text-statusWarn' : 'text-carbon-text'}`}>
+              {t(LOGIN_OUTCOME[report.login])}
+            </p>
+          )}
+          {report?.paired && <p className="mt-2 text-sm text-statusWarn">{t('settings.system.restorePairing')}</p>}
           {pendingSealed && (
             <div className="mt-4">
               <SettingRow control="long" label={t('settings.system.restoreKeyLabel')} hint={t('settings.system.restoreKeyHint')}>
@@ -166,7 +170,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
                   autoComplete="off"
                   value={sourceKey}
                   onChange={(e) => setSourceKey(e.target.value)}
-                  onBlur={() => void checkPaired(pendingFile, sourceKey)}
+                  onBlur={() => void check(pendingFile, sourceKey)}
                 />
               </SettingRow>
             </div>
@@ -179,6 +183,16 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
 
 /** The first line of a sealed backup (internal/backup's sealedMagic). */
 const SEALED_MAGIC = 'KnightLoader sealed backup 1\n';
+
+/** What the confirmation says about the login, by RestoreReport.login. */
+const LOGIN_OUTCOME: Record<
+  RestoreReport['login'],
+  'settings.system.restoreLoginRestored' | 'settings.system.restoreLoginKept' | 'settings.system.restoreLoginNone'
+> = {
+  restored: 'settings.system.restoreLoginRestored',
+  kept: 'settings.system.restoreLoginKept',
+  none: 'settings.system.restoreLoginNone',
+};
 
 /** The restore refusals that say what to do rather than what failed. */
 const RESTORE_REFUSAL: Record<
