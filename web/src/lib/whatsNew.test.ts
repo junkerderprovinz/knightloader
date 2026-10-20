@@ -107,9 +107,14 @@ describe('the record', () => {
   it('marks every change after the release left, and keeps what was seen before it', () => {
     const stored: NewsRecord = { version: 'v2.1.0', from: '2.0.0', seen: ['vpn', 'overview-head'], notes: true };
     expect(recordFor(stored, 'v2.2.0', true)).toEqual({ version: 'v2.2.0', from: '2.1.0', seen: ['vpn', 'overview-head'], notes: false });
+  });
 
-    const back: NewsRecord = { version: 'v2.0.0', from: '', seen: ['vpn', 'overview-head'], notes: true };
-    expect(recordFor(back, 'v2.2.0', true).seen).toEqual(['overview-head']);
+  it('keeps a change seen on a patch release that a later release took in', () => {
+    const stored: NewsRecord = { version: 'v2.1.6', from: '2.1.5', seen: ['folder-back', 'vpn'], notes: true };
+    const record = recordFor(stored, 'v2.2.0', true);
+    expect(record.seen).toEqual(['folder-back', 'vpn']);
+    const unseen = changesOf(record).filter((c) => !record.seen.includes(c.id)).map((c) => c.id);
+    expect(unseen).not.toContain('folder-back');
   });
 
   it('keeps what was seen on a build without a release number', () => {
