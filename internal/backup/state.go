@@ -51,7 +51,7 @@ func checkStateNames(names []string) error {
 // readStateFiles reads the state files a manifest names out of an upload and
 // checks each the way its own package reads it, so a damaged one is refused
 // while the upload can still be named.
-func readStateFiles(zr *zip.Reader, names []string) (map[string][]byte, error) {
+func readStateFiles(zr *zip.Reader, names []string, budget *int64) (map[string][]byte, error) {
 	if err := checkStateNames(names); err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func readStateFiles(zr *zip.Reader, names []string) (map[string][]byte, error) {
 		if _, err := fs.Stat(zr, name); errors.Is(err, fs.ErrNotExist) {
 			continue
 		}
-		b, err := readEntry(zr, name)
+		b, err := readEntry(zr, name, maxStateFileBytes, budget)
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +70,7 @@ func readStateFiles(zr *zip.Reader, names []string) (map[string][]byte, error) {
 		files[name] = b
 	}
 	if state, ok := files[auth.FileName]; ok {
-		if _, err := auth.HashNeedsItsKey(state); err != nil {
+		if _, _, err := auth.PasswordIn(state); err != nil {
 			return nil, fmt.Errorf("the backup's %w", err)
 		}
 	}

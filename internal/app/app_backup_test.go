@@ -3,6 +3,7 @@ package app
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"testing"
 	"time"
@@ -73,7 +74,7 @@ func TestADueBackupWritesTheArchiveARestoreAccepts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := backup.Stage(t.TempDir(), raw, buildinfo.Version); err != nil {
+	if _, err := backup.Stage(t.TempDir(), raw, buildinfo.Version, nil); err != nil {
 		t.Errorf("a restore refuses the automatic backup: %v", err)
 	}
 	if st.NextRunAt == nil || st.NextRunAt.Before(time.Now().Add(23*time.Hour)) {
@@ -321,7 +322,47 @@ func TestWithAnAppKeyTheAutomaticBackupIsSealed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := backup.Stage(t.TempDir(), archive, buildinfo.Version); err != nil {
+	if _, err := backup.Stage(t.TempDir(), archive, buildinfo.Version, nil); err != nil {
 		t.Errorf("a restore with the key refuses the backup: %v", err)
+	}
+}
+
+// The snapshot holds the task passwords in the clear, so it is made in a
+// private folder of the data directory and gone once the backup is written,
+// and one a crash left behind goes at the next start.
+func TestTheSnapshotNeverOutlivesTheBackup(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	stale := filepath.Join(dir, backupSnapshotPrefix+"crashed")
+	if err := os.MkdirAll(stale, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	a := backupApp(t, dir, 1, 7)
+	if _, err := os.Stat(stale); !os.IsNotExist(err) {
+		t.Errorf("the snapshot a crash left behind is still there: %v", err)
+	}
+
+	parts, err := a.PrepareBackup()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if filepath.Dir(filepath.Dir(parts.DBPath)) != dir {
+		t.Errorf("the snapshot %s is not in a folder of the data directory", parts.DBPath)
+	}
+	if info, err := os.Stat(filepath.Dir(parts.DBPath)); err != nil || runtime.GOOS != "windows" && info.Mode().Perm() != 0o700 {
+		t.Errorf("the snapshot's folder is %v, %v", info, err)
+	}
+	parts.Discard()
+
+	st := sweepBackup(t, a)
+	if len(st.Files) != 1 {
+		t.Fatalf("the sweep wrote %v", fileNames(st.Files))
+	}
+	entries, _ := os.ReadDir(st.Dir)
+	if len(entries) != 1 {
+		t.Errorf("the backup folder holds %d entries, want only the backup", len(entries))
+	}
+	if left, _ := filepath.Glob(filepath.Join(dir, backupSnapshotPrefix+"*")); len(left) != 0 {
+		t.Errorf("snapshots left in the data directory: %v", left)
 	}
 }

@@ -108,13 +108,20 @@ func (g *Guard) State() ([]byte, error) {
 	return json.MarshalIndent(g.snapshot(), "", "  ")
 }
 
-// HashNeedsItsKey reports whether the password in state, an auth.json in the
-// clear, can be checked only with the app key it was set under, and refuses
-// a state that does not parse.
-func HashNeedsItsKey(state []byte) (bool, error) {
+// PasswordIn reports whether state, an auth.json in the clear, has a login
+// password and whether that one can be checked only with the app key it was
+// set under. A state that does not parse is refused.
+func PasswordIn(state []byte) (set, needsItsKey bool, err error) {
 	var s stored
 	if err := json.Unmarshal(state, &s); err != nil {
-		return false, fmt.Errorf("auth.json is damaged: %w", err)
+		return false, false, fmt.Errorf("auth.json is damaged: %w", err)
 	}
-	return strings.HasPrefix(s.Hash, argonPrefix), nil
+	return s.Hash != "", strings.HasPrefix(s.Hash, argonPrefix), nil
+}
+
+// HasPassword reports whether the auth.json in dir has a login password,
+// without writing anything.
+func HasPassword(dir string, key *appkey.Key) (bool, error) {
+	s, _, err := readStored(filepath.Join(dir, FileName), key)
+	return s.Hash != "", err
 }

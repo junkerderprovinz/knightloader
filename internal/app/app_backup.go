@@ -36,18 +36,34 @@ type BackupParts struct {
 	// backup that cannot put a router or proxy password back is not a backup.
 	Settings []byte
 	// DBPath is a consistent snapshot of the store, never the live file, with
-	// the task passwords in the clear.
+	// the task passwords in the clear, in a folder of its own that Discard
+	// removes.
 	DBPath string
 	// Files are the instance's state files (backup.StateFiles) it has, the
 	// login and the credential key in the clear.
 	Files map[string][]byte
 }
 
-// PrepareBackup snapshots the store to dbPath, which must not exist yet, and
-// collects the rest of an archive. Everything the app key seals is put in the
-// clear, so the archive restores under another key or none; the caller seals
-// the archive as a whole. The caller removes dbPath afterwards.
-func (a *App) PrepareBackup(dbPath string) (BackupParts, error) {
+// backupSnapshotPrefix starts the name of the folder each backup snapshots
+// the store into, in the data directory: on the data volume, readable by this
+// account alone, and never in a backup folder that may be shared.
+const backupSnapshotPrefix = ".backup-snapshot-"
+
+// PrepareBackup snapshots the store and collects the rest of an archive.
+// Everything the app key seals is put in the clear, so the archive restores
+// under another key or none; the caller seals the archive as a whole and calls
+// Discard once it is written.
+func (a *App) PrepareBackup() (parts BackupParts, err error) {
+	dir, err := os.MkdirTemp(a.DataDir, backupSnapshotPrefix)
+	if err != nil {
+		return BackupParts{}, fmt.Errorf("could not make a folder for the snapshot: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			os.RemoveAll(dir)
+		}
+	}()
+	dbPath := filepath.Join(dir, "knightloader.db")
 	// VACUUM INTO through the connection every other write goes through, never
 	// a raw copy of the live file, which hands back a torn database if a task
 	// settles mid-copy.
@@ -77,6 +93,22 @@ func (a *App) PrepareBackup(dbPath string) (BackupParts, error) {
 		DBPath:   dbPath,
 		Files:    files,
 	}, nil
+}
+
+// Discard removes the snapshot.
+func (p BackupParts) Discard() {
+	os.RemoveAll(filepath.Dir(p.DBPath))
+}
+
+// removeBackupSnapshots takes out the snapshots a backup interrupted by a
+// crash left in dataDir. Nothing else runs yet when it is called.
+func removeBackupSnapshots(dataDir string) {
+	left, _ := filepath.Glob(filepath.Join(dataDir, backupSnapshotPrefix+"*"))
+	for _, dir := range left {
+		if err := os.RemoveAll(dir); err != nil {
+			log.Printf("backup: could not remove the snapshot %s an interrupted backup left: %v", dir, err)
+		}
+	}
 }
 
 // stateFiles reads the state files this instance has. The login and the
@@ -256,11 +288,12 @@ func (a *App) runAutoBackupIfDue() {
 // backup is there.
 func (a *App) makeAutoBackup(dir string, keep int) AutoBackupRun {
 	run := AutoBackupRun{At: time.Now()}
-	file, err := backup.WriteAuto(dir, run.At, a.AppKey != nil, func(w io.Writer, scratch string) error {
-		parts, err := a.PrepareBackup(scratch)
+	file, err := backup.WriteAuto(dir, run.At, a.AppKey != nil, func(w io.Writer) error {
+		parts, err := a.PrepareBackup()
 		if err != nil {
 			return err
 		}
+		defer parts.Discard()
 		return a.WriteBackup(w, parts)
 	})
 	if err != nil {
