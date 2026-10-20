@@ -1,1 +1,0 @@
-Am Handy wieder nichts Neues. Der Server trödelt am Ende nicht mehr herum und kommt auf einem frischen Docker-Host allein zurecht. Die App fährt einfach mit.

@@ -36,7 +36,7 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [Unreleased]
+## [2.2.0] - 2026-10-20
 
 ### Added
 
@@ -59,115 +59,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   status. A body you write yourself is still sent as you wrote it.
 - **The category as a placeholder.** `%%task.category%%` names the category a
   download is filed under.
-
-### Changed
-
-- **One backup button, and a backup holds everything.** Download backup
-  saves the download list, the history, the settings, the hoster and debrid
-  logins with header profiles, captcha keys and media server tokens, the login
-  password, the API tokens, the scripts and the pairing. Upload backup takes
-  it back all at once or not at all, also under another app key or none when
-  you give the key of the instance that made it. The separate settings export
-  and its import are gone.
-
-### Fixed
-
-- **A torrent deleted on the debrid service is added again.** If a debrid
-  service no longer has a torrent, for example because you deleted it on the
-  service's website, KnightLoader adds it there once more and keeps the files
-  already here. Before, Premiumize.me and AllDebrid could fail the task and ask
-  for the deleted torrent again on every retry, while the other services handed
-  it straight on. A torrent the service loses a second time goes to the next
-  service or the built-in client, and its row says why.
-- **Status reads on a debrid account keep their distance on a busy machine.**
-  A read that started late no longer leaves the next one only milliseconds
-  behind it, so the gap between two reads on one account holds under load.
-- **The desktop app applies an uploaded backup.** A backup uploaded on the
-  desktop app was staged but never applied, because the app skipped that step
-  when it started. It is applied on the next start, as in the container.
-
-## [2.1.6] - 2026-10-17
-
-### Added
-
-- **Every Unraid share in the folder chooser.** The Community Applications
-  template has a new path, Unraid shares, which mounts /mnt/user at the same
-  path inside the container. The folder chooser then lists every share, so the
-  download folder can be any of them, for example /mnt/user/downloads. An
-  existing container gets it when you add the path in its settings.
-
-### Changed
-
-- **A back arrow in the folder chooser.** The way up one folder sits in front
-  of the path as an arrow pointing back. The small icon after the path looked
-  like New folder.
-
-## [2.1.5] - 2026-10-17
-
-### Added
-
-- **JDownloader updates itself.** The JDownloader backend card under Settings,
-  General, Updates has an Update automatically switch, on by default. Once a
-  day KnightLoader asks JDownloader for an update and installs it while none of
-  its downloads is running. If one is running, it tries again an hour later.
-
-### Changed
-
-- **Logos on hover.** In the windows where you pick an account or a hoster, a
-  logo under the pointer turns into a solid mark in the tile's text colour. A
-  logo whose outline would only be a shapeless blob keeps its detail in greys
-  instead. TorBox's cube no longer fades into its green tile.
-- **The working folder says it is optional.** Its empty field reads "Empty:
-  straight into the download folder", and its hint starts with Optional.
-
-### Fixed
-
-- **The container leaves update checks to the container manager.** In the
-  container, Check automatically is greyed out like Update automatically, and
-  opening the page no longer asks GitHub. Check for updates still works.
-
-## [2.1.4] - 2026-10-16
-
-### Added
-
-- **One card per release in What's new.** After an update the window lists
-  every release since the one you had, newest first. Each card shows its
-  release notes and the changes that release brought, each with Go there where
-  a page shows it. A change that no page shows has its dot in the window only
-  and counts as seen once you close it.
-
-### Fixed
-
-- **2.1 had no dots.** The VPN, the MCP server, quiet mode, PUID and PGID, the
-  compose file and the speed in the bug report came without a dot. They have
-  one now, and every new feature of a release gets one.
-
-## [2.1.3] - 2026-10-16
-
-### Added
-
-- **The bug report shows the speed.** The file from Settings, Health &
-  diagnostics carries the speed of the last two minutes second by second and
-  of the last hour in ten-second steps, and every running download with its
-  backend and how many connections it has open. Names and links stay out.
-
-### Fixed
-
-- **Click'n'Load keeps part 1.** Some sites put sixteen bytes of noise in
-  front of the first link, and KnightLoader dropped that link. A link now
-  starts where its http:// begins.
-- **Two Click'n'Load posts from one click both arrive.** A site that sends the
-  first part on its own and the rest right after it lost the first part,
-  because the second post replaced it in the browser extension. The extension
-  joins them.
-- **A refused connection's part is fetched right away.** When a host answered
-  one connection too many with 403, nobody fetched that connection's part of
-  the file until the rest was done. A free connection takes it over at once.
-
-## [2.1.2] - 2026-10-16
-
-### Added
-
 - **Quiet mode during playback.** Add your media server in the Quiet mode
   card under Settings, Automation, and quiet mode switches itself on while
   something plays there and off again about half a minute after the last
@@ -183,24 +74,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Off for this stream.** The card shows what is playing and whether it
   counts. Off for this stream brings the usual limits back until that stream
   ends.
-
-### Changed
-
-- **Quiet mode has a card on the Automation page** with its speed limit, the
-  number of downloads at once and the torrent upload limit. Media servers are
-  added from tiles, the way a VPN is, and the timetable offers Quiet mode as an
-  action.
-
-### Fixed
-
-- **A changed quiet limit applies at once.** A new quiet mode figure had no
-  effect while the mode was already on, until it was switched off and on
-  again.
-
-## [2.1.1] - 2026-10-16
-
-### Added
-
+- **JDownloader updates itself.** The JDownloader backend card under Settings,
+  General, Updates has an Update automatically switch, on by default. Once a
+  day KnightLoader asks JDownloader for an update and installs it while none of
+  its downloads is running. If one is running, it tries again an hour later.
+- **Every Unraid share in the folder chooser.** The Community Applications
+  template has a new path, Unraid shares, which mounts /mnt/user at the same
+  path inside the container. The folder chooser then lists every share, so the
+  download folder can be any of them, for example /mnt/user/downloads. An
+  existing container gets it when you add the path in its settings.
 - **PUID and PGID.** Started without `--user`, the container is root only
   long enough to give the empty folders Docker has just created for it to
   PUID:PGID, 1000:1000 unless you set them, and then runs as that account. A
@@ -210,9 +92,42 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **A compose file for other Docker hosts.** The README's Other Docker hosts
   section links a `compose.yaml` that runs KnightLoader on any Linux server
   with Docker, with notes for Synology and Proxmox.
+- **The bug report shows the speed.** The file from Settings, Health &
+  diagnostics carries the speed of the last two minutes second by second and
+  of the last hour in ten-second steps, and every running download with its
+  backend and how many connections it has open. Names and links stay out.
+- **One card per release in What's new.** After an update the window lists
+  every release since the one you had, newest first. Each card shows its
+  release notes and the changes that release brought, each with Go there where
+  a page shows it. A change that no page shows has its dot in the window only
+  and counts as seen once you close it.
 
 ### Changed
 
+- **One backup button, and a backup holds everything.** Download backup
+  saves the download list, the history, the settings, the hoster and debrid
+  logins with header profiles, captcha keys and media server tokens, the login
+  password, the API tokens, the scripts and the pairing. Upload backup takes
+  it back all at once or not at all, also under another app key or none when
+  you give the key of the instance that made it, and says before it starts
+  what becomes of the login. A backup made without a login password never
+  removes the one that is set. The separate settings export and its import are
+  gone.
+- **Quiet mode has a card on the Automation page** with its speed limit, the
+  number of downloads at once and the torrent upload limit. Media servers are
+  added from tiles, the way a VPN is, and the timetable offers Quiet mode as an
+  action.
+- **A back arrow in the folder chooser.** The way up one folder sits in front
+  of the path as an arrow pointing back. The small icon after the path looked
+  like New folder.
+- **Logos on hover.** In the windows where you pick an account or a hoster, a
+  logo under the pointer turns into a solid mark in the tile's text colour. A
+  logo whose outline would only be a shapeless blob keeps its detail in greys
+  instead. TorBox's cube no longer fades into its green tile.
+- **Rapidgator has a sharp logo** drawn from its own mark, where a small,
+  blurred icon stood before.
+- **The working folder says it is optional.** Its empty field reads "Empty:
+  straight into the download folder", and its hint starts with Optional.
 - **The extension's settings have a Display and an In the browser card.**
   Display holds the theme, corners, accent colour, rainbow mode and palette
   under the names the web app uses. In the browser holds Click'n'Load,
@@ -229,11 +144,26 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
-- **Click'n'Load keeps the first link.** A site can pad the links it sends
-  with control characters. Those stuck to the first link, so it was not taken
-  as a link and only the later parts reached the link collector. The browser
-  extension and the desktop app's Click'n'Load listener split on those
-  characters, as JDownloader does. Reported in
+- **A torrent deleted on the debrid service is added again.** If a debrid
+  service no longer has a torrent, for example because you deleted it on the
+  service's website, KnightLoader adds it there once more and keeps the files
+  already here. Premiumize.me and AllDebrid could fail the task and ask for the
+  deleted torrent again on every retry, while the other services handed it
+  straight on. A torrent the service loses a second time goes to the next
+  service or the built-in client, and its row says why.
+- **Status reads on a debrid account keep their distance on a busy machine.**
+  A read that started late no longer leaves the next one only milliseconds
+  behind it, so the gap between two reads on one account holds under load.
+- **The desktop app applies an uploaded backup.** A backup uploaded on the
+  desktop app was staged but never applied, because the app skipped that step
+  when it started. It is applied on the next start, as in the container.
+- **Click'n'Load keeps every link.** A site can pad the links it sends with
+  control characters or put sixteen bytes of noise in front of the first one,
+  and KnightLoader dropped that link. A link starts where its http:// begins,
+  and the browser extension and the desktop app's Click'n'Load listener split
+  on those characters, as JDownloader does. A site that sends the first part on
+  its own and the rest right after it lost the first part, because the second
+  post replaced it in the browser extension, which joins them. Reported in
   [#119](https://github.com/junkerderprovinz/knightloader/issues/119).
 - **Downloads keep their speed to the end.** A connection that had finished
   its part of a file looked only once for a slower one to help. When another
@@ -242,6 +172,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Finished connections keep looking while any part is still large enough to
   share, and a connection that has stopped receiving counts as slow. Reported
   in [#120](https://github.com/junkerderprovinz/knightloader/issues/120).
+- **A refused connection's part is fetched right away.** When a host answered
+  one connection too many with 403, nobody fetched that connection's part of
+  the file until the rest was done. A free connection takes it over at once.
 - **The `docker run` from the README works on a fresh host.** Docker creates
   a missing bind-mount folder as root, so KnightLoader could not write its own
   data folder and restarted in a loop until you ran `chown` on the host. This
@@ -250,6 +183,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Hints that name an account name the right one.** A program that cannot be
   run, an action the system refuses and a folder KnightLoader may not write
   into name the uid and gid it actually runs as, instead of always 1000.
+- **A changed quiet limit applies at once.** A new quiet mode figure had no
+  effect while the mode was already on, until it was switched off and on
+  again.
+- **The features of 2.1 have their dots.** The VPN and the MCP server came
+  without a dot in What's new.
+- **The container leaves update checks to the container manager.** In the
+  container, Check automatically is greyed out like Update automatically, and
+  opening the page no longer asks GitHub. Check for updates still works.
 - **The extension's language list opens above the cards below it** instead of
   behind the next one, and its entries start at the list's left edge.
 
