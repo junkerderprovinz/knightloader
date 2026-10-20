@@ -2622,7 +2622,7 @@ export const ko: Dict = {
   'settings.transfer.nothingSelected': '아무것도 고르지 않았습니다.',
   'settings.autoBackup.title': '자동 백업',
   'settings.autoBackup.titleHint': '"백업 다운로드"와 같은 파일을 다운로드 목록과 기록까지 포함해 일정에 따라 서버의 폴더에 씁니다. "백업 업로드"로 다른 백업처럼 복원할 수 있습니다. 켜면 첫 백업이 1분 안에 쓰입니다.',
-  'settings.autoBackup.interval': '백업 간격(일)',
+  'settings.autoBackup.interval': '백업 (n일마다)',
   'settings.autoBackup.intervalHint': '날짜는 폴더에서 가장 최근 자동 백업부터 세므로, 다시 시작해도 백업을 건너뛰거나 하나 더 만들지 않습니다.',
   'settings.autoBackup.keep': '보관할 백업 수',
   'settings.autoBackup.keepHint': '자동 백업이 이 수보다 많아지면 가장 오래된 것부터 지웁니다. 폴더의 다른 것은 건드리지 않으며, 직접 다운로드해서 넣어 둔 백업도 마찬가지입니다.',
