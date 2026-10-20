@@ -118,6 +118,11 @@ const EXCLUDED = new Map([
     'the card that replaces the lifecycle card while the server is restarting. A result for it would lead somewhere that only exists during a shutdown',
   ],
   [
+    'settings.system.restoreKeyLabel',
+    'the app key field in the window that confirms a restore, which opens only once a sealed backup is chosen',
+  ],
+  ['settings.system.restoreKeyHint', 'its explanation, in the same window'],
+  [
     'auth.twoFactor.qrLabel',
     'the accessible name of the QR code image inside the second factor enrolment. It reaches the catalogue through QRCode\'s `label` prop, which is an alt text rather than a caption; the card it belongs to is indexed by its own title, and it only exists while somebody is halfway through an enrolment',
   ],

@@ -69,9 +69,11 @@ the next time you sign in. Without the variable everything works as before. On
 the Security page the info bubble beside **App key** says what the key does and
 how to add one.
 
-A sealed backup ends in `.zip.sealed` and restores only on an instance with the
-same key; anywhere else the restore says which key it needs. Backups made
-before the key still restore.
+A sealed backup ends in `.zip.sealed`. On an instance with another key or none,
+enter the key of the instance that made it with the upload; everything in it
+is then sealed again with the key of the instance it lands on. Backups made
+before the key still restore. A backup without a key holds every password
+readable.
 
 ### Behind a reverse proxy
 

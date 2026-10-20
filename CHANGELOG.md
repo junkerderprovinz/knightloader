@@ -62,10 +62,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
-- **One backup button.** Download backup always saves everything: the
-  download list, the history and the settings with their passwords. The
-  separate settings export and its import are gone, and Upload backup takes
-  the full backup and says what it replaces before anything changes.
+- **One backup button, and a backup holds everything.** Download backup
+  saves the download list, the history, the settings, the hoster and debrid
+  logins with header profiles, captcha keys and media server tokens, the login
+  password, the API tokens, the scripts and the pairing. Upload backup takes
+  it back all at once or not at all, also under another app key or none when
+  you give the key of the instance that made it. The separate settings export
+  and its import are gone.
 
 ### Fixed
 
