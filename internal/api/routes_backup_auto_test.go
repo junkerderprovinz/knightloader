@@ -111,3 +111,32 @@ func TestTheDownloadServesTheChosenFolder(t *testing.T) {
 		t.Errorf("downloading from the chosen folder = %d %q", resp.StatusCode, body)
 	}
 }
+
+func TestARestoreCheckSaysWhetherThePairingComesAlong(t *testing.T) {
+	t.Parallel()
+	a, srv := backupServer(t)
+	_, archive := downloadArchive(t, srv.URL)
+	check := func(archive []byte) (int, bool) {
+		t.Helper()
+		status, body := postMultipartFile(t, srv.URL+"/api/system/restore/check", "file", "backup.zip", archive)
+		var answer struct {
+			Paired bool `json:"paired"`
+		}
+		_ = json.Unmarshal(body, &answer)
+		return status, answer.Paired
+	}
+	if status, paired := check(archive); status != http.StatusOK || paired {
+		t.Errorf("an unpaired instance's backup checks as %d, paired %v", status, paired)
+	}
+
+	if err := os.WriteFile(filepath.Join(a.DataDir, "group.json"), []byte(`{"joinedAt":"2026-10-01T03:00:00Z"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	_, archive = downloadArchive(t, srv.URL)
+	if status, paired := check(archive); status != http.StatusOK || !paired {
+		t.Errorf("a paired instance's backup checks as %d, paired %v", status, paired)
+	}
+	if _, err := os.Stat(filepath.Join(a.DataDir, "restore-pending")); !os.IsNotExist(err) {
+		t.Errorf("the check staged a restore: %v", err)
+	}
+}

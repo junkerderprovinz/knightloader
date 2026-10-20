@@ -2240,6 +2240,7 @@ export const en = {
   'settings.system.restoreConfirmTitle': 'Restore from backup?',
   'settings.system.restoreConfirmBody': 'This replaces everything this instance holds with the contents of “{name}”. It takes effect at the next start and cannot be undone.',
   'settings.system.restoreKeepsLogin': 'The login password comes from the backup too, unless it was set under another app key. Then this instance keeps its own, since it could never check that one. Your passkeys stay as they are.',
+  'settings.system.restorePairing': 'The backup comes from an instance in a pairing group. The restored instance takes over its place in the group, so switch the instance the backup came from off afterwards.',
   'settings.system.restoring': 'Validating and staging…',
   'settings.system.restoreFailed': 'Could not restore: {error}',
   'settings.system.restoreKeyMissing': 'This backup is encrypted with an app key, and this instance has none. Enter the KL_APP_KEY of the instance that made it under App key of the backup.',

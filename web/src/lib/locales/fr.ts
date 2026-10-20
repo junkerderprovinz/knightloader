@@ -1835,6 +1835,7 @@ export const fr: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurer depuis une sauvegarde ?',
   'settings.system.restoreConfirmBody': 'Ceci remplace tout ce que possède cette instance par le contenu de « {name} ». Cela prend effet au prochain démarrage et ne peut pas être annulé.',
   'settings.system.restoreKeepsLogin': 'Le mot de passe de connexion vient aussi de la sauvegarde, sauf s’il a été défini avec une autre clé d’application. Cette instance garde alors le sien, car elle ne pourrait jamais vérifier l’autre. Tes clés d’accès restent telles quelles.',
+  'settings.system.restorePairing': 'La sauvegarde vient d’une instance d’un groupe d’appairage. L’instance restaurée prend sa place dans le groupe, éteins donc ensuite l’instance d’où vient la sauvegarde.',
   'settings.system.restoring': 'Validation et préparation…',
   'settings.system.restoreFailed': 'Impossible de restaurer : {error}',
   'settings.system.restoreKeyMissing': 'Cette sauvegarde est chiffrée avec une clé d’application et cette instance n’en a pas. Saisis le KL_APP_KEY de l’instance qui l’a faite dans « Clé d’application de la sauvegarde ».',

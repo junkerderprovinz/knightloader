@@ -1842,6 +1842,7 @@ export const da: Dict = {
   'settings.system.restoreConfirmTitle': 'Gendan fra sikkerhedskopi?',
   'settings.system.restoreConfirmBody': 'Det erstatter alt, hvad denne instans har, med indholdet af “{name}”. Det træder i kraft ved næste start og kan ikke fortrydes.',
   'settings.system.restoreKeepsLogin': 'Login-adgangskoden kommer også fra sikkerhedskopien, medmindre den blev sat under en anden app-nøgle. Så beholder denne instans sin egen, da den aldrig ville kunne tjekke den anden. Dine passkeys forbliver, som de er.',
+  'settings.system.restorePairing': 'Sikkerhedskopien kommer fra en instans i en parringsgruppe. Den gendannede instans overtager dens plads i gruppen, så sluk bagefter den instans, sikkerhedskopien kom fra.',
   'settings.system.restoring': 'Validerer og forbereder…',
   'settings.system.restoreFailed': 'Kunne ikke gendanne: {error}',
   'settings.system.restoreKeyMissing': 'Denne sikkerhedskopi er krypteret med en app-nøgle, og denne instans har ingen. Skriv KL_APP_KEY for den instans, der lavede den, under App-nøgle til sikkerhedskopien.',

@@ -1842,6 +1842,7 @@ export const gl: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurar desde unha copia de seguridade?',
   'settings.system.restoreConfirmBody': 'Isto substitúe todo o que ten esta instancia polo contido de «{name}». Aplícase no seguinte arranque e non se pode desfacer.',
   'settings.system.restoreKeepsLogin': 'O contrasinal de acceso tamén vén da copia, agás que se puxese con outra clave da aplicación. Entón esta instancia conserva o seu, porque nunca podería comprobar o outro. As túas chaves de acceso quedan como están.',
+  'settings.system.restorePairing': 'A copia vén dunha instancia dun grupo de emparellamento. A instancia restaurada ocupa o seu lugar no grupo, así que despois apaga a instancia da que vén a copia.',
   'settings.system.restoring': 'Validando e preparando…',
   'settings.system.restoreFailed': 'Non se puido restaurar: {error}',
   'settings.system.restoreKeyMissing': 'Esta copia está cifrada cunha clave da aplicación e esta instancia non ten ningunha. Escribe o KL_APP_KEY da instancia que a fixo en «Clave da aplicación da copia».',

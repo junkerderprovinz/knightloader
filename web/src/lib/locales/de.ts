@@ -2019,6 +2019,7 @@ export const de: Dict = {
   'settings.system.restoreConfirmTitle': 'Aus Sicherung wiederherstellen?',
   'settings.system.restoreConfirmBody': 'Damit wird alles, was diese Instanz hat, durch den Inhalt von „{name}“ ersetzt. Das greift ab dem nächsten Start und lässt sich nicht rückgängig machen.',
   'settings.system.restoreKeepsLogin': 'Auch das Anmeldepasswort kommt aus der Sicherung, außer es wurde unter einem anderen App-Schlüssel gesetzt. Dann behält diese Instanz ihr eigenes, weil sie das andere nie prüfen könnte. Deine Passkeys bleiben, wie sie sind.',
+  'settings.system.restorePairing': 'Die Sicherung stammt von einer Instanz in einer Kopplungsgruppe. Die wiederhergestellte Instanz übernimmt deren Platz in der Gruppe, schalte die Instanz, von der die Sicherung stammt, danach also ab.',
   'settings.system.restoring': 'Wird geprüft und vorbereitet…',
   'settings.system.restoreFailed': 'Konnte nicht wiederhergestellt werden: {error}',
   'settings.system.restoreKeyMissing': 'Diese Sicherung ist mit einem App-Schlüssel verschlüsselt, und diese Instanz hat keinen. Trag den KL_APP_KEY der Instanz, von der sie stammt, unter „App-Schlüssel der Sicherung“ ein.',

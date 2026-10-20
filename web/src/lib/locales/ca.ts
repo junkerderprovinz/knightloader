@@ -1842,6 +1842,7 @@ export const ca: Dict = {
   'settings.system.restoreConfirmTitle': 'Vols restaurar des d’una còpia de seguretat?',
   'settings.system.restoreConfirmBody': 'Això substitueix tot el que té aquesta instància pel contingut de «{name}». S’aplica a la propera arrencada i no es pot desfer.',
   'settings.system.restoreKeepsLogin': 'La contrasenya d’inici de sessió també ve de la còpia, tret que es definís amb una altra clau d’aplicació. Llavors aquesta instància conserva la seva, perquè no podria comprovar mai l’altra. Les teves claus d’accés es queden com estan.',
+  'settings.system.restorePairing': 'La còpia ve d’una instància d’un grup d’aparellament. La instància restaurada n’ocupa el lloc al grup, així que després apaga la instància d’on ve la còpia.',
   'settings.system.restoring': 'Validant i preparant…',
   'settings.system.restoreFailed': 'No s’ha pogut restaurar: {error}',
   'settings.system.restoreKeyMissing': 'Aquesta còpia està xifrada amb una clau d’aplicació i aquesta instància no en té. Escriu el KL_APP_KEY de la instància que la va fer a «Clau d’aplicació de la còpia».',

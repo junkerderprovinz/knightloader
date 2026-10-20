@@ -1835,6 +1835,7 @@ export const nl: Dict = {
   'settings.system.restoreConfirmTitle': 'Herstellen vanaf back-up?',
   'settings.system.restoreConfirmBody': 'Dit vervangt alles wat deze instantie heeft door de inhoud van ‘{name}’. Het geldt vanaf de volgende start en kan niet ongedaan worden gemaakt.',
   'settings.system.restoreKeepsLogin': 'Ook het inlogwachtwoord komt uit de back-up, tenzij het onder een andere app-sleutel is ingesteld. Dan houdt deze instantie het hare, omdat ze het andere nooit zou kunnen controleren. Je passkeys blijven zoals ze zijn.',
+  'settings.system.restorePairing': 'De back-up komt van een instantie in een koppelgroep. De herstelde instantie neemt haar plaats in de groep over, dus zet de instantie waar de back-up vandaan komt daarna uit.',
   'settings.system.restoring': 'Bezig met valideren en klaarzetten…',
   'settings.system.restoreFailed': 'Kon niet worden hersteld: {error}',
   'settings.system.restoreKeyMissing': 'Deze back-up is versleuteld met een app-sleutel, en deze instantie heeft er geen. Vul de KL_APP_KEY van de instantie die hem maakte in bij App-sleutel van de back-up.',

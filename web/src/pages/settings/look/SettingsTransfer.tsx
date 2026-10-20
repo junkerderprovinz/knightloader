@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Button, Card, Modal, SectionTitle, TextInput } from '../../../components/ui';
 import { IconClose, IconDownload, IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
-import { ApiError, BACKUP_DOWNLOAD_URL, uploadRestore } from '../../../lib/api';
+import { ApiError, BACKUP_DOWNLOAD_URL, checkRestore, uploadRestore } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { withBase } from '../../../lib/basePath';
 import { passwordPath, usePasswordFirst } from '../../../lib/passwordFirst';
@@ -26,6 +26,9 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   // key may be needed to open it.
   const [pendingSealed, setPendingSealed] = useState(false);
   const [sourceKey, setSourceKey] = useState('');
+  // Whether the chosen backup comes from an instance in a pairing group. A
+  // check that fails leaves it false; the restore itself names the problem.
+  const [pendingPaired, setPendingPaired] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [restoreStatus, setRestoreStatus] = useState('');
   // The failure counter of the confirm button, so a repeated refusal shakes it again.
@@ -39,7 +42,17 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   async function choose(file: File) {
     setPendingSealed(new TextDecoder().decode(await file.slice(0, SEALED_MAGIC.length).arrayBuffer()) === SEALED_MAGIC);
     setSourceKey('');
+    setPendingPaired(false);
     setPendingFile(file);
+    void checkPaired(file, '');
+  }
+
+  async function checkPaired(file: File, key: string) {
+    try {
+      setPendingPaired((await checkRestore(file, key)).paired);
+    } catch {
+      setPendingPaired(false);
+    }
   }
 
   async function confirmRestore() {
@@ -143,6 +156,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         >
           <p className="text-sm text-carbon-text">{t('settings.system.restoreConfirmBody', { name: pendingFile.name })}</p>
           <p className="mt-2 text-sm text-carbon-text">{t('settings.system.restoreKeepsLogin')}</p>
+          {pendingPaired && <p className="mt-2 text-sm text-statusWarn">{t('settings.system.restorePairing')}</p>}
           {pendingSealed && (
             <div className="mt-4">
               <SettingRow control="long" label={t('settings.system.restoreKeyLabel')} hint={t('settings.system.restoreKeyHint')}>
@@ -152,6 +166,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
                   autoComplete="off"
                   value={sourceKey}
                   onChange={(e) => setSourceKey(e.target.value)}
+                  onBlur={() => void checkPaired(pendingFile, sourceKey)}
                 />
               </SettingRow>
             </div>

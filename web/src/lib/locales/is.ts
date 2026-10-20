@@ -1842,6 +1842,7 @@ export const is: Dict = {
   'settings.system.restoreConfirmTitle': 'Endurheimta úr öryggisafriti?',
   'settings.system.restoreConfirmBody': 'Þetta setur innihald „{name}“ í stað alls sem þetta tilvik hefur. Það tekur gildi við næstu ræsingu og er ekki hægt að afturkalla.',
   'settings.system.restoreKeepsLogin': 'Innskráningarlykilorðið kemur líka úr afritinu, nema það hafi verið sett undir öðrum forritslykli. Þá heldur þetta tilvik sínu, því það gæti aldrei kannað hitt. Aðgangslyklarnir þínir haldast óbreyttir.',
+  'settings.system.restorePairing': 'Afritið kemur frá tilviki í pörunarhópi. Endurheimta tilvikið tekur sæti þess í hópnum, svo slökktu á eftir á tilvikinu sem afritið kom frá.',
   'settings.system.restoring': 'Sannreynir og undirbýr…',
   'settings.system.restoreFailed': 'Ekki tókst að endurheimta: {error}',
   'settings.system.restoreKeyMissing': 'Þetta afrit er dulkóðað með forritslykli og þetta tilvik hefur engan. Sláðu inn KL_APP_KEY tilviksins sem gerði það í Forritslykill afritsins.',

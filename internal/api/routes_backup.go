@@ -56,6 +56,20 @@ func registerBackup(reg *Registry, a *app.App) {
 			downloadAutoBackup(w, r, a)
 		})
 
+	reg.Add(http.MethodPost, "/api/system/restore/check",
+		"validate an uploaded backup without staging it, and say whether it comes from an instance in a pairing group",
+		func(w http.ResponseWriter, r *http.Request) {
+			data, ok := readUpload(w, r, a)
+			if !ok {
+				return
+			}
+			manifest, paired, err := backup.Check(data, buildinfo.Version)
+			if !refuseStage(w, err) {
+				return
+			}
+			writeJSON(w, map[string]any{"manifest": manifest, "paired": paired})
+		})
+
 	reg.Add(http.MethodPost, "/api/system/restore",
 		"validate an uploaded backup and stage it; a restart applies it",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -135,22 +149,24 @@ func downloadAutoBackup(w http.ResponseWriter, r *http.Request, a *app.App) {
 	_, _ = io.Copy(w, f)
 }
 
-func uploadRestore(w http.ResponseWriter, r *http.Request, a *app.App) {
+// readUpload reads and unseals the backup a restore route was sent, and
+// answers the request itself when it cannot.
+func readUpload(w http.ResponseWriter, r *http.Request, a *app.App) ([]byte, bool) {
 	r.Body = http.MaxBytesReader(w, r.Body, backup.MaxUploadBytes+1<<20)
 	file, _, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "send the backup as a multipart form field named \"file\"", http.StatusBadRequest)
-		return
+		return nil, false
 	}
 	defer file.Close()
 	data, err := io.ReadAll(io.LimitReader(file, backup.MaxUploadBytes+1))
 	if err != nil {
 		http.Error(w, "could not read the uploaded backup", http.StatusBadRequest)
-		return
+		return nil, false
 	}
 	if len(data) > backup.MaxUploadBytes {
 		http.Error(w, fmt.Sprintf("a backup over %d bytes is refused", backup.MaxUploadBytes), http.StatusRequestEntityTooLarge)
-		return
+		return nil, false
 	}
 
 	// The app key of the instance that made the backup, for one sealed under
@@ -159,29 +175,45 @@ func uploadRestore(w http.ResponseWriter, r *http.Request, a *app.App) {
 	if v := r.FormValue("appKey"); strings.TrimSpace(v) != "" {
 		if uploadKey, err = appkey.Parse(v); err != nil {
 			writeRefusal(w, http.StatusBadRequest, "restore.appKeyInvalid", err.Error(), nil)
-			return
+			return nil, false
 		}
 	}
 	data, err = backup.Unseal(data, a.AppKey, uploadKey)
 	switch {
 	case errors.Is(err, backup.ErrNeedsKey):
 		writeRefusal(w, http.StatusBadRequest, "restore.appKeyMissing", err.Error(), nil)
-		return
+		return nil, false
 	case errors.Is(err, backup.ErrWrongKey):
 		writeRefusal(w, http.StatusBadRequest, "restore.appKeyWrong", err.Error(), nil)
-		return
+		return nil, false
 	}
+	return data, true
+}
 
-	manifest, err := backup.Stage(a.DataDir, data, buildinfo.Version)
+// refuseStage answers a bundle that failed validation and reports whether it
+// passed.
+func refuseStage(w http.ResponseWriter, err error) bool {
 	if errors.Is(err, store.ErrNewerSchema) {
 		writeRefusal(w, http.StatusBadRequest, "restore.newerSchema", err.Error(), nil)
-		return
+		return false
 	}
 	if err != nil {
-		// Verbatim: every error Stage returns names which check failed.
-		// "invalid file" would send somebody re-uploading the same
-		// broken archive.
+		// Verbatim: every error validation returns names which check failed.
+		// "invalid file" would send somebody re-uploading the same broken
+		// archive.
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return false
+	}
+	return true
+}
+
+func uploadRestore(w http.ResponseWriter, r *http.Request, a *app.App) {
+	data, ok := readUpload(w, r, a)
+	if !ok {
+		return
+	}
+	manifest, err := backup.Stage(a.DataDir, data, buildinfo.Version)
+	if !refuseStage(w, err) {
 		return
 	}
 

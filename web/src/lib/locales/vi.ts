@@ -1842,6 +1842,7 @@ export const vi: Dict = {
   'settings.system.restoreConfirmTitle': 'Khôi phục từ bản sao lưu?',
   'settings.system.restoreConfirmBody': 'Thao tác này thay mọi thứ của phiên bản này bằng nội dung của “{name}”. Có hiệu lực ở lần khởi động tiếp theo và không thể hoàn tác.',
   'settings.system.restoreKeepsLogin': 'Mật khẩu đăng nhập cũng lấy từ bản sao lưu, trừ khi nó được đặt dưới một khóa ứng dụng khác. Khi đó phiên bản này giữ mật khẩu của mình, vì nó không bao giờ kiểm tra được mật khẩu kia. Passkey của bạn vẫn giữ nguyên.',
+  'settings.system.restorePairing': 'Bản sao lưu này đến từ một phiên bản trong nhóm ghép đôi. Phiên bản được khôi phục sẽ thế chỗ nó trong nhóm, nên sau đó hãy tắt phiên bản đã tạo bản sao lưu.',
   'settings.system.restoring': 'Đang xác thực và chuẩn bị…',
   'settings.system.restoreFailed': 'Không thể khôi phục: {error}',
   'settings.system.restoreKeyMissing': 'Bản sao lưu này được mã hóa bằng khóa ứng dụng, còn phiên bản này không có khóa. Nhập KL_APP_KEY của phiên bản đã tạo nó vào Khóa ứng dụng của bản sao lưu.',

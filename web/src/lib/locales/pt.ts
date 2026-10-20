@@ -1835,6 +1835,7 @@ export const pt: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurar a partir de uma cópia de segurança?',
   'settings.system.restoreConfirmBody': 'Isto substitui tudo o que esta instância tem pelo conteúdo de «{name}». Tem efeito no próximo arranque e não pode ser desfeito.',
   'settings.system.restoreKeepsLogin': 'A palavra-passe de acesso também vem da cópia, a não ser que tenha sido definida com outra chave da aplicação. Nesse caso esta instância mantém a sua, porque nunca poderia verificar a outra. As tuas chaves de acesso ficam como estão.',
+  'settings.system.restorePairing': 'A cópia vem de uma instância num grupo de emparelhamento. A instância restaurada fica com o lugar dela no grupo, por isso depois desliga a instância de onde veio a cópia.',
   'settings.system.restoring': 'A validar e preparar…',
   'settings.system.restoreFailed': 'Não foi possível restaurar: {error}',
   'settings.system.restoreKeyMissing': 'Esta cópia está cifrada com uma chave da aplicação e esta instância não tem nenhuma. Escreve o KL_APP_KEY da instância que a fez em «Chave da aplicação da cópia».',

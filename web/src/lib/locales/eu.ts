@@ -1843,6 +1843,7 @@ export const eu: Dict = {
   'settings.system.restoreConfirmTitle': 'Babeskopia batetik berrezarri?',
   'settings.system.restoreConfirmBody': 'Honek instantzia honek duen guztia «{name}» fitxategiaren edukiarekin ordeztuko du. Hurrengo abiaraztean aplikatzen da eta ezin da desegin.',
   'settings.system.restoreKeepsLogin': 'Saio-hasierako pasahitza ere babeskopiatik dator, beste aplikazio-gako batekin ezarri ez bada behintzat. Orduan instantzia honek berea gordetzen du, bestea ezin baitzuen inoiz egiaztatu. Zure sarbide-gakoak dauden bezala geratzen dira.',
+  'settings.system.restorePairing': 'Babeskopia parekatze-talde bateko instantzia batetik dator. Leheneratutako instantziak haren lekua hartzen du taldean, beraz itzali gero babeskopia sortu zuen instantzia.',
   'settings.system.restoring': 'Balioztatzen eta prestatzen…',
   'settings.system.restoreFailed': 'Ezin izan da berrezarri: {error}',
   'settings.system.restoreKeyMissing': 'Babeskopia hau aplikazio-gako batekin dago zifratuta, eta instantzia honek ez du gakorik. Idatzi sortu zuen instantziaren KL_APP_KEY «Babeskopiaren aplikazio-gakoa» eremuan.',

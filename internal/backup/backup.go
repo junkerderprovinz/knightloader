@@ -32,6 +32,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"golang.org/x/mod/semver"
@@ -144,56 +145,83 @@ func writeEntry(zw *zip.Writer, name string, data []byte) error {
 // comparison is skipped when either side is not a release version, such as
 // "dev".
 func Stage(dataDir string, zipBytes []byte, runningVersion string) (Manifest, error) {
+	u, err := validate(zipBytes, runningVersion)
+	if err != nil {
+		return Manifest{}, err
+	}
+	if err := stageFiles(dataDir, u.settings, u.db, u.manifest, u.files); err != nil {
+		return Manifest{}, err
+	}
+	return u.manifest, nil
+}
+
+// Check validates an uploaded bundle as Stage does and writes nothing, so a
+// restore can be confirmed knowing what it brings. paired reports whether the
+// instance it was made on was in a pairing group, whose identity the restore
+// takes over.
+func Check(zipBytes []byte, runningVersion string) (manifest Manifest, paired bool, err error) {
+	u, err := validate(zipBytes, runningVersion)
+	if err != nil {
+		return Manifest{}, false, err
+	}
+	group, ok := u.files["group.json"]
+	return u.manifest, ok && federation.GroupJoined(group), nil
+}
+
+// upload is a bundle that passed every check.
+type upload struct {
+	manifest     Manifest
+	settings, db []byte
+	files        map[string][]byte
+}
+
+func validate(zipBytes []byte, runningVersion string) (upload, error) {
 	zr, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 	if err != nil {
-		return Manifest{}, fmt.Errorf("this is not a valid backup archive: %w", err)
+		return upload{}, fmt.Errorf("this is not a valid backup archive: %w", err)
 	}
 
 	manifestRaw, err := readEntry(zr, manifestEntry)
 	if err != nil {
-		return Manifest{}, err
+		return upload{}, err
 	}
 	var manifest Manifest
 	if err := json.Unmarshal(manifestRaw, &manifest); err != nil {
-		return Manifest{}, fmt.Errorf("the backup's manifest.json is not readable: %w", err)
+		return upload{}, fmt.Errorf("the backup's manifest.json is not readable: %w", err)
 	}
 
 	settingsRaw, err := readEntry(zr, settingsEntry)
 	if err != nil {
-		return Manifest{}, err
+		return upload{}, err
 	}
 	// Decoding into the real struct catches a type mismatch from a truncated
 	// or hand-edited file here, where the upload can still be named.
 	var probe settings.Settings
 	if err := json.Unmarshal(settingsRaw, &probe); err != nil {
-		return Manifest{}, fmt.Errorf("the backup's settings.json does not match this build's settings shape: %w", err)
+		return upload{}, fmt.Errorf("the backup's settings.json does not match this build's settings shape: %w", err)
 	}
 
 	dbRaw, err := readEntry(zr, dbEntry)
 	if err != nil {
-		return Manifest{}, err
+		return upload{}, err
 	}
 	dbRaw, err = cleanDatabase(dbRaw)
 	if err != nil {
-		return Manifest{}, err
+		return upload{}, err
 	}
 
 	if semver.IsValid(manifest.Version) && semver.IsValid(runningVersion) &&
 		semver.Compare(manifest.Version, runningVersion) > 0 {
-		return Manifest{}, fmt.Errorf(
+		return upload{}, fmt.Errorf(
 			"this backup was made by %s, which is newer than the %s this server is running; "+
 				"upgrade the server first, then restore", manifest.Version, runningVersion)
 	}
 
 	files, err := readStateFiles(zr, manifest.Files)
 	if err != nil {
-		return Manifest{}, err
+		return upload{}, err
 	}
-
-	if err := stageFiles(dataDir, settingsRaw, dbRaw, manifest, files); err != nil {
-		return Manifest{}, err
-	}
-	return manifest, nil
+	return upload{manifest: manifest, settings: settingsRaw, db: dbRaw, files: files}, nil
 }
 
 // readEntry reads one zip entry, bounded by MaxUploadBytes because the

@@ -1843,6 +1843,7 @@ export const lv: Dict = {
   'settings.system.restoreConfirmTitle': 'Atjaunot no dublējuma?',
   'settings.system.restoreConfirmBody': 'Tas aizstās visu, kas ir šai instancei, ar „{name}“ saturu. Tas stāsies spēkā nākamajā startā, un to nevar atsaukt.',
   'settings.system.restoreKeepsLogin': 'Arī pieteikšanās parole nāk no dublējuma, ja vien tā nav iestatīta ar citu lietotnes atslēgu. Tad šī instance patur savu, jo otru tā nekad nevarētu pārbaudīt. Tavas piekļuves atslēgas paliek kā ir.',
+  'settings.system.restorePairing': 'Dublējums ir no instances, kas ir savienošanas grupā. Atjaunotā instance pārņem tās vietu grupā, tāpēc pēc tam izslēdz instanci, no kuras dublējums nāk.',
   'settings.system.restoring': 'Validē un sagatavo…',
   'settings.system.restoreFailed': 'Neizdevās atjaunot: {error}',
   'settings.system.restoreKeyMissing': 'Šis dublējums ir šifrēts ar lietotnes atslēgu, bet šai instancei tādas nav. Ievadi to izveidojušās instances KL_APP_KEY laukā „Dublējuma lietotnes atslēga“.',
