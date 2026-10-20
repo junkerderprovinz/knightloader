@@ -23,7 +23,6 @@ const ADD: PlacedChange = {
 };
 const SEARCH: PlacedChange = { id: 'settings-search', to: ['/settings'], text: 'whatsnew.change.pairingSteps', since: '2.1.0' };
 const WAIT: Change = { id: 'vpn-wait', text: 'whatsnew.change.vpnWait', since: '2.1.0' };
-const UNPACK: PlacedChange = { id: 'quiet-unpack', to: ['/settings/automation'], text: 'whatsnew.change.pairingSteps', since: '2.1.2' };
 
 // jsdom has no ResizeObserver, which the window measures with.
 globalThis.ResizeObserver ??= class {
@@ -289,10 +288,11 @@ describe('the window', () => {
   beforeEach(() => onClose.mockClear());
 
   it('shows a card per release, newest first, each with its notes', async () => {
-    await act(async () => root.render(<Shown shown={news([UNPACK, HEAD], [], { releases: ['2.1.2', '2.1.1', '2.1.0'] })} />));
-    expect(cards().map((c) => c.dataset.release)).toEqual(['2.1.2', '2.1.1', '2.1.0']);
-    expect(cards()[0].querySelector('h2')!.textContent).toBe('2.1.2');
-    expect(cards()[0].textContent).toContain('Quiet mode switches itself on');
+    await act(async () => root.render(<Shown shown={news([HEAD], [], { releases: ['2.1.0', '2.0.0'] })} />));
+    expect(cards().map((c) => c.dataset.release)).toEqual(['2.1.0', '2.0.0']);
+    expect(cards()[0].querySelector('h2')!.textContent).toBe('2.1.0');
+    expect(cards()[0].textContent).toContain('A VPN inside KnightLoader.');
+    expect(cards()[0].querySelectorAll('li[data-seen]')).toHaveLength(1);
     expect(cards()[1].querySelectorAll('li[data-seen]')).toHaveLength(0);
   });
 
@@ -358,9 +358,9 @@ describe('the window', () => {
   });
 
   it('has no button over the cards where no change is listed', async () => {
-    await act(async () => root.render(<Shown shown={news([], [], { releases: ['2.1.3'] })} />));
+    await act(async () => root.render(<Shown shown={news([], [], { releases: ['2.0.0'] })} />));
     expect(host.textContent).not.toContain('Mark all as seen');
-    expect(cards()[0].textContent).toContain('The bug report shows the speed.');
+    expect(cards()[0].textContent).toContain('The Overview opens with what is going on.');
   });
 });
 
