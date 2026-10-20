@@ -290,7 +290,7 @@ export const HOSTER_LOGOS: ReadonlyMap<string, LogoTile> = new Map<string, LogoT
   ['put.io', { tile: '#000000', ink: '#ffffff', rest: 'ink' }],
   ['rapidb.it', { tile: '#5166ee', ink: '#ffffff' }],
   ['rapideo.net', { tile: '#0a4d75', ink: '#ffffff', lit: true }],
-  ['rapidgator.net', { tile: '#f78824', ink: '#ffffff', lit: true }],
+  ['rapidgator.net', { tile: '#fb8f20', ink: '#ffffff', lit: true }],
   ['rapidrar.com', { tile: '#bd4800', ink: '#ffffff' }],
   ['rapids.pl', { tile: '#029be7', ink: '#ffffff' }],
   ['rapidx.cloud', { tile: '#e85708', ink: '#ffffff' }],
