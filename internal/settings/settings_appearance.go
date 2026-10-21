@@ -24,6 +24,13 @@ const (
 // round included, keeps its shape.
 const DefaultShape = ShapeSoft
 
+// The themes the web interface offers. Anything else is stored as no choice.
+const (
+	ThemeSystem = "system"
+	ThemeDark   = "dark"
+	ThemeLight  = "light"
+)
+
 // How much of a control is drawn, the value of each of the four label
 // settings.
 //
@@ -132,6 +139,11 @@ func sanitizeAppearance(n Settings) Settings {
 	case ShapeRound, ShapeSoft, ShapeSquare, ShapeLeaf:
 	default:
 		n.Shape = DefaultShape
+	}
+	switch n.Theme {
+	case ThemeSystem, ThemeDark, ThemeLight:
+	default:
+		n.Theme = ""
 	}
 	n.ButtonLabels = labelMode(n.ButtonLabels)
 	n.SidebarLabels = labelMode(n.SidebarLabels)

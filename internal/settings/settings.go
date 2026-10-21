@@ -331,6 +331,11 @@ type Settings struct {
 	// Accent is the one colour the interface uses for activity, as #rrggbb.
 	// Empty means the built-in heraldic gold.
 	Accent string `json:"accent"`
+	// Theme is the light or dark setting last chosen in the web interface:
+	// "system", "dark" or "light", empty until somebody chooses. The web
+	// interface keeps its choice per browser; this copy is what a client that
+	// follows the instance's look, such as the browser extension, takes.
+	Theme string `json:"theme"`
 
 	// Rainbow replaces the single accent with a palette handed out by position,
 	// so a long list of downloads reads as distinct rows instead of one gold
