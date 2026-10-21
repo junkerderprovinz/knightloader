@@ -671,6 +671,8 @@ export interface Settings {
   hideAccountsFromSidebar: boolean;
   /** Hides the sidebar's "Instanzen" entry in the same way. */
   hideInstancesFromSidebar: boolean;
+  /** Hides the "Übersicht" entry; the interface then opens on Downloads. */
+  hideOverviewFromSidebar: boolean;
   /** How much of each kind of control is drawn (lib/labelModes.ts). */
   buttonLabels: LabelMode;
   sidebarLabels: LabelMode;

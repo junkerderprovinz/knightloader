@@ -50,6 +50,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   same way the app does. The new Name field in the Group card is what the
   instances show for this browser; it starts as the browser and system, such
   as "Brave on Windows", and is saved when you leave the field.
+- **The overview can leave the sidebar.** Settings, Appearance, Sidebar has
+  a switch for it next to Accounts and Instances. Switched off, KnightLoader
+  opens on Downloads, and the logo leads there too.
 
 ### Changed
 

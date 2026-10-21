@@ -569,6 +569,8 @@ export const en = {
   'settings.sidebar.accountsHint': 'Puts the Accounts page in the sidebar. It is in Settings either way.',
   'settings.sidebar.instances': 'Instances in the sidebar',
   'settings.sidebar.instancesHint': 'Puts the Instances page in the sidebar. It is in Settings either way.',
+  'settings.sidebar.overview': 'Overview in the sidebar',
+  'settings.sidebar.overviewHint': 'Puts the Overview page in the sidebar. Switched off, KnightLoader opens on Downloads.',
   'settings.axisSidebarHint': 'Affects the desktop layout only.',
   'settings.axisBottombarHint': 'Affects the phone layout only.',
   'settings.labels.mode.text': 'Text',

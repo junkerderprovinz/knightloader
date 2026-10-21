@@ -507,6 +507,8 @@ export const sk: Dict = {
   'settings.sidebar.accountsHint': 'Dá stránku „Účty“ do bočného panela. V nastaveniach je tak či tak.',
   'settings.sidebar.instances': 'Inštancie v bočnom paneli',
   'settings.sidebar.instancesHint': 'Dá stránku „Inštancie“ do bočného panela. V nastaveniach je tak či tak.',
+  'settings.sidebar.overview': 'Prehľad v bočnom paneli',
+  'settings.sidebar.overviewHint': 'Dá stránku „Prehľad“ do bočného panela. Keď je vypnutá, KnightLoader sa otvorí na „Sťahovanie“.',
   'settings.axisSidebarHint': 'Vzťahuje sa iba na rozloženie na počítači.',
   'settings.axisBottombarHint': 'Vzťahuje sa iba na rozloženie telefónu.',
   'settings.labels.mode.text': 'Text',

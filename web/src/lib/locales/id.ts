@@ -507,6 +507,8 @@ export const id: Dict = {
   'settings.sidebar.accountsHint': 'Menaruh halaman “Akun” di bilah sisi. Di Pengaturan halaman itu tetap ada.',
   'settings.sidebar.instances': 'Instance di bilah sisi',
   'settings.sidebar.instancesHint': 'Menaruh halaman “Instance” di bilah sisi. Di Pengaturan halaman itu tetap ada.',
+  'settings.sidebar.overview': 'Ringkasan di bilah sisi',
+  'settings.sidebar.overviewHint': 'Menaruh halaman “Ringkasan” di bilah sisi. Jika dimatikan, KnightLoader terbuka di “Unduhan”.',
   'settings.axisSidebarHint': 'Hanya memengaruhi tata letak desktop.',
   'settings.axisBottombarHint': 'Hanya memengaruhi tata letak ponsel.',
   'settings.labels.mode.text': 'Teks',

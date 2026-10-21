@@ -507,6 +507,8 @@ export const et: Dict = {
   'settings.sidebar.accountsHint': 'Paneb lehe „Kontod“ külgribale. Seadetes on see igal juhul olemas.',
   'settings.sidebar.instances': 'Eksemplarid külgribal',
   'settings.sidebar.instancesHint': 'Paneb lehe „Eksemplarid“ külgribale. Seadetes on see igal juhul olemas.',
+  'settings.sidebar.overview': 'Ülevaade külgribal',
+  'settings.sidebar.overviewHint': 'Paneb lehe „Ülevaade“ külgribale. Väljalülitatuna avaneb KnightLoader lehel „Allalaadimised“.',
   'settings.axisSidebarHint': 'Mõjutab ainult töölaua paigutust.',
   'settings.axisBottombarHint': 'Mõjutab ainult telefoni paigutust.',
   'settings.labels.mode.text': 'Tekst',

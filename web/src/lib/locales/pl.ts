@@ -500,6 +500,8 @@ export const pl: Dict = {
   'settings.sidebar.accountsHint': 'Umieszcza stronę „Konta” na pasku bocznym. W ustawieniach jest i tak.',
   'settings.sidebar.instances': 'Instancje na pasku bocznym',
   'settings.sidebar.instancesHint': 'Umieszcza stronę „Instancje” na pasku bocznym. W ustawieniach jest i tak.',
+  'settings.sidebar.overview': 'Przegląd na pasku bocznym',
+  'settings.sidebar.overviewHint': 'Umieszcza stronę „Przegląd” na pasku bocznym. Po wyłączeniu KnightLoader otwiera się na „Pobierania”.',
   'settings.axisSidebarHint': 'Dotyczy tylko układu na komputerze.',
   'settings.axisBottombarHint': 'Dotyczy tylko układu telefonu.',
   'settings.labels.mode.text': 'Tekst',

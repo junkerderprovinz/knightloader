@@ -507,6 +507,8 @@ export const gl: Dict = {
   'settings.sidebar.accountsHint': 'Pon a páxina «Contas» na barra lateral. Na configuración está de todos os xeitos.',
   'settings.sidebar.instances': 'Instancias na barra lateral',
   'settings.sidebar.instancesHint': 'Pon a páxina «Instancias» na barra lateral. Na configuración está de todos os xeitos.',
+  'settings.sidebar.overview': 'Resumo na barra lateral',
+  'settings.sidebar.overviewHint': 'Pon a páxina «Resumo» na barra lateral. Desactivado, KnightLoader ábrese en «Descargas».',
   'settings.axisSidebarHint': 'Afecta só ao deseño de escritorio.',
   'settings.axisBottombarHint': 'Afecta só ao deseño do teléfono.',
   'settings.labels.mode.text': 'Texto',

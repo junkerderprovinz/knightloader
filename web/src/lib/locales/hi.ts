@@ -508,6 +508,8 @@ export const hi: Dict = {
   'settings.sidebar.accountsHint': '“खाते” पेज को साइडबार में रखता है। सेटिंग्स में यह हर हाल में रहता है।',
   'settings.sidebar.instances': 'साइडबार में इंस्टेंस',
   'settings.sidebar.instancesHint': '“इंस्टेंस” पेज को साइडबार में रखता है। सेटिंग्स में यह हर हाल में रहता है।',
+  'settings.sidebar.overview': 'साइडबार में अवलोकन',
+  'settings.sidebar.overviewHint': '“अवलोकन” पेज को साइडबार में रखता है। बंद होने पर KnightLoader “डाउनलोड” पर खुलता है।',
   'settings.axisSidebarHint': 'केवल डेस्कटॉप लेआउट पर लागू होता है.',
   'settings.axisBottombarHint': 'केवल फ़ोन लेआउट पर लागू होता है.',
   'settings.labels.mode.text': 'पाठ',

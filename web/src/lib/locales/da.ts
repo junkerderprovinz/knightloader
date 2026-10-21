@@ -507,6 +507,8 @@ export const da: Dict = {
   'settings.sidebar.accountsHint': 'Sætter siden „Konti“ i sidepanelet. Under indstillinger er den der under alle omstændigheder.',
   'settings.sidebar.instances': 'Instanser i sidepanelet',
   'settings.sidebar.instancesHint': 'Sætter siden „Instanser“ i sidepanelet. Under indstillinger er den der under alle omstændigheder.',
+  'settings.sidebar.overview': 'Overblik i sidepanelet',
+  'settings.sidebar.overviewHint': 'Sætter siden „Overblik“ i sidepanelet. Slået fra åbner KnightLoader på „Downloads“.',
   'settings.axisSidebarHint': 'Påvirker kun skrivebordslayoutet.',
   'settings.axisBottombarHint': 'Påvirker kun telefonlayoutet.',
   'settings.labels.mode.text': 'Tekst',

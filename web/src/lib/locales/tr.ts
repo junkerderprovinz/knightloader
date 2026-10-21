@@ -507,6 +507,8 @@ export const tr: Dict = {
   'settings.sidebar.accountsHint': '“Hesaplar” sayfasını kenar çubuğuna koyar. Ayarlarda her durumda bulunur.',
   'settings.sidebar.instances': 'Kenar çubuğunda Örnekler',
   'settings.sidebar.instancesHint': '“Örnekler” sayfasını kenar çubuğuna koyar. Ayarlarda her durumda bulunur.',
+  'settings.sidebar.overview': 'Kenar çubuğunda Genel bakış',
+  'settings.sidebar.overviewHint': '“Genel bakış” sayfasını kenar çubuğuna koyar. Kapalıyken KnightLoader “İndirmeler” sayfasında açılır.',
   'settings.axisSidebarHint': 'Yalnızca masaüstü düzenini etkiler.',
   'settings.axisBottombarHint': 'Yalnızca telefon düzenini etkiler.',
   'settings.labels.mode.text': 'Metin',

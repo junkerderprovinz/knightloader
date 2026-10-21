@@ -224,6 +224,7 @@ export function Sidebar() {
   // seeds them after a reload.
   const hideAccounts = useHidden('accounts');
   const hideInstances = useHidden('instances');
+  const hideOverview = useHidden('overview');
   const mode = useLabelMode('sidebar');
   const barMode = useLabelMode('bottombar');
   const egg = useDrawAndStrike();
@@ -232,6 +233,7 @@ export function Sidebar() {
       .then((s) => {
         setHidden('accounts', s.hideAccountsFromSidebar);
         setHidden('instances', s.hideInstancesFromSidebar);
+        setHidden('overview', s.hideOverviewFromSidebar);
         seedLabelModes(s);
       })
       .catch(() => {});
@@ -263,6 +265,7 @@ export function Sidebar() {
       <PhoneBar
         mode={barMode}
         locked={locked}
+        showOverview={!hideOverview}
         showInstances={!hideInstances}
         showAccounts={!hideAccounts}
         needs={needs}
@@ -285,7 +288,7 @@ export function Sidebar() {
       {/* The logo above the name; the narrow rail drops the name and shrinks
           the logo to fit. */}
       <NavLink
-        to="/"
+        to={hideOverview ? '/downloads' : '/'}
         end
         className={`flex flex-col items-center gap-2 ${narrow ? 'px-2 py-4' : 'px-4 py-6'}`}
         onPointerDown={egg.onPointerDown}
@@ -307,7 +310,7 @@ export function Sidebar() {
 
       <nav data-nav-rail className={`flex flex-col gap-1 flex-1 ${narrow ? 'p-2' : 'p-3'}`}>
         {/* Downloads before the collector, as in JDownloader. */}
-        <Item to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />
+        {!hideOverview && <Item to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />}
         <Item to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownload />} badge={active} />
         <Item to="/collector" hue={nextHue()} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
         {!hideInstances && <Item to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconFleet />} />}
@@ -540,6 +543,7 @@ const sheetRow =
 function PhoneBar({
   mode,
   locked,
+  showOverview,
   showInstances,
   showAccounts,
   needs,
@@ -548,6 +552,7 @@ function PhoneBar({
 }: {
   mode: LabelMode;
   locked: boolean;
+  showOverview: boolean;
   showInstances: boolean;
   showAccounts: boolean;
   needs: number;
@@ -564,7 +569,7 @@ function PhoneBar({
   let hue = 0;
   const nextHue = () => hue++;
 
-  const overview = nextHue();
+  const overview = showOverview ? nextHue() : 0;
   const downloads = nextHue();
   const collector = nextHue();
   const pinned = [
@@ -580,7 +585,7 @@ function PhoneBar({
     // order-last draws it under the page while it stays ahead of the page in
     // the document, where the rail is.
     <nav ref={bar} data-new="phone-bar" className="relative order-last flex h-12 shrink-0 gap-0.5 rounded-[var(--radius-card)] bg-carbon-sidebar p-1">
-      <BarItem to="/" end hue={overview} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />
+      {showOverview && <BarItem to="/" end hue={overview} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />}
       <BarItem to="/downloads" hue={downloads} mode={mode} label={t('nav.downloads')} icon={<IconDownload />} badge={active} />
       <BarItem to="/collector" hue={collector} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
       <BarItem to="/settings" hue={settings} mode={mode} label={t('nav.settings')} icon={<IconGear />} />

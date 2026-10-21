@@ -507,6 +507,8 @@ export const cs: Dict = {
   'settings.sidebar.accountsHint': 'Dá stránku „Účty“ do postranního panelu. V nastavení je tak jako tak.',
   'settings.sidebar.instances': 'Instance v postranním panelu',
   'settings.sidebar.instancesHint': 'Dá stránku „Instance“ do postranního panelu. V nastavení je tak jako tak.',
+  'settings.sidebar.overview': 'Přehled v postranním panelu',
+  'settings.sidebar.overviewHint': 'Dá stránku „Přehled“ do postranního panelu. Když je vypnutá, KnightLoader se otevře na „Stahování“.',
   'settings.axisSidebarHint': 'Ovlivňuje pouze rozložení na počítači.',
   'settings.axisBottombarHint': 'Ovlivňuje pouze rozložení telefonu.',
   'settings.labels.mode.text': 'Text',

@@ -499,6 +499,8 @@ export const nl: Dict = {
   'settings.sidebar.accountsHint': 'Zet de pagina “Accounts” in de zijbalk. In de instellingen staat hij er hoe dan ook.',
   'settings.sidebar.instances': 'Instanties in de zijbalk',
   'settings.sidebar.instancesHint': 'Zet de pagina “Instanties” in de zijbalk. In de instellingen staat hij er hoe dan ook.',
+  'settings.sidebar.overview': 'Overzicht in de zijbalk',
+  'settings.sidebar.overviewHint': 'Zet de pagina “Overzicht” in de zijbalk. Uitgeschakeld opent KnightLoader op “Downloads”.',
   'settings.axisSidebarHint': 'Geldt alleen voor de desktoplay-out.',
   'settings.axisBottombarHint': 'Geldt alleen voor de telefoonlay-out.',
   'settings.labels.mode.text': 'Tekst',

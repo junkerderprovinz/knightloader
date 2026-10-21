@@ -508,6 +508,8 @@ export const lt: Dict = {
   'settings.sidebar.accountsHint': 'Įdeda puslapį „Paskyros“ į šoninę juostą. Nustatymuose jis yra bet kuriuo atveju.',
   'settings.sidebar.instances': 'Egzemplioriai šoninėje juostoje',
   'settings.sidebar.instancesHint': 'Įdeda puslapį „Egzemplioriai“ į šoninę juostą. Nustatymuose jis yra bet kuriuo atveju.',
+  'settings.sidebar.overview': 'Apžvalga šoninėje juostoje',
+  'settings.sidebar.overviewHint': 'Įdeda puslapį „Apžvalga“ į šoninę juostą. Išjungus KnightLoader atsidaro puslapyje „Atsisiuntimai“.',
   'settings.axisSidebarHint': 'Taikoma tik kompiuterio išdėstymui.',
   'settings.axisBottombarHint': 'Taikoma tik telefono išdėstymui.',
   'settings.labels.mode.text': 'Tekstas',

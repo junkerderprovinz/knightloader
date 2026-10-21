@@ -507,6 +507,8 @@ export const zh: Dict = {
   'settings.sidebar.accountsHint': '把“账户”页面放到侧边栏。设置中始终都有这个页面。',
   'settings.sidebar.instances': '侧边栏中的实例',
   'settings.sidebar.instancesHint': '把“实例”页面放到侧边栏。设置中始终都有这个页面。',
+  'settings.sidebar.overview': '侧边栏中的概览',
+  'settings.sidebar.overviewHint': '把“概览”页面放到侧边栏。关闭后，KnightLoader 打开时显示“下载”。',
   'settings.axisSidebarHint': '仅影响桌面布局。',
   'settings.axisBottombarHint': '仅影响手机布局。',
   'settings.labels.mode.text': '文字',

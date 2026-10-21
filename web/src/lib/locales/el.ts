@@ -508,6 +508,8 @@ export const el: Dict = {
   'settings.sidebar.accountsHint': 'Βάζει τη σελίδα «Λογαριασμοί» στην πλαϊνή γραμμή. Στις ρυθμίσεις υπάρχει έτσι κι αλλιώς.',
   'settings.sidebar.instances': 'Στιγμιότυπα στην πλαϊνή γραμμή',
   'settings.sidebar.instancesHint': 'Βάζει τη σελίδα «Στιγμιότυπα» στην πλαϊνή γραμμή. Στις ρυθμίσεις υπάρχει έτσι κι αλλιώς.',
+  'settings.sidebar.overview': 'Επισκόπηση στην πλαϊνή γραμμή',
+  'settings.sidebar.overviewHint': 'Βάζει τη σελίδα «Επισκόπηση» στην πλαϊνή γραμμή. Όταν είναι κλειστό, το KnightLoader ανοίγει στις «Λήψεις».',
   'settings.axisSidebarHint': 'Ισχύει μόνο για τη διάταξη υπολογιστή.',
   'settings.axisBottombarHint': 'Ισχύει μόνο για τη διάταξη του τηλεφώνου.',
   'settings.labels.mode.text': 'Κείμενο',

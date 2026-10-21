@@ -373,6 +373,10 @@ type Settings struct {
 	// typo in, and two entries are not a family worth that.
 	HideInstancesFromSidebar bool `json:"hideInstancesFromSidebar"`
 
+	// HideOverviewFromSidebar drops the "Übersicht" item for somebody who
+	// lives in the download list; the interface then opens on Downloads.
+	HideOverviewFromSidebar bool `json:"hideOverviewFromSidebar"`
+
 	// The label modes say how much of a control is drawn, one of the Labels*
 	// words, with one setting per kind of control because the right answer
 	// differs: a sidebar reduced to glyphs narrows the page, a button reduced to

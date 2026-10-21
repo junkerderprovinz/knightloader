@@ -507,6 +507,8 @@ export const vi: Dict = {
   'settings.sidebar.accountsHint': 'Đặt trang “Tài khoản” lên thanh bên. Trong Cài đặt thì trang này luôn có.',
   'settings.sidebar.instances': 'Phiên bản trên thanh bên',
   'settings.sidebar.instancesHint': 'Đặt trang “Phiên bản” lên thanh bên. Trong Cài đặt thì trang này luôn có.',
+  'settings.sidebar.overview': 'Tổng quan trên thanh bên',
+  'settings.sidebar.overviewHint': 'Đặt trang “Tổng quan” lên thanh bên. Khi tắt, KnightLoader mở ở trang “Tải xuống”.',
   'settings.axisSidebarHint': 'Chỉ ảnh hưởng đến bố cục máy tính.',
   'settings.axisBottombarHint': 'Chỉ ảnh hưởng đến bố cục điện thoại.',
   'settings.labels.mode.text': 'Chữ',

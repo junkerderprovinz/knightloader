@@ -508,6 +508,8 @@ export const eu: Dict = {
   'settings.sidebar.accountsHint': '«Kontuak» orria alboko barran jartzen du. Ezarpenetan dago hala ere.',
   'settings.sidebar.instances': 'Instantziak alboko barran',
   'settings.sidebar.instancesHint': '«Instantziak» orria alboko barran jartzen du. Ezarpenetan dago hala ere.',
+  'settings.sidebar.overview': 'Laburpena alboko barran',
+  'settings.sidebar.overviewHint': '«Laburpena» orria alboko barran jartzen du. Desaktibatuta, KnightLoader «Deskargak» orrian irekitzen da.',
   'settings.axisSidebarHint': 'Mahaigaineko diseinuari bakarrik eragiten dio.',
   'settings.axisBottombarHint': 'Telefonoaren diseinuari bakarrik eragiten dio.',
   'settings.labels.mode.text': 'Testua',
