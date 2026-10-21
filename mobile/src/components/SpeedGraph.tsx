@@ -1,6 +1,7 @@
 import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import { Animated, Easing, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
+import { useMotion } from '../theme/MotionContext';
 import { ACCENTS } from '../theme/appearance';
 import { inkFor, NUM, TYPE } from '../theme/tokens';
 import { fmtSpeed } from '../api/stats';
@@ -43,6 +44,11 @@ import {
 // The web meter's default window: one sample a second for half a minute.
 const STEP_MS = 1000;
 const SPAN = 30;
+
+// Samples kept beyond the span on screen. While the curve glides the newest
+// waits past the right edge and one more hangs past the left, so the plot
+// never shows an end of the curve as it moves.
+const KEEP = SPAN + 2;
 
 // The plot's padding above and below, which the curves stand inside.
 const PAD = 4;
@@ -212,7 +218,7 @@ function SpeedGraph({
 
   useEffect(() => {
     const id = setInterval(() => {
-      if (tick(feed.current, latest.current.down, latest.current.up, SPAN)) setHistory(feed.current.samples);
+      if (tick(feed.current, latest.current.down, latest.current.up, KEEP)) setHistory(feed.current.samples);
     }, STEP_MS);
     return () => clearInterval(id);
   }, []);
@@ -230,7 +236,7 @@ function SpeedGraph({
     seed().then(
       (s) => {
         if (!alive) return;
-        seedFeed(f, s, SPAN);
+        seedFeed(f, s, KEEP);
         setHistory(f.samples);
       },
       () => {
@@ -242,11 +248,38 @@ function SpeedGraph({
     };
   }, [seed]);
 
+  // The curve glides left at a steady pace between samples instead of hopping
+  // a whole step as each one arrives, as the web meter does. The gate is the
+  // web's too: not at the quiet level, and not while the system asks for less
+  // motion, the storm included, since the glide never stops.
+  const { motion, reduced } = useMotion();
+  const glide = motion !== 'off' && !reduced;
+  const lead = glide ? 1 : 0;
+
   const down = history.down;
   const up = seeding ? history.up : NO_SAMPLES;
-  const ceiling = useMemo(() => ceilingOf(down.concat(up), limit, uploadLimit), [down, up, limit, uploadLimit]);
-  const busy = busyOf(down, up);
+  // What the plot shows, the sample about to glide in included, so it fits
+  // under the ceiling before it appears.
+  const shownDown = useMemo(() => down.slice(-(SPAN + 1 + lead)), [down, lead]);
+  const shownUp = useMemo(() => up.slice(-(SPAN + 1 + lead)), [up, lead]);
+  const ceiling = useMemo(
+    () => ceilingOf(shownDown.concat(shownUp), limit, uploadLimit),
+    [shownDown, shownUp, limit, uploadLimit],
+  );
+  const busy = busyOf(shownDown, shownUp);
   const base = height - PAD;
+  const dx = w / SPAN;
+
+  // A new value per sample, so the new drawing and its offset of one step
+  // reach the screen in the same frame. The step then runs out on the native
+  // thread.
+  const offset = useMemo(() => new Animated.Value(glide ? dx : 0), [history, glide, dx]);
+  useEffect(() => {
+    if (!glide) return;
+    const run = Animated.timing(offset, { toValue: 0, duration: STEP_MS, easing: Easing.linear, useNativeDriver: true });
+    run.start();
+    return () => run.stop();
+  }, [offset, glide]);
 
   const downInk = accentInk;
   const upHex = seedingDefault(accent, ACCENTS.map((a) => a.hex));
@@ -260,12 +293,12 @@ function SpeedGraph({
   });
 
   const downLine = useMemo(
-    () => (busy && w > 0 ? curve(down, w, height, PAD, SPAN, ceiling, STEPS) : NO_POINTS),
-    [busy, down, w, height, ceiling],
+    () => (busy && w > 0 ? curve(down, w, height, PAD, SPAN, ceiling, STEPS, lead) : NO_POINTS),
+    [busy, down, w, height, ceiling, lead],
   );
   const upLine = useMemo(
-    () => (busy && w > 0 && seeding ? curve(up, w, height, PAD, SPAN, ceiling, STEPS) : NO_POINTS),
-    [busy, seeding, up, w, height, ceiling],
+    () => (busy && w > 0 && seeding ? curve(up, w, height, PAD, SPAN, ceiling, STEPS, lead) : NO_POINTS),
+    [busy, seeding, up, w, height, ceiling, lead],
   );
 
   const onLayout = (e: LayoutChangeEvent) => {
@@ -303,7 +336,7 @@ function SpeedGraph({
       <View style={[styles.plot, { height }]} onLayout={onLayout}>
         <View style={[styles.ground, { top: base, backgroundColor: c.border }]} />
         {busy ? (
-          <>
+          <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateX: offset }] }]} pointerEvents="none">
             <Wash points={downLine} color={downInk} base={base} />
             {/* Over the download's wash, which still shows through it where the
                 two overlap. */}
@@ -312,7 +345,7 @@ function SpeedGraph({
                 two meet. */}
             <Stroke points={upLine} color={upInk} />
             <Stroke points={downLine} color={downInk} />
-          </>
+          </Animated.View>
         ) : (
           seeding && (
             <View
