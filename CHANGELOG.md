@@ -50,6 +50,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   same way the app does. The new Name field in the Group card is what the
   instances show for this browser; it starts as the browser and system, such
   as "Brave on Windows", and is saved when you leave the field.
+- **A new installer for Windows and Linux.** One window, the app's tile on
+  top, a folder you choose and nothing else to answer. It checks that the
+  folder can be written, and on a drive whose root is open to everyone the
+  update task runs under your own account instead of SYSTEM. The desktop app
+  starts in the language Windows or your Linux desktop uses.
 - **The overview can leave the sidebar.** Settings, Appearance, Sidebar has
   a switch for it next to Accounts and Instances. Switched off, KnightLoader
   opens on Downloads, and the logo leads there too.
@@ -83,6 +88,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The extension's settings page notices the approval.** After pairing with
   the phrase, every instance stayed Not connected until the page was opened
   again. The page now asks again every few seconds until all instances answer.
+- **The folder chooser on Windows offers every drive.** Each one has its own
+  tab, not only the drive KnightLoader runs from.
 - **No empty column after Progress.** The download list and the link
   collector kept an empty track at the right edge for row buttons that only
   appear on hover.
