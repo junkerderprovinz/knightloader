@@ -259,11 +259,16 @@ writes to three places and nowhere else: the installation folder, usually
 `%ProgramData%\KnightLoader`, for its log. It starts no JDownloader, opens no
 window, listens on no port and reads nothing from any user's profile. The folder
 under ProgramData belongs to the administrators, and only `settings.json` in it
-is open to other users. You can install into another folder, but only one that
-no ordinary user can change, rename or replace, and the same goes for every
-folder above it. The installer checks that, refuses anything else, and gives the
-folder the same rights as Program Files. That leaves no file a user could swap
-for one the system account would run or write to. The task downloads only from GitHub over HTTPS and installs a file
+is open to other users. The installer gives the installation folder the same
+rights as Program Files. That leaves no file a user could swap for one the
+system account would run or write to.
+
+You can install into another folder too. Many second drives let everyone
+rename what sits at their top, and whoever can rename a folder above the
+installation can swap it. On such a drive the task runs as the person who
+installed KnightLoader, without administrator rights, and that person may
+change the installation folder. Updates arrive the same way; only the version
+in the list of installed apps stays at the one first installed. The task downloads only from GitHub over HTTPS and installs a file
 only when it matches `checksums.txt`.
 
 #### Uninstalling
