@@ -197,6 +197,15 @@ export default function SettingsScreen({
   const anyOverride = overridden.accent || overridden.shape || overridden.rainbow;
   const following = !anyOverride;
   const [nameDraft, setNameDraft] = useState(chosenDeviceName);
+  const nameRef = useRef(nameDraft);
+  nameRef.current = nameDraft;
+  // The name is kept when the screen goes as well as when the field lets go.
+  // Android's back key first closes the keyboard without taking the focus from
+  // the field, so a second press leaves the screen with the field still
+  // focused, and neither its blur nor its end of editing ever fires.
+  useFocusEffect(
+    useCallback(() => () => void setDeviceName(nameRef.current), [])
+  );
   // The owner compares it with the key an instance shows beside this phone
   // while it waits for approval there.
   const [keyPrint, setKeyPrint] = useState<string | null>(null);
@@ -401,7 +410,7 @@ export default function SettingsScreen({
           style={[styles.input, { backgroundColor: c.surface2, color: c.text, ...corners.control }]}
           value={nameDraft}
           onChangeText={setNameDraft}
-          onEndEditing={() => void setDeviceName(nameDraft)}
+          onBlur={() => void setDeviceName(nameDraft)}
           placeholder={modelName()}
           placeholderTextColor={c.textMuted}
           accessibilityLabel={t('settings.deviceName')}
