@@ -105,6 +105,7 @@
       /* Twelve words need the phrase field on its own line. */
       #joinForm { display: flex; flex-direction: column; gap: 10px; margin: 0; }
       #phrase { width: 100%; }
+      #deviceName { flex: 0 1 16rem; min-width: 0; }
       #refreshGroup { margin-top: 16px; }
       #ownKey { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: var(--carbon-text-muted); font-size: var(--text-dense); font-variant-numeric: tabular-nums; }
       #ownKey[hidden] { display: none; }
@@ -282,6 +283,12 @@
           <button id="leave" class="iconBadge" type="button" hidden></button>
         </div>
       </form>
+      <!-- Outside the form, so Enter here saves the name instead of
+           connecting. -->
+      <div class="glim-row">
+        <span class="glim-row-label" id="deviceNameLabel"></span>
+        <input id="deviceName" type="text" autocomplete="off" spellcheck="false" />
+      </div>
       <div id="status"></div>
       <div id="list"></div>
       <p id="ownKey" hidden></p>
