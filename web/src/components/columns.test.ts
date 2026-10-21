@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { ExtractJob, Task, TaskStatus } from '../lib/api';
 import { extractionsByTask } from './Archives';
 import {
+  ACTIONS_ROOM,
   gridTemplate,
   isParked,
   packageFailures,
@@ -16,18 +17,43 @@ import {
   type ResolvedLayout,
 } from './columns';
 
+/** A template's tracks: split at the spaces outside any parentheses. */
+function tracksOf(template: string): string[] {
+  const out = [''];
+  let depth = 0;
+  for (const ch of template) {
+    if (ch === ' ' && depth === 0) {
+      out.push('');
+      continue;
+    }
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    out[out.length - 1] += ch;
+  }
+  return out;
+}
+
 /** The track of one column, by its place among the visible ones. */
 function track(template: string, layout: ResolvedLayout, id: ColumnId): string {
-  const tracks = template.match(/minmax\([^)]*\)|\S+/g) ?? [];
-  return tracks[layout.visible.findIndex((c) => c.id === id)];
+  return tracksOf(template)[layout.visible.findIndex((c) => c.id === id)];
 }
+
+/** The name's floor: its own minimum and the room the row's badges stand in. */
+const nameFloor = (layout: ResolvedLayout) => `calc(${layout.minWidthOf('name')}px + ${ACTIONS_ROOM})`;
 
 describe('gridTemplate', () => {
   it('lets the name fill what the other columns leave', () => {
     const layout = resolveLayout('downloads', null);
     const template = gridTemplate(layout);
-    expect(track(template, layout, 'name')).toBe(`minmax(${layout.minWidthOf('name')}px, 1fr)`);
+    expect(track(template, layout, 'name')).toBe(`minmax(${nameFloor(layout)}, 1fr)`);
     expect(template.match(/1fr/g)).toHaveLength(1);
+  });
+
+  it('draws one track per column and none after the last', () => {
+    for (const profile of ['downloads', 'collector'] as const) {
+      const layout = resolveLayout(profile, null);
+      expect(tracksOf(gridTemplate(layout)), profile).toHaveLength(layout.visible.length);
+    }
   });
 
   it('lets an untouched column give way down to its minimum', () => {
@@ -46,14 +72,14 @@ describe('gridTemplate', () => {
     const layout = resolveLayout('downloads', { order: [], hidden: [], widths: { name: 400 }, v: 3 });
     const template = gridTemplate(layout);
     const last = layout.visible[layout.visible.length - 1];
-    expect(track(template, layout, 'name')).toBe(`minmax(${layout.minWidthOf('name')}px, 400px)`);
+    expect(track(template, layout, 'name')).toBe(`minmax(${nameFloor(layout)}, 400px)`);
     expect(track(template, layout, last.id)).toBe(`minmax(${layout.widthOf(last.id)}px, 1fr)`);
   });
 
   it('draws a column under the pointer as if its width were stored', () => {
     const layout = resolveLayout('downloads', null);
     const template = gridTemplate(layout, { id: 'name', width: 250 });
-    expect(track(template, layout, 'name')).toBe(`minmax(${layout.minWidthOf('name')}px, 250px)`);
+    expect(track(template, layout, 'name')).toBe(`minmax(${nameFloor(layout)}, 250px)`);
   });
 });
 

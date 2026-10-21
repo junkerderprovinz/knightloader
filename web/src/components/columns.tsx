@@ -2205,41 +2205,54 @@ export function moveColumn(order: ColumnId[], id: ColumnId, target: ColumnId, af
  * never wide enough, while the others hold values of a known length. When the
  * window is too narrow, the name gives way to its minimum first, then every
  * column at its default width gives way to its own, and only then does the
- * table scroll: a name truncates gracefully, and a scrolled table puts the
- * row's actions out of sight at its far end. A width somebody dragged stays.
+ * table scroll: a name truncates gracefully. A width somebody dragged stays.
  *
  * Once the name has been dragged it stops filling, or dragging it narrower
  * would change nothing, and the last column takes the rest from its own width
  * up. It is the one dragged width that still gives way, for the reason above.
+ *
+ * Exactly one track per column. The rows are a grid with no explicit row
+ * count, so a cell without a track wraps onto a second grid line, and a track
+ * without a cell stands as an empty column in every row. The row's action
+ * badges have no track: they sit at the end of the name column, which keeps
+ * ACTIONS_ROOM for them on top of its own minimum.
  */
 export function gridTemplate(layout: ResolvedLayout, drag?: { id: ColumnId; width: number }): string {
   const dragged = (id: ColumnId) => drag?.id === id || layout.widths[id] !== undefined;
   const nameFills = !dragged('name');
   const last = layout.visible.length - 1;
-  // One track per column and one for the row's action badges after them. The
-  // rows are a grid with no explicit row count, so one track too few wraps the
-  // last cell onto a second grid line, which reads as the rows simply being
-  // tall rather than as a layout fault. The header and a folder row without
-  // actions leave the last track empty, which costs nothing.
-  const columns = layout.visible.map((c, i) => {
-    const min = layout.minWidthOf(c.id);
-    const width = drag?.id === c.id ? drag.width : layout.widthOf(c.id);
-    if (c.id === 'name' && nameFills) return `minmax(${min}px, 1fr)`;
-    if (!nameFills && i === last) return `minmax(${width}px, 1fr)`;
-    return dragged(c.id) && c.id !== 'name' ? `${width}px` : `minmax(${min}px, ${width}px)`;
-  });
-  return [...columns, ACTIONS_TRACK].join(' ');
+  return layout.visible
+    .map((c, i) => {
+      const own = `${layout.minWidthOf(c.id)}px`;
+      const min = c.id === 'name' ? `calc(${own} + ${ACTIONS_ROOM})` : own;
+      const width = drag?.id === c.id ? drag.width : layout.widthOf(c.id);
+      if (c.id === 'name' && nameFills) return `minmax(${min}, 1fr)`;
+      if (!nameFills && i === last) return `minmax(${width}px, 1fr)`;
+      return dragged(c.id) && c.id !== 'name' ? `${width}px` : `minmax(${min}, ${width}px)`;
+    })
+    .join(' ');
 }
 
 /**
- * The width of the actions track: as many square badges as the busiest row
- * carries and the 4px gaps between them. That is three, a collected link's
- * start, recheck and remove, or a failed one's skip, restart and remove. A
- * fixed width rather than `auto`, since every row is a grid of its own and an
- * `auto` track would size to each row's badges and shift the columns before
- * it from row to row.
+ * The room the row's action badges take at the end of the name column: as
+ * many square badges as the busiest row carries and the 4px gaps between them.
+ * That is three, a collected link's start, recheck and remove, or a failed
+ * one's skip, restart and remove. A fixed width rather than the badges' own,
+ * so the names of every row are cut at one line whatever each row carries.
  */
-const ACTIONS_TRACK = 'calc(3 * var(--btn-h) + 2 * 0.25rem)';
+export const ACTIONS_ROOM = 'calc(3 * var(--btn-h) + 2 * 0.25rem)';
+
+/** The name cell's end padding: a cell's own 8px and the room for the badges. */
+export const NAME_END = `calc(0.5rem + ${ACTIONS_ROOM})`;
+
+/** Places a cell in the name column, wherever it stands (`--kl-name-col`, set
+ *  on the table). The name cell and the row's badges both take it: an item
+ *  placed only by the order of the cells steps aside for one placed by name,
+ *  so the name cell has to be placed too, or it moves one column on. */
+export const IN_NAME_COL = '[grid-row:1] [grid-column:var(--kl-name-col)]';
+
+/** Places a row's badges over the end of its name cell. */
+export const AT_NAME_END = `justify-self-end ${IN_NAME_COL}`;
 
 export interface SortState {
   id: ColumnId;
