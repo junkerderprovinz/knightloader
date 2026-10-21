@@ -70,6 +70,13 @@ const STORAGE_KEY = 'kl-lang';
 function detect(): Lang {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored && AVAILABLE.includes(stored)) return stored;
+  // The desktop app opens with the language its installer was set to
+  // (desktop/language.go). Kept as a choice, it outlasts the first start.
+  const installed = new URLSearchParams(location.search).get('lang');
+  if (installed && AVAILABLE.includes(installed)) {
+    localStorage.setItem(STORAGE_KEY, installed);
+    return installed;
+  }
   const nav = navigator.language?.toLowerCase() ?? 'en';
   const exact = LANGUAGES.find((l) => nav === l.code || nav.startsWith(l.code + '-'));
   return exact?.code ?? 'en';
