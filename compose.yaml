@@ -15,6 +15,5 @@ services:
     volumes:
       - "./appdata:/data"
       - "./downloads:/data/downloads"
-      - "./watch:/watch"
     environment:
       UMASK: "022"
