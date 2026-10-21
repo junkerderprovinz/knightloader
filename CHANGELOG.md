@@ -45,9 +45,22 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   last seen: Connected, Waiting for approval, Not connected, or Paired for an
   extension that is approved but not in use right now. The phone you hold is
   marked as this device. An instance that cannot list them yet shows none.
+- **The browser extension lists them too, and has a name of its own.** Its
+  settings page shows the group's phones and browsers under the instances, the
+  same way the app does. The new Name field in the Group card is what the
+  instances show for this browser; it starts as the browser and system, such
+  as "Brave on Windows", and is saved when you leave the field.
 
 ### Changed
 
+- **Take the look from the default instance also takes light or dark.** The
+  instance keeps the theme last chosen in its web interface, and while the
+  extension follows it, the extension's own theme and corner buttons are
+  greyed out like its colours. Switching off brings the local look back.
+- **Start all in the link collector goes to the download list.** It switches
+  once links have left the collector and stays put when nothing started.
+- **The row buttons in the download list and the link collector sit at the
+  end of the name column.** They show on hover as before.
 - **The app's background notification is quiet and says what is going on.**
   It sits collapsed at the bottom of the shade with no icon in the status bar
   and reads like "2 downloads, 4.1 MB/s", or that no downloads are running
@@ -57,6 +70,20 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
+- **A paired browser extension no longer shows as Not connected.** The
+  extension connects only while you use it, so the Instances and Pairing pages
+  now call an approved one Paired, take its last seen time from its last call,
+  and change without a reload.
+- **The extension's settings page notices the approval.** After pairing with
+  the phrase, every instance stayed Not connected until the page was opened
+  again. The page now asks again every few seconds until all instances answer.
+- **No empty column after Progress.** The download list and the link
+  collector kept an empty track at the right edge for row buttons that only
+  appear on hover.
+- **A release unpacks into one folder.** When every file of an archive sits
+  in a folder named like the archive itself, as scene releases do, it no
+  longer ends up in `Release/Release/`. Compressed tar files keep the old
+  layout, since they cannot be listed without reading them through.
 - **An instance's badge in the app follows its state while the overview is
   open.** After pairing with the phrase, the badge kept saying Not connected
   until the screen was opened again, even once the instance had approved the
