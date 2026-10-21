@@ -20,6 +20,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -29,6 +30,7 @@ import (
 	"github.com/nwaples/rardecode/v2"
 	"github.com/ulikunitz/xz"
 
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/filemode"
 )
 
@@ -219,10 +221,42 @@ func destDir(path string) string {
 type target struct {
 	dir    string
 	barred func(path string) error
+	// root is the folder taken off the front of every entry name, or "".
+	root string
+}
+
+// unwrapped is t with the one folder every file sits in taken off their names,
+// when that folder carries the archive's own name. A release packed as
+// "Film/..." into "Film.rar" would otherwise unpack to "Film/Film/...". A
+// folder of another name is kept, since it is the only place that name
+// survives.
+func (t target) unwrapped(archive string, names []string) target {
+	root := soleFolder(names)
+	if root != "" && strings.EqualFold(collide.SafeName(root), collide.SafeName(filepath.Base(destDir(archive)))) {
+		t.root = root
+	}
+	return t
+}
+
+// soleFolder is the top-level folder every name sits inside, or "" when there
+// are no names or they do not all share one.
+func soleFolder(names []string) string {
+	var root string
+	for _, n := range names {
+		first, _, ok := strings.Cut(path.Clean(n), "/")
+		if !ok || first == "" || first == "." || first == ".." || root != "" && first != root {
+			return ""
+		}
+		root = first
+	}
+	return root
 }
 
 // file is where the entry name is written under t, or why it may not be.
 func (t target) file(name string) (string, error) {
+	if t.root != "" {
+		name = strings.TrimPrefix(path.Clean(name), t.root+"/")
+	}
 	p, err := safePath(t.dir, name)
 	if err != nil {
 		return "", err
@@ -277,10 +311,15 @@ func extractZip(path string, dest target, password string) (*Result, error) {
 		return nil, err
 	}
 	var size uint64
+	var names []string
 	for _, f := range zr.File {
 		size += f.UncompressedSize64
+		if !f.FileInfo().IsDir() {
+			names = append(names, f.Name)
+		}
 	}
 	expectWatched(int64(size))
+	dest = dest.unwrapped(path, names)
 	res := &Result{Dir: dest.dir, Volumes: []string{path}}
 	for _, f := range zr.File {
 		if f.FileInfo().IsDir() {
@@ -314,7 +353,9 @@ func extractRar(path string, dest target, password string) (*Result, error) {
 		return nil, rarError(err, filepath.Base(path))
 	}
 	defer rc.Close()
-	expectWatched(rarSize(path, opts))
+	size, names := rarListing(path, opts)
+	expectWatched(size)
+	dest = dest.unwrapped(path, names)
 	res := &Result{Dir: dest.dir}
 	body := &archiveSide{r: rc}
 	// Sequential Next/Read works for solid and multi-volume archives alike.
@@ -354,26 +395,30 @@ func extractRar(path string, dest target, password string) (*Result, error) {
 	return res, nil
 }
 
-// rarSize is what a rar set unpacks to, read off the file headers of every
-// volume without decoding any data, or 0 when a header does not say. The
-// sequential reader meets those headers one at a time, so the whole is only
-// known by walking the set once up front.
-func rarSize(path string, opts []rardecode.Option) int64 {
+// rarListing is what a rar set unpacks to and the names of its files, read off
+// the file headers of every volume without decoding any data. The size is 0
+// when a header does not say. The sequential reader meets those headers one at
+// a time, so the whole is only known by walking the set once up front.
+func rarListing(path string, opts []rardecode.Option) (int64, []string) {
 	files, err := rardecode.List(path, opts...)
 	if err != nil {
-		return 0
+		return 0, nil
 	}
 	var size int64
+	var names []string
+	known := true
 	for _, f := range files {
 		if f.IsDir {
 			continue
 		}
-		if f.UnKnownSize {
-			return 0
-		}
+		names = append(names, f.Name)
+		known = known && !f.UnKnownSize
 		size += f.UnPackedSize
 	}
-	return size
+	if !known {
+		size = 0
+	}
+	return size, names
 }
 
 // rarError is how a failure inside a RAR set is reported. The reader raises a
@@ -429,10 +474,15 @@ func extract7z(path string, dest target, password string) (*Result, error) {
 	}
 	defer zr.Close()
 	var size uint64
+	var names []string
 	for _, f := range zr.File {
 		size += f.UncompressedSize
+		if !f.FileInfo().IsDir() {
+			names = append(names, f.Name)
+		}
 	}
 	expectWatched(int64(size))
+	dest = dest.unwrapped(path, names)
 	res := &Result{Dir: dest.dir, Volumes: zr.Volumes()}
 	// In-order extraction so solid-block streams are read once.
 	for _, f := range zr.File {
@@ -501,12 +551,36 @@ func unpackTar(tr *tar.Reader, dest target, res *Result) error {
 	}
 }
 
+// tarNames lists the regular files of a tar, or nothing when it cannot be read
+// to the end; the pass that unpacks it reports why. The reader seeks over the
+// file bodies, so this costs the headers and not the archive.
+func tarNames(f *os.File) []string {
+	tr := tar.NewReader(f)
+	var names []string
+	for {
+		h, err := tr.Next()
+		if err == io.EOF {
+			return names
+		}
+		if err != nil {
+			return nil
+		}
+		if h.Typeflag == tar.TypeReg {
+			names = append(names, h.Name)
+		}
+	}
+}
+
 func extractTar(path string, dest target) (*Result, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
+	dest = dest.unwrapped(path, tarNames(f))
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return nil, err
+	}
 	res := &Result{Dir: dest.dir, Volumes: []string{path}}
 	if err := unpackTar(tar.NewReader(f), dest, res); err != nil {
 		return nil, err
