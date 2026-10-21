@@ -33,7 +33,10 @@ object Notices {
   const val CHANNEL_CAPTCHA = "captcha"
   const val CHANNEL_FINISHED = "finished"
   const val CHANNEL_FAILED = "failed"
-  const val CHANNEL_WATCH = "watch"
+  // A channel's importance cannot be lowered once it exists, so the quiet one
+  // has a new id and the old one is deleted.
+  const val CHANNEL_WATCH = "watch-quiet"
+  private const val CHANNEL_WATCH_OLD = "watch"
 
   private const val EXTRA_OPEN = "knightloader.open"
   private const val EXTRA_CONNECTION = "knightloader.connection"
@@ -52,12 +55,13 @@ object Notices {
         NotificationChannelCompat.Builder(CHANNEL_FAILED, NotificationManagerCompat.IMPORTANCE_DEFAULT)
           .setName(failed)
           .build(),
-        NotificationChannelCompat.Builder(CHANNEL_WATCH, NotificationManagerCompat.IMPORTANCE_LOW)
+        NotificationChannelCompat.Builder(CHANNEL_WATCH, NotificationManagerCompat.IMPORTANCE_MIN)
           .setName(watch)
           .setShowBadge(false)
           .build(),
       ),
     )
+    manager.deleteNotificationChannel(CHANNEL_WATCH_OLD)
   }
 
   fun enabled(context: Context): Boolean = NotificationManagerCompat.from(context).areNotificationsEnabled()
@@ -95,14 +99,21 @@ object Notices {
     NotificationCompat.Builder(context, CHANNEL_WATCH)
       .setSmallIcon(R.drawable.knightloader_watch)
       .setContentTitle(title)
-      .setContentText(text)
+      .setContentText(text.ifEmpty { null })
       .setContentIntent(openIntent(context, WATCH_ID, OpenRequest("downloads", "")))
       .setOngoing(true)
       .setSilent(true)
       .setShowWhen(false)
       .setCategory(NotificationCompat.CATEGORY_SERVICE)
-      .setPriority(NotificationCompat.PRIORITY_LOW)
+      .setPriority(NotificationCompat.PRIORITY_MIN)
       .build()
+
+  /** Puts new words on the service's notification while it runs. */
+  @SuppressLint("MissingPermission")
+  fun updateWatching(context: Context, title: String, text: String) {
+    if (!WatchService.running || !enabled(context)) return
+    NotificationManagerCompat.from(context).notify(WATCH_ID, watching(context, title, text))
+  }
 
   fun openRequest(intent: Intent?): OpenRequest? {
     val open = intent?.getStringExtra(EXTRA_OPEN) ?: return null

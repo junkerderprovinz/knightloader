@@ -30,6 +30,8 @@ declare class KnightWatchModule extends NativeModule<{ onOpen: () => void }> {
   channels(captcha: string, finished: string, failed: string, watch: string): void;
   /** False when Android refuses, which it does for an app that is not in front. */
   start(title: string, text: string): boolean;
+  /** Rewrites the running service's notification; '' leaves out the text. */
+  update(title: string, text: string): void;
   stop(): void;
   running(): boolean;
   /** When the service runs the next pass, in milliseconds from the end of this
