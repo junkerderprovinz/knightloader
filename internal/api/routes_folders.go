@@ -213,9 +213,9 @@ func splitTemplate(dir string) (fixed, tail string) {
 type boundary struct {
 	// roots are the tops the interface offers a way back to.
 	roots []string
-	// open is set when KL_BROWSE_ROOTS is unset. roots then only names the
-	// volume the request started on, and a folder on another volume that a
-	// link or junction leads to is still inside.
+	// open is set when KL_BROWSE_ROOTS is unset. roots then names the
+	// filesystem root, or each drive on Windows, and a folder on another
+	// volume that a link or junction leads to is still inside.
 	open bool
 }
 
@@ -223,7 +223,7 @@ type boundary struct {
 func browseRoots(p string) (boundary, error) {
 	set := strings.TrimSpace(os.Getenv(envBrowseRoots))
 	if set == "" {
-		return boundary{roots: []string{volumeRoot(p)}, open: true}, nil
+		return boundary{roots: volumeRoots(p), open: true}, nil
 	}
 	var out []string
 	for _, part := range filepath.SplitList(set) {
