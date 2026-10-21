@@ -2,7 +2,7 @@ module github.com/junkerderprovinz/knightloader/desktop/installer
 
 go 1.26.6
 
-require github.com/junkerderprovinz/pommelporter v0.0.0-20261021182042-a80014547984
+require github.com/junkerderprovinz/pommelporter v0.0.0-20261021182806-b90c67af631a
 
 require (
 	github.com/adrg/xdg v0.5.3 // indirect
