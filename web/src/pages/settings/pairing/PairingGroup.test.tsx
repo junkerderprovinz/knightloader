@@ -289,8 +289,9 @@ describe('PairingGroup', () => {
       memberSeen: true,
       members: [{ id: 'b', name: 'office', direct: false, relay: true }],
       apps: [
-        { id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 },
-        { id: 'q', name: 'Old phone', deployment: 'mobile', connected: false, lastSeen: 1 },
+        { id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, approved: true, lastSeen: 1 },
+        { id: 'q', name: 'Old phone', deployment: 'mobile', connected: false, approved: true, lastSeen: 1 },
+        { id: 'e', name: 'Firefox', deployment: 'extension', connected: false, approved: true, lastSeen: 1 },
       ],
     });
     expect(rows().map((li) => li.textContent)).toEqual([
@@ -298,9 +299,10 @@ describe('PairingGroup', () => {
       'officePaired·Via relayRemove',
       'Pixel 8Android appConnectedRemove',
       'Old phoneAndroid appNot connectedRemove',
+      'FirefoxBrowser extensionPairedRemove',
     ]);
     // The row without a button is as high as those with one.
-    expect(rows().map((li) => li.classList.contains('min-h-11'))).toEqual([true, true, true, true]);
+    expect(rows().map((li) => li.classList.contains('min-h-11'))).toEqual([true, true, true, true, true]);
   });
 
   it('draws the group as a net and lights a row together with its node', () => {
@@ -308,7 +310,7 @@ describe('PairingGroup', () => {
       joinedAgo: 500,
       memberSeen: true,
       members: [{ id: 'b', name: 'office', direct: true, relay: false }],
-      apps: [{ id: 'q', name: 'Old phone', deployment: 'mobile', connected: false, lastSeen: 1 }],
+      apps: [{ id: 'q', name: 'Old phone', deployment: 'mobile', connected: false, approved: true, lastSeen: 1 }],
     });
     const wide = net()!.querySelector('svg.wide')!;
     const spokes = [...wide.querySelectorAll('g[data-nk]')];
@@ -336,7 +338,7 @@ describe('PairingGroup', () => {
     draw({
       joinedAgo: 500,
       memberSeen: true,
-      apps: [{ id: 'q', name: 'Old phone', deployment: 'mobile', connected: false, lastSeen: 1 }],
+      apps: [{ id: 'q', name: 'Old phone', deployment: 'mobile', connected: false, approved: true, lastSeen: 1 }],
     });
     const bin = host.querySelector<HTMLButtonElement>('[aria-label="Remove Old phone"]')!;
     await act(async () => bin.click());
@@ -391,7 +393,7 @@ describe('PairingGroup', () => {
   });
 
   it('counts a connected phone as the other member', () => {
-    draw({ joinedAgo: 500, memberSeen: true, apps: [{ id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] });
+    draw({ joinedAgo: 500, memberSeen: true, apps: [{ id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, approved: true, lastSeen: 1 }] });
     expect(stage()).toBe('paired');
     expect(host.textContent).toContain('Pixel 8');
   });
@@ -401,7 +403,7 @@ describe('PairingGroup', () => {
     draw({
       joinedAgo: 500,
       memberSeen: true,
-      apps: [{ id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }],
+      apps: [{ id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, approved: false, lastSeen: 1 }],
       pending: [{ id: 'p', name: 'Pixel 8', kind: 'mobile', fingerprint: '3fa2 9c01 77be 0d45' }],
     });
     const pending = host.querySelector('[data-testid="pending"]')!;

@@ -179,6 +179,8 @@ export const ca: Dict = {
   'instances.removeTitle': 'Elimina {name}',
   'instances.moduleOff': 'Instàncies està desactivat, així que aquesta instància ni llista ni contacta les altres.',
   'instances.lastSeen': 'Vist per última vegada: {time}',
+  'instances.paired': 'Aparellada',
+  'instances.extensionPairedTip': "L'extensió només es connecta mentre la fas servir, per exemple per enviar un enllaç. Entretant continua aparellada.",
   'pairing.noPasswordHint': 'Aquesta instància no té contrasenya d’accés. Qualsevol que pugui obrir aquesta interfície web la pot controlar i, a través d’ella, les baixades de totes les instàncies del grup.',
   'pairing.direct': 'Directa',
   'pairing.otherNetTitle': "És l'altra instància en una altra xarxa?",

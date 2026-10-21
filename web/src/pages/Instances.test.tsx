@@ -383,4 +383,46 @@ describe('Instances', () => {
     hear({ peer: 'stranger', out: false });
     expect(host.querySelectorAll('svg.wide .kl-net-parcel')).toHaveLength(3);
   });
+
+  it('shows an approved extension between its calls as paired and follows the group as it changes', async () => {
+    const sockets: { onmessage: ((e: { data: string }) => void) | null }[] = [];
+    vi.stubGlobal(
+      'WebSocket',
+      class {
+        static OPEN = 1;
+        static CONNECTING = 0;
+        readyState = 1;
+        onmessage = null;
+        constructor() {
+          sockets.push(this);
+        }
+        send() {}
+        close() {}
+      },
+    );
+    const browser = { id: 'b1', name: 'Firefox', deployment: 'extension', connected: false, approved: true, lastSeen: 1 };
+    const phone = { id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: false, approved: true, lastSeen: 1 };
+    serve({ ...noGroup, active: true, apps: [browser, phone] });
+    await draw();
+    expect(card('Firefox').textContent).toContain('Paired');
+    expect(card('Firefox').textContent).not.toContain('Not connected');
+    // A phone that is away is away, approved or not.
+    expect(card('Pixel 8').textContent).toContain('Not connected');
+    const dim = (key: string) => host.querySelector(`svg.wide g[data-nk="${key}"]`)!.classList.contains('dim');
+    expect([dim('app:b1'), dim('app:p1')]).toEqual([false, true]);
+
+    vi.useFakeTimers();
+    try {
+      serve({ ...noGroup, active: true, apps: [browser, { ...phone, connected: true }] });
+      await act(async () => {
+        sockets.forEach((s) => s.onmessage?.({ data: JSON.stringify({ type: 'group', data: null }) }));
+        await vi.advanceTimersByTimeAsync(600);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+    await act(async () => {});
+    expect(card('Pixel 8').textContent).toContain('Connected');
+    expect(card('Pixel 8').textContent).not.toContain('Not connected');
+  });
 });

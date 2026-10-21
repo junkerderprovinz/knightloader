@@ -179,6 +179,8 @@ export const vi: Dict = {
   'instances.removeTitle': 'Gỡ {name}',
   'instances.moduleOff': 'Phiên bản đang tắt, nên phiên bản này không liệt kê cũng không liên lạc với các phiên bản khác.',
   'instances.lastSeen': 'Hoạt động lần cuối {time}',
+  'instances.paired': 'Đã ghép nối',
+  'instances.extensionPairedTip': 'Tiện ích chỉ kết nối khi bạn dùng nó, chẳng hạn để gửi một liên kết. Giữa những lần đó, nó vẫn được ghép nối.',
   'pairing.noPasswordHint': 'Phiên bản này không có mật khẩu đăng nhập. Bất kỳ ai mở được giao diện web này đều có thể điều khiển nó, và qua nó điều khiển cả các lượt tải của mọi phiên bản trong nhóm.',
   'pairing.direct': 'Trực tiếp',
   'pairing.otherNetTitle': 'Phiên bản kia ở một mạng khác?',

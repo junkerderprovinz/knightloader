@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { GlyphProps } from '../lib/glyphs';
 import logoUrl from '../assets/logo.svg';
-import { ApiError, fetchTasks, type Task } from '../lib/api';
+import { ApiError, fetchTasks, pairedBetweenCalls, type Task } from '../lib/api';
 import { fmtDate, fmtSpeed } from '../lib/format';
 import { hueVars } from '../lib/appearance';
 import { useT, type TranslationKey } from '../lib/i18n';
@@ -430,6 +430,7 @@ export function AppCard({
   name,
   deployment,
   connected,
+  approved,
   lastSeen,
   onRemove,
   hot = false,
@@ -441,6 +442,8 @@ export function AppCard({
   /** "mobile" or "extension". */
   deployment: string;
   connected: boolean;
+  /** Whether its key was let into the group. */
+  approved: boolean;
   /** Unix seconds. */
   lastSeen: number;
   onRemove: () => void;
@@ -449,6 +452,13 @@ export function AppCard({
   hue?: number;
 }) {
   const { t } = useT();
+  const state = connected ? (
+    <StatePill label={t('instances.connected')} tone="ok" />
+  ) : pairedBetweenCalls({ deployment, connected, approved }) ? (
+    <StatePill label={t('instances.paired')} tone="ok" tip={t('instances.extensionPairedTip')} />
+  ) : (
+    <StatePill label={t('instances.notConnected')} tone="fail" />
+  );
   return (
     <Tile
       entry={entry}
@@ -461,11 +471,7 @@ export function AppCard({
       }
       name={name}
       eyebrow={KINDS[deployment] ? t(KINDS[deployment]) : undefined}
-      state={
-        <StateWithKind kind={deployment}>
-          <StatePill label={connected ? t('instances.connected') : t('instances.notConnected')} tone={connected ? 'ok' : 'fail'} />
-        </StateWithKind>
-      }
+      state={<StateWithKind kind={deployment}>{state}</StateWithKind>}
       facts={[t('instances.lastSeen', { time: fmtDate(new Date(lastSeen * 1000).toISOString()) })]}
       actions={
         <Button

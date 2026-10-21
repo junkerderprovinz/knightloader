@@ -179,6 +179,8 @@ export const hu: Dict = {
   'instances.removeTitle': '{name} eltávolítása',
   'instances.moduleOff': 'A Példányok ki van kapcsolva, így ez a példány nem listázza a többit, és nem is veszi fel velük a kapcsolatot.',
   'instances.lastSeen': 'Utoljára látva: {time}',
+  'instances.paired': 'Párosítva',
+  'instances.extensionPairedTip': 'A bővítmény csak akkor kapcsolódik, amikor használod, például egy link küldésekor. A kettő között párosítva marad.',
   'pairing.noPasswordHint': 'Ennek a példánynak nincs bejelentkezési jelszava. Bárki, aki meg tudja nyitni ezt a webes felületet, vezérelheti, rajta keresztül pedig a csoport összes példányának letöltéseit is.',
   'pairing.direct': 'Közvetlen',
   'pairing.otherNetTitle': 'A másik példány egy másik hálózaton van?',

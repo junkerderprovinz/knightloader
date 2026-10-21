@@ -179,6 +179,8 @@ export const et: Dict = {
   'instances.removeTitle': 'Eemalda {name}',
   'instances.moduleOff': 'Eksemplarid on välja lülitatud, nii et see eksemplar ei näita teisi ega võta nendega ühendust.',
   'instances.lastSeen': 'Viimati nähtud {time}',
+  'instances.paired': 'Seotud',
+  'instances.extensionPairedTip': 'Laiendus ühendub ainult siis, kui sa seda kasutad, näiteks lingi saatmiseks. Vahepeal jääb see seotuks.',
   'pairing.noPasswordHint': 'Sellel eksemplaril pole sisselogimisparooli. Igaüks, kes saab selle veebiliidese avada, saab seda juhtida ja selle kaudu iga grupi eksemplari allalaadimisi.',
   'pairing.direct': 'Otse',
   'pairing.otherNetTitle': 'Kas teine eksemplar on teises võrgus?',

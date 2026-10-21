@@ -179,6 +179,8 @@ export const is: Dict = {
   'instances.removeTitle': 'Fjarlægja {name}',
   'instances.moduleOff': 'Slökkt er á Tilvik, svo þetta tilvik hvorki sýnir hin né hefur samband við þau.',
   'instances.lastSeen': 'Síðast séð {time}',
+  'instances.paired': 'Pöruð',
+  'instances.extensionPairedTip': 'Viðbótin tengist aðeins á meðan þú notar hana, til dæmis til að senda tengil. Þess á milli er hún áfram pöruð.',
   'pairing.noPasswordHint': 'Þetta tilvik er ekki með innskráningarlykilorð. Hver sem getur opnað þetta vefviðmót getur stjórnað því og í gegnum það niðurhali allra tilvika í hópnum.',
   'pairing.direct': 'Beint',
   'pairing.otherNetTitle': 'Er hitt tilvikið á öðru neti?',

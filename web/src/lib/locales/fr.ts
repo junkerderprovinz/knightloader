@@ -173,6 +173,8 @@ export const fr: Dict = {
   'instances.removeTitle': 'Supprimer {name}',
   'instances.moduleOff': 'Instances est désactivé, donc cette instance ne liste pas les autres et ne les contacte pas.',
   'instances.lastSeen': 'Vu pour la dernière fois : {time}',
+  'instances.paired': 'Appairée',
+  'instances.extensionPairedTip': 'L’extension ne se connecte que pendant que vous l’utilisez, par exemple pour envoyer un lien. Entre-temps, elle reste appairée.',
   'pairing.noPasswordHint': 'Cette instance n’a pas de mot de passe de connexion. Toute personne qui peut ouvrir cette interface web peut la contrôler et, à travers elle, les téléchargements de toutes les instances du groupe.',
   'pairing.direct': 'Directe',
   'pairing.otherNetTitle': "L'autre instance est-elle sur un autre réseau ?",

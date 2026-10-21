@@ -4335,15 +4335,27 @@ export interface GroupMember {
   relay: boolean;
 }
 
-/** A phone of the group. */
+/** A phone or browser extension of the group. */
 export interface GroupApp {
   id: string;
   name: string;
   /** "mobile" or "extension". */
   deployment: string;
   connected: boolean;
+  /** Whether its key was let into the group; an extension between calls is
+   *  approved without being connected. */
+  approved: boolean;
   /** Unix seconds. */
   lastSeen: number;
+}
+
+/**
+ * pairedBetweenCalls is a browser extension that is in the group but not on
+ * the relay right now. The extension opens its socket only for the length of
+ * a call, so for it that is the normal state, not a fault.
+ */
+export function pairedBetweenCalls(app: Pick<GroupApp, 'deployment' | 'connected' | 'approved'>): boolean {
+  return app.deployment === 'extension' && app.approved && !app.connected;
 }
 
 export async function fetchConnect(): Promise<ConnectInfo> {

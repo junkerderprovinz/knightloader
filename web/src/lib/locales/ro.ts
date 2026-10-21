@@ -179,6 +179,8 @@ export const ro: Dict = {
   'instances.removeTitle': 'Elimină {name}',
   'instances.moduleOff': 'Instanțe este oprit, așa că această instanță nici nu le listează, nici nu le contactează pe celelalte.',
   'instances.lastSeen': 'Văzut ultima dată {time}',
+  'instances.paired': 'Împerecheată',
+  'instances.extensionPairedTip': 'Extensia se conectează doar cât timp o folosești, de exemplu ca să trimiți un link. Între timp rămâne împerecheată.',
   'pairing.noPasswordHint': 'Această instanță nu are parolă de autentificare. Oricine poate deschide această interfață web o poate controla și, prin ea, descărcările fiecărei instanțe din grup.',
   'pairing.direct': 'Direct',
   'pairing.otherNetTitle': 'Cealaltă instanță este într-o altă rețea?',
