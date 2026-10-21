@@ -3,6 +3,7 @@ package settings
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -71,5 +72,31 @@ func TestACorruptSharedFileReadsAsOn(t *testing.T) {
 	}
 	if !ReadAutoUpdate(shared) {
 		t.Error("a corrupt file turned updates off")
+	}
+}
+
+func TestTurningTheSwitchKeepsTheInstallersLanguage(t *testing.T) {
+	dir := t.TempDir()
+	shared := filepath.Join(dir, "machine.json")
+	if err := os.WriteFile(shared, []byte("{\"autoUpdate\":true,\"language\":\"de\"}\r\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	st, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	st.KeepAutoUpdateIn(shared)
+	off := st.Get()
+	off.AutoUpdate = false
+	if _, err := st.Set(off); err != nil {
+		t.Fatalf("set: %v", err)
+	}
+
+	body, err := os.ReadFile(shared)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(string(body)); got != `{"autoUpdate":false,"language":"de"}` {
+		t.Errorf("shared file = %s", got)
 	}
 }
