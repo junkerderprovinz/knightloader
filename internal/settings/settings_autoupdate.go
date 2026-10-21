@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 // KeepAutoUpdateIn reads and writes the AutoUpdate switch in its own file at
@@ -37,9 +38,18 @@ func ReadAutoUpdate(path string) bool {
 
 // writeAutoUpdate rewrites the file in place. Its folder belongs to the
 // administrators and only the file itself is open to every user, so there is
-// no folder to put a temporary file in.
+// no folder to put a temporary file in. The installer's other keys, such as
+// the language a later user's first start takes, stay as they were.
 func writeAutoUpdate(path string, on bool) error {
-	body, err := json.Marshal(autoUpdateFile{AutoUpdate: on})
+	var fields map[string]json.RawMessage
+	if old, err := os.ReadFile(path); err == nil && json.Unmarshal(old, &fields) != nil {
+		fields = nil
+	}
+	if fields == nil {
+		fields = map[string]json.RawMessage{}
+	}
+	fields["autoUpdate"] = json.RawMessage(strconv.FormatBool(on))
+	body, err := json.Marshal(fields)
 	if err != nil {
 		return err
 	}
