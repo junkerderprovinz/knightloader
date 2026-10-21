@@ -922,3 +922,73 @@ func TestAMemberReadsTheSpeedHistory(t *testing.T) {
 		t.Fatalf("the speed history a member reads does not decode: %v (%s)", err, body)
 	}
 }
+
+func TestAMemberListsThePhonesAndBrowsersOfTheGroup(t *testing.T) {
+	t.Parallel()
+	a, _, _, _, _ := groupServer(t)
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	phone := signedMember(t, a, "phone-mine", relay.KindMobile)
+	browser := idAs("browser-mine", relay.KindExtension)
+	if _, _, err := a.Federation.Approve(browser, keyOf("browser-mine").Public().(ed25519.PublicKey), relay.KindExtension); err != nil {
+		t.Fatal(err)
+	}
+	// After the member: building its handler sets the relay from settings.
+	rt := &relayOnlyPeer{sibs: []relay.Announce{
+		{InstanceID: phoneMine, Name: "Pixel 8", Deployment: relay.KindMobile, Client: true},
+		{InstanceID: browser, Name: "Firefox", Deployment: relay.KindExtension, Client: true},
+		{InstanceID: phoneOther, Name: "Old phone", Deployment: relay.KindMobile, Client: true},
+	}}
+	a.Federation.SetRelay(rt)
+	list := func() []map[string]any {
+		t.Helper()
+		status, body := phone(http.MethodGet, "/api/group/apps")
+		if status != http.StatusOK {
+			t.Fatalf("GET /api/group/apps answered a member %d (%s)", status, body)
+		}
+		var got struct {
+			Apps []map[string]any `json:"apps"`
+		}
+		if err := json.Unmarshal(body, &got); err != nil {
+			t.Fatalf("the list does not decode: %v (%s)", err, body)
+		}
+		return got.Apps
+	}
+	if apps := list(); len(apps) != 3 {
+		t.Fatalf("apps = %v, want the three devices on the relay", apps)
+	}
+
+	// The extension's socket closes after its call, and the old phone is
+	// taken out.
+	if err := a.Federation.RemoveApp(phoneOther, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	rt.sibs = rt.sibs[:1]
+	apps := list()
+	if len(apps) != 2 {
+		t.Fatalf("apps = %v, want the phone and the extension", apps)
+	}
+	byID := map[string]map[string]any{}
+	for _, entry := range apps {
+		keys := make([]string, 0, len(entry))
+		for k := range entry {
+			keys = append(keys, k)
+		}
+		slices.Sort(keys)
+		if want := []string{"approved", "connected", "deployment", "id", "lastSeen", "name"}; !slices.Equal(keys, want) {
+			t.Errorf("an entry carries %v, want exactly %v", keys, want)
+		}
+		id, _ := entry["id"].(string)
+		byID[id] = entry
+	}
+	if p := byID[phoneMine]; p == nil || p["connected"] != true || p["approved"] != true || p["deployment"] != relay.KindMobile {
+		t.Errorf("the phone = %v, want it connected and approved", p)
+	}
+	if b := byID[browser]; b == nil || b["connected"] != false || b["approved"] != true || b["deployment"] != relay.KindExtension {
+		t.Errorf("the extension = %v, want it approved and not connected", b)
+	}
+	if seen, _ := byID[browser]["lastSeen"].(float64); seen <= 0 {
+		t.Errorf("the extension was last seen at %v, want a time", byID[browser]["lastSeen"])
+	}
+}

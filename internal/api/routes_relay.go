@@ -323,6 +323,17 @@ func applyRelay(a *app.App) {
 		Member: member,
 		Trusts: a.Federation.TrustsAnswer,
 		Serve:  a.Federation.Guard(announceArrivals(a, relayProxyHandler(serve))),
+		// A browser extension holds its socket only for the length of a call,
+		// so its card is written while it is there rather than whenever a page
+		// next asks, and the open pages hear of it.
+		OnChange: func() {
+			go func() {
+				if _, err := a.Federation.Apps(time.Now()); err != nil {
+					log.Printf("relay: could not record the phones of the group: %v", err)
+				}
+				a.Hub.Broadcast("group", nil)
+			}()
+		},
 	})
 	if err != nil {
 		log.Printf("relay: could not configure the client: %v", err)

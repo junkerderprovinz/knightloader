@@ -105,8 +105,21 @@ type groupApp struct {
 	// Deployment is "mobile" or "extension".
 	Deployment string `json:"deployment"`
 	Connected  bool   `json:"connected"`
+	// Approved is whether its key was let into the group. An extension
+	// connects only while it makes a call, so this is its standing between
+	// calls.
+	Approved bool `json:"approved"`
 	// LastSeen is Unix seconds.
 	LastSeen int64 `json:"lastSeen"`
+}
+
+func groupApps(known []federation.App) []groupApp {
+	apps := make([]groupApp, 0, len(known))
+	for _, p := range known {
+		apps = append(apps, groupApp{ID: p.ID, Name: p.Name, Deployment: p.Deployment, Connected: p.Connected,
+			Approved: p.Approved, LastSeen: p.LastSeen.Unix()})
+	}
+	return apps
 }
 
 func registerConnect(reg *Registry, a *app.App) {
@@ -131,6 +144,18 @@ func registerConnect(reg *Registry, a *app.App) {
 				a.Federation.Greet(ctx, time.Now())
 			}()
 			writeJSON(w, connectInfo(a))
+		})
+
+	reg.Add(http.MethodGet, "/api/group/apps",
+		"every phone and browser extension of the group: whether it is connected now, whether its key was approved, and when it was last seen",
+		func(w http.ResponseWriter, r *http.Request) {
+			known, err := a.Federation.Apps(time.Now())
+			if err != nil {
+				log.Printf("connect: could not record the phones of the group: %v", err)
+			}
+			writeJSON(w, struct {
+				Apps []groupApp `json:"apps"`
+			}{groupApps(known)})
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/activate",
@@ -494,10 +519,9 @@ func connectInfo(a *app.App) ConnectInfo {
 	if err != nil {
 		log.Printf("connect: could not record the phones of the group: %v", err)
 	}
-	apps := make([]groupApp, 0, len(known))
+	apps := groupApps(known)
 	appThere := false
-	for _, p := range known {
-		apps = append(apps, groupApp{ID: p.ID, Name: p.Name, Deployment: p.Deployment, Connected: p.Connected, LastSeen: p.LastSeen.Unix()})
+	for _, p := range apps {
 		appThere = appThere || p.Connected
 	}
 	st, err := a.Federation.Group(len(members) > 0 || appThere, now)

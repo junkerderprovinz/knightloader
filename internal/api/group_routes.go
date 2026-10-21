@@ -27,6 +27,10 @@ var groupRoutes = map[string]bool{
 	"GET /api/instances":     true,
 	"GET /api/remote-access": true,
 
+	// The phones and browsers of the group, which the phone app and the
+	// extension list beside the instances.
+	"GET /api/group/apps": true,
+
 	// Adding links. A folder outside the download folders is refused below.
 	"POST /api/links": true,
 
