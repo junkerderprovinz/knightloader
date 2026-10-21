@@ -22,8 +22,8 @@
 //
 //   card            934 at 1280px, 1094 at 1440px, 1574 at 1920px
 //   furniture       120: the row's padding, 8px at either end, and the
-//                   104px track for the row's three action badges at the
-//                   tallest row height; the track is 80px at the default one
+//                   104px the name column keeps for the row's three action
+//                   badges at the tallest row height; 80px at the default one
 //
 // The widest content of the other default columns, in the app's font at 12px,
 // the size every cell is set in, with the cell's 16px of padding. These are
@@ -142,7 +142,7 @@ const WIDEST_ROW = 294; // widest one-line video row there can be (lt)
 const ETA_FLOOR = 75; // "19h 58min" + the cell's padding
 const CARD_1280 = 934;
 const CARD_1440 = 1094;
-const FURNITURE = 120; // row padding + the actions track
+const FURNITURE = 120; // row padding + the room for the row's actions
 
 const problems = [];
 
