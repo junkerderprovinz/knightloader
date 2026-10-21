@@ -60,6 +60,7 @@ const problemsHeadingEl = document.getElementById('problemsHeading');
 const aboutHeadingEl = document.getElementById('aboutHeading');
 const phraseEye = document.getElementById('phraseEye');
 const phrasePaste = document.getElementById('phrasePaste');
+const deviceNameEl = document.getElementById('deviceName');
 
 /**
  * Builds a filled glyph with createElementNS, because Mozilla's linter, a
@@ -384,6 +385,9 @@ function applyStaticText() {
   // A glyph alone in a square fills half of it (GlimStone 1.8.0).
   leaveBtn.replaceChildren(glyph(D_TRASH, 16));
   refreshBtn.textContent = t('options.refresh');
+  rowLabel('deviceNameLabel', t('options.deviceName'), t('options.deviceNameHint'), deviceNameEl);
+  // The default is worded in the page's language.
+  void renderDeviceName();
 
   // Both buttons are neutral, since a destructive control is not coloured
   // (GlimStone 1.12.0), and the committing one names its action.
@@ -548,35 +552,55 @@ function phraseProblemText(err) {
 
 /**
  * renderGroup shows who is in the group right now, asked of the relay, so only
- * instances that are online appear.
+ * instances that are online appear, and below them the group's phones and
+ * browsers. `quiet` keeps what is on screen until the answer is in, for the
+ * checks recheckGroup runs while the page waits for something.
  */
-async function renderGroup() {
+async function renderGroup({ quiet = false } = {}) {
+  // A later render, by a click or by the timer, supersedes this one, so two
+  // never fill the list together.
+  const turn = ++groupTurn;
+  clearTimeout(recheckTimer);
+  recheckDue = false;
   const phrase = await readPhrase();
-  phraseInput.value = phrase;
+  if (turn !== groupTurn) return;
   const joined = phrase !== '';
+  // The field may hold a phrase being typed.
+  if (!quiet) phraseInput.value = phrase;
   leaveBtn.hidden = !joined;
   refreshBtn.hidden = !joined;
   joinBtn.textContent = joined ? t('options.reconnect') : t('options.join');
-  list.innerHTML = '';
-  ownKeyEl.hidden = true;
+  if (!joined || !quiet) {
+    list.innerHTML = '';
+    ownKeyEl.hidden = true;
+  }
   if (!joined) return;
-  void showOwnKey();
 
-  const loading = document.createElement('div');
-  loading.className = 'empty';
-  loading.textContent = t('options.groupLoading');
-  list.appendChild(loading);
+  let loading = null;
+  if (!quiet) {
+    void showOwnKey();
+    loading = document.createElement('div');
+    loading.className = 'empty';
+    loading.textContent = t('options.groupLoading');
+    list.appendChild(loading);
+  }
 
-  let siblings;
+  const preferredId = await readDefaultTarget();
+  let view;
   try {
     // The roster plus what each instance is doing; the popup only needs the
     // roster.
-    siblings = await groupStatus();
+    view = await groupView(preferredId);
   } catch {
-    loading.textContent = t('options.groupUnreachable');
+    if (turn !== groupTurn) return;
+    if (loading) loading.textContent = t('options.groupUnreachable');
+    recheckGroup();
     return;
   }
+  if (turn !== groupTurn) return;
+  const siblings = view.instances;
   list.innerHTML = '';
+  if (siblings.length === 0 || siblings.some((s) => s.status === null)) recheckGroup();
   if (siblings.length === 0) {
     // The shared empty state, without a card of its own inside the Group card
     // and without an action button, since connect and refresh sit right above.
@@ -595,7 +619,7 @@ async function renderGroup() {
   // rule 22), so a settings card never carries buttons that act on a running
   // instance. The popup keeps all three. The default is changed by
   // right-clicking another card.
-  const preferred = defaultOf(siblings, await readDefaultTarget());
+  const preferred = defaultOf(siblings, preferredId);
   const cards = siblings.map((inst, i) => [
     inst.instanceId,
     instanceCard(inst, {
@@ -610,6 +634,11 @@ async function renderGroup() {
       },
     }),
   ]);
+  const ownId = (await readMember())?.id;
+  if (turn !== groupTurn) return;
+  view.apps.forEach((app, i) => {
+    cards.push([app.id, deviceCard(app, { index: siblings.length + i, own: app.id === ownId })]);
+  });
   staggerRows(rosterArrivals, cards);
   list.append(...cards.map(([, card]) => card));
   // A browser waiting for approval sees every instance as offline, so the
@@ -627,6 +656,34 @@ async function renderGroup() {
 
 /** The approval notice renderGroup holds above the list. */
 let refusalNotice = '';
+
+/** Counts renderGroup's calls, so only the latest one draws. */
+let groupTurn = 0;
+
+/**
+ * How long the page waits before asking the group again while it is not
+ * settled: an instance shows offline, this browser waits for approval, or the
+ * relay is out of reach. Nothing tells the page when an owner approves the
+ * browser on an instance, so it has to ask.
+ */
+const GROUP_RECHECK_MS = 5000;
+let recheckTimer = 0;
+/** Whether a check came due while the page was hidden. */
+let recheckDue = false;
+
+/** recheckGroup schedules the next quiet check; a hidden page holds it back
+ *  until it is shown again. */
+function recheckGroup() {
+  clearTimeout(recheckTimer);
+  recheckTimer = setTimeout(() => {
+    recheckDue = true;
+    if (!document.hidden) void renderGroup({ quiet: true });
+  }, GROUP_RECHECK_MS);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && recheckDue) void renderGroup({ quiet: true });
+});
 
 /**
  * showOwnKey shows this browser's key the way an instance shows it beside the
@@ -678,6 +735,39 @@ joinForm.addEventListener('submit', async (e) => {
   await renderAppearance();
   void renderReport();
 });
+
+/** Fills the name field with the name in force; the default stands in as the
+ *  placeholder for an emptied field. */
+async function renderDeviceName() {
+  deviceNameEl.maxLength = DEVICE_NAME_MAX;
+  deviceNameEl.placeholder = defaultDeviceName();
+  if (document.activeElement !== deviceNameEl) deviceNameEl.value = await readDeviceName();
+}
+
+/**
+ * Saves the name on Enter or when the field is left, through 'change', and as
+ * the page goes. The default is not stored, so it keeps following the language,
+ * and an emptied field goes back to it. The group hears the name with the next
+ * session, so a joined page asks again to show it on this browser's card.
+ */
+async function saveDeviceName() {
+  const typed = deviceNameEl.value.trim();
+  const next = typed === defaultDeviceName() ? '' : typed;
+  const { deviceName } = await chrome.storage.local.get('deviceName');
+  if (next === (deviceName ?? '')) {
+    deviceNameEl.value = await readDeviceName();
+    return;
+  }
+  deviceNameEl.value = await writeDeviceName(next);
+  confirmPulse(deviceNameEl);
+  if (await readPhrase()) void renderGroup({ quiet: true });
+}
+
+deviceNameEl.addEventListener('change', () => void saveDeviceName());
+deviceNameEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') deviceNameEl.blur();
+});
+addEventListener('pagehide', () => void saveDeviceName());
 
 /**
  * The confirmation before leaving the group. GlimStone 1.12.0 keeps the bin
@@ -743,11 +833,7 @@ leaveConfirmCommitEl.addEventListener('click', async () => {
   if (followInstance === true) {
     await restoreLocalLook();
     await writeAppearance({ followInstance: false });
-    const back = await readAppearance();
-    applyShape(back.shape);
-    wipeColours();
-    applyAccent(back.accent);
-    applyRainbow(back.rainbow);
+    await applyStoredLook();
   }
   phraseInput.value = '';
   phraseInput.type = 'password';
@@ -761,6 +847,11 @@ leaveConfirmCommitEl.addEventListener('click', async () => {
 refreshBtn.addEventListener('click', async () => {
   refreshBtn.disabled = true;
   await renderGroup();
+  // A look that changed on the instance since it was taken comes along.
+  if (followInstanceEl.getAttribute('aria-checked') === 'true' && (await adoptFromInstance().catch(() => false))) {
+    await applyStoredLook();
+    await renderAppearance();
+  }
   refreshBtn.disabled = false;
 });
 
@@ -1203,20 +1294,27 @@ followInstanceEl.addEventListener('click', async () => {
     await restoreLocalLook();
   }
   await writeAppearance({ followInstance: on });
+  await applyStoredLook();
+  await renderAppearance();
+});
+
+/** applyStoredLook puts the whole stored look on the page, after it was taken
+ *  from the instance or given back. */
+async function applyStoredLook() {
   const next = await readAppearance();
+  applyTheme(next.theme);
   applyShape(next.shape);
   wipeColours();
   applyAccent(next.accent);
   applyRainbow(next.rainbow);
-  await renderAppearance();
-});
+}
 
 /**
  * The keys adopting the instance's look replaces or clears, and so the ones
- * the stash keeps. The theme is never adopted.
+ * the stash keeps.
  */
 const ADOPTED_KEYS = [
-  'accent', 'accentSlotChosen', 'accentCustoms',
+  'theme', 'accent', 'accentSlotChosen', 'accentCustoms',
   'shape', 'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette',
 ];
 
@@ -1553,9 +1651,10 @@ async function renderAppearance() {
   paletteRow.hidden = rainbowIsOff;
 
   // While the instance decides the look, its settings are shown but refused
-  // through the controls' own `disabled`; the theme stays local. The labels'
-  // words are dimmed so the "(i)" stays readable.
-  setRefused([shapeSeg], following);
+  // through the controls' own `disabled`. The labels' words are dimmed so the
+  // "(i)" stays readable.
+  setRefused([themeSeg, shapeSeg], following);
+  setDimmed([labelWordsOf(document.getElementById('themeLabel'))], following);
   setDimmed([labelWordsOf(document.getElementById('shapeLabel'))], following);
   setRefused([rainbowOnEl, rainbowReactiveEl, rainbowRotateEl], following);
   setRefused([paletteSwatches], following);

@@ -188,6 +188,77 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
   return card;
 }
 
+/**
+ * deviceCard draws one phone or browser of the group (GET /api/group/apps) as
+ * the web UI's AppCard does, without actions, since the settings page does not
+ * operate devices. `own` marks this browser.
+ */
+function deviceCard(app, { index, own }) {
+  const card = document.createElement('div');
+  card.className = 'glim-instance';
+  card.dataset.instanceId = app.id;
+  if (typeof index === 'number') setHue(card, index);
+
+  const mark = document.createElement('span');
+  mark.className = 'glim-instance-mark';
+  const logo = document.createElement('img');
+  logo.src = 'logo.svg';
+  logo.alt = '';
+  logo.setAttribute('aria-hidden', 'true');
+  mark.appendChild(logo);
+
+  const body = document.createElement('span');
+  body.className = 'glim-instance-body';
+  const top = document.createElement('span');
+  top.className = 'glim-instance-top';
+  const name = document.createElement('span');
+  name.className = 'glim-instance-name';
+  name.textContent = app.name?.trim() || app.id.slice(0, 16);
+  const badge = document.createElement('span');
+  top.append(name, badge);
+  // A browser opens a session only while it is used, so one that is approved
+  // reads as paired rather than as gone.
+  if (app.connected) {
+    badge.className = 'glim-status glim-status--on';
+    badge.textContent = t('instance.connected');
+  } else if (app.approved === false) {
+    badge.className = 'glim-status glim-status--wait';
+    badge.textContent = t('device.pending');
+  } else if (app.deployment === 'extension') {
+    badge.className = 'glim-status glim-status--on';
+    badge.textContent = t('device.paired');
+    top.appendChild(glimInfoIcon(t('device.pairedTip')));
+  } else {
+    badge.className = 'glim-status glim-status--off';
+    badge.textContent = t('instance.notConnected');
+  }
+
+  const what = document.createElement('span');
+  what.className = 'glim-instance-what';
+  what.textContent = app.deployment === 'extension' ? t('device.kindExtension') : t('device.kindMobile');
+  body.append(top, what);
+
+  if (app.lastSeen > 0) {
+    const seen = document.createElement('span');
+    seen.className = 'glim-instance-stats';
+    const when = new Date(app.lastSeen * 1000).toLocaleString(currentLanguage(), {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+    seen.textContent = t('device.lastSeen', { time: when });
+    body.appendChild(seen);
+  }
+
+  card.append(mark, body);
+  if (own) {
+    const self = document.createElement('span');
+    self.className = 'glim-instance-badge';
+    self.textContent = t('device.thisDevice');
+    card.appendChild(self);
+  }
+  return card;
+}
+
 /* The card's glyphs, built as nodes because Mozilla's linter, a release gate
    here, fails an innerHTML assignment from a variable. */
 const GLYPH_OPEN = 'M9 2h5v5h-1.5V4.56L7.8 9.26 6.74 8.2l4.7-4.7H9zM3 4h4v1.5H4.5v6h6V9H12v4H3z';

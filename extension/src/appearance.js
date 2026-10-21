@@ -213,10 +213,10 @@ async function readAppearance() {
       seed: Number.isFinite(s.rainbowSeed) ? s.rainbowSeed : 0,
       palette: usablePalette(s.rainbowPalette),
     },
-    // Local like the theme: the instance knows nothing of it, so following the
-    // instance's look leaves it alone.
+    // The instance knows nothing of it, so following the instance's look
+    // leaves it alone.
     disco: s.rainbowDisco === true,
-    // Whether the look comes from the default instance; the theme never does.
+    // Whether the look, the theme included, comes from the default instance.
     followInstance: s.followInstance === true,
   };
 }
@@ -240,9 +240,9 @@ async function applyAppearance() {
  * adoptFromInstance takes the look from the default instance through the
  * relay's GET /api/appearance, which needs no host permission.
  *
- * The theme is not taken: light or dark belongs to the screen in front of the
- * user, not to a server. Returns false when there is no instance to ask, so the
- * caller can say so.
+ * The theme is the one last chosen in the instance's web interface. An
+ * instance that names none keeps the local theme. Returns false when there is
+ * no instance to ask, so the caller can say so.
  */
 async function adoptFromInstance() {
   const target = await readDefaultTarget();
@@ -264,6 +264,7 @@ async function adoptFromInstance() {
   // (ADOPTED_KEYS) restores it when following is switched off.
   await chrome.storage.local.remove(['accentSlotChosen', 'accentCustoms']);
   await writeAppearance({
+    ...(THEMES.includes(a.theme) ? { theme: a.theme } : {}),
     accent: validHex(a.accent) ? a.accent : '',
     shape: SHAPES_STORED.includes(a.shape) ? a.shape : DEFAULT_SHAPE,
     rainbow: a.rainbow === true,
