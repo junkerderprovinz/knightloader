@@ -302,10 +302,12 @@ jobs:
             slug="${d#bundles/knightloader-}"
             cp "$d/knightloader-${slug}.zip" "dist/knightloader-${v}-${slug}.zip"
             cp "$d/knightloader-${slug}.zip" "dist/knightloader-${slug}.zip"
-            if [ -f "$d/knightloader-${slug}-installer.exe" ]; then
-              cp "$d/knightloader-${slug}-installer.exe" "dist/knightloader-${v}-${slug}-installer.exe"
-              cp "$d/knightloader-${slug}-installer.exe" "dist/knightloader-${slug}-installer.exe"
-            fi
+            for f in "$d/knightloader-${slug}-installer" "$d/knightloader-${slug}-installer.exe"; do
+              [ -f "$f" ] || continue
+              name="${f##*/}"
+              cp "$f" "dist/${name/knightloader-/knightloader-${v}-}"
+              cp "$f" "dist/$name"
+            done
           done
           cp apk/app-release.apk "dist/knightloader-${v}-android.apk"
           cp apk/app-release.apk dist/knightloader-android.apk

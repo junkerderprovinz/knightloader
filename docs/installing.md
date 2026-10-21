@@ -175,16 +175,24 @@ Intel and on Apple silicon. A running instance offers the same downloads under
 Settings, Apps, and picks the matching build when the browser reports the
 processor.
 
-Windows also gets an **installer** beside each zip. It puts KnightLoader under
-`C:\Program Files\KnightLoader` for everyone on the computer and asks for an
-administrator once, while it installs; later updates ask nobody (see
-[Updates](#updates)). A page asks whether you want a Start menu entry and a
-desktop shortcut, both ticked at first, and both go to every user. The next
-install, silent or not, starts from your answer and removes a shortcut you left
-out. On the way it removes an installation for you alone under
-`AppData\Local\Programs`, and it never touches your settings, accounts and
-private JDownloader in `%APPDATA%\KnightLoader`. The `KnightLoader.exe` in the zip is
-the same program as a portable copy that needs no installing.
+Windows and Linux also get an **installer** beside each zip. On Windows it puts
+KnightLoader under `C:\Program Files\KnightLoader` for everyone on the computer,
+or into another folder you pick, and asks for an administrator once, while it
+installs; later updates ask nobody (see [Updates](#updates)). Two switches
+decide on a Start menu entry and a desktop shortcut, both on at first, and both
+go to every user. The next install, silent or not, starts from your answer and
+removes a shortcut you left out. On the way it removes an installation for you
+alone under `AppData\Local\Programs`, and it never touches your settings,
+accounts and private JDownloader in `%APPDATA%\KnightLoader`. The
+`KnightLoader.exe` in the zip is the same program as a portable copy that needs
+no installing.
+
+On Linux the installer is for you alone and asks for no password. It puts
+KnightLoader in `~/.local/share/com.junkerderprovinz.knightloader` and adds it
+to the application menu, with a desktop icon if you want one. Right-clicking
+the menu entry offers to uninstall it. That copy updates itself like the one
+from the zip. Make the downloaded file executable first
+(`chmod +x knightloader-linux-amd64-installer`).
 
 The desktop app brings no Java, yt-dlp or ffmpeg of its own:
 
@@ -221,8 +229,8 @@ window says when it is ready. Pre-releases are never installed. **Update
 automatically** on the **General** page of Settings turns this off; it is on
 from the start.
 
-**The installed copy** under Program Files cannot replace itself, since no user
-may write there. A scheduled task named **KnightLoader Update** does it instead,
+**The installed copy** on Windows cannot replace itself, since no user may
+write to its folder. A scheduled task named **KnightLoader Update** does it instead,
 once a day and five minutes after the computer starts, whether KnightLoader is
 open or not. It replaces `KnightLoader.exe`, sets the version shown in the list
 of installed apps and writes what it did, or why it did not, to
@@ -245,15 +253,17 @@ Program Files belongs to the administrators. A program that replaces itself
 there without asking anyone needs an account that may write there, and a
 scheduled task under the system account is how Windows provides one; Firefox's
 maintenance service and Chrome's updater task work the same way. The task
-writes to three places and nowhere else: the installation folder,
+writes to three places and nowhere else: the installation folder, usually
 `C:\Program Files\KnightLoader`; its entry in the list of installed apps, under
 `HKLM\Software\Microsoft\Windows\CurrentVersion\Uninstall\KnightLoader`; and
 `%ProgramData%\KnightLoader`, for its log. It starts no JDownloader, opens no
 window, listens on no port and reads nothing from any user's profile. The folder
 under ProgramData belongs to the administrators, and only `settings.json` in it
-is open to other users. The installer has no page for choosing another folder.
-That leaves no file a user could swap for one the system account would run or
-write to. The task downloads only from GitHub over HTTPS and installs a file
+is open to other users. You can install into another folder, but only one that
+no ordinary user can change, rename or replace, and the same goes for every
+folder above it. The installer checks that, refuses anything else, and gives the
+folder the same rights as Program Files. That leaves no file a user could swap
+for one the system account would run or write to. The task downloads only from GitHub over HTTPS and installs a file
 only when it matches `checksums.txt`.
 
 #### Uninstalling
@@ -276,8 +286,10 @@ go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.29
 node scripts/desktop.mjs
 ```
 
-The bundle lands in `desktop/build/bin`; `--installer` adds the Windows
-installer, which needs NSIS. It is a dev build, which never updates itself;
+The bundle lands in `desktop/build/bin`; `--installer` adds the installer for
+Windows or Linux in `desktop/build/installer`, built from `desktop/installer`
+with [PommelPorter](https://github.com/junkerderprovinz/pommelporter). It is a
+dev build, which never updates itself;
 only a build stamped with its version, as the release workflow makes, does (see
 `desktop/README.md`). Windows and macOS need only their usual toolchains. Linux
 needs GTK 3 and WebKit: `libgtk-3-dev` and `libwebkit2gtk-4.1-dev` to build.
