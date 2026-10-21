@@ -16,6 +16,8 @@ github.com/junkerderprovinz/pommelporter v0.0.0-20261021182042-a80014547984 h1:p
 github.com/junkerderprovinz/pommelporter v0.0.0-20261021182042-a80014547984/go.mod h1:p59QJWepobDJ1ZdSIkQpIlJoPVnFnNQvvvbxXGDziYU=
 github.com/junkerderprovinz/pommelporter v0.0.0-20261021182806-b90c67af631a h1:CQUJCIe4gzkuCZ1Crbf8S231sZEBRg5HOvcGiT7US8Y=
 github.com/junkerderprovinz/pommelporter v0.0.0-20261021182806-b90c67af631a/go.mod h1:p59QJWepobDJ1ZdSIkQpIlJoPVnFnNQvvvbxXGDziYU=
+github.com/junkerderprovinz/pommelporter v0.0.0-20261021184656-d7209fe07cd0 h1:lX8L9Ion+a/rOtODMl9JMYGocZpvWrKeAwWrTTBWufw=
+github.com/junkerderprovinz/pommelporter v0.0.0-20261021184656-d7209fe07cd0/go.mod h1:p59QJWepobDJ1ZdSIkQpIlJoPVnFnNQvvvbxXGDziYU=
 github.com/matryer/is v1.4.1 h1:55ehd8zaGABKLXQUe2awZ99BD/PTc2ls+KV/dXphgEQ=
 github.com/matryer/is v1.4.1/go.mod h1:8I/i5uYgLzgsgEloJE1U6xx5HkBQpAZvepWuujKwMRU=
 github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE=
