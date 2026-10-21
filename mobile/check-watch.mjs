@@ -240,6 +240,7 @@ const s = {
   storage: new Map(),
   conns: [{ id: 'one', name: 'One' }],
   captchas: [],
+  speed: 0,
   fetchWatch: async () => ({ tag: '', tasks: [] }),
   fetchTasks: async () => [],
   ApiError: class extends Error {
@@ -252,6 +253,7 @@ const s = {
 s.native = {
   channels() {},
   start: () => (s.running = true),
+  update: (title) => s.calls.push({ update: title }),
   stop() {
     s.running = false;
     s.calls.push('stop');
@@ -282,7 +284,9 @@ const stubs = {
     'export const ApiError = s.ApiError;\n' +
     'export const fetchWatch = (...a) => s.fetchWatch(...a);\n' +
     'export const fetchTasks = (...a) => s.fetchTasks(...a);\n' +
-    'export const fetchCaptchasUnwatched = async () => s.captchas;',
+    'export const fetchCaptchasUnwatched = async () => s.captchas;\n' +
+    'export const fetchSpeed = async () => s.speed;',
+  '../api/stats': 'export const fmtSpeed = (n) => `${n} B/s`;',
   '../i18n': "export const AVAILABLE = ['en'];\nexport const load = async () => ({});",
   '../i18n/I18nContext': "export const detectDeviceLanguage = () => 'en';\nexport const translate = (_, key) => key;",
   '../storage/connections': 'export const listConnections = async () => globalThis.watchStandIns.conns;',
@@ -391,6 +395,24 @@ const lastNext = () => s.calls.filter((c) => c.next).at(-1);
   answer([task('b', 'running', { remote: true })]);
   await watch.watchTask();
   expect('a debrid fetch keeps the service with "Stay connected" off', s.calls.includes('stop'), false);
+}
+
+// The service's notification says what is going on and nothing else.
+{
+  const line = async (tasks, speed = 0) => {
+    fresh();
+    prefs({});
+    s.running = true;
+    s.speed = speed;
+    answer(tasks);
+    await watch.watchPass();
+    return s.calls.filter((c) => c.update).at(-1)?.update;
+  };
+  expect('downloads that move say how many and how fast', await line([task('a', 'running'), task('b', 'running')], 4e6), 'notify.watchSpeed');
+  expect('a download that moves nothing here gives no speed', await line([task('a', 'running', { remote: true })], 4e6), 'notify.watchOne');
+  expect('unpacking alone says so', await line([task('a', 'extracting')]), 'notify.watchUnpacking');
+  expect('nothing on the go says so', await line([task('a', 'done')]), 'notify.watchIdle');
+  s.speed = 0;
 }
 
 // The first look after a pause.

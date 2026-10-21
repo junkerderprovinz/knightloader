@@ -11,7 +11,8 @@
     "bg": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "ca": [
       "captcha.screenTitle",
@@ -22,14 +23,16 @@
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "downloads.torrentsTitle",
-      "notify.channelCaptcha"
+      "notify.channelCaptcha",
+      "notify.watchSpeed"
     ],
     "cs": [
       "addDownload.placeholder",
       "addDownload.errorServer",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "da": [
       "downloads.start",
@@ -48,7 +51,10 @@
       "settings.motion",
       "settings.theme.system",
       "speed.legend.download",
-      "speed.legend.seeding"
+      "speed.legend.seeding",
+      "notify.watchOne",
+      "notify.watchMany",
+      "notify.watchSpeed"
     ],
     "el": [
       "addDownload.placeholder",
@@ -57,7 +63,8 @@
       "settings.aboutGithub",
       "settings.aboutMail",
       "downloads.torrentsTitle",
-      "speed.legend.seeding"
+      "speed.legend.seeding",
+      "notify.watchSpeed"
     ],
     "es": [
       "captcha.screenTitle",
@@ -67,20 +74,23 @@
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "downloads.torrentsTitle",
-      "notify.channelCaptcha"
+      "notify.channelCaptcha",
+      "notify.watchSpeed"
     ],
     "et": [
       "addDownload.placeholder",
       "addDownload.errorServer",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "eu": [
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "fa": [
       "addDownload.placeholder",
@@ -91,7 +101,8 @@
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "fr": [
       "captcha.screenTitle",
@@ -108,7 +119,8 @@
       "notify.channelCaptcha",
       "settings.notifications",
       "settings.appsExtensionSub",
-      "settings.motion"
+      "settings.motion",
+      "notify.watchSpeed"
     ],
     "gl": [
       "captcha.screenTitle",
@@ -118,28 +130,33 @@
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "downloads.torrentsTitle",
-      "notify.channelCaptcha"
+      "notify.channelCaptcha",
+      "notify.watchSpeed"
     ],
     "he": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "hi": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "hr": [
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "hu": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "id": [
       "addDownload.placeholder",
@@ -147,13 +164,15 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "speed.legend.seeding"
+      "speed.legend.seeding",
+      "notify.watchSpeed"
     ],
     "is": [
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "it": [
       "addDownload.placeholder",
@@ -164,7 +183,9 @@
       "settings.aboutGithub",
       "settings.aboutMail",
       "instance.filesOne",
-      "speed.legend.download"
+      "speed.legend.download",
+      "notify.watchOne",
+      "notify.watchSpeed"
     ],
     "ja": [
       "addDownload.placeholder",
@@ -174,26 +195,30 @@
     "ko": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "lt": [
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "lv": [
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "ms": [
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "speed.legend.seeding"
+      "speed.legend.seeding",
+      "notify.watchSpeed"
     ],
     "nl": [
       "downloads.tabDownloads",
@@ -209,7 +234,10 @@
       "settings.motion.wild",
       "settings.motion.storm",
       "downloads.torrentsTitle",
-      "speed.legend.download"
+      "speed.legend.download",
+      "notify.watchOne",
+      "notify.watchMany",
+      "notify.watchSpeed"
     ],
     "no": [
       "downloads.start",
@@ -221,14 +249,16 @@
       "settings.motion.storm",
       "downloads.torrentsTitle",
       "settings.theme.system",
-      "speed.legend.seeding"
+      "speed.legend.seeding",
+      "notify.watchSpeed"
     ],
     "pl": [
       "addDownload.placeholder",
       "settings.disco",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "pt": [
       "captcha.screenTitle",
@@ -238,7 +268,8 @@
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "downloads.torrentsTitle",
-      "notify.channelCaptcha"
+      "notify.channelCaptcha",
+      "notify.watchSpeed"
     ],
     "ro": [
       "downloads.queueActive",
@@ -249,30 +280,35 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.aboutMailSubject"
+      "settings.aboutMailSubject",
+      "notify.watchSpeed"
     ],
     "ru": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "sk": [
       "addDownload.placeholder",
       "addDownload.errorServer",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "sl": [
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "sr": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "sv": [
       "addDownload.placeholder",
@@ -287,7 +323,8 @@
       "settings.motion.storm",
       "downloads.torrentsTitle",
       "settings.motion",
-      "settings.theme.system"
+      "settings.theme.system",
+      "notify.watchSpeed"
     ],
     "th": [
       "addDownload.placeholder",
@@ -298,12 +335,14 @@
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "uk": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "notify.watchSpeed"
     ],
     "vi": [
       "addDownload.placeholder",
@@ -311,7 +350,8 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.aboutMail"
+      "settings.aboutMail",
+      "notify.watchSpeed"
     ],
     "zh": [
       "addDownload.placeholder",
