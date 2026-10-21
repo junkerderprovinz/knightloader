@@ -173,6 +173,8 @@ export const nl: Dict = {
   'instances.removeTitle': '{name} verwijderen',
   'instances.moduleOff': 'Instanties staat uit, dus deze instantie toont de andere niet en neemt geen contact met ze op.',
   'instances.lastSeen': 'Laatst gezien {time}',
+  'instances.paired': 'Gekoppeld',
+  'instances.extensionPairedTip': 'De extensie maakt alleen verbinding terwijl je haar gebruikt, bijvoorbeeld om een link te sturen. Daartussen blijft ze gekoppeld.',
   'pairing.noPasswordHint': 'Deze instantie heeft geen inlogwachtwoord. Iedereen die deze webinterface kan openen, kan haar bedienen en via haar de downloads van elke instantie in de groep.',
   'pairing.direct': 'Rechtstreeks',
   'pairing.otherNetTitle': 'Staat de andere instantie op een ander netwerk?',

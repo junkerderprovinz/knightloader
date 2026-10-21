@@ -181,6 +181,8 @@ export const he: Dict = {
   'instances.removeTitle': 'הסרת {name}',
   'instances.moduleOff': 'מופעים כבוי, ולכן המופע הזה לא מציג את האחרים ולא פונה אליהם.',
   'instances.lastSeen': 'נראה לאחרונה {time}',
+  'instances.paired': 'מצומד',
+  'instances.extensionPairedTip': 'התוסף מתחבר רק בזמן שאתה משתמש בו, למשל כדי לשלוח קישור. בין לבין הוא נשאר מצומד.',
   'pairing.noPasswordHint': 'למופע הזה אין סיסמת כניסה. כל מי שיכול לפתוח את ממשק האינטרנט הזה יכול לשלוט בו, ודרכו בהורדות של כל מופע בקבוצה.',
   'pairing.direct': 'ישיר',
   'pairing.otherNetTitle': 'האם המופע האחר נמצא ברשת אחרת?',

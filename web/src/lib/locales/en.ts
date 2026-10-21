@@ -222,6 +222,8 @@ export const en = {
   'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
   'instances.moduleOff': 'Instances is switched off, so this instance neither lists nor contacts the others.',
   'instances.lastSeen': 'Last seen {time}',
+  'instances.paired': 'Paired',
+  'instances.extensionPairedTip': 'The extension connects only while you use it, for example to send a link. In between it stays paired.',
 
   // The Pairing page (pages/settings/pairing/): the step cards, the twelve
   // words with the members of the group, and the relay.

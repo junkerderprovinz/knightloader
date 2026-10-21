@@ -173,6 +173,8 @@ export const es: Dict = {
   'instances.removeTitle': 'Quitar {name}',
   'instances.moduleOff': 'Instancias está desactivado, así que esta instancia ni muestra ni contacta con las demás.',
   'instances.lastSeen': 'Visto por última vez: {time}',
+  'instances.paired': 'Emparejada',
+  'instances.extensionPairedTip': 'La extensión solo se conecta mientras la usas, por ejemplo para enviar un enlace. Entre tanto sigue emparejada.',
   'pairing.noPasswordHint': 'Esta instancia no tiene contraseña de acceso. Cualquiera que pueda abrir esta interfaz web puede controlarla y, a través de ella, las descargas de todas las instancias del grupo.',
   'pairing.direct': 'Directa',
   'pairing.otherNetTitle': '¿Está la otra instancia en otra red?',

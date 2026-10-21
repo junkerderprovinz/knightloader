@@ -179,6 +179,8 @@ export const lv: Dict = {
   'instances.removeTitle': 'Noņemt {name}',
   'instances.moduleOff': 'Instances ir izslēgtas, tāpēc šī instance pārējās nerāda un ar tām nesazinās.',
   'instances.lastSeen': 'Pēdējoreiz redzēts {time}',
+  'instances.paired': 'Sapārots',
+  'instances.extensionPairedTip': 'Paplašinājums pieslēdzas tikai tad, kad to izmantojat, piemēram, lai nosūtītu saiti. Pa starpu tas paliek sapārots.',
   'pairing.noPasswordHint': 'Šai instancei nav pieteikšanās paroles. Ikviens, kas var atvērt šo tīmekļa saskarni, var to vadīt un caur to arī visu grupas instanču lejupielādes.',
   'pairing.direct': 'Tieši',
   'pairing.otherNetTitle': 'Vai otra instance ir citā tīklā?',

@@ -202,6 +202,8 @@ export const de: Dict = {
   'instances.removePeerConfirm': 'Die Verbindung zu {name} wird hier gelöscht. Über die Adresse lässt sie sich wieder hinzufügen.',
   'instances.moduleOff': 'Instanzen ist ausgeschaltet, deshalb zeigt diese Instanz die anderen nicht an und nimmt keinen Kontakt zu ihnen auf.',
   'instances.lastSeen': 'Zuletzt gesehen {time}',
+  'instances.paired': 'Gekoppelt',
+  'instances.extensionPairedTip': 'Die Erweiterung verbindet sich nur, während du sie benutzt, etwa um einen Link zu schicken. Dazwischen bleibt sie gekoppelt.',
   'pairing.noPasswordHint': 'Diese Instanz hat kein Anmeldepasswort. Wer diese Oberfläche öffnen kann, kann sie steuern und über sie die Downloads jeder Instanz der Gruppe.',
   'pairing.direct': 'Direkt',
   'pairing.byAddress': 'Per Adresse',

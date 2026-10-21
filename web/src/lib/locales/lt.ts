@@ -179,6 +179,8 @@ export const lt: Dict = {
   'instances.removeTitle': 'Šalinti {name}',
   'instances.moduleOff': 'Egzemplioriai išjungti, todėl šis egzempliorius kitų nerodo ir su jais nesusisiekia.',
   'instances.lastSeen': 'Paskutinį kartą matytas {time}',
+  'instances.paired': 'Susietas',
+  'instances.extensionPairedTip': 'Plėtinys prisijungia tik tada, kai jį naudojate, pavyzdžiui, siųsdami nuorodą. Tarp to jis lieka susietas.',
   'pairing.noPasswordHint': 'Šis egzempliorius neturi prisijungimo slaptažodžio. Kiekvienas, kas gali atidaryti šią žiniatinklio sąsają, gali jį valdyti, o per jį ir visų grupės egzempliorių atsisiuntimus.',
   'pairing.direct': 'Tiesiogiai',
   'pairing.otherNetTitle': 'Ar kitas egzempliorius yra kitame tinkle?',

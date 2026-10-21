@@ -23,6 +23,7 @@ import {
   fetchDiscovered,
   fetchInstances,
   fetchSettings,
+  pairedBetweenCalls,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { basePath } from '../lib/basePath';
@@ -110,8 +111,16 @@ export function Instances({
     };
     const every20 = window.setInterval(refresh, INSTANCES_REFRESH_MS);
     document.addEventListener('visibilitychange', refresh);
+    // A device arriving on the relay and leaving again after one call comes
+    // as two events a moment apart, which one fetch answers.
+    let groupChanged = 0;
     const close = connectWS(
       (type, data: { peer: string; out: boolean }) => {
+        if (type === 'group') {
+          window.clearTimeout(groupChanged);
+          groupChanged = window.setTimeout(() => fetchConnect().then(setGroup).catch(() => {}), 500);
+          return;
+        }
         if (type === 'handover') {
           const key = entryNamed.current(data.peer);
           if (key) setParcels((on) => [...on, { id: parcelId.current++, key, out: data.out }]);
@@ -121,9 +130,10 @@ export function Instances({
         load();
         loadOff();
       },
-      ['settings', 'handover'],
+      ['settings', 'handover', 'group'],
     );
     return () => {
+      window.clearTimeout(groupChanged);
       window.clearInterval(everyFew);
       window.clearInterval(every20);
       document.removeEventListener('visibilitychange', refresh);
@@ -197,7 +207,7 @@ export function Instances({
         kind: appNodeKind(a.deployment),
         name: a.name || a.id,
         sub: a.deployment === 'extension' ? t('instances.kind.extension') : t('instances.kind.mobile'),
-        dim: !a.connected,
+        dim: !a.connected && !pairedBetweenCalls(a),
         // A phone and an extension reach the group through the relay alone.
         relay: true,
       }),
@@ -289,6 +299,7 @@ export function Instances({
             name={a.name || a.id}
             deployment={a.deployment}
             connected={a.connected}
+            approved={a.approved}
             lastSeen={a.lastSeen}
             onRemove={() => setRemoving({ kind: 'app', id: a.id, name: a.name || a.id })}
           />

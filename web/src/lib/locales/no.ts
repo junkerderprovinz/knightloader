@@ -181,6 +181,8 @@ export const no: Dict = {
   'instances.removeTitle': 'Fjern {name}',
   'instances.moduleOff': 'Instanser er slått av, så denne instansen verken viser eller kontakter de andre.',
   'instances.lastSeen': 'Sist sett {time}',
+  'instances.paired': 'Paret',
+  'instances.extensionPairedTip': 'Utvidelsen kobler seg bare til mens du bruker den, for eksempel for å sende en lenke. I mellomtiden forblir den paret.',
   'pairing.noPasswordHint': 'Denne instansen har ikke noe innloggingspassord. Alle som kan åpne dette nettgrensesnittet, kan styre den, og gjennom den nedlastingene til alle instansene i gruppen.',
   'pairing.direct': 'Direkte',
   'pairing.otherNetTitle': 'Er den andre instansen på et annet nettverk?',

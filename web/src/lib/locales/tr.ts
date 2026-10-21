@@ -179,6 +179,8 @@ export const tr: Dict = {
   'instances.removeTitle': '{name} kaldır',
   'instances.moduleOff': 'Örnekler kapalı, bu yüzden bu örnek diğerlerini ne listeler ne de onlarla iletişim kurar.',
   'instances.lastSeen': 'Son görülme {time}',
+  'instances.paired': 'Eşleştirildi',
+  'instances.extensionPairedTip': 'Uzantı yalnızca sen onu kullanırken bağlanır, örneğin bir bağlantı gönderirken. Arada eşleşmiş olarak kalır.',
   'pairing.noPasswordHint': 'Bu örneğin giriş parolası yok. Bu web arayüzünü açabilen herkes onu kontrol edebilir, onun üzerinden de gruptaki her örneğin indirmelerini.',
   'pairing.direct': 'Doğrudan',
   'pairing.otherNetTitle': 'Diğer örnek başka bir ağda mı?',

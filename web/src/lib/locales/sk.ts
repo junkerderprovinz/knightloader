@@ -179,6 +179,8 @@ export const sk: Dict = {
   'instances.removeTitle': 'Odstrániť {name}',
   'instances.moduleOff': 'Inštancie sú vypnuté, takže táto inštancia ostatné nezobrazuje ani ich nekontaktuje.',
   'instances.lastSeen': 'Posledná aktivita {time}',
+  'instances.paired': 'Spárované',
+  'instances.extensionPairedTip': 'Rozšírenie sa pripája len vtedy, keď ho používate, napríklad keď posielate odkaz. Medzitým zostáva spárované.',
   'pairing.noPasswordHint': 'Táto inštancia nemá prihlasovacie heslo. Ktokoľvek, kto dokáže otvoriť toto webové rozhranie, ju môže ovládať a cez ňu aj sťahovania každej inštancie v skupine.',
   'pairing.direct': 'Priamo',
   'pairing.otherNetTitle': 'Je druhá inštancia v inej sieti?',

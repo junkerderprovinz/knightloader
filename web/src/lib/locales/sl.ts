@@ -179,6 +179,8 @@ export const sl: Dict = {
   'instances.removeTitle': 'Odstrani {name}',
   'instances.moduleOff': 'Instance so izklopljene, zato ta instanca drugih ne prikazuje in z njimi ne vzpostavlja stika.',
   'instances.lastSeen': 'Zadnja aktivnost {time}',
+  'instances.paired': 'Seznanjena',
+  'instances.extensionPairedTip': 'Razširitev se poveže samo, ko jo uporabljaš, na primer za pošiljanje povezave. Vmes ostane seznanjena.',
   'pairing.noPasswordHint': 'Ta instanca nima gesla za prijavo. Vsak, ki lahko odpre ta spletni vmesnik, jo lahko upravlja, prek nje pa tudi prenose vseh instanc v skupini.',
   'pairing.direct': 'Neposredno',
   'pairing.otherNetTitle': 'Je druga instanca v drugem omrežju?',

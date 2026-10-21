@@ -12,6 +12,7 @@ import { Button, Card, InfoBubble, SectionTitle } from '../../../components/ui';
 import {
   approveDevice,
   fetchInstances,
+  pairedBetweenCalls,
   type ConnectInfo,
   type GroupApp,
   type GroupMember,
@@ -251,7 +252,7 @@ export function GroupCard({
         kind: appNodeKind(a.deployment),
         name: a.name || a.id,
         sub: kind(a) ?? '',
-        dim: !a.connected,
+        dim: !a.connected && !pairedBetweenCalls(a),
         // A phone and an extension reach the group through the relay alone.
         relay: true,
       }),
@@ -325,7 +326,16 @@ export function GroupCard({
             glyph={a.deployment === 'extension' ? <IconBrowser /> : <IconPhone />}
             name={a.name || a.id}
             tag={kind(a)}
-            state={reached(a.connected, t)}
+            state={
+              pairedBetweenCalls(a) ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <OkState parts={[t('instances.paired')]} />
+                  <InfoBubble tip={t('instances.extensionPairedTip')} />
+                </span>
+              ) : (
+                reached(a.connected, t)
+              )
+            }
             action={removeButton({ kind: 'app', id: a.id, name: a.name || a.id })}
           />
         ))}

@@ -1,6 +1,6 @@
 // Where an instance stands in its group, read from GET /api/connect. Kept
 // apart from the card so the rules can be tested without drawing it.
-import type { ConnectInfo } from '../../../lib/api';
+import { pairedBetweenCalls, type ConnectInfo } from '../../../lib/api';
 
 /** How long a new member may take to show up before the card suggests why
  *  nobody has. The relay puts a member through within seconds. */
@@ -11,8 +11,9 @@ export type PairStage = 'unpaired' | 'new' | 'searching' | 'alone' | 'gone' | 'p
 
 /**
  * pairStage reads the stage from the group, the seconds since this instance
- * entered it and whether this page generated its phrase. Only an instance or
- * a phone there now counts as paired.
+ * entered it and whether this page generated its phrase. An instance or a
+ * phone there now counts as paired, and so does an approved browser extension,
+ * which is only there while it makes a call.
  */
 export function pairStage(
   g: Pick<ConnectInfo, 'active' | 'members' | 'apps' | 'memberSeen'>,
@@ -20,7 +21,7 @@ export function pairStage(
   createdHere: boolean,
 ): PairStage {
   if (!g.active) return 'unpaired';
-  if (g.members.length > 0 || g.apps.some((a) => a.connected)) return 'paired';
+  if (g.members.length > 0 || g.apps.some((a) => a.connected || pairedBetweenCalls(a))) return 'paired';
   if (g.memberSeen) return 'gone';
   if (joinedAgo >= ALONE_AFTER_S) return 'alone';
   return createdHere ? 'new' : 'searching';

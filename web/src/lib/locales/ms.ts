@@ -179,6 +179,8 @@ export const ms: Dict = {
   'instances.removeTitle': 'Buang {name}',
   'instances.moduleOff': 'Instance dimatikan, jadi instans ini tidak menyenaraikan atau menghubungi instans lain.',
   'instances.lastSeen': 'Kali terakhir dilihat {time}',
+  'instances.paired': 'Digandingkan',
+  'instances.extensionPairedTip': 'Sambungan hanya bersambung semasa anda menggunakannya, contohnya untuk menghantar pautan. Di antara itu, ia kekal digandingkan.',
   'pairing.noPasswordHint': 'Instans ini tiada kata laluan log masuk. Sesiapa yang boleh membuka antara muka web ini boleh mengawalnya, dan melaluinya muat turun setiap instans dalam kumpulan.',
   'pairing.direct': 'Terus',
   'pairing.otherNetTitle': 'Adakah instans yang satu lagi berada pada rangkaian lain?',
