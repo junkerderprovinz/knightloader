@@ -549,6 +549,12 @@ export async function fetchCaptchasUnwatched(conn: ServerConnection, signal?: Ab
   return (await request<CaptchaChallenge[] | null>(conn, '/api', '/captcha?watch=0', { signal })) ?? [];
 }
 
+/** What the instance downloads at, in bytes a second, read off the queue's
+ *  figures since the watch list leaves progress out. */
+export async function fetchSpeed(conn: ServerConnection, signal?: AbortSignal): Promise<number> {
+  return (await request<{ speed?: number }>(conn, '/api', '/queue/counters', { signal })).speed ?? 0;
+}
+
 /** Has the instance ask JD now instead of at its next check. */
 export async function refreshCaptchas(conn: ServerConnection): Promise<CaptchaChallenge[]> {
   return (await request<CaptchaChallenge[] | null>(conn, '/api', '/captcha/refresh', { method: 'POST', body: '{}' })) ?? [];

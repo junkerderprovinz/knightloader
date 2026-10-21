@@ -49,6 +49,10 @@ class WatchModule : Module() {
       }
     }
 
+    Function("update") { title: String, text: String ->
+      Notices.updateWatching(context, title, text)
+    }
+
     Function("stop") {
       WatchService.stop(context)
     }
