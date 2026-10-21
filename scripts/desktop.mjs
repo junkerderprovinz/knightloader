@@ -2,9 +2,10 @@
 //
 //     node scripts/desktop.mjs [--arch amd64|arm64] [--installer] [--updatetest]
 //
-// Windows gets KnightLoader.exe and, with --installer, the NSIS installer.
-// macOS gets KnightLoader.app holding one binary for both architectures. Linux
-// gets the bare binary. Everything lands in desktop/build/bin.
+// Windows gets KnightLoader.exe, macOS KnightLoader.app holding one binary for
+// both architectures, and Linux the bare binary, all in desktop/build/bin.
+// With --installer, Windows and Linux also get their installer in
+// desktop/build/installer.
 //
 // The version is the tag on a tag build and KL_VERSION when it is set. Any
 // other build is "dev", which never updates itself.
@@ -20,7 +21,7 @@
 
 import { spawnSync } from 'node:child_process'
 import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
@@ -79,6 +80,27 @@ function goBuild(out, { goos, goarch, cgo, tags, ldflags = '', env = {} }) {
   ], { env: { GOOS: goos, GOARCH: goarch, CGO_ENABLED: cgo, ...env } })
 }
 
+// buildInstaller builds desktop/installer around the program at exe, into
+// desktop/build/installer so the zips of desktop/build/bin stay the program
+// alone. An updatetest installer installs as "KnightLoader Test".
+function buildInstaller(exe, name, { goos, cgo, tags, ldflags = '' }) {
+  const payload = join(desktop, 'installer', 'payload')
+  rmSync(payload, { recursive: true, force: true })
+  mkdirSync(payload, { recursive: true })
+  cpSync(exe, join(payload, basename(exe)))
+  const vars = [`-X main.version=${numbers}`]
+  if (updatetest) vars.push("-X 'main.name=KnightLoader Test'", '-X main.id=com.junkerderprovinz.knightloader.test')
+  try {
+    run('go', [
+      'build', '-tags', tags, '-trimpath', '-buildvcs=false',
+      '-ldflags', `-s -w ${ldflags} ${vars.join(' ')}`,
+      '-o', join(desktop, 'build', 'installer', name), '.',
+    ], { cwd: join(desktop, 'installer'), env: { GOOS: goos, GOARCH: arch, CGO_ENABLED: cgo } })
+  } finally {
+    rmSync(payload, { recursive: true, force: true })
+  }
+}
+
 // Wails writes its version resource under language 0000, which Windows does
 // not read, and the properties dialog would show every string blank.
 function writeWindowsVersion() {
@@ -102,6 +124,7 @@ function writeWindowsVersion() {
 console.log(`building KnightLoader ${version}, ${dlcFlags ? 'with' : 'without'} the DLC key`)
 
 rmSync(bin, { recursive: true, force: true })
+rmSync(join(desktop, 'build', 'installer'), { recursive: true, force: true })
 mkdirSync(bin, { recursive: true })
 
 run('wails3', [
@@ -138,13 +161,16 @@ if (process.platform === 'win32') {
   }
 
   if (installer) {
-    const nsis = join(desktop, 'build', 'windows', 'nsis')
-    run('wails3', ['generate', 'webview2bootstrapper', '-dir', nsis])
-    run('makensis', [
-      ...(updatetest ? ['-DINFO_PRODUCTNAME=KnightLoader Test', '-DINFO_PROJECTNAME=KnightLoaderTest'] : []),
-      `-DARG_WAILS_${arch.toUpperCase()}_BINARY=${exe}`,
-      join(nsis, 'project.nsi'),
+    const syso = join(desktop, 'installer', `installer_windows_${arch}.syso`)
+    run('wails3', [
+      'generate', 'syso', '-arch', arch, '-icon', 'build/windows/icon.ico',
+      '-manifest', 'installer/installer.manifest', '-info', 'build/windows/info.json', '-out', syso,
     ])
+    try {
+      buildInstaller(exe, `KnightLoader-${arch}-installer.exe`, { goos: 'windows', cgo: '0', tags: '', ldflags: '-H windowsgui' })
+    } finally {
+      rmSync(syso, { force: true })
+    }
   }
 } else if (process.platform === 'darwin') {
   // Both architectures in one binary, so one download serves every Mac. The
@@ -169,6 +195,9 @@ if (process.platform === 'win32') {
   // the Wails 2 builds already needed. Wails does not cross-compile to Linux,
   // so the ARM64 build runs on an ARM64 runner.
   goBuild(join(bin, 'KnightLoader'), { goos: 'linux', goarch: arch, cgo: '1', tags: tags(',gtk3') })
+  if (installer) {
+    buildInstaller(join(bin, 'KnightLoader'), `KnightLoader-${arch}-installer`, { goos: 'linux', cgo: '1', tags: 'gtk3' })
+  }
 }
 
 console.log(`done: ${version}`)

@@ -19,6 +19,7 @@ import (
 // stand-in's address in the folder under ProgramData instead.
 func init() {
 	product = "KnightLoader Test"
+	appID = "com.junkerderprovinz.knightloader.test"
 	if api := os.Getenv("KL_UPDATE_API"); api != "" {
 		updateAPI = api
 	} else if dir, err := machineData(); err == nil {
