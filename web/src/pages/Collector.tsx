@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { recheckTasks } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useStartTasks } from '../lib/useStartTasks';
@@ -219,12 +220,18 @@ export function Collector() {
   // The form owns the request, this page the report.
   const handleStaged = useStagedReport();
 
+  const navigate = useNavigate();
   const runStart = useStartTasks();
   const startSelected = () => {
     if (!selected.size) return;
     void runStart([...selected]);
   };
-  const startAll = () => void runStart([]);
+  // Once everything collected is on its way, there is nothing left here to
+  // look at. Starting a selection leaves the rest, so that stays on the page.
+  const startAll = () =>
+    void runStart([]).then((started) => {
+      if (started) navigate('/downloads');
+    });
 
   async function openCleanup(el: HTMLButtonElement | null): Promise<void> {
     try {
