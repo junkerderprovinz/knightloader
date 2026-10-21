@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import { KnightWatch, type OpenRequest } from '../../modules/watch';
-import { ApiError, fetchCaptchasUnwatched, fetchTasks, fetchWatch } from '../api/client';
+import { ApiError, fetchCaptchasUnwatched, fetchSpeed, fetchTasks, fetchWatch } from '../api/client';
+import { fmtSpeed } from '../api/stats';
 import { explainFailure } from '../api/taskError';
 import type { CaptchaChallenge, ServerConnection, WatchTask } from '../api/types';
 import { AVAILABLE, load } from '../i18n';
@@ -61,10 +62,29 @@ let startedAt = 0;
 let onScreen: string | null = null;
 let passing: Promise<boolean> | null = null;
 
+/** What the last pass saw going on, which the service's notification says. */
+interface Going {
+  downloading: number;
+  unpacking: boolean;
+  speed: number;
+}
+
+let going: Going | null = null;
+
+// The service's notification sits collapsed at the bottom of the shade, so it
+// says only what is happening and nothing about itself.
+function serviceLine(t: Translate, g: Going | null): string {
+  if (!g || (g.downloading === 0 && !g.unpacking)) return t('notify.watchIdle');
+  if (g.downloading === 0) return t('notify.watchUnpacking');
+  const n = g.downloading === 1 ? t('notify.watchOne') : t('notify.watchMany', { n: g.downloading });
+  return g.speed > 0 ? t('notify.watchSpeed', { downloads: n, speed: fmtSpeed(g.speed) }) : n;
+}
+
 // What finished while nobody looked happened before the next look, as it did
 // before the first one, rather than news to announce all at once.
 function forget(): void {
   for (const id of [...watched.keys()]) unwatch(id);
+  going = null;
 }
 
 // A captcha notice goes with the instance it was about, since no later look
@@ -119,6 +139,7 @@ async function runPass(): Promise<boolean> {
   let changed = false;
   let waiting = false;
   let moving = false;
+  const seen: Going = { downloading: 0, unpacking: false, speed: 0 };
 
   await Promise.all(
     conns.map(async (conn) => {
@@ -141,6 +162,14 @@ async function runPass(): Promise<boolean> {
             throw e;
           }),
         ]);
+        const running = tasks.filter((x) => x.status === 'running');
+        seen.downloading += running.length;
+        if (tasks.some((x) => x.status === 'extracting')) seen.unpacking = true;
+        // Asked only while bytes move here, and a figure that does not come is
+        // no reason to miss the rest of the look.
+        if (running.some((x) => !x.stalled && !x.remote)) {
+          seen.speed += await fetchSpeed(conn, abort.signal).catch(() => 0);
+        }
       } catch {
         w.ok = false;
         return;
@@ -159,6 +188,8 @@ async function runPass(): Promise<boolean> {
     }),
   );
 
+  going = seen;
+  if (KnightWatch.running()) KnightWatch.update(serviceLine(t, going), '');
   delay = nextDelay(delay, changed, waiting, moving);
   return keepRunning([...watched.values()], startedAt, Date.now(), prefs.stay);
 }
@@ -332,7 +363,7 @@ export async function startWatch(): Promise<void> {
   startedAt = Date.now();
   delay = FAST_MS;
   KnightWatch.next(delay, true);
-  KnightWatch.start(t('notify.watchTitle'), t('notify.watchText'));
+  KnightWatch.start(serviceLine(t, going), '');
 
   const now = await loadNotifyPrefs();
   if (now.stay && !now.batteryAsked && !KnightWatch.batteryExempt()) {

@@ -207,7 +207,8 @@ export interface Point {
  * curve is the samples as a monotone cubic through points `w / span` apart,
  * the newest on the right edge, cut into `steps` straight pieces per sample so
  * plain views can draw it. Monotone, so it never swings past a sample: it
- * stays above zero and under the ceiling.
+ * stays above zero and under the ceiling. The `lead` newest samples stand past
+ * the right edge, where a gliding plot keeps the one it is about to show.
  */
 export function curve(
   samples: readonly number[],
@@ -217,12 +218,13 @@ export function curve(
   span: number,
   ceiling: number,
   steps: number,
+  lead = 0,
 ): Point[] {
   const n = samples.length;
   if (n < 2) return [];
   const base = h - pad;
   const dx = w / span;
-  const xs = samples.map((_, i) => w - (n - 1 - i) * dx);
+  const xs = samples.map((_, i) => w - (n - 1 - lead - i) * dx);
   const ys = samples.map((v) => base - (v / ceiling) * (base - pad));
   const slope = (i: number) => (ys[i + 1] - ys[i]) / dx;
 

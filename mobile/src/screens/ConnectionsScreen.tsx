@@ -1,6 +1,12 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { Image, StyleSheet, View, type StyleProp, type TextStyle } from 'react-native';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { AppState, Image, StyleSheet, View, type StyleProp, type TextStyle } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { errorText, setQueueHalted } from '../api/client';
+import { fetchGroupApps, type GroupApp } from '../api/groupApps';
+import { subscribeAllRelays, wakeRelayClients } from '../api/relayClient';
+import { memberOptions } from '../storage/relayIdentity';
+import { isolate } from '../i18n/bidi';
+import { InfoTip } from '../components/InfoTip';
 import { listConnections, loadDefaultConnection, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -9,7 +15,7 @@ import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Connect, Gear, boxForInk } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
-import { CardButton, DefaultBadge, GlimButton, StatusBadge } from '../components/glim';
+import { CardButton, DefaultBadge, GlimButton, StatusBadge, ThisDeviceBadge } from '../components/glim';
 import { aggregate, fetchInstanceStats, fmtBytes, fmtSpeed, type InstanceStats } from '../api/stats';
 import { Text } from '../components/Text';
 import { Arrive, MovingList } from '../components/Moving';
@@ -104,6 +110,26 @@ function rgb(hex: string): { r: number; g: number; b: number } | null {
 
 type ConnStatus = 'checking' | 'online' | 'offline';
 
+// An extension dials the relay only while somebody uses it, so one that is not
+// live but approved is paired, not lost. A phone keeps its socket open, and
+// one that is not live is not connected.
+function deviceStatus(a: GroupApp): 'online' | 'paired' | 'pending' | 'offline' {
+  if (a.connected) return 'online';
+  if (!a.approved) return 'pending';
+  return a.deployment === 'extension' ? 'paired' : 'offline';
+}
+
+function seenAt(lang: string, unix: number): string {
+  const when = new Date(unix * 1000).toLocaleString(lang, {
+    day: 'numeric',
+    month: 'numeric',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return isolate(when);
+}
+
 // The home screen, opened straight from a fresh install rather than the connect
 // form, so somebody lands in the app first, empty state included, with the
 // connect screen and Settings a badge tap away. A tap on a row makes that
@@ -118,7 +144,7 @@ export default function ConnectionsScreen({
   onAddPress: () => void;
   onOpenSettings: () => void;
 }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { c, accent, corners, hueAt, rainbow } = useAppearance();
   const wide = useWide();
   const [connections, setConnections] = useState<ServerConnection[]>([]);
@@ -133,28 +159,26 @@ export default function ConnectionsScreen({
   const [queueError, setQueueError] = useState('');
 
   const [defaultId, setDefaultId] = useState<string | null>(null);
-
-  const reload = useCallback(async () => {
-    const [list, standard] = await Promise.all([listConnections(), loadDefaultConnection()]);
-    setConnections(list);
-    setDefaultId(standard?.id ?? null);
-    setLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
+  // The group's phones and browser extensions, listed by an instance, and
+  // this phone's own id among them.
+  const [apps, setApps] = useState<GroupApp[]>([]);
+  const [selfId, setSelfId] = useState('');
 
   // The numbers behind every card and behind the summary above them. Polled
   // rather than streamed, since a socket per instance is a lot of machinery for
   // a five-second refresh of a list somebody glances at. Two calls each: the
   // queue for whether it is halted, /api/queue/counters for the figures and
   // how many captchas are waiting.
+  //
+  // The list itself is read again on every round too. This screen stays
+  // mounted under the stack, so instances paired or removed on another screen
+  // would otherwise be missing here, or shown with a badge nobody updates.
   const load = useCallback(async () => {
-    const list = await listConnections();
-    // The poll also picks up a star set inside an instance while this screen
-    // stayed mounted underneath.
-    void loadDefaultConnection().then((d) => setDefaultId(d?.id ?? null));
+    const [list, standard, me] = await Promise.all([listConnections(), loadDefaultConnection(), memberOptions()]);
+    setConnections(list);
+    setDefaultId(standard?.id ?? null);
+    setSelfId(me.selfId);
+    setLoaded(true);
     const results = await Promise.all(list.map((conn) => fetchInstanceStats(conn)));
     setStats(Object.fromEntries(list.map((conn, i) => [conn.id, results[i].ok ? results[i].stats : null])));
     // The reason, kept rather than dropped: see stats.ts. A swallowed failure
@@ -164,13 +188,54 @@ export default function ConnectionsScreen({
         list.map((conn, i) => [conn.id, results[i].ok ? '' : errorText(t, (results[i] as { error: unknown }).error)]),
       ),
     );
+    const reachable = list.filter((_, i) => results[i].ok);
+    reachable.sort((a, b) => Number(b.id === standard?.id) - Number(a.id === standard?.id));
+    setApps(await fetchGroupApps(reachable));
   }, [t]);
 
-  useEffect(() => {
-    void load();
-    const id = setInterval(() => void load(), 5000);
-    return () => clearInterval(id);
+  // One round at a time. A relay call can take twenty seconds to fail, longer
+  // than the poll's step, and overlapping rounds let a late "not connected"
+  // from before an approval land on top of the answer after it. A round asked
+  // for while one runs follows it once.
+  const running = useRef(false);
+  const again = useRef(false);
+  const refresh = useCallback(() => {
+    if (running.current) {
+      again.current = true;
+      return;
+    }
+    running.current = true;
+    void load().finally(() => {
+      running.current = false;
+      if (again.current) {
+        again.current = false;
+        refresh();
+      }
+    });
   }, [load]);
+
+  // Only while the screen is in front, and at once when it comes back: from
+  // another screen, from the background, or when a relay connects or sees an
+  // instance arrive or go. An approval sends this phone nothing, so the poll
+  // is what notices it.
+  useFocusEffect(
+    useCallback(() => {
+      wakeRelayClients();
+      refresh();
+      const id = setInterval(refresh, 5000);
+      const stopRelays = subscribeAllRelays(refresh);
+      const foreground = AppState.addEventListener('change', (state) => {
+        if (state !== 'active') return;
+        wakeRelayClients();
+        refresh();
+      });
+      return () => {
+        clearInterval(id);
+        stopRelays();
+        foreground.remove();
+      };
+    }, [refresh]),
+  );
 
   const alle = connections.map((conn) => stats[conn.id] ?? null);
   const gesamt = aggregate(alle);
@@ -193,7 +258,7 @@ export default function ConnectionsScreen({
         const reason = failed[0].reason;
         setQueueError(`${failed.length}/${list.length}: ${errorText(t, reason)}`);
       }
-      await load();
+      refresh();
     } catch (e) {
       setQueueError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -236,6 +301,54 @@ export default function ConnectionsScreen({
            palette change, or disco's walk, leaves the rows in their old
            colours. */
         extraData={[stats, why, hueAt, rainbow.reactive, defaultId]}
+        // The group's phones and extensions under the instances, in the same
+        // cards. They are not pressable: there is nothing to open on a phone,
+        // and taking one out of the group is done on an instance.
+        ListFooterComponent={
+          apps.length > 0 ? (
+            <View style={styles.devices}>
+              <Text style={[styles.devicesTitle, { color: c.textMuted }]}>{t('devices.title')}</Text>
+              <View style={wide ? styles.deviceGrid : styles.deviceColumn}>
+                {apps.map((a, i) => {
+                  const status = deviceStatus(a);
+                  const hue = hueAt(connections.length + i);
+                  const facts = [a.deployment === 'mobile' ? t('devices.kindMobile') : t('devices.kindExtension')];
+                  if (!a.connected && a.lastSeen > 0) facts.push(t('devices.lastSeen', { time: seenAt(lang, a.lastSeen) }));
+                  return (
+                    <Arrive key={a.id} style={wide ? styles.deviceCellWide : undefined}>
+                      <View
+                        style={[
+                          styles.row,
+                          { backgroundColor: c.surface, ...corners.card },
+                          hue && !rainbow.reactive ? { backgroundColor: blend(c.surface, hue, 0.16) } : null,
+                        ]}
+                      >
+                        <View style={styles.rowMark}>
+                          <Image source={MARK} style={styles.rowMarkImg} resizeMode="contain" />
+                        </View>
+                        <View style={styles.rowText}>
+                          <View style={styles.rowTop}>
+                            <Text style={[styles.rowName, { color: c.text }]} numberOfLines={1}>
+                              {a.name || a.id}
+                            </Text>
+                            <View style={styles.rowBadges}>
+                              {a.id === selfId && <ThisDeviceBadge />}
+                              <StatusBadge status={status} />
+                              {status === 'paired' && <InfoTip text={t('devices.pairedHint')} />}
+                            </View>
+                          </View>
+                          <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
+                            {facts.join(' · ')}
+                          </Text>
+                        </View>
+                      </View>
+                    </Arrive>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null
+        }
         // The summary, the failure line and the graph travel as the list's own
         // header rather than as siblings above it. As a sibling the card carries
         // its own copy of the list's width cap plus a horizontal margin, and
@@ -520,9 +633,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   columns: { gap: 8 },
+  devices: { marginTop: 16 },
+  devicesTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
+  deviceColumn: { gap: 8 },
+  // Two to a line on a tablet, as the instances above them, with a last odd
+  // card taking the line the way the list's own last cell does.
+  deviceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  deviceCellWide: { flexGrow: 1, flexBasis: '40%' },
   // The logo's box. No ground of its own: see the comment at the call site.
-  rowMark: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
-  rowMarkImg: { width: 38, height: 38 },
+  //
+  // The shield stands about as tall as the card's text, as on the web's
+  // instance cards. The asset is the adaptive icon's foreground, whose ink
+  // fills only the middle 60% of its height and 38% of its width, so the box is
+  // drawn at 80 and the margins take back the empty safe zone: the card keeps
+  // its padding before the ink and a gap of about 20 after it.
+  rowMark: { width: 80, height: 80, marginVertical: -15, marginStart: -25, marginEnd: -17 },
+  rowMarkImg: { width: 80, height: 80 },
   rowText: { flex: 1, minWidth: 0, gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rowName: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
