@@ -641,8 +641,14 @@ const styles = StyleSheet.create({
   deviceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   deviceCellWide: { flexGrow: 1, flexBasis: '40%' },
   // The logo's box. No ground of its own: see the comment at the call site.
-  rowMark: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
-  rowMarkImg: { width: 38, height: 38 },
+  //
+  // The shield stands about as tall as the card's text, as on the web's
+  // instance cards. The asset is the adaptive icon's foreground, whose ink
+  // fills only the middle 60% of its height and 38% of its width, so the box is
+  // drawn at 80 and the margins take back the empty safe zone: the card keeps
+  // its padding before the ink and a gap of about 20 after it.
+  rowMark: { width: 80, height: 80, marginVertical: -15, marginStart: -25, marginEnd: -17 },
+  rowMarkImg: { width: 80, height: 80 },
   rowText: { flex: 1, minWidth: 0, gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rowName: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
