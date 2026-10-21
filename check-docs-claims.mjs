@@ -142,7 +142,8 @@ if (!built) {
 // buttons count, the ARM64 halves beside Windows and Linux too: a text link
 // elsewhere in the README is not where a reader looks for a download.
 const DESKTOP_YML = read('.github', 'workflows', 'desktop.yml');
-// A bundle built with NSIS has an installer, and its button points there.
+// A bundle built with --installer has an installer, and its button points
+// there; only the Windows one is an .exe.
 const bundles = [...DESKTOP_YML.matchAll(/^\s+platform: (\S+)\n\s+slug: (\S+)$/gm)].map((m) => ({
   platform: m[1],
   slug: m[2],
@@ -165,12 +166,13 @@ if (bundles.length === 0) {
   // <a href=".../releases/latest/download/knightloader-windows-arm64-installer.exe"><img ...
   const links = [
     ...buttonBlock.matchAll(
-      /<a href="[^"]*\/releases\/latest\/download\/knightloader-([a-z0-9-]+?)(-installer\.exe|\.zip)"><img /g,
+      /<a href="[^"]*\/releases\/latest\/download\/knightloader-([a-z0-9-]+?)(-installer(?:\.exe)?|\.zip)"><img /g,
     ),
   ];
   const buttons = new Set(links.map((m) => m[1]));
   for (const { slug, installer } of bundles) {
-    const file = `knightloader-${slug}${installer ? '-installer.exe' : '.zip'}`;
+    const suffix = !installer ? '.zip' : slug.startsWith('windows') ? '-installer.exe' : '-installer';
+    const file = `knightloader-${slug}${suffix}`;
     if (!links.some((m) => `knightloader-${m[1]}${m[2]}` === file)) {
       fail(`README.md has no download button for ${file}, which desktop.yml builds`);
     }

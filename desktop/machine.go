@@ -1,8 +1,7 @@
 package main
 
 // product names the installation for all users: its entry under Apps and its
-// folder under ProgramData. It is INFO_PRODUCTNAME in
-// build/windows/nsis/project.nsi.
+// folder under ProgramData. It is name in installer/main.go.
 var product = "KnightLoader"
 
 // appID names the installation on Linux, the folder under ~/.local/share
