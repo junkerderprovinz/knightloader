@@ -507,6 +507,8 @@ export const hr: Dict = {
   'settings.sidebar.accountsHint': 'Stavlja stranicu „Računi” u bočnu traku. U postavkama je ionako.',
   'settings.sidebar.instances': 'Instance u bočnoj traci',
   'settings.sidebar.instancesHint': 'Stavlja stranicu „Instance” u bočnu traku. U postavkama je ionako.',
+  'settings.sidebar.overview': 'Pregled u bočnoj traci',
+  'settings.sidebar.overviewHint': 'Stavlja stranicu „Pregled” u bočnu traku. Kad je isključeno, KnightLoader se otvara na „Preuzimanja”.',
   'settings.axisSidebarHint': 'Određuje samo raspored na računalu.',
   'settings.axisBottombarHint': 'Određuje samo raspored na telefonu.',
   'settings.labels.mode.text': 'Tekst',

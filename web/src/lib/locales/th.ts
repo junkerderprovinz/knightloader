@@ -507,6 +507,8 @@ export const th: Dict = {
   'settings.sidebar.accountsHint': 'วางหน้า “บัญชี” ไว้ในแถบด้านข้าง ส่วนในการตั้งค่าก็มีหน้านี้อยู่แล้ว',
   'settings.sidebar.instances': 'อินสแตนซ์ในแถบด้านข้าง',
   'settings.sidebar.instancesHint': 'วางหน้า “อินสแตนซ์” ไว้ในแถบด้านข้าง ส่วนในการตั้งค่าก็มีหน้านี้อยู่แล้ว',
+  'settings.sidebar.overview': 'ภาพรวมในแถบด้านข้าง',
+  'settings.sidebar.overviewHint': 'วางหน้า “ภาพรวม” ไว้ในแถบด้านข้าง เมื่อปิดไว้ KnightLoader จะเปิดที่หน้า “การดาวน์โหลด”',
   'settings.axisSidebarHint': 'มีผลเฉพาะกับเลย์เอาต์เดสก์ท็อปเท่านั้น',
   'settings.axisBottombarHint': 'มีผลเฉพาะกับเลย์เอาต์โทรศัพท์เท่านั้น',
   'settings.labels.mode.text': 'ข้อความ',

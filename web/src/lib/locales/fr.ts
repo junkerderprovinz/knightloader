@@ -499,6 +499,8 @@ export const fr: Dict = {
   'settings.sidebar.accountsHint': 'Place la page « Comptes » dans la barre latérale. Elle est de toute façon dans les paramètres.',
   'settings.sidebar.instances': 'Instances dans la barre latérale',
   'settings.sidebar.instancesHint': 'Place la page « Instances » dans la barre latérale. Elle est de toute façon dans les paramètres.',
+  'settings.sidebar.overview': 'Vue d’ensemble dans la barre latérale',
+  'settings.sidebar.overviewHint': 'Place la page « Vue d’ensemble » dans la barre latérale. Désactivée, KnightLoader s’ouvre sur « Téléchargements ».',
   'settings.axisSidebarHint': 'Concerne uniquement la mise en page du bureau.',
   'settings.axisBottombarHint': 'Concerne uniquement la mise en page du téléphone.',
   'settings.labels.mode.text': 'Texte',

@@ -499,6 +499,8 @@ export const pt: Dict = {
   'settings.sidebar.accountsHint': 'Põe a página «Contas» na barra lateral. Nas definições está de qualquer forma.',
   'settings.sidebar.instances': 'Instâncias na barra lateral',
   'settings.sidebar.instancesHint': 'Põe a página «Instâncias» na barra lateral. Nas definições está de qualquer forma.',
+  'settings.sidebar.overview': 'Visão geral na barra lateral',
+  'settings.sidebar.overviewHint': 'Põe a página «Visão geral» na barra lateral. Desligado, o KnightLoader abre em «Transferências».',
   'settings.axisSidebarHint': 'Afeta apenas o esquema do computador.',
   'settings.axisBottombarHint': 'Afeta apenas o esquema do telefone.',
   'settings.labels.mode.text': 'Texto',

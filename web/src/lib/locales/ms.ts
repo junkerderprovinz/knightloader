@@ -507,6 +507,8 @@ export const ms: Dict = {
   'settings.sidebar.accountsHint': 'Meletakkan halaman “Akaun” dalam bar sisi. Dalam Tetapan ia tetap ada.',
   'settings.sidebar.instances': 'Instance dalam bar sisi',
   'settings.sidebar.instancesHint': 'Meletakkan halaman “Instance” dalam bar sisi. Dalam Tetapan ia tetap ada.',
+  'settings.sidebar.overview': 'Gambaran dalam bar sisi',
+  'settings.sidebar.overviewHint': 'Meletakkan halaman “Gambaran” dalam bar sisi. Jika dimatikan, KnightLoader dibuka pada “Muat turun”.',
   'settings.axisSidebarHint': 'Hanya mempengaruhi susun atur desktop.',
   'settings.axisBottombarHint': 'Hanya mempengaruhi susun atur telefon.',
   'settings.labels.mode.text': 'Teks',

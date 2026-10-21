@@ -507,6 +507,8 @@ export const sv: Dict = {
   'settings.sidebar.accountsHint': 'Lägger sidan ”Konton” i sidopanelen. I inställningarna finns den i alla fall.',
   'settings.sidebar.instances': 'Instanser i sidopanelen',
   'settings.sidebar.instancesHint': 'Lägger sidan ”Instanser” i sidopanelen. I inställningarna finns den i alla fall.',
+  'settings.sidebar.overview': 'Översikt i sidopanelen',
+  'settings.sidebar.overviewHint': 'Lägger sidan ”Översikt” i sidopanelen. Avstängt öppnar KnightLoader på ”Nedladdningar”.',
   'settings.axisSidebarHint': 'Påverkar endast skrivbordslayouten.',
   'settings.axisBottombarHint': 'Påverkar endast telefonlayouten.',
   'settings.labels.mode.text': 'Text',

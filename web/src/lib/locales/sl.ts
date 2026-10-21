@@ -507,6 +507,8 @@ export const sl: Dict = {
   'settings.sidebar.accountsHint': 'Postavi stran »Računi« v stransko vrstico. V nastavitvah je tako ali tako.',
   'settings.sidebar.instances': 'Instance v stranski vrstici',
   'settings.sidebar.instancesHint': 'Postavi stran »Instance« v stransko vrstico. V nastavitvah je tako ali tako.',
+  'settings.sidebar.overview': 'Pregled v stranski vrstici',
+  'settings.sidebar.overviewHint': 'Postavi stran »Pregled« v stransko vrstico. Ko je izklopljeno, se KnightLoader odpre na »Prenosi«.',
   'settings.axisSidebarHint': 'Vpliva samo na namizno postavitev.',
   'settings.axisBottombarHint': 'Vpliva samo na postavitev telefona.',
   'settings.labels.mode.text': 'Besedilo',

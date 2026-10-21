@@ -508,6 +508,8 @@ export const lv: Dict = {
   'settings.sidebar.accountsHint': 'Ieliek lapu „Konti“ sānjoslā. Iestatījumos tā ir jebkurā gadījumā.',
   'settings.sidebar.instances': 'Instances sānjoslā',
   'settings.sidebar.instancesHint': 'Ieliek lapu „Instances“ sānjoslā. Iestatījumos tā ir jebkurā gadījumā.',
+  'settings.sidebar.overview': 'Pārskats sānjoslā',
+  'settings.sidebar.overviewHint': 'Ieliek lapu „Pārskats“ sānjoslā. Ja izslēgts, KnightLoader atveras lapā „Lejupielādes“.',
   'settings.axisSidebarHint': 'Attiecas tikai uz darbvirsmas izkārtojumu.',
   'settings.axisBottombarHint': 'Attiecas tikai uz telefona izkārtojumu.',
   'settings.labels.mode.text': 'Teksts',

@@ -15,6 +15,12 @@ import { I18nProvider } from '../lib/i18n';
 import { TabIndicator } from '../components/TabIndicator';
 import { RainbowProvider } from '../lib/useRainbow';
 import { basePath } from '../lib/basePath';
+import { useHidden } from '../lib/sidebarPrefs';
+
+/** Home is the overview, or the download list for whoever switched it off. */
+function Home() {
+  return useHidden('overview') ? <Navigate to="/downloads" replace /> : <Dashboard />;
+}
 
 export function AppRouter() {
   return (
@@ -35,7 +41,7 @@ export function AppRouter() {
             {/* The desktop app's small window at the tray icon. */}
             <Route path="/tray" element={<TrayOverview />} />
             <Route element={<Layout />}>
-              <Route index element={<Dashboard />} />
+              <Route index element={<Home />} />
               <Route path="/collector" element={<Collector />} />
               <Route path="/downloads" element={<Downloads />} />
               <Route path="/instances" element={<Instances />} />

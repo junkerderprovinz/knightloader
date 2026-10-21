@@ -507,6 +507,8 @@ export const is: Dict = {
   'settings.sidebar.accountsHint': 'Setur síðuna „Reikningar“ í hliðarstikuna. Í stillingum er hún hvort sem er.',
   'settings.sidebar.instances': 'Tilvik í hliðarstiku',
   'settings.sidebar.instancesHint': 'Setur síðuna „Tilvik“ í hliðarstikuna. Í stillingum er hún hvort sem er.',
+  'settings.sidebar.overview': 'Yfirlit í hliðarstiku',
+  'settings.sidebar.overviewHint': 'Setur síðuna „Yfirlit“ í hliðarstikuna. Ef slökkt er á því opnast KnightLoader á „Niðurhal“.',
   'settings.axisSidebarHint': 'Gildir aðeins um útlit skjáborðsins.',
   'settings.axisBottombarHint': 'Gildir aðeins um útlit símans.',
   'settings.labels.mode.text': 'Texti',

@@ -509,6 +509,8 @@ export const he: Dict = {
   'settings.sidebar.accountsHint': 'מציב את הדף „חשבונות” בסרגל הצד. בהגדרות הוא נמצא בכל מקרה.',
   'settings.sidebar.instances': 'מופעים בסרגל הצד',
   'settings.sidebar.instancesHint': 'מציב את הדף „מופעים” בסרגל הצד. בהגדרות הוא נמצא בכל מקרה.',
+  'settings.sidebar.overview': 'סקירה בסרגל הצד',
+  'settings.sidebar.overviewHint': 'מציב את הדף „סקירה” בסרגל הצד. כשהוא כבוי, KnightLoader נפתח בדף „הורדות”.',
   'settings.axisSidebarHint': 'משפיע על פריסת שולחן העבודה בלבד.',
   'settings.axisBottombarHint': 'משפיע על פריסת הטלפון בלבד.',
   'settings.labels.mode.text': 'טקסט',

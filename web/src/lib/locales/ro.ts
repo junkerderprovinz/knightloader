@@ -508,6 +508,8 @@ export const ro: Dict = {
   'settings.sidebar.accountsHint': 'Pune pagina „Conturi” în bara laterală. În setări e oricum.',
   'settings.sidebar.instances': 'Instanțe în bara laterală',
   'settings.sidebar.instancesHint': 'Pune pagina „Instanțe” în bara laterală. În setări e oricum.',
+  'settings.sidebar.overview': 'Prezentare în bara laterală',
+  'settings.sidebar.overviewHint': 'Pune pagina „Prezentare” în bara laterală. Dezactivat, KnightLoader se deschide la „Descărcări”.',
   'settings.axisSidebarHint': 'Se aplică doar aspectului de desktop.',
   'settings.axisBottombarHint': 'Se aplică doar aspectului de telefon.',
   'settings.labels.mode.text': 'Text',

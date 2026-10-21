@@ -507,6 +507,8 @@ export const fi: Dict = {
   'settings.sidebar.accountsHint': 'Tuo sivun ”Tilit” sivupalkkiin. Asetuksissa se on joka tapauksessa.',
   'settings.sidebar.instances': 'Instanssit sivupalkissa',
   'settings.sidebar.instancesHint': 'Tuo sivun ”Instanssit” sivupalkkiin. Asetuksissa se on joka tapauksessa.',
+  'settings.sidebar.overview': 'Yleiskatsaus sivupalkissa',
+  'settings.sidebar.overviewHint': 'Tuo sivun ”Yleiskatsaus” sivupalkkiin. Pois päältä KnightLoader avautuu sivulle ”Lataukset”.',
   'settings.axisSidebarHint': 'Koskee vain työpöytäasettelua.',
   'settings.axisBottombarHint': 'Koskee vain puhelinasettelua.',
   'settings.labels.mode.text': 'Teksti',

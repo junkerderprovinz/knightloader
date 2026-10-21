@@ -510,6 +510,8 @@ export const no: Dict = {
   'settings.sidebar.accountsHint': 'Setter siden «Kontoer» i sidepanelet. I innstillingene er den der uansett.',
   'settings.sidebar.instances': 'Instanser i sidepanelet',
   'settings.sidebar.instancesHint': 'Setter siden «Instanser» i sidepanelet. I innstillingene er den der uansett.',
+  'settings.sidebar.overview': 'Oversikt i sidepanelet',
+  'settings.sidebar.overviewHint': 'Setter siden «Oversikt» i sidepanelet. Slått av åpner KnightLoader på «Nedlastinger».',
   'settings.axisSidebarHint': 'Påvirker kun skrivebordslayouten.',
   'settings.axisBottombarHint': 'Påvirker kun telefonlayouten.',
   'settings.labels.mode.text': 'Tekst',

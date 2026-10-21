@@ -544,6 +544,8 @@ export const de: Dict = {
   'settings.sidebar.accountsHint': 'Setzt die Seite „Konten“ in die Seitenleiste. In den Einstellungen steht sie so oder so.',
   'settings.sidebar.instances': 'Instanzen in der Seitenleiste',
   'settings.sidebar.instancesHint': 'Setzt die Seite „Instanzen“ in die Seitenleiste. In den Einstellungen steht sie so oder so.',
+  'settings.sidebar.overview': 'Übersicht in der Seitenleiste',
+  'settings.sidebar.overviewHint': 'Setzt die Seite „Übersicht“ in die Seitenleiste. Ausgeschaltet öffnet KnightLoader mit den Downloads.',
   'settings.axisSidebarHint': 'Betrifft nur das Desktop-Layout.',
   'settings.axisBottombarHint': 'Betrifft nur das Telefon-Layout.',
   'settings.labels.mode.text': 'Text',

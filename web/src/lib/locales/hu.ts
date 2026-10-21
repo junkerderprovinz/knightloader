@@ -508,6 +508,8 @@ export const hu: Dict = {
   'settings.sidebar.accountsHint': 'A „Fiókok” oldalt az oldalsávba teszi. A beállításokban így is, úgy is ott van.',
   'settings.sidebar.instances': 'Példányok az oldalsávban',
   'settings.sidebar.instancesHint': 'A „Példányok” oldalt az oldalsávba teszi. A beállításokban így is, úgy is ott van.',
+  'settings.sidebar.overview': 'Áttekintés az oldalsávban',
+  'settings.sidebar.overviewHint': 'Az „Áttekintés” oldalt az oldalsávba teszi. Kikapcsolva a KnightLoader a „Letöltések” oldalon nyílik meg.',
   'settings.axisSidebarHint': 'Csak az asztali elrendezésre vonatkozik.',
   'settings.axisBottombarHint': 'Csak a telefon elrendezésére vonatkozik.',
   'settings.labels.mode.text': 'Szöveg',

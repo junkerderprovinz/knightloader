@@ -507,6 +507,8 @@ export const ja: Dict = {
   'settings.sidebar.accountsHint': '「アカウント」ページをサイドバーに置きます。設定にはどちらの場合もあります。',
   'settings.sidebar.instances': 'サイドバーのインスタンス',
   'settings.sidebar.instancesHint': '「インスタンス」ページをサイドバーに置きます。設定にはどちらの場合もあります。',
+  'settings.sidebar.overview': 'サイドバーの概要',
+  'settings.sidebar.overviewHint': '「概要」ページをサイドバーに置きます。オフにすると、KnightLoader は「ダウンロード」で開きます。',
   'settings.axisSidebarHint': 'デスクトップのレイアウトにのみ適用されます。',
   'settings.axisBottombarHint': 'スマートフォンのレイアウトにのみ適用されます。',
   'settings.labels.mode.text': '文字',

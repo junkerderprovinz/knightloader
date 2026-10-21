@@ -507,6 +507,8 @@ export const ko: Dict = {
   'settings.sidebar.accountsHint': '“계정” 페이지를 사이드바에 놓습니다. 설정에는 어느 쪽이든 있습니다.',
   'settings.sidebar.instances': '사이드바의 인스턴스',
   'settings.sidebar.instancesHint': '“인스턴스” 페이지를 사이드바에 놓습니다. 설정에는 어느 쪽이든 있습니다.',
+  'settings.sidebar.overview': '사이드바의 개요',
+  'settings.sidebar.overviewHint': '“개요” 페이지를 사이드바에 놓습니다. 끄면 KnightLoader가 “다운로드”에서 열립니다.',
   'settings.axisSidebarHint': '데스크톱 레이아웃에만 적용됩니다.',
   'settings.axisBottombarHint': '휴대폰 레이아웃에만 적용됩니다.',
   'settings.labels.mode.text': '텍스트',

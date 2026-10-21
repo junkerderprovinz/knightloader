@@ -508,6 +508,8 @@ export const bg: Dict = {
   'settings.sidebar.accountsHint': 'Слага страницата „Акаунти“ в страничната лента. В настройките тя е така или иначе.',
   'settings.sidebar.instances': 'Инстанции в страничната лента',
   'settings.sidebar.instancesHint': 'Слага страницата „Инстанции“ в страничната лента. В настройките тя е така или иначе.',
+  'settings.sidebar.overview': 'Общ преглед в страничната лента',
+  'settings.sidebar.overviewHint': 'Слага страницата „Общ преглед“ в страничната лента. Изключено, KnightLoader се отваря на „Изтегляния“.',
   'settings.axisSidebarHint': 'Отнася се само за оформлението на настолния компютър.',
   'settings.axisBottombarHint': 'Отнася се само за оформлението на телефона.',
   'settings.labels.mode.text': 'Текст',

@@ -508,6 +508,8 @@ export const uk: Dict = {
   'settings.sidebar.accountsHint': 'Ставить сторінку «Облікові записи» на бічну панель. У налаштуваннях вона є в будь-якому разі.',
   'settings.sidebar.instances': 'Екземпляри на бічній панелі',
   'settings.sidebar.instancesHint': 'Ставить сторінку «Екземпляри» на бічну панель. У налаштуваннях вона є в будь-якому разі.',
+  'settings.sidebar.overview': 'Огляд на бічній панелі',
+  'settings.sidebar.overviewHint': 'Ставить сторінку «Огляд» на бічну панель. Якщо вимкнено, KnightLoader відкривається на сторінці «Завантаження».',
   'settings.axisSidebarHint': 'Впливає лише на макет комп’ютера.',
   'settings.axisBottombarHint': 'Впливає лише на макет телефону.',
   'settings.labels.mode.text': 'Текст',

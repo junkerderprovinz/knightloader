@@ -507,6 +507,8 @@ export const fa: Dict = {
   'settings.sidebar.accountsHint': 'صفحهٔ «حساب‌ها» را در نوار کناری می‌گذارد. در تنظیمات در هر حال هست.',
   'settings.sidebar.instances': 'نمونه‌ها در نوار کناری',
   'settings.sidebar.instancesHint': 'صفحهٔ «نمونه‌ها» را در نوار کناری می‌گذارد. در تنظیمات در هر حال هست.',
+  'settings.sidebar.overview': 'نمای کلی در نوار کناری',
+  'settings.sidebar.overviewHint': 'صفحهٔ «نمای کلی» را در نوار کناری می‌گذارد. اگر خاموش باشد، KnightLoader با «دانلودها» باز می‌شود.',
   'settings.axisSidebarHint': 'فقط بر چیدمان دسکتاپ تأثیر می‌گذارد.',
   'settings.axisBottombarHint': 'فقط بر چیدمان گوشی تأثیر می‌گذارد.',
   'settings.labels.mode.text': 'متن',

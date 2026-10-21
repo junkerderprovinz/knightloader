@@ -507,6 +507,8 @@ export const ca: Dict = {
   'settings.sidebar.accountsHint': 'Posa la pàgina «Comptes» a la barra lateral. A la configuració hi és de totes maneres.',
   'settings.sidebar.instances': 'Instàncies a la barra lateral',
   'settings.sidebar.instancesHint': 'Posa la pàgina «Instàncies» a la barra lateral. A la configuració hi és de totes maneres.',
+  'settings.sidebar.overview': 'Resum a la barra lateral',
+  'settings.sidebar.overviewHint': 'Posa la pàgina «Resum» a la barra lateral. Si està desactivat, KnightLoader s’obre a «Baixades».',
   'settings.axisSidebarHint': 'Només afecta la disposició d’escriptori.',
   'settings.axisBottombarHint': 'Només afecta la disposició del telèfon.',
   'settings.labels.mode.text': 'Text',

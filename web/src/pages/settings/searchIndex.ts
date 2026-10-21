@@ -362,6 +362,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.sidebar.title',
       rows: [
+        { key: 'settings.sidebar.overview', hint: 'settings.sidebar.overviewHint' },
         { key: 'settings.sidebar.accounts', hint: 'settings.sidebar.accountsHint' },
         { key: 'settings.sidebar.instances', hint: 'settings.sidebar.instancesHint' },
       ],

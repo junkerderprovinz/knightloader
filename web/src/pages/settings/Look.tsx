@@ -695,6 +695,16 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           <SectionTitle>{t('settings.sidebar.title')}</SectionTitle>
           <ToggleRow
             hue={0}
+            label={t('settings.sidebar.overview')}
+            hint={t('settings.sidebar.overviewHint')}
+            checked={!cfg.hideOverviewFromSidebar}
+            onChange={(v) => {
+              patch({ hideOverviewFromSidebar: !v });
+              setHidden('overview', !v);
+            }}
+          />
+          <ToggleRow
+            hue={1}
             label={t('settings.sidebar.accounts')}
             hint={t('settings.sidebar.accountsHint')}
             checked={!cfg.hideAccountsFromSidebar}
@@ -704,7 +714,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             }}
           />
           <ToggleRow
-            hue={1}
+            hue={2}
             label={t('settings.sidebar.instances')}
             hint={t('settings.sidebar.instancesHint')}
             checked={!cfg.hideInstancesFromSidebar}

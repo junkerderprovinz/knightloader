@@ -509,6 +509,8 @@ export const ar: Dict = {
   'settings.sidebar.accountsHint': 'تضع صفحة «الحسابات» في الشريط الجانبي. وهي موجودة في الإعدادات في كل الأحوال.',
   'settings.sidebar.instances': 'النُسخ في الشريط الجانبي',
   'settings.sidebar.instancesHint': 'تضع صفحة «النُسخ» في الشريط الجانبي. وهي موجودة في الإعدادات في كل الأحوال.',
+  'settings.sidebar.overview': 'نظرة عامة في الشريط الجانبي',
+  'settings.sidebar.overviewHint': 'تضع صفحة «نظرة عامة» في الشريط الجانبي. عند إيقافها يفتح KnightLoader على «التنزيلات».',
   'settings.axisSidebarHint': 'يؤثر على تخطيط سطح المكتب فقط.',
   'settings.axisBottombarHint': 'يؤثر على تخطيط الهاتف فقط.',
   'settings.labels.mode.text': 'نص',

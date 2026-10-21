@@ -499,6 +499,8 @@ export const es: Dict = {
   'settings.sidebar.accountsHint': 'Pone la página «Cuentas» en la barra lateral. En la configuración está de todos modos.',
   'settings.sidebar.instances': 'Instancias en la barra lateral',
   'settings.sidebar.instancesHint': 'Pone la página «Instancias» en la barra lateral. En la configuración está de todos modos.',
+  'settings.sidebar.overview': 'Resumen en la barra lateral',
+  'settings.sidebar.overviewHint': 'Pone la página «Resumen» en la barra lateral. Desactivado, KnightLoader se abre en «Descargas».',
   'settings.axisSidebarHint': 'Afecta solo al diseño de escritorio.',
   'settings.axisBottombarHint': 'Afecta solo al diseño del teléfono.',
   'settings.labels.mode.text': 'Texto',

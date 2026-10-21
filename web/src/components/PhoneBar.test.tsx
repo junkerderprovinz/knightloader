@@ -20,7 +20,7 @@ globalThis.ResizeObserver ??= class {
 let root: Root;
 let host: HTMLDivElement;
 let locked: boolean;
-let hide: { accounts: boolean; instances: boolean };
+let hide: { accounts: boolean; instances: boolean; overview?: boolean };
 
 const reply = (body: unknown) =>
   new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -40,7 +40,11 @@ beforeEach(() => {
     vi.fn(async (url: string) => {
       if (url === '/api/auth') return reply({ enabled: locked });
       if (url === '/api/settings')
-        return reply({ hideAccountsFromSidebar: hide.accounts, hideInstancesFromSidebar: hide.instances });
+        return reply({
+          hideAccountsFromSidebar: hide.accounts,
+          hideInstancesFromSidebar: hide.instances,
+          hideOverviewFromSidebar: hide.overview ?? false,
+        });
       if (url.startsWith('/api/uistate')) return reply({});
       return reply([]);
     }),
@@ -55,6 +59,7 @@ afterEach(() => {
   host.remove();
   setHidden('accounts', false);
   setHidden('instances', false);
+  setHidden('overview', false);
   vi.unstubAllGlobals();
 });
 
@@ -99,4 +104,9 @@ it('offers Sign out in the sheet once the instance has a password', async () => 
   await act(async () => (host.querySelector('nav > button') as HTMLButtonElement).click());
   const buttons = [...document.querySelectorAll('[role="dialog"] button')].map((b) => b.textContent);
   expect(buttons).toContain('Sign out');
+});
+
+it('leaves the overview out once it is switched off', async () => {
+  hide = { accounts: false, instances: false, overview: true };
+  expect(await show()).toEqual(['Downloads', 'Link collector', 'Settings', 'More']);
 });

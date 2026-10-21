@@ -500,6 +500,8 @@ export const ru: Dict = {
   'settings.sidebar.accountsHint': 'Помещает страницу «Аккаунты» в боковую панель. В настройках она есть в любом случае.',
   'settings.sidebar.instances': 'Экземпляры в боковой панели',
   'settings.sidebar.instancesHint': 'Помещает страницу «Экземпляры» в боковую панель. В настройках она есть в любом случае.',
+  'settings.sidebar.overview': 'Обзор в боковой панели',
+  'settings.sidebar.overviewHint': 'Помещает страницу «Обзор» в боковую панель. Если выключено, KnightLoader открывается на странице «Загрузки».',
   'settings.axisSidebarHint': 'Влияет только на макет компьютера.',
   'settings.axisBottombarHint': 'Влияет только на макет телефона.',
   'settings.labels.mode.text': 'Текст',
