@@ -12,7 +12,6 @@ docker run -d --name knightloader \
   -p 8749:8749 \
   -v /path/to/appdata:/data \
   -v /path/to/downloads:/data/downloads \
-  -v /path/to/watch:/watch \
   -e TZ=Europe/Berlin \
   ghcr.io/junkerderprovinz/knightloader:latest
 ```

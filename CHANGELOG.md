@@ -60,6 +60,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   instance keeps the theme last chosen in its web interface, and while the
   extension follows it, the extension's own theme and corner buttons are
   greyed out like its colours. Switching off brings the local look back.
+- **The watched folder is no longer mounted by default.** The Unraid template
+  and the compose file left a `knightloader-watch` folder on the host even
+  with the module off. Whoever wants one now picks a host folder for `/watch`.
 - **Start all in the link collector goes to the download list.** It switches
   once links have left the collector and stays put when nothing started.
 - **The row buttons in the download list and the link collector sit at the
