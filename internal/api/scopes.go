@@ -146,6 +146,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/fileowner/check":           apitoken.ScopeAdmin,
 	"GET /api/folders":                    apitoken.ScopeAdmin,
 	"POST /api/folders":                   apitoken.ScopeAdmin,
+	"GET /api/group/apps":                 apitoken.ScopeRead,
 	"GET /api/health/detail":              apitoken.ScopeRead,
 	"GET /api/help":                       apitoken.ScopeRead,
 	"DELETE /api/history":                 apitoken.ScopeControl,

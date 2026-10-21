@@ -77,7 +77,11 @@ type App struct {
 	Name       string
 	Deployment string
 	Connected  bool
-	LastSeen   time.Time
+	// Approved is whether its pinned key was let in. A browser extension
+	// holds its relay socket only for the length of a call, so between calls
+	// this is what says it is still part of the group.
+	Approved bool
+	LastSeen time.Time
 }
 
 // clientDeployments are the clients that join a group without being an
@@ -178,7 +182,8 @@ func (m *Manager) Members() []Instance {
 // Apps returns every phone and browser of the group, connected ones first,
 // and records the ones connected at now. A card is kept only under an id
 // shaped like the ones its kind mints, so no announce puts one under an
-// instance's id.
+// instance's id. A device counts as seen whenever its key last signed a call
+// here, which catches the calls made while nobody had the page open.
 func (m *Manager) Apps(now time.Time) ([]App, error) {
 	m.mu.Lock()
 	rt := m.rt
@@ -228,7 +233,12 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	out := make([]App, 0, len(st.Apps))
 	for id, known := range st.Apps {
 		_, on := connected[id]
-		out = append(out, App{ID: id, Name: known.Name, Deployment: deploymentOf(known), Connected: on, LastSeen: known.LastSeen})
+		pin := st.Keys[id]
+		seen := known.LastSeen
+		if pin.Used.After(seen) {
+			seen = pin.Used
+		}
+		out = append(out, App{ID: id, Name: known.Name, Deployment: deploymentOf(known), Connected: on, Approved: pin.Approved, LastSeen: seen})
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Connected != out[j].Connected {

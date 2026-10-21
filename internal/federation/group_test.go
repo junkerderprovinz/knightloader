@@ -1,6 +1,7 @@
 package federation
 
 import (
+	"crypto/ed25519"
 	"fmt"
 	"strings"
 	"testing"
@@ -170,6 +171,47 @@ func TestAPhoneOrExtensionThatWentAwayKeepsItsCard(t *testing.T) {
 	}
 	if apps, _ := m.Apps(seen); len(apps) != 0 {
 		t.Fatalf("apps after leaving = %+v, want none", apps)
+	}
+}
+
+func TestAnExtensionBetweenCallsIsSeenWhenItsKeyLastSigned(t *testing.T) {
+	m := newManager(t)
+	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
+	if err := m.SetJoined(joined); err != nil {
+		t.Fatal(err)
+	}
+	rt := &fakeRelay{sibs: []relay.Announce{
+		{InstanceID: browser1, Name: "Chrome", Deployment: "extension", Client: true},
+		{InstanceID: phone1, Name: "Pixel 8", Deployment: "mobile", Client: true},
+	}}
+	m.SetRelay(rt)
+	seen := joined.Add(time.Minute)
+	if _, err := m.Apps(seen); err != nil {
+		t.Fatal(err)
+	}
+
+	// The extension signs a call an hour later, on a socket that is gone
+	// again before anybody asks. The phone's key signed before its card was
+	// last written and waits for approval.
+	rt.sibs = nil
+	called := seen.Add(time.Hour)
+	m.group.state.Keys = map[string]PinnedKey{
+		browser1: {Key: memberKeyOf(204).Public().(ed25519.PublicKey), Kind: relay.KindExtension, Approved: true, Used: called},
+		phone1:   {Key: memberKeyOf(202).Public().(ed25519.PublicKey), Kind: relay.KindMobile, Used: joined},
+	}
+	apps, err := m.Apps(called.Add(time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(apps) != 2 {
+		t.Fatalf("apps = %+v, want the extension and the phone", apps)
+	}
+	browser, phone := apps[0], apps[1]
+	if browser.ID != browser1 || browser.Connected || !browser.Approved || !browser.LastSeen.Equal(called) {
+		t.Errorf("extension = %+v, want it approved, not connected, last seen %v", browser, called)
+	}
+	if phone.ID != phone1 || phone.Approved || !phone.LastSeen.Equal(seen) {
+		t.Errorf("phone = %+v, want it not approved and last seen %v", phone, seen)
 	}
 }
 
