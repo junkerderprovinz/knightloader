@@ -36,6 +36,39 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Added
+
+- **The app lists the group's phones and browser extensions.** They appear
+  under the instances on the overview, each with its state and when it was
+  last seen: Connected, Waiting for approval, Not connected, or Paired for an
+  extension that is approved but not in use right now. The phone you hold is
+  marked as this device. An instance that cannot list them yet shows none.
+
+### Changed
+
+- **The app's background notification is quiet and says what is going on.**
+  It sits collapsed at the bottom of the shade with no icon in the status bar
+  and reads like "2 downloads, 4.1 MB/s", or that no downloads are running
+  while Stay connected keeps the connection open.
+- **The logo on the app's instance cards is larger.** It stands about as tall
+  as the card's text, like the one on the instance cards in the web interface.
+
+### Fixed
+
+- **An instance's badge in the app follows its state while the overview is
+  open.** After pairing with the phrase, the badge kept saying Not connected
+  until the screen was opened again, even once the instance had approved the
+  phone. The overview also shows instances paired or removed on another screen
+  straight away.
+- **The device name in the app's settings is kept when you leave with the back
+  key.** Android's first press only closed the keyboard, and the second left
+  the screen before the name was saved.
+- **The app's speed graph moves smoothly.** It glides at a steady pace instead
+  of jumping a step every second. With motion off or reduced it moves once a
+  second as before.
+
 ## [2.2.0] - 2026-10-20
 
 ### Added
