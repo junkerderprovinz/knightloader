@@ -29,6 +29,26 @@ func appearanceCall(t *testing.T, method, url string, body []byte) map[string]an
 	return out
 }
 
+// The extension follows the theme the web interface chose last.
+func TestAppearanceCarriesTheTheme(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	if got := appearanceCall(t, http.MethodGet, srv.URL, nil)["theme"]; got != "" {
+		t.Fatalf("a fresh install answers theme %v, want none", got)
+	}
+	if got := appearanceCall(t, http.MethodPost, srv.URL, []byte(`{"theme": "light"}`))["theme"]; got != "light" {
+		t.Errorf("after choosing light the answer is %v", got)
+	}
+	if got := a.Settings.Get().Theme; got != "light" {
+		t.Errorf("stored theme %q, want light", got)
+	}
+	if got := appearanceCall(t, http.MethodPost, srv.URL, []byte(`{"theme": "sepia"}`))["theme"]; got != "" {
+		t.Errorf("a theme nobody offers answers %v, want none", got)
+	}
+}
+
 // The app reads the list cards from here, since /api/settings is not on the
 // relay's allowlist.
 func TestAppearanceCarriesTheListCards(t *testing.T) {

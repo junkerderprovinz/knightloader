@@ -4,6 +4,7 @@ import type { LabelMode } from './labelModes';
 import type { EventProgramRow } from './eventprograms';
 import type { EventTargetRow } from './eventtargets';
 import type { Shape } from './appearance';
+import type { Theme } from './theme';
 import { socketURL, withBase } from './basePath';
 import { type LiveStream, type StreamHandlers, openDesktopStream } from './desktop';
 
@@ -654,6 +655,9 @@ export interface Settings {
   preParserEnabled: boolean;
   shape: Shape;
   accent: string;
+  /** The theme last chosen in this interface, empty until one is (app/Layout.tsx).
+   *  Each browser keeps its own; the extension follows this one. */
+  theme?: Theme | '';
   rainbow: boolean;
   rainbowReactive: boolean;
   rainbowRotate: boolean;

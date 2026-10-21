@@ -118,7 +118,7 @@ function paintHues() {
       return;
     }
     await renderTargets(pending.defaultName);
-    void loadStatus();
+    watchStatus();
     // Only a Click'n'Load batch counts down; a right-clicked link waits for
     // the user.
     showCollector();
