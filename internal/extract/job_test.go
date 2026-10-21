@@ -14,6 +14,9 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/extract/extracttest"
 )
 
 func gzipInto(t *testing.T, w io.Writer, body []byte) {
@@ -605,5 +608,158 @@ func TestATarInsideAStreamIsHeldToTheSameLimit(t *testing.T) {
 	}
 	if exists(filepath.Join(dir, "set")) {
 		t.Error("the folder of the refused tar was left on the disk")
+	}
+}
+
+func readBody(t *testing.T, path string) string {
+	t.Helper()
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}
+
+// A release is packed as "Film/..." into "Film.part1.rar". Unpacked beside the
+// archive that is "Film/...", once.
+func TestAReleaseFolderNamedLikeItsArchiveIsNotWrappedTwice(t *testing.T) {
+	dir := t.TempDir()
+	movie := bytes.Repeat([]byte("frame"), 2000)
+	paths := extracttest.WriteRarSet(t, dir, "Film.2026", extracttest.RarSet(4096,
+		extracttest.File{Name: "Film.2026/Film (2026).mkv", Body: movie},
+		extracttest.File{Name: "Film.2026/support/info.txt", Body: []byte("read me")},
+	))
+
+	out, err := Run(context.Background(), Request{Path: paths[0]})
+	if err != nil {
+		t.Fatal(err)
+	}
+	release := filepath.Join(dir, "Film.2026")
+	if out.Dir != release {
+		t.Errorf("Dir = %q, want %q", out.Dir, release)
+	}
+	if got := readBody(t, filepath.Join(release, "Film (2026).mkv")); got != string(movie) {
+		t.Error("the film did not land directly in the release folder")
+	}
+	if got := readBody(t, filepath.Join(release, "support", "info.txt")); got != "read me" {
+		t.Errorf("support/info.txt = %q", got)
+	}
+	if exists(filepath.Join(release, "Film.2026")) {
+		t.Error("the release folder was created inside itself")
+	}
+}
+
+func TestTheFolderMatchesTheArchiveNameRegardlessOfCase(t *testing.T) {
+	dir := t.TempDir()
+	write(t, filepath.Join(dir, "film.zip"), zipBytes(t, entry{"Film/a.txt", []byte("a")}))
+
+	if _, err := Run(context.Background(), Request{Path: filepath.Join(dir, "film.zip")}); err != nil {
+		t.Fatal(err)
+	}
+	if got := readBody(t, filepath.Join(dir, "film", "a.txt")); got != "a" {
+		t.Errorf("a.txt = %q", got)
+	}
+}
+
+// Only the archive's own name is redundant. Any other folder name, or a file
+// beside the folder, is part of what the packer meant.
+func TestAFolderThatAddsSomethingIsKept(t *testing.T) {
+	cases := []struct {
+		name    string
+		entries []entry
+		want    string
+	}{
+		{"another name", []entry{{"Other/a.txt", []byte("a")}}, filepath.Join("film", "Other", "a.txt")},
+		{"a file beside it", []entry{{"film/a.txt", []byte("a")}, {"readme.txt", []byte("r")}}, filepath.Join("film", "film", "a.txt")},
+		{"two folders", []entry{{"film/a.txt", []byte("a")}, {"extras/b.txt", []byte("b")}}, filepath.Join("film", "film", "a.txt")},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			dir := t.TempDir()
+			write(t, filepath.Join(dir, "film.zip"), zipBytes(t, c.entries...))
+			if _, err := Run(context.Background(), Request{Path: filepath.Join(dir, "film.zip")}); err != nil {
+				t.Fatal(err)
+			}
+			if !exists(filepath.Join(dir, c.want)) {
+				t.Errorf("%s is missing", c.want)
+			}
+		})
+	}
+}
+
+func TestAPlainTarIsUnwrappedToo(t *testing.T) {
+	dir := t.TempDir()
+	write(t, filepath.Join(dir, "app-1.2.tar"), tarStream(t, "./app-1.2/bin/run", []byte("run")))
+
+	if _, err := Run(context.Background(), Request{Path: filepath.Join(dir, "app-1.2.tar")}); err != nil {
+		t.Fatal(err)
+	}
+	if got := readBody(t, filepath.Join(dir, "app-1.2", "bin", "run")); got != "run" {
+		t.Errorf("bin/run = %q", got)
+	}
+}
+
+// The collision policy still decides the folder: a folder of that name that
+// belongs to something else is stepped around under rename, and under
+// overwrite a second run lands on the first run's files instead of nesting a
+// copy inside them.
+func TestUnwrappingLeavesTheCollisionPolicyInCharge(t *testing.T) {
+	dir := t.TempDir()
+	arc := write(t, filepath.Join(dir, "film.zip"), zipBytes(t, entry{"film/a.txt", []byte("new")}))
+	mine := write(t, filepath.Join(dir, "film", "mine.txt"), []byte("not yours"))
+
+	out, err := Run(context.Background(), Request{Path: arc, Options: Options{Collision: collide.Rename}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out.Dir == filepath.Join(dir, "film") {
+		t.Fatal("rename unpacked into the folder that was already there")
+	}
+	if got := readBody(t, filepath.Join(out.Dir, "a.txt")); got != "new" {
+		t.Errorf("a.txt = %q", got)
+	}
+	if exists(filepath.Join(dir, "film", "a.txt")) || readBody(t, mine) != "not yours" {
+		t.Error("the folder that was already there was touched")
+	}
+
+	for range 2 {
+		if _, err := Run(context.Background(), Request{Path: arc, Options: Options{Collision: collide.Overwrite}}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := readBody(t, filepath.Join(dir, "film", "a.txt")); got != "new" {
+		t.Errorf("film/a.txt = %q", got)
+	}
+	if exists(filepath.Join(dir, "film", "film")) {
+		t.Error("overwrite nested the release inside the existing folder")
+	}
+}
+
+// Under a collect folder the outer archive goes there and its nested archive
+// still unpacks beside its parent, each of them unwrapped.
+func TestUnwrappingKeepsNestedArchivesBesideTheirParent(t *testing.T) {
+	dir := t.TempDir()
+	collect := filepath.Join(dir, "collect")
+	inner := zipBytes(t, entry{"Setup/setup.exe", []byte("exe")})
+	arc := write(t, filepath.Join(dir, "dl", "Film.zip"), zipBytes(t,
+		entry{"Film/film.mkv", []byte("film")},
+		entry{"Film/Setup.zip", inner},
+	))
+
+	out, err := Run(context.Background(), Request{Path: arc, Options: Options{Dest: collect}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out.Nested != 1 {
+		t.Errorf("Nested = %d, want 1", out.Nested)
+	}
+	if got := readBody(t, filepath.Join(collect, "Film", "film.mkv")); got != "film" {
+		t.Errorf("film.mkv = %q", got)
+	}
+	if got := readBody(t, filepath.Join(collect, "Film", "Setup", "setup.exe")); got != "exe" {
+		t.Errorf("setup.exe = %q", got)
+	}
+	if exists(filepath.Join(collect, "Setup")) {
+		t.Error("the nested archive was unpacked into the collect folder")
 	}
 }
