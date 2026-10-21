@@ -20,7 +20,7 @@ import (
 // from, so a field cannot be readable without being writable or the other way
 // round.
 var appearanceFields = []string{
-	"shape", "accent", "rainbow", "rainbowReactive", "rainbowRotate", "rainbowSeed", "rainbowPalette",
+	"shape", "accent", "theme", "rainbow", "rainbowReactive", "rainbowRotate", "rainbowSeed", "rainbowPalette",
 	"torrentCard", "finishedCard",
 }
 
@@ -28,6 +28,7 @@ func appearanceOf(s settings.Settings) map[string]any {
 	return map[string]any{
 		"shape":           s.Shape,
 		"accent":          s.Accent,
+		"theme":           s.Theme,
 		"rainbow":         s.Rainbow,
 		"rainbowReactive": s.RainbowReactive,
 		"rainbowRotate":   s.RainbowRotate,
@@ -58,7 +59,7 @@ func registerSystem(reg *Registry, a *app.App) {
 	// a relay sibling) never needs /api/settings, which stays off the relay
 	// allowlist.
 	reg.Add(http.MethodGet, "/api/appearance",
-		"the instance's own accent, corner shape, rainbow settings and which cards its download list is split into - what a client needs to match its look, and nothing else",
+		"the instance's own accent, corner shape, theme, rainbow settings and which cards its download list is split into - what a client needs to match its look, and nothing else",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, appearanceOf(a.Settings.Get()))
 		})
@@ -68,7 +69,7 @@ func registerSystem(reg *Registry, a *app.App) {
 	// has to agree on them. Only the named fields are applied, so this is no
 	// second door into /api/settings.
 	reg.Add(http.MethodPost, "/api/appearance",
-		"set the instance's accent, corner shape, rainbow settings and list cards - the same fields GET answers with, and nothing else",
+		"set the instance's accent, corner shape, theme, rainbow settings and list cards - the same fields GET answers with, and nothing else",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body map[string]json.RawMessage
 			if !decodeJSON(w, r, &body) {

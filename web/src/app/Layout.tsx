@@ -16,7 +16,7 @@ import { PageActionsProvider, PageActionsSlot } from '../components/PageActions'
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
 import { PageBoundary } from './PageBoundary';
-import { connectWS, fetchSettings, type Task } from '../lib/api';
+import { connectWS, fetchSettings, patchSettings, type Task } from '../lib/api';
 import {
   applyAccent,
   applyRainbow,
@@ -29,6 +29,7 @@ import { onUpdateReady, useTrayWords } from '../lib/desktop';
 import { applyDisco } from '../lib/disco';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { setListCards } from '../lib/listCards';
+import { getTheme, onThemeChange, type Theme } from '../lib/theme';
 import { uploadOf } from '../lib/speedHistory';
 import { applySpeedLines, linesFromSettings } from '../lib/speedLines';
 import { useToast } from '../lib/toast';
@@ -91,6 +92,8 @@ function useAppearance() {
         cacheAppearance(s.shape, s.accent, rainbow);
         // An instance older than the switches has both cards on.
         setListCards({ finished: s.finishedCard !== false, torrents: s.torrentCard !== false });
+        // An instance that holds no theme yet takes this browser's.
+        if (!s.theme) recordTheme(getTheme());
       })
       .catch(() => {
         // The cached look from the last successful load stays.
@@ -99,6 +102,16 @@ function useAppearance() {
       live = false;
     };
   }, []);
+  useEffect(() => onThemeChange(recordTheme), []);
+}
+
+/**
+ * recordTheme tells the instance which theme was chosen here. Each browser
+ * keeps its own, but the instance holds the one chosen last for the clients
+ * that follow its look; a failed write leaves it on the one before.
+ */
+function recordTheme(theme: Theme): void {
+  patchSettings({ theme }).catch(() => {});
 }
 
 /**

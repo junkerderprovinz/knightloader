@@ -23,6 +23,22 @@ func TestAnInstallWithNoStoredShapeStartsOnSoft(t *testing.T) {
 	}
 }
 
+func TestAThemeTheWebInterfaceOffersIsKept(t *testing.T) {
+	for _, theme := range []string{ThemeSystem, ThemeDark, ThemeLight} {
+		if got := loadFrom(t, `{"theme":"`+theme+`"}`).Theme; got != theme {
+			t.Errorf("a stored %q loads as %q", theme, got)
+		}
+	}
+}
+
+func TestAnUnknownThemeLoadsAsNoChoice(t *testing.T) {
+	for _, doc := range []string{`{}`, `{"theme":"sepia"}`} {
+		if got := loadFrom(t, doc).Theme; got != "" {
+			t.Errorf("%s loads the theme as %q, want none", doc, got)
+		}
+	}
+}
+
 func TestAShapeNoPickerOffersFallsBackToSoft(t *testing.T) {
 	for _, doc := range []string{`{"shape":"oval"}`, `{"shape":""}`} {
 		if got := loadFrom(t, doc).Shape; got != ShapeSoft {
