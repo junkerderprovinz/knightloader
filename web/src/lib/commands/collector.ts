@@ -48,10 +48,13 @@ export const collectorCommands: Command[] = [
     defaultShortcut: 'mod+shift+a',
     enabled: (ctx) => staged(ctx).length > 0,
     visible: (ctx) => staged(ctx).length > 0,
-    // An empty id list starts every staged link.
-    run: (ctx) => {
-      startTasks([]);
-      ctx.toast(ctx.t('collector.toastStarted', { n: staged(ctx).length }), 'info');
+    // An empty id list starts every staged link. As with the page's button,
+    // the download list is where they go on once they have left.
+    run: async (ctx) => {
+      const n = staged(ctx).length;
+      const r = await startTasks([]);
+      ctx.toast(ctx.t('collector.toastStarted', { n }), 'info');
+      if (r.started > 0) ctx.navigate('/downloads');
     },
   },
   {
