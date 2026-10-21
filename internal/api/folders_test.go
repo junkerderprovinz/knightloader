@@ -10,6 +10,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
@@ -434,12 +435,16 @@ func TestTheDefaultBoundaryIsTheWholeFilesystem(t *testing.T) {
 		t.Fatal(err)
 	}
 	roots := b.roots
-	want := string(filepath.Separator)
 	if runtime.GOOS == "windows" {
-		want = filepath.VolumeName(t.TempDir()) + want
+		// Every drive is offered, the one the request started on among them.
+		want := strings.ToUpper(filepath.VolumeName(t.TempDir())) + `\`
+		if !slices.Contains(roots, want) {
+			t.Errorf("the default boundary is %v, want it to include %q", roots, want)
+		}
+		return
 	}
-	if len(roots) != 1 || roots[0] != want {
-		t.Errorf("the default boundary is %v, want just %q", roots, want)
+	if len(roots) != 1 || roots[0] != "/" {
+		t.Errorf("the default boundary is %v, want just /", roots)
 	}
 }
 

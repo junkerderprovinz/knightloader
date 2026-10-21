@@ -174,7 +174,7 @@ func main() {
 		MinWidth:         784,
 		MinHeight:        480,
 		BackgroundColour: application.NewRGB(22, 22, 22),
-		URL:              "/",
+		URL:              startURL(installerLanguage()),
 		Hidden:           tray.effectiveStartHidden(),
 	})
 	tray.attach(wails, window)

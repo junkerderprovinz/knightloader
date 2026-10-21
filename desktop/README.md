@@ -31,7 +31,7 @@ Go toolchain, from the repository root:
 ```sh
 go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.29
 node scripts/desktop.mjs               # bundle for the current OS → build/bin/
-node scripts/desktop.mjs --installer   # on Windows, the NSIS installer as well
+node scripts/desktop.mjs --installer   # on Windows and Linux, the installer as well
 ```
 
 The script has Wails write the manifest, the icons, the version resource, the
@@ -57,7 +57,7 @@ against `checksums.txt` and swaps the program inside it in for the next start.
 On Windows the running exe steps aside as `KnightLoader.exe.old`, which the next
 start removes.
 
-The Windows installer (`build/windows/nsis/project.nsi`) puts the app under
+The Windows installer (`installer/`, built on PommelPorter) puts the app under
 Program Files for all users, where it cannot replace itself. It creates the
 scheduled task **KnightLoader Update**, which starts `KnightLoader.exe --update`
 as the system account once a day and five minutes after boot. That run
