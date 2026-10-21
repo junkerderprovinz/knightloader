@@ -152,6 +152,16 @@ export class RelayClient {
 
   private emitChange(): void {
     for (const fn of this.listeners) fn();
+    for (const fn of anyListeners) fn();
+  }
+
+  /** Dials at once when the client is waiting out a backoff, which after a
+   *  spell in the background can be a minute. */
+  wake(): void {
+    if (this.closed || this.socket || !this.retryTimer) return;
+    clearTimeout(this.retryTimer);
+    this.retryTimer = null;
+    this.connect();
   }
 
   start(): void {
@@ -516,6 +526,22 @@ export class RelayClient {
 // own instances share, per-connection sockets would fight each other.
 
 const clients = new Map<string, RelayClient>();
+
+// Screens that follow every relay at once, including clients made after they
+// subscribed, which a per-client subscription cannot reach.
+const anyListeners = new Set<() => void>();
+
+/** Calls fn whenever any relay client connects, drops or sees its roster
+ *  change. Returns an unsubscribe function. */
+export function subscribeAllRelays(fn: () => void): () => void {
+  anyListeners.add(fn);
+  return () => anyListeners.delete(fn);
+}
+
+/** Wakes every shared client that is waiting to redial. */
+export function wakeRelayClients(): void {
+  for (const [, c] of clients) c.wake();
+}
 
 // JSON.stringify of the pair, not the two joined by a separator: a key is
 // an opaque secret that could contain any character, and a separator it

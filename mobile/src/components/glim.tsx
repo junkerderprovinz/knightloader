@@ -504,15 +504,18 @@ const styles = StyleSheet.create({
  * themes the way the palette does, nothing can search for it, and it assumes
  * every status colour it is handed is a six-digit hex.
  */
-export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offline' }) {
+export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offline' | 'paired' | 'pending' }) {
   const { c, corners } = useAppearance();
   const { t } = useT();
-  const ink =
-    status === 'online' ? c.statusOkSolid : status === 'checking' ? c.statusWarnSolid : c.statusFailSolid;
-  const ground =
-    status === 'online' ? c.statusOkBg : status === 'checking' ? c.statusWarnBg : c.statusFailBg;
-  const label =
-    status === 'online' ? t('instance.connected') : status === 'checking' ? t('instance.checking') : t('instance.notConnected');
+  // Paired is calm rather than green: the extension is in the group, but it
+  // holds no connection a download could go through.
+  const [ink, ground, label] = {
+    online: [c.statusOkSolid, c.statusOkBg, t('instance.connected')],
+    checking: [c.statusWarnSolid, c.statusWarnBg, t('instance.checking')],
+    pending: [c.statusWarnSolid, c.statusWarnBg, t('devices.pending')],
+    paired: [c.statusNeutralText, c.statusNeutralBg, t('devices.paired')],
+    offline: [c.statusFailSolid, c.statusFailBg, t('instance.notConnected')],
+  }[status];
   return (
     <View style={[styles.statusBadge, { backgroundColor: ground, ...corners.pill }]}>
       <Text style={[styles.statusText, { color: ink }]}>{label}</Text>
@@ -531,6 +534,17 @@ export function DefaultBadge() {
         <Text style={[styles.statusText, { color: accentContrast }]}>★</Text>
       </View>
     </Tip>
+  );
+}
+
+/** The mark on the card of the phone holding the app, in the star's shape. */
+export function ThisDeviceBadge() {
+  const { corners, accent, accentContrast } = useAppearance();
+  const { t } = useT();
+  return (
+    <View style={[styles.statusBadge, { backgroundColor: accent, ...corners.pill }]}>
+      <Text style={[styles.statusText, { color: accentContrast }]}>{t('devices.thisDevice')}</Text>
+    </View>
   );
 }
 
