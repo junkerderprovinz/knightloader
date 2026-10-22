@@ -4,13 +4,14 @@
 // with the button that takes it out. Beside the list the same group stands as
 // a net, and a row and its node light up together.
 import { useEffect, useState, type ReactNode } from 'react';
-import { GroupNet, SELF_KEY, appNodeKind, useNetHover, type NetNode } from '../../../components/GroupNet';
+import { GroupNet, SELF_KEY, useNetHover, type NetNode } from '../../../components/GroupNet';
 import { usePeerStats } from '../../../components/InstanceCard';
 import { RemovalWindow, type Removal } from '../../../components/InstanceRemoval';
 import { OkState, StatePill } from '../../../components/StatePill';
 import { Button, Card, InfoBubble, SectionTitle } from '../../../components/ui';
 import {
   approveDevice,
+  fetchDeploymentInfo,
   fetchInstances,
   pairedBetweenCalls,
   type ConnectInfo,
@@ -190,12 +191,19 @@ export function GroupCard({
   const [peers, setPeers] = useState<Instance[]>([]);
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [removing, setRemoving] = useState<Removal | null>(null);
+  // Which build this instance is, for the badge on its node.
+  const [ownKind, setOwnKind] = useState('');
 
   useEffect(() => {
     fetchInstances()
       .then((list) => setPeers(list.filter((p) => !p.relayId)))
       .catch(() => {});
   }, [group]);
+  useEffect(() => {
+    fetchDeploymentInfo()
+      .then((d) => setOwnKind(d.kind || d.deployment))
+      .catch(() => {});
+  }, []);
 
   const onReach = (name: string, online: boolean) =>
     setAnswers((a) => (a[name] === online ? a : { ...a, [name]: online }));
@@ -232,15 +240,33 @@ export function GroupCard({
   const waiting = new Set(group.pending.map((p) => p.id));
   const members = group.members.filter((m) => !waiting.has(m.id));
   const apps = group.apps.filter((a) => !waiting.has(a.id));
+  const away = group.away.filter((m) => !members.some((there) => there.id === m.id));
+  const inactive = <StatePill label={t('instances.inactive')} tone="neutral" />;
 
   const nodes: NetNode[] = [
     ...members.map(
-      (m): NetNode => ({ key: `member:${m.id}`, kind: 'instance', name: m.name || m.id, sub: route(m), relay: !m.direct }),
+      (m): NetNode => ({
+        key: `member:${m.id}`,
+        deployment: m.deployment,
+        name: m.name || m.id,
+        sub: route(m),
+        relay: !m.direct,
+      }),
+    ),
+    ...away.map(
+      (m): NetNode => ({
+        key: `member:${m.id}`,
+        deployment: m.deployment,
+        name: m.name || m.id,
+        sub: t('instances.inactive'),
+        dim: true,
+      }),
     ),
     ...peers.map(
       (p): NetNode => ({
         key: `peer:${p.name}`,
-        kind: 'instance',
+        // A peer added by its address is a server build, as on its card.
+        deployment: 'server',
         name: p.displayName ?? p.name,
         sub: t('pairing.byAddress'),
         dim: answers[p.name] === false,
@@ -249,7 +275,7 @@ export function GroupCard({
     ...apps.map(
       (a): NetNode => ({
         key: `app:${a.id}`,
-        kind: appNodeKind(a.deployment),
+        deployment: a.deployment,
         name: a.name || a.id,
         sub: kind(a) ?? '',
         dim: !a.connected && !pairedBetweenCalls(a),
@@ -303,8 +329,18 @@ export function GroupCard({
             hot={net.hot === `member:${m.id}`}
             glyph={<IconFleet />}
             name={m.name || m.id}
-            // A member is listed only while it is reachable.
             state={<OkState parts={[t('pairing.paired'), route(m)]} />}
+            action={removeButton({ kind: 'member', id: m.id, name: m.name || m.id })}
+          />
+        ))}
+        {away.map((m) => (
+          <Row
+            key={m.id}
+            entry={`member:${m.id}`}
+            hot={net.hot === `member:${m.id}`}
+            glyph={<IconFleet />}
+            name={m.name || m.id}
+            state={inactive}
             action={removeButton({ kind: 'member', id: m.id, name: m.name || m.id })}
           />
         ))}
@@ -332,8 +368,10 @@ export function GroupCard({
                   <OkState parts={[t('instances.paired')]} />
                   <InfoBubble tip={t('instances.extensionPairedTip')} />
                 </span>
+              ) : a.connected ? (
+                reached(true, t)
               ) : (
-                reached(a.connected, t)
+                inactive
               )
             }
             action={removeButton({ kind: 'app', id: a.id, name: a.name || a.id })}
@@ -363,7 +401,7 @@ export function GroupCard({
         <div {...net.scope} className="grid grid-cols-1 items-center gap-x-7 gap-y-3 min-[1101px]:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
           {list}
           <GroupNet
-            self={{ name: group.name, sub: t('instances.thisInstance') }}
+            self={{ name: group.name, sub: t('instances.thisInstance'), deployment: ownKind }}
             nodes={nodes}
             hot={net.hot}
             onPick={net.pick}

@@ -44,6 +44,7 @@ const group = {
   networkAddress: '',
   members: [],
   apps: [],
+  away: [],
   joinedAgo: 0,
   memberSeen: false,
   pending: [],

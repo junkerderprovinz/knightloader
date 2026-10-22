@@ -238,7 +238,7 @@ export function PhraseCard({
       await leaveConnect();
       forget();
       then();
-      onGroup({ ...group, active: false, members: [], joinedAgo: 0, memberSeen: false });
+      onGroup({ ...group, active: false, members: [], away: [], joinedAgo: 0, memberSeen: false });
       onRefresh();
     });
 

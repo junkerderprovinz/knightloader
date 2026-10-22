@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appNodeKind, netLayout } from './GroupNet';
+import { netLayout } from './GroupNet';
 
 describe('netLayout', () => {
   it('puts a single other node to the right of this instance', () => {
@@ -41,12 +41,5 @@ describe('netLayout', () => {
         expect(new Set(rows).size).toBe(rows.length);
       }
     }
-  });
-});
-
-describe('appNodeKind', () => {
-  it('draws an extension as a browser and everything else as a phone', () => {
-    expect(appNodeKind('extension')).toBe('browser');
-    expect(appNodeKind('mobile')).toBe('phone');
   });
 });

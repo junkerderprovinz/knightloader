@@ -36,6 +36,26 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Changed
+
+- **The cards on the Instances page are all the same size.** Every card is as
+  wide and as tall as the others, the logo stands in the same place on each,
+  and a name is always shown in full: the kind has a line of its own, and the
+  badges go under a name that needs the room.
+- **Every device in the picture of the group wears the KnightLoader logo.** A
+  small badge on it says whether it is an instance, the desktop app, the
+  Android app or a browser extension.
+
+### Fixed
+
+- **A paired desktop app no longer vanishes from the Instances page when it is
+  closed.** It keeps its card and its place in the picture, shows Inactive with
+  when it was last seen, and stays until you remove it, also after the server
+  restarts. The Pairing page lists it the same way. A phone that is away shows
+  Inactive in grey instead of a red Not connected.
+
 ## [2.3.0] - 2026-10-21
 
 ### Added

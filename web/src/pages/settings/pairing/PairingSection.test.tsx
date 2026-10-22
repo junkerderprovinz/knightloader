@@ -23,6 +23,7 @@ const alone: ConnectInfo = {
   networkAddress: '',
   members: [],
   apps: [],
+  away: [],
   joinedAgo: 0,
   memberSeen: false,
   pending: [],

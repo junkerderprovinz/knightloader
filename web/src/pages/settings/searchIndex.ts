@@ -569,8 +569,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'instances.title',
       hint: 'pairing.groupHint',
       rows: [],
-      // How a member of the group is reached.
-      also: ['pairing.direct', 'pairing.byAddress', 'pairing.viaRelay'],
+      // How a member of the group is reached, and the state of one that is away.
+      also: ['pairing.direct', 'pairing.byAddress', 'pairing.viaRelay', 'instances.inactive'],
     },
     {
       title: 'settings.access.identity.title',

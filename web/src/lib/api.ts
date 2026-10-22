@@ -4307,6 +4307,9 @@ export interface ConnectInfo {
   members: GroupMember[];
   /** Every phone that joined the group with the phrase. */
   apps: GroupApp[];
+  /** The other instances approved in the group that are not reachable now,
+   *  such as a desktop app that was closed. */
+  away: AwayMember[];
   /** Seconds since this instance generated or entered its phrase, 0 outside
    *  a group. */
   joinedAgo: number;
@@ -4336,9 +4339,23 @@ export interface PendingDevice {
 export interface GroupMember {
   id: string;
   name: string;
+  /** "container", "server" or "desktop", '' when it never said. */
+  deployment?: string;
   /** On this network, and on the same relay; a member can be both. */
   direct: boolean;
   relay: boolean;
+}
+
+/** An instance of the group as it last announced itself. */
+export interface AwayMember {
+  id: string;
+  /** '' when it announced no name of its own. */
+  name: string;
+  /** "container", "server" or "desktop", '' when it never said. */
+  deployment: string;
+  address: string;
+  /** Unix seconds. */
+  lastSeen: number;
 }
 
 /** A phone or browser extension of the group. */
