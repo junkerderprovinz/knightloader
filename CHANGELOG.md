@@ -48,6 +48,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   small badge on it says whether it is an instance, the desktop app, the
   Android app or a browser extension. Names in the picture are shown in full,
   on two lines where they need the room.
+- **The installer's progress and uninstall pages sit in the middle of the
+  window,** with room under the app tile, like its other pages.
 
 ### Fixed
 
@@ -75,6 +77,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **An instance card no longer flashes red while the page loads.** Until the
   instance first answers, its card says Checking, and the card of the instance
   you are on shows Connected right away.
+- **The installer's folder chooser no longer dims the desktop on Windows.** A
+  dark frame showed around the installer window while the chooser was open.
 
 ## [2.3.0] - 2026-10-21
 
