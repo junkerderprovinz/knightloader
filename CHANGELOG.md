@@ -63,6 +63,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The Android app shows a closed instance as Inactive.** A saved instance
   that the group lists as away reads Inactive in grey with when it was last
   seen, instead of a red Not connected. A phone that is away shows the same.
+- **The Android app lists every instance of the group on its own.** An
+  instance that joined later, or was closed while the phone joined, appears
+  without entering the phrase again, online or as Inactive, and one removed
+  from the group leaves the list. An instance removed on the phone stays off
+  until the phrase is entered again. A renamed instance shows its new name.
+- **Every device shows in the picture of the group at every width.** The
+  phones and browsers next to this instance waited hidden for the picture to
+  be in sight, and on the Pairing page or after the page shifted while loading
+  they stayed hidden.
 - **An instance card no longer flashes red while the page loads.** Until the
   instance first answers, its card says Checking, and the card of the instance
   you are on shows Connected right away.
