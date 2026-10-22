@@ -2,7 +2,8 @@ import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { AppState, Image, StyleSheet, View, type StyleProp, type TextStyle } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { errorText, setQueueHalted } from '../api/client';
-import { fetchGroupRoster, type GroupApp } from '../api/groupApps';
+import type { GroupApp } from '../api/groupApps';
+import { followGroups } from '../api/groupSync';
 import { awayFor, type AwayInstance } from '../api/away';
 import { subscribeAllRelays, wakeRelayClients } from '../api/relayClient';
 import { memberOptions } from '../storage/relayIdentity';
@@ -183,20 +184,33 @@ export default function ConnectionsScreen({
     setDefaultId(standard?.id ?? null);
     setSelfId(me.selfId);
     setLoaded(true);
-    const results = await Promise.all(list.map((conn) => fetchInstanceStats(conn)));
-    setStats(Object.fromEntries(list.map((conn, i) => [conn.id, results[i].ok ? results[i].stats : null])));
-    // The reason, kept rather than dropped: see stats.ts. A swallowed failure
-    // leaves a button that refuses looking like a button that does nothing.
-    setWhy(
-      Object.fromEntries(
-        list.map((conn, i) => [conn.id, results[i].ok ? '' : errorText(t, (results[i] as { error: unknown }).error)]),
-      ),
-    );
-    const reachable = list.filter((_, i) => results[i].ok);
+    const figures = async (conns: ServerConnection[]) => {
+      const results = await Promise.all(conns.map((conn) => fetchInstanceStats(conn)));
+      return conns.map((conn, i) => {
+        const r = results[i];
+        // The reason, kept rather than dropped: see stats.ts. A swallowed
+        // failure leaves a button that refuses looking like a button that
+        // does nothing.
+        return r.ok ? { conn, stats: r.stats, why: '' } : { conn, stats: null, why: errorText(t, r.error) };
+      });
+    };
+    const show = (rows: Awaited<ReturnType<typeof figures>>) => {
+      setStats((was) => ({ ...was, ...Object.fromEntries(rows.map((r) => [r.conn.id, r.stats])) }));
+      setWhy((was) => ({ ...was, ...Object.fromEntries(rows.map((r) => [r.conn.id, r.why])) }));
+    };
+    const rows = await figures(list);
+    show(rows);
+    const reachable = rows.filter((r) => r.stats !== null).map((r) => r.conn);
     reachable.sort((a, b) => Number(b.id === standard?.id) - Number(a.id === standard?.id));
-    const roster = await fetchGroupRoster(reachable);
-    setApps(roster.apps);
-    setAway(roster.away);
+    const groups = await followGroups(list, reachable);
+    setApps(groups.apps);
+    setAway(groups.away);
+    if (!groups.changed) return;
+    // The group gained or lost an instance, so the list is shown as it is now
+    // and the new cards get their figures at once rather than in a round.
+    const now = await listConnections();
+    setConnections(now);
+    show(await figures(now.filter((c) => !list.some((o) => o.id === c.id))));
   }, [t]);
 
   // One round at a time. A relay call can take twenty seconds to fail, longer
