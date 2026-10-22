@@ -85,12 +85,30 @@ export function usePeerStats(base: string): Stats | null {
 
 // InstanceRow is the quiet form used where instances are a summary rather than
 // the subject of the page: the name and the state badge the Instances page shows.
-export function InstanceRow({ name, base, onOpen }: { name: string; base: string; onOpen?: () => void }) {
+export function InstanceRow({
+  name,
+  base,
+  onOpen,
+  local = false,
+}: {
+  name: string;
+  base: string;
+  onOpen?: () => void;
+  /** The row of this instance, which answers whoever shows the page. */
+  local?: boolean;
+}) {
   const { t } = useT();
   const stats = usePeerStats(base);
-  const online = stats?.online ?? false;
-  const refused = stats?.refused ?? false;
-  const state = online ? t('instances.connected') : refused ? t('instances.refused') : t('instances.notConnected');
+  const online = local || (stats?.online ?? false);
+  const refused = !local && (stats?.refused ?? false);
+  const checking = !local && stats === null;
+  const state = online
+    ? t('instances.connected')
+    : checking
+      ? t('instances.checking')
+      : refused
+        ? t('instances.refused')
+        : t('instances.notConnected');
 
   const body = (
     <>
@@ -98,7 +116,7 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
       <LabelBadge
         label={state}
         tip={refused ? t('instances.refusedByPassword') : undefined}
-        tone={online ? 'ok' : refused ? undefined : 'fail'}
+        tone={online ? 'ok' : checking || refused ? undefined : 'fail'}
         hue={refused ? 3 : undefined}
       />
     </>
@@ -218,6 +236,16 @@ function InactiveState() {
   );
 }
 
+/** The state of an instance that has not answered its first call yet. */
+export function CheckingState() {
+  const { t } = useT();
+  return (
+    <span data-new="checking-state" className="inline-flex">
+      <StatePill label={t('instances.checking')} tone="neutral" />
+    </span>
+  );
+}
+
 const lastSeenOf = (t: ReturnType<typeof useT>['t'], unix: number) =>
   t('instances.lastSeen', { time: fmtDate(new Date(unix * 1000).toISOString()) });
 
@@ -321,6 +349,7 @@ export function InstanceCard({
   hot = false,
   hue = 0,
   isSelf = false,
+  local = false,
   deployment,
 }: {
   /** The key the card shares with its node in the net. */
@@ -347,12 +376,15 @@ export function InstanceCard({
   hue?: number;
   /** Marks the card of the instance being viewed. */
   isSelf?: boolean;
+  /** The card of this instance, which answers whoever shows the page, so its
+   *  state needs no call. */
+  local?: boolean;
 }) {
   const { t } = useT();
   const stats = usePeerStats(base);
   const [details, setDetails] = useState(false);
-  const online = stats?.online ?? false;
-  const refused = stats?.refused ?? false;
+  const online = local || (stats?.online ?? false);
+  const refused = !local && (stats?.refused ?? false);
   const answered = stats !== null;
   useEffect(() => {
     if (answered) onReach?.(online);
@@ -362,6 +394,8 @@ export function InstanceCard({
   // again, which the (i) says.
   const state = online ? (
     <StatePill label={t('instances.connected')} tone="ok" />
+  ) : !answered ? (
+    <CheckingState />
   ) : refused ? (
     <StatePill label={t('instances.refused')} tone="warn" tip={t('instances.refusedByPassword')} />
   ) : (

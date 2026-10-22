@@ -5,7 +5,7 @@
 // a net, and a row and its node light up together.
 import { useEffect, useState, type ReactNode } from 'react';
 import { GroupNet, SELF_KEY, useNetHover, type NetNode } from '../../../components/GroupNet';
-import { usePeerStats } from '../../../components/InstanceCard';
+import { CheckingState, usePeerStats } from '../../../components/InstanceCard';
 import { RemovalWindow, type Removal } from '../../../components/InstanceRemoval';
 import { OkState, StatePill } from '../../../components/StatePill';
 import { Button, Card, InfoBubble, SectionTitle } from '../../../components/ui';
@@ -95,7 +95,10 @@ function PeerRow({
 }) {
   const stats = usePeerStats(`/api/instances/${encodeURIComponent(p.name)}`);
   const online = stats?.online ?? false;
-  useEffect(() => onReach(p.name, online), [p.name, online]);
+  const answered = stats !== null;
+  useEffect(() => {
+    if (answered) onReach(p.name, online);
+  }, [p.name, answered, online]);
   return (
     <Row
       entry={`peer:${p.name}`}
@@ -103,7 +106,7 @@ function PeerRow({
       glyph={<IconFleet />}
       name={p.displayName ?? p.name}
       tag={t('pairing.byAddress')}
-      state={reached(online, t)}
+      state={answered ? reached(online, t) : <CheckingState />}
       action={action}
     />
   );

@@ -430,6 +430,23 @@ describe('Instances', () => {
     expect(card('Pixel 8').textContent).not.toContain('Inactive');
   });
 
+  it('says a card is being checked until its instance answers, and shows this instance connected at once', async () => {
+    serve({ ...noGroup, active: true }, [{ name: 'id-nas', url: '', relayId: 'id-nas', displayName: 'NAS' }]);
+    const answered = vi.mocked(fetch);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) =>
+        url.endsWith('/tasks') ? new Promise<Response>(() => {}) : answered(url, init),
+      ),
+    );
+    await draw();
+    expect(card('NAS').textContent).toContain('Checking');
+    expect(card('NAS').textContent).not.toContain('Not connected');
+    expect(host.querySelector('svg.wide g[data-nk="member:id-nas"]')!.classList.contains('dim')).toBe(false);
+    expect(card('nas').textContent).toContain('Connected');
+    expect(card('nas').textContent).not.toMatch(/Checking|Not connected/);
+  });
+
   it('keeps a desktop app of the group that was closed as inactive until it is removed', async () => {
     const zathallia = {
       id: 'id-zath',
