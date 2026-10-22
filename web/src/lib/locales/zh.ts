@@ -3754,6 +3754,7 @@ export const zh: Dict = {
   'whatsnew.change.appLogo': '“{name}”中的手机和浏览器扩展也像其他卡片一样带有 KnightLoader 标志。',
   'whatsnew.change.cardLogo': '“{name}”下的每张卡片上，标志都在同一位置，大小也相同。',
   'whatsnew.change.netShields': '在群组图中，每台设备都带有 KnightLoader 标志，并有一个小徽章说明它是实例、桌面应用、Android 应用还是浏览器扩展。',
+  'whatsnew.change.netLabels': '群组图中的名称会完整显示，需要空间时分两行显示。',
   'whatsnew.change.cardSize': '“{name}”下的所有卡片宽度相同、高度也相同。',
   'whatsnew.change.cardNames': '“{name}”下卡片上的名称总是完整显示。类型单独占一行，名称需要空间时，徽章会移到名称下方。',
   'whatsnew.change.inactiveMember': '已配对的桌面应用关闭后仍会留在“{name}”下，显示{inactive}以及最后在线的时间，直到你将其移除。不在线的手机也是如此。',

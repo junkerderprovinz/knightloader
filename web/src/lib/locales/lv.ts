@@ -3761,6 +3761,7 @@ export const lv: Dict = {
   'whatsnew.change.appLogo': 'Tālruņiem un pārlūka paplašinājumiem sadaļā „{name}“ ir KnightLoader logotips tāpat kā visām citām kartītēm.',
   'whatsnew.change.cardLogo': 'Logotips katrā kartītē sadaļā „{name}“ atrodas vienā un tajā pašā vietā un ir viena izmēra.',
   'whatsnew.change.netShields': 'Grupas attēlā katrai ierīcei ir KnightLoader logotips ar mazu nozīmīti, kas pasaka, vai tā ir instance, darbvirsmas lietotne, Android lietotne vai pārlūka paplašinājums.',
+  'whatsnew.change.netLabels': 'Nosaukumi grupas attēlā redzami pilnībā, divās rindās, kur tiem vajag vietu.',
   'whatsnew.change.cardSize': 'Visas kartītes sadaļā „{name}“ ir vienādi platas un vienādi augstas.',
   'whatsnew.change.cardNames': 'Nosaukumi kartītēs sadaļā „{name}“ vienmēr redzami pilnībā. Veidam ir sava rinda, un nozīmītes pārvietojas zem nosaukuma, kam vajag vietu.',
   'whatsnew.change.inactiveMember': 'Sapārota darbvirsmas lietotne, kas tika aizvērta, paliek sadaļā „{name}“ un rāda {inactive} kopā ar laiku, kad tā redzēta pēdējoreiz, līdz tu to noņem. Tālrunis, kura nav klāt, rāda to pašu.',

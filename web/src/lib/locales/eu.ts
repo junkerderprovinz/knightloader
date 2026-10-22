@@ -3767,6 +3767,7 @@ export const eu: Dict = {
   'whatsnew.change.appLogo': '«{name}» orriko telefonoek eta nabigatzaile-luzapenek KnightLoader-en logoa daramate, beste txartel guztiek bezala.',
   'whatsnew.change.cardLogo': 'Logoa leku berean eta tamaina berean dago «{name}» orriko txartel guztietan.',
   'whatsnew.change.netShields': 'Taldearen irudian gailu bakoitzak KnightLoader-en logoa darama, eta txapa txiki batek esaten du instantzia bat, mahaigaineko aplikazioa, Android aplikazioa edo nabigatzaile-luzapen bat den.',
+  'whatsnew.change.netLabels': 'Taldearen irudiko izenak osorik ikusten dira, bi lerrotan lekua behar dutenean.',
   'whatsnew.change.cardSize': '«{name}» orriko txartel guztiek zabalera bera eta altuera bera dute.',
   'whatsnew.change.cardNames': '«{name}» orriko txarteletako izenak beti osorik ikusten dira. Motak bere lerroa du, eta txapak lekua behar duen izen baten azpira pasatzen dira.',
   'whatsnew.change.inactiveMember': 'Itxi den mahaigaineko aplikazio parekatua «{name}» orrian geratzen da eta {inactive} erakusten du azken aldiz noiz ikusi zen esanez, kentzen duzun arte. Ez dagoen telefono batek gauza bera erakusten du.',

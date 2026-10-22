@@ -512,6 +512,8 @@ describe('Instances', () => {
       expect(spoke.querySelector('[role="button"] image'), key!).not.toBeNull();
       expect(spoke.querySelectorAll('.kl-net-badge'), key!).toHaveLength(1);
     }
+    // A long name wraps under its node rather than being cut short.
+    expect(host.querySelector('[data-testid="group-net"] .truncate')).toBeNull();
   });
 
   it('gives every card of the grid one width and one height, the net standing above the grid', async () => {

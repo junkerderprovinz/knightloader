@@ -3754,6 +3754,7 @@ export const it: Dict = {
   'whatsnew.change.appLogo': 'I telefoni e le estensioni del browser in «{name}» portano il logo di KnightLoader come ogni altra scheda.',
   'whatsnew.change.cardLogo': 'Il logo sta nello stesso punto e ha la stessa dimensione su ogni scheda di «{name}».',
   'whatsnew.change.netShields': 'Nell’immagine del gruppo ogni dispositivo porta il logo di KnightLoader, con un piccolo badge che dice se è un’istanza, l’app desktop, l’app Android o un’estensione del browser.',
+  'whatsnew.change.netLabels': 'I nomi nell’immagine del gruppo si vedono per intero, su due righe quando serve spazio.',
   'whatsnew.change.cardSize': 'Tutte le schede di «{name}» hanno la stessa larghezza e la stessa altezza.',
   'whatsnew.change.cardNames': 'I nomi sulle schede di «{name}» si vedono sempre per intero. Il tipo ha una riga tutta sua, e i badge vanno sotto un nome che ha bisogno di spazio.',
   'whatsnew.change.inactiveMember': 'Un’app desktop associata che è stata chiusa resta in «{name}» e mostra {inactive} con l’ultima volta in cui è stata vista, finché non la rimuovi. Un telefono che non c’è mostra lo stesso.',

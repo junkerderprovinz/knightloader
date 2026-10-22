@@ -3780,6 +3780,7 @@ export const sk: Dict = {
   'whatsnew.change.appLogo': 'Telefóny a rozšírenia prehliadača v „{name}“ nosia logo KnightLoadera ako každá iná karta.',
   'whatsnew.change.cardLogo': 'Logo stojí na každej karte v „{name}“ na rovnakom mieste a v rovnakej veľkosti.',
   'whatsnew.change.netShields': 'Na obrázku skupiny nesie každé zariadenie logo KnightLoadera s malým odznakom, ktorý hovorí, či ide o inštanciu, aplikáciu pre počítač, aplikáciu pre Android alebo rozšírenie prehliadača.',
+  'whatsnew.change.netLabels': 'Názvy na obrázku skupiny sú vidieť celé, na dvoch riadkoch, kde potrebujú miesto.',
   'whatsnew.change.cardSize': 'Všetky karty v „{name}“ sú rovnako široké a rovnako vysoké.',
   'whatsnew.change.cardNames': 'Názvy na kartách v „{name}“ sú vždy vidieť celé. Druh má vlastný riadok a odznaky sa presunú pod názov, ktorý potrebuje miesto.',
   'whatsnew.change.inactiveMember': 'Spárovaná aplikácia pre počítač, ktorá bola zatvorená, zostáva v „{name}“ a ukazuje {inactive} a kedy bola naposledy videná, kým ju neodstrániš. Telefón, ktorý tu nie je, ukazuje to isté.',

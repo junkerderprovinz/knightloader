@@ -4043,6 +4043,7 @@ export const en = {
   'whatsnew.change.appLogo': 'Phones and browser extensions on "{name}" wear the KnightLoader mark like every other card.',
   'whatsnew.change.cardLogo': 'The logo stands in the same place and at the same size on every card on "{name}".',
   'whatsnew.change.netShields': 'In the picture of the group every device wears the KnightLoader logo, with a small badge that says whether it is an instance, the desktop app, the Android app or a browser extension.',
+  'whatsnew.change.netLabels': 'Names in the picture of the group are shown in full, on two lines where they need the room.',
   'whatsnew.change.cardSize': 'Every card on "{name}" is as wide and as tall as the others.',
   'whatsnew.change.cardNames': 'Names on the cards on "{name}" are always shown in full. The kind has a line of its own, and the badges move under a name that needs the room.',
   'whatsnew.change.inactiveMember': 'A paired desktop app that was closed stays on "{name}" and shows {inactive} with when it was last seen, until you remove it. A phone that is away shows the same.',

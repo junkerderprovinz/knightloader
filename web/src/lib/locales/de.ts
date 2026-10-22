@@ -3806,6 +3806,7 @@ export const de: Dict = {
   'whatsnew.change.appLogo': 'Handys und Browser-Erweiterungen unter „{name}“ tragen das KnightLoader-Logo wie jede andere Karte.',
   'whatsnew.change.cardLogo': 'Das Logo steht auf jeder Karte unter „{name}“ an derselben Stelle und in derselben Größe.',
   'whatsnew.change.netShields': 'Im Bild der Gruppe trägt jedes Gerät das KnightLoader-Logo, mit einem kleinen Badge, das zeigt, ob es eine Instanz, die Desktop-App, die Android-App oder eine Browser-Erweiterung ist.',
+  'whatsnew.change.netLabels': 'Namen im Bild der Gruppe stehen ganz da, auf zwei Zeilen, wo sie den Platz brauchen.',
   'whatsnew.change.cardSize': 'Alle Karten unter „{name}“ sind gleich breit und gleich hoch.',
   'whatsnew.change.cardNames': 'Namen auf den Karten unter „{name}“ stehen immer ganz da. Die Art hat eine eigene Zeile, und die Badges rücken unter einen Namen, der den Platz braucht.',
   'whatsnew.change.inactiveMember': 'Eine gekoppelte Desktop-App, die geschlossen wurde, bleibt unter „{name}“ stehen und zeigt {inactive} und wann sie zuletzt gesehen wurde, bis du sie entfernst. Ein Handy, das gerade nicht da ist, zeigt dasselbe.',

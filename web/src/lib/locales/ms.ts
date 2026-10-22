@@ -3770,6 +3770,7 @@ export const ms: Dict = {
   'whatsnew.change.appLogo': 'Telefon dan sambungan pelayar dalam “{name}” memakai logo KnightLoader seperti setiap kad lain.',
   'whatsnew.change.cardLogo': 'Logo berada di tempat yang sama dan dengan saiz yang sama pada setiap kad di bawah “{name}”.',
   'whatsnew.change.netShields': 'Dalam gambar kumpulan, setiap peranti memakai logo KnightLoader, dengan lencana kecil yang menunjukkan sama ada ia satu instans, aplikasi desktop, aplikasi Android atau sambungan pelayar.',
+  'whatsnew.change.netLabels': 'Nama dalam gambar kumpulan dipaparkan penuh, dalam dua baris apabila memerlukan ruang.',
   'whatsnew.change.cardSize': 'Semua kad di bawah “{name}” sama lebar dan sama tinggi.',
   'whatsnew.change.cardNames': 'Nama pada kad di bawah “{name}” sentiasa dipaparkan penuh. Jenis mempunyai barisnya sendiri, dan lencana beralih ke bawah nama yang memerlukan ruang.',
   'whatsnew.change.inactiveMember': 'Aplikasi desktop yang telah digandingkan lalu ditutup kekal di bawah “{name}” dan memaparkan {inactive} bersama bila ia kali terakhir dilihat, sehingga anda membuangnya. Telefon yang tiada juga memaparkan perkara yang sama.',

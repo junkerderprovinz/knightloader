@@ -3780,6 +3780,7 @@ export const cs: Dict = {
   'whatsnew.change.appLogo': 'Telefony a rozšíření prohlížeče v „{name}“ nesou logo KnightLoaderu jako každá jiná karta.',
   'whatsnew.change.cardLogo': 'Logo stojí na každé kartě v „{name}“ na stejném místě a ve stejné velikosti.',
   'whatsnew.change.netShields': 'V obrázku skupiny nese každé zařízení logo KnightLoaderu s malým odznakem, který říká, jestli jde o instanci, aplikaci pro počítač, aplikaci pro Android, nebo rozšíření prohlížeče.',
+  'whatsnew.change.netLabels': 'Názvy v obrázku skupiny jsou vidět celé, na dvou řádcích, kde potřebují místo.',
   'whatsnew.change.cardSize': 'Všechny karty v „{name}“ jsou stejně široké a stejně vysoké.',
   'whatsnew.change.cardNames': 'Názvy na kartách v „{name}“ jsou vždy vidět celé. Druh má vlastní řádek a odznaky se přesunou pod název, který potřebuje místo.',
   'whatsnew.change.inactiveMember': 'Spárovaná aplikace pro počítač, která byla zavřena, zůstává v „{name}“ a ukazuje {inactive} a kdy byla naposledy viděna, dokud ji neodebereš. Telefon, který tu není, ukazuje totéž.',

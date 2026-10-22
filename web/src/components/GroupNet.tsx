@@ -39,12 +39,17 @@ export const SELF_KEY = 'self';
 const RADIUS = 27;
 const HUB_RADIUS = 34;
 
-type Label = [x: number, y: number, width: number, align: 'start' | 'end' | 'mid'];
+type Label = [x: number, y: number, width: number, height: number, align: 'start' | 'end' | 'mid'];
+
+/** How tall the name and the line under it may grow below this instance,
+ *  two lines each. */
+const HUB_LABEL = 70;
 
 /**
  * netLayout places this instance and n others in a box. A wide box has the
  * others stacked on both sides with their names on the outside; a narrow one
- * has room for one side only.
+ * has room for one side only. A name may wrap, so every label owns the height
+ * of its row and the box leaves room under this instance for its own.
  */
 export function netLayout(shape: 'wide' | 'narrow', n: number) {
   const wide = shape === 'wide';
@@ -53,17 +58,21 @@ export function netLayout(shape: 'wide' | 'narrow', n: number) {
   const pitch = wide ? 84 : 74;
   const right = wide ? Math.ceil(n / 2) : n;
   const left = n - right;
-  const height = Math.max(150, right * pitch + 10);
-  const hub = { x: !wide ? 42 : left ? 360 : 220, y: right > 1 ? height / 2 : 63 };
+  const top = 63;
+  const below = 40 + HUB_LABEL;
+  const height = Math.max(right > 1 ? 2 * below : top + below, right * pitch + 10);
+  const hub = { x: !wide ? 42 : left ? 360 : 220, y: right > 1 ? height / 2 : top };
   const points = Array.from({ length: n }, (_, j) => {
     const side = wide && j % 2 ? -1 : 1;
     const row = (wide ? j >> 1 : j) - ((side > 0 ? right : left) - 1) / 2;
     const x = hub.x + side * (reach - 14 * Math.abs(row));
     const y = hub.y + row * pitch;
-    const label: Label = side > 0 ? [x + 36, y - 18, width - x - 40, 'start'] : [4, y - 18, x - 40, 'end'];
+    const label: Label =
+      side > 0 ? [x + 36, y - pitch / 2, width - x - 40, pitch, 'start'] : [4, y - pitch / 2, x - 40, pitch, 'end'];
     return { x, y, label };
   });
-  const hubLabel: Label = [hub.x - 40, hub.y + 40, 80, 'mid'];
+  const hubWidth = wide ? 160 : 80;
+  const hubLabel: Label = [hub.x - hubWidth / 2, hub.y + 40, hubWidth, HUB_LABEL, 'mid'];
   return { width, height, hub: { ...hub, label: hubLabel }, points };
 }
 
@@ -71,12 +80,15 @@ const xy = (x: number, y: number) => `${+x.toFixed(1)} ${+y.toFixed(1)}`;
 
 const ALIGN = { start: 'text-left', end: 'text-right', mid: 'text-center' };
 
-function NodeLabel({ at: [x, y, w, align], name, sub }: { at: Label; name: string; sub: string }) {
+function NodeLabel({ at: [x, y, w, h, align], name, sub }: { at: Label; name: string; sub: string }) {
+  // Beside a node the label is centred on it, under this instance it starts
+  // just below the shield.
+  const place = align === 'mid' ? 'justify-start' : 'justify-center';
   return (
-    <foreignObject x={Math.round(x)} y={Math.round(y)} width={Math.round(w)} height="36">
-      <div className={`kl-net-label flex h-full min-w-0 flex-col justify-center leading-[1.3] ${ALIGN[align]}`}>
-        <b className="truncate text-[13px] font-semibold text-carbon-text">{name}</b>
-        <span className="truncate text-meta text-carbon-textMuted">{sub}</span>
+    <foreignObject x={Math.round(x)} y={Math.round(y)} width={Math.round(w)} height={Math.round(h)}>
+      <div className={`kl-net-label flex h-full min-w-0 flex-col ${place} leading-[1.3] ${ALIGN[align]} [overflow-wrap:anywhere]`}>
+        <b className="text-[13px] font-semibold text-carbon-text">{name}</b>
+        <span className="text-meta text-carbon-textMuted">{sub}</span>
       </div>
     </foreignObject>
   );
@@ -230,6 +242,7 @@ function NetSvg({
   const { width, height, hub, points } = netLayout(shape, nodes.length);
   return (
     <svg
+      data-new="net-labels"
       className={`kl-pic kl-net-svg ${shape}${hot && hot !== SELF_KEY ? ' picked' : ''}`}
       viewBox={`0 0 ${width} ${Math.round(height)}`}
       role="group"

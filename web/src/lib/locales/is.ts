@@ -3766,6 +3766,7 @@ export const is: Dict = {
   'whatsnew.change.appLogo': 'Símar og vafraviðbætur undir „{name}“ bera merki KnightLoader eins og öll önnur spjöld.',
   'whatsnew.change.cardLogo': 'Merkið stendur á sama stað og í sömu stærð á hverju spjaldi undir „{name}“.',
   'whatsnew.change.netShields': 'Á mynd hópsins ber hvert tæki merki KnightLoader, með litlu merki sem segir hvort það sé tilvik, skjáborðsforritið, Android-forritið eða vafraviðbót.',
+  'whatsnew.change.netLabels': 'Nöfn á mynd hópsins sjást í heild, í tveimur línum þar sem þau þurfa plássið.',
   'whatsnew.change.cardSize': 'Öll spjöld undir „{name}“ eru jafnbreið og jafnhá.',
   'whatsnew.change.cardNames': 'Nöfn á spjöldunum undir „{name}“ sjást alltaf í heild. Gerðin fær sína eigin línu og merkin færast undir nafn sem þarf plássið.',
   'whatsnew.change.inactiveMember': 'Parað skjáborðsforrit sem var lokað stendur áfram undir „{name}“ og sýnir {inactive} ásamt því hvenær það sást síðast, þar til þú fjarlægir það. Sími sem er ekki við sýnir það sama.',

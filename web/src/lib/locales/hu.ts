@@ -3772,6 +3772,7 @@ export const hu: Dict = {
   'whatsnew.change.appLogo': 'A(z) „{name}” telefonjai és böngészőbővítményei ugyanúgy a KnightLoader logóját viselik, mint minden más kártya.',
   'whatsnew.change.cardLogo': 'A logó a(z) „{name}” minden kártyáján ugyanott és ugyanakkora méretben áll.',
   'whatsnew.change.netShields': 'A csoport képén minden eszköz a KnightLoader logóját viseli, egy kis jelvénnyel, amely megmutatja, hogy példányról, az asztali alkalmazásról, az Android-alkalmazásról vagy böngészőbővítményről van-e szó.',
+  'whatsnew.change.netLabels': 'A csoport képén a nevek teljes egészükben látszanak, két sorban, ha kell nekik a hely.',
   'whatsnew.change.cardSize': 'A(z) „{name}” minden kártyája ugyanolyan széles és ugyanolyan magas.',
   'whatsnew.change.cardNames': 'A(z) „{name}” kártyáin a nevek mindig teljes egészükben látszanak. A típus saját sort kap, a jelvények pedig a név alá kerülnek, ha a névnek kell a hely.',
   'whatsnew.change.inactiveMember': 'A bezárt, párosított asztali alkalmazás a(z) „{name}” alatt marad, és {inactive} állapotot mutat azzal együtt, hogy mikor látszott utoljára, amíg el nem távolítod. Az éppen nem elérhető telefon ugyanezt mutatja.',

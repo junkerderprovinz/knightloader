@@ -3770,6 +3770,7 @@ export const vi: Dict = {
   'whatsnew.change.appLogo': 'Điện thoại và tiện ích trình duyệt trong “{name}” mang logo KnightLoader như mọi thẻ khác.',
   'whatsnew.change.cardLogo': 'Logo nằm ở cùng một chỗ và có cùng kích thước trên mọi thẻ trong “{name}”.',
   'whatsnew.change.netShields': 'Trong hình của nhóm, mọi thiết bị đều mang logo KnightLoader, kèm một huy hiệu nhỏ cho biết đó là phiên bản, ứng dụng máy tính, ứng dụng Android hay tiện ích trình duyệt.',
+  'whatsnew.change.netLabels': 'Tên trong hình của nhóm hiện đầy đủ, xuống hai dòng khi cần chỗ.',
   'whatsnew.change.cardSize': 'Mọi thẻ trong “{name}” đều rộng bằng nhau và cao bằng nhau.',
   'whatsnew.change.cardNames': 'Tên trên các thẻ trong “{name}” luôn hiện đầy đủ. Loại có dòng riêng, và các huy hiệu chuyển xuống dưới một cái tên cần chỗ.',
   'whatsnew.change.inactiveMember': 'Ứng dụng máy tính đã ghép nối bị đóng vẫn ở lại trong “{name}” và hiện {inactive} cùng lần cuối được thấy, cho đến khi bạn xóa nó. Điện thoại không có mặt cũng hiện như vậy.',

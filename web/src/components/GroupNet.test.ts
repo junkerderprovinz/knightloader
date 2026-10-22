@@ -8,7 +8,7 @@ describe('netLayout', () => {
     expect(points[0].x).toBeGreaterThan(hub.x);
     expect(points[0].y).toBe(hub.y);
     // The name stands on the outside and ends inside the box.
-    const [x, , w, align] = points[0].label;
+    const [x, , w, , align] = points[0].label;
     expect(align).toBe('start');
     expect(x + w).toBeLessThanOrEqual(width);
   });
@@ -18,7 +18,7 @@ describe('netLayout', () => {
     const right = points.filter((p) => p.x > hub.x);
     const left = points.filter((p) => p.x < hub.x);
     expect([right.length, left.length]).toEqual([3, 2]);
-    expect(left.every((p) => p.label[3] === 'end')).toBe(true);
+    expect(left.every((p) => p.label[4] === 'end')).toBe(true);
     for (const p of points) {
       expect(p.y).toBeGreaterThan(0);
       expect(p.y).toBeLessThan(height);
@@ -39,6 +39,21 @@ describe('netLayout', () => {
       for (const side of [-1, 1]) {
         const rows = points.filter((p) => Math.sign(p.x - hub.x) === side).map((p) => p.y);
         expect(new Set(rows).size).toBe(rows.length);
+      }
+    }
+  });
+
+  it('gives every name room for two lines and keeps the one under this instance inside the box', () => {
+    for (const shape of ['wide', 'narrow'] as const) {
+      for (const n of [1, 2, 3, 6]) {
+        const { hub, points, height } = netLayout(shape, n);
+        const [, y, , h] = hub.label;
+        expect(y + h, `${shape} ${n}`).toBeLessThanOrEqual(height);
+        for (const p of points) {
+          const [, top, , tall] = p.label;
+          expect(tall, `${shape} ${n}`).toBeGreaterThanOrEqual(66);
+          expect(top + tall / 2).toBe(p.y);
+        }
       }
     }
   });

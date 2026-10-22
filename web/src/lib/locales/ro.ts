@@ -3779,6 +3779,7 @@ export const ro: Dict = {
   'whatsnew.change.appLogo': 'Telefoanele și extensiile de browser din „{name}” poartă sigla KnightLoader ca orice alt card.',
   'whatsnew.change.cardLogo': 'Sigla stă în același loc și are aceeași mărime pe fiecare card din „{name}”.',
   'whatsnew.change.netShields': 'În imaginea grupului, fiecare dispozitiv poartă sigla KnightLoader, cu o mică insignă care spune dacă e o instanță, aplicația desktop, aplicația Android sau o extensie de browser.',
+  'whatsnew.change.netLabels': 'Numele din imaginea grupului se văd întregi, pe două rânduri acolo unde au nevoie de loc.',
   'whatsnew.change.cardSize': 'Toate cardurile din „{name}” au aceeași lățime și aceeași înălțime.',
   'whatsnew.change.cardNames': 'Numele de pe cardurile din „{name}” se văd mereu întregi. Tipul are un rând al lui, iar insignele trec sub un nume care are nevoie de loc.',
   'whatsnew.change.inactiveMember': 'O aplicație desktop împerecheată care a fost închisă rămâne în „{name}” și arată {inactive} cu momentul în care a fost văzută ultima dată, până când o elimini. Un telefon care lipsește arată la fel.',

@@ -3762,6 +3762,7 @@ export const et: Dict = {
   'whatsnew.change.appLogo': 'Telefonid ja brauserilaiendused lehel „{name}“ kannavad KnightLoaderi logo nagu iga teine kaart.',
   'whatsnew.change.cardLogo': 'Logo on igal kaardil jaotises „{name}“ samas kohas ja sama suur.',
   'whatsnew.change.netShields': 'Grupi pildil kannab iga seade KnightLoaderi logo koos väikese märgiga, mis ütleb, kas see on eksemplar, töölauarakendus, Androidi rakendus või brauserilaiendus.',
+  'whatsnew.change.netLabels': 'Grupi pildil on nimed täielikult näha, kahel real, kui neil on ruumi vaja.',
   'whatsnew.change.cardSize': 'Kõik kaardid jaotises „{name}“ on ühe laiuse ja ühe kõrgusega.',
   'whatsnew.change.cardNames': 'Nimed kaartidel jaotises „{name}“ on alati terviklikult näha. Liigil on oma rida ja märgid liiguvad nime alla, kui nimi vajab ruumi.',
   'whatsnew.change.inactiveMember': 'Seotud töölauarakendus, mis suleti, jääb jaotisse „{name}“ ja näitab {inactive} koos ajaga, millal seda viimati nähti, kuni sa selle eemaldad. Telefon, mida pole kohal, näitab sama.',

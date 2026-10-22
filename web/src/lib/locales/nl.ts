@@ -3753,6 +3753,7 @@ export const nl: Dict = {
   'whatsnew.change.appLogo': 'Telefoons en browserextensies onder “{name}” dragen het KnightLoader-logo, net als elke andere kaart.',
   'whatsnew.change.cardLogo': 'Het logo staat op elke kaart onder “{name}” op dezelfde plek en even groot.',
   'whatsnew.change.netShields': 'In het beeld van de groep draagt elk apparaat het KnightLoader-logo, met een kleine badge die zegt of het een instantie, de desktop-app, de Android-app of een browserextensie is.',
+  'whatsnew.change.netLabels': 'Namen in het beeld van de groep staan er helemaal, op twee regels waar ze de ruimte nodig hebben.',
   'whatsnew.change.cardSize': 'Alle kaarten onder “{name}” zijn even breed en even hoog.',
   'whatsnew.change.cardNames': 'Namen op de kaarten onder “{name}” staan er altijd helemaal. De soort heeft een eigen regel, en de badges schuiven onder een naam die de ruimte nodig heeft.',
   'whatsnew.change.inactiveMember': 'Een gekoppelde desktop-app die gesloten is, blijft onder “{name}” staan en toont {inactive} met wanneer hij het laatst gezien is, tot je hem verwijdert. Een telefoon die er niet is, toont hetzelfde.',

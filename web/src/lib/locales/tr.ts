@@ -3769,6 +3769,7 @@ export const tr: Dict = {
   'whatsnew.change.appLogo': '“{name}” içindeki telefonlar ve tarayıcı uzantıları da her kart gibi KnightLoader logosunu taşır.',
   'whatsnew.change.cardLogo': 'Logo, “{name}” altındaki her kartta aynı yerde ve aynı boyutta durur.',
   'whatsnew.change.netShields': 'Grubun resminde her cihaz KnightLoader logosunu taşır; küçük bir rozet onun bir örnek mi, masaüstü uygulaması mı, Android uygulaması mı yoksa bir tarayıcı uzantısı mı olduğunu söyler.',
+  'whatsnew.change.netLabels': 'Grubun resmindeki adlar tam görünür; yere ihtiyaç duyduklarında iki satıra yayılır.',
   'whatsnew.change.cardSize': '“{name}” altındaki tüm kartlar aynı genişlikte ve aynı yükseklikte.',
   'whatsnew.change.cardNames': '“{name}” altındaki kartlarda adlar her zaman tam görünür. Türün kendi satırı vardır ve rozetler, yere ihtiyacı olan bir adın altına geçer.',
   'whatsnew.change.inactiveMember': 'Kapatılan eşleştirilmiş bir masaüstü uygulaması, sen onu kaldırana kadar “{name}” altında kalır ve son görüldüğü zamanla birlikte {inactive} gösterir. Ortada olmayan bir telefon da aynısını gösterir.',

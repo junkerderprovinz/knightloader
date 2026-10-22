@@ -3767,6 +3767,7 @@ export const ja: Dict = {
   'whatsnew.change.appLogo': '「{name}」のスマートフォンとブラウザー拡張機能にも、ほかのカードと同じく KnightLoader のロゴが付きます。',
   'whatsnew.change.cardLogo': '「{name}」のどのカードでも、ロゴは同じ位置に同じ大きさで表示されます。',
   'whatsnew.change.netShields': 'グループの図では、どのデバイスにも KnightLoader のロゴが付き、インスタンス、デスクトップアプリ、Android アプリ、ブラウザー拡張機能のどれかを示す小さなバッジが添えられます。',
+  'whatsnew.change.netLabels': 'グループの図の名前は省略されずに全部表示され、場所が必要なときは2行になります。',
   'whatsnew.change.cardSize': '「{name}」のカードはすべて同じ幅と同じ高さになります。',
   'whatsnew.change.cardNames': '「{name}」のカードでは、名前が常に全部表示されます。種類は専用の行に置かれ、名前に場所が必要なときはバッジが名前の下に移ります。',
   'whatsnew.change.inactiveMember': 'ペアリング済みのデスクトップアプリを閉じても、削除するまで「{name}」に残り、最後に確認された日時とともに{inactive}と表示されます。いないスマートフォンも同じように表示されます。',

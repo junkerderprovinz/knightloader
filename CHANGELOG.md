@@ -46,7 +46,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   badges go under a name that needs the room.
 - **Every device in the picture of the group wears the KnightLoader logo.** A
   small badge on it says whether it is an instance, the desktop app, the
-  Android app or a browser extension.
+  Android app or a browser extension. Names in the picture are shown in full,
+  on two lines where they need the room.
 
 ### Fixed
 
@@ -55,6 +56,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   when it was last seen, and stays until you remove it, also after the server
   restarts. The Pairing page lists it the same way. A phone that is away shows
   Inactive in grey instead of a red Not connected.
+- **An instance card no longer flashes red while the page loads.** Until the
+  instance first answers, its card says Checking, and the card of the instance
+  you are on shows Connected right away.
 
 ## [2.3.0] - 2026-10-21
 
