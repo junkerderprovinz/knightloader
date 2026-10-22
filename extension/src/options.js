@@ -551,10 +551,11 @@ function phraseProblemText(err) {
 }
 
 /**
- * renderGroup shows who is in the group right now, asked of the relay, so only
- * instances that are online appear, and below them the group's phones and
- * browsers. `quiet` keeps what is on screen until the answer is in, for the
- * checks recheckGroup runs while the page waits for something.
+ * renderGroup shows who is in the group, asked of the relay: the instances
+ * that are online, the ones approved in the group that are away, and below
+ * them the group's phones and browsers. `quiet` keeps what is on screen until
+ * the answer is in, for the checks recheckGroup runs while the page waits for
+ * something.
  */
 async function renderGroup({ quiet = false } = {}) {
   // A later render, by a click or by the timer, supersedes this one, so two
@@ -634,10 +635,13 @@ async function renderGroup({ quiet = false } = {}) {
       },
     }),
   ]);
+  view.away.forEach((member) => {
+    cards.push([member.id, awayCard(member, { index: cards.length })]);
+  });
   const ownId = (await readMember())?.id;
   if (turn !== groupTurn) return;
-  view.apps.forEach((app, i) => {
-    cards.push([app.id, deviceCard(app, { index: siblings.length + i, own: app.id === ownId })]);
+  view.apps.forEach((app) => {
+    cards.push([app.id, deviceCard(app, { index: cards.length, own: app.id === ownId })]);
   });
   staggerRows(rosterArrivals, cards);
   list.append(...cards.map(([, card]) => card));
