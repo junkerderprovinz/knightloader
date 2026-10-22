@@ -8,7 +8,7 @@ import { readPairingCode } from '../api/pairingCode';
 import { deviceName } from '../api/deviceName';
 import { toHex } from '../api/sha256';
 import { memberOptions } from '../storage/relayIdentity';
-import { addConnection, listConnections, setActiveConnectionId } from '../storage/connections';
+import { addConnection, listConnections, newConnectionId, setActiveConnectionId } from '../storage/connections';
 import type { RelayConnection, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useShake } from '../theme/MotionContext';
@@ -181,7 +181,7 @@ export default function RelayConnectScreen({
       }
       const conn: RelayConnection = {
         kind: 'relay',
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        id: newConnectionId(),
         name: s.name || s.instanceId,
         relayUrl: live.url,
         relayKey: live.key,

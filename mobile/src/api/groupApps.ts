@@ -1,5 +1,6 @@
 import { ApiError, request } from './client';
-import { awayList, type AwayInstance } from './away';
+import { awayList, memberList, type AwayInstance } from './away';
+import type { RelaySibling } from './relayClient';
 import type { ServerConnection } from './types';
 
 /** A phone or browser extension in the group, as an instance lists it. */
@@ -16,7 +17,13 @@ export interface GroupApp {
 /** The group's phones and extensions, and the instances approved in it that are away. */
 export interface GroupRoster {
   apps: GroupApp[];
-  away: AwayInstance[];
+  /** null from an instance from before the away list, or when none answered. */
+  away: AwayInstance[] | null;
+  /** The other instances there now as the instance that answered sees them,
+   *  on the relay or on its network; null where it does not send them. */
+  members: RelaySibling[] | null;
+  /** The connection that answered. */
+  from?: ServerConnection;
 }
 
 function isApp(a: unknown): a is GroupApp {
@@ -24,7 +31,7 @@ function isApp(a: unknown): a is GroupApp {
   return !!o && typeof o.id === 'string' && (o.deployment === 'mobile' || o.deployment === 'extension');
 }
 
-const NOBODY: GroupRoster = { apps: [], away: [] };
+const NOBODY: GroupRoster = { apps: [], away: null, members: null };
 
 /**
  * fetchGroupRoster reads the group from the first of conns that answers, so
@@ -36,8 +43,13 @@ const NOBODY: GroupRoster = { apps: [], away: [] };
 export async function fetchGroupRoster(conns: ServerConnection[]): Promise<GroupRoster> {
   for (const conn of conns) {
     try {
-      const r = await request<{ apps?: unknown; away?: unknown } | undefined>(conn, '/api', '/group/apps');
-      return { apps: Array.isArray(r?.apps) ? r.apps.filter(isApp) : [], away: awayList(r?.away) };
+      const r = await request<{ apps?: unknown; away?: unknown; members?: unknown } | undefined>(conn, '/api', '/group/apps');
+      return {
+        apps: Array.isArray(r?.apps) ? r.apps.filter(isApp) : [],
+        away: awayList(r?.away),
+        members: memberList(r?.members),
+        from: conn,
+      };
     } catch (e) {
       if (e instanceof ApiError && (e.status === 404 || e.code === 'ownLoginNeeded')) return NOBODY;
     }
