@@ -102,13 +102,7 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
   }
   if (typeof index === 'number') setHue(card, index);
 
-  const mark = document.createElement('span');
-  mark.className = 'glim-instance-mark';
-  const logo = document.createElement('img');
-  logo.src = 'logo.svg';
-  logo.alt = '';
-  logo.setAttribute('aria-hidden', 'true');
-  mark.appendChild(logo);
+  const mark = cardMark();
 
   const body = document.createElement('span');
   body.className = 'glim-instance-body';
@@ -199,13 +193,7 @@ function deviceCard(app, { index, own }) {
   card.dataset.instanceId = app.id;
   if (typeof index === 'number') setHue(card, index);
 
-  const mark = document.createElement('span');
-  mark.className = 'glim-instance-mark';
-  const logo = document.createElement('img');
-  logo.src = 'logo.svg';
-  logo.alt = '';
-  logo.setAttribute('aria-hidden', 'true');
-  mark.appendChild(logo);
+  const mark = cardMark();
 
   const body = document.createElement('span');
   body.className = 'glim-instance-body';
@@ -229,25 +217,14 @@ function deviceCard(app, { index, own }) {
     badge.textContent = t('device.paired');
     top.appendChild(glimInfoIcon(t('device.pairedTip')));
   } else {
-    badge.className = 'glim-status glim-status--off';
-    badge.textContent = t('instance.notConnected');
+    inactiveBadge(badge);
   }
 
   const what = document.createElement('span');
   what.className = 'glim-instance-what';
   what.textContent = app.deployment === 'extension' ? t('device.kindExtension') : t('device.kindMobile');
   body.append(top, what);
-
-  if (app.lastSeen > 0) {
-    const seen = document.createElement('span');
-    seen.className = 'glim-instance-stats';
-    const when = new Date(app.lastSeen * 1000).toLocaleString(currentLanguage(), {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-    seen.textContent = t('device.lastSeen', { time: when });
-    body.appendChild(seen);
-  }
+  if (app.lastSeen > 0) body.appendChild(lastSeenLine(app.lastSeen));
 
   card.append(mark, body);
   if (own) {
@@ -257,6 +234,63 @@ function deviceCard(app, { index, own }) {
     card.appendChild(self);
   }
   return card;
+}
+
+/**
+ * awayCard draws an instance approved in the group that is not there now, such
+ * as a desktop app that was closed, as the web UI's AwayCard does: what it last
+ * said it is and when it was last seen. It takes no send until it is back.
+ */
+function awayCard(member, { index }) {
+  const card = document.createElement('div');
+  card.className = 'glim-instance';
+  card.dataset.instanceId = member.id;
+  if (typeof index === 'number') setHue(card, index);
+
+  const body = document.createElement('span');
+  body.className = 'glim-instance-body';
+  const top = document.createElement('span');
+  top.className = 'glim-instance-top';
+  const name = document.createElement('span');
+  name.className = 'glim-instance-name';
+  name.textContent = instanceLabel({ name: member.name, instanceId: member.id });
+  const badge = document.createElement('span');
+  inactiveBadge(badge);
+  top.append(name, badge);
+  const what = document.createElement('span');
+  what.className = 'glim-instance-what';
+  what.textContent = deploymentLabel(member.deployment);
+  body.append(top, what);
+  if (member.lastSeen > 0) body.appendChild(lastSeenLine(member.lastSeen));
+
+  card.append(cardMark(), body);
+  return card;
+}
+
+/** The logo along a card's start edge. */
+function cardMark() {
+  const mark = document.createElement('span');
+  mark.className = 'glim-instance-mark';
+  const logo = document.createElement('img');
+  logo.src = 'logo.svg';
+  logo.alt = '';
+  logo.setAttribute('aria-hidden', 'true');
+  mark.appendChild(logo);
+  return mark;
+}
+
+/** Grey rather than red, since being closed or away is no fault. */
+function inactiveBadge(badge) {
+  badge.className = 'glim-status glim-status--idle';
+  badge.textContent = t('instance.inactive');
+}
+
+function lastSeenLine(unix) {
+  const seen = document.createElement('span');
+  seen.className = 'glim-instance-stats';
+  const when = new Date(unix * 1000).toLocaleString(currentLanguage(), { dateStyle: 'medium', timeStyle: 'short' });
+  seen.textContent = t('device.lastSeen', { time: when });
+  return seen;
 }
 
 /* The card's glyphs, built as nodes because Mozilla's linter, a release gate

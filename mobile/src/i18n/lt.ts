@@ -34,6 +34,7 @@ export const lt: Dict = {
   'instance.filesOne': '1 failas',
   'instance.left': 'liko',
   'instance.notConnected': 'Neprisijungta',
+  'instance.inactive': 'Neaktyvus',
   'instance.checking': 'Tikrinama',
   'instance.connected': 'Prisijungta',
   'instance.captchas': 'Šiuo metu laukia captcha: {n}',

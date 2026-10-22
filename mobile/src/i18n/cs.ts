@@ -34,6 +34,7 @@ export const cs: Dict = {
   'instance.filesOne': '1 soubor',
   'instance.left': 'zbývá',
   'instance.notConnected': 'Nepřipojeno',
+  'instance.inactive': 'Neaktivní',
   'instance.checking': 'Kontroluje se',
   'instance.connected': 'Připojeno',
   'instance.captchas': 'Captchy, které právě čekají: {n}',

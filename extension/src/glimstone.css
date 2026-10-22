@@ -884,6 +884,7 @@ body {
 .glim-status--on   { color: var(--status-ok-solid);   background: color-mix(in srgb, var(--status-ok-solid) 15%, transparent); }
 .glim-status--off  { color: var(--status-fail-solid); background: color-mix(in srgb, var(--status-fail-solid) 15%, transparent); }
 .glim-status--wait { color: var(--status-warn-solid); background: color-mix(in srgb, var(--status-warn-solid) 15%, transparent); }
+.glim-status--idle { color: var(--status-neutral-text); background: color-mix(in srgb, var(--status-neutral-solid) 15%, transparent); }
 
 /* The name and its badge share a line. */
 .glim-instance-top { display: flex; align-items: center; gap: 8px; min-width: 0; }

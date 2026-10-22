@@ -34,6 +34,7 @@ export const uk: Dict = {
   'instance.filesOne': '1 файл',
   'instance.left': 'лишилось',
   'instance.notConnected': 'Не підключено',
+  'instance.inactive': 'Неактивно',
   'instance.checking': 'Перевірка',
   'instance.connected': 'Підключено',
   'instance.captchas': 'Капч в очікуванні: {n}',

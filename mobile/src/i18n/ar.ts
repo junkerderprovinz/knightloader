@@ -34,6 +34,7 @@ export const ar: Dict = {
   'instance.filesOne': 'ملف واحد',
   'instance.left': 'متبقٍ',
   'instance.notConnected': 'غير متصل',
+  'instance.inactive': 'غير نشط',
   'instance.checking': 'جارٍ الفحص',
   'instance.connected': 'متصل',
   'instance.captchas': 'كابتشا تنتظر الآن: {n}',

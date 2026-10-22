@@ -34,6 +34,7 @@ export const ko: Dict = {
   'instance.filesOne': '파일 1개',
   'instance.left': '남음',
   'instance.notConnected': '연결 안 됨',
+  'instance.inactive': '비활성',
   'instance.checking': '확인 중',
   'instance.connected': '연결됨',
   'instance.captchas': '지금 기다리는 캡차 {n}개',

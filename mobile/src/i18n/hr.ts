@@ -34,6 +34,7 @@ export const hr: Dict = {
   'instance.filesOne': '1 datoteka',
   'instance.left': 'preostalo',
   'instance.notConnected': 'Nije povezano',
+  'instance.inactive': 'Neaktivno',
   'instance.checking': 'Provjera',
   'instance.connected': 'Povezano',
   'instance.captchas': 'Captche koje upravo čekaju: {n}',

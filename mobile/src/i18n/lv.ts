@@ -34,6 +34,7 @@ export const lv: Dict = {
   'instance.filesOne': '1 fails',
   'instance.left': 'atlicis',
   'instance.notConnected': 'Nav savienots',
+  'instance.inactive': 'Neaktīvs',
   'instance.checking': 'Pārbauda',
   'instance.connected': 'Savienots',
   'instance.captchas': 'Pašlaik gaida captcha: {n}',
