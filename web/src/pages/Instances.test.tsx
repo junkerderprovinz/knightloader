@@ -180,12 +180,15 @@ describe('Instances', () => {
     expect(kindName(card('cellar'))).toBe('Server');
     // A phone has no details, so its mark is no button.
     expect(kindOf(card('Pixel 8'))!.querySelector('button')).toBeNull();
-    // Both badges share the name's line, which never wraps them under it.
+    // The name is never cut short for the badges beside it, and the kind's
+    // label stands on a line of its own.
     for (const name of ['Pixel 8', 'cellar']) {
-      const line = card(name).querySelector('[data-new="instance-badges"]')!.parentElement!;
+      const line = card(name).querySelector('[data-new="card-names"]')!;
       expect(line.textContent, name).toContain(name);
-      expect(line.className, name).not.toContain('flex-wrap');
+      expect(line.querySelector('[data-new="instance-badges"]'), name).not.toBeNull();
+      expect(line.querySelector('.truncate'), name).toBeNull();
     }
+    expect(card('Pixel 8').querySelector('[data-new="card-names"]')!.textContent).not.toContain('Android app');
   });
 
   it('says on each card how the instance is reached', async () => {
@@ -406,8 +409,9 @@ describe('Instances', () => {
     await draw();
     expect(card('Firefox').textContent).toContain('Paired');
     expect(card('Firefox').textContent).not.toContain('Not connected');
-    // A phone that is away is away, approved or not.
-    expect(card('Pixel 8').textContent).toContain('Not connected');
+    // A phone that is away is inactive, which is no fault.
+    expect(card('Pixel 8').textContent).toContain('Inactive');
+    expect(card('Pixel 8').textContent).not.toContain('Not connected');
     const dim = (key: string) => host.querySelector(`svg.wide g[data-nk="${key}"]`)!.classList.contains('dim');
     expect([dim('app:b1'), dim('app:p1')]).toEqual([false, true]);
 
@@ -423,6 +427,86 @@ describe('Instances', () => {
     }
     await act(async () => {});
     expect(card('Pixel 8').textContent).toContain('Connected');
-    expect(card('Pixel 8').textContent).not.toContain('Not connected');
+    expect(card('Pixel 8').textContent).not.toContain('Inactive');
+  });
+
+  it('keeps a desktop app of the group that was closed as inactive until it is removed', async () => {
+    const zathallia = {
+      id: 'id-zath',
+      name: 'Zathallia',
+      deployment: 'desktop',
+      address: 'http://192.168.20.86:8749',
+      lastSeen: 1_800_000_000,
+    };
+    const calls = serve({ ...noGroup, active: true, away: [zathallia] });
+    await draw();
+    const away = card('Zathallia');
+    expect(away.textContent).toContain('Inactive');
+    expect(away.textContent).toContain('Last seen');
+    expect(away.textContent).toContain('Desktop app');
+    expect(away.textContent).toContain('192.168.20.86:8749');
+    expect(away.textContent).not.toContain('Not connected');
+    expect(kindName(away)).toBe('Desktop app');
+    // Nothing to open or count while it is closed.
+    expect(buttons(away)).toEqual(['Remove']);
+    const node = host.querySelector('svg.wide g[data-nk="member:id-zath"]')!;
+    expect(node.classList.contains('dim')).toBe(true);
+    expect(node.textContent).toContain('Inactive');
+
+    await act(async () => button(away, 'Remove').click());
+    await act(async () => button(document.body.querySelector('[role="dialog"]')!, 'Remove').click());
+    expect(calls).toContain('DELETE /api/connect/members/id-zath');
+  });
+
+  it('shows a member that came back once, as the instance it is', async () => {
+    serve(
+      {
+        ...noGroup,
+        active: true,
+        members: [{ id: 'id-zath', name: 'Zathallia', direct: true, relay: false }],
+        away: [{ id: 'id-zath', name: 'Zathallia', deployment: 'desktop', address: '', lastSeen: 1 }],
+      },
+      [{ name: 'id-zath', url: '', relayId: 'id-zath', displayName: 'Zathallia', deployment: 'desktop' }],
+    );
+    await draw();
+    const cards = [...host.querySelectorAll('[data-nk="member:id-zath"]')].filter((c) => !c.closest('svg'));
+    expect(cards).toHaveLength(1);
+    expect(cards[0].textContent).not.toContain('Inactive');
+    expect(host.querySelectorAll('svg.wide g[data-nk="member:id-zath"]')).toHaveLength(1);
+  });
+
+  it('draws every node of the net as the shield with its kind in a badge', async () => {
+    serve(
+      {
+        ...noGroup,
+        active: true,
+        apps: [
+          { id: 'p1', name: 'Arthallia', deployment: 'mobile', connected: true, lastSeen: 1 },
+          { id: 'b1', name: 'Firefox', deployment: 'extension', connected: false, approved: true, lastSeen: 1 },
+        ],
+      },
+      [{ name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop', deployment: 'desktop' }],
+    );
+    await draw();
+    const spokes = [...host.querySelectorAll('svg.wide g[data-nk]')].filter((g) => g.getAttribute('data-nk') !== 'self');
+    expect(spokes).toHaveLength(3);
+    for (const spoke of spokes) {
+      const key = spoke.getAttribute('data-nk');
+      expect(spoke.querySelector('[role="button"] image'), key!).not.toBeNull();
+      expect(spoke.querySelectorAll('.kl-net-badge'), key!).toHaveLength(1);
+    }
+  });
+
+  it('gives every card of the grid one width and one height, the net standing above the grid', async () => {
+    serve({ ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] });
+    await draw();
+    const grid = card('Pixel 8').parentElement!;
+    expect(grid.className).toContain('auto-rows-fr');
+    expect(grid.contains(card('nas'))).toBe(true);
+    expect(grid.contains(host.querySelector('[data-testid="group-net"]'))).toBe(false);
+    // The mark stands at the top of every card rather than in its middle.
+    for (const name of ['nas', 'Pixel 8']) {
+      expect(card(name).querySelector('[data-new="card-logo"]')!.parentElement!.className, name).toContain('items-start');
+    }
   });
 });

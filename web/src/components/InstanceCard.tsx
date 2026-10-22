@@ -38,6 +38,12 @@ const KIND_GLYPHS: Record<string, (p: GlyphProps) => ReactNode> = {
   extension: IconBrowser,
 };
 
+/** kindGlyph is the glyph a card and a node of the net show for a kind of
+ *  instance or device, undefined for a kind nobody announced. */
+export function kindGlyph(deployment: string | undefined): ((p: GlyphProps) => ReactNode) | undefined {
+  return deployment ? KIND_GLYPHS[deployment] : undefined;
+}
+
 interface Stats {
   online: boolean;
   /**
@@ -115,11 +121,11 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
 
 /**
  * Tile is the shape every card of the instance grid shares: the mark at the
- * start edge, the name with its state, one line of facts, the figures in a row
- * and the buttons at the bottom. It is a card of its own on the page, so it
- * owns a place in the palette. The cards of a row take one height, so the
- * buttons line up. Nothing lifts under the pointer, since the card is no
- * control (check-card-hover.mjs).
+ * start edge, the name with its state, what kind it is, one line of facts, the
+ * figures in a row and the buttons at the bottom. It is a card of its own on
+ * the page, so it owns a place in the palette. The grid gives every card one
+ * height, so the buttons line up. Nothing lifts under the pointer, since the
+ * card is no control (check-card-hover.mjs).
  */
 function Tile({
   entry,
@@ -154,25 +160,32 @@ function Tile({
       className={`glim-card glim-hue flex flex-col overflow-hidden ${hot ? 'outline-2 -outline-offset-2 outline-accent' : ''}`}
       style={hueVars(hue) as CSSProperties}
     >
-      <div className="flex items-stretch">
-        <div className="flex shrink-0 items-center ps-4">{mark}</div>
+      <div className="flex items-start">
+        {/* Level with the name rather than centred, so the mark stands in one
+            place on every card whatever the card holds. */}
+        <div data-new="card-logo" className="flex shrink-0 ps-4 pt-7 max-sm:pt-5">
+          {mark}
+        </div>
         <div className="flex min-w-0 flex-1 flex-col gap-4 p-7 max-sm:p-5">
-          {/* The badges keep the name's line at every width, and the name is
-              cut short for them. */}
-          <div className="flex items-center gap-2.5">
-            <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
-            {eyebrow && <span className="glim-eyebrow min-w-0 truncate">{eyebrow}</span>}
-            <span className="min-w-0 flex-1" />
-            {state}
+          {/* The name is never cut short: the badges move under it when the
+              two do not fit one line. */}
+          <div data-new="card-names" className="flex flex-wrap items-start gap-x-2.5 gap-y-1.5">
+            <span className="min-w-0 max-w-full font-semibold text-carbon-text [overflow-wrap:anywhere]">{name}</span>
+            <span className="ms-auto flex py-px">{state}</span>
           </div>
-          {said.length > 0 && (
-            <div className="-mt-3 text-xs text-carbon-textMuted">
-              {said.map((fact, i) => (
-                <span key={i}>
-                  {i > 0 && ' · '}
-                  <span dir="auto">{fact}</span>
-                </span>
-              ))}
+          {(eyebrow || said.length > 0) && (
+            <div className="-mt-3 flex flex-col gap-1">
+              {eyebrow && <span className="glim-eyebrow">{eyebrow}</span>}
+              {said.length > 0 && (
+                <div className="text-xs text-carbon-textMuted">
+                  {said.map((fact, i) => (
+                    <span key={i}>
+                      {i > 0 && ' · '}
+                      <span dir="auto">{fact}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           {/* A figure that does not fit moves to the next line rather than
@@ -191,8 +204,22 @@ function Tile({
 function CardLogo() {
   // h-26 matches the sidebar's brand mark (check-mark-scale.mjs); a larger
   // mark squeezes the figures together.
-  return <img src={logoUrl} alt="" aria-hidden className="h-26 max-h-full w-auto" />;
+  return <img src={logoUrl} alt="" aria-hidden className="h-26 w-auto" />;
 }
+
+/** The state of an instance or a device that is in the group but not there
+ *  now. It is grey rather than red, since being closed is no fault. */
+function InactiveState() {
+  const { t } = useT();
+  return (
+    <span data-new="inactive-state" className="inline-flex">
+      <StatePill label={t('instances.inactive')} tone="neutral" />
+    </span>
+  );
+}
+
+const lastSeenOf = (t: ReturnType<typeof useT>['t'], unix: number) =>
+  t('instances.lastSeen', { time: fmtDate(new Date(unix * 1000).toISOString()) });
 
 // The kind's badge is a square of the state pill's height, corner and quiet
 // ground, so the two read as one pair.
@@ -206,7 +233,7 @@ const KIND_BADGE = `inline-grid h-[22px] w-[22px] shrink-0 place-items-center ro
  */
 function KindMark({ kind, onOpen }: { kind: string; onOpen?: () => void }) {
   const { t } = useT();
-  const Glyph = KIND_GLYPHS[kind];
+  const Glyph = kindGlyph(kind);
   const label = KINDS[kind] ? t(KINDS[kind]) : '';
   if (!Glyph || !label) return null;
   const glyph = <Glyph width={14} height={14} />;
@@ -457,7 +484,7 @@ export function AppCard({
   ) : pairedBetweenCalls({ deployment, connected, approved }) ? (
     <StatePill label={t('instances.paired')} tone="ok" tip={t('instances.extensionPairedTip')} />
   ) : (
-    <StatePill label={t('instances.notConnected')} tone="fail" />
+    <InactiveState />
   );
   return (
     <Tile
@@ -472,7 +499,60 @@ export function AppCard({
       name={name}
       eyebrow={KINDS[deployment] ? t(KINDS[deployment]) : undefined}
       state={<StateWithKind kind={deployment}>{state}</StateWithKind>}
-      facts={[t('instances.lastSeen', { time: fmtDate(new Date(lastSeen * 1000).toISOString()) })]}
+      facts={[lastSeenOf(t, lastSeen)]}
+      actions={
+        <Button
+          kind="secondary"
+          icon={<IconTrash />}
+          aria-label={t('instances.removeTitle', { name })}
+          onClick={onRemove}
+        >
+          {t('instances.remove')}
+        </Button>
+      }
+    />
+  );
+}
+
+// AwayCard shows an instance of the group that is not there now, such as a
+// desktop app that was closed: what it last said about itself and when it was
+// last seen. It has nothing to open or count until it comes back.
+export function AwayCard({
+  entry,
+  name,
+  deployment,
+  address,
+  lastSeen,
+  onRemove,
+  hot = false,
+  hue = 0,
+}: {
+  /** The key the card shares with its node in the net. */
+  entry: string;
+  name: string;
+  deployment: string;
+  address: string;
+  /** Unix seconds. */
+  lastSeen: number;
+  onRemove: () => void;
+  hot?: boolean;
+  /** The card's place in the palette, counted along the grid. */
+  hue?: number;
+}) {
+  const { t } = useT();
+  return (
+    <Tile
+      entry={entry}
+      hot={hot}
+      hue={hue}
+      mark={<CardLogo />}
+      name={name}
+      state={
+        <StateWithKind kind={deployment}>
+          <InactiveState />
+        </StateWithKind>
+      }
+      facts={[address, KINDS[deployment] ? t(KINDS[deployment]) : '', lastSeenOf(t, lastSeen)]}
       actions={
         <Button
           kind="secondary"

@@ -51,6 +51,21 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.3.1',
+    changes: [
+      {
+        id: 'inactive-state',
+        to: INSTANCES,
+        text: 'whatsnew.change.inactiveMember',
+        names: { name: 'instances.title', inactive: 'instances.inactive' },
+      },
+      { id: 'card-names', to: INSTANCES, text: 'whatsnew.change.cardNames', names: { name: 'instances.title' } },
+      { id: 'card-size', to: INSTANCES, text: 'whatsnew.change.cardSize', names: { name: 'instances.title' } },
+      { id: 'card-logo', to: INSTANCES, text: 'whatsnew.change.cardLogo', names: { name: 'instances.title' } },
+      { id: 'net-shields', to: [...INSTANCES, '/settings/pairing'], text: 'whatsnew.change.netShields' },
+    ],
+  },
+  {
     version: '2.2.0',
     changes: [
       {

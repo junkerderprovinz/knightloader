@@ -47,6 +47,7 @@ const base: ConnectInfo = {
   networkAddress: '',
   members: [],
   apps: [],
+  away: [],
   joinedAgo: 0,
   memberSeen: false,
   pending: [],
@@ -298,11 +299,30 @@ describe('PairingGroup', () => {
       'nasThis instancePaired',
       'officePaired·Via relayRemove',
       'Pixel 8Android appConnectedRemove',
-      'Old phoneAndroid appNot connectedRemove',
+      'Old phoneAndroid appInactiveRemove',
       'FirefoxBrowser extensionPairedRemove',
     ]);
     // The row without a button is as high as those with one.
     expect(rows().map((li) => li.classList.contains('min-h-11'))).toEqual([true, true, true, true, true]);
+  });
+
+  it('lists an instance of the group that is away as inactive and dims its node', () => {
+    draw({
+      joinedAgo: 500,
+      memberSeen: true,
+      members: [{ id: 'b', name: 'office', direct: false, relay: true, deployment: 'container' }],
+      away: [{ id: 'z', name: 'Zathallia', deployment: 'desktop', address: '', lastSeen: 1 }],
+    });
+    expect(rows().map((li) => li.textContent)).toEqual([
+      'nasThis instancePaired',
+      'officePaired·Via relayRemove',
+      'ZathalliaInactiveRemove',
+    ]);
+    const spokes = [...net()!.querySelectorAll('svg.wide g[data-nk]')];
+    expect(spokes.map((g) => g.getAttribute('data-nk'))).toEqual(['member:b', 'member:z', 'self']);
+    expect(spokes.map((g) => g.classList.contains('dim'))).toEqual([false, true, false]);
+    // Each node wears its kind in a badge on the shield.
+    expect(spokes.map((g) => g.querySelectorAll('.kl-net-badge').length)).toEqual([1, 1, 0]);
   });
 
   it('draws the group as a net and lights a row together with its node', () => {

@@ -223,6 +223,7 @@ export const en = {
   'instances.moduleOff': 'Instances is switched off, so this instance neither lists nor contacts the others.',
   'instances.lastSeen': 'Last seen {time}',
   'instances.paired': 'Paired',
+  'instances.inactive': 'Inactive',
   'instances.extensionPairedTip': 'The extension connects only while you use it, for example to send a link. In between it stays paired.',
 
   // The Pairing page (pages/settings/pairing/): the step cards, the twelve
@@ -4039,6 +4040,11 @@ export const en = {
   'whatsnew.change.instanceKind': 'Every card on "{name}" shows beside its state what kind it is: a container, a server, the desktop app, the Android app or a browser extension. On a card with details, the sign opens them.',
   'whatsnew.change.instanceBadges': 'On every card under "{name}", the state and the kind sit side by side on the name\'s line as two badges of the same height, the kind as a square. That holds at every width, and a long name is cut short to make room.',
   'whatsnew.change.appLogo': 'Phones and browser extensions on "{name}" wear the KnightLoader mark like every other card.',
+  'whatsnew.change.cardLogo': 'The logo stands in the same place and at the same size on every card on "{name}".',
+  'whatsnew.change.netShields': 'In the picture of the group every device wears the KnightLoader logo, with a small badge that says whether it is an instance, the desktop app, the Android app or a browser extension.',
+  'whatsnew.change.cardSize': 'Every card on "{name}" is as wide and as tall as the others.',
+  'whatsnew.change.cardNames': 'Names on the cards on "{name}" are always shown in full. The kind has a line of its own, and the badges move under a name that needs the room.',
+  'whatsnew.change.inactiveMember': 'A paired desktop app that was closed stays on "{name}" and shows {inactive} with when it was last seen, until you remove it. A phone that is away shows the same.',
   'whatsnew.change.limitMarkers': 'The speed curves mark a download or upload limit only at their right edge, in grey with the limit sign before its figure, and draw no line across the plot. A limit above the scale sits at the top edge with an arrow pointing up. The current download and upload speeds above the curves are written in the colours of their graphs.',
   'whatsnew.change.decimalUnits': 'Sizes and speeds count in thousands: kB, MB and GB in place of KiB, MiB and GiB. A limit typed as 30 MB/s is 30 million bytes a second and shows as 30 MB/s everywhere.',
   'settings.vpn.state.connected': 'Connected',

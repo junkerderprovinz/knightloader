@@ -5,14 +5,16 @@
 // handed over travel along their line as a parcel.
 import { useEffect, useRef, useState, type FocusEvent, type PointerEvent, type ReactNode } from 'react';
 import logoUrl from '../assets/logo.svg';
-import { IconBrowser, IconPhone } from '../lib/icons';
 import { useStillPictures } from '../lib/motion';
+import { kindGlyph } from './InstanceCard';
 import { FILL, HUE, SURFACE, TRAVEL } from './pictures/scene';
 
 export interface NetNode {
   /** The key the node shares with its entry on the page (`data-nk`). */
   key: string;
-  kind: 'instance' | 'phone' | 'browser';
+  /** What the node is, as its card says: "container", "server", "desktop",
+   *  "mobile" or "extension". It stands in a badge on the shield. */
+  deployment?: string;
   name: string;
   /** The line under the name: how the node is reached, or what it is. */
   sub: string;
@@ -34,12 +36,7 @@ export interface NetParcel {
 /** The key of this instance's own node and entry. */
 export const SELF_KEY = 'self';
 
-/** What kind of node a phone or an extension of the group is drawn as. */
-export function appNodeKind(deployment: string): NetNode['kind'] {
-  return deployment === 'extension' ? 'browser' : 'phone';
-}
-
-const RADIUS: Record<NetNode['kind'], number> = { instance: 27, phone: 24, browser: 24 };
+const RADIUS = 27;
 const HUB_RADIUS = 34;
 
 type Label = [x: number, y: number, width: number, align: 'start' | 'end' | 'mid'];
@@ -85,18 +82,28 @@ function NodeLabel({ at: [x, y, w, align], name, sub }: { at: Label; name: strin
   );
 }
 
-function Shape({ kind, x, y, size = 50 }: { kind: NetNode['kind']; x: number; y: number; size?: number }) {
-  if (kind === 'instance') {
-    return <image href={logoUrl} x={x - size / 2} y={y - size / 2} width={size} height={size} className="kl-pic-lift" />;
-  }
-  const [w, h] = kind === 'phone' ? [28, 42] : [42, 34];
-  const Glyph = kind === 'phone' ? IconPhone : IconBrowser;
+/**
+ * Shape is the KnightLoader shield every node wears, since every one of them
+ * is KnightLoader, with what kind it is in a badge at the shield's foot.
+ */
+function Shape({ deployment, x, y, size = 50 }: { deployment?: string; x: number; y: number; size?: number }) {
+  const Glyph = kindGlyph(deployment);
+  // The shield keeps its own proportions inside the square, so its right
+  // edge stands at about 0.3 of the size from the middle.
+  const bx = x + size * 0.3;
+  const by = y + size * 0.32;
+  const radius = size * 0.19;
   return (
     <>
-      <rect className="kl-net-tile" x={x - w / 2} y={y - h / 2} width={w} height={h} rx="8" />
-      <g color="var(--accent-glyph)">
-        <Glyph x={x - 10} y={y - 10} width={20} height={20} />
-      </g>
+      <image href={logoUrl} x={x - size / 2} y={y - size / 2} width={size} height={size} className="kl-pic-lift" />
+      {Glyph && (
+        <g className="kl-net-badge">
+          <circle className="kl-net-tile" cx={bx} cy={by} r={radius} stroke={SURFACE} strokeWidth="2" />
+          <g color="var(--accent-glyph)">
+            <Glyph x={bx - radius * 0.62} y={by - radius * 0.62} width={radius * 1.24} height={radius * 1.24} />
+          </g>
+        </g>
+      )}
     </>
   );
 }
@@ -196,7 +203,7 @@ function Parcel({ from, to, at, r, onDone }: { from: Point; to: Point; at: Point
 
 interface NetProps {
   /** This instance, the node in the middle. */
-  self: { name: string; sub: string };
+  self: { name: string; sub: string; deployment?: string };
   nodes: NetNode[];
   /** The handovers under way, each on the line of its node. */
   parcels?: NetParcel[];
@@ -230,13 +237,12 @@ function NetSvg({
     >
       {nodes.map((node, j) => {
         const p = points[j];
-        const r = RADIUS[node.kind];
         const length = Math.hypot(p.x - hub.x, p.y - hub.y);
         const ux = (p.x - hub.x) / length;
         const uy = (p.y - hub.y) / length;
         // The link ends a little outside the rim of both nodes.
         const here = { x: hub.x + ux * (HUB_RADIUS + 5), y: hub.y + uy * (HUB_RADIUS + 5) };
-        const there = { x: p.x - ux * (r + 5), y: p.y - uy * (r + 5) };
+        const there = { x: p.x - ux * (RADIUS + 5), y: p.y - uy * (RADIUS + 5) };
         const d = `M${xy(here.x, here.y)} L${xy(there.x, there.y)}`;
         return (
           <g
@@ -247,8 +253,8 @@ function NetSvg({
             {/* A solid link is one dash as long as itself, which is what draws
                 it in. A dashed one keeps its own dashes and fades in. */}
             {node.relay ? <path className="kl-net-link relay" d={d} /> : <path className="kl-net-link" pathLength="1" d={d} />}
-            <NodeButton name={node.name} x={p.x} y={p.y} r={r} onPick={() => onPick(node.key)}>
-              <Shape kind={node.kind} x={p.x} y={p.y} />
+            <NodeButton name={node.name} x={p.x} y={p.y} r={RADIUS} onPick={() => onPick(node.key)}>
+              <Shape deployment={node.deployment} x={p.x} y={p.y} />
             </NodeButton>
             <NodeLabel at={p.label} name={node.name} sub={node.sub} />
             {parcels
@@ -259,7 +265,7 @@ function NetSvg({
                   from={parcel.out ? here : there}
                   to={parcel.out ? there : here}
                   at={parcel.out ? p : hub}
-                  r={parcel.out ? r : HUB_RADIUS}
+                  r={parcel.out ? RADIUS : HUB_RADIUS}
                   onDone={() => onDelivered?.(parcel.id)}
                 />
               ))}
@@ -268,7 +274,7 @@ function NetSvg({
       })}
       <g className={`kl-net-spoke hub${hot === SELF_KEY ? ' hot' : ''}`} data-nk={SELF_KEY}>
         <NodeButton name={self.name} x={hub.x} y={hub.y} r={HUB_RADIUS} onPick={() => onPick(SELF_KEY)}>
-          <Shape kind="instance" x={hub.x} y={hub.y} size={64} />
+          <Shape deployment={self.deployment} x={hub.x} y={hub.y} size={64} />
         </NodeButton>
         <NodeLabel at={hub.label} name={self.name} sub={self.sub} />
       </g>
@@ -320,7 +326,7 @@ export function GroupNet(props: NetProps) {
   }, [calm]);
 
   return (
-    <div ref={box} className="kl-net" data-testid="group-net">
+    <div ref={box} data-new="net-shields" className="kl-net" data-testid="group-net">
       <NetSvg shape="wide" {...props} />
       <NetSvg shape="narrow" {...props} />
     </div>

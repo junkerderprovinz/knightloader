@@ -26,8 +26,8 @@ afterEach(() => {
 });
 
 const nodes: NetNode[] = [
-  { key: 'member:laptop', kind: 'instance', name: 'Laptop', sub: 'Direct' },
-  { key: 'member:nas', kind: 'instance', name: 'NAS', sub: 'Via relay', relay: true },
+  { key: 'member:laptop', deployment: 'desktop', name: 'Laptop', sub: 'Direct' },
+  { key: 'member:nas', deployment: 'container', name: 'NAS', sub: 'Via relay', relay: true },
 ];
 
 function draw(parcels: NetParcel[] = [], onDelivered: (id: number) => void = () => {}) {
