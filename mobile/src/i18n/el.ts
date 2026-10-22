@@ -34,6 +34,7 @@ export const el: Dict = {
   'instance.filesOne': '1 αρχείο',
   'instance.left': 'απομένουν',
   'instance.notConnected': 'Μη συνδεδεμένο',
+  'instance.inactive': 'Ανενεργό',
   'instance.checking': 'Έλεγχος',
   'instance.connected': 'Συνδεδεμένο',
   'instance.captchas': '{n} captcha περιμένουν αυτή τη στιγμή',

@@ -504,7 +504,11 @@ const styles = StyleSheet.create({
  * themes the way the palette does, nothing can search for it, and it assumes
  * every status colour it is handed is a six-digit hex.
  */
-export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offline' | 'paired' | 'pending' }) {
+export function StatusBadge({
+  status,
+}: {
+  status: 'checking' | 'online' | 'offline' | 'inactive' | 'paired' | 'pending';
+}) {
   const { c, corners } = useAppearance();
   const { t } = useT();
   // Paired is calm rather than green: the extension is in the group, but it
@@ -515,6 +519,8 @@ export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offli
     pending: [c.statusWarnSolid, c.statusWarnBg, t('devices.pending')],
     paired: [c.statusNeutralText, c.statusNeutralBg, t('devices.paired')],
     offline: [c.statusFailSolid, c.statusFailBg, t('instance.notConnected')],
+    // Grey like paired: an instance or phone that is closed or away is no fault.
+    inactive: [c.statusNeutralText, c.statusNeutralBg, t('instance.inactive')],
   }[status];
   return (
     <View style={[styles.statusBadge, { backgroundColor: ground, ...corners.pill }]}>

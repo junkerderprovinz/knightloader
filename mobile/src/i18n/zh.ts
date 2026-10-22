@@ -34,6 +34,7 @@ export const zh: Dict = {
   'instance.filesOne': '1 个文件',
   'instance.left': '剩余',
   'instance.notConnected': '未连接',
+  'instance.inactive': '非活动',
   'instance.checking': '检查中',
   'instance.connected': '已连接',
   'instance.captchas': '当前有 {n} 个验证码在等待',

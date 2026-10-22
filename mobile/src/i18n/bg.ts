@@ -34,6 +34,7 @@ export const bg: Dict = {
   'instance.filesOne': '1 файл',
   'instance.left': 'остават',
   'instance.notConnected': 'Не е свързан',
+  'instance.inactive': 'Неактивно',
   'instance.checking': 'Проверка',
   'instance.connected': 'Свързан',
   'instance.captchas': '{n} captcha чакат в момента',

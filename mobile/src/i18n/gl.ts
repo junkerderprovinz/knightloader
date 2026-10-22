@@ -34,6 +34,7 @@ export const gl: Dict = {
   'instance.filesOne': '1 ficheiro',
   'instance.left': 'restantes',
   'instance.notConnected': 'Sen conexión',
+  'instance.inactive': 'Inactivo',
   'instance.checking': 'Comprobando',
   'instance.connected': 'Conectado',
   'instance.captchas': '{n} captchas agardando agora mesmo',

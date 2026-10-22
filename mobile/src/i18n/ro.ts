@@ -34,6 +34,7 @@ export const ro: Dict = {
   'instance.filesOne': '1 fișier',
   'instance.left': 'rămase',
   'instance.notConnected': 'Neconectat',
+  'instance.inactive': 'Inactiv',
   'instance.checking': 'Se verifică',
   'instance.connected': 'Conectat',
   'instance.captchas': '{n} captcha-uri așteaptă chiar acum',

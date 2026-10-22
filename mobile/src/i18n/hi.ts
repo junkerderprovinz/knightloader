@@ -34,6 +34,7 @@ export const hi: Dict = {
   'instance.filesOne': '1 फ़ाइल',
   'instance.left': 'शेष',
   'instance.notConnected': 'कनेक्ट नहीं',
+  'instance.inactive': 'निष्क्रिय',
   'instance.checking': 'जाँच रहे हैं',
   'instance.connected': 'कनेक्टेड',
   'instance.captchas': 'अभी {n} कैप्चा प्रतीक्षा में हैं',
