@@ -1,0 +1,1 @@
+Your desktop app may close the door now without vanishing from the list. It waits outside as Inactive, like a polite guest, and the app finds new members of your group by itself.

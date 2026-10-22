@@ -1,0 +1,1 @@
+Deine Desktop-App darf jetzt die Tür hinter sich zumachen, ohne aus der Liste zu fliegen. Sie wartet draußen als „Inaktiv“ wie ein höflicher Gast, und die App findet neue Mitglieder deiner Gruppe von selbst.

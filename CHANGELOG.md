@@ -36,7 +36,7 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [Unreleased]
+## [2.3.1] - 2026-10-22
 
 ### Changed
 
