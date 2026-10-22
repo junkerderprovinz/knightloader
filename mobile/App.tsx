@@ -6,10 +6,10 @@ import { NavigationContainer, useNavigationContainerRef } from '@react-navigatio
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useShareIntent } from 'expo-share-intent';
 import {
+  dismissConnection,
   listConnections,
   loadActiveConnection,
   loadDefaultConnection,
-  removeConnection,
   setActiveConnectionId,
   setDefaultConnectionId,
 } from './src/storage/connections';
@@ -312,7 +312,7 @@ function Shell() {
                       route.params?.peer
                         ? undefined
                         : async () => {
-                            await removeConnection(conn.id);
+                            await dismissConnection(conn.id);
                             await setActiveConnectionId(null);
                             setConn(null);
                             refreshStandard();

@@ -124,6 +124,10 @@ export interface RelayClientOptions {
 // request the instant it mounts.
 const CONNECT_WAIT_MS = 6000;
 
+// The relay announces every sibling as soon as a socket joins, so a roster this
+// old holds all of them.
+const ROSTER_SETTLE_MS = 10_000;
+
 export class RelayClient {
   private readonly opts: RelayClientOptions;
   private socket: WebSocket | null = null;
@@ -186,6 +190,12 @@ export class RelayClient {
 
   isConnected(): boolean {
     return this.open;
+  }
+
+  /** Whether siblings() holds every instance on the relay, rather than only the
+   *  ones announced so far. */
+  settled(): boolean {
+    return this.open && Date.now() - this.openedAt >= ROSTER_SETTLE_MS;
   }
 
   /** The instances visible through the relay right now, phones excluded. */
