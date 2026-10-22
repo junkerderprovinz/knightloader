@@ -35,12 +35,12 @@ expect(
   [{ instanceId: 'lan', name: 'Keller', deployment: 'server' }],
 );
 
-const saved = [relayConn('nas'), { ...relayConn('a1b2'), id: 'c3' }];
+const saved = [{ ...relayConn('nas'), name: 'Unraid' }, { ...relayConn('a1b2'), id: 'c3' }];
 const nas = { instanceId: 'nas', name: 'Unraid', deployment: 'container' };
 const laptop = { instanceId: 'lap', name: '', deployment: 'desktop' };
 const round = (more) => followGroup({ saved, live: [nas], away: [desktop], answered: ['nas'], settled: true, dismissed: [], ...more });
 
-expect('a group that matches the saved list changes nothing', round({}), { add: [], drop: [] });
+expect('a group that matches the saved list changes nothing', round({}), { add: [], drop: [], rename: [] });
 expect('an instance that joined later is added', round({ live: [nas, laptop] }).add, [{ instanceId: 'lap', name: 'lap' }]);
 expect(
   'an instance away at the join is added once',
@@ -48,6 +48,15 @@ expect(
   [{ instanceId: 'a1b2', name: 'Zathallia' }],
 );
 expect('an instance removed on this phone stays off', round({ live: [nas, laptop], dismissed: ['lap'] }).add, []);
+expect('a renamed instance takes the name it announces', round({ live: [{ ...nas, name: 'Keller' }] }).rename, [
+  { id: 'c1', name: 'Keller' },
+]);
+expect(
+  'a renamed instance that is away takes the name it was last seen with',
+  round({ away: [{ ...desktop, name: 'Werkstatt' }] }).rename,
+  [{ id: 'c3', name: 'Werkstatt' }],
+);
+expect('an instance that announces no name keeps its own', round({ live: [{ ...nas, name: '' }] }).rename, []);
 expect('an instance taken out of the group goes', round({ away: [] }).drop, ['c3']);
 expect('nothing goes before the relay announced everybody', round({ away: [], settled: false }).drop, []);
 expect('nothing goes when no instance sent the away list', round({ away: null }).drop, []);
