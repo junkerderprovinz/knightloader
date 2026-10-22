@@ -242,16 +242,17 @@ async function groupStatus() {
 }
 
 /**
- * groupView is groupStatus with the group's phones and browsers, asked in the
- * same session of the default instance, or of the first that answered when
- * the default did not.
+ * groupView is groupStatus with the group's phones and browsers and the
+ * instances that are away, asked in the same session of the default instance,
+ * or of the first that answered when the default did not.
  */
 async function groupView(defaultTarget) {
   return withGroup(async ({ siblings, call }) => {
     const instances = await statusOf(siblings, call);
     const live = instances.filter((s) => s.status !== null);
     const ask = defaultOf(live, defaultTarget);
-    return { instances, apps: ask ? await groupApps(call, ask) : [] };
+    const roster = ask ? await groupRoster(call, ask) : { apps: [], away: [] };
+    return { instances, apps: roster.apps, away: awayFrom(roster.away, siblings) };
   });
 }
 
@@ -288,13 +289,25 @@ function statusOf(siblings, call) {
 }
 
 /**
- * groupApps is the group's phones and browsers as `instanceId` lists them. An
- * instance from before the list, or one that keeps it from this browser,
- * answers with none.
+ * groupRoster is the group's phones and browsers, and the instances approved
+ * in the group that are not there now, as `instanceId` lists them. An instance
+ * from before either list, or one that keeps them from this browser, answers
+ * with none.
  */
-async function groupApps(call, instanceId) {
-  const apps = (await readJSON(call, instanceId, '/api/group/apps'))?.apps;
-  return Array.isArray(apps) ? apps.filter((a) => a && typeof a.id === 'string') : [];
+async function groupRoster(call, instanceId) {
+  const r = await readJSON(call, instanceId, '/api/group/apps');
+  const listed = (list) => (Array.isArray(list) ? list.filter((a) => a && typeof a.id === 'string') : []);
+  return { apps: listed(r?.apps), away: listed(r?.away) };
+}
+
+/**
+ * awayFrom leaves out of `away` every instance the relay shows now, since the
+ * instance asked may not have seen one come back yet, and one that is back
+ * has its own card.
+ */
+function awayFrom(away, siblings) {
+  const here = new Set(siblings.map((s) => s.instanceId));
+  return away.filter((m) => !here.has(m.id));
 }
 
 /**
