@@ -34,6 +34,7 @@ export const et: Dict = {
   'instance.filesOne': '1 fail',
   'instance.left': 'jäänud',
   'instance.notConnected': 'Pole ühendatud',
+  'instance.inactive': 'Mitteaktiivne',
   'instance.checking': 'Kontrollin',
   'instance.connected': 'Ühendatud',
   'instance.captchas': '{n} captchat ootab praegu',

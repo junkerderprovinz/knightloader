@@ -34,6 +34,7 @@ export const fi: Dict = {
   'instance.filesOne': '1 tiedosto',
   'instance.left': 'jäljellä',
   'instance.notConnected': 'Ei yhdistetty',
+  'instance.inactive': 'Ei käytössä',
   'instance.checking': 'Tarkistetaan',
   'instance.connected': 'Yhdistetty',
   'instance.captchas': '{n} captchaa odottaa juuri nyt',

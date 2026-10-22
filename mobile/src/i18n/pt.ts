@@ -34,6 +34,7 @@ export const pt: Dict = {
   'instance.filesOne': '1 ficheiro',
   'instance.left': 'restantes',
   'instance.notConnected': 'Sem ligação',
+  'instance.inactive': 'Inativo',
   'instance.checking': 'A verificar',
   'instance.connected': 'Ligado',
   'instance.captchas': '{n} captchas à espera neste momento',

@@ -2,7 +2,8 @@ import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { AppState, Image, StyleSheet, View, type StyleProp, type TextStyle } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { errorText, setQueueHalted } from '../api/client';
-import { fetchGroupApps, type GroupApp } from '../api/groupApps';
+import { fetchGroupRoster, type GroupApp } from '../api/groupApps';
+import { awayFor, type AwayInstance } from '../api/away';
 import { subscribeAllRelays, wakeRelayClients } from '../api/relayClient';
 import { memberOptions } from '../storage/relayIdentity';
 import { isolate } from '../i18n/bidi';
@@ -108,15 +109,15 @@ function rgb(hex: string): { r: number; g: number; b: number } | null {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 
-type ConnStatus = 'checking' | 'online' | 'offline';
+type ConnStatus = 'checking' | 'online' | 'offline' | 'inactive';
 
 // An extension dials the relay only while somebody uses it, so one that is not
-// live but approved is paired, not lost. A phone keeps its socket open, and
-// one that is not live is not connected.
-function deviceStatus(a: GroupApp): 'online' | 'paired' | 'pending' | 'offline' {
+// live but approved is paired, not lost. A phone that is not live is away,
+// which is no fault.
+function deviceStatus(a: GroupApp): 'online' | 'paired' | 'pending' | 'inactive' {
   if (a.connected) return 'online';
   if (!a.approved) return 'pending';
-  return a.deployment === 'extension' ? 'paired' : 'offline';
+  return a.deployment === 'extension' ? 'paired' : 'inactive';
 }
 
 function seenAt(lang: string, unix: number): string {
@@ -162,6 +163,9 @@ export default function ConnectionsScreen({
   // The group's phones and browser extensions, listed by an instance, and
   // this phone's own id among them.
   const [apps, setApps] = useState<GroupApp[]>([]);
+  // The instances approved in the group that are not there now, such as a
+  // desktop app that was closed.
+  const [away, setAway] = useState<AwayInstance[]>([]);
   const [selfId, setSelfId] = useState('');
 
   // The numbers behind every card and behind the summary above them. Polled
@@ -190,7 +194,9 @@ export default function ConnectionsScreen({
     );
     const reachable = list.filter((_, i) => results[i].ok);
     reachable.sort((a, b) => Number(b.id === standard?.id) - Number(a.id === standard?.id));
-    setApps(await fetchGroupApps(reachable));
+    const roster = await fetchGroupRoster(reachable);
+    setApps(roster.apps);
+    setAway(roster.away);
   }, [t]);
 
   // One round at a time. A relay call can take twenty seconds to fail, longer
@@ -300,7 +306,7 @@ export default function ConnectionsScreen({
            takes from hueAt and the rainbow is such state: without them a
            palette change, or disco's walk, leaves the rows in their old
            colours. */
-        extraData={[stats, why, hueAt, rainbow.reactive, defaultId]}
+        extraData={[stats, why, away, hueAt, rainbow.reactive, defaultId]}
         // The group's phones and extensions under the instances, in the same
         // cards. They are not pressable: there is nothing to open on a phone,
         // and taking one out of the group is done on an instance.
@@ -447,10 +453,11 @@ export default function ConnectionsScreen({
         contentContainerStyle={[styles.list, { maxWidth: contentMax(wide) }]}
         renderItem={({ item, index }) => {
           const st = stats[item.id];
+          const gone = st === null ? awayFor(item, away) : undefined;
           // The same poll as the figures beside it, so an instance that comes
           // back reads Connected with its next answer and the badge never
           // contradicts the line under it.
-          const s: ConnStatus = st === undefined ? 'checking' : st === null ? 'offline' : 'online';
+          const s: ConnStatus = st === undefined ? 'checking' : gone ? 'inactive' : st === null ? 'offline' : 'online';
           /* This list is a set of equal members, so each card owns a position
              in the palette - the thing that turns "rainbow mode" from one
              wired list into a property of the app. It is also the longest list
@@ -523,7 +530,11 @@ export default function ConnectionsScreen({
                         {' · '}
                       </>
                     ) : null}
-                    {st === null && why[item.id] ? why[item.id] : statusLine(t, st)}
+                    {gone
+                      ? t('devices.lastSeen', { time: seenAt(lang, gone.lastSeen) })
+                      : st === null && why[item.id]
+                        ? why[item.id]
+                        : statusLine(t, st)}
                   </FiguresLine>
                 </View>
                 {/* No delete here. A bin on every row of a list somebody taps to

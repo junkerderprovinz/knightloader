@@ -34,6 +34,7 @@ export const id: Dict = {
   'instance.filesOne': '1 berkas',
   'instance.left': 'tersisa',
   'instance.notConnected': 'Tidak terhubung',
+  'instance.inactive': 'Tidak aktif',
   'instance.checking': 'Memeriksa',
   'instance.connected': 'Terhubung',
   'instance.captchas': '{n} captcha sedang menunggu',
