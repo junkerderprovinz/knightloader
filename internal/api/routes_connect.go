@@ -127,6 +127,21 @@ type awayMember struct {
 	LastSeen int64 `json:"lastSeen"`
 }
 
+// groupMembers is every other instance of the group this one reaches now,
+// directly or through the relay.
+func groupMembers(a *app.App) []groupMember {
+	peers := a.Federation.Members()
+	members := make([]groupMember, 0, len(peers))
+	for _, p := range peers {
+		name := p.DisplayName
+		if name == "" {
+			name = p.Name
+		}
+		members = append(members, groupMember{ID: p.RelayID, Name: name, Deployment: p.Deployment, Direct: p.Direct(), Relay: p.ViaRelay()})
+	}
+	return members
+}
+
 // awayMembers is every other instance approved in the group that is not
 // reachable at now, as the Instances page, the app and the extension list it.
 func awayMembers(a *app.App, now time.Time) []awayMember {
@@ -176,7 +191,7 @@ func registerConnect(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodGet, "/api/group/apps",
-		"every phone and browser extension of the group: whether it is connected now, whether its key was approved, and when it was last seen; and every other instance of the group that is away, as it last announced itself",
+		"every phone and browser extension of the group: whether it is connected now, whether its key was approved, and when it was last seen; the other instances of the group this one reaches now; and every other instance of the group that is away, as it last announced itself",
 		func(w http.ResponseWriter, r *http.Request) {
 			now := time.Now()
 			known, err := a.Federation.Apps(now)
@@ -184,9 +199,10 @@ func registerConnect(reg *Registry, a *app.App) {
 				log.Printf("connect: could not record the phones of the group: %v", err)
 			}
 			writeJSON(w, struct {
-				Apps []groupApp   `json:"apps"`
-				Away []awayMember `json:"away"`
-			}{groupApps(known), awayMembers(a, now)})
+				Apps    []groupApp    `json:"apps"`
+				Members []groupMember `json:"members"`
+				Away    []awayMember  `json:"away"`
+			}{groupApps(known), groupMembers(a), awayMembers(a, now)})
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/activate",
@@ -537,15 +553,7 @@ func connectInfo(a *app.App) ConnectInfo {
 	}
 
 	now := time.Now()
-	peers := a.Federation.Members()
-	members := make([]groupMember, 0, len(peers))
-	for _, p := range peers {
-		name := p.DisplayName
-		if name == "" {
-			name = p.Name
-		}
-		members = append(members, groupMember{ID: p.RelayID, Name: name, Deployment: p.Deployment, Direct: p.Direct(), Relay: p.ViaRelay()})
-	}
+	members := groupMembers(a)
 	known, err := a.Federation.Apps(now)
 	if err != nil {
 		log.Printf("connect: could not record the phones of the group: %v", err)

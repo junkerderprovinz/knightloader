@@ -23,6 +23,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/discovery"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -993,9 +994,29 @@ func TestAMemberListsThePhonesAndBrowsersOfTheGroup(t *testing.T) {
 	}
 }
 
-func TestAMemberHearsOfADesktopAppOfTheGroupThatWasClosed(t *testing.T) {
+// rosterOf is what GET /api/group/apps tells a member about the instances of
+// the group.
+type rosterOf struct {
+	Members []groupMember `json:"members"`
+	Away    []awayMember  `json:"away"`
+}
+
+func askRoster(t *testing.T, member func(method, path string) (int, []byte)) rosterOf {
+	t.Helper()
+	status, body := member(http.MethodGet, "/api/group/apps")
+	if status != http.StatusOK {
+		t.Fatalf("GET /api/group/apps answered a member %d (%s)", status, body)
+	}
+	var got rosterOf
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("the list does not decode: %v (%s)", err, body)
+	}
+	return got
+}
+
+func TestAMemberHearsOfADesktopAppOfTheGroupThatWasClosedUntilItIsTakenOut(t *testing.T) {
 	t.Parallel()
-	a, _, _, _, _ := groupServer(t)
+	a, _, _, _, owner := groupServer(t)
 	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
@@ -1004,28 +1025,55 @@ func TestAMemberHearsOfADesktopAppOfTheGroupThatWasClosed(t *testing.T) {
 	if _, _, err := a.Federation.Approve(desktop, keyOf("zathallia").Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
 		t.Fatal(err)
 	}
-	away := func() []awayMember {
-		t.Helper()
-		status, body := phone(http.MethodGet, "/api/group/apps")
-		if status != http.StatusOK {
-			t.Fatalf("GET /api/group/apps answered a member %d (%s)", status, body)
-		}
-		var got struct {
-			Away []awayMember `json:"away"`
-		}
-		if err := json.Unmarshal(body, &got); err != nil {
-			t.Fatalf("the list does not decode: %v (%s)", err, body)
-		}
-		return got.Away
-	}
 
 	// After the member: building its handler sets the relay from settings.
 	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{{InstanceID: desktop, Name: "Zathallia", Deployment: "desktop"}}})
-	if got := away(); len(got) != 0 {
-		t.Fatalf("away while the desktop app is open = %+v, want none", got)
+	if got := askRoster(t, phone); len(got.Members) != 1 || got.Members[0].ID != desktop || len(got.Away) != 0 {
+		t.Fatalf("while the desktop app is open: %+v, want it a member and nothing away", got)
 	}
 	a.Federation.SetRelay(nil)
-	if got := away(); len(got) != 1 || got[0].ID != desktop || got[0].Name != "Zathallia" || got[0].Deployment != "desktop" || got[0].LastSeen == 0 {
-		t.Fatalf("away after it was closed = %+v, want the desktop app", got)
+	got := askRoster(t, phone)
+	if len(got.Members) != 0 || len(got.Away) != 1 || got.Away[0].ID != desktop || got.Away[0].Name != "Zathallia" ||
+		got.Away[0].Deployment != "desktop" || got.Away[0].LastSeen == 0 {
+		t.Fatalf("after it was closed: %+v, want the desktop app away", got)
+	}
+
+	if status, body := owner(http.MethodDelete, "/api/connect/members/"+desktop, ""); status != http.StatusNoContent {
+		t.Fatalf("taking it out answered %d (%s)", status, body)
+	}
+	if got := askRoster(t, phone); len(got.Members) != 0 || len(got.Away) != 0 {
+		t.Fatalf("after it was taken out: %+v, want it gone", got)
+	}
+}
+
+// listedNetwork is a network on which every announce it holds is a member's.
+type listedNetwork []discovery.Peer
+
+func (l listedNetwork) Members() []discovery.Peer { return l }
+
+func (listedNetwork) SetGroup(string, func(discovery.Peer) string, func(discovery.Peer) bool) {}
+
+func TestAMemberHearsOfAnInstanceThisOneReachesOnlyOnItsNetwork(t *testing.T) {
+	t.Parallel()
+	a, _, _, _, _ := groupServer(t)
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	phone := signedMember(t, a, "phone-mine", relay.KindMobile)
+	nas := idAs("nas", relay.KindInstance)
+	if _, _, err := a.Federation.Approve(nas, keyOf("nas").Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+		t.Fatal(err)
+	}
+	// After the member, whose handler leaves the direct transport out of any
+	// group, since this instance holds no phrase.
+	a.Federation.SetGroup(bytes.Repeat([]byte{7}, 32), groupID(a), keyOf("self"))
+	a.Federation.SetDiscovery(listedNetwork{{ID: nas, Name: "NAS", URL: "http://192.168.1.5:8749", Deployment: "container"}})
+
+	got := askRoster(t, phone)
+	if len(got.Members) != 1 || got.Members[0].ID != nas || got.Members[0].Name != "NAS" || got.Members[0].Deployment != "container" {
+		t.Fatalf("members = %+v, want the instance on this network", got.Members)
+	}
+	if len(got.Away) != 0 {
+		t.Fatalf("away = %+v, want none while it is reachable", got.Away)
 	}
 }
