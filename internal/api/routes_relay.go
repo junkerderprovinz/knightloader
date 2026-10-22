@@ -331,6 +331,9 @@ func applyRelay(a *app.App) {
 				if _, err := a.Federation.Apps(time.Now()); err != nil {
 					log.Printf("relay: could not record the phones of the group: %v", err)
 				}
+				if _, err := a.Federation.AwayMembers(time.Now()); err != nil {
+					log.Printf("relay: could not record the instances of the group: %v", err)
+				}
 				a.Hub.Broadcast("group", nil)
 			}()
 		},

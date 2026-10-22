@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -559,6 +560,39 @@ func TestAPhoneCountsAsSomebodyInTheGroup(t *testing.T) {
 	info = connectInfoOf(t, token, srv.URL)
 	if len(info.Apps) != 1 || info.Apps[0].Connected {
 		t.Fatalf("apps after the phone left = %+v, want it listed as not connected", info.Apps)
+	}
+}
+
+func TestAClosedDesktopAppStaysListedAsAwayUntilItIsTakenOut(t *testing.T) {
+	t.Parallel()
+	srv, a, token := pairingServer(t)
+	activate(t, token, srv.URL)
+	id := idAs("zathallia", relay.KindInstance)
+	if _, _, err := a.Federation.Approve(id, keyOf("zathallia").Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+		t.Fatal(err)
+	}
+	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{
+		{InstanceID: id, Name: "Zathallia", Deployment: "desktop", Address: "http://192.168.20.86:8749"},
+	}})
+	if info := connectInfoOf(t, token, srv.URL); len(info.Members) != 1 || len(info.Away) != 0 {
+		t.Fatalf("while it is open: members %+v, away %+v; want it a member and nothing away", info.Members, info.Away)
+	}
+
+	a.Federation.SetRelay(nil)
+	info := connectInfoOf(t, token, srv.URL)
+	if len(info.Members) != 0 || len(info.Away) != 1 {
+		t.Fatalf("after it closed: members %+v, away %+v; want it away", info.Members, info.Away)
+	}
+	if got := info.Away[0]; got.ID != id || got.Name != "Zathallia" || got.Deployment != "desktop" ||
+		got.Address != "http://192.168.20.86:8749" || got.LastSeen == 0 {
+		t.Fatalf("away = %+v, want the desktop app as it last announced itself", got)
+	}
+
+	if code, body := call(t, token, http.MethodDelete, srv.URL+"/api/connect/members/"+id, nil); code != http.StatusNoContent {
+		t.Fatalf("removing it answered %d: %s", code, body)
+	}
+	if info := connectInfoOf(t, token, srv.URL); len(info.Away) != 0 {
+		t.Fatalf("after it was taken out: away %+v, want none", info.Away)
 	}
 }
 

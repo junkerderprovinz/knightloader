@@ -37,6 +37,9 @@ type GroupState struct {
 	// Apps is every phone and browser seen in the group, by appID, so one
 	// that has gone away still has a card saying when it was last there.
 	Apps map[string]KnownApp `json:"apps,omitempty"`
+	// Members is every other instance approved in the group, by its id, as
+	// it last announced itself, so one that is closed or away keeps its card.
+	Members map[string]KnownMember `json:"members,omitempty"`
 	// Removed is every phone and browser taken out of the group, by appID
 	// and when. Its calls are turned away; scanning the phrase again gives the
 	// app a new id, so it comes back as a new device. An instance's id is
@@ -68,6 +71,21 @@ type KnownApp struct {
 	// Deployment is "mobile" or "extension", what the client announced.
 	Deployment string    `json:"deployment,omitempty"`
 	LastSeen   time.Time `json:"lastSeen"`
+}
+
+// KnownMember is another instance of the group as it last announced itself.
+type KnownMember struct {
+	// Name is "" when the member announced none of its own.
+	Name       string    `json:"name,omitempty"`
+	Deployment string    `json:"deployment,omitempty"`
+	Address    string    `json:"address,omitempty"`
+	LastSeen   time.Time `json:"lastSeen"`
+}
+
+// AwayMember is an instance approved in the group that is not reachable now.
+type AwayMember struct {
+	ID string
+	KnownMember
 }
 
 // App is one phone or browser extension of the group as the Instances page
@@ -177,6 +195,70 @@ func (m *Manager) Members() []Instance {
 		}
 	}
 	return out
+}
+
+// AwayMembers records the members approved here that are reachable at now and
+// returns the ones that are not, as each last announced itself. A desktop app
+// that was closed stays in the group until somebody takes it out.
+func (m *Manager) AwayMembers(now time.Time) ([]AwayMember, error) {
+	there := map[string]Instance{}
+	for _, in := range m.Members() {
+		there[in.RelayID] = in
+	}
+
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	st := &m.group.state
+	if st.JoinedAt.IsZero() {
+		return nil, nil
+	}
+	dirty := false
+	for id, in := range there {
+		if !approvedInstanceLocked(st, id) {
+			continue
+		}
+		seen := KnownMember{Name: in.DisplayName, Deployment: in.Deployment, Address: in.Address, LastSeen: now}
+		known, ok := st.Members[id]
+		if ok && known.Name == seen.Name && known.Deployment == seen.Deployment && known.Address == seen.Address &&
+			now.Sub(known.LastSeen) < lastSeenStep {
+			continue
+		}
+		if st.Members == nil {
+			st.Members = map[string]KnownMember{}
+		}
+		st.Members[id] = seen
+		dirty = true
+	}
+	var err error
+	if dirty {
+		err = m.group.flushLocked()
+	}
+
+	var out []AwayMember
+	for id, known := range st.Members {
+		if _, on := there[id]; on {
+			continue
+		}
+		if used := st.Keys[id].Used; used.After(known.LastSeen) {
+			known.LastSeen = used
+		}
+		out = append(out, AwayMember{ID: id, KnownMember: known})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Name != out[j].Name {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].ID < out[j].ID
+	})
+	return out, err
+}
+
+// approvedInstanceLocked reports whether id is an instance whose key was let
+// into the group here. Only such a member is remembered while it is away, so
+// a stranger holding the words leaves nothing behind.
+func approvedInstanceLocked(st *GroupState, id string) bool {
+	pin, ok := st.Keys[id]
+	return ok && pin.Approved && pin.Kind == relay.KindInstance
 }
 
 // Apps returns every phone and browser of the group, connected ones first,
@@ -311,16 +393,19 @@ func (m *Manager) RemoveApp(id string, now time.Time) error {
 // leave through RemoveApp instead.
 var ErrNotInstance = errors.New("federation: that id belongs to a phone or a browser of the group, not to an instance")
 
-// RemoveMember revokes the key pinned to instance id at now. Its id stays
-// free, so the instance can enter the phrase again and join under a new key;
-// the old key never speaks here again.
+// RemoveMember revokes the key pinned to instance id at now and forgets its
+// card. Its id stays free, so the instance can enter the phrase again and join
+// under a new key; the old key never speaks here again.
 func (m *Manager) RemoveMember(id string, now time.Time) error {
 	if !relay.ValidInstanceID(id) {
 		return ErrNotInstance
 	}
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
-	if !revokeLocked(&m.group.state, id, now) {
+	st := &m.group.state
+	_, known := st.Members[id]
+	delete(st.Members, id)
+	if !revokeLocked(st, id, now) && !known {
 		return nil
 	}
 	return m.group.flushLocked()

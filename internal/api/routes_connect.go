@@ -66,6 +66,9 @@ type ConnectInfo struct {
 	// every phone that joined it with the phrase.
 	Members []groupMember `json:"members"`
 	Apps    []groupApp    `json:"apps"`
+	// Away is every other instance approved in the group that is not
+	// reachable now, as it last announced itself.
+	Away []awayMember `json:"away"`
 	// JoinedAgo is how many seconds ago this instance generated or entered
 	// its phrase, and MemberSeen whether another instance has shown up since.
 	// Together they tell a group waiting for its second instance from one
@@ -93,6 +96,8 @@ type pendingDevice struct {
 type groupMember struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+	// Deployment is what the member announced itself as, as on its card.
+	Deployment string `json:"deployment"`
 	// Direct is true for a member on this network, Relay for one on the same
 	// relay; a member can be both.
 	Direct bool `json:"direct"`
@@ -109,6 +114,15 @@ type groupApp struct {
 	// connects only while it makes a call, so this is its standing between
 	// calls.
 	Approved bool `json:"approved"`
+	// LastSeen is Unix seconds.
+	LastSeen int64 `json:"lastSeen"`
+}
+
+type awayMember struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Deployment string `json:"deployment"`
+	Address    string `json:"address"`
 	// LastSeen is Unix seconds.
 	LastSeen int64 `json:"lastSeen"`
 }
@@ -513,13 +527,22 @@ func connectInfo(a *app.App) ConnectInfo {
 		if name == "" {
 			name = p.Name
 		}
-		members = append(members, groupMember{ID: p.RelayID, Name: name, Direct: p.Direct(), Relay: p.ViaRelay()})
+		members = append(members, groupMember{ID: p.RelayID, Name: name, Deployment: p.Deployment, Direct: p.Direct(), Relay: p.ViaRelay()})
 	}
 	known, err := a.Federation.Apps(now)
 	if err != nil {
 		log.Printf("connect: could not record the phones of the group: %v", err)
 	}
 	apps := groupApps(known)
+	gone, err := a.Federation.AwayMembers(now)
+	if err != nil {
+		log.Printf("connect: could not record the instances of the group: %v", err)
+	}
+	away := make([]awayMember, 0, len(gone))
+	for _, m := range gone {
+		away = append(away, awayMember{ID: m.ID, Name: m.Name, Deployment: m.Deployment, Address: m.Address,
+			LastSeen: m.LastSeen.Unix()})
+	}
 	appThere := false
 	for _, p := range apps {
 		appThere = appThere || p.Connected
@@ -559,6 +582,7 @@ func connectInfo(a *app.App) ConnectInfo {
 		NetworkAddress:  networkAddress(),
 		Members:         members,
 		Apps:            apps,
+		Away:            away,
 		JoinedAgo:       joinedAgo,
 		MemberSeen:      !st.MemberSeenAt.IsZero(),
 		Pending:         pending,
