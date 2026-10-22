@@ -461,6 +461,9 @@ jobs:
       - name: Every motion level declares every dial
         run: node extension/check-motion.mjs
 
+      - name: Instances that are away
+        run: node extension/check-away.mjs
+
       # --self-hosted checks the package without AMO listing metadata. Two
       # findings are skipped, both from one manifest serving every browser: it
       # declares both background forms, and it uses Chromium's offscreen
@@ -605,6 +608,9 @@ jobs:
 
       - name: Language button
         run: node check-language-button.mjs
+
+      - name: Instances that are away
+        run: node check-away.mjs
 
   # Compiles and tests the desktop module on every relevant push, since
   # desktop.yml only runs for releases. Packaging stays in desktop.yml. gtk3 is
