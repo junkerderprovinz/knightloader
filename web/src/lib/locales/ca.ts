@@ -3758,6 +3758,7 @@ export const ca: Dict = {
   'whatsnew.change.appLogo': 'Els telèfons i les extensions del navegador de «{name}» porten el logotip de KnightLoader com qualsevol altra targeta.',
   'whatsnew.change.cardLogo': 'El logotip és al mateix lloc i té la mateixa mida a totes les targetes de «{name}».',
   'whatsnew.change.netShields': 'A la imatge del grup, cada dispositiu porta el logotip de KnightLoader, amb una petita insígnia que diu si és una instància, l’aplicació d’escriptori, l’aplicació d’Android o una extensió del navegador.',
+  'whatsnew.change.netLabels': 'Els noms de la imatge del grup es veuen sencers, en dues línies quan necessiten el lloc.',
   'whatsnew.change.cardSize': 'Totes les targetes de «{name}» tenen la mateixa amplada i la mateixa alçada.',
   'whatsnew.change.cardNames': 'Els noms de les targetes de «{name}» es veuen sempre sencers. El tipus té una línia pròpia, i les insígnies passen a sota d’un nom que necessita el lloc.',
   'whatsnew.change.inactiveMember': 'Una aplicació d’escriptori aparellada que s’ha tancat es queda a «{name}» i mostra {inactive} amb l’última vegada que es va veure, fins que la treguis. Un telèfon que no hi és mostra el mateix.',

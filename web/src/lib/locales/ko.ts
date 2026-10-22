@@ -3758,6 +3758,7 @@ export const ko: Dict = {
   'whatsnew.change.appLogo': '“{name}”의 휴대폰과 브라우저 확장 프로그램에도 다른 카드처럼 KnightLoader 로고가 붙습니다.',
   'whatsnew.change.cardLogo': '“{name}”의 모든 카드에서 로고가 같은 위치에 같은 크기로 표시됩니다.',
   'whatsnew.change.netShields': '그룹 그림에서 모든 기기에 KnightLoader 로고가 붙고, 인스턴스, 데스크톱 앱, Android 앱, 브라우저 확장 프로그램 중 무엇인지 알려 주는 작은 배지가 함께 표시됩니다.',
+  'whatsnew.change.netLabels': '그룹 그림의 이름이 잘리지 않고 모두 표시되며, 공간이 필요하면 두 줄로 나뉩니다.',
   'whatsnew.change.cardSize': '“{name}”의 모든 카드는 너비와 높이가 같습니다.',
   'whatsnew.change.cardNames': '“{name}” 카드의 이름은 항상 전체가 표시됩니다. 종류는 따로 한 줄에 있고, 이름에 공간이 필요하면 배지가 이름 아래로 내려갑니다.',
   'whatsnew.change.inactiveMember': '페어링된 데스크톱 앱을 닫아도 삭제할 때까지 “{name}”에 남아 있으며, 마지막으로 확인된 시간과 함께 {inactive}으로 표시됩니다. 자리에 없는 휴대폰도 같은 방식으로 표시됩니다.',

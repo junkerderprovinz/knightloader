@@ -3769,6 +3769,7 @@ export const sl: Dict = {
   'whatsnew.change.appLogo': 'Telefoni in razširitve brskalnika v »{name}« nosijo logotip KnightLoader kot vsaka druga kartica.',
   'whatsnew.change.cardLogo': 'Logotip stoji na istem mestu in je enake velikosti na vsaki kartici v »{name}«.',
   'whatsnew.change.netShields': 'Na sliki skupine vsaka naprava nosi logotip KnightLoader, z majhno značko, ki pove, ali gre za primerek, namizno aplikacijo, aplikacijo za Android ali razširitev brskalnika.',
+  'whatsnew.change.netLabels': 'Imena na sliki skupine so vidna v celoti, v dveh vrsticah, kjer potrebujejo prostor.',
   'whatsnew.change.cardSize': 'Vse kartice v »{name}« so enako široke in enako visoke.',
   'whatsnew.change.cardNames': 'Imena na karticah v »{name}« so vedno vidna v celoti. Vrsta ima svojo vrstico, značke pa se premaknejo pod ime, ki potrebuje prostor.',
   'whatsnew.change.inactiveMember': 'Seznanjena namizna aplikacija, ki je bila zaprta, ostane v »{name}« in kaže {inactive} skupaj s časom, ko je bila nazadnje vidna, dokler je ne odstraniš. Telefon, ki ga ni, kaže enako.',

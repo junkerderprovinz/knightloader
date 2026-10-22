@@ -3756,6 +3756,7 @@ export const da: Dict = {
   'whatsnew.change.appLogo': 'Telefoner og browserudvidelser under „{name}“ bærer KnightLoader-logoet som alle andre kort.',
   'whatsnew.change.cardLogo': 'Logoet står samme sted og i samme størrelse på hvert kort under „{name}“.',
   'whatsnew.change.netShields': 'I billedet af gruppen bærer hver enhed KnightLoader-logoet med en lille badge, der viser, om det er en instans, skrivebordsappen, Android-appen eller en browserudvidelse.',
+  'whatsnew.change.netLabels': 'Navne i billedet af gruppen vises helt, på to linjer, hvor de har brug for pladsen.',
   'whatsnew.change.cardSize': 'Alle kort under „{name}“ er lige brede og lige høje.',
   'whatsnew.change.cardNames': 'Navne på kortene under „{name}“ vises altid helt. Typen har sin egen linje, og badges rykker ned under et navn, der har brug for pladsen.',
   'whatsnew.change.inactiveMember': 'En parret skrivebordsapp, der er blevet lukket, bliver stående under „{name}“ og viser {inactive} med hvornår den sidst blev set, indtil du fjerner den. En telefon, der ikke er der, viser det samme.',

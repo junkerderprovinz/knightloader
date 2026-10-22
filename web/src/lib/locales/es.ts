@@ -3762,6 +3762,7 @@ export const es: Dict = {
   'whatsnew.change.appLogo': 'Los teléfonos y las extensiones del navegador de «{name}» llevan el logotipo de KnightLoader como cualquier otra tarjeta.',
   'whatsnew.change.cardLogo': 'El logotipo está en el mismo sitio y con el mismo tamaño en todas las tarjetas de «{name}».',
   'whatsnew.change.netShields': 'En la imagen del grupo, cada dispositivo lleva el logotipo de KnightLoader, con una pequeña insignia que indica si es una instancia, la aplicación de escritorio, la aplicación de Android o una extensión del navegador.',
+  'whatsnew.change.netLabels': 'Los nombres de la imagen del grupo se muestran completos, en dos líneas cuando necesitan el sitio.',
   'whatsnew.change.cardSize': 'Todas las tarjetas de «{name}» tienen el mismo ancho y la misma altura.',
   'whatsnew.change.cardNames': 'Los nombres de las tarjetas de «{name}» se muestran siempre completos. El tipo tiene su propia línea, y las insignias pasan debajo de un nombre que necesita el sitio.',
   'whatsnew.change.inactiveMember': 'Una aplicación de escritorio emparejada que se cerró sigue en «{name}» y muestra {inactive} con la última vez que se vio, hasta que la quites. Un teléfono que no está muestra lo mismo.',

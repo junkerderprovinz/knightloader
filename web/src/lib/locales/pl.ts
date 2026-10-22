@@ -3755,6 +3755,7 @@ export const pl: Dict = {
   'whatsnew.change.appLogo': 'Telefony i rozszerzenia przeglądarki w „{name}” noszą logo KnightLoadera jak każda inna karta.',
   'whatsnew.change.cardLogo': 'Logo stoi w tym samym miejscu i ma ten sam rozmiar na każdej karcie w „{name}”.',
   'whatsnew.change.netShields': 'Na obrazie grupy każde urządzenie nosi logo KnightLoadera, z małą plakietką, która mówi, czy to instancja, aplikacja na komputer, aplikacja na Androida czy rozszerzenie przeglądarki.',
+  'whatsnew.change.netLabels': 'Nazwy na obrazie grupy są widoczne w całości, w dwóch wierszach, gdy potrzebują miejsca.',
   'whatsnew.change.cardSize': 'Wszystkie karty w „{name}” mają tę samą szerokość i tę samą wysokość.',
   'whatsnew.change.cardNames': 'Nazwy na kartach w „{name}” są zawsze widoczne w całości. Rodzaj ma własny wiersz, a plakietki przechodzą pod nazwę, która potrzebuje miejsca.',
   'whatsnew.change.inactiveMember': 'Sparowana aplikacja na komputer, którą zamknięto, zostaje w „{name}” i pokazuje {inactive} oraz to, kiedy była ostatnio widziana, dopóki jej nie usuniesz. Telefon, którego nie ma, pokazuje to samo.',

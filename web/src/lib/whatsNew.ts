@@ -69,6 +69,7 @@ export const RELEASES: Release[] = [
       { id: 'card-size', to: INSTANCES, text: 'whatsnew.change.cardSize', names: { name: 'instances.title' } },
       { id: 'card-logo', to: INSTANCES, text: 'whatsnew.change.cardLogo', names: { name: 'instances.title' } },
       { id: 'net-shields', to: [...INSTANCES, '/settings/pairing'], text: 'whatsnew.change.netShields' },
+      { id: 'net-labels', to: [...INSTANCES, '/settings/pairing'], text: 'whatsnew.change.netLabels' },
     ],
   },
   {

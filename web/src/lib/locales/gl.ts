@@ -3768,6 +3768,7 @@ export const gl: Dict = {
   'whatsnew.change.appLogo': 'Os teléfonos e as extensións do navegador de «{name}» levan o logotipo de KnightLoader coma calquera outra tarxeta.',
   'whatsnew.change.cardLogo': 'O logotipo está no mesmo sitio e co mesmo tamaño en todas as tarxetas de «{name}».',
   'whatsnew.change.netShields': 'Na imaxe do grupo, cada dispositivo leva o logotipo de KnightLoader, cunha pequena insignia que di se é unha instancia, a aplicación de escritorio, a aplicación de Android ou unha extensión do navegador.',
+  'whatsnew.change.netLabels': 'Os nomes da imaxe do grupo vense enteiros, en dúas liñas cando precisan o sitio.',
   'whatsnew.change.cardSize': 'Todas as tarxetas de «{name}» teñen a mesma largura e a mesma altura.',
   'whatsnew.change.cardNames': 'Os nomes das tarxetas de «{name}» vense sempre enteiros. O tipo ten unha liña propia, e as insignias pasan debaixo dun nome que precisa o sitio.',
   'whatsnew.change.inactiveMember': 'Unha aplicación de escritorio emparellada que se pechou segue en «{name}» e mostra {inactive} coa última vez que se viu, ata que a quites. Un teléfono que non está mostra o mesmo.',

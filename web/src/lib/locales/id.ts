@@ -3770,6 +3770,7 @@ export const id: Dict = {
   'whatsnew.change.appLogo': 'Ponsel dan ekstensi peramban di “{name}” memakai logo KnightLoader seperti kartu lainnya.',
   'whatsnew.change.cardLogo': 'Logo berada di tempat yang sama dan dengan ukuran yang sama di setiap kartu di bawah “{name}”.',
   'whatsnew.change.netShields': 'Di gambar grup, setiap perangkat memakai logo KnightLoader, dengan lencana kecil yang menunjukkan apakah itu instans, aplikasi desktop, aplikasi Android, atau ekstensi peramban.',
+  'whatsnew.change.netLabels': 'Nama di gambar grup tampil utuh, dalam dua baris bila butuh tempat.',
   'whatsnew.change.cardSize': 'Semua kartu di bawah “{name}” sama lebar dan sama tinggi.',
   'whatsnew.change.cardNames': 'Nama di kartu di bawah “{name}” selalu tampil utuh. Jenisnya punya baris sendiri, dan lencana pindah ke bawah nama yang butuh tempat.',
   'whatsnew.change.inactiveMember': 'Aplikasi desktop yang sudah dipasangkan lalu ditutup tetap ada di bawah “{name}” dan menampilkan {inactive} beserta kapan terakhir terlihat, sampai kamu menghapusnya. Ponsel yang sedang tidak ada juga menampilkan hal yang sama.',

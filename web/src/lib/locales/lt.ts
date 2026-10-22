@@ -3772,6 +3772,7 @@ export const lt: Dict = {
   'whatsnew.change.appLogo': 'Telefonai ir naršyklės plėtiniai skiltyje „{name}“ turi KnightLoader logotipą kaip ir visos kitos kortelės.',
   'whatsnew.change.cardLogo': 'Logotipas kiekvienoje kortelėje skiltyje „{name}“ stovi toje pačioje vietoje ir yra tokio paties dydžio.',
   'whatsnew.change.netShields': 'Grupės paveikslėlyje kiekvienas įrenginys turi KnightLoader logotipą su mažu ženkliuku, kuris pasako, ar tai egzempliorius, darbalaukio programa, Android programa ar naršyklės plėtinys.',
+  'whatsnew.change.netLabels': 'Pavadinimai grupės paveikslėlyje matomi visi, dviem eilutėmis, kur reikia vietos.',
   'whatsnew.change.cardSize': 'Visos kortelės skiltyje „{name}“ yra vienodo pločio ir vienodo aukščio.',
   'whatsnew.change.cardNames': 'Pavadinimai kortelėse skiltyje „{name}“ visada matomi visi. Rūšis turi savo eilutę, o ženkliukai pereina po pavadinimu, kuriam reikia vietos.',
   'whatsnew.change.inactiveMember': 'Susieta darbalaukio programa, kuri buvo uždaryta, lieka skiltyje „{name}“ ir rodo {inactive} kartu su laiku, kada ji paskutinį kartą matyta, kol jos nepašalinsi. Telefonas, kurio nėra, rodo tą patį.',

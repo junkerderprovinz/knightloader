@@ -3772,6 +3772,7 @@ export const fi: Dict = {
   'whatsnew.change.appLogo': 'Puhelimilla ja selainlaajennuksilla kohdassa ”{name}” on KnightLoaderin logo kuten kaikilla muillakin korteilla.',
   'whatsnew.change.cardLogo': 'Logo on jokaisella kortilla kohdassa ”{name}” samassa paikassa ja samankokoisena.',
   'whatsnew.change.netShields': 'Ryhmän kuvassa jokaisella laitteella on KnightLoaderin logo ja pieni merkki, joka kertoo, onko se instanssi, työpöytäsovellus, Android-sovellus vai selainlaajennus.',
+  'whatsnew.change.netLabels': 'Ryhmän kuvan nimet näkyvät kokonaan, kahdella rivillä, kun ne tarvitsevat tilaa.',
   'whatsnew.change.cardSize': 'Kaikki kortit kohdassa ”{name}” ovat yhtä leveitä ja yhtä korkeita.',
   'whatsnew.change.cardNames': 'Korttien nimet kohdassa ”{name}” näkyvät aina kokonaan. Lajilla on oma rivinsä, ja merkit siirtyvät nimen alle, kun nimi tarvitsee tilan.',
   'whatsnew.change.inactiveMember': 'Pariutettu työpöytäsovellus, joka on suljettu, pysyy kohdassa ”{name}” ja näyttää {inactive} sekä sen, milloin se nähtiin viimeksi, kunnes poistat sen. Puhelin, joka ei ole paikalla, näyttää saman.',
