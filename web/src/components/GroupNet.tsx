@@ -299,35 +299,38 @@ export function GroupNet(props: NetProps) {
   const box = useRef<HTMLDivElement>(null);
   const calm = useStillPictures();
 
-  // The links draw in once, when the page opens and the picture is in sight.
-  // The test environment has neither of the two interfaces this takes.
+  // The links draw in once, when the picture first comes into sight, and
+  // nothing is hidden before that, so no node waits on a moment that never
+  // comes. A layout shift while the page loads can report out of sight and in
+  // sight in one batch, which is why every entry counts. The test environment
+  // has neither of the two interfaces this takes.
   useEffect(() => {
     const el = box.current;
     if (calm || !el || typeof el.animate !== 'function' || typeof IntersectionObserver === 'undefined') return;
     const drawn: Animation[] = [];
-    el.querySelectorAll('.kl-net-svg').forEach((svg) =>
-      svg.querySelectorAll('.kl-net-spoke:not(.hub)').forEach((spoke, j) => {
-        const start = 150 + j * 140;
-        const show = (parts: string, delay: number, frames: Keyframe[]) =>
-          spoke.querySelectorAll(parts).forEach((part) =>
-            drawn.push(
-              part.animate(frames, { duration: 420, delay: start + delay, easing: 'cubic-bezier(.3,0,.2,1)', fill: 'backwards' }),
-            ),
-          );
-        show('.kl-net-link:not(.relay)', 0, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }]);
-        show('.kl-net-link.relay', 0, [{ opacity: 0 }, { opacity: 1 }]);
-        show('.kl-net-node, .kl-net-label', 300, [
-          { opacity: 0, transform: 'scale(.7)' },
-          { opacity: 1, transform: 'none' },
-        ]);
-      }),
-    );
-    drawn.forEach((a) => a.pause());
+    const drawIn = () =>
+      el.querySelectorAll('.kl-net-svg').forEach((svg) =>
+        svg.querySelectorAll('.kl-net-spoke:not(.hub)').forEach((spoke, j) => {
+          const start = 150 + j * 140;
+          const show = (parts: string, delay: number, frames: Keyframe[]) =>
+            spoke.querySelectorAll(parts).forEach((part) =>
+              drawn.push(
+                part.animate(frames, { duration: 420, delay: start + delay, easing: 'cubic-bezier(.3,0,.2,1)', fill: 'backwards' }),
+              ),
+            );
+          show('.kl-net-link:not(.relay)', 0, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }]);
+          show('.kl-net-link.relay', 0, [{ opacity: 0 }, { opacity: 1 }]);
+          show('.kl-net-node, .kl-net-label', 300, [
+            { opacity: 0, transform: 'scale(.7)' },
+            { opacity: 1, transform: 'none' },
+          ]);
+        }),
+      );
     const watch = new IntersectionObserver(
       (seen) => {
-        if (!seen[0].isIntersecting) return;
+        if (!seen.some((entry) => entry.isIntersecting)) return;
         watch.disconnect();
-        drawn.forEach((a) => a.play());
+        drawIn();
       },
       { threshold: 0.35 },
     );
