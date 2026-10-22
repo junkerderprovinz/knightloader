@@ -91,6 +91,45 @@ describe('the lines of the net', () => {
   });
 });
 
+describe('drawing the net in', () => {
+  /** An IntersectionObserver that reports only when the test says so. */
+  function watchSight() {
+    const said: ((entries: { isIntersecting: boolean }[]) => void)[] = [];
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(report: (entries: { isIntersecting: boolean }[]) => void) {
+          said.push(report);
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    return (...sight: boolean[]) => act(() => said.forEach((report) => report(sight.map((isIntersecting) => ({ isIntersecting })))));
+  }
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  const hiding = (runs: Run[]) => runs.filter((r) => r.el.closest('.kl-net-spoke:not(.hub)'));
+
+  it('hides no node while the picture waits to come into sight', () => {
+    const runs = recordAnimations();
+    watchSight();
+    draw();
+    expect(hiding(runs)).toEqual([]);
+  });
+
+  it('draws the nodes in once the picture is in sight, also when the same report says it left first', () => {
+    const runs = recordAnimations();
+    const report = watchSight();
+    draw();
+    report(false, true);
+    const nodes = hiding(runs).filter((r) => r.el.classList.contains('kl-net-node'));
+    // Each node in both shapes of the picture.
+    expect(nodes).toHaveLength(4);
+  });
+});
+
 describe('a handover', () => {
   it('travels along its node’s line at the speed everything in a picture travels at', () => {
     const runs = recordAnimations();
