@@ -56,6 +56,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   when it was last seen, and stays until you remove it, also after the server
   restarts. The Pairing page lists it the same way. A phone that is away shows
   Inactive in grey instead of a red Not connected.
+- **The browser extension keeps a closed desktop app in its list.** On the
+  options page an instance of the group that is away shows Inactive with when
+  it was last seen, and once it is back it is listed once, as before. A phone
+  that is away shows Inactive in grey instead of a red Not connected.
+- **The Android app shows a closed instance as Inactive.** A saved instance
+  that the group lists as away reads Inactive in grey with when it was last
+  seen, instead of a red Not connected. A phone that is away shows the same.
 - **An instance card no longer flashes red while the page loads.** Until the
   instance first answers, its card says Checking, and the card of the instance
   you are on shows Connected right away.
