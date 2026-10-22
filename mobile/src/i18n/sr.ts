@@ -34,6 +34,7 @@ export const sr: Dict = {
   'instance.filesOne': '1 фајл',
   'instance.left': 'преостало',
   'instance.notConnected': 'Није повезано',
+  'instance.inactive': 'Неактивно',
   'instance.checking': 'Провера',
   'instance.connected': 'Повезано',
   'instance.captchas': 'Captcha које тренутно чекају: {n}',

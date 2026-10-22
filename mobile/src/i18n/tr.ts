@@ -34,6 +34,7 @@ export const tr: Dict = {
   'instance.filesOne': '1 dosya',
   'instance.left': 'kaldı',
   'instance.notConnected': 'Bağlı değil',
+  'instance.inactive': 'Etkin değil',
   'instance.checking': 'Denetleniyor',
   'instance.connected': 'Bağlı',
   'instance.captchas': 'Şu anda {n} captcha bekliyor',

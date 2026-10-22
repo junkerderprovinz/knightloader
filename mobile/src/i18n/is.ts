@@ -34,6 +34,7 @@ export const is: Dict = {
   'instance.filesOne': '1 skrá',
   'instance.left': 'eftir',
   'instance.notConnected': 'Ekki tengt',
+  'instance.inactive': 'Óvirkt',
   'instance.checking': 'Athuga',
   'instance.connected': 'Tengt',
   'instance.captchas': '{n} captcha bíða núna',

@@ -34,6 +34,7 @@ export const ms: Dict = {
   'instance.filesOne': '1 fail',
   'instance.left': 'baki',
   'instance.notConnected': 'Tidak bersambung',
+  'instance.inactive': 'Tidak aktif',
   'instance.checking': 'Menyemak',
   'instance.connected': 'Bersambung',
   'instance.captchas': '{n} captcha sedang menunggu',

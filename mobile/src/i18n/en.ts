@@ -56,6 +56,7 @@ export const en = {
   'instance.filesOne': '1 file',
   'instance.left': 'left',
   'instance.notConnected': 'Not connected',
+  'instance.inactive': 'Inactive',
   'instance.checking': 'Checking',
   'instance.connected': 'Connected',
   'instance.captchas': '{n} captchas waiting right now',

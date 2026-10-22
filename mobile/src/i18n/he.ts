@@ -34,6 +34,7 @@ export const he: Dict = {
   'instance.filesOne': 'קובץ אחד',
   'instance.left': 'נותרו',
   'instance.notConnected': 'לא מחובר',
+  'instance.inactive': 'לא פעיל',
   'instance.checking': 'בודק',
   'instance.connected': 'מחובר',
   'instance.captchas': '{n} קאפצ׳ות ממתינות כרגע',
