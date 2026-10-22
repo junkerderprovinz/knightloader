@@ -68,11 +68,16 @@ export async function dismissConnection(id: string): Promise<void> {
   if (!dismissed.includes(conn.instanceId)) await saveDismissed([...dismissed, conn.instanceId]);
 }
 
-/** followGroupChange saves the instances a group gained and drops the
- *  connections of those it lost, in one write. */
-export async function followGroupChange(added: RelayConnection[], dropped: string[]): Promise<void> {
+/** followGroupChange saves the instances a group gained, drops the
+ *  connections of those it lost and renames the rest, in one write. */
+export async function followGroupChange(
+  added: RelayConnection[],
+  dropped: string[],
+  renamed: Map<string, string>,
+): Promise<void> {
   const list = await listConnections();
-  await saveList([...list.filter((c) => !dropped.includes(c.id)), ...added]);
+  const kept = list.filter((c) => !dropped.includes(c.id)).map((c) => ({ ...c, name: renamed.get(c.id) ?? c.name }));
+  await saveList([...kept, ...added]);
   const active = await getActiveConnectionId();
   if (active && dropped.includes(active)) await setActiveConnectionId(null);
 }

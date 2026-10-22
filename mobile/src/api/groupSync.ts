@@ -31,6 +31,7 @@ export async function followGroups(saved: ServerConnection[], reachable: ServerC
   const away: AwayInstance[] = [];
   const added: RelayConnection[] = [];
   const dropped: string[] = [];
+  const renamed = new Map<string, string>();
   for (const [key, mine] of groups) {
     const keyed = mine.find((c) => c.relayFrameKey);
     if (!keyed?.relayFrameKey) continue;
@@ -60,8 +61,9 @@ export async function followGroups(saved: ServerConnection[], reachable: ServerC
       });
     }
     dropped.push(...change.drop);
+    for (const r of change.rename) renamed.set(r.id, r.name);
   }
-  const changed = added.length > 0 || dropped.length > 0;
-  if (changed) await followGroupChange(added, dropped);
+  const changed = added.length > 0 || dropped.length > 0 || renamed.size > 0;
+  if (changed) await followGroupChange(added, dropped, renamed);
   return { apps: first.apps, away, changed };
 }

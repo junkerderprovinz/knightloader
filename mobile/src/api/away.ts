@@ -39,19 +39,23 @@ export function awayFor(conn: ServerConnection, away: AwayInstance[]): AwayInsta
   return away.find((m) => m.id === conn.instanceId);
 }
 
-/** The instances to save for one group and the saved connections to drop. */
+/** The instances to save for one group, the saved connections to drop, and
+ *  the new names of those renamed since. */
 export interface GroupChange {
   add: { instanceId: string; name: string }[];
   drop: string[];
+  rename: { id: string; name: string }[];
 }
 
 /**
  * followGroup works out how the saved connections of one group follow it. An
  * instance live on the relay or listed as away that is not saved yet is added,
- * unless it was removed on this phone. A saved one that is neither goes, since
- * it was taken out of the group, but only once the relay has announced every
- * sibling (`settled`) and an instance of the group sent its away list (`away`
- * not null); until then a missing instance may only be late.
+ * unless it was removed on this phone. A saved one takes the name the group
+ * gives it, the one it announces on the relay before the one it was last seen
+ * with. A saved one that is neither live nor away goes, since it was taken out
+ * of the group, but only once the relay has announced every sibling
+ * (`settled`) and an instance of the group sent its away list (`away` not
+ * null); until then a missing instance may only be late.
  */
 export function followGroup({
   saved,
@@ -81,7 +85,15 @@ export function followGroup({
     known.add(f.instanceId);
     add.push(f);
   }
-  if (away === null || !settled) return { add, drop: [] };
+  // An instance that announced no name keeps the one it had.
+  const named = new Map<string, string>();
+  for (const s of live) if (s.name && !named.has(s.instanceId)) named.set(s.instanceId, s.name);
+  for (const a of away ?? []) if (a.name && !named.has(a.id)) named.set(a.id, a.name);
+  const rename = saved.flatMap((c) => {
+    const name = named.get(c.instanceId);
+    return name && name !== c.name ? [{ id: c.id, name }] : [];
+  });
+  if (away === null || !settled) return { add, drop: [], rename };
   const there = new Set([...live.map((s) => s.instanceId), ...away.map((m) => m.id), ...answered]);
-  return { add, drop: saved.filter((c) => !there.has(c.instanceId)).map((c) => c.id) };
+  return { add, drop: saved.filter((c) => !there.has(c.instanceId)).map((c) => c.id), rename };
 }
