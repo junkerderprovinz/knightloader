@@ -127,6 +127,21 @@ type awayMember struct {
 	LastSeen int64 `json:"lastSeen"`
 }
 
+// awayMembers is every other instance approved in the group that is not
+// reachable at now, as the Instances page, the app and the extension list it.
+func awayMembers(a *app.App, now time.Time) []awayMember {
+	gone, err := a.Federation.AwayMembers(now)
+	if err != nil {
+		log.Printf("connect: could not record the instances of the group: %v", err)
+	}
+	away := make([]awayMember, 0, len(gone))
+	for _, m := range gone {
+		away = append(away, awayMember{ID: m.ID, Name: m.Name, Deployment: m.Deployment, Address: m.Address,
+			LastSeen: m.LastSeen.Unix()})
+	}
+	return away
+}
+
 func groupApps(known []federation.App) []groupApp {
 	apps := make([]groupApp, 0, len(known))
 	for _, p := range known {
@@ -161,15 +176,17 @@ func registerConnect(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodGet, "/api/group/apps",
-		"every phone and browser extension of the group: whether it is connected now, whether its key was approved, and when it was last seen",
+		"every phone and browser extension of the group: whether it is connected now, whether its key was approved, and when it was last seen; and every other instance of the group that is away, as it last announced itself",
 		func(w http.ResponseWriter, r *http.Request) {
-			known, err := a.Federation.Apps(time.Now())
+			now := time.Now()
+			known, err := a.Federation.Apps(now)
 			if err != nil {
 				log.Printf("connect: could not record the phones of the group: %v", err)
 			}
 			writeJSON(w, struct {
-				Apps []groupApp `json:"apps"`
-			}{groupApps(known)})
+				Apps []groupApp   `json:"apps"`
+				Away []awayMember `json:"away"`
+			}{groupApps(known), awayMembers(a, now)})
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/activate",
@@ -534,15 +551,7 @@ func connectInfo(a *app.App) ConnectInfo {
 		log.Printf("connect: could not record the phones of the group: %v", err)
 	}
 	apps := groupApps(known)
-	gone, err := a.Federation.AwayMembers(now)
-	if err != nil {
-		log.Printf("connect: could not record the instances of the group: %v", err)
-	}
-	away := make([]awayMember, 0, len(gone))
-	for _, m := range gone {
-		away = append(away, awayMember{ID: m.ID, Name: m.Name, Deployment: m.Deployment, Address: m.Address,
-			LastSeen: m.LastSeen.Unix()})
-	}
+	away := awayMembers(a, now)
 	appThere := false
 	for _, p := range apps {
 		appThere = appThere || p.Connected

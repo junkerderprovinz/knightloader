@@ -992,3 +992,40 @@ func TestAMemberListsThePhonesAndBrowsersOfTheGroup(t *testing.T) {
 		t.Errorf("the extension was last seen at %v, want a time", byID[browser]["lastSeen"])
 	}
 }
+
+func TestAMemberHearsOfADesktopAppOfTheGroupThatWasClosed(t *testing.T) {
+	t.Parallel()
+	a, _, _, _, _ := groupServer(t)
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	phone := signedMember(t, a, "phone-mine", relay.KindMobile)
+	desktop := idAs("zathallia", relay.KindInstance)
+	if _, _, err := a.Federation.Approve(desktop, keyOf("zathallia").Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+		t.Fatal(err)
+	}
+	away := func() []awayMember {
+		t.Helper()
+		status, body := phone(http.MethodGet, "/api/group/apps")
+		if status != http.StatusOK {
+			t.Fatalf("GET /api/group/apps answered a member %d (%s)", status, body)
+		}
+		var got struct {
+			Away []awayMember `json:"away"`
+		}
+		if err := json.Unmarshal(body, &got); err != nil {
+			t.Fatalf("the list does not decode: %v (%s)", err, body)
+		}
+		return got.Away
+	}
+
+	// After the member: building its handler sets the relay from settings.
+	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{{InstanceID: desktop, Name: "Zathallia", Deployment: "desktop"}}})
+	if got := away(); len(got) != 0 {
+		t.Fatalf("away while the desktop app is open = %+v, want none", got)
+	}
+	a.Federation.SetRelay(nil)
+	if got := away(); len(got) != 1 || got[0].ID != desktop || got[0].Name != "Zathallia" || got[0].Deployment != "desktop" || got[0].LastSeen == 0 {
+		t.Fatalf("away after it was closed = %+v, want the desktop app", got)
+	}
+}
