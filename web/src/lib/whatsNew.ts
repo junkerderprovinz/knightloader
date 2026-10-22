@@ -59,6 +59,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.inactiveMember',
         names: { name: 'instances.title', inactive: 'instances.inactive' },
       },
+      {
+        id: 'checking-state',
+        to: INSTANCES,
+        text: 'whatsnew.change.checkingState',
+        names: { name: 'instances.title', checking: 'instances.checking', notConnected: 'instances.notConnected' },
+      },
       { id: 'card-names', to: INSTANCES, text: 'whatsnew.change.cardNames', names: { name: 'instances.title' } },
       { id: 'card-size', to: INSTANCES, text: 'whatsnew.change.cardSize', names: { name: 'instances.title' } },
       { id: 'card-logo', to: INSTANCES, text: 'whatsnew.change.cardLogo', names: { name: 'instances.title' } },

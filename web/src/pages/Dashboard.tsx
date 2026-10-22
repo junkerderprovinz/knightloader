@@ -203,7 +203,7 @@ export function Dashboard() {
           <Card hue={hue} className="flex flex-col gap-3">
             <SectionTitle>{t('overview.instances')}</SectionTitle>
             <div className="glim-well divide-y divide-carbon-border/60 p-0">
-              <InstanceRow name={settings?.instanceName || t('instances.thisInstance')} base="/api" />
+              <InstanceRow name={settings?.instanceName || t('instances.thisInstance')} base="/api" local />
               {(instances ?? []).map((i) => (
                 <InstanceRow
                   key={i.name}

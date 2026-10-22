@@ -280,6 +280,7 @@ export function Instances({
             base="/api"
             // Without a configured name the title already says "this instance".
             isSelf={ownName !== ''}
+            local
             onOpen={() => navigate('/downloads')}
           />
           {shown.map((p, i) => {
