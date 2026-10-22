@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import type { ServerConnection } from '../api/types';
+import type { RelayConnection, ServerConnection } from '../api/types';
 import { closeAllRelayClients, closeRelayClient } from '../api/relayClient';
 
 // Every saved connection carries an API token, a bearer secret with the reach
@@ -10,6 +10,13 @@ import { closeAllRelayClients, closeRelayClient } from '../api/relayClient';
 const LIST_KEY = 'knightloader-connections';
 const ACTIVE_KEY = 'knightloader-active-connection';
 const DEFAULT_KEY = 'knightloader-default-connection';
+// The group's instances this phone was told to leave off its list. The overview
+// adds every instance of the group on its own, so a removal has to be kept.
+const DISMISSED_KEY = 'knightloader-dismissed-instances';
+
+export function newConnectionId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 export async function listConnections(): Promise<ServerConnection[]> {
   const raw = await SecureStore.getItemAsync(LIST_KEY);
@@ -29,6 +36,50 @@ async function saveList(list: ServerConnection[]): Promise<void> {
 export async function addConnection(conn: ServerConnection): Promise<void> {
   const list = await listConnections();
   await saveList([...list.filter((c) => c.id !== conn.id), conn]);
+  // Saving an instance by hand, by joining with the phrase again, takes back
+  // its removal.
+  if (conn.kind === 'relay') {
+    const dismissed = await listDismissed();
+    if (dismissed.includes(conn.instanceId)) await saveDismissed(dismissed.filter((id) => id !== conn.instanceId));
+  }
+}
+
+export async function listDismissed(): Promise<string[]> {
+  try {
+    const parsed = JSON.parse((await SecureStore.getItemAsync(DISMISSED_KEY)) ?? '[]');
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+async function saveDismissed(ids: string[]): Promise<void> {
+  if (ids.length > 0) await SecureStore.setItemAsync(DISMISSED_KEY, JSON.stringify(ids));
+  else await SecureStore.deleteItemAsync(DISMISSED_KEY);
+}
+
+/** dismissConnection removes a connection somebody removed on this phone, and
+ *  keeps its instance off the list while it stays in the group. */
+export async function dismissConnection(id: string): Promise<void> {
+  const conn = (await listConnections()).find((c) => c.id === id);
+  await removeConnection(id);
+  if (conn?.kind !== 'relay') return;
+  const dismissed = await listDismissed();
+  if (!dismissed.includes(conn.instanceId)) await saveDismissed([...dismissed, conn.instanceId]);
+}
+
+/** followGroupChange saves the instances a group gained, drops the
+ *  connections of those it lost and renames the rest, in one write. */
+export async function followGroupChange(
+  added: RelayConnection[],
+  dropped: string[],
+  renamed: Map<string, string>,
+): Promise<void> {
+  const list = await listConnections();
+  const kept = list.filter((c) => !dropped.includes(c.id)).map((c) => ({ ...c, name: renamed.get(c.id) ?? c.name }));
+  await saveList([...kept, ...added]);
+  const active = await getActiveConnectionId();
+  if (active && dropped.includes(active)) await setActiveConnectionId(null);
 }
 
 export async function removeConnection(id: string): Promise<void> {
@@ -67,6 +118,7 @@ export async function removeGroupConnections(relayUrl: string, relayKey: string)
 // from this device in one step.
 export async function removeAllConnections(): Promise<void> {
   await saveList([]);
+  await saveDismissed([]);
   await setActiveConnectionId(null);
   // Nothing is left to keep a relay socket open for. Without this, removing
   // every connection would leave sockets retrying against relays whose keys

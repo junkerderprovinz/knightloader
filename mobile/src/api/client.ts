@@ -9,13 +9,14 @@ import {
   type ExtractJob,
   type Instance,
   type QueueState,
+  type RelayConnection,
   type ServerConnection,
   type Task,
   type TorrentFileView,
   type WatchList,
 } from './types';
 import { WATCHED, widgetPagePath, widgetPath } from './captcha';
-import { relayClientFor } from './relayClient';
+import { relayClientFor, type RelayClient } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
 import type { CardSwitches } from './taskState';
@@ -80,18 +81,23 @@ export function onRemovedFromGroup(handler: () => void): void {
   removedHandler = handler;
 }
 
+/** relayClientOf is the shared relay client of conn's group. */
+export async function relayClientOf(conn: RelayConnection, frameKey: string): Promise<RelayClient> {
+  return relayClientFor({
+    url: conn.relayUrl,
+    key: conn.relayKey,
+    frameKey: fromHex(frameKey),
+    ...(await memberOptions()),
+    selfName: deviceName(),
+  });
+}
+
 // A relay call is the same request, addressed to an instance id instead of a
 // host. It carries no token: the phone's member key signs it, and the instance
 // it reaches signs the answer, which relayClient.ts checks.
 async function relayRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
   if (!isRelayConnection(conn) || !conn.relayFrameKey) throw new Error('relayRequest called with an unusable connection');
-  const client = relayClientFor({
-    url: conn.relayUrl,
-    key: conn.relayKey,
-    frameKey: fromHex(conn.relayFrameKey),
-    ...(await memberOptions()),
-    selfName: deviceName(),
-  });
+  const client = await relayClientOf(conn, conn.relayFrameKey);
   const body = typeof init?.body === 'string' ? init.body : undefined;
   const r = await client.proxy(conn.instanceId, init?.method ?? 'GET', path, body);
   // A transport failure or an answer the instance did not sign throws out of
