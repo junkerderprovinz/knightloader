@@ -7,10 +7,13 @@ module github.com/junkerderprovinz/knightloader/desktop
 // dependency asking for a newer language version than it declares - with CI's
 // GOTOOLCHAIN=local that reads "module ../ requires go >= 1.26.6" and the job
 // stops at vet. Bump this whenever ../go.mod moves.
-go 1.26.6
+go 1.27.3
 
 require (
 	github.com/coder/websocket v1.8.15
+	// godbus is how Wails talks StatusNotifierItem on Linux and BSD, and
+	// tray_probe_linux.go calls it too, for the availability probe.
+	github.com/godbus/dbus/v5 v5.2.4
 	github.com/junkerderprovinz/knightloader v0.0.0
 	github.com/wailsapp/wails/v3 v3.0.0-beta.34
 	github.com/zalando/go-keyring v0.2.8
@@ -58,10 +61,10 @@ require (
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dlclark/regexp2/v2 v2.8.1 // indirect
-	github.com/dop251/goja v0.0.0-20261014135309-2cb8274eed06 // indirect
+	github.com/dop251/goja v0.0.0-20261023133238-1622cea953df // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/edsrzf/mmap-go v1.2.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
@@ -85,7 +88,7 @@ require (
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
-	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
+	github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
@@ -113,7 +116,7 @@ require (
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-varint v0.1.0 // indirect
-	github.com/ncruces/go-strftime v1.0.0 // indirect
+	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/nwaples/rardecode/v2 v2.4.5 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.27 // indirect
@@ -135,7 +138,7 @@ require (
 	github.com/pion/webrtc/v4 v4.2.2-0.20260109001657-a5962f314db7 // indirect
 	github.com/pjbgf/sha1cd v0.6.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pkg/sftp v1.13.11 // indirect
+	github.com/pkg/sftp v1.13.12 // indirect
 	github.com/protolambda/ctxlock v0.1.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.61.0 // indirect
@@ -179,17 +182,13 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gvisor.dev/gvisor v0.0.0-20250503011706-39ed1f5ac29c // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
-	modernc.org/libc v1.77.1 // indirect
+	modernc.org/libc v1.79.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.60.1 // indirect
+	modernc.org/sqlite v1.61.0 // indirect
 	rsc.io/qr v0.2.0 // indirect
 	zombiezen.com/go/sqlite v1.4.2 // indirect
 )
-
-// godbus is how Wails talks StatusNotifierItem on Linux and BSD, and
-// tray_probe_linux.go calls it too, for the availability probe.
-require github.com/godbus/dbus/v5 v5.2.4
 
 // Use the server sources from the parent checkout.
 replace github.com/junkerderprovinz/knightloader => ../

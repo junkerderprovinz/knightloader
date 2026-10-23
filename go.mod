@@ -25,7 +25,7 @@ require (
 	golang.org/x/text v0.43.0
 	golang.org/x/time v0.16.0
 	golang.zx2c4.com/wireguard v0.0.0-20261006164505-2631ce99a06f
-	gvisor.dev/gvisor v0.0.0-20261023163642-727417a0ce12
+	gvisor.dev/gvisor v0.0.0-20250503011706-39ed1f5ac29c
 	modernc.org/sqlite v1.61.0
 	rsc.io/qr v0.2.0
 )
