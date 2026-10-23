@@ -40,7 +40,7 @@ RUN --mount=type=secret,id=kl_dlc_key --mount=type=secret,id=kl_dlc_iv \
       -ldflags="-s -w ${dlc} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${VERSION} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Commit=${COMMIT}" \
       -o /out/knightloader ./cmd/knightloader
 
-FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 # The JRE runs the private headless JDownloader that KL_PROVISION_JD starts by
 # default, which DLC and other container links need. tini is PID 1 so the
 # ffmpeg left behind when a yt-dlp download is stopped gets reaped.
