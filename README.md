@@ -11,7 +11,7 @@
   <a href="https://hub.docker.com/r/junkerderprovinz/knightloader"><img src="https://img.shields.io/docker/pulls/junkerderprovinz/knightloader?style=for-the-badge&logo=docker&logoColor=white&label=Pulls&color=1d99f3" alt="Docker Pulls" height="36"></a>&nbsp;
   <a href="https://hub.docker.com/r/junkerderprovinz/knightloader"><img src="https://img.shields.io/docker/image-size/junkerderprovinz/knightloader/latest?style=for-the-badge&logo=docker&logoColor=white&label=Size&color=1d99f3" alt="Image Size" height="36"></a>&nbsp;
   <a href="https://github.com/junkerderprovinz/knightloader/pkgs/container/knightloader"><img src="https://img.shields.io/badge/Arch-amd64%20%7C%20arm64-success?style=for-the-badge&logo=linux&logoColor=white" alt="Arch" height="36"></a>&nbsp;
-  <a href="https://go.dev"><img src="https://img.shields.io/badge/Go-1.26-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go" height="36"></a>&nbsp;
+  <a href="https://go.dev"><img src="https://img.shields.io/badge/Go-1.27-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go" height="36"></a>&nbsp;
   <a href="https://react.dev"><img src="https://img.shields.io/badge/React%20%2B%20Tailwind-UI-393939?style=for-the-badge&logo=react&logoColor=white" alt="Web stack" height="36"></a>&nbsp;
   <a href="https://wails.io"><img src="https://img.shields.io/badge/Desktop-Wails-DF0000?style=for-the-badge&logoColor=white" alt="Wails desktop" height="36"></a>&nbsp;
   <a href="https://github.com/GopeedLab/gopeed"><img src="https://img.shields.io/badge/Engine-Gopeed-5DC76C?style=for-the-badge&logoColor=white" alt="Gopeed" height="36"></a>&nbsp;
