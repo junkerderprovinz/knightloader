@@ -7,7 +7,7 @@
 
 services:
   knightloader:
-    image: junkerderprovinz/knightloader:latest@sha256:c6579ac873d9cb13eacbd664e47a27657279bc30356dc58e57dea98954cf11cb
+    image: junkerderprovinz/knightloader:latest
     container_name: knightloader
     restart: unless-stopped
     ports:
