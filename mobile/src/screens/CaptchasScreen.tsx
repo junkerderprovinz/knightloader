@@ -84,7 +84,7 @@ export default function CaptchasScreen({ conn, onBack }: { conn: ServerConnectio
             <Text style={[styles.error, { color: c.statusFailText }]}>
               {error ? captchaErrorText(t, conn, error) : note}
             </Text>
-          ) : null
+          ) : undefined
         }
         renderItem={({ item, index }) => (
           <CaptchaCard conn={conn} challenge={item} hue={index} now={now} onSettled={settled} />
@@ -97,7 +97,7 @@ export default function CaptchasScreen({ conn, onBack }: { conn: ServerConnectio
               </View>
               <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('captcha.empty')}</Text>
             </Arrive>
-          ) : null
+          ) : undefined
         }
       />
     </View>
