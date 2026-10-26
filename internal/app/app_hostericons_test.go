@@ -22,9 +22,8 @@ import (
 // allowLocalIcons lets the icon dialer reach httptest's 127.0.0.1 for one test.
 func allowLocalIcons(t *testing.T) {
 	t.Helper()
-	prev := iconDialAllowed
-	iconDialAllowed = func(net.IP) bool { return true }
-	t.Cleanup(func() { iconDialAllowed = prev })
+	iconDialAnywhere.Store(true)
+	t.Cleanup(func() { iconDialAnywhere.Store(false) })
 }
 
 func parseIPForTest(t *testing.T, s string) net.IP {

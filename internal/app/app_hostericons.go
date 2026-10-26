@@ -44,6 +44,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 )
@@ -420,16 +421,17 @@ var iconDialer = &net.Dialer{
 		if err != nil {
 			return err
 		}
-		if !iconDialAllowed(net.ParseIP(host)) {
+		if !iconDialAnywhere.Load() && !publicIP(net.ParseIP(host)) {
 			return fmt.Errorf("icon: refusing to fetch from a non-public address (%s)", host)
 		}
 		return nil
 	},
 }
 
-// iconDialAllowed is the dialer's address policy, a variable so tests can
-// reach an httptest server on 127.0.0.1.
-var iconDialAllowed = publicIP
+// iconDialAnywhere lets tests reach an httptest server on 127.0.0.1. It is
+// atomic because the transport can still be dialing for a request that has
+// already returned.
+var iconDialAnywhere atomic.Bool
 
 // publicIP reports whether ip is routable on the public internet. Anything
 // unusual fails closed.
