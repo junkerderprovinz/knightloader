@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Modal, PanResponder, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, PanResponder, Pressable, StyleSheet, View, type ViewInstance } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { useT } from '../i18n/I18nContext';
@@ -136,7 +136,7 @@ export default function ColorPicker({
   }
   /** The pad's own box in screen coordinates, measured rather than assumed. */
   const box = useRef({ x: 0, y: 0, w: 1 });
-  const padRef = useRef<View>(null);
+  const padRef = useRef<ViewInstance>(null);
 
   const responder = useMemo(
     () =>
