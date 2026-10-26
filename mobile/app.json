@@ -39,7 +39,8 @@
           "android": {
             "ndkVersion": "26.1.10909125",
             "enableMinifyInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "buildExpoModulesCoreFromSource": true
           }
         }
       ],
