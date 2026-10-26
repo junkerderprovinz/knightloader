@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Animated, Easing, Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Animated, Easing, Modal, Pressable, StyleSheet, View, useWindowDimensions, type ViewInstance } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
@@ -31,7 +31,7 @@ interface Rect {
 
 export function InfoTip({ text, color, size = 15 }: { text: string; color?: string; size?: number }) {
   const { c } = useAppearance();
-  const trigger = useRef<View>(null);
+  const trigger = useRef<ViewInstance>(null);
   const [at, setAt] = useState<Rect | null>(null);
   return (
     <>
@@ -69,7 +69,7 @@ export function Tip({
   onPress?: () => void;
   children: ReactNode;
 }) {
-  const trigger = useRef<View>(null);
+  const trigger = useRef<ViewInstance>(null);
   const [at, setAt] = useState<Rect | null>(null);
   return (
     <>
@@ -104,7 +104,7 @@ function Bubble({ text, at, onClose }: { text: string; at: Rect; onClose: () => 
   const { c, corners } = useAppearance();
   const { n } = useMotion();
   const { width: vw, height: vh } = useWindowDimensions();
-  const root = useRef<View>(null);
+  const root = useRef<ViewInstance>(null);
   // Where the Modal's own origin sits in the window. The trigger was measured
   // in window coordinates, and whether the Modal starts under the status bar
   // differs between devices, so the difference is measured rather than assumed.

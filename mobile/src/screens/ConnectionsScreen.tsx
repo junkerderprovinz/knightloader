@@ -367,7 +367,7 @@ export default function ConnectionsScreen({
                 })}
               </View>
             </View>
-          ) : null
+          ) : undefined
         }
         // The summary, the failure line and the graph travel as the list's own
         // header rather than as siblings above it. As a sibling the card carries
@@ -453,7 +453,7 @@ export default function ConnectionsScreen({
                 </Text>
               )}
             </View>
-          ) : null
+          ) : undefined
         }
         // Two columns on a tablet, one on a phone. key is tied to the count
         // because FlatList cannot change numColumns on an existing list - it
@@ -577,7 +577,7 @@ export default function ConnectionsScreen({
               <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('connections.empty')}</Text>
               <GlimButton hue={0} label={t('connections.emptyButton')} onPress={onAddPress} />
             </Arrive>
-          ) : null
+          ) : undefined
         }
       />
     </View>

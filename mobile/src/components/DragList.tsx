@@ -582,8 +582,8 @@ export default function DragList({
       // gesture.
       scrollEnabled={drag === null}
       contentContainerStyle={contentContainerStyle}
-      ListHeaderComponent={header ? <>{header}</> : null}
-      ListEmptyComponent={empty ? <>{empty}</> : null}
+      ListHeaderComponent={header ? <>{header}</> : undefined}
+      ListEmptyComponent={empty ? <>{empty}</> : undefined}
       renderItem={({ item, index }) => {
         const gezogen = drag !== null && index >= drag.from && index < tragEnde;
         const armed = drag !== null;
