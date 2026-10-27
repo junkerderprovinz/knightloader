@@ -319,6 +319,7 @@ export const HOSTER_LOGOS: ReadonlyMap<string, LogoTile> = new Map<string, LogoT
   ['shutterstock.com', { tile: '#f76540', ink: '#ffffff' }],
   ['simply-premium.com', { tile: '#000000', ink: '#ffffff', rest: 'ink' }],
   ['snelnl.com', { tile: '#f7921d', ink: '#ffffff' }],
+  ['solvecha.com', { tile: '#0e7c66', ink: '#ffffff' }],
   ['soundcloud.com', { tile: '#f94401', ink: '#ffffff' }],
   ['spicevids.com', { tile: '#310a05', ink: '#ffffff', rest: 'lift' }],
   ['squirted.com', { tile: '#0080ff', ink: '#ffffff' }],
