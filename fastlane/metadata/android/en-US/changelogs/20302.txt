@@ -1,0 +1,1 @@
+Your downloads can leave the list and keep their files on disk, or take everything with them. One switch decides, and it starts on keep.
