@@ -50,7 +50,7 @@ import { useStartTasks } from '../lib/useStartTasks';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { readShortcutOverrides } from '../lib/commands/overrides';
 import { formatShortcut } from '../lib/commands/shortcuts';
-import { Button, IconBadge, Modal, NumberInput, TextInput, Toggle } from './ui';
+import { Button, IconBadge, Modal, NumberInput, TextInput, ToggleRow } from './ui';
 import { PathInput } from './FolderPicker';
 import { PackageMoveDialog } from './PackageActions';
 import { RenameLinkDialog, RenamePackageDialog } from './RenameDialog';
@@ -355,7 +355,7 @@ function ConfirmRemove({
         )}
         <p className="glim-num text-carbon-text">{t('remove.count', { n: weight.count })}</p>
         {weight.files === 0 && <p>{t('remove.noFiles')}</p>}
-        {files && <Toggle checked={withFiles} onChange={setWithFiles} label={t('remove.alsoFiles')} />}
+        {files && <ToggleRow hue={1} label={t('remove.alsoFiles')} checked={withFiles} onChange={setWithFiles} />}
         {erase && (
           <p className="glim-num">{t('remove.filesGone', { files: weight.files, bytes: fmtBytes(weight.bytes) })}</p>
         )}
