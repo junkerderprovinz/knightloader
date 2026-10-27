@@ -52,6 +52,7 @@ func TestCaptchaSolverEntries(t *testing.T) {
 		"capsolver":      KindAPIKey,
 		"9kw":            KindAPIKey,
 		"deathbycaptcha": KindUsernamePassword,
+		"solvecha":       KindAPIKey,
 	}
 	for id, kind := range want {
 		svc, ok := Lookup(id)

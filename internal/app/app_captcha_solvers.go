@@ -171,6 +171,8 @@ func captchaSolverFor(id string, cred accounts.Credential) captchaAccount {
 		return captcha.NewCapSolverSolver(cred.APIKey)
 	case "9kw":
 		return captcha.NewNineKWSolver(cred.APIKey)
+	case "solvecha":
+		return captcha.NewSolvechaSolver(cred.APIKey)
 	}
 	return nil
 }
