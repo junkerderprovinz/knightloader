@@ -673,7 +673,7 @@ export function Downloads() {
                   selection={selectionIn('downloads')}
                   revealKey={revealRow?.card === 'downloads' ? revealRow.key : undefined}
                   // The same removal path as the selection bar and the context menu.
-                  onRemovePackage={removal.askWithFiles}
+                  onRemovePackage={removal.ask}
                   rename={rename}
                   extractions={extractions}
                   stopMark={queueVerbs.stopMark}
@@ -700,7 +700,7 @@ export function Downloads() {
                       base={base}
                       selection={selectionIn(card)}
                       revealKey={revealRow?.card === card ? revealRow.key : undefined}
-                      onRemovePackage={removal.askWithFiles}
+                      onRemovePackage={removal.ask}
                       rename={rename}
                       extractions={extractions}
                       stopMark={queueVerbs.stopMark}

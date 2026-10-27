@@ -32,11 +32,11 @@ func sendJSON(t *testing.T, c *http.Client, method, url string, body any) (int, 
 	return resp.StatusCode, refusal.Code, out
 }
 
-// TestWithoutAPasswordNoStoredPasswordsOrFilesGo: an instance without a
-// password answers whoever reaches its port. The task list and the twelve
-// words are open to them, but the passwords in a backup and files that
-// cannot come back wait until a password is set.
-func TestWithoutAPasswordNoStoredPasswordsOrFilesGo(t *testing.T) {
+// TestWithoutAPasswordNoStoredPasswordsGo: an instance without a password
+// answers whoever reaches its port. The task list, the twelve words and the
+// downloaded files are open to them, but the passwords in a backup wait until
+// a password is set.
+func TestWithoutAPasswordNoStoredPasswordsGo(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -46,47 +46,43 @@ func TestWithoutAPasswordNoStoredPasswordsOrFilesGo(t *testing.T) {
 	if code, _, body := sendJSON(t, c, http.MethodPost, srv.URL+"/api/connect/activate", nil); code != http.StatusOK {
 		t.Fatalf("activate answered %d: %s", code, body)
 	}
-	task := stage(t, a, "https://host.example/one.bin")[0]
-	// A cleanup names the preview it confirms.
-	cleanup := func(c *http.Client) map[string]any {
-		t.Helper()
-		_, _, body := sendJSON(t, c, http.MethodGet, srv.URL+"/api/cleanup/offline", nil)
-		var preview struct {
-			Digest string `json:"digest"`
-		}
-		if err := json.Unmarshal(body, &preview); err != nil {
-			t.Fatal(err)
-		}
-		return map[string]any{"digest": preview.Digest, "files": true}
-	}
-
 	for _, r := range []struct {
 		method, path string
 		body         any
 	}{
 		{http.MethodGet, "/api/system/backup", nil},
 		{http.MethodGet, "/api/system/backups/knightloader-auto-20261001-030000.zip", nil},
-		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{task.ID}, "files": true}},
-		{http.MethodDelete, "/api/tasks/" + task.ID + "?files=1", nil},
-		{http.MethodPost, "/api/cleanup/offline", cleanup(c)},
 	} {
 		code, refusal, body := sendJSON(t, c, r.method, srv.URL+r.path, r.body)
 		if code != http.StatusForbidden || refusal != "passwordNotSet" {
 			t.Errorf("%s %s answered %d %.80s, want 403 passwordNotSet", r.method, r.path, code, body)
 		}
 	}
-	if len(a.Tasks()) != 1 {
-		t.Fatalf("%d tasks left, want the one a refused deletion kept", len(a.Tasks()))
-	}
-
-	// What gives nothing away and takes nothing for good stays open.
+	// What gives no stored password away stays open, erasing files included.
 	var shown struct{ Phrase string }
 	code, _, body := sendJSON(t, c, http.MethodPost, srv.URL+"/api/connect/reveal", nil)
 	if err := json.Unmarshal(body, &shown); code != http.StatusOK || err != nil || shown.Phrase == "" {
 		t.Errorf("showing the twelve words again answered %d %.80s, want 200 with the phrase", code, body)
 	}
-	if code, _, body := sendJSON(t, c, http.MethodPost, srv.URL+"/api/tasks/delete", map[string]any{"ids": []string{task.ID}}); code != http.StatusOK {
-		t.Errorf("taking a row off the list answered %d: %s", code, body)
+	// A cleanup names the preview it confirms.
+	_, _, body = sendJSON(t, c, http.MethodGet, srv.URL+"/api/cleanup/offline", nil)
+	var preview struct {
+		Digest string `json:"digest"`
+	}
+	if err := json.Unmarshal(body, &preview); err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range []struct {
+		method, path string
+		body         any
+	}{
+		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{stage(t, a, "https://host.example/one.bin")[0].ID}, "files": true}},
+		{http.MethodDelete, "/api/tasks/" + stage(t, a, "https://host.example/two.bin")[0].ID + "?files=1", nil},
+		{http.MethodPost, "/api/cleanup/offline", map[string]any{"digest": preview.Digest, "files": true}},
+	} {
+		if code, _, body := sendJSON(t, c, r.method, srv.URL+r.path, r.body); code >= 300 {
+			t.Errorf("without a password, %s %s answered %d %.80s", r.method, r.path, code, body)
+		}
 	}
 
 	// With a password and a sign-in each of them works.
@@ -101,9 +97,6 @@ func TestWithoutAPasswordNoStoredPasswordsOrFilesGo(t *testing.T) {
 	}{
 		{http.MethodGet, "/api/system/backup", nil},
 		{http.MethodPost, "/api/connect/reveal", map[string]string{"password": password}},
-		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{stage(t, a, "https://host.example/two.bin")[0].ID}, "files": true}},
-		{http.MethodDelete, "/api/tasks/" + stage(t, a, "https://host.example/three.bin")[0].ID + "?files=1", nil},
-		{http.MethodPost, "/api/cleanup/offline", cleanup(signed)},
 	} {
 		if code, _, body := sendJSON(t, signed, r.method, srv.URL+r.path, r.body); code >= 300 {
 			t.Errorf("signed in, %s %s answered %d %.80s", r.method, r.path, code, body)

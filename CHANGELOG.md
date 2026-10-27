@@ -36,6 +36,16 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Changed
+
+- **Removing downloads asks about the files with a switch.** It starts off, so
+  the rows go and the files stay unless you turn it on. Shift+Del and Remove
+  and delete the files open the dialog with it on.
+- **Deleting downloaded files no longer needs a login password.** Only
+  downloading a backup still waits for one.
+
 ## [2.3.1] - 2026-10-22
 
 ### Changed

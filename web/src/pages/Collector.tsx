@@ -485,7 +485,7 @@ export function Collector() {
               selection={selection}
               profile="collector"
               // As in Downloads.tsx: one removal question for the whole page.
-              onRemovePackage={removal.askWithFiles}
+              onRemovePackage={removal.ask}
               rename={rename}
               stopMark={queueVerbs.stopMark}
               title={narrowedTitle(filters, t, t('collector.listTitle'))}

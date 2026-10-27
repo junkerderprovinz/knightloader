@@ -46,12 +46,11 @@ import { happened } from '../lib/countdown';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
 import { taskRefusal } from '../lib/taskRefusal';
-import { passwordPath, usePasswordFirst } from '../lib/passwordFirst';
 import { useStartTasks } from '../lib/useStartTasks';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { readShortcutOverrides } from '../lib/commands/overrides';
 import { formatShortcut } from '../lib/commands/shortcuts';
-import { Button, IconBadge, Modal, NumberInput, TextInput } from './ui';
+import { Button, IconBadge, Modal, NumberInput, TextInput, Toggle } from './ui';
 import { PathInput } from './FolderPicker';
 import { PackageMoveDialog } from './PackageActions';
 import { RenameLinkDialog, RenamePackageDialog } from './RenameDialog';
@@ -291,13 +290,15 @@ function weigh(all: Task[], ids: string[]): Weight {
 /**
  * ConfirmRemove states what a removal takes and how much, before anything
  * goes. Removing rows can be undone by pasting again, erasing files cannot;
- * the labels and counts tell them apart, not a colour (GlimStone 1.12.0).
+ * the switch, the label and the counts tell them apart, not a colour
+ * (GlimStone 1.12.0).
  */
 function ConfirmRemove({
   title,
   what,
   weight,
   allowFiles,
+  withFiles: filesAsked = false,
   note,
   mute,
   reach,
@@ -309,6 +310,8 @@ function ConfirmRemove({
   what?: string;
   weight: Weight;
   allowFiles: boolean;
+  /** Where the files switch starts. Only Shift+Del and its menu entry start it on. */
+  withFiles?: boolean;
   /** Why the files cannot be deleted from here, when they cannot. */
   note?: string;
   /** Which "do not show this again" switch this dialog carries, if any. */
@@ -323,9 +326,9 @@ function ConfirmRemove({
   onConfirm: (withFiles: boolean) => void;
 }) {
   const { t } = useT();
-  const locked = usePasswordFirst();
-  const files = allowFiles && !locked && weight.files > 0;
-  const why = allowFiles && locked && weight.files > 0 ? t('remove.filesNeedPassword', { path: passwordPath(t) }) : note;
+  const [withFiles, setWithFiles] = useState(filesAsked);
+  const files = allowFiles && weight.files > 0;
+  const erase = files && withFiles;
 
   return (
     <Modal
@@ -334,19 +337,13 @@ function ConfirmRemove({
       mute={mute}
       footer={
         <>
-          {/* Grouped at the end in order of how far each goes. Cancel is the
-              way out and carries the close glyph through the label engine;
-              the two answers are words. */}
+          {/* Cancel is the way out and carries the close glyph through the
+              label engine; the answer is words that follow the switch. */}
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
-          <Button kind="secondary" onClick={() => onConfirm(false)}>
-            {t('remove.fromList')}
+          <Button kind="secondary" onClick={() => onConfirm(erase)}>
+            {t(erase ? 'remove.withFiles' : 'remove.fromList')}
           </Button>
-          {files && (
-            <Button kind="secondary" onClick={() => onConfirm(true)}>
-              {t('remove.withFiles')}
-            </Button>
-          )}
         </>
       }
     >
@@ -357,14 +354,12 @@ function ConfirmRemove({
           <SelectionReach mode="removal" total={weight.count} hidden={reach.hidden} onReduce={reach.onReduce} />
         )}
         <p className="glim-num text-carbon-text">{t('remove.count', { n: weight.count })}</p>
-        <p className="glim-num">
-          {weight.files === 0
-            ? t('remove.noFiles')
-            : files
-              ? t('remove.filesGone', { files: weight.files, bytes: fmtBytes(weight.bytes) })
-              : t('remove.filesKept')}
-        </p>
-        {why && <p className="text-carbon-textMuted">{why}</p>}
+        {weight.files === 0 && <p>{t('remove.noFiles')}</p>}
+        {files && <Toggle checked={withFiles} onChange={setWithFiles} label={t('remove.alsoFiles')} />}
+        {erase && (
+          <p className="glim-num">{t('remove.filesGone', { files: weight.files, bytes: fmtBytes(weight.bytes) })}</p>
+        )}
+        {note && <p className="text-carbon-textMuted">{note}</p>}
       </div>
     </Modal>
   );
@@ -500,7 +495,7 @@ export function useRemoval({
   const { t } = useT();
   const { toast } = useToast();
   const dialogs = useDialogMute();
-  const [ask, setAsk] = useState<string[] | null>(null);
+  const [asking, setAsking] = useState<{ ids: string[]; withFiles: boolean } | null>(null);
 
   // An expired token answers 200 with nothing restored, which is "too late"
   // rather than a failure.
@@ -543,15 +538,16 @@ export function useRemoval({
     [base, drawn, onDone, t, toast, undoRemoval],
   );
 
-  // With the dialog muted, this deletes with files at once, as the mute agreed.
-  const askWithFiles = useCallback(
-    (ids: string[]) => {
+  // With the dialog muted, this goes ahead with where the files switch would
+  // have started.
+  const ask = useCallback(
+    (ids: string[], withFiles = false) => {
       if (ids.length === 0) return;
       if (dialogs.isMuted('remove')) {
-        void removeNow(ids, true);
+        void removeNow(ids, withFiles);
         return;
       }
-      setAsk(ids);
+      setAsking({ ids, withFiles });
     },
     [dialogs, removeNow],
   );
@@ -565,36 +561,37 @@ export function useRemoval({
       if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
       e.preventDefault();
       const ids = [...selected];
-      if (e.shiftKey) askWithFiles(ids);
+      if (e.shiftKey) ask(ids, true);
       else void removeNow(ids);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, askWithFiles, removeNow]);
+  }, [selected, ask, removeNow]);
 
-  const dialog = ask && (
+  const dialog = asking && (
     <ConfirmRemove
       title={t('remove.title')}
-      weight={weigh(all, ask)}
+      weight={weigh(all, asking.ids)}
       allowFiles
+      withFiles={asking.withFiles}
       mute="remove"
       reach={
         drawn && {
-          hidden: ask.filter((id) => !drawn.has(id)).length,
+          hidden: asking.ids.filter((id) => !drawn.has(id)).length,
           // Narrows the dialog's own ids, not the page selection, so a
           // cancelled removal leaves the selection intact.
-          onReduce: () => setAsk(ask.filter((id) => drawn.has(id))),
+          onReduce: () => setAsking({ ...asking, ids: asking.ids.filter((id) => drawn.has(id)) }),
         }
       }
-      onCancel={() => setAsk(null)}
+      onCancel={() => setAsking(null)}
       onConfirm={(withFiles) => {
-        setAsk(null);
-        void removeNow(ask, withFiles);
+        setAsking(null);
+        void removeNow(asking.ids, withFiles);
       }}
     />
   );
 
-  return { removeNow, askWithFiles, dialog };
+  return { removeNow, ask, dialog };
 }
 
 export type Removal = ReturnType<typeof useRemoval>;
@@ -1173,7 +1170,7 @@ function removeWithFilesItem(ids: string[], removal: Removal, t: (key: Translati
     label: t('task.removeWithFiles'),
     detail: 'Shift+Del',
     icon: <IconTrashFiles />,
-    onSelect: () => removal.askWithFiles(ids),
+    onSelect: () => removal.ask(ids, true),
   };
 }
 
