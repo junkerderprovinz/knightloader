@@ -1,7 +1,6 @@
 // An instance without a login password answers whoever reaches its port, so
-// it refuses backups, the twelve words and erasing
-// files until one is set (internal/api/password_first.go). The desktop build
-// opens no port, and its window is never refused.
+// it refuses backups until one is set (internal/api/password_first.go). The
+// desktop build opens no port, and its window is never refused.
 import { useEffect, useState } from 'react';
 import { fetchAuth } from './api';
 import { isDesktop } from './desktop';

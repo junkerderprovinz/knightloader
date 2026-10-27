@@ -125,9 +125,6 @@ func registerBulk(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
 				return
 			}
-			if body.Files && !passwordFirst(a, w, "deleting downloaded files") {
-				return
-			}
 			// Not bulkDone: removing rows asks nothing first when no files are
 			// involved, and the selection can include rows a filter is hiding,
 			// so the answer has to carry enough to offer the undo.
@@ -173,9 +170,6 @@ func registerBulk(reg *Registry, a *app.App) {
 				Files  bool   `json:"files"`
 			}
 			if !decodeJSON(w, r, &body) {
-				return
-			}
-			if body.Files && !passwordFirst(a, w, "deleting downloaded files") {
 				return
 			}
 			ids, err := a.Cleanup(app.CleanupClass(r.PathValue("class")), body.Files, body.Digest)

@@ -17,6 +17,10 @@ beforeEach(() => {
   host = document.createElement('div');
   document.body.append(host);
   root = createRoot(host);
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => Promise.resolve(new Response('{}', { headers: { 'Content-Type': 'application/json' } }))),
+  );
 });
 
 afterEach(() => {
@@ -27,32 +31,22 @@ afterEach(() => {
 
 const task = { id: 't1', name: 'film.mkv', loaded: 4096 } as Task;
 
-function serve(passwordSet: boolean) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn((url: string) => {
-      const body = url.startsWith('/api/auth') ? { enabled: passwordSet, authenticated: true } : {};
-      return Promise.resolve(new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } }));
-    }),
-  );
-}
-
-function Harness() {
+function Harness({ withFiles }: { withFiles: boolean }) {
   const removal = useRemoval({ all: [task], selected: new Set([task.id]), base: '/api', onDone: () => {} });
   return (
     <>
-      <button type="button" data-ask onClick={() => removal.askWithFiles([task.id])} />
+      <button type="button" data-ask onClick={() => removal.ask([task.id], withFiles)} />
       {removal.dialog}
     </>
   );
 }
 
-async function openDialog() {
+async function openDialog(withFiles = false) {
   await act(async () =>
     root.render(
       <I18nProvider>
         <ToastProvider>
-          <Harness />
+          <Harness withFiles={withFiles} />
         </ToastProvider>
       </I18nProvider>,
     ),
@@ -63,19 +57,26 @@ async function openDialog() {
 
 const buttons = (el: Element) => [...el.querySelectorAll('button')].map((b) => b.textContent);
 
+const filesSwitch = (el: Element) => el.querySelector<HTMLButtonElement>('[role="switch"]')!;
+
 describe('the removal dialog', () => {
-  it('offers to delete the files once a password is set', async () => {
-    serve(true);
+  it('keeps the files unless the switch is turned on', async () => {
     const dialog = await openDialog();
-    expect(buttons(dialog)).toContain('Remove and delete the files');
+    expect(filesSwitch(dialog).getAttribute('aria-checked')).toBe('false');
+    expect(buttons(dialog)).toContain('Remove from the list');
+    expect(buttons(dialog)).not.toContain('Remove and delete the files');
+    expect(dialog.textContent).not.toContain('cannot be undone');
   });
 
-  it('takes rows only, and says why, while no password is set', async () => {
-    serve(false);
+  it('deletes the files once the switch is on, and says how much', async () => {
     const dialog = await openDialog();
-    expect(buttons(dialog)).not.toContain('Remove and delete the files');
-    expect(buttons(dialog)).toContain('Remove from the list');
-    expect(dialog.textContent).toContain('Deleting the files needs a login password');
-    expect(dialog.textContent).toContain('Settings > Security');
+    await act(async () => filesSwitch(dialog).click());
+    expect(buttons(dialog)).toContain('Remove and delete the files');
+    expect(dialog.textContent).toContain('This also erases 1 file(s)');
+  });
+
+  it('starts with the switch on for Shift+Del', async () => {
+    const dialog = await openDialog(true);
+    expect(filesSwitch(dialog).getAttribute('aria-checked')).toBe('true');
   });
 });
