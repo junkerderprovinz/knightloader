@@ -3752,6 +3752,7 @@ export const zh: Dict = {
   'whatsnew.change.instanceBadges': '“{name}”下的每张卡片上，状态和类型并排显示在名称所在的行，是两个等高的徽章，类型为方形。任何宽度下都是如此，名称过长时会被截短以腾出位置。',
   'whatsnew.change.appLogo': '“{name}”中的手机和浏览器扩展也像其他卡片一样带有 KnightLoader 标志。',
   'whatsnew.change.cardLogo': '“{name}”下的每张卡片上，标志都在同一位置，大小也相同。',
+  'whatsnew.change.solvecha': '可以在“{name}”中把 Solvecha 添加为第七个服务。它只识别图片验证码。',
   'whatsnew.change.netShields': '在群组图中，每台设备都带有 KnightLoader 标志，并有一个小徽章说明它是实例、桌面应用、Android 应用还是浏览器扩展。',
   'whatsnew.change.netLabels': '群组图中的名称会完整显示，需要空间时分两行显示。',
   'whatsnew.change.cardSize': '“{name}”下的所有卡片宽度相同、高度也相同。',

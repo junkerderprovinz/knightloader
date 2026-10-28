@@ -3778,6 +3778,7 @@ export const cs: Dict = {
   'whatsnew.change.instanceBadges': 'Na každé kartě v „{name}“ stojí stav a druh vedle sebe na řádku s názvem jako dva stejně vysoké odznaky, druh jako čtverec. Platí to při každé šířce a dlouhý název se zkrátí, aby se vešly oba.',
   'whatsnew.change.appLogo': 'Telefony a rozšíření prohlížeče v „{name}“ nesou logo KnightLoaderu jako každá jiná karta.',
   'whatsnew.change.cardLogo': 'Logo stojí na každé kartě v „{name}“ na stejném místě a ve stejné velikosti.',
+  'whatsnew.change.solvecha': 'Solvecha lze přidat v „{name}“ jako sedmou službu. Čte jen obrázkové captchy.',
   'whatsnew.change.netShields': 'V obrázku skupiny nese každé zařízení logo KnightLoaderu s malým odznakem, který říká, jestli jde o instanci, aplikaci pro počítač, aplikaci pro Android, nebo rozšíření prohlížeče.',
   'whatsnew.change.netLabels': 'Názvy v obrázku skupiny jsou vidět celé, na dvou řádcích, kde potřebují místo.',
   'whatsnew.change.cardSize': 'Všechny karty v „{name}“ jsou stejně široké a stejně vysoké.',

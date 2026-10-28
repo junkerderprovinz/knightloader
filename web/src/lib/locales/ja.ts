@@ -3765,6 +3765,7 @@ export const ja: Dict = {
   'whatsnew.change.instanceBadges': '「{name}」の各カードでは、状態と種類が名前と同じ行に、同じ高さの2つのバッジとして並びます。種類は四角形です。これはどの幅でも同じで、名前が長いときは両方が収まるように短く切られます。',
   'whatsnew.change.appLogo': '「{name}」のスマートフォンとブラウザー拡張機能にも、ほかのカードと同じく KnightLoader のロゴが付きます。',
   'whatsnew.change.cardLogo': '「{name}」のどのカードでも、ロゴは同じ位置に同じ大きさで表示されます。',
+  'whatsnew.change.solvecha': 'Solvecha を「{name}」に 7 つ目のサービスとして追加できます。画像キャプチャのみを読み取ります。',
   'whatsnew.change.netShields': 'グループの図では、どのデバイスにも KnightLoader のロゴが付き、インスタンス、デスクトップアプリ、Android アプリ、ブラウザー拡張機能のどれかを示す小さなバッジが添えられます。',
   'whatsnew.change.netLabels': 'グループの図の名前は省略されずに全部表示され、場所が必要なときは2行になります。',
   'whatsnew.change.cardSize': '「{name}」のカードはすべて同じ幅と同じ高さになります。',

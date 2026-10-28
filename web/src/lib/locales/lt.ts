@@ -3770,6 +3770,7 @@ export const lt: Dict = {
   'whatsnew.change.instanceBadges': 'Kiekvienoje kortelėje skiltyje „{name}“ būsena ir rūšis stovi viena šalia kitos pavadinimo eilutėje kaip du vienodo aukščio ženkliukai, rūšis kaip kvadratas. Taip yra bet kokiu plotiu, o ilgas pavadinimas sutrumpinamas, kad abiem užtektų vietos.',
   'whatsnew.change.appLogo': 'Telefonai ir naršyklės plėtiniai skiltyje „{name}“ turi KnightLoader logotipą kaip ir visos kitos kortelės.',
   'whatsnew.change.cardLogo': 'Logotipas kiekvienoje kortelėje skiltyje „{name}“ stovi toje pačioje vietoje ir yra tokio paties dydžio.',
+  'whatsnew.change.solvecha': 'Solvecha galima pridėti skiltyje „{name}“ kaip septintą paslaugą. Ji skaito tik paveikslėlių captcha.',
   'whatsnew.change.netShields': 'Grupės paveikslėlyje kiekvienas įrenginys turi KnightLoader logotipą su mažu ženkliuku, kuris pasako, ar tai egzempliorius, darbalaukio programa, Android programa ar naršyklės plėtinys.',
   'whatsnew.change.netLabels': 'Pavadinimai grupės paveikslėlyje matomi visi, dviem eilutėmis, kur reikia vietos.',
   'whatsnew.change.cardSize': 'Visos kortelės skiltyje „{name}“ yra vienodo pločio ir vienodo aukščio.',

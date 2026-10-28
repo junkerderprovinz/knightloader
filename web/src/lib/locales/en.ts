@@ -4041,6 +4041,7 @@ export const en = {
   'whatsnew.change.instanceBadges': 'On every card under "{name}", the state and the kind sit side by side on the name\'s line as two badges of the same height, the kind as a square. That holds at every width, and a long name is cut short to make room.',
   'whatsnew.change.appLogo': 'Phones and browser extensions on "{name}" wear the KnightLoader mark like every other card.',
   'whatsnew.change.cardLogo': 'The logo stands in the same place and at the same size on every card on "{name}".',
+  'whatsnew.change.solvecha': 'Solvecha can be added under "{name}" as a seventh service. It reads picture captchas only.',
   'whatsnew.change.netShields': 'In the picture of the group every device wears the KnightLoader logo, with a small badge that says whether it is an instance, the desktop app, the Android app or a browser extension.',
   'whatsnew.change.netLabels': 'Names in the picture of the group are shown in full, on two lines where they need the room.',
   'whatsnew.change.cardSize': 'Every card on "{name}" is as wide and as tall as the others.',

@@ -3771,6 +3771,7 @@ export const no: Dict = {
   'whatsnew.change.instanceBadges': 'På hvert kort under «{name}» står status og type ved siden av hverandre på linjen med navnet, som to merker like høye, typen som en firkant. Det gjelder ved alle bredder, og et langt navn kortes ned for å gi plass.',
   'whatsnew.change.appLogo': 'Telefoner og nettleserutvidelser under «{name}» bærer KnightLoader-logoen som alle andre kort.',
   'whatsnew.change.cardLogo': 'Logoen står på samme sted og i samme størrelse på hvert kort under «{name}».',
+  'whatsnew.change.solvecha': 'Solvecha kan legges til under «{name}» som sjuende tjeneste. Den leser bare bilde-captchaer.',
   'whatsnew.change.netShields': 'I bildet av gruppen bærer hver enhet KnightLoader-logoen, med et lite merke som sier om det er en instans, skrivebordsappen, Android-appen eller en nettleserutvidelse.',
   'whatsnew.change.netLabels': 'Navn i bildet av gruppen vises helt, på to linjer der de trenger plassen.',
   'whatsnew.change.cardSize': 'Alle kort under «{name}» er like brede og like høye.',

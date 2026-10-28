@@ -3768,6 +3768,7 @@ export const id: Dict = {
   'whatsnew.change.instanceBadges': 'Di setiap kartu di bawah “{name}”, status dan jenis berdampingan di baris nama sebagai dua lencana setinggi sama, jenisnya berbentuk persegi. Ini berlaku di semua lebar, dan nama yang panjang dipotong supaya muat.',
   'whatsnew.change.appLogo': 'Ponsel dan ekstensi peramban di “{name}” memakai logo KnightLoader seperti kartu lainnya.',
   'whatsnew.change.cardLogo': 'Logo berada di tempat yang sama dan dengan ukuran yang sama di setiap kartu di bawah “{name}”.',
+  'whatsnew.change.solvecha': 'Solvecha bisa ditambahkan di "{name}" sebagai layanan ketujuh. Layanan ini hanya membaca captcha gambar.',
   'whatsnew.change.netShields': 'Di gambar grup, setiap perangkat memakai logo KnightLoader, dengan lencana kecil yang menunjukkan apakah itu instans, aplikasi desktop, aplikasi Android, atau ekstensi peramban.',
   'whatsnew.change.netLabels': 'Nama di gambar grup tampil utuh, dalam dua baris bila butuh tempat.',
   'whatsnew.change.cardSize': 'Semua kartu di bawah “{name}” sama lebar dan sama tinggi.',

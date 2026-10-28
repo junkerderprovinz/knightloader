@@ -3764,6 +3764,7 @@ export const is: Dict = {
   'whatsnew.change.instanceBadges': 'Á hverju spjaldi undir „{name}“ standa staðan og gerðin hlið við hlið í línu nafnsins, sem tvö merki í sömu hæð, gerðin sem ferningur. Þetta gildir við hvaða breidd sem er, og langt nafn er stytt til að rýma til.',
   'whatsnew.change.appLogo': 'Símar og vafraviðbætur undir „{name}“ bera merki KnightLoader eins og öll önnur spjöld.',
   'whatsnew.change.cardLogo': 'Merkið stendur á sama stað og í sömu stærð á hverju spjaldi undir „{name}“.',
+  'whatsnew.change.solvecha': 'Solvecha má bæta við undir „{name}“ sem sjöundu þjónustunni. Hún les aðeins myndacaptcha.',
   'whatsnew.change.netShields': 'Á mynd hópsins ber hvert tæki merki KnightLoader, með litlu merki sem segir hvort það sé tilvik, skjáborðsforritið, Android-forritið eða vafraviðbót.',
   'whatsnew.change.netLabels': 'Nöfn á mynd hópsins sjást í heild, í tveimur línum þar sem þau þurfa plássið.',
   'whatsnew.change.cardSize': 'Öll spjöld undir „{name}“ eru jafnbreið og jafnhá.',

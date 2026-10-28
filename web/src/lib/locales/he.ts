@@ -3785,6 +3785,7 @@ export const he: Dict = {
   'whatsnew.change.instanceBadges': 'בכל כרטיס ב„{name}” המצב והסוג מוצגים זה לצד זה בשורת השם, כשתי תגיות באותו גובה, הסוג כריבוע. זה נכון בכל רוחב, ושם ארוך מקוצר כדי לפנות מקום.',
   'whatsnew.change.appLogo': 'טלפונים ותוספי דפדפן ב„{name}” נושאים את הלוגו של KnightLoader כמו כל כרטיס אחר.',
   'whatsnew.change.cardLogo': 'הלוגו עומד באותו מקום ובאותו גודל בכל כרטיס ב„{name}”.',
+  'whatsnew.change.solvecha': "אפשר להוסיף את Solvecha תחת „{name}“ כשירות שביעי. הוא קורא רק קפצ'ות של תמונה.",
   'whatsnew.change.netShields': 'בתמונת הקבוצה כל מכשיר נושא את הלוגו של KnightLoader, עם תגית קטנה שאומרת אם זה מופע, אפליקציית שולחן העבודה, אפליקציית Android או תוסף דפדפן.',
   'whatsnew.change.netLabels': 'השמות בתמונת הקבוצה מוצגים במלואם, בשתי שורות כשהם צריכים את המקום.',
   'whatsnew.change.cardSize': 'כל הכרטיסים ב„{name}” באותו רוחב ובאותו גובה.',

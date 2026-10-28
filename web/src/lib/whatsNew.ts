@@ -51,6 +51,11 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.3.3',
+    // The service's tile is drawn from the catalogue, so no element carries a mark.
+    changes: [{ id: 'solvecha', text: 'whatsnew.change.solvecha', names: { name: 'accounts.captcha.title' } }],
+  },
+  {
     version: '2.3.1',
     changes: [
       {

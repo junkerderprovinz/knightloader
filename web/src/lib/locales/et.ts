@@ -3760,6 +3760,7 @@ export const et: Dict = {
   'whatsnew.change.instanceBadges': 'Igal kaardil jaotises „{name}“ on olek ja liik kõrvuti nime real kahe sama kõrge märgina, liik ruudukujulisena. See kehtib igal laiusel ja pikk nimi lühendatakse, et mõlemale jääks ruumi.',
   'whatsnew.change.appLogo': 'Telefonid ja brauserilaiendused lehel „{name}“ kannavad KnightLoaderi logo nagu iga teine kaart.',
   'whatsnew.change.cardLogo': 'Logo on igal kaardil jaotises „{name}“ samas kohas ja sama suur.',
+  'whatsnew.change.solvecha': 'Solvecha saab lisada jaotises „{name}“ seitsmenda teenusena. See loeb ainult pildi-captchasid.',
   'whatsnew.change.netShields': 'Grupi pildil kannab iga seade KnightLoaderi logo koos väikese märgiga, mis ütleb, kas see on eksemplar, töölauarakendus, Androidi rakendus või brauserilaiendus.',
   'whatsnew.change.netLabels': 'Grupi pildil on nimed täielikult näha, kahel real, kui neil on ruumi vaja.',
   'whatsnew.change.cardSize': 'Kõik kaardid jaotises „{name}“ on ühe laiuse ja ühe kõrgusega.',
