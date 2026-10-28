@@ -36,13 +36,20 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [Unreleased]
+## [2.3.3] - 2026-10-28
 
 ### Added
 
 - **Solvecha as a seventh captcha account.** It reads pictures only, so
   reCAPTCHA, hCaptcha, Turnstile and click captchas go on to the next account
   in the order. It is tried only once its key is saved on the Accounts page.
+
+### Fixed
+
+- **The Android app's background notice stays put.** With Stay connected on,
+  the app posted its "No downloads running" notice again on every look at the
+  server, and some phones popped it up each time. It is posted again only when
+  its words change.
 
 ## [2.3.2] - 2026-10-27
 
