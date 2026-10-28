@@ -56,11 +56,13 @@ export { pageIcon } from './pageIcons';
 export { pageId } from './folded';
 
 export function renderSettingsPage(id: string): ReactNode {
-  const page = PAGES[id];
-  return page ? page() : <EmptyPage id={id} />;
+  return hasContent(id) ? PAGES[id]() : <EmptyPage id={id} />;
 }
 
-/** hasContent tells whether a page has a component; the rail dims the others. */
-export const hasContent = (id: string): boolean => id in PAGES;
+/**
+ * hasContent tells whether a page has a component; the rail dims the others.
+ * The id comes from the address bar, and "constructor" is in every object.
+ */
+export const hasContent = (id: string): boolean => Object.prototype.hasOwnProperty.call(PAGES, id);
 
 export const FALLBACK_PAGE = 'downloads';
