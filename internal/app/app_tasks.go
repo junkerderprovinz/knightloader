@@ -1067,10 +1067,10 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 		// moved it on, the destination after. The settle path renames before
 		// that move.
 		dir := a.workDirFor(t)
-		if _, err := os.Lstat(filepath.Join(dir, t.Name)); err != nil {
+		if _, err := os.Lstat(filepath.Join(dir, diskName(t.Name))); err != nil {
 			dir = a.dirFor(t)
 		}
-		from = filepath.Join(dir, t.Name)
+		from = filepath.Join(dir, diskName(t.Name))
 	}
 	to := filepath.Join(filepath.Dir(from), want)
 	if a.barFile(to) != nil {

@@ -37,7 +37,7 @@ import (
 // task's, which few tasks have. Caller holds a.mu.
 func (a *App) fileOfLocked(t *core.Task) string {
 	if t.File == "" {
-		return filepath.Join(a.workDirFor(t), t.Name)
+		return filepath.Join(a.workDirFor(t), diskName(t.Name))
 	}
 	named, ok := namedBeside(t)
 	if !ok || samePath(named, t.File) {
@@ -63,7 +63,7 @@ func namedBeside(t *core.Task) (string, bool) {
 	if t.File == "" || t.Name == "" || t.Name == t.URL {
 		return "", false
 	}
-	return filepath.Join(filepath.Dir(t.File), collide.SafeName(t.Name)), true
+	return filepath.Join(filepath.Dir(t.File), diskName(collide.SafeName(t.Name))), true
 }
 
 // leftover is a file an earlier attempt of a task wrote, with the size that
@@ -272,7 +272,7 @@ func (a *App) setPathLocked(first *core.Task, parts int) string {
 	if parts < 2 {
 		return a.fileOfLocked(first)
 	}
-	return filepath.Join(filepath.Dir(a.fileOfLocked(first)), first.Name)
+	return filepath.Join(filepath.Dir(a.fileOfLocked(first)), diskName(first.Name))
 }
 
 // volumeMismatchLocked checks every part of first's set against the file its
@@ -289,7 +289,7 @@ func (a *App) volumeMismatchLocked(first *core.Task) error {
 	}
 	dir := filepath.Dir(a.setPathLocked(first, len(set)))
 	for _, part := range set {
-		byName := filepath.Join(dir, part.Name)
+		byName := filepath.Join(dir, diskName(part.Name))
 		if part.File == "" || samePath(part.File, byName) {
 			continue
 		}
@@ -338,4 +338,22 @@ func mayBeOneFile(x, y string) bool {
 		return false
 	}
 	return true
+}
+
+// diskName is the single element a task's name is joined onto a folder as.
+// Until the download names the file the name is the link, so SafeName
+// flattens a name with a path in it, and one that still names the folder or
+// its parent becomes "_".
+func diskName(name string) string {
+	if name == "" || oneElement(name) {
+		return name
+	}
+	if name = collide.SafeName(name); oneElement(name) {
+		return name
+	}
+	return "_"
+}
+
+func oneElement(name string) bool {
+	return name != "." && filepath.IsLocal(name) && filepath.Base(name) == name
 }

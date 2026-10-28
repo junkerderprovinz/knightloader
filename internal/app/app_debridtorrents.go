@@ -161,7 +161,7 @@ func (h engineHandoff) FetchPart(ctx context.Context, p debrid.Part) (string, er
 	// file is the attempt a restart cut short, not a finished copy.
 	leftover{path: p.Leftover, size: p.Size}.drop(p.TaskID)
 	if job.Collision == collide.Skip {
-		target := filepath.Join(job.Dir, collide.SafeName(job.Name))
+		target := filepath.Join(job.Dir, diskName(collide.SafeName(job.Name)))
 		if _, err := os.Lstat(target); err == nil {
 			return target, nil
 		}
@@ -370,7 +370,7 @@ func (a *App) seedFromService(id string) {
 	// fetched it (see debrid.localPath).
 	folder := t.File == ""
 	if folder {
-		file = filepath.Join(a.dirFor(t), strings.TrimSpace(t.Name))
+		file = filepath.Join(a.dirFor(t), diskName(strings.TrimSpace(t.Name)))
 	}
 	if qbit {
 		h := handover{link: t.URL, file: file, folder: folder, files: slices.Clone(t.TorrentFiles)}

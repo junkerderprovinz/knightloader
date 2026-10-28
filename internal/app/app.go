@@ -692,8 +692,9 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	var revived []core.Task
 	var requeue []string
 	for _, t := range existing {
+		named := cutStoredName(t)
 		changed, enqueue := a.reviveOnBoot(t, resume, queueWasLive)
-		if changed {
+		if changed || named {
 			revived = append(revived, *t)
 		}
 		if enqueue {

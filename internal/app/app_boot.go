@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/reclaim"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -67,6 +68,22 @@ func (a *App) reviveOnBoot(t *core.Task, resume string, queueWasLive bool) (chan
 	return t.Status != was || t.Loaded != loaded || t.Speed != speed, enqueue
 }
 
+// cutStoredName cuts a stored name that holds a path to its last element, as
+// every reported name is cut, and reports whether it did. A name with no
+// element left stays as it is, and so does the link a task is named after
+// until the download names the file.
+func cutStoredName(t *core.Task) bool {
+	if t.Name == t.URL {
+		return false
+	}
+	name := collide.BaseName(t.Name)
+	if name == "" || name == t.Name {
+		return false
+	}
+	t.Name = name
+	return true
+}
+
 // holdOnBoot reports whether the queue should come up halted, given the resume
 // policy and whether anything was in flight when the process ended.
 func holdOnBoot(resume string, queueWasLive bool) bool {
@@ -96,11 +113,11 @@ func (a *App) keptItsProgress(t *core.Task) bool {
 		return false
 	}
 	if t.InfoHash != "" {
-		_, err := os.Stat(cmp.Or(t.File, filepath.Join(a.dirFor(t), t.Name)))
+		_, err := os.Stat(cmp.Or(t.File, filepath.Join(a.dirFor(t), diskName(t.Name))))
 		return err == nil
 	}
 	for _, dir := range []string{a.dirFor(t), a.workDirFor(t)} {
-		fi, err := os.Stat(filepath.Join(dir, t.Name))
+		fi, err := os.Stat(filepath.Join(dir, diskName(t.Name)))
 		if err == nil && !fi.IsDir() && fi.Size() > 0 {
 			return true
 		}
@@ -278,7 +295,7 @@ func (a *App) Reclaim() (ReclaimReport, error) {
 		if p := a.partFileLocked(t); p != "" {
 			claimed[p] = true
 		} else if t.Name != "" {
-			claimed[reclaim.PartPath(dir, t.Name, id)] = true
+			claimed[reclaim.PartPath(dir, diskName(t.Name), id)] = true
 		}
 		// The own Usenet servers write under the name in the link, which a
 		// paused row keeps through a rename.

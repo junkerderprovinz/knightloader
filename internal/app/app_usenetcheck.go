@@ -511,7 +511,7 @@ func (a *App) renameToSet(set *par2.Set, found []string, data []checkFile) []str
 		if p == "" {
 			continue
 		}
-		want := filepath.Join(filepath.Dir(p), collide.SafeName(set.Files[i].BaseName()))
+		want := filepath.Join(filepath.Dir(p), diskName(collide.SafeName(set.Files[i].BaseName())))
 		if samePath(p, want) {
 			continue
 		}
