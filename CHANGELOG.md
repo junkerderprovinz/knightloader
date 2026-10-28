@@ -38,6 +38,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Security
+
+- **Dependency updates close three open advisories.** The web UI test tooling
+  takes undici 8.12.3, and the Android app takes zod 4.6.6 and node-forge 1.4.2.
+
+## [2.3.2] - 2026-10-27
+
 ### Changed
 
 - **The Android app is on F-Droid.** The README, the installing page and
