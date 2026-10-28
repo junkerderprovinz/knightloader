@@ -707,6 +707,28 @@ func TestSafeNameTurnsControlCharactersIntoSpaces(t *testing.T) {
 	}
 }
 
+func TestBaseNameKeepsOnlyTheLastElement(t *testing.T) {
+	cases := map[string]string{
+		"movie.mkv":                "movie.mkv",
+		"../../victim.txt":         "victim.txt",
+		`..\..\victim.txt`:         "victim.txt",
+		"/etc/cron.d/job":          "job",
+		"Show/ep01.mkv":            "ep01.mkv",
+		"":                         "",
+		".":                        "",
+		"..":                       "",
+		"../..":                    "",
+		"///":                      "",
+		"unlocking via TorBox…":    "unlocking via TorBox…",
+		"sea:son 1 (2026) [x].mkv": "sea:son 1 (2026) [x].mkv",
+	}
+	for in, want := range cases {
+		if got := BaseName(in); got != want {
+			t.Errorf("BaseName(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
 func TestReserveWritesALinkWithANulInItsName(t *testing.T) {
 	dir := t.TempDir()
 	r, err := Reserve(filepath.Join(dir, "nul\x00here.bin"), Rename)

@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
@@ -769,7 +770,9 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// dated folders by a day east of Greenwich.
 	now := a.stamps.next()
 	cand := rules.Candidate{URL: u, Source: in.source, Package: in.pkg, Added: now}
-	if n := strings.TrimSpace(name); n != "" {
+	// A name from a container or a page is somebody else's, and the task's
+	// file is found by joining it to a folder.
+	if n := collide.BaseName(strings.TrimSpace(name)); n != "" {
 		cand.Filename = n
 	}
 	// First pass, before anything is fetched: rules on URL, hoster or source
@@ -859,8 +862,8 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	}
 	// Resolvers that do not know the name yet answer with the URL itself; that
 	// placeholder must not replace a name the link arrived with.
-	if result.Name != "" && result.Name != u && !namedTakeover(t) {
-		t.Name = result.Name
+	if name := collide.BaseName(result.Name); name != "" && result.Name != u && !namedTakeover(t) {
+		t.Name = name
 	}
 	if result.Size > 0 {
 		t.Size = result.Size

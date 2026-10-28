@@ -36,6 +36,18 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Security
+
+- **A download server can no longer put a file outside the download folder.**
+  When the file name it sent in the Content-Disposition header, or at the end
+  of the link, had a path in it, KnightLoader kept the path. A server could use
+  that to overwrite or delete a file elsewhere on the disk, create folders
+  there, or find out whether a file exists. Only the last part of such a name
+  counts now, and names from resolvers, link containers and torrents are cut
+  down the same way.
+
 ## [2.3.2] - 2026-10-27
 
 ### Changed

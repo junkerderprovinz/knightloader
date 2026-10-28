@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -203,6 +205,50 @@ func TestOverwriteIsRefusedForAFolderRatherThanApplied(t *testing.T) {
 	}
 }
 
+// A torrent names its files and its folder itself, so a crafted one can put a
+// path in either.
+func TestATorrentsOwnPathsStayInTheDownloadFolder(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, "downloads")
+	theirs := filepath.Join(root, "outside")
+	for _, d := range []string{dir, theirs} {
+		if err := os.Mkdir(d, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Run("a file under a path that climbs out", func(t *testing.T) {
+		res := &base.Resource{Size: 7, Files: []*base.FileInfo{{Name: "victim.txt", Path: "../outside", Size: 7}}}
+		opts := optsIn(dir)
+		if _, err := place(Job{Collision: collide.Rename}, res, opts); err == nil {
+			t.Fatal("placed a file the library would write beside the download folder")
+		}
+		if opts.Name != "" {
+			t.Fatalf("Options.Name = %q for a file that was refused", opts.Name)
+		}
+	})
+	t.Run("a folder named with a path", func(t *testing.T) {
+		res := &base.Resource{Name: "../outside", Files: []*base.FileInfo{{Name: "ep01.mkv"}}}
+		opts := optsIn(dir)
+		if _, err := place(Job{Collision: collide.Skip}, res, opts); err != nil {
+			t.Fatalf("place: %v; the folder beside the download folder was taken for this one", err)
+		}
+		if opts.Name != "outside" {
+			t.Fatalf("Options.Name = %q, want outside", opts.Name)
+		}
+	})
+}
+
+func TestANameWithNoLastElementIsStillAFileInTheFolder(t *testing.T) {
+	for _, name := range []string{".", "..", "../..", "/"} {
+		opts := optsIn(t.TempDir())
+		got, err := place(Job{Collision: collide.Rename}, oneFile(name), opts)
+		if err != nil || got != "_" || opts.Name != "_" {
+			t.Errorf("%q was placed as %q, Options.Name %q, error %v; want _", name, got, opts.Name, err)
+		}
+	}
+}
+
 func TestSkipRefusesToStartAndSaysWhat(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, filepath.Join(dir, "movie.mkv"))
@@ -289,6 +335,15 @@ func TestAJobWithAWorkingFolderDecidesNoNameHere(t *testing.T) {
 // test sets beyond the task, the URL and the connection count.
 func settle(t *testing.T, dir, name string, body []byte, job Job) []core.Update {
 	t.Helper()
+	return settleFrom(t, dir, name, job, func(w http.ResponseWriter, r *http.Request) {
+		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(body))
+	})
+}
+
+// settleFrom is settle with the server's answer up to serve, for a test about
+// what the server says beside the body. The link's path is name.
+func settleFrom(t *testing.T, dir, name string, job Job, serve http.HandlerFunc) []core.Update {
+	t.Helper()
 	if raceEnabled {
 		// gopeed v1.9.3 spawns a task's watch goroutine, which reads
 		// Task.Status without a lock, before it writes the status (doStart
@@ -296,9 +351,7 @@ func settle(t *testing.T, dir, name string, body []byte, job Job) []core.Update 
 		// fix belongs in gopeed; the plain test run still covers this.
 		t.Skip("gopeed v1.9.3 races on a task's status when a real transfer starts; see comment")
 	}
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(body))
-	}))
+	srv := httptest.NewServer(serve)
 	defer srv.Close()
 
 	var mu sync.Mutex
@@ -400,6 +453,92 @@ func TestALinkWithControlCharactersDownloadsUnderACleanName(t *testing.T) {
 			}
 		})
 	}
+}
+
+// A server names the file in Content-Disposition, plainly or in the RFC 5987
+// form, or in the link itself, and any of them can hold a path. Whatever the
+// policy does with a file of that name, it does in the download folder.
+func TestAServerCannotPlaceAFileOutsideTheDownloadFolder(t *testing.T) {
+	body := []byte("from the server")
+	forms := []struct{ name, link, disposition string }{
+		{"filename", "file.bin", `attachment; filename="../../outside/victim.txt"`},
+		{"filename*", "file.bin", `attachment; filename*=UTF-8''..%2F..%2Foutside%2Fvictim.txt`},
+		// The library unescapes the last element of the path once more.
+		{"link", "..%252F..%252Foutside%252Fvictim.txt", ""},
+	}
+	for _, f := range forms {
+		for _, p := range []collide.Policy{collide.Overwrite, collide.Rename, collide.Ask} {
+			t.Run(f.name+"/"+string(p), func(t *testing.T) {
+				root := t.TempDir()
+				dir := filepath.Join(root, "downloads", "movies")
+				if err := os.MkdirAll(dir, 0o755); err != nil {
+					t.Fatal(err)
+				}
+				// Overwrite and Ask act on a file that is there, Rename on
+				// the folder it counts in.
+				if p != collide.Rename {
+					if err := os.Mkdir(filepath.Join(root, "outside"), 0o755); err != nil {
+						t.Fatal(err)
+					}
+					writeFile(t, filepath.Join(root, "outside", "victim.txt"))
+				}
+				before := outside(t, root, dir)
+
+				got := settleFrom(t, dir, f.link, Job{Collision: p}, func(w http.ResponseWriter, r *http.Request) {
+					if f.disposition != "" {
+						w.Header().Set("Content-Disposition", f.disposition)
+					}
+					http.ServeContent(w, r, "", time.Time{}, bytes.NewReader(body))
+				})
+
+				if after := outside(t, root, dir); !maps.Equal(before, after) {
+					t.Errorf("outside the download folder %v became %v", before, after)
+				}
+				last := got[len(got)-1]
+				if last.Status != core.StatusDone {
+					t.Fatalf("the download ended as %q: %s", last.Status, last.Err)
+				}
+				if want := filepath.Join(dir, "victim.txt"); last.File != want {
+					t.Errorf("done reported the file %q, want %q", last.File, want)
+				}
+				for _, u := range got {
+					if u.Name != "" && u.Name != "victim.txt" {
+						t.Errorf("the task was named %q", u.Name)
+					}
+				}
+			})
+		}
+	}
+}
+
+// outside is everything under root but dir, each file with its content, so a
+// write, a truncation, a delete and a new folder all show.
+func outside(t *testing.T, root, dir string) map[string]string {
+	t.Helper()
+	got := map[string]string{}
+	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if p == dir {
+			return filepath.SkipDir
+		}
+		rel, err := filepath.Rel(root, p)
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			got[rel] = "folder"
+			return nil
+		}
+		b, err := os.ReadFile(p)
+		got[rel] = string(b)
+		return err
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return got
 }
 
 // libraryTask is a finished plain HTTP task as the library describes it,
