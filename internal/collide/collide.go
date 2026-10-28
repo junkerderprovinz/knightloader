@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -75,6 +76,18 @@ func SafeName(name string) string {
 		}
 	}
 	return gopeed.SafeFilename(name)
+}
+
+// BaseName is the last element of a name a server, a resolver or a link list
+// supplied, read with either slash as a separator, so a path in it cannot lead
+// out of the folder it is joined to. It is "" when no element is left, as for
+// "..".
+func BaseName(name string) string {
+	base := path.Base(strings.ReplaceAll(name, `\`, "/"))
+	if base == "." || base == ".." || base == "/" {
+		return ""
+	}
+	return base
 }
 
 // Policies lists the policies in the order a settings dropdown should offer

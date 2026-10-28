@@ -684,10 +684,12 @@ func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
 	if res != nil && res.Name == "" && j.Name != "" {
 		name = j.Name
 	}
+	resolved := name
+	name = fileName(name)
 	if !j.placed() || res == nil {
-		// The library would write a control character from the link as it is.
-		if res != nil && res.Name == "" && name != collide.SafeName(name) {
-			name = collide.SafeName(name)
+		// The library would write a control character from the link as it
+		// is, and flatten a path into one long name.
+		if res != nil && res.Name == "" && name != resolved {
 			opts.Name = name
 		}
 		return name, nil
@@ -702,8 +704,13 @@ func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
 		// Nothing named, so nothing to reserve; the library picks the name.
 		return name, nil
 	}
-	// The library joins the file's relative path onto opts.Path.
-	dir := filepath.Join(opts.Path, filepath.FromSlash(res.Files[0].Path))
+	// The library joins the file's relative path onto opts.Path, and a torrent
+	// writes that path itself.
+	rel := filepath.FromSlash(res.Files[0].Path)
+	if rel != "" && !filepath.IsLocal(rel) {
+		return name, fmt.Errorf("not downloaded: the file's folder %q is outside the download folder", res.Files[0].Path)
+	}
+	dir := filepath.Join(opts.Path, rel)
 	r, err := collide.Options{MaxAttempts: j.MaxCollisionAttempts}.
 		Handover(filepath.Join(dir, name), j.Collision)
 	if err != nil {
@@ -720,7 +727,7 @@ func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
 // file's name.
 func placeFolder(j Job, res *base.Resource, opts *base.Options) error {
 	r, err := collide.Options{MaxAttempts: j.MaxCollisionAttempts}.
-		HandoverFolder(filepath.Join(opts.Path, res.Name), j.Collision)
+		HandoverFolder(filepath.Join(opts.Path, fileName(res.Name)), j.Collision)
 	if err != nil {
 		return err
 	}
@@ -729,6 +736,16 @@ func placeFolder(j Job, res *base.Resource, opts *base.Options) error {
 	}
 	opts.Name = filepath.Base(r.Path)
 	return nil
+}
+
+// fileName is the single name a resolved name is written under, since a name
+// from a server or a torrent can carry a path. A name with no last element,
+// such as "..", becomes "_".
+func fileName(name string) string {
+	if name == "" {
+		return ""
+	}
+	return collide.SafeName(cmp.Or(collide.BaseName(name), "_"))
 }
 
 // requestProxy is the route as gopeed reads it. A route without a proxy

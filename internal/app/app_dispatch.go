@@ -1325,8 +1325,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 	closing := a.closing
 	a.closeMu.Unlock()
 	stale := u.Status != core.StatusDone && u.Status != core.StatusError && (!a.active[id] || closing)
-	if u.Name != "" {
-		t.Name = u.Name
+	// The name comes from the download server or the backend's service, and
+	// the task's file is found by joining it to a folder.
+	if name := collide.BaseName(u.Name); name != "" {
+		t.Name = name
 	}
 	sizeLearned := u.Size > 0 && u.Size != t.Size
 	if sizeLearned {
