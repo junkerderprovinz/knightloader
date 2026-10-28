@@ -306,6 +306,8 @@ github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfV
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/junkerderprovinz/gopeed v0.0.0-20261016170606-f0600ce95b6c h1:MSYUvKnjc2kAGfhc89zlzBOM6Z+t1f0X0StdAZ96xL8=
 github.com/junkerderprovinz/gopeed v0.0.0-20261016170606-f0600ce95b6c/go.mod h1:eKdnery16emlCbVdVZxuHmyX5nR9TkGcgkTfWDTw0hc=
+github.com/junkerderprovinz/gopeed v0.0.0-20261028014801-7384cec971e9 h1:PI7EswsVWXn0dCmi88GvDFJBKyT8v4ukRYfszmJJ2l0=
+github.com/junkerderprovinz/gopeed v0.0.0-20261028014801-7384cec971e9/go.mod h1:eKdnery16emlCbVdVZxuHmyX5nR9TkGcgkTfWDTw0hc=
 github.com/junkerderprovinz/torrent v1.61.1-0.20261014215729-7f7e9bdefc17 h1:iU66M6aAO5sjj3ZIYYSGYbEcBkJvMjS654S0p6oAvTk=
 github.com/junkerderprovinz/torrent v1.61.1-0.20261014215729-7f7e9bdefc17/go.mod h1:oHlhT+qWalx6yncaxd0nGInnsvkd8GncTgpxpbZ46YE=
 github.com/kevinburke/ssh_config v1.4.0 h1:6xxtP5bZ2E4NF5tuQulISpTO2z8XbtH8cg1PWkxoFkQ=

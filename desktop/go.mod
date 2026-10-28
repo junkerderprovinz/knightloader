@@ -195,7 +195,7 @@ replace github.com/junkerderprovinz/knightloader => ../
 
 // The same gopeed fork as the server module, since a dependency's replace
 // does not reach this one.
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261016170606-f0600ce95b6c
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261028014801-7384cec971e9
 
 // The same anacrolix/torrent fork as the server module.
 replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261014215729-7f7e9bdefc17
