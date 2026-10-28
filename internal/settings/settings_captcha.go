@@ -22,6 +22,7 @@ var captchaSolverIDs = map[string]bool{
 	"capsolver":      true,
 	"9kw":            true,
 	"deathbycaptcha": true,
+	"solvecha":       true,
 }
 
 // DefaultCaptchaSolverWait is how long the solvers wait for somebody watching,

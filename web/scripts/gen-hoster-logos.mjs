@@ -45,6 +45,7 @@ const SERVICE_MARKS = {
   'capsolver.com': 'capsolver.png',
   '9kw.eu': '9kw.png',
   'deathbycaptcha.com': 'deathbycaptcha.png',
+  'solvecha.com': 'solvecha.svg',
   'alldebrid.com': 'alldebrid.png',
   'bestdebrid.com': 'bestdebrid.png',
   'cocoleech.com': 'cocoleech.png',
