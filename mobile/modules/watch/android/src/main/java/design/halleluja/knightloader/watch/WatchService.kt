@@ -72,6 +72,7 @@ class WatchService : Service(), HeadlessJsTaskEventListener {
       stopSelf()
       return START_NOT_STICKY
     }
+    Notices.watchingShown = title to text
     if (!running) {
       running = true
       handler.post(tick)
@@ -82,6 +83,7 @@ class WatchService : Service(), HeadlessJsTaskEventListener {
   override fun onDestroy() {
     running = false
     instance = null
+    Notices.watchingShown = null
     handler.removeCallbacks(tick)
     alarms().cancel(tickIntent(this))
     tasks?.removeTaskEventListener(this)
