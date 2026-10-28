@@ -3778,6 +3778,7 @@ export const sk: Dict = {
   'whatsnew.change.instanceBadges': 'Na každej karte v „{name}“ stoja stav a druh vedľa seba v riadku s názvom ako dva odznaky rovnakej výšky, druh ako štvorec. Platí to pri každej šírke a dlhý názov sa skráti, aby bolo miesto pre oba.',
   'whatsnew.change.appLogo': 'Telefóny a rozšírenia prehliadača v „{name}“ nosia logo KnightLoadera ako každá iná karta.',
   'whatsnew.change.cardLogo': 'Logo stojí na každej karte v „{name}“ na rovnakom mieste a v rovnakej veľkosti.',
+  'whatsnew.change.solvecha': 'Solvecha sa dá pridať v „{name}“ ako siedma služba. Číta iba obrázkové captche.',
   'whatsnew.change.netShields': 'Na obrázku skupiny nesie každé zariadenie logo KnightLoadera s malým odznakom, ktorý hovorí, či ide o inštanciu, aplikáciu pre počítač, aplikáciu pre Android alebo rozšírenie prehliadača.',
   'whatsnew.change.netLabels': 'Názvy na obrázku skupiny sú vidieť celé, na dvoch riadkoch, kde potrebujú miesto.',
   'whatsnew.change.cardSize': 'Všetky karty v „{name}“ sú rovnako široké a rovnako vysoké.',

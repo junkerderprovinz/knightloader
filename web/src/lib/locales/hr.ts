@@ -3782,6 +3782,7 @@ export const hr: Dict = {
   'whatsnew.change.instanceBadges': 'Na svakoj kartici u „{name}” stanje i vrsta stoje jedno uz drugo u retku s imenom, kao dvije značke iste visine, vrsta kao kvadrat. To vrijedi pri svakoj širini, a dugo se ime skraćuje da bude mjesta.',
   'whatsnew.change.appLogo': 'Telefoni i proširenja preglednika u „{name}” nose logotip KnightLoadera kao i svaka druga kartica.',
   'whatsnew.change.cardLogo': 'Logotip stoji na istom mjestu i iste je veličine na svakoj kartici u „{name}”.',
+  'whatsnew.change.solvecha': 'Solvecha se može dodati pod „{name}” kao sedma usluga. Čita samo slikovne captche.',
   'whatsnew.change.netShields': 'Na slici grupe svaki uređaj nosi logotip KnightLoadera, s malom značkom koja kaže je li to instanca, aplikacija za računalo, aplikacija za Android ili proširenje preglednika.',
   'whatsnew.change.netLabels': 'Imena na slici grupe vide se cijela, u dva retka gdje im treba mjesta.',
   'whatsnew.change.cardSize': 'Sve kartice u „{name}” jednako su široke i jednako visoke.',

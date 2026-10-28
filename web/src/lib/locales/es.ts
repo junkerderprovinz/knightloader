@@ -3760,6 +3760,7 @@ export const es: Dict = {
   'whatsnew.change.instanceBadges': 'En cada tarjeta de «{name}», el estado y el tipo aparecen uno junto al otro en la línea del nombre, como dos insignias de la misma altura, el tipo como un cuadrado. Vale para cualquier ancho, y un nombre largo se recorta para hacer sitio.',
   'whatsnew.change.appLogo': 'Los teléfonos y las extensiones del navegador de «{name}» llevan el logotipo de KnightLoader como cualquier otra tarjeta.',
   'whatsnew.change.cardLogo': 'El logotipo está en el mismo sitio y con el mismo tamaño en todas las tarjetas de «{name}».',
+  'whatsnew.change.solvecha': 'Solvecha se puede añadir en «{name}» como séptimo servicio. Solo lee captchas de imagen.',
   'whatsnew.change.netShields': 'En la imagen del grupo, cada dispositivo lleva el logotipo de KnightLoader, con una pequeña insignia que indica si es una instancia, la aplicación de escritorio, la aplicación de Android o una extensión del navegador.',
   'whatsnew.change.netLabels': 'Los nombres de la imagen del grupo se muestran completos, en dos líneas cuando necesitan el sitio.',
   'whatsnew.change.cardSize': 'Todas las tarjetas de «{name}» tienen el mismo ancho y la misma altura.',

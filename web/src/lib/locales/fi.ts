@@ -3770,6 +3770,7 @@ export const fi: Dict = {
   'whatsnew.change.instanceBadges': 'Jokaisella kortilla kohdassa ”{name}” tila ja laji ovat vierekkäin nimen rivillä kahtena yhtä korkeana merkkinä, laji neliönä. Näin on joka leveydellä, ja pitkä nimi lyhennetään, jotta tilaa riittää.',
   'whatsnew.change.appLogo': 'Puhelimilla ja selainlaajennuksilla kohdassa ”{name}” on KnightLoaderin logo kuten kaikilla muillakin korteilla.',
   'whatsnew.change.cardLogo': 'Logo on jokaisella kortilla kohdassa ”{name}” samassa paikassa ja samankokoisena.',
+  'whatsnew.change.solvecha': 'Solvechan voi lisätä kohdassa ”{name}” seitsemänneksi palveluksi. Se lukee vain kuva-captchoja.',
   'whatsnew.change.netShields': 'Ryhmän kuvassa jokaisella laitteella on KnightLoaderin logo ja pieni merkki, joka kertoo, onko se instanssi, työpöytäsovellus, Android-sovellus vai selainlaajennus.',
   'whatsnew.change.netLabels': 'Ryhmän kuvan nimet näkyvät kokonaan, kahdella rivillä, kun ne tarvitsevat tilaa.',
   'whatsnew.change.cardSize': 'Kaikki kortit kohdassa ”{name}” ovat yhtä leveitä ja yhtä korkeita.',

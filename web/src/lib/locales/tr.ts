@@ -3767,6 +3767,7 @@ export const tr: Dict = {
   'whatsnew.change.instanceBadges': '“{name}” altındaki her kartta durum ve tür, adın satırında yan yana iki eşit yükseklikte rozet olarak durur; tür bir kare olarak. Bu her genişlikte geçerlidir ve uzun bir ad, yer açmak için kısaltılır.',
   'whatsnew.change.appLogo': '“{name}” içindeki telefonlar ve tarayıcı uzantıları da her kart gibi KnightLoader logosunu taşır.',
   'whatsnew.change.cardLogo': 'Logo, “{name}” altındaki her kartta aynı yerde ve aynı boyutta durur.',
+  'whatsnew.change.solvecha': "Solvecha, \"{name}\" altında yedinci hizmet olarak eklenebilir. Yalnızca resimli captcha'ları okur.",
   'whatsnew.change.netShields': 'Grubun resminde her cihaz KnightLoader logosunu taşır; küçük bir rozet onun bir örnek mi, masaüstü uygulaması mı, Android uygulaması mı yoksa bir tarayıcı uzantısı mı olduğunu söyler.',
   'whatsnew.change.netLabels': 'Grubun resmindeki adlar tam görünür; yere ihtiyaç duyduklarında iki satıra yayılır.',
   'whatsnew.change.cardSize': '“{name}” altındaki tüm kartlar aynı genişlikte ve aynı yükseklikte.',

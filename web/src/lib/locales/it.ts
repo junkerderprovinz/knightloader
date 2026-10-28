@@ -3752,6 +3752,7 @@ export const it: Dict = {
   'whatsnew.change.instanceBadges': 'Su ogni scheda di «{name}», lo stato e il tipo stanno affiancati sulla riga del nome come due badge della stessa altezza, il tipo quadrato. Vale a qualsiasi larghezza, e un nome lungo viene accorciato per fare spazio.',
   'whatsnew.change.appLogo': 'I telefoni e le estensioni del browser in «{name}» portano il logo di KnightLoader come ogni altra scheda.',
   'whatsnew.change.cardLogo': 'Il logo sta nello stesso punto e ha la stessa dimensione su ogni scheda di «{name}».',
+  'whatsnew.change.solvecha': 'Solvecha si può aggiungere in «{name}» come settimo servizio. Legge solo captcha con immagini.',
   'whatsnew.change.netShields': 'Nell’immagine del gruppo ogni dispositivo porta il logo di KnightLoader, con un piccolo badge che dice se è un’istanza, l’app desktop, l’app Android o un’estensione del browser.',
   'whatsnew.change.netLabels': 'I nomi nell’immagine del gruppo si vedono per intero, su due righe quando serve spazio.',
   'whatsnew.change.cardSize': 'Tutte le schede di «{name}» hanno la stessa larghezza e la stessa altezza.',

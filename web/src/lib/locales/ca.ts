@@ -3756,6 +3756,7 @@ export const ca: Dict = {
   'whatsnew.change.instanceBadges': 'A cada targeta de «{name}», l’estat i el tipus apareixen un al costat de l’altre a la línia del nom, com dues insígnies de la mateixa alçada, el tipus com un quadrat. Això val per a qualsevol amplada, i un nom llarg s’escurça per fer-hi lloc.',
   'whatsnew.change.appLogo': 'Els telèfons i les extensions del navegador de «{name}» porten el logotip de KnightLoader com qualsevol altra targeta.',
   'whatsnew.change.cardLogo': 'El logotip és al mateix lloc i té la mateixa mida a totes les targetes de «{name}».',
+  'whatsnew.change.solvecha': "Solvecha es pot afegir a «{name}» com a setè servei. Només llegeix captcha d'imatge.",
   'whatsnew.change.netShields': 'A la imatge del grup, cada dispositiu porta el logotip de KnightLoader, amb una petita insígnia que diu si és una instància, l’aplicació d’escriptori, l’aplicació d’Android o una extensió del navegador.',
   'whatsnew.change.netLabels': 'Els noms de la imatge del grup es veuen sencers, en dues línies quan necessiten el lloc.',
   'whatsnew.change.cardSize': 'Totes les targetes de «{name}» tenen la mateixa amplada i la mateixa alçada.',

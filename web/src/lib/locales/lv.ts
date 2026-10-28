@@ -3759,6 +3759,7 @@ export const lv: Dict = {
   'whatsnew.change.instanceBadges': 'Katrā kartītē sadaļā „{name}“ stāvoklis un veids atrodas blakus nosaukuma rindā kā divi vienāda augstuma nozīmīši, veids kā kvadrāts. Tā ir jebkurā platumā, un garš nosaukums tiek saīsināts, lai abiem pietiktu vietas.',
   'whatsnew.change.appLogo': 'Tālruņiem un pārlūka paplašinājumiem sadaļā „{name}“ ir KnightLoader logotips tāpat kā visām citām kartītēm.',
   'whatsnew.change.cardLogo': 'Logotips katrā kartītē sadaļā „{name}“ atrodas vienā un tajā pašā vietā un ir viena izmēra.',
+  'whatsnew.change.solvecha': 'Solvecha var pievienot sadaļā “{name}” kā septīto pakalpojumu. Tas lasa tikai attēlu captcha.',
   'whatsnew.change.netShields': 'Grupas attēlā katrai ierīcei ir KnightLoader logotips ar mazu nozīmīti, kas pasaka, vai tā ir instance, darbvirsmas lietotne, Android lietotne vai pārlūka paplašinājums.',
   'whatsnew.change.netLabels': 'Nosaukumi grupas attēlā redzami pilnībā, divās rindās, kur tiem vajag vietu.',
   'whatsnew.change.cardSize': 'Visas kartītes sadaļā „{name}“ ir vienādi platas un vienādi augstas.',

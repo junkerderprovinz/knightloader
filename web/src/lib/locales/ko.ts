@@ -3756,6 +3756,7 @@ export const ko: Dict = {
   'whatsnew.change.instanceBadges': '“{name}”의 모든 카드에서 상태와 종류가 이름과 같은 줄에 높이가 같은 두 개의 배지로 나란히 표시되며, 종류는 정사각형입니다. 이는 어떤 너비에서도 같고, 이름이 길면 둘이 들어갈 자리를 만들기 위해 잘립니다.',
   'whatsnew.change.appLogo': '“{name}”의 휴대폰과 브라우저 확장 프로그램에도 다른 카드처럼 KnightLoader 로고가 붙습니다.',
   'whatsnew.change.cardLogo': '“{name}”의 모든 카드에서 로고가 같은 위치에 같은 크기로 표시됩니다.',
+  'whatsnew.change.solvecha': 'Solvecha를 "{name}"에서 일곱 번째 서비스로 추가할 수 있습니다. 이미지 캡차만 읽습니다.',
   'whatsnew.change.netShields': '그룹 그림에서 모든 기기에 KnightLoader 로고가 붙고, 인스턴스, 데스크톱 앱, Android 앱, 브라우저 확장 프로그램 중 무엇인지 알려 주는 작은 배지가 함께 표시됩니다.',
   'whatsnew.change.netLabels': '그룹 그림의 이름이 잘리지 않고 모두 표시되며, 공간이 필요하면 두 줄로 나뉩니다.',
   'whatsnew.change.cardSize': '“{name}”의 모든 카드는 너비와 높이가 같습니다.',

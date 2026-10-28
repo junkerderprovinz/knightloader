@@ -3765,6 +3765,7 @@ export const eu: Dict = {
   'whatsnew.change.instanceBadges': '«{name}» orriko txartel bakoitzean egoera eta mota elkarren ondoan daude izenaren lerroan, altuera bereko bi txapa gisa, mota karratu gisa. Zabalera guztietan gertatzen da hori, eta izen luzea laburtu egiten da lekua egiteko.',
   'whatsnew.change.appLogo': '«{name}» orriko telefonoek eta nabigatzaile-luzapenek KnightLoader-en logoa daramate, beste txartel guztiek bezala.',
   'whatsnew.change.cardLogo': 'Logoa leku berean eta tamaina berean dago «{name}» orriko txartel guztietan.',
+  'whatsnew.change.solvecha': 'Solvecha «{name}» atalean gehi daiteke zazpigarren zerbitzu gisa. Irudi-captchak soilik irakurtzen ditu.',
   'whatsnew.change.netShields': 'Taldearen irudian gailu bakoitzak KnightLoader-en logoa darama, eta txapa txiki batek esaten du instantzia bat, mahaigaineko aplikazioa, Android aplikazioa edo nabigatzaile-luzapen bat den.',
   'whatsnew.change.netLabels': 'Taldearen irudiko izenak osorik ikusten dira, bi lerrotan lekua behar dutenean.',
   'whatsnew.change.cardSize': '«{name}» orriko txartel guztiek zabalera bera eta altuera bera dute.',

@@ -3770,6 +3770,7 @@ export const hu: Dict = {
   'whatsnew.change.instanceBadges': 'A(z) „{name}” minden kártyáján az állapot és a típus egymás mellett áll a név sorában, két egyforma magas jelvényként, a típus négyzetként. Ez minden szélességnél így van, a hosszú nevet pedig megrövidítjük, hogy legyen hely.',
   'whatsnew.change.appLogo': 'A(z) „{name}” telefonjai és böngészőbővítményei ugyanúgy a KnightLoader logóját viselik, mint minden más kártya.',
   'whatsnew.change.cardLogo': 'A logó a(z) „{name}” minden kártyáján ugyanott és ugyanakkora méretben áll.',
+  'whatsnew.change.solvecha': 'A Solvecha a(z) „{name}” alatt hetedik szolgáltatásként adható hozzá. Csak képes captchákat olvas.',
   'whatsnew.change.netShields': 'A csoport képén minden eszköz a KnightLoader logóját viseli, egy kis jelvénnyel, amely megmutatja, hogy példányról, az asztali alkalmazásról, az Android-alkalmazásról vagy böngészőbővítményről van-e szó.',
   'whatsnew.change.netLabels': 'A csoport képén a nevek teljes egészükben látszanak, két sorban, ha kell nekik a hely.',
   'whatsnew.change.cardSize': 'A(z) „{name}” minden kártyája ugyanolyan széles és ugyanolyan magas.',
