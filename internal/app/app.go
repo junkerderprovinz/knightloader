@@ -717,6 +717,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	var revived []core.Task
 	var requeue []string
 	for _, t := range existing {
+		named := cutStoredName(t)
 		changed, enqueue := a.reviveOnBoot(t, resume, queueWasLive)
 		// A host saved under one of a hoster's other domains shows under its
 		// main one, as a link added now does.
@@ -724,7 +725,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 			t.Host = h
 			changed = true
 		}
-		if changed {
+		if changed || named {
 			revived = append(revived, *t)
 		}
 		if enqueue {

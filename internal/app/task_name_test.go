@@ -77,3 +77,49 @@ func TestALinkCannotNameATasksFileOutsideItsFolder(t *testing.T) {
 		})
 	}
 }
+
+func TestAStoredNameComesBackAsAFileInItsFolder(t *testing.T) {
+	// A link stands for the name until the download names the file.
+	const link = "https://plain.example/../../../../outside/link.bin"
+	f := newBootFixture(t, nil,
+		core.Task{ID: "climbing", URL: "https://plain.example/a.bin", Name: climbingName, Status: core.StatusDone, Enabled: true},
+		core.Task{ID: "dots", URL: "https://plain.example/b.bin", Name: "..", Status: core.StatusDone, Enabled: true},
+		core.Task{ID: "link", URL: link, Name: link, Status: core.StatusCollected, Enabled: true},
+	)
+	a := f.boot(t)
+
+	if got := taskOf(t, a, "climbing").Name; got != "victim.txt" {
+		t.Errorf("the stored name came back as %q, want victim.txt", got)
+	}
+	if got := taskOf(t, a, "link").Name; got != link {
+		t.Errorf("the link a task is named after until it has a name came back as %q", got)
+	}
+	for _, id := range []string{"climbing", "dots", "link"} {
+		if file, dir := fileOf(a, id); filepath.Dir(file) != dir {
+			t.Errorf("task %s's file is %s, outside %s", id, file, dir)
+		}
+	}
+	rows, err := a.Store.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rows {
+		if row.ID == "climbing" && row.Name != "victim.txt" {
+			t.Errorf("the store still holds %q", row.Name)
+		}
+	}
+}
+
+func TestEveryTaskNameJoinsAsOneElement(t *testing.T) {
+	for _, name := range []string{
+		"movie.mkv", climbingName, `..\..\victim.txt`, "..", ".", "/", "https://host.example/../../x.bin",
+	} {
+		got := diskName(name)
+		if got == "." || !filepath.IsLocal(got) || filepath.Base(got) != got {
+			t.Errorf("diskName(%q) = %q, which is not one name inside a folder", name, got)
+		}
+	}
+	if got := diskName("movie.mkv"); got != "movie.mkv" {
+		t.Errorf("diskName changed an ordinary name to %q", got)
+	}
+}

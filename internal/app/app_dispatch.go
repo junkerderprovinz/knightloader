@@ -979,7 +979,7 @@ func (a *App) dispatchLocked() {
 		if policy == collide.Skip && filename(t) != "" && !ownPlace {
 			// The sanitised name is what would land on disk. The task's own
 			// leftover is not in its way.
-			target := filepath.Join(dir, collide.SafeName(t.Name))
+			target := filepath.Join(dir, diskName(collide.SafeName(t.Name)))
 			if taken, err := collide.Check(target); err == nil && taken && !own.at(target) {
 				// Availability is untouched: this is about the folder, not the
 				// link.
