@@ -99,6 +99,7 @@ var Catalogue = []Service{
 	{ID: "capmonster", Label: "CapMonster Cloud", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://dash.capmonster.cloud/"},
 	{ID: "capsolver", Label: "CapSolver", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://dashboard.capsolver.com/"},
 	{ID: "9kw", Label: "9kw.eu", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://www.9kw.eu/userapi.html"},
+	{ID: "solvecha", Label: "Solvecha", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://solvecha.com/docs"},
 	// Death By Captcha logs in with the account itself. An authtoken from its
 	// panel goes in the password field under the username "authtoken".
 	{ID: "deathbycaptcha", Label: "DeathByCaptcha", Kind: KindUsernamePassword, Group: GroupCaptchaSolver, WhereURL: "https://deathbycaptcha.com/user-pay"},

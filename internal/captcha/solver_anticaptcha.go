@@ -1,9 +1,10 @@
 package captcha
 
-// The Anti-Captcha client, which also serves CapMonster Cloud and CapSolver:
-// both speak Anti-Captcha's createTask protocol and differ only in the base
-// URL, the task names and which fields a task documents. Those differences
-// are an antiCaptchaAPI each (solver_capmonster.go, solver_capsolver.go). It
+// The Anti-Captcha client, which also serves CapMonster Cloud, CapSolver and
+// Solvecha: they speak Anti-Captcha's createTask protocol and differ only in
+// the base URL, the task names and which fields a task documents. Those
+// differences are an antiCaptchaAPI each (solver_capmonster.go,
+// solver_capsolver.go, solver_solvecha.go). It
 // shares Solver, the refusal errors, the answer and image helpers, postJSON
 // and the poll constants with solver_2captcha.go, and the token tasks with
 // solver_token.go.
