@@ -103,15 +103,23 @@ object Notices {
       .setContentIntent(openIntent(context, WATCH_ID, OpenRequest("downloads", "")))
       .setOngoing(true)
       .setSilent(true)
+      .setOnlyAlertOnce(true)
       .setShowWhen(false)
       .setCategory(NotificationCompat.CATEGORY_SERVICE)
       .setPriority(NotificationCompat.PRIORITY_MIN)
       .build()
 
+  /** The words on the service's notification, set by the service while it runs. */
+  @Volatile internal var watchingShown: Pair<String, String>? = null
+
   /** Puts new words on the service's notification while it runs. */
   @SuppressLint("MissingPermission")
   fun updateWatching(context: Context, title: String, text: String) {
     if (!WatchService.running || !enabled(context)) return
+    // Some phones pop a notification up again whenever it is posted, however
+    // quiet its channel, so the same words are not posted twice.
+    if (watchingShown == title to text) return
+    watchingShown = title to text
     NotificationManagerCompat.from(context).notify(WATCH_ID, watching(context, title, text))
   }
 
