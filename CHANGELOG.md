@@ -46,7 +46,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   that to overwrite or delete a file elsewhere on the disk, create folders
   there, or find out whether a file exists. Only the last part of such a name
   counts now, and names from resolvers, link containers and torrents are cut
-  down the same way.
+  down the same way. Names saved by an earlier version are cut down when
+  KnightLoader starts.
+- **A torrent from a magnet link can no longer empty a file beside its own
+  folder.** The torrent library creates a torrent's empty files as soon as
+  their list arrives from the swarm, before KnightLoader gets to look at it,
+  and an empty file whose path climbed out of the torrent's folder replaced
+  whatever file had that name in the download folder. Such a torrent is
+  refused before anything is created.
 
 ## [2.3.2] - 2026-10-27
 
