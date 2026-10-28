@@ -257,7 +257,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: "24"
+          node-version: "26"
           cache: npm
           cache-dependency-path: web/package-lock.json
 
@@ -418,7 +418,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: "24"
+          node-version: "26"
 
       # The extension has no build step, so nothing else parses these files
       # before a browser does.
@@ -496,7 +496,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: "24"
+          node-version: "26"
 
       - name: Documented claims
         run: node check-docs-claims.mjs
@@ -513,7 +513,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: "24"
+          node-version: "26"
 
       - name: The queue verbs reach as far as the server does
         run: node check-queue-reach.mjs
@@ -531,7 +531,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: "24"
+          node-version: "26"
           cache: npm
           cache-dependency-path: mobile/package-lock.json
 
