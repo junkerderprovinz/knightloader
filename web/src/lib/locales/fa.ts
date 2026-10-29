@@ -537,7 +537,6 @@ export const fa: Dict = {
   'columns.comment': 'یادداشت',
   'columns.resolver': 'بک‌اند',
   'columns.source': 'منبع',
-  'columns.enabled': 'روشن',
   'columns.menuTitle': 'ستون‌ها',
   'columns.reset': 'بازنشانی ستون‌ها',
   'columns.headerHint': 'روی یک سرستون کلیک کنید تا بر اساس آن مرتب شود، آن را بکشید تا ستون جابه‌جا شود، لبهٔ آن را بکشید تا اندازه تغییر کند، دوبار کلیک روی لبه، عرض را برمی‌گرداند. راست‌کلیک روی سرستون فهرست ستون‌ها را باز می‌کند.',
@@ -567,8 +566,6 @@ export const fa: Dict = {
   'list.dropChangedPriority': 'جابه‌جا شد: {n} دانلود اولویت ردیفی را گرفت که رویش رها شد.',
   'list.optionsFailed': 'بارگیری بندهای پاک‌سازی از سرور ممکن نشد.',
 
-  'task.enable': 'روشن کردن',
-  'task.disable': 'خاموش کردن',
   'task.switchFailed': 'کلید تغییر نکرد.',
   'task.uncheckable': 'میزبان پاسخ نداد',
   'task.expand': 'گسترش',

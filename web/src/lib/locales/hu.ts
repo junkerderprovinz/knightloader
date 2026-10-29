@@ -538,7 +538,6 @@ export const hu: Dict = {
   'columns.comment': 'Megjegyzés',
   'columns.resolver': 'Backend',
   'columns.source': 'Forrás',
-  'columns.enabled': 'Bekapcsolva',
   'columns.menuTitle': 'Oszlopok',
   'columns.reset': 'Oszlopok visszaállítása',
   'columns.headerHint': 'Kattints egy fejlécre a szerinte való rendezéshez, húzd az oszlop átrendezéséhez, húzd a szélét az átméretezéshez, dupla kattintás a szélén visszaállítja a szélességet. Jobb kattintás a fejlécen az oszloplistához.',
@@ -568,8 +567,6 @@ export const hu: Dict = {
   'list.dropChangedPriority': 'Áthelyezve: {n} letöltés átvette annak a sornak a prioritását, amelyre ejtetted.',
   'list.optionsFailed': 'A takarítási bejegyzések nem töltődtek be a kiszolgálóról.',
 
-  'task.enable': 'Bekapcsolás',
-  'task.disable': 'Kikapcsolás',
   'task.switchFailed': 'A kapcsolót nem sikerült átállítani.',
   'task.uncheckable': 'A tárhely nem válaszolt',
   'task.expand': 'Kibont',

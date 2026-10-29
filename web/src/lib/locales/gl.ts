@@ -537,7 +537,6 @@ export const gl: Dict = {
   'columns.comment': 'Comentario',
   'columns.resolver': 'Backend',
   'columns.source': 'Orixe',
-  'columns.enabled': 'Activo',
   'columns.menuTitle': 'Columnas',
   'columns.reset': 'Restablecer as columnas',
   'columns.headerHint': 'Fai clic nunha cabeceira para ordenar por ela, arrástraa para reordenar a columna, arrastra o seu bordo para redimensionala, dobre clic no bordo para restaurar o ancho. Clic dereito na cabeceira para a lista de columnas.',
@@ -567,8 +566,6 @@ export const gl: Dict = {
   'list.dropChangedPriority': 'Movido: {n} descargas tomaron a prioridade da fila onde caeron.',
   'list.optionsFailed': 'Non se puideron cargar as entradas de limpeza do servidor.',
 
-  'task.enable': 'Activar',
-  'task.disable': 'Desactivar',
   'task.switchFailed': 'Non se puido cambiar o interruptor.',
   'task.uncheckable': 'O servidor non respondeu',
   'task.expand': 'Despregar',

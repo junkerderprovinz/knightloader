@@ -537,7 +537,6 @@ export const zh: Dict = {
   'columns.comment': '备注',
   'columns.resolver': '后端',
   'columns.source': '来源',
-  'columns.enabled': '启用',
   'columns.menuTitle': '列',
   'columns.reset': '重置列',
   'columns.headerHint': '点击表头可按该列排序,拖动表头可调整列顺序,拖动边缘可调整宽度,双击边缘可恢复原宽度。右键点击表头可打开列列表。',
@@ -567,8 +566,6 @@ export const zh: Dict = {
   'list.dropChangedPriority': '已移动：{n} 个下载接手了被放置那一行的优先级。',
   'list.optionsFailed': '无法从服务器载入清理条目。',
 
-  'task.enable': '启用',
-  'task.disable': '停用',
   'task.switchFailed': '开关未能切换。',
   'task.uncheckable': '主机没有回应',
   'task.expand': '展开',

@@ -77,10 +77,4 @@ describe('RowMarks', () => {
   it('drops the stop mark once its download has finished', () => {
     expect(marks([task('a', { status: 'done' })], ctx({ stopMark: 'a' }))).toEqual([]);
   });
-
-  it('leaves a disabled row to the Enabled column where that column is drawn', () => {
-    const off = [task('a', { enabled: false })];
-    expect(marks(off, ctx({ profile: 'collector', switchShown: true }))).toEqual([]);
-    expect(marks(off, ctx({ profile: 'collector', switchShown: false }))).toEqual(['task.waiting.disabled']);
-  });
 });
