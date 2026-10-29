@@ -30,6 +30,9 @@ var groupRoutes = map[string]bool{
 	// The phones and browsers of the group, which the phone app and the
 	// extension list beside the instances.
 	"GET /api/group/apps": true,
+	// What another instance knows of them. The handler answers an approved
+	// instance alone.
+	"GET /api/group/roster": true,
 
 	// Adding links. A folder outside the download folders is refused below.
 	"POST /api/links": true,

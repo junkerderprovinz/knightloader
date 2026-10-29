@@ -706,6 +706,28 @@ func TestOnlyTheOwnerOrAnApprovedInstanceTakesAPhoneOut(t *testing.T) {
 	}
 }
 
+func TestOnlyAnApprovedInstanceReadsTheRoster(t *testing.T) {
+	t.Parallel()
+	a, _, _, _, owner := groupServer(t)
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	phone := signedMember(t, a, "phone-mine", relay.KindMobile)
+	if status, body := phone(http.MethodGet, "/api/group/roster"); status != http.StatusForbidden || refusalCode(body) != "rosterNotForInstance" {
+		t.Errorf("a phone reading the roster = %d (%s), want 403 rosterNotForInstance", status, body)
+	}
+	if status, body := owner(http.MethodGet, "/api/group/roster", ""); status != http.StatusForbidden {
+		t.Errorf("the owner's page reading the roster = %d (%s), want 403", status, body)
+	}
+
+	instance := signedMember(t, a, "instance-b", relay.KindInstance)
+	status, body := instance(http.MethodGet, "/api/group/roster")
+	var r federation.Roster
+	if status != http.StatusOK || json.Unmarshal(body, &r) != nil {
+		t.Fatalf("an approved instance reading the roster = %d (%s), want 200 and a roster", status, body)
+	}
+}
+
 func TestOnlyAnApprovedInstanceMakesThisInstanceLeaveTheGroup(t *testing.T) {
 	t.Parallel()
 	a, _, _, _, owner := groupServer(t)
