@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -89,6 +90,58 @@ func TestTheDailyUpdateDownloadsNothingWhenYtdlpIsCurrent(t *testing.T) {
 	}
 	if f.installs.Load() != 0 {
 		t.Fatal("the newest release was downloaded although it is the one in use")
+	}
+}
+
+// withoutYtdlp points KL_YTDLP at a file that is not there, so no yt-dlp is
+// found however the machine running the test is set up.
+func withoutYtdlp(t *testing.T, a *App) {
+	t.Helper()
+	t.Setenv("KL_YTDLP", filepath.Join(t.TempDir(), "no-yt-dlp"))
+	a.mediaToolsProber().Invalidate()
+	if a.MediaTools().Ytdlp.Found {
+		t.Fatal("a yt-dlp was found anyway")
+	}
+}
+
+func TestTheDailyUpdateInstallsNothingWhereNoYtdlpIsFound(t *testing.T) {
+	a := autoUpdateApp(t, true)
+	withoutYtdlp(t, a)
+	f := &fakeYtdlpRelease{tag: "2026.09.01", install: installsFine}
+	f.wire(a)
+
+	a.autoUpdateYtdlp()
+
+	if f.installs.Load() != 0 {
+		t.Fatalf("yt-dlp was fetched %d times on a machine that has none", f.installs.Load())
+	}
+}
+
+func TestTheDesktopFetchesYtdlpWhereNoneIsFound(t *testing.T) {
+	a := autoUpdateApp(t, true)
+	a.InstallMissingYtdlp = true
+	withoutYtdlp(t, a)
+	f := &fakeYtdlpRelease{tag: "2026.09.01", install: installsFine}
+	f.wire(a)
+
+	a.autoUpdateYtdlp()
+
+	if f.installs.Load() != 1 {
+		t.Fatalf("yt-dlp was fetched %d times, want once", f.installs.Load())
+	}
+}
+
+func TestTheDesktopFetchesNothingWhileTheDailyUpdateIsOff(t *testing.T) {
+	a := autoUpdateApp(t, false)
+	a.InstallMissingYtdlp = true
+	withoutYtdlp(t, a)
+	f := &fakeYtdlpRelease{tag: "2026.09.01", install: installsFine}
+	f.wire(a)
+
+	a.autoUpdateYtdlp()
+
+	if f.installs.Load() != 0 {
+		t.Fatalf("switched off, yt-dlp was fetched %d times", f.installs.Load())
 	}
 }
 

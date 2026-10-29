@@ -139,7 +139,7 @@ func (p *Prober) probe() Status {
 		st.Ytdlp.Detail = detail
 	}
 	if !st.Ytdlp.Found && st.Ytdlp.Detail == "" {
-		st.Ytdlp.Detail = "no yt-dlp found: neither a fetched copy, nor KL_YTDLP, nor \"yt-dlp\" on PATH"
+		st.Ytdlp.Detail = "no yt-dlp found: neither a fetched copy, nor KL_YTDLP, nor one beside the program, nor \"yt-dlp\" on PATH"
 	}
 
 	// ffmpeg and ffprobe take "-version" with one dash, unlike yt-dlp's two.
@@ -159,25 +159,12 @@ func (p *Prober) probe() Status {
 	// run instead" means nothing, and answering it would cost a fourth spawn
 	// on every probe for a line nothing draws.
 	if source == SourceManaged {
-		fallbackPath, fallbackSource, _ := resolveSystemYtdlp()
+		fallbackPath, fallbackSource := resolveSystemYtdlp()
 		shadowed := probeTool(fallbackPath, "--version", ytdlpVersion)
 		shadowed.Source = fallbackSource
 		st.Shadowed = &shadowed
 	}
 	return st
-}
-
-// resolveSystemYtdlp answers ResolveYtdlp's question with the managed copy
-// taken out of the running: KL_YTDLP, then PATH. It is what Status.Shadowed
-// reports and what "back to the system copy" would put in charge.
-func resolveSystemYtdlp() (string, Source, string) {
-	if env := os.Getenv("KL_YTDLP"); env != "" {
-		return env, SourceEnv, ""
-	}
-	if found, err := exec.LookPath("yt-dlp"); err == nil {
-		return found, SourcePath, ""
-	}
-	return "yt-dlp", SourceNone, ""
 }
 
 // lookup resolves a bare program name to a full path when PATH has it, and
