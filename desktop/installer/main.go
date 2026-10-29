@@ -48,6 +48,9 @@ func main() {
 			Icon:       icon,
 			Categories: []string{"Network", "FileTransfer"},
 			Payload:    files,
+			// The lock a copy on the usual data folder holds, instanceID in
+			// desktop/main.go.
+			InstanceID: id,
 			Legacy: pommelporter.Legacy{
 				MachineKeys: []string{`Software\Microsoft\Windows\CurrentVersion\Uninstall\` + legacy},
 				UserKeys:    []string{`Software\Microsoft\Windows\CurrentVersion\Uninstall\` + legacy},
