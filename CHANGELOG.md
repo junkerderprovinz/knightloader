@@ -36,6 +36,16 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Fixed
+
+- **A YouTube link becomes its video, audio and other rows again when
+  JDownloader sits above yt-dlp on the priority card.** JDownloader took the
+  link, and the link collector showed it as a single row with the address as
+  its name. Video sites stay with yt-dlp whatever the order, unless you have a
+  JDownloader login for the site. Links collected before need adding again.
+
 ## [2.3.3] - 2026-10-28
 
 ### Added
