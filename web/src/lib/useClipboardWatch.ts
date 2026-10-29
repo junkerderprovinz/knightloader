@@ -1,7 +1,16 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import { useUIState } from './uistate';
 import { isDesktop } from './desktop';
-import { POPUP_FIELD, TARGET_FIELD, WATCH_FIELD, WATCH_SUPPORTED } from './clipboardWatch';
+import {
+  POPUP_FIELD,
+  POPUP_PLACE_FIELD,
+  POPUP_SECONDS_FIELD,
+  TARGET_FIELD,
+  WATCH_FIELD,
+  WATCH_SUPPORTED,
+  type PopupPlace,
+  type PopupSeconds,
+} from './clipboardWatch';
 
 /** Where this browser keeps the switch. */
 const SWITCH_KEY = 'knightloader.clipboardWatch';
@@ -77,4 +86,14 @@ export function useClipboardWatchTarget(): [string, (target: string) => void] {
  *  screen when the watch takes links into this instance's collector. */
 export function useClipboardPopup(): [boolean, (on: boolean) => void] {
   return useUIState<boolean>(POPUP_FIELD, true);
+}
+
+/** useClipboardPopupSeconds is how long the popup stays, 0 for until clicked. */
+export function useClipboardPopupSeconds(): [PopupSeconds, (seconds: PopupSeconds) => void] {
+  return useUIState<PopupSeconds>(POPUP_SECONDS_FIELD, 5);
+}
+
+/** useClipboardPopupPlace is where on the screen the popup sits. */
+export function useClipboardPopupPlace(): [PopupPlace, (place: PopupPlace) => void] {
+  return useUIState<PopupPlace>(POPUP_PLACE_FIELD, 'bottom-right');
 }

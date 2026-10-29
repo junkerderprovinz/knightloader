@@ -41,11 +41,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 ### Added
 
 - **The desktop app pops up a note when the clipboard watch catches links.**
-  A small note rises in the lower right corner of the screen for a few
-  seconds, even with the window in the tray, and says how many links went into
-  the collector and from which site. A click on it opens the collector, copies
-  made while it is up add to the same note, and a switch under the clipboard
-  watch turns it off.
+  It slides in at the edge of the screen, even with the window in the tray,
+  says how many links went into the collector and from which site, and the
+  knight celebrates with a flourish of the sword. A click on it opens the
+  collector, and copies made while it is up add to the same note. Under the
+  clipboard watch you can switch it off, pick how long it stays (3 to 15
+  seconds, or until clicked) and put it in any corner or the middle of the top
+  or bottom edge.
 
 ## [2.3.3] - 2026-10-28
 

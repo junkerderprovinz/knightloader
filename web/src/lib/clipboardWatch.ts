@@ -26,8 +26,19 @@ export const WATCH_SUPPORTED =
 export const WATCH_FIELD = 'clipboardWatch';
 export const TARGET_FIELD = 'clipboardWatchTarget';
 
-/** The switch for the desktop app's corner popup, which reads it there too. */
+/** The desktop app's popup for caught links: its switch, how long it stays
+ *  and where it sits, which desktop/linkpopup.go reads there too. */
 export const POPUP_FIELD = 'clipboardWatchPopup';
+export const POPUP_SECONDS_FIELD = 'clipboardWatchPopupSeconds';
+export const POPUP_PLACE_FIELD = 'clipboardWatchPopupPlace';
+
+/** How long the popup can stay, 0 being until it is clicked. */
+export const POPUP_SECONDS = [3, 5, 8, 15, 0] as const;
+export type PopupSeconds = (typeof POPUP_SECONDS)[number];
+
+/** Where the popup can sit on the screen the pointer is on. */
+export const POPUP_PLACES = ['bottom-right', 'bottom-left', 'bottom-center', 'top-right', 'top-left', 'top-center'] as const;
+export type PopupPlace = (typeof POPUP_PLACES)[number];
 
 /** How often the clipboard is re-read while the window has focus. */
 const POLL_MS = 1200;

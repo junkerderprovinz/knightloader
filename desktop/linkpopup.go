@@ -22,21 +22,69 @@ const popupEvent = "linkPopup"
 const showPageEvent = "showPage"
 
 // The window is larger than the note the page draws in it, which needs room
-// for its shadow and to rise into view from the window's lower edge.
+// for its shadow and to slide into view from the window's edge.
 const (
 	popupWidth  = 360
 	popupHeight = 140
 )
 
+// Where on the work area the popup sits, as the page's position picker names
+// it.
+const (
+	placeBottomRight  = "bottom-right"
+	placeBottomLeft   = "bottom-left"
+	placeTopRight     = "top-right"
+	placeTopLeft      = "top-left"
+	placeBottomCenter = "bottom-center"
+	placeTopCenter    = "top-center"
+)
+
+// popupSecondsOffered are the times the page offers, with 0 for a popup that
+// stays until it is clicked.
+var popupSecondsOffered = []int{3, 5, 8, 15, 0}
+
+const defaultPopupSeconds = 5
+
+// popup reports whether links taken in pop up on the screen.
+func (s clipSettings) popup() bool {
+	return s.Popup == nil || *s.Popup
+}
+
+// popupSeconds is how long the popup stays, 0 for until clicked. A time the
+// page does not offer, from a hand edit or a newer version, is the default.
+func (s clipSettings) popupSeconds() int {
+	if s.PopupSeconds != nil {
+		for _, n := range popupSecondsOffered {
+			if *s.PopupSeconds == n {
+				return n
+			}
+		}
+	}
+	return defaultPopupSeconds
+}
+
+// popupPlace is where the popup sits, the lower right corner unless the page
+// picked another of the places it offers.
+func (s clipSettings) popupPlace() string {
+	switch s.PopupPlace {
+	case placeBottomLeft, placeTopRight, placeTopLeft, placeBottomCenter, placeTopCenter:
+		return s.PopupPlace
+	}
+	return placeBottomRight
+}
+
 // popupBatch is what the note says: how many links the take-ins since it
 // appeared added, and the host they all came from where there is one. Seq
 // counts take-ins and From is the Seq the batch began with, so the page can
-// tell a new note from one that grew.
+// tell a new note from one that grew. Seconds and Place are the settings the
+// note appeared with, which hold while it is up.
 type popupBatch struct {
-	Seq  int    `json:"seq"`
-	From int    `json:"from"`
-	N    int    `json:"n"`
-	Host string `json:"host,omitempty"`
+	Seq     int    `json:"seq"`
+	From    int    `json:"from"`
+	N       int    `json:"n"`
+	Host    string `json:"host,omitempty"`
+	Seconds int    `json:"seconds"`
+	Place   string `json:"place"`
 }
 
 // LinkPopup decides when the note shows and folds take-ins that arrive while
@@ -44,13 +92,11 @@ type popupBatch struct {
 // main.LinkPopup.Current and so on; the clipboard watch's goroutine calls
 // offer.
 type LinkPopup struct {
-	// enabled reads the page's switch for the note, and whether the links go
-	// to this instance's collector, which is what a click on it opens.
-	enabled func() bool
+	settings func() clipSettings
 	// tell hands the page a batch, and show and hide put the window on the
-	// screen and take it away.
+	// screen at a place and take it away.
 	tell func(popupBatch)
-	show func()
+	show func(place string)
 	hide func()
 	// openCollector shows the main window on the collector.
 	openCollector func()
@@ -62,11 +108,8 @@ type LinkPopup struct {
 
 func newLinkPopup(a *app.App, t *Tray) *LinkPopup {
 	return &LinkPopup{
-		enabled: func() bool {
-			s := readClipSettings(a)
-			return s.popup() && s.Target == ""
-		},
-		tell: func(b popupBatch) { t.emitTo(popupName, popupEvent, b) },
+		settings: func() clipSettings { return readClipSettings(a) },
+		tell:     func(b popupBatch) { t.emitTo(popupName, popupEvent, b) },
 		openCollector: func() {
 			t.ShowMain()
 			t.emitTo("main", showPageEvent, "/collector")
@@ -74,16 +117,21 @@ func newLinkPopup(a *app.App, t *Tray) *LinkPopup {
 	}
 }
 
-// offer shows what the clipboard watch did, if it added links.
+// offer shows what the clipboard watch did, if it added links to this
+// instance's collector, which is what a click on the popup opens.
 func (p *LinkPopup) offer(o clipOutcome) {
-	if o.Kind != "staged" || o.N <= 0 || !p.enabled() {
+	if o.Kind != "staged" || o.N <= 0 {
+		return
+	}
+	s := p.settings()
+	if !s.popup() || s.Target != "" {
 		return
 	}
 	p.mu.Lock()
 	fresh := !p.open
 	seq := p.batch.Seq + 1
 	if fresh {
-		p.batch = popupBatch{From: seq, Host: o.Host}
+		p.batch = popupBatch{From: seq, Host: o.Host, Seconds: s.popupSeconds(), Place: s.popupPlace()}
 	} else if p.batch.Host != o.Host {
 		p.batch.Host = ""
 	}
@@ -96,7 +144,7 @@ func (p *LinkPopup) offer(o clipOutcome) {
 	// The page has its words before the window shows, so it never shows empty.
 	p.tell(b)
 	if fresh {
-		p.show()
+		p.show(b.Place)
 	}
 }
 
@@ -173,9 +221,9 @@ func (p *LinkPopup) attach(wails *application.App, t *Tray) {
 		e.Cancel()
 		p.close()
 	})
-	p.show = func() {
+	p.show = func(place string) {
 		if s := popupScreen(wails, t.window()); s != nil {
-			w.SetBounds(popupBounds(s.WorkArea))
+			w.SetBounds(popupBounds(s.WorkArea, place))
 		}
 		showQuietly(w)
 	}
@@ -196,13 +244,24 @@ func popupScreen(wails *application.App, main *application.WebviewWindow) *appli
 	return wails.Screen.GetPrimary()
 }
 
-// popupBounds puts the window in the lower right corner of a work area, where
-// the clock and the tray icons sit on most desktops.
-func popupBounds(work application.Rect) application.Rect {
-	return application.Rect{
+// popupBounds puts the window at place on a work area, trayGap from its
+// edges.
+func popupBounds(work application.Rect, place string) application.Rect {
+	b := application.Rect{
 		X:      work.X + work.Width - popupWidth - trayGap,
 		Y:      work.Y + work.Height - popupHeight - trayGap,
 		Width:  popupWidth,
 		Height: popupHeight,
 	}
+	switch place {
+	case placeBottomLeft, placeTopLeft:
+		b.X = work.X + trayGap
+	case placeBottomCenter, placeTopCenter:
+		b.X = work.X + (work.Width-popupWidth)/2
+	}
+	switch place {
+	case placeTopRight, placeTopLeft, placeTopCenter:
+		b.Y = work.Y + trayGap
+	}
+	return b
 }
