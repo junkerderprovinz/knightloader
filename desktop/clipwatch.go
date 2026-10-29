@@ -84,14 +84,11 @@ type clipOutcome struct {
 type clipSettings struct {
 	On     bool   `json:"clipboardWatch"`
 	Target string `json:"clipboardWatchTarget"`
-	// Popup stays nil until the page first flips its switch, and nil means
-	// on.
-	Popup *bool `json:"clipboardWatchPopup"`
-}
-
-// popup reports whether links taken in pop up in a corner of the screen.
-func (s clipSettings) popup() bool {
-	return s.Popup == nil || *s.Popup
+	// The corner popup's switch, how long it stays and where; see
+	// linkpopup.go. Each stays empty until the page first sets it.
+	Popup        *bool  `json:"clipboardWatchPopup"`
+	PopupSeconds *int   `json:"clipboardWatchPopupSeconds"`
+	PopupPlace   string `json:"clipboardWatchPopupPlace"`
 }
 
 // sharedHost is the host all of links share, without a leading "www.", or ""

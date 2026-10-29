@@ -9,7 +9,7 @@
 
 import { useEffect } from 'react';
 
-import type { WatchOutcome } from './clipboardWatch';
+import type { PopupPlace, WatchOutcome } from './clipboardWatch';
 import type { TranslationKey } from './i18n';
 
 /** Whether this page runs in the desktop app's window, which Wails serves from an origin of its own. */
@@ -365,6 +365,9 @@ export interface PopupBatch {
   n: number;
   /** The host every link came from, where they share one. */
   host?: string;
+  /** How long it stays, 0 for until it is clicked. */
+  seconds: number;
+  place: PopupPlace;
 }
 
 /** onLinkPopup calls back with every batch the popup is to show. */
