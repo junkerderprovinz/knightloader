@@ -104,7 +104,7 @@ type watchRig struct {
 	opened     int
 	background bool
 	sent       []delivery
-	created    int
+	created    []string
 	err        error
 	outcomes   []clipOutcome
 	// leases and leaves are the targets each lease call went to.
@@ -117,7 +117,7 @@ type watchRig struct {
 }
 
 func newWatchRig() *watchRig {
-	r := &watchRig{clip: &fakeClipboard{}, background: true, created: 1, stops: map[string]bool{}}
+	r := &watchRig{clip: &fakeClipboard{}, background: true, created: []string{"https://host.example/a"}, stops: map[string]bool{}}
 	r.w = &clipWatch{
 		settings: func() clipSettings { return r.settings },
 		open: func() (clipboardReader, bool) {
@@ -125,7 +125,7 @@ func newWatchRig() *watchRig {
 			r.clip.closed = false
 			return r.clip, r.background
 		},
-		deliver: func(_ context.Context, target string, links []string) (int, error) {
+		deliver: func(_ context.Context, target string, links []string) ([]string, error) {
 			r.sent = append(r.sent, delivery{target, links})
 			return r.created, r.err
 		},
@@ -202,14 +202,34 @@ func TestClipWatchReportsEachOutcome(t *testing.T) {
 	r.settings.On = true
 	r.copy("")
 	r.copy("https://host.example/a")
-	r.created = 0
+	r.created = nil
 	r.copy("https://host.example/b")
 	r.err = errors.New("nas unreachable")
 	r.copy("https://host.example/c")
 	want := []clipOutcome{
-		{Kind: "staged", N: 1},
+		{Kind: "staged", N: 1, Host: "host.example"},
 		{Kind: "none"},
 		{Kind: "failed", Reason: "nas unreachable"},
+	}
+	if !reflect.DeepEqual(r.outcomes, want) {
+		t.Fatalf("reported %v, want %v", r.outcomes, want)
+	}
+}
+
+func TestClipWatchNamesTheHostOnlyWhenEveryLinkSharesIt(t *testing.T) {
+	r := newWatchRig()
+	r.settings.On = true
+	r.copy("")
+	r.created = []string{"https://www.Files.example/a", "https://files.example/b"}
+	r.copy("https://files.example/a https://files.example/b")
+	r.created = []string{"https://files.example/a", "https://other.example/b"}
+	r.copy("https://files.example/a https://other.example/b")
+	r.created = []string{"magnet:?xt=urn:btih:abc"}
+	r.copy("magnet:?xt=urn:btih:abc")
+	want := []clipOutcome{
+		{Kind: "staged", N: 2, Host: "files.example"},
+		{Kind: "staged", N: 2},
+		{Kind: "staged", N: 1},
 	}
 	if !reflect.DeepEqual(r.outcomes, want) {
 		t.Fatalf("reported %v, want %v", r.outcomes, want)
@@ -460,15 +480,28 @@ func TestReadClipSettingsReadsThePagesFields(t *testing.T) {
 	}
 }
 
+func TestThePopupIsOnUntilThePageSwitchesItOff(t *testing.T) {
+	a := newClipApp(t)
+	if !readClipSettings(a).popup() {
+		t.Fatal("a fresh instance has the popup off")
+	}
+	if err := a.SetUIState(store.UIStateKey, `{"clipboardWatch":true,"clipboardWatchPopup":false}`); err != nil {
+		t.Fatal(err)
+	}
+	if readClipSettings(a).popup() {
+		t.Fatal("the popup stayed on after the page switched it off")
+	}
+}
+
 func TestDeliverLinksStagesOnThisInstance(t *testing.T) {
 	a := newClipApp(t)
-	n, err := deliverLinks(context.Background(), a, "", []string{"https://host.example/file.bin"})
-	if err != nil || n != 1 {
-		t.Fatalf("staged %d, err %v", n, err)
+	added, err := deliverLinks(context.Background(), a, "", []string{"https://host.example/file.bin"})
+	if err != nil || !reflect.DeepEqual(added, []string{"https://host.example/file.bin"}) {
+		t.Fatalf("staged %v, err %v", added, err)
 	}
-	n, err = deliverLinks(context.Background(), a, "", []string{"https://host.example/file.bin"})
-	if err != nil || n != 0 {
-		t.Fatalf("the same link again staged %d, err %v", n, err)
+	added, err = deliverLinks(context.Background(), a, "", []string{"https://host.example/file.bin"})
+	if err != nil || len(added) != 0 {
+		t.Fatalf("the same link again staged %v, err %v", added, err)
 	}
 }
 

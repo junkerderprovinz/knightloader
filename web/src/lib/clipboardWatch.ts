@@ -26,6 +26,9 @@ export const WATCH_SUPPORTED =
 export const WATCH_FIELD = 'clipboardWatch';
 export const TARGET_FIELD = 'clipboardWatchTarget';
 
+/** The switch for the desktop app's corner popup, which reads it there too. */
+export const POPUP_FIELD = 'clipboardWatchPopup';
+
 /** How often the clipboard is re-read while the window has focus. */
 const POLL_MS = 1200;
 
@@ -52,7 +55,8 @@ export function clipboardLinks(text: string): string[] {
 }
 
 export type WatchOutcome =
-  | { kind: 'staged'; n: number }
+  /** Only the desktop app names the host, the one every added link shares. */
+  | { kind: 'staged'; n: number; host?: string }
   | { kind: 'none' }
   | { kind: 'denied'; reason: string }
   | { kind: 'failed'; reason: string }
