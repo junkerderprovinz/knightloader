@@ -460,6 +460,55 @@ export const IconMotionStorm = (p: GlyphProps) => (
   </svg>
 );
 
+/** Label mode, the words alone: Drawn for GlimStone. */
+export const IconLabelText = (p: GlyphProps) => (
+  <svg {...glyph([0, 2.5, 14, 9], p)}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M0 3.5A1 1 0 0 1 1 2.5H13A1 1 0 0 1 13 4.5H1A1 1 0 0 1 0 3.5ZM0 7A1 1 0 0 1 1 6H13A1 1 0 0 1 13 8H1A1 1 0 0 1 0 7ZM0 10.5A1 1 0 0 1 1 9.5H8A1 1 0 0 1 8 11.5H1A1 1 0 0 1 0 10.5Z" />
+  </svg>
+);
+
+/** Label mode, glyph and words: Drawn for GlimStone. */
+export const IconLabelTextGlyph = (p: GlyphProps) => (
+  <svg {...glyph([0, 4, 14, 6], p)}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M3 4A3 3 0 1 1 3 10 3 3 0 1 1 3 4ZM7 5A1 1 0 0 1 8 4H13A1 1 0 0 1 13 6H8A1 1 0 0 1 7 5ZM7 9A1 1 0 0 1 8 8H11A1 1 0 0 1 11 10H8A1 1 0 0 1 7 9Z" />
+  </svg>
+);
+
+/** Label mode, the glyph alone: Drawn for GlimStone. */
+export const IconLabelGlyph = (p: GlyphProps) => (
+  <svg {...glyph([1.5, 1.5, 11, 11], p)}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M7 1.5A5.5 5.5 0 1 1 7 12.5 5.5 5.5 0 1 1 7 1.5Z" />
+  </svg>
+);
+
+/** Label mode, the glyph that opens to its words: Drawn for GlimStone. */
+export const IconLabelReactive = (p: GlyphProps) => (
+  <svg {...glyph([0.5, 0.5, 13.5, 14], p)}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M4.5 0.5A4 4 0 1 1 4.5 8.5 4 4 0 1 1 4.5 0.5ZM8.8 8.8 14 11 11.7 11.7 13.2 13.9 12.2 14.5 10.8 12.3 9.2 13.9Z" />
+  </svg>
+);
+
+/** Compact rows: Drawn for GlimStone. */
+export const IconRowCompact = (p: GlyphProps) => (
+  <svg {...glyph([0, 0.5, 14, 13], p)}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M0 1.4A.9.9 0 0 1 .9.5H13.1A.9.9 0 0 1 13.1 2.3H.9A.9.9 0 0 1 0 1.4ZM0 5.13A.9.9 0 0 1 .9 4.23H13.1A.9.9 0 0 1 13.1 6.03H.9A.9.9 0 0 1 0 5.13ZM0 8.87A.9.9 0 0 1 .9 7.97H13.1A.9.9 0 0 1 13.1 9.77H.9A.9.9 0 0 1 0 8.87ZM0 12.6A.9.9 0 0 1 .9 11.7H13.1A.9.9 0 0 1 13.1 13.5H.9A.9.9 0 0 1 0 12.6Z" />
+  </svg>
+);
+
+/** Medium rows: Drawn for GlimStone. */
+export const IconRowMedium = (p: GlyphProps) => (
+  <svg {...glyph([0, 1, 14, 12], p)}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M0 2A1 1 0 0 1 1 1H13A1 1 0 0 1 13 3H1A1 1 0 0 1 0 2ZM0 7A1 1 0 0 1 1 6H13A1 1 0 0 1 13 8H1A1 1 0 0 1 0 7ZM0 12A1 1 0 0 1 1 11H13A1 1 0 0 1 13 13H1A1 1 0 0 1 0 12Z" />
+  </svg>
+);
+
+/** Comfortable rows: Drawn for GlimStone. */
+export const IconRowComfortable = (p: GlyphProps) => (
+  <svg {...glyph([0, 1.8, 14, 10.4], p)}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M0 3A1.2 1.2 0 0 1 1.2 1.8H12.8A1.2 1.2 0 0 1 12.8 4.2H1.2A1.2 1.2 0 0 1 0 3ZM0 11A1.2 1.2 0 0 1 1.2 9.8H12.8A1.2 1.2 0 0 1 12.8 12.2H1.2A1.2 1.2 0 0 1 0 11Z" />
+  </svg>
+);
+
 /** Settings: Streamline interface-essential/cog.svg. */
 export const IconGear = (p: GlyphProps) => (
   <svg {...glyph([0.573, 0, 12.853, 14], p)}>
