@@ -36,6 +36,15 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Fixed
+
+- **The Windows installer closes a running KnightLoader before it updates
+  it.** It used to put the new version next to the running one, which went on
+  as the old version until the next start. Starting KnightLoader a second time
+  now brings the open window forward instead of running a second copy.
+
 ## [2.3.3] - 2026-10-28
 
 ### Added
