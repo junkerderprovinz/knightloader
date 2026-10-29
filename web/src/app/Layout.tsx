@@ -240,7 +240,7 @@ export function Layout() {
           both are one number. The content column therefore only has
           horizontal padding. On a phone the rail is a bar under the page, and
           the dynamic height keeps it above the browser's own toolbar. */}
-      <div className="flex h-[calc(100dvh-var(--window-bar))] flex-col gap-4 overflow-hidden bg-carbon-background p-4 md:flex-row">
+      <div className="kl-shell flex h-[calc(100dvh-var(--window-bar))] flex-col gap-4 overflow-hidden bg-carbon-background p-4 md:flex-row">
         <Sidebar />
         <main className={`flex min-w-0 flex-1 flex-col ${ownsFrame ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           <ShellBar visible={section === 'downloads'} />
