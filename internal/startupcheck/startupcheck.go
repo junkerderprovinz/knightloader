@@ -273,6 +273,8 @@ type ToolTarget struct {
 	// started: it looks perfect from the command line and routes nothing
 	// until a restart.
 	Registered *bool
+	// Timeout replaces Input.ToolTimeout for this binary when set.
+	Timeout time.Duration
 }
 
 // Input is one pass.
@@ -355,7 +357,11 @@ func Run(ctx context.Context, in Input) Report {
 		rep.Checks = append(rep.Checks, c)
 	}
 	for _, t := range in.Tools {
-		rep.Checks = append(rep.Checks, Tool(ctx, t, toolTimeout))
+		timeout := toolTimeout
+		if t.Timeout > 0 {
+			timeout = t.Timeout
+		}
+		rep.Checks = append(rep.Checks, Tool(ctx, t, timeout))
 	}
 	if !in.SkipClock {
 		rep.Checks = append(rep.Checks, Clock())
