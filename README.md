@@ -33,12 +33,6 @@ Hosters, debrid services, torrents, Usenet, videos and streams: one download man
 <br>
 
 <p align="center">
-  <a href="https://github.com/junkerderprovinz/knightloader/issues/new/choose"><img src=".github/assets/in-development.png" alt="In development, testers welcome: report a bug" width="100%"></a>
-</p>
-
-<br>
-
-<p align="center">
   <a href="https://play.google.com/apps/testing/knightloader.halleluja.design"><img src=".github/assets/screenshots/testers.png" alt="Android testers wanted: join the Google Play closed test" width="100%"></a>
 </p>
 
