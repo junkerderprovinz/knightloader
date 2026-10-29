@@ -22,7 +22,7 @@ const popupEvent = "linkPopup"
 const showPageEvent = "showPage"
 
 // The window is larger than the note the page draws in it, which needs room
-// for its shadow and to slide into view from the window's edge.
+// for its shadow and for the spring as it pops up.
 const (
 	popupWidth  = 360
 	popupHeight = 140
