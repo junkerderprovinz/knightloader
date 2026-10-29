@@ -58,6 +58,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   link, and the link collector showed it as a single row with the address as
   its name. Video sites stay with yt-dlp whatever the order, unless you have a
   JDownloader login for the site. Links collected before need adding again.
+### Changed
+
+- **The remove button ends every link and package row.** It now stands at the
+  right edge of the row, after the last column, instead of in the middle of it.
 
 ## [2.3.3] - 2026-10-28
 
