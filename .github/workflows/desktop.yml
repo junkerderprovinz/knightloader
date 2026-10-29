@@ -147,6 +147,10 @@ jobs:
           if (-not $entry) { throw "the installer left no uninstall entry" }
           $exe = Join-Path $entry.InstallLocation 'KnightLoader.exe'
           if (-not (Test-Path $exe)) { throw "$exe is missing" }
+          $ytdlp = Join-Path $entry.InstallLocation 'yt-dlp.exe'
+          $printed = & $ytdlp --version
+          if ($LASTEXITCODE -ne 0) { throw "$ytdlp --version exited with code $LASTEXITCODE" }
+          Write-Host "yt-dlp beside the program: $printed"
 
           $app = Start-Process -FilePath $exe -PassThru
           $deadline = (Get-Date).AddMinutes(8)
@@ -182,6 +186,7 @@ jobs:
           Start-Process -FilePath cmd.exe -ArgumentList '/c', $entry.QuietUninstallString -Wait
           if (Test-Path $key) { throw "the uninstaller left its entry behind" }
           if (Test-Path $exe) { throw "the uninstaller left $exe behind" }
+          if (Test-Path $ytdlp) { throw "the uninstaller left $ytdlp behind" }
 
       # Zipped on the build runner because artifacts lose file modes, which
       # left the Linux and macOS binaries without their execute bit. The zip

@@ -36,6 +36,16 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Fixed
+
+- **The desktop app brings its own yt-dlp.** A YouTube link, or one to any
+  other video site, opens into its variant rows right after installing instead
+  of landing in JDownloader as one plain row. A copy with no yt-dlp beside it,
+  like the one in the Windows or Linux zip, fetches one into its data folder
+  when it starts.
+
 ## [2.3.3] - 2026-10-28
 
 ### Added

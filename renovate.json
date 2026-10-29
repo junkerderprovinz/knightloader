@@ -18,6 +18,17 @@
   "platformAutomerge": false,
   "rebaseWhen": "conflicted",
   "gitIgnoredAuthors": ["41898282+github-actions[bot]@users.noreply.github.com"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "The yt-dlp release scripts/desktop.mjs ships with the desktop app",
+      "managerFilePatterns": ["/^desktop/ytdlp\\.version$/"],
+      "matchStrings": ["^(?<currentValue>\\S+)"],
+      "depNameTemplate": "yt-dlp/yt-dlp",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "loose"
+    }
+  ],
   "packageRules": [
     {
       "description": "Node stays on 24 until 26 is tested. This covers the node image, node-version in setup-node (looked up as actions/node-versions), .nvmrc, engines and @types/node.",

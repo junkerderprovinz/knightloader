@@ -3489,7 +3489,7 @@ export interface MediaTool {
   found: boolean;
   path?: string;
   version?: string;
-  /** "managed" | "env" | "path" | "none", for yt-dlp only; ffmpeg and ffprobe
+  /** "managed" | "env" | "bundled" | "path" | "none", for yt-dlp only; ffmpeg and ffprobe
    *  always come from PATH. */
   source?: string;
   /** Why it was not found or is unusable. English, because it names paths,

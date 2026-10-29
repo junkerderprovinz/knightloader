@@ -20,6 +20,7 @@ import { PageBadge } from '../ModuleToggle';
 const SOURCE_KEYS: Record<string, TranslationKey> = {
   managed: 'settings.resolvers.toolsFrom.managed',
   env: 'settings.resolvers.toolsFrom.env',
+  bundled: 'settings.resolvers.toolsFrom.bundled',
   path: 'settings.resolvers.toolsFrom.path',
   none: 'settings.resolvers.toolsFrom.none',
 };

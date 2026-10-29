@@ -1,14 +1,15 @@
 // Package mediatools is what this build knows about the two external programs
 // a media download actually runs: yt-dlp, which reads the page and picks the
 // streams, and ffmpeg, which joins them. Neither is part of this binary and
-// neither is a Go package - they are separate programs KnightLoader spawns,
-// installed by the container image or by whoever set the desktop build up.
+// neither is a Go package. They are separate programs KnightLoader spawns.
+// The container image installs both, and the desktop build ships yt-dlp.
 //
 // Three things live here, split because the first two must never touch the
 // network:
 //
 //   - resolve.go: which yt-dlp is going to run, out of the managed copy,
-//     KL_YTDLP and PATH, and why the other two are not.
+//     KL_YTDLP, the copy beside the program and PATH, and why the others
+//     are not.
 //   - probe.go: what version each of the three programs reports, behind a
 //     short cache so the settings page and the diagnostics bundle can both
 //     read it on every load without turning into a process fountain.
@@ -72,11 +73,14 @@ func ToolsDir(dataDir string) string { return filepath.Join(dataDir, "tools") }
 // resolver has to name the file without reading the record first, and a
 // per-tag name would leave every superseded copy on disk.
 func BinaryPath(dataDir string) string {
-	name := "yt-dlp"
+	return filepath.Join(ToolsDir(dataDir), binaryName())
+}
+
+func binaryName() string {
 	if runtime.GOOS == "windows" {
-		name = "yt-dlp.exe"
+		return "yt-dlp.exe"
 	}
-	return filepath.Join(ToolsDir(dataDir), name)
+	return "yt-dlp"
 }
 
 func recordPath(dataDir string) string { return filepath.Join(ToolsDir(dataDir), "ytdlp.json") }

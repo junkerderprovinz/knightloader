@@ -25,6 +25,12 @@ type mediaToolsState struct {
 	// machine.
 	latestYtdlp  func(ctx context.Context, installed string) mediatools.Latest
 	installYtdlp func(ctx context.Context, dataDir string) (mediatools.ManagedRecord, error)
+
+	// InstallMissingYtdlp lets the daily update fetch a yt-dlp where none is
+	// found, and makes its first run right at start in that case. The desktop
+	// app sets it: a portable copy, and an installation that updated itself,
+	// carry only the program and not the yt-dlp the installer puts beside it.
+	InstallMissingYtdlp bool
 }
 
 func (a *App) mediaToolsProber() *mediatools.Prober {
@@ -96,7 +102,13 @@ const (
 // rather than New, which every test calls. Close stops it and cancels a
 // download in flight.
 func (a *App) StartYtdlpAutoUpdate() {
-	a.spawn(func() { a.ytdlpAutoLoop(ytdlpAutoFirstRun, ytdlpAutoEvery) })
+	a.spawn(func() {
+		first := ytdlpAutoFirstRun
+		if a.InstallMissingYtdlp && !a.MediaTools().Ytdlp.Found {
+			first = 0
+		}
+		a.ytdlpAutoLoop(first, ytdlpAutoEvery)
+	})
 }
 
 // ytdlpAutoLoop reads the switch on every run rather than once, so turning it
@@ -117,8 +129,9 @@ func (a *App) ytdlpAutoLoop(first, every time.Duration) {
 
 // autoUpdateYtdlp is one daily run. It fetches only when GitHub names a release
 // newer than the yt-dlp in use. A version it cannot put in order, such as a
-// build from git, is left alone, and so is a machine with no yt-dlp at all:
-// the switch keeps yt-dlp current and was never asked to install it.
+// build from git, is left alone. So is a machine with no yt-dlp at all unless
+// InstallMissingYtdlp is set: in the container a missing yt-dlp is a broken
+// image or an operator's choice, not something to paper over.
 func (a *App) autoUpdateYtdlp() {
 	if !a.Settings.Get().YtdlpAutoUpdate {
 		return
@@ -132,7 +145,14 @@ func (a *App) autoUpdateYtdlp() {
 
 	current := a.MediaTools().Ytdlp
 	if !current.Found {
-		log.Print("yt-dlp: none is installed, so the daily update has nothing to keep current")
+		if !a.InstallMissingYtdlp {
+			log.Print("yt-dlp: none is installed, so the daily update has nothing to keep current")
+			return
+		}
+		log.Print("yt-dlp: none is installed, so the daily update fetches the newest release")
+		if _, err := a.updateYtdlpLocked(a.ctx); err != nil && a.ctx.Err() == nil {
+			log.Printf("yt-dlp: fetching it failed, media links stay with the other backends until the next try: %v", err)
+		}
 		return
 	}
 	latest := a.latestYtdlp(a.ctx, current.Version)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
@@ -22,9 +23,12 @@ const (
 	// SourceEnv is KL_YTDLP, which the container image pins to
 	// /usr/bin/yt-dlp on every install (Dockerfile).
 	SourceEnv Source = "env"
+	// SourceBundled is the copy the desktop build puts beside the program
+	// (scripts/desktop.mjs).
+	SourceBundled Source = "bundled"
 	// SourcePath is a plain "yt-dlp" found on PATH.
 	SourcePath Source = "path"
-	// SourceNone is none of the three. The path returned alongside it is
+	// SourceNone is none of the four. The path returned alongside it is
 	// still "yt-dlp", which is what the backend is handed when nothing was
 	// found: its own Available turns that into "the media resolver is not
 	// registered", and this package leaves that decision to it.
@@ -67,11 +71,14 @@ const probeTimeout = 10 * time.Second
 // disk, a version in the record, and nothing changed about what runs. No
 // managed copy exists until the button or the daily update fetches one that
 // is newer than what runs, and from then on the settings card says that
-// KL_YTDLP is not being started and offers "back to the system copy".
+// KL_YTDLP is not being started and offers "back to the system copy". It
+// outranks the copy the desktop build ships for the same reason: that one sits
+// in a folder such as Program Files that the program cannot write to, so a
+// newer yt-dlp can only ever arrive as a managed copy.
 //
 // A recorded copy that does not run loses. The managed copy only wins when the
 // record exists, the file exists and it answers --version with exit 0.
-// Anything else falls through to KL_YTDLP or PATH and says so in detail.
+// Anything else falls through to the others and says so in detail.
 // Windows Defender has a long history of quarantining PyInstaller-built
 // yt-dlp.exe after it is installed, and an operator who deletes /data/tools by
 // hand has to end up with a working yt-dlp rather than a dead path in the
@@ -101,14 +108,55 @@ func ResolveYtdlp(dataDir string) (path string, source Source, detail string) {
 		}
 	}
 
+	path, source = resolveSystemYtdlp()
+	return path, source, detail
+}
+
+// resolveSystemYtdlp answers ResolveYtdlp's question with the managed copy
+// taken out of the running. It is what Status.Shadowed reports and what "back
+// to the system copy" puts in charge.
+//
+// KL_YTDLP is someone's explicit choice and outranks the copy that came with
+// the program, which in turn outranks PATH, so an old yt-dlp a package manager
+// left on PATH does not replace the one this build ships.
+func resolveSystemYtdlp() (string, Source) {
 	if env := os.Getenv("KL_YTDLP"); env != "" {
-		return env, SourceEnv, detail
+		return env, SourceEnv
+	}
+	if bundled := bundledPath(); bundled != "" {
+		if fi, err := os.Stat(bundled); err == nil && fi.Mode().IsRegular() {
+			return bundled, SourceBundled
+		}
 	}
 	if found, err := exec.LookPath("yt-dlp"); err == nil {
-		return found, SourcePath, detail
+		return found, SourcePath
 	}
 	// Hand the backend the bare name and let its own Available decide.
-	return "yt-dlp", SourceNone, detail
+	return "yt-dlp", SourceNone
+}
+
+// programDir is the folder the running program sits in, and a variable so the
+// tests can point it at a folder of their own.
+var programDir = func() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	if resolved, err := filepath.EvalSymlinks(exe); err == nil {
+		exe = resolved
+	}
+	return filepath.Dir(exe)
+}
+
+// bundledPath is where the desktop build puts its yt-dlp: beside the program,
+// which in the macOS bundle is Contents/MacOS. Empty when the program's own
+// path cannot be read.
+func bundledPath() string {
+	dir := programDir()
+	if dir == "" {
+		return ""
+	}
+	return filepath.Join(dir, binaryName())
 }
 
 // runsAtAll is the cheapest question worth asking about a binary: does the
