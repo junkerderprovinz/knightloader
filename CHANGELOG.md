@@ -36,6 +36,14 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Changed
+
+- **Every choice under Labels and Row height shows a symbol before its name,**
+  as Theme, Corners and Animation already do. The four label modes and the
+  three row heights each have their own.
+
 ## [2.3.3] - 2026-10-28
 
 ### Added
