@@ -81,6 +81,17 @@ func (a *App) rewireBackends() {
 	// it decides which of their hosts they claim.
 	ytbin, ytsource, ytdetail := mediatools.ResolveYtdlp(a.DataDir)
 	yb := a.ytdlpBackend(ytbin)
+	// yt-dlp finds an ffmpeg on PATH by itself and has to be told about the
+	// one fetched into the data folder.
+	ff := mediatools.ResolveFFmpeg(a.DataDir)
+	var ffmpegAt, ffprobeAt string
+	if ff.FFmpegSource == mediatools.SourceManaged {
+		ffmpegAt = ff.FFmpeg
+	}
+	if ff.FFprobeSource == mediatools.SourceManaged {
+		ffprobeAt = ff.FFprobe
+	}
+	yb.SetFFmpeg(ffmpegAt, ffprobeAt)
 	ytdlpRunning := yb.Available()
 	// Streaming sites a debrid service also lists stay with yt-dlp while it
 	// runs, as for TorBox: a debrid unlock gives a YouTube link no variant rows

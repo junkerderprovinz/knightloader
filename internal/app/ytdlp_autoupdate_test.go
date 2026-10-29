@@ -119,7 +119,7 @@ func TestTheDailyUpdateInstallsNothingWhereNoYtdlpIsFound(t *testing.T) {
 
 func TestTheDesktopFetchesYtdlpWhereNoneIsFound(t *testing.T) {
 	a := autoUpdateApp(t, true)
-	a.InstallMissingYtdlp = true
+	a.InstallMissingTools = true
 	withoutYtdlp(t, a)
 	f := &fakeYtdlpRelease{tag: "2026.09.01", install: installsFine}
 	f.wire(a)
@@ -133,7 +133,7 @@ func TestTheDesktopFetchesYtdlpWhereNoneIsFound(t *testing.T) {
 
 func TestTheDesktopFetchesNothingWhileTheDailyUpdateIsOff(t *testing.T) {
 	a := autoUpdateApp(t, false)
-	a.InstallMissingYtdlp = true
+	a.InstallMissingTools = true
 	withoutYtdlp(t, a)
 	f := &fakeYtdlpRelease{tag: "2026.09.01", install: installsFine}
 	f.wire(a)

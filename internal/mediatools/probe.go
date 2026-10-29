@@ -3,7 +3,6 @@ package mediatools
 import (
 	"context"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"sync"
@@ -145,8 +144,11 @@ func (p *Prober) probe() Status {
 	// ffmpeg and ffprobe take "-version" with one dash, unlike yt-dlp's two.
 	// With two dashes ffmpeg exits 1 and prints its usage, and the row would
 	// read "not found" for a program that is installed and working.
-	st.FFmpeg = probeTool(lookup("ffmpeg"), "-version", ffmpegVersion)
-	st.FFprobe = probeTool(lookup("ffprobe"), "-version", ffmpegVersion)
+	ff := ResolveFFmpeg(p.dataDir)
+	st.FFmpeg = probeTool(ff.FFmpeg, "-version", ffmpegVersion)
+	st.FFmpeg.Source = ff.FFmpegSource
+	st.FFprobe = probeTool(ff.FFprobe, "-version", ffmpegVersion)
+	st.FFprobe.Source = ff.FFprobeSource
 
 	if p.dataDir != "" {
 		if rec, err := LoadRecord(p.dataDir); err == nil && rec != nil {
@@ -165,16 +167,6 @@ func (p *Prober) probe() Status {
 		st.Shadowed = &shadowed
 	}
 	return st
-}
-
-// lookup resolves a bare program name to a full path when PATH has it, and
-// hands back the bare name when it does not, so a Tool that was not found
-// still names what was looked for rather than showing an empty cell.
-func lookup(name string) string {
-	if p, err := exec.LookPath(name); err == nil {
-		return p
-	}
-	return name
 }
 
 // probeTool runs one program's version flag and reads the answer through

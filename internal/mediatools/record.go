@@ -2,9 +2,10 @@
 // a media download actually runs: yt-dlp, which reads the page and picks the
 // streams, and ffmpeg, which joins them. Neither is part of this binary and
 // neither is a Go package. They are separate programs KnightLoader spawns.
-// The container image installs both, and the desktop build ships yt-dlp.
+// The container image installs both. The desktop build ships yt-dlp and
+// fetches ffmpeg where there is none.
 //
-// Three things live here, split because the first two must never touch the
+// Four things live here, split because the first two must never touch the
 // network:
 //
 //   - resolve.go: which yt-dlp is going to run, out of the managed copy,
@@ -16,6 +17,8 @@
 //   - fetch.go: downloading a yt-dlp release from GitHub, verifying it against
 //     the release's own SHA2-256SUMS, proving it runs on this machine, and
 //     only then putting it where the resolver will start it.
+//   - ffmpeg.go: the same for ffmpeg and ffprobe, from an LGPL build, for a
+//     desktop that has none on PATH.
 //
 // It is not under internal/resolver/ because it is not a resolver: it resolves
 // no links and answers no Match, it is the tooling underneath one.

@@ -45,6 +45,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   of landing in JDownloader as one plain row. A copy with no yt-dlp beside it,
   like the one in the Windows or Linux zip, fetches one into its data folder
   when it starts.
+- **The desktop app gets its own ffmpeg.** On Windows and Linux it fetches
+  ffmpeg and ffprobe at the first start when none are installed, so videos
+  arrive with picture and sound joined. The Resolvers page names the LGPL
+  build it uses and links to its source.
 
 ## [2.3.3] - 2026-10-28
 

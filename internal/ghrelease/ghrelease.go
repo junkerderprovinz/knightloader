@@ -185,7 +185,13 @@ func Latest(ctx context.Context, repo string) (Release, error) {
 // dropped connection read as one, rather than as a checksum mismatch that
 // looks like tampering.
 func Fetch(ctx context.Context, a Asset, w io.Writer, max int64) (int64, error) {
-	resp, err := get(ctx, a.URL, allowedHosts, AssetTimeout, "")
+	return FetchWithin(ctx, a, w, max, AssetTimeout)
+}
+
+// FetchWithin is Fetch with a deadline of its own, for an asset too large to
+// arrive within AssetTimeout on a slow line.
+func FetchWithin(ctx context.Context, a Asset, w io.Writer, max int64, timeout time.Duration) (int64, error) {
+	resp, err := get(ctx, a.URL, allowedHosts, timeout, "")
 	if err != nil {
 		return 0, err
 	}
