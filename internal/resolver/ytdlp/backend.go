@@ -29,9 +29,12 @@ import (
 )
 
 type Backend struct {
-	// bin is guarded by mu, since SetBinary changes it while runs start.
-	bin string
-	dir string
+	// bin, ffmpeg and ffprobe are guarded by mu, since SetBinary and
+	// SetFFmpeg change them while runs start.
+	bin     string
+	ffmpeg  string
+	ffprobe string
+	dir     string
 
 	onUpdate func(taskID string, u core.Update)
 
@@ -63,10 +66,6 @@ type Backend struct {
 	// with a task for rawurl, or nil: Cookie, Referer and User-Agent (see
 	// browserArgs).
 	Headers func(taskID, rawurl string) map[string]string
-
-	// FFprobe is the binary Options.Measure reads a finished file with. Empty
-	// means "ffprobe" on PATH, which the container's ffmpeg package provides.
-	FFprobe string
 
 	// Client is what the sites in players are asked through (see embed.go).
 	// Nil uses a client of the package's own.
@@ -145,6 +144,33 @@ func (b *Backend) binary() string {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	return b.bin
+}
+
+// SetFFmpeg names the ffmpeg yt-dlp merges and converts with and the ffprobe
+// Options.Measure reads a finished file with. An empty ffmpeg leaves yt-dlp to
+// find its own on PATH, and an empty ffprobe means "ffprobe" on PATH.
+func (b *Backend) SetFFmpeg(ffmpeg, ffprobe string) {
+	b.mu.Lock()
+	b.ffmpeg, b.ffprobe = ffmpeg, ffprobe
+	b.mu.Unlock()
+}
+
+func (b *Backend) ffmpegArgs() []string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.ffmpeg == "" {
+		return nil
+	}
+	return []string{"--ffmpeg-location", b.ffmpeg}
+}
+
+func (b *Backend) ffprobeBinary() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.ffprobe == "" {
+		return "ffprobe"
+	}
+	return b.ffprobe
 }
 
 // Available reports whether the yt-dlp binary runs.
@@ -271,6 +297,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	}
 	args = append(args, browserArgs(sent)...)
 	args = append(args, b.proxyArgs()...)
+	args = append(args, b.ffmpegArgs()...)
 	if b.RateLimit != nil {
 		if lim := b.RateLimit(); lim > 0 {
 			// --limit-rate applies per fragment connection, so the limit is
@@ -610,11 +637,7 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 	if o.Measure.Enabled {
 		mctx, cancel := context.WithTimeout(context.Background(), measureTimeout)
 		defer cancel()
-		bin := b.FFprobe
-		if bin == "" {
-			bin = "ffprobe"
-		}
-		if m, err := probeMedia(mctx, bin, final); err == nil {
+		if m, err := probeMedia(mctx, b.ffprobeBinary(), final); err == nil {
 			u.Note = joinNote(u.Note, m.Summary())
 			if haveInfo {
 				if pct, ok := gotPercent(info.Duration, m.Duration); ok && pct < o.Measure.ShortPercent {
@@ -845,6 +868,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 		url = stream.url
 	}
 	args = append(args, b.proxyArgs()...)
+	args = append(args, b.ffmpegArgs()...)
 	cmd := nowindow.CommandContext(ctx, b.binary(), append(args, url)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	out, err := cmd.Output()

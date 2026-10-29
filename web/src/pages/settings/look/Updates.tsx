@@ -158,6 +158,10 @@ function DeploymentError({ retry }: { retry: () => void }) {
 const hostSource = (t: Translate, deployment: string) =>
   t(deployment === 'desktop' ? 'settings.look.toolsSource.system' : 'settings.look.toolsSource.image');
 
+/** A tool fetched into the data folder says so; anything else is the host's. */
+const toolSource = (t: Translate, deployment: string, tool?: { source?: string }) =>
+  tool?.source === 'managed' ? t('settings.resolvers.toolsFrom.managed') : hostSource(t, deployment);
+
 /**
  * UpdatesCard holds the updates of KnightLoader, yt-dlp and the JDownloader
  * backend, each a sub-card. `children` is a further group of the card, such as
@@ -212,13 +216,13 @@ export function BuiltInCard({ hue }: { hue: number }) {
             name="ffmpeg"
             sub={t('settings.info.ffmpegSub')}
             version={found(tools?.ffmpeg)}
-            source={hostSource(t, deployment.deployment)}
+            source={toolSource(t, deployment.deployment, tools?.ffmpeg)}
           />
           <ToolRow
             name="ffprobe"
             sub={t('settings.look.tool.ffprobe')}
             version={found(tools?.ffprobe)}
-            source={hostSource(t, deployment.deployment)}
+            source={toolSource(t, deployment.deployment, tools?.ffprobe)}
           />
           {(deployment.engines ?? []).map((m) => (
             <EngineRow key={m.path} module={m} />

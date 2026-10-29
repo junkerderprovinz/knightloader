@@ -530,6 +530,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	}
 	a.usenetDial = &usenetDialer{a}
 	a.latestYtdlp, a.installYtdlp = mediatools.CheckLatest, mediatools.Install
+	a.installFFmpeg = mediatools.InstallFFmpeg
 	a.checkJD, a.restartJD = a.CheckJDUpdate, restartJDForUpdate
 	// Every outbound client comes from internal/httpx, so proxy, user agent,
 	// redirect rule and pooling are one policy. Each subsystem gets its own

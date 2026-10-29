@@ -204,6 +204,21 @@ one into its data folder at start, while the switch is on. The shipped copy
 ranks below a fetched one and below `KL_YTDLP`: the program's folder is
 read-only to the app, so a newer yt-dlp can only ever arrive as a fetched copy.
 
+ffmpeg is fetched rather than shipped. It is about 180 MB on Windows, more than
+the program and yt-dlp together, and most of a download that is never needed
+where ffmpeg is already installed. On Windows and Linux a desktop copy that
+finds no ffmpeg on `PATH` fetches the static LGPL build of FFmpeg master from
+BtbN/FFmpeg-Builds, verifies the archive against that release's
+`checksums.sha256`, unpacks only ffmpeg and ffprobe beside the fetched yt-dlp,
+and runs each with `-version` before putting it in place. yt-dlp's own fork of
+those builds publishes GPL builds only, and macOS gets nothing from either, so
+it stays with an ffmpeg on `PATH`. The rolling `latest` release is used and
+not a pinned one, because the project prunes its dated releases after about
+two weeks and an installed app has to find its build again months later. The
+copy is renewed once a month behind the same switch as yt-dlp: master is
+rebuilt daily, and a download of that size every day buys nothing a media
+download notices. An ffmpeg on `PATH` is never replaced and always wins.
+
 ## The desktop update: on the next start, checked by its checksum
 
 **Built:** a desktop app that downloads a newer release in the background once

@@ -39,6 +39,11 @@ func TestMain(m *testing.M) {
 			os.Exit(1)
 		case spec == "silent":
 			os.Exit(0)
+		case spec == "ffversion":
+			// ffmpeg and ffprobe name themselves on the first line.
+			name := strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
+			fmt.Println(name + " version N-128142-g28fda48e0b-20261028 Copyright (c) 2000-2026 the FFmpeg developers")
+			os.Exit(0)
 		}
 		os.Exit(2)
 	}

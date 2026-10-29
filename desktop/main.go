@@ -96,8 +96,9 @@ func main() {
 	// The installer and the macOS bundle put a yt-dlp beside the program, which
 	// the daily update keeps current with copies fetched into the data folder.
 	// A copy without one fetches it there, since a video link that falls
-	// through to JDownloader lands as one plain row.
-	a.InstallMissingYtdlp = true
+	// through to JDownloader lands as one plain row, and so does one without
+	// ffmpeg, which yt-dlp needs to join picture and sound.
+	a.InstallMissingTools = true
 	a.StartYtdlpAutoUpdate()
 	// A JD named in KL_JD is kept current here too; without one the daily run
 	// has nothing to ask.

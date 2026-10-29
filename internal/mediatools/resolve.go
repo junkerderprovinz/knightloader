@@ -45,9 +45,7 @@ type Tool struct {
 	Found   bool   `json:"found"`
 	Path    string `json:"path,omitempty"`
 	Version string `json:"version,omitempty"`
-	// Source is filled in for yt-dlp only. ffmpeg and ffprobe are whatever is
-	// on PATH, with nothing to choose between, so a source word on their rows
-	// would never vary.
+	// Source says which of the places a program is looked for it came from.
 	Source Source `json:"source,omitempty"`
 	Detail string `json:"detail,omitempty"`
 }

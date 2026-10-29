@@ -209,6 +209,7 @@ func (a *App) startupTools() []startupcheck.ToolTarget {
 	// The binary rewireBackends hands the backend, so the row checks the
 	// yt-dlp that media links actually go to.
 	ytbin, _, _ := mediatools.ResolveYtdlp(a.DataDir)
+	ff := mediatools.ResolveFFmpeg(a.DataDir)
 	// rewireBackends registers the yt-dlp resolver only once the binary has run,
 	// so a binary that runs now while the id is absent appeared after startup
 	// and nothing is routed to it.
@@ -227,10 +228,10 @@ func (a *App) startupTools() []startupcheck.ToolTarget {
 		// starts the same binary next to this check.
 		{ID: startupcheck.IDYtdlp, Bin: ytbin, Args: []string{"--version"}, Registered: &registered, Timeout: 20 * time.Second},
 		// ffmpeg and ffprobe take one dash; `--version` exits non-zero.
-		{ID: startupcheck.IDFfmpeg, Bin: "ffmpeg", Args: []string{"-version"}},
+		{ID: startupcheck.IDFfmpeg, Bin: ff.FFmpeg, Args: []string{"-version"}},
 		// ffprobe only feeds the length check on a finished video, and a failed
 		// probe is already treated as no answer.
-		{ID: startupcheck.IDFfprobe, Bin: "ffprobe", Args: []string{"-version"}, Optional: true},
+		{ID: startupcheck.IDFfprobe, Bin: ff.FFprobe, Args: []string{"-version"}, Optional: true},
 	}
 }
 
