@@ -259,6 +259,10 @@
 body {
   padding-top: var(--window-bar);
 }
+/* The bar already leaves room above the page, so the shell adds none. */
+:root:has(.glim-window-bar) .kl-shell {
+  padding-top: 0;
+}
 .glim-modal-backdrop {
   top: var(--window-bar);
 }
