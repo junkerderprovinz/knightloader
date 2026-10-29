@@ -133,6 +133,29 @@ func TestPriorityForLeavesMediaSitesToYtdlp(t *testing.T) {
 	}
 }
 
+// A video site is yt-dlp's while it runs, wherever the priority card puts JD,
+// unless JD holds a login for it.
+func TestMatchLeavesVideoSitesToYtdlp(t *testing.T) {
+	t.Cleanup(func() { SetMediaHosts(nil); SetHostActive("vimeo.com", false) })
+	SetMediaHosts(map[string]bool{"youtube.com": true, "vimeo.com": true})
+	SetHostActive("vimeo.com", true)
+
+	for raw, want := range map[string]bool{
+		"https://www.youtube.com/watch?v=x": false,
+		"https://vimeo.com/123":             true,
+		"https://rapidgator.net/file/abc":   true,
+	} {
+		if got := (Resolver{}).Match(raw); got != want {
+			t.Errorf("Match(%q) = %v, want %v", raw, got, want)
+		}
+	}
+
+	SetMediaHosts(nil)
+	if !(Resolver{}).Match("https://www.youtube.com/watch?v=x") {
+		t.Error("without yt-dlp JD does not take a YouTube link")
+	}
+}
+
 // FileHoster answers for exactly the hosts PriorityFor lifts above a plain GET,
 // so the app can keep that GET off them whatever the order says.
 func TestFileHosterMatchesTheHostsJDIsLiftedFor(t *testing.T) {

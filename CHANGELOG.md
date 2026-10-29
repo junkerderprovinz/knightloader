@@ -53,6 +53,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   device was approved or taken out, now learns of it from the other instances
   as soon as it is back. Before, the desktop app could miss an extension the
   server listed, and a device approved elsewhere still waited there.
+- **A YouTube link becomes its video, audio and other rows again when
+  JDownloader sits above yt-dlp on the priority card.** JDownloader took the
+  link, and the link collector showed it as a single row with the address as
+  its name. Video sites stay with yt-dlp whatever the order, unless you have a
+  JDownloader login for the site. Links collected before need adding again.
 
 ## [2.3.3] - 2026-10-28
 
