@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -165,7 +166,12 @@ func main() {
 	})
 	// MinWidth leaves the page the 768px that keep it out of the phone layout
 	// (web/src/lib/phoneLayout.ts), since the settings here have no row for its
-	// bottom bar. On Windows the minimum also counts the 8px frame on either side.
+	// bottom bar, with 16px to spare for a display scale that rounds down.
+	//
+	// On Windows and Linux the page draws the title bar in the house style
+	// (web/src/components/WindowBar.tsx). Windows keeps the frame's shadow,
+	// rounded corners and Snap; the page does the dragging and the resizing.
+	// macOS keeps its native title bar and the traffic lights people expect.
 	window := wails.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:             "main",
 		Title:            "KnightLoader",
@@ -173,6 +179,7 @@ func main() {
 		Height:           780,
 		MinWidth:         784,
 		MinHeight:        480,
+		Frameless:        runtime.GOOS != "darwin",
 		BackgroundColour: application.NewRGB(22, 22, 22),
 		URL:              startURL(installerLanguage()),
 		Hidden:           tray.effectiveStartHidden(),

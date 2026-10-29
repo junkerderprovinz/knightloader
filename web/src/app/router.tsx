@@ -13,6 +13,7 @@ import { TrayOverview } from '../pages/TrayOverview';
 import { ToastProvider } from '../lib/toast';
 import { I18nProvider } from '../lib/i18n';
 import { TabIndicator } from '../components/TabIndicator';
+import { WindowBar } from '../components/WindowBar';
 import { RainbowProvider } from '../lib/useRainbow';
 import { basePath } from '../lib/basePath';
 import { useHidden } from '../lib/sidebarPrefs';
@@ -28,6 +29,9 @@ export function AppRouter() {
     // the rainbow state (lib/useRainbow.ts).
     <RainbowProvider>
     <I18nProvider>
+    {/* Outside the gate and the router, so the window can be moved and closed
+        from the sign-in screen and from a page that failed. */}
+    <WindowBar />
     <ToastProvider>
       <AuthGate>
         {/* Outside the router: the tab title and favicon need no route. */}
