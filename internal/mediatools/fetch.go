@@ -138,11 +138,15 @@ func Install(ctx context.Context, dataDir string) (ManagedRecord, error) {
 // stands down on a read-only data volume or an unsupported platform before it
 // downloads anything.
 func CanInstall(dataDir string) error {
-	if dataDir == "" {
-		return errors.New("there is no data directory to put a fetched copy in")
-	}
 	if len(candidates()) == 0 {
 		return fmt.Errorf("yt-dlp publishes no build for %s/%s", runtime.GOOS, runtime.GOARCH)
+	}
+	return toolsWritable(dataDir)
+}
+
+func toolsWritable(dataDir string) error {
+	if dataDir == "" {
+		return errors.New("there is no data directory to put a fetched copy in")
 	}
 	if err := os.MkdirAll(ToolsDir(dataDir), 0o755); err != nil {
 		return err
@@ -236,7 +240,7 @@ func stage(ctx context.Context, asset ghrelease.Asset, sums []checksum.Sum, stag
 		return "", err
 	}
 
-	want, err := sumFor(sums, asset.Name)
+	want, err := sumFor(checksumAsset, sums, asset.Name)
 	if err != nil {
 		return "", err
 	}
@@ -260,20 +264,20 @@ func stage(ctx context.Context, asset ghrelease.Asset, sums []checksum.Sum, stag
 // yt-dlp publishes only sha256 in this file; a shorter digest here would mean
 // the file was hand-edited or produced by something else, which is not the
 // format this trusts.
-func sumFor(sums []checksum.Sum, name string) (checksum.Sum, error) {
+func sumFor(file string, sums []checksum.Sum, name string) (checksum.Sum, error) {
 	for _, s := range sums {
 		if s.Name == name {
 			if s.Kind != checksum.SHA256 {
-				return checksum.Sum{}, fmt.Errorf("%s lists %s as %s rather than sha256", checksumAsset, name, s.Kind)
+				return checksum.Sum{}, fmt.Errorf("%s lists %s as %s rather than sha256", file, name, s.Kind)
 			}
 			return s, nil
 		}
 	}
-	return checksum.Sum{}, fmt.Errorf("%s has no entry for %s, so this download cannot be verified", checksumAsset, name)
+	return checksum.Sum{}, fmt.Errorf("%s has no entry for %s, so this download cannot be verified", file, name)
 }
 
 func digestFor(sums []checksum.Sum, name string) string {
-	if s, err := sumFor(sums, name); err == nil {
+	if s, err := sumFor(checksumAsset, sums, name); err == nil {
 		return s.Hex
 	}
 	return ""

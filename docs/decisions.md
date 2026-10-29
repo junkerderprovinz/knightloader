@@ -172,9 +172,9 @@ on its own, a few minutes after start and every 24 hours, behind a switch that
 ships on. Plus an opt-in "Check automatically" toggle that ships off, asks GitHub when
 Settings, General opens and only ever checks.
 
-**Not built:** a daily run that installs yt-dlp where there is none, or that
-replaces a version it cannot put in order against the release, such as a build
-from git.
+**Not built:** a daily run that replaces a version it cannot put in order
+against the release, such as a build from git, and in the container a daily run
+that installs yt-dlp where there is none.
 
 yt-dlp does ship regressions, and a new one changes what downloads produce.
 The daily run is on anyway because the other failure is the common one: the
@@ -190,6 +190,34 @@ Dockerfile pins `KL_YTDLP=/usr/bin/yt-dlp` on every container, so the other
 answer would make the whole button a silent no-op in exactly the situation the
 button exists for. It is visible and reversible: the card states plainly that
 `KL_YTDLP` is not being started and offers "back to the system copy".
+
+The desktop app ships yt-dlp, because a video link that no yt-dlp reads falls
+through to JDownloader and lands as one plain row, and a desktop app that waits
+for its user to install yt-dlp by hand does that out of the box. The installer
+puts the release named in `desktop/ytdlp.version` beside the program and the
+macOS app carries it inside, checked against yt-dlp's own SHA2-256SUMS when
+the app is built. The version is pinned so that two builds of one tag carry the
+same yt-dlp; Renovate moves it. The Windows and Linux zips stay the program
+alone, because every installed copy updates itself from them and refuses a zip
+that holds more. A desktop copy that finds no yt-dlp anywhere therefore fetches
+one into its data folder at start, while the switch is on. The shipped copy
+ranks below a fetched one and below `KL_YTDLP`: the program's folder is
+read-only to the app, so a newer yt-dlp can only ever arrive as a fetched copy.
+
+ffmpeg is fetched rather than shipped. It is about 180 MB on Windows, more than
+the program and yt-dlp together, and most of a download that is never needed
+where ffmpeg is already installed. On Windows and Linux a desktop copy that
+finds no ffmpeg on `PATH` fetches the static LGPL build of FFmpeg master from
+BtbN/FFmpeg-Builds, verifies the archive against that release's
+`checksums.sha256`, unpacks only ffmpeg and ffprobe beside the fetched yt-dlp,
+and runs each with `-version` before putting it in place. yt-dlp's own fork of
+those builds publishes GPL builds only, and macOS gets nothing from either, so
+it stays with an ffmpeg on `PATH`. The rolling `latest` release is used and
+not a pinned one, because the project prunes its dated releases after about
+two weeks and an installed app has to find its build again months later. The
+copy is renewed once a month behind the same switch as yt-dlp: master is
+rebuilt daily, and a download of that size every day buys nothing a media
+download notices. An ffmpeg on `PATH` is never replaced and always wins.
 
 ## The desktop update: on the next start, checked by its checksum
 

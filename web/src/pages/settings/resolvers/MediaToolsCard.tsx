@@ -8,6 +8,7 @@ import {
   type MediaTool,
   type MediaToolsStatus,
 } from '../../../lib/api';
+import { followExternal } from '../../../lib/external';
 import { requestJump } from '../jump';
 import { PageBadge } from '../ModuleToggle';
 
@@ -20,9 +21,17 @@ import { PageBadge } from '../ModuleToggle';
 const SOURCE_KEYS: Record<string, TranslationKey> = {
   managed: 'settings.resolvers.toolsFrom.managed',
   env: 'settings.resolvers.toolsFrom.env',
+  bundled: 'settings.resolvers.toolsFrom.bundled',
   path: 'settings.resolvers.toolsFrom.path',
   none: 'settings.resolvers.toolsFrom.none',
 };
+
+/** Where the fetched ffmpeg's source code, build scripts and licence are published. */
+const FFMPEG_LINKS = [
+  { label: 'FFmpeg', href: 'https://github.com/FFmpeg/FFmpeg' },
+  { label: 'BtbN/FFmpeg-Builds', href: 'https://github.com/BtbN/FFmpeg-Builds' },
+  { label: 'ffmpeg.org/legal', href: 'https://ffmpeg.org/legal.html' },
+];
 
 /** Where the badge lands: the yt-dlp sub-card of the updates, named after the part. */
 const YTDLP_UPDATES = { page: 'look', title: 'settings.look.updatesTitle', label: 'health.part.ytdlp' } as const;
@@ -60,11 +69,24 @@ export function MediaToolsCard({ hue }: { hue: number }) {
       <div className="glim-well overflow-hidden p-0">
         <ul className="flex flex-col">
           <ToolRow name="yt-dlp" tool={tools?.ytdlp} missingHint={t('settings.resolvers.toolsYtdlpMissingHint')} showSource />
-          <ToolRow name="ffmpeg" tool={tools?.ffmpeg} missingHint={t('settings.resolvers.toolsFfmpegMissingHint')} />
-          <ToolRow name="ffprobe" tool={tools?.ffprobe} missingHint={t('settings.resolvers.toolsFfmpegMissingHint')} />
+          <ToolRow name="ffmpeg" tool={tools?.ffmpeg} missingHint={t('settings.resolvers.toolsFfmpegMissingHint')} showSource />
+          <ToolRow name="ffprobe" tool={tools?.ffprobe} missingHint={t('settings.resolvers.toolsFfmpegMissingHint')} showSource />
           {jd && <JDRow jd={jd} />}
         </ul>
       </div>
+      {(tools?.ffmpeg.source === 'managed' || tools?.ffprobe.source === 'managed') && (
+        <p className="text-xs text-carbon-textMuted" data-new="ffmpeg-licence">
+          {t('settings.resolvers.toolsFfmpegLicence')}{' '}
+          {FFMPEG_LINKS.map((l, i) => (
+            <span key={l.href}>
+              {i > 0 && ', '}
+              <a href={l.href} target="_blank" rel="noreferrer noopener" onClick={followExternal} dir="ltr" className="underline hover:text-carbon-text">
+                {l.label}
+              </a>
+            </span>
+          ))}
+        </p>
+      )}
     </Card>
   );
 }

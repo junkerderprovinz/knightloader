@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -38,6 +39,11 @@ func TestMain(m *testing.M) {
 			os.Exit(1)
 		case spec == "silent":
 			os.Exit(0)
+		case spec == "ffversion":
+			// ffmpeg and ffprobe name themselves on the first line.
+			name := strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
+			fmt.Println(name + " version N-128142-g28fda48e0b-20261028 Copyright (c) 2000-2026 the FFmpeg developers")
+			os.Exit(0)
 		}
 		os.Exit(2)
 	}
@@ -65,10 +71,30 @@ func fakeYtdlp(t *testing.T, path string) {
 
 // isolate takes the machine's own yt-dlp out of the picture, so a developer
 // who happens to have one installed does not get different results from CI.
-func isolate(t *testing.T) {
+// It returns the folder that stands in for the program's own, empty until a
+// test puts a yt-dlp there.
+func isolate(t *testing.T) (program string) {
 	t.Helper()
 	t.Setenv("KL_YTDLP", "")
 	t.Setenv("PATH", t.TempDir())
+	program = t.TempDir()
+	was := programDir
+	programDir = func() string { return program }
+	t.Cleanup(func() { programDir = was })
+	return program
+}
+
+// onPath puts a fake yt-dlp on PATH and returns where.
+func onPath(t *testing.T) string {
+	t.Helper()
+	dir := t.TempDir()
+	fakeYtdlp(t, filepath.Join(dir, binaryName()))
+	t.Setenv("PATH", dir)
+	found, err := exec.LookPath("yt-dlp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return found
 }
 
 // The comparison is a separate function from internal/update's isNewer for one
@@ -180,6 +206,53 @@ func TestResolveYtdlpPrecedence(t *testing.T) {
 		}
 		if !strings.Contains(detail, "does not start") {
 			t.Fatalf("the fallback does not say why it happened: %q", detail)
+		}
+	})
+
+	t.Run("the copy beside the program outranks PATH", func(t *testing.T) {
+		program := isolate(t)
+		onPath(t)
+		bundled := filepath.Join(program, binaryName())
+		fakeYtdlp(t, bundled)
+		path, source, _ := ResolveYtdlp(t.TempDir())
+		if path != bundled || source != SourceBundled {
+			t.Fatalf("got %q from %q, want the copy beside the program", path, source)
+		}
+	})
+
+	t.Run("KL_YTDLP outranks the copy beside the program", func(t *testing.T) {
+		program := isolate(t)
+		fakeYtdlp(t, filepath.Join(program, binaryName()))
+		t.Setenv("KL_YTDLP", "/somewhere/yt-dlp")
+		path, source, _ := ResolveYtdlp(t.TempDir())
+		if path != "/somewhere/yt-dlp" || source != SourceEnv {
+			t.Fatalf("got %q from %q", path, source)
+		}
+	})
+
+	t.Run("a working fetched copy outranks the copy beside the program", func(t *testing.T) {
+		// The program's folder is read-only to it, so the daily update can
+		// only ever replace the shipped copy by fetching one of its own.
+		program := isolate(t)
+		fakeYtdlp(t, filepath.Join(program, binaryName()))
+		dir := t.TempDir()
+		t.Setenv(fakeEnv, "print:2026.08.11")
+		fakeYtdlp(t, BinaryPath(dir))
+		if err := saveRecord(dir, ManagedRecord{Tag: "2026.08.11", Version: "2026.08.11"}); err != nil {
+			t.Fatal(err)
+		}
+		path, source, detail := ResolveYtdlp(dir)
+		if source != SourceManaged || path != BinaryPath(dir) {
+			t.Fatalf("got %q from %q (detail %q)", path, source, detail)
+		}
+	})
+
+	t.Run("without a copy beside the program PATH is used", func(t *testing.T) {
+		isolate(t)
+		want := onPath(t)
+		path, source, _ := ResolveYtdlp(t.TempDir())
+		if path != want || source != SourcePath {
+			t.Fatalf("got %q from %q, want %q from PATH", path, source, want)
 		}
 	})
 
@@ -462,6 +535,26 @@ func TestProberReportsTheFetchedCopyAndWhatItShadows(t *testing.T) {
 	// would run if the fetched copy went away.
 	if st.Shadowed == nil || st.Shadowed.Path != system {
 		t.Fatalf("shadowed: %+v", st.Shadowed)
+	}
+}
+
+func TestProberNamesTheShippedCopyAsTheOneAFetchedCopyShadows(t *testing.T) {
+	program := isolate(t)
+	bundled := filepath.Join(program, binaryName())
+	fakeYtdlp(t, bundled)
+	dir := t.TempDir()
+	t.Setenv(fakeEnv, "print:2026.08.11")
+	fakeYtdlp(t, BinaryPath(dir))
+	if err := saveRecord(dir, ManagedRecord{Tag: "2026.08.11", Version: "2026.08.11"}); err != nil {
+		t.Fatal(err)
+	}
+
+	st := NewProber(dir).Read()
+	if st.Ytdlp.Source != SourceManaged {
+		t.Fatalf("yt-dlp row: %+v", st.Ytdlp)
+	}
+	if st.Shadowed == nil || st.Shadowed.Path != bundled || st.Shadowed.Source != SourceBundled {
+		t.Fatalf("shadowed: %+v, want the copy beside the program", st.Shadowed)
 	}
 }
 

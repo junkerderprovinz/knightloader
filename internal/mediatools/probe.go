@@ -3,7 +3,6 @@ package mediatools
 import (
 	"context"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"sync"
@@ -139,14 +138,17 @@ func (p *Prober) probe() Status {
 		st.Ytdlp.Detail = detail
 	}
 	if !st.Ytdlp.Found && st.Ytdlp.Detail == "" {
-		st.Ytdlp.Detail = "no yt-dlp found: neither a fetched copy, nor KL_YTDLP, nor \"yt-dlp\" on PATH"
+		st.Ytdlp.Detail = "no yt-dlp found: neither a fetched copy, nor KL_YTDLP, nor one beside the program, nor \"yt-dlp\" on PATH"
 	}
 
 	// ffmpeg and ffprobe take "-version" with one dash, unlike yt-dlp's two.
 	// With two dashes ffmpeg exits 1 and prints its usage, and the row would
 	// read "not found" for a program that is installed and working.
-	st.FFmpeg = probeTool(lookup("ffmpeg"), "-version", ffmpegVersion)
-	st.FFprobe = probeTool(lookup("ffprobe"), "-version", ffmpegVersion)
+	ff := ResolveFFmpeg(p.dataDir)
+	st.FFmpeg = probeTool(ff.FFmpeg, "-version", ffmpegVersion)
+	st.FFmpeg.Source = ff.FFmpegSource
+	st.FFprobe = probeTool(ff.FFprobe, "-version", ffmpegVersion)
+	st.FFprobe.Source = ff.FFprobeSource
 
 	if p.dataDir != "" {
 		if rec, err := LoadRecord(p.dataDir); err == nil && rec != nil {
@@ -159,35 +161,12 @@ func (p *Prober) probe() Status {
 	// run instead" means nothing, and answering it would cost a fourth spawn
 	// on every probe for a line nothing draws.
 	if source == SourceManaged {
-		fallbackPath, fallbackSource, _ := resolveSystemYtdlp()
+		fallbackPath, fallbackSource := resolveSystemYtdlp()
 		shadowed := probeTool(fallbackPath, "--version", ytdlpVersion)
 		shadowed.Source = fallbackSource
 		st.Shadowed = &shadowed
 	}
 	return st
-}
-
-// resolveSystemYtdlp answers ResolveYtdlp's question with the managed copy
-// taken out of the running: KL_YTDLP, then PATH. It is what Status.Shadowed
-// reports and what "back to the system copy" would put in charge.
-func resolveSystemYtdlp() (string, Source, string) {
-	if env := os.Getenv("KL_YTDLP"); env != "" {
-		return env, SourceEnv, ""
-	}
-	if found, err := exec.LookPath("yt-dlp"); err == nil {
-		return found, SourcePath, ""
-	}
-	return "yt-dlp", SourceNone, ""
-}
-
-// lookup resolves a bare program name to a full path when PATH has it, and
-// hands back the bare name when it does not, so a Tool that was not found
-// still names what was looked for rather than showing an empty cell.
-func lookup(name string) string {
-	if p, err := exec.LookPath(name); err == nil {
-		return p
-	}
-	return name
 }
 
 // probeTool runs one program's version flag and reads the answer through

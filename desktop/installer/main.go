@@ -1,6 +1,6 @@
 // Command installer installs KnightLoader on Windows and Linux. The desktop
-// build (scripts/desktop.mjs) copies the program into payload/ and builds this
-// around it; on macOS the app ships as a disk image instead.
+// build (scripts/desktop.mjs) copies the program and yt-dlp into payload/ and
+// builds this around it; on macOS the app ships as a disk image instead.
 package main
 
 import (
@@ -47,7 +47,7 @@ func main() {
 			Logo:       logo,
 			Icon:       icon,
 			Categories: []string{"Network", "FileTransfer"},
-			Payload:    files,
+			Payload:    executables{files, []string{"yt-dlp"}},
 			// The lock a copy on the usual data folder holds, instanceID in
 			// desktop/main.go.
 			InstanceID: id,
