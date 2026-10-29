@@ -1563,6 +1563,16 @@ body {
     --motion-slosh-splash-ripple: 1.5;
     --drag-lift-scale: 1.03;
     --drag-settle-dur: 220ms;
+    /* The desktop app's corner popup rises from its window's lower edge, and
+       its knight hops and swings the sword. The hop is a share of the mark's
+       height, since the sword moves in the logo's own units. */
+    --motion-popup-in-dur: 420ms;
+    --motion-popup-rise: 40px;
+    --motion-popup-out-dur: 240ms;
+    --motion-popup-salute-dur: 760ms;
+    --motion-popup-hop: 18%;
+    --motion-popup-swing: 32deg;
+    --motion-popup-squash: .1;
   }
 
   /* data-motion="subtle": smaller numbers, the same keyframes. The attribute
@@ -1627,6 +1637,13 @@ body {
     --motion-slosh-splash-ripple: 1;
     --drag-lift-scale: 1.015;
     --drag-settle-dur: 130ms;
+    --motion-popup-in-dur: 240ms;
+    --motion-popup-rise: 14px;
+    --motion-popup-out-dur: 160ms;
+    --motion-popup-salute-dur: 520ms;
+    --motion-popup-hop: 8%;
+    --motion-popup-swing: 14deg;
+    --motion-popup-squash: .04;
   }
 
   /* data-motion="storm" has its numbers outside this gate; see the block after
@@ -1696,6 +1713,14 @@ body {
     --motion-slosh-splash-ripple: 0;
     --drag-lift-scale: 1;
     --drag-settle-dur: 0ms;
+    /* The popup only fades, and its knight stands still. */
+    --motion-popup-in-dur: 160ms;
+    --motion-popup-rise: 0px;
+    --motion-popup-out-dur: 160ms;
+    --motion-popup-salute-dur: 0ms;
+    --motion-popup-hop: 0%;
+    --motion-popup-swing: 0deg;
+    --motion-popup-squash: 0;
   }
 
   /* Two animations, one duration: the movement on the level's curve, the fade
@@ -2084,6 +2109,25 @@ body {
   .kl-parade-check {
     animation-delay: calc(var(--motion-content-dur) * 4);
   }
+
+  /* The desktop app's corner popup rises on the page's curve and fades on one
+     that cannot overshoot, as .glim-page-enter does, and the knight salutes
+     each take-in: the mark hops and lands squashed while the sword swings up
+     and back. */
+  .kl-popup {
+    animation:
+      kl-popup-rise var(--motion-popup-in-dur) var(--motion-page-ease) backwards,
+      glim-fade-in var(--motion-popup-in-dur) ease-out backwards;
+  }
+  .kl-popup.kl-popup-leave {
+    animation: kl-popup-out var(--motion-popup-out-dur) ease-in forwards;
+  }
+  .kl-popup-knight {
+    animation: kl-popup-hop var(--motion-popup-salute-dur) ease-out;
+  }
+  .kl-popup-knight #kl-sword {
+    animation: kl-popup-swing var(--motion-popup-salute-dur) ease-in-out;
+  }
 }
 
 /* The hidden fourth level, data-motion="storm" (GlimStone 2.0.0): the same
@@ -2159,6 +2203,13 @@ body {
   --motion-slosh-splash-ripple: 2;
   --drag-lift-scale: 1.06;
   --drag-settle-dur: 400ms;
+  --motion-popup-in-dur: 620ms;
+  --motion-popup-rise: 64px;
+  --motion-popup-out-dur: 340ms;
+  --motion-popup-salute-dur: 1050ms;
+  --motion-popup-hop: 30%;
+  --motion-popup-swing: 55deg;
+  --motion-popup-squash: .18;
 }
 
 /* Each substitute here excludes the storm, and the storm's full animation is
@@ -2191,6 +2242,9 @@ body {
   /* Without the animation the shields would sit over the toast's text, so the
      row is hidden and the checkmark is drawn at once. */
   :root:not([data-motion="storm"]) .kl-parade { animation: none; opacity: 0; }
+  /* The popup fades in and out and its knight stands still. */
+  :root:not([data-motion="storm"]) .kl-popup { animation: glim-fade-in 160ms ease backwards; }
+  :root:not([data-motion="storm"]) .kl-popup.kl-popup-leave { animation: kl-popup-out 160ms ease forwards; }
 
   /* The storm restored, with the values from its token block. */
   :root[data-motion="storm"] .glim-page-enter {
@@ -2218,6 +2272,20 @@ body {
   /* The checkmark waits for the shields, as it does in the gate. */
   :root[data-motion="storm"] .kl-parade-check {
     animation: glim-check-draw var(--motion-check-dur) ease-out calc(var(--motion-content-dur) * 4) both;
+  }
+  :root[data-motion="storm"] .kl-popup {
+    animation:
+      kl-popup-rise var(--motion-popup-in-dur) var(--motion-page-ease) backwards,
+      glim-fade-in var(--motion-popup-in-dur) ease-out backwards;
+  }
+  :root[data-motion="storm"] .kl-popup.kl-popup-leave {
+    animation: kl-popup-out var(--motion-popup-out-dur) ease-in forwards;
+  }
+  :root[data-motion="storm"] .kl-popup-knight {
+    animation: kl-popup-hop var(--motion-popup-salute-dur) ease-out;
+  }
+  :root[data-motion="storm"] .kl-popup-knight #kl-sword {
+    animation: kl-popup-swing var(--motion-popup-salute-dur) ease-in-out;
   }
 }
 
@@ -3006,6 +3074,83 @@ body {
   18%  { opacity: 1; }
   82%  { opacity: 1; }
   100% { opacity: 0; transform: translateX(calc(var(--dir-sign) * 160%)); }
+}
+
+/* The corner popup of the desktop app (pages/LinkPopup.tsx). Its window is
+   transparent around the note, which sits in the window's lower right corner
+   on the physical sides, since the window sits there on the screen in every
+   language. */
+@keyframes kl-popup-rise {
+  from { transform: translateY(var(--motion-popup-rise, 0px)); }
+  to   { transform: none; }
+}
+/* Opacity only: it holds its end until the window goes, and a transform held
+   there would make the note a containing block. */
+@keyframes kl-popup-out {
+  to { opacity: 0; }
+}
+@keyframes kl-popup-hop {
+  0%   { transform: none; }
+  30%  { transform: translateY(calc(var(--motion-popup-hop, 0%) * -1)); }
+  55%  { transform: scale(calc(1 + var(--motion-popup-squash, 0)), calc(1 - var(--motion-popup-squash, 0))); }
+  78%  { transform: translateY(calc(var(--motion-popup-hop, 0%) * -.25)); }
+  100% { transform: none; }
+}
+/* The sword's pivot is the hand on the hilt; see #kl-sword. */
+@keyframes kl-popup-swing {
+  0%   { transform: none; }
+  30%  { transform: translateY(calc(var(--motion-popup-hop, 0%) * -.5)) rotate(calc(var(--motion-popup-swing, 0deg) * -1)); }
+  58%  { transform: rotate(calc(var(--motion-popup-swing, 0deg) * .45)); }
+  80%  { transform: rotate(calc(var(--motion-popup-swing, 0deg) * -.12)); }
+  100% { transform: none; }
+}
+.kl-popup-page,
+.kl-popup-page body {
+  background: transparent;
+  overflow: hidden;
+}
+.kl-popup {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100vw - 24px);
+  padding: 12px 16px 12px 12px;
+  border: 0;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  background-color: var(--carbon-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation), var(--hairline);
+}
+.kl-popup:hover {
+  background-color: var(--carbon-surface2);
+}
+.kl-popup:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+/* The mark on a disc of the accent, which marks the activity: links that just
+   went in. */
+.kl-popup-knight {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 6px;
+  border-radius: var(--radius-pill);
+  background-color: var(--accent-soft);
+  transform-origin: 50% 100%;
+}
+.kl-popup-knight > svg {
+  height: 100%;
+  width: auto;
+  overflow: visible;
 }
 /* The row lies over the toast and takes no pointer events, so the dismiss
    button stays usable during the sweep. */

@@ -1,6 +1,7 @@
 // What only the desktop app has: its two OS-native actions, reveal-in-folder
 // and open-natively, the live stream over Wails events, the news of a
-// downloaded update, and the tray's words.
+// downloaded update, the tray's words and the popup for links the clipboard
+// watch caught.
 //
 // The shared interface does not load the Wails runtime. The page calls the
 // runtime's endpoint the way @wailsio/runtime does, by the bound method's
@@ -48,9 +49,12 @@ function call(method: string, ...args: unknown[]): Promise<unknown> {
   return runtimeCall(CALL, 0, { 'call-id': `${pageId}.${++callCount}`, methodName: method, args });
 }
 
-/** The window this page runs in: the tray window at /tray, or the main one. */
+/** The small windows by their routes, with the names desktop/overview.go and desktop/linkpopup.go give them. */
+const WINDOWS: Record<string, string> = { '/tray': 'tray', '/linkpopup': 'linkpopup' };
+
+/** The window this page runs in: one of the small ones, or the main one. */
 function windowName(): string {
-  return window.location.pathname === '/tray' ? 'tray' : 'main';
+  return WINDOWS[window.location.pathname] ?? 'main';
 }
 
 /** showMain brings the main window forward, from the tray window. */
@@ -310,6 +314,44 @@ export function onWindowPrefs(callback: (prefs: WindowPrefs) => void): () => voi
 export function onClipboardOutcome(callback: (outcome: WatchOutcome) => void): () => void {
   if (!isDesktop()) return () => {};
   return listen('clipboardWatch', (outcome) => callback(outcome as WatchOutcome));
+}
+
+/** What the popup says; popupBatch in desktop/linkpopup.go. */
+export interface PopupBatch {
+  /** Counts take-ins, so a dismissal names the one it saw last. */
+  seq: number;
+  /** The seq the popup appeared with; a new one means a new popup. */
+  from: number;
+  n: number;
+  /** The host every link came from, where they share one. */
+  host?: string;
+}
+
+/** onLinkPopup calls back with every batch the popup is to show. */
+export function onLinkPopup(callback: (batch: PopupBatch) => void): () => void {
+  if (!isDesktop()) return () => {};
+  return listen('linkPopup', (batch) => callback(batch as PopupBatch));
+}
+
+/** popupNow is the batch on screen, with seq 0 when there is none. */
+export async function popupNow(): Promise<PopupBatch> {
+  return (await call('main.LinkPopup.Current')) as PopupBatch;
+}
+
+/** dismissPopup takes the popup away, unless a take-in newer than seq has grown it. */
+export async function dismissPopup(seq: number): Promise<void> {
+  await call('main.LinkPopup.Dismiss', seq);
+}
+
+/** openFromPopup takes the popup away and shows the collector in the main window. */
+export async function openFromPopup(): Promise<void> {
+  await call('main.LinkPopup.Open');
+}
+
+/** onShowPage calls back with a route the desktop app wants the main window to show. */
+export function onShowPage(callback: (path: string) => void): () => void {
+  if (!isDesktop()) return () => {};
+  return listen('showPage', (path) => callback(String(path)));
 }
 
 /** The tray menu's labels; TrayWords in desktop/config.go. */

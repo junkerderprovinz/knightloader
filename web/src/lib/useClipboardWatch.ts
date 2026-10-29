@@ -1,7 +1,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import { useUIState } from './uistate';
 import { isDesktop } from './desktop';
-import { TARGET_FIELD, WATCH_FIELD, WATCH_SUPPORTED } from './clipboardWatch';
+import { POPUP_FIELD, TARGET_FIELD, WATCH_FIELD, WATCH_SUPPORTED } from './clipboardWatch';
 
 /** Where this browser keeps the switch. */
 const SWITCH_KEY = 'knightloader.clipboardWatch';
@@ -71,4 +71,10 @@ function useSharedSwitch(): [boolean, (on: boolean) => void] {
  *  otherwise a peer's name as /api/instances lists it. */
 export function useClipboardWatchTarget(): [string, (target: string) => void] {
   return useUIState<string>(TARGET_FIELD, '');
+}
+
+/** useClipboardPopup is whether the desktop app pops up in a corner of the
+ *  screen when the watch takes links into this instance's collector. */
+export function useClipboardPopup(): [boolean, (on: boolean) => void] {
+  return useUIState<boolean>(POPUP_FIELD, true);
 }

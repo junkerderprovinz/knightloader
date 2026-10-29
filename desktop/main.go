@@ -141,10 +141,11 @@ func main() {
 	})
 	awake.Start()
 
-	// The page calls these as main.DesktopFiles, main.HubBridge and main.Tray;
-	// see web/src/lib/desktop.ts.
+	// The page calls these as main.DesktopFiles, main.HubBridge, main.Tray and
+	// main.LinkPopup; see web/src/lib/desktop.ts.
 	desktopFiles := newDesktopFiles(a)
 	hubBridge := newHubBridge(a, tray.emitTo)
+	popup := newLinkPopup(a, tray)
 
 	wails := application.New(application.Options{
 		Name:        "KnightLoader",
@@ -154,6 +155,7 @@ func main() {
 			application.NewService(desktopFiles),
 			application.NewService(hubBridge),
 			application.NewService(tray),
+			application.NewService(popup),
 		},
 		// The API is the whole asset server, the interface included, so the
 		// window opens no port of its own.
@@ -178,10 +180,14 @@ func main() {
 		Hidden:           tray.effectiveStartHidden(),
 	})
 	tray.attach(wails, window)
+	popup.attach(wails, tray)
 
 	// Wails reads the clipboard on the main thread, so the watch starts once
 	// the app runs.
-	clip := newClipWatch(a, wails.Clipboard.Text, func(o clipOutcome) { tray.emitTo("main", clipWatchEvent, o) })
+	clip := newClipWatch(a, wails.Clipboard.Text, func(o clipOutcome) {
+		tray.emitTo("main", clipWatchEvent, o)
+		popup.offer(o)
+	})
 	clipCtx, stopClip := context.WithCancel(context.Background())
 	wails.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
 		go clip.run(clipCtx)

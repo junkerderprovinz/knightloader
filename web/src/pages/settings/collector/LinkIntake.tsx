@@ -6,7 +6,7 @@ import { useT } from '../../../lib/i18n';
 import { WATCH_SUPPORTED } from '../../../lib/clipboardWatch';
 import { isDesktop } from '../../../lib/desktop';
 import { useResource } from '../../../lib/useResource';
-import { useClipboardWatchTarget } from '../../../lib/useClipboardWatch';
+import { useClipboardPopup, useClipboardWatchTarget } from '../../../lib/useClipboardWatch';
 import { useWatchSwitch } from '../../../components/WatchElsewhere';
 import { useDraft, useFeatures } from '../context';
 import { ModuleToggle } from '../ModuleToggle';
@@ -29,6 +29,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
   const { features } = useFeatures();
   const { watch, flip, dialog } = useWatchSwitch();
   const [target, setTarget] = useClipboardWatchTarget();
+  const [popup, setPopup] = useClipboardPopup();
   const { data: peers } = useResource(fetchInstances);
   const { ways, open } = useWays(watch, peers);
   const watchHint = isDesktop() ? t('intake.clipboardWatchHintDesktop') : t('intake.clipboardWatchHint');
@@ -65,6 +66,16 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
             checked={watch}
             onChange={flip}
           />
+          {/* The popup belongs to the watch, so it shares its colour. */}
+          {isDesktop() && watch && (
+            <ToggleRow
+              hue={1}
+              label={t('intake.clipboardPopup')}
+              hint={t('intake.clipboardPopupHint')}
+              checked={popup}
+              onChange={setPopup}
+            />
+          )}
           {targets.length > 1 && (
             <SettingRow
               control="long"
