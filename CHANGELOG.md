@@ -48,6 +48,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   it.** It used to put the new version next to the running one, which went on
   as the old version until the next start. Starting KnightLoader a second time
   now brings the open window forward instead of running a second copy.
+- **Every instance of a group lists the same phones and browsers.** An
+  instance that was closed when a browser extension last checked in, or when a
+  device was approved or taken out, now learns of it from the other instances
+  as soon as it is back. Before, the desktop app could miss an extension the
+  server listed, and a device approved elsewhere still waited there.
 
 ## [2.3.3] - 2026-10-28
 
