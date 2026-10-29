@@ -537,7 +537,6 @@ export const et: Dict = {
   'columns.comment': 'Märkus',
   'columns.resolver': 'Taustsüsteem',
   'columns.source': 'Allikas',
-  'columns.enabled': 'Sees',
   'columns.menuTitle': 'Veerud',
   'columns.reset': 'Lähtesta veerud',
   'columns.headerHint': 'Klõpsa päisel, et sortida selle järgi, lohista seda veeru ümberkorraldamiseks, lohista selle serva suuruse muutmiseks, topeltklõps serval taastab laiuse. Paremklõps päisel avab veergude loendi.',
@@ -567,8 +566,6 @@ export const et: Dict = {
   'list.dropChangedPriority': 'Teisaldatud: {n} allalaadimist võttis rea prioriteedi, kuhu need kukutati.',
   'list.optionsFailed': 'Koristuskirjeid ei õnnestunud serverist laadida.',
 
-  'task.enable': 'Lülita sisse',
-  'task.disable': 'Lülita välja',
   'task.switchFailed': 'Lülitit ei õnnestunud muuta.',
   'task.uncheckable': 'Majutaja ei vastanud',
   'task.expand': 'Ava',

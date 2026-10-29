@@ -25,7 +25,7 @@ import { EventBell } from './EventBell';
 import {
   IconDashboard,
   IconCollector,
-  IconDownload,
+  IconDownloadArrow,
   IconFleet,
   IconAccounts,
   IconNotifications,
@@ -311,7 +311,7 @@ export function Sidebar() {
       <nav data-nav-rail className={`flex flex-col gap-1 flex-1 ${narrow ? 'p-2' : 'p-3'}`}>
         {/* Downloads before the collector, as in JDownloader. */}
         {!hideOverview && <Item to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />}
-        <Item to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownload />} badge={active} />
+        <Item to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownloadArrow />} badge={active} />
         <Item to="/collector" hue={nextHue()} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
         {!hideInstances && <Item to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconFleet />} />}
         {!hideAccounts && <Item to="/accounts" hue={nextHue()} mode={mode} label={t('nav.accounts')} icon={<IconAccounts />} />}
@@ -586,7 +586,7 @@ function PhoneBar({
     // the document, where the rail is.
     <nav ref={bar} data-new="phone-bar" className="relative order-last flex h-12 shrink-0 gap-0.5 rounded-[var(--radius-card)] bg-carbon-sidebar p-1">
       {showOverview && <BarItem to="/" end hue={overview} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />}
-      <BarItem to="/downloads" hue={downloads} mode={mode} label={t('nav.downloads')} icon={<IconDownload />} badge={active} />
+      <BarItem to="/downloads" hue={downloads} mode={mode} label={t('nav.downloads')} icon={<IconDownloadArrow />} badge={active} />
       <BarItem to="/collector" hue={collector} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
       <BarItem to="/settings" hue={settings} mode={mode} label={t('nav.settings')} icon={<IconGear />} />
       {/* Behind More the bell draws no segment and stands its list on the bar. */}

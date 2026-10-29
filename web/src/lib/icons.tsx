@@ -34,6 +34,28 @@ export const IconGlobe = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** The link collector: a magnifying glass with a dot in its lens, so it is not
+ *  taken for IconSearch, which filters a list. */
+export const IconCollector = (p: GlyphProps) => (
+  <svg {...glyph([2.75, 2.75, 14.5, 14.5], p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M8.6 2.75a5.85 5.85 0 1 1 0 11.7 5.85 5.85 0 0 1 0-11.7Zm0 1.8a4.05 4.05 0 1 0 0 8.1 4.05 4.05 0 0 0 0-8.1Z"
+    />
+    <circle cx="8.6" cy="8.6" r="1.7" />
+    <rect x="13.55" y="11.53" width="1.9" height="5.94" rx=".95" transform="rotate(-45 14.5 14.5)" />
+  </svg>
+);
+
+/** The Downloads page: a bold arrow pointing down, with no disc round it, so
+ *  it is not taken for IconDownload, which marks a transfer's state. */
+export const IconDownloadArrow = (p: GlyphProps) => (
+  <svg {...glyph([4.4, 2.75, 11.2, 12], p)}>
+    <path d="M10 2.75a1.1 1.1 0 0 1 1.1 1.1v6.6l2.35-2.35a1.1 1.1 0 0 1 1.56 1.56l-4.23 4.23a1.55 1.55 0 0 1-2.76 0L4.99 9.66a1.1 1.1 0 0 1 1.56-1.56L8.9 10.45v-6.6A1.1 1.1 0 0 1 10 2.75Z" />
+  </svg>
+);
+
 /** The stop mark: a flag where the queue stops. A pennant, so it is not
  *  mistaken for IconStop's square. */
 export const IconStopMark = (p: SVGProps<SVGSVGElement>) => (

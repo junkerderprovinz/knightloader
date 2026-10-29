@@ -36,6 +36,17 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Changed
+
+- **New glyphs for Downloads and the link collector.** Downloads wears a plain
+  arrow pointing down, the link collector a magnifying glass, in the sidebar, the
+  phone bar, the command palette and the settings pages.
+- **The Enabled column is gone from the link collector.** It was hardly used.
+  Enable and Disable are still in the right-click menu of a link or package,
+  and a disabled link keeps its mark in the name.
+
 ## [2.3.3] - 2026-10-28
 
 ### Added

@@ -537,7 +537,6 @@ export const is: Dict = {
   'columns.comment': 'Athugasemd',
   'columns.resolver': 'Bakendi',
   'columns.source': 'Uppruni',
-  'columns.enabled': 'Virkt',
   'columns.menuTitle': 'Dálkar',
   'columns.reset': 'Endurstilla dálka',
   'columns.headerHint': 'Smelltu á haus til að raða eftir honum, dragðu hann til að endurraða dálkinum, dragðu brún hans til að breyta stærð, tvísmelltu á brúnina til að endurstilla breiddina. Hægrismelltu á hausinn fyrir dálkalistann.',
@@ -567,8 +566,6 @@ export const is: Dict = {
   'list.dropChangedPriority': 'Fært: {n} niðurhal tók forgang línunnar sem því var sleppt á.',
   'list.optionsFailed': 'Ekki tókst að sækja tiltektarfærslurnar af þjóninum.',
 
-  'task.enable': 'Kveikja',
-  'task.disable': 'Slökkva',
   'task.switchFailed': 'Ekki tókst að breyta rofanum.',
   'task.uncheckable': 'Hýsillinn svaraði ekki',
   'task.expand': 'Fletta út',

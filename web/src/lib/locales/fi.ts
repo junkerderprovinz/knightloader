@@ -537,7 +537,6 @@ export const fi: Dict = {
   'columns.comment': 'Kommentti',
   'columns.resolver': 'Taustaosa',
   'columns.source': 'Lähde',
-  'columns.enabled': 'Päällä',
   'columns.menuTitle': 'Sarakkeet',
   'columns.reset': 'Palauta sarakkeet',
   'columns.headerHint': 'Napsauta otsikkoa lajitellaksesi sen mukaan, vedä sitä järjestääksesi sarakkeen uudelleen, vedä sen reunaa muuttaaksesi kokoa, kaksoisnapsauta reunaa palauttaaksesi leveyden. Napsauta otsikkoa hiiren oikealla painikkeella nähdäksesi sarakeluettelon.',
@@ -567,8 +566,6 @@ export const fi: Dict = {
   'list.dropChangedPriority': 'Siirretty: {n} latausta otti sen rivin prioriteetin, jolle ne pudotettiin.',
   'list.optionsFailed': 'Siivouskohteita ei saatu ladattua palvelimelta.',
 
-  'task.enable': 'Kytke päälle',
-  'task.disable': 'Kytke pois',
   'task.switchFailed': 'Kytkintä ei voitu muuttaa.',
   'task.uncheckable': 'Palvelu ei kertonut',
   'task.expand': 'Laajenna',

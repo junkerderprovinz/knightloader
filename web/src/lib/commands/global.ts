@@ -5,7 +5,7 @@ import {
   IconAccounts,
   IconCollector,
   IconDashboard,
-  IconDownload,
+  IconDownloadArrow,
   IconFleet,
   IconGear,
   IconMoon,
@@ -23,7 +23,7 @@ export const OPEN_PALETTE_ID = 'app.commandPalette.open';
 /** One "go to X" per surface with a real page, sharing the same run/enabled/visible shape. */
 const NAV: { id: string; labelKey: Command['labelKey']; icon: Command['icon']; surface: CommandSurface; path: string; shortcut: string }[] = [
   { id: 'nav.goOverview', labelKey: 'commands.goOverview', icon: IconDashboard, surface: 'overview', path: '/', shortcut: 'mod+shift+1' },
-  { id: 'nav.goDownloads', labelKey: 'commands.goDownloads', icon: IconDownload, surface: 'downloads', path: '/downloads', shortcut: 'mod+shift+2' },
+  { id: 'nav.goDownloads', labelKey: 'commands.goDownloads', icon: IconDownloadArrow, surface: 'downloads', path: '/downloads', shortcut: 'mod+shift+2' },
   { id: 'nav.goCollector', labelKey: 'commands.goCollector', icon: IconCollector, surface: 'collector', path: '/collector', shortcut: 'mod+shift+3' },
   { id: 'nav.goInstances', labelKey: 'commands.goInstances', icon: IconFleet, surface: 'instances', path: '/instances', shortcut: 'mod+shift+4' },
   { id: 'nav.goAccounts', labelKey: 'commands.goAccounts', icon: IconAccounts, surface: 'accounts', path: '/accounts', shortcut: 'mod+shift+5' },
