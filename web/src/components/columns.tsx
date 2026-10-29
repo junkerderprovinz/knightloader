@@ -2211,10 +2211,11 @@ export function moveColumn(order: ColumnId[], id: ColumnId, target: ColumnId, af
  * would change nothing, and the last column takes the rest from its own width
  * up. It is the one dragged width that still gives way, for the reason above.
  *
- * Exactly one track per column. The rows are a grid with no explicit row
- * count, so a cell without a track wraps onto a second grid line, and a track
- * without a cell stands as an empty column in every row. The row's action
- * badges have no track: they sit at the end of the name column, which keeps
+ * One track per column and a last one, END_ROOM, for the row's remove badge,
+ * so it ends every row. The rows are a grid with no explicit row count, so a
+ * cell without a track wraps onto a second grid line, and a track without a
+ * cell stands as an empty column in every row. The row's other action badges
+ * have no track: they sit at the end of the name column, which keeps
  * ACTIONS_ROOM for them on top of its own minimum.
  */
 export function gridTemplate(layout: ResolvedLayout, drag?: { id: ColumnId; width: number }): string {
@@ -2230,17 +2231,21 @@ export function gridTemplate(layout: ResolvedLayout, drag?: { id: ColumnId; widt
       if (!nameFills && i === last) return `minmax(${width}px, 1fr)`;
       return dragged(c.id) && c.id !== 'name' ? `${width}px` : `minmax(${min}, ${width}px)`;
     })
+    .concat(END_ROOM)
     .join(' ');
 }
 
 /**
  * The room the row's action badges take at the end of the name column: as
- * many square badges as the busiest row carries and the 4px gaps between them.
- * That is three, a collected link's start, recheck and remove, or a failed
- * one's skip, restart and remove. A fixed width rather than the badges' own,
- * so the names of every row are cut at one line whatever each row carries.
+ * many square badges as the busiest row carries and the 4px gap between them.
+ * That is two, a collected link's start and recheck, or a failed one's skip and
+ * restart. A fixed width rather than the badges' own, so the names of every row
+ * are cut at one line whatever each row carries.
  */
-export const ACTIONS_ROOM = 'calc(3 * var(--btn-h) + 2 * 0.25rem)';
+export const ACTIONS_ROOM = 'calc(2 * var(--btn-h) + 0.25rem)';
+
+/** The last track: one badge and the 8px a cell keeps at its end. */
+export const END_ROOM = 'calc(var(--btn-h) + 0.5rem)';
 
 /** The name cell's end padding: a cell's own 8px and the room for the badges. */
 export const NAME_END = `calc(0.5rem + ${ACTIONS_ROOM})`;
@@ -2253,6 +2258,9 @@ export const IN_NAME_COL = '[grid-row:1] [grid-column:var(--kl-name-col)]';
 
 /** Places a row's badges over the end of its name cell. */
 export const AT_NAME_END = `justify-self-end ${IN_NAME_COL}`;
+
+/** Places a row's remove badge in the last track (`--kl-end-col`, set on the table). */
+export const AT_ROW_END = 'justify-self-end pe-2 [grid-row:1] [grid-column:var(--kl-end-col)]';
 
 export interface SortState {
   id: ColumnId;
