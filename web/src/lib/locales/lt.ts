@@ -538,7 +538,6 @@ export const lt: Dict = {
   'columns.comment': 'Pastaba',
   'columns.resolver': 'Posistemė',
   'columns.source': 'Šaltinis',
-  'columns.enabled': 'Įjungta',
   'columns.menuTitle': 'Stulpeliai',
   'columns.reset': 'Atstatyti stulpelius',
   'columns.headerHint': 'Spustelėkite antraštę, kad rūšiuotumėte pagal ją, vilkite ją, kad pertvarkytumėte stulpelį, vilkite jos kraštą, kad pakeistumėte dydį, dukart spustelėkite kraštą, kad grąžintumėte plotį. Dešiniuoju pelės klavišu spustelėkite antraštę, kad atidarytumėte stulpelių sąrašą.',
@@ -568,8 +567,6 @@ export const lt: Dict = {
   'list.dropChangedPriority': 'Perkelta: {n} atsisiuntimai perėmė eilutės, ant kurios buvo numesti, prioritetą.',
   'list.optionsFailed': 'Nepavyko iš serverio įkelti tvarkymo įrašų.',
 
-  'task.enable': 'Įjungti',
-  'task.disable': 'Išjungti',
   'task.switchFailed': 'Jungiklio pakeisti nepavyko.',
   'task.uncheckable': 'Talpykla neatsakė',
   'task.expand': 'Išskleisti',

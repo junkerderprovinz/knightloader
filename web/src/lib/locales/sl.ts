@@ -537,7 +537,6 @@ export const sl: Dict = {
   'columns.comment': 'Opomba',
   'columns.resolver': 'Zaledje',
   'columns.source': 'Vir',
-  'columns.enabled': 'Vklopljeno',
   'columns.menuTitle': 'Stolpci',
   'columns.reset': 'Ponastavi stolpce',
   'columns.headerHint': 'Kliknite glavo za razvrščanje po njej, povlecite jo za preureditev stolpca, povlecite njen rob za spremembo velikosti, dvokliknite rob za vrnitev širine. Z desnim klikom na glavo odprete seznam stolpcev.',
@@ -567,8 +566,6 @@ export const sl: Dict = {
   'list.dropChangedPriority': 'Premaknjeno: {n} prenosov je prevzelo prioriteto vrstice, na katero so bili spuščeni.',
   'list.optionsFailed': 'Vnosov za pospravljanje ni bilo mogoče naložiti s strežnika.',
 
-  'task.enable': 'Vklopi',
-  'task.disable': 'Izklopi',
   'task.switchFailed': 'Stikala ni bilo mogoče spremeniti.',
   'task.uncheckable': 'Gostitelj ni odgovoril',
   'task.expand': 'Razširi',

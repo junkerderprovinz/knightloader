@@ -539,7 +539,6 @@ export const ar: Dict = {
   'columns.comment': 'ملاحظة',
   'columns.resolver': 'الخلفية',
   'columns.source': 'المصدر',
-  'columns.enabled': 'مفعّل',
   'columns.menuTitle': 'الأعمدة',
   'columns.reset': 'إعادة ضبط الأعمدة',
   'columns.headerHint': 'انقر على رأس عمود للفرز بحسبه، اسحبه لإعادة ترتيب العمود، اسحب حافته لتغيير حجمه، وانقر مرتين على الحافة لإعادة العرض. انقر بزر الفأرة الأيمن على الرأس لعرض قائمة الأعمدة.',
@@ -569,8 +568,6 @@ export const ar: Dict = {
   'list.dropChangedPriority': 'تم النقل: {n} تنزيل أخذ أولوية الصف الذي أُسقط عليه.',
   'list.optionsFailed': 'تعذّر تحميل بنود التنظيف من الخادم.',
 
-  'task.enable': 'تفعيل',
-  'task.disable': 'تعطيل',
   'task.switchFailed': 'تعذّر تغيير المفتاح.',
   'task.uncheckable': 'المستضيف لم يجب',
   'task.expand': 'توسيع',

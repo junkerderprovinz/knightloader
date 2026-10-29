@@ -537,7 +537,6 @@ export const tr: Dict = {
   'columns.comment': 'Not',
   'columns.resolver': 'Arka uç',
   'columns.source': 'Kaynak',
-  'columns.enabled': 'Açık',
   'columns.menuTitle': 'Sütunlar',
   'columns.reset': 'Sütunları sıfırla',
   'columns.headerHint': 'Bir başlığa tıklayarak ona göre sırala, sütunu yeniden düzenlemek için sürükle, boyutlandırmak için kenarını sürükle, genişliği geri almak için kenarına çift tıkla. Sütun listesi için başlığa sağ tıkla.',
@@ -567,8 +566,6 @@ export const tr: Dict = {
   'list.dropChangedPriority': 'Taşındı: {n} indirme, bırakıldığı satırın önceliğini aldı.',
   'list.optionsFailed': 'Temizlik girdileri sunucudan yüklenemedi.',
 
-  'task.enable': 'Aç',
-  'task.disable': 'Kapat',
   'task.switchFailed': 'Anahtar değiştirilemedi.',
   'task.uncheckable': 'Sunucu yanıt vermedi',
   'task.expand': 'Genişlet',

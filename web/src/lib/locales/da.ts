@@ -537,7 +537,6 @@ export const da: Dict = {
   'columns.comment': 'Kommentar',
   'columns.resolver': 'Backend',
   'columns.source': 'Kilde',
-  'columns.enabled': 'Til',
   'columns.menuTitle': 'Kolonner',
   'columns.reset': 'Nulstil kolonnerne',
   'columns.headerHint': 'Klik på en overskrift for at sortere efter den, træk den for at omarrangere kolonnen, træk dens kant for at ændre størrelsen, dobbeltklik på kanten for at gendanne bredden. Højreklik på overskriften for kolonnelisten.',
@@ -567,8 +566,6 @@ export const da: Dict = {
   'list.dropChangedPriority': 'Flyttet: {n} downloads overtog prioriteten fra den række, de blev sluppet på.',
   'list.optionsFailed': 'Kunne ikke hente oprydningspunkterne fra serveren.',
 
-  'task.enable': 'Slå til',
-  'task.disable': 'Slå fra',
   'task.switchFailed': 'Kontakten kunne ikke ændres.',
   'task.uncheckable': 'Værten svarede ikke',
   'task.expand': 'Fold ud',

@@ -122,15 +122,6 @@ for (const [book, values] of Object.entries(books)) {
   }
 }
 
-// The menu entries and the switch in the list name the same two verbs.
-for (const book of ['web en', 'web de']) {
-  for (const verb of ['enable', 'disable']) {
-    const menu = books[book].get(`menu.${verb}`);
-    const own = books[book].get(`task.${verb}`);
-    if (menu !== own) problems.push(`${book}: the menu says "${menu}" but the switch says "${own}"`);
-  }
-}
-
 // The module switch and its priority row are the same client.
 for (const book of ['web en', 'web de']) {
   const module = books[book].get('settings.module.torrents');
