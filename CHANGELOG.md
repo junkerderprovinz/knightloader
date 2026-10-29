@@ -38,6 +38,36 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Added
+
+- **The desktop app pops up a note when the clipboard watch catches links.**
+  A small note rises in the lower right corner of the screen for a few
+  seconds, even with the window in the tray, and says how many links went into
+  the collector and from which site. A click on it opens the collector, copies
+  made while it is up add to the same note, and a switch under the clipboard
+  watch turns it off.
+
+### Changed
+
+- **The remove button ends every link and package row.** It now stands at the
+  right edge of the row, after the last column, instead of in the middle of it.
+- **The desktop app brings its own yt-dlp.** A YouTube link, or one to any
+  other video site, opens into its variant rows right after installing instead
+  of landing in JDownloader as one plain row. A copy with no yt-dlp beside it,
+  like the one in the Windows or Linux zip, fetches one into its data folder
+  when it starts.
+- **The desktop app gets its own ffmpeg.** On Windows and Linux it fetches
+  ffmpeg and ffprobe at the first start when none are installed, so videos
+  arrive with picture and sound joined. The Resolvers page names the LGPL
+  build it uses and links to its source.
+
+- **The desktop app draws its own title bar on Windows and Linux.** It shows
+  the logo and the name, follows your theme and corner shape, and has its own
+  buttons to minimise, maximise and close. Drag it to move the window and
+  double-click it to maximise. Closing still hides the window in the
+  notification area or quits, whichever you chose in Settings. On macOS the
+  window keeps its usual title bar.
+
 ### Fixed
 
 - **KnightLoader Test keeps its own data.** The test build installs beside a
@@ -58,35 +88,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   link, and the link collector showed it as a single row with the address as
   its name. Video sites stay with yt-dlp whatever the order, unless you have a
   JDownloader login for the site. Links collected before need adding again.
-### Changed
-
-- **The remove button ends every link and package row.** It now stands at the
-  right edge of the row, after the last column, instead of in the middle of it.
-- **The desktop app brings its own yt-dlp.** A YouTube link, or one to any
-  other video site, opens into its variant rows right after installing instead
-  of landing in JDownloader as one plain row. A copy with no yt-dlp beside it,
-  like the one in the Windows or Linux zip, fetches one into its data folder
-  when it starts.
-- **The desktop app gets its own ffmpeg.** On Windows and Linux it fetches
-  ffmpeg and ffprobe at the first start when none are installed, so videos
-  arrive with picture and sound joined. The Resolvers page names the LGPL
-  build it uses and links to its source.
-### Added
-
-- **The desktop app pops up a note when the clipboard watch catches links.**
-  A small note rises in the lower right corner of the screen for a few
-  seconds, even with the window in the tray, and says how many links went into
-  the collector and from which site. A click on it opens the collector, copies
-  made while it is up add to the same note, and a switch under the clipboard
-  watch turns it off.
-### Changed
-
-- **The desktop app draws its own title bar on Windows and Linux.** It shows
-  the logo and the name, follows your theme and corner shape, and has its own
-  buttons to minimise, maximise and close. Drag it to move the window and
-  double-click it to maximise. Closing still hides the window in the
-  notification area or quits, whichever you chose in Settings. On macOS the
-  window keeps its usual title bar.
 
 ## [2.3.3] - 2026-10-28
 
