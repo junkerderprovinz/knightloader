@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { QueueBar } from '../components/QueueBar';
 import { QuickSettings } from '../components/QuickSettings';
@@ -25,7 +25,7 @@ import {
   rainbowFromSettings,
   readCachedDisco,
 } from '../lib/appearance';
-import { onUpdateReady, useTrayWords } from '../lib/desktop';
+import { onShowPage, onUpdateReady, useTrayWords } from '../lib/desktop';
 import { applyDisco } from '../lib/disco';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { setListCards } from '../lib/listCards';
@@ -194,12 +194,20 @@ function useUpdateReadyToast() {
   useEffect(() => onUpdateReady((version) => toast(t('settings.look.updatesReady', { version }), 'info')), [toast, t]);
 }
 
+// A click on the desktop app's corner popup brings the window up on the
+// collector, whichever page it was left on.
+function useShowPage() {
+  const navigate = useNavigate();
+  useEffect(() => onShowPage((path) => navigate(path)), [navigate]);
+}
+
 export function Layout() {
   const location = useLocation();
   useCompletionToasts();
   // Here rather than per page, so unpacking is watched on every page.
   useExtractionToasts();
   useUpdateReadyToast();
+  useShowPage();
   // The desktop app draws the tray menu in the language shown here.
   useTrayWords(useT().t);
   useAppearance();

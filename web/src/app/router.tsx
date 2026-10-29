@@ -10,6 +10,7 @@ import { Accounts } from '../pages/Accounts';
 import { SettingsPage } from '../pages/Settings';
 import { QuickAdd } from '../pages/QuickAdd';
 import { TrayOverview } from '../pages/TrayOverview';
+import { LinkPopup } from '../pages/LinkPopup';
 import { ToastProvider } from '../lib/toast';
 import { I18nProvider } from '../lib/i18n';
 import { TabIndicator } from '../components/TabIndicator';
@@ -23,6 +24,15 @@ function Home() {
 }
 
 export function AppRouter() {
+  // The desktop app's corner popup asks the API for nothing, so it needs no
+  // sign-in, and the tasks the favicon ring follows would only cost it.
+  if (window.location.pathname === '/linkpopup') {
+    return (
+      <I18nProvider>
+        <LinkPopup />
+      </I18nProvider>
+    );
+  }
   return (
     // Outermost, so the sign-in screen, the toasts and every route can read
     // the rainbow state (lib/useRainbow.ts).

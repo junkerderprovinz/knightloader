@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { addLinks, uploadContainer } from '../lib/api';
 import { containerRefusal, isEditableTarget, message } from '../lib/intake';
 import { readUIState } from '../lib/uistate';
-import { useClipboardWatch, useClipboardWatchTarget } from '../lib/useClipboardWatch';
+import { useClipboardPopup, useClipboardWatch, useClipboardWatchTarget } from '../lib/useClipboardWatch';
 import { startClipboardWatch, type WatchOutcome } from '../lib/clipboardWatch';
 import { startLease } from '../lib/clipboardWatchers';
 import { isDesktop, onClipboardOutcome } from '../lib/desktop';
@@ -22,6 +22,7 @@ export function GlobalIntake() {
   const { t } = useT();
   const [watch, setWatch] = useClipboardWatch();
   const [target] = useClipboardWatchTarget();
+  const [popup] = useClipboardPopup();
   // The target reads as this instance until the stored one arrives, and a
   // watch started before that would lease here first and then move.
   const [targetRead, setTargetRead] = useState(false);
@@ -105,8 +106,8 @@ export function GlobalIntake() {
 
   // A ref, so the language arriving after the first render does not restart
   // the watch, which would drop its lease and take it again.
-  const latest = useRef({ t, toast });
-  latest.current = { t, toast };
+  const latest = useRef({ t, toast, popup });
+  latest.current = { t, toast, popup };
 
   // The clipboard watch lives here because this component stays mounted across
   // pages. A refused permission ends the watch instead of asking again. In the
@@ -123,9 +124,12 @@ export function GlobalIntake() {
       toast(t('intake.clipboardWatchStoppedElsewhere'), 'info');
     };
     const show = (o: WatchOutcome) => {
-      const { t, toast } = latest.current;
+      const { t, toast, popup } = latest.current;
       switch (o.kind) {
         case 'staged':
+          // The desktop app's corner popup says it already, and is seen
+          // with the window hidden too.
+          if (isDesktop() && popup && target === '') break;
           toast(t('collector.toastStaged', { n: o.n }), 'ok');
           break;
         case 'none':

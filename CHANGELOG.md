@@ -71,6 +71,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   ffmpeg and ffprobe at the first start when none are installed, so videos
   arrive with picture and sound joined. The Resolvers page names the LGPL
   build it uses and links to its source.
+### Added
+
+- **The desktop app pops up a note when the clipboard watch catches links.**
+  A small note rises in the lower right corner of the screen for a few
+  seconds, even with the window in the tray, and says how many links went into
+  the collector and from which site. A click on it opens the collector, copies
+  made while it is up add to the same note, and a switch under the clipboard
+  watch turns it off.
 
 ## [2.3.3] - 2026-10-28
 

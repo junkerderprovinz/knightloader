@@ -76,13 +76,40 @@ func isScriptSpace(r rune) bool {
 type clipOutcome struct {
 	Kind   string `json:"kind"`
 	N      int    `json:"n,omitempty"`
+	Host   string `json:"host,omitempty"`
 	Reason string `json:"reason,omitempty"`
 }
 
-// clipSettings are the two interface-state fields the page writes.
+// clipSettings are the interface-state fields the page writes.
 type clipSettings struct {
 	On     bool   `json:"clipboardWatch"`
 	Target string `json:"clipboardWatchTarget"`
+	// Popup stays nil until the page first flips its switch, and nil means
+	// on.
+	Popup *bool `json:"clipboardWatchPopup"`
+}
+
+// popup reports whether links taken in pop up in a corner of the screen.
+func (s clipSettings) popup() bool {
+	return s.Popup == nil || *s.Popup
+}
+
+// sharedHost is the host all of links share, without a leading "www.", or ""
+// when they differ or one has none, as a magnet does.
+func sharedHost(links []string) string {
+	host := ""
+	for i, link := range links {
+		u, err := url.Parse(link)
+		if err != nil || u.Hostname() == "" {
+			return ""
+		}
+		h := strings.TrimPrefix(strings.ToLower(u.Hostname()), "www.")
+		if i > 0 && h != host {
+			return ""
+		}
+		host = h
+	}
+	return host
 }
 
 // clipboardReader reads the system clipboard for the watch. latest returns
@@ -127,8 +154,10 @@ type clipWatch struct {
 	settings func() clipSettings
 	// open starts reading the clipboard when the watch is switched on.
 	// background is false where only a focused window sees it change.
-	open    func() (r clipboardReader, background bool)
-	deliver func(ctx context.Context, target string, links []string) (int, error)
+	open func() (r clipboardReader, background bool)
+	// deliver returns the links of the tasks it made, which leaves out those
+	// the collector already had.
+	deliver func(ctx context.Context, target string, links []string) ([]string, error)
 	report  func(clipOutcome)
 	// lease keeps the watch on the list of clipboard watchers of the instance
 	// target names and reports whether another device asked it to stop;
@@ -155,7 +184,7 @@ func newClipWatch(a *app.App, read func() (string, bool), report func(clipOutcom
 	return &clipWatch{
 		settings: func() clipSettings { return readClipSettings(a) },
 		open:     func() (clipboardReader, bool) { return openClipboard(read) },
-		deliver: func(ctx context.Context, target string, links []string) (int, error) {
+		deliver: func(ctx context.Context, target string, links []string) ([]string, error) {
 			return deliverLinks(ctx, a, target, links)
 		},
 		report: report,
@@ -229,13 +258,13 @@ func (w *clipWatch) step(ctx context.Context) {
 	if w.stopped || ctx.Err() != nil {
 		return
 	}
-	n, err := w.deliver(ctx, s.Target, links)
+	added, err := w.deliver(ctx, s.Target, links)
 	switch {
 	case err != nil:
 		log.Printf("desktop: clipboard watch: %v", err)
 		w.report(clipOutcome{Kind: "failed", Reason: err.Error()})
-	case n > 0:
-		w.report(clipOutcome{Kind: "staged", N: n})
+	case len(added) > 0:
+		w.report(clipOutcome{Kind: "staged", N: len(added), Host: sharedHost(added)})
 	default:
 		// The links were in the collector already.
 		w.report(clipOutcome{Kind: "none"})
@@ -400,9 +429,9 @@ func switchClipOff(a *app.App) error {
 }
 
 // deliverLinks stages links on this instance, or on the peer named target,
-// the way POST /api/links and its forward to a peer do, and returns how many
-// tasks they made.
-func deliverLinks(ctx context.Context, a *app.App, target string, links []string) (int, error) {
+// the way POST /api/links and its forward to a peer do, and returns the links
+// of the tasks they made.
+func deliverLinks(ctx context.Context, a *app.App, target string, links []string) ([]string, error) {
 	if target == "" {
 		// POST /api/links runs the paste through the pre-parser when it is
 		// on; see extractLinks in internal/api/routes_links.go.
@@ -410,25 +439,35 @@ func deliverLinks(ctx context.Context, a *app.App, target string, links []string
 			links = linkscan.Extract(strings.Join(links, "\n"))
 		}
 		created, err := a.AddLinksWithOptions(links, "", app.OriginPaste, app.LinkBatchOptions{})
-		return len(created), err
+		added := make([]string, len(created))
+		for i, t := range created {
+			added[i] = t.URL
+		}
+		return added, err
 	}
 	if a.ModuleOff("federation") {
-		return 0, errors.New(`"Instances" is switched off on the Instances page`)
+		return nil, errors.New(`"Instances" is switched off on the Instances page`)
 	}
 	body, err := json.Marshal(map[string]string{"links": strings.Join(links, "\n")})
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	resp, code, err := a.Federation.Proxy(ctx, target, http.MethodPost, "/api/links", body)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	if code >= 300 {
-		return 0, fmt.Errorf("%s answered %d: %s", target, code, strings.TrimSpace(string(resp)))
+		return nil, fmt.Errorf("%s answered %d: %s", target, code, strings.TrimSpace(string(resp)))
 	}
-	var created []json.RawMessage
+	var created []struct {
+		URL string `json:"url"`
+	}
 	if err := json.Unmarshal(resp, &created); err != nil {
-		return 0, fmt.Errorf("%s answered with something other than a task list", target)
+		return nil, fmt.Errorf("%s answered with something other than a task list", target)
 	}
-	return len(created), nil
+	added := make([]string, len(created))
+	for i, t := range created {
+		added[i] = t.URL
+	}
+	return added, nil
 }
