@@ -335,6 +335,9 @@ func applyRelay(a *app.App) {
 					log.Printf("relay: could not record the instances of the group: %v", err)
 				}
 				a.Hub.Broadcast("group", nil)
+				ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+				defer cancel()
+				syncGroupDevices(ctx, a)
 			}()
 		},
 	})

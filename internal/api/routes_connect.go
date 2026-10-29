@@ -186,8 +186,20 @@ func registerConnect(reg *Registry, a *app.App) {
 				ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 				defer cancel()
 				a.Federation.Greet(ctx, time.Now())
+				syncGroupDevices(ctx, a)
 			}()
 			writeJSON(w, connectInfo(a))
+		})
+
+	reg.Add(http.MethodGet, "/api/group/roster",
+		"the phones and browser extensions this instance knows, with the key of every one approved here, and the ones taken out - for the other instances of the group, which take what they lack",
+		func(w http.ResponseWriter, r *http.Request) {
+			if !fromRelayGroup(r) || !fromApprovedInstance(a, r) {
+				writeRefusal(w, http.StatusForbidden, "rosterNotForInstance",
+					"only an approved instance of the group reads its roster", nil)
+				return
+			}
+			writeJSON(w, a.Federation.Roster())
 		})
 
 	reg.Add(http.MethodGet, "/api/group/apps",
@@ -645,6 +657,15 @@ func passOn(a *app.App, skip, method, path string, body []byte) {
 		if _, status, err := a.Federation.Proxy(ctx, m.Name, method, path, body); err != nil || status >= 300 {
 			log.Printf("connect: could not pass %s %s on to %s: status %d, %v", method, path, m.Name, status, err)
 		}
+	}
+}
+
+// syncGroupDevices takes from the other instances of the group the phones and
+// browsers, approvals and removals missing here, and tells the open pages when
+// anything came.
+func syncGroupDevices(ctx context.Context, a *app.App) {
+	if a.Federation.SyncApps(ctx, time.Now()) {
+		a.Hub.Broadcast("group", nil)
 	}
 }
 

@@ -36,6 +36,16 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Fixed
+
+- **Every instance of a group lists the same phones and browsers.** An
+  instance that was closed when a browser extension last checked in, or when a
+  device was approved or taken out, now learns of it from the other instances
+  as soon as it is back. Before, the desktop app could miss an extension the
+  server listed, and a device approved elsewhere still waited there.
+
 ## [2.3.3] - 2026-10-28
 
 ### Added
