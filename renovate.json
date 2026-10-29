@@ -73,6 +73,12 @@
       "allowedVersions": "<12"
     },
     {
+      "description": "The Expo module build files declare no repositories and get Google's Maven from the app at build time, so Renovate would only ask Maven Central, which has no androidx",
+      "matchManagers": ["gradle"],
+      "matchFileNames": ["mobile/modules/*/android/build.gradle"],
+      "registryUrls": ["https://dl.google.com/android/maven2/", "https://repo.maven.apache.org/maven2/"]
+    },
+    {
       "description": "gVisor's master branch is laid out for Bazel and go build rejects it (two packages in one directory); only its go branch builds, so gvisor stays on the last commit that does",
       "matchManagers": ["gomod"],
       "matchPackageNames": ["gvisor.dev/gvisor"],
