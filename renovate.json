@@ -20,6 +20,11 @@
   "gitIgnoredAuthors": ["41898282+github-actions[bot]@users.noreply.github.com"],
   "packageRules": [
     {
+      "description": "Node stays on 24 until 26 is tested. This covers the node image, node-version in setup-node (looked up as actions/node-versions), .nvmrc, engines and @types/node.",
+      "matchPackageNames": ["node", "actions/node-versions", "@types/node"],
+      "allowedVersions": "<25"
+    },
+    {
       "description": "GitHub Actions: auto-merge all updates once every check is green; main has no required checks, so GitHub's own auto-merge would not wait for them",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["major", "minor", "patch", "digest"],
