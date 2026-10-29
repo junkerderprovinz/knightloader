@@ -160,8 +160,11 @@ func main() {
 		Assets: application.AssetOptions{Handler: api.Handler(a)},
 		// The close button decides alone whether the program ends; see
 		// Tray.closing.
-		Windows: application.WindowsOptions{DisableQuitOnLastWindowClosed: true},
-		Linux:   application.LinuxOptions{DisableQuitOnLastWindowClosed: true, ProgramName: "KnightLoader"},
+		Windows: application.WindowsOptions{
+			DisableQuitOnLastWindowClosed: true,
+			WebviewUserDataPath:           webviewDataDir(),
+		},
+		Linux: application.LinuxOptions{DisableQuitOnLastWindowClosed: true, ProgramName: "KnightLoader"},
 	})
 	// MinWidth leaves the page the 768px that keep it out of the phone layout
 	// (web/src/lib/phoneLayout.ts), since the settings here have no row for its
@@ -227,12 +230,24 @@ func provisionJD(ctx context.Context, a *app.App, pv *provision.Provisioner) {
 	log.Printf("headless JDownloader provisioned at %s", url)
 }
 
+// dataDir follows product, so the test build keeps its downloads, accounts and
+// group apart from a real installation on the same machine.
 func dataDir() string {
 	if v := os.Getenv("KL_DATA"); v != "" {
 		return v
 	}
 	if d, err := os.UserConfigDir(); err == nil {
-		return filepath.Join(d, "KnightLoader")
+		return filepath.Join(d, product)
 	}
 	return "kl-data"
+}
+
+// webviewDataDir is where WebView2 keeps the window's storage. Wails would name
+// it after the executable, which is KnightLoader.exe in the test build as well;
+// following product keeps a real installation on Wails' default folder.
+func webviewDataDir() string {
+	if d, err := os.UserConfigDir(); err == nil {
+		return filepath.Join(d, product+".exe")
+	}
+	return ""
 }

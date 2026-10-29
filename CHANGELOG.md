@@ -36,6 +36,15 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Fixed
+
+- **KnightLoader Test keeps its own data.** The test build installs beside a
+  real installation but still opened its downloads, accounts and group from
+  `%APPDATA%\KnightLoader`. It now uses `%APPDATA%\KnightLoader Test`, and its
+  window storage sits apart from the real one's too.
+
 ## [2.3.3] - 2026-10-28
 
 ### Added
