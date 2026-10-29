@@ -79,6 +79,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the collector and from which site. A click on it opens the collector, copies
   made while it is up add to the same note, and a switch under the clipboard
   watch turns it off.
+### Changed
+
+- **The desktop app draws its own title bar on Windows and Linux.** It shows
+  the logo and the name, follows your theme and corner shape, and has its own
+  buttons to minimise, maximise and close. Drag it to move the window and
+  double-click it to maximise. Closing still hides the window in the
+  notification area or quits, whichever you chose in Settings. On macOS the
+  window keeps its usual title bar.
 
 ## [2.3.3] - 2026-10-28
 

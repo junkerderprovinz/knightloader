@@ -247,6 +247,59 @@
 :has(+ .glim-page-actions:not(:empty)) {
   padding-bottom: calc(var(--btn-h-key) + 1.5rem);
 }
+/* The desktop app's own title bar (components/WindowBar.tsx), fixed over the
+   top of the window. The page starts under it, and a scrim leaves it clear, so
+   the window can still be moved and closed while a dialog is open. */
+:root {
+  --window-bar: 0px;
+}
+:root:has(.glim-window-bar) {
+  --window-bar: 2.5rem;
+}
+body {
+  padding-top: var(--window-bar);
+}
+.glim-modal-backdrop {
+  top: var(--window-bar);
+}
+/* Above the banners that stand at the window's edges, below every menu and
+   bubble, which may open over it. The logo lines up with the rail's edge. */
+.glim-window-bar {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: var(--window-bar);
+  padding-inline-start: 1rem;
+  background-color: var(--carbon-bg);
+  user-select: none;
+}
+.glim-window-button {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 100%;
+}
+/* A blank control on the ground: --carbon-hover, as GlimStone rule 21 asks. */
+.glim-window-square {
+  display: grid;
+  place-items: center;
+  height: var(--btn-h);
+  border-radius: var(--radius-pill);
+  color: var(--carbon-text-sub);
+}
+.glim-window-button:hover .glim-window-square {
+  background-color: var(--carbon-hover);
+  color: var(--carbon-text);
+}
+.glim-window-button:focus-visible .glim-window-square {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 /* A floating action lies over the page's rows. The card elevation barely shows
    under something one row tall, so it takes the shadow of a lifted row. */
 .glim-float {
