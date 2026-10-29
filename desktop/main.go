@@ -9,6 +9,8 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"log"
 	"os"
 	"path/filepath"
@@ -162,6 +164,13 @@ func main() {
 		// Tray.closing.
 		Windows: application.WindowsOptions{DisableQuitOnLastWindowClosed: true},
 		Linux:   application.LinuxOptions{DisableQuitOnLastWindowClosed: true, ProgramName: "KnightLoader"},
+		// A second launch brings the first window back, since two copies would
+		// share one data folder and one Click'n'Load port. The installer finds
+		// the running copy by this lock and closes it before replacing it.
+		SingleInstance: &application.SingleInstanceOptions{
+			UniqueID:               instanceID(dataDir),
+			OnSecondInstanceLaunch: func(application.SecondInstanceData) { tray.ShowMain() },
+		},
 	})
 	// MinWidth leaves the page the 768px that keep it out of the phone layout
 	// (web/src/lib/phoneLayout.ts), since the settings here have no row for its
@@ -235,4 +244,14 @@ func dataDir() string {
 		return filepath.Join(d, "KnightLoader")
 	}
 	return "kl-data"
+}
+
+// instanceID is the single-instance lock for dir. A copy on its own KL_DATA
+// folder gets a lock of its own, so it runs beside the usual one.
+func instanceID(dir string) string {
+	if os.Getenv("KL_DATA") == "" {
+		return appID
+	}
+	sum := sha256.Sum256([]byte(dir))
+	return appID + "." + hex.EncodeToString(sum[:4])
 }
