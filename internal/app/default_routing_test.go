@@ -19,6 +19,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
 // torboxFileHosters is a slice of TorBox's live type:"hoster" entries.
@@ -192,4 +193,32 @@ func TestAHosterOnlyJDKnowsGoesToJDWhileYtdlpRuns(t *testing.T) {
 		t.Fatal(err)
 	}
 	check("direct and yt-dlp above JD")
+}
+
+// The priority card lets JD be dragged above yt-dlp so that hoster links reach
+// it before a debrid service. A video link still becomes its variant rows on
+// yt-dlp then, instead of one row JD fetches.
+func TestAVideoLinkStaysWithYtdlpWithJDAboveItOnTheCard(t *testing.T) {
+	a := defaultSetupApp(t, true)
+	if _, err := a.SaveResolverOrder([]string{"jd", "direct", "ytdlp"}); err != nil {
+		t.Fatal(err)
+	}
+	const video = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+	a.AddLinks([]string{video}, "")
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	rows := 0
+	for _, task := range a.tasks {
+		if task.URL != video {
+			continue
+		}
+		rows++
+		if task.Resolver != "ytdlp" {
+			t.Errorf("the %q row goes to %q, want ytdlp", task.Variant, task.Resolver)
+		}
+	}
+	if rows != len(ytdlp.Variants()) {
+		t.Errorf("the link became %d rows, want one per variant (%d)", rows, len(ytdlp.Variants()))
+	}
 }

@@ -24,9 +24,15 @@ type Resolver struct {
 
 func (Resolver) Info() resolver.Info { return resolver.Info{ID: "jd", Prio: basePrio} }
 
+// Match takes any http(s) link but a video site while yt-dlp runs, whatever the
+// priority order, since only yt-dlp splits it into variant rows. A login for the
+// site keeps it with JD, as yt-dlp then leaves the host alone (FileHoster).
 func (Resolver) Match(raw string) bool {
 	u, err := url.Parse(raw)
-	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return false
+	}
+	return HostActive(u.Hostname()) || !mediaSite(u.Hostname())
 }
 
 func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Result, error) {
@@ -122,9 +128,10 @@ func HostKnown(host string) bool {
 }
 
 // mediaHosts are the video sites yt-dlp serves while it runs. JD's plugin list
-// includes YouTube, and without this the knownHostPrio boost would take such
-// links away from yt-dlp. Every other host JD knows counts as a file hoster,
-// whether or not a debrid list names it too.
+// includes YouTube, and without this the knownHostPrio boost or a priority
+// order with JD on top would take such links away from yt-dlp. Every other
+// host JD knows counts as a file hoster, whether or not a debrid list names it
+// too.
 var mediaHosts = struct {
 	mu  sync.RWMutex
 	set map[string]bool
