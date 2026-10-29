@@ -141,7 +141,7 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-carbon-background p-6">
+    <div className="flex min-h-[calc(100dvh-var(--window-bar))] items-center justify-center bg-carbon-background p-6">
       <div className="flex w-full max-w-sm flex-col gap-5">
         <div className="flex items-baseline gap-3">
           <span className="text-[22px] font-semibold tracking-tight text-carbon-text">KnightLoader</span>

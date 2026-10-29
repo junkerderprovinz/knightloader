@@ -23,6 +23,11 @@ const SYSTEM = 8;
 const SYSTEM_ENVIRONMENT = 1;
 const BROWSER = 9;
 const BROWSER_OPEN_URL = 0;
+const WINDOW = 6;
+const WINDOW_CLOSE = 2;
+const WINDOW_IS_MAXIMISED = 14;
+const WINDOW_MINIMISE = 17;
+const WINDOW_TOGGLE_MAXIMISE = 39;
 
 async function runtimeCall(object: number, method: number, args?: unknown): Promise<unknown> {
   const res = await fetch('/wails/runtime', {
@@ -55,6 +60,39 @@ const WINDOWS: Record<string, string> = { '/tray': 'tray', '/linkpopup': 'linkpo
 /** The window this page runs in: one of the small ones, or the main one. */
 function windowName(): string {
   return WINDOWS[window.location.pathname] ?? 'main';
+}
+
+/**
+ * drawsOwnFrame says whether this page draws the window's title bar. The main
+ * window is frameless on Windows and Linux and keeps the native title bar on
+ * macOS, whose traffic lights people expect; see desktop/main.go.
+ */
+export function drawsOwnFrame(): boolean {
+  return isDesktop() && windowName() === 'main' && !/Macintosh/.test(navigator.userAgent);
+}
+
+// Wails runs each of these on the window the request comes from, which the
+// webview names in a header of its own.
+export async function minimiseWindow(): Promise<void> {
+  await runtimeCall(WINDOW, WINDOW_MINIMISE);
+}
+
+export async function toggleMaximiseWindow(): Promise<void> {
+  await runtimeCall(WINDOW, WINDOW_TOGGLE_MAXIMISE);
+}
+
+/** closeWindow asks the way the native close button does, so Tray.closing still decides between the tray and quitting. */
+export async function closeWindow(): Promise<void> {
+  await runtimeCall(WINDOW, WINDOW_CLOSE);
+}
+
+export async function isWindowMaximised(): Promise<boolean> {
+  return (await runtimeCall(WINDOW, WINDOW_IS_MAXIMISED)) === true;
+}
+
+/** startWindowDrag hands a press that has started to move to the system, which moves the window from there. */
+export function startWindowDrag(): void {
+  post(window as unknown as WailsHost, 'wails:drag');
 }
 
 /** showMain brings the main window forward, from the tray window. */
@@ -158,11 +196,12 @@ const CURSOR: Record<Exclude<ResizeEdge, ''>, string> = {
  * window has no frame for Windows or GTK to grab, so the page shows the resize
  * cursor at an edge and, once the button goes down there and the pointer
  * moves, hands the resize to Wails, as Wails' own runtime would. macOS resizes
- * such a window by itself.
+ * such a window by itself. A maximised window passes false: it has no edge to
+ * pull, and its corner belongs to the close button.
  */
-export function useEdgeResize(): void {
+export function useEdgeResize(active = true): void {
   useEffect(() => {
-    if (!isDesktop()) return;
+    if (!isDesktop() || !active) return;
     const host = window as unknown as WailsHost & { _wails?: { environment?: { OS?: string } } };
     let edge: ResizeEdge = '';
     let armed = false;
@@ -190,8 +229,9 @@ export function useEdgeResize(): void {
       window.removeEventListener('mousemove', move);
       window.removeEventListener('mousedown', down, true);
       window.removeEventListener('mouseup', up);
+      document.body.style.cursor = '';
     };
-  }, []);
+  }, [active]);
 }
 
 /** listen calls back with every Wails event of one name until the returned function is called. */
