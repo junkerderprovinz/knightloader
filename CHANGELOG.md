@@ -36,6 +36,13 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Changed
+
+- **The remove button ends every link and package row.** It now stands at the
+  right edge of the row, after the last column, instead of in the middle of it.
+
 ## [2.3.3] - 2026-10-28
 
 ### Added

@@ -4,6 +4,7 @@ import type { ExtractJob, Task, TaskStatus } from '../lib/api';
 import { extractionsByTask } from './Archives';
 import {
   ACTIONS_ROOM,
+  END_ROOM,
   gridTemplate,
   isParked,
   packageFailures,
@@ -49,10 +50,12 @@ describe('gridTemplate', () => {
     expect(template.match(/1fr/g)).toHaveLength(1);
   });
 
-  it('draws one track per column and none after the last', () => {
+  it('draws one track per column and a last one for the remove badge', () => {
     for (const profile of ['downloads', 'collector'] as const) {
       const layout = resolveLayout(profile, null);
-      expect(tracksOf(gridTemplate(layout)), profile).toHaveLength(layout.visible.length);
+      const tracks = tracksOf(gridTemplate(layout));
+      expect(tracks, profile).toHaveLength(layout.visible.length + 1);
+      expect(tracks[tracks.length - 1], profile).toBe(END_ROOM);
     }
   });
 

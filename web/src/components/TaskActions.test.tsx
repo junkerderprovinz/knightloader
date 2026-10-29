@@ -85,3 +85,22 @@ describe('a row badge', () => {
     }
   });
 });
+
+describe('the badges of a row', () => {
+  it('end with Remove whatever the status', async () => {
+    for (const status of ['collected', 'running', 'paused', 'done', 'error'] as const) {
+      await act(async () =>
+        root.render(
+          <I18nProvider>
+            <ToastProvider>
+              <TaskActions task={task({ status })} base="/api/instances/cellar" current />
+            </ToastProvider>
+          </I18nProvider>,
+        ),
+      );
+      const labels = Array.from(host.querySelectorAll('button'), (b) => b.getAttribute('aria-label'));
+      expect(labels.length, status).toBeGreaterThan(1);
+      expect(labels[labels.length - 1], status).toBe('Remove');
+    }
+  });
+});
