@@ -63,9 +63,13 @@ const button = (name: string) => host.querySelector<HTMLButtonElement>(`button[a
 const bar = () => host.querySelector<HTMLElement>('.glim-window-bar')!;
 
 describe('the desktop window bar', () => {
-  it('shows the name and the three window buttons', async () => {
+  it('names the app for screen readers and shows only the three window buttons', async () => {
     await show();
-    expect(bar().textContent).toContain('KnightLoader');
+    expect(bar().tagName).toBe('HEADER');
+    expect(bar().getAttribute('aria-label')).toBe('KnightLoader');
+    expect(bar().querySelector('img')).toBeNull();
+    expect(bar().textContent).toBe('');
+    expect(bar().querySelectorAll('button')).toHaveLength(3);
     expect(button('Minimise')).not.toBeNull();
     expect(button('Maximise')).not.toBeNull();
     expect(button('Close')).not.toBeNull();

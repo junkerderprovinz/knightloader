@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
-import logoUrl from '../assets/logo.svg';
 import {
   closeWindow,
   drawsOwnFrame,
@@ -15,8 +14,9 @@ import { useTooltip } from './ui';
 
 /**
  * WindowBar is the desktop app's title bar where the main window has no
- * native one. It is fixed over the top of the window, and index.css moves the
- * page and every scrim below it through --window-bar.
+ * native one: a strip to drag and the window buttons. The sidebar already
+ * shows the logo and the name. It is fixed over the top of the window, and
+ * index.css moves the page and every scrim below it through --window-bar.
  */
 export function WindowBar() {
   return drawsOwnFrame() ? <Bar /> : null;
@@ -70,15 +70,15 @@ function Bar() {
     if (!onButton(e)) void toggleMaximiseWindow().catch(() => {});
   };
   return (
-    <div
+    // Named, so a screen reader still says which app the buttons belong to.
+    <header
+      aria-label="KnightLoader"
       className="glim-window-bar"
       onMouseDown={down}
       onMouseMove={move}
       onMouseUp={() => (pressed.current = false)}
       onDoubleClick={toggle}
     >
-      <img src={logoUrl} alt="" draggable={false} className="h-5 w-auto shrink-0" />
-      <span className="truncate text-meta font-medium text-carbon-textSub">KnightLoader</span>
       <div className="ms-auto flex h-full shrink-0">
         <WindowButton label={t('window.minimise')} icon={<IconWindowMinimise />} onPress={minimiseWindow} />
         <WindowButton
@@ -88,7 +88,7 @@ function Bar() {
         />
         <WindowButton label={t('window.close')} icon={<IconClose />} onPress={closeWindow} />
       </div>
-    </div>
+    </header>
   );
 }
 
