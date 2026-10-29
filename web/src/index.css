@@ -263,7 +263,7 @@ body {
   top: var(--window-bar);
 }
 /* Above the banners that stand at the window's edges, below every menu and
-   bubble, which may open over it. The logo lines up with the rail's edge. */
+   bubble, which may open over it. */
 .glim-window-bar {
   position: fixed;
   inset-inline: 0;
@@ -271,9 +271,7 @@ body {
   z-index: 45;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
   height: var(--window-bar);
-  padding-inline-start: 1rem;
   background-color: var(--carbon-bg);
   user-select: none;
 }
