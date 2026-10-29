@@ -539,7 +539,6 @@ export const he: Dict = {
   'columns.comment': 'הערה',
   'columns.resolver': 'מנוע',
   'columns.source': 'מקור',
-  'columns.enabled': 'פעיל',
   'columns.menuTitle': 'עמודות',
   'columns.reset': 'איפוס העמודות',
   'columns.headerHint': 'לחץ על כותרת כדי למיין לפיה, גרור אותה כדי לסדר מחדש את העמודה, גרור את הקצה שלה כדי לשנות את הגודל, לחיצה כפולה על הקצה מחזירה את הרוחב. לחיצה ימנית על הכותרת פותחת את רשימת העמודות.',
@@ -569,8 +568,6 @@ export const he: Dict = {
   'list.dropChangedPriority': 'הועבר: {n} הורדות קיבלו את העדיפות של השורה שעליה הושלכו.',
   'list.optionsFailed': 'לא הצלחנו לטעון את פעולות הניקוי מהשרת.',
 
-  'task.enable': 'הפעל',
-  'task.disable': 'כבה',
   'task.switchFailed': 'לא הצלחנו לשנות את המתג.',
   'task.uncheckable': 'המארח לא ענה',
   'task.expand': 'פרוס',

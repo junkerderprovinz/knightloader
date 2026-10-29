@@ -95,6 +95,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   link, and the link collector showed it as a single row with the address as
   its name. Video sites stay with yt-dlp whatever the order, unless you have a
   JDownloader login for the site. Links collected before need adding again.
+### Changed
+
+- **New glyphs for Downloads and the link collector.** Downloads wears a plain
+  arrow pointing down, the link collector a magnifying glass, in the sidebar, the
+  phone bar, the command palette and the settings pages.
+- **The Enabled column is gone from the link collector.** It was hardly used.
+  Enable and Disable are still in the right-click menu of a link or package,
+  and a disabled link keeps its mark in the name.
 
 ## [2.3.3] - 2026-10-28
 

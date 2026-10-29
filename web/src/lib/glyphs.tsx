@@ -509,13 +509,6 @@ export const IconFleet = (p: GlyphProps) => (
   </svg>
 );
 
-/** Collector, taking links in: Streamline mail/inbox-tray-1.svg. */
-export const IconCollector = (p: GlyphProps) => (
-  <svg {...glyph([0, 0.01, 14, 13.99], p)}>
-    <path fillRule="evenodd" d="M7.75 0.76a0.75 0.75 0 0 0 -1.5 0v2.75H4.5a0.75 0.75 0 0 0 -0.53 1.28l2.5 2.5a0.748 0.748 0 0 0 1.06 0l2.5 -2.5a0.75 0.75 0 0 0 -0.53 -1.28H7.75V0.76ZM0.5 8.33a0.5 0.5 0 0 0 -0.5 0.5v3.67A1.5 1.5 0 0 0 1.5 14h11a1.5 1.5 0 0 0 1.5 -1.5V8.83a0.5 0.5 0 0 0 -0.5 -0.5h-2.973a1.5 1.5 0 0 0 -1.5 1.5c0 0.974 -0.976 1.732 -2.03 1.725 -1.024 -0.007 -1.97 -0.768 -1.97 -1.725a1.5 1.5 0 0 0 -1.5 -1.5H0.5Z" clipRule="evenodd" />
-  </svg>
-);
-
 /** Accounts: KnightLoader's drawing on a 20-unit grid. */
 export const IconAccounts = (p: GlyphProps) => (
   <svg {...glyph([3.5, 3.3, 13, 13.7], p)}>

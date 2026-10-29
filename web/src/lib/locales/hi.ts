@@ -538,7 +538,6 @@ export const hi: Dict = {
   'columns.comment': 'टिप्पणी',
   'columns.resolver': 'बैकएंड',
   'columns.source': 'स्रोत',
-  'columns.enabled': 'चालू',
   'columns.menuTitle': 'कॉलम',
   'columns.reset': 'कॉलम रीसेट करें',
   'columns.headerHint': 'किसी हेडर पर क्लिक करके उसके अनुसार क्रमबद्ध करें, कॉलम को पुनः व्यवस्थित करने के लिए उसे खींचें, आकार बदलने के लिए उसके किनारे को खींचें, चौड़ाई वापस लाने के लिए किनारे पर डबल-क्लिक करें। कॉलम सूची के लिए हेडर पर राइट-क्लिक करें।',
@@ -568,8 +567,6 @@ export const hi: Dict = {
   'list.dropChangedPriority': 'स्थानांतरित: {n} डाउनलोड ने उस पंक्ति की प्राथमिकता ले ली जिस पर उन्हें छोड़ा गया।',
   'list.optionsFailed': 'सर्वर से सफ़ाई की प्रविष्टियाँ लोड नहीं हो सकीं।',
 
-  'task.enable': 'चालू करें',
-  'task.disable': 'बंद करें',
   'task.switchFailed': 'स्विच बदला नहीं जा सका।',
   'task.uncheckable': 'होस्ट ने जवाब नहीं दिया',
   'task.expand': 'खोलें',

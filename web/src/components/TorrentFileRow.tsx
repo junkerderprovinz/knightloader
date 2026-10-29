@@ -169,12 +169,9 @@ export function TorrentFileRow({
       tabIndex={current ? 0 : -1}
     />
   );
-  const inColumn = columns.some((c) => c.id === 'enabled');
 
   function cell(col: ColumnDef) {
     switch (col.id) {
-      case 'enabled':
-        return toggle;
       case 'name':
         return (
           <Tip
@@ -255,7 +252,7 @@ export function TorrentFileRow({
         );
       })}
       {/* As tall as a link row's badges, so every row of the tree is one height. */}
-      <div className={`flex min-h-[var(--btn-h)] items-center justify-end gap-1 ${AT_NAME_END}`}>{inColumn ? null : toggle}</div>
+      <div className={`flex min-h-[var(--btn-h)] items-center justify-end gap-1 ${AT_NAME_END}`}>{toggle}</div>
     </div>
   );
 }

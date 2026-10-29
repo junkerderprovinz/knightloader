@@ -537,7 +537,6 @@ export const ja: Dict = {
   'columns.comment': 'メモ',
   'columns.resolver': 'バックエンド',
   'columns.source': '取得元',
-  'columns.enabled': '有効',
   'columns.menuTitle': '列',
   'columns.reset': '列をリセット',
   'columns.headerHint': '見出しをクリックするとその列で並べ替えます。ドラッグすると列の順序を変更できます。端をドラッグすると幅を変更でき、端をダブルクリックすると幅が元に戻ります。見出しを右クリックすると列の一覧が表示されます。',
@@ -567,8 +566,6 @@ export const ja: Dict = {
   'list.dropChangedPriority': '移動しました: {n} 件のダウンロードが、落とした行の優先度を引き継ぎました。',
   'list.optionsFailed': '整理項目をサーバーから読み込めませんでした。',
 
-  'task.enable': '有効にする',
-  'task.disable': '無効にする',
   'task.switchFailed': 'スイッチを切り替えられませんでした。',
   'task.uncheckable': 'ホストが答えませんでした',
   'task.expand': '展開',

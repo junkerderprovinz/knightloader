@@ -529,7 +529,6 @@ export const pt: Dict = {
   'columns.comment': 'Comentário',
   'columns.resolver': 'Backend',
   'columns.source': 'Origem',
-  'columns.enabled': 'Ativo',
   'columns.menuTitle': 'Colunas',
   'columns.reset': 'Repor as colunas',
   'columns.headerHint': 'Clica num cabeçalho para ordenar por ele, arrasta-o para reordenar a coluna, arrasta a sua margem para redimensioná-la, duplo clique na margem repõe a largura. Clique direito no cabeçalho para a lista de colunas.',
@@ -559,8 +558,6 @@ export const pt: Dict = {
   'list.dropChangedPriority': 'Movido: {n} transferências assumiram a prioridade da linha onde foram largadas.',
   'list.optionsFailed': 'Não foi possível carregar as entradas de limpeza do servidor.',
 
-  'task.enable': 'Ativar',
-  'task.disable': 'Desativar',
   'task.switchFailed': 'Não foi possível mudar o interruptor.',
   'task.uncheckable': 'O host não respondeu',
   'task.expand': 'Expandir',

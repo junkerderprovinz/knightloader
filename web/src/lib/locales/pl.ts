@@ -530,7 +530,6 @@ export const pl: Dict = {
   'columns.comment': 'Komentarz',
   'columns.resolver': 'Backend',
   'columns.source': 'Źródło',
-  'columns.enabled': 'Włączony',
   'columns.menuTitle': 'Kolumny',
   'columns.reset': 'Przywróć kolumny',
   'columns.headerHint': 'Kliknij nagłówek, aby sortować według niego, przeciągnij, aby zmienić kolejność kolumny, przeciągnij jej krawędź, aby zmienić rozmiar, kliknij dwukrotnie krawędź, aby przywrócić szerokość. Kliknij prawym przyciskiem nagłówek, aby wyświetlić listę kolumn.',
@@ -560,8 +559,6 @@ export const pl: Dict = {
   'list.dropChangedPriority': 'Przeniesiono: {n} pobrań przejęło priorytet wiersza, na którym je upuszczono.',
   'list.optionsFailed': 'Nie udało się pobrać wpisów porządkowania z serwera.',
 
-  'task.enable': 'Włącz',
-  'task.disable': 'Wyłącz',
   'task.switchFailed': 'Nie udało się przestawić przełącznika.',
   'task.uncheckable': 'Hoster nie odpowiedział',
   'task.expand': 'Rozwiń',

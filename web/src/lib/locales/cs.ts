@@ -537,7 +537,6 @@ export const cs: Dict = {
   'columns.comment': 'Poznámka',
   'columns.resolver': 'Backend',
   'columns.source': 'Zdroj',
-  'columns.enabled': 'Zapnuto',
   'columns.menuTitle': 'Sloupce',
   'columns.reset': 'Obnovit sloupce',
   'columns.headerHint': 'Kliknutím na záhlaví podle něj seřadíte, přetažením přeuspořádáte sloupec, přetažením okraje změníte velikost, dvojklikem na okraj vrátíte původní šířku. Pravým tlačítkem na záhlaví otevřete seznam sloupců.',
@@ -567,8 +566,6 @@ export const cs: Dict = {
   'list.dropChangedPriority': 'Přesunuto: {n} stahování převzalo prioritu řádku, na který spadlo.',
   'list.optionsFailed': 'Položky úklidu se ze serveru nepodařilo načíst.',
 
-  'task.enable': 'Zapnout',
-  'task.disable': 'Vypnout',
   'task.switchFailed': 'Přepínač se nepodařilo změnit.',
   'task.uncheckable': 'Hoster neodpověděl',
   'task.expand': 'Rozbalit',
