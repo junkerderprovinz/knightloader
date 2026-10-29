@@ -193,14 +193,23 @@ the menu entry offers to uninstall it. That copy updates itself like the one
 from the zip. Make the downloaded file executable first
 (`chmod +x knightloader-linux-amd64-installer`).
 
-The desktop app brings no Java, yt-dlp or ffmpeg of its own:
+The desktop app brings yt-dlp for video sites: the installer puts it beside
+the program and the macOS app carries it inside. The Windows and Linux zips
+hold the program alone, so a copy started from one fetches yt-dlp into its data
+folder when it starts. Either way the Updates card under Settings, General
+keeps it current.
 
-- Java, on `PATH` or under `JAVA_HOME`, for the private JDownloader. Without
-  it, file hoster links have no catch-all. Pointing `KL_JD` at a JDownloader
-  that runs elsewhere works too.
-- yt-dlp for video sites. The Updates card under Settings, General can fetch
-  a copy and keep it current.
-- ffmpeg on `PATH`, for merging video with its audio and for converting.
+ffmpeg and ffprobe, which join video with its audio and convert, are not in
+the download. On Windows and Linux the desktop app fetches the LGPL build from
+[BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) into its data
+folder at the first start when there is no ffmpeg on `PATH`, checked against
+that release's checksums, and renews it once a month. On macOS, where that
+project builds nothing, put ffmpeg on `PATH` yourself. An ffmpeg already on
+`PATH` is always the one used.
+
+The desktop app does not bring Java. The private JDownloader wants one on
+`PATH` or under `JAVA_HOME`; without it, file hoster links have no
+catch-all. Pointing `KL_JD` at a JDownloader that runs elsewhere works too.
 
 On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`.
 

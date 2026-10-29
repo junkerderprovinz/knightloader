@@ -308,7 +308,7 @@ func runFake(t *testing.T, mode string, o Options) (string, *recorder) {
 	dir := t.TempDir()
 	rec := &recorder{}
 	b := NewBackend(os.Args[0], dir, rec.add)
-	b.FFprobe = os.Args[0]
+	b.SetFFmpeg("", os.Args[0])
 	b.Options = func(string) Options { return o }
 	b.run("task-1", "https://example.invalid/watch?v=x")
 	return dir, rec
@@ -651,7 +651,7 @@ func TestHaltStopsYtdlpQuietlyAndResumeGoesOnInTheNewFolder(t *testing.T) {
 	dir := first
 	rec := &recorder{}
 	b := NewBackend(os.Args[0], first, rec.add)
-	b.FFprobe = os.Args[0]
+	b.SetFFmpeg("", os.Args[0])
 	b.Options = func(string) Options { return Options{} }
 	b.Dir = func(string) string {
 		mu.Lock()
@@ -713,7 +713,7 @@ func TestRecordingTellsALiveStreamFromADownload(t *testing.T) {
 			t.Setenv(runHelperEnv, tc.mode)
 			rec := &recorder{}
 			b := NewBackend(os.Args[0], t.TempDir(), rec.add)
-			b.FFprobe = os.Args[0]
+			b.SetFFmpeg("", os.Args[0])
 			b.Options = func(string) Options { return Options{Live: Live{Enabled: tc.live}} }
 			b.Download("task-1", "https://example.invalid/watch?v=x", nil, 0)
 			defer b.Remove("task-1", false)

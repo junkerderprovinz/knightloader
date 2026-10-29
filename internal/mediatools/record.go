@@ -1,20 +1,24 @@
 // Package mediatools is what this build knows about the two external programs
 // a media download actually runs: yt-dlp, which reads the page and picks the
 // streams, and ffmpeg, which joins them. Neither is part of this binary and
-// neither is a Go package - they are separate programs KnightLoader spawns,
-// installed by the container image or by whoever set the desktop build up.
+// neither is a Go package. They are separate programs KnightLoader spawns.
+// The container image installs both. The desktop build ships yt-dlp and
+// fetches ffmpeg where there is none.
 //
-// Three things live here, split because the first two must never touch the
+// Four things live here, split because the first two must never touch the
 // network:
 //
 //   - resolve.go: which yt-dlp is going to run, out of the managed copy,
-//     KL_YTDLP and PATH, and why the other two are not.
+//     KL_YTDLP, the copy beside the program and PATH, and why the others
+//     are not.
 //   - probe.go: what version each of the three programs reports, behind a
 //     short cache so the settings page and the diagnostics bundle can both
 //     read it on every load without turning into a process fountain.
 //   - fetch.go: downloading a yt-dlp release from GitHub, verifying it against
 //     the release's own SHA2-256SUMS, proving it runs on this machine, and
 //     only then putting it where the resolver will start it.
+//   - ffmpeg.go: the same for ffmpeg and ffprobe, from an LGPL build, for a
+//     desktop that has none on PATH.
 //
 // It is not under internal/resolver/ because it is not a resolver: it resolves
 // no links and answers no Match, it is the tooling underneath one.
@@ -72,11 +76,14 @@ func ToolsDir(dataDir string) string { return filepath.Join(dataDir, "tools") }
 // resolver has to name the file without reading the record first, and a
 // per-tag name would leave every superseded copy on disk.
 func BinaryPath(dataDir string) string {
-	name := "yt-dlp"
+	return filepath.Join(ToolsDir(dataDir), binaryName())
+}
+
+func binaryName() string {
 	if runtime.GOOS == "windows" {
-		name = "yt-dlp.exe"
+		return "yt-dlp.exe"
 	}
-	return filepath.Join(ToolsDir(dataDir), name)
+	return "yt-dlp"
 }
 
 func recordPath(dataDir string) string { return filepath.Join(ToolsDir(dataDir), "ytdlp.json") }

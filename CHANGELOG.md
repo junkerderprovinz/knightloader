@@ -62,6 +62,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 - **The remove button ends every link and package row.** It now stands at the
   right edge of the row, after the last column, instead of in the middle of it.
+- **The desktop app brings its own yt-dlp.** A YouTube link, or one to any
+  other video site, opens into its variant rows right after installing instead
+  of landing in JDownloader as one plain row. A copy with no yt-dlp beside it,
+  like the one in the Windows or Linux zip, fetches one into its data folder
+  when it starts.
+- **The desktop app gets its own ffmpeg.** On Windows and Linux it fetches
+  ffmpeg and ffprobe at the first start when none are installed, so videos
+  arrive with picture and sound joined. The Resolvers page names the LGPL
+  build it uses and links to its source.
 
 ## [2.3.3] - 2026-10-28
 
