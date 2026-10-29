@@ -21,12 +21,12 @@ const SPARKS = [-160, -125, -90, -55, -20];
 
 /**
  * The desktop app's popup for links the clipboard watch took into the
- * collector. It slides in from the edge of the screen it sits at, the knight
+ * collector. It pops up from the corner of the screen it sits at, the knight
  * celebrates the catch, further copies bump the count of the same popup, and
- * it leaves the way it came once its time is up. The time stands still while
- * the pointer is on it, a click opens the collector and the cross only closes
- * it. desktop/linkpopup.go decides when it shows, where and for how long; the
- * window never takes the focus.
+ * it shrinks back into its corner once its time is up. The time stands still
+ * while the pointer is on it, a click opens the collector and the cross only
+ * closes it. desktop/linkpopup.go decides when it shows, where and for how
+ * long; the window never takes the focus.
  */
 export function LinkPopup() {
   const { t } = useT();
