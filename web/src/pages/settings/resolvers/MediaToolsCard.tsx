@@ -75,7 +75,7 @@ export function MediaToolsCard({ hue }: { hue: number }) {
         </ul>
       </div>
       {(tools?.ffmpeg.source === 'managed' || tools?.ffprobe.source === 'managed') && (
-        <p className="text-xs text-carbon-textMuted" data-new="ffmpeg-licence">
+        <p className="text-xs text-carbon-textMuted">
           {t('settings.resolvers.toolsFfmpegLicence')}{' '}
           {FFMPEG_LINKS.map((l, i) => (
             <span key={l.href}>
