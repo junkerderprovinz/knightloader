@@ -41,7 +41,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 ### Added
 
 - **The desktop app pops up a note when the clipboard watch catches links.**
-  It slides in at the edge of the screen, even with the window in the tray,
+  It pops up at the edge of the screen, even with the window in the tray,
   says how many links went into the collector and from which site, and the
   knight celebrates with a flourish of the sword. A click on it opens the
   collector, and copies made while it is up add to the same note. Under the

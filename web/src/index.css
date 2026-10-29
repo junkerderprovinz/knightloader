@@ -1614,12 +1614,14 @@ body {
     --motion-slosh-splash-ripple: 1.5;
     --drag-lift-scale: 1.03;
     --drag-settle-dur: 220ms;
-    /* The desktop app's popup slides in from the screen edge it sits at and
-       its knight celebrates the catch. The hop is a share of the mark's
-       height, since the sword moves in the logo's own units. */
-    --motion-popup-in-dur: 460ms;
-    --motion-popup-travel: 44px;
-    --motion-popup-out-dur: 260ms;
+    /* The desktop app's popup pops up from the corner it sits at, tilting as it
+       springs, and its knight celebrates the catch. Pop is how much smaller it
+       starts. The hop is a share of the mark's height, since the sword moves in
+       the logo's own units. */
+    --motion-popup-in-dur: 720ms;
+    --motion-popup-pop: .7;
+    --motion-popup-tilt: 8deg;
+    --motion-popup-out-dur: 320ms;
     --motion-popup-flourish-dur: 900ms;
     --motion-popup-hop: 18%;
     --motion-popup-swing: 40deg;
@@ -1690,9 +1692,10 @@ body {
     --motion-slosh-splash-ripple: 1;
     --drag-lift-scale: 1.015;
     --drag-settle-dur: 130ms;
-    --motion-popup-in-dur: 260ms;
-    --motion-popup-travel: 16px;
-    --motion-popup-out-dur: 180ms;
+    --motion-popup-in-dur: 360ms;
+    --motion-popup-pop: .2;
+    --motion-popup-tilt: 3deg;
+    --motion-popup-out-dur: 200ms;
     --motion-popup-flourish-dur: 600ms;
     --motion-popup-hop: 8%;
     --motion-popup-swing: 18deg;
@@ -1770,7 +1773,8 @@ body {
     --drag-settle-dur: 0ms;
     /* The popup only fades, and its knight stands still. */
     --motion-popup-in-dur: 160ms;
-    --motion-popup-travel: 0px;
+    --motion-popup-pop: 0;
+    --motion-popup-tilt: 0deg;
     --motion-popup-out-dur: 160ms;
     --motion-popup-flourish-dur: 0ms;
     --motion-popup-hop: 0%;
@@ -2167,15 +2171,15 @@ body {
     animation-delay: calc(var(--motion-content-dur) * 4);
   }
 
-  /* The desktop app's popup slides in on the page's curve and fades on one
-     that cannot overshoot, as .glim-page-enter does, and leaves the way it
-     came. Once it has landed the knight celebrates: the mark hops and lands
-     squashed, the sword flourishes with a glint, sparks fly off it and the
-     disc rings. A further copy rings the disc again and bumps the count. */
+  /* The desktop app's popup pops up from its corner with a tilt and springs
+     into place, and shrinks back into the corner when it goes. Meanwhile the
+     knight celebrates: the mark hops and lands squashed, the sword swings to
+     and fro with a glint and sparks fly off it. A further copy makes the
+     knight hop again and bumps the count. */
   .kl-popup {
     animation:
-      kl-popup-in var(--motion-popup-in-dur) var(--motion-page-ease) backwards,
-      glim-fade-in var(--motion-popup-in-dur) ease-out backwards;
+      kl-popup-in var(--motion-popup-in-dur) ease-out backwards,
+      glim-fade-in calc(var(--motion-popup-in-dur) * .3) ease-out backwards;
   }
   .kl-popup.kl-popup-leave {
     animation: kl-popup-away var(--motion-popup-out-dur) ease-in forwards;
@@ -2193,7 +2197,7 @@ body {
       calc(var(--motion-popup-in-dur) * .5 + var(--motion-popup-flourish-dur) * (.38 + var(--spark-i, 0) * .04)) both;
   }
   .kl-popup-badge.kl-popup-again {
-    animation: glim-confirm var(--motion-confirm-dur) ease-out;
+    animation: kl-popup-hop calc(var(--motion-popup-flourish-dur) * .7) ease-out;
   }
   .kl-popup-bump {
     animation: kl-popup-bump var(--motion-content-dur) var(--motion-page-ease);
@@ -2277,9 +2281,10 @@ body {
   --motion-slosh-splash-ripple: 2;
   --drag-lift-scale: 1.06;
   --drag-settle-dur: 400ms;
-  --motion-popup-in-dur: 680ms;
-  --motion-popup-travel: 72px;
-  --motion-popup-out-dur: 360ms;
+  --motion-popup-in-dur: 900ms;
+  --motion-popup-pop: .85;
+  --motion-popup-tilt: 14deg;
+  --motion-popup-out-dur: 400ms;
   --motion-popup-flourish-dur: 1200ms;
   --motion-popup-hop: 30%;
   --motion-popup-swing: 70deg;
@@ -2351,8 +2356,8 @@ body {
   }
   :root[data-motion="storm"] .kl-popup {
     animation:
-      kl-popup-in var(--motion-popup-in-dur) var(--motion-page-ease) backwards,
-      glim-fade-in var(--motion-popup-in-dur) ease-out backwards;
+      kl-popup-in var(--motion-popup-in-dur) ease-out backwards,
+      glim-fade-in calc(var(--motion-popup-in-dur) * .3) ease-out backwards;
   }
   :root[data-motion="storm"] .kl-popup.kl-popup-leave {
     animation: kl-popup-away var(--motion-popup-out-dur) ease-in forwards;
@@ -2370,7 +2375,7 @@ body {
       calc(var(--motion-popup-in-dur) * .5 + var(--motion-popup-flourish-dur) * (.38 + var(--spark-i, 0) * .04)) both;
   }
   :root[data-motion="storm"] .kl-popup-badge.kl-popup-again {
-    animation: glim-confirm var(--motion-confirm-dur) ease-out;
+    animation: kl-popup-hop calc(var(--motion-popup-flourish-dur) * .7) ease-out;
   }
   :root[data-motion="storm"] .kl-popup-bump {
     animation: kl-popup-bump var(--motion-content-dur) var(--motion-page-ease);
@@ -3166,26 +3171,25 @@ body {
 
 /* The desktop app's popup (pages/LinkPopup.tsx). Its window is transparent
    around the note and sits at a corner or the middle of a screen edge, so the
-   note lines up with that edge and comes in from it. --popup-dx and --popup-dy
-   point at that edge; they are physical, since the window's place on the
-   screen does not turn round in a right-to-left language. */
+   note lines up with that edge and springs up from that corner.
+   --popup-origin is the corner, and --popup-turn the way the tilt keeps the
+   note's far end inside the window, 0 in the middle of an edge. Both are
+   physical, since the window's place on the screen does not turn round in a
+   right-to-left language. */
 @keyframes kl-popup-in {
-  from {
-    transform: translate(calc(var(--popup-dx) * var(--motion-popup-travel, 0px)), calc(var(--popup-dy) * var(--motion-popup-travel, 0px)))
-      scale(calc(1 - var(--motion-popup-squash, 0) * .6));
-  }
-  to { transform: none; }
+  0%   { transform: scale(calc(1 - var(--motion-popup-pop, 0))) rotate(calc(var(--motion-popup-tilt, 0deg) * var(--popup-turn))); }
+  45%  { transform: scale(calc(1 + var(--motion-popup-pop, 0) * .06)) rotate(calc(var(--motion-popup-tilt, 0deg) * var(--popup-turn) * -.2)); }
+  65%  { transform: scale(calc(1 - var(--motion-popup-pop, 0) * .03)) rotate(calc(var(--motion-popup-tilt, 0deg) * var(--popup-turn) * .15)); }
+  82%  { transform: scale(calc(1 + var(--motion-popup-pop, 0) * .015)) rotate(calc(var(--motion-popup-tilt, 0deg) * var(--popup-turn) * -.05)); }
+  100% { transform: none; }
 }
-/* Back out towards the edge. The last frame is invisible and in place, so the
-   held end leaves no transform on the note. */
+/* A last swell, then it shrinks into its corner. The last frame is invisible
+   and in place, so the held end leaves no transform on the note. */
 @keyframes kl-popup-away {
-  from { transform: none; opacity: 1; }
-  99.9% {
-    transform: translate(calc(var(--popup-dx) * var(--motion-popup-travel, 0px)), calc(var(--popup-dy) * var(--motion-popup-travel, 0px)))
-      scale(calc(1 - var(--motion-popup-squash, 0) * .6));
-    opacity: 0;
-  }
-  to { transform: none; opacity: 0; }
+  0%    { transform: none; opacity: 1; }
+  30%   { transform: scale(calc(1 + var(--motion-popup-pop, 0) * .06)); opacity: 1; }
+  99.9% { transform: scale(calc(1 - var(--motion-popup-pop, 0) * 1.15)) rotate(calc(var(--motion-popup-tilt, 0deg) * var(--popup-turn) * .75)); opacity: 0; }
+  100%  { transform: none; opacity: 0; }
 }
 @keyframes kl-popup-out {
   to { opacity: 0; }
@@ -3197,14 +3201,15 @@ body {
   78%  { transform: translateY(calc(var(--motion-popup-hop, 0%) * -.25)); }
   100% { transform: none; }
 }
-/* Wind up, slash, recover. The sword's pivot is the hand on the hilt; see
-   #kl-sword. */
+/* The sword swings to and fro and dies away. Its pivot is the hand on the
+   hilt; see #kl-sword. */
 @keyframes kl-popup-flourish {
   0%   { transform: none; }
-  24%  { transform: translateY(calc(var(--motion-popup-hop, 0%) * -.6)) rotate(calc(var(--motion-popup-swing, 0deg) * -1)); }
-  46%  { transform: rotate(calc(var(--motion-popup-swing, 0deg) * .75)); }
-  64%  { transform: rotate(calc(var(--motion-popup-swing, 0deg) * -.25)); }
-  82%  { transform: rotate(calc(var(--motion-popup-swing, 0deg) * .08)); }
+  15%  { transform: translateY(calc(var(--motion-popup-hop, 0%) * -.6)) rotate(calc(var(--motion-popup-swing, 0deg) * -.6)); }
+  30%  { transform: rotate(calc(var(--motion-popup-swing, 0deg) * .5)); }
+  45%  { transform: rotate(calc(var(--motion-popup-swing, 0deg) * -.45)); }
+  60%  { transform: rotate(calc(var(--motion-popup-swing, 0deg) * .35)); }
+  78%  { transform: rotate(calc(var(--motion-popup-swing, 0deg) * -.12)); }
   100% { transform: none; }
 }
 /* A spark flies out along its angle, turning, and fades. The last frame is
@@ -3227,8 +3232,8 @@ body {
   overflow: hidden;
 }
 .kl-popup-stage {
-  --popup-dx: 1;
-  --popup-dy: 0;
+  --popup-origin: 100% 100%;
+  --popup-turn: 1;
   position: fixed;
   inset: 0;
   display: flex;
@@ -3240,20 +3245,28 @@ body {
 .kl-popup-at-top-center {
   align-items: flex-start;
 }
-.kl-popup-at-bottom-left,
+.kl-popup-at-bottom-left {
+  --popup-origin: 0 100%;
+  --popup-turn: -1;
+}
+.kl-popup-at-top-right {
+  --popup-origin: 100% 0;
+  --popup-turn: -1;
+}
 .kl-popup-at-top-left {
-  --popup-dx: -1;
+  --popup-origin: 0 0;
 }
 .kl-popup-at-bottom-center {
-  --popup-dx: 0;
-  --popup-dy: 1;
+  --popup-origin: 50% 100%;
+  --popup-turn: 0;
 }
 .kl-popup-at-top-center {
-  --popup-dx: 0;
-  --popup-dy: -1;
+  --popup-origin: 50% 0;
+  --popup-turn: 0;
 }
 .kl-popup {
   position: relative;
+  transform-origin: var(--popup-origin);
   display: flex;
   align-items: center;
   width: 100%;
@@ -3293,15 +3306,12 @@ body {
 .kl-popup-close:focus-visible {
   opacity: 1;
 }
-/* The mark on a disc of the accent, which marks the activity: links that just
-   went in. The sparks start from its middle. */
+/* The mark alone, and the sparks start from its middle. */
 .kl-popup-badge {
   position: relative;
   flex: none;
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-pill);
-  background-color: var(--accent-soft);
 }
 .kl-popup-knight {
   display: flex;
