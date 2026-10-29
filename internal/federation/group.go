@@ -176,7 +176,7 @@ func (g *groupFile) flushLocked() error {
 // there before this one included.
 func (m *Manager) SetJoined(at time.Time) error {
 	m.mu.Lock()
-	m.awaiting, m.heard, m.greeted = nil, nil, nil
+	m.awaiting, m.heard, m.greeted, m.shared = nil, nil, nil, nil
 	m.mu.Unlock()
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()

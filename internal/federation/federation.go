@@ -111,10 +111,12 @@ type Manager struct {
 	limits *memberLimits
 	// awaiting is when each member last answered that this instance waits
 	// for approval there, heard which members served a call from it, and
-	// greeted when Greet last called each.
+	// greeted when Greet last called each, and shared when SyncApps last
+	// asked each for its roster.
 	awaiting map[string]time.Time
 	heard    map[string]bool
 	greeted  map[string]time.Time
+	shared   map[string]time.Time
 }
 
 // Load reads instances.json and group.json from dir; a missing file is an
