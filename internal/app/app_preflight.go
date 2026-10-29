@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/startupcheck"
@@ -205,10 +206,9 @@ func (a *App) startupTools() []startupcheck.ToolTarget {
 		java.SkipCode = reason
 	}
 
-	ytbin := os.Getenv("KL_YTDLP")
-	if ytbin == "" {
-		ytbin = "yt-dlp"
-	}
+	// The binary rewireBackends hands the backend, so the row checks the
+	// yt-dlp that media links actually go to.
+	ytbin, _, _ := mediatools.ResolveYtdlp(a.DataDir)
 	// rewireBackends registers the yt-dlp resolver only once the binary has run,
 	// so a binary that runs now while the id is absent appeared after startup
 	// and nothing is routed to it.
@@ -222,7 +222,10 @@ func (a *App) startupTools() []startupcheck.ToolTarget {
 
 	return []startupcheck.ToolTarget{
 		java,
-		{ID: startupcheck.IDYtdlp, Bin: ytbin, Args: []string{"--version"}, Registered: &registered},
+		// The PyInstaller builds unpack themselves into a temporary folder on
+		// every start, which takes a few seconds on Windows while the backend
+		// starts the same binary next to this check.
+		{ID: startupcheck.IDYtdlp, Bin: ytbin, Args: []string{"--version"}, Registered: &registered, Timeout: 20 * time.Second},
 		// ffmpeg and ffprobe take one dash; `--version` exits non-zero.
 		{ID: startupcheck.IDFfmpeg, Bin: "ffmpeg", Args: []string{"-version"}},
 		// ffprobe only feeds the length check on a finished video, and a failed

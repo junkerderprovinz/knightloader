@@ -65,6 +65,10 @@ func TestHelperProcess(t *testing.T) {
 	case "hang":
 		time.Sleep(30 * time.Second)
 		os.Exit(0)
+	case "slow":
+		time.Sleep(time.Second)
+		fmt.Println("yt-dlp 2026.09.01")
+		os.Exit(0)
 	}
 	os.Exit(2)
 }
@@ -151,6 +155,16 @@ func TestToolTimeoutRatherThanAHang(t *testing.T) {
 	}
 	if c.Code != CodeTimeout {
 		t.Errorf("code = %q, want %q", c.Code, CodeTimeout)
+	}
+}
+
+func TestATargetsOwnTimeoutOutlastsThePassDefault(t *testing.T) {
+	slow := helperTool(t, IDYtdlp, "slow")
+	slow.Timeout = time.Minute
+	rep := Run(context.Background(), Input{Tools: []ToolTarget{slow}, ToolTimeout: 100 * time.Millisecond, SkipClock: true})
+
+	if len(rep.Checks) != 1 || rep.Checks[0].Verdict != VerdictOK {
+		t.Fatalf("checks = %+v, want one ok row for the slow binary", rep.Checks)
 	}
 }
 
