@@ -7,7 +7,7 @@ import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button } from './ui';
 import { Notice, NoticeRow } from './Notice';
-import { IconEmpty, IconEye, IconEyeOff, IconRestore } from '../lib/icons';
+import { IconEmpty, IconRestore } from '../lib/icons';
 
 /**
  * FilteredLinks is the holding area for links a filter rule refused, torrents
@@ -21,7 +21,6 @@ import { IconEmpty, IconEye, IconEyeOff, IconRestore } from '../lib/icons';
 export function FilteredLinks({ held }: { held: Task[] }) {
   const { t } = useT();
   const { toast } = useToast();
-  const [showAll, setShowAll] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Not optimistic: the server broadcasts the changed tasks.
@@ -44,7 +43,6 @@ export function FilteredLinks({ held }: { held: Task[] }) {
   if (!held.length) return null;
 
   const newest = [...held].reverse();
-  const shown = showAll ? newest : newest.slice(0, 1);
 
   return (
     <Notice
@@ -53,11 +51,6 @@ export function FilteredLinks({ held }: { held: Task[] }) {
       info={t('collector.filtered.heldInfo')}
       actions={
         <>
-          {held.length > 1 && (
-            <Button kind="secondary" icon={showAll ? <IconEyeOff /> : <IconEye />} onClick={() => setShowAll((v) => !v)}>
-              {showAll ? t('common.hide') : t('common.show')}
-            </Button>
-          )}
           <Button kind="secondary" icon={<IconEmpty />} disabled={busy} onClick={() => clear(held.map((h) => h.id))}>
             {t('collector.filtered.clear')}
           </Button>
@@ -67,7 +60,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
         </>
       }
     >
-      {shown.map((h) => (
+      {newest.map((h) => (
         <NoticeRow
           key={h.id}
           reason={`${heldBy(t, h)}: ${rejectionReason(t, h.skipCode, h.skipParams, h.skipReason)}`}
@@ -75,13 +68,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
           source={originLabel(t, h.origin)}
           at={fmtDate(h.createdAt)}
           action={
-            <Button
-              kind="secondary"
-              icon={<IconRestore />}
-              className="px-2.5 text-xs"
-              disabled={busy}
-              onClick={() => restore([h.id])}
-            >
+            <Button kind="secondary" icon={<IconRestore />} disabled={busy} onClick={() => restore([h.id])}>
               {t('collector.filtered.restore')}
             </Button>
           }
