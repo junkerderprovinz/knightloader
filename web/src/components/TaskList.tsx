@@ -94,9 +94,8 @@ import {
   PARKED,
   Tip,
   TREE_INDENT,
-  AT_NAME_END,
+  AT_ROW_END,
   IN_NAME_COL,
-  NAME_END,
   VARIANT_KIND_LABEL_KEY,
   applySort,
   gridTemplate,
@@ -236,15 +235,14 @@ function drawnRows(strip: HTMLElement): HTMLElement[] {
 }
 
 /**
- * The cell holding a row's action badges, over the end of the name column in
- * the room the name cell keeps free (NAME_END). It paints no ground, so the
- * row's own fill, selection tint and rainbow wash run through it, and it
- * pushes its badges to the trailing edge, so the trash of every row lines up
- * however many badges stand before it. The badges show while the pointer or
+ * The cell holding a row's action badges, in the track at the row's trailing
+ * edge. It paints no ground, so the row's own fill, selection tint and rainbow
+ * wash run through it, and it pushes its badges to the end of the track, so
+ * the trash of every row lines up however many badges stand before it. The badges show while the pointer or
  * the focus is on the row, and always on a touch screen (`.glim-row-actions`
  * in index.css).
  */
-const ACTIONS_CELL = `glim-row-actions flex items-center justify-end gap-1 ${AT_NAME_END}`;
+const ACTIONS_CELL = `glim-row-actions flex items-center justify-end gap-1 ${AT_ROW_END}`;
 
 /**
  * Whether a parked row greys this cell (see isParked). The switch is how the
@@ -556,7 +554,7 @@ function TaskRow({
               col.id === 'name'
                 ? {
                     paddingInlineStart: `${files ? TREE_INDENT - TWISTY_STEP : TREE_INDENT}px`,
-                    paddingInlineEnd: NAME_END,
+                    paddingInlineEnd: '0.5rem',
                   }
                 : undefined
             }
@@ -583,12 +581,10 @@ function TaskRow({
         );
       })}
 
-      {/* The actions stand at the end of the name column, in room the name
-          keeps free for them. Floating over the row's end instead, they would
-          cover its progress, status or pickers whenever they showed, and a
-          track of their own after the last column stands empty while they are
-          hidden. The context menu on the row offers every one of these verbs
-          too.
+      {/* The actions stand in a track of their own at the row's end, so
+          every row's trash is in one line at the right edge and none covers a
+          value of another column. The context menu on the row offers every one
+          of these verbs too.
           The badges are hued per slot rather than per row position, so a row's
           play badge is always the same hue and Recheck is always the next one,
           the same "position is the identity" rule every other badge set in this
@@ -600,7 +596,7 @@ function TaskRow({
   );
 }
 
-/** A link row's badges at the end of its name; see ACTIONS_CELL for when they show. */
+/** A link row's badges at its trailing edge; see ACTIONS_CELL for when they show. */
 export function TaskActions({ task, base, current }: { task: Task; base: string; current: boolean }) {
   const { t } = useT();
   const { toast } = useToast();
@@ -1120,7 +1116,6 @@ function PackageRow({
         <div
           key={col.id}
           dir={torrent && col.ltr ? 'ltr' : undefined}
-          style={col.id === 'name' ? { paddingInlineEnd: NAME_END } : undefined}
           className={`min-w-0 truncate px-2 text-xs text-carbon-textSub ${col.id === 'name' ? IN_NAME_COL : ''} ${
             col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'
           } ${col.numeric ? 'glim-num' : ''} ${parked && parksCell(col.id, ctx.profile) ? PARKED : ''}`}
@@ -3505,9 +3500,9 @@ export function TaskListCard({
             {/* The row height setting (lib/rowHeight.ts) sets how tall every
                 control in a row is and the padding around it, and the window's
                 estimate above is made of the same two numbers. --btn-h is
-                redefined here and not on the rows because the name track in
-                --kl-cols keeps the room for the actions counted from it, and
-                --kl-name-col is where every row places its actions. */}
+                redefined here and not on the rows because the last track in
+                --kl-cols, where every row places its actions, is counted from
+                it. --kl-name-col is where every row places its name. */}
             <div
               ref={tableRef}
               className="min-w-min"
