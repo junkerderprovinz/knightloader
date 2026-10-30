@@ -2497,6 +2497,7 @@ export const no: Dict = {
   'failure.open': 'Hvorfor dette mislyktes',
   'failure.raw': 'Hva backenden sa',
   'failure.rawHint': 'Linja verktøyet selv skrev ut, uendret og på engelsk. Nyttig når du søker etter den eller melder den fra deg et sted. Setningen over er denne appens tolkning av den.',
+  'failure.rawInDetails': 'Verktøyets egne ord står i radens detaljer.',
   'failure.nothingToDo': 'Ingenting i KnightLoader endrer på denne.',
   'failure.close': 'Lukk',
   'failure.botCheck.line': 'Siden vil ha en innlogget økt før den gir fra seg videoen.',

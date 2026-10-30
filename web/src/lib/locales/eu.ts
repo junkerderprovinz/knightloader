@@ -2490,6 +2490,7 @@ export const eu: Dict = {
   'failure.open': 'Zergatik huts egin duen',
   'failure.raw': 'Zer esan duen backendak',
   'failure.rawHint': 'Tresnak berak inprimatu duen lerroa, aldatu gabe eta ingelesez. Baliagarria da hura bilatzen duzunean edo nonbait jakinarazten duzunean. Goiko esaldia aplikazio honek egiten duen irakurketa da.',
+  'failure.rawInDetails': 'Tresnaren hitz zehatzak errenkadaren xehetasunetan daude.',
   'failure.nothingToDo': 'KnightLoader-en ez dago hau aldatzen duen ezer.',
   'failure.close': 'Itxi',
   'failure.botCheck.line': 'Guneak saioa hasita duen sesio bat nahi du bideoa eman aurretik.',

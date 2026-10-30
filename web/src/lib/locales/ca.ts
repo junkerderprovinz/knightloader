@@ -2481,6 +2481,7 @@ export const ca: Dict = {
   'failure.open': 'Per què ha fallat',
   'failure.raw': 'Què ha dit el rerefons',
   'failure.rawHint': 'La línia que ha escrit la mateixa eina, sense tocar i en anglès. Va bé tenir-la quan la busques o la reportes en algun lloc. La frase de sobre és la lectura que en fa aquesta aplicació.',
+  'failure.rawInDetails': 'Les paraules exactes de l’eina són als detalls de la fila.',
   'failure.nothingToDo': 'A KnightLoader no hi ha res que canviï això.',
   'failure.close': 'Tanca',
   'failure.botCheck.line': 'El lloc vol una sessió iniciada abans de donar el vídeo.',

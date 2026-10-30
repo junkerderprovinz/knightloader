@@ -96,6 +96,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Packages arrive on Downloads folded.** Whatever way they leave the link
   collector, a package shows as one row until you open it, and one you opened
   stays open.
+- **A failure's bubble is short and stays inside its frame.** It says what
+  failed and what you can do, a long archive name is shortened in the middle
+  instead of running past the bubble's edge, and the tool's own message with
+  its full path is in the row's details, where you can copy it.
 - **Start all no longer flickers** with many links in the collector. The list
   stays as it is until every link has moved and Downloads opens, and the lists
   take a burst of changes in one go instead of one link at a time.

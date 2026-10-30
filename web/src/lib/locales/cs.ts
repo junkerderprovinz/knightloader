@@ -2505,6 +2505,7 @@ export const cs: Dict = {
   'failure.open': 'Proč to selhalo',
   'failure.raw': 'Co řekl backend',
   'failure.rawHint': 'Řádek, který vypsal sám nástroj, nezměněný a anglicky. Hodí se, když ho budeš hledat nebo někam hlásit. Věta nad ním je to, jak si ho vykládá tahle aplikace.',
+  'failure.rawInDetails': 'Přesné znění nástroje najdeš v podrobnostech řádku.',
   'failure.nothingToDo': 'V KnightLoaderu na tohle žádná páka není.',
   'failure.close': 'Zavřít',
   'failure.botCheck.line': 'Stránka chce přihlášenou relaci, než video vydá.',

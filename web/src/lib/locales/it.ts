@@ -2479,6 +2479,7 @@ export const it: Dict = {
   'failure.open': 'Perché è fallito',
   'failure.raw': 'Cosa ha detto il backend',
   'failure.rawHint': 'La riga che lo strumento stesso ha stampato, invariata e in inglese. Utile quando la cerchi o la segnali da qualche parte. La frase qui sopra è come la interpreta questa app.',
+  'failure.rawInDetails': 'Il messaggio esatto dello strumento è nei dettagli della riga.',
   'failure.nothingToDo': 'In KnightLoader non c’è nessuna leva per questo.',
   'failure.close': 'Chiudi',
   'failure.botCheck.line': 'Il sito vuole una sessione con l’accesso fatto, prima di consegnare il video.',

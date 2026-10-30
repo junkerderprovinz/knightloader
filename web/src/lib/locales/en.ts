@@ -2994,6 +2994,7 @@ export const en = {
   'failure.open': 'Why this failed',
   'failure.raw': 'What the backend said',
   'failure.rawHint': 'The line the tool itself printed, unchanged and in English. Worth having when you search for it or report it somewhere. The sentence above is this app\'s reading of it.',
+  'failure.rawInDetails': "The tool's own words are in the row's details.",
   'failure.nothingToDo': 'Nothing in KnightLoader changes this one.',
   'failure.close': 'Close',
   'failure.botCheck.line': 'The site wants a signed-in session before it hands the video over.',

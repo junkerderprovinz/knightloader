@@ -2486,6 +2486,7 @@ export const lv: Dict = {
   'failure.open': 'Kāpēc tas neizdevās',
   'failure.raw': 'Ko pateica aizmugure',
   'failure.rawHint': 'Rinda, ko izvadīja pats rīks, nemainīta un angliski. Noder, kad pēc tās meklē vai kaut kur to ziņo. Teikums augstāk ir šīs lietotnes lasījums.',
+  'failure.rawInDetails': 'Rīka precīzie vārdi ir rindas detaļās.',
   'failure.nothingToDo': 'Šo KnightLoader nekas nemaina.',
   'failure.close': 'Aizvērt',
   'failure.botCheck.line': 'Vietne grib pieteiktu sesiju, pirms izsniedz video.',

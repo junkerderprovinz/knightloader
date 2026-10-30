@@ -2492,6 +2492,7 @@ export const gl: Dict = {
   'failure.open': 'Por que fallou isto',
   'failure.raw': 'O que dixo o backend',
   'failure.rawHint': 'A liña que sacou a propia ferramenta, sen tocar e en inglés. Vén ben cando a buscas ou a comunicas nalgures. A frase de arriba é o que entende diso esta aplicación.',
+  'failure.rawInDetails': 'As palabras exactas da ferramenta están nos detalles da fila.',
   'failure.nothingToDo': 'En KnightLoader non hai nada que cambie isto.',
   'failure.close': 'Pechar',
   'failure.botCheck.line': 'O sitio quere unha sesión iniciada antes de entregar o vídeo.',

@@ -2495,6 +2495,7 @@ export const hu: Dict = {
   'failure.open': 'Miért nem sikerült',
   'failure.raw': 'Amit a backend mondott',
   'failure.rawHint': 'Az a sor, amelyet maga az eszköz írt ki, változatlanul és angolul. Jól jön, ha rákeresel, vagy ha valahol bejelented. A fölötte lévő mondat ennek az alkalmazásnak az olvasata.',
+  'failure.rawInDetails': 'Az eszköz pontos szövege a sor részleteiben található.',
   'failure.nothingToDo': 'A KnightLoaderben semmi nem változtat ezen.',
   'failure.close': 'Bezárás',
   'failure.botCheck.line': 'Az oldal bejelentkezett munkamenetet kér, mielőtt kiadná a videót.',

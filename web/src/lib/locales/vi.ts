@@ -2495,6 +2495,7 @@ export const vi: Dict = {
   'failure.open': 'Vì sao việc này thất bại',
   'failure.raw': 'Backend đã nói gì',
   'failure.rawHint': 'Dòng mà chính công cụ đó in ra, nguyên vẹn và bằng tiếng Anh. Hữu ích khi bạn tìm kiếm nó hoặc báo nó ở đâu đó. Câu ở phía trên là cách ứng dụng này đọc nó.',
+  'failure.rawInDetails': 'Nguyên văn của công cụ nằm trong phần chi tiết của dòng.',
   'failure.nothingToDo': 'Trong KnightLoader không có thứ gì xoay chuyển được chuyện này.',
   'failure.close': 'Đóng',
   'failure.botCheck.line': 'Trang này đòi một phiên đã đăng nhập trước khi giao video ra.',

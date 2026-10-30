@@ -2495,6 +2495,7 @@ export const id: Dict = {
   'failure.open': 'Kenapa ini gagal',
   'failure.raw': 'Apa yang dikatakan backend',
   'failure.rawHint': 'Baris yang dicetak alatnya sendiri, tanpa diubah dan dalam bahasa Inggris. Berguna kalau kamu mencarinya atau melaporkannya ke suatu tempat. Kalimat di atasnya adalah pembacaan aplikasi ini atas baris itu.',
+  'failure.rawInDetails': 'Kata-kata asli alat ada di detail baris ini.',
   'failure.nothingToDo': 'Tidak ada apa pun di KnightLoader yang mengubah yang satu ini.',
   'failure.close': 'Tutup',
   'failure.botCheck.line': 'Situsnya menuntut sesi yang sudah masuk sebelum ia menyerahkan videonya.',

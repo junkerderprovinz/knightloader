@@ -2486,6 +2486,7 @@ export const es: Dict = {
   'failure.open': 'Por qué ha fallado',
   'failure.raw': 'Lo que dijo el backend',
   'failure.rawHint': 'La línea que imprimió la propia herramienta, sin cambios y en inglés. Viene bien cuando la buscas o la comunicas en algún sitio. La frase de arriba es la lectura que hace esta aplicación.',
+  'failure.rawInDetails': 'Las palabras exactas de la herramienta están en los detalles de la fila.',
   'failure.nothingToDo': 'En KnightLoader no hay ninguna palanca para esto.',
   'failure.close': 'Cerrar',
   'failure.botCheck.line': 'El sitio quiere una sesión iniciada antes de entregar el vídeo.',

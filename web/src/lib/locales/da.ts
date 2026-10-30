@@ -2481,6 +2481,7 @@ export const da: Dict = {
   'failure.open': 'Hvorfor det gik galt',
   'failure.raw': 'Hvad backenden sagde',
   'failure.rawHint': 'Den linje, værktøjet selv har skrevet ud, uændret og på engelsk. Nyttig, når du søger efter den eller melder den et sted. Sætningen ovenover er denne apps tolkning af den.',
+  'failure.rawInDetails': 'Værktøjets egne ord står i rækkens detaljer.',
   'failure.nothingToDo': 'Der er ikke noget i KnightLoader, der ændrer den her.',
   'failure.close': 'Luk',
   'failure.botCheck.line': 'Siden vil have en session, du er logget ind med, før den udleverer videoen.',
