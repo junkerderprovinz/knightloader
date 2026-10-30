@@ -127,33 +127,3 @@ export const IconPlug = (p: GlyphProps) => (
     <rect x="9.1" y="12.4" width="1.8" height="5.6" rx=".9" />
   </svg>
 );
-
-/** Minimise a window: a bar where the window goes down to. */
-export const IconWindowMinimise = (p: GlyphProps) => (
-  <svg {...glyph([0, 6, 14, 2], p)}>
-    <rect x="0" y="6" width="14" height="2" rx="1" />
-  </svg>
-);
-
-/** Maximise a window: the window filling the screen. */
-export const IconWindowMaximise = (p: GlyphProps) => (
-  <svg {...glyph([0, 0, 14, 14], p)}>
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M2.5 0h9A2.5 2.5 0 0 1 14 2.5v9a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 0 11.5v-9A2.5 2.5 0 0 1 2.5 0Zm0 2a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5Z"
-    />
-  </svg>
-);
-
-/** Restore a maximised window: the window in front of the screen it filled. */
-export const IconWindowRestore = (p: GlyphProps) => (
-  <svg {...glyph([0, 0, 14, 14], p)}>
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M2.5 3h6A2.5 2.5 0 0 1 11 5.5v6A2.5 2.5 0 0 1 8.5 14h-6A2.5 2.5 0 0 1 0 11.5v-6A2.5 2.5 0 0 1 2.5 3Zm0 2a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5Z"
-    />
-    <path d="M5 0h6.5A2.5 2.5 0 0 1 14 2.5V9h-2V2.5a.5.5 0 0 0-.5-.5H5Z" />
-  </svg>
-);
