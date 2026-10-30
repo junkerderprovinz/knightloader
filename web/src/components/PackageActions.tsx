@@ -8,9 +8,9 @@ import type { MenuGroup, MenuItem } from './ContextMenu';
 import {
   IconClose,
   IconFirst,
-  IconFolder,
   IconLatest,
   IconMerge,
+  IconMove,
   IconMoveDown,
   IconMoveUp,
   IconPriority,
@@ -105,7 +105,7 @@ export function usePackageMenu({
     {
       id: 'move',
       label: t('pkg.moveTitle'),
-      icon: <IconFolder width={14} height={14} />,
+      icon: <IconMove width={14} height={14} />,
       onSelect: () => setDialog(true),
     },
     {

@@ -404,6 +404,13 @@ export const IconMoveDown = (p: GlyphProps) => (
   </svg>
 );
 
+/** Move elsewhere: Streamline arrow-up-1 turned to point right. */
+export const IconMove = (p: GlyphProps) => (
+  <svg {...glyph([0, 3, 14, 8], p)}>
+    <path fillRule="evenodd" d="M13.85355 6.64645C14.04882 6.84171 14.04882 7.15829 13.85355 7.35355L10.35355 10.8536C10.21055 10.9966 9.9955 11.0393 9.80866 10.9619C9.62182 10.8845 9.5 10.7022 9.5 10.5L9.5 8L1 8C0.4477 8 0 7.55228 0 7C0 6.44771 0.4477 6 1 6L9.5 6L9.5 3.5C9.5 3.29777 9.62182 3.11545 9.80866 3.03806C9.9955 2.96067 10.21055 3.00345 10.35355 3.14645L13.85355 6.64645Z" />
+  </svg>
+);
+
 /** Expand: KnightLoader's drawing on a 20-unit grid. */
 export const IconExpand = (p: GlyphProps) => (
   <svg {...glyph([3.6, 5.3, 12.8, 8.1], p)}>
