@@ -66,6 +66,14 @@ func TestSplitNameKeepsTheExtensionAnUnpackerNeeds(t *testing.T) {
 		{".gitignore", ".gitignore", ""},
 		{".env.local", ".env", ".local"},
 		{".tar.gz", ".tar", ".gz"},
+		{"film.part01.rar", "film", ".part01.rar"},
+		{"film.PART7.RAR", "film", ".PART7.RAR"},
+		{"film.vol000+01.par2", "film", ".vol000+01.par2"},
+		{"film.7z.001", "film", ".7z.001"},
+		{"film.zip.012", "film", ".zip.012"},
+		{"film.r00", "film", ".r00"},
+		{"Show.S01E02.part.mkv", "Show.S01E02.part", ".mkv"},
+		{"Show.1080p.001", "Show.1080p", ".001"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -703,6 +711,30 @@ func TestSafeNameTurnsControlCharactersIntoSpaces(t *testing.T) {
 		}
 		if again := SafeName(got); again != got {
 			t.Errorf("SafeName(%q) = %q, so the writer would rename %q again", got, again, got)
+		}
+	}
+}
+
+func TestSafeNameKeepsTheVolumesOfALongSetApart(t *testing.T) {
+	const stem = "Hellraiser.Das.Schloss.zur.Hoelle.2022.German.TrueHD.Atmos.DL.2160p.UHD.BluRay.DV.HDR.x265-VECTOR"
+	for _, format := range []string{"%s.part%02d.rar", "%s.7z.%03d", "%s.vol%03d+01.par2"} {
+		seen := map[string]bool{}
+		for n := 1; n <= 12; n++ {
+			in := fmt.Sprintf(format, stem, n)
+			got := SafeName(in)
+			if len(got) > maxBaseName {
+				t.Fatalf("SafeName(%q) is %d bytes, want at most %d", in, len(got), maxBaseName)
+			}
+			if _, ext := splitName(in); !strings.HasSuffix(got, ext) {
+				t.Fatalf("SafeName(%q) = %q, lost the volume suffix %q", in, got, ext)
+			}
+			if gopeed.SafeFilename(got) != got {
+				t.Fatalf("SafeName(%q) = %q, which the writer would rewrite again", in, got)
+			}
+			if seen[got] {
+				t.Fatalf("two volumes both became %q", got)
+			}
+			seen[got] = true
 		}
 	}
 }
