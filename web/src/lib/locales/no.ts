@@ -3795,6 +3795,7 @@ export const no: Dict = {
   'whatsnew.change.appLogo': 'Telefoner og nettleserutvidelser under «{name}» bærer KnightLoader-logoen som alle andre kort.',
   'whatsnew.change.cardLogo': 'Logoen står på samme sted og i samme størrelse på hvert kort under «{name}».',
   'whatsnew.change.solvecha': 'Solvecha kan legges til under «{name}» som sjuende tjeneste. Den leser bare bilde-captchaer.',
+  'whatsnew.change.volumeUsed': 'En oppbrukt nedlastingskvote hos en debrid-tjeneste eller hoster-konto vises som det under «{name}», med når den nullstilles, i stedet for som captcha, og tjenesten lar den hosteren være i fred til da.',
   'whatsnew.change.clipboardPopup': 'Skrivebordsappen viser en liten boks når overvåkingen av utklippstavlen fanger linker. «{name}» bestemmer om den vises, hvor lenge den blir og hvor.',
   'whatsnew.change.bundledTools': 'Skrivebordsappen har med sin egen yt-dlp og ffmpeg, så en YouTube-link deler seg i video- og lydradene sine rett etter installasjonen.',
   'whatsnew.change.fileKinds': 'Hver link viser et symbol for hva slags fil den er: video, lyd, bilde, undertekster, tekst, arkiv eller en annen fil.',

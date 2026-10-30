@@ -3780,6 +3780,7 @@ export const ko: Dict = {
   'whatsnew.change.appLogo': '“{name}”의 휴대폰과 브라우저 확장 프로그램에도 다른 카드처럼 KnightLoader 로고가 붙습니다.',
   'whatsnew.change.cardLogo': '“{name}”의 모든 카드에서 로고가 같은 위치에 같은 크기로 표시됩니다.',
   'whatsnew.change.solvecha': 'Solvecha를 "{name}"에서 일곱 번째 서비스로 추가할 수 있습니다. 이미지 캡차만 읽습니다.',
+  'whatsnew.change.volumeUsed': 'Debrid 서비스나 호스터 계정의 다운로드 용량이 바닥나면 캡차 대신 그대로 “{name}”에 표시되고 초기화되는 시점도 함께 나옵니다. 그때까지 서비스는 그 호스터를 건드리지 않습니다.',
   'whatsnew.change.clipboardPopup': '클립보드 감시가 링크를 잡으면 데스크톱 앱이 작은 알림을 띄웁니다. 표시 여부와 표시 시간, 위치는 “{name}”에서 정합니다.',
   'whatsnew.change.bundledTools': '데스크톱 앱에 yt-dlp와 ffmpeg가 함께 들어 있어서, 설치 직후부터 YouTube 링크가 동영상 행과 오디오 행으로 펼쳐집니다.',
   'whatsnew.change.fileKinds': '모든 링크에 파일 종류를 나타내는 기호가 표시됩니다. 동영상, 오디오, 이미지, 자막, 텍스트, 압축 파일, 그 밖의 파일입니다.',

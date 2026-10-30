@@ -3775,6 +3775,7 @@ export const nl: Dict = {
   'whatsnew.change.appLogo': 'Telefoons en browserextensies onder “{name}” dragen het KnightLoader-logo, net als elke andere kaart.',
   'whatsnew.change.cardLogo': 'Het logo staat op elke kaart onder “{name}” op dezelfde plek en even groot.',
   'whatsnew.change.solvecha': "Solvecha kan onder ‘{name}’ worden toegevoegd als zevende dienst. Het leest alleen afbeeldingscaptcha's.",
+  'whatsnew.change.volumeUsed': 'Een opgebruikt downloadvolume bij een debrid-dienst of hosteraccount staat in “{name}” als zodanig, met wanneer het weer aanvult, in plaats van als captcha, en de dienst laat die hoster tot dan met rust.',
   'whatsnew.change.clipboardPopup': 'De desktop-app laat een briefje verschijnen als de klembordbewaking links vangt. “{name}” bepaalt of het verschijnt, hoe lang het blijft en waar.',
   'whatsnew.change.bundledTools': 'De desktop-app brengt zijn eigen yt-dlp en ffmpeg mee, zodat een YouTube-link meteen na de installatie opengaat in zijn video- en audiorijen.',
   'whatsnew.change.fileKinds': 'Elke link toont een symbool voor het soort bestand: video, audio, afbeelding, ondertitels, tekst, archief of een ander bestand.',

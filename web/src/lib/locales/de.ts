@@ -3860,6 +3860,7 @@ export const de: Dict = {
   'whatsnew.change.appLogo': 'Handys und Browser-Erweiterungen unter „{name}“ tragen das KnightLoader-Logo wie jede andere Karte.',
   'whatsnew.change.cardLogo': 'Das Logo steht auf jeder Karte unter „{name}“ an derselben Stelle und in derselben Größe.',
   'whatsnew.change.solvecha': 'Solvecha lässt sich unter „{name}“ als siebter Dienst hinzufügen. Es liest nur Bild-Captchas.',
+  'whatsnew.change.volumeUsed': 'Ein aufgebrauchtes Download-Volumen bei einem Debrid-Dienst oder Hoster-Konto steht unter „{name}“ als solches da, mit dem Zeitpunkt, ab dem wieder Volumen da ist, statt als Captcha, und der Dienst lässt diesen Hoster bis dahin in Ruhe.',
   'whatsnew.change.clipboardPopup': 'Die Desktop-App zeigt eine kleine Meldung, wenn die Überwachung der Zwischenablage Links aufschnappt. „{name}“ legt fest, ob sie erscheint, wie lange sie bleibt und wo.',
   'whatsnew.change.bundledTools': 'Die Desktop-App bringt ihr eigenes yt-dlp und ffmpeg mit, sodass ein YouTube-Link gleich nach der Installation in seine Video- und Audiozeilen aufgeht.',
   'whatsnew.change.fileKinds': 'Jeder Link zeigt mit einem Symbol, was für eine Datei er ist: Video, Audio, Bild, Untertitel, Text, Archiv oder eine andere Datei.',

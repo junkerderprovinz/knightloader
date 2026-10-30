@@ -3776,6 +3776,7 @@ export const zh: Dict = {
   'whatsnew.change.appLogo': '“{name}”中的手机和浏览器扩展也像其他卡片一样带有 KnightLoader 标志。',
   'whatsnew.change.cardLogo': '“{name}”下的每张卡片上，标志都在同一位置，大小也相同。',
   'whatsnew.change.solvecha': '可以在“{name}”中把 Solvecha 添加为第七个服务。它只识别图片验证码。',
+  'whatsnew.change.volumeUsed': 'Debrid 服务或主机账户的下载流量用完时，会在“{name}”中如实显示并注明何时重置，而不是显示为验证码。在此之前，该服务不会再动用这个主机。',
   'whatsnew.change.clipboardPopup': '剪贴板监视抓到链接时，桌面应用会弹出一个小提示。“{name}”决定它是否显示、停留多久以及显示在哪里。',
   'whatsnew.change.bundledTools': '桌面应用自带 yt-dlp 和 ffmpeg，安装后 YouTube 链接马上就能展开为视频行和音频行。',
   'whatsnew.change.fileKinds': '每个链接都会显示一个符号，标明文件类型：视频、音频、图片、字幕、文本、压缩包或其他文件。',

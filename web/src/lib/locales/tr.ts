@@ -3791,6 +3791,7 @@ export const tr: Dict = {
   'whatsnew.change.appLogo': '“{name}” içindeki telefonlar ve tarayıcı uzantıları da her kart gibi KnightLoader logosunu taşır.',
   'whatsnew.change.cardLogo': 'Logo, “{name}” altındaki her kartta aynı yerde ve aynı boyutta durur.',
   'whatsnew.change.solvecha': "Solvecha, \"{name}\" altında yedinci hizmet olarak eklenebilir. Yalnızca resimli captcha'ları okur.",
+  'whatsnew.change.volumeUsed': 'Bir debrid hizmetinde ya da hoster hesabında biten indirme kotası, “{name}” altında captcha olarak değil, olduğu gibi ve ne zaman yenileneceğiyle birlikte görünür, hizmet de o zamana kadar o hoster\'a dokunmaz.',
   'whatsnew.change.clipboardPopup': 'Masaüstü uygulaması, pano izleme bağlantı yakaladığında küçük bir not gösterir. Görünüp görünmeyeceğini, ne kadar kalacağını ve nerede çıkacağını “{name}” belirler.',
   'whatsnew.change.bundledTools': 'Masaüstü uygulaması kendi yt-dlp ve ffmpeg\'iyle gelir, bu yüzden bir YouTube bağlantısı kurulumdan hemen sonra video ve ses satırlarına açılır.',
   'whatsnew.change.fileKinds': 'Her bağlantı, dosyanın türünü bir simgeyle gösterir: video, ses, görsel, altyazı, metin, arşiv ya da başka herhangi bir dosya.',

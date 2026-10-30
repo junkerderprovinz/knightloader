@@ -3794,6 +3794,7 @@ export const lt: Dict = {
   'whatsnew.change.appLogo': 'Telefonai ir naršyklės plėtiniai skiltyje „{name}“ turi KnightLoader logotipą kaip ir visos kitos kortelės.',
   'whatsnew.change.cardLogo': 'Logotipas kiekvienoje kortelėje skiltyje „{name}“ stovi toje pačioje vietoje ir yra tokio paties dydžio.',
   'whatsnew.change.solvecha': 'Solvecha galima pridėti skiltyje „{name}“ kaip septintą paslaugą. Ji skaito tik paveikslėlių captcha.',
+  'whatsnew.change.volumeUsed': 'Išnaudotas atsisiuntimo limitas debrid paslaugoje ar hosterio paskyroje skiltyje „{name}“ rodomas būtent taip, su laiku, kada jis atsinaujins, o ne kaip captcha, ir paslauga iki tol to hosterio neliečia.',
   'whatsnew.change.clipboardPopup': 'Darbalaukio programa parodo nedidelį pranešimą, kai iškarpinės stebėjimas pagauna nuorodų. „{name}“ nustato, ar jis rodomas, kiek laiko lieka ir kur.',
   'whatsnew.change.bundledTools': 'Darbalaukio programa turi savo yt-dlp ir ffmpeg, todėl YouTube nuoroda iškart po įdiegimo išsiskleidžia į savo vaizdo ir garso eilutes.',
   'whatsnew.change.fileKinds': 'Kiekviena nuoroda rodo simbolį pagal failo rūšį: vaizdas, garsas, paveikslėlis, subtitrai, tekstas, archyvas ar bet koks kitas failas.',

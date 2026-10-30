@@ -3788,6 +3788,7 @@ export const is: Dict = {
   'whatsnew.change.appLogo': 'Símar og vafraviðbætur undir „{name}“ bera merki KnightLoader eins og öll önnur spjöld.',
   'whatsnew.change.cardLogo': 'Merkið stendur á sama stað og í sömu stærð á hverju spjaldi undir „{name}“.',
   'whatsnew.change.solvecha': 'Solvecha má bæta við undir „{name}“ sem sjöundu þjónustunni. Hún les aðeins myndacaptcha.',
+  'whatsnew.change.volumeUsed': 'Uppurið niðurhalsmagn hjá debrid-þjónustu eða hýslareikningi birtist sem slíkt undir „{name}“, ásamt því hvenær það endurnýjast, í stað captcha, og þjónustan lætur þann hýsil í friði þangað til.',
   'whatsnew.change.clipboardPopup': 'Skjáborðsforritið sýnir litla tilkynningu þegar vöktun klippiborðsins grípur tengla. „{name}“ ræður hvort hún birtist, hve lengi hún stendur og hvar.',
   'whatsnew.change.bundledTools': 'Skjáborðsforritið kemur með eigið yt-dlp og ffmpeg, svo YouTube-tengill opnast í mynd- og hljóðlínur sínar strax eftir uppsetningu.',
   'whatsnew.change.fileKinds': 'Hver tengill sýnir tákn fyrir tegund skrárinnar: myndefni, hljóð, mynd, skjátexta, texta, safnskrá eða aðra skrá.',

@@ -3794,6 +3794,7 @@ export const fi: Dict = {
   'whatsnew.change.appLogo': 'Puhelimilla ja selainlaajennuksilla kohdassa ”{name}” on KnightLoaderin logo kuten kaikilla muillakin korteilla.',
   'whatsnew.change.cardLogo': 'Logo on jokaisella kortilla kohdassa ”{name}” samassa paikassa ja samankokoisena.',
   'whatsnew.change.solvecha': 'Solvechan voi lisätä kohdassa ”{name}” seitsemänneksi palveluksi. Se lukee vain kuva-captchoja.',
+  'whatsnew.change.volumeUsed': 'Loppuun käytetty latauskiintiö debrid-palvelussa tai hosterin tilillä näkyy sellaisena kohdassa ”{name}” captchan sijaan, nollautumisajan kera, ja palvelu jättää sen hosterin rauhaan siihen asti.',
   'whatsnew.change.clipboardPopup': 'Työpöytäsovellus näyttää pienen ilmoituksen, kun leikepöydän tarkkailu nappaa linkkejä. ”{name}” määrää, näkyykö se, kuinka kauan se pysyy ja missä.',
   'whatsnew.change.bundledTools': 'Työpöytäsovelluksessa on omat yt-dlp ja ffmpeg, joten YouTube-linkki avautuu video- ja äänirivikseen heti asennuksen jälkeen.',
   'whatsnew.change.fileKinds': 'Jokainen linkki näyttää symbolin sen mukaan, millainen tiedosto se on: video, ääni, kuva, tekstitys, teksti, arkisto tai jokin muu tiedosto.',

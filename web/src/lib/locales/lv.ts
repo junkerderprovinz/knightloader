@@ -3783,6 +3783,7 @@ export const lv: Dict = {
   'whatsnew.change.appLogo': 'Tālruņiem un pārlūka paplašinājumiem sadaļā „{name}“ ir KnightLoader logotips tāpat kā visām citām kartītēm.',
   'whatsnew.change.cardLogo': 'Logotips katrā kartītē sadaļā „{name}“ atrodas vienā un tajā pašā vietā un ir viena izmēra.',
   'whatsnew.change.solvecha': 'Solvecha var pievienot sadaļā “{name}” kā septīto pakalpojumu. Tas lasa tikai attēlu captcha.',
+  'whatsnew.change.volumeUsed': 'Izlietots lejupielādes apjoms debrid pakalpojumā vai hostera kontā sadaļā „{name}“ ir redzams tieši tā, ar laiku, kad tas atjaunojas, nevis kā captcha, un pakalpojums līdz tam liek šo hosteri mierā.',
   'whatsnew.change.clipboardPopup': 'Darbvirsmas lietotne parāda nelielu paziņojumu, kad starpliktuves uzraudzība noķer saites. „{name}“ nosaka, vai tas parādās, cik ilgi tas paliek un kur.',
   'whatsnew.change.bundledTools': 'Darbvirsmas lietotnei ir pašai savs yt-dlp un ffmpeg, tāpēc YouTube saite uzreiz pēc instalēšanas atveras savās video un audio rindās.',
   'whatsnew.change.fileKinds': 'Katra saite rāda simbolu, kas norāda faila veidu: video, audio, attēls, subtitri, teksts, arhīvs vai jebkurš cits fails.',

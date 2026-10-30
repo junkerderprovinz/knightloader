@@ -3791,6 +3791,7 @@ export const sl: Dict = {
   'whatsnew.change.appLogo': 'Telefoni in razširitve brskalnika v »{name}« nosijo logotip KnightLoader kot vsaka druga kartica.',
   'whatsnew.change.cardLogo': 'Logotip stoji na istem mestu in je enake velikosti na vsaki kartici v »{name}«.',
   'whatsnew.change.solvecha': 'Solvecha je mogoče dodati pod »{name}« kot sedmo storitev. Bere samo slikovne captche.',
+  'whatsnew.change.volumeUsed': 'Porabljena količina prenosa pri storitvi debrid ali računu gostitelja se v »{name}« pokaže kot taka, s časom, ko se obnovi, namesto kot captcha, storitev pa tega gostitelja do takrat pusti pri miru.',
   'whatsnew.change.clipboardPopup': 'Namizna aplikacija pokaže majhno obvestilo, ko spremljanje odložišča ujame povezave. »{name}« določa, ali se prikaže, kako dolgo ostane in kje.',
   'whatsnew.change.bundledTools': 'Namizna aplikacija ima s seboj lasten yt-dlp in ffmpeg, zato se povezava YouTube takoj po namestitvi razpre v svoje vrstice za video in zvok.',
   'whatsnew.change.fileKinds': 'Vsaka povezava pokaže simbol za vrsto datoteke: video, zvok, slika, podnapisi, besedilo, arhiv ali katera koli druga datoteka.',

@@ -3790,6 +3790,7 @@ export const gl: Dict = {
   'whatsnew.change.appLogo': 'Os teléfonos e as extensións do navegador de «{name}» levan o logotipo de KnightLoader coma calquera outra tarxeta.',
   'whatsnew.change.cardLogo': 'O logotipo está no mesmo sitio e co mesmo tamaño en todas as tarxetas de «{name}».',
   'whatsnew.change.solvecha': 'Solvecha pódese engadir en «{name}» como sétimo servizo. Só le captchas de imaxe.',
+  'whatsnew.change.volumeUsed': 'Un volume de descarga esgotado nun servizo debrid ou nunha conta de aloxador aparece como tal en «{name}», co momento en que se renova, en vez de como captcha, e o servizo deixa tranquilo ese aloxador ata entón.',
   'whatsnew.change.clipboardPopup': 'A aplicación de escritorio amosa unha nota cando a vixilancia do portapapeis atrapa ligazóns. «{name}» decide se aparece, canto tempo queda e onde.',
   'whatsnew.change.bundledTools': 'A aplicación de escritorio trae o seu propio yt-dlp e ffmpeg, así que unha ligazón de YouTube ábrese nas súas filas de vídeo e son nada máis instalala.',
   'whatsnew.change.fileKinds': 'Cada ligazón mostra un símbolo segundo o tipo de ficheiro: vídeo, son, imaxe, subtítulos, texto, arquivo comprimido ou calquera outro ficheiro.',

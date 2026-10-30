@@ -3780,6 +3780,7 @@ export const ca: Dict = {
   'whatsnew.change.appLogo': 'Els telèfons i les extensions del navegador de «{name}» porten el logotip de KnightLoader com qualsevol altra targeta.',
   'whatsnew.change.cardLogo': 'El logotip és al mateix lloc i té la mateixa mida a totes les targetes de «{name}».',
   'whatsnew.change.solvecha': "Solvecha es pot afegir a «{name}» com a setè servei. Només llegeix captcha d'imatge.",
+  'whatsnew.change.volumeUsed': 'Un volum de descàrrega exhaurit en un servei debrid o un compte d’allotjador surt com a tal a «{name}», amb el moment en què es renova, en lloc de com a captcha, i el servei deixa tranquil aquest allotjador fins aleshores.',
   'whatsnew.change.clipboardPopup': 'L’aplicació d’escriptori mostra una nota quan la vigilància del porta-retalls atrapa enllaços. «{name}» decideix si apareix, quant de temps s’hi queda i on.',
   'whatsnew.change.bundledTools': 'L’aplicació d’escriptori porta el seu propi yt-dlp i ffmpeg, així que un enllaç de YouTube s’obre en les seves files de vídeo i àudio just després d’instal·lar-la.',
   'whatsnew.change.fileKinds': 'Cada enllaç mostra un símbol segons el tipus de fitxer: vídeo, àudio, imatge, subtítols, text, arxiu comprimit o qualsevol altre fitxer.',

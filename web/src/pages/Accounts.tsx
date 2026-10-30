@@ -526,7 +526,7 @@ export function PausedStatus({ pauses }: { pauses: AccountPause[] }) {
   });
   lines.push(t('accounts.paused.retry'));
   return (
-    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
+    <span data-new="volume-used" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
       <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
       {word}
       <InfoBubble

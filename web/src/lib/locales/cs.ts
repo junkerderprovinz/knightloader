@@ -3802,6 +3802,7 @@ export const cs: Dict = {
   'whatsnew.change.appLogo': 'Telefony a rozšíření prohlížeče v „{name}“ nesou logo KnightLoaderu jako každá jiná karta.',
   'whatsnew.change.cardLogo': 'Logo stojí na každé kartě v „{name}“ na stejném místě a ve stejné velikosti.',
   'whatsnew.change.solvecha': 'Solvecha lze přidat v „{name}“ jako sedmou službu. Čte jen obrázkové captchy.',
+  'whatsnew.change.volumeUsed': 'Vyčerpaný objem stahování u debrid služby nebo účtu hostera se v „{name}“ ukáže jako takový, i s časem, kdy se obnoví, místo jako captcha, a služba toho hostera do té doby nechá být.',
   'whatsnew.change.clipboardPopup': 'Aplikace pro počítač ukáže malé okénko, když sledování schránky chytí odkazy. „{name}“ určuje, jestli se objeví, jak dlouho zůstane a kde.',
   'whatsnew.change.bundledTools': 'Aplikace pro počítač má vlastní yt-dlp a ffmpeg, takže se odkaz z YouTube hned po instalaci rozloží do svých řádků s videem a zvukem.',
   'whatsnew.change.fileKinds': 'Každý odkaz ukazuje symbol podle druhu souboru: video, zvuk, obrázek, titulky, text, archiv nebo jakýkoli jiný soubor.',

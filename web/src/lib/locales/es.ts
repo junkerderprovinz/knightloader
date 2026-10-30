@@ -3784,6 +3784,7 @@ export const es: Dict = {
   'whatsnew.change.appLogo': 'Los teléfonos y las extensiones del navegador de «{name}» llevan el logotipo de KnightLoader como cualquier otra tarjeta.',
   'whatsnew.change.cardLogo': 'El logotipo está en el mismo sitio y con el mismo tamaño en todas las tarjetas de «{name}».',
   'whatsnew.change.solvecha': 'Solvecha se puede añadir en «{name}» como séptimo servicio. Solo lee captchas de imagen.',
+  'whatsnew.change.volumeUsed': 'Un volumen de descarga agotado en un servicio debrid o una cuenta de alojamiento aparece como tal en «{name}», con el momento en que se renueva, en lugar de como captcha, y el servicio deja en paz ese alojamiento hasta entonces.',
   'whatsnew.change.clipboardPopup': 'La aplicación de escritorio muestra una notita cuando la vigilancia del portapapeles atrapa enlaces. «{name}» decide si aparece, cuánto tiempo se queda y dónde.',
   'whatsnew.change.bundledTools': 'La aplicación de escritorio trae su propio yt-dlp y ffmpeg, así que un enlace de YouTube se abre en sus filas de vídeo y audio nada más instalarla.',
   'whatsnew.change.fileKinds': 'Cada enlace muestra un símbolo según el tipo de archivo: vídeo, audio, imagen, subtítulos, texto, archivo comprimido o cualquier otro archivo.',

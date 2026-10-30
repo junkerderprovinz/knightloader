@@ -3794,6 +3794,7 @@ export const hu: Dict = {
   'whatsnew.change.appLogo': 'A(z) „{name}” telefonjai és böngészőbővítményei ugyanúgy a KnightLoader logóját viselik, mint minden más kártya.',
   'whatsnew.change.cardLogo': 'A logó a(z) „{name}” minden kártyáján ugyanott és ugyanakkora méretben áll.',
   'whatsnew.change.solvecha': 'A Solvecha a(z) „{name}” alatt hetedik szolgáltatásként adható hozzá. Csak képes captchákat olvas.',
+  'whatsnew.change.volumeUsed': 'A debrid szolgáltatásnál vagy tárhelyfióknál elfogyott letöltési keret a(z) „{name}” alatt annak látszik, ami, azzal együtt, hogy mikor újul meg, nem pedig captchaként, és a szolgáltatás addig békén hagyja azt a tárhelyet.',
   'whatsnew.change.clipboardPopup': 'Az asztali alkalmazás egy kis jegyzetet mutat, amikor a vágólap figyelése linkeket kap el. A(z) „{name}” szabja meg, hogy megjelenik-e, meddig marad és hol.',
   'whatsnew.change.bundledTools': 'Az asztali alkalmazás saját yt-dlp-t és ffmpeg-et hoz magával, így egy YouTube-link a telepítés után rögtön a videó- és hangsoraira bomlik.',
   'whatsnew.change.fileKinds': 'Minden link szimbólummal mutatja, milyen fájl: videó, hang, kép, felirat, szöveg, archívum vagy bármilyen más fájl.',

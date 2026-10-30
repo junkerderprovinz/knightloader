@@ -3789,6 +3789,7 @@ export const eu: Dict = {
   'whatsnew.change.appLogo': '«{name}» orriko telefonoek eta nabigatzaile-luzapenek KnightLoader-en logoa daramate, beste txartel guztiek bezala.',
   'whatsnew.change.cardLogo': 'Logoa leku berean eta tamaina berean dago «{name}» orriko txartel guztietan.',
   'whatsnew.change.solvecha': 'Solvecha «{name}» atalean gehi daiteke zazpigarren zerbitzu gisa. Irudi-captchak soilik irakurtzen ditu.',
+  'whatsnew.change.volumeUsed': 'Debrid zerbitzu batean edo ostalari-kontu batean agortutako deskarga-bolumena horrela agertzen da «{name}» orrian, noiz berritzen den esanez, captcha gisa agertu beharrean, eta zerbitzuak bakean uzten du ostalari hori ordura arte.',
   'whatsnew.change.clipboardPopup': 'Mahaigaineko aplikazioak ohar txiki bat erakusten du arbelaren zaintzak estekak harrapatzen dituenean. «{name}» atalak erabakitzen du agertzen den, zenbat denbora geratzen den eta non.',
   'whatsnew.change.bundledTools': 'Mahaigaineko aplikazioak bere yt-dlp eta ffmpeg dakartza, beraz YouTube esteka bat bere bideo- eta audio-errenkadetan irekitzen da instalatu eta berehala.',
   'whatsnew.change.fileKinds': 'Esteka bakoitzak ikur bat erakusten du fitxategi motaren arabera: bideoa, audioa, irudia, azpitituluak, testua, artxiboa edo beste edozein fitxategi.',

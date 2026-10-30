@@ -75,6 +75,8 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.clipboardPopup',
         names: { name: 'intake.clipboardPopup' },
       },
+      // Drawn only while an account is paused.
+      { id: 'volume-used', to: ACCOUNTS, text: 'whatsnew.change.volumeUsed', names: { name: 'nav.accounts' } },
       { id: 'bundled-tools', text: 'whatsnew.change.bundledTools' },
       { id: 'title-bar', text: 'whatsnew.change.titleBar' },
       // The service's tile is drawn from the catalogue, so no element carries a mark.
