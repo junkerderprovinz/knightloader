@@ -612,7 +612,7 @@ export function TaskActions({ task, base, current }: { task: Task; base: string;
         toast(taskRefusal(e, t) ?? t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail'),
       );
   return (
-    <div className={ACTIONS_CELL}>
+    <div data-new="row-buttons" className={ACTIONS_CELL}>
       {collected && (
         <IconBadge
           quiet
