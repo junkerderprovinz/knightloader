@@ -114,7 +114,7 @@ export function VolumeMeter() {
       </span>
       {/* A thin track of its own; ProgressBar's h-5 would outweigh the controls above. */}
       <span
-        className="block h-1 w-full overflow-hidden rounded-[var(--radius-pill)] bg-carbon-surface3/70 [contain:size_layout]"
+        className="block h-1 w-full overflow-hidden rounded-[var(--radius-pill)] bg-carbon-surface3/70 glim-meter"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}

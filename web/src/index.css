@@ -609,6 +609,15 @@ body {
   font-feature-settings: "tnum" 1, "zero" 1;
 }
 
+/* A bar or meter whose value changes all the time keeps each step inside it,
+   so the page around it is not laid out again (GlimStone rule 37). Paint
+   containment would clip what the bar draws past its edge. A contained box
+   takes no height from its content, so every bar that wears this sets a real
+   one. */
+.glim-meter {
+  contain: size layout;
+}
+
 /* Chromium draws the spin buttons as one native widget that ignores styling,
    so NumberInput hides them and draws its own. */
 .glim-num-hide-spin::-webkit-inner-spin-button,
