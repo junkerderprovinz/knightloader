@@ -6,10 +6,10 @@ import {
   IconClose,
   IconCode,
   IconGear,
-  IconMoon,
   IconPause,
   IconPower,
   IconSchedules,
+  IconSleep,
   IconWarning,
 } from '../lib/icons';
 import { fmtCountdown } from '../lib/countdown';
@@ -98,7 +98,7 @@ const actionIcon: Record<string, ReactNode> = {
   pause: <IconPause width={15} height={15} />,
   quit: <IconPower width={15} height={15} />,
   command: <IconCode width={15} height={15} />,
-  suspend: <IconMoon width={15} height={15} />,
+  suspend: <IconSleep width={15} height={15} />,
 };
 
 // Go's encoding/json writes a zero time.Time as year 1 rather than omitting it.

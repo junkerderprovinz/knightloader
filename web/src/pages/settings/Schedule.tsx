@@ -7,7 +7,6 @@ import { WeekBand } from '../../components/pictures/WeekBand';
 import { Tabs } from '../../components/Tabs';
 import {
   IconAdd,
-  IconMoon,
   IconMoveDown,
   IconMoveUp,
   IconPause,
@@ -15,6 +14,7 @@ import {
   IconPlay,
   IconRetry,
   IconSchedules,
+  IconSleep,
   IconSliders,
   IconTrash,
 } from '../../lib/icons';
@@ -634,7 +634,7 @@ function actionIcon(action: ScheduleAction) {
   if (action === 'pause') return <IconPause width={16} height={16} />;
   if (action === 'resume') return <IconPlay width={16} height={16} />;
   if (action === 'limit') return <IconSliders width={16} height={16} />;
-  if (action === 'quiet') return <IconMoon width={16} height={16} />;
+  if (action === 'quiet') return <IconSleep width={16} height={16} />;
   return <IconSchedules width={16} height={16} />;
 }
 
