@@ -522,7 +522,6 @@ export const fr: Dict = {
   'columns.speed': 'Vitesse',
   'columns.eta': 'Temps restant',
   'columns.status': 'État',
-  'columns.availability': 'Disponibilité',
   'columns.host': 'Hébergeur',
   'columns.added': 'Ajouté',
   'columns.finished': 'Terminé',
@@ -728,7 +727,7 @@ export const fr: Dict = {
   'settings.modules.reason.cnlSwitch': 'Écoute sur 127.0.0.1:9666, sauf si KL_CNL indique un autre port. Le désactiver ici ne touche pas à KL_CNL : après un redémarrage, le port s’ouvre donc comme l’environnement le dit.',
   'settings.modules.reason.cnlNoListener': 'Ce processus n’ouvre aucun port Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Aucun JDownloader n’est configuré. KnightLoader en démarre normalement un à lui au démarrage. S’il manque encore après quelques minutes, cherchez « JD provisioning failed » dans le journal, ou réglez KL_JD sur un JDownloader à vous, puis redémarrez.',
-  'settings.modules.reason.captchaNoJD': 'Les captchas ne viennent que du backend JDownloader, et aucun n’est configuré (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Les captchas ne viennent que du backend JDownloader, et aucun n’est configuré.',
   'settings.modules.switchFailed': 'Cet interrupteur a été refusé : {reason}',
   'settings.modules.configureFirst': 'Il n’y a encore rien à activer. Configurez d’abord cela sur {page} ; ensuite l’interrupteur d’ici l’arrête et le relance sans perdre vos réglages.',
 
@@ -818,7 +817,7 @@ export const fr: Dict = {
   'settings.sectionLinkIntake': 'Réception des liens',
   'settings.linkIntakeHint': 'Les façons dont un lien arrive tout seul dans le collecteur, sans que tu le colles ici.',
 
-  'settings.linkIntake.cnlHint': 'Reçoit les liens qu’envoie le bouton Click\'n\'Load d’un site web, comme JDownloader. Ce que vous activez ou désactivez ici vaut jusqu’au prochain redémarrage, puis KL_CNL décide de nouveau.',
+  'settings.linkIntake.cnlHint': 'Reçoit les liens qu’envoie le bouton Click\'n\'Load d’un site web, comme JDownloader. Ce que vous activez ou désactivez ici vaut jusqu’au prochain redémarrage.',
   'settings.connections.add': 'Ajouter une connexion',
   'settings.connections.import': 'Importer une liste',
   'settings.connections.empty': 'Tout sort par cette machine',

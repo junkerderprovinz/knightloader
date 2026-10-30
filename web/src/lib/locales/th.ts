@@ -530,7 +530,6 @@ export const th: Dict = {
   'columns.speed': 'ความเร็ว',
   'columns.eta': 'เวลาที่เหลือ',
   'columns.status': 'สถานะ',
-  'columns.availability': 'ความพร้อมใช้งาน',
   'columns.host': 'โฮสต์',
   'columns.added': 'เพิ่มเมื่อ',
   'columns.finished': 'เสร็จเมื่อ',
@@ -736,7 +735,7 @@ export const th: Dict = {
   'settings.modules.reason.cnlSwitch': 'รอรับที่ 127.0.0.1:9666 เว้นแต่ KL_CNL จะระบุพอร์ตอื่น การปิดที่นี่ไม่ได้แตะ KL_CNL หลังรีสตาร์ทพอร์ตจึงเปิดตามที่สภาพแวดล้อมกำหนด',
   'settings.modules.reason.cnlNoListener': 'โพรเซสนี้ไม่ได้เปิดพอร์ต Click\'n\'Load',
   'settings.resolvers.toolsJdMissingHint': 'ยังไม่ได้ตั้งค่า JDownloader ปกติ KnightLoader จะเริ่มตัวของมันเองตอนบูต ถ้าผ่านไปสองสามนาทีแล้วยังไม่มี ให้ค้นในล็อกหา “JD provisioning failed” หรือตั้ง KL_JD ให้ชี้ไปที่ JDownloader ของคุณเอง แล้วรีสตาร์ท',
-  'settings.modules.reason.captchaNoJD': 'แคปช่ามาจากแบ็กเอนด์ JDownloader เท่านั้น และยังไม่ได้ตั้งค่าไว้ (KL_JD)',
+  'settings.modules.reason.captchaNoJD': 'แคปช่ามาจากแบ็กเอนด์ JDownloader เท่านั้น และยังไม่ได้ตั้งค่าไว้',
   'settings.modules.switchFailed': 'สวิตช์นั้นถูกปฏิเสธ: {reason}',
   'settings.modules.configureFirst': 'ยังไม่มีอะไรให้เปิด ตั้งค่าที่ {page} ก่อน จากนั้นสวิตช์ตรงนี้จะหยุดและเริ่มใหม่ให้โดยไม่ทำสิ่งที่คุณตั้งไว้หาย',
 
@@ -826,7 +825,7 @@ export const th: Dict = {
   'settings.sectionLinkIntake': 'การรับลิงก์',
   'settings.linkIntakeHint': 'ช่องทางที่ลิงก์เข้าสู่ตัวเก็บลิงก์ได้เอง โดยที่คุณไม่ต้องวางที่นี่',
 
-  'settings.linkIntake.cnlHint': 'รับลิงก์ที่ปุ่ม Click\'n\'Load ของเว็บไซต์ส่งมา เหมือนกับ JDownloader สิ่งที่คุณสลับที่นี่มีผลจนถึงการรีสตาร์ทครั้งถัดไป หลังจากนั้น KL_CNL จะเป็นตัวกำหนดอีกครั้ง',
+  'settings.linkIntake.cnlHint': 'รับลิงก์ที่ปุ่ม Click\'n\'Load ของเว็บไซต์ส่งมา เหมือนกับ JDownloader สิ่งที่คุณสลับที่นี่มีผลจนถึงการรีสตาร์ทครั้งถัดไป',
   'settings.connections.add': 'เพิ่มการเชื่อมต่อ',
   'settings.connections.import': 'นำเข้ารายการ',
   'settings.connections.empty': 'ทุกอย่างออกผ่านเครื่องนี้',

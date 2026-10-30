@@ -531,7 +531,6 @@ export const hu: Dict = {
   'columns.speed': 'Sebesség',
   'columns.eta': 'Hátralévő',
   'columns.status': 'Állapot',
-  'columns.availability': 'Elérhetőség',
   'columns.host': 'Tárhely',
   'columns.added': 'Hozzáadva',
   'columns.finished': 'Kész',
@@ -737,7 +736,7 @@ export const hu: Dict = {
   'settings.modules.reason.cnlSwitch': 'A 127.0.0.1:9666 címen figyel, hacsak a KL_CNL nem nevez meg másik portot. Ha itt kikapcsolod, a KL_CNL változatlan marad, így újraindítás után a port úgy nyílik meg, ahogy a környezet mondja.',
   'settings.modules.reason.cnlNoListener': 'Ez a folyamat nem nyit Click\'n\'Load portot.',
   'settings.resolvers.toolsJdMissingHint': 'Nincs beállítva JDownloader. A KnightLoader indításkor általában elindítja a sajátját. Ha pár perc után is hiányzik, keresd a naplóban a „JD provisioning failed” sort, vagy állítsd a KL_JD-t egy saját JDownloaderre, és indítsd újra.',
-  'settings.modules.reason.captchaNoJD': 'Captchák csak a JDownloader backendtől jönnek, és egy sincs beállítva (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchák csak a JDownloader backendtől jönnek, és egy sincs beállítva.',
   'settings.modules.switchFailed': 'A kapcsolót elutasította: {reason}',
   'settings.modules.configureFirst': 'Még nincs mit bekapcsolni. Előbb állítsd be a(z) {page} oldalon; utána az itteni kapcsoló leállítja és újraindítja anélkül, hogy a beállított elveszne.',
 
@@ -827,7 +826,7 @@ export const hu: Dict = {
   'settings.sectionLinkIntake': 'Linkfogadás',
   'settings.linkIntakeHint': 'Ahogyan egy link magától a gyűjtőbe kerül, anélkül hogy ide beillesztenéd.',
 
-  'settings.linkIntake.cnlHint': 'Fogadja a linkeket, amelyeket egy weboldal Click\'n\'Load gombja küld, pont úgy, mint a JDownloader. Amit itt átkapcsolsz, az a következő újraindításig érvényes, utána ismét a KL_CNL dönt.',
+  'settings.linkIntake.cnlHint': 'Fogadja a linkeket, amelyeket egy weboldal Click\'n\'Load gombja küld, pont úgy, mint a JDownloader. Amit itt átkapcsolsz, az a következő újraindításig érvényes.',
   'settings.connections.add': 'Kapcsolat hozzáadása',
   'settings.connections.import': 'Lista importálása',
   'settings.connections.empty': 'Minden ezen a gépen keresztül megy ki',

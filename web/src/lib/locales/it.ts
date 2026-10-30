@@ -522,7 +522,6 @@ export const it: Dict = {
   'columns.speed': 'Velocità',
   'columns.eta': 'Tempo rimasto',
   'columns.status': 'Stato',
-  'columns.availability': 'Disponibilità',
   'columns.host': 'Host',
   'columns.added': 'Aggiunto',
   'columns.finished': 'Completato',
@@ -728,7 +727,7 @@ export const it: Dict = {
   'settings.modules.reason.cnlSwitch': 'Ascolta su 127.0.0.1:9666, a meno che KL_CNL non indichi un’altra porta. Spegnerlo qui lascia KL_CNL com’è, quindi dopo un riavvio la porta si apre come dice l’ambiente.',
   'settings.modules.reason.cnlNoListener': 'Questo processo non apre nessuna porta Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Non è configurato nessun JDownloader. Di solito KnightLoader ne avvia uno suo all’accensione. Se dopo qualche minuto manca ancora, cerca «JD provisioning failed» nel log, oppure imposta KL_JD su un JDownloader tuo e riavvia.',
-  'settings.modules.reason.captchaNoJD': 'I captcha arrivano solo dal backend JDownloader, e non ne è configurato nessuno (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'I captcha arrivano solo dal backend JDownloader, e non ne è configurato nessuno.',
   'settings.modules.switchFailed': 'L’interruttore è stato rifiutato: {reason}',
   'settings.modules.configureFirst': 'Non c’è ancora niente da accendere. Configuralo prima in {page}; dopo, l’interruttore qui lo ferma e lo riavvia senza perdere quello che hai impostato.',
 
@@ -818,7 +817,7 @@ export const it: Dict = {
   'settings.sectionLinkIntake': 'Ingresso link',
   'settings.linkIntakeHint': 'I modi in cui un link arriva da solo nel raccoglitore, senza che tu lo incolli qui.',
 
-  'settings.linkIntake.cnlHint': 'Riceve i link inviati dal pulsante Click\'n\'Load di un sito, proprio come JDownloader. Quello che cambi qui vale fino al prossimo riavvio, poi decide di nuovo KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Riceve i link inviati dal pulsante Click\'n\'Load di un sito, proprio come JDownloader. Quello che cambi qui vale fino al prossimo riavvio.',
   'settings.connections.add': 'Aggiungi connessione',
   'settings.connections.import': 'Importa elenco',
   'settings.connections.empty': 'Tutto esce da questa macchina',

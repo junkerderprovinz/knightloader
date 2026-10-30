@@ -530,7 +530,6 @@ export const sk: Dict = {
   'columns.speed': 'Rýchlosť',
   'columns.eta': 'Zostáva',
   'columns.status': 'Stav',
-  'columns.availability': 'Dostupnosť',
   'columns.host': 'Hoster',
   'columns.added': 'Pridané',
   'columns.finished': 'Dokončené',
@@ -736,7 +735,7 @@ export const sk: Dict = {
   'settings.modules.reason.cnlSwitch': 'Počúva na 127.0.0.1:9666, ak KL_CNL neurčuje iný port. Keď to tu vypneš, KL_CNL zostane, ako je, takže po reštarte sa port otvorí tak, ako hovorí prostredie.',
   'settings.modules.reason.cnlNoListener': 'Tento proces neotvára žiadny port Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Nie je nastavený žiadny JDownloader. KnightLoader pri nabiehaní normálne spúšťa svoj vlastný. Ak ho po niekoľkých minútach stále niet, hľadaj v denníku „JD provisioning failed“, alebo nastav KL_JD na vlastný JDownloader a reštartuj.',
-  'settings.modules.reason.captchaNoJD': 'Captchy prichádzajú len z backendu JDownloader a žiadny nie je nastavený (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchy prichádzajú len z backendu JDownloader a žiadny nie je nastavený.',
   'settings.modules.switchFailed': 'Prepínač bol odmietnutý: {reason}',
   'settings.modules.configureFirst': 'Zatiaľ nie je čo zapínať. Nastavte to najprv na {page}; potom to prepínač tu zastaví a znova spustí bez toho, aby sa stratilo, čo ste nastavili.',
 
@@ -826,7 +825,7 @@ export const sk: Dict = {
   'settings.sectionLinkIntake': 'Príjem odkazov',
   'settings.linkIntakeHint': 'Spôsoby, akými sa odkaz dostane do zberača sám, bez toho, aby si ho sem vkladal.',
 
-  'settings.linkIntake.cnlHint': 'Prijíma odkazy, ktoré posiela tlačidlo Click\'n\'Load na webe, rovnako ako JDownloader. Čo tu prepneš, platí do ďalšieho reštartu, potom znova rozhoduje KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Prijíma odkazy, ktoré posiela tlačidlo Click\'n\'Load na webe, rovnako ako JDownloader. Čo tu prepneš, platí do ďalšieho reštartu.',
   'settings.connections.add': 'Pridať pripojenie',
   'settings.connections.import': 'Importovať zoznam',
   'settings.connections.empty': 'Všetko ide von cez tento stroj',

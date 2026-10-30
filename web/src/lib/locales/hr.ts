@@ -530,7 +530,6 @@ export const hr: Dict = {
   'columns.speed': 'Brzina',
   'columns.eta': 'Preostalo',
   'columns.status': 'Stanje',
-  'columns.availability': 'Dostupnost',
   'columns.host': 'Poslužitelj',
   'columns.added': 'Dodano',
   'columns.finished': 'Završeno',
@@ -736,7 +735,7 @@ export const hr: Dict = {
   'settings.modules.reason.cnlSwitch': 'Sluša na 127.0.0.1:9666, osim ako KL_CNL ne navodi drugi port. Ako ga ovdje isključiš, KL_CNL ostaje kakav jest, pa se nakon ponovnog pokretanja port otvara onako kako kaže okruženje.',
   'settings.modules.reason.cnlNoListener': 'Ovaj proces ne otvara port za Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Nije postavljen nijedan JDownloader. KnightLoader pri pokretanju obično sam pokrene vlastiti. Ako ga nakon nekoliko minuta i dalje nema, potraži u dnevniku „JD provisioning failed” ili postavi KL_JD na vlastiti JDownloader i ponovno pokreni.',
-  'settings.modules.reason.captchaNoJD': 'Captche dolaze samo iz pozadine JDownloader, a nijedna nije postavljena (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captche dolaze samo iz pozadine JDownloader, a nijedna nije postavljena.',
   'settings.modules.switchFailed': 'Prekidač je odbijen: {reason}',
   'settings.modules.configureFirst': 'Zasad nema što uključiti. Postavite to najprije na {page}; nakon toga prekidač ovdje to zaustavlja i ponovno pokreće bez gubitka onoga što ste postavili.',
 
@@ -826,7 +825,7 @@ export const hr: Dict = {
   'settings.sectionLinkIntake': 'Prijem poveznica',
   'settings.linkIntakeHint': 'Načini na koje poveznica sama dođe u sakupljač, bez da je zalijepiš ovdje.',
 
-  'settings.linkIntake.cnlHint': 'Prima poveznice koje šalje gumb Click\'n\'Load na web-stranici, baš kao JDownloader. Ono što ovdje prebaciš vrijedi do sljedećeg ponovnog pokretanja, a zatim ponovno odlučuje KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Prima poveznice koje šalje gumb Click\'n\'Load na web-stranici, baš kao JDownloader. Ono što ovdje prebaciš vrijedi do sljedećeg ponovnog pokretanja.',
   'settings.connections.add': 'Dodaj vezu',
   'settings.connections.import': 'Uvezi popis',
   'settings.connections.empty': 'Sve izlazi preko ovog računala',

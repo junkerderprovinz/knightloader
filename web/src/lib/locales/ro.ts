@@ -531,7 +531,6 @@ export const ro: Dict = {
   'columns.speed': 'Viteză',
   'columns.eta': 'Timp rămas',
   'columns.status': 'Stare',
-  'columns.availability': 'Disponibilitate',
   'columns.host': 'Gazdă',
   'columns.added': 'Adăugat',
   'columns.finished': 'Terminat',
@@ -738,7 +737,7 @@ export const ro: Dict = {
   'settings.modules.reason.cnlSwitch': 'Ascultă pe 127.0.0.1:9666, dacă KL_CNL nu numește alt port. Dacă îl oprești aici, KL_CNL rămâne cum este, deci după o repornire portul se deschide așa cum spune mediul.',
   'settings.modules.reason.cnlNoListener': 'Acest proces nu deschide niciun port Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Nu este configurat niciun JDownloader. De obicei KnightLoader pornește unul propriu la boot. Dacă tot lipsește după câteva minute, caută „JD provisioning failed” în jurnal sau pune în KL_JD un JDownloader al tău și repornește.',
-  'settings.modules.reason.captchaNoJD': 'Captcha-urile vin doar de la backendul JDownloader și nu este configurat niciunul (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captcha-urile vin doar de la backendul JDownloader și nu este configurat niciunul.',
   'settings.modules.switchFailed': 'Comutatorul a fost refuzat: {reason}',
   'settings.modules.configureFirst': 'Încă nu e nimic de pornit. Configurează mai întâi în {page}; după aceea comutatorul de aici îl oprește și îl repornește fără să piardă ce ai stabilit.',
 
@@ -828,7 +827,7 @@ export const ro: Dict = {
   'settings.sectionLinkIntake': 'Preluare linkuri',
   'settings.linkIntakeHint': 'Modurile în care un link ajunge singur în colector, fără să îl lipești aici.',
 
-  'settings.linkIntake.cnlHint': 'Preia linkurile pe care le trimite butonul Click\'n\'Load al unui site, exact ca JDownloader. Ce comuți aici rămâne valabil până la următoarea repornire, apoi decide din nou KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Preia linkurile pe care le trimite butonul Click\'n\'Load al unui site, exact ca JDownloader. Ce comuți aici rămâne valabil până la următoarea repornire.',
   'settings.connections.add': 'Adaugă conexiune',
   'settings.connections.import': 'Importă listă',
   'settings.connections.empty': 'Totul iese pe această mașină',

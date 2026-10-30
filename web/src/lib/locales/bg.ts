@@ -531,7 +531,6 @@ export const bg: Dict = {
   'columns.speed': 'Скорост',
   'columns.eta': 'Оставащо',
   'columns.status': 'Състояние',
-  'columns.availability': 'Наличност',
   'columns.host': 'Хостър',
   'columns.added': 'Добавено',
   'columns.finished': 'Завършено',
@@ -737,7 +736,7 @@ export const bg: Dict = {
   'settings.modules.reason.cnlSwitch': 'Слуша на 127.0.0.1:9666, освен ако KL_CNL не посочва друг порт. Изключването тук оставя KL_CNL както е, така че след рестарт портът се отваря така, както казва средата.',
   'settings.modules.reason.cnlNoListener': 'Този процес не отваря порт за Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Няма настроен JDownloader. KnightLoader обикновено стартира собствен при пускането си. Ако след няколко минути още липсва, потърси „JD provisioning failed“ в дневника или задай в KL_JD собствен JDownloader и рестартирай.',
-  'settings.modules.reason.captchaNoJD': 'Captcha идват само от бекенда JDownloader, а такъв не е настроен (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captcha идват само от бекенда JDownloader, а такъв не е настроен.',
   'settings.modules.switchFailed': 'Ключът беше отказан: {reason}',
   'settings.modules.configureFirst': 'Още няма какво да се включи. Настройте това първо в {page}; след това ключът тук го спира и пуска отново, без да губи зададеното.',
 
@@ -827,7 +826,7 @@ export const bg: Dict = {
   'settings.sectionLinkIntake': 'Приемане на връзки',
   'settings.linkIntakeHint': 'Начините, по които връзка попада в събирача сама, без да я поставяш тук.',
 
-  'settings.linkIntake.cnlHint': 'Приема връзките, които изпраща бутонът Click\'n\'Load на даден сайт, точно като JDownloader. Каквото превключиш тук, важи до следващия рестарт, после отново решава KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Приема връзките, които изпраща бутонът Click\'n\'Load на даден сайт, точно като JDownloader. Каквото превключиш тук, важи до следващия рестарт.',
   'settings.connections.add': 'Добави връзка',
   'settings.connections.import': 'Внеси списък',
   'settings.connections.empty': 'Всичко излиза през тази машина',

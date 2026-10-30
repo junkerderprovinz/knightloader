@@ -530,7 +530,6 @@ export const fi: Dict = {
   'columns.speed': 'Nopeus',
   'columns.eta': 'Jäljellä',
   'columns.status': 'Tila',
-  'columns.availability': 'Saatavuus',
   'columns.host': 'Palvelu',
   'columns.added': 'Lisätty',
   'columns.finished': 'Valmistui',
@@ -736,7 +735,7 @@ export const fi: Dict = {
   'settings.modules.reason.cnlSwitch': 'Kuuntelee osoitteessa 127.0.0.1:9666, ellei KL_CNL määritä toista porttia. Kun kytket sen pois tästä, KL_CNL pysyy ennallaan, joten uudelleenkäynnistyksen jälkeen portti avautuu ympäristön määräämällä tavalla.',
   'settings.modules.reason.cnlNoListener': 'Tämä prosessi ei avaa Click\'n\'Load-porttia.',
   'settings.resolvers.toolsJdMissingHint': 'JDownloaderia ei ole määritetty. KnightLoader käynnistää yleensä oman käynnistyessään. Jos se puuttuu vielä muutaman minuutin jälkeen, etsi lokista ”JD provisioning failed” tai aseta KL_JD omaan JDownloaderiisi ja käynnistä uudelleen.',
-  'settings.modules.reason.captchaNoJD': 'Captchat tulevat vain JDownloader-taustaosalta, eikä sellaista ole määritetty (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchat tulevat vain JDownloader-taustaosalta, eikä sellaista ole määritetty.',
   'settings.modules.switchFailed': 'Kytkin hylättiin: {reason}',
   'settings.modules.configureFirst': 'Mitään ei ole vielä kytkettävänä. Määritä tämä ensin sivulla {page}; sen jälkeen täkäläinen kytkin pysäyttää ja käynnistää sen uudelleen menettämättä asettamaasi.',
 
@@ -826,7 +825,7 @@ export const fi: Dict = {
   'settings.sectionLinkIntake': 'Linkkien vastaanotto',
   'settings.linkIntakeHint': 'Tavat, joilla linkki päätyy kerääjään itsestään ilman että liität sitä tähän.',
 
-  'settings.linkIntake.cnlHint': 'Ottaa vastaan linkit, jotka verkkosivun Click\'n\'Load-painike lähettää, aivan kuten JDownloader. Tässä tekemäsi valinta on voimassa seuraavaan uudelleenkäynnistykseen asti, sitten KL_CNL päättää taas.',
+  'settings.linkIntake.cnlHint': 'Ottaa vastaan linkit, jotka verkkosivun Click\'n\'Load-painike lähettää, aivan kuten JDownloader. Tässä tekemäsi valinta on voimassa seuraavaan uudelleenkäynnistykseen asti.',
   'settings.connections.add': 'Lisää yhteys',
   'settings.connections.import': 'Tuo lista',
   'settings.connections.empty': 'Kaikki menee ulos tämän koneen kautta',

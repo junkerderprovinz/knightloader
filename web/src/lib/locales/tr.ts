@@ -530,7 +530,6 @@ export const tr: Dict = {
   'columns.speed': 'Hız',
   'columns.eta': 'Kalan süre',
   'columns.status': 'Durum',
-  'columns.availability': 'Erişilebilirlik',
   'columns.host': 'Sunucu',
   'columns.added': 'Eklendi',
   'columns.finished': 'Bitti',
@@ -736,7 +735,7 @@ export const tr: Dict = {
   'settings.modules.reason.cnlSwitch': 'KL_CNL başka bir port belirtmedikçe 127.0.0.1:9666 üzerinde dinler. Burada kapatmak KL_CNL’ye dokunmaz, yani yeniden başlatmadan sonra port, ortamın dediği gibi açılır.',
   'settings.modules.reason.cnlNoListener': 'Bu süreç hiçbir Click\'n\'Load portu açmaz.',
   'settings.resolvers.toolsJdMissingHint': 'Kurulu bir JDownloader yok. KnightLoader normalde açılışta kendi JDownloader’ını başlatır. Birkaç dakika sonra hâlâ yoksa günlükte “JD provisioning failed” ifadesini ara ya da KL_JD’yi kendi JDownloader’ına ayarlayıp yeniden başlat.',
-  'settings.modules.reason.captchaNoJD': 'Captchalar yalnızca JDownloader arka ucundan gelir ve yapılandırılmış bir tane yok (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchalar yalnızca JDownloader arka ucundan gelir ve yapılandırılmış bir tane yok.',
   'settings.modules.switchFailed': 'Bu anahtar reddedildi: {reason}',
   'settings.modules.configureFirst': 'Henüz açılacak bir şey yok. Bunu önce {page} sayfasında kurun; ondan sonra buradaki anahtar, kurduğunuzu kaybetmeden onu durdurup yeniden başlatır.',
 
@@ -826,7 +825,7 @@ export const tr: Dict = {
   'settings.sectionLinkIntake': 'Bağlantı girişi',
   'settings.linkIntakeHint': 'Bir bağlantının, buraya yapıştırmana gerek kalmadan kendiliğinden toplayıcıya ulaşma yolları.',
 
-  'settings.linkIntake.cnlHint': 'Bir web sitesinin Click\'n\'Load düğmesinin gönderdiği bağlantıları, tıpkı JDownloader gibi alır. Burada değiştirdiğin şey bir sonraki yeniden başlatmaya kadar geçerlidir, sonra yine KL_CNL karar verir.',
+  'settings.linkIntake.cnlHint': 'Bir web sitesinin Click\'n\'Load düğmesinin gönderdiği bağlantıları, tıpkı JDownloader gibi alır. Burada değiştirdiğin şey bir sonraki yeniden başlatmaya kadar geçerlidir.',
   'settings.connections.add': 'Bağlantı ekle',
   'settings.connections.import': 'Liste içe aktar',
   'settings.connections.empty': 'Her şey bu makine üzerinden çıkıyor',

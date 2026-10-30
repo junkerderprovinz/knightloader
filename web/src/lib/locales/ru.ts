@@ -523,7 +523,6 @@ export const ru: Dict = {
   'columns.speed': 'Скорость',
   'columns.eta': 'Осталось',
   'columns.status': 'Статус',
-  'columns.availability': 'Доступность',
   'columns.host': 'Хостер',
   'columns.added': 'Добавлено',
   'columns.finished': 'Завершено',
@@ -729,7 +728,7 @@ export const ru: Dict = {
   'settings.modules.reason.cnlSwitch': 'Слушает 127.0.0.1:9666, если KL_CNL не называет другой порт. Выключение здесь не трогает KL_CNL, поэтому после перезапуска порт открывается так, как задано в окружении.',
   'settings.modules.reason.cnlNoListener': 'Этот процесс не открывает порт Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'JDownloader не настроен. Обычно KnightLoader при запуске сам запускает собственный. Если через несколько минут его всё ещё нет, поищите в журнале «JD provisioning failed» или задайте в KL_JD свой JDownloader и перезапустите.',
-  'settings.modules.reason.captchaNoJD': 'Капчи приходят только от бэкенда JDownloader, а он не настроен (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Капчи приходят только от бэкенда JDownloader, а он не настроен.',
   'settings.modules.switchFailed': 'Переключатель отклонён: {reason}',
   'settings.modules.configureFirst': 'Включать пока нечего. Сначала настройте это на странице {page}; после этого переключатель здесь останавливает и снова запускает модуль, не теряя заданного.',
 
@@ -819,7 +818,7 @@ export const ru: Dict = {
   'settings.sectionLinkIntake': 'Приём ссылок',
   'settings.linkIntakeHint': 'Способы, которыми ссылка попадает в сборщик сама, без вставки здесь.',
 
-  'settings.linkIntake.cnlHint': 'Принимает ссылки, которые отправляет кнопка Click\'n\'Load на сайте, как JDownloader. То, что вы переключите здесь, действует до следующего перезапуска, потом снова решает KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Принимает ссылки, которые отправляет кнопка Click\'n\'Load на сайте, как JDownloader. То, что вы переключите здесь, действует до следующего перезапуска.',
   'settings.connections.add': 'Добавить соединение',
   'settings.connections.import': 'Импортировать список',
   'settings.connections.empty': 'Всё выходит через эту машину',

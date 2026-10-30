@@ -530,7 +530,6 @@ export const ja: Dict = {
   'columns.speed': '速度',
   'columns.eta': '残り時間',
   'columns.status': '状態',
-  'columns.availability': '利用可否',
   'columns.host': 'ホスト',
   'columns.added': '追加日時',
   'columns.finished': '完了日時',
@@ -736,7 +735,7 @@ export const ja: Dict = {
   'settings.modules.reason.cnlSwitch': 'KL_CNL が別のポートを指定していなければ、127.0.0.1:9666 で待ち受けます。ここでオフにしても KL_CNL はそのままなので、再起動後は環境変数の指定どおりにポートが開きます。',
   'settings.modules.reason.cnlNoListener': 'このプロセスは Click\'n\'Load のポートを開きません。',
   'settings.resolvers.toolsJdMissingHint': 'JDownloader が設定されていません。通常、KnightLoader は起動時に自前のものを立ち上げます。数分たってもない場合は、ログで「JD provisioning failed」を探すか、KL_JD に自分の JDownloader を設定して再起動してください。',
-  'settings.modules.reason.captchaNoJD': 'キャプチャは JDownloader バックエンドからしか来ませんが、それが設定されていません（KL_JD）。',
+  'settings.modules.reason.captchaNoJD': 'キャプチャは JDownloader バックエンドからしか来ませんが、それが設定されていません。',
   'settings.modules.switchFailed': 'そのスイッチは拒否されました: {reason}',
   'settings.modules.configureFirst': 'まだオンにできるものがありません。先に {page} で設定してください。そのあとは、ここのスイッチが設定を失わずに停止と再開を行います。',
 
@@ -826,7 +825,7 @@ export const ja: Dict = {
   'settings.sectionLinkIntake': 'リンクの受け取り',
   'settings.linkIntakeHint': 'ここに貼り付けなくても、リンクがひとりでにコレクターへ届く経路です。',
 
-  'settings.linkIntake.cnlHint': 'ウェブサイトの Click\'n\'Load ボタンが送るリンクを、JDownloader と同じように受け取ります。ここでの切り替えは次の再起動まで有効で、そのあとは再び KL_CNL が決めます。',
+  'settings.linkIntake.cnlHint': 'ウェブサイトの Click\'n\'Load ボタンが送るリンクを、JDownloader と同じように受け取ります。ここでの切り替えは次の再起動まで有効です。',
   'settings.connections.add': '接続を追加',
   'settings.connections.import': 'リストを取り込む',
   'settings.connections.empty': 'すべてこのマシンから出ていきます',

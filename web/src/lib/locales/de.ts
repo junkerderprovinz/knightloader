@@ -567,7 +567,6 @@ export const de: Dict = {
   'columns.speed': 'Geschwindigkeit',
   'columns.eta': 'Restzeit',
   'columns.status': 'Status',
-  'columns.availability': 'Verfügbarkeit',
   'columns.host': 'Hoster',
   'columns.added': 'Hinzugefügt',
   'columns.finished': 'Fertig am',
@@ -800,7 +799,7 @@ export const de: Dict = {
   'settings.modules.reason.cnlSwitch': 'Lauscht auf 127.0.0.1:9666, außer KL_CNL nennt einen anderen Port. Schaltest du es hier aus, bleibt KL_CNL, wie es ist, nach einem Neustart öffnet sich der Port also so, wie die Umgebung es sagt.',
   'settings.modules.reason.cnlNoListener': "Dieser Prozess öffnet keinen Click'n'Load-Port.",
   'settings.resolvers.toolsJdMissingHint': 'Es ist kein JDownloader eingerichtet. Normalerweise startet KnightLoader beim Hochfahren einen eigenen. Fehlt er nach ein paar Minuten immer noch, such im Protokoll nach „JD provisioning failed“ oder setz KL_JD auf einen eigenen JDownloader und starte neu.',
-  'settings.modules.reason.captchaNoJD': 'Captchas kommen nur vom JDownloader-Backend, und es ist keins eingerichtet (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchas kommen nur vom JDownloader-Backend, und es ist keins eingerichtet.',
   'settings.modules.reason.keepawake': 'Nur die Desktop-App kann einen Rechner wach halten. Der Rechner, auf dem ein Container läuft, entscheidet selbst, wann er schläft.',
   'settings.modules.switchFailed': 'Der Schalter wurde abgelehnt: {reason}',
   'settings.modules.configureFirst': 'Es gibt noch nichts einzuschalten. Richte das zuerst auf {page} ein. Danach kannst du es mit diesem Schalter anhalten und neu starten, ohne das Eingerichtete zu verlieren.',
@@ -893,7 +892,7 @@ export const de: Dict = {
 
   'settings.sectionLinkIntake': 'Linkeingang',
   'settings.linkIntakeHint': 'Die Wege, auf denen ein Link von selbst im Linksammler landet, ohne dass du ihn hier einfügst.',
-  'settings.linkIntake.cnlHint': "Nimmt die Links an, die der Click'n'Load-Knopf einer Webseite schickt, so wie JDownloader. Was du hier schaltest, gilt bis zum nächsten Neustart, danach entscheidet wieder KL_CNL.",
+  'settings.linkIntake.cnlHint': "Nimmt die Links an, die der Click'n'Load-Knopf einer Webseite schickt, so wie JDownloader. Was du hier schaltest, gilt bis zum nächsten Neustart.",
 
   'settings.connections.add': 'Verbindung hinzufügen',
   'settings.connections.import': 'Liste importieren',

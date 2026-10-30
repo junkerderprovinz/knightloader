@@ -530,7 +530,6 @@ export const sr: Dict = {
   'columns.speed': 'Брзина',
   'columns.eta': 'Преостало',
   'columns.status': 'Стање',
-  'columns.availability': 'Доступност',
   'columns.host': 'Хостер',
   'columns.added': 'Додато',
   'columns.finished': 'Завршено',
@@ -736,7 +735,7 @@ export const sr: Dict = {
   'settings.modules.reason.cnlSwitch': 'Слуша на 127.0.0.1:9666, осим ако KL_CNL не наводи други порт. Искључивање овде оставља KL_CNL онаквим какав јесте, па се после поновног покретања порт отвара онако како каже окружење.',
   'settings.modules.reason.cnlNoListener': 'Овај процес не отвара Click\'n\'Load порт.',
   'settings.resolvers.toolsJdMissingHint': 'JDownloader није подешен. KnightLoader обично при подизању покреће свој. Ако и после неколико минута још недостаје, потражи „JD provisioning failed“ у дневнику или постави KL_JD на сопствени JDownloader и поново покрени.',
-  'settings.modules.reason.captchaNoJD': 'Captcha стижу само од позадине JDownloader, а ниједна није подешена (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captcha стижу само од позадине JDownloader, а ниједна није подешена.',
   'settings.modules.switchFailed': 'Прекидач је одбијен: {reason}',
   'settings.modules.configureFirst': 'Још нема шта да се укључи. Прво то подесите на {page}; после тога прекидач овде га зауставља и поново покреће без губитка онога што сте подесили.',
 
@@ -826,7 +825,7 @@ export const sr: Dict = {
   'settings.sectionLinkIntake': 'Пријем линкова',
   'settings.linkIntakeHint': 'Начини на које линк сам стигне у сакупљач, а да га не налепиш овде.',
 
-  'settings.linkIntake.cnlHint': 'Прима везе које шаље Click\'n\'Load дугме неког сајта, баш као JDownloader. Оно што овде пребациш важи до следећег поновног покретања, а онда поново одлучује KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Прима везе које шаље Click\'n\'Load дугме неког сајта, баш као JDownloader. Оно што овде пребациш важи до следећег поновног покретања.',
   'settings.connections.add': 'Додај везу',
   'settings.connections.import': 'Увези списак',
   'settings.connections.empty': 'Све излази преко ове машине',

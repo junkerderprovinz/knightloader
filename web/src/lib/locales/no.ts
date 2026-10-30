@@ -533,7 +533,6 @@ export const no: Dict = {
   'columns.speed': 'Hastighet',
   'columns.eta': 'Igjen',
   'columns.status': 'Status',
-  'columns.availability': 'Tilgjengelighet',
   'columns.host': 'Vert',
   'columns.added': 'Lagt til',
   'columns.finished': 'Ferdig',
@@ -739,7 +738,7 @@ export const no: Dict = {
   'settings.modules.reason.cnlSwitch': 'Lytter på 127.0.0.1:9666, med mindre KL_CNL oppgir en annen port. Slår du det av her, blir KL_CNL stående som det er, så etter en omstart åpnes porten slik miljøet sier.',
   'settings.modules.reason.cnlNoListener': 'Denne prosessen åpner ingen Click’n’Load-port.',
   'settings.resolvers.toolsJdMissingHint': 'Ingen JDownloader er satt opp. Vanligvis starter KnightLoader en egen når den starter opp. Mangler den fortsatt etter noen minutter, søk etter «JD provisioning failed» i loggen, eller sett KL_JD til en egen JDownloader og start på nytt.',
-  'settings.modules.reason.captchaNoJD': 'Captchaer kommer bare fra JDownloader-backenden, og ingen er satt opp (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchaer kommer bare fra JDownloader-backenden, og ingen er satt opp.',
   'settings.modules.switchFailed': 'Den bryteren ble avvist: {reason}',
   'settings.modules.configureFirst': 'Det er ennå ingenting å slå på. Sett dette opp på {page} først; deretter stopper og starter bryteren her det på nytt uten å miste det du har satt opp.',
 
@@ -829,7 +828,7 @@ export const no: Dict = {
   'settings.sectionLinkIntake': 'Linkmottak',
   'settings.linkIntakeHint': 'Måtene en link havner i samleren av seg selv, uten at du limer den inn her.',
 
-  'settings.linkIntake.cnlHint': 'Tar imot lenkene en nettsides Click’n’Load-knapp sender, akkurat som JDownloader. Det du slår av eller på her, gjelder til neste omstart, deretter bestemmer KL_CNL igjen.',
+  'settings.linkIntake.cnlHint': 'Tar imot lenkene en nettsides Click’n’Load-knapp sender, akkurat som JDownloader. Det du slår av eller på her, gjelder til neste omstart.',
   'settings.connections.add': 'Legg til tilkobling',
   'settings.connections.import': 'Importer liste',
   'settings.connections.empty': 'Alt går ut over denne maskinen',

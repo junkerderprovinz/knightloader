@@ -530,7 +530,6 @@ export const sv: Dict = {
   'columns.speed': 'Hastighet',
   'columns.eta': 'Återstår',
   'columns.status': 'Status',
-  'columns.availability': 'Tillgänglighet',
   'columns.host': 'Värd',
   'columns.added': 'Tillagd',
   'columns.finished': 'Klar',
@@ -736,7 +735,7 @@ export const sv: Dict = {
   'settings.modules.reason.cnlSwitch': 'Lyssnar på 127.0.0.1:9666, om inte KL_CNL anger en annan port. Stänger du av det här lämnas KL_CNL som det är, så efter en omstart öppnas porten så som miljön säger.',
   'settings.modules.reason.cnlNoListener': 'Den här processen öppnar ingen Click’n’Load-port.',
   'settings.resolvers.toolsJdMissingHint': 'Ingen JDownloader är inställd. Normalt startar KnightLoader en egen vid uppstarten. Saknas den fortfarande efter några minuter, sök i loggen efter ”JD provisioning failed” eller sätt KL_JD till en egen JDownloader och starta om.',
-  'settings.modules.reason.captchaNoJD': 'Captchor kommer bara från JDownloader-backenden, och ingen är inställd (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchor kommer bara från JDownloader-backenden, och ingen är inställd.',
   'settings.modules.switchFailed': 'Den brytaren nekades: {reason}',
   'settings.modules.configureFirst': 'Det finns inget att slå på än. Ställ in det på {page} först; därefter stoppar och startar brytaren här om det utan att tappa det du ställt in.',
 
@@ -826,7 +825,7 @@ export const sv: Dict = {
   'settings.sectionLinkIntake': 'Länkmottagning',
   'settings.linkIntakeHint': 'Sätten som en länk hamnar i samlaren av sig själv, utan att du klistrar in den här.',
 
-  'settings.linkIntake.cnlHint': 'Tar emot länkarna som en webbplats Click’n’Load-knapp skickar, precis som JDownloader. Det du slår om här gäller till nästa omstart, sedan bestämmer KL_CNL igen.',
+  'settings.linkIntake.cnlHint': 'Tar emot länkarna som en webbplats Click’n’Load-knapp skickar, precis som JDownloader. Det du slår om här gäller till nästa omstart.',
   'settings.connections.add': 'Lägg till anslutning',
   'settings.connections.import': 'Importera lista',
   'settings.connections.empty': 'Allt går ut via den här maskinen',

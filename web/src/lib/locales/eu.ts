@@ -531,7 +531,6 @@ export const eu: Dict = {
   'columns.speed': 'Abiadura',
   'columns.eta': 'Geratzen dena',
   'columns.status': 'Egoera',
-  'columns.availability': 'Erabilgarritasuna',
   'columns.host': 'Ostalaria',
   'columns.added': 'Gehituta',
   'columns.finished': 'Amaituta',
@@ -737,7 +736,7 @@ export const eu: Dict = {
   'settings.modules.reason.cnlSwitch': '127.0.0.1:9666 helbidean entzuten du, KL_CNL-k beste ataka bat izendatzen ez badu. Hemen itzaltzeak KL_CNL dagoen bezala uzten du, beraz berrabiarazi ondoren ataka inguruneak dioen moduan irekitzen da.',
   'settings.modules.reason.cnlNoListener': 'Prozesu honek ez du Click\'n\'Load atakarik irekitzen.',
   'settings.resolvers.toolsJdMissingHint': 'Ez dago JDownloaderrik konfiguratuta. KnightLoaderrek normalean berea abiarazten du hasieran. Minutu batzuk geroago ere falta bada, bilatu «JD provisioning failed» erregistroan, edo ezarri KL_JD zure JDownloader batean eta berrabiarazi.',
-  'settings.modules.reason.captchaNoJD': 'Captchak JDownloader backendetik bakarrik datoz, eta ez dago bat ere konfiguratuta (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchak JDownloader backendetik bakarrik datoz, eta ez dago bat ere konfiguratuta.',
   'settings.modules.switchFailed': 'Etengailu hori ukatu da: {reason}',
   'settings.modules.configureFirst': 'Oraindik ez dago ezer pizteko. Ezarri hau lehenik {page} orrian; ondoren hemengo etengailuak gelditu eta berriro abiaraziko du, ezarritakoa galdu gabe.',
 
@@ -827,7 +826,7 @@ export const eu: Dict = {
   'settings.sectionLinkIntake': 'Esteken sarrera',
   'settings.linkIntakeHint': 'Esteka bat berez biltzailera iristeko bideak, hemen itsatsi gabe.',
 
-  'settings.linkIntake.cnlHint': 'Webgune baten Click\'n\'Load botoiak bidaltzen dituen estekak hartzen ditu, JDownloaderrek bezala. Hemen aldatzen duzunak hurrengo berrabiarazi arte irauten du, eta gero KL_CNL-k erabakitzen du berriro.',
+  'settings.linkIntake.cnlHint': 'Webgune baten Click\'n\'Load botoiak bidaltzen dituen estekak hartzen ditu, JDownloaderrek bezala. Hemen aldatzen duzunak hurrengo berrabiarazi arte irauten du.',
   'settings.connections.add': 'Gehitu konexioa',
   'settings.connections.import': 'Inportatu zerrenda',
   'settings.connections.empty': 'Dena makina honetatik ateratzen da',

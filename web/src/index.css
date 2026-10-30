@@ -244,7 +244,13 @@
 :root:has(.glim-page-actions:not(:empty)) {
   --page-actions-space: calc(var(--btn-h-key) + 0.75rem);
 }
-:has(+ .glim-page-actions:not(:empty)) {
+:has(+ .glim-page-actions:not(:empty)):not(:has(.glim-actions-room)) {
+  padding-bottom: calc(var(--btn-h-key) + 1.5rem);
+}
+/* A page whose list fills the window keeps that room inside the list's card
+   instead, so the card reaches the window's foot and the action floats over
+   its corner, with the last row still clear of it. */
+:root:has(.glim-page-actions:not(:empty)) .glim-actions-room {
   padding-bottom: calc(var(--btn-h-key) + 1.5rem);
 }
 /* A floating action lies over the page's rows. The card elevation barely shows

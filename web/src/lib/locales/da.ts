@@ -530,7 +530,6 @@ export const da: Dict = {
   'columns.speed': 'Hastighed',
   'columns.eta': 'Tilbage',
   'columns.status': 'Status',
-  'columns.availability': 'Tilgængelighed',
   'columns.host': 'Vært',
   'columns.added': 'Tilføjet',
   'columns.finished': 'Færdig',
@@ -736,7 +735,7 @@ export const da: Dict = {
   'settings.modules.reason.cnlSwitch': 'Lytter på 127.0.0.1:9666, medmindre KL_CNL angiver en anden port. Slår du det fra her, forbliver KL_CNL, som det er, så efter en genstart åbner porten sig, som miljøet siger.',
   'settings.modules.reason.cnlNoListener': 'Denne proces åbner ingen Click’n’Load-port.',
   'settings.resolvers.toolsJdMissingHint': 'Der er ingen JDownloader sat op. KnightLoader starter normalt sin egen under opstarten. Mangler den stadig efter nogle minutter, så se efter »JD provisioning failed« i loggen, eller sæt KL_JD til en JDownloader, du selv har, og genstart.',
-  'settings.modules.reason.captchaNoJD': 'Captchaer kommer kun fra JDownloader-backenden, og der er ikke sat nogen op (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchaer kommer kun fra JDownloader-backenden, og der er ikke sat nogen op.',
   'settings.modules.switchFailed': 'Den kontakt blev afvist: {reason}',
   'settings.modules.configureFirst': 'Der er endnu ikke noget at tænde for. Sæt det op på {page} først; derefter stopper og genstarter kontakten her det uden at miste det, du har sat op.',
 
@@ -826,7 +825,7 @@ export const da: Dict = {
   'settings.sectionLinkIntake': 'Linkmodtagelse',
   'settings.linkIntakeHint': 'De måder, et link kan havne i samleren af sig selv, uden at du indsætter det her.',
 
-  'settings.linkIntake.cnlHint': 'Tager imod de links, som en websides Click’n’Load-knap sender, præcis som JDownloader. Det, du slår til eller fra her, gælder indtil næste genstart, derefter bestemmer KL_CNL igen.',
+  'settings.linkIntake.cnlHint': 'Tager imod de links, som en websides Click’n’Load-knap sender, præcis som JDownloader. Det, du slår til eller fra her, gælder indtil næste genstart.',
   'settings.connections.add': 'Tilføj forbindelse',
   'settings.connections.import': 'Importér liste',
   'settings.connections.empty': 'Alt går ud over denne maskine',

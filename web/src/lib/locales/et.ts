@@ -530,7 +530,6 @@ export const et: Dict = {
   'columns.speed': 'Kiirus',
   'columns.eta': 'Jäänud',
   'columns.status': 'Olek',
-  'columns.availability': 'Saadavus',
   'columns.host': 'Majutaja',
   'columns.added': 'Lisatud',
   'columns.finished': 'Valmis',
@@ -736,7 +735,7 @@ export const et: Dict = {
   'settings.modules.reason.cnlSwitch': 'Kuulab aadressil 127.0.0.1:9666, kui KL_CNL ei nimeta teist porti. Kui lülitad selle siin välja, jääb KL_CNL samaks, seega avaneb port pärast taaskäivitust nii, nagu keskkond ütleb.',
   'settings.modules.reason.cnlNoListener': 'See protsess ei ava ühtegi Click\'n\'Load porti.',
   'settings.resolvers.toolsJdMissingHint': 'JDownloaderit pole seadistatud. KnightLoader käivitab tavaliselt üles tulles oma enda. Kui seda on mõne minuti pärast ikka veel puudu, otsi logist „JD provisioning failed“ või sea KL_JD oma JDownloaderi peale ja käivita uuesti.',
-  'settings.modules.reason.captchaNoJD': 'Captchad tulevad ainult JDownloaderi taustsüsteemilt ja seda pole seadistatud (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchad tulevad ainult JDownloaderi taustsüsteemilt ja seda pole seadistatud.',
   'settings.modules.switchFailed': 'See lüliti lükati tagasi: {reason}',
   'settings.modules.configureFirst': 'Veel pole midagi sisse lülitada. Seadista see kõigepealt lehel {page}; pärast seda peatab ja käivitab siinne lüliti selle uuesti, kaotamata seatut.',
 
@@ -826,7 +825,7 @@ export const et: Dict = {
   'settings.sectionLinkIntake': 'Linkide vastuvõtt',
   'settings.linkIntakeHint': 'Viisid, kuidas link jõuab kogujasse ise, ilma et sa selle siia kleebiksid.',
 
-  'settings.linkIntake.cnlHint': 'Võtab vastu lingid, mille veebilehe Click\'n\'Load nupp saadab, täpselt nagu JDownloader. Siin tehtud valik kehtib järgmise taaskäivituseni, siis otsustab jälle KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Võtab vastu lingid, mille veebilehe Click\'n\'Load nupp saadab, täpselt nagu JDownloader. Siin tehtud valik kehtib järgmise taaskäivituseni.',
   'settings.connections.add': 'Lisa ühendus',
   'settings.connections.import': 'Impordi loend',
   'settings.connections.empty': 'Kõik läheb välja selle masina kaudu',

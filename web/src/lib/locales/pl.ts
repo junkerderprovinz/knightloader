@@ -523,7 +523,6 @@ export const pl: Dict = {
   'columns.speed': 'Prędkość',
   'columns.eta': 'Pozostało',
   'columns.status': 'Status',
-  'columns.availability': 'Dostępność',
   'columns.host': 'Hoster',
   'columns.added': 'Dodano',
   'columns.finished': 'Ukończono',
@@ -729,7 +728,7 @@ export const pl: Dict = {
   'settings.modules.reason.cnlSwitch': 'Nasłuchuje na 127.0.0.1:9666, chyba że KL_CNL wskazuje inny port. Wyłączenie go tutaj nie zmienia KL_CNL, więc po ponownym uruchomieniu port otworzy się tak, jak mówi środowisko.',
   'settings.modules.reason.cnlNoListener': 'Ten proces nie otwiera portu Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Nie skonfigurowano żadnego JDownloadera. KnightLoader zwykle przy starcie uruchamia własny. Jeśli po kilku minutach nadal go brak, poszukaj w dzienniku „JD provisioning failed” albo ustaw KL_JD na własny JDownloader i uruchom ponownie.',
-  'settings.modules.reason.captchaNoJD': 'Captche pochodzą tylko z backendu JDownloader, a żaden nie jest skonfigurowany (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captche pochodzą tylko z backendu JDownloader, a żaden nie jest skonfigurowany.',
   'settings.modules.switchFailed': 'Ten przełącznik odrzucono: {reason}',
   'settings.modules.configureFirst': 'Nie ma jeszcze czego włączać. Skonfiguruj to najpierw na {page}; potem przełącznik tutaj zatrzymuje to i uruchamia ponownie, nie tracąc tego, co ustawiłeś.',
 
@@ -819,7 +818,7 @@ export const pl: Dict = {
   'settings.sectionLinkIntake': 'Odbiór linków',
   'settings.linkIntakeHint': 'Sposoby, w jakie link trafia do kolektora sam, bez wklejania go tutaj.',
 
-  'settings.linkIntake.cnlHint': 'Przyjmuje linki, które wysyła przycisk Click\'n\'Load na stronie internetowej, tak jak JDownloader. To, co tu przełączysz, obowiązuje do następnego ponownego uruchomienia, potem znów decyduje KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Przyjmuje linki, które wysyła przycisk Click\'n\'Load na stronie internetowej, tak jak JDownloader. To, co tu przełączysz, obowiązuje do następnego ponownego uruchomienia.',
   'settings.connections.add': 'Dodaj połączenie',
   'settings.connections.import': 'Importuj listę',
   'settings.connections.empty': 'Wszystko wychodzi przez tę maszynę',

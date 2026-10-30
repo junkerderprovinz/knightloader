@@ -532,7 +532,6 @@ export const he: Dict = {
   'columns.speed': 'מהירות',
   'columns.eta': 'זמן שנותר',
   'columns.status': 'מצב',
-  'columns.availability': 'זמינות',
   'columns.host': 'מארח',
   'columns.added': 'נוסף',
   'columns.finished': 'הסתיים',
@@ -738,7 +737,7 @@ export const he: Dict = {
   'settings.modules.reason.cnlSwitch': 'מאזין ב-127.0.0.1:9666, אלא אם KL_CNL מציין פורט אחר. כיבוי כאן משאיר את KL_CNL כמו שהוא, כך שאחרי הפעלה מחדש הפורט נפתח כפי שהסביבה קובעת.',
   'settings.modules.reason.cnlNoListener': 'התהליך הזה לא פותח שום פורט Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'לא הוגדר JDownloader. בדרך כלל KnightLoader מפעיל אחד משלו בזמן העלייה. אם הוא עדיין חסר אחרי כמה דקות, חפש "JD provisioning failed" ביומן, או הגדר את KL_JD ל-JDownloader משלך והפעל מחדש.',
-  'settings.modules.reason.captchaNoJD': 'קאפצ׳ות מגיעות רק ממנוע JDownloader, ולא הוגדר אף אחד (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'קאפצ׳ות מגיעות רק ממנוע JDownloader, ולא הוגדר אף אחד.',
   'settings.modules.switchFailed': 'המתג נדחה: {reason}',
   'settings.modules.configureFirst': 'עדיין אין מה להדליק. הגדר את זה קודם ב{page}; אחרי כן המתג כאן עוצר ומפעיל אותו מחדש בלי לאבד את מה שהגדרת.',
 
@@ -828,7 +827,7 @@ export const he: Dict = {
   'settings.sectionLinkIntake': 'קליטת קישורים',
   'settings.linkIntakeHint': 'הדרכים שבהן קישור מגיע לאוסף מעצמו, בלי שתדביק אותו כאן.',
 
-  'settings.linkIntake.cnlHint': 'מקבל את הקישורים שכפתור Click\'n\'Load של אתר שולח, בדיוק כמו JDownloader. מה שאתה משנה כאן תקף עד ההפעלה מחדש הבאה, ואז KL_CNL מחליט שוב.',
+  'settings.linkIntake.cnlHint': 'מקבל את הקישורים שכפתור Click\'n\'Load של אתר שולח, בדיוק כמו JDownloader. מה שאתה משנה כאן תקף עד ההפעלה מחדש הבאה.',
   'settings.connections.add': 'הוסף חיבור',
   'settings.connections.import': 'ייבא רשימה',
   'settings.connections.empty': 'הכול יוצא דרך המכונה הזאת',

@@ -531,7 +531,6 @@ export const lv: Dict = {
   'columns.speed': 'Ātrums',
   'columns.eta': 'Atlicis',
   'columns.status': 'Statuss',
-  'columns.availability': 'Pieejamība',
   'columns.host': 'Glabātājs',
   'columns.added': 'Pievienots',
   'columns.finished': 'Pabeigts',
@@ -737,7 +736,7 @@ export const lv: Dict = {
   'settings.modules.reason.cnlSwitch': 'Klausās adresē 127.0.0.1:9666, ja vien KL_CNL nenorāda citu portu. Ja to izslēdz šeit, KL_CNL paliek, kāds bija, tāpēc pēc restartēšanas ports atveras tā, kā nosaka vide.',
   'settings.modules.reason.cnlNoListener': 'Šis process neatver nevienu Click\'n\'Load portu.',
   'settings.resolvers.toolsJdMissingHint': 'Nav iestatīts neviens JDownloader. KnightLoader parasti startēšanas laikā palaiž savu. Ja pēc dažām minūtēm tā joprojām nav, meklējiet žurnālā „JD provisioning failed“ vai iestatiet KL_JD uz savu JDownloader un restartējiet.',
-  'settings.modules.reason.captchaNoJD': 'Captcha nāk tikai no JDownloader aizmugures, un neviena nav konfigurēta (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captcha nāk tikai no JDownloader aizmugures, un neviena nav konfigurēta.',
   'settings.modules.switchFailed': 'Šis slēdzis tika atteikts: {reason}',
   'settings.modules.configureFirst': 'Vēl nav ko ieslēgt. Vispirms iestatiet to lapā {page}; pēc tam slēdzis šeit to aptur un palaiž no jauna, nezaudējot iestatīto.',
 
@@ -827,7 +826,7 @@ export const lv: Dict = {
   'settings.sectionLinkIntake': 'Saišu saņemšana',
   'settings.linkIntakeHint': 'Veidi, kā saite pati nonāk savācējā, tev to šeit neielīmējot.',
 
-  'settings.linkIntake.cnlHint': 'Pieņem saites, ko sūta tīmekļa vietnes Click\'n\'Load poga, tieši tāpat kā JDownloader. Tas, ko šeit pārslēdz, ir spēkā līdz nākamajai restartēšanai, pēc tam atkal nosaka KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Pieņem saites, ko sūta tīmekļa vietnes Click\'n\'Load poga, tieši tāpat kā JDownloader. Tas, ko šeit pārslēdz, ir spēkā līdz nākamajai restartēšanai.',
   'settings.connections.add': 'Pievienot savienojumu',
   'settings.connections.import': 'Importēt sarakstu',
   'settings.connections.empty': 'Viss iziet caur šo datoru',

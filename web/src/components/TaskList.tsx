@@ -322,7 +322,7 @@ export function useListSort(title: string, profile: ListProfile = 'downloads', s
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, null);
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
   const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
-  const header = (col: ColumnDef) => t(col.labelByProfile?.[profile] ?? col.labelKey);
+  const header = (col: ColumnDef) => t(col.labelKey);
   const sortedBy = sort ? layout.visible.find((c) => c.id === sort.id) : undefined;
 
   return {
@@ -830,10 +830,11 @@ function PackageName({
 }
 
 /**
- * The gear badge a yt-dlp-routed package's header carries. It opens that host's
- * variant preset: which of the five rows the collector shows for this host's
- * links, the ones already in it included, and the default quality and audio
- * format a new link's rows start on. Per host rather than per package (GET and
+ * The gear badge a yt-dlp-routed package's header carries, quiet and just
+ * before the trash like every other row badge. It opens that host's variant
+ * preset: which of the five rows the collector shows for this host's links,
+ * the ones already in it included, and the default quality and audio format a
+ * new link's rows start on. Per host rather than per package (GET and
  * POST /api/ytdlp/preset), so a package with more than one host shows the
  * badge for whichever host its variant rows share.
  */
@@ -844,6 +845,7 @@ function HosterPresetButton({ host, base, focusable }: { host: string; base: str
   return (
     <>
       <IconBadge
+        quiet
         hue={0}
         tabIndex={focusable ? 0 : -1}
         icon={<IconGear width={16} height={16} />}
@@ -1426,7 +1428,7 @@ function Header({
             >
               {/* One list can call a column something else; see CellContext's
                   `profile` for why that is one column and not two. */}
-              <span className="truncate">{t(col.labelByProfile?.[profile] ?? col.labelKey)}</span>
+              <span className="truncate">{t(col.labelKey)}</span>
               {sorted === 'asc' && <IconMoveUp width={11} height={11} className="shrink-0" />}
               {sorted === 'desc' && <IconMoveDown width={11} height={11} className="shrink-0" />}
             </button>
@@ -3446,7 +3448,7 @@ export function TaskListCard({
           a card without one must not take the class: `.glim-hue` with no
           --item-hue resolves --accent to nothing and the badge disappears. */}
       <div
-        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}flex-1`}
+        className={`glim-card glim-actions-room ${hue !== undefined ? 'glim-hue ' : ''}flex-1`}
         style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
       >
         {/* On the top edge across from the title, as a second notch, so it
