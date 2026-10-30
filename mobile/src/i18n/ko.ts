@@ -412,4 +412,8 @@ export const ko: Dict = {
   'battery.askBody': '배터리를 아끼려고 Android가 백그라운드의 KnightLoader를 일시 중지할 수 있으며, 이때 알림이 늦게 옵니다. 다음 화면에서 KnightLoader를 찾아 배터리 최적화를 끄세요.',
   'battery.askLater': '나중에',
   'battery.askOpen': '설정 열기',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

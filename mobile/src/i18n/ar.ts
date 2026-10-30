@@ -413,4 +413,8 @@ export const ar: Dict = {
   'battery.askBody': 'لتوفير البطارية قد يوقف Android تطبيق KnightLoader مؤقتًا في الخلفية، فتصل الإشعارات متأخرة. في الشاشة التالية ابحث عن KnightLoader وأوقف تحسين البطارية له.',
   'battery.askLater': 'ليس الآن',
   'battery.askOpen': 'فتح الإعدادات',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

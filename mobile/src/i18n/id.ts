@@ -413,4 +413,8 @@ export const id: Dict = {
   'battery.askBody': 'Untuk menghemat baterai, Android bisa menjeda KnightLoader di latar belakang, dan notifikasi lalu datang terlambat. Di layar berikutnya, cari KnightLoader dan matikan pengoptimalan baterainya.',
   'battery.askLater': 'Nanti saja',
   'battery.askOpen': 'Buka pengaturan',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

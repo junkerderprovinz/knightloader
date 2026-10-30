@@ -771,6 +771,19 @@ export interface Account {
   /** RFC3339; empty until the health refresher has fetched it. */
   expiry?: string;
   trafficLeft?: string;
+  /** Every bench running on the account, mirroring app.AccountPause. */
+  paused?: AccountPause[];
+}
+
+/** Why routing passes an account over, for which hoster and until when. */
+export interface AccountPause {
+  /** A used-up download volume; otherwise `detail` says what failed. */
+  volume?: boolean;
+  /** The one hoster the bench covers, absent for all of them. */
+  host?: string;
+  /** RFC3339. */
+  until: string;
+  detail?: string;
 }
 
 /** One account's traffic allowance, mirroring app.TrafficState. */

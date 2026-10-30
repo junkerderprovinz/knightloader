@@ -413,4 +413,8 @@ export const lt: Dict = {
   'battery.askBody': 'Taupydama akumuliatorių, Android gali sustabdyti KnightLoader fone, ir pranešimai tada ateina pavėluotai. Kitame ekrane suraskite KnightLoader ir išjunkite jos akumuliatoriaus optimizavimą.',
   'battery.askLater': 'Ne dabar',
   'battery.askOpen': 'Atidaryti nustatymus',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

@@ -413,4 +413,8 @@ export const fi: Dict = {
   'battery.askBody': 'Säästääkseen akkua Android voi keskeyttää KnightLoaderin taustalla, ja ilmoitukset tulevat silloin myöhässä. Etsi seuraavalta näytöltä KnightLoader ja poista siltä akun optimointi.',
   'battery.askLater': 'Ei nyt',
   'battery.askOpen': 'Avaa asetukset',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

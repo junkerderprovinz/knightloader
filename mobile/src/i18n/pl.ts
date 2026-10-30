@@ -413,4 +413,8 @@ export const pl: Dict = {
   'battery.askBody': 'Aby oszczędzać baterię, Android może wstrzymać KnightLoadera w tle, a powiadomienia przychodzą wtedy z opóźnieniem. Na następnym ekranie znajdź KnightLoadera i wyłącz dla niego optymalizację baterii.',
   'battery.askLater': 'Nie teraz',
   'battery.askOpen': 'Otwórz ustawienia',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

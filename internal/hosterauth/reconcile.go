@@ -522,6 +522,23 @@ func (r *Reconciler) States() []LoginState {
 	return out
 }
 
+// TrafficSpent reports whether the last pass found JD's login for host with
+// none of its traffic left. Only a plan that states a quota counts: JD reports
+// trafficLeft 0 for a free account and for one with nothing to meter as well.
+// It takes no callback under r.mu, so the app may ask while holding its own
+// lock.
+func (r *Reconciler) TrafficSpent(host string) bool {
+	key := accountKey(host)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for h, st := range r.states {
+		if accountKey(h) == key && st.Status == StatusActive && st.TrafficMax > 0 && st.TrafficLeft <= 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // Hosts returns the "add a login" picker's list: JD's own premium-hoster list
 // when JD is reachable, curatedHosts otherwise.
 func (r *Reconciler) Hosts(ctx context.Context) []Host {

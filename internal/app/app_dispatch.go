@@ -1418,16 +1418,28 @@ func (a *App) onUpdate(id string, u core.Update) {
 		if code == "" {
 			code, params = u.Code, u.Params
 		}
+		var resets time.Time
+		code, params, resets = a.quotaFailureLocked(t, u.Err, code, params)
+		if !resets.IsZero() && u.Retry <= 0 {
+			// Every attempt before then meets the same refusal.
+			u.Retry = time.Until(resets)
+		}
 		t.SetError(u.Err, code, params)
 	}
 	// Account health learns of the outcome before the freed slot is
 	// redispatched, so queued tasks on the same account see the new verdict.
 	// Resolvers without a tracked account are unaffected. A site the service
-	// has switched off is benched on its own and says nothing about the
-	// account.
+	// has switched off, or whose download volume alone it has used up, is
+	// benched on its own and says nothing about the account.
 	siteDown := u.Status == core.StatusError && u.HostDown
+	var siteSpent bool
 	if siteDown {
-		a.benchSiteLocked(t.Resolver, t.URL)
+		a.benchSiteLocked(t.Resolver, t.URL, time.Now().Add(siteBenchLength), false)
+	} else if svc, acct, ok := a.accountForResolverLocked(t.Resolver); ok && u.Status == core.StatusError {
+		if _, hostOnly := volumeText(u.Err); hostOnly {
+			a.benchSiteLocked(t.Resolver, t.URL, a.volumeBackAt(svc, acct), true)
+			siteDown, siteSpent = true, true
+		}
 	}
 	var accountUnroutable bool
 	if svc, acct, ok := a.accountForResolverLocked(t.Resolver); ok && !siteDown {
@@ -1508,18 +1520,24 @@ func (a *App) onUpdate(id string, u core.Update) {
 			t.SetError(t.Error, core.CodeUnsupported, nil)
 		}
 	} else if u.Status == core.StatusError && accountUnroutable && t.ResolverPin != "" {
-		// Pinned, so no move to another backend: the failure stands, named
-		// after the pin, and the ordinary retry below applies.
-		a.pinFailureLocked(t)
+		// Pinned, so no move to another backend: the failure stands, and the
+		// ordinary retry below applies. It is named after the pin unless it
+		// already says which volume ran out and when it comes back.
+		if t.ErrorCode != core.CodeQuotaUsed {
+			a.pinFailureLocked(t)
+		}
 	} else if u.Status == core.StatusError && (accountUnroutable || (siteDown && t.ResolverPin == "")) {
-		// The account failed, or the service has switched off this site, not
-		// the link, so the task is requeued for the next backend like
-		// u.Unsupported rather than failed. A pinned task that met a
-		// switched-off site keeps the service's own words and the ordinary
-		// retry.
+		// The account failed, or the service has switched off this site or
+		// used up its volume for it, not the link, so the task is requeued for
+		// the next backend like u.Unsupported rather than failed. A pinned
+		// task that met such a site keeps the service's own words and the
+		// ordinary retry.
 		fallbackTo = a.backendFor(t.Resolver)
 		why := "the account behind " + t.Resolver + " is unavailable"
-		if siteDown {
+		switch {
+		case siteSpent:
+			why = t.Resolver + " has used up its download volume for " + siteOf(t.URL)
+		case siteDown:
 			why = t.Resolver + " has switched off " + siteOf(t.URL)
 		}
 		next := a.nextResolverLocked(t)
@@ -1606,9 +1624,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// A hoster limit tied to this address is what a reconnect can fix. It is
 	// signalled by u.Retry or by ReasonLimit, and addressMayHelp can veto it.
 	// ReasonLimit also covers used-up account allowances, where a reconnect
-	// does not help, but a wasted reconnect is the cheaper mistake. Never while
-	// the queue is halted.
-	limitHit := u.Retry > 0 || t.Reason == core.ReasonLimit
+	// does not help, but a wasted reconnect is the cheaper mistake. The one
+	// allowance known to be an account's is left out. Never while the queue is
+	// halted.
+	limitHit := (u.Retry > 0 || t.Reason == core.ReasonLimit) && t.ErrorCode != core.CodeQuotaUsed
 	reconnectFor := ""
 	if retryIn > 0 && limitHit && !a.halted && addressMayHelp(t.Reason) && a.reconnectConfigured() {
 		reconnectFor = id
