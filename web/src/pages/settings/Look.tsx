@@ -22,16 +22,25 @@ import {
 } from '../../lib/api';
 import {
   IconClose,
+  IconConfirm,
   IconCornerLeaf,
   IconCornerRound,
   IconCornerSoft,
   IconCornerSquare,
+  IconLabelGlyph,
+  IconLabelReactive,
+  IconLabelText,
+  IconLabelTextGlyph,
   IconMoon,
   IconMotionOff,
   IconMotionStorm,
   IconMotionSubtle,
   IconMotionWild,
   IconRefresh,
+  IconRetry,
+  IconRowComfortable,
+  IconRowCompact,
+  IconRowMedium,
   IconSignOut,
   IconSun,
   IconThemeSystem,
@@ -149,6 +158,12 @@ const MOTION_GLYPHS: Record<Motion, (p: GlyphProps) => ReactNode> = {
   storm: IconMotionStorm,
 };
 
+const ROW_GLYPHS: Record<RowHeight, (p: GlyphProps) => ReactNode> = {
+  compact: IconRowCompact,
+  medium: IconRowMedium,
+  comfortable: IconRowComfortable,
+};
+
 const LABEL_AXIS_NAMES: Record<LabelAxis, TranslationKey> = {
   buttons: 'settings.labels.buttons',
   sidebar: 'settings.labels.sidebar',
@@ -161,6 +176,13 @@ const LABEL_MODE_NAMES: Record<LabelMode, TranslationKey> = {
   both: 'settings.labels.mode.textGlyph',
   glyph: 'settings.labels.mode.glyph',
   hover: 'settings.labels.mode.reactive',
+};
+
+const LABEL_MODE_GLYPHS: Record<LabelMode, (p: GlyphProps) => ReactNode> = {
+  text: IconLabelText,
+  both: IconLabelTextGlyph,
+  glyph: IconLabelGlyph,
+  hover: IconLabelReactive,
 };
 
 interface SlotMemory {
@@ -557,8 +579,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             className="glim-well flex h-[var(--btn-h)] w-fit min-w-[12rem] items-center gap-2.5 px-3 text-sm text-carbon-text"
           />
         </SettingRow>
-        {/* One group, so the three selectors with glyphs share one dot for
-            what changed in them. */}
+        {/* One group, so theme, shape and motion share one dot for what
+            changed in them. */}
         <div data-new="look-glyphs" className="flex flex-col gap-4">
           <SettingRow label={t('settings.theme')} hint={t('settings.themeHint', { system: t('theme.system') })}>
             <Tabs
@@ -638,9 +660,13 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             size="sm"
             inline
             hug
+            labelled
             active={rowHeight}
             onSelect={(id) => setRowHeight(id as RowHeight)}
-            items={ROW_HEIGHTS.map((h) => ({ id: h, label: t(`settings.rowHeight.${h}` as TranslationKey) }))}
+            items={ROW_HEIGHTS.map((h) => {
+              const Glyph = ROW_GLYPHS[h];
+              return { id: h, label: t(`settings.rowHeight.${h}` as TranslationKey), icon: <Glyph width={16} height={16} /> };
+            })}
           />
         </SettingRow>
       </Card>
@@ -674,13 +700,17 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
               size="sm"
               inline
               hug
+              labelled
               active={labelModes[axis]}
               onSelect={(id) => {
                 const next = asLabelMode(id);
                 setLabelMode(axis, next);
                 patch({ [LABEL_SETTING[axis]]: next });
               }}
-              items={LABEL_MODES.map((m) => ({ id: m, label: t(LABEL_MODE_NAMES[m]) }))}
+              items={LABEL_MODES.map((m) => {
+                const Glyph = LABEL_MODE_GLYPHS[m];
+                return { id: m, label: t(LABEL_MODE_NAMES[m]), icon: <Glyph width={16} height={16} /> };
+              })}
             />
           </SettingRow>
         ))}
@@ -1005,7 +1035,7 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
   // Nothing while loading, like UpdateCard.
   if (loading) return null;
   if (failed || !data) {
-    return <ErrorCard nested message={t('settings.system.loadFailed')} retry={reload} retryLabel="↻" />;
+    return <ErrorCard nested message={t('settings.system.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
   }
 
   if (shuttingDown) {
@@ -1040,7 +1070,7 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
         </Button>
         <Button
           kind="secondary"
-          icon={<IconRefresh width={16} height={16} />}
+          icon={<IconRetry width={16} height={16} />}
           disabled={!data.canRestart || acting}
           onClick={() => setConfirmAction('restart')}
         >
@@ -1064,6 +1094,7 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
                 disabled={acting}
               />
               <Button
+                icon={<IconConfirm />}
                 shake={actShake}
                 kind="ghost"
                 onClick={() => void confirmLifecycle()}

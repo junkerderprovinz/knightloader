@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Button, Modal } from '../../../components/ui';
 import { NeutralSwitch } from '../controls';
 import { useT } from '../../../lib/i18n';
-import { IconClose } from '../../../lib/icons';
+import { IconApply, IconClearSelection, IconClose, IconSelectAll } from '../../../lib/icons';
 import { en, type TranslationKey } from '../../../lib/locales/en';
 import type { JDImportItem, JDImportPreview, JDImportReason } from '../../../lib/api';
 
@@ -101,7 +101,12 @@ export function JDImportPreviewDialog({
             onClick={onClose}
             disabled={busy}
           />
-          <Button kind="primary" onClick={() => onApply([...picked])} disabled={busy || picked.size === 0}>
+          <Button
+            kind="primary"
+            icon={<IconApply />}
+            onClick={() => onApply([...picked])}
+            disabled={busy || picked.size === 0}
+          >
             {busy ? t('settings.transfer.applying') : t('settings.transfer.apply', { n: picked.size })}
           </Button>
         </>
@@ -120,10 +125,15 @@ export function JDImportPreviewDialog({
         ))}
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button kind="ghost" onClick={() => setPicked(new Set(selectable.map((it) => it.id)))} disabled={busy}>
+          <Button
+            kind="ghost"
+            icon={<IconSelectAll />}
+            onClick={() => setPicked(new Set(selectable.map((it) => it.id)))}
+            disabled={busy}
+          >
             {t('settings.transfer.selectAll')}
           </Button>
-          <Button kind="ghost" onClick={() => setPicked(new Set())} disabled={busy}>
+          <Button kind="ghost" icon={<IconClearSelection />} onClick={() => setPicked(new Set())} disabled={busy}>
             {t('settings.transfer.selectNone')}
           </Button>
         </div>

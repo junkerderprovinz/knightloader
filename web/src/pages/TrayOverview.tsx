@@ -8,7 +8,7 @@ import { type QueueState, connectWS, fetchCaptchas, fetchQueue, setQueue } from 
 import { showMain, useEdgeResize } from '../lib/desktop';
 import { fmtRate, pct } from '../lib/format';
 import { useT } from '../lib/i18n';
-import { IconCaptcha, IconPause, IconPlay } from '../lib/icons';
+import { IconApp, IconCaptcha, IconPause, IconPlay } from '../lib/icons';
 import { countTasks } from '../lib/needs';
 import { useTasks } from '../lib/useTasks';
 
@@ -163,7 +163,7 @@ export function TrayOverview() {
         <Button kind="secondary" className="w-full" icon={halted ? <IconPlay /> : <IconPause />} onClick={toggle}>
           {halted ? t('queue.start') : t('queue.stop')}
         </Button>
-        <Button className="w-full" onClick={open}>
+        <Button icon={<IconApp />} className="w-full" onClick={open}>
           {t('tray.show')}
         </Button>
       </footer>

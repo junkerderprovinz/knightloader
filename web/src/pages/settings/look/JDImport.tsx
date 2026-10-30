@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Button, Card, SectionTitle } from '../../../components/ui';
 import { PathInput } from '../../../components/FolderPicker';
-import { IconUpload } from '../../../lib/icons';
+import { IconImport } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
   ApiError,
@@ -87,7 +87,7 @@ export function JDImportCard({ hue }: { hue: number }) {
         <div className="flex flex-wrap items-center gap-3">
           <Button
             kind="secondary"
-            icon={<IconUpload width={16} height={16} />}
+            icon={<IconImport width={16} height={16} />}
             onClick={() => fileInput.current?.click()}
             disabled={busy !== null}
             confirm={done}
@@ -102,6 +102,7 @@ export function JDImportCard({ hue }: { hue: number }) {
         <PathInput value={path} onValue={setPath} title={t('settings.jdimport.pathLabel')} />
         <div className="flex flex-wrap items-center gap-3">
           <Button
+            icon={<IconImport />}
             kind="secondary"
             onClick={() => void read('path', () => readJDImportPath(path.trim()))}
             disabled={busy !== null || path.trim() === ''}

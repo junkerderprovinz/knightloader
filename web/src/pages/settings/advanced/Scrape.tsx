@@ -4,6 +4,7 @@ import { useT } from '../../../lib/i18n';
 import { appAddress } from '../../../lib/basePath';
 import { ModuleCard } from '../ModuleToggle';
 import { Reading } from '../health/Reading';
+import { IconCheckDrawn, IconCopy } from '../../../lib/icons';
 
 /**
  * ScrapeCard switches the plain-text metrics route, which is off by default and
@@ -25,6 +26,7 @@ export function ScrapeCard({ hue }: { hue: number }) {
         {/* navigator.clipboard is missing on a plain-HTTP LAN address. */}
         {'clipboard' in navigator && (
           <Button
+            icon={copied ? <IconCheckDrawn /> : <IconCopy />}
             kind="ghost"
             className="px-2.5 text-xs"
             confirm={copies}

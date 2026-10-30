@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Card, SectionTitle, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
-import { IconCheck, IconClose, IconNotifications } from '../../../lib/icons';
+import { IconCheck, IconClose, IconSendTest } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useQuietMode, useToast } from '../../../lib/toast';
 import {
@@ -71,7 +71,7 @@ export function NotificationsCard({ hue }: { hue: number }) {
           SYSTEM_SUPPORTED ? (
             <Button
               kind="secondary"
-              icon={sent === 'ok' ? <IconCheck /> : sent === 'fail' ? <IconClose /> : <IconNotifications />}
+              icon={sent === 'ok' ? <IconCheck /> : sent === 'fail' ? <IconClose /> : <IconSendTest />}
               verdict={sent ?? undefined}
               shake={shake}
               onClick={() => void sendTest()}

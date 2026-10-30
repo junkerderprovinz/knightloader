@@ -11,7 +11,7 @@ import { Tabs } from '../../../components/Tabs';
 import { saveRelayConfig, type ConnectInfo, type RelayConfig, type RelayMode } from '../../../lib/api';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { IconCheckDrawn, IconClose, IconCopy, IconEye, IconRefresh } from '../../../lib/icons';
+import { IconCheckDrawn, IconClose, IconCopy, IconEye, IconRetry } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { FactGlyph, RouteDiagram, RouteGlyph, type RouteKind } from './pairingArt';
 import { SubCard } from '../controls';
@@ -321,7 +321,7 @@ export function RelayCard({
               </ul>
               {onRefresh && (
                 <div className="flex justify-end">
-                  <Button kind="secondary" className="kl-raised-btn" icon={<IconRefresh />} onClick={onRefresh}>
+                  <Button kind="secondary" className="kl-raised-btn" icon={<IconRetry />} onClick={onRefresh}>
                     {t('pairing.checkAgain')}
                   </Button>
                 </div>

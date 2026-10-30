@@ -44,6 +44,7 @@ export type NotificationKind =
  */
 export interface ToastAction {
   label: string;
+  icon: ReactNode;
   run: () => void | Promise<void>;
   holdMs?: number;
 }
@@ -227,6 +228,7 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
         // action reports its own result in a new bubble.
         <Button
           kind="primary"
+          icon={item.action.icon}
           className="px-2.5 text-xs"
           onClick={() => {
             const run = item.action?.run;

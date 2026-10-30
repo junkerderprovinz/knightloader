@@ -77,6 +77,7 @@ import {
   IconKey,
   IconLatest,
   IconMore,
+  IconMove,
   IconMoveDown,
   IconMoveUp,
   IconPause,
@@ -84,13 +85,15 @@ import {
   IconPlay,
   IconPower,
   IconPriority,
-  IconRefresh,
+  IconRetry,
+  IconSave,
   IconSearch,
   IconSelectAll,
   IconStop,
   IconStopMark,
   IconTrash,
   IconTrashFiles,
+  IconUndo,
   IconUpload,
 } from '../lib/icons';
 import { SettingRow } from '../pages/settings/controls';
@@ -341,7 +344,7 @@ function ConfirmRemove({
               label engine; the answer is words that follow the switch. */}
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
-          <Button kind="secondary" onClick={() => onConfirm(erase)}>
+          <Button kind="secondary" icon={erase ? <IconTrashFiles /> : <IconTrash />} onClick={() => onConfirm(erase)}>
             {t(erase ? 'remove.withFiles' : 'remove.fromList')}
           </Button>
         </>
@@ -439,7 +442,7 @@ export function TaskOptionsDialog({
           {error && <span dir="auto" className="min-w-0 text-statusFail text-sm">{error}</span>}
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
-          <Button onClick={apply}>{t('settings.save')}</Button>
+          <Button icon={<IconSave />} onClick={apply}>{t('settings.save')}</Button>
         </>
       }
     >
@@ -528,7 +531,9 @@ export function useRemoval({
             : t('remove.done', { n: r.count }),
           'ok',
           'action-done',
-          token ? { label: t('remove.undo'), run: () => undoRemoval(token), holdMs: r.undoMs } : undefined,
+          token
+            ? { label: t('remove.undo'), icon: <IconUndo />, run: () => undoRemoval(token), holdMs: r.undoMs }
+            : undefined,
         );
         onDone();
       } catch (e) {
@@ -1076,7 +1081,7 @@ function taskMenuGroups({
     transport.items.push({
       id: 'restart',
       label: t('task.restart'),
-      icon: <IconRefresh width={14} height={14} />,
+      icon: <IconRetry width={14} height={14} />,
       onSelect: guard(async () => ok(await restartTasks(ids, base))),
     });
   transport.items.push({
@@ -1357,7 +1362,7 @@ export function ListMenu({
     organise.push({
       id: 'movePackage',
       label: t('pkg.moveTitle'),
-      icon: <IconFolder width={14} height={14} />,
+      icon: <IconMove width={14} height={14} />,
       onSelect: () => setMovePkg(chosen),
     });
 

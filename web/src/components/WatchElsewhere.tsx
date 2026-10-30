@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Button, Modal } from './ui';
-import { IconClose } from '../lib/icons';
+import { IconClose, IconKeepBoth, IconPower } from '../lib/icons';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useClipboardWatch } from '../lib/useClipboardWatch';
@@ -85,10 +85,10 @@ function WatchElsewhereDialog({
         <>
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} disabled={busy} onClick={onClose} />
-          <Button kind="secondary" disabled={busy} onClick={onDecided}>
+          <Button kind="secondary" icon={<IconKeepBoth />} disabled={busy} onClick={onDecided}>
             {t('intake.watchElsewhereKeep')}
           </Button>
-          <Button disabled={busy} onClick={() => void stopThere()}>
+          <Button icon={<IconPower />} disabled={busy} onClick={() => void stopThere()}>
             {t('intake.watchElsewhereStop')}
           </Button>
         </>

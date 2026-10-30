@@ -13,6 +13,7 @@ import { useT } from '../lib/i18n';
 import { Button, Toggle } from './ui';
 import { Tip } from './columns';
 import { ProgressBar } from './ProgressBar';
+import { IconAdd, IconClearSelection, IconClose, IconSelectAll } from '../lib/icons';
 
 // fmtElapsed prints seconds in fmtEta's compact shape: "12s", "3min 5s", "1h 2min".
 function fmtElapsed(totalSeconds: number): string {
@@ -245,10 +246,10 @@ function TorrentTreeCard({
       </div>
 
       <div className="flex items-center gap-2">
-        <Button kind="secondary" onClick={() => setAll(true)}>
+        <Button kind="secondary" icon={<IconSelectAll />} onClick={() => setAll(true)}>
           {t('torrent.tree.selectAll')}
         </Button>
-        <Button kind="secondary" onClick={() => setAll(false)}>
+        <Button kind="secondary" icon={<IconClearSelection />} onClick={() => setAll(false)}>
           {t('torrent.tree.selectNone')}
         </Button>
       </div>
@@ -268,10 +269,10 @@ function TorrentTreeCard({
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button kind="ghost" onClick={onCancel} disabled={busy}>
+        <Button kind="ghost" icon={<IconClose />} onClick={onCancel} disabled={busy}>
           {t('torrent.tree.cancel')}
         </Button>
-        <Button kind="secondary" onClick={onConfirm} disabled={busy || selectedCount === 0}>
+        <Button kind="secondary" icon={<IconAdd />} onClick={onConfirm} disabled={busy || selectedCount === 0}>
           {busy ? t('torrent.staging') : t('torrent.tree.add')}
         </Button>
       </div>

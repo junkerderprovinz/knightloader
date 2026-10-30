@@ -117,7 +117,7 @@ describe('BrowserTools', () => {
     it('gives the desktop app of the release it runs and names that release on the card', async () => {
       expect(await macOS('v1.8.4')).toContain('/releases/download/v1.8.4/knightloader-macos-universal.zip');
       const card = [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('macOS'))!;
-      expect(card.querySelector('a[href$="/releases/tag/v1.8.4"]')?.textContent).toBe('v1.8.4');
+      expect(card.querySelector('a[href$="/releases/tag/v1.8.4"]')?.textContent).toBe('1.8.4');
     });
 
     it('gives the newest desktop app where it runs no release, and names no number', async () => {

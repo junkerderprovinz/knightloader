@@ -13,7 +13,7 @@ import {
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { Button, Card, PasswordInput, TextInput } from '../components/ui';
-import { IconKey } from '../lib/icons';
+import { IconForgotPassword, IconForward, IconKey, IconSignIn } from '../lib/icons';
 import { LanguagePicker } from '../components/LanguagePicker';
 import { PasswordReset } from './PasswordReset';
 import { SettingRow } from '../pages/settings/controls';
@@ -187,7 +187,11 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
                   </SettingRow>
                 )}
                 <div className="flex items-center gap-3">
-                  <Button type="submit" disabled={busy || (step === 'code' ? code === '' : password === '')}>
+                  <Button
+                    icon={step === 'code' ? <IconForward /> : <IconSignIn />}
+                    type="submit"
+                    disabled={busy || (step === 'code' ? code === '' : password === '')}
+                  >
                     {step === 'code' ? t('auth.twoFactor.verify') : t('auth.signIn')}
                   </Button>
                   {error === 'password' && <span className="text-statusFail text-sm">{t('auth.wrong')}</span>}
@@ -220,7 +224,13 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
                   password. */}
               {step === 'password' && (
                 <div className="flex flex-col items-start gap-2">
-                  <Button kind="ghost" className="-ms-3.5" disabled={busy} onClick={() => void forgot()}>
+                  <Button
+                    kind="ghost"
+                    icon={<IconForgotPassword />}
+                    className="-ms-3.5"
+                    disabled={busy}
+                    onClick={() => void forgot()}
+                  >
                     {t('auth.forgot')}
                   </Button>
                   {error === 'noResetCode' && (

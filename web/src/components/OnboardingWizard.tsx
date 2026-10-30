@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchSettings, patchSettings, type Settings } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { IconClose } from '../lib/icons';
+import { IconAccounts, IconBack, IconClose, IconConfirm, IconForward } from '../lib/icons';
 import { readUIState, useUIState } from '../lib/uistate';
 import { Button, LoadingCard, Modal } from './ui';
 import { PathInput } from './FolderPicker';
@@ -123,11 +123,15 @@ export function OnboardingWizard() {
           <Button kind="ghost" labelled icon={<IconClose />} title={t('onboarding.skip')} onClick={close} />
           <span className="flex-1" />
           {stepIndex > 0 && (
-            <Button kind="secondary" onClick={() => setStepIndex((i) => i - 1)}>
+            <Button kind="secondary" icon={<IconBack />} onClick={() => setStepIndex((i) => i - 1)}>
               {t('onboarding.back')}
             </Button>
           )}
-          <Button kind="primary" onClick={last ? close : () => void next()}>
+          <Button
+            kind="primary"
+            icon={last ? <IconConfirm /> : <IconForward />}
+            onClick={last ? close : () => void next()}
+          >
             {last ? t('onboarding.finish') : t('onboarding.next')}
           </Button>
         </>
@@ -178,7 +182,7 @@ export function OnboardingWizard() {
           ))}
 
         {step === 'accounts' && (
-          <Button kind="secondary" className="w-fit" onClick={openAccounts}>
+          <Button kind="secondary" icon={<IconAccounts />} className="w-fit" onClick={openAccounts}>
             {t('onboarding.accounts.link')}
           </Button>
         )}

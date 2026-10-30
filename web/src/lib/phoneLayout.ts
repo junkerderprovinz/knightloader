@@ -38,3 +38,16 @@ export function usePhoneLayout(): boolean {
 export function useTabletLayout(): boolean {
   return useSyncExternalStore(tablet.subscribe, tablet.matches, () => false);
 }
+
+/**
+ * Below 45rem a fifth of the bottom bar holds no page name in German or Greek,
+ * so the bar shows its glyphs alone there whatever its label setting says
+ * (GlimStone, "Bottom bar").
+ */
+const NARROW_BAR = '(max-width: 44.99rem)';
+const narrowBar = watch(NARROW_BAR);
+
+/** useNarrowBar says whether the bottom bar is too narrow for its words. */
+export function useNarrowBar(): boolean {
+  return useSyncExternalStore(narrowBar.subscribe, narrowBar.matches, () => false);
+}

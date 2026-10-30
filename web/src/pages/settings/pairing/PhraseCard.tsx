@@ -21,7 +21,17 @@ import { basePath } from '../../../lib/basePath';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { isDesktop } from '../../../lib/desktop';
 import { useT } from '../../../lib/i18n';
-import { IconCheckDrawn, IconClose, IconCopy, IconEye, IconPencil, IconRefresh, IconSignOut, IconWarning } from '../../../lib/icons';
+import {
+  IconCheckDrawn,
+  IconClose,
+  IconCopy,
+  IconEye,
+  IconKey,
+  IconPencil,
+  IconRetry,
+  IconSignOut,
+  IconWarning,
+} from '../../../lib/icons';
 import { useShake } from '../../../lib/useShake';
 import { useToast } from '../../../lib/toast';
 import { PhraseGlyph } from './pairingArt';
@@ -252,7 +262,7 @@ export function PhraseCard({
     <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5">
       <p className="min-w-0 flex-[1_1_18rem] text-subline leading-relaxed text-carbon-text">{t('pairing.noPasswordHint')}</p>
       <span className="flex items-center gap-2">
-        <Button kind="secondary" onClick={() => navigate('/settings/access')}>
+        <Button kind="secondary" icon={<IconKey />} onClick={() => navigate('/settings/access')}>
           {t('settings.setPassword')}
         </Button>
         <IconBadge
@@ -299,7 +309,7 @@ export function PhraseCard({
         <IconWarning />
       </span>
       <p className="min-w-0 flex-[1_1_18rem] text-subline leading-relaxed text-carbon-text">{t('pairing.wordsNoPassword')}</p>
-      <Button kind="secondary" onClick={() => navigate('/settings/access')}>
+      <Button kind="secondary" icon={<IconKey />} onClick={() => navigate('/settings/access')}>
         {t('settings.setPassword')}
       </Button>
     </div>
@@ -359,7 +369,7 @@ export function PhraseCard({
       <span className="font-semibold text-carbon-text">{t('relay.notConnected')}</span>
       <InfoBubble tip={t('pairing.relayCheckTip')} />
       <span className="ms-auto">
-        <Button kind="secondary" icon={<IconRefresh />} onClick={onRefresh}>
+        <Button kind="secondary" icon={<IconRetry />} onClick={onRefresh}>
           {t('pairing.checkAgain')}
         </Button>
       </span>

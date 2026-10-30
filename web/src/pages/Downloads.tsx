@@ -55,16 +55,17 @@ import { useToast } from '../lib/toast';
 import { taskRefusal } from '../lib/taskRefusal';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import {
-  IconSearch,
-  IconDownloadArrow,
+  IconClearSelection,
   IconClose,
+  IconDownloadArrow,
   IconPause,
   IconPlay,
-  IconRefresh,
+  IconRetry,
+  IconSearch,
+  IconSelectAll,
   IconTrash,
   IconTrashFiles,
-  IconSelectAll,
-  IconClearSelection,
+  IconUndo,
 } from '../lib/icons';
 
 // The two cards below the download list, in the order they are drawn. Each
@@ -271,6 +272,7 @@ export function Downloads() {
     setSelected(new Set(reach.shown));
     toast(t('select.reduced', { n: reach.hidden.length }), 'info', 'action-done', {
       label: t('remove.undo'),
+      icon: <IconUndo />,
       run: () => setSelected(before),
     });
   }, [selected, reach, toast, t]);
@@ -532,7 +534,7 @@ export function Downloads() {
                 <IconBadge
                   labelled={!glyphs}
                   hue={3}
-                  icon={<IconRefresh width={16} height={16} />}
+                  icon={<IconRetry width={16} height={16} />}
                   title={t('task.restart')}
                   aria-label={t('task.restart')}
                   onClick={() =>
@@ -591,7 +593,7 @@ export function Downloads() {
                   <IconBadge
                     labelled={!glyphs}
                     hue={4}
-                    icon={<IconRefresh width={16} height={16} />}
+                    icon={<IconRetry width={16} height={16} />}
                     title={t('downloads.retryFailed')}
                     aria-label={t('downloads.retryFailed')}
                     onClick={retryFailed}

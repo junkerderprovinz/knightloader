@@ -13,7 +13,7 @@ import {
   type Settings,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { IconClose, IconMenu, IconRefresh } from '../lib/icons';
+import { IconClose, IconMenu, IconRetry } from '../lib/icons';
 import { useQuietMode, useToast } from '../lib/toast';
 import { openWindow } from '../lib/windowStack';
 import { IdleActionPicker } from '../pages/settings/automation/IdleAction';
@@ -322,7 +322,7 @@ function ReconnectRow({
       {blocked?.way}
       <Button
         kind="secondary"
-        icon={<IconRefresh width={16} height={16} />}
+        icon={<IconRetry width={16} height={16} />}
         hint={blocked?.reason ?? t('quick.reconnectHint')}
         disabled={busy || blocked !== null}
         onClick={() => void run()}

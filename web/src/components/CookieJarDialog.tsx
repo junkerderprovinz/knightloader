@@ -6,7 +6,7 @@ import {
   saveYtdlpCookieJar,
   type Task,
 } from '../lib/api';
-import { IconClose } from '../lib/icons';
+import { IconClose, IconCookies, IconSave } from '../lib/icons';
 import { message } from '../lib/intake';
 import { hostOf } from '../lib/searchQuery';
 import { useT } from '../lib/i18n';
@@ -97,6 +97,7 @@ export function CookieJarDialog({
             onClick={onClose}
           />
           <Button
+            icon={task ? <IconSave /> : <IconCookies />}
             // An empty jar means "clear" to the server, so both fields are required.
             disabled={busy || host.trim() === '' || text.trim() === ''}
             onClick={() => void save()}

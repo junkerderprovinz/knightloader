@@ -20,7 +20,7 @@ import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
-import { IconAccounts, IconBack, IconClose, IconTrash } from '../lib/icons';
+import { IconAccounts, IconBack, IconClose, IconSave, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 import { SettingRow } from '../pages/settings/controls';
 
@@ -356,7 +356,7 @@ function HosterLoginDialog({
               />
             )}
             <span className="flex-1" />
-            <Button onClick={() => void doSave()} disabled={saving || !canSave}>
+            <Button icon={<IconSave />} onClick={() => void doSave()} disabled={saving || !canSave}>
               {saving ? t('accounts.saving') : t('accounts.save')}
             </Button>
           </>

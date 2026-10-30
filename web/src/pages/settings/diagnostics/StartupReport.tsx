@@ -6,7 +6,7 @@ import { adviceFor, adviceNamesAccount } from '../../../lib/startupAdvice';
 import { useRunsAs, withRunsAs } from '../../../lib/runsAs';
 import { InfoBubble, type ButtonVerdict } from '../../../components/ui';
 import { TestButton } from '../../../components/TestButton';
-import { IconCheck, IconClose, IconWarning } from '../../../lib/icons';
+import { IconCheck, IconClose, IconRetry, IconWarning } from '../../../lib/icons';
 import { Fold, VERDICT_WORDS, type FoldVerdict } from '../health/Fold';
 
 // The start report shows what this instance checked once after it came up, as
@@ -139,6 +139,7 @@ export function StartupFold({ report }: { report: StartupReport | null }) {
 
       <div className="flex flex-wrap items-center gap-1.5">
         <TestButton
+          icon={<IconRetry />}
           label={t('settings.diagnostics.startupRecheck')}
           busyLabel={t('settings.diagnostics.startupRechecking')}
           hint={t('settings.diagnostics.startupRecheckHint')}

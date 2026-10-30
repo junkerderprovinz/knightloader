@@ -5,7 +5,6 @@
 import { pause, resume, restartTasks, moveTasks, queueMove } from '../api';
 import { MOVE_STATES, RENAME_SHORTCUT } from '../../components/ListToolbar';
 import {
-  IconCheck,
   IconFirst,
   IconLatest,
   IconMoveDown,
@@ -13,8 +12,9 @@ import {
   IconPause,
   IconPencil,
   IconPlay,
-  IconRefresh,
+  IconRetry,
   IconSearch,
+  IconSelectAll,
   IconTrash,
 } from '../icons';
 import type { Command, CommandContext } from './types';
@@ -84,7 +84,7 @@ export const downloadsCommands: Command[] = [
   {
     id: 'downloads.retryFailed',
     labelKey: 'downloads.retryFailed',
-    icon: IconRefresh,
+    icon: IconRetry,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
     defaultShortcut: 'mod+shift+z',
@@ -96,7 +96,7 @@ export const downloadsCommands: Command[] = [
   {
     id: 'downloads.selectAll',
     labelKey: 'select.all',
-    icon: IconCheck,
+    icon: IconSelectAll,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
     defaultShortcut: 'mod+a',
