@@ -114,19 +114,31 @@ var siteBenchLength = benchBase
 // are benched together.
 func siteOf(url string) string { return hostalias.Canonical(hostOf(url)) }
 
-// benchSiteLocked passes resolverID's service over for url's site for
-// siteBenchLength, leaving its accounts and every other site alone, and
-// dispatches once the bench is over so a task held for it goes back. A bench
-// already running keeps its end. Caller holds a.mu.
-func (a *App) benchSiteLocked(resolverID, url string) {
+// siteBan is one service passed over for one site, and whether for its
+// download volume there rather than for the site being switched off.
+type siteBan struct {
+	until  time.Time
+	volume bool
+}
+
+// benchSiteLocked passes resolverID's service over for url's site until
+// until, leaving its accounts and every other site alone, and dispatches once
+// the bench is over so a task held for it goes back. A bench already running
+// keeps its end. Caller holds a.mu.
+func (a *App) benchSiteLocked(resolverID, url string, until time.Time, volume bool) {
 	if a.siteBenchedLocked(resolverID, url) {
 		return
 	}
 	key := serviceSiteOf(resolverID, url)
-	a.siteBench[key] = time.Now().Add(siteBenchLength)
-	log.Printf("%s has switched off %s; other backends take its links for %s", key.service, key.site, siteBenchLength)
+	a.siteBench[key] = siteBan{until: until, volume: volume}
+	if volume {
+		log.Printf("%s has used up its download volume for %s; other backends take its links until %s",
+			key.service, key.site, until.Format(time.RFC3339))
+	} else {
+		log.Printf("%s has switched off %s; other backends take its links for %s", key.service, key.site, time.Until(until).Round(time.Second))
+	}
 	// As with scheduleProbe, a.spawn refuses the work once shutdown has begun.
-	time.AfterFunc(siteBenchLength, func() {
+	time.AfterFunc(time.Until(until), func() {
 		a.spawn(func() {
 			a.mu.Lock()
 			a.dispatchLocked()
@@ -138,7 +150,16 @@ func (a *App) benchSiteLocked(resolverID, url string) {
 // siteBenchedLocked reports whether resolverID's service is passed over for
 // url's site. Caller holds a.mu.
 func (a *App) siteBenchedLocked(resolverID, url string) bool {
-	return time.Now().Before(a.siteBench[serviceSiteOf(resolverID, url)])
+	return time.Now().Before(a.siteBench[serviceSiteOf(resolverID, url)].until)
+}
+
+// liftSiteBenchesLocked ends every site bench of service. Caller holds a.mu.
+func (a *App) liftSiteBenchesLocked(service string) {
+	for k := range a.siteBench {
+		if k.service == service {
+			delete(a.siteBench, k)
+		}
+	}
 }
 
 // benchBase and benchMax bound one bench episode. Each probe is a real call
@@ -229,6 +250,14 @@ func (a *App) reportAccountFailure(service, account string, reason core.Reason, 
 		return !tr.Usable(service, account)
 	}
 	state := refineState(service, base, errText)
+	if spent, _ := volumeText(errText); spent && state == accounts.HealthTempDisabled {
+		rec, started := tr.ReportVolumeSpent(service, account, errText, a.volumeBackAt(service, account))
+		if started {
+			log.Printf("account health: %s/%s has used up its download volume, benched until %s", service, account, rec.BenchedUntil.Format(time.RFC3339))
+			a.scheduleProbe(service, account, rec.BenchedUntil)
+		}
+		return true
+	}
 	prev := tr.Get(service, account)
 	var benchFor time.Duration
 	if state == accounts.HealthTempDisabled {
@@ -269,7 +298,8 @@ var probeCredential = checkCredential
 
 // probeBenchExpiry probes the account for the bench that ends at until. When
 // the verdict has changed since, the account was switched off or its
-// credential is gone, the call is not made.
+// credential is gone, the call is not made. A volume bench reads the account's
+// volume instead of checking the key, which a spent account still passes.
 func (a *App) probeBenchExpiry(service, account string, until time.Time) {
 	tr := a.acctHealthTracker()
 	cur := tr.Get(service, account)
@@ -285,6 +315,10 @@ func (a *App) probeBenchExpiry(service, account string, until time.Time) {
 	}
 	cred := a.credentialFor(svc, account)
 	if cred.IsZero() {
+		return
+	}
+	if cur.Volume {
+		a.recheckVolume(svc, account)
 		return
 	}
 
