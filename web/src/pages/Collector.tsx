@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { recheckTasks } from '../lib/api';
+import { recheckTasks, type Task } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useStartTasks } from '../lib/useStartTasks';
 import { useReportListView } from '../lib/listview';
@@ -65,7 +65,11 @@ import {
 
 export function Collector() {
   const { t } = useT();
-  const tasks = useTasks('');
+  const live = useTasks('');
+  // While Start all moves every link out, the list stays as it was until the
+  // move is done and the page changes, instead of losing its rows one by one.
+  const [frozen, setFrozen] = useState<Record<string, Task> | null>(null);
+  const tasks = frozen ?? live;
   const { toast } = useToast();
   // Kept here, since the container drop zone gives dropped links the same
   // package name as pasted ones.
@@ -239,10 +243,13 @@ export function Collector() {
   };
   // Once everything collected is on its way, there is nothing left here to
   // look at. Starting a selection leaves the rest, so that stays on the page.
-  const startAll = () =>
+  const startAll = () => {
+    setFrozen(live);
     void runStart([]).then((started) => {
       if (started) navigate('/downloads');
+      else setFrozen(null);
     });
+  };
 
   async function openCleanup(el: HTMLButtonElement | null): Promise<void> {
     try {
@@ -515,7 +522,7 @@ export function Collector() {
           primary
           icon={<IconPlay />}
           label={t('collector.startAll')}
-          disabled={collected.length === 0}
+          disabled={collected.length === 0 || frozen !== null}
           onClick={startAll}
         />
       </PageActions>
