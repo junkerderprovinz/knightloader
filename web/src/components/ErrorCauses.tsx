@@ -128,6 +128,7 @@ export function ErrorCauses({
           className="gap-1.5 px-2.5 text-xs"
           icon={<IconRetry width={14} height={14} />}
           title={t('downloads.retryCause', { n: c.count, reason: c.label })}
+          label={c.label}
           onClick={() => retry(c)}
         >
           {c.label}
