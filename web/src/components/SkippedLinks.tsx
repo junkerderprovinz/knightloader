@@ -3,9 +3,10 @@ import { clearSkipped, connectWS, fetchSkipped, type SkippedLink } from '../lib/
 import { fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { Button, InfoBubble } from './ui';
-import { Tip } from './columns';
-import { IconClose, IconEye, IconEyeOff, IconTrash } from '../lib/icons';
+import { skippedReason } from '../lib/skippedReason';
+import { Button } from './ui';
+import { Notice, NoticeRow } from './Notice';
+import { IconEmpty, IconEye, IconEyeOff } from '../lib/icons';
 
 // `at` has nanosecond precision, so the pair is unique in practice.
 const keyOf = (s: SkippedLink) => `${s.at}|${s.url}`;
@@ -76,61 +77,30 @@ export function SkippedLinks() {
 
   return (
     // Bottom right with the other notices, above the toast stack at bottom-5.
-    <div className="fixed bottom-[calc(5rem+var(--phone-bar-space)+var(--page-actions-space))] end-5 z-40 w-[min(92vw,26rem)]">
-      <div
-        className="glim-toast overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface2
-          shadow-[var(--elevation)] ring-1 ring-carbon-border"
-      >
-        <div className="flex flex-wrap items-center gap-2 px-4 py-2.5">
-          <span className="glim-num flex items-center text-xs text-carbon-textSub">
-            {t('skipped.summary', { n: items.length })}
-            <InfoBubble tip={t('skipped.info')} />
-          </span>
-          {/* One group, so a narrow panel moves the buttons under the count
-              together. Filled, since ghost buttons read as text on a filled
-              panel. */}
-          <span className="ms-auto flex items-center gap-2">
+    <div className="fixed bottom-[calc(5rem+var(--phone-bar-space)+var(--page-actions-space))] end-5 z-40 w-[min(92vw,34rem)]">
+      <Notice
+        id="skipped"
+        className="glim-toast"
+        title={t('skipped.summary', { n: items.length })}
+        info={t('skipped.info')}
+        onClose={() => setDismissed(true)}
+        actions={
+          <>
             {items.length > 1 && (
-              <Button
-                kind="secondary"
-                icon={showAll ? <IconEyeOff /> : <IconEye />}
-                className="px-2.5 text-xs"
-                onClick={() => setShowAll((v) => !v)}
-              >
+              <Button kind="secondary" icon={showAll ? <IconEyeOff /> : <IconEye />} onClick={() => setShowAll((v) => !v)}>
                 {showAll ? t('common.hide') : t('common.show')}
               </Button>
             )}
-            <Button
-              kind="secondary"
-              className="px-2.5 text-xs"
-              icon={<IconTrash width={14} height={14} />}
-              onClick={onClear}
-            >
+            <Button kind="secondary" icon={<IconEmpty />} onClick={onClear}>
               {t('skipped.clear')}
             </Button>
-            <Button
-              kind="secondary"
-              icon={<IconClose width={14} height={14} />}
-              title={t('common.dismiss')}
-              onClick={() => setDismissed(true)}
-            />
-          </span>
-        </div>
-
-        <div className="max-h-56 overflow-y-auto pb-1.5">
-          {shown.map((s, i) => (
-            <div key={`${keyOf(s)}|${i}`} className="flex items-baseline gap-3 px-4 py-1 text-xs">
-              <Tip tip={s.reason} className="max-w-[45%] shrink-0 truncate text-carbon-textSub">
-                {s.reason}
-              </Tip>
-              <Tip tip={s.url} dir="ltr" className="min-w-0 flex-1 truncate text-carbon-textMuted">
-                {s.url}
-              </Tip>
-              <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(s.at)}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+          </>
+        }
+      >
+        {shown.map((s, i) => (
+          <NoticeRow key={`${keyOf(s)}|${i}`} reason={skippedReason(t, s)} name={s.url} at={fmtDate(s.at)} />
+        ))}
+      </Notice>
     </div>
   );
 }

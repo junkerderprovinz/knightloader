@@ -1583,6 +1583,35 @@ export function Toggle({
 }
 
 /**
+ * Checkbox is the one choice drawn as a box rather than a switch: turning a
+ * notice or a question off where it stands, as its last line. A setting
+ * anywhere else is a ToggleRow.
+ */
+export function Checkbox({
+  label,
+  checked,
+  onChange,
+  className = '',
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  className?: string;
+}) {
+  return (
+    <label className={`inline-flex cursor-pointer items-center gap-2 text-sm text-carbon-textSub ${className}`}>
+      <input
+        type="checkbox"
+        className="h-4 w-4 shrink-0 cursor-pointer accent-[var(--accent)]"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      {label}
+    </label>
+  );
+}
+
+/**
  * ToggleRow is a Toggle used as a whole card row: the caption flush left, the
  * switch flush right on the same line. Never the bare `Toggle`, which glues
  * track and label together at the left edge, and never a `FieldGroup` with the
@@ -2111,13 +2140,14 @@ export function Modal({
             appears again, which is a different kind of thing from the two
             answers it is asking for right now. */}
         {mute && (
-          <ToggleRow
-            hue={0}
-            label={t('dialog.dontShowAgain')}
-            hint={t('dialog.dontShowAgainHint')}
-            checked={dialogs.isMuted(mute)}
-            onChange={(v) => dialogs.setMuted(mute, v)}
-          />
+          <span className="flex items-center">
+            <Checkbox
+              label={t('dialog.dontShowAgain')}
+              checked={dialogs.isMuted(mute)}
+              onChange={(v) => dialogs.setMuted(mute, v)}
+            />
+            <InfoBubble tip={t('dialog.dontShowAgainHint')} />
+          </span>
         )}
         {/* justify-end, so the pair ends the line: 1.14.0 puts the advancing
             button on the right, which only holds if the row reaches the edge.
