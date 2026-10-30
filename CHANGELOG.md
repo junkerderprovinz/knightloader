@@ -50,8 +50,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **A few symbols change so that each one means one thing.** Try again,
   Restart and Refresh get an arrow of their own, and the old arrow stays for
   putting something back to its default. Import and Export show a file, Done
-  and Approve a thumbs up, Refuse a thumbs down, Check for updates a tick, and
-  the drag handle two columns of dots.
+  and Approve a thumbs up, Refuse a thumbs down, and the drag handle two
+  columns of dots. Check for updates shows a cloud, which gains a tick when
+  the app is up to date.
 - **The Help page names GlimStone 3.7.1** as the design the app follows.
 - **Version numbers show without a leading "v",** on the Version card and on
   the browser tools card alike. The links still lead to the release.
