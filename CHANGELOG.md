@@ -141,6 +141,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   module's card in Settings still has both.
 - **The variant presets of a YouTube package are a quiet gear** beside the
   package's trash, like the other buttons on a row.
+- **A row's buttons stand at its right edge.** In the link collector and on
+  Downloads, Start, Check again and the others sit in a column of their own at
+  the end of every row with Remove always last, so each row's trash is in one
+  line, and they no longer lie over the end of the name.
 - **The two link notices look and work alike.** "Links not added" and
   "Rejected links" count in proper words ("1 link", "12 links"), keep their
   buttons in one row at the foot, close with a real button, and list each link
@@ -172,6 +176,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   video, audio, image, subtitles, text, archive or any other file. A YouTube
   package's video, sound track, thumbnail, subtitles and description each have
   their own.
+- **New glyphs for Downloads and the link collector.** Downloads wears a plain
+  arrow pointing down, the link collector a magnifying glass, in the sidebar, the
+  phone bar, the command palette and the settings pages.
+- **The Enabled column is gone from the link collector.** It was hardly used.
+  Enable and Disable are still in the right-click menu of a link or package,
+  and a disabled link keeps its mark in the name.
 
 ## [2.3.3] - 2026-10-28
 

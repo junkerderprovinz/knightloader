@@ -94,10 +94,8 @@ import {
   PARKED,
   Tip,
   TREE_INDENT,
-  AT_NAME_END,
   AT_ROW_END,
   IN_NAME_COL,
-  NAME_END,
   VARIANT_KIND_LABEL_KEY,
   applySort,
   gridTemplate,
@@ -237,17 +235,14 @@ function drawnRows(strip: HTMLElement): HTMLElement[] {
 }
 
 /**
- * The cell holding a row's action badges, over the end of the name column in
- * the room the name cell keeps free (NAME_END). It paints no ground, so the
- * row's own fill, selection tint and rainbow wash run through it, and it
- * pushes its badges to the trailing edge. The badges show while the pointer or
+ * The cell holding a row's action badges, in the track at the row's trailing
+ * edge. It paints no ground, so the row's own fill, selection tint and rainbow
+ * wash run through it, and it pushes its badges to the end of the track, so
+ * the trash of every row lines up however many badges stand before it. The badges show while the pointer or
  * the focus is on the row, and always on a touch screen (`.glim-row-actions`
  * in index.css).
  */
-const ACTIONS_CELL = `glim-row-actions flex items-center justify-end gap-1 ${AT_NAME_END}`;
-
-/** The remove badge's cell, in the track after the last column so it ends every row. */
-const REMOVE_CELL = `glim-row-actions flex items-center ${AT_ROW_END}`;
+const ACTIONS_CELL = `glim-row-actions flex items-center justify-end gap-1 ${AT_ROW_END}`;
 
 /**
  * Whether a parked row greys this cell (see isParked). The name cell greys its
@@ -559,7 +554,7 @@ function TaskRow({
               col.id === 'name'
                 ? {
                     paddingInlineStart: `${files ? TREE_INDENT - TWISTY_STEP : TREE_INDENT}px`,
-                    paddingInlineEnd: NAME_END,
+                    paddingInlineEnd: '0.5rem',
                   }
                 : undefined
             }
@@ -586,26 +581,22 @@ function TaskRow({
         );
       })}
 
-      {/* The actions stand at the end of the name column, in room the name
-          keeps free for them. Floating over the row's end instead, they would
-          cover its progress, status or pickers whenever they showed, and a
-          track of their own after the last column stands empty while they are
-          hidden. The context menu on the row offers every one of these verbs
-          too.
+      {/* The actions stand in a track of their own at the row's end, so
+          every row's trash is in one line at the right edge and none covers a
+          value of another column. The context menu on the row offers every one
+          of these verbs too.
           The badges are hued per slot rather than per row position, so a row's
           play badge is always the same hue and Recheck is always the next one,
           the same "position is the identity" rule every other badge set in this
           app follows. A hash of the task id would repaint a badge a different
           colour every time its row moved. Trash takes a hue as well: a badge in
-          solid red beside neutral siblings reads as the inconsistency. The
-          remove badge is the exception to the place: it stands in a track of
-          its own after the last column. */}
+          solid red beside neutral siblings reads as the inconsistency. */}
       <TaskActions task={task} base={base} current={current} />
     </div>
   );
 }
 
-/** A link row's badges at the end of its name; see ACTIONS_CELL for when they show. */
+/** A link row's badges at its trailing edge; see ACTIONS_CELL for when they show. */
 export function TaskActions({ task, base, current }: { task: Task; base: string; current: boolean }) {
   const { t } = useT();
   const { toast } = useToast();
@@ -621,76 +612,72 @@ export function TaskActions({ task, base, current }: { task: Task; base: string;
         toast(taskRefusal(e, t) ?? t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail'),
       );
   return (
-    <>
-      <div className={ACTIONS_CELL}>
+    <div className={ACTIONS_CELL}>
+      {collected && (
+        <IconBadge
+          quiet
+          hue={0}
+          // Roving tabindex reaches inside the row too: without it Tab walks
+          // every badge of every drawn row and the one-stop list is decorative.
+          tabIndex={current ? 0 : -1}
+          icon={<IconPlay width={16} height={16} />}
+          title={t('task.start')}
+          aria-label={t('task.start')}
+          onClick={() => void start([task.id], base)}
+        />
+      )}
+      {task.status === 'running' && (
+        <IconBadge
+          quiet
+          hue={0}
+          tabIndex={current ? 0 : -1}
+          icon={<IconPause width={16} height={16} />}
+          title={t('task.pause')}
+          aria-label={t('task.pause')}
+          onClick={send(() => pause(task.id, base))}
+        />
+      )}
+      {task.status === 'paused' && (
+        <IconBadge
+          quiet
+          hue={0}
+          tabIndex={current ? 0 : -1}
+          icon={<IconPlay width={16} height={16} />}
+          title={t('task.resume')}
+          aria-label={t('task.resume')}
+          onClick={send(() => resume(task.id, base))}
+        />
+      )}
+      <div className="flex items-center gap-1">
         {collected && (
           <IconBadge
             quiet
-            hue={0}
-            // Roving tabindex reaches inside the row too: without it Tab walks
-            // every badge of every drawn row and the one-stop list is decorative.
+            hue={1}
             tabIndex={current ? 0 : -1}
-            icon={<IconPlay width={16} height={16} />}
-            title={t('task.start')}
-            aria-label={t('task.start')}
-            onClick={() => void start([task.id], base)}
+            icon={<IconSearch width={16} height={16} />}
+            title={t('task.recheck')}
+            aria-label={t('task.recheck')}
+            onClick={send(() => recheckTasks([task.id], base))}
           />
         )}
-        {task.status === 'running' && (
+        {/* Before Restart and never instead of it. This one appears only
+            while a wait is running, and it spends the retry that was already
+            scheduled rather than granting a new one; Restart beside it is the
+            plain "run this again" for a row that is finished or done waiting.
+            No guard at the call site: RetrySkipBadge draws nothing unless a
+            retry is pending, which is narrower than `settled`. */}
+        <RetrySkipBadge task={task} base={base} focusable={current} />
+        {settled && (
           <IconBadge
             quiet
-            hue={0}
+            hue={3}
             tabIndex={current ? 0 : -1}
-            icon={<IconPause width={16} height={16} />}
-            title={t('task.pause')}
-            aria-label={t('task.pause')}
-            onClick={send(() => pause(task.id, base))}
+            icon={<IconRetry width={16} height={16} />}
+            title={t('task.restart')}
+            aria-label={t('task.restart')}
+            onClick={send(() => restartTasks([task.id], base))}
           />
         )}
-        {task.status === 'paused' && (
-          <IconBadge
-            quiet
-            hue={0}
-            tabIndex={current ? 0 : -1}
-            icon={<IconPlay width={16} height={16} />}
-            title={t('task.resume')}
-            aria-label={t('task.resume')}
-            onClick={send(() => resume(task.id, base))}
-          />
-        )}
-        <div className="flex items-center gap-1">
-          {collected && (
-            <IconBadge
-              quiet
-              hue={1}
-              tabIndex={current ? 0 : -1}
-              icon={<IconSearch width={16} height={16} />}
-              title={t('task.recheck')}
-              aria-label={t('task.recheck')}
-              onClick={send(() => recheckTasks([task.id], base))}
-            />
-          )}
-          {/* Before Restart and never instead of it. This one appears only
-              while a wait is running, and it spends the retry that was already
-              scheduled rather than granting a new one; Restart beside it is the
-              plain "run this again" for a row that is finished or done waiting.
-              No guard at the call site: RetrySkipBadge draws nothing unless a
-              retry is pending, which is narrower than `settled`. */}
-          <RetrySkipBadge task={task} base={base} focusable={current} />
-          {settled && (
-            <IconBadge
-              quiet
-              hue={3}
-              tabIndex={current ? 0 : -1}
-              icon={<IconRetry width={16} height={16} />}
-              title={t('task.restart')}
-              aria-label={t('task.restart')}
-              onClick={send(() => restartTasks([task.id], base))}
-            />
-          )}
-        </div>
-      </div>
-      <div className={REMOVE_CELL}>
         <IconBadge
           quiet
           hue={4}
@@ -701,7 +688,7 @@ export function TaskActions({ task, base, current }: { task: Task; base: string;
           onClick={send(() => remove(task.id, base))}
         />
       </div>
-    </>
+    </div>
   );
 }
 
@@ -1128,7 +1115,6 @@ function PackageRow({
         <div
           key={col.id}
           dir={torrent && col.ltr ? 'ltr' : undefined}
-          style={col.id === 'name' ? { paddingInlineEnd: NAME_END } : undefined}
           className={`min-w-0 truncate px-2 text-xs text-carbon-textSub ${col.id === 'name' ? IN_NAME_COL : ''} ${
             col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'
           } ${col.numeric ? 'glim-num' : ''} ${parked && parksCell(col.id, ctx.profile) ? PARKED : ''}`}
@@ -1168,32 +1154,28 @@ function PackageRow({
           which is a decision about a link before it is fetched. */}
       {torrent ? (
         <TaskActions task={torrent} base={base} current={current} />
-      ) : (
-        <>
+      ) : (ytdlpHost && ctx.profile === 'collector') || ctx.onRemovePackage ? (
+        <div className={ACTIONS_CELL}>
           {ytdlpHost && ctx.profile === 'collector' && (
-            <div className={ACTIONS_CELL}>
-              <HosterPresetButton host={ytdlpHost} base={base} focusable={current} />
-            </div>
+            <HosterPresetButton host={ytdlpHost} base={base} focusable={current} />
           )}
           {/* Does not delete itself: it asks the same question a multiple
               selection asks, with its count, its file choice and its undo. A
               removal path of its own here would be a second place for that
               question to drift. */}
           {ctx.onRemovePackage && (
-            <div className={REMOVE_CELL}>
-              <IconBadge
-                quiet
-                hue={4}
-                tabIndex={current ? 0 : -1}
-                icon={<IconTrash width={16} height={16} />}
-                title={ctx.t('task.remove')}
-                aria-label={ctx.t('task.remove')}
-                onClick={() => ctx.onRemovePackage?.(items.map((x) => x.id))}
-              />
-            </div>
+            <IconBadge
+              quiet
+              hue={4}
+              tabIndex={current ? 0 : -1}
+              icon={<IconTrash width={16} height={16} />}
+              title={ctx.t('task.remove')}
+              aria-label={ctx.t('task.remove')}
+              onClick={() => ctx.onRemovePackage?.(items.map((x) => x.id))}
+            />
           )}
-        </>
-      )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -3516,9 +3498,9 @@ export function TaskListCard({
             {/* The row height setting (lib/rowHeight.ts) sets how tall every
                 control in a row is and the padding around it, and the window's
                 estimate above is made of the same two numbers. --btn-h is
-                redefined here and not on the rows because the name track in
-                --kl-cols keeps the room for the actions counted from it, and
-                --kl-name-col is where every row places its actions. */}
+                redefined here and not on the rows because the last track in
+                --kl-cols, where every row places its actions, is counted from
+                it. --kl-name-col is where every row places its name. */}
             <div
               ref={tableRef}
               className="min-w-min"
@@ -3526,7 +3508,6 @@ export function TaskListCard({
                 {
                   ['--kl-cols' as string]: template,
                   ['--kl-name-col' as string]: layout.visible.findIndex((c) => c.id === 'name') + 1,
-                  ['--kl-end-col' as string]: layout.visible.length + 1,
                   ['--btn-h' as string]: `${metrics.control}px`,
                   ['--row-pad' as string]: `${metrics.pad}px`,
                 } as CSSProperties
