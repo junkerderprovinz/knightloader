@@ -145,6 +145,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Downloads, Start, Check again and the others sit in a column of their own at
   the end of every row with Remove always last, so each row's trash is in one
   line, and they no longer lie over the end of the name.
+- **A row's buttons light up instead of filling in.** Under the pointer or
+  keyboard focus a row button gets no grey square any more; its symbol takes
+  the accent, or its rainbow colour, and grows a little.
 - **The two link notices look and work alike.** "Links not added" and
   "Rejected links" count in proper words ("1 link", "12 links"), keep their
   buttons in one row at the foot, close with a real button, and list each link

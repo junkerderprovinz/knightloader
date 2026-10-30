@@ -1025,12 +1025,24 @@ body {
   flex: none;
 }
 
-/* A badge on a list row shows no tile until it is reached for: six filled
-   tiles on each of forty rows read as a wall of grey boxes. Toolbars, card
-   headers and settings rows keep the filled tile. */
-.glim-badge-quiet { background-color: transparent; }
-.glim-badge-quiet:hover,
-.glim-badge-quiet:focus-visible { background-color: var(--carbon-surface3); }
+/* A badge on a list row never shows a tile: six filled tiles on each of
+   forty rows read as a wall of grey boxes, and one that appears under the
+   pointer still reads as a box. Reached for, its glyph takes the colour
+   instead, the accent or under a rainbow its position's hue, and grows a
+   little; keyboard focus keeps its ring. Toolbars, card headers and settings
+   rows keep the filled tile. */
+.glim-badge-quiet,
+.glim-badge-quiet:is(:hover, :focus-visible) { background-color: transparent; }
+.glim-badge-quiet:is(:hover, :focus-visible) { color: var(--accent-glyph); }
+.glim-badge-quiet .glim-btn-glyph {
+  transition: scale var(--motion-fade-dur) ease-out;
+}
+.glim-badge-quiet:is(:hover, :focus-visible) .glim-btn-glyph {
+  scale: calc(1 + var(--motion-badge-glyph-grow));
+}
+/* Pressed, the glyph drops back to its size while the badge itself gives
+   way, so the press still reads without a tile to darken. */
+.glim-badge-quiet:active .glim-btn-glyph { scale: 1; }
 
 /* The wash at the stronger badge tier, for a small badge that needs colour at
    rest and has no active state of its own. A toggle badge carries only
@@ -1038,12 +1050,11 @@ body {
 [data-rainbow] .glim-tint-badge {
   box-shadow: inset 0 0 0 999px var(--item-hue-badge);
 }
-/* Under a rainbow the hue is the fill of a quiet badge, so it also waits for
-   hover. */
-[data-rainbow] .glim-badge-quiet.glim-tint-badge { box-shadow: none; }
-[data-rainbow] .glim-badge-quiet.glim-tint-badge:hover,
-[data-rainbow] .glim-badge-quiet.glim-tint-badge:focus-visible {
-  box-shadow: inset 0 0 0 999px var(--item-hue-badge);
+/* A quiet badge takes no wash, reactive or not: its glyph carries the hue. */
+[data-rainbow] .glim-badge-quiet.glim-tint-badge,
+[data-rainbow] .glim-badge-quiet.glim-tint-badge:is(:hover, :focus-within) { box-shadow: none; }
+[data-rainbow] .glim-badge-quiet.glim-tint-badge:is(:hover, :focus-visible) {
+  color: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 [data-rainbow='reactive'] .glim-tint-badge {
   box-shadow: none;
@@ -1612,6 +1623,7 @@ body {
     --motion-shape-ease: cubic-bezier(.2, .6, .2, 1);
     --motion-confirm-dur: 420ms;
     --motion-confirm-scale: 1;
+    --motion-badge-glyph-grow: .12;
     --motion-stagger-step: 30ms;
     --motion-stagger-cap: 480ms;
     --motion-stagger-dur: 240ms;
@@ -1708,6 +1720,7 @@ body {
     --motion-shape-ease: cubic-bezier(.2, .6, .2, 1);
     --motion-confirm-dur: 260ms;
     --motion-confirm-scale: .5;
+    --motion-badge-glyph-grow: .06;
     --motion-stagger-step: 15ms;
     --motion-stagger-cap: 200ms;
     --motion-stagger-dur: 140ms;
@@ -1789,6 +1802,7 @@ body {
     --motion-shape-ease: linear;
     --motion-confirm-dur: 0ms;
     --motion-confirm-scale: 0;
+    --motion-badge-glyph-grow: 0;
     --motion-stagger-step: 0ms;
     --motion-stagger-cap: 0ms;
     --motion-stagger-dur: 0ms;
@@ -2313,6 +2327,7 @@ body {
   --motion-shape-ease: cubic-bezier(.22, 1.94, .45, 1);
   --motion-confirm-dur: 760ms;
   --motion-confirm-scale: 1.8;
+  --motion-badge-glyph-grow: .2;
   --motion-stagger-step: 54ms;
   --motion-stagger-cap: 870ms;
   --motion-stagger-dur: 420ms;
