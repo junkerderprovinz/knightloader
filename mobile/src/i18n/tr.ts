@@ -413,4 +413,8 @@ export const tr: Dict = {
   'battery.askBody': 'Pil tasarrufu için Android, KnightLoader’ı arka planda duraklatabilir; bildirimler o zaman geç gelir. Sonraki ekranda KnightLoader’ı bulun ve pil optimizasyonunu kapatın.',
   'battery.askLater': 'Şimdi değil',
   'battery.askOpen': 'Ayarları aç',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

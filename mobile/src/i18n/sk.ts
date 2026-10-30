@@ -413,4 +413,8 @@ export const sk: Dict = {
   'battery.askBody': 'Kvôli úspore batérie môže Android KnightLoader na pozadí pozastaviť a oznámenia potom prídu neskoro. Na ďalšej obrazovke nájdite KnightLoader a vypnite mu optimalizáciu batérie.',
   'battery.askLater': 'Teraz nie',
   'battery.askOpen': 'Otvoriť nastavenia',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

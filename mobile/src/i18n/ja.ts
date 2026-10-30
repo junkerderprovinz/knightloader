@@ -412,4 +412,8 @@ export const ja: Dict = {
   'battery.askBody': 'バッテリーを節約するため、Android がバックグラウンドの KnightLoader を一時停止することがあり、その場合通知は遅れて届きます。次の画面で KnightLoader を探し、バッテリーの最適化をオフにしてください。',
   'battery.askLater': '後で',
   'battery.askOpen': '設定を開く',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

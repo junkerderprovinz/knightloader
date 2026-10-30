@@ -15,8 +15,9 @@ interface Words {
 }
 
 /**
- * Every code the instance sends, one entry each. A code from a newer instance
- * reads as the general sentence.
+ * Every code the instance sends, one entry each, but for quotaUsed, whose words
+ * depend on its params (see quotaWords). A code from a newer instance reads as
+ * the general sentence.
  */
 const WORDS: Record<string, Words> = {
   gone: { line: 'failure.gone.line', next: 'failure.gone.next' },
@@ -100,7 +101,24 @@ export function explainFailure(
   }
   if (!raw && !f.errorCode) return null;
   const code = f.errorCode || (f.reason && (REASON_CODE[f.reason] ?? f.reason));
-  const words = (code && WORDS[code]) || GENERAL;
   const vars = { ...fallback, ...f.errorParams };
+  if (code === 'quotaUsed') return { ...quotaWords(t, f.errorParams ?? {}, vars), raw };
+  const words = (code && WORDS[code]) || GENERAL;
   return { line: t(words.line, vars), next: t(words.next, vars), raw };
+}
+
+/**
+ * A spent download volume, worded by whose it is and by when it comes back, as
+ * the web words it. Only the instance's own params decide, since the row's
+ * fallback names the backend as the service.
+ */
+function quotaWords(t: Translate, params: Record<string, string>, vars: Record<string, string>) {
+  const when = params.resetsAt ? new Date(params.resetsAt) : null;
+  const resetsAt =
+    when && !Number.isNaN(when.getTime()) ? when.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '';
+  const at = { ...vars, service: params.service ?? '', resetsAt };
+  return {
+    line: t(params.service ? 'failure.quotaUsed.lineService' : 'failure.quotaUsed.line', at),
+    next: t(resetsAt ? 'failure.quotaUsed.nextReset' : 'failure.quotaUsed.next', at),
+  };
 }

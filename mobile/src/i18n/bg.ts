@@ -413,4 +413,8 @@ export const bg: Dict = {
   'battery.askBody': 'За да пести батерия, Android може да спре KnightLoader на заден план и известията тогава идват със закъснение. На следващия екран намерете KnightLoader и изключете оптимизацията на батерията за него.',
   'battery.askLater': 'Не сега',
   'battery.askOpen': 'Отваряне на настройките',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

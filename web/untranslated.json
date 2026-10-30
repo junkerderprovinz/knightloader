@@ -21,7 +21,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "bg": [
       "skipped.reason.sameLink",
@@ -43,7 +47,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "ca": [
       "skipped.reason.sameLink",
@@ -65,7 +73,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "cs": [
       "skipped.reason.sameLink",
@@ -87,7 +99,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "da": [
       "skipped.reason.sameLink",
@@ -109,7 +125,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "el": [
       "skipped.reason.sameLink",
@@ -131,7 +151,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "es": [
       "skipped.reason.sameLink",
@@ -153,7 +177,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "et": [
       "skipped.reason.sameLink",
@@ -175,7 +203,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "eu": [
       "skipped.reason.sameLink",
@@ -197,7 +229,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "fa": [
       "skipped.reason.sameLink",
@@ -219,7 +255,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "fi": [
       "skipped.reason.sameLink",
@@ -241,7 +281,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "fr": [
       "skipped.reason.sameLink",
@@ -263,7 +307,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "gl": [
       "skipped.reason.sameLink",
@@ -285,7 +333,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "he": [
       "skipped.reason.sameLink",
@@ -307,7 +359,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "hi": [
       "skipped.reason.sameLink",
@@ -329,7 +385,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "hr": [
       "skipped.reason.sameLink",
@@ -351,7 +411,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "hu": [
       "skipped.reason.sameLink",
@@ -373,7 +437,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "id": [
       "skipped.reason.sameLink",
@@ -395,7 +463,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "is": [
       "skipped.reason.sameLink",
@@ -417,7 +489,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "it": [
       "skipped.reason.sameLink",
@@ -439,7 +515,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "ja": [
       "skipped.reason.sameLink",
@@ -461,7 +541,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "ko": [
       "skipped.reason.sameLink",
@@ -483,7 +567,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "lt": [
       "skipped.reason.sameLink",
@@ -505,7 +593,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "lv": [
       "skipped.reason.sameLink",
@@ -527,7 +619,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "ms": [
       "skipped.reason.sameLink",
@@ -549,7 +645,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "nl": [
       "skipped.reason.sameLink",
@@ -571,7 +671,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "no": [
       "skipped.reason.sameLink",
@@ -593,7 +697,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "pl": [
       "skipped.reason.sameLink",
@@ -615,7 +723,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "pt": [
       "skipped.reason.sameLink",
@@ -637,7 +749,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "ro": [
       "skipped.reason.sameLink",
@@ -659,7 +775,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "ru": [
       "skipped.reason.sameLink",
@@ -681,7 +801,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "sk": [
       "skipped.reason.sameLink",
@@ -703,7 +827,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "sl": [
       "skipped.reason.sameLink",
@@ -725,7 +853,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "sr": [
       "skipped.reason.sameLink",
@@ -747,7 +879,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "sv": [
       "skipped.reason.sameLink",
@@ -769,7 +905,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "th": [
       "skipped.reason.sameLink",
@@ -791,7 +931,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "tr": [
       "skipped.reason.sameLink",
@@ -813,7 +957,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "uk": [
       "skipped.reason.sameLink",
@@ -835,7 +983,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "vi": [
       "skipped.reason.sameLink",
@@ -857,7 +1009,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ],
     "zh": [
       "skipped.reason.sameLink",
@@ -879,7 +1035,11 @@
       "skipped.signal.name",
       "skipped.signal.size",
       "skipped.signal.nameSize",
-      "skipped.signal.hash"
+      "skipped.signal.hash",
+      "failure.quotaUsed.line",
+      "failure.quotaUsed.lineService",
+      "failure.quotaUsed.next",
+      "failure.quotaUsed.nextReset"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

@@ -413,4 +413,8 @@ export const hr: Dict = {
   'battery.askBody': 'Radi uštede baterije Android može pauzirati KnightLoader u pozadini, pa obavijesti stižu kasno. Na sljedećem zaslonu pronađi KnightLoader i isključi mu optimizaciju baterije.',
   'battery.askLater': 'Ne sada',
   'battery.askOpen': 'Otvori postavke',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };
