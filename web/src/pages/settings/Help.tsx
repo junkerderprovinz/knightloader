@@ -3,7 +3,7 @@ import { useT } from '../../lib/i18n';
 import { Button, Card, HintBubble, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
-import { IconDiagnostics, IconGithub, IconInfo } from '../../lib/icons';
+import { IconDiagnostics, IconGithub, IconWhatsNew } from '../../lib/icons';
 import { COFFEE_BUTTON_SVG, MAIL_SVG, MANUAL_SVG } from '../../lib/appMarks';
 import { IconBitcoin, IconPayPal } from '../../components/donateMarks';
 import { BrandMark, ReadmeButton } from '../../components/ReadmeButton';
@@ -204,7 +204,12 @@ function NewsButton() {
   const total = news?.changes.length ?? 0;
   const unseen = news?.unseen.length ?? 0;
   return (
-    <Button kind="secondary" icon={<IconInfo />} data-new="news-button" onClick={openWhatsNew}>
+    <Button kind="secondary" data-new="news-button" onClick={openWhatsNew}>
+      {/* The dot stands in front of the glyph, as on the event list's entry. */}
+      {unseen > 0 && <span aria-hidden className="h-2 w-2 shrink-0 rounded-[var(--radius-pill)] bg-statusOkSolid" />}
+      <span className="glim-btn-glyph">
+        <IconWhatsNew />
+      </span>
       {total > 0 ? t('whatsnew.newCount', { n: unseen || total }) : t('settings.look.updatesReleaseNotes')}
     </Button>
   );
