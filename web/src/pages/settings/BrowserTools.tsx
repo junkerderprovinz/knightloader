@@ -629,7 +629,7 @@ function dockerRun(): string {
 function ReleaseVersion({ version }: { version: string }) {
   const notch = `glim-num absolute end-5 top-0 z-10 -translate-y-1/2 rounded-[var(--radius-pill)] bg-carbon-surface2
     px-2.5 py-[3px] text-meta leading-[15px] text-carbon-textMuted shadow-[var(--elevation)]`;
-  if (!/^\d+\.\d+\.\d+$/.test(version)) return <span className={notch}>v{version}</span>;
+  if (!/^\d+\.\d+\.\d+$/.test(version)) return <span className={notch}>{version}</span>;
   return (
     <a
       href={`${REPO_URL}/releases/tag/v${version}`}
@@ -638,7 +638,7 @@ function ReleaseVersion({ version }: { version: string }) {
       onClick={followExternal}
       className={`${notch} no-underline hover:text-carbon-text`}
     >
-      v{version}
+      {version}
     </a>
   );
 }
