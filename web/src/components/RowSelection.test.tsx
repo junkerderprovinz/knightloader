@@ -18,6 +18,9 @@ Element.prototype.hasPointerCapture ??= () => false;
 let root: Root;
 let host: HTMLDivElement;
 
+// Downloads folds a package until it is opened; these rows are about picking.
+const OPEN = JSON.stringify({ 'list.expanded.downloads': ['Films', 'Music'] });
+
 beforeEach(() => {
   vi.resetModules();
   // The interface state is an object, every list the card asks for an array.
@@ -25,7 +28,7 @@ beforeEach(() => {
     'fetch',
     vi.fn(
       async (url: string) =>
-        new Response(url.includes('/api/uistate') ? '{}' : '[]', {
+        new Response(url.includes('/api/uistate') ? OPEN : '[]', {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         }),
