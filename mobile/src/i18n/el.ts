@@ -413,4 +413,8 @@ export const el: Dict = {
   'battery.askBody': 'Για εξοικονόμηση μπαταρίας, το Android μπορεί να παγώσει το KnightLoader στο παρασκήνιο, και οι ειδοποιήσεις τότε φτάνουν αργά. Στην επόμενη οθόνη βρείτε το KnightLoader και απενεργοποιήστε τη βελτιστοποίηση μπαταρίας του.',
   'battery.askLater': 'Όχι τώρα',
   'battery.askOpen': 'Άνοιγμα ρυθμίσεων',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

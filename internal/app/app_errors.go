@@ -166,6 +166,11 @@ var textReasons = []struct {
 	{"too many requests", core.ReasonLimit},
 	{"traffic limit", core.ReasonLimit},
 	{"quota exceeded", core.ReasonLimit},
+	// The debrid clients' own wording for a spent allowance (see quotaPhrases).
+	{"is used up", core.ReasonLimit},
+	{"no traffic left", core.ReasonLimit},
+	{"reached a download limit", core.ReasonLimit},
+	{"monthly_limit", core.ReasonLimit}, // TorBox's code
 	{"unauthorized", core.ReasonAuth},
 	{"forbidden", core.ReasonAuth},
 	{"temporarily unavailable", core.ReasonUnavailable},
@@ -259,6 +264,13 @@ func codeFor(f failure, r core.Reason) (core.ErrorCode, map[string]string) {
 		}
 	}
 	return r.Code(), nil
+}
+
+// quotaPhrases are how the debrid clients word an account's volume running
+// out, as opposed to a rate limit such as Debrid-Link's "too many requests".
+var quotaPhrases = []string{
+	"is used up", "no traffic left", "traffic limit", "quota exceeded",
+	"reached a download limit", "monthly_limit",
 }
 
 // premiumPhrases are how hosters, JDownloader and the debrid services say a

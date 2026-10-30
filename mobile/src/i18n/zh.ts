@@ -412,4 +412,8 @@ export const zh: Dict = {
   'battery.askBody': '为了省电，Android 可能会在后台暂停 KnightLoader，通知就会延迟。在下一个页面找到 KnightLoader，并关闭它的电池优化。',
   'battery.askLater': '以后再说',
   'battery.askOpen': '打开设置',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

@@ -93,6 +93,26 @@ expect(
   '/data/tools liegt im Datenordner von KnightLoader, und dort dürfen keine Downloads hin.',
 );
 
+// A captcha JDownloader gave up on because a volume ran out names the volume,
+// and the row's own backend is never taken for the service.
+const quota = { error: 'jd: Skipped - Captcha is required', errorCode: 'quotaUsed', reason: 'limit' };
+expect(
+  'a spent debrid volume names the service and the hoster',
+  explainFailure(t, { ...quota, errorParams: { host: 'rapidgator.net', service: 'Debrid-Link' } }, { service: 'JDownloader' })
+    ?.line,
+  'The Debrid-Link download volume for rapidgator.net is used up.',
+);
+expect(
+  'a spent hoster login names the login',
+  explainFailure(t, { ...quota, errorParams: { host: 'rapidgator.net' } }, { service: 'JDownloader' })?.line,
+  'The download volume of your rapidgator.net account is used up.',
+);
+expect(
+  'and in German',
+  explainFailure(tDe, { ...quota, errorParams: { host: 'rapidgator.net', service: 'Debrid-Link' } })?.line,
+  'Das Download-Volumen bei Debrid-Link für rapidgator.net ist aufgebraucht.',
+);
+
 const go = readFileSync(join(here, '..', 'internal', 'core', 'errorcode.go'), 'utf8');
 const codes = [...go.matchAll(/ErrorCode = "(\w+)"/g)].map((m) => m[1]);
 if (codes.length < 20) problems.push(`found only ${codes.length} codes in internal/core/errorcode.go`);

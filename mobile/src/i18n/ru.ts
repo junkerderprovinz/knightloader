@@ -413,4 +413,8 @@ export const ru: Dict = {
   'battery.askBody': 'Чтобы экономить батарею, Android может приостановить KnightLoader в фоне, и уведомления тогда приходят с опозданием. На следующем экране найдите KnightLoader и отключите для него оптимизацию батареи.',
   'battery.askLater': 'Не сейчас',
   'battery.askOpen': 'Открыть настройки',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

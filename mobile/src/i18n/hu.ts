@@ -413,4 +413,8 @@ export const hu: Dict = {
   'battery.askBody': 'Az akkumulátor kímélése érdekében az Android a háttérben szüneteltetheti a KnightLoadert, és az értesítések ilyenkor késve érkeznek. A következő képernyőn keresd meg a KnightLoadert, és kapcsold ki az akkumulátor-optimalizálását.',
   'battery.askLater': 'Most nem',
   'battery.askOpen': 'Beállítások megnyitása',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

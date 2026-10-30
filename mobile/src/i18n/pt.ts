@@ -413,4 +413,8 @@ export const pt: Dict = {
   'battery.askBody': 'Para poupar bateria, o Android pode pausar o KnightLoader em segundo plano, e as notificações chegam tarde. No ecrã seguinte, procura o KnightLoader e desativa a otimização da bateria para ele.',
   'battery.askLater': 'Agora não',
   'battery.askOpen': 'Abrir definições',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };
