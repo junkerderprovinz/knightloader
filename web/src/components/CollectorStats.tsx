@@ -47,11 +47,14 @@ function weigh(rows: Task[]): Figures {
   return f;
 }
 
+// The label goes under its figure when the column is too narrow for both, and
+// breaks inside a word only when even that does not fit, so it never runs
+// into the next column.
 function Item({ label, value, tone = 'text-carbon-text' }: { label: string; value: string | number; tone?: string }) {
   return (
-    <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-      <span className={`glim-num text-sm font-semibold leading-none ${tone}`}>{value}</span>
-      <span className="text-meta text-carbon-textMuted">{label}</span>
+    <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+      <span className={`glim-num whitespace-nowrap text-sm font-semibold leading-none ${tone}`}>{value}</span>
+      <span className="min-w-0 text-meta text-carbon-textMuted [overflow-wrap:anywhere]">{label}</span>
     </div>
   );
 }

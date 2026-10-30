@@ -45,8 +45,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   three row heights each have their own.
 - **Every button shows a symbol before its name.** 130 buttons had only words,
   among them Save, Cancel, Test and Undo. They now show the symbol the other
-  GlimStone apps use for the same thing, so the Labels setting reaches them
-  too.
+  GlimStone apps use for the same thing.
+- **The Labels setting reaches every button.** Set to Symbol or Reactive,
+  buttons with words show their symbol alone and name themselves in the
+  bubble, and set to Text they show their words alone. Before, a button with
+  both kept them whatever the setting said.
 - **A few symbols change so that each one means one thing.** Try again,
   Restart and Refresh get an arrow of their own, and the old arrow stays for
   putting something back to its default. Import and Export show a file, Done
@@ -67,6 +70,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   with animations off.
 - **Tab stays inside an open window,** and closing the window puts the focus
   back on the button that opened it.
+
+### Fixed
+
+- **The link collector's totals no longer run into each other** in a narrow
+  window. A label that does not fit beside its figure goes under it.
 
 ## [2.3.3] - 2026-10-28
 
