@@ -20,10 +20,10 @@ const out = join(here, '..', 'src', 'lib', 'glyphs.tsx');
 const USED = [
   'IconEye', 'IconEyeOff', 'IconRefresh', 'IconRetry', 'IconUpload', 'IconImport',
   'IconDownload', 'IconExport', 'IconSearch', 'IconPlay', 'IconPause', 'IconStop',
-  'IconPower', 'IconTrash', 'IconTrashFiles', 'IconEmpty', 'IconAdd', 'IconClose',
+  'IconPower', 'IconSleep', 'IconTrash', 'IconTrashFiles', 'IconEmpty', 'IconAdd', 'IconClose',
   'IconWindowMinimise', 'IconWindowMaximise', 'IconWindowRestore',
   'IconPencil', 'IconCopy', 'IconCheck', 'IconConfirm', 'IconReject', 'IconApply',
-  'IconUndo', 'IconLink', 'IconKey', 'IconKeyRevoke', 'IconForgotPassword', 'IconSignIn',
+  'IconUndo', 'IconLink', 'IconUnlink', 'IconKey', 'IconKeyRevoke', 'IconForgotPassword', 'IconSignIn',
   'IconSignOut', 'IconInfo', 'IconHelp', 'IconMore', 'IconMenu', 'IconSave', 'IconCompact',
   'IconBack', 'IconForward', 'IconLatest', 'IconFirst', 'IconMoveUp', 'IconMoveDown',
   'IconMove', 'IconExpand', 'IconCollapse', 'IconSelectAll', 'IconClearSelection',

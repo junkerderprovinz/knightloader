@@ -29,7 +29,7 @@ import {
   IconKey,
   IconPencil,
   IconRetry,
-  IconSignOut,
+  IconUnlink,
   IconWarning,
 } from '../../../lib/icons';
 import { useShake } from '../../../lib/useShake';
@@ -326,11 +326,11 @@ export function PhraseCard({
   };
 
   const leaveButton = confirmLeave ? (
-    <Button kind="secondary" icon={<IconSignOut />} shake={shake} onClick={() => void leave(() => {})} disabled={busy}>
+    <Button kind="secondary" icon={<IconUnlink />} shake={shake} onClick={() => void leave(() => {})} disabled={busy}>
       {t('pairing.confirmLeave')}
     </Button>
   ) : (
-    <Button kind="secondary" icon={<IconSignOut />} onClick={() => setConfirmLeave(true)}>
+    <Button kind="secondary" icon={<IconUnlink />} onClick={() => setConfirmLeave(true)}>
       {t('pairing.leave')}
     </Button>
   );
