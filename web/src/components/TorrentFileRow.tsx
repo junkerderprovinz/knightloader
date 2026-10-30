@@ -4,9 +4,8 @@ import { hueVars } from '../lib/appearance';
 import { fmtBytes } from '../lib/format';
 import { useToast } from '../lib/toast';
 import {
-  AT_NAME_END,
+  AT_ROW_END,
   IN_NAME_COL,
-  NAME_END,
   ProgressCell,
   ROW_EDGES,
   RowSwitch,
@@ -236,7 +235,7 @@ export function TorrentFileRow({
               col.id === 'name'
                 ? {
                     paddingInlineStart: `${row.level === 2 ? TREE_INDENT : TREE_INDENT + TWISTY_STEP}px`,
-                    paddingInlineEnd: NAME_END,
+                    paddingInlineEnd: '0.5rem',
                   }
                 : undefined
             }
@@ -255,7 +254,7 @@ export function TorrentFileRow({
         );
       })}
       {/* As tall as a link row's badges, so every row of the tree is one height. */}
-      <div className={`flex min-h-[var(--btn-h)] items-center justify-end gap-1 ${AT_NAME_END}`}>{inColumn ? null : toggle}</div>
+      <div className={`flex min-h-[var(--btn-h)] items-center justify-end gap-1 ${AT_ROW_END}`}>{inColumn ? null : toggle}</div>
     </div>
   );
 }
