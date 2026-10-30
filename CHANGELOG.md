@@ -91,9 +91,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The variant presets of a YouTube package are a quiet gear** beside the
   package's trash, like the other buttons on a row.
 - **A row's buttons stand at its right edge.** In the link collector and on
-  Downloads, Start, Check again, Remove and the others sit in a column of their
-  own at the end of every row, so each row's trash is in one line, and they no
-  longer lie over the end of the name.
+  Downloads, Start, Check again and the others sit in a column of their own at
+  the end of every row with Remove always last, so each row's trash is in one
+  line, and they no longer lie over the end of the name.
 - **The two link notices look and work alike.** "Links not added" and
   "Rejected links" count in proper words ("1 link", "12 links"), keep their
   buttons in one row at the foot, close with a real button, and list each link
