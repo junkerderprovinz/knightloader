@@ -1,6 +1,6 @@
 import { type Account, ApiError, type CatalogueService, createTestCaptcha } from '../../../lib/api';
 import { type TranslationKey, useT } from '../../../lib/i18n';
-import { IconCaptcha } from '../../../lib/icons';
+import { IconCaptcha, IconSendTest } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { EmptyState, NumberInput, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import { PriorityCard, PriorityLadder } from '../../../components/PriorityLadder';
@@ -178,9 +178,16 @@ function TestCaptcha({ solvers }: { solvers: boolean }) {
     <div className="flex flex-col gap-3 pt-4">
       <SubHead label={t('settings.captcha.testTitle')} />
       <div className="flex flex-wrap gap-2">
-        <TestButton label={t('settings.captcha.test')} hint={t('settings.captcha.testHint')} words={words} run={send(false)} />
+        <TestButton
+          icon={<IconSendTest />}
+          label={t('settings.captcha.test')}
+          hint={t('settings.captcha.testHint')}
+          words={words}
+          run={send(false)}
+        />
         {solvers && (
           <TestButton
+            icon={<IconSendTest />}
             label={t('settings.captcha.testSolvers')}
             hint={t('settings.captcha.testSolversHint')}
             words={words}

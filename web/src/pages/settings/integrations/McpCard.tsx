@@ -27,10 +27,10 @@ import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   IconAdd,
   IconBack,
-  IconCheck,
   IconCheckDrawn,
   IconClose,
   IconCode,
+  IconConfirm,
   IconCopy,
   IconLink,
   IconTrash,
@@ -275,7 +275,7 @@ export function McpCard() {
           footer={
             <>
               <span className="flex-1" />
-              <Button kind="primary" labelled icon={<IconCheck />} title={t('settings.access.tokens.done')} onClick={() => setViewing(null)} />
+              <Button kind="primary" labelled icon={<IconConfirm />} title={t('settings.access.tokens.done')} onClick={() => setViewing(null)} />
             </>
           }
         >
@@ -415,7 +415,7 @@ function AddClientWindow({
     footer = (
       <>
         <span className="flex-1" />
-        <Button kind="primary" labelled icon={<IconCheck />} title={t('settings.access.tokens.done')} onClick={onClose} />
+        <Button kind="primary" labelled icon={<IconConfirm />} title={t('settings.access.tokens.done')} onClick={onClose} />
       </>
     );
   } else if (picked) {
@@ -433,7 +433,12 @@ function AddClientWindow({
           disabled={creating}
         />
         <span className="flex-1" />
-        <Button shake={shake} onClick={() => void create()} disabled={creating || name.trim() === ''}>
+        <Button
+          icon={<IconLink />}
+          shake={shake}
+          onClick={() => void create()}
+          disabled={creating || name.trim() === ''}
+        >
           {creating ? t('settings.access.mcp.connecting') : t('settings.access.mcp.connect')}
         </Button>
       </>

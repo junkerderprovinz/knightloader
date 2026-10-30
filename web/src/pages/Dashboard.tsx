@@ -43,7 +43,17 @@ import { TransferFlow } from '../components/pictures/TransferFlow';
 import { PageAction, PageActions } from '../components/PageActions';
 import { Tabs } from '../components/Tabs';
 import { useReorder } from '../components/dragLift';
-import { IconCheck, IconDownload, IconEye, IconEyeOff, IconGrip, IconMoveDown, IconMoveUp, IconPencil } from '../lib/icons';
+import {
+  IconConfirm,
+  IconDownload,
+  IconEye,
+  IconEyeOff,
+  IconGrip,
+  IconMoveDown,
+  IconMoveUp,
+  IconPencil,
+  IconRefresh,
+} from '../lib/icons';
 
 const CARD_NAME: Record<OverviewCard, TranslationKey> = {
   needs: 'overview.needs.title',
@@ -286,7 +296,7 @@ export function Dashboard() {
           {!phone && (
             <p className="min-w-0 flex-1 basis-64 text-[13px] text-carbon-textMuted">{t('overview.customize.hint')}</p>
           )}
-          <Button kind="secondary" onClick={() => setStored(DEFAULT_LAYOUT)}>
+          <Button kind="secondary" icon={<IconRefresh />} onClick={() => setStored(DEFAULT_LAYOUT)}>
             {t('overview.customize.reset')}
           </Button>
         </div>
@@ -346,7 +356,7 @@ export function Dashboard() {
 
       <PageActions>
         <PageAction
-          icon={editing ? <IconCheck /> : <IconPencil />}
+          icon={editing ? <IconConfirm /> : <IconPencil />}
           label={t(editing ? 'overview.customize.finish' : 'overview.customize')}
           data-new="overview-customize"
           onClick={() => setEditing((on) => !on)}

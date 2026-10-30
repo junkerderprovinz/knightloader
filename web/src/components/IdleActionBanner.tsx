@@ -2,7 +2,16 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cancelIdleAction, connectWS, fetchIdleAction, type IdleActionState, type IdleRun } from '../lib/api';
 import { Button } from './ui';
-import { IconCode, IconMoon, IconPause, IconPower, IconSchedules, IconWarning } from '../lib/icons';
+import {
+  IconClose,
+  IconCode,
+  IconGear,
+  IconMoon,
+  IconPause,
+  IconPower,
+  IconSchedules,
+  IconWarning,
+} from '../lib/icons';
 import { fmtCountdown } from '../lib/countdown';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
@@ -165,11 +174,21 @@ export function IdleActionBanner() {
             <span className="text-carbon-textSub">
               <FailedRun failed={failed} />
             </span>
-            <Button kind="secondary" className="mt-1 self-start" onClick={() => navigate('/settings/automation')}>
+            <Button
+              kind="secondary"
+              icon={<IconGear />}
+              className="mt-1 self-start"
+              onClick={() => navigate('/settings/automation')}
+            >
               {t('idleAction.openSettings')}
             </Button>
           </span>
-          <Button kind="secondary" onClick={() => setDismissed(failed.at)} className="px-2.5 text-xs">
+          <Button
+            kind="secondary"
+            icon={<IconClose />}
+            onClick={() => setDismissed(failed.at)}
+            className="px-2.5 text-xs"
+          >
             {t('idleAction.dismiss')}
           </Button>
         </div>
@@ -210,7 +229,13 @@ export function IdleActionBanner() {
             {actionLabel} {remaining !== null && t('idleAction.in', { countdown: fmtCountdown(remaining) })}
           </span>
         </span>
-        <Button kind="secondary" onClick={handleCancel} disabled={cancelling} className="px-2.5 text-xs">
+        <Button
+          kind="secondary"
+          icon={<IconClose />}
+          onClick={handleCancel}
+          disabled={cancelling}
+          className="px-2.5 text-xs"
+        >
           {cancelling ? t('idleAction.cancelling') : t('idleAction.cancel')}
         </Button>
       </div>

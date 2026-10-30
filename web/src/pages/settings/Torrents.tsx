@@ -22,6 +22,7 @@ import { ListArea, RowRefusal, SettingRow, SubCard } from './controls';
 import { ModuleCard } from './ModuleToggle';
 import { InterfaceField } from './torrents/Interface';
 import { UploadLimitField } from './torrents/UploadLimit';
+import { IconCheck } from '../../lib/icons';
 
 /**
  * Torrents sets the seed target, transfer limit, port with its UPnP mapping,
@@ -507,6 +508,7 @@ function QBittorrentTest({ q }: { q: QBittorrentSettings }) {
       )}
       <div className="flex flex-wrap items-center gap-3">
         <TestButton
+          icon={<IconCheck />}
           label={t('settings.torrents.qbitTest')}
           busyLabel={t('settings.torrents.qbitTesting')}
           hint={t('settings.torrents.qbitTestHint')}
@@ -688,6 +690,7 @@ function PortMapPanel({ port }: { port: number }) {
         {/* The (i) inside the button stays readable while it is disabled, so the
             reason goes there rather than under it. */}
         <TestButton
+          icon={<IconCheck />}
           label={t('settings.torrents.portMapButton')}
           busyLabel={t('settings.torrents.portMapping')}
           disabled={noPort}

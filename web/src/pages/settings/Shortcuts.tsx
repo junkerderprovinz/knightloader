@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, EmptyState, Modal, SectionTitle } from '../../components/ui';
-import { IconClose, IconKeyboard } from '../../lib/icons';
+import { IconClose, IconKeyboard, IconPencil, IconRefresh } from '../../lib/icons';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { en } from '../../lib/locales/en';
 import { allCommands } from '../../lib/commands/allCommands';
@@ -84,6 +84,7 @@ export function Shortcuts() {
                 right={
                   i === 0 && (
                     <Button
+                      icon={<IconRefresh />}
                       kind="secondary"
                       className="shrink-0"
                       disabled={!hasOverrides}
@@ -142,7 +143,7 @@ export function Shortcuts() {
                 title={t('common.cancel')}
                 onClick={() => setConfirmResetAll(false)}
               />
-              <Button kind="ghost" onClick={resetAll}>
+              <Button kind="ghost" icon={<IconRefresh />} onClick={resetAll}>
                 {t('settings.shortcuts.resetAllConfirm')}
               </Button>
             </>
@@ -189,11 +190,11 @@ function ShortcutRow({
         {/* Reset, then Change, which moves the row on. JSX order, so the pair
             mirrors in right-to-left languages. */}
         {isOverridden && (
-          <Button kind="ghost" className="shrink-0 px-2.5 py-1 text-xs" onClick={onReset}>
+          <Button kind="ghost" icon={<IconRefresh />} className="shrink-0 px-2.5 py-1 text-xs" onClick={onReset}>
             {t('settings.shortcuts.reset')}
           </Button>
         )}
-        <Button kind="secondary" className="shrink-0 px-2.5 py-1 text-xs" onClick={onChange}>
+        <Button kind="secondary" icon={<IconPencil />} className="shrink-0 px-2.5 py-1 text-xs" onClick={onChange}>
           {t('settings.shortcuts.change')}
         </Button>
       </span>

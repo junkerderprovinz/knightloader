@@ -3,7 +3,7 @@
 // through pageContext.ts.
 import { recheckTasks, startTasks, type Task } from '../api';
 import { RENAME_SHORTCUT } from '../../components/ListToolbar';
-import { IconCheck, IconFolder, IconPencil, IconPlay, IconSearch, IconTrash } from '../icons';
+import { IconFolder, IconPencil, IconPlay, IconSearch, IconSelectAll, IconTrash } from '../icons';
 import type { Command, CommandContext } from './types';
 
 // ctx.tasks holds every task, so this applies the same filter the Collector
@@ -75,7 +75,7 @@ export const collectorCommands: Command[] = [
   {
     id: 'collector.selectAll',
     labelKey: 'select.all',
-    icon: IconCheck,
+    icon: IconSelectAll,
     group: 'commands.group.collector',
     surfaces: ['collector'],
     defaultShortcut: 'mod+a',

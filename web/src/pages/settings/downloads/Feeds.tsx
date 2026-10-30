@@ -11,7 +11,7 @@ import {
 import { PathInput } from '../../../components/FolderPicker';
 import { Tabs } from '../../../components/Tabs';
 import { TestButton } from '../../../components/TestButton';
-import { IconAdd, IconFilter, IconFolder, IconPriority, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconCheck, IconFilter, IconFolder, IconPriority, IconTrash } from '../../../lib/icons';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
@@ -611,6 +611,7 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
 
         <div className="flex">
           <TestButton
+            icon={<IconCheck />}
             label={t('settings.feeds.test')}
             busyLabel={t('settings.feeds.testBusy')}
             words={{ ok: t('test.passed'), fail: t('test.failed') }}

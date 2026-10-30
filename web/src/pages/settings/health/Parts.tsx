@@ -4,6 +4,7 @@ import { useT } from '../../../lib/i18n';
 import { healthLabel, healthTone } from '../../../lib/useHealthReport';
 import type { HealthReport, HealthSubsystem } from '../../../lib/api';
 import { requestJump } from '../jump';
+import { IconLog } from '../../../lib/icons';
 
 /**
  * PartsList lists every part of the app that can fail on its own, with its
@@ -70,6 +71,7 @@ function Reason({ part: s }: { part: HealthSubsystem }) {
       {trouble && s.log && (
         <span className="flex justify-end">
           <Button
+            icon={<IconLog />}
             kind="secondary"
             onClick={() => {
               requestJump({ page: 'health', title: 'settings.diagnostics.logCardTitle' });

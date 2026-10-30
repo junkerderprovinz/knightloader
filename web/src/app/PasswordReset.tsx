@@ -11,6 +11,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { Button, PasswordInput, TextInput } from '../components/ui';
 import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../lib/passwordLength';
 import { SettingRow } from '../pages/settings/controls';
+import { IconBack, IconForward, IconKey } from '../lib/icons';
 
 const CODE_LABEL: Record<ResetCodePlace['place'], TranslationKey> = {
   container: 'auth.reset.code.container',
@@ -149,10 +150,10 @@ export function PasswordReset({
         </p>
       )}
       <div className="flex items-center justify-between gap-3">
-        <Button type="button" kind="secondary" disabled={busy} onClick={onBack}>
+        <Button icon={<IconBack />} type="button" kind="secondary" disabled={busy} onClick={onBack}>
           {t('onboarding.back')}
         </Button>
-        <Button type="submit" shake={shake} disabled={busy || code.trim() === '' || password === ''}>
+        <Button icon={<IconKey />} type="submit" shake={shake} disabled={busy || code.trim() === '' || password === ''}>
           {t('settings.setPassword')}
         </Button>
       </div>
@@ -179,7 +180,7 @@ function ResetDone({ removed, onContinue }: { removed?: ResetRemoved; onContinue
         ))}
       </ul>
       <div className="flex justify-end">
-        <Button autoFocus onClick={onContinue}>
+        <Button icon={<IconForward />} autoFocus onClick={onContinue}>
           {t('auth.reset.continue')}
         </Button>
       </div>

@@ -3,7 +3,7 @@ import { BrandPicker, PickerSearch, brandMatches, type Brand } from '../../../co
 import { Button, HintBubble, Modal, PasswordInput, TextArea, TextInput } from '../../../components/ui';
 import { ApiError, connectVpn, type VpnField, type VpnProvider, type VpnState } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { IconBack, IconClose, IconFolderOpen } from '../../../lib/icons';
+import { IconBack, IconClose, IconFolderOpen, IconLink } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { VPN_APP_ONLY } from '../../../lib/vpnProviders';
 import { SettingRow } from '../controls';
@@ -156,7 +156,7 @@ export function VpnPicker({
               />
             )}
             <span className="flex-1" />
-            <Button disabled={busy || !filled} shake={shake} onClick={() => void connect()}>
+            <Button icon={<IconLink />} disabled={busy || !filled} shake={shake} onClick={() => void connect()}>
               {t('settings.vpn.connect')}
             </Button>
           </>

@@ -51,7 +51,17 @@ import { useScriptMenu } from '../components/ScriptActions';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import { selectionReach, useDrawnRows } from '../lib/selectionReach';
 import { SelectionReach } from '../components/SelectionReach';
-import { IconClearSelection, IconClose, IconCollector, IconPlay, IconRefresh, IconSearch, IconSelectAll, IconTrash } from '../lib/icons';
+import {
+  IconCheck,
+  IconClearSelection,
+  IconClose,
+  IconCollector,
+  IconPlay,
+  IconSearch,
+  IconSelectAll,
+  IconTrash,
+  IconUndo,
+} from '../lib/icons';
 
 export function Collector() {
   const { t } = useT();
@@ -166,6 +176,7 @@ export function Collector() {
     setSelected(new Set(reach.shown));
     toast(t('select.reduced', { n: reach.hidden.length }), 'info', 'action-done', {
       label: t('remove.undo'),
+      icon: <IconUndo />,
       run: () => setSelected(before),
     });
   }, [selected, reach, toast, t]);
@@ -422,7 +433,7 @@ export function Collector() {
                 <IconBadge
                   labelled={!glyphs}
                   hue={3}
-                  icon={<IconRefresh width={16} height={16} />}
+                  icon={<IconCheck width={16} height={16} />}
                   title={t('collector.checkAll')}
                   aria-label={t('collector.checkAll')}
                   disabled={collected.length === 0}

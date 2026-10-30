@@ -4,6 +4,7 @@ import { fetchTaskLog, isLocalBase, type LogLine, type Task } from '../../lib/ap
 import { useT } from '../../lib/i18n';
 import { Button, Card, EmptyState, SectionTitle } from '../ui';
 import { requestJump } from '../../pages/settings/jump';
+import { IconLog } from '../../lib/icons';
 
 /**
  * LogCard shows the instance's log lines about one download. It is usually
@@ -63,6 +64,7 @@ export function LogCard({ task, base, hue }: { task: Task; base: string; hue?: n
 
       {local && (
         <Button
+          icon={<IconLog />}
           kind="secondary"
           className="self-start"
           onClick={() => {
