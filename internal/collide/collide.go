@@ -14,6 +14,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 
@@ -55,8 +56,10 @@ const maxBaseName = gopeed.MaxFilenameLength
 // every name on its way to the fetcher; a reservation under any other name
 // would reserve nothing, and a copy of its platform-dependent rules would
 // drift. Control characters become spaces first, as the library keeps them
-// and a NUL cannot be written at all; the library then leaves the result
-// alone.
+// and a NUL cannot be written at all. An overlong name is clipped here before
+// the library sees it, because the library keeps only the last extension and
+// would cut "x.part01.rar" down to "x.rar", giving every volume of a set the
+// same name.
 func SafeName(name string) string {
 	// Byte by byte, so a name in a legacy encoding keeps its other bytes.
 	clean := []byte(name)
@@ -65,7 +68,13 @@ func SafeName(name string) string {
 			clean[i] = ' '
 		}
 	}
-	return gopeed.SafeFilename(string(clean))
+	name = string(clean)
+	if len(name) > maxBaseName {
+		if stem, ext := splitName(name); ext != "" && len(ext) < maxBaseName/2 {
+			name = clipBytes(stem, maxBaseName-len(ext)) + ext
+		}
+	}
+	return gopeed.SafeFilename(name)
 }
 
 // Policies lists the policies in the order a settings dropdown should offer
@@ -493,8 +502,10 @@ func clipBytes(s string, n int) string {
 
 // splitName splits a file name into the stem the counter goes after and the
 // extension that stays at the end. "archive.tar.gz" becomes
-// "archive (2).tar.gz"; only ".tar" is treated as part of the extension,
-// since release names are full of dots ("Show.S01E02.1080p.mkv").
+// "archive (2).tar.gz" and "film.part01.rar" becomes "film (2).part01.rar",
+// so an unpacker still finds the set. Only ".tar" and volume markers count as
+// part of the extension, since release names are full of dots
+// ("Show.S01E02.1080p.mkv").
 func splitName(base string) (stem, ext string) {
 	ext = filepath.Ext(base)
 	stem = strings.TrimSuffix(base, ext)
@@ -502,10 +513,31 @@ func splitName(base string) (stem, ext string) {
 	if stem == "" {
 		return base, ""
 	}
-	if inner := filepath.Ext(stem); strings.EqualFold(inner, ".tar") {
+	if inner := filepath.Ext(stem); isVolumeInner(inner, ext) {
 		if rest := strings.TrimSuffix(stem, inner); rest != "" {
 			return rest, inner + ext
 		}
 	}
 	return stem, ext
+}
+
+var (
+	partMarker = regexp.MustCompile(`(?i)^\.(part\d{1,4}|vol\d{1,5}\+\d{1,5})$`)
+	volumeExt  = regexp.MustCompile(`^\.\d{1,4}$`)
+	archiveExt = regexp.MustCompile(`(?i)^\.(7z|zip|rar|tar)$`)
+)
+
+// isVolumeInner reports whether inner belongs to the extension ext: ".tar" of
+// ".tar.gz", ".part01" of ".part01.rar", ".vol000+01" of ".vol000+01.par2" and
+// ".7z" of ".7z.001".
+func isVolumeInner(inner, ext string) bool {
+	switch {
+	case strings.EqualFold(inner, ".tar"):
+		return true
+	case partMarker.MatchString(inner):
+		return true
+	case volumeExt.MatchString(ext):
+		return archiveExt.MatchString(inner)
+	}
+	return false
 }
