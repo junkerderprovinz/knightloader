@@ -169,6 +169,7 @@ import {
   IconTrash,
 } from '../lib/icons';
 import { SettingRow } from '../pages/settings/controls';
+import type { Folded } from '../lib/selectionReach';
 
 export interface Selection {
   ids: Set<string>;
@@ -263,32 +264,39 @@ function parksCell(id: ColumnId, profile: ListProfile): boolean {
  *
  * Folded packages are keyed by name, which is the only identity the wire model
  * carries: core.Task has a package name and no package id. SetPackage rewrites
- * the name, so a rename or a Packagizer re-package makes a folded package come
- * back expanded. Fixing that needs a stable package id on the task.
+ * the name, so a rename or a Packagizer re-package makes a package come back
+ * as the list starts it: open in the collector, folded on Downloads. Fixing
+ * that needs a stable package id on the task.
  */
 export function useCollapsedPackages(profile: ListProfile = 'downloads') {
-  const [stored, setStored] = useUIState<string[]>(`list.collapsed.${profile}`, NO_COLLAPSED);
-  const collapsed = useMemo(() => new Set(stored), [stored]);
+  // On Downloads a package arrives from the collector folded, so there the
+  // store keeps the packages somebody opened instead of the ones they folded.
+  const foldedByDefault = profile === 'downloads';
+  const [stored, setStored] = useUIState<string[]>(
+    `list.${foldedByDefault ? 'expanded' : 'collapsed'}.${profile}`,
+    NO_COLLAPSED,
+  );
+  const collapsed = useMemo<Folded>(() => {
+    const named = new Set(stored);
+    return foldedByDefault ? { has: (name) => !named.has(name) } : named;
+  }, [stored, foldedByDefault]);
 
-  const collapse = useCallback(
-    (names: string[]) => {
+  const mark = useCallback(
+    (names: string[], fold: boolean) => {
       const next = new Set(stored);
-      for (const n of names) next.add(n);
+      const keep = fold !== foldedByDefault;
+      for (const n of names) {
+        if (keep) next.add(n);
+        else next.delete(n);
+      }
       setStored([...next]);
     },
-    [stored, setStored],
+    [stored, setStored, foldedByDefault],
   );
-
+  const collapse = useCallback((names: string[]) => mark(names, true), [mark]);
   // Named, never "clear the lot": expanding what is on screen must not unfold
   // the packages a search is currently hiding.
-  const expand = useCallback(
-    (names: string[]) => {
-      const next = new Set(stored);
-      for (const n of names) next.delete(n);
-      setStored([...next]);
-    },
-    [stored, setStored],
-  );
+  const expand = useCallback((names: string[]) => mark(names, false), [mark]);
 
   const toggle = useCallback(
     (name: string) => {

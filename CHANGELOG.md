@@ -90,6 +90,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   module's card in Settings still has both.
 - **The variant presets of a YouTube package are a quiet gear** beside the
   package's trash, like the other buttons on a row.
+- **Packages arrive on Downloads folded.** Whatever way they leave the link
+  collector, a package shows as one row until you open it, and one you opened
+  stays open.
 - **Start all no longer flickers** with many links in the collector. The list
   stays as it is until every link has moved and Downloads opens, and the lists
   take a burst of changes in one go instead of one link at a time.
