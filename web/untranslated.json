@@ -25,7 +25,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "bg": [
       "skipped.reason.sameLink",
@@ -51,7 +59,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "ca": [
       "skipped.reason.sameLink",
@@ -77,7 +93,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "cs": [
       "skipped.reason.sameLink",
@@ -103,7 +127,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "da": [
       "skipped.reason.sameLink",
@@ -129,7 +161,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "el": [
       "skipped.reason.sameLink",
@@ -155,7 +195,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "es": [
       "skipped.reason.sameLink",
@@ -181,7 +229,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "et": [
       "skipped.reason.sameLink",
@@ -207,7 +263,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "eu": [
       "skipped.reason.sameLink",
@@ -233,7 +297,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "fa": [
       "skipped.reason.sameLink",
@@ -259,7 +331,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "fi": [
       "skipped.reason.sameLink",
@@ -285,7 +365,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "fr": [
       "skipped.reason.sameLink",
@@ -311,7 +399,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "gl": [
       "skipped.reason.sameLink",
@@ -337,7 +433,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "he": [
       "skipped.reason.sameLink",
@@ -363,7 +467,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "hi": [
       "skipped.reason.sameLink",
@@ -389,7 +501,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "hr": [
       "skipped.reason.sameLink",
@@ -415,7 +535,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "hu": [
       "skipped.reason.sameLink",
@@ -441,7 +569,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "id": [
       "skipped.reason.sameLink",
@@ -467,7 +603,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "is": [
       "skipped.reason.sameLink",
@@ -493,7 +637,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "it": [
       "skipped.reason.sameLink",
@@ -519,7 +671,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "ja": [
       "skipped.reason.sameLink",
@@ -545,7 +705,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "ko": [
       "skipped.reason.sameLink",
@@ -571,7 +739,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "lt": [
       "skipped.reason.sameLink",
@@ -597,7 +773,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "lv": [
       "skipped.reason.sameLink",
@@ -623,7 +807,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "ms": [
       "skipped.reason.sameLink",
@@ -649,7 +841,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "nl": [
       "skipped.reason.sameLink",
@@ -675,7 +875,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "no": [
       "skipped.reason.sameLink",
@@ -701,7 +909,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "pl": [
       "skipped.reason.sameLink",
@@ -727,7 +943,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "pt": [
       "skipped.reason.sameLink",
@@ -753,7 +977,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "ro": [
       "skipped.reason.sameLink",
@@ -779,7 +1011,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "ru": [
       "skipped.reason.sameLink",
@@ -805,7 +1045,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "sk": [
       "skipped.reason.sameLink",
@@ -831,7 +1079,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "sl": [
       "skipped.reason.sameLink",
@@ -857,7 +1113,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "sr": [
       "skipped.reason.sameLink",
@@ -883,7 +1147,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "sv": [
       "skipped.reason.sameLink",
@@ -909,7 +1181,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "th": [
       "skipped.reason.sameLink",
@@ -935,7 +1215,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "tr": [
       "skipped.reason.sameLink",
@@ -961,7 +1249,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "uk": [
       "skipped.reason.sameLink",
@@ -987,7 +1283,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "vi": [
       "skipped.reason.sameLink",
@@ -1013,7 +1317,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ],
     "zh": [
       "skipped.reason.sameLink",
@@ -1039,7 +1351,15 @@
       "failure.quotaUsed.line",
       "failure.quotaUsed.lineService",
       "failure.quotaUsed.next",
-      "failure.quotaUsed.nextReset"
+      "failure.quotaUsed.nextReset",
+      "accounts.paused.volume",
+      "accounts.paused.other",
+      "accounts.paused.someHosts",
+      "accounts.paused.volumeUntil",
+      "accounts.paused.volumeHostUntil",
+      "accounts.paused.otherUntil",
+      "accounts.paused.otherHostUntil",
+      "accounts.paused.retry"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

@@ -1429,11 +1429,17 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// Account health learns of the outcome before the freed slot is
 	// redispatched, so queued tasks on the same account see the new verdict.
 	// Resolvers without a tracked account are unaffected. A site the service
-	// has switched off is benched on its own and says nothing about the
-	// account.
+	// has switched off, or whose download volume alone it has used up, is
+	// benched on its own and says nothing about the account.
 	siteDown := u.Status == core.StatusError && u.HostDown
+	var siteSpent bool
 	if siteDown {
-		a.benchSiteLocked(t.Resolver, t.URL)
+		a.benchSiteLocked(t.Resolver, t.URL, time.Now().Add(siteBenchLength), false)
+	} else if svc, acct, ok := a.accountForResolverLocked(t.Resolver); ok && u.Status == core.StatusError {
+		if _, hostOnly := volumeText(u.Err); hostOnly {
+			a.benchSiteLocked(t.Resolver, t.URL, a.volumeBackAt(svc, acct), true)
+			siteDown, siteSpent = true, true
+		}
 	}
 	var accountUnroutable bool
 	if svc, acct, ok := a.accountForResolverLocked(t.Resolver); ok && !siteDown {
@@ -1521,14 +1527,17 @@ func (a *App) onUpdate(id string, u core.Update) {
 			a.pinFailureLocked(t)
 		}
 	} else if u.Status == core.StatusError && (accountUnroutable || (siteDown && t.ResolverPin == "")) {
-		// The account failed, or the service has switched off this site, not
-		// the link, so the task is requeued for the next backend like
-		// u.Unsupported rather than failed. A pinned task that met a
-		// switched-off site keeps the service's own words and the ordinary
-		// retry.
+		// The account failed, or the service has switched off this site or
+		// used up its volume for it, not the link, so the task is requeued for
+		// the next backend like u.Unsupported rather than failed. A pinned
+		// task that met such a site keeps the service's own words and the
+		// ordinary retry.
 		fallbackTo = a.backendFor(t.Resolver)
 		why := "the account behind " + t.Resolver + " is unavailable"
-		if siteDown {
+		switch {
+		case siteSpent:
+			why = t.Resolver + " has used up its download volume for " + siteOf(t.URL)
+		case siteDown:
 			why = t.Resolver + " has switched off " + siteOf(t.URL)
 		}
 		next := a.nextResolverLocked(t)

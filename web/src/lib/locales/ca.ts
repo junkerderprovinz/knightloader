@@ -3923,4 +3923,12 @@ export const ca: Dict = {
   'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
   'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
   'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
+  'accounts.paused.volume': 'Download volume used up',
+  'accounts.paused.other': 'Paused',
+  'accounts.paused.someHosts': 'Paused for some hosters',
+  'accounts.paused.volumeUntil': 'The download volume is used up until {until}.',
+  'accounts.paused.volumeHostUntil': 'The download volume for {host} is used up until {until}. Other hosters keep using this account.',
+  'accounts.paused.otherUntil': 'Paused after a failure until {until}.',
+  'accounts.paused.otherHostUntil': 'Not used for {host} until {until}.',
+  'accounts.paused.retry': 'Refresh tries the account again right away.',
 };

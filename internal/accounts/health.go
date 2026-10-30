@@ -76,6 +76,10 @@ type Record struct {
 	// BenchCount counts consecutive HealthTempDisabled episodes without a
 	// success in between; the bench duration grows with it.
 	BenchCount int `json:"benchCount,omitempty"`
+	// Volume marks a bench for a used-up download volume. It ends when the
+	// volume is back, not when the key passes a check, which a spent
+	// account still does.
+	Volume bool `json:"volume,omitempty"`
 }
 
 // key mirrors accountKey without stripping NULs, which callers of this
@@ -157,11 +161,32 @@ func (t *Tracker) ReportFailure(service, account string, state HealthState, deta
 		} else {
 			next.BenchedUntil = prev.BenchedUntil
 			next.BenchCount = prev.BenchCount
+			next.Volume = prev.Volume
 		}
 	}
 	t.data[k] = next
 	t.flushLocked()
 	return next, started
+}
+
+// ReportVolumeSpent benches an account whose download volume is used up
+// until until: when the service gives it back, or when a new reading is due.
+// It does not add to BenchCount, since a spent volume says nothing about an
+// outage. started reports whether this call set a new end, which the caller
+// schedules the one check for; a later end replaces an earlier one.
+func (t *Tracker) ReportVolumeSpent(service, account, detail string, until time.Time) (rec Record, started bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	k := key(service, account)
+	prev := t.data[k]
+	if prev.State == HealthTempDisabled && prev.Volume && !until.After(prev.BenchedUntil) {
+		return prev, false
+	}
+	next := Record{State: HealthTempDisabled, Detail: detail, CheckedAt: time.Now(),
+		BenchedUntil: until, BenchCount: prev.BenchCount, Volume: true}
+	t.data[k] = next
+	t.flushLocked()
+	return next, true
 }
 
 // Reset drops whatever was recorded for an account. It is called whenever a

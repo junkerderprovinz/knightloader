@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   type Account,
   type AccountCredential,
+  type AccountPause,
   type CatalogueService,
   type CredentialField,
   type ResolverInfo,
@@ -479,6 +480,7 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
       </span>
     );
   }
+  if (account.paused?.length) return <PausedStatus pauses={account.paused} />;
   // Never checked yet differs from a failed check.
   if (!account.detail) {
     return (
@@ -501,6 +503,40 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
       <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
       {t('accounts.failed')}
       <InfoBubble tip={account.detail} />
+    </span>
+  );
+}
+
+/**
+ * PausedStatus is an account routing passes over for now. The word names the
+ * cause, the bubble says for which hoster and until when, and how to try the
+ * account again before then.
+ */
+export function PausedStatus({ pauses }: { pauses: AccountPause[] }) {
+  const { t } = useT();
+  const whole = pauses.find((p) => !p.host);
+  const word = whole
+    ? t(whole.volume ? 'accounts.paused.volume' : 'accounts.paused.other')
+    : t('accounts.paused.someHosts');
+  const lines = pauses.map((p) => {
+    const vars = { host: p.host ?? '', until: fmtDate(p.until) };
+    if (p.volume) return t(p.host ? 'accounts.paused.volumeHostUntil' : 'accounts.paused.volumeUntil', vars);
+    const line = t(p.host ? 'accounts.paused.otherHostUntil' : 'accounts.paused.otherUntil', vars);
+    return p.detail ? `${line} ${p.detail}` : line;
+  });
+  lines.push(t('accounts.paused.retry'));
+  return (
+    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
+      <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
+      {word}
+      <InfoBubble
+        label={word}
+        tip={lines.map((line) => (
+          <span key={line} className="block">
+            {line}
+          </span>
+        ))}
+      />
     </span>
   );
 }

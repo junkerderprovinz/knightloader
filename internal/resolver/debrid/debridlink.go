@@ -114,10 +114,14 @@ func errorText(code string) string {
 		return "this hoster is not available on a free Debrid-Link account"
 	case "maintenanceHost":
 		return "this hoster is in maintenance at Debrid-Link"
-	case "maxLink", "maxLinkHost":
+	case "maxLink":
 		return "the daily link limit for this account is used up"
-	case "maxData", "maxDataHost":
+	case "maxLinkHost":
+		return "the daily link limit for this hoster is used up"
+	case "maxData":
 		return "the daily traffic limit for this account is used up"
+	case "maxDataHost":
+		return "the daily traffic limit for this hoster is used up"
 	case "serverNotAllowed":
 		return "Debrid-Link refuses requests from this server or VPN; contact them to allow it"
 	case "floodDetected":

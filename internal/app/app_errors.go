@@ -273,6 +273,10 @@ var quotaPhrases = []string{
 	"reached a download limit", "monthly_limit",
 }
 
+// hostQuotaPhrases mark a spent volume that covers one hoster only, which
+// leaves the service open for every other one.
+var hostQuotaPhrases = []string{"for this hoster", "for this file hoster"}
+
 // premiumPhrases are how hosters, JDownloader and the debrid services say a
 // file needs a paid account. Not the bare word: "premiumize" is a service, and
 // its every error starts with its name.

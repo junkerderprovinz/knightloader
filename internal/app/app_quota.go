@@ -7,12 +7,56 @@ package app
 // from free users turns the spent volume into "Skipped - Captcha is required".
 
 import (
+	"log"
 	"strings"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
+
+// volumeRecheck is how long a spent volume stays benched when the service
+// does not say when it comes back. A var so tests need not wait it out.
+var volumeRecheck = time.Hour
+
+// volumeText reports whether a failure sentence says a download volume ran
+// out, and whether only the one for the link's hoster.
+func volumeText(sentence string) (spent, hostOnly bool) {
+	low := strings.ToLower(sentence)
+	spent = containsAny(low, quotaPhrases)
+	return spent, spent && containsAny(low, hostQuotaPhrases)
+}
+
+// volumeBackAt is when to look at a spent volume again: the reset the
+// service named, or volumeRecheck from now.
+func (a *App) volumeBackAt(service, account string) time.Time {
+	if at := a.quotaResetsAt(service, account); !at.IsZero() {
+		return at
+	}
+	return time.Now().Add(volumeRecheck)
+}
+
+// recheckVolume ends a volume bench whose time is up once a fresh reading
+// shows volume again, or the service gives no reading to wait for. A reading
+// still spent benches the account again, until the new reset or for another
+// volumeRecheck.
+func (a *App) recheckVolume(svc accounts.Service, account string) {
+	a.refreshOneAccountHealth(a.healthState(), svc, account)
+	tr := a.acctHealthTracker()
+	if a.readingSpent(svc.ID, account) {
+		rec, started := tr.ReportVolumeSpent(svc.ID, account, tr.Get(svc.ID, account).Detail, a.volumeBackAt(svc.ID, account))
+		if started {
+			a.scheduleProbe(svc.ID, account, rec.BenchedUntil)
+		}
+		return
+	}
+	tr.ReportSuccess(svc.ID, account)
+	log.Printf("account health: %s/%s has download volume again", svc.ID, account)
+	a.mu.Lock()
+	a.dispatchLocked()
+	a.mu.Unlock()
+}
 
 // spentQuotaLocked names the used-up volume behind a captcha JDownloader gave
 // up on: its own login for the link's hoster with no traffic left, or a debrid
@@ -24,22 +68,32 @@ func (a *App) spentQuotaLocked(t *core.Task) (params map[string]string, ok bool)
 		return map[string]string{"host": host}, true
 	}
 	for _, res := range a.chainFor(t) {
-		service, account, debrid := a.accountForResolverLocked(res.Info().ID)
-		if debrid && a.volumeSpent(service, account) {
+		id := res.Info().ID
+		service, account, debrid := a.accountForResolverLocked(id)
+		if debrid && a.volumeSpentLocked(id, t.URL) {
 			return a.quotaParams(host, service, account), true
 		}
 	}
 	return nil, false
 }
 
-// volumeSpent reports whether a debrid account has run out of volume: benched
-// after refusing a download for it, or read as spent by the last account
-// sweep.
-func (a *App) volumeSpent(service, account string) bool {
-	rec := a.acctHealthTracker().Get(service, account)
-	if rec.State == accounts.HealthTempDisabled && containsAny(strings.ToLower(rec.Detail), quotaPhrases) {
+// volumeSpentLocked reports whether the debrid account behind resolverID has
+// no download volume left for url's hoster: benched for its volume there or as
+// a whole, or read as spent by the last account sweep. Caller holds a.mu.
+func (a *App) volumeSpentLocked(resolverID, url string) bool {
+	if ban := a.siteBench[serviceSiteOf(resolverID, url)]; ban.volume && time.Now().Before(ban.until) {
 		return true
 	}
+	service, account := resolver.SplitSlot(resolverID)
+	if rec := a.acctHealthTracker().Get(service, account); rec.State == accounts.HealthTempDisabled && rec.Volume {
+		return true
+	}
+	return a.readingSpent(service, account)
+}
+
+// readingSpent reports whether the last account sweep read the account's
+// volume as used up.
+func (a *App) readingSpent(service, account string) bool {
 	tr := a.accountHealth(service, account).Traffic
 	switch {
 	case tr.Unlimited:

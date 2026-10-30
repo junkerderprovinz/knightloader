@@ -46,7 +46,6 @@ func failCaptchaOnJD(a *App, id string) core.Task {
 
 func TestACaptchaBehindASpentDebridVolumeNamesTheVolume(t *testing.T) {
 	a := quotaApp(t)
-	a.acctHealthTracker().ReportFailure("debridlink", "", accounts.HealthTempDisabled, debridLinkSpent, time.Hour)
 	reset := time.Now().Add(9 * time.Hour).UTC().Truncate(time.Second)
 	st := a.healthState()
 	st.mu.Lock()
@@ -54,6 +53,7 @@ func TestACaptchaBehindASpentDebridVolumeNamesTheVolume(t *testing.T) {
 		UsedPercent: 70, PercentKnown: true, ResetsAt: reset.Format(time.RFC3339),
 	}}
 	st.mu.Unlock()
+	a.reportAccountFailure("debridlink", "", core.ReasonLimit, debridLinkSpent)
 
 	got := failCaptchaOnJD(a, "q1")
 
