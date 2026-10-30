@@ -537,7 +537,6 @@ export const eu: Dict = {
   'columns.comment': 'Oharra',
   'columns.resolver': 'Backend',
   'columns.source': 'Jatorria',
-  'columns.enabled': 'Aktibo',
   'columns.menuTitle': 'Zutabeak',
   'columns.reset': 'Berrezarri zutabeak',
   'columns.headerHint': 'Egin klik goiburu batean horren arabera ordenatzeko, arrastatu zutabea berrantolatzeko, arrastatu ertza tamaina aldatzeko, klik bikoitza ertzean zabalera itzultzeko. Eskuineko klik goiburuan zutabe-zerrenda ikusteko.',
@@ -567,8 +566,6 @@ export const eu: Dict = {
   'list.dropChangedPriority': 'Lekualdatuta: {n} deskargak jaitsi diren errenkadaren lehentasuna hartu dute.',
   'list.optionsFailed': 'Ezin izan dira garbiketa-sarrerak zerbitzaritik kargatu.',
 
-  'task.enable': 'Piztu',
-  'task.disable': 'Itzali',
   'task.switchFailed': 'Ezin izan da etengailua aldatu.',
   'task.uncheckable': 'Ostalariak ez du erantzun',
   'task.expand': 'Zabaldu',

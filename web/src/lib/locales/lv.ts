@@ -537,7 +537,6 @@ export const lv: Dict = {
   'columns.comment': 'Piezīme',
   'columns.resolver': 'Aizmugure',
   'columns.source': 'Avots',
-  'columns.enabled': 'Ieslēgts',
   'columns.menuTitle': 'Kolonnas',
   'columns.reset': 'Atjaunot kolonnas',
   'columns.headerHint': 'Noklikšķiniet uz galvenes, lai kārtotu pēc tās, velciet to, lai pārkārtotu kolonnu, velciet tās malu, lai mainītu izmēru, veiciet dubultklikšķi uz malas, lai atjaunotu platumu. Ar peles labo pogu noklikšķiniet uz galvenes, lai atvērtu kolonnu sarakstu.',
@@ -567,8 +566,6 @@ export const lv: Dict = {
   'list.dropChangedPriority': 'Pārvietots: {n} lejupielādes pārņēma rindas prioritāti, uz kuras tās tika nomestas.',
   'list.optionsFailed': 'Neizdevās no servera ielādēt sakopšanas ierakstus.',
 
-  'task.enable': 'Ieslēgt',
-  'task.disable': 'Izslēgt',
   'task.switchFailed': 'Slēdzi neizdevās pārslēgt.',
   'task.uncheckable': 'Glabātājs neatbildēja',
   'task.expand': 'Izvērst',

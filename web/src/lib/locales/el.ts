@@ -537,7 +537,6 @@ export const el: Dict = {
   'columns.comment': 'Σχόλιο',
   'columns.resolver': 'Backend',
   'columns.source': 'Προέλευση',
-  'columns.enabled': 'Ενεργό',
   'columns.menuTitle': 'Στήλες',
   'columns.reset': 'Επαναφορά στηλών',
   'columns.headerHint': 'Κάντε κλικ σε μια επικεφαλίδα για ταξινόμηση, σύρετέ την για αναδιάταξη της στήλης, σύρετε την άκρη της για αλλαγή μεγέθους, διπλό κλικ στην άκρη επαναφέρει το πλάτος. Δεξί κλικ στην επικεφαλίδα για τη λίστα στηλών.',
@@ -567,8 +566,6 @@ export const el: Dict = {
   'list.dropChangedPriority': 'Μετακινήθηκε: {n} λήψεις πήραν την προτεραιότητα της γραμμής όπου έπεσαν.',
   'list.optionsFailed': 'Δεν φορτώθηκαν οι καταχωρίσεις εκκαθάρισης από τον διακομιστή.',
 
-  'task.enable': 'Ενεργοποίηση',
-  'task.disable': 'Απενεργοποίηση',
   'task.switchFailed': 'Ο διακόπτης δεν άλλαξε.',
   'task.uncheckable': 'Ο πάροχος δεν απάντησε',
   'task.expand': 'Ανάπτυξη',

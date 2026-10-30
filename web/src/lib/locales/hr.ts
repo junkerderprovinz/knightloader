@@ -536,7 +536,6 @@ export const hr: Dict = {
   'columns.comment': 'Napomena',
   'columns.resolver': 'Pozadina',
   'columns.source': 'Izvor',
-  'columns.enabled': 'Uključeno',
   'columns.menuTitle': 'Stupci',
   'columns.reset': 'Vrati stupce',
   'columns.headerHint': 'Kliknite zaglavlje za sortiranje po njemu, povucite ga za promjenu redoslijeda stupca, povucite njegov rub za promjenu veličine, dvoklik na rub vraća širinu. Desni klik na zaglavlje otvara popis stupaca.',
@@ -566,8 +565,6 @@ export const hr: Dict = {
   'list.dropChangedPriority': 'Premješteno: {n} preuzimanja preuzelo je prioritet retka na koji su ispuštena.',
   'list.optionsFailed': 'Stavke pospremanja nisu učitane s poslužitelja.',
 
-  'task.enable': 'Uključi',
-  'task.disable': 'Isključi',
   'task.switchFailed': 'Prekidač se nije mogao promijeniti.',
   'task.uncheckable': 'Poslužitelj nije odgovorio',
   'task.expand': 'Proširi',

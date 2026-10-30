@@ -536,7 +536,6 @@ export const ko: Dict = {
   'columns.comment': '메모',
   'columns.resolver': '백엔드',
   'columns.source': '출처',
-  'columns.enabled': '사용',
   'columns.menuTitle': '열',
   'columns.reset': '열 초기화',
   'columns.headerHint': '헤더를 클릭하면 해당 기준으로 정렬됩니다. 드래그하면 열 순서를 바꿀 수 있고, 가장자리를 드래그하면 크기를 조절할 수 있으며, 가장자리를 더블클릭하면 너비가 원래대로 돌아갑니다. 헤더를 우클릭하면 열 목록이 열립니다.',
@@ -566,8 +565,6 @@ export const ko: Dict = {
   'list.dropChangedPriority': '이동했습니다: 다운로드 {n}건이 놓인 행의 우선순위를 이어받았습니다.',
   'list.optionsFailed': '정리 항목을 서버에서 불러오지 못했습니다.',
 
-  'task.enable': '켜기',
-  'task.disable': '끄기',
   'task.switchFailed': '스위치를 바꾸지 못했습니다.',
   'task.uncheckable': '호스트가 답하지 않음',
   'task.expand': '펼치기',

@@ -536,7 +536,6 @@ export const sr: Dict = {
   'columns.comment': 'Напомена',
   'columns.resolver': 'Позадина',
   'columns.source': 'Извор',
-  'columns.enabled': 'Укључено',
   'columns.menuTitle': 'Колоне',
   'columns.reset': 'Врати колоне',
   'columns.headerHint': 'Кликните на заглавље да сортирате по њему, превуците га да преуредите колону, превуците ивицу да промените величину, дупли клик на ивицу враћа ширину. Десни клик на заглавље отвара листу колона.',
@@ -566,8 +565,6 @@ export const sr: Dict = {
   'list.dropChangedPriority': 'Премештено: {n} преузимања преузело је приоритет реда на који је спуштено.',
   'list.optionsFailed': 'Ставке поспремања нису учитане са сервера.',
 
-  'task.enable': 'Укључи',
-  'task.disable': 'Искључи',
   'task.switchFailed': 'Прекидач није могао да се промени.',
   'task.uncheckable': 'Хостер није одговорио',
   'task.expand': 'Прошири',

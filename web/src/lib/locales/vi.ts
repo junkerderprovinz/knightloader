@@ -536,7 +536,6 @@ export const vi: Dict = {
   'columns.comment': 'Ghi chú',
   'columns.resolver': 'Backend',
   'columns.source': 'Nguồn',
-  'columns.enabled': 'Bật',
   'columns.menuTitle': 'Cột',
   'columns.reset': 'Đặt lại các cột',
   'columns.headerHint': 'Nhấp vào tiêu đề để sắp xếp theo nó, kéo để sắp xếp lại cột, kéo cạnh để thay đổi kích thước, nhấp đúp vào cạnh để khôi phục chiều rộng. Nhấp chuột phải vào tiêu đề để xem danh sách cột.',
@@ -566,8 +565,6 @@ export const vi: Dict = {
   'list.dropChangedPriority': 'Đã chuyển: {n} lượt tải nhận mức ưu tiên của hàng mà chúng được thả vào.',
   'list.optionsFailed': 'Không tải được các mục dọn dẹp từ máy chủ.',
 
-  'task.enable': 'Bật',
-  'task.disable': 'Tắt',
   'task.switchFailed': 'Không đổi được công tắc.',
   'task.uncheckable': 'Máy chủ không trả lời',
   'task.expand': 'Mở rộng',

@@ -573,7 +573,6 @@ export const de: Dict = {
   'columns.comment': 'Kommentar',
   'columns.resolver': 'Backend',
   'columns.source': 'Quelle',
-  'columns.enabled': 'Aktiv',
   'columns.menuTitle': 'Spalten',
   'columns.reset': 'Spalten zurücksetzen',
   'columns.headerHint': 'Ein Klick auf einen Spaltenkopf sortiert danach, Ziehen verschiebt die Spalte, Ziehen an seiner Kante ändert die Breite, ein Doppelklick auf die Kante setzt die Breite zurück. Ein Rechtsklick auf den Spaltenkopf öffnet die Spaltenliste.',
@@ -604,8 +603,6 @@ export const de: Dict = {
   'list.dropChangedPriority': 'Verschoben: {n} Downloads haben die Priorität der Zeile übernommen, auf der sie gelandet sind.',
   'list.optionsFailed': 'Die Aufräum-Einträge konnten nicht vom Server geladen werden.',
 
-  'task.enable': 'Aktivieren',
-  'task.disable': 'Deaktivieren',
   'task.switchFailed': 'Der Schalter ließ sich nicht ändern.',
   'task.uncheckable': 'Hoster gab keine Auskunft',
   'task.expand': 'Aufklappen',

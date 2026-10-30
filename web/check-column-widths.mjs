@@ -41,10 +41,10 @@
 //
 // A head is a word per language where a width is one number, so the widths
 // here are not sized for the heads: set at 12px in capitals with their 16px of
-// padding, "Geschwindigkeit" (de) needs 133px over the speed column, "Tiempo
-// restante" (es) 128 over the time left and "Bekapcsolva" (hu) 103 over the
-// collector's switch. useHeadWidths in columns.tsx measures the reader's own
-// heads and raises a default that is narrower, for that language alone.
+// padding, "Geschwindigkeit" (de) needs 133px over the speed column and "Tiempo
+// restante" (es) 128 over the time left. useHeadWidths in columns.tsx measures
+// the reader's own heads and raises a default that is narrower, for that
+// language alone.
 //
 // The variant column, read off the live collector (seeded yt-dlp variant rows,
 // Chromium at 1600x950) in all 42 shipped locales, measuring the cell's content
@@ -226,7 +226,6 @@ for (const block of blocks) {
     minWidth: minWidth ? number(minWidth, consts, `${id}.minWidth`) : null,
     perList: byList('widthByProfile'),
     minPerList: byList('minWidthByProfile'),
-    onlyIn: onlyIn ? [...onlyIn.matchAll(/'([^']+)'/g)].map((m) => m[1]) : null,
   });
 }
 
@@ -235,9 +234,7 @@ function visibleIn(list) {
   const chunk = text.slice(text.indexOf('export const DEFAULT_HIDDEN'));
   const arr = chunk.match(new RegExp(`\\b${list}:\\s*\\[([^\\]]*)\\]`))?.[1] ?? '';
   const hidden = new Set([...arr.matchAll(/'([^']+)'/g)].map((m) => m[1]));
-  return [...columns.values()].filter(
-    (c) => !hidden.has(c.id) && (!c.onlyIn || c.onlyIn.includes(list)),
-  );
+  return [...columns.values()].filter((c) => !hidden.has(c.id));
 }
 
 const defaultWidth = (c, list) => c.perList[list] ?? c.width;

@@ -245,12 +245,12 @@ function drawnRows(strip: HTMLElement): HTMLElement[] {
 const ACTIONS_CELL = `glim-row-actions flex items-center justify-end gap-1 ${AT_ROW_END}`;
 
 /**
- * Whether a parked row greys this cell (see isParked). The switch is how the
- * row is enabled again, the name cell greys its own parts around the marks, and
- * the collector's pickers still decide what the link will fetch.
+ * Whether a parked row greys this cell (see isParked). The name cell greys its
+ * own parts around the marks, and the collector's pickers still decide what
+ * the link will fetch.
  */
 function parksCell(id: ColumnId, profile: ListProfile): boolean {
-  return id !== 'enabled' && id !== 'name' && !(id === 'variant' && profile === 'collector');
+  return id !== 'name' && !(id === 'variant' && profile === 'collector');
 }
 
 /**
@@ -799,11 +799,10 @@ function PackageName({
       ) : (
         <IconFolderOpen width={FOLDER_GLYPH} height={FOLDER_GLYPH} className="shrink-0 text-carbon-textMuted" />
       )}
-      {/* The package wears the mark when every link in it agrees, the same rule
-          the Enabled column's aggregate follows. Without it the mark exists
-          only on expanded rows, so a collapsed package would hide the thing it
-          is there to announce. Rows that disagree show nothing here and keep
-          their own marks inside. */}
+      {/* The package wears the mark when every link in it agrees. Without it the
+          mark exists only on expanded rows, so a collapsed package would hide
+          the thing it is there to announce. Rows that disagree show nothing here
+          and keep their own marks inside. */}
       <RowMarks items={items} ctx={ctx} />
       {/* A parked package greys what follows its marks, as a link row does
           (see NameCell); the twisty still folds and keeps its ink. */}
@@ -2004,11 +2003,10 @@ export function TaskListCard({
 
   const heads = useHeadWidths(profile);
   const layout = useMemo(() => resolveLayout(profile, stored, heads), [profile, stored, heads]);
-  const switchShown = layout.visible.some((c) => c.id === 'enabled');
   const folded = fold?.folded === true;
   const ctx = useMemo<CellContext>(
-    () => ({ t, base, profile, onRemovePackage, extractions, stopMark, switchShown }),
-    [t, base, profile, onRemovePackage, extractions, stopMark, switchShown],
+    () => ({ t, base, profile, onRemovePackage, extractions, stopMark }),
+    [t, base, profile, onRemovePackage, extractions, stopMark],
   );
 
   // A sort on a column that is currently hidden is ignored rather than cleared,

@@ -536,7 +536,6 @@ export const sv: Dict = {
   'columns.comment': 'Kommentar',
   'columns.resolver': 'Backend',
   'columns.source': 'Källa',
-  'columns.enabled': 'På',
   'columns.menuTitle': 'Kolumner',
   'columns.reset': 'Återställ kolumnerna',
   'columns.headerHint': 'Klicka på en rubrik för att sortera efter den, dra den för att ändra ordning på kolumnen, dra kanten för att ändra storlek, dubbelklicka på kanten för att återställa bredden. Högerklicka på rubriken för kolumnlistan.',
@@ -566,8 +565,6 @@ export const sv: Dict = {
   'list.dropChangedPriority': 'Flyttat: {n} nedladdningar tog prioriteten från raden de släpptes på.',
   'list.optionsFailed': 'Kunde inte hämta rensningsposterna från servern.',
 
-  'task.enable': 'Slå på',
-  'task.disable': 'Slå av',
   'task.switchFailed': 'Reglaget gick inte att ändra.',
   'task.uncheckable': 'Värden svarade inte',
   'task.expand': 'Fäll ut',

@@ -93,6 +93,13 @@ describe('resolveLayout', () => {
     expect(downloads.widthOf('variant')).toBeGreaterThanOrEqual(downloads.minWidthOf('variant'));
   });
 
+  it('ignores a stored column the build does not have', () => {
+    const stored = { order: ['enabled', 'name', 'size'], hidden: [], widths: {}, v: 3 } as unknown as Parameters<typeof resolveLayout>[1];
+    const ids = resolveLayout('collector', stored).visible.map((c) => c.id as string);
+    expect(ids).not.toContain('enabled');
+    expect(ids.slice(0, 2)).toEqual(['name', 'size']);
+  });
+
   it('widens a default column to the width its head needs', () => {
     const plain = resolveLayout('downloads', null);
     const layout = resolveLayout('downloads', null, { speed: plain.widthOf('speed') + 45, size: 10 });

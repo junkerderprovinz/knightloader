@@ -536,7 +536,6 @@ export const th: Dict = {
   'columns.comment': 'หมายเหตุ',
   'columns.resolver': 'แบ็กเอนด์',
   'columns.source': 'แหล่งที่มา',
-  'columns.enabled': 'เปิดใช้',
   'columns.menuTitle': 'คอลัมน์',
   'columns.reset': 'รีเซ็ตคอลัมน์',
   'columns.headerHint': 'คลิกส่วนหัวเพื่อเรียงลำดับตามคอลัมน์นั้น ลากเพื่อจัดเรียงคอลัมน์ใหม่ ลากขอบเพื่อปรับขนาด ดับเบิลคลิกที่ขอบเพื่อคืนความกว้างเดิม คลิกขวาที่ส่วนหัวเพื่อดูรายการคอลัมน์',
@@ -566,8 +565,6 @@ export const th: Dict = {
   'list.dropChangedPriority': 'ย้ายแล้ว: {n} รายการดาวน์โหลดรับลำดับความสำคัญของแถวที่ถูกวางลงไป',
   'list.optionsFailed': 'โหลดรายการทำความสะอาดจากเซิร์ฟเวอร์ไม่ได้',
 
-  'task.enable': 'เปิด',
-  'task.disable': 'ปิด',
   'task.switchFailed': 'เปลี่ยนสวิตช์ไม่สำเร็จ',
   'task.uncheckable': 'โฮสต์ไม่ตอบ',
   'task.expand': 'กางออก',
