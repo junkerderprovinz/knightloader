@@ -480,9 +480,10 @@ type Settings struct {
 	// RejectDownloaded checks a new link against the download history as well
 	// as the list, so a feed or a second paste does not fetch a file again. A
 	// link it catches goes to the rejected links, where a restore adds it
-	// anyway. On by default: the history is kept for exactly this kind of
-	// question, and nothing is lost when it answers wrongly.
-	RejectDownloaded bool `json:"rejectDownloaded"`
+	// anyway. Off by default: a link somebody adds again is more often wanted
+	// than not. A rejectDownloaded key in an older file is not read, since it
+	// says true whether or not anybody chose it.
+	RejectDownloaded bool `json:"rejectDownloadedLinks"`
 
 	// CollisionPolicy is what happens when the destination file already exists.
 	CollisionPolicy string `json:"collisionPolicy"`
@@ -873,7 +874,6 @@ func Defaults() Settings {
 		ExtractCollision:   string(extract.DefaultCollision),
 		TrashRetentionDays: extract.DefaultTrashDays,
 		MirrorPolicy:       string(dedupe.DefaultPolicy),
-		RejectDownloaded:   true,
 		CollisionPolicy:    string(collide.DefaultPolicy),
 		Reconnect:          reconnect.Defaults(),
 		IdleAction:         idleaction.Defaults(),

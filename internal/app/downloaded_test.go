@@ -33,11 +33,12 @@ func downloadedBefore(t *testing.T, a *App, id, url, name string, size int64) ti
 	return at
 }
 
-// historyApp is an app with the history check at its default and mirrors
+// historyApp is an app with the history check switched on and mirrors
 // matched on name and size.
 func historyApp(t *testing.T, mutate func(s *settings.Settings)) *App {
 	t.Helper()
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.RejectDownloaded = true
 		s.MirrorPolicy = string(dedupe.PolicyFilenameAndSize)
 		if mutate != nil {
 			mutate(s)
@@ -108,6 +109,69 @@ func TestAMirrorOfADownloadIsAddedWhenThePolicyIsOff(t *testing.T) {
 	}, "", OriginPaste))
 	if got.Skipped {
 		t.Errorf("the link was rejected (%s), want it staged: with mirrors off only the same link counts", got.SkipReason)
+	}
+}
+
+// inTheList puts a finished download filed by downloadedBefore back in the list.
+func inTheList(a *App, id, url, name string) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.tasks[id] = &core.Task{ID: id, URL: url, Name: name, Status: core.StatusDone}
+}
+
+func TestADownloadRemovedByHandCanBeAddedAgain(t *testing.T) {
+	a := historyApp(t, nil)
+	const link = "https://host.example/film.mkv"
+	downloadedBefore(t, a, "old", link, "film.mkv", 4096)
+	inTheList(a, "old", link, "film.mkv")
+
+	if removed, _ := a.RemoveTasksUndoable([]string{"old"}, false); len(removed) != 1 {
+		t.Fatalf("the removal took %v, want the download", removed)
+	}
+	got := onlyTask(t, a.AddLinks([]string{link}, ""))
+	if got.Skipped {
+		t.Errorf("the link was rejected (%s), want it staged once its download was removed", got.SkipReason)
+	}
+	hist, err := a.History(0)
+	if err != nil || len(hist) != 1 || !hist[0].Removed {
+		t.Errorf("the history is %+v (%v), want the row kept and marked removed", hist, err)
+	}
+}
+
+func TestAnUndoneRemovalKeepsTheLinkADuplicate(t *testing.T) {
+	a := historyApp(t, nil)
+	const link = "https://host.example/film.mkv"
+	downloadedBefore(t, a, "old", link, "film.mkv", 4096)
+	inTheList(a, "old", link, "film.mkv")
+
+	_, token := a.RemoveTasksUndoable([]string{"old"}, false)
+	if back := a.UndoRemove(token); len(back) != 1 {
+		t.Fatalf("the undo brought back %v, want the download", back)
+	}
+	got := onlyTask(t, a.AddLinks([]string{link}, ""))
+	if !got.Skipped || got.SkipCode != skipDownloaded {
+		t.Errorf("the link was staged (skipped=%v, code=%q), want it rejected while its download is back", got.Skipped, got.SkipCode)
+	}
+}
+
+// Retention and arr apps take finished downloads out of the list on their
+// own, which is when a feed listing the link again must not fetch it twice.
+func TestADownloadTakenOutOnItsOwnStaysADuplicate(t *testing.T) {
+	a := historyApp(t, nil)
+	const link = "https://host.example/film.mkv"
+	downloadedBefore(t, a, "old", link, "film.mkv", 4096)
+	inTheList(a, "old", link, "film.mkv")
+
+	a.RemoveTasks([]string{"old"}, false)
+	got := onlyTask(t, a.AddLinksFrom([]string{link}, "", OriginFeed))
+	if !got.Skipped || got.SkipCode != skipDownloaded {
+		t.Errorf("the link was staged (skipped=%v, code=%q), want it rejected as downloaded", got.Skipped, got.SkipCode)
+	}
+}
+
+func TestTheHistoryCheckIsOffByDefault(t *testing.T) {
+	if settings.Defaults().RejectDownloaded {
+		t.Error("RejectDownloaded is on by default, want it off until somebody switches it on")
 	}
 }
 

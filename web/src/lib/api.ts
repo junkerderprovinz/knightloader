@@ -564,7 +564,7 @@ export interface Settings {
   mirrorFailover: boolean;
   /** Rejects a new link the download history already has: the same URL, or the
    *  same file under mirrorPolicy. A restore adds it anyway. */
-  rejectDownloaded: boolean;
+  rejectDownloadedLinks: boolean;
   /** How much the "already on the disk" pass trusts a file it did not see
    *  arrive: "checksum" | "record" | "size". */
   reclaimTrust: string;

@@ -36,6 +36,23 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Changed
+
+- **Reject links already downloaded is off by default.** A link the download
+  history knows is added like any other unless you switch the check on under
+  Settings, Link collector. Installs that had it on start with it off as well,
+  since a setting saved at its default cannot tell that from a choice.
+
+### Fixed
+
+- **A download you removed can be added again.** Removing it from Downloads
+  used to leave its link in the history check, so adding it again landed it
+  among the rejected links with the download it repeated. The history keeps
+  the entry, and an undo of the removal makes the link a duplicate again.
+  Downloads that retention or an arr app took out of the list still count.
+
 ## [2.4.0] - 2026-10-30
 
 ### Added
