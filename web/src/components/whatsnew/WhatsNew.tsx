@@ -42,7 +42,6 @@ export function WhatsNewEntry({ onOpen }: { onOpen: () => void }) {
   const unseen = news.unseen.length;
   return (
     <Button
-      icon={<IconWhatsNew />}
       kind="secondary"
       className="w-full"
       onClick={() => {
@@ -50,7 +49,12 @@ export function WhatsNewEntry({ onOpen }: { onOpen: () => void }) {
         openWhatsNew();
       }}
     >
+      {/* The dot stands in front of the glyph, so the glyph goes in by hand
+          rather than through `icon`, which Button always puts first. */}
       {unseen > 0 && <span aria-hidden className="h-2 w-2 shrink-0 rounded-[var(--radius-pill)] bg-statusOkSolid" />}
+      <span className="glim-btn-glyph">
+        <IconWhatsNew />
+      </span>
       <span className="min-w-0 flex-1 truncate text-start">{newsTitle(t, news)}</span>
       {unseen > 0 && <span className="glim-num text-carbon-textSub">{unseen}</span>}
     </Button>
