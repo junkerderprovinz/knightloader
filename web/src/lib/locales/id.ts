@@ -536,7 +536,6 @@ export const id: Dict = {
   'columns.comment': 'Catatan',
   'columns.resolver': 'Backend',
   'columns.source': 'Sumber',
-  'columns.enabled': 'Aktif',
   'columns.menuTitle': 'Kolom',
   'columns.reset': 'Setel ulang kolom',
   'columns.headerHint': 'Klik header untuk mengurutkan berdasarkan itu, seret untuk mengatur ulang kolom, seret tepinya untuk mengubah ukuran, klik dua kali tepinya untuk mengembalikan lebar. Klik kanan header untuk daftar kolom.',
@@ -566,8 +565,6 @@ export const id: Dict = {
   'list.dropChangedPriority': 'Dipindahkan: {n} unduhan mengambil prioritas baris tempat ia dijatuhkan.',
   'list.optionsFailed': 'Entri pembersihan tidak dapat dimuat dari server.',
 
-  'task.enable': 'Aktifkan',
-  'task.disable': 'Nonaktifkan',
   'task.switchFailed': 'Sakelar tidak dapat diubah.',
   'task.uncheckable': 'Host tidak menjawab',
   'task.expand': 'Bentangkan',

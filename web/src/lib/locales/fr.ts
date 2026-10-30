@@ -528,7 +528,6 @@ export const fr: Dict = {
   'columns.comment': 'Commentaire',
   'columns.resolver': 'Backend',
   'columns.source': 'Source',
-  'columns.enabled': 'Activé',
   'columns.menuTitle': 'Colonnes',
   'columns.reset': 'Réinitialiser les colonnes',
   'columns.headerHint': "Cliquez sur un en-tête pour trier selon celui-ci, faites-le glisser pour réorganiser la colonne, faites glisser son bord pour la redimensionner, double-cliquez sur le bord pour rétablir la largeur. Clic droit sur l'en-tête pour la liste des colonnes.",
@@ -558,8 +557,6 @@ export const fr: Dict = {
   'list.dropChangedPriority': 'Déplacé : {n} téléchargement(s) ont pris la priorité de la ligne où ils ont été lâchés.',
   'list.optionsFailed': 'Impossible de charger les entrées de nettoyage depuis le serveur.',
 
-  'task.enable': 'Activer',
-  'task.disable': 'Désactiver',
   'task.switchFailed': 'L’interrupteur n’a pas pu être changé.',
   'task.uncheckable': 'L’hébergeur n’a rien dit',
   'task.expand': 'Déplier',

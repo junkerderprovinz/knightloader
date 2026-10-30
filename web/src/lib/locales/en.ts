@@ -598,7 +598,6 @@ export const en = {
   'columns.comment': 'Comment',
   'columns.resolver': 'Backend',
   'columns.source': 'Source',
-  'columns.enabled': 'Enabled',
   'columns.menuTitle': 'Columns',
   'columns.reset': 'Reset columns',
   'columns.headerHint': 'Click a header to sort by it, drag it to reorder the column, drag its edge to resize it, double-click the edge to put the width back. Right-click the header for the column list.',
@@ -634,8 +633,6 @@ export const en = {
   'list.dropChangedPriority': 'Moved: {n} download(s) took the priority of the row they were dropped on.',
   'list.optionsFailed': 'Could not load the clean-up entries from the server.',
 
-  'task.enable': 'Enable',
-  'task.disable': 'Disable',
   'task.switchFailed': 'The switch could not be changed.',
   'task.uncheckable': 'Host would not say',
   'task.expand': 'Expand',

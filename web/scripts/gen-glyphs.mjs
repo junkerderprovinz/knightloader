@@ -36,7 +36,7 @@ const USED = [
   'IconLabelText', 'IconLabelTextGlyph', 'IconLabelGlyph', 'IconLabelReactive',
   'IconRowCompact', 'IconRowMedium', 'IconRowComfortable', 'IconGear', 'IconDashboard',
   'IconFolder', 'IconFolderOpen', 'IconFolderAdd', 'IconArchive', 'IconFleet',
-  'IconCollector', 'IconAccounts', 'IconNetwork', 'IconPhone', 'IconBrowser', 'IconApp',
+  'IconAccounts', 'IconNetwork', 'IconPhone', 'IconBrowser', 'IconApp',
   'IconModules', 'IconCaptcha', 'IconRestore', 'IconGithub', 'IconTabGeneral',
   'IconTabLook', 'IconTabSecurity', 'IconTabAdvanced', 'IconTabApp', 'IconSchedules',
   'IconNotifications', 'IconSliders', 'IconDiagnostics', 'IconKeyboard', 'IconPaste',

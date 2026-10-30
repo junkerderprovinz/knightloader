@@ -14,7 +14,6 @@ import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import {
   fetchOptions,
   priorityChoices,
-  setEnabled,
   setTaskOptions,
   type Availability,
   type ExtractJob,
@@ -79,7 +78,6 @@ import {
 } from './VariantPicker';
 
 export type ColumnId =
-  | 'enabled'
   | 'name'
   | 'size'
   | 'progress'
@@ -181,27 +179,11 @@ export interface CellContext {
   extractions?: ReadonlyMap<string, ExtractJob>;
   /** The task the queue halts after (QueueState.stopMark), when one is marked. */
   stopMark?: string;
-  /**
-   * Whether the Enabled column is drawn. A switched-off row wears a mark of its
-   * own only where that column's switch is not there to show it.
-   */
-  switchShown?: boolean;
 }
 
 export interface ColumnDef {
   id: ColumnId;
   labelKey: TranslationKey;
-  /**
-   * The lists this column exists in at all. Absent means both.
-   *
-   * Stronger than DEFAULT_HIDDEN: hidden is a preference somebody can undo from
-   * the header menu, this is the column not being part of that list. Used for
-   * `enabled`, which is the collector's "take this link along when I press
-   * start"; once a link is in the queue the switch that means something is
-   * pause. Merely hiding it would leave a menu entry that switches on a control
-   * with no honest meaning where it sits.
-   */
-  onlyIn?: ListProfile[];
   /** Default width in CSS pixels; what the user drags overrides it. */
   width: number;
   /**
@@ -280,49 +262,9 @@ export function Tip({
 }
 
 /**
- * The per-link on/off switch. It shows what the server last said, never what was just clicked: the value
- * comes back over the websocket a moment later, and a control that reports
- * success locally while the request failed is how a link somebody switched off
- * downloads anyway.
- */
-export function EnabledSwitch({
-  ids,
-  on,
-  base,
-}: {
-  ids: string[];
-  on: boolean;
-  base: string;
-}) {
-  const { t } = useT();
-  const { toast } = useToast();
-  const [busy, setBusy] = useState(false);
-  // Both halves of GlimStone's failure feedback: the toast carries the
-  // sentence, and this counter makes the switch itself say that it refused.
-  const [shake, setShake] = useState(0);
-
-  async function flip() {
-    if (busy || ids.length === 0) return;
-    setBusy(true);
-    try {
-      await setEnabled(ids, !on, base);
-    } catch (err) {
-      // The server's own sentence names what refused; a generic failure here
-      // would leave a switch that visibly did nothing and no way to find out why.
-      toast(err instanceof Error && err.message ? err.message : t('task.switchFailed'), 'fail');
-      setShake((n) => n + 1);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return <RowSwitch on={on} label={t(on ? 'task.disable' : 'task.enable')} busy={busy} shake={shake} onFlip={flip} />;
-}
-
-/**
- * RowSwitch is the on/off switch a list row carries, drawn once for a link's
- * Enabled switch and for a torrent file's. `label` says what pressing it does,
- * and every step of `shake` is a refusal, which shakes it in place.
+ * RowSwitch is the on/off switch a torrent file's row carries. `label` says
+ * what pressing it does, and every step of `shake` is a refusal, which shakes
+ * it in place.
  */
 export function RowSwitch({
   on,
@@ -711,8 +653,8 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
 /**
  * isParked is whether a row reads as parked: a disabled link, or a package
  * whose links are all disabled. Such a row draws its text, glyphs and progress
- * in the muted ink (.kl-parked in index.css), and its switch and marks stay at
- * full strength, since they are how it is enabled again.
+ * in the muted ink (.kl-parked in index.css), and its marks stay at full
+ * strength, since they say why it is quiet.
  */
 export function isParked(items: Task[]): boolean {
   return items.length > 0 && items.every((x) => !x.enabled);
@@ -730,7 +672,7 @@ export const PARKED = 'kl-parked';
  * where the queue is going to stop.
  */
 export function RowMarks({ items, ctx }: { items: Task[]; ctx: CellContext }) {
-  const { t, stopMark, switchShown } = ctx;
+  const { t, stopMark } = ctx;
   // The two that change what the queue does next take --accent-glyph, as a
   // raised priority does; a disabled row stays in the quiet ink.
   const marks: { id: string; label: string; icon: ReactNode; ink: string }[] = [];
@@ -740,7 +682,7 @@ export function RowMarks({ items, ctx }: { items: Task[]; ctx: CellContext }) {
     marks.push({ id: 'stop', label: t('queue.stopMarkOn'), icon: <IconStopMark />, ink: 'text-accentGlyph' });
   if (items.every((x) => !!x.forced))
     marks.push({ id: 'forced', label: t('task.forced'), icon: <IconBolt />, ink: 'text-accentGlyph' });
-  if (!switchShown && items.every((x) => !x.enabled))
+  if (items.every((x) => !x.enabled))
     marks.push({ id: 'off', label: t('task.waiting.disabled'), icon: <IconPower />, ink: 'text-carbon-textSub' });
   return marks.map((m) => (
     <Tip
@@ -1657,23 +1599,6 @@ function VariantSummary({ task, kind, sub, label }: { task: Task; kind: string; 
 
 export const COLUMNS: ColumnDef[] = [
   {
-    id: 'enabled',
-    labelKey: 'columns.enabled',
-    // Collector only; see ColumnDef.onlyIn for why this is not default-hidden.
-    onlyIn: ['collector'],
-    width: 56,
-    minWidth: 48,
-    align: 'start',
-    hideable: true,
-    compare: (a, b) => Number(a.enabled) - Number(b.enabled),
-    render: (task, ctx) => <EnabledSwitch ids={[task.id]} on={task.enabled} base={ctx.base} />,
-    // A package is on when every link in it is; clicking then switches the whole
-    // package the other way, which is the only reading that has one meaning.
-    aggregate: (items, ctx) => (
-      <EnabledSwitch ids={items.map((x) => x.id)} on={items.every((x) => x.enabled)} base={ctx.base} />
-    ),
-  },
-  {
     id: 'name',
     labelKey: 'columns.name',
     // The name takes whatever the other columns leave (see gridTemplate), so
@@ -2003,15 +1928,8 @@ export const DEFAULT_ORDER: ColumnId[] = COLUMNS.map((c) => c.id);
  * never comes up.
  */
 function defaultOrderFor(profile: ListProfile): ColumnId[] {
-  const own = DEFAULT_ORDER.filter((id) => belongsTo(id, profile));
-  if (profile !== 'downloads') return own;
-  return [...own.filter((id) => id !== 'progress'), 'progress'];
-}
-
-/** Whether a column exists in this list at all; see ColumnDef.onlyIn. */
-export function belongsTo(id: ColumnId, profile: ListProfile): boolean {
-  const only = COLUMN_BY_ID.get(id)?.onlyIn;
-  return !only || only.includes(profile);
+  if (profile !== 'downloads') return [...DEFAULT_ORDER];
+  return [...DEFAULT_ORDER.filter((id) => id !== 'progress'), 'progress'];
 }
 
 /**
@@ -2119,10 +2037,7 @@ const isKnown = (id: string): id is ColumnId => COLUMN_BY_ID.has(id as ColumnId)
  */
 function mergeOrder(profile: ListProfile, stored: ColumnId[] | undefined): ColumnId[] {
   const base = defaultOrderFor(profile);
-  // A column this list does not have is dropped from a stored layout the same
-  // way a column this build no longer has is: a layout written before
-  // `enabled` became collector-only would otherwise keep drawing it.
-  const kept = (stored ?? []).filter(isKnown).filter((id) => belongsTo(id, profile));
+  const kept = (stored ?? []).filter(isKnown);
   // Nothing recognisable stored: either a first run or a layout from a build
   // that shares no column with this one. Either way the defaults are the answer.
   if (kept.length === 0) return [...base];

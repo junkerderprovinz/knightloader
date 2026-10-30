@@ -537,7 +537,6 @@ export const ro: Dict = {
   'columns.comment': 'Comentariu',
   'columns.resolver': 'Backend',
   'columns.source': 'Sursă',
-  'columns.enabled': 'Activ',
   'columns.menuTitle': 'Coloane',
   'columns.reset': 'Resetează coloanele',
   'columns.headerHint': 'Dă clic pe un antet pentru a sorta după el, trage-l pentru a reordona coloana, trage marginea pentru a redimensiona, dublu clic pe margine readuce lățimea. Clic dreapta pe antet pentru lista de coloane.',
@@ -568,8 +567,6 @@ export const ro: Dict = {
   'list.dropChangedPriority': 'Mutat: {n} descărcări au preluat prioritatea rândului pe care au fost lăsate.',
   'list.optionsFailed': 'Intrările de curățare nu au putut fi încărcate de pe server.',
 
-  'task.enable': 'Activează',
-  'task.disable': 'Dezactivează',
   'task.switchFailed': 'Comutatorul nu a putut fi schimbat.',
   'task.uncheckable': 'Gazda nu a răspuns',
   'task.expand': 'Extinde',

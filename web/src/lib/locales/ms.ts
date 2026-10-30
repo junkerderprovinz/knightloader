@@ -536,7 +536,6 @@ export const ms: Dict = {
   'columns.comment': 'Nota',
   'columns.resolver': 'Backend',
   'columns.source': 'Sumber',
-  'columns.enabled': 'Aktif',
   'columns.menuTitle': 'Lajur',
   'columns.reset': 'Set semula lajur',
   'columns.headerHint': 'Klik pengepala untuk isih mengikutnya, seret untuk menyusun semula lajur, seret tepinya untuk mengubah saiz, klik dua kali pada tepi untuk mengembalikan lebar. Klik kanan pengepala untuk senarai lajur.',
@@ -566,8 +565,6 @@ export const ms: Dict = {
   'list.dropChangedPriority': 'Dipindahkan: {n} muat turun mengambil keutamaan baris tempat ia dilepaskan.',
   'list.optionsFailed': 'Entri pembersihan tidak dapat dimuatkan dari pelayan.',
 
-  'task.enable': 'Hidupkan',
-  'task.disable': 'Matikan',
   'task.switchFailed': 'Suis tidak dapat ditukar.',
   'task.uncheckable': 'Hos tidak menjawab',
   'task.expand': 'Kembangkan',

@@ -536,7 +536,6 @@ export const sk: Dict = {
   'columns.comment': 'Poznámka',
   'columns.resolver': 'Backend',
   'columns.source': 'Zdroj',
-  'columns.enabled': 'Zapnuté',
   'columns.menuTitle': 'Stĺpce',
   'columns.reset': 'Obnoviť stĺpce',
   'columns.headerHint': 'Kliknutím na hlavičku podľa nej zoradíte, presunutím zmeníte poradie stĺpca, presunutím okraja zmeníte veľkosť, dvojklikom na okraj vrátite pôvodnú šírku. Pravým tlačidlom na hlavičke otvoríte zoznam stĺpcov.',
@@ -566,8 +565,6 @@ export const sk: Dict = {
   'list.dropChangedPriority': 'Presunuté: {n} sťahovaní prevzalo prioritu riadku, na ktorý spadli.',
   'list.optionsFailed': 'Položky upratovania sa zo servera nepodarilo načítať.',
 
-  'task.enable': 'Zapnúť',
-  'task.disable': 'Vypnúť',
   'task.switchFailed': 'Prepínač sa nepodarilo zmeniť.',
   'task.uncheckable': 'Hoster neodpovedal',
   'task.expand': 'Rozbaliť',

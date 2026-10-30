@@ -56,8 +56,8 @@ import { taskRefusal } from '../lib/taskRefusal';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import {
   IconClearSelection,
+  IconDownloadArrow,
   IconClose,
-  IconDownload,
   IconPause,
   IconPlay,
   IconRetry,
@@ -653,7 +653,7 @@ export function Downloads() {
         {list.length === 0 ? (
           <EmptyState
             fill
-            icon={<IconDownload width={26} height={26} />}
+            icon={<IconDownloadArrow width={26} height={26} />}
             title={t('empty.downloadsTitle')}
             hint={t('empty.downloadsHint')}
           />

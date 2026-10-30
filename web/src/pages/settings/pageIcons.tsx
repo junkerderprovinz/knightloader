@@ -3,7 +3,7 @@ import {
   IconAccounts,
   IconArchive,
   IconCollector,
-  IconDownload,
+  IconDownloadArrow,
   IconFilter,
   IconFleet,
   IconHealth,
@@ -32,7 +32,7 @@ import {
  */
 const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   collector: IconCollector,
-  downloads: IconDownload,
+  downloads: IconDownloadArrow,
   archives: IconArchive,
   rules: IconFilter,
   network: IconNetwork,

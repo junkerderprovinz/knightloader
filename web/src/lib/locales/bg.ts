@@ -537,7 +537,6 @@ export const bg: Dict = {
   'columns.comment': 'Бележка',
   'columns.resolver': 'Бекенд',
   'columns.source': 'Източник',
-  'columns.enabled': 'Включено',
   'columns.menuTitle': 'Колони',
   'columns.reset': 'Върни колоните',
   'columns.headerHint': 'Кликнете върху заглавие, за да сортирате по него, плъзнете го, за да преподредите колоната, плъзнете ръба му, за да промените размера, двоен клик върху ръба връща ширината. Десен клик върху заглавието отваря списъка с колони.',
@@ -567,8 +566,6 @@ export const bg: Dict = {
   'list.dropChangedPriority': 'Преместено: {n} изтегляния поеха приоритета на реда, върху който бяха пуснати.',
   'list.optionsFailed': 'Записите за почистване не се заредиха от сървъра.',
 
-  'task.enable': 'Включи',
-  'task.disable': 'Изключи',
   'task.switchFailed': 'Ключът не можа да бъде променен.',
   'task.uncheckable': 'Хостърът не отговори',
   'task.expand': 'Разгъни',

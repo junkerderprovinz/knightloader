@@ -528,7 +528,6 @@ export const nl: Dict = {
   'columns.comment': 'Notitie',
   'columns.resolver': 'Backend',
   'columns.source': 'Bron',
-  'columns.enabled': 'Aan',
   'columns.menuTitle': 'Kolommen',
   'columns.reset': 'Kolommen herstellen',
   'columns.headerHint': 'Klik op een koptekst om erop te sorteren, sleep deze om de kolom opnieuw te ordenen, sleep de rand om het formaat te wijzigen, dubbelklik op de rand om de breedte te herstellen. Rechtsklik op de koptekst voor de kolomlijst.',
@@ -558,8 +557,6 @@ export const nl: Dict = {
   'list.dropChangedPriority': 'Verplaatst: {n} downloads hebben de prioriteit overgenomen van de rij waarop ze zijn losgelaten.',
   'list.optionsFailed': 'De opruimacties konden niet van de server geladen worden.',
 
-  'task.enable': 'Aanzetten',
-  'task.disable': 'Uitzetten',
   'task.switchFailed': 'De schakelaar kon niet gewijzigd worden.',
   'task.uncheckable': 'Host gaf geen antwoord',
   'task.expand': 'Uitklappen',

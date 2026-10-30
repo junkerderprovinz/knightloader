@@ -536,7 +536,6 @@ export const ca: Dict = {
   'columns.comment': 'Comentari',
   'columns.resolver': 'Rerefons',
   'columns.source': 'Origen',
-  'columns.enabled': 'Actiu',
   'columns.menuTitle': 'Columnes',
   'columns.reset': 'Restableix les columnes',
   'columns.headerHint': "Fes clic a una capçalera per ordenar-hi, arrossega-la per reordenar la columna, arrossega la vora per redimensionar-la, doble clic a la vora per restaurar l'amplada. Clic dret a la capçalera per veure la llista de columnes.",
@@ -566,8 +565,6 @@ export const ca: Dict = {
   'list.dropChangedPriority': 'Mogut: {n} baixades han agafat la prioritat de la fila on han caigut.',
   'list.optionsFailed': "No s'han pogut carregar les entrades de neteja del servidor.",
 
-  'task.enable': 'Activa',
-  'task.disable': 'Desactiva',
   'task.switchFailed': "No s'ha pogut canviar l'interruptor.",
   'task.uncheckable': "L'amfitrió no ha contestat",
   'task.expand': 'Desplega',
