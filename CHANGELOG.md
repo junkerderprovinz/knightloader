@@ -43,6 +43,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Every choice under Labels and Row height shows a symbol before its name,**
   as Theme, Corners and Animation already do. The four label modes and the
   three row heights each have their own.
+- **Every button shows a symbol before its name.** 130 buttons had only words,
+  among them Save, Cancel, Test and Undo. They now show the symbol the other
+  GlimStone apps use for the same thing, so the Labels setting reaches them
+  too.
+- **A few symbols change so that each one means one thing.** Try again,
+  Restart and Refresh get an arrow of their own, and the old arrow stays for
+  putting something back to its default. Import and Export show a file, Done
+  and Approve a thumbs up, Refuse a thumbs down, Check for updates a tick, and
+  the drag handle two columns of dots.
+- **The Help page names GlimStone 3.7.1** as the design the app follows.
 
 ## [2.3.3] - 2026-10-28
 

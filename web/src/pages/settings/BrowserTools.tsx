@@ -30,6 +30,7 @@ import { QRCode } from '../../components/QRCode';
 import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
 import { releaseTag } from './Help';
 import { RELAY_RUN_COMMAND } from './pairing/RelayCard';
+import { IconInstall } from '../../lib/icons';
 
 /**
  * BrowserTools is the Apps page (GlimStone's "The App tab"): every way to get
@@ -296,7 +297,7 @@ function PhoneCard() {
           </span>
           {canInstall && (
             <div>
-              <Button kind="secondary" onClick={() => void promptInstall()}>
+              <Button kind="secondary" icon={<IconInstall />} onClick={() => void promptInstall()}>
                 {t('settings.browsertools.install')}
               </Button>
             </div>

@@ -42,13 +42,15 @@ import { LiveSettings } from './settings/accounts/LiveSettings';
 import { SettingRow } from './settings/controls';
 import {
   IconAccounts,
-  IconCaptcha,
+  IconAdd,
   IconBack,
+  IconCaptcha,
   IconClose,
+  IconCompressAuto,
   IconExternalLink,
   IconFleet,
-  IconAdd,
-  IconRefresh,
+  IconRetry,
+  IconSave,
   IconTrash,
 } from '../lib/icons';
 import {
@@ -436,7 +438,7 @@ function AccountsTable({
                     {
                       id: 'refresh',
                       label: t('accounts.refresh'),
-                      icon: <IconRefresh width={16} height={16} />,
+                      icon: <IconRetry width={16} height={16} />,
                       onSelect: () => onRefresh(a),
                     },
                     ...(renewable
@@ -567,7 +569,7 @@ function ServerDialog({
         <>
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
-          <Button onClick={() => void save()} disabled={saving || !filled}>
+          <Button icon={<IconSave />} onClick={() => void save()} disabled={saving || !filled}>
             {saving ? t('accounts.saving') : t('accounts.save')}
           </Button>
         </>
@@ -749,11 +751,15 @@ function CredentialDialog({
             )}
             <span className="flex-1" />
             {verifyResult && !verifyResult.ok && (
-              <Button kind="secondary" onClick={() => void doSave(true)} disabled={saving}>
+              <Button kind="secondary" icon={<IconSave />} onClick={() => void doSave(true)} disabled={saving}>
                 {t('accounts.saveAnyway')}
               </Button>
             )}
-            <Button onClick={() => void doSave(false)} disabled={saving || !credentialFilled() || accountIdRequired}>
+            <Button
+              icon={<IconSave />}
+              onClick={() => void doSave(false)}
+              disabled={saving || !credentialFilled() || accountIdRequired}
+            >
               {verifying ? t('accounts.verifying') : saving ? t('accounts.saving') : t('accounts.save')}
             </Button>
           </>
@@ -1008,6 +1014,7 @@ ${t('accounts.routing.orderHintTorrents')}`}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
+                    icon={<IconCompressAuto />}
                     kind="secondary"
                     disabled={busy}
                     hint={t('accounts.routing.priorityAutoHint')}

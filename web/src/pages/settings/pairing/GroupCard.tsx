@@ -21,7 +21,7 @@ import {
   type PendingDevice,
 } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { IconBrowser, IconCheck, IconFleet, IconPhone, IconTrash } from '../../../lib/icons';
+import { IconBrowser, IconConfirm, IconFleet, IconPhone, IconReject, IconTrash } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { refusalText } from './PhraseCard';
 import { STAGE_PILL, clock, type PairStage } from './pairStage';
@@ -139,12 +139,18 @@ function PendingRow({
         {APP_KIND[device.kind] ? t(APP_KIND[device.kind]) : t('pairing.pendingInstance')}
       </span>
       <span className="flex shrink-0 items-center gap-2">
-        <Button kind="secondary" className="kl-raised-btn px-2.5 text-xs" disabled={busy} onClick={onRefuse}>
+        <Button
+          kind="secondary"
+          icon={<IconReject />}
+          className="kl-raised-btn px-2.5 text-xs"
+          disabled={busy}
+          onClick={onRefuse}
+        >
           {t('pairing.refuse')}
         </Button>
         <Button
           kind="primary"
-          icon={<IconCheck width={14} height={14} />}
+          icon={<IconConfirm width={14} height={14} />}
           className="px-2.5 text-xs"
           disabled={busy}
           onClick={onApprove}

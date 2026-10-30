@@ -152,20 +152,21 @@ import {
   translateOf,
 } from './dragLift';
 import {
-  IconPause,
-  IconPlay,
-  IconTrash,
-  IconPencil,
-  IconRefresh,
+  IconClose,
+  IconCollapse,
+  IconExpand,
   IconFolder,
   IconFolderOpen,
-  IconSearch,
   IconGear,
-  IconMoveUp,
   IconMoveDown,
-  IconExpand,
-  IconCollapse,
-  IconClose,
+  IconMoveUp,
+  IconPause,
+  IconPencil,
+  IconPlay,
+  IconRetry,
+  IconSave,
+  IconSearch,
+  IconTrash,
 } from '../lib/icons';
 import { SettingRow } from '../pages/settings/controls';
 
@@ -667,7 +668,7 @@ export function TaskActions({ task, base, current }: { task: Task; base: string;
             quiet
             hue={3}
             tabIndex={current ? 0 : -1}
-            icon={<IconRefresh width={16} height={16} />}
+            icon={<IconRetry width={16} height={16} />}
             title={t('task.restart')}
             aria-label={t('task.restart')}
             onClick={send(() => restartTasks([task.id], base))}
@@ -936,7 +937,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
       footer={
         <>
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
-          <Button shake={shake} onClick={() => void save()} disabled={!preset || saving}>
+          <Button icon={<IconSave />} shake={shake} onClick={() => void save()} disabled={!preset || saving}>
             {t('settings.save')}
           </Button>
         </>
@@ -1886,6 +1887,7 @@ export function TaskProperties({
           {/* Secondary, like every button in a card: the page's one accent is
               its floating action. */}
           <Button
+            icon={<IconSave />}
             kind="secondary"
             shake={shake}
             disabled={touched.size === 0 || busy}

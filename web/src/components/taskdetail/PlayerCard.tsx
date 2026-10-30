@@ -4,6 +4,7 @@ import { useT } from '../../lib/i18n';
 import { reachable as taskFileReachable } from '../FileActions';
 import { Button, Card, ErrorCard, SectionTitle } from '../ui';
 import { playableTask } from './playable';
+import { IconClose, IconPlay } from '../../lib/icons';
 
 /**
  * PlayerCard plays a task's audio or video file straight off the instance that
@@ -78,6 +79,7 @@ export function PlayerCard({
           nested
           message={failed}
           retryLabel={t('detail.play')}
+          retryIcon={<IconPlay />}
           retry={() => {
             setFailed('');
             setPlaying(true);
@@ -105,7 +107,7 @@ export function PlayerCard({
             />
           )}
           <div className="flex items-center gap-2">
-            <Button kind="ghost" hint={note || undefined} onClick={() => setPlaying(false)}>
+            <Button kind="ghost" icon={<IconClose />} hint={note || undefined} onClick={() => setPlaying(false)}>
               {t('detail.playClose')}
             </Button>
           </div>
@@ -113,7 +115,13 @@ export function PlayerCard({
       ) : (
         // Disabled rather than hidden, so people learn that playing is possible.
         <div className="flex items-center gap-2">
-          <Button kind="secondary" disabled={!ready} hint={note || undefined} onClick={() => setPlaying(true)}>
+          <Button
+            kind="secondary"
+            icon={<IconPlay />}
+            disabled={!ready}
+            hint={note || undefined}
+            onClick={() => setPlaying(true)}
+          >
             {t('detail.play')}
           </Button>
         </div>

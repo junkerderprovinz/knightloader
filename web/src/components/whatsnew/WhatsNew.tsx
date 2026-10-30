@@ -4,6 +4,7 @@ import { closeWhatsNew, openWhatsNew, startWhatsNew, useWhatsNew, useWhatsNewOpe
 import { Button } from '../ui';
 import { NewDots } from './NewDots';
 import { WhatsNewWindow, newsTitle } from './WhatsNewWindow';
+import { IconWhatsNew } from '../../lib/icons';
 
 /**
  * WhatsNew is everything an update shows, mounted once in app/Layout.tsx: the
@@ -41,6 +42,7 @@ export function WhatsNewEntry({ onOpen }: { onOpen: () => void }) {
   const unseen = news.unseen.length;
   return (
     <Button
+      icon={<IconWhatsNew />}
       kind="secondary"
       className="w-full"
       onClick={() => {

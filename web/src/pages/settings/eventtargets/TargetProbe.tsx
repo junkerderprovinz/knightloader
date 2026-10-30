@@ -10,6 +10,7 @@ import {
   type EventTargetRow,
   type EventTargetTest,
 } from '../../../lib/eventtargets';
+import { IconSendTest } from '../../../lib/icons';
 
 /**
  * TargetProbe sends one made-up event to this target and shows the answer as it
@@ -44,6 +45,7 @@ export function TargetProbe({ row }: { row: EventTargetRow }) {
 
         <div className="flex">
           <TestButton
+            icon={<IconSendTest />}
             label={t('settings.eventTargets.test')}
             busyLabel={t('settings.eventTargets.testBusy')}
             words={{ ok: t('test.sent'), fail: t('test.failed') }}

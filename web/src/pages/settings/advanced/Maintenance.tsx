@@ -7,7 +7,7 @@ import {
   startMaintenance,
 } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
-import { IconCheck, IconClose } from '../../../lib/icons';
+import { IconCheck, IconClose, IconCompact, IconRetry } from '../../../lib/icons';
 import { fmtBytes, fmtDate } from '../../../lib/format';
 import { useResource } from '../../../lib/useResource';
 import {
@@ -97,6 +97,7 @@ export function MaintenanceCard({ hue }: { hue: number }) {
 
   const { storage, last } = data;
   const acting = running !== '' || starting !== '';
+  const checking = running === 'check' || starting === 'check';
   // What the check this button started found; the sentence below says the rest.
   const checkVerdict: ButtonVerdict | undefined =
     !checked || acting || last?.kind !== 'check' || last.skipped
@@ -148,16 +149,17 @@ export function MaintenanceCard({ hue }: { hue: number }) {
         <div className="flex flex-wrap items-center gap-3">
           <Action
             label={checkWord}
-            icon={checkVerdict === 'ok' ? <IconCheck /> : checkVerdict === 'fail' ? <IconClose /> : undefined}
+            icon={checkVerdict === 'fail' && !checking ? <IconClose /> : <IconCheck />}
             verdict={checkVerdict}
             hint={t('settings.dbmaint.checkHint')}
             disabled={acting}
-            pending={running === 'check' || starting === 'check'}
+            pending={checking}
             pendingLabel={t('settings.dbmaint.running')}
             onClick={() => void start('check')}
           />
           {/* Confirmed first, since it rewrites the database and blocks writes. */}
           <Action
+            icon={<IconCompact />}
             label={t('settings.dbmaint.compact')}
             hint={t('settings.dbmaint.compactHint')}
             disabled={acting}
@@ -166,6 +168,7 @@ export function MaintenanceCard({ hue }: { hue: number }) {
             onClick={() => setConfirming(true)}
           />
           <Action
+            icon={<IconRetry />}
             label={t('settings.dbmaint.analyze')}
             hint={t('settings.dbmaint.analyzeHint')}
             disabled={acting}
@@ -225,6 +228,7 @@ export function MaintenanceCard({ hue }: { hue: number }) {
                 onClick={() => setConfirming(false)}
               />
               <Button
+                icon={<IconCompact />}
                 kind="ghost"
                 onClick={() => {
                   setConfirming(false);
@@ -262,7 +266,7 @@ function Action({
 }: {
   label: string;
   hint: string;
-  icon?: ReactNode;
+  icon: ReactNode;
   verdict?: ButtonVerdict;
   disabled: boolean;
   pending: boolean;
@@ -272,7 +276,7 @@ function Action({
   return (
     <Button
       kind="secondary"
-      icon={pending ? undefined : icon}
+      icon={icon}
       verdict={pending ? undefined : verdict}
       // A check that found damage shakes its button like any failed click.
       shake={verdict === 'fail' ? 1 : 0}

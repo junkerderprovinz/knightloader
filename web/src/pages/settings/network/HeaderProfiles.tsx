@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, IconBadge, Modal, SectionTitle, TextInput, useTooltip } from '../../../components/ui';
-import { IconAdd, IconClose, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconClose, IconSave, IconTrash } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   ApiError,
@@ -195,7 +195,11 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 disabled={busy}
                 onClick={() => setDraft(null)}
               />
-              <Button disabled={busy || draft.id.trim() === '' || draft.origin.trim() === ''} onClick={save}>
+              <Button
+                icon={<IconSave />}
+                disabled={busy || draft.id.trim() === '' || draft.origin.trim() === ''}
+                onClick={save}
+              >
                 {t('settings.headerProfiles.save')}
               </Button>
             </>
@@ -310,6 +314,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 onClick={() => setConfirming(null)}
               />
               <Button
+                icon={<IconTrash />}
                 kind="secondary"
                 disabled={busy}
                 onClick={() => {

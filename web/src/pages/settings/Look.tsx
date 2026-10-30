@@ -22,6 +22,7 @@ import {
 } from '../../lib/api';
 import {
   IconClose,
+  IconConfirm,
   IconCornerLeaf,
   IconCornerRound,
   IconCornerSoft,
@@ -36,6 +37,7 @@ import {
   IconMotionSubtle,
   IconMotionWild,
   IconRefresh,
+  IconRetry,
   IconRowComfortable,
   IconRowCompact,
   IconRowMedium,
@@ -1033,7 +1035,7 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
   // Nothing while loading, like UpdateCard.
   if (loading) return null;
   if (failed || !data) {
-    return <ErrorCard nested message={t('settings.system.loadFailed')} retry={reload} retryLabel="↻" />;
+    return <ErrorCard nested message={t('settings.system.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
   }
 
   if (shuttingDown) {
@@ -1068,7 +1070,7 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
         </Button>
         <Button
           kind="secondary"
-          icon={<IconRefresh width={16} height={16} />}
+          icon={<IconRetry width={16} height={16} />}
           disabled={!data.canRestart || acting}
           onClick={() => setConfirmAction('restart')}
         >
@@ -1092,6 +1094,7 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
                 disabled={acting}
               />
               <Button
+                icon={<IconConfirm />}
                 shake={actShake}
                 kind="ghost"
                 onClick={() => void confirmLifecycle()}

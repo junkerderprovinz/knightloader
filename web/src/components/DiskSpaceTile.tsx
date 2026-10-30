@@ -5,6 +5,7 @@ import { fmtTotal } from '../lib/format';
 import { fits, folderName, roleLabel, spaceHint, useDiskSpace } from '../lib/useDiskSpace';
 import { Vessel, type VesselMark } from './pictures/Vessel';
 import { Button, Card, InfoBubble, SectionTitle, useTooltip } from './ui';
+import { IconSliders } from '../lib/icons';
 
 // Disk space is reported per folder, not per disk: the platform calls give no
 // volume identity, so two folders on one disk show the same space twice and
@@ -169,7 +170,12 @@ export function DiskSpaceTile({ settings, hue }: { settings: Settings | null; hu
         </span>
       )}
 
-      <Button kind="secondary" className="self-start" onClick={() => navigate('/settings/downloads')}>
+      <Button
+        kind="secondary"
+        icon={<IconSliders />}
+        className="self-start"
+        onClick={() => navigate('/settings/downloads')}
+      >
         {t('disk.limits')}
       </Button>
     </Card>

@@ -9,7 +9,7 @@ import { useLabelMode } from '../lib/labelModes';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { followExternal } from '../lib/external';
 import { useT } from '../lib/i18n';
-import { IconExternalLink, IconEye, IconEyeOff } from '../lib/icons';
+import { IconExternalLink, IconEye, IconEyeOff, IconRetry } from '../lib/icons';
 import { openColorPickerPopover } from '../lib/colorPicker';
 import { useConfirm, useShake } from '../lib/useShake';
 import { openWindow } from '../lib/windowStack';
@@ -1772,11 +1772,13 @@ export function ErrorCard({
   message,
   retry,
   retryLabel,
+  retryIcon = <IconRetry />,
   nested,
 }: {
   message: string;
   retry?: () => void;
   retryLabel?: string;
+  retryIcon?: ReactNode;
   nested?: boolean;
 }) {
   return (
@@ -1785,7 +1787,7 @@ export function ErrorCard({
         {message}
       </div>
       {retry && (
-        <Button kind="secondary" onClick={retry}>
+        <Button kind="secondary" icon={retryIcon} onClick={retry}>
           {retryLabel}
         </Button>
       )}

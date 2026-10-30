@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Button, Card, Modal, SectionTitle, TextInput } from '../../../components/ui';
-import { IconClose, IconDownload, IconUpload } from '../../../lib/icons';
+import { IconClose, IconConfirm, IconDownload, IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import { ApiError, BACKUP_DOWNLOAD_URL, checkRestore, uploadRestore, type RestoreReport } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
@@ -142,6 +142,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
                 disabled={restoring}
               />
               <Button
+                icon={<IconConfirm />}
                 shake={restoreShake}
                 kind="ghost"
                 onClick={() => void confirmRestore()}

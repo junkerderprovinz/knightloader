@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ApiError, type Task, refusal, renamePackage, setTaskOptions } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconClose } from '../lib/icons';
+import { IconClose, IconPencil } from '../lib/icons';
 import { Button, Modal, TextInput } from './ui';
 import { SettingRow } from '../pages/settings/controls';
 
@@ -131,7 +131,12 @@ function RenameWindow({
         <>
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
-          <Button shake={shake} disabled={blocked || busy || clean === ''} onClick={() => void apply()}>
+          <Button
+            icon={<IconPencil />}
+            shake={shake}
+            disabled={blocked || busy || clean === ''}
+            onClick={() => void apply()}
+          >
             {t('rename.confirm')}
           </Button>
         </>

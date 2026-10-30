@@ -13,6 +13,7 @@ import {
   IconPause,
   IconPencil,
   IconPlay,
+  IconRetry,
   IconSchedules,
   IconSliders,
   IconTrash,
@@ -559,7 +560,7 @@ function ErrorState({ message, retry, retryLabel }: { message: string; retry: ()
   return (
     <div className="glim-card flex flex-col items-center gap-3 p-10 text-center">
       <div className="text-sm text-statusFail">{message}</div>
-      <Button kind="secondary" onClick={retry}>
+      <Button kind="secondary" icon={<IconRetry />} onClick={retry}>
         {retryLabel}
       </Button>
     </div>

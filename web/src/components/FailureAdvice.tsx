@@ -3,7 +3,7 @@ import { deleteTasks, undoDelete, type Task } from '../lib/api';
 import { adviceFor } from '../lib/failureAdvice';
 import { message } from '../lib/intake';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconClose } from '../lib/icons';
+import { IconClose, IconCookies, IconTrash, IconUndo } from '../lib/icons';
 import { useToast } from '../lib/toast';
 import { Button, FieldGroup, Modal } from './ui';
 import { CookieJarDialog } from './CookieJarDialog';
@@ -52,6 +52,7 @@ export function FailureAdvice({
         token
           ? {
               label: t('remove.undo'),
+              icon: <IconUndo />,
               run: async () => {
                 try {
                   const back = await undoDelete(token, base);
@@ -96,6 +97,7 @@ export function FailureAdvice({
           />
           {action && (
             <Button
+              icon={advice.fix === 'cookies' ? <IconCookies /> : <IconTrash />}
               disabled={busy}
               onClick={() => (advice.fix === 'cookies' ? setCookies(true) : void remove())}
             >

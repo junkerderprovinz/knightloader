@@ -7,6 +7,7 @@ import { useDraft } from '../context';
 import { Reading } from '../health/Reading';
 import { SettingRow } from '../controls';
 import { ModuleCard } from '../ModuleToggle';
+import { IconCheckDrawn, IconCopy } from '../../../lib/icons';
 
 /** Mirrors settings.DebridDrive. lib/api.ts's Settings does not name it, as with `torrent`. */
 interface DriveSettings {
@@ -104,6 +105,7 @@ function CopyButton({ text }: { text: string }) {
   const [copies, setCopies] = useState(0);
   return (
     <Button
+      icon={copied ? <IconCheckDrawn /> : <IconCopy />}
       kind="ghost"
       className="px-2.5 text-xs"
       confirm={copies}

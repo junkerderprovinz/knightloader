@@ -8,13 +8,14 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import {
   IconAccounts,
   IconCaptcha,
-  IconCheck,
+  IconConfirm,
   IconExternalLink,
   IconEye,
   IconHealth,
   IconHelp,
-  IconRefresh,
+  IconRetry,
   IconSliders,
+  IconUndo,
 } from '../lib/icons';
 import { message } from '../lib/intake';
 import { en } from '../lib/locales/en';
@@ -110,7 +111,7 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
           name: titleOf(need.tasks),
           sub: need.tasks.length > 1 ? `${t('overview.needs.links', { n: need.tasks.length })} · ${why}` : why,
           open: () => reveal(first),
-          main: { label: t('common.retry'), icon: <IconRefresh />, run: () => void retry(need.tasks) },
+          main: { label: t('common.retry'), icon: <IconRetry />, run: () => void retry(need.tasks) },
           side:
             reason && adviceFor(first.reason)
               ? { label: t('failure.open'), icon: <IconHelp />, run: () => setAdvised(first), glyphOnly: true }
@@ -191,6 +192,7 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
     feed.markDone(need);
     toast(t('overview.needs.doneToast'), 'ok', 'action-done', {
       label: t('remove.undo'),
+      icon: <IconUndo />,
       run: () => feed.restore(need.covers),
     });
   };
@@ -250,7 +252,7 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
                   <Button
                     kind="ghost"
                     labelled
-                    icon={<IconCheck />}
+                    icon={<IconConfirm />}
                     title={t('overview.needs.done')}
                     onClick={() => setAside(need)}
                   />

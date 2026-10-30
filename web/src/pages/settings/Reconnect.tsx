@@ -16,14 +16,16 @@ import { ReconnectScene } from '../../components/pictures/ReconnectScene';
 import { Tabs } from '../../components/Tabs';
 import {
   IconAdd,
+  IconApply,
   IconClose,
   IconCollector,
   IconFleet,
   IconGlobe,
+  IconImport,
   IconMoveDown,
   IconMoveUp,
   IconPlay,
-  IconRefresh,
+  IconRetry,
   IconSearch,
   IconTrash,
 } from '../../lib/icons';
@@ -506,7 +508,7 @@ function RequestFields({ rc, write }: FieldProps) {
         hint={t('settings.reconnect.requestsHint')}
         right={
           <>
-            <Button kind="secondary" onClick={() => setImporting(true)}>
+            <Button kind="secondary" icon={<IconImport />} onClick={() => setImporting(true)}>
               {t('settings.reconnect.import')}
             </Button>
             <Button
@@ -707,11 +709,11 @@ function ImportPanel({
           <Button kind="ghost" labelled icon={<IconClose />} title={t('settings.reconnect.importClose')} onClick={onClose} />
           {/* Read or use, never both; an edit drops the result. */}
           {result ? (
-            <Button disabled={refused || mapped.length === 0} onClick={() => onUse(mapped)}>
+            <Button icon={<IconApply />} disabled={refused || mapped.length === 0} onClick={() => onUse(mapped)}>
               {t('settings.reconnect.importUse', { n: mapped.length })}
             </Button>
           ) : (
-            <Button disabled={busy || text.trim() === ''} onClick={read}>
+            <Button icon={<IconImport />} disabled={busy || text.trim() === ''} onClick={read}>
               {busy ? t('settings.reconnect.importReading') : t('settings.reconnect.importRead')}
             </Button>
           )}
@@ -925,7 +927,7 @@ function RunPanel({
           />
         )}
         <span className="flex-1" />
-        <Button kind="secondary" onClick={run} disabled={busy || disabled} icon={<IconRefresh width={16} height={16} />}>
+        <Button kind="secondary" onClick={run} disabled={busy || disabled} icon={<IconRetry width={16} height={16} />}>
           {running ? t('settings.reconnect.running') : t('settings.reconnect.runNow')}
         </Button>
       </div>

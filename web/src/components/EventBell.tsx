@@ -13,7 +13,7 @@ import { Tabs, type TabDef } from './Tabs';
 import { WhatsNewEntry } from './whatsnew/WhatsNew';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useLabelMode } from '../lib/labelModes';
-import { IconNotifications } from '../lib/icons';
+import { IconEmpty, IconNotifications } from '../lib/icons';
 import { fmtClock } from '../lib/format';
 import { useStagger } from '../lib/motion';
 import { TONE_DOT, useToast } from '../lib/toast';
@@ -353,7 +353,7 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: false | 'se
 
             {/* No undo, so it sits at the foot, away from the rows. */}
             {events.length > 0 && (
-              <Button kind="secondary" className="self-end px-2.5 text-xs" onClick={clearEvents}>
+              <Button kind="secondary" icon={<IconEmpty />} className="self-end px-2.5 text-xs" onClick={clearEvents}>
                 {t('events.clear')}
               </Button>
             )}

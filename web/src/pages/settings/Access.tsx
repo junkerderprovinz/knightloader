@@ -20,11 +20,12 @@ import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import {
   IconAdd,
-  IconCheck,
   IconCheckDrawn,
   IconClose,
+  IconConfirm,
   IconCopy,
   IconKey,
+  IconKeyRevoke,
   IconTrash,
 } from '../../lib/icons';
 import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../../lib/passwordLength';
@@ -155,6 +156,7 @@ export function PasswordCard({
         </SettingRow>
         <div className="flex flex-wrap items-center gap-3">
           <Button
+            icon={next === '' && locked ? <IconKeyRevoke /> : <IconKey />}
             shake={shake}
             kind="secondary"
             onClick={onApply}
@@ -378,6 +380,7 @@ export function TokensSection() {
                 disabled={creating}
               />
               <Button
+                icon={<IconAdd />}
                 shake={createShake}
                 kind="primary"
                 onClick={() => void onCreate()}
@@ -414,11 +417,11 @@ export function TokensSection() {
             <>
               <span className="flex-1" />
               {/* The one way out, and it acknowledges the secret rather than
-                  dismissing it, so the glyph is a check. */}
+                  dismissing it, so it wears Confirm. */}
               <Button
                 kind="primary"
                 labelled
-                icon={<IconCheck />}
+                icon={<IconConfirm />}
                 title={t('settings.access.tokens.done')}
                 onClick={closeCreate}
               />
