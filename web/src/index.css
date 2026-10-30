@@ -247,9 +247,12 @@
 :has(+ .glim-page-actions:not(:empty)) {
   padding-bottom: calc(var(--btn-h-key) + 1.5rem);
 }
-/* The desktop app's own title bar (components/WindowBar.tsx), fixed over the
-   top of the window. The page starts under it, and a scrim leaves it clear, so
-   the window can still be moved and closed while a dialog is open. */
+/* The desktop window frame (components/WindowBar.tsx), GlimStone's rules from
+   reference/tokens.css: the title bar the app draws where its window has no
+   native one. It is fixed over the top of the window. The page starts under it
+   and a scrim leaves it clear, so the window can still be moved and closed
+   while a dialog is open. Without the bar --window-bar is 0 and none of this
+   moves anything. */
 :root {
   --window-bar: 0px;
 }
@@ -259,15 +262,16 @@
 body {
   padding-top: var(--window-bar);
 }
-/* The bar already leaves room above the page, so the shell adds none. */
-:root:has(.glim-window-bar) .kl-shell {
+/* The bar already holds the page off the window's top edge, so the frame that
+   holds the rail and the content drops its own gutter there. */
+:root:has(.glim-window-bar) .glim-shell {
   padding-top: 0;
 }
 .glim-modal-backdrop {
   top: var(--window-bar);
 }
-/* Above the banners that stand at the window's edges, below every menu and
-   bubble, which may open over it. */
+/* Above the page and the banners along its edges, below the windows, menus,
+   toasts and bubbles that may open over it. */
 .glim-window-bar {
   position: fixed;
   inset-inline: 0;
@@ -275,6 +279,7 @@ body {
   z-index: 45;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   height: var(--window-bar);
   background-color: var(--carbon-bg);
   user-select: none;
@@ -284,14 +289,26 @@ body {
   place-items: center;
   width: 2.75rem;
   height: 100%;
+  padding: 0;
 }
-/* A blank control on the ground: --carbon-hover, as GlimStone rule 21 asks. */
+.glim-window-button:focus-visible {
+  outline: none;
+}
+/* A blank control on the ground, so it hovers to --carbon-hover (rule 21).
+   Close hovers like the other two: it hides or quits the way the native
+   button does, and nothing is lost that a red warning would guard. */
 .glim-window-square {
   display: grid;
   place-items: center;
+  width: var(--btn-h);
   height: var(--btn-h);
   border-radius: var(--radius-pill);
   color: var(--carbon-text-sub);
+  transition: background-color 120ms, color 120ms;
+}
+.glim-window-square > svg {
+  width: 1rem;
+  height: 1rem;
 }
 .glim-window-button:hover .glim-window-square {
   background-color: var(--carbon-hover);

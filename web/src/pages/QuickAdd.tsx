@@ -66,7 +66,7 @@ export function QuickAdd() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-carbon-background p-6">
+    <div className="flex min-h-[calc(100dvh-var(--window-bar))] items-center justify-center bg-carbon-background p-6">
       <div className="flex w-full max-w-sm flex-col gap-4">
         <div className="flex items-center gap-2">
           <IconDownload width={20} height={20} className="text-accentGlyph" />
