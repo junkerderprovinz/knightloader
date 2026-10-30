@@ -276,6 +276,24 @@ async function adoptFromInstance() {
   return true;
 }
 
+/**
+ * refreshFollowedLook takes the default instance's look again while following
+ * is on and puts it on the page. Pages paint the stored copy first and call
+ * this after, so none waits on the relay; without it the copy stays as old as
+ * the moment following was switched on. Returns whether the look was taken.
+ */
+async function refreshFollowedLook() {
+  const { followInstance } = await chrome.storage.local.get('followInstance');
+  if (followInstance !== true) return false;
+  if (!(await adoptFromInstance().catch(() => false))) return false;
+  const a = await readAppearance();
+  applyTheme(a.theme);
+  applyShape(a.shape);
+  applyAccent(a.accent);
+  applyRainbow(a.rainbow);
+  return true;
+}
+
 /** The rainbow palette, copied from the reference like the accents. Sunflower
  *  is the default accent, so one position always matches the single accent. */
 const RAINBOW = [
