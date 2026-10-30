@@ -530,7 +530,6 @@ export const vi: Dict = {
   'columns.speed': 'Tốc độ',
   'columns.eta': 'Còn lại',
   'columns.status': 'Trạng thái',
-  'columns.availability': 'Tình trạng',
   'columns.host': 'Máy chủ',
   'columns.added': 'Đã thêm',
   'columns.finished': 'Hoàn tất',
@@ -736,7 +735,7 @@ export const vi: Dict = {
   'settings.modules.reason.cnlSwitch': 'Lắng nghe trên 127.0.0.1:9666, trừ khi KL_CNL chỉ định cổng khác. Tắt ở đây thì KL_CNL vẫn giữ nguyên, nên sau khi khởi động lại, cổng sẽ mở theo đúng biến môi trường.',
   'settings.modules.reason.cnlNoListener': 'Tiến trình này không mở cổng Click\'n\'Load nào.',
   'settings.resolvers.toolsJdMissingHint': 'Chưa thiết lập JDownloader nào. Thông thường KnightLoader tự chạy một cái riêng khi khởi động. Nếu sau vài phút vẫn chưa có, hãy tìm “JD provisioning failed” trong nhật ký, hoặc đặt KL_JD trỏ tới một JDownloader của riêng bạn rồi khởi động lại.',
-  'settings.modules.reason.captchaNoJD': 'Captcha chỉ đến từ backend JDownloader, mà chưa có backend nào được cấu hình (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captcha chỉ đến từ backend JDownloader, mà chưa có backend nào được cấu hình.',
   'settings.modules.switchFailed': 'Công tắc đó bị từ chối: {reason}',
   'settings.modules.configureFirst': 'Chưa có gì để bật. Hãy thiết lập ở {page} trước; sau đó công tắc ở đây sẽ dừng và chạy lại mà không mất những gì bạn đã đặt.',
 
@@ -826,7 +825,7 @@ export const vi: Dict = {
   'settings.sectionLinkIntake': 'Nhận liên kết',
   'settings.linkIntakeHint': 'Những cách một liên kết tự đến bộ thu mà bạn không cần dán vào đây.',
 
-  'settings.linkIntake.cnlHint': 'Nhận các liên kết mà nút Click\'n\'Load của một trang web gửi tới, giống như JDownloader. Những gì bạn bật tắt ở đây giữ tới lần khởi động lại kế tiếp, sau đó KL_CNL lại quyết định.',
+  'settings.linkIntake.cnlHint': 'Nhận các liên kết mà nút Click\'n\'Load của một trang web gửi tới, giống như JDownloader. Những gì bạn bật tắt ở đây giữ tới lần khởi động lại kế tiếp.',
   'settings.connections.add': 'Thêm kết nối',
   'settings.connections.import': 'Nhập danh sách',
   'settings.connections.empty': 'Mọi thứ đi ra qua máy này',

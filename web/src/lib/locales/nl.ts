@@ -522,7 +522,6 @@ export const nl: Dict = {
   'columns.speed': 'Snelheid',
   'columns.eta': 'Resterend',
   'columns.status': 'Status',
-  'columns.availability': 'Beschikbaarheid',
   'columns.host': 'Host',
   'columns.added': 'Toegevoegd',
   'columns.finished': 'Klaar op',
@@ -728,7 +727,7 @@ export const nl: Dict = {
   'settings.modules.reason.cnlSwitch': 'Luistert op 127.0.0.1:9666, tenzij KL_CNL een andere poort noemt. Zet je het hier uit, dan blijft KL_CNL zoals het is, dus na een herstart gaat de poort open zoals de omgeving het zegt.',
   'settings.modules.reason.cnlNoListener': 'Dit proces opent geen Click’n’Load-poort.',
   'settings.resolvers.toolsJdMissingHint': 'Er is geen JDownloader ingesteld. Normaal gesproken start KnightLoader bij het opstarten een eigen. Ontbreekt hij na een paar minuten nog steeds, zoek dan in het log naar "JD provisioning failed", of zet KL_JD op een JDownloader van jezelf en start opnieuw.',
-  'settings.modules.reason.captchaNoJD': 'Captcha’s komen alleen van de JDownloader-backend, en die is niet ingesteld (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captcha’s komen alleen van de JDownloader-backend, en die is niet ingesteld.',
   'settings.modules.switchFailed': 'Die schakelaar werd geweigerd: {reason}',
   'settings.modules.configureFirst': 'Er valt nog niets aan te zetten. Stel dit eerst in op {page}; daarna stopt en herstart de schakelaar hier het zonder te verliezen wat je hebt ingesteld.',
 
@@ -818,7 +817,7 @@ export const nl: Dict = {
   'settings.sectionLinkIntake': 'Linkinvoer',
   'settings.linkIntakeHint': 'De manieren waarop een link vanzelf in de verzamelaar belandt, zonder dat je hem hier plakt.',
 
-  'settings.linkIntake.cnlHint': 'Neemt de links aan die de Click’n’Load-knop van een website stuurt, net als JDownloader. Wat je hier omzet, geldt tot de volgende herstart, daarna beslist KL_CNL weer.',
+  'settings.linkIntake.cnlHint': 'Neemt de links aan die de Click’n’Load-knop van een website stuurt, net als JDownloader. Wat je hier omzet, geldt tot de volgende herstart.',
   'settings.connections.add': 'Verbinding toevoegen',
   'settings.connections.import': 'Lijst importeren',
   'settings.connections.empty': 'Alles gaat naar buiten via deze machine',

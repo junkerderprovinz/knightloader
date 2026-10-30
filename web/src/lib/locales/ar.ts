@@ -532,7 +532,6 @@ export const ar: Dict = {
   'columns.speed': 'السرعة',
   'columns.eta': 'الوقت المتبقي',
   'columns.status': 'الحالة',
-  'columns.availability': 'التوفر',
   'columns.host': 'المستضيف',
   'columns.added': 'أُضيف',
   'columns.finished': 'اكتمل',
@@ -738,7 +737,7 @@ export const ar: Dict = {
   'settings.modules.reason.cnlSwitch': 'يُنصت على 127.0.0.1:9666 ما لم يحدد KL_CNL منفذًا آخر. وإطفاؤه هنا يترك KL_CNL كما هو، فبعد إعادة التشغيل يُفتح المنفذ كما تقول البيئة.',
   'settings.modules.reason.cnlNoListener': 'هذه العملية لا تفتح أي منفذ Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'لا يوجد JDownloader مُعدّ. يبدأ KnightLoader عادةً نسخته الخاصة أثناء الإقلاع. إذا ظل مفقودًا بعد بضع دقائق، فابحث عن «JD provisioning failed» في السجل، أو اضبط KL_JD على JDownloader خاص بك ثم أعد التشغيل.',
-  'settings.modules.reason.captchaNoJD': 'الكابتشا لا تأتي إلا من خلفية JDownloader، ولا توجد واحدة مُعدّة (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'الكابتشا لا تأتي إلا من خلفية JDownloader، ولا توجد واحدة مُعدّة.',
   'settings.modules.switchFailed': 'رُفض هذا المفتاح: {reason}',
   'settings.modules.configureFirst': 'لا شيء لتشغيله بعد. اضبط هذا في {page} أولًا؛ بعدها يوقفه المفتاح هنا ويعيد تشغيله دون فقد ما ضبطته.',
 
@@ -828,7 +827,7 @@ export const ar: Dict = {
   'settings.sectionLinkIntake': 'استقبال الروابط',
   'settings.linkIntakeHint': 'الطرق التي يصل بها الرابط إلى المجمّع من تلقاء نفسه، دون أن تلصقه هنا.',
 
-  'settings.linkIntake.cnlHint': 'يستقبل الروابط التي يرسلها زر Click\'n\'Load في موقع ما، تمامًا مثل JDownloader. وما تغيّره هنا يسري حتى إعادة التشغيل التالية، ثم يعود القرار إلى KL_CNL.',
+  'settings.linkIntake.cnlHint': 'يستقبل الروابط التي يرسلها زر Click\'n\'Load في موقع ما، تمامًا مثل JDownloader. وما تغيّره هنا يسري حتى إعادة التشغيل التالية.',
   'settings.connections.add': 'أضف اتصالًا',
   'settings.connections.import': 'استورد قائمة',
   'settings.connections.empty': 'كل شيء يخرج عبر هذا الجهاز',

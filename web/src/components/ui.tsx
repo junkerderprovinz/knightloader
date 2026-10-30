@@ -1725,7 +1725,7 @@ export function EmptyState({
   return (
     <div
       className={`${nested ? 'glim-well' : 'glim-card'} flex flex-col items-center gap-2 p-10 text-center ${
-        fill ? 'flex-1 justify-center' : ''
+        fill ? 'glim-actions-room flex-1 justify-center' : ''
       }`}
     >
       {/* The sleeping knight (docs/easter-eggs.md): the mark itself blinks,

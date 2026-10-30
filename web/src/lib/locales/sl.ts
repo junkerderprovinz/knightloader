@@ -530,7 +530,6 @@ export const sl: Dict = {
   'columns.speed': 'Hitrost',
   'columns.eta': 'Preostanek',
   'columns.status': 'Stanje',
-  'columns.availability': 'Razpoložljivost',
   'columns.host': 'Gostitelj',
   'columns.added': 'Dodano',
   'columns.finished': 'Končano',
@@ -736,7 +735,7 @@ export const sl: Dict = {
   'settings.modules.reason.cnlSwitch': 'Posluša na 127.0.0.1:9666, razen če KL_CNL navaja druga vrata. Če ga tukaj izklopiš, KL_CNL ostane, kakršen je, zato se po ponovnem zagonu vrata odprejo tako, kot pravi okolje.',
   'settings.modules.reason.cnlNoListener': 'Ta proces ne odpre vrat Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'JDownloader ni nastavljen. KnightLoader ob zagonu običajno zažene svojega. Če ga po nekaj minutah še vedno ni, poišči v dnevniku »JD provisioning failed« ali nastavi KL_JD na svoj JDownloader in znova zaženi.',
-  'settings.modules.reason.captchaNoJD': 'Captche prihajajo samo iz zaledja JDownloader, nobeno pa ni nastavljeno (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captche prihajajo samo iz zaledja JDownloader, nobeno pa ni nastavljeno.',
   'settings.modules.switchFailed': 'To stikalo je bilo zavrnjeno: {reason}',
   'settings.modules.configureFirst': 'Zaenkrat ni ničesar za vklopiti. Najprej to nastavite na {page}; potem stikalo tukaj to ustavi in znova zažene, ne da bi izgubilo nastavljeno.',
 
@@ -826,7 +825,7 @@ export const sl: Dict = {
   'settings.sectionLinkIntake': 'Sprejem povezav',
   'settings.linkIntakeHint': 'Načini, na katere povezava sama pride v zbiralnik, ne da bi jo prilepil sem.',
 
-  'settings.linkIntake.cnlHint': 'Sprejema povezave, ki jih pošlje gumb Click\'n\'Load na spletni strani, tako kot JDownloader. Kar tukaj preklopiš, velja do naslednjega ponovnega zagona, potem spet odloča KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Sprejema povezave, ki jih pošlje gumb Click\'n\'Load na spletni strani, tako kot JDownloader. Kar tukaj preklopiš, velja do naslednjega ponovnega zagona.',
   'settings.connections.add': 'Dodaj povezavo',
   'settings.connections.import': 'Uvozi seznam',
   'settings.connections.empty': 'Vse gre ven prek tega računalnika',

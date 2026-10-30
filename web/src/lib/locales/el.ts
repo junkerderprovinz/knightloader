@@ -531,7 +531,6 @@ export const el: Dict = {
   'columns.speed': 'Ταχύτητα',
   'columns.eta': 'Απομένουν',
   'columns.status': 'Κατάσταση',
-  'columns.availability': 'Διαθεσιμότητα',
   'columns.host': 'Πάροχος',
   'columns.added': 'Προστέθηκε',
   'columns.finished': 'Ολοκληρώθηκε',
@@ -737,7 +736,7 @@ export const el: Dict = {
   'settings.modules.reason.cnlSwitch': 'Ακούει στο 127.0.0.1:9666, εκτός αν το KL_CNL ορίζει άλλη θύρα. Αν το απενεργοποιήσεις εδώ, το KL_CNL μένει όπως είναι, οπότε μετά από επανεκκίνηση η θύρα ανοίγει όπως λέει το περιβάλλον.',
   'settings.modules.reason.cnlNoListener': 'Αυτή η διεργασία δεν ανοίγει θύρα Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Δεν έχει ρυθμιστεί JDownloader. Το KnightLoader κανονικά ξεκινά ένα δικό του κατά την εκκίνηση. Αν λείπει ακόμα μετά από μερικά λεπτά, ψάξε στην καταγραφή για «JD provisioning failed» ή όρισε το KL_JD σε ένα δικό σου JDownloader και κάνε επανεκκίνηση.',
-  'settings.modules.reason.captchaNoJD': 'Τα captcha έρχονται μόνο από το backend του JDownloader, και δεν έχει ρυθμιστεί κανένα (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Τα captcha έρχονται μόνο από το backend του JDownloader, και δεν έχει ρυθμιστεί κανένα.',
   'settings.modules.switchFailed': 'Ο διακόπτης απορρίφθηκε: {reason}',
   'settings.modules.configureFirst': 'Δεν υπάρχει ακόμη κάτι να ανάψει. Ρυθμίστε το πρώτα στη σελίδα {page}· μετά ο διακόπτης εδώ το σταματά και το ξεκινά ξανά χωρίς να χαθεί ό,τι ορίσατε.',
 
@@ -827,7 +826,7 @@ export const el: Dict = {
   'settings.sectionLinkIntake': 'Είσοδος συνδέσμων',
   'settings.linkIntakeHint': 'Οι τρόποι με τους οποίους ένας σύνδεσμος φτάνει μόνος του στον συλλέκτη, χωρίς να τον επικολλήσεις εδώ.',
 
-  'settings.linkIntake.cnlHint': 'Δέχεται τους συνδέσμους που στέλνει το κουμπί Click\'n\'Load ενός ιστότοπου, όπως ακριβώς ο JDownloader. Ό,τι αλλάξεις εδώ ισχύει μέχρι την επόμενη επανεκκίνηση, μετά αποφασίζει ξανά το KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Δέχεται τους συνδέσμους που στέλνει το κουμπί Click\'n\'Load ενός ιστότοπου, όπως ακριβώς ο JDownloader. Ό,τι αλλάξεις εδώ ισχύει μέχρι την επόμενη επανεκκίνηση.',
   'settings.connections.add': 'Προσθήκη σύνδεσης',
   'settings.connections.import': 'Εισαγωγή λίστας',
   'settings.connections.empty': 'Όλα βγαίνουν από αυτό το μηχάνημα',

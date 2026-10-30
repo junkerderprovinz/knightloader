@@ -530,7 +530,6 @@ export const gl: Dict = {
   'columns.speed': 'Velocidade',
   'columns.eta': 'Tempo restante',
   'columns.status': 'Estado',
-  'columns.availability': 'Dispoñibilidade',
   'columns.host': 'Servidor',
   'columns.added': 'Engadido',
   'columns.finished': 'Rematado',
@@ -736,7 +735,7 @@ export const gl: Dict = {
   'settings.modules.reason.cnlSwitch': 'Escoita en 127.0.0.1:9666 salvo que KL_CNL indique outro porto. Se o apagas aquí, KL_CNL queda como está, así que despois dun reinicio o porto ábrese como diga o contorno.',
   'settings.modules.reason.cnlNoListener': 'Este proceso non abre ningún porto Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Non hai ningún JDownloader configurado. KnightLoader normalmente arranca o seu propio ao iniciarse. Se despois duns minutos aínda falta, busca «JD provisioning failed» no rexistro, ou pon KL_JD apuntando a un JDownloader teu e reinicia.',
-  'settings.modules.reason.captchaNoJD': 'Os captchas só veñen do backend JDownloader, e non hai ningún configurado (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Os captchas só veñen do backend JDownloader, e non hai ningún configurado.',
   'settings.modules.switchFailed': 'Ese interruptor foi rexeitado: {reason}',
   'settings.modules.configureFirst': 'Aínda non hai nada que acender. Configúrao primeiro en {page}; despois o interruptor de aquí párao e vólveo arrincar sen perder o que puxeches.',
 
@@ -826,7 +825,7 @@ export const gl: Dict = {
   'settings.sectionLinkIntake': 'Entrada de ligazóns',
   'settings.linkIntakeHint': 'As maneiras en que unha ligazón chega ao colector por si soa, sen que a pegues aquí.',
 
-  'settings.linkIntake.cnlHint': 'Recolle as ligazóns que envía o botón Click\'n\'Load dun sitio web, igual que JDownloader. O que cambies aquí dura ata o seguinte reinicio, e despois volve decidir KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Recolle as ligazóns que envía o botón Click\'n\'Load dun sitio web, igual que JDownloader. O que cambies aquí dura ata o seguinte reinicio.',
   'settings.connections.add': 'Engadir conexión',
   'settings.connections.import': 'Importar lista',
   'settings.connections.empty': 'Todo sae por esta máquina',

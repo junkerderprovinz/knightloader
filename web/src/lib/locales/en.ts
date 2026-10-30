@@ -592,7 +592,6 @@ export const en = {
   'columns.speed': 'Speed',
   'columns.eta': 'ETA',
   'columns.status': 'Status',
-  'columns.availability': 'Availability',
   'columns.host': 'Host',
   'columns.added': 'Added',
   'columns.finished': 'Finished',
@@ -890,7 +889,7 @@ export const en = {
   'settings.modules.reason.cnlSwitch': 'Listens on 127.0.0.1:9666 unless KL_CNL names another port. Switching it off here leaves KL_CNL as it is, so after a restart the port opens the way the environment says.',
   'settings.modules.reason.cnlNoListener': "This process opens no Click'n'Load port.",
   'settings.resolvers.toolsJdMissingHint': 'No JDownloader is set up. KnightLoader normally starts its own while booting. If it is still missing after a few minutes, look for "JD provisioning failed" in the log, or set KL_JD to a JDownloader of your own and restart.',
-  'settings.modules.reason.captchaNoJD': 'Captchas come only from the JDownloader backend, and none is configured (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchas come only from the JDownloader backend, and none is configured.',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
   'settings.modules.switchFailed': 'That switch was refused: {reason}',
   'settings.modules.configureFirst': 'There is nothing to switch on yet. Set this up on {page} first; after that the switch here stops and restarts it without losing what you set.',
@@ -983,7 +982,7 @@ export const en = {
 
   'settings.sectionLinkIntake': 'Link intake',
   'settings.linkIntakeHint': 'The ways a link can reach the link collector on its own, without you pasting it here.',
-  'settings.linkIntake.cnlHint': "Takes the links a website's Click'n'Load button sends, just like JDownloader. What you switch here lasts until the next restart, then KL_CNL decides again.",
+  'settings.linkIntake.cnlHint': "Takes the links a website's Click'n'Load button sends, just like JDownloader. What you switch here lasts until the next restart.",
 
   'settings.connections.add': 'Add connection',
   'settings.connections.import': 'Import list',

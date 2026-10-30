@@ -530,7 +530,6 @@ export const ca: Dict = {
   'columns.speed': 'Velocitat',
   'columns.eta': 'Temps restant',
   'columns.status': 'Estat',
-  'columns.availability': 'Disponibilitat',
   'columns.host': 'Amfitrió',
   'columns.added': 'Afegit',
   'columns.finished': 'Acabat',
@@ -736,7 +735,7 @@ export const ca: Dict = {
   'settings.modules.reason.cnlSwitch': 'Escolta a 127.0.0.1:9666, tret que KL_CNL indiqui un altre port. Apagar-lo aquí deixa KL_CNL tal com és, així que després d’un reinici el port s’obre tal com digui l’entorn.',
   'settings.modules.reason.cnlNoListener': 'Aquest procés no obre cap port de Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'No hi ha cap JDownloader configurat. Normalment KnightLoader n’engega un de propi en arrencar. Si al cap d’uns minuts encara falta, busca «JD provisioning failed» al registre, o posa a KL_JD un JDownloader teu i reinicia.',
-  'settings.modules.reason.captchaNoJD': 'Els captchas només vénen del rerefons JDownloader, i no n’hi ha cap de configurat (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Els captchas només vénen del rerefons JDownloader, i no n’hi ha cap de configurat.',
   'settings.modules.switchFailed': 'Aquest interruptor s’ha rebutjat: {reason}',
   'settings.modules.configureFirst': 'Encara no hi ha res per encendre. Configureu-ho primer a {page}; després l’interruptor d’aquí l’atura i el torna a engegar sense perdre el que hàgiu posat.',
 
@@ -826,7 +825,7 @@ export const ca: Dict = {
   'settings.sectionLinkIntake': 'Entrada d\'enllaços',
   'settings.linkIntakeHint': 'Les maneres com un enllaç arriba al recol·lector tot sol, sense que l\'enganxis aquí.',
 
-  'settings.linkIntake.cnlHint': 'Rep els enllaços que envia el botó Click\'n\'Load d’un lloc web, igual que JDownloader. El que canviïs aquí val fins al proper reinici; després torna a decidir KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Rep els enllaços que envia el botó Click\'n\'Load d’un lloc web, igual que JDownloader. El que canviïs aquí val fins al proper reinici.',
   'settings.connections.add': 'Afegeix una connexió',
   'settings.connections.import': 'Importa una llista',
   'settings.connections.empty': 'Tot surt per aquesta màquina',

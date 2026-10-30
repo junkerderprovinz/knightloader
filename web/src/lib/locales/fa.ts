@@ -530,7 +530,6 @@ export const fa: Dict = {
   'columns.speed': 'سرعت',
   'columns.eta': 'زمان باقی‌مانده',
   'columns.status': 'وضعیت',
-  'columns.availability': 'در دسترس بودن',
   'columns.host': 'میزبان',
   'columns.added': 'افزوده شد',
   'columns.finished': 'پایان یافت',
@@ -736,7 +735,7 @@ export const fa: Dict = {
   'settings.modules.reason.cnlSwitch': 'روی 127.0.0.1:9666 گوش می‌دهد، مگر اینکه KL_CNL درگاه دیگری تعیین کند. خاموش کردنش در اینجا KL_CNL را همان‌طور که هست می‌گذارد، پس پس از راه‌اندازی مجدد درگاه همان‌طور باز می‌شود که محیط می‌گوید.',
   'settings.modules.reason.cnlNoListener': 'این فرایند هیچ درگاه Click\'n\'Load ای باز نمی‌کند.',
   'settings.resolvers.toolsJdMissingHint': 'هیچ JDownloader پیکربندی نشده است. KnightLoader معمولاً هنگام بالا آمدن یکی از خودش را راه می‌اندازد. اگر بعد از چند دقیقه هنوز نیست، در گزارش دنبال «JD provisioning failed» بگرد، یا KL_JD را روی JDownloader خودت بگذار و دوباره راه‌اندازی کن.',
-  'settings.modules.reason.captchaNoJD': 'کپچاها فقط از بک‌اند JDownloader می‌آیند، و هیچ‌کدام پیکربندی نشده است (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'کپچاها فقط از بک‌اند JDownloader می‌آیند، و هیچ‌کدام پیکربندی نشده است.',
   'settings.modules.switchFailed': 'آن کلید رد شد: {reason}',
   'settings.modules.configureFirst': 'هنوز چیزی برای روشن کردن نیست. اول این را در {page} برپا کنید؛ پس از آن کلید اینجا آن را متوقف و دوباره اجرا می‌کند بی‌آنکه آنچه تنظیم کرده‌اید از دست برود.',
 
@@ -826,7 +825,7 @@ export const fa: Dict = {
   'settings.sectionLinkIntake': 'ورودی پیوندها',
   'settings.linkIntakeHint': 'راه‌هایی که یک پیوند خودش به گردآور می‌رسد، بدون اینکه اینجا بچسبانی‌اش.',
 
-  'settings.linkIntake.cnlHint': 'پیوندهایی را که دکمهٔ Click\'n\'Load یک وب‌سایت می‌فرستد می‌گیرد، درست مثل JDownloader. آنچه اینجا عوض کنی تا راه‌اندازی مجدد بعدی می‌ماند، پس از آن دوباره KL_CNL تصمیم می‌گیرد.',
+  'settings.linkIntake.cnlHint': 'پیوندهایی را که دکمهٔ Click\'n\'Load یک وب‌سایت می‌فرستد می‌گیرد، درست مثل JDownloader. آنچه اینجا عوض کنی تا راه‌اندازی مجدد بعدی می‌ماند.',
   'settings.connections.add': 'افزودن اتصال',
   'settings.connections.import': 'درون‌ریزی فهرست',
   'settings.connections.empty': 'همه‌چیز از همین دستگاه بیرون می‌رود',

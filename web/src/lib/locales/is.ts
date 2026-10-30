@@ -530,7 +530,6 @@ export const is: Dict = {
   'columns.speed': 'Hraði',
   'columns.eta': 'Eftir',
   'columns.status': 'Staða',
-  'columns.availability': 'Aðgengi',
   'columns.host': 'Hýsill',
   'columns.added': 'Bætt við',
   'columns.finished': 'Lokið',
@@ -736,7 +735,7 @@ export const is: Dict = {
   'settings.modules.reason.cnlSwitch': 'Hlustar á 127.0.0.1:9666 nema KL_CNL nefni aðra gátt. Ef þú slekkur á því hér helst KL_CNL óbreytt, svo eftir endurræsingu opnast gáttin eins og umhverfið segir til um.',
   'settings.modules.reason.cnlNoListener': 'Þetta ferli opnar enga Click’n’Load-gátt.',
   'settings.resolvers.toolsJdMissingHint': 'Enginn JDownloader er uppsettur. KnightLoader ræsir venjulega sinn eigin við ræsingu. Vanti hann enn eftir nokkrar mínútur skaltu leita að „JD provisioning failed“ í annálnum, eða stilla KL_JD á þinn eigin JDownloader og endurræsa.',
-  'settings.modules.reason.captchaNoJD': 'Captcha koma aðeins frá JDownloader-bakendanum, og enginn er uppsettur (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captcha koma aðeins frá JDownloader-bakendanum, og enginn er uppsettur.',
   'settings.modules.switchFailed': 'Rofanum var hafnað: {reason}',
   'settings.modules.configureFirst': 'Það er ekkert til að kveikja á enn. Settu þetta upp á {page} fyrst; eftir það stöðvar rofinn hér það og ræsir aftur án þess að tapa því sem þú stilltir.',
 
@@ -826,7 +825,7 @@ export const is: Dict = {
   'settings.sectionLinkIntake': 'Móttaka tengla',
   'settings.linkIntakeHint': 'Leiðirnar sem tengill kemst sjálfur í safnarann, án þess að þú límir hann hér.',
 
-  'settings.linkIntake.cnlHint': 'Tekur við tenglunum sem Click’n’Load-hnappur vefsíðu sendir, alveg eins og JDownloader. Það sem þú stillir hér gildir fram að næstu endurræsingu, síðan ræður KL_CNL aftur.',
+  'settings.linkIntake.cnlHint': 'Tekur við tenglunum sem Click’n’Load-hnappur vefsíðu sendir, alveg eins og JDownloader. Það sem þú stillir hér gildir fram að næstu endurræsingu.',
   'settings.connections.add': 'Bæta við tengingu',
   'settings.connections.import': 'Flytja inn lista',
   'settings.connections.empty': 'Allt fer út um þessa vél',

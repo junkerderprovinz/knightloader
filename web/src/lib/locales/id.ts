@@ -530,7 +530,6 @@ export const id: Dict = {
   'columns.speed': 'Kecepatan',
   'columns.eta': 'Sisa waktu',
   'columns.status': 'Status',
-  'columns.availability': 'Ketersediaan',
   'columns.host': 'Host',
   'columns.added': 'Ditambahkan',
   'columns.finished': 'Selesai',
@@ -736,7 +735,7 @@ export const id: Dict = {
   'settings.modules.reason.cnlSwitch': 'Mendengarkan di 127.0.0.1:9666 kecuali KL_CNL menyebut port lain. Mematikannya di sini membiarkan KL_CNL apa adanya, jadi setelah mulai ulang port dibuka sesuai yang ditentukan lingkungan.',
   'settings.modules.reason.cnlNoListener': 'Proses ini tidak membuka port Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'JDownloader belum disiapkan. KnightLoader biasanya menjalankan JDownloader sendiri saat menyala. Jika setelah beberapa menit masih belum ada, cari "JD provisioning failed" di log, atau setel KL_JD ke JDownloader milik Anda sendiri lalu mulai ulang.',
-  'settings.modules.reason.captchaNoJD': 'Captcha hanya datang dari backend JDownloader, dan belum ada yang dikonfigurasi (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captcha hanya datang dari backend JDownloader, dan belum ada yang dikonfigurasi.',
   'settings.modules.switchFailed': 'Sakelar itu ditolak: {reason}',
   'settings.modules.configureFirst': 'Belum ada yang bisa dinyalakan. Siapkan dulu di {page}; setelah itu sakelar di sini menghentikan dan menjalankannya lagi tanpa kehilangan apa yang Anda atur.',
 
@@ -826,7 +825,7 @@ export const id: Dict = {
   'settings.sectionLinkIntake': 'Penerimaan tautan',
   'settings.linkIntakeHint': 'Cara-cara sebuah tautan sampai ke pengumpul dengan sendirinya, tanpa kamu tempel di sini.',
 
-  'settings.linkIntake.cnlHint': 'Menerima tautan yang dikirim tombol Click\'n\'Load sebuah situs web, persis seperti JDownloader. Apa yang kamu ubah di sini berlaku sampai mulai ulang berikutnya, lalu KL_CNL yang menentukan lagi.',
+  'settings.linkIntake.cnlHint': 'Menerima tautan yang dikirim tombol Click\'n\'Load sebuah situs web, persis seperti JDownloader. Apa yang kamu ubah di sini berlaku sampai mulai ulang berikutnya.',
   'settings.connections.add': 'Tambah koneksi',
   'settings.connections.import': 'Impor daftar',
   'settings.connections.empty': 'Semuanya keluar lewat mesin ini',

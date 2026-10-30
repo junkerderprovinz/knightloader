@@ -522,7 +522,6 @@ export const es: Dict = {
   'columns.speed': 'Velocidad',
   'columns.eta': 'Tiempo restante',
   'columns.status': 'Estado',
-  'columns.availability': 'Disponibilidad',
   'columns.host': 'Hoster',
   'columns.added': 'Añadido',
   'columns.finished': 'Terminado',
@@ -728,7 +727,7 @@ export const es: Dict = {
   'settings.modules.reason.cnlSwitch': 'Escucha en 127.0.0.1:9666, salvo que KL_CNL indique otro puerto. Apagarlo aquí deja KL_CNL como está, así que tras un reinicio el puerto se abre como diga el entorno.',
   'settings.modules.reason.cnlNoListener': 'Este proceso no abre ningún puerto de Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'No hay ningún JDownloader configurado. Normalmente KnightLoader arranca uno propio al iniciarse. Si pasados unos minutos sigue sin aparecer, busca «JD provisioning failed» en el registro, o pon en KL_JD un JDownloader tuyo y reinicia.',
-  'settings.modules.reason.captchaNoJD': 'Los captchas solo vienen del backend JDownloader, y no hay ninguno configurado (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Los captchas solo vienen del backend JDownloader, y no hay ninguno configurado.',
   'settings.modules.switchFailed': 'Ese interruptor fue rechazado: {reason}',
   'settings.modules.configureFirst': 'Todavía no hay nada que encender. Configúralo primero en {page}; después el interruptor de aquí lo para y lo vuelve a arrancar sin perder lo que pusiste.',
 
@@ -818,7 +817,7 @@ export const es: Dict = {
   'settings.sectionLinkIntake': 'Entrada de enlaces',
   'settings.linkIntakeHint': 'Las maneras en que un enlace llega al colector por sí solo, sin que lo pegues aquí.',
 
-  'settings.linkIntake.cnlHint': 'Recoge los enlaces que envía el botón Click\'n\'Load de una web, igual que JDownloader. Lo que cambies aquí vale hasta el próximo reinicio; después vuelve a decidir KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Recoge los enlaces que envía el botón Click\'n\'Load de una web, igual que JDownloader. Lo que cambies aquí vale hasta el próximo reinicio.',
   'settings.connections.add': 'Añadir conexión',
   'settings.connections.import': 'Importar lista',
   'settings.connections.empty': 'Todo sale por esta máquina',

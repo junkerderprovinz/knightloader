@@ -530,7 +530,6 @@ export const zh: Dict = {
   'columns.speed': '速度',
   'columns.eta': '剩余时间',
   'columns.status': '状态',
-  'columns.availability': '可用性',
   'columns.host': '主机',
   'columns.added': '添加时间',
   'columns.finished': '完成时间',
@@ -736,7 +735,7 @@ export const zh: Dict = {
   'settings.modules.reason.cnlSwitch': '除非 KL_CNL 指定了别的端口，否则监听 127.0.0.1:9666。在这里关闭它不会改动 KL_CNL，所以重启后端口会按环境变量的设定打开。',
   'settings.modules.reason.cnlNoListener': '这个进程不打开 Click\'n\'Load 端口。',
   'settings.resolvers.toolsJdMissingHint': '没有设置 JDownloader。KnightLoader 通常会在启动时自己拉起一个。如果几分钟后仍然没有，请在日志里找“JD provisioning failed”，或把 KL_JD 指向你自己的 JDownloader 后重启。',
-  'settings.modules.reason.captchaNoJD': '验证码只来自 JDownloader 后端，而目前没有配置（KL_JD）。',
+  'settings.modules.reason.captchaNoJD': '验证码只来自 JDownloader 后端，而目前没有配置。',
   'settings.modules.switchFailed': '该开关被拒绝：{reason}',
   'settings.modules.configureFirst': '还没有可以打开的东西。请先在 {page} 里设置好；之后这里的开关就能停下再启动它，而不会丢掉你设的内容。',
 
@@ -826,7 +825,7 @@ export const zh: Dict = {
   'settings.sectionLinkIntake': '链接接收',
   'settings.linkIntakeHint': '无需你在此粘贴，链接自行进入收集器的几种途径。',
 
-  'settings.linkIntake.cnlHint': '像 JDownloader 一样接收网站上 Click\'n\'Load 按钮发来的链接。在这里的开关只保持到下次重启，之后又由 KL_CNL 决定。',
+  'settings.linkIntake.cnlHint': '像 JDownloader 一样接收网站上 Click\'n\'Load 按钮发来的链接。在这里的开关只保持到下次重启。',
   'settings.connections.add': '添加连接',
   'settings.connections.import': '导入列表',
   'settings.connections.empty': '所有流量都从这台机器出去',

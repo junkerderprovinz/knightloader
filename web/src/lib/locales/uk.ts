@@ -531,7 +531,6 @@ export const uk: Dict = {
   'columns.speed': 'Швидкість',
   'columns.eta': 'Залишилось',
   'columns.status': 'Статус',
-  'columns.availability': 'Доступність',
   'columns.host': 'Хостер',
   'columns.added': 'Додано',
   'columns.finished': 'Завершено',
@@ -737,7 +736,7 @@ export const uk: Dict = {
   'settings.modules.reason.cnlSwitch': 'Слухає 127.0.0.1:9666, якщо KL_CNL не називає інший порт. Вимкнення тут не чіпає KL_CNL, тож після перезапуску порт відкривається так, як задано в середовищі.',
   'settings.modules.reason.cnlNoListener': 'Цей процес не відкриває порт Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'JDownloader не налаштовано. Зазвичай KnightLoader запускає власний під час завантаження. Якщо через кілька хвилин його все ще немає, пошукайте в журналі «JD provisioning failed» або задайте в KL_JD власний JDownloader і перезапустіть.',
-  'settings.modules.reason.captchaNoJD': 'Капчі надходять лише від бекенда JDownloader, а його не налаштовано (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Капчі надходять лише від бекенда JDownloader, а його не налаштовано.',
   'settings.modules.switchFailed': 'Перемикач відхилено: {reason}',
   'settings.modules.configureFirst': 'Вмикати ще нічого. Спершу налаштуйте це на {page}; після цього перемикач тут зупиняє і знову запускає модуль, не втрачаючи заданого.',
 
@@ -827,7 +826,7 @@ export const uk: Dict = {
   'settings.sectionLinkIntake': 'Приймання посилань',
   'settings.linkIntakeHint': 'Способи, якими посилання потрапляє до збирача саме, без вставляння тут.',
 
-  'settings.linkIntake.cnlHint': 'Приймає посилання, які надсилає кнопка Click\'n\'Load на сайті, так само як JDownloader. Те, що ви перемкнете тут, діє до наступного перезапуску, а потім знову вирішує KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Приймає посилання, які надсилає кнопка Click\'n\'Load на сайті, так само як JDownloader. Те, що ви перемкнете тут, діє до наступного перезапуску.',
   'settings.connections.add': 'Додати з’єднання',
   'settings.connections.import': 'Імпортувати список',
   'settings.connections.empty': 'Усе виходить через цю машину',

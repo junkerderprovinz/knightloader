@@ -530,7 +530,6 @@ export const ms: Dict = {
   'columns.speed': 'Kelajuan',
   'columns.eta': 'Baki masa',
   'columns.status': 'Status',
-  'columns.availability': 'Ketersediaan',
   'columns.host': 'Hos',
   'columns.added': 'Ditambah',
   'columns.finished': 'Siap',
@@ -736,7 +735,7 @@ export const ms: Dict = {
   'settings.modules.reason.cnlSwitch': 'Mendengar pada 127.0.0.1:9666 melainkan KL_CNL menamakan port lain. Mematikannya di sini membiarkan KL_CNL seperti sedia ada, jadi selepas mula semula port dibuka mengikut apa yang ditetapkan oleh persekitaran.',
   'settings.modules.reason.cnlNoListener': 'Proses ini tidak membuka port Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Tiada JDownloader disediakan. KnightLoader biasanya memulakan JDownloader miliknya sendiri semasa but. Jika masih tiada selepas beberapa minit, cari “JD provisioning failed” dalam log, atau tetapkan KL_JD kepada JDownloader anda sendiri dan mulakan semula.',
-  'settings.modules.reason.captchaNoJD': 'Captcha hanya datang daripada backend JDownloader, dan tiada yang dikonfigurasikan (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captcha hanya datang daripada backend JDownloader, dan tiada yang dikonfigurasikan.',
   'settings.modules.switchFailed': 'Suis itu ditolak: {reason}',
   'settings.modules.configureFirst': 'Belum ada apa-apa untuk dihidupkan. Sediakan dahulu di {page}; selepas itu suis di sini menghentikan dan memulakannya semula tanpa hilang apa yang anda tetapkan.',
 
@@ -826,7 +825,7 @@ export const ms: Dict = {
   'settings.sectionLinkIntake': 'Terimaan pautan',
   'settings.linkIntakeHint': 'Cara sesuatu pautan sampai ke pengumpul dengan sendirinya, tanpa kamu tampal di sini.',
 
-  'settings.linkIntake.cnlHint': 'Menerima pautan yang dihantar oleh butang Click\'n\'Load sesebuah laman web, sama seperti JDownloader. Apa yang anda tukar di sini kekal sehingga mula semula seterusnya, kemudian KL_CNL memutuskan semula.',
+  'settings.linkIntake.cnlHint': 'Menerima pautan yang dihantar oleh butang Click\'n\'Load sesebuah laman web, sama seperti JDownloader. Apa yang anda tukar di sini kekal sehingga mula semula seterusnya.',
   'settings.connections.add': 'Tambah sambungan',
   'settings.connections.import': 'Import senarai',
   'settings.connections.empty': 'Semuanya keluar melalui mesin ini',

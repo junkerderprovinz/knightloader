@@ -530,7 +530,6 @@ export const cs: Dict = {
   'columns.speed': 'Rychlost',
   'columns.eta': 'Zbývá',
   'columns.status': 'Stav',
-  'columns.availability': 'Dostupnost',
   'columns.host': 'Hoster',
   'columns.added': 'Přidáno',
   'columns.finished': 'Dokončeno',
@@ -736,7 +735,7 @@ export const cs: Dict = {
   'settings.modules.reason.cnlSwitch': 'Naslouchá na 127.0.0.1:9666, pokud KL_CNL neurčuje jiný port. Když to tady vypneš, KL_CNL zůstane, jak je, takže po restartu se port otevře tak, jak říká prostředí.',
   'settings.modules.reason.cnlNoListener': 'Tento proces neotevírá žádný port Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Není nastavený žádný JDownloader. KnightLoader normálně při startu spustí vlastní. Pokud po několika minutách pořád chybí, hledej v záznamu „JD provisioning failed“, nebo nastav KL_JD na vlastní JDownloader a restartuj.',
-  'settings.modules.reason.captchaNoJD': 'Captchy přicházejí jen z backendu JDownloader a žádný není nastavený (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captchy přicházejí jen z backendu JDownloader a žádný není nastavený.',
   'settings.modules.switchFailed': 'Přepínač byl odmítnut: {reason}',
   'settings.modules.configureFirst': 'Zatím není co zapínat. Nastavte to nejdřív na {page}; potom to přepínač tady zastaví a znovu spustí, aniž by se ztratilo, co jste nastavili.',
 
@@ -826,7 +825,7 @@ export const cs: Dict = {
   'settings.sectionLinkIntake': 'Příjem odkazů',
   'settings.linkIntakeHint': 'Způsoby, jimiž se odkaz dostane do sběrače sám, aniž bys ho sem vkládal.',
 
-  'settings.linkIntake.cnlHint': 'Přijímá odkazy, které posílá tlačítko Click\'n\'Load na webu, stejně jako JDownloader. Co tu přepneš, platí do příštího restartu, potom zase rozhoduje KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Přijímá odkazy, které posílá tlačítko Click\'n\'Load na webu, stejně jako JDownloader. Co tu přepneš, platí do příštího restartu.',
   'settings.connections.add': 'Přidat připojení',
   'settings.connections.import': 'Importovat seznam',
   'settings.connections.empty': 'Všechno jde ven přes tenhle stroj',

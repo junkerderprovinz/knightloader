@@ -531,7 +531,6 @@ export const hi: Dict = {
   'columns.speed': 'गति',
   'columns.eta': 'शेष समय',
   'columns.status': 'स्थिति',
-  'columns.availability': 'उपलब्धता',
   'columns.host': 'होस्ट',
   'columns.added': 'जोड़ा गया',
   'columns.finished': 'पूरा हुआ',
@@ -737,7 +736,7 @@ export const hi: Dict = {
   'settings.modules.reason.cnlSwitch': '127.0.0.1:9666 पर सुनता है, जब तक KL_CNL कोई दूसरा पोर्ट न बताए। इसे यहाँ बंद करने से KL_CNL जैसा है वैसा ही रहता है, इसलिए पुनः आरंभ के बाद पोर्ट वैसे ही खुलता है जैसा एनवायरनमेंट कहता है।',
   'settings.modules.reason.cnlNoListener': 'यह प्रक्रिया कोई Click\'n\'Load पोर्ट नहीं खोलती।',
   'settings.resolvers.toolsJdMissingHint': 'कोई JDownloader सेट नहीं है। KnightLoader आम तौर पर शुरू होते समय अपना JDownloader खुद चालू करता है। कुछ मिनट बाद भी वह न दिखे, तो लॉग में “JD provisioning failed” ढूँढ़ें, या KL_JD को अपने किसी JDownloader पर सेट करके पुनः आरंभ करें।',
-  'settings.modules.reason.captchaNoJD': 'कैप्चा सिर्फ़ JDownloader बैकएंड से आते हैं, और कोई कॉन्फ़िगर नहीं है (KL_JD)।',
+  'settings.modules.reason.captchaNoJD': 'कैप्चा सिर्फ़ JDownloader बैकएंड से आते हैं, और कोई कॉन्फ़िगर नहीं है।',
   'settings.modules.switchFailed': 'वह स्विच अस्वीकार हुआ: {reason}',
   'settings.modules.configureFirst': 'अभी चालू करने को कुछ नहीं है। पहले इसे {page} पर सेट करें; उसके बाद यहाँ का स्विच उसे रोकता और फिर चालू करता है, बिना आपकी सेटिंग खोए।',
 
@@ -827,7 +826,7 @@ export const hi: Dict = {
   'settings.sectionLinkIntake': 'लिंक प्रवेश',
   'settings.linkIntakeHint': 'वे तरीके जिनसे कोई लिंक अपने आप संग्राहक तक पहुँचता है, बिना आपके उसे यहाँ चिपकाए।',
 
-  'settings.linkIntake.cnlHint': 'किसी वेबसाइट का Click\'n\'Load बटन जो लिंक भेजता है, उन्हें लेता है, ठीक JDownloader की तरह। आप यहाँ जो बदलते हैं वह अगले पुनः आरंभ तक रहता है, उसके बाद फिर KL_CNL तय करता है।',
+  'settings.linkIntake.cnlHint': 'किसी वेबसाइट का Click\'n\'Load बटन जो लिंक भेजता है, उन्हें लेता है, ठीक JDownloader की तरह। आप यहाँ जो बदलते हैं वह अगले पुनः आरंभ तक रहता है।',
   'settings.connections.add': 'कनेक्शन जोड़ें',
   'settings.connections.import': 'सूची आयात करें',
   'settings.connections.empty': 'सब कुछ इसी मशीन से बाहर जाता है',

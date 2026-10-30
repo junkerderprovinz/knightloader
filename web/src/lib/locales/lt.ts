@@ -531,7 +531,6 @@ export const lt: Dict = {
   'columns.speed': 'Greitis',
   'columns.eta': 'Liko',
   'columns.status': 'Būsena',
-  'columns.availability': 'Pasiekiamumas',
   'columns.host': 'Talpykla',
   'columns.added': 'Pridėta',
   'columns.finished': 'Baigta',
@@ -737,7 +736,7 @@ export const lt: Dict = {
   'settings.modules.reason.cnlSwitch': 'Klausosi adresu 127.0.0.1:9666, nebent KL_CNL nurodo kitą prievadą. Išjungus jį čia, KL_CNL lieka toks, koks yra, todėl po paleidimo iš naujo prievadas atsidaro taip, kaip nurodo aplinka.',
   'settings.modules.reason.cnlNoListener': 'Šis procesas neatveria jokio Click\'n\'Load prievado.',
   'settings.resolvers.toolsJdMissingHint': 'Nesukonfigūruotas joks JDownloader. Paprastai KnightLoader paleisdamas pats paleidžia savo. Jei po kelių minučių jo vis dar nėra, ieškok žurnale „JD provisioning failed“ arba nustatyk KL_JD į savo JDownloader ir paleisk iš naujo.',
-  'settings.modules.reason.captchaNoJD': 'Captcha ateina tik iš JDownloader posistemės, o ji nesukonfigūruota (KL_JD).',
+  'settings.modules.reason.captchaNoJD': 'Captcha ateina tik iš JDownloader posistemės, o ji nesukonfigūruota.',
   'settings.modules.switchFailed': 'Jungiklis buvo atmestas: {reason}',
   'settings.modules.configureFirst': 'Kol kas nėra ko įjungti. Pirmiausia tai sutvarkykite puslapyje {page}; po to jungiklis čia jį sustabdo ir vėl paleidžia neprarasdamas to, ką nustatėte.',
 
@@ -827,7 +826,7 @@ export const lt: Dict = {
   'settings.sectionLinkIntake': 'Nuorodų priėmimas',
   'settings.linkIntakeHint': 'Būdai, kuriais nuoroda pati patenka į rinkiklį, tau jos čia neįklijavus.',
 
-  'settings.linkIntake.cnlHint': 'Priima nuorodas, kurias siunčia svetainės Click\'n\'Load mygtukas, lygiai kaip JDownloader. Tai, ką čia perjungi, galioja iki kito paleidimo iš naujo, paskui vėl sprendžia KL_CNL.',
+  'settings.linkIntake.cnlHint': 'Priima nuorodas, kurias siunčia svetainės Click\'n\'Load mygtukas, lygiai kaip JDownloader. Tai, ką čia perjungi, galioja iki kito paleidimo iš naujo.',
   'settings.connections.add': 'Pridėti ryšį',
   'settings.connections.import': 'Importuoti sąrašą',
   'settings.connections.empty': 'Viskas išeina per šią mašiną',
