@@ -461,9 +461,10 @@ export function IconBadge({
    */
   labelled?: boolean;
   /**
-   * No tile until somebody reaches for it, for a badge sitting on a list row
-   * and nowhere else: six filled squares on every row over forty rows read as a
-   * wall of boxes rather than as the row's own actions. See .glim-badge-quiet.
+   * No tile at all, for a badge sitting on a list row and nowhere else: six
+   * filled squares on every row over forty rows read as a wall of boxes rather
+   * than as the row's own actions. Reached for, its glyph takes the colour
+   * instead. See .glim-badge-quiet.
    */
   quiet?: boolean;
   /**
