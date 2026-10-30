@@ -12,7 +12,7 @@ import { useT } from '../lib/i18n';
 import { IconExternalLink, IconEye, IconEyeOff, IconRetry } from '../lib/icons';
 import { openColorPickerPopover } from '../lib/colorPicker';
 import { useConfirm, useShake } from '../lib/useShake';
-import { openWindow } from '../lib/windowStack';
+import { isOnTop, openWindow } from '../lib/windowStack';
 
 /**
  * There is no 'danger' kind. What warns is the question: an irreversible action
@@ -1896,8 +1896,13 @@ const MODAL_HEIGHT = {
   capped: 'max-h-[calc(100dvh-7rem)]',
 } as const;
 
+/** What a window's Tab trap moves between. */
+const FOCUSABLE =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 // Modal is the one overlay treatment: a dimmed page and a single raised panel.
-// Escape and a click on the backdrop both close it, so it never traps anyone.
+// Escape and a click on the backdrop both close it, so nobody is held in it,
+// while Tab keeps to its controls and closing it gives the focus back.
 export function Modal({
   title,
   hint,
@@ -1978,6 +1983,35 @@ export function Modal({
     if (!me) return;
     return openWindow(me, () => closeRef.current());
   }, []);
+  // Read during the first render, before a field inside the window takes the
+  // focus with autoFocus.
+  const [opener] = useState(() => (document.activeElement instanceof HTMLElement ? document.activeElement : null));
+  useEffect(() => {
+    // Tab stays among the top window's own controls, so focus never reaches
+    // the page or a window underneath (GlimStone's useConfirm).
+    const trap = (e: KeyboardEvent) => {
+      const me = card.current;
+      if (e.key !== 'Tab' || !me || !isOnTop(me)) return;
+      const stops = [...me.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      if (stops.length === 0) return;
+      const first = stops[0];
+      const last = stops[stops.length - 1];
+      const at = document.activeElement;
+      const inside = at instanceof Node && me.contains(at);
+      if (e.shiftKey ? !inside || at === first : !inside || at === last) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      }
+    };
+    document.addEventListener('keydown', trap);
+    return () => {
+      document.removeEventListener('keydown', trap);
+      // Back to the control that opened the window, unless the focus has
+      // already moved on to something that is still there.
+      const at = document.activeElement;
+      if (opener && opener !== document.body && opener.isConnected && (!at || at === document.body)) opener.focus();
+    };
+  }, [opener]);
 
   return (
     <div
