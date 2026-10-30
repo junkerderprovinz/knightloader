@@ -1,5 +1,5 @@
 import { fetchDeploymentInfo, fetchUpdateCheck } from '../api';
-import { IconCheck, IconSearch } from '../icons';
+import { IconSearch, IconUpdate } from '../icons';
 import { requestSearchFocus } from '../../pages/settings/jump';
 import type { Command } from './types';
 
@@ -65,7 +65,7 @@ export const settingsCommands: Command[] = [
   {
     id: 'settings.checkForUpdates',
     labelKey: 'settings.look.updatesCheck',
-    icon: IconCheck,
+    icon: IconUpdate,
     group: 'commands.group.settings',
     surfaces: ['global'],
     // JDownloader 2's own shortcut for checking for updates.

@@ -29,7 +29,7 @@ import {
   type UpdateCheck,
   type YtdlpLatest,
 } from '../../../lib/api';
-import { IconCheck, IconClose, IconRefresh, IconUpdate, IconUpdateAvailable, IconUpToDate } from '../../../lib/icons';
+import { IconClose, IconRefresh, IconUpdate, IconUpdateAvailable, IconUpToDate } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useResource } from '../../../lib/useResource';
 import { useDraft } from '../context';
@@ -52,7 +52,7 @@ type Face = { label: string; icon: ReactNode; verdict?: ButtonVerdict };
 
 /** The check button's face for an answer that has come back, or for none yet. */
 function checkFace(t: Translate, checked: boolean | null, newer: boolean, known = true): Face {
-  if (checked === null || !known) return { label: t('settings.look.updatesCheck'), icon: <IconCheck /> };
+  if (checked === null || !known) return { label: t('settings.look.updatesCheck'), icon: <IconUpdate /> };
   if (!checked) return { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' };
   if (newer) return { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconUpdateAvailable />, verdict: 'warn' };
   return { label: t('settings.info.upToDate'), icon: <IconUpToDate />, verdict: 'ok' };
@@ -77,7 +77,7 @@ function CheckButton({
     <>
       <Button
         kind="secondary"
-        icon={checking ? <IconCheck /> : face.icon}
+        icon={checking ? <IconUpdate /> : face.icon}
         verdict={checking ? undefined : face.verdict}
         shake={shake}
         disabled={checking || disabled}
