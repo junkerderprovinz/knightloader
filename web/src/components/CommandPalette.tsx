@@ -219,7 +219,7 @@ export function CommandPalette() {
         {/* The way out, for the pointer; the keyboard has Escape and Tab. */}
         <div className="flex items-center justify-end gap-3 px-4 pb-4 pt-2">
           <Button
-            kind="ghost"
+            kind="secondary"
             labelled
             icon={<IconClose />}
             title={t('common.close')}

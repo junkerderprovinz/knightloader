@@ -94,7 +94,7 @@ export function JDImportPreviewDialog({
         <>
           <span className="flex-1" />
           <Button
-            kind="ghost"
+            kind="secondary"
             labelled
             icon={<IconClose />}
             title={t('settings.transfer.cancel')}
@@ -126,14 +126,14 @@ export function JDImportPreviewDialog({
 
         <div className="flex flex-wrap items-center gap-2">
           <Button
-            kind="ghost"
+            kind="secondary"
             icon={<IconSelectAll />}
             onClick={() => setPicked(new Set(selectable.map((it) => it.id)))}
             disabled={busy}
           >
             {t('settings.transfer.selectAll')}
           </Button>
-          <Button kind="ghost" icon={<IconClearSelection />} onClick={() => setPicked(new Set())} disabled={busy}>
+          <Button kind="secondary" icon={<IconClearSelection />} onClick={() => setPicked(new Set())} disabled={busy}>
             {t('settings.transfer.selectNone')}
           </Button>
         </div>

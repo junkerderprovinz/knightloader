@@ -269,7 +269,7 @@ function TorrentTreeCard({
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button kind="ghost" icon={<IconClose />} onClick={onCancel} disabled={busy}>
+        <Button kind="secondary" icon={<IconClose />} onClick={onCancel} disabled={busy}>
           {t('torrent.tree.cancel')}
         </Button>
         <Button kind="secondary" icon={<IconAdd />} onClick={onConfirm} disabled={busy || selectedCount === 0}>

@@ -552,7 +552,7 @@ export function CaptchaModal() {
           <div className="flex items-center gap-3">
             <span className="text-meta text-carbon-textMuted">{t('captcha.clickCount', { n: points.length })}</span>
             {points.length > 0 && (
-              <Button kind="ghost" icon={<IconEmpty />} onClick={() => setPoints([])}>
+              <Button kind="secondary" icon={<IconEmpty />} onClick={() => setPoints([])}>
                 {t('captcha.clickClear')}
               </Button>
             )}

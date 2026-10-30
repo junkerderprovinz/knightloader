@@ -706,7 +706,7 @@ function ImportPanel({
       onClose={onClose}
       footer={
         <>
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('settings.reconnect.importClose')} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('settings.reconnect.importClose')} onClick={onClose} />
           {/* Read or use, never both; an edit drops the result. */}
           {result ? (
             <Button icon={<IconApply />} disabled={refused || mapped.length === 0} onClick={() => onUse(mapped)}>

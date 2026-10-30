@@ -592,7 +592,7 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('settings.connections.cancel')} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('settings.connections.cancel')} onClick={onClose} />
           {/* The spacer puts the advancing button at the end of the row. */}
           {result ? (
             <Button icon={<IconAdd />} disabled={ready === 0} onClick={() => onAdd(result.entries)}>

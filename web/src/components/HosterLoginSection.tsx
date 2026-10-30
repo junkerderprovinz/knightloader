@@ -208,8 +208,8 @@ function ConfirmRemoveLogin({
         <>
           {/* Matches the debrid card's confirmation footer. */}
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
-          <Button kind="ghost" icon={<IconTrash width={16} height={16} />} onClick={onConfirm}>
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
+          <Button kind="secondary" icon={<IconTrash width={16} height={16} />} onClick={onConfirm}>
             {t('accounts.remove')}
           </Button>
         </>
@@ -341,7 +341,7 @@ function HosterLoginDialog({
             {/* A new login's form leads back to the list it was picked from;
                 an edit stays on its host and offers the way out. */}
             {editing ? (
-              <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+              <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
             ) : (
               <Button
                 kind="secondary"

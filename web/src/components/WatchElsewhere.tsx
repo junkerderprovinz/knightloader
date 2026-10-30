@@ -84,7 +84,7 @@ function WatchElsewhereDialog({
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} disabled={busy} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} disabled={busy} onClick={onClose} />
           <Button kind="secondary" icon={<IconKeepBoth />} disabled={busy} onClick={onDecided}>
             {t('intake.watchElsewhereKeep')}
           </Button>

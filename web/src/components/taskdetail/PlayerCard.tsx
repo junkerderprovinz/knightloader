@@ -107,7 +107,7 @@ export function PlayerCard({
             />
           )}
           <div className="flex items-center gap-2">
-            <Button kind="ghost" icon={<IconClose />} hint={note || undefined} onClick={() => setPlaying(false)}>
+            <Button kind="secondary" icon={<IconClose />} hint={note || undefined} onClick={() => setPlaying(false)}>
               {t('detail.playClose')}
             </Button>
           </div>

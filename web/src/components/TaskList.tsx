@@ -936,7 +936,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
       onClose={onClose}
       footer={
         <>
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <Button icon={<IconSave />} shake={shake} onClick={() => void save()} disabled={!preset || saving}>
             {t('settings.save')}
           </Button>

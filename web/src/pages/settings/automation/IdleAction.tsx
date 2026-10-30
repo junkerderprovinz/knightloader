@@ -359,7 +359,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
               {/* The spacer puts Run at the end of Modal's plain flex footer. */}
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}
