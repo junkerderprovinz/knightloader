@@ -1127,8 +1127,34 @@ export function TextInput({
 
 // The padding gives a textarea its first line at a field's height and lets it
 // grow from there, which a fixed height would not.
-export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={`${inputClass} resize-y`} {...props} />;
+export function TextArea({
+  autoGrow = false,
+  className = '',
+  ref,
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  /** Grows with its text instead of scrolling, for a value that has to stay visible whole. */
+  autoGrow?: boolean;
+  ref?: Ref<HTMLTextAreaElement>;
+}) {
+  const own = useRef<HTMLTextAreaElement | null>(null);
+  useLayoutEffect(() => {
+    const el = own.current;
+    if (!autoGrow || !el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [autoGrow, props.value]);
+  return (
+    <textarea
+      ref={(el) => {
+        own.current = el;
+        if (typeof ref === 'function') ref(el);
+        else if (ref) ref.current = el;
+      }}
+      className={`${inputClass} ${autoGrow ? 'resize-none overflow-hidden' : 'resize-y'} ${className}`}
+      {...props}
+    />
+  );
 }
 
 /**

@@ -5,8 +5,7 @@ import { ApiError, type Task, refusal, renamePackage, setTaskOptions } from '../
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { IconClose, IconPencil } from '../lib/icons';
-import { Button, Modal, TextInput } from './ui';
-import { SettingRow } from '../pages/settings/controls';
+import { Button, Field, Modal, TextArea } from './ui';
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
@@ -90,7 +89,7 @@ function RenameWindow({
   const [name, setName] = useState(current);
   const [busy, setBusy] = useState(false);
   const [shake, setShake] = useState(0);
-  const input = useRef<HTMLInputElement>(null);
+  const input = useRef<HTMLTextAreaElement>(null);
   const clean = name.trim();
 
   // Once, on opening: typing then replaces the name and keeps the extension.
@@ -126,6 +125,7 @@ function RenameWindow({
   return (
     <Modal
       title={title}
+      wide
       onClose={onClose}
       footer={
         <>
@@ -142,21 +142,25 @@ function RenameWindow({
         </>
       }
     >
-      <SettingRow control="long" label={label} hint={hint}>
-        <TextInput
+      <Field label={label} hint={hint}>
+        {/* A name is one line, so Enter applies it and a pasted line break goes. */}
+        <TextArea
           ref={input}
           autoFocus
+          rows={1}
+          autoGrow
           value={name}
           readOnly={blocked}
           spellCheck={false}
-          onChange={(e) => setName(e.target.value)}
+          className="break-all"
+          onChange={(e) => setName(e.target.value.replace(/[\r\n]+/g, ''))}
           onKeyDown={(e) => {
             if (e.key !== 'Enter') return;
             e.preventDefault();
             void apply();
           }}
         />
-      </SettingRow>
+      </Field>
       {note && <p className="text-sm text-carbon-textSub">{note}</p>}
     </Modal>
   );

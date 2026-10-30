@@ -90,6 +90,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   module's card in Settings still has both.
 - **The variant presets of a YouTube package are a quiet gear** beside the
   package's trash, like the other buttons on a row.
+- **Rename shows the whole name.** The windows for renaming a link or a
+  package are wide, the name stands under its label at full width, and a name
+  longer than one line wraps instead of scrolling out of view.
 - **Packages arrive on Downloads folded.** Whatever way they leave the link
   collector, a package shows as one row until you open it, and one you opened
   stays open.
