@@ -131,7 +131,47 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Cancel looks like a button.** In every window, such as Remove the
   downloads, and on the cards with an inline form, Cancel and the other
   answers beside the main one have a fill and a hover of their own instead of
-  standing there as bare words.
+  standing there as bare words. So does Paste from clipboard in the link
+  collector.
+- **The link list reaches the bottom of the window.** Start all floats over
+  its corner instead of standing in an empty band under it, and the last
+  link can still be scrolled out from under the button.
+- **The Click'n'Load button's info is a plain sentence.** It no longer shows
+  the address it listens on or the name of the container setting; the
+  module's card in Settings still has both.
+- **The variant presets of a YouTube package are a quiet gear** beside the
+  package's trash, like the other buttons on a row.
+- **The two link notices look and work alike.** "Links not added" and
+  "Rejected links" count in proper words ("1 link", "12 links"), keep their
+  buttons in one row at the foot, close with a real button, and list each link
+  with its reason in your language, a shortened name, where it came from and
+  when, with Restore at the end of its row. Empty the list now shows the
+  symbol for emptying and Restore all the one for restoring.
+- **Notices and questions can be switched off with a box.** "Don't show
+  again" under a notice and "Do not ask again" in a window are checkboxes;
+  Settings, Appearance lists what you switched off and brings it back.
+- **Rename shows the whole name.** The windows for renaming a link or a
+  package are wide, the name stands under its label at full width, and a name
+  longer than one line wraps instead of scrolling out of view.
+- **Packages arrive on Downloads folded.** Whatever way they leave the link
+  collector, a package shows as one row until you open it, and one you opened
+  stays open.
+- **A failure's bubble is short and stays inside its frame.** It says what
+  failed and what you can do, a long archive name is shortened in the middle
+  instead of running past the bubble's edge, and the tool's own message with
+  its full path is in the row's details, where you can copy it.
+- **Start all no longer flickers** with many links in the collector. The list
+  stays as it is until every link has moved and Downloads opens, and the lists
+  take a burst of changes in one go instead of one link at a time.
+- **The link collector's availability column is called Status,** as the same
+  column is on Downloads. It shows what the link check found.
+- **The captcha order card no longer shows a switch that cannot switch.**
+  Without a JDownloader backend no captcha can arrive, and the card's (i) says
+  so in place of a greyed switch and a paragraph under it.
+- **Every link shows what kind of file it is** with a symbol before its name:
+  video, audio, image, subtitles, text, archive or any other file. A YouTube
+  package's video, sound track, thumbnail, subtitles and description each have
+  their own.
 
 ## [2.3.3] - 2026-10-28
 

@@ -42,6 +42,8 @@ beforeEach(() => {
         }
         return reply(files);
       }
+      // Downloads folds a package until it is opened; these rows are about the files.
+      if (path === '/api/uistate') return reply({ 'list.expanded.downloads': ['Show'] });
       return reply([]);
     }),
   );

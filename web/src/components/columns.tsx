@@ -21,11 +21,27 @@ import {
   type Task,
 } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
-import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtRate, fmtSpeed, pct } from '../lib/format';
+import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtRate, fmtSpeed, middleEllipsis, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconBolt, IconCheck, IconPower, IconRetry, IconStopMark, IconWarning, PriorityGlyph } from '../lib/icons';
+import {
+  IconArchive,
+  IconBolt,
+  IconCheck,
+  IconFile,
+  IconFileAudio,
+  IconFileImage,
+  IconFileSubtitles,
+  IconFileText,
+  IconFileVideo,
+  IconPower,
+  IconRetry,
+  IconStopMark,
+  IconWarning,
+  PriorityGlyph,
+  type GlyphProps,
+} from '../lib/icons';
 import { hostOf } from '../lib/searchQuery';
 import { resolverLabel } from '../lib/resolverLabels';
 import { adviceFor } from '../lib/failureAdvice';
@@ -168,14 +184,22 @@ export interface CellContext {
 export interface ColumnDef {
   id: ColumnId;
   labelKey: TranslationKey;
-  /** The header, where one list calls this column something else. */
-  labelByProfile?: Partial<Record<ListProfile, TranslationKey>>;
+  /**
+   * The lists this column exists in at all. Absent means both.
+   *
+   * Stronger than DEFAULT_HIDDEN: hidden is a preference somebody can undo from
+   * the header menu, this is the column not being part of that list. Used for
+   * `enabled`, which is the collector's "take this link along when I press
+   * start"; once a link is in the queue the switch that means something is
+   * pause. Merely hiding it would leave a menu entry that switches on a control
+   * with no honest meaning where it sits.
+   */
+  onlyIn?: ListProfile[];
   /** Default width in CSS pixels; what the user drags overrides it. */
   width: number;
   /**
-   * The default width where one list draws the column differently, the same
-   * per-list shape `labelByProfile` takes for the header. Widths a user drags
-   * are stored per list (`list.columns.<profile>`), so this is only the
+   * The default width where one list draws the column differently. Widths a
+   * user drags are stored per list (`list.columns.<profile>`), so this is only the
    * starting point.
    */
   widthByProfile?: Partial<Record<ListProfile, number>>;
@@ -421,7 +445,7 @@ function TooltipField({ label, children, ltr }: { label: string; children: React
   return (
     <div className="min-w-0">
       <div className="glim-eyebrow">{label}</div>
-      <div dir={ltr ? 'ltr' : undefined} className="break-words text-carbon-text">
+      <div dir={ltr ? 'ltr' : undefined} className="text-carbon-text [overflow-wrap:anywhere]">
         {children}
       </div>
     </div>
@@ -439,17 +463,17 @@ export function failureFallback(task: Task, t: Translate): Record<string, string
   return { part: name, file: name, path: task.dir || name, service: resolverLabel(task.resolver.split('#')[0], t) };
 }
 
-/** A failure's bubble: what went wrong, what to do, and the tool's own words. */
+/**
+ * A failure's bubble: what went wrong and what to do, the same for every kind
+ * of failure. The tool's own words, often a whole path, stay in the row's
+ * details, where they can be copied; in a bubble they buried the sentence.
+ */
 function FailureDetail({ failure, t }: { failure: Explained; t: Translate }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="break-words font-medium text-carbon-text">{failure.line}</div>
+      <div className="font-medium text-carbon-text [overflow-wrap:anywhere]">{failure.line}</div>
       <TooltipField label={t('failure.next')}>{failure.next}</TooltipField>
-      {failure.raw && (
-        <TooltipField label={t('failure.raw')} ltr>
-          {failure.raw}
-        </TooltipField>
-      )}
+      {failure.raw && <div className="text-carbon-textMuted">{t('failure.rawInDetails')}</div>}
     </div>
   );
 }
@@ -683,6 +707,12 @@ export function RowMarks({ items, ctx }: { items: Task[]; ctx: CellContext }) {
   ));
 }
 
+/** FileKindGlyph is the glyph before a link's name that says what kind of file it is. */
+function FileKindGlyph({ kind }: { kind: FileKind }) {
+  const Glyph = FILE_KIND_GLYPH[kind];
+  return <Glyph width={14} height={14} className="shrink-0 text-carbon-textMuted" data-file-kind={kind} />;
+}
+
 function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   const { t, base } = ctx;
   // A pending automatic retry is not the same as a dead task, and saying so
@@ -718,6 +748,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
             not the marks, without a box of its own on the line. */}
         <div className={`contents ${parked}`}>
           <PriorityTag value={task.priority} names={priorityNames} t={t} />
+          <FileKindGlyph kind={fileKindOf(task)} />
           {/* text-sm is the scale's body row; a half-pixel value is not a step
               the four-row table has. */}
           <div dir="ltr" {...tip.triggerProps} className="min-w-0 truncate text-start text-sm text-carbon-text">
@@ -1108,8 +1139,16 @@ function UnpackStatus({
   const detail = (
     <span className="flex flex-col gap-0.5">
       <span className="font-medium">{unpackLabel(state, percent, t)}</span>
-      {job && <span dir="ltr">{job.name}</span>}
-      {job?.archive && job.archive !== job.name && <span dir="ltr">{job.archive}</span>}
+      {job && (
+        <span dir="ltr" className="[overflow-wrap:anywhere]">
+          {middleEllipsis(job.name)}
+        </span>
+      )}
+      {job?.archive && job.archive !== job.name && (
+        <span dir="ltr" className="[overflow-wrap:anywhere]">
+          {middleEllipsis(job.archive)}
+        </span>
+      )}
       {facts.length > 0 && <span className="glim-num">{facts.join(' · ')}</span>}
       {tally && <span>{t('archive.tally', { done: tally.done, total: tally.total })}</span>}
       {failure && <FailureDetail failure={failure} t={t} />}
@@ -1385,6 +1424,50 @@ export function variantKindOf(task: Task): string {
   return i === -1 ? v : v.slice(0, i);
 }
 
+/** What a row's file is, for the glyph before its name. */
+export type FileKind = 'video' | 'audio' | 'image' | 'subtitle' | 'text' | 'archive' | 'other';
+
+const VARIANT_FILE_KIND: Record<string, FileKind> = {
+  video: 'video',
+  audio: 'audio',
+  thumbnail: 'image',
+  subtitle: 'subtitle',
+  description: 'text',
+};
+
+const EXT_FILE_KIND: [RegExp, FileKind][] = [
+  [/^(mp4|mkv|webm|avi|mov|m4v|ts|flv|wmv|mpe?g|3gp)$/, 'video'],
+  [/^(opus|m4a|mp3|flac|ogg|oga|wav|aac|weba|wma)$/, 'audio'],
+  [/^(jpe?g|png|webp|gif|bmp|avif|heic|tiff?)$/, 'image'],
+  [/^(srt|vtt|ass|ssa|sub|sbv|ttml|lrc)$/, 'subtitle'],
+  [/^(description|txt|nfo|md|json|xml|html?)$/, 'text'],
+  [/^(zip|rar|7z|tar|gz|tgz|bz2|xz|zst|cab|r\d{2}|\d{3})$/, 'archive'],
+];
+
+/**
+ * fileKindOf names the kind of file a row holds. A yt-dlp variant says it
+ * outright; anything else goes by the extension of its name, and a row whose
+ * name has not resolved yet counts as any other file.
+ */
+export function fileKindOf(task: Task): FileKind {
+  const variant = VARIANT_FILE_KIND[variantKindOf(task)];
+  if (variant) return variant;
+  const file = task.name && task.name !== task.url && task.ext ? `${task.name}.${task.ext}` : task.name;
+  const dot = file ? file.lastIndexOf('.') : -1;
+  const ext = dot > 0 ? file.slice(dot + 1).toLowerCase() : '';
+  return EXT_FILE_KIND.find(([re]) => re.test(ext))?.[1] ?? 'other';
+}
+
+const FILE_KIND_GLYPH: Record<FileKind, (p: GlyphProps) => ReactNode> = {
+  video: IconFileVideo,
+  audio: IconFileAudio,
+  image: IconFileImage,
+  subtitle: IconFileSubtitles,
+  text: IconFileText,
+  archive: IconArchive,
+  other: IconFile,
+};
+
 function variantSubOf(task: Task): string {
   const v = task.variant ?? '';
   const i = v.indexOf(':');
@@ -1635,9 +1718,8 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'status',
     labelKey: 'columns.status',
-    // Two lists, two honest meanings for one stored column; see CellContext's
-    // own `profile`.
-    labelByProfile: { collector: 'columns.availability' },
+    // One name in both lists: a link's status in the collector is what its
+    // check found, and in Downloads how far it got.
     width: 144,
     minWidth: 90,
     align: 'center',
@@ -2033,7 +2115,7 @@ export function useHeadWidths(profile: ListProfile): Partial<Record<ColumnId, nu
       document.body.append(probe);
       const next: Partial<Record<ColumnId, number>> = {};
       for (const c of COLUMNS) {
-        probe.textContent = t(c.labelByProfile?.[profile] ?? c.labelKey);
+        probe.textContent = t(c.labelKey);
         const width = probe.getBoundingClientRect().width;
         if (width > 0) next[c.id] = Math.ceil(width) + HEAD_PAD;
       }

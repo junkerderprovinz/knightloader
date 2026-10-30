@@ -1311,11 +1311,15 @@ type SkippedLink struct {
 	// out of a playlist), "nzb" (an .nzb no Usenet service took or fetched),
 	// "torrent" (a dropped .torrent that could not be read) and "password" (a
 	// link to an own server with its password in it).
-	Kind   string    `json:"kind"`
-	Reason string    `json:"reason"`
-	OfID   string    `json:"ofId,omitempty"`
-	Signal string    `json:"signal,omitempty"`
-	At     time.Time `json:"at"`
+	Kind   string `json:"kind"`
+	Reason string `json:"reason"`
+	// Code and Params let the interface say Reason in the reader's language,
+	// where the kind alone does not say which sentence it is.
+	Code   string            `json:"code,omitempty"`
+	Params map[string]string `json:"params,omitempty"`
+	OfID   string            `json:"ofId,omitempty"`
+	Signal string            `json:"signal,omitempty"`
+	At     time.Time         `json:"at"`
 }
 
 // Redacted is s as a caller gets it that may not see the credentials a task
@@ -1345,10 +1349,13 @@ func (a *App) mirror(e dedupe.Entry) dedupe.Match {
 // recordSkipped keeps and broadcasts a link folded into one already in the
 // list, with the task and signal it matched so the user can check it.
 func (a *App) recordSkipped(u string, m dedupe.Match) {
+	code, params, reason := a.skipReason(m)
 	a.pushSkipped(SkippedLink{
 		URL:    u,
 		Kind:   m.Verdict.String(),
-		Reason: a.skipReason(m),
+		Reason: reason,
+		Code:   code,
+		Params: params,
 		OfID:   m.Of.ID,
 		Signal: string(m.Signal),
 		At:     time.Now(),
@@ -1362,6 +1369,12 @@ func (a *App) recordSkippedReason(u, kind, reason string) {
 	a.pushSkipped(SkippedLink{URL: u, Kind: kind, Reason: reason, At: time.Now()})
 }
 
+// recordSkippedCode is recordSkippedReason for a kind with more than one
+// sentence, so the interface knows which one to say.
+func (a *App) recordSkippedCode(u, kind, code string, params map[string]string, reason string) {
+	a.pushSkipped(SkippedLink{URL: u, Kind: kind, Reason: reason, Code: code, Params: params, At: time.Now()})
+}
+
 func (a *App) pushSkipped(s SkippedLink) {
 	a.mu.Lock()
 	a.skipped = append(a.skipped, s)
@@ -1373,33 +1386,48 @@ func (a *App) pushSkipped(s SkippedLink) {
 }
 
 // skipReason is the sentence shown next to a folded link, naming what the
-// match rests on.
-func (a *App) skipReason(m dedupe.Match) string {
+// match rests on, with the code and parameters that say it in another
+// language.
+func (a *App) skipReason(m dedupe.Match) (code string, params map[string]string, english string) {
 	// Rejected links sit apart from the collector's list, so say where the
 	// copy is.
-	code, held := a.heldLink(m.Of.ID)
+	held, isHeld := a.heldLink(m.Of.ID)
+	by := heldByCode(held)
 	if m.Verdict == dedupe.Duplicate {
-		if held {
-			if code == skipBannedTracker {
-				return heldBy(code) + " has already rejected this torrent"
+		if isHeld {
+			if held == skipBannedTracker {
+				return "heldTorrent", map[string]string{"by": by}, heldBy(held) + " has already rejected this torrent"
 			}
-			return heldBy(code) + " has already rejected this link"
+			return "heldLink", map[string]string{"by": by}, heldBy(held) + " has already rejected this link"
 		}
 		if torrent.IsMagnet(m.Of.URL) {
 			// Known by the info hash alone, so the two links may differ in name
 			// and trackers, or one may be an uploaded .torrent.
-			return "a torrent with the same info hash is already in the list"
+			return "sameTorrent", nil, "a torrent with the same info hash is already in the list"
 		}
-		return "the same link is already in the list"
+		return "sameLink", nil, "the same link is already in the list"
 	}
 	name := m.Of.Name
 	if name == "" {
 		name = m.Of.URL
 	}
-	if held {
-		return fmt.Sprintf("%s has already rejected this file as %q, matched on %s", heldBy(code), name, m.Signal)
+	params = map[string]string{"name": name, "signal": string(m.Signal)}
+	if isHeld {
+		params["by"] = by
+		return "heldFile", params, fmt.Sprintf("%s has already rejected this file as %q, matched on %s", heldBy(held), name, m.Signal)
 	}
-	return fmt.Sprintf("already in the list as %q, matched on %s", name, m.Signal)
+	return "sameFile", params, fmt.Sprintf("already in the list as %q, matched on %s", name, m.Signal)
+}
+
+// heldByCode names the check that held a link back for the interface to word.
+func heldByCode(code string) string {
+	switch code {
+	case skipDownloaded:
+		return "downloaded"
+	case skipBannedTracker:
+		return "trackers"
+	}
+	return "filter"
 }
 
 // heldBy names the check that held a link back with the given code.

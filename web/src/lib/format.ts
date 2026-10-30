@@ -195,3 +195,13 @@ export function fmtClock(ms: number, locale = uiLocale()): string {
   if (!Number.isFinite(ms) || ms <= 0) return '';
   return isolate(clockFormat(locale).format(new Date(ms)));
 }
+
+/**
+ * middleEllipsis shortens a long file name in its middle, keeping the start
+ * that names the release and the end that names the part and the type.
+ */
+export function middleEllipsis(name: string, max = 56): string {
+  if (name.length <= max) return name;
+  const head = Math.ceil((max - 1) * 0.6);
+  return `${name.slice(0, head)}…${name.slice(name.length - (max - 1 - head))}`;
+}

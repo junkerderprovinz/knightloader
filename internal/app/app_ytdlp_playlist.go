@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -103,13 +104,17 @@ func (a *App) ytdlpPlaylist(u string) (ytdlp.Playlist, bool) {
 func (a *App) stagePlaylistEntries(playlistURL string, pl ytdlp.Playlist, pkg string, batch LinkBatchOptions) []*core.Task {
 	entries := pl.Entries
 	if len(entries) > maxPlaylistEntries {
-		a.recordSkippedReason(playlistURL, "playlist", fmt.Sprintf(
+		a.recordSkippedCode(playlistURL, "playlist", "playlistCapped", map[string]string{
+			"total": strconv.Itoa(len(entries)),
+			"kept":  strconv.Itoa(maxPlaylistEntries),
+			"left":  strconv.Itoa(len(entries) - maxPlaylistEntries),
+		}, fmt.Sprintf(
 			"this playlist lists %d videos; the first %d were staged and the other %d were left out",
 			len(entries), maxPlaylistEntries, len(entries)-maxPlaylistEntries))
 		entries = entries[:maxPlaylistEntries]
 	}
 	if pl.Dropped > 0 {
-		a.recordSkippedReason(playlistURL, "playlist", fmt.Sprintf(
+		a.recordSkippedCode(playlistURL, "playlist", "playlistDropped", map[string]string{"n": strconv.Itoa(pl.Dropped)}, fmt.Sprintf(
 			"%d of this playlist's entries name nothing this app can open (a removed video, or a playlist inside the playlist) and were left out",
 			pl.Dropped))
 	}

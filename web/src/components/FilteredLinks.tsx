@@ -5,9 +5,9 @@ import { rejectionReason } from '../lib/rejectionReason';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
-import { Button, InfoBubble } from './ui';
-import { Tip } from './columns';
-import { IconEye, IconEyeOff, IconRestore, IconTrash } from '../lib/icons';
+import { Button } from './ui';
+import { Notice, NoticeRow } from './Notice';
+import { IconEmpty, IconEye, IconEyeOff, IconRestore } from '../lib/icons';
 
 /**
  * FilteredLinks is the holding area for links a filter rule refused, torrents
@@ -47,79 +47,47 @@ export function FilteredLinks({ held }: { held: Task[] }) {
   const shown = showAll ? newest : newest.slice(0, 1);
 
   return (
-    <div className="glim-well overflow-hidden">
-      <div className="flex flex-wrap items-center gap-2 px-4 py-2">
-        <span className="glim-num flex items-center text-xs text-carbon-textSub">
-          {t('collector.filtered.heldSummary', { n: held.length })}
-          <InfoBubble tip={t('collector.filtered.heldInfo')} />
-        </span>
-        <span className="flex-1" />
-        {held.length > 1 && (
-          <Button
-            kind="ghost"
-            icon={showAll ? <IconEyeOff /> : <IconEye />}
-            className="px-2.5 text-xs"
-            onClick={() => setShowAll((v) => !v)}
-          >
-            {showAll ? t('common.hide') : t('common.show')}
+    <Notice
+      id="filtered"
+      title={t('collector.filtered.heldSummary', { n: held.length })}
+      info={t('collector.filtered.heldInfo')}
+      actions={
+        <>
+          {held.length > 1 && (
+            <Button kind="secondary" icon={showAll ? <IconEyeOff /> : <IconEye />} onClick={() => setShowAll((v) => !v)}>
+              {showAll ? t('common.hide') : t('common.show')}
+            </Button>
+          )}
+          <Button kind="secondary" icon={<IconEmpty />} disabled={busy} onClick={() => clear(held.map((h) => h.id))}>
+            {t('collector.filtered.clear')}
           </Button>
-        )}
-        <Button
-          kind="ghost"
-          className="px-2.5 text-xs"
-          icon={<IconRestore width={14} height={14} />}
-          disabled={busy}
-          onClick={() => restore(held.map((h) => h.id))}
-        >
-          {t('collector.filtered.restoreAll')}
-        </Button>
-        <Button
-          kind="ghost"
-          className="px-2.5 text-xs"
-          icon={<IconTrash width={14} height={14} />}
-          disabled={busy}
-          onClick={() => clear(held.map((h) => h.id))}
-        >
-          {t('collector.filtered.clear')}
-        </Button>
-      </div>
-
-      <div className="max-h-56 overflow-y-auto pb-1.5">
-        {shown.map((h) => {
-          const reason = rejectionReason(t, h.skipCode, h.skipParams, h.skipReason);
-          return (
-            <div key={h.id} className="glim-row flex items-baseline gap-3 px-4 py-1 text-xs">
-              {/* The rule first, since it is what gets edited. */}
-              <Tip tip={heldBy(t, h)} className="max-w-[22%] shrink-0 truncate text-carbon-text">
-                {heldBy(t, h)}
-              </Tip>
-              <Tip tip={reason} className="max-w-[30%] shrink-0 truncate text-carbon-textSub">
-                {reason}
-              </Tip>
-              <Tip dir="ltr" tip={h.url} className="min-w-0 flex-1 truncate text-carbon-textMuted">
-                {h.url}
-              </Tip>
-              <span className="flex shrink-0 items-center text-carbon-textMuted">
-                {originLabel(t, h.origin)}
-                <InfoBubble tip={t('collector.filtered.originTitle')} />
-              </span>
-              <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(h.createdAt)}</span>
-              <span className="glim-row-actions shrink-0">
-                <Button
-                  kind="ghost"
-                  icon={<IconRestore />}
-                  className="px-2 text-xs"
-                  disabled={busy}
-                  onClick={() => restore([h.id])}
-                >
-                  {t('collector.filtered.restore')}
-                </Button>
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+          <Button kind="secondary" icon={<IconRestore />} disabled={busy} onClick={() => restore(held.map((h) => h.id))}>
+            {t('collector.filtered.restoreAll')}
+          </Button>
+        </>
+      }
+    >
+      {shown.map((h) => (
+        <NoticeRow
+          key={h.id}
+          reason={`${heldBy(t, h)}: ${rejectionReason(t, h.skipCode, h.skipParams, h.skipReason)}`}
+          name={h.name && h.name !== h.url ? h.name : h.url}
+          source={originLabel(t, h.origin)}
+          at={fmtDate(h.createdAt)}
+          action={
+            <Button
+              kind="secondary"
+              icon={<IconRestore />}
+              className="px-2.5 text-xs"
+              disabled={busy}
+              onClick={() => restore([h.id])}
+            >
+              {t('collector.filtered.restore')}
+            </Button>
+          }
+        />
+      ))}
+    </Notice>
   );
 }
 

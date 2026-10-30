@@ -18,6 +18,9 @@ globalThis.ResizeObserver ??= class {
 let root: Root;
 let host: HTMLDivElement;
 
+// Downloads folds a package until it is opened; the rows have to show here.
+const OPEN = JSON.stringify({ 'list.expanded.downloads': ['Films'] });
+
 beforeEach(() => {
   // A fresh module graph, so one test's stored sort is not the next one's.
   vi.resetModules();
@@ -26,7 +29,7 @@ beforeEach(() => {
     'fetch',
     vi.fn(
       async (url: string) =>
-        new Response(url.includes('/api/uistate') ? '{}' : '[]', {
+        new Response(url.includes('/api/uistate') ? OPEN : '[]', {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         }),

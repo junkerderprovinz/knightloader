@@ -91,7 +91,7 @@ it('says how many links went to the rejected links apart from those waiting', as
   vi.mocked(applyJDImport).mockResolvedValue({ imported: ['package:0'], failed: [], links: 1, held: 2, filterStops: false });
   await takeOver();
   expect(text()).toContain('1 link is waiting in the link collector.');
-  expect(text()).toContain('2 link(s) rejected');
+  expect(text()).toContain('2 links rejected');
 });
 
 it('does not call a preview the server no longer holds half an hour old', async () => {

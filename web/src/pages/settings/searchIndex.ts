@@ -421,7 +421,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       // The hint sends the reader to the captcha accounts card by its name.
       also: ['accounts.captcha.title'],
-      body: ['settings.captcha.orderIntro', 'settings.captcha.orderEmpty'],
+      body: ['settings.captcha.orderIntro', 'settings.captcha.orderEmpty', 'settings.modules.reason.captchaNoJD'],
     },
     // The fields are in the window a server row opens, so they lead to the card.
     {

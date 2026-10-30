@@ -3,6 +3,7 @@
 // suit their rows.
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { PriorityGlyph } from '../lib/icons';
+import type { Folded } from '../lib/selectionReach';
 import {
   ApiError,
   type ApiOptions,
@@ -827,7 +828,7 @@ const MENU_LABEL: Record<MenuTarget['kind'], TranslationKey> = {
 export interface ListContext {
   /** The package names on screen, in view order. */
   packages: string[];
-  collapsed: ReadonlySet<string>;
+  collapsed: Folded;
   onCollapse: (names: string[]) => void;
   onExpand: (names: string[]) => void;
   onSelectAll: () => void;
