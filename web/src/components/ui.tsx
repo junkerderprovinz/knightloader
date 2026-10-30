@@ -85,6 +85,15 @@ function Glyph({ children }: { children: ReactNode }) {
   return <span className="glim-btn-glyph">{children}</span>;
 }
 
+/** textOf is what children say when they are words alone, and undefined when they hold an element. */
+function textOf(children: ReactNode): string | undefined {
+  if (typeof children === 'string' || typeof children === 'number') return String(children);
+  if (children === null || children === undefined || typeof children === 'boolean') return '';
+  if (!Array.isArray(children)) return undefined;
+  const parts = children.map(textOf);
+  return parts.every((p) => p !== undefined) ? parts.join('') : undefined;
+}
+
 /**
  * hue overrides `kind`'s colour: the button becomes an accent-filled control
  * and `.glim-hue` rebinds `--accent` to this button's position colour under
@@ -105,6 +114,7 @@ export function Button({
   hint,
   shake = 0,
   confirm = 0,
+  label,
   ...rest
 }: {
   kind?: ButtonKind;
@@ -124,6 +134,14 @@ export function Button({
    * children.
    */
   labelled?: boolean;
+  /**
+   * The button's words where its children are more than words, such as a
+   * count or a dot beside them. A button with a glyph follows the Beschriftung
+   * setting: in glyph and hover mode it shows the glyph alone, and these words
+   * become its name and its bubble. Plain text children need no label; they
+   * are the words.
+   */
+  label?: string;
   /**
    * The transport height (`--btn-h-transport`), a glyph-only square for the head
    * bar's play, pause, stop and quick-settings controls and for nothing else.
@@ -148,13 +166,17 @@ export function Button({
   const shakeRef = useShake<HTMLButtonElement>(shake);
   const confirmRef = useConfirm<HTMLButtonElement>(confirm);
   const labelMode = useLabelMode('buttons');
+  const wordy = labelMode === 'text' || labelMode === 'both';
   // Only fills in for a button that has no children of its own: a labelled
   // button already says what it does.
-  const fallback =
-    labelled && !children && title && (labelMode === 'text' || labelMode === 'both') ? title : undefined;
-  const body = children ?? fallback;
-  const hideIcon = labelled && labelMode === 'text' && !!fallback;
+  const fallback = labelled && !children && title && wordy ? title : undefined;
+  // Words beside a glyph follow the setting too, so that no button keeps its
+  // words in glyph mode.
+  const words = icon && children !== undefined ? (label ?? textOf(children)) : undefined;
+  const body = words !== undefined ? (wordy ? children : undefined) : (children ?? fallback);
+  const hideIcon = labelMode === 'text' && (words !== undefined || (labelled && !!fallback));
   const iconOnly = !!icon && !body;
+  if (iconOnly && title === undefined) title = words;
   const hued = hue !== undefined && !verdict;
   const hueCss = hued ? (hueVars(hue) as CSSProperties) : undefined;
   const fill = verdict
