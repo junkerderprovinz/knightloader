@@ -304,7 +304,9 @@ export function Dashboard() {
 
       <div
         ref={grid}
-        className={`relative grid grid-cols-1 gap-10 md:grid-cols-6 ${drag.held !== null ? 'glim-drag-armed' : ''}`}
+        className={`relative grid grid-cols-1 gap-10 md:grid-cols-6 ${editing && !phone ? 'glim-move-mode' : ''} ${
+          drag.held !== null ? 'glim-drag-armed' : ''
+        }`}
       >
         {shown.map((id, hue) => {
           // Every card stays mounted in its own cell, drawn or not, so one

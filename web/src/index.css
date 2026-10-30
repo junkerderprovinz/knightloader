@@ -1332,6 +1332,14 @@ body {
   from { rotate: calc(var(--motion-wiggle-angle) * -1); }
   to   { rotate: var(--motion-wiggle-angle); }
 }
+/* A list in move mode, GlimStone's "Move mode": while an edit button keeps it
+   sortable, each beat starts and ends untransformed and swings to both sides
+   in between. */
+@keyframes glim-row-wiggle {
+  0%, 100% { transform: none; }
+  25% { transform: rotate(calc(var(--motion-row-wiggle-tilt, 0deg) * -1)) translateY(calc(var(--motion-row-wiggle-lift, 0px) * -1)); }
+  75% { transform: rotate(var(--motion-row-wiggle-tilt, 0deg)) translateY(var(--motion-row-wiggle-lift, 0px)); }
+}
 /* A fill level sloshes. In a vessel the body of the liquid tilts, and the
    surface runs up the wall it tilts toward in a crest that peaks just after
    the tilt and drains as the liquid swings back. A small hump crosses the
@@ -1507,6 +1515,12 @@ body {
        follows: the duration is one swing, played back and forth. */
     --motion-wiggle-dur: 280ms;
     --motion-wiggle-angle: .6deg;
+    /* A list in move mode: one beat of a row's wiggle, how far it tilts and
+       how far it lifts. A wide card turns far at its ends, so the tilt is a
+       fraction of the reorder wiggle's. GlimStone's numbers. */
+    --motion-row-wiggle-dur: 320ms;
+    --motion-row-wiggle-tilt: .16deg;
+    --motion-row-wiggle-lift: 1px;
     --motion-shape-dur: 260ms;
     --motion-shape-ease: cubic-bezier(.2, .6, .2, 1);
     --motion-confirm-dur: 420ms;
@@ -1586,6 +1600,9 @@ body {
     --motion-pulse-min-opacity: .7;
     --motion-wiggle-dur: 360ms;
     --motion-wiggle-angle: .3deg;
+    --motion-row-wiggle-dur: 440ms;
+    --motion-row-wiggle-tilt: .08deg;
+    --motion-row-wiggle-lift: .5px;
     --motion-shape-dur: 140ms;
     --motion-shape-ease: cubic-bezier(.2, .6, .2, 1);
     --motion-confirm-dur: 260ms;
@@ -1654,6 +1671,9 @@ body {
     --motion-pulse-min-opacity: 1;
     --motion-wiggle-dur: 400ms;
     --motion-wiggle-angle: 0deg;
+    --motion-row-wiggle-dur: 0s;
+    --motion-row-wiggle-tilt: 0deg;
+    --motion-row-wiggle-lift: 0px;
     --motion-shape-dur: 0ms;
     --motion-shape-ease: linear;
     --motion-confirm-dur: 0ms;
@@ -1726,6 +1746,17 @@ body {
   .glim-drag-armed > :not(.glim-drag-lift) {
     animation: glim-wiggle var(--motion-wiggle-dur) ease-in-out infinite alternate;
   }
+  /* The item under the pointer, the focused one and the one being carried
+     hold still: a transformed item is the containing block of a menu opened
+     from it. Neighbours start at different points of the beat, so the list
+     never tilts as one. */
+  :root:not([data-motion='off']) .glim-move-mode > :not(:hover, :focus-within, .glim-drag-lift, .glim-drag-settle) {
+    animation: glim-row-wiggle var(--motion-row-wiggle-dur) ease-in-out infinite;
+    transform-origin: 50% 50%;
+  }
+  :root:not([data-motion='off']) .glim-move-mode > :nth-child(2n) { animation-delay: calc(var(--motion-row-wiggle-dur) * -.5); }
+  :root:not([data-motion='off']) .glim-move-mode > :nth-child(3n) { animation-delay: calc(var(--motion-row-wiggle-dur) * -.25); }
+  :root:not([data-motion='off']) .glim-move-mode > :nth-child(5n) { animation-delay: calc(var(--motion-row-wiggle-dur) * -.75); }
   .glim-slosh {
     animation: glim-slosh-tilt var(--motion-slosh-dur) ease-in-out infinite;
   }
@@ -2117,6 +2148,9 @@ body {
   --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
   --motion-wiggle-dur: 220ms;
   --motion-wiggle-angle: 1deg;
+  --motion-row-wiggle-dur: 260ms;
+  --motion-row-wiggle-tilt: .26deg;
+  --motion-row-wiggle-lift: 1.5px;
   --motion-shape-dur: 470ms;
   --motion-shape-ease: cubic-bezier(.22, 1.94, .45, 1);
   --motion-confirm-dur: 760ms;
