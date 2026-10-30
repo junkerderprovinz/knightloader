@@ -56,8 +56,8 @@ import { taskRefusal } from '../lib/taskRefusal';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import {
   IconClearSelection,
-  IconClose,
   IconDownloadArrow,
+  IconClose,
   IconPause,
   IconPlay,
   IconRetry,

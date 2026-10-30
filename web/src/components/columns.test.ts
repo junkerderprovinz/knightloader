@@ -4,7 +4,6 @@ import type { ExtractJob, Task, TaskStatus } from '../lib/api';
 import { extractionsByTask } from './Archives';
 import {
   ACTIONS_ROOM,
-  END_ROOM,
   gridTemplate,
   isParked,
   packageFailures,
@@ -39,8 +38,8 @@ function track(template: string, layout: ResolvedLayout, id: ColumnId): string {
   return tracksOf(template)[layout.visible.findIndex((c) => c.id === id)];
 }
 
-/** The name's floor: its own minimum and the room the row's badges stand in. */
-const nameFloor = (layout: ResolvedLayout) => `calc(${layout.minWidthOf('name')}px + ${ACTIONS_ROOM})`;
+/** The name's floor, its own minimum: the row's badges have a track of their own. */
+const nameFloor = (layout: ResolvedLayout) => `${layout.minWidthOf('name')}px`;
 
 describe('gridTemplate', () => {
   it('lets the name fill what the other columns leave', () => {
@@ -50,12 +49,12 @@ describe('gridTemplate', () => {
     expect(template.match(/1fr/g)).toHaveLength(1);
   });
 
-  it('draws one track per column and a last one for the remove badge', () => {
+  it("draws one track per column and one for the row's badges at the end", () => {
     for (const profile of ['downloads', 'collector'] as const) {
       const layout = resolveLayout(profile, null);
       const tracks = tracksOf(gridTemplate(layout));
       expect(tracks, profile).toHaveLength(layout.visible.length + 1);
-      expect(tracks[tracks.length - 1], profile).toBe(END_ROOM);
+      expect(tracks[tracks.length - 1], profile).toBe(ACTIONS_ROOM);
     }
   });
 
