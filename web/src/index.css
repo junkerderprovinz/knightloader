@@ -671,6 +671,11 @@ body {
 .glim-subcard :is(button, a).bg-carbon-surface2:not(.glim-badge-quiet):hover {
   background-color: var(--carbon-hover-raised);
 }
+/* The accent tint of a filled button (.glim-btn-secondary), from the tier a
+   button on a subcard hovers to. */
+.glim-subcard :is(button, a).glim-btn-secondary:not(.glim-badge-quiet):is(:hover, :focus-visible) {
+  background-color: color-mix(in srgb, var(--carbon-hover-raised), var(--btn-tint) 22%);
+}
 
 /* Eyebrow label: small, uppercase, quiet. Above hero figures, and as the tag
    that names a category beside something louder. */
@@ -1043,6 +1048,32 @@ body {
 /* Pressed, the glyph drops back to its size while the badge itself gives
    way, so the press still reads without a tile to darken. */
 .glim-badge-quiet:active .glim-btn-glyph { scale: 1; }
+
+/* Every other button takes the colour too when it is reached for: its glyph
+   in the accent, and a filled one's ground a step up the ramp with a little of
+   the accent in it. A bare one has no ground to tint, so its words take the
+   accent as well; a filled one keeps its words in the text colour, which the
+   accent on a tinted ground would not be legible against. Under a rainbow a
+   badge with a palette position takes its own hue, and a button inside a hued
+   card the card's, through --accent-glyph. The ring still marks keyboard
+   focus. */
+.glim-btn-secondary,
+.glim-btn-ghost {
+  --btn-tint: var(--accent-glyph);
+}
+[data-rainbow] .glim-tint-badge.glim-btn-secondary {
+  --btn-tint: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+}
+.glim-btn-secondary:not(.glim-badge-quiet):is(:hover, :focus-visible) {
+  background-color: color-mix(in srgb, var(--carbon-surface3), var(--btn-tint) 22%);
+}
+.glim-btn-secondary:not(.glim-badge-quiet):is(:hover, :focus-visible) > .glim-btn-glyph,
+.glim-btn-ghost:is(:hover, :focus-visible) {
+  color: var(--btn-tint);
+}
+.glim-btn-ghost:is(:hover, :focus-visible) {
+  background-color: transparent;
+}
 
 /* The wash at the stronger badge tier, for a small badge that needs colour at
    rest and has no active state of its own. A toggle badge carries only

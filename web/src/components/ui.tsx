@@ -25,15 +25,16 @@ type ButtonKind = 'primary' | 'secondary' | 'ghost';
 /**
  * Every kind hovers by a colour step (GlimStone rule 21). The surface kinds
  * take the next tier of the ramp (web/check-hover-ramp.mjs guards the
- * surface2/surface3 pair). An accent fill is not on the ramp, so it steps
+ * surface2/surface3 pair), and their glyph takes the accent (.glim-btn-secondary
+ * and .glim-btn-ghost in index.css). An accent fill is not on the ramp, so it steps
  * toward the theme's text colour through `--accent-hover`: opacity would let
  * the card show through, and a brightness step can only move one way while the
  * two themes need opposite directions.
  */
 const kindClass: Record<ButtonKind, string> = {
   primary: 'bg-accent text-accentContrast hover:bg-accentHover',
-  secondary: 'bg-carbon-surface2 text-carbon-text hover:bg-carbon-surface3',
-  ghost: 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text',
+  secondary: 'glim-btn-secondary bg-carbon-surface2 text-carbon-text hover:bg-carbon-surface3',
+  ghost: 'glim-btn-ghost text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text',
 };
 
 /**
@@ -327,7 +328,8 @@ export function NamedHint({ name, hint }: { name?: string; hint: string }) {
  * .glim-tint-badge sets only the box-shadow, leaving a red glyph in a
  * hue-tinted tile.
  */
-const iconBadgeClass = 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text';
+const iconBadgeClass =
+  'glim-btn-secondary bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text';
 
 /**
  * IconTile is IconBadge's inert twin: the same square, the same `--btn-h`

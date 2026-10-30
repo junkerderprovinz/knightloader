@@ -44,6 +44,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   history knows is added like any other unless you switch the check on under
   Settings, Link collector. Installs that had it on start with it off as well,
   since a setting saved at its default cannot tell that from a choice.
+- **Every button lights up under the pointer.** A filled button's ground takes
+  a little of the accent and its symbol the accent itself; a bare one turns
+  its symbol and words to the accent. Under the rainbow a badge takes its own
+  colour. Keyboard focus shows the same, with its ring.
 
 ### Fixed
 
