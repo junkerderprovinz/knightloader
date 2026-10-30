@@ -120,7 +120,7 @@ export function OnboardingWizard() {
         <>
           {/* Skip sits at the start, away from Next. It is the way out, so it
               carries the close glyph. */}
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('onboarding.skip')} onClick={close} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('onboarding.skip')} onClick={close} />
           <span className="flex-1" />
           {stepIndex > 0 && (
             <Button kind="secondary" icon={<IconBack />} onClick={() => setStepIndex((i) => i - 1)}>

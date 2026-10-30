@@ -24,7 +24,7 @@ import {
   type IdleCommandCheck,
   type IdleRun,
 } from '../../../lib/api';
-import { IconCheck, IconClose, IconCode, IconMoon, IconPause, IconPlay, IconPower } from '../../../lib/icons';
+import { IconCheck, IconClose, IconCode, IconPause, IconPlay, IconPower, IconSleep } from '../../../lib/icons';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
@@ -61,7 +61,7 @@ const ACTION_ICONS: Record<string, ReactNode> = {
   pause: <IconPause width={16} height={16} />,
   quit: <IconPower width={16} height={16} />,
   command: <IconCode width={16} height={16} />,
-  suspend: <IconMoon width={16} height={16} />,
+  suspend: <IconSleep width={16} height={16} />,
 };
 
 /** The bounds of internal/idleaction, shown so a save does not change the number. */
@@ -359,7 +359,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
               {/* The spacer puts Run at the end of Modal's plain flex footer. */}
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}

@@ -317,7 +317,7 @@ export function FolderPicker({
       onClose={onClose}
       footer={
         <>
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <span className="flex-1" />
           <Button icon={<IconApply />} onClick={() => onPick(joinTail(text, tail))} disabled={text.trim() === ''}>
             {t('folders.use')}
@@ -428,7 +428,7 @@ export function FolderPicker({
           />
           <Button
             type="button"
-            kind="ghost"
+            kind="secondary"
             className="shrink-0"
             icon={<IconClose width={16} height={16} />}
             title={t('common.cancel')}

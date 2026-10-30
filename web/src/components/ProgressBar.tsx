@@ -56,7 +56,7 @@ export function ProgressBar({
   const stripes = striped ? ' kl-bar-stripes' : '';
   return (
     <div
-      className="relative h-5 w-full overflow-hidden rounded-[var(--radius-pill)] bg-carbon-surface3/70 [contain:size_layout]"
+      className="relative h-5 w-full overflow-hidden rounded-[var(--radius-pill)] bg-carbon-surface3/70 glim-meter"
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}

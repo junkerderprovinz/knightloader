@@ -49,7 +49,7 @@ export function ViewNameDialog({
           {/* The forward button ends the row, so the refusal goes first. */}
           {refusal && <span dir="auto" className="min-w-0 text-sm text-statusFail">{refusal}</span>}
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <Button icon={<IconSave />} disabled={blocked} onClick={() => onConfirm(clean)}>
             {overwrites ? t('views.overwriteConfirm') : t('views.saveConfirm')}
           </Button>
@@ -93,7 +93,7 @@ export function ViewDeleteDialog({
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           {/* Neutral rather than red; the body text carries the warning. */}
           <Button kind="secondary" icon={<IconTrash />} onClick={onConfirm}>
             {t('views.deleteConfirm')}

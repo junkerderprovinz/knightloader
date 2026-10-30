@@ -88,10 +88,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   putting something back to its default. Import and Export show a file, Done
   and Approve a thumbs up, Refuse a thumbs down, and the drag handle two
   columns of dots. Move to a package shows an arrow instead of a folder.
+  Sleep and Quiet mode show a Zzz in place of the moon, which stays with the
+  dark look, and Leave group a broken link.
   Check for updates shows a cloud, which gains a tick when the app is up to
   date. The New button on the Version card shows the What's new gift, with the
   green dot in front of it while something is unseen.
-- **The Help page names GlimStone 3.7.1** as the design the app follows.
+- **The Help page names GlimStone 3.8.0** as the design the app follows.
 - **Version numbers show without a leading "v",** on the Version card and on
   the browser tools card alike. The links still lead to the release.
 - **On a narrow phone the bottom bar shows its symbols alone,** a size larger,
@@ -126,6 +128,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   JDownloader login for the site. Links collected before need adding again.
 - **The link collector's totals no longer run into each other** in a narrow
   window. A label that does not fit beside its figure goes under it.
+- **Cancel looks like a button.** In every window, such as Remove the
+  downloads, and on the cards with an inline form, Cancel and the other
+  answers beside the main one have a fill and a hover of their own instead of
+  standing there as bare words.
 
 ## [2.3.3] - 2026-10-28
 

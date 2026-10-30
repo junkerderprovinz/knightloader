@@ -134,7 +134,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
             <>
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('settings.system.confirmCancel')}
@@ -144,7 +144,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
               <Button
                 icon={<IconConfirm />}
                 shake={restoreShake}
-                kind="ghost"
+                kind="secondary"
                 onClick={() => void confirmRestore()}
                 disabled={restoring}
               >
