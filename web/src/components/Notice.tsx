@@ -8,10 +8,11 @@ import { Button, Checkbox, InfoBubble } from './ui';
 
 /**
  * Notice is a short list that wants a look but no answer, such as links that
- * were not added. Its title carries the count, the rows follow, and its own
- * actions stand in one row at its foot, after the box that switches this kind
- * of notice off; Settings, Appearance brings it back. Every notice in the app
- * is drawn by this, so they all read alike.
+ * were not added. Its title carries the count and every one of them is listed,
+ * scrolling when there are many. Its own actions stand in one row at its foot,
+ * after the box that switches this kind of notice off; Settings, General
+ * brings it back. Every notice in the app is drawn by this, so they all read
+ * alike.
  */
 export function Notice({
   id,
@@ -47,7 +48,14 @@ export function Notice({
           <Button kind="secondary" labelled icon={<IconClose />} title={t('common.dismiss')} onClick={onClose} />
         )}
       </header>
-      <div className="flex max-h-56 flex-col overflow-y-auto">{children}</div>
+      {/* The rows share the columns, so a source or a date as wide as it needs
+          still lines up with the rows above and below it. */}
+      <div
+        className="grid max-h-56 grid-cols-[minmax(0,1fr)_auto] content-start gap-x-3 gap-y-0.5 overflow-y-auto
+          sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)_auto_auto_auto]"
+      >
+        {children}
+      </div>
       <footer className="flex flex-wrap items-center justify-end gap-2">
         <Checkbox
           className="me-auto"
@@ -63,8 +71,9 @@ export function Notice({
 
 /**
  * NoticeRow is one entry of a Notice: what happened, to which link, where it
- * came from and when, then its own action. The columns are fixed, so the rows
- * line up; a long name is shortened in the middle and whole in its bubble.
+ * came from and when, then its own action at the row's end, under the foot's
+ * buttons. The reason takes the room there is and wraps only when it runs out;
+ * a long name is shortened in the middle and whole in its bubble.
  */
 export function NoticeRow({
   reason,
@@ -80,13 +89,8 @@ export function NoticeRow({
   action?: ReactNode;
 }) {
   return (
-    <div
-      className="glim-row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 rounded-[var(--radius-control)] px-1 py-1
-        text-xs sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_7rem_7.5rem_auto]"
-    >
-      <Tip tip={reason} className="truncate text-carbon-text">
-        {reason}
-      </Tip>
+    <div className="glim-row col-span-full grid grid-cols-subgrid items-center gap-y-0.5 rounded-[var(--radius-control)] py-1 text-xs">
+      <span className="break-words text-carbon-text">{reason}</span>
       <Tip tip={name} dir="ltr" className="truncate text-carbon-textMuted max-sm:order-last max-sm:col-span-2">
         {middleEllipsis(name)}
       </Tip>

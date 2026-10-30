@@ -52,6 +52,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   among the rejected links with the download it repeated. The history keeps
   the entry, and an undo of the removal makes the link a duplicate again.
   Downloads that retention or an arr app took out of the list still count.
+- **The link notices list every link they count.** "12 links rejected" showed
+  one row until you pressed Show; every link is listed now, scrolling when
+  there are many. The reason takes the room the window has instead of being
+  cut short, and the columns of every row line up.
 
 ## [2.4.0] - 2026-10-30
 

@@ -6,7 +6,7 @@ import { useToast } from '../lib/toast';
 import { skippedReason } from '../lib/skippedReason';
 import { Button } from './ui';
 import { Notice, NoticeRow } from './Notice';
-import { IconEmpty, IconEye, IconEyeOff } from '../lib/icons';
+import { IconEmpty } from '../lib/icons';
 
 // `at` has nanosecond precision, so the pair is unique in practice.
 const keyOf = (s: SkippedLink) => `${s.at}|${s.url}`;
@@ -21,7 +21,6 @@ export function SkippedLinks() {
   const { t } = useT();
   const { toast } = useToast();
   const [items, setItems] = useState<SkippedLink[]>([]);
-  const [showAll, setShowAll] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -67,13 +66,11 @@ export function SkippedLinks() {
       return;
     }
     setItems([]);
-    setShowAll(false);
   }
 
   if (!items.length || dismissed) return null;
 
   const newest = [...items].reverse();
-  const shown = showAll ? newest : newest.slice(0, 1);
 
   return (
     // Bottom right with the other notices, above the toast stack at bottom-5.
@@ -86,18 +83,13 @@ export function SkippedLinks() {
         onClose={() => setDismissed(true)}
         actions={
           <>
-            {items.length > 1 && (
-              <Button kind="secondary" icon={showAll ? <IconEyeOff /> : <IconEye />} onClick={() => setShowAll((v) => !v)}>
-                {showAll ? t('common.hide') : t('common.show')}
-              </Button>
-            )}
             <Button kind="secondary" icon={<IconEmpty />} onClick={onClear}>
               {t('skipped.clear')}
             </Button>
           </>
         }
       >
-        {shown.map((s, i) => (
+        {newest.map((s, i) => (
           <NoticeRow key={`${keyOf(s)}|${i}`} reason={skippedReason(t, s)} name={s.url} at={fmtDate(s.at)} />
         ))}
       </Notice>
