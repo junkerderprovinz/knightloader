@@ -3777,6 +3777,7 @@ export const pl: Dict = {
   'whatsnew.change.appLogo': 'Telefony i rozszerzenia przeglądarki w „{name}” noszą logo KnightLoadera jak każda inna karta.',
   'whatsnew.change.cardLogo': 'Logo stoi w tym samym miejscu i ma ten sam rozmiar na każdej karcie w „{name}”.',
   'whatsnew.change.solvecha': 'Solvecha można dodać w „{name}” jako siódmą usługę. Odczytuje tylko captche obrazkowe.',
+  'whatsnew.change.volumeUsed': 'Wyczerpany limit pobierania w usłudze debrid lub na koncie hostera widać w „{name}” jako taki, z czasem jego odnowienia, zamiast jako captchę, a usługa do tego czasu zostawia tego hostera w spokoju.',
   'whatsnew.change.clipboardPopup': 'Aplikacja na komputer pokazuje małą notkę, gdy obserwacja schowka złapie linki. „{name}” określa, czy się pojawia, jak długo zostaje i gdzie.',
   'whatsnew.change.bundledTools': 'Aplikacja na komputer ma własne yt-dlp i ffmpeg, więc link z YouTube od razu po instalacji rozkłada się na swoje wiersze wideo i dźwięku.',
   'whatsnew.change.fileKinds': 'Każdy link pokazuje symbol rodzaju pliku: wideo, dźwięk, obraz, napisy, tekst, archiwum lub dowolny inny plik.',

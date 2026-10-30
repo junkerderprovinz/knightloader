@@ -3792,6 +3792,7 @@ export const id: Dict = {
   'whatsnew.change.appLogo': 'Ponsel dan ekstensi peramban di “{name}” memakai logo KnightLoader seperti kartu lainnya.',
   'whatsnew.change.cardLogo': 'Logo berada di tempat yang sama dan dengan ukuran yang sama di setiap kartu di bawah “{name}”.',
   'whatsnew.change.solvecha': 'Solvecha bisa ditambahkan di "{name}" sebagai layanan ketujuh. Layanan ini hanya membaca captcha gambar.',
+  'whatsnew.change.volumeUsed': 'Kuota unduhan yang habis di layanan debrid atau akun hoster tampil apa adanya di “{name}”, lengkap dengan kapan kuota itu pulih, bukan sebagai captcha, dan layanan itu membiarkan hoster tersebut sampai saat itu.',
   'whatsnew.change.clipboardPopup': 'Aplikasi desktop memunculkan catatan kecil saat pemantauan papan klip menangkap tautan. “{name}” mengatur apakah catatan itu muncul, berapa lama, dan di mana.',
   'whatsnew.change.bundledTools': 'Aplikasi desktop membawa yt-dlp dan ffmpeg sendiri, jadi tautan YouTube langsung terbuka menjadi baris video dan audionya begitu selesai dipasang.',
   'whatsnew.change.fileKinds': 'Setiap tautan menampilkan simbol untuk jenis filenya: video, audio, gambar, subtitel, teks, arsip, atau file lainnya.',

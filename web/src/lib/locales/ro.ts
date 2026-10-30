@@ -3801,6 +3801,7 @@ export const ro: Dict = {
   'whatsnew.change.appLogo': 'Telefoanele și extensiile de browser din „{name}” poartă sigla KnightLoader ca orice alt card.',
   'whatsnew.change.cardLogo': 'Sigla stă în același loc și are aceeași mărime pe fiecare card din „{name}”.',
   'whatsnew.change.solvecha': 'Solvecha poate fi adăugat în „{name}” ca al șaptelea serviciu. Citește doar captcha cu imagini.',
+  'whatsnew.change.volumeUsed': 'Un volum de descărcare epuizat la un serviciu debrid sau la un cont de hoster apare ca atare în „{name}”, cu momentul în care se reînnoiește, în loc de captcha, iar serviciul lasă acel hoster în pace până atunci.',
   'whatsnew.change.clipboardPopup': 'Aplicația desktop afișează o notă mică atunci când monitorizarea clipboardului prinde linkuri. „{name}” stabilește dacă apare, cât timp rămâne și unde.',
   'whatsnew.change.bundledTools': 'Aplicația desktop își aduce propriile yt-dlp și ffmpeg, așa că un link YouTube se deschide în rândurile sale video și audio imediat după instalare.',
   'whatsnew.change.fileKinds': 'Fiecare link arată un simbol pentru tipul de fișier: video, audio, imagine, subtitrări, text, arhivă sau orice alt fișier.',

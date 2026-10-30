@@ -3784,6 +3784,7 @@ export const et: Dict = {
   'whatsnew.change.appLogo': 'Telefonid ja brauserilaiendused lehel „{name}“ kannavad KnightLoaderi logo nagu iga teine kaart.',
   'whatsnew.change.cardLogo': 'Logo on igal kaardil jaotises „{name}“ samas kohas ja sama suur.',
   'whatsnew.change.solvecha': 'Solvecha saab lisada jaotises „{name}“ seitsmenda teenusena. See loeb ainult pildi-captchasid.',
+  'whatsnew.change.volumeUsed': 'Ära kasutatud allalaadimismaht debridi teenuses või hosti kontol on jaotises „{name}“ näha just sellena, koos ajaga, millal see taastub, mitte captchana, ja teenus jätab selle hosti seniks rahule.',
   'whatsnew.change.clipboardPopup': 'Töölauarakendus näitab väikest teadet, kui lõikelaua jälgimine linke püüab. „{name}“ määrab, kas see ilmub, kui kaua see püsib ja kus.',
   'whatsnew.change.bundledTools': 'Töölauarakendusel on oma yt-dlp ja ffmpeg kaasas, nii et YouTube\'i link avaneb kohe pärast paigaldamist oma video- ja heliridadeks.',
   'whatsnew.change.fileKinds': 'Iga link näitab sümbolit selle järgi, mis liiki fail see on: video, heli, pilt, subtiitrid, tekst, arhiiv või mõni muu fail.',

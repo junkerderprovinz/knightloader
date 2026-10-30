@@ -3792,6 +3792,7 @@ export const vi: Dict = {
   'whatsnew.change.appLogo': 'Điện thoại và tiện ích trình duyệt trong “{name}” mang logo KnightLoader như mọi thẻ khác.',
   'whatsnew.change.cardLogo': 'Logo nằm ở cùng một chỗ và có cùng kích thước trên mọi thẻ trong “{name}”.',
   'whatsnew.change.solvecha': 'Có thể thêm Solvecha trong "{name}" làm dịch vụ thứ bảy. Dịch vụ này chỉ đọc captcha hình ảnh.',
+  'whatsnew.change.volumeUsed': 'Dung lượng tải xuống đã dùng hết ở một dịch vụ debrid hoặc tài khoản hoster hiện đúng như vậy trong “{name}”, kèm thời điểm được làm mới, thay vì hiện thành captcha, và dịch vụ không động đến hoster đó cho đến lúc ấy.',
   'whatsnew.change.clipboardPopup': 'Ứng dụng máy tính hiện một ô nhỏ khi tính năng theo dõi bảng nhớ tạm bắt được liên kết. “{name}” quyết định ô đó có hiện không, hiện bao lâu và ở đâu.',
   'whatsnew.change.bundledTools': 'Ứng dụng máy tính đi kèm yt-dlp và ffmpeg riêng, nên một liên kết YouTube mở ra thành các hàng video và âm thanh ngay sau khi cài đặt.',
   'whatsnew.change.fileKinds': 'Mỗi liên kết hiện một biểu tượng cho loại tệp của nó: video, âm thanh, hình ảnh, phụ đề, văn bản, tệp nén hay bất kỳ tệp nào khác.',

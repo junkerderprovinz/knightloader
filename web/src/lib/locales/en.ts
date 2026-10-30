@@ -4097,6 +4097,7 @@ export const en = {
   'whatsnew.change.appLogo': 'Phones and browser extensions on "{name}" wear the KnightLoader mark like every other card.',
   'whatsnew.change.cardLogo': 'The logo stands in the same place and at the same size on every card on "{name}".',
   'whatsnew.change.solvecha': 'Solvecha can be added under "{name}" as a seventh service. It reads picture captchas only.',
+  'whatsnew.change.volumeUsed': 'A used-up download volume at a debrid service or hoster account shows as such on "{name}", with when it resets, instead of a captcha, and the service leaves that hoster alone until then.',
   'whatsnew.change.clipboardPopup': 'The desktop app pops up a note when the clipboard watch catches links. "{name}" sets whether it shows, how long it stays and where.',
   'whatsnew.change.bundledTools': 'The desktop app brings its own yt-dlp and ffmpeg, so a YouTube link opens into its video and audio rows right after installing.',
   'whatsnew.change.fileKinds': 'Every link shows a symbol for the kind of file it is: video, audio, image, subtitles, text, archive or any other file.',

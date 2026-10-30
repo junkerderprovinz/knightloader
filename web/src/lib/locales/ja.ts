@@ -3789,6 +3789,7 @@ export const ja: Dict = {
   'whatsnew.change.appLogo': '「{name}」のスマートフォンとブラウザー拡張機能にも、ほかのカードと同じく KnightLoader のロゴが付きます。',
   'whatsnew.change.cardLogo': '「{name}」のどのカードでも、ロゴは同じ位置に同じ大きさで表示されます。',
   'whatsnew.change.solvecha': 'Solvecha を「{name}」に 7 つ目のサービスとして追加できます。画像キャプチャのみを読み取ります。',
+  'whatsnew.change.volumeUsed': 'Debrid サービスやホスターのアカウントでダウンロード容量を使い切ると、キャプチャではなくそのとおりに「{name}」に表示され、リセットされる日時も示されます。それまでサービスはそのホスターを使いません。',
   'whatsnew.change.clipboardPopup': 'クリップボードの監視がリンクをキャッチすると、デスクトップアプリが小さな通知を表示します。表示するかどうか、表示する時間と場所は「{name}」で決めます。',
   'whatsnew.change.bundledTools': 'デスクトップアプリには yt-dlp と ffmpeg が付属しているので、インストール直後から YouTube のリンクが動画と音声の行に分かれて開きます。',
   'whatsnew.change.fileKinds': '各リンクに、ファイルの種類を示す記号が付きます。動画、音声、画像、字幕、テキスト、書庫、その他のファイルです。',

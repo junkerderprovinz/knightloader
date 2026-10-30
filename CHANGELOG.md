@@ -161,6 +161,19 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   `name (2).rar` and so on in no fixed order, and unpacking failed. The name
   is now shortened before the part number, which stays, and the same holds
   for `.vol` repair files and split archives such as `.001`.
+- **A used-up download volume says so instead of asking for a captcha.**
+  JDownloader falls back to free mode when the hoster account it would use has
+  no traffic left, or when the debrid service ahead of it has none, and a
+  hoster that asks free users for a captcha then reported "Captcha is
+  required". Such a link now names the volume and the service, says when the
+  volume resets where that is known, tries again then and starts no
+  reconnect. A captcha nothing explains stays a captcha.
+- **A debrid service with no volume left stays off until the reset.** It used
+  to come back every 15 minutes and take the next batch of links into the
+  same refusal. It now waits for the reset the service names, or looks again
+  every hour, and a volume used up for one hoster keeps it off that hoster
+  alone. The Accounts page shows such an account as Download volume used up
+  and says for which hoster and until when; Refresh tries it again at once.
 - **The browser extension takes its instance's look whenever it opens.** The
   popup and the options page used the look stored when following was switched
   on, so a theme the instance changed later only arrived after Refresh.
