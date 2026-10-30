@@ -188,7 +188,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
           footer={
             <>
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}
@@ -306,7 +306,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             <>
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}

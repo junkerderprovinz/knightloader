@@ -188,8 +188,8 @@ export function UsenetServersSection({
           footer={
             <>
               <span className="flex-1" />
-              <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={() => setConfirming(null)} />
-              <Button kind="ghost" icon={<IconTrash width={16} height={16} />} onClick={() => void doRemove(confirming)}>
+              <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={() => setConfirming(null)} />
+              <Button kind="secondary" icon={<IconTrash width={16} height={16} />} onClick={() => void doRemove(confirming)}>
                 {t('accounts.remove')}
               </Button>
             </>
@@ -301,7 +301,7 @@ function ServerDialog({
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <TestButton
             icon={<IconCheck />}
             label={t('accounts.usenet.test')}

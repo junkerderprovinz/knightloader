@@ -75,6 +75,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 - **The link collector's totals no longer run into each other** in a narrow
   window. A label that does not fit beside its figure goes under it.
+- **Cancel looks like a button.** In every window, such as Remove the
+  downloads, and on the cards with an inline form, Cancel and the other
+  answers beside the main one have a fill and a hover of their own instead of
+  standing there as bare words.
 
 ## [2.3.3] - 2026-10-28
 

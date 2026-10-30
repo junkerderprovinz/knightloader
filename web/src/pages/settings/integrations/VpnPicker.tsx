@@ -140,7 +140,7 @@ export function VpnPicker({
             {/* A new VPN's form leads back to the list it was picked from; an
                 edit has no list behind it and offers the way out. */}
             {editing ? (
-              <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+              <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
             ) : (
               <Button
                 kind="secondary"

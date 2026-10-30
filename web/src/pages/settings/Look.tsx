@@ -1086,7 +1086,7 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
             <>
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('settings.system.confirmCancel')}
@@ -1096,7 +1096,7 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
               <Button
                 icon={<IconConfirm />}
                 shake={actShake}
-                kind="ghost"
+                kind="secondary"
                 onClick={() => void confirmLifecycle()}
                 disabled={acting}
               >

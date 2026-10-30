@@ -255,7 +255,7 @@ export function PasskeyCard({
               <span className="flex-1" />
               <Button
                 icon={<IconClose />}
-                kind="ghost"
+                kind="secondary"
                 disabled={busy}
                 onClick={() => {
                   setAdding(false);
@@ -286,7 +286,7 @@ export function PasskeyCard({
             <>
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}
@@ -325,7 +325,7 @@ export function PasskeyCard({
             <>
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}

@@ -301,7 +301,7 @@ export function McpCard() {
             <>
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}
@@ -309,7 +309,7 @@ export function McpCard() {
                 disabled={busy}
               />
               <Button
-                kind="ghost"
+                kind="secondary"
                 icon={<IconTrash width={16} height={16} />}
                 onClick={() => void doRemove(removing)}
                 disabled={busy}

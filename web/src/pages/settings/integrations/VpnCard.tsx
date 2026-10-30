@@ -143,9 +143,9 @@ export function VpnCard({ hue, routesHue }: { hue: number; routesHue: number }) 
             footer={
               <>
                 <span className="flex-1" />
-                <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={() => setRemoving(null)} />
+                <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={() => setRemoving(null)} />
                 <Button
-                  kind="ghost"
+                  kind="secondary"
                   icon={<IconTrash width={16} height={16} />}
                   onClick={() => {
                     const id = removing.id;

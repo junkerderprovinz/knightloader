@@ -221,7 +221,7 @@ export function MaintenanceCard({ hue }: { hue: number }) {
             <>
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}
@@ -229,7 +229,7 @@ export function MaintenanceCard({ hue }: { hue: number }) {
               />
               <Button
                 icon={<IconCompact />}
-                kind="ghost"
+                kind="secondary"
                 onClick={() => {
                   setConfirming(false);
                   void start('compact');

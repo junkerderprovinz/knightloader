@@ -372,7 +372,7 @@ export function TokensSection() {
             <>
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('settings.access.tokens.cancel')}
