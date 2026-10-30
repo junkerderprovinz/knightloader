@@ -458,6 +458,9 @@ jobs:
       - name: Palette edit under disco
         run: node extension/check-palette-edit.mjs
 
+      - name: Followed theme
+        run: node extension/check-follow-theme.mjs
+
       - name: Every motion level declares every dial
         run: node extension/check-motion.mjs
 
