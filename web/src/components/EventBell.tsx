@@ -6,7 +6,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, SectionTitle, useTooltip } from './ui';
-import { BarBody, barIdle, barSegment, navBase, navCount, navHued, navInactive, NavLabel } from './Sidebar';
+import { BarBody, barIdle, barSegment, navBase, navCount, navHued, navInactive, NavLabel, useBarMode } from './Sidebar';
 import { hueVars } from '../lib/appearance';
 import type { CSSProperties } from 'react';
 import { Tabs, type TabDef } from './Tabs';
@@ -136,7 +136,7 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: false | 'se
   const navigate = useNavigate();
   // The bar's segment follows the bar's own setting, the rail's row the rail's.
   const railMode = useLabelMode('sidebar');
-  const barMode = useLabelMode('bottombar');
+  const barMode = useBarMode();
   const mode = bar ? barMode : railMode;
   const events = useEventLog();
   const unread = useUnreadEvents();
