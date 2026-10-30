@@ -119,7 +119,8 @@ function releasePage(repo: string, version: string): string {
  * on hover, the same in every colour mode.
  */
 function VersionNumber({ version, page }: { version: string; page: string }) {
-  if (!page) return <>{version}</>;
+  const bare = version.replace(/^v/, '');
+  if (!page) return <>{bare}</>;
   return (
     <a
       href={page}
@@ -128,7 +129,7 @@ function VersionNumber({ version, page }: { version: string; page: string }) {
       onClick={followExternal}
       className="no-underline hover:text-carbon-text"
     >
-      {version.replace(/^v/, '')}
+      {bare}
     </a>
   );
 }

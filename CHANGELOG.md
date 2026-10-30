@@ -53,6 +53,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   and Approve a thumbs up, Refuse a thumbs down, Check for updates a tick, and
   the drag handle two columns of dots.
 - **The Help page names GlimStone 3.7.1** as the design the app follows.
+- **Version numbers show without a leading "v",** on the Version card and on
+  the browser tools card alike. The links still lead to the release.
 
 ## [2.3.3] - 2026-10-28
 
