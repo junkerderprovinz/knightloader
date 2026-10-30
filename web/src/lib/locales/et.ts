@@ -2486,6 +2486,7 @@ export const et: Dict = {
   'failure.open': 'Miks see ebaõnnestus',
   'failure.raw': 'Mida taustsüsteem ütles',
   'failure.rawHint': 'Rida, mille tööriist ise välja trükkis, muutmata ja inglise keeles. Kasulik siis, kui sa seda otsid või kuskil teatad. Lause selle kohal on selle rakenduse tõlgendus.',
+  'failure.rawInDetails': 'Tööriista täpne sõnastus on rea üksikasjades.',
   'failure.nothingToDo': 'KnightLoaderis ei ole selle jaoks ühtki hooba.',
   'failure.close': 'Sulge',
   'failure.botCheck.line': 'Sait tahab sisse logitud seanssi, enne kui ta video välja annab.',

@@ -2482,6 +2482,7 @@ export const zh: Dict = {
   'failure.open': '为什么会失败',
   'failure.raw': '后端说了什么',
   'failure.rawHint': '工具自己打出来的那一行，一字不改，而且是英文。你要去搜索它，或者往哪里报告它的时候用得上。上面那句话是这个应用对它的解读。',
+  'failure.rawInDetails': '工具的原话在这一行的详细信息里。',
   'failure.nothingToDo': 'KnightLoader 这边没有什么能改变这一条。',
   'failure.close': '关闭',
   'failure.botCheck.line': '这个站点要先看到一个已登录的会话，才肯把视频交出来。',

@@ -22,7 +22,7 @@ import {
   type Task,
 } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
-import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtRate, fmtSpeed, pct } from '../lib/format';
+import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtRate, fmtSpeed, middleEllipsis, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
@@ -492,7 +492,7 @@ function TooltipField({ label, children, ltr }: { label: string; children: React
   return (
     <div className="min-w-0">
       <div className="glim-eyebrow">{label}</div>
-      <div dir={ltr ? 'ltr' : undefined} className="break-words text-carbon-text">
+      <div dir={ltr ? 'ltr' : undefined} className="text-carbon-text [overflow-wrap:anywhere]">
         {children}
       </div>
     </div>
@@ -510,17 +510,17 @@ export function failureFallback(task: Task, t: Translate): Record<string, string
   return { part: name, file: name, path: task.dir || name, service: resolverLabel(task.resolver.split('#')[0], t) };
 }
 
-/** A failure's bubble: what went wrong, what to do, and the tool's own words. */
+/**
+ * A failure's bubble: what went wrong and what to do, the same for every kind
+ * of failure. The tool's own words, often a whole path, stay in the row's
+ * details, where they can be copied; in a bubble they buried the sentence.
+ */
 function FailureDetail({ failure, t }: { failure: Explained; t: Translate }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="break-words font-medium text-carbon-text">{failure.line}</div>
+      <div className="font-medium text-carbon-text [overflow-wrap:anywhere]">{failure.line}</div>
       <TooltipField label={t('failure.next')}>{failure.next}</TooltipField>
-      {failure.raw && (
-        <TooltipField label={t('failure.raw')} ltr>
-          {failure.raw}
-        </TooltipField>
-      )}
+      {failure.raw && <div className="text-carbon-textMuted">{t('failure.rawInDetails')}</div>}
     </div>
   );
 }
@@ -1186,8 +1186,16 @@ function UnpackStatus({
   const detail = (
     <span className="flex flex-col gap-0.5">
       <span className="font-medium">{unpackLabel(state, percent, t)}</span>
-      {job && <span dir="ltr">{job.name}</span>}
-      {job?.archive && job.archive !== job.name && <span dir="ltr">{job.archive}</span>}
+      {job && (
+        <span dir="ltr" className="[overflow-wrap:anywhere]">
+          {middleEllipsis(job.name)}
+        </span>
+      )}
+      {job?.archive && job.archive !== job.name && (
+        <span dir="ltr" className="[overflow-wrap:anywhere]">
+          {middleEllipsis(job.archive)}
+        </span>
+      )}
       {facts.length > 0 && <span className="glim-num">{facts.join(' · ')}</span>}
       {tally && <span>{t('archive.tally', { done: tally.done, total: tally.total })}</span>}
       {failure && <FailureDetail failure={failure} t={t} />}

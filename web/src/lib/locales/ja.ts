@@ -2495,6 +2495,7 @@ export const ja: Dict = {
   'failure.open': 'なぜ失敗したか',
   'failure.raw': 'バックエンドが言ったこと',
   'failure.rawHint': 'ツール自身が出力した行を、手を加えず英語のまま載せています。検索するときや、どこかへ報告するときに役立ちます。上の文は、それに対するこのアプリの読み解きです。',
+  'failure.rawInDetails': 'ツールが出した文言そのものは、行の詳細にあります。',
   'failure.nothingToDo': 'これについては、KnightLoader 側に動かせるものがありません。',
   'failure.close': '閉じる',
   'failure.botCheck.line': 'このサイトは、動画を渡す前にログイン済みのセッションを求めています。',

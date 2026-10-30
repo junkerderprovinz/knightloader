@@ -2483,6 +2483,7 @@ export const fr: Dict = {
   'failure.open': 'Pourquoi cela a échoué',
   'failure.raw': 'Ce qu’a dit le backend',
   'failure.rawHint': 'La ligne que l’outil lui-même a affichée, telle quelle et en anglais. Utile quand vous la cherchez ou que vous la signalez quelque part. La phrase au-dessus, c’est la lecture qu’en fait cette application.',
+  'failure.rawInDetails': 'Le message exact de l’outil se trouve dans les détails de la ligne.',
   'failure.nothingToDo': 'Dans KnightLoader, il n’y a aucun levier pour celui-ci.',
   'failure.close': 'Fermer',
   'failure.botCheck.line': 'Le site veut une session connectée avant de livrer la vidéo.',

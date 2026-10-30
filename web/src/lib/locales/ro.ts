@@ -2503,6 +2503,7 @@ export const ro: Dict = {
   'failure.open': 'De ce a eșuat',
   'failure.raw': 'Ce a spus backendul',
   'failure.rawHint': 'Linia pe care a scos-o instrumentul însuși, neschimbată și în engleză. Bună de avut când o cauți sau o raportezi undeva. Propoziția de deasupra este felul în care o citește această aplicație.',
+  'failure.rawInDetails': 'Cuvintele exacte ale instrumentului sunt în detaliile rândului.',
   'failure.nothingToDo': 'În KnightLoader nu există nicio pârghie pentru asta.',
   'failure.close': 'Închide',
   'failure.botCheck.line': 'Site-ul vrea o sesiune autentificată înainte să dea videoclipul.',

@@ -2478,6 +2478,7 @@ export const nl: Dict = {
   'failure.open': 'Waarom dit is mislukt',
   'failure.raw': 'Wat de backend zei',
   'failure.rawHint': 'De regel die het programma zelf heeft afgedrukt, ongewijzigd en in het Engels. Handig als je ernaar zoekt of hem ergens meldt. De zin erboven is hoe deze app hem leest.',
+  'failure.rawInDetails': 'De letterlijke tekst van het hulpmiddel staat in de details van de rij.',
   'failure.nothingToDo': 'In KnightLoader valt hier niets aan te doen.',
   'failure.close': 'Sluiten',
   'failure.botCheck.line': 'De site wil een aangemelde sessie voordat hij de video afgeeft.',

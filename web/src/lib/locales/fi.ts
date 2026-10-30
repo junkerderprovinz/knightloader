@@ -2495,6 +2495,7 @@ export const fi: Dict = {
   'failure.open': 'Miksi tämä epäonnistui',
   'failure.raw': 'Mitä taustaosa sanoi',
   'failure.rawHint': 'Rivi, jonka työkalu itse tulosti, muuttamattomana ja englanniksi. Siitä on hyötyä, kun haet sillä tai ilmoitat sen jonnekin. Yllä oleva lause on tämän sovelluksen tulkinta siitä.',
+  'failure.rawInDetails': 'Työkalun oma teksti on rivin tiedoissa.',
   'failure.nothingToDo': 'Tähän ei KnightLoaderista löydy vipua.',
   'failure.close': 'Sulje',
   'failure.botCheck.line': 'Sivusto haluaa kirjautuneen istunnon, ennen kuin se luovuttaa videon.',

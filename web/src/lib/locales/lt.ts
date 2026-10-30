@@ -2496,6 +2496,7 @@ export const lt: Dict = {
   'failure.open': 'Kodėl tai nepavyko',
   'failure.raw': 'Ką pasakė posistemė',
   'failure.rawHint': 'Eilutė, kurią išvedė pats įrankis, nepakeista ir angliškai. Praverčia, kai jos ieškai arba kai ją kur nors praneši. Sakinys viršuje yra tai, kaip ją suprato ši programa.',
+  'failure.rawInDetails': 'Tikslūs įrankio žodžiai yra eilutės išsamioje informacijoje.',
   'failure.nothingToDo': 'Šiam atvejui KnightLoader neturi jokios svirties.',
   'failure.close': 'Užverti',
   'failure.botCheck.line': 'Svetainė nori prisijungusios sesijos, prieš atiduodama vaizdo įrašą.',

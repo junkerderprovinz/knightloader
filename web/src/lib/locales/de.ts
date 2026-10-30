@@ -2694,6 +2694,7 @@ export const de: Dict = {
   'failure.open': 'Warum das fehlgeschlagen ist',
   'failure.raw': 'Was das Backend gesagt hat',
   'failure.rawHint': 'Die Zeile, die das Werkzeug selbst ausgegeben hat, unverändert und auf Englisch. Nützlich, wenn du danach suchst oder sie irgendwo meldest. Der Satz darüber ist die Deutung dieser App.',
+  'failure.rawInDetails': 'Den genauen Wortlaut zeigen die Details der Zeile.',
   'failure.nothingToDo': 'In KnightLoader gibt es dafür keinen Hebel.',
   'failure.close': 'Schließen',
   'failure.botCheck.line': 'Die Seite will eine angemeldete Sitzung, bevor sie das Video herausgibt.',

@@ -2494,6 +2494,7 @@ export const sl: Dict = {
   'failure.open': 'Zakaj to ni uspelo',
   'failure.raw': 'Kaj je povedalo zaledje',
   'failure.rawHint': 'Vrstica, ki jo je izpisalo orodje samo, nespremenjena in v angleščini. Prav pride, kadar jo iščeš ali jo kje prijaviš. Stavek nad njo je razlaga te aplikacije.',
+  'failure.rawInDetails': 'Natančne besede orodja so v podrobnostih vrstice.',
   'failure.nothingToDo': 'V KnightLoaderju za to ni nobenega vzvoda.',
   'failure.close': 'Zapri',
   'failure.botCheck.line': 'Stran hoče prijavljeno sejo, preden izroči video.',

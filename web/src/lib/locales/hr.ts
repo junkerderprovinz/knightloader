@@ -2509,6 +2509,7 @@ export const hr: Dict = {
   'failure.open': 'Zašto ovo nije uspjelo',
   'failure.raw': 'Što je pozadina rekla',
   'failure.rawHint': 'Redak koji je alat sam ispisao, nepromijenjen i na engleskom. Koristan kad ga negdje tražiš ili prijavljuješ. Rečenica iznad je tumačenje ove aplikacije.',
+  'failure.rawInDetails': 'Točne riječi alata nalaze se u pojedinostima retka.',
   'failure.nothingToDo': 'Za ovo u KnightLoaderu nema poluge.',
   'failure.close': 'Zatvori',
   'failure.botCheck.line': 'Stranica traži prijavljenu sesiju prije nego što preda video.',

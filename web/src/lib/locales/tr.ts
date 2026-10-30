@@ -2494,6 +2494,7 @@ export const tr: Dict = {
   'failure.open': 'Bu neden başarısız oldu',
   'failure.raw': 'Arka ucun söylediği',
   'failure.rawHint': 'Aracın kendi yazdırdığı satır, değişmeden ve İngilizce olarak. Onu aratırken ya da bir yere bildirirken işine yarar. Yukarıdaki cümle, bu uygulamanın ondan çıkardığı anlamdır.',
+  'failure.rawInDetails': 'Aracın kendi sözleri satırın ayrıntılarında.',
   'failure.nothingToDo': 'KnightLoader’da bunu değiştirecek bir kol yok.',
   'failure.close': 'Kapat',
   'failure.botCheck.line': 'Site, videoyu vermeden önce oturum açmış bir oturum istiyor.',

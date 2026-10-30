@@ -2495,6 +2495,7 @@ export const sv: Dict = {
   'failure.open': 'Varför det här misslyckades',
   'failure.raw': 'Vad backenden sa',
   'failure.rawHint': 'Raden som verktyget självt skrev ut, oförändrad och på engelska. Bra att ha när du söker efter den eller rapporterar den någonstans. Meningen ovanför är den här appens tolkning av den.',
+  'failure.rawInDetails': 'Verktygets egna ord står i radens detaljer.',
   'failure.nothingToDo': 'Ingenting i KnightLoader ändrar det här.',
   'failure.close': 'Stäng',
   'failure.botCheck.line': 'Sajten vill ha en inloggad session innan den lämnar ut videon.',

@@ -2486,6 +2486,7 @@ export const ko: Dict = {
   'failure.open': '왜 실패했는지',
   'failure.raw': '백엔드가 한 말',
   'failure.rawHint': '도구가 직접 출력한 줄이며, 손대지 않은 영어 원문 그대로입니다. 그것으로 검색하거나 어딘가에 알릴 때 쓸모가 있습니다. 위의 문장은 이 앱이 그것을 해석한 것입니다.',
+  'failure.rawInDetails': '도구가 남긴 원래 문구는 행의 세부 정보에 있습니다.',
   'failure.nothingToDo': 'KnightLoader에는 이것을 바꿀 수단이 없습니다.',
   'failure.close': '닫기',
   'failure.botCheck.line': '이 사이트는 동영상을 넘겨주기 전에 로그인된 세션을 요구합니다.',

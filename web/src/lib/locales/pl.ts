@@ -2480,6 +2480,7 @@ export const pl: Dict = {
   'failure.open': 'Dlaczego to się nie udało',
   'failure.raw': 'Co powiedział backend',
   'failure.rawHint': 'Wiersz, który wypisało samo narzędzie, bez zmian i po angielsku. Przydaje się, gdy go wyszukujesz albo gdzieś zgłaszasz. Zdanie powyżej to odczytanie go przez tę aplikację.',
+  'failure.rawInDetails': 'Dokładne słowa narzędzia są w szczegółach wiersza.',
   'failure.nothingToDo': 'W KnightLoaderze nie ma na to żadnej dźwigni.',
   'failure.close': 'Zamknij',
   'failure.botCheck.line': 'Strona chce zalogowanej sesji, zanim wyda wideo.',

@@ -2491,6 +2491,7 @@ export const is: Dict = {
   'failure.open': 'Hvers vegna þetta mistókst',
   'failure.raw': 'Hvað bakendinn sagði',
   'failure.rawHint': 'Línan sem verkfærið sjálft gaf frá sér, óbreytt og á ensku. Hún kemur að gagni þegar þú leitar að henni eða tilkynnir hana einhvers staðar. Setningin hér fyrir ofan er túlkun þessa forrits á henni.',
+  'failure.rawInDetails': 'Nákvæm orð tólsins eru í upplýsingum línunnar.',
   'failure.nothingToDo': 'Ekkert í KnightLoader breytir þessu.',
   'failure.close': 'Loka',
   'failure.botCheck.line': 'Síðan vill innskráða setu áður en hún afhendir myndbandið.',

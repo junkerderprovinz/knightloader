@@ -2494,6 +2494,7 @@ export const ms: Dict = {
   'failure.open': 'Mengapa ini gagal',
   'failure.raw': 'Apa yang dikatakan backend',
   'failure.rawHint': 'Baris yang dikeluarkan oleh alat itu sendiri, tidak diubah dan dalam bahasa Inggeris. Berguna apabila anda mencarinya atau melaporkannya di suatu tempat. Ayat di atas ialah tafsiran aplikasi ini terhadapnya.',
+  'failure.rawInDetails': 'Kata-kata asal alat ada dalam butiran baris ini.',
   'failure.nothingToDo': 'Tiada apa-apa dalam KnightLoader yang mengubah yang satu ini.',
   'failure.close': 'Tutup',
   'failure.botCheck.line': 'Laman itu mahukan sesi yang sudah log masuk sebelum ia menyerahkan video itu.',
