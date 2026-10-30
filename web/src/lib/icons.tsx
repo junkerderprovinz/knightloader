@@ -53,8 +53,8 @@ export const IconCollector = (p: GlyphProps) => (
 /** The Downloads page: a bold arrow pointing down, with no disc round it, so
  *  it is not taken for IconDownload, which marks a transfer's state. */
 export const IconDownloadArrow = (p: GlyphProps) => (
-  <svg {...glyph([4.4, 2.75, 11.2, 12], p)}>
-    <path d="M10 2.75a1.1 1.1 0 0 1 1.1 1.1v6.6l2.35-2.35a1.1 1.1 0 0 1 1.56 1.56l-4.23 4.23a1.55 1.55 0 0 1-2.76 0L4.99 9.66a1.1 1.1 0 0 1 1.56-1.56L8.9 10.45v-6.6A1.1 1.1 0 0 1 10 2.75Z" />
+  <svg {...glyph([4.67, 2.75, 10.66, 11.47], p)}>
+    <path d="M10 2.75a1.1 1.1 0 0 1 1.1 1.1v6.6l2.35-2.35a1.1 1.1 0 0 1 1.56 1.56l-4.23 4.23a1.1 1.1 0 0 1-1.56 0L4.99 9.66a1.1 1.1 0 0 1 1.56-1.56L8.9 10.45v-6.6A1.1 1.1 0 0 1 10 2.75Z" />
   </svg>
 );
 
