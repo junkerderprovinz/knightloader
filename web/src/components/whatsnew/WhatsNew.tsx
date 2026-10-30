@@ -30,6 +30,16 @@ export function WhatsNew() {
   );
 }
 
+/** NewsGlyph is What's new's gift, with the green dot in front of it while a change is unseen. */
+export function NewsGlyph({ unseen }: { unseen: boolean }) {
+  return (
+    <>
+      {unseen && <span aria-hidden className="me-1.5 h-2 w-2 shrink-0 rounded-[var(--radius-pill)] bg-statusOkSolid" />}
+      <IconWhatsNew />
+    </>
+  );
+}
+
 /**
  * WhatsNewEntry is the way from the event list to the window, with the number
  * still unseen. It is drawn only while the window lists a change. `onOpen`
@@ -40,22 +50,19 @@ export function WhatsNewEntry({ onOpen }: { onOpen: () => void }) {
   const news = useWhatsNew();
   if (!news || news.changes.length === 0) return null;
   const unseen = news.unseen.length;
+  const title = newsTitle(t, news);
   return (
     <Button
       kind="secondary"
       className="w-full"
+      icon={<NewsGlyph unseen={unseen > 0} />}
+      label={unseen > 0 ? `${title} · ${unseen}` : title}
       onClick={() => {
         onOpen();
         openWhatsNew();
       }}
     >
-      {/* The dot stands in front of the glyph, so the glyph goes in by hand
-          rather than through `icon`, which Button always puts first. */}
-      {unseen > 0 && <span aria-hidden className="h-2 w-2 shrink-0 rounded-[var(--radius-pill)] bg-statusOkSolid" />}
-      <span className="glim-btn-glyph">
-        <IconWhatsNew />
-      </span>
-      <span className="min-w-0 flex-1 truncate text-start">{newsTitle(t, news)}</span>
+      <span className="min-w-0 flex-1 truncate text-start">{title}</span>
       {unseen > 0 && <span className="glim-num text-carbon-textSub">{unseen}</span>}
     </Button>
   );
