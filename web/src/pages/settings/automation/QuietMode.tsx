@@ -419,7 +419,7 @@ function PlaybackPanel({
             <>
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}
@@ -544,7 +544,7 @@ function ServerWindow({
         <>
           {/* A new server's form leads back to the tiles; a stored one has none behind it. */}
           {draft.id ? (
-            <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} disabled={busy} onClick={onClose} />
+            <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} disabled={busy} onClick={onClose} />
           ) : (
             <Button
               kind="secondary"

@@ -360,13 +360,13 @@ export function Accounts() {
                   so it mirrors in right-to-left languages. */}
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}
                 onClick={() => setConfirming(null)}
               />
-              <Button kind="ghost" icon={<IconTrash width={16} height={16} />} onClick={() => void doRemove(confirming)}>
+              <Button kind="secondary" icon={<IconTrash width={16} height={16} />} onClick={() => void doRemove(confirming)}>
                 {t('accounts.remove')}
               </Button>
             </>
@@ -568,7 +568,7 @@ function ServerDialog({
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <Button icon={<IconSave />} onClick={() => void save()} disabled={saving || !filled}>
             {saving ? t('accounts.saving') : t('accounts.save')}
           </Button>
@@ -747,7 +747,7 @@ function CredentialDialog({
                 }}
               />
             ) : (
-              <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+              <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
             )}
             <span className="flex-1" />
             {verifyResult && !verifyResult.ok && (

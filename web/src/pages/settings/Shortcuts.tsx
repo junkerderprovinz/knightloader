@@ -137,13 +137,13 @@ export function Shortcuts() {
             <>
               <span className="flex-1" />
               <Button
-                kind="ghost"
+                kind="secondary"
                 labelled
                 icon={<IconClose />}
                 title={t('common.cancel')}
                 onClick={() => setConfirmResetAll(false)}
               />
-              <Button kind="ghost" icon={<IconRefresh />} onClick={resetAll}>
+              <Button kind="secondary" icon={<IconRefresh />} onClick={resetAll}>
                 {t('settings.shortcuts.resetAllConfirm')}
               </Button>
             </>
@@ -268,7 +268,7 @@ function CaptureModal({
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
         </>
       }
     >

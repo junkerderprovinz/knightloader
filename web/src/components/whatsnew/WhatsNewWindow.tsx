@@ -111,7 +111,7 @@ function ReleaseCard({
                   />
                   <span className="min-w-0 flex-[1_1_9rem]">{sentenceOf(t, change)}</span>
                   {placed(change) && (
-                    <Button kind="ghost" icon={<IconForward />} className="ms-auto" onClick={() => onGo(routeOf(change.to[0]))}>
+                    <Button kind="secondary" icon={<IconForward />} className="ms-auto" onClick={() => onGo(routeOf(change.to[0]))}>
                       {t('whatsnew.go')}
                     </Button>
                   )}

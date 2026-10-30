@@ -191,7 +191,7 @@ export function TwoFactorCard({
             <span className="flex-1" />
             <Button
               icon={<IconClose />}
-              kind="ghost"
+              kind="secondary"
               onClick={() => {
                 setStep({ kind: 'idle' });
                 setCode('');
@@ -282,7 +282,7 @@ export function TwoFactorCard({
                 <span className="flex-1" />
                 <Button
                   icon={<IconClose />}
-                  kind="ghost"
+                  kind="secondary"
                   onClick={() => {
                     setDisarming(false);
                     setCode('');

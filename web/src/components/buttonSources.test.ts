@@ -45,3 +45,28 @@ it('gives every Button with a glyph words the label setting can hide', () => {
   }
   expect(unnamed).toEqual([]);
 });
+
+// A window's way out and its other answers are filled buttons (GlimStone rules
+// 3 and 15): a ghost button in a window's foot reads as a word, not a button.
+it('fills every button in a window foot', () => {
+  const ghosts: string[] = [];
+  for (const [file, text] of Object.entries(sources)) {
+    for (const m of text.matchAll(/\bfooter=\{/g)) {
+      let depth = 0;
+      let end = text.length;
+      for (let i = m.index + m[0].length - 1; i < text.length; i++) {
+        if (text[i] === '{') depth++;
+        else if (text[i] === '}' && --depth === 0) {
+          end = i;
+          break;
+        }
+      }
+      const foot = text.slice(m.index, end);
+      for (const b of foot.matchAll(/<Button\b/g)) {
+        if (!/kind="ghost"/.test(openingTag(foot, b.index + b[0].length).attrs)) continue;
+        ghosts.push(`${file.slice(3)}:${text.slice(0, m.index + b.index).split('\n').length}`);
+      }
+    }
+  }
+  expect(ghosts).toEqual([]);
+});

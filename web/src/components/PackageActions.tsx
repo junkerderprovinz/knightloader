@@ -186,7 +186,7 @@ export function PackageMoveDialog({
             {count} {t('select.count')}
           </span>
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <Button icon={<IconMerge />} onClick={() => onApply(name.trim())}>{t('pkg.merge')}</Button>
         </>
       }

@@ -343,7 +343,7 @@ function ConfirmRemove({
           {/* Cancel is the way out and carries the close glyph through the
               label engine; the answer is words that follow the switch. */}
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
           <Button kind="secondary" icon={erase ? <IconTrashFiles /> : <IconTrash />} onClick={() => onConfirm(erase)}>
             {t(erase ? 'remove.withFiles' : 'remove.fromList')}
           </Button>
@@ -441,7 +441,7 @@ export function TaskOptionsDialog({
           {/* The forward button ends the row, so the error goes first. */}
           {error && <span dir="auto" className="min-w-0 text-statusFail text-sm">{error}</span>}
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <Button icon={<IconSave />} onClick={apply}>{t('settings.save')}</Button>
         </>
       }
