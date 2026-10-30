@@ -244,6 +244,9 @@ var migrations = []string{
 	// Whether a link is a file a browser was downloading. Without it a restart
 	// hands the link to the ranking, which can send it to yt-dlp.
 	`ALTER TABLE tasks ADD COLUMN browser_file INTEGER NOT NULL DEFAULT 0`,
+	// Whether somebody removed the download from the list. The history keeps
+	// the row, but such a link may be added again.
+	`ALTER TABLE history ADD COLUMN removed INTEGER NOT NULL DEFAULT 0`,
 }
 
 // ErrNewerSchema is the refusal to open a database a newer build has written.

@@ -222,8 +222,9 @@ func registerTasks(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			files := r.URL.Query().Get("files") == "1"
 			// Through the bulk path, which takes along the set-aside rows of a
-			// yt-dlp link whose last shown row this was.
-			a.RemoveTasks([]string{r.PathValue("id")}, files)
+			// yt-dlp link whose last shown row this was, and lets the link be
+			// added again.
+			a.RemoveTasksUndoable([]string{r.PathValue("id")}, files)
 			w.WriteHeader(http.StatusNoContent)
 		})
 }

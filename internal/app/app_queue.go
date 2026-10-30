@@ -335,7 +335,9 @@ var bins sync.Map // token -> *bin
 // back after an update would be a nasty surprise.
 func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []string, token string) {
 	if deleteFiles {
-		return a.RemoveTasks(ids, true), ""
+		removed = a.RemoveTasks(ids, true)
+		a.forgetDownloaded(removed, true)
+		return removed, ""
 	}
 	// The set-aside rows RemoveTasks takes along go into the bin too, so an
 	// undo brings back the whole link.
@@ -360,6 +362,7 @@ func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []str
 	bins.Store(token, b)
 
 	removed = a.RemoveTasks(ids, false)
+	a.forgetDownloaded(removed, true)
 	// Only what the removal really took, in case another caller removed a row
 	// in between.
 	a.mu.Lock()
@@ -462,6 +465,11 @@ func (a *App) UndoRemove(token string) []string {
 	// Copied after dispatching, as in startTasks.
 	copies := a.copiesLocked(live)
 	a.mu.Unlock()
+	ids := make([]string, len(live))
+	for i, t := range live {
+		ids[i] = t.ID
+	}
+	a.forgetDownloaded(ids, false)
 	back := make([]string, 0, len(copies))
 	for i := range copies {
 		c := &copies[i]

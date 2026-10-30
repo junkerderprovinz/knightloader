@@ -57,6 +57,17 @@ func (a *App) downloadedVerdict(cand rules.Candidate) rules.Verdict {
 	}
 }
 
+// forgetDownloaded marks the history rows of downloads removed from the list by
+// hand, so their links can be added again, or with removed false lets an undo
+// take that back. Removing a download is somebody saying they are done with
+// it; a download retention or an arr app took out of the list stays a
+// duplicate.
+func (a *App) forgetDownloaded(ids []string, removed bool) {
+	if err := a.Store.MarkHistoryRemoved(ids, removed); err != nil {
+		log.Printf("the download history could not record a removal: %v", err)
+	}
+}
+
 // historyNeedsSize reports whether the history holds a file of the
 // candidate's name and only its unknown size decides whether this is that
 // file (see dedupe.Set.NeedsSize).
@@ -131,6 +142,9 @@ func (d *downloadedIndex) build(a *App, p dedupe.Policy) bool {
 	d.finished = make(map[string]time.Time, len(entries))
 	for i := len(entries) - 1; i >= 0; i-- {
 		e := entries[i]
+		if e.Removed {
+			continue
+		}
 		d.set.Keep(dedupe.Entry{ID: e.TaskID, URL: dedupeURL(e.URL), Name: e.Name, Size: e.Size})
 		d.finished[e.TaskID] = e.FinishedAt
 	}

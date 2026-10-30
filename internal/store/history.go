@@ -13,6 +13,7 @@ package store
 // column that is right only sometimes would mislead.
 
 import (
+	"slices"
 	"strings"
 	"time"
 
@@ -38,6 +39,9 @@ type HistoryEntry struct {
 	// long the download took.
 	CreatedAt  time.Time `json:"createdAt"`
 	FinishedAt time.Time `json:"finishedAt"`
+	// Removed is set once somebody removed the download from the list, which
+	// lets the link be added again (see App.downloadedVerdict).
+	Removed bool `json:"removed,omitempty"`
 }
 
 // WithoutCredentials is e as a caller gets it that may not see the credentials
@@ -105,7 +109,7 @@ func (s *Store) HistoryRevision() uint64 { return s.historyRev.Load() }
 // History reports what this instance has fetched, newest first. A limit of
 // zero or less returns everything, as an export wants.
 func (s *Store) History(limit int) ([]HistoryEntry, error) {
-	q := `SELECT ` + historyColumns + ` FROM history ORDER BY finished_at DESC, rowid DESC`
+	q := `SELECT ` + historyColumns + `,removed FROM history ORDER BY finished_at DESC, rowid DESC`
 	args := []any{}
 	if limit > 0 {
 		q += ` LIMIT ?`
@@ -122,7 +126,7 @@ func (s *Store) History(limit int) ([]HistoryEntry, error) {
 		var e HistoryEntry
 		var created, finished int64
 		if err := rows.Scan(&e.TaskID, &e.URL, &e.Name, &e.Package, &e.Host,
-			&e.Resolver, &e.Size, &created, &finished); err != nil {
+			&e.Resolver, &e.Size, &created, &finished, &e.Removed); err != nil {
 			return nil, err
 		}
 		e.CreatedAt = time.UnixMilli(created)
@@ -130,6 +134,26 @@ func (s *Store) History(limit int) ([]HistoryEntry, error) {
 		out = append(out, e)
 	}
 	return out, rows.Err()
+}
+
+// MarkHistoryRemoved records that the downloads ids were removed from the list
+// by hand, or with removed false that an undo put them back.
+func (s *Store) MarkHistoryRemoved(ids []string, removed bool) error {
+	defer s.historyRev.Add(1)
+	// In slices, since a statement takes a limited number of values and a
+	// selection can be the whole list.
+	for chunk := range slices.Chunk(ids, 500) {
+		args := make([]any, 0, len(chunk)+1)
+		args = append(args, removed)
+		for _, id := range chunk {
+			args = append(args, id)
+		}
+		if _, err := s.db.Exec(
+			`UPDATE history SET removed=? WHERE id IN (?`+strings.Repeat(",?", len(chunk)-1)+`)`, args...); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // TrimHistory keeps the newest max entries and deletes the rest, reporting how
