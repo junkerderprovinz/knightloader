@@ -79,15 +79,13 @@ function Bar() {
       onMouseUp={() => (pressed.current = false)}
       onDoubleClick={toggle}
     >
-      <div className="ms-auto flex h-full shrink-0">
-        <WindowButton label={t('window.minimise')} icon={<IconWindowMinimise />} onPress={minimiseWindow} />
-        <WindowButton
-          label={maximised ? t('window.restore') : t('window.maximise')}
-          icon={maximised ? <IconWindowRestore /> : <IconWindowMaximise />}
-          onPress={toggleMaximiseWindow}
-        />
-        <WindowButton label={t('window.close')} icon={<IconClose />} onPress={closeWindow} />
-      </div>
+      <WindowButton label={t('window.minimise')} icon={<IconWindowMinimise />} onPress={minimiseWindow} />
+      <WindowButton
+        label={maximised ? t('window.restore') : t('window.maximise')}
+        icon={maximised ? <IconWindowRestore /> : <IconWindowMaximise />}
+        onPress={toggleMaximiseWindow}
+      />
+      <WindowButton label={t('window.close')} icon={<IconClose />} onPress={closeWindow} />
     </header>
   );
 }
@@ -112,9 +110,7 @@ function WindowButton({ label, icon, onPress }: { label: string; icon: ReactNode
         {...hover}
         onClick={() => void onPress().catch(() => {})}
       >
-        <span className="glim-btn-icon glim-window-square motion-safe:group-active:scale-[.97]">
-          <span className="glim-btn-glyph">{icon}</span>
-        </span>
+        <span className="glim-window-square motion-safe:group-active:scale-[.97]">{icon}</span>
       </button>
       {tip.node}
     </>
