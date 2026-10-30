@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FocusEvent, type KeyboardEvent, type RefObject } from 'react';
 import type { Task } from '../lib/api';
 import type { ListRow, RowWindow } from './listRows';
+import type { Folded } from '../lib/selectionReach';
 
 // Keyboard navigation for the windowed download list. Only the rows near the
 // viewport are in the DOM (listRows.ts), so the cursor is a row key rather
@@ -62,7 +63,7 @@ export function useListKeyboard({
    */
   selectUnit: (kind: 'task' | 'package', key: string, ids: string[], e: SelectMods) => void;
   /** The folded set and its writers, shared with the twisty and the menu. */
-  collapsed: Set<string>;
+  collapsed: Folded;
   collapse: (names: string[]) => void;
   expand: (names: string[]) => void;
   /** Opens the properties panel without selecting; see Enter below. */
