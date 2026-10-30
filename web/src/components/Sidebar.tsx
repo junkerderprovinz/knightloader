@@ -15,7 +15,7 @@ import { setEventsPanelOpen, useUnreadEvents } from '../lib/eventLog';
 import { setHidden, useHidden } from '../lib/sidebarPrefs';
 import { seedLabelModes, useLabelMode, type LabelMode } from '../lib/labelModes';
 import { Button, IconTile, Modal, useTooltip } from './ui';
-import { usePhoneLayout } from '../lib/phoneLayout';
+import { useNarrowBar, usePhoneLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
@@ -226,7 +226,7 @@ export function Sidebar() {
   const hideInstances = useHidden('instances');
   const hideOverview = useHidden('overview');
   const mode = useLabelMode('sidebar');
-  const barMode = useLabelMode('bottombar');
+  const barMode = useBarMode();
   const egg = useDrawAndStrike();
   useEffect(() => {
     fetchSettings()
@@ -391,6 +391,12 @@ function useBarFit(bar: RefObject<HTMLElement | null>, words: string): void {
   }, [bar, words]);
 }
 
+/** useBarMode is the bottom bar's label setting, glyphs alone where the bar is too narrow for words. */
+export function useBarMode(): LabelMode {
+  const mode = useLabelMode('bottombar');
+  return useNarrowBar() ? 'glyph' : mode;
+}
+
 /**
  * BarBody is a segment's glyph over its word, or either alone, as the label
  * mode says. A phone has no pointer to hover with, so in `hover` mode only the
@@ -428,7 +434,7 @@ export function BarBody({
   return (
     <>
       {glyph && (
-        <span className="relative flex [&>svg]:h-5 [&>svg]:w-5">
+        <span className="relative flex [&>svg]:h-5 [&>svg]:w-5 max-[45rem]:[&>svg]:h-7 max-[45rem]:[&>svg]:w-7">
           {icon}
           {count}
         </span>
