@@ -77,6 +77,7 @@ import {
   IconKey,
   IconLatest,
   IconMore,
+  IconMove,
   IconMoveDown,
   IconMoveUp,
   IconPause,
@@ -1361,7 +1362,7 @@ export function ListMenu({
     organise.push({
       id: 'movePackage',
       label: t('pkg.moveTitle'),
-      icon: <IconFolder width={14} height={14} />,
+      icon: <IconMove width={14} height={14} />,
       onSelect: () => setMovePkg(chosen),
     });
 
