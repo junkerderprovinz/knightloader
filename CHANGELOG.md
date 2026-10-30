@@ -73,6 +73,33 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The Enabled column is gone from the link collector.** It was hardly used.
   Enable and Disable are still in the right-click menu of a link or package,
   and a disabled link keeps its mark in the name.
+- **Every choice under Labels and Row height shows a symbol before its name,**
+  as Theme, Corners and Animation already do. The four label modes and the
+  three row heights each have their own.
+- **Every button shows a symbol before its name.** 130 buttons had only words,
+  among them Save, Cancel, Test and Undo. They now show the symbol the other
+  GlimStone apps use for the same thing, so the Labels setting reaches them
+  too.
+- **A few symbols change so that each one means one thing.** Try again,
+  Restart and Refresh get an arrow of their own, and the old arrow stays for
+  putting something back to its default. Import and Export show a file, Done
+  and Approve a thumbs up, Refuse a thumbs down, and the drag handle two
+  columns of dots. Move to a package shows an arrow instead of a folder.
+  Check for updates shows a cloud, which gains a tick when the app is up to
+  date. The New button on the Version card shows the What's new gift, with the
+  green dot in front of it while something is unseen.
+- **The Help page names GlimStone 3.7.1** as the design the app follows.
+- **Version numbers show without a leading "v",** on the Version card and on
+  the browser tools card alike. The links still lead to the release.
+- **On a narrow phone the bottom bar shows its symbols alone,** a size larger,
+  and each still carries its page's name for screen readers and in its tip.
+  Below 720 pixels a fifth of the bar has no room for a page name in many
+  languages.
+- **While you customise the overview, its cards wiggle gently** to show that
+  they can be moved. The one under the pointer holds still, and nothing moves
+  with animations off.
+- **Tab stays inside an open window,** and closing the window puts the focus
+  back on the button that opened it.
 
 ### Fixed
 

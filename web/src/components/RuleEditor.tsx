@@ -5,7 +5,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 // file-type shorthand a condition offers.
 import type { Category as Drawer } from '../lib/api';
 import { en } from '../lib/locales/en';
-import { IconAdd, IconFolder, IconTrash } from '../lib/icons';
+import { IconAdd, IconCode, IconFolder, IconTrash } from '../lib/icons';
 import { Button, FIELD_BOX, IconBadge, InfoBubble, TextInput } from './ui';
 import { Dropdown } from './Dropdown';
 import { FolderPicker } from './FolderPicker';
@@ -388,6 +388,7 @@ function TemplateInput({
           document.body,
         )}
       <Button
+        icon={<IconCode />}
         kind="secondary"
         className="shrink-0"
         onClick={(e) => {

@@ -149,7 +149,7 @@ export function QueueBar() {
                 onClick={() => setStopCost(null)}
                 disabled={stopping}
               />
-              <Button kind="secondary" disabled={stopping} onClick={() => void confirmStop()}>
+              <Button kind="secondary" icon={<IconStop />} disabled={stopping} onClick={() => void confirmStop()}>
                 {stopping ? t('settings.system.acting') : t('queue.hardStopConfirmProceed')}
               </Button>
             </>

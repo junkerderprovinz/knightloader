@@ -14,7 +14,7 @@ import {
 import { BrandPicker, type Brand } from '../../../components/BrandPicker';
 import { Logo, Monogram } from '../../../components/HosterIcon';
 import { TestButton } from '../../../components/TestButton';
-import { IconAdd, IconBack, IconClose, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconBack, IconCheck, IconClose, IconPower, IconSave, IconTrash } from '../../../lib/icons';
 import { withBase } from '../../../lib/basePath';
 import { MEDIA_SERVERS } from '../../../lib/mediaServers';
 import { RATE_UNITS } from '../../../lib/format';
@@ -274,6 +274,7 @@ function PlaybackPanel({
           </p>
           {active && !waived && (
             <Button
+              icon={<IconPower />}
               kind="secondary"
               title={t('settings.playback.waiveHint')}
               disabled={busy}
@@ -337,6 +338,7 @@ function PlaybackPanel({
                     <span className="shrink-0 text-meta text-carbon-textMuted">{KIND_NAMES[s.kind]}</span>
                   </button>
                   <TestButton
+                    icon={<IconCheck />}
                     label={t('settings.playback.test')}
                     busyLabel={t('settings.playback.testRunning')}
                     words={{ ok: t('test.connected'), fail: t('test.failed') }}
@@ -425,6 +427,7 @@ function PlaybackPanel({
                 onClick={() => setConfirming(null)}
               />
               <Button
+                icon={<IconTrash />}
                 kind="secondary"
                 disabled={busy}
                 onClick={() => {
@@ -553,7 +556,7 @@ function ServerWindow({
             />
           )}
           <span className="flex-1" />
-          <Button disabled={busy || draft.url.trim() === ''} onClick={onSave}>
+          <Button icon={<IconSave />} disabled={busy || draft.url.trim() === ''} onClick={onSave}>
             {t('settings.playback.save')}
           </Button>
         </>

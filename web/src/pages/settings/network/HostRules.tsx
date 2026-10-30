@@ -9,7 +9,7 @@ import {
   ToggleRow,
 } from '../../../components/ui';
 import { Dropdown, type DropdownOption } from '../../../components/Dropdown';
-import { IconAdd, IconBolt, IconDownload, IconRefresh, IconTrash, IconWarning } from '../../../lib/icons';
+import { IconAdd, IconBolt, IconDownload, IconRetry, IconTrash, IconWarning } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
   fetchAccountCatalogue,
@@ -343,7 +343,7 @@ function HostRuleRow({
               since it means "no opinion", not "none". */}
           <Summary value={rule.maxPerHost} icon={<IconDownload width={12} height={12} />} />
           <Summary value={rule.chunks} icon={<IconBolt width={12} height={12} />} />
-          <Summary value={never ? 0 : retry.tries} icon={<IconRefresh width={12} height={12} />} />
+          <Summary value={never ? 0 : retry.tries} icon={<IconRetry width={12} height={12} />} />
         </button>
         <div className="flex items-center gap-1.5">
           <IconBadge

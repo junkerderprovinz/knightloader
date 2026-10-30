@@ -29,7 +29,7 @@ import {
   type UpdateCheck,
   type YtdlpLatest,
 } from '../../../lib/api';
-import { IconCheck, IconClose, IconDownload, IconRefresh } from '../../../lib/icons';
+import { IconClose, IconRefresh, IconUpdate, IconUpdateAvailable, IconUpToDate } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useResource } from '../../../lib/useResource';
 import { useDraft } from '../context';
@@ -52,10 +52,10 @@ type Face = { label: string; icon: ReactNode; verdict?: ButtonVerdict };
 
 /** The check button's face for an answer that has come back, or for none yet. */
 function checkFace(t: Translate, checked: boolean | null, newer: boolean, known = true): Face {
-  if (checked === null || !known) return { label: t('settings.look.updatesCheck'), icon: <IconRefresh /> };
+  if (checked === null || !known) return { label: t('settings.look.updatesCheck'), icon: <IconUpdate /> };
   if (!checked) return { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' };
-  if (newer) return { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconDownload />, verdict: 'warn' };
-  return { label: t('settings.info.upToDate'), icon: <IconCheck />, verdict: 'ok' };
+  if (newer) return { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconUpdateAvailable />, verdict: 'warn' };
+  return { label: t('settings.info.upToDate'), icon: <IconUpToDate />, verdict: 'ok' };
 }
 
 /** CheckButton asks and shows the answer on itself, and says it once more to a screen reader. */
@@ -77,7 +77,7 @@ function CheckButton({
     <>
       <Button
         kind="secondary"
-        icon={checking ? <IconRefresh /> : face.icon}
+        icon={checking ? <IconUpdate /> : face.icon}
         verdict={checking ? undefined : face.verdict}
         shake={shake}
         disabled={checking || disabled}
@@ -520,7 +520,7 @@ function YtdlpUpdates() {
             sets it, so the row mirrors in right-to-left languages. */}
         <div className="flex flex-wrap items-center justify-end gap-3">
           {managed && (
-            <Button kind="ghost" disabled={busy} onClick={() => void onRevert()}>
+            <Button kind="ghost" icon={<IconRefresh />} disabled={busy} onClick={() => void onRevert()}>
               {reverting ? t('settings.resolvers.toolsReverting') : t('settings.resolvers.toolsRevert')}
             </Button>
           )}
@@ -528,7 +528,7 @@ function YtdlpUpdates() {
           {/* Only after a check found a tag, so nobody fetches a version they
               were not shown. */}
           {latest?.checked && latest.tag && (
-            <Button kind="secondary" disabled={busy} onClick={() => void onFetch()}>
+            <Button kind="secondary" icon={<IconUpdate />} disabled={busy} onClick={() => void onFetch()}>
               {fetching ? t('settings.resolvers.toolsFetching') : t('settings.resolvers.toolsFetch')}
             </Button>
           )}
@@ -678,7 +678,7 @@ function JDUpdates() {
             />
             {/* Only after a check found an update, as with yt-dlp. */}
             {(restarting || (checked && available)) && (
-              <Button kind="secondary" disabled={busy} onClick={() => void onUpdate()}>
+              <Button kind="secondary" icon={<IconUpdate />} disabled={busy} onClick={() => void onUpdate()}>
                 {restarting ? t('settings.look.jdUpdating') : t('settings.look.jdUpdate')}
               </Button>
             )}

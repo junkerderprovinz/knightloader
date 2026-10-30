@@ -13,7 +13,7 @@ import {
 } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { TestButton } from '../../../components/TestButton';
-import { IconAdd, IconClose, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconClose, IconSave, IconSendTest, IconTrash } from '../../../lib/icons';
 import { fmtUnit } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
@@ -258,6 +258,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                   </span>
                 </button>
                 <TestButton
+                  icon={<IconSendTest />}
                   label={t('settings.mediahook.test')}
                   busyLabel={t('settings.mediahook.testRunning')}
                   words={{ ok: t('test.sent'), fail: t('test.failed') }}
@@ -313,7 +314,11 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 disabled={busy}
                 onClick={() => setDraft(null)}
               />
-              <Button disabled={busy || draft.id.trim() === '' || draft.url.trim() === ''} onClick={save}>
+              <Button
+                icon={<IconSave />}
+                disabled={busy || draft.id.trim() === '' || draft.url.trim() === ''}
+                onClick={save}
+              >
                 {t('settings.mediahook.save')}
               </Button>
             </>
@@ -443,6 +448,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 onClick={() => setConfirming(null)}
               />
               <Button
+                icon={<IconTrash />}
                 kind="secondary"
                 disabled={busy}
                 onClick={() => {

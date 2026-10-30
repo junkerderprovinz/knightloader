@@ -13,7 +13,7 @@ import {
 import { Dropdown } from '../../components/Dropdown';
 import { Routes, TORRENT_ROUTE, routesOf, type RouteTest } from '../../components/pictures/Routes';
 import { TestButton } from '../../components/TestButton';
-import { IconAdd, IconClose, IconMoveDown, IconMoveUp, IconNetwork, IconTrash } from '../../lib/icons';
+import { IconAdd, IconClose, IconImport, IconMoveDown, IconMoveUp, IconNetwork, IconTrash } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { fmtUnit } from '../../lib/format';
 import { useT } from '../../lib/i18n';
@@ -224,7 +224,7 @@ export function ConnectionsCard({ hue }: { hue: number }) {
         hint={t('settings.modules.about.connections')}
         titleRight={
           <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
-            <Button kind="secondary" onClick={() => setImporting(true)}>
+            <Button kind="secondary" icon={<IconImport />} onClick={() => setImporting(true)}>
               {t('settings.connections.import')}
             </Button>
             <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
@@ -595,11 +595,12 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
           <Button kind="ghost" labelled icon={<IconClose />} title={t('settings.connections.cancel')} onClick={onClose} />
           {/* The spacer puts the advancing button at the end of the row. */}
           {result ? (
-            <Button disabled={ready === 0} onClick={() => onAdd(result.entries)}>
+            <Button icon={<IconAdd />} disabled={ready === 0} onClick={() => onAdd(result.entries)}>
               {t('settings.connections.importAdd', { n: ready })}
             </Button>
           ) : (
             <Button
+              icon={<IconImport />}
               shake={shake}
               disabled={busy || text.trim() === ''}
               onClick={read}

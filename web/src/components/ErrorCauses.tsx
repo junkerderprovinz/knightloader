@@ -7,7 +7,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { Button } from './ui';
 import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
 import { reasonKey } from './columns';
-import { IconExpand, IconRefresh } from '../lib/icons';
+import { IconExpand, IconRetry } from '../lib/icons';
 
 export interface Cause {
   key: string;
@@ -86,7 +86,7 @@ export function ErrorCauses({
         <Button
           kind="secondary"
           className="shrink-0 gap-1.5 px-2.5 text-xs"
-          icon={<IconRefresh width={14} height={14} />}
+          icon={<IconRetry width={14} height={14} />}
           title={t('downloads.retryByCause')}
           aria-label={glyph ? t('downloads.retryByCause') : undefined}
           aria-haspopup="menu"
@@ -108,7 +108,7 @@ export function ErrorCauses({
                   id: c.key || 'other',
                   label: c.label,
                   detail: String(c.count),
-                  icon: <IconRefresh width={14} height={14} />,
+                  icon: <IconRetry width={14} height={14} />,
                   onSelect: () => retry(c),
                 })),
               },
@@ -126,7 +126,7 @@ export function ErrorCauses({
           // No hue: one verb over several groups should read as one control.
           kind="secondary"
           className="gap-1.5 px-2.5 text-xs"
-          icon={<IconRefresh width={14} height={14} />}
+          icon={<IconRetry width={14} height={14} />}
           title={t('downloads.retryCause', { n: c.count, reason: c.label })}
           onClick={() => retry(c)}
         >

@@ -12,7 +12,7 @@ import { QRCode } from '../../../components/QRCode';
 import { ApiError, confirmTOTP, disableTOTP, setupTOTP, type TOTPEnrolment } from '../../../lib/api';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
-import { IconCheckDrawn, IconCopy, IconShieldOn } from '../../../lib/icons';
+import { IconCheckDrawn, IconClose, IconConfirm, IconCopy, IconShieldOff, IconShieldOn } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { SettingRow } from '../controls';
 
@@ -190,6 +190,7 @@ export function TwoFactorCard({
           <div className="flex items-center gap-3">
             <span className="flex-1" />
             <Button
+              icon={<IconClose />}
               kind="ghost"
               onClick={() => {
                 setStep({ kind: 'idle' });
@@ -200,6 +201,7 @@ export function TwoFactorCard({
               {t('common.cancel')}
             </Button>
             <Button
+              icon={<IconShieldOn />}
               shake={shake}
               kind="secondary"
               disabled={busy || code.trim() === ''}
@@ -239,7 +241,7 @@ export function TwoFactorCard({
               {copied ? t('common.copied') : t('common.copy')}
             </Button>
             <span className="flex-1" />
-            <Button kind="secondary" onClick={() => setStep({ kind: 'idle' })}>
+            <Button kind="secondary" icon={<IconConfirm />} onClick={() => setStep({ kind: 'idle' })}>
               {t('auth.twoFactor.codesAck')}
             </Button>
           </div>
@@ -256,7 +258,7 @@ export function TwoFactorCard({
           )}
           {!disarming ? (
             <div>
-              <Button kind="secondary" onClick={() => setDisarming(true)}>
+              <Button kind="secondary" icon={<IconShieldOff />} onClick={() => setDisarming(true)}>
                 {t('auth.twoFactor.disable')}
               </Button>
             </div>
@@ -279,6 +281,7 @@ export function TwoFactorCard({
               <div className="flex items-center gap-3">
                 <span className="flex-1" />
                 <Button
+                  icon={<IconClose />}
                   kind="ghost"
                   onClick={() => {
                     setDisarming(false);
@@ -289,6 +292,7 @@ export function TwoFactorCard({
                   {t('common.cancel')}
                 </Button>
                 <Button
+                  icon={<IconShieldOff />}
                   shake={shake}
                   kind="secondary"
                   disabled={busy || code.trim() === ''}

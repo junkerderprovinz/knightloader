@@ -19,7 +19,7 @@ import {
   type TestCaptchaResult,
 } from '../lib/api';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
-import { IconCaptchaTimer, IconClose, IconRefresh } from '../lib/icons';
+import { IconCaptchaTimer, IconClose, IconEmpty, IconForward, IconRetry, IconStopAsking } from '../lib/icons';
 import { isDesktop } from '../lib/desktop';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
@@ -469,14 +469,14 @@ export function CaptchaModal() {
           <Button
             data-new="captcha-refresh"
             kind="secondary"
-            icon={<IconRefresh width={16} height={16} />}
+            icon={<IconRetry width={16} height={16} />}
             onClick={handleRefresh}
             disabled={busy}
           >
             {t('captcha.refresh')}
           </Button>
           {showContinue && (
-            <Button kind="primary" onClick={handleContinue} disabled={continueDisabled}>
+            <Button kind="primary" icon={<IconForward />} onClick={handleContinue} disabled={continueDisabled}>
               {t('captcha.continue')}
             </Button>
           )}
@@ -552,7 +552,7 @@ export function CaptchaModal() {
           <div className="flex items-center gap-3">
             <span className="text-meta text-carbon-textMuted">{t('captcha.clickCount', { n: points.length })}</span>
             {points.length > 0 && (
-              <Button kind="ghost" onClick={() => setPoints([])}>
+              <Button kind="ghost" icon={<IconEmpty />} onClick={() => setPoints([])}>
                 {t('captcha.clickClear')}
               </Button>
             )}
@@ -605,10 +605,20 @@ export function CaptchaModal() {
           Two actions are two buttons, with no fold or menu to open first. */}
       {!current.test && (
         <div className="flex flex-wrap items-center gap-2">
-          <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-hoster')}>
+          <Button
+            kind="secondary"
+            icon={<IconStopAsking />}
+            disabled={busy}
+            onClick={() => handleSkip('blacklist-hoster')}
+          >
             {t('captcha.blockHoster', { host: current.host || '?' })}
           </Button>
-          <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-everywhere')}>
+          <Button
+            kind="secondary"
+            icon={<IconStopAsking />}
+            disabled={busy}
+            onClick={() => handleSkip('blacklist-everywhere')}
+          >
             {t('captcha.blockEverywhere')}
           </Button>
         </div>

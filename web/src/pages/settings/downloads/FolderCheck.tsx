@@ -82,12 +82,12 @@ export function FolderCheck() {
 
   // The button shows the answer on itself: every folder usable, one that is
   // not, or a check that could not run. The rows below say which and why.
-  const face: { label: string; icon?: ReactNode; verdict?: ButtonVerdict } = running
-    ? { label: t('settings.owner.running') }
+  const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } = running
+    ? { label: t('settings.owner.running'), icon: <IconCheck /> }
     : error
       ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
       : !report
-        ? { label: t('settings.owner.run') }
+        ? { label: t('settings.owner.run'), icon: <IconCheck /> }
         : report.folders.some(unusable)
           ? { label: t('settings.diagnostics.verdict.fail'), icon: <IconClose />, verdict: 'fail' }
           : { label: t('settings.diagnostics.verdict.ok'), icon: <IconCheck />, verdict: 'ok' };

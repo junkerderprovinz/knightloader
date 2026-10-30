@@ -28,7 +28,7 @@ import {
   type Rule,
   type RuleSet,
 } from '../../components/RuleEditor';
-import { IconAdd, IconCopy, IconMoveDown, IconMoveUp, IconTrash } from '../../lib/icons';
+import { IconAdd, IconCopy, IconExport, IconImport, IconMoveDown, IconMoveUp, IconTrash } from '../../lib/icons';
 import type { Category as Drawer } from '../../lib/api';
 import { rejectionReason } from '../../lib/rejectionReason';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -322,10 +322,20 @@ function RuleCards() {
             <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
               {rules.length > 0 && <PictureSwitch view={view} onView={setView} />}
               {/* One bubble per button, since Import and Export do different things. */}
-              <Button kind="secondary" hint={t('settings.rules.importTitle')} onClick={() => fileInput.current?.click()}>
+              <Button
+                kind="secondary"
+                icon={<IconImport />}
+                hint={t('settings.rules.importTitle')}
+                onClick={() => fileInput.current?.click()}
+              >
                 {t('settings.rules.import')}
               </Button>
-              <Button kind="secondary" hint={t('settings.rules.exportTitle')} onClick={exportJSON}>
+              <Button
+                kind="secondary"
+                icon={<IconExport />}
+                hint={t('settings.rules.exportTitle')}
+                onClick={exportJSON}
+              >
                 {t('settings.rules.export')}
               </Button>
               <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>

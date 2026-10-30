@@ -21,7 +21,7 @@ import {
 } from '../../../lib/api';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { IconAdd, IconClose, IconKey, IconPencil, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconClose, IconKey, IconKeyRevoke, IconPencil, IconSave, IconTrash } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { SettingRow } from '../controls';
 
@@ -254,6 +254,7 @@ export function PasskeyCard({
             <div className="flex items-center gap-3">
               <span className="flex-1" />
               <Button
+                icon={<IconClose />}
                 kind="ghost"
                 disabled={busy}
                 onClick={() => {
@@ -264,6 +265,7 @@ export function PasskeyCard({
                 {t('common.cancel')}
               </Button>
               <Button
+                icon={<IconAdd />}
                 shake={shake}
                 kind="secondary"
                 disabled={busy}
@@ -292,6 +294,7 @@ export function PasskeyCard({
                 onClick={() => setRenaming(null)}
               />
               <Button
+                icon={<IconSave />}
                 kind="primary"
                 disabled={busy || renameTo.trim() === ''}
                 onClick={() => void saveName()}
@@ -329,7 +332,12 @@ export function PasskeyCard({
                 disabled={busy}
                 onClick={() => setPendingRemove(null)}
               />
-              <Button kind="primary" disabled={busy} onClick={() => void remove(pendingRemove)}>
+              <Button
+                kind="primary"
+                icon={<IconKeyRevoke />}
+                disabled={busy}
+                onClick={() => void remove(pendingRemove)}
+              >
                 {t('auth.passkey.remove')}
               </Button>
             </>

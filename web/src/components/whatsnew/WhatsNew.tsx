@@ -4,6 +4,7 @@ import { closeWhatsNew, openWhatsNew, startWhatsNew, useWhatsNew, useWhatsNewOpe
 import { Button } from '../ui';
 import { NewDots } from './NewDots';
 import { WhatsNewWindow, newsTitle } from './WhatsNewWindow';
+import { IconWhatsNew } from '../../lib/icons';
 
 /**
  * WhatsNew is everything an update shows, mounted once in app/Layout.tsx: the
@@ -48,7 +49,12 @@ export function WhatsNewEntry({ onOpen }: { onOpen: () => void }) {
         openWhatsNew();
       }}
     >
+      {/* The dot stands in front of the glyph, so the glyph goes in by hand
+          rather than through `icon`, which Button always puts first. */}
       {unseen > 0 && <span aria-hidden className="h-2 w-2 shrink-0 rounded-[var(--radius-pill)] bg-statusOkSolid" />}
+      <span className="glim-btn-glyph">
+        <IconWhatsNew />
+      </span>
       <span className="min-w-0 flex-1 truncate text-start">{newsTitle(t, news)}</span>
       {unseen > 0 && <span className="glim-num text-carbon-textSub">{unseen}</span>}
     </Button>

@@ -37,7 +37,11 @@ vi.mock('../lib/api', async (importOriginal) => ({
   restartTasks: vi.fn(async () => new Response('{}')),
 }));
 vi.mock('../lib/useTasks', () => ({ useTasks: vi.fn(() => ({})) }));
-vi.mock('../lib/phoneLayout', () => ({ usePhoneLayout: vi.fn(() => false), useTabletLayout: vi.fn(() => false) }));
+vi.mock('../lib/phoneLayout', () => ({
+  usePhoneLayout: vi.fn(() => false),
+  useTabletLayout: vi.fn(() => false),
+  useNarrowBar: vi.fn(() => false),
+}));
 // The cards that read the server on their own are stood in for by their names.
 vi.mock('../components/SpeedGraph', () => ({ SpeedGraph: () => <div>speed graph</div> }));
 vi.mock('../components/VolumeCard', () => ({ VolumeCard: () => <div>volume card</div> }));

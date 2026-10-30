@@ -21,6 +21,7 @@ let root: Root;
 let host: HTMLDivElement;
 let locked: boolean;
 let hide: { accounts: boolean; instances: boolean; overview?: boolean };
+let narrow: boolean;
 
 const reply = (body: unknown) =>
   new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -28,8 +29,13 @@ const reply = (body: unknown) =>
 beforeEach(() => {
   locked = false;
   hide = { accounts: false, instances: false };
-  // A phone's width, where the rail is the bar.
-  vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener() {}, removeEventListener() {} }));
+  narrow = false;
+  // A phone's width, where the rail is the bar, and below 45rem only when a test asks.
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: !query.includes('44.99rem') || narrow,
+    addEventListener() {},
+    removeEventListener() {},
+  }));
   vi.stubGlobal('WebSocket', class {
     close() {}
     send() {}
@@ -104,6 +110,13 @@ it('offers Sign out in the sheet once the instance has a password', async () => 
   await act(async () => (host.querySelector('nav > button') as HTMLButtonElement).click());
   const buttons = [...document.querySelectorAll('[role="dialog"] button')].map((b) => b.textContent);
   expect(buttons).toContain('Sign out');
+});
+
+it('shows the glyphs alone below 45rem and names each place for a screen reader', async () => {
+  narrow = true;
+  expect(await show()).toEqual(['', '', '', '', '']);
+  const names = [...host.querySelectorAll('nav > a, nav > button')].map((s) => s.getAttribute('aria-label'));
+  expect(names).toEqual(['Overview', 'Downloads', 'Link collector', 'Settings', 'More']);
 });
 
 it('leaves the overview out once it is switched off', async () => {

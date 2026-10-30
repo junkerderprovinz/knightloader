@@ -5,7 +5,16 @@ import { useToast } from '../lib/toast';
 import { Button, Modal } from './ui';
 import { SuggestField } from './SuggestField';
 import type { MenuGroup, MenuItem } from './ContextMenu';
-import { IconClose, IconFirst, IconFolder, IconLatest, IconMoveDown, IconMoveUp, IconPriority } from '../lib/icons';
+import {
+  IconClose,
+  IconFirst,
+  IconLatest,
+  IconMerge,
+  IconMove,
+  IconMoveDown,
+  IconMoveUp,
+  IconPriority,
+} from '../lib/icons';
 import { SettingRow } from '../pages/settings/controls';
 
 // Split by hoster: one package's box forking into three per-host boxes, drawn
@@ -96,7 +105,7 @@ export function usePackageMenu({
     {
       id: 'move',
       label: t('pkg.moveTitle'),
-      icon: <IconFolder width={14} height={14} />,
+      icon: <IconMove width={14} height={14} />,
       onSelect: () => setDialog(true),
     },
     {
@@ -178,7 +187,7 @@ export function PackageMoveDialog({
           </span>
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
-          <Button onClick={() => onApply(name.trim())}>{t('pkg.merge')}</Button>
+          <Button icon={<IconMerge />} onClick={() => onApply(name.trim())}>{t('pkg.merge')}</Button>
         </>
       }
     >

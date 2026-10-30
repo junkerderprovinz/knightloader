@@ -7,7 +7,7 @@ import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, InfoBubble } from './ui';
 import { Tip } from './columns';
-import { IconRefresh, IconTrash } from '../lib/icons';
+import { IconEye, IconEyeOff, IconRestore, IconTrash } from '../lib/icons';
 
 /**
  * FilteredLinks is the holding area for links a filter rule refused, torrents
@@ -55,14 +55,19 @@ export function FilteredLinks({ held }: { held: Task[] }) {
         </span>
         <span className="flex-1" />
         {held.length > 1 && (
-          <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setShowAll((v) => !v)}>
+          <Button
+            kind="ghost"
+            icon={showAll ? <IconEyeOff /> : <IconEye />}
+            className="px-2.5 text-xs"
+            onClick={() => setShowAll((v) => !v)}
+          >
             {showAll ? t('common.hide') : t('common.show')}
           </Button>
         )}
         <Button
           kind="ghost"
           className="px-2.5 text-xs"
-          icon={<IconRefresh width={14} height={14} />}
+          icon={<IconRestore width={14} height={14} />}
           disabled={busy}
           onClick={() => restore(held.map((h) => h.id))}
         >
@@ -100,7 +105,13 @@ export function FilteredLinks({ held }: { held: Task[] }) {
               </span>
               <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(h.createdAt)}</span>
               <span className="glim-row-actions shrink-0">
-                <Button kind="ghost" className="px-2 text-xs" disabled={busy} onClick={() => restore([h.id])}>
+                <Button
+                  kind="ghost"
+                  icon={<IconRestore />}
+                  className="px-2 text-xs"
+                  disabled={busy}
+                  onClick={() => restore([h.id])}
+                >
                   {t('collector.filtered.restore')}
                 </Button>
               </span>

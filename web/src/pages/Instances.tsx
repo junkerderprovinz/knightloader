@@ -28,7 +28,7 @@ import {
 import { useT } from '../lib/i18n';
 import { basePath } from '../lib/basePath';
 import { openExternal } from '../lib/external';
-import { IconFleet, IconLink } from '../lib/icons';
+import { IconAdd, IconFleet, IconLink } from '../lib/icons';
 import { PageAction, PageActions } from '../components/PageActions';
 import { useToast } from '../lib/toast';
 import { fetchFeatures, type Feature } from './settings/features';
@@ -358,6 +358,7 @@ export function Instances({
               ) : (
                 <span className="glim-row-actions">
                   <Button
+                    icon={<IconAdd />}
                     kind="secondary"
                     className="px-2.5 text-xs"
                     shake={shakes[f.id] ?? 0}

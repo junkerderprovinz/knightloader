@@ -6,7 +6,7 @@ import { happened } from '../../../lib/countdown';
 import type { SelfTest } from '../../../lib/useSelfTest';
 import { Button, type ButtonVerdict } from '../../../components/ui';
 import { Pulse, type PulseCheck } from '../../../components/pictures/Pulse';
-import { IconCheck, IconClose, IconRefresh, IconWarning } from '../../../lib/icons';
+import { IconCheck, IconClose, IconWarning } from '../../../lib/icons';
 import { Fold, VERDICT_WORDS, type FoldVerdict } from '../health/Fold';
 import { CHECK_NAMES, CheckRow, STATUS_WORDS, SubRow, adviceKeyFor, useLine } from './rows';
 
@@ -52,7 +52,7 @@ export function SelfTestButton({ test }: { test: SelfTest }) {
     if (outcome === 'fail') setShake((n) => n + 1);
   }, [outcome]);
   const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } = busy
-    ? { label: t('settings.selftest.running'), icon: <IconRefresh /> }
+    ? { label: t('settings.selftest.running'), icon: <IconCheck /> }
     : error
       ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
       : outcome === 'ok'
@@ -61,7 +61,7 @@ export function SelfTestButton({ test }: { test: SelfTest }) {
           ? { label: t('settings.diagnostics.verdict.warn'), icon: <IconWarning />, verdict: 'warn' }
           : outcome === 'fail'
             ? { label: t('settings.diagnostics.verdict.fail'), icon: <IconClose />, verdict: 'fail' }
-            : { label: t('settings.selftest.run'), icon: <IconRefresh /> };
+            : { label: t('settings.selftest.run'), icon: <IconCheck /> };
 
   return (
     <>

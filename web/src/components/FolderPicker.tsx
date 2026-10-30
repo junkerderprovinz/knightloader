@@ -7,7 +7,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ApiError, json } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconBack, IconCheck, IconClose, IconFolder, IconFolderAdd } from '../lib/icons';
+import { IconApply, IconBack, IconClose, IconFolder, IconFolderAdd } from '../lib/icons';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
 import { Tabs } from './Tabs';
 
@@ -319,7 +319,7 @@ export function FolderPicker({
         <>
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <span className="flex-1" />
-          <Button onClick={() => onPick(joinTail(text, tail))} disabled={text.trim() === ''}>
+          <Button icon={<IconApply />} onClick={() => onPick(joinTail(text, tail))} disabled={text.trim() === ''}>
             {t('folders.use')}
           </Button>
         </>
@@ -439,7 +439,7 @@ export function FolderPicker({
             type="submit"
             kind="secondary"
             className="shrink-0"
-            icon={<IconCheck width={16} height={16} />}
+            icon={<IconFolderAdd width={16} height={16} />}
             disabled={name.trim() === '' || making}
           >
             {t('folders.create')}

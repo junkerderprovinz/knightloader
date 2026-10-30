@@ -15,7 +15,7 @@ import {
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconClose, IconRefresh, IconTrash, IconGlobe } from '../lib/icons';
+import { IconCheck, IconClose, IconGlobe, IconSave, IconTrash } from '../lib/icons';
 import { AccountTable } from './AccountTable';
 import { TestButton } from './TestButton';
 import { Button, EmptyState, InfoBubble, Modal, NumberInput, PasswordInput, SectionTitle, TextInput, ToggleRow, type ButtonVerdict } from './ui';
@@ -151,7 +151,7 @@ export function UsenetServersSection({
                   {
                     id: 'test',
                     label: t('accounts.usenet.test'),
-                    icon: <IconRefresh width={16} height={16} />,
+                    icon: <IconCheck width={16} height={16} />,
                     onSelect: () => void onTest(r),
                   },
                 ],
@@ -303,6 +303,7 @@ function ServerDialog({
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <TestButton
+            icon={<IconCheck />}
             label={t('accounts.usenet.test')}
             busyLabel={t('accounts.verifying')}
             words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
@@ -310,7 +311,7 @@ function ServerDialog({
             run={onTest}
             resetKey={JSON.stringify(s)}
           />
-          <Button onClick={() => void onSaveClick()} disabled={!filled || saving}>
+          <Button icon={<IconSave />} onClick={() => void onSaveClick()} disabled={!filled || saving}>
             {saving ? t('accounts.saving') : t('accounts.save')}
           </Button>
         </>

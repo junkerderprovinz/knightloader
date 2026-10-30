@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addLinksWithOptions, remove, type Task } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { Button, Card, Field, TextArea } from '../components/ui';
-import { IconDownload } from '../lib/icons';
+import { IconAdd, IconClose, IconCollector, IconDownload, IconUndo } from '../lib/icons';
 
 /**
  * QuickAdd is the page the bookmarklet and a PWA share open
@@ -89,7 +89,12 @@ export function QuickAdd() {
                 />
               </Field>
               {/* Focused for a share, so Enter adds what came in. */}
-              <Button autoFocus={!!shared} disabled={manual.trim() === ''} onClick={() => void stage(manual)}>
+              <Button
+                icon={<IconAdd />}
+                autoFocus={!!shared}
+                disabled={manual.trim() === ''}
+                onClick={() => void stage(manual)}
+              >
                 {t('quickadd.add')}
               </Button>
             </>
@@ -107,15 +112,30 @@ export function QuickAdd() {
                   : t('quickadd.stagedCount', { n: phase.created.length })}
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <Button kind="ghost" className="px-2.5 text-xs" onClick={() => void undo(phase.created)}>
+                <Button
+                  kind="ghost"
+                  icon={<IconUndo />}
+                  className="px-2.5 text-xs"
+                  onClick={() => void undo(phase.created)}
+                >
                   {t('quickadd.undo')}
                 </Button>
                 {isPopup ? (
-                  <Button kind="secondary" className="px-2.5 text-xs" onClick={() => window.close()}>
+                  <Button
+                    kind="secondary"
+                    icon={<IconClose />}
+                    className="px-2.5 text-xs"
+                    onClick={() => window.close()}
+                  >
                     {t('quickadd.close')}
                   </Button>
                 ) : (
-                  <Button kind="secondary" className="px-2.5 text-xs" onClick={() => navigate('/collector')}>
+                  <Button
+                    kind="secondary"
+                    icon={<IconCollector />}
+                    className="px-2.5 text-xs"
+                    onClick={() => navigate('/collector')}
+                  >
                     {t('quickadd.openCollector')}
                   </Button>
                 )}
@@ -128,7 +148,7 @@ export function QuickAdd() {
           {phase.kind === 'error' && (
             <>
               <p className="text-sm text-statusFail">{phase.message}</p>
-              <Button kind="secondary" onClick={() => setPhase({ kind: 'form' })}>
+              <Button kind="secondary" icon={<IconAdd />} onClick={() => setPhase({ kind: 'form' })}>
                 {t('quickadd.add')}
               </Button>
             </>

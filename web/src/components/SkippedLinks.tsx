@@ -5,7 +5,7 @@ import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { Button, InfoBubble } from './ui';
 import { Tip } from './columns';
-import { IconClose, IconTrash } from '../lib/icons';
+import { IconClose, IconEye, IconEyeOff, IconTrash } from '../lib/icons';
 
 // `at` has nanosecond precision, so the pair is unique in practice.
 const keyOf = (s: SkippedLink) => `${s.at}|${s.url}`;
@@ -91,7 +91,12 @@ export function SkippedLinks() {
               panel. */}
           <span className="ms-auto flex items-center gap-2">
             {items.length > 1 && (
-              <Button kind="secondary" className="px-2.5 text-xs" onClick={() => setShowAll((v) => !v)}>
+              <Button
+                kind="secondary"
+                icon={showAll ? <IconEyeOff /> : <IconEye />}
+                className="px-2.5 text-xs"
+                onClick={() => setShowAll((v) => !v)}
+              >
                 {showAll ? t('common.hide') : t('common.show')}
               </Button>
             )}

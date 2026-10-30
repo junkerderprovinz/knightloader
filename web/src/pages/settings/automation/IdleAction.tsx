@@ -24,7 +24,7 @@ import {
   type IdleCommandCheck,
   type IdleRun,
 } from '../../../lib/api';
-import { IconClose, IconCode, IconMoon, IconPause, IconPower } from '../../../lib/icons';
+import { IconCheck, IconClose, IconCode, IconMoon, IconPause, IconPlay, IconPower } from '../../../lib/icons';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
@@ -298,6 +298,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
 
               <div className="flex flex-wrap gap-2">
                 <TestButton
+                  icon={<IconCheck />}
                   label={t('settings.downloads.idleCommandCheck')}
                   busyLabel={t('settings.downloads.idleCommandChecking')}
                   words={{ ok: t('test.passed'), fail: t('test.failed') }}
@@ -308,6 +309,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
                 {/* Only for the command action; the run route answers 409
                     otherwise. */}
                 <Button
+                  icon={<IconPlay />}
                   kind="secondary"
                   className="w-fit"
                   disabled={running || dirty}
@@ -363,7 +365,12 @@ export function IdleActionCard({ hue }: { hue: number }) {
                 title={t('common.cancel')}
                 onClick={() => setConfirming(false)}
               />
-              <Button onClick={() => void handleRun()}>{t('settings.downloads.idleCommandRun')}</Button>
+              <Button
+                icon={<IconPlay />}
+                onClick={() => void handleRun()}
+              >
+                {t('settings.downloads.idleCommandRun')}
+              </Button>
             </>
           }
         >

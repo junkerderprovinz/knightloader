@@ -25,15 +25,7 @@ import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtRate, fmtSpeed, pct 
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import {
-  IconBolt,
-  IconCheck,
-  IconPower,
-  IconRefresh,
-  IconStopMark,
-  IconWarning,
-  PriorityGlyph,
-} from '../lib/icons';
+import { IconBolt, IconCheck, IconPower, IconRetry, IconStopMark, IconWarning, PriorityGlyph } from '../lib/icons';
 import { hostOf } from '../lib/searchQuery';
 import { resolverLabel } from '../lib/resolverLabels';
 import { adviceFor } from '../lib/failureAdvice';
@@ -795,7 +787,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
               waiting rather than activity. */}
           {retrying && (
             <Tip tip={t('task.retryPending')} label={t('task.retryPending')} className="shrink-0 text-carbon-textMuted">
-              <IconRefresh width={11} height={11} />
+              <IconRetry width={11} height={11} />
             </Tip>
           )}
         </div>

@@ -43,7 +43,17 @@ import { TransferFlow } from '../components/pictures/TransferFlow';
 import { PageAction, PageActions } from '../components/PageActions';
 import { Tabs } from '../components/Tabs';
 import { useReorder } from '../components/dragLift';
-import { IconCheck, IconDownload, IconEye, IconEyeOff, IconGrip, IconMoveDown, IconMoveUp, IconPencil } from '../lib/icons';
+import {
+  IconConfirm,
+  IconDownload,
+  IconEye,
+  IconEyeOff,
+  IconGrip,
+  IconMoveDown,
+  IconMoveUp,
+  IconPencil,
+  IconRefresh,
+} from '../lib/icons';
 
 const CARD_NAME: Record<OverviewCard, TranslationKey> = {
   needs: 'overview.needs.title',
@@ -286,7 +296,7 @@ export function Dashboard() {
           {!phone && (
             <p className="min-w-0 flex-1 basis-64 text-[13px] text-carbon-textMuted">{t('overview.customize.hint')}</p>
           )}
-          <Button kind="secondary" onClick={() => setStored(DEFAULT_LAYOUT)}>
+          <Button kind="secondary" icon={<IconRefresh />} onClick={() => setStored(DEFAULT_LAYOUT)}>
             {t('overview.customize.reset')}
           </Button>
         </div>
@@ -294,7 +304,9 @@ export function Dashboard() {
 
       <div
         ref={grid}
-        className={`relative grid grid-cols-1 gap-10 md:grid-cols-6 ${drag.held !== null ? 'glim-drag-armed' : ''}`}
+        className={`relative grid grid-cols-1 gap-10 md:grid-cols-6 ${editing && !phone ? 'glim-move-mode' : ''} ${
+          drag.held !== null ? 'glim-drag-armed' : ''
+        }`}
       >
         {shown.map((id, hue) => {
           // Every card stays mounted in its own cell, drawn or not, so one
@@ -346,7 +358,7 @@ export function Dashboard() {
 
       <PageActions>
         <PageAction
-          icon={editing ? <IconCheck /> : <IconPencil />}
+          icon={editing ? <IconConfirm /> : <IconPencil />}
           label={t(editing ? 'overview.customize.finish' : 'overview.customize')}
           data-new="overview-customize"
           onClick={() => setEditing((on) => !on)}

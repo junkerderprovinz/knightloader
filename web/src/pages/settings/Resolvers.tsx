@@ -655,7 +655,7 @@ export function Resolvers() {
               <>
                 <span className="flex-1" />
                 <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={closeAddPreset} />
-                <Button disabled={!normaliseHost(newHost)} onClick={addPreset}>
+                <Button icon={<IconAdd />} disabled={!normaliseHost(newHost)} onClick={addPreset}>
                   {t('settings.resolvers.presetAdd')}
                 </Button>
               </>
