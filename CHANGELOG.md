@@ -90,6 +90,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   module's card in Settings still has both.
 - **The variant presets of a YouTube package are a quiet gear** beside the
   package's trash, like the other buttons on a row.
+- **The two link notices look and work alike.** "Links not added" and
+  "Rejected links" count in proper words ("1 link", "12 links"), keep their
+  buttons in one row at the foot, close with a real button, and list each link
+  with its reason in your language, a shortened name, where it came from and
+  when, with Restore at the end of its row. Empty the list now shows the
+  symbol for emptying and Restore all the one for restoring.
+- **Notices and questions can be switched off with a box.** "Don't show
+  again" under a notice and "Do not ask again" in a window are checkboxes;
+  Settings, Appearance lists what you switched off and brings it back.
 - **Rename shows the whole name.** The windows for renaming a link or a
   package are wide, the name stands under its label at full width, and a name
   longer than one line wraps instead of scrolling out of view.

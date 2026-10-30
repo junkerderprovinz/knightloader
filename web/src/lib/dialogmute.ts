@@ -1,6 +1,6 @@
-// Which confirmation dialogs the user has silenced, as in JDownloader. The
-// settings page lists them so they can be brought back. One array field in the
-// shared UI state, not a field per dialog.
+// Which confirmation dialogs and notices the user has silenced, as in
+// JDownloader. The settings page lists them so they can be brought back. One
+// array field in the shared UI state, not a field per dialog.
 import { useCallback } from 'react';
 import { useUIState } from './uistate';
 import type { TranslationKey } from './i18n';
@@ -11,17 +11,19 @@ const FIELD = 'dialogs.muted';
 const NONE: string[] = [];
 
 /**
- * The confirmations that can be silenced, with their settings labels. Only
- * those whose action is reversible or already spelled out in the dialog;
- * confirmations that throw work away for good keep asking.
+ * The confirmations and notices that can be silenced, with their settings
+ * labels. Only confirmations whose action is reversible or already spelled out
+ * in the dialog; those that throw work away for good keep asking.
  */
 export const MUTABLE_DIALOGS: { id: DialogId; label: TranslationKey }[] = [
   { id: 'remove', label: 'remove.title' },
   { id: 'cleanup', label: 'cleanup.menu' },
   { id: 'hardStop', label: 'queue.hardStopConfirmTitle' },
+  { id: 'skipped', label: 'notice.skippedName' },
+  { id: 'filtered', label: 'notice.filteredName' },
 ];
 
-export type DialogId = 'remove' | 'cleanup' | 'hardStop';
+export type DialogId = 'remove' | 'cleanup' | 'hardStop' | 'skipped' | 'filtered';
 
 export function useDialogMute() {
   const [muted, setMuted] = useUIState<string[]>(FIELD, NONE);
