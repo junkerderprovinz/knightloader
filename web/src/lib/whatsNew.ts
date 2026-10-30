@@ -51,13 +51,34 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
-    version: '2.3.3',
-    // The service's tile is drawn from the catalogue, so no element carries a mark.
-    changes: [{ id: 'solvecha', text: 'whatsnew.change.solvecha', names: { name: 'accounts.captcha.title' } }],
-  },
-  {
-    version: '2.3.1',
+    version: '2.4.0',
     changes: [
+      { id: 'file-kinds', to: LISTS, text: 'whatsnew.change.fileKinds' },
+      { id: 'row-buttons', to: LISTS, text: 'whatsnew.change.rowButtons' },
+      {
+        id: 'button-labels',
+        to: ['/settings/appearance'],
+        text: 'whatsnew.change.buttonLabels',
+        names: { name: 'settings.labels' },
+      },
+      // Drawn only once something has been switched off.
+      {
+        id: 'silenced-list',
+        to: ['/settings/look'],
+        text: 'whatsnew.change.silencedList',
+        names: { name: 'settings.dialogs.title' },
+      },
+      // Drawn only in the desktop app with the clipboard watch on.
+      {
+        id: 'clipboard-popup',
+        to: ['/settings/collector'],
+        text: 'whatsnew.change.clipboardPopup',
+        names: { name: 'intake.clipboardPopup' },
+      },
+      { id: 'bundled-tools', text: 'whatsnew.change.bundledTools' },
+      { id: 'title-bar', text: 'whatsnew.change.titleBar' },
+      // The service's tile is drawn from the catalogue, so no element carries a mark.
+      { id: 'solvecha', text: 'whatsnew.change.solvecha', names: { name: 'accounts.captcha.title' } },
       {
         id: 'inactive-state',
         to: INSTANCES,

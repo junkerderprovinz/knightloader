@@ -1,0 +1,1 @@
+Your phone no longer forgets a desktop app just because it was closed. It keeps it in the group as Inactive, finds new and renamed instances on its own, and the background notice has stopped repeating itself like a parrot.

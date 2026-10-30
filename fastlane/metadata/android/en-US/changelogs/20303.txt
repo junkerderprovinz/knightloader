@@ -1,1 +1,0 @@
-The app kept telling you that nothing was downloading. You knew. Now it says so once and keeps quiet until there is actually something new.

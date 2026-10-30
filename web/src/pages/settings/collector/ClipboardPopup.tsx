@@ -23,7 +23,7 @@ export function ClipboardPopupRows() {
   const inSeconds = new Intl.NumberFormat(lang, { style: 'unit', unit: 'second', unitDisplay: 'short' });
 
   return (
-    <>
+    <div data-new="clipboard-popup" className="flex flex-col gap-4">
       <ToggleRow
         hue={1}
         label={t('intake.clipboardPopup')}
@@ -59,6 +59,6 @@ export function ClipboardPopupRows() {
           </SettingRow>
         </>
       )}
-    </>
+    </div>
   );
 }

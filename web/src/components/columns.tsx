@@ -699,7 +699,7 @@ export function RowMarks({ items, ctx }: { items: Task[]; ctx: CellContext }) {
 /** FileKindGlyph is the glyph before a link's name that says what kind of file it is. */
 function FileKindGlyph({ kind }: { kind: FileKind }) {
   const Glyph = FILE_KIND_GLYPH[kind];
-  return <Glyph width={14} height={14} className="shrink-0 text-carbon-textMuted" data-file-kind={kind} />;
+  return <Glyph width={14} height={14} className="shrink-0 text-carbon-textMuted" data-file-kind={kind} data-new="file-kinds" />;
 }
 
 function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {

@@ -678,7 +678,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           draws as the rail or as the bar, never both, so each of those two
           rows does nothing at the other width and says so. */}
       {appearance && (
-      <Card hue={1} className="flex flex-col gap-4">
+      <Card hue={1} data-new="button-labels" className="flex flex-col gap-4">
         <SectionTitle hint={t('settings.labelsHint')}>
           {t('settings.labels')}
         </SectionTitle>
@@ -964,7 +964,7 @@ function MutedDialogsCard({ hue }: { hue: number }) {
   if (dialogs.muted.length === 0) return null;
 
   return (
-    <Card hue={hue} className="flex flex-col gap-3">
+    <Card hue={hue} data-new="silenced-list" className="flex flex-col gap-3">
       <SectionTitle hint={t('settings.dialogs.hint')}>{t('settings.dialogs.title')}</SectionTitle>
       {MUTABLE_DIALOGS.filter((d) => dialogs.isMuted(d.id)).map((d) => (
         <ToggleRow

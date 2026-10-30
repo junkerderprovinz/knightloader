@@ -36,23 +36,21 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [Unreleased]
+## [2.4.0] - 2026-10-30
 
 ### Added
 
+- **Solvecha as a seventh captcha account.** It reads pictures only, so
+  reCAPTCHA, hCaptcha, Turnstile and click captchas go on to the next account
+  in the order. It is tried only once its key is saved on the Accounts page.
 - **The desktop app pops up a note when the clipboard watch catches links.**
   It pops up at the edge of the screen, even with the window in the tray,
   says how many links went into the collector and from which site, and the
   knight celebrates with a flourish of the sword. A click on it opens the
-  collector, and copies made while it is up add to the same note. Under the
-  clipboard watch you can switch it off, pick how long it stays (3 to 15
-  seconds, or until clicked) and put it in any corner or the middle of the top
-  or bottom edge.
-
-### Changed
-
-- **The remove button ends every link and package row.** It now stands at the
-  right edge of the row, after the last column, instead of in the middle of it.
+  collector, and copies made while it is up add to the same note. Under Watch
+  the clipboard in Settings, Link collector you can switch it off, pick how
+  long it stays (3 to 15 seconds, or until clicked) and put it in any corner
+  or the middle of the top or bottom edge.
 - **The desktop app brings its own yt-dlp.** A YouTube link, or one to any
   other video site, opens into its variant rows right after installing instead
   of landing in JDownloader as one plain row. A copy with no yt-dlp beside it,
@@ -62,20 +60,22 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   ffmpeg and ffprobe at the first start when none are installed, so videos
   arrive with picture and sound joined. The Resolvers page names the LGPL
   build it uses and links to its source.
+- **Every link shows what kind of file it is** with a symbol before its name:
+  video, audio, image, subtitles, text, archive or any other file. A YouTube
+  package's video, sound track, thumbnail, subtitles and description each have
+  their own.
+- **Notices and questions can be switched off with a box.** "Don't show
+  again" under a notice and "Do not ask again" in a window are checkboxes.
+  Settings, General, Silenced questions and notices lists what you switched
+  off and brings it back.
+
+### Changed
+
 - **The desktop app draws its own title bar on Windows and Linux.** It follows
   your theme and corner shape and has its own buttons to minimise, maximise
   and close. Drag it to move the window and double-click it to maximise.
   Closing still hides the window in the notification area or quits, whichever
   you chose in Settings. On macOS the window keeps its usual title bar.
-- **New glyphs for Downloads and the link collector.** Downloads wears a plain
-  arrow pointing down, the link collector a magnifying glass, in the sidebar, the
-  phone bar, the command palette and the settings pages.
-- **The Enabled column is gone from the link collector.** It was hardly used.
-  Enable and Disable are still in the right-click menu of a link or package,
-  and a disabled link keeps its mark in the name.
-- **Every choice under Labels and Row height shows a symbol before its name,**
-  as Theme, Corners and Animation already do. The four label modes and the
-  three row heights each have their own.
 - **Every button shows a symbol before its name.** 130 buttons had only words,
   among them Save, Cancel, Test and Undo. They now show the symbol the other
   GlimStone apps use for the same thing.
@@ -83,16 +83,22 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   buttons with words show their symbol alone and name themselves in the
   bubble, and set to Text they show their words alone. Before, a button with
   both kept them whatever the setting said.
+- **Every choice under Labels and Row height shows a symbol before its name,**
+  as Theme, Corners and Animation already do. The four label modes and the
+  three row heights each have their own.
 - **A few symbols change so that each one means one thing.** Try again,
   Restart and Refresh get an arrow of their own, and the old arrow stays for
   putting something back to its default. Import and Export show a file, Done
   and Approve a thumbs up, Refuse a thumbs down, and the drag handle two
   columns of dots. Move to a package shows an arrow instead of a folder.
   Sleep and Quiet mode show a Zzz in place of the moon, which stays with the
-  dark look, and Leave group a broken link.
-  Check for updates shows a cloud, which gains a tick when the app is up to
-  date. The New button on the Version card shows the What's new gift, with the
-  green dot in front of it while something is unseen.
+  dark look, and Leave group a broken link. Check for updates shows a cloud,
+  which gains a tick when the app is up to date. The New button on the
+  Version card shows the What's new gift, with the green dot in front of it
+  while something is unseen.
+- **New glyphs for Downloads and the link collector.** Downloads wears a plain
+  arrow pointing down, the link collector a magnifying glass, in the sidebar,
+  the phone bar, the command palette and the settings pages.
 - **The Help page names GlimStone 3.8.0** as the design the app follows.
 - **Version numbers show without a leading "v",** on the Version card and on
   the browser tools card alike. The links still lead to the release.
@@ -105,42 +111,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   with animations off.
 - **Tab stays inside an open window,** and closing the window puts the focus
   back on the button that opened it.
-
-### Fixed
-
-- **KnightLoader Test keeps its own data.** The test build installs beside a
-  real installation but still opened its downloads, accounts and group from
-  `%APPDATA%\KnightLoader`. It now uses `%APPDATA%\KnightLoader Test`, and its
-  window storage sits apart from the real one's too.
-- **The Windows installer closes a running KnightLoader before it updates
-  it.** It used to put the new version next to the running one, which went on
-  as the old version until the next start. Starting KnightLoader a second time
-  now brings the open window forward instead of running a second copy.
-- **Every instance of a group lists the same phones and browsers.** An
-  instance that was closed when a browser extension last checked in, or when a
-  device was approved or taken out, now learns of it from the other instances
-  as soon as it is back. Before, the desktop app could miss an extension the
-  server listed, and a device approved elsewhere still waited there.
-- **A YouTube link becomes its video, audio and other rows again when
-  JDownloader sits above yt-dlp on the priority card.** JDownloader took the
-  link, and the link collector showed it as a single row with the address as
-  its name. Video sites stay with yt-dlp whatever the order, unless you have a
-  JDownloader login for the site. Links collected before need adding again.
-- **The link collector's totals no longer run into each other** in a narrow
-  window. A label that does not fit beside its figure goes under it.
-- **Cancel looks like a button.** In every window, such as Remove the
-  downloads, and on the cards with an inline form, Cancel and the other
-  answers beside the main one have a fill and a hover of their own instead of
-  standing there as bare words. So does Paste from clipboard in the link
-  collector.
-- **The link list reaches the bottom of the window.** Start all floats over
-  its corner instead of standing in an empty band under it, and the last
-  link can still be scrolled out from under the button.
-- **The Click'n'Load button's info is a plain sentence.** It no longer shows
-  the address it listens on or the name of the container setting; the
-  module's card in Settings still has both.
-- **The variant presets of a YouTube package are a quiet gear** beside the
-  package's trash, like the other buttons on a row.
 - **A row's buttons stand at its right edge.** In the link collector and on
   Downloads, Start, Check again and the others sit in a column of their own at
   the end of every row with Remove always last, so each row's trash is in one
@@ -148,73 +118,30 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **A row's buttons light up instead of filling in.** Under the pointer or
   keyboard focus a row button gets no grey square any more; its symbol takes
   the accent, or its rainbow colour, and grows a little.
+- **The variant presets of a YouTube package are a quiet gear** beside the
+  package's trash, like the other buttons on a row.
 - **The two link notices look and work alike.** "Links not added" and
   "Rejected links" count in proper words ("1 link", "12 links"), keep their
   buttons in one row at the foot, close with a real button, and list each link
   with its reason in your language, a shortened name, where it came from and
-  when, with Restore at the end of its row. Empty the list now shows the
-  symbol for emptying and Restore all the one for restoring.
-- **Notices and questions can be switched off with a box.** "Don't show
-  again" under a notice and "Do not ask again" in a window are checkboxes;
-  Settings, Appearance lists what you switched off and brings it back.
+  when, with Restore at the end of its row. Empty the list shows the symbol
+  for emptying and Restore all the one for restoring.
 - **Rename shows the whole name.** The windows for renaming a link or a
   package are wide, the name stands under its label at full width, and a name
   longer than one line wraps instead of scrolling out of view.
 - **Packages arrive on Downloads folded.** Whatever way they leave the link
   collector, a package shows as one row until you open it, and one you opened
   stays open.
-- **A failure's bubble is short and stays inside its frame.** It says what
-  failed and what you can do, a long archive name is shortened in the middle
-  instead of running past the bubble's edge, and the tool's own message with
-  its full path is in the row's details, where you can copy it.
-- **Start all no longer flickers** with many links in the collector. The list
-  stays as it is until every link has moved and Downloads opens, and the lists
-  take a burst of changes in one go instead of one link at a time.
 - **The link collector's availability column is called Status,** as the same
   column is on Downloads. It shows what the link check found.
-- **The captcha order card no longer shows a switch that cannot switch.**
-  Without a JDownloader backend no captcha can arrive, and the card's (i) says
-  so in place of a greyed switch and a paragraph under it.
-- **Every link shows what kind of file it is** with a symbol before its name:
-  video, audio, image, subtitles, text, archive or any other file. A YouTube
-  package's video, sound track, thumbnail, subtitles and description each have
-  their own.
-- **New glyphs for Downloads and the link collector.** Downloads wears a plain
-  arrow pointing down, the link collector a magnifying glass, in the sidebar, the
-  phone bar, the command palette and the settings pages.
 - **The Enabled column is gone from the link collector.** It was hardly used.
   Enable and Disable are still in the right-click menu of a link or package,
   and a disabled link keeps its mark in the name.
-
-## [2.3.3] - 2026-10-28
-
-### Added
-
-- **Solvecha as a seventh captcha account.** It reads pictures only, so
-  reCAPTCHA, hCaptcha, Turnstile and click captchas go on to the next account
-  in the order. It is tried only once its key is saved on the Accounts page.
-
-### Fixed
-
-- **The Android app's background notice stays put.** With Stay connected on,
-  the app posted its "No downloads running" notice again on every look at the
-  server, and some phones popped it up each time. It is posted again only when
-  its words change.
-
-## [2.3.2] - 2026-10-27
-
-### Changed
-
 - **Removing downloads asks about the files with a switch.** It starts off, so
   the rows go and the files stay unless you turn it on. Shift+Del and Remove
   and delete the files open the dialog with it on.
 - **Deleting downloaded files no longer needs a login password.** Only
   downloading a backup still waits for one.
-
-## [2.3.1] - 2026-10-22
-
-### Changed
-
 - **The cards on the Instances page are all the same size.** Every card is as
   wide and as tall as the others, the logo stands in the same place on each,
   and a name is always shown in full: the kind has a line of its own, and the
@@ -228,6 +155,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
+- **Long multi-part archives unpack again.** When a name such as
+  `name.part01.rar` was longer than about 100 characters, shortening it cut
+  off the `.part01`, so every part of the set was saved as `name.rar`,
+  `name (2).rar` and so on in no fixed order, and unpacking failed. The name
+  is now shortened before the part number, which stays, and the same holds
+  for `.vol` repair files and split archives such as `.001`.
+- **The browser extension takes its instance's look whenever it opens.** The
+  popup and the options page used the look stored when following was switched
+  on, so a theme the instance changed later only arrived after Refresh.
 - **A paired desktop app no longer vanishes from the Instances page when it is
   closed.** It keeps its card and its place in the picture, shows Inactive with
   when it was last seen, and stays until you remove it, also after the server
@@ -235,16 +171,20 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Inactive in grey instead of a red Not connected.
 - **The browser extension keeps a closed desktop app in its list.** On the
   options page an instance of the group that is away shows Inactive with when
-  it was last seen, and once it is back it is listed once, as before. A phone
-  that is away shows Inactive in grey instead of a red Not connected.
+  it was last seen, and once it is back it is listed once, as before.
 - **The Android app shows a closed instance as Inactive.** A saved instance
   that the group lists as away reads Inactive in grey with when it was last
-  seen, instead of a red Not connected. A phone that is away shows the same.
+  seen, instead of a red Not connected.
 - **The Android app lists every instance of the group on its own.** An
   instance that joined later, or was closed while the phone joined, appears
   without entering the phrase again, online or as Inactive, and one removed
   from the group leaves the list. An instance removed on the phone stays off
   until the phrase is entered again. A renamed instance shows its new name.
+- **Every instance of a group lists the same phones and browsers.** An
+  instance that was closed when a browser extension last checked in, or when a
+  device was approved or taken out, now learns of it from the other instances
+  as soon as it is back. Before, the desktop app could miss an extension the
+  server listed, and a device approved elsewhere still waited there.
 - **Every device shows in the picture of the group at every width.** The
   phones and browsers next to this instance waited hidden for the picture to
   be in sight, and on the Pairing page or after the page shifted while loading
@@ -252,8 +192,48 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **An instance card no longer flashes red while the page loads.** Until the
   instance first answers, its card says Checking, and the card of the instance
   you are on shows Connected right away.
+- **The Android app's background notice stays put.** With Stay connected on,
+  the app posted its "No downloads running" notice again on every look at the
+  server, and some phones popped it up each time. It is posted again only when
+  its words change.
+- **KnightLoader Test keeps its own data.** The test build installs beside a
+  real installation but still opened its downloads, accounts and group from
+  `%APPDATA%\KnightLoader`. It now uses `%APPDATA%\KnightLoader Test`, and its
+  window storage sits apart from the real one's too.
+- **The Windows installer closes a running KnightLoader before it updates
+  it.** It used to put the new version next to the running one, which went on
+  as the old version until the next start. Starting KnightLoader a second time
+  now brings the open window forward instead of running a second copy.
 - **The installer's folder chooser no longer dims the desktop on Windows.** A
   dark frame showed around the installer window while the chooser was open.
+- **A YouTube link becomes its video, audio and other rows again when
+  JDownloader sits above yt-dlp on the priority card.** JDownloader took the
+  link, and the link collector showed it as a single row with the address as
+  its name. Video sites stay with yt-dlp whatever the order, unless you have a
+  JDownloader login for the site. Links collected before need adding again.
+- **Start all no longer flickers** with many links in the collector. The list
+  stays as it is until every link has moved and Downloads opens, and the lists
+  take a burst of changes in one go instead of one link at a time.
+- **A failure's bubble is short and stays inside its frame.** It says what
+  failed and what you can do, a long archive name is shortened in the middle
+  instead of running past the bubble's edge, and the tool's own message with
+  its full path is in the row's details, where you can copy it.
+- **The link collector's totals no longer run into each other** in a narrow
+  window. A label that does not fit beside its figure goes under it.
+- **Cancel looks like a button.** In every window, such as Remove the
+  downloads, and on the cards with an inline form, Cancel and the other
+  answers beside the main one have a fill and a hover of their own instead of
+  standing there as bare words. So does Paste from clipboard in the link
+  collector.
+- **The link list reaches the bottom of the window.** Start all floats over
+  its corner instead of standing in an empty band under it, and the last
+  link can still be scrolled out from under the button.
+- **The Click'n'Load button's info is a plain sentence.** It no longer shows
+  the address it listens on or the name of the container setting; the
+  module's card in Settings still has both.
+- **The captcha order card no longer shows a switch that cannot switch.**
+  Without a JDownloader backend no captcha can arrive, and the card's (i) says
+  so in place of a greyed switch and a paragraph under it.
 
 ## [2.3.0] - 2026-10-21
 
