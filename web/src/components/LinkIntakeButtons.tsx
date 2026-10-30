@@ -6,7 +6,6 @@ import { useCnl } from '../lib/useCnl';
 import { useWatchSwitch } from './WatchElsewhere';
 import { WATCH_SUPPORTED } from '../lib/clipboardWatch';
 import { isDesktop } from '../lib/desktop';
-import { moduleDetail } from '../pages/settings/tx';
 
 /**
  * LinkIntakeButtons are the add-links form's buttons for Click'n'Load and the
@@ -46,9 +45,9 @@ export function LinkIntakeButtons({ hue }: { hue: number }) {
           icon={<IconLink width={16} height={16} />}
           title={t('settings.module.cnl')}
           aria-label={t('settings.module.cnl')}
-          // What it takes, then the live reading, such as the address it
-          // listens on.
-          hint={[t('settings.linkIntake.cnlHint'), moduleDetail(t, row) ?? ''].filter(Boolean).join(' ')}
+          // What it takes, without the address it listens on: that reading
+          // belongs to the module's card in Settings, not beside the paste box.
+          hint={t('settings.linkIntake.cnlHint')}
           onClick={() => void onCnl(!row.enabled)}
           disabled={busy}
         />

@@ -49,7 +49,7 @@ export function PasteFromClipboardButton({
 
   return (
     <Button
-      kind="ghost"
+      kind="secondary"
       className={`px-2.5 text-xs ${className}`}
       icon={<IconPaste width={14} height={14} />}
       onClick={() => void paste()}

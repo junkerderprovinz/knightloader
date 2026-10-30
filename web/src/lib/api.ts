@@ -1003,6 +1003,9 @@ export interface SkippedLink {
   kind: string;
   /** The sentence to show: what the match rests on, or why it failed. */
   reason: string;
+  /** Which sentence reason is, for the kinds with more than one; see lib/skippedReason.ts. */
+  code?: string;
+  params?: Record<string, string>;
   /** The task it was folded into. */
   ofId?: string;
   /** The signal the match rests on (file name, byte count, …). */

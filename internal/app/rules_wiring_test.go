@@ -607,6 +607,10 @@ func TestDuplicateLinkIsFoldedAwayWithATrace(t *testing.T) {
 	if skipped[0].Reason == "" || skipped[0].Kind != "duplicate" {
 		t.Errorf("skipped entry = %+v, want a kind and a reason", skipped[0])
 	}
+	// The interface says the reason in its own language from the code.
+	if skipped[0].Code != "sameLink" {
+		t.Errorf("skipped code = %q, want sameLink", skipped[0].Code)
+	}
 	if skipped[0].OfID == "" {
 		t.Error("the trace does not say which task the link folded into")
 	}

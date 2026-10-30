@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { type Account, ApiError, type CatalogueService, createTestCaptcha } from '../../../lib/api';
 import { type TranslationKey, useT } from '../../../lib/i18n';
 import { IconCaptcha, IconSendTest } from '../../../lib/icons';
@@ -5,7 +6,7 @@ import { useToast } from '../../../lib/toast';
 import { EmptyState, NumberInput, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import { PriorityCard, PriorityLadder } from '../../../components/PriorityLadder';
 import { TestButton } from '../../../components/TestButton';
-import { useDraft } from '../context';
+import { useDraft, useFeatures } from '../context';
 import { SettingRow, SubHead } from '../controls';
 import { ModuleToggle } from '../ModuleToggle';
 
@@ -50,6 +51,17 @@ export function solverAccount(id: string, accounts: Account[]): Account | undefi
     .sort((x, y) => (x.account < y.account ? -1 : x.account > y.account ? 1 : 0))[0];
 }
 
+/** CaptchaSwitch is the captcha module's switch above the card's rows, where there is a switch to show. */
+function CaptchaSwitch({ on, hint, children }: { on: boolean; hint: string; children: ReactNode }) {
+  return on ? (
+    <ModuleToggle id="captcha" hint={hint}>
+      {children}
+    </ModuleToggle>
+  ) : (
+    <>{children}</>
+  );
+}
+
 /**
  * CaptchaPriorityCard draws the captcha priority card on `hue`. `accounts`
  * and `catalogue` are the Accounts page's own, so a key saved there shows here
@@ -66,6 +78,10 @@ export function CaptchaPriorityCard({
 }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
+  const { features } = useFeatures();
+  // Without a JDownloader backend no captcha can arrive and the module has no
+  // switch, so the card says why in its bubble rather than under an inert one.
+  const noSource = features.modules.find((m) => m.id === 'captcha')?.switch === 'none';
 
   const order = cfg.captchaSolverOrder ?? [];
   const solvers = connectedSolvers(order, accounts, catalogue);
@@ -85,10 +101,13 @@ export function CaptchaPriorityCard({
       hue={hue}
       data-new="captcha-priority"
       title={title}
-      hint={t('settings.captcha.orderHint', { accounts: t('accounts.captcha.title') })}
+      hint={[
+        t('settings.captcha.orderHint', { accounts: t('accounts.captcha.title') }),
+        noSource ? t('settings.modules.reason.captchaNoJD') : '',
+      ].join(' ').trim()}
       intro={t('settings.captcha.orderIntro')}
     >
-      <ModuleToggle id="captcha" hint={t('settings.modules.about.captcha')}>
+      <CaptchaSwitch on={!noSource} hint={t('settings.modules.about.captcha')}>
         <div data-new="priority-accounts">
           {solvers.length === 0 ? (
             <EmptyState
@@ -136,7 +155,7 @@ export function CaptchaPriorityCard({
           </div>
         )}
         <TestCaptcha solvers={solvers.length > 0} />
-      </ModuleToggle>
+      </CaptchaSwitch>
     </PriorityCard>
   );
 }

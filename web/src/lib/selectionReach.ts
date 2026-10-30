@@ -2,6 +2,11 @@ import { useMemo } from 'react';
 import type { Task } from './api';
 import { loneTorrent } from '../components/TorrentFileRow';
 
+/** The folded packages of a list, asked one name at a time. */
+export interface Folded {
+  has(name: string): boolean;
+}
+
 // Which selected rows the list is drawing and which it is not. A filter hides
 // rows without deselecting them (see lib/listview.ts), so someone can hold
 // eighteen rows with six on screen, and Del would take all eighteen.
@@ -35,7 +40,7 @@ export function selectionReach(selected: ReadonlySet<string>, drawn: ReadonlySet
  * groups, not the page's `all`, which also holds the collector's rows.
  * Memoised because callers use it as a hook dependency.
  */
-export function useDrawnRows(groups: [string, Task[]][], collapsed: ReadonlySet<string>): ReadonlySet<string> {
+export function useDrawnRows(groups: [string, Task[]][], collapsed: Folded): ReadonlySet<string> {
   return useMemo(() => {
     const out = new Set<string>();
     for (const [name, items] of groups) {

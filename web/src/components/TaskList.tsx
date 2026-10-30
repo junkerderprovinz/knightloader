@@ -170,6 +170,7 @@ import {
   IconTrash,
 } from '../lib/icons';
 import { SettingRow } from '../pages/settings/controls';
+import type { Folded } from '../lib/selectionReach';
 
 export interface Selection {
   ids: Set<string>;
@@ -266,32 +267,39 @@ function parksCell(id: ColumnId, profile: ListProfile): boolean {
  *
  * Folded packages are keyed by name, which is the only identity the wire model
  * carries: core.Task has a package name and no package id. SetPackage rewrites
- * the name, so a rename or a Packagizer re-package makes a folded package come
- * back expanded. Fixing that needs a stable package id on the task.
+ * the name, so a rename or a Packagizer re-package makes a package come back
+ * as the list starts it: open in the collector, folded on Downloads. Fixing
+ * that needs a stable package id on the task.
  */
 export function useCollapsedPackages(profile: ListProfile = 'downloads') {
-  const [stored, setStored] = useUIState<string[]>(`list.collapsed.${profile}`, NO_COLLAPSED);
-  const collapsed = useMemo(() => new Set(stored), [stored]);
+  // On Downloads a package arrives from the collector folded, so there the
+  // store keeps the packages somebody opened instead of the ones they folded.
+  const foldedByDefault = profile === 'downloads';
+  const [stored, setStored] = useUIState<string[]>(
+    `list.${foldedByDefault ? 'expanded' : 'collapsed'}.${profile}`,
+    NO_COLLAPSED,
+  );
+  const collapsed = useMemo<Folded>(() => {
+    const named = new Set(stored);
+    return foldedByDefault ? { has: (name) => !named.has(name) } : named;
+  }, [stored, foldedByDefault]);
 
-  const collapse = useCallback(
-    (names: string[]) => {
+  const mark = useCallback(
+    (names: string[], fold: boolean) => {
       const next = new Set(stored);
-      for (const n of names) next.add(n);
+      const keep = fold !== foldedByDefault;
+      for (const n of names) {
+        if (keep) next.add(n);
+        else next.delete(n);
+      }
       setStored([...next]);
     },
-    [stored, setStored],
+    [stored, setStored, foldedByDefault],
   );
-
+  const collapse = useCallback((names: string[]) => mark(names, true), [mark]);
   // Named, never "clear the lot": expanding what is on screen must not unfold
   // the packages a search is currently hiding.
-  const expand = useCallback(
-    (names: string[]) => {
-      const next = new Set(stored);
-      for (const n of names) next.delete(n);
-      setStored([...next]);
-    },
-    [stored, setStored],
-  );
+  const expand = useCallback((names: string[]) => mark(names, false), [mark]);
 
   const toggle = useCallback(
     (name: string) => {
@@ -325,7 +333,7 @@ export function useListSort(title: string, profile: ListProfile = 'downloads', s
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, null);
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
   const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
-  const header = (col: ColumnDef) => t(col.labelByProfile?.[profile] ?? col.labelKey);
+  const header = (col: ColumnDef) => t(col.labelKey);
   const sortedBy = sort ? layout.visible.find((c) => c.id === sort.id) : undefined;
 
   return {
@@ -838,10 +846,11 @@ function PackageName({
 }
 
 /**
- * The gear badge a yt-dlp-routed package's header carries. It opens that host's
- * variant preset: which of the five rows the collector shows for this host's
- * links, the ones already in it included, and the default quality and audio
- * format a new link's rows start on. Per host rather than per package (GET and
+ * The gear badge a yt-dlp-routed package's header carries, quiet and just
+ * before the trash like every other row badge. It opens that host's variant
+ * preset: which of the five rows the collector shows for this host's links,
+ * the ones already in it included, and the default quality and audio format a
+ * new link's rows start on. Per host rather than per package (GET and
  * POST /api/ytdlp/preset), so a package with more than one host shows the
  * badge for whichever host its variant rows share.
  */
@@ -852,6 +861,7 @@ function HosterPresetButton({ host, base, focusable }: { host: string; base: str
   return (
     <>
       <IconBadge
+        quiet
         hue={0}
         tabIndex={focusable ? 0 : -1}
         icon={<IconGear width={16} height={16} />}
@@ -1438,7 +1448,7 @@ function Header({
             >
               {/* One list can call a column something else; see CellContext's
                   `profile` for why that is one column and not two. */}
-              <span className="truncate">{t(col.labelByProfile?.[profile] ?? col.labelKey)}</span>
+              <span className="truncate">{t(col.labelKey)}</span>
               {sorted === 'asc' && <IconMoveUp width={11} height={11} className="shrink-0" />}
               {sorted === 'desc' && <IconMoveDown width={11} height={11} className="shrink-0" />}
             </button>
@@ -3457,7 +3467,7 @@ export function TaskListCard({
           a card without one must not take the class: `.glim-hue` with no
           --item-hue resolves --accent to nothing and the badge disappears. */}
       <div
-        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}flex-1`}
+        className={`glim-card glim-actions-room ${hue !== undefined ? 'glim-hue ' : ''}flex-1`}
         style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
       >
         {/* On the top edge across from the title, as a second notch, so it
