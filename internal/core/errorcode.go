@@ -24,6 +24,12 @@ const (
 	CodePremiumNeeded ErrorCode = "premiumNeeded"
 	// CodeLimit is a used-up allowance. ReasonLimit.
 	CodeLimit ErrorCode = "limit"
+	// CodeQuotaUsed is the download volume of an account used up: a debrid
+	// service's, or that of the hoster login JDownloader would have used.
+	// Params: "host", the file hoster; "service", the debrid service, absent
+	// for the hoster's own login; "resetsAt", RFC3339, where the service says
+	// when the volume comes back. ReasonLimit.
+	CodeQuotaUsed ErrorCode = "quotaUsed"
 	// CodeUnavailable is a host that is up but says "not now". ReasonUnavailable.
 	CodeUnavailable ErrorCode = "unavailable"
 	// CodeUnreachable is a host or server that could not be reached at all.

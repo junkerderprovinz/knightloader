@@ -17,6 +17,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -1177,6 +1178,9 @@ type AccountState struct {
 	// TrafficLeft is preformatted for a plain-text column (see fmtTrafficLeft).
 	Expiry      string `json:"expiry,omitempty"`
 	TrafficLeft string `json:"trafficLeft,omitempty"`
+
+	// Paused is every bench running on the account (see accountPauses).
+	Paused []AccountPause `json:"paused,omitempty"`
 }
 
 // AccountStates lists every configured account, stored or from the
@@ -1221,6 +1225,7 @@ func (a *App) accountRow(svc accounts.Service, account string) (AccountState, bo
 	}
 	a.fillHealth(&st)
 	st.HostsFetchedAt = a.hostsFetchedAtField(svc.ID)
+	st.Paused = a.accountPauses(svc.ID, account)
 	return st, true
 }
 
@@ -1351,7 +1356,7 @@ func (a *App) TestAccount(service, account string) AccountState {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	ok, hosts, err := checkCredential(ctx, service, cred)
+	ok, hosts, err := probeCredential(ctx, service, cred)
 	if errors.Is(err, errCheckedOnDownload) {
 		st.Detail = err.Error()
 		return st
@@ -1362,8 +1367,47 @@ func (a *App) TestAccount(service, account string) AccountState {
 		return st
 	}
 	a.reportAccountSuccess(service, account)
+	// A person asked for this check, so it is also the way to try a benched
+	// account at once: a volume bench, a hoster's included, ends with it.
+	a.mu.Lock()
+	a.liftSiteBenchesLocked(service)
+	a.dispatchLocked()
+	a.mu.Unlock()
 	st.OK, st.Hosts, st.Detail = ok, hosts, "credential accepted"
+	st.Paused = a.accountPauses(service, account)
 	return st
+}
+
+// AccountPause is one bench of an account as the accounts page shows it: why
+// routing passes the account over, for which hoster and until when.
+type AccountPause struct {
+	// Volume is a used-up download volume. Otherwise the service failed, or
+	// switched the hoster off, and Detail says how.
+	Volume bool `json:"volume,omitempty"`
+	// Host is the hoster the bench covers, "" for every hoster.
+	Host string `json:"host,omitempty"`
+	// Until is RFC3339.
+	Until  string `json:"until"`
+	Detail string `json:"detail,omitempty"`
+}
+
+// accountPauses lists the benches running on an account: the account's own,
+// and the service's for single hosters, which every account of it shares.
+func (a *App) accountPauses(service, account string) []AccountPause {
+	now := time.Now()
+	var out []AccountPause
+	if rec := a.acctHealthTracker().Get(service, account); rec.State == accounts.HealthTempDisabled && rec.BenchedUntil.After(now) {
+		out = append(out, AccountPause{Volume: rec.Volume, Until: rec.BenchedUntil.UTC().Format(time.RFC3339), Detail: rec.Detail})
+	}
+	a.mu.Lock()
+	for k, ban := range a.siteBench {
+		if k.service == service && ban.until.After(now) {
+			out = append(out, AccountPause{Volume: ban.volume, Host: k.site, Until: ban.until.UTC().Format(time.RFC3339)})
+		}
+	}
+	a.mu.Unlock()
+	slices.SortFunc(out, func(x, y AccountPause) int { return strings.Compare(x.Host, y.Host) })
+	return out
 }
 
 // JDStatus is what the interface shows for the headless-JD sidecar. JD is not

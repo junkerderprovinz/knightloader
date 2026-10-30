@@ -413,4 +413,8 @@ export const th: Dict = {
   'battery.askBody': 'เพื่อประหยัดแบตเตอรี่ Android อาจหยุด KnightLoader ชั่วคราวในเบื้องหลัง และการแจ้งเตือนจะมาช้า ในหน้าจอถัดไป ให้ค้นหา KnightLoader แล้วปิดการเพิ่มประสิทธิภาพแบตเตอรี่ของแอปนี้',
   'battery.askLater': 'ไว้ทีหลัง',
   'battery.askOpen': 'เปิดการตั้งค่า',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

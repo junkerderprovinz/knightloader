@@ -413,4 +413,8 @@ export const fa: Dict = {
   'battery.askBody': 'Android برای صرفه‌جویی در باتری ممکن است KnightLoader را در پس‌زمینه متوقف کند و اعلان‌ها دیر برسند. در صفحه‌ی بعد KnightLoader را پیدا کنید و بهینه‌سازی باتری آن را خاموش کنید.',
   'battery.askLater': 'حالا نه',
   'battery.askOpen': 'باز کردن تنظیمات',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

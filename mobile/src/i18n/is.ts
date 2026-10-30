@@ -413,4 +413,8 @@ export const is: Dict = {
   'battery.askBody': 'Til að spara rafhlöðu getur Android gert hlé á KnightLoader í bakgrunni og tilkynningar berast þá seint. Finndu KnightLoader á næsta skjá og slökktu á rafhlöðusparnaði fyrir það.',
   'battery.askLater': 'Ekki núna',
   'battery.askOpen': 'Opna stillingar',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

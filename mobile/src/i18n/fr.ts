@@ -413,4 +413,8 @@ export const fr: Dict = {
   'battery.askBody': 'Pour économiser la batterie, Android peut mettre KnightLoader en pause en arrière-plan, et les notifications arrivent alors en retard. Sur l’écran suivant, cherchez KnightLoader et désactivez son optimisation de la batterie.',
   'battery.askLater': 'Plus tard',
   'battery.askOpen': 'Ouvrir les réglages',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

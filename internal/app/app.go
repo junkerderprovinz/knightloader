@@ -433,8 +433,9 @@ type App struct {
 	// tally counts what the built-in torrent client moves, for the overview.
 	tally *torrentTally
 	// siteBench is when a service may be asked about a site again after it
-	// said it has switched that site off (see benchSiteLocked). Under mu.
-	siteBench map[serviceSite]time.Time
+	// said it has switched that site off or used up its volume for it (see
+	// benchSiteLocked). Under mu.
+	siteBench map[serviceSite]siteBan
 	// stamps hands out the CreatedAt of every link that enters the list. It
 	// has its own lock.
 	stamps stagedAt
@@ -525,7 +526,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		fellBack:   map[string]map[string]bool{},
 		moving:     map[string]bool{},
 		startNow:   map[string]bool{},
-		siteBench:  map[serviceSite]time.Time{},
+		siteBench:  map[serviceSite]siteBan{},
 		debrid:     map[string]backend{},
 	}
 	a.usenetDial = &usenetDialer{a}

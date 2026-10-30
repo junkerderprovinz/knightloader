@@ -413,4 +413,8 @@ export const lv: Dict = {
   'battery.askBody': 'Lai taupītu akumulatoru, Android var apturēt KnightLoader fonā, un paziņojumi tad pienāk vēlu. Nākamajā ekrānā atrodi KnightLoader un izslēdz tam akumulatora optimizāciju.',
   'battery.askLater': 'Ne tagad',
   'battery.askOpen': 'Atvērt iestatījumus',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };

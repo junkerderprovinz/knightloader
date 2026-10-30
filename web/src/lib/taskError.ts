@@ -3,6 +3,7 @@
 // sentence (core.ErrorCode in internal/core/errorcode.go). The sentence stays
 // available as the technical detail; it is never the message.
 
+import { fmtDate } from './format';
 import type { TranslationKey } from './i18n';
 import { rejectionReason } from './rejectionReason';
 
@@ -16,7 +17,8 @@ interface Words {
 }
 
 /**
- * Every code the server sends, one entry each. A code this build does not know
+ * Every code the server sends, one entry each, but for quotaUsed, whose words
+ * depend on its params (see quotaWords). A code this build does not know
  * yet, from a newer server, reads as the general sentence, so adding one on the
  * server without words here costs a vague row and nothing worse.
  */
@@ -110,7 +112,23 @@ export function explainFailure(
   }
   if (!raw && !f.errorCode) return null;
   const code = f.errorCode || (f.reason && (REASON_CODE[f.reason] ?? f.reason));
-  const words = (code && WORDS[code]) || GENERAL;
   const vars = { ...fallback, ...f.errorParams };
+  if (code === 'quotaUsed') return { ...quotaWords(t, f.errorParams ?? {}, vars), raw };
+  const words = (code && WORDS[code]) || GENERAL;
   return { line: t(words.line, vars), next: t(words.next, vars), raw };
+}
+
+/**
+ * A spent download volume, worded by whose it is and by when it comes back.
+ * Only the server's own params decide: the row's fallback names the backend
+ * as the service, and for JDownloader that would blame it for the hoster
+ * login's volume.
+ */
+function quotaWords(t: Translate, params: Record<string, string>, vars: Record<string, string>) {
+  const resetsAt = params.resetsAt ? fmtDate(params.resetsAt) : '';
+  const at = { ...vars, service: params.service ?? '', resetsAt };
+  return {
+    line: t(params.service ? 'failure.quotaUsed.lineService' : 'failure.quotaUsed.line', at),
+    next: t(resetsAt ? 'failure.quotaUsed.nextReset' : 'failure.quotaUsed.next', at),
+  };
 }

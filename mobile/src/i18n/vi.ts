@@ -413,4 +413,8 @@ export const vi: Dict = {
   'battery.askBody': 'Để tiết kiệm pin, Android có thể tạm dừng KnightLoader ở chế độ nền, và thông báo khi đó đến muộn. Ở màn hình tiếp theo, hãy tìm KnightLoader và tắt tối ưu hóa pin cho nó.',
   'battery.askLater': 'Để sau',
   'battery.askOpen': 'Mở cài đặt',
+  'failure.quotaUsed.line': 'The download volume of your {host} account is used up.',
+  'failure.quotaUsed.lineService': 'The {service} download volume for {host} is used up.',
+  'failure.quotaUsed.next': 'Wait until the volume resets, or top up the account\'s traffic.',
+  'failure.quotaUsed.nextReset': 'The volume resets at {resetsAt}. Wait until then, or top up the account\'s traffic.',
 };
