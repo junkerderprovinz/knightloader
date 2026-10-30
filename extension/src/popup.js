@@ -87,6 +87,8 @@ function paintHues() {
   // Disco walks here too, or the popup would sit still beside a settings page
   // that moves. The walk writes the root, so the cards drawn later follow.
   applyDisco(look.disco);
+  // The walk keeps the palette it started with, so a taken look restarts it.
+  void refreshFollowedLook().then((taken) => taken && applyDisco(look.disco));
   await loadLanguage();
   wireTooltips();
   openOptionsBtn.setAttribute('aria-label', t('common.settings'));

@@ -1268,8 +1268,8 @@ wireRainbowSwitch(rainbowDiscoEl, 'rainbowDisco');
 
 /**
  * Takes the look from the default instance, or goes back to the local one.
- * The look is fetched once and stored, so no page waits on the relay before
- * painting; Refresh in the group card picks up later changes.
+ * The look is stored, so no page waits on the relay before painting, and taken
+ * again whenever a page opens (refreshFollowedLook) or Refresh is pressed.
  */
 followInstanceEl.addEventListener('click', async () => {
   const on = followInstanceEl.getAttribute('aria-checked') !== 'true';
@@ -2100,6 +2100,7 @@ copyReportBtn.addEventListener('click', async () => {
   void renderReport();
   // Not awaited: the page stays usable while the relay answers.
   void renderGroup();
+  void refreshFollowedLook().then((taken) => taken && renderAppearance());
   // Two frames after the stored shape is painted, so the first radii never
   // animate and every later change of shape does.
   requestAnimationFrame(() =>
