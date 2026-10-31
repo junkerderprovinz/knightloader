@@ -4,6 +4,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../lib/i18n';
+import { MemoryRouter } from 'react-router-dom';
 import { ToastProvider } from '../lib/toast';
 import { AddLinksForm } from './AddLinksForm';
 
@@ -74,9 +75,11 @@ const toggle = (name: string) => document.querySelector<HTMLButtonElement>(`[rol
 function Card() {
   return (
     <I18nProvider>
-      <ToastProvider>
-        <AddLinksForm pkg="" onPkgChange={() => {}} onStaged={() => {}} onChooseFile={() => {}} onFilesDropped={() => {}} />
-      </ToastProvider>
+      <MemoryRouter>
+        <ToastProvider>
+          <AddLinksForm pkg="" onPkgChange={() => {}} onStaged={() => {}} onChooseFile={() => {}} onFilesDropped={() => {}} />
+        </ToastProvider>
+      </MemoryRouter>
     </I18nProvider>
   );
 }
@@ -124,9 +127,11 @@ it('marks the options button while a package name is set', async () => {
   await act(async () =>
     root.render(
       <I18nProvider>
-        <ToastProvider>
-          <AddLinksForm pkg="Holiday" onPkgChange={() => {}} onStaged={() => {}} onChooseFile={() => {}} onFilesDropped={() => {}} />
-        </ToastProvider>
+        <MemoryRouter>
+          <ToastProvider>
+            <AddLinksForm pkg="Holiday" onPkgChange={() => {}} onStaged={() => {}} onChooseFile={() => {}} onFilesDropped={() => {}} />
+          </ToastProvider>
+        </MemoryRouter>
       </I18nProvider>,
     ),
   );

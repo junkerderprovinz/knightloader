@@ -125,11 +125,15 @@ describe('the Components card', () => {
     expect(group('yt-dlp').textContent).toContain('2026.08.19');
     expect(group('JDownloader backend').textContent).toContain('50123');
     expect(group('ffmpeg').textContent).toContain('8.1.2');
-    expect(group('ffmpeg').textContent).toContain('Comes with the container image');
     expect(group('Gopeed').textContent).toContain('5111a4c');
-    expect(group('Gopeed').textContent).toContain('Built into KnightLoader from its own fork');
     expect(group('SQLite').textContent).toContain('1.60.1');
     expect(group('UnRAR').textContent).toContain('Built-in reader');
+  });
+
+  it('shows a row as its name, its version and its link, nothing more', async () => {
+    await draw();
+    expect(group('Gopeed').textContent).toBe('Gopeed5111a4cpkg.go.dev');
+    expect(group('ffmpeg').textContent).toBe('ffmpeg8.1.2ffmpeg.org');
   });
 
   it('links every component to where it comes from', async () => {
@@ -176,7 +180,6 @@ describe('the Components card', () => {
     };
     await draw();
     expect(group('UnRAR').textContent).toContain('7.12');
-    expect(group('UnRAR').textContent).toContain('Comes with KnightLoader');
     expect(card('Components').textContent).toContain(en['settings.resolvers.toolsUnrarLicence']);
   });
 
@@ -308,7 +311,6 @@ describe('the Components card', () => {
     await act(async () => button(group('yt-dlp'), 'Check for updates').click());
     expect(button(group('yt-dlp'), 'Up to date').className).toContain('bg-statusOkSolid');
     expect(group('yt-dlp').querySelector('p')).toBeNull();
-    expect(group('yt-dlp').textContent).not.toContain('Comes with the container image');
   });
 
   it('turns the check red when GitHub cannot be asked', async () => {

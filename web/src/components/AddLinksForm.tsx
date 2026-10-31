@@ -11,7 +11,7 @@
 // it is marked while one of them is set, since they apply unseen. Click'n'Load
 // and the clipboard watch stand beside it as buttons that show their state:
 // they bring links in by themselves and belong to no batch.
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { hueVars } from '../lib/appearance';
 import {
   addLinksWithOptions,
@@ -23,12 +23,12 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
 import { PathInput } from './FolderPicker';
-import { PasteFromClipboardButton } from './PasteFromClipboardButton';
+import { AnchoredPanel } from './AnchoredPanel';
 import { LinkIntakeButtons } from './LinkIntakeButtons';
 import { Tabs } from './Tabs';
-import { Button, Field, IconBadge, Modal, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
+import { Button, Field, IconBadge, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
 import { SettingRow } from '../pages/settings/controls';
-import { IconAdd, IconClose, IconCollector, IconFolder, IconGear } from '../lib/icons';
+import { IconAdd, IconCollector, IconFolder, IconGear } from '../lib/icons';
 
 // The same number JD keeps.
 const DESTINATION_HISTORY_MAX = 25;
@@ -128,6 +128,8 @@ export function AddLinksForm({
   const [shake, setShake] = useState(0);
 
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const closeOptions = useCallback(() => setOptionsOpen(false), []);
+  const optionsAnchor = useRef<HTMLSpanElement>(null);
   const [recent, setRecent] = useUIState<string[]>(DESTINATION_HISTORY_KEY, []);
   const [overrule, setOverrule] = useUIState(OVERRULE_KEY, false);
 
@@ -223,7 +225,7 @@ export function AddLinksForm({
   );
 
   // Options opens the batch's settings, the two standing ways in follow it,
-  // and the three ways to hand links over end the row. With labels on, the row
+  // and the two ways to hand links over end the row. With labels on, the row
   // is wider than a narrow card, so it wraps, and the trailing actions wrap as
   // one group pushed over by ms-auto. A flex-1 spacer would drop everything
   // after it to a line of its own.
@@ -239,7 +241,7 @@ export function AddLinksForm({
 
   const actions = (
     <div className="flex flex-wrap items-center gap-3 px-4 pb-4">
-      <span className="relative">
+      <span ref={optionsAnchor} className="relative">
         <IconBadge
           labelled
           icon={<IconGear width={16} height={16} />}
@@ -261,7 +263,6 @@ export function AddLinksForm({
       </span>
       <LinkIntakeButtons hue={1} />
       <div className="ms-auto flex flex-wrap items-center justify-end gap-3">
-        <PasteFromClipboardButton pkg={pkg} />
         <IconBadge
           labelled
           icon={<IconFolder width={16} height={16} />}
@@ -322,6 +323,7 @@ export function AddLinksForm({
           variant="well"
           size="sm"
           inline
+          hug
           label={t('props.priority')}
           active={priority}
           onSelect={setPriority}
@@ -366,20 +368,13 @@ export function AddLinksForm({
     </>
   );
 
-  // A window rather than a fold under the form (GlimStone rule 26). Every
-  // field in it is kept as it is typed, so its one answer is Close.
+  // A window rather than a fold under the form (GlimStone rule 26), opening
+  // under its button as the quick settings do. Every field in it is kept as
+  // it is typed, so its one answer is Close.
   const optionsWindow = optionsOpen && (
-    <Modal
-      title={t('collector.options')}
-      hue={0}
-      height="capped"
-      onClose={() => setOptionsOpen(false)}
-      footer={
-        <Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={() => setOptionsOpen(false)} />
-      }
-    >
+    <AnchoredPanel anchor={optionsAnchor} title={t('collector.options')} hue={0} onClose={closeOptions}>
       {options}
-    </Modal>
+    </AnchoredPanel>
   );
 
   return (

@@ -803,7 +803,6 @@ export const en = {
   // work it is not there to ask about. Its own outcome reuses
   // collector.toastStaged/toastNone and list.failed rather than adding a
   // third phrasing of the same three states.
-  'intake.pasteButton': 'Paste from clipboard',
   'intake.clipboardWatch': 'Watch the clipboard',
   'intake.clipboardWatchHint': 'Every link you copy anywhere goes straight into the link collector, as long as this tab is open and in the foreground. Ctrl+V inside KnightLoader always works and needs none of this.',
   'intake.clipboardWatchUnavailable': 'Not available here: your browser only lets a page read the clipboard over HTTPS or on localhost. Ctrl+V inside KnightLoader works either way.',
@@ -1010,10 +1009,6 @@ export const en = {
     'Update your container image the way you deployed it, for example with docker pull or through Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Only possible on the desktop build: a container cannot replace itself from the inside. Update it the way you deployed it instead (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': "Compares this build's version against the latest release on GitHub. The desktop build can also download and install a newer one automatically; a container updates the way it was deployed instead (docker pull, Unraid Community Applications, Watchtower, ...).",
-  'settings.look.toolsSource.image': 'Comes with the container image',
-  'settings.look.toolsSource.system': 'Found on this computer',
-  'settings.look.toolsSource.built': 'Built into KnightLoader',
-  'settings.look.toolsSource.fork': 'Built into KnightLoader from its own fork',
   'settings.look.tool.jd': 'Covers more hosters and DLC containers',
   'settings.look.tool.jre': 'Runs the JDownloader backend',
   'settings.look.tool.ffprobe': 'Measures finished videos',

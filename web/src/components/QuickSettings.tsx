@@ -2,8 +2,7 @@
 // is the control the setting's own page draws, bound to the same value, so it
 // reads and saves the same way in both places. The settings routes are not
 // forwarded to peers, so the shell offers this for the local instance only.
-import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   fetchIdleActions,
   fetchScheduleSuspension,
@@ -13,9 +12,8 @@ import {
   type Settings,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { IconClose, IconMenu, IconRetry } from '../lib/icons';
+import { IconMenu, IconRetry } from '../lib/icons';
 import { useQuietMode, useToast } from '../lib/toast';
-import { openWindow } from '../lib/windowStack';
 import { IdleActionPicker } from '../pages/settings/automation/IdleAction';
 import { ScheduleSuspendField } from '../pages/settings/automation/ScheduleSuspend';
 import { SettingRow } from '../pages/settings/controls';
@@ -32,7 +30,8 @@ import {
 } from '../pages/settings/Reconnect';
 import { label } from '../pages/settings/tx';
 import { METER_WINDOW, meterWindow, useMeterWindow } from './SpeedGraph';
-import { Button, SectionTitle, ToggleRow, UnitNumberInput, type FieldUnit } from './ui';
+import { AnchoredPanel } from './AnchoredPanel';
+import { Button, ToggleRow, UnitNumberInput, type FieldUnit } from './ui';
 
 type Patch = (fields: Partial<Settings>) => void;
 type Translate = ReturnType<typeof useT>['t'];
@@ -337,42 +336,6 @@ function ReconnectRow({
 // here goes out once rather than once per keystroke.
 const SAVE_MS = 600;
 
-const MARGIN = 8;
-// The title badge straddles the panel's top edge, so above the panel there has
-// to be room for its upper half as well as the margin.
-const GAP_BELOW = 18;
-
-/**
- * placePanel puts the panel under the square, on the edge the text starts
- * from, and above it when the window has no room below. Where neither side
- * holds the whole panel it takes the roomier one and its rows scroll, which
- * `maxHeight` sets up. It is clamped into the window with an 8px margin, like
- * ui.tsx's placeBubble. The panel declares its width, so measuring it before
- * placing is safe.
- */
-function placePanel(r: DOMRect, w: number, h: number, rtl: boolean): { left: number; top: number; maxHeight: number } {
-  const vw = document.documentElement.clientWidth || window.innerWidth;
-  const vh = document.documentElement.clientHeight || window.innerHeight;
-  const left = Math.max(MARGIN, Math.min(vw - MARGIN - w, rtl ? r.right - w : r.left));
-  const below = r.bottom + GAP_BELOW;
-  const roomBelow = vh - MARGIN - below;
-  const roomAbove = r.top - MARGIN - GAP_BELOW;
-  if (h <= roomBelow || roomBelow >= roomAbove) return { left, top: below, maxHeight: roomBelow };
-  const height = Math.min(h, roomAbove);
-  return { left, top: r.top - MARGIN - height, maxHeight: height };
-}
-
-/**
- * Whether an event's target is the panel, the square or anything inside them.
- * A dropdown's menu counts as inside: the rows' dropdowns open it in a portal
- * of its own, and no other menu can be open while the panel is.
- */
-function inPanel(n: EventTarget | null, panel: HTMLElement | null, anchor: HTMLElement | null): boolean {
-  if (!(n instanceof Node)) return false;
-  if (panel?.contains(n) || anchor?.contains(n)) return true;
-  return n instanceof Element && n.closest('[role="menu"]') !== null;
-}
-
 function message(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
@@ -489,12 +452,8 @@ function useQuickExtras(open: boolean) {
 }
 
 /**
- * QuickSettings is the square and its panel. The panel stands on the scrim
- * every window in the app stands on and is placed against the window, under
- * its square. Escape, a press on the scrim, a scroll outside the panel or a
- * resize closes it, since a fixed panel stops pointing at its square once
- * anything moves. Both are rendered in place rather than portalled to <body>,
- * so the toasts the rows raise stay above the scrim, as they do over a Modal.
+ * QuickSettings is the square and its panel, which opens under it. Both are
+ * rendered in place, so the toasts the rows raise stay above the scrim.
  */
 export function QuickSettings() {
   const { t } = useT();
@@ -504,76 +463,7 @@ export function QuickSettings() {
   const { extras, setSuspension } = useQuickExtras(open);
   // The anchor is the wrapper, since the button's own ref belongs to its tooltip.
   const wrap = useRef<HTMLSpanElement>(null);
-  const scrim = useRef<HTMLDivElement>(null);
-  const panel = useRef<HTMLDivElement>(null);
-  const body = useRef<HTMLDivElement>(null);
-  const [at, setAt] = useState<{ left: number; top: number; maxHeight: number } | null>(null);
   const title = t('quick.title');
-  const ready = cfg !== null && extras !== null;
-  const placed = at !== null;
-
-  // Measured before paint and hidden until then, placed again when the rows
-  // arrive and whenever the panel's size changes, because a flip above depends
-  // on its height. The height measured is the one the rows want, not the one
-  // an earlier placement allowed them.
-  useLayoutEffect(() => {
-    if (!open) {
-      setAt(null);
-      return;
-    }
-    const anchor = wrap.current;
-    const box = panel.current;
-    const rows = body.current;
-    if (!anchor || !box) return;
-    const place = () => {
-      const rtl = getComputedStyle(anchor).direction === 'rtl';
-      const h = box.offsetHeight + (rows ? rows.scrollHeight - rows.clientHeight : 0);
-      const next = placePanel(anchor.getBoundingClientRect(), box.offsetWidth, h, rtl);
-      setAt((cur) =>
-        cur && cur.left === next.left && cur.top === next.top && cur.maxHeight === next.maxHeight ? cur : next,
-      );
-    };
-    place();
-    if (!rows) return;
-    const watch = new ResizeObserver(place);
-    for (const child of Array.from(rows.children)) watch.observe(child);
-    return () => watch.disconnect();
-  }, [open, ready]);
-
-  // Focus moves in once the panel sits where it stays, so Tab reaches the
-  // rows next rather than the rest of the bar.
-  useEffect(() => {
-    if (open && placed) panel.current?.focus({ preventScroll: true });
-  }, [open, placed]);
-
-  // Escape goes through the window stack like every window's, so a window
-  // opened over the panel closes first.
-  useEffect(() => {
-    const me = scrim.current;
-    if (!open || !me) return;
-    return openWindow(me, () => {
-      close();
-      wrap.current?.querySelector('button')?.focus();
-    });
-  }, [open, close]);
-
-  // A shortcut can change the page under the panel, which hides the bar and
-  // the panel inside it.
-  const { pathname } = useLocation();
-  useEffect(() => close(), [pathname, close]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onScroll = (e: Event) => {
-      if (!inPanel(e.target, panel.current, wrap.current)) close();
-    };
-    window.addEventListener('scroll', onScroll, true);
-    window.addEventListener('resize', close);
-    return () => {
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('resize', close);
-    };
-  }, [open, close]);
 
   return (
     <>
@@ -592,62 +482,11 @@ export function QuickSettings() {
         />
       </span>
       {open && (
-        // The scrim is Modal's (ui.tsx) and its fade carries the panel in.
-        // The rows' menus and bubbles open above it.
-        <div
-          ref={scrim}
-          className="glim-modal-backdrop fixed inset-0 z-50"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) close();
-          }}
-        >
-          <div
-            ref={panel}
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            tabIndex={-1}
-            // Tabbing out of the panel closes it, as a press on the scrim does.
-            onBlur={(e) => {
-              if (e.relatedTarget && !inPanel(e.relatedTarget, panel.current, wrap.current)) close();
-            }}
-            style={{
-              left: at?.left ?? 0,
-              top: at?.top ?? 0,
-              maxHeight: at?.maxHeight,
-              visibility: placed ? undefined : 'hidden',
-            }}
-            // Wide enough for the longest name and the widest control on one
-            // line, so every row reads as on its settings page.
-            className="glim-card fixed flex w-[36rem] max-w-[calc(100vw-1rem)] flex-col gap-5 p-5 outline-none"
-          >
-            <SectionTitle>{title}</SectionTitle>
-            {cfg && extras && (
-              // The rows scroll inside the card rather than the card itself,
-              // which would clip the title badge on its edge. The inset keeps
-              // focus outlines inside the scrolling box.
-              <div ref={body} className="-m-1 flex min-h-0 flex-col gap-5 overflow-y-auto p-1">
-                {ROWS.map((row) => (
-                  <Fragment key={row.id}>{row.render({ cfg, patch, extras, setSuspension, close })}</Fragment>
-                ))}
-              </div>
-            )}
-            {/* The way out every window has, below the rows so it stays in view
-                while they scroll. */}
-            <div className="flex justify-end">
-              <Button
-                kind="secondary"
-                labelled
-                icon={<IconClose />}
-                title={t('common.close')}
-                onClick={() => {
-                  close();
-                  wrap.current?.querySelector('button')?.focus();
-                }}
-              />
-            </div>
-          </div>
-        </div>
+        <AnchoredPanel anchor={wrap} title={title} ready={cfg !== null && extras !== null} onClose={close}>
+          {cfg &&
+            extras &&
+            ROWS.map((row) => <Fragment key={row.id}>{row.render({ cfg, patch, extras, setSuspension, close })}</Fragment>)}
+        </AnchoredPanel>
       )}
     </>
   );
