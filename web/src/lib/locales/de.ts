@@ -167,9 +167,7 @@ export const de: Dict = {
   'downloads.pauseAll': 'Alle pausieren',
   'downloads.resumeAll': 'Alle fortsetzen',
   'downloads.retryFailed': 'Fehlgeschlagene zurücksetzen',
-  'downloads.retryCause': '{n} mit dieser Ursache erneut versuchen: {reason}',
-  'downloads.retryByCause': 'Nach Ursache wiederholen',
-  'downloads.byCause': 'Nach Ursache',
+  'downloads.retryByCause': 'Nach Ursache zurücksetzen',
   'downloads.clearFinished': 'Aufräumen',
   'downloads.noMatch': 'Nichts passt zu diesem Filter.',
   'downloads.finished': '{name} fertig',
@@ -650,7 +648,6 @@ export const de: Dict = {
   'filter.stalled': 'Steht still',
 
   'cleanup.menu': 'Aufräumen',
-  'cleanup.menuLabel': 'Aufräum-Einträge',
   'cleanup.finished': 'Fertige entfernen',
   'cleanup.offline': 'Offline entfernen',
   'cleanup.disabled': 'Deaktivierte Links entfernen',

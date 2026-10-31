@@ -24,8 +24,8 @@ import { SkippedLinks } from '../components/SkippedLinks';
 import {
   COLLECTOR_FILTERS,
   ListMenu,
+  ListMore,
   SelectionMore,
-  cleanupItems,
   matchesQuickFilters,
   narrowedTitle,
   offeredQuickFilters,
@@ -44,7 +44,7 @@ import { useListNarrowing, type Narrowing } from '../lib/listNarrowing';
 import { useSavedViews } from '../lib/savedViews';
 import { useLabelMode } from '../lib/labelModes';
 import { useRowFit } from '../lib/rowFit';
-import { anchorBelow, anchorFromEvent, useContextMenu, ContextMenu } from '../components/ContextMenu';
+import { anchorFromEvent, useContextMenu, type MenuGroup } from '../components/ContextMenu';
 import { CollectorFacets, facetActiveCount, matchesFacets } from '../components/CollectorFacets';
 import { CollectorStats } from '../components/CollectorStats';
 import { useFileMenu } from '../components/FileActions';
@@ -59,7 +59,6 @@ import {
   IconCollector,
   IconPlay,
   IconSearch,
-  IconSelectAll,
   IconTrash,
   IconUndo,
 } from '../lib/icons';
@@ -91,7 +90,6 @@ export function Collector() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const menu = useContextMenu();
   // The clean-up badge's own dropdown, apart from the context menu.
-  const cleanupMenu = useContextMenu();
   // The priorities and the stop mark, for the right-click menu and the rows.
   const queueVerbs = useQueueVerbs('/api');
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
@@ -142,7 +140,7 @@ export function Collector() {
     anyNarrowing,
     views.map((v) => v.name).join('\n'),
   ].join('|');
-  // Downloads.tsx's fold order, less the cause chips this list does not have.
+  // Downloads.tsx's fold order.
   const fold = useRowFit(rowRef, 4, rowContent);
   const glyphs = fold >= 1;
   const hideCount = fold >= 2;
@@ -254,15 +252,6 @@ export function Collector() {
     });
   };
 
-  async function openCleanup(el: HTMLButtonElement | null): Promise<void> {
-    try {
-      await cleanup.load();
-      cleanupMenu.openAt(anchorBelow(el));
-    } catch {
-      toast(t('list.optionsFailed'), 'fail');
-    }
-  }
-
   // A link, a package header or empty space, as in the download list.
   function onContextMenu(e: React.MouseEvent): void {
     // The column header may have claimed this right-click. Read off the native
@@ -284,6 +273,27 @@ export function Collector() {
     menu.openAt(anchorFromEvent(e));
   }
 
+  // Checking every link is offered by More and by the right-click on empty
+  // space. An empty id list means every staged link on this route, unlike the
+  // bulk routes, which refuse it.
+  const checkGroups: MenuGroup[] = [
+    {
+      id: 'check',
+      items: [
+        {
+          id: 'checkAll',
+          label: t('collector.checkAll'),
+          icon: <IconCheck width={14} height={14} />,
+          disabled: collected.length === 0,
+          onSelect: () => {
+            recheckTasks([]);
+            toast(t('task.recheck'), 'info');
+          },
+        },
+      ],
+    },
+  ];
+
   const listContext: ListContext = {
     packages: groups.map(([name]) => name),
     collapsed: folds.collapsed,
@@ -294,6 +304,7 @@ export function Collector() {
     // The collector is always this instance's own.
     local: true,
     members,
+    whole: checkGroups,
   };
 
   const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
@@ -423,36 +434,16 @@ export function Collector() {
               </>
             ) : (
               <>
-                <IconBadge
+                {/* Start all floats at the foot; the rest acts on the whole
+                    list and is pressed rarely. */}
+                <ListMore
+                  hue={5}
                   labelled={!glyphs}
-                  hue={1}
-                  icon={allChosen ? <IconClearSelection width={16} height={16} /> : <IconSelectAll width={16} height={16} />}
-                  title={allChosen ? t('select.none') : t('select.all')}
-                  aria-label={allChosen ? t('select.none') : t('select.all')}
-                  disabled={filtered.length === 0}
-                  onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
-                />
-                <IconBadge
-                  labelled={!glyphs}
-                  hue={2}
-                  icon={<IconTrash width={16} height={16} />}
-                  title={t('cleanup.menu')}
-                  aria-label={t('cleanup.menu')}
-                  onClick={(e) => void openCleanup(e.currentTarget)}
-                />
-                <IconBadge
-                  labelled={!glyphs}
-                  hue={3}
-                  icon={<IconCheck width={16} height={16} />}
-                  title={t('collector.checkAll')}
-                  aria-label={t('collector.checkAll')}
-                  disabled={collected.length === 0}
-                  onClick={() => {
-                    // An empty id list means every staged link on this route,
-                    // unlike the bulk routes, which refuse it.
-                    recheckTasks([]);
-                    toast(t('task.recheck'), 'info');
-                  }}
+                  allChosen={allChosen}
+                  shown={filtered.length}
+                  onSelect={(all) => setSelected(all ? new Set(filtered.map((x) => x.id)) : new Set())}
+                  own={checkGroups}
+                  cleanup={cleanup}
                 />
               </>
             )}
@@ -530,15 +521,6 @@ export function Collector() {
           onClick={startAll}
         />
       </PageActions>
-
-      {cleanupMenu.anchor && cleanup.classes && (
-        <ContextMenu
-          anchor={cleanupMenu.anchor}
-          label={t('cleanup.menuLabel')}
-          onClose={cleanupMenu.close}
-          groups={[{ id: 'cleanup', items: cleanupItems(cleanup.classes, t, (cls) => void cleanup.preview(cls)) }]}
-        />
-      )}
 
       <ListMenu
         anchor={menu.anchor}
