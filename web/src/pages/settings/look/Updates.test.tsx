@@ -322,3 +322,99 @@ describe('the version of a built-in library', () => {
     expect(moduleVersion('v1.61.1-0.20260823090931-70072f1a7460')).toBe('70072f1');
   });
 });
+
+describe('installing an update on the desktop build', () => {
+  const desktop = () => {
+    answers['/api/system/deployment'] = { deployment: 'desktop', canQuit: false, canRestart: false, note: '', engines: [] };
+    answers['/api/system/update-check'] = { checked: true, available: true, current: 'v1.8.4', latest: 'v1.9.0' };
+  };
+  const wait = (ms: number) => act(() => new Promise((resolve) => setTimeout(resolve, ms)));
+
+  it('offers Install only once a check found a newer release', async () => {
+    desktop();
+    await draw();
+    expect(button(group('KnightLoader'), 'Install now')).toBeUndefined();
+    await act(async () => button(group('KnightLoader'), 'Check for updates').click());
+    expect(button(group('KnightLoader'), 'Install now')).toBeDefined();
+  });
+
+  it('picks up an update that was started before the page opened', async () => {
+    desktop();
+    answers['/api/system/update-install'] = { state: 'downloading', version: '1.9.0', done: 1, total: 4 };
+    await draw();
+    expect(group('KnightLoader').textContent).toContain('Downloading the update: 25%');
+  });
+
+  it('shows the download, then the installer taking over', async () => {
+    desktop();
+    await draw();
+    await act(async () => button(group('KnightLoader'), 'Check for updates').click());
+    answers['/api/system/update-install'] = { state: 'downloading', version: '1.9.0', done: 40, total: 100 };
+    await act(async () => button(group('KnightLoader'), 'Install now').click());
+    expect(group('KnightLoader').textContent).toContain('Downloading the update: 40%');
+    expect(button(group('KnightLoader'), 'Installing…').disabled).toBe(true);
+
+    answers['/api/system/update-install'] = { state: 'started', version: '1.9.0' };
+    await wait(600);
+    expect(group('KnightLoader').textContent).toContain('The installer is running.');
+    expect(button(group('KnightLoader'), 'Install now')).toBeUndefined();
+  });
+
+  it('says why an update did not work and lets it be tried again', async () => {
+    desktop();
+    await draw();
+    await act(async () => button(group('KnightLoader'), 'Check for updates').click());
+    answers['/api/system/update-install'] = { state: 'failed', error: 'permission to run it was refused' };
+    await act(async () => button(group('KnightLoader'), 'Install now').click());
+    const line = [...group('KnightLoader').querySelectorAll('p')].find((p) => p.textContent?.includes('did not work'))!;
+    expect(line.textContent).toBe('The update did not work: permission to run it was refused');
+    expect(line.className).toContain('text-statusFail');
+    expect(button(group('KnightLoader'), 'Install now').disabled).toBe(false);
+  });
+
+  it('says a refused request in the same line', async () => {
+    desktop();
+    refusals['/api/system/update-install'] = { status: 409, body: { status: 'an update is already under way' } };
+    await draw();
+    await act(async () => button(group('KnightLoader'), 'Check for updates').click());
+    await act(async () => button(group('KnightLoader'), 'Install now').click());
+    expect(group('KnightLoader').textContent).toContain('The update did not work:');
+  });
+});
+
+describe('the JDownloader backend the desktop build sets up', () => {
+  it('shows the Java runtime arriving while JDownloader is being set up', async () => {
+    answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'starting', setupDone: 30, setupTotal: 120 };
+    await draw();
+    expect(group('JDownloader backend').textContent).toContain('Being set up');
+    expect(group('JDownloader backend').textContent).toContain('Downloading the Java runtime for JDownloader: 25%');
+    expect(group('JDownloader backend').textContent).not.toContain('Install Java');
+  });
+
+  it('says why the setup failed and tries again on request', async () => {
+    answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'failed', detail: 'downloading the Java runtime: no network' };
+    await draw();
+    expect(group('JDownloader backend').textContent).toContain('Setup failed');
+    expect(group('JDownloader backend').textContent).toContain(
+      'KnightLoader could not set up its JDownloader: downloading the Java runtime: no network',
+    );
+    answers['/api/resolvers/jd/setup'] = { configured: false, reachable: false, setup: 'starting' };
+    answers['/api/resolvers/jd'] = { configured: true, reachable: true, version: 50123 };
+    await act(async () => button(group('JDownloader backend'), 'Try again').click());
+    expect(asked).toContain('/api/resolvers/jd/setup');
+    expect(group('JDownloader backend').textContent).toContain('Being set up');
+    await act(() => new Promise((resolve) => setTimeout(resolve, 1100)));
+    expect(group('JDownloader backend').textContent).toContain('50123');
+  });
+
+  it('lists the Java runtime it fetched beside the other built-in parts', async () => {
+    answers['/api/resolvers/jd'] = {
+      configured: true,
+      reachable: true,
+      version: 50123,
+      runtime: { vendor: 'Eclipse Temurin', version: '21.0.13+9' },
+    };
+    await draw();
+    expect(group('Java (Eclipse Temurin)').textContent).toContain('21.0.13+9');
+  });
+});

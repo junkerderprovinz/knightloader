@@ -76,6 +76,28 @@ func updateInstalled() error {
 	return nil
 }
 
+// startInstaller runs the installer at path. It needs an administrator, so
+// Windows asks for permission first, and saying no ends up here as an error.
+func startInstaller(path string) error {
+	verb, err := windows.UTF16PtrFromString("runas")
+	if err != nil {
+		return err
+	}
+	file, err := windows.UTF16PtrFromString(path)
+	if err != nil {
+		return err
+	}
+	dir, err := windows.UTF16PtrFromString(filepath.Dir(path))
+	if err != nil {
+		return err
+	}
+	err = windows.ShellExecute(0, verb, file, nil, dir, windows.SW_SHOWNORMAL)
+	if errors.Is(err, windows.ERROR_CANCELLED) {
+		return errors.New("permission to run it was refused")
+	}
+	return err
+}
+
 // openUpdateLog appends to the log at path, since the task has no console to
 // say why an update did not happen. A log grown past 256 KiB starts over.
 func openUpdateLog(path string) *log.Logger {

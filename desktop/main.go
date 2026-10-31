@@ -71,17 +71,11 @@ func main() {
 	// A private headless JDownloader gives full hoster coverage out of the box.
 	// Its first run downloads and updates JD for minutes, so it comes up in the
 	// background and joins once it answers, and the window does not wait.
-	var pv *provision.Provisioner
 	jdCtx, stopJD := context.WithCancel(context.Background())
-	jdDone := make(chan struct{})
+	jd := &jdSetup{a: a, pv: provision.New(filepath.Join(dataDir, "jd")), dataDir: dataDir, ctx: jdCtx}
 	if os.Getenv("KL_JD") == "" {
-		pv = provision.New(filepath.Join(dataDir, "jd"))
-		go func() {
-			defer close(jdDone)
-			provisionJD(jdCtx, a, pv)
-		}()
-	} else {
-		close(jdDone)
+		_ = jd.start()
+		a.RetryJDSetup = jd.start
 	}
 
 	// The browser whose Click'n'Load buttons post to 127.0.0.1 runs on this
@@ -127,6 +121,8 @@ func main() {
 	up := newUpdater(log.Printf, func(version string) { tray.emit(updateReadyEvent, version) })
 	a.UpdateReady = up.readyVersion
 	updateCtx, stopUpdates := context.WithCancel(context.Background())
+	a.InstallUpdate = func() error { return up.install(updateCtx, installed) }
+	a.UpdateProgress = up.currentProgress
 	if installed {
 		go up.follow(updateCtx)
 	} else {
@@ -229,10 +225,8 @@ func main() {
 		// JD would otherwise keep running without the program that started
 		// it and hold its port against the next start.
 		stopJD()
-		<-jdDone
-		if pv != nil {
-			_ = pv.Stop()
-		}
+		jd.wait()
+		_ = jd.pv.Stop()
 		// After a.Close so the shutdown's own records reach the file.
 		// Writes are unbuffered; closing releases the Windows handle.
 		_ = logring.CloseFile()
@@ -240,19 +234,6 @@ func main() {
 	if err := wails.Run(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func provisionJD(ctx context.Context, a *app.App, pv *provision.Provisioner) {
-	log.Printf("provisioning headless JDownloader (first run may take a few minutes)…")
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
-	defer cancel()
-	_, url, err := pv.Ensure(ctx)
-	if err != nil {
-		log.Printf("JD provisioning failed (%v); continuing without JD", err)
-		return
-	}
-	a.UseJD(url)
-	log.Printf("headless JDownloader provisioned at %s", url)
 }
 
 // dataDir follows product, so the test build keeps its downloads, accounts and

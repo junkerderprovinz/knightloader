@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -68,6 +69,7 @@ func serve(t *testing.T, rel fakeRelease) *httptest.Server {
 			http.NotFound(w, r)
 			return
 		}
+		w.Header().Set("Content-Length", strconv.Itoa(len(data)))
 		w.Write(data)
 	})
 	srv = httptest.NewServer(mux)
@@ -184,6 +186,35 @@ func TestCheckFailsWithoutAFileForThisPlatform(t *testing.T) {
 	srv = serve(t, missing.withSums(keep))
 	if _, err := newUpdater(t, srv, "v1.3.0").Check(context.Background()); err == nil {
 		t.Error("offered a release that lacks this platform's file")
+	}
+}
+
+func TestFetchDownloadsAnInstallerWhereItIsToldAndReportsProgress(t *testing.T) {
+	const installer = "prog-setup.exe"
+	body := bytes.Repeat([]byte("setup"), 50_000)
+	rel := fakeRelease{tag: "v1.4.0", files: map[string][]byte{installer: body}}.withSums(keep)
+	u := newUpdater(t, serve(t, rel), "v1.3.0")
+	u.Assets = map[string]string{runtime.GOOS + "/" + runtime.GOARCH: installer}
+	u.Dir = t.TempDir()
+	var done, total int64
+	u.Progress = func(d, t int64) { done, total = d, t }
+
+	found, err := u.Check(context.Background())
+	if err != nil || found == nil {
+		t.Fatalf("check: %+v, %v", found, err)
+	}
+	download, err := u.Fetch(context.Background(), found)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if filepath.Dir(download) != u.Dir {
+		t.Errorf("downloaded to %s, want a file in %s", download, u.Dir)
+	}
+	if filepath.Ext(download) != ".exe" {
+		t.Errorf("download %s lost the installer's extension", download)
+	}
+	if want := int64(len(body)); done != want || total != want {
+		t.Errorf("last progress %d of %d, want %d of %d", done, total, want, want)
 	}
 }
 

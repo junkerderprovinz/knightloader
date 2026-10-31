@@ -207,9 +207,19 @@ that release's checksums, and renews it once a month. On macOS, where that
 project builds nothing, put ffmpeg on `PATH` yourself. An ffmpeg already on
 `PATH` is always the one used.
 
-The desktop app does not bring Java. The private JDownloader wants one on
-`PATH` or under `JAVA_HOME`; without it, file hoster links have no
-catch-all. Pointing `KL_JD` at a JDownloader that runs elsewhere works too.
+The private JDownloader runs on a Java runtime of KnightLoader's own, whatever
+Java the computer has or lacks. At the first start the desktop app fetches
+[Eclipse Temurin](https://adoptium.net/temurin/) 21 from Adoptium's releases
+on GitHub, checks it against the SHA-256 that KnightLoader carries for this
+version and unpacks it into the `jre` folder of its data folder
+(`%APPDATA%KnightLoaderjre`, `~/Library/Application Support/KnightLoader/jre`,
+`~/.config/KnightLoader/jre`). That takes a few minutes, which the
+JDownloader row on the Updates card shows; a failed download says why there
+and offers to try again. A KnightLoader update that pins a newer runtime
+replaces it at its next start. Windows on Arm gets the x64 runtime, which
+Windows runs under its emulation, since Adoptium builds no Arm JRE for it.
+Temurin comes under the GPLv2 with the Classpath Exception. Pointing `KL_JD`
+at a JDownloader that runs elsewhere skips all of this.
 
 On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`.
 
@@ -235,7 +245,9 @@ release's `checksums.txt`. The new version starts the next time you open
 KnightLoader, so nothing changes while it runs, and a note in the corner of the
 window says when it is ready. Pre-releases are never installed. **Update
 automatically** on the **General** page of Settings turns this off; it is on
-from the start.
+from the start. When **Check for updates** on the Updates card finds a newer
+release, **Install now** fetches it at once instead of waiting for the next
+daily check.
 
 **The installed copy** on Windows cannot replace itself, since no user may
 write to its folder. A scheduled task named **KnightLoader Update** does it instead,
@@ -246,7 +258,11 @@ of installed apps and writes what it did, or why it did not, to
 switch applies to everyone on the computer: it lives in
 `%ProgramData%\KnightLoader\settings.json`, which every user may change, and the
 task skips its run while it is off. An open window notices within ten minutes
-when the task has put a new version in place and shows the note. The replaced
+when the task has put a new version in place and shows the note. **Install
+now** does not wait for the task: it downloads the installer of the new
+release, checks it against `checksums.txt` and starts it. Windows asks for an
+administrator, the installer closes KnightLoader and opens the new version when
+it is done. The replaced
 program waits beside the new one as `KnightLoader.exe.old` until a later run
 removes it.
 
