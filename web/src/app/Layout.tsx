@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type Ref } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { QueueBar } from '../components/QueueBar';
@@ -13,6 +13,7 @@ import { IdleActionBanner } from '../components/IdleActionBanner';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { WhatsNew } from '../components/whatsnew/WhatsNew';
 import { PageActionsProvider, PageActionsSlot } from '../components/PageActions';
+import { ShellSideProvider } from '../components/ShellSide';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
 import { PageBoundary } from './PageBoundary';
@@ -144,43 +145,44 @@ function ShellSpeed({ instance }: { instance: string }) {
  * (check-stretched-svg-height.mjs), so a wider card is not a taller one. In a
  * narrow window the meter wraps under the squares, and the row gap makes up
  * for the part of the padding it takes.
+ *
+ * The page's totals card stands to its right through `side` (ShellSide.tsx),
+ * and wraps under it where the row is too narrow for both.
  */
-function ShellBar({ visible }: { visible: boolean }) {
+function ShellBar({ visible, side }: { visible: boolean; side: Ref<HTMLDivElement> }) {
   const { t } = useT();
   const { instance } = useInstanceScope();
   // The settings and volume routes are not forwarded to peers.
   const local = instance === '';
   return (
-    <div
-      role="region"
-      aria-label={t('shell.bar')}
-      className={`glim-card mb-6 flex-wrap items-center gap-6 p-5 sm:mx-6 md:mx-8 md:mb-8
-        ${visible ? 'flex' : 'hidden'}`}
-    >
-      {/* Named only when it is not this machine, so it stands out when it
+    <div className={`mb-6 flex-wrap gap-6 sm:mx-6 md:mx-8 md:mb-8 ${visible ? 'flex' : 'hidden'}`}>
+      <div role="region" aria-label={t('shell.bar')} className="glim-card flex min-w-0 flex-[2_1_36rem] flex-wrap items-center gap-6 p-5">
+        {/* Named only when it is not this machine, so it stands out when it
           matters. */}
-      {instance && (
-        <span className="flex items-center gap-2">
-          <span className="glim-eyebrow">{t('shell.scope')}</span>
-          {/* dir="auto": the peer's name may be in a right-to-left script. */}
-          <span className="text-xs font-medium text-carbon-text" dir="auto">
-            {instance}
+        {instance && (
+          <span className="flex items-center gap-2">
+            <span className="glim-eyebrow">{t('shell.scope')}</span>
+            {/* dir="auto": the peer's name may be in a right-to-left script. */}
+            <span className="text-xs font-medium text-carbon-text" dir="auto">
+              {instance}
+            </span>
+            <InfoBubble tip={t('shell.scopeHint')} />
           </span>
-          <InfoBubble tip={t('shell.scopeHint')} />
-        </span>
-      )}
+        )}
 
-      <div className="flex flex-col gap-2">
-        {/* The squares wrap rather than run out of a very narrow card. */}
-        <div className="flex flex-wrap items-center gap-2">
-          <QueueBar />
-          {local && <QuickSettings />}
+        <div className="flex flex-col gap-2">
+          {/* The squares wrap rather than run out of a very narrow card. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <QueueBar />
+            {local && <QuickSettings />}
+          </div>
+          {local && <VolumeMeter />}
         </div>
-        {local && <VolumeMeter />}
-      </div>
 
-      {/* The curve takes the rest of the row, up to the card's end edge. */}
-      <ShellSpeed instance={instance} />
+        {/* The curve takes the rest of the row, up to the card's end edge. */}
+        <ShellSpeed instance={instance} />
+      </div>
+      <div ref={side} className="flex min-w-0 flex-[1_1_22rem] flex-col empty:hidden" />
     </div>
   );
 }
@@ -220,6 +222,7 @@ export function Layout() {
   // pages/Settings.tsx scrolls its own content column.
   const ownsFrame = section === 'settings';
   const [actionSlot, setActionSlot] = useState<HTMLDivElement | null>(null);
+  const [sideSlot, setSideSlot] = useState<HTMLDivElement | null>(null);
   // The download list and the link collector scroll inside their own cards, so
   // those pages get exactly the height left under the shell bar, which only
   // Downloads shows. With min-h-full instead, a long list pushes the page past
@@ -243,7 +246,7 @@ export function Layout() {
       <div className="glim-shell flex h-[calc(100dvh-var(--window-bar))] flex-col gap-4 overflow-hidden bg-carbon-background p-4 md:flex-row">
         <Sidebar />
         <main className={`flex min-w-0 flex-1 flex-col ${ownsFrame ? 'overflow-hidden' : 'overflow-y-auto'}`}>
-          <ShellBar visible={section === 'downloads'} />
+          <ShellBar visible={section === 'downloads'} side={setSideSlot} />
           {/* flex flex-col lets a fitted page fill the height with flex-grow
               (Downloads.tsx, Collector.tsx), which a percentage height would
               not do reliably through an auto-height parent. The frame still
@@ -255,18 +258,20 @@ export function Layout() {
               glim-column-top gives the room a section badge's notch needs to
               the first card that has one (index.css). */}
           <PageActionsProvider slot={actionSlot}>
-            <div
-              key={section}
-              className={
-                ownsFrame
-                  ? 'glim-page-enter flex h-full w-full min-h-0 flex-col'
-                  : `glim-page-enter glim-column-top flex w-full flex-col sm:px-6 md:px-8 ${height}`
-              }
-            >
-              <PageBoundary>
-                <Outlet />
-              </PageBoundary>
-            </div>
+            <ShellSideProvider slot={sideSlot}>
+              <div
+                key={section}
+                className={
+                  ownsFrame
+                    ? 'glim-page-enter flex h-full w-full min-h-0 flex-col'
+                    : `glim-page-enter glim-column-top flex w-full flex-col sm:px-6 md:px-8 ${height}`
+                }
+              >
+                <PageBoundary>
+                  <Outlet />
+                </PageBoundary>
+              </div>
+            </ShellSideProvider>
           </PageActionsProvider>
           {/* The page's floating actions, with the page's own side padding so
               they end where its cards end. No height: every page here reaches

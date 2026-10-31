@@ -35,6 +35,7 @@ import {
 } from '../components/ListToolbar';
 import { ListSearch, matchesSearch } from '../components/SearchField';
 import { DownloadStats } from '../components/DownloadStats';
+import { ShellSide } from '../components/ShellSide';
 import { ListNarrowing } from '../components/ListNarrowing';
 import { StatusFilter } from '../components/StatusFilter';
 import type { SearchHandle } from '../components/SearchToggle';
@@ -471,41 +472,43 @@ export function Downloads() {
     <div className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t('downloads.title')} />
 
-      {/* The totals, and what narrows or picks from the lists, above them.
-          The lists' own heads sort and filter, and typing searches. */}
+      {/* The totals, and what narrows or picks from the lists, beside the speed
+          graph. The lists' own heads sort and filter, and typing searches. */}
       {list.length > 0 && (
-        <DownloadStats all={list} hue={3}>
-          <ListNarrowing
-            shown={filtered.length}
-            total={list.length}
-            narrowed={narrowed}
-            onClear={narrowing.clearAll}
-            selection={
-              selected.size > 0 ? (
-                <span className="flex items-center gap-1.5">
-                  <SelectionReach mode="select" total={selected.size} hidden={reach.hidden.length} onReduce={reduceToShown} />
-                  <IconBadge
-                    hue={1}
-                    icon={<IconClearSelection width={16} height={16} />}
-                    title={t('select.none')}
-                    aria-label={t('select.none')}
-                    onClick={clearSelection}
-                  />
-                </span>
-              ) : undefined
-            }
-            views={
-              <SavedViewChips
-                profile="downloads"
-                allowed={DOWNLOAD_FILTERS}
-                narrowing={narrowing.narrowing}
-                onApply={narrowing.apply}
-                glyphs={false}
-                folded={false}
-              />
-            }
-          />
-        </DownloadStats>
+        <ShellSide>
+          <DownloadStats all={list} hue={3}>
+            <ListNarrowing
+              shown={filtered.length}
+              total={list.length}
+              narrowed={narrowed}
+              onClear={narrowing.clearAll}
+              selection={
+                selected.size > 0 ? (
+                  <span className="flex items-center gap-1.5">
+                    <SelectionReach mode="select" total={selected.size} hidden={reach.hidden.length} onReduce={reduceToShown} />
+                    <IconBadge
+                      hue={1}
+                      icon={<IconClearSelection width={16} height={16} />}
+                      title={t('select.none')}
+                      aria-label={t('select.none')}
+                      onClick={clearSelection}
+                    />
+                  </span>
+                ) : undefined
+              }
+              views={
+                <SavedViewChips
+                  profile="downloads"
+                  allowed={DOWNLOAD_FILTERS}
+                  narrowing={narrowing.narrowing}
+                  onApply={narrowing.apply}
+                  glyphs={false}
+                  folded={false}
+                />
+              }
+            />
+          </DownloadStats>
+        </ShellSide>
       )}
 
       {/* The scrolling regions: everything above keeps its height and the

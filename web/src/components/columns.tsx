@@ -1638,7 +1638,7 @@ export const COLUMNS: ColumnDef[] = [
     id: 'progress',
     labelKey: 'columns.progress',
     // The percentage and the padding take 60px, and the bar gets the rest.
-    width: 160,
+    width: 220,
     minWidth: 110,
     align: 'start',
     hideable: true,
