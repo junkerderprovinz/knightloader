@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
@@ -200,7 +201,7 @@ func (p *Provisioner) EnsureJar(ctx context.Context) error {
 	if err := verifyJar(tmp); err != nil {
 		return err
 	}
-	return os.Rename(tmp, p.jarPath())
+	return fsretry.Rename(tmp, p.jarPath())
 }
 
 // WriteAPIConfig enables the Deprecated API (plain-HTTP local JSON) that

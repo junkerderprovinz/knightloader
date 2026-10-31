@@ -24,6 +24,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/captcha"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // Both are vars so the tests can shorten them.
@@ -106,7 +107,7 @@ func (l *paidLedger) markSent(id string, now time.Time) {
 		log.Printf("captcha: could not write down the captchas sent to the solvers: %v", err)
 		return
 	}
-	if err := os.Rename(tmp, l.path); err != nil {
+	if err := fsretry.Rename(tmp, l.path); err != nil {
 		log.Printf("captcha: could not put the list of captchas sent to the solvers in place: %v", err)
 		_ = os.Remove(tmp)
 	}

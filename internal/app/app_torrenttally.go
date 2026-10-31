@@ -23,6 +23,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -176,7 +177,7 @@ func (t *torrentTally) save(now time.Time, force bool) {
 		log.Printf("could not write the torrent totals: %v", err)
 		return
 	}
-	if err := os.Rename(tmp, t.path); err != nil {
+	if err := fsretry.Rename(tmp, t.path); err != nil {
 		log.Printf("could not put the torrent totals in place: %v", err)
 		_ = os.Remove(tmp)
 	}

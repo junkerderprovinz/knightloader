@@ -14,6 +14,8 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // State is where a job stands on this side.
@@ -1035,7 +1037,7 @@ func writeFile(path string, data []byte) error {
 	if err := os.WriteFile(tmp, data, 0o600); err != nil {
 		return err
 	}
-	return os.Rename(tmp, path)
+	return fsretry.Rename(tmp, path)
 }
 
 // newJobID is random, so the file an NZB waits in cannot be guessed from

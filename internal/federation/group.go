@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
@@ -162,7 +163,7 @@ func (g *groupFile) flushLocked() error {
 		err = cerr
 	}
 	if err == nil {
-		err = os.Rename(tmp, g.path)
+		err = fsretry.Rename(tmp, g.path)
 	}
 	if err != nil {
 		os.Remove(tmp)

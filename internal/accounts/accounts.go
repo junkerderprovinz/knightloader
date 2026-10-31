@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // Credential is one stored account's secret. The service's catalogue Kind
@@ -357,7 +358,7 @@ func writeAtomic(path string, data []byte) error {
 	if err := f.Close(); err != nil {
 		return err
 	}
-	if err := os.Rename(tmp, path); err != nil {
+	if err := fsretry.Rename(tmp, path); err != nil {
 		return err
 	}
 	// The rename itself lives in the folder. Windows cannot sync a folder,

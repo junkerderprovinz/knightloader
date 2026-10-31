@@ -26,6 +26,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // SessionTTL is how long a login lasts.
@@ -457,7 +458,7 @@ func writeAtomic(path string, b []byte) error {
 		err = cerr
 	}
 	if err == nil {
-		err = os.Rename(tmp, path)
+		err = fsretry.Rename(tmp, path)
 	}
 	if err != nil {
 		os.Remove(tmp)

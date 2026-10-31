@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/diskspace"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // MaintenanceKind is one of the three maintenance passes. Routes parse it with
@@ -205,7 +206,7 @@ func (st *maintenanceState) saveRecordLocked(dataDir string) {
 		log.Printf("could not write the database maintenance record: %v", err)
 		return
 	}
-	if err := os.Rename(tmp, final); err != nil {
+	if err := fsretry.Rename(tmp, final); err != nil {
 		log.Printf("could not put the database maintenance record in place: %v", err)
 		_ = os.Remove(tmp)
 	}
