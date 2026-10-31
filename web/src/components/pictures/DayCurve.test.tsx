@@ -179,13 +179,13 @@ describe('the curve of the day', () => {
     expect(host.querySelector('[data-upload]')!.getAttribute('d')).toBe(
       'M360.0 100.00H365.0L365.0 100.00H370.0M595.0 100.00H600.0',
     );
-    expect(host.querySelector('[data-upload-key]')!.textContent).toBe('Seeding');
+    expect(host.querySelector('[data-upload-key]')!.textContent).toBe('Upload');
 
     await draw({ points: points.map((p) => ({ ...p, up: MB })) });
     expect(host.querySelector('[data-upload]')!.getAttribute('d')).toBe(
       'M360.0 75.00H365.0L365.0 75.00H370.0M595.0 75.00H600.0',
     );
-    expect(host.querySelector('[data-upload-key]')!.textContent).toBe('Seeding');
+    expect(host.querySelector('[data-upload-key]')!.textContent).toBe('Upload');
   });
 
   it('draws the plan of a timetable that is set aside faintly, and the measured line as ever', async () => {

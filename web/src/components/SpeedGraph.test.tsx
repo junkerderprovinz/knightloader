@@ -320,7 +320,7 @@ describe('SpeedMeter', () => {
     const [down, up] = [...host.querySelectorAll<HTMLElement>('[data-live-rates] > span')];
     expect(down.textContent).toBe(`Download ${fmtSpeed(3 * MB)}`);
     expect(down.style.color).toBe(DOWNLOAD_INK);
-    expect(up.textContent).toBe(`Seeding ${fmtSpeed(MB)}`);
+    expect(up.textContent).toBe(`Upload ${fmtSpeed(MB)}`);
     expect(up.style.color).toBe(SEEDING_INK);
     act(() => root.unmount());
     host.remove();
