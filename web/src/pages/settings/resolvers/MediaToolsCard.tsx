@@ -92,15 +92,30 @@ export function MediaToolsCard({ hue }: { hue: number }) {
 }
 
 /**
+ * jdMissing says what stands in for JDownloader's revision while it does not
+ * answer, and what to do about it. The desktop build tells why its own
+ * JDownloader is not there yet, a missing Java above all.
+ */
+export function jdMissing(t: ReturnType<typeof useT>['t'], jd: JDStatus): [string, string] {
+  if (jd.configured) return [t('settings.resolvers.toolsUnreachable'), t('settings.resolvers.toolsJdUnreachableHint')];
+  switch (jd.setup) {
+    case 'starting':
+      return [t('settings.resolvers.toolsJdStarting'), t('settings.resolvers.toolsJdStartingHint')];
+    case 'noJava':
+      return [t('settings.resolvers.toolsJdNoJava'), t('settings.resolvers.toolsJdNoJavaHint')];
+    default:
+      return [t('settings.resolvers.toolsNotConfigured'), t('settings.resolvers.toolsJdMissingHint')];
+  }
+}
+
+/**
  * JDRow shows the JDownloader backend as a tool: in use while it answers,
  * with its revision as the version, and otherwise whether it is set up at all.
  */
 function JDRow({ jd }: { jd: JDStatus }) {
   const { t } = useT();
   const tool: MediaTool = { found: jd.reachable, version: jd.version ? String(jd.version) : '' };
-  const [missing, hint] = jd.configured
-    ? [t('settings.resolvers.toolsUnreachable'), t('settings.resolvers.toolsJdUnreachableHint')]
-    : [t('settings.resolvers.toolsNotConfigured'), t('settings.resolvers.toolsJdMissingHint')];
+  const [missing, hint] = jdMissing(t, jd);
   return <ToolRow name="JDownloader" tool={tool} missing={missing} missingHint={hint} last data-new="jd-tool" />;
 }
 

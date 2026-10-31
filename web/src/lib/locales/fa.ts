@@ -732,6 +732,12 @@ export const fa: Dict = {
   'settings.modules.reason.cnlSwitch': 'روی 127.0.0.1:9666 گوش می‌دهد، مگر اینکه KL_CNL درگاه دیگری تعیین کند. خاموش کردنش در اینجا KL_CNL را همان‌طور که هست می‌گذارد، پس پس از راه‌اندازی مجدد درگاه همان‌طور باز می‌شود که محیط می‌گوید.',
   'settings.modules.reason.cnlNoListener': 'این فرایند هیچ درگاه Click\'n\'Load ای باز نمی‌کند.',
   'settings.resolvers.toolsJdMissingHint': 'هیچ JDownloader پیکربندی نشده است. KnightLoader معمولاً هنگام بالا آمدن یکی از خودش را راه می‌اندازد. اگر بعد از چند دقیقه هنوز نیست، در گزارش دنبال «JD provisioning failed» بگرد، یا KL_JD را روی JDownloader خودت بگذار و دوباره راه‌اندازی کن.',
+  'settings.resolvers.toolsJdStarting': 'در حال شروع',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader در پس‌زمینه JDownloader خودش را راه می‌اندازد. اولین اجرا چند دقیقه طول می‌کشد.',
+  'settings.resolvers.toolsJdNoJava': 'Java نیست',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader با Java کار می‌کند و این رایانه Java ندارد. Java (مثلاً Eclipse Temurin) یا JDownloader 2 را نصب کن و بعد KnightLoader را دوباره اجرا کن. در این مدت بقیهٔ دانلودها مثل همیشه انجام می‌شوند.',
   'settings.modules.reason.captchaNoJD': 'کپچاها فقط از بک‌اند JDownloader می‌آیند، و هیچ‌کدام پیکربندی نشده است.',
   'settings.modules.switchFailed': 'آن کلید رد شد: {reason}',
   'settings.modules.configureFirst': 'هنوز چیزی برای روشن کردن نیست. اول این را در {page} برپا کنید؛ پس از آن کلید اینجا آن را متوقف و دوباره اجرا می‌کند بی‌آنکه آنچه تنظیم کرده‌اید از دست برود.',
@@ -784,6 +790,13 @@ export const fa: Dict = {
   'settings.look.updatesAvailable': '{version} در دسترس است',
   'settings.look.updatesAvailableContainer': '{version} در دسترس است: تصویر کانتینرت را به همان روشی که مستقرش کرده‌ای به‌روز کن (docker pull، Unraid Community Applications، ...)',
   'settings.look.updatesReleaseNotes': 'یادداشت‌های انتشار',
+  'settings.look.updatesInstall': 'همین حالا نصب کن',
+  'settings.look.updatesInstalling': 'در حال نصب…',
+  'settings.look.updatesDownloading': 'در حال دانلود به‌روزرسانی: {percent}٪',
+  'settings.look.updatesStarting': 'برنامهٔ نصب در حال اجراست. Windows از تو اجازه می‌خواهد.',
+  'settings.look.updatesStarted':
+    'برنامهٔ نصب در حال کار است. KnightLoader را می‌بندد و در پایان نسخهٔ جدید را باز می‌کند.',
+  'settings.look.updatesInstallFailed': 'به‌روزرسانی انجام نشد: {error}',
   'settings.look.updatesContainerHint': 'ایمیج کانتینرت را به همان روشی که مستقرش کرده‌ای به‌روز کن، مثلاً با docker pull یا از طریق Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'فقط در نسخهٔ دسکتاپ ممکن است: کانتینر نمی‌تواند خودش را از درون جایگزین کند. به‌جایش آن را به همان روشی که مستقرش کرده‌ای به‌روز کن (docker pull، Unraid Community Applications، Watchtower، ...).',
   'settings.look.updatesHint': 'نسخهٔ این بیلد را با آخرین انتشار در GitHub مقایسه می‌کند. نسخهٔ دسکتاپ می‌تواند نسخهٔ جدیدتر را نیز به‌طور خودکار دانلود و نصب کند؛ کانتینر در عوض به همان روشی که مستقر شده به‌روزرسانی می‌شود (docker pull، Unraid Community Applications، Watchtower، ...).',

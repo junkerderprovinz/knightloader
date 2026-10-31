@@ -733,6 +733,12 @@ export const eu: Dict = {
   'settings.modules.reason.cnlSwitch': '127.0.0.1:9666 helbidean entzuten du, KL_CNL-k beste ataka bat izendatzen ez badu. Hemen itzaltzeak KL_CNL dagoen bezala uzten du, beraz berrabiarazi ondoren ataka inguruneak dioen moduan irekitzen da.',
   'settings.modules.reason.cnlNoListener': 'Prozesu honek ez du Click\'n\'Load atakarik irekitzen.',
   'settings.resolvers.toolsJdMissingHint': 'Ez dago JDownloaderrik konfiguratuta. KnightLoaderrek normalean berea abiarazten du hasieran. Minutu batzuk geroago ere falta bada, bilatu «JD provisioning failed» erregistroan, edo ezarri KL_JD zure JDownloader batean eta berrabiarazi.',
+  'settings.resolvers.toolsJdStarting': 'Abiarazten',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader bere JDownloader propioa abiarazten ari da atzeko planoan. Lehen abioak minutu batzuk behar ditu.',
+  'settings.resolvers.toolsJdNoJava': 'Java falta da',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader Javarekin dabil, eta ordenagailu honek ez du. Instalatu Java (adibidez, Eclipse Temurin) edo JDownloader 2, eta berrabiarazi KnightLoader. Bitartean, gainerako guztia ohi bezala deskargatzen da.',
   'settings.modules.reason.captchaNoJD': 'Captchak JDownloader backendetik bakarrik datoz, eta ez dago bat ere konfiguratuta.',
   'settings.modules.switchFailed': 'Etengailu hori ukatu da: {reason}',
   'settings.modules.configureFirst': 'Oraindik ez dago ezer pizteko. Ezarri hau lehenik {page} orrian; ondoren hemengo etengailuak gelditu eta berriro abiaraziko du, ezarritakoa galdu gabe.',
@@ -785,6 +791,13 @@ export const eu: Dict = {
   'settings.look.updatesAvailable': '{version} eskuragarri dago',
   'settings.look.updatesAvailableContainer': '{version} eskuragarri dago: eguneratu zure edukiontziaren irudia zabaldu zenuen modu berean (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Bertsio-oharrak',
+  'settings.look.updatesInstall': 'Instalatu orain',
+  'settings.look.updatesInstalling': 'Instalatzen…',
+  'settings.look.updatesDownloading': 'Eguneratzea deskargatzen: % {percent}',
+  'settings.look.updatesStarting': 'Instalatzailea abiarazten. Windowsek baimena eskatuko dizu.',
+  'settings.look.updatesStarted':
+    'Instalatzailea martxan dago. KnightLoader itxiko du eta, amaitzean, bertsio berria irekiko du.',
+  'settings.look.updatesInstallFailed': 'Eguneratzeak ez du funtzionatu: {error}',
   'settings.look.updatesContainerHint': 'Eguneratu zure edukiontziaren irudia zabaldu zenuen modu berean, adibidez docker pull bidez edo Unraid Community Applications bidez.',
   'settings.look.updatesAutoUpdateContainerHint': 'Mahaigaineko bertsioan bakarrik da posible: edukiontzi batek ezin du bere burua barrutik ordezkatu. Eguneratu hura zabaldu zenuen modu berean (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': 'Build honen bertsioa GitHub-eko azken argitalpenarekin alderatzen du. Mahaigaineko bertsioak berriagoa automatikoki deskargatu eta instalatu ere badezake; edukiontzi bat, berriz, hedatu zen moduan eguneratzen da (docker pull, Unraid Community Applications, Watchtower, ...).',

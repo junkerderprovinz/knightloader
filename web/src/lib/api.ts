@@ -2267,6 +2267,8 @@ export interface JDStatus {
   /** JDownloader's revision number, a plain integer; absent while unreachable. */
   version?: number;
   detail?: string;
+  /** Why the desktop build's own JDownloader is not configured yet. */
+  setup?: 'starting' | 'noJava' | 'failed';
 }
 
 export async function fetchJDStatus(): Promise<JDStatus> {
@@ -3498,6 +3500,25 @@ export interface UpdateCheck {
 
 export async function fetchUpdateCheck(): Promise<UpdateCheck> {
   return json(await fetch('/api/system/update-check'));
+}
+
+/** How far an update the desktop build was asked to install has come. */
+export interface UpdateProgress {
+  state: '' | 'downloading' | 'starting' | 'started' | 'ready' | 'failed';
+  version?: string;
+  done?: number;
+  /** -1 while the size is unknown. */
+  total?: number;
+  error?: string;
+}
+
+export async function fetchUpdateProgress(): Promise<UpdateProgress> {
+  return json(await fetch('/api/system/update-install'));
+}
+
+/** Starts installing the newest release on the desktop build; the answer is where it starts. */
+export async function installUpdate(): Promise<UpdateProgress> {
+  return json(await fetch('/api/system/update-install', { method: 'POST' }));
 }
 
 /** One external program a media download runs, as it stands on this machine. */

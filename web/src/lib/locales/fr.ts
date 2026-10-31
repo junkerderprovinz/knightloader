@@ -724,6 +724,12 @@ export const fr: Dict = {
   'settings.modules.reason.cnlSwitch': 'Écoute sur 127.0.0.1:9666, sauf si KL_CNL indique un autre port. Le désactiver ici ne touche pas à KL_CNL : après un redémarrage, le port s’ouvre donc comme l’environnement le dit.',
   'settings.modules.reason.cnlNoListener': 'Ce processus n’ouvre aucun port Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Aucun JDownloader n’est configuré. KnightLoader en démarre normalement un à lui au démarrage. S’il manque encore après quelques minutes, cherchez « JD provisioning failed » dans le journal, ou réglez KL_JD sur un JDownloader à vous, puis redémarrez.',
+  'settings.resolvers.toolsJdStarting': 'Démarrage',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader démarre son propre JDownloader en arrière-plan. Le premier démarrage prend quelques minutes.',
+  'settings.resolvers.toolsJdNoJava': 'Java manquant',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader fonctionne avec Java, et cet ordinateur n’en a pas. Installez Java (Eclipse Temurin, par exemple) ou JDownloader 2, puis redémarrez KnightLoader. En attendant, tout le reste se télécharge normalement.',
   'settings.modules.reason.captchaNoJD': 'Les captchas ne viennent que du backend JDownloader, et aucun n’est configuré.',
   'settings.modules.switchFailed': 'Cet interrupteur a été refusé : {reason}',
   'settings.modules.configureFirst': 'Il n’y a encore rien à activer. Configurez d’abord cela sur {page} ; ensuite l’interrupteur d’ici l’arrête et le relance sans perdre vos réglages.',
@@ -776,6 +782,14 @@ export const fr: Dict = {
   'settings.look.updatesAvailable': '{version} est disponible',
   'settings.look.updatesAvailableContainer': '{version} est disponible : mettez à jour votre image de conteneur de la même façon que vous l’avez déployée (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Notes de version',
+  'settings.look.updatesInstall': 'Installer maintenant',
+  'settings.look.updatesInstalling': 'Installation…',
+  'settings.look.updatesDownloading': 'Téléchargement de la mise à jour : {percent} %',
+  'settings.look.updatesStarting':
+    'Lancement du programme d’installation. Windows va vous demander votre autorisation.',
+  'settings.look.updatesStarted':
+    'Le programme d’installation est en cours. Il ferme KnightLoader puis ouvre la nouvelle version.',
+  'settings.look.updatesInstallFailed': 'La mise à jour n’a pas abouti : {error}',
   'settings.look.updatesContainerHint': 'Mettez à jour votre image de conteneur de la même façon que vous l’avez déployée, par exemple avec docker pull ou via Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Possible uniquement sur la version bureau : un conteneur ne peut pas se remplacer lui-même de l’intérieur. Mettez-le plutôt à jour de la même façon que vous l’avez déployé (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': 'Compare la version de cette build à la dernière version sur GitHub. La build de bureau peut aussi télécharger et installer automatiquement une version plus récente ; un conteneur se met plutôt à jour de la façon dont il a été déployé (docker pull, Unraid Community Applications, Watchtower, ...).',

@@ -732,6 +732,12 @@ export const id: Dict = {
   'settings.modules.reason.cnlSwitch': 'Mendengarkan di 127.0.0.1:9666 kecuali KL_CNL menyebut port lain. Mematikannya di sini membiarkan KL_CNL apa adanya, jadi setelah mulai ulang port dibuka sesuai yang ditentukan lingkungan.',
   'settings.modules.reason.cnlNoListener': 'Proses ini tidak membuka port Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'JDownloader belum disiapkan. KnightLoader biasanya menjalankan JDownloader sendiri saat menyala. Jika setelah beberapa menit masih belum ada, cari "JD provisioning failed" di log, atau setel KL_JD ke JDownloader milik Anda sendiri lalu mulai ulang.',
+  'settings.resolvers.toolsJdStarting': 'Memulai',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader sedang memulai JDownloader miliknya di latar belakang. Awal pertama butuh beberapa menit.',
+  'settings.resolvers.toolsJdNoJava': 'Java tidak ada',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader berjalan dengan Java, dan komputer ini tidak punya. Pasang Java (misalnya Eclipse Temurin) atau JDownloader 2, lalu mulai ulang KnightLoader. Sementara itu, unduhan lainnya berjalan seperti biasa.',
   'settings.modules.reason.captchaNoJD': 'Captcha hanya datang dari backend JDownloader, dan belum ada yang dikonfigurasi.',
   'settings.modules.switchFailed': 'Sakelar itu ditolak: {reason}',
   'settings.modules.configureFirst': 'Belum ada yang bisa dinyalakan. Siapkan dulu di {page}; setelah itu sakelar di sini menghentikan dan menjalankannya lagi tanpa kehilangan apa yang Anda atur.',
@@ -784,6 +790,13 @@ export const id: Dict = {
   'settings.look.updatesAvailable': '{version} tersedia',
   'settings.look.updatesAvailableContainer': '{version} tersedia: perbarui image kontainermu dengan cara yang sama seperti saat kamu memasangnya (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Catatan rilis',
+  'settings.look.updatesInstall': 'Pasang sekarang',
+  'settings.look.updatesInstalling': 'Memasang…',
+  'settings.look.updatesDownloading': 'Mengunduh pembaruan: {percent}%',
+  'settings.look.updatesStarting': 'Memulai penginstal. Windows akan meminta izinmu.',
+  'settings.look.updatesStarted':
+    'Penginstal sedang berjalan. Ia menutup KnightLoader dan membuka versi baru setelah selesai.',
+  'settings.look.updatesInstallFailed': 'Pembaruan tidak berhasil: {error}',
   'settings.look.updatesContainerHint': 'Perbarui image kontainermu dengan cara yang sama seperti saat kamu memasangnya, misalnya dengan docker pull atau lewat Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Hanya bisa di build desktop: kontainer tidak bisa mengganti dirinya sendiri dari dalam. Perbarui dengan cara yang sama seperti saat kamu memasangnya (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': 'Membandingkan versi build ini dengan rilis terbaru di GitHub. Build desktop juga bisa mengunduh dan memasang versi baru secara otomatis; kontainer diperbarui dengan cara yang sama seperti saat di-deploy (docker pull, Unraid Community Applications, Watchtower, ...).',
