@@ -792,6 +792,20 @@ function usePixelBox(ref: RefObject<SVGSVGElement | null>): { w: number; h: numb
 }
 
 /**
+ * useMeterAverage is the mean download speed over the window the shell meter
+ * draws, so a figure beside the curve agrees with it. It is 0 while the
+ * window holds no samples.
+ */
+export function useMeterAverage(instance: string, value: number, upload: number): number {
+  const [seconds] = useMeterWindow();
+  const scale: SpeedScale = seconds > FINE_SPAN_S ? 'hour' : 'minute';
+  const points = seconds / stepOf(scale);
+  const win = useSpeedWindow(instance, value, upload, points + OFFSTAGE, scale);
+  const shown = win.samples.slice(-points);
+  return shown.length > 0 ? shown.reduce((a, b) => a + b, 0) / shown.length : 0;
+}
+
+/**
  * SpeedMeter is the shell-bar reading: the window the quick settings choose
  * as a curve that takes the rest of the bar's row, newest sample on its right
  * edge, with the current figures above that end and the top of the plot above

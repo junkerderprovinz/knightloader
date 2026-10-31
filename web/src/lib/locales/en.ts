@@ -184,9 +184,14 @@ export const en = {
   'downloads.pauseAll': 'Pause all',
   'downloads.resumeAll': 'Resume all',
   'downloads.retryFailed': 'Reset failed',
-  'downloads.stats.label': 'Download totals',
+  'downloads.stats.label': 'Totals',
   'downloads.stats.loaded': '{loaded} of {total} loaded',
   'downloads.stats.links': '{n} links',
+  'downloads.stats.left': '{time} left',
+  'downloads.stats.done': '{n} done',
+  'downloads.stats.open': '{n} open',
+  'downloads.stats.failed': '{n} failed',
+  'downloads.stats.average': 'avg. {speed}',
   // The failure chips' tooltip. It names the count as well as the cause because
   // the chip is a bulk action on rows a filter may be hiding, and "12" beside a
   // list showing three of them is the number that has to be said out loud.
@@ -1375,6 +1380,7 @@ export const en = {
     'Automatic reconnects are fired in one place, and this page is not it. One is started when a download backend itself asks for another attempt after a delay, which is how a hoster says the limit is tied to this address. It never runs while the queue is halted, because rebooting the router drops the downloads that are still going. It never runs while the reconnect is not fully configured. Only one runs at a time: a second request waits for the first one’s verdict instead of fighting it over the router. And if the address does not move, nothing is brought forward and the ordinary retry backoff is left to run.',
 
   'shell.bar': 'Queue and status bar',
+  'shell.speedBadge': 'Speed',
   'shell.scope': 'Controlling',
   'shell.scopeHint':
     'The page below is showing this peer, so the bar points at it too. A peer keeps its own queue and its own speed limit, so anything this instance cannot pass on is shown as unavailable instead of being applied to this machine.',
@@ -1813,7 +1819,7 @@ export const en = {
   'collector.facets.type.other': 'Other',
 
   // The collector's totals card (components/CollectorStats.tsx).
-  'collector.stats.label': 'Link collector totals',
+  'collector.stats.label': 'Totals',
   'collector.stats.packages': 'Packages',
   'collector.stats.links': 'Links',
   'collector.stats.totalSize': 'Total size',
@@ -2019,6 +2025,7 @@ export const en = {
   'settings.info.upToDate': 'Up to date',
   'settings.info.updatesFound': 'Updates: {n}',
   'settings.info.checkFailed': 'Check failed',
+  'settings.info.checkAll': 'Check all',
   'settings.info.statusFailed': 'Failed',
   'settings.info.statusReady': 'Ready at next start',
   'settings.info.statusNote': 'Note',
