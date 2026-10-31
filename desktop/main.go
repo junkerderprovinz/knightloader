@@ -76,6 +76,7 @@ func main() {
 	jdDone := make(chan struct{})
 	if os.Getenv("KL_JD") == "" {
 		pv = provision.New(filepath.Join(dataDir, "jd"))
+		a.SettingUpJD()
 		go func() {
 			defer close(jdDone)
 			provisionJD(jdCtx, a, pv)
@@ -127,6 +128,8 @@ func main() {
 	up := newUpdater(log.Printf, func(version string) { tray.emit(updateReadyEvent, version) })
 	a.UpdateReady = up.readyVersion
 	updateCtx, stopUpdates := context.WithCancel(context.Background())
+	a.InstallUpdate = func() error { return up.install(updateCtx, installed) }
+	a.UpdateProgress = up.currentProgress
 	if installed {
 		go up.follow(updateCtx)
 	} else {
@@ -249,6 +252,7 @@ func provisionJD(ctx context.Context, a *app.App, pv *provision.Provisioner) {
 	_, url, err := pv.Ensure(ctx)
 	if err != nil {
 		log.Printf("JD provisioning failed (%v); continuing without JD", err)
+		a.JDSetupFailed(err)
 		return
 	}
 	a.UseJD(url)

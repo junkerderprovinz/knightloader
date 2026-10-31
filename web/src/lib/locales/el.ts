@@ -734,6 +734,12 @@ export const el: Dict = {
   'settings.modules.reason.cnlNoListener': 'Αυτή η διεργασία δεν ανοίγει θύρα Click\'n\'Load.',
   'settings.modules.reason.cnlContainer': 'Το Click\'n\'Load στέλνει τους συνδέσμους σε μια θύρα στον υπολογιστή όπου τρέχει το πρόγραμμα περιήγησής σου, και αυτήν ένα container δεν μπορεί να την ανοίξει. Η εφαρμογή επιφάνειας εργασίας και η επέκταση προγράμματος περιήγησης πιάνουν το Click\'n\'Load για αυτό το στιγμιότυπο.',
   'settings.resolvers.toolsJdMissingHint': 'Δεν έχει ρυθμιστεί JDownloader. Το KnightLoader κανονικά ξεκινά ένα δικό του κατά την εκκίνηση. Αν λείπει ακόμα μετά από μερικά λεπτά, ψάξε στην καταγραφή για «JD provisioning failed» ή όρισε το KL_JD σε ένα δικό σου JDownloader και κάνε επανεκκίνηση.',
+  'settings.resolvers.toolsJdStarting': 'Εκκίνηση',
+  'settings.resolvers.toolsJdStartingHint':
+    'Το KnightLoader ξεκινά στο παρασκήνιο το δικό του JDownloader. Η πρώτη εκκίνηση διαρκεί λίγα λεπτά.',
+  'settings.resolvers.toolsJdNoJava': 'Λείπει η Java',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'Το JDownloader τρέχει με Java, και αυτός ο υπολογιστής δεν έχει. Εγκατάστησε Java (για παράδειγμα Eclipse Temurin) ή το JDownloader 2 και μετά επανεκκίνησε το KnightLoader. Στο μεταξύ όλα τα άλλα κατεβαίνουν κανονικά.',
   'settings.modules.reason.captchaNoJD': 'Τα captcha έρχονται μόνο από το backend του JDownloader, και δεν έχει ρυθμιστεί κανένα.',
   'settings.modules.switchFailed': 'Ο διακόπτης απορρίφθηκε: {reason}',
   'settings.modules.configureFirst': 'Δεν υπάρχει ακόμη κάτι να ανάψει. Ρυθμίστε το πρώτα στη σελίδα {page}· μετά ο διακόπτης εδώ το σταματά και το ξεκινά ξανά χωρίς να χαθεί ό,τι ορίσατε.',
@@ -786,6 +792,13 @@ export const el: Dict = {
   'settings.look.updatesAvailable': 'Η έκδοση {version} είναι διαθέσιμη',
   'settings.look.updatesAvailableContainer': 'Η έκδοση {version} είναι διαθέσιμη: ενημέρωσε την εικόνα του container σου με τον τρόπο που την ανέπτυξες (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Σημειώσεις έκδοσης',
+  'settings.look.updatesInstall': 'Εγκατάσταση τώρα',
+  'settings.look.updatesInstalling': 'Εγκατάσταση…',
+  'settings.look.updatesDownloading': 'Λήψη της ενημέρωσης: {percent}%',
+  'settings.look.updatesStarting': 'Ξεκινά το πρόγραμμα εγκατάστασης. Τα Windows θα σου ζητήσουν άδεια.',
+  'settings.look.updatesStarted':
+    'Το πρόγραμμα εγκατάστασης τρέχει. Κλείνει το KnightLoader και στο τέλος ανοίγει τη νέα έκδοση.',
+  'settings.look.updatesInstallFailed': 'Η ενημέρωση δεν πέτυχε: {error}',
   'settings.look.updatesContainerHint': 'Ενημέρωσε την εικόνα του container σου με τον τρόπο που την ανέπτυξες, για παράδειγμα με docker pull ή μέσω του Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Δυνατό μόνο στην έκδοση για υπολογιστή: ένα container δεν μπορεί να αντικαταστήσει τον εαυτό του από μέσα. Ενημέρωσέ το αντί γι\' αυτό με τον τρόπο που το ανέπτυξες (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': "Συγκρίνει την έκδοση αυτού του build με την πιο πρόσφατη έκδοση στο GitHub. Το desktop build μπορεί επίσης να κατεβάσει και να εγκαταστήσει αυτόματα μια νεότερη έκδοση· ένα container ενημερώνεται αντ' αυτού με τον τρόπο που αναπτύχθηκε (docker pull, Unraid Community Applications, Watchtower, ...).",

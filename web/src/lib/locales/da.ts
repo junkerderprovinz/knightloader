@@ -733,6 +733,12 @@ export const da: Dict = {
   'settings.modules.reason.cnlNoListener': 'Denne proces åbner ingen Click’n’Load-port.',
   'settings.modules.reason.cnlContainer': 'Click’n’Load sender linkene til en port på den computer, din browser kører på, og den kan en container ikke åbne. Skrivebordsappen og browserudvidelsen fanger Click’n’Load for denne instans.',
   'settings.resolvers.toolsJdMissingHint': 'Der er ingen JDownloader sat op. KnightLoader starter normalt sin egen under opstarten. Mangler den stadig efter nogle minutter, så se efter »JD provisioning failed« i loggen, eller sæt KL_JD til en JDownloader, du selv har, og genstart.',
+  'settings.resolvers.toolsJdStarting': 'Starter',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader starter sin egen JDownloader i baggrunden. Første start tager et par minutter.',
+  'settings.resolvers.toolsJdNoJava': 'Java mangler',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader kører på Java, og denne computer har ingen. Installer Java (for eksempel Eclipse Temurin) eller JDownloader 2, og genstart derefter KnightLoader. Alt andet downloader som normalt i mellemtiden.',
   'settings.modules.reason.captchaNoJD': 'Captchaer kommer kun fra JDownloader-backenden, og der er ikke sat nogen op.',
   'settings.modules.switchFailed': 'Den kontakt blev afvist: {reason}',
   'settings.modules.configureFirst': 'Der er endnu ikke noget at tænde for. Sæt det op på {page} først; derefter stopper og genstarter kontakten her det uden at miste det, du har sat op.',
@@ -785,6 +791,13 @@ export const da: Dict = {
   'settings.look.updatesAvailable': '{version} er tilgængelig',
   'settings.look.updatesAvailableContainer': '{version} er tilgængelig: opdater dit containerimage på samme måde, som du udrullede det (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Udgivelsesnoter',
+  'settings.look.updatesInstall': 'Installer nu',
+  'settings.look.updatesInstalling': 'Installerer…',
+  'settings.look.updatesDownloading': 'Henter opdateringen: {percent} %',
+  'settings.look.updatesStarting': 'Installationsprogrammet starter. Windows beder dig om tilladelse.',
+  'settings.look.updatesStarted':
+    'Installationsprogrammet kører. Det lukker KnightLoader og åbner derefter den nye version.',
+  'settings.look.updatesInstallFailed': 'Opdateringen lykkedes ikke: {error}',
   'settings.look.updatesContainerHint': 'Opdater dit containerimage på samme måde, som du udrullede det, for eksempel med docker pull eller via Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Kun muligt i desktopversionen: en container kan ikke erstatte sig selv indefra. Opdater den i stedet på samme måde, som du udrullede den (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': 'Sammenligner denne builds version med den nyeste udgivelse på GitHub. Desktop-builden kan også downloade og installere en nyere version automatisk; en container opdateres i stedet på den måde, den blev udrullet (docker pull, Unraid Community Applications, Watchtower, ...).',

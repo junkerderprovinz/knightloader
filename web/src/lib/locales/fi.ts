@@ -733,6 +733,12 @@ export const fi: Dict = {
   'settings.modules.reason.cnlNoListener': 'Tämä prosessi ei avaa Click\'n\'Load-porttia.',
   'settings.modules.reason.cnlContainer': 'Click\'n\'Load lähettää linkit porttiin koneella, jolla selaimesi toimii, eikä kontti voi avata sitä. Työpöytäsovellus ja selainlaajennus ottavat Click\'n\'Loadin vastaan tälle instanssille.',
   'settings.resolvers.toolsJdMissingHint': 'JDownloaderia ei ole määritetty. KnightLoader käynnistää yleensä oman käynnistyessään. Jos se puuttuu vielä muutaman minuutin jälkeen, etsi lokista ”JD provisioning failed” tai aseta KL_JD omaan JDownloaderiisi ja käynnistä uudelleen.',
+  'settings.resolvers.toolsJdStarting': 'Käynnistyy',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader käynnistää taustalla oman JDownloaderinsa. Ensimmäinen käynnistys kestää muutaman minuutin.',
+  'settings.resolvers.toolsJdNoJava': 'Java puuttuu',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader toimii Javalla, eikä tässä tietokoneessa ole sitä. Asenna Java (esimerkiksi Eclipse Temurin) tai JDownloader 2 ja käynnistä KnightLoader sitten uudelleen. Kaikki muu latautuu sillä välin tavalliseen tapaan.',
   'settings.modules.reason.captchaNoJD': 'Captchat tulevat vain JDownloader-taustaosalta, eikä sellaista ole määritetty.',
   'settings.modules.switchFailed': 'Kytkin hylättiin: {reason}',
   'settings.modules.configureFirst': 'Mitään ei ole vielä kytkettävänä. Määritä tämä ensin sivulla {page}; sen jälkeen täkäläinen kytkin pysäyttää ja käynnistää sen uudelleen menettämättä asettamaasi.',
@@ -785,6 +791,13 @@ export const fi: Dict = {
   'settings.look.updatesAvailable': '{version} on saatavilla',
   'settings.look.updatesAvailableContainer': '{version} on saatavilla: päivitä konttikuvasi samalla tavalla kuin otit sen käyttöön (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Julkaisutiedot',
+  'settings.look.updatesInstall': 'Asenna nyt',
+  'settings.look.updatesInstalling': 'Asennetaan…',
+  'settings.look.updatesDownloading': 'Päivitystä ladataan: {percent} %',
+  'settings.look.updatesStarting': 'Asennusohjelma käynnistyy. Windows pyytää sinulta lupaa.',
+  'settings.look.updatesStarted':
+    'Asennusohjelma on käynnissä. Se sulkee KnightLoaderin ja avaa lopuksi uuden version.',
+  'settings.look.updatesInstallFailed': 'Päivitys ei onnistunut: {error}',
   'settings.look.updatesContainerHint': 'Päivitä kontin image samalla tavalla kuin otit sen käyttöön, esimerkiksi komennolla docker pull tai Unraid Community Applicationsin kautta.',
   'settings.look.updatesAutoUpdateContainerHint': 'Mahdollista vain työpöytäversiossa: kontti ei voi korvata itseään sisältäpäin. Päivitä se sen sijaan samalla tavalla kuin otit sen käyttöön (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': 'Vertaa tämän buildin versiota GitHubin uusimpaan julkaisuun. Työpöytäversio voi myös ladata ja asentaa uudemman version automaattisesti; kontti sen sijaan päivitetään samalla tavalla kuin se otettiin käyttöön (docker pull, Unraid Community Applications, Watchtower, ...).',

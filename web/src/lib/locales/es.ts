@@ -725,6 +725,12 @@ export const es: Dict = {
   'settings.modules.reason.cnlNoListener': 'Este proceso no abre ningún puerto de Click\'n\'Load.',
   'settings.modules.reason.cnlContainer': 'Click\'n\'Load envía los enlaces a un puerto del equipo en el que corre tu navegador, y un contenedor no puede abrirlo. La aplicación de escritorio y la extensión del navegador recogen Click\'n\'Load para esta instancia.',
   'settings.resolvers.toolsJdMissingHint': 'No hay ningún JDownloader configurado. Normalmente KnightLoader arranca uno propio al iniciarse. Si pasados unos minutos sigue sin aparecer, busca «JD provisioning failed» en el registro, o pon en KL_JD un JDownloader tuyo y reinicia.',
+  'settings.resolvers.toolsJdStarting': 'Iniciando',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader está iniciando su propio JDownloader en segundo plano. El primer arranque tarda unos minutos.',
+  'settings.resolvers.toolsJdNoJava': 'Falta Java',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader funciona con Java y este equipo no tiene. Instala Java (por ejemplo, Eclipse Temurin) o JDownloader 2 y reinicia KnightLoader. Mientras tanto, todo lo demás se descarga con normalidad.',
   'settings.modules.reason.captchaNoJD': 'Los captchas solo vienen del backend JDownloader, y no hay ninguno configurado.',
   'settings.modules.switchFailed': 'Ese interruptor fue rechazado: {reason}',
   'settings.modules.configureFirst': 'Todavía no hay nada que encender. Configúralo primero en {page}; después el interruptor de aquí lo para y lo vuelve a arrancar sin perder lo que pusiste.',
@@ -777,6 +783,13 @@ export const es: Dict = {
   'settings.look.updatesAvailable': '{version} está disponible',
   'settings.look.updatesAvailableContainer': '{version} está disponible: actualiza la imagen de tu contenedor de la misma forma en que la desplegaste (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Notas de la versión',
+  'settings.look.updatesInstall': 'Instalar ahora',
+  'settings.look.updatesInstalling': 'Instalando…',
+  'settings.look.updatesDownloading': 'Descargando la actualización: {percent} %',
+  'settings.look.updatesStarting': 'Iniciando el instalador. Windows te pedirá permiso.',
+  'settings.look.updatesStarted':
+    'El instalador está en marcha. Cierra KnightLoader y abre la nueva versión al terminar.',
+  'settings.look.updatesInstallFailed': 'La actualización no ha funcionado: {error}',
   'settings.look.updatesContainerHint': 'Actualiza la imagen de tu contenedor de la misma forma en que la desplegaste, por ejemplo con docker pull o a través de Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Solo es posible en la versión de escritorio: un contenedor no puede reemplazarse a sí mismo desde dentro. Actualízalo en su lugar de la misma forma en que lo desplegaste (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': 'Compara la versión de esta build con la última versión en GitHub. La build de escritorio también puede descargar e instalar una más nueva automáticamente; un contenedor se actualiza en cambio del modo en que se implementó (docker pull, Unraid Community Applications, Watchtower, ...).',

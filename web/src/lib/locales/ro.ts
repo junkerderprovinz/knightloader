@@ -735,6 +735,12 @@ export const ro: Dict = {
   'settings.modules.reason.cnlNoListener': 'Acest proces nu deschide niciun port Click\'n\'Load.',
   'settings.modules.reason.cnlContainer': 'Click\'n\'Load trimite linkurile către un port de pe calculatorul pe care rulează browserul tău, iar un container nu îl poate deschide. Aplicația desktop și extensia de browser preiau Click\'n\'Load pentru această instanță.',
   'settings.resolvers.toolsJdMissingHint': 'Nu este configurat niciun JDownloader. De obicei KnightLoader pornește unul propriu la boot. Dacă tot lipsește după câteva minute, caută „JD provisioning failed” în jurnal sau pune în KL_JD un JDownloader al tău și repornește.',
+  'settings.resolvers.toolsJdStarting': 'Pornește',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader pornește în fundal propriul JDownloader. Prima pornire durează câteva minute.',
+  'settings.resolvers.toolsJdNoJava': 'Lipsește Java',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader rulează pe Java, iar acest computer nu are. Instalează Java (de exemplu Eclipse Temurin) sau JDownloader 2, apoi repornește KnightLoader. Între timp, restul se descarcă normal.',
   'settings.modules.reason.captchaNoJD': 'Captcha-urile vin doar de la backendul JDownloader și nu este configurat niciunul.',
   'settings.modules.switchFailed': 'Comutatorul a fost refuzat: {reason}',
   'settings.modules.configureFirst': 'Încă nu e nimic de pornit. Configurează mai întâi în {page}; după aceea comutatorul de aici îl oprește și îl repornește fără să piardă ce ai stabilit.',
@@ -787,6 +793,13 @@ export const ro: Dict = {
   'settings.look.updatesAvailable': '{version} este disponibilă',
   'settings.look.updatesAvailableContainer': 'Versiunea {version} este disponibilă: actualizează imaginea containerului la fel cum l-ai implementat (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Note de lansare',
+  'settings.look.updatesInstall': 'Instalează acum',
+  'settings.look.updatesInstalling': 'Se instalează…',
+  'settings.look.updatesDownloading': 'Se descarcă actualizarea: {percent}%',
+  'settings.look.updatesStarting': 'Pornește programul de instalare. Windows îți va cere permisiunea.',
+  'settings.look.updatesStarted':
+    'Programul de instalare rulează. Închide KnightLoader și la final deschide versiunea nouă.',
+  'settings.look.updatesInstallFailed': 'Actualizarea nu a reușit: {error}',
   'settings.look.updatesContainerHint': 'Actualizează imaginea containerului la fel cum ai implementat-o, de exemplu cu docker pull sau prin Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Posibil doar în versiunea desktop: un container nu se poate înlocui singur din interior. Actualizează-l în schimb la fel cum l-ai implementat (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': 'Compară versiunea acestei build-uri cu cea mai recentă versiune de pe GitHub. Build-ul desktop poate, de asemenea, descărca și instala automat o versiune mai nouă; un container se actualizează în schimb așa cum a fost implementat (docker pull, Unraid Community Applications, Watchtower, ...).',

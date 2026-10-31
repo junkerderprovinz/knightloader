@@ -733,6 +733,12 @@ export const ca: Dict = {
   'settings.modules.reason.cnlNoListener': 'Aquest procés no obre cap port de Click\'n\'Load.',
   'settings.modules.reason.cnlContainer': 'Click\'n\'Load envia els enllaços a un port de l’ordinador on funciona el teu navegador, i un contenidor no el pot obrir. L’aplicació d’escriptori i l’extensió del navegador capten Click\'n\'Load per a aquesta instància.',
   'settings.resolvers.toolsJdMissingHint': 'No hi ha cap JDownloader configurat. Normalment KnightLoader n’engega un de propi en arrencar. Si al cap d’uns minuts encara falta, busca «JD provisioning failed» al registre, o posa a KL_JD un JDownloader teu i reinicia.',
+  'settings.resolvers.toolsJdStarting': 'S’està iniciant',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader està iniciant el seu propi JDownloader en segon pla. El primer inici triga uns minuts.',
+  'settings.resolvers.toolsJdNoJava': 'Falta Java',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader funciona amb Java, i aquest ordinador no en té. Instal·la Java (per exemple, Eclipse Temurin) o JDownloader 2 i després reinicia KnightLoader. Mentrestant, tota la resta es baixa amb normalitat.',
   'settings.modules.reason.captchaNoJD': 'Els captchas només vénen del rerefons JDownloader, i no n’hi ha cap de configurat.',
   'settings.modules.switchFailed': 'Aquest interruptor s’ha rebutjat: {reason}',
   'settings.modules.configureFirst': 'Encara no hi ha res per encendre. Configureu-ho primer a {page}; després l’interruptor d’aquí l’atura i el torna a engegar sense perdre el que hàgiu posat.',
@@ -785,6 +791,13 @@ export const ca: Dict = {
   'settings.look.updatesAvailable': '{version} disponible',
   'settings.look.updatesAvailableContainer': '{version} està disponible: actualitza la imatge del contenidor tal com la vas desplegar (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Notes de la versió',
+  'settings.look.updatesInstall': 'Instal·la ara',
+  'settings.look.updatesInstalling': 'S’està instal·lant…',
+  'settings.look.updatesDownloading': 'S’està baixant l’actualització: {percent}%',
+  'settings.look.updatesStarting': 'S’està iniciant l’instal·lador. Windows et demanarà permís.',
+  'settings.look.updatesStarted':
+    'L’instal·lador s’està executant. Tanca KnightLoader i, en acabar, obre la versió nova.',
+  'settings.look.updatesInstallFailed': 'L’actualització no ha funcionat: {error}',
   'settings.look.updatesContainerHint': 'Actualitza la imatge del contenidor tal com la vas desplegar, per exemple amb docker pull o a través d’Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Només és possible a la compilació d’escriptori: un contenidor no es pot reemplaçar a si mateix des de dins. Actualitza’l tal com el vas desplegar (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': "Compara la versió d'aquesta build amb l'última versió a GitHub. La versió d'escriptori també pot descarregar i instal·lar una de més nova automàticament; un contenidor s'actualitza tal com es va desplegar (docker pull, Unraid Community Applications, Watchtower, ...).",

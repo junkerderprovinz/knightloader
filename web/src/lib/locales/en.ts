@@ -932,6 +932,12 @@ export const en = {
   'settings.modules.reason.cnlNoListener': "This process opens no Click'n'Load port.",
   'settings.modules.reason.cnlContainer': 'Click\'n\'Load posts to a port on the computer your browser runs on, which a container cannot open. The desktop app and the browser extension catch Click\'n\'Load for this instance.',
   'settings.resolvers.toolsJdMissingHint': 'No JDownloader is set up. KnightLoader normally starts its own while booting. If it is still missing after a few minutes, look for "JD provisioning failed" in the log, or set KL_JD to a JDownloader of your own and restart.',
+  'settings.resolvers.toolsJdStarting': 'Starting',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader is starting its own JDownloader in the background. The first start takes a few minutes.',
+  'settings.resolvers.toolsJdNoJava': 'Java missing',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader runs on Java, and this computer has none. Install Java (Eclipse Temurin, for example) or JDownloader 2, then restart KnightLoader. Everything else downloads as usual in the meantime.',
   'settings.modules.reason.captchaNoJD': 'Captchas come only from the JDownloader backend, and none is configured.',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
   'settings.modules.switchFailed': 'That switch was refused: {reason}',
@@ -987,6 +993,13 @@ export const en = {
   'settings.look.updatesAvailable': '{version} is available',
   'settings.look.updatesAvailableContainer': '{version} is available: update your container image the way you deployed it (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Release notes',
+  'settings.look.updatesInstall': 'Install now',
+  'settings.look.updatesInstalling': 'Installing…',
+  'settings.look.updatesDownloading': 'Downloading the update: {percent}%',
+  'settings.look.updatesStarting': 'Starting the installer. Windows will ask for your permission.',
+  'settings.look.updatesStarted':
+    'The installer is running. It closes KnightLoader and opens the new version when it is done.',
+  'settings.look.updatesInstallFailed': 'The update did not work: {error}',
   'settings.look.updatesContainerHint':
     'Update your container image the way you deployed it, for example with docker pull or through Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Only possible on the desktop build: a container cannot replace itself from the inside. Update it the way you deployed it instead (docker pull, Unraid Community Applications, Watchtower, ...).',

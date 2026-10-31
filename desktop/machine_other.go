@@ -12,6 +12,10 @@ func machineData() (string, error) {
 	return "", errors.New("only Windows has a folder for all users")
 }
 
+func startInstaller(string) error {
+	return errors.New("only Windows has an installer that updates the copy installed for all users")
+}
+
 func updateInstalled() error {
 	return errors.New("--update is what the Windows installer's scheduled task runs")
 }
