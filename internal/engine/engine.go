@@ -791,9 +791,12 @@ func (e *Engine) Resume(taskID string) {
 }
 
 // reconnect is one Reconnect under way. paused and started are closed when
-// the library reports that step done, done when Reconnect returns.
+// the library reports that step done, done when Reconnect returns. resumed
+// is set once the task is continued: a start the library reports before that
+// belongs to the run being paused. Guarded by Engine.mu.
 type reconnect struct {
 	paused, started, done chan struct{}
+	resumed               bool
 }
 
 // closeOnce closes ch unless it is closed already, and reports whether it did.
@@ -892,6 +895,9 @@ func (e *Engine) reconnect(taskID string, between func(gid string) error) bool {
 		return false
 	}
 	ok := between == nil || between(gid) == nil
+	e.mu.Lock()
+	r.resumed = true
+	e.mu.Unlock()
 	if e.d.Continue(&download.TaskFilter{IDs: []string{gid}}) != nil {
 		return false
 	}
@@ -911,6 +917,7 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	e.mu.Lock()
 	delete(e.parked, taskID)
 	gid := cmp.Or(e.toGopeed[taskID], e.restored[taskID])
+	r := e.reconnecting[gid]
 	delete(e.restored, taskID)
 	delete(e.toGopeed, taskID)
 	delete(e.toKL, gid)
@@ -930,6 +937,15 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	if pending != nil && pending.torrent && deleteFiles {
 		select {
 		case <-pending.ready:
+		case <-e.done:
+		}
+	}
+	// A reconnect's resume would start the transfer again after the delete
+	// had paused it, and that transfer, known to nobody, would keep its
+	// connection and its file open; Windows then refuses to delete the file.
+	if r != nil {
+		select {
+		case <-r.done:
 		case <-e.done:
 		}
 	}
@@ -971,7 +987,7 @@ func (e *Engine) onEvent(ev *download.Event) {
 		if p := settledFile(ev.Task); p != "" {
 			e.files[ev.Task.ID] = p
 		}
-		if r := e.reconnecting[ev.Task.ID]; r != nil {
+		if r := e.reconnecting[ev.Task.ID]; r != nil && r.resumed {
 			closeOnce(r.started)
 		}
 		e.mu.Unlock()
@@ -984,6 +1000,10 @@ func (e *Engine) onEvent(ev *download.Event) {
 	var own bool
 	if r := e.reconnecting[ev.Task.ID]; r != nil && ev.Key == download.EventKeyPause {
 		own = closeOnce(r.paused)
+	}
+	// A resume that failed is as far as the reconnect gets.
+	if r := e.reconnecting[ev.Task.ID]; r != nil && r.resumed && ev.Key == download.EventKeyError {
+		closeOnce(r.started)
 	}
 	if h := e.holds[taskID]; h != nil && ok && ev.Key == download.EventKeyPause {
 		own = closeOnce(h.paused)
