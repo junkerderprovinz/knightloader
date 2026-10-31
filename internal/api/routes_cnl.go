@@ -21,12 +21,13 @@ import (
 const takeoverWait = 3 * time.Second
 
 func registerCnL(reg *Registry, a *app.App) {
-	if a.CnL == nil {
-		return
+	// The routes exist without a listener too, so the group's list of what a
+	// member may call holds in every build.
+	if a.CnL != nil {
+		a.CnL.SetIdentity(func() cnl.Identity {
+			return cnl.Identity{Name: instanceDisplayName(a), Instance: groupID(a), Kind: instanceKind()}
+		})
 	}
-	a.CnL.SetIdentity(func() cnl.Identity {
-		return cnl.Identity{Name: instanceDisplayName(a), Instance: groupID(a), Kind: instanceKind()}
-	})
 
 	reg.Add(http.MethodPost, "/api/cnl/takeover", "ask the KnightLoader holding the Click'n'Load port on this computer to let go of it, through the group, and listen here",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +43,10 @@ func registerCnL(reg *Registry, a *app.App) {
 	// this instance's own listener, which the switch here can open again.
 	reg.Add(http.MethodPost, "/api/cnl/release", "let go of the Click'n'Load port so another KnightLoader on this computer can listen",
 		func(w http.ResponseWriter, r *http.Request) {
+			if a.CnL == nil {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
 			a.CnL.Stop()
 			log.Printf("Click'n'Load: handed %s over to another KnightLoader on this computer", a.CnL.Address())
 			a.Hub.Broadcast("settings", nil)
@@ -61,6 +66,9 @@ func (e *cnlRefusal) Error() string { return e.text }
 
 // takeOverCnL asks whatever holds the port to let go of it and listens here.
 func takeOverCnL(ctx context.Context, a *app.App) error {
+	if a.CnL == nil {
+		return errNoSwitch
+	}
 	if a.CnL.Start() == nil {
 		return nil
 	}
