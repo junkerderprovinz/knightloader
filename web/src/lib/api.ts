@@ -2267,12 +2267,22 @@ export interface JDStatus {
   /** JDownloader's revision number, a plain integer; absent while unreachable. */
   version?: number;
   detail?: string;
-  /** Why the desktop build's own JDownloader is not configured yet. */
-  setup?: 'starting' | 'noJava' | 'failed';
+  /** How far the desktop build has come with its own JDownloader while it is not configured yet. */
+  setup?: 'starting' | 'failed';
+  /** How much of the Java runtime has arrived meanwhile; setupTotal is -1 while unknown. */
+  setupDone?: number;
+  setupTotal?: number;
+  /** The Java runtime the desktop build fetched for JDownloader. */
+  runtime?: { vendor: string; version: string };
 }
 
 export async function fetchJDStatus(): Promise<JDStatus> {
   return json<JDStatus>(await fetch('/api/resolvers/jd'));
+}
+
+/** Has the desktop build set up its own JDownloader again after a try that failed. */
+export async function retryJDSetup(): Promise<JDStatus> {
+  return json<JDStatus>(await fetch('/api/resolvers/jd/setup', { method: 'POST' }));
 }
 
 export interface JDUpdateCheck {

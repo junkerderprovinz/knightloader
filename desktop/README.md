@@ -96,7 +96,8 @@ writes there after installing.
 
 ## How it fits together
 
-- `main.go` boots `app.New`, provisions JD if `KL_JD` is unset, then starts
+- `main.go` boots `app.New`, provisions JD if `KL_JD` is unset (`jdsetup.go`:
+  the Java runtime from `internal/jre` first, then JDownloader on it), then starts
   Wails with the server's `api.Handler` as the whole **asset server**, so the
   SPA and `/api/*` are served in-window, identical to the browser build.
 - The page calls the Go side through Wails' runtime endpoint by name:

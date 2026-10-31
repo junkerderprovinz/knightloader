@@ -124,6 +124,7 @@ var groupRefused = []string{
 	"POST /api/reconnect/import",
 	"GET /api/reconnect/router",
 	"GET /api/resolvers/jd",
+	"POST /api/resolvers/jd/setup",
 	"GET /api/resolvers/priority",
 	"POST /api/resolvers/priority",
 	"GET /api/rules/grammar",

@@ -207,14 +207,19 @@ that release's checksums, and renews it once a month. On macOS, where that
 project builds nothing, put ffmpeg on `PATH` yourself. An ffmpeg already on
 `PATH` is always the one used.
 
-The desktop app does not bring Java. The private JDownloader takes the one
-under `JAVA_HOME` or on `PATH`, or else one from the usual installers: the
-Java that JDownloader 2 installs beside itself, or Eclipse Temurin, Oracle,
-Microsoft, Zulu, Corretto or Liberica under Program Files on Windows,
-`/Library/Java/JavaVirtualMachines` on macOS and `/usr/lib/jvm` on Linux.
-Without one, file hoster links have no catch-all, and the JDownloader row on
-the Updates card says **Java missing**: install Java and restart KnightLoader.
-Pointing `KL_JD` at a JDownloader that runs elsewhere works too.
+The private JDownloader runs on a Java runtime of KnightLoader's own, whatever
+Java the computer has or lacks. At the first start the desktop app fetches
+[Eclipse Temurin](https://adoptium.net/temurin/) 21 from Adoptium's releases
+on GitHub, checks it against the SHA-256 that KnightLoader carries for this
+version and unpacks it into the `jre` folder of its data folder
+(`%APPDATA%KnightLoaderjre`, `~/Library/Application Support/KnightLoader/jre`,
+`~/.config/KnightLoader/jre`). That takes a few minutes, which the
+JDownloader row on the Updates card shows; a failed download says why there
+and offers to try again. A KnightLoader update that pins a newer runtime
+replaces it at its next start. Windows on Arm gets the x64 runtime, which
+Windows runs under its emulation, since Adoptium builds no Arm JRE for it.
+Temurin comes under the GPLv2 with the Classpath Exception. Pointing `KL_JD`
+at a JDownloader that runs elsewhere skips all of this.
 
 On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`.
 
