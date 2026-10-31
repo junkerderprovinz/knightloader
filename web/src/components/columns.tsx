@@ -841,25 +841,22 @@ export function ProgressCell({
     ? { loaded: unpack.unpacked, size: unpack.size, done: false, active: true, live: !unpack.failed }
     : { loaded, size, done, active, live };
   const p = pct(bar.loaded, bar.size, bar.done);
+  // A failed row draws no bar, and keeps how far it got.
+  if (!bar.active) return <span className="glim-num text-meta text-carbon-textMuted">{fmtPct(p)}</span>;
   return (
-    <div className="flex items-center gap-2">
-      <div className="min-w-0 flex-1">
-        {/* `live` answers both of the bar's "is anything happening" questions,
-            because it is the same question: a bar with no size behind it loops,
-            a bar with one breathes at its front edge, and a row in a stopped
-            queue does neither. Passing it to only one of them is what left
-            every finished and paused row pulsing. */}
-        <ProgressBar
-          percent={p}
-          active={bar.active}
-          indeterminate={bar.live && !bar.done && bar.size <= 0}
-          moving={bar.live}
-          tone={unpack?.failed ? 'fail' : bar.done ? 'ok' : 'accent'}
-          striped={unpack !== undefined}
-        />
-      </div>
-      <span className="glim-num w-9 shrink-0 text-end text-meta text-carbon-textMuted">{fmtPct(p)}</span>
-    </div>
+    // `live` answers both of the bar's "is anything happening" questions,
+    // because it is the same question: a bar with no size behind it loops, a
+    // bar with one breathes at its front edge, and a row in a stopped queue
+    // does neither.
+    <ProgressBar
+      percent={p}
+      label={fmtPct(p)}
+      active
+      indeterminate={bar.live && !bar.done && bar.size <= 0}
+      moving={bar.live}
+      tone={unpack?.failed ? 'fail' : bar.done ? 'ok' : 'accent'}
+      striped={unpack !== undefined}
+    />
   );
 }
 
@@ -1637,7 +1634,7 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'progress',
     labelKey: 'columns.progress',
-    // The percentage and the padding take 60px, and the bar gets the rest.
+    // The percentage stands inside the bar, which takes the cell.
     width: 220,
     minWidth: 110,
     align: 'start',

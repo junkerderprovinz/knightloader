@@ -23,8 +23,15 @@ export function ProgressBar({
   tone = 'accent',
   striped = false,
   level = false,
+  label,
 }: {
   percent: number;
+  /**
+   * Centred in the bar, such as the percentage. It is drawn twice, on the
+   * track and in the fill's ink clipped to the fill, so it reads on both as
+   * the fill passes under it.
+   */
+  label?: string;
   active: boolean;
   /**
    * A looping bar with no number. The caller sets it only while something is
@@ -54,6 +61,11 @@ export function ProgressBar({
   const fill =
     tone === 'ok' ? 'var(--status-ok-solid)' : tone === 'fail' ? 'var(--status-fail-solid)' : 'var(--accent)';
   const stripes = striped ? ' kl-bar-stripes' : '';
+  const ink = tone === 'accent' ? 'text-accentContrast' : 'text-carbon-background';
+  // The fill grows from the start edge, the right one in a right-to-left page.
+  const rest = `${100 - clamped}%`;
+  const clip = document.documentElement.dir === 'rtl' ? `inset(0 0 0 ${rest})` : `inset(0 ${rest} 0 0)`;
+  const text = 'glim-num pointer-events-none absolute inset-0 flex items-center justify-center text-meta font-medium';
   return (
     <div
       className="relative h-5 w-full overflow-hidden rounded-[var(--radius-pill)] bg-carbon-surface3/70 glim-meter"
@@ -81,6 +93,20 @@ export function ProgressBar({
           {clamped > 0 && !level && <span className={`kl-bar-edge${moving ? ' kl-bar-edge-live' : ''}`} />}
           {clamped > 0 && level && <SloshPops />}
         </div>
+      )}
+      {label !== undefined && !isIndet && (
+        <>
+          <span aria-hidden className={`${text} text-carbon-text`}>
+            {label}
+          </span>
+          <span
+            aria-hidden
+            className={`${text} ${ink} transition-[clip-path] duration-500 ease-out`}
+            style={{ clipPath: clip }}
+          >
+            {label}
+          </span>
+        </>
       )}
     </div>
   );

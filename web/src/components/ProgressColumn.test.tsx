@@ -78,7 +78,9 @@ function bar() {
   const fill = track?.firstElementChild as HTMLElement | null;
   return {
     value: track?.getAttribute('aria-valuenow'),
-    label: host.textContent,
+    // The percentage is drawn twice, on the track and in the fill's ink.
+    label: track?.querySelector('span[aria-hidden]')?.textContent ?? host.textContent,
+    clip: track?.querySelectorAll<HTMLElement>('span[aria-hidden]')[1]?.style.clipPath,
     striped: fill?.classList.contains('kl-bar-stripes') ?? false,
     colour: fill?.style.backgroundColor,
   };
@@ -88,6 +90,7 @@ it('draws a part of an archive being unpacked at the unpacking, striped', () => 
   const got = cell(row('a2'), ctx(job('running', ['a1', 'a2'], { unpacked: 450, size: 1000 })));
   expect(got.value).toBe('45');
   expect(got.label).toBe('45%');
+  expect(got.clip).toBe('inset(0 55% 0 0)');
   expect(got.striped).toBe(true);
   expect(got.colour).toBe('var(--accent)');
 });
@@ -138,4 +141,10 @@ it('draws a finished file as finished while its check waits for the other files'
   const got = cell(row('a1', { repair: { stage: 'waiting' } }), ctx());
   expect(got.value).toBe('100');
   expect(got.striped).toBe(false);
+});
+
+it('keeps how far a failed download got, with no bar', () => {
+  const got = cell(row('a1', { status: 'error', loaded: 250 }), ctx());
+  expect(got.value).toBeUndefined();
+  expect(got.label).toBe('25%');
 });
