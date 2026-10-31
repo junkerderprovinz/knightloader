@@ -1419,6 +1419,9 @@ type JDStatus struct {
 	// not reachable.
 	Version int64  `json:"version,omitempty"`
 	Detail  string `json:"detail,omitempty"`
+	// Setup is one of the JDSetup values while the desktop build's own JD is
+	// not configured, "" when nothing is known.
+	Setup string `json:"setup,omitempty"`
 }
 
 // UseJD points everything that talks to JDownloader at base and wires the
@@ -1426,6 +1429,7 @@ type JDStatus struct {
 // desktop app's own, which starts in the background.
 func (a *App) UseJD(base string) {
 	_ = os.Setenv("KL_JD", base)
+	a.setJDSetup("", "")
 	a.rewireBackends()
 }
 
@@ -1434,7 +1438,8 @@ func (a *App) UseJD(base string) {
 func (a *App) JDStatus() JDStatus {
 	base := os.Getenv("KL_JD")
 	if base == "" {
-		return JDStatus{}
+		setup, detail := a.jdSetup()
+		return JDStatus{Setup: setup, Detail: detail}
 	}
 	c := jd.NewClient(base)
 	if err := c.Ping(); err != nil {

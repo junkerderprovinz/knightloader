@@ -732,6 +732,12 @@ export const ms: Dict = {
   'settings.modules.reason.cnlSwitch': 'Mendengar pada 127.0.0.1:9666 melainkan KL_CNL menamakan port lain. Mematikannya di sini membiarkan KL_CNL seperti sedia ada, jadi selepas mula semula port dibuka mengikut apa yang ditetapkan oleh persekitaran.',
   'settings.modules.reason.cnlNoListener': 'Proses ini tidak membuka port Click\'n\'Load.',
   'settings.resolvers.toolsJdMissingHint': 'Tiada JDownloader disediakan. KnightLoader biasanya memulakan JDownloader miliknya sendiri semasa but. Jika masih tiada selepas beberapa minit, cari “JD provisioning failed” dalam log, atau tetapkan KL_JD kepada JDownloader anda sendiri dan mulakan semula.',
+  'settings.resolvers.toolsJdStarting': 'Sedang bermula',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader sedang memulakan JDownloader sendiri di latar belakang. Permulaan pertama mengambil masa beberapa minit.',
+  'settings.resolvers.toolsJdNoJava': 'Tiada Java',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader berjalan menggunakan Java, dan komputer ini tiada Java. Pasang Java (contohnya Eclipse Temurin) atau JDownloader 2, kemudian mulakan semula KnightLoader. Sementara itu, muat turun lain berjalan seperti biasa.',
   'settings.modules.reason.captchaNoJD': 'Captcha hanya datang daripada backend JDownloader, dan tiada yang dikonfigurasikan.',
   'settings.modules.switchFailed': 'Suis itu ditolak: {reason}',
   'settings.modules.configureFirst': 'Belum ada apa-apa untuk dihidupkan. Sediakan dahulu di {page}; selepas itu suis di sini menghentikan dan memulakannya semula tanpa hilang apa yang anda tetapkan.',
@@ -784,6 +790,13 @@ export const ms: Dict = {
   'settings.look.updatesAvailable': '{version} tersedia',
   'settings.look.updatesAvailableContainer': '{version} tersedia: kemas kini imej bekas anda mengikut cara anda menggunakannya (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Nota keluaran',
+  'settings.look.updatesInstall': 'Pasang sekarang',
+  'settings.look.updatesInstalling': 'Sedang memasang…',
+  'settings.look.updatesDownloading': 'Memuat turun kemas kini: {percent}%',
+  'settings.look.updatesStarting': 'Memulakan pemasang. Windows akan meminta kebenaran anda.',
+  'settings.look.updatesStarted':
+    'Pemasang sedang berjalan. Ia menutup KnightLoader dan membuka versi baharu apabila selesai.',
+  'settings.look.updatesInstallFailed': 'Kemas kini tidak berjaya: {error}',
   'settings.look.updatesContainerHint': 'Kemas kini imej bekas anda mengikut cara anda menggunakannya, contohnya dengan docker pull atau melalui Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Hanya boleh pada build desktop: bekas tidak boleh menggantikan dirinya dari dalam. Sebaliknya, kemas kini ia mengikut cara anda menggunakannya (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesHint': 'Membandingkan versi build ini dengan keluaran terkini di GitHub. Build desktop juga boleh memuat turun dan memasang versi lebih baru secara automatik; bekas dikemas kini mengikut cara ia digunakan (docker pull, Unraid Community Applications, Watchtower, ...).',

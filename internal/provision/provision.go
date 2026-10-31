@@ -21,6 +21,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"sync"
 	"time"
 
@@ -288,9 +289,13 @@ func (p *Provisioner) WriteConfirmAnswers() error {
 	return nil
 }
 
-// FindJava returns a runnable java, preferring JAVA_HOME then PATH. The
-// container image ships a JRE. The desktop builds bring none, so there the
-// JDownloader backend runs only on a Java the machine already has.
+// ErrNoJava is FindJava finding no Java anywhere it looks.
+var ErrNoJava = errors.New("provision: no Java runtime found; install one or point JAVA_HOME at it")
+
+// FindJava returns a runnable java: JAVA_HOME first, then PATH, then where the
+// usual installers put one without touching either, such as the runtime
+// JDownloader 2 brings. The container image ships a JRE; the desktop builds
+// bring none and run JDownloader only on a Java the machine already has.
 func FindJava() (string, error) {
 	bin := "java"
 	if runtime.GOOS == "windows" {
@@ -305,7 +310,47 @@ func FindJava() (string, error) {
 	if path, err := exec.LookPath(bin); err == nil {
 		return path, nil
 	}
-	return "", fmt.Errorf("provision: no Java runtime found; install one or point JAVA_HOME at it")
+	for _, pattern := range javaPlaces() {
+		matches, _ := filepath.Glob(pattern)
+		// Reverse name order usually puts the newest version first.
+		slices.Sort(matches)
+		slices.Reverse(matches)
+		for _, m := range matches {
+			if fi, err := os.Stat(m); err == nil && !fi.IsDir() {
+				return m, nil
+			}
+		}
+	}
+	return "", ErrNoJava
+}
+
+// javaPlaces are glob patterns for the java of the usual Java installers and of
+// JDownloader 2, which installs under Program Files for everyone or under
+// LocalAppData for one person.
+func javaPlaces() []string {
+	switch runtime.GOOS {
+	case "windows":
+		var out []string
+		for _, base := range []string{os.Getenv("ProgramFiles"), os.Getenv("LOCALAPPDATA")} {
+			if base == "" {
+				continue
+			}
+			out = append(out,
+				filepath.Join(base, "JDownloader", "jre", "bin", "java.exe"),
+				filepath.Join(base, "JDownloader 2.0", "jre", "bin", "java.exe"),
+			)
+		}
+		if pf := os.Getenv("ProgramFiles"); pf != "" {
+			for _, vendor := range []string{"Eclipse Adoptium", "Java", "Microsoft", "Zulu", "Amazon Corretto", "BellSoft"} {
+				out = append(out, filepath.Join(pf, vendor, "*", "bin", "java.exe"))
+			}
+		}
+		return out
+	case "darwin":
+		return []string{"/Library/Java/JavaVirtualMachines/*/Contents/Home/bin/java"}
+	default:
+		return []string{"/usr/lib/jvm/*/bin/java"}
+	}
 }
 
 // Start launches headless JD in the background using the given java binary. The

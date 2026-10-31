@@ -18,7 +18,9 @@ import {
   fetchJDUpdate,
   fetchMediaTools,
   fetchUpdateCheck,
+  fetchUpdateProgress,
   fetchYtdlpLatest,
+  installUpdate,
   revertYtdlp,
   updateJD,
   updateYtdlp,
@@ -27,6 +29,7 @@ import {
   type JDStatus,
   type MediaToolsStatus,
   type UpdateCheck,
+  type UpdateProgress,
   type YtdlpLatest,
 } from '../../../lib/api';
 import { IconClose, IconRefresh, IconUpdate, IconUpdateAvailable, IconUpToDate } from '../../../lib/icons';
@@ -34,6 +37,7 @@ import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useResource } from '../../../lib/useResource';
 import { useDraft } from '../context';
 import { SubCard } from '../controls';
+import { jdMissing } from '../resolvers/MediaToolsCard';
 
 // Two cards. Updates holds what can be updated on its own, KnightLoader,
 // yt-dlp and the JDownloader backend, each a sub-card with its version and a
@@ -233,12 +237,39 @@ export function BuiltInCard({ hue }: { hue: number }) {
   );
 }
 
+/** How often the sub-card asks how far an update it started has come. */
+const INSTALL_POLL = 500;
+
+const installing = (p: UpdateProgress | null) => p?.state === 'downloading' || p?.state === 'starting';
+
+/** installLine is what an update the sub-card started has come to, '' before one. */
+function installLine(t: Translate, p: UpdateProgress): string {
+  switch (p.state) {
+    case 'downloading': {
+      const percent = p.total && p.total > 0 ? Math.floor(((p.done ?? 0) * 100) / p.total) : 0;
+      return t('settings.look.updatesDownloading', { percent: String(percent) });
+    }
+    case 'starting':
+      return t('settings.look.updatesStarting');
+    case 'started':
+      return t('settings.look.updatesStarted');
+    case 'ready':
+      return t('settings.look.updatesReady', { version: p.version ?? '' });
+    case 'failed':
+      return t('settings.look.updatesInstallFailed', { error: p.error ?? '' });
+    default:
+      return '';
+  }
+}
+
 /**
  * AppUpdates checks GitHub for a newer release on request. A container is
  * updated by its container manager, so both switches are greyed out there and
  * a check points at the release. The desktop build updates itself in the
  * background (desktop/updates.go), and a check there also tells whether a
- * downloaded version waits for the next start.
+ * downloaded version waits for the next start. Once a check found a newer
+ * one, Install fetches it at once: the copy installed for all users starts
+ * the new installer, any other copy puts it in place for the next start.
  */
 function AppUpdates({ deployment }: { deployment: string }) {
   const { t } = useT();
@@ -248,6 +279,11 @@ function AppUpdates({ deployment }: { deployment: string }) {
   const [checking, setChecking] = useState(false);
   // The failure counter of the check button, so a repeated failure shakes it again.
   const [shake, setShake] = useState(0);
+  const [progress, setProgress] = useState<UpdateProgress | null>(null);
+  const [installShake, setInstallShake] = useState(0);
+  // Ends the polling once the page is left.
+  const mounted = useRef(true);
+  const isDesktop = deployment === 'desktop';
 
   useEffect(() => {
     void fetchHealth()
@@ -268,8 +304,42 @@ function AppUpdates({ deployment }: { deployment: string }) {
     setChecking(false);
   }, []);
 
-  const isDesktop = deployment === 'desktop';
-  const ready = check?.ready;
+  // Follows an update until it is past downloading. The installer closes the
+  // program, so a poll that finds nobody keeps the last answer.
+  const follow = useCallback(async (first: UpdateProgress) => {
+    let p = first;
+    setProgress(p);
+    while (mounted.current && installing(p)) {
+      await pause(INSTALL_POLL);
+      p = await fetchUpdateProgress().catch(() => p);
+      if (mounted.current) setProgress(p);
+    }
+    if (p.state === 'failed') setInstallShake((n) => n + 1);
+  }, []);
+
+  // An update started before the page opened is still shown.
+  useEffect(() => {
+    mounted.current = true;
+    if (isDesktop) {
+      void fetchUpdateProgress()
+        .then((p) => (p.state ? follow(p) : undefined))
+        .catch(() => {});
+    }
+    return () => {
+      mounted.current = false;
+    };
+  }, [isDesktop, follow]);
+
+  const onInstall = useCallback(async () => {
+    try {
+      await follow(await installUpdate());
+    } catch (e) {
+      setProgress({ state: 'failed', error: errorText(e) });
+      setInstallShake((n) => n + 1);
+    }
+  }, [follow]);
+
+  const ready = check?.ready ?? (progress?.state === 'ready' ? progress.version : undefined);
   const available = !!check?.checked && check.available;
   const face = checkFace(t, check ? check.checked : null, available);
 
@@ -309,8 +379,28 @@ function AppUpdates({ deployment }: { deployment: string }) {
           {available && check?.url && <LinkBadge href={check.url} title={t('settings.look.updatesReleaseNotes')} />}
         </p>
       )}
-      <div className="flex justify-end">
-        <CheckButton face={face} checking={checking} shake={shake} onCheck={() => void onCheck()} />
+      {progress && progress.state !== 'ready' && installLine(t, progress) && (
+        <p
+          role="status"
+          className={`text-sm ${progress.state === 'failed' ? 'text-statusFail' : 'text-carbon-textSub'}`}
+        >
+          {installLine(t, progress)}
+        </p>
+      )}
+      {/* Check, install: the forward action sits last. */}
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <CheckButton face={face} checking={checking} disabled={installing(progress)} shake={shake} onCheck={() => void onCheck()} />
+        {isDesktop && available && !ready && progress?.state !== 'started' && (
+          <Button
+            kind="secondary"
+            icon={<IconUpdate />}
+            shake={installShake}
+            disabled={checking || installing(progress)}
+            onClick={() => void onInstall()}
+          >
+            {installing(progress) ? t('settings.look.updatesInstalling') : t('settings.look.updatesInstall')}
+          </Button>
+        )}
       </div>
     </ToolCard>
   );
@@ -641,7 +731,10 @@ function JDUpdates() {
   }, [jd, t]);
 
   let version: ReactNode = null;
-  if (jd && !jd.configured) version = t('settings.selftest.status.skipped');
+  // Starting or short of Java, the sub-card says so and what to do.
+  const setupNote = jd && !jd.configured && (jd.setup === 'starting' || jd.setup === 'noJava') ? jdMissing(t, jd) : null;
+  if (setupNote) version = setupNote[0];
+  else if (jd && !jd.configured) version = t('settings.selftest.status.skipped');
   else if (jd && !jd.reachable) version = t('health.state.failed');
   else if (jd) version = jd.version;
   const busy = checking || restarting;
@@ -652,6 +745,9 @@ function JDUpdates() {
       sub={[t('settings.look.tool.jd'), t('settings.look.jdUpdatesItself')]}
       version={version}
     >
+      {setupNote && (
+        <p className={`text-sm ${jd?.setup === 'noJava' ? 'text-statusWarn' : 'text-carbon-textSub'}`}>{setupNote[1]}</p>
+      )}
       {/* Without a JDownloader there is nothing to ask. */}
       {jd?.configured && (
         <div data-new="jd-auto-update">

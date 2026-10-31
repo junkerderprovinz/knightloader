@@ -733,6 +733,12 @@ export const hi: Dict = {
   'settings.modules.reason.cnlSwitch': '127.0.0.1:9666 पर सुनता है, जब तक KL_CNL कोई दूसरा पोर्ट न बताए। इसे यहाँ बंद करने से KL_CNL जैसा है वैसा ही रहता है, इसलिए पुनः आरंभ के बाद पोर्ट वैसे ही खुलता है जैसा एनवायरनमेंट कहता है।',
   'settings.modules.reason.cnlNoListener': 'यह प्रक्रिया कोई Click\'n\'Load पोर्ट नहीं खोलती।',
   'settings.resolvers.toolsJdMissingHint': 'कोई JDownloader सेट नहीं है। KnightLoader आम तौर पर शुरू होते समय अपना JDownloader खुद चालू करता है। कुछ मिनट बाद भी वह न दिखे, तो लॉग में “JD provisioning failed” ढूँढ़ें, या KL_JD को अपने किसी JDownloader पर सेट करके पुनः आरंभ करें।',
+  'settings.resolvers.toolsJdStarting': 'शुरू हो रहा है',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader पृष्ठभूमि में अपना JDownloader शुरू कर रहा है। पहली बार इसमें कुछ मिनट लगते हैं।',
+  'settings.resolvers.toolsJdNoJava': 'Java नहीं है',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader Java पर चलता है, और इस कंप्यूटर में Java नहीं है। Java (जैसे Eclipse Temurin) या JDownloader 2 इंस्टॉल करें, फिर KnightLoader दोबारा शुरू करें। तब तक बाकी सब कुछ सामान्य रूप से डाउनलोड होता रहेगा।',
   'settings.modules.reason.captchaNoJD': 'कैप्चा सिर्फ़ JDownloader बैकएंड से आते हैं, और कोई कॉन्फ़िगर नहीं है।',
   'settings.modules.switchFailed': 'वह स्विच अस्वीकार हुआ: {reason}',
   'settings.modules.configureFirst': 'अभी चालू करने को कुछ नहीं है। पहले इसे {page} पर सेट करें; उसके बाद यहाँ का स्विच उसे रोकता और फिर चालू करता है, बिना आपकी सेटिंग खोए।',
@@ -785,6 +791,13 @@ export const hi: Dict = {
   'settings.look.updatesAvailable': '{version} उपलब्ध है',
   'settings.look.updatesAvailableContainer': '{version} उपलब्ध है: अपनी कंटेनर इमेज उसी तरीक़े से अपडेट करें जिससे आपने उसे डिप्लॉय किया था (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'रिलीज़ नोट्स',
+  'settings.look.updatesInstall': 'अभी इंस्टॉल करें',
+  'settings.look.updatesInstalling': 'इंस्टॉल हो रहा है…',
+  'settings.look.updatesDownloading': 'अपडेट डाउनलोड हो रहा है: {percent}%',
+  'settings.look.updatesStarting': 'इंस्टॉलर शुरू हो रहा है। Windows आपसे अनुमति मांगेगा।',
+  'settings.look.updatesStarted':
+    'इंस्टॉलर चल रहा है। यह KnightLoader बंद करता है और पूरा होने पर नया संस्करण खोलता है।',
+  'settings.look.updatesInstallFailed': 'अपडेट नहीं हो पाया: {error}',
   'settings.look.updatesContainerHint': 'अपनी कंटेनर इमेज उसी तरीक़े से अपडेट करें जिससे आपने उसे डिप्लॉय किया था, जैसे docker pull से या Unraid Community Applications के ज़रिए।',
   'settings.look.updatesAutoUpdateContainerHint': 'यह सिर्फ़ डेस्कटॉप बिल्ड पर संभव है: कंटेनर अंदर से ख़ुद को नहीं बदल सकता। इसके बजाय उसे उसी तरीक़े से अपडेट करें जिससे आपने उसे डिप्लॉय किया था (docker pull, Unraid Community Applications, Watchtower, ...)।',
   'settings.look.updatesHint': 'यह इस बिल्ड के वर्शन की तुलना GitHub पर नवीनतम रिलीज़ से करता है। डेस्कटॉप बिल्ड नई वर्शन को स्वतः डाउनलोड और इंस्टॉल भी कर सकता है; कंटेनर इसके बजाय उसी तरह अपडेट होता है जैसे इसे डिप्लॉय किया गया था (docker pull, Unraid Community Applications, Watchtower, ...)।',

@@ -70,6 +70,30 @@ func registerLifecycle(reg *Registry, a *app.App) {
 			}
 			writeJSON(w, info)
 		})
+
+	reg.Add(http.MethodGet, "/api/system/update-install",
+		"how far the update asked for with POST has come",
+		func(w http.ResponseWriter, r *http.Request) {
+			if a.UpdateProgress == nil {
+				http.Error(w, "only the desktop build installs its own updates", http.StatusNotImplemented)
+				return
+			}
+			writeJSON(w, a.UpdateProgress())
+		})
+
+	reg.Add(http.MethodPost, "/api/system/update-install",
+		"desktop: download the newest release now and install it, or have it start next time where the program cannot replace itself while running",
+		func(w http.ResponseWriter, r *http.Request) {
+			if a.InstallUpdate == nil {
+				http.Error(w, "only the desktop build installs its own updates", http.StatusNotImplemented)
+				return
+			}
+			if err := a.InstallUpdate(); err != nil {
+				writeJSONStatus(w, http.StatusConflict, map[string]string{"status": err.Error()})
+				return
+			}
+			writeJSONStatus(w, http.StatusAccepted, a.UpdateProgress())
+		})
 }
 
 func deploymentInfo(a *app.App) DeploymentInfo {

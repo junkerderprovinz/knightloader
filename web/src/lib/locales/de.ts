@@ -824,6 +824,12 @@ export const de: Dict = {
   'settings.modules.reason.cnlSwitch': 'Lauscht auf 127.0.0.1:9666, außer KL_CNL nennt einen anderen Port. Schaltest du es hier aus, bleibt KL_CNL, wie es ist, nach einem Neustart öffnet sich der Port also so, wie die Umgebung es sagt.',
   'settings.modules.reason.cnlNoListener': "Dieser Prozess öffnet keinen Click'n'Load-Port.",
   'settings.resolvers.toolsJdMissingHint': 'Es ist kein JDownloader eingerichtet. Normalerweise startet KnightLoader beim Hochfahren einen eigenen. Fehlt er nach ein paar Minuten immer noch, such im Protokoll nach „JD provisioning failed“ oder setz KL_JD auf einen eigenen JDownloader und starte neu.',
+  'settings.resolvers.toolsJdStarting': 'Startet',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader startet im Hintergrund seinen eigenen JDownloader. Beim ersten Mal dauert das ein paar Minuten.',
+  'settings.resolvers.toolsJdNoJava': 'Java fehlt',
+  'settings.resolvers.toolsJdNoJavaHint':
+    'JDownloader läuft mit Java, und auf diesem Computer ist keins installiert. Installier Java (zum Beispiel Eclipse Temurin) oder JDownloader 2 und starte KnightLoader danach neu. Alles andere lädt in der Zwischenzeit ganz normal.',
   'settings.modules.reason.captchaNoJD': 'Captchas kommen nur vom JDownloader-Backend, und es ist keins eingerichtet.',
   'settings.modules.reason.keepawake': 'Nur die Desktop-App kann einen Rechner wach halten. Der Rechner, auf dem ein Container läuft, entscheidet selbst, wann er schläft.',
   'settings.modules.switchFailed': 'Der Schalter wurde abgelehnt: {reason}',
@@ -879,6 +885,13 @@ export const de: Dict = {
   'settings.look.updatesAvailable': '{version} ist verfügbar',
   'settings.look.updatesAvailableContainer': '{version} ist verfügbar: Aktualisiere dein Container-Image so, wie du es bereitgestellt hast (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Versionshinweise',
+  'settings.look.updatesInstall': 'Jetzt installieren',
+  'settings.look.updatesInstalling': 'Wird installiert…',
+  'settings.look.updatesDownloading': 'Update wird heruntergeladen: {percent} %',
+  'settings.look.updatesStarting': 'Das Installationsprogramm startet. Windows fragt dich gleich um Erlaubnis.',
+  'settings.look.updatesStarted':
+    'Das Installationsprogramm läuft. Es schließt KnightLoader und öffnet danach die neue Version.',
+  'settings.look.updatesInstallFailed': 'Das Update hat nicht geklappt: {error}',
   'settings.look.updatesContainerHint':
     'Aktualisiere dein Container-Image so, wie du es bereitgestellt hast, zum Beispiel mit docker pull oder über Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Nur auf dem Desktop-Build möglich: Ein Container kann sich nicht von innen selbst ersetzen. Aktualisiere ihn stattdessen so, wie du ihn bereitgestellt hast (docker pull, Unraid Community Applications, Watchtower, ...).',
