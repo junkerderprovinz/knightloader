@@ -140,6 +140,8 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/extract/{id}/abort":        apitoken.ScopeControl,
 	"GET /api/features":                   apitoken.ScopeAdmin,
 	"PUT /api/features/{id}":              apitoken.ScopeAdmin,
+	"POST /api/cnl/takeover":              apitoken.ScopeAdmin,
+	"POST /api/cnl/release":               apitoken.ScopeAdmin,
 	"GET /api/feeds":                      apitoken.ScopeAdmin,
 	"POST /api/feeds/test":                apitoken.ScopeAdmin,
 	"GET /api/fileowner":                  apitoken.ScopeAdmin,

@@ -108,6 +108,9 @@ var groupRefused = []string{
 	"GET /api/settings/defaults",
 	"GET /api/features",
 	"PUT /api/features/{id}",
+	// Taking the Click'n'Load port over is a choice made on the instance that
+	// takes it, never asked of it from the group.
+	"POST /api/cnl/takeover",
 	"GET /api/feeds",
 	"POST /api/feeds/test",
 	"GET /api/folders",

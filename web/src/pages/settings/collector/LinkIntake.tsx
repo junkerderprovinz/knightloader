@@ -1,4 +1,7 @@
-import { Card, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
+import { useState } from 'react';
+import { Button, Card, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
+import { IconSignIn } from '../../../lib/icons';
+import { useToast } from '../../../lib/toast';
 import { Dropdown } from '../../../components/Dropdown';
 import { WaysIn } from '../../../components/pictures/WaysIn';
 import { fetchInstances } from '../../../lib/api';
@@ -9,7 +12,9 @@ import { useResource } from '../../../lib/useResource';
 import { useClipboardWatchTarget } from '../../../lib/useClipboardWatch';
 import { useWatchSwitch } from '../../../components/WatchElsewhere';
 import { useDraft, useFeatures } from '../context';
+import { takeOverCnL } from '../features';
 import { ModuleToggle } from '../ModuleToggle';
+import { switchRefusal } from '../tx';
 import { SettingPathInput, SettingRow } from '../controls';
 import { ClipboardPopupRows } from './ClipboardPopup';
 import { useWays } from './ways';
@@ -42,6 +47,20 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
   if (target && !targets.some((o) => o.value === target)) targets.push({ value: target, label: target });
 
   const cnl = features.modules.find((m) => m.id === 'cnl');
+  const { toast } = useToast();
+  const [takingOver, setTakingOver] = useState(false);
+  // Another KnightLoader on this computer holds the port; the server asks it
+  // through the group to let go, and the row follows the broadcast.
+  async function takeOver() {
+    setTakingOver(true);
+    try {
+      await takeOverCnL();
+    } catch (e) {
+      toast(switchRefusal(t, e), 'fail');
+    } finally {
+      setTakingOver(false);
+    }
+  }
 
   return (
     <Card hue={hue} className="flex flex-col gap-4">
@@ -56,6 +75,13 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
         hue={0}
         hint={cnl?.switch === 'none' ? undefined : t('settings.linkIntake.cnlHint')}
       />
+      {cnl?.detailCode === 'cnlHeldBy' && (
+        <div className="flex justify-end">
+          <Button kind="secondary" icon={<IconSignIn />} disabled={takingOver} onClick={() => void takeOver()}>
+            {t('settings.linkIntake.cnlTakeOver')}
+          </Button>
+        </div>
+      )}
 
       {WATCH_SUPPORTED ? (
         <>

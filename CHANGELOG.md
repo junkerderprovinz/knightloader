@@ -60,15 +60,26 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   it is when it starts, finishes or unpacks. A column header still sorts by
   that column, its third click goes back to the name order, and Queue order
   in the sort menu shows the order the downloads run in.
-- **Restart is called Reset & restart,** in the right-click menu, on the row's
-  button, in the toolbar and wherever a hint names it, since it clears what
-  went wrong and queues the download afresh. Retry failed is Reset & restart
-  failed.
+- **Restart is called Reset,** as in JDownloader, in the right-click menu, on
+  the row's button, in the toolbar and wherever a hint names it; the row's
+  button says in its bubble that it resets the download and loads it again.
+  Retry failed is Reset failed.
 - **The container leaves Click'n'Load to the browser extension and the desktop
   app.** Its own port was inside the container, where no browser reaches it,
   so the switch under Settings, Link collector is greyed out there and its (i)
   says where Click'n'Load works. A container with host networking can still
   open it with `KL_CNL`.
+- **A second KnightLoader on the same computer can take Click'n'Load over.**
+  One computer has one Click'n'Load port. When another KnightLoader holds
+  it, the switch under Settings, Link collector names it and offers Take over,
+  which asks it through the group to let go and listens here. A KnightLoader
+  outside the group cannot be asked, and a program that is not KnightLoader,
+  usually a running JDownloader, is named as such.
+- **The right-click menu reads more like JDownloader's.** In the desktop app,
+  Open folder opens the folder a link or a package downloads into, with the
+  file selected once there is one, on Downloads and in the link collector.
+  Copy links, Open in browser and Set connections are new. Open with default
+  app no longer stands greyed out in a browser, where it cannot work.
 
 ### Fixed
 
