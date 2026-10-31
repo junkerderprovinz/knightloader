@@ -208,6 +208,8 @@ export interface ColumnDef {
   render: (task: Task, ctx: CellContext) => ReactNode;
   /** What the package header shows in this column; absent means nothing. */
   aggregate?: (items: Task[], ctx: CellContext) => ReactNode;
+  /** The lists that have this column at all; absent means both. */
+  lists?: ListProfile[];
 }
 
 /**
@@ -1526,9 +1528,6 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   if (!kind) return null;
   const sub = variantSubOf(task);
   const label = ctx.t(VARIANT_KIND_LABEL_KEY[kind] ?? VARIANT_KIND_LABEL_KEY.video);
-  // Past the collector the pick is settled, so the download list says what is
-  // being fetched instead of offering to change it.
-  if (ctx.profile === 'downloads') return <VariantSummary task={task} kind={kind} sub={sub} label={label} />;
 
   async function change(opts: { variantQuality: string; audioBitrate?: string }, first: boolean) {
     setBusy(true);
@@ -1590,22 +1589,19 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
 }
 
 /**
- * VariantSummary is the download list's reading of a variant row: which of
- * the link's rows it is and what it is fetched as, "Video 1080p60 WebM (VP9)"
- * or "Audio Opus 160 kbit/s". The rows of a link start out under one name, so
- * without it the audio row is one more line with the video's title.
+ * variantText reads a variant row for the row's details: which of the link's
+ * rows it is and what it is fetched as, "Video 1080p60 WebM (VP9)" or "Audio
+ * Opus 160 kbit/s". Empty for a row that is not a yt-dlp variant.
  */
-function VariantSummary({ task, kind, sub, label }: { task: Task; kind: string; sub: string; label: string }) {
-  const { t } = useT();
+export function variantText(task: Task, t: Translate): string {
+  const kind = variantKindOf(task);
+  if (!kind) return '';
+  const sub = variantSubOf(task);
+  const label = t(VARIANT_KIND_LABEL_KEY[kind] ?? VARIANT_KIND_LABEL_KEY.video);
   let picked = '';
   if (kind === 'video') picked = videoSummary(sub, t);
   if (kind === 'audio') picked = audioSummary(sub, task.audioBitrate ?? '', t);
-  return (
-    <Tip tip={picked ? `${label} ${picked}` : label} className="block min-w-0 truncate text-meta text-carbon-textMuted">
-      {label}
-      {picked && <span className="text-carbon-textSub"> {picked}</span>}
-    </Tip>
-  );
+  return picked ? `${label} ${picked}` : label;
 }
 
 export const COLUMNS: ColumnDef[] = [
@@ -1851,11 +1847,10 @@ export const COLUMNS: ColumnDef[] = [
     // the Persian bitrate picker at 320 kbit/s, 144px with the padding.
     width: 234,
     minWidth: 144,
-    // The download list shows one line of text instead of the pickers, and it
-    // truncates into its tooltip, so neither the pickers' width nor their floor
-    // applies there. The column is blank on every row that is not a yt-dlp link.
-    widthByProfile: { downloads: 104 },
-    minWidthByProfile: { downloads: 96 },
+    // Only the collector has it, where the pick is made. In the download list
+    // the pick is part of the file's name, as JDownloader writes it, and the
+    // row's details name it as well.
+    lists: ['collector'],
     align: 'start',
     hideable: true,
     compare: (a, b) => cmpText(variantKindOf(a), variantKindOf(b)),
@@ -1940,7 +1935,7 @@ export const DEFAULT_ORDER: ColumnId[] = COLUMNS.map((c) => c.id);
  * last.
  */
 export function defaultOrderFor(profile: ListProfile): ColumnId[] {
-  const rest = DEFAULT_ORDER.filter((id) => id !== 'size' && id !== 'progress');
+  const rest = DEFAULT_ORDER.filter((id) => id !== 'size' && id !== 'progress' && inList(profile, id));
   return profile === 'downloads' ? [...rest, 'size', 'progress'] : [...rest, 'progress', 'size'];
 }
 
@@ -1966,7 +1961,7 @@ const ORDER_RESEATED_AT = 4;
  * it is somebody's own choice and stays.
  */
 const SHOWN_SINCE: Record<ListProfile, Partial<Record<ColumnId, number>>> = {
-  downloads: { variant: 3 },
+  downloads: {},
   collector: {},
 };
 
@@ -1979,19 +1974,16 @@ const SHOWN_SINCE: Record<ListProfile, Partial<Record<ColumnId, number>>> = {
  * table opens several hundred pixels scrolled off its own right edge, and a
  * default that does not fit reads as a broken layout rather than a rich one.
  * The rest are one click away in the header menu. Every column left on in
- * downloads carries a value on every row except 'variant' (below), and each
- * set fits its card in a 1280px window (check-column-widths.mjs).
+ * downloads carries a value on every row, and each set fits its card in a
+ * 1280px window (check-column-widths.mjs).
  *
  * `connection` ships hidden in both because it is empty until somebody
  * configures a connection, and peers, seeds and ratio because they are blank on
  * every row that is not a torrent.
  */
 export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
-  // 'variant' is on in both lists, although it is blank on every row that is
-  // not a yt-dlp link. In the collector a link's five rows want a pick; in the
-  // download list they all carry the link's title, and this column is the only
-  // thing that tells the audio row from the video row and says what quality
-  // each is being fetched at.
+  // The collector's 'variant' is on, although it is blank on every row that is
+  // not a yt-dlp link, since a link's five rows want a pick there.
   downloads: ['comment', 'source', 'added', 'finished', 'resolver', 'connection', 'peers', 'seeds', 'ratio'],
   collector: [
     'progress',
@@ -2039,6 +2031,12 @@ export interface ResolvedLayout {
 
 const isKnown = (id: string): id is ColumnId => COLUMN_BY_ID.has(id as ColumnId);
 
+/** inList reports whether a list has the column at all; a stored layout may still name one it has not. */
+const inList = (profile: ListProfile, id: ColumnId): boolean => {
+  const lists = COLUMN_BY_ID.get(id)?.lists;
+  return !lists || lists.includes(profile);
+};
+
 /**
  * mergeOrder is what storing ids buys: a stored layout survives an update in
  * both directions. A column this build no longer has is dropped rather than
@@ -2049,7 +2047,7 @@ const isKnown = (id: string): id is ColumnId => COLUMN_BY_ID.has(id as ColumnId)
  */
 function mergeOrder(profile: ListProfile, stored: ColumnId[] | undefined): ColumnId[] {
   const base = defaultOrderFor(profile);
-  const kept = (stored ?? []).filter(isKnown);
+  const kept = (stored ?? []).filter((id) => isKnown(id) && inList(profile, id));
   // Nothing recognisable stored: either a first run or a layout from a build
   // that shares no column with this one. Either way the defaults are the answer.
   if (kept.length === 0) return [...base];
@@ -2078,7 +2076,7 @@ function mergeOrder(profile: ListProfile, stored: ColumnId[] | undefined): Colum
 function mergeHidden(profile: ListProfile, stored: ColumnLayout | null | undefined): Set<ColumnId> {
   const knew = new Set((stored?.order ?? []).filter(isKnown));
   if (knew.size === 0) return new Set(DEFAULT_HIDDEN[profile]);
-  const hidden = new Set((stored?.hidden ?? []).filter(isKnown));
+  const hidden = new Set((stored?.hidden ?? []).filter((id) => isKnown(id) && inList(profile, id)));
   // A column the stored layout never saw takes this build's default. One that
   // ships hidden must not appear on every existing install at once just because
   // it is new, and one that ships visible must not stay invisible forever

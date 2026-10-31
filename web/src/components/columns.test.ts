@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ExtractJob, Task, TaskStatus } from '../lib/api';
+import { en } from '../lib/locales/en';
 import { extractionsByTask } from './Archives';
 import {
   ACTIONS_ROOM,
@@ -18,6 +19,7 @@ import {
   resolveLayout,
   stepColumn,
   unpackBar,
+  variantText,
   type CellContext,
   type ColumnId,
   type ResolvedLayout,
@@ -92,11 +94,19 @@ describe('gridTemplate', () => {
 });
 
 describe('resolveLayout', () => {
-  it('lets the download list narrow the variant column below the collector pickers', () => {
-    const downloads = resolveLayout('downloads', null);
-    const collector = resolveLayout('collector', null);
-    expect(downloads.minWidthOf('variant')).toBeLessThan(collector.minWidthOf('variant'));
-    expect(downloads.widthOf('variant')).toBeGreaterThanOrEqual(downloads.minWidthOf('variant'));
+  it('keeps the variant column to the collector, where the pick is made', () => {
+    expect(resolveLayout('collector', null).visible.map((c) => c.id)).toContain('variant');
+    expect(resolveLayout('downloads', null).order.map((c) => c.id)).not.toContain('variant');
+  });
+
+  it('reads a download layout stored with the variant column without it', () => {
+    const stored = { order: ['name', 'variant', 'status', 'size'], hidden: ['variant'], widths: { variant: 200 }, v: 4 } as Parameters<typeof resolveLayout>[1];
+    const layout = resolveLayout('downloads', stored);
+    expect(layout.order.map((c) => c.id)).not.toContain('variant');
+    expect(layout.hidden.has('variant')).toBe(false);
+    const ids = layout.visible.map((c) => c.id);
+    expect(ids.indexOf('name')).toBeLessThan(ids.indexOf('status'));
+    expect(ids.indexOf('status')).toBeLessThan(ids.indexOf('size'));
   });
 
   it('ignores a stored column the build does not have', () => {
@@ -450,5 +460,19 @@ describe('the order of the downloads', () => {
     expect(nextSort(second, 'size', NAME_ORDER)).toEqual(NAME_ORDER);
     expect(nextSort(nextSort(null, 'size', null), 'size', null)).toEqual({ id: 'size', dir: 'desc' });
     expect(nextSort({ id: 'size', dir: 'desc' }, 'size', null)).toBeNull();
+  });
+});
+
+describe('variantText', () => {
+  const t = (key: string) => en[key as keyof typeof en];
+  const row = (variant: string) => ({ variant }) as unknown as Task;
+
+  it('names the row of a link and what it fetches, for the row details', () => {
+    expect(variantText(row('thumbnail'), t)).toBe('Thumbnail');
+    expect(variantText(row('audio'), t)).toMatch(/^Audio/);
+  });
+
+  it('is empty for a row that is no variant', () => {
+    expect(variantText(row(''), t)).toBe('');
   });
 });

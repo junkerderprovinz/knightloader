@@ -43,7 +43,7 @@ func TestBuildArgsZeroValueIsThePlainInvocation(t *testing.T) {
 		t.Errorf("buildArgs(Options{}) passed --write-subs, want none: %v", args)
 	}
 	got, ok := valueAfter(args, "-o")
-	want := filepath.Join(dir, "%(title)s.%(ext)s")
+	want := filepath.Join(dir, videoOutputTemplate)
 	if !ok || got != want {
 		t.Errorf("-o = %q (found=%v), want %q", got, ok, want)
 	}

@@ -1,7 +1,7 @@
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { en } from '../../lib/locales/en';
 import { fmtBytes } from '../../lib/format';
-import { hostOf, useConnectionLabel } from '../columns';
+import { hostOf, useConnectionLabel, variantText } from '../columns';
 import { ResolverBadge } from '../StatusPill';
 import { Card, SectionTitle } from '../ui';
 import { Fact } from './Fact';
@@ -48,6 +48,8 @@ export function LinkCard({
       <Fact label={t('detail.address')} hint={t('detail.addressHint')} value={task.url} ltr copy />
       <Fact label={t('columns.source')} value={task.source} ltr copy />
       <Fact label={t('columns.host')} value={host} ltr />
+      {/* The pick, which the file's name carries once it is written. */}
+      <Fact label={t('columns.variant')} value={variantText(task, t)} />
       <Fact label={t('columns.resolver')}>
         <ResolverBadge resolver={task.resolver} mode={task.mode} />
       </Fact>

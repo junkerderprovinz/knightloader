@@ -219,13 +219,15 @@ for (const block of blocks) {
     const inner = block.match(new RegExp(`\\b${key}:\\s*\\{([^}]*)\\}`))?.[1] ?? '';
     return Object.fromEntries([...inner.matchAll(/(\w+):\s*(\d+)/g)].map(([, list, value]) => [list, Number(value)]));
   };
-  const onlyIn = block.match(/\bonlyIn:\s*\[([^\]]*)\]/)?.[1];
+  const lists = block.match(/\blists:\s*\[([^\]]*)\]/)?.[1];
   columns.set(id, {
     id,
     width: width ? number(width, consts, `${id}.width`) : null,
     minWidth: minWidth ? number(minWidth, consts, `${id}.minWidth`) : null,
     perList: byList('widthByProfile'),
     minPerList: byList('minWidthByProfile'),
+    // The lists that have the column at all; null for both.
+    lists: lists ? [...lists.matchAll(/'([^']+)'/g)].map((m) => m[1]) : null,
   });
 }
 
@@ -234,7 +236,7 @@ function visibleIn(list) {
   const chunk = text.slice(text.indexOf('export const DEFAULT_HIDDEN'));
   const arr = chunk.match(new RegExp(`\\b${list}:\\s*\\[([^\\]]*)\\]`))?.[1] ?? '';
   const hidden = new Set([...arr.matchAll(/'([^']+)'/g)].map((m) => m[1]));
-  return [...columns.values()].filter((c) => !hidden.has(c.id));
+  return [...columns.values()].filter((c) => !hidden.has(c.id) && (!c.lists || c.lists.includes(list)));
 }
 
 const defaultWidth = (c, list) => c.perList[list] ?? c.width;
@@ -252,7 +254,7 @@ if (!variant) {
         'a single picker needs. A picker cannot shrink, so under this floor the cell clips it instead of wrapping.',
     );
   }
-  for (const list of ['downloads', 'collector']) {
+  for (const list of variant.lists ?? ['downloads', 'collector']) {
     const w = defaultWidth(variant, list);
     if (list === 'collector' && w < COMMON_ROW) {
       problems.push(

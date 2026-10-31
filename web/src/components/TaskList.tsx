@@ -345,7 +345,7 @@ export function useListSort(title: string, profile: ListProfile = 'downloads', s
   const [stored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, defaultSort(profile));
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
-  const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
+  const sort = storedSort && layout.visible.some((c) => c.id === storedSort.id) ? storedSort : null;
   const header = (col: ColumnDef) => t(col.labelKey);
   const sortedBy = sort ? layout.visible.find((c) => c.id === sort.id) : undefined;
 
@@ -2243,7 +2243,7 @@ export function TaskListCard({
   // so showing the column again brings the order back with it. Applying it while
   // its column is invisible would be a list in an order with nothing on screen
   // to explain it.
-  const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
+  const sort = storedSort && layout.visible.some((c) => c.id === storedSort.id) ? storedSort : null;
   const sorted = useMemo(() => applySort(groups, sort), [groups, sort]);
   // The order the last drop promised, drawn until the server's own order
   // agrees (see holdOrder). Without it the rows that just landed would jump
