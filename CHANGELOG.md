@@ -41,8 +41,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 ### Changed
 
 - **The Android app is on F-Droid.** The README, the installing page and
-  Settings, Apps link to its listing beside the APK, and F-Droid keeps it up
-  to date.
+  Settings, Apps link to its listing beside the APK, with F-Droid's own logo,
+  and F-Droid keeps it up to date.
 
 - **RAR sets are unpacked with RARLAB's UnRAR,** the decoder WinRAR itself
   uses. The container image and the desktop app for Windows, for Linux on
@@ -100,8 +100,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   wears its glyph instead.
 - **Options and Quick settings open under their button,** at one width that
   fits the seven priority steps on one line.
-- **The Components card lists each part on one line,** with its name, version
-  and link.
+- **The Components card lists each part on one line:** its name, a short
+  status where there is one, and its version, which leads to its release or
+  project page. Checks and updates are small buttons at the end of the line,
+  and the switches for automatic updates sit behind a gear.
 - **The link collector ends above Start all.** A short list stops above the
   button, and only a list long enough to scroll runs under it, with room for
   its last row to scroll clear.
