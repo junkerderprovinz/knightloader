@@ -165,6 +165,11 @@ jobs:
       - name: Vet
         run: go vet ./...
 
+      # RARLAB's UnRAR, so the tests that unpack through it run here rather
+      # than skip (internal/extract/unrar_test.go).
+      - name: UnRAR
+        run: sudo apt-get update -q && sudo apt-get install -yq unrar
+
       # CGO_ENABLED=0 as in the shipped binary, so a cgo-only dependency fails
       # here rather than in the image build. No package takes more than a few
       # minutes, so ten per package only ever ends a hang.

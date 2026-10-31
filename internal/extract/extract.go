@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"os"
 	"path"
@@ -356,6 +357,14 @@ func extractRar(path string, dest target, password string) (*Result, error) {
 	size, names := rarListing(path, opts)
 	expectWatched(size)
 	dest = dest.unwrapped(path, names)
+	if bin := UnrarPath(); bin != "" {
+		res, err := extractRarWith(bin, path, dest, password)
+		if !errors.Is(err, errUnrarDidNotStart) {
+			return res, err
+		}
+		log.Printf("extract: %v; unpacking %s with the built-in reader", err, filepath.Base(path))
+		expectWatched(size)
+	}
 	res := &Result{Dir: dest.dir}
 	body := &archiveSide{r: rc}
 	// Sequential Next/Read works for solid and multi-volume archives alike.

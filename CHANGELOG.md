@@ -40,6 +40,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
+- **RAR sets are unpacked with RARLAB's UnRAR,** the decoder WinRAR itself
+  uses. The container image and the desktop app for Windows, for Linux on
+  x86-64 and for macOS on Apple silicon bring it, and Settings, Resolvers shows
+  its version with a link to rarlab.com. Where it is missing or does not start,
+  the built-in reader unpacks the set as before. Names keep their umlauts, a
+  password is tried the same way, and a damaged or missing part is reported
+  as it was.
 - **Reject links already downloaded is off by default.** A link the download
   history knows is added like any other unless you switch the check on under
   Settings, Link collector. Installs that had it on start with it off as well,

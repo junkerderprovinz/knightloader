@@ -151,6 +151,10 @@ jobs:
           $printed = & $ytdlp --version
           if ($LASTEXITCODE -ne 0) { throw "$ytdlp --version exited with code $LASTEXITCODE" }
           Write-Host "yt-dlp beside the program: $printed"
+          $unrar = Join-Path $entry.InstallLocation 'UnRAR.exe'
+          $banner = (& $unrar | Select-Object -First 2) -join ' '
+          if ($banner -notmatch 'UNRAR \d') { throw "$unrar printed '$banner'" }
+          Write-Host "UnRAR beside the program: $banner"
 
           $app = Start-Process -FilePath $exe -PassThru
           $deadline = (Get-Date).AddMinutes(8)
@@ -187,6 +191,7 @@ jobs:
           if (Test-Path $key) { throw "the uninstaller left its entry behind" }
           if (Test-Path $exe) { throw "the uninstaller left $exe behind" }
           if (Test-Path $ytdlp) { throw "the uninstaller left $ytdlp behind" }
+          if (Test-Path $unrar) { throw "the uninstaller left $unrar behind" }
 
       # Zipped on the build runner because artifacts lose file modes, which
       # left the Linux and macOS binaries without their execute bit. The zip

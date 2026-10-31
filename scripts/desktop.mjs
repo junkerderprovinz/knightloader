@@ -16,6 +16,11 @@
 // Linux stay the program alone, since every installed copy updates itself from
 // them (internal/update) and refuses one that holds anything else.
 //
+// RARLAB's UnRAR comes along the same way where RARLAB builds one for the
+// target, pinned with its checksum in desktop/unrar.json: Windows, Linux on
+// x86-64 and macOS on Apple silicon. Elsewhere RAR sets go to the built-in
+// reader. Its licence allows it inside other software and travels with it.
+//
 // --updatetest builds with the updatetest tag (desktop/updatetest.go). Its
 // installer puts "KnightLoader Test" beside a real installation, so the
 // updates can be tried against a local stand-in for GitHub.
@@ -146,6 +151,57 @@ function checkYtdlp(file) {
   }
 }
 
+const unrarPins = JSON.parse(readFileSync(join(desktop, 'unrar.json'), 'utf8'))
+const unrarName = process.platform === 'win32' ? 'UnRAR.exe' : 'unrar'
+
+// fetchUnrar returns the verified program and its licence for the target, or
+// null where RARLAB builds none. Windows' UnRAR is taken from the WinRAR
+// package of the same version, the one with a fixed address, which 7-Zip
+// opens; the others are tarballs.
+async function fetchUnrar() {
+  const key = process.platform === 'win32' ? 'windows' : `${process.platform}-${arch}`
+  const pin = unrarPins[key]
+  if (!pin) return null
+  const dir = join(desktop, 'build', 'unrar', key, pin.sha256.slice(0, 12))
+  const program = join(dir, pin.program)
+  const licence = join(dir, pin.licence)
+  if (existsSync(program) && existsSync(licence)) return { program, licence }
+  const data = await download(pin.url)
+  if (sha256(data) !== pin.sha256) {
+    console.error(`${pin.url} has checksum ${sha256(data)}, desktop/unrar.json says ${pin.sha256}`)
+    process.exit(1)
+  }
+  rmSync(dir, { recursive: true, force: true })
+  mkdirSync(dir, { recursive: true })
+  const packed = join(dir, basename(new URL(pin.url).pathname))
+  writeFileSync(packed, data)
+  if (process.platform === 'win32') run('7z', ['x', '-y', `-o${dir}`, packed])
+  else run('tar', ['-xzf', packed, '-C', dir])
+  rmSync(packed)
+  return { program, licence }
+}
+
+// placeUnrar puts the program in dir and its licence in licenceDir, which in
+// the macOS bundle is Resources: code signing wants nothing but code in MacOS.
+function placeUnrar(unrar, dir, licenceDir = dir) {
+  if (!unrar) return
+  cpSync(unrar.program, join(dir, unrarName))
+  chmodSync(join(dir, unrarName), 0o755)
+  cpSync(unrar.licence, join(licenceDir, 'UnRAR-license.txt'))
+}
+
+// checkUnrar starts the UnRAR in dir where this machine can run it, and wants
+// its banner back.
+function checkUnrar(unrar, dir) {
+  if (!unrar || arch !== hostArch) return
+  const res = spawnSync(join(dir, unrarName), [], { encoding: 'utf8' })
+  if (!/UNRAR \d/.test(res.stdout ?? '')) {
+    console.error(`${join(dir, unrarName)} printed ${JSON.stringify(res.stdout?.slice(0, 80))}`)
+    console.error(res.error ?? res.stderr)
+    process.exit(1)
+  }
+}
+
 function goBuild(out, { goos, goarch, cgo, tags, ldflags = '', env = {} }) {
   run('go', [
     'build', '-tags', tags, '-trimpath', '-buildvcs=false',
@@ -154,16 +210,18 @@ function goBuild(out, { goos, goarch, cgo, tags, ldflags = '', env = {} }) {
   ], { env: { GOOS: goos, GOARCH: goarch, CGO_ENABLED: cgo, ...env } })
 }
 
-// buildInstaller builds desktop/installer around the program at exe and
-// yt-dlp, into desktop/build/installer so the zips of desktop/build/bin stay
+// buildInstaller builds desktop/installer around the program at exe, yt-dlp
+// and UnRAR, into desktop/build/installer so the zips of desktop/build/bin stay
 // the program alone. An updatetest installer installs as "KnightLoader Test".
-function buildInstaller(exe, ytdlp, name, { goos, cgo, tags, ldflags = '' }) {
+function buildInstaller(exe, ytdlp, unrar, name, { goos, cgo, tags, ldflags = '' }) {
   const payload = join(desktop, 'installer', 'payload')
   rmSync(payload, { recursive: true, force: true })
   mkdirSync(payload, { recursive: true })
   cpSync(exe, join(payload, basename(exe)))
   placeYtdlp(ytdlp, join(payload, ytdlpName))
   checkYtdlp(join(payload, ytdlpName))
+  placeUnrar(unrar, payload)
+  checkUnrar(unrar, payload)
   const vars = [`-X main.version=${numbers}`]
   if (updatetest) vars.push("-X 'main.name=KnightLoader Test'", '-X main.id=com.junkerderprovinz.knightloader.test')
   try {
@@ -199,6 +257,7 @@ function writeWindowsVersion() {
 
 console.log(`building KnightLoader ${version}, ${dlcFlags ? 'with' : 'without'} the DLC key, with yt-dlp ${ytdlpVersion}`)
 const ytdlp = await fetchYtdlp()
+const unrar = await fetchUnrar()
 
 rmSync(bin, { recursive: true, force: true })
 rmSync(join(desktop, 'build', 'installer'), { recursive: true, force: true })
@@ -244,7 +303,7 @@ if (process.platform === 'win32') {
       '-manifest', 'installer/installer.manifest', '-info', 'build/windows/info.json', '-out', syso,
     ])
     try {
-      buildInstaller(exe, ytdlp, `KnightLoader-${arch}-installer.exe`, { goos: 'windows', cgo: '0', tags: '', ldflags: '-H windowsgui' })
+      buildInstaller(exe, ytdlp, unrar, `KnightLoader-${arch}-installer.exe`, { goos: 'windows', cgo: '0', tags: '', ldflags: '-H windowsgui' })
     } finally {
       rmSync(syso, { force: true })
     }
@@ -265,18 +324,20 @@ if (process.platform === 'win32') {
   cpSync(join(desktop, 'build', 'darwin', 'icons.icns'), join(app, 'Resources', 'icons.icns'))
   cpSync(join(desktop, 'build', 'darwin', 'Info.plist'), join(app, 'Info.plist'))
   placeYtdlp(ytdlp, join(app, 'MacOS', ytdlpName))
+  placeUnrar(unrar, join(app, 'MacOS'), join(app, 'Resources'))
   // An ad-hoc signature over the whole bundle, as Wails' own template does:
-  // Apple Silicon refuses to start code that carries none. yt-dlp is signed
-  // with it, and run once afterwards to show it still starts.
+  // Apple Silicon refuses to start code that carries none. yt-dlp and UnRAR
+  // are signed with it, and run once afterwards to show they still start.
   run('codesign', ['--force', '--deep', '--sign', '-', join(bin, 'KnightLoader.app')])
   checkYtdlp(join(app, 'MacOS', ytdlpName))
+  checkUnrar(unrar, join(app, 'MacOS'))
 } else {
   // GTK 3 and WebKitGTK 4.1, which every current distribution ships and which
   // the Wails 2 builds already needed. Wails does not cross-compile to Linux,
   // so the ARM64 build runs on an ARM64 runner.
   goBuild(join(bin, 'KnightLoader'), { goos: 'linux', goarch: arch, cgo: '1', tags: tags(',gtk3') })
   if (installer) {
-    buildInstaller(join(bin, 'KnightLoader'), ytdlp, `KnightLoader-${arch}-installer`, { goos: 'linux', cgo: '1', tags: 'gtk3' })
+    buildInstaller(join(bin, 'KnightLoader'), ytdlp, unrar, `KnightLoader-${arch}-installer`, { goos: 'linux', cgo: '1', tags: 'gtk3' })
   }
 }
 

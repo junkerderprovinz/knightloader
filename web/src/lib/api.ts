@@ -3527,6 +3527,8 @@ export interface MediaToolsStatus {
   ytdlp: MediaTool;
   ffmpeg: MediaTool;
   ffprobe: MediaTool;
+  /** RARLAB's UnRAR, which unpacks RAR sets when it is there. */
+  unrar?: MediaTool;
   managed?: YtdlpManagedRecord;
   /** Where a fetched copy lives. Separate from ytdlp.path, which names the
    *  fallback when the recorded copy no longer starts. */
