@@ -103,6 +103,7 @@ import {
   gridTemplate,
   isParked,
   moveColumn,
+  stepColumn,
   nextSort,
   resolveLayout,
   sharedPriority,
@@ -1359,7 +1360,8 @@ function ResizeHandle({
  *
  * The label is the draggable element and the resize handle is its sibling rather
  * than a child, because a handle inside the drag source turns every resize into
- * a half-started reorder.
+ * a half-started reorder. Alt with an arrow key moves the focused column one
+ * place, for whoever cannot drag.
  */
 function Header({
   layout,
@@ -1367,6 +1369,7 @@ function Header({
   sort,
   onSort,
   onReorder,
+  onStep,
   onResize,
   onResizeReset,
   onMenu,
@@ -1376,12 +1379,22 @@ function Header({
   sort: SortState | null;
   onSort: (id: ColumnId) => void;
   onReorder: (id: ColumnId, target: ColumnId, after: boolean) => void;
+  onStep: (id: ColumnId, towardsEnd: boolean) => void;
   onResize: (id: ColumnId, phase: 'start' | 'move' | 'end', e: PointerEvent<HTMLElement>) => void;
   onResizeReset: (id: ColumnId) => void;
   onMenu: (at: { x: number; y: number }) => void;
 }) {
   const { t } = useT();
   const [dragId, setDragId] = useState<ColumnId | null>(null);
+  const row = useRef<HTMLDivElement>(null);
+  // The column a key press moved, whose head gets the focus back once it is
+  // drawn in its new place.
+  const [stepped, setStepped] = useState<ColumnId | null>(null);
+  useEffect(() => {
+    if (!stepped) return;
+    row.current?.querySelector<HTMLButtonElement>(`[data-col="${stepped}"]`)?.focus();
+    setStepped(null);
+  }, [stepped, layout]);
 
   function drop(e: DragEvent<HTMLDivElement>, target: ColumnDef) {
     e.preventDefault();
@@ -1396,6 +1409,7 @@ function Header({
 
   return (
     <div
+      ref={row}
       style={ROW_GRID}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -1426,6 +1440,14 @@ function Header({
                 e.dataTransfer.setData('text/plain', col.id);
               }}
               onDragEnd={() => setDragId(null)}
+              data-col={col.id}
+              onKeyDown={(e) => {
+                if (!e.altKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+                e.preventDefault();
+                const rtl = document.documentElement.dir === 'rtl';
+                onStep(col.id, (e.key === 'ArrowRight') !== rtl);
+                setStepped(col.id);
+              }}
               onClick={() => sortable && onSort(col.id)}
               aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined}
               className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 ${HEAD_LABEL} transition-colors ${
@@ -3526,6 +3548,16 @@ export function TaskListCard({
                 onSort={(id) => setSort(nextSort(storedSort, id, defaultSort(profile)))}
                 onReorder={(id, target, after) =>
                   persist({ order: moveColumn(layout.order.map((c) => c.id), id, target, after) })
+                }
+                onStep={(id, towardsEnd) =>
+                  persist({
+                    order: stepColumn(
+                      layout.order.map((c) => c.id),
+                      layout.visible.map((c) => c.id),
+                      id,
+                      towardsEnd,
+                    ),
+                  })
                 }
                 onResize={onResize}
                 onResizeReset={resetWidth}

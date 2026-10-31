@@ -538,7 +538,7 @@ export const sk: Dict = {
   'columns.source': 'Zdroj',
   'columns.menuTitle': 'Stĺpce',
   'columns.reset': 'Obnoviť stĺpce',
-  'columns.headerHint': 'Kliknutím na hlavičku podľa nej zoradíte, presunutím zmeníte poradie stĺpca, presunutím okraja zmeníte veľkosť, dvojklikom na okraj vrátite pôvodnú šírku. Pravým tlačidlom na hlavičke otvoríte zoznam stĺpcov.',
+  'columns.headerHint': 'Kliknutím na hlavičku podľa nej zoradíte, presunutím alebo klávesom Alt so šípkou presuniete stĺpec, presunutím okraja zmeníte veľkosť, dvojklikom na okraj vrátite pôvodnú šírku. Pravým tlačidlom na hlavičke otvoríte zoznam stĺpcov.',
   'columns.alwaysShown': 'Tento stĺpec je vidieť vždy.',
   'columns.lastVisible': 'Zoznam potrebuje aspoň jeden stĺpec.',
   'columns.resizeHint': 'Ťahaním zmeníte šírku, dvojklikom ju vrátite',

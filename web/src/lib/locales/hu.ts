@@ -539,7 +539,7 @@ export const hu: Dict = {
   'columns.source': 'Forrás',
   'columns.menuTitle': 'Oszlopok',
   'columns.reset': 'Oszlopok visszaállítása',
-  'columns.headerHint': 'Kattints egy fejlécre a szerinte való rendezéshez, húzd az oszlop átrendezéséhez, húzd a szélét az átméretezéshez, dupla kattintás a szélén visszaállítja a szélességet. Jobb kattintás a fejlécen az oszloplistához.',
+  'columns.headerHint': 'Kattints egy fejlécre a szerinte való rendezéshez, húzd, vagy nyomd meg az Alt billentyűt egy nyíllal az oszlop áthelyezéséhez, húzd a szélét az átméretezéshez, dupla kattintás a szélén visszaállítja a szélességet. Jobb kattintás a fejlécen az oszloplistához.',
   'columns.alwaysShown': 'Ez az oszlop mindig látszik.',
   'columns.lastVisible': 'Egy listának legalább egy oszlop kell.',
   'columns.resizeHint': 'Húzd a szélesség módosításához, dupla kattintás visszaállít',

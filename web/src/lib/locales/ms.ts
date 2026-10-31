@@ -538,7 +538,7 @@ export const ms: Dict = {
   'columns.source': 'Sumber',
   'columns.menuTitle': 'Lajur',
   'columns.reset': 'Set semula lajur',
-  'columns.headerHint': 'Klik pengepala untuk isih mengikutnya, seret untuk menyusun semula lajur, seret tepinya untuk mengubah saiz, klik dua kali pada tepi untuk mengembalikan lebar. Klik kanan pengepala untuk senarai lajur.',
+  'columns.headerHint': 'Klik pengepala untuk isih mengikutnya, seret atau tekan Alt dan kekunci anak panah untuk mengalihkan lajur, seret tepinya untuk mengubah saiz, klik dua kali pada tepi untuk mengembalikan lebar. Klik kanan pengepala untuk senarai lajur.',
   'columns.alwaysShown': 'Lajur ini sentiasa dipaparkan.',
   'columns.lastVisible': 'Senarai perlukan sekurang-kurangnya satu lajur.',
   'columns.resizeHint': 'Seret untuk ubah lebar, klik dua kali untuk set semula',

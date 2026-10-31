@@ -4,6 +4,7 @@ import type { ExtractJob, Task, TaskStatus } from '../lib/api';
 import { extractionsByTask } from './Archives';
 import {
   ACTIONS_ROOM,
+  LAYOUT_VERSION,
   NAME_ORDER,
   applySort,
   defaultSort,
@@ -15,6 +16,7 @@ import {
   packageUnpackBar,
   packageUnpacking,
   resolveLayout,
+  stepColumn,
   unpackBar,
   type CellContext,
   type ColumnId,
@@ -98,10 +100,11 @@ describe('resolveLayout', () => {
   });
 
   it('ignores a stored column the build does not have', () => {
-    const stored = { order: ['enabled', 'name', 'size'], hidden: [], widths: {}, v: 3 } as unknown as Parameters<typeof resolveLayout>[1];
+    const stored = { order: ['enabled', 'name', 'size'], hidden: [], widths: {}, v: 4 } as unknown as Parameters<typeof resolveLayout>[1];
     const ids = resolveLayout('collector', stored).visible.map((c) => c.id as string);
     expect(ids).not.toContain('enabled');
-    expect(ids.slice(0, 2)).toEqual(['name', 'size']);
+    expect(ids[0]).toBe('name');
+    expect(ids).toContain('size');
   });
 
   it('widens a default column to the width its head needs', () => {
@@ -111,9 +114,39 @@ describe('resolveLayout', () => {
     expect(layout.widthOf('size')).toBe(plain.widthOf('size'));
   });
 
+  it('puts the size last in the collector and just before the progress bar in the download list', () => {
+    const shown = (profile: 'downloads' | 'collector') => resolveLayout(profile, null).visible.map((c) => c.id);
+    expect(shown('collector').slice(-1)).toEqual(['size']);
+    expect(shown('downloads').slice(-2)).toEqual(['size', 'progress']);
+  });
+
+  it('takes the new order once on a layout stored before it, and keeps an order arranged since', () => {
+    const before = { order: ['name', 'size', 'status', 'host'], hidden: [], widths: { host: 300 }, v: 3 } as Parameters<typeof resolveLayout>[1];
+    const reseated = resolveLayout('collector', before);
+    expect(reseated.visible.map((c) => c.id).slice(-1)).toEqual(['size']);
+    expect(reseated.widthOf('host')).toBe(300);
+    const arranged = { order: ['size', 'name', 'status', 'host'], hidden: [], widths: {}, v: LAYOUT_VERSION } as Parameters<typeof resolveLayout>[1];
+    expect(resolveLayout('collector', arranged).visible[0].id).toBe('size');
+  });
+
   it('leaves a dragged column narrower than its head', () => {
     const layout = resolveLayout('downloads', { order: [], hidden: [], widths: { speed: 80 }, v: 3 }, { speed: 133 });
     expect(layout.widthOf('speed')).toBe(80);
+  });
+});
+
+describe('stepColumn', () => {
+  const order = ['name', 'comment', 'status', 'host', 'size'] as const;
+  const visible = ['name', 'status', 'host', 'size'] as const;
+
+  it('moves a column one place among the ones on show, past a hidden one', () => {
+    expect(stepColumn([...order], [...visible], 'status', false)).toEqual(['status', 'name', 'comment', 'host', 'size']);
+    expect(stepColumn([...order], [...visible], 'host', true)).toEqual(['name', 'comment', 'status', 'size', 'host']);
+  });
+
+  it('leaves the order alone at either end', () => {
+    expect(stepColumn([...order], [...visible], 'name', false)).toEqual([...order]);
+    expect(stepColumn([...order], [...visible], 'size', true)).toEqual([...order]);
   });
 });
 

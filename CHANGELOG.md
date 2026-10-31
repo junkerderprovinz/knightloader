@@ -104,6 +104,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   status where there is one, and its version, which leads to its release or
   project page. Checks and updates are small buttons at the end of the line,
   and the switches for automatic updates sit behind a gear.
+- **The size column moved.** In the link collector it is the last column, and
+  on Downloads it stands just left of the progress bar. A layout stored before
+  takes the new order once; widths and hidden columns stay. A focused column
+  head moves one place with Alt and an arrow key, as dragging it does, and
+  Reset columns in the header's right-click menu brings the default order back.
 - **The link collector ends above Start all.** A short list stops above the
   button, and only a list long enough to scroll runs under it, with room for
   its last row to scroll clear.

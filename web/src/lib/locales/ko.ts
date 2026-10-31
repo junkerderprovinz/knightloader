@@ -538,7 +538,7 @@ export const ko: Dict = {
   'columns.source': '출처',
   'columns.menuTitle': '열',
   'columns.reset': '열 초기화',
-  'columns.headerHint': '헤더를 클릭하면 해당 기준으로 정렬됩니다. 드래그하면 열 순서를 바꿀 수 있고, 가장자리를 드래그하면 크기를 조절할 수 있으며, 가장자리를 더블클릭하면 너비가 원래대로 돌아갑니다. 헤더를 우클릭하면 열 목록이 열립니다.',
+  'columns.headerHint': '헤더를 클릭하면 해당 기준으로 정렬됩니다. 드래그하거나 Alt와 화살표 키를 누르면 열을 옮길 수 있고, 가장자리를 드래그하면 크기를 조절할 수 있으며, 가장자리를 더블클릭하면 너비가 원래대로 돌아갑니다. 헤더를 우클릭하면 열 목록이 열립니다.',
   'columns.alwaysShown': '이 열은 항상 표시됩니다.',
   'columns.lastVisible': '목록에는 열이 최소 하나 필요합니다.',
   'columns.resizeHint': '끌어서 너비 조절, 두 번 클릭하면 초기화',

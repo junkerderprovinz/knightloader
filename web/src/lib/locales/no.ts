@@ -541,7 +541,7 @@ export const no: Dict = {
   'columns.source': 'Kilde',
   'columns.menuTitle': 'Kolonner',
   'columns.reset': 'Tilbakestill kolonnene',
-  'columns.headerHint': 'Klikk på en overskrift for å sortere etter den, dra den for å omorganisere kolonnen, dra kanten for å endre størrelse, dobbeltklikk kanten for å tilbakestille bredden. Høyreklikk overskriften for kolonnelisten.',
+  'columns.headerHint': 'Klikk på en overskrift for å sortere etter den, dra den eller trykk Alt og en piltast for å flytte kolonnen, dra kanten for å endre størrelse, dobbeltklikk kanten for å tilbakestille bredden. Høyreklikk overskriften for kolonnelisten.',
   'columns.alwaysShown': 'Denne kolonnen vises alltid.',
   'columns.lastVisible': 'En liste trenger minst én kolonne.',
   'columns.resizeHint': 'Dra for å endre bredden, dobbeltklikk for å tilbakestille',

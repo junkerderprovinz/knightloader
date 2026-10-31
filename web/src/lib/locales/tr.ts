@@ -538,7 +538,7 @@ export const tr: Dict = {
   'columns.source': 'Kaynak',
   'columns.menuTitle': 'Sütunlar',
   'columns.reset': 'Sütunları sıfırla',
-  'columns.headerHint': 'Bir başlığa tıklayarak ona göre sırala, sütunu yeniden düzenlemek için sürükle, boyutlandırmak için kenarını sürükle, genişliği geri almak için kenarına çift tıkla. Sütun listesi için başlığa sağ tıkla.',
+  'columns.headerHint': 'Bir başlığa tıklayarak ona göre sırala, sütunu taşımak için sürükle ya da Alt ile bir ok tuşuna bas, boyutlandırmak için kenarını sürükle, genişliği geri almak için kenarına çift tıkla. Sütun listesi için başlığa sağ tıkla.',
   'columns.alwaysShown': 'Bu sütun her zaman görünür.',
   'columns.lastVisible': 'Bir listede en az bir sütun olmalı.',
   'columns.resizeHint': 'Genişletmek için sürükleyin, sıfırlamak için çift tıklayın',

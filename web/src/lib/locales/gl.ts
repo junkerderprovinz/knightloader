@@ -538,7 +538,7 @@ export const gl: Dict = {
   'columns.source': 'Orixe',
   'columns.menuTitle': 'Columnas',
   'columns.reset': 'Restablecer as columnas',
-  'columns.headerHint': 'Fai clic nunha cabeceira para ordenar por ela, arrástraa para reordenar a columna, arrastra o seu bordo para redimensionala, dobre clic no bordo para restaurar o ancho. Clic dereito na cabeceira para a lista de columnas.',
+  'columns.headerHint': 'Fai clic nunha cabeceira para ordenar por ela, arrástraa ou preme Alt e unha tecla de frecha para mover a columna, arrastra o seu bordo para redimensionala, dobre clic no bordo para restaurar o ancho. Clic dereito na cabeceira para a lista de columnas.',
   'columns.alwaysShown': 'Esta columna amósase sempre.',
   'columns.lastVisible': 'Unha lista precisa polo menos unha columna.',
   'columns.resizeHint': 'Arrastra para cambiar o ancho, dobre clic para restablecer',

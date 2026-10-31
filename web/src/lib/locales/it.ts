@@ -530,7 +530,7 @@ export const it: Dict = {
   'columns.source': 'Origine',
   'columns.menuTitle': 'Colonne',
   'columns.reset': 'Reimposta le colonne',
-  'columns.headerHint': "Fai clic su un'intestazione per ordinare in base ad essa, trascinala per riordinare la colonna, trascina il suo bordo per ridimensionarla, doppio clic sul bordo per ripristinare la larghezza. Clic destro sull'intestazione per l'elenco delle colonne.",
+  'columns.headerHint': 'Fai clic su un\'intestazione per ordinare in base ad essa, trascinala o premi Alt e un tasto freccia per spostare la colonna, trascina il suo bordo per ridimensionarla, doppio clic sul bordo per ripristinare la larghezza. Clic destro sull\'intestazione per l\'elenco delle colonne.',
   'columns.alwaysShown': 'Questa colonna è sempre visibile.',
   'columns.lastVisible': 'Un elenco ha bisogno di almeno una colonna.',
   'columns.resizeHint': 'Trascina per ridimensionare, doppio clic per ripristinare',

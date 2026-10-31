@@ -538,7 +538,7 @@ export const hr: Dict = {
   'columns.source': 'Izvor',
   'columns.menuTitle': 'Stupci',
   'columns.reset': 'Vrati stupce',
-  'columns.headerHint': 'Kliknite zaglavlje za sortiranje po njemu, povucite ga za promjenu redoslijeda stupca, povucite njegov rub za promjenu veličine, dvoklik na rub vraća širinu. Desni klik na zaglavlje otvara popis stupaca.',
+  'columns.headerHint': 'Kliknite zaglavlje za sortiranje po njemu, povucite ga ili pritisnite Alt i tipku sa strelicom za premještanje stupca, povucite njegov rub za promjenu veličine, dvoklik na rub vraća širinu. Desni klik na zaglavlje otvara popis stupaca.',
   'columns.alwaysShown': 'Ovaj se stupac uvijek prikazuje.',
   'columns.lastVisible': 'Popis treba barem jedan stupac.',
   'columns.resizeHint': 'Povuci za širinu, dvoklik vraća',

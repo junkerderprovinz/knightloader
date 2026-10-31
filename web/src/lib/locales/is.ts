@@ -538,7 +538,7 @@ export const is: Dict = {
   'columns.source': 'Uppruni',
   'columns.menuTitle': 'Dálkar',
   'columns.reset': 'Endurstilla dálka',
-  'columns.headerHint': 'Smelltu á haus til að raða eftir honum, dragðu hann til að endurraða dálkinum, dragðu brún hans til að breyta stærð, tvísmelltu á brúnina til að endurstilla breiddina. Hægrismelltu á hausinn fyrir dálkalistann.',
+  'columns.headerHint': 'Smelltu á haus til að raða eftir honum, dragðu hann eða ýttu á Alt og örvalykil til að færa dálkinn, dragðu brún hans til að breyta stærð, tvísmelltu á brúnina til að endurstilla breiddina. Hægrismelltu á hausinn fyrir dálkalistann.',
   'columns.alwaysShown': 'Þessi dálkur sést alltaf.',
   'columns.lastVisible': 'Listi þarf að minnsta kosti einn dálk.',
   'columns.resizeHint': 'Dragðu til að breyta breidd, tvísmelltu til að endurstilla',

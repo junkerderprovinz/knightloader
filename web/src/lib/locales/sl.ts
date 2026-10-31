@@ -538,7 +538,7 @@ export const sl: Dict = {
   'columns.source': 'Vir',
   'columns.menuTitle': 'Stolpci',
   'columns.reset': 'Ponastavi stolpce',
-  'columns.headerHint': 'Kliknite glavo za razvrščanje po njej, povlecite jo za preureditev stolpca, povlecite njen rob za spremembo velikosti, dvokliknite rob za vrnitev širine. Z desnim klikom na glavo odprete seznam stolpcev.',
+  'columns.headerHint': 'Kliknite glavo za razvrščanje po njej, povlecite jo ali pritisnite Alt in smerno tipko za premik stolpca, povlecite njen rob za spremembo velikosti, dvokliknite rob za vrnitev širine. Z desnim klikom na glavo odprete seznam stolpcev.',
   'columns.alwaysShown': 'Ta stolpec je vedno prikazan.',
   'columns.lastVisible': 'Seznam potrebuje vsaj en stolpec.',
   'columns.resizeHint': 'Vleci za širino, dvojni klik za ponastavitev',

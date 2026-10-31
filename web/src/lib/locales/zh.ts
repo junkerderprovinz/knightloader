@@ -538,7 +538,7 @@ export const zh: Dict = {
   'columns.source': '来源',
   'columns.menuTitle': '列',
   'columns.reset': '重置列',
-  'columns.headerHint': '点击表头可按该列排序,拖动表头可调整列顺序,拖动边缘可调整宽度,双击边缘可恢复原宽度。右键点击表头可打开列列表。',
+  'columns.headerHint': '点击表头可按该列排序,拖动表头或按 Alt 加方向键可移动列,拖动边缘可调整宽度,双击边缘可恢复原宽度。右键点击表头可打开列列表。',
   'columns.alwaysShown': '这一列始终显示。',
   'columns.lastVisible': '列表至少需要一列。',
   'columns.resizeHint': '拖动改变列宽，双击恢复',

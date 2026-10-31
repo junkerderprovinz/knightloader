@@ -539,7 +539,7 @@ export const lv: Dict = {
   'columns.source': 'Avots',
   'columns.menuTitle': 'Kolonnas',
   'columns.reset': 'Atjaunot kolonnas',
-  'columns.headerHint': 'Noklikšķiniet uz galvenes, lai kārtotu pēc tās, velciet to, lai pārkārtotu kolonnu, velciet tās malu, lai mainītu izmēru, veiciet dubultklikšķi uz malas, lai atjaunotu platumu. Ar peles labo pogu noklikšķiniet uz galvenes, lai atvērtu kolonnu sarakstu.',
+  'columns.headerHint': 'Noklikšķiniet uz galvenes, lai kārtotu pēc tās, velciet to vai nospiediet Alt un bulttaustiņu, lai pārvietotu kolonnu, velciet tās malu, lai mainītu izmēru, veiciet dubultklikšķi uz malas, lai atjaunotu platumu. Ar peles labo pogu noklikšķiniet uz galvenes, lai atvērtu kolonnu sarakstu.',
   'columns.alwaysShown': 'Šī kolonna vienmēr ir redzama.',
   'columns.lastVisible': 'Sarakstam vajag vismaz vienu kolonnu.',
   'columns.resizeHint': 'Velc, lai mainītu platumu, dubultklikšķis atjauno',

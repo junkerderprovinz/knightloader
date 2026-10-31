@@ -530,7 +530,7 @@ export const fr: Dict = {
   'columns.source': 'Source',
   'columns.menuTitle': 'Colonnes',
   'columns.reset': 'Réinitialiser les colonnes',
-  'columns.headerHint': "Cliquez sur un en-tête pour trier selon celui-ci, faites-le glisser pour réorganiser la colonne, faites glisser son bord pour la redimensionner, double-cliquez sur le bord pour rétablir la largeur. Clic droit sur l'en-tête pour la liste des colonnes.",
+  'columns.headerHint': 'Cliquez sur un en-tête pour trier selon celui-ci, faites-le glisser ou appuyez sur Alt et une touche fléchée pour déplacer la colonne, faites glisser son bord pour la redimensionner, double-cliquez sur le bord pour rétablir la largeur. Clic droit sur l\'en-tête pour la liste des colonnes.',
   'columns.alwaysShown': 'Cette colonne est toujours affichée.',
   'columns.lastVisible': 'Une liste a besoin d’au moins une colonne.',
   'columns.resizeHint': 'Glisser pour redimensionner, double-clic pour rétablir',

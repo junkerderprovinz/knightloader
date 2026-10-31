@@ -538,7 +538,7 @@ export const cs: Dict = {
   'columns.source': 'Zdroj',
   'columns.menuTitle': 'Sloupce',
   'columns.reset': 'Obnovit sloupce',
-  'columns.headerHint': 'Kliknutím na záhlaví podle něj seřadíte, přetažením přeuspořádáte sloupec, přetažením okraje změníte velikost, dvojklikem na okraj vrátíte původní šířku. Pravým tlačítkem na záhlaví otevřete seznam sloupců.',
+  'columns.headerHint': 'Kliknutím na záhlaví podle něj seřadíte, přetažením nebo klávesou Alt se šipkou přesunete sloupec, přetažením okraje změníte velikost, dvojklikem na okraj vrátíte původní šířku. Pravým tlačítkem na záhlaví otevřete seznam sloupců.',
   'columns.alwaysShown': 'Tento sloupec je vidět vždy.',
   'columns.lastVisible': 'Seznam potřebuje aspoň jeden sloupec.',
   'columns.resizeHint': 'Tažením změníte šířku, dvojklikem ji vrátíte',

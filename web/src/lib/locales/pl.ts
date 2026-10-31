@@ -531,7 +531,7 @@ export const pl: Dict = {
   'columns.source': 'Źródło',
   'columns.menuTitle': 'Kolumny',
   'columns.reset': 'Przywróć kolumny',
-  'columns.headerHint': 'Kliknij nagłówek, aby sortować według niego, przeciągnij, aby zmienić kolejność kolumny, przeciągnij jej krawędź, aby zmienić rozmiar, kliknij dwukrotnie krawędź, aby przywrócić szerokość. Kliknij prawym przyciskiem nagłówek, aby wyświetlić listę kolumn.',
+  'columns.headerHint': 'Kliknij nagłówek, aby sortować według niego, przeciągnij go albo naciśnij Alt i klawisz strzałki, aby przesunąć kolumnę, przeciągnij jej krawędź, aby zmienić rozmiar, kliknij dwukrotnie krawędź, aby przywrócić szerokość. Kliknij prawym przyciskiem nagłówek, aby wyświetlić listę kolumn.',
   'columns.alwaysShown': 'Ta kolumna jest zawsze widoczna.',
   'columns.lastVisible': 'Lista potrzebuje co najmniej jednej kolumny.',
   'columns.resizeHint': 'Przeciągnij, aby zmienić szerokość, kliknij dwukrotnie, aby przywrócić',

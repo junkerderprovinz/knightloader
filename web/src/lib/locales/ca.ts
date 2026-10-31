@@ -538,7 +538,7 @@ export const ca: Dict = {
   'columns.source': 'Origen',
   'columns.menuTitle': 'Columnes',
   'columns.reset': 'Restableix les columnes',
-  'columns.headerHint': "Fes clic a una capçalera per ordenar-hi, arrossega-la per reordenar la columna, arrossega la vora per redimensionar-la, doble clic a la vora per restaurar l'amplada. Clic dret a la capçalera per veure la llista de columnes.",
+  'columns.headerHint': 'Fes clic a una capçalera per ordenar-hi, arrossega-la o prem Alt i una tecla de fletxa per moure la columna, arrossega la vora per redimensionar-la, doble clic a la vora per restaurar l\'amplada. Clic dret a la capçalera per veure la llista de columnes.',
   'columns.alwaysShown': 'Aquesta columna es mostra sempre.',
   'columns.lastVisible': 'Una llista necessita com a mínim una columna.',
   'columns.resizeHint': "Arrossega per canviar l'amplada, doble clic per restablir",
