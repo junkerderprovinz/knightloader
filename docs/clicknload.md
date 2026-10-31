@@ -155,15 +155,14 @@ machine, so its own CnL listener is already the one the browser means.
 
 | Var / flag | Default | Meaning |
 |---|---|---|
-| `KL_CNL` | `9666` | listener port on `127.0.0.1`; `0` disables it |
+| `KL_CNL` | `9666` | listener port on `127.0.0.1`; `0` disables it. A container opens it only when this is set |
 | `-bridge-clipboard` | off | bridge mode only: watch the OS clipboard for hoster links (needs a `-tags bridgeclipboard` build) |
 
-In the container it defaults to `9666` as well, since 2026-09-07. It used to be
-`0`, on the grounds that a loopback listener inside a container cannot be
-reached. That is true for a browser on another machine, but not for one on the
-host itself or for the bridge. An image that switched the feature off produced a
-switch that read "off" on every container install with no way to tell whether
-that was a choice or a default.
+In the container the listener stays down unless `KL_CNL` is set. Its
+`127.0.0.1` is the container's own, which a browser reaches only when the
+container shares the host's network, so the switch in Settings, Link collector
+is greyed out there and its (i) points to the browser extension and the desktop
+app. Set `KL_CNL=9666` on a container with host networking to open it anyway.
 
 It stays bound to `127.0.0.1`. The Click'n'Load protocol has no authentication,
 so binding it to the LAN would be an open "add these links to your downloader"

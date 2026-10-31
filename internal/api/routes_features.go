@@ -1007,6 +1007,12 @@ func cnlFeature(a *app.App) Feature {
 	// Security page is about who gets in.
 	f := Feature{ID: "cnl", Verdict: VerdictShipped, Page: "collector", Switch: SwitchNone}
 	l := a.CnL
+	if l == nil && buildinfo.InContainer() {
+		return withReason(f, line{
+			text: "a container cannot open the Click'n'Load port on the computer the browser runs on; the desktop app and the browser extension catch Click'n'Load for this instance",
+			code: "cnlContainer",
+		})
+	}
 	if l == nil {
 		return withReason(f, line{
 			text: "this process starts no Click'n'Load listener",

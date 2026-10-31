@@ -58,24 +58,12 @@ func readable(f *os.File) bool {
 	return err != nil || !os.SameFile(info, null)
 }
 
-// inContainer reports whether this process runs in a container, going by the
-// marker files Docker and Podman leave and the variable Kubernetes sets. It
-// only picks the sentence the sign-in screen shows.
-func inContainer() bool {
-	for _, marker := range []string{"/.dockerenv", "/run/.containerenv"} {
-		if _, err := os.Stat(marker); err == nil {
-			return true
-		}
-	}
-	return os.Getenv("KUBERNETES_SERVICE_HOST") != ""
-}
-
 // instanceKind is what this instance tells the group and the Instances page it
 // is: "desktop" for the desktop app, "container" for the server in a container
 // and "server" for the server run as a plain program. buildinfo.Deployment
 // names the binary only, and both of the last two run the same one.
 func instanceKind() string {
-	if buildinfo.Deployment == "container" && !inContainer() {
+	if buildinfo.Deployment == "container" && !buildinfo.InContainer() {
 		return "server"
 	}
 	return buildinfo.Deployment
@@ -104,7 +92,7 @@ func resetPlaceOf(a *app.App, console io.Writer) resetPlace {
 		}
 		return p
 	}
-	if inContainer() {
+	if buildinfo.InContainer() {
 		return resetPlace{Place: "container"}
 	}
 	return resetPlace{Place: "process"}

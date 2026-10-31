@@ -101,11 +101,9 @@ share gets created by the bind mount and shows up as a share without settings.
 
 Everything from the README applies. Two notes specific to the container:
 
-- `KL_CNL=9666` by default since 2026-09-07 (it was `0`, and that override was
-  the whole reason the Click'n'Load switch read "off" on every container). It
-  binds `127.0.0.1`, which inside a container is not the browser's localhost, so
-  from a browser on another machine the extension is the path. It is not bound
-  to `0.0.0.0` on purpose: Click'n'Load carries no authentication.
+- The container opens no Click'n'Load port unless `KL_CNL` is set, since its
+  `127.0.0.1` is not the browser's localhost; the extension is the path. It is
+  never bound to `0.0.0.0`: Click'n'Load carries no authentication.
 - `KL_TORBOX` / `KL_ALLDEBRID` / `KL_REALDEBRID` are optional: keys entered on
   the Accounts page are stored encrypted in the data volume and survive
   restarts, so the environment does not need them. A key saved there takes
