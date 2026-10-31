@@ -99,6 +99,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Clean up and the sort are in the right-click on the list and in the command
   palette. A line under the heads says what they do; on a phone a long press
   on a head offers the sort, the filter and the search.
+- **A media file carries its quality in its name, as in JDownloader.** A video
+  row writes "Title (1080p).mkv" and an audio row "Title (128kbit).m4a", with
+  "best" where the site does not say, so two picks of one video land beside
+  each other. A typed output template, music mode and separate streams keep
+  their own names. The download list has no Variant column any more; the
+  row's details name the pick, and the collector keeps its pickers.
 - **Downloads has a totals card.** It says how much of the list is loaded and
   how many links it holds. There, and in the collector's totals, stand how
   many rows the search and the filters show, with one click to show all again,

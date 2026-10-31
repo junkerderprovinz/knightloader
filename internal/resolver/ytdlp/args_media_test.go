@@ -263,8 +263,8 @@ func TestBuildArgsMergesAVideoRowIntoOneFile(t *testing.T) {
 			t.Errorf("merged video is missing %s: %v", want, args)
 		}
 	}
-	if got, _ := valueAfter(args, "-o"); got != filepath.Join("d", "%(title)s.%(ext)s") {
-		t.Errorf("-o = %q, want the plain template", got)
+	if got, _ := valueAfter(args, "-o"); got != filepath.Join("d", videoOutputTemplate) {
+		t.Errorf("-o = %q, want the video row's template", got)
 	}
 }
 

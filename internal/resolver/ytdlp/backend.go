@@ -1093,16 +1093,34 @@ func buildArgs(dir string, o Options) []string {
 
 // outputTemplate is the -o template this task runs with. Music mode supplies
 // its own only when no template was typed; the cover follows whichever wins
-// (see coverTemplate).
+// (see coverTemplate). Otherwise a media row carries what it fetched in its
+// name, as JDownloader's "*VIDEO_NAME* (*QUALITY*)" does, so two picks of one
+// video land beside each other instead of on one name.
 func outputTemplate(o Options) string {
 	if o.OutputTemplate != "" {
 		return o.OutputTemplate
 	}
-	if o.Music && o.Variant == VariantAudio {
+	switch {
+	case o.Music && o.Variant == VariantAudio:
 		return musicOutputTemplate
+	case o.Variant == VariantAudio:
+		return audioOutputTemplate
+	case o.Variant == VariantVideo && !o.Embed.Separate:
+		return videoOutputTemplate
 	}
 	return defaultOutputTemplate
 }
+
+// The quality in a media file's name: the height of the video stream and the
+// bitrate of the audio one, "best" where the site does not say. The brackets
+// stand outside the fields, since a ")" inside a replacement ends yt-dlp's
+// field. The thumbnail, subtitle and description rows keep the plain title,
+// and so does a video kept as separate streams, whose two files are told
+// apart by their format codes.
+const (
+	videoOutputTemplate = "%(title)s (%(height&{}p|best)s).%(ext)s"
+	audioOutputTemplate = "%(title)s (%(abr&{:.0f}kbit|best)s).%(ext)s"
+)
 
 // audioSelector is the audio row's -f value, with a language filter when one
 // was asked for. Most sites report no per-track language, so the chain falls
