@@ -49,7 +49,7 @@ import { SubCard } from '../controls';
 // itself. yt-dlp moves faster than KnightLoader's releases, which is why it is
 // updated here at all, and JDownloader is a program of its own beside
 // KnightLoader. The rest come with the image, the computer or the build, one
-// row each with its version and where it comes from, and nothing to press.
+// row each with its version and its page, and nothing to press.
 
 type Translate = ReturnType<typeof useT>['t'];
 
@@ -194,24 +194,12 @@ function LicenceLine({ text, links }: { text: string; links: Link[] }) {
 
 /**
  * ToolRow is one component that comes with KnightLoader: its name with what
- * it does behind an (i), its version, and where it comes from with its page,
- * in columns every row of the card shares.
+ * it does behind an (i), its version and its page, in columns every row of
+ * the card shares.
  */
-function ToolRow({
-  name,
-  sub,
-  version,
-  source,
-  links,
-}: {
-  name: string;
-  sub?: string;
-  version: ReactNode;
-  source: string;
-  links: Link[];
-}) {
+function ToolRow({ name, sub, version, links }: { name: string; sub?: string; version: ReactNode; links: Link[] }) {
   return (
-    <section className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
+    <section className="py-2.5 first:pt-0 last:pb-0">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 @xl:grid-cols-[minmax(0,1fr)_9rem_17rem]">
         <h3 className="flex min-w-0 items-center gap-1.5 text-sm text-carbon-text">
           {name}
@@ -220,8 +208,7 @@ function ToolRow({
         <span dir="ltr" className="glim-num truncate text-end text-sm text-carbon-textSub @xl:text-start">
           {version}
         </span>
-        <span className="col-span-2 flex flex-col text-subline text-carbon-textMuted @xl:col-span-1">
-          {source}
+        <span className="col-span-2 truncate @xl:col-span-1">
           <SourceLinks links={links} />
         </span>
       </div>
@@ -276,22 +263,6 @@ function DeploymentError({ retry }: { retry: () => void }) {
   return <ErrorCard nested message={t('common.loadFailed')} retry={retry} retryLabel={t('common.retry')} />;
 }
 
-/** Where a program on the server's path comes from: the image in a container, the computer otherwise. */
-const hostSource = (t: Translate, deployment: string) =>
-  t(deployment === 'desktop' ? 'settings.look.toolsSource.system' : 'settings.look.toolsSource.image');
-
-const SOURCES: Record<string, TranslationKey> = {
-  managed: 'settings.resolvers.toolsFrom.managed',
-  bundled: 'settings.resolvers.toolsFrom.bundled',
-  env: 'settings.resolvers.toolsFrom.env',
-};
-
-/** Where a program comes from: KnightLoader's own copy or KL_* variable where it says so, the host otherwise. */
-const toolSource = (t: Translate, deployment: string, tool?: MediaTool) => {
-  const key = tool?.source && SOURCES[tool.source];
-  return key ? t(key) : hostSource(t, deployment);
-};
-
 /**
  * ComponentsCard lists every component on `hue`: those that update on their
  * own as sub-cards, then a row for each of the rest, the licences the fetched
@@ -331,21 +302,18 @@ export function ComponentsCard({ hue }: { hue: number }) {
               name="GlimStone"
               sub={t('settings.info.glimstoneSub')}
               version={<VersionNumber version={GLIMSTONE_VERSION} page={releasePage(GLIMSTONE_URL, GLIMSTONE_VERSION)} />}
-              source={t('settings.look.toolsSource.built')}
               links={GLIMSTONE_LINKS}
             />
             <ToolRow
               name="ffmpeg"
               sub={t('settings.info.ffmpegSub')}
               version={found(tools?.ffmpeg)}
-              source={toolSource(t, deployment.deployment, tools?.ffmpeg)}
               links={FFMPEG_HOME}
             />
             <ToolRow
               name="ffprobe"
               sub={t('settings.look.tool.ffprobe')}
               version={found(tools?.ffprobe)}
-              source={toolSource(t, deployment.deployment, tools?.ffprobe)}
               links={FFMPEG_HOME}
             />
             {/* Without UnRAR the built-in reader unpacks RAR sets. */}
@@ -353,7 +321,6 @@ export function ComponentsCard({ hue }: { hue: number }) {
               name="UnRAR"
               sub={tools?.unrar?.found ? t('settings.look.tool.rar') : t('settings.resolvers.toolsUnrarMissingHint')}
               version={tools && (tools.unrar?.found ? tools.unrar.version : t('settings.resolvers.toolsUnrarBuiltIn'))}
-              source={toolSource(t, deployment.deployment, tools?.unrar)}
               links={UNRAR_LINKS}
             />
             {/* The desktop build fetches it for JDownloader and renews it with
@@ -363,7 +330,6 @@ export function ComponentsCard({ hue }: { hue: number }) {
                 name={`Java (${jd.runtime.vendor})`}
                 sub={t('settings.look.tool.jre')}
                 version={jd.runtime.version}
-                source={t('settings.resolvers.toolsFrom.managed')}
                 links={JRE_HOME}
               />
             )}
@@ -1042,7 +1008,6 @@ function EngineRow({ module: m }: { module: BuiltModule }) {
       name={known?.name ?? m.path}
       sub={known && t(known.sub)}
       version={moduleVersion(m.version)}
-      source={t(m.fork ? 'settings.look.toolsSource.fork' : 'settings.look.toolsSource.built')}
       links={[{ label: 'pkg.go.dev', href: `https://pkg.go.dev/${m.path}` }]}
     />
   );

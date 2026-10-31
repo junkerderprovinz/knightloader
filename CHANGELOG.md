@@ -91,6 +91,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   failed with an entry per cause, Check all and Clean up moved under More,
   and a right-click on the list's empty space offers the same. Ctrl+A still
   selects every row.
+- **The link collector's card has one way less to paste.** Paste from
+  clipboard is gone, since Ctrl+V and the box do the same; Watch clipboard
+  wears its glyph instead.
+- **Options and Quick settings open under their button,** at one width that
+  fits the seven priority steps on one line.
+- **The Components card lists each part on one line,** with its name, version
+  and link.
 - **The link collector ends above Start all.** A short list stops above the
   button, and only a list long enough to scroll runs under it, with room for
   its last row to scroll clear.

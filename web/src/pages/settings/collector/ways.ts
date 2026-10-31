@@ -9,9 +9,9 @@ import type { Way } from '../../../components/pictures/WaysIn';
 import { fetchConnect, type Instance } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
+  IconAdd,
   IconApp,
   IconBrowser,
-  IconCopy,
   IconFleet,
   IconFolderOpen,
   IconGlobe,
@@ -63,7 +63,7 @@ export function useWays(watch: boolean, peers: Instance[] | null): { ways: Way[]
   const { data: group } = useResource(fetchConnect);
 
   const ways: Way[] = [
-    { id: 'paste', name: t('collector.add'), glyph: IconPaste, state: 'on' },
+    { id: 'paste', name: t('collector.add'), glyph: IconAdd, state: 'on' },
     { id: 'file', name: t('picture.intake.file'), glyph: IconUpload, state: 'on' },
   ];
 
@@ -74,7 +74,7 @@ export function useWays(watch: boolean, peers: Instance[] | null): { ways: Way[]
   };
   const cnl = shipped('cnl');
   if (cnl) ways.push({ id: 'cnl', name: t('settings.module.cnl'), glyph: IconLink, ...switched(cnl) });
-  ways.push({ id: 'clipboard', name: t('intake.clipboardWatch'), glyph: IconCopy, state: watch ? 'on' : 'off' });
+  ways.push({ id: 'clipboard', name: t('intake.clipboardWatch'), glyph: IconPaste, state: watch ? 'on' : 'off' });
   const folder = shipped('watch');
   if (folder) ways.push({ id: 'watch', name: t('settings.module.watch'), glyph: IconFolderOpen, ...switched(folder) });
   const crawler = shipped('crawler');

@@ -1,5 +1,5 @@
 import { IconBadge } from './ui';
-import { IconCopy, IconLink } from '../lib/icons';
+import { IconLink, IconPaste } from '../lib/icons';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useCnl } from '../lib/useCnl';
@@ -57,7 +57,7 @@ export function LinkIntakeButtons({ hue }: { hue: number }) {
         active={watch}
         data-new="intake-glyphs"
         hue={hue + 1}
-        icon={<IconCopy width={16} height={16} />}
+        icon={<IconPaste width={16} height={16} />}
         title={t('intake.clipboardWatch')}
         aria-label={t('intake.clipboardWatch')}
         hint={
