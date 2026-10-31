@@ -28,8 +28,25 @@ func onOwnRelay(t *testing.T, token, base, relayURL string) {
 
 // relayCall is one call a member of the group sends over the relay by hand:
 // a hello in id's name, then call to target, signed by member when it is not
-// nil. It returns what target answered.
+// nil. It returns what target answered. The relay turns a hello away while the
+// previous connection in the same name is still registered, which a call made
+// right after another one in that name can meet, so that one is tried again.
 func relayCall(t *testing.T, relayURL string, secret []byte, id, target string, member ed25519.PrivateKey, call relay.ProxyCall) (int, []byte) {
+	t.Helper()
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		code, body, err := relayCallOnce(t, relayURL, secret, id, target, member, call)
+		if err == nil {
+			return code, body
+		}
+		if websocket.CloseStatus(err) != websocket.StatusPolicyViolation || time.Now().After(deadline) {
+			t.Fatalf("no answer from %s: %v", target, err)
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+func relayCallOnce(t *testing.T, relayURL string, secret []byte, id, target string, member ed25519.PrivateKey, call relay.ProxyCall) (int, []byte, error) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -63,7 +80,7 @@ func relayCall(t *testing.T, relayURL string, secret []byte, id, target string, 
 	for {
 		_, frame, err := conn.Read(ctx)
 		if err != nil {
-			t.Fatalf("no answer from %s: %v", target, err)
+			return 0, nil, err
 		}
 		env, err := relay.Decode(frame)
 		if err != nil || env.Type != relay.TypeProxyResponse {
@@ -80,7 +97,7 @@ func relayCall(t *testing.T, relayURL string, secret []byte, id, target string, 
 		if err != nil {
 			t.Fatal(err)
 		}
-		return res.Status, res.Body
+		return res.Status, res.Body, nil
 	}
 }
 
