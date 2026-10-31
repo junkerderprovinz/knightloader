@@ -12,14 +12,6 @@ import { ComponentsCard, moduleVersion, releaseTag } from './Components';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-// jsdom lays nothing out and has no ResizeObserver, which the settings window
-// uses to place itself.
-globalThis.ResizeObserver ??= class {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-};
-
 let root: Root;
 let host: HTMLDivElement;
 
@@ -116,11 +108,8 @@ const detail = (name: string) => group(name).querySelector('[role="status"] [rol
 /** The version number of a row, and where it leads. */
 const version = (name: string) => group(name).querySelector('.glim-num')!;
 
-/** Opens a row's switches and returns the window they stand in. */
-async function settingsOf(name: string): Promise<HTMLElement> {
-  await act(async () => button(group(name), 'Update settings').click());
-  return document.querySelector<HTMLElement>('[role="dialog"]')!;
-}
+/** The row whose switches stand under its name. */
+const settingsOf = (name: string): HTMLElement => group(name);
 const switches = (within: HTMLElement) =>
   [...within.querySelectorAll('[role="switch"]')].map((s) => s.getAttribute('aria-label'));
 
@@ -192,24 +181,18 @@ describe('the Components card', () => {
     expect(card('Components').querySelector('p')).toBeNull();
   });
 
-  it('says what each tool does behind an (i) beside its name', async () => {
+  it('shows each name alone, with no (i) beside it', async () => {
     await draw();
-    const tip = (name: string) => group(name).querySelector('h3 [role="note"]')?.getAttribute('aria-label');
-    expect(tip('yt-dlp')).toContain('Reads video pages');
-    expect(tip('JDownloader backend')).toContain('JDownloader also updates itself');
-    expect(tip('ffmpeg')).toBe('Joins picture and sound');
-    expect(tip('SQLite')).toBe('Keeps the download list');
-    expect(group('ffmpeg').textContent).not.toContain('Joins picture and sound');
+    expect(card('Components').querySelector('h3 [role="note"]')).toBeNull();
   });
 
-  it('gives only what updates on its own buttons, and keeps them to glyphs', async () => {
+  it('gives only what updates on its own buttons and switches, and keeps the buttons to glyphs', async () => {
     await draw();
-    const pressable = [...host.querySelectorAll('section')]
-      .filter((s) => s.querySelector('button'))
-      .map((s) => s.querySelector('h3')?.textContent);
-    expect(pressable).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend']);
-    for (const b of card('Components').querySelectorAll('section button')) expect(b.textContent).toBe('');
-    expect(card('Components').querySelector('[role="switch"]')).toBeNull();
+    const rowsWith = (what: string) =>
+      [...host.querySelectorAll('section')].filter((s) => s.querySelector(what)).map((s) => s.querySelector('h3')?.textContent);
+    expect(rowsWith('button:not([role="switch"])')).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend']);
+    expect(rowsWith('[role="switch"]')).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend']);
+    for (const b of card('Components').querySelectorAll('section > span button')) expect(b.textContent).toBe('');
   });
 
   it('says where a JDownloader backend that is not set up stands, with nothing to press', async () => {
@@ -254,21 +237,21 @@ describe('the Components card', () => {
     answers['/api/jd/update'] = { started: true };
     await act(async () => button(group('JDownloader backend'), 'Update now').click());
     expect(asked.filter((u) => u === '/api/jd/update')).toHaveLength(2);
-    expect(detail('JDownloader backend')).toBe(en['settings.look.jdRestarting']);
+    expect(status('JDownloader backend')).toBe(en['settings.look.jdUpdating']);
     expect(button(group('JDownloader backend'), 'Updating').disabled).toBe(true);
 
     // Still the old one, before it goes down.
     await act(async () => vi.advanceTimersByTimeAsync(2_000));
-    expect(detail('JDownloader backend')).toBe(en['settings.look.jdRestarting']);
+    expect(status('JDownloader backend')).toBe(en['settings.look.jdUpdating']);
 
     answers['/api/resolvers/jd'] = { configured: true, reachable: false };
     await act(async () => vi.advanceTimersByTimeAsync(2_000));
-    expect(detail('JDownloader backend')).toBe(en['settings.look.jdRestarting']);
+    expect(status('JDownloader backend')).toBe(en['settings.look.jdUpdating']);
 
     answers['/api/resolvers/jd'] = { configured: true, reachable: true, version: 50200 };
     await act(async () => vi.advanceTimersByTimeAsync(2_000));
     expect(status('JDownloader backend')).toBe('Done');
-    expect(detail('JDownloader backend')).toBe('JDownloader is running again, at revision 50200.');
+    expect(detail('JDownloader backend')).toBe('');
     expect(version('JDownloader backend').textContent).toBe('50200');
     expect(button(group('JDownloader backend'), 'Update now')).toBeUndefined();
     vi.useRealTimers();
@@ -276,29 +259,37 @@ describe('the Components card', () => {
 
   it('names the update switches the same for every component', async () => {
     await draw();
-    expect(switches(await settingsOf('KnightLoader'))).toEqual(['Check automatically', 'Update automatically']);
-    await act(async () => button(document.querySelector('[role="dialog"]')!, 'Close').click());
-    expect(switches(await settingsOf('yt-dlp'))).toEqual(['Check automatically', 'Update automatically']);
-    await act(async () => button(document.querySelector('[role="dialog"]')!, 'Close').click());
-    expect(switches(await settingsOf('JDownloader backend'))).toEqual(['Update automatically']);
+    expect(switches(settingsOf('KnightLoader'))).toEqual(['Check automatically', 'Update automatically']);
+    expect(switches(settingsOf('yt-dlp'))).toEqual(['Check automatically', 'Update automatically']);
+    expect(switches(settingsOf('JDownloader backend'))).toEqual(['Update automatically']);
   });
 
-  it('opens the switches under their gear', async () => {
+  it('puts the switches under the name, with no window of their own', async () => {
     await draw();
-    const panel = await settingsOf('yt-dlp');
-    expect(panel.getAttribute('aria-label')).toBe('yt-dlp');
+    const row = group('yt-dlp');
+    expect(row.querySelector('h3')!.compareDocumentPosition(row.querySelector('[role="switch"]')!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(button(row, 'Update settings')).toBeUndefined();
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('puts every version last in its row, so they line up at the right edge', async () => {
+    await draw();
+    for (const name of ['KnightLoader', 'yt-dlp', 'JDownloader backend', 'ffmpeg', 'SQLite']) {
+      const cells = [...group(name).children].filter((c) => c.tagName !== 'DIV');
+      expect(cells[cells.length - 1]).toBe(version(name));
+    }
   });
 
   it("writes the JDownloader backend's switch to its own setting", async () => {
     const patch = await draw();
-    const panel = await settingsOf('JDownloader backend');
+    const panel = settingsOf('JDownloader backend');
     await act(async () => panel.querySelector<HTMLButtonElement>('[role="switch"]')!.click());
     expect(patch.mock.calls).toEqual([[{ jdAutoUpdate: true }]]);
   });
 
   it('greys out both KnightLoader switches in a container and says the container manager updates it', async () => {
     const patch = await draw({ autoUpdateCheck: true, autoUpdate: true });
-    const panel = await settingsOf('KnightLoader');
+    const panel = settingsOf('KnightLoader');
     const rows = [...panel.querySelectorAll<HTMLButtonElement>('[role="switch"]')];
     expect(rows.map((r) => r.getAttribute('aria-checked'))).toEqual(['false', 'false']);
     expect(rows.map((r) => r.parentElement!.className)).toEqual([
@@ -314,7 +305,7 @@ describe('the Components card', () => {
 
   it("writes yt-dlp's switches to yt-dlp's own settings", async () => {
     const patch = await draw();
-    const panel = await settingsOf('yt-dlp');
+    const panel = settingsOf('yt-dlp');
     const [check, update] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
     await act(async () => check.click());
     await act(async () => update.click());
@@ -350,7 +341,7 @@ describe('the Components card', () => {
     await act(async () => button(group('yt-dlp'), 'Check for updates').click());
     expect(button(group('yt-dlp'), 'Updates: 1').className).toContain('bg-statusWarnSolid');
     expect(status('yt-dlp')).toBe('2026.09.30 is available');
-    expect(detail('yt-dlp')).toBe('2026.09.30 is published, 2026.08.19 is installed.');
+    expect(detail('yt-dlp')).toBe('');
     expect(button(group('yt-dlp'), 'Fetch this release')).toBeDefined();
   });
 
@@ -448,7 +439,7 @@ describe('installing an update on the desktop build', () => {
 
     answers['/api/system/update-install'] = { state: 'started', version: '1.9.0' };
     await wait(600);
-    expect(detail('KnightLoader')).toContain('The installer is running.');
+    expect(status('KnightLoader')).toBe(en['settings.look.updatesInstalling']);
     expect(button(group('KnightLoader'), 'Install now')).toBeUndefined();
   });
 
@@ -475,11 +466,11 @@ describe('installing an update on the desktop build', () => {
 });
 
 describe('the JDownloader backend the desktop build sets up', () => {
-  it('shows the Java runtime arriving while JDownloader is being set up', async () => {
+  it('says JDownloader is being set up while its Java runtime arrives', async () => {
     answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'starting', setupDone: 30, setupTotal: 120 };
     await draw();
     expect(status('JDownloader backend')).toBe('Being set up');
-    expect(detail('JDownloader backend')).toBe('Downloading the Java runtime for JDownloader: 25%');
+    expect(detail('JDownloader backend')).toBe('');
   });
 
   it('says why the setup failed and tries again on request', async () => {

@@ -1321,22 +1321,16 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoContainerHint' },
       ],
       // The container build uses its own sentence for the update hint, and
-      // yt-dlp's and JDownloader's switches carry their own hints. A sub-card's
-      // (i) says what its program does and how it is updated.
+      // yt-dlp's and JDownloader's switches carry their own hints. A status's
+      // (i) says what went wrong where something needs doing.
       body: [
-        'settings.look.updatesHint',
         'settings.look.updatesAutoUpdateContainerHint',
         'settings.look.jdAutoUpdateHint',
         'settings.resolvers.toolsAutoCheckHint',
         'settings.resolvers.toolsAutoUpdateHint',
-        'settings.resolvers.toolsShadowed',
         'settings.resolvers.toolsShadowedOlder',
         'settings.resolvers.toolsManagedBroken',
-        'settings.resolvers.toolsActionsHint',
         'settings.resolvers.toolsUnrarMissingHint',
-        'settings.look.tool.jd',
-        'settings.look.jdUpdatesItself',
-        'settings.info.glimstoneSub',
       ],
       also: [
         'settings.look.updatesCheck',
