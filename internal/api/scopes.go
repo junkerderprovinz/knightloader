@@ -231,6 +231,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"PUT /api/relay/config":        apitoken.ScopeAdmin,
 	"GET /api/remote-access":       apitoken.ScopeRead,
 	"GET /api/resolvers/jd":        apitoken.ScopeAdmin,
+	"POST /api/resolvers/jd/setup": apitoken.ScopeAdmin,
 	"GET /api/resolvers/priority":  apitoken.ScopeAdmin,
 	"POST /api/resolvers/priority": apitoken.ScopeAdmin,
 	"GET /api/rules/grammar":       apitoken.ScopeAdmin,

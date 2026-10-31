@@ -59,6 +59,20 @@ func registerResolvers(reg *Registry, a *app.App) {
 			writeJSON(w, a.JDStatus())
 		})
 
+	reg.Add(http.MethodPost, "/api/resolvers/jd/setup",
+		"desktop: set up the app's own JDownloader and its Java runtime again after a failed try",
+		func(w http.ResponseWriter, r *http.Request) {
+			if a.RetryJDSetup == nil {
+				http.Error(w, "only the desktop build sets up a JDownloader of its own", http.StatusNotImplemented)
+				return
+			}
+			if err := a.RetryJDSetup(); err != nil {
+				writeJSONStatus(w, http.StatusConflict, map[string]string{"status": err.Error()})
+				return
+			}
+			writeJSONStatus(w, http.StatusAccepted, a.JDStatus())
+		})
+
 	reg.Add(http.MethodGet, "/api/jd/update",
 		"have JDownloader look for an update and say whether one is ready to install",
 		func(w http.ResponseWriter, r *http.Request) {
