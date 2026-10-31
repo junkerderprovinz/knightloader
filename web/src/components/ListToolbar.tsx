@@ -81,6 +81,7 @@ import {
   IconMove,
   IconMoveDown,
   IconMoveUp,
+  IconNetwork,
   IconPause,
   IconPencil,
   IconPlay,
@@ -384,7 +385,7 @@ export function TaskOptionsDialog({
   tasks: Task[];
   base: string;
   /** Which box the caller came for. */
-  focus?: 'dir' | 'password';
+  focus?: 'dir' | 'password' | 'chunks';
   onClose: () => void;
 }) {
   const { t } = useT();
@@ -465,7 +466,7 @@ export function TaskOptionsDialog({
       </SettingRow>
       {/* The engine's bound, as in the rule editor and settings. */}
       <SettingRow control="short" label={t('task.chunks')} hint={t('task.chunksHint')}>
-        <NumberInput value={chunks} min={0} max={16} onValue={setChunks} />
+        <NumberInput value={chunks} min={0} max={16} onValue={setChunks} autoFocus={focus === 'chunks'} />
       </SettingRow>
     </Modal>
   );
@@ -1011,7 +1012,7 @@ function taskMenuGroups({
   removal: Removal;
   /** The priorities this server offers and where the stop mark currently sits. */
   queue: QueueVerbs;
-  onOptions: (focus: 'dir' | 'password') => void;
+  onOptions: (focus: 'dir' | 'password' | 'chunks') => void;
   settled?: boolean;
 }): MenuGroup[] {
   const some = (p: (x: Task) => boolean) => chosen.some(p);
@@ -1125,6 +1126,12 @@ function taskMenuGroups({
         label: t('task.password'),
         icon: <IconKey />,
         onSelect: () => onOptions('password'),
+      },
+      {
+        id: 'chunks',
+        label: t('menu.setConnections'),
+        icon: <IconNetwork width={14} height={14} />,
+        onSelect: () => onOptions('chunks'),
       },
     ],
   };
@@ -1243,7 +1250,7 @@ export function ListMenu({
   );
   const start = useStartTasks();
   const cleanup = useCleanup(all);
-  const [options, setOptions] = useState<{ tasks: Task[]; focus: 'dir' | 'password' } | null>(null);
+  const [options, setOptions] = useState<{ tasks: Task[]; focus: 'dir' | 'password' | 'chunks' } | null>(null);
   // The rows being moved into a package right now. PackageMoveDialog is also
   // the window of the selection row's More menu, shared rather than rebuilt.
   const [movePkg, setMovePkg] = useState<Task[] | null>(null);

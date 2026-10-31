@@ -116,6 +116,27 @@ func (a *App) SafeTaskFileAt(id string, index int) (TaskFile, error) {
 	return TaskFile{Name: at.name, Path: realFull, Size: fi.Size()}, nil
 }
 
+// NearestTaskFolder is the nearest folder that exists on the way to where
+// id's download goes: the folder itself once anything has been written, else
+// the first of its parents that is there, so a file manager opened on it does
+// not land somewhere unrelated.
+func (a *App) NearestTaskFolder(id string) (string, error) {
+	if _, err := a.taskSnapshot(id); err != nil {
+		return "", err
+	}
+	dir := filepath.Clean(a.TaskFolder(id))
+	for {
+		if fi, err := os.Stat(dir); err == nil && fi.IsDir() {
+			return dir, nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", ErrTaskFileNotFound
+		}
+		dir = parent
+	}
+}
+
 func (a *App) taskSnapshot(id string) (core.Task, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
