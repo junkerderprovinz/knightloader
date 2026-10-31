@@ -76,6 +76,15 @@ export async function setFeature(id: string, enabled: boolean): Promise<FeatureS
 }
 
 /**
+ * takeOverCnL asks the KnightLoader holding the Click'n'Load port on this
+ * computer to let go of it, through the group, and listens here. It answers
+ * with the whole table, as setFeature does.
+ */
+export async function takeOverCnL(): Promise<FeatureState> {
+  return json<FeatureState>(await fetch('/api/cnl/takeover', { method: 'POST' }));
+}
+
+/**
  * SettingsSchema carries the factory values and the type of every key for the
  * advanced table. The types cannot be guessed from the values, because Go
  * writes an empty list as null and omitempty drops keys.

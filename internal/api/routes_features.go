@@ -8,6 +8,7 @@ package api
 // from a stored flag, so the switch and the thing it switches cannot disagree.
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
@@ -176,9 +178,14 @@ func (e *nothingParked) Error() string { return e.text }
 func writeSwitchRefusal(w http.ResponseWriter, err error) {
 	out := map[string]any{"error": err.Error()}
 	var np *nothingParked
-	if errors.As(err, &np) {
+	var cr *cnlRefusal
+	switch {
+	case errors.As(err, &np):
 		out["code"] = "configureFirst"
 		out["params"] = map[string]string{"page": np.page}
+	case errors.As(err, &cr):
+		out["code"] = cr.code
+		out["params"] = cr.params
 	}
 	writeJSONStatus(w, http.StatusBadRequest, out)
 }
@@ -1030,7 +1037,19 @@ func cnlFeature(a *app.App) Feature {
 	case f.Enabled:
 		return withDetail(f, line{text: "listening on " + l.Address(), code: "cnlListening", args: addr})
 	case err != nil:
-		// Usually a running JDownloader holding the port.
+		// Another KnightLoader on this computer is named, so its row can offer
+		// to take the port over (routes_cnl.go); anything else is usually a
+		// running JDownloader.
+		holder, herr := l.Holder(context.Background())
+		switch {
+		case herr == nil:
+			return withDetail(f, line{
+				text: "KnightLoader " + holder.Name + " on this computer holds " + l.Address(),
+				code: "cnlHeldBy", args: map[string]string{"name": holder.Name, "address": l.Address()},
+			})
+		case errors.Is(herr, cnl.ErrNotKnightLoader):
+			return withDetail(f, line{text: "another program holds " + l.Address(), code: "cnlHeldByOther", args: addr})
+		}
 		return withDetail(f, line{
 			text: "cannot listen on " + l.Address() + ": " + err.Error(),
 			code: "cnlUnavailable", args: addr,

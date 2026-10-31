@@ -38,6 +38,8 @@ type ContainerAdder interface {
 type Server struct {
 	adder Adder
 	srv   *http.Server
+	// identity says who this is at identityPath; nil answers nothing there.
+	identity func() Identity
 }
 
 // New builds the listener; Start binds 127.0.0.1:port (9666 is the standard).
@@ -142,7 +144,14 @@ func (s *Server) handler() http.Handler {
 		_, _ = fmt.Fprint(w, "success\r\n")
 	})
 
-	return withCORS(mux)
+	cors := withCORS(mux)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == identityPath {
+			s.serveIdentity(w, r)
+			return
+		}
+		cors.ServeHTTP(w, r)
+	})
 }
 
 // Start begins serving; it returns an error if the port is taken (e.g. a real

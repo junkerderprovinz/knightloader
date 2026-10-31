@@ -1,6 +1,7 @@
 package cnl
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -19,10 +20,11 @@ type Listener struct {
 	adder Adder
 	port  int
 
-	mu     sync.Mutex
-	srv    *Server // nil while the listener is down
-	err    error
-	envOff bool
+	mu       sync.Mutex
+	srv      *Server // nil while the listener is down
+	err      error
+	envOff   bool
+	identity func() Identity
 }
 
 // NewListener returns a listener for 127.0.0.1:port that has not bound yet.
@@ -71,12 +73,36 @@ func (l *Listener) Start() error {
 		return nil
 	}
 	s := New(l.adder)
+	s.identity = l.currentIdentity
 	if err := s.Start(l.port); err != nil {
 		l.err = err
 		return err
 	}
 	l.srv, l.err, l.envOff = s, nil, false
 	return nil
+}
+
+// SetIdentity gives the listener who it answers as at identityPath, for
+// another KnightLoader on this computer that finds the port taken.
+func (l *Listener) SetIdentity(id func() Identity) {
+	l.mu.Lock()
+	l.identity = id
+	l.mu.Unlock()
+}
+
+func (l *Listener) currentIdentity() Identity {
+	l.mu.Lock()
+	id := l.identity
+	l.mu.Unlock()
+	if id == nil {
+		return Identity{}
+	}
+	return id()
+}
+
+// Holder asks what holds this listener's port; see the package's Holder.
+func (l *Listener) Holder(ctx context.Context) (Identity, error) {
+	return Holder(ctx, l.port)
 }
 
 // Stop closes the listener and forgets why an earlier start failed, since the

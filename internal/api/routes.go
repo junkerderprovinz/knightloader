@@ -51,6 +51,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerClipWatch(reg, a)
 	registerDiscovery(reg, a)
 	registerFeatures(reg, a)
+	registerCnL(reg, a)
 	registerConnections(reg, a)
 	registerRules(reg, a)
 	registerFolders(reg, a)

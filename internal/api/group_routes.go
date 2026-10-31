@@ -104,6 +104,10 @@ var groupRoutes = map[string]bool{
 	"DELETE /api/clipboard-watchers/{id}":    true,
 	"POST /api/clipboard-watchers/{id}/stop": true,
 
+	// Another instance on the same computer taking the Click'n'Load port over
+	// (routes_cnl.go).
+	"POST /api/cnl/release": true,
+
 	// An approval, a refusal or a removal, passed on by the instance whose
 	// owner made it. The handlers take it only from an instance that signs
 	// with an approved key, never from a phone or an unsigned caller.
