@@ -48,6 +48,20 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   a little of the accent and its symbol the accent itself; a bare one turns
   its symbol and words to the accent. Under the rainbow a badge takes its own
   colour. Keyboard focus shows the same, with its ring.
+- **Downloads are listed by name.** Links inside a package and the packages
+  themselves read in name order, part2 before part10, and a row stays where
+  it is when it starts, finishes or unpacks. A column header still sorts by
+  that column, its third click goes back to the name order, and Queue order
+  in the sort menu shows the order the downloads run in.
+- **Restart is called Reset & restart,** in the right-click menu, on the row's
+  button, in the toolbar and wherever a hint names it, since it clears what
+  went wrong and queues the download afresh. Retry failed is Reset & restart
+  failed.
+- **The container leaves Click'n'Load to the browser extension and the desktop
+  app.** Its own port was inside the container, where no browser reaches it,
+  so the switch under Settings, Link collector is greyed out there and its (i)
+  says where Click'n'Load works. A container with host networking can still
+  open it with `KL_CNL`.
 
 ### Fixed
 

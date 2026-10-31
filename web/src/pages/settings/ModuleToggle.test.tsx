@@ -107,8 +107,11 @@ it('keeps a module open that is set up but not working, since the fix is in the 
   expect(theSwitch().closest('.pointer-events-none')).not.toBeNull();
 });
 
-it('keeps a module without a switch open and says why under the switch', () => {
+it("keeps a module without a switch open and says why in the switch's (i)", () => {
   renderCard(row({ id: 'captcha', switch: 'none', enabled: false, reasonCode: 'captchaNoJD', reason: 'missing' }));
   expect(body()).not.toBeNull();
-  expect(text()).toContain(en['settings.modules.reason.captchaNoJD']);
+  expect(text()).not.toContain(en['settings.modules.reason.captchaNoJD']);
+  const info = document.querySelector<HTMLElement>('.glim-info')!;
+  act(() => info.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })));
+  expect(document.body.textContent).toContain(en['settings.modules.reason.captchaNoJD']);
 });

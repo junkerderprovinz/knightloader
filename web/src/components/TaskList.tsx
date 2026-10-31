@@ -98,6 +98,8 @@ import {
   IN_NAME_COL,
   VARIANT_KIND_LABEL_KEY,
   applySort,
+  defaultSort,
+  isDefaultSort,
   gridTemplate,
   isParked,
   moveColumn,
@@ -325,7 +327,7 @@ export interface ListSort {
 export function useListSort(title: string, profile: ListProfile = 'downloads', sortKey?: string): ListSort {
   const { t } = useT();
   const [stored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
-  const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, null);
+  const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, defaultSort(profile));
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
   const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
   const header = (col: ColumnDef) => t(col.labelKey);
@@ -333,7 +335,8 @@ export function useListSort(title: string, profile: ListProfile = 'downloads', s
 
   return {
     title,
-    current: sortedBy && header(sortedBy),
+    // The list's own order is no choice to point out.
+    current: isDefaultSort(sort, profile) ? undefined : sortedBy ? header(sortedBy) : t('list.sortQueue'),
     groups: [
       {
         id: 'by',
@@ -1973,7 +1976,7 @@ export function TaskListCard({
   const { toast } = useToast();
 
   const [stored, setStored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
-  const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, null);
+  const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, defaultSort(profile));
   const { collapsed, collapse, expand, toggle } = useCollapsedPackages(profile);
   // The torrents whose files are shown under their row, by task id. Kept like
   // the folded packages, and trimmed to the tasks on the list at every write.
@@ -3480,7 +3483,9 @@ export function TaskListCard({
             hint={t('columns.headerHint')}
             beside={[
               ...(count !== undefined ? [{ key: 'count', label: <span className="glim-num">{count}</span> }] : []),
-              ...(sort ? [{ key: 'sort', label: t('list.sortedView'), hint: t('list.sortedViewTip') }] : []),
+              ...(sort && !isDefaultSort(sort, profile)
+                ? [{ key: 'sort', label: t('list.sortedView'), hint: t('list.sortedViewTip') }]
+                : []),
             ]}
           >
             {title}
@@ -3517,7 +3522,7 @@ export function TaskListCard({
                 layout={layout}
                 profile={profile}
                 sort={sort}
-                onSort={(id) => setSort(nextSort(storedSort, id))}
+                onSort={(id) => setSort(nextSort(storedSort, id, defaultSort(profile)))}
                 onReorder={(id, target, after) =>
                   persist({ order: moveColumn(layout.order.map((c) => c.id), id, target, after) })
                 }

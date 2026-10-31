@@ -1361,6 +1361,17 @@ function etaSeconds(t: Task): number {
 
 const cmpText = (a: string, b: string): number => a.localeCompare(b);
 
+/** Names in the order a person reads them: part2 before part10, case aside. */
+const naturalCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+
+/**
+ * byName orders rows by what the name column shows. Rows of one name keep the
+ * order they were added in, never one that follows their state, so a row does
+ * not move when it starts, finishes or unpacks.
+ */
+const byName = (a: Task, b: Task): number =>
+  naturalCollator.compare(label(a), label(b)) || cmpText(a.createdAt, b.createdAt) || cmpText(a.id, b.id);
+
 const sum = (items: Task[], pick: (t: Task) => number): number => items.reduce((s, x) => s + pick(x), 0);
 
 const seeding = (t: Task): boolean => rowState(t) === 'seeding';
@@ -1607,7 +1618,7 @@ export const COLUMNS: ColumnDef[] = [
     minWidth: TREE_INDENT + NAME_TEXT_FLOOR,
     align: 'start',
     hideable: false,
-    compare: (a, b) => cmpText(label(a), label(b)),
+    compare: byName,
     render: (task, ctx) => <NameCell task={task} ctx={ctx} />,
     // No aggregate: in a package row this cell is the tree control, which is
     // list state the registry has no access to.
@@ -2233,11 +2244,28 @@ export interface SortState {
   dir: 'asc' | 'desc';
 }
 
-/** Clicking a header cycles ascending → descending → back to the queue order. */
-export function nextSort(current: SortState | null, id: ColumnId): SortState | null {
+/** Downloads read in name order; the collector keeps the order links came in. */
+export const NAME_ORDER: SortState = { id: 'name', dir: 'asc' };
+
+/**
+ * defaultSort is a list's order until somebody picks another. A pick of the
+ * queue order is stored as null, which is why nothing stored is undefined.
+ */
+export function defaultSort(profile: ListProfile): SortState | null {
+  return profile === 'downloads' ? NAME_ORDER : null;
+}
+
+/** isDefaultSort is whether sort is the list's own order, which needs no mark. */
+export function isDefaultSort(sort: SortState | null, profile: ListProfile): boolean {
+  const d = defaultSort(profile);
+  return sort === d || (!!sort && !!d && sort.id === d.id && sort.dir === d.dir);
+}
+
+/** Clicking a header cycles ascending → descending → back to the list's default order. */
+export function nextSort(current: SortState | null, id: ColumnId, fallback: SortState | null): SortState | null {
   if (!current || current.id !== id) return { id, dir: 'asc' };
   if (current.dir === 'asc') return { id, dir: 'desc' };
-  return null;
+  return fallback?.id === id ? { id, dir: 'asc' } : fallback;
 }
 
 export function comparatorFor(sort: SortState | null): ((a: Task, b: Task) => number) | null {
@@ -2260,9 +2288,15 @@ export function applySort(groups: [string, Task[]][], sort: SortState | null): [
   const cmp = comparatorFor(sort);
   if (!cmp) return groups;
   const sorted: [string, Task[]][] = groups.map(([name, items]) => [name, [...items].sort(cmp)]);
+  // By name, a package goes by its own name rather than its first file's, and
+  // the links outside any package by the first of them.
+  const byGroupName = (a: [string, Task[]], b: [string, Task[]]): number => {
+    const d = naturalCollator.compare(a[0] || label(a[1][0]), b[0] || label(b[1][0]));
+    return sort?.dir === 'desc' ? -d : d;
+  };
   return sorted.sort((a, b) => {
     if (a[1].length === 0) return b[1].length === 0 ? 0 : 1;
     if (b[1].length === 0) return -1;
-    return cmp(a[1][0], b[1][0]);
+    return (sort?.id === 'name' && byGroupName(a, b)) || cmp(a[1][0], b[1][0]);
   });
 }
