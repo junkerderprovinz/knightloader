@@ -1,12 +1,15 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/update"
 )
 
 // lifecycleServer is the lifecycle routes on a throwaway app. It restores the
@@ -142,5 +145,74 @@ func TestDeploymentCanQuitFollowsRequestExit(t *testing.T) {
 	}
 	if !info.CanQuit || !info.CanRestart {
 		t.Errorf("CanQuit=%v CanRestart=%v, want both true once RequestExit is set", info.CanQuit, info.CanRestart)
+	}
+}
+
+func TestUpdateInstallIsRefusedWhereNothingInstallsItself(t *testing.T) {
+	_, srv := lifecycleServer(t)
+
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/system/update-install", nil); code != http.StatusNotImplemented {
+		t.Fatalf("POST update-install = %d, want %d", code, http.StatusNotImplemented)
+	}
+	if code := getJSON(t, srv.URL+"/api/system/update-install", nil); code != http.StatusNotImplemented {
+		t.Fatalf("GET update-install = %d, want %d", code, http.StatusNotImplemented)
+	}
+}
+
+func TestUpdateInstallStartsOnceAndReportsProgress(t *testing.T) {
+	a, srv := lifecycleServer(t)
+	var progress update.Progress
+	a.InstallUpdate = func() error {
+		if progress.State == update.Downloading {
+			return errors.New("an update is already being installed")
+		}
+		progress = update.Progress{State: update.Downloading, Version: "2.4.0"}
+		return nil
+	}
+	a.UpdateProgress = func() update.Progress { return progress }
+
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/system/update-install", nil); code != http.StatusAccepted {
+		t.Fatalf("POST update-install = %d, want %d", code, http.StatusAccepted)
+	}
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/system/update-install", nil); code != http.StatusConflict {
+		t.Fatalf("second POST update-install = %d, want %d", code, http.StatusConflict)
+	}
+	progress.Done, progress.Total = 40, 100
+	var got update.Progress
+	if code := getJSON(t, srv.URL+"/api/system/update-install", &got); code != http.StatusOK {
+		t.Fatalf("GET update-install = %d", code)
+	}
+	if got != progress {
+		t.Errorf("progress = %+v, want %+v", got, progress)
+	}
+}
+
+func TestJDSetupRetryIsRefusedWhereNothingSetsUpJD(t *testing.T) {
+	a := testApp(t)
+	reg := newRegistry()
+	registerResolvers(reg, a)
+	mux := http.NewServeMux()
+	reg.attach(mux, http.NotFoundHandler())
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/resolvers/jd/setup", nil); code != http.StatusNotImplemented {
+		t.Fatalf("POST jd/setup = %d, want %d", code, http.StatusNotImplemented)
+	}
+	tries := 0
+	a.RetryJDSetup = func() error {
+		tries++
+		if tries > 1 {
+			return errors.New("JDownloader is already being set up")
+		}
+		a.SettingUpJD()
+		return nil
+	}
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/resolvers/jd/setup", nil)
+	if code != http.StatusAccepted || !strings.Contains(string(body), `"setup":"starting"`) {
+		t.Fatalf("POST jd/setup = %d %s, want 202 with the setup starting", code, body)
+	}
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/resolvers/jd/setup", nil); code != http.StatusConflict {
+		t.Fatalf("POST jd/setup during a setup = %d, want %d", code, http.StatusConflict)
 	}
 }

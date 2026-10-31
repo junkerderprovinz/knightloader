@@ -27,6 +27,29 @@ const SOURCE_KEYS: Record<string, TranslationKey> = {
 };
 
 /** Where the fetched ffmpeg's source code, build scripts and licence are published. */
+const JRE_LINKS = [
+  { label: 'Eclipse Temurin', href: 'https://adoptium.net/temurin/' },
+  { label: 'adoptium/temurin21-binaries', href: 'https://github.com/adoptium/temurin21-binaries' },
+  { label: 'GPLv2 + Classpath Exception', href: 'https://openjdk.org/legal/gplv2+ce.html' },
+];
+
+/** LicenceLine is a licence note with its links, as the card's foot shows it. */
+function LicenceLine({ text, links }: { text: string; links: { label: string; href: string }[] }) {
+  return (
+    <p className="text-xs text-carbon-textMuted">
+      {text}{' '}
+      {links.map((l, i) => (
+        <span key={l.href}>
+          {i > 0 && ', '}
+          <a href={l.href} target="_blank" rel="noreferrer noopener" onClick={followExternal} dir="ltr" className="underline hover:text-carbon-text">
+            {l.label}
+          </a>
+        </span>
+      ))}
+    </p>
+  );
+}
+
 const FFMPEG_LINKS = [
   { label: 'FFmpeg', href: 'https://github.com/FFmpeg/FFmpeg' },
   { label: 'BtbN/FFmpeg-Builds', href: 'https://github.com/BtbN/FFmpeg-Builds' },
@@ -84,17 +107,10 @@ export function MediaToolsCard({ hue }: { hue: number }) {
         </ul>
       </div>
       {(tools?.ffmpeg.source === 'managed' || tools?.ffprobe.source === 'managed') && (
-        <p className="text-xs text-carbon-textMuted">
-          {t('settings.resolvers.toolsFfmpegLicence')}{' '}
-          {FFMPEG_LINKS.map((l, i) => (
-            <span key={l.href}>
-              {i > 0 && ', '}
-              <a href={l.href} target="_blank" rel="noreferrer noopener" onClick={followExternal} dir="ltr" className="underline hover:text-carbon-text">
-                {l.label}
-              </a>
-            </span>
-          ))}
-        </p>
+        <LicenceLine text={t('settings.resolvers.toolsFfmpegLicence')} links={FFMPEG_LINKS} />
+      )}
+      {jd?.runtime && (
+        <LicenceLine text={t('settings.resolvers.toolsJreLicence', { version: jd.runtime.version })} links={JRE_LINKS} />
       )}
       {tools?.unrar?.found && (
         <p className="text-xs text-carbon-textMuted">
@@ -109,15 +125,36 @@ export function MediaToolsCard({ hue }: { hue: number }) {
 }
 
 /**
+ * jdMissing says what stands in for JDownloader's revision while it does not
+ * answer, and what to do about it. The desktop build tells how far it has come
+ * with its own JDownloader and the Java runtime that runs it.
+ */
+export function jdMissing(t: ReturnType<typeof useT>['t'], jd: JDStatus): [string, string] {
+  if (jd.configured) return [t('settings.resolvers.toolsUnreachable'), t('settings.resolvers.toolsJdUnreachableHint')];
+  switch (jd.setup) {
+    case 'starting': {
+      const total = jd.setupTotal ?? 0;
+      const hint =
+        total > 0 && (jd.setupDone ?? 0) < total
+          ? t('settings.resolvers.toolsJdDownloading', { percent: String(Math.floor(((jd.setupDone ?? 0) * 100) / total)) })
+          : t('settings.resolvers.toolsJdStartingHint');
+      return [t('settings.resolvers.toolsJdStarting'), hint];
+    }
+    case 'failed':
+      return [t('settings.resolvers.toolsJdFailed'), t('settings.resolvers.toolsJdFailedHint', { error: jd.detail ?? '' })];
+    default:
+      return [t('settings.resolvers.toolsNotConfigured'), t('settings.resolvers.toolsJdMissingHint')];
+  }
+}
+
+/**
  * JDRow shows the JDownloader backend as a tool: in use while it answers,
  * with its revision as the version, and otherwise whether it is set up at all.
  */
 function JDRow({ jd }: { jd: JDStatus }) {
   const { t } = useT();
   const tool: MediaTool = { found: jd.reachable, version: jd.version ? String(jd.version) : '' };
-  const [missing, hint] = jd.configured
-    ? [t('settings.resolvers.toolsUnreachable'), t('settings.resolvers.toolsJdUnreachableHint')]
-    : [t('settings.resolvers.toolsNotConfigured'), t('settings.resolvers.toolsJdMissingHint')];
+  const [missing, hint] = jdMissing(t, jd);
   return <ToolRow name="JDownloader" tool={tool} missing={missing} missingHint={hint} last data-new="jd-tool" />;
 }
 

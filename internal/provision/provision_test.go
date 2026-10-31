@@ -634,3 +634,28 @@ func TestStopLeavesAJDFromElsewhereRunning(t *testing.T) {
 		t.Error("Stop asked a JD it has no claim on to exit")
 	}
 }
+
+// The desktop app hands JD the runtime it fetched; no Java on the machine
+// takes its place.
+func TestEnsureRunsJDOnTheJavaItIsGiven(t *testing.T) {
+	quickGrace(t)
+	p := New(t.TempDir())
+	p.Port = 1
+	if err := os.WriteFile(p.jarPath(), fakeJar(t), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	p.Java = os.Args[0]
+	t.Setenv("JAVA_HOME", "")
+	t.Setenv("PATH", t.TempDir())
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
+
+	cmd, _, err := p.Ensure(ctx)
+	t.Cleanup(func() { _ = p.Stop() })
+	if cmd == nil {
+		t.Fatalf("Ensure started nothing: %v", err)
+	}
+	if cmd.Path != p.Java {
+		t.Errorf("JD runs on %s, want %s", cmd.Path, p.Java)
+	}
+}

@@ -25,6 +25,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/jre"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
@@ -1419,6 +1420,15 @@ type JDStatus struct {
 	// not reachable.
 	Version int64  `json:"version,omitempty"`
 	Detail  string `json:"detail,omitempty"`
+	// Setup is one of the JDSetup values while the desktop build's own JD is
+	// not configured, "" when nothing is known. SetupDone and SetupTotal count
+	// the Java runtime's download meanwhile.
+	Setup      string `json:"setup,omitempty"`
+	SetupDone  int64  `json:"setupDone,omitempty"`
+	SetupTotal int64  `json:"setupTotal,omitempty"`
+	// Runtime is the Java runtime the desktop build fetched for JD, nil where
+	// JD runs on a Java of its own.
+	Runtime *jre.Record `json:"runtime,omitempty"`
 }
 
 // UseJD points everything that talks to JDownloader at base and wires the
@@ -1426,25 +1436,34 @@ type JDStatus struct {
 // desktop app's own, which starts in the background.
 func (a *App) UseJD(base string) {
 	_ = os.Setenv("KL_JD", base)
+	a.clearJDSetup()
 	a.rewireBackends()
 }
 
 // JDStatus asks the sidecar live, so an unreachable JD shows up at once. It
 // uses a fresh jd.Client because the backend interface has no Version method.
 func (a *App) JDStatus() JDStatus {
+	var st JDStatus
+	st.Runtime, _ = jre.Load(a.DataDir)
 	base := os.Getenv("KL_JD")
 	if base == "" {
-		return JDStatus{}
+		a.jdSetupStatus(&st)
+		return st
 	}
+	st.Configured = true
 	c := jd.NewClient(base)
 	if err := c.Ping(); err != nil {
-		return JDStatus{Configured: true, Detail: err.Error()}
+		st.Detail = err.Error()
+		return st
 	}
+	st.Reachable = true
 	v, err := c.Version()
 	if err != nil {
-		return JDStatus{Configured: true, Reachable: true, Detail: err.Error()}
+		st.Detail = err.Error()
+		return st
 	}
-	return JDStatus{Configured: true, Reachable: true, Version: v}
+	st.Version = v
+	return st
 }
 
 // linkBackend builds the backend that unlocks svc's hoster links for the

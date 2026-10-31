@@ -835,6 +835,12 @@ export const de: Dict = {
   'settings.modules.reason.cnlNoListener': "Dieser Prozess öffnet keinen Click'n'Load-Port.",
   'settings.modules.reason.cnlContainer': 'Click\'n\'Load schickt die Links an einen Port auf dem Rechner, auf dem dein Browser läuft, und den kann ein Container nicht öffnen. Die Desktop-App und die Browser-Erweiterung fangen Click\'n\'Load für diese Instanz ab.',
   'settings.resolvers.toolsJdMissingHint': 'Es ist kein JDownloader eingerichtet. Normalerweise startet KnightLoader beim Hochfahren einen eigenen. Fehlt er nach ein paar Minuten immer noch, such im Protokoll nach „JD provisioning failed“ oder setz KL_JD auf einen eigenen JDownloader und starte neu.',
+  'settings.resolvers.toolsJdStarting': 'Wird eingerichtet',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader richtet seinen eigenen JDownloader und die Java-Laufzeit dafür ein. Beim ersten Mal dauert das ein paar Minuten.',
+  'settings.resolvers.toolsJdDownloading': 'Java-Laufzeit für JDownloader wird heruntergeladen: {percent} %',
+  'settings.resolvers.toolsJdFailed': 'Einrichtung fehlgeschlagen',
+  'settings.resolvers.toolsJdFailedHint': 'KnightLoader konnte seinen JDownloader nicht einrichten: {error}',
   'settings.modules.reason.captchaNoJD': 'Captchas kommen nur vom JDownloader-Backend, und es ist keins eingerichtet.',
   'settings.modules.reason.keepawake': 'Nur die Desktop-App kann einen Rechner wach halten. Der Rechner, auf dem ein Container läuft, entscheidet selbst, wann er schläft.',
   'settings.modules.switchFailed': 'Der Schalter wurde abgelehnt: {reason}',
@@ -890,6 +896,13 @@ export const de: Dict = {
   'settings.look.updatesAvailable': '{version} ist verfügbar',
   'settings.look.updatesAvailableContainer': '{version} ist verfügbar: Aktualisiere dein Container-Image so, wie du es bereitgestellt hast (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Versionshinweise',
+  'settings.look.updatesInstall': 'Jetzt installieren',
+  'settings.look.updatesInstalling': 'Wird installiert…',
+  'settings.look.updatesDownloading': 'Update wird heruntergeladen: {percent} %',
+  'settings.look.updatesStarting': 'Das Installationsprogramm startet. Windows fragt dich gleich um Erlaubnis.',
+  'settings.look.updatesStarted':
+    'Das Installationsprogramm läuft. Es schließt KnightLoader und öffnet danach die neue Version.',
+  'settings.look.updatesInstallFailed': 'Das Update hat nicht geklappt: {error}',
   'settings.look.updatesContainerHint':
     'Aktualisiere dein Container-Image so, wie du es bereitgestellt hast, zum Beispiel mit docker pull oder über Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Nur auf dem Desktop-Build möglich: Ein Container kann sich nicht von innen selbst ersetzen. Aktualisiere ihn stattdessen so, wie du ihn bereitgestellt hast (docker pull, Unraid Community Applications, Watchtower, ...).',
@@ -899,6 +912,7 @@ export const de: Dict = {
   'settings.look.toolsSource.built': 'In KnightLoader eingebaut',
   'settings.look.toolsSource.fork': 'Aus einem eigenen Fork in KnightLoader eingebaut',
   'settings.look.tool.jd': 'Übernimmt weitere Hoster und DLC-Container',
+  'settings.look.tool.jre': 'Führt das JDownloader-Backend aus',
   'settings.look.tool.ffprobe': 'Misst fertige Videos',
   'settings.look.tool.gopeed': 'Lädt Dateien über HTTP und BitTorrent',
   'settings.look.tool.torrent': 'Der eingebaute Torrent-Client, in Gopeed',
@@ -3549,6 +3563,8 @@ export const de: Dict = {
   'settings.resolvers.toolsUnrarLicence': 'UnRAR ist die Freeware von RARLAB, mit der auch WinRAR entpackt, und kommt mit KnightLoader unter ihrer eigenen Lizenz:',
   'settings.resolvers.toolsUnrarMissingHint': 'Ohne UnRAR entpackt KnightLoader RAR-Archive mit seinem eigenen Leser. Das Container-Image und die Desktop-App für Windows, für Linux auf x86-64 und für macOS auf Apple Silicon bringen RARLABs UnRAR mit. Anderswo installierst du unrar und legst es auf PATH, oder du nennst es in KL_UNRAR.',
   'settings.resolvers.toolsUnrarBuiltIn': 'Eingebauter Leser',
+  'settings.resolvers.toolsJreLicence':
+    'Die Java-Laufzeit, die KnightLoader für JDownloader geholt hat, ist Eclipse Temurin {version} vom Adoptium-Projekt und steht unter der GNU General Public License Version 2 mit Classpath Exception. Quellcode und Lizenzbedingungen:',
   'settings.resolvers.toolsShadowed': 'Es läuft die eigene Kopie von KnightLoader. Solange sie da ist, werden KL_YTDLP und der PATH nicht gestartet: Stattdessen käme {path} zum Zug, und das meldet {version}.',
   'settings.resolvers.toolsShadowedOlder': 'Achtung: Die Kopie, die KnightLoader geholt hat ({current}), ist älter als die, die auf dieser Maschine ohnehin liegt ({system}, unter {path}). Ein Container-Update bringt ein neueres yt-dlp mit, deine eigene Kopie wandert dabei nicht mit. Hol eine neue, oder geh zurück zur System-Kopie.',
   'settings.resolvers.toolsManagedBroken': 'Unter {path} ist eine geholte Kopie eingetragen, und die startet nicht. Es läuft stattdessen die Rückfalloption von oben. Hol sie neu, oder geh zurück zur System-Kopie.',

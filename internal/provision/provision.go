@@ -59,6 +59,10 @@ var jarClient = httpx.New(httpx.Options{Timeout: downloadTimeout})
 type Provisioner struct {
 	Dir  string // JD home: the jar and its cfg/ live here
 	Port int    // Deprecated API port (127.0.0.1 only)
+	// Java is the java JD runs on. Empty means FindJava, which suits the
+	// container, whose image carries a JRE; the desktop app sets the runtime
+	// it fetched (internal/jre).
+	Java string
 
 	jarURL string // download source; overridden in tests
 
@@ -498,9 +502,13 @@ func (p *Provisioner) Ensure(ctx context.Context) (*exec.Cmd, string, error) {
 	if err := p.WriteConfirmAnswers(); err != nil {
 		return nil, "", err
 	}
-	java, err := FindJava()
-	if err != nil {
-		return nil, "", err
+	java := p.Java
+	if java == "" {
+		found, err := FindJava()
+		if err != nil {
+			return nil, "", err
+		}
+		java = found
 	}
 	// A caller that gave up while the jar was downloading may already have
 	// run Stop, and a JD started after that would outlive it.

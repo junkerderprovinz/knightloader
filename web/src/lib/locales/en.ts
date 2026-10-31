@@ -942,6 +942,12 @@ export const en = {
   'settings.modules.reason.cnlNoListener': "This process opens no Click'n'Load port.",
   'settings.modules.reason.cnlContainer': 'Click\'n\'Load posts to a port on the computer your browser runs on, which a container cannot open. The desktop app and the browser extension catch Click\'n\'Load for this instance.',
   'settings.resolvers.toolsJdMissingHint': 'No JDownloader is set up. KnightLoader normally starts its own while booting. If it is still missing after a few minutes, look for "JD provisioning failed" in the log, or set KL_JD to a JDownloader of your own and restart.',
+  'settings.resolvers.toolsJdStarting': 'Being set up',
+  'settings.resolvers.toolsJdStartingHint':
+    'KnightLoader is setting up its own JDownloader and the Java runtime it runs on. The first time this takes a few minutes.',
+  'settings.resolvers.toolsJdDownloading': 'Downloading the Java runtime for JDownloader: {percent}%',
+  'settings.resolvers.toolsJdFailed': 'Setup failed',
+  'settings.resolvers.toolsJdFailedHint': 'KnightLoader could not set up its JDownloader: {error}',
   'settings.modules.reason.captchaNoJD': 'Captchas come only from the JDownloader backend, and none is configured.',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
   'settings.modules.switchFailed': 'That switch was refused: {reason}',
@@ -997,6 +1003,13 @@ export const en = {
   'settings.look.updatesAvailable': '{version} is available',
   'settings.look.updatesAvailableContainer': '{version} is available: update your container image the way you deployed it (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesReleaseNotes': 'Release notes',
+  'settings.look.updatesInstall': 'Install now',
+  'settings.look.updatesInstalling': 'Installing…',
+  'settings.look.updatesDownloading': 'Downloading the update: {percent}%',
+  'settings.look.updatesStarting': 'Starting the installer. Windows will ask for your permission.',
+  'settings.look.updatesStarted':
+    'The installer is running. It closes KnightLoader and opens the new version when it is done.',
+  'settings.look.updatesInstallFailed': 'The update did not work: {error}',
   'settings.look.updatesContainerHint':
     'Update your container image the way you deployed it, for example with docker pull or through Unraid Community Applications.',
   'settings.look.updatesAutoUpdateContainerHint': 'Only possible on the desktop build: a container cannot replace itself from the inside. Update it the way you deployed it instead (docker pull, Unraid Community Applications, Watchtower, ...).',
@@ -1006,6 +1019,7 @@ export const en = {
   'settings.look.toolsSource.built': 'Built into KnightLoader',
   'settings.look.toolsSource.fork': 'Built into KnightLoader from its own fork',
   'settings.look.tool.jd': 'Covers more hosters and DLC containers',
+  'settings.look.tool.jre': 'Runs the JDownloader backend',
   'settings.look.tool.ffprobe': 'Measures finished videos',
   'settings.look.tool.gopeed': 'Loads files over HTTP and BitTorrent',
   'settings.look.tool.torrent': 'The built-in torrent client, inside Gopeed',
@@ -3851,6 +3865,8 @@ export const en = {
   'settings.resolvers.toolsUnrarLicence': 'UnRAR is RARLAB\'s freeware, the decoder WinRAR unpacks with, and comes with KnightLoader under its own licence:',
   'settings.resolvers.toolsUnrarMissingHint': 'Without UnRAR, KnightLoader unpacks RAR sets with its own reader. The container image and the desktop app for Windows, for Linux on x86-64 and for macOS on Apple silicon bring RARLAB\'s UnRAR. Elsewhere, install unrar and put it on PATH, or name it in KL_UNRAR.',
   'settings.resolvers.toolsUnrarBuiltIn': 'Built-in reader',
+  'settings.resolvers.toolsJreLicence':
+    'The Java runtime KnightLoader fetched for JDownloader is Eclipse Temurin {version} from the Adoptium project and comes under the GNU General Public License version 2 with the Classpath Exception. Source code and licence terms:',
   'settings.resolvers.toolsShadowed': 'KnightLoader\'s own copy is running. KL_YTDLP and PATH are not being started while it is there: {path} would be used instead, and it reports {version}.',
   'settings.resolvers.toolsShadowedOlder': 'Careful: the copy KnightLoader fetched ({current}) is older than the one already on this machine ({system}, at {path}). A container update brings a newer yt-dlp with it, and your own copy does not move with it. Fetch a new one, or go back to the system copy.',
   'settings.resolvers.toolsManagedBroken': 'A fetched copy is recorded at {path} and it does not start. What is running instead is the fallback shown above. Fetch it again, or go back to the system copy.',

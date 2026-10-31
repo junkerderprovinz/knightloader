@@ -66,6 +66,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"github.com/junkerderprovinz/knightloader/internal/throttle"
+	"github.com/junkerderprovinz/knightloader/internal/update"
 	"github.com/junkerderprovinz/knightloader/internal/vpnconn"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
@@ -180,6 +181,14 @@ type App struct {
 	// none. A container updates through its deployment instead (see
 	// internal/update).
 	UpdateReady func() string
+	// InstallUpdate, set on the desktop build only, fetches the newest release
+	// now rather than at the daily check, in the background, and
+	// UpdateProgress says how far it has come.
+	InstallUpdate  func() error
+	UpdateProgress func() update.Progress
+	// RetryJDSetup, set on the desktop build only, sets up its own
+	// JDownloader again after a try that failed.
+	RetryJDSetup func() error
 
 	// RequestSuspend, set on the desktop build only, puts the machine to sleep
 	// for the end-of-queue "suspend" action. The per-OS calls live in
@@ -463,6 +472,9 @@ type App struct {
 	// jdUpdateState is how the daily JDownloader update reaches JD
 	// (app_jdupdate.go).
 	jdUpdateState
+	// jdSetupState is why the desktop build has no JDownloader of its own
+	// yet (app_jdsetup.go).
+	jdSetupState
 	// autoBackup is the backup schedule's run in this process
 	// (app_backup.go).
 	autoBackup autoBackupRunner

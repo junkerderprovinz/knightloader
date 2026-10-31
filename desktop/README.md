@@ -69,6 +69,14 @@ The installed app keeps the switch in that file too and only watches the entry's
 `DisplayVersion` for a newer version to announce. Any other copy is portable and
 updates itself.
 
+The Updates card's **Install now** (`POST /api/system/update-install`) does not
+wait for either. The installed copy downloads the release's
+`knightloader-windows-<arch>-installer.exe` into `%TEMP%KnightLoader update`,
+checks it against `checksums.txt` and starts it with `runas`, so Windows asks
+for an administrator and the installer takes it from there. A portable copy
+runs the daily download and swap at once. The card polls the same route with
+GET for the progress and for any error.
+
 To try the whole path locally, build with `-tags updatetest`. That build reads
 `KL_UPDATE_API` (a stand-in for `https://api.github.com` that serves
 `/repos/junkerderprovinz/knightloader/releases/latest`) and `KL_UPDATE_DELAY`
@@ -88,7 +96,8 @@ writes there after installing.
 
 ## How it fits together
 
-- `main.go` boots `app.New`, provisions JD if `KL_JD` is unset, then starts
+- `main.go` boots `app.New`, provisions JD if `KL_JD` is unset (`jdsetup.go`:
+  the Java runtime from `internal/jre` first, then JDownloader on it), then starts
   Wails with the server's `api.Handler` as the whole **asset server**, so the
   SPA and `/api/*` are served in-window, identical to the browser build.
 - The page calls the Go side through Wails' runtime endpoint by name:

@@ -47,6 +47,13 @@ var Assets = map[string]string{
 	"linux/arm64":   "knightloader-linux-arm64.zip",
 }
 
+// Installers names the Windows installer of each architecture, which the copy
+// installed for all users runs to update, since it cannot replace itself.
+var Installers = map[string]string{
+	"windows/amd64": "knightloader-windows-amd64-installer.exe",
+	"windows/arm64": "knightloader-windows-arm64-installer.exe",
+}
+
 // Updater holds what an update needs to know about the program. API, Client
 // and Path fall back to GitHub, http.DefaultClient and the running program.
 type Updater struct {
@@ -66,6 +73,12 @@ type Updater struct {
 	Client *http.Client
 	// Path is the file, or on macOS the .app bundle, that an update replaces.
 	Path string
+	// Dir is where Fetch downloads to. Empty means beside Path, where Swap
+	// can move the program with a rename.
+	Dir string
+	// Progress, when set, hears how many bytes of the release file have
+	// arrived, and of how many; total is -1 while unknown.
+	Progress func(done, total int64)
 	// Logf receives what Cleanup and Swap could not do but did not fail on.
 	Logf func(format string, args ...any)
 
@@ -141,18 +154,23 @@ func (u *Updater) Check(ctx context.Context) (*Release, error) {
 	return rel, nil
 }
 
-// Fetch downloads the release's zip into the folder the program sits in, so
-// Swap can move the program with a rename, and verifies it against
-// checksums.txt. A folder the user cannot write to, as under Program Files or
-// on a read-only mount, fails here before anything is downloaded.
+// Fetch downloads the release's file into Dir, or into the folder the program
+// sits in, and verifies it against checksums.txt. The download keeps the
+// file's extension, so an installer can be started as it is. A folder the user
+// cannot write to, as under Program Files or on a read-only mount, fails here
+// before anything is downloaded.
 func (u *Updater) Fetch(ctx context.Context, rel *Release) (string, error) {
 	target, err := u.target()
 	if err != nil {
 		return "", err
 	}
-	f, err := os.CreateTemp(filepath.Dir(target), downloadPrefix(target)+"*")
+	dir := u.Dir
+	if dir == "" {
+		dir = filepath.Dir(target)
+	}
+	f, err := os.CreateTemp(dir, downloadPrefix(target)+"*"+filepath.Ext(rel.asset))
 	if err != nil {
-		return "", fmt.Errorf("cannot write next to %s: %w", target, err)
+		return "", fmt.Errorf("cannot write to %s: %w", dir, err)
 	}
 	keep := false
 	defer func() {
@@ -180,7 +198,11 @@ func (u *Updater) Fetch(ctx context.Context, rel *Release) (string, error) {
 	}
 	defer resp.Body.Close()
 	h := sha256.New()
-	if _, err := io.Copy(io.MultiWriter(f, h), resp.Body); err != nil {
+	var w io.Writer = io.MultiWriter(f, h)
+	if u.Progress != nil {
+		w = &counter{w: w, total: resp.ContentLength, report: u.Progress}
+	}
+	if _, err := io.Copy(w, resp.Body); err != nil {
 		return "", fmt.Errorf("downloading %s: %w", rel.asset, err)
 	}
 	if got := hex.EncodeToString(h.Sum(nil)); got != want {
@@ -192,6 +214,44 @@ func (u *Updater) Fetch(ctx context.Context, rel *Release) (string, error) {
 	keep = true
 	return f.Name(), nil
 }
+
+// counter passes on what is written and reports the running total.
+type counter struct {
+	w      io.Writer
+	done   int64
+	total  int64
+	report func(done, total int64)
+}
+
+func (c *counter) Write(p []byte) (int, error) {
+	n, err := c.w.Write(p)
+	c.done += int64(n)
+	c.report(c.done, c.total)
+	return n, err
+}
+
+// Progress is how far an update the user asked for has come, for the Updates
+// card to show while it runs.
+type Progress struct {
+	// State is one of the Progress constants, "" before anything was asked.
+	State   string `json:"state"`
+	Version string `json:"version,omitempty"`
+	Done    int64  `json:"done,omitempty"`
+	// Total is -1 while the size is unknown.
+	Total int64  `json:"total,omitempty"`
+	Error string `json:"error,omitempty"`
+}
+
+// The states of Progress. An installed copy goes from downloading to starting
+// the installer, which takes over from there; any other copy ends ready, with
+// the new version waiting for its next start.
+const (
+	Downloading = "downloading"
+	Starting    = "starting"
+	Started     = "started"
+	Ready       = "ready"
+	Failed      = "failed"
+)
 
 // Info is what the General tab shows. Checked is false when GitHub could not
 // be asked, which is not the same as Available being false.
