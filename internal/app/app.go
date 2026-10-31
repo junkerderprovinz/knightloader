@@ -186,6 +186,9 @@ type App struct {
 	// UpdateProgress says how far it has come.
 	InstallUpdate  func() error
 	UpdateProgress func() update.Progress
+	// RetryJDSetup, set on the desktop build only, sets up its own
+	// JDownloader again after a try that failed.
+	RetryJDSetup func() error
 
 	// RequestSuspend, set on the desktop build only, puts the machine to sleep
 	// for the end-of-queue "suspend" action. The per-OS calls live in

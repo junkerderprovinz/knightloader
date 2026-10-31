@@ -21,6 +21,7 @@ import {
   fetchUpdateProgress,
   fetchYtdlpLatest,
   installUpdate,
+  retryJDSetup,
   revertYtdlp,
   updateJD,
   updateYtdlp,
@@ -200,10 +201,14 @@ export function BuiltInCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { data: deployment, failed, reload } = useResource(fetchDeploymentInfo);
   const [tools, setTools] = useState<MediaToolsStatus | null>(null);
+  const [jd, setJd] = useState<JDStatus | null>(null);
 
   useEffect(() => {
     void fetchMediaTools()
       .then(setTools)
+      .catch(() => {});
+    void fetchJDStatus()
+      .then(setJd)
       .catch(() => {});
   }, []);
 
@@ -228,6 +233,16 @@ export function BuiltInCard({ hue }: { hue: number }) {
             version={found(tools?.ffprobe)}
             source={toolSource(t, deployment.deployment, tools?.ffprobe)}
           />
+          {/* The desktop build fetches it for JDownloader and renews it with
+              its own updates. */}
+          {jd?.runtime && (
+            <ToolRow
+              name={`Java (${jd.runtime.vendor})`}
+              sub={t('settings.look.tool.jre')}
+              version={jd.runtime.version}
+              source={t('settings.resolvers.toolsFrom.managed')}
+            />
+          )}
           {(deployment.engines ?? []).map((m) => (
             <EngineRow key={m.path} module={m} />
           ))}
@@ -631,6 +646,7 @@ function YtdlpUpdates() {
 /** How often, and how long, the sub-card asks for JDownloader while it restarts for an update. */
 const JD_POLL = 2_000;
 const JD_BACK_WITHIN = 5 * 60_000;
+const JD_SETUP_POLL = 1_000;
 
 const JD_REFUSALS: Record<string, TranslationKey> = {
   jdUnreachable: 'health.remedy.jd.unreachable',
@@ -667,15 +683,35 @@ function JDUpdates() {
   // Ends the wait for the restart once the page is left.
   const mounted = useRef(true);
 
+  // Follows the desktop build's own JDownloader while it is being set up, so
+  // the download of its Java runtime shows.
+  const follow = useCallback(async (first: JDStatus) => {
+    let st = first;
+    setJd(st);
+    while (mounted.current && !st.configured && st.setup === 'starting') {
+      await pause(JD_SETUP_POLL);
+      st = await fetchJDStatus().catch(() => st);
+      if (mounted.current) setJd(st);
+    }
+  }, []);
+
   useEffect(() => {
     mounted.current = true;
     void fetchJDStatus()
-      .then(setJd)
+      .then(follow)
       .catch(() => {});
     return () => {
       mounted.current = false;
     };
-  }, []);
+  }, [follow]);
+
+  const onRetry = useCallback(async () => {
+    try {
+      await follow(await retryJDSetup());
+    } catch (e) {
+      setJd((prev) => prev && { ...prev, setup: 'failed', detail: errorText(e) });
+    }
+  }, [follow]);
 
   const onCheck = useCallback(async () => {
     setChecking(true);
@@ -731,8 +767,9 @@ function JDUpdates() {
   }, [jd, t]);
 
   let version: ReactNode = null;
-  // Starting or short of Java, the sub-card says so and what to do.
-  const setupNote = jd && !jd.configured && (jd.setup === 'starting' || jd.setup === 'noJava') ? jdMissing(t, jd) : null;
+  // While the desktop build sets up its own JDownloader, or after that failed,
+  // the sub-card says so.
+  const setupNote = jd && !jd.configured && jd.setup ? jdMissing(t, jd) : null;
   if (setupNote) version = setupNote[0];
   else if (jd && !jd.configured) version = t('settings.selftest.status.skipped');
   else if (jd && !jd.reachable) version = t('health.state.failed');
@@ -746,7 +783,16 @@ function JDUpdates() {
       version={version}
     >
       {setupNote && (
-        <p className={`text-sm ${jd?.setup === 'noJava' ? 'text-statusWarn' : 'text-carbon-textSub'}`}>{setupNote[1]}</p>
+        <p role="status" className={`text-sm ${jd?.setup === 'failed' ? 'text-statusFail' : 'text-carbon-textSub'}`}>
+          {setupNote[1]}
+        </p>
+      )}
+      {jd?.setup === 'failed' && (
+        <div className="flex justify-end">
+          <Button kind="secondary" icon={<IconRefresh />} onClick={() => void onRetry()}>
+            {t('common.retry')}
+          </Button>
+        </div>
       )}
       {/* Without a JDownloader there is nothing to ask. */}
       {jd?.configured && (

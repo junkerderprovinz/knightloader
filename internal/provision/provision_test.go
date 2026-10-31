@@ -635,43 +635,27 @@ func TestStopLeavesAJDFromElsewhereRunning(t *testing.T) {
 	}
 }
 
-// A Windows machine whose only Java is the one JDownloader 2 installed beside
-// itself, as on a computer that ran JDownloader before KnightLoader.
-func TestFindJavaUsesTheJavaJDownloaderInstalled(t *testing.T) {
-	if runtime.GOOS != "windows" {
-		t.Skip("JDownloader's own Java is looked for on Windows")
-	}
-	pf := t.TempDir()
-	java := filepath.Join(pf, "JDownloader", "jre", "bin", "java.exe")
-	if err := os.MkdirAll(filepath.Dir(java), 0o755); err != nil {
+// The desktop app hands JD the runtime it fetched; no Java on the machine
+// takes its place.
+func TestEnsureRunsJDOnTheJavaItIsGiven(t *testing.T) {
+	quickGrace(t)
+	p := New(t.TempDir())
+	p.Port = 1
+	if err := os.WriteFile(p.jarPath(), fakeJar(t), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(java, nil, 0o755); err != nil {
-		t.Fatal(err)
-	}
+	p.Java = os.Args[0]
 	t.Setenv("JAVA_HOME", "")
 	t.Setenv("PATH", t.TempDir())
-	t.Setenv("ProgramFiles", pf)
-	t.Setenv("LOCALAPPDATA", t.TempDir())
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
 
-	got, err := FindJava()
-	if err != nil || got != java {
-		t.Fatalf("FindJava = %q, %v, want %q", got, err, java)
+	cmd, _, err := p.Ensure(ctx)
+	t.Cleanup(func() { _ = p.Stop() })
+	if cmd == nil {
+		t.Fatalf("Ensure started nothing: %v", err)
 	}
-}
-
-func TestFindJavaSaysWhenThereIsNone(t *testing.T) {
-	t.Setenv("JAVA_HOME", "")
-	t.Setenv("PATH", t.TempDir())
-	t.Setenv("ProgramFiles", t.TempDir())
-	t.Setenv("LOCALAPPDATA", t.TempDir())
-	for _, place := range javaPlaces() {
-		if m, _ := filepath.Glob(place); len(m) > 0 {
-			t.Skip("this machine has a Java where FindJava looks")
-		}
-	}
-
-	if _, err := FindJava(); !errors.Is(err, ErrNoJava) {
-		t.Fatalf("FindJava error = %v, want ErrNoJava", err)
+	if cmd.Path != p.Java {
+		t.Errorf("JD runs on %s, want %s", cmd.Path, p.Java)
 	}
 }

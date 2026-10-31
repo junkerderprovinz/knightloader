@@ -382,17 +382,39 @@ describe('installing an update on the desktop build', () => {
   });
 });
 
-describe('the JDownloader backend without a JDownloader', () => {
-  it('says Java is missing and what to install', async () => {
-    answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'noJava' };
+describe('the JDownloader backend the desktop build sets up', () => {
+  it('shows the Java runtime arriving while JDownloader is being set up', async () => {
+    answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'starting', setupDone: 30, setupTotal: 120 };
     await draw();
-    expect(group('JDownloader backend').textContent).toContain('Java missing');
-    expect(group('JDownloader backend').textContent).toContain('Install Java (Eclipse Temurin, for example) or JDownloader 2');
+    expect(group('JDownloader backend').textContent).toContain('Being set up');
+    expect(group('JDownloader backend').textContent).toContain('Downloading the Java runtime for JDownloader: 25%');
+    expect(group('JDownloader backend').textContent).not.toContain('Install Java');
   });
 
-  it('says it is still starting on the first run', async () => {
-    answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'starting' };
+  it('says why the setup failed and tries again on request', async () => {
+    answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'failed', detail: 'downloading the Java runtime: no network' };
     await draw();
-    expect(group('JDownloader backend').textContent).toContain('The first start takes a few minutes.');
+    expect(group('JDownloader backend').textContent).toContain('Setup failed');
+    expect(group('JDownloader backend').textContent).toContain(
+      'KnightLoader could not set up its JDownloader: downloading the Java runtime: no network',
+    );
+    answers['/api/resolvers/jd/setup'] = { configured: false, reachable: false, setup: 'starting' };
+    answers['/api/resolvers/jd'] = { configured: true, reachable: true, version: 50123 };
+    await act(async () => button(group('JDownloader backend'), 'Try again').click());
+    expect(asked).toContain('/api/resolvers/jd/setup');
+    expect(group('JDownloader backend').textContent).toContain('Being set up');
+    await act(() => new Promise((resolve) => setTimeout(resolve, 1100)));
+    expect(group('JDownloader backend').textContent).toContain('50123');
+  });
+
+  it('lists the Java runtime it fetched beside the other built-in parts', async () => {
+    answers['/api/resolvers/jd'] = {
+      configured: true,
+      reachable: true,
+      version: 50123,
+      runtime: { vendor: 'Eclipse Temurin', version: '21.0.13+9' },
+    };
+    await draw();
+    expect(group('Java (Eclipse Temurin)').textContent).toContain('21.0.13+9');
   });
 });
