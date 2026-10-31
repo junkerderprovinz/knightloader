@@ -1,0 +1,20 @@
+{
+  "windows": {
+    "url": "https://www.rarlab.com/rar/winrar-x64-723.exe",
+    "sha256": "8ff0daf3ed564cc743c0e23ff2e253997ffc74460f9673f0b6dd037b2db4ce7b",
+    "program": "UnRAR.exe",
+    "licence": "License.txt"
+  },
+  "linux-amd64": {
+    "url": "https://www.rarlab.com/rar/rarlinux-x64-723.tar.gz",
+    "sha256": "759b4b6aa0d9f77131882162951193f3a0e54bf60e1d8dc4255aa308accab588",
+    "program": "rar/unrar",
+    "licence": "rar/license.txt"
+  },
+  "darwin-arm64": {
+    "url": "https://www.rarlab.com/rar/rarmacos-arm-723.tar.gz",
+    "sha256": "68b393c000758d477fde43c955ff7542f12f76f3f5e87cdda923152fc791bd4d",
+    "program": "rar/unrar",
+    "licence": "rar/license.txt"
+  }
+}

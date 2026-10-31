@@ -150,6 +150,14 @@ func copyWatched(f *os.File, r io.Reader) (int64, error) {
 	return io.Copy(f, r)
 }
 
+// noteWatched records a file an external program wrote for the job, as
+// copyWatched does for the files the readers write.
+func noteWatched(path string) {
+	if s := bound.Load(); s != nil {
+		s.note(path)
+	}
+}
+
 // expectWatched is the same seam for the size a reader learns from its headers
 // before it writes anything. Each attempt at an archive calls it, so a wrong
 // password that wrote half a file does not count toward the right one.

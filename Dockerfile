@@ -40,13 +40,32 @@ RUN --mount=type=secret,id=kl_dlc_key --mount=type=secret,id=kl_dlc_iv \
       -ldflags="-s -w ${dlc} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${VERSION} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Commit=${COMMIT}" \
       -o /out/knightloader ./cmd/knightloader
 
+# RARLAB's own UnRAR, the decoder WinRAR uses, built from the source RARLAB
+# publishes: its Linux binary exists for x86-64 only and is linked against
+# glibc. The licence allows UnRAR inside other software and goes into the image
+# with it.
+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS unrar
+# unrarsrc-7.2.7 is UnRAR 7.23, the release the desktop builds ship
+# (desktop/unrar.json).
+ARG UNRAR_VERSION=7.2.7
+ARG UNRAR_SHA256=01d903a7dcf413cb2925696d7796e48e38d471f79bfe7ef3ad2aebf6c12dbefd
+RUN apk add --no-cache g++ make \
+    && wget -qO /tmp/unrarsrc.tar.gz "https://www.rarlab.com/rar/unrarsrc-${UNRAR_VERSION}.tar.gz" \
+    && echo "${UNRAR_SHA256}  /tmp/unrarsrc.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/unrarsrc.tar.gz -C /tmp \
+    && make -C /tmp/unrar -f makefile -j"$(nproc)" \
+    && install -Dm755 /tmp/unrar/unrar /out/unrar \
+    && install -Dm644 /tmp/unrar/license.txt /out/license.txt
+
 FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 # The JRE runs the private headless JDownloader that KL_PROVISION_JD starts by
 # default, which DLC and other container links need. tini is PID 1 so the
 # ffmpeg left behind when a yt-dlp download is stopped gets reaped.
-RUN apk add --no-cache ca-certificates yt-dlp ffmpeg tzdata openjdk21-jre-headless tini \
+RUN apk add --no-cache ca-certificates yt-dlp ffmpeg tzdata openjdk21-jre-headless tini libstdc++ \
     && adduser -D -u 1000 knight
 COPY --from=build /out/knightloader /usr/local/bin/knightloader
+COPY --from=unrar /out/unrar /usr/local/bin/unrar
+COPY --from=unrar /out/license.txt /usr/share/licenses/unrar/license.txt
 
 # Data (SQLite, settings, encrypted accounts) and downloads live on volumes.
 ENV KL_DATA=/data \

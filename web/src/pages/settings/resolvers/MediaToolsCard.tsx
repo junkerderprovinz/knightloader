@@ -33,6 +33,9 @@ const FFMPEG_LINKS = [
   { label: 'ffmpeg.org/legal', href: 'https://ffmpeg.org/legal.html' },
 ];
 
+/** Where RARLAB publishes UnRAR and its licence. */
+const RARLAB = 'https://www.rarlab.com/';
+
 /** Where the badge lands: the yt-dlp sub-card of the updates, named after the part. */
 const YTDLP_UPDATES = { page: 'look', title: 'settings.look.updatesTitle', label: 'health.part.ytdlp' } as const;
 
@@ -71,6 +74,12 @@ export function MediaToolsCard({ hue }: { hue: number }) {
           <ToolRow name="yt-dlp" tool={tools?.ytdlp} missingHint={t('settings.resolvers.toolsYtdlpMissingHint')} showSource />
           <ToolRow name="ffmpeg" tool={tools?.ffmpeg} missingHint={t('settings.resolvers.toolsFfmpegMissingHint')} showSource />
           <ToolRow name="ffprobe" tool={tools?.ffprobe} missingHint={t('settings.resolvers.toolsFfmpegMissingHint')} showSource />
+          <ToolRow
+            name="UnRAR"
+            tool={tools?.unrar}
+            missing={t('settings.resolvers.toolsUnrarBuiltIn')}
+            missingHint={t('settings.resolvers.toolsUnrarMissingHint')}
+          />
           {jd && <JDRow jd={jd} />}
         </ul>
       </div>
@@ -85,6 +94,14 @@ export function MediaToolsCard({ hue }: { hue: number }) {
               </a>
             </span>
           ))}
+        </p>
+      )}
+      {tools?.unrar?.found && (
+        <p className="text-xs text-carbon-textMuted">
+          {t('settings.resolvers.toolsUnrarLicence')}{' '}
+          <a href={RARLAB} target="_blank" rel="noreferrer noopener" onClick={followExternal} dir="ltr" className="underline hover:text-carbon-text">
+            rarlab.com
+          </a>
         </p>
       )}
     </Card>

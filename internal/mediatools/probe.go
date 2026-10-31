@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
@@ -18,6 +19,8 @@ type Status struct {
 	Ytdlp   Tool `json:"ytdlp"`
 	FFmpeg  Tool `json:"ffmpeg"`
 	FFprobe Tool `json:"ffprobe"`
+	// Unrar is RARLAB's UnRAR, which unpacks RAR sets when it is there.
+	Unrar Tool `json:"unrar"`
 	// Managed is the record of a fetched copy, present whenever one has been
 	// recorded, including when that copy no longer starts, which is the case
 	// somebody needs to be told about. Ytdlp.Source says whether it is the one
@@ -149,6 +152,12 @@ func (p *Prober) probe() Status {
 	st.FFmpeg.Source = ff.FFmpegSource
 	st.FFprobe = probeTool(ff.FFprobe, "-version", ffmpegVersion)
 	st.FFprobe.Source = ff.FFprobeSource
+
+	st.Unrar = Tool{Path: extract.UnrarPath(), Version: extract.UnrarVersion(), Source: Source(extract.UnrarSource())}
+	st.Unrar.Found = st.Unrar.Version != ""
+	if !st.Unrar.Found {
+		st.Unrar.Detail = "no UnRAR that starts: neither KL_UNRAR, nor one beside the program, nor \"unrar\" on PATH; RAR sets are unpacked by the built-in reader"
+	}
 
 	if p.dataDir != "" {
 		if rec, err := LoadRecord(p.dataDir); err == nil && rec != nil {
