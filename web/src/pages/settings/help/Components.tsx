@@ -310,12 +310,20 @@ function NewsButton() {
 
 /**
  * jdMissing says what stands in for JDownloader's revision while the desktop
- * build sets up its own, and why a setup failed.
+ * build sets up its own, with how far the download of the Java runtime that
+ * runs it has come, and why a setup failed.
  */
-function jdMissing(t: Translate, jd: JDStatus): Status {
+function jdMissing(t: Translate, lang: string, jd: JDStatus): Status {
   switch (jd.setup) {
-    case 'starting':
-      return { text: t('settings.resolvers.toolsJdStarting') };
+    case 'starting': {
+      const text = t('settings.resolvers.toolsJdStarting');
+      const total = jd.setupTotal ?? 0;
+      const done = jd.setupDone ?? 0;
+      if (total <= 0 || done >= total) return { text };
+      // Floored, so it never says 100 % before the last byte is in.
+      const share = Math.floor((done * 100) / total) / 100;
+      return { text: `${text} · ${new Intl.NumberFormat(lang, { style: 'percent' }).format(share)}` };
+    }
     case 'failed':
       return {
         text: t('settings.resolvers.toolsJdFailed'),
@@ -717,7 +725,7 @@ const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * the same once a day when none of JD's downloads runs.
  */
 function JDUpdates() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { cfg, patch } = useDraft();
   const [jd, setJd] = useState<JDStatus | null>(null);
   // Null before a check, then whether JDownloader answered it.
@@ -816,7 +824,7 @@ function JDUpdates() {
 
   // While the desktop build sets up its own JDownloader, or after that failed,
   // the row says so.
-  const setupNote = jd && !jd.configured ? jdMissing(t, jd) : null;
+  const setupNote = jd && !jd.configured ? jdMissing(t, lang, jd) : null;
   let status: Status | null = null;
   if (setupNote) status = setupNote;
   else if (restarting) status = { text: t('settings.look.jdUpdating') };

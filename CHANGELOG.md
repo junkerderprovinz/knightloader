@@ -128,7 +128,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the right edge its version, which leads to its release or project page. The
   versions line up in one column. The switches for automatic updates sit
   right under KnightLoader, yt-dlp and JDownloader. A status keeps its (i)
-  only when something went wrong and needs you.
+  only when something went wrong and needs you, and one that is under way
+  says how far it has come, such as "Being set up · 45%" while the desktop
+  app fetches the Java runtime for JDownloader.
 - **The size column moved.** In the link collector it is the last column, and
   on Downloads it stands just left of the progress bar. A layout stored before
   takes the new order once; widths and hidden columns stay. A focused column

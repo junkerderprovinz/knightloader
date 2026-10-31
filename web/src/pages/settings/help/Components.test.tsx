@@ -466,11 +466,14 @@ describe('installing an update on the desktop build', () => {
 });
 
 describe('the JDownloader backend the desktop build sets up', () => {
-  it('says JDownloader is being set up while its Java runtime arrives', async () => {
+  it('shows in the status how far the Java runtime has come while JDownloader is being set up', async () => {
     answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'starting', setupDone: 30, setupTotal: 120 };
     await draw();
-    expect(status('JDownloader backend')).toBe('Being set up');
+    expect(status('JDownloader backend')).toBe('Being set up · 25%');
     expect(detail('JDownloader backend')).toBe('');
+    answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'starting', setupDone: 90, setupTotal: 120 };
+    await act(() => new Promise((resolve) => setTimeout(resolve, 1100)));
+    expect(status('JDownloader backend')).toBe('Being set up · 75%');
   });
 
   it('says why the setup failed and tries again on request', async () => {
