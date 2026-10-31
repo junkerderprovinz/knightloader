@@ -146,7 +146,7 @@ export const downloadsCommands: Command[] = [
   {
     // The id stays as it is, since stored shortcut overrides are keyed by it.
     id: 'downloads.toggleSearch',
-    // The Search button's name, not the empty field's placeholder
+    // The search's own name, not the empty field's placeholder
     // (check-placeholder-as-label.mjs).
     labelKey: 'search.toggle',
     icon: IconSearch,

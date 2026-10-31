@@ -1,7 +1,7 @@
 // The collector's facets narrow staged links by host, file type or package,
-// computed from the tasks on screen. They stand in the Filter window under the
-// quick filters (ListBar.tsx). Availability is not a facet here because
-// ListToolbar's filter chips already cover it.
+// computed from the tasks on screen. The ▾ in the Hoster head opens the host,
+// the one in the Name head the file type and the package. Availability is not
+// a facet here because the Status head's quick filters already cover it.
 import { useMemo } from 'react';
 import type { Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
@@ -165,18 +165,20 @@ function toggled<T>(set: ReadonlySet<T>, value: T): Set<T> {
 }
 
 /**
- * CollectorFacets is the facets' part of the Filter window. `tasks` is the
- * collected set before any narrowing, so a count never shrinks because another
- * switch is on.
+ * CollectorFacets is a column's filter window, holding the facets that column
+ * narrows by (`kinds`). `tasks` is the collected set before any narrowing, so
+ * a count never shrinks because another switch is on.
  */
 export function CollectorFacets({
   tasks,
   selection,
   onChange,
+  kinds,
 }: {
   tasks: Task[];
   selection: FacetSelection;
   onChange: (next: FacetSelection) => void;
+  kinds: FacetKind[];
 }) {
   const { t } = useT();
 
@@ -206,7 +208,8 @@ export function CollectorFacets({
   );
 
   const set = (kind: FacetKind, value: string) => onChange({ ...selection, [kind]: toggled(selection[kind], value) });
-  const activeCount = facetActiveCount(selection);
+  const activeCount = kinds.reduce((n, k) => n + selection[k].size, 0);
+  const clear = () => onChange({ ...selection, ...Object.fromEntries(kinds.map((k) => [k, new Set<string>()])) });
 
   return (
     <div className="flex flex-col gap-3" data-new="collector-filter">
@@ -222,21 +225,27 @@ export function CollectorFacets({
           title={t('collector.facets.clearAll')}
           aria-label={t('collector.facets.clearAll')}
           disabled={activeCount === 0}
-          onClick={() => onChange(EMPTY_FACETS)}
+          onClick={clear}
         />
       </div>
 
       {/* Side by side where the window has the width, one under the other on
           a phone. */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <FacetGroup title={t('columns.host')} options={hostOptions} active={selection.host} onToggle={(v) => set('host', v)} />
-        <FacetGroup
-          title={t('collector.facets.fileType')}
-          options={typeOptions}
-          active={selection.fileType}
-          onToggle={(v) => set('fileType', v)}
-        />
-        <FacetGroup title={t('search.package')} options={pkgOptions} active={selection.package} onToggle={(v) => set('package', v)} />
+      <div className={`grid gap-4 ${kinds.length > 1 ? 'sm:grid-cols-2' : ''}`}>
+        {kinds.includes('host') && (
+          <FacetGroup title={t('columns.host')} options={hostOptions} active={selection.host} onToggle={(v) => set('host', v)} />
+        )}
+        {kinds.includes('fileType') && (
+          <FacetGroup
+            title={t('collector.facets.fileType')}
+            options={typeOptions}
+            active={selection.fileType}
+            onToggle={(v) => set('fileType', v)}
+          />
+        )}
+        {kinds.includes('package') && (
+          <FacetGroup title={t('search.package')} options={pkgOptions} active={selection.package} onToggle={(v) => set('package', v)} />
+        )}
       </div>
     </div>
   );

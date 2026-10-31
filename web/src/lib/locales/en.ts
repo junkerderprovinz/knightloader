@@ -184,6 +184,9 @@ export const en = {
   'downloads.pauseAll': 'Pause all',
   'downloads.resumeAll': 'Resume all',
   'downloads.retryFailed': 'Reset failed',
+  'downloads.stats.label': 'Download totals',
+  'downloads.stats.loaded': '{loaded} of {total} loaded',
+  'downloads.stats.links': '{n} links',
   // The failure chips' tooltip. It names the count as well as the cause because
   // the chip is a bulk action on rows a filter may be hiding, and "12" beside a
   // list showing three of them is the number that has to be said out loud.
@@ -615,6 +618,9 @@ export const en = {
   'list.sortedView': 'Sorted order',
   'list.sortedViewTip': 'Sorting changes the order you see, not the order that runs. Downloads still start in queue order, which the sort menu shows under Queue order.',
   'list.filter': 'Filter',
+  'list.filterColumn': 'Filter {name}',
+  'list.headerTip': 'Click sorts · ▾ filters · just type to search',
+  'list.headerTipTouch': 'Tap sorts · press and hold to filter and search',
   'list.sort': 'Sort',
   'list.sortQueue': 'Queue order',
   'list.sortAsc': 'Ascending',
@@ -738,6 +744,7 @@ export const en = {
   'menu.expandAll': 'Expand all packages',
   'collector.checkAll': 'Check all',
   'search.toggle': 'Search',
+  'search.close': 'Close search',
 
   'skipped.summary': '{n|one:# link was not added|other:# links were not added}',
   'skipped.info': 'Links and files that did not become downloads, each with its reason. A link already in the list, or already among the rejected links, is only noted here: the copy there is the one that stays. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that no Usenet server or service could fetch, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',

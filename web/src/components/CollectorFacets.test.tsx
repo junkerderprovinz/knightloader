@@ -36,7 +36,7 @@ function Panel() {
   const [picked, setPicked] = useState<FacetSelection>(EMPTY_FACETS);
   return (
     <>
-      <CollectorFacets tasks={TASKS} selection={picked} onChange={setPicked} />
+      <CollectorFacets tasks={TASKS} selection={picked} onChange={setPicked} kinds={['host', 'fileType', 'package']} />
       <output>{TASKS.filter((x) => matchesFacets(x, picked)).map((x) => x.id).join(' ')}</output>
     </>
   );

@@ -338,7 +338,6 @@ export const RELEASES: Release[] = [
       },
       {
         id: 'list-bar',
-        to: LISTS,
         text: 'whatsnew.change.listBar',
         names: { filter: 'list.filter', sort: 'list.sort', search: 'search.toggle' },
       },
@@ -439,7 +438,7 @@ export const RELEASES: Release[] = [
       { id: 'search-box', to: ['/settings', ...LISTS, ...ACCOUNTS], text: 'whatsnew.change.searchBox' },
       {
         id: 'search-button',
-        to: [...LISTS, '/settings/advanced', '/settings/diagnostics'],
+        to: ['/settings/advanced', '/settings/diagnostics'],
         text: 'whatsnew.change.searchButton',
         names: {
           search: 'search.toggle',

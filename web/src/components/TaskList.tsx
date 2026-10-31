@@ -84,7 +84,8 @@ import {
   type PresetMenus,
 } from './VariantPicker';
 import { ColumnMenu } from './ColumnMenu';
-import type { MenuGroup } from './ContextMenu';
+import { ContextMenu, type MenuGroup } from './ContextMenu';
+import { AnchoredPanel } from './AnchoredPanel';
 import type { Rename } from './ListToolbar';
 import { nameFault, renameRefusal } from './RenameDialog';
 import {
@@ -157,6 +158,7 @@ import {
   IconClose,
   IconCollapse,
   IconExpand,
+  IconFilter,
   IconFolder,
   IconFolderOpen,
   IconGear,
@@ -310,7 +312,20 @@ export function useCollapsedPackages(profile: ListProfile = 'downloads') {
   return { collapsed, collapse, expand, toggle };
 }
 
-/** A card's sort as the Sort button above the list offers it (ListBar.tsx). */
+/**
+ * sortMenuGroups is the sort the right-click on a list's empty space offers:
+ * one card sorts from the entry itself, several get an entry each, named by
+ * the card, with its own menu behind it.
+ */
+export function sortMenuGroups(sorts: ListSort[], label: string): MenuGroup[] {
+  const inner: MenuGroup[] =
+    sorts.length === 1
+      ? sorts[0].groups
+      : [{ id: 'cards', items: sorts.map((s) => ({ id: s.title, label: s.title, detail: s.current, submenu: s.groups })) }];
+  return [{ id: 'sort', items: [{ id: 'sort', label, detail: sorts.length === 1 ? sorts[0].current : undefined, submenu: inner }] }];
+}
+
+/** A card's sort as a menu, which the right-click on the list offers. */
 export interface ListSort {
   /** The card's title, which names its entry where a page has several cards. */
   title: string;
@@ -1368,25 +1383,57 @@ function Header({
   profile,
   sort,
   onSort,
+  onSortDir,
   onReorder,
   onStep,
   onResize,
   onResizeReset,
   onMenu,
+  filters,
+  onSearch,
+  tip,
+  onTipDone,
 }: {
   layout: ResolvedLayout;
   profile: ListProfile;
   sort: SortState | null;
   onSort: (id: ColumnId) => void;
+  onSortDir: (id: ColumnId, dir: SortState['dir']) => void;
   onReorder: (id: ColumnId, target: ColumnId, after: boolean) => void;
   onStep: (id: ColumnId, towardsEnd: boolean) => void;
   onResize: (id: ColumnId, phase: 'start' | 'move' | 'end', e: PointerEvent<HTMLElement>) => void;
   onResizeReset: (id: ColumnId) => void;
   onMenu: (at: { x: number; y: number }) => void;
+  filters?: ColumnFilters;
+  onSearch?: () => void;
+  /** Whether the card shows the line saying what the heads do by itself, which the hover then leaves alone. */
+  tip: boolean;
+  onTipDone: () => void;
 }) {
   const { t } = useT();
   const [dragId, setDragId] = useState<ColumnId | null>(null);
   const row = useRef<HTMLDivElement>(null);
+  // The ▾ whose filter is open, and the element its window hangs under.
+  const [filterOpen, setFilterOpen] = useState<ColumnId | null>(null);
+  const filterAnchor = useRef<HTMLElement | null>(null);
+  const closeFilter = useCallback(() => setFilterOpen(null), []);
+  // A touch screen has no hover and no right button: a long press on a head
+  // opens what a mouse finds by pointing, and the click it ends in sorts nothing.
+  const [touchMenu, setTouchMenu] = useState<{ id: ColumnId; at: { x: number; y: number } } | null>(null);
+  const press = useRef<{ timer: number; x: number; y: number } | null>(null);
+  const longPressed = useRef(false);
+  const touched = useRef(false);
+
+  const endPress = () => {
+    if (press.current) window.clearTimeout(press.current.timer);
+    press.current = null;
+  };
+
+  function openFilter(id: ColumnId, at: HTMLElement) {
+    filterAnchor.current = at;
+    setFilterOpen(id);
+    onTipDone();
+  }
   // The column a key press moved, whose head gets the focus back once it is
   // drawn in its new place.
   const [stepped, setStepped] = useState<ColumnId | null>(null);
@@ -1413,7 +1460,12 @@ function Header({
       style={ROW_GRID}
       onContextMenu={(e) => {
         e.preventDefault();
+        // A touch screen's own long press is the one handled below.
+        if (touched.current) return;
         onMenu({ x: e.clientX, y: e.clientY });
+      }}
+      onPointerDown={(e) => {
+        touched.current = e.pointerType === 'touch';
       }}
       // group/header: hovering anywhere on the header lights up every column
       // boundary at once. Per-handle hover would not do, because the handle is
@@ -1448,7 +1500,34 @@ function Header({
                 onStep(col.id, (e.key === 'ArrowRight') !== rtl);
                 setStepped(col.id);
               }}
-              onClick={() => sortable && onSort(col.id)}
+              onPointerDown={(e) => {
+                if (e.pointerType !== 'touch') return;
+                longPressed.current = false;
+                const at = { x: e.clientX, y: e.clientY };
+                press.current = {
+                  ...at,
+                  timer: window.setTimeout(() => {
+                    longPressed.current = true;
+                    press.current = null;
+                    setTouchMenu({ id: col.id, at });
+                  }, LONG_PRESS),
+                };
+              }}
+              onPointerMove={(e) => {
+                const p = press.current;
+                if (p && Math.hypot(e.clientX - p.x, e.clientY - p.y) > PRESS_SLOP) endPress();
+              }}
+              onPointerUp={endPress}
+              onPointerCancel={endPress}
+              onClick={() => {
+                if (longPressed.current) {
+                  longPressed.current = false;
+                  return;
+                }
+                if (!sortable) return;
+                onSort(col.id);
+                onTipDone();
+              }}
               aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined}
               className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 ${HEAD_LABEL} transition-colors ${
                   col.align === 'end' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'
@@ -1460,6 +1539,26 @@ function Header({
               {sorted === 'asc' && <IconMoveUp width={11} height={11} className="shrink-0" />}
               {sorted === 'desc' && <IconMoveDown width={11} height={11} className="shrink-0" />}
             </button>
+            {filters?.[col.id] && (
+              <button
+                type="button"
+                aria-label={t('list.filterColumn', { name: t(col.labelKey) })}
+                title={t('list.filterColumn', { name: t(col.labelKey) })}
+                aria-haspopup="dialog"
+                aria-expanded={filterOpen === col.id}
+                onClick={(e) => openFilter(col.id, e.currentTarget)}
+                className={`relative me-1 grid h-5 w-5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors hover:bg-carbon-hover hover:text-carbon-text ${
+                  filters[col.id]?.active ? 'text-carbon-text' : 'text-carbon-textMuted'
+                }`}
+              >
+                <IconExpand width={11} height={11} />
+                {/* A narrowed column carries the accent, as a list button
+                    with a filter on did. */}
+                {filters[col.id]?.active && (
+                  <span aria-hidden className="absolute -end-0.5 -top-0.5 h-2 w-2 rounded-[var(--radius-pill)] bg-accent" />
+                )}
+              </button>
+            )}
 
             {/* Double-click gives a column its built-in width back, which is the
                 only way out of a column dragged down to its minimum. */}
@@ -1472,13 +1571,106 @@ function Header({
         );
       })}
 
-      {/* The bubble explaining the header, right-click for the column menu and
-          click a label to sort, sits on the card's title badge, where
-          TaskListCard renders it. This row holds nothing but the column labels
-          and their resize handles. */}
+      {/* What the heads do, under the pointer. Until somebody has used them
+          once the card shows the same line below them by itself (HeaderTip). */}
+      {!tip && (
+        <div
+          role="note"
+          className="pointer-events-none absolute start-2 top-full z-10 mt-1 hidden rounded-[var(--radius-control)] bg-carbon-surface2 px-2.5 py-1 text-meta text-carbon-textSub shadow-sm [@media(hover:hover)]:group-hover/header:block"
+        >
+          {t('list.headerTip')}
+        </div>
+      )}
+
+      {filterOpen && filters?.[filterOpen] && (
+        <AnchoredPanel
+          anchor={filterAnchor}
+          title={t('list.filterColumn', { name: t(COLUMN_BY_ID.get(filterOpen)!.labelKey) })}
+          onClose={closeFilter}
+          narrow
+        >
+          {filters[filterOpen]!.panel}
+        </AnchoredPanel>
+      )}
+
+      {touchMenu && (
+        <ContextMenu
+          anchor={{ x: touchMenu.at.x, y: touchMenu.at.y }}
+          label={t(COLUMN_BY_ID.get(touchMenu.id)!.labelKey)}
+          onClose={() => setTouchMenu(null)}
+          groups={[
+            {
+              id: 'sort',
+              heading: t(COLUMN_BY_ID.get(touchMenu.id)!.labelKey),
+              items: COLUMN_BY_ID.get(touchMenu.id)?.compare
+                ? [
+                    { id: 'asc', label: t('list.sortAsc'), icon: <IconMoveUp />, onSelect: () => onSortDir(touchMenu.id, 'asc') },
+                    { id: 'desc', label: t('list.sortDesc'), icon: <IconMoveDown />, onSelect: () => onSortDir(touchMenu.id, 'desc') },
+                  ]
+                : [],
+            },
+            {
+              id: 'find',
+              items: [
+                ...(filters?.[touchMenu.id]
+                  ? [
+                      {
+                        id: 'filter',
+                        label: t('list.filter'),
+                        icon: <IconFilter />,
+                        onSelect: () => {
+                          const head = row.current?.querySelector<HTMLElement>(`[data-col="${touchMenu.id}"]`);
+                          if (head) openFilter(touchMenu.id, head);
+                        },
+                      },
+                    ]
+                  : []),
+                ...(onSearch ? [{ id: 'search', label: t('search.toggle'), icon: <IconSearch />, onSelect: onSearch }] : []),
+              ],
+            },
+            {
+              id: 'columns',
+              items: [{ id: 'columns', label: t('columns.menuTitle'), onSelect: () => onMenu(touchMenu.at) }],
+            },
+          ]}
+        />
+      )}
     </div>
   );
 }
+
+/**
+ * HeaderTip says what the column heads do, below them, until somebody closes
+ * it or uses a head. A touch screen gets the long press in place of the hover.
+ */
+function HeaderTip({ onDone }: { onDone: () => void }) {
+  const { t } = useT();
+  const touch = useMemo(() => typeof window !== 'undefined' && window.matchMedia?.('(hover: none)').matches, []);
+  return (
+    <div role="note" className={`flex items-center gap-2 border-b border-carbon-border/60 ${ROW_EDGES} py-1.5 text-meta text-carbon-textSub`}>
+      <span className="px-2">{t(touch ? 'list.headerTipTouch' : 'list.headerTip')}</span>
+      <button
+        type="button"
+        aria-label={t('common.close')}
+        title={t('common.close')}
+        onClick={onDone}
+        className="grid h-5 w-5 place-items-center rounded-[var(--radius-control)] hover:bg-carbon-surface3 hover:text-carbon-text"
+      >
+        <IconClose width={10} height={10} />
+      </button>
+    </div>
+  );
+}
+
+/** How long a finger rests on a head before its menu opens, and how far it may drift meanwhile. */
+const LONG_PRESS = 500;
+const PRESS_SLOP = 10;
+
+/**
+ * ColumnFilters is what a list lets each column narrow it by: the window under
+ * the column's ▾, and whether it narrows the list at the moment.
+ */
+export type ColumnFilters = Partial<Record<ColumnId, { active: boolean; panel: ReactNode }>>;
 
 /** Which box was edited. Nothing else is sent; see TaskProperties. */
 type PropField = 'name' | 'package' | 'dir' | 'comment' | 'priority' | 'autoExtract' | 'resolver';
@@ -1948,10 +2140,16 @@ export function TaskListCard({
   fold,
   edge,
   rename,
+  filters,
+  onSearch,
 }: {
   groups: [string, Task[]][];
   base: string;
   selection?: Selection;
+  /** What each column's ▾ narrows the list by, where it offers one. */
+  filters?: ColumnFilters;
+  /** Opens the list's search, which a long press on a head offers on a touch screen. */
+  onSearch?: () => void;
   /** The page's rename windows, which the properties panel offers per name. */
   rename?: Rename;
   /**
@@ -2000,6 +2198,12 @@ export function TaskListCard({
 
   const [stored, setStored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, defaultSort(profile));
+  // One line for every list says what the column heads do, until somebody
+  // closes it or uses a head.
+  const [tipDone, setTipDone] = useUIState<boolean>('list.headerTipDone', false);
+  const doneWithTip = useCallback(() => {
+    if (!tipDone) setTipDone(true);
+  }, [tipDone, setTipDone]);
   const { collapsed, collapse, expand, toggle } = useCollapsedPackages(profile);
   // The torrents whose files are shown under their row, by task id. Kept like
   // the folded packages, and trimmed to the tasks on the list at every write.
@@ -3546,6 +3750,11 @@ export function TaskListCard({
                 profile={profile}
                 sort={sort}
                 onSort={(id) => setSort(nextSort(storedSort, id, defaultSort(profile)))}
+                onSortDir={(id, dir) => setSort({ id, dir })}
+                filters={filters}
+                onSearch={onSearch}
+                tip={!tipDone}
+                onTipDone={doneWithTip}
                 onReorder={(id, target, after) =>
                   persist({ order: moveColumn(layout.order.map((c) => c.id), id, target, after) })
                 }
@@ -3563,6 +3772,7 @@ export function TaskListCard({
                 onResizeReset={resetWidth}
                 onMenu={setMenuAt}
               />
+              {!tipDone && <HeaderTip onDone={doneWithTip} />}
 
               {/* `rows` is built from `view` and not from liveView: the rows
                   stay in the order the server last gave for the whole of a

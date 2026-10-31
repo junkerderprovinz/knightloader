@@ -73,6 +73,17 @@ export const collectorCommands: Command[] = [
     },
   },
   {
+    id: 'collector.toggleSearch',
+    labelKey: 'search.toggle',
+    icon: IconSearch,
+    group: 'commands.group.collector',
+    surfaces: ['collector'],
+    defaultShortcut: 'mod+f',
+    enabled: () => true,
+    visible: () => true,
+    run: (ctx) => ctx.openSearch(),
+  },
+  {
     id: 'collector.selectAll',
     labelKey: 'select.all',
     icon: IconSelectAll,
