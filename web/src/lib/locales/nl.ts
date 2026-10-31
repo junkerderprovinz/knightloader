@@ -3771,7 +3771,7 @@ export const nl: Dict = {
   'accounts.routing.priorityEntry': 'Nieuwe link',
   'accounts.routing.priorityNone': 'Er is geen account verbonden, dus er is nog geen volgorde om in te stellen.',
   'accounts.routing.checkFailed': 'De laatste controle van dit account is mislukt: {reason}',
-  'settings.captcha.orderIntro': 'De afbeelding is de volgorde: een captcha gaat eerst naar het captcha-account bovenaan en dan verder omlaag. Sleep een naam om hem te verplaatsen.',
+  'settings.captcha.orderIntro': 'De afbeelding is de volgorde: een captcha gaat eerst naar het account bovenaan en dan omlaag. Sleep een naam om hem te verplaatsen.',
   'settings.captcha.orderEntry': 'Nieuwe captcha',
   'whatsnew.change.captchaPriority': '“{name}” zet je gekoppelde captcha-accounts op volgorde zoals “{download}” de backends. Wanneer ze beginnen en de testcaptcha staan er ook in.',
   'whatsnew.change.priorityNames': 'In “{download}” en “{captcha}” staat bij elk genummerd punt de naam er direct naast, op een smalle kaart op een tweede regel, en de greep om te slepen zit aan het eind van de regel.',

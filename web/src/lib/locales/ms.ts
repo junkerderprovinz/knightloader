@@ -3788,7 +3788,7 @@ export const ms: Dict = {
   'accounts.routing.priorityEntry': 'Pautan baharu',
   'accounts.routing.priorityNone': 'Tiada akaun disambungkan, jadi belum ada susunan untuk ditetapkan.',
   'accounts.routing.checkFailed': 'Semakan terakhir akaun ini gagal: {reason}',
-  'settings.captcha.orderIntro': 'Gambar ini ialah susunannya: captcha pergi dahulu ke akaun captcha di atas sekali, kemudian ke bawah. Seret nama untuk memindahkannya.',
+  'settings.captcha.orderIntro': 'Gambar ini ialah susunannya: captcha pergi dahulu ke akaun di atas sekali, kemudian ke bawah. Seret nama untuk memindahkannya.',
   'settings.captcha.orderEntry': 'Captcha baharu',
   'whatsnew.change.captchaPriority': '“{name}” menyusun akaun captcha anda yang disambungkan seperti “{download}” menyusun bahagian belakang. Bila ia bermula dan captcha ujian juga ada di situ.',
   'whatsnew.change.priorityNames': 'Dalam “{download}” dan “{captcha}”, setiap perkara bernombor mempunyai namanya di sebelahnya, pada baris kedua jika kad sempit, dan pemegang untuk menyeret berada di hujung baris.',

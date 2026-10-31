@@ -3786,7 +3786,7 @@ export const tr: Dict = {
   'accounts.routing.priorityEntry': 'Yeni bağlantı',
   'accounts.routing.priorityNone': 'Bağlı bir hesap yok, bu yüzden henüz ayarlanacak bir sıra da yok.',
   'accounts.routing.checkFailed': 'Bu hesabın son denetimi başarısız oldu: {reason}',
-  'settings.captcha.orderIntro': 'Resim sıranın kendisidir: bir captcha önce en üstteki captcha hesabına gider, sonra aşağı iner. Bir adı taşımak için sürükle.',
+  'settings.captcha.orderIntro': 'Resim sıranın kendisidir: bir captcha önce en üstteki hesaba gider, sonra aşağı iner. Bir adı taşımak için sürükle.',
   'settings.captcha.orderEntry': 'Yeni captcha',
   'whatsnew.change.captchaPriority': '“{name}”, bağlı captcha hesaplarını “{download}” arka uçları nasıl sıralıyorsa öyle sıralar. Ne zaman başladıkları ve deneme captchası da burada.',
   'whatsnew.change.priorityNames': '“{download}” ve “{captcha}” içinde numaralı her noktanın hemen yanında adı durur; kart darsa ikinci satırda. Sürüklemek için tutamaç satırın sonundadır.',

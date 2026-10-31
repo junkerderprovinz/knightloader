@@ -3790,7 +3790,7 @@ export const fi: Dict = {
   'accounts.routing.priorityEntry': 'Uusi linkki',
   'accounts.routing.priorityNone': 'Yhtään tiliä ei ole yhdistetty, joten järjestystä ei ole vielä asetettavana.',
   'accounts.routing.checkFailed': 'Tämän tilin viimeisin tarkistus epäonnistui: {reason}',
-  'settings.captcha.orderIntro': 'Kuva on järjestys: captcha menee ensin ylimmälle captcha-tilille ja sitten alaspäin. Siirrä nimeä vetämällä.',
+  'settings.captcha.orderIntro': 'Kuva on järjestys: captcha menee ensin ylimmälle tilille ja sitten alaspäin. Siirrä nimeä vetämällä.',
   'settings.captcha.orderEntry': 'Uusi captcha',
   'whatsnew.change.captchaPriority': '”{name}” järjestää yhdistetyt captcha-tilisi samalla tavalla kuin ”{download}” järjestää taustapalvelut. Siinä ovat myös niiden aloitushetki ja testicaptcha.',
   'whatsnew.change.priorityNames': '”{download}” ja ”{captcha}” näyttävät jokaisen numeroidun kohdan vieressä sen nimen, kapealla kortilla toisella rivillä, ja vetokahva on rivin lopussa.',

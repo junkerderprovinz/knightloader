@@ -4092,7 +4092,7 @@ export const en = {
   'accounts.routing.priorityEntry': 'New link',
   'accounts.routing.priorityNone': 'No account is connected, so there is no order to set yet.',
   'accounts.routing.checkFailed': 'The last check of this account failed: {reason}',
-  'settings.captcha.orderIntro': 'The picture is the order: a captcha goes to the captcha account at the top first, then on down. Drag a name to move it.',
+  'settings.captcha.orderIntro': 'The picture is the order: a captcha goes to the account at the top first, then on down. Drag a name to move it.',
   'settings.captcha.orderEntry': 'New captcha',
   'whatsnew.change.captchaPriority': '"{name}" orders your connected captcha accounts the way "{download}" orders the backends. When they start and the test captcha are in it too.',
   'whatsnew.change.priorityNames': 'In "{download}" and "{captcha}", every numbered point has its name right beside it, on a second line where the card is narrow, and the grip to drag it sits at the end of the row.',

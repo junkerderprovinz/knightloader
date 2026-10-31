@@ -3797,7 +3797,7 @@ export const sk: Dict = {
   'accounts.routing.priorityEntry': 'Nový odkaz',
   'accounts.routing.priorityNone': 'Nie je pripojený žiadny účet, takže zatiaľ nie je čo zoradiť.',
   'accounts.routing.checkFailed': 'Posledná kontrola tohto účtu zlyhala: {reason}',
-  'settings.captcha.orderIntro': 'Obrázok je poradie: captcha ide najprv k účtu captchy úplne hore a potom ďalej nadol. Meno presunieš potiahnutím.',
+  'settings.captcha.orderIntro': 'Obrázok je poradie: captcha ide najprv k účtu úplne hore a potom ďalej nadol. Meno presunieš potiahnutím.',
   'settings.captcha.orderEntry': 'Nová captcha',
   'whatsnew.change.captchaPriority': '„{name}“ radí tvoje pripojené účty captchy tak, ako „{download}“ radí backendy. Je v nej aj to, kedy začínajú, a testovacia captcha.',
   'whatsnew.change.priorityNames': 'V „{download}“ a „{captcha}“ stojí hneď vedľa každého číslovaného bodu jeho názov, na úzkej karte na druhom riadku, a úchyt na presúvanie je na konci riadka.',

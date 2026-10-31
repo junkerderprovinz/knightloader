@@ -3801,7 +3801,7 @@ export const sr: Dict = {
   'accounts.routing.priorityEntry': 'Нова веза',
   'accounts.routing.priorityNone': 'Ниједан налог није повезан, па још нема редоследа за подешавање.',
   'accounts.routing.checkFailed': 'Последња провера овог налога није успела: {reason}',
-  'settings.captcha.orderIntro': 'Слика је редослед: captcha прво иде налогу на врху, па даље надоле. Превуци име да га помериш.',
+  'settings.captcha.orderIntro': 'Слика је редослед: captcha прво иде налогу на врху, па надоле. Превуци име да га помериш.',
   'settings.captcha.orderEntry': 'Нова captcha',
   'whatsnew.change.captchaPriority': '„{name}“ ређа твоје повезане captcha налоге онако како „{download}“ ређа позадине. У њој су и када почињу и пробна captcha.',
   'whatsnew.change.priorityNames': 'У „{download}” и „{captcha}” одмах поред сваке нумерисане тачке стоји њен назив, на уској картици у другом реду, а дршка за превлачење је на крају реда.',

@@ -3855,7 +3855,7 @@ export const de: Dict = {
   'accounts.routing.priorityEntry': 'Neuer Link',
   'accounts.routing.priorityNone': 'Es ist noch kein Konto verbunden, also gibt es keine Reihenfolge festzulegen.',
   'accounts.routing.checkFailed': 'Die letzte Prüfung dieses Kontos ist fehlgeschlagen: {reason}',
-  'settings.captcha.orderIntro': 'Das Bild ist die Reihenfolge: Ein Captcha geht zuerst an das Captcha-Konto ganz oben, dann weiter nach unten. Zieh einen Namen an eine andere Stelle, um ihn zu verschieben.',
+  'settings.captcha.orderIntro': 'Das Bild ist die Reihenfolge: Ein Captcha geht zuerst an das Konto ganz oben, dann weiter nach unten. Zieh einen Namen an eine andere Stelle, um ihn zu verschieben.',
   'settings.captcha.orderEntry': 'Neues Captcha',
   'whatsnew.change.captchaPriority': '„{name}“ ordnet deine verbundenen Captcha-Konten so, wie „{download}“ die Backends ordnet. Wann sie starten und das Test-Captcha stehen mit drin.',
   'whatsnew.change.priorityNames': 'In „{download}“ und „{captcha}“ steht direkt neben jedem nummerierten Punkt sein Name, auf einer schmalen Karte auch auf zwei Zeilen, und der Griff zum Ziehen sitzt am Ende der Zeile.',

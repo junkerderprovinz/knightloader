@@ -3804,7 +3804,7 @@ export const he: Dict = {
   'accounts.routing.priorityEntry': 'קישור חדש',
   'accounts.routing.priorityNone': 'אין חשבון מחובר, ולכן עדיין אין סדר לקבוע.',
   'accounts.routing.checkFailed': 'הבדיקה האחרונה של החשבון הזה נכשלה: {reason}',
-  'settings.captcha.orderIntro': 'התמונה היא הסדר: קאפצ׳ה הולכת קודם לחשבון הקאפצ׳ה העליון ואז הלאה למטה. גרור שם כדי להזיז אותו.',
+  'settings.captcha.orderIntro': 'התמונה היא הסדר: קאפצ׳ה הולכת קודם לחשבון העליון ואז למטה. גרור שם כדי להזיז אותו.',
   'settings.captcha.orderEntry': 'קאפצ׳ה חדשה',
   'whatsnew.change.captchaPriority': '„{name}” מסדר את חשבונות הקאפצ׳ה המחוברים שלך כמו ש„{download}” מסדר את השרתים. גם מתי הם מתחילים וגם קאפצ׳ת הבדיקה נמצאים שם.',
   'whatsnew.change.priorityNames': 'ב„{download}” וב„{captcha}” ליד כל נקודה ממוספרת מופיע שמה, בשורה שנייה כשהכרטיס צר, והידית לגרירה נמצאת בקצה השורה.',

@@ -3786,7 +3786,7 @@ export const th: Dict = {
   'accounts.routing.priorityEntry': 'ลิงก์ใหม่',
   'accounts.routing.priorityNone': 'ยังไม่มีบัญชีที่เชื่อมต่อ จึงยังไม่มีลำดับให้ตั้ง',
   'accounts.routing.checkFailed': 'การตรวจสอบบัญชีนี้ครั้งล่าสุดล้มเหลว: {reason}',
-  'settings.captcha.orderIntro': 'ภาพนี้คือลำดับ แคปช่าจะไปที่บัญชีแคปช่าบนสุดก่อน แล้วจึงลงไปตามลำดับ ลากชื่อเพื่อย้ายตำแหน่ง',
+  'settings.captcha.orderIntro': 'ภาพนี้คือลำดับ แคปช่าจะไปที่บัญชีบนสุดก่อน แล้วจึงลงไปตามลำดับ ลากชื่อเพื่อย้ายตำแหน่ง',
   'settings.captcha.orderEntry': 'แคปช่าใหม่',
   'whatsnew.change.captchaPriority': '“{name}” จัดลำดับบัญชีแคปช่าที่เชื่อมต่อแบบเดียวกับที่ “{download}” จัดลำดับแบ็กเอนด์ เวลาเริ่มทำงานและแคปช่าทดสอบก็อยู่ในนี้ด้วย',
   'whatsnew.change.priorityNames': 'ใน “{download}” และ “{captcha}” ชื่อจะอยู่ข้างจุดที่มีหมายเลขแต่ละจุดทันที โดยอยู่บรรทัดที่สองเมื่อการ์ดแคบ และที่จับสำหรับลากอยู่ท้ายแถว',

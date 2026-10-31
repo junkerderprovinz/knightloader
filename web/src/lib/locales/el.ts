@@ -3790,7 +3790,7 @@ export const el: Dict = {
   'accounts.routing.priorityEntry': 'Νέος σύνδεσμος',
   'accounts.routing.priorityNone': 'Δεν είναι συνδεδεμένος κανένας λογαριασμός, οπότε δεν υπάρχει ακόμα σειρά να ορίσεις.',
   'accounts.routing.checkFailed': 'Ο τελευταίος έλεγχος αυτού του λογαριασμού απέτυχε: {reason}',
-  'settings.captcha.orderIntro': 'Η εικόνα είναι η σειρά: ένα captcha πηγαίνει πρώτα στον λογαριασμό captcha στην κορυφή και μετά προς τα κάτω. Σύρε ένα όνομα για να το μετακινήσεις.',
+  'settings.captcha.orderIntro': 'Η εικόνα είναι η σειρά: ένα captcha πηγαίνει πρώτα στον λογαριασμό στην κορυφή και μετά πιο κάτω. Σύρε ένα όνομα για να το μετακινήσεις.',
   'settings.captcha.orderEntry': 'Νέο captcha',
   'whatsnew.change.captchaPriority': 'Το «{name}» ταξινομεί τους συνδεδεμένους λογαριασμούς captcha όπως το «{download}» ταξινομεί τα backends. Εκεί είναι και το πότε ξεκινούν και το δοκιμαστικό captcha.',
   'whatsnew.change.priorityNames': 'Στα «{download}» και «{captcha}», κάθε αριθμημένο σημείο έχει το όνομά του ακριβώς δίπλα του, σε δεύτερη γραμμή όταν η κάρτα είναι στενή, και η λαβή για σύρσιμο βρίσκεται στο τέλος της γραμμής.',

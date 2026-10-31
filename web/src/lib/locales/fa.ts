@@ -3777,7 +3777,7 @@ export const fa: Dict = {
   'accounts.routing.priorityEntry': 'لینک تازه',
   'accounts.routing.priorityNone': 'هیچ حسابی وصل نیست، پس هنوز ترتیبی برای تنظیم وجود ندارد.',
   'accounts.routing.checkFailed': 'آخرین بررسی این حساب ناموفق بود: {reason}',
-  'settings.captcha.orderIntro': 'تصویر همان ترتیب است: کپچا اول به حساب کپچای بالایی می‌رود و بعد پایین‌تر. برای جابه‌جا کردن یک نام، آن را بکش.',
+  'settings.captcha.orderIntro': 'تصویر همان ترتیب است: کپچا اول به حساب بالایی می‌رود و بعد پایین‌تر. برای جابه‌جا کردن یک نام، آن را بکش.',
   'settings.captcha.orderEntry': 'کپچای تازه',
   'whatsnew.change.captchaPriority': '«{name}» حساب‌های کپچای متصلت را همان‌طور مرتب می‌کند که «{download}» بک‌اندها را. زمان شروعشان و کپچای آزمایشی هم همان‌جاست.',
   'whatsnew.change.priorityNames': 'در «{download}» و «{captcha}»، نام هر نقطهٔ شماره‌دار درست کنار آن است، در کارت باریک در خط دوم، و دستگیرهٔ کشیدن در انتهای ردیف قرار دارد.',

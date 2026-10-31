@@ -3789,7 +3789,7 @@ export const hu: Dict = {
   'accounts.routing.priorityEntry': 'Új link',
   'accounts.routing.priorityNone': 'Nincs csatlakoztatott fiók, így még nincs mit sorba rendezni.',
   'accounts.routing.checkFailed': 'A fiók legutóbbi ellenőrzése nem sikerült: {reason}',
-  'settings.captcha.orderIntro': 'A kép maga a sorrend: a captcha először a legfelső captcha-fiókhoz kerül, aztán lefelé halad. Egy nevet húzással helyezhetsz át.',
+  'settings.captcha.orderIntro': 'A kép maga a sorrend: a captcha először a legfelső fiókhoz kerül, aztán lefelé halad. Egy nevet húzással helyezhetsz át.',
   'settings.captcha.orderEntry': 'Új captcha',
   'whatsnew.change.captchaPriority': 'A(z) „{name}” úgy rendezi a csatlakoztatott captcha-fiókjaidat, ahogy a(z) „{download}” a háttérrendszereket. Az is itt van, mikor indulnak, és a próba-captcha is.',
   'whatsnew.change.priorityNames': 'A(z) „{download}” és a(z) „{captcha}” minden számozott pontja mellett ott a neve, keskeny kártyán egy második sorban, a húzófogantyú pedig a sor végén van.',

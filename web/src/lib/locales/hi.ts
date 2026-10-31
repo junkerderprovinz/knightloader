@@ -3789,7 +3789,7 @@ export const hi: Dict = {
   'accounts.routing.priorityEntry': 'नया लिंक',
   'accounts.routing.priorityNone': 'कोई खाता जुड़ा नहीं है, इसलिए अभी तय करने के लिए कोई क्रम नहीं है।',
   'accounts.routing.checkFailed': 'इस खाते की पिछली जाँच विफल रही: {reason}',
-  'settings.captcha.orderIntro': 'तस्वीर ही क्रम है: कैप्चा सबसे पहले सबसे ऊपर वाले कैप्चा खाते के पास जाता है, फिर नीचे की ओर। किसी नाम को खिसकाने के लिए उसे खींचें।',
+  'settings.captcha.orderIntro': 'तस्वीर ही क्रम है: कैप्चा सबसे पहले सबसे ऊपर वाले खाते के पास जाता है, फिर नीचे की ओर। किसी नाम को खिसकाने के लिए उसे खींचें।',
   'settings.captcha.orderEntry': 'नया कैप्चा',
   'whatsnew.change.captchaPriority': '“{name}” आपके जुड़े हुए कैप्चा खातों को उसी तरह क्रम में रखता है जैसे “{download}” बैकएंड को। वे कब शुरू होते हैं और टेस्ट कैप्चा भी इसी में है।',
   'whatsnew.change.priorityNames': '“{download}” और “{captcha}” में हर क्रमांकित बिंदु के ठीक पास उसका नाम दिखता है, संकरे कार्ड पर दूसरी पंक्ति में, और खींचने की पकड़ पंक्ति के अंत में होती है।',

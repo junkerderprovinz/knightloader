@@ -3774,7 +3774,7 @@ export const ko: Dict = {
   'accounts.routing.priorityEntry': '새 링크',
   'accounts.routing.priorityNone': '연결된 계정이 없어서 아직 정할 순서가 없습니다.',
   'accounts.routing.checkFailed': '이 계정의 마지막 확인이 실패했습니다: {reason}',
-  'settings.captcha.orderIntro': '그림이 곧 순서입니다. 캡차는 맨 위의 캡차 계정으로 먼저 가고 그다음 아래로 내려갑니다. 이름을 끌어서 옮기세요.',
+  'settings.captcha.orderIntro': '그림이 곧 순서입니다. 캡차는 맨 위의 계정으로 먼저 가고 그다음 아래로 내려갑니다. 이름을 끌어서 옮기세요.',
   'settings.captcha.orderEntry': '새 캡차',
   'whatsnew.change.captchaPriority': '“{name}”은 “{download}”이 백엔드를 정렬하는 방식으로 연결된 캡차 계정을 정렬합니다. 시작 시점과 테스트 캡차도 여기에 있습니다.',
   'whatsnew.change.priorityNames': '“{download}”와 “{captcha}”에서는 번호가 붙은 각 항목 바로 옆에 이름이 표시되고, 카드가 좁으면 둘째 줄에 표시됩니다. 끌어서 옮기는 손잡이는 줄 끝에 있습니다.',

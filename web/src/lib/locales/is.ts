@@ -3783,7 +3783,7 @@ export const is: Dict = {
   'accounts.routing.priorityEntry': 'Nýr tengill',
   'accounts.routing.priorityNone': 'Enginn aðgangur er tengdur, svo það er engin röð til að stilla enn.',
   'accounts.routing.checkFailed': 'Síðasta athugun á þessum aðgangi mistókst: {reason}',
-  'settings.captcha.orderIntro': 'Myndin er röðin: captcha fer fyrst til captcha-reikningsins efst og svo niður. Dragðu nafn til að færa það.',
+  'settings.captcha.orderIntro': 'Myndin er röðin: captcha fer fyrst á efsta reikninginn og svo niður. Dragðu nafn til að færa það.',
   'settings.captcha.orderEntry': 'Ný captcha',
   'whatsnew.change.captchaPriority': '„{name}“ raðar tengdu captcha-reikningunum þínum eins og „{download}“ raðar bakendum. Hvenær þeir byrja og prufu-captcha eru þar líka.',
   'whatsnew.change.priorityNames': 'Í „{download}“ og „{captcha}“ er nafnið beint við hlið hvers númeraðs liðar, í annarri línu þar sem spjaldið er þröngt, og gripið til að draga situr aftast í línunni.',

@@ -3786,7 +3786,7 @@ export const sl: Dict = {
   'accounts.routing.priorityEntry': 'Nova povezava',
   'accounts.routing.priorityNone': 'Noben račun ni povezan, zato še ni vrstnega reda za nastavitev.',
   'accounts.routing.checkFailed': 'Zadnje preverjanje tega računa ni uspelo: {reason}',
-  'settings.captcha.orderIntro': 'Slika je vrstni red: captcha gre najprej k računu captch na vrhu, nato navzdol. Povleci ime, da ga premakneš.',
+  'settings.captcha.orderIntro': 'Slika je vrstni red: captcha gre najprej k računu na vrhu, nato navzdol. Povleci ime, da ga premakneš.',
   'settings.captcha.orderEntry': 'Nova captcha',
   'whatsnew.change.captchaPriority': '»{name}« razvrsti tvoje povezane račune captch tako, kot »{download}« razvrsti zaledja. Tam sta tudi, kdaj začnejo, in preizkusna captcha.',
   'whatsnew.change.priorityNames': 'V »{download}« in »{captcha}« je tik ob vsaki oštevilčeni točki njeno ime, na ozki kartici v drugi vrstici, ročaj za vlečenje pa je na koncu vrstice.',

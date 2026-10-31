@@ -3801,7 +3801,7 @@ export const hr: Dict = {
   'accounts.routing.priorityEntry': 'Nova poveznica',
   'accounts.routing.priorityNone': 'Nijedan račun nije povezan, pa još nema redoslijeda za postaviti.',
   'accounts.routing.checkFailed': 'Posljednja provjera ovog računa nije uspjela: {reason}',
-  'settings.captcha.orderIntro': 'Slika je redoslijed: captcha ide prvo računu captche na vrhu, a zatim prema dolje. Povuci ime da ga premjestiš.',
+  'settings.captcha.orderIntro': 'Slika je redoslijed: captcha ide prvo do računa na vrhu, a zatim prema dolje. Povuci ime da ga premjestiš.',
   'settings.captcha.orderEntry': 'Nova captcha',
   'whatsnew.change.captchaPriority': '„{name}” slaže tvoje povezane račune captche onako kako „{download}” slaže pozadine. U njoj su i kada počinju i probna captcha.',
   'whatsnew.change.priorityNames': 'U „{download}” i „{captcha}” svaka numerirana točka ima svoje ime odmah pokraj sebe, u drugom retku kad je kartica uska, a ručka za povlačenje je na kraju retka.',

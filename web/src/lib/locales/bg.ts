@@ -3788,7 +3788,7 @@ export const bg: Dict = {
   'accounts.routing.priorityEntry': 'Нов линк',
   'accounts.routing.priorityNone': 'Няма свързан акаунт, така че още няма ред за подреждане.',
   'accounts.routing.checkFailed': 'Последната проверка на този акаунт е неуспешна: {reason}',
-  'settings.captcha.orderIntro': 'Картината е редът: captcha отива първо при captcha акаунта най-горе, после надолу. Плъзни име, за да го преместиш.',
+  'settings.captcha.orderIntro': 'Картината е редът: captcha отива първо при акаунта най-горе, после надолу. Плъзни име, за да го преместиш.',
   'settings.captcha.orderEntry': 'Нова captcha',
   'whatsnew.change.captchaPriority': '„{name}“ подрежда свързаните ти captcha акаунти така, както „{download}“ подрежда бекендите. Вътре са и кога започват, и тестовата captcha.',
   'whatsnew.change.priorityNames': 'В „{download}“ и „{captcha}“ всяка номерирана точка има името си точно до себе си, на втори ред, когато картата е тясна, а дръжката за влачене е в края на реда.',

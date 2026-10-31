@@ -3788,7 +3788,7 @@ export const sv: Dict = {
   'accounts.routing.priorityEntry': 'Ny länk',
   'accounts.routing.priorityNone': 'Inget konto är anslutet, så det finns ingen ordning att ställa in än.',
   'accounts.routing.checkFailed': 'Den senaste kontrollen av det här kontot misslyckades: {reason}',
-  'settings.captcha.orderIntro': 'Bilden är ordningen: en captcha går först till captcha-kontot högst upp och sedan vidare nedåt. Dra ett namn för att flytta det.',
+  'settings.captcha.orderIntro': 'Bilden är ordningen: en captcha går först till kontot högst upp och sedan nedåt. Dra ett namn för att flytta det.',
   'settings.captcha.orderEntry': 'Ny captcha',
   'whatsnew.change.captchaPriority': '”{name}” ordnar dina anslutna captcha-konton så som ”{download}” ordnar bakändarna. När de startar och test-captchan finns där också.',
   'whatsnew.change.priorityNames': 'I ”{download}” och ”{captcha}” står namnet precis bredvid varje numrerad punkt, på ett smalt kort på en andra rad, och greppet för att dra sitter i slutet av raden.',
