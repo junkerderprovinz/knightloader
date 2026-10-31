@@ -58,10 +58,18 @@ func TestANameSaysBestWhereTheSiteGivesNoQuality(t *testing.T) {
 	}
 }
 
-func TestTheSideRowsKeepThePlainTitle(t *testing.T) {
+func TestEachSideRowWritesUnderItsOwnMark(t *testing.T) {
 	for _, v := range []Variant{VariantThumbnail, VariantSubtitle, VariantDescription} {
-		if got := outputTemplate(Options{Variant: v}); got != defaultOutputTemplate {
-			t.Errorf("%s template = %q, want the plain title", v, got)
+		o := Options{Variant: v, SideTag: "high"}
+		got := fill(outputTemplate(o), map[string]string{"title": "Clip", "ext": "jpg"})
+		if got != "Clip.kl-high.jpg" {
+			t.Errorf("%s name = %q, want the row's mark after the title", v, got)
+		}
+		if other := fill(outputTemplate(Options{Variant: v, SideTag: "low"}), map[string]string{"title": "Clip", "ext": "jpg"}); other == got {
+			t.Errorf("two %s rows of one video both named %q", v, got)
+		}
+		if shown := o.shown("Clip.kl-high.de"); shown != "Clip.de" {
+			t.Errorf("%s row shows %q, want the name without its mark", v, shown)
 		}
 	}
 	if got := outputTemplate(Options{Variant: VariantVideo, Embed: Embed{Separate: true}}); got != defaultOutputTemplate {

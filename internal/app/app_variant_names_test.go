@@ -3,104 +3,160 @@ package app
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
-// family stages one paste of a link: a finished video row named by its
-// quality and a finished subtitle row with the plain title, written into dir.
-func family(t *testing.T, a *App, dir, id string, at time.Time, video, subtitle string) (videoID, subID string) {
+const clipURL = "https://video.example/watch?v=clip"
+
+// pick stages one paste of the clip as a queued video, thumbnail and
+// description row, the way a variant family shares its URL and creation time.
+func pick(t *testing.T, a *App, id string, at time.Time) (video, thumb, desc string) {
 	t.Helper()
-	for _, name := range []string{video, subtitle} {
-		if err := os.WriteFile(filepath.Join(dir, name), []byte(name), 0o600); err != nil {
-			t.Fatal(err)
-		}
+	video, thumb, desc = id+"-video", id+"-thumb", id+"-desc"
+	for _, r := range []struct{ id, variant string }{{video, "video"}, {thumb, "thumbnail"}, {desc, "description"}} {
+		putTask(t, a, core.Task{ID: r.id, URL: clipURL, Variant: r.variant, Status: core.StatusQueued, Enabled: true, CreatedAt: at})
 	}
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	videoID, subID = id+"-video", id+"-sub"
-	a.tasks[videoID] = &core.Task{ID: videoID, URL: "https://video.example/watch?v=clip", Variant: "video", Status: core.StatusDone, File: filepath.Join(dir, video), CreatedAt: at}
-	a.tasks[subID] = &core.Task{ID: subID, URL: "https://video.example/watch?v=clip", Variant: "subtitle", Status: core.StatusDone, File: filepath.Join(dir, subtitle), CreatedAt: at}
-	return videoID, subID
+	return video, thumb, desc
 }
 
-func TestEachPickOfOneVideoKeepsItsOwnSubtitlesBesideIt(t *testing.T) {
-	a, err := New(t.TempDir())
+// finish writes name into dir and settles row id on it, as the backend does.
+func finish(t *testing.T, a *App, dir, id, name string) string {
+	t.Helper()
+	path := filepath.Join(dir, name)
+	if err := os.WriteFile(path, []byte(name), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	a.onUpdate(id, core.Update{Status: core.StatusDone, File: path, Name: strings.TrimSuffix(name, filepath.Ext(name))})
+	return path
+}
+
+// sideFile is the name a side row writes before its video names it.
+func sideFile(id, ext string) string {
+	return "Clip" + ytdlp.SideMark(id) + ext
+}
+
+func filesIn(t *testing.T, dir string) []string {
+	t.Helper()
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { a.Close() })
-	dir := t.TempDir()
-	first, second := time.Unix(1_000, 0), time.Unix(2_000, 0)
-	// The second family's subtitles met the first's under the plain title
-	// and were counted by the collision policy.
-	highVideo, highSub := family(t, a, dir, "high", first, "Clip (1080p).mkv", "Clip.de.srt")
-	lowVideo, lowSub := family(t, a, dir, "low", second, "Clip (720p).mkv", "Clip.de (2).srt")
+	var out []string
+	for _, e := range entries {
+		out = append(out, e.Name())
+	}
+	return out
+}
 
-	a.mu.Lock()
-	renamed := len(a.matchVariantNamesLocked(a.tasks[highVideo])) + len(a.matchVariantNamesLocked(a.tasks[lowVideo]))
-	gotHigh, gotLow := a.tasks[highSub].File, a.tasks[lowSub].File
-	nameHigh := a.tasks[highSub].Name
-	a.mu.Unlock()
-
-	if renamed != 2 {
-		t.Errorf("%d side rows renamed, want both subtitle rows", renamed)
-	}
-	if want := filepath.Join(dir, "Clip (1080p).de.srt"); gotHigh != want {
-		t.Errorf("1080p subtitles at %q, want %q", gotHigh, want)
-	}
-	if want := filepath.Join(dir, "Clip (720p).de.srt"); gotLow != want {
-		t.Errorf("720p subtitles at %q, want %q", gotLow, want)
-	}
-	if nameHigh != "Clip (1080p).de" {
-		t.Errorf("subtitle row named %q, want it after its file", nameHigh)
-	}
-	for _, f := range []string{gotHigh, gotLow} {
-		if _, err := os.Stat(f); err != nil {
-			t.Errorf("no file at %q: %v", f, err)
+func noMarkLeft(t *testing.T, dir string) {
+	t.Helper()
+	for _, name := range filesIn(t, dir) {
+		if strings.Contains(name, ".kl-") {
+			t.Errorf("%q still carries its side mark", name)
 		}
 	}
 }
 
-func TestASideRowFinishingLaterStillFollowsTheVideo(t *testing.T) {
-	a, err := New(t.TempDir())
-	if err != nil {
+func TestTwoPicksFetchingSideFilesFirstEachGetTheirOwn(t *testing.T) {
+	a := newQueueApp(t)
+	a.SetHalted(true)
+	dir := t.TempDir()
+	highVideo, highThumb, highDesc := pick(t, a, "high", time.Unix(1_000, 0))
+	lowVideo, lowThumb, lowDesc := pick(t, a, "low", time.Unix(2_000, 0))
+
+	// Both picks fetch their thumbnail and description before either video.
+	for _, id := range []string{highThumb, lowThumb} {
+		finish(t, a, dir, id, sideFile(id, ".jpg"))
+	}
+	for _, id := range []string{highDesc, lowDesc} {
+		finish(t, a, dir, id, sideFile(id, ".description"))
+	}
+	if got := taskOf(t, a, lowThumb).Name; got != "Clip"+ytdlp.SideMark(lowThumb) {
+		t.Fatalf("the waiting thumbnail row is named %q, want its marked name until the video comes", got)
+	}
+	finish(t, a, dir, lowVideo, "Clip (720p).mkv")
+	finish(t, a, dir, highVideo, "Clip (1080p).mkv")
+
+	for id, want := range map[string]string{
+		highThumb: "Clip (1080p).jpg",
+		highDesc:  "Clip (1080p).description",
+		lowThumb:  "Clip (720p).jpg",
+		lowDesc:   "Clip (720p).description",
+	} {
+		got := taskOf(t, a, id)
+		if got.File != filepath.Join(dir, want) {
+			t.Errorf("%s at %q, want %q", id, got.File, want)
+		}
+		if _, err := os.Stat(got.File); err != nil {
+			t.Errorf("no file at %q: %v", got.File, err)
+		}
+		if name := strings.TrimSuffix(want, filepath.Ext(want)); got.Name != name {
+			t.Errorf("%s named %q, want %q", id, got.Name, name)
+		}
+	}
+	noMarkLeft(t, dir)
+}
+
+func TestASideFileWhoseVideoFailsTakesThePlainTitle(t *testing.T) {
+	a := newQueueApp(t)
+	a.SetHalted(true)
+	dir := t.TempDir()
+	video, thumb, _ := pick(t, a, "lone", time.Unix(1_000, 0))
+	finish(t, a, dir, thumb, sideFile(thumb, ".jpg"))
+	a.onUpdate(video, core.Update{Status: core.StatusError, Err: "no space left on device", Reason: core.ReasonDiskFull})
+
+	if got, want := taskOf(t, a, thumb).File, filepath.Join(dir, "Clip.jpg"); got != want {
+		t.Errorf("thumbnail at %q, want %q", got, want)
+	}
+	noMarkLeft(t, dir)
+}
+
+func TestRemovingTheVideoOrASideRowLeavesNoMarkedFile(t *testing.T) {
+	a := newQueueApp(t)
+	a.SetHalted(true)
+	dir := t.TempDir()
+	// A Clip.jpg from an earlier download keeps its name.
+	if err := os.WriteFile(filepath.Join(dir, "Clip.jpg"), nil, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { a.Close() })
-	dir := t.TempDir()
-	_, subID := family(t, a, dir, "clip", time.Unix(1_000, 0), "Clip (best).mp4", "Clip.jpg")
-	a.mu.Lock()
-	a.tasks[subID].Variant = "thumbnail"
-	a.matchVariantNamesLocked(a.tasks[subID])
-	got := a.tasks[subID].File
-	a.mu.Unlock()
-	if want := filepath.Join(dir, "Clip (best).jpg"); got != want {
-		t.Errorf("thumbnail at %q, want %q beside the video", got, want)
+	video, thumb, desc := pick(t, a, "gone", time.Unix(1_000, 0))
+	finish(t, a, dir, thumb, sideFile(thumb, ".jpg"))
+	finish(t, a, dir, desc, sideFile(desc, ".description"))
+
+	a.Remove(desc, false)
+	if _, err := os.Stat(filepath.Join(dir, "Clip.description")); err != nil {
+		t.Errorf("the removed description row left no Clip.description: %v", err)
 	}
+	a.Remove(video, false)
+	if got, want := taskOf(t, a, thumb).File, filepath.Join(dir, "Clip (2).jpg"); got != want {
+		t.Errorf("thumbnail at %q, want %q beside the earlier Clip.jpg", got, want)
+	}
+	noMarkLeft(t, dir)
 }
 
 func TestARowNamedByHandOrAVideoWithoutQualityKeepsItsName(t *testing.T) {
-	a, err := New(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { a.Close() })
+	a := newQueueApp(t)
+	a.SetHalted(true)
 	dir := t.TempDir()
-	videoID, subID := family(t, a, dir, "typed", time.Unix(1_000, 0), "Clip.mkv", "Clip.de.srt")
-	a.mu.Lock()
-	if n := len(a.matchVariantNamesLocked(a.tasks[videoID])); n != 0 {
-		t.Errorf("%d rows renamed after a video without a quality in its name", n)
+	video, thumb, _ := pick(t, a, "typed", time.Unix(1_000, 0))
+	finish(t, a, dir, thumb, sideFile(thumb, ".jpg"))
+	finish(t, a, dir, video, "Clip.mkv")
+	if got, want := taskOf(t, a, thumb).File, filepath.Join(dir, "Clip.jpg"); got != want {
+		t.Errorf("thumbnail beside a video without quality at %q, want %q", got, want)
 	}
-	a.mu.Unlock()
 
-	videoID, subID = family(t, a, dir, "hand", time.Unix(2_000, 0), "Other (720p).mkv", "Other.de.srt")
+	video, thumb, _ = pick(t, a, "hand", time.Unix(2_000, 0))
 	a.mu.Lock()
-	a.tasks[subID].Filename = "mine.srt"
-	if n := len(a.matchVariantNamesLocked(a.tasks[videoID])); n != 0 {
-		t.Errorf("%d rows renamed although the subtitle row was named by hand", n)
-	}
+	a.tasks[thumb].Filename = "mine.jpg"
 	a.mu.Unlock()
+	finish(t, a, dir, thumb, sideFile(thumb, ".jpg"))
+	finish(t, a, dir, video, "Clip (720p).mkv")
+	if got, want := taskOf(t, a, thumb).File, filepath.Join(dir, "mine.jpg"); got != want {
+		t.Errorf("thumbnail named by hand at %q, want %q", got, want)
+	}
 }

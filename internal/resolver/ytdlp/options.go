@@ -40,6 +40,9 @@ type Options struct {
 	// AudioTracks), copied as it is instead of converted to AudioFormat. Like
 	// VideoPick it has no settings key.
 	AudioTrack string `json:"-"`
+	// SideTag is the task ID a thumbnail, subtitle or description row puts in
+	// its file name (see SideMark). Like VideoPick it has no settings key.
+	SideTag string `json:"-"`
 	// AudioBitrate is the --audio-quality target in kbit/s ("192"), read only
 	// for VariantAudio. Empty asks for the best quality, --audio-quality 0. It
 	// has no effect on a "best" extract, which copies the source stream.
@@ -411,6 +414,20 @@ const DefaultSubtitleLangs = "en"
 
 // defaultOutputTemplate is the -o template when none is set.
 const defaultOutputTemplate = "%(title)s.%(ext)s"
+
+// SideMark is what a side row with SideTag tag writes after the title until
+// its video names it: "Clip.kl-<id>.jpg". Two picks of one video fetch the
+// same thumbnail and description, and yt-dlp skips a file whose name is
+// already there, so without it only the first pick would get one.
+func SideMark(tag string) string { return ".kl-" + tag }
+
+// shown is the name a row shows for a file it wrote, without the side mark.
+func (o Options) shown(name string) string {
+	if o.SideTag == "" {
+		return name
+	}
+	return strings.Replace(name, SideMark(o.SideTag), "", 1)
+}
 
 // maxFieldLen bounds the free-text fields against a pathological paste. It is
 // a sanity limit, not a security boundary.

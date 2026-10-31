@@ -1650,6 +1650,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Status == core.StatusDone && a.noteUsenetDoneLocked(t) {
 		checkUsenet = local.LinkJob(t.URL)
 	}
+	// A video row that has given up leaves its side rows their plain title.
+	if t.Status == core.StatusError {
+		named = append(named, a.matchVariantNamesLocked(t)...)
+	}
 	// A finished download that completes an archive continues as an
 	// extraction (see extractionDueLocked).
 	var extractCopy *taskCopy

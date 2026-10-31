@@ -72,6 +72,8 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 		if t.AudioBitrate != "" {
 			base.AudioBitrate = t.AudioBitrate
 		}
+	case ytdlp.VariantThumbnail, ytdlp.VariantSubtitle, ytdlp.VariantDescription:
+		base.SideTag = t.ID
 	}
 	return base
 }

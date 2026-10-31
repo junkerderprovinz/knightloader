@@ -1154,6 +1154,10 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)
 	delete(a.tasks, id)
+	var named []taskCopy
+	if t != nil {
+		named = a.settleRemovedVariantLocked(t, deleteFiles)
+	}
 	delete(a.active, id)
 	delete(a.started, id)
 	delete(a.fellBack, id)
@@ -1188,6 +1192,9 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 			}
 		}
 		ytdlp.Discard(id, workFolders, work, a.usedByOther)
+	}
+	for i := range named {
+		a.publish(&named[i])
 	}
 	if usenetJob != "" {
 		// Without this download, what is left of the release may be ready for its check.

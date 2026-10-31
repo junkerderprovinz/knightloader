@@ -379,7 +379,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			// A video kept apart keeps the name of its video while the audio
 			// comes in.
 			if p.Filename != "" && (!apart || final == "") {
-				u.Name = filepath.Base(p.Filename)
+				u.Name = opts.shown(filepath.Base(p.Filename))
 			}
 			if opts.Live.Enabled && p.Live {
 				guard.begin(time.Now())
@@ -415,7 +415,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 				continue
 			}
 			final = name
-			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: filepath.Base(name), WorkFile: name})
+			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: opts.shown(filepath.Base(name)), WorkFile: name})
 			continue
 		}
 		if path, ok := wroteFile(line); ok && b.ownFile(taskID, dir, out, path) {
@@ -560,7 +560,7 @@ func (b *Backend) placeSubtitles(taskID, stage, dir string, o Options, final str
 		// name from the progress lines.
 		return core.Update{
 			Status: core.StatusError,
-			Name:   strings.TrimSuffix(filepath.Base(skipped), filepath.Ext(skipped)),
+			Name:   o.shown(strings.TrimSuffix(filepath.Base(skipped), filepath.Ext(skipped))),
 			Err:    "not downloaded: " + skipped + " already exists",
 			Code:   core.CodeFileExists,
 			Params: map[string]string{"file": filepath.Base(skipped)},
@@ -620,7 +620,7 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 		// progress lines, and shows the extension of its kind next to the
 		// name (see core.Task.Ext). The NFO and the measurement describe
 		// media, and an info json beside a thumbnail is the video row's.
-		u.Name = strings.TrimSuffix(filepath.Base(final), filepath.Ext(final))
+		u.Name = o.shown(strings.TrimSuffix(filepath.Base(final), filepath.Ext(final)))
 		return u
 	}
 	info, haveInfo := infoDict{}, false
@@ -1107,6 +1107,8 @@ func outputTemplate(o Options) string {
 		return audioOutputTemplate
 	case o.Variant == VariantVideo && !o.Embed.Separate:
 		return videoOutputTemplate
+	case o.SideTag != "":
+		return "%(title)s" + SideMark(o.SideTag) + ".%(ext)s"
 	}
 	return defaultOutputTemplate
 }
@@ -1114,10 +1116,10 @@ func outputTemplate(o Options) string {
 // The quality in a media file's name: the height of the video stream and the
 // bitrate of the audio one, "best" where the site does not say. The brackets
 // stand outside the fields, since a ")" inside a replacement ends yt-dlp's
-// field. The thumbnail, subtitle and description rows write the plain title
-// and are named after their video once it is written (internal/app's
-// app_variant_names.go). A video kept as separate streams keeps the plain
-// title too, its two files told apart by their format codes.
+// field. The thumbnail, subtitle and description rows write the title with
+// their SideMark and are named after their video once it is written
+// (internal/app's app_variant_names.go). A video kept as separate streams
+// keeps the plain title, its two files told apart by their format codes.
 const (
 	videoOutputTemplate = "%(title)s (%(height&{}p|best)s).%(ext)s"
 	audioOutputTemplate = "%(title)s (%(abr&{:.0f}kbit|best)s).%(ext)s"

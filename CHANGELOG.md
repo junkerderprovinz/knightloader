@@ -104,8 +104,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   "best" where the site does not say, so two picks of one video land beside
   each other. The thumbnail, subtitles and description take the video's name,
   "Title (1080p).jpg" and "Title (1080p).de.srt", so Plex, Jellyfin and Kodi
-  pair them with it. A typed output template, music mode and separate streams keep
-  their own names. The download list has no Variant column any more; the
+  pair them with it. Two picks of one video each get their own thumbnail and
+  description, even when both are fetched before either video is done, and a
+  video that fails or is removed leaves them the plain "Title.jpg". A typed
+  output template, music mode and separate streams keep their own names. The
+  download list has no Variant column any more; the
   row's details name the pick, and the collector keeps its pickers.
 - **Downloads has a totals card.** It says how much of the list is loaded and
   how many links it holds. There, and in the collector's totals, stand how
