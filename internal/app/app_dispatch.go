@@ -1463,6 +1463,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 		a.dispatchLocked()
 	}
 	var hitStopMark bool
+	var named []taskCopy
 	if u.Status == core.StatusDone {
 		t.Online = core.AvailOnline
 		// A link check that answered while the download ran can have left a
@@ -1479,6 +1480,12 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.WorkFiles = u.OtherFiles
 		// Renamed before anything below builds a path from t.Name.
 		_ = a.renameFinishedLocked(t)
+		// The side rows of a yt-dlp link follow the video row's name.
+		for _, c := range a.matchVariantNamesLocked(t) {
+			if c.ID != id {
+				named = append(named, c)
+			}
+		}
 		if a.stopMark == id {
 			// Also recorded as a manual halt, so the next schedule boundary
 			// does not restart the queue.
@@ -1686,6 +1693,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 		if trig, ok := script.ClassifyTaskUpdate(tv); ok {
 			a.publishEvent(script.Firing{Trigger: trig, Task: &tv})
 		}
+	}
+	for i := range named {
+		a.publish(&named[i])
 	}
 	if extractCopy != nil {
 		a.publish(extractCopy)
