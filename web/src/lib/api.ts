@@ -698,6 +698,9 @@ export interface Settings {
   /** Has the JDownloader backend install a waiting update once a day while
    *  none of its downloads runs. */
   jdAutoUpdate: boolean;
+  /** Asks the JDownloader backend shortly after start and once a day whether
+   *  an update waits, and only asks. */
+  jdVersionCheck: boolean;
 
   /**
    * The captcha solvers to try before a human is asked, as catalogue ids in
@@ -2274,6 +2277,8 @@ export interface JDStatus {
   setupTotal?: number;
   /** The Java runtime the desktop build fetched for JDownloader. */
   runtime?: { vendor: string; version: string };
+  /** Whether the automatic question found an update JDownloader has not installed yet. */
+  updateWaits?: boolean;
 }
 
 export async function fetchJDStatus(): Promise<JDStatus> {

@@ -1429,6 +1429,9 @@ type JDStatus struct {
 	// Runtime is the Java runtime the desktop build fetched for JD, nil where
 	// JD runs on a Java of its own.
 	Runtime *jre.Record `json:"runtime,omitempty"`
+	// UpdateWaits is whether the automatic question found an update JD has
+	// not installed yet (see App.autoUpdateJD).
+	UpdateWaits bool `json:"updateWaits,omitempty"`
 }
 
 // UseJD points everything that talks to JDownloader at base and wires the
@@ -1457,6 +1460,7 @@ func (a *App) JDStatus() JDStatus {
 		return st
 	}
 	st.Reachable = true
+	st.UpdateWaits = a.jdUpdateWaits.Load()
 	v, err := c.Version()
 	if err != nil {
 		st.Detail = err.Error()
