@@ -10,6 +10,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
@@ -23,6 +24,10 @@ import (
 
 // quality is the bracket the video template puts after the title.
 var quality = regexp.MustCompile(` \([^()]*\)$`)
+
+// counter is the number renameSide puts after the title when the plain name
+// is taken.
+var counter = regexp.MustCompile(`^ \(\d+\)(\.)`)
 
 // familyLocked is the rows staged from one paste of a link: the same URL and
 // the same creation time, which every sibling copies from the video row.
@@ -108,10 +113,20 @@ func (a *App) settleRemovedVariantLocked(t *core.Task, deleteFiles bool) []taskC
 }
 
 // nameSide moves the files of side row x from their marked names to stem, or
-// to the plain title for "", and reports whether its main file moved.
+// to the plain title for "", and reports whether its main file moved. Files
+// that took the plain title because the video was still in the collector
+// move to stem once that video is done after all.
 func nameSide(x *core.Task, stem string) bool {
 	mark := ytdlp.SideMark(x.ID)
-	file, moved := renameSide(x.File, mark, stem)
+	move := func(f string) (string, bool) { return renameSide(f, mark, stem) }
+	if !strings.Contains(filepath.Base(x.File), mark) {
+		if stem == "" {
+			return false
+		}
+		title := quality.ReplaceAllString(stem, "")
+		move = func(f string) (string, bool) { return renamePlain(f, title, stem) }
+	}
+	file, moved := move(x.File)
 	if !moved {
 		return false
 	}
@@ -119,7 +134,7 @@ func nameSide(x *core.Task, stem string) bool {
 	x.Name = strings.TrimSuffix(filepath.Base(file), filepath.Ext(file))
 	// A subtitle row's further languages.
 	for i, f := range x.WorkFiles {
-		if to, ok := renameSide(f, mark, stem); ok {
+		if to, ok := move(f); ok {
 			x.WorkFiles[i] = to
 		}
 	}
@@ -149,7 +164,31 @@ func renameSide(file, mark, stem string) (string, bool) {
 		}
 		to = filepath.Join(dir, fmt.Sprintf("%s (%d)%s", stem, n, rest))
 	}
-	if err := os.Rename(file, to); err != nil {
+	return moveSide(file, to)
+}
+
+// renamePlain moves a side file named after title, with the counter
+// renameSide gave it where the plain name was taken, to stem: "Clip.jpg" and
+// "Clip (2).jpg" both become "Clip (1080p).jpg". A file named otherwise, and
+// a name already taken, are left alone.
+func renamePlain(file, title, stem string) (string, bool) {
+	rest, ok := strings.CutPrefix(filepath.Base(file), title)
+	if !ok {
+		return file, false
+	}
+	rest = counter.ReplaceAllString(rest, "$1")
+	if !strings.HasPrefix(rest, ".") {
+		return file, false
+	}
+	to := filepath.Join(filepath.Dir(file), stem+rest)
+	if _, err := os.Lstat(to); err == nil {
+		return file, false
+	}
+	return moveSide(file, to)
+}
+
+func moveSide(file, to string) (string, bool) {
+	if err := fsretry.Rename(file, to); err != nil {
 		log.Printf("did not name %q after its video: %v", file, err)
 		return file, false
 	}
