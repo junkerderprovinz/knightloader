@@ -276,7 +276,7 @@ export function Dashboard() {
         </>
       )}
       <Button
-        kind="ghost"
+        kind="secondary"
         labelled
         icon={<IconEyeOff />}
         title={t('common.hide')}

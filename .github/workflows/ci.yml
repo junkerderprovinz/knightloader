@@ -337,6 +337,9 @@ jobs:
       - name: Button order
         run: node check-button-order.mjs
 
+      - name: A button that shows words has a fill
+        run: node check-bare-buttons.mjs
+
       - name: The passkey refusal is the app's own copy
         run: node check-passkey-reason.mjs
 

@@ -27,7 +27,7 @@ export function ScrapeCard({ hue }: { hue: number }) {
         {'clipboard' in navigator && (
           <Button
             icon={copied ? <IconCheckDrawn /> : <IconCopy />}
-            kind="ghost"
+            kind="secondary"
             className="px-2.5 text-xs"
             confirm={copies}
             onClick={async () => {

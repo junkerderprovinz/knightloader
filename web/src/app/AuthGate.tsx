@@ -225,9 +225,8 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
               {step === 'password' && (
                 <div className="flex flex-col items-start gap-2">
                   <Button
-                    kind="ghost"
+                    kind="secondary"
                     icon={<IconForgotPassword />}
-                    className="-ms-3.5"
                     disabled={busy}
                     onClick={() => void forgot()}
                   >

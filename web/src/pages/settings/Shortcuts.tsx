@@ -190,7 +190,7 @@ function ShortcutRow({
         {/* Reset, then Change, which moves the row on. JSX order, so the pair
             mirrors in right-to-left languages. */}
         {isOverridden && (
-          <Button kind="ghost" icon={<IconRefresh />} className="shrink-0 px-2.5 py-1 text-xs" onClick={onReset}>
+          <Button kind="secondary" icon={<IconRefresh />} className="shrink-0 px-2.5 py-1 text-xs" onClick={onReset}>
             {t('settings.shortcuts.reset')}
           </Button>
         )}
