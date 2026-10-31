@@ -147,8 +147,9 @@ function ShellSpeed({ instance }: { instance: string }) {
  * narrow window the meter wraps under the squares, and the row gap makes up
  * for the part of the padding it takes.
  *
- * The page's totals card stands to its right through `side` (ShellSide.tsx),
- * and wraps under it where the row is too narrow for both.
+ * The page's totals card stands to its right through `side` (ShellSide.tsx), as
+ * wide as its figures need, while the graph takes the rest of the row; it
+ * wraps under the graph where the row is too narrow for both.
  */
 function ShellBar({ visible, side }: { visible: boolean; side: Ref<HTMLDivElement> }) {
   const { t } = useT();
@@ -160,7 +161,7 @@ function ShellBar({ visible, side }: { visible: boolean; side: Ref<HTMLDivElemen
       <div
         role="region"
         aria-label={t('shell.bar')}
-        className="glim-card relative flex min-w-0 flex-[2_1_36rem] flex-wrap items-center gap-6 p-5"
+        className="glim-card relative flex min-w-0 flex-[1_1_36rem] flex-wrap items-center gap-6 p-5"
       >
         {/* Out of the flow, so the badge takes no place in the row. */}
         <div className="absolute start-5 top-0">
@@ -191,7 +192,7 @@ function ShellBar({ visible, side }: { visible: boolean; side: Ref<HTMLDivElemen
         {/* The curve takes the rest of the row, up to the card's end edge. */}
         <ShellSpeed instance={instance} />
       </div>
-      <div ref={side} className="flex min-w-0 flex-[1_1_22rem] flex-col empty:hidden" />
+      <div ref={side} className="flex max-w-full flex-none flex-col empty:hidden" />
     </div>
   );
 }
