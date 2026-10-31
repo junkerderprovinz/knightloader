@@ -79,6 +79,6 @@ it('says what went wrong and what to do, and keeps the tool’s own words', () =
   );
   const text = host.textContent ?? '';
   expect(text).toContain('Vier.minus.drei.part1.rar is damaged.');
-  expect(text).toContain('Restart Vier.minus.drei.part1.rar to download it again, or get it from another mirror.');
+  expect(text).toContain('Choose Reset & restart on Vier.minus.drei.part1.rar to download it again, or get it from another mirror.');
   expect(text).toContain('rardecode: bad block header');
 });

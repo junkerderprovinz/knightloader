@@ -132,7 +132,7 @@ describe('the Filter button', () => {
     expect(rows()).toEqual(['large']);
     expect(marked('Filter')).toBe(true);
     await press(button('Show everything'));
-    expect(rows()).toEqual(['small', 'large', 'middle']);
+    expect(rows()).toEqual(['large', 'middle', 'small']);
     expect(marked('Filter')).toBe(false);
   });
 
@@ -179,8 +179,10 @@ describe('the Sort button', () => {
 
   it('offers both directions and the way back to the queue order', async () => {
     await show();
+    // Name order is the list's own, so the button wears no dot for it.
+    expect(rows()).toEqual(['large', 'middle', 'small']);
+    expect(marked('Sort')).toBe(false);
     await press(button('Sort'));
-    expect(entry('Descending').disabled).toBe(true);
     await press(entry('Size'));
     await press(button('Sort'));
     await press(entry('Descending'));
@@ -190,7 +192,7 @@ describe('the Sort button', () => {
     await press(entry('Queue order'));
     expect(sortedBy()).toBeNull();
     expect(rows()).toEqual(['small', 'large', 'middle']);
-    expect(marked('Sort')).toBe(false);
+    expect(marked('Sort')).toBe(true);
   });
 });
 

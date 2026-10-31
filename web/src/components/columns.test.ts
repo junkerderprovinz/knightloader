@@ -4,7 +4,11 @@ import type { ExtractJob, Task, TaskStatus } from '../lib/api';
 import { extractionsByTask } from './Archives';
 import {
   ACTIONS_ROOM,
+  NAME_ORDER,
+  applySort,
+  defaultSort,
   gridTemplate,
+  nextSort,
   isParked,
   packageFailures,
   packageStatus,
@@ -363,5 +367,55 @@ describe('unpackBar', () => {
     const items = [task('a1', 'extracting'), task('b1', 'running')];
     const c = ctx(job('running', ['a1'], { unpacked: 600, size: 1000 }));
     expect(packageUnpackBar(items, c)).toBeNull();
+  });
+});
+
+describe('the order of the downloads', () => {
+  const row = (id: string, name: string, status: TaskStatus, pkg = '', createdAt = '2026-10-30T10:00:00Z') =>
+    ({ id, name, url: `https://host.example/${id}`, status, package: pkg, createdAt }) as Task;
+  const names = (groups: [string, Task[]][]) => groups.map(([pkg, items]) => [pkg, items.map((t) => t.name)]);
+
+  it('reads by name unless somebody picks another order', () => {
+    expect(defaultSort('downloads')).toEqual({ id: 'name', dir: 'asc' });
+    expect(defaultSort('collector')).toBeNull();
+  });
+
+  it('puts part2 before part10, whatever the case', () => {
+    const rows = [
+      row('a', 'Film.part10.rar', 'queued'),
+      row('b', 'film.part2.rar', 'queued'),
+      row('c', 'Film.part1.rar', 'queued'),
+    ];
+    expect(names(applySort([['', rows]], NAME_ORDER))).toEqual([['', ['Film.part1.rar', 'film.part2.rar', 'Film.part10.rar']]]);
+  });
+
+  it('keeps a row where it is when it starts, finishes and unpacks', () => {
+    const steps: TaskStatus[] = ['queued', 'running', 'done', 'extracting', 'done'];
+    for (const [i, status] of steps.entries()) {
+      // The server sends a row that changed state at another place in the list.
+      const changed = row('b', 'Show.part2.rar', status);
+      const rest = [row('a', 'Show.part1.rar', 'done'), row('c', 'Show.part3.rar', 'queued')];
+      const incoming = i % 2 ? [changed, ...rest] : [...rest, changed];
+      expect(names(applySort([['Show', incoming]], NAME_ORDER)), status).toEqual([
+        ['Show', ['Show.part1.rar', 'Show.part2.rar', 'Show.part3.rar']],
+      ]);
+    }
+  });
+
+  it('orders packages by their own name', () => {
+    const groups: [string, Task[]][] = [
+      ['Zeta', [row('z', 'a.mkv', 'running')]],
+      ['Alpha 10', [row('x', 'z.mkv', 'done')]],
+      ['Alpha 2', [row('y', 'm.mkv', 'queued')]],
+    ];
+    expect(applySort(groups, NAME_ORDER).map(([pkg]) => pkg)).toEqual(['Alpha 2', 'Alpha 10', 'Zeta']);
+  });
+
+  it('goes back to the default order on the third click of a header', () => {
+    const first = nextSort(NAME_ORDER, 'size', NAME_ORDER);
+    const second = nextSort(first, 'size', NAME_ORDER);
+    expect(nextSort(second, 'size', NAME_ORDER)).toEqual(NAME_ORDER);
+    expect(nextSort(nextSort(null, 'size', null), 'size', null)).toEqual({ id: 'size', dir: 'desc' });
+    expect(nextSort({ id: 'size', dir: 'desc' }, 'size', null)).toBeNull();
   });
 });
