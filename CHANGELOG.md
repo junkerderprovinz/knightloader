@@ -86,6 +86,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   it comes from and a link to its page. KnightLoader, yt-dlp and JDownloader
   are checked and updated there. General keeps Quit & restart on a card of
   its own, and Resolvers has a line that leads to yt-dlp.
+- **The row above Downloads and the link collector is shorter.** Pause all
+  and Resume all stay in it while they can do something. Select all, Reset
+  failed with an entry per cause, Check all and Clean up moved under More,
+  and a right-click on the list's empty space offers the same. Ctrl+A still
+  selects every row.
 - **The link collector ends above Start all.** A short list stops above the
   button, and only a list long enough to scroll runs under it, with room for
   its last row to scroll clear.

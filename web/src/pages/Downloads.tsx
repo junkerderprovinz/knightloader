@@ -22,6 +22,7 @@ import { usePackageMenu } from '../components/PackageActions';
 import {
   DOWNLOAD_FILTERS,
   ListMenu,
+  ListMore,
   SeedingBadges,
   SelectionMore,
   matchesQuickFilters,
@@ -29,7 +30,6 @@ import {
   offeredQuickFilters,
   targetPackage,
   targetTaskId,
-  cleanupItems,
   queueMenuGroup,
   useCleanup,
   useQueueVerbs,
@@ -46,11 +46,11 @@ import { SelectionReach } from '../components/SelectionReach';
 import { SavedViewChips } from '../components/SavedViewChips';
 import { useListNarrowing } from '../lib/listNarrowing';
 import { useSavedViews } from '../lib/savedViews';
-import { ErrorCauses, useErrorCauses } from '../components/ErrorCauses';
+import { causeItems, useErrorCauses } from '../components/ErrorCauses';
 import { extractionsByTask, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { useFileMenu } from '../components/FileActions';
 import { useScriptMenu } from '../components/ScriptActions';
-import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu } from '../components/ContextMenu';
+import { anchorFromEvent, useContextMenu, type MenuGroup } from '../components/ContextMenu';
 import { useToast } from '../lib/toast';
 import { taskRefusal } from '../lib/taskRefusal';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
@@ -62,9 +62,7 @@ import {
   IconPlay,
   IconRetry,
   IconSearch,
-  IconSelectAll,
   IconTrash,
-  IconTrashFiles,
   IconUndo,
 } from '../lib/icons';
 
@@ -102,7 +100,6 @@ export function Downloads() {
   const { toast } = useToast();
   const menu = useContextMenu();
   // The clean-up menu opens under a badge; `menu` above opens at the pointer.
-  const cleanupMenu = useContextMenu();
   // The priorities the server implements and where the stop mark sits, for the
   // right-click menu, the More menu and the rows.
   const queueVerbs = useQueueVerbs(base);
@@ -293,15 +290,6 @@ export function Downloads() {
   // "Select all" means the rows on screen, not the whole queue.
   const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
 
-  async function openCleanup(el: HTMLButtonElement | null): Promise<void> {
-    try {
-      await cleanup.load();
-      cleanupMenu.openAt(anchorBelow(el));
-    } catch {
-      toast(t('list.optionsFailed'), 'fail');
-    }
-  }
-
   // The shell's overview strip cannot know which rows are visible, so it is told
   // (lib/listview.ts).
   useReportListView(filtered, selected);
@@ -386,28 +374,54 @@ export function Downloads() {
   const rowContent = [
     buttonLabels,
     tabLabels,
-    t('downloads.retryFailed'),
     selected.size,
     narrowed ? `${filtered.length}/${list.length}` : '',
     views.map((v) => v.name).join('\n'),
-    causes.map((c) => `${c.key}${c.count}`).join(),
     counts.running > 0,
     list.some((x) => x.status === 'paused'),
-    counts.error > 0,
   ].join('|');
-  // Short of room the row gives up, in this order, what is used least or can
-  // do with less: the cause chips, then the words beside its glyphs, then the
-  // count, then the saved views. Only a phone scrolls it.
-  const fold = useRowFit(rowRef, 5, rowContent);
-  const foldCauses = fold >= 1;
-  const glyphs = fold >= 2;
-  const hideCount = fold >= 3;
-  const compact = fold >= 4;
-  const scrolls = fold >= 5;
+  // Short of room the row gives up, in this order, what can do with less: the
+  // words beside its glyphs, then the count, then the saved views. Only a phone
+  // scrolls it.
+  const fold = useRowFit(rowRef, 4, rowContent);
+  const glyphs = fold >= 1;
+  const hideCount = fold >= 2;
+  const compact = fold >= 3;
+  const scrolls = fold >= 4;
 
   const pauseAll = () => list.filter((x) => x.status === 'running').forEach((x) => pause(x.id, base));
   const resumeAll = () => list.filter((x) => x.status === 'paused').forEach((x) => resume(x.id, base));
   const retryFailed = () => restartTasks([], base);
+
+  // Reset failed, and the same per cause once there are two causes or more.
+  // The More badge and the right-click on empty space both offer them.
+  const failedGroups: MenuGroup[] =
+    counts.error > 0
+      ? [
+          {
+            id: 'failed',
+            items: [
+              {
+                id: 'retryFailed',
+                label: t('downloads.retryFailed'),
+                detail: String(counts.error),
+                icon: <IconRetry width={14} height={14} />,
+                onSelect: () => void retryFailed(),
+              },
+              ...(causes.length > 0
+                ? [
+                    {
+                      id: 'byCause',
+                      label: t('downloads.retryByCause'),
+                      icon: <IconRetry width={14} height={14} />,
+                      submenu: [{ id: 'causes', items: causeItems(causes, base) }],
+                    },
+                  ]
+                : []),
+            ],
+          },
+        ]
+      : [];
 
   /**
    * onContextMenu opens the menu for what the pointer landed on and takes the
@@ -451,6 +465,7 @@ export function Downloads() {
     // Clean-up always runs here, never on the peer whose list is being shown.
     local: instance === '',
     members: (pkg) => byCard[menuCard].find(([name]) => name === pkg)?.[1] ?? [],
+    whole: failedGroups,
   };
 
   const selectedIds = chosen.map((x) => x.id);
@@ -505,10 +520,6 @@ export function Downloads() {
             />
           </div>
           <span data-spacer className="flex-1" />
-
-          {/* A retry per failure cause, whatever is selected, as the
-              failures concern the whole list. */}
-          <ErrorCauses causes={causes} base={base} folded={foldCauses} glyph={glyphs} />
 
           {/* The verbs in one piece, after the count of what they act on. */}
           <div className="flex shrink-0 items-center gap-2">
@@ -589,34 +600,16 @@ export function Downloads() {
                     onClick={resumeAll}
                   />
                 )}
-                {counts.error > 0 && (
-                  <IconBadge
-                    labelled={!glyphs}
-                    hue={4}
-                    icon={<IconRetry width={16} height={16} />}
-                    title={t('downloads.retryFailed')}
-                    aria-label={t('downloads.retryFailed')}
-                    onClick={retryFailed}
-                  />
-                )}
-                <IconBadge
+                {/* The rest acts on the whole list and is pressed rarely. */}
+                <ListMore
+                  hue={5}
                   labelled={!glyphs}
-                  hue={1}
-                  icon={allChosen ? <IconClearSelection width={16} height={16} /> : <IconSelectAll width={16} height={16} />}
-                  title={allChosen ? t('select.none') : t('select.all')}
-                  aria-label={allChosen ? t('select.none') : t('select.all')}
-                  disabled={filtered.length === 0}
-                  onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
-                />
-                <IconBadge
-                  labelled={!glyphs}
-                  hue={2}
-                  icon={<IconTrashFiles width={16} height={16} />}
-                  title={t('cleanup.menu')}
-                  aria-label={t('cleanup.menu')}
-                  disabled={instance !== ''}
-                  hint={instance !== '' ? t('cleanup.localOnly') : undefined}
-                  onClick={(e) => void openCleanup(e.currentTarget)}
+                  allChosen={allChosen}
+                  shown={filtered.length}
+                  onSelect={(all) => setSelected(all ? new Set(filtered.map((x) => x.id)) : new Set())}
+                  own={failedGroups}
+                  // Clean-up always runs here, never on the peer whose list is being shown.
+                  cleanup={instance === '' ? cleanup : null}
                 />
               </>
             )}
@@ -719,15 +712,6 @@ export function Downloads() {
           </>
         )}
       </div>
-
-      {cleanupMenu.anchor && cleanup.classes && (
-        <ContextMenu
-          anchor={cleanupMenu.anchor}
-          label={t('cleanup.menuLabel')}
-          onClose={cleanupMenu.close}
-          groups={[{ id: 'cleanup', items: cleanupItems(cleanup.classes, t, (cls) => void cleanup.preview(cls)) }]}
-        />
-      )}
 
       {/* `all`, since a removal weighs bytes of rows this page never shows. */}
       <ListMenu

@@ -187,9 +187,7 @@ export const en = {
   // The failure chips' tooltip. It names the count as well as the cause because
   // the chip is a bulk action on rows a filter may be hiding, and "12" beside a
   // list showing three of them is the number that has to be said out loud.
-  'downloads.retryCause': 'Retry the {n} that failed: {reason}',
-  'downloads.retryByCause': 'Retry by cause',
-  'downloads.byCause': 'By cause',
+  'downloads.retryByCause': 'Reset by cause',
   'downloads.clearFinished': 'Clear finished',
   'downloads.noMatch': 'Nothing matches this filter.',
   'downloads.finished': '{name} finished',
@@ -687,7 +685,6 @@ export const en = {
   'filter.stalled': 'Stalled',
 
   'cleanup.menu': 'Clean up',
-  'cleanup.menuLabel': 'Clean-up entries',
   'cleanup.finished': 'Remove finished',
   'cleanup.offline': 'Remove offline',
   'cleanup.disabled': 'Remove disabled links',
