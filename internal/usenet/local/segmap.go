@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // mapSuffix names the segment map beside a part file.
@@ -72,7 +74,7 @@ func (m *segMap) save(path string) error {
 	if err := os.WriteFile(tmp, b.Bytes(), 0o600); err != nil {
 		return err
 	}
-	return os.Rename(tmp, path)
+	return fsretry.Rename(tmp, path)
 }
 
 func (m *segMap) count() int {

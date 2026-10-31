@@ -10,6 +10,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 )
 
 // AutoDirName is the folder in the data directory that automatic backups are
@@ -136,7 +138,7 @@ func WriteAuto(dir string, t time.Time, sealed bool, write func(w io.Writer) err
 		err = cerr
 	}
 	if err == nil {
-		err = os.Rename(tmp, final)
+		err = fsretry.Rename(tmp, final)
 	}
 	if err != nil {
 		os.Remove(tmp)
