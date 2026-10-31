@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -71,6 +72,7 @@ func (a *App) StartJDUpdate() error {
 	if err := restartJDForUpdate(); err != nil {
 		return err
 	}
+	a.jdUpdateWaits.Store(false)
 	log.Printf("JD restarts to install its update")
 	return nil
 }
@@ -91,10 +93,13 @@ type jdUpdateState struct {
 	// the tests replace so that no JDownloader is needed.
 	checkJD   func(ctx context.Context) (bool, error)
 	restartJD func() error
+	// jdUpdateWaits is what the last automatic question found, until JD
+	// restarts to install it. JDStatus passes it on to the Components card.
+	jdUpdateWaits atomic.Bool
 }
 
-// The daily JD update waits after start for the reason the yt-dlp one does.
-// An update held back by a running JD download is tried again within the
+// The daily JD question waits after start for the reason the yt-dlp update
+// does. An update held back by a running JD download is tried again within the
 // hour rather than the next day.
 const (
 	jdAutoFirstRun = 10 * time.Minute
@@ -102,8 +107,8 @@ const (
 	jdAutoRetry    = time.Hour
 )
 
-// StartJDAutoUpdate starts the daily JDownloader update. The binaries call it
-// rather than New, which every test calls. Close stops it.
+// StartJDAutoUpdate starts the daily JDownloader question and update. The
+// binaries call it rather than New, which every test calls. Close stops it.
 func (a *App) StartJDAutoUpdate() {
 	a.spawn(func() { a.jdAutoLoop(jdAutoFirstRun, jdAutoEvery, jdAutoRetry) })
 }
@@ -127,14 +132,19 @@ func (a *App) jdAutoLoop(first, every, retry time.Duration) {
 	}
 }
 
-// autoUpdateJD is one daily run. It reports true when JD has an update that
-// waits because JD is downloading: JD restarts to install it, which would
-// break off every download it carries.
+// autoUpdateJD is one daily run: it asks JD whether an update waits while
+// either switch is on, and installs one only with JDAutoUpdate. It reports
+// true when the update waits because JD is downloading: JD restarts to install
+// it, which would break off every download it carries.
 func (a *App) autoUpdateJD() (held bool) {
-	if !a.Settings.Get().JDAutoUpdate {
+	s := a.Settings.Get()
+	if !s.JDVersionCheck && !s.JDAutoUpdate {
 		return false
 	}
 	available, err := a.checkJD(a.ctx)
+	if err == nil {
+		a.jdUpdateWaits.Store(available)
+	}
 	switch {
 	case a.ctx.Err() != nil, errors.Is(err, ErrJDUnreachable):
 		// Without a JD there is nothing to update, and one that does not
@@ -143,7 +153,7 @@ func (a *App) autoUpdateJD() (held bool) {
 	case err != nil:
 		log.Printf("JD: the daily update could not ask JD for an update: %v", err)
 		return false
-	case !available:
+	case !available, !s.JDAutoUpdate:
 		return false
 	case a.jdDownloading():
 		return true
@@ -152,6 +162,7 @@ func (a *App) autoUpdateJD() (held bool) {
 		log.Printf("JD: the daily update found an update, but JD did not take the request to install it: %v", err)
 		return false
 	}
+	a.jdUpdateWaits.Store(false)
 	log.Print("JD: the daily update found an update, and JD restarts to install it")
 	return false
 }

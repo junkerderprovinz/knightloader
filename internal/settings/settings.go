@@ -403,10 +403,10 @@ type Settings struct {
 	TorrentCard  bool `json:"torrentCard"`
 	FinishedCard bool `json:"finishedCard"`
 
-	// AutoUpdateCheck is kept as the file has it, and no build acts on it. A
-	// container is updated through its container manager, so its General tab
-	// shows the switch off and greyed out and checks only on a click of "Check
-	// for updates"; the desktop build checks on its own, see AutoUpdate.
+	// AutoUpdateCheck has a container's Components card ask GitHub for a newer
+	// release once when it opens. A container is updated through its container
+	// manager, so this only asks; the desktop build checks on its own, see
+	// AutoUpdate. On by default.
 	AutoUpdateCheck bool `json:"autoUpdateCheck"`
 
 	// AutoUpdate lets the desktop build download a newer release once a day
@@ -425,10 +425,10 @@ type Settings struct {
 	// surprise this exists to prevent.
 	KeepAwake bool `json:"keepAwake"`
 
-	// YtdlpVersionCheck asks the Resolvers page to call GET
-	// /api/mediatools/ytdlp/latest once when it loads, instead of only when
-	// somebody presses "Ask GitHub". Off by default. It never downloads and
-	// never replaces anything; YtdlpAutoUpdate is the switch that does.
+	// YtdlpVersionCheck has the Components card call GET
+	// /api/mediatools/ytdlp/latest once when it opens, instead of only when
+	// somebody presses Check all. On by default. It never downloads and never
+	// replaces anything; YtdlpAutoUpdate is the switch that does.
 	YtdlpVersionCheck bool `json:"ytdlpVersionCheck"`
 
 	// YtdlpAutoUpdate lets the app fetch a newer yt-dlp once a day, through the
@@ -444,6 +444,12 @@ type Settings struct {
 	// itself only on its first run, and a stale one loses hosters as they
 	// change.
 	JDAutoUpdate bool `json:"jdAutoUpdate"`
+
+	// JDVersionCheck lets the app ask the JDownloader backend shortly after
+	// start and then once a day whether an update waits, and show the answer
+	// on the Components card. It only asks; JDAutoUpdate is the switch that
+	// installs. On by default.
+	JDVersionCheck bool `json:"jdVersionCheck"`
 
 	// Packagizer names packages, picks folders and sets download options as
 	// links are staged. Stored exactly as the user wrote it: rules.Compile is
@@ -845,15 +851,18 @@ func Defaults() Settings {
 		MaxRetries:    3,
 		Crawl:         true,
 		// One page deep and staying on the host it was pasted from.
-		CrawlDepth:       1,
-		CrawlMaxPages:    crawler.DefaultMaxPages,
-		CrawlSameHost:    true,
-		VerifyChecksums:  true,
-		PreParserEnabled: true,
-		KeepAwake:        true,
-		AutoUpdate:       true,
-		YtdlpAutoUpdate:  true,
-		JDAutoUpdate:     true,
+		CrawlDepth:        1,
+		CrawlMaxPages:     crawler.DefaultMaxPages,
+		CrawlSameHost:     true,
+		VerifyChecksums:   true,
+		PreParserEnabled:  true,
+		KeepAwake:         true,
+		AutoUpdate:        true,
+		AutoUpdateCheck:   true,
+		YtdlpVersionCheck: true,
+		YtdlpAutoUpdate:   true,
+		JDVersionCheck:    true,
+		JDAutoUpdate:      true,
 		// AutoConfirm and AddAtTop are usable at their zero value: nothing is
 		// auto-confirmed and nothing is reordered. AutoStart is the one of the
 		// three that is not, so that confirming a link still starts it.

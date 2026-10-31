@@ -76,6 +76,7 @@ const BASE = {
   ytdlpVersionCheck: false,
   ytdlpAutoUpdate: false,
   jdAutoUpdate: false,
+  jdVersionCheck: false,
 } as Settings;
 
 async function draw(cfg: Partial<Settings> = {}) {
@@ -275,7 +276,7 @@ describe('the Components card', () => {
     await draw();
     expect(switches(settingsOf('KnightLoader'))).toEqual(['Check automatically', 'Update automatically']);
     expect(switches(settingsOf('yt-dlp'))).toEqual(['Check automatically', 'Update automatically']);
-    expect(switches(settingsOf('JDownloader backend'))).toEqual(['Update automatically']);
+    expect(switches(settingsOf('JDownloader backend'))).toEqual(['Check automatically', 'Update automatically']);
   });
 
   it('puts the switches under the name, with no window of their own', async () => {
@@ -294,27 +295,32 @@ describe('the Components card', () => {
     }
   });
 
-  it("writes the JDownloader backend's switch to its own setting", async () => {
+  it("writes the JDownloader backend's switches to its own settings", async () => {
     const patch = await draw();
-    const panel = settingsOf('JDownloader backend');
-    await act(async () => panel.querySelector<HTMLButtonElement>('[role="switch"]')!.click());
-    expect(patch.mock.calls).toEqual([[{ jdAutoUpdate: true }]]);
+    const [check, update] = settingsOf('JDownloader backend').querySelectorAll<HTMLButtonElement>('[role="switch"]');
+    await act(async () => check.click());
+    await act(async () => update.click());
+    expect(patch.mock.calls).toEqual([[{ jdVersionCheck: true }], [{ jdAutoUpdate: true }]]);
   });
 
-  it('greys out both KnightLoader switches in a container and says the container manager updates it', async () => {
-    const patch = await draw({ autoUpdateCheck: true, autoUpdate: true });
+  it('shows an update the server found for JDownloader on its own, ready to install', async () => {
+    answers['/api/resolvers/jd'] = { configured: true, reachable: true, version: 50123, updateWaits: true };
+    await draw();
+    expect(status('JDownloader backend')).toBe('Updates: 1');
+    expect(button(group('JDownloader backend'), 'Update now')).toBeDefined();
+  });
+
+  it('lets a container check on its own and greys out only the update it cannot do', async () => {
+    const patch = await draw({ autoUpdateCheck: false, autoUpdate: true });
     const panel = settingsOf('KnightLoader');
-    const rows = [...panel.querySelectorAll<HTMLButtonElement>('[role="switch"]')];
-    expect(rows.map((r) => r.getAttribute('aria-checked'))).toEqual(['false', 'false']);
-    expect(rows.map((r) => r.parentElement!.className)).toEqual([
-      expect.stringContaining('opacity-40'),
-      expect.stringContaining('opacity-40'),
-    ]);
+    const [check, update] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
+    expect(update.getAttribute('aria-checked')).toBe('false');
+    expect(update.parentElement!.className).toContain('opacity-40');
     const tip = panel.querySelector('[data-glim-label="Check automatically"] [role="note"]');
-    expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoContainerHint']);
-    await act(async () => rows[0].click());
-    expect(patch).not.toHaveBeenCalled();
-    expect(checkButton('Check all').disabled).toBe(false);
+    expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoCheckHint']);
+    await act(async () => check.click());
+    await act(async () => update.click());
+    expect(patch.mock.calls).toEqual([[{ autoUpdateCheck: true }]]);
   });
 
   it("writes yt-dlp's switches to yt-dlp's own settings", async () => {
@@ -382,7 +388,7 @@ describe('the Components card', () => {
     expect(version('KnightLoader').textContent).toBe('1.8.4');
   });
 
-  it('asks GitHub on opening only for yt-dlp, and only while its switch is on', async () => {
+  it('asks GitHub on opening only while the check switches are on', async () => {
     await draw();
     expect(asked).not.toContain('/api/system/update-check');
     expect(asked).not.toContain('/api/mediatools/ytdlp/latest');
@@ -390,7 +396,7 @@ describe('the Components card', () => {
     act(() => root.unmount());
     root = createRoot(host);
     await draw({ autoUpdateCheck: true, ytdlpVersionCheck: true });
-    expect(asked).not.toContain('/api/system/update-check');
+    expect(asked).toContain('/api/system/update-check');
     expect(asked).toContain('/api/mediatools/ytdlp/latest');
   });
 });

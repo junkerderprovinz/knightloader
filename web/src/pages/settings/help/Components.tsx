@@ -30,8 +30,8 @@ import {
   IconInstall,
   IconRefresh,
   IconRetry,
+  IconSync,
   IconUndo,
-  IconUpdate,
   IconUpdateAvailable,
   IconUpToDate,
 } from '../../../lib/icons';
@@ -95,7 +95,7 @@ type Face = { label: string; icon: ReactNode; verdict?: ButtonVerdict };
 
 /** The Check all button's face for the answers that have come back, or for none yet. */
 function checkFace(t: Translate, found: Found[] | null): Face {
-  if (found === null) return { label: t('settings.info.checkAll'), icon: <IconUpdate /> };
+  if (found === null) return { label: t('settings.info.checkAll'), icon: <IconSync /> };
   if (found.includes('failed')) return { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' };
   const newer = found.filter((f) => f === 'newer').length;
   if (newer > 0) return { label: t('settings.info.updatesFound', { n: newer }), icon: <IconUpdateAvailable />, verdict: 'warn' };
@@ -165,7 +165,7 @@ function CheckAllButton({ checks }: { checks: RefObject<Map<string, Check>> }) {
     <>
       <Button
         kind="secondary"
-        icon={checking ? <IconUpdate /> : face.icon}
+        icon={checking ? <IconSync /> : face.icon}
         verdict={checking ? undefined : face.verdict}
         shake={shake}
         disabled={checking}
@@ -473,6 +473,14 @@ function AppUpdates({ deployment, register }: { deployment: string; register: Re
   }, [follow]);
 
   const ready = check?.ready ?? (progress?.state === 'ready' ? progress.version : undefined);
+  // A container asks once on opening while its switch is on, never before
+  // the stored switch has resolved and not on every settings edit. The
+  // desktop build checks on its own.
+  useEffect(() => {
+    if (!isDesktop && cfg.autoUpdateCheck) void onCheck();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cfg.autoUpdateCheck]);
+
   const available = !!check?.checked && check.available;
   // Not while an update is being put in place.
   useCheck(register, 'knightloader', installing(progress) ? null : onCheck);
@@ -501,15 +509,13 @@ function AppUpdates({ deployment, register }: { deployment: string; register: Re
       settings={
         <>
           {/* The desktop build checks on its own and has no use for this
-              switch. A container keeps the stored value as it is, so a key
-              press on the disabled switch changes nothing either. */}
+              switch. */}
           {!isDesktop && (
             <ToggleRow
               label={t('settings.look.updatesAuto')}
-              hint={t('settings.look.updatesAutoContainerHint')}
-              checked={false}
-              disabled
-              onChange={() => {}}
+              hint={t('settings.look.updatesAutoCheckHint')}
+              checked={cfg.autoUpdateCheck}
+              onChange={(v) => patch({ autoUpdateCheck: v })}
             />
           )}
           {/* A container cannot replace itself, so there the row is disabled
@@ -519,7 +525,9 @@ function AppUpdates({ deployment, register }: { deployment: string; register: Re
             hint={isDesktop ? t('settings.look.updatesAutoUpdateHint') : t('settings.look.updatesAutoUpdateContainerHint')}
             checked={isDesktop && cfg.autoUpdate}
             disabled={!isDesktop}
-            onChange={(v) => patch({ autoUpdate: v })}
+            // A key press still reaches a greyed-out switch, and a container keeps
+            // the stored value as it is.
+            onChange={(v) => isDesktop && patch({ autoUpdate: v })}
           />
         </>
       }
@@ -856,6 +864,9 @@ function JDUpdates({ register }: { register: Register }) {
   // While the desktop build sets up its own JDownloader, or after that failed,
   // the row says so.
   const setupNote = jd && !jd.configured ? jdMissing(t, lang, jd) : null;
+  // What a check on this page found, or else what the server's own question
+  // found shortly after start or on its daily run.
+  const waits = checked === null ? Boolean(jd?.updateWaits) : checked && available;
   let status: Status | null = null;
   if (setupNote) status = setupNote;
   else if (restarting) status = { text: t('settings.look.jdUpdating') };
@@ -863,7 +874,7 @@ function JDUpdates({ register }: { register: Register }) {
   else if (failed) status = { text: t('settings.info.statusFailed'), detail: failed, tone: 'fail' };
   else if (back) status = { text: t('settings.info.statusDone'), tone: 'ok' };
   else if (jd && !jd.reachable) status = { text: t('health.state.failed'), tone: 'fail' };
-  else if (checked && available) status = { text: t('settings.info.updatesFound', { n: 1 }), tone: 'warn' };
+  else if (waits) status = { text: t('settings.info.updatesFound', { n: 1 }), tone: 'warn' };
   const busy = checking || restarting;
   // Without a JDownloader there is nothing to ask.
   useCheck(register, 'jdownloader', jd?.configured && !restarting ? onCheck : null);
@@ -879,7 +890,7 @@ function JDUpdates({ register }: { register: Register }) {
         <>
           {jd?.setup === 'failed' && <GlyphButton icon={<IconRetry />} title={t('common.retry')} onClick={() => void onRetry()} />}
           {/* Only after a check found an update, as with yt-dlp. */}
-          {jd?.configured && (restarting || (checked && available)) && (
+          {jd?.configured && (restarting || waits) && (
             <span data-new="jd-update" className="flex items-center gap-2">
               <GlyphButton
                 icon={<IconRefresh />}
@@ -893,7 +904,13 @@ function JDUpdates({ register }: { register: Register }) {
       }
       settings={
         jd?.configured && (
-          <div data-new="jd-auto-update">
+          <div data-new="jd-auto-update" className="flex flex-col gap-3">
+            <ToggleRow
+              checked={cfg.jdVersionCheck}
+              onChange={(v) => patch({ jdVersionCheck: v })}
+              label={t('settings.look.updatesAuto')}
+              hint={t('settings.look.jdAutoCheckHint')}
+            />
             <ToggleRow
               checked={cfg.jdAutoUpdate}
               onChange={(v) => patch({ jdAutoUpdate: v })}
