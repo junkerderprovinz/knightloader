@@ -111,22 +111,26 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   output template, music mode and separate streams keep their own names. The
   download list has no Variant column any more; the
   row's details name the pick, and the collector keeps its pickers.
-- **Downloads has a totals card.** It sits to the right of the speed graph and
-  wraps under it in a narrow window. It says how much of the list is loaded
-  and how many links it holds. There, and in the collector's totals, stand how
-  many rows the search and the filters show, with one click to show all again,
-  the selection and the saved views.
-- **The progress column starts wider,** so the bar has room to show. A width
-  you dragged yourself stays as it is.
+- **Downloads has a Totals card.** It sits to the right of the speed graph,
+  which wears a Speed badge, and wraps under it in a narrow window. It says
+  how much of the list is loaded, how many links it holds and how long the
+  running downloads still need, and on a second line how many are done, open
+  and failed and the average speed over the graph's window. There, and in the
+  collector's Totals card, stand how many rows the search and the filters
+  show, with one click to show all again, the selection and the saved views.
+- **The percentage sits inside the progress bar,** centred, and turns the
+  colour of the fill where the fill passes under it. The column starts wider
+  so the bar has room; a width you dragged yourself stays as it is.
 - **The link collector's card has one way less to paste.** Paste from
   clipboard is gone, since Ctrl+V and the box do the same; Watch clipboard
   wears its glyph instead.
 - **Options and Quick settings open under their button,** at one width that
   fits the seven priority steps on one line.
 - **The Components card lists each part on one line:** its name, a short
-  status where there is one, the checks and updates as small buttons, and at
-  the right edge its version, which leads to its release or project page. The
-  versions line up in one column. The switches for automatic updates sit
+  status where there is one, a small button where there is something to do,
+  such as an update to install, and at the right edge its version, which
+  leads to its release or project page. The versions line up in one column,
+  and one Check all button at the foot of the card checks every part at once. The switches for automatic updates sit
   right under KnightLoader, yt-dlp and JDownloader. A status keeps its (i)
   only when something went wrong and needs you, and one that is under way
   says how far it has come, such as "Being set up · 45%" while the desktop
