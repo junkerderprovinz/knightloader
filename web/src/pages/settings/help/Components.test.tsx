@@ -12,6 +12,14 @@ import { ComponentsCard, moduleVersion, releaseTag } from './Components';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+// jsdom lays nothing out and has no ResizeObserver, which the settings window
+// uses to place itself.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 let root: Root;
 let host: HTMLDivElement;
 
@@ -94,11 +102,25 @@ async function draw(cfg: Partial<Settings> = {}) {
   return patch;
 }
 
-/** The group under a component's heading. */
+/** The row of a component, by the name in its heading. */
 const group = (name: string) =>
   [...host.querySelectorAll('section')].find((s) => s.querySelector('h3')?.textContent === name)!;
-const button = (within: HTMLElement, words: string) =>
-  [...within.querySelectorAll('button')].find((b) => b.textContent?.includes(words))!;
+/** A button by its name, which a glyph button carries as its label. */
+const button = (within: Element, name: string) =>
+  [...within.querySelectorAll('button')].find(
+    (b) => b.getAttribute('aria-label')?.includes(name) || b.textContent?.includes(name),
+  )!;
+/** The short status of a row and the sentence behind its (i). */
+const status = (name: string) => group(name).querySelector('[role="status"]')?.textContent ?? '';
+const detail = (name: string) => group(name).querySelector('[role="status"] [role="note"]')?.getAttribute('aria-label') ?? '';
+/** The version number of a row, and where it leads. */
+const version = (name: string) => group(name).querySelector('.glim-num')!;
+
+/** Opens a row's switches and returns the window they stand in. */
+async function settingsOf(name: string): Promise<HTMLElement> {
+  await act(async () => button(group(name), 'Update settings').click());
+  return document.querySelector<HTMLElement>('[role="dialog"]')!;
+}
 const switches = (within: HTMLElement) =>
   [...within.querySelectorAll('[role="switch"]')].map((s) => s.getAttribute('aria-label'));
 
@@ -121,66 +143,53 @@ describe('the Components card', () => {
       'Gopeed',
       'SQLite',
     ]);
-    expect(group('KnightLoader').textContent).toContain('1.8.4');
-    expect(group('yt-dlp').textContent).toContain('2026.08.19');
-    expect(group('JDownloader backend').textContent).toContain('50123');
-    expect(group('ffmpeg').textContent).toContain('8.1.2');
-    expect(group('Gopeed').textContent).toContain('5111a4c');
-    expect(group('SQLite').textContent).toContain('1.60.1');
-    expect(group('UnRAR').textContent).toContain('Built-in reader');
+    expect(version('KnightLoader').textContent).toBe('1.8.4');
+    expect(version('yt-dlp').textContent).toBe('2026.08.19');
+    expect(version('JDownloader backend').textContent).toBe('50123');
+    expect(version('ffmpeg').textContent).toBe('8.1.2');
+    expect(version('Gopeed').textContent).toBe('5111a4c');
+    expect(version('SQLite').textContent).toBe('1.60.1');
+    expect(status('UnRAR')).toBe('Not found');
+    expect(detail('UnRAR')).toBe(en['settings.resolvers.toolsUnrarMissingHint']);
   });
 
-  it('shows a row as its name, its version and its link, nothing more', async () => {
+  it('shows a row as its name and its version, which leads to the release or project page', async () => {
     await draw();
-    expect(group('Gopeed').textContent).toBe('Gopeed5111a4cpkg.go.dev');
-    expect(group('ffmpeg').textContent).toBe('ffmpeg8.1.2ffmpeg.org');
-  });
-
-  it('links every component to where it comes from', async () => {
-    await draw();
-    const links = (name: string) => [...group(name).querySelectorAll('a')].map((a) => a.getAttribute('href'));
-    expect(links('KnightLoader')).toContain('https://github.com/junkerderprovinz/knightloader');
-    expect(links('yt-dlp')).toContain('https://github.com/yt-dlp/yt-dlp');
-    expect(links('JDownloader backend')).toContain('https://jdownloader.org/');
-    expect(links('GlimStone')).toContain('https://github.com/junkerderprovinz/glimstone');
-    expect(links('ffmpeg')).toContain('https://ffmpeg.org/');
-    expect(links('UnRAR')).toContain('https://www.rarlab.com/');
-    expect(links('SQLite')).toContain('https://pkg.go.dev/modernc.org/sqlite');
-  });
-
-  it('links a version number to its release page', async () => {
-    await draw();
-    const version = (name: string) => group(name).querySelector('.glim-num a')?.getAttribute('href');
-    expect(version('KnightLoader')).toBe('https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4');
-    expect(version('GlimStone')).toMatch(/^https:\/\/github\.com\/junkerderprovinz\/glimstone\/releases\/tag\/v\d+\.\d+\.\d+$/);
+    expect(group('Gopeed').textContent).toBe('Gopeed5111a4c');
+    const href = (name: string) => version(name).querySelector('a')?.getAttribute('href');
+    expect(href('KnightLoader')).toBe('https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4');
+    expect(href('GlimStone')).toMatch(/^https:\/\/github\.com\/junkerderprovinz\/glimstone\/releases\/tag\/v\d+\.\d+\.\d+$/);
+    expect(href('yt-dlp')).toBe('https://github.com/yt-dlp/yt-dlp/releases/tag/2026.08.19');
+    expect(href('JDownloader backend')).toBe('https://jdownloader.org/');
+    expect(href('ffmpeg')).toBe('https://ffmpeg.org/');
+    expect(href('SQLite')).toBe('https://pkg.go.dev/modernc.org/sqlite@v1.60.1');
   });
 
   it('links a branch build to the release it was cut from', async () => {
     answers['/api/health'] = { status: 'ok', version: 'v1.8.4+redesign.59b73a6' };
     await draw();
-    const number = group('KnightLoader').querySelector('.glim-num')!;
-    expect(number.textContent).toBe('1.8.4+redesign.59b73a6');
-    expect(number.querySelector('a')?.getAttribute('href')).toBe(
+    expect(version('KnightLoader').textContent).toBe('1.8.4+redesign.59b73a6');
+    expect(version('KnightLoader').querySelector('a')?.getAttribute('href')).toBe(
       'https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4',
     );
   });
 
-  it('shows a stamp without a release as written, with no link', async () => {
+  it('leads a stamp without a release to the repository', async () => {
     answers['/api/health'] = { status: 'ok', version: 'preview-59b73a6' };
     await draw();
-    const number = group('KnightLoader').querySelector('.glim-num')!;
-    expect(number.textContent).toBe('preview-59b73a6');
-    expect(number.querySelector('a')).toBeNull();
+    expect(version('KnightLoader').textContent).toBe('preview-59b73a6');
+    expect(version('KnightLoader').querySelector('a')?.getAttribute('href')).toBe('https://github.com/junkerderprovinz/knightloader');
   });
 
-  it('names the fetched UnRAR with its licence', async () => {
+  it('shows UnRAR with its version and no licence text', async () => {
     answers['/api/mediatools'] = {
       ...(answers['/api/mediatools'] as object),
       unrar: { found: true, version: '7.12', source: 'bundled' },
     };
     await draw();
-    expect(group('UnRAR').textContent).toContain('7.12');
-    expect(card('Components').textContent).toContain(en['settings.resolvers.toolsUnrarLicence']);
+    expect(group('UnRAR').textContent).toBe('UnRAR7.12');
+    expect(version('UnRAR').querySelector('a')?.getAttribute('href')).toBe('https://www.rarlab.com/');
+    expect(card('Components').querySelector('p')).toBeNull();
   });
 
   it('says what each tool does behind an (i) beside its name', async () => {
@@ -193,20 +202,20 @@ describe('the Components card', () => {
     expect(group('ffmpeg').textContent).not.toContain('Joins picture and sound');
   });
 
-  it('holds only what updates on its own, each on a sub-card, and the rest on a card without controls', async () => {
+  it('gives only what updates on its own buttons, and keeps them to glyphs', async () => {
     await draw();
-    const names = (c: HTMLElement) => [...c.querySelectorAll('section')].map((s) => s.querySelector('h3')?.textContent);
-    const subcards = [...card('Components').querySelectorAll<HTMLElement>('.glim-subcard')];
-    expect(subcards.map((s) => s.querySelector('h3')?.textContent)).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend']);
-    const rest = card('Components').querySelector<HTMLElement>('[data-new="built-in"]')!;
-    expect(names(rest)).toEqual(['GlimStone', 'ffmpeg', 'ffprobe', 'UnRAR', 'Gopeed', 'SQLite']);
-    expect(rest.querySelector('button, [role="switch"]')).toBeNull();
+    const pressable = [...host.querySelectorAll('section')]
+      .filter((s) => s.querySelector('button'))
+      .map((s) => s.querySelector('h3')?.textContent);
+    expect(pressable).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend']);
+    for (const b of card('Components').querySelectorAll('section button')) expect(b.textContent).toBe('');
+    expect(card('Components').querySelector('[role="switch"]')).toBeNull();
   });
 
   it('says where a JDownloader backend that is not set up stands, with nothing to press', async () => {
     answers['/api/resolvers/jd'] = { configured: false, reachable: false };
     await draw();
-    expect(group('JDownloader backend').textContent).toContain('Not set up');
+    expect(status('JDownloader backend')).toBe('Not set up');
     expect(group('JDownloader backend').querySelector('button')).toBeNull();
   });
 
@@ -232,7 +241,8 @@ describe('the Components card', () => {
     await draw();
     await act(async () => button(group('JDownloader backend'), 'Check for updates').click());
     expect(button(group('JDownloader backend'), 'Check failed').className).toContain('bg-statusFailSolid');
-    expect(group('JDownloader backend').textContent).toContain(en['health.remedy.jd.unreachable']);
+    expect(status('JDownloader backend')).toBe('Failed');
+    expect(detail('JDownloader backend')).toBe(en['health.remedy.jd.unreachable']);
   });
 
   it('waits for JDownloader to come back after the update and shows its new revision', async () => {
@@ -244,47 +254,58 @@ describe('the Components card', () => {
     answers['/api/jd/update'] = { started: true };
     await act(async () => button(group('JDownloader backend'), 'Update now').click());
     expect(asked.filter((u) => u === '/api/jd/update')).toHaveLength(2);
-    expect(group('JDownloader backend').textContent).toContain(en['settings.look.jdRestarting']);
+    expect(detail('JDownloader backend')).toBe(en['settings.look.jdRestarting']);
     expect(button(group('JDownloader backend'), 'Updating').disabled).toBe(true);
 
     // Still the old one, before it goes down.
     await act(async () => vi.advanceTimersByTimeAsync(2_000));
-    expect(group('JDownloader backend').textContent).toContain(en['settings.look.jdRestarting']);
+    expect(detail('JDownloader backend')).toBe(en['settings.look.jdRestarting']);
 
     answers['/api/resolvers/jd'] = { configured: true, reachable: false };
     await act(async () => vi.advanceTimersByTimeAsync(2_000));
-    expect(group('JDownloader backend').textContent).toContain(en['settings.look.jdRestarting']);
+    expect(detail('JDownloader backend')).toBe(en['settings.look.jdRestarting']);
 
     answers['/api/resolvers/jd'] = { configured: true, reachable: true, version: 50200 };
     await act(async () => vi.advanceTimersByTimeAsync(2_000));
-    expect(group('JDownloader backend').textContent).not.toContain(en['settings.look.jdRestarting']);
-    expect(group('JDownloader backend').textContent).toContain('JDownloader is running again, at revision 50200.');
+    expect(status('JDownloader backend')).toBe('Done');
+    expect(detail('JDownloader backend')).toBe('JDownloader is running again, at revision 50200.');
+    expect(version('JDownloader backend').textContent).toBe('50200');
     expect(button(group('JDownloader backend'), 'Update now')).toBeUndefined();
     vi.useRealTimers();
   });
 
-  it('names the update switches the same on every sub-card', async () => {
+  it('names the update switches the same for every component', async () => {
     await draw();
-    expect(switches(group('KnightLoader'))).toEqual(['Check automatically', 'Update automatically']);
-    expect(switches(group('yt-dlp'))).toEqual(['Check automatically', 'Update automatically']);
-    expect(switches(group('JDownloader backend'))).toEqual(['Update automatically']);
+    expect(switches(await settingsOf('KnightLoader'))).toEqual(['Check automatically', 'Update automatically']);
+    await act(async () => button(document.querySelector('[role="dialog"]')!, 'Close').click());
+    expect(switches(await settingsOf('yt-dlp'))).toEqual(['Check automatically', 'Update automatically']);
+    await act(async () => button(document.querySelector('[role="dialog"]')!, 'Close').click());
+    expect(switches(await settingsOf('JDownloader backend'))).toEqual(['Update automatically']);
+  });
+
+  it('opens the switches under their gear', async () => {
+    await draw();
+    const panel = await settingsOf('yt-dlp');
+    expect(panel.getAttribute('aria-label')).toBe('yt-dlp');
   });
 
   it("writes the JDownloader backend's switch to its own setting", async () => {
     const patch = await draw();
-    await act(async () => group('JDownloader backend').querySelector<HTMLButtonElement>('[role="switch"]')!.click());
+    const panel = await settingsOf('JDownloader backend');
+    await act(async () => panel.querySelector<HTMLButtonElement>('[role="switch"]')!.click());
     expect(patch.mock.calls).toEqual([[{ jdAutoUpdate: true }]]);
   });
 
   it('greys out both KnightLoader switches in a container and says the container manager updates it', async () => {
     const patch = await draw({ autoUpdateCheck: true, autoUpdate: true });
-    const rows = [...group('KnightLoader').querySelectorAll<HTMLButtonElement>('[role="switch"]')];
+    const panel = await settingsOf('KnightLoader');
+    const rows = [...panel.querySelectorAll<HTMLButtonElement>('[role="switch"]')];
     expect(rows.map((r) => r.getAttribute('aria-checked'))).toEqual(['false', 'false']);
     expect(rows.map((r) => r.parentElement!.className)).toEqual([
       expect.stringContaining('opacity-40'),
       expect.stringContaining('opacity-40'),
     ]);
-    const tip = group('KnightLoader').querySelector('[data-glim-label="Check automatically"] [role="note"]');
+    const tip = panel.querySelector('[data-glim-label="Check automatically"] [role="note"]');
     expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoContainerHint']);
     await act(async () => rows[0].click());
     expect(patch).not.toHaveBeenCalled();
@@ -293,7 +314,8 @@ describe('the Components card', () => {
 
   it("writes yt-dlp's switches to yt-dlp's own settings", async () => {
     const patch = await draw();
-    const [check, update] = group('yt-dlp').querySelectorAll<HTMLButtonElement>('[role="switch"]');
+    const panel = await settingsOf('yt-dlp');
+    const [check, update] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
     await act(async () => check.click());
     await act(async () => update.click());
     expect(patch.mock.calls).toEqual([[{ ytdlpVersionCheck: true }], [{ ytdlpAutoUpdate: true }]]);
@@ -302,15 +324,15 @@ describe('the Components card', () => {
   it('turns the check green when nothing is newer', async () => {
     await draw();
     await act(async () => button(group('KnightLoader'), 'Check for updates').click());
-    const verdict = button(group('KnightLoader'), 'Up to date');
-    expect(verdict.className).toContain('bg-statusOkSolid');
+    expect(button(group('KnightLoader'), 'Up to date').className).toContain('bg-statusOkSolid');
+    expect(status('KnightLoader')).toBe('');
   });
 
   it('lets the check button alone say that yt-dlp is current', async () => {
     await draw();
     await act(async () => button(group('yt-dlp'), 'Check for updates').click());
     expect(button(group('yt-dlp'), 'Up to date').className).toContain('bg-statusOkSolid');
-    expect(group('yt-dlp').querySelector('p')).toBeNull();
+    expect(status('yt-dlp')).toBe('');
   });
 
   it('turns the check red when GitHub cannot be asked', async () => {
@@ -318,6 +340,7 @@ describe('the Components card', () => {
     await draw();
     await act(async () => button(group('KnightLoader'), 'Check for updates').click());
     expect(button(group('KnightLoader'), 'Check failed').className).toContain('bg-statusFailSolid');
+    expect(status('KnightLoader')).toBe('Check failed');
   });
 
   it('offers a newer yt-dlp to fetch once a check found one', async () => {
@@ -326,7 +349,8 @@ describe('the Components card', () => {
     expect(button(group('yt-dlp'), 'Fetch this release')).toBeUndefined();
     await act(async () => button(group('yt-dlp'), 'Check for updates').click());
     expect(button(group('yt-dlp'), 'Updates: 1').className).toContain('bg-statusWarnSolid');
-    expect(group('yt-dlp').textContent).toContain('2026.09.30 is published, 2026.08.19 is installed.');
+    expect(status('yt-dlp')).toBe('2026.09.30 is available');
+    expect(detail('yt-dlp')).toBe('2026.09.30 is published, 2026.08.19 is installed.');
     expect(button(group('yt-dlp'), 'Fetch this release')).toBeDefined();
   });
 
@@ -344,7 +368,7 @@ describe('the Components card', () => {
     };
     await draw();
     await act(async () => button(group('yt-dlp'), 'Back to the system copy').click());
-    expect(group('yt-dlp').textContent).toContain(en['settings.resolvers.toolsRevertedNone']);
+    expect(detail('yt-dlp')).toBe(en['settings.resolvers.toolsRevertedNone']);
   });
 
   it('says when the server could not tell how this instance runs, and asks again on request', async () => {
@@ -356,7 +380,7 @@ describe('the Components card', () => {
     answers['/api/system/deployment'] = deployment;
     await act(async () => button(card('Components'), 'Try again').click());
     expect(card('Components').textContent).not.toContain('Could not load this.');
-    expect(group('KnightLoader').textContent).toContain('1.8.4');
+    expect(version('KnightLoader').textContent).toBe('1.8.4');
   });
 
   it('asks GitHub on opening only for yt-dlp, and only while its switch is on', async () => {
@@ -402,6 +426,7 @@ describe('installing an update on the desktop build', () => {
     await draw();
     expect(button(group('KnightLoader'), 'Install now')).toBeUndefined();
     await act(async () => button(group('KnightLoader'), 'Check for updates').click());
+    expect(status('KnightLoader')).toBe('v1.9.0 is available');
     expect(button(group('KnightLoader'), 'Install now')).toBeDefined();
   });
 
@@ -409,7 +434,7 @@ describe('installing an update on the desktop build', () => {
     desktop();
     answers['/api/system/update-install'] = { state: 'downloading', version: '1.9.0', done: 1, total: 4 };
     await draw();
-    expect(group('KnightLoader').textContent).toContain('Downloading the update: 25%');
+    expect(status('KnightLoader')).toBe('Downloading the update: 25%');
   });
 
   it('shows the download, then the installer taking over', async () => {
@@ -418,12 +443,12 @@ describe('installing an update on the desktop build', () => {
     await act(async () => button(group('KnightLoader'), 'Check for updates').click());
     answers['/api/system/update-install'] = { state: 'downloading', version: '1.9.0', done: 40, total: 100 };
     await act(async () => button(group('KnightLoader'), 'Install now').click());
-    expect(group('KnightLoader').textContent).toContain('Downloading the update: 40%');
+    expect(status('KnightLoader')).toBe('Downloading the update: 40%');
     expect(button(group('KnightLoader'), 'Installing…').disabled).toBe(true);
 
     answers['/api/system/update-install'] = { state: 'started', version: '1.9.0' };
     await wait(600);
-    expect(group('KnightLoader').textContent).toContain('The installer is running.');
+    expect(detail('KnightLoader')).toContain('The installer is running.');
     expect(button(group('KnightLoader'), 'Install now')).toBeUndefined();
   });
 
@@ -433,19 +458,19 @@ describe('installing an update on the desktop build', () => {
     await act(async () => button(group('KnightLoader'), 'Check for updates').click());
     answers['/api/system/update-install'] = { state: 'failed', error: 'permission to run it was refused' };
     await act(async () => button(group('KnightLoader'), 'Install now').click());
-    const line = [...group('KnightLoader').querySelectorAll('p')].find((p) => p.textContent?.includes('did not work'))!;
-    expect(line.textContent).toBe('The update did not work: permission to run it was refused');
-    expect(line.className).toContain('text-statusFail');
+    expect(status('KnightLoader')).toBe('Failed');
+    expect(detail('KnightLoader')).toBe('The update did not work: permission to run it was refused');
+    expect(group('KnightLoader').querySelector('[role="status"]')!.className).toContain('text-statusFail');
     expect(button(group('KnightLoader'), 'Install now').disabled).toBe(false);
   });
 
-  it('says a refused request in the same line', async () => {
+  it('says a refused request in the same place', async () => {
     desktop();
     refusals['/api/system/update-install'] = { status: 409, body: { status: 'an update is already under way' } };
     await draw();
     await act(async () => button(group('KnightLoader'), 'Check for updates').click());
     await act(async () => button(group('KnightLoader'), 'Install now').click());
-    expect(group('KnightLoader').textContent).toContain('The update did not work:');
+    expect(detail('KnightLoader')).toContain('The update did not work:');
   });
 });
 
@@ -453,25 +478,22 @@ describe('the JDownloader backend the desktop build sets up', () => {
   it('shows the Java runtime arriving while JDownloader is being set up', async () => {
     answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'starting', setupDone: 30, setupTotal: 120 };
     await draw();
-    expect(group('JDownloader backend').textContent).toContain('Being set up');
-    expect(group('JDownloader backend').textContent).toContain('Downloading the Java runtime for JDownloader: 25%');
-    expect(group('JDownloader backend').textContent).not.toContain('Install Java');
+    expect(status('JDownloader backend')).toBe('Being set up');
+    expect(detail('JDownloader backend')).toBe('Downloading the Java runtime for JDownloader: 25%');
   });
 
   it('says why the setup failed and tries again on request', async () => {
     answers['/api/resolvers/jd'] = { configured: false, reachable: false, setup: 'failed', detail: 'downloading the Java runtime: no network' };
     await draw();
-    expect(group('JDownloader backend').textContent).toContain('Setup failed');
-    expect(group('JDownloader backend').textContent).toContain(
-      'KnightLoader could not set up its JDownloader: downloading the Java runtime: no network',
-    );
+    expect(status('JDownloader backend')).toBe('Setup failed');
+    expect(detail('JDownloader backend')).toBe('KnightLoader could not set up its JDownloader: downloading the Java runtime: no network');
     answers['/api/resolvers/jd/setup'] = { configured: false, reachable: false, setup: 'starting' };
     answers['/api/resolvers/jd'] = { configured: true, reachable: true, version: 50123 };
     await act(async () => button(group('JDownloader backend'), 'Try again').click());
     expect(asked).toContain('/api/resolvers/jd/setup');
-    expect(group('JDownloader backend').textContent).toContain('Being set up');
+    expect(status('JDownloader backend')).toBe('Being set up');
     await act(() => new Promise((resolve) => setTimeout(resolve, 1100)));
-    expect(group('JDownloader backend').textContent).toContain('50123');
+    expect(version('JDownloader backend').textContent).toBe('50123');
   });
 
   it('lists the Java runtime it fetched beside the other built-in parts', async () => {
@@ -482,6 +504,6 @@ describe('the JDownloader backend the desktop build sets up', () => {
       runtime: { vendor: 'Eclipse Temurin', version: '21.0.13+9' },
     };
     await draw();
-    expect(group('Java (Eclipse Temurin)').textContent).toContain('21.0.13+9');
+    expect(version('Java (Eclipse Temurin)').textContent).toBe('21.0.13+9');
   });
 });
