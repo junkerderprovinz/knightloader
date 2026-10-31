@@ -2,7 +2,10 @@
 // -ldflags "-X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=vX.Y.Z".
 package buildinfo
 
-import "runtime/debug"
+import (
+	"os"
+	"runtime/debug"
+)
 
 // Version is the running build; "dev" for untagged local/main builds.
 var Version = "dev"
@@ -39,6 +42,18 @@ func Describe(program string) string {
 		s += " (commit " + r + ")"
 	}
 	return s
+}
+
+// InContainer reports whether this process runs in a container, going by the
+// marker files Docker and Podman leave and the variable Kubernetes sets. A
+// variable, so a test can stand in either place.
+var InContainer = func() bool {
+	for _, marker := range []string{"/.dockerenv", "/run/.containerenv"} {
+		if _, err := os.Stat(marker); err == nil {
+			return true
+		}
+	}
+	return os.Getenv("KUBERNETES_SERVICE_HOST") != ""
 }
 
 // Deployment says which binary this build is: "container" for

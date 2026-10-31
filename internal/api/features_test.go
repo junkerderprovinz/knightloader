@@ -616,10 +616,31 @@ func TestClickNLoadRowReportsATakenPort(t *testing.T) {
 	}
 }
 
+// TestClickNLoadRowInAContainerSaysWhereItWorks checks the container, which
+// opens no listener: the row has no switch and names what catches
+// Click'n'Load instead.
+func TestClickNLoadRowInAContainerSaysWhereItWorks(t *testing.T) {
+	inContainer := buildinfo.InContainer
+	buildinfo.InContainer = func() bool { return true }
+	t.Cleanup(func() { buildinfo.InContainer = inContainer })
+	a := testApp(t)
+
+	f := featureRow(t, a, "cnl")
+	if f.Enabled || f.Switch != SwitchNone || f.ReasonCode != "cnlContainer" {
+		t.Errorf("container: enabled %v, switch %q, reason code %q; want off, no switch and cnlContainer", f.Enabled, f.Switch, f.ReasonCode)
+	}
+	if err := setFeature(a, "cnl", true); !errors.Is(err, errNoSwitch) {
+		t.Errorf("switching it on in a container: %v, want errNoSwitch", err)
+	}
+}
+
 // TestClickNLoadRowWithoutAListenerClaimsNone checks a process that started no
 // listener. KL_CNL describes a listener only when something opened one.
 func TestClickNLoadRowWithoutAListenerClaimsNone(t *testing.T) {
 	t.Setenv("KL_CNL", "9666")
+	inContainer := buildinfo.InContainer
+	buildinfo.InContainer = func() bool { return false }
+	t.Cleanup(func() { buildinfo.InContainer = inContainer })
 	a := testApp(t)
 
 	f := featureRow(t, a, "cnl")

@@ -168,8 +168,13 @@ func main() {
 	a.StartYtdlpAutoUpdate()
 	a.StartJDAutoUpdate()
 
-	a.CnL = cnl.Listen(a)
-	defer a.CnL.Stop()
+	// A port inside a container is not the 127.0.0.1:9666 a browser posts to,
+	// so the container opens none unless KL_CNL asks for it, as with host
+	// networking (see the cnl row in routes_features.go).
+	if !buildinfo.InContainer() || os.Getenv("KL_CNL") != "" {
+		a.CnL = cnl.Listen(a)
+		defer a.CnL.Stop()
+	}
 
 	// Buffered by one and sent without blocking, so a double-clicked quit does
 	// not stall the second caller; one pending shutdown is as good as two.

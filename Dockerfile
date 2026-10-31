@@ -55,10 +55,11 @@ ENV KL_DATA=/data \
 VOLUME ["/data"]
 EXPOSE 8749
 
-# Click'n'Load is on and binds 127.0.0.1 only, so it serves a browser on the
-# same host and the bridge (docs/clicknload.md); other machines use the
-# extension. The protocol has no authentication, so binding 0.0.0.0 would let
-# anyone on the LAN add links.
+# The container opens no Click'n'Load port unless KL_CNL is set: 127.0.0.1 in
+# here is not the one a browser posts to, short of host networking, and the
+# protocol has no authentication, so binding 0.0.0.0 would let anyone on the LAN
+# add links. The browser extension, the desktop app and the bridge catch
+# Click'n'Load instead (docs/clicknload.md).
 
 # No USER: Docker creates a missing bind-mount source as root, so the server
 # starts as root, gives the empty folders it was just handed to PUID:PGID

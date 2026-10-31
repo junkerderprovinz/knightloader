@@ -72,7 +72,7 @@ func TestDeploymentKindTellsAContainerFromAPlainServer(t *testing.T) {
 		t.Fatalf("GET deployment: %d", code)
 	}
 	want := "server"
-	if inContainer() {
+	if buildinfo.InContainer() {
 		want = "container"
 	}
 	if info.Kind != want {

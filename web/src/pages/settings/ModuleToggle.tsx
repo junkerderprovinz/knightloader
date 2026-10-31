@@ -117,9 +117,10 @@ function SwitchRow({
     }
   }
 
-  // Without a switch, why not is the line under it.
+  // Without a switch, why not is in the switch's (i), beside the greyed switch.
   const detail = moduleDetail(tx, m);
-  let state = m.switch === 'none' ? moduleReason(tx, m) : undefined;
+  const why = m.switch === 'none' ? moduleReason(tx, m) : undefined;
+  let state: string | undefined;
   if (fold === 'unset') {
     state = settingUp ? tx('settings.modules.settingUp') : tx(`settings.modules.missing.${id}` as TranslationKey);
   } else if (fold === 'off' && m.switch === 'parked') {
@@ -136,6 +137,7 @@ function SwitchRow({
           label={label(tx, 'settings.module.', id)}
           hint={[
             hint ?? '',
+            why ?? '',
             unfinished ? tx('settings.modules.setUpBelow') : '',
             state === detail ? '' : (detail ?? ''),
           ]}
