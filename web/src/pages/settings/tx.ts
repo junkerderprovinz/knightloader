@@ -83,6 +83,14 @@ export function switchRefusal(tx: Tx, e: unknown): string {
   if (e instanceof ApiError && e.code === 'configureFirst') {
     return tx('settings.modules.configureFirst', { page: label(tx, 'settings.nav.', String(e.params?.page ?? '')) });
   }
+  // A Click'n'Load take-over that could not happen: worded like the row's own
+  // line where it is one, else by the card's own words.
+  if (e instanceof ApiError && e.code) {
+    for (const prefix of ['settings.modules.detail.', 'settings.linkIntake.']) {
+      const key = `${prefix}${e.code}` as TranslationKey;
+      if (key in en) return tx(key, e.params ?? {});
+    }
+  }
   return String(e).replace(/^(Error|ApiError):\s*/, '');
 }
 

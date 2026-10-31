@@ -168,6 +168,19 @@ It stays bound to `127.0.0.1`. The Click'n'Load protocol has no authentication,
 so binding it to the LAN would be an open "add these links to your downloader"
 endpoint for the whole network.
 
+## Two KnightLoaders on one computer
+
+One computer has one port 9666. When the desktop app and a server run as a
+plain program share a computer, the one that starts second finds the port
+taken. Its switch under Settings, Link collector names the KnightLoader that
+holds it, which answers who it is on `127.0.0.1:9666/knightloader` (a route
+without CORS headers, so no website can read it), and offers Take over. That
+asks the holder through the group to let go of the port and then listens here.
+A KnightLoader outside the group cannot be asked, and a program that is not
+KnightLoader, usually a running JDownloader, is named as such and has to be
+closed by hand. The browser extension never holds the port: it catches
+Click'n'Load inside the page, so there is nothing to take over from it.
+
 ## Checking it by hand
 
 With KnightLoader (or a bridge) running:
