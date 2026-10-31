@@ -77,7 +77,6 @@ import {
   IconFolder,
   IconKey,
   IconLatest,
-  IconMore,
   IconMove,
   IconMoveDown,
   IconMoveUp,
@@ -1450,128 +1449,6 @@ export function ListMenu({
         />
       )}
       {cleanup.dialog}
-    </>
-  );
-}
-
-/**
- * SelectionMore is the selection row's last badge and the menu under it, for
- * the verbs too rare to earn a badge of their own: the caller's groups, then
- * deleting the files, offered while something selected has bytes on disk.
- * Deleting stays apart from Remove, which acts at once and can be undone.
- */
-export function SelectionMore({
-  groups,
-  chosen,
-  removal,
-  hue,
-  labelled = true,
-}: {
-  groups: MenuGroup[];
-  chosen: Task[];
-  removal: Removal;
-  hue?: number;
-  /** False where the row it sits in has run out of room for words. */
-  labelled?: boolean;
-}) {
-  const { t } = useT();
-  const menu = useContextMenu();
-  const onDisk = chosen.some((x) => x.loaded > 0);
-  const all: MenuGroup[] = [
-    ...groups,
-    { id: 'removeFiles', items: onDisk ? [removeWithFilesItem(chosen.map((x) => x.id), removal, t)] : [] },
-  ];
-  if (!all.some((g) => g.items.length > 0)) return null;
-
-  return (
-    <>
-      <IconBadge
-        labelled={labelled}
-        hue={hue}
-        icon={<IconMore width={16} height={16} />}
-        title={t('menu.more')}
-        aria-label={t('menu.more')}
-        aria-haspopup="menu"
-        aria-expanded={!!menu.anchor}
-        onClick={(e) => menu.openAt(anchorBelow(e.currentTarget))}
-      />
-      {menu.anchor && <ContextMenu anchor={menu.anchor} label={t('menu.label')} onClose={menu.close} groups={all} />}
-    </>
-  );
-}
-
-/**
- * ListMore is the action row's More badge while nothing is selected. It holds
- * what acts on the whole list and is pressed too rarely to stand in the row:
- * selecting every row on show or none, the page's own entries and the
- * clean-up. The right-click on the list's empty space offers the same.
- */
-export function ListMore({
-  allChosen,
-  shown,
-  onSelect,
-  own,
-  cleanup,
-  hue,
-  labelled = true,
-}: {
-  /** Whether every row on show is selected already. */
-  allChosen: boolean;
-  /** How many rows are on show. */
-  shown: number;
-  onSelect: (all: boolean) => void;
-  own: MenuGroup[];
-  /** The page's clean-up, or null where it does not run, such as on a peer's list. */
-  cleanup: CleanupState | null;
-  hue?: number;
-  /** False where the row it sits in has run out of room for words. */
-  labelled?: boolean;
-}) {
-  const { t } = useT();
-  const menu = useContextMenu();
-  const select: MenuItem = allChosen
-    ? { id: 'selectNone', label: t('select.none'), icon: <IconClearSelection />, onSelect: () => onSelect(false) }
-    : {
-        id: 'selectAll',
-        label: t('select.all'),
-        detail: String(shown),
-        icon: <IconSelectAll width={14} height={14} />,
-        disabled: shown === 0,
-        onSelect: () => onSelect(true),
-      };
-  const classes = cleanup?.classes ?? [];
-  const groups: MenuGroup[] = [
-    { id: 'select', items: [select] },
-    ...own,
-    {
-      id: 'cleanup',
-      items:
-        cleanup && classes.length > 0
-          ? [
-              {
-                id: 'cleanup',
-                label: t('cleanup.menu'),
-                icon: <IconTrash width={14} height={14} />,
-                submenu: [{ id: 'classes', items: cleanupItems(classes, t, (cls) => void cleanup.preview(cls)) }],
-              },
-            ]
-          : [],
-    },
-  ];
-
-  return (
-    <>
-      <IconBadge
-        labelled={labelled}
-        hue={hue}
-        icon={<IconMore width={16} height={16} />}
-        title={t('menu.more')}
-        aria-label={t('menu.more')}
-        aria-haspopup="menu"
-        aria-expanded={!!menu.anchor}
-        onClick={(e) => menu.openAt(anchorBelow(e.currentTarget))}
-      />
-      {menu.anchor && <ContextMenu anchor={menu.anchor} label={t('list.actions')} onClose={menu.close} groups={groups} />}
     </>
   );
 }

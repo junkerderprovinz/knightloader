@@ -8,7 +8,8 @@
 //     x.status === 'queued' || x.status === 'paused' || x.status === 'collected'
 //
 // leaves the queue group empty for a selection of running downloads, so the
-// More menu offers none of it and the right-click menu carries the same gate. The four move verbs and the seven priorities are then reachable from
+// right-click menu offers none of it. The four move verbs and the seven
+// priorities are then reachable from
 // nowhere, while the server takes `priority 0 -> 3` and renumbers positions for
 // exactly that selection. Nothing is a dead button; a live capability stops
 // being offered. The weaker twin is a selection of finally failed tasks that
@@ -20,9 +21,9 @@
 // status.
 //
 // Two things it has to see that a narrower version misses. The verbs are
-// offered from six files, not four: web/src/pages/Downloads.tsx hands the group
-// to the selection row's More menu, which draws it only while it has entries,
-// and the command palette offers the same four move verbs again in
+// offered from six files, not four: web/src/pages/Downloads.tsx hands the
+// queue's verbs to the right-click menu, which draws the group only while it
+// has entries, and the command palette offers the same four move verbs again in
 // web/src/lib/commands/downloads.ts. And the gates
 // have a shape as well as names: the three sets can all be correct, with no
 // hand comparison anywhere, while the priority block hangs inside the move
@@ -39,10 +40,11 @@
 //   web/src/components/ListToolbar.tsx
 //                                MOVE_STATES / PRIORITY_STATES / STOP_MARK_STATES,
 //                                the sets queueMenuGroup gates its entries on,
-//                                the shape of those three gates, and SelectionMore,
-//                                the More menu that draws the group
-//   web/src/pages/Downloads.tsx  where the group is handed to that menu, and
-//                                what the hand-over is gated on
+//                                the shape of those three gates, and
+//                                taskMenuGroups, the right-click menu's
+//                                groups, which carry the group
+//   web/src/pages/Downloads.tsx  where the queue's verbs are handed to that
+//                                menu, and what the hand-over is gated on
 //   web/src/lib/commands/downloads.ts
 //                                the command palette's own four move verbs, the
 //                                second entry point to the same server calls
@@ -468,25 +470,27 @@ if (body) {
 
 // The menu that draws the group.
 //
-// The queue entries sit under More in the selection row, headed "Reihenfolge".
-// Whether they are reachable is a question about the group: SelectionMore
-// leaves out a group with no entries and draws no badge at all when every
-// group is empty. A page that answers that question itself, with its own
-// status comparison around the hand-over, is the same defect at a new address.
-const more = toolbarCode.match(/export function SelectionMore\(\{[\s\S]*?\n\}\n/);
-if (!more) {
-  fail(`${TOOLBAR}: SelectionMore not found - the page hands the queue group to it, and this check cannot see what it draws.`);
+// The queue entries sit in the right-click menu on the selection. Whether they
+// are reachable is a question about the group: the menu leaves out a group
+// with no entries. A builder that answers that question itself, with its own
+// status comparison around the group, is the same defect at a new address.
+const groupsFn = toolbarCode.match(/function taskMenuGroups\(\{[\s\S]*?\n\}\n/);
+if (!groupsFn) {
+  fail(`${TOOLBAR}: taskMenuGroups not found - the right-click menu takes the queue group from it, and this check cannot see what it draws.`);
 } else {
-  if (!/\.items\.length\s*>\s*0/.test(more[0])) {
+  if (!/return \[[^\]]*\bqueueGroup\b/.test(groupsFn[0])) {
     fail(
-      `${TOOLBAR}: SelectionMore does not decide off the groups' own entries whether it is drawn.\n` +
+      `${TOOLBAR}: taskMenuGroups no longer hands the queue group to the menu as it is.\n` +
         `        The group knows which of the three verbs the server will carry out for this selection;\n` +
         `        the menu has to ask it, not answer for it.`,
     );
   }
-  const hand = handComparisons(more[0]);
-  if (hand.length > 0) {
-    fail(`${TOOLBAR}: SelectionMore compares statuses by hand: ${hand.map((s) => `'${s}'`).join(', ')}. Ask the group instead.`);
+  // Its other entries weigh statuses of their own; only the gates around the
+  // queue group are its business here.
+  const at = toolbarCode.indexOf('const queueGroup = queueMenuGroup(', groupsFn.index);
+  for (const g of at < 0 ? [] : gatesAround(toolbarCode, at)) {
+    const hand = handComparisons(g.cond);
+    if (hand.length > 0) fail(`${TOOLBAR}: the queue group in taskMenuGroups is gated on statuses by hand: ${hand.join(', ')}. Ask the group instead.`);
   }
 }
 
@@ -498,7 +502,7 @@ if (!bracketsBalance(pageCode)) {
 
 // Where the group reaches the screen, matched on how it is wired, the group
 // handed to a menu, rather than on a label.
-const PAGE_SITES = [['the More menu that draws the queue group', /groups=\{\[[^\]]*\bqueueGroup\b/g]];
+const PAGE_SITES = [['the right-click menu that draws the queue group', /<ListMenu\b[^<]*?\bqueue=\{queueVerbs\}/g]];
 for (const [what, re] of PAGE_SITES) {
   const hits = [...pageCode.matchAll(re)];
   if (hits.length === 0) {
@@ -520,7 +524,7 @@ for (const [what, re] of PAGE_SITES) {
           `          line ${lineAt(pageCode, g.at)}: ${g.cond}\n` +
           `        Found in a VISIBILITY GATE around that element, not in prose and not in a counter: this\n` +
           `        page may count statuses all it likes, it may not decide from them whether the queue verbs\n` +
-          `        are reachable. Hand the group over as it is; SelectionMore asks it for its entries.`,
+          `        are reachable. Hand the verbs over as they are; the menu asks the group for its entries.`,
       );
     }
   }
