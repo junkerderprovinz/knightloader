@@ -328,7 +328,9 @@ tag.
 
 ## The Android app
 
-The APK is on the
+Install it from
+[F-Droid](https://f-droid.org/packages/knightloader.halleluja.design/),
+which keeps it up to date, or take the APK from the
 [latest release](https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-android.apk),
 with the same version number as the server beside it.
 It reaches an instance on your own network or, with the twelve words, from

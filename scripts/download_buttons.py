@@ -28,6 +28,7 @@ BUTTONS = {
     # No listing yet, so the button is drawn without a link. The listing's
     # address goes here once it exists.
     "google-play": None,
+    "f-droid": "https://f-droid.org/packages/knightloader.halleluja.design/",
     "apk": RELEASE + "knightloader-android.apk",
     # Brave, Opera and Vivaldi install from the Chrome Web Store, so their
     # buttons lead to Chrome's listing. Edge has a listing of its own.

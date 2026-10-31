@@ -277,7 +277,6 @@ function PhoneCard() {
           mark={<BrandMark svg={PLAY_SVG} />}
           soonLabel={soon}
         />
-        {/* Built so F-Droid can take it, and not listed there yet. */}
         <ReadmeButton
           brand="fdroid"
           data-new="fdroid"
@@ -591,7 +590,7 @@ const APP_VERSION = __MOBILE_VERSION__;
 
 const APP_URLS = {
   play: '',
-  fdroid: '',
+  fdroid: 'https://f-droid.org/packages/knightloader.halleluja.design/',
   apk: `${REPO_URL}/releases/download/v${APP_VERSION}/knightloader-v${APP_VERSION}-android.apk`,
 };
 
