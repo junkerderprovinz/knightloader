@@ -63,6 +63,7 @@ func main() {
 		log.Printf("restored from a backup made by %s (%s build) on %s",
 			manifest.Version, manifest.Deployment, manifest.CreatedAt.Format(time.RFC3339))
 	}
+	seedSamples(dataDir, key)
 	a, err := app.NewWithKey(dataDir, key)
 	if err != nil {
 		log.Fatalf("start: %v", err)
