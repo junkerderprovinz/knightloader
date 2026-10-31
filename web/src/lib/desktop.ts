@@ -100,11 +100,12 @@ export async function showMain(): Promise<void> {
   await call('main.Tray.ShowMain');
 }
 
-/** revealInFolder and openNatively reject with the Go side's reason, which
- *  the caller shows. */
-export async function revealInFolder(taskId: string): Promise<void> {
-  if (!isDesktop()) throw new Error('reveal-in-folder is only available in the desktop app');
-  await call('main.DesktopFiles.RevealInFolder', taskId);
+/** openFolder and openNatively reject with the Go side's reason, which the
+ *  caller shows. openFolder opens the folder a task downloads into, with its
+ *  file selected once there is one. */
+export async function openFolder(taskId: string): Promise<void> {
+  if (!isDesktop()) throw new Error('open folder is only available in the desktop app');
+  await call('main.DesktopFiles.OpenFolder', taskId);
 }
 
 export async function openNatively(taskId: string): Promise<void> {

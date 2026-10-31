@@ -1,12 +1,12 @@
-// Context menu entries for a task's file. Opening natively and revealing in the
-// file manager work only in the desktop build; in a browser they stay in the
-// menu, disabled with the reason on the row.
+// Context menu entries for a task's file and its link. Opening natively and
+// opening the folder work only in the desktop build, which is the only place
+// they are offered: a browser has no file manager to hand them to.
 import { type Task, taskFileURL } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { isDesktop, openNatively, revealInFolder } from '../lib/desktop';
+import { isDesktop, openFolder, openNatively, openURL } from '../lib/desktop';
 import { type MenuGroup, type MenuItem } from './ContextMenu';
-import { IconApp, IconExternalLink, IconFolder, IconPlayFile } from '../lib/icons';
+import { IconApp, IconBrowser, IconCopy, IconExternalLink, IconFolderOpen, IconPlayFile } from '../lib/icons';
 import { playableTask } from './taskdetail/playable';
 
 /**
@@ -39,15 +39,67 @@ export function hasSomethingToPlay(t: Task): boolean {
   return t.status === 'running' || t.status === 'done';
 }
 
-export function useFileMenu({ chosen, base, local }: { chosen: Task[]; base: string; local: boolean }): MenuGroup[] {
+/** webLink is a link a browser can open, which a magnet or an uploaded file is not. */
+const webLink = (url: string): boolean => /^https?:\/\//i.test(url);
+
+/**
+ * useFileMenu is what the menu offers for the files and links of a selection,
+ * the way JDownloader's right-click does: the file itself for one link that
+ * has one, the folder it downloads into, and the links. files is false in the
+ * collector, where nothing has been downloaded yet.
+ */
+export function useFileMenu({
+  chosen,
+  base,
+  local,
+  files = true,
+}: {
+  chosen: Task[];
+  base: string;
+  local: boolean;
+  files?: boolean;
+}): MenuGroup[] {
   const { t } = useT();
   const { toast } = useToast();
-
-  if (chosen.length !== 1 || !reachable(chosen[0])) return [];
-  const task = chosen[0];
-  const desktopActionsAvailable = local && isDesktop();
-  const reason = desktopActionsAvailable ? undefined : t('file.desktopOnly');
+  if (chosen.length === 0) return [];
+  const desktop = local && isDesktop();
   const fail = (e: unknown) => toast(String(e instanceof Error ? e.message : e), 'fail');
+
+  const links: MenuItem[] = [
+    {
+      id: 'copyLinks',
+      label: t('menu.copyLinks'),
+      icon: <IconCopy width={14} height={14} />,
+      onSelect: () =>
+        void navigator.clipboard
+          .writeText(chosen.map((x) => x.url).join('\n'))
+          .then(() => toast(t('menu.linksCopied', { n: chosen.length }), 'ok'))
+          .catch(fail),
+    },
+  ];
+  if (chosen.length === 1 && webLink(chosen[0].url)) {
+    const url = chosen[0].url;
+    links.push({
+      id: 'openInBrowser',
+      label: t('menu.openInBrowser'),
+      icon: <IconBrowser width={14} height={14} />,
+      onSelect: () => (desktop ? void openURL(url).catch(fail) : void window.open(url, '_blank', 'noopener')),
+    });
+  }
+  const folder: MenuItem[] = desktop
+    ? [
+        {
+          id: 'openFolder',
+          label: t('menu.openFolder'),
+          icon: <IconFolderOpen width={14} height={14} />,
+          onSelect: () => void openFolder(chosen[0].id).catch(fail),
+        },
+      ]
+    : [];
+  const linkGroups: MenuGroup[] = [{ id: 'links', items: [...folder, ...links] }];
+
+  if (!files || chosen.length !== 1 || !reachable(chosen[0])) return linkGroups;
+  const task = chosen[0];
 
   // The file opens in a tab of its own, where the browser's player streams it.
   // While the download runs, the server fetches the part being played first.
@@ -76,23 +128,18 @@ export function useFileMenu({ chosen, base, local }: { chosen: Task[]; base: str
           icon: <IconExternalLink width={14} height={14} />,
           onSelect: () => window.open(taskFileURL(task.id, base), '_blank', 'noopener'),
         },
-        {
-          id: 'openNatively',
-          label: t('file.openNatively'),
-          icon: <IconApp width={14} height={14} />,
-          disabled: !desktopActionsAvailable,
-          detail: reason,
-          onSelect: () => void openNatively(task.id).catch(fail),
-        },
-        {
-          id: 'revealInFolder',
-          label: t('file.revealInFolder'),
-          icon: <IconFolder width={14} height={14} />,
-          disabled: !desktopActionsAvailable,
-          detail: reason,
-          onSelect: () => void revealInFolder(task.id).catch(fail),
-        },
+        ...(desktop
+          ? [
+              {
+                id: 'openNatively',
+                label: t('file.openNatively'),
+                icon: <IconApp width={14} height={14} />,
+                onSelect: () => void openNatively(task.id).catch(fail),
+              },
+            ]
+          : []),
       ],
     },
+    ...linkGroups,
   ];
 }

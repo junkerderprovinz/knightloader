@@ -47,6 +47,7 @@ import { useRowFit } from '../lib/rowFit';
 import { anchorBelow, anchorFromEvent, useContextMenu, ContextMenu } from '../components/ContextMenu';
 import { CollectorFacets, facetActiveCount, matchesFacets } from '../components/CollectorFacets';
 import { CollectorStats } from '../components/CollectorStats';
+import { useFileMenu } from '../components/FileActions';
 import { useScriptMenu } from '../components/ScriptActions';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import { selectionReach, useDrawnRows } from '../lib/selectionReach';
@@ -219,6 +220,8 @@ export function Collector() {
   const selectedTasks = useMemo(() => collected.filter((x) => selected.has(x.id)), [collected, selected]);
   // Scripts can act on staged links before they start (ScriptActions.tsx).
   const scriptGroups = useScriptMenu({ chosen: selectedTasks, base: '/api' });
+  // The folder a link will land in and the links themselves; nothing is on disk yet.
+  const linkGroups = useFileMenu({ chosen: selectedTasks, base: '/api', local: true, files: false });
 
   const selection: Selection = {
     ids: selected,
@@ -547,7 +550,7 @@ export function Collector() {
         target={target}
         list={listContext}
         rename={rename}
-        extraGroups={scriptGroups}
+        extraGroups={[...linkGroups, ...scriptGroups]}
       />
       {removal.dialog}
       {rename.dialog}

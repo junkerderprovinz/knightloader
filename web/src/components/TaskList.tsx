@@ -678,6 +678,7 @@ export function TaskActions({ task, base, current }: { task: Task; base: string;
             icon={<IconRetry width={16} height={16} />}
             title={t('task.restart')}
             aria-label={t('task.restart')}
+            hint={t('task.restartHint')}
             onClick={send(() => restartTasks([task.id], base))}
           />
         )}
