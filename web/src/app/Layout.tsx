@@ -15,7 +15,7 @@ import { WhatsNew } from '../components/whatsnew/WhatsNew';
 import { PageActionsProvider, PageActionsSlot } from '../components/PageActions';
 import { ShellSideProvider } from '../components/ShellSide';
 import { StatusStrip } from '../components/StatusStrip';
-import { InfoBubble } from '../components/ui';
+import { InfoBubble, SectionTitle } from '../components/ui';
 import { PageBoundary } from './PageBoundary';
 import { connectWS, fetchSettings, patchSettings, type Task } from '../lib/api';
 import {
@@ -137,7 +137,8 @@ function ShellSpeed({ instance }: { instance: string }) {
  * the controls keep their state; outside Downloads it is hidden rather than
  * unmounted for the same reason.
  *
- * A bottom margin and no top one, so it starts on the sidebar's line.
+ * The 0.75rem above it is the room its badge and the totals card's need, as
+ * pages give the first card with a badge (index.css, glim-column-top).
  *
  * It is as tall as its content: the squares, or the meter with its two lines of
  * figures, whichever is taller. The meter sets a height of its own and reaches
@@ -155,10 +156,18 @@ function ShellBar({ visible, side }: { visible: boolean; side: Ref<HTMLDivElemen
   // The settings and volume routes are not forwarded to peers.
   const local = instance === '';
   return (
-    <div className={`mb-6 flex-wrap gap-6 sm:mx-6 md:mx-8 md:mb-8 ${visible ? 'flex' : 'hidden'}`}>
-      <div role="region" aria-label={t('shell.bar')} className="glim-card flex min-w-0 flex-[2_1_36rem] flex-wrap items-center gap-6 p-5">
+    <div className={`mt-3 mb-6 flex-wrap gap-6 sm:mx-6 md:mx-8 md:mb-8 ${visible ? 'flex' : 'hidden'}`}>
+      <div
+        role="region"
+        aria-label={t('shell.bar')}
+        className="glim-card relative flex min-w-0 flex-[2_1_36rem] flex-wrap items-center gap-6 p-5"
+      >
+        {/* Out of the flow, so the badge takes no place in the row. */}
+        <div className="absolute start-5 top-0">
+          <SectionTitle hue={2}>{t('shell.speedBadge')}</SectionTitle>
+        </div>
         {/* Named only when it is not this machine, so it stands out when it
-          matters. */}
+            matters. */}
         {instance && (
           <span className="flex items-center gap-2">
             <span className="glim-eyebrow">{t('shell.scope')}</span>
