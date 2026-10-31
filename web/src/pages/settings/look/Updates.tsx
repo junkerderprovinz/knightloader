@@ -625,7 +625,7 @@ function YtdlpUpdates() {
             sets it, so the row mirrors in right-to-left languages. */}
         <div className="flex flex-wrap items-center justify-end gap-3">
           {managed && (
-            <Button kind="ghost" icon={<IconRefresh />} disabled={busy} onClick={() => void onRevert()}>
+            <Button kind="secondary" icon={<IconRefresh />} disabled={busy} onClick={() => void onRevert()}>
               {reverting ? t('settings.resolvers.toolsReverting') : t('settings.resolvers.toolsRevert')}
             </Button>
           )}

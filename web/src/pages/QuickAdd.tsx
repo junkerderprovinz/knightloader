@@ -113,7 +113,7 @@ export function QuickAdd() {
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <Button
-                  kind="ghost"
+                  kind="secondary"
                   icon={<IconUndo />}
                   className="px-2.5 text-xs"
                   onClick={() => void undo(phase.created)}

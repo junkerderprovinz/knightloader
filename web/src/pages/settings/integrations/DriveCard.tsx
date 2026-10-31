@@ -106,7 +106,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <Button
       icon={copied ? <IconCheckDrawn /> : <IconCopy />}
-      kind="ghost"
+      kind="secondary"
       className="px-2.5 text-xs"
       confirm={copies}
       onClick={async () => {

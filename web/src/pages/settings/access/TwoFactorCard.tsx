@@ -233,7 +233,7 @@ export function TwoFactorCard({
           </ul>
           <div className="flex items-center gap-3">
             <Button
-              kind="ghost"
+              kind="secondary"
               icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconCopy width={16} height={16} />}
               confirm={copies}
               onClick={() => void copy(step.codes.join('\n'))}

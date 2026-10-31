@@ -305,7 +305,7 @@ export function AddLinksForm({
               <Button
                 key={d}
                 type="button"
-                kind="ghost"
+                kind="secondary"
                 className="max-w-[220px] truncate px-2 py-1 text-xs"
                 title={d}
                 onClick={() => setDir(d)}

@@ -241,7 +241,7 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
               <div className="relative flex w-full shrink-0 items-center justify-end gap-2 ps-[22px] md:w-auto md:ps-0">
                 {row.side && (
                   <Button
-                    kind="ghost"
+                    kind="secondary"
                     labelled={!row.side.glyphOnly}
                     icon={row.side.icon}
                     title={row.side.label}
@@ -250,7 +250,7 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
                 )}
                 {need.covers.length > 0 && (
                   <Button
-                    kind="ghost"
+                    kind="secondary"
                     labelled
                     icon={<IconConfirm />}
                     title={t('overview.needs.done')}
