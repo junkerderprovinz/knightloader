@@ -111,19 +111,24 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   output template, music mode and separate streams keep their own names. The
   download list has no Variant column any more; the
   row's details name the pick, and the collector keeps its pickers.
-- **Downloads has a totals card.** It says how much of the list is loaded and
-  how many links it holds. There, and in the collector's totals, stand how
+- **Downloads has a totals card.** It sits to the right of the speed graph and
+  wraps under it in a narrow window. It says how much of the list is loaded
+  and how many links it holds. There, and in the collector's totals, stand how
   many rows the search and the filters show, with one click to show all again,
   the selection and the saved views.
+- **The progress column starts wider,** so the bar has room to show. A width
+  you dragged yourself stays as it is.
 - **The link collector's card has one way less to paste.** Paste from
   clipboard is gone, since Ctrl+V and the box do the same; Watch clipboard
   wears its glyph instead.
 - **Options and Quick settings open under their button,** at one width that
   fits the seven priority steps on one line.
 - **The Components card lists each part on one line:** its name, a short
-  status where there is one, and its version, which leads to its release or
-  project page. Checks and updates are small buttons at the end of the line,
-  and the switches for automatic updates sit behind a gear.
+  status where there is one, the checks and updates as small buttons, and at
+  the right edge its version, which leads to its release or project page. The
+  versions line up in one column. The switches for automatic updates sit
+  right under KnightLoader, yt-dlp and JDownloader. A status keeps its (i)
+  only when something went wrong and needs you.
 - **The size column moved.** In the link collector it is the last column, and
   on Downloads it stands just left of the progress bar. A layout stored before
   takes the new order once; widths and hidden columns stay. A focused column
