@@ -253,6 +253,15 @@
 :root:has(.glim-page-actions:not(:empty)) .glim-actions-room {
   padding-bottom: calc(var(--btn-h-key) + 1.5rem);
 }
+/* The link collector keeps that room under its card instead, inside the box
+   that scrolls: a list that fits ends above the action, and one that does
+   not scrolls its rows behind it with the last row still clear of it. */
+:root:has(.glim-page-actions:not(:empty)) .glim-actions-below {
+  padding-bottom: calc(var(--btn-h-key) + 1.5rem);
+}
+:root:has(.glim-page-actions:not(:empty)) .glim-actions-below .glim-actions-room {
+  padding-bottom: 0;
+}
 /* The desktop window frame (components/WindowBar.tsx), GlimStone's rules from
    reference/tokens.css: the title bar the app draws where its window has no
    native one. It is fixed over the top of the window. The page starts under it

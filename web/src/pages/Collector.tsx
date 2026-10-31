@@ -498,8 +498,9 @@ export function Collector() {
         ) : (
           // A flex column, since h-full on TaskListCard does not resolve through
           // a flex-grown overflow box. pt-3 keeps the card's title badge inside
-          // this box's clip edge.
-          <div ref={listScroll} className="flex min-h-0 flex-1 flex-col pt-3 md:overflow-y-auto">
+          // this box's clip edge. The room for Start all is under the card, so
+          // a short list ends above the button and a long one scrolls under it.
+          <div ref={listScroll} className="glim-actions-below flex min-h-0 flex-1 flex-col pt-3 md:overflow-y-auto">
             <TaskListCard
               groups={groups}
               base="/api"
