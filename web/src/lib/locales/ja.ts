@@ -3783,7 +3783,7 @@ export const ja: Dict = {
   'accounts.routing.priorityEntry': '新しいリンク',
   'accounts.routing.priorityNone': '接続されたアカウントがないため、まだ設定する順番はありません。',
   'accounts.routing.checkFailed': 'このアカウントの前回の確認は失敗しました: {reason}',
-  'settings.captcha.orderIntro': '図がそのまま順番です。キャプチャはまず一番上のキャプチャアカウントに渡り、そこから下へ進みます。名前をドラッグすると移動できます。',
+  'settings.captcha.orderIntro': '図がそのまま順番です。キャプチャはまず一番上のアカウントに渡り、そこから下へ進みます。名前をドラッグすると移動できます。',
   'settings.captcha.orderEntry': '新しいキャプチャ',
   'whatsnew.change.captchaPriority': '「{name}」は、接続済みのキャプチャアカウントを「{download}」がバックエンドを並べるのと同じように並べます。開始のタイミングとテスト用キャプチャもここにあります。',
   'whatsnew.change.priorityNames': '「{download}」と「{captcha}」では、番号付きの各項目のすぐ横に名前が表示されます。カードが狭いときは2行目に表示され、ドラッグ用のつまみは行の末尾にあります。',

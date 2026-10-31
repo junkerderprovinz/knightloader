@@ -3774,7 +3774,7 @@ export const da: Dict = {
   'accounts.routing.priorityEntry': 'Nyt link',
   'accounts.routing.priorityNone': 'Ingen konto er forbundet, så der er endnu ingen rækkefølge at sætte.',
   'accounts.routing.checkFailed': 'Den seneste kontrol af denne konto mislykkedes: {reason}',
-  'settings.captcha.orderIntro': 'Billedet er rækkefølgen: en captcha går først til captcha-kontoen øverst og så videre nedad. Træk et navn for at flytte det.',
+  'settings.captcha.orderIntro': 'Billedet er rækkefølgen: en captcha går først til kontoen øverst og så nedad. Træk et navn for at flytte det.',
   'settings.captcha.orderEntry': 'Ny captcha',
   'whatsnew.change.captchaPriority': '„{name}“ ordner dine tilsluttede captcha-konti, som „{download}“ ordner backends. Hvornår de starter og test-captchaen står der også.',
   'whatsnew.change.priorityNames': 'I „{download}“ og „{captcha}“ står navnet lige ved siden af hvert nummereret punkt, på en anden linje, hvor kortet er smalt, og grebet til at trække sidder for enden af rækken.',

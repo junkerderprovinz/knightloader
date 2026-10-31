@@ -3772,7 +3772,7 @@ export const it: Dict = {
   'accounts.routing.priorityEntry': 'Nuovo link',
   'accounts.routing.priorityNone': 'Nessun account è collegato, quindi non c’è ancora un ordine da impostare.',
   'accounts.routing.checkFailed': 'L’ultimo controllo di questo account non è riuscito: {reason}',
-  'settings.captcha.orderIntro': 'L’immagine è l’ordine: un captcha va prima all’account captcha in cima, poi a quelli sotto. Trascina un nome per spostarlo.',
+  'settings.captcha.orderIntro': 'L’immagine è l’ordine: un captcha va prima all’account in cima, poi sotto. Trascina un nome per spostarlo.',
   'settings.captcha.orderEntry': 'Nuovo captcha',
   'whatsnew.change.captchaPriority': '«{name}» ordina i tuoi account captcha collegati come «{download}» ordina i backend. Anche quando partono e il captcha di prova stanno lì.',
   'whatsnew.change.priorityNames': 'In «{download}» e «{captcha}», ogni punto numerato ha il proprio nome accanto, su una seconda riga quando la scheda è stretta, e la maniglia per trascinarlo sta in fondo alla riga.',

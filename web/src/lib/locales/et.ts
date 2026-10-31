@@ -3779,7 +3779,7 @@ export const et: Dict = {
   'accounts.routing.priorityEntry': 'Uus link',
   'accounts.routing.priorityNone': 'Ühtegi kontot pole ühendatud, nii et järjekorda pole veel määrata.',
   'accounts.routing.checkFailed': 'Selle konto viimane kontroll ebaõnnestus: {reason}',
-  'settings.captcha.orderIntro': 'Pilt ongi järjekord: captcha läheb kõigepealt ülemisele captcha kontole ja siis allapoole. Nime liigutamiseks lohista seda.',
+  'settings.captcha.orderIntro': 'Pilt ongi järjekord: captcha läheb kõigepealt ülemisele kontole ja siis allapoole. Nime liigutamiseks lohista seda.',
   'settings.captcha.orderEntry': 'Uus captcha',
   'whatsnew.change.captchaPriority': '„{name}“ järjestab sinu ühendatud captcha kontod samamoodi, nagu „{download}“ järjestab taustateenused. Seal on ka see, millal nad alustavad, ja proovicaptcha.',
   'whatsnew.change.priorityNames': 'Jaotistes „{download}“ ja „{captcha}“ on iga nummerdatud punkti nimi kohe selle kõrval, kitsal kaardil teisel real, ja lohistamiskäepide asub rea lõpus.',

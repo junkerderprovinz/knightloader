@@ -3788,7 +3788,7 @@ export const id: Dict = {
   'accounts.routing.priorityEntry': 'Tautan baru',
   'accounts.routing.priorityNone': 'Belum ada akun yang terhubung, jadi belum ada urutan yang bisa diatur.',
   'accounts.routing.checkFailed': 'Pemeriksaan terakhir akun ini gagal: {reason}',
-  'settings.captcha.orderIntro': 'Gambar ini adalah urutannya: captcha masuk dulu ke akun captcha paling atas, lalu terus ke bawah. Seret sebuah nama untuk memindahkannya.',
+  'settings.captcha.orderIntro': 'Gambar ini adalah urutannya: captcha masuk dulu ke akun paling atas, lalu terus ke bawah. Seret sebuah nama untuk memindahkannya.',
   'settings.captcha.orderEntry': 'Captcha baru',
   'whatsnew.change.captchaPriority': '“{name}” mengurutkan akun captcha yang terhubung seperti “{download}” mengurutkan backend. Kapan mereka mulai dan captcha uji juga ada di sana.',
   'whatsnew.change.priorityNames': 'Di “{download}” dan “{captcha}”, setiap butir bernomor punya namanya tepat di sampingnya, di baris kedua kalau kartu sempit, dan pegangan untuk menyeretnya ada di ujung baris.',

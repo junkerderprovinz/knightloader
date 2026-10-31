@@ -3787,7 +3787,7 @@ export const vi: Dict = {
   'accounts.routing.priorityEntry': 'Liên kết mới',
   'accounts.routing.priorityNone': 'Chưa có tài khoản nào được kết nối, nên chưa có thứ tự nào để đặt.',
   'accounts.routing.checkFailed': 'Lần kiểm tra gần nhất của tài khoản này không thành công: {reason}',
-  'settings.captcha.orderIntro': 'Hình chính là thứ tự: một captcha đến tài khoản captcha trên cùng trước, rồi lần lượt xuống dưới. Kéo một tên để di chuyển nó.',
+  'settings.captcha.orderIntro': 'Hình chính là thứ tự: một captcha đến tài khoản trên cùng trước, rồi xuống dưới. Kéo một tên để di chuyển nó.',
   'settings.captcha.orderEntry': 'Captcha mới',
   'whatsnew.change.captchaPriority': '“{name}” sắp xếp các tài khoản captcha đã kết nối giống như “{download}” sắp xếp các backend. Thời điểm chúng bắt đầu và captcha thử cũng nằm ở đó.',
   'whatsnew.change.priorityNames': 'Trong “{download}” và “{captcha}”, tên nằm ngay cạnh mỗi điểm được đánh số, ở dòng thứ hai khi thẻ hẹp, và tay nắm để kéo nằm ở cuối hàng.',

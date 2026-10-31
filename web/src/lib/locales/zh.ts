@@ -3770,7 +3770,7 @@ export const zh: Dict = {
   'accounts.routing.priorityEntry': '新链接',
   'accounts.routing.priorityNone': '尚未连接任何账户，因此还没有可设置的顺序。',
   'accounts.routing.checkFailed': '此账户上次检查失败：{reason}',
-  'settings.captcha.orderIntro': '这张图就是顺序：验证码先交给最上面的验证码账户，再依次往下。拖动名称即可移动它。',
+  'settings.captcha.orderIntro': '这张图就是顺序：验证码先交给最上面的账户，再依次往下。拖动名称即可移动。',
   'settings.captcha.orderEntry': '新验证码',
   'whatsnew.change.captchaPriority': '“{name}”像“{download}”排列后端那样排列你已连接的验证码账户。它们何时开始和测试验证码也在这里。',
   'whatsnew.change.priorityNames': '在“{download}”和“{captcha}”中，每个带编号的项目旁边直接显示其名称，卡片较窄时显示在第二行，用于拖动的手柄位于行尾。',

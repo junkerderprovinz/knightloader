@@ -3778,7 +3778,7 @@ export const lv: Dict = {
   'accounts.routing.priorityEntry': 'Jauna saite',
   'accounts.routing.priorityNone': 'Nav pievienots neviens konts, tāpēc vēl nav secības, ko iestatīt.',
   'accounts.routing.checkFailed': 'Šī konta pēdējā pārbaude neizdevās: {reason}',
-  'settings.captcha.orderIntro': 'Attēls ir secība: captcha vispirms nonāk pie augšējā captcha konta, tad tālāk uz leju. Velc nosaukumu, lai to pārvietotu.',
+  'settings.captcha.orderIntro': 'Attēls ir secība: captcha vispirms nonāk pie augšējā konta, tad tālāk uz leju. Velc nosaukumu, lai to pārvietotu.',
   'settings.captcha.orderEntry': 'Jauna captcha',
   'whatsnew.change.captchaPriority': '„{name}“ sakārto tavus pievienotos captcha kontus tāpat, kā „{download}“ sakārto aizmugursistēmas. Tur ir arī tas, kad tie sāk, un testa captcha.',
   'whatsnew.change.priorityNames': 'Sadaļās „{download}“ un „{captcha}“ katram numurētajam punktam nosaukums ir tieši blakus, šaurā kartītē otrajā rindā, un velkamais rokturis atrodas rindas beigās.',

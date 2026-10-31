@@ -3776,7 +3776,7 @@ export const ca: Dict = {
   'accounts.routing.priorityEntry': 'Enllaç nou',
   'accounts.routing.priorityNone': 'No hi ha cap compte connectat, així que encara no hi ha cap ordre per definir.',
   'accounts.routing.checkFailed': 'L’última comprovació d’aquest compte ha fallat: {reason}',
-  'settings.captcha.orderIntro': 'La imatge és l’ordre: un captcha va primer al compte de captcha de dalt de tot i després als de sota. Arrossega un nom per moure’l.',
+  'settings.captcha.orderIntro': 'La imatge és l’ordre: un captcha va primer al compte de dalt de tot i després als de sota. Arrossega un nom per moure’l.',
   'settings.captcha.orderEntry': 'Captcha nou',
   'whatsnew.change.captchaPriority': '«{name}» ordena els teus comptes de captcha connectats com «{download}» ordena els backends. També hi ha quan comencen i el captcha de prova.',
   'whatsnew.change.priorityNames': 'A «{download}» i «{captcha}», cada punt numerat té el seu nom just al costat, en una segona línia quan la targeta és estreta, i la nansa per arrossegar-lo és al final de la fila.',

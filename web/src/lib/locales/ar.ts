@@ -3785,7 +3785,7 @@ export const ar: Dict = {
   'accounts.routing.priorityEntry': 'رابط جديد',
   'accounts.routing.priorityNone': 'لا يوجد حساب متصل، لذا لا يوجد ترتيب لتحديده بعد.',
   'accounts.routing.checkFailed': 'فشل آخر فحص لهذا الحساب: {reason}',
-  'settings.captcha.orderIntro': 'الصورة هي الترتيب: تذهب الكابتشا أولًا إلى حساب الكابتشا في الأعلى، ثم إلى ما تحته. اسحب اسمًا لتنقله.',
+  'settings.captcha.orderIntro': 'الصورة هي الترتيب: تذهب الكابتشا أولًا إلى الحساب في الأعلى، ثم إلى ما تحته. اسحب اسمًا لتنقله.',
   'settings.captcha.orderEntry': 'كابتشا جديدة',
   'whatsnew.change.captchaPriority': 'ترتّب «{name}» حسابات الكابتشا المتصلة كما ترتّب «{download}» الواجهات الخلفية. وفيها أيضًا متى تبدأ والكابتشا التجريبية.',
   'whatsnew.change.priorityNames': 'في «{download}» و«{captcha}» يظهر اسم كل نقطة مرقّمة بجانبها مباشرة، وفي سطر ثانٍ حيث تضيق البطاقة، ويقع مقبض السحب في نهاية الصف.',

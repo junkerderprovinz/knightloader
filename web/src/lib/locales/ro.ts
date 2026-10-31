@@ -3797,7 +3797,7 @@ export const ro: Dict = {
   'accounts.routing.priorityEntry': 'Link nou',
   'accounts.routing.priorityNone': 'Niciun cont nu e conectat, așa că încă nu există o ordine de stabilit.',
   'accounts.routing.checkFailed': 'Ultima verificare a acestui cont a eșuat: {reason}',
-  'settings.captcha.orderIntro': 'Imaginea este ordinea: un captcha merge întâi la contul de captcha de sus, apoi mai jos. Trage un nume ca să-l muți.',
+  'settings.captcha.orderIntro': 'Imaginea este ordinea: un captcha merge întâi la contul de sus, apoi mai jos. Trage un nume ca să-l muți.',
   'settings.captcha.orderEntry': 'Captcha nou',
   'whatsnew.change.captchaPriority': '„{name}” ordonează conturile tale de captcha conectate așa cum „{download}” ordonează backendurile. Tot acolo sunt momentul în care pornesc și captcha-ul de test.',
   'whatsnew.change.priorityNames': 'În „{download}” și „{captcha}”, fiecare punct numerotat are numele chiar lângă el, pe un al doilea rând când cardul e îngust, iar mânerul de tras stă la capătul rândului.',

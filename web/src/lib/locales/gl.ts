@@ -3785,7 +3785,7 @@ export const gl: Dict = {
   'accounts.routing.priorityEntry': 'Ligazón nova',
   'accounts.routing.priorityNone': 'Non hai ningunha conta conectada, así que aínda non hai unha orde que fixar.',
   'accounts.routing.checkFailed': 'A última comprobación desta conta fallou: {reason}',
-  'settings.captcha.orderIntro': 'A imaxe é a orde: un captcha vai primeiro á conta de captcha de arriba de todo e despois cara abaixo. Arrastra un nome para movelo.',
+  'settings.captcha.orderIntro': 'A imaxe é a orde: un captcha vai primeiro á conta de arriba de todo e despois cara abaixo. Arrastra un nome para movelo.',
   'settings.captcha.orderEntry': 'Captcha novo',
   'whatsnew.change.captchaPriority': '«{name}» ordena as túas contas de captcha conectadas como «{download}» ordena os backends. Cando comezan e o captcha de proba tamén están aí.',
   'whatsnew.change.priorityNames': 'En «{download}» e «{captcha}», cada punto numerado ten o seu nome ao lado, nunha segunda liña cando a tarxeta é estreita, e a asa para arrastralo está ao final da fila.',

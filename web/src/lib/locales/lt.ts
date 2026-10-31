@@ -3789,7 +3789,7 @@ export const lt: Dict = {
   'accounts.routing.priorityEntry': 'Nauja nuoroda',
   'accounts.routing.priorityNone': 'Neprijungta jokia paskyra, todėl kol kas nėra ką rikiuoti.',
   'accounts.routing.checkFailed': 'Paskutinis šios paskyros patikrinimas nepavyko: {reason}',
-  'settings.captcha.orderIntro': 'Paveikslas ir yra tvarka: captcha pirmiausia keliauja į viršutinę captcha paskyrą, paskui žemyn. Vilk pavadinimą, kad jį perkeltum.',
+  'settings.captcha.orderIntro': 'Paveikslas ir yra tvarka: captcha pirmiausia keliauja į viršutinę paskyrą, paskui žemyn. Vilk pavadinimą, kad jį perkeltum.',
   'settings.captcha.orderEntry': 'Nauja captcha',
   'whatsnew.change.captchaPriority': '„{name}“ rikiuoja tavo prijungtas captcha paskyras taip, kaip „{download}“ rikiuoja sistemas. Ten yra ir tai, kada jos pradeda, ir bandomoji captcha.',
   'whatsnew.change.priorityNames': '„{download}“ ir „{captcha}“ kiekvieno sunumeruoto punkto pavadinimas rodomas tiesiai šalia jo, o siaurame kortelės plote antroje eilutėje, o vilkimo rankenėlė yra eilutės gale.',

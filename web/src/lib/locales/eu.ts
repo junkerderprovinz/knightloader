@@ -3785,7 +3785,7 @@ export const eu: Dict = {
   'accounts.routing.priorityEntry': 'Esteka berria',
   'accounts.routing.priorityNone': 'Ez dago konturik konektatuta, beraz oraindik ez dago ordenarik ezartzeko.',
   'accounts.routing.checkFailed': 'Kontu honen azken egiaztapenak huts egin du: {reason}',
-  'settings.captcha.orderIntro': 'Irudia da ordena: captcha bat goiko captcha kontura doa lehenik, eta gero beherantz. Arrastatu izen bat lekuz aldatzeko.',
+  'settings.captcha.orderIntro': 'Irudia da ordena: captcha bat goiko kontura doa lehenik, eta gero beherantz. Arrastatu izen bat lekuz aldatzeko.',
   'settings.captcha.orderEntry': 'Captcha berria',
   'whatsnew.change.captchaPriority': '«{name}» txartelak zure captcha kontu konektatuak ordenatzen ditu, «{download}» txartelak backendak ordenatzen dituen bezala. Noiz hasten diren eta proba-captcha ere bertan daude.',
   'whatsnew.change.priorityNames': '«{download}» eta «{captcha}» txartelen barruan, zenbakitutako puntu bakoitzaren izena haren ondoan dago, txartela estua denean bigarren lerro batean, eta arrastatzeko heldulekua errenkadaren amaieran dago.',

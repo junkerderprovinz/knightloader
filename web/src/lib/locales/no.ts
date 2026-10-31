@@ -3791,7 +3791,7 @@ export const no: Dict = {
   'accounts.routing.priorityEntry': 'Ny lenke',
   'accounts.routing.priorityNone': 'Ingen konto er koblet til, så det er ingen rekkefølge å sette ennå.',
   'accounts.routing.checkFailed': 'Den siste kontrollen av denne kontoen mislyktes: {reason}',
-  'settings.captcha.orderIntro': 'Bildet er rekkefølgen: en captcha går først til captcha-kontoen øverst og så videre nedover. Dra et navn for å flytte det.',
+  'settings.captcha.orderIntro': 'Bildet er rekkefølgen: en captcha går først til kontoen øverst og så nedover. Dra et navn for å flytte det.',
   'settings.captcha.orderEntry': 'Ny captcha',
   'whatsnew.change.captchaPriority': '«{name}» ordner de tilkoblede captcha-kontoene dine slik «{download}» ordner bakendene. Når de starter og test-captchaen står der også.',
   'whatsnew.change.priorityNames': 'I «{download}» og «{captcha}» står navnet rett ved siden av hvert nummererte punkt, på en andre linje der kortet er smalt, og håndtaket for å dra sitter på slutten av raden.',
