@@ -4,11 +4,13 @@ import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { Settings } from '../../lib/api';
 import { I18nProvider } from '../../lib/i18n';
 import { closeWhatsNew, useWhatsNewOpen, type WhatsNew } from '../../lib/useWhatsNew';
+import { SettingsProvider, type SettingsDraft } from './context';
 import { Help } from './Help';
 
-/** The running version's record the Version card reads, null until a test sets one. */
+/** The running version's record the Components card reads, null until a test sets one. */
 const record = vi.hoisted(() => ({ news: null as WhatsNew | null }));
 vi.mock('../../lib/useWhatsNew', async (original) => ({
   ...(await original<typeof import('../../lib/useWhatsNew')>()),
@@ -69,13 +71,18 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+const draft = { cfg: {} as Settings, patch: vi.fn() } as unknown as SettingsDraft;
+const features = { features: { modules: [], pages: [] }, toggle: async () => {} };
+
 async function draw() {
   await act(async () =>
     root.render(
       // The provider fills the placeholders, which the bare context does not.
       <I18nProvider>
         <MemoryRouter>
-          <Help />
+          <SettingsProvider draft={draft} features={features}>
+            <Help />
+          </SettingsProvider>
         </MemoryRouter>
       </I18nProvider>,
     ),
@@ -88,67 +95,14 @@ function card(title: string): HTMLElement {
   return badge.closest<HTMLElement>('.glim-card')!;
 }
 
-/** A version row by the name at its start. */
-function row(name: string): HTMLElement {
-  return [...card('Version').querySelectorAll('li')].find((li) => li.firstElementChild?.firstElementChild?.textContent === name)!;
-}
-
 const button = (within: HTMLElement, words: string) =>
   [...within.querySelectorAll('button')].find((b) => b.textContent?.includes(words))!;
 
 describe('the Info tile', () => {
-  it('holds three cards: Version, then Help, then About', async () => {
+  it('holds three cards: Components, then Help, then About', async () => {
     await draw();
     const titles = [...host.querySelectorAll('.glim-section-badge')].map((b) => b.textContent);
-    expect(titles).toEqual(['Version', 'Help', 'About KnightLoader']);
-  });
-
-  it('lists every version the app is made of and links a number to its release', async () => {
-    await draw();
-    const link = (name: string) => row(name).querySelector('a')?.getAttribute('href');
-    expect(row('KnightLoader').textContent).toContain('1.8.4');
-    expect(link('KnightLoader')).toBe('https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4');
-    expect(link('GlimStone')).toMatch(/^https:\/\/github\.com\/junkerderprovinz\/glimstone\/releases\/tag\/v\d+\.\d+\.\d+$/);
-  });
-
-  it('leaves the programs KnightLoader starts to the General page', async () => {
-    await draw();
-    const names = [...card('Version').querySelectorAll('li')].map((li) => li.firstElementChild?.firstElementChild?.textContent);
-    expect(names).toEqual(['KnightLoader', 'GlimStone']);
-    expect(asked).not.toContain('/api/mediatools');
-  });
-
-  it('says what a part is behind an (i) beside its name', async () => {
-    await draw();
-    expect(row('GlimStone').querySelector('[role="note"]')?.getAttribute('aria-label')).toBe(
-      'The design language KnightLoader is built in',
-    );
-    expect(row('GlimStone').textContent).not.toContain('The design language');
-    expect(row('KnightLoader').querySelector('[role="note"]')).toBeNull();
-  });
-
-  it('links a branch build to the release it was cut from', async () => {
-    answers['/api/health'] = { status: 'ok', version: 'v1.8.4+redesign.59b73a6' };
-    await draw();
-    expect(row('KnightLoader').textContent).toContain('1.8.4+redesign.59b73a6');
-    expect(row('KnightLoader').querySelector('a')?.getAttribute('href')).toBe(
-      'https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4',
-    );
-  });
-
-  it('shows a stamp without a release as written, with no link', async () => {
-    answers['/api/health'] = { status: 'ok', version: 'preview-59b73a6' };
-    await draw();
-    expect(row('KnightLoader').textContent).toContain('preview-59b73a6');
-    expect(row('KnightLoader').querySelector('a')).toBeNull();
-  });
-
-  it('only shows the versions and leads to the updates on the General page', async () => {
-    await draw();
-    expect(button(card('Version'), 'Check for updates')).toBeUndefined();
-    expect(card('Version').querySelector('a[href="/settings/look"]')).not.toBeNull();
-    expect(asked).not.toContain('/api/system/update-check');
-    expect(asked).not.toContain('/api/mediatools/ytdlp/latest');
+    expect(titles).toEqual(['Components', 'Help', 'About KnightLoader']);
   });
 
   /** Draws the page with a probe on whether the window is open, and returns a reader for it. */
@@ -162,7 +116,9 @@ describe('the Info tile', () => {
       root.render(
         <I18nProvider>
           <MemoryRouter>
-            <Help />
+            <SettingsProvider draft={draft} features={features}>
+              <Help />
+            </SettingsProvider>
             <Probe />
           </MemoryRouter>
         </I18nProvider>,
@@ -180,10 +136,10 @@ describe('the Info tile', () => {
   it('has one button for what the updates brought, counting what is still unseen', async () => {
     record.news = news(5, 2);
     const open = await drawWithProbe();
-    const version = card('Version');
-    const labels = [...version.querySelectorAll('button')].map((b) => b.textContent).filter((w) => /New|Release notes/.test(w ?? ''));
+    const components = card('Components');
+    const labels = [...components.querySelectorAll('button')].map((b) => b.textContent).filter((w) => /New|Release notes/.test(w ?? ''));
     expect(labels).toEqual(['New · 2']);
-    await act(async () => button(version, 'New · 2').click());
+    await act(async () => button(components, 'New · 2').click());
     expect(open()).toBe(true);
     act(() => closeWhatsNew());
     record.news = null;
@@ -192,7 +148,7 @@ describe('the Info tile', () => {
   it('counts every listed change once all are seen', async () => {
     record.news = news(5, 0);
     const open = await drawWithProbe();
-    await act(async () => button(card('Version'), 'New · 5').click());
+    await act(async () => button(card('Components'), 'New · 5').click());
     expect(open()).toBe(true);
     act(() => closeWhatsNew());
     record.news = null;
@@ -201,7 +157,7 @@ describe('the Info tile', () => {
   it('offers the release notes where the window lists no change', async () => {
     const open = await drawWithProbe();
     expect(open()).toBe(false);
-    await act(async () => button(card('Version'), 'Release notes').click());
+    await act(async () => button(card('Components'), 'Release notes').click());
     expect(open()).toBe(true);
     act(() => closeWhatsNew());
   });

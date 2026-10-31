@@ -1,10 +1,7 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useT } from '../../lib/i18n';
-import { Button, Card, HintBubble, SectionTitle } from '../../components/ui';
-import { fetchHealth } from '../../lib/api';
-import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
+import { Button, Card, SectionTitle } from '../../components/ui';
 import { IconDiagnostics, IconGithub } from '../../lib/icons';
-import { NewsGlyph } from '../../components/whatsnew/WhatsNew';
 import { COFFEE_BUTTON_SVG, MAIL_SVG, MANUAL_SVG } from '../../lib/appMarks';
 import { IconBitcoin, IconPayPal } from '../../components/donateMarks';
 import { BrandMark, ReadmeButton } from '../../components/ReadmeButton';
@@ -14,21 +11,20 @@ import { PaypalDialog } from '../../components/PaypalDialog';
 import { PAYPAL_PAGE } from '../../lib/donate';
 import { followExternal, openExternal, openMail, popupsWork } from '../../lib/external';
 import { useToast } from '../../lib/toast';
-import { openWhatsNew, useWhatsNew } from '../../lib/useWhatsNew';
 import { saveDiagnostics } from './diagnostics/bundle';
-import { PageBadge } from './ModuleToggle';
+import { ComponentsCard } from './help/Components';
 
 /**
- * Help draws the Info tile, the last one in Settings: every version the app is
- * made of, the ways to report something and who made the app, in the order of
- * BombVault's Info tile. What the app can do is told by the manual, which the
- * Help card opens.
+ * Help draws the Info tile, the last one in Settings: every component the app
+ * is made of or starts, the ways to report something and who made the app, in
+ * the order of BombVault's Info tile. What the app can do is told by the
+ * manual, which the Help card opens.
  */
 export function Help() {
   return (
     <div data-new="info-tile" className="flex flex-col gap-10">
       {/* The hues number the cards in draw order; renumber when adding one. */}
-      <Versions hue={0} />
+      <ComponentsCard hue={0} />
       <Report hue={1} />
       <About hue={2} />
     </div>
@@ -37,7 +33,6 @@ export function Help() {
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const CONTACT_MAIL = 'hello@halleluja.design';
-const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const MANUAL_URL = 'https://junkerderprovinz.github.io/knightloader/';
 
 /**
@@ -91,123 +86,6 @@ export function About({ hue }: { hue: number }) {
       {giving === 'paypal' && <PaypalDialog onClose={stopGiving} />}
       {giving === 'crypto' && <CryptoDonateDialog onClose={stopGiving} />}
     </Card>
-  );
-}
-
-/**
- * releaseTag derives the release tag from a version string the way GlimStone's
- * AboutCard does: it drops semver build metadata and adds a leading 'v' only
- * where the stamp lacks one, since release builds are stamped with it.
- */
-export function releaseTag(version: string): string {
-  const bare = version.split('+')[0].trim();
-  if (!bare) return '';
-  return bare.startsWith('v') ? bare : `v${bare}`;
-}
-
-/** Only a published release earns a link; a preview or branch stamp has no page. */
-const RELEASE_TAG = /^v\d+\.\d+\.\d+$/;
-
-/** releasePage is the release page behind one of this house's versions, or '' for a stamp without one. */
-function releasePage(repo: string, version: string): string {
-  const tag = releaseTag(version);
-  return RELEASE_TAG.test(tag) ? `${repo}/releases/tag/${encodeURIComponent(tag)}` : '';
-}
-
-/**
- * VersionNumber shows a version without its leading 'v', linked to its release
- * page in a new tab where it has one. The link uses the row's ink, which lifts
- * on hover, the same in every colour mode.
- */
-function VersionNumber({ version, page }: { version: string; page: string }) {
-  const bare = version.replace(/^v/, '');
-  if (!page) return <>{bare}</>;
-  return (
-    <a
-      href={page}
-      target="_blank"
-      rel="noreferrer noopener"
-      onClick={followExternal}
-      className="no-underline hover:text-carbon-text"
-    >
-      {bare}
-    </a>
-  );
-}
-
-/** One thing the app is made of: its name with what it is behind an (i), and its number at the end. */
-function VersionRow({ name, sub, children }: { name: string; sub?: string; children: ReactNode }) {
-  return (
-    <li className="flex items-center justify-between gap-4">
-      <span className="flex min-w-0 items-center gap-1.5">
-        <span className="text-sm text-carbon-text">{name}</span>
-        <HintBubble hint={sub} />
-      </span>
-      <span dir="ltr" className="glim-num shrink-0 text-sm text-carbon-textSub">
-        {children}
-      </span>
-    </li>
-  );
-}
-
-/**
- * Versions lists the versions the app is made of: the server's own stamp and
- * the design language's copied file. The programs it starts, and looking for
- * newer versions, are on the General page, which the badge leads to.
- */
-function Versions({ hue }: { hue: number }) {
-  const { t } = useT();
-  const [version, setVersion] = useState('');
-
-  useEffect(() => {
-    fetchHealth()
-      .then((h) => setVersion(h.version))
-      .catch(() => {});
-  }, []);
-
-  return (
-    <Card hue={hue} className="flex flex-col gap-4">
-      <SectionTitle
-        hint={t('settings.info.versionHint')}
-        right={<PageBadge page="look" title={t('settings.nav.look')} />}
-      >
-        {t('settings.about.version')}
-      </SectionTitle>
-      <ul className="flex flex-col gap-3">
-        <VersionRow name="KnightLoader">
-          {/* No stamp yet, or 'dev' for an untagged build: the working title stands in. */}
-          {!version || version === 'dev' ? (
-            t('nav.workingTitle')
-          ) : (
-            <VersionNumber version={version} page={releasePage(REPO_URL, version)} />
-          )}
-        </VersionRow>
-        <VersionRow name="GlimStone" sub={t('settings.info.glimstoneSub')}>
-          <VersionNumber version={GLIMSTONE_VERSION} page={releasePage(GLIMSTONE_URL, GLIMSTONE_VERSION)} />
-        </VersionRow>
-      </ul>
-      <div className="flex flex-wrap justify-end gap-3">
-        <NewsButton />
-      </div>
-    </Card>
-  );
-}
-
-/**
- * NewsButton opens the one window of what the updates brought, a card per
- * release with its notes and the changes the dots mark. Its figure is the
- * number still unseen, and once all are seen how many the window lists. Where
- * it lists none it offers the release notes alone.
- */
-function NewsButton() {
-  const { t } = useT();
-  const news = useWhatsNew();
-  const total = news?.changes.length ?? 0;
-  const unseen = news?.unseen.length ?? 0;
-  return (
-    <Button kind="secondary" icon={<NewsGlyph unseen={unseen > 0} />} data-new="news-button" onClick={openWhatsNew}>
-      {total > 0 ? t('whatsnew.newCount', { n: unseen || total }) : t('settings.look.updatesReleaseNotes')}
-    </Button>
   );
 }
 

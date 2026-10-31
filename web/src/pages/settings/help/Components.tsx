@@ -26,28 +26,30 @@ import {
   updateJD,
   updateYtdlp,
   type BuiltModule,
-  type DeploymentInfo,
   type JDStatus,
+  type MediaTool,
   type MediaToolsStatus,
   type UpdateCheck,
   type UpdateProgress,
   type YtdlpLatest,
 } from '../../../lib/api';
+import { followExternal } from '../../../lib/external';
+import { GLIMSTONE_VERSION } from '../../../lib/glimstoneVersion';
 import { IconClose, IconRefresh, IconUpdate, IconUpdateAvailable, IconUpToDate } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useResource } from '../../../lib/useResource';
+import { openWhatsNew, useWhatsNew } from '../../../lib/useWhatsNew';
+import { NewsGlyph } from '../../../components/whatsnew/WhatsNew';
 import { useDraft } from '../context';
 import { SubCard } from '../controls';
-import { jdMissing } from '../resolvers/MediaToolsCard';
 
-// Two cards. Updates holds what can be updated on its own, KnightLoader,
-// yt-dlp and the JDownloader backend, each a sub-card with its version and a
-// check button that shows its answer on itself. yt-dlp moves faster than
-// KnightLoader's releases, which is why it is updated here at all, and
-// JDownloader is a program of its own beside KnightLoader. The other card
-// lists the rest, one row each with its version and where it comes from: they
-// come with the image, the computer or the build, so there is nothing to
-// press.
+// The Components card holds everything KnightLoader is made of or starts. What
+// updates on its own, KnightLoader, yt-dlp and the JDownloader backend, is a
+// sub-card with its version and a check button that shows its answer on
+// itself. yt-dlp moves faster than KnightLoader's releases, which is why it is
+// updated here at all, and JDownloader is a program of its own beside
+// KnightLoader. The rest come with the image, the computer or the build, one
+// row each with its version and where it comes from, and nothing to press.
 
 type Translate = ReturnType<typeof useT>['t'];
 
@@ -97,14 +99,120 @@ function CheckButton({
   );
 }
 
+type Link = { label: string; href: string };
+
+const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
+const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
+
+const KNIGHTLOADER_LINKS: Link[] = [
+  { label: 'junkerderprovinz/knightloader', href: REPO_URL },
+  { label: 'AGPL-3.0', href: 'https://www.gnu.org/licenses/agpl-3.0.html' },
+];
+const YTDLP_LINKS: Link[] = [
+  { label: 'yt-dlp/yt-dlp', href: 'https://github.com/yt-dlp/yt-dlp' },
+  { label: 'Unlicense', href: 'https://unlicense.org/' },
+];
+const JD_LINKS: Link[] = [{ label: 'jdownloader.org', href: 'https://jdownloader.org/' }];
+const GLIMSTONE_LINKS: Link[] = [{ label: 'junkerderprovinz/glimstone', href: GLIMSTONE_URL }];
+const FFMPEG_HOME: Link[] = [{ label: 'ffmpeg.org', href: 'https://ffmpeg.org/' }];
+const UNRAR_LINKS: Link[] = [{ label: 'rarlab.com', href: 'https://www.rarlab.com/' }];
+const JRE_HOME: Link[] = [{ label: 'adoptium.net', href: 'https://adoptium.net/temurin/' }];
+
+/** Where the fetched ffmpeg's source code, build scripts and licence are published. */
+const FFMPEG_LINKS: Link[] = [
+  { label: 'FFmpeg', href: 'https://github.com/FFmpeg/FFmpeg' },
+  { label: 'BtbN/FFmpeg-Builds', href: 'https://github.com/BtbN/FFmpeg-Builds' },
+  { label: 'ffmpeg.org/legal', href: 'https://ffmpeg.org/legal.html' },
+];
+
+/** Where the fetched Java runtime's source code and licence are published. */
+const JRE_LINKS: Link[] = [
+  { label: 'Eclipse Temurin', href: 'https://adoptium.net/temurin/' },
+  { label: 'adoptium/temurin21-binaries', href: 'https://github.com/adoptium/temurin21-binaries' },
+  { label: 'GPLv2 + Classpath Exception', href: 'https://openjdk.org/legal/gplv2+ce.html' },
+];
+
 /**
- * ToolRow is one built-in part: its name with what it does behind an (i), its
- * version and where it comes from, in columns every row of the card shares.
+ * releaseTag derives the release tag from a version string the way GlimStone's
+ * AboutCard does: it drops semver build metadata and adds a leading 'v' only
+ * where the stamp lacks one, since release builds are stamped with it.
  */
-function ToolRow({ name, sub, version, source }: { name: string; sub?: string; version: ReactNode; source: string }) {
+export function releaseTag(version: string): string {
+  const bare = version.split('+')[0].trim();
+  if (!bare) return '';
+  return bare.startsWith('v') ? bare : `v${bare}`;
+}
+
+/** Only a published release earns a link; a preview or branch stamp has no page. */
+const RELEASE_TAG = /^v\d+\.\d+\.\d+$/;
+
+/** releasePage is the release page behind one of this house's versions, or '' for a stamp without one. */
+function releasePage(repo: string, version: string): string {
+  const tag = releaseTag(version);
+  return RELEASE_TAG.test(tag) ? `${repo}/releases/tag/${encodeURIComponent(tag)}` : '';
+}
+
+/**
+ * VersionNumber shows a version without its leading 'v', linked to its release
+ * page in a new tab where it has one. The link uses the row's ink, which lifts
+ * on hover, the same in every colour mode.
+ */
+function VersionNumber({ version, page }: { version: string; page: string }) {
+  const bare = version.replace(/^v/, '');
+  if (!page) return <>{bare}</>;
+  return (
+    <a href={page} target="_blank" rel="noreferrer noopener" onClick={followExternal} className="no-underline hover:text-carbon-text">
+      {bare}
+    </a>
+  );
+}
+
+/** SourceLinks is where a component comes from on the web, in a new tab. */
+function SourceLinks({ links }: { links: Link[] }) {
+  return (
+    <span className="text-subline text-carbon-textMuted">
+      {links.map((l, i) => (
+        <span key={l.href}>
+          {i > 0 && ', '}
+          <a href={l.href} target="_blank" rel="noreferrer noopener" onClick={followExternal} dir="ltr" className="underline hover:text-carbon-text">
+            {l.label}
+          </a>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** LicenceLine is a licence note with its links, as the card's foot shows it. */
+function LicenceLine({ text, links }: { text: string; links: Link[] }) {
+  return (
+    <p className="text-xs text-carbon-textMuted">
+      {text} <SourceLinks links={links} />
+    </p>
+  );
+}
+
+/**
+ * ToolRow is one component that comes with KnightLoader: its name with what
+ * it does behind an (i), its version, and where it comes from with its page,
+ * in columns every row of the card shares.
+ */
+function ToolRow({
+  name,
+  sub,
+  version,
+  source,
+  links,
+}: {
+  name: string;
+  sub?: string;
+  version: ReactNode;
+  source: string;
+  links: Link[];
+}) {
   return (
     <section className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 @xl:grid-cols-[minmax(0,1fr)_9rem_15rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 @xl:grid-cols-[minmax(0,1fr)_9rem_17rem]">
         <h3 className="flex min-w-0 items-center gap-1.5 text-sm text-carbon-text">
           {name}
           <HintBubble hint={sub} />
@@ -112,26 +220,34 @@ function ToolRow({ name, sub, version, source }: { name: string; sub?: string; v
         <span dir="ltr" className="glim-num truncate text-end text-sm text-carbon-textSub @xl:text-start">
           {version}
         </span>
-        <span className="col-span-2 text-subline text-carbon-textMuted @xl:col-span-1">{source}</span>
+        <span className="col-span-2 flex flex-col text-subline text-carbon-textMuted @xl:col-span-1">
+          {source}
+          <SourceLinks links={links} />
+        </span>
       </div>
     </section>
   );
 }
 
 /**
- * ToolCard is a part KnightLoader updates, as a sub-card: its name with what
- * it does behind an (i), its version at the heading's end, and its update
- * controls under them.
+ * ToolCard is a component KnightLoader updates, as a sub-card: its name with
+ * what it does behind an (i), its version at the heading's end, where it comes
+ * from, and its update controls under them.
  */
 function ToolCard({
   name,
   sub,
   version,
+  links,
+  'data-new': mark,
   children,
 }: {
   name: string;
   sub?: Hint;
   version: ReactNode;
+  links: Link[];
+  /** The change the version is marked as after an update (lib/whatsNew.ts). */
+  'data-new'?: string;
   children?: ReactNode;
 }) {
   return (
@@ -140,11 +256,12 @@ function ToolCard({
       hint={sub}
       className="gap-3"
       right={
-        <span dir="ltr" className="glim-num text-sm text-carbon-textSub">
+        <span dir="ltr" data-new={mark} className="glim-num text-sm text-carbon-textSub">
           {version}
         </span>
       }
     >
+      <SourceLinks links={links} />
       {children}
     </SubCard>
   );
@@ -163,47 +280,31 @@ function DeploymentError({ retry }: { retry: () => void }) {
 const hostSource = (t: Translate, deployment: string) =>
   t(deployment === 'desktop' ? 'settings.look.toolsSource.system' : 'settings.look.toolsSource.image');
 
-/** A tool fetched into the data folder says so; anything else is the host's. */
-const toolSource = (t: Translate, deployment: string, tool?: { source?: string }) =>
-  tool?.source === 'managed' ? t('settings.resolvers.toolsFrom.managed') : hostSource(t, deployment);
+const SOURCES: Record<string, TranslationKey> = {
+  managed: 'settings.resolvers.toolsFrom.managed',
+  bundled: 'settings.resolvers.toolsFrom.bundled',
+  env: 'settings.resolvers.toolsFrom.env',
+};
+
+/** Where a program comes from: KnightLoader's own copy or KL_* variable where it says so, the host otherwise. */
+const toolSource = (t: Translate, deployment: string, tool?: MediaTool) => {
+  const key = tool?.source && SOURCES[tool.source];
+  return key ? t(key) : hostSource(t, deployment);
+};
 
 /**
- * UpdatesCard holds the updates of KnightLoader, yt-dlp and the JDownloader
- * backend, each a sub-card. `children` is a further group of the card, such as
- * quit and restart.
+ * ComponentsCard lists every component on `hue`: those that update on their
+ * own as sub-cards, then a row for each of the rest, the licences the fetched
+ * ones come under, and the button for what the updates brought.
  */
-export function UpdatesCard({ hue, children }: { hue: number; children?: ReactNode }) {
-  const { t } = useT();
-  const { data: deployment, failed, reload } = useResource(fetchDeploymentInfo);
-
-  return (
-    <Card hue={hue} data-new="updates-card" className="flex flex-col gap-4">
-      <SectionTitle hint={t('settings.look.updatesHint')}>{t('settings.look.updatesTitle')}</SectionTitle>
-      {/* Wait for the deployment rather than flash the wrong copy. */}
-      {failed && <DeploymentError retry={reload} />}
-      {deployment && (
-        <>
-          <AppUpdates deployment={deployment.deployment} />
-          <YtdlpUpdates />
-          <JDUpdates />
-        </>
-      )}
-      {children}
-    </Card>
-  );
-}
-
-/**
- * BuiltInCard lists every part KnightLoader brings and does not update on its
- * own, each with its version and where it comes from.
- */
-export function BuiltInCard({ hue }: { hue: number }) {
+export function ComponentsCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { data: deployment, failed, reload } = useResource(fetchDeploymentInfo);
   const [tools, setTools] = useState<MediaToolsStatus | null>(null);
   const [jd, setJd] = useState<JDStatus | null>(null);
 
   useEffect(() => {
+    // The server is unreachable when either fails, which the page already shows.
     void fetchMediaTools()
       .then(setTools)
       .catch(() => {});
@@ -212,44 +313,116 @@ export function BuiltInCard({ hue }: { hue: number }) {
       .catch(() => {});
   }, []);
 
-  const found = (tool?: { found: boolean; version?: string }) =>
-    tools && (tool?.found ? tool.version : t('settings.resolvers.toolsNotFound'));
+  const found = (tool?: MediaTool) => tools && (tool?.found ? tool.version : t('settings.resolvers.toolsNotFound'));
+  const managedFfmpeg = tools?.ffmpeg.source === 'managed' || tools?.ffprobe.source === 'managed';
 
   return (
-    <Card hue={hue} data-new="built-in" className="flex flex-col gap-6">
-      <SectionTitle hint={t('settings.look.builtInHint')}>{t('settings.look.builtInTitle')}</SectionTitle>
+    <Card hue={hue} data-new="updates-card" className="flex flex-col gap-4">
+      <SectionTitle hint={t('settings.info.componentsHint')}>{t('settings.info.componentsTitle')}</SectionTitle>
+      {/* Wait for the deployment rather than flash the wrong copy. */}
       {failed && <DeploymentError retry={reload} />}
       {deployment && (
-        <div className="@container flex flex-col divide-y divide-carbon-border/40">
-          <ToolRow
-            name="ffmpeg"
-            sub={t('settings.info.ffmpegSub')}
-            version={found(tools?.ffmpeg)}
-            source={toolSource(t, deployment.deployment, tools?.ffmpeg)}
-          />
-          <ToolRow
-            name="ffprobe"
-            sub={t('settings.look.tool.ffprobe')}
-            version={found(tools?.ffprobe)}
-            source={toolSource(t, deployment.deployment, tools?.ffprobe)}
-          />
-          {/* The desktop build fetches it for JDownloader and renews it with
-              its own updates. */}
-          {jd?.runtime && (
+        <>
+          <AppUpdates deployment={deployment.deployment} />
+          <YtdlpUpdates />
+          <JDUpdates />
+          <div data-new="built-in" className="@container flex flex-col divide-y divide-carbon-border/40 pt-2">
             <ToolRow
-              name={`Java (${jd.runtime.vendor})`}
-              sub={t('settings.look.tool.jre')}
-              version={jd.runtime.version}
-              source={t('settings.resolvers.toolsFrom.managed')}
+              name="GlimStone"
+              sub={t('settings.info.glimstoneSub')}
+              version={<VersionNumber version={GLIMSTONE_VERSION} page={releasePage(GLIMSTONE_URL, GLIMSTONE_VERSION)} />}
+              source={t('settings.look.toolsSource.built')}
+              links={GLIMSTONE_LINKS}
             />
-          )}
-          {(deployment.engines ?? []).map((m) => (
-            <EngineRow key={m.path} module={m} />
-          ))}
-        </div>
+            <ToolRow
+              name="ffmpeg"
+              sub={t('settings.info.ffmpegSub')}
+              version={found(tools?.ffmpeg)}
+              source={toolSource(t, deployment.deployment, tools?.ffmpeg)}
+              links={FFMPEG_HOME}
+            />
+            <ToolRow
+              name="ffprobe"
+              sub={t('settings.look.tool.ffprobe')}
+              version={found(tools?.ffprobe)}
+              source={toolSource(t, deployment.deployment, tools?.ffprobe)}
+              links={FFMPEG_HOME}
+            />
+            {/* Without UnRAR the built-in reader unpacks RAR sets. */}
+            <ToolRow
+              name="UnRAR"
+              sub={tools?.unrar?.found ? t('settings.look.tool.rar') : t('settings.resolvers.toolsUnrarMissingHint')}
+              version={tools && (tools.unrar?.found ? tools.unrar.version : t('settings.resolvers.toolsUnrarBuiltIn'))}
+              source={toolSource(t, deployment.deployment, tools?.unrar)}
+              links={UNRAR_LINKS}
+            />
+            {/* The desktop build fetches it for JDownloader and renews it with
+                its own updates. */}
+            {jd?.runtime && (
+              <ToolRow
+                name={`Java (${jd.runtime.vendor})`}
+                sub={t('settings.look.tool.jre')}
+                version={jd.runtime.version}
+                source={t('settings.resolvers.toolsFrom.managed')}
+                links={JRE_HOME}
+              />
+            )}
+            {(deployment.engines ?? []).map((m) => (
+              <EngineRow key={m.path} module={m} />
+            ))}
+          </div>
+        </>
       )}
+      {managedFfmpeg && <LicenceLine text={t('settings.resolvers.toolsFfmpegLicence')} links={FFMPEG_LINKS} />}
+      {jd?.runtime && (
+        <LicenceLine text={t('settings.resolvers.toolsJreLicence', { version: jd.runtime.version })} links={JRE_LINKS} />
+      )}
+      {tools?.unrar?.found && <LicenceLine text={t('settings.resolvers.toolsUnrarLicence')} links={UNRAR_LINKS} />}
+      <div className="flex flex-wrap justify-end gap-3">
+        <NewsButton />
+      </div>
     </Card>
   );
+}
+
+/**
+ * NewsButton opens the one window of what the updates brought, a card per
+ * release with its notes and the changes the dots mark. Its figure is the
+ * number still unseen, and once all are seen how many the window lists. Where
+ * it lists none it offers the release notes alone.
+ */
+function NewsButton() {
+  const { t } = useT();
+  const news = useWhatsNew();
+  const total = news?.changes.length ?? 0;
+  const unseen = news?.unseen.length ?? 0;
+  return (
+    <Button kind="secondary" icon={<NewsGlyph unseen={unseen > 0} />} data-new="news-button" onClick={openWhatsNew}>
+      {total > 0 ? t('whatsnew.newCount', { n: unseen || total }) : t('settings.look.updatesReleaseNotes')}
+    </Button>
+  );
+}
+
+/**
+ * jdMissing says what stands in for JDownloader's revision while it does not
+ * answer, and what to do about it. The desktop build tells how far it has come
+ * with its own JDownloader and the Java runtime that runs it.
+ */
+function jdMissing(t: Translate, jd: JDStatus): [string, string] {
+  switch (jd.setup) {
+    case 'starting': {
+      const total = jd.setupTotal ?? 0;
+      const hint =
+        total > 0 && (jd.setupDone ?? 0) < total
+          ? t('settings.resolvers.toolsJdDownloading', { percent: String(Math.floor(((jd.setupDone ?? 0) * 100) / total)) })
+          : t('settings.resolvers.toolsJdStartingHint');
+      return [t('settings.resolvers.toolsJdStarting'), hint];
+    }
+    case 'failed':
+      return [t('settings.resolvers.toolsJdFailed'), t('settings.resolvers.toolsJdFailedHint', { error: jd.detail ?? '' })];
+    default:
+      return [t('settings.resolvers.toolsNotConfigured'), t('settings.resolvers.toolsJdMissingHint')];
+  }
 }
 
 /** How often the sub-card asks how far an update it started has come. */
@@ -359,7 +532,14 @@ function AppUpdates({ deployment }: { deployment: string }) {
   const face = checkFace(t, check ? check.checked : null, available);
 
   return (
-    <ToolCard name="KnightLoader" version={!version || version === 'dev' ? t('nav.workingTitle') : version.replace(/^v/, '')}>
+    <ToolCard
+      name="KnightLoader"
+      sub={t('settings.look.updatesHint')}
+      version={
+        !version || version === 'dev' ? t('nav.workingTitle') : <VersionNumber version={version} page={releasePage(REPO_URL, version)} />
+      }
+      links={KNIGHTLOADER_LINKS}
+    >
       {/* The desktop build checks on its own and has no use for this switch.
           A container keeps the stored value as it is, so a key press on the
           disabled switch changes nothing either. */}
@@ -568,6 +748,7 @@ function YtdlpUpdates() {
       name="yt-dlp"
       sub={[t('settings.info.ytdlpSub'), t('settings.resolvers.toolsActionsHint')]}
       version={found(ytdlp)}
+      links={YTDLP_LINKS}
     >
       {managedRunning && shadowed && !managedIsOlder && (
         <p className="text-xs text-carbon-textSub">
@@ -781,6 +962,8 @@ function JDUpdates() {
       name={t('health.part.jd')}
       sub={[t('settings.look.tool.jd'), t('settings.look.jdUpdatesItself')]}
       version={version}
+      links={JD_LINKS}
+      data-new="jd-tool"
     >
       {setupNote && (
         <p role="status" className={`text-sm ${jd?.setup === 'failed' ? 'text-statusFail' : 'text-carbon-textSub'}`}>
@@ -860,6 +1043,7 @@ function EngineRow({ module: m }: { module: BuiltModule }) {
       sub={known && t(known.sub)}
       version={moduleVersion(m.version)}
       source={t(m.fork ? 'settings.look.toolsSource.fork' : 'settings.look.toolsSource.built')}
+      links={[{ label: 'pkg.go.dev', href: `https://pkg.go.dev/${m.path}` }]}
     />
   );
 }

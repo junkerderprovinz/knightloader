@@ -256,40 +256,17 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [{ key: 'notifications.quiet', hint: 'notifications.quietHint' }],
     },
     { title: 'settings.dialogs.title', hint: 'settings.dialogs.hint', rows: [] },
+    // Its hint depends on how this instance runs.
     {
-      title: 'settings.look.updatesTitle',
-      hint: 'settings.look.updatesHint',
-      // KnightLoader, yt-dlp and JDownloader share the switch labels. Quit and
-      // restart are the card's last group, under a heading of their own.
-      rows: [
-        { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
-        { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoContainerHint' },
-        { key: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable' },
-      ],
-      // The container build uses its own sentence for the update hint, and
-      // yt-dlp's and JDownloader's switches carry their own hints. A sub-card's
-      // (i) says what its program does and how it is updated.
+      title: 'settings.system.lifecycleTitle',
+      rows: [],
+      also: ['settings.system.quit', 'settings.system.restart', 'settings.system.shuttingDownTitle'],
       body: [
-        'settings.look.updatesAutoUpdateContainerHint',
-        'settings.look.jdAutoUpdateHint',
-        'settings.resolvers.toolsAutoCheckHint',
-        'settings.resolvers.toolsAutoUpdateHint',
-        'settings.resolvers.toolsShadowed',
-        'settings.resolvers.toolsShadowedOlder',
-        'settings.resolvers.toolsManagedBroken',
-        'settings.resolvers.toolsActionsHint',
-        'settings.look.tool.jd',
-        'settings.look.jdUpdatesItself',
-      ],
-      also: [
-        'settings.look.updatesCheck',
-        'settings.resolvers.toolsFetch',
-        'settings.resolvers.toolsRevert',
-        'settings.look.jdUpdate',
+        'settings.system.unavailable',
+        'settings.system.lifecycleNoteDesktop',
+        'settings.system.lifecycleNoteContainer',
       ],
     },
-    // One row per part, named by the part itself.
-    { title: 'settings.look.builtInTitle', hint: 'settings.look.builtInHint', rows: [] },
     // The download, the upload and the schedule share one card.
     {
       title: 'settings.transfer.cardTitle',
@@ -893,18 +870,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   resolvers: [
     {
-      title: 'settings.resolvers.toolsTitle',
-      hint: 'settings.resolvers.toolsHint',
-      rows: [],
-      body: [
-        'settings.resolvers.toolsYtdlpMissingHint',
-        'settings.resolvers.toolsFfmpegMissingHint',
-        'settings.resolvers.toolsJdMissingHint',
-        'settings.resolvers.toolsJdUnreachableHint',
-      ],
-      also: ['settings.look.updatesTitle'],
-    },
-    {
       title: 'columns.variant.video',
       rows: [
         { key: 'settings.resolvers.format', hint: 'settings.resolvers.formatHint' },
@@ -1348,11 +1313,38 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     // The Info tile's three cards. Their buttons carry no caption to scroll
     // to, so they are `also` entries.
     {
-      title: 'settings.about.version',
-      hint: 'settings.info.versionHint',
-      rows: [],
-      also: ['settings.look.updatesReleaseNotes'],
-      body: ['settings.info.glimstoneSub'],
+      title: 'settings.info.componentsTitle',
+      hint: 'settings.info.componentsHint',
+      // KnightLoader, yt-dlp and JDownloader share the switch labels.
+      rows: [
+        { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
+        { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoContainerHint' },
+      ],
+      // The container build uses its own sentence for the update hint, and
+      // yt-dlp's and JDownloader's switches carry their own hints. A sub-card's
+      // (i) says what its program does and how it is updated.
+      body: [
+        'settings.look.updatesHint',
+        'settings.look.updatesAutoUpdateContainerHint',
+        'settings.look.jdAutoUpdateHint',
+        'settings.resolvers.toolsAutoCheckHint',
+        'settings.resolvers.toolsAutoUpdateHint',
+        'settings.resolvers.toolsShadowed',
+        'settings.resolvers.toolsShadowedOlder',
+        'settings.resolvers.toolsManagedBroken',
+        'settings.resolvers.toolsActionsHint',
+        'settings.resolvers.toolsUnrarMissingHint',
+        'settings.look.tool.jd',
+        'settings.look.jdUpdatesItself',
+        'settings.info.glimstoneSub',
+      ],
+      also: [
+        'settings.look.updatesCheck',
+        'settings.resolvers.toolsFetch',
+        'settings.resolvers.toolsRevert',
+        'settings.look.jdUpdate',
+        'settings.look.updatesReleaseNotes',
+      ],
     },
     {
       title: 'settings.info.helpTitle',

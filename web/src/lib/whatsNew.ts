@@ -126,9 +126,9 @@ export const RELEASES: Release[] = [
       { id: 'folder-back', to: ['/settings/downloads'], text: 'whatsnew.change.folderBack' },
       {
         id: 'jd-auto-update',
-        to: ['/settings/look'],
+        to: ['/settings/help'],
         text: 'whatsnew.change.jdAutoUpdate',
-        names: { name: 'health.part.jd', updates: 'settings.look.updatesTitle' },
+        names: { name: 'health.part.jd', updates: 'settings.info.componentsTitle' },
       },
       { id: 'brand-hover-logos', to: ['/settings/accounts', '/accounts'], text: 'whatsnew.change.brandHoverLogos' },
       {
@@ -221,15 +221,15 @@ export const RELEASES: Release[] = [
       { id: 'module-switches', to: ['/settings'], text: 'whatsnew.change.moduleSwitches' },
       {
         id: 'jd-tool',
-        to: ['/settings/resolvers'],
+        to: ['/settings/help'],
         text: 'whatsnew.change.jdTool',
-        names: { name: 'settings.resolvers.toolsTitle' },
+        names: { name: 'settings.info.componentsTitle' },
       },
       {
         id: 'ytdlp-updates',
         to: ['/settings/resolvers'],
         text: 'whatsnew.change.ytdlpUpdates',
-        names: { name: 'settings.look.updatesTitle', page: 'settings.nav.look' },
+        names: { name: 'settings.info.componentsTitle', page: 'settings.nav.help' },
       },
       {
         id: 'video-format',
@@ -493,21 +493,21 @@ export const RELEASES: Release[] = [
       },
       {
         id: 'updates-card',
-        to: ['/settings/look'],
+        to: ['/settings/help'],
         text: 'whatsnew.change.updatesCard',
-        names: { name: 'settings.look.updatesTitle' },
+        names: { name: 'settings.info.componentsTitle' },
       },
       {
         id: 'built-in',
-        to: ['/settings/look'],
+        to: ['/settings/help'],
         text: 'whatsnew.change.builtIn',
-        names: { name: 'settings.look.builtInTitle', updates: 'settings.look.updatesTitle' },
+        names: { name: 'settings.info.componentsTitle', updates: 'settings.info.componentsTitle' },
       },
       {
         id: 'jd-update',
-        to: ['/settings/look'],
+        to: ['/settings/help'],
         text: 'whatsnew.change.jdUpdate',
-        names: { name: 'health.part.jd', updates: 'settings.look.updatesTitle' },
+        names: { name: 'health.part.jd', updates: 'settings.info.componentsTitle' },
       },
       { id: 'row-window', to: ['/settings/rules'], text: 'whatsnew.change.rowWindow' },
       { id: 'pairing-steps', to: ['/settings/pairing'], text: 'whatsnew.change.pairingSteps' },
@@ -586,13 +586,13 @@ export const RELEASES: Release[] = [
       },
       {
         id: 'jd-state',
-        to: ['/settings/health', '/settings/look'],
+        to: ['/settings/health', '/settings/help'],
         text: 'whatsnew.change.jdState',
         names: {
           free: 'settings.accounts.freeTitle',
           parts: 'settings.health.parts',
           health: 'settings.nav.health',
-          updates: 'settings.look.updatesTitle',
+          updates: 'settings.info.componentsTitle',
         },
       },
       {
@@ -625,9 +625,9 @@ export const RELEASES: Release[] = [
         id: 'news-button',
         to: ['/settings/help'],
         text: 'whatsnew.change.newsButton',
-        names: { name: 'settings.about.version' },
+        names: { name: 'settings.info.componentsTitle' },
       },
-      // Drawn in the window the Version card's button opens.
+      // Drawn in the window the Components card's button opens.
       { id: 'news-toggle', to: ['/settings/help'], text: 'whatsnew.change.newsToggle' },
       {
         id: 'manual-button',

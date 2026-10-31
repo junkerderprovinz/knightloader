@@ -26,7 +26,7 @@ import {
 } from '../../components/VariantPicker';
 import { CookieJarsCard } from './resolvers/CookieJars';
 import { fileTracks, mergedExtension } from './resolvers/fileTracks';
-import { MediaToolsCard } from './resolvers/MediaToolsCard';
+import { ComponentsLink } from './resolvers/ComponentsLink';
 import { IconAdd, IconClose, IconTrash } from '../../lib/icons';
 import {
   fetchHosterFormats,
@@ -211,9 +211,7 @@ export function Resolvers() {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* First, since an outdated yt-dlp is the usual reason somebody opens
-          this page. */}
-      <MediaToolsCard hue={1} />
+      <ComponentsLink hue={1} />
 
       {/* Named like the video variant, whose format and resolution it sets
           where a row has no choice of its own. */}

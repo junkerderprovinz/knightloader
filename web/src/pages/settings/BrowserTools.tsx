@@ -28,7 +28,7 @@ import {
 import { BrandMark, ReadmeButton, type ReadmePart } from '../../components/ReadmeButton';
 import { QRCode } from '../../components/QRCode';
 import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
-import { releaseTag } from './Help';
+import { releaseTag } from './help/Components';
 import { RELAY_RUN_COMMAND } from './pairing/RelayCard';
 import { IconInstall } from '../../lib/icons';
 
