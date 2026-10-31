@@ -1114,9 +1114,10 @@ func outputTemplate(o Options) string {
 // The quality in a media file's name: the height of the video stream and the
 // bitrate of the audio one, "best" where the site does not say. The brackets
 // stand outside the fields, since a ")" inside a replacement ends yt-dlp's
-// field. The thumbnail, subtitle and description rows keep the plain title,
-// and so does a video kept as separate streams, whose two files are told
-// apart by their format codes.
+// field. The thumbnail, subtitle and description rows write the plain title
+// and are named after their video once it is written (internal/app's
+// app_variant_names.go). A video kept as separate streams keeps the plain
+// title too, its two files told apart by their format codes.
 const (
 	videoOutputTemplate = "%(title)s (%(height&{}p|best)s).%(ext)s"
 	audioOutputTemplate = "%(title)s (%(abr&{:.0f}kbit|best)s).%(ext)s"
