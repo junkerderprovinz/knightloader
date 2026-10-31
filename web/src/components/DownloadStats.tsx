@@ -7,7 +7,7 @@ import { useT } from '../lib/i18n';
 import { Card, SectionTitle } from './ui';
 
 /**
- * DownloadStats is the card of totals at the top of Downloads. `children` is
+ * DownloadStats is the card of totals beside the speed graph. `children` is
  * what narrows the list or picks from it, under the totals.
  */
 export function DownloadStats({ all, hue, children }: { all: Task[]; hue: number; children?: ReactNode }) {
@@ -23,8 +23,8 @@ export function DownloadStats({ all, hue, children }: { all: Task[]; hue: number
   }, [all]);
 
   return (
-    <div role="group" aria-label={t('downloads.stats.label')}>
-      <Card hue={hue} className="flex flex-col gap-3">
+    <div role="group" aria-label={t('downloads.stats.label')} className="flex flex-1 flex-col">
+      <Card hue={hue} className="flex flex-1 flex-col gap-3">
         <SectionTitle>{t('downloads.stats.label')}</SectionTitle>
         <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-carbon-text">
           <span className="glim-num font-semibold">

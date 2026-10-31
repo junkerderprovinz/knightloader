@@ -37,7 +37,7 @@
 //   host           116  "rapidgator.net" behind its logo; longer hosts
 //                       truncate into their bubble
 //   progress        60  the percentage, its gap and the padding; the bar
-//                       takes the rest, 100px at the default of 160
+//                       takes the rest, 160px at the default of 220
 //
 // A head is a word per language where a width is one number, so the widths
 // here are not sized for the heads: set at 12px in capitals with their 16px of
