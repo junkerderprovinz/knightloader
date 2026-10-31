@@ -607,7 +607,7 @@ export const en = {
   'columns.source': 'Source',
   'columns.menuTitle': 'Columns',
   'columns.reset': 'Reset columns',
-  'columns.headerHint': 'Click a header to sort by it, drag it to reorder the column, drag its edge to resize it, double-click the edge to put the width back. Right-click the header for the column list.',
+  'columns.headerHint': 'Click a header to sort by it, drag it or press Alt and an arrow key to move the column, drag its edge to resize it, double-click the edge to put the width back. Right-click the header for the column list.',
   'columns.alwaysShown': 'This column is always shown.',
   'columns.lastVisible': 'A list needs at least one column.',
   'columns.resizeHint': 'Drag to resize, double-click to reset',

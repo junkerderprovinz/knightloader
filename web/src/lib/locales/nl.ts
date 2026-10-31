@@ -530,7 +530,7 @@ export const nl: Dict = {
   'columns.source': 'Bron',
   'columns.menuTitle': 'Kolommen',
   'columns.reset': 'Kolommen herstellen',
-  'columns.headerHint': 'Klik op een koptekst om erop te sorteren, sleep deze om de kolom opnieuw te ordenen, sleep de rand om het formaat te wijzigen, dubbelklik op de rand om de breedte te herstellen. Rechtsklik op de koptekst voor de kolomlijst.',
+  'columns.headerHint': 'Klik op een koptekst om erop te sorteren, sleep deze of druk op Alt en een pijltoets om de kolom te verplaatsen, sleep de rand om het formaat te wijzigen, dubbelklik op de rand om de breedte te herstellen. Rechtsklik op de koptekst voor de kolomlijst.',
   'columns.alwaysShown': 'Deze kolom staat er altijd.',
   'columns.lastVisible': 'Een lijst heeft minstens één kolom nodig.',
   'columns.resizeHint': 'Sleep om te verbreden, dubbelklik om te herstellen',

@@ -538,7 +538,7 @@ export const et: Dict = {
   'columns.source': 'Allikas',
   'columns.menuTitle': 'Veerud',
   'columns.reset': 'Lähtesta veerud',
-  'columns.headerHint': 'Klõpsa päisel, et sortida selle järgi, lohista seda veeru ümberkorraldamiseks, lohista selle serva suuruse muutmiseks, topeltklõps serval taastab laiuse. Paremklõps päisel avab veergude loendi.',
+  'columns.headerHint': 'Klõpsa päisel, et sortida selle järgi, lohista seda või vajuta Alt ja nooleklahvi veeru liigutamiseks, lohista selle serva suuruse muutmiseks, topeltklõps serval taastab laiuse. Paremklõps päisel avab veergude loendi.',
   'columns.alwaysShown': 'See veerg on alati näha.',
   'columns.lastVisible': 'Loendis peab olema vähemalt üks veerg.',
   'columns.resizeHint': 'Lohista laiuse muutmiseks, topeltklõps lähtestab',

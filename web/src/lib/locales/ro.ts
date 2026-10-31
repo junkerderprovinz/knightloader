@@ -539,7 +539,7 @@ export const ro: Dict = {
   'columns.source': 'Sursă',
   'columns.menuTitle': 'Coloane',
   'columns.reset': 'Resetează coloanele',
-  'columns.headerHint': 'Dă clic pe un antet pentru a sorta după el, trage-l pentru a reordona coloana, trage marginea pentru a redimensiona, dublu clic pe margine readuce lățimea. Clic dreapta pe antet pentru lista de coloane.',
+  'columns.headerHint': 'Dă clic pe un antet pentru a sorta după el, trage-l sau apasă Alt și o tastă săgeată pentru a muta coloana, trage marginea pentru a redimensiona, dublu clic pe margine readuce lățimea. Clic dreapta pe antet pentru lista de coloane.',
   'columns.alwaysShown': 'Această coloană se vede întotdeauna.',
   'columns.lastVisible': 'O listă are nevoie de cel puțin o coloană.',
   'columns.resizeHint': 'Trage ca să redimensionezi, dublu clic ca să resetezi',

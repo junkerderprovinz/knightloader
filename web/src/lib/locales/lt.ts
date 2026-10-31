@@ -539,7 +539,7 @@ export const lt: Dict = {
   'columns.source': 'Šaltinis',
   'columns.menuTitle': 'Stulpeliai',
   'columns.reset': 'Atstatyti stulpelius',
-  'columns.headerHint': 'Spustelėkite antraštę, kad rūšiuotumėte pagal ją, vilkite ją, kad pertvarkytumėte stulpelį, vilkite jos kraštą, kad pakeistumėte dydį, dukart spustelėkite kraštą, kad grąžintumėte plotį. Dešiniuoju pelės klavišu spustelėkite antraštę, kad atidarytumėte stulpelių sąrašą.',
+  'columns.headerHint': 'Spustelėkite antraštę, kad rūšiuotumėte pagal ją, vilkite ją arba paspauskite Alt ir rodyklės klavišą, kad perkeltumėte stulpelį, vilkite jos kraštą, kad pakeistumėte dydį, dukart spustelėkite kraštą, kad grąžintumėte plotį. Dešiniuoju pelės klavišu spustelėkite antraštę, kad atidarytumėte stulpelių sąrašą.',
   'columns.alwaysShown': 'Šis stulpelis rodomas visada.',
   'columns.lastVisible': 'Sąrašui reikia bent vieno stulpelio.',
   'columns.resizeHint': 'Tempk pločiui keisti, dukart spustelėk atstatyti',

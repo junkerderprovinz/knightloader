@@ -538,7 +538,7 @@ export const vi: Dict = {
   'columns.source': 'Nguồn',
   'columns.menuTitle': 'Cột',
   'columns.reset': 'Đặt lại các cột',
-  'columns.headerHint': 'Nhấp vào tiêu đề để sắp xếp theo nó, kéo để sắp xếp lại cột, kéo cạnh để thay đổi kích thước, nhấp đúp vào cạnh để khôi phục chiều rộng. Nhấp chuột phải vào tiêu đề để xem danh sách cột.',
+  'columns.headerHint': 'Nhấp vào tiêu đề để sắp xếp theo nó, kéo hoặc nhấn Alt cùng một phím mũi tên để di chuyển cột, kéo cạnh để thay đổi kích thước, nhấp đúp vào cạnh để khôi phục chiều rộng. Nhấp chuột phải vào tiêu đề để xem danh sách cột.',
   'columns.alwaysShown': 'Cột này luôn hiện.',
   'columns.lastVisible': 'Danh sách cần ít nhất một cột.',
   'columns.resizeHint': 'Kéo để đổi độ rộng, nhấp đúp để đặt lại',

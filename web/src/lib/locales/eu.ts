@@ -539,7 +539,7 @@ export const eu: Dict = {
   'columns.source': 'Jatorria',
   'columns.menuTitle': 'Zutabeak',
   'columns.reset': 'Berrezarri zutabeak',
-  'columns.headerHint': 'Egin klik goiburu batean horren arabera ordenatzeko, arrastatu zutabea berrantolatzeko, arrastatu ertza tamaina aldatzeko, klik bikoitza ertzean zabalera itzultzeko. Eskuineko klik goiburuan zutabe-zerrenda ikusteko.',
+  'columns.headerHint': 'Egin klik goiburu batean horren arabera ordenatzeko, arrastatu edo sakatu Alt eta gezi-tekla bat zutabea mugitzeko, arrastatu ertza tamaina aldatzeko, klik bikoitza ertzean zabalera itzultzeko. Eskuineko klik goiburuan zutabe-zerrenda ikusteko.',
   'columns.alwaysShown': 'Zutabe hau beti agertzen da.',
   'columns.lastVisible': 'Zerrenda batek gutxienez zutabe bat behar du.',
   'columns.resizeHint': 'Arrastatu zabalera aldatzeko, klik bikoitza berrezartzeko',

@@ -530,7 +530,7 @@ export const pt: Dict = {
   'columns.source': 'Origem',
   'columns.menuTitle': 'Colunas',
   'columns.reset': 'Repor as colunas',
-  'columns.headerHint': 'Clica num cabeçalho para ordenar por ele, arrasta-o para reordenar a coluna, arrasta a sua margem para redimensioná-la, duplo clique na margem repõe a largura. Clique direito no cabeçalho para a lista de colunas.',
+  'columns.headerHint': 'Clica num cabeçalho para ordenar por ele, arrasta-o ou prime Alt e uma tecla de seta para mover a coluna, arrasta a sua margem para redimensioná-la, duplo clique na margem repõe a largura. Clique direito no cabeçalho para a lista de colunas.',
   'columns.alwaysShown': 'Esta coluna é sempre mostrada.',
   'columns.lastVisible': 'Uma lista precisa de pelo menos uma coluna.',
   'columns.resizeHint': 'Arraste para redimensionar, duplo clique para repor',

@@ -538,7 +538,7 @@ export const sv: Dict = {
   'columns.source': 'Källa',
   'columns.menuTitle': 'Kolumner',
   'columns.reset': 'Återställ kolumnerna',
-  'columns.headerHint': 'Klicka på en rubrik för att sortera efter den, dra den för att ändra ordning på kolumnen, dra kanten för att ändra storlek, dubbelklicka på kanten för att återställa bredden. Högerklicka på rubriken för kolumnlistan.',
+  'columns.headerHint': 'Klicka på en rubrik för att sortera efter den, dra den eller tryck Alt och en piltangent för att flytta kolumnen, dra kanten för att ändra storlek, dubbelklicka på kanten för att återställa bredden. Högerklicka på rubriken för kolumnlistan.',
   'columns.alwaysShown': 'Den här kolumnen visas alltid.',
   'columns.lastVisible': 'En lista behöver minst en kolumn.',
   'columns.resizeHint': 'Dra för att ändra bredd, dubbelklicka för att återställa',

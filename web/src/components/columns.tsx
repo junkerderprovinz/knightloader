@@ -1932,15 +1932,16 @@ export const COLUMN_BY_ID = new Map<ColumnId, ColumnDef>(COLUMNS.map((c) => [c.i
 export const DEFAULT_ORDER: ColumnId[] = COLUMNS.map((c) => c.id);
 
 /**
- * Where the progress column sits, which is not the same answer in both lists.
- * In the download list it is last, so the bar has the trailing edge of the row
- * to itself and every fixed-width value column lines up before it. In the
- * collector nothing has started, so the column ships hidden and its position
- * never comes up.
+ * Where the size and the progress columns sit, which is not the same answer in
+ * both lists. In the download list the progress bar is last, so it has the
+ * trailing edge of the row to itself, and the size stands just before it, so
+ * how much a file holds reads beside how far it has come. In the collector
+ * nothing has started, so the progress column ships hidden and the size is
+ * last.
  */
-function defaultOrderFor(profile: ListProfile): ColumnId[] {
-  if (profile !== 'downloads') return [...DEFAULT_ORDER];
-  return [...DEFAULT_ORDER.filter((id) => id !== 'progress'), 'progress'];
+export function defaultOrderFor(profile: ListProfile): ColumnId[] {
+  const rest = DEFAULT_ORDER.filter((id) => id !== 'size' && id !== 'progress');
+  return profile === 'downloads' ? [...rest, 'size', 'progress'] : [...rest, 'progress', 'size'];
 }
 
 /**
@@ -1952,10 +1953,10 @@ function defaultOrderFor(profile: ListProfile): ColumnId[] {
  * column in SHOWN_SINCE is taken out of a hidden set stored before its
  * version. Everything else survives untouched.
  */
-export const LAYOUT_VERSION = 3;
+export const LAYOUT_VERSION = 4;
 
 /** The version whose order every older layout takes once; see resolveLayout. */
-const ORDER_RESEATED_AT = 2;
+const ORDER_RESEATED_AT = 4;
 
 /**
  * Columns a list shows by default where an earlier build hid them, with the
@@ -2172,6 +2173,17 @@ export function resolveLayout(
 /** toStored is what resolveLayout resolved, in the shape the store keeps. */
 export function toStored(r: ResolvedLayout): ColumnLayout {
   return { order: r.order.map((c) => c.id), hidden: [...r.hidden], widths: { ...r.widths }, v: LAYOUT_VERSION };
+}
+
+/**
+ * stepColumn moves `id` one place towards the start or the end among the
+ * columns on show, for the keyboard: the hidden ones keep their places in
+ * between.
+ */
+export function stepColumn(order: ColumnId[], visible: ColumnId[], id: ColumnId, towardsEnd: boolean): ColumnId[] {
+  const at = visible.indexOf(id);
+  const target = visible[towardsEnd ? at + 1 : at - 1];
+  return at < 0 || !target ? order : moveColumn(order, id, target, towardsEnd);
 }
 
 /** moveColumn puts `id` immediately before or after `target`. */

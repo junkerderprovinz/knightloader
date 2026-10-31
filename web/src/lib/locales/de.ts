@@ -582,7 +582,7 @@ export const de: Dict = {
   'columns.source': 'Quelle',
   'columns.menuTitle': 'Spalten',
   'columns.reset': 'Spalten zurücksetzen',
-  'columns.headerHint': 'Ein Klick auf einen Spaltenkopf sortiert danach, Ziehen verschiebt die Spalte, Ziehen an seiner Kante ändert die Breite, ein Doppelklick auf die Kante setzt die Breite zurück. Ein Rechtsklick auf den Spaltenkopf öffnet die Spaltenliste.',
+  'columns.headerHint': 'Ein Klick auf einen Spaltenkopf sortiert danach, Ziehen oder Alt mit einer Pfeiltaste verschiebt die Spalte, Ziehen an seiner Kante ändert die Breite, ein Doppelklick auf die Kante setzt die Breite zurück. Ein Rechtsklick auf den Spaltenkopf öffnet die Spaltenliste.',
   'columns.alwaysShown': 'Diese Spalte wird immer angezeigt.',
   'columns.lastVisible': 'Eine Liste braucht mindestens eine Spalte.',
   'columns.resizeHint': 'Ziehen ändert die Breite, Doppelklick setzt zurück',

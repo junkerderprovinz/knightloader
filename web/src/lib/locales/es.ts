@@ -530,7 +530,7 @@ export const es: Dict = {
   'columns.source': 'Origen',
   'columns.menuTitle': 'Columnas',
   'columns.reset': 'Restablecer columnas',
-  'columns.headerHint': 'Haz clic en un encabezado para ordenar por él, arrástralo para reordenar la columna, arrastra su borde para redimensionarla, doble clic en el borde para restaurar el ancho. Clic derecho en el encabezado para la lista de columnas.',
+  'columns.headerHint': 'Haz clic en un encabezado para ordenar por él, arrástralo o pulsa Alt y una tecla de flecha para mover la columna, arrastra su borde para redimensionarla, doble clic en el borde para restaurar el ancho. Clic derecho en el encabezado para la lista de columnas.',
   'columns.alwaysShown': 'Esta columna siempre se muestra.',
   'columns.lastVisible': 'Una lista necesita al menos una columna.',
   'columns.resizeHint': 'Arrastra para cambiar el ancho, doble clic para restablecer',

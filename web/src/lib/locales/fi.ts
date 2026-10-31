@@ -538,7 +538,7 @@ export const fi: Dict = {
   'columns.source': 'Lähde',
   'columns.menuTitle': 'Sarakkeet',
   'columns.reset': 'Palauta sarakkeet',
-  'columns.headerHint': 'Napsauta otsikkoa lajitellaksesi sen mukaan, vedä sitä järjestääksesi sarakkeen uudelleen, vedä sen reunaa muuttaaksesi kokoa, kaksoisnapsauta reunaa palauttaaksesi leveyden. Napsauta otsikkoa hiiren oikealla painikkeella nähdäksesi sarakeluettelon.',
+  'columns.headerHint': 'Napsauta otsikkoa lajitellaksesi sen mukaan, vedä sitä tai paina Alt ja nuolinäppäintä siirtääksesi saraketta, vedä sen reunaa muuttaaksesi kokoa, kaksoisnapsauta reunaa palauttaaksesi leveyden. Napsauta otsikkoa hiiren oikealla painikkeella nähdäksesi sarakeluettelon.',
   'columns.alwaysShown': 'Tämä sarake näkyy aina.',
   'columns.lastVisible': 'Listalla on oltava vähintään yksi sarake.',
   'columns.resizeHint': 'Vedä muuttaaksesi leveyttä, kaksoisnapsauta palauttaaksesi',

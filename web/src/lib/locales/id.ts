@@ -538,7 +538,7 @@ export const id: Dict = {
   'columns.source': 'Sumber',
   'columns.menuTitle': 'Kolom',
   'columns.reset': 'Setel ulang kolom',
-  'columns.headerHint': 'Klik header untuk mengurutkan berdasarkan itu, seret untuk mengatur ulang kolom, seret tepinya untuk mengubah ukuran, klik dua kali tepinya untuk mengembalikan lebar. Klik kanan header untuk daftar kolom.',
+  'columns.headerHint': 'Klik header untuk mengurutkan berdasarkan itu, seret atau tekan Alt dan tombol panah untuk memindahkan kolom, seret tepinya untuk mengubah ukuran, klik dua kali tepinya untuk mengembalikan lebar. Klik kanan header untuk daftar kolom.',
   'columns.alwaysShown': 'Kolom ini selalu tampil.',
   'columns.lastVisible': 'Daftar butuh setidaknya satu kolom.',
   'columns.resizeHint': 'Seret untuk mengubah lebar, klik dua kali untuk menyetel ulang',
