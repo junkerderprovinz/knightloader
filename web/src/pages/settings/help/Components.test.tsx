@@ -8,7 +8,7 @@ import type { Settings } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { en } from '../../../lib/locales/en';
 import { SettingsProvider, type SettingsDraft } from '../context';
-import { BuiltInCard, UpdatesCard, moduleVersion } from './Updates';
+import { ComponentsCard, moduleVersion, releaseTag } from './Components';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -85,8 +85,7 @@ async function draw(cfg: Partial<Settings> = {}) {
       <I18nProvider>
         <MemoryRouter>
           <SettingsProvider draft={draft} features={{ features: { modules: [], pages: [] }, toggle: async () => {} }}>
-            <UpdatesCard hue={0} />
-            <BuiltInCard hue={1} />
+            <ComponentsCard hue={0} />
           </SettingsProvider>
         </MemoryRouter>
       </I18nProvider>,
@@ -107,11 +106,21 @@ const switches = (within: HTMLElement) =>
 const card = (title: string) =>
   [...host.querySelectorAll<HTMLElement>('.glim-card')].find((c) => c.textContent?.startsWith(title))!;
 
-describe('the Updates card', () => {
-  it('lists every tool KnightLoader brings, each with its version', async () => {
+describe('the Components card', () => {
+  it('lists every component, each with its version', async () => {
     await draw();
     const rows = [...host.querySelectorAll('section')].map((s) => s.querySelector('h3')?.textContent);
-    expect(rows).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend', 'ffmpeg', 'ffprobe', 'Gopeed', 'SQLite']);
+    expect(rows).toEqual([
+      'KnightLoader',
+      'yt-dlp',
+      'JDownloader backend',
+      'GlimStone',
+      'ffmpeg',
+      'ffprobe',
+      'UnRAR',
+      'Gopeed',
+      'SQLite',
+    ]);
     expect(group('KnightLoader').textContent).toContain('1.8.4');
     expect(group('yt-dlp').textContent).toContain('2026.08.19');
     expect(group('JDownloader backend').textContent).toContain('50123');
@@ -120,6 +129,55 @@ describe('the Updates card', () => {
     expect(group('Gopeed').textContent).toContain('5111a4c');
     expect(group('Gopeed').textContent).toContain('Built into KnightLoader from its own fork');
     expect(group('SQLite').textContent).toContain('1.60.1');
+    expect(group('UnRAR').textContent).toContain('Built-in reader');
+  });
+
+  it('links every component to where it comes from', async () => {
+    await draw();
+    const links = (name: string) => [...group(name).querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(links('KnightLoader')).toContain('https://github.com/junkerderprovinz/knightloader');
+    expect(links('yt-dlp')).toContain('https://github.com/yt-dlp/yt-dlp');
+    expect(links('JDownloader backend')).toContain('https://jdownloader.org/');
+    expect(links('GlimStone')).toContain('https://github.com/junkerderprovinz/glimstone');
+    expect(links('ffmpeg')).toContain('https://ffmpeg.org/');
+    expect(links('UnRAR')).toContain('https://www.rarlab.com/');
+    expect(links('SQLite')).toContain('https://pkg.go.dev/modernc.org/sqlite');
+  });
+
+  it('links a version number to its release page', async () => {
+    await draw();
+    const version = (name: string) => group(name).querySelector('.glim-num a')?.getAttribute('href');
+    expect(version('KnightLoader')).toBe('https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4');
+    expect(version('GlimStone')).toMatch(/^https:\/\/github\.com\/junkerderprovinz\/glimstone\/releases\/tag\/v\d+\.\d+\.\d+$/);
+  });
+
+  it('links a branch build to the release it was cut from', async () => {
+    answers['/api/health'] = { status: 'ok', version: 'v1.8.4+redesign.59b73a6' };
+    await draw();
+    const number = group('KnightLoader').querySelector('.glim-num')!;
+    expect(number.textContent).toBe('1.8.4+redesign.59b73a6');
+    expect(number.querySelector('a')?.getAttribute('href')).toBe(
+      'https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4',
+    );
+  });
+
+  it('shows a stamp without a release as written, with no link', async () => {
+    answers['/api/health'] = { status: 'ok', version: 'preview-59b73a6' };
+    await draw();
+    const number = group('KnightLoader').querySelector('.glim-num')!;
+    expect(number.textContent).toBe('preview-59b73a6');
+    expect(number.querySelector('a')).toBeNull();
+  });
+
+  it('names the fetched UnRAR with its licence', async () => {
+    answers['/api/mediatools'] = {
+      ...(answers['/api/mediatools'] as object),
+      unrar: { found: true, version: '7.12', source: 'bundled' },
+    };
+    await draw();
+    expect(group('UnRAR').textContent).toContain('7.12');
+    expect(group('UnRAR').textContent).toContain('Comes with KnightLoader');
+    expect(card('Components').textContent).toContain(en['settings.resolvers.toolsUnrarLicence']);
   });
 
   it('says what each tool does behind an (i) beside its name', async () => {
@@ -135,10 +193,11 @@ describe('the Updates card', () => {
   it('holds only what updates on its own, each on a sub-card, and the rest on a card without controls', async () => {
     await draw();
     const names = (c: HTMLElement) => [...c.querySelectorAll('section')].map((s) => s.querySelector('h3')?.textContent);
-    expect(names(card('Updates'))).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend']);
-    expect(card('Updates').querySelectorAll('.glim-subcard')).toHaveLength(3);
-    expect(names(card('Built-in components'))).toEqual(['ffmpeg', 'ffprobe', 'Gopeed', 'SQLite']);
-    expect(card('Built-in components').querySelector('button, [role="switch"]')).toBeNull();
+    const subcards = [...card('Components').querySelectorAll<HTMLElement>('.glim-subcard')];
+    expect(subcards.map((s) => s.querySelector('h3')?.textContent)).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend']);
+    const rest = card('Components').querySelector<HTMLElement>('[data-new="built-in"]')!;
+    expect(names(rest)).toEqual(['GlimStone', 'ffmpeg', 'ffprobe', 'UnRAR', 'Gopeed', 'SQLite']);
+    expect(rest.querySelector('button, [role="switch"]')).toBeNull();
   });
 
   it('says where a JDownloader backend that is not set up stands, with nothing to press', async () => {
@@ -290,12 +349,11 @@ describe('the Updates card', () => {
     const deployment = answers['/api/system/deployment'];
     delete answers['/api/system/deployment'];
     await draw();
-    expect(card('Updates').textContent).toContain('Could not load this.');
-    expect(card('Built-in components').textContent).toContain('Could not load this.');
+    expect(card('Components').textContent).toContain('Could not load this.');
 
     answers['/api/system/deployment'] = deployment;
-    await act(async () => button(card('Updates'), 'Try again').click());
-    expect(card('Updates').textContent).not.toContain('Could not load this.');
+    await act(async () => button(card('Components'), 'Try again').click());
+    expect(card('Components').textContent).not.toContain('Could not load this.');
     expect(group('KnightLoader').textContent).toContain('1.8.4');
   });
 
@@ -309,6 +367,13 @@ describe('the Updates card', () => {
     await draw({ autoUpdateCheck: true, ytdlpVersionCheck: true });
     expect(asked).not.toContain('/api/system/update-check');
     expect(asked).toContain('/api/mediatools/ytdlp/latest');
+  });
+});
+
+describe('the release tag of a version', () => {
+  it('adds the v a stamp lacks and drops build metadata', () => {
+    expect(releaseTag('1.8.4')).toBe('v1.8.4');
+    expect(releaseTag('v1.8.4+redesign.59b73a6')).toBe('v1.8.4');
   });
 });
 

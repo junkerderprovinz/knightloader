@@ -42,8 +42,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 - **RAR sets are unpacked with RARLAB's UnRAR,** the decoder WinRAR itself
   uses. The container image and the desktop app for Windows, for Linux on
-  x86-64 and for macOS on Apple silicon bring it, and Settings, Resolvers shows
-  its version with a link to rarlab.com. Where it is missing or does not start,
+  x86-64 and for macOS on Apple silicon bring it, and Settings, Info shows its
+  version with a link to rarlab.com. Where it is missing or does not start,
   the built-in reader unpacks the set as before. Names keep their umlauts, a
   password is tried the same way, and a damaged or missing part is reported
   as it was.
@@ -80,8 +80,22 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   file selected once there is one, on Downloads and in the link collector.
   Copy links, Open in browser and Set connections are new. Open with default
   app no longer stands greyed out in a browser, where it cannot work.
+- **One Components card lists everything KnightLoader is made of.** It sits
+  on the Info page and names KnightLoader, GlimStone, yt-dlp, JDownloader,
+  ffmpeg, UnRAR, Java and the built-in libraries, each with its version, where
+  it comes from and a link to its page. KnightLoader, yt-dlp and JDownloader
+  are checked and updated there. General keeps Quit & restart on a card of
+  its own, and Resolvers has a line that leads to yt-dlp.
+- **The link collector ends above Start all.** A short list stops above the
+  button, and only a list long enough to scroll runs under it, with room for
+  its last row to scroll clear.
 
 ### Fixed
+
+- **Every button with words looks like a button.** Done on the overview's
+  Needs you card, Undo, Copy, Reset and a few more were words beside an icon
+  with nothing around them. They have a fill like every other button, and a
+  check in the build keeps it that way.
 
 - **A download you removed can be added again.** Removing it from Downloads
   used to leave its link in the history check, so adding it again landed it

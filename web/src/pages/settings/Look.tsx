@@ -83,7 +83,6 @@ import { useDraft } from './context';
 import { SettingRow, SubHead } from './controls';
 import { same } from './paths';
 import { NotificationsCard } from './look/Notifications';
-import { BuiltInCard, UpdatesCard } from './look/Updates';
 import { BrowserWindowCard, WindowCard } from './appearance/WindowCard';
 import { SettingsTransfer } from './look/SettingsTransfer';
 import { JDImportCard } from './look/JDImport';
@@ -949,7 +948,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
       {general && <MutedDialogsCard hue={1} />}
       {general && <SystemCards hue={2} />}
-      {general && <JDImportCard hue={5} />}
+      {general && <JDImportCard hue={4} />}
     </div>
   );
 }
@@ -980,29 +979,26 @@ function MutedDialogsCard({ hue }: { hue: number }) {
 }
 
 /**
- * SystemCards holds the update card, with quit and restart as its last group,
- * the card of built-in parts and the transfer card, on `hue` and the two after
- * it. Lifecycle does the deployment fetch alone, so a slow /api/deployment
- * hides no card; it and the transfer card share `shuttingDown`, since a
- * restore can restart the server.
+ * SystemCards holds the card to quit and restart and the transfer card, on
+ * `hue` and the one after it. Lifecycle does the deployment fetch alone, so a
+ * slow /api/deployment hides no card; it and the transfer card share
+ * `shuttingDown`, since a restore can restart the server.
  */
 function SystemCards({ hue }: { hue: number }) {
   const [shuttingDown, setShuttingDown] = useState(false);
   return (
     <>
-      <UpdatesCard hue={hue}>
+      <Card hue={hue} className="flex flex-col gap-4">
         <Lifecycle shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
-      </UpdatesCard>
-      <BuiltInCard hue={hue + 1} />
-      <SettingsTransfer hue={hue + 2} onShutdown={() => setShuttingDown(true)} />
+      </Card>
+      <SettingsTransfer hue={hue + 1} onShutdown={() => setShuttingDown(true)} />
     </>
   );
 }
 
 /**
- * Lifecycle is quit and restart, a group of the update card under its own
- * small heading, since two buttons are no card. It loads on its own, so a
- * failed deployment fetch drops only this group.
+ * Lifecycle is the inside of the card to quit and restart. It loads on its
+ * own, so a failed deployment fetch drops only this card's buttons.
  */
 function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShutdown: () => void }) {
   const { t } = useT();
@@ -1032,16 +1028,21 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
     }
   }
 
-  // Nothing while loading, like UpdateCard.
-  if (loading) return null;
+  // The heading alone while loading; its hint depends on the answer.
+  if (loading) return <SectionTitle>{t('settings.system.lifecycleTitle')}</SectionTitle>;
   if (failed || !data) {
-    return <ErrorCard nested message={t('settings.system.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
+    return (
+      <>
+        <SectionTitle>{t('settings.system.lifecycleTitle')}</SectionTitle>
+        <ErrorCard nested message={t('settings.system.loadFailed')} retry={reload} retryLabel={t('common.retry')} />
+      </>
+    );
   }
 
   if (shuttingDown) {
     return (
       <>
-        <SubHead label={t('settings.system.shuttingDownTitle')} />
+        <SectionTitle>{t('settings.system.shuttingDownTitle')}</SectionTitle>
         <p className="text-sm text-carbon-text">{t('settings.system.shuttingDown')}</p>
       </>
     );
@@ -1051,14 +1052,15 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
     <>
       {/* The note comes from translated keys by deployment, since the server
           sends it in English; an unavailable reason wins. */}
-      <SubHead
-        label={t('settings.system.lifecycleTitle')}
+      <SectionTitle
         hint={
           !data.canQuit || !data.canRestart
             ? t('settings.system.unavailable')
             : t(data.deployment === 'desktop' ? 'settings.system.lifecycleNoteDesktop' : 'settings.system.lifecycleNoteContainer')
         }
-      />
+      >
+        {t('settings.system.lifecycleTitle')}
+      </SectionTitle>
       <div className="flex flex-wrap items-center gap-3">
         <Button
           kind="secondary"
