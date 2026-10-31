@@ -160,3 +160,35 @@ func TestARowNamedByHandOrAVideoWithoutQualityKeepsItsName(t *testing.T) {
 		t.Errorf("thumbnail named by hand at %q, want %q", got, want)
 	}
 }
+
+func TestAVideoConfirmedLaterStillNamesItsSideFiles(t *testing.T) {
+	a := newQueueApp(t)
+	a.SetHalted(true)
+	dir := t.TempDir()
+	// A Clip.jpg from an earlier download keeps its name.
+	if err := os.WriteFile(filepath.Join(dir, "Clip.jpg"), nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	video, thumb, desc := pick(t, a, "late", time.Unix(1_000, 0))
+	a.mu.Lock()
+	a.tasks[video].Status = core.StatusCollected
+	a.mu.Unlock()
+	finish(t, a, dir, thumb, sideFile(thumb, ".jpg"))
+	finish(t, a, dir, desc, sideFile(desc, ".description"))
+	if got, want := taskOf(t, a, thumb).File, filepath.Join(dir, "Clip (2).jpg"); got != want {
+		t.Fatalf("thumbnail beside a video left in the collector at %q, want %q", got, want)
+	}
+
+	a.mu.Lock()
+	a.tasks[video].Status = core.StatusQueued
+	a.mu.Unlock()
+	finish(t, a, dir, video, "Clip (1080p).mkv")
+	for id, want := range map[string]string{thumb: "Clip (1080p).jpg", desc: "Clip (1080p).description"} {
+		if got := taskOf(t, a, id).File; got != filepath.Join(dir, want) {
+			t.Errorf("%s at %q, want %q", id, got, want)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(dir, "Clip.jpg")); err != nil {
+		t.Errorf("the earlier Clip.jpg was moved: %v", err)
+	}
+}
