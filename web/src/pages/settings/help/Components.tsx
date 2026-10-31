@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Button, Card, ErrorCard, InfoBubble, SectionTitle, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import {
   ApiError,
@@ -45,7 +45,8 @@ import { useDraft } from '../context';
 // line each: the name, a short status where there is one, the buttons as
 // glyphs, and at the end the version linked to its release or project page.
 // KnightLoader, yt-dlp and the JDownloader backend update on their own, so
-// their lines carry a check and the update, and their switches under the name.
+// their lines carry the update when one waits and their switches under the
+// name, and one button at the foot of the card checks them all.
 // yt-dlp moves faster than KnightLoader's releases, which is why it is updated
 // here at all, and JDownloader is a program of its own beside KnightLoader.
 
@@ -83,14 +84,33 @@ function releasePage(repo: string, version: string): string {
   return RELEASE_TAG.test(tag) ? `${repo}/releases/tag/${encodeURIComponent(tag)}` : '';
 }
 
+/** What one component's check came to. */
+type Found = 'current' | 'newer' | 'failed';
+
+/** A component's check, which its row hands the card so one button runs them all. */
+type Check = () => Promise<Found>;
+type Register = (key: string, check: Check | null) => void;
+
 type Face = { label: string; icon: ReactNode; verdict?: ButtonVerdict };
 
-/** The check button's face for an answer that has come back, or for none yet. */
-function checkFace(t: Translate, checked: boolean | null, newer: boolean, known = true): Face {
-  if (checked === null || !known) return { label: t('settings.look.updatesCheck'), icon: <IconUpdate /> };
-  if (!checked) return { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' };
-  if (newer) return { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconUpdateAvailable />, verdict: 'warn' };
+/** The Check all button's face for the answers that have come back, or for none yet. */
+function checkFace(t: Translate, found: Found[] | null): Face {
+  if (found === null) return { label: t('settings.info.checkAll'), icon: <IconUpdate /> };
+  if (found.includes('failed')) return { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' };
+  const newer = found.filter((f) => f === 'newer').length;
+  if (newer > 0) return { label: t('settings.info.updatesFound', { n: newer }), icon: <IconUpdateAvailable />, verdict: 'warn' };
   return { label: t('settings.info.upToDate'), icon: <IconUpToDate />, verdict: 'ok' };
+}
+
+/**
+ * useCheck hands the card a row's check while the row has one, under `key`.
+ * The row's own state still shows what the check found.
+ */
+function useCheck(register: Register, key: string, check: Check | null) {
+  useEffect(() => {
+    register(key, check);
+    return () => register(key, null);
+  }, [register, key, check]);
 }
 
 /** GlyphButton is one action at the end of a row, its name in its bubble. */
@@ -123,31 +143,36 @@ function GlyphButton({
   );
 }
 
-/** CheckButton asks and shows the answer on itself, and says it once more to a screen reader. */
-function CheckButton({
-  face,
-  checking,
-  disabled,
-  shake,
-  onCheck,
-}: {
-  face: Face;
-  checking: boolean;
-  disabled?: boolean;
-  shake: number;
-  onCheck: () => void;
-}) {
+/**
+ * CheckAllButton runs every row's check at once and shows on itself what they
+ * came to, and says it once more to a screen reader. Each row says its own.
+ */
+function CheckAllButton({ checks }: { checks: RefObject<Map<string, Check>> }) {
   const { t } = useT();
+  const [checking, setChecking] = useState(false);
+  const [found, setFound] = useState<Found[] | null>(null);
+  // The failure counter, so a repeated failure shakes the button again.
+  const [shake, setShake] = useState(0);
+  const onCheck = async () => {
+    setChecking(true);
+    const all = await Promise.all([...checks.current.values()].map((check) => check()));
+    setFound(all);
+    if (all.includes('failed')) setShake((n) => n + 1);
+    setChecking(false);
+  };
+  const face = checkFace(t, found);
   return (
     <>
-      <GlyphButton
+      <Button
+        kind="secondary"
         icon={checking ? <IconUpdate /> : face.icon}
-        title={checking ? t('settings.look.updatesChecking') : face.label}
         verdict={checking ? undefined : face.verdict}
         shake={shake}
-        disabled={checking || disabled}
-        onClick={onCheck}
-      />
+        disabled={checking}
+        onClick={() => void onCheck()}
+      >
+        {checking ? t('settings.look.updatesChecking') : face.label}
+      </Button>
       <span role="status" className="sr-only">
         {face.verdict && !checking ? face.label : ''}
       </span>
@@ -246,6 +271,13 @@ export function ComponentsCard({ hue }: { hue: number }) {
       .catch(() => {});
   }, []);
 
+  // Each updating row hands in its check, so one button runs them all.
+  const checks = useRef(new Map<string, Check>());
+  const register = useCallback<Register>((key, check) => {
+    if (check) checks.current.set(key, check);
+    else checks.current.delete(key);
+  }, []);
+
   const missing = (tool?: MediaTool, detail?: string): Status | null =>
     tools && !tool?.found ? { text: t('settings.resolvers.toolsNotFound'), detail, tone: 'fail' } : null;
 
@@ -256,9 +288,9 @@ export function ComponentsCard({ hue }: { hue: number }) {
       {failed && <DeploymentError retry={reload} />}
       {deployment && (
         <div data-new="built-in" className="@container flex flex-col divide-y divide-carbon-border/40">
-          <AppUpdates deployment={deployment.deployment} />
-          <YtdlpUpdates />
-          <JDUpdates />
+          <AppUpdates deployment={deployment.deployment} register={register} />
+          <YtdlpUpdates register={register} />
+          <JDUpdates register={register} />
           <ComponentRow
             name="GlimStone"
             version={GLIMSTONE_VERSION}
@@ -284,6 +316,7 @@ export function ComponentsCard({ hue }: { hue: number }) {
         </div>
       )}
       <div className="flex flex-wrap justify-end gap-3">
+        {deployment && <CheckAllButton checks={checks} />}
         <NewsButton />
       </div>
     </Card>
@@ -373,14 +406,12 @@ function appStatus(
  * one, Install fetches it at once: the copy installed for all users starts
  * the new installer, any other copy puts it in place for the next start.
  */
-function AppUpdates({ deployment }: { deployment: string }) {
+function AppUpdates({ deployment, register }: { deployment: string; register: Register }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const [version, setVersion] = useState('');
   const [check, setCheck] = useState<UpdateCheck | null>(null);
   const [checking, setChecking] = useState(false);
-  // The failure counter of the check button, so a repeated failure shakes it again.
-  const [shake, setShake] = useState(0);
   const [progress, setProgress] = useState<UpdateProgress | null>(null);
   const [installShake, setInstallShake] = useState(0);
   // Ends the polling once the page is left.
@@ -393,7 +424,7 @@ function AppUpdates({ deployment }: { deployment: string }) {
       .catch(() => {});
   }, []);
 
-  const onCheck = useCallback(async () => {
+  const onCheck = useCallback(async (): Promise<Found> => {
     setChecking(true);
     let next: UpdateCheck;
     try {
@@ -402,8 +433,8 @@ function AppUpdates({ deployment }: { deployment: string }) {
       next = { checked: false, available: false, current: '' };
     }
     setCheck(next);
-    if (!next.checked) setShake((n) => n + 1);
     setChecking(false);
+    return !next.checked ? 'failed' : next.available ? 'newer' : 'current';
   }, []);
 
   // Follows an update until it is past downloading. The installer closes the
@@ -443,7 +474,8 @@ function AppUpdates({ deployment }: { deployment: string }) {
 
   const ready = check?.ready ?? (progress?.state === 'ready' ? progress.version : undefined);
   const available = !!check?.checked && check.available;
-  const face = checkFace(t, check ? check.checked : null, available);
+  // Not while an update is being put in place.
+  useCheck(register, 'knightloader', installing(progress) ? null : onCheck);
   // No stamp yet, or 'dev' for an untagged build: the working title stands in.
   const stamped = version !== '' && version !== 'dev';
 
@@ -455,7 +487,6 @@ function AppUpdates({ deployment }: { deployment: string }) {
       status={appStatus(t, { checking, progress, ready, available, check })}
       actions={
         <>
-          <CheckButton face={face} checking={checking} disabled={installing(progress)} shake={shake} onCheck={() => void onCheck()} />
           {isDesktop && available && !ready && progress?.state !== 'started' && (
             <GlyphButton
               icon={<IconInstall />}
@@ -528,14 +559,13 @@ const errorText = (e: unknown) => String(e).replace(/^(Error|ApiError):\s*/, '')
  * again, so the row warns when it has fallen behind the image's own
  * (Status.shadowed).
  */
-function YtdlpUpdates() {
+function YtdlpUpdates({ register }: { register: Register }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
 
   const [tools, setTools] = useState<MediaToolsStatus | null>(null);
   const [latest, setLatest] = useState<YtdlpLatest | null>(null);
   const [checking, setChecking] = useState(false);
-  const [shake, setShake] = useState(0);
   const [fetching, setFetching] = useState(false);
   const [reverting, setReverting] = useState(false);
   // Separate outcomes, so a later check does not wipe a failed fetch.
@@ -556,7 +586,7 @@ function YtdlpUpdates() {
     void load();
   }, [load]);
 
-  const onCheck = useCallback(async () => {
+  const onCheck = useCallback(async (): Promise<Found> => {
     setChecking(true);
     setFetched('');
     setFailed('');
@@ -569,8 +599,8 @@ function YtdlpUpdates() {
       found = { checked: false, compare: 'unknown', detail: errorText(e) };
     }
     setLatest(found);
-    if (!found.checked) setShake((n) => n + 1);
     setChecking(false);
+    return !found.checked ? 'failed' : found.compare === 'newer' ? 'newer' : 'current';
   }, []);
 
   // Once the stored switch has resolved, never before and not on every
@@ -631,8 +661,7 @@ function YtdlpUpdates() {
     compareVersions(ytdlp?.version ?? '', shadowed?.version ?? '') === -1;
 
   const busy = checking || fetching || reverting;
-  // An order the server could not tell stays without a colour.
-  const face = checkFace(t, latest ? latest.checked : null, latest?.compare === 'newer', latest?.compare !== 'unknown');
+  useCheck(register, 'yt-dlp', fetching || reverting ? null : onCheck);
 
   // What the last action came to wins over a standing warning, and a warning
   // over what the last check found.
@@ -669,12 +698,12 @@ function YtdlpUpdates() {
       status={status}
       actions={
         <>
-          {/* Revert, check, fetch: the forward action sits last. */}
+          {/* Revert, then fetch: the forward action sits last. */}
           {managed && <GlyphButton icon={<IconUndo />} title={t('settings.resolvers.toolsRevert')} disabled={busy} onClick={() => void onRevert()} />}
-          <CheckButton face={face} checking={checking} disabled={busy} shake={shake} onCheck={() => void onCheck()} />
-          {/* Only after a check found a tag, so nobody fetches a version they
-              were not shown. */}
-          {latest?.checked && latest.tag && (
+          {/* Only after a check found a newer tag, or one it cannot order
+              against what is installed, so nobody fetches a version they were
+              not shown. */}
+          {latest?.checked && latest.tag && (latest.compare === 'newer' || latest.compare === 'unknown') && (
             <GlyphButton icon={<IconInstall />} title={t('settings.resolvers.toolsFetch')} disabled={busy} onClick={() => void onFetch()} />
           )}
         </>
@@ -724,7 +753,7 @@ const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * again and shows its new revision. While jdAutoUpdate is on, the server does
  * the same once a day when none of JD's downloads runs.
  */
-function JDUpdates() {
+function JDUpdates({ register }: { register: Register }) {
   const { t, lang } = useT();
   const { cfg, patch } = useDraft();
   const [jd, setJd] = useState<JDStatus | null>(null);
@@ -732,7 +761,6 @@ function JDUpdates() {
   const [checked, setChecked] = useState<boolean | null>(null);
   const [available, setAvailable] = useState(false);
   const [checking, setChecking] = useState(false);
-  const [shake, setShake] = useState(0);
   const [restarting, setRestarting] = useState(false);
   const [back, setBack] = useState(false);
   const [failed, setFailed] = useState('');
@@ -769,21 +797,24 @@ function JDUpdates() {
     }
   }, [follow]);
 
-  const onCheck = useCallback(async () => {
+  const onCheck = useCallback(async (): Promise<Found> => {
     setChecking(true);
     setFailed('');
     setBack(false);
+    let result: Found;
     try {
       const found = await fetchJDUpdate();
       setChecked(found.checked);
       setAvailable(found.available);
+      result = !found.checked ? 'failed' : found.available ? 'newer' : 'current';
     } catch (e) {
       setChecked(false);
       setAvailable(false);
       setFailed(jdRefusal(t, e));
-      setShake((n) => n + 1);
+      result = 'failed';
     }
     setChecking(false);
+    return result;
   }, [t]);
 
   const onUpdate = useCallback(async () => {
@@ -834,6 +865,8 @@ function JDUpdates() {
   else if (jd && !jd.reachable) status = { text: t('health.state.failed'), tone: 'fail' };
   else if (checked && available) status = { text: t('settings.info.updatesFound', { n: 1 }), tone: 'warn' };
   const busy = checking || restarting;
+  // Without a JDownloader there is nothing to ask.
+  useCheck(register, 'jdownloader', jd?.configured && !restarting ? onCheck : null);
 
   return (
     <ComponentRow
@@ -845,25 +878,15 @@ function JDUpdates() {
       actions={
         <>
           {jd?.setup === 'failed' && <GlyphButton icon={<IconRetry />} title={t('common.retry')} onClick={() => void onRetry()} />}
-          {/* Without a JDownloader there is nothing to ask. */}
-          {jd?.configured && (
+          {/* Only after a check found an update, as with yt-dlp. */}
+          {jd?.configured && (restarting || (checked && available)) && (
             <span data-new="jd-update" className="flex items-center gap-2">
-              <CheckButton
-                face={checkFace(t, checked, available)}
-                checking={checking}
+              <GlyphButton
+                icon={<IconRefresh />}
+                title={restarting ? t('settings.look.jdUpdating') : t('settings.look.jdUpdate')}
                 disabled={busy}
-                shake={shake}
-                onCheck={() => void onCheck()}
+                onClick={() => void onUpdate()}
               />
-              {/* Only after a check found an update, as with yt-dlp. */}
-              {(restarting || (checked && available)) && (
-                <GlyphButton
-                  icon={<IconRefresh />}
-                  title={restarting ? t('settings.look.jdUpdating') : t('settings.look.jdUpdate')}
-                  disabled={busy}
-                  onClick={() => void onUpdate()}
-                />
-              )}
             </span>
           )}
         </>

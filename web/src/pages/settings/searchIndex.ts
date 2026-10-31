@@ -1333,7 +1333,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.resolvers.toolsUnrarMissingHint',
       ],
       also: [
-        'settings.look.updatesCheck',
+        'settings.info.checkAll',
         'settings.resolvers.toolsFetch',
         'settings.resolvers.toolsRevert',
         'settings.look.jdUpdate',

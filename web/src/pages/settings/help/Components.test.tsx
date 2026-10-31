@@ -42,6 +42,7 @@ beforeEach(() => {
     '/api/resolvers/jd': { configured: true, reachable: true, version: 50123 },
     '/api/system/update-check': { checked: true, available: false, current: 'v1.8.4' },
     '/api/mediatools/ytdlp/latest': { checked: true, tag: '2026.08.19', compare: 'same' },
+    '/api/jd/update': { checked: true, available: false },
   };
   refusals = {};
   asked = [];
@@ -112,6 +113,10 @@ const version = (name: string) => group(name).querySelector('.glim-num')!;
 const settingsOf = (name: string): HTMLElement => group(name);
 const switches = (within: HTMLElement) =>
   [...within.querySelectorAll('[role="switch"]')].map((s) => s.getAttribute('aria-label'));
+
+/** The one button at the card's foot that checks every component, by what it says now. */
+const checkButton = (face: string) => button(card('Components'), face);
+const checkAll = () => act(async () => checkButton('Check all').click());
 
 /** The card titled `title`. */
 const card = (title: string) =>
@@ -186,13 +191,21 @@ describe('the Components card', () => {
     expect(card('Components').querySelector('h3 [role="note"]')).toBeNull();
   });
 
-  it('gives only what updates on its own buttons and switches, and keeps the buttons to glyphs', async () => {
+  it('keeps buttons off the rows until there is something to do there', async () => {
     await draw();
     const rowsWith = (what: string) =>
       [...host.querySelectorAll('section')].filter((s) => s.querySelector(what)).map((s) => s.querySelector('h3')?.textContent);
-    expect(rowsWith('button:not([role="switch"])')).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend']);
+    expect(rowsWith('section > span button')).toEqual([]);
     expect(rowsWith('[role="switch"]')).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend']);
-    for (const b of card('Components').querySelectorAll('section > span button')) expect(b.textContent).toBe('');
+  });
+
+  it('checks every component with the one button at its foot', async () => {
+    await draw();
+    await checkAll();
+    expect(asked).toEqual(
+      expect.arrayContaining(['/api/system/update-check', '/api/mediatools/ytdlp/latest', '/api/jd/update']),
+    );
+    expect(checkButton('Up to date').className).toContain('bg-statusOkSolid');
   });
 
   it('says where a JDownloader backend that is not set up stands, with nothing to press', async () => {
@@ -206,24 +219,25 @@ describe('the Components card', () => {
     answers['/api/jd/update'] = { available: true, checked: true };
     await draw();
     expect(button(group('JDownloader backend'), 'Update now')).toBeUndefined();
-    await act(async () => button(group('JDownloader backend'), 'Check for updates').click());
-    expect(button(group('JDownloader backend'), 'Updates: 1').className).toContain('bg-statusWarnSolid');
+    await checkAll();
+    expect(checkButton('Updates: 1').className).toContain('bg-statusWarnSolid');
+    expect(status('JDownloader backend')).toBe('Updates: 1');
     expect(button(group('JDownloader backend'), 'Update now')).toBeDefined();
   });
 
   it('says JDownloader is up to date when it has nothing waiting', async () => {
     answers['/api/jd/update'] = { available: false, checked: true };
     await draw();
-    await act(async () => button(group('JDownloader backend'), 'Check for updates').click());
-    expect(button(group('JDownloader backend'), 'Up to date').className).toContain('bg-statusOkSolid');
+    await checkAll();
+    expect(checkButton('Up to date').className).toContain('bg-statusOkSolid');
     expect(button(group('JDownloader backend'), 'Update now')).toBeUndefined();
   });
 
   it('says why JDownloader could not be asked', async () => {
     refusals['/api/jd/update'] = { status: 409, body: { error: 'jd unreachable', code: 'jdUnreachable' } };
     await draw();
-    await act(async () => button(group('JDownloader backend'), 'Check for updates').click());
-    expect(button(group('JDownloader backend'), 'Check failed').className).toContain('bg-statusFailSolid');
+    await checkAll();
+    expect(checkButton('Check failed').className).toContain('bg-statusFailSolid');
     expect(status('JDownloader backend')).toBe('Failed');
     expect(detail('JDownloader backend')).toBe(en['health.remedy.jd.unreachable']);
   });
@@ -232,7 +246,7 @@ describe('the Components card', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'Date'] });
     answers['/api/jd/update'] = { available: true, checked: true };
     await draw();
-    await act(async () => button(group('JDownloader backend'), 'Check for updates').click());
+    await checkAll();
 
     answers['/api/jd/update'] = { started: true };
     await act(async () => button(group('JDownloader backend'), 'Update now').click());
@@ -300,7 +314,7 @@ describe('the Components card', () => {
     expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoContainerHint']);
     await act(async () => rows[0].click());
     expect(patch).not.toHaveBeenCalled();
-    expect(button(group('KnightLoader'), 'Check for updates').disabled).toBe(false);
+    expect(checkButton('Check all').disabled).toBe(false);
   });
 
   it("writes yt-dlp's switches to yt-dlp's own settings", async () => {
@@ -312,25 +326,19 @@ describe('the Components card', () => {
     expect(patch.mock.calls).toEqual([[{ ytdlpVersionCheck: true }], [{ ytdlpAutoUpdate: true }]]);
   });
 
-  it('turns the check green when nothing is newer', async () => {
+  it('says nothing on a row whose component is current', async () => {
     await draw();
-    await act(async () => button(group('KnightLoader'), 'Check for updates').click());
-    expect(button(group('KnightLoader'), 'Up to date').className).toContain('bg-statusOkSolid');
+    await checkAll();
     expect(status('KnightLoader')).toBe('');
-  });
-
-  it('lets the check button alone say that yt-dlp is current', async () => {
-    await draw();
-    await act(async () => button(group('yt-dlp'), 'Check for updates').click());
-    expect(button(group('yt-dlp'), 'Up to date').className).toContain('bg-statusOkSolid');
     expect(status('yt-dlp')).toBe('');
+    expect(status('JDownloader backend')).toBe('');
   });
 
   it('turns the check red when GitHub cannot be asked', async () => {
     answers['/api/system/update-check'] = { checked: false, available: false, current: 'v1.8.4' };
     await draw();
-    await act(async () => button(group('KnightLoader'), 'Check for updates').click());
-    expect(button(group('KnightLoader'), 'Check failed').className).toContain('bg-statusFailSolid');
+    await checkAll();
+    expect(checkButton('Check failed').className).toContain('bg-statusFailSolid');
     expect(status('KnightLoader')).toBe('Check failed');
   });
 
@@ -338,8 +346,8 @@ describe('the Components card', () => {
     answers['/api/mediatools/ytdlp/latest'] = { checked: true, tag: '2026.09.30', compare: 'newer' };
     await draw();
     expect(button(group('yt-dlp'), 'Fetch this release')).toBeUndefined();
-    await act(async () => button(group('yt-dlp'), 'Check for updates').click());
-    expect(button(group('yt-dlp'), 'Updates: 1').className).toContain('bg-statusWarnSolid');
+    await checkAll();
+    expect(checkButton('Updates: 1').className).toContain('bg-statusWarnSolid');
     expect(status('yt-dlp')).toBe('2026.09.30 is available');
     expect(detail('yt-dlp')).toBe('');
     expect(button(group('yt-dlp'), 'Fetch this release')).toBeDefined();
@@ -416,7 +424,7 @@ describe('installing an update on the desktop build', () => {
     desktop();
     await draw();
     expect(button(group('KnightLoader'), 'Install now')).toBeUndefined();
-    await act(async () => button(group('KnightLoader'), 'Check for updates').click());
+    await checkAll();
     expect(status('KnightLoader')).toBe('v1.9.0 is available');
     expect(button(group('KnightLoader'), 'Install now')).toBeDefined();
   });
@@ -431,7 +439,7 @@ describe('installing an update on the desktop build', () => {
   it('shows the download, then the installer taking over', async () => {
     desktop();
     await draw();
-    await act(async () => button(group('KnightLoader'), 'Check for updates').click());
+    await checkAll();
     answers['/api/system/update-install'] = { state: 'downloading', version: '1.9.0', done: 40, total: 100 };
     await act(async () => button(group('KnightLoader'), 'Install now').click());
     expect(status('KnightLoader')).toBe('Downloading the update: 40%');
@@ -446,7 +454,7 @@ describe('installing an update on the desktop build', () => {
   it('says why an update did not work and lets it be tried again', async () => {
     desktop();
     await draw();
-    await act(async () => button(group('KnightLoader'), 'Check for updates').click());
+    await checkAll();
     answers['/api/system/update-install'] = { state: 'failed', error: 'permission to run it was refused' };
     await act(async () => button(group('KnightLoader'), 'Install now').click());
     expect(status('KnightLoader')).toBe('Failed');
@@ -459,7 +467,7 @@ describe('installing an update on the desktop build', () => {
     desktop();
     refusals['/api/system/update-install'] = { status: 409, body: { status: 'an update is already under way' } };
     await draw();
-    await act(async () => button(group('KnightLoader'), 'Check for updates').click());
+    await checkAll();
     await act(async () => button(group('KnightLoader'), 'Install now').click());
     expect(detail('KnightLoader')).toContain('The update did not work:');
   });
