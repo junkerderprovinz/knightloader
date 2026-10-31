@@ -90,11 +90,19 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   it comes from and a link to its page. KnightLoader, yt-dlp and JDownloader
   are checked and updated there. General keeps Quit & restart on a card of
   its own, and Resolvers has a line that leads to yt-dlp.
-- **The row above Downloads and the link collector is shorter.** Pause all
-  and Resume all stay in it while they can do something. Select all, Reset
-  failed with an entry per cause, Check all and Clean up moved under More,
-  and a right-click on the list's empty space offers the same. Ctrl+A still
-  selects every row.
+- **Downloads and the link collector have no button row above the list.** A
+  click on a column head sorts and a second click turns the order round. The
+  ▾ in the Status head, and in the collector's Name and Hoster heads, filters
+  that column and marks the head while it narrows the list. Typing in the list
+  or Ctrl+F opens a search over the rows, and Escape closes it. Pause all,
+  Resume all, Select all, Reset failed with an entry per cause, Check all,
+  Clean up and the sort are in the right-click on the list and in the command
+  palette. A line under the heads says what they do; on a phone a long press
+  on a head offers the sort, the filter and the search.
+- **Downloads has a totals card.** It says how much of the list is loaded and
+  how many links it holds. There, and in the collector's totals, stand how
+  many rows the search and the filters show, with one click to show all again,
+  the selection and the saved views.
 - **The link collector's card has one way less to paste.** Paste from
   clipboard is gone, since Ctrl+V and the box do the same; Watch clipboard
   wears its glyph instead.

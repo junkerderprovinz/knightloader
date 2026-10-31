@@ -143,9 +143,13 @@ const others = Object.entries(sources).filter(([path]) => !path.endsWith('/Searc
 
 // The places a field stands without a button before it: the settings bar that
 // slides in on scrolling up, the command palette, which is nothing but its
-// field and opens with the caret in it, and a picker's window, which is mostly
-// searched.
-const FIELD_FIRST = ['/SettingsSearch.tsx', '/CommandPalette.tsx', '/BrandPicker.tsx'];
+// field and opens with the caret in it, a picker's window, which is mostly
+// searched, and a list's search, which typing in the list opens.
+const FIELD_FIRST = ['/SettingsSearch.tsx', '/CommandPalette.tsx', '/BrandPicker.tsx', '/SearchField.tsx'];
+
+// Menus that name the search without being a button for it: the long press on
+// a list's heads, the way in on a touch screen, where nobody types in a list.
+const SEARCH_IN_MENU = ['/TaskList.tsx'];
 
 describe('the one search field', () => {
   it('is the only search input the interface draws', () => {
@@ -160,7 +164,7 @@ describe('the one search field', () => {
     expect(plain).toEqual([]);
   });
 
-  it('stands behind the Search button everywhere but the settings bar, the command palette and the pickers', () => {
+  it('stands behind the Search button everywhere but the settings bar, the command palette, the pickers and the lists', () => {
     const bare = others
       .filter(([path, text]) => /<SearchBox\b/.test(text) && !path.endsWith('/SearchToggle.tsx'))
       .map(([path]) => path)
@@ -170,7 +174,7 @@ describe('the one search field', () => {
 
   it('has one Search button, the one SearchToggle draws', () => {
     const own = others
-      .filter(([path]) => !path.endsWith('/SearchToggle.tsx'))
+      .filter(([path]) => !path.endsWith('/SearchToggle.tsx') && !SEARCH_IN_MENU.some((end) => path.endsWith(end)))
       .filter(
         ([, text]) =>
           /'search\.toggle'/.test(text) ||

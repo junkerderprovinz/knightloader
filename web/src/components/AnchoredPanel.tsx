@@ -58,6 +58,7 @@ export function AnchoredPanel({
   anchor,
   title,
   hue,
+  narrow = false,
   ready = true,
   onClose,
   children,
@@ -65,6 +66,8 @@ export function AnchoredPanel({
   anchor: RefObject<HTMLElement | null>;
   title: string;
   hue?: number;
+  /** A window of a few choices, such as a column's filter, rather than of settings rows. */
+  narrow?: boolean;
   ready?: boolean;
   onClose: () => void;
   children?: ReactNode;
@@ -78,7 +81,8 @@ export function AnchoredPanel({
 
   const closeAndReturn = useCallback(() => {
     onClose();
-    anchor.current?.querySelector('button')?.focus();
+    const at = anchor.current;
+    (at instanceof HTMLButtonElement ? at : at?.querySelector('button'))?.focus();
   }, [onClose, anchor]);
 
   // Measured before paint and hidden until then, placed again whenever the
@@ -166,7 +170,7 @@ export function AnchoredPanel({
         }}
         // Wide enough for the longest caption and the widest control on one
         // line, the seven priority rungs included.
-        className={`glim-card fixed flex w-[48rem] max-w-[calc(100vw-1rem)] flex-col gap-5 p-5 outline-none ${
+        className={`glim-card fixed flex ${narrow ? 'w-[28rem]' : 'w-[48rem]'} max-w-[calc(100vw-1rem)] flex-col gap-5 p-5 outline-none ${
           hue === undefined ? '' : 'glim-hue'
         }`}
       >

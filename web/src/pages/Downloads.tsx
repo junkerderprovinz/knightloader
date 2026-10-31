@@ -5,32 +5,27 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
-import { useLabelMode } from '../lib/labelModes';
-import { useRowFit } from '../lib/rowFit';
 import { splitByCard, useListCards, type ListCard } from '../lib/listCards';
 import { useUIState } from '../lib/uistate';
 import { PageHeader, EmptyState, IconBadge } from '../components/ui';
 import {
   TaskListCard,
   groupByPackage,
+  sortMenuGroups,
   useCollapsedPackages,
   useListSort,
+  type ColumnFilters,
   type Selection,
 } from '../components/TaskList';
-import { ListBar } from '../components/ListBar';
-import { usePackageMenu } from '../components/PackageActions';
 import {
   DOWNLOAD_FILTERS,
   ListMenu,
-  ListMore,
   SeedingBadges,
-  SelectionMore,
   matchesQuickFilters,
   narrowedTitle,
   offeredQuickFilters,
   targetPackage,
   targetTaskId,
-  queueMenuGroup,
   useCleanup,
   useQueueVerbs,
   useRemoval,
@@ -38,14 +33,16 @@ import {
   type ListContext,
   type MenuTarget,
 } from '../components/ListToolbar';
-import { matchesSearch } from '../components/SearchField';
+import { ListSearch, matchesSearch } from '../components/SearchField';
+import { DownloadStats } from '../components/DownloadStats';
+import { ListNarrowing } from '../components/ListNarrowing';
+import { StatusFilter } from '../components/StatusFilter';
 import type { SearchHandle } from '../components/SearchToggle';
 import { claimReveal, useRevealRequest } from '../lib/reveal';
 import { selectionReach, useDrawnRows } from '../lib/selectionReach';
 import { SelectionReach } from '../components/SelectionReach';
 import { SavedViewChips } from '../components/SavedViewChips';
 import { useListNarrowing } from '../lib/listNarrowing';
-import { useSavedViews } from '../lib/savedViews';
 import { causeItems, useErrorCauses } from '../components/ErrorCauses';
 import { extractionsByTask, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { useFileMenu } from '../components/FileActions';
@@ -54,17 +51,7 @@ import { anchorFromEvent, useContextMenu, type MenuGroup } from '../components/C
 import { useToast } from '../lib/toast';
 import { taskRefusal } from '../lib/taskRefusal';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
-import {
-  IconClearSelection,
-  IconDownloadArrow,
-  IconClose,
-  IconPause,
-  IconPlay,
-  IconRetry,
-  IconSearch,
-  IconTrash,
-  IconUndo,
-} from '../lib/icons';
+import { IconClearSelection, IconDownloadArrow, IconPause, IconPlay, IconRetry, IconSearch, IconUndo } from '../lib/icons';
 
 // The two cards below the download list, in the order they are drawn. Each
 // sorts and folds on its own and shares the download list's columns.
@@ -92,7 +79,8 @@ export function Downloads() {
   const narrowing = useListNarrowing('downloads', DOWNLOAD_FILTERS);
   const { search, filters } = narrowing;
   const searchHandle = useRef<SearchHandle>(null);
-  const rowRef = useRef<HTMLDivElement>(null);
+  // The lists' area, where typing opens the search.
+  const listArea = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // The row a card should scroll to, with the request's nonce so a second jump
   // to the same row is a new value, and the card that holds it.
@@ -287,9 +275,6 @@ export function Downloads() {
     });
   }, [cleanup.load]);
 
-  // "Select all" means the rows on screen, not the whole queue.
-  const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
-
   // The shell's overview strip cannot know which rows are visible, so it is told
   // (lib/listview.ts).
   useReportListView(filtered, selected);
@@ -367,28 +352,6 @@ export function Downloads() {
   ];
   const sorts = onShow.length > 0 ? onShow : [sortDownloads];
 
-  // What the action row holds, so it measures itself again when that changes.
-  const buttonLabels = useLabelMode('buttons');
-  const tabLabels = useLabelMode('tabs');
-  const { views } = useSavedViews('downloads', DOWNLOAD_FILTERS);
-  const rowContent = [
-    buttonLabels,
-    tabLabels,
-    selected.size,
-    narrowed ? `${filtered.length}/${list.length}` : '',
-    views.map((v) => v.name).join('\n'),
-    counts.running > 0,
-    list.some((x) => x.status === 'paused'),
-  ].join('|');
-  // Short of room the row gives up, in this order, what can do with less: the
-  // words beside its glyphs, then the count, then the saved views. Only a phone
-  // scrolls it.
-  const fold = useRowFit(rowRef, 4, rowContent);
-  const glyphs = fold >= 1;
-  const hideCount = fold >= 2;
-  const compact = fold >= 3;
-  const scrolls = fold >= 4;
-
   const pauseAll = () => list.filter((x) => x.status === 'running').forEach((x) => pause(x.id, base));
   const resumeAll = () => list.filter((x) => x.status === 'paused').forEach((x) => resume(x.id, base));
   const retryFailed = () => restartTasks([], base);
@@ -455,6 +418,40 @@ export function Downloads() {
   // The menu's view of the card it was opened in. A package header there stands
   // for the package's links in that card, which for the loose links is not all
   // of them.
+  // What the right-click on empty space offers besides the selection and the
+  // folds: the bulk verbs, the failed ones, and the sort of every card on show.
+  const bulkGroups: MenuGroup[] = [
+    {
+      id: 'bulk',
+      items: [
+        ...(counts.running > 0
+          ? [{ id: 'pauseAll', label: t('downloads.pauseAll'), icon: <IconPause width={14} height={14} />, onSelect: pauseAll }]
+          : []),
+        ...(list.some((x) => x.status === 'paused')
+          ? [{ id: 'resumeAll', label: t('downloads.resumeAll'), icon: <IconPlay width={14} height={14} />, onSelect: resumeAll }]
+          : []),
+      ],
+    },
+    ...failedGroups,
+    ...sortMenuGroups(sorts, t('list.sort')),
+  ];
+
+  // The Status head's ▾ narrows every card by the quick filters.
+  const columnFilters: ColumnFilters = {
+    status: {
+      active: filters.size > 0,
+      panel: (
+        <StatusFilter
+          filters={offeredFilters}
+          active={filters}
+          onToggle={narrowing.toggleFilter}
+          onClear={narrowing.clearFilters}
+        />
+      ),
+    },
+  };
+  const openSearch = () => searchHandle.current?.open();
+
   const listContext: ListContext = {
     packages: shown[menuCard].map(([name]) => name),
     collapsed: folds.collapsed,
@@ -465,23 +462,8 @@ export function Downloads() {
     // Clean-up always runs here, never on the peer whose list is being shown.
     local: instance === '',
     members: (pkg) => byCard[menuCard].find(([name]) => name === pkg)?.[1] ?? [],
-    whole: failedGroups,
+    whole: bulkGroups,
   };
-
-  const selectedIds = chosen.map((x) => x.id);
-  const packageMenu = usePackageMenu({ tasks: list, selected, base });
-
-  // The queue entries under More, built by the right-click menu's own function
-  // (queueMenuGroup). The server sets a priority in every state, so finished
-  // and failed rows keep the seven rungs.
-  const queueGroup = queueMenuGroup({
-    chosen,
-    ids: selectedIds,
-    base,
-    t,
-    fail: (e) => toast(e instanceof Error ? e.message : String(e), 'fail'),
-    queue: queueVerbs,
-  });
 
   return (
     // flex-1 rather than h-full, as in Collector.tsx: the page takes the height
@@ -489,51 +471,19 @@ export function Downloads() {
     <div className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t('downloads.title')} />
 
-      {/* One row for every action, directly above the list, in the
-          collector's order: the saved views, what acts on the rows, and
-          Filter, Sort and Search at its end. It never wraps: short of room it
-          folds its parts away one by one, and on a phone it scrolls sideways
-          (useRowFit). */}
+      {/* The totals, and what narrows or picks from the lists, above them.
+          The lists' own heads sort and filter, and typing searches. */}
       {list.length > 0 && (
-        <ListBar
-          rowRef={rowRef}
-          glyphs={glyphs}
-          scrolls={scrolls}
-          filters={offeredFilters}
-          active={filters}
-          onToggleFilter={narrowing.toggleFilter}
-          onClearFilters={narrowing.clearFilters}
-          sorts={sorts}
-          search={search}
-          onSearch={narrowing.setSearch}
-          searchRef={searchHandle}
-        >
-          {/* Left of the spacer, which nothing else here uses. */}
-          <div className="shrink-0">
-            <SavedViewChips
-              profile="downloads"
-              allowed={DOWNLOAD_FILTERS}
-              narrowing={narrowing.narrowing}
-              onApply={narrowing.apply}
-              glyphs={glyphs}
-              folded={compact}
-            />
-          </div>
-          <span data-spacer className="flex-1" />
-
-          {/* The verbs in one piece, after the count of what they act on. */}
-          <div className="flex shrink-0 items-center gap-2">
-            {selected.size > 0 ? (
-              <>
-                {/* The × stays a glyph whatever the label setting, since the
-                    count beside it already says what it clears. */}
+        <DownloadStats all={list} hue={3}>
+          <ListNarrowing
+            shown={filtered.length}
+            total={list.length}
+            narrowed={narrowed}
+            onClear={narrowing.clearAll}
+            selection={
+              selected.size > 0 ? (
                 <span className="flex items-center gap-1.5">
-                  <SelectionReach
-                    mode="select"
-                    total={selected.size}
-                    hidden={reach.hidden.length}
-                    onReduce={reduceToShown}
-                  />
+                  <SelectionReach mode="select" total={selected.size} hidden={reach.hidden.length} onReduce={reduceToShown} />
                   <IconBadge
                     hue={1}
                     icon={<IconClearSelection width={16} height={16} />}
@@ -542,99 +492,20 @@ export function Downloads() {
                     onClick={clearSelection}
                   />
                 </span>
-                <IconBadge
-                  labelled={!glyphs}
-                  hue={3}
-                  icon={<IconRetry width={16} height={16} />}
-                  title={t('task.restart')}
-                  aria-label={t('task.restart')}
-                  onClick={() =>
-                    void restartTasks(ids(), base)
-                      .then(ok)
-                      .catch((e: unknown) =>
-                        toast(
-                          taskRefusal(e, t) ?? t('list.failed', { error: e instanceof Error ? e.message : String(e) }),
-                          'fail',
-                        ),
-                      )
-                  }
-                />
-                <IconBadge
-                  labelled={!glyphs}
-                  hue={4}
-                  icon={<IconTrash width={16} height={16} />}
-                  title={t('task.remove')}
-                  aria-label={t('task.remove')}
-                  onClick={() => void removal.removeNow(selectedIds)}
-                />
-                {/* The rarer verbs: the package entries, the right-click menu's
-                    queue group and deleting the files. */}
-                <SelectionMore
-                  hue={5}
-                  labelled={!glyphs}
-                  chosen={chosen}
-                  removal={removal}
-                  groups={[packageMenu.group, { ...queueGroup, heading: t('queue.order') }]}
-                />
-              </>
-            ) : (
-              <>
-                {/* Each bulk verb appears only when it can do something. */}
-                {counts.running > 0 && (
-                  <IconBadge
-                    labelled={!glyphs}
-                    hue={2}
-                    icon={<IconPause width={16} height={16} />}
-                    title={t('downloads.pauseAll')}
-                    aria-label={t('downloads.pauseAll')}
-                    onClick={pauseAll}
-                  />
-                )}
-                {list.some((x) => x.status === 'paused') && (
-                  <IconBadge
-                    labelled={!glyphs}
-                    hue={3}
-                    icon={<IconPlay width={16} height={16} />}
-                    title={t('downloads.resumeAll')}
-                    aria-label={t('downloads.resumeAll')}
-                    onClick={resumeAll}
-                  />
-                )}
-                {/* The rest acts on the whole list and is pressed rarely. */}
-                <ListMore
-                  hue={5}
-                  labelled={!glyphs}
-                  allChosen={allChosen}
-                  shown={filtered.length}
-                  onSelect={(all) => setSelected(all ? new Set(filtered.map((x) => x.id)) : new Set())}
-                  own={failedGroups}
-                  // Clean-up always runs here, never on the peer whose list is being shown.
-                  cleanup={instance === '' ? cleanup : null}
-                />
-              </>
-            )}
-          </div>
-
-          {/* The overview strip counts the visible rows as well. */}
-          {narrowed && !hideCount && (
-            <span className="glim-num shrink-0 whitespace-nowrap text-meta text-carbon-textMuted">
-              {t('search.shown', { n: filtered.length, total: list.length })}
-            </span>
-          )}
-          {/* Clears search and filters at once; "Show everything" under Filter
-              clears only the quick filters. */}
-          {narrowed && (
-            <IconBadge
-              labelled={!glyphs}
-              hue={5}
-              icon={<IconClose width={16} height={16} />}
-              title={t('views.clearAll')}
-              aria-label={t('views.clearAll')}
-              hint={t('views.clearAllHint')}
-              onClick={narrowing.clearAll}
-            />
-          )}
-        </ListBar>
+              ) : undefined
+            }
+            views={
+              <SavedViewChips
+                profile="downloads"
+                allowed={DOWNLOAD_FILTERS}
+                narrowing={narrowing.narrowing}
+                onApply={narrowing.apply}
+                glyphs={false}
+                folded={false}
+              />
+            }
+          />
+        </DownloadStats>
       )}
 
       {/* The scrolling regions: everything above keeps its height and the
@@ -642,7 +513,8 @@ export function Downloads() {
           cards below it scroll on their own under a cap while the download
           list has rows, so a long finished list cannot push it off the page.
           A window too short for that scrolls the frame instead. */}
-      <div className="flex min-h-48 flex-1 flex-col gap-6">
+      <div ref={listArea} tabIndex={-1} className="relative flex min-h-48 flex-1 flex-col gap-6 outline-none">
+        <ListSearch value={search} onChange={narrowing.setSearch} handle={searchHandle} area={listArea} />
         {list.length === 0 ? (
           <EmptyState
             fill
@@ -675,6 +547,8 @@ export function Downloads() {
                   title={narrowedTitle(filters, t, t('downloads.listTitle'))}
                   count={flat(groups).length}
                   hue={0}
+                  filters={columnFilters}
+                  onSearch={openSearch}
                 />
               </div>
             )}
@@ -705,6 +579,8 @@ export function Downloads() {
                       fold={cardFold[card]}
                       edge={card === 'torrents' ? <SeedingBadges tasks={flat(shown.torrents)} base={base} /> : undefined}
                       hue={hue}
+                      filters={columnFilters}
+                      onSearch={openSearch}
                     />
                   </div>
                 ),
@@ -730,7 +606,6 @@ export function Downloads() {
       />
       {removal.dialog}
       {rename.dialog}
-      {packageMenu.dialog}
       {/* The dialog of this page's useCleanup(), also raised by the "clear
           finished" command. */}
       {cleanup.dialog}

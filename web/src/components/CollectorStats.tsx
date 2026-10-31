@@ -2,7 +2,7 @@
 // check results, scoped like the shell strip to total, visible or selected.
 // Counters.tsx answers the different question of what the queue owes. Figures
 // stay at body size, below the paste box that heads the page.
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { Task } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { fmtTotal } from '../lib/format';
@@ -62,9 +62,20 @@ function Item({ label, value, tone = 'text-carbon-text' }: { label: string; valu
 /**
  * CollectorStats is the card of figures beside the collector's paste box. The
  * page passes the three arrays it already computed rather than this reading
- * them back from lib/listview.ts a render later.
+ * them back from lib/listview.ts a render later. `children` is what narrows the
+ * list or picks from it, under the figures.
  */
-export function CollectorStats({ all, visible, selected }: { all: Task[]; visible: Task[]; selected: Task[] }) {
+export function CollectorStats({
+  all,
+  visible,
+  selected,
+  children,
+}: {
+  all: Task[];
+  visible: Task[];
+  selected: Task[];
+  children?: ReactNode;
+}) {
   const { t } = useT();
   const [scope, setScope] = useState<StatsScope>('total');
 
@@ -103,6 +114,7 @@ export function CollectorStats({ all, visible, selected }: { all: Task[]; visibl
           <Item label={t('filter.uncheckable')} value={f.uncheckable} tone="text-carbon-textMuted" />
           <Item label={t('filter.unchecked')} value={f.unchecked} tone="text-carbon-textMuted" />
         </div>
+        {children}
       </Card>
     </div>
   );

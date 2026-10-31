@@ -10,12 +10,12 @@ import { EmptyState, PageHeader, IconBadge } from '../components/ui';
 import {
   TaskListCard,
   groupByPackage,
+  sortMenuGroups,
   useCollapsedPackages,
   useListSort,
+  type ColumnFilters,
   type Selection,
 } from '../components/TaskList';
-import { ListBar } from '../components/ListBar';
-import { usePackageMenu } from '../components/PackageActions';
 import { AddLinksForm, useStagedReport } from '../components/AddLinksForm';
 import { FileDrop, newestContainerLink, type FileDropHandle } from '../components/FileDrop';
 import { PageAction, PageActions } from '../components/PageActions';
@@ -24,8 +24,6 @@ import { SkippedLinks } from '../components/SkippedLinks';
 import {
   COLLECTOR_FILTERS,
   ListMenu,
-  ListMore,
-  SelectionMore,
   matchesQuickFilters,
   narrowedTitle,
   offeredQuickFilters,
@@ -38,14 +36,14 @@ import {
   type ListContext,
   type MenuTarget,
 } from '../components/ListToolbar';
-import { matchesSearch } from '../components/SearchField';
+import { ListSearch, matchesSearch } from '../components/SearchField';
+import type { SearchHandle } from '../components/SearchToggle';
+import { ListNarrowing } from '../components/ListNarrowing';
+import { StatusFilter } from '../components/StatusFilter';
 import { SavedViewChips } from '../components/SavedViewChips';
 import { useListNarrowing, type Narrowing } from '../lib/listNarrowing';
-import { useSavedViews } from '../lib/savedViews';
-import { useLabelMode } from '../lib/labelModes';
-import { useRowFit } from '../lib/rowFit';
 import { anchorFromEvent, useContextMenu, type MenuGroup } from '../components/ContextMenu';
-import { CollectorFacets, facetActiveCount, matchesFacets } from '../components/CollectorFacets';
+import { CollectorFacets, matchesFacets } from '../components/CollectorFacets';
 import { CollectorStats } from '../components/CollectorStats';
 import { useFileMenu } from '../components/FileActions';
 import { useScriptMenu } from '../components/ScriptActions';
@@ -82,7 +80,9 @@ export function Collector() {
   // (lib/listNarrowing.ts).
   const narrowing = useListNarrowing('collector', COLLECTOR_FILTERS);
   const { search, filters } = narrowing;
-  const rowRef = useRef<HTMLDivElement>(null);
+  const searchHandle = useRef<SearchHandle>(null);
+  // The list's area, where typing opens the search.
+  const listArea = useRef<HTMLDivElement>(null);
   // The list's own scroll box, reset when a saved view cuts the list short.
   const listScroll = useRef<HTMLDivElement>(null);
   // Host, file type and package (components/CollectorFacets.tsx).
@@ -127,25 +127,6 @@ export function Collector() {
   // Whether anything is set, even a filter that hides nothing; the dot and the
   // reset badge read this.
   const anyNarrowing = narrowing.active;
-
-  // What the action row holds, so it measures itself again when that changes.
-  const buttonLabels = useLabelMode('buttons');
-  const tabLabels = useLabelMode('tabs');
-  const { views } = useSavedViews('collector', COLLECTOR_FILTERS);
-  const rowContent = [
-    buttonLabels,
-    tabLabels,
-    selected.size,
-    narrowed ? `${filtered.length}/${collected.length}` : '',
-    anyNarrowing,
-    views.map((v) => v.name).join('\n'),
-  ].join('|');
-  // Downloads.tsx's fold order.
-  const fold = useRowFit(rowRef, 4, rowContent);
-  const glyphs = fold >= 1;
-  const hideCount = fold >= 2;
-  const compact = fold >= 3;
-  const scrolls = fold >= 4;
 
   /**
    * applyView applies a saved view and puts the list's own scroll box back to
@@ -209,6 +190,7 @@ export function Collector() {
         removal,
         cleanup,
         openFilePicker: () => fileDrop.current?.openPicker(),
+        openSearch: () => searchHandle.current?.open(),
         rename: rename.fromKeyboard,
       }),
       [removal, cleanup, rename.fromKeyboard],
@@ -294,6 +276,40 @@ export function Collector() {
     },
   ];
 
+  // The Status head narrows by what a check said, the Hoster head by host, and
+  // the Name head by file type and package.
+  const columnFilters: ColumnFilters =
+    collected.length > 0
+      ? {
+          status: {
+            active: filters.size > 0,
+            panel: (
+              <StatusFilter
+                filters={offeredFilters}
+                active={filters}
+                onToggle={narrowing.toggleFilter}
+                onClear={narrowing.clearFilters}
+              />
+            ),
+          },
+          host: {
+            active: facets.host.size > 0,
+            panel: <CollectorFacets tasks={collected} selection={facets} onChange={narrowing.setFacets} kinds={['host']} />,
+          },
+          name: {
+            active: facets.fileType.size > 0 || facets.package.size > 0,
+            panel: (
+              <CollectorFacets
+                tasks={collected}
+                selection={facets}
+                onChange={narrowing.setFacets}
+                kinds={['fileType', 'package']}
+              />
+            ),
+          },
+        }
+      : {};
+
   const listContext: ListContext = {
     packages: groups.map(([name]) => name),
     collapsed: folds.collapsed,
@@ -304,17 +320,9 @@ export function Collector() {
     // The collector is always this instance's own.
     local: true,
     members,
-    whole: checkGroups,
+    whole: [...checkGroups, ...sortMenuGroups([sort], t('list.sort'))],
   };
 
-  const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
-  const selectedIds = selectedTasks.map((x) => x.id);
-  const packageMenu = usePackageMenu({
-    tasks: collected,
-    selected,
-    base: '/api',
-    onDone: () => toast(t('task.applied'), 'ok'),
-  });
 
   return (
     // flex-1 rather than h-full, since app/Layout.tsx's wrapper is a flex column.
@@ -338,145 +346,65 @@ export function Collector() {
             footer={<FileDrop ref={fileDrop} pkg={pkg} landedAt={lastContainerAt} />}
           />
         </div>
-        {collected.length > 0 && <CollectorStats all={collected} visible={filtered} selected={selectedTasks} />}
+        {collected.length > 0 && (
+          <CollectorStats all={collected} visible={filtered} selected={selectedTasks}>
+            {/* What narrows the list and what is picked in it, under its
+                figures. The list's own heads sort and filter, and typing
+                searches. */}
+            <ListNarrowing
+              shown={filtered.length}
+              total={collected.length}
+              narrowed={narrowed || anyNarrowing}
+              onClear={narrowing.clearAll}
+              selection={
+                selected.size > 0 ? (
+                  <span className="flex items-center gap-1.5">
+                    <SelectionReach mode="select" total={selected.size} hidden={reach.hidden.length} onReduce={reduceToShown} />
+                    <IconBadge
+                      hue={1}
+                      icon={<IconClearSelection width={16} height={16} />}
+                      title={t('select.none')}
+                      aria-label={t('select.none')}
+                      onClick={clearSelection}
+                    />
+                  </span>
+                ) : undefined
+              }
+              views={
+                <SavedViewChips
+                  profile="collector"
+                  allowed={COLLECTOR_FILTERS}
+                  narrowing={narrowing.narrowing}
+                  onApply={applyView}
+                  glyphs={false}
+                  folded={false}
+                />
+              }
+            />
+          </CollectorStats>
+        )}
       </div>
 
       {/* The list cluster keeps a tighter gap than the page: held and skipped
-          links, the action row and the list. SkippedLinks floats as its own
+          links and the list. SkippedLinks floats as its own
           fixed card wherever it is mounted. */}
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         {/* Direct children, so a null one adds no gap. */}
         <FilteredLinks held={held} />
         <SkippedLinks />
 
-        {/* One row for the saved views, the selection's actions and the page
-            actions, with Filter, Sort and Search at its end. Downloads.tsx
-            draws the same row, and the two must hold the same control in every
-            slot and fold the same way when short of room (useRowFit). */}
-        <ListBar
-          rowRef={rowRef}
-          glyphs={glyphs}
-          scrolls={scrolls}
-          filters={offeredFilters}
-          active={filters}
-          onToggleFilter={narrowing.toggleFilter}
-          onClearFilters={narrowing.clearFilters}
-          // Host, file type and package, which need links to be counted from.
-          facets={{
-            panel:
-              collected.length > 0 ? (
-                <CollectorFacets tasks={collected} selection={facets} onChange={narrowing.setFacets} />
-              ) : null,
-            active: facetActiveCount(facets) > 0,
-          }}
-          sorts={[sort]}
-          search={search}
-          onSearch={narrowing.setSearch}
-        >
-          {/* Left of the spacer, which nothing else here uses. */}
-          <div className="shrink-0">
-            <SavedViewChips
-              profile="collector"
-              allowed={COLLECTOR_FILTERS}
-              narrowing={narrowing.narrowing}
-              onApply={applyView}
-              glyphs={glyphs}
-              folded={compact}
-            />
-          </div>
-          <span data-spacer className="flex-1" />
-
-          {/* The verbs in one piece after the count they act on, as on
-              Downloads.tsx. */}
-          <div className="flex shrink-0 items-center gap-2">
-            {selected.size > 0 ? (
-              <>
-                {/* The count and its ×, as on Downloads.tsx. */}
-                <span className="flex items-center gap-1.5">
-                  <SelectionReach
-                    mode="select"
-                    total={selected.size}
-                    hidden={reach.hidden.length}
-                    onReduce={reduceToShown}
-                  />
-                  <IconBadge
-                    hue={1}
-                    icon={<IconClearSelection width={16} height={16} />}
-                    title={t('select.none')}
-                    aria-label={t('select.none')}
-                    onClick={clearSelection}
-                  />
-                </span>
-                {/* Secondary: the page's one accent is the floating Start all. */}
-                <IconBadge
-                  labelled={!glyphs}
-                  hue={2}
-                  icon={<IconPlay width={16} height={16} />}
-                  title={t('collector.startSelected')}
-                  aria-label={t('collector.startSelected')}
-                  onClick={startSelected}
-                />
-                <IconBadge
-                  labelled={!glyphs}
-                  hue={4}
-                  icon={<IconTrash width={16} height={16} />}
-                  title={t('task.remove')}
-                  aria-label={t('task.remove')}
-                  onClick={() => void removal.removeNow(selectedIds)}
-                />
-                <SelectionMore
-                  hue={5}
-                  labelled={!glyphs}
-                  chosen={selectedTasks}
-                  removal={removal}
-                  groups={[packageMenu.group]}
-                />
-              </>
-            ) : (
-              <>
-                {/* Start all floats at the foot; the rest acts on the whole
-                    list and is pressed rarely. */}
-                <ListMore
-                  hue={5}
-                  labelled={!glyphs}
-                  allChosen={allChosen}
-                  shown={filtered.length}
-                  onSelect={(all) => setSelected(all ? new Set(filtered.map((x) => x.id)) : new Set())}
-                  own={checkGroups}
-                  cleanup={cleanup}
-                />
-              </>
-            )}
-          </div>
-
-          {/* The overview strip counts the visible rows as well. */}
-          {narrowed && !hideCount && (
-            <span className="glim-num shrink-0 whitespace-nowrap text-meta text-carbon-textMuted">
-              {t('search.shown', { n: filtered.length, total: collected.length })}
-            </span>
-          )}
-          {/* Clears search, quick filters and facet ticks at once; it also works
-              while the collector is empty and the Filter window has no facets
-              to show. */}
-          {anyNarrowing && (
-            <IconBadge
-              labelled={!glyphs}
-              hue={5}
-              icon={<IconClose width={16} height={16} />}
-              title={t('views.clearAll')}
-              aria-label={t('views.clearAll')}
-              hint={t('views.clearAllHint')}
-              onClick={narrowing.clearAll}
-            />
-          )}
-        </ListBar>
-
         {/* The one scrolling region: everything above keeps its height and the
             list takes the rest down to the window's edge, never less than a
             few rows. A window too short for that scrolls the frame instead,
             as on Downloads.tsx. On a phone the page scrolls as a whole and the
             list runs at full length (app/Layout.tsx). */}
-        <div className="flex min-h-48 flex-1 flex-col" onContextMenu={onContextMenu}>
+        <div
+          ref={listArea}
+          tabIndex={-1}
+          className="relative flex min-h-48 flex-1 flex-col outline-none"
+          onContextMenu={onContextMenu}
+        >
+        <ListSearch value={search} onChange={narrowing.setSearch} handle={searchHandle} area={listArea} />
         {collected.length === 0 ? (
           <EmptyState
             fill
@@ -503,6 +431,8 @@ export function Collector() {
               stopMark={queueVerbs.stopMark}
               title={narrowedTitle(filters, t, t('collector.listTitle'))}
               hue={3}
+              filters={columnFilters}
+              onSearch={() => searchHandle.current?.open()}
             />
           </div>
         )}
@@ -537,7 +467,6 @@ export function Collector() {
       />
       {removal.dialog}
       {rename.dialog}
-      {packageMenu.dialog}
       {cleanup.dialog}
     </div>
   );
