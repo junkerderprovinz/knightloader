@@ -112,7 +112,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   download list has no Variant column any more; the
   row's details name the pick, and the collector keeps its pickers.
 - **Downloads has a Totals card.** It sits to the right of the speed graph,
-  which wears a Speed badge, and wraps under it in a narrow window. It says
+  which wears a Speed badge, takes only the width its figures need while the
+  graph takes the rest, and wraps under it in a narrow window. It says
   how much of the list is loaded, how many links it holds and how long the
   running downloads still need, and on a second line how many are done, open
   and failed and the average speed over the graph's window. There, and in the
@@ -130,11 +131,19 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   status where there is one, a small button where there is something to do,
   such as an update to install, and at the right edge its version, which
   leads to its release or project page. The versions line up in one column,
-  and one Check all button at the foot of the card checks every part at once. The switches for automatic updates sit
-  right under KnightLoader, yt-dlp and JDownloader. A status keeps its (i)
-  only when something went wrong and needs you, and one that is under way
+  and one Check all button at the foot of the card checks every part at once.
+  KnightLoader, yt-dlp and JDownloader each have Check automatically and
+  Update automatically right under their name, on from the start; a choice
+  already saved stays as it is. A container checks for a newer KnightLoader
+  when the card opens and leaves updating it to its container manager.
+  JDownloader is asked shortly after KnightLoader starts and then once a day,
+  its row shows an update it found, and with Update automatically on it
+  installs that update while none of its downloads runs. A status keeps its
+  (i) only when something went wrong and needs you, and one that is under way
   says how far it has come, such as "Being set up · 45%" while the desktop
   app fetches the Java runtime for JDownloader.
+- **The speed graph calls its second curve Upload,** in the legend and in
+  Settings, Appearance, since it shows what your torrents send.
 - **The size column moved.** In the link collector it is the last column, and
   on Downloads it stands just left of the progress bar. A layout stored before
   takes the new order once; widths and hidden columns stay. A focused column
