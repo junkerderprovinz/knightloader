@@ -151,13 +151,13 @@ describe('BrowserTools', () => {
       expect(at).toEqual([...at].sort((a, b) => a - b));
     });
 
-    it('lists the phone app on Google Play and F-Droid as coming, beside the APK', async () => {
+    it('lists the phone app on Google Play as coming, then F-Droid and the APK', async () => {
       await act(async () => root.render(<BrowserTools />));
       const card = [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('Phone app'))!;
       const units = [...card.querySelectorAll('.glim-readme-btn')].map((b) => b.getAttribute('aria-label'));
-      expect(units.slice(0, 3)).toEqual(['Google Play Soon', 'F-Droid Soon', 'Android APK']);
-      const fdroid = card.querySelector('[aria-label="F-Droid Soon"]')!;
-      expect(fdroid.tagName).toBe('SPAN');
+      expect(units.slice(0, 3)).toEqual(['Google Play Soon', 'F-Droid', 'Android APK']);
+      const fdroid = card.querySelector<HTMLAnchorElement>('[aria-label="F-Droid"]')!;
+      expect(fdroid.href).toBe('https://f-droid.org/packages/knightloader.halleluja.design/');
       expect(fdroid.closest('.glim-tile-fdroid')).not.toBeNull();
     });
 

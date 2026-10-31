@@ -40,6 +40,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
+- **The Android app is on F-Droid.** The README, the installing page and
+  Settings, Apps link to its listing beside the APK, and F-Droid keeps it up
+  to date.
+
 - **RAR sets are unpacked with RARLAB's UnRAR,** the decoder WinRAR itself
   uses. The container image and the desktop app for Windows, for Linux on
   x86-64 and for macOS on Apple silicon bring it, and Settings, Info shows its
