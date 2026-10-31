@@ -38,13 +38,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
-### Security
-
-- **Dependency updates close three open advisories.** The web UI test tooling
-  takes undici 8.12.3, and the Android app takes zod 4.6.6 and node-forge 1.4.2.
-
-## [2.3.2] - 2026-10-27
-
 ### Changed
 
 - **The Android app is on F-Droid.** The README, the installing page and
@@ -113,7 +106,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   "Title (1080p).jpg" and "Title (1080p).de.srt", so Plex, Jellyfin and Kodi
   pair them with it. Two picks of one video each get their own thumbnail and
   description, even when both are fetched before either video is done, and a
-  video that fails or is removed leaves them the plain "Title.jpg". A typed
+  video that fails or is removed leaves them the plain "Title.jpg". A video
+  confirmed later from the collector still gives them its name. A typed
   output template, music mode and separate streams keep their own names. The
   download list has no Variant column any more; the
   row's details name the pick, and the collector keeps its pickers.
@@ -155,6 +149,19 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   one row until you pressed Show; every link is listed now, scrolling when
   there are many. The reason takes the room the window has instead of being
   cut short, and the columns of every row line up.
+- **Removing or restarting a download on Windows lets go of its file.** A
+  download removed or started over while it was being reconnected could come
+  back to life unseen, keep its connection and hold the file, so Windows
+  refused to delete it. The removal now waits for the reconnect to finish.
+- **Settings and sign-outs are saved on Windows while a virus scanner looks.**
+  A scanner that opened a freshly written state file for a moment made
+  saving it fail with "access denied". KnightLoader now tries again for a
+  few seconds, as the updater already did.
+
+### Security
+
+- **Dependency updates close seven open advisories.** The web UI test tooling
+  takes undici 8.12.3, and the Android app takes zod 4.6.6 and node-forge 1.4.2.
 
 ## [2.4.0] - 2026-10-30
 
