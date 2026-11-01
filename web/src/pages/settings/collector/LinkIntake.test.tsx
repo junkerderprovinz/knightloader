@@ -96,3 +96,18 @@ it('words a refused take-over like the row', () => {
     'KnightLoader Desk is not in this group, so it cannot be asked. Switch Click\'n\'Load off there.',
   );
 });
+
+it('names JDownloader on the port and offers no take-over', async () => {
+  await mount(cnl({ detailCode: 'cnlHeldByJDownloader', detailArgs: { port: '9666' } }));
+  expect(host.textContent).toContain('JDownloader 2 holds port 9666.');
+  expect(takeOver()).toBeUndefined();
+});
+
+it('words a switch refused over a taken port without the system error', () => {
+  const t = (key: string, vars?: Record<string, string>) =>
+    (en as Record<string, string>)[key].replace(/\{(\w+)\}/g, (_, k: string) => vars?.[k] ?? '');
+  const e = new ApiError('pyload holds port 9666', 'cnlHeldByProgram', { port: '9666', name: 'pyload' }, 400);
+  expect(switchRefusal(t as never, e)).toBe(
+    "Another program (pyload) holds port 9666. Close it to use Click'n'Load here.",
+  );
+});

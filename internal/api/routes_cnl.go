@@ -2,9 +2,9 @@ package api
 
 import (
 	"context"
-	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -72,15 +72,11 @@ func takeOverCnL(ctx context.Context, a *app.App) error {
 	if a.CnL.Start() == nil {
 		return nil
 	}
-	holder, err := a.CnL.Holder(ctx)
-	switch {
-	case errors.Is(err, cnl.ErrNotKnightLoader):
-		return &cnlRefusal{code: "cnlHeldByOther", params: map[string]string{"address": a.CnL.Address()},
-			text: "another program holds " + a.CnL.Address() + ", and only a KnightLoader can be asked to let go of it"}
-	case err != nil:
-		return &cnlRefusal{code: "cnlUnavailable", params: map[string]string{"address": a.CnL.Address()},
-			text: "cannot listen on " + a.CnL.Address() + ": " + err.Error()}
+	held := a.CnL.Holding(ctx)
+	if !held.Answered() {
+		return cnlBusy(a.CnL, held)
 	}
+	holder := held.Identity
 	member, ok := cnlHolderMember(a, holder.Instance)
 	if !ok {
 		return &cnlRefusal{code: "cnlHolderOutsideGroup", params: map[string]string{"name": holder.Name},
@@ -95,11 +91,40 @@ func takeOverCnL(ctx context.Context, a *app.App) error {
 		if err := a.CnL.Start(); err == nil {
 			return nil
 		} else if time.Now().After(deadline) {
-			return &cnlRefusal{code: "cnlUnavailable", params: map[string]string{"address": a.CnL.Address()},
-				text: "cannot listen on " + a.CnL.Address() + ": " + err.Error()}
+			return cnlBusy(a.CnL, a.CnL.Holding(ctx))
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+// cnlHeldLine words what holds the port, in the line the switch's row and a
+// refused switch share. The system's own error never reaches the reader: it
+// names neither the program nor what to do about it.
+func cnlHeldLine(h cnl.Holding, address string, port int) line {
+	p := strconv.Itoa(port)
+	switch h.Kind {
+	case cnl.HeldByKnightLoader:
+		if h.Answered() {
+			return line{
+				text: "KnightLoader " + h.Name + " on this computer holds " + address,
+				code: "cnlHeldBy", args: map[string]string{"name": h.Name, "address": address},
+			}
+		}
+		return line{text: "another KnightLoader on this computer holds port " + p, code: "cnlHeldByKnightLoader", args: map[string]string{"port": p}}
+	case cnl.HeldByJDownloader:
+		return line{text: h.Name + " holds port " + p, code: "cnlHeldByJDownloader", args: map[string]string{"port": p}}
+	case cnl.HeldByProgram:
+		return line{text: h.Name + " holds port " + p, code: "cnlHeldByProgram", args: map[string]string{"port": p, "name": h.Name}}
+	case cnl.HeldByUnknown:
+		return line{text: "port " + p + " is already taken", code: "cnlHeldByOther", args: map[string]string{"port": p, "address": address}}
+	}
+	return line{text: "cannot listen on " + address, code: "cnlUnavailable", args: map[string]string{"address": address}}
+}
+
+// cnlBusy is the refusal for a start that failed, worded by what holds the port.
+func cnlBusy(l *cnl.Listener, h cnl.Holding) error {
+	ln := cnlHeldLine(h, l.Address(), l.BindPort())
+	return &cnlRefusal{code: ln.code, params: ln.args, text: ln.text}
 }
 
 // cnlHolderMember is the name the federation addresses the group member with id

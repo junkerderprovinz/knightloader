@@ -5,9 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -54,7 +58,20 @@ func TestTheClickNLoadRowNamesTheKnightLoaderHoldingThePort(t *testing.T) {
 	}
 }
 
-func TestTheClickNLoadRowSaysWhenAnotherProgramHoldsThePort(t *testing.T) {
+// programCode is the code a port this test binary holds reads as: the
+// program by name where the system says who holds a port.
+func programCode() string {
+	switch runtime.GOOS {
+	case "windows", "linux", "darwin":
+		return "cnlHeldByProgram"
+	}
+	return "cnlHeldByOther"
+}
+
+// anotherProgram holds a free port with a server that is not KnightLoader and
+// returns the port and the code the row names it by.
+func anotherProgram(t *testing.T) (int, string) {
+	t.Helper()
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -64,14 +81,67 @@ func TestTheClickNLoadRowSaysWhenAnotherProgramHoldsThePort(t *testing.T) {
 	})}
 	go func() { _ = srv.Serve(ln) }()
 	t.Cleanup(func() { _ = srv.Close() })
-	a := secondOnThePort(t, ln.Addr().(*net.TCPAddr).Port)
+	return ln.Addr().(*net.TCPAddr).Port, programCode()
+}
 
-	if f := featureRow(t, a, "cnl"); f.DetailCode != "cnlHeldByOther" {
-		t.Errorf("code %q, want cnlHeldByOther", f.DetailCode)
+func TestTheClickNLoadRowNamesAnotherProgramHoldingThePort(t *testing.T) {
+	port, code := anotherProgram(t)
+	a := secondOnThePort(t, port)
+
+	f := featureRow(t, a, "cnl")
+	if f.DetailCode != code || f.DetailArgs["port"] != strconv.Itoa(port) {
+		t.Errorf("code %q, args %v; want %s for port %d", f.DetailCode, f.DetailArgs, code, port)
+	}
+	if code == "cnlHeldByProgram" && !strings.HasPrefix(f.DetailArgs["name"], "api.test") {
+		t.Errorf("name %q, want this test binary", f.DetailArgs["name"])
 	}
 	var refusal *cnlRefusal
-	if err := takeOverCnL(context.Background(), a); !errors.As(err, &refusal) || refusal.code != "cnlHeldByOther" {
-		t.Errorf("take-over: %v, want the cnlHeldByOther refusal", err)
+	if err := takeOverCnL(context.Background(), a); !errors.As(err, &refusal) || refusal.code != code {
+		t.Errorf("take-over: %v, want the %s refusal", err, code)
+	}
+}
+
+func TestSwitchingOnATakenPortIsRefusedInTheReadersWords(t *testing.T) {
+	port, code := anotherProgram(t)
+	a := secondOnThePort(t, port)
+
+	err := setFeature(a, "cnl", true)
+	var refusal *cnlRefusal
+	if !errors.As(err, &refusal) || refusal.code != code {
+		t.Fatalf("switch: %v, want the %s refusal", err, code)
+	}
+	rec := httptest.NewRecorder()
+	writeSwitchRefusal(rec, err)
+	var body struct {
+		Error, Code string
+		Params      map[string]string
+	}
+	if json.Unmarshal(rec.Body.Bytes(), &body) != nil || body.Code != code || body.Params["port"] != strconv.Itoa(port) {
+		t.Errorf("refusal %s, want code %s for port %d", rec.Body.String(), code, port)
+	}
+	if strings.Contains(body.Error, "bind") || strings.Contains(body.Error, "listen tcp") {
+		t.Errorf("the refusal carries the system's error: %q", body.Error)
+	}
+}
+
+func TestTheHeldLineNamesWhatHoldsThePort(t *testing.T) {
+	desk := cnl.Identity{App: "KnightLoader", Name: "Desk", Instance: "inst-1"}
+	for _, tc := range []struct {
+		held cnl.Holding
+		code string
+		args map[string]string
+	}{
+		{cnl.Holding{Kind: cnl.HeldByKnightLoader, Name: "Desk", Identity: desk}, "cnlHeldBy", map[string]string{"name": "Desk", "address": "127.0.0.1:9666"}},
+		{cnl.Holding{Kind: cnl.HeldByKnightLoader, Name: "KnightLoader"}, "cnlHeldByKnightLoader", map[string]string{"port": "9666"}},
+		{cnl.Holding{Kind: cnl.HeldByJDownloader, Name: "JDownloader 2"}, "cnlHeldByJDownloader", map[string]string{"port": "9666"}},
+		{cnl.Holding{Kind: cnl.HeldByProgram, Name: "pyload"}, "cnlHeldByProgram", map[string]string{"port": "9666", "name": "pyload"}},
+		{cnl.Holding{Kind: cnl.HeldByUnknown}, "cnlHeldByOther", map[string]string{"port": "9666", "address": "127.0.0.1:9666"}},
+		{cnl.Holding{}, "cnlUnavailable", map[string]string{"address": "127.0.0.1:9666"}},
+	} {
+		got := cnlHeldLine(tc.held, "127.0.0.1:9666", 9666)
+		if got.code != tc.code || !maps.Equal(got.args, tc.args) {
+			t.Errorf("%+v: %s %v, want %s %v", tc.held, got.code, got.args, tc.code, tc.args)
+		}
 	}
 }
 

@@ -38,6 +38,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Click'n'Load names the program that holds its port.** With JDownloader
+  running, switching Click'n'Load on showed the raw Windows error. KnightLoader
+  now asks the system which program listens on the port and names it, with a
+  short hint on what to close, and says the port is taken where the system
+  does not tell. A KnightLoader that answers for itself can still be taken
+  over.
+
 ### Security
 
 - **The Android app's build tooling takes glob 14.0.2 and minimatch 11.0.1.**
