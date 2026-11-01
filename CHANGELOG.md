@@ -191,6 +191,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Security
 
+- **The desktop app unpacks its Java runtime only into its own folder.** An
+  entry or a link in the download that would land anywhere else stops the
+  unpacking, and the runtime's links are written as plain copies, so no link
+  can lead a later file out of the folder.
 - **Dependency updates close seven open advisories.** The web UI test tooling
   takes undici 8.12.3, and the Android app takes zod 4.6.6 and node-forge 1.4.2.
 

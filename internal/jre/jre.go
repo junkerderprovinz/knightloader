@@ -246,36 +246,65 @@ func sha256File(path string) (string, error) {
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
+// errOutside refuses an archive with an entry or a link that would land
+// outside the runtime's folder. A Temurin archive has none, so one that does
+// is not unpacked at all.
+var errOutside = errors.New("the runtime archive reaches outside its folder")
+
+// inside is rel joined under dir, or false when it would land outside dir.
+func inside(dir, rel string) (string, bool) {
+	if !filepath.IsLocal(rel) {
+		return "", false
+	}
+	p := filepath.Join(dir, rel)
+	r, err := filepath.Rel(dir, p)
+	if err != nil || r == ".." || strings.HasPrefix(r, ".."+string(filepath.Separator)) {
+		return "", false
+	}
+	return p, true
+}
+
 // unpack writes the archive into dir without its top folder, and on macOS
 // without the bundle around the runtime, so java is at bin/java everywhere.
-// No name inside the archive decides where a file lands outside dir.
+// It creates no links: a symbolic or hard link inside the runtime, such as a
+// module's licence pointing to java.base's, is written as a copy of the file
+// it names.
 func unpack(file, dir string) error {
 	var written int64
-	place := func(name string) (string, bool) {
-		parts := strings.Split(path.Clean(name), "/")
+	// place is where an entry lands, "" for one left out, and errOutside for
+	// a name that would leave dir.
+	place := func(name string) (string, error) {
+		if strings.Contains(name, `\`) || path.IsAbs(name) || (len(name) > 1 && name[1] == ':') {
+			return "", fmt.Errorf("%w: %q", errOutside, name)
+		}
+		clean := path.Clean(name)
+		if clean == ".." || strings.HasPrefix(clean, "../") {
+			return "", fmt.Errorf("%w: %q", errOutside, name)
+		}
+		parts := strings.Split(clean, "/")
 		if len(parts) < 2 {
-			return "", false
+			return "", nil
 		}
 		rel := parts[1:]
 		if len(rel) >= 2 && rel[0] == "Contents" && rel[1] == "Home" {
 			rel = rel[2:]
 		} else if len(rel) > 0 && rel[0] == "Contents" {
-			return "", false
+			return "", nil
 		}
 		if len(rel) == 0 {
-			return "", false
+			return "", nil
 		}
-		for _, p := range rel {
-			if p == ".." || p == "" {
-				return "", false
-			}
+		dst, ok := inside(dir, filepath.FromSlash(path.Join(rel...)))
+		if !ok {
+			return "", fmt.Errorf("%w: %q", errOutside, name)
 		}
-		return filepath.Join(append([]string{dir}, rel...)...), true
+		return dst, nil
 	}
 	write := func(dst string, mode fs.FileMode, r io.Reader) error {
 		if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 			return err
 		}
+		// O_EXCL also refuses to write through anything already at dst.
 		out, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode|0o600)
 		if err != nil {
 			return err
@@ -299,8 +328,11 @@ func unpack(file, dir string) error {
 		}
 		defer zr.Close()
 		for _, f := range zr.File {
-			dst, ok := place(f.Name)
-			if !ok || !f.Mode().IsRegular() {
+			dst, err := place(f.Name)
+			if err != nil {
+				return err
+			}
+			if dst == "" || !f.Mode().IsRegular() {
 				continue
 			}
 			rc, err := f.Open()
@@ -326,16 +358,22 @@ func unpack(file, dir string) error {
 		return err
 	}
 	tr := tar.NewReader(gz)
+	// Each link's copy is made once every file it may name is written.
+	type link struct{ dst, target string }
+	var links []link
 	for {
 		h, err := tr.Next()
 		if errors.Is(err, io.EOF) {
-			return nil
+			break
 		}
 		if err != nil {
 			return err
 		}
-		dst, ok := place(h.Name)
-		if !ok {
+		dst, err := place(h.Name)
+		if err != nil {
+			return err
+		}
+		if dst == "" {
 			continue
 		}
 		switch h.Typeflag {
@@ -344,20 +382,56 @@ func unpack(file, dir string) error {
 				return err
 			}
 		case tar.TypeSymlink:
-			// The licence files of most modules link to java.base's. A link
-			// that would lead out of the runtime is left out.
-			target := filepath.Join(filepath.Dir(dst), filepath.FromSlash(h.Linkname))
-			if rel, err := filepath.Rel(dir, target); err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-				continue
+			// Relative to the link's own folder, and never an absolute path.
+			if path.IsAbs(h.Linkname) || strings.Contains(h.Linkname, `\`) {
+				return fmt.Errorf("%w: %q links to %q", errOutside, h.Name, h.Linkname)
 			}
-			if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+			rel, err := filepath.Rel(dir, filepath.Join(filepath.Dir(dst), filepath.FromSlash(h.Linkname)))
+			if err != nil {
 				return err
 			}
-			if err := os.Symlink(filepath.FromSlash(h.Linkname), dst); err != nil {
+			target, ok := inside(dir, rel)
+			if !ok {
+				return fmt.Errorf("%w: %q links to %q", errOutside, h.Name, h.Linkname)
+			}
+			links = append(links, link{dst, target})
+		case tar.TypeLink:
+			// A hard link names its target from the archive's root.
+			target, err := place(h.Linkname)
+			if err != nil {
 				return err
+			}
+			if target != "" {
+				links = append(links, link{dst, target})
 			}
 		}
 	}
+	// A link may name another link, so the copies are made in rounds until a
+	// round adds none. A link to a folder or to nothing is left out.
+	for len(links) > 0 {
+		var later []link
+		for _, l := range links {
+			fi, err := os.Lstat(l.target)
+			if err != nil || !fi.Mode().IsRegular() {
+				later = append(later, l)
+				continue
+			}
+			src, err := os.Open(l.target)
+			if err != nil {
+				return err
+			}
+			err = write(l.dst, fi.Mode().Perm(), src)
+			src.Close()
+			if err != nil {
+				return err
+			}
+		}
+		if len(later) == len(links) {
+			break
+		}
+		links = later
+	}
+	return nil
 }
 
 // swapIn puts the staged runtime at dst. An older runtime there is moved aside
