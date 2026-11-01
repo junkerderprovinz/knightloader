@@ -46,6 +46,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   short hint on what to close, and says the port is taken where the system
   does not tell. A KnightLoader that answers for itself can still be taken
   over.
+### Changed
+
+- **Columns move live while you drag them.** Grab a column head on Downloads
+  or in the link collector and the whole column, head and cells, follows the
+  pointer while the others slide aside as it passes them. Let go and it
+  settles into its gap; Escape puts everything back. Alt with an arrow key
+  slides the columns the same way. The new order is saved once, when you drop
+  the column, and with reduced motion or motion off the columns swap without
+  the slide. On a touch screen, hold a head briefly and then move.
 
 ### Security
 

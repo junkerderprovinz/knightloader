@@ -223,6 +223,7 @@ export function TorrentFileRow({
         return (
           <div
             key={col.id}
+            data-cell={col.id}
             dir={col.ltr ? 'ltr' : undefined}
             // One level below its torrent: the torrent's twisty hangs in front
             // of the torrent's name, and the files start where the name does
