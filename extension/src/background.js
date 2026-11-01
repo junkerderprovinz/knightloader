@@ -151,7 +151,7 @@ chrome.contextMenus?.onClicked.addListener(async (info, tab) => {
  * straight through; with more, the popup opens preset to the default. The group
  * is read live from the relay, so only instances that are online are offered.
  */
-async function sendToInstance(payload, origin) {
+async function sendToInstance(payload, origin, pageUrl) {
   let siblings;
   try {
     siblings = await groupInstances();
@@ -159,7 +159,7 @@ async function sendToInstance(payload, origin) {
     // Without a phrase the popup explains and offers the options page, rather
     // than a download button opening a settings tab.
     if (e?.code === 'no-phrase') {
-      await showPopupOrMark();
+      await showPopupOrMark(pageUrl);
       return;
     }
     notifyCnl('send.relayFailed');
@@ -182,7 +182,7 @@ async function sendToInstance(payload, origin) {
   // Always the extension's own popup, never a window of its own. If the popup
   // cannot be opened the send stays parked and the badge says so; opening the
   // popup by hand shows it.
-  await showPopupOrMark();
+  await showPopupOrMark(pageUrl);
 }
 
 /** parking chains the read and write of the parked send, so two Click'n'Load
@@ -208,11 +208,33 @@ function park(entry) {
 
 /**
  * Opens the extension's popup, or marks the toolbar icon when the browser will
- * not open it.
+ * not open it. `pageUrl` is the page that sent, used to find its window.
  */
-async function showPopupOrMark() {
+async function showPopupOrMark(pageUrl) {
   try {
     await chrome.action.openPopup();
+    return;
+  } catch {
+    // Retried below in a browser window.
+  }
+  // Click'n'Load often arrives from a site's helper window, such as filecrypt's,
+  // which has the focus and no toolbar. Chrome finds nothing to anchor the
+  // popup to, Firefox shows it only in the focused window, and the helper
+  // closes itself seconds later, so the browser window showing the same site
+  // is brought forward instead.
+  try {
+    const originOf = (url) => {
+      try {
+        return new URL(url).origin;
+      } catch {
+        return null;
+      }
+    };
+    const site = originOf(pageUrl);
+    const wins = (await chrome.windows.getAll({ populate: true })).filter((w) => w.type === 'normal');
+    const win = wins.find((w) => site && w.tabs.some((tab) => tab.active && originOf(tab.url) === site)) ?? wins[0];
+    await chrome.windows.update(win.id, { focused: true });
+    await chrome.action.openPopup({ windowId: win.id });
   } catch {
     flashBadge('…', '#f1c21b', 'send.waiting', true);
   }
@@ -307,7 +329,7 @@ async function handleCnl(msg) {
   // The site's `package` or `source` field names the batch; the page title
   // beats the first link's file name as a fallback.
   const title = f.package || f.source || msg.pageTitle || '';
-  await sendToInstance({ text: links.join('\n'), title }, 'cnl');
+  await sendToInstance({ text: links.join('\n'), title }, 'cnl', msg.pageUrl);
 }
 
 /**

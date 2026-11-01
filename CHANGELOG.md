@@ -36,6 +36,17 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [2.5.3] - 2026-11-01
+
+### Fixed
+
+- **Click'n'Load from filecrypt reaches KnightLoader.** filecrypt sends its
+  links from a small helper window of its own, which has no toolbar. The
+  extension caught the links but could not open its popup there, so they
+  waited behind a yellow "…" on the toolbar icon while the helper closed
+  itself. The popup now opens in the browser window that shows the site, in
+  Firefox and in Chrome alike.
+
 ## [2.5.2] - 2026-11-01
 
 ### Changed
