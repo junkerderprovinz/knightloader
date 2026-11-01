@@ -227,6 +227,9 @@ export function rainbowAt(i: number): string {
   return color;
 }
 
+// The buttons that carry rule 40's tint, whatever else an app's own buttons wear.
+const TINTED = '.glim-btn-neutral, .glim-btn-subtle, .glim-btn-bare';
+
 /**
  * takePageHue gives a button the palette position of its place among the
  * page's buttons, so under rainbow two buttons side by side light up in
@@ -239,7 +242,7 @@ export function takePageHue(el: HTMLElement): void {
     el.style.removeProperty('--btn-tint');
     return;
   }
-  const i = Array.prototype.indexOf.call(document.querySelectorAll('.glim-btn'), el);
+  const i = Array.prototype.indexOf.call(document.querySelectorAll(TINTED), el);
   const n = ((i % RAINBOW.length) + RAINBOW.length) % RAINBOW.length;
   el.style.setProperty('--btn-tint', `color-mix(in srgb, var(--rb-${n}) var(--ink-mix), black)`);
 }

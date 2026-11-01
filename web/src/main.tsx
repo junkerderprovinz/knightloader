@@ -13,6 +13,7 @@ import { applyStoredLanguage } from './lib/i18n';
 import { applyCachedAppearance, readCachedDisco } from './lib/appearance';
 import { applyDisco } from './lib/disco';
 import { applyCachedSpeedLines } from './lib/speedLines';
+import { listenForPageHue } from './lib/pageHue';
 import { sendApiCallsUnderBase, settleUnderBase, withBase } from './lib/basePath';
 
 // Before anything fetches or routes.
@@ -26,6 +27,7 @@ applyStoredLanguage();
 applyCachedAppearance();
 applyCachedSpeedLines();
 applyDisco(readCachedDisco());
+listenForPageHue();
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
