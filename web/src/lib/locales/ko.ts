@@ -3780,6 +3780,7 @@ export const ko: Dict = {
   'whatsnew.change.solvecha': 'Solvecha를 "{name}"에서 일곱 번째 서비스로 추가할 수 있습니다. 이미지 캡차만 읽습니다.',
   'whatsnew.change.volumeUsed': 'Debrid 서비스나 호스터 계정의 다운로드 용량이 바닥나면 캡차 대신 그대로 “{name}”에 표시되고 초기화되는 시점도 함께 나옵니다. 그때까지 서비스는 그 호스터를 건드리지 않습니다.',
   'whatsnew.change.javaUpdates': '데스크톱 앱은 자체 Java를 최신으로 유지하고, JDownloader의 다운로드가 하나도 진행되지 않을 때 더 새로운 Java로 옮깁니다.',
+  'whatsnew.change.hosterNames': '호스터 링크는 도착하자마자 파일 이름, 크기, 온라인 상태를 보여 줍니다. JDownloader의 링크 수집기와 같습니다.',
   'whatsnew.change.listHeads': '목록은 열 머리글에서 바로 정렬, 필터, 검색을 하고, 나머지는 오른쪽 클릭에 있습니다.',
   'whatsnew.change.totals': '속도 그래프 옆의 “{name}” 카드에 남은 시간, 완료·대기·실패한 다운로드 수, 평균 속도가 나옵니다.',
   'whatsnew.change.qualityNames': '동영상과 오디오 파일 이름에 품질이 들어가고, 썸네일, 자막, 설명도 그에 맞춰집니다.',

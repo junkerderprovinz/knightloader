@@ -3782,6 +3782,7 @@ export const fr: Dict = {
   'whatsnew.change.solvecha': 'Solvecha peut être ajouté dans « {name} » comme septième service. Il ne lit que les captchas en image.',
   'whatsnew.change.volumeUsed': 'Un volume de téléchargement épuisé chez un service debrid ou sur un compte d’hébergeur apparaît comme tel dans « {name} », avec le moment où il se renouvelle, au lieu d’un captcha, et le service laisse cet hébergeur tranquille jusque-là.',
   'whatsnew.change.javaUpdates': 'L\'application de bureau garde son Java à jour et passe JDownloader sur une version plus récente quand aucun de ses téléchargements ne tourne.',
+  'whatsnew.change.hosterNames': 'Les liens d\'hébergeurs affichent le nom du fichier, sa taille et son état en ligne dès leur arrivée, comme dans le collecteur de liens de JDownloader.',
   'whatsnew.change.listHeads': 'Les listes trient, filtrent et cherchent depuis leurs propres en-têtes de colonne, et le clic droit garde le reste.',
   'whatsnew.change.totals': 'La carte « {name} » à côté du graphique de vitesse montre le temps restant, combien de téléchargements sont terminés, en attente ou en échec, et la vitesse moyenne.',
   'whatsnew.change.qualityNames': 'Les fichiers vidéo et audio portent leur qualité dans leur nom, et la miniature, les sous-titres et la description suivent.',

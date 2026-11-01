@@ -3789,6 +3789,7 @@ export const eu: Dict = {
   'whatsnew.change.solvecha': 'Solvecha «{name}» atalean gehi daiteke zazpigarren zerbitzu gisa. Irudi-captchak soilik irakurtzen ditu.',
   'whatsnew.change.volumeUsed': 'Debrid zerbitzu batean edo ostalari-kontu batean agortutako deskarga-bolumena horrela agertzen da «{name}» orrian, noiz berritzen den esanez, captcha gisa agertu beharrean, eta zerbitzuak bakean uzten du ostalari hori ordura arte.',
   'whatsnew.change.javaUpdates': 'Mahaigaineko aplikazioak bere Java eguneratuta mantentzen du, eta JDownloader bertsio berriago batera pasatzen du bere deskargetako bat ere martxan ez dagoen bitartean.',
+  'whatsnew.change.hosterNames': 'Ostatatze-estekek fitxategiaren izena, tamaina eta linean dauden erakusten dute iritsi bezain laster, JDownloaderren esteka-biltzailean bezala.',
   'whatsnew.change.listHeads': 'Zerrendek beren zutabe-goiburuetatik ordenatzen, iragazten eta bilatzen dute, eta eskuineko klikak gainerakoa du.',
   'whatsnew.change.totals': 'Abiadura-grafikoaren ondoko «{name}» txartelak geratzen den denbora, zenbat deskarga dauden eginda, irekita eta huts eginda, eta batez besteko abiadura erakusten ditu.',
   'whatsnew.change.qualityNames': 'Bideo- eta audio-fitxategiek kalitatea dute izenean, eta miniatura, azpitituluak eta deskribapena bat datoz.',

@@ -3794,6 +3794,7 @@ export const fi: Dict = {
   'whatsnew.change.solvecha': 'Solvechan voi lisätä kohdassa ”{name}” seitsemänneksi palveluksi. Se lukee vain kuva-captchoja.',
   'whatsnew.change.volumeUsed': 'Loppuun käytetty latauskiintiö debrid-palvelussa tai hosterin tilillä näkyy sellaisena kohdassa ”{name}” captchan sijaan, nollautumisajan kera, ja palvelu jättää sen hosterin rauhaan siihen asti.',
   'whatsnew.change.javaUpdates': 'Työpöytäsovellus pitää oman Javansa ajan tasalla ja siirtää JDownloaderin uudempaan, kun mikään sen latauksista ei ole käynnissä.',
+  'whatsnew.change.hosterNames': 'Tiedostopalvelujen linkit näyttävät tiedostonimen, koon ja verkkotilan heti saapuessaan, kuten JDownloaderin linkkikeräimessä.',
   'whatsnew.change.listHeads': 'Luettelot lajittelevat, suodattavat ja hakevat omista sarakeotsikoistaan, ja hiiren oikea painike kätkee loput.',
   'whatsnew.change.totals': 'Kortti ”{name}” nopeuskaavion vieressä näyttää jäljellä olevan ajan, montako latausta on valmiina, avoinna ja epäonnistunut, sekä keskinopeuden.',
   'whatsnew.change.qualityNames': 'Video- ja äänitiedostojen nimessä on niiden laatu, ja pikkukuva, tekstitykset ja kuvaus vastaavat sitä.',

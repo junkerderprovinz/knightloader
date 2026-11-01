@@ -3791,6 +3791,7 @@ export const sl: Dict = {
   'whatsnew.change.solvecha': 'Solvecha je mogoče dodati pod »{name}« kot sedmo storitev. Bere samo slikovne captche.',
   'whatsnew.change.volumeUsed': 'Porabljena količina prenosa pri storitvi debrid ali računu gostitelja se v »{name}« pokaže kot taka, s časom, ko se obnovi, namesto kot captcha, storitev pa tega gostitelja do takrat pusti pri miru.',
   'whatsnew.change.javaUpdates': 'Namizna aplikacija sproti posodablja svojo Javo in preseli JDownloader na novejšo, ko ne teče nobeden od njegovih prenosov.',
+  'whatsnew.change.hosterNames': 'Povezave gostiteljev takoj ob prihodu pokažejo ime datoteke, velikost in ali so na voljo, kot v zbiralniku povezav JDownloaderja.',
   'whatsnew.change.listHeads': 'Seznami razvrščajo, filtrirajo in iščejo iz lastnih glav stolpcev, desni klik pa drži ostalo.',
   'whatsnew.change.totals': 'Kartica »{name}« ob grafu hitrosti kaže preostali čas, koliko prenosov je končanih, odprtih in neuspešnih, ter povprečno hitrost.',
   'whatsnew.change.qualityNames': 'Video in zvočne datoteke nosijo kakovost v imenu, sličica, podnapisi in opis pa se ujemajo.',

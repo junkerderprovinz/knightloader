@@ -4096,6 +4096,7 @@ export const en = {
   'whatsnew.change.solvecha': 'Solvecha can be added under "{name}" as a seventh service. It reads picture captchas only.',
   'whatsnew.change.volumeUsed': 'A used-up download volume at a debrid service or hoster account shows as such on "{name}", with when it resets, instead of a captcha, and the service leaves that hoster alone until then.',
   'whatsnew.change.javaUpdates': 'The desktop app keeps its Java up to date and moves JDownloader onto a newer one while none of its downloads runs.',
+  'whatsnew.change.hosterNames': 'Hoster links show their file name, size and online state as soon as they arrive, as in the JDownloader link collector.',
   'whatsnew.change.listHeads': 'The lists sort, filter and search from their own column heads, and a right-click holds the rest.',
   'whatsnew.change.totals': 'The "{name}" card beside the speed graph shows the time left, how many downloads are done, open and failed, and the average speed.',
   'whatsnew.change.qualityNames': 'Video and audio files carry their quality in their names, and their thumbnail, subtitles and description match.',
