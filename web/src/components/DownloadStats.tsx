@@ -57,7 +57,7 @@ export function DownloadStats({ all, hue, children }: { all: Task[]; hue: number
   const line = (parts: (string | false | 0)[]) => parts.filter(Boolean).join(' · ');
 
   return (
-    <div role="group" aria-label={t('downloads.stats.label')} className="flex flex-1 flex-col">
+    <div role="group" aria-label={t('downloads.stats.label')} data-new="totals" className="flex flex-1 flex-col">
       <Card hue={hue} className="flex flex-1 flex-col gap-3">
         <SectionTitle>{t('downloads.stats.label')}</SectionTitle>
         <div className="flex flex-col gap-1 text-sm">
