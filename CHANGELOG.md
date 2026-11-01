@@ -81,6 +81,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   short hint on what to close, and says the port is taken where the system
   does not tell. A KnightLoader that answers for itself can still be taken
   over.
+- **The desktop app keeps its Java up to date.** Once a week it asks Adoptium
+  for a newer Temurin 21 for the JDownloader it runs. With **Update
+  automatically** on the JDownloader row it fetches the new runtime, checks it
+  against Adoptium's SHA-256 and moves JDownloader onto it while none of its
+  downloads runs. The old runtime stays until JDownloader has started on the
+  new one and comes back if it does not. With only **Check automatically**
+  on, the row shows that a newer Java waits.
 
 ### Security
 

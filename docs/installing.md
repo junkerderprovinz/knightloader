@@ -212,11 +212,16 @@ Java the computer has or lacks. At the first start the desktop app fetches
 [Eclipse Temurin](https://adoptium.net/temurin/) 21 from Adoptium's releases
 on GitHub, checks it against the SHA-256 that KnightLoader carries for this
 version and unpacks it into the `jre` folder of its data folder
-(`%APPDATA%KnightLoaderjre`, `~/Library/Application Support/KnightLoader/jre`,
+(`%APPDATA%\KnightLoader\jre`, `~/Library/Application Support/KnightLoader/jre`,
 `~/.config/KnightLoader/jre`). That takes a few minutes, which the
 JDownloader row on the Updates card shows; a failed download says why there
 and offers to try again. A KnightLoader update that pins a newer runtime
-replaces it at its next start. Windows on Arm gets the x64 runtime, which
+replaces it at its next start. In between, the app asks Adoptium once a week
+for a newer Temurin 21 while either of JDownloader's update switches is on.
+With **Update automatically** it fetches the new runtime, checks it against
+Adoptium's SHA-256 and moves JDownloader onto it at a moment when none of its
+downloads runs. The old runtime stays until JDownloader has started on the new
+one, and comes back if it does not. Windows on Arm gets the x64 runtime, which
 Windows runs under its emulation, since Adoptium builds no Arm JRE for it.
 Temurin comes under the GPLv2 with the Classpath Exception. Pointing `KL_JD`
 at a JDownloader that runs elsewhere skips all of this.
@@ -307,6 +312,14 @@ files you downloaded.
 
 A container does not update itself. The same page tells you when a newer
 release exists; pull the new image the way you deployed this one.
+
+KnightLoader itself updates through the update card on the desktop, and
+through a new image in a container. yt-dlp, JDownloader and the desktop app's
+Java keep themselves current between releases; their switches sit on the
+Components card. UnRAR ships inside KnightLoader: a weekly check in the
+repository looks for a newer one, and each release brings it along. ffmpeg
+comes with the container image, and the desktop app renews its own copy once a
+month.
 
 ### Building it from source
 
