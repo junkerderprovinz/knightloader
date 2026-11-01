@@ -1,0 +1,1 @@
+Ein kleines, leises Update: Zwei Werkzeuge, mit denen die App gebaut wird, haben ihre Sicherheitsupdates bekommen. Für dich ändert sich nichts, die App ist nur ein bisschen sicherer gebaut.

@@ -3783,6 +3783,7 @@ export const et: Dict = {
   'whatsnew.change.cardLogo': 'Logo on igal kaardil jaotises „{name}“ samas kohas ja sama suur.',
   'whatsnew.change.solvecha': 'Solvecha saab lisada jaotises „{name}“ seitsmenda teenusena. See loeb ainult pildi-captchasid.',
   'whatsnew.change.volumeUsed': 'Ära kasutatud allalaadimismaht debridi teenuses või hosti kontol on jaotises „{name}“ näha just sellena, koos ajaga, millal see taastub, mitte captchana, ja teenus jätab selle hosti seniks rahule.',
+  'whatsnew.change.javaUpdates': 'Töölauarakendus hoiab oma Java ajakohasena ja viib JDownloaderi uuemale üle, kui ükski selle allalaadimine ei käi.',
   'whatsnew.change.listHeads': 'Loendid sorteerivad, filtreerivad ja otsivad oma veerupäistest ning paremklõps hoiab ülejäänut.',
   'whatsnew.change.totals': 'Kaart „{name}“ kiirusgraafiku kõrval näitab järelejäänud aega, mitu allalaadimist on valmis, ootel ja ebaõnnestunud, ning keskmist kiirust.',
   'whatsnew.change.qualityNames': 'Video- ja helifailide nimes on nende kvaliteet ning pisipilt, subtiitrid ja kirjeldus sobivad sellega.',

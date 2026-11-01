@@ -3805,6 +3805,7 @@ export const hr: Dict = {
   'whatsnew.change.cardLogo': 'Logotip stoji na istom mjestu i iste je veličine na svakoj kartici u „{name}”.',
   'whatsnew.change.solvecha': 'Solvecha se može dodati pod „{name}” kao sedma usluga. Čita samo slikovne captche.',
   'whatsnew.change.volumeUsed': 'Potrošena količina preuzimanja kod debrid usluge ili računa hostera prikazuje se u „{name}” kao takva, s vremenom kad se obnavlja, umjesto kao captcha, a usluga tog hostera do tada ostavlja na miru.',
+  'whatsnew.change.javaUpdates': 'Desktop aplikacija drži svoju Javu ažurnom i prebacuje JDownloader na noviju dok nijedno njegovo preuzimanje ne radi.',
   'whatsnew.change.listHeads': 'Popisi razvrstavaju, filtriraju i pretražuju iz vlastitih zaglavlja stupaca, a desni klik drži ostalo.',
   'whatsnew.change.totals': 'Kartica „{name}” uz graf brzine pokazuje preostalo vrijeme, koliko je preuzimanja gotovo, otvoreno i neuspjelo, te prosječnu brzinu.',
   'whatsnew.change.qualityNames': 'Video i audio datoteke nose kvalitetu u nazivu, a minijatura, titlovi i opis se slažu s njom.',

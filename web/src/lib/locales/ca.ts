@@ -3779,6 +3779,7 @@ export const ca: Dict = {
   'whatsnew.change.cardLogo': 'El logotip és al mateix lloc i té la mateixa mida a totes les targetes de «{name}».',
   'whatsnew.change.solvecha': "Solvecha es pot afegir a «{name}» com a setè servei. Només llegeix captcha d'imatge.",
   'whatsnew.change.volumeUsed': 'Un volum de descàrrega exhaurit en un servei debrid o un compte d’allotjador surt com a tal a «{name}», amb el moment en què es renova, en lloc de com a captcha, i el servei deixa tranquil aquest allotjador fins aleshores.',
+  'whatsnew.change.javaUpdates': 'L\'aplicació d\'escriptori manté el seu Java al dia i passa JDownloader a una versió més nova mentre no s\'executa cap de les seves baixades.',
   'whatsnew.change.listHeads': 'Les llistes ordenen, filtren i cerquen des de les seves pròpies capçaleres de columna, i el clic dret té la resta.',
   'whatsnew.change.totals': 'La targeta «{name}» al costat del gràfic de velocitat mostra el temps que falta, quantes baixades estan fetes, obertes i fallides, i la velocitat mitjana.',
   'whatsnew.change.qualityNames': 'Els fitxers de vídeo i àudio porten la qualitat al nom, i la miniatura, els subtítols i la descripció hi coincideixen.',

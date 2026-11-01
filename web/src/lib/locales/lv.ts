@@ -3782,6 +3782,7 @@ export const lv: Dict = {
   'whatsnew.change.cardLogo': 'Logotips katrā kartītē sadaļā „{name}“ atrodas vienā un tajā pašā vietā un ir viena izmēra.',
   'whatsnew.change.solvecha': 'Solvecha var pievienot sadaļā “{name}” kā septīto pakalpojumu. Tas lasa tikai attēlu captcha.',
   'whatsnew.change.volumeUsed': 'Izlietots lejupielādes apjoms debrid pakalpojumā vai hostera kontā sadaļā „{name}“ ir redzams tieši tā, ar laiku, kad tas atjaunojas, nevis kā captcha, un pakalpojums līdz tam liek šo hosteri mierā.',
+  'whatsnew.change.javaUpdates': 'Darbvirsmas lietotne uztur savu Java atjauninātu un pārceļ JDownloader uz jaunāku, kamēr nenotiek neviena tā lejupielāde.',
   'whatsnew.change.listHeads': 'Saraksti kārto, filtrē un meklē no savām kolonnu galvenēm, un labais klikšķis glabā pārējo.',
   'whatsnew.change.totals': 'Kartīte „{name}“ blakus ātruma grafikam rāda atlikušo laiku, cik lejupielāžu ir gatavas, atvērtas un neizdevušās, un vidējo ātrumu.',
   'whatsnew.change.qualityNames': 'Video un audio failu nosaukumā ir to kvalitāte, un sīktēls, subtitri un apraksts tai atbilst.',

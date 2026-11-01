@@ -3775,6 +3775,7 @@ export const zh: Dict = {
   'whatsnew.change.cardLogo': '“{name}”下的每张卡片上，标志都在同一位置，大小也相同。',
   'whatsnew.change.solvecha': '可以在“{name}”中把 Solvecha 添加为第七个服务。它只识别图片验证码。',
   'whatsnew.change.volumeUsed': 'Debrid 服务或主机账户的下载流量用完时，会在“{name}”中如实显示并注明何时重置，而不是显示为验证码。在此之前，该服务不会再动用这个主机。',
+  'whatsnew.change.javaUpdates': '桌面应用会让自带的 Java 保持最新，并在 JDownloader 没有下载运行时把它切换到更新的 Java。',
   'whatsnew.change.listHeads': '列表直接通过各自的列标题排序、筛选和搜索，其余操作在右键菜单里。',
   'whatsnew.change.totals': '速度图旁边的“{name}”卡片显示剩余时间、已完成、未完成和失败的下载数量以及平均速度。',
   'whatsnew.change.qualityNames': '视频和音频文件名中带有画质或音质，缩略图、字幕和说明也随之命名。',
