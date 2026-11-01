@@ -1331,12 +1331,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.resolvers.toolsAutoUpdateHint',
         'settings.resolvers.toolsShadowedOlder',
         'settings.resolvers.toolsManagedBroken',
-        'settings.resolvers.toolsUnrarMissingHint',
       ],
       also: [
         'settings.info.checkAll',
         'settings.resolvers.toolsFetch',
-        'settings.resolvers.toolsRevert',
         'settings.look.jdUpdate',
         'settings.look.updatesReleaseNotes',
       ],

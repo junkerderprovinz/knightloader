@@ -195,7 +195,6 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/mediahooks/{id}/test":    apitoken.ScopeAdmin,
 	"GET /api/mediatools":               apitoken.ScopeAdmin,
 	"GET /api/mediatools/ytdlp/latest":  apitoken.ScopeAdmin,
-	"POST /api/mediatools/ytdlp/revert": apitoken.ScopeAdmin,
 	"POST /api/mediatools/ytdlp/update": apitoken.ScopeAdmin,
 	"GET /api/metrics":                  apitoken.ScopeRead,
 

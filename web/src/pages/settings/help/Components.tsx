@@ -12,12 +12,9 @@ import {
   fetchYtdlpLatest,
   installUpdate,
   retryJDSetup,
-  revertYtdlp,
   updateJD,
   updateYtdlp,
-  type BuiltModule,
   type JDStatus,
-  type MediaTool,
   type MediaToolsStatus,
   type UpdateCheck,
   type UpdateProgress,
@@ -31,7 +28,6 @@ import {
   IconRefresh,
   IconRetry,
   IconSync,
-  IconUndo,
   IconUpdateAvailable,
   IconUpToDate,
 } from '../../../lib/icons';
@@ -41,9 +37,10 @@ import { openWhatsNew, useWhatsNew } from '../../../lib/useWhatsNew';
 import { NewsGlyph } from '../../../components/whatsnew/WhatsNew';
 import { useDraft } from '../context';
 
-// The Components card holds everything KnightLoader is made of or starts, one
-// line each: the name, a short status where there is one, the buttons as
-// glyphs, and at the end the version linked to its release or project page.
+// The Components card holds what KnightLoader updates or follows, one line
+// each: the name, a short status where there is one, the buttons as glyphs,
+// and at the end the version linked to its release or project page. Tools
+// that ship inside KnightLoader say so where they are missed, not here.
 // KnightLoader, yt-dlp and the JDownloader backend update on their own, so
 // their lines carry the update when one waits and their switches under the
 // name, and one button at the foot of the card checks them all.
@@ -259,18 +256,6 @@ function DeploymentError({ retry }: { retry: () => void }) {
 export function ComponentsCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { data: deployment, failed, reload } = useResource(fetchDeploymentInfo);
-  const [tools, setTools] = useState<MediaToolsStatus | null>(null);
-  const [jd, setJd] = useState<JDStatus | null>(null);
-
-  useEffect(() => {
-    // The server is unreachable when either fails, which the page already shows.
-    void fetchMediaTools()
-      .then(setTools)
-      .catch(() => {});
-    void fetchJDStatus()
-      .then(setJd)
-      .catch(() => {});
-  }, []);
 
   // Each updating row hands in its check, so one button runs them all.
   const checks = useRef(new Map<string, Check>());
@@ -278,9 +263,6 @@ export function ComponentsCard({ hue }: { hue: number }) {
     if (check) checks.current.set(key, check);
     else checks.current.delete(key);
   }, []);
-
-  const missing = (tool?: MediaTool, detail?: string): Status | null =>
-    tools && !tool?.found ? { text: t('settings.resolvers.toolsNotFound'), detail, tone: 'fail' } : null;
 
   return (
     <Card hue={hue} data-new="updates-card" className="flex flex-col gap-4">
@@ -297,23 +279,6 @@ export function ComponentsCard({ hue }: { hue: number }) {
             version={GLIMSTONE_VERSION}
             href={releasePage(GLIMSTONE_URL, GLIMSTONE_VERSION) || GLIMSTONE_URL}
           />
-          <ComponentRow name="ffmpeg" version={tools?.ffmpeg.version} href="https://ffmpeg.org/" status={missing(tools?.ffmpeg)} />
-          <ComponentRow name="ffprobe" version={tools?.ffprobe.version} href="https://ffmpeg.org/" status={missing(tools?.ffprobe)} />
-          {/* Without UnRAR the built-in reader, rardecode, unpacks RAR sets. */}
-          <ComponentRow
-            name="UnRAR"
-            version={tools?.unrar?.found ? tools.unrar.version : undefined}
-            href="https://www.rarlab.com/"
-            status={missing(tools?.unrar, t('settings.resolvers.toolsUnrarMissingHint'))}
-          />
-          {/* The desktop build fetches it for JDownloader and renews it with
-              its own updates. */}
-          {jd?.runtime && (
-            <ComponentRow name={`Java (${jd.runtime.vendor})`} version={jd.runtime.version} href="https://adoptium.net/temurin/" />
-          )}
-          {(deployment.engines ?? []).map((m) => (
-            <EngineRow key={m.path} module={m} />
-          ))}
         </div>
       )}
       <div className="flex flex-wrap justify-end gap-3">
@@ -576,12 +541,9 @@ function YtdlpUpdates({ register }: { register: Register }) {
   const [latest, setLatest] = useState<YtdlpLatest | null>(null);
   const [checking, setChecking] = useState(false);
   const [fetching, setFetching] = useState(false);
-  const [reverting, setReverting] = useState(false);
   // Separate outcomes, so a later check does not wipe a failed fetch.
   const [fetched, setFetched] = useState('');
   const [failed, setFailed] = useState('');
-  // The path running again after a revert, '' when none is left, null before one.
-  const [reverted, setReverted] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -599,7 +561,6 @@ function YtdlpUpdates({ register }: { register: Register }) {
     setChecking(true);
     setFetched('');
     setFailed('');
-    setReverted(null);
     let found: YtdlpLatest;
     try {
       found = await fetchYtdlpLatest();
@@ -623,7 +584,6 @@ function YtdlpUpdates({ register }: { register: Register }) {
     setFetching(true);
     setFetched('');
     setFailed('');
-    setReverted(null);
     try {
       const done = await updateYtdlp();
       setFetched(done.version);
@@ -638,29 +598,12 @@ function YtdlpUpdates({ register }: { register: Register }) {
     }
   }, [load]);
 
-  const onRevert = useCallback(async () => {
-    setReverting(true);
-    setFetched('');
-    setFailed('');
-    setReverted(null);
-    try {
-      const after = await revertYtdlp();
-      setTools(after);
-      setReverted(after.ytdlp.found ? (after.ytdlp.path ?? '') : '');
-      setLatest(null);
-    } catch (e) {
-      setFailed(errorText(e));
-    } finally {
-      setReverting(false);
-    }
-  }, []);
-
   const ytdlp = tools?.ytdlp;
   const managed = tools?.managed;
   const shadowed = tools?.shadowed;
   const managedRunning = ytdlp?.source === 'managed';
   // A fetched copy on record that is not what runs, for example deleted by a
-  // virus scanner.
+  // virus scanner. The server has already gone back to the other yt-dlp.
   const managedBroken = Boolean(managed) && !managedRunning;
   // The fetched copy has fallen behind the image's own.
   const managedIsOlder =
@@ -669,31 +612,31 @@ function YtdlpUpdates({ register }: { register: Register }) {
     Boolean(ytdlp?.version) &&
     compareVersions(ytdlp?.version ?? '', shadowed?.version ?? '') === -1;
 
-  const busy = checking || fetching || reverting;
-  useCheck(register, 'yt-dlp', fetching || reverting ? null : onCheck);
+  const busy = checking || fetching;
+  useCheck(register, 'yt-dlp', fetching ? null : onCheck);
 
   // What the last action came to wins over a standing warning, and a warning
   // over what the last check found.
   let status: Status | null = null;
   if (fetching) status = { text: t('settings.resolvers.toolsFetching') };
-  else if (reverting) status = { text: t('settings.resolvers.toolsReverting') };
   else if (checking) status = { text: t('settings.look.updatesChecking') };
   else if (failed) status = { text: t('settings.info.statusFailed'), detail: t('settings.resolvers.toolsFetchFailed', { error: failed }), tone: 'fail' };
-  else if (fetched || reverted) status = { text: t('settings.info.statusDone'), tone: 'ok' };
-  // A revert that left no yt-dlp behind needs one fetched or installed.
-  else if (reverted === '') status = { text: t('settings.info.statusDone'), detail: t('settings.resolvers.toolsRevertedNone'), tone: 'warn' };
+  else if (fetched) status = { text: t('settings.info.statusDone'), tone: 'ok' };
   else if (managedIsOlder)
     status = {
       text: t('settings.info.statusNote'),
       detail: t('settings.resolvers.toolsShadowedOlder', {
         current: ytdlp?.version ?? '',
         system: shadowed?.version ?? '',
-        path: shadowed?.path ?? '',
       }),
       tone: 'warn',
     };
   else if (managedBroken)
-    status = { text: t('settings.info.statusNote'), detail: t('settings.resolvers.toolsManagedBroken', { path: tools?.managedPath ?? '' }), tone: 'warn' };
+    status = {
+      text: t('settings.resolvers.toolsFellBack'),
+      detail: t('settings.resolvers.toolsManagedBroken', { path: tools?.managedPath ?? '' }),
+      tone: 'warn',
+    };
   else if (latest && !latest.checked)
     status = { text: t('settings.info.checkFailed'), detail: t('settings.resolvers.toolsCheckFailed', { error: latest.detail ?? '' }), tone: 'fail' };
   else if (latest?.compare === 'newer') status = { text: t('settings.look.updatesAvailable', { version: latest.tag ?? '' }), tone: 'warn' };
@@ -707,8 +650,6 @@ function YtdlpUpdates({ register }: { register: Register }) {
       status={status}
       actions={
         <>
-          {/* Revert, then fetch: the forward action sits last. */}
-          {managed && <GlyphButton icon={<IconUndo />} title={t('settings.resolvers.toolsRevert')} disabled={busy} onClick={() => void onRevert()} />}
           {/* Only after a check found a newer tag, or one it cannot order
               against what is installed, so nobody fetches a version they were
               not shown. */}
@@ -924,31 +865,5 @@ function JDUpdates({ register }: { register: Register }) {
         )
       }
     />
-  );
-}
-
-const ENGINES: Record<string, string> = {
-  'github.com/GopeedLab/gopeed': 'Gopeed',
-  'github.com/anacrolix/torrent': 'anacrolix/torrent',
-  'github.com/nwaples/rardecode/v2': 'rardecode',
-  'github.com/bodgit/sevenzip': 'sevenzip',
-  'github.com/dop251/goja': 'goja',
-  'modernc.org/sqlite': 'SQLite',
-};
-
-// A module taken at a commit rather than a release carries a pseudo-version
-// that ends in the commit's hash.
-const PSEUDO = /[-.]\d{14}-([0-9a-f]{12})$/;
-
-/** moduleVersion is a module's version as the card shows it: the release, or the short hash of the commit it was taken at. */
-export function moduleVersion(version: string): string {
-  const commit = PSEUDO.exec(version)?.[1];
-  return commit ? commit.slice(0, 7) : version.replace(/^v/, '');
-}
-
-/** EngineRow is a library built into KnightLoader, which moves with KnightLoader's own updates. */
-function EngineRow({ module: m }: { module: BuiltModule }) {
-  return (
-    <ComponentRow name={ENGINES[m.path] ?? m.path} version={moduleVersion(m.version)} href={`https://pkg.go.dev/${m.path}@${m.version}`} />
   );
 }

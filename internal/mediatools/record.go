@@ -121,23 +121,3 @@ func saveRecord(dataDir string, rec ManagedRecord) error {
 	}
 	return os.WriteFile(recordPath(dataDir), append(b, '\n'), 0o644)
 }
-
-// Remove deletes the fetched copy and its record, putting KL_YTDLP and PATH
-// back in charge. Both removals are attempted even if the first fails: a
-// record with no binary is the "recorded but unusable" state resolve.go has to
-// survive anyway, while a binary with no record is a file nothing will ever
-// start or mention again.
-func Remove(dataDir string) error {
-	binErr := os.Remove(BinaryPath(dataDir))
-	if errors.Is(binErr, fs.ErrNotExist) {
-		binErr = nil
-	}
-	recErr := os.Remove(recordPath(dataDir))
-	if errors.Is(recErr, fs.ErrNotExist) {
-		recErr = nil
-	}
-	if binErr != nil {
-		return binErr
-	}
-	return recErr
-}

@@ -79,21 +79,6 @@ func (a *App) updateYtdlpLocked(ctx context.Context) (mediatools.ManagedRecord, 
 	return rec, nil
 }
 
-// RevertYtdlp deletes the fetched copy and its record, handing KL_YTDLP and PATH
-// back the job, and returns the resulting status so the page can show which
-// yt-dlp is running without asking again.
-func (a *App) RevertYtdlp() (mediatools.Status, error) {
-	a.ytdlpMu.Lock()
-	defer a.ytdlpMu.Unlock()
-	if err := mediatools.Remove(a.DataDir); err != nil {
-		return a.MediaTools(), err
-	}
-	a.mediaToolsProber().Invalidate()
-	a.rewireBackends()
-	log.Print("yt-dlp: the fetched copy was removed; the system's own copy is in force again")
-	return a.MediaTools(), nil
-}
-
 // The daily update waits a few minutes after start, so a start is not spent
 // downloading and a container caught in a restart loop does not ask GitHub on
 // every attempt.

@@ -174,7 +174,6 @@ var groupRefused = []string{
 	"POST /api/idle-action/run",
 	"GET /api/mediatools",
 	"GET /api/mediatools/ytdlp/latest",
-	"POST /api/mediatools/ytdlp/revert",
 	"POST /api/mediatools/ytdlp/update",
 
 	// The system: backups, restore, restart, maintenance, diagnostics and the

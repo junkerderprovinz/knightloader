@@ -70,17 +70,4 @@ func registerMediaTools(reg *Registry, a *app.App) {
 				SHA256: rec.SHA256,
 			})
 		})
-
-	reg.Add(http.MethodPost, "/api/mediatools/ytdlp/revert",
-		"delete the fetched yt-dlp and hand KL_YTDLP or PATH back the job",
-		func(w http.ResponseWriter, r *http.Request) {
-			st, err := a.RevertYtdlp()
-			if err != nil {
-				writeJSONStatus(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-				return
-			}
-			// The resulting status, not an empty 200: the card has to say
-			// which yt-dlp runs now, and a second request would draw a gap.
-			writeJSON(w, st)
-		})
 }

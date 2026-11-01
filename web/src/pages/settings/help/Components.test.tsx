@@ -8,7 +8,7 @@ import type { Settings } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { en } from '../../../lib/locales/en';
 import { SettingsProvider, type SettingsDraft } from '../context';
-import { ComponentsCard, moduleVersion, releaseTag } from './Components';
+import { ComponentsCard, releaseTag } from './Components';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -132,32 +132,19 @@ describe('the Components card', () => {
       'yt-dlp',
       'JDownloader backend',
       'GlimStone',
-      'ffmpeg',
-      'ffprobe',
-      'UnRAR',
-      'Gopeed',
-      'SQLite',
     ]);
     expect(version('KnightLoader').textContent).toBe('1.8.4');
     expect(version('yt-dlp').textContent).toBe('2026.08.19');
     expect(version('JDownloader backend').textContent).toBe('50123');
-    expect(version('ffmpeg').textContent).toBe('8.1.2');
-    expect(version('Gopeed').textContent).toBe('5111a4c');
-    expect(version('SQLite').textContent).toBe('1.60.1');
-    expect(status('UnRAR')).toBe('Not found');
-    expect(detail('UnRAR')).toBe(en['settings.resolvers.toolsUnrarMissingHint']);
   });
 
   it('shows a row as its name and its version, which leads to the release or project page', async () => {
     await draw();
-    expect(group('Gopeed').textContent).toBe('Gopeed5111a4c');
     const href = (name: string) => version(name).querySelector('a')?.getAttribute('href');
     expect(href('KnightLoader')).toBe('https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4');
     expect(href('GlimStone')).toMatch(/^https:\/\/github\.com\/junkerderprovinz\/glimstone\/releases\/tag\/v\d+\.\d+\.\d+$/);
     expect(href('yt-dlp')).toBe('https://github.com/yt-dlp/yt-dlp/releases/tag/2026.08.19');
     expect(href('JDownloader backend')).toBe('https://jdownloader.org/');
-    expect(href('ffmpeg')).toBe('https://ffmpeg.org/');
-    expect(href('SQLite')).toBe('https://pkg.go.dev/modernc.org/sqlite@v1.60.1');
   });
 
   it('links a branch build to the release it was cut from', async () => {
@@ -174,17 +161,6 @@ describe('the Components card', () => {
     await draw();
     expect(version('KnightLoader').textContent).toBe('preview-59b73a6');
     expect(version('KnightLoader').querySelector('a')?.getAttribute('href')).toBe('https://github.com/junkerderprovinz/knightloader');
-  });
-
-  it('shows UnRAR with its version and no licence text', async () => {
-    answers['/api/mediatools'] = {
-      ...(answers['/api/mediatools'] as object),
-      unrar: { found: true, version: '7.12', source: 'bundled' },
-    };
-    await draw();
-    expect(group('UnRAR').textContent).toBe('UnRAR7.12');
-    expect(version('UnRAR').querySelector('a')?.getAttribute('href')).toBe('https://www.rarlab.com/');
-    expect(card('Components').querySelector('p')).toBeNull();
   });
 
   it('shows each name alone, with no (i) beside it', async () => {
@@ -289,7 +265,7 @@ describe('the Components card', () => {
 
   it('puts every version last in its row, so they line up at the right edge', async () => {
     await draw();
-    for (const name of ['KnightLoader', 'yt-dlp', 'JDownloader backend', 'ffmpeg', 'SQLite']) {
+    for (const name of ['KnightLoader', 'yt-dlp', 'JDownloader backend', 'GlimStone']) {
       const cells = [...group(name).children].filter((c) => c.tagName !== 'DIV');
       expect(cells[cells.length - 1]).toBe(version(name));
     }
@@ -359,21 +335,18 @@ describe('the Components card', () => {
     expect(button(group('yt-dlp'), 'Fetch this release')).toBeDefined();
   });
 
-  it('says the fetched copy is gone after a revert that leaves no yt-dlp behind', async () => {
+  it('says the other yt-dlp took over when the fetched copy does not start, with nothing to press', async () => {
     answers['/api/mediatools'] = {
-      ytdlp: { found: true, version: '2026.09.30', source: 'managed', path: '/config/bin/yt-dlp' },
+      ytdlp: { found: true, version: '2026.08.19', source: 'path' },
       managed: { version: '2026.09.30' },
-      ffmpeg: { found: true, version: '8.1.2' },
-      ffprobe: { found: true, version: '8.1.2' },
-    };
-    answers['/api/mediatools/ytdlp/revert'] = {
-      ytdlp: { found: false, source: 'none' },
+      managedPath: '/config/bin/yt-dlp',
       ffmpeg: { found: true, version: '8.1.2' },
       ffprobe: { found: true, version: '8.1.2' },
     };
     await draw();
-    await act(async () => button(group('yt-dlp'), 'Back to the system copy').click());
-    expect(detail('yt-dlp')).toBe(en['settings.resolvers.toolsRevertedNone']);
+    expect(status('yt-dlp')).toBe(en['settings.resolvers.toolsFellBack']);
+    expect(detail('yt-dlp')).toContain('/config/bin/yt-dlp');
+    expect(button(group('yt-dlp'), 'Back to the system copy')).toBeUndefined();
   });
 
   it('says when the server could not tell how this instance runs, and asks again on request', async () => {
@@ -405,17 +378,6 @@ describe('the release tag of a version', () => {
   it('adds the v a stamp lacks and drops build metadata', () => {
     expect(releaseTag('1.8.4')).toBe('v1.8.4');
     expect(releaseTag('v1.8.4+redesign.59b73a6')).toBe('v1.8.4');
-  });
-});
-
-describe('the version of a built-in library', () => {
-  it('drops the v of a release', () => {
-    expect(moduleVersion('v1.60.1')).toBe('1.60.1');
-  });
-
-  it('names the commit a module was taken at without a release', () => {
-    expect(moduleVersion('v0.0.0-20261009133625-a4bedf5f6000')).toBe('a4bedf5');
-    expect(moduleVersion('v1.61.1-0.20260823090931-70072f1a7460')).toBe('70072f1');
   });
 });
 
@@ -504,7 +466,7 @@ describe('the JDownloader backend the desktop build sets up', () => {
     expect(version('JDownloader backend').textContent).toBe('50123');
   });
 
-  it('lists the Java runtime it fetched beside the other built-in parts', async () => {
+  it('keeps the Java runtime it fetched off the card, where the JDownloader row speaks for it', async () => {
     answers['/api/resolvers/jd'] = {
       configured: true,
       reachable: true,
@@ -512,6 +474,7 @@ describe('the JDownloader backend the desktop build sets up', () => {
       runtime: { vendor: 'Eclipse Temurin', version: '21.0.13+9' },
     };
     await draw();
-    expect(version('Java (Eclipse Temurin)').textContent).toBe('21.0.13+9');
+    const names = [...host.querySelectorAll('section h3')].map((h) => h.textContent);
+    expect(names.some((n) => n?.startsWith('Java'))).toBe(false);
   });
 });
