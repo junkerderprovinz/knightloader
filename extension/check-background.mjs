@@ -19,6 +19,8 @@
  *      stays off, granting or withdrawing it switches the scripts, the grant
  *      and the stored switch arriving together register nothing twice, and an
  *      update that finds the access missing opens the page that asks for it.
+ *   5. When a site's helper window holds the focus, the popup opens in the
+ *      browser window showing the same site, not in the helper.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -359,8 +361,38 @@ for (const granted of [true, false]) {
   }
 }
 
+// 5. A helper window that holds the focus cannot show the popup.
+{
+  const { chrome } = makeChrome({ withMenus: true });
+  const opened = [];
+  let focused = null;
+  chrome.action.openPopup = async (o) => {
+    if (o?.windowId === undefined) throw new Error('Browser window has no toolbar.');
+    if (o.windowId !== focused) throw new Error('Cannot show popup for an inactive window, only for the currently focused window.');
+    opened.push(o.windowId);
+  };
+  chrome.windows = {
+    getAll: async () => [
+      { id: 1, type: 'normal', tabs: [{ active: true, url: 'https://example.org/' }] },
+      { id: 2, type: 'normal', tabs: [{ active: false, url: 'https://filecrypt.cc/a' }, { active: true, url: 'https://filecrypt.cc/Container/X.html' }] },
+      { id: 3, type: 'popup', tabs: [{ active: true, url: 'https://filecrypt.cc/helper.html' }] },
+    ],
+    update: async (id, o) => { if (o.focused) focused = id; },
+  };
+  const { ctx, error } = load(chrome);
+  if (error) fail(error);
+  else {
+    const show = vm.runInContext('showPopupOrMark', ctx);
+    await show('https://filecrypt.cc/helper.html?1');
+    if (opened.join() !== '2') fail(`a Click'n'Load from filecrypt's helper window opened the popup in window(s) [${opened}], want the browser window showing filecrypt (2)`);
+    opened.length = 0;
+    await show('https://elsewhere.example/');
+    if (opened.join() !== '1') fail(`with no browser window on the sending site the popup opened in [${opened}], want the first browser window (1)`);
+  }
+}
+
 if (problems.length) {
   for (const p of problems) console.error(`✗ ${p}`);
   process.exit(1);
 }
-console.log('ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, the phrase stays out of storage content scripts read, every session joins under its own id and one lasting member id, Click\'n\'Load follows the site access');
+console.log('ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, the phrase stays out of storage content scripts read, every session joins under its own id and one lasting member id, Click\'n\'Load follows the site access and its popup finds the sending site\'s window');
