@@ -36,6 +36,16 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Changed
+
+- **Under rainbow every button lights up in a colour of its own.** KnightLoader
+  follows GlimStone 3.8.4, which the Components card names. The buttons of a
+  page count through the palette in the order they stand, so two buttons side
+  by side on a card no longer light up alike when the pointer or the keyboard
+  reaches them. A button with its own colour keeps it.
+
 ## [2.5.1] - 2026-11-01
 
 ### Changed
