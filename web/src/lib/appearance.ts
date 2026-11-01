@@ -228,6 +228,23 @@ export function rainbowAt(i: number): string {
 }
 
 /**
+ * takePageHue gives a button the palette position of its place among the
+ * page's buttons, so under rainbow two buttons side by side light up in
+ * different colours. Call it when the pointer or the keyboard reaches the
+ * button: the order changes with the page, and only the hover and focus look
+ * read the tint.
+ */
+export function takePageHue(el: HTMLElement): void {
+  if (!state.on) {
+    el.style.removeProperty('--btn-tint');
+    return;
+  }
+  const i = Array.prototype.indexOf.call(document.querySelectorAll('.glim-btn'), el);
+  const n = ((i % RAINBOW.length) + RAINBOW.length) % RAINBOW.length;
+  el.style.setProperty('--btn-tint', `color-mix(in srgb, var(--rb-${n}) var(--ink-mix), black)`);
+}
+
+/**
  * rainbowColor is the colour an item should use, or undefined when the mode is
  * off. Undefined rather than the accent keeps the accent in CSS, where a theme
  * change still reaches it.

@@ -1063,9 +1063,9 @@ body {
    the accent in it. A bare one has no ground to tint, so its words take the
    accent as well; a filled one keeps its words in the text colour, which the
    accent on a tinted ground would not be legible against. Under a rainbow a
-   badge with a palette position takes its own hue, and a button inside a hued
-   card the card's, through --accent-glyph. The ring still marks keyboard
-   focus. */
+   badge with a palette position takes its own hue, and every other button
+   its place among the page's buttons, which takePageHue() sets inline. The
+   ring still marks keyboard focus. */
 .glim-btn-neutral,
 .glim-btn-subtle,
 .glim-btn-bare {
