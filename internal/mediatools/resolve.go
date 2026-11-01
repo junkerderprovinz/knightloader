@@ -68,8 +68,7 @@ const probeTimeout = 10 * time.Second
 // distribution package lagging behind is the problem: a 200, a new file on
 // disk, a version in the record, and nothing changed about what runs. No
 // managed copy exists until the button or the daily update fetches one that
-// is newer than what runs, and from then on the settings card says that
-// KL_YTDLP is not being started and offers "back to the system copy". It
+// is newer than what runs, and from then on it is what runs. It
 // outranks the copy the desktop build ships for the same reason: that one sits
 // in a folder such as Program Files that the program cannot write to, so a
 // newer yt-dlp can only ever arrive as a managed copy.
@@ -111,8 +110,8 @@ func ResolveYtdlp(dataDir string) (path string, source Source, detail string) {
 }
 
 // resolveSystemYtdlp answers ResolveYtdlp's question with the managed copy
-// taken out of the running. It is what Status.Shadowed reports and what "back
-// to the system copy" puts in charge.
+// taken out of the running. It is what Status.Shadowed reports and what runs
+// when the fetched copy is gone or does not start.
 //
 // KL_YTDLP is someone's explicit choice and outranks the copy that came with
 // the program, which in turn outranks PATH, so an old yt-dlp a package manager

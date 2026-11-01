@@ -3606,9 +3606,6 @@ export async function updateYtdlp(): Promise<{ tag: string; version: string; pat
 }
 
 /** Deletes the fetched copy and its record and answers the resulting status. */
-export async function revertYtdlp(): Promise<MediaToolsStatus> {
-  return json(await fetch('/api/mediatools/ytdlp/revert', { method: 'POST' }));
-}
 
 // fetchDiagnostics is called again right before a download, so the bundle
 // reflects the moment it was pulled.

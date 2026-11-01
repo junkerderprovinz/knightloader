@@ -50,6 +50,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **KnightLoader follows GlimStone 3.8.2,** which the Components card names.
   Buttons take the accent under the pointer the way the design language
   describes it, and the symbols for each kind of file come from its list.
+- **The Components card shows what KnightLoader updates or follows:**
+  KnightLoader, yt-dlp, JDownloader and GlimStone. ffmpeg, UnRAR, Java and
+  the built-in libraries ship inside KnightLoader and speak up where they are
+  missed instead, and the Java download still shows on the JDownloader row.
+- **yt-dlp has no Back to the system copy button any more.** A fetched copy
+  that is gone or does not start makes KnightLoader use the other yt-dlp by
+  itself, and the row says so.
 
 ### Fixed
 

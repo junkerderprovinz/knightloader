@@ -471,39 +471,6 @@ func TestASecondInstallReplacesTheFirst(t *testing.T) {
 	}
 }
 
-// Remove is "back to the system copy": both the binary and the record go, and
-// resolution falls back to what was there before.
-func TestRemovePutsTheSystemCopyBack(t *testing.T) {
-	isolate(t)
-	dir := t.TempDir()
-	t.Setenv("KL_YTDLP", "/somewhere/yt-dlp")
-	body := selfBytes(t)
-	t.Setenv(fakeEnv, "print:2026.08.11")
-	rel, sums := release(t, "2026.08.11", body, "yt-dlp")
-	if _, err := install(context.Background(), dir, []string{"yt-dlp"}, rel, sums, writes(body)); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := Remove(dir); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := os.Stat(BinaryPath(dir)); err == nil {
-		t.Error("the fetched binary is still there")
-	}
-	if rec, _ := LoadRecord(dir); rec != nil {
-		t.Error("the record is still there")
-	}
-	path, source, _ := ResolveYtdlp(dir)
-	if source != SourceEnv || path != "/somewhere/yt-dlp" {
-		t.Fatalf("after removal, %q from %q", path, source)
-	}
-	// Removing again is not an error: a record with no binary, or neither, is
-	// the state an operator who deleted the folder by hand leaves behind.
-	if err := Remove(dir); err != nil {
-		t.Fatalf("removing what is already gone failed: %v", err)
-	}
-}
-
 func TestProberReportsTheFetchedCopyAndWhatItShadows(t *testing.T) {
 	isolate(t)
 	dir := t.TempDir()
