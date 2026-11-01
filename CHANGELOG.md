@@ -80,6 +80,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
+- **A pasted video page downloads its video.** With "Follow
+  pages and collect the files they link to" on, a pasted page that plays a
+  video and links a few screenshots was crawled for the screenshots, and the
+  video never reached yt-dlp. yt-dlp now looks at the page first. If it finds
+  a video or a playlist there, the page goes to yt-dlp and is not crawled; if
+  it finds nothing, the page is crawled for its files as before.
 - **Click'n'Load names the program that holds its port.** With JDownloader
   running, switching Click'n'Load on showed the raw Windows error. KnightLoader
   now asks the system which program listens on the port and names it, with a

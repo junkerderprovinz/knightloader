@@ -54,17 +54,18 @@ func (a *App) ytdlpPlaylistProber() (playlistProber, bool) {
 	return p, ok
 }
 
-// ytdlpPlaylist asks yt-dlp what a link lists, and reports whether the answer
-// should be expanded into tasks. It is gated like crawl.
+// ytdlpListing asks yt-dlp what a link is before the page crawl sees it: a
+// playlist to expand, one video to stage as itself, or nothing yt-dlp can
+// fetch. The playlist setting wants the first answer and the crawl the second,
+// since a video page also links its preview images and crawling it would stage
+// those in place of the video.
 //
-// It returns false whenever the link should be staged as one: the setting is
-// off, the link is not yt-dlp's, no yt-dlp backend is wired, the listing
-// failed, or it is not a playlist. Each of those keeps the single-link
-// behaviour.
-func (a *App) ytdlpPlaylist(u string) (ytdlp.Playlist, bool) {
-	// The same setting the yt-dlp backend reads for --no-playlist, so the
-	// question "is a playlist link a list" has one answer on an install.
-	if !a.Settings.Get().Ytdlp.Playlist {
+// It returns false when nobody asked or there is no answer: both settings are
+// off, the link is not yt-dlp's, no yt-dlp backend is wired, or the listing
+// failed. The link then goes on to the crawl.
+func (a *App) ytdlpListing(u string) (ytdlp.Playlist, bool) {
+	cfg := a.Settings.Get()
+	if !cfg.Ytdlp.Playlist && !cfg.Crawl {
 		return ytdlp.Playlist{}, false
 	}
 	// Only links staging routes to yt-dlp, in the order the priority card set,
@@ -84,11 +85,7 @@ func (a *App) ytdlpPlaylist(u string) (ytdlp.Playlist, bool) {
 	defer cancel()
 	pl, err := pp.ProbePlaylist(ctx, u)
 	if err != nil {
-		// The link is staged as itself instead.
 		log.Printf("playlist listing %s: %v", u, err)
-		return ytdlp.Playlist{}, false
-	}
-	if len(pl.Entries) == 0 {
 		return ytdlp.Playlist{}, false
 	}
 	return pl, true

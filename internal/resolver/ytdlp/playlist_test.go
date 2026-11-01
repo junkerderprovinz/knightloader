@@ -43,6 +43,32 @@ func TestProbePlaylistOnAnOrdinaryVideoListsNothing(t *testing.T) {
 	if len(pl.Entries) != 0 {
 		t.Errorf("Entries = %+v, want none for a link that is not a playlist", pl.Entries)
 	}
+	if !pl.Video {
+		t.Error("Video is false for a single video's info dict")
+	}
+}
+
+// The generic extractor marks a player it found in a page as a video, which is
+// what keeps the page from being crawled for its preview images.
+func TestParsePlaylistTakesAGenericPlayerAsAVideo(t *testing.T) {
+	pl, err := parsePlaylist([]byte(`{"_type":"video","extractor":"html5","title":"Clip","formats":[{"url":"https://cdn.example/clip_720p.mp4"}]}`))
+	if err != nil {
+		t.Fatalf("parsePlaylist: %v", err)
+	}
+	if !pl.Video || len(pl.Entries) != 0 {
+		t.Errorf("a page's html5 player read as %+v, want one video and no entries", pl)
+	}
+}
+
+// A link yt-dlp hands on to another extractor is not a video it can fetch yet.
+func TestParsePlaylistDoesNotTakeAForwardedLinkAsAVideo(t *testing.T) {
+	pl, err := parsePlaylist([]byte(`{"_type":"url","url":"https://example.com/embed/1"}`))
+	if err != nil {
+		t.Fatalf("parsePlaylist: %v", err)
+	}
+	if pl.Video {
+		t.Error("a forwarded link read as a video")
+	}
 }
 
 // Without --flat-playlist, yt-dlp would extract every entry.
