@@ -3788,6 +3788,7 @@ export const ja: Dict = {
   'whatsnew.change.cardLogo': '「{name}」のどのカードでも、ロゴは同じ位置に同じ大きさで表示されます。',
   'whatsnew.change.solvecha': 'Solvecha を「{name}」に 7 つ目のサービスとして追加できます。画像キャプチャのみを読み取ります。',
   'whatsnew.change.volumeUsed': 'Debrid サービスやホスターのアカウントでダウンロード容量を使い切ると、キャプチャではなくそのとおりに「{name}」に表示され、リセットされる日時も示されます。それまでサービスはそのホスターを使いません。',
+  'whatsnew.change.javaUpdates': 'デスクトップアプリは自前の Java を最新に保ち、JDownloader のダウンロードが動いていない間に新しい Java へ切り替えます。',
   'whatsnew.change.listHeads': 'リストは列の見出しから並べ替え、絞り込み、検索ができ、右クリックに残りの操作があります。',
   'whatsnew.change.totals': '速度グラフの隣の「{name}」カードに、残り時間、完了・未完了・失敗したダウンロードの数、平均速度が出ます。',
   'whatsnew.change.qualityNames': '動画と音声のファイル名に画質や音質が入り、サムネイル、字幕、説明もそれに合わせた名前になります。',

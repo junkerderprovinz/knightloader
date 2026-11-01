@@ -3800,6 +3800,7 @@ export const ro: Dict = {
   'whatsnew.change.cardLogo': 'Sigla stă în același loc și are aceeași mărime pe fiecare card din „{name}”.',
   'whatsnew.change.solvecha': 'Solvecha poate fi adăugat în „{name}” ca al șaptelea serviciu. Citește doar captcha cu imagini.',
   'whatsnew.change.volumeUsed': 'Un volum de descărcare epuizat la un serviciu debrid sau la un cont de hoster apare ca atare în „{name}”, cu momentul în care se reînnoiește, în loc de captcha, iar serviciul lasă acel hoster în pace până atunci.',
+  'whatsnew.change.javaUpdates': 'Aplicația desktop își ține Java la zi și mută JDownloader pe una mai nouă cât timp nu rulează niciuna dintre descărcările lui.',
   'whatsnew.change.listHeads': 'Listele sortează, filtrează și caută din propriile anteturi de coloană, iar clicul dreapta ține restul.',
   'whatsnew.change.totals': 'Cardul „{name}” de lângă graficul de viteză arată timpul rămas, câte descărcări sunt gata, deschise și eșuate, și viteza medie.',
   'whatsnew.change.qualityNames': 'Fișierele video și audio poartă calitatea în nume, iar miniatura, subtitrările și descrierea se potrivesc.',

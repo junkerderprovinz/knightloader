@@ -3801,6 +3801,7 @@ export const sk: Dict = {
   'whatsnew.change.cardLogo': 'Logo stojí na každej karte v „{name}“ na rovnakom mieste a v rovnakej veľkosti.',
   'whatsnew.change.solvecha': 'Solvecha sa dá pridať v „{name}“ ako siedma služba. Číta iba obrázkové captche.',
   'whatsnew.change.volumeUsed': 'Vyčerpaný objem sťahovania pri debrid službe alebo účte hostera sa v „{name}“ ukáže ako taký, aj s časom, keď sa obnoví, namiesto ako captcha, a služba toho hostera dovtedy nechá na pokoji.',
+  'whatsnew.change.javaUpdates': 'Desktopová aplikácia udržiava svoju Javu aktuálnu a presunie JDownloader na novšiu, keď nebeží žiadne z jeho sťahovaní.',
   'whatsnew.change.listHeads': 'Zoznamy triedia, filtrujú a hľadajú priamo z hlavičiek svojich stĺpcov a pravé tlačidlo ponúka zvyšok.',
   'whatsnew.change.totals': 'Karta „{name}“ vedľa grafu rýchlosti ukazuje zostávajúci čas, koľko sťahovaní je hotových, otvorených a zlyhaných, a priemernú rýchlosť.',
   'whatsnew.change.qualityNames': 'Video a zvukové súbory nesú kvalitu v názve a náhľad, titulky aj popis k nim pasujú.',

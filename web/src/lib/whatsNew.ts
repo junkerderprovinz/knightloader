@@ -51,6 +51,10 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.5.1',
+    changes: [{ id: 'java-updates', text: 'whatsnew.change.javaUpdates' }],
+  },
+  {
     version: '2.5.0',
     changes: [
       { id: 'list-heads', to: LISTS, text: 'whatsnew.change.listHeads' },

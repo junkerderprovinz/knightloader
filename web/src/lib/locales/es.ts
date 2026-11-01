@@ -3783,6 +3783,7 @@ export const es: Dict = {
   'whatsnew.change.cardLogo': 'El logotipo está en el mismo sitio y con el mismo tamaño en todas las tarjetas de «{name}».',
   'whatsnew.change.solvecha': 'Solvecha se puede añadir en «{name}» como séptimo servicio. Solo lee captchas de imagen.',
   'whatsnew.change.volumeUsed': 'Un volumen de descarga agotado en un servicio debrid o una cuenta de alojamiento aparece como tal en «{name}», con el momento en que se renueva, en lugar de como captcha, y el servicio deja en paz ese alojamiento hasta entonces.',
+  'whatsnew.change.javaUpdates': 'La aplicación de escritorio mantiene su Java al día y pasa JDownloader a una versión más nueva mientras no corre ninguna de sus descargas.',
   'whatsnew.change.listHeads': 'Las listas ordenan, filtran y buscan desde sus propias cabeceras de columna, y el clic derecho tiene el resto.',
   'whatsnew.change.totals': 'La tarjeta «{name}» junto al gráfico de velocidad muestra el tiempo que falta, cuántas descargas están listas, pendientes y fallidas, y la velocidad media.',
   'whatsnew.change.qualityNames': 'Los archivos de vídeo y audio llevan su calidad en el nombre, y la miniatura, los subtítulos y la descripción coinciden.',

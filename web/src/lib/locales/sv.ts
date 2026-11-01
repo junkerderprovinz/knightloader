@@ -3791,6 +3791,7 @@ export const sv: Dict = {
   'whatsnew.change.cardLogo': 'Logotypen står på samma ställe och i samma storlek på varje kort under ”{name}”.',
   'whatsnew.change.solvecha': 'Solvecha kan läggas till under ”{name}” som sjunde tjänst. Den läser bara bild-captchor.',
   'whatsnew.change.volumeUsed': 'En förbrukad nedladdningskvot hos en debrid-tjänst eller ett hoster-konto visas som det under ”{name}”, med när den återställs, i stället för som captcha, och tjänsten låter den hostern vara tills dess.',
+  'whatsnew.change.javaUpdates': 'Skrivbordsappen håller sin egen Java uppdaterad och flyttar JDownloader till en nyare medan ingen av dess nedladdningar körs.',
   'whatsnew.change.listHeads': 'Listorna sorterar, filtrerar och söker från sina egna kolumnrubriker, och ett högerklick rymmer resten.',
   'whatsnew.change.totals': 'Kortet ”{name}” bredvid hastighetsgrafen visar återstående tid, hur många nedladdningar som är klara, öppna och misslyckade, och snitthastigheten.',
   'whatsnew.change.qualityNames': 'Video- och ljudfiler bär sin kvalitet i namnet, och miniatyr, undertexter och beskrivning matchar.',

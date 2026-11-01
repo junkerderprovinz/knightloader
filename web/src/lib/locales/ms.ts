@@ -3791,6 +3791,7 @@ export const ms: Dict = {
   'whatsnew.change.cardLogo': 'Logo berada di tempat yang sama dan dengan saiz yang sama pada setiap kad di bawah “{name}”.',
   'whatsnew.change.solvecha': 'Solvecha boleh ditambah di "{name}" sebagai perkhidmatan ketujuh. Ia hanya membaca captcha gambar.',
   'whatsnew.change.volumeUsed': 'Kuota muat turun yang habis di perkhidmatan debrid atau akaun hoster dipaparkan sebagaimana adanya di “{name}”, bersama bila ia ditetapkan semula, bukan sebagai captcha, dan perkhidmatan itu tidak menyentuh hoster tersebut sehingga masa itu.',
+  'whatsnew.change.javaUpdates': 'Aplikasi desktop memastikan Java miliknya sentiasa terkini dan memindahkan JDownloader ke versi lebih baharu semasa tiada muat turunnya yang berjalan.',
   'whatsnew.change.listHeads': 'Senarai mengisih, menapis dan mencari dari kepala lajurnya sendiri, dan klik kanan menyimpan selebihnya.',
   'whatsnew.change.totals': 'Kad “{name}” di sebelah graf kelajuan menunjukkan masa berbaki, berapa muat turun yang selesai, terbuka dan gagal, serta kelajuan purata.',
   'whatsnew.change.qualityNames': 'Fail video dan audio membawa kualitinya dalam nama, dan lakaran kecil, sari kata serta penerangannya sepadan.',

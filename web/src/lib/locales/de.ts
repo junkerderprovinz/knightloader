@@ -3858,6 +3858,7 @@ export const de: Dict = {
   'whatsnew.change.cardLogo': 'Das Logo steht auf jeder Karte unter „{name}“ an derselben Stelle und in derselben Größe.',
   'whatsnew.change.solvecha': 'Solvecha lässt sich unter „{name}“ als siebter Dienst hinzufügen. Es liest nur Bild-Captchas.',
   'whatsnew.change.volumeUsed': 'Ein aufgebrauchtes Download-Volumen bei einem Debrid-Dienst oder Hoster-Konto steht unter „{name}“ als solches da, mit dem Zeitpunkt, ab dem wieder Volumen da ist, statt als Captcha, und der Dienst lässt diesen Hoster bis dahin in Ruhe.',
+  'whatsnew.change.javaUpdates': 'Die Desktop-App hält ihr Java aktuell und stellt JDownloader auf ein neueres um, solange keiner seiner Downloads läuft.',
   'whatsnew.change.listHeads': 'Die Listen sortieren, filtern und suchen über ihre eigenen Spaltenköpfe, und ein Rechtsklick hält den Rest bereit.',
   'whatsnew.change.totals': 'Die Karte „{name}“ neben dem Geschwindigkeitsgraphen zeigt die Restzeit, wie viele Downloads fertig, offen und fehlgeschlagen sind, und das Durchschnittstempo.',
   'whatsnew.change.qualityNames': 'Video- und Audiodateien tragen ihre Qualität im Namen, und Vorschaubild, Untertitel und Beschreibung heißen passend dazu.',
