@@ -3795,6 +3795,7 @@ export const no: Dict = {
   'whatsnew.change.solvecha': 'Solvecha kan legges til under «{name}» som sjuende tjeneste. Den leser bare bilde-captchaer.',
   'whatsnew.change.volumeUsed': 'En oppbrukt nedlastingskvote hos en debrid-tjeneste eller hoster-konto vises som det under «{name}», med når den nullstilles, i stedet for som captcha, og tjenesten lar den hosteren være i fred til da.',
   'whatsnew.change.javaUpdates': 'Skrivebordsappen holder sin egen Java oppdatert og flytter JDownloader over på en nyere mens ingen av nedlastingene dens kjører.',
+  'whatsnew.change.hosterNames': 'Hosterlenker viser filnavn, størrelse og om de er tilgjengelige så snart de kommer inn, som i lenkesamleren til JDownloader.',
   'whatsnew.change.listHeads': 'Listene sorterer, filtrerer og søker fra sine egne kolonneoverskrifter, og et høyreklikk har resten.',
   'whatsnew.change.totals': 'Kortet «{name}» ved siden av hastighetsgrafen viser tiden som gjenstår, hvor mange nedlastinger som er ferdige, åpne og mislykket, og snittfarten.',
   'whatsnew.change.qualityNames': 'Video- og lydfiler har kvaliteten i navnet, og miniatyr, undertekster og beskrivelse passer til.',

@@ -3788,6 +3788,7 @@ export const is: Dict = {
   'whatsnew.change.solvecha': 'Solvecha má bæta við undir „{name}“ sem sjöundu þjónustunni. Hún les aðeins myndacaptcha.',
   'whatsnew.change.volumeUsed': 'Uppurið niðurhalsmagn hjá debrid-þjónustu eða hýslareikningi birtist sem slíkt undir „{name}“, ásamt því hvenær það endurnýjast, í stað captcha, og þjónustan lætur þann hýsil í friði þangað til.',
   'whatsnew.change.javaUpdates': 'Skjáborðsforritið heldur sínu Java uppfærðu og færir JDownloader yfir á nýrra á meðan ekkert af niðurhali þess er í gangi.',
+  'whatsnew.change.hosterNames': 'Hýsingartenglar sýna skráarheiti, stærð og hvort þeir eru virkir um leið og þeir berast, eins og í tenglasafnara JDownloader.',
   'whatsnew.change.listHeads': 'Listarnir raða, sía og leita úr eigin dálkahausum, og hægrismellur geymir afganginn.',
   'whatsnew.change.totals': 'Spjaldið „{name}“ við hliðina á hraðaritinu sýnir tímann sem eftir er, hve mörg niðurhöl eru búin, opin og mistókust, og meðalhraðann.',
   'whatsnew.change.qualityNames': 'Mynd- og hljóðskrár bera gæði sín í nafninu, og smámynd, skjátextar og lýsing passa við.',

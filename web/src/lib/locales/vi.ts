@@ -3792,6 +3792,7 @@ export const vi: Dict = {
   'whatsnew.change.solvecha': 'Có thể thêm Solvecha trong "{name}" làm dịch vụ thứ bảy. Dịch vụ này chỉ đọc captcha hình ảnh.',
   'whatsnew.change.volumeUsed': 'Dung lượng tải xuống đã dùng hết ở một dịch vụ debrid hoặc tài khoản hoster hiện đúng như vậy trong “{name}”, kèm thời điểm được làm mới, thay vì hiện thành captcha, và dịch vụ không động đến hoster đó cho đến lúc ấy.',
   'whatsnew.change.javaUpdates': 'Ứng dụng máy tính giữ Java riêng của nó luôn cập nhật và chuyển JDownloader sang bản mới hơn khi không có lượt tải nào của nó đang chạy.',
+  'whatsnew.change.hosterNames': 'Liên kết máy chủ lưu trữ hiển thị tên tệp, kích thước và trạng thái trực tuyến ngay khi đến, giống như trình thu thập liên kết của JDownloader.',
   'whatsnew.change.listHeads': 'Các danh sách sắp xếp, lọc và tìm kiếm ngay từ tiêu đề cột của chúng, còn lại nằm trong menu chuột phải.',
   'whatsnew.change.totals': 'Thẻ “{name}” cạnh biểu đồ tốc độ cho biết thời gian còn lại, số lượt tải xong, đang chờ và lỗi, cùng tốc độ trung bình.',
   'whatsnew.change.qualityNames': 'Tệp video và âm thanh mang chất lượng trong tên, và ảnh thu nhỏ, phụ đề cùng mô tả cũng khớp theo.',
