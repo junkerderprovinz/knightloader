@@ -2,7 +2,9 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    # pin-updates.yml opens its pull requests with GITHUB_TOKEN, which starts no
+    # workflow, so CI runs on the push of the branch instead.
+    branches: [main, "pins/**"]
   pull_request:
   workflow_dispatch:
 
@@ -31,6 +33,7 @@ jobs:
       desktop: ${{ steps.filter.outputs.desktop }}
       docs: ${{ steps.filter.outputs.docs }}
       queuereach: ${{ steps.filter.outputs.queuereach }}
+      pins: ${{ steps.filter.outputs.pins }}
     steps:
       # On push, paths-filter diffs with git and needs the history; on
       # pull_request it uses the API.
@@ -143,6 +146,15 @@ jobs:
               - 'web/src/pages/Downloads.tsx'
               - 'web/src/lib/commands/downloads.ts'
               - 'web/src/lib/api.ts'
+              - '.github/workflows/ci.yml'
+            # The pin updater's tests rewrite copies of the pinned files, so a
+            # change to one of them can break the rewrite.
+            pins:
+              - 'scripts/pins/**'
+              - 'internal/jre/jre.go'
+              - 'Dockerfile'
+              - 'desktop/unrar.json'
+              - 'web/src/lib/glimstoneVersion.ts'
               - '.github/workflows/ci.yml'
 
   server:
@@ -528,6 +540,23 @@ jobs:
 
       - name: The queue verbs reach as far as the server does
         run: node check-queue-reach.mjs
+
+  # The weekly pin updater's parsers and rewrites, on saved pages, so a change
+  # to a pinned file shows here rather than in Monday's run.
+  pins:
+    needs: changes
+    if: needs.changes.outputs.pins == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "24"
+
+      - name: Pin updates
+        run: node --test scripts/pins/update-pins.test.mjs
 
   mobile:
     needs: changes
