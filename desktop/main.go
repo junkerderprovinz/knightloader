@@ -77,6 +77,7 @@ func main() {
 	if os.Getenv("KL_JD") == "" {
 		_ = jd.start()
 		a.RetryJDSetup = jd.start
+		a.SwitchJava = jd.switchJava
 	}
 
 	// The browser whose Click'n'Load buttons post to 127.0.0.1 runs on this
@@ -101,6 +102,10 @@ func main() {
 	// A JD named in KL_JD is kept current here too; without one the daily run
 	// has nothing to ask.
 	a.StartJDAutoUpdate()
+	// Only a JD this program started itself runs on the Java it fetched.
+	if a.SwitchJava != nil {
+		a.StartJavaAutoUpdate()
+	}
 
 	// Window and tray preferences stay out of settings.Settings, which every
 	// connected browser reads and writes; see config.go.

@@ -44,6 +44,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
+	"github.com/junkerderprovinz/knightloader/internal/jre"
 	"github.com/junkerderprovinz/knightloader/internal/mcpclient"
 	"github.com/junkerderprovinz/knightloader/internal/mediahook"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
@@ -189,6 +190,10 @@ type App struct {
 	// RetryJDSetup, set on the desktop build only, sets up its own
 	// JDownloader again after a try that failed.
 	RetryJDSetup func() error
+	// SwitchJava, set on the desktop build only, restarts its own JD on the
+	// Java runtime the weekly update fetched, or on the old one again, with
+	// ErrJavaRefused, when JD does not start on the new one.
+	SwitchJava func(ctx context.Context) error
 
 	// RequestSuspend, set on the desktop build only, puts the machine to sleep
 	// for the end-of-queue "suspend" action. The per-OS calls live in
@@ -472,6 +477,9 @@ type App struct {
 	// jdUpdateState is how the daily JDownloader update reaches JD
 	// (app_jdupdate.go).
 	jdUpdateState
+	// javaUpdateState is the weekly update of the desktop build's Java
+	// runtime (app_jreupdate.go).
+	javaUpdateState
 	// jdSetupState is why the desktop build has no JDownloader of its own
 	// yet (app_jdsetup.go).
 	jdSetupState
@@ -545,6 +553,8 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	a.latestYtdlp, a.installYtdlp = mediatools.CheckLatest, mediatools.Install
 	a.installFFmpeg = mediatools.InstallFFmpeg
 	a.checkJD, a.restartJD = a.CheckJDUpdate, restartJDForUpdate
+	a.latestJava = func(ctx context.Context) (*jre.Release, error) { return jre.Latest(ctx, jre.AdoptiumAPI) }
+	a.stageJava = func(ctx context.Context, rel *jre.Release) error { return jre.Stage(ctx, a.DataDir, rel) }
 	// Every outbound client comes from internal/httpx, so proxy, user agent,
 	// redirect rule and pooling are one policy. Each subsystem gets its own
 	// client so a router holding connections open cannot starve a crawl.

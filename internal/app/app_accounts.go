@@ -1429,6 +1429,9 @@ type JDStatus struct {
 	// Runtime is the Java runtime the desktop build fetched for JD, nil where
 	// JD runs on a Java of its own.
 	Runtime *jre.Record `json:"runtime,omitempty"`
+	// RuntimeUpdate is the newer Java runtime the weekly question found and
+	// JD does not run on yet (see App.autoUpdateJava).
+	RuntimeUpdate string `json:"runtimeUpdate,omitempty"`
 	// UpdateWaits is whether the automatic question found an update JD has
 	// not installed yet (see App.autoUpdateJD).
 	UpdateWaits bool `json:"updateWaits,omitempty"`
@@ -1448,6 +1451,7 @@ func (a *App) UseJD(base string) {
 func (a *App) JDStatus() JDStatus {
 	var st JDStatus
 	st.Runtime, _ = jre.Load(a.DataDir)
+	st.RuntimeUpdate = a.javaUpdateWaits()
 	base := os.Getenv("KL_JD")
 	if base == "" {
 		a.jdSetupStatus(&st)
