@@ -24,7 +24,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
-	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
@@ -534,7 +533,13 @@ func setFeature(a *app.App, id string, on bool) error {
 		// A live listener rather than a setting, so it skips ApplySettings
 		// (see app.App.CnL). Without a listener the loop above has already
 		// refused, since the row then has no switch.
-		return a.CnL.Toggle(on)
+		if err := a.CnL.Toggle(on); err != nil {
+			// The system's words stay in the log, where they help someone
+			// working out a failure the row cannot name.
+			log.Printf("Click'n'Load could not open %s: %v", a.CnL.Address(), err)
+			return cnlBusy(a.CnL, a.CnL.Holding(context.Background()))
+		}
+		return nil
 
 	case "extraction":
 		key, value = "extract", on
@@ -1037,23 +1042,10 @@ func cnlFeature(a *app.App) Feature {
 	case f.Enabled:
 		return withDetail(f, line{text: "listening on " + l.Address(), code: "cnlListening", args: addr})
 	case err != nil:
-		// Another KnightLoader on this computer is named, so its row can offer
-		// to take the port over (routes_cnl.go); anything else is usually a
-		// running JDownloader.
-		holder, herr := l.Holder(context.Background())
-		switch {
-		case herr == nil:
-			return withDetail(f, line{
-				text: "KnightLoader " + holder.Name + " on this computer holds " + l.Address(),
-				code: "cnlHeldBy", args: map[string]string{"name": holder.Name, "address": l.Address()},
-			})
-		case errors.Is(herr, cnl.ErrNotKnightLoader):
-			return withDetail(f, line{text: "another program holds " + l.Address(), code: "cnlHeldByOther", args: addr})
-		}
-		return withDetail(f, line{
-			text: "cannot listen on " + l.Address() + ": " + err.Error(),
-			code: "cnlUnavailable", args: addr,
-		})
+		// A KnightLoader that names itself gets a take-over button on the row
+		// (routes_cnl.go); any other program is named so the reader knows
+		// what to close.
+		return withDetail(f, cnlHeldLine(l.Holding(context.Background()), l.Address(), l.BindPort()))
 	case l.OffByEnv():
 		return withDetail(f, line{text: "switched off with KL_CNL=0", code: "cnlOffByEnv"})
 	}

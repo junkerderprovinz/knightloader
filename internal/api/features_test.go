@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -594,7 +595,7 @@ func TestClickNLoadRowFollowsTheListener(t *testing.T) {
 }
 
 // TestClickNLoadRowReportsATakenPort checks that a listener that could not bind
-// reads as unavailable at its address, not as switched off.
+// reads as held by whatever holds its port, not as switched off.
 func TestClickNLoadRowReportsATakenPort(t *testing.T) {
 	t.Parallel()
 	held, err := net.Listen("tcp", "127.0.0.1:0")
@@ -611,8 +612,8 @@ func TestClickNLoadRowReportsATakenPort(t *testing.T) {
 		t.Fatal("switching on succeeded on a port another listener holds")
 	}
 	f := featureRow(t, a, "cnl")
-	if f.Enabled || f.DetailCode != "cnlUnavailable" || f.DetailArgs["address"] != fmt.Sprintf("127.0.0.1:%d", port) {
-		t.Errorf("taken port: enabled %v, code %q, args %v; want off and cnlUnavailable with the address", f.Enabled, f.DetailCode, f.DetailArgs)
+	if f.Enabled || f.DetailCode != programCode() || f.DetailArgs["port"] != strconv.Itoa(port) {
+		t.Errorf("taken port: enabled %v, code %q, args %v; want off and %s with the port", f.Enabled, f.DetailCode, f.DetailArgs, programCode())
 	}
 }
 
