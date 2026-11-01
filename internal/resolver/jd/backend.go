@@ -448,14 +448,36 @@ func (b *Backend) collecting() bool {
 }
 
 // CheckLinks asks JD's hoster plugins whether a batch of plain links is still
-// online, without downloading anything: it stages them under a private marker
-// package, waits for the crawl to settle, reads each availability and removes
-// the package again.
+// online, without downloading anything.
 //
 // An anonymous HTTP probe cannot tell a premium hoster's missing file from a
 // login page, while JD's plugin can, even without an account. ctx carries the
 // caller's deadline for the whole batch.
 func (b *Backend) CheckLinks(ctx context.Context, urls []string) ([]core.Availability, error) {
+	infos, err := b.InspectLinks(ctx, urls)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]core.Availability, len(infos))
+	for i, info := range infos {
+		out[i] = info.Availability
+	}
+	return out, nil
+}
+
+// LinkInfo is what a hoster plugin found out about one link without
+// downloading it. Name and Size are empty where the plugin could not tell.
+type LinkInfo struct {
+	Availability core.Availability
+	Name         string
+	Size         int64
+}
+
+// InspectLinks is CheckLinks with the name and size each plugin found, which is
+// how JD's own link collector shows a hoster link before it is downloaded. It
+// stages the links under a private marker package, waits for the crawl to
+// settle, reads each link and removes the package again.
+func (b *Backend) InspectLinks(ctx context.Context, urls []string) ([]LinkInfo, error) {
 	marker := fmt.Sprintf("KL-check-%d", time.Now().UnixNano())
 	b.holdGrabber(marker)
 	defer b.releaseGrabber(marker)
@@ -504,13 +526,13 @@ func (b *Backend) CheckLinks(ctx context.Context, urls []string) ([]core.Availab
 	_ = b.c.RemoveCrawled(linkIDs(links), pkgs)
 
 	// Matched by the echoed URL so a missing link cannot shift the verdicts.
-	verdict := make(map[string]core.Availability, len(links))
+	found := make(map[string]LinkInfo, len(links))
 	for _, l := range links {
-		verdict[l.URL] = jdAvailability(l.Availability)
+		found[l.URL] = LinkInfo{Availability: jdAvailability(l.Availability), Name: l.Name, Size: l.Size}
 	}
-	out := make([]core.Availability, len(urls))
+	out := make([]LinkInfo, len(urls))
 	for i, u := range urls {
-		out[i] = verdict[u]
+		out[i] = found[u]
 	}
 	return out, nil
 }
