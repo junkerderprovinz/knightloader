@@ -1,0 +1,1 @@
+Nothing changes in the app this time. This release brings a fix for the browser extension, so the app works just as before.
