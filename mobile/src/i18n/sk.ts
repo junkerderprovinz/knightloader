@@ -344,6 +344,7 @@ export const sk: Dict = {
   'failure.archivePartMissing.next': 'Uisti sa, že sú všetky časti stiahnuté do rovnakého priečinka, a potom ho znova rozbaľ.',
   'failure.archiveUnsupported.line': 'KnightLoader nevie prečítať formát súboru {part}.',
   'failure.archiveUnsupported.next': 'Rozbaľ ho iným programom, napríklad 7-Zip.',
+  'failure.noUnrar.next': 'Nenašiel sa žiadny UnRAR, tak to KnightLoader skúsil sám. Nainštaluj UnRAR na server alebo nastav KL_UNRAR a potom ho znova rozbaľ.',
   'failure.unknown.line': 'KnightLoader túto chybu nepozná.',
   'failure.unknown.next': 'Skús to znova. Ak sa to opakuje, nahlás to spolu s tým, čo povedal backend.',
 
@@ -364,6 +365,8 @@ export const sk: Dict = {
   'failure.archiveFolderExists.next': 'Presuň alebo premenuj ten priečinok, alebo zmeň „Keď tam už súbor je“ v nastaveniach archívov vo webovom rozhraní, a potom archív znova rozbaľ.',
   'failure.unsupportedPlayer.line': 'Stránka prehráva video v prehrávači, ktorý tu žiadny backend nevie prečítať.',
   'failure.unsupportedPlayer.next': 'Ak nájdeš vlastnú adresu videa, vlož namiesto toho ju.',
+  'failure.noFFmpeg.line': 'Toto sťahovanie potrebuje ffmpeg a žiadny sa nenašiel.',
+  'failure.noFFmpeg.next': 'Nainštaluj ffmpeg alebo reštartuj desktopovú aplikáciu a skús to znova.',
   'settings.device': 'Toto zariadenie',
   'settings.deviceName': 'Názov zariadenia',
   'settings.deviceHint': 'Pod týmto názvom sa tento telefón zobrazuje na stránke Inštancie každej inštancie vo tvojej skupine. Nechaj prázdne, ak chceš použiť model zariadenia.',

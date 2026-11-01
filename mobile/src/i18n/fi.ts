@@ -344,6 +344,7 @@ export const fi: Dict = {
   'failure.archivePartMissing.next': 'Varmista, että kaikki osat on ladattu samaan kansioon, ja pura sitten uudelleen.',
   'failure.archiveUnsupported.line': 'KnightLoader ei osaa lukea tiedoston {part} muotoa.',
   'failure.archiveUnsupported.next': 'Pura se toisella ohjelmalla, esimerkiksi 7-Zipillä.',
+  'failure.noUnrar.next': 'UnRARia ei löytynyt, joten KnightLoader yritti itse. Asenna UnRAR palvelimelle tai aseta KL_UNRAR ja pura se sitten uudelleen.',
   'failure.unknown.line': 'KnightLoader ei tunnista tätä virhettä.',
   'failure.unknown.next': 'Yritä uudelleen. Jos tätä tapahtuu toistuvasti, ilmoita siitä ja kerro mukana, mitä taustaosa sanoi.',
 
@@ -364,6 +365,8 @@ export const fi: Dict = {
   'failure.archiveFolderExists.next': 'Siirrä kansio tai nimeä se uudelleen, tai muuta kohtaa ”Jos tiedosto on jo siellä” verkkokäyttöliittymän arkistoasetuksissa, ja pura arkisto sitten uudelleen.',
   'failure.unsupportedPlayer.line': 'Sivu toistaa videonsa soittimessa, jota mikään taustaosa täällä ei osaa lukea.',
   'failure.unsupportedPlayer.next': 'Jos löydät videon oman osoitteen, liitä se tilalle.',
+  'failure.noFFmpeg.line': 'Tämä lataus tarvitsee ffmpegin, eikä sitä löytynyt.',
+  'failure.noFFmpeg.next': 'Asenna ffmpeg tai käynnistä työpöytäsovellus uudelleen, ja yritä sitten uudelleen.',
   'settings.device': 'Tämä laite',
   'settings.deviceName': 'Laitteen nimi',
   'settings.deviceHint': 'Millä nimellä tämä puhelin näkyy ryhmäsi jokaisen instanssin Instanssit-sivulla. Jätä tyhjäksi, jos haluat käyttää laitteen mallia.',

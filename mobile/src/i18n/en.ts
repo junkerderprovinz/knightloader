@@ -304,6 +304,8 @@ export const en = {
   'failure.extractorBroken.next': 'Update KnightLoader: a newer image brings a newer yt-dlp.',
   'failure.unsupportedPlayer.line': 'The page plays its video in a player no backend here can read.',
   'failure.unsupportedPlayer.next': 'If you can find the video\'s own address, paste that instead.',
+  'failure.noFFmpeg.line': 'This download needs ffmpeg, and none was found.',
+  'failure.noFFmpeg.next': 'Install ffmpeg or restart the desktop app, then try again.',
   'failure.archiveDamaged.line': '{part} is damaged.',
   'failure.archiveDamaged.next': 'Download {part} again, or get it from another mirror.',
   'failure.archivePassword.line': 'The archive needs a password, and none of the saved ones fits.',
@@ -312,6 +314,7 @@ export const en = {
   'failure.archivePartMissing.next': 'Make sure every part is downloaded into the same folder, then unpack it again.',
   'failure.archiveUnsupported.line': 'KnightLoader cannot read the format of {part}.',
   'failure.archiveUnsupported.next': 'Unpack it with another program, such as 7-Zip.',
+  'failure.noUnrar.next': 'No UnRAR was found, so KnightLoader tried it on its own. Install UnRAR on the server or set KL_UNRAR, then unpack it again.',
   'failure.archiveFolderExists.line': 'A folder named {folder} is already there.',
   'failure.archiveFolderExists.next':
     'Move or rename that folder, or change "If a file is already there" in the archive settings of the web UI, then unpack it again.',

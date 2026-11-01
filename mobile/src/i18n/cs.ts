@@ -344,6 +344,7 @@ export const cs: Dict = {
   'failure.archivePartMissing.next': 'Ujisti se, že jsou všechny části stažené do stejné složky, a pak ho znovu rozbal.',
   'failure.archiveUnsupported.line': 'KnightLoader neumí přečíst formát souboru {part}.',
   'failure.archiveUnsupported.next': 'Rozbal ho jiným programem, třeba 7-Zip.',
+  'failure.noUnrar.next': 'Nenašel se žádný UnRAR, tak to KnightLoader zkusil sám. Nainstaluj UnRAR na server nebo nastav KL_UNRAR a pak ho znovu rozbal.',
   'failure.unknown.line': 'KnightLoader tuhle chybu nezná.',
   'failure.unknown.next': 'Zkus to znovu. Pokud se to opakuje, nahlas to spolu s tím, co řekl backend.',
 
@@ -364,6 +365,8 @@ export const cs: Dict = {
   'failure.archiveFolderExists.next': 'Přesuň nebo přejmenuj tu složku, nebo změň „Když už tam soubor je“ v nastavení archivů ve webovém rozhraní, a pak archiv znovu rozbal.',
   'failure.unsupportedPlayer.line': 'Stránka přehrává video v přehrávači, který tu žádný backend neumí přečíst.',
   'failure.unsupportedPlayer.next': 'Když najdeš vlastní adresu videa, vlož místo toho ji.',
+  'failure.noFFmpeg.line': 'Toto stahování potřebuje ffmpeg a žádný se nenašel.',
+  'failure.noFFmpeg.next': 'Nainstaluj ffmpeg nebo restartuj desktopovou aplikaci a zkus to znovu.',
   'settings.device': 'Toto zařízení',
   'settings.deviceName': 'Název zařízení',
   'settings.deviceHint': 'Jak se toto zařízení jmenuje na stránce Instance u každé instance ve tvé skupině. Necháš-li pole prázdné, použije se model zařízení.',

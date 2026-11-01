@@ -344,6 +344,7 @@ export const fa: Dict = {
   'failure.archivePartMissing.next': 'مطمئن شوید همهٔ بخش‌ها در همان یک پوشه دانلود شده‌اند، بعد دوباره استخراجش کنید.',
   'failure.archiveUnsupported.line': 'KnightLoader نمی‌تواند قالب {part} را بخواند.',
   'failure.archiveUnsupported.next': 'آن را با برنامهٔ دیگری مثل 7-Zip استخراج کنید.',
+  'failure.noUnrar.next': 'هیچ UnRAR ای پیدا نشد، برای همین KnightLoader خودش امتحان کرد. UnRAR را روی سرور نصب کنید یا KL_UNRAR را تنظیم کنید، بعد دوباره استخراجش کنید.',
   'failure.unknown.line': 'KnightLoader این خطا را نمی‌شناسد.',
   'failure.unknown.next': 'دوباره امتحان کنید. اگر باز هم پیش آمد، آن را همراه با چیزی که بک‌اند گفت گزارش کنید.',
 
@@ -364,6 +365,8 @@ export const fa: Dict = {
   'failure.archiveFolderExists.next': 'آن پوشه را جابه‌جا کنید یا نامش را عوض کنید، یا «اگر فایلی از پیش آنجا باشد» را در تنظیمات آرشیو رابط وب عوض کنید، بعد آرشیو را دوباره استخراج کنید.',
   'failure.unsupportedPlayer.line': 'صفحه ویدیویش را در پخش‌کننده‌ای پخش می‌کند که هیچ بک‌اندی در اینجا نمی‌تواند بخواندش.',
   'failure.unsupportedPlayer.next': 'اگر نشانی خود ویدیو را پیدا کنید، همان را بچسبانید.',
+  'failure.noFFmpeg.line': 'این دانلود به ffmpeg نیاز دارد و هیچ نسخه‌ای پیدا نشد.',
+  'failure.noFFmpeg.next': 'ffmpeg را نصب کنید یا برنامهٔ دسکتاپ را دوباره راه بیندازید، بعد دوباره امتحان کنید.',
   'settings.device': 'این دستگاه',
   'settings.deviceName': 'نام دستگاه',
   'settings.deviceHint': 'نامی که این تلفن در صفحهٔ «نمونه‌ها»ی هر نمونه از گروه شما دارد. برای استفاده از مدل دستگاه، آن را خالی بگذارید.',

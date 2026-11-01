@@ -344,6 +344,7 @@ export const hi: Dict = {
   'failure.archivePartMissing.next': 'पक्का करें कि हर हिस्सा एक ही फ़ोल्डर में डाउनलोड हुआ है, फिर उसे दोबारा निकालें।',
   'failure.archiveUnsupported.line': 'KnightLoader {part} का फ़ॉर्मेट नहीं पढ़ सकता।',
   'failure.archiveUnsupported.next': 'इसे किसी दूसरे प्रोग्राम से निकालें, जैसे 7-Zip।',
+  'failure.noUnrar.next': 'कोई UnRAR नहीं मिला, इसलिए KnightLoader ने खुद कोशिश की। सर्वर पर UnRAR इंस्टॉल करें या KL_UNRAR सेट करें, फिर उसे दोबारा निकालें।',
   'failure.unknown.line': 'KnightLoader इस त्रुटि को नहीं पहचानता।',
   'failure.unknown.next': 'फिर कोशिश करें। अगर ऐसा बार-बार हो, तो बैकएंड ने जो कहा उसके साथ इसकी रिपोर्ट करें।',
 
@@ -364,6 +365,8 @@ export const hi: Dict = {
   'failure.archiveFolderExists.next': 'उस फ़ोल्डर को कहीं और ले जाएँ या उसका नाम बदलें, या वेब यूज़र इंटरफ़ेस की आर्काइव सेटिंग्स में “अगर वहाँ पहले से फ़ाइल हो” बदलें, फिर आर्काइव दोबारा निकालें।',
   'failure.unsupportedPlayer.line': 'पेज अपना वीडियो ऐसे प्लेयर में चलाता है जिसे यहाँ का कोई बैकएंड नहीं पढ़ सकता।',
   'failure.unsupportedPlayer.next': 'अगर आपको वीडियो का अपना पता मिल जाए, तो उसके बजाय वही चिपकाएँ।',
+  'failure.noFFmpeg.line': 'इस डाउनलोड को ffmpeg चाहिए, और कोई नहीं मिला।',
+  'failure.noFFmpeg.next': 'ffmpeg इंस्टॉल करें या डेस्कटॉप ऐप फिर से शुरू करें, फिर दोबारा आज़माएँ।',
   'settings.device': 'यह डिवाइस',
   'settings.deviceName': 'डिवाइस का नाम',
   'settings.deviceHint': 'आपके समूह के हर इंस्टेंस के “इंस्टेंस” पेज पर यह फ़ोन किस नाम से दिखता है। डिवाइस मॉडल इस्तेमाल करने के लिए इसे खाली छोड़ दें।',

@@ -343,6 +343,7 @@ export const ko: Dict = {
   'failure.archivePartMissing.next': '모든 조각이 같은 폴더에 다운로드되었는지 확인한 다음 다시 압축을 푸세요.',
   'failure.archiveUnsupported.line': 'KnightLoader는 {part}의 형식을 읽을 수 없습니다.',
   'failure.archiveUnsupported.next': '7-Zip 같은 다른 프로그램으로 압축을 푸세요.',
+  'failure.noUnrar.next': 'UnRAR를 찾지 못해 KnightLoader가 직접 풀어 보았습니다. 서버에 UnRAR를 설치하거나 KL_UNRAR를 설정한 다음 다시 압축을 푸세요.',
   'failure.unknown.line': 'KnightLoader가 모르는 오류입니다.',
   'failure.unknown.next': '다시 시도하세요. 계속 이러면 백엔드가 한 말과 함께 알려 주세요.',
 
@@ -363,6 +364,8 @@ export const ko: Dict = {
   'failure.archiveFolderExists.next': '그 폴더를 옮기거나 이름을 바꾸거나, 웹 UI의 압축 파일 설정에서 “같은 이름의 파일이 이미 있으면”을 바꾼 다음 다시 압축을 푸세요.',
   'failure.unsupportedPlayer.line': '이 페이지는 여기 있는 어떤 백엔드도 읽지 못하는 플레이어로 동영상을 재생합니다.',
   'failure.unsupportedPlayer.next': '동영상 자체의 주소를 찾을 수 있다면 대신 그것을 붙여넣으세요.',
+  'failure.noFFmpeg.line': '이 다운로드에는 ffmpeg가 필요한데 찾지 못했습니다.',
+  'failure.noFFmpeg.next': 'ffmpeg를 설치하거나 데스크톱 앱을 다시 시작한 다음 다시 시도하세요.',
   'settings.device': '이 기기',
   'settings.deviceName': '기기 이름',
   'settings.deviceHint': '그룹에 있는 각 인스턴스의 인스턴스 페이지에 이 휴대전화가 표시되는 이름입니다. 비워 두면 기기 모델명이 사용됩니다.',

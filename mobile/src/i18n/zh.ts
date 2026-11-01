@@ -343,6 +343,7 @@ export const zh: Dict = {
   'failure.archivePartMissing.next': '确认所有分卷都下载到同一个文件夹里，然后再解压一次。',
   'failure.archiveUnsupported.line': 'KnightLoader 读不了 {part} 的格式。',
   'failure.archiveUnsupported.next': '用别的程序解压它，比如 7-Zip。',
+  'failure.noUnrar.next': '没有找到 UnRAR，所以 KnightLoader 自己尝试了解压。在服务器上安装 UnRAR 或设置 KL_UNRAR，然后再解压一次。',
   'failure.unknown.line': 'KnightLoader 不认识这个错误。',
   'failure.unknown.next': '再试一次。如果还是这样，就把它连同后端说的话一起报告。',
 
@@ -363,6 +364,8 @@ export const zh: Dict = {
   'failure.archiveFolderExists.next': '移走或重命名那个文件夹，或者在网页界面的“压缩包”设置里修改“如果同名文件已存在”，然后再解压一次。',
   'failure.unsupportedPlayer.line': '这个页面用一个播放器播放视频，而这里没有哪个后端能读懂它。',
   'failure.unsupportedPlayer.next': '如果你能找到视频自己的地址，就把那个地址粘贴进来。',
+  'failure.noFFmpeg.line': '这个下载需要 ffmpeg，但没有找到。',
+  'failure.noFFmpeg.next': '安装 ffmpeg 或重启桌面应用，然后再试一次。',
   'settings.device': '此设备',
   'settings.deviceName': '设备名称',
   'settings.deviceHint': '这部手机在你的组里每个实例的“实例”页面上显示的名称。留空则使用设备型号。',

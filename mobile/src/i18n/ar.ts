@@ -344,6 +344,7 @@ export const ar: Dict = {
   'failure.archivePartMissing.next': 'تأكّد من أن كل الأجزاء نُزّلت في المجلد نفسه، ثم فكّ ضغطه من جديد.',
   'failure.archiveUnsupported.line': 'لا يستطيع KnightLoader قراءة صيغة {part}.',
   'failure.archiveUnsupported.next': 'فكّ ضغطه ببرنامج آخر، مثل 7-Zip.',
+  'failure.noUnrar.next': 'لم يُعثر على UnRAR، فحاول KnightLoader فك الضغط بنفسه. ثبّت UnRAR على الخادم أو اضبط KL_UNRAR، ثم فكّ ضغطه من جديد.',
   'failure.unknown.line': 'لا يعرف KnightLoader هذا الخطأ.',
   'failure.unknown.next': 'حاول مرة أخرى. إن تكرّر ذلك، فأبلغ عنه مع ما قالته الخلفية.',
 
@@ -364,6 +365,8 @@ export const ar: Dict = {
   'failure.archiveFolderExists.next': 'انقل ذلك المجلد أو أعد تسميته، أو غيّر «إذا كان الملف موجودًا سلفًا» في إعدادات الأرشيفات في واجهة الويب، ثم فكّ ضغط الأرشيف من جديد.',
   'failure.unsupportedPlayer.line': 'تعرض الصفحة الفيديو في مشغّل لا تستطيع أي خلفية هنا قراءته.',
   'failure.unsupportedPlayer.next': 'إن وجدت عنوان الفيديو نفسه، فألصقه بدلًا من ذلك.',
+  'failure.noFFmpeg.line': 'هذا التنزيل يحتاج إلى ffmpeg، ولم يُعثر عليه.',
+  'failure.noFFmpeg.next': 'ثبّت ffmpeg أو أعد تشغيل تطبيق سطح المكتب، ثم حاول مجددًا.',
   'settings.device': 'هذا الجهاز',
   'settings.deviceName': 'اسم الجهاز',
   'settings.deviceHint': 'الاسم الذي يظهر به هذا الهاتف في صفحة «النُسخ» لدى كل نسخة في مجموعتك. اتركه فارغًا لاستخدام طراز الجهاز.',

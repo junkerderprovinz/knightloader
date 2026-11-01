@@ -35,6 +35,12 @@ const (
 	extractorStderr = "ERROR: [youtube] AbC123dEf45: Unable to extract yt initial data; please report this issue on  " +
 		"https://github.com/yt-dlp/yt-dlp/issues?q=  , filling out the appropriate issue template. Confirm you are " +
 		"on the latest version using  yt-dlp -U"
+
+	noFFmpegMergeStderr = "ERROR: You have requested merging of multiple formats but ffmpeg is not installed. " +
+		"Aborting due to --abort-on-error"
+
+	noFFmpegPostStderr = "ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the " +
+		"path using --ffmpeg-location"
 )
 
 // A trimmed fixture would let the tests below pass without testing a cut.
@@ -60,6 +66,11 @@ func TestDiagnoseNamesEachCauseFromTheToolsOwnWords(t *testing.T) {
 		{"a video the uploader deleted", goneStderr, core.ReasonGone},
 		{"an encrypted stream", drmStderr, core.ReasonDRM},
 		{"a page yt-dlp can no longer read", extractorStderr, core.ReasonExtractorBroken},
+		{"a merge without ffmpeg", noFFmpegMergeStderr, core.ReasonNoFFmpeg},
+		{"a post-processor without ffmpeg", noFFmpegPostStderr, core.ReasonNoFFmpeg},
+		{"a conversion without ffmpeg", "ERROR: Postprocessing: ffmpeg not found. Please install or provide the path using --ffmpeg-location", core.ReasonNoFFmpeg},
+		{"a probe without ffprobe", "ERROR: Postprocessing: ffprobe not found. Please install or provide the path using --ffmpeg-location", core.ReasonNoFFmpeg},
+		{"a section without ffmpeg", "ERROR: You have requested downloading the video partially, but ffmpeg is not installed. Aborting", core.ReasonNoFFmpeg},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -104,6 +115,17 @@ func TestDiagnoseIsSilentAboutWhatItDoesNotKnow(t *testing.T) {
 		if got := Diagnose(s); got != core.ReasonUnknown {
 			t.Errorf("Diagnose(%q) = %q, want no opinion at all", s, got)
 		}
+	}
+}
+
+// yt-dlp warns about a missing ffmpeg on every run, also when it then fails
+// for a reason of the site's.
+func TestDiagnoseDoesNotBlameTheFFmpegWarning(t *testing.T) {
+	buf := "WARNING: ffmpeg not found. The downloaded format may not be the best available. " +
+		"Installing ffmpeg is strongly recommended: https://github.com/yt-dlp/yt-dlp#dependencies\n" +
+		"ERROR: unable to download video data: HTTP Error 403: Forbidden\n"
+	if got := Diagnose(buf); got != core.ReasonUnknown {
+		t.Errorf("Diagnose(a 403 after the ffmpeg warning) = %q, want no opinion at all", got)
 	}
 }
 

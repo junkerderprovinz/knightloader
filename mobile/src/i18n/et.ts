@@ -344,6 +344,7 @@ export const et: Dict = {
   'failure.archivePartMissing.next': 'Veendu, et kõik osad on alla laaditud samasse kausta, ja paki siis uuesti lahti.',
   'failure.archiveUnsupported.line': 'KnightLoader ei oska lugeda faili {part} vormingut.',
   'failure.archiveUnsupported.next': 'Paki see lahti mõne teise programmiga, näiteks 7-Zipiga.',
+  'failure.noUnrar.next': 'UnRAR-i ei leitud, seega proovis KnightLoader ise. Paigalda UnRAR serverisse või sea KL_UNRAR ja paki see siis uuesti lahti.',
   'failure.unknown.line': 'KnightLoader ei tunne seda viga ära.',
   'failure.unknown.next': 'Proovi uuesti. Kui see kordub, teata sellest koos sellega, mida taustsüsteem ütles.',
 
@@ -364,6 +365,8 @@ export const et: Dict = {
   'failure.archiveFolderExists.next': 'Teisalda see kaust või nimeta see ümber, või muuda veebiliidese arhiiviseadetes valikut „Kui fail on juba olemas“, ja paki siis arhiiv uuesti lahti.',
   'failure.unsupportedPlayer.line': 'Leht esitab oma videot mängijas, mida ükski siinne taustsüsteem lugeda ei oska.',
   'failure.unsupportedPlayer.next': 'Kui leiad video enda aadressi, kleebi hoopis see.',
+  'failure.noFFmpeg.line': 'See allalaadimine vajab ffmpegi, aga seda ei leitud.',
+  'failure.noFFmpeg.next': 'Paigalda ffmpeg või taaskäivita töölauarakendus ja proovi siis uuesti.',
   'settings.device': 'See seade',
   'settings.deviceName': 'Seadme nimi',
   'settings.deviceHint': 'Kuidas seda telefoni näidatakse sinu grupi iga eksemplari lehel „Eksemplarid”. Jäta tühjaks, et kasutada seadme mudelit.',

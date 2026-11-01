@@ -344,6 +344,7 @@ export const bg: Dict = {
   'failure.archivePartMissing.next': 'Погрижи се всички части да са изтеглени в една и съща папка, после разархивирай отново.',
   'failure.archiveUnsupported.line': 'KnightLoader не може да прочете формата на {part}.',
   'failure.archiveUnsupported.next': 'Разархивирай го с друга програма, например 7-Zip.',
+  'failure.noUnrar.next': 'Не беше намерен UnRAR, затова KnightLoader опита сам. Инсталирай UnRAR на сървъра или задай KL_UNRAR, после го разархивирай отново.',
   'failure.unknown.line': 'KnightLoader не разпознава тази грешка.',
   'failure.unknown.next': 'Опитай отново. Ако се повтаря, съобщи за нея заедно с това, което каза бекендът.',
 
@@ -364,6 +365,8 @@ export const bg: Dict = {
   'failure.archiveFolderExists.next': 'Премести или преименувай тази папка или промени „Ако вече има такъв файл“ в настройките за архиви на уеб интерфейса, после разархивирай отново.',
   'failure.unsupportedPlayer.line': 'Страницата пуска видеото си в плеър, който никой бекенд тук не може да прочете.',
   'failure.unsupportedPlayer.next': 'Ако намериш собствения адрес на видеото, постави него вместо този.',
+  'failure.noFFmpeg.line': 'Това изтегляне има нужда от ffmpeg, а такъв не беше намерен.',
+  'failure.noFFmpeg.next': 'Инсталирай ffmpeg или рестартирай настолното приложение, после опитай отново.',
   'settings.device': 'Това устройство',
   'settings.deviceName': 'Име на устройството',
   'settings.deviceHint': 'Как се казва този телефон на страницата „Инстанции“ на всяка инстанция от групата ти. Остави го празно, за да се използва моделът на устройството.',

@@ -344,6 +344,7 @@ export const hu: Dict = {
   'failure.archivePartMissing.next': 'Gondoskodj róla, hogy minden rész ugyanabba a mappába töltődjön le, aztán bontsd ki újra.',
   'failure.archiveUnsupported.line': 'A KnightLoader nem tudja olvasni a(z) {part} formátumát.',
   'failure.archiveUnsupported.next': 'Bontsd ki egy másik programmal, például a 7-Zippel.',
+  'failure.noUnrar.next': 'Nem található UnRAR, ezért a KnightLoader magától próbálkozott. Telepítsd az UnRAR-t a szerverre vagy állítsd be a KL_UNRAR-t, aztán bontsd ki újra.',
   'failure.unknown.line': 'A KnightLoader nem ismeri ezt a hibát.',
   'failure.unknown.next': 'Próbáld újra. Ha ismét előfordul, jelentsd, és írd mellé, mit mondott a backend.',
 
@@ -364,6 +365,8 @@ export const hu: Dict = {
   'failure.archiveFolderExists.next': 'Helyezd át vagy nevezd át azt a mappát, vagy módosítsd a „Ha már van ott fájl” beállítást a webes felület archívumbeállításaiban, aztán bontsd ki újra.',
   'failure.unsupportedPlayer.line': 'Az oldal olyan lejátszóban játssza le a videót, amelyet itt egyik backend sem tud olvasni.',
   'failure.unsupportedPlayer.next': 'Ha megtalálod a videó saját címét, azt illeszd be helyette.',
+  'failure.noFFmpeg.line': 'Ehhez a letöltéshez ffmpeg kell, de nem található.',
+  'failure.noFFmpeg.next': 'Telepítsd az ffmpeget vagy indítsd újra az asztali alkalmazást, aztán próbáld újra.',
   'settings.device': 'Ez az eszköz',
   'settings.deviceName': 'Eszköz neve',
   'settings.deviceHint': 'Ezen a néven jelenik meg ez a telefon a csoportod minden példányának Példányok oldalán. Hagyd üresen, ha az eszköz modelljét szeretnéd használni.',

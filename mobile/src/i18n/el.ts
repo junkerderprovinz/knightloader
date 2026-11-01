@@ -344,6 +344,7 @@ export const el: Dict = {
   'failure.archivePartMissing.next': 'Φρόντισε να έχουν κατέβει όλα τα μέρη στον ίδιο φάκελο και μετά αποσυμπίεσέ το ξανά.',
   'failure.archiveUnsupported.line': 'Το KnightLoader δεν μπορεί να διαβάσει τη μορφή του {part}.',
   'failure.archiveUnsupported.next': 'Αποσυμπίεσέ το με άλλο πρόγραμμα, όπως το 7-Zip.',
+  'failure.noUnrar.next': 'Δεν βρέθηκε UnRAR, οπότε το KnightLoader δοκίμασε μόνο του. Εγκατάστησε το UnRAR στον server ή όρισε το KL_UNRAR και μετά αποσυμπίεσέ το ξανά.',
   'failure.unknown.line': 'Το KnightLoader δεν αναγνωρίζει αυτό το σφάλμα.',
   'failure.unknown.next': 'Δοκίμασε ξανά. Αν συνεχίσει να συμβαίνει, ανέφερέ το μαζί με ό,τι είπε το backend.',
 
@@ -364,6 +365,8 @@ export const el: Dict = {
   'failure.archiveFolderExists.next': 'Μετακίνησε ή μετονόμασε εκείνον τον φάκελο, ή άλλαξε το «Αν υπάρχει ήδη αρχείο» στις ρυθμίσεις συμπιεσμένων αρχείων της διεπαφής web, και μετά αποσυμπίεσέ το ξανά.',
   'failure.unsupportedPlayer.line': 'Η σελίδα παίζει το βίντεό της σε έναν player που κανένα backend εδώ δεν μπορεί να διαβάσει.',
   'failure.unsupportedPlayer.next': 'Αν βρεις την ίδια τη διεύθυνση του βίντεο, επικόλλησε αυτή στη θέση του.',
+  'failure.noFFmpeg.line': 'Αυτή η λήψη χρειάζεται ffmpeg και δεν βρέθηκε κανένα.',
+  'failure.noFFmpeg.next': 'Εγκατάστησε το ffmpeg ή κάνε επανεκκίνηση της εφαρμογής επιφάνειας εργασίας και δοκίμασε ξανά.',
   'settings.device': 'Αυτή η συσκευή',
   'settings.deviceName': 'Όνομα συσκευής',
   'settings.deviceHint': 'Πώς ονομάζεται αυτό το τηλέφωνο στη σελίδα «Υπηρεσίες» κάθε υπηρεσίας της ομάδας σου. Άφησέ το κενό για να χρησιμοποιηθεί το μοντέλο της συσκευής.',

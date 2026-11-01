@@ -344,6 +344,7 @@ export const da: Dict = {
   'failure.archivePartMissing.next': 'Sørg for, at alle dele er downloadet til den samme mappe, og pak så ud igen.',
   'failure.archiveUnsupported.line': 'KnightLoader kan ikke læse formatet af {part}.',
   'failure.archiveUnsupported.next': 'Pak den ud med et andet program, for eksempel 7-Zip.',
+  'failure.noUnrar.next': 'Der blev ikke fundet nogen UnRAR, så KnightLoader prøvede selv. Installer UnRAR på serveren eller angiv KL_UNRAR, og pak den så ud igen.',
   'failure.unknown.line': 'KnightLoader kender ikke denne fejl.',
   'failure.unknown.next': 'Prøv igen. Sker det igen, så meld det sammen med det, backenden sagde.',
 
@@ -364,6 +365,8 @@ export const da: Dict = {
   'failure.archiveFolderExists.next': 'Flyt eller omdøb den mappe, eller ændr „Hvis en fil allerede er der“ i webgrænsefladens arkivindstillinger, og pak så arkivet ud igen.',
   'failure.unsupportedPlayer.line': 'Siden afspiller sin video i en afspiller, som ingen backend her kan læse.',
   'failure.unsupportedPlayer.next': 'Kan du finde videoens egen adresse, så indsæt den i stedet.',
+  'failure.noFFmpeg.line': 'Denne download kræver ffmpeg, og der blev ikke fundet nogen.',
+  'failure.noFFmpeg.next': 'Installer ffmpeg eller genstart desktopappen, og prøv så igen.',
   'settings.device': 'Denne enhed',
   'settings.deviceName': 'Enhedsnavn',
   'settings.deviceHint': 'Det navn, denne telefon har på siden Instanser hos hver instans i din gruppe. Lad det stå tomt for at bruge enhedsmodellen.',

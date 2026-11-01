@@ -344,6 +344,7 @@ export const eu: Dict = {
   'failure.archivePartMissing.next': 'Ziurtatu zati guztiak karpeta berean deskargatzen direla, eta gero erauzi berriro.',
   'failure.archiveUnsupported.line': 'KnightLoader-ek ezin du {part} fitxategiaren formatua irakurri.',
   'failure.archiveUnsupported.next': 'Erauzi beste programa batekin, adibidez 7-Zip-ekin.',
+  'failure.noUnrar.next': 'Ez da UnRAR aurkitu, eta KnightLoader bere kabuz saiatu da. Instalatu UnRAR zerbitzarian edo ezarri KL_UNRAR, eta gero erauzi berriro.',
   'failure.unknown.line': 'KnightLoader-ek ez du errore hau ezagutzen.',
   'failure.unknown.next': 'Saiatu berriro. Berriro gertatzen bada, jakinarazi, backendak esandakoarekin batera.',
 
@@ -364,6 +365,8 @@ export const eu: Dict = {
   'failure.archiveFolderExists.next': 'Mugitu karpeta hori edo aldatu haren izena, edo aldatu «Fitxategia jada badago» web-interfazeko Artxiboak ezarpenetan, eta gero erauzi artxiboa berriro.',
   'failure.unsupportedPlayer.line': 'Orriak hemengo backend batek ere irakurri ezin duen erreproduzigailu batean erreproduzitzen du bere bideoa.',
   'failure.unsupportedPlayer.next': 'Bideoaren helbide propioa aurkitzen baduzu, itsatsi hori horren ordez.',
+  'failure.noFFmpeg.line': 'Deskarga honek ffmpeg behar du, eta ez da bat ere aurkitu.',
+  'failure.noFFmpeg.next': 'Instalatu ffmpeg edo berrabiarazi mahaigaineko aplikazioa, eta saiatu berriro.',
   'settings.device': 'Gailu hau',
   'settings.deviceName': 'Gailuaren izena',
   'settings.deviceHint': 'Zure taldeko instantzia bakoitzaren «Instantziak» orrian telefono honek duen izena. Utzi hutsik gailuaren modeloa erabiltzeko.',

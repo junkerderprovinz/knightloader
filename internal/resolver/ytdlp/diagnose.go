@@ -48,6 +48,14 @@ var diagnoses = []struct {
 	{"drm protected", core.ReasonDRM},
 	{"drm protection", core.ReasonDRM},
 
+	// The errors' wording, never the bare "ffmpeg not found": yt-dlp warns
+	// with that on every run without ffmpeg, also on runs that then fail for
+	// another reason. The second phrase also covers "ffprobe and ffmpeg not
+	// found".
+	{"ffmpeg is not installed. aborting", core.ReasonNoFFmpeg},
+	{"ffmpeg not found. please install", core.ReasonNoFFmpeg},
+	{"ffprobe not found. please install", core.ReasonNoFFmpeg},
+
 	// Last: yt-dlp adds its bug-report footer only to unexpected errors, none
 	// of those above, and "unable to extract" also appears when a page simply
 	// has nothing playable.

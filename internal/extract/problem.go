@@ -31,6 +31,9 @@ var (
 	// know, or a method or version inside one it does. A retired format
 	// (ErrFormatRetired) is reported as this problem too.
 	ErrUnsupported = errors.New("extract: unsupported archive")
+	// ErrNoUnrar goes beside ErrDamaged or ErrUnsupported when the built-in
+	// reader unpacked a RAR set because no UnRAR could be started.
+	ErrNoUnrar = errors.New("no UnRAR could be started, so the built-in reader unpacked the set")
 )
 
 // PartError is a failure inside one file of an archive, named after that file:

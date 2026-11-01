@@ -110,6 +110,10 @@ const (
 	// backend can read: all JDownloader found on it were the page's own
 	// scripts, styles and images.
 	ReasonUnsupportedPlayer Reason = "unsupportedPlayer"
+	// ReasonNoFFmpeg is a download that needs ffmpeg to merge, convert or embed
+	// and finds none. Nothing on the site side changes that, so it waits for
+	// ffmpeg to be installed.
+	ReasonNoFFmpeg Reason = "noFFmpeg"
 )
 
 // Waiting is why a healthy queued task has not started. It is not a Reason,

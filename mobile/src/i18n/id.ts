@@ -344,6 +344,7 @@ export const id: Dict = {
   'failure.archivePartMissing.next': 'Pastikan semua bagian diunduh ke folder yang sama, lalu ekstrak lagi.',
   'failure.archiveUnsupported.line': 'KnightLoader tidak bisa membaca format {part}.',
   'failure.archiveUnsupported.next': 'Ekstrak dengan program lain, misalnya 7-Zip.',
+  'failure.noUnrar.next': 'Tidak ada UnRAR yang ditemukan, jadi KnightLoader mencobanya sendiri. Pasang UnRAR di server atau setel KL_UNRAR, lalu ekstrak lagi.',
   'failure.unknown.line': 'KnightLoader tidak mengenali kesalahan ini.',
   'failure.unknown.next': 'Coba lagi. Kalau terus terjadi, laporkan bersama apa yang dikatakan backend.',
 
@@ -364,6 +365,8 @@ export const id: Dict = {
   'failure.archiveFolderExists.next': 'Pindahkan atau ganti nama folder itu, atau ubah “Jika berkas sudah ada” di pengaturan Arsip pada antarmuka web, lalu ekstrak lagi.',
   'failure.unsupportedPlayer.line': 'Halaman ini memutar videonya di pemutar yang tidak bisa dibaca backend mana pun di sini.',
   'failure.unsupportedPlayer.next': 'Kalau kamu bisa menemukan alamat video itu sendiri, tempelkan itu sebagai gantinya.',
+  'failure.noFFmpeg.line': 'Unduhan ini butuh ffmpeg, dan tidak ada yang ditemukan.',
+  'failure.noFFmpeg.next': 'Pasang ffmpeg atau mulai ulang aplikasi desktop, lalu coba lagi.',
   'settings.device': 'Perangkat ini',
   'settings.deviceName': 'Nama perangkat',
   'settings.deviceHint': 'Nama ponsel ini yang ditampilkan di halaman Instans pada setiap instans di grup Anda. Biarkan kosong untuk memakai model perangkat.',

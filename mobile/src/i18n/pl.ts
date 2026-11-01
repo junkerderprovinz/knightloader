@@ -344,6 +344,7 @@ export const pl: Dict = {
   'failure.archivePartMissing.next': 'Upewnij się, że wszystkie części są pobrane do tego samego folderu, a potem rozpakuj je ponownie.',
   'failure.archiveUnsupported.line': 'KnightLoader nie potrafi odczytać formatu pliku {part}.',
   'failure.archiveUnsupported.next': 'Rozpakuj go innym programem, na przykład 7-Zip.',
+  'failure.noUnrar.next': 'Nie znaleziono UnRAR, więc KnightLoader spróbował sam. Zainstaluj UnRAR na serwerze albo ustaw KL_UNRAR, a potem rozpakuj je ponownie.',
   'failure.unknown.line': 'KnightLoader nie rozpoznaje tego błędu.',
   'failure.unknown.next': 'Spróbuj ponownie. Jeśli to się powtarza, zgłoś to razem z tym, co powiedział backend.',
 
@@ -364,6 +365,8 @@ export const pl: Dict = {
   'failure.archiveFolderExists.next': 'Przenieś ten folder albo zmień jego nazwę lub zmień „Gdy plik już tam jest” w ustawieniach archiwów w interfejsie webowym, a potem rozpakuj archiwum ponownie.',
   'failure.unsupportedPlayer.line': 'Strona odtwarza wideo w odtwarzaczu, którego żaden backend tutaj nie potrafi odczytać.',
   'failure.unsupportedPlayer.next': 'Jeśli znajdziesz własny adres wideo, wklej zamiast tego ten adres.',
+  'failure.noFFmpeg.line': 'To pobieranie potrzebuje ffmpeg, a nie znaleziono żadnego.',
+  'failure.noFFmpeg.next': 'Zainstaluj ffmpeg albo uruchom ponownie aplikację desktopową, a potem spróbuj jeszcze raz.',
   'settings.device': 'To urządzenie',
   'settings.deviceName': 'Nazwa urządzenia',
   'settings.deviceHint': 'Nazwa, pod jaką ten telefon widnieje na stronie Instancje każdej instancji w Twojej grupie. Zostaw puste, aby użyć modelu urządzenia.',

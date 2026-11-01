@@ -344,6 +344,7 @@ export const sr: Dict = {
   'failure.archivePartMissing.next': 'Побрини се да су сви делови преузети у исту фасциклу, па поново распакуј архиву.',
   'failure.archiveUnsupported.line': 'KnightLoader не може да прочита формат датотеке {part}.',
   'failure.archiveUnsupported.next': 'Распакуј је другим програмом, на пример 7-Zip.',
+  'failure.noUnrar.next': 'Није пронађен UnRAR, па је KnightLoader покушао сам. Инсталирај UnRAR на сервер или постави KL_UNRAR, па поново распакуј архиву.',
   'failure.unknown.line': 'KnightLoader не препознаје ову грешку.',
   'failure.unknown.next': 'Покушај поново. Ако се понавља, пријави је заједно са оним што је позадина рекла.',
 
@@ -364,6 +365,8 @@ export const sr: Dict = {
   'failure.archiveFolderExists.next': 'Премести или преименуј ту фасциклу, или у подешавањима архива у веб интерфејсу промени „Ако датотека већ постоји“, па поново распакуј архиву.',
   'failure.unsupportedPlayer.line': 'Сајт пушта видео у плејеру који ниједна позадина овде не уме да прочита.',
   'failure.unsupportedPlayer.next': 'Ако пронађеш сопствену адресу видеа, налепи њу уместо ове.',
+  'failure.noFFmpeg.line': 'Ово преузимање треба ffmpeg, а ниједан није пронађен.',
+  'failure.noFFmpeg.next': 'Инсталирај ffmpeg или поново покрени десктоп апликацију, па покушај поново.',
   'settings.device': 'Овај уређај',
   'settings.deviceName': 'Назив уређаја',
   'settings.deviceHint': 'Под тим називом овај телефон се приказује на страници Инстанце сваке инстанце у твојој групи. Остави празно да би се користио модел уређаја.',

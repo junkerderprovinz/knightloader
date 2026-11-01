@@ -38,6 +38,21 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Click'n'Load names the program that holds its port.** With JDownloader
+  running, switching Click'n'Load on showed the raw Windows error. KnightLoader
+  now asks the system which program listens on the port and names it, with a
+  short hint on what to close, and says the port is taken where the system
+  does not tell. A KnightLoader that answers for itself can still be taken
+  over.
+- **A missing ffmpeg or UnRAR says so where it matters.** A yt-dlp download
+  that needs ffmpeg to merge, convert or embed and finds none now fails as
+  "No ffmpeg", with what to do on the desktop app, in the container and on a
+  self-built install, instead of yt-dlp's raw line, and it is not retried
+  until ffmpeg is there. A RAR set that fails while no UnRAR could be started
+  now says it was unpacked without UnRAR and suggests installing it or setting
+  `KL_UNRAR` before trying again. yt-dlp's own words stay in the details.
 ### Changed
 
 - **Columns move live while you drag them.** Grab a column head on Downloads

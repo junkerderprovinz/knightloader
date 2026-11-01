@@ -344,6 +344,7 @@ export const hr: Dict = {
   'failure.archivePartMissing.next': 'Pobrini se da su svi dijelovi preuzeti u istu mapu, pa arhivu ponovno raspakiraj.',
   'failure.archiveUnsupported.line': 'KnightLoader ne može pročitati format datoteke {part}.',
   'failure.archiveUnsupported.next': 'Raspakiraj je drugim programom, na primjer 7-Zip.',
+  'failure.noUnrar.next': 'Nije pronađen UnRAR, pa je KnightLoader pokušao sam. Instaliraj UnRAR na poslužitelj ili postavi KL_UNRAR, pa arhivu ponovno raspakiraj.',
   'failure.unknown.line': 'KnightLoader ne prepoznaje ovu grešku.',
   'failure.unknown.next': 'Pokušaj ponovno. Ako se ponavlja, prijavi je zajedno s onim što je pozadina rekla.',
 
@@ -364,6 +365,8 @@ export const hr: Dict = {
   'failure.archiveFolderExists.next': 'Premjesti ili preimenuj tu mapu, ili u postavkama arhiva u web sučelju promijeni „Ako datoteka već postoji”, pa arhivu ponovno raspakiraj.',
   'failure.unsupportedPlayer.line': 'Stranica reproducira video u playeru koji nijedna pozadina ovdje ne može pročitati.',
   'failure.unsupportedPlayer.next': 'Ako pronađeš vlastitu adresu videa, zalijepi nju umjesto ove.',
+  'failure.noFFmpeg.line': 'Ovo preuzimanje treba ffmpeg, a nijedan nije pronađen.',
+  'failure.noFFmpeg.next': 'Instaliraj ffmpeg ili ponovno pokreni desktop aplikaciju, pa pokušaj ponovno.',
   'settings.device': 'Ovaj uređaj',
   'settings.deviceName': 'Naziv uređaja',
   'settings.deviceHint': 'Naziv pod kojim se ovaj telefon prikazuje na stranici Instance svake instance u tvojoj skupini. Ostavi prazno da se koristi model uređaja.',

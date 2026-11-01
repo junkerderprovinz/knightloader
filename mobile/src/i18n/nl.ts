@@ -344,6 +344,7 @@ export const nl: Dict = {
   'failure.archivePartMissing.next': 'Zorg dat alle delen in dezelfde map zijn gedownload en pak het dan opnieuw uit.',
   'failure.archiveUnsupported.line': 'KnightLoader kan de indeling van {part} niet lezen.',
   'failure.archiveUnsupported.next': 'Pak het uit met een ander programma, zoals 7-Zip.',
+  'failure.noUnrar.next': 'Er is geen UnRAR gevonden, dus KnightLoader heeft het zelf geprobeerd. Installeer UnRAR op de server of stel KL_UNRAR in en pak het dan opnieuw uit.',
   'failure.unknown.line': 'KnightLoader kent deze fout niet.',
   'failure.unknown.next': 'Probeer het opnieuw. Gebeurt het weer, meld het dan samen met wat de backend zei.',
 
@@ -364,6 +365,8 @@ export const nl: Dict = {
   'failure.archiveFolderExists.next': 'Verplaats of hernoem die map, of wijzig “Als er al een bestand staat” in de archiefinstellingen van de webinterface, en pak het archief dan opnieuw uit.',
   'failure.unsupportedPlayer.line': 'De pagina speelt haar video af in een speler die geen enkele backend hier kan lezen.',
   'failure.unsupportedPlayer.next': 'Als je het eigen adres van de video kunt vinden, plak dat dan in plaats hiervan.',
+  'failure.noFFmpeg.line': 'Deze download heeft ffmpeg nodig, en er is er geen gevonden.',
+  'failure.noFFmpeg.next': 'Installeer ffmpeg of herstart de desktop-app, en probeer het dan opnieuw.',
   'settings.device': 'Dit apparaat',
   'settings.deviceName': 'Apparaatnaam',
   'settings.deviceHint': 'De naam waaronder deze telefoon verschijnt op de pagina Instanties van elke instantie in je groep. Laat dit leeg om het apparaatmodel te gebruiken.',
