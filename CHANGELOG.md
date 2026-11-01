@@ -36,6 +36,21 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [2.6.1] - 2026-11-02
+
+### Changed
+
+- **A new KnightLoader logo.** The shield is a little wider, and the sword has
+  a new crossguard and grip. It shows in the web interface, the desktop app
+  and its tray, the Android app, the browser extension and the store listings.
+
+### Fixed
+
+- **A hoster shows under its own name.** A link to one of a hoster's other
+  domains, such as rg.to for Rapidgator, showed that domain in the Host
+  column. It reads rapidgator.net there, as in JDownloader, and links already
+  in the list take the main domain at the next start.
+
 ## [2.6.0] - 2026-11-01
 
 ### Added
