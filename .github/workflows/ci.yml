@@ -466,6 +466,9 @@ jobs:
       - name: Background
         run: node extension/check-background.mjs
 
+      - name: Click'n'Load flag under a strict page
+        run: node extension/check-cnl-main.mjs
+
       - name: Download takeover and media
         run: node extension/check-capture.mjs
 
