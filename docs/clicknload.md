@@ -113,7 +113,10 @@ and form submission at `document_start` and takes the payload before it leaves
 (`extension/src/cnl.js`, the same AES-128-CBC this file describes), and answers
 the site with the identical `success\r\n` a real listener would. The detection
 step is answered the same way: the interceptor declares `jdownloader = true`
-before any script the page brings, so the button appears.
+before any script the page brings, so the button appears. The page cannot set
+it back to false. filecrypt's helper window does exactly that and then waits
+for `jdcheck.js` to set it again, but its own Content-Security-Policy blocks
+that script before the redirect ever sees the request.
 
 That means running code in every page you visit, which is a real permission.
 The manifest lists `<all_urls>` under `optional_host_permissions`, so the

@@ -19,12 +19,14 @@
   // before they show a Click'n'Load button. Declaring the globals here answers
   // every site that reads them; sites that go by the script's onerror are
   // answered by the redirect in cnl-rules.json.
+  //
+  // The flag cannot be cleared. filecrypt's helper page sets it to false and
+  // waits for jdcheck.js to set it again, but its Content-Security-Policy
+  // blocks that script before the redirect sees it, so it would wait forever.
   try {
-    if (typeof window.jdownloader === 'undefined') {
-      window.jdownloader = true;
-      // Same number internal/cnl/cnl.go serves.
-      if (typeof window.version === 'undefined') window.version = '90000';
-    }
+    Object.defineProperty(window, 'jdownloader', { get: () => true, set() {}, configurable: true });
+    // Same number internal/cnl/cnl.go serves.
+    if (typeof window.version === 'undefined') window.version = '90000';
   } catch {
     // A frame that will not take the property; nothing else depends on it.
   }
