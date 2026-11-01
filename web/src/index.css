@@ -680,9 +680,9 @@ body {
 .glim-subcard :is(button, a).bg-carbon-surface2:not(.glim-badge-quiet):hover {
   background-color: var(--carbon-hover-raised);
 }
-/* The accent tint of a filled button (.glim-btn-secondary), from the tier a
+/* The accent tint of a filled button (.glim-btn-subtle), from the tier a
    button on a subcard hovers to. */
-.glim-subcard :is(button, a).glim-btn-secondary:not(.glim-badge-quiet):is(:hover, :focus-visible) {
+.glim-subcard :is(button, a).glim-btn-subtle:not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) {
   background-color: color-mix(in srgb, var(--carbon-hover-raised), var(--btn-tint) 22%);
 }
 
@@ -1066,21 +1066,25 @@ body {
    badge with a palette position takes its own hue, and a button inside a hued
    card the card's, through --accent-glyph. The ring still marks keyboard
    focus. */
-.glim-btn-secondary,
-.glim-btn-ghost {
+.glim-btn-neutral,
+.glim-btn-subtle,
+.glim-btn-bare {
   --btn-tint: var(--accent-glyph);
 }
-[data-rainbow] .glim-tint-badge.glim-btn-secondary {
+[data-rainbow] .glim-tint-badge.glim-btn-subtle {
   --btn-tint: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
-.glim-btn-secondary:not(.glim-badge-quiet):is(:hover, :focus-visible) {
+.glim-btn-subtle:not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) {
   background-color: color-mix(in srgb, var(--carbon-surface3), var(--btn-tint) 22%);
 }
-.glim-btn-secondary:not(.glim-badge-quiet):is(:hover, :focus-visible) > .glim-btn-glyph,
-.glim-btn-ghost:is(:hover, :focus-visible) {
+.glim-btn-neutral:not(:disabled):is(:hover, :focus-visible) {
+  background-color: color-mix(in srgb, var(--carbon-hover-raised), var(--btn-tint) 22%);
+}
+:is(.glim-btn-neutral, .glim-btn-subtle):not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) > .glim-btn-glyph,
+.glim-btn-bare:not(:disabled):is(:hover, :focus-visible) {
   color: var(--btn-tint);
 }
-.glim-btn-ghost:is(:hover, :focus-visible) {
+.glim-btn-bare:is(:hover, :focus-visible) {
   background-color: transparent;
 }
 

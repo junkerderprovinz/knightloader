@@ -38,14 +38,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
-### Fixed
-
-- **Click'n'Load names the program that holds its port.** With JDownloader
-  running, switching Click'n'Load on showed the raw Windows error. KnightLoader
-  now asks the system which program listens on the port and names it, with a
-  short hint on what to close, and says the port is taken where the system
-  does not tell. A KnightLoader that answers for itself can still be taken
-  over.
 ### Changed
 
 - **Columns move live while you drag them.** Grab a column head on Downloads
@@ -55,6 +47,18 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   slides the columns the same way. The new order is saved once, when you drop
   the column, and with reduced motion or motion off the columns swap without
   the slide. On a touch screen, hold a head briefly and then move.
+- **KnightLoader follows GlimStone 3.8.2,** which the Components card names.
+  Buttons take the accent under the pointer the way the design language
+  describes it, and the symbols for each kind of file come from its list.
+
+### Fixed
+
+- **Click'n'Load names the program that holds its port.** With JDownloader
+  running, switching Click'n'Load on showed the raw Windows error. KnightLoader
+  now asks the system which program listens on the port and names it, with a
+  short hint on what to close, and says the port is taken where the system
+  does not tell. A KnightLoader that answers for itself can still be taken
+  over.
 
 ### Security
 
