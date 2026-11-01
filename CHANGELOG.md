@@ -36,6 +36,15 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Security
+
+- **The Android app's build tooling takes glob 14.0.2 and minimatch 11.0.1.**
+  They close two advisories: a cancelled glob search could keep walking the
+  file system, and some minimatch patterns could tie it up for a long time.
+  Expo still reads the app's config and bundles it as before.
+
 ## [2.5.0] - 2026-11-01
 
 ### Changed
