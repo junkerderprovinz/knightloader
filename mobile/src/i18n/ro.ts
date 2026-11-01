@@ -344,6 +344,7 @@ export const ro: Dict = {
   'failure.archivePartMissing.next': 'Asigură-te că toate părțile sunt descărcate în același dosar, apoi dezarhiveaz-o din nou.',
   'failure.archiveUnsupported.line': 'KnightLoader nu poate citi formatul lui {part}.',
   'failure.archiveUnsupported.next': 'Dezarhivează-l cu alt program, de exemplu 7-Zip.',
+  'failure.noUnrar.next': 'Nu a fost găsit niciun UnRAR, așa că KnightLoader a încercat singur. Instalează UnRAR pe server sau setează KL_UNRAR, apoi dezarhiveaz-o din nou.',
   'failure.unknown.line': 'KnightLoader nu recunoaște această eroare.',
   'failure.unknown.next': 'Încearcă din nou. Dacă se tot întâmplă, raportează eroarea împreună cu ce a spus backendul.',
 
@@ -364,6 +365,8 @@ export const ro: Dict = {
   'failure.archiveFolderExists.next': 'Mută sau redenumește acel dosar, ori schimbă „Dacă există deja un fișier” în setările pentru arhive din interfața web, apoi dezarhivează din nou arhiva.',
   'failure.unsupportedPlayer.line': 'Pagina își redă videoclipul într-un player pe care niciun backend de aici nu îl poate citi.',
   'failure.unsupportedPlayer.next': 'Dacă poți găsi adresa proprie a videoclipului, lipește-o pe aceea în loc.',
+  'failure.noFFmpeg.line': 'Această descărcare are nevoie de ffmpeg și nu a fost găsit niciunul.',
+  'failure.noFFmpeg.next': 'Instalează ffmpeg sau repornește aplicația desktop, apoi încearcă din nou.',
   'settings.device': 'Acest dispozitiv',
   'settings.deviceName': 'Numele dispozitivului',
   'settings.deviceHint': 'Numele sub care apare acest telefon pe pagina Instanțe a fiecărei instanțe din grupul tău. Lasă necompletat pentru a folosi modelul dispozitivului.',

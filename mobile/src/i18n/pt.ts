@@ -344,6 +344,7 @@ export const pt: Dict = {
   'failure.archivePartMissing.next': 'Garante que todas as partes são transferidas para a mesma pasta e depois extrai o arquivo de novo.',
   'failure.archiveUnsupported.line': 'O KnightLoader não consegue ler o formato de {part}.',
   'failure.archiveUnsupported.next': 'Extrai-o com outro programa, como o 7-Zip.',
+  'failure.noUnrar.next': 'Não foi encontrado nenhum UnRAR, por isso o KnightLoader tentou sozinho. Instala o UnRAR no servidor ou define KL_UNRAR e depois extrai-o de novo.',
   'failure.unknown.line': 'O KnightLoader não reconhece este erro.',
   'failure.unknown.next': 'Tenta de novo. Se continuar a acontecer, reporta-o juntamente com o que o backend disse.',
 
@@ -364,6 +365,8 @@ export const pt: Dict = {
   'failure.archiveFolderExists.next': 'Move ou muda o nome dessa pasta, ou altera «Se já lá estiver um ficheiro» nas definições de Arquivos da interface web, e depois extrai o arquivo de novo.',
   'failure.unsupportedPlayer.line': 'A página reproduz o seu vídeo num leitor que nenhum backend daqui consegue ler.',
   'failure.unsupportedPlayer.next': 'Se encontrares o endereço próprio do vídeo, cola esse em vez disto.',
+  'failure.noFFmpeg.line': 'Esta transferência precisa do ffmpeg e não foi encontrado nenhum.',
+  'failure.noFFmpeg.next': 'Instala o ffmpeg ou reinicia a aplicação de ambiente de trabalho e tenta outra vez.',
   'settings.device': 'Este dispositivo',
   'settings.deviceName': 'Nome do dispositivo',
   'settings.deviceHint': 'Nome com que este telemóvel aparece na página Instâncias de cada instância do teu grupo. Deixa em branco para usar o modelo do dispositivo.',

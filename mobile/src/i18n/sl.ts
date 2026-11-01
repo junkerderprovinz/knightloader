@@ -344,6 +344,7 @@ export const sl: Dict = {
   'failure.archivePartMissing.next': 'Poskrbi, da so vsi deli preneseni v isto mapo, nato arhiv znova razpakiraj.',
   'failure.archiveUnsupported.line': 'KnightLoader ne zna prebrati formata datoteke {part}.',
   'failure.archiveUnsupported.next': 'Razpakiraj jo z drugim programom, na primer s 7-Zip.',
+  'failure.noUnrar.next': 'UnRAR ni bil najden, zato je KnightLoader poskusil sam. Namesti UnRAR na strežnik ali nastavi KL_UNRAR, nato arhiv znova razpakiraj.',
   'failure.unknown.line': 'KnightLoader te napake ne prepozna.',
   'failure.unknown.next': 'Poskusi znova. Če se ponavlja, jo prijavi skupaj s tem, kar je povedalo zaledje.',
 
@@ -364,6 +365,8 @@ export const sl: Dict = {
   'failure.archiveFolderExists.next': 'Premakni ali preimenuj to mapo ali v nastavitvah arhivov v spletnem vmesniku spremeni »Če je datoteka že tam«, nato arhiv znova razpakiraj.',
   'failure.unsupportedPlayer.line': 'Stran predvaja video v predvajalniku, ki ga nobeno zaledje tukaj ne zna prebrati.',
   'failure.unsupportedPlayer.next': 'Če najdeš lastni naslov videa, prilepi raje tega.',
+  'failure.noFFmpeg.line': 'Ta prenos potrebuje ffmpeg, a nobenega ni bilo mogoče najti.',
+  'failure.noFFmpeg.next': 'Namesti ffmpeg ali znova zaženi namizno aplikacijo, nato poskusi znova.',
   'settings.device': 'Ta naprava',
   'settings.deviceName': 'Ime naprave',
   'settings.deviceHint': 'Ime, pod katerim se ta telefon prikaže na strani Primerki vsakega primerka v tvoji skupini. Pusti prazno, če želiš uporabiti model naprave.',

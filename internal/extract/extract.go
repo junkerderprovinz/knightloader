@@ -374,7 +374,7 @@ func extractRar(path string, dest target, password string) (*Result, error) {
 			break
 		}
 		if err != nil {
-			return nil, rarError(err, currentVolume(rc))
+			return nil, builtInRarError(err, currentVolume(rc))
 		}
 		if h.IsDir {
 			continue
@@ -391,7 +391,7 @@ func extractRar(path string, dest target, password string) (*Result, error) {
 		}
 		if err := writeFile(dst, h.Mode(), body); err != nil {
 			if body.err != nil {
-				return nil, rarError(body.err, currentVolume(rc))
+				return nil, builtInRarError(body.err, currentVolume(rc))
 			}
 			return nil, err
 		}
@@ -443,6 +443,17 @@ func rarError(err error, volume string) error {
 		return ErrPasswordRequired
 	}
 	return partError(err, volume)
+}
+
+// builtInRarError is rarError for a set the built-in reader unpacks because no
+// UnRAR could be started. UnRAR reads some sets rardecode calls damaged or
+// unreadable, so those two carry ErrNoUnrar as well.
+func builtInRarError(err error, volume string) error {
+	err = rarError(err, volume)
+	if errors.Is(err, ErrDamaged) || errors.Is(err, ErrUnsupported) {
+		return fmt.Errorf("%w (%w)", err, ErrNoUnrar)
+	}
+	return err
 }
 
 // currentVolume is the name of the volume the reader has open, which is the last

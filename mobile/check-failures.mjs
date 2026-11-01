@@ -35,6 +35,16 @@ expect('and says what to do', damaged?.next, 'Download Vier.minus.drei.part1.rar
 expect('and keeps the sentence', damaged?.raw, 'extract: Vier.minus.drei.part1.rar: rardecode: bad block header');
 
 expect(
+  'a set the built-in reader could not unpack goes to UnRAR first',
+  explainFailure(t, {
+    error: 'x',
+    errorCode: 'archiveDamaged',
+    errorParams: { part: 'Vier.part2.rar', unrar: 'none' },
+  })?.next,
+  en['failure.noUnrar.next'],
+);
+
+expect(
   'a value the instance left out comes from the row',
   explainFailure(t, { error: 'x', errorCode: 'archiveDamaged' }, { part: 'film.part1.rar' })?.line,
   'film.part1.rar is damaged.',

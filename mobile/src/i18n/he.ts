@@ -344,6 +344,7 @@ export const he: Dict = {
   'failure.archivePartMissing.next': 'ודא שכל החלקים הורדו לאותה תיקייה, ואז חלץ את הארכיון שוב.',
   'failure.archiveUnsupported.line': 'KnightLoader לא יודע לקרוא את הפורמט של {part}.',
   'failure.archiveUnsupported.next': 'חלץ אותו בתוכנה אחרת, למשל 7-Zip.',
+  'failure.noUnrar.next': 'לא נמצא UnRAR, אז KnightLoader ניסה בעצמו. התקן את UnRAR בשרת או הגדר את KL_UNRAR, ואז חלץ אותו שוב.',
   'failure.unknown.line': 'KnightLoader לא מזהה את השגיאה הזו.',
   'failure.unknown.next': 'נסה שוב. אם זה חוזר, דווח על זה יחד עם מה שהמנוע אמר.',
 
@@ -364,6 +365,8 @@ export const he: Dict = {
   'failure.archiveFolderExists.next': 'העבר את התיקייה הזו או שנה את שמה, או שנה את „אם כבר יש שם קובץ” בהגדרות הארכיונים של ממשק האינטרנט, ואז חלץ את הארכיון שוב.',
   'failure.unsupportedPlayer.line': 'הדף מנגן את הווידאו שלו בנגן שאף מנוע כאן לא יודע לקרוא.',
   'failure.unsupportedPlayer.next': 'אם אתה מוצא את הכתובת של הווידאו עצמו, הדבק אותה במקום.',
+  'failure.noFFmpeg.line': 'ההורדה הזו צריכה ffmpeg, ולא נמצא כזה.',
+  'failure.noFFmpeg.next': 'התקן את ffmpeg או הפעל מחדש את אפליקציית שולחן העבודה, ואז נסה שוב.',
   'settings.device': 'המכשיר הזה',
   'settings.deviceName': 'שם המכשיר',
   'settings.deviceHint': 'השם שבו הטלפון הזה מופיע בעמוד „מופעים” של כל מופע בקבוצה שלך. השאר ריק כדי להשתמש בדגם המכשיר.',

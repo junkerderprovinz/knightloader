@@ -344,6 +344,7 @@ export const tr: Dict = {
   'failure.archivePartMissing.next': 'Tüm parçaların aynı klasöre indirildiğinden emin ol, sonra yeniden ayıkla.',
   'failure.archiveUnsupported.line': 'KnightLoader {part} dosyasının biçimini okuyamıyor.',
   'failure.archiveUnsupported.next': 'Onu 7-Zip gibi başka bir programla ayıkla.',
+  'failure.noUnrar.next': 'Hiç UnRAR bulunamadı, bu yüzden KnightLoader kendisi denedi. Sunucuya UnRAR kur ya da KL_UNRAR\'ı ayarla, sonra yeniden ayıkla.',
   'failure.unknown.line': 'KnightLoader bu hatayı tanımıyor.',
   'failure.unknown.next': 'Yeniden dene. Tekrar tekrar oluyorsa arka ucun söylediğiyle birlikte bildir.',
 
@@ -364,6 +365,8 @@ export const tr: Dict = {
   'failure.archiveFolderExists.next': 'O klasörü taşı ya da yeniden adlandır veya web arayüzünün arşiv ayarlarında “Aynı adlı bir dosya zaten varsa” seçeneğini değiştir, sonra yeniden ayıkla.',
   'failure.unsupportedPlayer.line': 'Sayfa videosunu, buradaki hiçbir arka ucun okuyamadığı bir oynatıcıda oynatıyor.',
   'failure.unsupportedPlayer.next': 'Videonun kendi adresini bulabilirsen bağlantı yerine onu yapıştır.',
+  'failure.noFFmpeg.line': 'Bu indirme ffmpeg gerektiriyor ve hiç bulunamadı.',
+  'failure.noFFmpeg.next': 'ffmpeg kur ya da masaüstü uygulamasını yeniden başlat, sonra yeniden dene.',
   'settings.device': 'Bu cihaz',
   'settings.deviceName': 'Cihaz adı',
   'settings.deviceHint': 'Bu telefonun, grubundaki her örneğin Örnekler sayfasında göründüğü ad. Cihaz modelini kullanmak için boş bırak.',

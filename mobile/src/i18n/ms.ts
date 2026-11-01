@@ -344,6 +344,7 @@ export const ms: Dict = {
   'failure.archivePartMissing.next': 'Pastikan setiap bahagian dimuat turun ke folder yang sama, kemudian ekstrak sekali lagi.',
   'failure.archiveUnsupported.line': 'KnightLoader tidak dapat membaca format {part}.',
   'failure.archiveUnsupported.next': 'Ekstrak dengan program lain, seperti 7-Zip.',
+  'failure.noUnrar.next': 'Tiada UnRAR ditemui, jadi KnightLoader mencubanya sendiri. Pasang UnRAR pada pelayan atau tetapkan KL_UNRAR, kemudian ekstrak sekali lagi.',
   'failure.unknown.line': 'KnightLoader tidak mengenali ralat ini.',
   'failure.unknown.next': 'Cuba lagi. Jika ia terus berlaku, laporkannya bersama apa yang dikatakan backend.',
 
@@ -364,6 +365,8 @@ export const ms: Dict = {
   'failure.archiveFolderExists.next': 'Alihkan atau namakan semula folder itu, atau ubah “Jika fail sudah ada di situ” dalam tetapan Arkib antara muka web, kemudian ekstrak sekali lagi.',
   'failure.unsupportedPlayer.line': 'Halaman ini memainkan videonya dalam pemain yang tidak dapat dibaca oleh mana-mana backend di sini.',
   'failure.unsupportedPlayer.next': 'Jika anda dapat mencari alamat video itu sendiri, tampal alamat itu sebagai gantinya.',
+  'failure.noFFmpeg.line': 'Muat turun ini memerlukan ffmpeg, dan tiada yang ditemui.',
+  'failure.noFFmpeg.next': 'Pasang ffmpeg atau mulakan semula aplikasi desktop, kemudian cuba lagi.',
   'settings.device': 'Peranti ini',
   'settings.deviceName': 'Nama peranti',
   'settings.deviceHint': 'Nama telefon ini pada halaman Tika bagi setiap tika dalam kumpulan anda. Biarkan kosong untuk menggunakan model peranti.',

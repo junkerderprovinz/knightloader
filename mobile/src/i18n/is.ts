@@ -344,6 +344,7 @@ export const is: Dict = {
   'failure.archivePartMissing.next': 'Gættu þess að allir hlutar séu sóttir í sömu möppu, og afþjappaðu svo aftur.',
   'failure.archiveUnsupported.line': 'KnightLoader getur ekki lesið snið skrárinnar {part}.',
   'failure.archiveUnsupported.next': 'Afþjappaðu hana með öðru forriti, til dæmis 7-Zip.',
+  'failure.noUnrar.next': 'Ekkert UnRAR fannst, svo KnightLoader reyndi sjálft. Settu upp UnRAR á þjóninum eða stilltu KL_UNRAR, og afþjappaðu hana svo aftur.',
   'failure.unknown.line': 'KnightLoader þekkir ekki þessa villu.',
   'failure.unknown.next': 'Reyndu aftur. Ef þetta gerist aftur, tilkynntu það ásamt því sem bakendinn sagði.',
 
@@ -364,6 +365,8 @@ export const is: Dict = {
   'failure.archiveFolderExists.next': 'Færðu eða endurnefndu þá möppu, eða breyttu „Ef skrá er þegar til staðar“ í stillingum safnskráa í vefviðmótinu, og afþjappaðu svo safnskrána aftur.',
   'failure.unsupportedPlayer.line': 'Síðan spilar myndbandið sitt í spilara sem enginn bakendi hér getur lesið.',
   'failure.unsupportedPlayer.next': 'Ef þú finnur eigið vistfang myndbandsins, límdu það þá inn í staðinn.',
+  'failure.noFFmpeg.line': 'Þetta niðurhal þarf ffmpeg og ekkert fannst.',
+  'failure.noFFmpeg.next': 'Settu upp ffmpeg eða endurræstu skjáborðsforritið, og reyndu svo aftur.',
   'settings.device': 'Þetta tæki',
   'settings.deviceName': 'Nafn tækis',
   'settings.deviceHint': 'Þetta er nafnið sem þessi sími birtist undir á síðunni Tilvik hjá hverju tilviki í hópnum þínum. Skildu það eftir autt til að nota tækjagerðina.',

@@ -344,6 +344,7 @@ export const lt: Dict = {
   'failure.archivePartMissing.next': 'Įsitikink, kad visos dalys atsisiųstos į tą patį aplanką, tada išpakuok jį dar kartą.',
   'failure.archiveUnsupported.line': 'KnightLoader negali perskaityti failo {part} formato.',
   'failure.archiveUnsupported.next': 'Išpakuok jį kita programa, pavyzdžiui, 7-Zip.',
+  'failure.noUnrar.next': 'UnRAR nerasta, todėl KnightLoader bandė pats. Įdiek UnRAR serveryje arba nustatyk KL_UNRAR, tada išpakuok jį dar kartą.',
   'failure.unknown.line': 'KnightLoader šios klaidos neatpažįsta.',
   'failure.unknown.next': 'Bandyk dar kartą. Jei tai kartojasi, pranešk apie tai kartu su tuo, ką pasakė posistemė.',
 
@@ -364,6 +365,8 @@ export const lt: Dict = {
   'failure.archiveFolderExists.next': 'Perkelk ar pervadink tą aplanką arba žiniatinklio sąsajos archyvų nustatymuose pakeisk „Jei failas jau yra“, tada išpakuok archyvą dar kartą.',
   'failure.unsupportedPlayer.line': 'Puslapis leidžia vaizdo įrašą grotuve, kurio čia negali perskaityti jokia posistemė.',
   'failure.unsupportedPlayer.next': 'Jei rasi paties vaizdo įrašo adresą, geriau įklijuok jį.',
+  'failure.noFFmpeg.line': 'Šiam atsisiuntimui reikia ffmpeg, bet jo nerasta.',
+  'failure.noFFmpeg.next': 'Įdiek ffmpeg arba iš naujo paleisk darbalaukio programą, tada bandyk dar kartą.',
   'settings.device': 'Šis įrenginys',
   'settings.deviceName': 'Įrenginio pavadinimas',
   'settings.deviceHint': 'Tokiu vardu šis telefonas rodomas kiekvieno tavo grupės egzemplioriaus puslapyje „Egzemplioriai“. Palik tuščią, jei nori naudoti įrenginio modelį.',

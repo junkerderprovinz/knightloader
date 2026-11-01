@@ -22,6 +22,27 @@ describe('explainFailure', () => {
     expect(got?.raw).toBe('extract: Vier.minus.drei.part1.rar: rardecode: bad block header');
   });
 
+  it('sends a set the built-in reader could not unpack to UnRAR first', () => {
+    const got = explainFailure(t, {
+      error: 'extract: Vier.part2.rar: rardecode: bad block header (no UnRAR could be started, so the built-in reader unpacked the set)',
+      errorCode: 'archiveDamaged',
+      errorParams: { part: 'Vier.part2.rar', unrar: 'none' },
+    });
+    expect(got?.line).toBe('Vier.part2.rar is damaged.');
+    expect(got?.next).toBe(en['failure.noUnrar.next']);
+    expect(got?.raw).toContain('bad block header');
+  });
+
+  it('words a yt-dlp run without ffmpeg by what is missing', () => {
+    const got = explainFailure(t, {
+      error: 'ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the path using --ffmpeg-location',
+      errorCode: 'noFFmpeg',
+      reason: 'noFFmpeg',
+    });
+    expect(got?.line).toBe(en['failure.noFFmpeg.line']);
+    expect(got?.next).toBe(en['failure.noFFmpeg.next']);
+  });
+
   it('fills a value the server left out from the row', () => {
     const got = explainFailure(t, { error: 'x', errorCode: 'archiveDamaged' }, { part: 'film.part1.rar' });
     expect(got?.line).toBe('film.part1.rar is damaged.');

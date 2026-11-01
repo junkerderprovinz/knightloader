@@ -303,6 +303,8 @@ export const de: Dict = {
   'failure.extractorBroken.next': 'Aktualisier KnightLoader: Ein neueres Abbild bringt ein neueres yt-dlp mit.',
   'failure.unsupportedPlayer.line': 'Die Seite spielt ihr Video in einem Player ab, den hier kein Backend lesen kann.',
   'failure.unsupportedPlayer.next': 'Findest du die eigene Adresse des Videos, füg stattdessen die ein.',
+  'failure.noFFmpeg.line': 'Dieser Download braucht ffmpeg, und es wurde keins gefunden.',
+  'failure.noFFmpeg.next': 'Installier ffmpeg oder starte die Desktop-App neu, dann versuch es noch einmal.',
   'failure.archiveDamaged.line': '{part} ist beschädigt.',
   'failure.archiveDamaged.next': 'Lade {part} noch einmal oder hol es von einem anderen Mirror.',
   'failure.archivePassword.line': 'Das Archiv braucht ein Passwort, und keins der gespeicherten passt.',
@@ -311,6 +313,7 @@ export const de: Dict = {
   'failure.archivePartMissing.next': 'Sorg dafür, dass alle Teile im selben Ordner liegen, dann entpack es noch einmal.',
   'failure.archiveUnsupported.line': 'KnightLoader kann das Format von {part} nicht lesen.',
   'failure.archiveUnsupported.next': 'Entpack es mit einem anderen Programm, etwa 7-Zip.',
+  'failure.noUnrar.next': 'Es wurde kein UnRAR gefunden, deshalb hat KnightLoader es allein versucht. Installier UnRAR auf dem Server oder setz KL_UNRAR, dann entpack es noch einmal.',
   'failure.archiveFolderExists.line': 'Ein Ordner namens {folder} ist schon da.',
   'failure.archiveFolderExists.next':
     'Verschieb diesen Ordner oder benenn ihn um, oder änder „Wenn eine Datei schon da ist“ in den Archiv-Einstellungen der Weboberfläche, dann entpack das Archiv noch einmal.',

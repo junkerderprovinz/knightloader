@@ -361,6 +361,7 @@ export const reasonKey: Record<string, TranslationKey> = {
   drm: 'task.reason.drm',
   extractorBroken: 'task.reason.extractorBroken',
   unsupportedPlayer: 'task.reason.unsupportedPlayer',
+  noFFmpeg: 'task.reason.noFFmpeg',
 };
 
 // The availability chip, one entry per verdict the server can send.

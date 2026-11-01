@@ -344,6 +344,7 @@ export const th: Dict = {
   'failure.archivePartMissing.next': 'ตรวจให้แน่ใจว่าทุกส่วนถูกดาวน์โหลดลงโฟลเดอร์เดียวกัน แล้วแตกไฟล์อีกครั้ง',
   'failure.archiveUnsupported.line': 'KnightLoader อ่านรูปแบบของ {part} ไม่ได้',
   'failure.archiveUnsupported.next': 'แตกไฟล์ด้วยโปรแกรมอื่น เช่น 7-Zip',
+  'failure.noUnrar.next': 'ไม่พบ UnRAR เลย KnightLoader จึงลองแตกไฟล์เอง ติดตั้ง UnRAR บนเซิร์ฟเวอร์หรือตั้งค่า KL_UNRAR แล้วแตกไฟล์อีกครั้ง',
   'failure.unknown.line': 'KnightLoader ไม่รู้จักข้อผิดพลาดนี้',
   'failure.unknown.next': 'ลองอีกครั้ง ถ้ายังเกิดซ้ำ ให้รายงานพร้อมกับสิ่งที่แบ็กเอนด์บอกมา',
 
@@ -364,6 +365,8 @@ export const th: Dict = {
   'failure.archiveFolderExists.next': 'ย้ายหรือเปลี่ยนชื่อโฟลเดอร์นั้น หรือเปลี่ยน “ถ้ามีไฟล์อยู่ก่อนแล้ว” ในการตั้งค่าไฟล์บีบอัดของเว็บอินเทอร์เฟซ แล้วแตกไฟล์บีบอัดอีกครั้ง',
   'failure.unsupportedPlayer.line': 'หน้านี้เล่นวิดีโอในตัวเล่นที่ไม่มีแบ็กเอนด์ใดที่นี่อ่านได้',
   'failure.unsupportedPlayer.next': 'ถ้าคุณหาที่อยู่ของตัววิดีโอเองเจอ ให้วางที่อยู่นั้นแทน',
+  'failure.noFFmpeg.line': 'การดาวน์โหลดนี้ต้องใช้ ffmpeg แต่หาไม่พบ',
+  'failure.noFFmpeg.next': 'ติดตั้ง ffmpeg หรือเริ่มแอปเดสก์ท็อปใหม่ แล้วลองอีกครั้ง',
   'settings.device': 'อุปกรณ์นี้',
   'settings.deviceName': 'ชื่ออุปกรณ์',
   'settings.deviceHint': 'ชื่อที่โทรศัพท์เครื่องนี้แสดงในหน้าอินสแตนซ์ของแต่ละอินสแตนซ์ในกลุ่มของคุณ ปล่อยว่างไว้เพื่อใช้ชื่อรุ่นอุปกรณ์',

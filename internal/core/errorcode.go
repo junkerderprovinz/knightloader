@@ -88,10 +88,13 @@ const (
 	CodeDRM               ErrorCode = "drm"
 	CodeExtractorBroken   ErrorCode = "extractorBroken"
 	CodeUnsupportedPlayer ErrorCode = "unsupportedPlayer"
+	CodeNoFFmpeg          ErrorCode = "noFFmpeg"
 
 	// The unpacking codes carry "part", the file of the archive the failure
-	// happened in, where it is known. None has a Reason: the download itself
-	// finished.
+	// happened in, where it is known. A damaged or unsupported RAR set also
+	// carries "unrar": "none" when the built-in reader had it because no UnRAR
+	// could be started, since UnRAR may well read it. None has a Reason: the
+	// download itself finished.
 
 	// CodeArchiveFolderExists is a folder of the archive's name already there
 	// while the archive settings say to skip it. The archive is fine. Params:
@@ -145,6 +148,8 @@ func (r Reason) Code() ErrorCode {
 		return CodeExtractorBroken
 	case ReasonUnsupportedPlayer:
 		return CodeUnsupportedPlayer
+	case ReasonNoFFmpeg:
+		return CodeNoFFmpeg
 	}
 	return ""
 }

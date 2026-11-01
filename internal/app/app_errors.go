@@ -187,7 +187,8 @@ func addressMayHelp(r core.Reason) bool {
 	case core.ReasonGone, core.ReasonAuth, core.ReasonDiskFull,
 		core.ReasonUnsupported, core.ReasonCaptcha, core.ReasonCancelled,
 		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
-		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer:
+		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer,
+		core.ReasonNoFFmpeg:
 		return false
 	}
 	return true
@@ -199,7 +200,8 @@ func addressMayHelp(r core.Reason) bool {
 func retryCannotHelp(r core.Reason) bool {
 	switch r {
 	case core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
-		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer:
+		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer,
+		core.ReasonNoFFmpeg:
 		return true
 	}
 	return false
@@ -372,12 +374,20 @@ func unpackCode(err error) (core.ErrorCode, map[string]string) {
 		code, params = diskCode(err)
 	}
 	if part := extract.PartOf(err); code != "" && part != "" {
-		if params == nil {
-			params = map[string]string{}
-		}
-		params["part"] = part
+		params = withParam(params, "part", part)
+	}
+	if code != "" && errors.Is(err, extract.ErrNoUnrar) {
+		params = withParam(params, "unrar", "none")
 	}
 	return code, params
+}
+
+func withParam(params map[string]string, key, value string) map[string]string {
+	if params == nil {
+		params = map[string]string{}
+	}
+	params[key] = value
+	return params
 }
 
 func archiveCode(err error) (core.ErrorCode, map[string]string) {

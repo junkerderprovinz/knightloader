@@ -101,6 +101,7 @@ var codeReasons = map[core.ErrorCode][]core.Reason{
 	core.CodeGeoBlocked:       {core.ReasonGeoBlocked},
 	core.CodeDRM:              {core.ReasonDRM},
 	core.CodeExtractorBroken:  {core.ReasonExtractorBroken},
+	core.CodeNoFFmpeg:         {core.ReasonNoFFmpeg},
 }
 
 // Whatever the classifier recognises has a code of its own group: a row whose
@@ -137,6 +138,7 @@ func TestEveryRecognisedFailureIsWordedByItsOwnGroup(t *testing.T) {
 		core.ReasonGone, core.ReasonAuth, core.ReasonLimit, core.ReasonUnavailable, core.ReasonNetwork,
 		core.ReasonDiskFull, core.ReasonUnsupported, core.ReasonCaptcha, core.ReasonCancelled,
 		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked, core.ReasonDRM, core.ReasonExtractorBroken,
+		core.ReasonNoFFmpeg,
 	} {
 		if !belongs(r.Code(), r) {
 			t.Errorf("%q reads as %q, a code of another group", r, r.Code())
@@ -242,6 +244,8 @@ func TestUnpackCode(t *testing.T) {
 			core.CodeArchivePartMissing, map[string]string{"part": "Vier.part2.rar"}},
 		{"an unknown format", &extract.PartError{Part: "x.bin", Problem: extract.ErrUnsupported, Err: extract.ErrUnsupported},
 			core.CodeArchiveUnsupported, map[string]string{"part": "x.bin"}},
+		{"a volume the built-in reader called damaged", fmt.Errorf("%w (%w)", &extract.PartError{Part: "Vier.part1.rar", Problem: extract.ErrDamaged, Err: fmt.Errorf("rardecode: bad block header")}, extract.ErrNoUnrar),
+			core.CodeArchiveDamaged, map[string]string{"part": "Vier.part1.rar", "unrar": "none"}},
 		{"a full disk", &fs.PathError{Op: "write", Path: "/out/x", Err: syscall.ENOSPC}, core.CodeDiskFull, nil},
 		{"a folder that may not be written", &fs.PathError{Op: "open", Path: "/out/x", Err: syscall.EACCES},
 			core.CodeNoPermission, map[string]string{"path": "/out/x"}},

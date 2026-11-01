@@ -344,6 +344,7 @@ export const vi: Dict = {
   'failure.archivePartMissing.next': 'Đảm bảo mọi phần đều được tải vào cùng một thư mục, rồi giải nén lại.',
   'failure.archiveUnsupported.line': 'KnightLoader không đọc được định dạng của {part}.',
   'failure.archiveUnsupported.next': 'Giải nén bằng một chương trình khác, như 7-Zip.',
+  'failure.noUnrar.next': 'Không tìm thấy UnRAR nên KnightLoader đã tự thử giải nén. Cài UnRAR trên máy chủ hoặc đặt KL_UNRAR, rồi giải nén lại.',
   'failure.unknown.line': 'KnightLoader không nhận ra lỗi này.',
   'failure.unknown.next': 'Thử lại. Nếu vẫn tiếp diễn, hãy báo lỗi kèm những gì backend đã nói.',
 
@@ -364,6 +365,8 @@ export const vi: Dict = {
   'failure.archiveFolderExists.next': 'Di chuyển hoặc đổi tên thư mục đó, hoặc đổi “Nếu đã có tệp ở đó” trong cài đặt tệp nén của giao diện web, rồi giải nén lại tệp nén.',
   'failure.unsupportedPlayer.line': 'Trang này phát video trong một trình phát mà không backend nào ở đây đọc được.',
   'failure.unsupportedPlayer.next': 'Nếu bạn tìm được địa chỉ riêng của video, hãy dán địa chỉ đó vào thay thế.',
+  'failure.noFFmpeg.line': 'Lượt tải này cần ffmpeg nhưng không tìm thấy.',
+  'failure.noFFmpeg.next': 'Cài ffmpeg hoặc khởi động lại ứng dụng máy tính, rồi thử lại.',
   'settings.device': 'Thiết bị này',
   'settings.deviceName': 'Tên thiết bị',
   'settings.deviceHint': 'Tên mà điện thoại này hiển thị trên trang Phiên bản của mỗi phiên bản trong nhóm của bạn. Để trống để dùng tên model thiết bị.',

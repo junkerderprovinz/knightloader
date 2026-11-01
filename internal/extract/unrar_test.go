@@ -192,3 +192,60 @@ func TestUnrarNamesTheBrokenVolume(t *testing.T) {
 		t.Error("the failed extraction left its folder behind")
 	}
 }
+
+// brokenRarSet is a set whose second volume is a leftover, which every reader
+// calls damaged.
+func brokenRarSet(t *testing.T) string {
+	t.Helper()
+	movie := bytes.Repeat([]byte("0123456789abcdef"), 700)
+	vols := extracttest.RarSet(4096, extracttest.File{Name: "movie.bin", Body: movie})
+	vols[1] = leftover(vols[1], 1024)
+	return extracttest.WriteRarSet(t, t.TempDir(), "set", vols)[0]
+}
+
+func TestABrokenSetWithoutUnrarSaysTheBuiltInReaderHadIt(t *testing.T) {
+	for name, bin := range map[string]string{
+		"none installed":   "",
+		"one that is gone": filepath.Join(t.TempDir(), "no-such-unrar"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			withUnrar(t, bin)
+			_, err := Run(context.Background(), Request{Path: brokenRarSet(t)})
+			if !errors.Is(err, ErrDamaged) || !errors.Is(err, ErrNoUnrar) {
+				t.Errorf("err = %v, want a damaged set that says no UnRAR was there", err)
+			}
+			if PartOf(err) != "set.part2.rar" {
+				t.Errorf("part %q, want set.part2.rar", PartOf(err))
+			}
+		})
+	}
+}
+
+func TestABrokenSetUnrarReadDoesNotBlameAMissingUnrar(t *testing.T) {
+	withUnrar(t, realUnrar(t))
+	_, err := Run(context.Background(), Request{Path: brokenRarSet(t)})
+	if err == nil {
+		t.Fatal("a set with a leftover in the middle unpacked")
+	}
+	if errors.Is(err, ErrNoUnrar) {
+		t.Errorf("err = %v, want no word of a missing UnRAR when UnRAR read the set", err)
+	}
+}
+
+// Installing UnRAR does not bring a password or a lost volume back.
+func TestOnlyADamagedOrUnreadableSetBlamesTheMissingUnrar(t *testing.T) {
+	_, path := encryptedRar(t, "contents-encrypted.rar", rarContentsEncrypted)
+	if _, err := Run(context.Background(), Request{Path: path}); errors.Is(err, ErrNoUnrar) {
+		t.Errorf("a password failure says %v", err)
+	}
+
+	dir := t.TempDir()
+	movie := bytes.Repeat([]byte("0123456789abcdef"), 700)
+	paths := extracttest.WriteRarSet(t, dir, "set", extracttest.RarSet(4096, extracttest.File{Name: "movie.bin", Body: movie}))
+	if err := os.Remove(paths[1]); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Run(context.Background(), Request{Path: paths[0]}); !errors.Is(err, ErrPartMissing) || errors.Is(err, ErrNoUnrar) {
+		t.Errorf("a missing volume says %v, want ErrPartMissing alone", err)
+	}
+}

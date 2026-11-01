@@ -47,6 +47,7 @@ const WORDS: Record<string, Words> = {
   drm: { line: 'failure.drm.line', next: 'failure.drm.next' },
   extractorBroken: { line: 'failure.extractorBroken.line', next: 'failure.extractorBroken.next' },
   unsupportedPlayer: { line: 'failure.unsupportedPlayer.line', next: 'failure.unsupportedPlayer.next' },
+  noFFmpeg: { line: 'failure.noFFmpeg.line', next: 'failure.noFFmpeg.next' },
   archiveDamaged: { line: 'failure.archiveDamaged.line', next: 'failure.archiveDamaged.next' },
   archivePassword: { line: 'failure.archivePassword.line', next: 'failure.archivePassword.next' },
   archivePartMissing: { line: 'failure.archivePartMissing.line', next: 'failure.archivePartMissing.next' },
@@ -104,7 +105,9 @@ export function explainFailure(
   const vars = { ...fallback, ...f.errorParams };
   if (code === 'quotaUsed') return { ...quotaWords(t, f.errorParams ?? {}, vars), raw };
   const words = (code && WORDS[code]) || GENERAL;
-  return { line: t(words.line, vars), next: t(words.next, vars), raw };
+  // UnRAR may well open the archive, so installing it is the first remedy.
+  const next = f.errorParams?.unrar === 'none' ? 'failure.noUnrar.next' : words.next;
+  return { line: t(words.line, vars), next: t(next, vars), raw };
 }
 
 /**

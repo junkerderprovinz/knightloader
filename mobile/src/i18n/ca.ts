@@ -344,6 +344,7 @@ export const ca: Dict = {
   'failure.archivePartMissing.next': 'Assegura’t que totes les parts es baixin a la mateixa carpeta i després torna a extreure l’arxiu.',
   'failure.archiveUnsupported.line': 'KnightLoader no sap llegir el format de {part}.',
   'failure.archiveUnsupported.next': 'Extreu-lo amb un altre programa, com ara 7-Zip.',
+  'failure.noUnrar.next': 'No s’ha trobat UnRAR, així que KnightLoader ho ha provat pel seu compte. Instal·la UnRAR al servidor o posa KL_UNRAR i després torna’l a extreure.',
   'failure.unknown.line': 'KnightLoader no reconeix aquest error.',
   'failure.unknown.next': 'Torna-ho a provar. Si continua passant, informa’n juntament amb el que ha dit el rerefons.',
 
@@ -364,6 +365,8 @@ export const ca: Dict = {
   'failure.archiveFolderExists.next': 'Mou o canvia el nom d’aquesta carpeta, o canvia «Si ja hi ha un fitxer» a la configuració d’Arxius de la interfície web, i després torna a extreure l’arxiu.',
   'failure.unsupportedPlayer.line': 'La pàgina reprodueix el seu vídeo en un reproductor que cap rerefons d’aquí no sap llegir.',
   'failure.unsupportedPlayer.next': 'Si trobes l’adreça pròpia del vídeo, enganxa aquella en lloc d’aquesta.',
+  'failure.noFFmpeg.line': 'Aquesta baixada necessita ffmpeg i no se n’ha trobat cap.',
+  'failure.noFFmpeg.next': 'Instal·la ffmpeg o reinicia l’aplicació d’escriptori, i torna-ho a provar.',
   'settings.device': 'Aquest dispositiu',
   'settings.deviceName': 'Nom del dispositiu',
   'settings.deviceHint': 'Com es diu aquest telèfon a la pàgina «Instàncies» de cada instància del teu grup. Deixa-ho buit per utilitzar el model del dispositiu.',

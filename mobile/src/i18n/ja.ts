@@ -343,6 +343,7 @@ export const ja: Dict = {
   'failure.archivePartMissing.next': 'すべてのパーツが同じフォルダーにダウンロードされていることを確かめてから、もう一度展開してください。',
   'failure.archiveUnsupported.line': 'KnightLoader は {part} の形式を読めません。',
   'failure.archiveUnsupported.next': '7-Zip など、別のプログラムで展開してください。',
+  'failure.noUnrar.next': 'UnRAR が見つからなかったので、KnightLoader が自分で展開を試みました。サーバーに UnRAR をインストールするか KL_UNRAR を設定してから、もう一度展開してください。',
   'failure.unknown.line': 'KnightLoader はこのエラーを知りません。',
   'failure.unknown.next': 'もう一度試してください。何度も起きる場合は、バックエンドが言ったことと一緒に報告してください。',
 
@@ -363,6 +364,8 @@ export const ja: Dict = {
   'failure.archiveFolderExists.next': 'そのフォルダーを移動するか名前を変えるか、Web UI のアーカイブの設定で「同名のファイルがある場合」を変えてから、もう一度展開してください。',
   'failure.unsupportedPlayer.line': 'このページは、ここのどのバックエンドも読めないプレーヤーで動画を再生しています。',
   'failure.unsupportedPlayer.next': '動画そのもののアドレスが見つかれば、代わりにそれを貼り付けてください。',
+  'failure.noFFmpeg.line': 'このダウンロードには ffmpeg が必要ですが、見つかりませんでした。',
+  'failure.noFFmpeg.next': 'ffmpeg をインストールするかデスクトップアプリを再起動してから、もう一度試してください。',
   'settings.device': 'この端末',
   'settings.deviceName': 'デバイス名',
   'settings.deviceHint': 'グループ内の各インスタンスの「インスタンス」ページにこのスマートフォンが表示される名前です。空欄にすると端末のモデル名が使われます。',

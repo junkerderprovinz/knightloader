@@ -344,6 +344,7 @@ export const lv: Dict = {
   'failure.archivePartMissing.next': 'Pārliecinies, ka visas daļas ir lejupielādētas tajā pašā mapē, tad izpako to vēlreiz.',
   'failure.archiveUnsupported.line': 'KnightLoader nespēj nolasīt faila {part} formātu.',
   'failure.archiveUnsupported.next': 'Izpako to ar citu programmu, piemēram, 7-Zip.',
+  'failure.noUnrar.next': 'UnRAR netika atrasts, tāpēc KnightLoader mēģināja pats. Instalē UnRAR serverī vai iestati KL_UNRAR, tad izpako to vēlreiz.',
   'failure.unknown.line': 'KnightLoader šo kļūdu neatpazīst.',
   'failure.unknown.next': 'Mēģini vēlreiz. Ja tas atkārtojas, ziņo par to kopā ar to, ko pateica aizmugure.',
 
@@ -364,6 +365,8 @@ export const lv: Dict = {
   'failure.archiveFolderExists.next': 'Pārvieto vai pārdēvē šo mapi vai tīmekļa saskarnes arhīvu iestatījumos maini „Ja fails jau ir turpat“, tad izpako arhīvu vēlreiz.',
   'failure.unsupportedPlayer.line': 'Lapa atskaņo video atskaņotājā, ko neviena aizmugure šeit nespēj nolasīt.',
   'failure.unsupportedPlayer.next': 'Ja atrodi paša video adresi, ielīmē labāk to.',
+  'failure.noFFmpeg.line': 'Šai lejupielādei vajag ffmpeg, bet tas netika atrasts.',
+  'failure.noFFmpeg.next': 'Instalē ffmpeg vai restartē darbvirsmas lietotni, tad mēģini vēlreiz.',
   'settings.device': 'Šī ierīce',
   'settings.deviceName': 'Ierīces nosaukums',
   'settings.deviceHint': 'Ar šo nosaukumu šis tālrunis parādās katras tavas grupas instances lapā „Instances”. Atstāj tukšu, lai izmantotu ierīces modeli.',
