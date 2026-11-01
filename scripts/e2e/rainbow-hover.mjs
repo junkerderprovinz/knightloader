@@ -71,7 +71,10 @@ function check(name, ok, detail) {
   console.error(`FAIL  ${name}${detail ? `\n        ${detail}` : ''}`);
 }
 
-const TINTED = '.glim-btn:is(.glim-btn-subtle, .glim-btn-bare):not(.glim-hue, .glim-tint-badge, :disabled)';
+// Every button that carries the tint counts in the page's order; those with a
+// colour of their own keep it and are not hovered.
+const COUNTED = '.glim-btn-neutral, .glim-btn-subtle, .glim-btn-bare';
+const TINTED = ':is(.glim-btn-neutral, .glim-btn-subtle, .glim-btn-bare):not(.glim-hue, .glim-tint-badge, :disabled)';
 
 /**
  * Marks a pair to hover and says whether one was found: two tinted buttons
@@ -80,7 +83,7 @@ const TINTED = '.glim-btn:is(.glim-btn-subtle, .glim-btn-bare):not(.glim-hue, .g
  */
 function markPair(page, link) {
   return page.evaluate(
-    ([sel, link]) => {
+    ([sel, counted, link]) => {
       const shown = (el) => {
         const r = el.getBoundingClientRect();
         return r.width > 0 && r.height > 0 && (link || (r.top >= 0 && r.bottom <= innerHeight));
@@ -91,9 +94,9 @@ function markPair(page, link) {
         return true;
       };
       if (link) {
-        const all = [...document.querySelectorAll('.glim-btn')];
+        const all = [...document.querySelectorAll(counted)];
         for (const [i, a] of all.entries()) {
-          if (a.tagName !== 'A' || !shown(a)) continue;
+          if (a.tagName !== 'A' || !a.matches(sel) || !shown(a)) continue;
           const b = [all[i - 1], all[i + 1]].find((c) => c?.tagName === 'BUTTON' && c.matches(sel) && shown(c));
           if (b) return mark(a, b);
         }
@@ -105,7 +108,7 @@ function markPair(page, link) {
       }
       return false;
     },
-    [TINTED, link],
+    [TINTED, COUNTED, link],
   );
 }
 

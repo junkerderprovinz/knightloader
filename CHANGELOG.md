@@ -41,10 +41,19 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 ### Changed
 
 - **Under rainbow every button lights up in a colour of its own.** KnightLoader
-  follows GlimStone 3.8.4, which the Components card names. The buttons of a
+  follows GlimStone 3.8.5, which the Components card names. The buttons of a
   page count through the palette in the order they stand, so two buttons side
   by side on a card no longer light up alike when the pointer or the keyboard
   reaches them. A button with its own colour keeps it.
+
+### Fixed
+
+- **A pasted video page downloads its video.** With "Follow
+  pages and collect the files they link to" on, a pasted page that plays a
+  video and links a few screenshots was crawled for the screenshots, and the
+  video never reached yt-dlp. yt-dlp now looks at the page first. If it finds
+  a video or a playlist there, the page goes to yt-dlp and is not crawled; if
+  it finds nothing, the page is crawled for its files as before.
 
 ## [2.5.1] - 2026-11-01
 
@@ -80,12 +89,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
-- **A pasted video page downloads its video.** With "Follow
-  pages and collect the files they link to" on, a pasted page that plays a
-  video and links a few screenshots was crawled for the screenshots, and the
-  video never reached yt-dlp. yt-dlp now looks at the page first. If it finds
-  a video or a playlist there, the page goes to yt-dlp and is not crawled; if
-  it finds nothing, the page is crawled for its files as before.
 - **Click'n'Load names the program that holds its port.** With JDownloader
   running, switching Click'n'Load on showed the raw Windows error. KnightLoader
   now asks the system which program listens on the port and names it, with a

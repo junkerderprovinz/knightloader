@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, linkBadgeClass, pageHue, SectionTitle, ToggleRow, useTooltip } from '../../components/ui';
+import { Card, linkBadgeClass, SectionTitle, ToggleRow, useTooltip } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
 import { IconForward } from '../../lib/icons';
 import { useLabelMode } from '../../lib/labelModes';
@@ -265,7 +265,6 @@ export function PageBadge({
         data-new={mark}
         aria-label={showText ? undefined : title}
         {...tipHoverProps}
-        {...pageHue<HTMLAnchorElement>(true, tipHoverProps)}
         // Never wider than its row: on a phone a long page name is cut short
         // instead of running out of the card.
         className={`${linkBadgeClass(showText)} max-w-full`}

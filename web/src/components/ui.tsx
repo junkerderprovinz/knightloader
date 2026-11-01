@@ -3,17 +3,8 @@
 // that file.
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type {
-  ButtonHTMLAttributes,
-  CSSProperties,
-  FocusEvent,
-  InputHTMLAttributes,
-  MouseEvent,
-  ReactNode,
-  Ref,
-  RefObject,
-} from 'react';
-import { hueVars, takePageHue } from '../lib/appearance';
+import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, Ref, RefObject } from 'react';
+import { hueVars } from '../lib/appearance';
 import { useLabelMode } from '../lib/labelModes';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { followExternal } from '../lib/external';
@@ -93,32 +84,6 @@ const BTN_SQUARE = 'h-[var(--btn-h)] w-[var(--btn-h)]';
  */
 function Glyph({ children }: { children: ReactNode }) {
   return <span className="glim-btn-glyph">{children}</span>;
-}
-
-/**
- * pageHue lets a surface or bare button light up in its place's palette
- * position (GlimStone rule 40) when the pointer or the keyboard reaches it,
- * then runs the handlers the button already has. A button with a position of
- * its own or a fill passes `on` false and keeps its colour.
- */
-export function pageHue<E extends HTMLElement = HTMLButtonElement>(
-  on: boolean,
-  own: {
-    onMouseEnter?: (e: MouseEvent<E>) => void;
-    onFocus?: (e: FocusEvent<E>) => void;
-  },
-) {
-  if (!on) return {};
-  return {
-    onMouseEnter: (e: MouseEvent<E>) => {
-      takePageHue(e.currentTarget);
-      own.onMouseEnter?.(e);
-    },
-    onFocus: (e: FocusEvent<E>) => {
-      takePageHue(e.currentTarget);
-      own.onFocus?.(e);
-    },
-  };
 }
 
 /** textOf is what children say when they are words alone, and undefined when they hold an element. */
@@ -239,13 +204,9 @@ export function Button({
   // tell a screen reader this is a description rather than a control.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   const hover = bubble && !boxed ? tipHoverProps : undefined;
-  const tinted = pageHue(!hued && !verdict && !pressed && kind !== 'primary', {
-    onMouseEnter: rest.onMouseEnter ?? hover?.onMouseEnter,
-    onFocus: rest.onFocus ?? hover?.onFocus,
-  });
   const button = (
     <button
-      className={`glim-btn inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
+      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
         motion-safe:active:scale-[.97] ${
           transport
@@ -265,7 +226,6 @@ export function Button({
         if (hover) tip.triggerProps.ref.current = el;
       }}
       {...rest}
-      {...tinted}
     >
       {!hideIcon && icon && <Glyph>{icon}</Glyph>}
       {body}
@@ -547,10 +507,6 @@ export function IconBadge({
   // screen reader.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   const hover = bubble && !boxed ? tipHoverProps : undefined;
-  const tinted = pageHue(!hued && !(toggle && active), {
-    onMouseEnter: rest.onMouseEnter ?? hover?.onMouseEnter,
-    onFocus: rest.onFocus ?? hover?.onFocus,
-  });
   const button = (
     <button
       type="button"
@@ -558,7 +514,7 @@ export function IconBadge({
       // A badge showing text is not square: it keeps its height and
       // takes the width its words need, so the width, the padding and the
       // glyph size all fork on that.
-      className={`glim-btn flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
+      className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
         motion-safe:active:scale-[.97]
         ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'}
@@ -576,7 +532,6 @@ export function IconBadge({
         if (hover) tip.triggerProps.ref.current = el;
       }}
       {...rest}
-      {...tinted}
     >
       {showIcon && <Glyph>{icon}</Glyph>}
       {showText && <span className="whitespace-nowrap">{title}</span>}
@@ -612,11 +567,10 @@ export function IconBadge({
 
 /**
  * linkBadgeClass is the look of a badge that is a link rather than a button,
- * with its words beside the glyph or the glyph alone. The link takes pageHue's
- * handlers too, as it counts among the page's buttons.
+ * with its words beside the glyph or the glyph alone.
  */
 export function linkBadgeClass(showText: boolean): string {
-  return `glim-btn flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
+  return `flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
     transition duration-150 select-none motion-safe:active:scale-[.97]
     ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'} ${iconBadgeClass}`;
 }
@@ -630,7 +584,6 @@ export function LinkBadge({ href, title, className = '' }: { href: string; title
   const showText = labelMode === 'text' || labelMode === 'both';
   const tip = useTooltip<HTMLAnchorElement>(showText ? undefined : title);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
-  const hover = showText ? undefined : tipHoverProps;
   return (
     <>
       <a
@@ -638,8 +591,7 @@ export function LinkBadge({ href, title, className = '' }: { href: string; title
         target="_blank"
         rel="noopener noreferrer"
         aria-label={showText ? undefined : title}
-        {...hover}
-        {...pageHue<HTMLAnchorElement>(true, { onMouseEnter: hover?.onMouseEnter, onFocus: hover?.onFocus })}
+        {...(showText ? {} : tipHoverProps)}
         onClick={followExternal}
         className={`${linkBadgeClass(showText)} ${className}`}
       >

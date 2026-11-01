@@ -73,16 +73,16 @@ describe('leafTap', () => {
 describe('takePageHue', () => {
   const buttons = (n: number) => {
     document.body.innerHTML = '';
-    return Array.from({ length: n }, () => {
+    return Array.from({ length: n }, (_, i) => {
       const b = document.createElement('button');
-      b.className = 'glim-btn';
+      b.className = i % 2 ? 'glim-btn-bare' : 'glim-btn-subtle';
       document.body.append(b);
       return b;
     });
   };
   const tint = (el: HTMLElement) => el.style.getPropertyValue('--btn-tint');
 
-  it('gives two neighbouring buttons different colours under rainbow', () => {
+  it('gives a surface button and the glyph button beside it different colours under rainbow', () => {
     applyRainbow({ on: true });
     const [a, b] = buttons(2);
     takePageHue(a!);
