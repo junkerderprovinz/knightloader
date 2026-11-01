@@ -1,0 +1,1 @@
+In der App selbst ändert sich diesmal nichts. Das Update bringt dem Server Neues mit: Hoster-Links zeigen gleich nach dem Einfügen Namen, Größe und Online-Status, und Click'n'Load von filecrypt klappt über die Browser-Erweiterung.

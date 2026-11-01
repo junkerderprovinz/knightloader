@@ -36,37 +36,24 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [2.5.3] - 2026-11-01
+## [2.6.0] - 2026-11-01
 
-### Fixed
+### Added
 
-- **Click'n'Load from filecrypt reaches KnightLoader.** filecrypt sends its
-  links from a small helper window of its own, which has no toolbar. The
-  extension caught the links but could not open its popup there, so they
-  waited behind a yellow "…" on the toolbar icon while the helper closed
-  itself. The popup now opens in the browser window that shows the site, in
-  Firefox and in Chrome alike.
-
-## [2.5.2] - 2026-11-01
-
-### Changed
-
-- **Under rainbow every button lights up in a colour of its own.** KnightLoader
-  follows GlimStone 3.8.5, which the Components card names. The buttons of a
-  page count through the palette in the order they stand, so two buttons side
-  by side on a card no longer light up alike when the pointer or the keyboard
-  reaches them. A button with its own colour keeps it.
-
-### Fixed
-
-- **A pasted video page downloads its video.** With "Follow
-  pages and collect the files they link to" on, a pasted page that plays a
-  video and links a few screenshots was crawled for the screenshots, and the
-  video never reached yt-dlp. yt-dlp now looks at the page first. If it finds
-  a video or a playlist there, the page goes to yt-dlp and is not crawled; if
-  it finds nothing, the page is crawled for its files as before.
-
-## [2.5.1] - 2026-11-01
+- **Hoster links show their name, size and state as soon as they arrive.** A
+  rapidgator link or any other hoster link that a debrid service downloads
+  used to sit in the link collector as its bare address, with no size, until
+  it started. KnightLoader now asks the hoster plugins of its headless
+  JDownloader about each new batch at once, the way JDownloader's own link
+  collector does, and fills in the file name, the size and whether the file is
+  online. It costs no traffic and needs no account. Recheck asks them too.
+- **The desktop app keeps its Java up to date.** Once a week it asks Adoptium
+  for a newer Temurin 21 for the JDownloader it runs. With Update
+  automatically on the JDownloader row it fetches the new runtime, checks it
+  against Adoptium's SHA-256 and moves JDownloader onto it while none of its
+  downloads runs. The old runtime stays until JDownloader has started on the
+  new one and comes back if it does not. With only Check automatically on,
+  the row shows that a newer Java waits.
 
 ### Changed
 
@@ -77,9 +64,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   slides the columns the same way. The new order is saved once, when you drop
   the column, and with reduced motion or motion off the columns swap without
   the slide. On a touch screen, hold a head briefly and then move.
-- **KnightLoader follows GlimStone 3.8.2,** which the Components card names.
+- **KnightLoader follows GlimStone 3.8.5,** which the Components card names.
   Buttons take the accent under the pointer the way the design language
   describes it, and the symbols for each kind of file come from its list.
+  Under rainbow the buttons of a page count through the palette in the order
+  they stand, so two buttons side by side on a card no longer light up alike.
+  A button with its own colour keeps it.
 - **The Components card shows what KnightLoader updates or follows:**
   KnightLoader, yt-dlp, JDownloader and GlimStone. ffmpeg, UnRAR, Java and
   the built-in libraries ship inside KnightLoader and speak up where they are
@@ -87,25 +77,32 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **yt-dlp has no Back to the system copy button any more.** A fetched copy
   that is gone or does not start makes KnightLoader use the other yt-dlp by
   itself, and the row says so.
-- **The desktop app keeps its Java up to date.** Once a week it asks Adoptium
-  for a newer Temurin 21 for the JDownloader it runs. With Update
-  automatically on the JDownloader row it fetches the new runtime, checks it
-  against Adoptium's SHA-256 and moves JDownloader onto it while none of its
-  downloads runs. The old runtime stays until JDownloader has started on the
-  new one and comes back if it does not. With only Check automatically on,
-  the row shows that a newer Java waits.
 - **The pinned parts are checked every week.** The repository looks for a
   newer Temurin 21 and UnRAR and opens a pull request with the new versions
   and their checksums, and it notes a new GlimStone release.
 
 ### Fixed
 
+- **Click'n'Load from filecrypt reaches KnightLoader through the browser
+  extension.** filecrypt hands its links over from a small helper window of
+  its own, and two things stopped them there. Inside a container session the
+  helper carries a strict Content-Security-Policy that blocks its own check
+  for JDownloader, so it never sent anything; the page can no longer clear
+  the extension's JDownloader flag. And the window has no toolbar, so the
+  extension could not show its popup there; the popup now opens in the
+  browser window that shows the site, in Firefox and in Chrome alike.
 - **Click'n'Load names the program that holds its port.** With JDownloader
   running, switching Click'n'Load on showed the raw Windows error. KnightLoader
   now asks the system which program listens on the port and names it, with a
   short hint on what to close, and says the port is taken where the system
   does not tell. A KnightLoader that answers for itself can still be taken
   over.
+- **A pasted video page downloads its video.** With "Follow pages and collect
+  the files they link to" on, a pasted page that plays a video and links a few
+  screenshots was crawled for the screenshots, and the video never reached
+  yt-dlp. yt-dlp now looks at the page first. If it finds a video or a
+  playlist there, the page goes to yt-dlp and is not crawled; if it finds
+  nothing, the page is crawled for its files as before.
 - **A missing ffmpeg or UnRAR says so where it matters.** A yt-dlp download
   that needs ffmpeg to merge, convert or embed and finds none now fails as
   "No ffmpeg", with what to do on the desktop app, in the container and on a
