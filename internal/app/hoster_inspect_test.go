@@ -24,6 +24,13 @@ func (s *stubInspector) InspectLinks(_ context.Context, urls []string) ([]jd.Lin
 	return out, nil
 }
 
+// useJD wires the backend under the lock the app's own goroutines read it with.
+func useJD(a *App, be backend) {
+	a.bmu.Lock()
+	a.jd = be
+	a.bmu.Unlock()
+}
+
 func collectedLink(a *App, id, url string, mode core.DownloadMode) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -44,7 +51,7 @@ func TestHosterLinksTakeNameSizeAndStateFromJD(t *testing.T) {
 		part1: {Availability: core.AvailOnline, Name: "isle.of.dogs.part1.rar", Size: 4 << 30},
 		gone:  {Availability: core.AvailOffline, Name: "bbb"},
 	}}
-	a.jd = stub
+	useJD(a, stub)
 
 	a.inspectHosterLinks([]string{"p1", "gone", "plain"})
 
@@ -71,7 +78,7 @@ func TestJDDoesNotRenameANamedLink(t *testing.T) {
 	a.mu.Lock()
 	a.tasks["p1"].Name = "chosen.rar"
 	a.mu.Unlock()
-	a.jd = &stubInspector{answers: map[string]jd.LinkInfo{part: {Availability: core.AvailOnline, Name: "plugin.rar", Size: 10}}}
+	useJD(a, &stubInspector{answers: map[string]jd.LinkInfo{part: {Availability: core.AvailOnline, Name: "plugin.rar", Size: 10}}})
 
 	a.inspectHosterLinks([]string{"p1"})
 
