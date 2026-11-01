@@ -611,6 +611,10 @@ func (a *App) repairMeter(c *usenetCheck, ids []string, stage core.RepairStage, 
 // names of the par2 set's files to where they are, so a download that failed
 // for good but whose file the repair rebuilt counts as done.
 func (a *App) passUsenetCheck(c *usenetCheck, j usenet.Job, why string, files map[string]string) {
+	// The rebuilt rows are done before the job reads passed, so whoever sees
+	// the passed job, such as an arr app reading the history, never sees one
+	// of its files still failed.
+	a.adoptRebuilt(j.TaskIDs, files)
 	st := a.usenetStateFor()
 	st.jobs.SetCheck(j.ID, usenet.CheckPassed)
 	log.Printf("usenet: %s passed its par2 check: %s", j.Name, why)
@@ -619,7 +623,6 @@ func (a *App) passUsenetCheck(c *usenetCheck, j usenet.Job, why string, files ma
 	c.report, c.paths, c.blocks, c.shown = nil, nil, nil, nil
 	clear(c.damaged)
 	a.mu.Unlock()
-	a.adoptRebuilt(j.TaskIDs, files)
 	a.releaseUsenetFiles(j.TaskIDs)
 }
 

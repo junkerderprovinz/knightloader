@@ -86,6 +86,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   until ffmpeg is there. A RAR set that fails while no UnRAR could be started
   now says it was unpacked without UnRAR and suggests installing it or setting
   `KL_UNRAR` before trying again. yt-dlp's own words stay in the details.
+- **A release that par2 rebuilt is passed only once all its rows are done.**
+  A file that failed to download and was rebuilt by the repair could still
+  read as failed for a moment after its release passed the check, which an
+  arr app reading the history right then would count as a failed download.
 
 ### Security
 
