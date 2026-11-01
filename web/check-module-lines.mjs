@@ -35,6 +35,10 @@ for (const src of goFiles) {
     codes.add(m[1] + 'One');
   }
 }
+// The Click'n'Load row's lines are built beside its take-over, whose refusals
+// carry codes of their own under settings.linkIntake, so only line literals
+// count there.
+for (const m of read('..', 'internal', 'api', 'routes_cnl.go').matchAll(/\bline\{[^}]*?\bcode:\s*"(\w+)"/g)) codes.add(m[1]);
 
 const problems = [];
 if (codes.size === 0) problems.push('no module line codes found in internal/api; the patterns above do not match the Go source');
