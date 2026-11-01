@@ -41,6 +41,9 @@ type Playlist struct {
 	// Dropped counts entries that cannot be staged: deleted videos, nested
 	// playlists (a channel's tabs), or bare ids instead of URLs.
 	Dropped int
+	// Video is set when the link is one video yt-dlp can fetch, including
+	// one its generic extractor found in a page's player.
+	Video bool
 }
 
 // ProbePlaylist asks yt-dlp what a link lists without extracting any entry.
@@ -109,6 +112,7 @@ func parsePlaylist(out []byte) (Playlist, error) {
 	// yt-dlp uses "multi_video" for one work in several parts, which is
 	// handled like a playlist. Anything else lists nothing.
 	if raw.Type != "playlist" && raw.Type != "multi_video" {
+		pl.Video = raw.Type == "video" || raw.Type == ""
 		return pl, nil
 	}
 	pl.Entries = make([]PlaylistEntry, 0, len(raw.Entries))

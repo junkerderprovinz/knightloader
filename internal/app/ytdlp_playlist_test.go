@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -29,7 +30,9 @@ import (
 // than closing a channel as ytdlp_probe_test.go's fake does, because a hundred
 // entries mean a hundred title probes and a close-once fake would panic.
 type fakePlaylistBackend struct {
-	pl     ytdlp.Playlist
+	pl ytdlp.Playlist
+	// video is a page yt-dlp finds one video on.
+	video  string
 	err    error
 	mu     sync.Mutex
 	listed []string
@@ -47,6 +50,9 @@ func (b *fakePlaylistBackend) ProbePlaylist(_ context.Context, url string) (ytdl
 	b.mu.Unlock()
 	if b.err != nil {
 		return ytdlp.Playlist{}, b.err
+	}
+	if b.video != "" && url == b.video {
+		return ytdlp.Playlist{Title: "Clip", Video: true}, nil
 	}
 	// Only the playlist link lists anything, as a real yt-dlp answers: a video
 	// URL comes back with no entries. A fake that listed for every link would
@@ -165,9 +171,10 @@ func TestEachPlaylistEntryIsItsOwnJob(t *testing.T) {
 
 // The switch is the field the yt-dlp backend already reads for --no-playlist
 // rather than a second one beside it. Off means a playlist link is the single
-// video it points at, and yt-dlp is not asked for a listing at all.
+// video it points at, and with the crawl off as well, yt-dlp is not asked for a
+// listing at all.
 func TestAPlaylistLinkIsOneTaskWhenTheSettingIsOff(t *testing.T) {
-	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.Ytdlp.Playlist = false })
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.Ytdlp.Playlist, s.Crawl = false, false })
 	b := &fakePlaylistBackend{pl: ytdlp.Playlist{Title: "Greatest Hits", Entries: entries(3)}}
 	wireYtdlp(a, b)
 
@@ -332,5 +339,38 @@ func TestAPlaylistEntryDownloadsAsOneVideo(t *testing.T) {
 	})
 	if opts := a.ytdlpOptionsForTask(pasted.ID); !opts.Playlist {
 		t.Error("a pasted link lost the playlist setting, the only fallback when a listing cannot be read")
+	}
+}
+
+// A video page also links its preview images. Crawled, it would stage those and
+// drop the video, so a page yt-dlp finds a video on is staged as itself.
+func TestAVideoPageIsStagedForYtdlpAndNotCrawledForItsImages(t *testing.T) {
+	const page = "https://tube.example/video/42/clip/"
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.Crawl = true })
+	wireYtdlp(a, &fakePlaylistBackend{video: page})
+	fc := &fakeCrawler{yield: []crawler.Result{{URL: "https://tube.example/screenshots/1.jpg", Name: "1.jpg"}}}
+	a.Crawler = fc
+
+	created := a.AddLinks([]string{page}, "")
+
+	if len(fc.seen) != 0 {
+		t.Errorf("the crawler opened %v, a page yt-dlp found a video on", fc.seen)
+	}
+	if len(created) != 1 || created[0].URL != page || created[0].Resolver != "ytdlp" {
+		t.Fatalf("created %+v, want the page itself staged on ytdlp", created)
+	}
+}
+
+// A page yt-dlp finds nothing on is still crawled for its files.
+func TestAPageWithoutAVideoIsStillCrawled(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.Crawl = true })
+	wireYtdlp(a, &fakePlaylistBackend{err: errors.New("yt-dlp: Unsupported URL")})
+	fc := &fakeCrawler{yield: []crawler.Result{{URL: "https://files.example/one.bin", Name: "one.bin"}}}
+	a.Crawler = fc
+
+	created := a.AddLinks([]string{"https://files.example/downloads"}, "")
+
+	if len(created) != 1 || created[0].URL != "https://files.example/one.bin" {
+		t.Fatalf("created %+v, want the file the page links", created)
 	}
 }

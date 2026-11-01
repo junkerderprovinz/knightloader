@@ -27,6 +27,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
@@ -241,18 +242,25 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		// stream it was fetching. Listed or crawled without that session, it
 		// would only show its login page.
 		handedOver := len(batch.Headers.Headers) > 0 || batch.File
-		// A playlist becomes its videos rather than one task. This is asked
-		// before the crawl, which only claims yt-dlp links by exclusion.
-		if pl, ok := a.ytdlpPlaylist(u); ok && !handedOver {
-			b := &bucket{title: pl.Title}
-			b.tasks = a.stagePlaylistEntries(u, pl, pkg, batch)
+		// A playlist becomes its videos rather than one task, and a link
+		// yt-dlp knows is not crawled. This is asked before the crawl, which
+		// only claims yt-dlp links by exclusion.
+		var listing ytdlp.Playlist
+		listed := false
+		if !handedOver {
+			listing, listed = a.ytdlpListing(u)
+		}
+		if listed && len(listing.Entries) > 0 && a.Settings.Get().Ytdlp.Playlist {
+			b := &bucket{title: listing.Title}
+			b.tasks = a.stagePlaylistEntries(u, listing, pkg, batch)
 			created = append(created, b.tasks...)
 			buckets = append(buckets, b)
 			continue
 		}
+		ytdlpKnows := listed && (listing.Video || len(listing.Entries) > 0)
 		// A page that points at files becomes those files.
 		var crawled []crawler.Result
-		if !handedOver {
+		if !handedOver && !ytdlpKnows {
 			crawled = a.crawl(u, batch.Within)
 		}
 		if len(crawled) > 0 {
