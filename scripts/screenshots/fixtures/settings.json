@@ -60,6 +60,7 @@
   "rainbowRotate": false,
   "rainbowSeed": 0,
   "rainbowPalette": null,
+  "trustedProxies": [],
   "hideAccountsFromSidebar": false,
   "hideInstancesFromSidebar": false,
   "buttonLabels": "both",
