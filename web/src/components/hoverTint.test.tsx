@@ -32,14 +32,14 @@ async function classesOf(node: ReactNode): Promise<string> {
 
 it("gives the filled and the bare buttons and the badges the hover tint", async () => {
   expect(await classesOf(<Button kind="secondary">Cancel</Button>)).toContain(
-    "glim-btn-secondary",
+    "glim-btn-subtle",
   );
   expect(await classesOf(<Button kind="ghost">Details</Button>)).toContain(
-    "glim-btn-ghost",
+    "glim-btn-bare",
   );
   expect(
     await classesOf(<IconBadge icon={<IconPlay />} title="Start" />),
-  ).toContain("glim-btn-secondary");
+  ).toContain("glim-btn-subtle");
 });
 
 it("leaves the accent button, a pressed one and a verdict alone", async () => {

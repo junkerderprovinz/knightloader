@@ -1,32 +1,46 @@
-// A button that shows words wears a fill.
+// A button that shows words wears a fill (rule 38).
 //
-// The ghost kind draws no ground at all, so a ghost Button with words beside
-// its glyph reads as a line of text with an icon in front: "Done" on the
-// overview's needs card, Cancel in the windows and the copy buttons in the
-// settings were all reported as "not recognisable as a button". A ghost Button
-// may only be a glyph alone, in a row of its kind, such as a strip's close
-// cross or the move up and down of a card being arranged.
+// A button without a ground and with words beside its glyph reads as a line of
+// text with an icon in front. A bare button may only be a glyph alone, in a
+// toolbar or a list row.
 //
-// A Button is read from its opening tag to its end. It fails when it says
-// kind="ghost" and either carries `labelled`, which prints its title as words,
-// or has children, which are its words.
+// Each <Button> is read from its opening tag to its end. It fails when the tag
+// carries the bare kind and either a prop that prints its title as words, or
+// children, which are its words.
 //
 // Not checked: a kind chosen at run time, a lowercase <button> styled by hand,
-// and the extension's own pages, which draw their buttons in plain CSS.
+// and pages that draw their buttons in plain CSS.
 //
-// Run: `node web/check-bare-buttons.mjs`.
+// Run: node check-bare-buttons.mjs [--bare='kind="ghost"'] [--worded=labelled] <dir>...
+// Every .tsx under each directory is read, test files aside. --bare is the
+// attribute that makes a Button bare, and --worded a comma-separated list of
+// props that show words without children.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join, relative } from 'node:path';
 
-const web = dirname(fileURLToPath(import.meta.url));
-const src = join(web, 'src');
+const flags = new Map();
+const dirs = [];
+for (const arg of process.argv.slice(2)) {
+  const m = /^--(bare|worded)=(.*)$/.exec(arg);
+  if (m) flags.set(m[1], m[2]);
+  else dirs.push(arg);
+}
+if (!dirs.length) {
+  console.error('usage: node check-bare-buttons.mjs [--bare=ATTR] [--worded=PROP,...] <dir>...');
+  process.exit(2);
+}
+const bare = flags.get('bare') ?? 'kind="ghost"';
+const worded = (flags.get('worded') ?? 'labelled').split(',').filter(Boolean);
+const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const bareRe = new RegExp(`\\s${escape(bare)}`);
+const wordedRe = worded.length ? new RegExp(`\\s(?:${worded.map(escape).join('|')})(?=[\\s=/>])`) : null;
 
 function* sources(dir) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
-    if (statSync(p).isDirectory()) yield* sources(p);
-    else if (p.endsWith('.tsx') && !p.endsWith('.test.tsx')) yield p;
+    if (statSync(p).isDirectory()) {
+      if (name !== 'node_modules') yield* sources(p);
+    } else if (p.endsWith('.tsx') && !p.endsWith('.test.tsx')) yield p;
   }
 }
 
@@ -43,15 +57,16 @@ function openingTag(text, i) {
 }
 
 const problems = [];
-for (const file of sources(src)) {
-  const text = readFileSync(file, 'utf8');
-  for (const m of text.matchAll(/<Button\b/g)) {
-    const tag = openingTag(text, m.index);
-    if (!/\bkind="ghost"/.test(tag)) continue;
-    const worded = /\slabelled(?=[\s=/>])/.test(tag) || !tag.endsWith('/>');
-    if (!worded) continue;
-    const line = text.slice(0, m.index).split('\n').length;
-    problems.push(`${relative(web, file)}:${line}  a ghost Button with words; give it kind="secondary", or drop the words`);
+for (const dir of dirs) {
+  for (const file of sources(dir)) {
+    const text = readFileSync(file, 'utf8');
+    for (const m of text.matchAll(/<Button\b/g)) {
+      const tag = openingTag(text, m.index);
+      if (!bareRe.test(tag)) continue;
+      if (!wordedRe?.test(tag) && tag.endsWith('/>')) continue;
+      const line = text.slice(0, m.index).split('\n').length;
+      problems.push(`${relative(process.cwd(), file)}:${line}  a bare Button with words; give it a fill, or drop the words`);
+    }
   }
 }
 
