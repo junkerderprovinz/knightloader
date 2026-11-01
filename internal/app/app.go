@@ -41,6 +41,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/eventprog"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
@@ -717,6 +718,12 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	var requeue []string
 	for _, t := range existing {
 		changed, enqueue := a.reviveOnBoot(t, resume, queueWasLive)
+		// A host saved under one of a hoster's other domains shows under its
+		// main one, as a link added now does.
+		if h := hostalias.Canonical(t.Host); h != t.Host {
+			t.Host = h
+			changed = true
+		}
 		if changed {
 			revived = append(revived, *t)
 		}

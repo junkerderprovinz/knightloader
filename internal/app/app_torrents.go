@@ -17,6 +17,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
@@ -131,7 +132,9 @@ func torrentHost(uri string) string {
 	case torrent.IsURI(uri):
 		return "torrent-upload"
 	}
-	return hostOf(uri)
+	// Under the hoster's main domain, so a link to rg.to reads as
+	// rapidgator.net, as JDownloader shows it.
+	return hostalias.Canonical(hostOf(uri))
 }
 
 // torrentSize is the byte count to show at stage time: the selected subset
