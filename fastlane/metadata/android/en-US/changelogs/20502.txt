@@ -1,0 +1,1 @@
+Nothing changes in the app this time. This release brings fixes for the KnightLoader server and web interface, so the app works just as before.

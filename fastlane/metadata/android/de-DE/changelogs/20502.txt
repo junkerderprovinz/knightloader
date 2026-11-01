@@ -1,0 +1,1 @@
+In der App ändert sich diesmal nichts. Das Update bringt Korrekturen für den KnightLoader-Server und die Weboberfläche, die App läuft wie gewohnt.
