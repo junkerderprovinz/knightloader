@@ -66,7 +66,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the row shows that a newer Java waits.
 - **The pinned parts are checked every week.** The repository looks for a
   newer Temurin 21 and UnRAR and opens a pull request with the new versions
-  and their checksums, and it notes a new GlimStone release.
+  and their checksums, and it notes a new GlimStone release. Dependabot
+  brings weekly updates for the Go modules, the npm packages, the workflows
+  and the image's base, with minor and patch updates grouped per ecosystem
+  and each major one on its own.
 
 ### Fixed
 
