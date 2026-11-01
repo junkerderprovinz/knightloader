@@ -101,20 +101,20 @@ function Glyph({ children }: { children: ReactNode }) {
  * then runs the handlers the button already has. A button with a position of
  * its own or a fill passes `on` false and keeps its colour.
  */
-function pageHue(
+export function pageHue<E extends HTMLElement = HTMLButtonElement>(
   on: boolean,
   own: {
-    onMouseEnter?: (e: MouseEvent<HTMLButtonElement>) => void;
-    onFocus?: (e: FocusEvent<HTMLButtonElement>) => void;
+    onMouseEnter?: (e: MouseEvent<E>) => void;
+    onFocus?: (e: FocusEvent<E>) => void;
   },
 ) {
   if (!on) return {};
   return {
-    onMouseEnter: (e: MouseEvent<HTMLButtonElement>) => {
+    onMouseEnter: (e: MouseEvent<E>) => {
       takePageHue(e.currentTarget);
       own.onMouseEnter?.(e);
     },
-    onFocus: (e: FocusEvent<HTMLButtonElement>) => {
+    onFocus: (e: FocusEvent<E>) => {
       takePageHue(e.currentTarget);
       own.onFocus?.(e);
     },
@@ -612,10 +612,11 @@ export function IconBadge({
 
 /**
  * linkBadgeClass is the look of a badge that is a link rather than a button,
- * with its words beside the glyph or the glyph alone.
+ * with its words beside the glyph or the glyph alone. The link takes pageHue's
+ * handlers too, as it counts among the page's buttons.
  */
 export function linkBadgeClass(showText: boolean): string {
-  return `flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
+  return `glim-btn flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
     transition duration-150 select-none motion-safe:active:scale-[.97]
     ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'} ${iconBadgeClass}`;
 }
@@ -629,6 +630,7 @@ export function LinkBadge({ href, title, className = '' }: { href: string; title
   const showText = labelMode === 'text' || labelMode === 'both';
   const tip = useTooltip<HTMLAnchorElement>(showText ? undefined : title);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  const hover = showText ? undefined : tipHoverProps;
   return (
     <>
       <a
@@ -636,7 +638,8 @@ export function LinkBadge({ href, title, className = '' }: { href: string; title
         target="_blank"
         rel="noopener noreferrer"
         aria-label={showText ? undefined : title}
-        {...(showText ? {} : tipHoverProps)}
+        {...hover}
+        {...pageHue<HTMLAnchorElement>(true, { onMouseEnter: hover?.onMouseEnter, onFocus: hover?.onFocus })}
         onClick={followExternal}
         className={`${linkBadgeClass(showText)} ${className}`}
       >
