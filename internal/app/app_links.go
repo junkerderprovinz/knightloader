@@ -308,6 +308,11 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		}
 	}
 	a.catchAll(created)
+	// One linkgrabber round for the whole batch, so a paste of fifty parts is
+	// not fifty.
+	if ids := idsOf(created); len(ids) > 0 {
+		a.spawn(func() { a.inspectHosterLinks(ids) })
+	}
 	return created
 }
 

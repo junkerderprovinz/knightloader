@@ -25,6 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -410,6 +411,13 @@ func (a *App) RecheckTasks(ids []string) {
 	for _, id := range order {
 		a.runCheck(batches[id])
 	}
+	// After the services' verdicts, so a definite answer from JD's plugin
+	// stays where a debrid service could only say uncheckable.
+	checked := make([]string, 0, len(targets))
+	for _, t := range targets {
+		checked = append(checked, t.ID)
+	}
+	a.inspectHosterLinks(checked)
 }
 
 // checkBatch is one backend's share of a recheck: the tasks and the links to ask
@@ -461,6 +469,72 @@ func (a *App) settleCheck(b *checkBatch, got []core.Availability) {
 			a.setAvailability(id, core.AvailUncheckable, "", core.ReasonUnknown)
 		}
 		a.endActivity(ActivityLinkCheck, 1)
+	}
+}
+
+// linkInspector is the JD backend asking its hoster plugins what a link is
+// without downloading it.
+type linkInspector interface {
+	InspectLinks(ctx context.Context, urls []string) ([]jd.LinkInfo, error)
+}
+
+// inspectHosterLinks fills in the name, size and state of collected hoster
+// links the way JD's own link collector does. A debrid service unlocks such a
+// link but has no free way to name it, so without JD's plugins the collector
+// shows the bare address and no size until the download starts.
+func (a *App) inspectHosterLinks(ids []string) {
+	a.bmu.RLock()
+	insp, ok := a.jd.(linkInspector)
+	a.bmu.RUnlock()
+	if !ok || a.resolverOff("jd") {
+		return
+	}
+	a.mu.Lock()
+	var targets, urls []string
+	for _, id := range ids {
+		t := a.tasks[id]
+		// Only hoster links carry a mode. A plain file has its HEAD probe and a
+		// media page its yt-dlp title.
+		if t == nil || t.Status != core.StatusCollected || t.Skipped || t.Mode == core.ModeUnknown {
+			continue
+		}
+		targets = append(targets, id)
+		urls = append(urls, t.URL)
+	}
+	a.mu.Unlock()
+	if len(targets) == 0 {
+		return
+	}
+	a.beginActivity(ActivityLinkCheck, len(targets))
+	defer a.endActivity(ActivityLinkCheck, len(targets))
+	ctx, cancel := context.WithTimeout(a.ctx, checkTimeout)
+	defer cancel()
+	infos, err := insp.InspectLinks(ctx, urls)
+	if err != nil {
+		log.Printf("jd could not inspect %d links: %v", len(urls), err)
+		return
+	}
+	for i, info := range infos {
+		id := targets[i]
+		switch info.Availability {
+		case core.AvailOffline:
+			a.setAvailability(id, core.AvailOffline, "offline (jd)", core.ReasonGone)
+			continue
+		case core.AvailOnline:
+		default:
+			// No opinion from the plugin leaves whatever was known before.
+			continue
+		}
+		// Only an online answer carries the plugin's own name. Otherwise JD
+		// shows what it read off the address.
+		if info.Name != "" {
+			a.setTaskName(id, info.Name)
+		}
+		if info.Size > 0 {
+			a.onUpdate(id, core.Update{Size: info.Size})
+			a.holdIfDownloaded(id)
+		}
+		a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
 	}
 }
 

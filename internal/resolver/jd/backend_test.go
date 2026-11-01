@@ -165,6 +165,8 @@ type fakeJDCheck struct {
 	t     *testing.T
 	mu    sync.Mutex
 	avail map[string]string // url -> "ONLINE"/"OFFLINE"/anything else
+	names map[string]string
+	sizes map[string]int64
 	// collecting is what isCollecting answers.
 	collecting bool
 	links      string // the raw links string JD received
@@ -216,7 +218,7 @@ func (f *fakeJDCheck) handler() http.Handler {
 			out := make([]CrawledLink, 0, len(f.avail))
 			i := int64(100)
 			for u, a := range f.avail {
-				out = append(out, CrawledLink{UUID: i, URL: u, Availability: a})
+				out = append(out, CrawledLink{UUID: i, URL: u, Availability: a, Name: f.names[u], Size: f.sizes[u]})
 				i++
 			}
 			b, err := json.Marshal(out)
@@ -233,6 +235,38 @@ func (f *fakeJDCheck) handler() http.Handler {
 			http.NotFound(w, r)
 		}
 	})
+}
+
+func TestInspectLinksCarriesNameAndSize(t *testing.T) {
+	orig := pollInterval
+	pollInterval = 5 * time.Millisecond
+	defer func() { pollInterval = orig }()
+
+	const part1 = "https://rg.to/file/aaa"
+	const part2 = "https://rg.to/file/bbb"
+	fake := newFakeJDCheck(t, map[string]string{part1: "ONLINE", part2: "OFFLINE"})
+	fake.names = map[string]string{part1: "movie.part1.rar", part2: "bbb"}
+	fake.sizes = map[string]int64{part1: 4 << 30}
+	srv := httptest.NewServer(fake.handler())
+	defer srv.Close()
+
+	b := NewBackend(srv.URL, func(string, core.Update) {})
+	got, err := b.InspectLinks(context.Background(), []string{part1, part2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []LinkInfo{
+		{Availability: core.AvailOnline, Name: "movie.part1.rar", Size: 4 << 30},
+		{Availability: core.AvailOffline, Name: "bbb"},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("got %d answers, want %d", len(got), len(want))
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("answer %d = %+v, want %+v", i, got[i], want[i])
+		}
+	}
 }
 
 // The fake answers in random map order, so matching by position would flip
