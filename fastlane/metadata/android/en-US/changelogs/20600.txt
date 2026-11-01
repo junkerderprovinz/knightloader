@@ -1,0 +1,1 @@
+Nothing changes in the app itself this time. The server gets the news: hoster links show their name, size and online state as soon as they arrive, and Click'n'Load from filecrypt works through the browser extension.
