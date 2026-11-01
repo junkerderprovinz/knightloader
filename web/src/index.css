@@ -1294,6 +1294,27 @@ body {
   transition: translate var(--drag-settle-dur) var(--drag-settle-ease);
 }
 
+/* A list column carried by its head (components/columnDrag.ts) is many cells,
+   one per row, so it cannot scale or cast a shadow as one item: each cell would
+   draw its own. It covers the columns it passes with the card's ground instead,
+   edged on both sides, and every cell of it reads the pointer's travel from
+   --kl-col-dx on the table. */
+[data-col-drag][data-col-drag] {
+  transition: translate var(--drag-settle-dur) var(--drag-settle-ease);
+}
+[data-col-drag="held"][data-col-drag="held"],
+[data-col-drag="settle"][data-col-drag="settle"] {
+  position: relative;
+  z-index: var(--drag-lift-z);
+  translate: var(--kl-col-dx, 0px) 0;
+  background-color: var(--carbon-surface);
+  box-shadow: inset 1px 0 0 var(--carbon-border), inset -1px 0 0 var(--carbon-border);
+}
+[data-col-drag="held"][data-col-drag="held"] {
+  cursor: grabbing;
+  transition: none;
+}
+
 /* .glim-focus-drawn marks an element whose focus is drawn another way: an
    input inside a search box rings the whole box, and a picker inside it
    rings itself. A second ring around it would draw the same focus twice. */

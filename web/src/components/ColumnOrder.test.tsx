@@ -106,3 +106,107 @@ describe('the order of the columns', () => {
     expect(heads()).toEqual(before);
   });
 });
+
+describe('dragging a column head', () => {
+  // jsdom lays nothing out: every cell is 100px wide and stands after the
+  // cells before it in its row.
+  beforeEach(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
+      configurable: true,
+      get(this: HTMLElement) {
+        return this.dataset.cell ? 100 : 0;
+      },
+    });
+    Object.defineProperty(HTMLElement.prototype, 'offsetLeft', {
+      configurable: true,
+      get(this: HTMLElement) {
+        const row = Array.from(this.parentElement?.children ?? []) as HTMLElement[];
+        return row.slice(0, row.indexOf(this)).filter((c) => c.dataset.cell).length * 100;
+      },
+    });
+  });
+  afterEach(() => {
+    delete (HTMLElement.prototype as { offsetWidth?: number }).offsetWidth;
+    delete (HTMLElement.prototype as { offsetLeft?: number }).offsetLeft;
+    vi.useRealTimers();
+  });
+
+  const cells = () =>
+    [...host.querySelectorAll<HTMLElement>('[data-task-id="a"] > [data-cell]')].map((c) => c.dataset.cell);
+  const pointer = (type: string, x: number, target: EventTarget = document) =>
+    act(async () => {
+      target.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: x, clientY: 5, button: 0, pointerType: 'mouse' }));
+    });
+
+  it('moves the head and the cells under it while the pointer is down, and keeps the order on release', async () => {
+    vi.useFakeTimers();
+    await show('collector');
+    const before = heads();
+    const at = before.indexOf('size');
+    const want = [...before];
+    want.splice(at, 1);
+    want.splice(at - 2, 0, 'size');
+
+    await pointer('pointerdown', at * 100 + 50, head('size'));
+    await pointer('pointermove', at * 100 + 40);
+    await pointer('pointermove', (at - 2) * 100 + 40);
+    expect(heads()).toEqual(want);
+    expect(cells()).toEqual(want);
+
+    await pointer('pointerup', (at - 2) * 100 + 40);
+    await act(async () => vi.runAllTimers());
+    expect(heads()).toEqual(want);
+    expect(cells()).toEqual(want);
+  });
+
+  it('puts the columns back on Escape', async () => {
+    vi.useFakeTimers();
+    await show('collector');
+    const before = heads();
+    const at = before.indexOf('size');
+    await pointer('pointerdown', at * 100 + 50, head('size'));
+    await pointer('pointermove', at * 100 + 40);
+    await pointer('pointermove', (at - 2) * 100 + 40);
+    expect(heads()).not.toEqual(before);
+    await act(async () => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
+    await pointer('pointerup', (at - 2) * 100 + 40);
+    await act(async () => vi.runAllTimers());
+    expect(heads()).toEqual(before);
+    expect(cells()).toEqual(before);
+  });
+
+  it('slides the two columns Alt and an arrow key swap, head and cells, and then lets them rest', async () => {
+    vi.useFakeTimers();
+    await show('collector');
+    const before = heads();
+    const at = before.indexOf('size');
+    const passed = before[at - 1]!;
+    head('size').focus();
+    await act(async () => {
+      head('size').dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowLeft', altKey: true }));
+    });
+    const sliding = (id: string) =>
+      [...host.querySelectorAll<HTMLElement>(`[data-cell="${id}"]`)].map((c) => c.dataset.colDrag);
+    expect(sliding('size').length).toBeGreaterThan(1);
+    expect(new Set([...sliding('size'), ...sliding(passed)])).toEqual(new Set(['shift']));
+    expect(host.querySelectorAll('[data-col-drag]')).toHaveLength(sliding('size').length * 2);
+    await act(async () => vi.runAllTimers());
+    expect(host.querySelector('[data-col-drag]')).toBeNull();
+    expect(heads().indexOf('size')).toBe(at - 1);
+  });
+
+  it('does not sort by the column it drops', async () => {
+    vi.useFakeTimers();
+    await show('collector');
+    const at = heads().indexOf('size');
+    await pointer('pointerdown', at * 100 + 50, head('size'));
+    await pointer('pointermove', at * 100 + 40);
+    await pointer('pointerup', at * 100 + 40);
+    await act(async () => {
+      head('size').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+    });
+    expect(head('size').getAttribute('aria-sort')).toBeNull();
+  });
+});

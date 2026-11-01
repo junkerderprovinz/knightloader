@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type DragEvent,
   type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
@@ -84,6 +83,7 @@ import {
   type PresetMenus,
 } from './VariantPicker';
 import { ColumnMenu } from './ColumnMenu';
+import { dropColumn, useColumnDrag, withVisible, type ColumnDrag } from './columnDrag';
 import { ContextMenu, type MenuGroup } from './ContextMenu';
 import { AnchoredPanel } from './AnchoredPanel';
 import type { Rename } from './ListToolbar';
@@ -103,7 +103,6 @@ import {
   isDefaultSort,
   gridTemplate,
   isParked,
-  moveColumn,
   stepColumn,
   nextSort,
   resolveLayout,
@@ -554,6 +553,7 @@ function TaskRow({
         return (
           <div
             key={col.id}
+            data-cell={col.id}
             dir={col.ltr ? 'ltr' : undefined}
             // The name cell is the tree column, so a link inside a package is
             // indented under it, which is the second half of what makes the
@@ -1134,6 +1134,7 @@ function PackageRow({
       {columns.map((col) => (
         <div
           key={col.id}
+          data-cell={col.id}
           dir={torrent && col.ltr ? 'ltr' : undefined}
           className={`min-w-0 truncate px-2 text-xs text-carbon-textSub ${col.id === 'name' ? IN_NAME_COL : ''} ${
             col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'
@@ -1373,10 +1374,10 @@ function ResizeHandle({
 /**
  * The header: column labels, and the three things you can do to a column.
  *
- * The label is the draggable element and the resize handle is its sibling rather
- * than a child, because a handle inside the drag source turns every resize into
- * a half-started reorder. Alt with an arrow key moves the focused column one
- * place, for whoever cannot drag.
+ * The label is what a drag takes hold of and the resize handle is its sibling
+ * rather than a child, so a press on the handle never starts a reorder. Alt
+ * with an arrow key moves the focused column one place, for whoever cannot
+ * drag.
  */
 function Header({
   layout,
@@ -1384,7 +1385,7 @@ function Header({
   sort,
   onSort,
   onSortDir,
-  onReorder,
+  columnDrag,
   onStep,
   onResize,
   onResizeReset,
@@ -1399,7 +1400,7 @@ function Header({
   sort: SortState | null;
   onSort: (id: ColumnId) => void;
   onSortDir: (id: ColumnId, dir: SortState['dir']) => void;
-  onReorder: (id: ColumnId, target: ColumnId, after: boolean) => void;
+  columnDrag: ColumnDrag;
   onStep: (id: ColumnId, towardsEnd: boolean) => void;
   onResize: (id: ColumnId, phase: 'start' | 'move' | 'end', e: PointerEvent<HTMLElement>) => void;
   onResizeReset: (id: ColumnId) => void;
@@ -1411,7 +1412,6 @@ function Header({
   onTipDone: () => void;
 }) {
   const { t } = useT();
-  const [dragId, setDragId] = useState<ColumnId | null>(null);
   const row = useRef<HTMLDivElement>(null);
   // The ▾ whose filter is open, and the element its window hangs under.
   const [filterOpen, setFilterOpen] = useState<ColumnId | null>(null);
@@ -1443,17 +1443,6 @@ function Header({
     setStepped(null);
   }, [stepped, layout]);
 
-  function drop(e: DragEvent<HTMLDivElement>, target: ColumnDef) {
-    e.preventDefault();
-    const from = dragId;
-    setDragId(null);
-    if (!from || from === target.id) return;
-    const r = e.currentTarget.getBoundingClientRect();
-    const middle = r.left + r.width / 2;
-    const after = document.documentElement.dir === 'rtl' ? e.clientX < middle : e.clientX > middle;
-    onReorder(from, target.id, after);
-  }
-
   return (
     <div
       ref={row}
@@ -1477,22 +1466,11 @@ function Header({
         const sorted = sort?.id === col.id ? sort.dir : null;
         const sortable = !!col.compare;
         return (
-          <div
-            key={col.id}
-            className={`relative flex items-center ${dragId === col.id ? 'opacity-50' : ''}`}
-            onDragOver={(e) => dragId && e.preventDefault()}
-            onDrop={(e) => drop(e, col)}
-          >
+          // data-cell marks the head as the top cell of its column, which a drag
+          // carries along with every cell below it (columnDrag.ts).
+          <div key={col.id} data-cell={col.id} className="relative flex items-center">
             <button
               type="button"
-              draggable
-              onDragStart={(e) => {
-                setDragId(col.id);
-                e.dataTransfer.effectAllowed = 'move';
-                // Firefox starts no drag at all without payload on the transfer.
-                e.dataTransfer.setData('text/plain', col.id);
-              }}
-              onDragEnd={() => setDragId(null)}
               data-col={col.id}
               onKeyDown={(e) => {
                 if (!e.altKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
@@ -1502,14 +1480,20 @@ function Header({
                 setStepped(col.id);
               }}
               onPointerDown={(e) => {
+                columnDrag.press(e, col.id);
                 if (e.pointerType !== 'touch') return;
                 longPressed.current = false;
                 const at = { x: e.clientX, y: e.clientY };
                 press.current = {
                   ...at,
                   timer: window.setTimeout(() => {
-                    longPressed.current = true;
                     press.current = null;
+                    // A finger that held and then moved is carrying the
+                    // column; one that held still wants the menu, and a move
+                    // after it opens is no drag.
+                    if (columnDrag.carrying()) return;
+                    columnDrag.cancel();
+                    longPressed.current = true;
                     setTouchMenu({ id: col.id, at });
                   }, LONG_PRESS),
                 };
@@ -1520,7 +1504,8 @@ function Header({
               }}
               onPointerUp={endPress}
               onPointerCancel={endPress}
-              onClick={() => {
+              onClick={(e) => {
+                if (columnDrag.endsDrag(e)) return;
                 if (longPressed.current) {
                   longPressed.current = false;
                   return;
@@ -2234,6 +2219,13 @@ export function TaskListCard({
 
   const heads = useHeadWidths(profile);
   const layout = useMemo(() => resolveLayout(profile, stored, heads), [profile, stored, heads]);
+  const columnDrag = useColumnDrag({
+    ids: layout.visible.map((c) => c.id),
+    table: tableRef,
+    onDrop: (held, live) => persist({ order: dropColumn(layout.order.map((c) => c.id), live, held) }),
+  });
+  // The columns as drawn, in the live order while one is carried.
+  const shown = withVisible(layout, columnDrag.order);
   const folded = fold?.folded === true;
   const ctx = useMemo<CellContext>(
     () => ({ t, base, profile, onRemovePackage, extractions, stopMark }),
@@ -3496,7 +3488,7 @@ export function TaskListCard({
     },
   };
 
-  const template = gridTemplate(layout);
+  const template = gridTemplate(shown);
 
   function persist(next: Partial<ColumnLayout>): void {
     setStored({ ...toStored(layout), ...next });
@@ -3740,14 +3732,14 @@ export function TaskListCard({
               style={
                 {
                   ['--kl-cols' as string]: template,
-                  ['--kl-name-col' as string]: layout.visible.findIndex((c) => c.id === 'name') + 1,
+                  ['--kl-name-col' as string]: shown.visible.findIndex((c) => c.id === 'name') + 1,
                   ['--btn-h' as string]: `${metrics.control}px`,
                   ['--row-pad' as string]: `${metrics.pad}px`,
                 } as CSSProperties
               }
             >
               <Header
-                layout={layout}
+                layout={shown}
                 profile={profile}
                 sort={sort}
                 onSort={(id) => setSort(nextSort(storedSort, id, defaultSort(profile)))}
@@ -3756,10 +3748,9 @@ export function TaskListCard({
                 onSearch={onSearch}
                 tip={!tipDone}
                 onTipDone={doneWithTip}
-                onReorder={(id, target, after) =>
-                  persist({ order: moveColumn(layout.order.map((c) => c.id), id, target, after) })
-                }
-                onStep={(id, towardsEnd) =>
+                columnDrag={columnDrag}
+                onStep={(id, towardsEnd) => {
+                  columnDrag.slide();
                   persist({
                     order: stepColumn(
                       layout.order.map((c) => c.id),
@@ -3767,8 +3758,8 @@ export function TaskListCard({
                       id,
                       towardsEnd,
                     ),
-                  })
-                }
+                  });
+                }}
                 onResize={onResize}
                 onResizeReset={resetWidth}
                 onMenu={setMenuAt}
@@ -3866,7 +3857,7 @@ export function TaskListCard({
                       siblings={fileLists.get(row.task.id) ?? []}
                       base={base}
                       ctx={ctx}
-                      columns={layout.visible}
+                      columns={shown.visible}
                       current={keys.currentKey === row.key}
                       onKeyDown={(e) => keys.onRowKeyDown(e, row.key)}
                       onChanged={(files) => putFiles(row.task.id, files)}
@@ -3880,7 +3871,7 @@ export function TaskListCard({
                       items={row.items}
                       base={base}
                       ctx={ctx}
-                      columns={layout.visible}
+                      columns={shown.visible}
                       selection={selection}
                       collapsed={row.collapsed}
                       divider={row.divider}
@@ -3907,7 +3898,7 @@ export function TaskListCard({
                       index={row.index}
                       base={base}
                       ctx={ctx}
-                      columns={layout.visible}
+                      columns={shown.visible}
                       selection={selection}
                       dnd={dnd}
                       level={row.level}
