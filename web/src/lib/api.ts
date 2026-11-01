@@ -2277,6 +2277,8 @@ export interface JDStatus {
   setupTotal?: number;
   /** The Java runtime the desktop build fetched for JDownloader. */
   runtime?: { vendor: string; version: string };
+  /** A newer Java runtime the weekly question found that JDownloader does not run on yet. */
+  runtimeUpdate?: string;
   /** Whether the automatic question found an update JDownloader has not installed yet. */
   updateWaits?: boolean;
 }

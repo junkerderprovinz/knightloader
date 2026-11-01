@@ -816,7 +816,12 @@ function JDUpdates({ register }: { register: Register }) {
   else if (failed) status = { text: t('settings.info.statusFailed'), detail: failed, tone: 'fail' };
   else if (back) status = { text: t('settings.info.statusDone'), tone: 'ok' };
   else if (jd && !jd.reachable) status = { text: t('health.state.failed'), tone: 'fail' };
-  else if (waits) status = { text: t('settings.info.updatesFound', { n: 1 }), tone: 'warn' };
+  else if (waits || jd?.runtimeUpdate)
+    status = {
+      text: t('settings.info.updatesFound', { n: Number(waits) + Number(Boolean(jd?.runtimeUpdate)) }),
+      detail: jd?.runtimeUpdate && `Java ${jd.runtimeUpdate}`,
+      tone: 'warn',
+    };
   const busy = checking || restarting;
   // Without a JDownloader there is nothing to ask.
   useCheck(register, 'jdownloader', jd?.configured && !restarting ? onCheck : null);

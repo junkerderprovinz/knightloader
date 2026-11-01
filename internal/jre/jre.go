@@ -2,8 +2,9 @@
 // JDownloader on: a pinned Eclipse Temurin JRE from Adoptium's releases on
 // GitHub, checked against a SHA-256 kept in this file and unpacked into the
 // app's data folder. A newer KnightLoader that pins a newer runtime replaces
-// the old one on its first start. The container image carries its own JRE and
-// never uses this.
+// the old one on its first start, and between releases a weekly update fetches
+// a newer Temurin 21 through Adoptium's API (update.go). The container image
+// carries its own JRE and never uses this.
 package jre
 
 import (
@@ -14,7 +15,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -96,20 +96,7 @@ func Java(dataDir string) string {
 
 // Load reads the record of the runtime in place, or returns nil when there is
 // none.
-func Load(dataDir string) (*Record, error) {
-	b, err := os.ReadFile(filepath.Join(Dir(dataDir), recordFile))
-	if errors.Is(err, fs.ErrNotExist) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	var rec Record
-	if err := json.Unmarshal(b, &rec); err != nil {
-		return nil, err
-	}
-	return &rec, nil
-}
+func Load(dataDir string) (*Record, error) { return loadRecord(Dir(dataDir)) }
 
 // smokeTest runs the unpacked java once before it is put in place; the tests
 // replace it, since their archives hold no real runtime.
@@ -128,13 +115,14 @@ var smokeTest = func(ctx context.Context, java string) error {
 
 // Ensure returns the java of the pinned runtime, fetching it first when the
 // data folder holds no runtime or an older one. progress hears how much of the
-// archive has arrived, and of how much; total is -1 while unknown.
+// archive has arrived, and of how much; total is -1 while unknown. A newer
+// runtime the weekly update put in place is kept.
 func Ensure(ctx context.Context, dataDir string, progress func(done, total int64)) (string, error) {
 	want, ok := pinned[runtime.GOOS+"/"+runtime.GOARCH]
 	if !ok {
 		return "", fmt.Errorf("there is no Java runtime for %s/%s", runtime.GOOS, runtime.GOARCH)
 	}
-	if rec, err := Load(dataDir); err == nil && rec != nil && rec.Version == Version && rec.SHA256 == want.sha256 {
+	if rec, err := Load(dataDir); err == nil && rec != nil && (rec.Version == Version && rec.SHA256 == want.sha256 || Compare(rec.Version, Version) > 0) {
 		if fi, err := os.Stat(Java(dataDir)); err == nil && fi.Mode().IsRegular() {
 			return Java(dataDir), nil
 		}
@@ -169,11 +157,7 @@ func Ensure(ctx context.Context, dataDir string, progress func(done, total int64
 		return "", err
 	}
 	rec := Record{Vendor: Vendor, Version: Version, Archive: want.name, SHA256: want.sha256, FetchedAt: time.Now().UTC()}
-	b, err := json.MarshalIndent(rec, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	if err := os.WriteFile(filepath.Join(home, recordFile), append(b, '\n'), 0o644); err != nil {
+	if err := writeRecord(home, rec); err != nil {
 		return "", err
 	}
 	if err := swapIn(home, Dir(dataDir)); err != nil {
