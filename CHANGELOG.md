@@ -38,21 +38,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
-### Fixed
-
-- **Click'n'Load names the program that holds its port.** With JDownloader
-  running, switching Click'n'Load on showed the raw Windows error. KnightLoader
-  now asks the system which program listens on the port and names it, with a
-  short hint on what to close, and says the port is taken where the system
-  does not tell. A KnightLoader that answers for itself can still be taken
-  over.
-- **A missing ffmpeg or UnRAR says so where it matters.** A yt-dlp download
-  that needs ffmpeg to merge, convert or embed and finds none now fails as
-  "No ffmpeg", with what to do on the desktop app, in the container and on a
-  self-built install, instead of yt-dlp's raw line, and it is not retried
-  until ffmpeg is there. A RAR set that fails while no UnRAR could be started
-  now says it was unpacked without UnRAR and suggests installing it or setting
-  `KL_UNRAR` before trying again. yt-dlp's own words stay in the details.
 ### Changed
 
 - **Columns move live while you drag them.** Grab a column head on Downloads
@@ -72,6 +57,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **yt-dlp has no Back to the system copy button any more.** A fetched copy
   that is gone or does not start makes KnightLoader use the other yt-dlp by
   itself, and the row says so.
+- **The desktop app keeps its Java up to date.** Once a week it asks Adoptium
+  for a newer Temurin 21 for the JDownloader it runs. With Update
+  automatically on the JDownloader row it fetches the new runtime, checks it
+  against Adoptium's SHA-256 and moves JDownloader onto it while none of its
+  downloads runs. The old runtime stays until JDownloader has started on the
+  new one and comes back if it does not. With only Check automatically on,
+  the row shows that a newer Java waits.
+- **The pinned parts are checked every week.** The repository looks for a
+  newer Temurin 21 and UnRAR and opens a pull request with the new versions
+  and their checksums, and it notes a new GlimStone release.
 
 ### Fixed
 
@@ -81,13 +76,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   short hint on what to close, and says the port is taken where the system
   does not tell. A KnightLoader that answers for itself can still be taken
   over.
-- **The desktop app keeps its Java up to date.** Once a week it asks Adoptium
-  for a newer Temurin 21 for the JDownloader it runs. With **Update
-  automatically** on the JDownloader row it fetches the new runtime, checks it
-  against Adoptium's SHA-256 and moves JDownloader onto it while none of its
-  downloads runs. The old runtime stays until JDownloader has started on the
-  new one and comes back if it does not. With only **Check automatically**
-  on, the row shows that a newer Java waits.
+- **A missing ffmpeg or UnRAR says so where it matters.** A yt-dlp download
+  that needs ffmpeg to merge, convert or embed and finds none now fails as
+  "No ffmpeg", with what to do on the desktop app, in the container and on a
+  self-built install, instead of yt-dlp's raw line, and it is not retried
+  until ffmpeg is there. A RAR set that fails while no UnRAR could be started
+  now says it was unpacked without UnRAR and suggests installing it or setting
+  `KL_UNRAR` before trying again. yt-dlp's own words stay in the details.
 
 ### Security
 
