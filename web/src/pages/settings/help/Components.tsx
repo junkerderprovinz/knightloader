@@ -165,6 +165,7 @@ function CheckAllButton({ checks }: { checks: RefObject<Map<string, Check>> }) {
     <>
       <Button
         kind="secondary"
+        data-new="check-all"
         icon={checking ? <IconSync /> : face.icon}
         verdict={checking ? undefined : face.verdict}
         shake={shake}
@@ -905,12 +906,14 @@ function JDUpdates({ register }: { register: Register }) {
       settings={
         jd?.configured && (
           <div data-new="jd-auto-update" className="flex flex-col gap-3">
-            <ToggleRow
-              checked={cfg.jdVersionCheck}
-              onChange={(v) => patch({ jdVersionCheck: v })}
-              label={t('settings.look.updatesAuto')}
-              hint={t('settings.look.jdAutoCheckHint')}
-            />
+            <div data-new="jd-check">
+              <ToggleRow
+                checked={cfg.jdVersionCheck}
+                onChange={(v) => patch({ jdVersionCheck: v })}
+                label={t('settings.look.updatesAuto')}
+                hint={t('settings.look.jdAutoCheckHint')}
+              />
+            </div>
             <ToggleRow
               checked={cfg.jdAutoUpdate}
               onChange={(v) => patch({ jdAutoUpdate: v })}

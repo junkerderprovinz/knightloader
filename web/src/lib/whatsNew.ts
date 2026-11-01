@@ -51,6 +51,27 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.5.0',
+    changes: [
+      { id: 'list-heads', to: LISTS, text: 'whatsnew.change.listHeads' },
+      { id: 'totals', to: ['/downloads'], text: 'whatsnew.change.totals', names: { name: 'downloads.stats.label' } },
+      { id: 'quality-names', text: 'whatsnew.change.qualityNames' },
+      { id: 'check-all', to: ['/settings/help'], text: 'whatsnew.change.checkAll', names: { name: 'settings.info.checkAll' } },
+      {
+        id: 'jd-check',
+        to: ['/settings/help'],
+        text: 'whatsnew.change.jdSwitches',
+        names: { name: 'health.part.jd', check: 'settings.look.updatesAuto', update: 'settings.look.updatesAutoUpdate' },
+      },
+      { id: 'unrar', text: 'whatsnew.change.unrar' },
+      { id: 'own-java', text: 'whatsnew.change.ownJava' },
+      { id: 'fdroid-listing', text: 'whatsnew.change.fdroidListing' },
+      // In the right-click menu, which only the desktop app fills with it.
+      { id: 'open-folder', text: 'whatsnew.change.openFolder' },
+      { id: 'cnl-takeover', text: 'whatsnew.change.cnlTakeover' },
+    ],
+  },
+  {
     version: '2.4.0',
     changes: [
       { id: 'file-kinds', to: LISTS, text: 'whatsnew.change.fileKinds' },

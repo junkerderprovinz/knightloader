@@ -1,0 +1,1 @@
+KnightLoader gibt es jetzt auch auf F-Droid, und F-Droid hält die App für dich aktuell. Unter der Haube haben zwei Bibliotheken ihre Sicherheitsupdates bekommen: Die App redet mit deinen Instanzen wie gewohnt, nur ein bisschen sicherer.

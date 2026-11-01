@@ -36,7 +36,7 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [Unreleased]
+## [2.5.0] - 2026-11-01
 
 ### Changed
 
@@ -79,6 +79,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   which asks it through the group to let go and listens here. A KnightLoader
   outside the group cannot be asked, and a program that is not KnightLoader,
   usually a running JDownloader, is named as such.
+- **The desktop app runs JDownloader on a Java of its own.** At the first
+  start it fetches Eclipse Temurin 21 into its data folder, checks it against
+  the checksum it carries and starts JDownloader on it, so an installed copy
+  started from the Start menu no longer goes without one. The Components card
+  shows the download while JDownloader is set up, and the reason with Try
+  again when that fails, and lists the Java it runs on.
 - **The right-click menu reads more like JDownloader's.** In the desktop app,
   Open folder opens the folder a link or a package downloads into, with the
   file selected once there is one, on Downloads and in the link collector.
@@ -155,6 +161,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
+- **Install now works in the desktop app.** The card found a newer release
+  but had nothing to press, since the installed copy waited for its daily
+  run. Install now downloads the release's installer, checks it against the
+  release's checksums and starts it, or puts a portable copy in place for the
+  next start, with the progress and any error on the card.
 - **Every button with words looks like a button.** Done on the overview's
   Needs you card, Undo, Copy, Reset and a few more were words beside an icon
   with nothing around them. They have a fill like every other button, and a

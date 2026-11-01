@@ -1457,6 +1457,7 @@ function Header({
   return (
     <div
       ref={row}
+      data-new="list-heads"
       style={ROW_GRID}
       onContextMenu={(e) => {
         e.preventDefault();
