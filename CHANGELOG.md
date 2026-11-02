@@ -38,6 +38,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.6.3] - 2026-11-03
+
 ### Security
 
 - **A download server can no longer put a file outside the download folder.**
@@ -48,6 +50,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   counts now, and names from resolvers, link containers and torrents are cut
   down the same way. Names saved by an earlier version are cut down when
   KnightLoader starts.
+
+### Fixed
+
+- **A settings address that names no page shows the empty page.** An address
+  such as `#/settings/constructor` broke the settings page instead of saying
+  that there is nothing there.
 
 ## [2.6.2] - 2026-11-02
 

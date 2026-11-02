@@ -1,0 +1,1 @@
+The app works as before, with updated camera and Android libraries. The server behind it gets a security fix: a download server can no longer put a file outside the download folder.

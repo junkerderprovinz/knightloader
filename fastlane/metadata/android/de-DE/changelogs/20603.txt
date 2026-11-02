@@ -1,0 +1,1 @@
+Die App läuft wie gewohnt, mit aktualisierten Kamera- und Android-Bibliotheken. Der Server dahinter bekommt eine Sicherheitskorrektur: Ein Download-Server kann keine Datei mehr außerhalb des Download-Ordners ablegen.
