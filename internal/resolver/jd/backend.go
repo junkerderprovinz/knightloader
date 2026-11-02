@@ -174,6 +174,20 @@ func (b *Backend) AddContainer(ctx context.Context, url, packageName string, tim
 	return b.awaitContainerLinks(ctx, job, marker, timeout)
 }
 
+// ExpandLink is AddContainer for a hoster link that stands for several files,
+// such as a cloud folder, which JD's crawler opens into the files inside.
+func (b *Backend) ExpandLink(ctx context.Context, url string, timeout time.Duration) ([]resolver.Result, error) {
+	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
+	b.holdGrabber(marker)
+	defer b.releaseGrabber(marker)
+	b.sweepGrabber()
+	job, err := b.c.AddPlainLinks(url, marker)
+	if err != nil {
+		return nil, err
+	}
+	return b.awaitContainerLinks(ctx, job, marker, timeout)
+}
+
 // AddCryptedV1 is AddContainer for a Click'n'Load v1 ("addcrypted")
 // submission, whose payload has no URL and goes to JD as inline content (see
 // Client.AddContainerData).

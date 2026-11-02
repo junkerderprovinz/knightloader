@@ -56,6 +56,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **A settings address that names no page shows the empty page.** An address
   such as `#/settings/constructor` broke the settings page instead of saying
   that there is nothing there.
+### Fixed
+
+- **A pasted cloud folder, such as a mega.nz folder link, becomes one row per
+  file in it** when JDownloader is connected. The folder link stayed a single
+  row before, and only one file came down
+  ([#147](https://github.com/junkerderprovinz/knightloader/issues/147)).
+- **The desktop installer's window shows the touched-up logo** of 2.6.1.
 
 ## [2.6.2] - 2026-11-02
 

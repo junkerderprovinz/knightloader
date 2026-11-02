@@ -514,6 +514,7 @@ func (a *App) inspectHosterLinks(ids []string) {
 		log.Printf("jd could not inspect %d links: %v", len(urls), err)
 		return
 	}
+	var folders []string
 	for i, info := range infos {
 		id := targets[i]
 		switch info.Availability {
@@ -521,6 +522,11 @@ func (a *App) inspectHosterLinks(ids []string) {
 			a.setAvailability(id, core.AvailOffline, "offline (jd)", core.ReasonGone)
 			continue
 		case core.AvailOnline:
+		case core.AvailUnknown:
+			// The crawl gave nothing back under this address, which is how a
+			// link to several files, such as a cloud folder, comes out of it.
+			folders = append(folders, id)
+			continue
 		default:
 			// No opinion from the plugin leaves whatever was known before.
 			continue
@@ -536,6 +542,79 @@ func (a *App) inspectHosterLinks(ids []string) {
 		}
 		a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
 	}
+	if len(folders) > 0 {
+		a.spawn(func() { a.expandHosterLinks(folders) })
+	}
+}
+
+// linkExpander is the JD backend opening a hoster link that stands for several
+// files into those files.
+type linkExpander interface {
+	ExpandLink(ctx context.Context, url string, timeout time.Duration) ([]resolver.Result, error)
+}
+
+// expandHosterLinks replaces each collected link by the files JD's crawler
+// opens it into. Pasted whole, a cloud folder would otherwise be one row that
+// downloads as one file.
+func (a *App) expandHosterLinks(ids []string) {
+	a.bmu.RLock()
+	ex, ok := a.jd.(linkExpander)
+	a.bmu.RUnlock()
+	if !ok {
+		return
+	}
+	for _, id := range ids {
+		a.expandHosterLink(ex, id)
+	}
+}
+
+func (a *App) expandHosterLink(ex linkExpander, id string) {
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil || t.Status != core.StatusCollected {
+		a.mu.Unlock()
+		return
+	}
+	u := t.URL
+	a.mu.Unlock()
+
+	ctx, cancel := context.WithCancel(a.ctx)
+	defer cancel()
+	done := a.startActivityRun(ActivityCrawl, cancel)
+	links, err := ex.ExpandLink(ctx, u, containerCrawlLimit)
+	done()
+	if err != nil {
+		log.Printf("jd could not open %s: %v", u, err)
+		return
+	}
+	// One file under another address is a link the plugin rewrote, not a
+	// folder.
+	if len(links) < 2 {
+		return
+	}
+
+	a.mu.Lock()
+	t = a.tasks[id]
+	// Started or removed while JD was crawling.
+	if t == nil || t.Status != core.StatusCollected {
+		a.mu.Unlock()
+		return
+	}
+	priority := t.Priority
+	in := intake{
+		pkg: t.Package, origin: OriginCrawl, source: u,
+		priority: &priority, autoExtract: copyBool(t.AutoExtract), comment: t.Comment, category: t.Category,
+	}
+	// A package read off the folder's address names nothing; the files name
+	// their own.
+	if packageIsStillAGuess(t) || t.Package == catchAllPackage {
+		in.pkg = ""
+	}
+	a.mu.Unlock()
+
+	a.Remove(id, false)
+	created := a.addResolvedLinksFrom(links, in)
+	log.Printf("jd opened %s into %d links, %d staged", u, len(links), len(created))
 }
 
 // analyze probes a plain file link with a HEAD request to fill in its size and

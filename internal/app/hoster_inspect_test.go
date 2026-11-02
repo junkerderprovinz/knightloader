@@ -2,9 +2,12 @@ package app
 
 import (
 	"context"
+	"slices"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
 
@@ -67,6 +70,72 @@ func TestHosterLinksTakeNameSizeAndStateFromJD(t *testing.T) {
 		if u == plain {
 			t.Error("a plain file was sent to JD; it has its own HEAD probe")
 		}
+	}
+}
+
+// stubExpander is a JD backend whose crawler opens folder links from a fixed
+// table. Its link check answers nothing for them, as JD's does.
+type stubExpander struct {
+	stubInspector
+	folders map[string][]resolver.Result
+}
+
+func (s *stubExpander) ExpandLink(_ context.Context, url string, _ time.Duration) ([]resolver.Result, error) {
+	return s.folders[url], nil
+}
+
+// A pasted cloud folder becomes one row per file in it, in the package the
+// folder was given.
+func TestHosterFolderBecomesItsFiles(t *testing.T) {
+	a := newOrderApp(t)
+	const folder = "https://mega.nz/folder/AbCd#key"
+	const single = "https://mega.nz/file/EfGh#key"
+	collectedLink(a, "folder", folder, core.ModeFree)
+	collectedLink(a, "single", single, core.ModeFree)
+	useJD(a, &stubExpander{
+		stubInspector: stubInspector{answers: map[string]jd.LinkInfo{
+			single: {Availability: core.AvailOnline, Name: "notes.txt", Size: 12},
+		}},
+		folders: map[string][]resolver.Result{folder: {
+			{DirectURL: "https://mega.nz/folder/AbCd#key/file/1", Name: "a.mkv", Size: 100, Available: core.AvailOnline},
+			{DirectURL: "https://mega.nz/folder/AbCd#key/file/2", Name: "b.mkv", Size: 200, Available: core.AvailOnline},
+			{DirectURL: "https://mega.nz/folder/AbCd#key/file/3", Name: "c.mkv", Size: 300, Available: core.AvailOnline},
+		}},
+	})
+
+	a.inspectHosterLinks([]string{"folder", "single"})
+	waitFor(t, "the folder opening into its files", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		n := 0
+		for _, task := range a.tasks {
+			if task.Source == folder {
+				n++
+			}
+		}
+		return n == 3
+	})
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if _, ok := a.tasks["folder"]; ok {
+		t.Error("the folder link is still a row of its own")
+	}
+	if s := a.tasks["single"]; s == nil || s.Name != "notes.txt" {
+		t.Error("a single file link was replaced or lost its name")
+	}
+	var files []string
+	for _, task := range a.tasks {
+		if task.Source == folder {
+			files = append(files, task.Name)
+			if task.Package != "Isle of Dogs" || task.Status != core.StatusCollected {
+				t.Errorf("%s: package %q, status %q; want the folder's package, collected", task.Name, task.Package, task.Status)
+			}
+		}
+	}
+	slices.Sort(files)
+	if !slices.Equal(files, []string{"a.mkv", "b.mkv", "c.mkv"}) {
+		t.Errorf("rows from the folder = %v, want its three files", files)
 	}
 }
 
