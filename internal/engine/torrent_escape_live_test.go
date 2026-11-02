@@ -20,7 +20,7 @@ func TestATorrentFileThatClimbsOutOfItsFolderTouchesNothingBesideIt(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { os.RemoveAll(root) })
+	t.Cleanup(func() { _ = os.RemoveAll(root) })
 	if err := os.MkdirAll(filepath.Join(root, "Show"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestATorrentFileThatClimbsOutOfItsFolderTouchesNothingBesideIt(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { os.RemoveAll(dir) })
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
 	victim := filepath.Join(dir, "victim.mkv")
 	writeFile(t, victim)
 
@@ -45,7 +45,7 @@ func TestATorrentFileThatClimbsOutOfItsFolderTouchesNothingBesideIt(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { e.Close() })
+	t.Cleanup(func() { _ = e.Close() })
 	e.SetMetadataTimeout(15 * time.Second)
 	const id = "escape-1"
 	e.Start(Job{TaskID: id, URL: magnet, Dir: dir})
