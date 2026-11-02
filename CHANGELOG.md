@@ -64,6 +64,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   ([#147](https://github.com/junkerderprovinz/knightloader/issues/147)).
 - **The desktop installer's window shows the touched-up logo** of 2.6.1.
 
+### Changed
+
+- **Dependency updates are tidied under the name KnightLoader CI** rather than
+  as GitHub's Actions bot.
+
 ## [2.6.2] - 2026-11-02
 
 ### Changed

@@ -17,7 +17,7 @@
   "automergeStrategy": "squash",
   "platformAutomerge": false,
   "rebaseWhen": "conflicted",
-  "gitIgnoredAuthors": ["41898282+github-actions[bot]@users.noreply.github.com"],
+  "gitIgnoredAuthors": ["ci@knightloader.invalid"],
   "customManagers": [
     {
       "customType": "regex",

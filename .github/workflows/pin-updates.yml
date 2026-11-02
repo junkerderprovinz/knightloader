@@ -38,10 +38,10 @@ jobs:
       contents: read
       pull-requests: write
     env:
-      GIT_AUTHOR_NAME: github-actions[bot]
-      GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-      GIT_COMMITTER_NAME: github-actions[bot]
-      GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+      GIT_AUTHOR_NAME: KnightLoader CI
+      GIT_AUTHOR_EMAIL: ci@knightloader.invalid
+      GIT_COMMITTER_NAME: KnightLoader CI
+      GIT_COMMITTER_EMAIL: ci@knightloader.invalid
     steps:
       # The pull request goes to main, so the pins are read there, whichever
       # branch a manual run was started from.
