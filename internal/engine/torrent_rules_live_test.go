@@ -71,6 +71,13 @@ func seedTorrentAt(t *testing.T, name string, files []seedFile, bytesPerSec int)
 	if err := info.BuildFromFilePath(filepath.Join(root, name)); err != nil {
 		t.Fatal(err)
 	}
+	return seedInfo(t, root, info, bytesPerSec)
+}
+
+// seedInfo seeds info from the files under root, for a test that builds the
+// info itself.
+func seedInfo(t *testing.T, root string, info metainfo.Info, bytesPerSec int) ([]byte, string) {
+	t.Helper()
 	ib, err := bencode.Marshal(info)
 	if err != nil {
 		t.Fatal(err)

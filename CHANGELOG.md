@@ -46,7 +46,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   that to overwrite or delete a file elsewhere on the disk, create folders
   there, or find out whether a file exists. Only the last part of such a name
   counts now, and names from resolvers, link containers and torrents are cut
-  down the same way.
+  down the same way. Names saved by an earlier version are cut down when
+  KnightLoader starts.
 
 ## [2.6.2] - 2026-11-02
 
