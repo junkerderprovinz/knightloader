@@ -25,7 +25,6 @@ import { GLIMSTONE_VERSION } from '../../../lib/glimstoneVersion';
 import {
   IconClose,
   IconInstall,
-  IconRefresh,
   IconRetry,
   IconSync,
   IconUpdateAvailable,
@@ -840,7 +839,7 @@ function JDUpdates({ register }: { register: Register }) {
           {jd?.configured && (restarting || waits) && (
             <span data-new="jd-update" className="flex items-center gap-2">
               <GlyphButton
-                icon={<IconRefresh />}
+                icon={<IconSync />}
                 title={restarting ? t('settings.look.jdUpdating') : t('settings.look.jdUpdate')}
                 disabled={busy}
                 onClick={() => void onUpdate()}
