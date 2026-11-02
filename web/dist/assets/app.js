@@ -907,11 +907,11 @@ Instances of this version refuse a relay call that is not stamped against being 
 ## 🔒 Security
 
 - **The Android app's build tooling takes glob 14.0.2 and minimatch 11.0.1.** They close two advisories: a cancelled glob search could keep walking the file system, and some minimatch patterns could tie it up for a long time.
-`,"2.6.1":`KnightLoader has a new logo, and a hoster shows under its own name.
+`,"2.6.1":`The KnightLoader logo is touched up, and a hoster shows under its own name.
 
 ## 🎨 Design
 
-- **A new KnightLoader logo.** The shield is a little wider, and the sword has a new crossguard and grip. It shows in the web interface, the desktop app and its tray, the Android app, the browser extension and the store listings.
+- **The KnightLoader logo is touched up.** The shield is a little wider, and the sword's crossguard and grip are redrawn. It shows in the web interface, the desktop app and its tray, the Android app, the browser extension and the store listings.
 
 ## 🐛 Fixed
 
@@ -1656,11 +1656,11 @@ Instances of this version refuse a relay call that is not stamped against being 
 ## 🔒 Security
 
 - **The Android app's build tooling takes glob 14.0.2 and minimatch 11.0.1.** They close two advisories: a cancelled glob search could keep walking the file system, and some minimatch patterns could tie it up for a long time.
-`,"2.6.1":`KnightLoader has a new logo, and a hoster shows under its own name.
+`,"2.6.1":`The KnightLoader logo is touched up, and a hoster shows under its own name.
 
 ## 🎨 Design
 
-- **A new KnightLoader logo.** The shield is a little wider, and the sword has a new crossguard and grip. It shows in the web interface, the desktop app and its tray, the Android app, the browser extension and the store listings.
+- **The KnightLoader logo is touched up.** The shield is a little wider, and the sword's crossguard and grip are redrawn. It shows in the web interface, the desktop app and its tray, the Android app, the browser extension and the store listings.
 
 ## 🐛 Fixed
 

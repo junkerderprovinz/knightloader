@@ -1,1 +1,1 @@
-KnightLoader has a new logo: the shield is a little wider, and the sword has a new crossguard and grip. Nothing else changes in the app.
+The KnightLoader logo is touched up: the shield is a little wider, and the sword's crossguard and grip are redrawn. Nothing else changes in the app.

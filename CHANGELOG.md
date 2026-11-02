@@ -40,9 +40,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
-- **A new KnightLoader logo.** The shield is a little wider, and the sword has
-  a new crossguard and grip. It shows in the web interface, the desktop app
-  and its tray, the Android app, the browser extension and the store listings.
+- **The KnightLoader logo is touched up.** The shield is a little wider, and
+  the sword's crossguard and grip are redrawn. It shows in the web interface,
+  the desktop app and its tray, the Android app, the browser extension and the
+  store listings.
 
 ### Fixed
 
