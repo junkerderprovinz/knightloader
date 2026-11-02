@@ -58,4 +58,5 @@ const desktop = render(bare);
 writeFileSync(join(REPO, "desktop/build/appicon.png"), desktop);
 const SIZES = [16, 20, 24, 30, 32, 36, 40, 48, 60, 64, 72, 96, 128, 256];
 writeFileSync(join(REPO, "desktop/build/appicon.ico"), ico(SIZES));
-console.log("wrote desktop/build/appicon.png, appicon.ico (" + SIZES.join("/") + ") + knightloader-appicon.svg/.png");
+writeFileSync(join(REPO, "desktop/installer/icon.png"), frame(256));
+console.log("wrote desktop/build/appicon.png, appicon.ico (" + SIZES.join("/") + "), installer/icon.png + knightloader-appicon.svg/.png");
