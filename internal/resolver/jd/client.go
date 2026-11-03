@@ -173,13 +173,15 @@ func (c *Client) SetPackageDirectory(dir string, pkgUUIDs []int64) error {
 // AddLinks pushes links into JD. autostart=true makes JD crawl, move to the
 // download list and start automatically. destination, when set, is the folder
 // JD files the package under - see SetPackageDirectory for why the final folder
-// is corrected afterwards rather than relied on here. Returns the collecting
-// job id.
+// is corrected afterwards rather than relied on here. The download is found
+// again by packageName, so it overrides the name a plugin gives, such as a
+// cloud folder's for a file inside it. Returns the collecting job id.
 func (c *Client) AddLinks(links, packageName, destination string, autostart bool) (int64, error) {
 	q := map[string]any{
-		"links":       links,
-		"packageName": packageName,
-		"autostart":   autostart,
+		"links":                    links,
+		"packageName":              packageName,
+		"autostart":                autostart,
+		"overwritePackagizerRules": true,
 	}
 	if destination != "" {
 		q["destinationFolder"] = destination
