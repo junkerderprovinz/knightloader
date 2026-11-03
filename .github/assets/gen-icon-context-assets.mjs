@@ -1,6 +1,6 @@
-// Renders the small icons from the two master logos: the favicon set and the
-// bookmarklet button from the bare logo.svg, the extension icon and the PWA
-// install icons from the square kl_app_logo.svg.
+// Renders the small icons. Everything shows the bare logo.svg, the way the
+// desktop app and the stores do; only the maskable PWA icon takes the square
+// kl_app_logo.svg, because Android masks it into a phone icon like the app's.
 // Run: node .github/assets/gen-icon-context-assets.mjs
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -48,9 +48,10 @@ function renderApp(size) {
   return new Resvg(APP_SRC, { fitTo: { mode: "width", value: size } }).render().asPng();
 }
 
+// The toolbar draws no tile of its own, so the logo runs almost to the edge.
 const EXT_ICONS = join(REPO, "extension/src/icons");
 for (const size of [16, 32, 48, 128]) {
-  writeFileSync(join(EXT_ICONS, `icon${size}.png`), renderApp(size));
+  writeFileSync(join(EXT_ICONS, `icon${size}.png`), renderLogo(size, 0.02));
 }
 
 // The favicon set, also used by the bookmarklet button.
@@ -59,11 +60,10 @@ for (const size of [16, 32, 48]) {
   writeFileSync(join(WEB_ICONS, `icon-${size}.png`), renderLogo(size, 0.06));
 }
 
-// The maskable icon reuses the 512 render, since the source already keeps its
-// content inside the safe zone.
 for (const size of [192, 512]) {
-  writeFileSync(join(WEB_ICONS, `icon-${size}.png`), renderApp(size));
+  writeFileSync(join(WEB_ICONS, `icon-${size}.png`), renderLogo(size, 0.06));
 }
+// The source already keeps its content inside the maskable safe zone.
 writeFileSync(join(WEB_ICONS, "icon-512-maskable.png"), renderApp(512));
 
 // Pillow packs favicon.ico, as in gen-tray.mjs.
@@ -86,6 +86,6 @@ imgs[0].save(${JSON.stringify(icoOut)}, format="ICO", sizes=[im.size for im in i
 execSync(`python3 "${pyScript}"`, { stdio: "inherit" });
 rmSync(tmp, { recursive: true, force: true });
 
-console.log("wrote extension icons (16/32/48/128, app logo)");
-console.log("wrote web favicon set (16/32/48/favicon.ico, normal logo)");
-console.log("wrote web PWA icons (192/512/512-maskable, app logo)");
+console.log("wrote extension icons (16/32/48/128)");
+console.log("wrote web favicon set (16/32/48/favicon.ico)");
+console.log("wrote web PWA icons (192/512 bare, 512-maskable on the app tile)");
