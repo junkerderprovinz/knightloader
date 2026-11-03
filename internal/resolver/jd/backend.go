@@ -520,15 +520,15 @@ func (b *Backend) InspectLinks(ctx context.Context, urls []string) ([]LinkInfo, 
 			_ = b.c.RemoveCrawled(linkIDs(links), pkgs)
 			return nil, err
 		}
-		links, pkgs = found, foundPkgs
-
-		// The batch has a known length, so every link being present is the
-		// settle condition.
-		if len(found) != len(urls) {
+		// Every link is back once there are at least as many as went in. A
+		// folder comes back as more, so the count must also have stopped
+		// growing.
+		if len(found) < len(urls) || len(found) != len(links) {
 			settled = 0
 		} else {
 			settled++
 		}
+		links, pkgs = found, foundPkgs
 		need := settleReadings
 		if settled >= need && b.collecting() {
 			need++

@@ -269,6 +269,35 @@ func TestInspectLinksCarriesNameAndSize(t *testing.T) {
 	}
 }
 
+// A folder comes back from JD's crawl as its files, more links than went in
+// and none under the folder's own address. The check still settles, and the
+// folder gets no answer, which is what sends it on to be opened.
+func TestInspectLinksSettlesOnAFolderThatOpensIntoMoreLinks(t *testing.T) {
+	orig := pollInterval
+	pollInterval = 5 * time.Millisecond
+	defer func() { pollInterval = orig }()
+
+	const folder = "https://hoster.example/folder/abc"
+	fake := newFakeJDCheck(t, map[string]string{
+		"https://hoster.example/folder/abc/file/1": "ONLINE",
+		"https://hoster.example/folder/abc/file/2": "ONLINE",
+		"https://hoster.example/folder/abc/file/3": "ONLINE",
+	})
+	srv := httptest.NewServer(fake.handler())
+	defer srv.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	b := NewBackend(srv.URL, func(string, core.Update) {})
+	got, err := b.InspectLinks(ctx, []string{folder})
+	if err != nil {
+		t.Fatalf("InspectLinks = %v, want it to settle on the folder's files", err)
+	}
+	if len(got) != 1 || got[0] != (LinkInfo{}) {
+		t.Errorf("answer for the folder = %+v, want none", got)
+	}
+}
+
 // The fake answers in random map order, so matching by position would flip
 // the verdicts.
 func TestCheckLinksMapsAvailabilityByURL(t *testing.T) {
