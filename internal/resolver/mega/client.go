@@ -294,6 +294,19 @@ func (c *Client) folder(ctx context.Context, l Link) (*tree, error) {
 	if err := c.call(ctx, l.Handle, map[string]any{"a": "f", "c": 1, "ca": 1, "r": 1}, &ans); err != nil {
 		return nil, err
 	}
+	// The shared folder is the folder whose parent is not listed, and the key
+	// the link opens is filed under its handle.
+	listed := make(map[string]bool, len(ans.F))
+	for _, f := range ans.F {
+		listed[f.H] = true
+	}
+	root := ""
+	for _, f := range ans.F {
+		if f.T == 1 && !listed[f.P] {
+			root = f.H
+			break
+		}
+	}
 	t := &tree{nodes: make(map[string]*node, len(ans.F))}
 	var order []string
 	for _, f := range ans.F {
@@ -301,7 +314,7 @@ func (c *Client) folder(ctx context.Context, l Link) (*tree, error) {
 			continue
 		}
 		n := &node{handle: f.H, parent: f.P, folder: f.T == 1, size: f.S}
-		key, err := nodeKey(l.Key, f.K, n.folder)
+		key, err := nodeKey(l.Key, f.K, root, n.folder)
 		if err != nil {
 			continue
 		}
@@ -338,14 +351,17 @@ func (c *Client) folder(ctx context.Context, l Link) (*tree, error) {
 }
 
 // nodeKey opens a node's key from the listing, which is "owner:key", several
-// of them joined by "/" when the node is shared more than once.
-func nodeKey(folderKey []byte, field string, folder bool) ([]byte, error) {
+// of them joined by "/" when the node is shared more than once. Any key of the
+// right length decrypts without error, so the one filed under the shared
+// folder's handle is taken, and the first only when none is.
+func nodeKey(folderKey []byte, field, root string, folder bool) ([]byte, error) {
 	want := 32
 	if folder {
 		want = 16
 	}
+	var first []byte
 	for _, part := range strings.Split(field, "/") {
-		_, sealed, ok := strings.Cut(part, ":")
+		owner, sealed, ok := strings.Cut(part, ":")
 		if !ok {
 			continue
 		}
@@ -353,11 +369,17 @@ func nodeKey(folderKey []byte, field string, folder bool) ([]byte, error) {
 		if err != nil || len(raw) != want {
 			continue
 		}
-		if key, err := decryptKey(folderKey, raw); err == nil {
-			return key, nil
+		if owner == root {
+			return decryptKey(folderKey, raw)
+		}
+		if first == nil {
+			first = raw
 		}
 	}
-	return nil, errBadKey
+	if first == nil {
+		return nil, errBadKey
+	}
+	return decryptKey(folderKey, first)
 }
 
 // remoteFile is what MEGA says about one file: its name, size and key, and

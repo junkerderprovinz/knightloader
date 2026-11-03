@@ -169,6 +169,20 @@ func (s *Server) ShareFolder(handle string, nodes ...Node) string {
 	return "https://mega.nz/folder/" + handle + "#" + base64.RawURLEncoding.EncodeToString(key)
 }
 
+// root is the shared folder itself, the folder whose parent is not listed.
+func (f *folder) root() string {
+	listed := map[string]bool{}
+	for _, n := range f.nodes {
+		listed[n.handle] = true
+	}
+	for _, n := range f.nodes {
+		if n.file == nil && !listed[n.parent] {
+			return n.handle
+		}
+	}
+	return ""
+}
+
 // Folder is a folder node.
 func Folder(handle, parent, name string) Node {
 	return Node{handle: handle, parent: parent, name: name}
@@ -234,13 +248,20 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			answer(-9)
 			return
 		}
+		root := shared.root()
+		// MEGA lists a key for every share a node sits in, and the public
+		// link's is the one filed under the shared folder's handle, not
+		// necessarily the first.
+		keyField := func(key []byte) string {
+			return "elsewhere:" + sealKey(Random(16), key) + "/" + root + ":" + sealKey(shared.key, key)
+		}
 		var list []map[string]any
 		for _, n := range shared.nodes {
 			e := map[string]any{"h": n.handle, "p": n.parent}
 			if n.file != nil {
-				e["t"], e["s"], e["a"], e["k"] = 0, len(n.file.Plain), n.file.attrs(), "owner:"+sealKey(shared.key, n.file.Key)
+				e["t"], e["s"], e["a"], e["k"] = 0, len(n.file.Plain), n.file.attrs(), keyField(n.file.Key)
 			} else {
-				e["t"], e["a"], e["k"] = 1, sealAttrs(n.key, n.name), "owner:"+sealKey(shared.key, n.key)
+				e["t"], e["a"], e["k"] = 1, sealAttrs(n.key, n.name), keyField(n.key)
 			}
 			list = append(list, e)
 		}
