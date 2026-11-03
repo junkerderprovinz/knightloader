@@ -38,6 +38,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.6.5] - 2026-11-03
+
 ### Added
 
 - **MEGA file and folder links download without JDownloader.** KnightLoader
@@ -48,6 +50,17 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   where it stopped. A debrid service or JDownloader still takes MEGA links when
   you move it above MEGA on the priority card, and a MEGA login in JDownloader
   goes first anyway.
+
+### Fixed
+
+- **A pasted MEGA folder brings all of its files, with or without a debrid
+  service.** 2.6.4 left the folder to JDownloader, and a debrid service took
+  the folder link as a single file
+  ([#147](https://github.com/junkerderprovinz/knightloader/issues/147)).
+- **A folder link JDownloader opens becomes its files.** The link check
+  waited for exactly as many links as went in and ran out of time on a folder.
+- **A file from a folder that JDownloader downloads shows as done.** It landed
+  in a JDownloader package named after the folder, so the row stayed queued.
 
 ## [2.6.4] - 2026-11-03
 

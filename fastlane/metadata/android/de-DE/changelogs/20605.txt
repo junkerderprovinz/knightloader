@@ -1,0 +1,1 @@
+Mega-Links laden jetzt direkt in KnightLoader, auch ganze Ordner. In der App selbst ändert sich nichts.
