@@ -36,6 +36,9 @@ if (JSON.stringify(shape(app.CRYPTO_COINS)) !== JSON.stringify(shape(web.CRYPTO_
 if (JSON.stringify(app.ADDRESS_BY_CHAIN) !== JSON.stringify(web.ADDRESS_BY_CHAIN)) {
   fail('src/donate.ts: ADDRESS_BY_CHAIN differs from web/src/lib/donate.ts');
 }
+if (app.COFFEE_WIDGET !== web.COFFEE_WIDGET) {
+  fail(`src/donate.ts: COFFEE_WIDGET is ${app.COFFEE_WIDGET}, the web's coffee window loads ${web.COFFEE_WIDGET}`);
+}
 
 const dialog = readFileSync(join(here, 'src', 'components', 'CryptoDonate.tsx'), 'utf8');
 for (const coin of app.CRYPTO_COINS) {
@@ -55,4 +58,6 @@ if (problems.length) {
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log('ok: every coin and chain matches the web UI, each chain sends to its own wallet, and every tile has its mark');
+console.log(
+  'ok: every coin and chain matches the web UI, each chain sends to its own wallet, every tile has its mark, and the coffee window loads the web\'s widget',
+);

@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { fmtBytes, fmtSpeed } from '../api/stats';
 import type { Task } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
-import { NUM, TYPE, inkFor, type Palette } from '../theme/tokens';
+import { NUM, TYPE, type Palette } from '../theme/tokens';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { explainFailure } from '../api/taskError';
 import { checkPercent, isParked, rowWord, unpackPercent, type StateWord, type UnpackProgress } from '../api/taskState';
@@ -76,8 +76,9 @@ function rgb(hex: string): { r: number; g: number; b: number } | null {
  * accent darkened until they can, because gold text on a white card is
  * unreadable at 12 points whichever gold it is. The row's own fill, the wash
  * and the progress bar, takes the undarkened one, which is why the palette and
- * the ink arrive as two arguments. A parked row (isParked) says its word in
- * the muted ink, whatever the word is.
+ * the ink arrive as two arguments. The ink is the single accent's under the
+ * rainbow too, since the rainbow colours what is filled and never words. A
+ * parked row (isParked) says its word in the muted ink, whatever the word is.
  */
 export function statusColor(word: StateWord | null, c: Palette, accentInk: string, parked = false): string {
   if (parked) return c.textMuted;
@@ -122,7 +123,7 @@ export default function TaskRow({
   files?: (hue: string) => ReactNode;
 }) {
   const { t } = useT();
-  const { c, accent, dark, corners, hueAt, rainbow } = useAppearance();
+  const { c, accent, accentInk, corners, hueAt, rainbow } = useAppearance();
   // The rainbow hands colours out by position, so this row's colour comes from
   // where it sits rather than from its id. A hash keeps a row's colour when the
   // rows above it finish, and with three rows and eight colours it gives two
@@ -131,11 +132,6 @@ export default function TaskRow({
   // The colour this row paints activity in: its own when the mode is on, the
   // single accent otherwise.
   const rowAccent = hue ?? accent;
-  // The same colour where it has to be read instead of filled, by the rule the
-  // whole family uses: the accent 55% of the way to black on a light ground and
-  // itself on a dark one. The context builds this pair for the flat accent; the
-  // rainbow half has no counterpart, so a hue would reach a `color:` undarkened.
-  const rowInk = dark ? rowAccent : inkFor(rowAccent);
   // Nothing of a torrent comes here while a debrid service fetches it, so the
   // bar and the percentage show how far the service has got.
   const remote = task.status === 'running' ? task.remote : undefined;
@@ -191,7 +187,7 @@ export default function TaskRow({
           <Text style={[styles.name, { color: parked ? c.textMuted : c.text }]} numberOfLines={1}>
             {task.name || task.url}
           </Text>
-          <Text style={[styles.status, { color: statusColor(word, c, rowInk, parked) }]}>
+          <Text style={[styles.status, { color: statusColor(word, c, accentInk, parked) }]}>
             {word ? t(STATE_KEYS[word]) : task.status}
           </Text>
         </View>

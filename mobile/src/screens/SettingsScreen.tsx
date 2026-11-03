@@ -44,6 +44,7 @@ import IconBadge, {
   Github,
   LinuxMark,
   MailMark,
+  ManualMark,
   Moon,
   MotionOff,
   MotionStorm,
@@ -63,6 +64,7 @@ import IconBadge, {
 } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { CoffeeDonate } from '../components/CoffeeDonate';
 import { CryptoDonate } from '../components/CryptoDonate';
 import ColorPicker from '../components/ColorPicker';
 import { Text, TextInput } from '../components/Text';
@@ -73,10 +75,10 @@ const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
 const REPO_URL = GITHUB_URL;
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@halleluja.design';
+const MANUAL_URL = 'https://junkerderprovinz.github.io/knightloader/';
 // PayPal's hosted donation button, the address the web UI's About card and the
 // README's donate row use.
 const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
-const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 const PRIVACY_URL = `${REPO_URL}/blob/main/mobile/PRIVACY.md`;
 
 // The README's download links (scripts/download_buttons.py). A file under
@@ -354,6 +356,9 @@ export default function SettingsScreen({
   const [confirmingRemoveAll, setConfirmingRemoveAll] = useState(false);
   /** Whether the crypto window is open. */
   const [donating, setDonating] = useState(false);
+  /** Whether the coffee window is open. A phone keeps it in the app, as it
+   *  keeps the crypto window, and only PayPal goes to the browser. */
+  const [coffee, setCoffee] = useState(false);
   /** True for a moment after the docker run command reached the clipboard,
    *  which the Docker button's second line says. */
   const [dockerCopied, setDockerCopied] = useState(false);
@@ -440,6 +445,7 @@ export default function SettingsScreen({
             ]}
             value={overridden.theme ? (dark ? 'dark' : 'light') : 'system'}
             onPick={(v) => setTheme(v === 'system' ? undefined : v)}
+            hue={0}
           />
         </View>
 
@@ -486,6 +492,7 @@ export default function SettingsScreen({
               if (found) setLeafFound(true);
               setShape(found ?? v);
             }}
+            hue={1}
           />
 
           {/* Label left, swatches right, one row, the shape the web interface's
@@ -746,6 +753,7 @@ export default function SettingsScreen({
             const gefunden = stormTap(stormTaps.current, v, motion);
             setMotion(gefunden ?? v);
           }}
+          hue={2}
         />
       </NotchCard>
 
@@ -899,7 +907,7 @@ export default function SettingsScreen({
             clipboard is that target. The extension has copied since it shipped,
             so the three surfaces agree on the verb, the label and the glyph.
 
-            The About card below carries both routes to reporting, so a third
+            The About card below carries the routes to reporting, so another
             door here hard-wired to one of them would be a second answer to a
             question that card answers. What this card is for is the report.
 
@@ -962,7 +970,7 @@ export default function SettingsScreen({
             art
             label={t('settings.aboutCoffeeButton')}
             mark={({ mark, words }) => <CoffeeArt cup={mark} words={words} />}
-            onPress={() => Linking.openURL(COFFEE_URL)}
+            onPress={() => setCoffee(true)}
           />
           <ReadmeButton
             brand="paypal"
@@ -1004,6 +1012,16 @@ export default function SettingsScreen({
                 `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.aboutMailSubject')}`)}`,
               )
             }
+          />
+          {/* The manual wears the README's docs button, its book and its
+              yellow, and the book opens while it is pressed as the envelope
+              does. */}
+          <ReadmeButton
+            brand="docs"
+            label={t('settings.aboutManual')}
+            sub={t('settings.aboutManualOpen')}
+            mark={({ mark, lit }) => <ManualMark open={lit} color={mark} />}
+            onPress={() => Linking.openURL(MANUAL_URL)}
           />
         </View>
         {/* Last line in the card, under the buttons, as in the web interface
@@ -1061,6 +1079,7 @@ export default function SettingsScreen({
         />
       </NotchCard>
 
+      <CoffeeDonate visible={coffee} onClose={() => setCoffee(false)} />
       <CryptoDonate visible={donating} onClose={() => setDonating(false)} />
 
       <ConfirmDialog

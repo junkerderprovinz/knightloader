@@ -265,7 +265,8 @@
       "settings.aboutGithub",
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
-      "notify.watchSpeed"
+      "notify.watchSpeed",
+      "settings.aboutManual"
     ],
     "cs": [
       "addDownload.placeholder",
@@ -316,7 +317,8 @@
       "settings.aboutGithub",
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
-      "notify.watchSpeed"
+      "notify.watchSpeed",
+      "settings.aboutManual"
     ],
     "et": [
       "addDownload.placeholder",
@@ -372,7 +374,8 @@
       "settings.aboutGithub",
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
-      "notify.watchSpeed"
+      "notify.watchSpeed",
+      "settings.aboutManual"
     ],
     "he": [
       "addDownload.placeholder",
@@ -459,7 +462,8 @@
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "speed.legend.seeding",
-      "notify.watchSpeed"
+      "notify.watchSpeed",
+      "settings.aboutManual"
     ],
     "nl": [
       "downloads.tabDownloads",
@@ -510,7 +514,8 @@
       "settings.aboutGithub",
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
-      "notify.watchSpeed"
+      "notify.watchSpeed",
+      "settings.aboutManual"
     ],
     "ro": [
       "downloads.queueActive",
@@ -522,7 +527,8 @@
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "settings.aboutMailSubject",
-      "notify.watchSpeed"
+      "notify.watchSpeed",
+      "settings.aboutManual"
     ],
     "ru": [
       "addDownload.placeholder",

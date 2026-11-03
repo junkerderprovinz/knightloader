@@ -89,6 +89,9 @@ export interface Palette {
    * colour is the pressed fill, in BRAND below.
    */
   brandCoffee: string;
+  /** The manual's book, in the yellow of the README's docs button, which is
+   *  the coffee button's. */
+  brandDocs: string;
   brandBitcoin: string;
   brandPaypal: string;
   brandGithub: string;
@@ -118,10 +121,10 @@ export const DARK: Palette = {
   statusFailText: '#ff8389',
   statusFailBg: 'rgba(255, 131, 137, 0.14)',
   statusFailSolid: '#ff8389',
-  statusWarnText: '#f1c21b',
-  statusWarnBg: 'rgba(241, 194, 27, 0.12)',
-  statusWarnSolid: '#f1c21b',
-  statusWarnBgSoft: 'rgba(241, 194, 27, 0.06)',
+  statusWarnText: '#FF832B',
+  statusWarnBg: 'rgba(255, 131, 43, 0.12)',
+  statusWarnSolid: '#FF832B',
+  statusWarnBgSoft: 'rgba(255, 131, 43, 0.06)',
   statusInfoText: '#FCC419',
   statusInfoBg: 'rgba(252, 196, 25, 0.13)',
   statusInfoSolid: '#FCC419',
@@ -137,6 +140,7 @@ export const DARK: Palette = {
   // On #393939 these measure 8.6, 5.0, 5.1 and 11.6 to 1, the extension's
   // values.
   brandCoffee: '#ffdd00',
+  brandDocs: '#ffdd00',
   brandBitcoin: '#f7931a',
   brandPaypal: '#4fb5f0',
   brandGithub: '#ffffff',
@@ -166,10 +170,10 @@ export const LIGHT: Palette = {
   statusFailText: '#da1e28',
   statusFailBg: 'rgba(218, 30, 40, 0.10)',
   statusFailSolid: '#da1e28',
-  statusWarnText: '#8E6A00',
-  statusWarnBg: 'rgba(142, 106, 0, 0.10)',
-  statusWarnSolid: '#b28600',
-  statusWarnBgSoft: 'rgba(142, 106, 0, 0.05)',
+  statusWarnText: '#ba4e00',
+  statusWarnBg: 'rgba(186, 78, 0, 0.10)',
+  statusWarnSolid: '#ba4e00',
+  statusWarnBgSoft: 'rgba(186, 78, 0, 0.05)',
   statusInfoText: '#8E6A00',
   statusInfoBg: 'rgba(142, 106, 0, 0.12)',
   statusInfoSolid: '#A87D00',
@@ -184,6 +188,7 @@ export const LIGHT: Palette = {
 
   // On #e8e8e8 these measure 4.0, 4.1, 9.7 and 14.6 to 1.
   brandCoffee: '#8a6d00',
+  brandDocs: '#8a6d00',
   brandBitcoin: '#a85d00',
   brandPaypal: '#003087',
   brandGithub: '#181717',
@@ -195,6 +200,7 @@ export const LIGHT: Palette = {
 
 export type Brand =
   | 'coffee'
+  | 'docs'
   | 'bitcoin'
   | 'paypal'
   | 'github'
@@ -219,6 +225,8 @@ export type Brand =
 export const BRAND: Record<Brand, { fill: string; ink: string }> = {
   // Buy Me a Coffee's own near-black, the ink their button uses. 14.3:1.
   coffee: { fill: '#ffdd00', ink: '#0d0c22' },
+  // The README's docs button, the coffee button's yellow. 13.4:1.
+  docs: { fill: '#ffdd00', ink: '#161616' },
   bitcoin: { fill: '#f7931a', ink: '#161616' },
   paypal: { fill: '#003087', ink: '#ffffff' },
   github: { fill: '#181717', ink: '#ffffff' },
@@ -244,7 +252,7 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
  *
  * A colour on a fill needs no darkening, because the ink on top is computed
  * (see contrastOn). A colour used as ink does, since yellow text on white is
- * unreadable at 11px whichever yellow it is. So the accent stays the accent and
+ * unreadable at 12px whichever yellow it is. So the accent stays the accent and
  * this is the second token: the same hue, 55% of the way to black. Dark mode
  * has nothing to solve and gets the accent as given.
  *
@@ -271,14 +279,20 @@ export function inkFor(hex: string): string {
 }
 
 // The type scale: a fixed reference table rather than an engine, since nobody
-// sets their own type scale. `caption` covers three treatments of one size (a
-// plain caption, an uppercase label with letter-spacing, the info-bubble text);
-// the treatment carries the distinction, not the size.
+// sets their own type scale. Five sizes, one per role, as tokens.css has them.
+// `meta` covers several treatments of one size (a notch badge, an uppercase
+// label with letter-spacing, the info-bubble text, a muted meta line); the
+// treatment carries the distinction, not the size. The last three names are
+// aliases, as in tokens.css, for call sites that read the four-step names.
 export const TYPE = {
-  heading: 20,
+  status: 22,
+  title: 16,
   body: 14,
+  subline: 13,
+  meta: 12,
+  heading: 22,
   dense: 12,
-  caption: 11,
+  caption: 12,
 } as const;
 
 /**

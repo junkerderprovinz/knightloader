@@ -82,3 +82,7 @@ export const ADDRESS_BY_CHAIN: Record<string, string> = {
   sui: SUI,
   xrpl: XRP,
 };
+
+/** Buy Me a Coffee's widget page, the one BMAC page meant to be shown inside
+ *  another app, which the coffee window loads. */
+export const COFFEE_WIDGET = 'https://buymeacoffee.com/widget/page/junkerderprovinz?description=&color=%23FFDD00';

@@ -543,6 +543,12 @@ export function MotionStorm({ color, size = GLYPH_BOX }: { color: string; size?:
   return <Drawn source={require('../../assets/motion-storm.png')} color={color} size={size} />;
 }
 
+/** The default entry: GlimStone's IconStar, Tabler's filled star, rendered from
+ *  glyphs.json like the Look glyphs above. */
+export function Star({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/star.png')} color={color} size={size} />;
+}
+
 /** SpeedLimit marks a limit's figure on the speed graph: a sign's ring round a
  *  gauge needle. The glyph list has no limit, so it is a drawing of its own. */
 export function SpeedLimit({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
@@ -587,7 +593,6 @@ const styles = StyleSheet.create({
   // the thing inside it cannot change independently.
   symbol: { fontWeight: '700' },
   fill: { width: '100%', height: '100%' },
-  mailClosed: { top: '-8.5%' },
   // A size of its own although the insets would give one: a bundled image
   // brings its pixel size as a default, and that wins over the insets.
   layer: { position: 'absolute', top: 0, start: 0, width: '100%', height: '100%' },
@@ -643,18 +648,31 @@ export function CoffeeArt({ cup, words }: { cup: string; words: string }) {
 }
 
 /**
- * The Email button's envelope, Material's `email` and `email-open`, open while
- * the button is pressed. Both were drawn in one box that leaves room for the
- * open flap, so the envelope does not jump when it opens.
+ * The Email button's envelope, GlimStone's MAIL_SVG: IconMail at rest and
+ * IconMailOpen while the button is pressed. Each was rendered in the square
+ * the web draws it in, around its own ink, so the two read as one size.
  */
 export function MailMark({ open, color }: { open: boolean; color: string }) {
   return (
     <Tinted
       source={open ? require('../../assets/mail-open.png') : require('../../assets/mail-closed.png')}
       color={color}
-      // The closed envelope leaves the flap's room above it empty (21 of 124
-      // rows), so it is lifted by half of that to sit centred like the others.
-      style={open ? styles.fill : [styles.fill, styles.mailClosed]}
+      style={styles.fill}
+    />
+  );
+}
+
+/**
+ * The Manual button's book, GlimStone's MANUAL_SVG: the README's closed book at
+ * rest and IconManualOpen while the button is pressed, rendered the way the
+ * envelope above is.
+ */
+export function ManualMark({ open, color }: { open: boolean; color: string }) {
+  return (
+    <Tinted
+      source={open ? require('../../assets/manual-open.png') : require('../../assets/manual-closed.png')}
+      color={color}
+      style={styles.fill}
     />
   );
 }

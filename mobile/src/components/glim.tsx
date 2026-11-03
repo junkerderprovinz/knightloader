@@ -5,7 +5,7 @@ import { usePress } from '../theme/MotionContext';
 import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { InfoTip, Tip } from './InfoTip';
-import { boxForInk } from './IconBadge';
+import { Star, boxForInk } from './IconBadge';
 import { Arrive } from './Moving';
 import { Text } from './Text';
 
@@ -100,15 +100,23 @@ const SEGMENT_PAD = 6;
  *  An option's `glyph` stands before its label with its ink as tall as the
  *  label's letters, so the two read as one name. It is decoration, and where
  *  the widest label and a glyph do not fit one segment, as on a narrow phone
- *  or at a large font scale, every glyph goes and the labels keep the room. */
+ *  or at a large font scale, every glyph goes and the labels keep the room.
+ *
+ *  `hue` is the selector's place among the selectors on its screen, counted
+ *  in the order they stand, and its chosen segment wears that position. Four
+ *  selectors in one card then show four colours under the rainbow, as on the
+ *  web. A strip that switches views rather than setting a value passes none
+ *  and keeps the single accent. */
 export function WellSelector<T extends string>({
   options,
   value,
   onPick,
+  hue,
 }: {
   options: { value: T; label: string; glyph?: (p: { color: string; size?: number }) => ReactNode }[];
   value: T;
   onPick: (v: T) => void;
+  hue?: number;
 }) {
   const { c, accent, accentContrast, corners, hueAt } = useAppearance();
   const glyphed = options.some((o) => o.glyph);
@@ -119,6 +127,7 @@ export function WellSelector<T extends string>({
   const labelWidths = options.map((o) => widths[o.label]);
   const measured = room > 0 && labelWidths.every((w) => w !== undefined);
   const showGlyphs = glyphed && (!measured || Math.max(...labelWidths) + SEGMENT_GLYPH + SEGMENT_GAP <= room);
+  const fill = (hue !== undefined ? hueAt(hue) : undefined) ?? accent;
   return (
     <View style={[styles.well, { backgroundColor: c.surface2, ...corners.pill }]}>
       {glyphed && (
@@ -146,12 +155,6 @@ export function WellSelector<T extends string>({
       )}
       {options.map((o, i) => {
         const on = o.value === value;
-        // Each segment owns a palette position. The design language names a
-        // segmented control's segments as one of the things that may own one,
-        // for the reason a tab strip does: they are equal members of one set.
-        // The positions are this control's own 0-based sequence, not the
-        // page's.
-        const fill = (hueAt(i) ?? accent) as string;
         const ink = on ? contrastFor(fill, accentContrast) : c.textSub;
         const Glyph = showGlyphs ? o.glyph : undefined;
         return (
@@ -388,13 +391,13 @@ const styles = StyleSheet.create({
   },
   buttonLabel: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
   buttonOff: { opacity: 0.45 },
-  // The README's proportions: the mark's 32 by 25 box 24 in from the start,
-  // the name from 63 to 10 short of the end. A name and a second line wrapped
-  // to two lines take 45 of the 46.6.
+  // The README's proportions: the mark's 32 by 25 box 14 in from the start,
+  // where the README's own buttons put it, and the name from 53 to 10 short of
+  // the end. A name and a second line wrapped to two lines take 45 of the 46.6.
   readme: { width: 160, height: 46.6, justifyContent: 'center', overflow: 'hidden' },
-  readmeMark: { position: 'absolute', start: 24, top: 10.8, width: 32, height: 25 },
+  readmeMark: { position: 'absolute', start: 14, top: 10.8, width: 32, height: 25 },
   readmeMarkQuiet: { opacity: 0.45 },
-  readmeText: { marginStart: 63, marginEnd: 10 },
+  readmeText: { marginStart: 53, marginEnd: 10 },
   readmeNameLine: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   readmeName: { fontSize: TYPE.body, lineHeight: 17, fontWeight: '700', flexShrink: 1 },
   readmeSub: { fontSize: TYPE.dense, lineHeight: 14, opacity: 0.9 },
@@ -530,14 +533,16 @@ export function StatusBadge({
 }
 
 /** The small star on the card of the instance the app opens on and takes its
- *  look from, filled like a badge so it reads as one; a tap says what it means. */
+ *  look from, filled like a badge so it reads as one; a tap says what it means.
+ *  The star is IconStar, the glyph the family puts on a default entry, at the
+ *  height of a status badge's line. */
 export function DefaultBadge() {
   const { corners, accent, accentContrast } = useAppearance();
   const { t } = useT();
   return (
     <Tip text={t('connections.default')}>
       <View style={[styles.statusBadge, { backgroundColor: accent, ...corners.pill }]}>
-        <Text style={[styles.statusText, { color: accentContrast }]}>★</Text>
+        <Star color={accentContrast} size={16} />
       </View>
     </Tip>
   );
@@ -756,6 +761,7 @@ export function ReadmeButton({
     ({ fill, ink } = BRAND[brand]);
     rest = {
       coffee: c.brandCoffee,
+      docs: c.brandDocs,
       bitcoin: c.brandBitcoin,
       paypal: c.brandPaypal,
       github: c.brandGithub,
