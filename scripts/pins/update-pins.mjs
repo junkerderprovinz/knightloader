@@ -19,7 +19,17 @@ export const pinFiles = {
   dockerfile: 'Dockerfile',
   unrar: 'desktop/unrar.json',
   glimstone: 'web/src/lib/glimstoneVersion.ts',
+  glimstoneExtension: 'extension/src/appearance.js',
+  glimstoneApp: 'mobile/src/theme/version.ts',
 }
+
+// Each surface names the GlimStone release its own copies follow, and each is
+// lifted on its own.
+export const glimstoneSurfaces = [
+  { name: 'the web UI', file: pinFiles.glimstone },
+  { name: 'the browser extension', file: pinFiles.glimstoneExtension },
+  { name: 'the Android app', file: pinFiles.glimstoneApp },
+]
 
 export const sources = {
   adoptium: 'https://api.adoptium.net/v3/assets/latest/21/hotspot?image_type=jre&vendor=eclipse',
@@ -335,19 +345,30 @@ export function parseRelease(json) {
   return { version, url: json.html_url }
 }
 
-// checkGlimstone only reports a newer GlimStone. Lifting the UI to it is work
-// for a person, and GLIMSTONE_VERSION moves with the change that does it.
+// listing joins names the way a sentence does: "a", "a and b", "a, b and c".
+function listing(items) {
+  return items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
+}
+
+// checkGlimstone only reports when a surface lags behind the newest GlimStone.
+// Lifting one is work for a person, and its GLIMSTONE_VERSION moves with the
+// change that does it. `current` is the oldest release any surface follows.
 export async function checkGlimstone(root, get) {
-  const current = currentGlimstone(readFileSync(join(root, pinFiles.glimstone), 'utf8'))
+  const surfaces = glimstoneSurfaces.map((s) => ({
+    ...s,
+    version: currentGlimstone(readFileSync(join(root, s.file), 'utf8')),
+  }))
   const latest = parseRelease(JSON.parse(await get(sources.glimstone)))
-  if (compareVersions(numbers(latest.version), numbers(current)) <= 0) return upToDate('GlimStone', current)
+  const behind = surfaces.filter((s) => compareVersions(numbers(latest.version), numbers(s.version)) > 0)
+  if (behind.length === 0) return upToDate('GlimStone', latest.version)
+  const oldest = behind.map((s) => s.version).sort((a, b) => compareVersions(numbers(a), numbers(b)))[0]
   return {
-    current,
+    current: oldest,
     version: latest.version,
     title: `GlimStone ${latest.version} is out`,
     body: [
-      `[GlimStone ${latest.version}](${latest.url}) is out, and the web UI follows ${current}.`,
-      `Lifting the UI takes a person's eye, so this issue is just a heads-up: bump GLIMSTONE_VERSION in ${pinFiles.glimstone} in the change that does the lift.`,
+      `[GlimStone ${latest.version}](${latest.url}) is out, and ${listing(behind.map((s) => `${s.name} follows ${s.version}`))}.`,
+      `Lifting a surface takes a person's eye, so this issue is just a heads-up: bump GLIMSTONE_VERSION in ${listing(behind.map((s) => s.file))} in the change that does the lift.`,
       'Have a nice week!',
     ].join(' '),
   }

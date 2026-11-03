@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, beforeEach, describe, test } from 'node:test'
@@ -13,7 +13,9 @@ import { gzipSync } from 'node:zlib'
 import {
   checkGlimstone,
   compareVersions,
+  currentGlimstone,
   currentTemurin,
+  glimstoneSurfaces,
   latestTemurin,
   latestUnrar,
   pinFiles,
@@ -231,21 +233,48 @@ describe('UnRAR', () => {
 })
 
 describe('GlimStone', () => {
-  const pinned = () => /'(\d+\.\d+\.\d+)'/.exec(read(pinFiles.glimstone))[1]
+  const release = (version) =>
+    JSON.stringify({ ...JSON.parse(fixture('glimstone-release.json')), tag_name: `v${version}` })
+  const follow = (file, version) =>
+    writeFileSync(join(root, file), read(file).replace(/GLIMSTONE_VERSION = '[\d.]+'/, `GLIMSTONE_VERSION = '${version}'`))
+  const followAll = (version) => glimstoneSurfaces.forEach((s) => follow(s.file, version))
 
-  test('reports a newer release without touching the constant', async () => {
-    const json = { ...JSON.parse(fixture('glimstone-release.json')), tag_name: 'v99.0.0' }
-    const before = read(pinFiles.glimstone)
-    const result = await checkGlimstone(root, offline({ [sources.glimstone]: JSON.stringify(json) }))
-    assert.equal(result.title, 'GlimStone 99.0.0 is out')
-    assert.equal(result.current, pinned())
-    assert.ok(result.body.includes(json.html_url))
-    assert.equal(result.files, undefined)
-    assert.equal(read(pinFiles.glimstone), before)
+  test('reads the release each surface follows', () => {
+    for (const s of glimstoneSurfaces) assert.match(currentGlimstone(read(s.file)), /^\d+\.\d+\.\d+$/)
   })
 
-  test('stays quiet when the UI follows the newest release', async () => {
-    const json = { ...JSON.parse(fixture('glimstone-release.json')), tag_name: `v${pinned()}` }
-    assert.equal(await checkGlimstone(root, offline({ [sources.glimstone]: JSON.stringify(json) })), null)
+  test('reports a newer release without touching the constants', async () => {
+    followAll('3.9.0')
+    const before = glimstoneSurfaces.map((s) => read(s.file))
+    const result = await checkGlimstone(root, offline({ [sources.glimstone]: release('99.0.0') }))
+    assert.equal(result.title, 'GlimStone 99.0.0 is out')
+    assert.equal(result.current, '3.9.0')
+    assert.ok(result.body.includes(JSON.parse(fixture('glimstone-release.json')).html_url))
+    for (const s of glimstoneSurfaces) assert.ok(result.body.includes(s.file), s.file)
+    assert.equal(result.files, undefined)
+    assert.deepEqual(glimstoneSurfaces.map((s) => read(s.file)), before)
+  })
+
+  test('names only the surfaces that lag behind', async () => {
+    followAll('4.0.0')
+    follow(pinFiles.glimstoneExtension, '3.9.0')
+    const result = await checkGlimstone(root, offline({ [sources.glimstone]: release('4.0.0') }))
+    assert.equal(result.current, '3.9.0')
+    assert.ok(result.body.includes('the browser extension follows 3.9.0'))
+    assert.ok(!result.body.includes(pinFiles.glimstone))
+    assert.ok(!result.body.includes(pinFiles.glimstoneApp))
+  })
+
+  test('names the oldest release when the surfaces differ', async () => {
+    followAll('3.9.0')
+    follow(pinFiles.glimstone, '3.8.6')
+    const result = await checkGlimstone(root, offline({ [sources.glimstone]: release('4.0.0') }))
+    assert.equal(result.current, '3.8.6')
+    assert.ok(result.body.includes('the web UI follows 3.8.6, the browser extension follows 3.9.0 and the Android app follows 3.9.0'))
+  })
+
+  test('stays quiet when every surface follows the newest release', async () => {
+    followAll('4.0.0')
+    assert.equal(await checkGlimstone(root, offline({ [sources.glimstone]: release('4.0.0') })), null)
   })
 })
