@@ -1,0 +1,1 @@
+Ein eingefügter mega.nz-Ordner bringt jetzt alle seine Dateien mit, statt nur einer. In der App selbst ändert sich nichts.
