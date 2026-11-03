@@ -38,6 +38,22 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Changed
+
+- **The browser extension follows GlimStone 3.9.0.** Its glyphs come from
+  GlimStone's list, the same drawings as the web interface's, and warnings
+  turn orange. Every grey button lights up in the accent when you point at it,
+  and under the rainbow each button and each selector takes a colour of its
+  own. The settings get a Version card with KnightLoader's and GlimStone's
+  numbers, and the Help card a Manual button that opens the handbook. Minimum
+  size and the key that keeps a download in the browser are picked from the
+  extension's own list instead of the browser's, with a tick on the choice,
+  and the default instance wears GlimStone's star.
+- **The Android app follows GlimStone 3.9.0.** Warnings turn orange, each Look
+  selector lights up in its own colour under the rainbow, the About card gains
+  a Manual button, Buy Me a Coffee opens inside the app, and the default
+  instance wears GlimStone's star.
+
 ## [2.6.4] - 2026-11-03
 
 ### Fixed
