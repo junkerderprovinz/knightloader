@@ -58,6 +58,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -277,6 +278,9 @@ type App struct {
 	// archive needs no credential or binary, and a rewire keeps the same one
 	// so its running transfers stay within reach of Pause and Remove.
 	remotefs *remotefs.Backend
+	// mega downloads MEGA links itself. Like remotefs it lives across rewires,
+	// and its resolver shares its API client.
+	mega *mega.Backend
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through

@@ -26,6 +26,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -266,6 +267,9 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		}
 		if len(crawled) > 0 {
 			b := &bucket{title: crawlTitle(crawled)}
+			buckets = append(buckets, b)
+			// A listing that keeps its subfolders apart gets a bucket for each.
+			folders := map[string]*bucket{}
 			// The files a page points at are probed and downloaded without
 			// the crawl's confinement, so they are held to the page's scope.
 			limit := hostScope(u, scopes)
@@ -276,16 +280,25 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 				// OriginCrawl whatever brought the page in, with the page on
 				// Source. c.Size is 0 for a page crawl, which stage reads as no
 				// hint; a remote directory listing supplies a real one.
-				if t := a.stage(c.URL, c.Name, c.Size, intake{
+				t := a.stage(c.URL, c.Name, c.Size, intake{
 					pkg: pkg, origin: OriginCrawl, source: u,
 					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
 					sizeProbes: &probes,
-				}); t != nil {
-					b.tasks = append(b.tasks, t)
-					created = append(created, t)
+				})
+				if t == nil {
+					continue
 				}
+				into := b
+				if c.Folder != "" {
+					if into = folders[c.Folder]; into == nil {
+						into = &bucket{title: c.Folder, folder: true}
+						folders[c.Folder] = into
+						buckets = append(buckets, into)
+					}
+				}
+				into.tasks = append(into.tasks, t)
+				created = append(created, t)
 			}
-			buckets = append(buckets, b)
 			continue
 		}
 		if t := a.stage(u, batch.FileName, 0, intake{
@@ -353,7 +366,10 @@ func (a *App) snapshotTasks(in []*core.Task) []*core.Task {
 type bucket struct {
 	// title is what the crawled page called itself, empty for the loose bucket.
 	title string
-	tasks []*core.Task
+	// folder marks the files of one listed folder, with its path as the
+	// title. The folder is named as its owner named it, not after the files.
+	folder bool
+	tasks  []*core.Task
 }
 
 // crawlTitle returns the first non-empty page title among the results; a
@@ -379,6 +395,9 @@ func (a *App) nameBucket(b *bucket) {
 		return
 	}
 	derived := derivePackage(snap, b.title)
+	if b.folder {
+		derived = sanitizeSegment(strings.ReplaceAll(b.title, "/", " - "))
+	}
 	if derived == "" {
 		return
 	}
@@ -577,14 +596,21 @@ func (a *App) crawl(u string, within *httpx.Scope) []crawler.Result {
 	if res := a.Registry.For(u); res != nil && res.Info().ID == remotefs.ResolverID {
 		return a.listRemoteDir(res, u)
 	}
+	// The same holds for a MEGA folder, as long as MEGA's own client is the
+	// one that takes the link. Put behind JDownloader on the priority card,
+	// the folder goes to JDownloader's crawler instead.
+	staging := a.stagingResolverFor(u)
+	if staging != nil && staging.Info().ID == mega.ResolverID {
+		return a.listMegaFolder(staging, u)
+	}
 	if !a.Settings.Get().Crawl {
 		return nil
 	}
 	// Only the HTTP fallback and yt-dlp may be pages; yt-dlp claims every link
 	// no hoster knows. Direct files, debrid and JD links are not crawled,
 	// whichever the priority card puts first.
-	if res := a.stagingResolverFor(u); res != nil {
-		switch res.Info().ID {
+	if staging != nil {
+		switch staging.Info().ID {
 		case "http", "ytdlp":
 		default:
 			return nil
@@ -687,6 +713,31 @@ func (a *App) listRemoteDir(res resolver.Resolver, u string) []crawler.Result {
 	out := make([]crawler.Result, 0, len(found))
 	for _, f := range found {
 		out = append(out, crawler.Result{URL: f.URL, Name: f.Name, Size: f.Size, Title: title})
+	}
+	return out
+}
+
+// listMegaFolder opens a MEGA folder link into one entry per file, each titled
+// with the folder it sits in, so a subfolder becomes a package of its own. A
+// file link yields nothing and is staged as itself. A failure is logged and
+// the link is staged as itself, where it fails saying it is a folder.
+func (a *App) listMegaFolder(res resolver.Resolver, u string) []crawler.Result {
+	r, ok := res.(mega.Resolver)
+	if !ok {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), remoteListTimeout)
+	defer cancel()
+	done := a.startActivityRun(ActivityCrawl, cancel)
+	defer done()
+	found, err := r.List(ctx, u)
+	if err != nil {
+		log.Printf("list %s: %v", u, err)
+		return nil
+	}
+	out := make([]crawler.Result, 0, len(found))
+	for _, f := range found {
+		out = append(out, crawler.Result{URL: f.URL, Name: f.Name, Size: f.Size, Folder: f.Folder})
 	}
 	return out
 }

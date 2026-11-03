@@ -26,6 +26,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -52,6 +53,11 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 	// A debrid service is itself the account.
 	if _, _, ok := a.accountForResolverLocked(resolverID); ok {
 		return core.ModePremium
+	}
+	// MEGA's own client logs in to nothing and lives on the free transfer
+	// quota, which premium only is there to stay off.
+	if resolverID == mega.ResolverID {
+		return core.ModeFree
 	}
 	if resolverID == "jd" {
 		// An active login on the sidecar is premium; JD knowing the host
@@ -1242,6 +1248,8 @@ func (a *App) backendFor(resolverID string) backend {
 		// The remotefs backend, even for WebDAV links the engine could fetch,
 		// so a task pauses through the same object it started on.
 		return a.remotefs
+	case resolverID == mega.ResolverID && a.mega != nil:
+		return a.mega
 	case resolverID == "jd" && a.jd != nil:
 		return a.jd
 	case resolverID == "torbox" && a.torbox != nil:

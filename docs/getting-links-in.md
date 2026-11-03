@@ -282,6 +282,23 @@ The first time an SFTP server is seen, its host key is written to
 `known_hosts` in the data directory and has to match on every connection after
 that, the same rule `ssh` follows once you have answered its prompt.
 
+## MEGA
+
+A `mega.nz` file or folder link needs no account and no JDownloader.
+KnightLoader asks MEGA for the file, decrypts it as it arrives and checks it
+against the checksum in the link's key before keeping it. A file that fails the
+check is deleted, and the next try starts over. A folder link stages one task per file,
+named and sized, and each subfolder becomes a package of its own. The older
+`#!` and `#F!` links and `mega.co.nz` work too.
+
+Without an account, MEGA allows each address a limited amount of downloading.
+Once that is used up, the download waits as long as MEGA says and then carries
+on where it stopped, sooner if a reconnect is set up and brings a new address.
+A debrid service that carries MEGA has no such limit: drag it above **MEGA** on
+the priority card on the Accounts page to use it first. A MEGA login in
+JDownloader goes first anyway. With **Allow free downloads** off, a MEGA link
+waits for one of those, since MEGA's own client downloads for free.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks

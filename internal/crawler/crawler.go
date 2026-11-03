@@ -40,6 +40,10 @@ type Result struct {
 	// HTML crawler never sets it; a remote directory listing does. It is a
 	// hint that a real resolve may replace.
 	Size int64
+	// Folder is the path of the folder a listed file sits in, for a listing
+	// that keeps its subfolders apart. Results with the same Folder are named
+	// together, as the results of one page are.
+	Folder string
 }
 
 // Crawler turns a page into the links it points at. It takes no options; the

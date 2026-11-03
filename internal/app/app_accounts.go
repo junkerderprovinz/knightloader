@@ -25,12 +25,14 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/jre"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -171,6 +173,9 @@ func (a *App) rewireBackends() {
 	remoteLogins := a.remotefsLogins()
 	a.Registry.Register(remotefs.Resolver{Accounts: remoteLogins, Dialer: remoteDialer})
 	a.remotefsBackend(eng).SetLogins(remoteLogins, remoteDialer)
+
+	// MEGA's public links, which need no account.
+	a.Registry.Register(mega.Resolver{Client: a.megaBackend().Client()})
 
 	// Stored header profiles. Registered here rather than in app.go because
 	// a.Accounts does not exist there yet. It builds its own client, which has
@@ -614,6 +619,21 @@ func (a *App) remotefsBackend(eng remotefs.Downloader) *remotefs.Backend {
 		a.remotefs = b
 	}
 	return a.remotefs
+}
+
+// megaBackend returns the app's one MEGA backend, made on first use.
+func (a *App) megaBackend() *mega.Backend {
+	a.bmu.Lock()
+	defer a.bmu.Unlock()
+	if a.mega == nil {
+		api := httpx.New(httpx.Options{Class: httpx.ClassHosters})
+		transfer := httpx.New(httpx.Options{Class: httpx.ClassHosters, Timeout: httpx.NoTimeout})
+		b := mega.NewBackend(mega.NewClient(mega.DefaultAPI, api), transfer, a.dlDir, a.onUpdate)
+		b.Dir = a.taskDir
+		b.RateLimit = a.Throttle.Limit
+		a.mega = b
+	}
+	return a.mega
 }
 
 // remotefsLogins returns the host-to-login snapshot for the remote-server

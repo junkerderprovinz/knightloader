@@ -60,6 +60,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 - **Dependency updates are tidied under the name KnightLoader CI** rather than
   as GitHub's Actions bot.
+### Added
+
+- **MEGA file and folder links download without JDownloader.** KnightLoader
+  decrypts them as they arrive and checks each file against the checksum in
+  its key. A folder link stages one row per file with its name and size, and
+  each subfolder becomes a package of its own. When MEGA's free transfer
+  quota runs out, the download waits as long as MEGA says and then carries on
+  where it stopped. A debrid service or JDownloader still takes MEGA links when
+  you move it above MEGA on the priority card, and a MEGA login in JDownloader
+  goes first anyway.
 
 ## [2.6.3] - 2026-11-03
 

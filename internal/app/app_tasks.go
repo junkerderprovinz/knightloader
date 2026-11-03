@@ -26,6 +26,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -483,6 +484,7 @@ type linkInspector interface {
 // link but has no free way to name it, so without JD's plugins the collector
 // shows the bare address and no size until the download starts.
 func (a *App) inspectHosterLinks(ids []string) {
+	ids = a.inspectMegaLinks(ids)
 	a.bmu.RLock()
 	insp, ok := a.jd.(linkInspector)
 	a.bmu.RUnlock()
@@ -615,6 +617,49 @@ func (a *App) expandHosterLink(ex linkExpander, id string) {
 	a.Remove(id, false)
 	created := a.addResolvedLinksFrom(links, in)
 	log.Printf("jd opened %s into %d links, %d staged", u, len(links), len(created))
+}
+
+// inspectMegaLinks fills in the name, size and state of the collected links
+// MEGA's own client takes, from MEGA, and returns the other ids for JD.
+func (a *App) inspectMegaLinks(ids []string) []string {
+	var rest, targets, urls []string
+	a.mu.Lock()
+	for _, id := range ids {
+		t := a.tasks[id]
+		if t == nil || t.Resolver != mega.ResolverID {
+			rest = append(rest, id)
+			continue
+		}
+		if t.Status == core.StatusCollected && !t.Skipped {
+			targets = append(targets, id)
+			urls = append(urls, t.URL)
+		}
+	}
+	a.mu.Unlock()
+	a.bmu.RLock()
+	be := a.mega
+	a.bmu.RUnlock()
+	if len(targets) == 0 || be == nil {
+		return rest
+	}
+	res := mega.Resolver{Client: be.Client()}
+	a.beginActivity(ActivityLinkCheck, len(targets))
+	defer a.endActivity(ActivityLinkCheck, len(targets))
+	ctx, cancel := context.WithTimeout(a.ctx, checkTimeout)
+	defer cancel()
+	for i, info := range res.Inspect(ctx, urls) {
+		id := targets[i]
+		switch info.Availability {
+		case core.AvailOffline:
+			a.setAvailability(id, core.AvailOffline, "offline (mega)", core.ReasonGone)
+		case core.AvailOnline:
+			a.setTaskName(id, info.Name)
+			a.onUpdate(id, core.Update{Size: info.Size})
+			a.holdIfDownloaded(id)
+			a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
+		}
+	}
+	return rest
 }
 
 // analyze probes a plain file link with a HEAD request to fill in its size and
