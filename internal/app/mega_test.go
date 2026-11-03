@@ -187,3 +187,38 @@ func TestASpentMEGAQuotaIsAWaitNotAFailure(t *testing.T) {
 		t.Errorf("the retry comes after %v, want MEGA's 90 minutes", wait)
 	}
 }
+
+// When MEGA cannot be asked for a folder's files at paste time, JD's crawler
+// still gets to open it.
+func TestAMEGAFolderMEGACannotListGoesToJDsCrawler(t *testing.T) {
+	srv := megatest.New(t)
+	a := newCrawlApp(t, false)
+	useMega(a, srv)
+	// A folder the fake does not share, so the listing fails.
+	const folder = "https://mega.nz/folder/GoNe0001#AAAAAAAAAAAAAAAAAAAAAA"
+	ex := &stubExpander{folders: map[string][]resolver.Result{folder: {
+		{DirectURL: folder + "/file/one00001", Name: "a.mkv", Size: 100, Available: core.AvailOnline},
+		{DirectURL: folder + "/file/two00002", Name: "b.mkv", Size: 200, Available: core.AvailOnline},
+	}}}
+	useJD(a, ex)
+
+	created := a.AddLinks([]string{folder}, "")
+	if len(created) != 1 || created[0].Resolver != mega.ResolverID {
+		t.Fatalf("staged %+v, want the folder link as one MEGA row", created)
+	}
+	a.inspectHosterLinks([]string{created[0].ID})
+	waitFor(t, "JD opening the folder", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		n := 0
+		for _, task := range a.tasks {
+			if task.Source == folder {
+				n++
+			}
+		}
+		return n == 2
+	})
+	if !slices.Contains(ex.asked, folder) {
+		t.Errorf("JD was asked about %v, not the folder", ex.asked)
+	}
+}

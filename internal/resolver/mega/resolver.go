@@ -51,7 +51,7 @@ func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Resul
 	if err != nil {
 		return resolver.Result{}, err
 	}
-	if l.Folder && (l.Node == "" || l.SubFolder) {
+	if l.IsFolder() {
 		return resolver.Result{}, errFolder
 	}
 	// MEGA lets a free download open few connections, and the decryption
@@ -73,7 +73,7 @@ func (r Resolver) Inspect(ctx context.Context, urls []string) []Info {
 	out := make([]Info, len(urls))
 	for i, raw := range urls {
 		l, err := Parse(raw)
-		if err != nil || l.Folder && (l.Node == "" || l.SubFolder) {
+		if err != nil || l.IsFolder() {
 			continue
 		}
 		f, err := r.Client.file(ctx, l, false)

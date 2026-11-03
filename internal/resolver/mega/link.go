@@ -120,6 +120,11 @@ func (l Link) String() string {
 	return s
 }
 
+// IsFolder reports whether l points at a folder rather than at one file.
+func (l Link) IsFolder() bool {
+	return l.Folder && (l.Node == "" || l.SubFolder)
+}
+
 // fileIn is the link to one file inside the folder l points at.
 func (l Link) fileIn(node string) Link {
 	l.Node, l.SubFolder = node, false

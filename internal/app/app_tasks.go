@@ -620,13 +620,19 @@ func (a *App) expandHosterLink(ex linkExpander, id string) {
 }
 
 // inspectMegaLinks fills in the name, size and state of the collected links
-// MEGA's own client takes, from MEGA, and returns the other ids for JD.
+// MEGA's own client takes, from MEGA, and returns the other ids for JD. A
+// folder link is still a folder only when MEGA could not be asked for its
+// files at paste time, and JD's crawler gets a try at opening it.
 func (a *App) inspectMegaLinks(ids []string) []string {
 	var rest, targets, urls []string
 	a.mu.Lock()
 	for _, id := range ids {
 		t := a.tasks[id]
 		if t == nil || t.Resolver != mega.ResolverID {
+			rest = append(rest, id)
+			continue
+		}
+		if l, err := mega.Parse(t.URL); err == nil && l.IsFolder() {
 			rest = append(rest, id)
 			continue
 		}
