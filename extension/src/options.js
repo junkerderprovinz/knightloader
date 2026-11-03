@@ -85,100 +85,13 @@ function glyph(d, size, box = '0 0 16 16', fill = 'currentColor') {
   svg.appendChild(path);
   return svg;
 }
-/**
- * The web UI's IconInstances (web/src/lib/icons.tsx), copied shape for shape so
- * "instances" looks the same everywhere. Used for the empty group list.
- */
-function instancesGlyph(size) {
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 20 20');
-  svg.setAttribute('width', String(size));
-  svg.setAttribute('height', String(size));
-  svg.setAttribute('fill', 'currentColor');
-  svg.setAttribute('aria-hidden', 'true');
-  for (const [x, y, o] of [[2.5, 3, '.55'], [2.5, 12, '.55']]) {
-    const r = document.createElementNS(NS, 'rect');
-    r.setAttribute('x', String(x));
-    r.setAttribute('y', String(y));
-    r.setAttribute('width', '15');
-    r.setAttribute('height', '5');
-    r.setAttribute('rx', '1.5');
-    r.setAttribute('opacity', o);
-    svg.appendChild(r);
-  }
-  for (const cy of ['5.5', '14.5']) {
-    const c = document.createElementNS(NS, 'circle');
-    c.setAttribute('cx', '5.5');
-    c.setAttribute('cy', cy);
-    c.setAttribute('r', '1');
-    svg.appendChild(c);
-  }
-  return svg;
-}
 
-const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
-// The same cross popup.js uses for its cancel.
-const D_CROSS =
-  'M4.2 2.8 8 6.6l3.8-3.8 1.4 1.4L9.4 8l3.8 3.8-1.4 1.4L8 9.4l-3.8 3.8-1.4-1.4L6.6 8 2.8 4.2z';
 // PayPal from Simple Icons, CC0 1.0, on a 24-unit grid, the mark the web UI's
 // About card draws (web/src/components/donateMarks.tsx).
 const D_PAYPAL =
   'M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86' +
   'm6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949' +
   'a5.24 5.24 0 0 1 2.848 4.686M9.653 5.546h6.408c.907 0 1.942.222 2.363.541-.195 2.741-2.655 5.483-6.441 5.483H8.714Z';
-// GitHub's Octicon "mark-github", which GitHub publishes for this use.
-const D_GITHUB =
-  'M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49' +
-  '-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82' +
-  '.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15' +
-  '-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27' +
-  '1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95' +
-  '.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z';
-// Two offset sheets as separate subpaths, so the overlap reads as depth at
-// 14px.
-const D_COPY =
-  'M4 1.5h6.5a1 1 0 0 1 1 1V4H6a1.5 1.5 0 0 0-1.5 1.5V11H3a1 1 0 0 1-1-1V2.5a1 1 0 0 1 1-1z' +
-  'M6.5 5.5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z';
-// A filled bin in one path.
-const D_TRASH =
-  'M6.5 1h3a1 1 0 0 1 1 1v1H13v1.5H3V3h2.5V2a1 1 0 0 1 1-1zm.5 2h2v-.5H7V3z' +
-  'M4 5.5h8l-.6 8.1a1.4 1.4 0 0 1-1.4 1.4H6a1.4 1.4 0 0 1-1.4-1.4L4 5.5z';
-// A solid clipboard with its clip, the same shape the app's paste button uses.
-const D_PASTE =
-  'M4.1 2.8h7.8a1.6 1.6 0 0 1 1.6 1.6v8.8a1.6 1.6 0 0 1-1.6 1.6H4.1a1.6 1.6 0 0 1-1.6-1.6V4.4a1.6 1.6 0 0 1 1.6-1.6z' +
-  'M5.8 1.2h4.4a.8.8 0 0 1 .8.8v1a.8.8 0 0 1-.8.8H5.8a.8.8 0 0 1-.8-.8V2a.8.8 0 0 1 .8-.8z';
-/**
- * The web UI's IconEye and IconEyeOff (web/src/lib/icons.tsx), copied shape for
- * shape so the reveal eye looks the same everywhere: an almond with the iris
- * cut out, and for the shown phrase the same almond at .55 behind a bar.
- */
-function eyeGlyph(off, size) {
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 20 20');
-  svg.setAttribute('width', String(size));
-  svg.setAttribute('height', String(size));
-  svg.setAttribute('fill', 'currentColor');
-  svg.setAttribute('aria-hidden', 'true');
-  const eye = document.createElementNS(NS, 'path');
-  eye.setAttribute('fill-rule', 'evenodd');
-  eye.setAttribute(
-    'd',
-    'M2.5 10C2.5 10 6 4.3 10 4.3C14 4.3 17.5 10 17.5 10C17.5 10 14 15.7 10 15.7C6 15.7 2.5 10 2.5 10Z' +
-      'M12.6 10a2.6 2.6 0 1 1 -5.2 0 2.6 2.6 0 0 1 5.2 0Z',
-  );
-  svg.appendChild(eye);
-  if (off) {
-    eye.setAttribute('opacity', '.55');
-    const bar = document.createElementNS(NS, 'rect');
-    bar.setAttribute('x', '9.1');
-    bar.setAttribute('width', '1.8');
-    bar.setAttribute('height', '20');
-    bar.setAttribute('rx', '0.9');
-    bar.setAttribute('transform', 'rotate(45 10 10)');
-    svg.appendChild(bar);
-  }
-  return svg;
-}
 
 /** Buy Me a Coffee's button artwork (appMarks.js), cup and lettering. */
 function coffeeArt() {
@@ -196,53 +109,25 @@ function coffeeArt() {
 }
 
 /**
- * The mail button's envelope, closed and open in one box. The open one takes
- * over under the pointer through GlimStone's .glim-mark-rest and
- * .glim-mark-hover.
+ * houseMarks draws a pair of glyphs for one README button: `rest`, and `open`,
+ * which takes over under the pointer, a finger or the focus through
+ * GlimStone's .glim-mark-rest and .glim-mark-hover, as the mail button's
+ * envelope opens. Each fills its own box, so the two read the same size.
  */
-function mailMarks() {
-  return [
-    ['glim-mark-rest', MAIL_MARK.rest],
-    ['glim-mark-hover', MAIL_MARK.hover],
-  ].map(([cls, d]) => {
-    const svg = glyph(d, 14, MAIL_MARK.box);
-    svg.setAttribute('class', cls);
-    return svg;
-  });
+function houseMarks(rest, open) {
+  rest.setAttribute('class', 'glim-mark-rest');
+  open.setAttribute('class', 'glim-mark-hover');
+  return [rest, open];
 }
 
 /**
- * The check a copy button shows once the copy landed, one stroke that
- * GlimStone's glim-check-draw traces. pathLength="1" lets the dash offset run
- * from 1 to 0 whatever the path's real length.
+ * readmeFace fills one of the Help and About cards' README buttons
+ * (GlimStone's .glim-readme-btn): its mark, painted at rest by `markClass`, and
+ * its name. A name stands alone in the middle, as on the README's give
+ * buttons; `sub` adds the second line the name moves up for under the pointer.
+ * `art` is a vendor's own button artwork in place of both.
  */
-function checkGlyph(size) {
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 16 16');
-  svg.setAttribute('width', String(size));
-  svg.setAttribute('height', String(size));
-  svg.setAttribute('aria-hidden', 'true');
-  const path = document.createElementNS(NS, 'path');
-  path.setAttribute('class', 'glim-check-draw');
-  path.setAttribute('pathLength', '1');
-  // As wide as the copy glyph it replaces, so the label does not shift.
-  path.setAttribute('d', 'M2.5 8.5l3.5 3.5 7.5-8');
-  path.setAttribute('fill', 'none');
-  path.setAttribute('stroke', 'currentColor');
-  path.setAttribute('stroke-width', '2');
-  path.setAttribute('stroke-linecap', 'round');
-  path.setAttribute('stroke-linejoin', 'round');
-  svg.appendChild(path);
-  return svg;
-}
-
-/**
- * readmeFace fills one of the About card's README buttons (GlimStone's
- * .glim-readme-btn): its mark, painted at rest by `markClass`, and its name on
- * one line, as on the README's give buttons, so nothing moves up under the
- * pointer. `art` is a vendor's own button artwork in place of both.
- */
-function readmeFace(el, { name, mark, markClass, art }) {
+function readmeFace(el, { name, sub, mark, markClass, art }) {
   el.setAttribute('aria-label', name);
   if (art) {
     const box = document.createElement('span');
@@ -262,6 +147,12 @@ function readmeFace(el, { name, mark, markClass, art }) {
   label.className = 'glim-readme-btn-name';
   label.textContent = name;
   text.appendChild(label);
+  if (sub) {
+    const second = document.createElement('span');
+    second.className = 'glim-readme-btn-sub';
+    second.textContent = sub;
+    text.appendChild(second);
+  }
   el.replaceChildren(markBox, text);
 }
 
@@ -382,8 +273,8 @@ function applyStaticText() {
   leaveBtn.textContent = '';
   leaveBtn.setAttribute('aria-label', t('options.leave'));
   leaveBtn.setAttribute('data-tip', t('options.leave'));
-  // A glyph alone in a square fills half of it (GlimStone 1.8.0).
-  leaveBtn.replaceChildren(glyph(D_TRASH, 16));
+  // A glyph alone in a square fills half of it.
+  leaveBtn.replaceChildren(glimGlyph('IconUnlink', 21));
   refreshBtn.textContent = t('options.refresh');
   rowLabel('deviceNameLabel', t('options.deviceName'), t('options.deviceNameHint'), deviceNameEl);
   // The default is worded in the page's language.
@@ -392,8 +283,8 @@ function applyStaticText() {
   // Both buttons are neutral, since a destructive control is not coloured
   // (GlimStone 1.12.0), and the committing one names its action.
   leaveConfirmTitleEl.textContent = t('options.leaveConfirmTitle');
-  leaveConfirmCancelEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.cancel')));
-  leaveConfirmCommitEl.replaceChildren(glyph(D_TRASH, 14), document.createTextNode(t('options.leave')));
+  leaveConfirmCancelEl.replaceChildren(glimGlyph('IconClose', 16), document.createTextNode(t('common.cancel')));
+  leaveConfirmCommitEl.replaceChildren(glimGlyph('IconUnlink', 16), document.createTextNode(t('options.leave')));
 
   languageHeadingEl.textContent = t('options.languageHeading');
   glimSetInfo('languageHeading', t('options.languageSub'));
@@ -412,7 +303,7 @@ function applyStaticText() {
   rowLabel('clipLabel', t('options.clipToggle'), `${t('options.clipSub')} ${t('options.clipAccessInfo')}`, clipEnabledEl);
   document.getElementById('clipElsewhereTitle').textContent = t('options.clipElsewhereTitle');
   document.getElementById('clipElsewhereMessage').textContent = t('options.clipElsewhereBody');
-  clipElsewhereCancelEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.cancel')));
+  clipElsewhereCancelEl.replaceChildren(glimGlyph('IconClose', 16), document.createTextNode(t('common.cancel')));
   clipElsewhereKeepEl.textContent = t('options.clipElsewhereKeep');
   clipElsewhereStopEl.textContent = t('options.clipElsewhereStop');
 
@@ -480,7 +371,7 @@ async function renderPinHint() {
 function renderPhraseEye() {
   const shown = phraseInput.type === 'text';
   // Half of .glim-eye's 28px box.
-  phraseEye.replaceChildren(eyeGlyph(shown, 14));
+  phraseEye.replaceChildren(glimGlyph(shown ? 'IconEyeOff' : 'IconEye', 19));
   const name = shown ? t('options.phraseHide') : t('options.phraseShow');
   phraseEye.setAttribute('aria-label', name);
   phraseEye.setAttribute('data-tip', name);
@@ -495,7 +386,7 @@ phraseEye.addEventListener('click', () => {
 
 /** Draws the paste button's glyph and name together, like the eye. */
 function renderPhrasePaste() {
-  phrasePaste.replaceChildren(glyph(D_PASTE, 14));
+  phrasePaste.replaceChildren(glimGlyph('IconPaste', 19));
   const name = t('options.phrasePaste');
   phrasePaste.setAttribute('aria-label', name);
   phrasePaste.setAttribute('data-tip', name);
@@ -607,7 +498,7 @@ async function renderGroup({ quiet = false } = {}) {
     // and without an action button, since connect and refresh sit right above.
     const empty = document.createElement('div');
     empty.className = 'emptyState glim-content-fade';
-    empty.appendChild(instancesGlyph(28));
+    empty.appendChild(glimGlyph('IconFleet', 36));
     const title = document.createElement('span');
     title.textContent = t('options.groupEmpty');
     empty.appendChild(title);
@@ -881,6 +772,7 @@ async function renderLanguagePicker() {
       await renderGroup();
       void renderReport();
     },
+    { name: t('options.languageHeading') },
   );
 }
 
@@ -1360,6 +1252,8 @@ function paintHues() {
   setHues([...document.querySelectorAll('.glim-card')]);
   // The rainbow rows are a set of their own, as on the web UI's Look page.
   setHues([rainbowRow, rainbowReactiveRow, rainbowRotateRow, rainbowDiscoRow]);
+  // So are the selectors, so two of them in one card do not share a colour.
+  setHues([themeSeg, shapeSeg]);
 }
 
 /**
@@ -1390,61 +1284,25 @@ function swatch(hex, { label: name, pressed, onPick, onEdit, onEditClose }) {
 function resetBadge(onClick) {
   const b = document.createElement('button');
   b.type = 'button';
-  b.className = 'glim-reset';
+  b.className = 'glim-reset glim-btn-neutral';
   // Half the badge's box.
-  b.appendChild(glyph(D_RETRY, 16));
+  b.appendChild(glimGlyph('IconRefresh', 21));
   b.setAttribute('data-tip', t('options.accentReset'));
   b.setAttribute('aria-label', t('options.accentReset'));
   b.addEventListener('click', onClick);
   return b;
 }
 
-/**
- * The selectors' glyphs, the web UI's (web/src/lib/glyphs.tsx) path for path.
- * Each is drawn on a 14-unit grid, and the box is the one its glyph() helper
- * works out: the ink's longer side spans three quarters of it.
- */
-const SEG_BOX = '-2.333 -2.333 18.667 18.667';
+/** The glyph list's drawing for each selector value. */
 const SEG_GLYPHS = {
-  dark: {
-    box: '-2.348 -2.333 18.667 18.667',
-    d: 'M9 0a7 7 0 0 0 0 14l0.004 0a7.079 7.079 0 0 0 2.657 -0.538 0.5 0.5 0 0 0 0.061 -0.894A6.5 6.5 0 0 1 8.5 7a6.5 6.5 0 0 1 3.194 -5.568 0.5 0.5 0 0 0 -0.063 -0.893A7.08 7.08 0 0 0 9.006 0H9Z',
-  },
-  light: {
-    box: SEG_BOX,
-    d:
-      'M7 0c0.41421 0 0.75 0.335786 0.75 0.75v1c0 0.41421 -0.33579 0.75 -0.75 0.75s-0.75 -0.33579 -0.75 -0.75v-1C6.25 0.335786 6.58579 0 7 0Z' +
-      'm2.25 7c0 1.24264 -1.00736 2.25 -2.25 2.25S4.75 8.24264 4.75 7 5.75736 4.75 7 4.75 9.25 5.75736 9.25 7Z' +
-      'm-1.5 5.25c0 -0.4142 -0.33579 -0.75 -0.75 -0.75s-0.75 0.3358 -0.75 0.75v1c0 0.4142 0.33579 0.75 0.75 0.75s0.75 -0.3358 0.75 -0.75v-1Z' +
-      'M11.5 7c0 -0.41421 0.3358 -0.75 0.75 -0.75h1c0.4142 0 0.75 0.33579 0.75 0.75s-0.3358 0.75 -0.75 0.75h-1c-0.4142 0 -0.75 -0.33579 -0.75 -0.75Z' +
-      'M0.75 6.25C0.335786 6.25 0 6.58579 0 7s0.335786 0.75 0.75 0.75h1c0.41421 0 0.75 -0.33579 0.75 -0.75s-0.33579 -0.75 -0.75 -0.75h-1Z' +
-      'm1.30024 -4.19976c0.29289 -0.2929 0.76776 -0.2929 1.06066 0l0.86066 0.86066c0.29289 0.29289 0.29289 0.76776 0 1.06066 -0.2929 0.29289 -0.76777 0.29289 -1.06066 0l-0.86066 -0.86066c-0.2929 -0.2929 -0.2929 -0.76777 0 -1.06066Z' +
-      'm9.03886 7.97806c-0.2929 -0.29293 -0.7678 -0.29293 -1.0607 0 -0.29285 0.2929 -0.29285 0.7677 0 1.0606l0.8607 0.8607c0.2929 0.2929 0.7678 0.2929 1.0607 0 0.2929 -0.2929 0.2929 -0.7678 0 -1.0607l-0.8607 -0.8606Z' +
-      'm0.8607 -7.97806c0.2929 0.29289 0.2929 0.76776 0 1.06066l-0.8607 0.86066c-0.2929 0.29289 -0.7678 0.29289 -1.0607 0 -0.29285 -0.2929 -0.29285 -0.76777 0 -1.06066l0.8607 -0.86066c0.2929 -0.2929 0.7678 -0.2929 1.0607 0Z' +
-      'M3.97156 11.0889c0.29289 -0.2929 0.29289 -0.7677 0 -1.0606 -0.2929 -0.29293 -0.76777 -0.29293 -1.06066 0l-0.86066 0.8606c-0.2929 0.2929 -0.2929 0.7678 0 1.0607 0.29289 0.2929 0.76776 0.2929 1.06066 0l0.86066 -0.8607Z',
-  },
-  system: { box: SEG_BOX, d: 'M7 0a7 7 0 1 0 0 14A7 7 0 1 0 7 0ZM7 2A5 5 0 0 0 7 12Z' },
-  round: {
-    box: SEG_BOX,
-    d: 'M6 0H8A6 6 0 0 1 14 6V8A6 6 0 0 1 8 14H6A6 6 0 0 1 0 8V6A6 6 0 0 1 6 0ZM6 2H8A4 4 0 0 1 12 6V8A4 4 0 0 1 8 12H6A4 4 0 0 1 2 8V6A4 4 0 0 1 6 2Z',
-  },
-  soft: {
-    box: SEG_BOX,
-    d: 'M3 0H11A3 3 0 0 1 14 3V11A3 3 0 0 1 11 14H3A3 3 0 0 1 0 11V3A3 3 0 0 1 3 0ZM3 2H11A1 1 0 0 1 12 3V11A1 1 0 0 1 11 12H3A1 1 0 0 1 2 11V3A1 1 0 0 1 3 2Z',
-  },
-  square: { box: SEG_BOX, d: 'M0 0H14V14H0ZM2 2H12V12H2Z' },
-  leaf: {
-    box: SEG_BOX,
-    d: 'M6 0H14V8A6 6 0 0 1 8 14H0V6A6 6 0 0 1 6 0ZM6 2H12V8A4 4 0 0 1 8 12H2V6A4 4 0 0 1 6 2Z',
-  },
+  dark: 'IconMoon',
+  light: 'IconSun',
+  system: 'IconThemeSystem',
+  round: 'IconCornerRound',
+  soft: 'IconCornerSoft',
+  square: 'IconCornerSquare',
+  leaf: 'IconCornerLeaf',
 };
-
-/** segGlyph draws one of SEG_GLYPHS at 16px, with its gaps carved by evenodd. */
-function segGlyph(name) {
-  const svg = glyph(SEG_GLYPHS[name].d, 16, SEG_GLYPHS[name].box);
-  svg.firstChild.setAttribute('fill-rule', 'evenodd');
-  return svg;
-}
 
 /**
  * segment builds a "well" selector, the web UI's Tabs with variant="well".
@@ -1458,7 +1316,7 @@ function segment(host, options, current, onPick) {
     b.type = 'button';
     const words = document.createElement('span');
     words.textContent = o.label;
-    b.append(segGlyph(o.value), words);
+    b.append(glimGlyph(SEG_GLYPHS[o.value], 16), words);
     b.setAttribute('aria-pressed', String(o.value === current));
     b.addEventListener('click', () => onPick(o.value));
     host.appendChild(b);
@@ -1694,6 +1552,7 @@ async function renderAppearance() {
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@halleluja.design';
+const MANUAL_URL = 'https://junkerderprovinz.github.io/knightloader/';
 // The widget page for the coffee handle in the README's donate row.
 const COFFEE_WIDGET_URL = 'https://buymeacoffee.com/widget/page/junkerderprovinz?color=%23FFDD00';
 // PayPal's hosted donation button, the same address the web UI's About card
@@ -1712,24 +1571,32 @@ function versionLink(href, label) {
   return a;
 }
 
+/** A row of the Version card: the name, and its number linking to the release. */
+function versionRow(name, repo, version) {
+  const li = document.createElement('li');
+  const label = document.createElement('span');
+  label.textContent = name;
+  const number = versionLink(`${repo}/releases/tag/v${version}`, version);
+  number.classList.add('glim-num');
+  li.append(label, number);
+  return li;
+}
+
 /**
- * The Help and About cards: the ways to report something, then a thank-you, the
- * ways to give and the versions. The extension's version comes from the
- * manifest.
+ * The Version, Help and About cards: what is running, the ways to report
+ * something, then a thank-you and the ways to give. The extension carries
+ * KnightLoader's own number, from the manifest, so its release is the main
+ * one.
  */
 function renderAbout() {
-  const versions = document.getElementById('aboutVersions');
   const text = document.getElementById('aboutText');
   const gh = document.getElementById('aboutGithub');
   const mail = document.getElementById('aboutMail');
-  if (!versions) return;
-  // Both versions link to their release. The extension carries KnightLoader's
-  // own number, so its release is the main one.
-  versions.replaceChildren(
-    document.createTextNode(`${t('options.aboutVersion')} `),
-    versionLink(`${REPO_URL}/releases/tag/v${chrome.runtime.getManifest().version}`, chrome.runtime.getManifest().version),
-    document.createTextNode(' · GlimStone '),
-    versionLink(`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`, GLIMSTONE_VERSION),
+  const manual = document.getElementById('aboutManual');
+  document.getElementById('versionHeading').textContent = t('options.aboutVersion');
+  document.getElementById('versionRows').replaceChildren(
+    versionRow('KnightLoader', REPO_URL, chrome.runtime.getManifest().version),
+    versionRow('GlimStone', GLIMSTONE_URL, GLIMSTONE_VERSION),
   );
   text.textContent = t('options.aboutText');
   const coffeeText = document.getElementById('aboutCoffee');
@@ -1756,10 +1623,21 @@ function renderAbout() {
   const reportText = document.getElementById('aboutReport');
   if (reportText) reportText.textContent = t('options.aboutReport');
   gh.href = REPO_URL;
-  readmeFace(gh, { name: t('options.aboutGithub'), mark: glyph(D_GITHUB, 14), markClass: 'glim-github-mark' });
+  readmeFace(gh, { name: t('options.aboutGithub'), mark: glimGlyph('IconGithub', 14, { tight: true }), markClass: 'glim-github-mark' });
   // The subject names the product; a prefilled body would read like a form.
   mail.href = `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent('KnightLoader ' + t('options.aboutMailSubject'))}`;
-  readmeFace(mail, { name: t('options.aboutMail'), mark: mailMarks(), markClass: 'glim-house-mark' });
+  readmeFace(mail, {
+    name: t('options.aboutMail'),
+    mark: houseMarks(glimGlyph('IconMail', 14, { tight: true }), glimGlyph('IconMailOpen', 14, { tight: true })),
+    markClass: 'glim-house-mark',
+  });
+  manual.href = MANUAL_URL;
+  readmeFace(manual, {
+    name: t('options.aboutManual'),
+    sub: t('options.aboutManualOpen'),
+    mark: houseMarks(glyph(MANUAL_BOOK.d, 14, MANUAL_BOOK.box), glimGlyph('IconManualOpen', 14, { tight: true })),
+    markClass: 'glim-docs-mark',
+  });
   for (const row of aboutRows) fitReadmeText(row);
 }
 
@@ -1779,7 +1657,7 @@ function openCoffee() {
   document.getElementById('coffeeTitle').textContent = t('options.aboutCoffeeButton');
   glimSetInfo('coffeeHeading', t('options.coffeeIntro'));
   document.getElementById('coffeeAppeal').textContent = t('options.donateAppeal');
-  coffeeCloseEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.close')));
+  coffeeCloseEl.replaceChildren(glimGlyph('IconClose', 16), document.createTextNode(t('common.close')));
   const frame = document.createElement('iframe');
   frame.src = COFFEE_WIDGET_URL;
   frame.title = t('options.aboutCoffeeButton');
@@ -1936,14 +1814,14 @@ function renderCrypto() {
 
 function paintCryptoCopy(copied) {
   cryptoCopyEl.replaceChildren(
-    copied ? checkGlyph(14) : glyph(D_COPY, 14),
+    copied ? glimCheckDrawn(16) : glimGlyph('IconCopy', 16),
     document.createTextNode(t(copied ? 'common.copied' : 'common.copy')),
   );
 }
 
 function openCrypto() {
   renderCrypto();
-  cryptoCloseEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.close')));
+  cryptoCloseEl.replaceChildren(glimGlyph('IconClose', 16), document.createTextNode(t('common.close')));
   cryptoEl.hidden = false;
   cryptoCopyEl.focus();
   document.addEventListener('keydown', onCryptoKey);
@@ -2004,7 +1882,7 @@ let reportCopiedTimer = 0;
 /** The copy button says it landed, as the crypto window's does. */
 function paintReportCopy(copied) {
   copyReportBtn.replaceChildren(
-    copied ? checkGlyph(14) : glyph(D_COPY, 14),
+    copied ? glimCheckDrawn(16) : glimGlyph('IconCopy', 16),
     document.createTextNode(t(copied ? 'common.copied' : 'options.problemsCopy')),
   );
 }
@@ -2090,6 +1968,7 @@ copyReportBtn.addEventListener('click', async () => {
   await loadLanguage();
   // Before any data-tip is written, so the first hover finds the bubble.
   wireTooltips();
+  wireButtonTint();
   applyStaticText();
   await renderLanguagePicker();
   await renderCnl();

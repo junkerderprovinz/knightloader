@@ -1,7 +1,7 @@
-// The About card's marks from GlimStone's reference/appMarks.ts that are more
-// than one path. They are kept as path data because options.js builds every
-// mark with createElementNS: Mozilla's linter, a release gate here, fails an
-// innerHTML assignment from a variable.
+// The marks from GlimStone's reference/appMarks.ts that its glyph list does not
+// hold. They are kept as path data because options.js builds every mark with
+// createElementNS: Mozilla's linter, a release gate here, fails an innerHTML
+// assignment from a variable.
 
 /**
  * Buy Me a Coffee's own README button without its yellow ground: the cup and
@@ -23,12 +23,11 @@ const COFFEE_BUTTON_ART = {
 };
 
 /**
- * Material Design Icons' email and email-open (Apache 2.0) in one box that
- * leaves room for the open flap, so the envelope opens under the pointer
- * without jumping.
+ * The closed book of the README's docs button, Font Awesome Free's `book` (CC
+ * BY 4.0), which the manual button wears at rest. Under the pointer, a finger
+ * or the focus it opens into IconManualOpen from the glyph list.
  */
-const MAIL_MARK = {
-  box: '2 0.64 20 19.36',
-  rest: 'M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z',
-  hover: 'M4,8L12,13L20,8V8L12,3L4,8V8M22,8V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V8C2,7.27 2.39,6.64 2.97,6.29L12,0.64L21.03,6.29C21.61,6.64 22,7.27 22,8Z',
+const MANUAL_BOOK = {
+  box: '-32 0 512 512',
+  d: 'M96 0C43 0 0 43 0 96L0 416c0 53 43 96 96 96l288 0 32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64c17.7 0 32-14.3 32-32l0-320c0-17.7-14.3-32-32-32L384 0 96 0zm0 384l256 0 0 64L96 448c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16zm16 48l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z',
 };

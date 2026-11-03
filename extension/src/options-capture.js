@@ -27,12 +27,6 @@ function captureText() {
   document.getElementById('takeoverSkipLabel').textContent = t('options.takeoverSkip');
   document.getElementById('takeoverBypassLabel').textContent = t('options.takeoverBypass');
 
-  takeoverMinSizeEl.replaceChildren(
-    ...TAKEOVER_MIN_SIZES.map((mb) => new Option(mb === 0 ? t('options.takeoverAnySize') : `${mb} ${t('options.megabytes')}`, String(mb))),
-  );
-  const keyNames = { alt: t('options.keyAlt'), shift: t('options.keyShift'), ctrl: t('options.keyCtrl') };
-  takeoverBypassEl.replaceChildren(...BYPASS_KEYS.map((k) => new Option(keyNames[k], k)));
-
   rowLabel('mediaLabel', t('options.mediaToggle'), t('options.mediaInfo'), mediaEnabledEl);
   document.getElementById('mediaRefusedTitle').textContent = t('options.mediaRefusedTitle');
   document.getElementById('mediaRefusedReason').textContent = t('options.mediaRefused');
@@ -48,8 +42,25 @@ async function renderCapture() {
   // A field being typed in keeps what is in it.
   if (document.activeElement !== takeoverTypesEl) takeoverTypesEl.value = rules.types;
   if (document.activeElement !== takeoverSkipEl) takeoverSkipEl.value = rules.skip;
-  takeoverMinSizeEl.value = String(rules.minSizeMb);
-  takeoverBypassEl.value = rules.bypassKey;
+  // Steady, so a longer choice does not move the label beside it.
+  listbox(
+    takeoverMinSizeEl,
+    TAKEOVER_MIN_SIZES.map((mb) => ({
+      value: String(mb),
+      label: mb === 0 ? t('options.takeoverAnySize') : `${mb} ${t('options.megabytes')}`,
+    })),
+    String(rules.minSizeMb),
+    (v) => void writeTakeoverRules({ minSizeMb: Number(v) }).then(renderCapture),
+    { name: t('options.takeoverMinSize'), width: 'steady' },
+  );
+  const keyNames = { alt: t('options.keyAlt'), shift: t('options.keyShift'), ctrl: t('options.keyCtrl') };
+  listbox(
+    takeoverBypassEl,
+    BYPASS_KEYS.map((k) => ({ value: k, label: keyNames[k] })),
+    rules.bypassKey,
+    (v) => void writeTakeoverRules({ bypassKey: v }).then(renderCapture),
+    { name: t('options.takeoverBypass'), width: 'steady' },
+  );
 
   mediaEnabledEl.setAttribute('aria-checked', String(media.on));
   mediaRefusedEl.hidden = media.on || !captureRefused.media;
@@ -92,8 +103,6 @@ takeoverSkipEl.addEventListener('change', async () => {
   takeoverSkipEl.value = parseList(takeoverSkipEl.value).join(', ');
   await writeTakeoverRules({ skip: takeoverSkipEl.value });
 });
-takeoverMinSizeEl.addEventListener('change', () => void writeTakeoverRules({ minSizeMb: Number(takeoverMinSizeEl.value) }));
-takeoverBypassEl.addEventListener('change', () => void writeTakeoverRules({ bypassKey: takeoverBypassEl.value }));
 
 chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== 'local' || !changes.language) return;

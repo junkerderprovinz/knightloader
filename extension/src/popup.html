@@ -68,8 +68,6 @@
         cursor: pointer;
         transition: background-color 150ms ease, color 150ms ease;
       }
-      .iconBadge:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
-      .iconBadge:active { transform: scale(0.97); }
       /* #target names what is about to be sent; popup.js shows it only for a
          parked send. */
       p {
@@ -100,7 +98,15 @@
       }
       button svg { flex-shrink: 0; }
       .primary { background: var(--accent); color: var(--accent-contrast); }
-      .secondary { background: var(--carbon-surface2); color: var(--carbon-text); }
+      /* The one accent button of a view hovers by a colour step, since it is
+         not on the surface ramp. */
+      .primary:not(:disabled):hover { background: var(--accent-hover); }
+      /* The surface kind. Its hover is rule 40's tint in glimstone.css. */
+      .glim-btn-subtle { background: var(--carbon-surface2); color: var(--carbon-text); }
+      /* Every button gives way on press. */
+      @media (prefers-reduced-motion: no-preference) {
+        button:not(:disabled):active { scale: .97; }
+      }
       /* 16px, the window's own padding, between every block. An empty status
          line takes no space. */
       #status { color: var(--carbon-text-muted); font-size: var(--text-caption); margin-top: 16px; }
@@ -191,20 +197,11 @@
     <div class="header">
       <img src="logo.svg" alt="" aria-hidden="true" class="mark" />
       <h1>KnightLoader</h1>
-      <!-- No title attribute: popup.js sets the translated data-tip and
-           aria-label, and a title would show the browser's own balloon beside
-           the bubble (GlimStone 1.8.0). The aria-label is the name until
-           popup.js runs. -->
-      <button id="openOptions" class="iconBadge" type="button" aria-label="Settings">
-        <!-- The cog GlimStone gives Settings, Streamline's
-             interface-essential/cog.svg (CC BY 4.0), half the badge's size. -->
-        <svg width="16" height="16" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
-          <path
-            fill-rule="evenodd"
-            d="m5.557 0.69 -0.463 1.195 -1.594 0.904 -1.27 -0.194a1.077 1.077 0 0 0 -1.078 0.528l-0.43 0.754a1.077 1.077 0 0 0 0.086 1.217l0.807 1.001v1.81L0.83 8.906a1.077 1.077 0 0 0 -0.086 1.217l0.43 0.754a1.077 1.077 0 0 0 1.078 0.528l1.27 -0.194 1.573 0.904 0.463 1.196a1.076 1.076 0 0 0 1 0.689h0.905a1.076 1.076 0 0 0 1.002 -0.69l0.463 -1.195 1.572 -0.904 1.27 0.194a1.077 1.077 0 0 0 1.078 -0.528l0.43 -0.754a1.077 1.077 0 0 0 -0.086 -1.217l-0.807 -1.001v-1.81l0.786 -1.001a1.077 1.077 0 0 0 0.086 -1.217l-0.43 -0.754a1.076 1.076 0 0 0 -1.078 -0.528l-1.27 0.194 -1.573 -0.904L8.443 0.689A1.077 1.077 0 0 0 7.442 0h-0.884a1.077 1.077 0 0 0 -1.001 0.69ZM7 9.25a2.25 2.25 0 1 0 0 -4.5 2.25 2.25 0 0 0 0 4.5Z"
-          />
-        </svg>
-      </button>
+      <!-- popup.js draws the gear and sets the translated data-tip and
+           aria-label. No title attribute, since a title would show the
+           browser's own balloon beside the bubble. The aria-label is the name
+           until popup.js runs. -->
+      <button id="openOptions" class="iconBadge glim-btn-subtle" type="button" aria-label="Settings"></button>
     </div>
     <!-- Click'n'Load is wanted but the browser has not granted its access
          (cnlState in shared.js). The button leads to the options page, whose
@@ -213,7 +210,7 @@
     <div id="cnlAccess" class="glim-unavailable" hidden>
       <span class="glim-unavailable-title" id="cnlAccessTitle"></span>
       <span class="glim-unavailable-reason" id="cnlAccessReason"></span>
-      <button id="cnlAccessOpen" class="secondary" type="button"></button>
+      <button id="cnlAccessOpen" class="glim-btn-subtle" type="button"></button>
     </div>
 
     <!-- Instances and the link collector as two tabs, like the app. The strip
@@ -230,7 +227,7 @@
            (GlimStone 1.14.0); the flex row mirrors under a right-to-left
            language. Cancel shows only while a countdown runs. -->
       <div class="sendRow">
-        <button id="cancelCountdown" class="secondary" type="button" hidden></button>
+        <button id="cancelCountdown" class="glim-btn-subtle" type="button" hidden></button>
         <button id="send" class="primary">Send this page</button>
       </div>
       <!-- The video and audio this tab played, while finding media is on
@@ -250,7 +247,7 @@
       <!-- One accent button per pane (GlimStone rule 3), and it is the one
            that sends; choosing files only fills the field. -->
       <div class="collectorRow">
-        <button id="pickFiles" class="secondary" type="button"></button>
+        <button id="pickFiles" class="glim-btn-subtle" type="button"></button>
         <button id="addLinks" class="primary" type="button"></button>
       </div>
       <!-- Opened from the button beside it, since a native file input cannot
@@ -266,6 +263,7 @@
     <script src="disco.js"></script>
     <script src="i18n.js"></script>
     <script src="i18n-capture.js"></script>
+    <script src="glyphs.js"></script>
     <script src="shared.js"></script>
     <script src="capture.js"></script>
     <script src="wordlist.js"></script>

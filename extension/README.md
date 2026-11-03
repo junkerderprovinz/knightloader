@@ -185,6 +185,10 @@ There is no motion axis here: no `data-motion`, no picker, no stored level. The
 fixed durations this extension does run are pinned to the web UI's own top-level
 numbers, so one surface with one level runs at the level an app defaults to.
 
+The glyphs are GlimStone's: `gen-glyphs.mjs` writes `src/glyphs.js` from the
+web interface's copy of the glyph list (`web/scripts/glyphs.json`), and
+`node extension/gen-glyphs.mjs --check` fails when the two have drifted apart.
+
 42 languages in `i18n.js`, checked by `check-locales.mjs`, which fails on both a
 missing key and an unused one.
 `check-refusals.mjs` guards the other half: that nothing is dimmed and switched

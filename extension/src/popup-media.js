@@ -49,7 +49,10 @@ function mediaRow(item, tab, page) {
 
   const kind = document.createElement('span');
   kind.className = 'mediaKind';
-  kind.textContent = (MEDIA_KIND_LABEL[item.kind] ?? MEDIA_KIND_LABEL.video)();
+  kind.replaceChildren(
+    glimGlyph(item.kind === 'audio' ? 'IconFileAudio' : 'IconFileVideo', 14),
+    document.createTextNode((MEDIA_KIND_LABEL[item.kind] ?? MEDIA_KIND_LABEL.video)()),
+  );
 
   const name = document.createElement('span');
   name.className = 'mediaName';
@@ -63,10 +66,10 @@ function mediaRow(item, tab, page) {
 
   const send = document.createElement('button');
   send.type = 'button';
-  send.className = 'iconBadge';
+  send.className = 'iconBadge glim-btn-subtle';
   send.setAttribute('aria-label', t('popup.mediaSend'));
   send.setAttribute('data-tip', t('popup.mediaSend'));
-  send.replaceChildren(glyph(G_SEND));
+  send.replaceChildren(sendGlyph(18));
   send.addEventListener('click', async () => {
     cancelCountdown();
     send.disabled = true;

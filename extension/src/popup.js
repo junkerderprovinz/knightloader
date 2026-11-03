@@ -15,54 +15,35 @@ const tabsEl = document.getElementById('tabs');
 const paneSendEl = document.getElementById('paneSend');
 
 /**
- * Every button carries a filled glyph beside its label, 14px like the label's
- * text (GlimStone "Icon glyphs" and "The sidebar"), built with createElementNS
- * because Mozilla's linter, a release gate here, fails an innerHTML assignment
- * from a variable. `label()` sets text and glyph together. A glyph drawn in
- * two tones passes its paths as [d, opacity] pairs.
+ * Every button carries a filled glyph beside its label (GlimStone "Icon
+ * glyphs" and "The sidebar"), from the glyph list in glyphs.js. `label()` sets
+ * text and glyph together. Sending has no drawing in the list, so its paper
+ * plane is drawn here, with createElementNS like the list's, because Mozilla's
+ * linter, a release gate here, fails an innerHTML assignment from a variable.
  */
 const NS = 'http://www.w3.org/2000/svg';
-function glyph(d, size = 14, box = '0 0 16 16') {
+const G_SEND = 'M1.3 7.1 14.2 1.4c.6-.3 1.2.3.9.9L9.4 15.2c-.3.6-1.1.5-1.3-.1l-1.4-4.3-4.3-1.4c-.6-.2-.7-1-.1-1.3z';
+function sendGlyph(size = 14) {
   const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', box);
+  svg.setAttribute('viewBox', '0 0 16 16');
   svg.setAttribute('width', String(size));
   svg.setAttribute('height', String(size));
   svg.setAttribute('aria-hidden', 'true');
-  for (const [part, opacity] of Array.isArray(d) ? d : [[d]]) {
-    const path = document.createElementNS(NS, 'path');
-    path.setAttribute('fill', 'currentColor');
-    path.setAttribute('d', part);
-    if (opacity !== undefined) path.setAttribute('opacity', String(opacity));
-    svg.appendChild(path);
-  }
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('fill', 'currentColor');
+  path.setAttribute('d', G_SEND);
+  svg.appendChild(path);
   return svg;
 }
-// The cross is the plus rotated, so the two match.
-const G_SEND = 'M1.3 7.1 14.2 1.4c.6-.3 1.2.3.9.9L9.4 15.2c-.3.6-1.1.5-1.3-.1l-1.4-4.3-4.3-1.4c-.6-.2-.7-1-.1-1.3z';
-const G_PLUS = 'M7 2h2v5h5v2H9v5H7V9H2V7h5V2z';
-const G_CROSS =
-  'M4.2 2.8 8 6.6l3.8-3.8 1.4 1.4L9.4 8l3.8 3.8-1.4 1.4L8 9.4l-3.8 3.8-1.4-1.4L6.6 8 2.8 4.2z';
-const G_FILE = 'M4 1h5l4 4v9.2A.8.8 0 0 1 12.2 15H4a.8.8 0 0 1-.8-.8V1.8A.8.8 0 0 1 4 1zm5 1.4V5h2.6L9 2.4z';
-const G_ADD_INSTANCE = 'M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm1 6h3v2H9v3H7V9H4V7h3V4h2v3z';
-// GlimStone's IconFleet for the other instances, Streamline's
-// interface-essential/hierarchy-2.svg (CC BY 4.0), in a box with the margin
-// the glyphs above have.
-const G_FLEET =
-  'M6.5 0.5C5.67157 0.5 5 1.17157 5 2v1c0 0.74325 0.54057 1.36024 1.25 1.47926V6.25H3c-0.9665 0 -1.75 0.7835 -1.75 1.75v1.52074C0.540572 9.63976 0 10.2568 0 11v1c0 0.8284 0.671573 1.5 1.5 1.5h1c0.82843 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.54057 -1.36024 -1.25 -1.47926V8c0 -0.13807 0.11193 -0.25 0.25 -0.25h3.25v1.77074C5.54057 9.63976 5 10.2568 5 11v1c0 0.8284 0.67157 1.5 1.5 1.5h1c0.82843 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.54057 -1.36024 -1.25 -1.47926V7.75H11c0.1381 0 0.25 0.11193 0.25 0.25v1.52074C10.5406 9.63976 10 10.2568 10 11v1c0 0.8284 0.6716 1.5 1.5 1.5h1c0.8284 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.5406 -1.36024 -1.25 -1.47926V8c0 -0.9665 -0.7835 -1.75 -1.75 -1.75H7.75V4.47926C8.45943 4.36024 9 3.74325 9 3V2C9 1.17157 8.32843 0.5 7.5 0.5h-1Z';
-const G_FLEET_BOX = '-1 -1 16 16';
-// The web sidebar's IconCollector (web/src/lib/icons.tsx), so the collector
-// wears one drawing in both places.
-const G_COLLECTOR = [
-  ['M3 5.5A1.5 1.5 0 0 1 4.5 4H8l1.6 2H16a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 16 16H4.5A1.5 1.5 0 0 1 3 14.5Z', 0.55],
-  ['M13 3.5h4v4h-2v-1.6l-4.4 4.4-1.4-1.4 4.4-4.4H13Z'],
-];
-const G_COLLECTOR_BOX = '0 0 20 20';
 
-function label(btn, text, d) {
-  btn.replaceChildren(glyph(d), document.createTextNode(text));
+/** `glyph` is a name from the glyph list, or an <svg> already drawn. */
+function label(btn, text, glyph) {
+  btn.replaceChildren(typeof glyph === 'string' ? glimGlyph(glyph, 16) : glyph, document.createTextNode(text));
 }
 const statusEl = document.getElementById('status');
 const openOptionsBtn = document.getElementById('openOptions');
+// Half the badge's size, drawn before anything waits on storage.
+openOptionsBtn.replaceChildren(glimGlyph('IconGear', 21));
 openOptionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
 
 let group = [];
@@ -91,10 +72,11 @@ function paintHues() {
   void refreshFollowedLook().then((taken) => taken && applyDisco(look.disco));
   await loadLanguage();
   wireTooltips();
+  wireButtonTint();
   openOptionsBtn.setAttribute('aria-label', t('common.settings'));
   openOptionsBtn.setAttribute('data-tip', t('common.settings'));
   instanceLabelEl.textContent = t('popup.sendToLabel');
-  label(sendBtn, t(sendLabelKey(pending)), G_SEND);
+  label(sendBtn, t(sendLabelKey(pending)), sendGlyph());
   targetEl.textContent = t('popup.loading');
   targetEl.hidden = false;
   void renderCnlAccess();
@@ -114,7 +96,7 @@ function paintHues() {
     // offered over the same list.
     group = pending.siblings ?? [];
     targetEl.textContent = pending.payload?.title || pending.payload?.url || pending.payload?.text || t('picker.untitled');
-    label(sendBtn, t(sendLabelKey(pending)), G_SEND);
+    label(sendBtn, t(sendLabelKey(pending)), sendGlyph());
     if (group.length === 0) {
       statusEl.textContent = t('popup.noneOnline');
       return;
@@ -137,7 +119,7 @@ function paintHues() {
   if (!(await readPhrase())) {
     // The popup stays open and offers the way to the options page rather
     // than jumping there.
-    label(sendBtn, t('popup.addInstance'), G_ADD_INSTANCE);
+    label(sendBtn, t('popup.addInstance'), 'IconAdd');
     sendBtn.onclick = () => chrome.runtime.openOptionsPage();
     statusEl.textContent = t('popup.noInstance');
     return;
@@ -268,7 +250,7 @@ function cancelCountdown() {
   if (countdownTimer === null) return;
   clearInterval(countdownTimer);
   countdownTimer = null;
-  label(sendBtn, t(sendLabelKey(pending)), G_SEND);
+  label(sendBtn, t(sendLabelKey(pending)), sendGlyph());
   cancelBtn.hidden = true;
 }
 
@@ -278,11 +260,11 @@ async function startCountdown() {
   if (seconds <= 0 || !chosen) return;
   let left = seconds;
   const paint = () => {
-    label(sendBtn, t('popup.sendIn', { n: String(left) }), G_SEND);
+    label(sendBtn, t('popup.sendIn', { n: String(left) }), sendGlyph());
   };
   paint();
   // The cancel button shows only while the clock runs.
-  label(cancelBtn, t('popup.cancel'), G_CROSS);
+  label(cancelBtn, t('popup.cancel'), 'IconClose');
   cancelBtn.hidden = false;
   countdownTimer = setInterval(() => {
     left -= 1;
@@ -323,13 +305,13 @@ function renderTabs() {
   }
   tabsEl.hidden = false;
   tabsEl.innerHTML = '';
-  for (const [value, label, d, box] of [
-    ['send', t('popup.tabInstances'), G_FLEET, G_FLEET_BOX],
-    ['collector', t('popup.tabCollector'), G_COLLECTOR, G_COLLECTOR_BOX],
+  for (const [value, label, name] of [
+    ['send', t('popup.tabInstances'), 'IconFleet'],
+    ['collector', t('popup.tabCollector'), 'IconCollector'],
   ]) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.replaceChildren(glyph(d, 14, box), document.createTextNode(label));
+    b.replaceChildren(glimGlyph(name, 16), document.createTextNode(label));
     b.setAttribute('aria-pressed', String(value === pane));
     b.addEventListener('click', () => {
       cancelCountdown();
@@ -362,11 +344,8 @@ async function renderCnlAccess() {
   if (cnlAccessEl.hidden) return;
   document.getElementById('cnlAccessTitle').textContent = t('options.cnlAccessHeading');
   document.getElementById('cnlAccessReason').textContent = t('popup.cnlAccess');
-  // The header's cog, so the button and the badge beside the name agree.
-  const cog = openOptionsBtn.querySelector('svg').cloneNode(true);
-  cog.setAttribute('width', '14');
-  cog.setAttribute('height', '14');
-  cnlAccessOpenEl.replaceChildren(cog, document.createTextNode(t('common.settings')));
+  // The header's gear, so the button and the badge beside the name agree.
+  label(cnlAccessOpenEl, t('common.settings'), 'IconGear');
 }
 
 // The popup closes on its own once the options tab takes the focus.
@@ -438,8 +417,8 @@ function linksIn(text) {
 function showCollector() {
   collectorLabelEl.textContent = t('popup.collectorLabel');
   linksEl.placeholder = t('popup.collectorPlaceholder');
-  label(addLinksBtn, t('popup.collectorAdd'), G_PLUS);
-  label(pickFilesBtn, t('popup.collectorFiles'), G_FILE);
+  label(addLinksBtn, t('popup.collectorAdd'), 'IconAdd');
+  label(pickFilesBtn, t('popup.collectorFiles'), 'IconFolder');
   showPane();
 }
 

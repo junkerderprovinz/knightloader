@@ -39,14 +39,20 @@ function functionSource(text, name) {
   return null;
 }
 
-/** A selector test for the few forms the page uses; anything else is an error, never a silent miss. */
+/**
+ * A selector test for the forms the page uses: a tag, a class or attributes,
+ * alone or one after the other, such as `button[title]`. Anything else is an
+ * error, never a silent miss.
+ */
 function matcher(selector) {
-  if (/^[a-z][a-z0-9]*$/.test(selector)) return (el) => el.tagName === selector.toUpperCase();
-  const cls = selector.match(/^\.([\w-]+)$/);
-  if (cls) return (el) => el.className.split(/\s+/).includes(cls[1]);
-  const attr = selector.match(/^\[([\w-]+)(?:="([^"]*)")?\]$/);
-  if (attr) return (el) => el.getAttribute(attr[1]) !== null && (attr[2] === undefined || el.getAttribute(attr[1]) === attr[2]);
-  throw new Error(`the stand-in DOM does not know the selector "${selector}"`);
+  const form = selector.match(/^([a-z][a-z0-9]*)?(?:\.([\w-]+))?((?:\[[\w-]+(?:="[^"]*")?\])*)$/);
+  if (!form || selector === '') throw new Error(`the stand-in DOM does not know the selector "${selector}"`);
+  const [, tag, cls, attrs] = form;
+  const wanted = [...attrs.matchAll(/\[([\w-]+)(?:="([^"]*)")?\]/g)].map(([, name, value]) => [name, value]);
+  return (el) =>
+    (!tag || el.tagName === tag.toUpperCase()) &&
+    (!cls || el.className.split(/\s+/).includes(cls)) &&
+    wanted.every(([name, value]) => el.getAttribute(name) !== null && (value === undefined || el.getAttribute(name) === value));
 }
 const matchesAny = (selector) => {
   const tests = selector.split(',').map((s) => matcher(s.trim()));

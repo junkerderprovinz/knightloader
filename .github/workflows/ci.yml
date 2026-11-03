@@ -87,10 +87,12 @@ jobs:
               - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
             # The crypto window's list and the clipboard link rule are held to
-            # the web UI's, the signed call to internal/relay's vector and the
-            # refusals to the server's codes.
+            # the web UI's, the glyphs to its copy of GlimStone's list, the
+            # signed call to internal/relay's vector and the refusals to the
+            # server's codes.
             extension:
               - 'extension/**'
+              - 'web/scripts/glyphs.json'
               - 'internal/relay/member_test.go'
               - 'internal/relay/member.go'
               - 'internal/federation/members.go'
@@ -155,6 +157,8 @@ jobs:
               - 'Dockerfile'
               - 'desktop/unrar.json'
               - 'web/src/lib/glimstoneVersion.ts'
+              - 'extension/src/appearance.js'
+              - 'mobile/src/theme/version.ts'
               - '.github/workflows/ci.yml'
 
   server:
@@ -486,6 +490,9 @@ jobs:
 
       - name: Every motion level declares every dial
         run: node extension/check-motion.mjs
+
+      - name: The glyphs come from GlimStone's list
+        run: node extension/gen-glyphs.mjs --check
 
       - name: Instances that are away
         run: node extension/check-away.mjs

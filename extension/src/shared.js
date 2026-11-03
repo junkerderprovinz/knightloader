@@ -140,10 +140,11 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
 
   card.append(mark, body);
 
+  // The star marks the default entry wherever GlimStone draws one.
   if (isDefault) {
     const badge = document.createElement('span');
     badge.className = 'glim-instance-badge';
-    badge.textContent = t('options.defaultBadge');
+    badge.append(glimGlyph('IconStar', 12, { tight: true }), document.createTextNode(t('options.defaultBadge')));
     card.appendChild(badge);
   }
 
@@ -156,7 +157,7 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
     // Disabled rather than hidden without an address, so every card has the
     // same control.
     const url = status?.webUrl ?? '';
-    actions.appendChild(squareAction(GLYPH_OPEN, t('instance.open'), !url, (el) => onOpen(inst, url, el)));
+    actions.appendChild(squareAction('IconExternalLink', t('instance.open'), !url, (el) => onOpen(inst, url, el)));
     card.appendChild(actions);
   }
 
@@ -293,28 +294,16 @@ function lastSeenLine(unix) {
   return seen;
 }
 
-/* The card's glyphs, built as nodes because Mozilla's linter, a release gate
-   here, fails an innerHTML assignment from a variable. */
-const GLYPH_OPEN = 'M9 2h5v5h-1.5V4.56L7.8 9.26 6.74 8.2l4.7-4.7H9zM3 4h4v1.5H4.5v6h6V9H12v4H3z';
-
-function squareAction(d, label, disabled, onClick) {
+/** A square glyph button on a card, named by its tooltip and aria-label. */
+function squareAction(glyphName, label, disabled, onClick) {
   const b = document.createElement('button');
   b.type = 'button';
-  b.className = 'glim-square';
+  b.className = 'glim-square glim-btn-neutral';
   b.disabled = !!disabled;
   b.setAttribute('aria-label', label);
   b.setAttribute('data-tip', label);
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 16 16');
-  // A glyph alone in a square fills half of it (GlimStone 1.8.0).
-  svg.setAttribute('width', '16');
-  svg.setAttribute('height', '16');
-  svg.setAttribute('aria-hidden', 'true');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('fill', 'currentColor');
-  path.setAttribute('d', d);
-  svg.appendChild(path);
-  b.appendChild(svg);
+  // A glyph alone in a square fills half of it.
+  b.appendChild(glimGlyph(glyphName, 21));
   // The button passes itself so a failure shakes the clicked node, since the
   // card is rebuilt on every render.
   b.addEventListener('click', () => onClick(b));
@@ -429,89 +418,164 @@ function closeInstanceMenu() {
 }
 
 /**
- * listbox builds the language picker, since a native <option> cannot show a
- * flag. `options` are { value, label, flag }; the flag is a `fi fi-XX` span
- * from the same stylesheet the web UI uses.
+ * listbox builds the extension's one dropdown, the web UI's Dropdown and
+ * GlimStone's Select in plain DOM: a field-shaped trigger that opens a list
+ * with a check mark on the value in force. Never a native <select>, whose open
+ * list is the operating system's widget that no theme here reaches.
+ *
+ * `options` are { value, label, flag }, the flag a `fi fi-XX` span from the
+ * stylesheet the web UI uses. `name` is what the dropdown chooses, the
+ * accessible name with the value after it. `width` is `fill`, which takes the
+ * line, or `steady`, as wide as the longest option, so choosing never moves
+ * what stands beside it.
+ *
+ * The arrow keys, Enter and Space open the list; inside it the arrows, Home
+ * and End move, a letter jumps to the next label starting with it, Enter
+ * picks, and Escape or Tab closes. The wheel steps the value while the trigger
+ * has focus.
  */
-function listbox(host, options, current, onPick) {
-  host.innerHTML = '';
+function listbox(host, options, current, onPick, { name = '', width = 'fill' } = {}) {
+  const hadFocus = host.contains(document.activeElement);
+  host.replaceChildren();
+  host.classList.add('glim-listbox');
+  host.classList.toggle('glim-listbox--steady', width === 'steady');
   const chosen = options.find((o) => o.value === current) ?? options[0];
+  const withFlags = options.some((o) => o.flag);
 
   const trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'glim-listbox-trigger';
   trigger.setAttribute('aria-haspopup', 'listbox');
   trigger.setAttribute('aria-expanded', 'false');
-  const flag = document.createElement('span');
-  flag.className = `fi fi-${chosen.flag}`;
-  const label = document.createElement('span');
-  label.textContent = chosen.label;
+  if (name) trigger.setAttribute('aria-label', `${name}: ${chosen.label}`);
+  if (withFlags) {
+    const flag = document.createElement('span');
+    flag.className = `fi fi-${chosen.flag}`;
+    trigger.appendChild(flag);
+  }
+  // Every label in one grid cell with only the chosen one visible, so a steady
+  // trigger is as wide as its longest option.
+  const value = document.createElement('span');
+  value.className = 'glim-listbox-value';
+  for (const label of width === 'steady' ? [...new Set([chosen.label, ...options.map((o) => o.label)])] : [chosen.label]) {
+    const span = document.createElement('span');
+    span.textContent = label;
+    if (label !== chosen.label) {
+      span.className = 'glim-listbox-ghost';
+      span.setAttribute('aria-hidden', 'true');
+    }
+    value.appendChild(span);
+  }
   const caret = document.createElement('span');
   caret.className = 'glim-listbox-caret';
-  caret.textContent = '▾';
-  trigger.append(flag, label, caret);
+  caret.appendChild(glimGlyph('IconExpand', 14));
+  trigger.append(value, caret);
   host.appendChild(trigger);
 
   let menu = null;
-  const close = () => {
-    menu?.remove();
+  const items = () => [...(menu?.querySelectorAll('.glim-listbox-option') ?? [])];
+  const close = (refocus) => {
+    if (!menu) return;
+    menu.remove();
     menu = null;
     trigger.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('pointerdown', onAway);
+    if (refocus) trigger.focus();
+  };
+  const pick = (o) => {
+    close(true);
+    if (o.value !== chosen.value) onPick(o.value);
+  };
+  const onAway = (e) => {
+    if (!host.contains(e.target)) close(false);
   };
   const open = () => {
-    if (menu) return close();
     menu = document.createElement('div');
     menu.className = 'glim-listbox-menu';
     menu.setAttribute('role', 'listbox');
+    if (name) menu.setAttribute('aria-label', name);
     for (const o of options) {
       const b = document.createElement('button');
       b.type = 'button';
+      b.tabIndex = -1;
       b.className = 'glim-listbox-option';
       b.setAttribute('role', 'option');
-      b.setAttribute('aria-selected', String(o.value === current));
-      const f = document.createElement('span');
-      f.className = `fi fi-${o.flag}`;
+      b.setAttribute('aria-selected', String(o.value === chosen.value));
+      if (withFlags) {
+        const f = document.createElement('span');
+        f.className = `fi fi-${o.flag}`;
+        b.appendChild(f);
+      }
       const l = document.createElement('span');
+      l.className = 'glim-listbox-label';
       l.textContent = o.label;
-      b.append(f, l);
-      b.addEventListener('click', () => {
-        close();
-        onPick(o.value);
-      });
+      const check = document.createElement('span');
+      check.className = 'glim-listbox-check';
+      check.appendChild(glimGlyph('IconCheck', 14));
+      b.append(l, check);
+      b.addEventListener('click', () => pick(o));
       menu.appendChild(b);
     }
+    menu.addEventListener('keydown', onMenuKey);
     host.appendChild(menu);
     trigger.setAttribute('aria-expanded', 'true');
-    // Opens scrolled to the current choice.
-    menu.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
-    setTimeout(() => {
-      document.addEventListener('pointerdown', onAway);
-      document.addEventListener('keydown', onEsc);
-    }, 0);
+    // The list starts where the trigger's text does and ends where the
+    // trigger ends when the window has no room for it the other way, and it
+    // opens above where there is no room below.
+    const box = trigger.getBoundingClientRect();
+    const list = menu.getBoundingClientRect();
+    const view = document.documentElement;
+    menu.classList.toggle('glim-listbox-menu--end', list.right > view.clientWidth - 8 || list.left < 8);
+    const below = view.clientHeight - box.bottom;
+    menu.classList.toggle('glim-listbox-menu--above', below < list.height + 8 && box.top > below);
+    const at = items().find((b) => b.getAttribute('aria-selected') === 'true') ?? items()[0];
+    at?.focus({ preventScroll: true });
+    at?.scrollIntoView({ block: 'nearest' });
+    setTimeout(() => document.addEventListener('pointerdown', onAway), 0);
   };
-  const onAway = (e) => {
-    if (!host.contains(e.target)) {
-      close();
-      document.removeEventListener('pointerdown', onAway);
-      document.removeEventListener('keydown', onEsc);
+  const onMenuKey = (e) => {
+    const all = items();
+    const i = all.indexOf(document.activeElement);
+    const move = (n) => {
+      e.preventDefault();
+      all[Math.max(0, Math.min(all.length - 1, n))]?.focus();
+    };
+    if (e.key === 'ArrowDown') move(i + 1);
+    else if (e.key === 'ArrowUp') move(i - 1);
+    else if (e.key === 'Home') move(0);
+    else if (e.key === 'End') move(all.length - 1);
+    else if (e.key === 'Escape') {
+      e.preventDefault();
+      close(true);
+    } else if (e.key === 'Tab') {
+      // Back on the trigger first, so the Tab goes on from there.
+      close(true);
+    }
+    else if (e.key.length === 1 && /\S/.test(e.key)) {
+      // The next label after the focused one that starts with the letter.
+      const key = e.key.toLocaleLowerCase();
+      for (let step = 1; step <= all.length; step++) {
+        const b = all[(i + step) % all.length];
+        if (b.textContent.trim().toLocaleLowerCase().startsWith(key)) {
+          b.focus();
+          break;
+        }
+      }
     }
   };
-  const onEsc = (e) => {
-    if (e.key === 'Escape') {
-      close();
-      trigger.focus();
-      document.removeEventListener('pointerdown', onAway);
-      document.removeEventListener('keydown', onEsc);
-    }
-  };
-  trigger.addEventListener('click', open);
+  trigger.addEventListener('click', () => (menu ? close(true) : open()));
+  trigger.addEventListener('keydown', (e) => {
+    if (menu || !['ArrowDown', 'ArrowUp'].includes(e.key)) return;
+    e.preventDefault();
+    open();
+  });
 
   /**
    * The wheel changes the choice without opening the list (GlimStone rule 14),
    * but only while the trigger has focus, as the number fields do: on hover
-   * alone, scrolling the page past it would switch the language. `passive:
-   * false` so preventDefault keeps the page from scrolling at the same time. It
-   * stops at both ends rather than wrapping.
+   * alone, scrolling the page past it would switch the value. `passive: false`
+   * so preventDefault keeps the page from scrolling at the same time. It stops
+   * at both ends rather than wrapping.
    */
   trigger.addEventListener(
     'wheel',
@@ -521,11 +585,12 @@ function listbox(host, options, current, onPick) {
       const at = options.findIndex((o) => o.value === chosen.value);
       const next = Math.min(options.length - 1, Math.max(0, at + (event.deltaY > 0 ? 1 : -1)));
       if (next === at) return;
-      close();
+      close(false);
       onPick(options[next].value);
     },
     { passive: false },
   );
+  if (hadFocus) trigger.focus();
 }
 
 /**

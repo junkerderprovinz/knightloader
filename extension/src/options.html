@@ -33,8 +33,7 @@
       /* Fields match the web UI's (ui.tsx inputClass): a filled surface and no
          border, since GlimStone separates by surface. The focus ring is a
          box-shadow because an outline ignores the radius. */
-      input,
-      select {
+      input {
         box-sizing: border-box;
         /* --btn-h, so fields and buttons share one height. */
         height: var(--btn-h);
@@ -47,8 +46,7 @@
         outline: none;
         transition: box-shadow 150ms ease;
       }
-      input:focus,
-      select:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
+      input:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
       /* Links styled as buttons share the button rules; every pressable thing
          is --btn-h high. */
       button,
@@ -75,10 +73,18 @@
       }
       button > svg,
       a.btnlike > svg { flex: 0 0 auto; }
-      button.secondary,
-      a.btnlike.secondary {
+      /* The one accent button of a view hovers by a colour step, since it is
+         not on the surface ramp. */
+      .primary:not(:disabled):hover { background: var(--accent-hover); }
+      /* The surface kind. Its hover is rule 40's tint in glimstone.css. */
+      button.glim-btn-subtle,
+      a.btnlike.glim-btn-subtle {
         background: var(--carbon-surface2);
         color: var(--carbon-text);
+      }
+      /* Every button gives way on press. */
+      @media (prefers-reduced-motion: no-preference) {
+        button:not(:disabled):active { scale: .97; }
       }
       /* Inside a card the list has the card's own padding around it already. */
       #list:not(:empty) { margin-bottom: 2px; }
@@ -136,8 +142,6 @@
         cursor: pointer;
         transition: background-color 150ms ease, color 150ms ease;
       }
-      .iconBadge:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
-      .iconBadge:active { transform: scale(0.97); }
       /* Label left, control right. */
       .glim-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
       .glim-row-label { font-size: var(--text-body); color: var(--carbon-text); }
@@ -200,22 +204,14 @@
       .captureRules { margin-top: 2px; }
       .captureField { margin-top: 14px; }
       .captureField input { width: 100%; }
-      .captureRules select { min-width: 140px; }
       .clipNotice { margin-top: 14px; }
       .clipWatchers { margin: 0 0 10px; padding-left: 18px; color: var(--carbon-text); }
-      .aboutVersions {
-        margin: 0;
-        font-size: var(--text-dense);
-        color: var(--carbon-text-muted);
-        font-variant-numeric: tabular-nums;
-      }
-      /* The versions are a footer, a step further from the buttons above
-         them. The give row keeps its own blank line on both sides
-         (.glim-about-give). */
-      .glim-readme-btn-rows + .aboutVersions { margin-top: 20px; }
-      /* Underlined only on hover, in the accent ink. */
-      .versionLink { color: var(--accent-ink); text-decoration: none; }
-      .versionLink:hover { text-decoration: underline; }
+      /* Name at the start, number at the end. The number is a link to its
+         release without an underline, and its ink lifts under the pointer. */
+      .versionRows { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+      .versionRows li { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+      .versionLink { color: var(--carbon-text-sub); text-decoration: none; }
+      .versionLink:hover { color: var(--carbon-text); }
       pre.report {
         margin: 0 0 10px;
         padding: 12px;
@@ -239,7 +235,7 @@
       <h2 class="glim-section-badge" id="pinHeading">Almost there</h2>
       <p id="pinBody" class="aboutText"></p>
       <div class="fields">
-        <button id="pinDismiss" class="secondary" type="button"></button>
+        <button id="pinDismiss" class="glim-btn-subtle" type="button"></button>
       </div>
     </section>
 
@@ -251,8 +247,8 @@
       <h2 class="glim-section-badge" id="cnlAccessHeading"></h2>
       <p id="cnlAccessBody" class="aboutText"></p>
       <div class="fields">
-        <button id="cnlAccessKeepOff" class="secondary" type="button"></button>
-        <button id="cnlAccessAllow" type="button"></button>
+        <button id="cnlAccessKeepOff" class="glim-btn-subtle" type="button"></button>
+        <button id="cnlAccessAllow" class="primary" type="button"></button>
       </div>
     </section>
 
@@ -272,15 +268,15 @@
             autocomplete="off"
             spellcheck="false"
           />
-          <button id="phrasePaste" class="glim-eye glim-eye--second" type="button"></button>
-          <button id="phraseEye" class="glim-eye" type="button"></button>
+          <button id="phrasePaste" class="glim-eye glim-eye--second glim-btn-bare" type="button"></button>
+          <button id="phraseEye" class="glim-eye glim-btn-bare" type="button"></button>
         </label>
         <div class="fields">
-          <button id="join" type="submit">Connect</button>
+          <button id="join" class="primary" type="submit">Connect</button>
           <!-- A neutral icon badge with a bin; #leaveConfirm asks before
                anything is deleted. It sits at the end of the row like the
                delete badge on every card. -->
-          <button id="leave" class="iconBadge" type="button" hidden></button>
+          <button id="leave" class="iconBadge glim-btn-subtle" type="button" hidden></button>
         </div>
       </form>
       <!-- Outside the form, so Enter here saves the name instead of
@@ -292,13 +288,13 @@
       <div id="status"></div>
       <div id="list"></div>
       <p id="ownKey" hidden></p>
-      <button id="refreshGroup" class="secondary" type="button" hidden>Refresh</button>
+      <button id="refreshGroup" class="glim-btn-subtle" type="button" hidden>Refresh</button>
     </section>
 
     <section class="glim-card glim-stagger-row" style="--row-i: 2">
       <h2 class="glim-section-badge" id="languageHeading">Language</h2>
-      <!-- A listbox built by options.js, since an <option> cannot show a
-           flag. -->
+      <!-- The dropdown from shared.js, which shows a flag beside each
+           language. -->
       <div class="glim-listbox" id="languageBox"></div>
     </section>
 
@@ -436,7 +432,7 @@
             </div>
             <div class="glim-row">
               <span class="glim-row-label" id="takeoverMinSizeLabel"></span>
-              <select id="takeoverMinSize" aria-labelledby="takeoverMinSizeLabel"></select>
+              <div id="takeoverMinSize"></div>
             </div>
             <div class="captureField">
               <label for="takeoverSkip" id="takeoverSkipLabel"></label>
@@ -444,7 +440,7 @@
             </div>
             <div class="glim-row">
               <span class="glim-row-label" id="takeoverBypassLabel"></span>
-              <select id="takeoverBypass" aria-labelledby="takeoverBypassLabel"></select>
+              <div id="takeoverBypass"></div>
             </div>
           </div>
         </div>
@@ -485,14 +481,20 @@
       <pre id="report" class="report glim-well glim-num"></pre>
       <!-- Only a copy button; the Help card carries the ways to report. -->
       <div class="fields">
-        <button id="copyReport" class="secondary" type="button">Copy report</button>
+        <button id="copyReport" class="glim-btn-subtle" type="button">Copy report</button>
       </div>
     </section>
 
-    <!-- Help and About split as on the web UI's Info tile: the ways to report
-         something, then who made the extension and the ways to give. Each
-         sentence has its buttons directly beneath it. -->
+    <!-- Version, Help and About in the order of GlimStone's Info tile: what is
+         running, the ways to report something, then who made the extension
+         and the ways to give. Each sentence has its buttons directly beneath
+         it. -->
     <section class="glim-card glim-stagger-row" style="--row-i: 6">
+      <h2 class="glim-section-badge" id="versionHeading">Version</h2>
+      <ul class="versionRows" id="versionRows"></ul>
+    </section>
+
+    <section class="glim-card glim-stagger-row" style="--row-i: 7">
       <h2 class="glim-section-badge" id="helpHeading">Help</h2>
       <p id="aboutReport" class="aboutText"></p>
       <div class="glim-readme-btn-rows" id="aboutReportRow">
@@ -506,11 +508,17 @@
           <a id="aboutMail" class="glim-readme-btn glim-brand-tile"></a>
           <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
         </div>
+        <!-- The README's docs button, its book and its yellow. -->
+        <div class="glim-readme-btn-unit group glim-tile-docs">
+          <a id="aboutManual" class="glim-readme-btn glim-brand-tile" target="_blank" rel="noreferrer noopener"></a>
+          <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
+        </div>
       </div>
     </section>
 
-    <!-- The About card, the one card whose body is prose (GlimStone 1.7.0). -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 7">
+    <!-- The About card, the one card whose body is prose. The give row ends
+         it. -->
+    <section class="glim-card glim-stagger-row" style="--row-i: 8">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
@@ -532,8 +540,6 @@
           <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
         </div>
       </div>
-      <!-- The versions close the page. -->
-      <p id="aboutVersions" class="aboutVersions glim-num"></p>
     </section>
 
     <!-- The confirmation window (GlimStone 1.12.0), static markup that
@@ -551,8 +557,8 @@
         <h2 class="glim-section-badge" id="leaveConfirmTitle"></h2>
         <p class="glim-modal-message" id="leaveConfirmMessage"></p>
         <div class="glim-modal-actions">
-          <button id="leaveConfirmCancel" class="secondary" type="button"></button>
-          <button id="leaveConfirmCommit" class="secondary" type="button"></button>
+          <button id="leaveConfirmCancel" class="glim-btn-subtle" type="button"></button>
+          <button id="leaveConfirmCommit" class="glim-btn-subtle" type="button"></button>
         </div>
       </div>
     </div>
@@ -572,9 +578,9 @@
         <ul class="clipWatchers" id="clipElsewhereList"></ul>
         <p class="glim-modal-message" id="clipElsewhereMessage"></p>
         <div class="glim-modal-actions">
-          <button id="clipElsewhereCancel" class="secondary" type="button"></button>
-          <button id="clipElsewhereKeep" class="secondary" type="button"></button>
-          <button id="clipElsewhereStop" type="button"></button>
+          <button id="clipElsewhereCancel" class="glim-btn-subtle" type="button"></button>
+          <button id="clipElsewhereKeep" class="glim-btn-subtle" type="button"></button>
+          <button id="clipElsewhereStop" class="primary" type="button"></button>
         </div>
       </div>
     </div>
@@ -594,7 +600,7 @@
         <p class="glim-donate-appeal" id="coffeeAppeal"></p>
         <div class="glim-coffee-frame" id="coffeeFrame"></div>
         <div class="glim-modal-actions">
-          <button id="coffeeClose" class="secondary" type="button"></button>
+          <button id="coffeeClose" class="glim-btn-subtle" type="button"></button>
         </div>
       </div>
     </div>
@@ -619,12 +625,12 @@
             <p class="glim-crypto-address" id="cryptoAddress" dir="ltr"></p>
             <div class="glim-crypto-chains" id="cryptoChains" role="listbox"></div>
             <p class="glim-crypto-note" id="cryptoNote" hidden></p>
-            <button id="cryptoCopy" type="button"></button>
+            <button id="cryptoCopy" class="primary" type="button"></button>
           </div>
           <div class="glim-crypto-coins" id="cryptoCoins" role="listbox"></div>
         </div>
         <div class="glim-modal-actions">
-          <button id="cryptoClose" class="secondary" type="button"></button>
+          <button id="cryptoClose" class="glim-btn-subtle" type="button"></button>
         </div>
       </div>
     </div>
@@ -635,6 +641,7 @@
     <script src="colorpicker.js"></script>
     <script src="i18n.js"></script>
     <script src="i18n-capture.js"></script>
+    <script src="glyphs.js"></script>
     <script src="shared.js"></script>
     <script src="capture.js"></script>
     <script src="wordlist.js"></script>

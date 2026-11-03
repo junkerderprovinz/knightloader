@@ -14,14 +14,20 @@
   --radius-control: 0.75rem;
   --radius-pill: 9999px;
 
-  /* The fixed type scale. --text-caption serves the plain caption, the
-     eyebrow label and the bubble text; the treatment tells them apart. Hero
-     figures and wordmarks are outside the scale (docs/design-language.md,
-     "The type scale"). */
-  --text-heading: 1.25rem;  /* 20px */
-  --text-body: 0.875rem;    /* 14px */
-  --text-dense: 0.75rem;    /* 12px */
-  --text-caption: 0.6875rem; /* 11px */
+  /* The type scale, five sizes, one per role. --text-meta serves a card's
+     notch badge, the eyebrow label, the bubble, a muted meta line and a count;
+     the treatment tells them apart. Hero figures and wordmarks are outside
+     the scale (docs/design-language.md, "The type scale"). */
+  --text-status: 1.375rem;   /* 22px, a status head */
+  --text-title: 1rem;        /* 16px, an emphasised row title, a window's title */
+  --text-body: 0.875rem;     /* 14px */
+  --text-subline: 0.8125rem; /* 13px, the text beside or under a name, a hint */
+  --text-meta: 0.75rem;      /* 12px */
+
+  /* The four-step names the pages were written with. */
+  --text-heading: var(--text-status);
+  --text-dense: var(--text-meta);
+  --text-caption: var(--text-meta);
 
   /* The two button heights (rule 19). --btn-h is a text field's height, so a
      button in a row of fields matches it, and square icon badges and swatches
@@ -118,8 +124,11 @@ body {
      the two button grounds, so the warm ones are deepened for light and the
      dark ones lightened for dark; the true colour is the lit button's fill
      (.glim-tile-<brand>). On #393939 they measure 8.6, 5.0, 5.1 and 11.6 to 1.
-     The App tab's marks ship too, not only the ones these pages draw. */
+     The App tab's marks ship too, not only the ones these pages draw. The
+     manual's book takes the yellow of the README's docs button, which is the
+     coffee button's. */
   --brand-coffee:  #ffdd00;
+  --brand-docs:    #ffdd00;
   --brand-bitcoin: #f7931a;
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
@@ -129,7 +138,7 @@ body {
   --brand-unraid-to:   #ff8d30;
   --brand-windows:     #2b88d8;
 
-  /* Text ramp in three steps, the last still legible at 11px. */
+  /* Text ramp in three steps, the last still legible at 12px. */
   --carbon-text:       #f4f4f4;
   --carbon-text-sub:   #c6c6c6;
   --carbon-text-muted: #8d8d8d;
@@ -143,6 +152,9 @@ body {
      1.5.0). The theme sets only --ink-mix; at 100% it is the accent itself. */
   --ink-mix:           100%;
   --accent-ink:        color-mix(in srgb, var(--accent) var(--ink-mix), black);
+  /* The same ink for a line-drawn glyph. Rainbow never colours text, so a hued
+     subtree redefines this one and leaves --accent-ink on the single accent. */
+  --accent-glyph:      var(--accent-ink);
 
   /* Four state hues, Carbon's dark support tones. Paused uses neutral; its
      label and resume control tell it apart. */
@@ -158,12 +170,13 @@ body {
   --status-fail-bg:      rgba(255, 131, 137, 0.14);
   --status-fail-solid:   #ff8389;
 
-  --status-warn-text:    #f1c21b;
-  --status-warn-bg:      rgba(241, 194, 27, 0.12);
-  --status-warn-solid:   #f1c21b;
-  /* The quiet end of the warn family (GlimStone 1.15.0), for a notice that
-     explains rather than warns. */
-  --status-warn-bg-soft: rgba(241, 194, 27, 0.06);
+  /* Orange, so yellow only means "act here" or "chosen". */
+  --status-warn-text:    #FF832B;
+  --status-warn-bg:      rgba(255, 131, 43, 0.12);
+  --status-warn-solid:   #FF832B;
+  /* The quiet end of the warn family, for a notice that explains rather than
+     warns. */
+  --status-warn-bg-soft: rgba(255, 131, 43, 0.06);
 
   --status-neutral-text: #a8a8a8;
   --status-neutral-bg:   rgba(255, 255, 255, 0.05);
@@ -196,6 +209,7 @@ body {
 
   /* On #e8e8e8 these measure 4.0, 4.1, 9.7 and 14.6 to 1. */
   --brand-coffee:  #8a6d00;
+  --brand-docs:    #8a6d00;
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
   --brand-github:  #181717;
@@ -229,10 +243,10 @@ body {
   --status-fail-bg:      rgba(218, 30, 40, 0.10);
   --status-fail-solid:   #da1e28;
 
-  --status-warn-text:    #8E6A00;
-  --status-warn-bg:      rgba(142, 106, 0, 0.10);
-  --status-warn-solid:   #b28600;
-  --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
+  --status-warn-text:    #ba4e00;
+  --status-warn-bg:      rgba(186, 78, 0, 0.10);
+  --status-warn-solid:   #ba4e00;
+  --status-warn-bg-soft: rgba(186, 78, 0, 0.05);
 
   --status-neutral-text: #6f6f6f;
   --status-neutral-bg:   rgba(0, 0, 0, 0.045);
@@ -257,7 +271,7 @@ body {
 }
 
 .glim-eyebrow {
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--carbon-text-muted);
@@ -289,6 +303,7 @@ body {
 
     /* Kept in step with the [data-theme="light"] block. */
     --brand-coffee:  #8a6d00;
+    --brand-docs:    #8a6d00;
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
     --brand-github:  #181717;
@@ -321,10 +336,10 @@ body {
     --status-fail-bg:      rgba(218, 30, 40, 0.10);
     --status-fail-solid:   #da1e28;
 
-    --status-warn-text:    #8E6A00;
-    --status-warn-bg:      rgba(142, 106, 0, 0.10);
-    --status-warn-solid:   #b28600;
-    --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
+    --status-warn-text:    #ba4e00;
+    --status-warn-bg:      rgba(186, 78, 0, 0.10);
+    --status-warn-solid:   #ba4e00;
+    --status-warn-bg-soft: rgba(186, 78, 0, 0.05);
 
     --status-neutral-text: #6f6f6f;
     --status-neutral-bg:   rgba(0, 0, 0, 0.045);
@@ -335,6 +350,18 @@ body {
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
     --focus-ring: rgba(142, 106, 0, .5);
   }
+}
+
+/* The hover step of a filled tone that has no surface ramp of its own (rule
+   21): the fill mixed toward the theme's text colour, which is lighter on dark
+   and darker on light, the direction the ramp moves. Declared wherever a theme
+   is set, so --carbon-text is the one that theme defines. */
+:root,
+[data-theme] {
+  --accent-hover:      color-mix(in srgb, var(--accent) 85%, var(--carbon-text));
+  --status-ok-hover:   color-mix(in srgb, var(--status-ok-solid) 85%, var(--carbon-text));
+  --status-fail-hover: color-mix(in srgb, var(--status-fail-solid) 85%, var(--carbon-text));
+  --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
 }
 
 /* Card, section badge, well selector and swatches, ported from the web UI's
@@ -474,8 +501,6 @@ body {
   cursor: pointer;
   transition: color 150ms ease, background-color 150ms ease;
 }
-/* Already on surface3, so it hovers to --carbon-hover-raised (rule 21). */
-.glim-reset:hover { color: var(--carbon-text); background: var(--carbon-hover-raised); }
 .glim-reset svg { display: block; }
 
 .glim-axis { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -506,7 +531,6 @@ body {
 /* No hover on a disabled control. The segment rule names aria-pressed="false"
    because a :not(:disabled) on the hover would outrank the pressed rule it
    currently ties with; every segment carries the attribute. */
-.glim-reset:disabled:hover { color: var(--carbon-text-sub); background: var(--carbon-surface3); }
 .glim-seg button[aria-pressed="false"]:disabled:hover { color: var(--carbon-text-sub); }
 
 /* The notice that stands in for a control the environment does not permit
@@ -595,7 +619,7 @@ body {
   background-color: var(--carbon-surface2);
   color: var(--carbon-text);
   font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   letter-spacing: .02em;
   text-transform: uppercase;
 }
@@ -626,11 +650,36 @@ body {
   cursor: pointer;
   transition: color 150ms ease, background-color 150ms ease;
 }
-.glim-eye:hover { color: var(--carbon-text); background: var(--carbon-hover); }
 .glim-eye svg { display: block; }
 /* After .glim-eye, which carries the same weight, so this inset wins over its
    own and the two controls stand side by side. */
 .glim-eye--second { inset-inline-end: 38px; }
+
+/* Rule 40. A surface-filled button's hovered ground takes 22% of the tint and
+   its glyph all of it; its words keep the text colour, which the accent on a
+   tinted ground would not be legible against. A bare glyph button has no
+   ground to tint. `--btn-tint` reads `--accent-glyph`; under rainbow
+   takePageHue() in appearance.js sets it inline to the button's own position
+   on the page. A button's glyph here is its own <svg>, where the reference
+   names it .glim-btn-glyph. */
+.glim-btn-neutral,
+.glim-btn-subtle,
+.glim-btn-bare {
+  --btn-tint: var(--accent-glyph);
+}
+.glim-btn-subtle:not(:disabled):is(:hover, :focus-visible) {
+  background-color: color-mix(in srgb, var(--carbon-surface3), var(--btn-tint) 22%);
+}
+.glim-btn-neutral:not(:disabled):is(:hover, :focus-visible) {
+  background-color: color-mix(in srgb, var(--carbon-hover-raised), var(--btn-tint) 22%);
+}
+:is(.glim-btn-neutral, .glim-btn-subtle):not(:disabled):is(:hover, :focus-visible) > svg,
+.glim-btn-bare:not(:disabled):is(:hover, :focus-visible) {
+  color: var(--btn-tint);
+}
+.glim-btn-bare:is(:hover, :focus-visible) {
+  background-color: transparent;
+}
 
 /* The info bubble and the switch, ported from glimstone's reference/tokens.css
    and reference/tooltip.ts so they match the web UI's. */
@@ -650,7 +699,7 @@ body {
   border-radius: var(--radius-control);
   box-shadow: var(--elevation), var(--hairline);
   padding: 7px 10px;
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   line-height: 1.45;
   letter-spacing: normal;
   text-transform: none;
@@ -773,21 +822,26 @@ body {
 
 /* The rainbow, the web UI's mechanism rule for rule: an element with a palette
    position sets --item-hue* and wears .glim-hue (setHue() in appearance.js),
-   and these rules decide whether the colour shows at rest or on hover. */
+   and these rules decide whether the colour shows at rest or on hover.
+
+   Rainbow never colours text. A custom property containing var() is resolved
+   where it is declared, so the --accent-ink from :root arrives here already
+   computed on the single accent, and these rules leave it alone. A line-drawn
+   glyph reads --accent-glyph instead, which they do redefine. --accent-hover
+   is restated for the same reason, so a filled button's hover steps from its
+   own hue. --ink-mix comes from <html>. */
 [data-rainbow] .glim-hue {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
-  /* Restated because var() in a custom property resolves where it is
-     declared; the :root value would keep the single accent. --ink-mix comes
-     from <html>. */
-  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-hover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
   /* The focus ring takes the position's colour too. */
   --focus-ring: var(--item-hue-ring);
 }
 /* A glyph takes its element's hue as ink, since it sits on the card's
    ground. */
-[data-rainbow] .glim-hue-icon svg { color: var(--accent-ink); }
+[data-rainbow] .glim-hue-icon svg { color: var(--accent-glyph); }
 
 /* Reactive: everything rests neutral and only what is hovered, focused or
    active takes its colour, so colour still marks activity. */
@@ -795,7 +849,7 @@ body {
   --accent: var(--carbon-text-muted);
   --accent-contrast: var(--carbon-bg);
   --accent-soft: transparent;
-  --accent-ink: var(--carbon-text-muted);
+  --accent-glyph: var(--carbon-text-muted);
 }
 [data-rainbow='reactive'] .glim-hue:hover,
 [data-rainbow='reactive'] .glim-hue:focus-within,
@@ -803,14 +857,14 @@ body {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
-  /* Restated because the resting rule above muted the ink and comes later at
-     the same specificity. */
-  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  /* Restated because the resting rule above muted the glyph and comes later
+     at the same specificity. */
+  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 [data-rainbow='reactive'] .glim-hue-icon:not(.glim-active) svg { color: inherit; }
 [data-rainbow='reactive'] .glim-hue-icon:hover svg,
 [data-rainbow='reactive'] .glim-hue-icon:focus-within svg,
-[data-rainbow='reactive'] .glim-hue-icon.glim-active svg { color: var(--accent-ink); }
+[data-rainbow='reactive'] .glim-hue-icon.glim-active svg { color: var(--accent-glyph); }
 
 /* The instance card, the same wherever the group is drawn, after the web UI's
    InstanceCard: the mark along the leading edge, the name, what it is, and a
@@ -914,11 +968,13 @@ body {
   cursor: pointer;
   transition: background-color 150ms ease, color 150ms ease;
 }
-.glim-square:hover:not(:disabled) { background: var(--accent); color: var(--accent-contrast); }
 .glim-square:disabled { opacity: .4; cursor: default; }
 .glim-square svg { display: block; }
-/* The default badge in the corner. */
+/* The default badge in the corner, with the star that marks a default entry. */
 .glim-instance-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   position: absolute;
   inset-inline-end: 8px;
   top: 8px;
@@ -957,18 +1013,23 @@ body {
 .glim-menu button:hover { background: var(--carbon-hover); }
 .glim-menu button:disabled { opacity: .5; cursor: default; background: transparent; }
 
-/* The language listbox, the web UI's pattern of a field-shaped button that
-   opens a list, since a native select cannot show flags. The trigger is a
-   field, so it has a field's height; the list may be roomier. */
+/* The dropdown (listbox() in shared.js), the web UI's Dropdown and the look of
+   GlimStone's Select: a field-shaped trigger, since it stands where a field
+   would, and a list on the card's surface with a check on the value in force.
+   The open list is at least 13rem wide, under a narrow trigger too, at most
+   22rem, and scrolls from 24rem. */
 .glim-listbox { position: relative; max-width: 320px; }
+.glim-listbox--steady { display: inline-grid; flex-shrink: 0; max-width: 100%; }
 .glim-listbox-trigger {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
   box-sizing: border-box;
   width: 100%;
   height: var(--btn-h);
-  padding: 0 10px;
+  padding-block: 0;
+  padding-inline: 12px 10px;
   border: 0;
   border-radius: var(--radius-control);
   background: var(--carbon-surface2);
@@ -978,29 +1039,47 @@ body {
   text-align: start;
   cursor: pointer;
 }
+/* Already on surface2, so it hovers one step up the ramp (rule 21). */
+.glim-listbox-trigger:hover { background: var(--carbon-surface3); }
 .glim-listbox-trigger:focus-visible { outline: 0; box-shadow: 0 0 0 2px var(--focus-ring); }
-.glim-listbox-caret { margin-inline-start: auto; opacity: .7; }
+/* Every label in one cell with only the chosen one visible. */
+.glim-listbox-value { display: grid; flex: 1; min-width: 0; }
+.glim-listbox-value > * {
+  grid-area: 1 / 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.glim-listbox-ghost { visibility: hidden; }
+.glim-listbox-caret { display: inline-flex; flex-shrink: 0; color: var(--carbon-text-muted); }
+.glim-listbox-trigger[aria-expanded='true'] .glim-listbox-caret { rotate: 180deg; }
 .glim-listbox-menu {
   position: absolute;
   z-index: 40;
-  inset-inline: 0;
+  inset-inline-start: 0;
   top: calc(100% + 6px);
-  max-height: 320px;
+  box-sizing: border-box;
+  min-width: max(100%, 13rem);
+  max-width: min(22rem, calc(100vw - 1rem));
+  max-height: min(24rem, calc(100vh - 1rem));
   overflow-y: auto;
   padding: 4px;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-card);
   background: var(--carbon-surface);
   box-shadow: var(--elevation), var(--hairline);
 }
+.glim-listbox-menu--end { inset-inline: auto 0; }
+.glim-listbox-menu--above { top: auto; bottom: calc(100% + 6px); }
 .glim-listbox-option {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
   width: 100%;
-  padding: 8px 10px;
+  height: auto;
+  padding: 8px 12px;
   border: 0;
-  border-radius: calc(var(--radius-control) - 2px);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--carbon-text);
   font: inherit;
@@ -1008,8 +1087,18 @@ body {
   text-align: start;
   cursor: pointer;
 }
-.glim-listbox-option:hover { background: var(--carbon-hover); }
-.glim-listbox-option[aria-selected='true'] { background: var(--accent); color: var(--accent-contrast); }
+.glim-listbox-option:is(:hover, :focus-visible) { outline: 0; background: var(--carbon-hover); }
+.glim-listbox-option[aria-selected='true'] { font-weight: 600; }
+.glim-listbox-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.glim-listbox-check { display: inline-flex; color: var(--accent-ink); }
+.glim-listbox-option:not([aria-selected='true']) .glim-listbox-check { visibility: hidden; }
+/* A finger needs a taller row than a pointer. */
+@media (pointer: coarse) {
+  .glim-listbox-option { min-height: 2.75rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .glim-listbox-caret { transition: rotate var(--motion-control-dur) ease; }
+}
 /* The flag: a fixed box so every label starts at the same x, whatever the
    flag's own aspect ratio. */
 .glim-listbox .fi { width: 20px; height: 15px; flex: 0 0 auto; border-radius: 2px; }
@@ -1195,14 +1284,16 @@ body {
 /* The single-colour marks at rest, painted through `color` on the mark's box
    and currentColor in its paths. A published brand colour fails on one of the
    two grounds, so they take the adjusted theme tokens, and the house mark
-   follows the accent. */
+   follows the accent and, under rainbow, its position. */
 .glim-android-mark { color: var(--brand-android); }
 .glim-docker-mark { color: var(--brand-docker); }
 .glim-windows-mark { color: var(--brand-windows); }
 .glim-paypal-mark { color: var(--brand-paypal); }
 .glim-bitcoin-mark { color: var(--brand-bitcoin); }
 .glim-github-mark { color: var(--brand-github); }
-.glim-house-mark { color: var(--accent-ink); }
+.glim-house-mark { color: var(--accent-glyph); }
+/* The manual's book, in the yellow of the README's docs button. */
+.glim-docs-mark { color: var(--brand-docs); }
 
 /* A tile carrying a brand mark ("Brand tiles"): under the pointer it fills with
    the brand's own colour (--tile), the same on both themes, and its name and
@@ -1231,6 +1322,14 @@ body {
 /* A mark whose layers do not survive one ink brings a second drawing for the
    hover, as the mail button's open envelope. */
 .glim-mark-hover { display: none; }
+/* The house marks open: the envelope and the manual's book show their open
+   drawing on the focus as well, and under a finger, where nothing hovers. */
+.glim-brand-tile:focus-visible :is(.glim-house-mark, .glim-docs-mark) .glim-mark-rest { display: none; }
+.glim-brand-tile:focus-visible :is(.glim-house-mark, .glim-docs-mark) .glim-mark-hover { display: block; }
+@media (hover: none) {
+  .glim-brand-tile:active :is(.glim-house-mark, .glim-docs-mark) .glim-mark-rest { display: none; }
+  .glim-brand-tile:active :is(.glim-house-mark, .glim-docs-mark) .glim-mark-hover { display: block; }
+}
 
 /* The brands' tile colours: the true colour and the ink that holds on it, white
    wherever white reaches 2:1 and near-black below that. The ratios for PayPal
@@ -1250,6 +1349,8 @@ body {
 .glim-tile-coffee  { --tile: #ffdd00; --tile-ink: #0d0c22; }
 /* The button that reaches the app's own authors follows the colour engine. */
 .glim-tile-house   { --tile: var(--accent); --tile-ink: var(--accent-contrast); }
+/* The README's docs button, the coffee button's yellow. 13.4:1. */
+.glim-tile-docs    { --tile: #ffdd00; --tile-ink: #161616; }
 
 /* The README button, as the About card's give and report buttons: the
    proportions of the download buttons in the family's READMEs, 160 by 46.6
@@ -1307,11 +1408,12 @@ body {
 }
 
 /* The height is the README's mark, and the box is wider than tall, so a wide
-   mark such as Unraid's or Docker's is not shrunk to a sliver. */
+   mark such as Unraid's or Docker's is not shrunk to a sliver. The start is
+   where the README's own buttons put their mark, 68.5 of 841.9 units. */
 .glim-readme-btn-mark {
   position: absolute;
   top: 50%;
-  inset-inline-start: 1.5rem;
+  inset-inline-start: 0.875rem;
   width: 2rem;
   height: 1.5625rem;
   translate: 0 -50%;
@@ -1350,7 +1452,7 @@ body {
 .glim-readme-btn-text {
   position: absolute;
   inset-block: 0;
-  inset-inline: 3.9375rem 0.625rem;
+  inset-inline: 3.3125rem 0.625rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1386,7 +1488,7 @@ body {
 }
 
 .glim-readme-btn-sub {
-  font-size: 0.75rem;
+  font-size: var(--text-meta);
   opacity: 0;
   translate: 0 0.25rem;
   transition:
@@ -1469,10 +1571,11 @@ body {
   }
 }
 
-/* The About card's give buttons stand a blank line of the card's text apart
-   from the sentences above and below them ("The About card"). */
+/* The About card's give buttons stand a blank line of the card's text below
+   the sentence above them ("The Info tile and the About card"). They end the
+   card, and space after the last row reads as a missing row. */
 .glim-about-give {
-  margin-block: calc(var(--text-body) * 1.5);
+  margin-block-start: calc(var(--text-body) * 1.5);
 }
 
 /* The motion engine, with the level blocks of the reference's tokens.css. A
@@ -1586,6 +1689,29 @@ body {
     --motion-tab-travel: 18px;
     --motion-wiggle-dur: 280ms;
     --motion-wiggle-angle: .6deg;
+    /* A row in move mode and a fill level's slosh. The extension plays
+       neither, and declares them so every level carries the reference's whole
+       set of dials. */
+    --motion-row-wiggle-dur: 320ms;
+    --motion-row-wiggle-tilt: .16deg;
+    --motion-row-wiggle-lift: 1px;
+    --motion-slosh-dur: 3.6s;
+    --motion-slosh-tilt: 5deg;
+    --motion-slosh-run: 3.2;
+    --motion-slosh-hump: .9;
+    --motion-slosh-surge: 5px;
+    --motion-slosh-lean: 12deg;
+    --motion-slosh-bubble-pace: .35s;
+    --motion-slosh-bubble-opacity: .7;
+    --motion-slosh-pop-lift: 3.6;
+    --motion-slosh-pop-swell: 1.5;
+    --motion-slosh-pop-ring: 3.4;
+    --motion-slosh-pop-spray: 1.3;
+    --motion-slosh-pop-reach: 5px;
+    --motion-slosh-splash-dur: .9s;
+    --motion-slosh-splash-tilt: 7deg;
+    --motion-slosh-splash-run: 3.4;
+    --motion-slosh-splash-ripple: 1.5;
   }
   :root[data-motion='subtle'] {
     --motion-control-dur: 80ms;
@@ -1610,6 +1736,26 @@ body {
     --motion-tab-travel: 10px;
     --motion-wiggle-dur: 360ms;
     --motion-wiggle-angle: .3deg;
+    --motion-row-wiggle-dur: 440ms;
+    --motion-row-wiggle-tilt: .08deg;
+    --motion-row-wiggle-lift: .5px;
+    --motion-slosh-dur: 5s;
+    --motion-slosh-tilt: 3deg;
+    --motion-slosh-run: 2.2;
+    --motion-slosh-hump: .6;
+    --motion-slosh-surge: 3.5px;
+    --motion-slosh-lean: 8deg;
+    --motion-slosh-bubble-pace: .5s;
+    --motion-slosh-bubble-opacity: .55;
+    --motion-slosh-pop-lift: 3;
+    --motion-slosh-pop-swell: 1.4;
+    --motion-slosh-pop-ring: 3;
+    --motion-slosh-pop-spray: 1.1;
+    --motion-slosh-pop-reach: 4px;
+    --motion-slosh-splash-dur: 1.1s;
+    --motion-slosh-splash-tilt: 4deg;
+    --motion-slosh-splash-run: 2.2;
+    --motion-slosh-splash-ripple: 1;
   }
   :root[data-motion='off'] {
     --motion-control-dur: 0s;
@@ -1635,6 +1781,26 @@ body {
     /* A long period rather than none, with no angle, so nothing moves. */
     --motion-wiggle-dur: 400ms;
     --motion-wiggle-angle: 0deg;
+    --motion-row-wiggle-dur: 0s;
+    --motion-row-wiggle-tilt: 0deg;
+    --motion-row-wiggle-lift: 0px;
+    --motion-slosh-dur: 60s;
+    --motion-slosh-tilt: 0deg;
+    --motion-slosh-run: 0;
+    --motion-slosh-hump: 0;
+    --motion-slosh-surge: 0px;
+    --motion-slosh-lean: 0deg;
+    --motion-slosh-bubble-pace: 6s;
+    --motion-slosh-bubble-opacity: 0;
+    --motion-slosh-pop-lift: 0;
+    --motion-slosh-pop-swell: 1;
+    --motion-slosh-pop-ring: 1;
+    --motion-slosh-pop-spray: 0;
+    --motion-slosh-pop-reach: 0px;
+    --motion-slosh-splash-dur: 60s;
+    --motion-slosh-splash-tilt: 0deg;
+    --motion-slosh-splash-run: 0;
+    --motion-slosh-splash-ripple: 0;
   }
   :root[data-motion='off'] * { transition-duration: 0s !important; }
 }
@@ -1678,6 +1844,26 @@ body {
   --motion-tab-travel: 34px;
   --motion-wiggle-dur: 220ms;
   --motion-wiggle-angle: 1deg;
+  --motion-row-wiggle-dur: 260ms;
+  --motion-row-wiggle-tilt: .26deg;
+  --motion-row-wiggle-lift: 1.5px;
+  --motion-slosh-dur: 2.6s;
+  --motion-slosh-tilt: 7.5deg;
+  --motion-slosh-run: 4.5;
+  --motion-slosh-hump: 1.3;
+  --motion-slosh-surge: 7px;
+  --motion-slosh-lean: 18deg;
+  --motion-slosh-bubble-pace: .25s;
+  --motion-slosh-bubble-opacity: .85;
+  --motion-slosh-pop-lift: 4.4;
+  --motion-slosh-pop-swell: 1.6;
+  --motion-slosh-pop-ring: 3.8;
+  --motion-slosh-pop-spray: 1.5;
+  --motion-slosh-pop-reach: 7px;
+  --motion-slosh-splash-dur: .75s;
+  --motion-slosh-splash-tilt: 10deg;
+  --motion-slosh-splash-run: 4.8;
+  --motion-slosh-splash-ripple: 2;
 }
 :root[data-motion='storm'][dir="rtl"] { --glim-toast-slide: -44px; }
 

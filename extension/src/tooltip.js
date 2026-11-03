@@ -69,11 +69,33 @@
     el.style.setProperty('--glim-tip-ax', `${Math.max(10, Math.min(w - 10, cx - (x - w / 2)))}px`);
   }
 
+  // Only a control's native title is turned into a bubble. A title on
+  // structure, such as a table body or a card, can be data another script
+  // reads.
+  const TITLED_CONTROL = [
+    'button',
+    'a',
+    'input',
+    'select',
+    'textarea',
+    'summary',
+    'img',
+    'svg',
+    'i',
+    '[role="button"]',
+    '[role="link"]',
+    '[role="tab"]',
+    '[role="switch"]',
+    '[tabindex]',
+  ]
+    .map((s) => `${s}[title]`)
+    .join(', ');
+
   /**
    * Wires the delegated listeners once for the whole document. Anything with
-   * `data-tip` shows the bubble on hover or focus; a stray native `title` is
-   * upgraded to `data-tip` on its first hover and the native attribute removed,
-   * so the browser's own balloon never fires alongside it.
+   * `data-tip` shows the bubble on hover or focus; a stray native `title` on a
+   * control is upgraded to `data-tip` on its first hover and the native
+   * attribute removed, so the browser's own balloon never fires alongside it.
    */
   function wireTooltips() {
     if (wired) return;
@@ -83,7 +105,7 @@
       if (event.type === 'focusin' && pointerWasLast) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
-      const trigger = target.closest('[data-tip], [title]');
+      const trigger = target.closest(`[data-tip], ${TITLED_CONTROL}`);
       if (!trigger) return;
       if (!trigger.getAttribute('data-tip')) {
         const native = trigger.getAttribute('title');

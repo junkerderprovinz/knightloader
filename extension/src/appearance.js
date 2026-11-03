@@ -7,11 +7,11 @@
 
 /**
  * The GlimStone release these ports follow, reference/react/version.ts's
- * number. It lives beside the copies it describes so the About card cannot
+ * number. It lives beside the copies it describes so the Version card cannot
  * claim a release the files are not from, and it is a link, so it has to name
  * a published release. Bump it in the change that lifts the ports.
  */
-const GLIMSTONE_VERSION = '3.0.0';
+const GLIMSTONE_VERSION = '3.9.0';
 
 /** The shapes the picker shows. `leaf` is a real shape (see
  *  `data-shape="leaf"` in glimstone.css) that no picker offers; leafTap
@@ -361,6 +361,37 @@ function setHue(el, i) {
  */
 function setHues(elements) {
   elements.filter(Boolean).forEach((el, i) => setHue(el, i));
+}
+
+// The buttons that carry rule 40's tint, whatever else the page's own buttons
+// wear.
+const TINTED = '.glim-btn-neutral, .glim-btn-subtle, .glim-btn-bare';
+
+/**
+ * takePageHue gives a button the palette position of its place among the
+ * page's buttons, so under rainbow two buttons side by side light up in
+ * different colours. It runs when the pointer or the keyboard reaches the
+ * button: the order changes with the page, and only the hover and focus look
+ * read the tint.
+ */
+function takePageHue(el) {
+  if (!rainbowNow.on) {
+    el.style.removeProperty('--btn-tint');
+    return;
+  }
+  const i = Array.prototype.indexOf.call(document.querySelectorAll(TINTED), el);
+  const n = ((i % RAINBOW.length) + RAINBOW.length) % RAINBOW.length;
+  el.style.setProperty('--btn-tint', `color-mix(in srgb, var(--rb-${n}) var(--ink-mix), black)`);
+}
+
+/** wireButtonTint calls takePageHue from one listener at the page's root. */
+function wireButtonTint() {
+  const reach = (event) => {
+    const button = event.target instanceof Element ? event.target.closest(TINTED) : null;
+    if (button) takePageHue(button);
+  };
+  document.addEventListener('pointerover', reach);
+  document.addEventListener('focusin', reach);
 }
 
 /** applyRainbow stores the state and writes the palette, with the ink for each
