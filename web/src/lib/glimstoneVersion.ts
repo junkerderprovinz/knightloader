@@ -4,4 +4,4 @@
  * release, once that release is fully applied. The number is a link on the
  * Version card, so it has to name a published release.
  */
-export const GLIMSTONE_VERSION = '3.8.6';
+export const GLIMSTONE_VERSION = '3.9.0';
