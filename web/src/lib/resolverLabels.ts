@@ -13,6 +13,7 @@ const PRODUCT_NAMES: Record<string, string> = {
   debridlink: 'Debrid-Link',
   ytdlp: 'yt-dlp',
   jd: 'JDownloader',
+  mega: 'MEGA',
 };
 
 const DESCRIBED: Record<string, TranslationKey> = {
