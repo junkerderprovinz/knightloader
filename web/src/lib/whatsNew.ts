@@ -51,6 +51,10 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.6.5',
+    changes: [{ id: 'mega-native', text: 'whatsnew.change.megaNative' }],
+  },
+  {
     version: '2.6.0',
     changes: [
       { id: 'hoster-names', text: 'whatsnew.change.hosterNames' },

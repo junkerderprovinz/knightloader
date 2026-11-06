@@ -3792,6 +3792,7 @@ export const tr: Dict = {
   'whatsnew.change.volumeUsed': 'Bir debrid hizmetinde ya da hoster hesabında biten indirme kotası, “{name}” altında captcha olarak değil, olduğu gibi ve ne zaman yenileneceğiyle birlikte görünür, hizmet de o zamana kadar o hoster\'a dokunmaz.',
   'whatsnew.change.javaUpdates': 'Masaüstü uygulaması kendi Java\'sını güncel tutar ve JDownloader\'ı, indirmelerinden hiçbiri çalışmazken daha yeni bir sürüme taşır.',
   'whatsnew.change.hosterNames': 'Barındırıcı bağlantıları gelir gelmez dosya adını, boyutunu ve çevrimiçi durumunu gösterir, JDownloader bağlantı toplayıcısındaki gibi.',
+  'whatsnew.change.megaNative': 'MEGA dosya ve klasör bağlantıları JDownloader olmadan iner, bir klasör bağlantısı da her dosya için bir satıra dönüşür.',
   'whatsnew.change.listHeads': 'Listeler kendi sütun başlıklarından sıralar, süzer ve arar; geri kalanı sağ tıkta durur.',
   'whatsnew.change.totals': 'Hız grafiğinin yanındaki “{name}” kartı kalan süreyi, kaç indirmenin bittiğini, açık ve başarısız olduğunu ve ortalama hızı gösterir.',
   'whatsnew.change.qualityNames': 'Video ve ses dosyaları adlarında kalitelerini taşır; küçük resim, altyazı ve açıklama da buna uyar.',

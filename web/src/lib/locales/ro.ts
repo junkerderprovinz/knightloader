@@ -3802,6 +3802,7 @@ export const ro: Dict = {
   'whatsnew.change.volumeUsed': 'Un volum de descărcare epuizat la un serviciu debrid sau la un cont de hoster apare ca atare în „{name}”, cu momentul în care se reînnoiește, în loc de captcha, iar serviciul lasă acel hoster în pace până atunci.',
   'whatsnew.change.javaUpdates': 'Aplicația desktop își ține Java la zi și mută JDownloader pe una mai nouă cât timp nu rulează niciuna dintre descărcările lui.',
   'whatsnew.change.hosterNames': 'Linkurile către găzduitori arată numele fișierului, dimensiunea și dacă sunt online imediat ce sosesc, ca în colectorul de linkuri din JDownloader.',
+  'whatsnew.change.megaNative': 'Linkurile MEGA către fișiere și foldere se descarcă fără JDownloader, iar un link de folder devine câte un rând pentru fiecare fișier.',
   'whatsnew.change.listHeads': 'Listele sortează, filtrează și caută din propriile anteturi de coloană, iar clicul dreapta ține restul.',
   'whatsnew.change.totals': 'Cardul „{name}” de lângă graficul de viteză arată timpul rămas, câte descărcări sunt gata, deschise și eșuate, și viteza medie.',
   'whatsnew.change.qualityNames': 'Fișierele video și audio poartă calitatea în nume, iar miniatura, subtitrările și descrierea se potrivesc.',

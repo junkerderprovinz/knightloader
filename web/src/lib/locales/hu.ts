@@ -3795,6 +3795,7 @@ export const hu: Dict = {
   'whatsnew.change.volumeUsed': 'A debrid szolgáltatásnál vagy tárhelyfióknál elfogyott letöltési keret a(z) „{name}” alatt annak látszik, ami, azzal együtt, hogy mikor újul meg, nem pedig captchaként, és a szolgáltatás addig békén hagyja azt a tárhelyet.',
   'whatsnew.change.javaUpdates': 'Az asztali alkalmazás naprakészen tartja a saját Javáját, és újabbra állítja át a JDownloadert, amíg egyik letöltése sem fut.',
   'whatsnew.change.hosterNames': 'A tárhelylinkek beérkezésük után azonnal mutatják a fájlnevet, a méretet és az elérhetőséget, mint a JDownloader linkgyűjtőjében.',
+  'whatsnew.change.megaNative': 'A MEGA fájl- és mappalinkjei JDownloader nélkül töltődnek le, egy mappalinkből pedig fájlonként egy sor lesz.',
   'whatsnew.change.listHeads': 'A listák a saját oszlopfejlécükből rendeznek, szűrnek és keresnek, a jobb kattintás pedig a többit tartja.',
   'whatsnew.change.totals': 'A sebességgrafikon melletti „{name}” kártya mutatja a hátralévő időt, hány letöltés kész, nyitott és sikertelen, valamint az átlagsebességet.',
   'whatsnew.change.qualityNames': 'A videó- és hangfájlok nevükben hordozzák a minőségüket, és a bélyegkép, a felirat és a leírás hozzájuk igazodik.',

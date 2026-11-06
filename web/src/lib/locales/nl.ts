@@ -3776,6 +3776,7 @@ export const nl: Dict = {
   'whatsnew.change.volumeUsed': 'Een opgebruikt downloadvolume bij een debrid-dienst of hosteraccount staat in “{name}” als zodanig, met wanneer het weer aanvult, in plaats van als captcha, en de dienst laat die hoster tot dan met rust.',
   'whatsnew.change.javaUpdates': 'De desktopapp houdt zijn eigen Java bij en zet JDownloader over op een nieuwere zolang geen van zijn downloads loopt.',
   'whatsnew.change.hosterNames': 'Hosterlinks tonen bestandsnaam, grootte en onlinestatus zodra ze binnenkomen, zoals in de linkverzamelaar van JDownloader.',
+  'whatsnew.change.megaNative': 'MEGA-links naar bestanden en mappen downloaden zonder JDownloader, en een maplink wordt één rij per bestand.',
   'whatsnew.change.listHeads': 'De lijsten sorteren, filteren en zoeken vanuit hun eigen kolomkoppen, en een rechtermuisklik heeft de rest.',
   'whatsnew.change.totals': 'De kaart “{name}” naast de snelheidsgrafiek toont de resterende tijd, hoeveel downloads klaar, open en mislukt zijn, en de gemiddelde snelheid.',
   'whatsnew.change.qualityNames': 'Video- en audiobestanden dragen hun kwaliteit in de naam, en miniatuur, ondertitels en beschrijving passen erbij.',

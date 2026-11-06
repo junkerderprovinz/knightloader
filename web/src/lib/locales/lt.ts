@@ -3795,6 +3795,7 @@ export const lt: Dict = {
   'whatsnew.change.volumeUsed': 'Išnaudotas atsisiuntimo limitas debrid paslaugoje ar hosterio paskyroje skiltyje „{name}“ rodomas būtent taip, su laiku, kada jis atsinaujins, o ne kaip captcha, ir paslauga iki tol to hosterio neliečia.',
   'whatsnew.change.javaUpdates': 'Darbalaukio programa palaiko savo Java atnaujintą ir perkelia JDownloader į naujesnę, kai nevyksta nė vienas jo atsisiuntimas.',
   'whatsnew.change.hosterNames': 'Talpyklų nuorodos iškart po atvykimo rodo failo pavadinimą, dydį ir ar jos pasiekiamos, kaip JDownloader nuorodų rinktuve.',
+  'whatsnew.change.megaNative': 'MEGA failų ir aplankų nuorodos atsisiunčiamos be JDownloader, o aplanko nuoroda virsta atskira eilute kiekvienam failui.',
   'whatsnew.change.listHeads': 'Sąrašai rikiuoja, filtruoja ir ieško iš savo stulpelių antraščių, o dešinysis spragtelėjimas laiko visa kita.',
   'whatsnew.change.totals': 'Kortelė „{name}“ šalia greičio grafiko rodo likusį laiką, kiek atsisiuntimų baigta, atvira ir nepavyko, ir vidutinį greitį.',
   'whatsnew.change.qualityNames': 'Vaizdo ir garso failų pavadinimuose yra jų kokybė, o miniatiūra, subtitrai ir aprašymas jai atitinka.',

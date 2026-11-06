@@ -3785,6 +3785,7 @@ export const et: Dict = {
   'whatsnew.change.volumeUsed': 'Ära kasutatud allalaadimismaht debridi teenuses või hosti kontol on jaotises „{name}“ näha just sellena, koos ajaga, millal see taastub, mitte captchana, ja teenus jätab selle hosti seniks rahule.',
   'whatsnew.change.javaUpdates': 'Töölauarakendus hoiab oma Java ajakohasena ja viib JDownloaderi uuemale üle, kui ükski selle allalaadimine ei käi.',
   'whatsnew.change.hosterNames': 'Failimajutuse lingid näitavad faili nime, suurust ja võrguolekut kohe saabumisel, nagu JDownloaderi lingikoguja.',
+  'whatsnew.change.megaNative': 'MEGA failide ja kaustade lingid laaditakse alla ilma JDownloaderita ning kaustalingist saab iga faili kohta eraldi rida.',
   'whatsnew.change.listHeads': 'Loendid sorteerivad, filtreerivad ja otsivad oma veerupäistest ning paremklõps hoiab ülejäänut.',
   'whatsnew.change.totals': 'Kaart „{name}“ kiirusgraafiku kõrval näitab järelejäänud aega, mitu allalaadimist on valmis, ootel ja ebaõnnestunud, ning keskmist kiirust.',
   'whatsnew.change.qualityNames': 'Video- ja helifailide nimes on nende kvaliteet ning pisipilt, subtiitrid ja kirjeldus sobivad sellega.',

@@ -3793,6 +3793,7 @@ export const ms: Dict = {
   'whatsnew.change.volumeUsed': 'Kuota muat turun yang habis di perkhidmatan debrid atau akaun hoster dipaparkan sebagaimana adanya di “{name}”, bersama bila ia ditetapkan semula, bukan sebagai captcha, dan perkhidmatan itu tidak menyentuh hoster tersebut sehingga masa itu.',
   'whatsnew.change.javaUpdates': 'Aplikasi desktop memastikan Java miliknya sentiasa terkini dan memindahkan JDownloader ke versi lebih baharu semasa tiada muat turunnya yang berjalan.',
   'whatsnew.change.hosterNames': 'Pautan hos menunjukkan nama fail, saiz dan status dalam talian sebaik sahaja tiba, seperti dalam pengumpul pautan JDownloader.',
+  'whatsnew.change.megaNative': 'Pautan fail dan folder MEGA dimuat turun tanpa JDownloader, dan pautan folder menjadi satu baris bagi setiap fail.',
   'whatsnew.change.listHeads': 'Senarai mengisih, menapis dan mencari dari kepala lajurnya sendiri, dan klik kanan menyimpan selebihnya.',
   'whatsnew.change.totals': 'Kad “{name}” di sebelah graf kelajuan menunjukkan masa berbaki, berapa muat turun yang selesai, terbuka dan gagal, serta kelajuan purata.',
   'whatsnew.change.qualityNames': 'Fail video dan audio membawa kualitinya dalam nama, dan lakaran kecil, sari kata serta penerangannya sepadan.',

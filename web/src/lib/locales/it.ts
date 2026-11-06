@@ -3777,6 +3777,7 @@ export const it: Dict = {
   'whatsnew.change.volumeUsed': 'Un volume di download esaurito presso un servizio debrid o un account hoster compare come tale in «{name}», con il momento in cui si rinnova, invece che come captcha, e il servizio lascia stare quell’hoster fino ad allora.',
   'whatsnew.change.javaUpdates': 'L\'app desktop tiene aggiornato il proprio Java e sposta JDownloader su uno più recente mentre nessuno dei suoi download è in corso.',
   'whatsnew.change.hosterNames': 'I link degli hoster mostrano nome del file, dimensione e stato online appena arrivano, come nel raccoglitore di link di JDownloader.',
+  'whatsnew.change.megaNative': 'I link MEGA a file e cartelle si scaricano senza JDownloader, e un link a una cartella diventa una riga per ogni file.',
   'whatsnew.change.listHeads': 'Le liste ordinano, filtrano e cercano dalle proprie intestazioni di colonna, e il clic destro tiene il resto.',
   'whatsnew.change.totals': 'La scheda «{name}» accanto al grafico della velocità mostra il tempo che manca, quanti download sono completati, aperti e non riusciti, e la velocità media.',
   'whatsnew.change.qualityNames': 'I file video e audio portano la loro qualità nel nome, e miniatura, sottotitoli e descrizione combaciano.',

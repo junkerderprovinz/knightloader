@@ -3803,6 +3803,7 @@ export const sk: Dict = {
   'whatsnew.change.volumeUsed': 'Vyčerpaný objem sťahovania pri debrid službe alebo účte hostera sa v „{name}“ ukáže ako taký, aj s časom, keď sa obnoví, namiesto ako captcha, a služba toho hostera dovtedy nechá na pokoji.',
   'whatsnew.change.javaUpdates': 'Desktopová aplikácia udržiava svoju Javu aktuálnu a presunie JDownloader na novšiu, keď nebeží žiadne z jeho sťahovaní.',
   'whatsnew.change.hosterNames': 'Odkazy na hostingy ukazujú názov súboru, veľkosť a stav online hneď po príchode, rovnako ako zberač odkazov v JDownloaderi.',
+  'whatsnew.change.megaNative': 'Odkazy MEGA na súbory a priečinky sa sťahujú bez JDownloadera a z odkazu na priečinok vznikne jeden riadok pre každý súbor.',
   'whatsnew.change.listHeads': 'Zoznamy triedia, filtrujú a hľadajú priamo z hlavičiek svojich stĺpcov a pravé tlačidlo ponúka zvyšok.',
   'whatsnew.change.totals': 'Karta „{name}“ vedľa grafu rýchlosti ukazuje zostávajúci čas, koľko sťahovaní je hotových, otvorených a zlyhaných, a priemernú rýchlosť.',
   'whatsnew.change.qualityNames': 'Video a zvukové súbory nesú kvalitu v názve a náhľad, titulky aj popis k nim pasujú.',

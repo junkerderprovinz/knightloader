@@ -3791,6 +3791,7 @@ export const gl: Dict = {
   'whatsnew.change.volumeUsed': 'Un volume de descarga esgotado nun servizo debrid ou nunha conta de aloxador aparece como tal en «{name}», co momento en que se renova, en vez de como captcha, e o servizo deixa tranquilo ese aloxador ata entón.',
   'whatsnew.change.javaUpdates': 'A aplicación de escritorio mantén o seu Java ao día e pasa JDownloader a unha versión máis nova mentres non corre ningunha das súas descargas.',
   'whatsnew.change.hosterNames': 'As ligazóns de aloxamento amosan o nome do ficheiro, o tamaño e se están en liña en canto chegan, como no recolledor de ligazóns de JDownloader.',
+  'whatsnew.change.megaNative': 'As ligazóns de MEGA a ficheiros e cartafoles descárganse sen JDownloader, e unha ligazón de cartafol convértese nunha fila por ficheiro.',
   'whatsnew.change.listHeads': 'As listas ordenan, filtran e buscan desde as súas propias cabeceiras de columna, e o clic dereito ten o resto.',
   'whatsnew.change.totals': 'A tarxeta «{name}» xunto ao gráfico de velocidade mostra o tempo que falta, cantas descargas están feitas, abertas e fallidas, e a velocidade media.',
   'whatsnew.change.qualityNames': 'Os ficheiros de vídeo e audio levan a súa calidade no nome, e a miniatura, os subtítulos e a descrición coinciden.',

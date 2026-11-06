@@ -3860,6 +3860,7 @@ export const de: Dict = {
   'whatsnew.change.volumeUsed': 'Ein aufgebrauchtes Download-Volumen bei einem Debrid-Dienst oder Hoster-Konto steht unter „{name}“ als solches da, mit dem Zeitpunkt, ab dem wieder Volumen da ist, statt als Captcha, und der Dienst lässt diesen Hoster bis dahin in Ruhe.',
   'whatsnew.change.javaUpdates': 'Die Desktop-App hält ihr Java aktuell und stellt JDownloader auf ein neueres um, solange keiner seiner Downloads läuft.',
   'whatsnew.change.hosterNames': 'Hoster-Links zeigen Dateiname, Größe und Online-Status, sobald sie ankommen, so wie im Linksammler von JDownloader.',
+  'whatsnew.change.megaNative': 'Dateien und Ordner aus MEGA-Links lädt KnightLoader ohne JDownloader herunter, und ein Ordnerlink wird zu einer Zeile je Datei.',
   'whatsnew.change.listHeads': 'Die Listen sortieren, filtern und suchen über ihre eigenen Spaltenköpfe, und ein Rechtsklick hält den Rest bereit.',
   'whatsnew.change.totals': 'Die Karte „{name}“ neben dem Geschwindigkeitsgraphen zeigt die Restzeit, wie viele Downloads fertig, offen und fehlgeschlagen sind, und das Durchschnittstempo.',
   'whatsnew.change.qualityNames': 'Video- und Audiodateien tragen ihre Qualität im Namen, und Vorschaubild, Untertitel und Beschreibung heißen passend dazu.',

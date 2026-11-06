@@ -3793,6 +3793,7 @@ export const id: Dict = {
   'whatsnew.change.volumeUsed': 'Kuota unduhan yang habis di layanan debrid atau akun hoster tampil apa adanya di “{name}”, lengkap dengan kapan kuota itu pulih, bukan sebagai captcha, dan layanan itu membiarkan hoster tersebut sampai saat itu.',
   'whatsnew.change.javaUpdates': 'Aplikasi desktop menjaga Java miliknya tetap terbaru dan memindahkan JDownloader ke versi yang lebih baru saat tidak ada unduhannya yang berjalan.',
   'whatsnew.change.hosterNames': 'Tautan hoster menampilkan nama file, ukuran, dan status online begitu tiba, seperti di pengumpul tautan JDownloader.',
+  'whatsnew.change.megaNative': 'Tautan file dan folder MEGA diunduh tanpa JDownloader, dan tautan folder menjadi satu baris untuk setiap file.',
   'whatsnew.change.listHeads': 'Daftar mengurutkan, menyaring, dan mencari dari kepala kolomnya sendiri, dan klik kanan menyimpan sisanya.',
   'whatsnew.change.totals': 'Kartu “{name}” di samping grafik kecepatan menampilkan sisa waktu, berapa unduhan yang selesai, terbuka, dan gagal, serta kecepatan rata-rata.',
   'whatsnew.change.qualityNames': 'Berkas video dan audio membawa kualitasnya di namanya, dan gambar mini, subtitel, serta deskripsinya menyesuaikan.',
