@@ -1,0 +1,1 @@
+The What's new window now lists the MEGA downloads from 2.6.5. Nothing changes in the app itself.

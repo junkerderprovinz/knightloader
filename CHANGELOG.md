@@ -38,6 +38,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.6.6] - 2026-11-06
+
+### Fixed
+
+- **What's new lists the MEGA downloads of 2.6.5.** The window left them out,
+  so nobody saw a dot for them after updating.
+
 ## [2.6.5] - 2026-11-03
 
 ### Added
