@@ -2839,7 +2839,7 @@ body {
 .kl-tile-parleyport   { --tile: #e6bc59; --tile-ink: #161616; }
 /* The browsers the extension buttons offer: Chrome in the README button's
    blue, the others in the colour Simple Icons publishes for each. */
-.kl-tile-chrome    { --tile: #1a73e8; --tile-ink: #ffffff; } /* 4.5:1 */
+.kl-tile-chrome    { --tile: #188038; --tile-ink: #ffffff; } /* 5.0:1 */
 .kl-tile-edge      { --tile: #0078d7; --tile-ink: #ffffff; } /* 4.5:1 */
 .kl-tile-brave     { --tile: #fb542b; --tile-ink: #ffffff; } /* 3.3:1 */
 .kl-tile-opera     { --tile: #ff1b2d; --tile-ink: #ffffff; } /* 3.9:1 */

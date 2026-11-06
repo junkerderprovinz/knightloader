@@ -60,6 +60,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   reads as well as the presets. OLED, the system colour and this come from
   GlimStone 4.2.0, without the rest of that release yet, so the Components
   card still names the version the rest follows.
+- **Chrome's button is green.** On the Apps page, in the phone app and in the
+  README, Chrome takes the green of its own logo, so it no longer looks like
+  Edge's blue button right beside it.
 
 ## [2.6.6] - 2026-11-06
 
