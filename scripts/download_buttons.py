@@ -40,5 +40,4 @@ BUTTONS = {
     # Firefox takes only an add-on Mozilla has signed, and the signed builds
     # come from the Firefox Add-ons listing.
     "firefox": "https://addons.mozilla.org/addon/knightloader/",
-    "parleyport": "https://github.com/junkerderprovinz/parleyport",
 }
