@@ -60,7 +60,7 @@ require (
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dlclark/regexp2/v2 v2.11.0 // indirect
-	github.com/dop251/goja v0.0.0-20261102140139-622d10077b6c // indirect
+	github.com/dop251/goja v0.0.0-20261105002551-2413f2132ac8 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
@@ -117,7 +117,7 @@ require (
 	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-varint v0.1.0 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
-	github.com/nwaples/rardecode/v2 v2.4.5 // indirect
+	github.com/nwaples/rardecode/v2 v2.4.6 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.27 // indirect
 	github.com/pion/datachannel v1.6.0 // indirect
