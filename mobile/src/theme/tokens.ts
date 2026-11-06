@@ -229,7 +229,7 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
   unraid: { fill: '#f15a2c', ink: '#ffffff' },
   docker: { fill: '#1d63ed', ink: '#ffffff' },
   zip: { fill: '#4d5562', ink: '#ffffff' },
-  chrome: { fill: '#1a73e8', ink: '#ffffff' },
+  chrome: { fill: '#188038', ink: '#ffffff' },
   edge: { fill: '#0078d7', ink: '#ffffff' },
   brave: { fill: '#fb542b', ink: '#ffffff' },
   opera: { fill: '#ff1b2d', ink: '#ffffff' },

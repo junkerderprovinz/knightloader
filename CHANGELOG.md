@@ -38,6 +38,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Changed
+
+- **Chrome's button is green.** On the Apps page, in the phone app and in the
+  README, Chrome takes the green of its own logo, so it no longer looks like
+  Edge's blue button right beside it.
+
 ## [2.6.5] - 2026-11-03
 
 ### Added
