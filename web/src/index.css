@@ -3863,8 +3863,11 @@ body {
   font-size: var(--text-meta);
 }
 .glim-signin-error {
+  min-height: 1.25em;
+  margin-block: -0.625rem;
   color: var(--status-fail-text);
   font-size: var(--text-meta);
+  line-height: 1.25;
 }
 .glim-signin-code { letter-spacing: 0.35em; }
 .glim-signin-log-code,

@@ -85,7 +85,9 @@ export function SignInCard({
     e.preventDefault();
     void flow.submit();
   };
-  const error = s.error && (
+  // Always in place: the card stands centred, so a line that appeared on a
+  // refusal would move the whole card instead of only the button that shakes.
+  const error = (
     <p className="glim-signin-error" role="alert">
       {s.error}
     </p>
