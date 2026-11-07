@@ -5,9 +5,9 @@
 // so a fixed time per colour would speed the glide up and slow it down at
 // every colour it passes.
 //
-// Ported from glimstone's reference/discoLoop.ts with the types stripped. The
-// pages load their scripts into one global scope, where phrase.js already
-// has a toHex, so the private helpers carry a loop prefix.
+// Ported from glimstone's packages/core/src/discoLoop.ts with the types
+// stripped. The pages load their scripts into one global scope, where
+// phrase.js already has a toHex, so the private helpers carry a loop prefix.
 
 // Below this chroma a colour reads as grey, and its hue is noise.
 const LOOP_GREY = 0.002;

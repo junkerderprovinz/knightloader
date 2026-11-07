@@ -2,16 +2,17 @@
 // attribute or a custom property on <html>, so nothing below needs to know
 // which setting produced a value.
 //
-// Ported from glimstone's reference/appearance.ts with the types stripped. The
-// values are copied verbatim so every app of the family looks the same.
+// Ported from glimstone's packages/core/src/appearance.ts with the types
+// stripped. The values are copied verbatim so every app of the family looks
+// the same.
 
 /**
- * The GlimStone release these ports follow, reference/react/version.ts's
- * number. It lives beside the copies it describes so the About card cannot
+ * The GlimStone release these ports follow, packages/core/src/version.ts's
+ * number. It lives beside the copies it describes so the Version card cannot
  * claim a release the files are not from, and it is a link, so it has to name
  * a published release. Bump it in the change that lifts the ports.
  */
-const GLIMSTONE_VERSION = '3.0.0';
+const GLIMSTONE_VERSION = '4.2.1';
 
 /** The shapes the picker shows. `leaf` is a real shape (see
  *  `data-shape="leaf"` in glimstone.css) that no picker offers; leafTap

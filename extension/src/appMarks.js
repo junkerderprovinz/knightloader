@@ -1,7 +1,7 @@
-// The About card's marks from GlimStone's reference/appMarks.ts that are more
-// than one path. They are kept as path data because options.js builds every
-// mark with createElementNS: Mozilla's linter, a release gate here, fails an
-// innerHTML assignment from a variable.
+// The About card's marks from GlimStone's packages/core/src/appMarks.ts that
+// are more than one path. They are kept as path data because options.js builds
+// every mark with createElementNS: Mozilla's linter, a release gate here, fails
+// an innerHTML assignment from a variable.
 
 /**
  * Buy Me a Coffee's own README button without its yellow ground: the cup and

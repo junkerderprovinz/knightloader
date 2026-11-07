@@ -5,8 +5,8 @@
 // them would each keep their own time, and every step would land a little
 // early or late, as a jolt in the glide.
 //
-// Ported from glimstone's reference/disco.ts with the types stripped; the
-// module state carries a disco prefix, since the pages share one global scope.
+// Ported from glimstone's packages/core/src/disco.ts with the types stripped;
+// the module state carries a disco prefix, since the pages share one global scope.
 // The switch is stored in chrome.storage (rainbowDisco); the walk never is,
 // and it never touches the rainbow state. The mode has no reduced-motion gate,
 // because somebody found it on purpose, but the glide does: with reduced

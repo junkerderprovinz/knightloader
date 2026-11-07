@@ -1,8 +1,8 @@
 // The colour picker: a saturation/value square, a hue bar and a hex field,
 // drawn in the page's own DOM.
 //
-// Ported from glimstone's reference/colorPicker.ts with the types stripped;
-// values and geometry are copied. The design language rules out
+// Ported from glimstone's packages/core/src/colorPicker.ts with the types
+// stripped; values and geometry are copied. The design language rules out
 // <input type="color">, which on Windows opens a separate window outside the
 // page. Unlike the reference, the SV square has no hairline, since surfaces
 // here are separated by shade.

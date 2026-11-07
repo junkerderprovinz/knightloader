@@ -1,6 +1,6 @@
 /* GlimStone for the browser extension, shared by options.html and popup.html.
  *
- * The tokens are copied from glimstone's reference/tokens.css rather than
+ * The tokens are copied from glimstone's packages/core/tokens.css rather than
  * picked again, so the colours match every other app of the family.
  */
 
@@ -598,8 +598,9 @@ body {
 .glim-seg button[aria-pressed="false"]:disabled:hover { color: var(--carbon-text-sub); }
 
 /* The notice that stands in for a control the environment does not permit
-   (GlimStone 1.15.0, reference/react/UnavailableNotice.tsx). It is a paragraph
-   rather than a bubble because there is no control to hang a bubble on. */
+   (GlimStone 1.15.0, packages/react/src/UnavailableNotice.tsx). It is a
+   paragraph rather than a bubble because there is no control to hang a bubble
+   on. */
 .glim-unavailable {
   border-radius: var(--radius-card);
   background: var(--status-warn-bg-soft);
@@ -719,8 +720,9 @@ body {
    own and the two controls stand side by side. */
 .glim-eye--second { inset-inline-end: 38px; }
 
-/* The info bubble and the switch, ported from glimstone's reference/tokens.css
-   and reference/tooltip.ts so they match the web UI's. */
+/* The info bubble and the switch, ported from glimstone's
+   packages/core/tokens.css and packages/core/src/tooltip.ts so they match the
+   web UI's. */
 
 .glim-bubble {
   position: fixed;

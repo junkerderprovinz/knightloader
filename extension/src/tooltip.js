@@ -1,7 +1,7 @@
 /**
- * The tooltip and info bubble engine, ported from glimstone/reference/tooltip.ts.
- * The one addition is closing when the trigger leaves the page, the rule
- * reference/react/useTipBubble.tsx keeps for a component framework.
+ * The tooltip and info bubble engine, ported from glimstone's
+ * packages/core/src/tooltip.ts. The one addition is closing when the trigger leaves the page, the rule
+ * packages/react/src/useTipBubble.tsx keeps for a component framework.
  *
  * One floating bubble, a direct child of <body>, serves every tooltip and "(i)"
  * icon, so no `overflow: hidden` on a card can clip it. It is clamped into the
