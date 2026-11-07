@@ -588,7 +588,6 @@ const styles = StyleSheet.create({
   // the thing inside it cannot change independently.
   symbol: { fontWeight: '700' },
   fill: { width: '100%', height: '100%' },
-  mailClosed: { top: '-8.5%' },
   // A size of its own although the insets would give one: a bundled image
   // brings its pixel size as a default, and that wins over the insets.
   layer: { position: 'absolute', top: 0, start: 0, width: '100%', height: '100%' },
@@ -644,18 +643,17 @@ export function CoffeeArt({ cup, words }: { cup: string; words: string }) {
 }
 
 /**
- * The Email button's envelope, Material's `email` and `email-open`, open while
- * the button is pressed. Both were drawn in one box that leaves room for the
- * open flap, so the envelope does not jump when it opens.
+ * The Email button's envelope, open while the button is pressed: GlimStone's
+ * MAIL_SVG, IconMail at rest and Material's `email-open` lit, each in the
+ * square its own ink is centred in, so the two read the same size and the
+ * closed one sits in the middle of the button.
  */
 export function MailMark({ open, color }: { open: boolean; color: string }) {
   return (
     <Tinted
       source={open ? require('../../assets/mail-open.png') : require('../../assets/mail-closed.png')}
       color={color}
-      // The closed envelope leaves the flap's room above it empty (21 of 124
-      // rows), so it is lifted by half of that to sit centred like the others.
-      style={open ? styles.fill : [styles.fill, styles.mailClosed]}
+      style={styles.fill}
     />
   );
 }
