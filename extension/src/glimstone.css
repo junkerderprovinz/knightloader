@@ -161,12 +161,13 @@ body {
   --status-fail-bg:      rgba(255, 131, 137, 0.14);
   --status-fail-solid:   #ff8389;
 
-  --status-warn-text:    #f1c21b;
-  --status-warn-bg:      rgba(241, 194, 27, 0.12);
-  --status-warn-solid:   #f1c21b;
+  /* Orange (GlimStone 3.2.0), so yellow only means "act here" or "chosen". */
+  --status-warn-text:    #FF832B;
+  --status-warn-bg:      rgba(255, 131, 43, 0.12);
+  --status-warn-solid:   #FF832B;
   /* The quiet end of the warn family (GlimStone 1.15.0), for a notice that
      explains rather than warns. */
-  --status-warn-bg-soft: rgba(241, 194, 27, 0.06);
+  --status-warn-bg-soft: rgba(255, 131, 43, 0.06);
 
   --status-neutral-text: #a8a8a8;
   --status-neutral-bg:   rgba(255, 255, 255, 0.05);
@@ -233,10 +234,10 @@ body {
   --status-fail-bg:      rgba(218, 30, 40, 0.10);
   --status-fail-solid:   #da1e28;
 
-  --status-warn-text:    #8E6A00;
-  --status-warn-bg:      rgba(142, 106, 0, 0.10);
-  --status-warn-solid:   #b28600;
-  --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
+  --status-warn-text:    #ba4e00;
+  --status-warn-bg:      rgba(186, 78, 0, 0.10);
+  --status-warn-solid:   #ba4e00;
+  --status-warn-bg-soft: rgba(186, 78, 0, 0.05);
 
   --status-neutral-text: #6f6f6f;
   --status-neutral-bg:   rgba(0, 0, 0, 0.045);
@@ -326,10 +327,10 @@ body {
     --status-fail-bg:      rgba(218, 30, 40, 0.10);
     --status-fail-solid:   #da1e28;
 
-    --status-warn-text:    #8E6A00;
-    --status-warn-bg:      rgba(142, 106, 0, 0.10);
-    --status-warn-solid:   #b28600;
-    --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
+    --status-warn-text:    #ba4e00;
+    --status-warn-bg:      rgba(186, 78, 0, 0.10);
+    --status-warn-solid:   #ba4e00;
+    --status-warn-bg-soft: rgba(186, 78, 0, 0.05);
 
     --status-neutral-text: #6f6f6f;
     --status-neutral-bg:   rgba(0, 0, 0, 0.045);
