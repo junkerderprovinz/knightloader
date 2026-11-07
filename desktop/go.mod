@@ -11,8 +11,9 @@ go 1.27.3
 
 require (
 	github.com/coder/websocket v1.8.15
-	// godbus is how Wails talks StatusNotifierItem on Linux and BSD, and
-	// tray_probe_linux.go calls it too, for the availability probe.
+	// godbus is how Wails talks StatusNotifierItem on Linux and BSD.
+	// tray_probe_linux.go calls it too, for the availability probe, and
+	// accent_linux.go for the settings portal.
 	github.com/godbus/dbus/v5 v5.2.4
 	github.com/junkerderprovinz/knightloader v0.0.0
 	github.com/wailsapp/wails/v3 v3.1.0

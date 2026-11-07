@@ -149,8 +149,8 @@ func main() {
 	})
 	awake.Start()
 
-	// The page calls these as main.DesktopFiles, main.HubBridge, main.Tray and
-	// main.LinkPopup; see web/src/lib/desktop.ts.
+	// The page calls these as main.DesktopFiles, main.HubBridge, main.Tray,
+	// main.LinkPopup and main.Accent; see web/src/lib/desktop.ts.
 	desktopFiles := newDesktopFiles(a)
 	hubBridge := newHubBridge(a, tray.emitTo)
 	popup := newLinkPopup(a, tray)
@@ -164,6 +164,7 @@ func main() {
 			application.NewService(hubBridge),
 			application.NewService(tray),
 			application.NewService(popup),
+			application.NewService(&Accent{}),
 		},
 		// The API is the whole asset server, the interface included, so the
 		// window opens no port of its own.
