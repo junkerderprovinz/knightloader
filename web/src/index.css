@@ -1738,6 +1738,11 @@ body {
        follows: the duration is one swing, played back and forth. */
     --motion-wiggle-dur: 120ms;
     --motion-wiggle-angle: 2deg;
+    /* A full-width row of a held list: how far it tilts and lifts at the
+       tremble's beat. Its ends swing far for a small angle, so the lift
+       carries most of it. */
+    --motion-row-tremble-tilt: .15deg;
+    --motion-row-tremble-lift: 1.5px;
     /* A list in move mode: one beat of a row's wiggle, how far it tilts and
        how far it lifts. A wide card turns far at its ends, so the tilt is a
        fraction of the reorder wiggle's. GlimStone's numbers. */
@@ -1838,6 +1843,8 @@ body {
     --motion-pulse-min-opacity: .7;
     --motion-wiggle-dur: 140ms;
     --motion-wiggle-angle: 1.4deg;
+    --motion-row-tremble-tilt: .1deg;
+    --motion-row-tremble-lift: 1px;
     --motion-row-wiggle-dur: 440ms;
     --motion-row-wiggle-tilt: .08deg;
     --motion-row-wiggle-lift: .5px;
@@ -1920,6 +1927,8 @@ body {
     --motion-pulse-min-opacity: 1;
     --motion-wiggle-dur: 400ms;
     --motion-wiggle-angle: 0deg;
+    --motion-row-tremble-tilt: 0deg;
+    --motion-row-tremble-lift: 0px;
     --motion-row-wiggle-dur: 0s;
     --motion-row-wiggle-tilt: 0deg;
     --motion-row-wiggle-lift: 0px;
@@ -2004,18 +2013,21 @@ body {
   .glim-modal-backdrop { animation: glim-fade-in var(--motion-scrim-dur) ease both; }
   .glim-modal-card { animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) both; }
   /* Every item but the held one, which floats under the pointer instead. */
-  .glim-drag-armed > :not(.glim-drag-lift, [data-col-drag="held"]) {
+  .glim-drag-armed > :not(.glim-drag-lift, [aria-grabbed="true"], [data-held="true"]) {
     animation: glim-wiggle var(--motion-wiggle-dur) ease-in-out infinite alternate;
   }
   /* Neighbours tremble out of step, so the list reads as loose items rather
      than one tilting block. */
   .glim-drag-armed > :nth-child(2n) { animation-delay: calc(var(--motion-wiggle-dur) * -.5); }
   .glim-drag-armed > :nth-child(3n) { animation-delay: calc(var(--motion-wiggle-dur) * -.33); }
-  /* A download row is as wide as the list, and the reorder tilt would swing
-     its ends far out, so the rows tremble with move mode's row wiggle. */
-  .glim-drag-armed.kl-row-strip > :not(.glim-drag-lift) {
-    animation: glim-row-wiggle var(--motion-row-wiggle-dur) ease-in-out infinite;
-    transform-origin: 50% 50%;
+  /* A row as wide as the list would swing its ends far at a tile's angle, so it
+     lifts and tilts with the row wiggle on the same beat. Longhands only, or the
+     delays above would lose to this selector. */
+  .glim-drag-armed.glim-drag-rows > :not(.glim-drag-lift, [aria-grabbed="true"], [data-held="true"]) {
+    --motion-row-wiggle-tilt: var(--motion-row-tremble-tilt);
+    --motion-row-wiggle-lift: var(--motion-row-tremble-lift);
+    animation-name: glim-row-wiggle;
+    animation-duration: calc(var(--motion-wiggle-dur) * 2);
   }
   /* The item under the pointer, the focused one and the one being carried
      hold still: a transformed item is the containing block of a menu opened
@@ -2174,7 +2186,7 @@ body {
   }
   /* The wiggle at "off": a static dashed ring, the same substitute the
      reduced-motion block uses, so the list still says it is rearrangeable. */
-  :root[data-motion="off"] .glim-drag-armed > :not(.glim-drag-lift, [data-col-drag="held"]) {
+  :root[data-motion="off"] .glim-drag-armed > :not(.glim-drag-lift, [aria-grabbed="true"], [data-held="true"]) {
     animation: none;
     outline: 2px dashed var(--accent);
     outline-offset: 2px;
@@ -2455,6 +2467,8 @@ body {
   --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
   --motion-wiggle-dur: 100ms;
   --motion-wiggle-angle: 2.8deg;
+  --motion-row-tremble-tilt: .2deg;
+  --motion-row-tremble-lift: 2px;
   --motion-row-wiggle-dur: 260ms;
   --motion-row-wiggle-tilt: .26deg;
   --motion-row-wiggle-lift: 1.5px;
@@ -2536,7 +2550,7 @@ body {
   /* Without the wiggle a list being reordered still has to say it is
      rearrangeable. The "off" rule in the gate above repeats this, since a rule
      cannot be shared across two media queries. */
-  .glim-drag-armed > :not(.glim-drag-lift, [data-col-drag="held"]) {
+  .glim-drag-armed > :not(.glim-drag-lift, [aria-grabbed="true"], [data-held="true"]) {
     outline: 2px dashed var(--accent);
     outline-offset: 2px;
   }

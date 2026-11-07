@@ -3807,7 +3807,7 @@ export function TaskListCard({
                   on a row's link or icon. */}
               <div
                 ref={stripRef}
-                className="kl-row-strip relative overflow-x-clip [-webkit-touch-callout:none]"
+                className="glim-drag-rows relative overflow-x-clip [-webkit-touch-callout:none]"
                 role="tree"
                 data-new="row-pick"
                 aria-multiselectable="true"

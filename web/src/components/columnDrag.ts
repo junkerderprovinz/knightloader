@@ -276,6 +276,7 @@ class Gesture {
       // A column still sliding from a step before carries its own translate,
       // which would outrank the travel.
       cell.dataset.colDrag = 'held';
+      cell.dataset.held = 'true';
       cell.style.translate = '';
       cell.style.transition = '';
     }
@@ -351,7 +352,10 @@ class Gesture {
     this.pressed = null;
     this.unlisten();
     const cells = this.cells(c.id);
-    for (const cell of cells) cell.dataset.colDrag = 'settle';
+    for (const cell of cells) {
+      cell.dataset.colDrag = 'settle';
+      delete cell.dataset.held;
+    }
     this.table.current?.style.setProperty(TRAVEL, '0px');
     this.restAfter(cells[0]);
   }
@@ -385,7 +389,10 @@ class Gesture {
     if (!c && !from) return;
     if (c) {
       for (const cell of this.cells()) {
-        if (!cell.dataset.colDrag) cell.dataset.colDrag = cell.dataset.cell === c.id ? 'held' : 'shift';
+        if (cell.dataset.colDrag) continue;
+        const held = cell.dataset.cell === c.id;
+        cell.dataset.colDrag = held ? 'held' : 'shift';
+        if (held) cell.dataset.held = 'true';
       }
       this.boxes = this.measure();
       this.place(c);

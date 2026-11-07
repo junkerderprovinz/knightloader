@@ -47,7 +47,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   settings rail, the tabs, the overview's cards, the priority card, the
   download rows and the column heads, and the phone app's lists. Neighbours
   tremble out of step, and the download rows sway gently, since a full-width
-  row would swing far at its ends. KnightLoader follows GlimStone 4.2.5, and
+  row would swing far at its ends. KnightLoader follows GlimStone 4.2.6, and
   the Version card names it.
 
 ### Fixed
