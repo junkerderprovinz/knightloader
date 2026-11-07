@@ -38,6 +38,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-11-07
+
 ### Added
 
 - **An OLED switch under the theme puts the dark theme on true black** for
