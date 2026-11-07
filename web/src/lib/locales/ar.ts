@@ -464,6 +464,8 @@ export const ar: Dict = {
   'settings.accentRainbowOwns': 'وضع قوس قزح يوزّع الألوان حسب الموضع الآن. هذا اللون ما زال يظهر في كل ما لا يملك موضعًا.',
   'settings.colours': 'الألوان',
   'settings.accentReset': 'الافتراضي',
+  'settings.picker.area': 'التشبع والسطوع',
+  'settings.picker.hue': 'درجة اللون',
   'settings.lines.download': 'مخطط التنزيل',
   'settings.lines.downloadHint': 'لون مخطط التنزيل في منحنيات السرعة. ما دمت لم تختر لونًا، يتبع لون التمييز.',
   'settings.lines.seeding': 'مخطط الرفع',

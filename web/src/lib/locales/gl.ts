@@ -462,6 +462,8 @@ export const gl: Dict = {
   'settings.accentRainbowOwns': 'O modo arco da vella reparte agora as cores por posición. Esta cor segue a aplicarse a todo o que non ten posición.',
   'settings.colours': 'Cores',
   'settings.accentReset': 'Por defecto',
+  'settings.picker.area': 'Saturación e brillo',
+  'settings.picker.hue': 'Ton',
   'settings.lines.download': 'Gráfico de descarga',
   'settings.lines.downloadHint': 'A cor do gráfico de descarga nas curvas de velocidade. Mentres non escollas ningunha, segue a cor de acento.',
   'settings.lines.seeding': 'Gráfico de subida',

@@ -462,6 +462,8 @@ export const id: Dict = {
   'settings.accentRainbowOwns': 'Mode pelangi sedang membagikan warna menurut posisi. Warna ini tetap berlaku untuk semua yang tidak punya posisi.',
   'settings.colours': 'Warna',
   'settings.accentReset': 'Bawaan',
+  'settings.picker.area': 'Saturasi dan kecerahan',
+  'settings.picker.hue': 'Rona',
   'settings.lines.download': 'Grafik unduhan',
   'settings.lines.downloadHint': 'Warna grafik unduhan di kurva kecepatan. Selama kamu belum memilih, warnanya mengikuti warna aksen.',
   'settings.lines.seeding': 'Grafik unggahan',

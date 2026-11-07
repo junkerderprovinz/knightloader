@@ -462,6 +462,8 @@ export const et: Dict = {
   'settings.accentRainbowOwns': 'Vikerkaarerežiim jagab praegu värvid positsiooni järgi. See värv kehtib endiselt kõikjal, kus positsiooni pole.',
   'settings.colours': 'Värvid',
   'settings.accentReset': 'Vaikimisi',
+  'settings.picker.area': 'Küllastus ja heledus',
+  'settings.picker.hue': 'Toon',
   'settings.lines.download': 'Allalaadimise graafik',
   'settings.lines.downloadHint': 'Allalaadimise graafiku värv kiiruskõverates. Kuni sa värvi ei vali, järgib see rõhuvärvi.',
   'settings.lines.seeding': 'Üleslaadimise graafik',

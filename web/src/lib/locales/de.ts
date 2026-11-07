@@ -503,6 +503,8 @@ export const de: Dict = {
   'settings.accentRainbowOwns': 'Der Regenbogen-Modus vergibt die Farben gerade nach Position. Diese Farbe wirkt weiter, aber nur noch dort, wo keine Position gilt.',
   'settings.colours': 'Farben',
   'settings.accentReset': 'Standard',
+  'settings.picker.area': 'Sättigung und Helligkeit',
+  'settings.picker.hue': 'Farbton',
   'settings.lines.download': 'Graph „Download“',
   'settings.lines.downloadHint': 'Die Farbe des Graphen „Download“ in den Geschwindigkeitskurven. Solange du keine wählst, folgt er der Akzentfarbe.',
   'settings.lines.seeding': 'Graph „Upload“',

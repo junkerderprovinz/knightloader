@@ -462,6 +462,8 @@ export const bg: Dict = {
   'settings.accentRainbowOwns': 'Режимът дъга в момента раздава цветовете по позиция. Този цвят продължава да важи навсякъде, където няма позиция.',
   'settings.colours': 'Цветове',
   'settings.accentReset': 'По подразбиране',
+  'settings.picker.area': 'Наситеност и яркост',
+  'settings.picker.hue': 'Цветови тон',
   'settings.lines.download': 'Графика „Изтегляне“',
   'settings.lines.downloadHint': 'Цветът на графиката „Изтегляне“ в кривите на скоростта. Докато не избереш цвят, тя следва акцентния цвят.',
   'settings.lines.seeding': 'Графика „Качване“',

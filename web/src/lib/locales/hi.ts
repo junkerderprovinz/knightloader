@@ -462,6 +462,8 @@ export const hi: Dict = {
   'settings.accentRainbowOwns': 'रेनबो मोड अभी रंग स्थिति के अनुसार बाँट रहा है। यह रंग अब भी हर उस चीज़ पर लागू है जिसकी कोई स्थिति नहीं है।',
   'settings.colours': 'रंग',
   'settings.accentReset': 'डिफ़ॉल्ट',
+  'settings.picker.area': 'संतृप्ति और चमक',
+  'settings.picker.hue': 'रंगत',
   'settings.lines.download': 'डाउनलोड का ग्राफ़',
   'settings.lines.downloadHint': 'गति वक्रों में डाउनलोड के ग्राफ़ का रंग। जब तक आप कोई रंग नहीं चुनते, यह एक्सेंट रंग के साथ चलता है।',
   'settings.lines.seeding': 'अपलोड का ग्राफ़',

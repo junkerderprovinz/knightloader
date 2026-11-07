@@ -462,6 +462,8 @@ export const sl: Dict = {
   'settings.accentRainbowOwns': 'Mavrični način zdaj razdeljuje barve po položaju. Ta barva še vedno velja povsod, kjer položaja ni.',
   'settings.colours': 'Barve',
   'settings.accentReset': 'Privzeto',
+  'settings.picker.area': 'Nasičenost in svetlost',
+  'settings.picker.hue': 'Odtenek',
   'settings.lines.download': 'Graf prenosa',
   'settings.lines.downloadHint': 'Barva grafa prenosa na krivuljah hitrosti. Dokler je ne izbereš, sledi poudarni barvi.',
   'settings.lines.seeding': 'Graf pošiljanja',

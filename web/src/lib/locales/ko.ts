@@ -462,6 +462,8 @@ export const ko: Dict = {
   'settings.accentRainbowOwns': '지금은 무지개 모드가 위치에 따라 색을 나눠 줍니다. 이 색은 위치가 없는 모든 곳에 계속 적용됩니다.',
   'settings.colours': '색상',
   'settings.accentReset': '기본값',
+  'settings.picker.area': '채도와 밝기',
+  'settings.picker.hue': '색조',
   'settings.lines.download': '다운로드 그래프',
   'settings.lines.downloadHint': '속도 곡선에서 다운로드 그래프의 색입니다. 고르기 전까지는 강조 색을 따릅니다.',
   'settings.lines.seeding': '업로드 그래프',

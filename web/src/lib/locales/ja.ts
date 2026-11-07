@@ -462,6 +462,8 @@ export const ja: Dict = {
   'settings.accentRainbowOwns': 'いまはレインボーモードが位置ごとに色を割り当てています。この色は位置を持たない要素すべてに引き続き効きます。',
   'settings.colours': '色',
   'settings.accentReset': '既定',
+  'settings.picker.area': '彩度と明るさ',
+  'settings.picker.hue': '色相',
   'settings.lines.download': 'ダウンロードのグラフ',
   'settings.lines.downloadHint': '速度の曲線にあるダウンロードのグラフの色です。選ぶまではアクセントカラーに合わせます。',
   'settings.lines.seeding': 'アップロードのグラフ',

@@ -16,6 +16,14 @@ export interface ColorPicker {
   setValue: (hex: string) => void;
   /** The picker's current value as a 6-digit lowercase hex string. */
   getValue: () => string;
+  /** Moves the focus to the square, where the arrow keys move the handle. */
+  focus: () => void;
+}
+
+/** The accessible names of the square and the hue bar, in the reader's language. */
+export interface ColorPickerText {
+  area: string;
+  hue: string;
 }
 
 interface Hsv {
@@ -81,23 +89,55 @@ function normalizeHex(value: string): string | null {
   return /^[0-9a-f]{6}$/i.test(trimmed) ? `#${trimmed.toLowerCase()}` : null;
 }
 
+const HUE_MAX = 359.9;
+const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
+
+/**
+ * pickerKeyStep is what an arrow key does: on the square left and right move
+ * the saturation and up and down the brightness, on the hue bar every arrow
+ * moves the hue. Shift takes bigger steps, Home and End go to an end of the
+ * bar. Null for a key the picker leaves alone.
+ */
+function pickerKeyStep(part: 'area' | 'hue', key: string, shift: boolean, hsv: Hsv): Hsv | null {
+  if (part === 'hue') {
+    if (key === 'Home') return { ...hsv, h: 0 };
+    if (key === 'End') return { ...hsv, h: HUE_MAX };
+    const dir = ({ ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 } as Record<string, number>)[key];
+    return dir ? { ...hsv, h: clamp(hsv.h + dir * (shift ? 30 : 3), 0, HUE_MAX) } : null;
+  }
+  const step = shift ? 0.1 : 0.02;
+  const ds = ({ ArrowRight: 1, ArrowLeft: -1 } as Record<string, number>)[key] ?? 0;
+  const dv = ({ ArrowUp: 1, ArrowDown: -1 } as Record<string, number>)[key] ?? 0;
+  if (!ds && !dv) return null;
+  return { ...hsv, s: clamp(hsv.s + ds * step, 0, 1), v: clamp(hsv.v + dv * step, 0, 1) };
+}
+
 /**
  * colorPicker builds an always-visible saturation/value square and hue bar.
- * `onChange` gets a lowercase "#rrggbb" on every drag update, mouse or touch;
- * a caller that writes to disk should debounce it.
+ * `onChange` gets a lowercase "#rrggbb" on every step of a drag with mouse,
+ * pen or finger and on every arrow key; a caller that writes to disk should
+ * debounce it.
  */
-export function colorPicker(initialHex: string, onChange: (hex: string) => void): ColorPicker {
+export function colorPicker(initialHex: string, onChange: (hex: string) => void, text?: ColorPickerText): ColorPicker {
   const el = document.createElement('div');
   el.className = 'glim-picker';
 
   const sv = document.createElement('div');
   sv.className = 'glim-picker-sv';
+  sv.tabIndex = 0;
+  sv.setAttribute('role', 'slider');
+  if (text) sv.setAttribute('aria-label', text.area);
   const dot = document.createElement('span');
   dot.className = 'glim-picker-dot';
   sv.appendChild(dot);
 
   const hue = document.createElement('div');
   hue.className = 'glim-picker-hue';
+  hue.tabIndex = 0;
+  hue.setAttribute('role', 'slider');
+  if (text) hue.setAttribute('aria-label', text.hue);
+  hue.setAttribute('aria-valuemin', '0');
+  hue.setAttribute('aria-valuemax', '360');
   const hdot = document.createElement('span');
   hdot.className = 'glim-picker-hdot';
   hue.appendChild(hdot);
@@ -107,51 +147,62 @@ export function colorPicker(initialHex: string, onChange: (hex: string) => void)
   let state: Hsv = hexToHsv(initialHex) || { h: 220, s: 0.8, v: 0.9 };
 
   function paint(): void {
+    const hex = hsvToHex(state.h, state.s, state.v);
     sv.style.background = `linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, hsl(${Math.round(state.h)},100%,50%))`;
     dot.style.left = `${state.s * 100}%`;
     dot.style.top = `${(1 - state.v) * 100}%`;
     hdot.style.left = `${(state.h / 360) * 100}%`;
+    el.style.setProperty('--glim-picker-colour', hex);
+    // The square moves along two axes, so the one value that names its place is the colour itself.
+    sv.setAttribute('aria-valuetext', hex);
+    hue.setAttribute('aria-valuenow', String(Math.round(state.h)));
   }
 
   function emit(): void {
     onChange(hsvToHex(state.h, state.s, state.v));
   }
 
+  // Pointer capture keeps a drag going once the pointer leaves the square, for
+  // mouse, pen and finger alike, with no listener on the document.
   function drag(target: HTMLElement, apply: (x: number, y: number) => void): void {
-    function move(event: MouseEvent | TouchEvent): void {
+    function at(event: PointerEvent): void {
       const rect = target.getBoundingClientRect();
-      const point = 'touches' in event ? (event.touches[0] ?? event.changedTouches[0]) : event;
-      if (!point) return;
-      const x = Math.min(1, Math.max(0, (point.clientX - rect.left) / rect.width));
-      const y = Math.min(1, Math.max(0, (point.clientY - rect.top) / rect.height));
-      apply(x, y);
+      apply(clamp((event.clientX - rect.left) / rect.width, 0, 1), clamp((event.clientY - rect.top) / rect.height, 0, 1));
       paint();
       emit();
+    }
+    target.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
       event.preventDefault();
-    }
-    function up(): void {
-      document.removeEventListener('mousemove', move);
-      document.removeEventListener('mouseup', up);
-      document.removeEventListener('touchmove', move);
-      document.removeEventListener('touchend', up);
-    }
-    function down(event: MouseEvent | TouchEvent): void {
-      move(event);
-      document.addEventListener('mousemove', move as EventListener);
-      document.addEventListener('mouseup', up);
-      document.addEventListener('touchmove', move as EventListener);
-      document.addEventListener('touchend', up);
-    }
-    target.addEventListener('mousedown', down as EventListener);
-    target.addEventListener('touchstart', down as EventListener);
+      target.focus();
+      target.setPointerCapture(event.pointerId);
+      at(event);
+    });
+    target.addEventListener('pointermove', (event) => {
+      if (target.hasPointerCapture(event.pointerId)) at(event);
+    });
   }
 
   drag(sv, (x, y) => {
     state = { ...state, s: x, v: 1 - y };
   });
   drag(hue, (x) => {
-    state = { ...state, h: Math.min(359.9, x * 360) };
+    state = { ...state, h: Math.min(HUE_MAX, x * 360) };
   });
+
+  for (const [part, target] of [
+    ['area', sv],
+    ['hue', hue],
+  ] as const) {
+    target.addEventListener('keydown', (event) => {
+      const next = pickerKeyStep(part, event.key, event.shiftKey, state);
+      if (!next) return;
+      event.preventDefault();
+      state = next;
+      paint();
+      emit();
+    });
+  }
 
   paint();
 
@@ -159,12 +210,13 @@ export function colorPicker(initialHex: string, onChange: (hex: string) => void)
     el,
     setValue: (hex: string) => {
       const parsed = hexToHsv(hex);
-      if (parsed) {
-        state = parsed;
-        paint();
-      }
+      if (!parsed) return;
+      // A grey or black has no hue of its own, so the bar stays where it was.
+      state = parsed.s === 0 || parsed.v === 0 ? { ...parsed, h: state.h } : parsed;
+      paint();
     },
     getValue: () => hsvToHex(state.h, state.s, state.v),
+    focus: () => sv.focus(),
   };
 }
 
@@ -185,6 +237,7 @@ export function openColorPickerPopover(
   trigger: HTMLElement,
   initialHex: string,
   onChange: (hex: string) => void,
+  text?: ColorPickerText,
   onClose?: () => void,
 ): ColorPickerPopoverHandle {
   openPopover?.close();
@@ -202,10 +255,14 @@ export function openColorPickerPopover(
   hexInput.value = initialHex;
   hexInput.setAttribute('aria-label', 'Hex');
 
-  const picker = colorPicker(initialHex, (hex) => {
-    hexInput.value = hex;
-    onChange(hex);
-  });
+  const picker = colorPicker(
+    initialHex,
+    (hex) => {
+      hexInput.value = hex;
+      onChange(hex);
+    },
+    text,
+  );
 
   hexInput.addEventListener('input', () => {
     const normalized = normalizeHex(hexInput.value);

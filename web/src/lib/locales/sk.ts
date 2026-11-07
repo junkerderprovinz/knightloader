@@ -462,6 +462,8 @@ export const sk: Dict = {
   'settings.accentRainbowOwns': 'Dúhový režim teraz rozdáva farby podľa pozície. Táto farba stále platí všade, kde žiadna pozícia nie je.',
   'settings.colours': 'Farby',
   'settings.accentReset': 'Predvolené',
+  'settings.picker.area': 'Sýtosť a jas',
+  'settings.picker.hue': 'Odtieň',
   'settings.lines.download': 'Graf sťahovania',
   'settings.lines.downloadHint': 'Farba grafu sťahovania v krivkách rýchlosti. Kým žiadnu nevyberieš, riadi sa farbou zvýraznenia.',
   'settings.lines.seeding': 'Graf nahrávania',

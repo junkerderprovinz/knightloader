@@ -462,6 +462,8 @@ export const el: Dict = {
   'settings.accentRainbowOwns': 'Η λειτουργία ουράνιου τόξου μοιράζει τώρα τα χρώματα ανά θέση. Αυτό το χρώμα ισχύει ακόμη παντού όπου δεν υπάρχει θέση.',
   'settings.colours': 'Χρώματα',
   'settings.accentReset': 'Προεπιλογή',
+  'settings.picker.area': 'Κορεσμός και φωτεινότητα',
+  'settings.picker.hue': 'Απόχρωση',
   'settings.lines.download': 'Γράφημα λήψης',
   'settings.lines.downloadHint': 'Το χρώμα του γραφήματος λήψης στις καμπύλες ταχύτητας. Μέχρι να διαλέξεις ένα, ακολουθεί το χρώμα τονισμού.',
   'settings.lines.seeding': 'Γράφημα αποστολής',

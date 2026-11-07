@@ -454,6 +454,8 @@ export const es: Dict = {
   'settings.accentRainbowOwns': 'El modo arcoíris reparte ahora los colores por posición. Este color sigue aplicándose a todo lo que no tiene posición.',
   'settings.colours': 'Colores',
   'settings.accentReset': 'Predeterminado',
+  'settings.picker.area': 'Saturación y brillo',
+  'settings.picker.hue': 'Tono',
   'settings.lines.download': 'Gráfico de descarga',
   'settings.lines.downloadHint': 'El color del gráfico de descarga en las curvas de velocidad. Mientras no elijas uno, sigue el color de acento.',
   'settings.lines.seeding': 'Gráfico de subida',

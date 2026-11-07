@@ -462,6 +462,8 @@ export const uk: Dict = {
   'settings.accentRainbowOwns': 'Веселковий режим зараз роздає кольори за позицією. Цей колір і далі діє всюди, де позиції немає.',
   'settings.colours': 'Кольори',
   'settings.accentReset': 'За замовчуванням',
+  'settings.picker.area': 'Насиченість і яскравість',
+  'settings.picker.hue': 'Відтінок',
   'settings.lines.download': 'Графік завантаження',
   'settings.lines.downloadHint': 'Колір графіка завантаження на кривих швидкості. Доки ти не обереш колір, він іде за акцентним кольором.',
   'settings.lines.seeding': 'Графік віддачі',

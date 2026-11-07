@@ -454,6 +454,8 @@ export const ru: Dict = {
   'settings.accentRainbowOwns': 'Радужный режим сейчас раздаёт цвета по позиции. Этот цвет по-прежнему действует везде, где позиции нет.',
   'settings.colours': 'Цвета',
   'settings.accentReset': 'По умолчанию',
+  'settings.picker.area': 'Насыщенность и яркость',
+  'settings.picker.hue': 'Оттенок',
   'settings.lines.download': 'График загрузки',
   'settings.lines.downloadHint': 'Цвет графика загрузки на кривых скорости. Пока ты не выберешь цвет, он следует за акцентным цветом.',
   'settings.lines.seeding': 'График отдачи',

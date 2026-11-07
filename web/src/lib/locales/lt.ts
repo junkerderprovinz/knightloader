@@ -462,6 +462,8 @@ export const lt: Dict = {
   'settings.accentRainbowOwns': 'Vaivorykštės režimas dabar dalija spalvas pagal poziciją. Ši spalva vis dar galioja visur, kur pozicijos nėra.',
   'settings.colours': 'Spalvos',
   'settings.accentReset': 'Numatytoji',
+  'settings.picker.area': 'Sodrumas ir šviesumas',
+  'settings.picker.hue': 'Atspalvis',
   'settings.lines.download': 'Atsisiuntimo grafikas',
   'settings.lines.downloadHint': 'Atsisiuntimo grafiko spalva greičio kreivėse. Kol nepasirenki spalvos, jis seka akcento spalvą.',
   'settings.lines.seeding': 'Įkėlimo grafikas',

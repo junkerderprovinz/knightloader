@@ -462,6 +462,8 @@ export const lv: Dict = {
   'settings.accentRainbowOwns': 'Varavīksnes režīms pašlaik izdala krāsas pēc pozīcijas. Šī krāsa joprojām attiecas uz visu, kam pozīcijas nav.',
   'settings.colours': 'Krāsas',
   'settings.accentReset': 'Noklusējums',
+  'settings.picker.area': 'Piesātinājums un spilgtums',
+  'settings.picker.hue': 'Nokrāsa',
   'settings.lines.download': 'Lejupielādes grafiks',
   'settings.lines.downloadHint': 'Lejupielādes grafika krāsa ātruma līknēs. Kamēr tu neizvēlies krāsu, tas seko akcenta krāsai.',
   'settings.lines.seeding': 'Augšupielādes grafiks',

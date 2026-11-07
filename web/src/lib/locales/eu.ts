@@ -462,6 +462,8 @@ export const eu: Dict = {
   'settings.accentRainbowOwns': 'Ostadar moduak koloreak posizioaren arabera banatzen ditu orain. Kolore honek posiziorik ez duen guztia margotzen du oraindik.',
   'settings.colours': 'Koloreak',
   'settings.accentReset': 'Lehenetsia',
+  'settings.picker.area': 'Saturazioa eta distira',
+  'settings.picker.hue': 'Ñabardura',
   'settings.lines.download': 'Deskargaren grafikoa',
   'settings.lines.downloadHint': 'Deskargaren grafikoaren kolorea abiadura-kurbetan. Bat aukeratzen ez duzun bitartean, azentu koloreari jarraitzen dio.',
   'settings.lines.seeding': 'Igoera grafikoa',

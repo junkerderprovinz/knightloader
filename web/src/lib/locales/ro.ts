@@ -462,6 +462,8 @@ export const ro: Dict = {
   'settings.accentRainbowOwns': 'Modul curcubeu împarte acum culorile după poziție. Această culoare se aplică în continuare la tot ce nu are o poziție.',
   'settings.colours': 'Culori',
   'settings.accentReset': 'Implicit',
+  'settings.picker.area': 'Saturație și luminozitate',
+  'settings.picker.hue': 'Nuanță',
   'settings.lines.download': 'Graficul de descărcare',
   'settings.lines.downloadHint': 'Culoarea graficului de descărcare din curbele de viteză. Cât timp nu alegi una, urmează culoarea de accent.',
   'settings.lines.seeding': 'Graficul de încărcare',

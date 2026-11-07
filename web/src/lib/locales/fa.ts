@@ -462,6 +462,8 @@ export const fa: Dict = {
   'settings.accentRainbowOwns': 'حالت رنگین‌کمان اکنون رنگ‌ها را بر اساس موقعیت پخش می‌کند. این رنگ همچنان هر چیزی را که موقعیتی ندارد رنگ می‌کند.',
   'settings.colours': 'رنگ‌ها',
   'settings.accentReset': 'پیش‌فرض',
+  'settings.picker.area': 'اشباع و روشنایی',
+  'settings.picker.hue': 'فام',
   'settings.lines.download': 'نمودار دانلود',
   'settings.lines.downloadHint': 'رنگ نمودار دانلود در منحنی‌های سرعت. تا وقتی رنگی انتخاب نکنی، از رنگ تأکید پیروی می‌کند.',
   'settings.lines.seeding': 'نمودار آپلود',

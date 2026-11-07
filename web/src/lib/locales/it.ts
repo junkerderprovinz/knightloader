@@ -454,6 +454,8 @@ export const it: Dict = {
   'settings.accentRainbowOwns': 'La modalità arcobaleno distribuisce ora i colori per posizione. Questo colore vale ancora per tutto ciò che non ha una posizione.',
   'settings.colours': 'Colori',
   'settings.accentReset': 'Predefinito',
+  'settings.picker.area': 'Saturazione e luminosità',
+  'settings.picker.hue': 'Tonalità',
   'settings.lines.download': 'Grafico del download',
   'settings.lines.downloadHint': 'Il colore del grafico del download nelle curve della velocità. Finché non ne scegli uno, segue il colore d’accento.',
   'settings.lines.seeding': 'Grafico dell’upload',

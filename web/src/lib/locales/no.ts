@@ -464,6 +464,8 @@ export const no: Dict = {
   'settings.accentRainbowOwns': 'Regnbuemodus fordeler nå fargene etter posisjon. Denne fargen gjelder fortsatt alt som ikke har en posisjon.',
   'settings.colours': 'Farger',
   'settings.accentReset': 'Standard',
+  'settings.picker.area': 'Metning og lysstyrke',
+  'settings.picker.hue': 'Fargetone',
   'settings.lines.download': 'Nedlastingsgraf',
   'settings.lines.downloadHint': 'Fargen på nedlastingsgrafen i hastighetskurvene. Til du velger en, følger den aksentfargen.',
   'settings.lines.seeding': 'Opplastingsgraf',

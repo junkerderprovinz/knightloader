@@ -454,6 +454,8 @@ export const nl: Dict = {
   'settings.accentRainbowOwns': 'De regenboogmodus deelt de kleuren nu per positie uit. Deze kleur geldt nog steeds voor alles zonder positie.',
   'settings.colours': 'Kleuren',
   'settings.accentReset': 'Standaard',
+  'settings.picker.area': 'Verzadiging en helderheid',
+  'settings.picker.hue': 'Tint',
   'settings.lines.download': 'Downloadgrafiek',
   'settings.lines.downloadHint': 'De kleur van de downloadgrafiek in de snelheidscurves. Zolang je er geen kiest, volgt hij de accentkleur.',
   'settings.lines.seeding': 'Uploadgrafiek',

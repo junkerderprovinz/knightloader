@@ -462,6 +462,8 @@ export const hr: Dict = {
   'settings.accentRainbowOwns': 'Dugin način trenutačno dijeli boje po položaju. Ova boja i dalje vrijedi svugdje gdje položaja nema.',
   'settings.colours': 'Boje',
   'settings.accentReset': 'Zadano',
+  'settings.picker.area': 'Zasićenost i svjetlina',
+  'settings.picker.hue': 'Nijansa',
   'settings.lines.download': 'Graf preuzimanja',
   'settings.lines.downloadHint': 'Boja grafa preuzimanja u krivuljama brzine. Dok ne odabereš boju, prati boju naglaska.',
   'settings.lines.seeding': 'Graf slanja',

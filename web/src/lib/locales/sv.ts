@@ -462,6 +462,8 @@ export const sv: Dict = {
   'settings.accentRainbowOwns': 'Regnbågsläget delar just nu ut färgerna efter position. Den här färgen gäller fortfarande allt som saknar position.',
   'settings.colours': 'Färger',
   'settings.accentReset': 'Standard',
+  'settings.picker.area': 'Mättnad och ljusstyrka',
+  'settings.picker.hue': 'Nyans',
   'settings.lines.download': 'Nedladdningsgraf',
   'settings.lines.downloadHint': 'Färgen på nedladdningsgrafen i hastighetskurvorna. Tills du väljer en följer den accentfärgen.',
   'settings.lines.seeding': 'Uppladdningsgraf',

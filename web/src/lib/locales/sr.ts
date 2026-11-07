@@ -462,6 +462,8 @@ export const sr: Dict = {
   'settings.accentRainbowOwns': 'Дугин режим сада додељује боје по позицији. Ова боја и даље важи свуда где позиције нема.',
   'settings.colours': 'Боје',
   'settings.accentReset': 'Подразумевано',
+  'settings.picker.area': 'Засићеност и осветљеност',
+  'settings.picker.hue': 'Нијанса',
   'settings.lines.download': 'График преузимања',
   'settings.lines.downloadHint': 'Боја графика преузимања на кривама брзине. Док не изабереш боју, прати боју нагласка.',
   'settings.lines.seeding': 'График слања',

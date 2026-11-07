@@ -462,6 +462,8 @@ export const da: Dict = {
   'settings.accentRainbowOwns': 'Regnbuetilstanden fordeler lige nu farverne efter position. Denne farve gælder stadig alt det, der ikke har en position.',
   'settings.colours': 'Farver',
   'settings.accentReset': 'Standard',
+  'settings.picker.area': 'Mætning og lysstyrke',
+  'settings.picker.hue': 'Farvetone',
   'settings.lines.download': 'Download-graf',
   'settings.lines.downloadHint': 'Farven på download-grafen i hastighedskurverne. Indtil du vælger en, følger den accentfarven.',
   'settings.lines.seeding': 'Upload-graf',

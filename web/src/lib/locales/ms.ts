@@ -462,6 +462,8 @@ export const ms: Dict = {
   'settings.accentRainbowOwns': 'Mod pelangi sedang mengagihkan warna mengikut kedudukan. Warna ini masih digunakan pada semua yang tiada kedudukan.',
   'settings.colours': 'Warna',
   'settings.accentReset': 'Lalai',
+  'settings.picker.area': 'Ketepuan dan kecerahan',
+  'settings.picker.hue': 'Rona',
   'settings.lines.download': 'Graf muat turun',
   'settings.lines.downloadHint': 'Warna graf muat turun dalam lengkung kelajuan. Selagi anda belum memilih, ia mengikut warna aksen.',
   'settings.lines.seeding': 'Graf muat naik',

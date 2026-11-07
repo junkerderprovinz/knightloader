@@ -454,6 +454,8 @@ export const pt: Dict = {
   'settings.accentRainbowOwns': 'O modo arco-íris está a distribuir as cores por posição. Esta cor continua a aplicar-se a tudo o que não tem posição.',
   'settings.colours': 'Cores',
   'settings.accentReset': 'Predefinição',
+  'settings.picker.area': 'Saturação e brilho',
+  'settings.picker.hue': 'Matiz',
   'settings.lines.download': 'Gráfico da transferência',
   'settings.lines.downloadHint': 'A cor do gráfico da transferência nas curvas de velocidade. Enquanto não escolheres uma, segue a cor de destaque.',
   'settings.lines.seeding': 'Gráfico do envio',

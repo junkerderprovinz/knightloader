@@ -462,6 +462,8 @@ export const hu: Dict = {
   'settings.accentRainbowOwns': 'A szivárvány mód most pozíció szerint osztja a színeket. Ez a szín továbbra is mindenre érvényes, aminek nincs pozíciója.',
   'settings.colours': 'Színek',
   'settings.accentReset': 'Alapérték',
+  'settings.picker.area': 'Telítettség és fényerő',
+  'settings.picker.hue': 'Színárnyalat',
   'settings.lines.download': 'Letöltés grafikonja',
   'settings.lines.downloadHint': 'A letöltés grafikonjának színe a sebességgörbéken. Amíg nem választasz, a kiemelőszínt követi.',
   'settings.lines.seeding': 'Feltöltés grafikonja',

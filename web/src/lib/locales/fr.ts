@@ -454,6 +454,8 @@ export const fr: Dict = {
   'settings.accentRainbowOwns': "Le mode arc-en-ciel distribue les couleurs par position pour l'instant. Celle-ci s'applique encore à tout ce qui n'a pas de position.",
   'settings.colours': 'Couleurs',
   'settings.accentReset': 'Par défaut',
+  'settings.picker.area': 'Saturation et luminosité',
+  'settings.picker.hue': 'Teinte',
   'settings.lines.download': 'Graphique de téléchargement',
   'settings.lines.downloadHint': 'La couleur du graphique de téléchargement dans les courbes de vitesse. Tant que vous n’en choisissez pas, il suit la couleur d’accent.',
   'settings.lines.seeding': 'Graphique d’envoi',

@@ -462,6 +462,8 @@ export const vi: Dict = {
   'settings.accentRainbowOwns': 'Chế độ cầu vồng đang chia màu theo vị trí. Màu này vẫn áp dụng cho mọi thứ không có vị trí.',
   'settings.colours': 'Màu sắc',
   'settings.accentReset': 'Mặc định',
+  'settings.picker.area': 'Độ bão hòa và độ sáng',
+  'settings.picker.hue': 'Sắc độ',
   'settings.lines.download': 'Biểu đồ tải xuống',
   'settings.lines.downloadHint': 'Màu của biểu đồ tải xuống trong các đường tốc độ. Khi bạn chưa chọn, nó theo màu nhấn.',
   'settings.lines.seeding': 'Biểu đồ tải lên',

@@ -462,6 +462,8 @@ export const cs: Dict = {
   'settings.accentRainbowOwns': 'Duhový režim teď rozdává barvy podle pozice. Tato barva stále platí všude, kde žádná pozice není.',
   'settings.colours': 'Barvy',
   'settings.accentReset': 'Výchozí',
+  'settings.picker.area': 'Sytost a jas',
+  'settings.picker.hue': 'Odstín',
   'settings.lines.download': 'Graf stahování',
   'settings.lines.downloadHint': 'Barva grafu stahování v křivkách rychlosti. Dokud žádnou nevybereš, řídí se barvou zvýraznění.',
   'settings.lines.seeding': 'Graf nahrávání',

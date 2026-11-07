@@ -2597,7 +2597,7 @@ body {
 }
 
 /* The colour picker (lib/colorPicker.ts), copied from GlimStone's
-   reference/tokens.css. It replaces the native colour input, whose surface on
+   packages/core/tokens.css. It replaces the native colour input, whose surface on
    Windows is a separate OS window. Two differences from the reference: no
    hairline around the saturation square, and the hex field's focus fill (see
    .glim-picker-hex:focus). */
@@ -2619,8 +2619,12 @@ body {
   border: 2px solid #fff;
   border-radius: 50%;
   box-shadow: 0 0 3px rgba(0, 0, 0, .8);
+  background-color: var(--glim-picker-colour, transparent);
   pointer-events: none;
 }
+/* A drag on the square or the bar is the picker's, never a scroll of the page. */
+.glim-picker-sv,
+.glim-picker-hue { touch-action: none; }
 .glim-picker-hue {
   position: relative;
   height: 0.875rem;

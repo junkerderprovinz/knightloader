@@ -462,6 +462,8 @@ export const fi: Dict = {
   'settings.accentRainbowOwns': 'Sateenkaaritila jakaa värit nyt sijainnin mukaan. Tämä väri vaikuttaa yhä kaikkeen, jolla ei ole sijaintia.',
   'settings.colours': 'Värit',
   'settings.accentReset': 'Oletus',
+  'settings.picker.area': 'Kylläisyys ja kirkkaus',
+  'settings.picker.hue': 'Sävy',
   'settings.lines.download': 'Latauksen kuvaaja',
   'settings.lines.downloadHint': 'Latauksen kuvaajan väri nopeuskäyrissä. Kunnes valitset värin, se seuraa korostusväriä.',
   'settings.lines.seeding': 'Lähetyksen kuvaaja',

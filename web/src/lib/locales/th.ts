@@ -462,6 +462,8 @@ export const th: Dict = {
   'settings.accentRainbowOwns': 'ตอนนี้โหมดสายรุ้งกำลังแจกสีตามตำแหน่ง สีนี้ยังคงใช้กับทุกอย่างที่ไม่มีตำแหน่ง',
   'settings.colours': 'สี',
   'settings.accentReset': 'ค่าเริ่มต้น',
+  'settings.picker.area': 'ความอิ่มตัวและความสว่าง',
+  'settings.picker.hue': 'เฉดสี',
   'settings.lines.download': 'กราฟดาวน์โหลด',
   'settings.lines.downloadHint': 'สีของกราฟดาวน์โหลดในเส้นโค้งความเร็ว จนกว่าคุณจะเลือกสี กราฟนี้จะใช้สีเน้น',
   'settings.lines.seeding': 'กราฟอัปโหลด',

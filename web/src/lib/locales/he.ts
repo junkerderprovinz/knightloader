@@ -464,6 +464,8 @@ export const he: Dict = {
   'settings.accentRainbowOwns': 'מצב הקשת מחלק כעת את הצבעים לפי מיקום. הצבע הזה עדיין חל על כל מה שאין לו מיקום.',
   'settings.colours': 'צבעים',
   'settings.accentReset': 'ברירת מחדל',
+  'settings.picker.area': 'רוויה ובהירות',
+  'settings.picker.hue': 'גוון',
   'settings.lines.download': 'גרף ההורדה',
   'settings.lines.downloadHint': 'הצבע של גרף ההורדה בעקומות המהירות. כל עוד לא בחרת צבע, הוא הולך אחרי צבע ההדגשה.',
   'settings.lines.seeding': 'גרף ההעלאה',

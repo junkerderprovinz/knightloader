@@ -462,6 +462,8 @@ export const zh: Dict = {
   'settings.accentRainbowOwns': '彩虹模式正按位置分配颜色。这个颜色仍然作用于所有没有位置的元素。',
   'settings.colours': '颜色',
   'settings.accentReset': '默认',
+  'settings.picker.area': '饱和度和亮度',
+  'settings.picker.hue': '色相',
   'settings.lines.download': '下载图表',
   'settings.lines.downloadHint': '速度曲线中下载图表的颜色。在你选定之前，它跟随强调色。',
   'settings.lines.seeding': '上传图表',

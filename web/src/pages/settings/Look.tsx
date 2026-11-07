@@ -11,7 +11,7 @@ import {
   useTooltip,
 } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
-import { openColorPickerPopover } from '../../lib/colorPicker';
+import { openColorPickerPopover, type ColorPickerText } from '../../lib/colorPicker';
 import { setHidden } from '../../lib/sidebarPrefs';
 import { LanguagePicker } from '../../components/LanguagePicker';
 import {
@@ -337,6 +337,11 @@ function SystemSwatch({
  * PaletteSwatch is one rainbow palette position, opening the picker on its
  * colour. A component, because the tooltip is a hook.
  */
+/** The picker's square and hue bar are sliders, and a screen reader names them in the reader's language. */
+function pickerText(t: (key: TranslationKey) => string): ColorPickerText {
+  return { area: t('settings.picker.area'), hue: t('settings.picker.hue') };
+}
+
 function PaletteSwatch({ color, name, onEdit }: { color: string; name: string; onEdit: (el: HTMLElement) => void }) {
   // `name`, not `label`: an accessible name, not a caption the settings search
   // jumps to.
@@ -417,7 +422,7 @@ function LineRow({
               label={shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
               selected={i === slot}
               onPick={() => onPick(shown)}
-              onEdit={(el) => openColorPickerPopover(el, shown, onPick)}
+              onEdit={(el) => openColorPickerPopover(el, shown, onPick, pickerText(t))}
             />
           );
         })}
@@ -895,7 +900,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
                   dim={cfg.rainbow}
                   onPick={() => chooseSlot(i, shown)}
                   // Opens on the circle's own colour.
-                  onEdit={(el) => openColorPickerPopover(el, shown, (hex) => mixSlot(i, hex))}
+                  onEdit={(el) => openColorPickerPopover(el, shown, (hex) => mixSlot(i, hex), pickerText(t))}
                 />
               );
             })}
@@ -1007,11 +1012,16 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
                     color={hex}
                     name={`${t('settings.rainbowPalette')} ${i + 1}`}
                     onEdit={(el) =>
-                      openColorPickerPopover(el, hex, (next) => {
-                        const list = palette.slice();
-                        list[i] = next;
-                        patch({ rainbowPalette: list });
-                      })
+                      openColorPickerPopover(
+                        el,
+                        hex,
+                        (next) => {
+                          const list = palette.slice();
+                          list[i] = next;
+                          patch({ rainbowPalette: list });
+                        },
+                        pickerText(t),
+                      )
                     }
                   />
                 ))}

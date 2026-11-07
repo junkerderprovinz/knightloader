@@ -462,6 +462,8 @@ export const tr: Dict = {
   'settings.accentRainbowOwns': 'Gökkuşağı modu şu anda renkleri konuma göre dağıtıyor. Bu renk, konumu olmayan her şeyde hâlâ geçerli.',
   'settings.colours': 'Renkler',
   'settings.accentReset': 'Varsayılan',
+  'settings.picker.area': 'Doygunluk ve parlaklık',
+  'settings.picker.hue': 'Ton',
   'settings.lines.download': 'İndirme grafiği',
   'settings.lines.downloadHint': 'Hız eğrilerindeki indirme grafiğinin rengi. Bir renk seçene kadar vurgu rengini izler.',
   'settings.lines.seeding': 'Yükleme grafiği',

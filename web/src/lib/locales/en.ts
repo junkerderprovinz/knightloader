@@ -529,6 +529,8 @@ export const en = {
   'settings.accentRainbowOwns': 'Rainbow mode is handing out colours by position right now. This one still paints everything that owns no position.',
   'settings.colours': 'Colours',
   'settings.accentReset': 'Default',
+  'settings.picker.area': 'Saturation and brightness',
+  'settings.picker.hue': 'Hue',
   'settings.lines.download': 'Download graph',
   'settings.lines.downloadHint': 'The colour of the download graph in the speed curves. Until you pick one, it follows the accent colour.',
   'settings.lines.seeding': 'Upload graph',

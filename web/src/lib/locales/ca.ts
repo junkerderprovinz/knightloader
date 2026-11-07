@@ -462,6 +462,8 @@ export const ca: Dict = {
   'settings.accentRainbowOwns': 'El mode arc de Sant Martí reparteix ara els colors per posició. Aquest color encara pinta tot allò que no té posició.',
   'settings.colours': 'Colors',
   'settings.accentReset': 'Per defecte',
+  'settings.picker.area': 'Saturació i brillantor',
+  'settings.picker.hue': 'To',
   'settings.lines.download': 'Gràfic de baixada',
   'settings.lines.downloadHint': 'El color del gràfic de baixada a les corbes de velocitat. Mentre no en triïs cap, segueix el color d\'accent.',
   'settings.lines.seeding': 'Gràfic de pujada',

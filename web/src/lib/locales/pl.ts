@@ -454,6 +454,8 @@ export const pl: Dict = {
   'settings.accentRainbowOwns': 'Tryb tęczy rozdaje teraz kolory według pozycji. Ten kolor nadal obowiązuje wszędzie tam, gdzie pozycji nie ma.',
   'settings.colours': 'Kolory',
   'settings.accentReset': 'Domyślny',
+  'settings.picker.area': 'Nasycenie i jasność',
+  'settings.picker.hue': 'Odcień',
   'settings.lines.download': 'Wykres pobierania',
   'settings.lines.downloadHint': 'Kolor wykresu pobierania na krzywych prędkości. Dopóki go nie wybierzesz, idzie za kolorem akcentu.',
   'settings.lines.seeding': 'Wykres wysyłania',

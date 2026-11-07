@@ -462,6 +462,8 @@ export const is: Dict = {
   'settings.accentRainbowOwns': 'Regnbogastillingin úthlutar litum eftir stöðu núna. Þessi litur gildir enn alls staðar þar sem engin staða er.',
   'settings.colours': 'Litir',
   'settings.accentReset': 'Sjálfgefið',
+  'settings.picker.area': 'Mettun og birta',
+  'settings.picker.hue': 'Litblær',
   'settings.lines.download': 'Niðurhalsgraf',
   'settings.lines.downloadHint': 'Litur niðurhalsgrafsins í hraðaferlunum. Þangað til þú velur lit fylgir það áherslulitnum.',
   'settings.lines.seeding': 'Upphleðslugraf',
