@@ -15,7 +15,7 @@ import { useShake } from '../theme/MotionContext';
 import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from '../components/glim';
-import IconBadge, { Back, Connect, Paste, Scan, boxForInk } from '../components/IconBadge';
+import IconBadge, { Back, Connect, Paste, Plus, Scan, boxForInk } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import { MovingScroll } from '../components/Moving';
 import * as Clipboard from 'expo-clipboard';
@@ -368,6 +368,7 @@ export default function RelayConnectScreen({
             <GlimButton
               hue={3}
               label={sibs.length === 1 ? t('relay.saveOneButton') : t('relay.saveAllButton', { count: sibs.length })}
+              icon={(ink) => <Plus color={ink} />}
               onPress={saveAll}
             />
           )}

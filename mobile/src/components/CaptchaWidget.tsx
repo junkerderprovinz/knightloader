@@ -15,7 +15,7 @@ import { useMotion } from '../theme/MotionContext';
 import { TYPE, inkFor } from '../theme/tokens';
 import { useCaptchas } from './CaptchaWatch';
 import { GlimButton } from './glim';
-import IconBadge, { Cross } from './IconBadge';
+import IconBadge, { Cross, Retry } from './IconBadge';
 import { InfoTip } from './InfoTip';
 import { NoArrival } from './Moving';
 import { Text } from './Text';
@@ -216,6 +216,7 @@ export function CaptchaWidget({
               tone="quiet"
               grow
               label={t('captcha.refresh')}
+              icon={(ink) => <Retry color={ink} />}
               onPress={() => {
                 setStatus('loading');
                 setDetail(null);

@@ -6,7 +6,7 @@ import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from './glim';
-import { Cross } from './IconBadge';
+import { Confirm, Cross, Gear } from './IconBadge';
 import { Text } from './Text';
 
 // A full-screen modal scanner rather than a screen of its own: a caller that
@@ -63,7 +63,12 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
         ) : !granted ? (
           <View style={styles.center}>
             <Text style={[styles.hint, { color: c.text }]}>{t('qr.cameraPermissionHint')}</Text>
-            <GlimButton hue={0} label={t(blocked ? 'qr.openSettings' : 'qr.grantAccess')} onPress={requestPermission} />
+            <GlimButton
+              hue={0}
+              label={t(blocked ? 'qr.openSettings' : 'qr.grantAccess')}
+              icon={(ink) => (blocked ? <Gear color={ink} /> : <Confirm color={ink} />)}
+              onPress={requestPermission}
+            />
           </View>
         ) : (
           <>

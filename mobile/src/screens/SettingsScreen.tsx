@@ -35,6 +35,7 @@ import IconBadge, {
   BraveMark,
   ChromeMark,
   CoffeeArt,
+  Copy,
   CornerLeaf,
   CornerRound,
   CornerSoft,
@@ -52,7 +53,6 @@ import IconBadge, {
   MotionWild,
   OperaMark,
   ParleyPortMark,
-  Paste,
   PayPal,
   Sun,
   ThemeSystem,
@@ -938,16 +938,15 @@ export default function SettingsScreen({
             door here hard-wired to one of them would be a second answer to a
             question that card answers. What this card is for is the report.
 
-            Paste, the clipboard glyph, rather than a pair of offset sheets:
-            this family already draws the clipboard for the relay screen's paste
-            button, and a near-identical mark for the opposite direction would
-            be two glyphs for one idea. */}
+            GlimStone's copy glyph, two sheets, as on the web's copy buttons:
+            the clipboard means the opposite direction and stays with the relay
+            screen's Paste. */}
         <View style={styles.buttonRow}>
           <Animated.View style={kopiertStil}>
             <GlimButton
               hue={0}
               label={copied ? t('settings.problemsCopied') : t('settings.problemsCopy')}
-              icon={(ink) => <Paste color={ink} />}
+              icon={(ink) => <Copy color={ink} />}
               onPress={() => {
                 // Confirm only once the write has landed, so the label never
                 // claims a copy that did not happen.

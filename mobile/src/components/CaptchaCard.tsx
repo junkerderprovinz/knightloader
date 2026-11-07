@@ -27,7 +27,7 @@ import { TYPE } from '../theme/tokens';
 import { useCaptchas } from './CaptchaWatch';
 import { CaptchaWidget } from './CaptchaWidget';
 import { GlimButton, NotchCard } from './glim';
-import { Check, Cross, Play } from './IconBadge';
+import { Confirm, Cross, Play } from './IconBadge';
 import { InfoTip } from './InfoTip';
 import { Text, TextInput } from './Text';
 
@@ -209,7 +209,7 @@ export function CaptchaCard({
             hue={hue}
             grow
             label={t('captcha.continue')}
-            icon={(ink) => <Check color={ink} />}
+            icon={(ink) => <Confirm color={ink} />}
             busy={busy}
             disabled={!ready}
             onPress={submit}

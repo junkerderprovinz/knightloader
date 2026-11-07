@@ -361,30 +361,10 @@ export function Paste({ color, size = GLYPH_BOX }: { color: string; size?: numbe
   );
 }
 
-/** Connect: a plug, drawn as a body with two pins. The one glyph that says
- *  "join something" without needing a word beside it. */
+/** Connect and pair: GlimStone's IconLink, two chain links, the drawing the
+ *  web interface's pairing wears. */
 export function Connect({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // Pins (3.5) plus body (7) less their overlap (0.4) = 10.1 units tall.
-  const u = unit(size, 10.1);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ flexDirection: 'row', gap: 2 * u, marginBottom: -0.4 * u }}>
-        <View style={{ width: 2 * u, height: 3.5 * u, backgroundColor: color, borderRadius: 1 * u }} />
-        <View style={{ width: 2 * u, height: 3.5 * u, backgroundColor: color, borderRadius: 1 * u }} />
-      </View>
-      <View
-        style={{
-          width: 9 * u,
-          height: 7 * u,
-          backgroundColor: color,
-          borderBottomLeftRadius: 4.5 * u,
-          borderBottomRightRadius: 4.5 * u,
-          borderTopLeftRadius: 1 * u,
-          borderTopRightRadius: 1 * u,
-        }}
-      />
-    </View>
-  );
+  return <Drawn source={require('../../assets/link.png')} color={color} size={size} />;
 }
 
 /** Scan: the four corner marks of a viewfinder. Nothing in the middle, because
@@ -546,6 +526,22 @@ export function MotionWild({ color, size = GLYPH_BOX }: { color: string; size?: 
 
 export function MotionStorm({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
   return <Drawn source={require('../../assets/motion-storm.png')} color={color} size={size} />;
+}
+
+/* Button glyphs from the same list (GlimStone 3.8.0): Done and confirm, try
+ * again, and copy, each a meaning of its own rather than a borrowed check,
+ * refresh or clipboard. */
+
+export function Confirm({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/confirm.png')} color={color} size={size} />;
+}
+
+export function Retry({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/retry.png')} color={color} size={size} />;
+}
+
+export function Copy({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/copy.png')} color={color} size={size} />;
 }
 
 /** SpeedLimit marks a limit's figure on the speed graph: a sign's ring round a

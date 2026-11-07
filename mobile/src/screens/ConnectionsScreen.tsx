@@ -15,7 +15,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { contentMax, useWide } from '../theme/layout';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Connect, Gear, boxForInk } from '../components/IconBadge';
+import IconBadge, { Connect, Gear, Plus, boxForInk } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { CardButton, DefaultBadge, GlimButton, StatusBadge, ThisDeviceBadge } from '../components/glim';
 import { aggregate, fetchInstanceStats, fmtBytes, fmtSpeed, type InstanceStats } from '../api/stats';
@@ -575,7 +575,12 @@ export default function ConnectionsScreen({
                 <Connect color={c.textMuted} size={boxForInk(26)} />
               </View>
               <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('connections.empty')}</Text>
-              <GlimButton hue={0} label={t('connections.emptyButton')} onPress={onAddPress} />
+              <GlimButton
+                hue={0}
+                label={t('connections.emptyButton')}
+                icon={(ink) => <Plus color={ink} />}
+                onPress={onAddPress}
+              />
             </Arrive>
           ) : undefined
         }

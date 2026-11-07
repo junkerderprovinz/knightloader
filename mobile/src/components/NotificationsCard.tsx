@@ -8,7 +8,7 @@ import { TYPE } from '../theme/tokens';
 import { anyKind, loadNotifyPrefs, saveNotifyPrefs, type NotifyPrefs } from '../watch/prefs';
 import { askNotifications, notificationsAllowed, startWatch, stopWatch } from '../watch/watch';
 import { GlimButton, GlimRow, GlimToggle, NotchCard } from './glim';
-import { Check, Gear } from './IconBadge';
+import { Confirm, Gear } from './IconBadge';
 import { Text } from './Text';
 
 type Kind = 'captcha' | 'finished' | 'failed';
@@ -85,7 +85,7 @@ export function NotificationsCard({ hue }: { hue: number }) {
           <GlimButton
             hue={0}
             label={t('settings.notificationsAllow')}
-            icon={(ink) => <Check color={ink} />}
+            icon={(ink) => <Confirm color={ink} />}
             onPress={() => void allow()}
           />
         </View>

@@ -7,7 +7,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { CardButton, DefaultBadge, GlimButton } from '../components/glim';
-import { Connect, Cross } from '../components/IconBadge';
+import { Connect, Cross, Plus, Retry } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import { Arrive } from '../components/Moving';
 import { Text } from '../components/Text';
@@ -105,7 +105,12 @@ export default function ShareScreen({
         <Arrive style={[styles.card, { backgroundColor: c.surface, ...corners.card }]}>
           <Connect color={c.textMuted} />
           <Text style={[styles.message, { color: c.textMuted }]}>{t('share.noConnection')}</Text>
-          <GlimButton hue={0} label={t('connections.emptyButton')} onPress={onConnect} />
+          <GlimButton
+            hue={0}
+            label={t('connections.emptyButton')}
+            icon={(ink) => <Plus color={ink} />}
+            onPress={onConnect}
+          />
         </Arrive>
       )}
 
@@ -162,7 +167,13 @@ export default function ShareScreen({
           </Arrive>
           <View style={styles.actions}>
             <GlimButton tone="quiet" grow label={t('share.close')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
-            <GlimButton hue={1} grow label={t('share.retry')} onPress={() => void send(phase.conn)} />
+            <GlimButton
+              hue={1}
+              grow
+              label={t('share.retry')}
+              icon={(ink) => <Retry color={ink} />}
+              onPress={() => void send(phase.conn)}
+            />
           </View>
         </>
       )}
