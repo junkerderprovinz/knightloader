@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   // Persian, and a physical edge keeps its gap on the same side of the screen
   // while everything around it mirrors.
   name: { fontSize: TYPE.body, fontWeight: '500', flex: 1, marginEnd: 8 },
-  status: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase' },
+  status: { fontSize: TYPE.meta, fontWeight: '600', textTransform: 'uppercase' },
   progressTrack: {
     height: 4,
     marginTop: 8,
@@ -339,8 +339,8 @@ const styles = StyleSheet.create({
   // Tabular figures: a byte count, a total and a percentage rewritten every
   // refresh, in a row that stacks down the whole screen. With proportional
   // digits the footer shuffles sideways on every tick.
-  meta: { fontSize: TYPE.dense, ...NUM },
+  meta: { fontSize: TYPE.meta, ...NUM },
   failure: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 6 },
   failureText: { flex: 1, minWidth: 0, gap: 2 },
-  failureLine: { fontSize: TYPE.dense },
+  failureLine: { fontSize: TYPE.subline },
 });

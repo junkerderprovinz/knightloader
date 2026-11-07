@@ -337,5 +337,5 @@ const styles = StyleSheet.create({
   mark: { width: 4, alignSelf: 'stretch' },
   text: { flex: 1, minWidth: 0, gap: 2 },
   line: { fontSize: TYPE.body, fontWeight: '500' },
-  instance: { fontSize: TYPE.dense },
+  instance: { fontSize: TYPE.subline },
 });

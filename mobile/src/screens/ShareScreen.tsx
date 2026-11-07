@@ -175,8 +175,8 @@ export default function ShareScreen({
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, paddingTop: 56, gap: 16 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { fontSize: TYPE.heading, fontWeight: '600', flexShrink: 1 },
-  shared: { fontSize: TYPE.dense },
+  title: { fontSize: TYPE.status, fontWeight: '600', flexShrink: 1 },
+  shared: { fontSize: TYPE.subline },
   pick: { fontSize: TYPE.body, fontWeight: '600' },
   list: { gap: 8 },
   card: { alignItems: 'center', gap: 14, paddingVertical: 24, paddingHorizontal: 20 },

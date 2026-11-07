@@ -341,11 +341,11 @@ function Picture({
 // is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
   meta: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 6 },
-  prompt: { flex: 1, fontSize: TYPE.dense, lineHeight: 17 },
+  prompt: { flex: 1, fontSize: TYPE.subline, lineHeight: 17 },
   // Rewritten every second, so the digits keep their width.
-  clock: { fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
+  clock: { fontSize: TYPE.meta, fontVariant: ['tabular-nums'] },
   solver: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
-  solverText: { flexShrink: 1, fontSize: TYPE.dense, lineHeight: 17 },
+  solverText: { flexShrink: 1, fontSize: TYPE.subline, lineHeight: 17 },
   pictureGround: { backgroundColor: '#fff', padding: 8, alignItems: 'center', marginVertical: 6 },
   fill: { width: '100%', height: '100%' },
   // A dot centred on the tap, ringed in white so it shows on any picture. The
@@ -363,9 +363,9 @@ const styles = StyleSheet.create({
   markerDot: { width: 10, height: 10 },
   field: { marginTop: 6, paddingHorizontal: 14, paddingVertical: 10, fontSize: TYPE.body },
   clickLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 40 },
-  clickCount: { fontSize: TYPE.dense },
+  clickCount: { fontSize: TYPE.meta },
   body: { fontSize: TYPE.body, lineHeight: 20, marginTop: 4 },
-  error: { fontSize: TYPE.dense, marginTop: 8 },
+  error: { fontSize: TYPE.subline, marginTop: 8 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 12 },
   more: { alignItems: 'flex-start', gap: 8, marginTop: 8 },
 });

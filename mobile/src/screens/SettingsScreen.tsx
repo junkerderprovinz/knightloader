@@ -1168,7 +1168,7 @@ const capped = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as c
 const styles = StyleSheet.create({
   container: { ...capped, paddingHorizontal: 16, paddingBottom: 32 },
   topBar: { paddingTop: 56, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  title: { fontSize: TYPE.heading, fontWeight: '600' },
+  title: { fontSize: TYPE.status, fontWeight: '600' },
   // Half-muted and centred: something to look for rather than something that
   // competes for attention.
   aboutText: { fontSize: TYPE.body, lineHeight: 20, marginBottom: 8 },
@@ -1186,7 +1186,7 @@ const styles = StyleSheet.create({
   // Tabular numerals, which the About card's own rule asks for by name: two
   // version numbers on one line, each of them a number that changes with every
   // release, so proportional digits make the middle dot wander between builds.
-  aboutVersions: { fontSize: TYPE.caption, fontVariant: ['tabular-nums'] },
+  aboutVersions: { fontSize: TYPE.meta, fontVariant: ['tabular-nums'] },
   privacy: { marginTop: 6, alignSelf: 'flex-start' },
   language: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48, paddingHorizontal: 14 },
   // The size and column the language page's own flags take, so the two read
@@ -1196,8 +1196,8 @@ const styles = StyleSheet.create({
   // The back triangle turned round in either direction, since Android already
   // mirrors its border triangle in a right-to-left layout.
   chevron: { transform: [{ scaleX: -1 }] },
-  hint: { fontSize: TYPE.caption, lineHeight: 16, marginBottom: 8 },
-  axisLabel: { fontSize: TYPE.caption, marginTop: 12, marginBottom: 6, letterSpacing: 0.6 },
+  hint: { fontSize: TYPE.subline, lineHeight: 18, marginBottom: 8 },
+  axisLabel: { fontSize: TYPE.meta, marginTop: 12, marginBottom: 6, letterSpacing: 0.6 },
   // The card's own padding is the space over its first line.
   firstAxisLabel: { marginTop: 0 },
   // The inline variant drops the stacked spacing: in a row the label is beside
@@ -1205,7 +1205,6 @@ const styles = StyleSheet.create({
   axisRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12, marginBottom: 2 },
   axisLabelInline: { marginTop: 0, marginBottom: 0, flexShrink: 0 },
   // The same size GlimRow's own label takes, off the scale in theme/tokens.ts.
-  // Both were 15, a rung between Dense and Body the table does not have.
   rowLabel: { fontSize: TYPE.body, flexShrink: 0 },
   // One line, always. No wrapping: the children divide what the row has (see
   // Swatch's own note), so nine of them fit whatever the phone is. `flex: 1`
@@ -1228,7 +1227,7 @@ const styles = StyleSheet.create({
   options: { gap: 4 },
   input: { paddingHorizontal: 14, paddingVertical: 12, fontSize: TYPE.body },
   report: { padding: 12, marginBottom: 10 },
-  reportText: { fontSize: TYPE.caption, lineHeight: 17, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
+  reportText: { fontSize: TYPE.meta, lineHeight: 17, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
   buttonRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   // The README's own gap between its buttons, 13 on its 16.
   readmeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 13, marginBottom: 10 },

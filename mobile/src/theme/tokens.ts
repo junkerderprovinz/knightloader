@@ -279,7 +279,7 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
  *
  * A colour on a fill needs no darkening, because the ink on top is computed
  * (see contrastOn). A colour used as ink does, since yellow text on white is
- * unreadable at 11px whichever yellow it is.
+ * unreadable at 12px whichever yellow it is.
  *
  * The 55% is GlimStone's `color-mix(in srgb, var(--accent) var(--ink-mix),
  * black)`, and this function exists because React Native has no color-mix.
@@ -301,15 +301,19 @@ export function inkFor(hex: string, dark = false): string {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase()}`;
 }
 
-// The type scale: a fixed reference table rather than an engine, since nobody
-// sets their own type scale. `caption` covers three treatments of one size (a
-// plain caption, an uppercase label with letter-spacing, the info-bubble text);
-// the treatment carries the distinction, not the size.
+// The type scale, GlimStone's five sizes with one role each: a fixed reference
+// table rather than an engine, since nobody sets their own type scale. `status`
+// is the status line and on a phone also the screen's own header, which rule
+// 30 lets stay; `title` an emphasised row title; `subline` the text beside or
+// under a name, a hint or a time; `meta` the notch, an uppercase label, the
+// info bubble, a meta line and a count, told apart by treatment rather than
+// size.
 export const TYPE = {
-  heading: 20,
+  status: 22,
+  title: 16,
   body: 14,
-  dense: 12,
-  caption: 11,
+  subline: 13,
+  meta: 12,
 } as const;
 
 /**

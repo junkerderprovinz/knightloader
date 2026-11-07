@@ -523,8 +523,8 @@ const styles = StyleSheet.create({
   },
   topBarLeft: { flex: 1, minWidth: 0 },
   topBarRight: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  title: { fontSize: TYPE.heading, fontWeight: '600' },
-  connState: { fontSize: TYPE.dense, marginTop: 2 },
+  title: { fontSize: TYPE.status, fontWeight: '600' },
+  connState: { fontSize: TYPE.subline, marginTop: 2 },
   // No horizontal margin: these live inside the list's own content container,
   // which carries the padding, the cap and the centring, and a margin here
   // would inset them from the cards by another 16. Same padding and gap as the
@@ -534,16 +534,15 @@ const styles = StyleSheet.create({
   captchaCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, marginBottom: 12 },
   captchaText: { flex: 1, minWidth: 0, gap: 2 },
   captchaTitle: { fontSize: TYPE.body, fontWeight: '600' },
-  captchaHosts: { fontSize: TYPE.dense },
+  captchaHosts: { fontSize: TYPE.subline },
   // The top line inside it: state on the left, the start/stop pair on the right.
   queueBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   queueActions: { flexDirection: 'row', gap: 8 },
-  // Dense, off the scale in theme/tokens.ts, since 13 is a rung between dense
-  // and body that the table does not have. The active count is rewritten as
-  // downloads start and end, so it takes tabular numerals; without them the
-  // line shifts sideways as digits change width.
-  queueLabel: { fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
-  queueError: { marginBottom: 8, fontSize: TYPE.caption },
+  // A count, so meta. It is rewritten as downloads start and end, so it takes
+  // tabular numerals; without them the line shifts sideways as digits change
+  // width.
+  queueLabel: { fontSize: TYPE.meta, fontVariant: ['tabular-nums'] },
+  queueError: { marginBottom: 8, fontSize: TYPE.subline },
   tabs: { marginBottom: 10 },
   empty: { textAlign: 'center', marginTop: 48 },
   fab: {

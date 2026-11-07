@@ -621,8 +621,8 @@ const styles = StyleSheet.create({
   // Counts, bytes and a speed, all rewritten every five seconds, so the figures
   // take tabular numerals. Otherwise the line shuffles sideways as digits change
   // width while somebody is reading it.
-  summaryLine: { fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
-  queueError: { marginTop: 8, fontSize: TYPE.caption },
+  summaryLine: { fontSize: TYPE.subline, fontVariant: ['tabular-nums'] },
+  queueError: { marginTop: 8, fontSize: TYPE.subline },
   summaryGraph: {},
   brand: { flexDirection: 'row', alignItems: 'center', gap: 0, flexShrink: 1, minWidth: 0 },
   // 44 with negative margins on both sides.
@@ -642,8 +642,10 @@ const styles = StyleSheet.create({
   // physical margin would take back the safe zone on the wrong side.
   mark: { width: 44, height: 44, marginStart: -10, marginEnd: -6 },
   // The brand block's name (GlimStone 2.8.0), set beside the mark rather than
-  // under it because this top bar also holds the badges.
-  title: { fontSize: TYPE.heading, fontWeight: '700', letterSpacing: -0.5 },
+  // under it because this top bar also holds the badges. A wordmark stands
+  // outside the type scale, and 20 is the size the web interface's rail gives
+  // the same name.
+  title: { fontSize: 20, fontWeight: '700', letterSpacing: -0.5 },
   badgeRow: { flexDirection: 'row', gap: 10 },
   list: { ...capped, paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
   // The cell is what two cards on a tablet's line share. The card fills it, so
@@ -659,7 +661,7 @@ const styles = StyleSheet.create({
   },
   columns: { gap: 8 },
   devices: { marginTop: 16 },
-  devicesTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
+  devicesTitle: { fontSize: TYPE.meta, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
   deviceColumn: { gap: 8 },
   // Two to a line on a tablet, as the instances above them, with a last odd
   // card taking the line the way the list's own last cell does.
@@ -680,7 +682,7 @@ const styles = StyleSheet.create({
   rowBadges: { marginStart: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 },
   // File counts, bytes left and a speed, refreshed every five seconds down a
   // stacked list: both halves of the tabular-numerals rule.
-  rowUrl: { fontSize: TYPE.dense, marginTop: 2, fontVariant: ['tabular-nums'] },
+  rowUrl: { fontSize: TYPE.subline, marginTop: 2, fontVariant: ['tabular-nums'] },
   figures: { flexDirection: 'row' },
   figuresRest: { flexShrink: 1 },
   figuresSpeed: { flexShrink: 0 },

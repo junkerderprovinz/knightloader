@@ -226,5 +226,5 @@ const styles = StyleSheet.create({
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
   },
-  text: { fontSize: TYPE.caption, lineHeight: 16 },
+  text: { fontSize: TYPE.meta, lineHeight: 16 },
 });

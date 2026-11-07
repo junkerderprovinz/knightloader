@@ -315,5 +315,5 @@ const styles = StyleSheet.create({
   rail: { flexDirection: 'row', height: 22, overflow: 'hidden' },
   foot: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   preview: { width: 32, height: 32 },
-  hex: { flex: 1, height: 36, paddingHorizontal: 10, fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
+  hex: { flex: 1, height: 36, paddingHorizontal: 10, fontSize: TYPE.meta, fontVariant: ['tabular-nums'] },
 });

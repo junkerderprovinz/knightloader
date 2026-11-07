@@ -103,7 +103,7 @@ export default function AddDownloadScreen({
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, paddingTop: 56 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
-  title: { fontSize: TYPE.heading, fontWeight: '600', flexShrink: 1 },
+  title: { fontSize: TYPE.status, fontWeight: '600', flexShrink: 1 },
   textArea: {
     flex: 1,
     padding: 14,

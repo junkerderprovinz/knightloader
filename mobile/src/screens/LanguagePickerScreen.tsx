@@ -78,7 +78,7 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
 const styles = StyleSheet.create({
   container: { flex: 1 },
   topBar: { paddingHorizontal: 16, paddingTop: 56, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  title: { fontSize: TYPE.heading, fontWeight: '600' },
+  title: { fontSize: TYPE.status, fontWeight: '600' },
   list: { paddingHorizontal: 16, paddingBottom: 32 },
   row: {
     flexDirection: 'row',

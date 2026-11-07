@@ -111,7 +111,7 @@ const Wash = memo(function Wash({ points, color, base }: { points: Point[]; colo
 
 // The figure beside a limit's mark is this tall, the glyph at the right edge
 // this wide on each side, and the sign before the figure sized to this much ink.
-const LABEL_LINE = TYPE.caption + 2;
+const LABEL_LINE = TYPE.meta + 2;
 const GLYPH = 4;
 const SIGN = boxForInk(LABEL_LINE - 3);
 
@@ -375,9 +375,9 @@ const styles = StyleSheet.create({
   // stay at the ends of the plot they name.
   wrap: { gap: 4, direction: 'ltr' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  tick: { fontSize: TYPE.caption },
+  tick: { fontSize: TYPE.meta },
   rates: { flexDirection: 'row', gap: 10 },
-  rate: { fontSize: TYPE.dense, fontWeight: '600' },
+  rate: { fontSize: TYPE.meta, fontWeight: '600' },
   plot: { overflow: 'hidden' },
   ground: { position: 'absolute', left: 0, right: 0, height: 1 },
   legend: {
@@ -400,5 +400,5 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingHorizontal: 2,
   },
-  limitFigure: { fontSize: TYPE.caption, lineHeight: LABEL_LINE, fontVariant: ['tabular-nums'] },
+  limitFigure: { fontSize: TYPE.meta, lineHeight: LABEL_LINE, fontVariant: ['tabular-nums'] },
 });

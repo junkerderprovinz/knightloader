@@ -86,7 +86,7 @@ export function NotchLabel({ title, hue }: { title: string; hue?: number }) {
   );
 }
 
-const SEGMENT_GLYPH = boxForInk(TYPE.dense);
+const SEGMENT_GLYPH = boxForInk(TYPE.meta);
 const SEGMENT_GAP = 5;
 const SEGMENT_PAD = 6;
 
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   readmeText: { marginStart: 63, marginEnd: 10 },
   readmeNameLine: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   readmeName: { fontSize: TYPE.body, lineHeight: 17, fontWeight: '700', flexShrink: 1 },
-  readmeSub: { fontSize: TYPE.dense, lineHeight: 14, opacity: 0.9 },
+  readmeSub: { fontSize: TYPE.meta, lineHeight: 14, opacity: 0.9 },
   /* 40, the house rhythm for stacked cards, and the number the whole family
    * shares. The language calls 24 the cramped value, and it is cramped for the
    * reason these cards qualify: each carries a notch badge hanging over its own
@@ -450,13 +450,13 @@ const styles = StyleSheet.create({
   // The line height is stated rather than left to the platform, because it is
   // half of what makes the badge 22 points tall: 16 of text between 3 and 3 of
   // padding.
-  notchText: { fontSize: TYPE.dense, lineHeight: 16, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1.2 },
+  notchText: { fontSize: TYPE.meta, lineHeight: 16, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1.2 },
   well: { flexDirection: 'row', padding: 3, gap: 2, alignSelf: 'stretch' },
   segment: { flex: 1, minWidth: 0, paddingVertical: 7, paddingHorizontal: SEGMENT_PAD, alignItems: 'center' },
   segmentName: { flexDirection: 'row', alignItems: 'center', gap: SEGMENT_GAP, maxWidth: '100%' },
   // Wide enough that no label wraps while it is measured.
   measure: { position: 'absolute', top: 0, left: 0, width: 4000, flexDirection: 'row', opacity: 0 },
-  segmentText: { flexShrink: 1, fontSize: TYPE.dense, fontWeight: '500' },
+  segmentText: { flexShrink: 1, fontSize: TYPE.meta, fontWeight: '500' },
   // No borderRadius here: it comes from the shape engine at render time, and a
   // value baked into the stylesheet cannot follow a setting.
   track: { width: 36, height: 20, padding: 2, justifyContent: 'center' },
@@ -467,12 +467,12 @@ const styles = StyleSheet.create({
   rowLabelLine: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   notice: { paddingVertical: 12, paddingHorizontal: 16, marginTop: 8, gap: 4 },
   noticeTitle: { fontSize: TYPE.body, fontWeight: '500' },
-  noticeReason: { fontSize: TYPE.dense, lineHeight: 18 },
-  // Body, off the table. 15 is not a step of the scale, and a 15 sitting next
-  // to a 14 is how a four-row table grows a fifth row nobody decided on. It
-  // shrinks and wraps rather than pushing the (i) off the row.
+  noticeReason: { fontSize: TYPE.subline, lineHeight: 18 },
+  // Body, off the table. A size between two steps of the scale is how a
+  // five-row table grows a sixth row nobody decided on. It shrinks and wraps
+  // rather than pushing the (i) off the row.
   rowLabel: { fontSize: TYPE.body, flexShrink: 1 },
-  rowSub: { fontSize: TYPE.caption, lineHeight: 16 },
+  rowSub: { fontSize: TYPE.subline, lineHeight: 18 },
   // Sized by the row rather than by a number here. Eight swatches at a fixed 32
   // plus a reset plus a label do not fit across a phone, and a smaller fixed
   // number only moves the wrap to a narrower one. `flex: 1` with a square
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   // The reset glyph: three quarters of a ring, plus a head on the open end.
   resetRing: { width: '58%', height: '58%', borderWidth: 1.5, borderRightColor: 'transparent' },
   statusBadge: { paddingHorizontal: 7, paddingVertical: 2, flexShrink: 0 },
-  statusText: { fontSize: TYPE.caption, fontWeight: '600', letterSpacing: 0.2 },
+  statusText: { fontSize: TYPE.meta, fontWeight: '600', letterSpacing: 0.2 },
   resetHead: {
     position: 'absolute',
     right: '18%',

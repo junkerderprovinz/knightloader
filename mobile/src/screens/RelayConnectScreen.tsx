@@ -411,16 +411,16 @@ const styles = StyleSheet.create({
   // Every size on this screen comes off the scale in theme/tokens.ts: this
   // screen's title is the same object as Downloads' and Settings' and has to
   // measure the same.
-  title: { fontSize: TYPE.heading, fontWeight: '600', flexShrink: 1 },
+  title: { fontSize: TYPE.status, fontWeight: '600', flexShrink: 1 },
   labelRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginTop: 12, marginBottom: 6 },
-  label: { fontSize: TYPE.dense, flexShrink: 1 },
-  count: { fontSize: TYPE.dense },
+  label: { fontSize: TYPE.subline, flexShrink: 1 },
+  count: { fontSize: TYPE.subline },
   // Three to a row, so a word of eight letters still fits its slot on a
   // narrow phone.
   // Two to a row, large enough to check a word at arm's length.
   slots: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 6, marginTop: 10 },
   slot: { flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingHorizontal: 12, paddingVertical: 8, width: '49%' },
-  slotNumber: { fontSize: TYPE.dense },
+  slotNumber: { fontSize: TYPE.meta },
   slotWord: { fontSize: TYPE.body, flexShrink: 1 },
   input: {
     paddingHorizontal: 14,
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
   // Twelve words do not fit on one phone line, and a field that scrolls
   // sideways while somebody checks their typing hides the typo they are looking
   // for.
-  phraseInput: { minHeight: 140, fontSize: TYPE.heading, lineHeight: 28, textAlignVertical: 'top' },
+  phraseInput: { minHeight: 140, fontSize: TYPE.status, lineHeight: 28, textAlignVertical: 'top' },
   // A row rather than a block: every button on this screen carries a glyph
   // beside its label, with one button style for all three and one gap between
   // them. Three heights, three grounds and three margins read as three kinds of
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   // and never by a line.
   buttonStack: { gap: 12, marginTop: 16 },
   error: { marginTop: 12, fontSize: TYPE.body },
-  sectionTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20, marginBottom: 8 },
+  sectionTitle: { fontSize: TYPE.meta, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20, marginBottom: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   },
   rowText: { flex: 1, minWidth: 0 },
   rowName: { fontSize: TYPE.body, fontWeight: '600' },
-  rowSub: { fontSize: TYPE.dense, marginTop: 2 },
+  rowSub: { fontSize: TYPE.subline, marginTop: 2 },
   // The empty state's own card rather than a loose line of text.
   empty: { alignItems: 'center', gap: 10, paddingVertical: 24, paddingHorizontal: 24, marginTop: 8 },
   emptyIcon: { opacity: 0.5 },

@@ -277,18 +277,18 @@ const styles = StyleSheet.create({
   code: { alignItems: 'center', gap: 12, padding: 16 },
   plate: { padding: 12, backgroundColor: '#ffffff' },
   address: {
-    fontSize: TYPE.dense,
+    fontSize: TYPE.meta,
     textAlign: 'center',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
   chip: { paddingHorizontal: 12, paddingVertical: 5 },
-  chipText: { fontSize: TYPE.dense, fontWeight: '500' },
-  note: { fontSize: TYPE.dense, textAlign: 'center' },
+  chipText: { fontSize: TYPE.meta, fontWeight: '500' },
+  note: { fontSize: TYPE.subline, textAlign: 'center' },
   // Four across: 23% each, with what is left spread between them.
   tiles: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 8 },
   tile: { width: '23%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
   mark: { width: 26, height: 26 },
-  ticker: { fontSize: TYPE.dense, fontWeight: '500' },
+  ticker: { fontSize: TYPE.meta, fontWeight: '500' },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 },
 });

@@ -550,10 +550,10 @@ const styles = StyleSheet.create({
   // 14s around it is how a four-step scale grows a fifth step nobody chose.
   headerName: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
   // The row's status word, as TaskRow sets it, after the name.
-  headerState: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', marginStart: 'auto' },
+  headerState: { fontSize: TYPE.meta, fontWeight: '600', textTransform: 'uppercase', marginStart: 'auto' },
   // Tabular figures: a file count, a size and a live speed, in a line repeated
   // once per folder down the screen.
-  headerLine: { fontSize: TYPE.caption, marginStart: 20, ...NUM },
+  headerLine: { fontSize: TYPE.meta, marginStart: 20, ...NUM },
   empty: { marginTop: 40, paddingVertical: 32, paddingHorizontal: 24, alignItems: 'center', gap: 12 },
   // The reduced opacity sits on the glyph rather than on the card, so the words
   // under it stay at full strength: opacity applies to a whole subtree and a
