@@ -33,6 +33,12 @@ export interface Palette {
    * sitting on surface3 back down to `hover`, where it dims instead.
    */
   hoverRaised: string;
+  /**
+   * The track of a switch that is off. On the light ramp surface3 stands too
+   * close to a card and to the knob to see, so it goes down to 3:1 against both
+   * (GlimStone 4.2.0).
+   */
+  toggleOff: string;
   border: string;
 
   text: string;
@@ -111,6 +117,7 @@ export const DARK: Palette = {
   surface3: '#525252',
   hover: '#353535',
   hoverRaised: '#6f6f6f',
+  toggleOff: '#525252',
   border: '#393939',
 
   text: '#f4f4f4',
@@ -155,8 +162,9 @@ export const DARK: Palette = {
 // OLED, the dark palette on true black for OLED and AMOLED screens (GlimStone's
 // rule 43). The surfaces move one Carbon step down and keep their order, so the
 // hover still sits between the card and surface2 and hoverRaised stays the step
-// above surface3. The text, the brand marks and the state colours stay as dark
-// has them, since they were measured on lighter grounds than they get here.
+// above surface3. The text, the brand marks, the state colours and the switch
+// track stay as dark has them: the first three were measured on lighter grounds
+// than they get here, and the track would fall to 1.6:1 on the card.
 export const OLED: Palette = {
   ...DARK,
   bg: '#000000',
@@ -179,6 +187,7 @@ export const LIGHT: Palette = {
   surface3: '#d1d1d1',
   hover: '#e0e0e0',
   hoverRaised: '#c6c6c6',
+  toggleOff: '#8d8d8d',
   border: '#d1d1d1',
 
   text: '#161616',

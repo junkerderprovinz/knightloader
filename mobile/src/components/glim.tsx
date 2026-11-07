@@ -222,7 +222,7 @@ export function GlimToggle({
       accessibilityState={{ checked: value }}
       accessibilityLabel={label}
       onPress={() => onChange(!value)}
-      style={[styles.track, { ...corners.pill, backgroundColor: value ? on : c.surface3 }]}
+      style={[styles.track, { ...corners.pill, backgroundColor: value ? on : c.toggleOff }]}
     >
       {/* The knob is the page's own ground sitting on the track rather than a
           fixed white, so it reads dark in dark mode and light in light. */}
