@@ -38,17 +38,18 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.7.1] - 2026-11-07
+
 ### Changed
 
 - **The sign-in page is GlimStone's sign-in card,** the same in every app of
   the family. The logo stands large above the name in one card, and Sign in,
   the passkey and Forgot password? are full width. The code from the
   authenticator app and the reset form take their turn in the same card. A
-  refused try shakes its button and selects what was typed, so the next try
-  starts by typing. The language picker over the card is gone: the page
-  speaks the language last chosen in this browser, or the browser's own.
-  KnightLoader's upright knight gets a larger box than the card's default, so
-  it fills it.
+  refused try selects what was typed, so the next try starts by typing, and
+  only its button shakes: the card keeps its place and grows downward when
+  the error line appears. The language picker over the card is gone: the
+  page speaks the language last chosen in this browser, or the browser's own.
 - **KnightLoader follows GlimStone 4.2.3,** and the Version card names it.
   Under OLED the cards keep the dark theme's shadow, which still lifts a
   bubble or a menu off a card. A switch that refuses dims its track to half,

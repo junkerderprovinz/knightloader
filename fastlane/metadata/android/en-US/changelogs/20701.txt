@@ -1,0 +1,1 @@
+The sign-in page is one card with the logo large above the name, full-width buttons and the code and the reset in the same card. After a wrong password only the button shakes and what you typed stays selected. Under OLED the cards keep their shadow, and a switch that cannot be flipped right now says why under its row.
