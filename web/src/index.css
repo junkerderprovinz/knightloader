@@ -600,9 +600,9 @@ body {
    were measured on darker grounds than they get here.
 
    A shadow on black is invisible, so the elevation becomes a ring in the
-   border colour. A lit brand tile in a near-black colour, such as the MCP
-   clients' black ones, would vanish into the card, so --tile-edge rings every
-   lit tile. */
+   border colour. The scrim loses nothing on black and keeps dark's value. A lit
+   brand tile in a near-black colour, such as the MCP clients' black ones, would
+   vanish into the card, so --tile-edge rings every lit tile. */
 [data-theme="dark"][data-oled] {
   --carbon-bg:         #000000;
   --carbon-sidebar:    #161616;
@@ -613,6 +613,7 @@ body {
   --carbon-hover-raised: #525252;
   --carbon-border:     #262626;
   --elevation: 0 0 0 1px #262626;
+  --glim-scrim: rgba(0, 0, 0, .72);
   --tile-edge: rgba(255, 255, 255, .2);
 }
 
@@ -628,6 +629,7 @@ body {
     --carbon-hover-raised: #525252;
     --carbon-border:     #262626;
     --elevation: 0 0 0 1px #262626;
+    --glim-scrim: rgba(0, 0, 0, .72);
     --tile-edge: rgba(255, 255, 255, .2);
   }
 }
