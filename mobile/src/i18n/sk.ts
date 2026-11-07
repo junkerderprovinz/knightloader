@@ -214,7 +214,7 @@ export const sk: Dict = {
   'task.enable': 'Zapnúť tento odkaz',
   'task.disable': 'Vypnúť tento odkaz',
   'settings.aboutTitle': 'O KnightLoaderi',
-  'settings.aboutBody': 'Jeden rytier, jedna výprava: pekné open source nástroje, ktoré v podobe, akú som chcel, neexistovali, stavané, kým nič nechýba. Všetko zadarmo, bez účtov, bez reklám a bez platených verzií. Samotná aplikácia nič nezbiera a nič čitateľné nikdy neopustí tvoje vlastné múry. Skener QR kódov je však od Googlu a pri naskenovaní kódu posiela Googlu diagnostické údaje o používaní. Kované po večeroch a cez víkendy, so srdcom a tvrdohlavosťou.',
+  'settings.aboutBody': 'Jeden rytier, jedna výprava: pekné open source nástroje, ktoré v podobe, akú som chcel, neexistovali, stavané, kým nič nechýba. Všetko zadarmo, bez účtov, bez reklám a bez platených verzií. Samotná aplikácia nič nezbiera a nič čitateľné nikdy neopustí tvoje vlastné múry. Kované po večeroch a cez víkendy, so srdcom a tvrdohlavosťou.',
   'settings.accentReset': 'Predvolené',
   'settings.aboutCoffeeButton': 'Kúp mi kávu',
   'settings.aboutPaypal': 'PayPal',

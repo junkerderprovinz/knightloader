@@ -214,7 +214,7 @@ export const lt: Dict = {
   'task.enable': 'Įjungti šią nuorodą',
   'task.disable': 'Išjungti šią nuorodą',
   'settings.aboutTitle': 'Apie KnightLoader',
-  'settings.aboutBody': 'Vienas riteris, vienas žygis: tvarkingi atvirojo kodo įrankiai, kurių tokios formos, kokios norėjau, nebuvo, statomi tol, kol nieko netrūks. Viskas nemokama, be paskyrų, be reklamų ir be mokamų lygių. Pati programėlė nieko nerenka, ir niekas skaitomo niekada neišeina už tavo paties sienų. Tačiau QR skaitytuvas yra „Google“ produktas, ir nuskaitydamas kodą jis siunčia „Google“ naudojimo diagnostikos duomenis. Kalta vakarais ir savaitgaliais, su širdimi ir užsispyrimu.',
+  'settings.aboutBody': 'Vienas riteris, vienas žygis: tvarkingi atvirojo kodo įrankiai, kurių tokios formos, kokios norėjau, nebuvo, statomi tol, kol nieko netrūks. Viskas nemokama, be paskyrų, be reklamų ir be mokamų lygių. Pati programėlė nieko nerenka, ir niekas skaitomo niekada neišeina už tavo paties sienų. Kalta vakarais ir savaitgaliais, su širdimi ir užsispyrimu.',
   'settings.accentReset': 'Numatytoji',
   'settings.aboutCoffeeButton': 'Pavaišinti kava',
   'settings.aboutPaypal': 'PayPal',

@@ -213,7 +213,7 @@ export const zh: Dict = {
   'task.enable': '启用此链接',
   'task.disable': '停用此链接',
   'settings.aboutTitle': '关于 KnightLoader',
-  'settings.aboutBody': '一位骑士，一场远征：我想要的样子本来并不存在，于是做出这些好看的开源工具，一直做到什么都不缺。全部免费，没有账号，没有广告，也没有付费档位。应用本身不收集任何东西，可读的东西也永远不会离开你自己的城墙。不过二维码扫描器来自 Google，扫描二维码时会向 Google 发送使用情况诊断数据。在夜晚和周末锻造，带着心气和倔劲。',
+  'settings.aboutBody': '一位骑士，一场远征：我想要的样子本来并不存在，于是做出这些好看的开源工具，一直做到什么都不缺。全部免费，没有账号，没有广告，也没有付费档位。应用本身不收集任何东西，可读的东西也永远不会离开你自己的城墙。在夜晚和周末锻造，带着心气和倔劲。',
   'settings.accentReset': '默认',
   'settings.aboutCoffeeButton': '请我喝杯咖啡',
   'settings.aboutPaypal': 'PayPal',

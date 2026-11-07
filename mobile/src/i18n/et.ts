@@ -214,7 +214,7 @@ export const et: Dict = {
   'task.enable': 'Lülita see link sisse',
   'task.disable': 'Lülita see link välja',
   'settings.aboutTitle': 'Teave KnightLoaderi kohta',
-  'settings.aboutBody': 'Üks rüütel, üks ristisõda: korralikud avatud lähtekoodiga tööriistad, mida sellisel kujul, nagu tahtsin, ei olnud, ehitatud seni, kuni midagi puudu ei ole. Kõik tasuta, ilma kontodeta, ilma reklaamideta ja ilma tasuliste tasemeteta. Rakendus ise ei kogu midagi ja miski loetav ei lahku kunagi sinu enda müüride vahelt. QR-skanner on aga Google’i oma ja saadab koodi skannimisel Google’ile kasutuse diagnostikaandmeid. Sepistatud õhtuti ja nädalavahetustel, südame ja kangekaelsusega.',
+  'settings.aboutBody': 'Üks rüütel, üks ristisõda: korralikud avatud lähtekoodiga tööriistad, mida sellisel kujul, nagu tahtsin, ei olnud, ehitatud seni, kuni midagi puudu ei ole. Kõik tasuta, ilma kontodeta, ilma reklaamideta ja ilma tasuliste tasemeteta. Rakendus ise ei kogu midagi ja miski loetav ei lahku kunagi sinu enda müüride vahelt. Sepistatud õhtuti ja nädalavahetustel, südame ja kangekaelsusega.',
   'settings.accentReset': 'Vaikimisi',
   'settings.aboutCoffeeButton': 'Osta mulle kohv',
   'settings.aboutPaypal': 'PayPal',

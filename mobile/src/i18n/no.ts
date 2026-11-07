@@ -214,7 +214,7 @@ export const no: Dict = {
   'task.enable': 'Slå på denne lenka',
   'task.disable': 'Slå av denne lenka',
   'settings.aboutTitle': 'Om KnightLoader',
-  'settings.aboutBody': 'Én ridder, ett korstog: pene åpen kildekode-verktøy som ikke fantes i den formen jeg ville ha, bygget til ingenting mangler. Alt gratis, uten kontoer, uten reklame og uten betalte nivåer. Selve appen samler ikke inn noe, og ingenting lesbart forlater noen gang dine egne murer. QR-skanneren kommer likevel fra Google, og når den skanner en kode, sender den Google diagnosedata om bruken. Smidd på kvelder og helger, med hjerte og stahet.',
+  'settings.aboutBody': 'Én ridder, ett korstog: pene åpen kildekode-verktøy som ikke fantes i den formen jeg ville ha, bygget til ingenting mangler. Alt gratis, uten kontoer, uten reklame og uten betalte nivåer. Selve appen samler ikke inn noe, og ingenting lesbart forlater noen gang dine egne murer. Smidd på kvelder og helger, med hjerte og stahet.',
   'settings.accentReset': 'Standard',
   'settings.aboutCoffeeButton': 'Spander en kaffe',
   'settings.aboutPaypal': 'PayPal',

@@ -330,7 +330,7 @@ export const en = {
   'task.enable': 'Enable this link',
   'task.disable': 'Disable this link',
   'settings.aboutTitle': 'About KnightLoader',
-  'settings.aboutBody': 'A one-knight crusade: good-looking open-source tools that did not exist in the shape I wanted, built until nothing is missing. It is free, with no accounts, no ads and no paid tier. The app itself collects nothing, and nothing readable ever leaves your own walls. The QR scanner comes from Google, though, and it sends Google usage diagnostics when it scans a code. Forged on evenings and weekends, with heart and stubbornness.',
+  'settings.aboutBody': 'A one-knight crusade: good-looking open-source tools that did not exist in the shape I wanted, built until nothing is missing. It is free, with no accounts, no ads and no paid tier. The app itself collects nothing, and nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.',
   'settings.accentReset': 'Default',
   'settings.aboutCoffeeButton': 'Buy me a coffee',
   'settings.aboutPaypal': 'PayPal',

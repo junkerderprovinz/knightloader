@@ -214,7 +214,7 @@ export const da: Dict = {
   'task.enable': 'Slå dette link til',
   'task.disable': 'Slå dette link fra',
   'settings.aboutTitle': 'Om KnightLoader',
-  'settings.aboutBody': 'Én ridder, ét korstog: pæne open source-værktøjer, der ikke fandtes i den form, jeg ville have, bygget indtil intet mangler. Alt gratis, uden konti, uden reklamer og uden betalte niveauer. Selve appen indsamler intet, og intet læsbart forlader nogensinde dine egne mure. QR-scanneren kommer dog fra Google, og når den scanner en kode, sender den Google diagnosticeringsdata om brugen. Smedet om aftenen og i weekenden, med hjerte og stædighed.',
+  'settings.aboutBody': 'Én ridder, ét korstog: pæne open source-værktøjer, der ikke fandtes i den form, jeg ville have, bygget indtil intet mangler. Alt gratis, uden konti, uden reklamer og uden betalte niveauer. Selve appen indsamler intet, og intet læsbart forlader nogensinde dine egne mure. Smedet om aftenen og i weekenden, med hjerte og stædighed.',
   'settings.accentReset': 'Standard',
   'settings.aboutCoffeeButton': 'Køb mig en kaffe',
   'settings.aboutPaypal': 'PayPal',

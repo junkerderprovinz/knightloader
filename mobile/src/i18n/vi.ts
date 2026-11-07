@@ -214,7 +214,7 @@ export const vi: Dict = {
   'task.enable': 'Bật liên kết này',
   'task.disable': 'Tắt liên kết này',
   'settings.aboutTitle': 'Giới thiệu về KnightLoader',
-  'settings.aboutBody': 'Một hiệp sĩ, một cuộc viễn chinh: những công cụ mã nguồn mở gọn đẹp vốn không tồn tại theo hình dạng tôi muốn, được xây cho đến khi không còn thiếu gì. Tất cả miễn phí, không tài khoản, không quảng cáo và không gói trả phí. Bản thân ứng dụng không thu thập gì, và không có gì đọc được rời khỏi bức tường của bạn. Tuy vậy, trình quét QR là của Google, và khi quét mã, nó gửi cho Google dữ liệu chẩn đoán về việc sử dụng. Được rèn vào buổi tối và cuối tuần, bằng trái tim và sự cứng đầu.',
+  'settings.aboutBody': 'Một hiệp sĩ, một cuộc viễn chinh: những công cụ mã nguồn mở gọn đẹp vốn không tồn tại theo hình dạng tôi muốn, được xây cho đến khi không còn thiếu gì. Tất cả miễn phí, không tài khoản, không quảng cáo và không gói trả phí. Bản thân ứng dụng không thu thập gì, và không có gì đọc được rời khỏi bức tường của bạn. Được rèn vào buổi tối và cuối tuần, bằng trái tim và sự cứng đầu.',
   'settings.accentReset': 'Mặc định',
   'settings.aboutCoffeeButton': 'Mời tôi ly cà phê',
   'settings.aboutPaypal': 'PayPal',

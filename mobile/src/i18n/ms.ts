@@ -214,7 +214,7 @@ export const ms: Dict = {
   'task.enable': 'Hidupkan pautan ini',
   'task.disable': 'Matikan pautan ini',
   'settings.aboutTitle': 'Perihal KnightLoader',
-  'settings.aboutBody': 'Satu kesateria, satu ekspedisi: alat sumber terbuka yang kemas, yang tidak wujud dalam bentuk yang saya mahukan, dibina sehingga tiada apa yang kurang. Semuanya percuma, tanpa akaun, tanpa iklan dan tanpa peringkat berbayar. Aplikasi itu sendiri tidak mengumpul apa-apa, dan tiada apa yang boleh dibaca pernah meninggalkan tembokmu sendiri. Namun, pengimbas QR datang daripada Google, dan apabila ia mengimbas kod, ia menghantar data diagnostik penggunaan kepada Google. Ditempa pada waktu malam dan hujung minggu, dengan hati dan sifat degil.',
+  'settings.aboutBody': 'Satu kesateria, satu ekspedisi: alat sumber terbuka yang kemas, yang tidak wujud dalam bentuk yang saya mahukan, dibina sehingga tiada apa yang kurang. Semuanya percuma, tanpa akaun, tanpa iklan dan tanpa peringkat berbayar. Aplikasi itu sendiri tidak mengumpul apa-apa, dan tiada apa yang boleh dibaca pernah meninggalkan tembokmu sendiri. Ditempa pada waktu malam dan hujung minggu, dengan hati dan sifat degil.',
   'settings.accentReset': 'Lalai',
   'settings.aboutCoffeeButton': 'Belanja saya kopi',
   'settings.aboutPaypal': 'PayPal',

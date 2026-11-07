@@ -214,7 +214,7 @@ export const fi: Dict = {
   'task.enable': 'Kytke tämä linkki päälle',
   'task.disable': 'Kytke tämä linkki pois',
   'settings.aboutTitle': 'Tietoja KnightLoaderista',
-  'settings.aboutBody': 'Yksi ritari, yksi ristiretki: siistejä avoimen lähdekoodin työkaluja, joita ei ollut siinä muodossa kuin halusin, rakennettuna kunnes mitään ei puutu. Kaikki ilmaista, ilman tilejä, ilman mainoksia ja ilman maksullisia tasoja. Sovellus itse ei kerää mitään, eikä mikään luettava koskaan poistu omien muuriesi sisältä. QR-skanneri on kuitenkin Googlen, ja kun se skannaa koodin, se lähettää Googlelle käytön diagnostiikkatietoja. Taottu iltaisin ja viikonloppuisin, sydämellä ja itsepäisyydellä.',
+  'settings.aboutBody': 'Yksi ritari, yksi ristiretki: siistejä avoimen lähdekoodin työkaluja, joita ei ollut siinä muodossa kuin halusin, rakennettuna kunnes mitään ei puutu. Kaikki ilmaista, ilman tilejä, ilman mainoksia ja ilman maksullisia tasoja. Sovellus itse ei kerää mitään, eikä mikään luettava koskaan poistu omien muuriesi sisältä. Taottu iltaisin ja viikonloppuisin, sydämellä ja itsepäisyydellä.',
   'settings.accentReset': 'Oletus',
   'settings.aboutCoffeeButton': 'Tarjoa kahvi',
   'settings.aboutPaypal': 'PayPal',

@@ -214,7 +214,7 @@ export const ro: Dict = {
   'task.enable': 'Activează acest link',
   'task.disable': 'Dezactivează acest link',
   'settings.aboutTitle': 'Despre KnightLoader',
-  'settings.aboutBody': 'Un singur cavaler, o cruciadă: unelte open source îngrijite, care nu existau în forma pe care o voiam, construite până nu mai lipsește nimic. Totul gratuit, fără conturi, fără reclame și fără abonamente. Aplicația însăși nu colectează nimic, iar nimic lizibil nu părăsește vreodată zidurile tale. Scannerul QR vine însă de la Google și, când scanează un cod, trimite la Google date de diagnosticare despre utilizare. Făurit seara și în weekend, cu inimă și încăpățânare.',
+  'settings.aboutBody': 'Un singur cavaler, o cruciadă: unelte open source îngrijite, care nu existau în forma pe care o voiam, construite până nu mai lipsește nimic. Totul gratuit, fără conturi, fără reclame și fără abonamente. Aplicația însăși nu colectează nimic, iar nimic lizibil nu părăsește vreodată zidurile tale. Făurit seara și în weekend, cu inimă și încăpățânare.',
   'settings.accentReset': 'Implicit',
   'settings.aboutCoffeeButton': 'Fă-mi cinste cu o cafea',
   'settings.aboutPaypal': 'PayPal',

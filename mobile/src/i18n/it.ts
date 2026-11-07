@@ -214,7 +214,7 @@ export const it: Dict = {
   'task.enable': 'Attiva questo link',
   'task.disable': 'Disattiva questo link',
   'settings.aboutTitle': 'Informazioni su KnightLoader',
-  'settings.aboutBody': 'Un solo cavaliere, una crociata: strumenti open source curati che non esistevano nella forma che volevo, costruiti finché non manca più niente. Tutto gratuito, senza account, senza pubblicità e senza piani a pagamento. L’app in sé non raccoglie nulla, e niente di leggibile lascia mai le tue mura. Lo scanner QR però è di Google, e quando legge un codice invia a Google dati diagnostici sull’utilizzo. Forgiato di sera e nei fine settimana, con cuore e testardaggine.',
+  'settings.aboutBody': 'Un solo cavaliere, una crociata: strumenti open source curati che non esistevano nella forma che volevo, costruiti finché non manca più niente. Tutto gratuito, senza account, senza pubblicità e senza piani a pagamento. L’app in sé non raccoglie nulla, e niente di leggibile lascia mai le tue mura. Forgiato di sera e nei fine settimana, con cuore e testardaggine.',
   'settings.accentReset': 'Predefinito',
   'settings.aboutCoffeeButton': 'Offrimi un caffè',
   'settings.aboutPaypal': 'PayPal',

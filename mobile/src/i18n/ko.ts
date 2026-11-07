@@ -213,7 +213,7 @@ export const ko: Dict = {
   'task.enable': '이 링크 켜기',
   'task.disable': '이 링크 끄기',
   'settings.aboutTitle': 'KnightLoader 정보',
-  'settings.aboutBody': '기사는 한 명, 원정도 하나입니다. 원하던 모습으로는 없던 보기 좋은 오픈 소스 도구를, 빠진 것이 없을 때까지 만듭니다. 전부 무료이고 계정도, 광고도, 유료 등급도 없습니다. 앱 자체는 아무것도 수집하지 않으며, 읽을 수 있는 것은 결코 당신의 성벽 밖으로 나가지 않습니다. 다만 QR 스캐너는 Google의 것이라, 코드를 스캔하면 Google에 사용 진단 데이터를 보냅니다. 저녁과 주말에, 마음과 고집으로 벼렸습니다.',
+  'settings.aboutBody': '기사는 한 명, 원정도 하나입니다. 원하던 모습으로는 없던 보기 좋은 오픈 소스 도구를, 빠진 것이 없을 때까지 만듭니다. 전부 무료이고 계정도, 광고도, 유료 등급도 없습니다. 앱 자체는 아무것도 수집하지 않으며, 읽을 수 있는 것은 결코 당신의 성벽 밖으로 나가지 않습니다. 저녁과 주말에, 마음과 고집으로 벼렸습니다.',
   'settings.accentReset': '기본값',
   'settings.aboutCoffeeButton': '커피 사주기',
   'settings.aboutPaypal': 'PayPal',

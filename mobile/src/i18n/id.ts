@@ -214,7 +214,7 @@ export const id: Dict = {
   'task.enable': 'Aktifkan tautan ini',
   'task.disable': 'Nonaktifkan tautan ini',
   'settings.aboutTitle': 'Tentang KnightLoader',
-  'settings.aboutBody': 'Satu ksatria, satu perjalanan: perkakas sumber terbuka yang rapi, yang tidak ada dalam bentuk yang saya inginkan, dibangun sampai tidak ada yang kurang. Semuanya gratis, tanpa akun, tanpa iklan dan tanpa tingkatan berbayar. Aplikasinya sendiri tidak mengumpulkan apa pun, dan tidak ada yang terbaca pernah meninggalkan tembokmu sendiri. Namun, pemindai QR-nya berasal dari Google, dan saat memindai kode ia mengirim data diagnostik penggunaan ke Google. Ditempa pada malam hari dan akhir pekan, dengan hati dan kekeraskepalaan.',
+  'settings.aboutBody': 'Satu ksatria, satu perjalanan: perkakas sumber terbuka yang rapi, yang tidak ada dalam bentuk yang saya inginkan, dibangun sampai tidak ada yang kurang. Semuanya gratis, tanpa akun, tanpa iklan dan tanpa tingkatan berbayar. Aplikasinya sendiri tidak mengumpulkan apa pun, dan tidak ada yang terbaca pernah meninggalkan tembokmu sendiri. Ditempa pada malam hari dan akhir pekan, dengan hati dan kekeraskepalaan.',
   'settings.accentReset': 'Bawaan',
   'settings.aboutCoffeeButton': 'Traktir saya kopi',
   'settings.aboutPaypal': 'PayPal',

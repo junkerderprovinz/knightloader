@@ -214,7 +214,7 @@ export const hu: Dict = {
   'task.enable': 'Link bekapcsolása',
   'task.disable': 'Link kikapcsolása',
   'settings.aboutTitle': 'A KnightLoaderről',
-  'settings.aboutBody': 'Egy lovag, egy hadjárat: igényes nyílt forráskódú eszközök, amelyek abban a formában, ahogy én akartam, nem léteztek, addig építve, amíg semmi nem hiányzik. Minden ingyenes, fiókok, hirdetések és fizetős szintek nélkül. Maga az alkalmazás semmit nem gyűjt, és semmi olvasható nem hagyja el a saját falaidat. A QR-olvasó viszont a Google-é, és kód beolvasásakor használati diagnosztikai adatokat küld a Google-nak. Esténként és hétvégenként kovácsolva, szívvel és makacssággal.',
+  'settings.aboutBody': 'Egy lovag, egy hadjárat: igényes nyílt forráskódú eszközök, amelyek abban a formában, ahogy én akartam, nem léteztek, addig építve, amíg semmi nem hiányzik. Minden ingyenes, fiókok, hirdetések és fizetős szintek nélkül. Maga az alkalmazás semmit nem gyűjt, és semmi olvasható nem hagyja el a saját falaidat. Esténként és hétvégenként kovácsolva, szívvel és makacssággal.',
   'settings.accentReset': 'Alapérték',
   'settings.aboutCoffeeButton': 'Hívj meg egy kávéra',
   'settings.aboutPaypal': 'PayPal',

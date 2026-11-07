@@ -214,7 +214,7 @@ export const pl: Dict = {
   'task.enable': 'Włącz ten link',
   'task.disable': 'Wyłącz ten link',
   'settings.aboutTitle': 'O KnightLoaderze',
-  'settings.aboutBody': 'Jeden rycerz, jedna krucjata: dopracowane narzędzia open source, których nie było w takiej postaci, jakiej chciałem, budowane, aż niczego nie zabraknie. Wszystko za darmo, bez kont, bez reklam i bez płatnych wersji. Sama aplikacja niczego nie zbiera i nic czytelnego nigdy nie opuszcza twoich własnych murów. Skaner kodów QR pochodzi jednak od Google i przy skanowaniu kodu wysyła do Google dane diagnostyczne o użyciu. Kute wieczorami i w weekendy, z sercem i uporem.',
+  'settings.aboutBody': 'Jeden rycerz, jedna krucjata: dopracowane narzędzia open source, których nie było w takiej postaci, jakiej chciałem, budowane, aż niczego nie zabraknie. Wszystko za darmo, bez kont, bez reklam i bez płatnych wersji. Sama aplikacja niczego nie zbiera i nic czytelnego nigdy nie opuszcza twoich własnych murów. Kute wieczorami i w weekendy, z sercem i uporem.',
   'settings.accentReset': 'Domyślny',
   'settings.aboutCoffeeButton': 'Postaw mi kawę',
   'settings.aboutPaypal': 'PayPal',

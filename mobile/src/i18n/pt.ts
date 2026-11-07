@@ -214,7 +214,7 @@ export const pt: Dict = {
   'task.enable': 'Ativar este link',
   'task.disable': 'Desativar este link',
   'settings.aboutTitle': 'Sobre o KnightLoader',
-  'settings.aboutBody': 'Um único cavaleiro, uma cruzada: ferramentas de código aberto bem feitas que não existiam na forma que eu queria, construídas até não faltar nada. Tudo gratuito, sem contas, sem anúncios e sem planos pagos. A própria app não recolhe nada, e nada legível sai das tuas próprias muralhas. O leitor de QR, porém, é da Google e, ao ler um código, envia à Google dados de diagnóstico sobre a utilização. Forjado em noites e fins de semana, com coração e teimosia.',
+  'settings.aboutBody': 'Um único cavaleiro, uma cruzada: ferramentas de código aberto bem feitas que não existiam na forma que eu queria, construídas até não faltar nada. Tudo gratuito, sem contas, sem anúncios e sem planos pagos. A própria app não recolhe nada, e nada legível sai das tuas próprias muralhas. Forjado em noites e fins de semana, com coração e teimosia.',
   'settings.accentReset': 'Predefinição',
   'settings.aboutCoffeeButton': 'Paga-me um café',
   'settings.aboutPaypal': 'PayPal',

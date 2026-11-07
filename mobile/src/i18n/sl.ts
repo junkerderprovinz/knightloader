@@ -214,7 +214,7 @@ export const sl: Dict = {
   'task.enable': 'Vklopi to povezavo',
   'task.disable': 'Izklopi to povezavo',
   'settings.aboutTitle': 'O KnightLoaderju',
-  'settings.aboutBody': 'En vitez, en pohod: urejena odprtokodna orodja, ki jih v obliki, kakršno sem si želel, ni bilo, grajena, dokler nič ne manjka. Vse brezplačno, brez računov, brez oglasov in brez plačljivih ravni. Aplikacija sama ne zbira ničesar in nič berljivega nikoli ne zapusti tvojih zidov. Skener QR pa je Googlov in ob skeniranju kode pošlje Googlu diagnostične podatke o uporabi. Kovano zvečer in ob koncih tedna, s srcem in trmo.',
+  'settings.aboutBody': 'En vitez, en pohod: urejena odprtokodna orodja, ki jih v obliki, kakršno sem si želel, ni bilo, grajena, dokler nič ne manjka. Vse brezplačno, brez računov, brez oglasov in brez plačljivih ravni. Aplikacija sama ne zbira ničesar in nič berljivega nikoli ne zapusti tvojih zidov. Kovano zvečer in ob koncih tedna, s srcem in trmo.',
   'settings.accentReset': 'Privzeto',
   'settings.aboutCoffeeButton': 'Časti kavo',
   'settings.aboutPaypal': 'PayPal',

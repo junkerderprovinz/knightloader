@@ -214,7 +214,7 @@ export const nl: Dict = {
   'task.enable': 'Deze link aanzetten',
   'task.disable': 'Deze link uitzetten',
   'settings.aboutTitle': 'Over KnightLoader',
-  'settings.aboutBody': 'Eén ridder, één kruistocht: verzorgde opensourcetools die niet bestonden in de vorm die ik wilde, gebouwd tot er niets meer ontbreekt. Alles gratis, zonder accounts, zonder advertenties en zonder betaalde versie. De app zelf verzamelt niets, en niets leesbaars verlaat ooit je eigen muren. De QR-scanner komt wel van Google, en die stuurt Google diagnosegegevens over het gebruik zodra hij een code scant. Gesmeed op avonden en weekenden, met hart en koppigheid.',
+  'settings.aboutBody': 'Eén ridder, één kruistocht: verzorgde opensourcetools die niet bestonden in de vorm die ik wilde, gebouwd tot er niets meer ontbreekt. Alles gratis, zonder accounts, zonder advertenties en zonder betaalde versie. De app zelf verzamelt niets, en niets leesbaars verlaat ooit je eigen muren. Gesmeed op avonden en weekenden, met hart en koppigheid.',
   'settings.accentReset': 'Standaard',
   'settings.aboutCoffeeButton': 'Trakteer op koffie',
   'settings.aboutPaypal': 'PayPal',

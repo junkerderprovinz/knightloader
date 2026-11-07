@@ -214,7 +214,7 @@ export const ca: Dict = {
   'task.enable': 'Activa aquest enllaç',
   'task.disable': 'Desactiva aquest enllaç',
   'settings.aboutTitle': 'Quant a KnightLoader',
-  'settings.aboutBody': 'Un sol cavaller, una croada: eines de codi obert ben fetes que no existien en la forma que jo volia, construïdes fins que no hi falti res. Tot gratuït, sense comptes, sense anuncis i sense plans de pagament. L’aplicació mateixa no recull res, i res llegible no surt mai de les teves pròpies muralles. Això sí, l’escàner de QR és de Google, i quan escaneja un codi envia a Google dades de diagnòstic sobre l’ús. Forjat als vespres i els caps de setmana, amb cor i tossuderia.',
+  'settings.aboutBody': 'Un sol cavaller, una croada: eines de codi obert ben fetes que no existien en la forma que jo volia, construïdes fins que no hi falti res. Tot gratuït, sense comptes, sense anuncis i sense plans de pagament. L’aplicació mateixa no recull res, i res llegible no surt mai de les teves pròpies muralles. Forjat als vespres i els caps de setmana, amb cor i tossuderia.',
   'settings.accentReset': 'Per defecte',
   'settings.aboutCoffeeButton': 'Convida’m a un cafè',
   'settings.aboutPaypal': 'PayPal',

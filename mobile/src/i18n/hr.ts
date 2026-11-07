@@ -214,7 +214,7 @@ export const hr: Dict = {
   'task.enable': 'Uključi ovu poveznicu',
   'task.disable': 'Isključi ovu poveznicu',
   'settings.aboutTitle': 'O KnightLoaderu',
-  'settings.aboutBody': 'Jedan vitez, jedan pohod: uredni alati otvorenog koda kojih u obliku kakav sam želio nije bilo, građeni dok ništa ne nedostaje. Sve besplatno, bez računa, bez reklama i bez plaćenih razina. Sama aplikacija ništa ne prikuplja i ništa čitljivo nikada ne napušta tvoje zidove. QR skener je ipak Googleov i pri skeniranju koda šalje Googleu dijagnostičke podatke o korištenju. Kovano navečer i vikendima, sa srcem i tvrdoglavošću.',
+  'settings.aboutBody': 'Jedan vitez, jedan pohod: uredni alati otvorenog koda kojih u obliku kakav sam želio nije bilo, građeni dok ništa ne nedostaje. Sve besplatno, bez računa, bez reklama i bez plaćenih razina. Sama aplikacija ništa ne prikuplja i ništa čitljivo nikada ne napušta tvoje zidove. Kovano navečer i vikendima, sa srcem i tvrdoglavošću.',
   'settings.accentReset': 'Zadano',
   'settings.aboutCoffeeButton': 'Počasti me kavom',
   'settings.aboutPaypal': 'PayPal',

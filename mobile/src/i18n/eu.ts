@@ -214,7 +214,7 @@ export const eu: Dict = {
   'task.enable': 'Piztu esteka hau',
   'task.disable': 'Itzali esteka hau',
   'settings.aboutTitle': 'KnightLoader-i buruz',
-  'settings.aboutBody': 'Zaldun bakarra, gurutzada bakarra: nahi nuen moduan existitzen ez ziren kode irekiko tresna dotoreak, ezer falta ez den arte eraikiak. Dena doan, konturik gabe, iragarkirik gabe eta ordainpeko mailarik gabe. Aplikazioak berak ez du ezer biltzen, eta irakurgai denik ez da inoiz zure harresietatik ateratzen. QR eskanerra Googlerena da, ordea, eta kode bat eskaneatzean erabilerari buruzko diagnostiko datuak bidaltzen dizkio Googleri. Arratsaldeetan eta asteburuetan forjatua, bihotzez eta setaz.',
+  'settings.aboutBody': 'Zaldun bakarra, gurutzada bakarra: nahi nuen moduan existitzen ez ziren kode irekiko tresna dotoreak, ezer falta ez den arte eraikiak. Dena doan, konturik gabe, iragarkirik gabe eta ordainpeko mailarik gabe. Aplikazioak berak ez du ezer biltzen, eta irakurgai denik ez da inoiz zure harresietatik ateratzen. Arratsaldeetan eta asteburuetan forjatua, bihotzez eta setaz.',
   'settings.accentReset': 'Lehenetsia',
   'settings.aboutCoffeeButton': 'Erosi kafe bat',
   'settings.aboutPaypal': 'PayPal',
