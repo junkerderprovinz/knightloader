@@ -18,8 +18,10 @@ import {
   type RainbowState,
   type Shape,
 } from './appearance';
+import { SYSTEM_ACCENT, resolveAccent } from './accentSource';
 import { buildLoop } from './discoLoop';
 import { useMotion } from './MotionContext';
+import { useSystemTones, watchSystemAccent } from './systemAccent';
 import { DARK, LIGHT, OLED, TYPE, cornersFor, inkFor, type Corners, type Palette } from './tokens';
 
 // Where the app's look comes from, and in which order.
@@ -81,6 +83,13 @@ export interface Appearance {
   /** True when a local override is in force for that axis. */
   overridden: { accent: boolean; shape: boolean; theme: boolean; rainbow: boolean };
   setAccent: (hex: string | undefined) => void;
+  /** Material You's colour for the theme that shows, or undefined on a phone
+   *  without one, where the wand swatch stays away. */
+  systemAccent: string | undefined;
+  /** Whether the accent is the system's colour and the phone has one. */
+  wearsSystemAccent: boolean;
+  /** Choose the system's colour here; the instance's accent stays as it is. */
+  chooseSystemAccent: () => void;
   /** What each preset slot has been mixed to, empty for the ones nobody
    *  touched. The accent row reads this so an edited swatch keeps its colour
    *  when another one is chosen. */
@@ -178,7 +187,10 @@ const RETIRED_LIGHT_ACCENT = '#8E6A00';
  */
 function sanitise(p: Override): Override {
   return {
-    accent: valid(p.accent) && p.accent.toUpperCase() !== RETIRED_LIGHT_ACCENT ? p.accent : undefined,
+    accent:
+      p.accent === SYSTEM_ACCENT || (valid(p.accent) && p.accent.toUpperCase() !== RETIRED_LIGHT_ACCENT)
+        ? p.accent
+        : undefined,
     shape: asShape(p.shape),
     theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : undefined,
     rainbow: typeof p.rainbow === 'boolean' ? p.rainbow : undefined,
@@ -231,6 +243,8 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   // "off", or with reduced motion, disco steps one colour at a time.
   const { chosen: motionChosen, reduced } = useMotion();
   const steps = motionChosen === 'off' || reduced;
+  const tones = useSystemTones();
+  useEffect(() => watchSystemAccent(), []);
 
   // Read once at start. Not awaited before the first paint: the defaults are
   // GlimStone's own, so the worst case is one frame in Sunflower before a
@@ -353,8 +367,8 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
 
     // The accent is used as given, in both themes. Darkening belongs to the
     // ink rather than to the colour; see accentInk below and tokens.inkFor.
-    const chosen = override.accent ?? (valid(instance?.accent) ? instance?.accent : undefined);
-    const accent = chosen ?? DEFAULT_ACCENT;
+    const systemAccent = tones?.[dark ? 'dark' : 'light'];
+    const accent = resolveAccent(override.accent, instance?.accent, systemAccent) ?? DEFAULT_ACCENT;
 
     const shape = override.shape ?? asShape(instance?.shape) ?? DEFAULT_SHAPE;
 
@@ -389,6 +403,10 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
         rainbow: override.rainbow !== undefined,
       },
       setAccent: (hex) => persist((p) => ({ ...p, accent: valid(hex) ? hex : undefined })),
+      systemAccent,
+      wearsSystemAccent: override.accent === SYSTEM_ACCENT && systemAccent !== undefined,
+      // The slot goes, since the system's colour belongs to no preset.
+      chooseSystemAccent: () => persist((p) => ({ ...p, accent: SYSTEM_ACCENT, slot: undefined })),
       accentCustoms: override.customs ?? {},
       accentSlotChosen: override.slot,
       chooseAccentSlot: (i, hex) =>
@@ -438,7 +456,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       },
       setInstanceAppearance: setInstance,
     };
-  }, [override, shelf, instance, system, persist, shelve, rainbow, walking, walk, steps, loop, disco, setDisco, oled, setOled]);
+  }, [override, shelf, instance, system, persist, shelve, rainbow, walking, walk, steps, loop, disco, setDisco, oled, setOled, tones]);
 
   return <AppearanceCtx.Provider value={value}>{children}</AppearanceCtx.Provider>;
 }

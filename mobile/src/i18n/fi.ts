@@ -193,6 +193,8 @@ export const fi: Dict = {
   'settings.corners.square': 'Terävät',
   'settings.corners.leaf': 'Lehti',
   'settings.accent': 'Korostusväri',
+  'settings.accentSystem': 'Järjestelmän väri',
+  'settings.accentSystemHint': 'Käyttää järjestelmän väriä vain tällä laitteella.',
   'settings.rainbow': 'Sateenkaaritila',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Kun sateenkaaritila on päällä, kaikki värilliset elementit liukuvat yhdessä paletin läpi, yksi väri 2,4 sekunnin välein. Jos Animaatio-asetuksena on ”Pois” tai puhelimesi asetuksissa on vähennetty liike käytössä, värit vaihtuvat sen sijaan suoraan väristä toiseen.',

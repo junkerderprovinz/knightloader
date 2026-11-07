@@ -301,6 +301,10 @@ stop, how fast to look) live in `src/watch/rules.ts`, which
 - `src/watch/` and `modules/watch/`: the background watch behind the
   notifications, its rules, its settings and the foreground service that runs
   it. See "Captchas" above.
+- `modules/system-accent/` and `src/theme/systemAccent.ts`: Material You's
+  colour from Android 12 on, read again when the app comes back to the front
+  and when Android reports a new palette. It is the wand swatch's colour on the
+  Settings screen's accent row, chosen on the phone alone.
 - `src/storage/connections.ts`: every saved connection plus which one is
   active, in the OS keychain.
 - `src/api/seedphrase.ts`: twelve words to the group key, entirely on the

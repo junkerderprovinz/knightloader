@@ -192,6 +192,8 @@ export const ja: Dict = {
   'settings.corners.square': '角ばった',
   'settings.corners.leaf': '葉っぱ',
   'settings.accent': 'アクセントカラー',
+  'settings.accentSystem': 'システムの色',
+  'settings.accentSystemHint': 'このデバイスだけで、システムの色を使います。',
   'settings.rainbow': 'レインボーモード',
   'settings.disco': 'ディスコ',
   'settings.discoGlideHint': 'レインボーモードがオンのあいだ、色の付いた要素はすべていっしょにパレットの中をなめらかに移り変わり、2.4 秒ごとに次の色へ進みます。アニメーションが「オフ」のとき、または端末の設定で視差効果を減らす設定がオンのときは、なめらかに移らず色から色へ切り替わります。',

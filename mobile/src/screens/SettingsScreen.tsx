@@ -28,6 +28,7 @@ import {
   WellSelector,
 } from '../components/glim';
 import IconBadge, {
+  AccentSystem,
   AppleMark,
   Back,
   BitcoinLetter,
@@ -179,6 +180,9 @@ export default function SettingsScreen({
     chooseAccentSlot,
     setAccentCustom,
     clearAccentCustoms,
+    systemAccent,
+    wearsSystemAccent,
+    chooseSystemAccent,
     setShape,
     setTheme,
     setRainbow,
@@ -547,6 +551,19 @@ export default function SettingsScreen({
                 composites the whole subtree in React Native as it does in CSS, so
                 on the row the label would fade with the swatches. */}
             <View style={[styles.swatches, rainbow.on && styles.dimmed]}>
+              {/* The phone's own colour, first where Android has one. It is a
+                  local choice like any other on this row, so the instance's
+                  accent stays as every other client sees it. */}
+              {systemAccent && (
+                <Swatch
+                  hex={systemAccent}
+                  label={t('settings.accentSystem')}
+                  hint={t('settings.accentSystemHint')}
+                  glyph={(ink) => <AccentSystem color={ink} size={14} />}
+                  selected={wearsSystemAccent}
+                  onPress={chooseSystemAccent}
+                />
+              )}
               {ACCENTS.map((a, i) => {
                 // Each slot wears whatever it was last mixed to and keeps it. The
                 // live accent drawn over its nearest preset would let the row
@@ -562,7 +579,9 @@ export default function SettingsScreen({
                 //
                 // The arithmetic stays as the fallback for a fresh install, where
                 // nobody has chosen anything yet.
-                const mine = accentSlotChosen !== undefined ? accentSlotChosen === i : i === accentSlot(accent);
+                const mine =
+                  !wearsSystemAccent &&
+                  (accentSlotChosen !== undefined ? accentSlotChosen === i : i === accentSlot(accent));
                 return (
                   <Swatch
                     key={a.hex}

@@ -193,6 +193,8 @@ export const it: Dict = {
   'settings.corners.square': 'Squadrati',
   'settings.corners.leaf': 'Foglia',
   'settings.accent': 'Accento',
+  'settings.accentSystem': 'Colore di sistema',
+  'settings.accentSystemHint': 'Prende il colore del sistema, solo su questo dispositivo.',
   'settings.rainbow': 'Modalità arcobaleno',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Finché la modalità arcobaleno è attiva, tutti gli elementi colorati scorrono insieme lungo la tavolozza, un colore ogni 2,4 secondi. Con «Animazione» su «Disattivato», o con la riduzione del movimento attiva nelle impostazioni del telefono, passa invece da un colore al successivo a scatti.',

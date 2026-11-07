@@ -285,12 +285,36 @@ export function UnavailableNotice({ title, reason }: { title: string; reason: st
 /** A colour swatch. The current one is marked by a ring, an inset gap in the
  *  card colour and then the ink, drawn as nested views rather than a border,
  *  because a border is a line and this language has none. */
-export function Swatch({ hex, selected, onPress, label }: { hex: string; selected: boolean; onPress: () => void; label: string }) {
+export function Swatch({
+  hex,
+  selected,
+  onPress,
+  label,
+  hint,
+  glyph,
+}: {
+  hex: string;
+  selected: boolean;
+  onPress: () => void;
+  label: string;
+  /** What choosing it does, read out after the name. */
+  hint?: string;
+  /** A glyph on the fill, drawn in the fill's ink, such as the system colour's wand. */
+  glyph?: (ink: string) => ReactNode;
+}) {
   const { c, corners } = useAppearance();
   return (
-    <TouchableOpacity accessibilityLabel={label} onPress={onPress} style={[styles.swatchRing, { ...corners.pill, backgroundColor: selected ? c.text : 'transparent' }]}>
+    <TouchableOpacity
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={[styles.swatchRing, { ...corners.pill, backgroundColor: selected ? c.text : 'transparent' }]}
+    >
       <View style={[styles.swatchGap, { ...corners.pill, backgroundColor: selected ? c.surface : 'transparent' }]}>
-        <View style={[styles.swatchFill, { ...corners.pill, backgroundColor: hex }]} />
+        <View style={[styles.swatchFill, styles.swatchCentre, { ...corners.pill, backgroundColor: hex }]}>
+          {glyph?.(contrastOn(hex))}
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -458,6 +482,7 @@ const styles = StyleSheet.create({
   swatchRing: { flex: 1, maxWidth: 32, aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
   swatchGap: { width: '88%', height: '88%', alignItems: 'center', justifyContent: 'center' },
   swatchFill: { width: '86%', height: '86%' },
+  swatchCentre: { alignItems: 'center', justifyContent: 'center' },
   // The reset glyph: three quarters of a ring, plus a head on the open end.
   resetRing: { width: '58%', height: '58%', borderWidth: 1.5, borderRightColor: 'transparent' },
   statusBadge: { paddingHorizontal: 7, paddingVertical: 2, flexShrink: 0 },

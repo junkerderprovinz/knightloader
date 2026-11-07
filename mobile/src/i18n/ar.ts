@@ -193,6 +193,8 @@ export const ar: Dict = {
   'settings.corners.square': 'حادة',
   'settings.corners.leaf': 'ورقة',
   'settings.accent': 'لون التمييز',
+  'settings.accentSystem': 'لون النظام',
+  'settings.accentSystemHint': 'يأخذ لون النظام، على هذا الجهاز فقط.',
   'settings.rainbow': 'وضع قوس قزح',
   'settings.disco': 'ديسكو',
   'settings.discoGlideHint': 'ما دام وضع قوس قزح مفعّلًا، ينساب كل عنصر ملوّن عبر اللوحة مع سائر العناصر، لونًا كل 2.4 ثانية. وإن كانت «الرسوم المتحركة» على «إيقاف»، أو كان تقليل الحركة مفعّلًا في إعدادات هاتفك، فإنه يقفز بدل ذلك من لون إلى الذي يليه.',

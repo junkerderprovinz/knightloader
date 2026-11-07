@@ -193,6 +193,8 @@ export const sk: Dict = {
   'settings.corners.square': 'Ostré',
   'settings.corners.leaf': 'List',
   'settings.accent': 'Zvýraznenie',
+  'settings.accentSystem': 'Farba systému',
+  'settings.accentSystemHint': 'Prevezme farbu systému, len na tomto zariadení.',
   'settings.rainbow': 'Režim dúha',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Kým je zapnutý dúhový režim, všetky farebné prvky spolu plynulo prechádzajú paletou, každé 2,4 sekundy o jednu farbu ďalej. Keď je Animácia nastavená na „Vypnuté“ alebo má telefón nastavené obmedzenie pohybu, preskakujú namiesto toho z farby na farbu.',

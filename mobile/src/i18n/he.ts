@@ -193,6 +193,8 @@ export const he: Dict = {
   'settings.corners.square': 'חדות',
   'settings.corners.leaf': 'עלה',
   'settings.accent': 'צבע הדגשה',
+  'settings.accentSystem': 'צבע המערכת',
+  'settings.accentSystemHint': 'לוקח את צבע המערכת, רק במכשיר הזה.',
   'settings.rainbow': 'מצב קשת',
   'settings.disco': 'דיסקו',
   'settings.discoGlideHint': 'כל עוד מצב הקשת פועל, כל רכיב צבעוני גולש לאורך הלוח יחד עם כל השאר, צבע אחד כל 2.4 שניות. כש„אנימציה” מוגדרת ל„כבוי”, או כשהפחתת תנועה מופעלת בהגדרות הטלפון שלך, הוא קופץ במקום זאת מצבע לצבע.',

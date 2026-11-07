@@ -193,6 +193,8 @@ export const gl: Dict = {
   'settings.corners.square': 'Rectas',
   'settings.corners.leaf': 'Folla',
   'settings.accent': 'Acento',
+  'settings.accentSystem': 'Cor do sistema',
+  'settings.accentSystemHint': 'Colle a cor do sistema, só neste dispositivo.',
   'settings.rainbow': 'Modo arco da vella',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Mentres o modo arco da vella estea activado, todos os elementos de cor esvaran xuntos pola paleta, unha cor cada 2,4 segundos. Con Animación en Desactivado, ou coa redución de movemento activada nos axustes do teléfono, salta dunha cor á seguinte.',

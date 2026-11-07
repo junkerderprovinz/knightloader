@@ -193,6 +193,8 @@ export const hi: Dict = {
   'settings.corners.square': 'नुकीले',
   'settings.corners.leaf': 'पत्ता',
   'settings.accent': 'एक्सेंट रंग',
+  'settings.accentSystem': 'सिस्टम का रंग',
+  'settings.accentSystemHint': 'सिस्टम का रंग अपनाता है, सिर्फ़ इसी डिवाइस पर।',
   'settings.rainbow': 'इंद्रधनुष मोड',
   'settings.disco': 'डिस्को',
   'settings.discoGlideHint': 'जब तक रेनबो मोड चालू है, हर रंगीन तत्व बाक़ी सबके साथ पैलेट में सरकता है, हर 2.4 सेकंड में एक रंग। एनिमेशन “बंद” पर हो, या आपके फ़ोन की सेटिंग में कम गति चालू हो, तो यह इसके बजाय एक रंग से अगले रंग पर कूदता है।',

@@ -193,6 +193,8 @@ export const ms: Dict = {
   'settings.corners.square': 'Tajam',
   'settings.corners.leaf': 'Daun',
   'settings.accent': 'Aksen',
+  'settings.accentSystem': 'Warna sistem',
+  'settings.accentSystemHint': 'Mengikut warna sistem, pada peranti ini sahaja.',
   'settings.rainbow': 'Mod pelangi',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Semasa mod pelangi dihidupkan, setiap unsur berwarna meluncur bersama-sama melalui palet, satu warna setiap 2.4 saat. Jika Animasi ditetapkan kepada Mati, atau pengurangan gerakan dihidupkan dalam tetapan telefon anda, ia melompat dari satu warna ke warna seterusnya.',

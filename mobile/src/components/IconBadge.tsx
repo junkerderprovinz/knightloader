@@ -511,6 +511,11 @@ export function ThemeSystem({ color, size = GLYPH_BOX }: { color: string; size?:
   return <Drawn source={require('../../assets/theme-system.png')} color={color} size={size} />;
 }
 
+/** GlimStone's IconAccentSystem, the wand on the system colour's swatch. */
+export function AccentSystem({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/accent-system.png')} color={color} size={size} />;
+}
+
 export function CornerRound({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
   return <Drawn source={require('../../assets/corner-round.png')} color={color} size={size} />;
 }

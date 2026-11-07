@@ -193,6 +193,8 @@ export const sv: Dict = {
   'settings.corners.square': 'Skarpa',
   'settings.corners.leaf': 'Blad',
   'settings.accent': 'Accent',
+  'settings.accentSystem': 'Systemfärg',
+  'settings.accentSystemHint': 'Tar systemets färg, bara på den här enheten.',
   'settings.rainbow': 'Regnbågsläge',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Medan regnbågsläget är på glider alla färgade element tillsammans genom paletten och byter färg var 2,4 sekund. Står Animation på ”Av”, eller är minskad rörelse påslagen i telefonens inställningar, hoppar de i stället från en färg till nästa.',

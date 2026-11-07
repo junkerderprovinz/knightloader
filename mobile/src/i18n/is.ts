@@ -193,6 +193,8 @@ export const is: Dict = {
   'settings.corners.square': 'Bein',
   'settings.corners.leaf': 'Lauf',
   'settings.accent': 'Áherslulitur',
+  'settings.accentSystem': 'Kerfislitur',
+  'settings.accentSystemHint': 'Notar lit kerfisins, aðeins í þessu tæki.',
   'settings.rainbow': 'Regnbogahamur',
   'settings.disco': 'Diskó',
   'settings.discoGlideHint': 'Á meðan kveikt er á regnbogaham líða öll lituð atriði saman í gegnum litaspjaldið og skipta um lit á 2,4 sekúndna fresti. Sé Hreyfimynd stillt á „Slökkt“, eða kveikt á minni hreyfingu í stillingum símans, stökkva þau í staðinn frá einum lit yfir í þann næsta.',

@@ -193,6 +193,8 @@ export const id: Dict = {
   'settings.corners.square': 'Tegas',
   'settings.corners.leaf': 'Daun',
   'settings.accent': 'Aksen',
+  'settings.accentSystem': 'Warna sistem',
+  'settings.accentSystemHint': 'Mengikuti warna sistem, hanya di perangkat ini.',
   'settings.rainbow': 'Mode pelangi',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Selama mode pelangi menyala, setiap elemen berwarna bergeser bersama melewati palet, satu warna setiap 2,4 detik. Jika Animasi disetel ke Nonaktif, atau pengurangan gerakan dinyalakan di pengaturan ponsel, warnanya melompat dari satu warna ke warna berikutnya.',

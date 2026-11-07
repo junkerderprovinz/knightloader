@@ -193,6 +193,8 @@ export const pl: Dict = {
   'settings.corners.square': 'Ostre',
   'settings.corners.leaf': 'Liść',
   'settings.accent': 'Akcent',
+  'settings.accentSystem': 'Kolor systemu',
+  'settings.accentSystemHint': 'Przejmuje kolor systemu, tylko na tym urządzeniu.',
   'settings.rainbow': 'Tryb tęczy',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Gdy tryb tęczy jest włączony, wszystkie kolorowe elementy razem płynnie przechodzą przez paletę, co 2,4 sekundy o jeden kolor dalej. Jeśli Animacja jest ustawiona na „Wyłączone” albo telefon jest ustawiony na ograniczenie ruchu, kolory zamiast tego przeskakują od jednego do następnego.',

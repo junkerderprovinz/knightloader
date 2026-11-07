@@ -193,6 +193,8 @@ export const nl: Dict = {
   'settings.corners.square': 'Recht',
   'settings.corners.leaf': 'Blad',
   'settings.accent': 'Accent',
+  'settings.accentSystem': 'Systeemkleur',
+  'settings.accentSystemHint': 'Neemt de kleur van het systeem over, alleen op dit apparaat.',
   'settings.rainbow': 'Regenboogmodus',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Zolang de regenboogmodus aan staat, glijden alle gekleurde elementen samen door het palet, elke 2,4 seconden een kleur verder. Staat Animatie op “Uit”, of staat in de instellingen van je telefoon minder beweging aan, dan springen ze in plaats daarvan van de ene kleur naar de volgende.',

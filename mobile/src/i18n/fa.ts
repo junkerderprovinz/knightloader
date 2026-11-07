@@ -193,6 +193,8 @@ export const fa: Dict = {
   'settings.corners.square': 'تیز',
   'settings.corners.leaf': 'برگ',
   'settings.accent': 'رنگ تأکید',
+  'settings.accentSystem': 'رنگ سیستم',
+  'settings.accentSystemHint': 'رنگ سیستم را می‌گیرد، فقط در این دستگاه.',
   'settings.rainbow': 'حالت رنگین‌کمان',
   'settings.disco': 'دیسکو',
   'settings.discoGlideHint': 'تا وقتی حالت رنگین‌کمان روشن است، همهٔ عناصر رنگی با هم در پالت می‌لغزند، هر 2.4 ثانیه یک رنگ. اگر «انیمیشن» روی «خاموش» باشد، یا کاهش حرکت در تنظیمات گوشی شما روشن باشد، به‌جای آن از یک رنگ به رنگ بعدی می‌پرد.',

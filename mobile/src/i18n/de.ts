@@ -226,6 +226,8 @@ export const de: Dict = {
   'settings.corners.square': 'Eckig',
   'settings.corners.leaf': 'Blatt',
   'settings.accent': 'Akzentfarbe',
+  'settings.accentSystem': 'Systemfarbe',
+  'settings.accentSystemHint': 'Übernimmt die Farbe des Systems, nur auf diesem Gerät.',
   'settings.rainbow': 'Regenbogen-Modus',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Solange der Regenbogen-Modus an ist, gleitet jedes farbige Element gemeinsam durch die Palette, alle 2,4 Sekunden eine Farbe weiter. Steht Animation auf „Aus“ oder ist auf deinem Handy reduzierte Bewegung eingestellt, springt es stattdessen von Farbe zu Farbe.',

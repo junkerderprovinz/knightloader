@@ -193,6 +193,8 @@ export const cs: Dict = {
   'settings.corners.square': 'Ostré',
   'settings.corners.leaf': 'List',
   'settings.accent': 'Zvýraznění',
+  'settings.accentSystem': 'Barva systému',
+  'settings.accentSystemHint': 'Převezme barvu systému, jen na tomto zařízení.',
   'settings.rainbow': 'Režim duha',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Dokud je zapnutý duhový režim, všechny barevné prvky spolu plynule procházejí paletou, každé 2,4 sekundy o jednu barvu dál. Když je Animace nastavená na „Vypnuto“ nebo má telefon nastavené omezení pohybu, přeskakují místo toho z barvy na barvu.',

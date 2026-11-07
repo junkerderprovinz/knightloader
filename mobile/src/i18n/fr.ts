@@ -193,6 +193,8 @@ export const fr: Dict = {
   'settings.corners.square': 'Carrés',
   'settings.corners.leaf': 'Feuille',
   'settings.accent': 'Accent',
+  'settings.accentSystem': 'Couleur du système',
+  'settings.accentSystemHint': 'Reprend la couleur du système, sur cet appareil seulement.',
   'settings.rainbow': 'Mode arc-en-ciel',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Tant que le mode arc-en-ciel est activé, chaque élément coloré glisse avec tous les autres à travers la palette, une couleur toutes les 2,4 secondes. Si « Animation » est réglée sur « Désactivé », ou si la réduction des animations est activée dans les réglages de votre téléphone, il passe plutôt d’une couleur à la suivante sans transition.',

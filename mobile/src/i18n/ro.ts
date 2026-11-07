@@ -193,6 +193,8 @@ export const ro: Dict = {
   'settings.corners.square': 'Drepte',
   'settings.corners.leaf': 'Frunză',
   'settings.accent': 'Accent',
+  'settings.accentSystem': 'Culoarea sistemului',
+  'settings.accentSystemHint': 'Preia culoarea sistemului, doar pe acest dispozitiv.',
   'settings.rainbow': 'Mod curcubeu',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Cât timp modul curcubeu este pornit, toate elementele colorate alunecă împreună prin paletă, câte o culoare la fiecare 2,4 secunde. Dacă Animație stă pe Dezactivat sau dacă mișcarea redusă este activată în setările telefonului tău, sare în schimb de la o culoare la alta.',

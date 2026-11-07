@@ -193,6 +193,8 @@ export const sl: Dict = {
   'settings.corners.square': 'Ostri',
   'settings.corners.leaf': 'List',
   'settings.accent': 'Poudarek',
+  'settings.accentSystem': 'Barva sistema',
+  'settings.accentSystemHint': 'Prevzame barvo sistema, samo na tej napravi.',
   'settings.rainbow': 'Mavrični način',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Dokler je mavrični način vklopljen, vsi barvni elementi skupaj drsijo skozi paleto, vsakih 2,4 sekunde za eno barvo naprej. Če je Animacija nastavljena na »Izklopljeno« ali je telefon nastavljen na manj gibanja, namesto tega preskakujejo od barve do barve.',

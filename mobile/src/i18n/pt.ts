@@ -193,6 +193,8 @@ export const pt: Dict = {
   'settings.corners.square': 'Retos',
   'settings.corners.leaf': 'Folha',
   'settings.accent': 'Destaque',
+  'settings.accentSystem': 'Cor do sistema',
+  'settings.accentSystemHint': 'Usa a cor do sistema, só neste dispositivo.',
   'settings.rainbow': 'Modo arco-íris',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Enquanto o modo arco-íris estiver ligado, todos os elementos coloridos deslizam juntos pela paleta, uma cor a cada 2,4 segundos. Com «Animação» em «Desativado», ou com a redução de movimento ligada nas definições do teu telemóvel, passa antes de uma cor para a seguinte aos saltos.',

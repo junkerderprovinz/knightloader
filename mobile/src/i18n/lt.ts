@@ -193,6 +193,8 @@ export const lt: Dict = {
   'settings.corners.square': 'Statūs',
   'settings.corners.leaf': 'Lapas',
   'settings.accent': 'Akcentas',
+  'settings.accentSystem': 'Sistemos spalva',
+  'settings.accentSystemHint': 'Naudoja sistemos spalvą, tik šiame įrenginyje.',
   'settings.rainbow': 'Vaivorykštės režimas',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Kol įjungtas vaivorykštės režimas, visi spalvoti elementai kartu slenka per paletę, po vieną spalvą kas 2,4 sekundės. Jei Animacija nustatyta į „Išjungta“ arba telefono nustatymuose įjungtas sumažintas judesys, spalvos vietoj to peršoka iš vienos į kitą.',

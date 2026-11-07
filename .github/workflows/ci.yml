@@ -651,6 +651,9 @@ jobs:
       - name: Contrast
         run: node check-contrast.mjs
 
+      - name: System colour
+        run: node check-system-accent.mjs
+
       - name: Speed graph
         run: node check-speed-graph.mjs
 
