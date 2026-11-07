@@ -11,7 +11,7 @@
 // captcha blocks its download, a benched account stops being used, and a
 // failure is never expected. Completions and plain saves are already visible
 // where they happened.
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, Fragment, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button } from '../components/ui';
 import { recordEvent, type EventSubject } from './eventLog';
 import { IconClose, IconShield } from './icons';
@@ -209,36 +209,44 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
       onBlur={() => hold('focus', false)}
       // pointer-events-auto undoes the stack's pointer-events-none, or the
       // buttons could not be clicked. surface2 and a ring set the bubble apart
-      // from the card behind it. relative contains the parade's row.
-      className="glim-toast pointer-events-auto relative flex items-center gap-2.5 rounded-[var(--radius-control)]
-        bg-carbon-surface2 px-4 py-2.5 text-sm text-carbon-text shadow-[var(--elevation)] ring-1 ring-carbon-border"
+      // from the card behind it. relative contains the parade's row. One width
+      // for every bubble (GlimStone 4.2), so a stack of them lines up.
+      className="glim-toast kl-toast pointer-events-auto relative flex w-[24rem] max-w-[calc(100vw-2.5rem)] items-start gap-2.5
+        rounded-[var(--radius-control)] bg-carbon-surface2 px-4 py-2.5 text-sm text-carbon-text shadow-[var(--elevation)]
+        ring-1 ring-carbon-border"
     >
-      {/* The parade replaces the tone dot; both would say the same thing. */}
-      {item.parade ? (
-        <span className={`flex shrink-0 items-center ${toneClass[item.tone]}`}>
-          <Parade />
-        </span>
-      ) : (
-        <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${TONE_DOT[item.tone]}`} />
-      )}
-      <span className={toneClass[item.tone]}>{item.message}</span>
-      <span className="flex-1" />
-      {item.action && (
-        // Dismissed before the work starts, so it cannot be pressed twice. The
-        // action reports its own result in a new bubble.
-        <Button
-          kind="primary"
-          icon={item.action.icon}
-          className="px-2.5 text-xs"
-          onClick={() => {
-            const run = item.action?.run;
-            onDismiss(item.id);
-            void run?.();
-          }}
-        >
-          {item.action.label}
-        </Button>
-      )}
+      {/* The parade replaces the tone dot; both would say the same thing. The
+          box is a line high, so either sits beside the first line. */}
+      <span className={`flex h-[var(--btn-h)] shrink-0 items-center ${toneClass[item.tone]}`}>
+        {item.parade ? <Parade /> : <span className={`h-2 w-2 rounded-[var(--radius-pill)] ${TONE_DOT[item.tone]}`} />}
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-2 py-1.5">
+        <p className={`text-pretty ${toneClass[item.tone]}`}>
+          {softBreaks(item.message).map((part, i) => (
+            <Fragment key={i}>
+              {i > 0 && <wbr />}
+              {part}
+            </Fragment>
+          ))}
+        </p>
+        {item.action && (
+          // Under the message, so a long one does not squeeze it. Dismissed
+          // before the work starts, so it cannot be pressed twice. The action
+          // reports its own result in a new bubble.
+          <Button
+            kind="primary"
+            icon={item.action.icon}
+            className="px-2.5 text-xs"
+            onClick={() => {
+              const run = item.action?.run;
+              onDismiss(item.id);
+              void run?.();
+            }}
+          >
+            {item.action.label}
+          </Button>
+        )}
+      </div>
       {/* secondary, not ghost: on a filled bubble a fill-less button reads as
           decoration. */}
       <Button
@@ -249,6 +257,11 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
       />
     </div>
   );
+}
+
+/** softBreaks cuts a message after each slash, so a path breaks at a folder rather than inside a name. */
+export function softBreaks(message: string): string[] {
+  return message.split(/(?<=[/\\])/);
 }
 
 /**
@@ -338,7 +351,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider value={{ toast }}>
       {children}
       {/* Above a page's floating actions, which stand in the same corner. */}
-      <div className="fixed bottom-[calc(1.25rem+var(--phone-bar-space)+var(--page-actions-space))] end-5 z-50 flex flex-col gap-2 pointer-events-none">
+      <div className="kl-toast-stack fixed bottom-[calc(1.25rem+var(--phone-bar-space)+var(--page-actions-space))] end-5 z-50 flex flex-col gap-2 pointer-events-none">
         {items.map((m) => (
           <ToastBubble key={m.id} item={m} onDismiss={dismiss} />
         ))}

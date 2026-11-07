@@ -3747,3 +3747,17 @@ body {
     transparent 4px 9px
   );
 }
+
+/* On a phone the toasts take the window's width and only the newest two show,
+   so the stack never covers the page it reports on (GlimStone 4.2). */
+@media (max-width: 767.98px) {
+  .kl-toast-stack {
+    inset-inline-start: 0.75rem;
+    inset-inline-end: 0.75rem;
+  }
+  .kl-toast-stack > :nth-last-child(n + 3) { display: none; }
+  .kl-toast-stack > .kl-toast {
+    width: 100%;
+    max-width: none;
+  }
+}
