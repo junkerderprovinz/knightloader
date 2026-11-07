@@ -367,9 +367,9 @@ body {
    rule 43), the web UI's values. data-oled on <html> asks for it and counts
    only while dark shows, chosen or from the device, so the two selectors
    below follow the two ways a page goes dark. The surfaces move one Carbon
-   step down and keep their order. A shadow on black is invisible, and a ring
-   in its place reads as a frame, so the elevation goes. --tile-edge rings a
-   lit brand tile that would vanish into the card. */
+   step down and keep their order. The shadow stays dark's: lost on black, it
+   still lifts a bubble or a menu off a card. --tile-edge rings a lit brand
+   tile that would vanish into the card. */
 [data-theme="dark"][data-oled] {
   --carbon-bg:         #000000;
   --carbon-sidebar:    #161616;
@@ -379,7 +379,6 @@ body {
   --carbon-hover:      #232323;
   --carbon-hover-raised: #525252;
   --carbon-border:     #262626;
-  --elevation: 0 0 #0000;
   --tile-edge: rgba(255, 255, 255, .2);
 }
 
@@ -394,8 +393,7 @@ body {
     --carbon-hover:      #232323;
     --carbon-hover-raised: #525252;
     --carbon-border:     #262626;
-    --elevation: 0 0 #0000;
-    --tile-edge: rgba(255, 255, 255, .2);
+      --tile-edge: rgba(255, 255, 255, .2);
   }
 }
 
@@ -833,7 +831,7 @@ body {
 }
 .glim-switch[aria-checked='true'] .glim-switch-track { background-color: var(--accent); }
 /* A switch that refuses for now keeps its focus and its bubble, so only the track dims. */
-.glim-switch[aria-disabled='true'] .glim-switch-track { opacity: .4; }
+.glim-switch[aria-disabled='true'] .glim-switch-track { opacity: .5; }
 /* The knob moves from the track's start to its end in either direction: the
    anchor is logical, and the translate, which has no logical form, is
    multiplied by --dir-sign. */

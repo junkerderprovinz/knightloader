@@ -607,9 +607,8 @@ body {
    above surface3. The text, the accent and the state colours stay, since they
    were measured on darker grounds than they get here.
 
-   A shadow on black is invisible, and a ring in its place reads as a frame
-   round every card, so the elevation goes and the card's #161616 on black is
-   its edge. The scrim loses nothing on black and keeps dark's value. A lit
+   The shadow stays dark's: it is lost on black, where the card's #161616 is
+   edge enough, but still lifts a bubble or a menu off a card. The scrim loses nothing on black and keeps dark's value. A lit
    brand tile in a near-black colour, such as the MCP clients' black ones, would
    vanish into the card, so --tile-edge rings every lit tile. */
 [data-theme="dark"][data-oled] {
@@ -621,7 +620,6 @@ body {
   --carbon-hover:      #232323;
   --carbon-hover-raised: #525252;
   --carbon-border:     #262626;
-  --elevation: 0 0 #0000;
   --glim-scrim: rgba(0, 0, 0, .72);
   --tile-edge: rgba(255, 255, 255, .2);
 }
@@ -637,8 +635,7 @@ body {
     --carbon-hover:      #232323;
     --carbon-hover-raised: #525252;
     --carbon-border:     #262626;
-    --elevation: 0 0 #0000;
-    --glim-scrim: rgba(0, 0, 0, .72);
+      --glim-scrim: rgba(0, 0, 0, .72);
     --tile-edge: rgba(255, 255, 255, .2);
   }
 }
@@ -3787,6 +3784,11 @@ body {
 }
 .glim-modal-foot > button.glim-btn-key { min-height: var(--btn-h-key); }
 
+/* A refused switch's reason under its row, for a pointer that cannot hover. */
+@media (hover: hover) {
+  .glim-refusal-line { display: none; }
+}
+
 /* The sign-in page (GlimStone 4.2.2, SignInCard): one card in the middle of
    the window, 24rem wide, the full width less the gutter on a phone. The
    desktop app's title bar sits above it, so the page is that much shorter. */
@@ -3812,12 +3814,14 @@ body {
   align-items: center;
   gap: 0.75rem;
 }
+/* GlimStone sets the box at 4rem; the knight is upright and filled only two
+   thirds of it, so KnightLoader gives it 6rem. */
 .glim-signin-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
+  width: 6rem;
+  height: 6rem;
 }
 .glim-signin-logo > img {
   display: block;

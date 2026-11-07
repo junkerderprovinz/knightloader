@@ -1600,7 +1600,7 @@ export function Toggle({
         <span
           className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
             checked ? 'bg-accent' : 'bg-toggleOff'
-          } ${refused ? 'opacity-40' : ''}`}
+          } ${refused ? 'opacity-50' : ''}`}
         >
           {/* start-0 is load-bearing: without it the knob starts from its static
               position, which a button's inherited text-align centres, and slides
@@ -1694,7 +1694,7 @@ export function ToggleRow({
   hue?: number;
 }) {
   return (
-    <div className={`flex items-center justify-between gap-4 ${disabled ? 'pointer-events-none' : ''}`}>
+    <div className={`flex flex-wrap items-center justify-between gap-x-4 ${disabled ? 'pointer-events-none' : ''}`}>
       {/* The dimming is on the parts, never on the row: `opacity` composites a
           whole subtree, so the (i) inside a dimmed row would render at 40% too,
           in precisely the state it exists for. pointer-events-auto re-opens
@@ -1709,6 +1709,8 @@ export function ToggleRow({
       <span className={`flex ${disabled ? 'opacity-40' : ''}`}>
         <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} refused={refused} />
       </span>
+      {/* A finger has no bubble to show, so a touch screen reads the reason here. */}
+      {refused && <span className="glim-refusal-line basis-full pt-1 text-xs text-carbon-textSub">{refused}</span>}
     </div>
   );
 }

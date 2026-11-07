@@ -47,6 +47,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   refused try shakes its button and selects what was typed, so the next try
   starts by typing. The language picker over the card is gone: the page
   speaks the language last chosen in this browser, or the browser's own.
+  KnightLoader's upright knight gets a larger box than the card's default, so
+  it fills it.
+- **KnightLoader follows GlimStone 4.2.3,** and the Version card names it.
+  Under OLED the cards keep the dark theme's shadow, which still lifts a
+  bubble or a menu off a card. A switch that refuses dims its track to half,
+  and on a touch screen its reason stands under the row.
 
 ## [2.7.0] - 2026-11-07
 

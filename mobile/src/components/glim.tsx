@@ -274,7 +274,7 @@ export function GlimToggle({
       onPress={() => (refused ? onRefuse?.() : onChange(!value))}
       style={[
         styles.track,
-        { ...corners.pill, backgroundColor: value ? on : c.toggleOff, opacity: refused ? 0.4 : 1 },
+        { ...corners.pill, backgroundColor: value ? on : c.toggleOff, opacity: refused ? 0.5 : 1 },
       ]}
     >
       {/* The knob is the page's own ground sitting on the track rather than a
