@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useState } from 'react';
 import {
   StyleSheet,
   Text as NativeText,
@@ -8,7 +8,9 @@ import {
   type TextProps,
   type TextStyle,
 } from 'react-native';
+import { useAppearance } from '../theme/AppearanceContext';
 import { familyFor } from '../theme/font';
+import type { Palette } from '../theme/tokens';
 
 /**
  * Whether the house font has loaded. App provides it once expo-font settles;
@@ -48,8 +50,39 @@ export function Text(props: TextProps) {
   return nested ? text : <InsideText value>{text}</InsideText>;
 }
 
-/** React Native's TextInput, set in the house font, placeholder included. */
+/**
+ * React Native's TextInput, set in the house font, placeholder included.
+ *
+ * Focus moves the field's fill one step up the ramp rather than drawing a ring
+ * (GlimStone's rule 14): the caret already says where the typing goes, and a
+ * ring is a line this language does not draw.
+ */
 export function TextInput(props: TextInputProps) {
   const ready = useContext(HouseFontReady);
-  return <NativeTextInput {...props} style={ready ? houseFont(props.style, false) : props.style} />;
+  const { c } = useAppearance();
+  const [focused, setFocused] = useState(false);
+  const style = ready ? houseFont(props.style, false) : props.style;
+  const raised = focused ? stepUp(c, StyleSheet.flatten(props.style)?.backgroundColor) : undefined;
+  return (
+    <NativeTextInput
+      {...props}
+      style={raised ? [style, { backgroundColor: raised }] : style}
+      onFocus={(e) => {
+        setFocused(true);
+        props.onFocus?.(e);
+      }}
+      onBlur={(e) => {
+        setFocused(false);
+        props.onBlur?.(e);
+      }}
+    />
+  );
+}
+
+/** The next surface up from the one a field stands on, if it stands on one. */
+function stepUp(c: Palette, ground: unknown): string | undefined {
+  if (ground === c.surface) return c.surface2;
+  if (ground === c.surface2) return c.surface3;
+  if (ground === c.surface3) return c.hoverRaised;
+  return undefined;
 }
