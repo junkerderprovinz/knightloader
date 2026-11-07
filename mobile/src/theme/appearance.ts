@@ -12,6 +12,8 @@
 
 import { colourAt, type Loop } from './discoLoop';
 
+export { contrastOn } from './contrast';
+
 /**
  * The corner shapes, a wire format shared with the instance's settings and
  * storage. `leaf` is a real shape that no picker offers; leafTap reveals it.
@@ -223,17 +225,6 @@ export function discoTap(state: { taps: number; last: number }, turnedOn: boolea
   return true;
 }
 
-/** contrastOn is the ink to put on a colour, black or white, decided rather
- *  than configured: asking for a second colour to make the first one readable
- *  is a trap, not a setting. */
-export function contrastOn(hex: string): string {
-  if (!valid(hex)) return '#FFFFFF';
-  const { r, g, b } = parse(hex);
-  // Carbon's own ink rather than a warm near-black, which reads as a smudge on
-  // a yellow accent.
-  return luminance(r, g, b) > 0.55 ? '#161616' : '#FFFFFF';
-}
-
 export function valid(hex: string | undefined): hex is string {
   return !!hex && /^#[0-9a-fA-F]{6}$/.test(hex);
 }
@@ -241,20 +232,6 @@ export function valid(hex: string | undefined): hex is string {
 function parse(hex: string): { r: number; g: number; b: number } {
   const n = parseInt(hex.slice(1), 16);
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
-}
-
-/**
- * luminance is the perceptual brightness used to decide black or white on top.
- * The sRGB channels are linearised first, because the raw values overstate how
- * bright blue is and understate green, which is what produces an unreadable
- * button.
- */
-function luminance(r: number, g: number, b: number): number {
-  const lin = (c: number) => {
-    const v = c / 255;
-    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-  };
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
 /** softOn is the wash a row carries when it owns a colour, the same 12 to 14%

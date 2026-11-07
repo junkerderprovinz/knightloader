@@ -132,10 +132,10 @@ export default function TaskRow({
   // single accent otherwise.
   const rowAccent = hue ?? accent;
   // The same colour where it has to be read instead of filled, by the rule the
-  // whole family uses: the accent 55% of the way to black on a light ground and
-  // itself on a dark one. The context builds this pair for the flat accent; the
-  // rainbow half has no counterpart, so a hue would reach a `color:` undarkened.
-  const rowInk = dark ? rowAccent : inkFor(rowAccent);
+  // whole family uses (tokens.inkFor). The context builds this for the flat
+  // accent; the rainbow half has no counterpart, so a hue would reach a
+  // `color:` undarkened.
+  const rowInk = inkFor(rowAccent, dark);
   // Nothing of a torrent comes here while a debrid service fetches it, so the
   // bar and the percentage show how far the service has got.
   const remote = task.status === 'running' ? task.remote : undefined;

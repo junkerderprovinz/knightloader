@@ -99,11 +99,13 @@ jobs:
               - '.github/workflows/ci.yml'
             # check-relay-url.mjs, check-pairing-code.mjs and
             # check-member-key.mjs read their cases from internal/relay's
-            # tests, check-failures.mjs the failure codes and
-            # check-member-refusals.mjs the refusals.
+            # tests, check-failures.mjs the failure codes,
+            # check-member-refusals.mjs the refusals and check-contrast.mjs
+            # the web's contrast arithmetic.
             mobile:
               - 'mobile/**'
               - 'web/src/lib/donate.ts'
+              - 'web/src/lib/contrast.ts'
               - 'internal/relay/client_test.go'
               - 'internal/relay/member_test.go'
               - 'internal/relay/member.go'
@@ -645,6 +647,9 @@ jobs:
 
       - name: Background watch
         run: node check-watch.mjs
+
+      - name: Contrast
+        run: node check-contrast.mjs
 
       - name: Speed graph
         run: node check-speed-graph.mjs

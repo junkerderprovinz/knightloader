@@ -53,8 +53,8 @@ export interface Appearance {
   accent: string;
   /** Ink to put on the accent, computed rather than configured. */
   accentContrast: string;
-  /** The accent used as ink, on the page's own ground. The same colour in dark
-   *  mode, darkened until readable in light mode. See tokens.inkFor. */
+  /** The accent used as ink, on the page's own ground, at 4.5:1 in both
+   *  themes. See tokens.inkFor. */
   accentInk: string;
   /** The accent at low opacity, for a fill behind it. */
   accentSoft: string;
@@ -351,7 +351,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       c,
       accent,
       accentContrast: contrastOn(accent),
-      accentInk: dark ? accent : inkFor(accent),
+      accentInk: inkFor(accent, dark),
       accentSoft: softOn(accent),
       shape,
       corners: cornersFor(shape),

@@ -1,5 +1,6 @@
 import { I18nManager, type TextStyle } from 'react-native';
 import type { Shape } from './appearance';
+import { accentInks } from './contrast';
 
 // GlimStone's palette, as this app's tokens.
 //
@@ -240,26 +241,23 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
 };
 
 /**
- * inkFor is the accent darkened until it can be read on a light ground.
+ * inkFor is a colour used as text: on a light ground darkened 55% of the way
+ * to black, on a dark one as given.
  *
  * A colour on a fill needs no darkening, because the ink on top is computed
  * (see contrastOn). A colour used as ink does, since yellow text on white is
- * unreadable at 11px whichever yellow it is. So the accent stays the accent and
- * this is the second token: the same hue, 55% of the way to black. Dark mode
- * has nothing to solve and gets the accent as given.
+ * unreadable at 11px whichever yellow it is.
  *
- * The 55% is GlimStone 1.5.0's `color-mix(in srgb, var(--accent)
- * var(--ink-mix), black)`, and this function exists because React Native has no
- * color-mix. Darkening iteratively until the result clears 4.5:1 against white
- * sounds better and is worse: it agrees with the CSS on Sunflower and diverges
- * on every other preset (Blue stops at #1D7CC5 where the CSS lands on #105486),
- * so the app and its own web interface would show two different blues for one
- * setting.
- *
- * Measured against white, the palest ground in the palette: Sunflower lands at
- * 4.95:1 and all eight accent presets clear 4.5:1.
+ * The 55% is GlimStone's `color-mix(in srgb, var(--accent) var(--ink-mix),
+ * black)`, and this function exists because React Native has no color-mix.
+ * Every preset clears 4.5:1 with it on both grounds, so the app and its own
+ * web interface show one blue for one setting. A picked or a system colour may
+ * not, and then contrast.ts pushes it on just far enough, as the web does.
  */
-export function inkFor(hex: string): string {
+export function inkFor(hex: string, dark = false): string {
+  const pushed = accentInks(hex)[dark ? 'dark' : 'light'];
+  if (pushed) return pushed;
+  if (dark) return hex;
   const m = /^#([0-9a-fA-F]{6})$/.exec(hex);
   if (!m) return hex;
   const n = parseInt(m[1], 16);

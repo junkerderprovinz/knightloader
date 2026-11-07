@@ -79,7 +79,7 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
   // does; reactive rests neutral.
   const restingMark = (i: number) => {
     const hue = rainbow.reactive ? undefined : hueAt(i);
-    return hue ? (dark ? hue : inkFor(hue)) : c.textSub;
+    return hue ? inkFor(hue, dark) : c.textSub;
   };
   const coinIndex = CRYPTO_COINS.indexOf(coin);
 

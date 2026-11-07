@@ -283,7 +283,7 @@ function SpeedGraph({
 
   const downInk = accentInk;
   const upHex = seedingDefault(accent, ACCENTS.map((a) => a.hex));
-  const upInk = dark ? upHex : inkFor(upHex);
+  const upInk = inkFor(upHex, dark);
   const marks = [
     { limit, name: t('speed.limit.download', { speed: fmtSpeed(limit) }) },
     { limit: uploadLimit, name: t('speed.limit.upload', { speed: fmtSpeed(uploadLimit) }) },

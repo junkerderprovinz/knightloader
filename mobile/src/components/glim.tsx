@@ -3,6 +3,7 @@ import { ActivityIndicator, Animated, Pressable, StyleSheet, TouchableOpacity, V
 import { useAppearance } from '../theme/AppearanceContext';
 import { usePress } from '../theme/MotionContext';
 import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
+import { contrastOn, valid } from '../theme/appearance';
 import { useT } from '../i18n/I18nContext';
 import { InfoTip, Tip } from './InfoTip';
 import { boxForInk } from './IconBadge';
@@ -355,19 +356,9 @@ function restingFill(
   return { fill, ink: contrastFor(fill, opts.accentContrast) };
 }
 
-/** Ink on a fill, mirroring the web's luminance rule closely enough for the
- *  eight palette colours. The resolved accent contrast is the fallback for the
- *  plain-accent case. */
+/** The ink on a fill, with the resolved accent contrast for a fill that is no hex. */
 function contrastFor(hex: string, fallback: string): string {
-  const m = /^#([0-9a-f]{6})$/i.exec(hex);
-  if (!m) return fallback;
-  const n = parseInt(m[1], 16);
-  const lin = (v: number) => {
-    const x = v / 255;
-    return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
-  };
-  const lum = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
-  return lum > 0.55 ? '#161616' : '#FFFFFF';
+  return valid(hex) ? contrastOn(hex) : fallback;
 }
 
 const styles = StyleSheet.create({
@@ -751,7 +742,7 @@ export function ReadmeButton({
     }));
     // The accent used as ink on this ground, as accentInk is for the plain
     // accent: darkened on the light theme, as given on the dark one.
-    rest = dark ? fill : inkFor(fill);
+    rest = inkFor(fill, dark);
   } else {
     ({ fill, ink } = BRAND[brand]);
     rest = {
