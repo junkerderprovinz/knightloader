@@ -66,6 +66,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.systemAccent',
         names: { accent: 'settings.accent' },
       },
+      { id: 'file-kinds-more', text: 'whatsnew.change.fileKindsMore' },
+      { id: 'toast-width', text: 'whatsnew.change.toastWidth' },
+      { id: 'field-focus', text: 'whatsnew.change.fieldFocus' },
+      { id: 'switch-off', text: 'whatsnew.change.switchOff' },
+      { id: 'picker-keys', text: 'whatsnew.change.pickerKeys' },
+      { id: 'window-foot', text: 'whatsnew.change.windowFoot' },
     ],
   },
   {
