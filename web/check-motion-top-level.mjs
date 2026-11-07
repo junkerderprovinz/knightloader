@@ -53,6 +53,7 @@
 //
 // Run from web/: `node check-motion-top-level.mjs`
 import { readFileSync, readdirSync } from 'node:fs';
+import { registerHooks } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -223,6 +224,12 @@ globalThis.localStorage = {
   removeItem: () => {},
 };
 
+// appearance.ts names its neighbours without an extension, as the bundler
+// resolves them.
+registerHooks({
+  resolve: (specifier, context, next) =>
+    next(/^\.\.?\/([^/]+\/)*[^./]+$/.test(specifier) ? `${specifier}.ts` : specifier, context),
+});
 const mod = await import('./src/lib/appearance.ts');
 
 cell.value = RETIRED;
