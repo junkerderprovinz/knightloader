@@ -607,8 +607,9 @@ body {
    above surface3. The text, the accent and the state colours stay, since they
    were measured on darker grounds than they get here.
 
-   A shadow on black is invisible, so the elevation becomes a ring in the
-   border colour. The scrim loses nothing on black and keeps dark's value. A lit
+   A shadow on black is invisible, and a ring in its place reads as a frame
+   round every card, so the elevation goes and the card's #161616 on black is
+   its edge. The scrim loses nothing on black and keeps dark's value. A lit
    brand tile in a near-black colour, such as the MCP clients' black ones, would
    vanish into the card, so --tile-edge rings every lit tile. */
 [data-theme="dark"][data-oled] {
@@ -620,7 +621,7 @@ body {
   --carbon-hover:      #232323;
   --carbon-hover-raised: #525252;
   --carbon-border:     #262626;
-  --elevation: 0 0 0 1px #262626;
+  --elevation: 0 0 #0000;
   --glim-scrim: rgba(0, 0, 0, .72);
   --tile-edge: rgba(255, 255, 255, .2);
 }
@@ -636,7 +637,7 @@ body {
     --carbon-hover:      #232323;
     --carbon-hover-raised: #525252;
     --carbon-border:     #262626;
-    --elevation: 0 0 0 1px #262626;
+    --elevation: 0 0 #0000;
     --glim-scrim: rgba(0, 0, 0, .72);
     --tile-edge: rgba(255, 255, 255, .2);
   }
