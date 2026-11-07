@@ -12,7 +12,7 @@ import { Text, TextInput } from './Text';
  * A colour picker: a saturation/value pad, a hue rail and a hex field.
  *
  * The maths is the extension's `colorpicker.js` and the shared reference behind
- * it (glimstone, reference/colorPicker.ts), transcribed rather than re-derived
+ * it (glimstone, packages/core/src/colorPicker.ts), transcribed rather than re-derived
  * by eye, so a colour mixed on a phone and the same colour mixed in a browser
  * are the same six digits.
  *

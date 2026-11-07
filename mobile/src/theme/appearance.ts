@@ -1,10 +1,11 @@
 // The framework-free half of GlimStone's appearance module, taken across.
 //
 // The shared reference (github.com/junkerderprovinz/glimstone,
-// reference/appearance.ts) is free of any UI framework, but only half of it
-// travels: the constants and the pure functions here are a straight copy, while
-// the half that applies its answer through CSS custom properties on <html> has
-// no equivalent in React Native and lives in AppearanceContext instead.
+// packages/core/src/appearance.ts) is free of any UI framework, but only half
+// of it travels: the constants and the pure functions here are a straight copy,
+// while the half that applies its answer through CSS custom properties on
+// <html> has no equivalent in React Native and lives in AppearanceContext
+// instead.
 //
 // Everything copied is copied as it stands. Re-picking a colour by eye or
 // rounding a luminance constant is how two apps on one design language stop
@@ -170,11 +171,11 @@ export function rainbowColor(state: RainbowState, i: number): string | undefined
   return state.on ? rainbowAt(state, i) : undefined;
 }
 
-// Disco, the colour engine's easter egg from reference/disco.ts: while it is
-// on, every hued element glides along the palette together, round the colour
-// wheel. A phone has no root variables for a frame loop to write, so the walk
-// is a theme that renders again on a timer (AppearanceContext), over the loop
-// in discoLoop.ts, which is the reference's file as it is.
+// Disco, the colour engine's easter egg from packages/core/src/disco.ts: while
+// it is on, every hued element glides along the palette together, round the
+// colour wheel. A phone has no root variables for a frame loop to write, so the
+// walk is a theme that renders again on a timer (AppearanceContext), over the
+// loop in discoLoop.ts, which is the reference's file as it is.
 
 /** The walk covers one palette colour's worth of loop every 2.4 seconds, a
  *  full turn of eight in 19.2. Stepping, it moves one colour on at the same

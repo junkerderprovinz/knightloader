@@ -207,7 +207,7 @@ if (m) {
       }
       const native = ref?.NATIVE_MOTION;
       if (!native?.wild) {
-        fail(`${NATIVE_MODULE}: no NATIVE_MOTION table - copy reference/motionNative.ts from GlimStone as it is`);
+        fail(`${NATIVE_MODULE}: no NATIVE_MOTION table - copy packages/core/src/motionNative.ts from GlimStone as it is`);
       } else {
         for (const level of ['off', 'subtle', 'wild', 'storm']) {
           for (const [k, v] of Object.entries(native[level] ?? {})) {

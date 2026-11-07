@@ -347,7 +347,7 @@ stop, how fast to look) live in `src/watch/rules.ts`, which
   Motion is the second axis and sits in its own pair, `motion.ts` (the table
   of figures per level, plus the gesture that reveals the level no picker
   lists) and `MotionContext.tsx`. Most of the table is GlimStone's
-  `reference/motionNative.ts`, copied unchanged as `motionNative.ts`, so the
+  `packages/core/src/motionNative.ts`, copied unchanged as `motionNative.ts`, so the
   cards arriving on a page, a button giving way under the finger and a flung
   page springing back at its edge move as they do in the other apps of the
   family. `src/components/Moving.tsx` puts them on the pages and lists, and

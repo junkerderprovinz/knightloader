@@ -5,7 +5,7 @@ import { accentInks } from './contrast';
 // GlimStone's palette, as this app's tokens.
 //
 // The values are copied from the shared reference
-// (github.com/junkerderprovinz/glimstone, reference/tokens.css) rather than
+// (github.com/junkerderprovinz/glimstone, packages/core/tokens.css) rather than
 // re-picked by eye, so "Sunflower" is the same yellow in every app on the
 // language. The token names are the contract; these are the values behind them.
 //
