@@ -117,10 +117,6 @@ function instancesGlyph(size) {
   return svg;
 }
 
-const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
-// The same cross popup.js uses for its cancel.
-const D_CROSS =
-  'M4.2 2.8 8 6.6l3.8-3.8 1.4 1.4L9.4 8l3.8 3.8-1.4 1.4L8 9.4l-3.8 3.8-1.4-1.4L6.6 8 2.8 4.2z';
 // PayPal from Simple Icons, CC0 1.0, on a 24-unit grid, the mark the web UI's
 // About card draws (web/src/components/donateMarks.tsx).
 const D_PAYPAL =
@@ -135,52 +131,6 @@ const D_GITHUB =
   '-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27' +
   '1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95' +
   '.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z';
-// Two offset sheets as separate subpaths, so the overlap reads as depth at
-// 14px.
-const D_COPY =
-  'M4 1.5h6.5a1 1 0 0 1 1 1V4H6a1.5 1.5 0 0 0-1.5 1.5V11H3a1 1 0 0 1-1-1V2.5a1 1 0 0 1 1-1z' +
-  'M6.5 5.5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z';
-// A filled bin in one path.
-const D_TRASH =
-  'M6.5 1h3a1 1 0 0 1 1 1v1H13v1.5H3V3h2.5V2a1 1 0 0 1 1-1zm.5 2h2v-.5H7V3z' +
-  'M4 5.5h8l-.6 8.1a1.4 1.4 0 0 1-1.4 1.4H6a1.4 1.4 0 0 1-1.4-1.4L4 5.5z';
-// A solid clipboard with its clip, the same shape the app's paste button uses.
-const D_PASTE =
-  'M4.1 2.8h7.8a1.6 1.6 0 0 1 1.6 1.6v8.8a1.6 1.6 0 0 1-1.6 1.6H4.1a1.6 1.6 0 0 1-1.6-1.6V4.4a1.6 1.6 0 0 1 1.6-1.6z' +
-  'M5.8 1.2h4.4a.8.8 0 0 1 .8.8v1a.8.8 0 0 1-.8.8H5.8a.8.8 0 0 1-.8-.8V2a.8.8 0 0 1 .8-.8z';
-/**
- * The web UI's IconEye and IconEyeOff (web/src/lib/icons.tsx), copied shape for
- * shape so the reveal eye looks the same everywhere: an almond with the iris
- * cut out, and for the shown phrase the same almond at .55 behind a bar.
- */
-function eyeGlyph(off, size) {
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 20 20');
-  svg.setAttribute('width', String(size));
-  svg.setAttribute('height', String(size));
-  svg.setAttribute('fill', 'currentColor');
-  svg.setAttribute('aria-hidden', 'true');
-  const eye = document.createElementNS(NS, 'path');
-  eye.setAttribute('fill-rule', 'evenodd');
-  eye.setAttribute(
-    'd',
-    'M2.5 10C2.5 10 6 4.3 10 4.3C14 4.3 17.5 10 17.5 10C17.5 10 14 15.7 10 15.7C6 15.7 2.5 10 2.5 10Z' +
-      'M12.6 10a2.6 2.6 0 1 1 -5.2 0 2.6 2.6 0 0 1 5.2 0Z',
-  );
-  svg.appendChild(eye);
-  if (off) {
-    eye.setAttribute('opacity', '.55');
-    const bar = document.createElementNS(NS, 'rect');
-    bar.setAttribute('x', '9.1');
-    bar.setAttribute('width', '1.8');
-    bar.setAttribute('height', '20');
-    bar.setAttribute('rx', '0.9');
-    bar.setAttribute('transform', 'rotate(45 10 10)');
-    svg.appendChild(bar);
-  }
-  return svg;
-}
-
 /** Buy Me a Coffee's button artwork (appMarks.js), cup and lettering. */
 function coffeeArt() {
   const svg = document.createElementNS(NS, 'svg');
@@ -378,14 +328,14 @@ function applyStaticText() {
   phraseInput.placeholder = t('options.phrasePlaceholder');
   renderPhraseEye();
   renderPhrasePaste();
-  joinBtn.textContent = t('options.join');
+  joinBtn.replaceChildren(glimGlyph('IconLink', 14), document.createTextNode(t('options.join')));
   // The badge has no text; its name is in aria-label and the tooltip.
   leaveBtn.textContent = '';
   leaveBtn.setAttribute('aria-label', t('options.leave'));
   leaveBtn.setAttribute('data-tip', t('options.leave'));
   // A glyph alone in a square fills half of it (GlimStone 1.8.0).
-  leaveBtn.replaceChildren(glyph(D_TRASH, 16));
-  refreshBtn.textContent = t('options.refresh');
+  leaveBtn.replaceChildren(glimGlyph('IconUnlink', 16));
+  refreshBtn.replaceChildren(glimGlyph('IconRetry', 14), document.createTextNode(t('options.refresh')));
   rowLabel('deviceNameLabel', t('options.deviceName'), t('options.deviceNameHint'), deviceNameEl);
   // The default is worded in the page's language.
   void renderDeviceName();
@@ -393,8 +343,8 @@ function applyStaticText() {
   // Both buttons are neutral, since a destructive control is not coloured
   // (GlimStone 1.12.0), and the committing one names its action.
   leaveConfirmTitleEl.textContent = t('options.leaveConfirmTitle');
-  leaveConfirmCancelEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.cancel')));
-  leaveConfirmCommitEl.replaceChildren(glyph(D_TRASH, 14), document.createTextNode(t('options.leave')));
+  leaveConfirmCancelEl.replaceChildren(glimGlyph('IconClose', 14), document.createTextNode(t('common.cancel')));
+  leaveConfirmCommitEl.replaceChildren(glimGlyph('IconUnlink', 14), document.createTextNode(t('options.leave')));
 
   languageHeadingEl.textContent = t('options.languageHeading');
   glimSetInfo('languageHeading', t('options.languageSub'));
@@ -413,7 +363,7 @@ function applyStaticText() {
   rowLabel('clipLabel', t('options.clipToggle'), `${t('options.clipSub')} ${t('options.clipAccessInfo')}`, clipEnabledEl);
   document.getElementById('clipElsewhereTitle').textContent = t('options.clipElsewhereTitle');
   document.getElementById('clipElsewhereMessage').textContent = t('options.clipElsewhereBody');
-  clipElsewhereCancelEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.cancel')));
+  clipElsewhereCancelEl.replaceChildren(glimGlyph('IconClose', 14), document.createTextNode(t('common.cancel')));
   clipElsewhereKeepEl.textContent = t('options.clipElsewhereKeep');
   clipElsewhereStopEl.textContent = t('options.clipElsewhereStop');
 
@@ -435,7 +385,7 @@ function applyStaticText() {
   const pinDismiss = document.getElementById('pinDismiss');
   if (pinHeading) pinHeading.textContent = t('options.pinHeading');
   if (pinBody) pinBody.textContent = t('options.pinBody');
-  if (pinDismiss) pinDismiss.textContent = t('options.pinDismiss');
+  pinDismiss?.replaceChildren(glimGlyph('IconConfirm', 14), document.createTextNode(t('options.pinDismiss')));
 
   problemsHeadingEl.textContent = t('options.problemsHeading');
   document.getElementById('helpHeading').textContent = t('options.helpHeading');
@@ -482,7 +432,7 @@ async function renderPinHint() {
 function renderPhraseEye() {
   const shown = phraseInput.type === 'text';
   // Half of .glim-eye's 28px box.
-  phraseEye.replaceChildren(eyeGlyph(shown, 14));
+  phraseEye.replaceChildren(glimGlyph(shown ? 'IconEyeOff' : 'IconEye', 14));
   const name = shown ? t('options.phraseHide') : t('options.phraseShow');
   phraseEye.setAttribute('aria-label', name);
   phraseEye.setAttribute('data-tip', name);
@@ -497,7 +447,7 @@ phraseEye.addEventListener('click', () => {
 
 /** Draws the paste button's glyph and name together, like the eye. */
 function renderPhrasePaste() {
-  phrasePaste.replaceChildren(glyph(D_PASTE, 14));
+  phrasePaste.replaceChildren(glimGlyph('IconPaste', 14));
   const name = t('options.phrasePaste');
   phrasePaste.setAttribute('aria-label', name);
   phrasePaste.setAttribute('data-tip', name);
@@ -572,7 +522,7 @@ async function renderGroup({ quiet = false } = {}) {
   if (!quiet) phraseInput.value = phrase;
   leaveBtn.hidden = !joined;
   refreshBtn.hidden = !joined;
-  joinBtn.textContent = joined ? t('options.reconnect') : t('options.join');
+  joinBtn.replaceChildren(glimGlyph('IconLink', 14), document.createTextNode(joined ? t('options.reconnect') : t('options.join')));
   if (!joined || !quiet) {
     list.innerHTML = '';
     ownKeyEl.hidden = true;
@@ -1419,7 +1369,7 @@ function resetBadge(onClick) {
   b.type = 'button';
   b.className = 'glim-reset glim-btn-neutral';
   // Half the badge's box.
-  b.appendChild(glyph(D_RETRY, 16));
+  b.appendChild(glimGlyph('IconRefresh', 16));
   b.setAttribute('data-tip', t('options.accentReset'));
   b.setAttribute('aria-label', t('options.accentReset'));
   b.addEventListener('click', onClick);
@@ -1830,7 +1780,7 @@ function openCoffee() {
   document.getElementById('coffeeTitle').textContent = t('options.aboutCoffeeButton');
   glimSetInfo('coffeeHeading', t('options.coffeeIntro'));
   document.getElementById('coffeeAppeal').textContent = t('options.donateAppeal');
-  coffeeCloseEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.close')));
+  coffeeCloseEl.replaceChildren(glimGlyph('IconClose', 14), document.createTextNode(t('common.close')));
   const frame = document.createElement('iframe');
   frame.src = COFFEE_WIDGET_URL;
   frame.title = t('options.aboutCoffeeButton');
@@ -1987,14 +1937,14 @@ function renderCrypto() {
 
 function paintCryptoCopy(copied) {
   cryptoCopyEl.replaceChildren(
-    copied ? checkGlyph(14) : glyph(D_COPY, 14),
+    copied ? checkGlyph(14) : glimGlyph('IconCopy', 14),
     document.createTextNode(t(copied ? 'common.copied' : 'common.copy')),
   );
 }
 
 function openCrypto() {
   renderCrypto();
-  cryptoCloseEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.close')));
+  cryptoCloseEl.replaceChildren(glimGlyph('IconClose', 14), document.createTextNode(t('common.close')));
   cryptoEl.hidden = false;
   cryptoCopyEl.focus();
   document.addEventListener('keydown', onCryptoKey);
@@ -2055,7 +2005,7 @@ let reportCopiedTimer = 0;
 /** The copy button says it landed, as the crypto window's does. */
 function paintReportCopy(copied) {
   copyReportBtn.replaceChildren(
-    copied ? checkGlyph(14) : glyph(D_COPY, 14),
+    copied ? checkGlyph(14) : glimGlyph('IconCopy', 14),
     document.createTextNode(t(copied ? 'common.copied' : 'options.problemsCopy')),
   );
 }

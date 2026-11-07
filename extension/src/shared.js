@@ -156,7 +156,8 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
     // Disabled rather than hidden without an address, so every card has the
     // same control.
     const url = status?.webUrl ?? '';
-    actions.appendChild(squareAction(GLYPH_OPEN, t('instance.open'), !url, (el) => onOpen(inst, url, el)));
+    // 16px, half the square (GlimStone 1.8.0).
+    actions.appendChild(squareAction(glimGlyph('IconExternalLink', 16), t('instance.open'), !url, (el) => onOpen(inst, url, el)));
     card.appendChild(actions);
   }
 
@@ -293,28 +294,14 @@ function lastSeenLine(unix) {
   return seen;
 }
 
-/* The card's glyphs, built as nodes because Mozilla's linter, a release gate
-   here, fails an innerHTML assignment from a variable. */
-const GLYPH_OPEN = 'M9 2h5v5h-1.5V4.56L7.8 9.26 6.74 8.2l4.7-4.7H9zM3 4h4v1.5H4.5v6h6V9H12v4H3z';
-
-function squareAction(d, label, disabled, onClick) {
+function squareAction(icon, label, disabled, onClick) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'glim-square glim-btn-neutral';
   b.disabled = !!disabled;
   b.setAttribute('aria-label', label);
   b.setAttribute('data-tip', label);
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 16 16');
-  // A glyph alone in a square fills half of it (GlimStone 1.8.0).
-  svg.setAttribute('width', '16');
-  svg.setAttribute('height', '16');
-  svg.setAttribute('aria-hidden', 'true');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('fill', 'currentColor');
-  path.setAttribute('d', d);
-  svg.appendChild(path);
-  b.appendChild(svg);
+  b.appendChild(icon);
   // The button passes itself so a failure shakes the clicked node, since the
   // card is rebuilt on every render.
   b.addEventListener('click', () => onClick(b));
