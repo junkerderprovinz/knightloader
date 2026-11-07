@@ -1,0 +1,1 @@
+While you hold an item to move it, every other item of the list trembles, so you see at once that they can be moved. A download that JDownloader holds back for a hoster's cool-down keeps waiting instead of failing.

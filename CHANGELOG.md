@@ -38,6 +38,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.7.3] - 2026-11-07
+
 ### Changed
 
 - **While you hold an item to move it, every other item of the list
@@ -50,20 +52,18 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
-- **A wide column such as Name can be dragged back to either end of the
-  list.** Held at the table's edge, its middle stayed beyond a narrow
-  neighbour's, so it never passed it. A column passes another once its
-  leading edge is past the other's middle.
-### Fixed
-
 - **A download JDownloader holds back for a hoster's cool-down waits instead
   of failing.** A free 1fichier link can make JDownloader wait several hours
   between files. KnightLoader took that for a stall after 45 minutes and
   marked the task as failed, while JDownloader finished the file later
-  without anyone watching. The task now shows JDownloader's wait and keeps
+  without anyone watching. The task shows JDownloader's wait and keeps
   following it, and a task KnightLoader does give up on is switched off in
   JDownloader, so the two never disagree
   ([#155](https://github.com/junkerderprovinz/knightloader/issues/155)).
+- **A wide column such as Name can be dragged back to either end of the
+  list.** Held at the table's edge, its middle stayed beyond a narrow
+  neighbour's, so it never passed it. A column passes another once its
+  leading edge is past the other's middle.
 
 ## [2.7.2] - 2026-11-07
 
