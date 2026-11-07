@@ -2,7 +2,7 @@
 // with it (GlimStone's rule 45). Every ink handed out here reaches 4.5:1, the
 // minimum for body text, whatever colour somebody picked or the system gave.
 //
-// The same file as web/src/lib/contrast.ts, so the app and its own web
+// The arithmetic of web/src/lib/contrast.ts, so the app and its own web
 // interface compute one ink for one colour. check-contrast.mjs holds the two
 // together.
 
@@ -99,10 +99,9 @@ export function contrastOn(hex: string): string {
 /**
  * accentInks is the accent as text on each theme where the 55% mix of the
  * light theme, or the accent itself on dark, falls short of 4.5:1 on that
- * theme's card, and undefined where the mix
- * holds, which it does for every preset. The light ink starts from the mix and
- * goes on toward black, the dark one starts from the accent and goes toward
- * white.
+ * theme's card, and undefined where it holds, which it does for every preset.
+ * The light ink starts from the mix and goes on toward black, the dark one
+ * starts from the accent and goes toward white.
  */
 export function accentInks(hex: string): { light: string | undefined; dark: string | undefined } {
   if (!validHex(hex)) return { light: undefined, dark: undefined };
