@@ -717,7 +717,13 @@ body {
 .glim-well .glim-field {
   background-color: var(--carbon-surface3);
 }
-.glim-well button.glim-field:hover {
+/* A trigger's hover and a text field's focus step up from the tier the fields
+   stand on here. The input inside a field that draws its own box takes the
+   step with it, or it would show as a patch of the tier below. */
+.glim-well button.glim-field:hover,
+:is(.glim-well, .glim-subcard) :is(input, textarea).glim-field:focus,
+:is(.glim-well, .glim-subcard) .glim-field:has(input:focus),
+:is(.glim-well, .glim-subcard) .glim-field:has(input:focus) input {
   background-color: var(--carbon-hover-raised);
 }
 

@@ -6,7 +6,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import type { Category as Drawer } from '../lib/api';
 import { en } from '../lib/locales/en';
 import { IconAdd, IconCode, IconFolder, IconTrash } from '../lib/icons';
-import { Button, FIELD_BOX, IconBadge, InfoBubble, TextInput } from './ui';
+import { Button, FIELD_INPUT, IconBadge, InfoBubble, TextInput } from './ui';
 import { Dropdown } from './Dropdown';
 import { FolderPicker } from './FolderPicker';
 import { Tabs } from './Tabs';
@@ -359,7 +359,7 @@ function TemplateInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className={`${FIELD_BOX} w-full px-3 text-sm placeholder:text-carbon-textMuted`}
+        className={`${FIELD_INPUT} w-full px-3 text-sm placeholder:text-carbon-textMuted`}
       />
       {folder && (
         <Button

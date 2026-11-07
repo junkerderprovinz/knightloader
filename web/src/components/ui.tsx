@@ -1094,14 +1094,13 @@ export function hueStyle(index: number | undefined): CSSProperties {
 
 /**
  * The look every field shares: the text field, the number field, the dropdown
- * and the time picker's trigger. One fill, no border, the focus ring as the
- * only edge (GlimStone rule 14), so two of them side by side cannot differ in
- * anything but their content. `glim-field` is how index.css finds them inside a
- * well, where the fill moves one step up the ramp to stay visible.
+ * and the time picker's trigger. One fill and no border (GlimStone rule 14), so
+ * two of them side by side cannot differ in anything but their content.
+ * `glim-field` is how index.css finds them inside a well, where the fill moves
+ * one step up the ramp to stay visible.
  */
 const FIELD_LOOK =
-  'glim-field rounded-[var(--radius-control)] bg-carbon-surface2 text-carbon-text outline-none transition-shadow ' +
-  'focus:shadow-[0_0_0_2px_var(--focus-ring)]';
+  'glim-field rounded-[var(--radius-control)] bg-carbon-surface2 text-carbon-text outline-none transition-colors';
 
 /**
  * A one-line field, or a control standing in for one, at `--btn-h`: the height
@@ -1116,7 +1115,17 @@ export const FIELD_BOX = `${FIELD_LOOK} h-[var(--btn-h)]`;
  */
 export const FIELD_TRIGGER = `${FIELD_BOX} cursor-pointer hover:bg-carbon-surface3 disabled:pointer-events-none disabled:opacity-40`;
 
-const inputClass = `${FIELD_LOOK} w-full px-3 py-1.5 text-sm placeholder:text-carbon-textMuted`;
+/**
+ * A field that takes text shows its focus by stepping its fill up the ramp,
+ * with the caret, and without the ring (rule 14). A trigger keeps the ring,
+ * since it has no caret to show where the keys go.
+ */
+const TYPED = 'glim-focus-drawn focus:bg-carbon-surface3';
+
+/** FIELD_INPUT is a one-line text field for an input that draws itself. */
+export const FIELD_INPUT = `${FIELD_BOX} ${TYPED}`;
+
+const inputClass = `${FIELD_LOOK} ${TYPED} w-full px-3 py-1.5 text-sm placeholder:text-carbon-textMuted`;
 
 // className is pulled out and merged rather than left in `props`: a JSX spread
 // applies later props last, so a caller's own className would replace the base
@@ -1433,7 +1442,7 @@ export function UnitNumberInput({
 
   return (
     <span
-      className={`${FIELD_BOX} flex w-full items-center overflow-hidden has-[input:focus]:shadow-[0_0_0_2px_var(--focus-ring)]`}
+      className={`${FIELD_BOX} flex w-full items-center overflow-hidden has-[input:focus]:bg-carbon-surface3`}
     >
       {/* The figure and its unit read left to right in every language, like
           every other figure with a unit, while the arrows keep the end of the
