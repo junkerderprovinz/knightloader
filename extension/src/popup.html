@@ -110,21 +110,6 @@
       #status:empty { display: none; }
       #instanceRow { margin-bottom: 16px; }
       #instanceRow label { display: block; font-size: var(--text-meta); color: var(--carbon-text-muted); margin-bottom: 4px; }
-      /* Shaped like the web UI's field: filled, no border, --btn-h high. */
-      #instance {
-        width: 100%;
-        box-sizing: border-box;
-        height: var(--btn-h);
-        padding: 0 8px;
-        border: 0;
-        border-radius: var(--radius-control);
-        background: var(--carbon-surface2);
-        color: var(--carbon-text);
-        font: inherit;
-        outline: none;
-        transition: box-shadow 150ms ease;
-      }
-      #instance:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
       /* 16 between cards, as everywhere in the window; the label keeps a tight
          6px. */
       #instanceList { display: flex; flex-direction: column; gap: 16px; margin-top: 6px; }
@@ -162,8 +147,11 @@
         /* The field grows with the pane. */
         resize: none;
         outline: none;
+        transition: background-color 150ms ease;
       }
-      #links:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
+      /* A text field shows its focus by stepping its fill up the ramp, with
+         the caret, and without a ring (rule 14, GlimStone 4.2.0). */
+      #links:focus { background: var(--carbon-surface3); }
       /* Two buttons sharing a line, split and wrapped as in .sendRow. */
       .collectorRow { display: flex; flex-wrap: wrap; gap: 8px; }
       .collectorRow button { flex: 1 1 0; min-width: max-content; }

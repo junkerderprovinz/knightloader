@@ -31,8 +31,11 @@
       h2 { margin: 0; font-size: var(--text-meta); font-weight: 500; }
       label { display: block; font-size: var(--text-subline); color: var(--carbon-text-sub); margin-bottom: 6px; }
       /* Fields match the web UI's (ui.tsx inputClass): a filled surface and no
-         border, since GlimStone separates by surface. The focus ring is a
-         box-shadow because an outline ignores the radius. */
+         border, since GlimStone separates by surface. A text field shows its
+         focus by stepping its fill up the ramp, with the caret, and without a
+         ring (rule 14, GlimStone 4.2.0). A select opens a list and has no
+         caret, so it keeps the ring, a box-shadow because an outline ignores
+         the radius. */
       input,
       select {
         box-sizing: border-box;
@@ -45,9 +48,10 @@
         color: var(--carbon-text);
         font: inherit;
         outline: none;
-        transition: box-shadow 150ms ease;
+        transition: background-color 150ms ease, box-shadow 150ms ease;
       }
-      input:focus,
+      input:focus { background: var(--carbon-surface3); }
+      input:focus-visible { outline: none; }
       select:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
       /* Links styled as buttons share the button rules; every pressable thing
          is --btn-h high. */

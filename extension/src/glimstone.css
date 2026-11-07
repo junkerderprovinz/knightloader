@@ -1059,15 +1059,26 @@ body {
   font-weight: 400;
   text-align: start;
   cursor: pointer;
+  transition: background-color 150ms ease;
 }
+/* A trigger opens something rather than taking text, so it answers the
+   pointer one step up the ramp (rule 21) and keeps its ring on focus, since
+   it has no caret to show where the keys go (rule 14). */
+.glim-listbox-trigger:hover { background: var(--carbon-surface3); }
 .glim-listbox-trigger:focus-visible { outline: 0; box-shadow: 0 0 0 2px var(--focus-ring); }
 .glim-listbox-caret { margin-inline-start: auto; opacity: .7; }
+/* The open list starts where the trigger's text starts, ends with the trigger
+   or past it, and stays between 13rem and 22rem wide, scrolling from 24rem
+   (GlimStone 3.8.0, "The dropdown"). */
 .glim-listbox-menu {
   position: absolute;
   z-index: 40;
-  inset-inline: 0;
+  inset-inline-start: 0;
   top: calc(100% + 6px);
-  max-height: 320px;
+  box-sizing: border-box;
+  min-width: max(13rem, 100%);
+  max-width: 22rem;
+  max-height: 24rem;
   overflow-y: auto;
   padding: 4px;
   border-radius: var(--radius-control);
