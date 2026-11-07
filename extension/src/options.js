@@ -1705,35 +1705,45 @@ const COFFEE_WIDGET_URL = 'https://buymeacoffee.com/widget/page/junkerderprovinz
 // app's client id and a plan per interval, which this project does not have.
 const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
 
-/** A version number linking to its release, opened in a new tab. */
-function versionLink(href, label) {
+/**
+ * One row of the Version card: the name at the start and the number at the
+ * end, linking to its release in a new tab. The number carries no "v", which
+ * belongs to the tag (GlimStone 3.8.0).
+ */
+function versionRow(name, href, number) {
+  const row = document.createElement('div');
+  row.className = 'glim-row';
+  const label = document.createElement('span');
+  label.className = 'glim-row-label';
+  label.textContent = name;
   const a = document.createElement('a');
   a.href = href;
   a.target = '_blank';
   a.rel = 'noreferrer noopener';
-  a.className = 'versionLink';
-  a.textContent = label;
-  return a;
+  a.className = 'versionLink glim-num';
+  a.textContent = number;
+  row.append(label, a);
+  return row;
 }
 
 /**
- * The Help and About cards: the ways to report something, then a thank-you, the
- * ways to give and the versions. The extension's version comes from the
- * manifest.
+ * The Version, Help and About cards: every version, the ways to report
+ * something, then a thank-you and the ways to give. The extension's version
+ * comes from the manifest.
  */
 function renderAbout() {
-  const versions = document.getElementById('aboutVersions');
+  const versions = document.getElementById('versionRows');
   const text = document.getElementById('aboutText');
   const gh = document.getElementById('aboutGithub');
   const mail = document.getElementById('aboutMail');
   if (!versions) return;
-  // Both versions link to their release. The extension carries KnightLoader's
-  // own number, so its release is the main one.
+  document.getElementById('versionHeading').textContent = t('options.aboutVersion');
+  // The extension carries KnightLoader's own number, so its release is the
+  // main one.
+  const own = chrome.runtime.getManifest().version;
   versions.replaceChildren(
-    document.createTextNode(`${t('options.aboutVersion')} `),
-    versionLink(`${REPO_URL}/releases/tag/v${chrome.runtime.getManifest().version}`, chrome.runtime.getManifest().version),
-    document.createTextNode(' · GlimStone '),
-    versionLink(`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`, GLIMSTONE_VERSION),
+    versionRow('KnightLoader', `${REPO_URL}/releases/tag/v${own}`, own),
+    versionRow('GlimStone', `${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`, GLIMSTONE_VERSION),
   );
   text.textContent = t('options.aboutText');
   const coffeeText = document.getElementById('aboutCoffee');

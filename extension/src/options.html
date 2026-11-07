@@ -207,16 +207,6 @@
       .captureRules select { min-width: 140px; }
       .clipNotice { margin-top: 14px; }
       .clipWatchers { margin: 0 0 10px; padding-left: 18px; color: var(--carbon-text); }
-      .aboutVersions {
-        margin: 0;
-        font-size: var(--text-meta);
-        color: var(--carbon-text-muted);
-        font-variant-numeric: tabular-nums;
-      }
-      /* The versions are a footer, a step further from the buttons above
-         them. The give row keeps its own blank line on both sides
-         (.glim-about-give). */
-      .glim-readme-btn-rows + .aboutVersions { margin-top: 20px; }
       /* Underlined only on hover, in the accent ink. */
       .versionLink { color: var(--accent-ink); text-decoration: none; }
       .versionLink:hover { text-decoration: underline; }
@@ -501,10 +491,17 @@
       </div>
     </section>
 
-    <!-- Help and About split as on the web UI's Info tile: the ways to report
-         something, then who made the extension and the ways to give. Each
-         sentence has its buttons directly beneath it. -->
+    <!-- Version, Help and About in the order of the web UI's Info tile
+         (GlimStone 3.5.0): every version as a row with its release, the ways
+         to report something, then who made the extension and the ways to
+         give. The browser updates the extension, so the card has no update
+         check. -->
     <section class="glim-card glim-stagger-row" style="--row-i: 6">
+      <h2 class="glim-section-badge" id="versionHeading">Version</h2>
+      <div class="axes" id="versionRows"></div>
+    </section>
+
+    <section class="glim-card glim-stagger-row" style="--row-i: 7">
       <h2 class="glim-section-badge" id="helpHeading">Help</h2>
       <p id="aboutReport" class="aboutText"></p>
       <div class="glim-readme-btn-rows" id="aboutReportRow">
@@ -522,7 +519,7 @@
     </section>
 
     <!-- The About card, the one card whose body is prose (GlimStone 1.7.0). -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 7">
+    <section class="glim-card glim-stagger-row" style="--row-i: 8">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
@@ -544,8 +541,6 @@
           <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
         </div>
       </div>
-      <!-- The versions close the page. -->
-      <p id="aboutVersions" class="aboutVersions glim-num"></p>
     </section>
 
     <!-- The confirmation window (GlimStone 1.12.0), static markup that
