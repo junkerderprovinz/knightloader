@@ -28,13 +28,27 @@ import { useToast } from '../lib/toast';
 import {
   IconArchive,
   IconBolt,
+  IconBook,
   IconCheck,
+  IconCube,
+  IconDisc,
   IconFile,
   IconFileAudio,
+  IconFileDesign,
+  IconFileDoc,
   IconFileImage,
+  IconFilePdf,
+  IconFilePlaylist,
+  IconFileProgram,
+  IconFileRaw,
+  IconFileSheet,
+  IconFileSlides,
   IconFileSubtitles,
   IconFileText,
   IconFileVideo,
+  IconFont,
+  IconHash,
+  IconMagnet,
   IconPower,
   IconRetry,
   IconStopMark,
@@ -1425,7 +1439,28 @@ export function variantKindOf(task: Task): string {
 }
 
 /** What a row's file is, for the glyph before its name. */
-export type FileKind = 'video' | 'audio' | 'image' | 'subtitle' | 'text' | 'archive' | 'other';
+export type FileKind =
+  | 'video'
+  | 'audio'
+  | 'image'
+  | 'raw'
+  | 'design'
+  | 'subtitle'
+  | 'text'
+  | 'pdf'
+  | 'document'
+  | 'spreadsheet'
+  | 'presentation'
+  | 'ebook'
+  | 'playlist'
+  | 'archive'
+  | 'disc'
+  | 'program'
+  | 'font'
+  | 'model'
+  | 'checksum'
+  | 'torrent'
+  | 'other';
 
 const VARIANT_FILE_KIND: Record<string, FileKind> = {
   video: 'video',
@@ -1439,9 +1474,23 @@ const EXT_FILE_KIND: [RegExp, FileKind][] = [
   [/^(mp4|mkv|webm|avi|mov|m4v|ts|flv|wmv|mpe?g|3gp)$/, 'video'],
   [/^(opus|m4a|mp3|flac|ogg|oga|wav|aac|weba|wma)$/, 'audio'],
   [/^(jpe?g|png|webp|gif|bmp|avif|heic|tiff?)$/, 'image'],
+  [/^(cr[23]|nef|arw|dng|raf|orf|rw2)$/, 'raw'],
+  [/^(svg|psd|ai|eps|xcf|sketch|fig)$/, 'design'],
   [/^(srt|vtt|ass|ssa|sub|sbv|ttml|lrc)$/, 'subtitle'],
   [/^(description|txt|nfo|md|json|xml|html?)$/, 'text'],
+  [/^pdf$/, 'pdf'],
+  [/^(docx?|odt|rtf)$/, 'document'],
+  [/^(xlsx?|ods|csv)$/, 'spreadsheet'],
+  [/^(pptx?|odp)$/, 'presentation'],
+  [/^(epub|mobi|azw3?|fb2|djvu|cb[rz])$/, 'ebook'],
+  [/^(m3u8?|pls|xspf)$/, 'playlist'],
   [/^(zip|rar|7z|tar|gz|tgz|bz2|xz|zst|cab|r\d{2}|\d{3})$/, 'archive'],
+  [/^(iso|img|dmg|vhdx?|vmdk|qcow2)$/, 'disc'],
+  [/^(exe|msix?|apk|deb|rpm|appimage|pkg)$/, 'program'],
+  [/^(ttf|otf|woff2?)$/, 'font'],
+  [/^(stl|obj|3mf|step|stp|blend|fbx)$/, 'model'],
+  [/^(sfv|md5|sha(1|256|512)|sig|asc|par2)$/, 'checksum'],
+  [/^torrent$/, 'torrent'],
 ];
 
 /**
@@ -1462,9 +1511,23 @@ const FILE_KIND_GLYPH: Record<FileKind, (p: GlyphProps) => ReactNode> = {
   video: IconFileVideo,
   audio: IconFileAudio,
   image: IconFileImage,
+  raw: IconFileRaw,
+  design: IconFileDesign,
   subtitle: IconFileSubtitles,
   text: IconFileText,
+  pdf: IconFilePdf,
+  document: IconFileDoc,
+  spreadsheet: IconFileSheet,
+  presentation: IconFileSlides,
+  ebook: IconBook,
+  playlist: IconFilePlaylist,
   archive: IconArchive,
+  disc: IconDisc,
+  program: IconFileProgram,
+  font: IconFont,
+  model: IconCube,
+  checksum: IconHash,
+  torrent: IconMagnet,
   other: IconFile,
 };
 

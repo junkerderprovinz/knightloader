@@ -770,6 +770,104 @@ export const IconFile = (p: GlyphProps) => (
   </svg>
 );
 
+/** A RAW photo straight from the camera: Drawn for CannonCommander. */
+export const IconFileRaw = (p: GlyphProps) => (
+  <svg {...glyph([0.5, 1.5, 13, 11], p)}>
+    <path fillRule="evenodd" d="M2 3H4L4.8 1.5H9.2L10 3H12A1.5 1.5 0 0 1 13.5 4.5V11A1.5 1.5 0 0 1 12 12.5H2A1.5 1.5 0 0 1 0.5 11V4.5A1.5 1.5 0 0 1 2 3ZM4 7.75A3 3 0 1 0 10 7.75A3 3 0 1 0 4 7.75ZM5.5 7.75A1.5 1.5 0 1 0 8.5 7.75A1.5 1.5 0 1 0 5.5 7.75Z" />
+  </svg>
+);
+
+/** A design or vector graphic: Drawn for CannonCommander. */
+export const IconFileDesign = (p: GlyphProps) => (
+  <svg {...glyph([2.5, 0.75, 9, 12.75], p)}>
+    <path fillRule="evenodd" d="M7 0.75L11.5 6.25L9 11.75H5L2.5 6.25ZM5.85 7A1.15 1.15 0 1 0 8.15 7A1.15 1.15 0 1 0 5.85 7ZM6.6 1.9H7.4V5.8H6.6ZM5 12.5H9A0.5 0.5 0 0 1 9.5 13V13A0.5 0.5 0 0 1 9 13.5H5A0.5 0.5 0 0 1 4.5 13V13A0.5 0.5 0 0 1 5 12.5Z" />
+  </svg>
+);
+
+/** A playlist: Drawn for CannonCommander. */
+export const IconFilePlaylist = (p: GlyphProps) => (
+  <svg {...glyph([0.75, 1.75, 12.75, 11.504], p)}>
+    <path fillRule="evenodd" d="M1.5 1.75H9A0.75 0.75 0 0 1 9.75 2.5V2.5A0.75 0.75 0 0 1 9 3.25H1.5A0.75 0.75 0 0 1 0.75 2.5V2.5A0.75 0.75 0 0 1 1.5 1.75ZM1.5 5.25H9A0.75 0.75 0 0 1 9.75 6V6A0.75 0.75 0 0 1 9 6.75H1.5A0.75 0.75 0 0 1 0.75 6V6A0.75 0.75 0 0 1 1.5 5.25ZM1.5 8.75H5A0.75 0.75 0 0 1 5.75 9.5V9.5A0.75 0.75 0 0 1 5 10.25H1.5A0.75 0.75 0 0 1 0.75 9.5V9.5A0.75 0.75 0 0 1 1.5 8.75ZM11.5 4.25H12.75L13.5 5V6.25L12.75 5.75V11.25A2 2 0 1 1 11.5 9.4Z" />
+  </svg>
+);
+
+/** A PDF document: Drawn for CannonCommander. */
+export const IconFilePdf = (p: GlyphProps) => (
+  <svg {...glyph([2, 0.5, 10, 13], p)}>
+    <path fillRule="evenodd" d="M3.5 0.5H8.75L12 3.75V12A1.5 1.5 0 0 1 10.5 13.5H3.5A1.5 1.5 0 0 1 2 12V2A1.5 1.5 0 0 1 3.5 0.5ZM5 5H7.75A1.75 1.75 0 0 1 7.75 8.5H6.5V11H5ZM6.5 6.25H7.65A0.5 0.5 0 0 1 7.65 7.25H6.5Z" />
+  </svg>
+);
+
+/** A text document from an office suite: Drawn for CannonCommander. */
+export const IconFileDoc = (p: GlyphProps) => (
+  <svg {...glyph([2, 0.5, 10, 13], p)}>
+    <path fillRule="evenodd" d="M3.5 0.5H8.75L12 3.75V12A1.5 1.5 0 0 1 10.5 13.5H3.5A1.5 1.5 0 0 1 2 12V2A1.5 1.5 0 0 1 3.5 0.5ZM4.55 5.25H9.45A0.55 0.55 0 0 1 10 5.8V5.8A0.55 0.55 0 0 1 9.45 6.35H4.55A0.55 0.55 0 0 1 4 5.8V5.8A0.55 0.55 0 0 1 4.55 5.25ZM4.55 7.5H9.45A0.55 0.55 0 0 1 10 8.05V8.05A0.55 0.55 0 0 1 9.45 8.6H4.55A0.55 0.55 0 0 1 4 8.05V8.05A0.55 0.55 0 0 1 4.55 7.5ZM4.55 9.75H7.45A0.55 0.55 0 0 1 8 10.3V10.3A0.55 0.55 0 0 1 7.45 10.85H4.55A0.55 0.55 0 0 1 4 10.3V10.3A0.55 0.55 0 0 1 4.55 9.75Z" />
+  </svg>
+);
+
+/** A spreadsheet: Drawn for CannonCommander. */
+export const IconFileSheet = (p: GlyphProps) => (
+  <svg {...glyph([2, 0.5, 10, 13], p)}>
+    <path fillRule="evenodd" d="M3.5 0.5H8.75L12 3.75V12A1.5 1.5 0 0 1 10.5 13.5H3.5A1.5 1.5 0 0 1 2 12V2A1.5 1.5 0 0 1 3.5 0.5ZM4 5H6.6V6.75H4ZM7.4 5H10V6.75H7.4ZM4 7.5H6.6V9.25H4ZM7.4 7.5H10V9.25H7.4ZM4 10H6.6V11.75H4ZM7.4 10H10V11.75H7.4Z" />
+  </svg>
+);
+
+/** A presentation: Drawn for CannonCommander. */
+export const IconFileSlides = (p: GlyphProps) => (
+  <svg {...glyph([0.5, 1, 13, 12.25], p)}>
+    <path fillRule="evenodd" d="M1.75 1H12.25A1.25 1.25 0 0 1 13.5 2.25V8.25A1.25 1.25 0 0 1 12.25 9.5H1.75A1.25 1.25 0 0 1 0.5 8.25V2.25A1.25 1.25 0 0 1 1.75 1ZM3 5.5H4.5V8H3ZM6.25 3.5H7.75V8H6.25ZM9.5 4.5H11V8H9.5ZM6.25 9.5H7.75V12H6.25ZM4.125 12H9.875A0.625 0.625 0 0 1 10.5 12.625V12.625A0.625 0.625 0 0 1 9.875 13.25H4.125A0.625 0.625 0 0 1 3.5 12.625V12.625A0.625 0.625 0 0 1 4.125 12Z" />
+  </svg>
+);
+
+/** An e-book: Drawn for CannonCommander. */
+export const IconBook = (p: GlyphProps) => (
+  <svg {...glyph([0.5, 1.709, 13, 10.891], p)}>
+    <path fillRule="evenodd" d="M0.5 2Q3.5 1.2 6.5 2.6V12.6Q3.5 11.2 0.5 12ZM13.5 2Q10.5 1.2 7.5 2.6V12.6Q10.5 11.2 13.5 12Z" />
+  </svg>
+);
+
+/** A disk image or virtual disk: Drawn for CannonCommander. */
+export const IconDisc = (p: GlyphProps) => (
+  <svg {...glyph([0.5, 0.5, 13, 13], p)}>
+    <path fillRule="evenodd" d="M0.5 7A6.5 6.5 0 1 0 13.5 7A6.5 6.5 0 1 0 0.5 7ZM4.5 7A2.5 2.5 0 1 0 9.5 7A2.5 2.5 0 1 0 4.5 7ZM5.9 7A1.1 1.1 0 1 0 8.1 7A1.1 1.1 0 1 0 5.9 7Z" />
+  </svg>
+);
+
+/** A program or installable package: Drawn for CannonCommander. */
+export const IconFileProgram = (p: GlyphProps) => (
+  <svg {...glyph([0.5, 1, 13, 12], p)}>
+    <path fillRule="evenodd" d="M2 1H12A1.5 1.5 0 0 1 13.5 2.5V11.5A1.5 1.5 0 0 1 12 13H2A1.5 1.5 0 0 1 0.5 11.5V2.5A1.5 1.5 0 0 1 2 1ZM0.5 3.75H13.5V4.5H0.5ZM1.85 2.4A0.55 0.55 0 1 0 2.95 2.4A0.55 0.55 0 1 0 1.85 2.4ZM3.65 2.4A0.55 0.55 0 1 0 4.75 2.4A0.55 0.55 0 1 0 3.65 2.4ZM5.5 6.25L10 8.75L5.5 11.25Z" />
+  </svg>
+);
+
+/** A font: Drawn for CannonCommander. */
+export const IconFont = (p: GlyphProps) => (
+  <svg {...glyph([1, 1, 12, 12], p)}>
+    <path fillRule="evenodd" d="M5.6 1H8.4L13 13H10.4L9.4 10.25H4.6L3.6 13H1ZM7 4.2L8.6 8.4H5.4Z" />
+  </svg>
+);
+
+/** A checksum or signature: Drawn for CannonCommander. */
+export const IconHash = (p: GlyphProps) => (
+  <svg {...glyph([0.75, 1, 12.5, 12], p)}>
+    <path fillRule="nonzero" d="M4.65 1H6.15L5.15 13H3.65ZM8.85 1H10.35L9.35 13H7.85ZM1.75 3.9H12.5A0.75 0.75 0 0 1 13.25 4.65V4.65A0.75 0.75 0 0 1 12.5 5.4H1.75A0.75 0.75 0 0 1 1 4.65V4.65A0.75 0.75 0 0 1 1.75 3.9ZM1.5 8.6H12.25A0.75 0.75 0 0 1 13 9.35V9.35A0.75 0.75 0 0 1 12.25 10.1H1.5A0.75 0.75 0 0 1 0.75 9.35V9.35A0.75 0.75 0 0 1 1.5 8.6Z" />
+  </svg>
+);
+
+/** A torrent or magnet link: Drawn for CannonCommander. */
+export const IconMagnet = (p: GlyphProps) => (
+  <svg {...glyph([1.5, 1, 11, 11.5], p)}>
+    <path fillRule="evenodd" d="M1.5 1H5.5V7A1.5 1.5 0 0 0 8.5 7V1H12.5V7A5.5 5.5 0 0 1 1.5 7ZM1.5 3.2H5.5V3.95H1.5ZM8.5 3.2H12.5V3.95H8.5Z" />
+  </svg>
+);
+
+/** A 3D model or CAD drawing: Drawn for CannonCommander. */
+export const IconCube = (p: GlyphProps) => (
+  <svg {...glyph([1, 0.5, 12, 13], p)}>
+    <path fillRule="evenodd" d="M7 0.5L13 3.75V10.25L7 13.5L1 10.25V3.75ZM2.115 3.844L7 6.49L11.885 3.844L12.315 4.636L7.45 7.27V12.6H6.55V7.27L1.685 4.636Z" />
+  </svg>
+);
+
 /** Instances, other boxes: Streamline interface-essential/hierarchy-2.svg. */
 export const IconFleet = (p: GlyphProps) => (
   <svg {...glyph([0, 0.5, 14, 13], p)}>

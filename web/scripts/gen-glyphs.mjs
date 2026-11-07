@@ -37,6 +37,8 @@ const USED = [
   'IconRowCompact', 'IconRowMedium', 'IconRowComfortable', 'IconAccentSystem', 'IconGear', 'IconDashboard',
   'IconFolder', 'IconFolderOpen', 'IconFolderAdd', 'IconArchive',
   'IconFileVideo', 'IconFileAudio', 'IconFileImage', 'IconFileSubtitles', 'IconFileText', 'IconFile',
+  'IconFileRaw', 'IconFileDesign', 'IconFilePlaylist', 'IconFilePdf', 'IconFileDoc', 'IconFileSheet',
+  'IconFileSlides', 'IconBook', 'IconDisc', 'IconFileProgram', 'IconFont', 'IconHash', 'IconMagnet', 'IconCube',
   'IconFleet',
   'IconAccounts', 'IconNetwork', 'IconPhone', 'IconBrowser', 'IconApp',
   'IconModules', 'IconCaptcha', 'IconRestore', 'IconSync', 'IconGithub', 'IconTabGeneral',

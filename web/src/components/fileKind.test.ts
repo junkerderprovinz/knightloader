@@ -22,8 +22,22 @@ it('reads the kind from the extension', () => {
   expect(fileKindOf(task({ name: 'Chronik.7z.001' }))).toBe('archive');
 });
 
+it('tells documents, books, programs and the other kinds of a download apart', () => {
+  expect(fileKindOf(task({ name: 'Burgplan.pdf' }))).toBe('pdf');
+  expect(fileKindOf(task({ name: 'Burgplan.docx' }))).toBe('document');
+  expect(fileKindOf(task({ name: 'Vorrat.ods' }))).toBe('spreadsheet');
+  expect(fileKindOf(task({ name: 'Chronik.epub' }))).toBe('ebook');
+  expect(fileKindOf(task({ name: 'Burgplan.iso' }))).toBe('disc');
+  expect(fileKindOf(task({ name: 'Setup.exe' }))).toBe('program');
+  expect(fileKindOf(task({ name: 'Turnier.m3u8' }))).toBe('playlist');
+  expect(fileKindOf(task({ name: 'Chronik.sfv' }))).toBe('checksum');
+  expect(fileKindOf(task({ name: 'Chronik.torrent' }))).toBe('torrent');
+  expect(fileKindOf(task({ name: 'Wappen.svg' }))).toBe('design');
+  expect(fileKindOf(task({ name: 'Wappen.CR3' }))).toBe('raw');
+});
+
 it('counts anything else, and a name not resolved yet, as another file', () => {
-  expect(fileKindOf(task({ name: 'Burgplan.iso' }))).toBe('other');
+  expect(fileKindOf(task({ name: 'Burgplan.xyz' }))).toBe('other');
   expect(fileKindOf(task({ name: 'README' }))).toBe('other');
   expect(fileKindOf(task({ name: 'https://example.org/x' }))).toBe('other');
 });
