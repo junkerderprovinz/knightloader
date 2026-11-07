@@ -51,15 +51,37 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Choosing it changes only that device, so the instance's accent stays as
   every other client sees it, and a circle picked afterwards goes back to the
   instance. Where the system has no colour, the swatch isn't there.
+- **The browser extension has a Version card** before Help and About, as the
+  Info tile of the web interface does. Each version links to its release.
 
 ### Changed
 
+- **KnightLoader follows GlimStone 4.2.1 everywhere,** in the web interface,
+  the desktop app, the phone app and the browser extension, and the Version
+  card names it.
 - **Text on an accent fill is near-black on Blue, Red, Purple, Orange and
   Pink,** where white read at only 2.3 to 3.0:1. Every ink the colour engine
   works out reaches 4.5:1, so a colour mixed by hand or taken from the system
-  reads as well as the presets. OLED, the system colour and this come from
-  GlimStone 4.2.0, without the rest of that release yet, so the Components
-  card still names the version the rest follows.
+  reads as well as the presets.
+- **The lists tell more kinds of file apart by their symbol:** PDFs, office
+  documents, spreadsheets, presentations, e-books, playlists, disk images,
+  programs, fonts, 3D models, checksums, torrents, RAW photos and design files.
+- **Notifications all have the same width,** and a button such as Undo stands
+  under the message. A path breaks after a slash instead of in the middle of a
+  name. On a phone the notifications span the window and the newest two show.
+- **A text field shows that you are typing in it by a lighter fill** rather
+  than a ring, in the web interface, the phone app and the extension. Menus
+  and other fields without a caret keep the ring.
+- **A switch that is off is darker in the light theme,** so it stands out
+  from the card it sits on.
+- **The colour picker works with the arrow keys,** Shift for bigger steps, and
+  with a pen as well as a mouse or a finger. The handle shows the colour under
+  it.
+- **The buttons at the foot of a window wrap on a narrow screen** instead of
+  squeezing their words. A button that does not fit moves to a second row.
+- **The phone app and the extension use GlimStone's five text sizes and its
+  button symbols,** and their warnings are orange. Under rainbow each
+  selector takes its own colour while text keeps the one accent.
 - **Chrome's button is green.** On the Apps page, in the phone app and in the
   README, Chrome takes the green of its own logo, so it no longer looks like
   Edge's blue button right beside it.
