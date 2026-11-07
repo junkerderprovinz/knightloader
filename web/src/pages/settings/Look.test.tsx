@@ -104,7 +104,7 @@ it('refuses OLED while Light is chosen and keeps it switchable under System', ()
   expect(oled().getAttribute('aria-disabled')).toBe('true');
   act(() => oled().click());
   expect(oled().getAttribute('aria-checked')).toBe('false');
-  expect(oled().classList.contains('glim-shake')).toBe(true);
+  expect(oled().className).toMatch(/\bglim-shake\b/);
   expect(localStorage.getItem('kl-oled')).toBeNull();
 
   act(() => [...host.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find((b) => b.textContent === 'System')!.click());
