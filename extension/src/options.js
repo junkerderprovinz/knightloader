@@ -1361,7 +1361,12 @@ function swatch(hex, { label: name, pressed, onPick, onEdit, onEditClose }) {
       onPick();
       return;
     }
-    if (onEdit) openColorPickerPopover(b, hex, onEdit, onEditClose);
+    if (onEdit) {
+      openColorPickerPopover(b, hex, onEdit, onEditClose, {
+        area: t('options.pickerArea'),
+        hue: t('options.pickerHue'),
+      });
+    }
     else onPick?.();
   });
   return b;

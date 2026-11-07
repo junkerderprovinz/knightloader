@@ -50,22 +50,55 @@ function normalizeHex(value) {
   return /^[0-9a-f]{6}$/i.test(trimmed) ? `#${trimmed.toLowerCase()}` : null;
 }
 
+const PICKER_HUE_MAX = 359.9;
+const pickerClamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+
 /**
- * colorPicker builds the bare widget. onChange fires with a lowercase hex on
- * every drag frame.
+ * pickerKeyStep is what an arrow key does to the picker: on the square left
+ * and right move the saturation and up and down the brightness, on the hue bar
+ * every arrow moves the hue. Shift takes bigger steps, Home and End go to an
+ * end of the bar. Returns null for a key the picker leaves alone.
  */
-function colorPicker(initialHex, onChange) {
+function pickerKeyStep(part, key, shift, hsv) {
+  if (part === 'hue') {
+    if (key === 'Home') return { ...hsv, h: 0 };
+    if (key === 'End') return { ...hsv, h: PICKER_HUE_MAX };
+    const dir = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[key];
+    return dir ? { ...hsv, h: pickerClamp(hsv.h + dir * (shift ? 30 : 3), 0, PICKER_HUE_MAX) } : null;
+  }
+  const step = shift ? 0.1 : 0.02;
+  const ds = { ArrowRight: 1, ArrowLeft: -1 }[key] ?? 0;
+  const dv = { ArrowUp: 1, ArrowDown: -1 }[key] ?? 0;
+  if (!ds && !dv) return null;
+  return { ...hsv, s: pickerClamp(hsv.s + ds * step, 0, 1), v: pickerClamp(hsv.v + dv * step, 0, 1) };
+}
+
+/**
+ * colorPicker builds the bare widget. The square and the bar are named sliders
+ * (GlimStone 4.1.0), `text` holding their names as { area, hue }. onChange
+ * fires with a lowercase hex on every step of a drag with mouse, pen or finger
+ * and on every arrow key.
+ */
+function colorPicker(initialHex, onChange, text) {
   const el = document.createElement('div');
   el.className = 'glim-picker';
 
   const sv = document.createElement('div');
   sv.className = 'glim-picker-sv';
+  sv.tabIndex = 0;
+  sv.setAttribute('role', 'slider');
+  sv.setAttribute('aria-label', text.area);
   const dot = document.createElement('span');
   dot.className = 'glim-picker-dot';
   sv.appendChild(dot);
 
   const hue = document.createElement('div');
   hue.className = 'glim-picker-hue';
+  hue.tabIndex = 0;
+  hue.setAttribute('role', 'slider');
+  hue.setAttribute('aria-label', text.hue);
+  hue.setAttribute('aria-valuemin', '0');
+  hue.setAttribute('aria-valuemax', '360');
   const hdot = document.createElement('span');
   hdot.className = 'glim-picker-hdot';
   hue.appendChild(hdot);
@@ -75,44 +108,64 @@ function colorPicker(initialHex, onChange) {
   let state = pickerHexToHsv(initialHex) || { h: 220, s: 0.8, v: 0.9 };
 
   function paint() {
+    const hex = pickerHsvToHex(state.h, state.s, state.v);
     sv.style.background =
       `linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, hsl(${Math.round(state.h)},100%,50%))`;
     dot.style.left = `${state.s * 100}%`;
     dot.style.top = `${(1 - state.v) * 100}%`;
     hdot.style.left = `${(state.h / 360) * 100}%`;
+    el.style.setProperty('--glim-picker-colour', hex);
+    // The square moves along two axes, so the one value that names its place
+    // is the colour itself.
+    sv.setAttribute('aria-valuetext', hex);
+    hue.setAttribute('aria-valuenow', String(Math.round(state.h)));
   }
 
+  function emit() {
+    onChange(pickerHsvToHex(state.h, state.s, state.v));
+  }
+
+  // Pointer capture keeps the drag going once the pointer leaves the square,
+  // for mouse, pen and finger alike, with no listener on the document.
   function drag(target, apply) {
-    function move(event) {
+    function at(event) {
       const rect = target.getBoundingClientRect();
-      const point = event.touches ? (event.touches[0] ?? event.changedTouches[0]) : event;
-      if (!point) return;
-      const x = Math.min(1, Math.max(0, (point.clientX - rect.left) / rect.width));
-      const y = Math.min(1, Math.max(0, (point.clientY - rect.top) / rect.height));
-      apply(x, y);
+      apply(
+        pickerClamp((event.clientX - rect.left) / rect.width, 0, 1),
+        pickerClamp((event.clientY - rect.top) / rect.height, 0, 1),
+      );
       paint();
-      onChange(pickerHsvToHex(state.h, state.s, state.v));
+      emit();
+    }
+    target.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
       event.preventDefault();
-    }
-    function up() {
-      document.removeEventListener('mousemove', move);
-      document.removeEventListener('mouseup', up);
-      document.removeEventListener('touchmove', move);
-      document.removeEventListener('touchend', up);
-    }
-    function down(event) {
-      move(event);
-      document.addEventListener('mousemove', move);
-      document.addEventListener('mouseup', up);
-      document.addEventListener('touchmove', move, { passive: false });
-      document.addEventListener('touchend', up);
-    }
-    target.addEventListener('mousedown', down);
-    target.addEventListener('touchstart', down, { passive: false });
+      target.focus();
+      target.setPointerCapture(event.pointerId);
+      at(event);
+    });
+    target.addEventListener('pointermove', (event) => {
+      if (target.hasPointerCapture(event.pointerId)) at(event);
+    });
   }
 
-  drag(sv, (x, y) => { state = { ...state, s: x, v: 1 - y }; });
-  drag(hue, (x) => { state = { ...state, h: Math.min(359.9, x * 360) }; });
+  drag(sv, (x, y) => {
+    state = { ...state, s: x, v: 1 - y };
+  });
+  drag(hue, (x) => {
+    state = { ...state, h: Math.min(PICKER_HUE_MAX, x * 360) };
+  });
+
+  for (const [part, target] of [['area', sv], ['hue', hue]]) {
+    target.addEventListener('keydown', (event) => {
+      const next = pickerKeyStep(part, event.key, event.shiftKey, state);
+      if (!next) return;
+      event.preventDefault();
+      state = next;
+      paint();
+      emit();
+    });
+  }
 
   paint();
 
@@ -120,7 +173,10 @@ function colorPicker(initialHex, onChange) {
     el,
     setValue: (hex) => {
       const parsed = pickerHexToHsv(hex);
-      if (parsed) { state = parsed; paint(); }
+      if (!parsed) return;
+      // A grey or black has no hue of its own, so the bar stays where it was.
+      state = parsed.s === 0 || parsed.v === 0 ? { ...parsed, h: state.h } : parsed;
+      paint();
     },
     getValue: () => pickerHsvToHex(state.h, state.s, state.v),
   };
@@ -130,9 +186,10 @@ let openPickerPopover = null;
 
 /**
  * openColorPickerPopover floats the picker under the swatch that opened it, so
- * the settings card does not grow. Only one is open at a time.
+ * the settings card does not grow. Only one is open at a time. `text` names
+ * the square and the bar, as colorPicker takes it.
  */
-function openColorPickerPopover(trigger, initialHex, onChange, onClose) {
+function openColorPickerPopover(trigger, initialHex, onChange, onClose, text) {
   openPickerPopover?.close();
 
   const panel = document.createElement('div');
@@ -146,10 +203,14 @@ function openColorPickerPopover(trigger, initialHex, onChange, onClose) {
   hexInput.value = initialHex;
   hexInput.setAttribute('aria-label', 'Hex');
 
-  const picker = colorPicker(initialHex, (hex) => {
-    hexInput.value = hex;
-    onChange(hex);
-  });
+  const picker = colorPicker(
+    initialHex,
+    (hex) => {
+      hexInput.value = hex;
+      onChange(hex);
+    },
+    text,
+  );
 
   hexInput.addEventListener('input', () => {
     const normalized = normalizeHex(hexInput.value);

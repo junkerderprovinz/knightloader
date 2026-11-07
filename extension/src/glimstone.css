@@ -650,6 +650,11 @@ body {
   background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
   cursor: pointer;
 }
+/* A drag on the square or the bar is the picker's, never a scroll of the
+   page, and the handle shows the colour it stands on (GlimStone 4.1.0). */
+.glim-picker-sv,
+.glim-picker-hue { touch-action: none; }
+.glim-picker-dot { background-color: var(--glim-picker-colour, transparent); }
 /* Physical like the dot, and so is the gradient's `to right`. */
 .glim-picker-hdot {
   position: absolute;
