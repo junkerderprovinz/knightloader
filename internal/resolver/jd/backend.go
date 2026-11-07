@@ -659,6 +659,26 @@ func captchaSkipped(status string) bool {
 	return strings.Contains(s, "skipped") && strings.Contains(s, "captcha")
 }
 
+// hosterWait returns the status in which JD says it is waiting on the hoster,
+// on the package or on one of its links, or "" when it is not. A free hoster's
+// cool-down can run for hours (1fichier asks for up to four), and JD starts the
+// link by itself once it ends, so such a wait is not a stall.
+func hosterWait(pkgStatus string, links []DownloadLink) string {
+	statuses := []string{pkgStatus}
+	for _, l := range links {
+		statuses = append(statuses, l.Status)
+	}
+	for _, s := range statuses {
+		l := strings.ToLower(s)
+		for _, sign := range []string{"wait", "limit reached", "temporarily unavailable", "retry in"} {
+			if strings.Contains(l, sign) {
+				return strings.TrimSpace(s)
+			}
+		}
+	}
+	return ""
+}
+
 // packageNote is JD's package status as the task's note. JD puts the plain
 // state there too, "Running" while bytes move, and the task's own status
 // already says that, so the row would name its state twice.
@@ -720,6 +740,9 @@ func (b *Backend) poll(taskID string) {
 				return
 			}
 			if seen && time.Since(lastMoved) > stallLimit {
+				// Left enabled, JD would start the links later on its own and
+				// finish files the task no longer follows.
+				b.setEnabled(taskID, false)
 				b.onUpdate(taskID, core.Update{
 					Status: core.StatusError,
 					Err:    "jd: no progress for " + stallLimit.String(),
@@ -805,6 +828,10 @@ func (b *Backend) poll(taskID string) {
 				lastBytes = u.Loaded
 				lastMoved = time.Now()
 			}
+			if wait := hosterWait(p.Status, links); wait != "" && u.Status != core.StatusDone {
+				u.Note = wait
+				lastMoved = time.Now()
+			}
 			b.onUpdate(taskID, u)
 			if u.Status == core.StatusDone {
 				return
@@ -869,7 +896,7 @@ const appearLimit = 15 * time.Minute
 const emptyCrawlReadings = 20
 
 // stallLimit is how long a started download may make no progress before it is
-// given up on. It is generous because JD handles hoster cool-downs itself.
+// given up on. A cool-down JD reports does not count (see hosterWait).
 const stallLimit = 45 * time.Minute
 
 // aggregate folds every file JD produced for one link into a single update, so
