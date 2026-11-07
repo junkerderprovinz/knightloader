@@ -88,15 +88,15 @@ export function PriorityLadder({
         </span>
       </p>
       {/* The list is the rows' offsetParent, the layout a drag measures in.
-          While a row is held the others wiggle (glim-drag-armed). It does not
-          mirror, as the picture does not, so a name stays beside its station. */}
+          It does not mirror, as the picture does not, so a name stays beside
+          its station. */}
       <ol
         ref={list}
         data-new="priority-names"
         dir="ltr"
         aria-label={title}
         style={nameBand(resting.length)}
-        className={`flex flex-col ${drag.held !== null ? 'glim-drag-armed' : ''}`}
+        className="flex flex-col"
       >
         {drag.order.map((id) => {
           const look = drag.look(id);

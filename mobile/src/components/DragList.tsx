@@ -236,6 +236,12 @@ export default function DragList({
     () => wiggle.interpolate({ inputRange: [-1, 1], outputRange: [`-${n.wiggleDeg}deg`, `${n.wiggleDeg}deg`] }),
     [wiggle, n.wiggleDeg],
   );
+  // Every second row swings the other way, as the web's neighbours start half a
+  // beat apart, so the list reads as loose rows rather than one tilting block.
+  const gegendrehung = useMemo(
+    () => wiggle.interpolate({ inputRange: [-1, 1], outputRange: [`${n.wiggleDeg}deg`, `-${n.wiggleDeg}deg`] }),
+    [wiggle, n.wiggleDeg],
+  );
 
   /** The other rows of the dragged row's band, made fresh in arm(). */
   const nachbarn = useRef(new Map<string, Nachbar>());
@@ -604,7 +610,7 @@ export default function DragList({
                   // the offsets they landed on; see the effect on `gelandet`.
                   { translateY: gezogen ? lift : (nachbar?.wert ?? 0) },
                   { scale: gezogen ? skala : 1 },
-                  { rotate: armed && !gezogen ? drehung : '0deg' },
+                  { rotate: armed && !gezogen ? (index % 2 ? gegendrehung : drehung) : '0deg' },
                 ],
               }}
               {...responder.panHandlers}

@@ -152,6 +152,7 @@ import {
   sameOrder,
   settleMs,
   translateOf,
+  useDragArmed,
 } from './dragLift';
 import {
   IconClose,
@@ -1413,6 +1414,7 @@ function Header({
 }) {
   const { t } = useT();
   const row = useRef<HTMLDivElement>(null);
+  useDragArmed(row, columnDrag.held);
   // The ▾ whose filter is open, and the element its window hangs under.
   const [filterOpen, setFilterOpen] = useState<ColumnId | null>(null);
   const filterAnchor = useRef<HTMLElement | null>(null);
@@ -2461,6 +2463,7 @@ export function TaskListCard({
   // The rows a move in flight is carrying, in drawn order, or null when nothing
   // is being moved. Several units, because a move carries the whole marking.
   const [rowDrag, setRowDrag] = useState<RowDragKey[] | null>(null);
+  useDragArmed(stripRef, rowDrag !== null);
   // The row currently aimed at mid-move and which half of it, updated on every
   // pointer move rather than only at the drop. That is what lets the other rows
   // step aside live instead of snapping into their new order once the mouse is
@@ -3804,7 +3807,7 @@ export function TaskListCard({
                   on a row's link or icon. */}
               <div
                 ref={stripRef}
-                className="relative overflow-x-clip [-webkit-touch-callout:none]"
+                className="kl-row-strip relative overflow-x-clip [-webkit-touch-callout:none]"
                 role="tree"
                 data-new="row-pick"
                 aria-multiselectable="true"

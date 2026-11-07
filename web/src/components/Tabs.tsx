@@ -288,7 +288,6 @@ export function Tabs(props: TabsProps) {
   });
   const byId = new Map(items.map((i) => [i.id, i] as const));
   const orderedItems = drag.order.map((id) => byId.get(id)).filter((i): i is TabDef => !!i);
-  const armed = drag.held !== null ? 'glim-drag-armed' : '';
   const span = inline ? 'w-fit max-w-full' : 'w-full';
 
   // The width every segment of a well or an equal-width strip is pinned to,
@@ -484,17 +483,15 @@ export function Tabs(props: TabsProps) {
       // never wider than its room. A track laid out by content does not wrap,
       // since its fit allows for a pixel of rounding that would otherwise push
       // the last segment onto a row of its own.
-      //
-      // While a tab is held the others wiggle (glim-drag-armed in index.css).
       className={
         vertical
           ? `flex min-h-0 flex-col gap-1 overflow-y-auto ${fill ? 'h-full' : ''} ${
               reorderable ? 'relative -mx-1 px-1' : ''
-            } ${armed} ${className}`
+            } ${className}`
           : isWell
             ? `flex ${span} flex-wrap items-center rounded-[var(--radius-pill)] bg-carbon-surface3
               p-[0.2rem] ${className}`
-            : `flex ${span} flex-wrap items-center ${reorderable ? 'relative' : ''} ${armed} ${className}`
+            : `flex ${span} flex-wrap items-center ${reorderable ? 'relative' : ''} ${className}`
       }
       style={vertical ? undefined : contentRow ? { gap, width: '100%', flexWrap: 'nowrap' } : { gap }}
     >

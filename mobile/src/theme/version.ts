@@ -4,4 +4,4 @@
  * describes so the About card cannot drift from them; bump it in the change
  * that lifts them. The number is a link, so it has to name a published release.
  */
-export const GLIMSTONE_VERSION = '4.2.4';
+export const GLIMSTONE_VERSION = '4.2.5';

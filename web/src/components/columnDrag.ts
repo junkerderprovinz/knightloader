@@ -95,6 +95,8 @@ export interface ColumnDragOptions {
 export interface ColumnDrag {
   /** The order to draw: the live one while a column is carried or landing. */
   order: ColumnId[];
+  /** Whether a column is lifted, for the heads that tremble meanwhile. */
+  held: boolean;
   /** The pointerdown handler on a column's head. */
   press: (e: ReactPointerEvent<HTMLElement>, id: ColumnId) => void;
   /** Whether a column is under the pointer. */
@@ -122,6 +124,7 @@ export function useColumnDrag({ ids, table, onDrop }: ColumnDragOptions): Column
   const order = live ? [...live.filter((id) => ids.includes(id)), ...ids.filter((id) => !live.includes(id))] : ids;
   return {
     order,
+    held: live !== null,
     press: gesture.press,
     carrying: gesture.carrying,
     cancel: gesture.cancel,
