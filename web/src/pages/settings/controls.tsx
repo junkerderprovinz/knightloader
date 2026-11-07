@@ -244,7 +244,7 @@ export function NeutralSwitch({
       {worded && <span className="glim-num w-6 text-end">{on ? onLabel : offLabel}</span>}
       <span
         className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
-          on ? (hue !== undefined ? 'bg-accent' : 'bg-carbon-textMuted') : 'bg-carbon-surface3'
+          on ? (hue !== undefined ? 'bg-accent' : 'bg-carbon-textSub') : 'bg-toggleOff'
         }`}
       >
         {/* Without start-0 the knob starts from the button's centred text

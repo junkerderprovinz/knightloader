@@ -37,6 +37,7 @@
   /* Hover for anything already filled with surface3. Tailwind only emits a
      utility for a key named in @theme; a missing key fails silently. */
   --color-carbon-hoverRaised: var(--carbon-hover-raised);
+  --color-toggleOff: var(--toggle-off);
 
   --color-accent: var(--accent);
   --color-accentContrast: var(--accent-contrast);
@@ -356,6 +357,9 @@ body {
      surface2, so it would darken a filled control on hover. */
   --carbon-hover-raised: #6f6f6f;
   --carbon-border:     #393939;
+  /* The track of a switch that is off. OLED leaves it here, where surface3
+     would fall to 1.6:1 on its card. */
+  --toggle-off:        #525252;
 
   /* Brand marks at rest on the About card, adjusted per theme to reach the 3:1
      a graphic needs on a neutral button (published brand colours fail it on
@@ -459,6 +463,9 @@ body {
     /* One step further from the surface, which on a light ramp means darker. */
     --carbon-hover-raised: #c6c6c6;
     --carbon-border:     #d1d1d1;
+    /* surface3 stands too close to a card and to the knob to see, so the track
+       goes down to 3:1 against both. */
+    --toggle-off:        #8d8d8d;
 
     /* The warm marks deepened to clear 3:1 on #d1d1d1; the dark ones already do. */
     --brand-coffee:  #8a6d00;
@@ -533,6 +540,7 @@ body {
   --carbon-hover:      #e0e0e0;
   --carbon-hover-raised: #c6c6c6;
   --carbon-border:     #d1d1d1;
+  --toggle-off:        #8d8d8d;
 
   --brand-coffee:  #8a6d00;
   --brand-docs:    #8a6d00;

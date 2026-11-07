@@ -1565,7 +1565,7 @@ export function Toggle({
     >
       <span
         className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
-          checked ? 'bg-accent' : 'bg-carbon-surface3'
+          checked ? 'bg-accent' : 'bg-toggleOff'
         }`}
       >
         {/* start-0 is load-bearing: without it the knob starts from its static
