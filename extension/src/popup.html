@@ -40,12 +40,13 @@
         flex-shrink: 0;
       }
       /* The brand block's name (GlimStone 2.8.0), set beside the mark rather
-         than under it because this header row also holds the settings badge. */
+         than under it because this header row also holds the settings badge.
+         A wordmark stands outside the type scale, at the web UI's 20px. */
       h1 {
         margin: 0;
         flex: 1;
         min-width: 0;
-        font-size: var(--text-heading);
+        font-size: 1.25rem;
         font-weight: 700;
         letter-spacing: -0.025em;
         color: var(--carbon-text);
@@ -103,10 +104,10 @@
       .secondary { background: var(--carbon-surface2); color: var(--carbon-text); }
       /* 16px, the window's own padding, between every block. An empty status
          line takes no space. */
-      #status { color: var(--carbon-text-muted); font-size: var(--text-caption); margin-top: 16px; }
+      #status { color: var(--carbon-text-muted); font-size: var(--text-subline); margin-top: 16px; }
       #status:empty { display: none; }
       #instanceRow { margin-bottom: 16px; }
-      #instanceRow label { display: block; font-size: var(--text-caption); color: var(--carbon-text-muted); margin-bottom: 4px; }
+      #instanceRow label { display: block; font-size: var(--text-meta); color: var(--carbon-text-muted); margin-bottom: 4px; }
       /* Shaped like the web UI's field: filled, no border, --btn-h high. */
       #instance {
         width: 100%;
@@ -154,7 +155,7 @@
         background: var(--carbon-surface2);
         color: var(--carbon-text);
         font: inherit;
-        font-size: var(--text-dense);
+        font-size: var(--text-body);
         /* The field grows with the pane. */
         resize: none;
         outline: none;
@@ -176,13 +177,13 @@
         border-radius: var(--radius-pill);
         background: var(--carbon-surface2);
         color: var(--carbon-text-sub);
-        font-size: var(--text-caption);
+        font-size: var(--text-meta);
         text-align: center;
       }
       .mediaName { flex: 1; min-width: 0; display: flex; flex-direction: column; }
       .mediaName > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .mediaHost { color: var(--carbon-text-muted); font-size: var(--text-caption); }
-      .mediaNone { margin: 0; color: var(--carbon-text-muted); font-size: var(--text-caption); }
+      .mediaHost { color: var(--carbon-text-muted); font-size: var(--text-subline); }
+      .mediaNone { margin: 0; color: var(--carbon-text-muted); font-size: var(--text-subline); }
       #cnlAccess { margin-bottom: 16px; }
       #cnlAccess button { margin-top: 10px; }
     </style>

@@ -28,8 +28,8 @@
       /* 40px between stacked cards, the shared number. The first visible card
          gets none: the two hint cards at the top are usually hidden. */
       section.glim-card:not([hidden]) ~ section.glim-card:not([hidden]) { margin-top: 40px; }
-      h2 { margin: 0; font-size: var(--text-caption); font-weight: 500; }
-      label { display: block; font-size: var(--text-dense); color: var(--carbon-text-sub); margin-bottom: 6px; }
+      h2 { margin: 0; font-size: var(--text-meta); font-weight: 500; }
+      label { display: block; font-size: var(--text-subline); color: var(--carbon-text-sub); margin-bottom: 6px; }
       /* Fields match the web UI's (ui.tsx inputClass): a filled surface and no
          border, since GlimStone separates by surface. The focus ring is a
          box-shadow because an outline ignores the radius. */
@@ -82,7 +82,7 @@
       }
       /* Inside a card the list has the card's own padding around it already. */
       #list:not(:empty) { margin-bottom: 2px; }
-      #status { margin-top: 10px; font-size: var(--text-dense); min-height: 1.2em; }
+      #status { margin-top: 10px; font-size: var(--text-subline); min-height: 1.2em; }
       .ok { color: var(--status-ok-text); }
       /* 16 between cards and 16 to the button below, as in the popup. */
       #list { display: flex; flex-direction: column; gap: 16px; }
@@ -107,7 +107,7 @@
       #phrase { width: 100%; }
       #deviceName { flex: 0 1 16rem; min-width: 0; }
       #refreshGroup { margin-top: 16px; }
-      #ownKey { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: var(--carbon-text-muted); font-size: var(--text-dense); font-variant-numeric: tabular-nums; }
+      #ownKey { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: var(--carbon-text-muted); font-size: var(--text-meta); font-variant-numeric: tabular-nums; }
       #ownKey[hidden] { display: none; }
       #refreshGroup:disabled { opacity: 0.55; cursor: default; }
       /* The info glyph inside a heading badge takes the badge's ink. */
@@ -142,7 +142,7 @@
       .glim-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
       .glim-row-label { font-size: var(--text-body); color: var(--carbon-text); }
       .glim-row-control { display: flex; align-items: center; gap: 8px; }
-      .glim-row-unit { font-size: var(--text-dense); color: var(--carbon-text-muted); }
+      .glim-row-unit { font-size: var(--text-meta); color: var(--carbon-text-muted); }
       /* Where the row is too narrow for both, the selector moves under its
          label and keeps the row's end. */
       .segRow { flex-wrap: wrap; justify-content: flex-end; column-gap: 16px; row-gap: 8px; }
@@ -205,7 +205,7 @@
       .clipWatchers { margin: 0 0 10px; padding-left: 18px; color: var(--carbon-text); }
       .aboutVersions {
         margin: 0;
-        font-size: var(--text-dense);
+        font-size: var(--text-meta);
         color: var(--carbon-text-muted);
         font-variant-numeric: tabular-nums;
       }
@@ -223,7 +223,7 @@
         overflow: auto;
         white-space: pre-wrap;
         word-break: break-word;
-        font-size: var(--text-dense);
+        font-size: var(--text-meta);
         color: var(--carbon-text-sub);
       }
     </style>
