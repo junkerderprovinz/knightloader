@@ -488,6 +488,8 @@ export const pl: Dict = {
   'settings.theme': 'Motyw',
   'settings.themeHint':
     '„{system}” podąża za jasnym lub ciemnym ustawieniem twojego urządzenia i zmienia się razem z nim.',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Zmienia ciemny wygląd na prawdziwą czerń dla ekranów OLED i AMOLED.',
   'settings.motion.wild': 'Dzikie',
   'settings.motion.storm': 'Burza',
   'settings.motion.subtle': 'Subtelne',
@@ -3779,6 +3781,7 @@ export const pl: Dict = {
   'whatsnew.change.javaUpdates': 'Aplikacja desktopowa dba o aktualność swojej Javy i przenosi JDownloadera na nowszą, gdy nie trwa żadne z jego pobrań.',
   'whatsnew.change.hosterNames': 'Linki do hostingów pokazują nazwę pliku, rozmiar i dostępność zaraz po dodaniu, jak w zbieraczu linków JDownloadera.',
   'whatsnew.change.megaNative': 'Linki MEGA do plików i folderów pobierają się bez JDownloadera, a link do folderu zamienia się w osobny wiersz dla każdego pliku.',
+  'whatsnew.change.oled': '{oled} pod {theme} zmienia ciemny wygląd na prawdziwą czerń dla ekranów OLED i AMOLED. Działa zawsze, gdy widać ciemny wygląd, także gdy podąża za systemem, a każde urządzenie pamięta własny wybór.',
   'whatsnew.change.listHeads': 'Listy sortują, filtrują i wyszukują z własnych nagłówków kolumn, a prawy klik trzyma resztę.',
   'whatsnew.change.totals': 'Karta „{name}” obok wykresu prędkości pokazuje pozostały czas, ile pobrań jest gotowych, otwartych i nieudanych, oraz średnią prędkość.',
   'whatsnew.change.qualityNames': 'Pliki wideo i audio mają jakość w nazwie, a miniatura, napisy i opis do niej pasują.',

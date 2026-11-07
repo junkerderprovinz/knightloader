@@ -590,6 +590,48 @@ body {
 
 }
 
+/* OLED, the dark theme on true black for OLED and AMOLED screens (GlimStone's
+   rule 43). data-oled on <html> asks for it and counts only while dark shows,
+   chosen or from the device, so the two selectors below follow the two ways
+   the page goes dark. The surfaces move one Carbon step down and keep their
+   order, so every rule that names a step still lands on the step it meant: the
+   hover stays between the card and surface2, and hover-raised is the step
+   above surface3. The text, the accent and the state colours stay, since they
+   were measured on darker grounds than they get here.
+
+   A shadow on black is invisible, so the elevation becomes a ring in the
+   border colour. A lit brand tile in a near-black colour, such as the MCP
+   clients' black ones, would vanish into the card, so --tile-edge rings every
+   lit tile. */
+[data-theme="dark"][data-oled] {
+  --carbon-bg:         #000000;
+  --carbon-sidebar:    #161616;
+  --carbon-surface:    #161616;
+  --carbon-surface2:   #262626;
+  --carbon-surface3:   #393939;
+  --carbon-hover:      #232323;
+  --carbon-hover-raised: #525252;
+  --carbon-border:     #262626;
+  --elevation: 0 0 0 1px #262626;
+  --tile-edge: rgba(255, 255, 255, .2);
+}
+
+/* The same values for the device's dark, with no theme chosen. */
+@media not all and (prefers-color-scheme: light) {
+  :root[data-oled]:not([data-theme="light"]) {
+    --carbon-bg:         #000000;
+    --carbon-sidebar:    #161616;
+    --carbon-surface:    #161616;
+    --carbon-surface2:   #262626;
+    --carbon-surface3:   #393939;
+    --carbon-hover:      #232323;
+    --carbon-hover-raised: #525252;
+    --carbon-border:     #262626;
+    --elevation: 0 0 0 1px #262626;
+    --tile-edge: rgba(255, 255, 255, .2);
+  }
+}
+
 /* The hover step of a filled tone that has no surface ramp of its own
    (GlimStone rule 21): the fill mixed toward the theme's text colour, which is
    lighter on dark and darker on light, the way the ramp moves. 15% is about
@@ -2714,6 +2756,7 @@ body {
   .group:hover > .glim-brand-tile {
     background-color: var(--tile);
     color: var(--tile-ink);
+    box-shadow: inset 0 0 0 1px var(--tile-edge, transparent);
     --mark-ink: var(--tile-ink);
     --mark-cut: var(--tile);
     --brand-android: var(--tile-ink);
@@ -2729,6 +2772,7 @@ body {
 .glim-brand-tile:focus-visible {
   background-color: var(--tile);
   color: var(--tile-ink);
+  box-shadow: inset 0 0 0 1px var(--tile-edge, transparent);
   --mark-ink: var(--tile-ink);
   --mark-cut: var(--tile);
 }

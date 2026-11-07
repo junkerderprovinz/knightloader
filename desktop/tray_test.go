@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/wailsapp/wails/v3/pkg/application"
+
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 )
 
@@ -391,5 +393,25 @@ func TestTheTrayWindowNeverOpensSmallerThanItsContent(t *testing.T) {
 	tr.cfg.OverviewWidth, tr.cfg.OverviewHeight = 100, 50
 	if w, h := tr.overviewSize(); w != overviewMinWidth || h != overviewMinHeight {
 		t.Errorf("opens at %dx%d, want at least %dx%d", w, h, overviewMinWidth, overviewMinHeight)
+	}
+}
+
+func TestTheWindowGroundFollowsOLEDIntoTheNextStart(t *testing.T) {
+	tr := newTestTray(t)
+	if got := tr.ground(); got != application.NewRGB(22, 22, 22) {
+		t.Errorf("a first start opens on %+v, want Carbon's dark ground", got)
+	}
+
+	tr.SetOled(true)
+	if got := tr.ground(); got != application.NewRGB(0, 0, 0) {
+		t.Errorf("the ground under OLED is %+v, want black", got)
+	}
+	if !loadConfig(tr.cfgPath).Oled {
+		t.Error("the next start would open on grey under OLED")
+	}
+
+	tr.SetOled(false)
+	if loadConfig(tr.cfgPath).Oled {
+		t.Error("the next start would still open on black")
 	}
 }

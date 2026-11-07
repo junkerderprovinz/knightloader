@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 
 import type { PopupPlace, WatchOutcome } from './clipboardWatch';
 import type { TranslationKey } from './i18n';
+import { darkShowing, onOledChange, storedOled, watchDarkShowing } from './theme';
 
 /** Whether this page runs in the desktop app's window, which Wails serves from an origin of its own. */
 export function isDesktop(): boolean {
@@ -428,4 +429,24 @@ export function useTrayWords(t: (key: TranslationKey) => string): void {
     // bother anybody.
     void call('main.Tray.SetWords', trayWords(t)).catch(() => {});
   }, [t]);
+}
+
+/**
+ * followWindowGround tells the desktop app whether the main window's page
+ * shows OLED's black, now and whenever that changes, so no grey frame shows
+ * around it and the next start opens on the same ground; Tray.SetOled in
+ * desktop/tray.go.
+ */
+export function followWindowGround(): void {
+  if (!isDesktop() || windowName() !== 'main') return;
+  let last: boolean | undefined;
+  const tell = () => {
+    const black = storedOled() && darkShowing();
+    if (black === last) return;
+    last = black;
+    void call('main.Tray.SetOled', black).catch(() => {});
+  };
+  tell();
+  watchDarkShowing(tell);
+  onOledChange(tell);
 }

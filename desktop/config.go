@@ -45,6 +45,9 @@ type Config struct {
 	// default.
 	OverviewWidth  int `json:"overviewWidth,omitempty"`
 	OverviewHeight int `json:"overviewHeight,omitempty"`
+	// Oled is whether the page last showed OLED's black, so the next start
+	// opens on it instead of flashing grey around the page.
+	Oled bool `json:"oled,omitempty"`
 }
 
 // TrayWords are the tray menu's labels, handed over by the page in the

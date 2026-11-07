@@ -50,7 +50,7 @@ func (t *Tray) newOverview(wails *application.App) *application.WebviewWindow {
 		AlwaysOnTop:      true,
 		Hidden:           true,
 		HideOnEscape:     true,
-		BackgroundColour: application.NewRGB(22, 22, 22),
+		BackgroundColour: t.ground(),
 		Windows:          application.WindowsWindow{HiddenOnTaskbar: true},
 	})
 	// Alt+F4 on the small window would otherwise destroy it for good.

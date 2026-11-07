@@ -28,8 +28,8 @@ const raisePulse = 300 * time.Millisecond
 // clicks, window events, the hub writer and the page all reach it, so every
 // field goes through mu.
 //
-// The pages call SetWords, ShowMain, Prefs and SetPrefs as main.Tray.SetWords
-// and so on.
+// The pages call SetWords, ShowMain, Prefs, SetPrefs and SetOled as
+// main.Tray.SetWords and so on.
 type Tray struct {
 	mu  sync.Mutex
 	cfg Config
@@ -351,6 +351,35 @@ func (t *Tray) mutate(f func(*Config)) Config {
 func (t *Tray) SetWords(words TrayWords) {
 	t.mutate(func(c *Config) { c.Words = words })
 	t.relabel()
+}
+
+// ground is the colour the windows show before the page paints and around it
+// while they resize: Carbon's dark ground, or black while the page shows OLED.
+func (t *Tray) ground() application.RGBA {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.cfg.Oled {
+		return application.NewRGB(0, 0, 0)
+	}
+	return application.NewRGB(22, 22, 22)
+}
+
+// SetOled is told by the main window's page whether it shows OLED's black,
+// and gives both windows that ground.
+func (t *Tray) SetOled(on bool) {
+	t.mu.Lock()
+	same := t.cfg.Oled == on
+	t.mu.Unlock()
+	if same {
+		return
+	}
+	t.mutate(func(c *Config) { c.Oled = on })
+	ground := t.ground()
+	for _, w := range []*application.WebviewWindow{t.window(), t.overview} {
+		if w != nil {
+			w.SetBackgroundColour(ground)
+		}
+	}
 }
 
 // WindowPrefs is the window's and the tray icon's behaviour as the Appearance

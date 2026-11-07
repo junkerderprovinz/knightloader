@@ -199,7 +199,7 @@ func main() {
 		MinWidth:         784,
 		MinHeight:        480,
 		Frameless:        runtime.GOOS != "darwin",
-		BackgroundColour: application.NewRGB(22, 22, 22),
+		BackgroundColour: tray.ground(),
 		URL:              startURL(installerLanguage()),
 		Hidden:           tray.effectiveStartHidden(),
 	})

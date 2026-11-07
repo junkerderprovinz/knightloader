@@ -51,6 +51,17 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.7.0',
+    changes: [
+      {
+        id: 'oled',
+        to: ['/settings/appearance'],
+        text: 'whatsnew.change.oled',
+        names: { oled: 'settings.oled', theme: 'settings.theme' },
+      },
+    ],
+  },
+  {
     version: '2.6.5',
     changes: [{ id: 'mega-native', text: 'whatsnew.change.megaNative' }],
   },

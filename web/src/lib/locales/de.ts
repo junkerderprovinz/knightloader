@@ -538,6 +538,8 @@ export const de: Dict = {
   'settings.theme': 'Design',
   'settings.themeHint':
     '„{system}“ folgt der Einstellung deines Geräts für Hell oder Dunkel und wechselt mit ihr.',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Setzt das dunkle Design auf echtes Schwarz, für OLED- und AMOLED-Bildschirme.',
   'settings.motion.wild': 'Wild',
   'settings.motion.storm': 'Sturm',
   'settings.motion.subtle': 'Dezent',
@@ -3861,6 +3863,7 @@ export const de: Dict = {
   'whatsnew.change.javaUpdates': 'Die Desktop-App hält ihr Java aktuell und stellt JDownloader auf ein neueres um, solange keiner seiner Downloads läuft.',
   'whatsnew.change.hosterNames': 'Hoster-Links zeigen Dateiname, Größe und Online-Status, sobald sie ankommen, so wie im Linksammler von JDownloader.',
   'whatsnew.change.megaNative': 'Dateien und Ordner aus MEGA-Links lädt KnightLoader ohne JDownloader herunter, und ein Ordnerlink wird zu einer Zeile je Datei.',
+  'whatsnew.change.oled': '{oled} unter {theme} setzt das dunkle Design auf echtes Schwarz, für OLED- und AMOLED-Bildschirme. Es gilt, sobald das dunkle Design zu sehen ist, auch wenn es dem System folgt, und jedes Gerät merkt sich seine eigene Wahl.',
   'whatsnew.change.listHeads': 'Die Listen sortieren, filtern und suchen über ihre eigenen Spaltenköpfe, und ein Rechtsklick hält den Rest bereit.',
   'whatsnew.change.totals': 'Die Karte „{name}“ neben dem Geschwindigkeitsgraphen zeigt die Restzeit, wie viele Downloads fertig, offen und fehlgeschlagen sind, und das Durchschnittstempo.',
   'whatsnew.change.qualityNames': 'Video- und Audiodateien tragen ihre Qualität im Namen, und Vorschaubild, Untertitel und Beschreibung heißen passend dazu.',

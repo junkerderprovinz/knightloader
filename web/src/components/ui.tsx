@@ -1627,6 +1627,7 @@ export function ToggleRow({
   checked,
   onChange,
   disabled = false,
+  resting = false,
   hue,
 }: {
   label: string;
@@ -1643,6 +1644,12 @@ export function ToggleRow({
    * is in flight or a setting this build cannot offer.
    */
   disabled?: boolean;
+  /**
+   * Dims the label alone, for a switch that does nothing on screen right now
+   * but keeps its state and stays switchable for when it does, as OLED while
+   * light shows.
+   */
+  resting?: boolean;
   /** Passed straight through to the underlying Toggle. Omit for a lone switch
    *  with nothing beside it to distinguish. */
   hue?: number;
@@ -1658,7 +1665,7 @@ export function ToggleRow({
           its caption inline, so without this the settings search could find
           every switch but never scroll to it. */}
       <span data-glim-label={label} className="pointer-events-auto min-w-0 text-sm text-carbon-text">
-        <RowLabel label={label} hint={hint} dim={disabled} />
+        <RowLabel label={label} hint={hint} dim={disabled || resting} />
       </span>
       <span className={`flex ${disabled ? 'opacity-40' : ''}`}>
         <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} />

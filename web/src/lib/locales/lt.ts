@@ -496,6 +496,8 @@ export const lt: Dict = {
   'settings.theme': 'Tema',
   'settings.themeHint':
     '„{system}“ seka tavo įrenginio šviesų arba tamsų nustatymą ir keičiasi kartu su juo.',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Tamsią išvaizdą paverčia tikra juoda OLED ir AMOLED ekranams.',
   'settings.motion.wild': 'Laukinis',
   'settings.motion.storm': 'Audra',
   'settings.motion.subtle': 'Subtilu',
@@ -3796,6 +3798,7 @@ export const lt: Dict = {
   'whatsnew.change.javaUpdates': 'Darbalaukio programa palaiko savo Java atnaujintą ir perkelia JDownloader į naujesnę, kai nevyksta nė vienas jo atsisiuntimas.',
   'whatsnew.change.hosterNames': 'Talpyklų nuorodos iškart po atvykimo rodo failo pavadinimą, dydį ir ar jos pasiekiamos, kaip JDownloader nuorodų rinktuve.',
   'whatsnew.change.megaNative': 'MEGA failų ir aplankų nuorodos atsisiunčiamos be JDownloader, o aplanko nuoroda virsta atskira eilute kiekvienam failui.',
+  'whatsnew.change.oled': '{oled} po {theme} paverčia tamsią išvaizdą tikra juoda OLED ir AMOLED ekranams. Tai galioja visada, kai rodoma tamsi išvaizda, ir kai ji seka sistemą, o kiekvienas įrenginys įsimena savo pasirinkimą.',
   'whatsnew.change.listHeads': 'Sąrašai rikiuoja, filtruoja ir ieško iš savo stulpelių antraščių, o dešinysis spragtelėjimas laiko visa kita.',
   'whatsnew.change.totals': 'Kortelė „{name}“ šalia greičio grafiko rodo likusį laiką, kiek atsisiuntimų baigta, atvira ir nepavyko, ir vidutinį greitį.',
   'whatsnew.change.qualityNames': 'Vaizdo ir garso failų pavadinimuose yra jų kokybė, o miniatiūra, subtitrai ir aprašymas jai atitinka.',

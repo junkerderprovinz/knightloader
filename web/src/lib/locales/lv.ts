@@ -496,6 +496,8 @@ export const lv: Dict = {
   'settings.theme': 'Tēma',
   'settings.themeHint':
     '„{system}“ seko tavas ierīces gaišajam vai tumšajam iestatījumam un mainās līdz ar to.',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Pārslēdz tumšo izskatu uz īstu melnu OLED un AMOLED ekrāniem.',
   'settings.motion.wild': 'Mežonīgs',
   'settings.motion.storm': 'Vētra',
   'settings.motion.subtle': 'Smalks',
@@ -3785,6 +3787,7 @@ export const lv: Dict = {
   'whatsnew.change.javaUpdates': 'Darbvirsmas lietotne uztur savu Java atjauninātu un pārceļ JDownloader uz jaunāku, kamēr nenotiek neviena tā lejupielāde.',
   'whatsnew.change.hosterNames': 'Mitinātāju saites uzreiz pēc saņemšanas rāda faila nosaukumu, izmēru un tiešsaistes statusu, tāpat kā JDownloader saišu savācējā.',
   'whatsnew.change.megaNative': 'MEGA failu un mapju saites tiek lejupielādētas bez JDownloader, un mapes saite kļūst par vienu rindu katram failam.',
+  'whatsnew.change.oled': '{oled} zem {theme} pārslēdz tumšo izskatu uz īstu melnu OLED un AMOLED ekrāniem. Tas darbojas vienmēr, kad redzams tumšais izskats, arī tad, ja tas seko sistēmai, un katra ierīce atceras savu izvēli.',
   'whatsnew.change.listHeads': 'Saraksti kārto, filtrē un meklē no savām kolonnu galvenēm, un labais klikšķis glabā pārējo.',
   'whatsnew.change.totals': 'Kartīte „{name}“ blakus ātruma grafikam rāda atlikušo laiku, cik lejupielāžu ir gatavas, atvērtas un neizdevušās, un vidējo ātrumu.',
   'whatsnew.change.qualityNames': 'Video un audio failu nosaukumā ir to kvalitāte, un sīktēls, subtitri un apraksts tai atbilst.',

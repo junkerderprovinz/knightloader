@@ -496,6 +496,8 @@ export const hi: Dict = {
   'settings.theme': 'थीम',
   'settings.themeHint':
     '“{system}” तुम्हारे डिवाइस की लाइट या डार्क सेटिंग के साथ चलता है और उसी के साथ बदलता है।',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'गहरे रूप को OLED और AMOLED स्क्रीन के लिए असली काले रंग पर ले जाता है।',
   'settings.motion.wild': 'जीवंत',
   'settings.motion.storm': 'तूफ़ान',
   'settings.motion.subtle': 'सूक्ष्म',
@@ -3795,6 +3797,7 @@ export const hi: Dict = {
   'whatsnew.change.javaUpdates': 'डेस्कटॉप ऐप अपना Java अपडेट रखता है और जब JDownloader का कोई डाउनलोड नहीं चल रहा होता, तब उसे नए Java पर ले जाता है।',
   'whatsnew.change.hosterNames': 'होस्टर लिंक आते ही फ़ाइल का नाम, आकार और ऑनलाइन स्थिति दिखाते हैं, जैसे JDownloader के लिंक संग्राहक में।',
   'whatsnew.change.megaNative': 'MEGA के फ़ाइल और फ़ोल्डर लिंक JDownloader के बिना डाउनलोड होते हैं, और फ़ोल्डर लिंक हर फ़ाइल के लिए एक पंक्ति बन जाता है।',
+  'whatsnew.change.oled': '{theme} के नीचे {oled} गहरे रूप को OLED और AMOLED स्क्रीन के लिए असली काले रंग पर ले जाता है। यह तब भी लागू होता है जब गहरा रूप सिस्टम के साथ चलता है, और हर डिवाइस अपना चुनाव याद रखता है।',
   'whatsnew.change.listHeads': 'सूचियाँ अपने ही कॉलम हेडर से क्रमबद्ध करती, छानती और खोजती हैं, और राइट-क्लिक में बाकी सब है।',
   'whatsnew.change.totals': 'गति ग्राफ़ के पास “{name}” कार्ड बचा समय, कितने डाउनलोड पूरे, खुले और विफल हैं, और औसत गति दिखाता है।',
   'whatsnew.change.qualityNames': 'वीडियो और ऑडियो फ़ाइलों के नाम में उनकी गुणवत्ता होती है, और थंबनेल, सबटाइटल और विवरण उससे मेल खाते हैं।',

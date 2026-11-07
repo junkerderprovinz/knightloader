@@ -496,6 +496,8 @@ export const eu: Dict = {
   'settings.theme': 'Itxura',
   'settings.themeHint':
     '«{system}» aukerak zure gailuaren modu argia edo iluna jarraitzen du, eta harekin batera aldatzen da.',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Itxura iluna benetako beltz bihurtzen du, OLED eta AMOLED pantailentzat.',
   'settings.motion.wild': 'Bizia',
   'settings.motion.storm': 'Ekaitza',
   'settings.motion.subtle': 'Diskretua',
@@ -3791,6 +3793,7 @@ export const eu: Dict = {
   'whatsnew.change.javaUpdates': 'Mahaigaineko aplikazioak bere Java eguneratuta mantentzen du, eta JDownloader bertsio berriago batera pasatzen du bere deskargetako bat ere martxan ez dagoen bitartean.',
   'whatsnew.change.hosterNames': 'Ostatatze-estekek fitxategiaren izena, tamaina eta linean dauden erakusten dute iritsi bezain laster, JDownloaderren esteka-biltzailean bezala.',
   'whatsnew.change.megaNative': 'MEGAko fitxategi eta karpeten estekak JDownloader gabe deskargatzen dira, eta karpeta-esteka bat fitxategi bakoitzeko errenkada bat bihurtzen da.',
+  'whatsnew.change.oled': '{theme} azpiko {oled} aukerak itxura iluna benetako beltz bihurtzen du OLED eta AMOLED pantailetan. Itxura iluna ikusten den bakoitzean balio du, sistemari jarraitzen dionean ere, eta gailu bakoitzak bere aukera gogoratzen du.',
   'whatsnew.change.listHeads': 'Zerrendek beren zutabe-goiburuetatik ordenatzen, iragazten eta bilatzen dute, eta eskuineko klikak gainerakoa du.',
   'whatsnew.change.totals': 'Abiadura-grafikoaren ondoko «{name}» txartelak geratzen den denbora, zenbat deskarga dauden eginda, irekita eta huts eginda, eta batez besteko abiadura erakusten ditu.',
   'whatsnew.change.qualityNames': 'Bideo- eta audio-fitxategiek kalitatea dute izenean, eta miniatura, azpitituluak eta deskribapena bat datoz.',

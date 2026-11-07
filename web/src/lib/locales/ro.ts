@@ -496,6 +496,8 @@ export const ro: Dict = {
   'settings.theme': 'Temă',
   'settings.themeHint':
     '„{system}” urmează setarea luminoasă sau întunecată a dispozitivului tău și se schimbă odată cu ea.',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Trece aspectul întunecat pe negru adevărat, pentru ecranele OLED și AMOLED.',
   'settings.motion.wild': 'Intens',
   'settings.motion.storm': 'Furtună',
   'settings.motion.subtle': 'Discret',
@@ -3803,6 +3805,7 @@ export const ro: Dict = {
   'whatsnew.change.javaUpdates': 'Aplicația desktop își ține Java la zi și mută JDownloader pe una mai nouă cât timp nu rulează niciuna dintre descărcările lui.',
   'whatsnew.change.hosterNames': 'Linkurile către găzduitori arată numele fișierului, dimensiunea și dacă sunt online imediat ce sosesc, ca în colectorul de linkuri din JDownloader.',
   'whatsnew.change.megaNative': 'Linkurile MEGA către fișiere și foldere se descarcă fără JDownloader, iar un link de folder devine câte un rând pentru fiecare fișier.',
+  'whatsnew.change.oled': '{oled}, sub {theme}, trece aspectul întunecat pe negru adevărat pentru ecranele OLED și AMOLED. Se aplică oricând se vede aspectul întunecat, și când urmează sistemul, iar fiecare dispozitiv își ține minte alegerea.',
   'whatsnew.change.listHeads': 'Listele sortează, filtrează și caută din propriile anteturi de coloană, iar clicul dreapta ține restul.',
   'whatsnew.change.totals': 'Cardul „{name}” de lângă graficul de viteză arată timpul rămas, câte descărcări sunt gata, deschise și eșuate, și viteza medie.',
   'whatsnew.change.qualityNames': 'Fișierele video și audio poartă calitatea în nume, iar miniatura, subtitrările și descrierea se potrivesc.',

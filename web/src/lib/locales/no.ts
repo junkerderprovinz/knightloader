@@ -498,6 +498,8 @@ export const no: Dict = {
   'settings.theme': 'Tema',
   'settings.themeHint':
     '«{system}» følger den lyse eller mørke innstillingen på enheten din og skifter med den.',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Gir det mørke utseendet ekte svart, for OLED- og AMOLED-skjermer.',
   'settings.motion.wild': 'Vill',
   'settings.motion.storm': 'Storm',
   'settings.motion.subtle': 'Diskret',
@@ -3797,6 +3799,7 @@ export const no: Dict = {
   'whatsnew.change.javaUpdates': 'Skrivebordsappen holder sin egen Java oppdatert og flytter JDownloader over på en nyere mens ingen av nedlastingene dens kjører.',
   'whatsnew.change.hosterNames': 'Hosterlenker viser filnavn, størrelse og om de er tilgjengelige så snart de kommer inn, som i lenkesamleren til JDownloader.',
   'whatsnew.change.megaNative': 'MEGA-lenker til filer og mapper lastes ned uten JDownloader, og en mappelenke blir til én rad per fil.',
+  'whatsnew.change.oled': '{oled} under {theme} gir det mørke utseendet ekte svart for OLED- og AMOLED-skjermer. Det gjelder når det mørke utseendet vises, også når det følger systemet, og hver enhet husker sitt eget valg.',
   'whatsnew.change.listHeads': 'Listene sorterer, filtrerer og søker fra sine egne kolonneoverskrifter, og et høyreklikk har resten.',
   'whatsnew.change.totals': 'Kortet «{name}» ved siden av hastighetsgrafen viser tiden som gjenstår, hvor mange nedlastinger som er ferdige, åpne og mislykket, og snittfarten.',
   'whatsnew.change.qualityNames': 'Video- og lydfiler har kvaliteten i navnet, og miniatyr, undertekster og beskrivelse passer til.',

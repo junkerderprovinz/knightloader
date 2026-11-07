@@ -322,6 +322,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'lang.label' },
         { key: 'settings.theme', hint: 'settings.themeHint' },
+        { key: 'settings.oled', hint: 'settings.oledHint' },
         { key: 'settings.shape', hint: 'settings.shapeHint' },
         { key: 'settings.motion.title', hint: 'settings.motion.hint' },
         { key: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint' },

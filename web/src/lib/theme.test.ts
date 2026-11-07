@@ -1,13 +1,33 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { applyStoredTheme, getTheme, onThemeChange, setTheme, toggleTheme } from './theme';
+import {
+  applyOled,
+  applyStoredTheme,
+  darkShowing,
+  getTheme,
+  onThemeChange,
+  resolvesDark,
+  setTheme,
+  storedOled,
+  toggleTheme,
+  watchDarkShowing,
+} from './theme';
 
 const shown = () => document.documentElement.getAttribute('data-theme');
 
-/** What the device says to "light?". */
+const mediaListeners = new Set<() => void>();
+let deviceLight = false;
+
+/** What the device says to "light?", told to whoever listens for a change. */
 function deviceIsLight(light: boolean) {
-  vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('light') === light }));
+  deviceLight = light;
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: query.includes('light') === deviceLight,
+    addEventListener: (_: string, fn: () => void) => mediaListeners.add(fn),
+    removeEventListener: (_: string, fn: () => void) => mediaListeners.delete(fn),
+  }));
+  for (const fn of mediaListeners) fn();
 }
 
 beforeEach(() => {
@@ -18,6 +38,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  mediaListeners.clear();
 });
 
 describe('the theme a browser starts with', () => {
@@ -83,5 +104,66 @@ describe('the toggle', () => {
     expect(toggleTheme()).toBe('dark');
     expect(getTheme()).toBe('dark');
     expect(shown()).toBe('dark');
+  });
+});
+
+describe('OLED', () => {
+  beforeEach(() => document.documentElement.removeAttribute('data-oled'));
+
+  it('is off in a browser that never chose it', () => {
+    applyStoredTheme();
+    expect(storedOled()).toBe(false);
+    expect(document.documentElement.hasAttribute('data-oled')).toBe(false);
+  });
+
+  it('is kept in this browser and comes back on the next load', () => {
+    applyOled(true);
+    expect(document.documentElement.getAttribute('data-oled')).toBe('');
+    document.documentElement.removeAttribute('data-oled');
+    applyStoredTheme();
+    expect(document.documentElement.getAttribute('data-oled')).toBe('');
+    applyOled(false);
+    expect(storedOled()).toBe(false);
+    expect(document.documentElement.hasAttribute('data-oled')).toBe(false);
+  });
+
+  it('stays switched on through a light theme, where it shows nothing', () => {
+    applyOled(true);
+    setTheme('light');
+    expect(storedOled()).toBe(true);
+    expect(darkShowing()).toBe(false);
+    setTheme('dark');
+    expect(darkShowing()).toBe(true);
+  });
+});
+
+describe('whether dark shows', () => {
+  it('follows a chosen theme over the device', () => {
+    expect(resolvesDark('dark', false)).toBe(true);
+    expect(resolvesDark('light', true)).toBe(false);
+  });
+
+  it('follows the device without a choice, dark unless it asks for light', () => {
+    expect(resolvesDark(null, true)).toBe(true);
+    expect(resolvesDark(null, false)).toBe(false);
+    setTheme('system');
+    expect(darkShowing()).toBe(true);
+    deviceIsLight(true);
+    expect(darkShowing()).toBe(false);
+  });
+
+  it('tells the watcher when a choice or the device changes what shows, and only then', () => {
+    const seen: boolean[] = [];
+    setTheme('dark');
+    const stop = watchDarkShowing((dark) => seen.push(dark));
+    setTheme('light');
+    setTheme('light');
+    setTheme('system');
+    deviceIsLight(true);
+    deviceIsLight(true);
+    stop();
+    setTheme('dark');
+    deviceIsLight(false);
+    expect(seen).toEqual([false, true, false]);
   });
 });

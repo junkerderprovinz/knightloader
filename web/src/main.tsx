@@ -15,6 +15,7 @@ import { applyDisco } from './lib/disco';
 import { applyCachedSpeedLines } from './lib/speedLines';
 import { listenForPageHue } from './lib/pageHue';
 import { sendApiCallsUnderBase, settleUnderBase, withBase } from './lib/basePath';
+import { followWindowGround } from './lib/desktop';
 
 // Before anything fetches or routes.
 sendApiCallsUnderBase();
@@ -28,6 +29,7 @@ applyCachedAppearance();
 applyCachedSpeedLines();
 applyDisco(readCachedDisco());
 listenForPageHue();
+followWindowGround();
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

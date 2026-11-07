@@ -48,7 +48,16 @@ import {
 import type { GlyphProps } from '../../lib/glyphs';
 import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
-import { getTheme, onThemeChange, setTheme, type Theme } from '../../lib/theme';
+import {
+  applyOled,
+  darkShowing,
+  getTheme,
+  onThemeChange,
+  setTheme,
+  storedOled,
+  watchDarkShowing,
+  type Theme,
+} from '../../lib/theme';
 import { isDesktop } from '../../lib/desktop';
 import { LABEL_AXES, LABEL_MODES, LABEL_SETTING, asLabelMode, setLabelMode, useLabelMode, type LabelAxis, type LabelMode } from '../../lib/labelModes';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -386,6 +395,10 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   // save themselves.
   const [theme, setThemeState] = useState(getTheme);
   useEffect(() => onThemeChange(setThemeState), []);
+  // OLED is kept in this browser too, and rests while light shows.
+  const [oled, setOled] = useState(storedOled);
+  const [dark, setDark] = useState(darkShowing);
+  useEffect(() => watchDarkShowing(setDark), []);
 
   // From the store, so each selector shows what its controls draw.
   const labelModes: Record<LabelAxis, LabelMode> = {
@@ -598,6 +611,21 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
               ]}
             />
           </SettingRow>
+          {/* A switch under the theme rather than a fourth theme, so somebody
+              who follows the device gets black at night without touching it
+              again (GlimStone's rule 43). */}
+          <div data-new="oled">
+            <ToggleRow
+              label={t('settings.oled')}
+              hint={t('settings.oledHint')}
+              checked={oled}
+              resting={!dark}
+              onChange={(v) => {
+                setOled(v);
+                applyOled(v);
+              }}
+            />
+          </div>
           {/* The leaf joins the shapes only while it has just been found or is
               in force. */}
           <SettingRow label={t('settings.shape')} hint={t('settings.shapeHint')}>

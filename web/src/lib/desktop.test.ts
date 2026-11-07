@@ -5,7 +5,18 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { connectWS } from './api';
-import { desktopOS, edgeAt, isDesktop, onUpdateReady, openNatively, openURL, trayWords, useEdgeResize } from './desktop';
+import {
+  desktopOS,
+  edgeAt,
+  followWindowGround,
+  isDesktop,
+  onUpdateReady,
+  openNatively,
+  openURL,
+  trayWords,
+  useEdgeResize,
+} from './desktop';
+import { applyOled, setTheme } from './theme';
 
 type Host = {
   _wails?: { dispatchWailsEvent?: (ev: { name: string; data: unknown }) => void };
@@ -257,5 +268,22 @@ describe('resizing the frameless tray window', () => {
     expect(document.body.style.cursor).toBe('');
     act(() => root.unmount());
     host.remove();
+  });
+});
+
+describe('the window ground', () => {
+  it('turns black while OLED shows and back once light shows', async () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
+    localStorage.clear();
+    setTheme('dark');
+    const w = fakeRuntime();
+    followWindowGround();
+    applyOled(true);
+    setTheme('light');
+    setTheme('light');
+    applyOled(false);
+    setTheme('dark');
+    await flush();
+    expect(w.calls).toEqual(['main.Tray.SetOled false', 'main.Tray.SetOled true', 'main.Tray.SetOled false']);
   });
 });
