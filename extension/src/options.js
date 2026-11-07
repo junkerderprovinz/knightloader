@@ -1375,7 +1375,7 @@ const D_WAND =
   'M10.5 0.5Q11 3 13.5 3.5Q11 4 10.5 6.5Q10 4 7.5 3.5Q10 3 10.5 0.5Z' +
   'M3.75 2.25Q4.1 3.65 5.5 4Q4.1 4.35 3.75 5.75Q3.4 4.35 2 4Q3.4 3.65 3.75 2.25Z' +
   'M11 9Q11.35 10.4 12.75 10.75Q11.35 11.1 11 12.5Q10.65 11.1 9.25 10.75Q10.65 10.4 11 9Z';
-const WAND_BOX = '-1.655 -1.665 17.32 17.32';
+const WAND_BOX = '-1.667 -1.667 17.333 17.333';
 
 /**
  * paintHues gives every card a palette position and the rainbow rows their own

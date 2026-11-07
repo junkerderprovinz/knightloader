@@ -314,6 +314,7 @@ function SystemSwatch({
     <>
       <button
         type="button"
+        data-new="system-accent"
         aria-label={label}
         aria-description={hint}
         aria-pressed={selected}
