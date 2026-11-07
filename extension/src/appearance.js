@@ -110,25 +110,135 @@ function sanitiseCustoms(raw) {
   return out;
 }
 
-/**
- * luminance is the perceptual brightness that decides black or white ink. The
- * sRGB channels are linearised first; raw values overstate blue and understate
- * green.
- */
-function luminance(r, g, b) {
-  const lin = (c) => {
-    const v = c / 255;
-    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-  };
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+// The contrast arithmetic of WCAG 2 and the inks the colour engine computes
+// with it (GlimStone's rule 45), web/src/lib/contrast.ts with the types
+// stripped. Every ink reaches 4.5:1, whatever colour somebody picked or the
+// system gave. The helpers carry an ink prefix because every script of a page
+// shares one global scope.
+
+/** The ratio body text needs, and the floor of every ink computed here. */
+const MIN_TEXT_CONTRAST = 4.5;
+
+function inkRgb(hex) {
+  const { r, g, b } = parseHex(hex);
+  return [r, g, b];
 }
 
-/** contrastOn is the ink to put on a colour, computed rather than configured. */
+function inkHex(c) {
+  return '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+/** `amount` of `to` in `from`, the way color-mix() in srgb mixes. */
+function inkMix(from, to, amount) {
+  return [0, 1, 2].map((i) => from[i] + (to[i] - from[i]) * amount);
+}
+
+// Relative luminance. The channels are linearised first, since raw sRGB
+// overstates blue and understates green.
+function inkLuminance(c) {
+  const lin = (v) => {
+    const s = v / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2]);
+}
+
+function inkRatio(a, b) {
+  const x = inkLuminance(a);
+  const y = inkLuminance(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+
+/** contrastRatio is the WCAG ratio of two `#rrggbb` colours, from 1 to 21. */
+function contrastRatio(a, b) {
+  return inkRatio(inkRgb(a), inkRgb(b));
+}
+
+/**
+ * inkPushed moves `from` toward `to` just far enough to reach the minimum
+ * against `ground`. The ratio only grows on the way, so halving finds the
+ * least amount that does it.
+ */
+function inkPushed(from, to, ground) {
+  const reaches = (t) => inkRatio(inkMix(from, to, t).map(Math.round), ground) >= MIN_TEXT_CONTRAST;
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 16; i++) {
+    const mid = (lo + hi) / 2;
+    if (reaches(mid)) hi = mid;
+    else lo = mid;
+  }
+  return inkHex(inkMix(from, to, hi));
+}
+
+/**
+ * contrastOn is the ink on a fill: white or Carbon's near-black, whichever
+ * reads better, and on the mid-tones where neither reaches 4.5:1 the
+ * near-black goes on toward black until it does.
+ */
 function contrastOn(hex) {
   if (!validHex(hex)) return '#FFFFFF';
-  const { r, g, b } = parseHex(hex);
-  // Carbon's ink; a warm near-black looks like a smudge on yellow.
-  return luminance(r, g, b) > 0.55 ? '#161616' : '#FFFFFF';
+  const fill = inkRgb(hex);
+  const onWhite = inkRatio(fill, [255, 255, 255]);
+  const onDark = inkRatio(fill, inkRgb('#161616'));
+  if (onWhite > onDark && onWhite >= MIN_TEXT_CONTRAST) return '#FFFFFF';
+  if (onDark >= MIN_TEXT_CONTRAST) return '#161616';
+  return inkPushed(inkRgb('#161616'), [0, 0, 0], fill);
+}
+
+/**
+ * accentInks is the accent as text on each theme where glimstone.css's own mix
+ * falls short of 4.5:1 on that theme's card (#ffffff light, #262626 dark), and
+ * undefined where it holds, which it does for every preset.
+ */
+function accentInks(hex) {
+  if (!validHex(hex)) return { light: undefined, dark: undefined };
+  const accent = inkRgb(hex);
+  const white = [255, 255, 255];
+  const darkCard = inkRgb('#262626');
+  const light = inkMix(accent, [0, 0, 0], 0.45);
+  return {
+    light: inkRatio(light, white) >= MIN_TEXT_CONTRAST ? undefined : inkPushed(light, [0, 0, 0], white),
+    dark: inkRatio(accent, darkCard) >= MIN_TEXT_CONTRAST ? undefined : inkPushed(accent, white, darkCard),
+  };
+}
+
+/**
+ * The accent setting that takes its colour from the system (GlimStone's rule
+ * 44), stored as this word and never as the colour.
+ */
+const SYSTEM_ACCENT = 'system';
+
+/**
+ * browserAccentWorks says whether CSS AccentColor carries the system's colour
+ * here. Firefox and Safari resolve it to the system's colour. Chromium
+ * resolves it to a fixed colour of its own, so Chrome, Edge, Opera and every
+ * other Chromium browser count as no source. Firefox with
+ * resistFingerprinting answers with a fixed colour too, which nothing on the
+ * page can tell.
+ */
+function browserAccentWorks() {
+  if (typeof CSS === 'undefined' || !CSS.supports('color', 'AccentColor')) return false;
+  return !/Chrom(e|ium)\//.test(navigator.userAgent);
+}
+
+/** browserAccent is the system's accent as the browser reports it, or undefined where it is no source. */
+function browserAccent() {
+  if (!browserAccentWorks()) return undefined;
+  const probe = document.createElement('span');
+  probe.style.color = 'AccentColor';
+  probe.style.display = 'none';
+  document.documentElement.append(probe);
+  const colour = getComputedStyle(probe).color;
+  probe.remove();
+  return cssColourToHex(colour);
+}
+
+/** cssColourToHex turns a computed rgb() or rgba() colour into #RRGGBB, and anything else into undefined. */
+function cssColourToHex(colour) {
+  const m = colour.match(/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/);
+  if (!m) return undefined;
+  return '#' + m.slice(1, 4).map((v) => Number(v).toString(16).padStart(2, '0')).join('').toUpperCase();
 }
 
 /** The picker's themes, in the web UI's order. `system` follows the device. */
@@ -145,16 +255,43 @@ function applyTheme(theme) {
   else root.removeAttribute('data-theme');
 }
 
+/**
+ * applyOled puts data-oled on <html>, which glimstone.css applies only while
+ * dark shows (GlimStone's rule 43), so it stays on through light. It belongs
+ * to the screen, so it is stored in this browser and never taken from an
+ * instance.
+ */
+function applyOled(on) {
+  if (on) document.documentElement.setAttribute('data-oled', '');
+  else document.documentElement.removeAttribute('data-oled');
+}
+
+/** darkShowing says whether dark shows for a theme, chosen or from the device. */
+function darkShowing(theme) {
+  if (theme === 'dark') return true;
+  if (theme === 'light') return false;
+  return !matchMedia('(prefers-color-scheme: light)').matches;
+}
+
 function applyShape(shape) {
   document.documentElement.setAttribute('data-shape', SHAPES_STORED.includes(shape) ? shape : DEFAULT_SHAPE);
 }
 
 /**
- * applyAccent overrides the accent tokens, or removes the override so the
- * theme's own gold returns, including the darker one of the light theme.
+ * applyAccent overrides the accent tokens with a colour or the system's, or
+ * removes the override so the theme's own gold returns, as it does for the
+ * system's colour in a browser that has none. Where glimstone.css's mix would
+ * leave the accent as text under 4.5:1, a theme's own ink is set as
+ * --accent-ink-light or --accent-ink-dark.
  */
-function applyAccent(hex) {
+function applyAccent(accent) {
+  const hex = accent === SYSTEM_ACCENT ? browserAccent() : accent;
   const root = document.documentElement.style;
+  const inks = accentInks(hex);
+  for (const [theme, ink] of Object.entries(inks)) {
+    if (ink) root.setProperty(`--accent-ink-${theme}`, ink);
+    else root.removeProperty(`--accent-ink-${theme}`);
+  }
   if (!validHex(hex)) {
     root.removeProperty('--accent');
     root.removeProperty('--accent-contrast');
@@ -178,9 +315,10 @@ async function readAppearance() {
     'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette',
     'rainbowDisco',
     'followInstance',
+    'oled',
   ]);
 
-  const accent = validHex(s.accent) ? s.accent : '';
+  const accent = validHex(s.accent) || s.accent === SYSTEM_ACCENT ? s.accent : '';
 
   /* Which slot is chosen and what each slot was mixed to are stored, because
      neither can be derived from the accent once two slots hold the same colour.
@@ -193,7 +331,7 @@ async function readAppearance() {
   const accentCustoms = sanitiseCustoms(s.accentCustoms);
   // An install without the map has its mixed colour only in `accent`; give it
   // to the slot that showed it so it is not lost.
-  if (Object.keys(accentCustoms).length === 0 && accent) {
+  if (Object.keys(accentCustoms).length === 0 && validHex(accent)) {
     const slot = accentChosen !== undefined ? accentChosen : accentSlot(accent);
     if (slot >= 0) accentCustoms[String(slot)] = accent;
   }
@@ -218,6 +356,7 @@ async function readAppearance() {
     disco: s.rainbowDisco === true,
     // Whether the look, the theme included, comes from the default instance.
     followInstance: s.followInstance === true,
+    oled: s.oled === true,
   };
 }
 
@@ -230,6 +369,7 @@ async function writeAppearance(next) {
 async function applyAppearance() {
   const a = await readAppearance();
   applyTheme(a.theme);
+  applyOled(a.oled);
   applyShape(a.shape);
   applyAccent(a.accent);
   applyRainbow(a.rainbow);

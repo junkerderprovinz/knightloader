@@ -86,9 +86,9 @@ jobs:
               - 'internal/api/routes_health.go'
               - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
-            # The crypto window's list and the clipboard link rule are held to
-            # the web UI's, the signed call to internal/relay's vector and the
-            # refusals to the server's codes.
+            # The crypto window's list, the clipboard link rule and the
+            # contrast arithmetic are held to the web UI's, the signed call to
+            # internal/relay's vector and the refusals to the server's codes.
             extension:
               - 'extension/**'
               - 'internal/relay/member_test.go'
@@ -96,6 +96,7 @@ jobs:
               - 'internal/federation/members.go'
               - 'web/src/lib/donate.ts'
               - 'web/src/lib/clipboardWatch.ts'
+              - 'web/src/lib/contrast.ts'
               - '.github/workflows/ci.yml'
             # check-relay-url.mjs, check-pairing-code.mjs and
             # check-member-key.mjs read their cases from internal/relay's
@@ -485,6 +486,9 @@ jobs:
 
       - name: Followed theme
         run: node extension/check-follow-theme.mjs
+
+      - name: Colour engine
+        run: node extension/check-accent.mjs
 
       - name: Every motion level declares every dial
         run: node extension/check-motion.mjs

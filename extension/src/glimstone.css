@@ -140,9 +140,12 @@ body {
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
   /* The accent used as ink, such as text on the page ground (GlimStone
-     1.5.0). The theme sets only --ink-mix; at 100% it is the accent itself. */
+     1.5.0). The theme sets only --ink-mix; at 100% it is the accent itself.
+     An accent the mix leaves under 4.5:1 on a theme's card gets that theme's
+     ink from applyAccent instead, as --accent-ink-dark or --accent-ink-light.
+     No preset needs one. */
   --ink-mix:           100%;
-  --accent-ink:        color-mix(in srgb, var(--accent) var(--ink-mix), black);
+  --accent-ink:        var(--accent-ink-dark, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
   /* Four state hues, Carbon's dark support tones. Paused uses neutral; its
      label and resume control tell it apart. */
@@ -216,6 +219,7 @@ body {
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
   --ink-mix:           55%;
+  --accent-ink:        var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
   --status-info-text:    #8E6A00;
   --status-info-bg:      rgba(142, 106, 0, 0.12);
@@ -308,6 +312,7 @@ body {
     --accent-contrast:   #161616;
     --accent-soft:       rgba(252, 196, 25, 0.14);
     --ink-mix:           55%;
+    --accent-ink:        var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
     --status-info-text:    #8E6A00;
     --status-info-bg:      rgba(142, 106, 0, 0.12);
@@ -334,6 +339,42 @@ body {
     --glim-scrim: rgba(0, 0, 0, .62);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
     --focus-ring: rgba(142, 106, 0, .5);
+  }
+}
+
+/* OLED, the dark theme on true black for OLED and AMOLED screens (GlimStone's
+   rule 43), the web UI's values. data-oled on <html> asks for it and counts
+   only while dark shows, chosen or from the device, so the two selectors
+   below follow the two ways a page goes dark. The surfaces move one Carbon
+   step down and keep their order. A shadow on black is invisible, so the
+   elevation becomes a ring, and --tile-edge rings a lit brand tile that would
+   vanish into the card. */
+[data-theme="dark"][data-oled] {
+  --carbon-bg:         #000000;
+  --carbon-sidebar:    #161616;
+  --carbon-surface:    #161616;
+  --carbon-surface2:   #262626;
+  --carbon-surface3:   #393939;
+  --carbon-hover:      #232323;
+  --carbon-hover-raised: #525252;
+  --carbon-border:     #262626;
+  --elevation: 0 0 0 1px #262626;
+  --tile-edge: rgba(255, 255, 255, .2);
+}
+
+/* The same values for the device's dark, with no theme chosen. */
+@media not all and (prefers-color-scheme: light) {
+  :root[data-oled]:not([data-theme="light"]) {
+    --carbon-bg:         #000000;
+    --carbon-sidebar:    #161616;
+    --carbon-surface:    #161616;
+    --carbon-surface2:   #262626;
+    --carbon-surface3:   #393939;
+    --carbon-hover:      #232323;
+    --carbon-hover-raised: #525252;
+    --carbon-border:     #262626;
+    --elevation: 0 0 0 1px #262626;
+    --tile-edge: rgba(255, 255, 255, .2);
   }
 }
 
@@ -453,6 +494,13 @@ body {
   border-radius: var(--radius-pill);
   cursor: pointer;
   box-shadow: var(--hairline);
+}
+
+/* The system colour's swatch carries the wand. */
+.glim-swatch--system {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .glim-swatch[aria-pressed="true"] {
@@ -1217,6 +1265,7 @@ body {
   .group:hover > .glim-brand-tile {
     background-color: var(--tile);
     color: var(--tile-ink);
+    box-shadow: inset 0 0 0 1px var(--tile-edge, transparent);
     --mark-ink: var(--tile-ink);
     --mark-cut: var(--tile);
     --brand-android: var(--tile-ink);

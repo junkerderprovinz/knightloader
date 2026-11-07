@@ -38,6 +38,7 @@ const rainbowDiscoRow = document.getElementById('rainbowDiscoRow');
 const paletteRow = document.getElementById('paletteRow');
 const paletteSwatches = document.getElementById('paletteSwatches');
 const followInstanceEl = document.getElementById('followInstance');
+const oledEl = document.getElementById('oled');
 const accentLabelEl = document.getElementById('accentLabel');
 // The labels of the rows that get dimmed.
 const rainbowLabelEl = document.getElementById('rainbowLabel');
@@ -426,6 +427,7 @@ function applyStaticText() {
   rowLabel('paletteLabel', t('options.paletteLabel'), t('options.paletteHint'));
   rowLabel('followInstanceLabel', t('options.followInstance'), t('options.followInstanceHint'), followInstanceEl);
   rowLabel('themeLabel', t('options.themeLabel'), t('options.themeHint', { system: t('options.themeSystem') }));
+  rowLabel('oledLabel', t('options.oled'), t('options.oledHint'), oledEl);
   rowLabel('shapeLabel', t('options.shapeLabel'), t('options.shapeHint'));
 
   const pinHeading = document.getElementById('pinHeading');
@@ -1350,6 +1352,31 @@ const themeSeg = document.getElementById('themeSeg');
 const shapeSeg = document.getElementById('shapeSeg');
 const accentSwatches = document.getElementById('accentSwatches');
 
+oledEl.addEventListener('click', async () => {
+  const on = oledEl.getAttribute('aria-checked') !== 'true';
+  await writeAppearance({ oled: on });
+  applyOled(on);
+  await renderAppearance();
+});
+
+// The device's dark decides whether OLED shows under System, and the system's
+// colour can change in its settings while this page waits behind them.
+matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => void renderAppearance());
+addEventListener('focus', async () => {
+  const a = await readAppearance();
+  if (a.accent !== SYSTEM_ACCENT) return;
+  applyAccent(a.accent);
+  await renderAppearance();
+});
+
+/** The wand of GlimStone's IconAccentSystem, boxed as segGlyph boxes the others. */
+const D_WAND =
+  'M0.793 11.793L6.893 5.693A1 1 0 0 1 8.307 7.107L2.207 13.207A1 1 0 0 1 0.793 11.793Z' +
+  'M10.5 0.5Q11 3 13.5 3.5Q11 4 10.5 6.5Q10 4 7.5 3.5Q10 3 10.5 0.5Z' +
+  'M3.75 2.25Q4.1 3.65 5.5 4Q4.1 4.35 3.75 5.75Q3.4 4.35 2 4Q3.4 3.65 3.75 2.25Z' +
+  'M11 9Q11.35 10.4 12.75 10.75Q11.35 11.1 11 12.5Q10.65 11.1 9.25 10.75Q10.65 10.4 11 9Z';
+const WAND_BOX = '-1.655 -1.665 17.32 17.32';
+
 /**
  * paintHues gives every card a palette position and the rainbow rows their own
  * run. A position points at the root's colours, so a palette change or a
@@ -1540,14 +1567,38 @@ async function renderAppearance() {
     },
   );
 
+  // OLED keeps its state while light shows, where it does nothing, so its
+  // words rest dimmed then.
+  oledEl.setAttribute('aria-checked', String(a.oled));
+  setDimmed([labelWordsOf(document.getElementById('oledLabel'))], !darkShowing(a.theme));
+
+  // The system's colour, in Firefox and Safari. While it is worn no slot is.
+  const system = browserAccent();
+  const wearsSystem = a.accent === SYSTEM_ACCENT && system !== undefined;
   const live = (a.accent || DEFAULT_ACCENT).toLowerCase();
   // The stored choice wins; the nearest preset is only the fresh-install
   // fallback, since once two slots hold the same colour the choice cannot be
   // derived. The app does the same (mobile/src/screens/SettingsScreen.tsx).
-  const liveSlot = a.accentChosen !== undefined ? a.accentChosen : accentSlot(live);
+  const liveSlot = wearsSystem ? -1 : a.accentChosen !== undefined ? a.accentChosen : accentSlot(live);
   const customs = a.accentCustoms;
 
   accentSwatches.innerHTML = '';
+  if (system) {
+    const b = swatch(system, {
+      label: t('options.accentSystem'),
+      pressed: wearsSystem,
+      onPick: async () => {
+        await writeAppearance({ accent: SYSTEM_ACCENT });
+        applyAccent(SYSTEM_ACCENT);
+        await renderAppearance();
+      },
+    });
+    b.classList.add('glim-swatch--system');
+    b.style.color = contrastOn(system);
+    b.setAttribute('data-tip', `${t('options.accentSystem')}. ${t('options.accentSystemHint')}`);
+    b.appendChild(glyph(D_WAND, 16, WAND_BOX));
+    accentSwatches.appendChild(b);
+  }
   const pick = async (v) => {
     await writeAppearance({ accent: v });
     applyAccent(v);
