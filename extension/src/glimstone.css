@@ -120,6 +120,9 @@ body {
      dim it. */
   --carbon-hover-raised: #6f6f6f;
   --carbon-border:     #393939;
+  /* The track of a switch that is off. OLED leaves it here, where surface3
+     would fall to 1.6:1 on its card. */
+  --toggle-off:        #525252;
 
   /* The About card's marks at rest. The published colours fail 3:1 on one of
      the two button grounds, so the warm ones are deepened for light and the
@@ -153,6 +156,10 @@ body {
      No preset needs one. */
   --ink-mix:           100%;
   --accent-ink:        var(--accent-ink-dark, color-mix(in srgb, var(--accent) var(--ink-mix), black));
+  /* The same ink for a line-drawn glyph (GlimStone 3.3.0). Rainbow never
+     colours text, so a hued subtree redefines this one and leaves
+     --accent-ink on the single accent. */
+  --accent-glyph:      var(--accent-ink-dark, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
   /* Four state hues, Carbon's dark support tones. Paused uses neutral; its
      label and resume control tell it apart. */
@@ -204,6 +211,9 @@ body {
   /* One step further from the surface, which is darker here. */
   --carbon-hover-raised: #c6c6c6;
   --carbon-border:     #d1d1d1;
+  /* surface3 stands too close to a card and to the knob to see, so the track
+     goes down to 3:1 against both (GlimStone 4.2.0). */
+  --toggle-off:        #8d8d8d;
 
   /* On #e8e8e8 these measure 4.0, 4.1, 9.7 and 14.6 to 1. */
   --brand-coffee:  #8a6d00;
@@ -228,6 +238,7 @@ body {
   --accent-soft:       rgba(252, 196, 25, 0.14);
   --ink-mix:           55%;
   --accent-ink:        var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
+  --accent-glyph:      var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
   --status-info-text:    #8E6A00;
   --status-info-bg:      rgba(142, 106, 0, 0.12);
@@ -298,6 +309,7 @@ body {
     --carbon-hover:      #e0e0e0;
     --carbon-hover-raised: #c6c6c6;
     --carbon-border:     #d1d1d1;
+    --toggle-off:        #8d8d8d;
 
     /* Kept in step with the [data-theme="light"] block. */
     --brand-coffee:  #8a6d00;
@@ -321,6 +333,7 @@ body {
     --accent-soft:       rgba(252, 196, 25, 0.14);
     --ink-mix:           55%;
     --accent-ink:        var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
+    --accent-glyph:      var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
     --status-info-text:    #8E6A00;
     --status-info-bg:      rgba(142, 106, 0, 0.12);
@@ -384,6 +397,18 @@ body {
     --elevation: 0 0 0 1px #262626;
     --tile-edge: rgba(255, 255, 255, .2);
   }
+}
+
+/* The hover step of a filled tone that has no surface ramp of its own
+   (GlimStone 3.3.0, rule 21): the fill mixed 15% toward the theme's text
+   colour, lighter on dark and darker on light, the way the ramp moves.
+   Declared wherever a theme is set, so --carbon-text is that theme's. */
+:root,
+[data-theme] {
+  --accent-hover:      color-mix(in srgb, var(--accent) 85%, var(--carbon-text));
+  --status-ok-hover:   color-mix(in srgb, var(--status-ok-solid) 85%, var(--carbon-text));
+  --status-fail-hover: color-mix(in srgb, var(--status-fail-solid) 85%, var(--carbon-text));
+  --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
 }
 
 /* Card, section badge, well selector and swatches, ported from the web UI's
@@ -790,7 +815,7 @@ body {
   margin-inline-start: auto;
   width: 36px; height: 20px;
   border-radius: var(--radius-pill);
-  background-color: var(--carbon-surface3);
+  background-color: var(--toggle-off);
   transition: background-color 150ms ease;
 }
 .glim-switch[aria-checked='true'] .glim-switch-track { background-color: var(--accent); }
@@ -834,16 +859,19 @@ body {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
-  /* Restated because var() in a custom property resolves where it is
-     declared; the :root value would keep the single accent. --ink-mix comes
-     from <html>. */
-  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  /* Rainbow never colours text (GlimStone 3.3.0). A var() in a custom
+     property resolves where it is declared, so the --accent-ink from :root
+     arrives here on the single accent and stays there, while a line-drawn
+     glyph reads --accent-glyph, which is restated. So is --accent-hover, so a
+     filled button steps from its own hue. --ink-mix comes from <html>. */
+  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-hover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
   /* The focus ring takes the position's colour too. */
   --focus-ring: var(--item-hue-ring);
 }
 /* A glyph takes its element's hue as ink, since it sits on the card's
    ground. */
-[data-rainbow] .glim-hue-icon svg { color: var(--accent-ink); }
+[data-rainbow] .glim-hue-icon svg { color: var(--accent-glyph); }
 
 /* Reactive: everything rests neutral and only what is hovered, focused or
    active takes its colour, so colour still marks activity. */
@@ -851,7 +879,7 @@ body {
   --accent: var(--carbon-text-muted);
   --accent-contrast: var(--carbon-bg);
   --accent-soft: transparent;
-  --accent-ink: var(--carbon-text-muted);
+  --accent-glyph: var(--carbon-text-muted);
 }
 [data-rainbow='reactive'] .glim-hue:hover,
 [data-rainbow='reactive'] .glim-hue:focus-within,
@@ -859,14 +887,14 @@ body {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
-  /* Restated because the resting rule above muted the ink and comes later at
-     the same specificity. */
-  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  /* Restated because the resting rule above muted the glyph and comes later
+     at the same specificity. */
+  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 [data-rainbow='reactive'] .glim-hue-icon:not(.glim-active) svg { color: inherit; }
 [data-rainbow='reactive'] .glim-hue-icon:hover svg,
 [data-rainbow='reactive'] .glim-hue-icon:focus-within svg,
-[data-rainbow='reactive'] .glim-hue-icon.glim-active svg { color: var(--accent-ink); }
+[data-rainbow='reactive'] .glim-hue-icon.glim-active svg { color: var(--accent-glyph); }
 
 /* The instance card, the same wherever the group is drawn, after the web UI's
    InstanceCard: the mark along the leading edge, the name, what it is, and a
@@ -1258,7 +1286,7 @@ body {
 .glim-paypal-mark { color: var(--brand-paypal); }
 .glim-bitcoin-mark { color: var(--brand-bitcoin); }
 .glim-github-mark { color: var(--brand-github); }
-.glim-house-mark { color: var(--accent-ink); }
+.glim-house-mark { color: var(--accent-glyph); }
 
 /* A tile carrying a brand mark ("Brand tiles"): under the pointer it fills with
    the brand's own colour (--tile), the same on both themes, and its name and
