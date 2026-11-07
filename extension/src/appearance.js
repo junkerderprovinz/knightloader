@@ -12,7 +12,7 @@
  * claim a release the files are not from, and it is a link, so it has to name
  * a published release. Bump it in the change that lifts the ports.
  */
-const GLIMSTONE_VERSION = '4.2.3';
+const GLIMSTONE_VERSION = '4.2.4';
 
 /** The shapes the picker shows. `leaf` is a real shape (see
  *  `data-shape="leaf"` in glimstone.css) that no picker offers; leafTap

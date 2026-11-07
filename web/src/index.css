@@ -3789,11 +3789,12 @@ body {
   .glim-refusal-line { display: none; }
 }
 
-/* The sign-in page (GlimStone 4.2.2, SignInCard): one card about the middle
-   of the window, 24rem wide, the full width less the gutter on a phone. Its
-   top is fixed rather than centred, so a line that appears on a refusal grows
-   the card downward and the card itself stays where it is. The desktop app's
-   title bar sits above it, so the page is that much shorter. */
+/* The sign-in page (GlimStone 4.2.4, SignInCard): one card, 24rem wide, the
+   full width less the gutter on a phone. Its top edge sits where a card of the
+   usual height, about 28rem, starts when centred, and stays there, so a reason
+   above Sign in or the code step makes it grow downwards instead of jumping by
+   half a line. The desktop app's title bar sits above it, so the page is that
+   much shorter. */
 .glim-signin {
   display: flex;
   align-items: flex-start;
@@ -3816,19 +3817,18 @@ body {
   align-items: center;
   gap: 0.75rem;
 }
-/* GlimStone sets the box at 4rem; the knight is upright and filled only two
-   thirds of it, so KnightLoader gives it 7.5rem. */
+/* Every logo gets the same height and the width its shape asks for, so the
+   upright knight stands as large as a square or a wide logo would. */
 .glim-signin-logo {
   display: flex;
-  align-items: center;
   justify-content: center;
-  width: 7.5rem;
-  height: 7.5rem;
+  max-width: 100%;
 }
 .glim-signin-logo > img {
   display: block;
+  width: auto;
+  height: 7.5rem;
   max-width: 100%;
-  max-height: 100%;
   object-fit: contain;
 }
 .glim-signin-name {

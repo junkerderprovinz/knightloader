@@ -50,7 +50,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   only its button shakes: the card keeps its place and grows downward when
   the error line appears. The language picker over the card is gone: the
   page speaks the language last chosen in this browser, or the browser's own.
-- **KnightLoader follows GlimStone 4.2.3,** and the Version card names it.
+- **KnightLoader follows GlimStone 4.2.4,** and the Version card names it.
   Under OLED the cards keep the dark theme's shadow, which still lifts a
   bubble or a menu off a card. A switch that refuses dims its track to half,
   and on a touch screen its reason stands under the row.
