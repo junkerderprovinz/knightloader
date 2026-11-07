@@ -156,8 +156,10 @@ func (a *App) markStallsLocked(now time.Time) (changed []taskCopy, reconnect, re
 		// A task waiting on a captcha has its clock reset, so the wait does not
 		// count once the challenge is answered. So does a torrent a debrid
 		// service is still fetching: nothing comes here until it is done, which
-		// for a torrent it has not cached can take hours.
-		if a.captchaWaitingLocked(id) || t.Remote != nil {
+		// for a torrent it has not cached can take hours. So does a wait a
+		// hoster asks for between free downloads, which a backend of our own
+		// sits out and knows the end of.
+		if a.captchaWaitingLocked(id) || t.Remote != nil || a.hosterWaitLocked(t) {
 			st.seen[id] = stallSample{loaded: t.Loaded, since: now}
 			if !t.StalledSince.IsZero() {
 				t.StalledSince = time.Time{}
@@ -204,6 +206,13 @@ func (a *App) markStallsLocked(now time.Time) (changed []taskCopy, reconnect, re
 		}
 	}
 	return changed, reconnect, restart
+}
+
+// hosterWaitLocked reports whether t's backend is sitting out a wait the
+// hoster asked for. Caller holds a.mu.
+func (a *App) hosterWaitLocked(t *core.Task) bool {
+	w, ok := a.backendFor(t.Resolver).(interface{ Waiting(taskID string) bool })
+	return ok && w.Waiting(t.ID)
 }
 
 // stallRestartDueLocked reports whether this marked task should be handed back

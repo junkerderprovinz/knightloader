@@ -27,6 +27,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -485,6 +486,7 @@ type linkInspector interface {
 // shows the bare address and no size until the download starts.
 func (a *App) inspectHosterLinks(ids []string) {
 	ids = a.inspectMegaLinks(ids)
+	ids = a.inspectFichierLinks(ids)
 	a.bmu.RLock()
 	insp, ok := a.jd.(linkInspector)
 	a.bmu.RUnlock()
@@ -648,16 +650,48 @@ func (a *App) inspectMegaLinks(ids []string) []string {
 	if len(targets) == 0 || be == nil {
 		return rest
 	}
-	res := mega.Resolver{Client: be.Client()}
+	a.inspectOwnLinks(mega.ResolverID, targets, urls, mega.Resolver{Client: be.Client()}.Inspect)
+	return rest
+}
+
+// inspectFichierLinks fills in the name, size and state of the collected links
+// the 1fichier client takes, from their pages, and returns the other ids.
+func (a *App) inspectFichierLinks(ids []string) []string {
+	var rest, targets, urls []string
+	a.mu.Lock()
+	for _, id := range ids {
+		t := a.tasks[id]
+		if t == nil || t.Resolver != onefichier.ResolverID {
+			rest = append(rest, id)
+			continue
+		}
+		if t.Status == core.StatusCollected && !t.Skipped {
+			targets = append(targets, id)
+			urls = append(urls, t.URL)
+		}
+	}
+	a.mu.Unlock()
+	a.bmu.RLock()
+	be := a.fichier
+	a.bmu.RUnlock()
+	if len(targets) > 0 && be != nil {
+		a.inspectOwnLinks(onefichier.ResolverID, targets, urls, onefichier.Resolver{Client: be.Client()}.Inspect)
+	}
+	return rest
+}
+
+// inspectOwnLinks writes down what one of KnightLoader's own hoster clients
+// says about the links of targets.
+func (a *App) inspectOwnLinks(resolverID string, targets, urls []string, inspect func(context.Context, []string) []resolver.LinkInfo) {
 	a.beginActivity(ActivityLinkCheck, len(targets))
 	defer a.endActivity(ActivityLinkCheck, len(targets))
 	ctx, cancel := context.WithTimeout(a.ctx, checkTimeout)
 	defer cancel()
-	for i, info := range res.Inspect(ctx, urls) {
+	for i, info := range inspect(ctx, urls) {
 		id := targets[i]
 		switch info.Availability {
 		case core.AvailOffline:
-			a.setAvailability(id, core.AvailOffline, "offline (mega)", core.ReasonGone)
+			a.setAvailability(id, core.AvailOffline, "offline ("+resolverID+")", core.ReasonGone)
 		case core.AvailOnline:
 			a.setTaskName(id, info.Name)
 			a.onUpdate(id, core.Update{Size: info.Size})
@@ -665,7 +699,6 @@ func (a *App) inspectMegaLinks(ids []string) []string {
 			a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
 		}
 	}
-	return rest
 }
 
 // analyze probes a plain file link with a HEAD request to fill in its size and

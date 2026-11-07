@@ -299,6 +299,27 @@ the priority card on the Accounts page to use it first. A MEGA login in
 JDownloader goes first anyway. With **Allow free downloads** off, a MEGA link
 waits for one of those, since MEGA's own client downloads for free.
 
+## 1fichier
+
+A free `1fichier.com` link needs no JDownloader either, and neither do the
+other domains 1fichier answers under, such as `dl4free.com` or `megadl.fr`.
+KnightLoader reads the file page, so the link collector shows the name, the
+size and whether the file is still there, and it fetches the file over one
+connection, which is all a free download gets.
+
+Between two free downloads 1fichier makes each address wait, often for an hour
+or more. The task keeps running through that wait and its row shows the time
+left, and once it is over the file starts by itself. Pausing or removing the
+task calls the wait off. When 1fichier is holding back free downloads as a
+whole, KnightLoader asks again every five minutes, five times, before it
+gives up. A link protected by a password needs the download password set on it,
+which goes into 1fichier's password field. A folder link goes to
+JDownloader.
+
+A debrid service that carries 1fichier and a 1fichier login in JDownloader
+have no such waits, so both go first. With **Allow free downloads** off, a
+1fichier link waits for one of them.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks

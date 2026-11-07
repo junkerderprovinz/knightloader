@@ -95,6 +95,14 @@ type Checker interface {
 	Check(ctx context.Context, urls []string) ([]core.Availability, error)
 }
 
+// LinkInfo is what a hoster's own client learned about one link from the
+// hoster, without downloading it. An empty Availability is no opinion.
+type LinkInfo struct {
+	Availability core.Availability
+	Name         string
+	Size         int64
+}
+
 // HostCapper is implemented by a resolver that can cap how many chunks one
 // download from a given host may open, such as a multihoster with per-host
 // limits (see debrid.HostLimiter). A result of 0 means no opinion, not zero

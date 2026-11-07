@@ -59,6 +59,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -281,6 +282,9 @@ type App struct {
 	// mega downloads MEGA links itself. Like remotefs it lives across rewires,
 	// and its resolver shares its API client.
 	mega *mega.Backend
+	// fichier fetches free 1fichier links. It too lives across rewires, and
+	// its resolver shares its page client.
+	fichier *onefichier.Backend
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through

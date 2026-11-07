@@ -1,10 +1,11 @@
 package app
 
 // The engine as the backends that resolve a link and pass the transfer on see
-// it: a debrid service or TorBox after its unlock, a Usenet service that
-// fetched an NZB, and the user's own servers for a WebDAV address. The file
-// goes where the task's folder rules put it, through the working folder and
-// under the collision policy, and over the route, as a direct download's does.
+// it: a debrid service or TorBox after its unlock, the 1fichier client after
+// its wait, a Usenet service that fetched an NZB, and the user's own servers
+// for a WebDAV address. The file goes where the task's folder rules put it,
+// through the working folder and under the collision policy, and over the
+// route, as a direct download's does.
 // Handed the engine as it is, they would write into its own folder, whatever
 // the category or package says, and go out over the machine's own connection
 // whatever the VPN switches say.

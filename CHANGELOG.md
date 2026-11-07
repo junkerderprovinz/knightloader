@@ -38,6 +38,19 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Added
+
+- **Free 1fichier links download without JDownloader.** KnightLoader reads
+  the file page itself, so a 1fichier link shows its name, size and whether
+  it is still online in the link collector, and the file comes over one
+  connection, as a free download allows. When 1fichier asks for a pause
+  between free downloads, the task keeps running, shows how long 1fichier
+  wants it to wait and starts the file once the time is up. Pause or remove
+  it to call the wait off. A download password set on the link goes into
+  1fichier's password field. A debrid service that carries 1fichier and a
+  1fichier login in JDownloader still go first, since neither has to wait
+  ([#155](https://github.com/junkerderprovinz/knightloader/issues/155)).
+
 ## [2.7.3] - 2026-11-07
 
 ### Changed

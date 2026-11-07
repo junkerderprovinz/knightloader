@@ -27,6 +27,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -55,8 +56,9 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 		return core.ModePremium
 	}
 	// MEGA's own client logs in to nothing and lives on the free transfer
-	// quota, which premium only is there to stay off.
-	if resolverID == mega.ResolverID {
+	// quota, which premium only is there to stay off. The 1fichier client
+	// downloads for free as well, waits and all.
+	if resolverID == mega.ResolverID || resolverID == onefichier.ResolverID {
 		return core.ModeFree
 	}
 	if resolverID == "jd" {
@@ -1226,12 +1228,13 @@ func (a *App) Resume(id string) {
 
 // HonoursCollisionPolicy reports whether the collision policy reaches the file
 // a task on this resolver writes: the engine's own downloads and those a
-// debrid service or TorBox passes on to it (see engineHandoff). The other
-// backends name files themselves, so only skip applies to them. The interface
-// uses this to avoid offering controls that would be ignored.
+// debrid service, TorBox or the 1fichier client passes on to it (see
+// engineHandoff). The other backends name files themselves, so only skip
+// applies to them. The interface uses this to avoid offering controls that
+// would be ignored.
 func (a *App) HonoursCollisionPolicy(resolverID string) bool {
 	switch a.backendFor(resolverID).(type) {
-	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *usenet.Files:
+	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *onefichier.Backend, *usenet.Files:
 		return true
 	}
 	return false
@@ -1250,6 +1253,8 @@ func (a *App) backendFor(resolverID string) backend {
 		return a.remotefs
 	case resolverID == mega.ResolverID && a.mega != nil:
 		return a.mega
+	case resolverID == onefichier.ResolverID && a.fichier != nil:
+		return a.fichier
 	case resolverID == "jd" && a.jd != nil:
 		return a.jd
 	case resolverID == "torbox" && a.torbox != nil:

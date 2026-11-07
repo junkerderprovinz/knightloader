@@ -59,13 +59,8 @@ func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Resul
 	return resolver.Result{DirectURL: l.String(), Name: req.URL, Connections: 1}, nil
 }
 
-// Info is what Inspect learned about one link. An empty Availability is no
-// opinion.
-type Info struct {
-	Availability core.Availability
-	Name         string
-	Size         int64
-}
+// Info is what Inspect learned about one link.
+type Info = resolver.LinkInfo
 
 // Inspect asks MEGA for the name and size of each file link, in input order.
 // A folder link gets no opinion, since List is what opens one.

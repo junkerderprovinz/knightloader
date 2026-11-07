@@ -33,6 +33,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -176,6 +177,9 @@ func (a *App) rewireBackends() {
 
 	// MEGA's public links, which need no account.
 	a.Registry.Register(mega.Resolver{Client: a.megaBackend().Client()})
+
+	// Free 1fichier links, which need no account either.
+	a.Registry.Register(onefichier.Resolver{Client: a.fichierBackend(eng).Client()})
 
 	// Stored header profiles. Registered here rather than in app.go because
 	// a.Accounts does not exist there yet. It builds its own client, which has
@@ -634,6 +638,30 @@ func (a *App) megaBackend() *mega.Backend {
 		a.mega = b
 	}
 	return a.mega
+}
+
+// fichierBackend returns the app's one 1fichier backend, made on first use.
+func (a *App) fichierBackend(eng onefichier.Downloader) *onefichier.Backend {
+	a.bmu.Lock()
+	defer a.bmu.Unlock()
+	if a.fichier == nil {
+		c := onefichier.NewClient(onefichier.DefaultSite, httpx.New(httpx.Options{Class: httpx.ClassHosters}))
+		b := onefichier.NewBackend(c, eng, a.onUpdate)
+		b.Password = a.downloadPassword
+		a.fichier = b
+	}
+	return a.fichier
+}
+
+// downloadPassword is the password a task's hoster page asks for, "" for
+// none.
+func (a *App) downloadPassword(taskID string) string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if t := a.tasks[taskID]; t != nil {
+		return t.DownloadPassword
+	}
+	return ""
 }
 
 // remotefsLogins returns the host-to-login snapshot for the remote-server
