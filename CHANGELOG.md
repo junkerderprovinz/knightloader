@@ -38,6 +38,35 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Added
+
+- **An OLED switch under the theme puts the dark theme on true black** for
+  OLED and AMOLED screens, in the web interface, the desktop app, the phone
+  app and the browser extension. It counts whenever dark shows, also when the
+  theme follows the device, and each browser or phone keeps its own choice.
+  The desktop window's frame turns black with the page.
+- **A wand swatch at the start of the accent row takes the system's colour**:
+  Material You on Android 12 and newer, the accent colour of Windows, macOS or
+  Linux in the desktop app, and the system colour in Firefox and Safari.
+  Choosing it changes only that device, so the instance's accent stays as
+  every other client sees it, and a circle picked afterwards goes back to the
+  instance. Where the system has no colour, the swatch isn't there.
+
+### Changed
+
+- **Text on an accent fill is near-black on Blue, Red, Purple, Orange and
+  Pink,** where white read at only 2.3 to 3.0:1. Every ink the colour engine
+  works out reaches 4.5:1, so a colour mixed by hand or taken from the system
+  reads as well as the presets. OLED, the system colour and this come from
+  GlimStone 4.2.0, without the rest of that release yet, so the Components
+  card still names the version the rest follows.
+
+### Fixed
+
+- **On an iPhone, the phone app's System theme follows the device.** The build
+  told iOS to keep the app dark, so System stayed dark whatever the device
+  said.
+
 ## [2.6.6] - 2026-11-06
 
 ### Fixed
