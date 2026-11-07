@@ -41,12 +41,15 @@ function functionSource(text, name) {
 
 /** A selector test for the few forms the page uses; anything else is an error, never a silent miss. */
 function matcher(selector) {
-  if (/^[a-z][a-z0-9]*$/.test(selector)) return (el) => el.tagName === selector.toUpperCase();
-  const cls = selector.match(/^\.([\w-]+)$/);
-  if (cls) return (el) => el.className.split(/\s+/).includes(cls[1]);
-  const attr = selector.match(/^\[([\w-]+)(?:="([^"]*)")?\]$/);
-  if (attr) return (el) => el.getAttribute(attr[1]) !== null && (attr[2] === undefined || el.getAttribute(attr[1]) === attr[2]);
-  throw new Error(`the stand-in DOM does not know the selector "${selector}"`);
+  const m = selector.match(/^([a-z][a-z0-9]*)?((?:\.[\w-]+|\[[\w-]+(?:="[^"]*")?\])*)$/);
+  if (!m || selector === '') throw new Error(`the stand-in DOM does not know the selector "${selector}"`);
+  const tests = [];
+  if (m[1]) tests.push((el) => el.tagName === m[1].toUpperCase());
+  for (const [, cls, name, value] of m[2].matchAll(/\.([\w-]+)|\[([\w-]+)(?:="([^"]*)")?\]/g)) {
+    if (cls) tests.push((el) => el.className.split(/\s+/).includes(cls));
+    else tests.push((el) => el.getAttribute(name) !== null && (value === undefined || el.getAttribute(name) === value));
+  }
+  return (el) => tests.every((t) => t(el));
 }
 const matchesAny = (selector) => {
   const tests = selector.split(',').map((s) => matcher(s.trim()));
