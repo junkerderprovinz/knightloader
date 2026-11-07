@@ -3811,6 +3811,7 @@ export const sk: Dict = {
   'whatsnew.change.javaUpdates': 'Desktopová aplikácia udržiava svoju Javu aktuálnu a presunie JDownloader na novšiu, keď nebeží žiadne z jeho sťahovaní.',
   'whatsnew.change.hosterNames': 'Odkazy na hostingy ukazujú názov súboru, veľkosť a stav online hneď po príchode, rovnako ako zberač odkazov v JDownloaderi.',
   'whatsnew.change.megaNative': 'Odkazy MEGA na súbory a priečinky sa sťahujú bez JDownloadera a z odkazu na priečinok vznikne jeden riadok pre každý súbor.',
+  'whatsnew.change.fichierNative': 'Odkazy 1fichier sa sťahujú bez JDownloadera a čakanie, ktoré 1fichier vyžaduje medzi bezplatnými stiahnutiami, je vidieť pri sťahovaní.',
   'whatsnew.change.oled': '{oled} pod {theme} prepne tmavý vzhľad na skutočnú čiernu pre displeje OLED a AMOLED. Platí vždy, keď je tmavý vzhľad vidieť, aj keď sa riadi systémom, a každé zariadenie si pamätá vlastnú voľbu.',
   'whatsnew.change.systemAccent': 'Vzorka s čarovným prútikom na začiatku {accent} prevezme farbu systému: Material You od Androidu 12, zvýrazňujúcu farbu Windows, macOS alebo Linuxu v desktopovej aplikácii a systémovú farbu vo Firefoxe a Safari. Kde systém žiadnu nemá, vzorka chýba. Voľba platí len pre toto zariadenie a ostatné si ponechajú farbu inštancie.',
   'whatsnew.change.fileKindsMore': 'Odkazy ukazujú svojím symbolom viac druhov súborov: PDF, kancelárske dokumenty, tabuľky, prezentácie, e-knihy, playlisty, obrazy diskov, programy, písma, 3D modely, kontrolné súčty, torrenty, RAW fotky a grafické súbory.',

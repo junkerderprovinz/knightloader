@@ -3801,6 +3801,7 @@ export const id: Dict = {
   'whatsnew.change.javaUpdates': 'Aplikasi desktop menjaga Java miliknya tetap terbaru dan memindahkan JDownloader ke versi yang lebih baru saat tidak ada unduhannya yang berjalan.',
   'whatsnew.change.hosterNames': 'Tautan hoster menampilkan nama file, ukuran, dan status online begitu tiba, seperti di pengumpul tautan JDownloader.',
   'whatsnew.change.megaNative': 'Tautan file dan folder MEGA diunduh tanpa JDownloader, dan tautan folder menjadi satu baris untuk setiap file.',
+  'whatsnew.change.fichierNative': 'Tautan 1fichier diunduh tanpa JDownloader, dan waktu tunggu yang diminta 1fichier di antara unduhan gratis tampil pada unduhan.',
   'whatsnew.change.oled': '{oled} di bawah {theme} membuat tampilan gelap menjadi hitam pekat untuk layar OLED dan AMOLED. Ini berlaku setiap kali tampilan gelap muncul, juga saat mengikuti sistem, dan setiap perangkat mengingat pilihannya sendiri.',
   'whatsnew.change.systemAccent': 'Contoh warna bertongkat sihir di awal {accent} mengikuti warna sistemmu: Material You di Android 12 ke atas, warna aksen Windows, macOS, atau Linux di aplikasi desktop, dan warna sistem di Firefox dan Safari. Jika sistem tidak punya warna, contoh itu tidak muncul. Pilihan ini hanya berlaku di perangkat ini, dan perangkat lain tetap memakai warna instance.',
   'whatsnew.change.fileKindsMore': 'Tautan menampilkan lebih banyak jenis file dengan simbolnya: PDF, dokumen kantor, lembar kerja, presentasi, e-book, daftar putar, image disk, program, font, model 3D, checksum, torrent, foto RAW, dan file desain.',

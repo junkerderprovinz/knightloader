@@ -4105,6 +4105,7 @@ export const en = {
   'whatsnew.change.javaUpdates': 'The desktop app keeps its Java up to date and moves JDownloader onto a newer one while none of its downloads runs.',
   'whatsnew.change.hosterNames': 'Hoster links show their file name, size and online state as soon as they arrive, as in the JDownloader link collector.',
   'whatsnew.change.megaNative': 'MEGA file and folder links download without JDownloader, and a folder link becomes one row per file.',
+  'whatsnew.change.fichierNative': '1fichier links download without JDownloader, and the wait 1fichier sets between free downloads shows on the download.',
   'whatsnew.change.oled': '{oled} under {theme} puts the dark look on true black for OLED and AMOLED screens. It counts whenever the dark look shows, also when it follows the system, and each device keeps its own choice.',
   'whatsnew.change.systemAccent': 'The wand swatch at the start of {accent} takes the system\'s colour: Material You on Android 12 and newer, the accent colour of Windows, macOS or Linux in the desktop app, and the system colour in Firefox and Safari. Where the system has none, the swatch isn\'t there. Choosing it changes only this device, and the others keep the instance\'s colour.',
   'whatsnew.change.fileKindsMore': 'Links show more kinds of file by their symbol: PDFs, office documents, spreadsheets, presentations, e-books, playlists, disk images, programs, fonts, 3D models, checksums, torrents, RAW photos and design files.',

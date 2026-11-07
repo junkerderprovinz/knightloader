@@ -3786,6 +3786,7 @@ export const pl: Dict = {
   'whatsnew.change.javaUpdates': 'Aplikacja desktopowa dba o aktualność swojej Javy i przenosi JDownloadera na nowszą, gdy nie trwa żadne z jego pobrań.',
   'whatsnew.change.hosterNames': 'Linki do hostingów pokazują nazwę pliku, rozmiar i dostępność zaraz po dodaniu, jak w zbieraczu linków JDownloadera.',
   'whatsnew.change.megaNative': 'Linki MEGA do plików i folderów pobierają się bez JDownloadera, a link do folderu zamienia się w osobny wiersz dla każdego pliku.',
+  'whatsnew.change.fichierNative': 'Linki 1fichier pobierają się bez JDownloadera, a czas oczekiwania, którego 1fichier wymaga między darmowymi pobraniami, widać przy pobieraniu.',
   'whatsnew.change.oled': '{oled} pod {theme} zmienia ciemny wygląd na prawdziwą czerń dla ekranów OLED i AMOLED. Działa zawsze, gdy widać ciemny wygląd, także gdy podąża za systemem, a każde urządzenie pamięta własny wybór.',
   'whatsnew.change.systemAccent': 'Próbka z różdżką na początku {accent} przejmuje kolor systemu: Material You od Androida 12, kolor akcentu Windows, macOS lub Linuksa w aplikacji na komputer i kolor systemu w Firefoksie i Safari. Gdzie system go nie ma, próbki nie ma. Wybór dotyczy tylko tego urządzenia, a pozostałe zachowują kolor instancji.',
   'whatsnew.change.fileKindsMore': 'Linki pokazują swoim symbolem więcej rodzajów plików: PDF-y, dokumenty biurowe, arkusze kalkulacyjne, prezentacje, e-booki, playlisty, obrazy dysków, programy, czcionki, modele 3D, sumy kontrolne, torrenty, zdjęcia RAW i pliki projektowe.',

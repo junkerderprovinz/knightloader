@@ -14,6 +14,7 @@ const PRODUCT_NAMES: Record<string, string> = {
   ytdlp: 'yt-dlp',
   jd: 'JDownloader',
   mega: 'MEGA',
+  '1fichier': '1fichier',
 };
 
 const DESCRIBED: Record<string, TranslationKey> = {

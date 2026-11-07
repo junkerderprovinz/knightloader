@@ -3797,6 +3797,7 @@ export const is: Dict = {
   'whatsnew.change.javaUpdates': 'Skjáborðsforritið heldur sínu Java uppfærðu og færir JDownloader yfir á nýrra á meðan ekkert af niðurhali þess er í gangi.',
   'whatsnew.change.hosterNames': 'Hýsingartenglar sýna skráarheiti, stærð og hvort þeir eru virkir um leið og þeir berast, eins og í tenglasafnara JDownloader.',
   'whatsnew.change.megaNative': 'MEGA-tenglar á skrár og möppur sækjast án JDownloader, og möpputengill verður að einni línu fyrir hverja skrá.',
+  'whatsnew.change.fichierNative': '1fichier-tenglar sækjast án JDownloader, og biðin sem 1fichier krefst á milli ókeypis niðurhala sést á niðurhalinu.',
   'whatsnew.change.oled': '{oled} undir {theme} setur dökka útlitið á hreinan svartan lit fyrir OLED- og AMOLED-skjái. Það gildir alltaf þegar dökka útlitið sést, líka þegar það fylgir kerfinu, og hvert tæki man sitt eigið val.',
   'whatsnew.change.systemAccent': 'Litaprufan með töfrasprotanum fremst í {accent} notar lit kerfisins: Material You frá Android 12, áherslulit Windows, macOS eða Linux í skjáborðsforritinu og kerfislitinn í Firefox og Safari. Þar sem kerfið hefur engan er prufan ekki til staðar. Valið gildir aðeins um þetta tæki, og hin halda lit tilviksins.',
   'whatsnew.change.fileKindsMore': 'Tenglar sýna fleiri skráartegundir með tákni sínu: PDF-skjöl, skrifstofuskjöl, töflureikna, kynningar, rafbækur, spilunarlista, diskmyndir, forrit, letur, þrívíddarlíkön, gátsummur, torrent, RAW-myndir og hönnunarskrár.',

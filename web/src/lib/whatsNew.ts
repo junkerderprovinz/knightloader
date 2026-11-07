@@ -51,6 +51,10 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.8.0',
+    changes: [{ id: 'fichier-native', text: 'whatsnew.change.fichierNative' }],
+  },
+  {
     version: '2.7.0',
     changes: [
       {

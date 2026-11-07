@@ -3800,6 +3800,7 @@ export const sl: Dict = {
   'whatsnew.change.javaUpdates': 'Namizna aplikacija sproti posodablja svojo Javo in preseli JDownloader na novejšo, ko ne teče nobeden od njegovih prenosov.',
   'whatsnew.change.hosterNames': 'Povezave gostiteljev takoj ob prihodu pokažejo ime datoteke, velikost in ali so na voljo, kot v zbiralniku povezav JDownloaderja.',
   'whatsnew.change.megaNative': 'Povezave MEGA do datotek in map se prenesejo brez JDownloaderja, povezava do mape pa postane po ena vrstica za vsako datoteko.',
+  'whatsnew.change.fichierNative': 'Povezave 1fichier se prenesejo brez JDownloaderja, čakanje, ki ga 1fichier zahteva med brezplačnimi prenosi, pa je vidno pri prenosu.',
   'whatsnew.change.oled': '{oled} pod {theme} preklopi temni videz na pravo črno za zaslone OLED in AMOLED. Velja vedno, ko je temni videz viden, tudi ko sledi sistemu, in vsaka naprava si zapomni svojo izbiro.',
   'whatsnew.change.systemAccent': 'Vzorec s čarobno paličico na začetku {accent} prevzame barvo tvojega sistema: Material You od Androida 12, poudarjeno barvo sistemov Windows, macOS ali Linux v namizni aplikaciji in sistemsko barvo v Firefoxu in Safariju. Kjer sistem barve nima, vzorca ni. Izbira velja samo za to napravo, druge pa obdržijo barvo instance.',
   'whatsnew.change.fileKindsMore': 'Povezave s svojim simbolom kažejo več vrst datotek: PDF-je, pisarniške dokumente, preglednice, predstavitve, e-knjige, sezname predvajanja, slike diskov, programe, pisave, 3D-modele, kontrolne vsote, torrente, fotografije RAW in oblikovalske datoteke.',

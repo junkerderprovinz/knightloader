@@ -3798,6 +3798,7 @@ export const ja: Dict = {
   'whatsnew.change.javaUpdates': 'デスクトップアプリは自前の Java を最新に保ち、JDownloader のダウンロードが動いていない間に新しい Java へ切り替えます。',
   'whatsnew.change.hosterNames': 'ホスターのリンクは届いた時点でファイル名、サイズ、オンライン状態を表示します。JDownloader のリンク収集と同じです。',
   'whatsnew.change.megaNative': 'MEGA のファイルとフォルダーのリンクは JDownloader なしでダウンロードされ、フォルダーのリンクはファイルごとに 1 行になります。',
+  'whatsnew.change.fichierNative': '1fichier のリンクは JDownloader なしでダウンロードされ、1fichier が無料ダウンロードの間に求める待ち時間はダウンロードに表示されます。',
   'whatsnew.change.oled': '{theme} の下にある {oled} は、OLED と AMOLED の画面向けに暗いデザインを真っ黒にします。システムに合わせているときも含め、暗いデザインが表示されているあいだ有効で、選択はデバイスごとに覚えます。',
   'whatsnew.change.systemAccent': '{accent} の先頭にある魔法の杖の見本は、システムの色を使います。Android 12 以降では Material You、デスクトップ版では Windows、macOS、Linux のアクセントカラー、Firefox と Safari ではシステムの色です。システムに色がない場合、この見本は表示されません。選択はこのデバイスだけに適用され、ほかのデバイスはインスタンスの色のままです。',
   'whatsnew.change.fileKindsMore': 'リンクがより多くの種類のファイルを記号で示します。PDF、オフィス文書、表計算、プレゼンテーション、電子書籍、プレイリスト、ディスクイメージ、プログラム、フォント、3D モデル、チェックサム、トレント、RAW 写真、デザインファイルです。',

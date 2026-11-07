@@ -3801,6 +3801,7 @@ export const sv: Dict = {
   'whatsnew.change.javaUpdates': 'Skrivbordsappen håller sin egen Java uppdaterad och flyttar JDownloader till en nyare medan ingen av dess nedladdningar körs.',
   'whatsnew.change.hosterNames': 'Hosterlänkar visar filnamn, storlek och onlinestatus så snart de kommer in, som i JDownloaders länksamlare.',
   'whatsnew.change.megaNative': 'MEGA-länkar till filer och mappar laddas ner utan JDownloader, och en mapplänk blir en rad per fil.',
+  'whatsnew.change.fichierNative': '1fichier-länkar laddas ner utan JDownloader, och väntetiden som 1fichier kräver mellan gratis nedladdningar visas på nedladdningen.',
   'whatsnew.change.oled': '{oled} under {theme} ger det mörka utseendet äkta svart för OLED- och AMOLED-skärmar. Det gäller när det mörka utseendet syns, även när det följer systemet, och varje enhet minns sitt eget val.',
   'whatsnew.change.systemAccent': 'Färgprovet med trollstaven först i {accent} tar ditt systems färg: Material You från Android 12, accentfärgen i Windows, macOS eller Linux i skrivbordsappen och systemfärgen i Firefox och Safari. Där systemet saknar en finns provet inte. Valet gäller bara den här enheten, och de andra behåller instansens färg.',
   'whatsnew.change.fileKindsMore': 'Länkar visar fler sorters filer med sin symbol: PDF:er, kontorsdokument, kalkylblad, presentationer, e-böcker, spellistor, skivavbilder, program, typsnitt, 3D-modeller, kontrollsummor, torrenter, RAW-foton och designfiler.',
