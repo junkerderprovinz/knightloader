@@ -184,6 +184,8 @@ export default function SettingsScreen({
     setRainbow,
     disco,
     setDisco,
+    oled,
+    setOled,
     followInstance,
     snapshotAsLocal,
   } = useAppearance();
@@ -442,6 +444,15 @@ export default function SettingsScreen({
             onPick={(v) => setTheme(v === 'system' ? undefined : v)}
           />
         </View>
+
+        {/* A switch under the theme rather than a fourth theme, so somebody who
+            follows the phone gets black at night without touching it again
+            (GlimStone's rule 43). The phone keeps it, never the instance. */}
+        <GlimRow
+          label={t('settings.oled')}
+          info={t('settings.oledHint')}
+          control={<GlimToggle value={oled} onChange={setOled} label={t('settings.oled')} />}
+        />
 
         {/* A switch rather than a link that appears once something is
             overridden: following the instance is a state, and a state gets the

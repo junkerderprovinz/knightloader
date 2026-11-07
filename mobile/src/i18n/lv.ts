@@ -185,6 +185,8 @@ export const lv: Dict = {
   'settings.theme.light': 'Gaišs',
   'settings.theme.dark': 'Tumšs',
   'settings.theme.system': 'Sistēmas',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Pārslēdz tumšo izskatu uz īstu melnu OLED un AMOLED ekrāniem.',
   'settings.corners': 'Stūri',
   'settings.corners.round': 'Apaļi',
   'settings.corners.slightlyRounded': 'Mīksti',

@@ -185,6 +185,8 @@ export const eu: Dict = {
   'settings.theme.light': 'Argia',
   'settings.theme.dark': 'Iluna',
   'settings.theme.system': 'Sistema',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Itxura iluna benetako beltz bihurtzen du, OLED eta AMOLED pantailentzat.',
   'settings.corners': 'Izkinak',
   'settings.corners.round': 'Biribilak',
   'settings.corners.slightlyRounded': 'Leunak',

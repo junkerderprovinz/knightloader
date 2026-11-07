@@ -185,6 +185,8 @@ export const el: Dict = {
   'settings.theme.light': 'Φωτεινό',
   'settings.theme.dark': 'Σκούρο',
   'settings.theme.system': 'Σύστημα',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Κάνει το σκούρο θέμα πραγματικά μαύρο, για οθόνες OLED και AMOLED.',
   'settings.corners': 'Γωνίες',
   'settings.corners.round': 'Στρογγυλές',
   'settings.corners.slightlyRounded': 'Απαλές',

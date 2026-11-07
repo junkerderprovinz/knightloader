@@ -185,6 +185,8 @@ export const ca: Dict = {
   'settings.theme.light': 'Clar',
   'settings.theme.dark': 'Fosc',
   'settings.theme.system': 'Sistema',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Posa l\'aspecte fosc en negre pur, per a pantalles OLED i AMOLED.',
   'settings.corners': 'Cantonades',
   'settings.corners.round': 'Rodones',
   'settings.corners.slightlyRounded': 'Suaus',

@@ -20,7 +20,7 @@ import {
 } from './appearance';
 import { buildLoop } from './discoLoop';
 import { useMotion } from './MotionContext';
-import { DARK, LIGHT, TYPE, cornersFor, inkFor, type Corners, type Palette } from './tokens';
+import { DARK, LIGHT, OLED, TYPE, cornersFor, inkFor, type Corners, type Palette } from './tokens';
 
 // Where the app's look comes from, and in which order.
 //
@@ -74,6 +74,9 @@ export interface Appearance {
   /** Whether disco is switched on. It walks only while the rainbow is on. */
   disco: boolean;
   setDisco: (on: boolean) => void;
+  /** Whether OLED is switched on. It shows whenever dark does. */
+  oled: boolean;
+  setOled: (on: boolean) => void;
 
   /** True when a local override is in force for that axis. */
   overridden: { accent: boolean; shape: boolean; theme: boolean; rainbow: boolean };
@@ -138,6 +141,10 @@ const STORE_KEY = 'glim-appearance-override';
  *  this phone's alone, like the motion level, and following the instance must
  *  not clear it. */
 const DISCO_KEY = 'glim-disco';
+
+/** OLED's switch, the phone's alone for the same reason: it belongs to this
+ *  screen, and no instance ever carries it. */
+const OLED_KEY = 'glim-oled';
 
 /**
  * Where a local look waits while the instance's own is being worn.
@@ -214,6 +221,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   const [shelf, setShelf] = useState<Override | null>(null);
   const [instance, setInstance] = useState<InstanceAppearance | undefined>(undefined);
   const [disco, setDiscoState] = useState(false);
+  const [oled, setOledState] = useState(false);
   /** How much of a full turn disco has walked, from 0 up to 1, and only ever
    *  a whole colour's worth while it steps. Never stored and never written
    *  into the rainbow state, so stopping hands back the palette as it was set. */
@@ -248,6 +256,16 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       .catch(() => {
         /* an unreadable switch is off */
       });
+    AsyncStorage.getItem(OLED_KEY)
+      .then((raw) => setOledState(raw === 'on'))
+      .catch(() => {
+        /* an unreadable switch is off */
+      });
+  }, []);
+
+  const setOled = useCallback((on: boolean) => {
+    setOledState(on);
+    void AsyncStorage.setItem(OLED_KEY, on ? 'on' : 'off').catch(() => {});
   }, []);
 
   const setDisco = useCallback((on: boolean) => {
@@ -329,7 +347,9 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     // light system has made a decision nobody asked for. So this axis has two
     // layers: a local choice, or the system.
     const dark = override.theme ? override.theme === 'dark' : system !== 'light';
-    const c = dark ? DARK : LIGHT;
+    // OLED counts whenever dark shows, chosen or from the phone, and waits
+    // through light without being switched off.
+    const c = dark ? (oled ? OLED : DARK) : LIGHT;
 
     // The accent is used as given, in both themes. Darkening belongs to the
     // ink rather than to the colour; see accentInk below and tokens.inkFor.
@@ -360,6 +380,8 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       rainbow,
       disco,
       setDisco,
+      oled,
+      setOled,
       overridden: {
         accent: override.accent !== undefined,
         shape: override.shape !== undefined,
@@ -416,7 +438,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       },
       setInstanceAppearance: setInstance,
     };
-  }, [override, shelf, instance, system, persist, shelve, rainbow, walking, walk, steps, loop, disco, setDisco]);
+  }, [override, shelf, instance, system, persist, shelve, rainbow, walking, walk, steps, loop, disco, setDisco, oled, setOled]);
 
   return <AppearanceCtx.Provider value={value}>{children}</AppearanceCtx.Provider>;
 }

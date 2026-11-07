@@ -185,6 +185,8 @@ export const id: Dict = {
   'settings.theme.light': 'Terang',
   'settings.theme.dark': 'Gelap',
   'settings.theme.system': 'Sistem',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Membuat tampilan gelap menjadi hitam pekat, untuk layar OLED dan AMOLED.',
   'settings.corners': 'Sudut',
   'settings.corners.round': 'Bulat',
   'settings.corners.slightlyRounded': 'Lembut',

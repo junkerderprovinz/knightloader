@@ -95,6 +95,10 @@ export interface Palette {
   brandGithub: string;
   brandWindows: string;
   brandDocker: string;
+
+  /** A ring around a lit brand tile, where its colour would vanish into the
+   *  card: only on OLED's black, against GitHub's near-black. */
+  tileEdge?: string;
 }
 
 // Ground and surfaces are IBM Carbon's neutral greys rather than a warm
@@ -144,6 +148,24 @@ export const DARK: Palette = {
   // 3.1 and 3.7 to 1, the web interface's values.
   brandWindows: '#2b88d8',
   brandDocker: '#2396ed',
+};
+
+// OLED, the dark palette on true black for OLED and AMOLED screens (GlimStone's
+// rule 43). The surfaces move one Carbon step down and keep their order, so the
+// hover still sits between the card and surface2 and hoverRaised stays the step
+// above surface3. The text, the brand marks and the state colours stay as dark
+// has them, since they were measured on lighter grounds than they get here.
+export const OLED: Palette = {
+  ...DARK,
+  bg: '#000000',
+  sidebar: '#161616',
+  surface: '#161616',
+  surface2: '#262626',
+  surface3: '#393939',
+  hover: '#232323',
+  hoverRaised: '#525252',
+  border: '#262626',
+  tileEdge: 'rgba(255, 255, 255, 0.2)',
 };
 
 // Carbon's light greys, mirroring the dark ramp step for step.

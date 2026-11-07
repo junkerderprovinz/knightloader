@@ -185,6 +185,8 @@ export const lt: Dict = {
   'settings.theme.light': 'Šviesi',
   'settings.theme.dark': 'Tamsi',
   'settings.theme.system': 'Sistemos',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Tamsią išvaizdą paverčia tikra juoda OLED ir AMOLED ekranams.',
   'settings.corners': 'Kampai',
   'settings.corners.round': 'Apvalūs',
   'settings.corners.slightlyRounded': 'Švelnūs',

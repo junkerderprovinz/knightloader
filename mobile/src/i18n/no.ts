@@ -185,6 +185,8 @@ export const no: Dict = {
   'settings.theme.light': 'Lyst',
   'settings.theme.dark': 'Mørkt',
   'settings.theme.system': 'System',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Gir det mørke utseendet ekte svart, for OLED- og AMOLED-skjermer.',
   'settings.corners': 'Hjørner',
   'settings.corners.round': 'Runde',
   'settings.corners.slightlyRounded': 'Myke',

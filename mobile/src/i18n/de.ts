@@ -218,6 +218,8 @@ export const de: Dict = {
   'settings.theme.light': 'Hell',
   'settings.theme.dark': 'Dunkel',
   'settings.theme.system': 'System',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Setzt das dunkle Design auf echtes Schwarz, für OLED- und AMOLED-Bildschirme.',
   'settings.corners': 'Ecken',
   'settings.corners.round': 'Rund',
   'settings.corners.slightlyRounded': 'Abgerundet',

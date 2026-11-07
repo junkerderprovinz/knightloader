@@ -791,7 +791,11 @@ export function ReadmeButton({
         accessibilityRole="button"
         accessibilityLabel={second ? `${label} ${second}` : label}
         accessibilityState={{ disabled: quiet }}
-        style={[styles.readme, { backgroundColor: lit ? fill : c.surface2, ...corners.pill }]}
+        style={[
+          styles.readme,
+          { backgroundColor: lit ? fill : c.surface2, ...corners.pill },
+          lit && c.tileEdge ? { boxShadow: `inset 0 0 0 1px ${c.tileEdge}` } : null,
+        ]}
       >
         {art ? (
           drawn

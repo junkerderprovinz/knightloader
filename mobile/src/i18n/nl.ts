@@ -185,6 +185,8 @@ export const nl: Dict = {
   'settings.theme.light': 'Licht',
   'settings.theme.dark': 'Donker',
   'settings.theme.system': 'Systeem',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Zet het donkere uiterlijk op echt zwart, voor OLED- en AMOLED-schermen.',
   'settings.corners': 'Hoeken',
   'settings.corners.round': 'Rond',
   'settings.corners.slightlyRounded': 'Zacht',

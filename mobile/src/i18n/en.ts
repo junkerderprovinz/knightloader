@@ -219,6 +219,8 @@ export const en = {
   'settings.theme.light': 'Light',
   'settings.theme.dark': 'Dark',
   'settings.theme.system': 'System',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Puts the dark look on true black, for OLED and AMOLED screens.',
   'settings.corners': 'Corners',
   'settings.corners.round': 'Round',
   'settings.corners.slightlyRounded': 'Soft',

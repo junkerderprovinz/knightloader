@@ -185,6 +185,8 @@ export const hi: Dict = {
   'settings.theme.light': 'लाइट',
   'settings.theme.dark': 'डार्क',
   'settings.theme.system': 'सिस्टम',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'गहरे रूप को OLED और AMOLED स्क्रीन के लिए असली काले रंग पर ले जाता है।',
   'settings.corners': 'कोने',
   'settings.corners.round': 'गोल',
   'settings.corners.slightlyRounded': 'हल्के गोल',

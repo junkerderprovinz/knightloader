@@ -184,6 +184,8 @@ export const ja: Dict = {
   'settings.theme.light': 'ライト',
   'settings.theme.dark': 'ダーク',
   'settings.theme.system': 'システム',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'OLED と AMOLED の画面向けに、暗いデザインを真っ黒にします。',
   'settings.corners': '角',
   'settings.corners.round': '丸い',
   'settings.corners.slightlyRounded': 'やや丸い',

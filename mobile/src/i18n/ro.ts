@@ -185,6 +185,8 @@ export const ro: Dict = {
   'settings.theme.light': 'Deschisă',
   'settings.theme.dark': 'Închisă',
   'settings.theme.system': 'Sistem',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Trece aspectul întunecat pe negru adevărat, pentru ecranele OLED și AMOLED.',
   'settings.corners': 'Colțuri',
   'settings.corners.round': 'Rotunde',
   'settings.corners.slightlyRounded': 'Ușor rotunjite',

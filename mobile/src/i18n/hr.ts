@@ -185,6 +185,8 @@ export const hr: Dict = {
   'settings.theme.light': 'Svijetla',
   'settings.theme.dark': 'Tamna',
   'settings.theme.system': 'Sustav',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Prebacuje tamni izgled na pravu crnu, za OLED i AMOLED zaslone.',
   'settings.corners': 'Kutovi',
   'settings.corners.round': 'Okrugli',
   'settings.corners.slightlyRounded': 'Blago zaobljeni',

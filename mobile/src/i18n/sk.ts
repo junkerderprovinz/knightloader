@@ -185,6 +185,8 @@ export const sk: Dict = {
   'settings.theme.light': 'Svetlý',
   'settings.theme.dark': 'Tmavý',
   'settings.theme.system': 'Systémový',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Prepne tmavý vzhľad na skutočnú čiernu pre displeje OLED a AMOLED.',
   'settings.corners': 'Rohy',
   'settings.corners.round': 'Okrúhle',
   'settings.corners.slightlyRounded': 'Mierne zaoblené',

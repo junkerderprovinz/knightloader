@@ -185,6 +185,8 @@ export const bg: Dict = {
   'settings.theme.light': 'Светла',
   'settings.theme.dark': 'Тъмна',
   'settings.theme.system': 'Системна',
+  'settings.oled': 'OLED',
+  'settings.oledHint': 'Прави тъмния вид истински черен за OLED и AMOLED екрани.',
   'settings.corners': 'Ъгли',
   'settings.corners.round': 'Кръгли',
   'settings.corners.slightlyRounded': 'Меки',
