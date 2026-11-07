@@ -3786,3 +3786,85 @@ body {
   text-wrap: balance;
 }
 .glim-modal-foot > button.glim-btn-key { min-height: var(--btn-h-key); }
+
+/* The sign-in page (GlimStone 4.2.2, SignInCard): one card in the middle of
+   the window, 24rem wide, the full width less the gutter on a phone. The
+   desktop app's title bar sits above it, so the page is that much shorter. */
+.glim-signin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100dvh - var(--window-bar));
+  padding: 1rem;
+  background-color: var(--carbon-bg);
+  color: var(--carbon-text);
+}
+.glim-signin-card-wrap { width: min(24rem, 100%); }
+.glim-signin-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+.glim-signin-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.glim-signin-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+}
+.glim-signin-logo > img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.glim-signin-name {
+  margin: 0;
+  font-size: var(--text-status);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.glim-signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+}
+.glim-signin-form p { margin: 0; }
+.glim-signin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.glim-signin-field[hidden] { display: none; }
+.glim-signin-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--carbon-text-sub);
+  font-size: var(--text-meta);
+  font-weight: 500;
+}
+.glim-signin-hint {
+  color: var(--carbon-text-sub);
+  font-size: var(--text-meta);
+}
+.glim-signin-error {
+  color: var(--status-fail-text);
+  font-size: var(--text-meta);
+}
+.glim-signin-code { letter-spacing: 0.35em; }
+.glim-signin-log-code,
+.glim-signin-log-code::placeholder {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}

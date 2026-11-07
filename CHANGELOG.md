@@ -38,6 +38,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Changed
+
+- **The sign-in page is GlimStone's sign-in card,** the same in every app of
+  the family. The logo stands large above the name in one card, and Sign in,
+  the passkey and Forgot password? are full width. The code from the
+  authenticator app and the reset form take their turn in the same card. A
+  refused try shakes its button and selects what was typed, so the next try
+  starts by typing. The language picker over the card is gone: the page
+  speaks the language last chosen in this browser, or the browser's own.
+
 ## [2.7.0] - 2026-11-07
 
 ### Added

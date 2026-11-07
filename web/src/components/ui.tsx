@@ -1495,6 +1495,8 @@ export function PasswordInput({
   showLabel,
   hideLabel,
   autoFocus,
+  id,
+  field,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -1502,6 +1504,9 @@ export function PasswordInput({
   showLabel: string;
   hideLabel: string;
   autoFocus?: boolean;
+  id?: string;
+  /** The sign-in card's name for the field, which a refusal focuses (lib/signIn.ts). */
+  field?: string;
 }) {
   const [reveal, setReveal] = useState(false);
   const label = reveal ? hideLabel : showLabel;
@@ -1512,6 +1517,8 @@ export function PasswordInput({
   return (
     <div className="relative">
       <TextInput
+        id={id}
+        data-signin-field={field}
         type={reveal ? 'text' : 'password'}
         autoComplete={autoComplete}
         autoFocus={autoFocus}

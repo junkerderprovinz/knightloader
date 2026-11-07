@@ -83,11 +83,15 @@ async function press(label: string) {
   await act(async () => button(label)!.click());
 }
 
+/** The label whose own words, without its (i), are `label`. */
+function caption(label: string): HTMLLabelElement | undefined {
+  return [...host.querySelectorAll('label')].find((l) => l.firstChild?.textContent === label);
+}
+
 function field(label: string): HTMLInputElement | null {
-  const caption = [...host.querySelectorAll('[data-glim-label]')].find(
-    (c) => c.getAttribute('data-glim-label') === label,
-  );
-  return caption?.closest('label')?.querySelector('input') ?? null;
+  const c = caption(label);
+  const input = c ? document.getElementById(c.htmlFor) : null;
+  return input instanceof HTMLInputElement && !input.closest('[hidden]') ? input : null;
 }
 
 function type(label: string, text: string) {
@@ -138,10 +142,7 @@ describe('a forgotten password on the sign-in screen', () => {
     });
     await forgot();
 
-    const caption = [...host.querySelectorAll('[data-glim-label]')].find(
-      (c) => c.getAttribute('data-glim-label') === en['auth.reset.code.file'],
-    )!;
-    const explained = caption.querySelector('[aria-label]')!.getAttribute('aria-label')!;
+    const explained = caption(en['auth.reset.code.file'])!.querySelector('[aria-label]')!.getAttribute('aria-label')!;
     expect(explained).toContain('password-reset-code.txt');
     expect(explained).toContain('/home/somebody/.config/KnightLoader');
     expect(explained).toContain(en['auth.reset.effect']);
@@ -234,7 +235,7 @@ describe('a forgotten password on the sign-in screen', () => {
     expect(alert()).toBe(en['auth.passwordLong']);
   });
 
-  it('asks for a code again after a refused one, empties the field and keeps the passwords', async () => {
+  it('asks for a code again after a refused one, selects the code for the next try and keeps the passwords', async () => {
     answers['/api/auth/reset/finish'] = answer({ code: 'codeRejected', error: 'that code was not accepted' }, 401);
     await forgot();
 
@@ -242,7 +243,7 @@ describe('a forgotten password on the sign-in screen', () => {
 
     expect(alert()).toBe(en['auth.reset.rejected']);
     expect(posts('/api/auth/reset')).toHaveLength(2);
-    expect(field(en['auth.reset.code.container'])!.value).toBe('');
+    expect(document.activeElement).toBe(field(en['auth.reset.code.container']));
     expect(field(en['settings.passwordNew'])!.value).toBe(NEW_PASSWORD);
   });
 
@@ -275,6 +276,21 @@ describe('a forgotten password on the sign-in screen', () => {
 
     expect(field(en['auth.twoFactor.confirmLabel'])).not.toBeNull();
     expect(button(en['auth.forgot'])).toBeUndefined();
+  });
+});
+
+describe('a wrong password', () => {
+  it('stays in the field, selected for the next try, and shakes Sign in', async () => {
+    answers['/api/auth/login'] = answer('wrong password', 401);
+    await open();
+    type(en['auth.password'], 'not-the-password');
+
+    await press(en['auth.signIn']);
+
+    expect(alert()).toBe(en['auth.wrong']);
+    expect(field(en['auth.password'])!.value).toBe('not-the-password');
+    expect(document.activeElement).toBe(field(en['auth.password']));
+    expect(button(en['auth.signIn'])!.className).toMatch(/\bglim-shake\b/);
   });
 });
 
