@@ -1372,6 +1372,14 @@ body {
 /* A mark whose layers do not survive one ink brings a second drawing for the
    hover, as the mail button's open envelope. */
 .glim-mark-hover { display: none; }
+/* The house mark opens on the focus as well, and under a finger, where
+   nothing hovers (GlimStone 3.5.0). */
+.glim-brand-tile:focus-visible .glim-house-mark .glim-mark-rest { display: none; }
+.glim-brand-tile:focus-visible .glim-house-mark .glim-mark-hover { display: block; }
+@media (hover: none) {
+  .glim-brand-tile:active .glim-house-mark .glim-mark-rest { display: none; }
+  .glim-brand-tile:active .glim-house-mark .glim-mark-hover { display: block; }
+}
 
 /* The brands' tile colours: the true colour and the ink that holds on it, white
    wherever white reaches 2:1 and near-black below that. The ratios for PayPal
@@ -1448,11 +1456,13 @@ body {
 }
 
 /* The height is the README's mark, and the box is wider than tall, so a wide
-   mark such as Unraid's or Docker's is not shrunk to a sliver. */
+   mark such as Unraid's or Docker's is not shrunk to a sliver. The mark
+   starts 0.875rem from the edge and the text at 3.3125rem, where the README's
+   own buttons put them (GlimStone 3.5.0). */
 .glim-readme-btn-mark {
   position: absolute;
   top: 50%;
-  inset-inline-start: 1.5rem;
+  inset-inline-start: 0.875rem;
   width: 2rem;
   height: 1.5625rem;
   translate: 0 -50%;
@@ -1491,7 +1501,7 @@ body {
 .glim-readme-btn-text {
   position: absolute;
   inset-block: 0;
-  inset-inline: 3.9375rem 0.625rem;
+  inset-inline: 3.3125rem 0.625rem;
   display: flex;
   flex-direction: column;
   justify-content: center;

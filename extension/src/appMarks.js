@@ -23,12 +23,18 @@ const COFFEE_BUTTON_ART = {
 };
 
 /**
- * Material Design Icons' email and email-open (Apache 2.0) in one box that
- * leaves room for the open flap, so the envelope opens under the pointer
- * without jumping.
+ * The mail button's pair (GlimStone 3.2.0, MAIL_SVG): Streamline's envelope at
+ * rest and Material Design Icons' email-open (Apache 2.0) under the pointer,
+ * each in the box cropped to its own ink, so the two read the same size.
  */
 const MAIL_MARK = {
-  box: '2 0.64 20 19.36',
-  rest: 'M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z',
-  hover: 'M4,8L12,13L20,8V8L12,3L4,8V8M22,8V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V8C2,7.27 2.39,6.64 2.97,6.29L12,0.64L21.03,6.29C21.61,6.64 22,7.27 22,8Z',
+  rest: {
+    box: '0 0 14 14',
+    evenodd: true,
+    d: 'M0 2.75a1.5 1.5 0 0 1 1.5 -1.5h11a1.5 1.5 0 0 1 1.5 1.5v0.342L7.383 7.504A0.72 0.72 0 0 1 7 7.607a0.72 0.72 0 0 1 -0.383 -0.103L0 3.092V2.75Zm0 1.844v6.656a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5 -1.5V4.594L8.073 8.546l-0.005 0.004A1.966 1.966 0 0 1 7 8.857c-0.375 0 -0.753 -0.102 -1.068 -0.307l-0.005 -0.004L0 4.594Z',
+  },
+  hover: {
+    box: '2 0.32 20 20',
+    d: 'M4,8L12,13L20,8V8L12,3L4,8V8M22,8V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V8C2,7.27 2.39,6.64 2.97,6.29L12,0.64L21.03,6.29C21.61,6.64 22,7.27 22,8Z',
+  },
 };

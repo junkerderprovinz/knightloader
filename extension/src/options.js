@@ -147,16 +147,17 @@ function coffeeArt() {
 }
 
 /**
- * The mail button's envelope, closed and open in one box. The open one takes
- * over under the pointer through GlimStone's .glim-mark-rest and
- * .glim-mark-hover.
+ * The mail button's envelope, closed and open. The open one takes over under
+ * the pointer, on focus and under a finger through GlimStone's
+ * .glim-mark-rest and .glim-mark-hover.
  */
 function mailMarks() {
   return [
     ['glim-mark-rest', MAIL_MARK.rest],
     ['glim-mark-hover', MAIL_MARK.hover],
-  ].map(([cls, d]) => {
-    const svg = glyph(d, 14, MAIL_MARK.box);
+  ].map(([cls, { d, box, evenodd }]) => {
+    const svg = glyph(d, 14, box);
+    if (evenodd) svg.firstChild.setAttribute('fill-rule', 'evenodd');
     svg.setAttribute('class', cls);
     return svg;
   });
