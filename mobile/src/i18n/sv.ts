@@ -187,6 +187,7 @@ export const sv: Dict = {
   'settings.theme.system': 'System',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Ger det mörka utseendet äkta svart, för OLED- och AMOLED-skärmar.',
+  'settings.oledLight': 'Bara med {dark} eller {system}. Ovanför är {light} valt.',
   'settings.corners': 'Hörn',
   'settings.corners.round': 'Runda',
   'settings.corners.slightlyRounded': 'Mjuka',

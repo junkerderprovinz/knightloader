@@ -501,6 +501,7 @@ export const th: Dict = {
   'settings.themeHint': '“{system}” จะเป็นไปตามการตั้งค่าโหมดสว่างหรือมืดของอุปกรณ์คุณ และเปลี่ยนตามไปด้วย',
   'settings.oled': 'OLED',
   'settings.oledHint': 'เปลี่ยนรูปแบบมืดเป็นสีดำสนิท สำหรับหน้าจอ OLED และ AMOLED',
+  'settings.oledLight': 'ใช้ได้เฉพาะกับ {dark} หรือ {system} ด้านบนเลือก {light} ไว้',
   'settings.motion.wild': 'ดุดัน',
   'settings.motion.storm': 'พายุ',
   'settings.motion.subtle': 'นุ่มนวล',

@@ -501,6 +501,7 @@ export const zh: Dict = {
   'settings.themeHint': '“{system}”跟随设备的浅色或深色设置，并随之切换。',
   'settings.oled': 'OLED',
   'settings.oledHint': '让深色外观使用纯黑，适合 OLED 和 AMOLED 屏幕。',
+  'settings.oledLight': '仅在{dark}或{system}下可用。上方选择的是{light}。',
   'settings.motion.wild': '狂野',
   'settings.motion.storm': '风暴',
   'settings.motion.subtle': '轻微',

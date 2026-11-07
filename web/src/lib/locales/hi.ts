@@ -502,6 +502,7 @@ export const hi: Dict = {
     '“{system}” तुम्हारे डिवाइस की लाइट या डार्क सेटिंग के साथ चलता है और उसी के साथ बदलता है।',
   'settings.oled': 'OLED',
   'settings.oledHint': 'गहरे रूप को OLED और AMOLED स्क्रीन के लिए असली काले रंग पर ले जाता है।',
+  'settings.oledLight': 'केवल {dark} या {system} के साथ। ऊपर {light} चुना गया है।',
   'settings.motion.wild': 'जीवंत',
   'settings.motion.storm': 'तूफ़ान',
   'settings.motion.subtle': 'सूक्ष्म',

@@ -493,6 +493,7 @@ export const nl: Dict = {
   'settings.themeHint': '“{system}” volgt de lichte of donkere instelling van je apparaat en verandert mee.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Zet het donkere uiterlijk op echt zwart, voor OLED- en AMOLED-schermen.',
+  'settings.oledLight': 'Alleen met {dark} of {system}. Hierboven is {light} gekozen.',
   'settings.motion.wild': 'Wild',
   'settings.motion.storm': 'Storm',
   'settings.motion.subtle': 'Subtiel',

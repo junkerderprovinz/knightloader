@@ -187,6 +187,7 @@ export const eu: Dict = {
   'settings.theme.system': 'Sistema',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Itxura iluna benetako beltz bihurtzen du, OLED eta AMOLED pantailentzat.',
+  'settings.oledLight': '{dark} edo {system} aukerarekin bakarrik. Goian {light} dago aukeratuta.',
   'settings.corners': 'Izkinak',
   'settings.corners.round': 'Biribilak',
   'settings.corners.slightlyRounded': 'Leunak',

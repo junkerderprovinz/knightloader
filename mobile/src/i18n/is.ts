@@ -187,6 +187,7 @@ export const is: Dict = {
   'settings.theme.system': 'Kerfi',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Setur dökka útlitið á hreinan svartan lit fyrir OLED- og AMOLED-skjái.',
+  'settings.oledLight': 'Aðeins með {dark} eða {system}. Hér fyrir ofan er {light} valið.',
   'settings.corners': 'Horn',
   'settings.corners.round': 'Kringlótt',
   'settings.corners.slightlyRounded': 'Ávöl',

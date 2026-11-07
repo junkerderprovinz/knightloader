@@ -187,6 +187,7 @@ export const el: Dict = {
   'settings.theme.system': 'Σύστημα',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Κάνει το σκούρο θέμα πραγματικά μαύρο, για οθόνες OLED και AMOLED.',
+  'settings.oledLight': 'Μόνο με {dark} ή {system}. Επάνω είναι επιλεγμένο το {light}.',
   'settings.corners': 'Γωνίες',
   'settings.corners.round': 'Στρογγυλές',
   'settings.corners.slightlyRounded': 'Απαλές',

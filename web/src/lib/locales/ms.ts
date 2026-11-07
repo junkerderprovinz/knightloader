@@ -501,6 +501,7 @@ export const ms: Dict = {
   'settings.themeHint': '“{system}” mengikut tetapan cerah atau gelap peranti anda dan berubah bersamanya.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Menjadikan rupa gelap hitam sebenar, untuk skrin OLED dan AMOLED.',
+  'settings.oledLight': 'Hanya dengan {dark} atau {system}. Di atas, {light} dipilih.',
   'settings.motion.wild': 'Dinamik',
   'settings.motion.storm': 'Ribut',
   'settings.motion.subtle': 'Halus',

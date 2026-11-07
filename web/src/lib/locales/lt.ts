@@ -502,6 +502,7 @@ export const lt: Dict = {
     '„{system}“ seka tavo įrenginio šviesų arba tamsų nustatymą ir keičiasi kartu su juo.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Tamsią išvaizdą paverčia tikra juoda OLED ir AMOLED ekranams.',
+  'settings.oledLight': 'Tik su {dark} arba {system}. Viršuje pasirinkta {light}.',
   'settings.motion.wild': 'Laukinis',
   'settings.motion.storm': 'Audra',
   'settings.motion.subtle': 'Subtilu',

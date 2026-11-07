@@ -504,6 +504,7 @@ export const no: Dict = {
     '«{system}» følger den lyse eller mørke innstillingen på enheten din og skifter med den.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Gir det mørke utseendet ekte svart, for OLED- og AMOLED-skjermer.',
+  'settings.oledLight': 'Bare med {dark} eller {system}. Ovenfor er {light} valgt.',
   'settings.motion.wild': 'Vill',
   'settings.motion.storm': 'Storm',
   'settings.motion.subtle': 'Diskret',

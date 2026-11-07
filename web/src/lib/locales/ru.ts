@@ -494,6 +494,7 @@ export const ru: Dict = {
     '«{system}» следует светлой или тёмной настройке твоего устройства и меняется вместе с ней.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Делает тёмное оформление по-настоящему чёрным для экранов OLED и AMOLED.',
+  'settings.oledLight': 'Только с {dark} или {system}. Выше выбрано {light}.',
   'settings.motion.wild': 'Буйно',
   'settings.motion.storm': 'Буря',
   'settings.motion.subtle': 'Сдержанно',

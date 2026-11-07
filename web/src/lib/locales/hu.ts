@@ -502,6 +502,7 @@ export const hu: Dict = {
     'A „{system}” az eszközöd világos vagy sötét beállítását követi, és vele együtt vált.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'A sötét megjelenést valódi feketére állítja OLED és AMOLED kijelzőkhöz.',
+  'settings.oledLight': 'Csak {dark} vagy {system} mellett. Fent a(z) {light} van kiválasztva.',
   'settings.motion.wild': 'Vad',
   'settings.motion.storm': 'Vihar',
   'settings.motion.subtle': 'Visszafogott',

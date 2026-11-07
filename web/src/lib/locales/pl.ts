@@ -494,6 +494,7 @@ export const pl: Dict = {
     '„{system}” podąża za jasnym lub ciemnym ustawieniem twojego urządzenia i zmienia się razem z nim.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Zmienia ciemny wygląd na prawdziwą czerń dla ekranów OLED i AMOLED.',
+  'settings.oledLight': 'Tylko przy {dark} lub {system}. Powyżej wybrano {light}.',
   'settings.motion.wild': 'Dzikie',
   'settings.motion.storm': 'Burza',
   'settings.motion.subtle': 'Subtelne',

@@ -503,6 +503,7 @@ export const ar: Dict = {
   'settings.themeHint': '«{system}» يتبع إعداد الوضع الفاتح أو الداكن في جهازك ويتغيّر معه.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'يجعل المظهر الداكن أسود حقيقيًا لشاشات OLED وAMOLED.',
+  'settings.oledLight': 'فقط مع {dark} أو {system}. تم اختيار {light} في الأعلى.',
   'settings.motion.wild': 'جامح',
   'settings.motion.storm': 'عاصفة',
   'settings.motion.subtle': 'خفيف',

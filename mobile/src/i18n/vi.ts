@@ -187,6 +187,7 @@ export const vi: Dict = {
   'settings.theme.system': 'Hệ thống',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Chuyển giao diện tối sang màu đen tuyệt đối, cho màn hình OLED và AMOLED.',
+  'settings.oledLight': 'Chỉ dùng được với {dark} hoặc {system}. Phía trên đang chọn {light}.',
   'settings.corners': 'Góc',
   'settings.corners.round': 'Tròn',
   'settings.corners.slightlyRounded': 'Bo nhẹ',

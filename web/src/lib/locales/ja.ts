@@ -501,6 +501,7 @@ export const ja: Dict = {
   'settings.themeHint': '「{system}」はデバイスのライト/ダーク設定に従い、設定が変わると一緒に切り替わります。',
   'settings.oled': 'OLED',
   'settings.oledHint': 'OLED と AMOLED の画面向けに、暗いデザインを真っ黒にします。',
+  'settings.oledLight': '{dark} または {system} のときだけ使えます。上で {light} が選ばれています。',
   'settings.motion.wild': 'ワイルド',
   'settings.motion.storm': 'ストーム',
   'settings.motion.subtle': '控えめ',

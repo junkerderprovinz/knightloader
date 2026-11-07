@@ -569,6 +569,7 @@ export const en = {
   'settings.themeHint': '"{system}" follows the light or dark setting of your device and changes with it.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Puts the dark look on true black, for OLED and AMOLED screens.',
+  'settings.oledLight': 'Only with {dark} or {system}. {light} is chosen above.',
   'settings.motion.wild': 'Wild',
   'settings.motion.storm': 'Storm',
   'settings.motion.subtle': 'Subtle',

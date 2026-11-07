@@ -187,6 +187,7 @@ export const tr: Dict = {
   'settings.theme.system': 'Sistem',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Koyu görünümü OLED ve AMOLED ekranlar için gerçek siyaha çevirir.',
+  'settings.oledLight': 'Yalnızca {dark} veya {system} ile. Yukarıda {light} seçili.',
   'settings.corners': 'Köşeler',
   'settings.corners.round': 'Yuvarlak',
   'settings.corners.slightlyRounded': 'Yumuşak',

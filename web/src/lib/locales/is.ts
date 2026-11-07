@@ -501,6 +501,7 @@ export const is: Dict = {
   'settings.themeHint': '„{system}“ fylgir ljósri eða dökkri stillingu tækisins þíns og breytist með henni.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Setur dökka útlitið á hreinan svartan lit fyrir OLED- og AMOLED-skjái.',
+  'settings.oledLight': 'Aðeins með {dark} eða {system}. Hér fyrir ofan er {light} valið.',
   'settings.motion.wild': 'Villt',
   'settings.motion.storm': 'Stormur',
   'settings.motion.subtle': 'Fíngert',

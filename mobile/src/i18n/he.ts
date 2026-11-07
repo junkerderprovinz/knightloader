@@ -187,6 +187,7 @@ export const he: Dict = {
   'settings.theme.system': 'מערכת',
   'settings.oled': 'OLED',
   'settings.oledHint': 'מעביר את המראה הכהה לשחור אמיתי, למסכי OLED ו-AMOLED.',
+  'settings.oledLight': 'רק עם {dark} או {system}. למעלה נבחר {light}.',
   'settings.corners': 'פינות',
   'settings.corners.round': 'עגולות',
   'settings.corners.slightlyRounded': 'רכות',

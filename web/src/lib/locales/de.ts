@@ -544,6 +544,7 @@ export const de: Dict = {
     '„{system}“ folgt der Einstellung deines Geräts für Hell oder Dunkel und wechselt mit ihr.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Setzt das dunkle Design auf echtes Schwarz, für OLED- und AMOLED-Bildschirme.',
+  'settings.oledLight': 'Nur mit {dark} oder {system}. Oben ist {light} gewählt.',
   'settings.motion.wild': 'Wild',
   'settings.motion.storm': 'Sturm',
   'settings.motion.subtle': 'Dezent',

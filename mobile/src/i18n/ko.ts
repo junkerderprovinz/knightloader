@@ -186,6 +186,7 @@ export const ko: Dict = {
   'settings.theme.system': '시스템',
   'settings.oled': 'OLED',
   'settings.oledHint': 'OLED와 AMOLED 화면을 위해 어두운 모양을 완전한 검정으로 바꿉니다.',
+  'settings.oledLight': '{dark} 또는 {system}에서만 됩니다. 위에서 {light}이(가) 선택되어 있습니다.',
   'settings.corners': '모서리',
   'settings.corners.round': '둥글게',
   'settings.corners.slightlyRounded': '살짝 둥글게',

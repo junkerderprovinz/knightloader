@@ -493,6 +493,7 @@ export const it: Dict = {
   'settings.themeHint': '«{system}» segue la modalità chiara o scura del tuo dispositivo e cambia con essa.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Porta l\'aspetto scuro al nero puro, per gli schermi OLED e AMOLED.',
+  'settings.oledLight': 'Solo con {dark} o {system}. Sopra è scelto {light}.',
   'settings.motion.wild': 'Intenso',
   'settings.motion.storm': 'Tempesta',
   'settings.motion.subtle': 'Sottile',

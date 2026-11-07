@@ -502,6 +502,7 @@ export const uk: Dict = {
     '«{system}» наслідує світле або темне налаштування твого пристрою й змінюється разом із ним.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Робить темне оформлення справді чорним для екранів OLED і AMOLED.',
+  'settings.oledLight': 'Лише з {dark} або {system}. Вище вибрано {light}.',
   'settings.motion.wild': 'Буйно',
   'settings.motion.storm': 'Буря',
   'settings.motion.subtle': 'Стримано',

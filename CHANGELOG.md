@@ -44,7 +44,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   OLED and AMOLED screens, in the web interface, the desktop app, the phone
   app and the browser extension. It counts whenever dark shows, also when the
   theme follows the device, and each browser or phone keeps its own choice.
-  The desktop window's frame turns black with the page.
+  With Light chosen the switch keeps its state and shakes when pressed. The
+  desktop window's frame turns black with the page.
 - **A wand swatch at the start of the accent row takes the system's colour**:
   Material You on Android 12 and newer, the accent colour of Windows, macOS or
   Linux in the desktop app, and the system colour in Firefox and Safari.

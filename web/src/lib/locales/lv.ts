@@ -502,6 +502,7 @@ export const lv: Dict = {
     '„{system}“ seko tavas ierīces gaišajam vai tumšajam iestatījumam un mainās līdz ar to.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Pārslēdz tumšo izskatu uz īstu melnu OLED un AMOLED ekrāniem.',
+  'settings.oledLight': 'Tikai ar {dark} vai {system}. Augšā ir izvēlēts {light}.',
   'settings.motion.wild': 'Mežonīgs',
   'settings.motion.storm': 'Vētra',
   'settings.motion.subtle': 'Smalks',

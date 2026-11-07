@@ -501,6 +501,7 @@ export const fi: Dict = {
   'settings.themeHint': '”{system}” seuraa laitteesi vaaleaa tai tummaa asetusta ja vaihtuu sen mukana.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Vaihtaa tumman ulkoasun aidoksi mustaksi OLED- ja AMOLED-näytöille.',
+  'settings.oledLight': 'Vain asetuksella {dark} tai {system}. Ylhäällä on valittu {light}.',
   'settings.motion.wild': 'Villi',
   'settings.motion.storm': 'Myrsky',
   'settings.motion.subtle': 'Hienovarainen',

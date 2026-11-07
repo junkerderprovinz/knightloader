@@ -501,6 +501,7 @@ export const tr: Dict = {
   'settings.themeHint': '“{system}”, cihazının açık veya koyu ayarını izler ve onunla birlikte değişir.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Koyu görünümü OLED ve AMOLED ekranlar için gerçek siyaha çevirir.',
+  'settings.oledLight': 'Yalnızca {dark} veya {system} ile. Yukarıda {light} seçili.',
   'settings.motion.wild': 'Coşkulu',
   'settings.motion.storm': 'Fırtına',
   'settings.motion.subtle': 'İnce',

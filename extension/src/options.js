@@ -1304,6 +1304,7 @@ const shapeSeg = document.getElementById('shapeSeg');
 const accentSwatches = document.getElementById('accentSwatches');
 
 oledEl.addEventListener('click', async () => {
+  if (oledEl.getAttribute('aria-disabled') === 'true') return shake(oledEl);
   const on = oledEl.getAttribute('aria-checked') !== 'true';
   await writeAppearance({ oled: on });
   applyOled(on);
@@ -1527,9 +1528,19 @@ async function renderAppearance() {
   );
 
   // OLED keeps its state while light shows, where it does nothing, so its
-  // words rest dimmed then.
+  // words rest dimmed then. With Light chosen it refuses and says why.
   oledEl.setAttribute('aria-checked', String(a.oled));
   setDimmed([labelWordsOf(document.getElementById('oledLabel'))], !darkShowing(a.theme));
+  if (a.theme === 'light') {
+    oledEl.setAttribute('aria-disabled', 'true');
+    oledEl.setAttribute(
+      'data-tip',
+      t('options.oledLight', { dark: t('options.themeDark'), system: t('options.themeSystem'), light: t('options.themeLight') }),
+    );
+  } else {
+    oledEl.removeAttribute('aria-disabled');
+    oledEl.removeAttribute('data-tip');
+  }
 
   // The system's colour, in Firefox and Safari. While it is worn no slot is.
   const system = browserAccent();

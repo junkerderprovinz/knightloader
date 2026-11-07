@@ -309,6 +309,16 @@ export default function SettingsScreen({
    * one there is no travel and the group dips in opacity instead.
    */
   const { style: paletteZitterStil, shake: paletteZittern } = useShake();
+  /** OLED refuses while Light is chosen: there is no dark to put on black. */
+  const { style: oledZitterStil, shake: oledZittern } = useShake();
+  const oledRefused =
+    overridden.theme && !dark
+      ? t('settings.oledLight', {
+          dark: t('settings.theme.dark'),
+          system: t('settings.theme.system'),
+          light: t('settings.theme.light'),
+        })
+      : undefined;
   /** The same group swells when the instance took the write, and the copy
    *  button below when the report reached the clipboard. */
   const { style: paletteBestaetigtStil, confirm: paletteBestaetigen } = useConfirm();
@@ -456,7 +466,18 @@ export default function SettingsScreen({
         <GlimRow
           label={t('settings.oled')}
           info={t('settings.oledHint')}
-          control={<GlimToggle value={oled} onChange={setOled} label={t('settings.oled')} />}
+          sub={oledRefused}
+          control={
+            <Animated.View style={oledZitterStil}>
+              <GlimToggle
+                value={oled}
+                onChange={setOled}
+                label={t('settings.oled')}
+                refused={oledRefused}
+                onRefuse={oledZittern}
+              />
+            </Animated.View>
+          }
         />
 
         {/* A switch rather than a link that appears once something is

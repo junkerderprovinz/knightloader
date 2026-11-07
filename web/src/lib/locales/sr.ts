@@ -501,6 +501,7 @@ export const sr: Dict = {
   'settings.themeHint': '„{system}“ прати светлу или тамну поставку твог уређаја и мења се с њом.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Пребацује тамни изглед на праву црну, за OLED и AMOLED екране.',
+  'settings.oledLight': 'Само уз {dark} или {system}. Горе је изабрано {light}.',
   'settings.motion.wild': 'Дивље',
   'settings.motion.storm': 'Олуја',
   'settings.motion.subtle': 'Суптилно',

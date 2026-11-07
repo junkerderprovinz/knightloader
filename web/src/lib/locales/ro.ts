@@ -502,6 +502,7 @@ export const ro: Dict = {
     '„{system}” urmează setarea luminoasă sau întunecată a dispozitivului tău și se schimbă odată cu ea.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Trece aspectul întunecat pe negru adevărat, pentru ecranele OLED și AMOLED.',
+  'settings.oledLight': 'Doar cu {dark} sau {system}. Mai sus este ales {light}.',
   'settings.motion.wild': 'Intens',
   'settings.motion.storm': 'Furtună',
   'settings.motion.subtle': 'Discret',

@@ -95,3 +95,20 @@ it('keeps OLED in this browser and out of the instance settings', () => {
   expect(localStorage.getItem('kl-oled')).toBe('1');
   expect(patch).not.toHaveBeenCalledWith(expect.objectContaining({ oled: expect.anything() }));
 });
+
+it('refuses OLED while Light is chosen and keeps it switchable under System', () => {
+  localStorage.setItem('kl-theme', 'light');
+  renderLook();
+  const oled = () =>
+    [...host.querySelectorAll<HTMLButtonElement>('[role="switch"]')].find((s) => s.getAttribute('aria-label') === 'OLED')!;
+  expect(oled().getAttribute('aria-disabled')).toBe('true');
+  act(() => oled().click());
+  expect(oled().getAttribute('aria-checked')).toBe('false');
+  expect(oled().classList.contains('glim-shake')).toBe(true);
+  expect(localStorage.getItem('kl-oled')).toBeNull();
+
+  act(() => [...host.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find((b) => b.textContent === 'System')!.click());
+  expect(oled().hasAttribute('aria-disabled')).toBe(false);
+  act(() => oled().click());
+  expect(oled().getAttribute('aria-checked')).toBe('true');
+});

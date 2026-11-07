@@ -501,6 +501,7 @@ export const et: Dict = {
   'settings.themeHint': '„{system}“ järgib sinu seadme heledat või tumedat seadet ja muutub koos sellega.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Muudab tumeda välimuse päris mustaks OLED- ja AMOLED-ekraanide jaoks.',
+  'settings.oledLight': 'Ainult koos {dark} või {system} valikuga. Üleval on valitud {light}.',
   'settings.motion.wild': 'Metsik',
   'settings.motion.storm': 'Torm',
   'settings.motion.subtle': 'Peen',

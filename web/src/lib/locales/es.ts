@@ -493,6 +493,7 @@ export const es: Dict = {
   'settings.themeHint': '«{system}» sigue el modo claro u oscuro de tu dispositivo y cambia con él.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Pone el aspecto oscuro en negro puro, para pantallas OLED y AMOLED.',
+  'settings.oledLight': 'Solo con {dark} o {system}. Arriba está elegido {light}.',
   'settings.motion.wild': 'Intenso',
   'settings.motion.storm': 'Tormenta',
   'settings.motion.subtle': 'Sutil',

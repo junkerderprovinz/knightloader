@@ -187,6 +187,7 @@ export const th: Dict = {
   'settings.theme.system': 'ระบบ',
   'settings.oled': 'OLED',
   'settings.oledHint': 'เปลี่ยนรูปแบบมืดเป็นสีดำสนิท สำหรับหน้าจอ OLED และ AMOLED',
+  'settings.oledLight': 'ใช้ได้เฉพาะกับ {dark} หรือ {system} ด้านบนเลือก {light} ไว้',
   'settings.corners': 'มุม',
   'settings.corners.round': 'มน',
   'settings.corners.slightlyRounded': 'มนเล็กน้อย',

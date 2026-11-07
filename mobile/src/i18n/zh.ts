@@ -186,6 +186,7 @@ export const zh: Dict = {
   'settings.theme.system': '跟随系统',
   'settings.oled': 'OLED',
   'settings.oledHint': '让深色外观使用纯黑，适合 OLED 和 AMOLED 屏幕。',
+  'settings.oledLight': '仅在{dark}或{system}下可用。上方选择的是{light}。',
   'settings.corners': '边角',
   'settings.corners.round': '圆润',
   'settings.corners.slightlyRounded': '微圆',

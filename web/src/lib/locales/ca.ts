@@ -501,6 +501,7 @@ export const ca: Dict = {
   'settings.themeHint': '«{system}» segueix el mode clar o fosc del teu dispositiu i canvia amb ell.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Posa l\'aspecte fosc en negre pur, per a pantalles OLED i AMOLED.',
+  'settings.oledLight': 'Només amb {dark} o {system}. A dalt hi ha triat {light}.',
   'settings.motion.wild': 'Intens',
   'settings.motion.storm': 'Tempesta',
   'settings.motion.subtle': 'Subtil',

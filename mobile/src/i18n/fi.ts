@@ -187,6 +187,7 @@ export const fi: Dict = {
   'settings.theme.system': 'Järjestelmä',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Vaihtaa tumman ulkoasun aidoksi mustaksi OLED- ja AMOLED-näytöille.',
+  'settings.oledLight': 'Vain asetuksella {dark} tai {system}. Ylhäällä on valittu {light}.',
   'settings.corners': 'Kulmat',
   'settings.corners.round': 'Pyöreät',
   'settings.corners.slightlyRounded': 'Pehmeät',

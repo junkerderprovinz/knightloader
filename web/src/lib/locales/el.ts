@@ -502,6 +502,7 @@ export const el: Dict = {
     'Το «{system}» ακολουθεί τη φωτεινή ή σκούρα ρύθμιση της συσκευής σου και αλλάζει μαζί της.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Κάνει το σκούρο θέμα πραγματικά μαύρο, για οθόνες OLED και AMOLED.',
+  'settings.oledLight': 'Μόνο με {dark} ή {system}. Επάνω είναι επιλεγμένο το {light}.',
   'settings.motion.wild': 'Έντονο',
   'settings.motion.storm': 'Καταιγίδα',
   'settings.motion.subtle': 'Διακριτικό',

@@ -187,6 +187,7 @@ export const gl: Dict = {
   'settings.theme.system': 'Sistema',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Pon o aspecto escuro en negro puro, para pantallas OLED e AMOLED.',
+  'settings.oledLight': 'Só con {dark} ou {system}. Arriba está escollido {light}.',
   'settings.corners': 'Esquinas',
   'settings.corners.round': 'Redondeadas',
   'settings.corners.slightlyRounded': 'Suaves',

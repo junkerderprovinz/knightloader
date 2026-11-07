@@ -1550,6 +1550,7 @@ export function Toggle({
   label,
   hideLabel = false,
   hue,
+  refused,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
@@ -1561,36 +1562,55 @@ export function Toggle({
    * a lone switch with no siblings to tell apart.
    */
   hue?: number;
+  /**
+   * Why the switch cannot be flipped right now, as OLED while Light is chosen.
+   * It stays in the tab order with its track dimmed, says this in its bubble
+   * and shakes when pressed, keeping its state for when it counts again.
+   */
+  refused?: string;
 }) {
+  const [shakes, setShakes] = useState(0);
+  const shakeRef = useShake<HTMLButtonElement>(shakes);
+  const tip = useTooltip<HTMLButtonElement>(refused);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={hideLabel ? label : undefined}
-      onClick={() => onChange(!checked)}
-      className={`${hue !== undefined ? 'glim-hue' : ''} flex items-center gap-3 text-start text-sm text-carbon-text select-none`}
-      style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
-    >
-      <span
-        className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
-          checked ? 'bg-accent' : 'bg-toggleOff'
-        }`}
+    <>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-disabled={refused ? true : undefined}
+        aria-label={hideLabel ? label : undefined}
+        {...(refused ? tipHoverProps : {})}
+        ref={(el) => {
+          shakeRef.current = el;
+          tip.triggerProps.ref.current = el;
+        }}
+        onClick={() => (refused ? setShakes((n) => n + 1) : onChange(!checked))}
+        className={`${hue !== undefined ? 'glim-hue' : ''} flex items-center gap-3 text-start text-sm text-carbon-text select-none`}
+        style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
       >
-        {/* start-0 is load-bearing: without it the knob starts from its static
-            position, which a button's inherited text-align centres, and slides
-            out past the pill. Tailwind v4 animates `translate` here, not
-            `transform`. `bg-carbon-background` rather than a fixed white makes
-            the knob the page's own ground on the accent track, so it reads dark
-            in dark mode and light in light mode. */}
         <span
-          className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
-            checked ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
-          }`}
-        />
-      </span>
-      {!hideLabel && <span>{label}</span>}
-    </button>
+          className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
+            checked ? 'bg-accent' : 'bg-toggleOff'
+          } ${refused ? 'opacity-40' : ''}`}
+        >
+          {/* start-0 is load-bearing: without it the knob starts from its static
+              position, which a button's inherited text-align centres, and slides
+              out past the pill. Tailwind v4 animates `translate` here, not
+              `transform`. `bg-carbon-background` rather than a fixed white makes
+              the knob the page's own ground on the accent track, so it reads dark
+              in dark mode and light in light mode. */}
+          <span
+            className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
+              checked ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
+            }`}
+          />
+        </span>
+        {!hideLabel && <span>{label}</span>}
+      </button>
+      {refused && tip.node}
+    </>
   );
 }
 
@@ -1637,6 +1657,7 @@ export function ToggleRow({
   onChange,
   disabled = false,
   resting = false,
+  refused,
   hue,
 }: {
   label: string;
@@ -1659,6 +1680,8 @@ export function ToggleRow({
    * light shows.
    */
   resting?: boolean;
+  /** Why the switch cannot be flipped right now; see Toggle. */
+  refused?: string;
   /** Passed straight through to the underlying Toggle. Omit for a lone switch
    *  with nothing beside it to distinguish. */
   hue?: number;
@@ -1677,7 +1700,7 @@ export function ToggleRow({
         <RowLabel label={label} hint={hint} dim={disabled || resting} />
       </span>
       <span className={`flex ${disabled ? 'opacity-40' : ''}`}>
-        <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} />
+        <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} refused={refused} />
       </span>
     </div>
   );

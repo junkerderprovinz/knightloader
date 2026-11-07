@@ -187,6 +187,7 @@ export const fr: Dict = {
   'settings.theme.system': 'Système',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Passe l\'apparence sombre au noir pur, pour les écrans OLED et AMOLED.',
+  'settings.oledLight': 'Seulement avec {dark} ou {system}. {light} est choisi plus haut.',
   'settings.corners': 'Coins',
   'settings.corners.round': 'Arrondis',
   'settings.corners.slightlyRounded': 'Adoucis',

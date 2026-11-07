@@ -187,6 +187,7 @@ export const fa: Dict = {
   'settings.theme.system': 'سیستم',
   'settings.oled': 'OLED',
   'settings.oledHint': 'ظاهر تیره را برای صفحه‌های OLED و AMOLED به سیاه واقعی می‌برد.',
+  'settings.oledLight': 'فقط با {dark} یا {system}. در بالا {light} انتخاب شده است.',
   'settings.corners': 'گوشه‌ها',
   'settings.corners.round': 'گرد',
   'settings.corners.slightlyRounded': 'نرم',

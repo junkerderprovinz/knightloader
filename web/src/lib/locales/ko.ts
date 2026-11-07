@@ -501,6 +501,7 @@ export const ko: Dict = {
   'settings.themeHint': '“{system}”은 기기의 밝은 모드 또는 어두운 모드 설정을 따르고, 설정이 바뀌면 함께 바뀝니다.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'OLED와 AMOLED 화면을 위해 어두운 모양을 완전한 검정으로 바꿉니다.',
+  'settings.oledLight': '{dark} 또는 {system}에서만 됩니다. 위에서 {light}이(가) 선택되어 있습니다.',
   'settings.motion.wild': '거칠게',
   'settings.motion.storm': '폭풍',
   'settings.motion.subtle': '은은하게',

@@ -246,22 +246,36 @@ export function GlimToggle({
   onChange,
   hue,
   label,
+  refused,
+  onRefuse,
 }: {
   value: boolean;
   onChange: (v: boolean) => void;
   hue?: number;
   /** What pressing it does, for a switch with no caption beside it. */
   label?: string;
+  /**
+   * Why the switch cannot be flipped right now, as OLED while Light is chosen.
+   * The track dims, a press goes to onRefuse instead, and the state stays for
+   * when it counts again.
+   */
+  refused?: string;
+  /** Answers a press while refused, with the caller's shake. */
+  onRefuse?: () => void;
 }) {
   const { c, accent, corners, hueAt } = useAppearance();
   const on = (hue !== undefined ? hueAt(hue) : undefined) ?? accent;
   return (
     <TouchableOpacity
       accessibilityRole="switch"
-      accessibilityState={{ checked: value }}
+      accessibilityState={{ checked: value, disabled: !!refused }}
       accessibilityLabel={label}
-      onPress={() => onChange(!value)}
-      style={[styles.track, { ...corners.pill, backgroundColor: value ? on : c.toggleOff }]}
+      accessibilityHint={refused}
+      onPress={() => (refused ? onRefuse?.() : onChange(!value))}
+      style={[
+        styles.track,
+        { ...corners.pill, backgroundColor: value ? on : c.toggleOff, opacity: refused ? 0.4 : 1 },
+      ]}
     >
       {/* The knob is the page's own ground sitting on the track rather than a
           fixed white, so it reads dark in dark mode and light in light. */}

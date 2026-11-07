@@ -503,6 +503,7 @@ export const he: Dict = {
   'settings.themeHint': '„{system}” עוקבת אחרי ההגדרה הבהירה או הכהה של המכשיר שלך ומשתנה יחד איתה.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'מעביר את המראה הכהה לשחור אמיתי, למסכי OLED ו-AMOLED.',
+  'settings.oledLight': 'רק עם {dark} או {system}. למעלה נבחר {light}.',
   'settings.motion.wild': 'פראי',
   'settings.motion.storm': 'סערה',
   'settings.motion.subtle': 'עדין',

@@ -501,6 +501,7 @@ export const da: Dict = {
   'settings.themeHint': '„{system}“ følger din enheds lyse eller mørke indstilling og skifter med den.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Giver det mørke udseende ægte sort til OLED- og AMOLED-skærme.',
+  'settings.oledLight': 'Kun med {dark} eller {system}. Ovenfor er {light} valgt.',
   'settings.motion.wild': 'Vild',
   'settings.motion.storm': 'Storm',
   'settings.motion.subtle': 'Diskret',

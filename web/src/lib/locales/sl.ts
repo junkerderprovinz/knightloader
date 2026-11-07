@@ -501,6 +501,7 @@ export const sl: Dict = {
   'settings.themeHint': '»{system}« sledi svetli ali temni nastavitvi tvoje naprave in se spreminja z njo.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Temni videz preklopi na pravo črno za zaslone OLED in AMOLED.',
+  'settings.oledLight': 'Samo z {dark} ali {system}. Zgoraj je izbrano {light}.',
   'settings.motion.wild': 'Divje',
   'settings.motion.storm': 'Nevihta',
   'settings.motion.subtle': 'Subtilno',

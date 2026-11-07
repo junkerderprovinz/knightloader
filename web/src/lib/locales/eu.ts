@@ -502,6 +502,7 @@ export const eu: Dict = {
     '«{system}» aukerak zure gailuaren modu argia edo iluna jarraitzen du, eta harekin batera aldatzen da.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Itxura iluna benetako beltz bihurtzen du, OLED eta AMOLED pantailentzat.',
+  'settings.oledLight': '{dark} edo {system} aukerarekin bakarrik. Goian {light} dago aukeratuta.',
   'settings.motion.wild': 'Bizia',
   'settings.motion.storm': 'Ekaitza',
   'settings.motion.subtle': 'Diskretua',

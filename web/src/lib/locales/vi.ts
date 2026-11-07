@@ -501,6 +501,7 @@ export const vi: Dict = {
   'settings.themeHint': '“{system}” đi theo chế độ sáng hoặc tối của thiết bị và đổi theo nó.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Chuyển giao diện tối sang màu đen tuyệt đối, cho màn hình OLED và AMOLED.',
+  'settings.oledLight': 'Chỉ dùng được với {dark} hoặc {system}. Phía trên đang chọn {light}.',
   'settings.motion.wild': 'Mạnh mẽ',
   'settings.motion.storm': 'Bão',
   'settings.motion.subtle': 'Nhẹ nhàng',

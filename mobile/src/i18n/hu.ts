@@ -187,6 +187,7 @@ export const hu: Dict = {
   'settings.theme.system': 'Rendszer',
   'settings.oled': 'OLED',
   'settings.oledHint': 'A sötét megjelenést valódi feketére állítja OLED és AMOLED kijelzőkhöz.',
+  'settings.oledLight': 'Csak {dark} vagy {system} mellett. Fent a(z) {light} van kiválasztva.',
   'settings.corners': 'Sarkok',
   'settings.corners.round': 'Kerek',
   'settings.corners.slightlyRounded': 'Enyhe',

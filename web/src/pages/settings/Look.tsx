@@ -685,6 +685,11 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
               hint={t('settings.oledHint')}
               checked={oled}
               resting={!dark}
+              refused={
+                theme === 'light'
+                  ? t('settings.oledLight', { dark: t('theme.dark'), system: t('theme.system'), light: t('theme.light') })
+                  : undefined
+              }
               onChange={(v) => {
                 setOled(v);
                 applyOled(v);

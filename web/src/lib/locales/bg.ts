@@ -502,6 +502,7 @@ export const bg: Dict = {
     '„{system}“ следва настройката за светъл или тъмен режим на устройството ти и се сменя заедно с нея.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Прави тъмния вид истински черен за OLED и AMOLED екрани.',
+  'settings.oledLight': 'Само с {dark} или {system}. Горе е избрано {light}.',
   'settings.motion.wild': 'Буйно',
   'settings.motion.storm': 'Буря',
   'settings.motion.subtle': 'Дискретно',

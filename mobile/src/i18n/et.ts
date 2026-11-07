@@ -187,6 +187,7 @@ export const et: Dict = {
   'settings.theme.system': 'Süsteem',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Muudab tumeda välimuse päris mustaks OLED- ja AMOLED-ekraanide jaoks.',
+  'settings.oledLight': 'Ainult koos {dark} või {system} valikuga. Üleval on valitud {light}.',
   'settings.corners': 'Nurgad',
   'settings.corners.round': 'Ümarad',
   'settings.corners.slightlyRounded': 'Pehmed',

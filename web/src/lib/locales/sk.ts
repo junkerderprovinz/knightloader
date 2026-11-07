@@ -501,6 +501,7 @@ export const sk: Dict = {
   'settings.themeHint': '„{system}“ sa riadi svetlým alebo tmavým režimom tvojho zariadenia a mení sa s ním.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Prepne tmavý vzhľad na skutočnú čiernu pre displeje OLED a AMOLED.',
+  'settings.oledLight': 'Len s {dark} alebo {system}. Hore je zvolené {light}.',
   'settings.motion.wild': 'Divoké',
   'settings.motion.storm': 'Búrka',
   'settings.motion.subtle': 'Jemné',

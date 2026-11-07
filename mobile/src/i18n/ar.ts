@@ -187,6 +187,7 @@ export const ar: Dict = {
   'settings.theme.system': 'النظام',
   'settings.oled': 'OLED',
   'settings.oledHint': 'يجعل المظهر الداكن أسود حقيقيًا لشاشات OLED وAMOLED.',
+  'settings.oledLight': 'فقط مع {dark} أو {system}. تم اختيار {light} في الأعلى.',
   'settings.corners': 'الزوايا',
   'settings.corners.round': 'دائرية',
   'settings.corners.slightlyRounded': 'ناعمة',

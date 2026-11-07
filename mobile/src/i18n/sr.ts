@@ -187,6 +187,7 @@ export const sr: Dict = {
   'settings.theme.system': 'Системска',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Пребацује тамни изглед на праву црну, за OLED и AMOLED екране.',
+  'settings.oledLight': 'Само уз {dark} или {system}. Горе је изабрано {light}.',
   'settings.corners': 'Углови',
   'settings.corners.round': 'Округли',
   'settings.corners.slightlyRounded': 'Меки',

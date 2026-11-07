@@ -501,6 +501,7 @@ export const sv: Dict = {
   'settings.themeHint': '”{system}” följer enhetens ljusa eller mörka inställning och växlar med den.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'Ger det mörka utseendet äkta svart, för OLED- och AMOLED-skärmar.',
+  'settings.oledLight': 'Bara med {dark} eller {system}. Ovanför är {light} valt.',
   'settings.motion.wild': 'Vild',
   'settings.motion.storm': 'Storm',
   'settings.motion.subtle': 'Diskret',

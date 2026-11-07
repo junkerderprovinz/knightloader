@@ -501,6 +501,7 @@ export const fa: Dict = {
   'settings.themeHint': '«{system}» از تنظیم روشن یا تیرهٔ دستگاهت پیروی می‌کند و همراه آن تغییر می‌کند.',
   'settings.oled': 'OLED',
   'settings.oledHint': 'ظاهر تیره را برای صفحه‌های OLED و AMOLED به سیاه واقعی می‌برد.',
+  'settings.oledLight': 'فقط با {dark} یا {system}. در بالا {light} انتخاب شده است.',
   'settings.motion.wild': 'پرشور',
   'settings.motion.storm': 'طوفان',
   'settings.motion.subtle': 'ملایم',
