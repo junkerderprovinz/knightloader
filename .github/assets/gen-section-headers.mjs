@@ -13,9 +13,9 @@
  * lists them in download-buttons/groups.json, so run that one first.
  *
  * The repo's font and the ink of each theme come from
- * .github/assets/section-headers.json: { "font": "<URL of a TTF>", "light": "#…", "dark": "#…" }
+ * .github/assets/section-headers.json: { "font": "<URL of a TTF or WOFF2>", "light": "#…", "dark": "#…" }
  *
- * Deps (global): opentype.js. Run: node .github/assets/gen-section-headers.mjs
+ * Deps (global): opentype.js, and uv for a WOFF2 font. Run: node .github/assets/gen-section-headers.mjs
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
@@ -33,13 +33,19 @@ const OUT = join(HERE, "sections");
 const REL = ".github/assets/sections";
 const config = JSON.parse(readFileSync(join(HERE, "section-headers.json"), "utf8"));
 
-const fontPath = join(tmpdir(), "section-headers-" + basename(new URL(config.font).pathname));
+const fontPath = join(tmpdir(), "section-headers-" + basename(decodeURIComponent(new URL(config.font).pathname)));
 if (!existsSync(fontPath)) {
   const res = await fetch(config.font);
   if (!res.ok) throw new Error(`font fetch ${res.status}`);
   writeFileSync(fontPath, Buffer.from(await res.arrayBuffer()));
 }
-const font = opentype.parse(readFileSync(fontPath).buffer);
+// opentype.js reads no WOFF2; fontTools unpacks it, brotli being what the glyph table is packed with.
+const ttfPath = fontPath.replace(/\.woff2$/i, ".ttf");
+if (ttfPath !== fontPath && !existsSync(ttfPath)) {
+  execSync(`uv run -q --no-project --with fonttools --with brotli python -c "from fontTools.ttLib import TTFont; f = TTFont(r'${fontPath}'); f.flavor = None; f.save(r'${ttfPath}')"`);
+}
+const buf = readFileSync(ttfPath);
+const font = opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
 
 // At width="100%" in GitHub's 830px column the band stands about 62px high and the
 // name is about 36px, well above the 24px of a plain heading.
@@ -53,14 +59,33 @@ const pathData = (p) =>
     : c.type === "Q" ? `Q${r(c.x1)} ${r(c.y1)} ${r(c.x)} ${r(c.y)}`
     : c.type === "C" ? `C${r(c.x1)} ${r(c.y1)} ${r(c.x2)} ${r(c.y2)} ${r(c.x)} ${r(c.y)}`
     : `${c.type}${r(c.x)} ${r(c.y)}`).join("");
-const text = (s, x, y, size, fill) => `<path d="${pathData(font.getPath(s, x, y, size))}" fill="${fill}"/>`;
+
+// Glyph by glyph with the font's kerning. opentype.js's own layout runs the
+// substitution tables first and stops on some it does not support, DejaVu's
+// among them; a heading needs none of them.
+function shape(s, size) {
+  const scale = size / font.unitsPerEm;
+  const glyphs = [];
+  let x = 0, prev = null;
+  for (const ch of s) {
+    const g = font.charToGlyph(ch);
+    if (prev) x += font.getKerningValue(prev, g) * scale;
+    glyphs.push({ g, x });
+    x += g.advanceWidth * scale;
+    prev = g;
+  }
+  return { glyphs, width: x };
+}
+const width = (s, size) => shape(s, size).width;
+const text = (s, x, y, size, fill) =>
+  `<path d="${shape(s, size).glyphs.map(({ g, x: gx }) => pathData(g.getPath(x + gx, y, size))).join("")}" fill="${fill}"/>`;
 
 // The table of contents has no number and takes a section sign in its place.
 function band(number, name, ink) {
   const label = number ? number.padStart(2, "0") : "§";
-  const numW = font.getAdvanceWidth(label, NUM);
+  const numW = width(label, NUM);
   const nameX = numW + 34;
-  const ruleX = nameX + font.getAdvanceWidth(name, NAME) + 24;
+  const ruleX = nameX + width(name, NAME) + 24;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   ${text(label, 0, 72, NUM, ink)}
   <rect x="${r(numW + 14)}" y="22" width="3" height="56" rx="1.5" fill="${ink}"/>
@@ -76,7 +101,7 @@ const GW = 1620, GH = 90, ICON = 54, GNAME = 52;
 
 function groupBand(icon, word, ink) {
   const nameX = ICON + 34;
-  const ruleX = nameX + font.getAdvanceWidth(word, GNAME) + 24;
+  const ruleX = nameX + width(word, GNAME) + 24;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${GW}" height="${GH}" viewBox="0 0 ${GW} ${GH}">
   <g transform="translate(0 ${(GH - ICON) / 2 + 1}) scale(${ICON / 24})" fill="none" stroke="${ink}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${icon}</g>
   <rect x="${ICON + 14}" y="20" width="3" height="52" rx="1.5" fill="${ink}"/>
@@ -102,7 +127,10 @@ for (const { id, word, icon } of existsSync(groups) ? JSON.parse(readFileSync(gr
 }
 
 let fenced = false;
-const lines = readFileSync(README, "utf8").split("\n").map((line) => {
+// A checkout with core.autocrlf has CRLF, and the README keeps whichever it has.
+const source = readFileSync(README, "utf8");
+const nl = source.includes("\r\n") ? "\r\n" : "\n";
+const lines = source.split(/\r?\n/).map((line) => {
   if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
   if (fenced) return line;
   const heading = line.match(/^## (.+)$/)?.[1] ?? line.match(GENERATED)?.[1];
@@ -114,4 +142,4 @@ const lines = readFileSync(README, "utf8").split("\n").map((line) => {
   console.log(`${id}`);
   return `<p><a id="${id}" href="#${id}"><picture><source media="(prefers-color-scheme: dark)" srcset="${REL}/${id}-dark.svg"><img src="${REL}/${id}.svg" alt="${heading}" width="100%"></picture></a></p>`;
 });
-writeFileSync(README, lines.join("\n"));
+writeFileSync(README, lines.join(nl));
