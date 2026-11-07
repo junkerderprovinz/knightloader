@@ -319,12 +319,14 @@ function renderTabs() {
   }
   tabsEl.hidden = false;
   tabsEl.innerHTML = '';
-  for (const [value, label, d, box] of [
+  for (const [i, [value, label, d, box]] of [
     ['send', t('popup.tabInstances'), G_FLEET, G_FLEET_BOX],
     ['collector', t('popup.tabCollector'), G_COLLECTOR, G_COLLECTOR_BOX],
-  ]) {
+  ].entries()) {
     const b = document.createElement('button');
     b.type = 'button';
+    // A tab chooses a page, so each keeps a palette position of its own.
+    setHue(b, i);
     b.replaceChildren(glyph(d, 14, box), document.createTextNode(label));
     b.setAttribute('aria-pressed', String(value === pane));
     b.addEventListener('click', () => {

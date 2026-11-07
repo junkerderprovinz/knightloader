@@ -506,6 +506,14 @@ body {
 .glim-seg--hug { width: fit-content; max-width: 100%; }
 .glim-seg--hug button { flex: 1 1 auto; min-width: 0; }
 
+/* A selector whose labels run long stands two to a row below 600px
+   (GlimStone 3.8.0), so its segments make a grid of halves instead of a row
+   that cuts its words, and a label that does not fit its half wraps. */
+.glim-seg--pairs button { flex: 1 0 var(--seg-basis, auto); }
+@media (max-width: 600px) {
+  .glim-seg--pairs { width: 100%; --seg-basis: calc(50% - 1px); }
+}
+
 .glim-seg button:hover { color: var(--carbon-text); }
 
 .glim-seg button[aria-pressed="true"] {

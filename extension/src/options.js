@@ -1337,6 +1337,9 @@ function paintHues() {
   setHues([...document.querySelectorAll('.glim-card')]);
   // The rainbow rows are a set of their own, as on the web UI's Look page.
   setHues([rainbowRow, rainbowReactiveRow, rainbowRotateRow, rainbowDiscoRow]);
+  // Every selector that sets a value wears a colour of its own on its chosen
+  // segment, counted in the order they stand (GlimStone 3.5.0).
+  setHues([themeSeg, shapeSeg]);
 }
 
 /**
