@@ -101,15 +101,23 @@ const SEGMENT_PAD = 6;
  *  An option's `glyph` stands before its label with its ink as tall as the
  *  label's letters, so the two read as one name. It is decoration, and where
  *  the widest label and a glyph do not fit one segment, as on a narrow phone
- *  or at a large font scale, every glyph goes and the labels keep the room. */
+ *  or at a large font scale, every glyph goes and the labels keep the room.
+ *
+ *  `hue` is this selector's place among the selectors of its page, for one
+ *  that sets a value: under the rainbow its chosen segment wears that colour,
+ *  so two selectors in one card can be told apart (GlimStone 3.5.0). Without
+ *  it the segments choose a page, and each owns a position as a tab strip's
+ *  tabs do. */
 export function WellSelector<T extends string>({
   options,
   value,
   onPick,
+  hue,
 }: {
   options: { value: T; label: string; glyph?: (p: { color: string; size?: number }) => ReactNode }[];
   value: T;
   onPick: (v: T) => void;
+  hue?: number;
 }) {
   const { c, accent, accentContrast, corners, hueAt } = useAppearance();
   const glyphed = options.some((o) => o.glyph);
@@ -147,12 +155,7 @@ export function WellSelector<T extends string>({
       )}
       {options.map((o, i) => {
         const on = o.value === value;
-        // Each segment owns a palette position. The design language names a
-        // segmented control's segments as one of the things that may own one,
-        // for the reason a tab strip does: they are equal members of one set.
-        // The positions are this control's own 0-based sequence, not the
-        // page's.
-        const fill = (hueAt(i) ?? accent) as string;
+        const fill = hueAt(hue ?? i) ?? accent;
         const ink = on ? contrastFor(fill, accentContrast) : c.textSub;
         const Glyph = showGlyphs ? o.glyph : undefined;
         return (

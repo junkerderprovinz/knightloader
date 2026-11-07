@@ -446,6 +446,7 @@ export default function SettingsScreen({
             ]}
             value={overridden.theme ? (dark ? 'dark' : 'light') : 'system'}
             onPick={(v) => setTheme(v === 'system' ? undefined : v)}
+            hue={0}
           />
         </View>
 
@@ -495,6 +496,7 @@ export default function SettingsScreen({
               glyph: SHAPE_GLYPHS[s],
             }))}
             value={shape}
+            hue={1}
             onPick={(v) => {
               // Taps on a chosen square count toward the hidden shape.
               const found = leafTap(leafTaps.current, v, shape);
@@ -768,6 +770,7 @@ export default function SettingsScreen({
         <WellSelector
           options={motionOptions}
           value={motion}
+          hue={2}
           onPick={(v) => {
             // The gesture first, because it is a press on the segment that is
             // already active, the one press a picker would otherwise swallow as
