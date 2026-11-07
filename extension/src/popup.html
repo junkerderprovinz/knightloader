@@ -69,8 +69,6 @@
         cursor: pointer;
         transition: background-color 150ms ease, color 150ms ease;
       }
-      .iconBadge:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
-      .iconBadge:active { transform: scale(0.97); }
       /* #target names what is about to be sent; popup.js shows it only for a
          parked send. */
       p {
@@ -101,7 +99,11 @@
       }
       button svg { flex-shrink: 0; }
       .primary { background: var(--accent); color: var(--accent-contrast); }
-      .secondary { background: var(--carbon-surface2); color: var(--carbon-text); }
+      /* The accent kind steps toward the text colour under the pointer
+         (GlimStone 3.3.0); the subtle kind steps up the ramp with the tint in
+         it (.glim-btn-subtle in glimstone.css). */
+      .primary:not(:disabled):hover { background: var(--accent-hover); }
+      .glim-btn-subtle { background: var(--carbon-surface2); color: var(--carbon-text); }
       /* 16px, the window's own padding, between every block. An empty status
          line takes no space. */
       #status { color: var(--carbon-text-muted); font-size: var(--text-subline); margin-top: 16px; }
@@ -128,11 +130,12 @@
       #instanceList { display: flex; flex-direction: column; gap: 16px; margin-top: 6px; }
       #instanceLabel { margin: 0; }
       /* Send and its cancel share a row; cancel shows only while a countdown
-         runs. flex-basis 0 and min-width 0 on both split the row evenly
-         whatever the labels, since the base rule's width: 100% would otherwise
-         squeeze one of them. */
-      .sendRow { display: flex; gap: 8px; }
-      .sendRow > button { flex: 1 1 0; min-width: 0; }
+         runs. flex-basis 0 splits the row evenly whatever the labels, since the
+         base rule's width: 100% would otherwise squeeze one of them, and a
+         button keeps its words (GlimStone 4.2.0): where both do not fit, the
+         second goes to a row of its own. */
+      .sendRow { display: flex; flex-wrap: wrap; gap: 8px; }
+      .sendRow > button { flex: 1 1 0; min-width: max-content; }
       #tabs { margin-bottom: 12px; }
       /* Both panes share a minimum height so switching tabs does not resize the
          popup; the collector's field takes the rest. */
@@ -161,10 +164,9 @@
         outline: none;
       }
       #links:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
-      /* Two buttons sharing a line; min-width 0 keeps a long label in its half,
-         as in .sendRow. */
-      .collectorRow { display: flex; gap: 8px; }
-      .collectorRow button { flex: 1; min-width: 0; }
+      /* Two buttons sharing a line, split and wrapped as in .sendRow. */
+      .collectorRow { display: flex; flex-wrap: wrap; gap: 8px; }
+      .collectorRow button { flex: 1 1 0; min-width: max-content; }
       #media { margin-top: 16px; }
       #mediaLabel { margin: 0 0 6px; }
       #mediaList { display: flex; flex-direction: column; gap: 8px; }
@@ -196,7 +198,7 @@
            aria-label, and a title would show the browser's own balloon beside
            the bubble (GlimStone 1.8.0). The aria-label is the name until
            popup.js runs. -->
-      <button id="openOptions" class="iconBadge" type="button" aria-label="Settings">
+      <button id="openOptions" class="iconBadge glim-btn-subtle" type="button" aria-label="Settings">
         <!-- The cog GlimStone gives Settings, Streamline's
              interface-essential/cog.svg (CC BY 4.0), half the badge's size. -->
         <svg width="16" height="16" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
@@ -214,7 +216,7 @@
     <div id="cnlAccess" class="glim-unavailable" hidden>
       <span class="glim-unavailable-title" id="cnlAccessTitle"></span>
       <span class="glim-unavailable-reason" id="cnlAccessReason"></span>
-      <button id="cnlAccessOpen" class="secondary" type="button"></button>
+      <button id="cnlAccessOpen" class="glim-btn-subtle" type="button"></button>
     </div>
 
     <!-- Instances and the link collector as two tabs, like the app. The strip
@@ -231,7 +233,7 @@
            (GlimStone 1.14.0); the flex row mirrors under a right-to-left
            language. Cancel shows only while a countdown runs. -->
       <div class="sendRow">
-        <button id="cancelCountdown" class="secondary" type="button" hidden></button>
+        <button id="cancelCountdown" class="glim-btn-subtle" type="button" hidden></button>
         <button id="send" class="primary">Send this page</button>
       </div>
       <!-- The video and audio this tab played, while finding media is on
@@ -251,7 +253,7 @@
       <!-- One accent button per pane (GlimStone rule 3), and it is the one
            that sends; choosing files only fills the field. -->
       <div class="collectorRow">
-        <button id="pickFiles" class="secondary" type="button"></button>
+        <button id="pickFiles" class="glim-btn-subtle" type="button"></button>
         <button id="addLinks" class="primary" type="button"></button>
       </div>
       <!-- Opened from the button beside it, since a native file input cannot

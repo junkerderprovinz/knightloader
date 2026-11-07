@@ -300,7 +300,7 @@ const GLYPH_OPEN = 'M9 2h5v5h-1.5V4.56L7.8 9.26 6.74 8.2l4.7-4.7H9zM3 4h4v1.5H4.
 function squareAction(d, label, disabled, onClick) {
   const b = document.createElement('button');
   b.type = 'button';
-  b.className = 'glim-square';
+  b.className = 'glim-square glim-btn-neutral';
   b.disabled = !!disabled;
   b.setAttribute('aria-label', label);
   b.setAttribute('data-tip', label);

@@ -84,6 +84,7 @@ function paintHues() {
 (async () => {
   const look = await applyAppearance();
   paintHues();
+  listenForPageHue();
   // Disco walks here too, or the popup would sit still beside a settings page
   // that moves. The walk writes the root, so the cards drawn later follow.
   applyDisco(look.disco);

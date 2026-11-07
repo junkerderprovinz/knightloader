@@ -1417,7 +1417,7 @@ function swatch(hex, { label: name, pressed, onPick, onEdit, onEditClose }) {
 function resetBadge(onClick) {
   const b = document.createElement('button');
   b.type = 'button';
-  b.className = 'glim-reset';
+  b.className = 'glim-reset glim-btn-neutral';
   // Half the badge's box.
   b.appendChild(glyph(D_RETRY, 16));
   b.setAttribute('data-tip', t('options.accentReset'));
@@ -2138,6 +2138,7 @@ copyReportBtn.addEventListener('click', async () => {
 
 (async () => {
   await applyAppearance();
+  listenForPageHue();
   await loadLanguage();
   // Before any data-tip is written, so the first hover finds the bubble.
   wireTooltips();

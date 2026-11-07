@@ -63,7 +63,7 @@ function mediaRow(item, tab, page) {
 
   const send = document.createElement('button');
   send.type = 'button';
-  send.className = 'iconBadge';
+  send.className = 'iconBadge glim-btn-subtle';
   send.setAttribute('aria-label', t('popup.mediaSend'));
   send.setAttribute('data-tip', t('popup.mediaSend'));
   send.replaceChildren(glyph(G_SEND));

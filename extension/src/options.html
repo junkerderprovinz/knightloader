@@ -75,8 +75,12 @@
       }
       button > svg,
       a.btnlike > svg { flex: 0 0 auto; }
-      button.secondary,
-      a.btnlike.secondary {
+      /* The accent kind steps toward the text colour under the pointer
+         (GlimStone 3.3.0); the subtle kind steps up the ramp with the tint in
+         it (.glim-btn-subtle in glimstone.css). */
+      button.primary:not(:disabled):hover { background: var(--accent-hover); }
+      button.glim-btn-subtle,
+      a.btnlike.glim-btn-subtle {
         background: var(--carbon-surface2);
         color: var(--carbon-text);
       }
@@ -136,8 +140,6 @@
         cursor: pointer;
         transition: background-color 150ms ease, color 150ms ease;
       }
-      .iconBadge:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
-      .iconBadge:active { transform: scale(0.97); }
       /* Label left, control right. */
       .glim-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
       .glim-row-label { font-size: var(--text-body); color: var(--carbon-text); }
@@ -190,9 +192,7 @@
         transition: color 150ms ease;
       }
       .stepper svg { display: block; }
-      .stepper:hover { background: none; color: var(--carbon-text); }
       .stepper:disabled { opacity: 0.35; cursor: default; }
-      .stepper:disabled:hover { color: var(--carbon-text-muted); }
       .aboutText { margin: 0 0 8px; font-size: var(--text-body); color: var(--carbon-text-sub); }
       .cnlRefused,
       .captureRefused { margin-top: 14px; }
@@ -239,7 +239,7 @@
       <h2 class="glim-section-badge" id="pinHeading">Almost there</h2>
       <p id="pinBody" class="aboutText"></p>
       <div class="fields">
-        <button id="pinDismiss" class="secondary" type="button"></button>
+        <button id="pinDismiss" class="glim-btn-subtle" type="button"></button>
       </div>
     </section>
 
@@ -251,8 +251,8 @@
       <h2 class="glim-section-badge" id="cnlAccessHeading"></h2>
       <p id="cnlAccessBody" class="aboutText"></p>
       <div class="fields">
-        <button id="cnlAccessKeepOff" class="secondary" type="button"></button>
-        <button id="cnlAccessAllow" type="button"></button>
+        <button id="cnlAccessKeepOff" class="glim-btn-subtle" type="button"></button>
+        <button id="cnlAccessAllow" class="primary" type="button"></button>
       </div>
     </section>
 
@@ -272,15 +272,15 @@
             autocomplete="off"
             spellcheck="false"
           />
-          <button id="phrasePaste" class="glim-eye glim-eye--second" type="button"></button>
-          <button id="phraseEye" class="glim-eye" type="button"></button>
+          <button id="phrasePaste" class="glim-eye glim-eye--second glim-btn-bare" type="button"></button>
+          <button id="phraseEye" class="glim-eye glim-btn-bare" type="button"></button>
         </label>
         <div class="fields">
-          <button id="join" type="submit">Connect</button>
+          <button id="join" class="primary" type="submit">Connect</button>
           <!-- A neutral icon badge with a bin; #leaveConfirm asks before
                anything is deleted. It sits at the end of the row like the
                delete badge on every card. -->
-          <button id="leave" class="iconBadge" type="button" hidden></button>
+          <button id="leave" class="iconBadge glim-btn-subtle" type="button" hidden></button>
         </div>
       </form>
       <!-- Outside the form, so Enter here saves the name instead of
@@ -292,7 +292,7 @@
       <div id="status"></div>
       <div id="list"></div>
       <p id="ownKey" hidden></p>
-      <button id="refreshGroup" class="secondary" type="button" hidden>Refresh</button>
+      <button id="refreshGroup" class="glim-btn-subtle" type="button" hidden>Refresh</button>
     </section>
 
     <section class="glim-card glim-stagger-row" style="--row-i: 2">
@@ -406,12 +406,12 @@
                   <!-- Solid triangles with rounded corners (GlimStone 1.6.0)
                        through a matched stroke, the path inset by half the
                        stroke width. -->
-                  <button type="button" class="stepper" id="cnlCountdownUp">
+                  <button type="button" class="stepper glim-btn-bare" id="cnlCountdownUp">
                     <svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
                       <path d="M5 1.7 L8.6 4.6 L1.4 4.6 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
                     </svg>
                   </button>
-                  <button type="button" class="stepper" id="cnlCountdownDown">
+                  <button type="button" class="stepper glim-btn-bare" id="cnlCountdownDown">
                     <svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
                       <path d="M5 4.3 L1.4 1.4 L8.6 1.4 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
                     </svg>
@@ -493,7 +493,7 @@
       <pre id="report" class="report glim-well glim-num"></pre>
       <!-- Only a copy button; the Help card carries the ways to report. -->
       <div class="fields">
-        <button id="copyReport" class="secondary" type="button">Copy report</button>
+        <button id="copyReport" class="glim-btn-subtle" type="button">Copy report</button>
       </div>
     </section>
 
@@ -559,8 +559,8 @@
         <h2 class="glim-section-badge" id="leaveConfirmTitle"></h2>
         <p class="glim-modal-message" id="leaveConfirmMessage"></p>
         <div class="glim-modal-actions">
-          <button id="leaveConfirmCancel" class="secondary" type="button"></button>
-          <button id="leaveConfirmCommit" class="secondary" type="button"></button>
+          <button id="leaveConfirmCancel" class="glim-btn-subtle" type="button"></button>
+          <button id="leaveConfirmCommit" class="glim-btn-subtle" type="button"></button>
         </div>
       </div>
     </div>
@@ -580,9 +580,9 @@
         <ul class="clipWatchers" id="clipElsewhereList"></ul>
         <p class="glim-modal-message" id="clipElsewhereMessage"></p>
         <div class="glim-modal-actions">
-          <button id="clipElsewhereCancel" class="secondary" type="button"></button>
-          <button id="clipElsewhereKeep" class="secondary" type="button"></button>
-          <button id="clipElsewhereStop" type="button"></button>
+          <button id="clipElsewhereCancel" class="glim-btn-subtle" type="button"></button>
+          <button id="clipElsewhereKeep" class="glim-btn-subtle" type="button"></button>
+          <button id="clipElsewhereStop" class="primary" type="button"></button>
         </div>
       </div>
     </div>
@@ -602,7 +602,7 @@
         <p class="glim-donate-appeal" id="coffeeAppeal"></p>
         <div class="glim-coffee-frame" id="coffeeFrame"></div>
         <div class="glim-modal-actions">
-          <button id="coffeeClose" class="secondary" type="button"></button>
+          <button id="coffeeClose" class="glim-btn-subtle" type="button"></button>
         </div>
       </div>
     </div>
@@ -627,12 +627,12 @@
             <p class="glim-crypto-address" id="cryptoAddress" dir="ltr"></p>
             <div class="glim-crypto-chains" id="cryptoChains" role="listbox"></div>
             <p class="glim-crypto-note" id="cryptoNote" hidden></p>
-            <button id="cryptoCopy" type="button"></button>
+            <button id="cryptoCopy" class="primary" type="button"></button>
           </div>
           <div class="glim-crypto-coins" id="cryptoCoins" role="listbox"></div>
         </div>
         <div class="glim-modal-actions">
-          <button id="cryptoClose" class="secondary" type="button"></button>
+          <button id="cryptoClose" class="glim-btn-subtle" type="button"></button>
         </div>
       </div>
     </div>

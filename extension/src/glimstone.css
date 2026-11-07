@@ -555,8 +555,8 @@ body {
   cursor: pointer;
   transition: color 150ms ease, background-color 150ms ease;
 }
-/* Already on surface3, so it hovers to --carbon-hover-raised (rule 21). */
-.glim-reset:hover { color: var(--carbon-text); background: var(--carbon-hover-raised); }
+/* Already on surface3, so it wears .glim-btn-neutral and hovers to a tinted
+   --carbon-hover-raised (rules 21 and 40). */
 .glim-reset svg { display: block; }
 
 .glim-axis { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -587,7 +587,6 @@ body {
 /* No hover on a disabled control. The segment rule names aria-pressed="false"
    because a :not(:disabled) on the hover would outrank the pressed rule it
    currently ties with; every segment carries the attribute. */
-.glim-reset:disabled:hover { color: var(--carbon-text-sub); background: var(--carbon-surface3); }
 .glim-seg button[aria-pressed="false"]:disabled:hover { color: var(--carbon-text-sub); }
 
 /* The notice that stands in for a control the environment does not permit
@@ -707,7 +706,6 @@ body {
   cursor: pointer;
   transition: color 150ms ease, background-color 150ms ease;
 }
-.glim-eye:hover { color: var(--carbon-text); background: var(--carbon-hover); }
 .glim-eye svg { display: block; }
 /* After .glim-eye, which carries the same weight, so this inset wins over its
    own and the two controls stand side by side. */
@@ -983,7 +981,8 @@ body {
   padding-block: 0 12px;
   padding-inline: 0 12px;
 }
-/* The square icon badge, at the one size every square on these pages takes. */
+/* The square icon badge, at the one size every square on these pages takes.
+   It sits on surface3, so it wears .glim-btn-neutral (rule 40). */
 .glim-square {
   display: inline-flex;
   align-items: center;
@@ -998,7 +997,6 @@ body {
   cursor: pointer;
   transition: background-color 150ms ease, color 150ms ease;
 }
-.glim-square:hover:not(:disabled) { background: var(--accent); color: var(--accent-contrast); }
 .glim-square:disabled { opacity: .4; cursor: default; }
 .glim-square svg { display: block; }
 /* The default badge in the corner. */
@@ -1140,10 +1138,12 @@ body {
   overflow-wrap: anywhere;
 }
 /* The buttons gather at the end of the line, with the committing one last
-   (GlimStone 1.14.0) in either writing direction. */
+   (GlimStone 1.14.0) in either writing direction. A foot without room for
+   all of them wraps rather than cutting their words (4.2.0). */
 .glim-modal-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 20px;
 }
@@ -1275,6 +1275,41 @@ body {
    ink, never in a colour of its own that nobody can predict the contrast of. */
 .glim-crypto-coins .glim-crypto-tile[aria-selected='true'] { background: var(--accent); color: var(--accent-contrast); }
 .glim-crypto-coins .glim-crypto-tile[aria-selected='true'] svg { color: var(--accent-contrast); }
+
+/* Rule 40: every button takes the accent when the pointer or the keyboard
+   reaches it. A surface-filled button mixes 22% of --btn-tint into its hovered
+   ground, one step up the ramp, and turns its glyph to the tint, while its
+   words keep the text colour. A bare glyph button has no ground to tint, so
+   only its glyph turns. Under rainbow takePageHue() in appearance.js sets the
+   tint inline to the button's place on the page. The extension's glyphs stand
+   bare in their buttons, where the reference wraps them in .glim-btn-glyph. */
+.glim-btn-neutral,
+.glim-btn-subtle,
+.glim-btn-bare {
+  --btn-tint: var(--accent-glyph);
+}
+.glim-btn-subtle:not(:disabled):is(:hover, :focus-visible) {
+  background-color: color-mix(in srgb, var(--carbon-surface3), var(--btn-tint) 22%);
+}
+.glim-btn-neutral:not(:disabled):is(:hover, :focus-visible) {
+  background-color: color-mix(in srgb, var(--carbon-hover-raised), var(--btn-tint) 22%);
+}
+:is(.glim-btn-neutral, .glim-btn-subtle):not(:disabled):is(:hover, :focus-visible) > svg,
+.glim-btn-bare:not(:disabled):is(:hover, :focus-visible) {
+  color: var(--btn-tint);
+}
+.glim-btn-bare:is(:hover, :focus-visible) {
+  background-color: transparent;
+}
+
+/* Every button gives way on press (GlimStone 3.2.0). A switch, a menu row and
+   a README button keep still: the first slides its knob, and the others are
+   rows and tiles rather than buttons. */
+@media (prefers-reduced-motion: no-preference) {
+  button:not(:disabled, [role='switch'], .glim-menu button, .glim-listbox-option, .glim-readme-btn):active {
+    scale: .97;
+  }
+}
 
 /* The single-colour marks at rest, painted through `color` on the mark's box
    and currentColor in its paths. A published brand colour fails on one of the

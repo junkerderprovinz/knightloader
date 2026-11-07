@@ -503,6 +503,44 @@ function setHues(elements) {
   elements.filter(Boolean).forEach((el, i) => setHue(el, i));
 }
 
+/** The buttons that carry rule 40's tint (glimstone.css). */
+const TINTED_BUTTONS = '.glim-btn-neutral, .glim-btn-subtle, .glim-btn-bare';
+
+/**
+ * takePageHue gives a button the palette position of its place among the
+ * page's buttons, so under rainbow two buttons side by side light up in
+ * different colours (GlimStone's rule 40). It is read when the pointer or the
+ * keyboard reaches the button, since the order changes with the page.
+ */
+function takePageHue(el) {
+  if (!rainbowNow.on) {
+    el.style.removeProperty('--btn-tint');
+    return;
+  }
+  const i = Array.prototype.indexOf.call(document.querySelectorAll(TINTED_BUTTONS), el);
+  const n = ((i % RAINBOW.length) + RAINBOW.length) % RAINBOW.length;
+  el.style.setProperty('--btn-tint', `color-mix(in srgb, var(--rb-${n}) var(--ink-mix), black)`);
+}
+
+/**
+ * listenForPageHue hands every tinted button its place's colour as the pointer
+ * or the keyboard reaches it. It listens on the document, so the windows and
+ * the cards drawn later are covered too. A button with a palette position of
+ * its own keeps that one.
+ */
+function listenForPageHue() {
+  const reached = (target, from) => {
+    if (!(target instanceof Element)) return;
+    const el = target.closest(TINTED_BUTTONS);
+    if (!el || el.matches('.glim-hue')) return;
+    // pointerover fires again for every child the pointer crosses inside it.
+    if (from instanceof Node && el.contains(from)) return;
+    takePageHue(el);
+  };
+  document.addEventListener('pointerover', (e) => reached(e.target, e.relatedTarget));
+  document.addEventListener('focusin', (e) => reached(e.target, null));
+}
+
 /** applyRainbow stores the state and writes the palette, with the ink for each
  *  colour, onto the root. Disco lives in disco.js. */
 function applyRainbow(next) {
