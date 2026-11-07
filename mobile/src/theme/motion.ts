@@ -89,15 +89,14 @@ const GESTURES: Record<Motion, Gestures> = {
     wiggleDur: 400,
     liftScale: 1,
   },
-  // Smaller numbers, the same gestures. Somebody who asked for less movement
-  // asked for less movement, not for a faster one, so the wiggle swings half
-  // as far and slower.
+  // Smaller numbers, the same gestures, and GlimStone's subtle tremble: a
+  // little less far and a little slower than the top level's.
   subtle: {
     shakeDur: 220,
     shakeTravel: 2,
     shakeFadeTo: 1,
-    wiggleDeg: 0.3,
-    wiggleDur: 360,
+    wiggleDeg: 1.4,
+    wiggleDur: 140,
     liftScale: 1.015,
   },
   // The top level a picker offers: the 360ms/4pt shake the whole family draws,
@@ -108,8 +107,8 @@ const GESTURES: Record<Motion, Gestures> = {
     shakeDur: 360,
     shakeTravel: 4,
     shakeFadeTo: 1,
-    wiggleDeg: 0.6,
-    wiggleDur: 280,
+    wiggleDeg: 2,
+    wiggleDur: 120,
     liftScale: 1.03,
   },
   // The hidden fourth (GlimStone 1.17.0). Same gestures, same table, bigger
@@ -120,8 +119,8 @@ const GESTURES: Record<Motion, Gestures> = {
     shakeDur: 520,
     shakeTravel: 7.2,
     shakeFadeTo: 1,
-    wiggleDeg: 1,
-    wiggleDur: 220,
+    wiggleDeg: 2.8,
+    wiggleDur: 100,
     liftScale: 1.054,
   },
 };

@@ -138,12 +138,25 @@ export interface Reorder {
   endsDrag: (e: { detail: number }) => boolean;
 }
 
+/**
+ * useDragArmed makes the other items of a reorderable list tremble while one
+ * is held, by keeping `glim-drag-armed` on the list (GlimStone 4.2.5). The drag
+ * gestures call it, so no list can forget the class.
+ */
+export function useDragArmed(list: RefObject<HTMLElement | null>, held: boolean): void {
+  // After every render, since a list that rewrites its own className drops the class.
+  useLayoutEffect(() => {
+    list.current?.classList.toggle('glim-drag-armed', held);
+  });
+}
+
 /** useReorder is the drag gesture for a list of ids; see the file comment. */
 export function useReorder({ ids, container, attr, axis, arm, enabled, onReorder }: ReorderOptions): Reorder {
   // liveOrder is the order laid out while an item is held or landing, and null
   // otherwise. Positions go straight to each item's `translate` rather than
   // through state, so the held item keeps up with the pointer.
   const [held, setHeld] = useState<string | null>(null);
+  useDragArmed(container, held !== null);
   const [settling, setSettling] = useState<string | null>(null);
   const [liveOrder, setLiveOrder] = useState<string[] | null>(null);
   const holdTimer = useRef<number | null>(null);

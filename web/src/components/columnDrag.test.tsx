@@ -17,14 +17,26 @@ describe('the live order while a column is carried', () => {
     { id: 'eta', x: 480, w: 80 },
   ];
 
-  it('keeps a column in place until the carried one passes its middle', () => {
-    expect(liveColumnOrder(boxes, 'size', 429, false)).toEqual(['name', 'size', 'speed', 'eta']);
-    expect(liveColumnOrder(boxes, 'size', 431, false)).toEqual(['name', 'speed', 'size', 'eta']);
+  it('keeps a column in place until the leading edge of the carried one passes its middle', () => {
+    expect(liveColumnOrder(boxes, 'size', 349, false)).toEqual(['name', 'size', 'speed', 'eta']);
+    expect(liveColumnOrder(boxes, 'size', 351, false)).toEqual(['name', 'speed', 'size', 'eta']);
   });
 
   it('passes several columns at once when the pointer jumps', () => {
-    expect(liveColumnOrder(boxes, 'size', 600, false)).toEqual(['name', 'speed', 'eta', 'size']);
-    expect(liveColumnOrder(boxes, 'eta', -50, false)).toEqual(['eta', 'name', 'size', 'speed']);
+    expect(liveColumnOrder(boxes, 'size', 480, false)).toEqual(['name', 'speed', 'eta', 'size']);
+    expect(liveColumnOrder(boxes, 'eta', 0, false)).toEqual(['eta', 'name', 'size', 'speed']);
+  });
+
+  it('brings a wide column to either end once it reaches the edge', () => {
+    // name moved to the middle: size 0..80, speed 80..180, name 180..480, eta 480..560
+    const middle: ColumnBox[] = [
+      { id: 'size', x: 0, w: 80 },
+      { id: 'speed', x: 80, w: 100 },
+      { id: 'name', x: 180, w: 300 },
+      { id: 'eta', x: 480, w: 80 },
+    ];
+    expect(liveColumnOrder(middle, 'name', 0, false)).toEqual(['name', 'size', 'speed', 'eta']);
+    expect(liveColumnOrder(middle, 'name', 260, false)).toEqual(['size', 'speed', 'eta', 'name']);
   });
 
   it('reads the columns from the right in a right-to-left list', () => {
@@ -175,8 +187,8 @@ describe('carrying a column by its head', () => {
   it('writes nothing for a drop where the column started', async () => {
     const onDrop = vi.fn();
     await act(async () => root.render(<Table onDrop={onDrop} />));
-    await carrySize(400);
-    await pointer('pointerup', 400);
+    await carrySize(370);
+    await pointer('pointerup', 370);
     expect(onDrop).not.toHaveBeenCalled();
   });
 
