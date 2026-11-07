@@ -1,5 +1,15 @@
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Animated, Pressable, StyleSheet, TouchableOpacity, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  Pressable,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { usePress } from '../theme/MotionContext';
 import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
@@ -89,6 +99,9 @@ export function NotchLabel({ title, hue }: { title: string; hue?: number }) {
 const SEGMENT_GLYPH = boxForInk(TYPE.meta);
 const SEGMENT_GAP = 5;
 const SEGMENT_PAD = 6;
+// The groove's padding and the space between its segments.
+const WELL_PAD = 3;
+const WELL_GAP = 2;
 
 /** The one horizontal selector: a groove one surface deeper, equal segments,
  *  and only the chosen segment is a badge. No per-segment borders.
@@ -107,29 +120,53 @@ const SEGMENT_PAD = 6;
  *  that sets a value: under the rainbow its chosen segment wears that colour,
  *  so two selectors in one card can be told apart (GlimStone 3.5.0). Without
  *  it the segments choose a page, and each owns a position as a tab strip's
- *  tabs do. */
+ *  tabs do.
+ *
+ *  `pairs` is for a selector whose labels run long. Below 600 points, where a
+ *  glyph and the widest label do not fit one segment, its segments stand two
+ *  to a row and keep their glyphs, and a label that does not fit its half
+ *  wraps (GlimStone 3.8.0 and 4.2.0). */
 export function WellSelector<T extends string>({
   options,
   value,
   onPick,
   hue,
+  pairs,
 }: {
   options: { value: T; label: string; glyph?: (p: { color: string; size?: number }) => ReactNode }[];
   value: T;
   onPick: (v: T) => void;
   hue?: number;
+  pairs?: boolean;
 }) {
   const { c, accent, accentContrast, corners, hueAt } = useAppearance();
+  const { width: screen } = useWindowDimensions();
   const glyphed = options.some((o) => o.glyph);
-  // A segment's width inside its padding, and each label's own width at the
-  // font scale in force, keyed by the label so a new language measures again.
+  // A segment's width inside its padding when all of them share one row, and
+  // each label's own width at the font scale in force, keyed by the label so a
+  // new language measures again. The room comes from the groove, whose width
+  // does not change when the segments go two to a row.
   const [room, setRoom] = useState(0);
   const [widths, setWidths] = useState<Record<string, number>>({});
   const labelWidths = options.map((o) => widths[o.label]);
   const measured = room > 0 && labelWidths.every((w) => w !== undefined);
-  const showGlyphs = glyphed && (!measured || Math.max(...labelWidths) + SEGMENT_GLYPH + SEGMENT_GAP <= room);
+  const fits = !measured || Math.max(...labelWidths) + SEGMENT_GLYPH + SEGMENT_GAP <= room;
+  const paired = !!pairs && glyphed && !fits && screen < 600;
+  const showGlyphs = glyphed && (fits || paired);
+  const n = options.length;
   return (
-    <View style={[styles.well, { backgroundColor: c.surface2, ...corners.pill }]}>
+    <View
+      onLayout={(e) =>
+        setRoom((e.nativeEvent.layout.width - 2 * WELL_PAD - (n - 1) * WELL_GAP) / n - 2 * SEGMENT_PAD)
+      }
+      // Two rows in a pill would be a lozenge with the segments jammed into
+      // its ends, so the groove takes a card's corners there.
+      style={[
+        styles.well,
+        { backgroundColor: c.surface2, ...(paired ? corners.card : corners.pill) },
+        paired && styles.wellPaired,
+      ]}
+    >
       {glyphed && (
         // The labels at full width, out of sight, so their width is known
         // before a segment squeezes them.
@@ -162,24 +199,23 @@ export function WellSelector<T extends string>({
           <TouchableOpacity
             key={o.value}
             onPress={() => onPick(o.value)}
-            onLayout={i === 0 ? (e) => setRoom(e.nativeEvent.layout.width - 2 * SEGMENT_PAD) : undefined}
             /* The segment takes the groove's radius, so in round the groove is
                a pill with a pill inside it. Its 3 points of padding are far
                too few to keep a square corner inside a pill's arc. */
-            style={[styles.segment, corners.pill, on && { backgroundColor: fill }]}
+            style={[styles.segment, paired && styles.segmentPaired, corners.pill, on && { backgroundColor: fill }]}
           >
             {/* Computed against the fill it landed on rather than the flat
                 accent's contrast: a palette position can be far lighter or
                 darker than the accent, and reusing accentContrast puts white
                 text on a pale mint segment. A label longer than its share
-                shrinks rather than being cut off. */}
+                shrinks rather than being cut off, or wraps in a pair. */}
             <View style={styles.segmentName}>
               {Glyph && <Glyph color={ink} size={SEGMENT_GLYPH} />}
               <Text
-                numberOfLines={1}
-                adjustsFontSizeToFit
+                numberOfLines={paired ? 2 : 1}
+                adjustsFontSizeToFit={!paired}
                 minimumFontScale={0.7}
-                style={[styles.segmentText, { color: ink }]}
+                style={[styles.segmentText, paired && styles.segmentTextPaired, { color: ink }]}
               >
                 {o.label}
               </Text>
@@ -454,12 +490,17 @@ const styles = StyleSheet.create({
   // half of what makes the badge 22 points tall: 16 of text between 3 and 3 of
   // padding.
   notchText: { fontSize: TYPE.meta, lineHeight: 16, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1.2 },
-  well: { flexDirection: 'row', padding: 3, gap: 2, alignSelf: 'stretch' },
+  well: { flexDirection: 'row', padding: WELL_PAD, gap: WELL_GAP, alignSelf: 'stretch' },
+  wellPaired: { flexWrap: 'wrap' },
   segment: { flex: 1, minWidth: 0, paddingVertical: 7, paddingHorizontal: SEGMENT_PAD, alignItems: 'center' },
+  // Half the groove less the gap, growing into it, so a pair fills its row and
+  // a last segment on its own takes the whole of one.
+  segmentPaired: { flexGrow: 1, flexShrink: 0, flexBasis: '45%', justifyContent: 'center' },
   segmentName: { flexDirection: 'row', alignItems: 'center', gap: SEGMENT_GAP, maxWidth: '100%' },
   // Wide enough that no label wraps while it is measured.
   measure: { position: 'absolute', top: 0, left: 0, width: 4000, flexDirection: 'row', opacity: 0 },
   segmentText: { flexShrink: 1, fontSize: TYPE.meta, fontWeight: '500' },
+  segmentTextPaired: { textAlign: 'center' },
   // No borderRadius here: it comes from the shape engine at render time, and a
   // value baked into the stylesheet cannot follow a setting.
   track: { width: 36, height: 20, padding: 2, justifyContent: 'center' },
