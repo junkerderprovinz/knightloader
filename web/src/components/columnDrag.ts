@@ -24,18 +24,23 @@ export interface ColumnBox {
 }
 
 /**
- * liveColumnOrder is the order the carried column's centre asks for. A column
- * counts as before it once the centre has passed the column's middle; the
- * passed column then moves away by the carried one's width, so two columns of
- * different widths cannot trade places back and forth.
+ * liveColumnOrder is the order the carried column asks for when its left edge
+ * stands at `x`. A column counts as passed once the carried one's leading edge,
+ * the left one on the way left and the right one on the way right, is past
+ * the column's middle. The centre would not do: a wide column held at the
+ * table's edge keeps its centre beyond a narrow neighbour's and could never
+ * reach the end. The passed column moves away by the carried one's width, so
+ * two columns of different widths cannot trade places back and forth.
  */
-export function liveColumnOrder(boxes: ColumnBox[], held: ColumnId, centre: number, rtl: boolean): ColumnId[] {
+export function liveColumnOrder(boxes: ColumnBox[], held: ColumnId, x: number, rtl: boolean): ColumnId[] {
+  const from = boxes.find((b) => b.id === held);
+  const edge = from && x > from.x ? x + from.w : x;
   const rest: ColumnId[] = [];
   let ahead = 0;
   for (const b of boxes) {
     if (b.id === held) continue;
     const mid = b.x + b.w / 2;
-    if (rtl ? mid > centre : mid < centre) ahead++;
+    if (rtl ? mid > edge : mid < edge) ahead++;
     rest.push(b.id);
   }
   rest.splice(ahead, 0, held);
@@ -293,7 +298,7 @@ class Gesture {
       }
       return;
     }
-    const next = liveColumnOrder(this.boxes, c.id, this.heldX(c, false) + c.w / 2, c.rtl);
+    const next = liveColumnOrder(this.boxes, c.id, this.heldX(c, true), c.rtl);
     const shown = this.latest.current.live;
     if (shown && !sameOrder(next, shown)) {
       this.slideFrom = this.painted();

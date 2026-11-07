@@ -48,6 +48,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   row would swing far at its ends. KnightLoader follows GlimStone 4.2.5, and
   the Version card names it.
 
+### Fixed
+
+- **A wide column such as Name can be dragged back to either end of the
+  list.** Held at the table's edge, its middle stayed beyond a narrow
+  neighbour's, so it never passed it. A column passes another once its
+  leading edge is past the other's middle.
+
 ## [2.7.2] - 2026-11-07
 
 ### Fixed
