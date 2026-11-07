@@ -59,6 +59,13 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.oled',
         names: { oled: 'settings.oled', theme: 'settings.theme' },
       },
+      // Drawn only where the device has a colour, and its sentence says so.
+      {
+        id: 'system-accent',
+        to: ['/settings/appearance'],
+        text: 'whatsnew.change.systemAccent',
+        names: { accent: 'settings.accent' },
+      },
     ],
   },
   {

@@ -16,6 +16,7 @@ import { applyCachedSpeedLines } from './lib/speedLines';
 import { listenForPageHue } from './lib/pageHue';
 import { sendApiCallsUnderBase, settleUnderBase, withBase } from './lib/basePath';
 import { followWindowGround } from './lib/desktop';
+import { watchSystemAccent } from './lib/systemAccent';
 
 // Before anything fetches or routes.
 sendApiCallsUnderBase();
@@ -26,6 +27,7 @@ settleUnderBase();
 applyStoredTheme();
 applyStoredLanguage();
 applyCachedAppearance();
+watchSystemAccent();
 applyCachedSpeedLines();
 applyDisco(readCachedDisco());
 listenForPageHue();

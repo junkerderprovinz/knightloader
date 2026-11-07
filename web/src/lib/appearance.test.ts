@@ -10,6 +10,10 @@ import {
   applyShape,
   cacheAppearance,
   leafTap,
+  resolveAccent,
+  setFollowsSystemAccent,
+  setSystemAccent,
+  subscribeSystemAccent,
   takePageHue,
 } from './appearance';
 
@@ -132,5 +136,72 @@ describe('the accent on the root', () => {
   it('puts near-black on Blue, where white reaches only 3:1', () => {
     applyAccent('#1D99F3');
     expect(root().getPropertyValue('--accent-contrast')).toBe('#161616');
+  });
+});
+
+describe('the system colour', () => {
+  const accent = () => document.documentElement.style.getPropertyValue('--accent');
+
+  beforeEach(() => {
+    localStorage.clear();
+    setSystemAccent(undefined);
+    setFollowsSystemAccent(false);
+  });
+
+  it('wears the instance accent, a source or not, until the wand is chosen', () => {
+    applyAccent('#1D99F3');
+    setSystemAccent('#E0383E');
+    expect(accent()).toBe('#1D99F3');
+  });
+
+  it('paints the source once the wand is chosen, and follows the source as it changes', () => {
+    applyAccent('#1D99F3');
+    setSystemAccent('#E0383E');
+    setFollowsSystemAccent(true);
+    expect(accent()).toBe('#E0383E');
+    setSystemAccent('#62BA46');
+    expect(accent()).toBe('#62BA46');
+  });
+
+  it('falls back to the instance accent where the device has no colour', () => {
+    applyAccent('#FF8389');
+    setFollowsSystemAccent(true);
+    expect(accent()).toBe('#FF8389');
+  });
+
+  it('goes back to the instance accent when the wand is left', () => {
+    applyAccent('#1D99F3');
+    setSystemAccent('#E0383E');
+    setFollowsSystemAccent(true);
+    expect(localStorage.getItem('kl-accent-system')).toBe('system');
+    setFollowsSystemAccent(false);
+    expect(accent()).toBe('#1D99F3');
+    expect(localStorage.getItem('kl-accent-system')).toBeNull();
+  });
+
+  it('keeps the choice and the last colour in this browser, so the first frame after a reload wears them', () => {
+    cacheAppearance('soft', '#1D99F3');
+    localStorage.setItem('kl-accent-system', 'system');
+    localStorage.setItem('kl-system-accent', '#E0383E');
+    applyCachedAppearance();
+    expect(accent()).toBe('#E0383E');
+  });
+
+  it('tells whoever draws the wand when the colour or the choice changes', () => {
+    let heard = 0;
+    const stop = subscribeSystemAccent(() => heard++);
+    setSystemAccent('#E0383E');
+    setSystemAccent('#E0383E');
+    setFollowsSystemAccent(true);
+    stop();
+    setSystemAccent(undefined);
+    expect(heard).toBe(2);
+  });
+
+  it('resolves to the source only while the wand is chosen and the source has a colour', () => {
+    expect(resolveAccent('#1D99F3', true, '#E0383E')).toBe('#E0383E');
+    expect(resolveAccent('#1D99F3', false, '#E0383E')).toBe('#1D99F3');
+    expect(resolveAccent('#1D99F3', true, undefined)).toBe('#1D99F3');
+    expect(resolveAccent('', true, undefined)).toBeUndefined();
   });
 });

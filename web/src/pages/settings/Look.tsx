@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import {
   Button,
   Card,
@@ -21,6 +21,7 @@ import {
   requestRestart,
 } from '../../lib/api';
 import {
+  IconAccentSystem,
   IconClose,
   IconConfirm,
   IconCornerLeaf,
@@ -79,12 +80,17 @@ import {
   cacheAppearance,
   cacheDisco,
   cacheMotionIntensity,
+  contrastOn,
+  followsSystemAccent,
   hueVars,
   leafTap,
   rainbowFromSettings,
   readCachedDisco,
   readCachedMotionIntensity,
+  setFollowsSystemAccent,
   stormTap,
+  subscribeSystemAccent,
+  systemAccent,
 } from '../../lib/appearance';
 import { applyDisco, discoTap } from '../../lib/disco';
 import { applySpeedLines, lineColours, linesFromSettings } from '../../lib/speedLines';
@@ -278,6 +284,49 @@ function RingSwatch({
         style={{ backgroundColor: color }}
         {...tipHoverProps}
       />
+      {tip.node}
+    </>
+  );
+}
+
+/**
+ * SystemSwatch is the device's own colour wearing the wand (GlimStone's rule
+ * 44). It holds nothing to edit, so a click only chooses it.
+ */
+function SystemSwatch({
+  color,
+  label,
+  hint,
+  selected,
+  dim,
+  onPick,
+}: {
+  color: string;
+  label: string;
+  hint: string;
+  selected: boolean;
+  dim?: boolean;
+  onPick: () => void;
+}) {
+  const tip = useTooltip<HTMLButtonElement>(`${label}. ${hint}`);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={label}
+        aria-description={hint}
+        aria-pressed={selected}
+        onClick={onPick}
+        // RingSwatch's size and ring, so the wand reads as one of the row.
+        className={`inline-flex h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-pill)] transition-transform hover:scale-110 ${
+          selected ? 'shadow-[0_0_0_2px_var(--carbon-surface),0_0_0_4px_var(--carbon-text)]' : ''
+        } ${dim ? 'opacity-45' : ''}`}
+        style={{ backgroundColor: color, color: contrastOn(color) }}
+        {...tipHoverProps}
+      >
+        <IconAccentSystem width={16} height={16} />
+      </button>
       {tip.node}
     </>
   );
@@ -517,6 +566,11 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     cfg.seedingLine,
   ]);
 
+  // The device's colour, and whether this browser wears it instead of the
+  // instance's accent (lib/appearance.ts). The wand shows only with a source.
+  const system = useSyncExternalStore(subscribeSystemAccent, systemAccent);
+  const wearsSystem = useSyncExternalStore(subscribeSystemAccent, followsSystemAccent) && system !== undefined;
+
   const accentLive = live(cfg.accent);
   const lines = lineColours(linesFromSettings(cfg), cfg.accent);
 
@@ -554,9 +608,12 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   // The marked circle: the stored choice while it still wears the accent, else
   // any circle wearing the accent exactly, else the nearest preset. The last
   // case can mark a circle mixed to another colour rather than overwrite it.
+  // While the wand is worn no circle is, so a click on one chooses it rather
+  // than opening the picker.
   const worn = ACCENTS.findIndex((_, i) => wearsAccent(i));
-  const markedSlot =
-    slots.slot !== undefined && wearsAccent(slots.slot)
+  const markedSlot = wearsSystem
+    ? -1
+    : slots.slot !== undefined && wearsAccent(slots.slot)
       ? slots.slot
       : worn >= 0
         ? worn
@@ -565,12 +622,14 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   /** chooseSlot makes a circle the chosen one and wears what it shows. */
   const chooseSlot = (i: number, hex: string) => {
     persistSlots((p) => ({ ...p, slot: i }));
+    setFollowsSystemAccent(false);
     patch({ accent: hex });
   };
 
   /** mixSlot stores a picked colour in its slot and wears it at once. */
   const mixSlot = (i: number, hex: string) => {
     persistSlots((p) => ({ ...p, slot: i, customs: { ...p.customs, [String(i)]: hex } }));
+    setFollowsSystemAccent(false);
     patch({ accent: hex });
   };
 
@@ -806,6 +865,18 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           {/* Eight circles and a reset, like the palette row. Every circle opens
               the picker once selected. */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* Chosen in this browser alone, so the instance's accent, which
+                every other client wears, stays as it is. */}
+            {system && (
+              <SystemSwatch
+                color={system}
+                label={t('settings.accentSystem')}
+                hint={t('settings.accentSystemHint')}
+                selected={wearsSystem}
+                dim={cfg.rainbow}
+                onPick={() => setFollowsSystemAccent(true)}
+              />
+            )}
             {ACCENTS.map((a, i) => {
               // Each circle wears what it was last mixed to (SlotMemory).
               const shown = shownAt(i);
@@ -834,6 +905,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
               dim={cfg.rainbow}
               onClick={() => {
                 persistSlots(() => ({ customs: {} }));
+                setFollowsSystemAccent(false);
                 patch({ accent: '' });
               }}
             />

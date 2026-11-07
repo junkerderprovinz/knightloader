@@ -355,6 +355,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // The other rows are captions beside a bare Toggle, with no anchor.
       also: [
         'settings.accent',
+        'settings.accentSystem',
         'settings.rainbow',
         'settings.rainbowOn',
         'settings.rainbowReactive',
@@ -366,6 +367,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       body: [
         'settings.accentHint',
+        // The wand swatch's tooltip, drawn where the device has a colour.
+        'settings.accentSystemHint',
         'settings.lines.downloadHint',
         'settings.lines.seedingHint',
         // The accent's (i) while rainbow mode owns the colours.

@@ -34,7 +34,7 @@ const USED = [
   'IconCornerRound', 'IconCornerSoft', 'IconCornerSquare', 'IconCornerLeaf',
   'IconMotionOff', 'IconMotionSubtle', 'IconMotionWild', 'IconMotionStorm',
   'IconLabelText', 'IconLabelTextGlyph', 'IconLabelGlyph', 'IconLabelReactive',
-  'IconRowCompact', 'IconRowMedium', 'IconRowComfortable', 'IconGear', 'IconDashboard',
+  'IconRowCompact', 'IconRowMedium', 'IconRowComfortable', 'IconAccentSystem', 'IconGear', 'IconDashboard',
   'IconFolder', 'IconFolderOpen', 'IconFolderAdd', 'IconArchive',
   'IconFileVideo', 'IconFileAudio', 'IconFileImage', 'IconFileSubtitles', 'IconFileText', 'IconFile',
   'IconFleet',

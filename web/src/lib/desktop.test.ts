@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { connectWS } from './api';
 import {
+  desktopAccent,
   desktopOS,
   edgeAt,
   followWindowGround,
@@ -285,5 +286,13 @@ describe('the window ground', () => {
     setTheme('dark');
     await flush();
     expect(w.calls).toEqual(['main.Tray.SetOled false', 'main.Tray.SetOled true', 'main.Tray.SetOled false']);
+  });
+});
+
+describe('the desktop accent', () => {
+  it('is asked of the shell and reaches the page as the colour', async () => {
+    const w = fakeRuntime(() => json('#0078D7'));
+    expect(await desktopAccent()).toBe('#0078D7');
+    expect(w.calls).toEqual(['main.Accent.Read']);
   });
 });

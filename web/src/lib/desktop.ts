@@ -450,3 +450,8 @@ export function followWindowGround(): void {
   watchDarkShowing(tell);
   onOledChange(tell);
 }
+
+/** desktopAccent is the desktop's accent colour as #RRGGBB, '' where it names none; Accent.Read in desktop/accent.go. */
+export async function desktopAccent(): Promise<string> {
+  return String(await call('main.Accent.Read'));
+}

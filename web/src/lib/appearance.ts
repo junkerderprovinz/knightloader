@@ -131,14 +131,93 @@ function armShapeTransition(): void {
 }
 
 /**
- * applyAccent overrides the accent tokens, or clears the override so the
+ * The accent mode that takes its colour from the device (GlimStone's rule
+ * 44): the desktop's accent in the desktop app, CSS AccentColor in Firefox and
+ * Safari. The instance holds one accent for every client, so the choice stays
+ * in this browser, as the word and never the colour, and leaving it hands the
+ * page back to the instance's accent.
+ */
+export const SYSTEM_ACCENT = 'system';
+
+const SYSTEM_CHOICE = 'kl-accent-system';
+const SYSTEM_COLOUR = 'kl-system-accent';
+
+let instanceAccent: string | undefined;
+let followsSystem = false;
+let systemColour: string | undefined;
+const systemListeners = new Set<() => void>();
+
+/**
+ * resolveAccent is the colour the page wears: the device's while the wand is
+ * chosen and the device has one, else the instance's, else undefined for the
+ * theme's gold.
+ */
+export function resolveAccent(instance: string | undefined, follows: boolean, system: string | undefined): string | undefined {
+  if (follows && valid(system)) return system;
+  return valid(instance) ? instance : undefined;
+}
+
+/** applyAccent takes the instance's accent and paints whatever is in force. */
+export function applyAccent(hex: string | undefined): void {
+  instanceAccent = hex;
+  paintAccent(resolveAccent(instanceAccent, followsSystem, systemColour));
+}
+
+/** followsSystemAccent says whether the wand is chosen in this browser. */
+export function followsSystemAccent(): boolean {
+  return followsSystem;
+}
+
+/** setFollowsSystemAccent chooses or leaves the wand in this browser alone. */
+export function setFollowsSystemAccent(on: boolean): void {
+  followsSystem = on;
+  store(SYSTEM_CHOICE, on ? SYSTEM_ACCENT : undefined);
+  paintAccent(resolveAccent(instanceAccent, followsSystem, systemColour));
+  for (const fn of systemListeners) fn();
+}
+
+/**
+ * setSystemAccent feeds the colour the device reports, or undefined where it
+ * has none, and repaints while the wand is chosen. The colour is remembered
+ * in this browser, so the first frame after a reload is already in it.
+ */
+export function setSystemAccent(hex: string | undefined): void {
+  const next = valid(hex) ? hex : undefined;
+  if (next === systemColour) return;
+  systemColour = next;
+  store(SYSTEM_COLOUR, next);
+  if (followsSystem) paintAccent(resolveAccent(instanceAccent, followsSystem, systemColour));
+  for (const fn of systemListeners) fn();
+}
+
+/** systemAccent is the device's colour, or undefined, which leaves the wand out. */
+export function systemAccent(): string | undefined {
+  return systemColour;
+}
+
+export function subscribeSystemAccent(fn: () => void): () => void {
+  systemListeners.add(fn);
+  return () => systemListeners.delete(fn);
+}
+
+function store(key: string, value: string | undefined): void {
+  try {
+    if (value) localStorage.setItem(key, value);
+    else localStorage.removeItem(key);
+  } catch {
+    // Without storage the choice holds until the page closes.
+  }
+}
+
+/**
+ * paintAccent overrides the accent tokens, or clears the override so the
  * theme's gold comes back. The ink on the fill is computed, so a light accent
  * never ends up with white text on it. index.css derives the accent as text
  * with color-mix, and where that mix would fall short of 4.5:1 on a theme's
  * card, the theme's own ink is set here as --accent-ink-light or
  * --accent-ink-dark.
  */
-export function applyAccent(hex: string | undefined): void {
+function paintAccent(hex: string | undefined): void {
   const root = document.documentElement.style;
   const inks = valid(hex) ? accentInks(hex) : { light: undefined, dark: undefined };
   for (const [theme, ink] of Object.entries(inks)) {
@@ -381,6 +460,9 @@ export function cacheAppearance(shape: string, accent: string, rainbow?: Rainbow
 export function applyCachedAppearance(): void {
   applyMotion(readCachedMotionIntensity());
   try {
+    followsSystem = localStorage.getItem(SYSTEM_CHOICE) === SYSTEM_ACCENT;
+    const colour = localStorage.getItem(SYSTEM_COLOUR) ?? undefined;
+    systemColour = valid(colour) ? colour : undefined;
     const raw = localStorage.getItem(CACHE);
     if (raw) {
       const { shape, accent, rainbow } = JSON.parse(raw) as Cached;
