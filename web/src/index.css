@@ -3761,3 +3761,23 @@ body {
     max-width: none;
   }
 }
+
+/* A window's foot (GlimStone 4.2). Its buttons keep their words: the text at
+   the start gives way and wraps first, a button that no longer fits moves to
+   the next line, and one wider than the whole foot, as on a phone, runs its
+   words onto a second line instead of past its edge. */
+.glim-modal-foot > :is(p, span):not(:empty):not(:has(button)) {
+  flex: 1 1 0;
+  min-width: min(4rem, 100%);
+  overflow-wrap: anywhere;
+}
+.glim-modal-foot > button:not(.glim-btn-icon) {
+  flex-shrink: 0;
+  max-width: 100%;
+  height: auto;
+  min-height: var(--btn-h);
+  padding-block: 0.375rem;
+  text-align: center;
+  text-wrap: balance;
+}
+.glim-modal-foot > button.glim-btn-key { min-height: var(--btn-h-key); }

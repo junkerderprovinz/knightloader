@@ -2172,7 +2172,7 @@ export function Modal({
             button on the right, which only holds if the row reaches the edge.
             The window owns the alignment, so anything that belongs left of the
             pair has to be written before it. */}
-        {footer && <div className="flex items-center justify-end gap-3">{footer}</div>}
+        {footer && <div className="glim-modal-foot flex flex-wrap items-center justify-end gap-3">{footer}</div>}
       </div>
     </div>
   );
