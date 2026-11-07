@@ -38,6 +38,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.7.2] - 2026-11-07
+
+### Fixed
+
+- **The About text in the phone app no longer says the QR scanner sends
+  diagnostics to Google.** The scanner reads the camera with ZXing and sends
+  nothing anywhere, so the sentence was out of date in all 42 languages.
+
 ## [2.7.1] - 2026-11-07
 
 ### Changed

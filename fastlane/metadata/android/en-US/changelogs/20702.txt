@@ -1,0 +1,1 @@
+The About text no longer says the QR scanner sends diagnostics to Google. The scanner reads the camera with ZXing and sends nothing.

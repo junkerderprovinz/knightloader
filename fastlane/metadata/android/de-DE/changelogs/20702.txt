@@ -1,0 +1,1 @@
+Der Info-Text sagt nicht mehr, dass der QR-Scanner Diagnosedaten an Google schickt. Der Scanner liest die Kamera mit ZXing und schickt nichts.
