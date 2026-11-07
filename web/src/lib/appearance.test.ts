@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   LEAF_TAPS,
   RAINBOW,
+  applyAccent,
   applyCachedAppearance,
   applyRainbow,
   applyShape,
@@ -105,5 +106,31 @@ describe('takePageHue', () => {
     applyRainbow({ on: false });
     takePageHue(a!);
     expect(tint(a!)).toBe('');
+  });
+});
+
+describe('the accent on the root', () => {
+  const root = () => document.documentElement.style;
+
+  it('gives a pale accent its own light ink and leaves the dark one to the stylesheet', () => {
+    applyAccent('#FFFF00');
+    expect(root().getPropertyValue('--accent-ink-light')).toMatch(/^#[0-9A-F]{6}$/);
+    expect(root().getPropertyValue('--accent-ink-dark')).toBe('');
+  });
+
+  it('takes the inks away again for a preset and for the default', () => {
+    applyAccent('#0000FF');
+    expect(root().getPropertyValue('--accent-ink-dark')).not.toBe('');
+    applyAccent('#1D99F3');
+    expect(root().getPropertyValue('--accent-ink-dark')).toBe('');
+    applyAccent('#FFFF00');
+    applyAccent(undefined);
+    expect(root().getPropertyValue('--accent-ink-light')).toBe('');
+    expect(root().getPropertyValue('--accent')).toBe('');
+  });
+
+  it('puts near-black on Blue, where white reaches only 3:1', () => {
+    applyAccent('#1D99F3');
+    expect(root().getPropertyValue('--accent-contrast')).toBe('#161616');
   });
 });

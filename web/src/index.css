@@ -390,12 +390,14 @@ body {
   /* The accent used as ink on the page's own ground. The theme only sets
      --ink-mix, inherited from <html>, so every --accent-ink and --accent-glyph
      in this file is the same mix and the rainbow blocks need no light-theme
-     twin. */
+     twin. An accent the mix leaves under 4.5:1 on a theme's card gets that
+     theme's ink from applyAccent instead, as --accent-ink-dark or
+     --accent-ink-light. No preset needs one. */
   --ink-mix:           100%;
-  --accent-ink:        color-mix(in srgb, var(--accent) var(--ink-mix), black);
+  --accent-ink:        var(--accent-ink-dark, color-mix(in srgb, var(--accent) var(--ink-mix), black));
   /* The same ink for a line-drawn glyph. Rainbow never colours text, so a hued
      subtree redefines this one and leaves --accent-ink on the single accent. */
-  --accent-glyph:      color-mix(in srgb, var(--accent) var(--ink-mix), black);
+  --accent-glyph:      var(--accent-ink-dark, color-mix(in srgb, var(--accent) var(--ink-mix), black));
   /* The theme's accent, reachable inside a rainbowed subtree where .glim-hue
      redefines --accent per row. A selection mark uses it so every selected row
      shows the same colour. Custom properties resolve where they are declared,
@@ -481,6 +483,8 @@ body {
     --accent-contrast:   #161616;
     --accent-soft:       rgba(252, 196, 25, 0.14);
     --ink-mix:           55%;
+    --accent-ink:        var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
+    --accent-glyph:      var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
     --status-info-text:    #8E6A00;
     --status-info-bg:      rgba(142, 106, 0, 0.12);
@@ -554,6 +558,8 @@ body {
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
   --ink-mix:           55%;
+  --accent-ink:        var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
+  --accent-glyph:      var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
   --status-info-text:    #8E6A00;
   --status-info-bg:      rgba(142, 106, 0, 0.12);

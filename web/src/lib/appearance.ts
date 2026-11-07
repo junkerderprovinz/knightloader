@@ -7,6 +7,10 @@
 // useRainbow.ts. The reference copy lives at
 // https://github.com/junkerderprovinz/glimstone/blob/main/reference/appearance.ts
 
+import { accentInks, contrastOn, validHex as valid } from './contrast';
+
+export { contrastOn };
+
 /**
  * The corner shapes. Like the motion levels these strings are a wire format:
  * they go into `data-shape`, index.css, the server's settings and the cache,
@@ -128,11 +132,19 @@ function armShapeTransition(): void {
 
 /**
  * applyAccent overrides the accent tokens, or clears the override so the
- * theme's gold comes back. The contrast colour is computed, so a light accent
- * never ends up with white text on it.
+ * theme's gold comes back. The ink on the fill is computed, so a light accent
+ * never ends up with white text on it. index.css derives the accent as text
+ * with color-mix, and where that mix would fall short of 4.5:1 on a theme's
+ * card, the theme's own ink is set here as --accent-ink-light or
+ * --accent-ink-dark.
  */
 export function applyAccent(hex: string | undefined): void {
   const root = document.documentElement.style;
+  const inks = valid(hex) ? accentInks(hex) : { light: undefined, dark: undefined };
+  for (const [theme, ink] of Object.entries(inks)) {
+    if (ink) root.setProperty(`--accent-ink-${theme}`, ink);
+    else root.removeProperty(`--accent-ink-${theme}`);
+  }
   if (!valid(hex)) {
     root.removeProperty('--accent');
     root.removeProperty('--accent-contrast');
@@ -339,31 +351,9 @@ function usablePalette(p: string[] | undefined): string[] {
   return p;
 }
 
-/** contrastOn is black or white, whichever is readable on the given colour. */
-export function contrastOn(hex: string): string {
-  if (!valid(hex)) return '#FFFFFF';
-  const { r, g, b } = parse(hex);
-  // Carbon's ink rather than a warm near-black, which smudges on yellow.
-  return luminance(r, g, b) > 0.55 ? '#161616' : '#FFFFFF';
-}
-
-function valid(hex: string | undefined): hex is string {
-  return !!hex && /^#[0-9a-fA-F]{6}$/.test(hex);
-}
-
 function parse(hex: string): { r: number; g: number; b: number } {
   const n = parseInt(hex.slice(1), 16);
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
-}
-
-// luminance is the relative luminance of an sRGB colour. The channels are
-// linearised first, since raw values overstate blue and understate green.
-function luminance(r: number, g: number, b: number): number {
-  const lin = (c: number) => {
-    const v = c / 255;
-    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-  };
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
 // Appearance is mirrored into localStorage only so the first paint after a
