@@ -103,7 +103,7 @@ describe('the captcha priority card', () => {
     await drawCard([]);
     expect(host.querySelector('[role="switch"][aria-label="Captcha"]')).not.toBeNull();
     expect(host.querySelector('a[href]')).toBeNull();
-    const row = [...host.querySelectorAll('button')].filter((b) => b.closest('.flex-wrap'));
+    const row = [...host.querySelectorAll('button:not([role="switch"])')].filter((b) => b.closest('.flex-wrap'));
     expect(row.map((b) => b.textContent)).toEqual(['Send a test captcha', 'Send one to the captcha accounts too']);
     expect(host.textContent).toContain('When captcha accounts start');
     expect(host.textContent).toContain('Send one to the captcha accounts too');
