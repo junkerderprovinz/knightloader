@@ -61,12 +61,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   GlimStone 4.2.0, without the rest of that release yet, so the Components
   card still names the version the rest follows.
 
-### Fixed
-
-- **On an iPhone, the phone app's System theme follows the device.** The build
-  told iOS to keep the app dark, so System stayed dark whatever the device
-  said.
-
 ## [2.6.6] - 2026-11-06
 
 ### Fixed
