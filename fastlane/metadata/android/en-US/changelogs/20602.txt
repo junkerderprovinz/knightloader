@@ -1,1 +1,0 @@
-Nothing changes in the app this time. This release brings a small touch to the server's web interface, so the app works just as before.

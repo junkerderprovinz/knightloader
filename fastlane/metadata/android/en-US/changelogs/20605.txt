@@ -1,1 +1,0 @@
-MEGA links now download straight in KnightLoader, whole folders included. Nothing changes in the app itself.

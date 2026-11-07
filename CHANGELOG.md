@@ -56,6 +56,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   instance. Where the system has no colour, the swatch isn't there.
 - **The browser extension has a Version card** before Help and About, as the
   Info tile of the web interface does. Each version links to its release.
+- **MEGA file and folder links download without JDownloader.** KnightLoader
+  decrypts them as they arrive and checks each file against the checksum in
+  its key. A folder link stages one row per file with its name and size, and
+  each subfolder becomes a package of its own, with or without a debrid
+  service. When MEGA's free transfer quota runs out, the download waits as
+  long as MEGA says and then carries on where it stopped. A debrid service or
+  JDownloader still takes MEGA links when you move it above MEGA on the
+  priority card, and a MEGA login in JDownloader goes first anyway
+  ([#147](https://github.com/junkerderprovinz/knightloader/issues/147)).
 
 ### Changed
 
@@ -88,62 +97,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Chrome's button is green.** On the Apps page, in the phone app and in the
   README, Chrome takes the green of its own logo, so it no longer looks like
   Edge's blue button right beside it.
-
-## [2.6.6] - 2026-11-06
-
-### Fixed
-
-- **What's new lists the MEGA downloads of 2.6.5.** The window left them out,
-  so nobody saw a dot for them after updating.
-
-## [2.6.5] - 2026-11-03
-
-### Added
-
-- **MEGA file and folder links download without JDownloader.** KnightLoader
-  decrypts them as they arrive and checks each file against the checksum in
-  its key. A folder link stages one row per file with its name and size, and
-  each subfolder becomes a package of its own. When MEGA's free transfer
-  quota runs out, the download waits as long as MEGA says and then carries on
-  where it stopped. A debrid service or JDownloader still takes MEGA links when
-  you move it above MEGA on the priority card, and a MEGA login in JDownloader
-  goes first anyway.
-
-### Fixed
-
-- **A pasted MEGA folder brings all of its files, with or without a debrid
-  service.** 2.6.4 left the folder to JDownloader, and a debrid service took
-  the folder link as a single file
-  ([#147](https://github.com/junkerderprovinz/knightloader/issues/147)).
-- **A folder link JDownloader opens becomes its files.** The link check
-  waited for exactly as many links as went in and ran out of time on a folder.
-- **A file from a folder that JDownloader downloads shows as done.** It landed
-  in a JDownloader package named after the folder, so the row stayed queued.
-
-## [2.6.4] - 2026-11-03
-
-### Fixed
-
-- **A pasted cloud folder, such as a mega.nz folder link, becomes one row per
-  file in it** when JDownloader is connected. The folder link stayed a single
-  row before, and only one file came down
-  ([#147](https://github.com/junkerderprovinz/knightloader/issues/147)).
-- **The browser extension's toolbar button shows the logo without a tile
-  again.** 2.6.1 put it back on the phone app's white square. The web
-  interface's install icons are bare as well; only the Android app keeps the
-  tile.
-- **The desktop installer's window shows the touched-up logo** of 2.6.1, and
-  its grey buttons take on a touch of the app's colour when you point at them,
-  through PommelPorter 1.1.1.
-- **The GlimStone link on the Version card opens again.** GlimStone folded
-  3.8.6 into 3.9.0, so the card names 3.9.0, the same design.
-
-### Changed
-
-- **Dependency updates are tidied under the name KnightLoader CI** rather than
-  as GitHub's Actions bot.
-
-## [2.6.3] - 2026-11-03
+- **The KnightLoader logo is touched up.** The shield is a little wider, and
+  the sword's crossguard and grip are redrawn. It shows in the web interface,
+  the desktop app and its tray, the Android app, the browser extension, the
+  desktop installer and the store listings.
+- **Update now on the JDownloader row wears the two arrows of the update
+  check.**
+- **The desktop installer's grey buttons take on a touch of the app's colour**
+  when you point at them, through PommelPorter 1.1.1.
 
 ### Security
 
@@ -158,33 +119,17 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
-- **A settings address that names no page shows the empty page.** An address
-  such as `#/settings/constructor` broke the settings page instead of saying
-  that there is nothing there.
-
-## [2.6.2] - 2026-11-02
-
-### Changed
-
-- **Update now on the JDownloader row wears the two arrows of the update
-  check.** KnightLoader follows GlimStone 3.8.6, which the Components card
-  names.
-
-## [2.6.1] - 2026-11-02
-
-### Changed
-
-- **The KnightLoader logo is touched up.** The shield is a little wider, and
-  the sword's crossguard and grip are redrawn. It shows in the web interface,
-  the desktop app and its tray, the Android app, the browser extension and the
-  store listings.
-
-### Fixed
-
 - **A hoster shows under its own name.** A link to one of a hoster's other
   domains, such as rg.to for Rapidgator, showed that domain in the Host
   column. It reads rapidgator.net there, as in JDownloader, and links already
   in the list take the main domain at the next start.
+- **A folder link JDownloader opens becomes its files.** The link check
+  waited for exactly as many links as went in and ran out of time on a folder.
+- **A file from a folder that JDownloader downloads shows as done.** It landed
+  in a JDownloader package named after the folder, so the row stayed queued.
+- **A settings address that names no page shows the empty page.** An address
+  such as `#/settings/constructor` broke the settings page instead of saying
+  that there is nothing there.
 
 ## [2.6.0] - 2026-11-01
 

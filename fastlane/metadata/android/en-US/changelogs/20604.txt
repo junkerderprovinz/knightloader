@@ -1,1 +1,0 @@
-A pasted mega.nz folder now brings all of its files instead of just one. Nothing changes in the app itself.

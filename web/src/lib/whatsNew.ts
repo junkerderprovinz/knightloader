@@ -72,11 +72,8 @@ export const RELEASES: Release[] = [
       { id: 'switch-off', text: 'whatsnew.change.switchOff' },
       { id: 'picker-keys', text: 'whatsnew.change.pickerKeys' },
       { id: 'window-foot', text: 'whatsnew.change.windowFoot' },
+      { id: 'mega-native', text: 'whatsnew.change.megaNative' },
     ],
-  },
-  {
-    version: '2.6.5',
-    changes: [{ id: 'mega-native', text: 'whatsnew.change.megaNative' }],
   },
   {
     version: '2.6.0',

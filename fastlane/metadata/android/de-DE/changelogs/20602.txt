@@ -1,1 +1,0 @@
-In der App ändert sich diesmal nichts. Das Update bringt eine kleine Anpassung an der Weboberfläche des Servers, die App läuft wie gewohnt.
