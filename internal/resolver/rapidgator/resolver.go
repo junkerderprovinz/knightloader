@@ -108,8 +108,8 @@ func (r Resolver) Inspect(ctx context.Context, urls []string) []resolver.LinkInf
 		}
 		asked = true
 		if token == "" && b.Ready() {
-			if s, err := b.session(ctx, false); err == nil {
-				token = s.token
+			if s, err := b.Session(ctx, false); err == nil {
+				token = s.Token
 			}
 		}
 		if token != "" {

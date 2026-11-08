@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 )
 
 // DefaultSite is where the API and the file pages are.
@@ -38,9 +40,7 @@ var errSession = errors.New("rapidgator: Rapidgator ended the session again righ
 
 // LoginError is Rapidgator turning the login down. The same login would be
 // turned down again, and Rapidgator blocks addresses that keep trying.
-type LoginError struct{ msg string }
-
-func (e *LoginError) Error() string { return e.msg }
+type LoginError = ownlogin.LoginError
 
 // APIError is an answer of the API nothing else here explains, in
 // Rapidgator's own words.
@@ -64,14 +64,9 @@ func NewClient(site string, hc *http.Client) *Client {
 	return &Client{hc: hc, site: strings.TrimSuffix(site, "/")}
 }
 
-// Account is what Rapidgator says about a login.
-type Account struct {
-	Premium bool
-	Expiry  time.Time
-	// TrafficLeft and TrafficMax are bytes, both 0 for a plan without a
-	// traffic quota.
-	TrafficLeft, TrafficMax int64
-}
+// Account is what Rapidgator says about a login. TrafficLeft and TrafficMax
+// are both 0 for a plan without a traffic quota.
+type Account = ownlogin.Account
 
 // File is what the API says about one file.
 type File struct {
@@ -237,17 +232,17 @@ func classify(method string, status int, details string) error {
 	case has("user is not premium", "can be downloaded by premium only", "you can download files up to"):
 		return fmt.Errorf("%w (%s)", ErrNotPremium, strings.TrimPrefix(details, "Error: "))
 	case has("invalid auth code"):
-		return &LoginError{"rapidgator: the account signs in with a two-factor code, which KnightLoader cannot enter, so switch two-factor sign-in off for it at Rapidgator"}
+		return &LoginError{Msg: "rapidgator: the account signs in with a two-factor code, which KnightLoader cannot enter, so switch two-factor sign-in off for it at Rapidgator"}
 	case has("unusual ip"):
-		return &LoginError{"rapidgator: Rapidgator wants this address confirmed through the link it emailed to the account"}
+		return &LoginError{Msg: "rapidgator: Rapidgator wants this address confirmed through the link it emailed to the account"}
 	case has("login or password is wrong", "e-mail or password", "password cannot be blank", "login or password is missing"):
-		return &LoginError{"rapidgator: Rapidgator turned the login down, so check the email address and password"}
+		return &LoginError{Msg: "rapidgator: Rapidgator turned the login down, so check the email address and password"}
 	case has("frozen", "account locked"):
-		return &LoginError{"rapidgator: Rapidgator turned the login down: " + strings.TrimPrefix(details, "Error: ")}
+		return &LoginError{Msg: "rapidgator: Rapidgator turned the login down: " + strings.TrimPrefix(details, "Error: ")}
 	case has("session"):
 		return errSession
 	case status == http.StatusUnauthorized && method == "user/login":
-		return &LoginError{"rapidgator: Rapidgator turned the login down, so check the email address and password"}
+		return &LoginError{Msg: "rapidgator: Rapidgator turned the login down, so check the email address and password"}
 	case status == http.StatusUnauthorized:
 		return errSession
 	case status == http.StatusNotFound && method == "file/info":
