@@ -3322,6 +3322,8 @@ export const tr: Dict = {
   'archive.unpacked': 'Ayıklandı',
   'archive.tally': '{total} arşivden {done} tanesi ayıklandı',
   'columns.variant.convertTo': 'Şuna dönüştür',
+  'columns.variant.probing': 'Kaliteler denetleniyor…',
+  'columns.variant.probeFailed': 'Yalnızca en iyi kalite. Mevcut kaliteler okunamadı: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows ve Linux’un her birinin iki sürümü var: çoğu bilgisayar için x64 ve Snapdragon yongalı dizüstüler gibi ARM işlemcili bilgisayarlar için ARM64. Tarayıcın bu bilgisayarın işlemcisini söylüyorsa düğme uygun sürümü verir, söylemiyorsa x64’ü. Yanındaki dar kısım diğerini verir. macOS uygulaması Intel’de ve Apple silicon’da çalışır.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader, {host} sitesinin hangi biçimleri sunduğunu henüz bilmiyor, bu yüzden menüler hepsini sunuyor. {host} sitesinden bir bağlantı denetlenir denetlenmez, şimdiye kadar denetlenen bağlantılarda bulunan biçimleri sunarlar ve ses menüsü altlarında dönüştürülebilecek diğerlerini listeler.',
   'rename.linkHint': 'Dosyanın kaydedileceği ad. Zaten bitmiş bir indirme diskte de yeniden adlandırılır, böylece liste ve klasör uyuşur. Ad bir yol değildir, bu yüzden / ve \\ kullanılamaz.',

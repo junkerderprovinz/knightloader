@@ -52,3 +52,23 @@ func TestThePresetMenusRouteAnswersPerHost(t *testing.T) {
 		t.Errorf("no host: %d, want %d", status, http.StatusBadRequest)
 	}
 }
+
+func TestTheLinkMenusRouteRefusesAnAddressYtdlpDoesNotFetch(t *testing.T) {
+	reg := newRegistry()
+	registerResolvers(reg, testApp(t))
+	mux := http.NewServeMux()
+	reg.attach(mux, http.NotFoundHandler())
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+
+	for _, u := range []string{"", "file%3A%2F%2F%2Fetc%2Fpasswd"} {
+		resp, err := http.Get(srv.URL + "/api/ytdlp/link?url=" + u)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("url=%q: %d, want %d", u, resp.StatusCode, http.StatusBadRequest)
+		}
+	}
+}

@@ -269,6 +269,14 @@ its best, `audio` for the audio row alone, or a resolution such as `1080p`.
 That stands in for the host's preset for this link (`HosterPreset.ForLink`),
 and the preset itself stays as it was.
 
+The menu lists only what the video has. Opened, it asks the instance with
+`GET /api/ytdlp/link?url=<address>`, which answers from one yt-dlp probe that
+the link's staging shares a moment later, and says it is checking until the
+answer comes. It then offers the best video, each resolution yt-dlp found and
+the audio alone where the video has sound, or the best video alone where the
+instance could not say. A resolution sent from a menu that is out of date
+becomes the one the video has that downloads the same track.
+
 The button anchors on the largest video on screen and on the element in
 fullscreen, never on a site's class names, and steps down from the top edge
 past any link or button the player draws there. It follows a site's

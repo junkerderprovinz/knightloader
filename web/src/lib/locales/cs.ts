@@ -3333,6 +3333,8 @@ export const cs: Dict = {
   'archive.unpacked': 'Rozbaleno',
   'archive.tally': 'Rozbaleno {done} z {total} archivů',
   'columns.variant.convertTo': 'Převést na',
+  'columns.variant.probing': 'Zjišťuji kvality…',
+  'columns.variant.probeFailed': 'Jen nejlepší kvalita. Dostupné kvality se nepodařilo načíst: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows i Linux mají každý dvě verze: x64 pro většinu počítačů a ARM64 pro počítače s procesorem ARM, například notebooky s čipem Snapdragon. Pokud prohlížeč řekne, jaký procesor tento počítač má, tlačítko nabídne odpovídající verzi, jinak x64. Úzká část vedle něj nabízí tu druhou. Aplikace pro macOS běží na Intelu i na Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader zatím neví, jaké formáty {host} nabízí, takže nabídky obsahují všechny. Jakmile se zkontroluje odkaz z {host}, nabízejí formáty nalezené v dosud zkontrolovaných odkazech a zvuková nabídka pod nimi uvádí ostatní, na které lze převést.',
   'rename.linkHint': 'Název, pod kterým se soubor uloží. Stahování, které už skončilo, se přejmenuje i na disku, aby seznam a složka souhlasily. Název není cesta, takže / a \\ nejsou povoleny.',

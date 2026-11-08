@@ -3319,6 +3319,8 @@ export const is: Dict = {
   'archive.unpacked': 'Afþjappað',
   'archive.tally': '{done} af {total} söfnum afþjappað',
   'columns.variant.convertTo': 'Umbreyta í',
+  'columns.variant.probing': 'Athuga gæði…',
+  'columns.variant.probeFailed': 'Aðeins bestu gæði. Ekki tókst að lesa tiltæk gæði: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows og Linux eru hvort um sig til í tveimur útgáfum: x64 fyrir flestar tölvur og ARM64 fyrir tölvur með ARM-örgjörva, eins og fartölvur með Snapdragon-flögu. Ef vafrinn þinn segir hvaða örgjörvi er í tölvunni gefur hnappurinn réttu útgáfuna, annars x64. Mjói hlutinn við hliðina gefur hina. macOS-appið keyrir á Intel og á Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader veit ekki enn hvaða snið {host} býður upp á, svo valmyndirnar bjóða þau öll. Um leið og tengill frá {host} hefur verið kannaður bjóða þær sniðin sem fundust í þeim tenglum sem kannaðir hafa verið, og hljóðvalmyndin telur upp fyrir neðan hin sniðin sem hægt er að umbreyta í.',
   'rename.linkHint': 'Heitið sem skráin er vistuð undir. Niðurhal sem er þegar lokið er líka endurnefnt á diskinum, svo listinn og mappan passi saman. Heiti er ekki slóð, svo / og \\ eru ekki leyfð.',

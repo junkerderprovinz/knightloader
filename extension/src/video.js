@@ -1,7 +1,7 @@
 // The download button on a video's player. This part is shared by the button
 // itself (video-button.js, inside the site), the service worker
 // (video-worker.js), the options page and the popup: the sites it appears on,
-// the address it sends for a page, the formats its menu offers and its
+// the address it sends for a page, the formats its menu can offer and its
 // switch. The rules are plain functions so check-video.mjs can run them
 // without a browser.
 
@@ -24,12 +24,26 @@ const VIDEO_SITES = [
   { id: 'bilibili', name: 'Bilibili', origins: ['https://www.bilibili.com/*'] },
 ];
 
+/** The resolutions POST /api/links takes as `format` (ytdlp.Qualities). */
+const VIDEO_CAPS = ['4320p', '2160p', '1440p', '1080p', '720p', '480p', '360p', '240p', '144p'];
+
 /**
- * The menu's formats, in the words POST /api/links takes as `format`
- * (HosterPreset.ForLink): the video at its best, the audio alone, and a cap on
- * the resolution. A plain click sends none and the host's preset decides.
+ * The formats the menu can send, in the words POST /api/links takes as
+ * `format` (HosterPreset.ForLink): the video at its best, the audio alone,
+ * and a cap on the resolution. A plain click sends none and the host's preset
+ * decides.
  */
-const VIDEO_FORMATS = ['video', 'audio', '2160p', '1440p', '1080p', '720p', '480p', '360p'];
+const VIDEO_FORMATS = ['video', 'audio', ...VIDEO_CAPS];
+
+/**
+ * The menu's formats for what the instance says a video has (GET
+ * /api/ytdlp/link): the video at its best, each resolution it has, and the
+ * audio alone where it has sound. Without an answer, the best video alone.
+ */
+function videoMenuFormats(answer) {
+  const caps = Array.isArray(answer?.qualities) ? answer.qualities.filter((q) => VIDEO_CAPS.includes(q)) : [];
+  return ['video', ...caps, ...(answer?.audio === true ? ['audio'] : [])];
+}
 
 /** Each site by the host names of its addresses. */
 const VIDEO_HOSTS = new Map(VIDEO_SITES.flatMap((s) => s.origins.map((o) => [new URL(o.slice(0, -1)).hostname, s])));

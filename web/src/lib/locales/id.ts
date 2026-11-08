@@ -3323,6 +3323,8 @@ export const id: Dict = {
   'archive.unpacked': 'Sudah diekstrak',
   'archive.tally': '{done} dari {total} arsip sudah diekstrak',
   'columns.variant.convertTo': 'Ubah ke',
+  'columns.variant.probing': 'Memeriksa kualitas…',
+  'columns.variant.probeFailed': 'Hanya kualitas terbaik. Kualitas yang tersedia tidak dapat dibaca: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows dan Linux masing-masing punya dua versi: x64 untuk sebagian besar PC dan ARM64 untuk komputer berprosesor ARM, seperti laptop dengan chip Snapdragon. Jika peramban menyebut prosesor komputer ini, tombol memberi versi yang cocok, kalau tidak x64. Bagian sempit di sebelahnya memberi yang lain. Aplikasi macOS berjalan di Intel dan Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader belum tahu format apa saja yang disediakan {host}, jadi menu menawarkan semuanya. Begitu sebuah tautan dari {host} diperiksa, menu menawarkan format yang ditemukan di tautan yang sudah diperiksa sejauh ini, dan menu audio mencantumkan di bawahnya format lain yang bisa menjadi tujuan konversi.',
   'rename.linkHint': 'Nama yang dipakai untuk menyimpan berkas. Unduhan yang sudah selesai juga diganti namanya di disk, agar daftar dan folder cocok. Nama bukan jalur, jadi / dan \\ tidak diizinkan.',

@@ -1889,6 +1889,8 @@ export const en = {
   'columns.variant.auto': 'Auto',
   'columns.variant.kbps': '{kbps} kbit/s',
   'columns.variant.convertTo': 'Convert to',
+  'columns.variant.probing': 'Checking qualities…',
+  'columns.variant.probeFailed': 'Best quality only. The available qualities could not be read: {reason}',
 
   // Reaching a task's own file (components/FileActions.tsx). "Open" streams
   // it through the browser; the other two are desktop-only and carry their

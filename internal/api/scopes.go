@@ -348,6 +348,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/ytdlp/cookies":        apitoken.ScopeAdmin,
 	"POST /api/ytdlp/cookies/remove": apitoken.ScopeAdmin,
 	"GET /api/ytdlp/formats":         apitoken.ScopeAdmin,
+	"GET /api/ytdlp/link":            apitoken.ScopeAdd,
 	"GET /api/ytdlp/preset":          apitoken.ScopeAdmin,
 	"POST /api/ytdlp/preset":         apitoken.ScopeAdmin,
 }

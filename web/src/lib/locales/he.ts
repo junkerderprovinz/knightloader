@@ -3341,6 +3341,8 @@ export const he: Dict = {
   'archive.unpacked': 'חולץ',
   'archive.tally': 'חולצו {done} מתוך {total} ארכיונים',
   'columns.variant.convertTo': 'המרה אל',
+  'columns.variant.probing': 'בודק איכויות…',
+  'columns.variant.probeFailed': 'האיכות הטובה ביותר בלבד. לא ניתן היה לקרוא את האיכויות הזמינות: {reason}',
   'settings.browsertools.desktopArchHint': 'ל־Windows ול־Linux יש שתי גרסאות כל אחת: x64 לרוב המחשבים ו־ARM64 למחשבים עם מעבד ARM, כמו מחשבים ניידים עם שבב Snapdragon. אם הדפדפן אומר איזה מעבד יש למחשב הזה, הכפתור נותן את הגרסה המתאימה, אחרת x64. החלק הצר שלידו נותן את השנייה. אפליקציית macOS רצה על Intel ועל Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader עוד לא יודע אילו תבניות {host} מציע, ולכן התפריטים מציעים את כולן. ברגע שנבדק קישור מ־{host}, הם מציעים את התבניות שנמצאו בקישורים שנבדקו עד כה, ותפריט השמע מפרט מתחתן את האחרות שאפשר להמיר אליהן.',
   'rename.linkHint': 'השם שבו הקובץ נשמר. הורדה שכבר הסתיימה משנה את שמה גם בדיסק, כדי שהרשימה והתיקייה יתאימו. שם אינו נתיב, ולכן / ו־\\ אינם מותרים.',

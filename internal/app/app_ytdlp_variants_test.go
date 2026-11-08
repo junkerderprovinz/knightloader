@@ -764,8 +764,9 @@ func TestApplyProbeFormatsSetsThumbnailAndSubtitleExt(t *testing.T) {
 	}
 }
 
-// The tallest track is 1080p, so 2160p and 1440p are not offered; best and
-// custom always are.
+// The caps offered are those that download a track of their own: 1080p and
+// 144p, since under any cap between them yt-dlp merges the 144p video-only
+// track rather than taking the 360p one that carries its sound.
 func TestApplyProbeFormatsConstrainsVideoAvailableQualities(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=avail0001"
@@ -774,19 +775,8 @@ func TestApplyProbeFormatsConstrainsVideoAvailableQualities(t *testing.T) {
 	a.applyProbeFormats(url, testProbeFormats)
 
 	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
-	got := map[string]bool{}
-	for _, q := range live.AvailableQualities {
-		got[q] = true
-	}
-	for _, want := range []string{"best", "1080p", "720p", "480p", "360p", "custom"} {
-		if !got[want] {
-			t.Errorf("AvailableQualities = %v, missing expected %q", live.AvailableQualities, want)
-		}
-	}
-	for _, unwanted := range []string{"2160p", "1440p"} {
-		if got[unwanted] {
-			t.Errorf("AvailableQualities = %v, want %q excluded; the source has no track above 1080p", live.AvailableQualities, unwanted)
-		}
+	if want := []string{"best", "1080p", "144p"}; !slices.Equal(live.AvailableQualities, want) {
+		t.Errorf("AvailableQualities = %v, want %v", live.AvailableQualities, want)
 	}
 }
 
@@ -805,7 +795,7 @@ func TestAPortraitSourceOffersQualitiesUpToItsWidth(t *testing.T) {
 	})
 
 	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
-	if want := []string{"best", "1080p", "720p", "480p", "360p", "240p", "144p", "custom"}; !slices.Equal(live.AvailableQualities, want) {
+	if want := []string{"best", "1080p", "720p"}; !slices.Equal(live.AvailableQualities, want) {
 		t.Errorf("AvailableQualities = %v, want %v", live.AvailableQualities, want)
 	}
 	if want := []string{"1080p mp4 avc1", "720p mp4 avc1"}; !slices.Equal(live.AvailableVideoTracks, want) {

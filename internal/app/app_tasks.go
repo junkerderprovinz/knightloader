@@ -820,22 +820,22 @@ func (a *App) holdIfDownloaded(id string) {
 
 // probeYtdlpTitle asks the yt-dlp backend for a collected task's title and
 // available formats without downloading anything, the yt-dlp counterpart to
-// analyze. A failed probe is silent: the download's progress stream supplies
-// the name later. A probe that answers also marks the link online (see
-// applyProbeFormats).
+// analyze. A failed probe leaves its reason on the pickers (failProbe), and
+// the download's progress stream supplies the name later. A probe that
+// answers also marks the link online (see applyProbeFormats).
 func (a *App) probeYtdlpTitle(id, rawurl string) {
 	tp, ok := a.ytdlpTitleProber()
 	if !ok {
 		// Filed like a probe that found nothing, or a link staged while
 		// yt-dlp is switched off would never get a package.
 		a.fileUnprobedMedia(id)
+		a.failProbe(rawurl, ytdlpMissing)
 		return
 	}
-	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
-	defer cancel()
-	res, err := tp.ProbeTitle(ctx, rawurl, a.browserHeadersFor(id, rawurl))
+	res, err := a.linkProbe(a.ctx, tp, rawurl, a.browserHeadersFor(id, rawurl))
 	if err != nil {
 		a.fileUnprobedMedia(id)
+		a.failProbe(rawurl, err.Error())
 		return
 	}
 	title := strings.TrimSpace(res.Title)

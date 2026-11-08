@@ -565,9 +565,10 @@ func containerRank(c videoContainer) int {
 
 // ResolveVideoPick turns a preset's wish into the best track of its container
 // under its cap, or, when the source has no track in that container, into the
-// cap alone. A track's key that the source does not list may name a portrait
-// track by its height, and takes that track's key. Any other pick comes back
-// as it is.
+// cap alone. A cap becomes the one of SourceQualities that downloads the same
+// track. A track's key that the source does not list may name a portrait track
+// by its height, and takes that track's key. Any other pick comes back as it
+// is.
 func ResolveVideoPick(pick string, formats []FormatEntry) string {
 	if v, ok := parseVideoFormat(pick); ok {
 		if k, ok := v.byHeight(formats); ok {
@@ -575,11 +576,13 @@ func ResolveVideoPick(pick string, formats []FormatEntry) string {
 		}
 		return pick
 	}
-	w, ok := parseVideoWish(pick)
-	if !ok {
-		return pick
+	if w, ok := parseVideoWish(pick); ok {
+		pick = w.resolve(formats)
 	}
-	return w.resolve(formats)
+	if _, ok := ResCap(Quality(pick)); ok {
+		return string(sourceCap(Quality(pick), formats))
+	}
+	return pick
 }
 
 // resolve is the best track of the wish's container under its cap, or the cap
@@ -642,16 +645,14 @@ func VideoFile(pick string, formats []FormatEntry, o Options) (ext string, size 
 		return v.file(formats, o.Embed)
 	}
 	if r, ok := ResCap(Quality(pick)); ok {
-		// capChoice: a video-only track and audio, else one that has both.
-		if v := bestVideo(formats, r, isVideoOnly); v != nil {
-			if a := bestAudio(formats, ""); a != nil {
-				return pairedExt(v, o.Embed), mergedSize(v, a)
-			}
+		v, a := capTracks(formats, r)
+		switch {
+		case v == nil:
+			return "", 0
+		case a != nil:
+			return pairedExt(v, o.Embed), mergedSize(v, a)
 		}
-		if v := bestVideo(formats, r, carriesBoth); v != nil {
-			return v.Ext, v.Size()
-		}
-		return "", 0
+		return v.Ext, v.Size()
 	}
 	if Quality(pick) == QualityCustom && o.CustomFormat != "" {
 		// formatSelector hands the string to -f as it is, and only yt-dlp
@@ -742,6 +743,65 @@ func (v videoFormat) file(formats []FormatEntry, embed Embed) (string, int64) {
 		return combined.Ext, combined.Size()
 	}
 	return "", 0
+}
+
+// capTracks is what a resolution cap of r downloads, as capChoice asks for it:
+// the best video-only track under r and the audio merged with it, else the
+// best track under r that carries both, with a nil audio. The video is nil
+// when no track is that small.
+func capTracks(formats []FormatEntry, r int) (video, audio *FormatEntry) {
+	if v := bestVideo(formats, r, isVideoOnly); v != nil {
+		if a := bestAudio(formats, ""); a != nil {
+			return v, a
+		}
+	}
+	return bestVideo(formats, r, carriesBoth), nil
+}
+
+// SourceQualities lists the resolution caps worth offering for a source,
+// highest first: those that download a track taller than the next cap down
+// would. Any other cap downloads the same track as one of these, or nothing.
+func SourceQualities(formats []FormatEntry) []Quality {
+	var out []Quality
+	ladder := Qualities()
+	for i, q := range ladder {
+		r, ok := ResCap(q)
+		if !ok {
+			continue
+		}
+		below := 0
+		if next, ok := ResCap(ladder[i+1]); ok {
+			below = next
+		}
+		if v, _ := capTracks(formats, r); v != nil && v.Res() > below {
+			out = append(out, q)
+		}
+	}
+	return out
+}
+
+// sourceCap moves a resolution cap onto the one of SourceQualities that
+// downloads the same track, or onto the smallest of them where the cap is
+// below every track and would find nothing. A source without video has none,
+// and gets best.
+func sourceCap(q Quality, formats []FormatEntry) Quality {
+	offered := SourceQualities(formats)
+	if len(offered) == 0 {
+		return QualityBest
+	}
+	r, _ := ResCap(q)
+	v, _ := capTracks(formats, r)
+	if v == nil {
+		return offered[len(offered)-1]
+	}
+	same := offered[0]
+	for _, o := range offered[1:] {
+		if c, _ := ResCap(o); c < v.Res() {
+			break
+		}
+		same = o
+	}
+	return same
 }
 
 // isVideoOnly reports a format that needs audio merged in: yt-dlp's

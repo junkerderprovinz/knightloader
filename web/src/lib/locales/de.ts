@@ -1695,6 +1695,8 @@ export const de: Dict = {
   'columns.variant.auto': 'Auto',
   'columns.variant.kbps': '{kbps} kbit/s',
   'columns.variant.convertTo': 'Umwandeln in',
+  'columns.variant.probing': 'Qualitäten werden geprüft…',
+  'columns.variant.probeFailed': 'Nur beste Qualität. Die verfügbaren Qualitäten ließen sich nicht lesen: {reason}',
 
   'file.play': 'Abspielen',
   'file.open': 'Öffnen',

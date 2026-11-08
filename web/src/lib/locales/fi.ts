@@ -3324,6 +3324,8 @@ export const fi: Dict = {
   'archive.unpacked': 'Purettu',
   'archive.tally': '{done}/{total} arkistoa purettu',
   'columns.variant.convertTo': 'Muunna muotoon',
+  'columns.variant.probing': 'Tarkistetaan laatuja…',
+  'columns.variant.probeFailed': 'Vain paras laatu. Saatavilla olevia laatuja ei voitu lukea: {reason}',
   'settings.browsertools.desktopArchHint': 'Windowsista ja Linuxista on kummastakin kaksi versiota: x64 useimmille tietokoneille ja ARM64 ARM-suorittimella varustetuille koneille, kuten Snapdragon-piirin kannettaville. Jos selaimesi kertoo, mikä suoritin tässä koneessa on, painike antaa sopivan version, muuten x64. Sen vieressä oleva kapea osa antaa toisen. macOS-sovellus toimii Intelillä ja Apple siliconilla.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader ei vielä tiedä, mitä muotoja {host} tarjoaa, joten valikot tarjoavat kaikki. Heti kun {host}-linkki on tarkistettu, ne tarjoavat tähän asti tarkistetuista linkeistä löytyneet muodot, ja äänivalikko luettelee niiden alla muut, joihin voi muuntaa.',
   'rename.linkHint': 'Nimi, jolla tiedosto tallennetaan. Jo valmistunut lataus nimetään uudelleen myös levyllä, jotta luettelo ja kansio vastaavat toisiaan. Nimi ei ole polku, joten / ja \\ eivät ole sallittuja.',

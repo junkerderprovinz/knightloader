@@ -483,6 +483,9 @@ type App struct {
 	probed map[string][]ytdlp.FormatEntry
 	// reprobing holds the links reprobeYtdlp is asking about, under mu.
 	reprobing map[string]bool
+	// linkProbes are the yt-dlp probes under way or answered lately, per link
+	// URL, under mu (see linkProbe).
+	linkProbes map[string]*probeCall
 	// iconCache is the hoster-icon cache (app_hostericons.go), embedded so its
 	// fields stay in that file. It is built on first use.
 	iconCache

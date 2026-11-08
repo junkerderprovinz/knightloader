@@ -3324,6 +3324,8 @@ export const lt: Dict = {
   'archive.unpacked': 'Išpakuota',
   'archive.tally': 'Išpakuota {done} iš {total} archyvų',
   'columns.variant.convertTo': 'Konvertuoti į',
+  'columns.variant.probing': 'Tikrinamos kokybės…',
+  'columns.variant.probeFailed': 'Tik geriausia kokybė. Nepavyko nuskaityti galimų kokybių: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows ir Linux turi po dvi versijas: x64 daugumai kompiuterių ir ARM64 kompiuteriams su ARM procesoriumi, pavyzdžiui, nešiojamiesiems su Snapdragon lustu. Jei naršyklė nurodo, kokį procesorių turi šis kompiuteris, mygtukas pasiūlo tinkamą versiją, kitaip x64. Siaura dalis šalia jo duoda kitą. macOS programa veikia su Intel ir Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader dar nežino, kokius formatus siūlo {host}, todėl meniu siūlo visus. Kai tik patikrinama nuoroda iš {host}, jie siūlo formatus, rastus iki šiol patikrintose nuorodose, o garso meniu po jais išvardija kitus, į kuriuos galima konvertuoti.',
   'rename.linkHint': 'Pavadinimas, kuriuo išsaugomas failas. Jau baigtas atsisiuntimas pervadinamas ir diske, kad sąrašas ir aplankas sutaptų. Pavadinimas nėra kelias, todėl / ir \\ neleidžiami.',

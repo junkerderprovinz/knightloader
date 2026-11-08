@@ -11,11 +11,14 @@
  *      yt-dlp on the instance knows.
  *   3. The worker registers the button only where it runs, and sends only the
  *      video of the page that asked, with a format only from the menu's list,
- *      and tells the button what became of it.
+ *      and tells the button what became of it. The menu lists what the
+ *      instance says the video has, and the best video alone where it cannot
+ *      say.
  *   4. The popup's switch and the page's button share one stored setting:
  *      switching off takes the button out of an open tab at once, without a
  *      reload, and switching on brings it back. The button follows the page
- *      to another video and away from one, sits in the element shown in
+ *      to another video and away from one, says it is checking until the
+ *      instance answers and asks once per video, sits in the element shown in
  *      fullscreen, picks the video that is on screen, and moves down past
  *      the controls a player keeps along the top of its video.
  *
@@ -217,7 +220,7 @@ function loadBackground(chrome) {
   let answer = { status: 200, body: '[{"id":"a"}]' };
   ctx.withGroup = async (work) => work({
     siblings: [{ instanceId: 'inst-1' }],
-    call: async (target, method, path, body) => { sent.push({ target, method, path, body: JSON.parse(body) }); return answer; },
+    call: async (target, method, path, body) => { sent.push({ target, method, path, body: body ? JSON.parse(body) : undefined }); return answer; },
   });
   const sendVideo = vm.runInContext('sendVideo', ctx);
   const embed = 'https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?list=PLbpi6ZahtOH6Ar_3GPy3workIMw9vB9wB';
@@ -232,6 +235,27 @@ function loadBackground(chrome) {
   await sendVideo(embed, { href: embed, playlist: true, format: 'everything' });
   if (last()?.links !== 'https://www.youtube.com/playlist?list=PLbpi6ZahtOH6Ar_3GPy3workIMw9vB9wB') fail(`asked for the playlist, the button sends ${last()?.links}`);
   if ('format' in last()) fail(`a format outside the menu's list was sent: ${last().format}`);
+
+  // The menu offers what the instance says the video has, and best alone
+  // where it cannot say.
+  const videoFormats = vm.runInContext('videoFormats', ctx);
+  answer = { status: 200, body: '{"qualities":["720p","480p","9999p"],"audio":true}' };
+  let menu = await videoFormats(embed, { href: embed });
+  const asked = sent.at(-1);
+  if (asked?.method !== 'GET' || asked.path !== `/api/ytdlp/link?url=${encodeURIComponent('https://www.youtube.com/watch?v=aqz-KE-bpKQ')}`) {
+    fail(`the menu asks ${asked?.method} ${asked?.path}, want GET /api/ytdlp/link for the video's address`);
+  }
+  if (menu.formats?.join() !== 'video,720p,480p,audio') fail(`the menu offers ${menu.formats}, want the best video, the two resolutions the video has and its sound`);
+  answer = { status: 200, body: '{"qualities":[],"audio":false}' };
+  menu = await videoFormats(embed, { href: embed });
+  if (menu.formats?.join() !== 'video') fail(`a video with nothing to choose offers ${menu.formats}`);
+  answer = { status: 502, body: 'ERROR: [youtube] aqz-KE-bpKQ: Private video' };
+  menu = await videoFormats(embed, { href: embed });
+  if (menu.formats?.join() !== 'video' || !menu.unknown) fail(`a probe that failed offers ${menu.formats}, want the best video alone and a note`);
+  const asking = sent.length;
+  menu = await videoFormats('https://www.youtube.com/watch?v=aqz-KE-bpKQ', { href: 'https://vimeo.com/1084537' });
+  if (sent.length !== asking || menu.formats?.join() !== 'video') fail('a frame on one site could ask about a video of another');
+  answer = { status: 200, body: '[{"id":"a"}]' };
 
   const before = sent.length;
   r = await sendVideo('https://www.youtube.com/watch?v=aqz-KE-bpKQ', { href: 'https://vimeo.com/1084537' });
@@ -321,7 +345,12 @@ class Node {
   removeAttribute(k) { delete this.attrs[k]; }
   addEventListener(type, f) { (this.listeners[type] ??= []).push(f); }
   dispatch(type, e = {}) { for (const f of this.listeners[type] ?? []) f({ isTrusted: true, stopPropagation() {}, preventDefault() {}, composedPath: () => [], ...e }); }
-  attachShadow() { return new Node('#shadow', this.doc); }
+  attachShadow() {
+    this.shadow = new Node('#shadow', this.doc);
+    return this.shadow;
+  }
+  get textContent() { return this.text ?? ''; }
+  set textContent(s) { this.text = s; }
   getBoundingClientRect() { return this.rect; }
   querySelectorAll(tag) {
     const out = [];
@@ -373,7 +402,17 @@ function loadPage(chrome, href) {
 {
   const store = makeStore();
   const { chrome } = makeChrome(store);
-  chrome.runtime.sendMessage = async (msg) => (msg.type === 'knightloader-video-labels' ? { send: 'Download', sendTip: 'Send', more: 'More', dir: 'ltr', lang: 'en' } : undefined);
+  const labels = { send: 'Download', sendTip: 'Send', more: 'More', best: 'Best video', audio: 'Audio only', hide: 'Hide on {site}', checking: 'Checking', unknown: 'Unknown', dir: 'ltr', lang: 'en' };
+  let formatsAnswer;
+  let formatsAsked = 0;
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') return labels;
+    if (msg.type === 'knightloader-video-formats') {
+      formatsAsked++;
+      return new Promise((resolve) => { formatsAnswer = resolve; });
+    }
+    return undefined;
+  };
 
   const { doc, location, run } = loadPage(chrome, 'https://www.youtube.com/watch?v=aqz-KE-bpKQ');
   const player = doc.createElement('div');
@@ -386,6 +425,24 @@ function loadPage(chrome, href) {
   const where = () => button()?.parentNode;
   if (!button()) fail('on a watch page the button does not appear');
   else if (button().style.left !== '640px') fail(`the button sits at ${button().style.left}, want the middle of the video's top edge`);
+
+  // The menu says it is checking until the instance answers, then lists what
+  // the video has, and opening it again asks nothing more.
+  const shadow = button()?.shadow;
+  const more = () => shadow.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'menu');
+  const entries = () => shadow.querySelectorAll('div').find((d) => d.attrs.role === 'menu').children.map((c) => c.textContent).filter(Boolean);
+  more().dispatch('click');
+  await settle();
+  if (entries().join('|') !== 'Checking|Hide on YouTube') fail(`while the instance is asked the menu shows ${entries().join(', ')}, want Checking`);
+  formatsAnswer({ formats: ['video', '1080p', '720p', 'audio'] });
+  await settle();
+  if (entries().join('|') !== 'Best video|1080p|720p|Audio only|Hide on YouTube') fail(`the menu shows ${entries().join(', ')}, want what the instance listed`);
+  more().dispatch('click');
+  more().dispatch('click');
+  await settle();
+  if (formatsAsked !== 1) fail(`opening the menu again asked the instance ${formatsAsked} times, want once`);
+  if (entries().join('|') !== 'Best video|1080p|720p|Audio only|Hide on YouTube') fail(`opened again, the menu shows ${entries().join(', ')}`);
+  more().dispatch('click');
 
   // The popup in its own context, on the same storage.
   const popupDoc = makeDocument();
@@ -461,4 +518,4 @@ if (problems.length) {
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log('ok: every form of a video page sends its one address, the sites are a short list yt-dlp knows inside the optional access, the worker sends only the asking page\'s video and says what became of it, and the popup switch takes the button off an open page at once and back, while it follows navigation and fullscreen');
+console.log('ok: every form of a video page sends its one address, the sites are a short list yt-dlp knows inside the optional access, the worker sends only the asking page\'s video and says what became of it, the menu offers only what the instance says the video has, and the popup switch takes the button off an open page at once and back, while it follows navigation and fullscreen');

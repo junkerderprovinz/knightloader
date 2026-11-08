@@ -251,9 +251,10 @@ func TestAPresetWishResolvesToTheBestTrackOfItsFormatUnderTheCap(t *testing.T) {
 		// No track in the format: the cap alone, or best without one.
 		"mp4 hevc 1080p": "1080p",
 		"mp4 hevc":       "best",
-		// Anything that is not a wish is left alone.
+		// A cap becomes the one that downloads the same track, and anything
+		// else is left alone.
+		"720p":           "360p",
 		"1080p webm vp9": "1080p webm vp9",
-		"720p":           "720p",
 		"best":           "best",
 	}
 	for pick, want := range cases {

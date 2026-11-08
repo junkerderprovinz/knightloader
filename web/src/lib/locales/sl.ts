@@ -3322,6 +3322,8 @@ export const sl: Dict = {
   'archive.unpacked': 'Razpakirano',
   'archive.tally': 'Razpakiranih {done} od {total} arhivov',
   'columns.variant.convertTo': 'Pretvori v',
+  'columns.variant.probing': 'Preverjanje kakovosti…',
+  'columns.variant.probeFailed': 'Samo najboljša kakovost. Razpoložljivih kakovosti ni bilo mogoče prebrati: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows in Linux imata vsak po dve različici: x64 za večino računalnikov in ARM64 za računalnike s procesorjem ARM, na primer prenosnike s čipom Snapdragon. Če brskalnik pove, kateri procesor ima ta računalnik, gumb ponudi ustrezno različico, sicer x64. Ozki del ob njem da drugo. Aplikacija za macOS teče na Intelu in na Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader še ne ve, katere oblike ponuja {host}, zato meniji ponujajo vse. Takoj ko je povezava z {host} preverjena, ponujajo oblike, najdene v doslej preverjenih povezavah, zvočni meni pa pod njimi našteje druge, v katere je mogoče pretvoriti.',
   'rename.linkHint': 'Ime, pod katerim se datoteka shrani. Prenos, ki je že končan, se preimenuje tudi na disku, da se seznam in mapa ujemata. Ime ni pot, zato / in \\ nista dovoljena.',

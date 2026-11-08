@@ -3322,6 +3322,8 @@ export const ar: Dict = {
   'archive.unpacked': 'فُكّ الضغط',
   'archive.tally': 'فُكّ ضغط {done} من {total} أرشيفات',
   'columns.variant.convertTo': 'تحويل إلى',
+  'columns.variant.probing': 'جارٍ فحص الجودات…',
+  'columns.variant.probeFailed': 'أفضل جودة فقط. تعذّرت قراءة الجودات المتاحة: {reason}',
   'settings.browsertools.desktopArchHint': 'لكل من Windows وLinux إصداران: x64 لمعظم الحواسيب وARM64 للحواسيب ذات معالج ARM، مثل الحواسيب المحمولة بشريحة Snapdragon. إذا أخبر المتصفح بنوع معالج هذا الحاسوب، فإن الزر يعطي الإصدار المناسب، وإلا فإصدار x64. الجزء الضيق المجاور له يعطي الآخر. تطبيق macOS يعمل على Intel وعلى Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'لا يعرف KnightLoader بعد ما الصيغ التي يقدمها {host}، لذا تعرض القوائم كل الصيغ. بمجرد فحص رابط من {host} تعرض الصيغ الموجودة في الروابط المفحوصة حتى الآن، وتسرد قائمة الصوت تحتها الصيغ الأخرى التي يمكن التحويل إليها.',
   'rename.linkHint': 'الاسم الذي يُحفظ به الملف. التنزيل المكتمل يُعاد تسميته على القرص أيضًا، لتتطابق القائمة والمجلد. الاسم ليس مسارًا، لذا لا يُسمح بـ / و \\.',

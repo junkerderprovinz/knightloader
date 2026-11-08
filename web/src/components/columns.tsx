@@ -83,8 +83,9 @@ import {
   VariantDropdown,
   audioPickers,
   audioSummary,
+  bestOnlyPicker,
+  menuSourceOf,
   presetMenusOf,
-  probedFormats,
   videoPickers,
   videoSummary,
   type PickerProps,
@@ -1561,8 +1562,8 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
  * fetchOptions() on mount would be forty identical requests. Module-scoped
  * rather than threaded through CellContext, so this column stays
  * self-contained instead of widening what every other cell's context carries
- * for menus only this column reads. They are the full menus, for a row no
- * probe has answered for yet.
+ * for menus only this column reads. A probed audio row offers the formats in
+ * them that its source lacks as conversions.
  */
 let ytdlpMenus: Promise<PresetMenus> | null = null;
 function loadYtdlpMenus() {
@@ -1615,32 +1616,52 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
     }
   }
 
-  // A probe fills the menus with what this source offers. Until one answers,
-  // the full menus stand in, the way every other "empty means no opinion"
-  // field here does, and a format picked from them is a wish the probe
-  // resolves later.
+  // Only a probe knows what this source offers. Until one answers the row
+  // says so, and without one it offers best alone, never the full menus,
+  // which would list resolutions and tracks the source may not have.
   let pair: [PickerProps, PickerProps | null] | null = null;
-  if (kind === 'video') {
-    const probed = probedFormats(task.availableVideoFormats);
+  const formats = kind === 'video' ? task.availableVideoFormats : task.availableAudioFormats;
+  const picked = kind === 'video' || kind === 'audio';
+  const source = menuSourceOf({ formats, collected: task.status === 'collected', probeError: task.probeError });
+  if (picked && source === 'waiting') {
+    return (
+      <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-meta text-carbon-textMuted">
+        <span className="shrink-0">{label}</span>
+        <span aria-busy="true" className="animate-pulse motion-reduce:animate-none">
+          {ctx.t('columns.variant.probing')}
+        </span>
+      </span>
+    );
+  }
+  if (picked && source === 'none') {
+    pair = [
+      bestOnlyPicker({
+        value: sub,
+        reason: task.probeError,
+        render: (pick) => (kind === 'video' ? videoSummary(pick, ctx.t) : audioSummary(pick, task.audioBitrate ?? '', ctx.t)),
+        t: ctx.t,
+        onPick: (pick) => void change(kind === 'video' ? { variantQuality: pick } : { variantQuality: pick, audioBitrate: '' }, true),
+      }),
+      null,
+    ];
+  } else if (kind === 'video') {
     const p = videoPickers({
       pick: sub,
-      formats: probed ?? menus.videoFormats,
-      tracks: probed ? (task.availableVideoTracks ?? []) : null,
-      caps: task.availableQualities?.length ? task.availableQualities : menus.qualities,
+      formats: formats ?? [],
+      tracks: task.availableVideoTracks ?? [],
+      caps: task.availableQualities?.length ? task.availableQualities : ['best'],
       t: ctx.t,
       onPick: (pick, from) => void change({ variantQuality: pick }, from === 'format'),
     });
     pair = [p.format, p.quality];
   } else if (kind === 'audio') {
-    const probed = probedFormats(task.availableAudioFormats);
     const p = audioPickers({
       pick: sub,
       bitrate: task.audioBitrate ?? '',
-      formats: probed ?? menus.audioFormats,
-      // Before a probe the full list stands in, and nothing is a conversion yet.
-      convertTo: probed ? menus.audioFormats : [],
-      tracks: probed ? (task.availableAudioTracks ?? []) : null,
-      conversions: task.availableAudioBitrates?.length ? task.availableAudioBitrates : menus.audioBitrates,
+      formats: formats ?? [],
+      convertTo: menus.audioFormats,
+      tracks: task.availableAudioTracks ?? [],
+      conversions: task.availableAudioBitrates ?? [],
       t: ctx.t,
       onPick: (pick, bitrate, from) => void change({ variantQuality: pick, audioBitrate: bitrate }, from === 'format'),
     });

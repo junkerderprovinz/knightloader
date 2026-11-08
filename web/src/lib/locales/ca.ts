@@ -3309,6 +3309,8 @@ export const ca: Dict = {
   'archive.unpacked': 'Extret',
   'archive.tally': '{done} de {total} arxius extrets',
   'columns.variant.convertTo': 'Converteix a',
+  'columns.variant.probing': 'Comprovant les qualitats…',
+  'columns.variant.probeFailed': 'Només la millor qualitat. No s’han pogut llegir les qualitats disponibles: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows i Linux tenen dues versions cadascun: x64 per a la majoria d’ordinadors i ARM64 per als ordinadors amb processador ARM, com els portàtils amb xip Snapdragon. Si el navegador diu quin processador té aquest ordinador, el botó ofereix la versió adequada; si no, x64. La part estreta del costat dona l’altra. L’app de macOS funciona en Intel i en Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader encara no sap quins formats ofereix {host}, així que els menús els ofereixen tots. Tan bon punt s’hagi comprovat un enllaç de {host}, ofereixen els formats trobats als enllaços comprovats fins ara, i el menú d’àudio llista a sota els altres als quals convertir.',
   'rename.linkHint': 'El nom amb què es desa el fitxer. Una baixada ja acabada també es reanomena al disc, perquè la llista i la carpeta coincideixin. Un nom no és un camí, així que / i \\ no s’admeten.',

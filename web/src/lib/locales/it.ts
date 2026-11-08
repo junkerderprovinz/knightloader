@@ -3307,6 +3307,8 @@ export const it: Dict = {
   'archive.unpacked': 'Estratto',
   'archive.tally': '{done} archivi su {total} estratti',
   'columns.variant.convertTo': 'Converti in',
+  'columns.variant.probing': 'Verifica delle qualità…',
+  'columns.variant.probeFailed': 'Solo la qualità migliore. Non è stato possibile leggere le qualità disponibili: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows e Linux hanno due versioni ciascuno: x64 per la maggior parte dei PC e ARM64 per i computer con processore ARM, come i portatili con chip Snapdragon. Se il browser dice quale processore ha questo computer, il pulsante offre la versione giusta, altrimenti x64. La parte stretta accanto dà l’altra. L’app per macOS funziona su Intel e su Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader non sa ancora quali formati offre {host}, quindi i menu li offrono tutti. Appena un link di {host} è stato controllato, offrono i formati trovati nei link controllati finora, e il menu audio elenca sotto gli altri in cui convertire.',
   'rename.linkHint': 'Il nome con cui viene salvato il file. Un download già finito viene rinominato anche sul disco, così elenco e cartella coincidono. Un nome non è un percorso, quindi / e \\ non sono ammessi.',
