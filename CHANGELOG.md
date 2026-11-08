@@ -199,6 +199,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
+- **A yt-dlp that starts slowly is still found.** The one-file build of
+  yt-dlp unpacks itself on its first start, which on a slow disk takes longer
+  than the ten seconds KnightLoader waited, so video sites went without
+  yt-dlp. KnightLoader keeps checking in the background and takes yt-dlp as
+  soon as it answers, and it does not start a yt-dlp that answered once again
+  just to check it.
 - **Open folder in the Windows desktop app shows the download's own folder.**
   When the file's path held a space or a comma, as a package folder like
   `My Package` does, Explorer opened Documents instead. The folder opens with

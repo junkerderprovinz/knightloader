@@ -131,6 +131,16 @@ func TestMain(m *testing.M) {
 	case "hang":
 		time.Sleep(time.Minute)
 		os.Exit(0)
+	case "slowstart":
+		// A one-file build unpacking itself on a cold start: it answers
+		// --version, only late. Every start is counted.
+		if f, err := os.OpenFile(os.Getenv(spawnLogEnv), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644); err == nil {
+			fmt.Fprintln(f, "start")
+			f.Close()
+		}
+		time.Sleep(700 * time.Millisecond)
+		fmt.Println("2026.11.01")
+		os.Exit(0)
 	default:
 		os.Exit(2)
 	}

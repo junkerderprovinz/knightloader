@@ -89,6 +89,34 @@ type Backend struct {
 	// unfinished download left (see Remove). Each one also goes to the task
 	// as Update.WorkFile, which is what is left of the list after a restart.
 	parts map[string]*taskParts
+
+	// answered is the binary that last answered --version, so Available
+	// spawns it again only once the file changes. checking is set while a
+	// slow check runs in the background.
+	answered binaryID
+	checking bool
+}
+
+// binaryID tells one yt-dlp file from another, and from the same file after
+// an update replaced it.
+type binaryID struct {
+	path string
+	size int64
+	mod  time.Time
+}
+
+// identify finds the file bin names, looking it up on PATH when it is a bare
+// name. ok is false when there is no such file.
+func identify(bin string) (binaryID, bool) {
+	path, err := exec.LookPath(bin)
+	if err != nil {
+		return binaryID{}, false
+	}
+	fi, err := os.Stat(path)
+	if err != nil {
+		return binaryID{}, false
+	}
+	return binaryID{path: path, size: fi.Size(), mod: fi.ModTime()}, true
 }
 
 // taskParts is what a task's runs wrote and the folder they wrote it in, the
@@ -129,9 +157,14 @@ func NewBackend(bin, dir string, onUpdate func(taskID string, u core.Update)) *B
 
 // availableTimeout bounds the spawn Available makes. A half-written,
 // quarantined or unreachable binary hangs instead of failing, and Available
-// runs inside app.rewireBackends on every account save and sweep tick. Ten
-// seconds covers a cold PyInstaller start; tests shorten it.
+// runs inside app.rewireBackends on every account save and sweep tick; a
+// start slower than this gets checkSlowly. Tests shorten it.
 var availableTimeout = 10 * time.Second
+
+// availableSlowTimeout bounds the check that carries on in the background
+// after the quick one ran out of time: a one-file build unpacks itself on a
+// cold start, which on a slow disk takes far longer than availableTimeout.
+var availableSlowTimeout = 2 * time.Minute
 
 // SetBinary makes the runs started from now on use bin. A run already going
 // keeps the binary it started with.
@@ -176,9 +209,58 @@ func (b *Backend) ffprobeBinary() string {
 
 // Available reports whether the yt-dlp binary runs.
 func (b *Backend) Available() bool {
+	bin := b.binary()
+	id, known := identify(bin)
+	b.mu.Lock()
+	if known && b.answered == id {
+		b.mu.Unlock()
+		return true
+	}
+	busy := b.checking
+	b.mu.Unlock()
+	if busy {
+		return false
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), availableTimeout)
 	defer cancel()
-	return nowindow.CommandContext(ctx, b.binary(), "--version").Run() == nil
+	err := nowindow.CommandContext(ctx, bin, "--version").Run()
+	switch {
+	case err == nil:
+		b.remember(id, known)
+		return true
+	case known && ctx.Err() == context.DeadlineExceeded:
+		b.checkSlowly(bin, id)
+	}
+	return false
+}
+
+// checkSlowly gives a yt-dlp that ran out of the quick check's time a longer
+// one in the background. Once it answers, the next Available takes it.
+func (b *Backend) checkSlowly(bin string, id binaryID) {
+	b.mu.Lock()
+	b.checking = true
+	b.mu.Unlock()
+	limit := availableSlowTimeout
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), limit)
+		defer cancel()
+		ok := nowindow.CommandContext(ctx, bin, "--version").Run() == nil
+		b.mu.Lock()
+		b.checking = false
+		b.mu.Unlock()
+		if ok {
+			b.remember(id, true)
+		}
+	}()
+}
+
+func (b *Backend) remember(id binaryID, known bool) {
+	if !known {
+		return
+	}
+	b.mu.Lock()
+	b.answered = id
+	b.mu.Unlock()
 }
 
 func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
