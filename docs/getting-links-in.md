@@ -320,6 +320,36 @@ A debrid service that carries 1fichier and a 1fichier login in JDownloader
 have no such waits, so both go first. With **Allow free downloads** off, a
 1fichier link waits for one of them.
 
+## ddownload
+
+A `ddownload.com` or `ddl.to` link needs no JDownloader. KnightLoader reads
+the file page, so the link collector shows the name, the size and whether the
+file is still there, and it fetches the file over one connection, which is all
+ddownload serves.
+
+With a ddownload login saved under hoster accounts on the Accounts page,
+KnightLoader signs in itself and downloads on your premium. The login's row
+shows the plan, the day it runs out and the traffic left. ddownload asks for a
+Cloudflare Turnstile captcha at every sign-in, which the phone app or one of
+your captcha accounts can answer, since a Turnstile captcha only runs on
+ddownload's own address. KnightLoader keeps the session, so a restart needs
+no new sign-in and no new captcha. The login stays with KnightLoader and does
+not go to JDownloader.
+
+Without premium the download is free, and ddownload shows the same captcha
+before each file and a countdown of about a minute. Between two free
+downloads ddownload makes each address wait. The task keeps running through
+that wait and its row shows the time left, and once it is over the file
+starts by itself. Pausing or removing the task calls the wait off. A link
+protected by a password needs the download password set on it.
+
+A wrong login, a premium that ran out, traffic used up for the day, a deleted
+file and a file kept for premium accounts each stop the download with their
+own message. A premium login ranks where its row sits on the priority card,
+right where a ddownload login in JDownloader would. A debrid service that
+carries ddownload goes before a free download. With **Allow free downloads**
+off, a ddownload link waits for a premium login or a debrid service.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks

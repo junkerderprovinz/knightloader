@@ -50,6 +50,18 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   1fichier's password field. A debrid service that carries 1fichier and a
   1fichier login in JDownloader still go first, since neither has to wait
   ([#155](https://github.com/junkerderprovinz/knightloader/issues/155)).
+- **ddownload links download without JDownloader.** A `ddownload.com` or
+  `ddl.to` link shows its name, size and online state in the link collector.
+  With a ddownload login saved on the Accounts page, KnightLoader signs in
+  itself, downloads on your premium and shows the plan, the day it runs out
+  and the traffic left on the login's row. The login no longer goes to
+  JDownloader. ddownload asks for a Turnstile captcha at sign-in and before
+  each free download, which the phone app or one of your captcha accounts
+  can answer. The session is kept, so a restart needs no new sign-in. Without
+  premium the file comes for free, and the wait ddownload sets between free
+  downloads shows on the task until it is over. A wrong login, a premium that
+  ran out, used-up traffic, a deleted file and a file for premium accounts
+  only each stop the download with its own message.
 
 ## [2.7.3] - 2026-11-07
 
