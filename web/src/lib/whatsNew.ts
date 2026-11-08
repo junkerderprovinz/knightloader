@@ -55,6 +55,7 @@ export const RELEASES: Release[] = [
     changes: [
       { id: 'fichier-native', text: 'whatsnew.change.fichierNative' },
       { id: 'rapidgator-native', text: 'whatsnew.change.rapidgatorNative' },
+      { id: 'k2s-nitroflare-native', text: 'whatsnew.change.k2sNitroflareNative' },
     ],
   },
   {

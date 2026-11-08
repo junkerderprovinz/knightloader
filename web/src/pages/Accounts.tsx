@@ -908,7 +908,12 @@ const BUILT_IN = ['jd', 'ytdlp', 'direct', 'torrent', 'mega', '1fichier'];
  * The hosters KnightLoader signs in to itself rather than through JDownloader
  * (app.ownLogin), by every domain a login may be saved under.
  */
-const OWN_LOGINS = new Set(['rapidgator.net', 'rg.to', 'rapidgator.asia']);
+const OWN_LOGINS = new Set([
+  ...['rapidgator.net', 'rg.to', 'rapidgator.asia'],
+  ...['keep2share.cc', 'k2s.cc', 'keep2s.cc', 'k2share.cc', 'keep2.cc'],
+  ...['fileboom.me', 'fboom.me', 'tezfiles.com', 'publish2.me'],
+  ...['nitroflare.com', 'nitroflare.net', 'nitro.download'],
+]);
 
 /**
  * connectedDebrid maps each debrid service with a connected, switched-on

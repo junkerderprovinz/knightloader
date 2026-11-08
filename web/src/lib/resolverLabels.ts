@@ -16,6 +16,10 @@ const PRODUCT_NAMES: Record<string, string> = {
   mega: 'MEGA',
   '1fichier': '1fichier',
   rapidgator: 'Rapidgator',
+  keep2share: 'Keep2Share',
+  fileboom: 'FileBoom',
+  tezfiles: 'TezFiles',
+  nitroflare: 'Nitroflare',
 };
 
 const DESCRIBED: Record<string, TranslationKey> = {
