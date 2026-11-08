@@ -1221,6 +1221,7 @@ export function ListMenu({
   target = { kind: 'selection' },
   list,
   rename,
+  leadGroups = [],
   extraGroups = [],
   settled,
 }: {
@@ -1237,6 +1238,9 @@ export function ListMenu({
   list?: ListContext;
   /** The page's rename window, whose dialog the page renders. */
   rename?: Rename;
+  /** Groups that open the menu of a row or a package, ahead of the standard
+   *  ones: the file and its folder. */
+  leadGroups?: MenuGroup[];
   /** Groups another wave contributes, appended after the standard ones. */
   extraGroups?: MenuGroup[];
   /** Whether the menu belongs to the Seeding or the Finished card, which
@@ -1383,6 +1387,11 @@ export function ListMenu({
         ? list.members(target.name)
         : null;
 
+    // A row's or a package's menu opens with the file and its folder. The
+    // empty space's menu is about the list, so there they follow selecting
+    // and folding.
+    if (target.kind === 'list') groups.push(...leadGroups);
+    else groups.unshift(...leadGroups);
     groups.push(
       { id: 'organise', items: organise },
       ...taskMenuGroups({

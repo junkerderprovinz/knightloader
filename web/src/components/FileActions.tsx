@@ -45,8 +45,10 @@ const webLink = (url: string): boolean => /^https?:\/\//i.test(url);
 /**
  * useFileMenu is what the menu offers for the files and links of a selection,
  * the way JDownloader's right-click does: the file itself for one link that
- * has one, the folder it downloads into, and the links. files is false in the
- * collector, where nothing has been downloaded yet.
+ * has one, the folder it downloads into, and the links. lead opens the menu,
+ * since reaching the file is what a right-click on a download is most often
+ * for; links goes below the verbs. files is false in the collector, where
+ * nothing has been downloaded yet.
  */
 export function useFileMenu({
   chosen,
@@ -58,10 +60,10 @@ export function useFileMenu({
   base: string;
   local: boolean;
   files?: boolean;
-}): MenuGroup[] {
+}): { lead: MenuGroup[]; links: MenuGroup[] } {
   const { t } = useT();
   const { toast } = useToast();
-  if (chosen.length === 0) return [];
+  if (chosen.length === 0) return { lead: [], links: [] };
   const desktop = local && isDesktop();
   const fail = (e: unknown) => toast(String(e instanceof Error ? e.message : e), 'fail');
 
@@ -96,9 +98,10 @@ export function useFileMenu({
         },
       ]
     : [];
-  const linkGroups: MenuGroup[] = [{ id: 'links', items: [...folder, ...links] }];
+  const linkGroups: MenuGroup[] = [{ id: 'links', items: links }];
 
-  if (!files || chosen.length !== 1 || !reachable(chosen[0])) return linkGroups;
+  if (!files || chosen.length !== 1 || !reachable(chosen[0]))
+    return { lead: folder.length > 0 ? [{ id: 'file', items: folder }] : [], links: linkGroups };
   const task = chosen[0];
 
   // The file opens in a tab of its own, where the browser's player streams it.
@@ -117,29 +120,32 @@ export function useFileMenu({
         ]
       : [];
 
-  return [
-    {
-      id: 'file',
-      items: [
-        ...play,
-        {
-          id: 'open',
-          label: t('file.open'),
-          icon: <IconExternalLink width={14} height={14} />,
-          onSelect: () => window.open(taskFileURL(task.id, base), '_blank', 'noopener'),
-        },
-        ...(desktop
-          ? [
-              {
-                id: 'openNatively',
-                label: t('file.openNatively'),
-                icon: <IconApp width={14} height={14} />,
-                onSelect: () => void openNatively(task.id).catch(fail),
-              },
-            ]
-          : []),
-      ],
-    },
-    ...linkGroups,
-  ];
+  return {
+    lead: [
+      {
+        id: 'file',
+        items: [
+          ...play,
+          {
+            id: 'open',
+            label: t('file.open'),
+            icon: <IconExternalLink width={14} height={14} />,
+            onSelect: () => window.open(taskFileURL(task.id, base), '_blank', 'noopener'),
+          },
+          ...(desktop
+            ? [
+                {
+                  id: 'openNatively',
+                  label: t('file.openNatively'),
+                  icon: <IconApp width={14} height={14} />,
+                  onSelect: () => void openNatively(task.id).catch(fail),
+                },
+              ]
+            : []),
+          ...folder,
+        ],
+      },
+    ],
+    links: linkGroups,
+  };
 }

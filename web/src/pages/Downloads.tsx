@@ -297,7 +297,7 @@ export function Downloads() {
   // Starting or stopping an unpacking is not forwarded to a peer.
   const archiveGroups = useArchiveMenu({ chosen: instance === '' ? chosen : [], base, jobs });
   // Reveal and open natively only on this instance's own filesystem.
-  const fileGroups = useFileMenu({ chosen, base, local: instance === '' });
+  const fileMenu = useFileMenu({ chosen, base, local: instance === '' });
   // Saved scripts become manual commands on this menu (ScriptActions.tsx).
   const scriptGroups = useScriptMenu({ chosen, base });
 
@@ -604,7 +604,8 @@ export function Downloads() {
         target={target}
         list={listContext}
         rename={rename}
-        extraGroups={[...archiveGroups, ...fileGroups, ...scriptGroups]}
+        leadGroups={fileMenu.lead}
+        extraGroups={[...archiveGroups, ...fileMenu.links, ...scriptGroups]}
         settled={menuCard !== 'downloads'}
       />
       {removal.dialog}

@@ -5,14 +5,14 @@ package main
 import (
 	"fmt"
 	"os/exec"
+	"syscall"
 
-	"github.com/junkerderprovinz/knightloader/internal/nowindow"
+	"golang.org/x/sys/windows"
 )
 
-// revealInFolder asks Explorer to select the file. "/select," and the path
-// must be one argument; split, Explorer opens the home folder instead.
+// revealInFolder asks Explorer to select the file.
 func revealInFolder(path string) error {
-	cmd := exec.Command("explorer", "/select,"+path)
+	cmd := revealCommand(path)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("could not open Explorer: %w", err)
 	}
@@ -20,16 +20,27 @@ func revealInFolder(path string) error {
 	return nil
 }
 
-// openNatively uses cmd's start, which resolves the default handler as a
-// double-click does. The empty argument is the window title; without it start
-// would take a quoted path as the title.
+// revealCommand writes Explorer's command line by hand, since Explorer parses
+// it itself. Given "/select,<path>" in quotes, as Go quotes a path with a
+// space, or a path with a bare comma, it opens Documents. A Windows path
+// cannot contain a quote, so quoting the path alone holds for every path.
+func revealCommand(path string) *exec.Cmd {
+	cmd := exec.Command("explorer.exe")
+	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: `explorer.exe /select,"` + path + `"`}
+	return cmd
+}
+
+// openNatively hands path to the shell as a double-click does, with the
+// default verb of its type, and opens a folder in Explorer. No command
+// interpreter is involved, so an & or a % in a name stays part of the name.
 func openNatively(path string) error {
-	cmd := exec.Command("cmd", "/c", "start", "", path)
-	nowindow.Apply(cmd)
-	if err := cmd.Start(); err != nil {
+	file, err := windows.UTF16PtrFromString(path)
+	if err != nil {
+		return err
+	}
+	if err := windows.ShellExecute(0, nil, file, nil, nil, windows.SW_SHOWNORMAL); err != nil {
 		return fmt.Errorf("could not open %s: %w", path, err)
 	}
-	reap(cmd)
 	return nil
 }
 

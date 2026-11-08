@@ -201,7 +201,7 @@ export function Collector() {
   // Scripts can act on staged links before they start (ScriptActions.tsx).
   const scriptGroups = useScriptMenu({ chosen: selectedTasks, base: '/api' });
   // The folder a link will land in and the links themselves; nothing is on disk yet.
-  const linkGroups = useFileMenu({ chosen: selectedTasks, base: '/api', local: true, files: false });
+  const fileMenu = useFileMenu({ chosen: selectedTasks, base: '/api', local: true, files: false });
 
   const selection: Selection = {
     ids: selected,
@@ -463,7 +463,8 @@ export function Collector() {
         target={target}
         list={listContext}
         rename={rename}
-        extraGroups={[...linkGroups, ...scriptGroups]}
+        leadGroups={fileMenu.lead}
+        extraGroups={[...fileMenu.links, ...scriptGroups]}
       />
       {removal.dialog}
       {rename.dialog}
