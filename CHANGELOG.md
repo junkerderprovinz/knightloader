@@ -192,9 +192,17 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   reaches both ends of its list, as the columns of the download list already
   did. KnightLoader follows GlimStone 4.2.8 in the web interface and the
   browser extension.
+- **Open folder sits at the top of a download's right-click menu.** It
+  follows Play, Open and Open with the default app, or leads the menu on its
+  own when there is no single file to open, in the download list and the link
+  collector alike.
 
 ### Fixed
 
+- **Open folder in the Windows desktop app shows the download's own folder.**
+  When the file's path held a space or a comma, as a package folder like
+  `My Package` does, Explorer opened Documents instead. The folder opens with
+  the file selected, and a folder or file with an `&` in its name opens too.
 - **A second desktop copy on Linux with its own `KL_DATA` folder starts.**
   Its single-instance name could begin with a digit, which D-Bus refuses, and
   the copy stopped before it opened a window. The name starts with a letter.

@@ -37,8 +37,8 @@ const task = (id: string, more: Partial<Task> = {}) =>
     ...more,
   }) as Task;
 
-async function entries(chosen: Task[], files = true): Promise<string[]> {
-  let groups: MenuGroup[] = [];
+async function menu(chosen: Task[], files = true): Promise<{ lead: string[][]; links: string[][] }> {
+  let groups: { lead: MenuGroup[]; links: MenuGroup[] } = { lead: [], links: [] };
   function Probe() {
     groups = useFileMenu({ chosen, base: '/api', local: true, files });
     return null;
@@ -52,21 +52,44 @@ async function entries(chosen: Task[], files = true): Promise<string[]> {
       </I18nProvider>,
     ),
   );
-  return groups.flatMap((g) => g.items.map((i) => i.id));
+  const ids = (gs: MenuGroup[]) => gs.map((g) => g.items.map((i) => i.id));
+  return { lead: ids(groups.lead), links: ids(groups.links) };
 }
+
+async function entries(chosen: Task[], files = true): Promise<string[]> {
+  const { lead, links } = await menu(chosen, files);
+  return [...lead, ...links].flat();
+}
+
+const onDesktop = () =>
+  vi.stubGlobal('location', { ...window.location, protocol: 'wails:', hostname: 'wails.localhost' });
+
+it('puts the folder right after the entries that open the file', async () => {
+  onDesktop();
+  expect((await menu([task('a', { name: 'a.mkv' })])).lead).toEqual([
+    ['play', 'open', 'openNatively', 'openFolder'],
+  ]);
+  expect((await menu([task('a')])).lead).toEqual([['open', 'openNatively', 'openFolder']]);
+});
+
+it('leads with the folder alone when there is no one file to open', async () => {
+  onDesktop();
+  expect(await menu([task('a'), task('b')])).toEqual({ lead: [['openFolder']], links: [['copyLinks']] });
+  expect((await menu([task('a', { status: 'collected' })], false)).lead).toEqual([['openFolder']]);
+});
 
 it('offers the folder and the native app in the desktop app only', async () => {
   expect(await entries([task('a')])).not.toContain('openFolder');
   expect(await entries([task('a')])).not.toContain('openNatively');
 
-  vi.stubGlobal('location', { ...window.location, protocol: 'wails:', hostname: 'wails.localhost' });
+  onDesktop();
   const desktop = await entries([task('a')]);
   expect(desktop).toContain('openFolder');
   expect(desktop).toContain('openNatively');
 });
 
 it('opens the folder of a whole package and copies all its links', async () => {
-  vi.stubGlobal('location', { ...window.location, protocol: 'wails:', hostname: 'wails.localhost' });
+  onDesktop();
   const items = await entries([task('a'), task('b')]);
   expect(items).toEqual(expect.arrayContaining(['openFolder', 'copyLinks']));
   // One file to open and one page to visit only make sense for one link.
