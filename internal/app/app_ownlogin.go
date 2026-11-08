@@ -22,6 +22,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/nitroflare"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 )
 
 // ownBackend is the backend of a hoster KnightLoader signs in to itself.
@@ -53,6 +54,50 @@ type ownHoster struct {
 	normalize func(string) (string, bool)
 	be        ownBackend
 	res       linkInspectingResolver
+	// free downloads the hoster's links without a login, nil for a hoster
+	// whose free downloads stay with JD.
+	free *ownFree
+}
+
+// ownFree is the free client of a hoster KnightLoader signs in to itself. It
+// ranks below the debrid services and above JD's free mode, and its row on
+// the priority card is its own.
+type ownFree struct {
+	id  string
+	be  backend
+	res resolver.Resolver
+}
+
+// handedFree is a free client that claims nothing while its hoster's login
+// is with JD, which downloads the links on it.
+type handedFree struct {
+	resolver.Resolver
+	handed func() bool
+}
+
+func (r handedFree) Match(url string) bool { return !r.handed() && r.Resolver.Match(url) }
+
+// newOwnFree makes the free client whose captchas are asked for site, and
+// which stands aside while handed reports the hoster's login with JD.
+func (a *App) newOwnFree(id, site string, res resolver.Resolver, f *ownlogin.Free, be backend, handed func() bool) *ownFree {
+	f.Solve = func(ctx context.Context, taskID string, c ownlogin.Captcha) (string, error) {
+		return a.askCaptcha(ctx, site, taskID, xfs.Captcha{Kind: xfs.CaptchaKind(c.Kind), SiteKey: c.SiteKey, PageURL: c.PageURL, Image: c.Image})
+	}
+	return &ownFree{id: id, be: be, res: handedFree{res, handed}}
+}
+
+// ownFreeID reports whether id is the resolver id of an own hoster's free
+// client. It reads the ids alone, so the app may ask holding its lock.
+func ownFreeID(id string) bool {
+	if id == rapidgator.FreeResolverID || id == filer.FreeResolverID {
+		return true
+	}
+	for _, h := range keep2share.Hosts {
+		if id == h.ID+"-free" {
+			return true
+		}
+	}
+	return false
 }
 
 // ownSites maps the resolver of every hoster downloaded on a premium login
@@ -103,12 +148,16 @@ func (a *App) ownHosters(eng ownlogin.Downloader) []*ownHoster {
 	// link held for premium only was waiting for.
 	rg := rapidgator.NewBackend(rapidgator.NewClient(rapidgator.DefaultSite, hc), eng, a.onUpdate)
 	rg.Checked, rg.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	rgFree := rapidgator.NewFreeBackend(rapidgator.NewClient(rapidgator.DefaultSite, hc), eng, a.onUpdate)
 	a.own = append(a.own, &ownHoster{id: rapidgator.ResolverID, site: rapidgator.Site,
-		normalize: rapidgator.Normalize, be: rg, res: rapidgator.Resolver{Backend: rg}})
+		normalize: rapidgator.Normalize, be: rg, res: rapidgator.Resolver{Backend: rg},
+		free: a.newOwnFree(rapidgator.FreeResolverID, rapidgator.Site, rapidgator.FreeResolver{}, rgFree.Free, rgFree, rg.Handed)})
 	for _, h := range keep2share.Hosts {
 		b := keep2share.NewBackend(h, keep2share.NewClient(h.API, hc), eng, a.onUpdate)
 		b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
-		a.own = append(a.own, &ownHoster{id: h.ID, site: h.Site, normalize: h.Normalize, be: b, res: keep2share.Resolver{Backend: b}})
+		fb := keep2share.NewFreeBackend(h, keep2share.NewClient(h.API, hc), eng, a.onUpdate)
+		a.own = append(a.own, &ownHoster{id: h.ID, site: h.Site, normalize: h.Normalize, be: b, res: keep2share.Resolver{Backend: b},
+			free: a.newOwnFree(h.ID+"-free", h.Site, keep2share.FreeResolver{Host: h}, fb.Free, fb, b.Handed)})
 	}
 	nf := nitroflare.NewBackend(nitroflare.NewClient(nitroflare.DefaultSite, hc), eng, a.onUpdate)
 	nf.Checked, nf.Moved = a.refreshPremiumHolds, a.ownLoginMoved
@@ -116,8 +165,10 @@ func (a *App) ownHosters(eng ownlogin.Downloader) []*ownHoster {
 		normalize: nitroflare.Normalize, be: nf, res: nitroflare.Resolver{Backend: nf}})
 	fn := filer.NewBackend(filer.NewClient(filer.DefaultSite, hc), eng, a.onUpdate)
 	fn.Checked, fn.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	fnFree := filer.NewFreeBackend(filer.NewClient(filer.DefaultSite, hc), eng, a.onUpdate)
 	a.own = append(a.own, &ownHoster{id: filer.ResolverID, site: filer.Site,
-		normalize: filer.Normalize, be: fn, res: filer.Resolver{Backend: fn}})
+		normalize: filer.Normalize, be: fn, res: filer.Resolver{Backend: fn},
+		free: a.newOwnFree(filer.FreeResolverID, filer.Site, filer.FreeResolver{}, fnFree.Free, fnFree, fn.Handed)})
 	return a.own
 }
 

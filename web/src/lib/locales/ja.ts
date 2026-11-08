@@ -3809,6 +3809,7 @@ export const ja: Dict = {
   'whatsnew.change.fichierNative': '1fichier のリンクは JDownloader なしでダウンロードされ、1fichier が無料ダウンロードの間に求める待ち時間はダウンロードに表示されます。',
   'whatsnew.change.rapidgatorNative': 'ホスターのアカウントに Rapidgator のプレミアムログインがあれば、Rapidgator のリンクは JDownloader なしでダウンロードされます。Rapidgator のリンクはログインの有無にかかわらず、届いた時点で名前、サイズ、オンライン状態を表示します。',
   'whatsnew.change.filerNative': 'ホスターのアカウントに filer.net のプレミアムログインがあれば、filer.net のリンクは JDownloader なしでダウンロードされます。filer.net のリンクはログインの有無にかかわらず、届いた時点で名前、サイズ、オンライン状態を表示します。',
+  'whatsnew.change.freeHostersNative': 'Rapidgator、Keep2Share、FileBoom、TezFiles、filer.net の無料リンクは JDownloader なしで、1 本の接続でダウンロードされます。キャプチャはスマホアプリとキャプチャアカウントに届き、カウントダウンと無料ダウンロードの間の待ち時間はダウンロードに表示されます。',
   'whatsnew.change.k2sNitroflareNative': 'ホスターのアカウントにプレミアムログインがあれば、Keep2Share、FileBoom、TezFiles、Nitroflare のリンクは JDownloader なしでダウンロードされます。これらのリンクはログインの有無にかかわらず、届いた時点で名前、サイズ、オンライン状態を表示します。',
   'whatsnew.change.ddownloadNative': 'ddownload のリンクは JDownloader なしで、プレミアムのログインまたは無料でダウンロードされます。ddownload のキャプチャはスマホアプリとキャプチャアカウントに届き、待ち時間はダウンロードに表示されます。',
   'whatsnew.change.xfsHosters': 'KatFile、Clicknupload、FileSpace、Uploadrar のリンクも JDownloader なしで、プレミアムのログインまたは無料でダウンロードされます。これらのキャプチャはスマホアプリとキャプチャアカウントに届き、待ち時間はダウンロードに表示されます。',

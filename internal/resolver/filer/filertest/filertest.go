@@ -34,6 +34,9 @@ type File struct {
 	PremiumOnly bool
 }
 
+// Token is the one hCaptcha answer the free download takes.
+const Token = "hcaptcha-answer"
+
 // Server answers for the accounts and files it was given. A client pointed at
 // URL reaches it.
 type Server struct {
@@ -44,6 +47,11 @@ type Server struct {
 	files    map[string]File
 	fail     map[string][]failure
 	requests []string
+	// freeWait is the wait a ticket comes with, in seconds, and limits the
+	// free downloads still turned away for the hour.
+	freeWait int
+	limits   int
+	tickets  map[string]string
 }
 
 type failure struct {
@@ -53,7 +61,8 @@ type failure struct {
 
 // New starts a server that closes when the test ends.
 func New(t *testing.T) *Server {
-	s := &Server{accounts: map[string]*Account{}, files: map[string]File{}, fail: map[string][]failure{}}
+	s := &Server{accounts: map[string]*Account{}, files: map[string]File{}, fail: map[string][]failure{},
+		freeWait: 30, tickets: map[string]string{}}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
 	return s
@@ -82,6 +91,20 @@ func (s *Server) Fail(prefix string, httpStatus, code int, status string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.fail[prefix] = append(s.fail[prefix], failure{httpStatus, code, status})
+}
+
+// FreeWait sets the wait a ticket comes with.
+func (s *Server) FreeWait(seconds int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.freeWait = seconds
+}
+
+// HourlyLimit turns the next n free downloads away for the hour.
+func (s *Server) HourlyLimit(n int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.limits = n
 }
 
 // Requests is every request as "METHOD path", oldest first.
@@ -118,6 +141,10 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			envelope(w, q[0].http, q[0].code, q[0].status, map[string]any{})
 			return
 		}
+	}
+	if strings.HasPrefix(call, "file/") {
+		s.website(w, r, strings.TrimPrefix(call, "file/"))
+		return
 	}
 	switch {
 	case call == "profile.json" && r.Method == http.MethodGet:
@@ -175,6 +202,58 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		}
 	default:
 		envelope(w, http.StatusNotFound, 404, "not found", map[string]any{})
+	}
+}
+
+// website answers the API filer.net's own download page uses, in the
+// shapes its script reads.
+func (s *Server) website(w http.ResponseWriter, r *http.Request, call string) {
+	refuse := func(status int, body map[string]any) {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(status)
+		_ = json.NewEncoder(w).Encode(body)
+	}
+	switch {
+	case strings.HasPrefix(call, "request/") && r.Method == http.MethodGet:
+		id := strings.TrimPrefix(call, "request/")
+		if _, ok := s.files[id]; !ok {
+			refuse(http.StatusNotFound, map[string]any{"message": "File not found"})
+			return
+		}
+		if r.URL.Query().Get("hCaptchaToken") != Token {
+			refuse(http.StatusBadRequest, map[string]any{"error": "Invalid captcha"})
+			return
+		}
+		if s.limits > 0 {
+			s.limits--
+			refuse(http.StatusTooManyRequests, map[string]any{"error": "HOURLY_DOWNLOAD_LIMIT", "message": "Hourly download limit reached."})
+			return
+		}
+		ticket := "tk" + id
+		s.tickets[ticket] = id
+		http.SetCookie(w, &http.Cookie{Name: "filer_session", Value: ticket, Path: "/"})
+		refuse(http.StatusOK, map[string]any{"t": ticket, "wt": s.freeWait})
+	case call == "download" && r.Method == http.MethodPost:
+		var in struct {
+			Ticket string `json:"ticket"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&in)
+		cookie, err := r.Cookie("filer_session")
+		id, ok := s.tickets[in.Ticket]
+		if !ok || err != nil || cookie.Value != in.Ticket {
+			refuse(http.StatusBadRequest, map[string]any{"error": "Invalid ticket"})
+			return
+		}
+		refuse(http.StatusOK, map[string]any{"downloadUrl": "http://" + r.Host + "/download/" + id})
+	case r.Method == http.MethodGet && !strings.Contains(call, "/"):
+		f, ok := s.files[call]
+		if !ok {
+			refuse(http.StatusNotFound, map[string]any{"message": "File not found"})
+			return
+		}
+		refuse(http.StatusOK, map[string]any{"hash": call, "name": f.Name, "size": len(f.Body), "premiumOnly": f.PremiumOnly, "wt": s.freeWait})
+	default:
+		refuse(http.StatusNotFound, map[string]any{"message": "Not found"})
 	}
 }
 

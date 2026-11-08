@@ -36,7 +36,11 @@ last, because which of them fits depends on the link.
 A login KnightLoader signs in with itself is kept from JDownloader, so the
 hoster sees one sign-in. When KnightLoader's own client cannot use it, the
 login goes back to JDownloader and the hoster's links follow it there, until a
-check with KnightLoader's client works again (`internal/ownlogin`).
+check with KnightLoader's client works again (`internal/ownlogin`). Without a
+login, the free downloads of Rapidgator, the Keep2Share family and filer.net
+go through the same package: the captcha is asked through the phone app and
+the captcha accounts, and the countdown and the pause between free downloads
+run on the same wait loop as every other hoster wait.
 
 The rate limit lives in a loopback proxy because the embedded engine offers no
 hook for one. Everything else is a plain Go package with its own tests.

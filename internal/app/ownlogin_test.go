@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 	"os"
 	"slices"
@@ -21,19 +22,28 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/nitroflare/nftest"
 )
 
-// useOwnHoster puts h in place of the app's hoster of the same id.
+// useOwnHoster puts h in place of the app's hoster of the same id. The free
+// client of the hoster it replaces goes too, since it speaks to the live
+// site.
 func useOwnHoster(a *App, h *ownHoster) {
 	own := a.ownHosters(engineHandoff{a.Engine, a})
 	a.bmu.Lock()
 	// A fresh slice, as the app reads the old one without the lock.
 	a.own = slices.Clone(own)
 	for i := range a.own {
-		if a.own[i].id == h.id {
-			a.own[i] = h
+		if a.own[i].id != h.id {
+			continue
 		}
+		if old := a.own[i].free; old != nil {
+			a.Registry.Unregister(old.id)
+		}
+		a.own[i] = h
 	}
 	a.bmu.Unlock()
 	a.Registry.Register(h.res)
+	if h.free != nil {
+		a.Registry.Register(h.free.res)
+	}
 	a.syncOwnLogins()
 }
 
@@ -254,6 +264,9 @@ func TestADownloadTheOwnClientGaveUpOnMovesToTheNextBackendNamingTheTakeover(t *
 	t.Cleanup(func() { jd.SetKnownHosts(nil) })
 	task := &core.Task{ID: "1", URL: "https://k2s.cc/file/" + k2sFile, Resolver: keep2share.Keep2Share.ID, Status: core.StatusRunning, Enabled: true}
 	a.mu.Lock()
+	// Held, so the task moved on starts nowhere: no JD is set up here, and the
+	// hoster's clients speak to the live site.
+	a.halted = true
 	a.tasks[task.ID] = task
 	a.active[task.ID] = true
 	a.started[task.ID] = true
@@ -316,5 +329,50 @@ func TestAFilerLoginDownloadsNativelyAndItsLinksAreNamedWithoutOne(t *testing.T)
 	})
 	if !a.HonoursCollisionPolicy(filer.ResolverID) {
 		t.Error("the file the engine writes for filer.net skips the collision policy")
+	}
+}
+
+func TestAFreeFilerLinkGoesToTheFreeClientBelowTheDebridServicesAndAboveJD(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.Registry.Register(jd.Resolver{})
+	a.Registry.Register(debrid.Resolver{ServiceID: "alldebrid", Prio: 49, Hosts: map[string]bool{"filer.net": true}})
+	jd.SetKnownHosts([]string{"filer.net"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	srv := filertest.New(t)
+	srv.AddAccount(filertest.Account{Email: "john@example.com", Password: "hunter2", Premium: true,
+		Until: time.Now().AddDate(0, 1, 0), Traffic: 125 << 30, TrafficLeft: 100 << 30})
+	b := filer.NewBackend(filer.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
+	b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	fb := filer.NewFreeBackend(filer.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
+	useOwnHoster(a, &ownHoster{id: filer.ResolverID, site: filer.Site, normalize: filer.Normalize, be: b, res: filer.Resolver{Backend: b},
+		free: a.newOwnFree(filer.FreeResolverID, filer.Site, filer.FreeResolver{}, fb.Free, fb, b.Handed)})
+	const link = "https://filer.net/get/dv6qg8tfckhk7mja"
+
+	if got := chainIDs(a, link); !slices.Equal(got[:3], []string{"alldebrid", filer.FreeResolverID, "jd"}) {
+		t.Errorf("chain without a login = %v, want the debrid service, the free client, then JD", got)
+	}
+	a.mu.Lock()
+	mode := a.modeForLocked(&core.Task{URL: link}, filer.FreeResolverID)
+	a.mu.Unlock()
+	if mode != core.ModeFree {
+		t.Errorf("mode = %q, want free", mode)
+	}
+	if !slices.Contains(priorityIDs(a), filer.FreeResolverID) {
+		t.Errorf("the card shows %v, want a row for the free client", priorityIDs(a))
+	}
+	if a.backendFor(filer.FreeResolverID) != backend(fb) || !a.HonoursCollisionPolicy(filer.FreeResolverID) {
+		t.Error("the free client's tasks do not reach its backend")
+	}
+
+	if err := a.SetHosterLogin("filer.net", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	if got := chainIDs(a, link); len(got) < 3 || got[0] != filer.ResolverID || got[1] != "alldebrid" || got[2] != filer.FreeResolverID {
+		t.Errorf("chain = %v, want the login first, then the debrid service and the free client", got)
+	}
+
+	b.Fail(errors.New("filer.net: something new"), core.ReasonUnknown)
+	if got := chainIDs(a, link); slices.Contains(got, filer.FreeResolverID) || slices.Contains(got, filer.ResolverID) {
+		t.Errorf("chain = %v, want both clients standing aside while JD has the login", got)
 	}
 }

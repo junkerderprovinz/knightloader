@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -189,49 +190,63 @@ func (c *Client) Link(ctx context.Context, token, id string) (string, error) {
 
 // call posts in as JSON to an API method and decodes the answer into out.
 func (c *Client) call(ctx context.Context, method string, in, out any) error {
+	refusal, err := c.do(ctx, method, in, out)
+	if refusal != nil {
+		return refusal.classify(method)
+	}
+	return err
+}
+
+// do is call with a refusal left as the API wrote it.
+func (c *Client) do(ctx context.Context, method string, in, out any) (*apiError, error) {
 	body, err := json.Marshal(in)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.api+"/api/v2/"+method, bytes.NewReader(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := c.hc.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	raw, err := io.ReadAll(io.LimitReader(resp.Body, maxBody))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var env struct {
 		Status    string          `json:"status"`
 		ErrorCode json.RawMessage `json:"errorCode"`
 		Message   string          `json:"message"`
 		Errors    []struct {
-			Code int `json:"code"`
+			Code          int    `json:"code"`
+			TimeRemaining string `json:"timeRemaining"`
 		} `json:"errors"`
 	}
 	if err := json.Unmarshal(raw, &env); err != nil {
 		if resp.StatusCode != http.StatusOK {
-			return &APIError{Status: resp.StatusCode, Message: http.StatusText(resp.StatusCode)}
+			return nil, &APIError{Status: resp.StatusCode, Message: http.StatusText(resp.StatusCode)}
 		}
-		return fmt.Errorf("%s answered with something that is not JSON", method)
+		return nil, fmt.Errorf("%s answered with something that is not JSON", method)
 	}
 	if env.Status == "error" || resp.StatusCode != http.StatusOK {
-		e := apiError{status: resp.StatusCode, code: env.ErrorCode, message: env.Message}
+		e := &apiError{status: resp.StatusCode, code: env.ErrorCode, message: env.Message}
 		if len(env.Errors) > 0 {
 			e.sub = env.Errors[0].Code
+			// The seconds come as a decimal in a string.
+			if secs, err := strconv.ParseFloat(env.Errors[0].TimeRemaining, 64); err == nil {
+				e.wait = time.Duration(secs) * time.Second
+			}
 		}
-		return e.classify(method)
+		return e, nil
 	}
 	if err := json.Unmarshal(raw, out); err != nil {
-		return fmt.Errorf("the answer to %s does not read: %w", method, err)
+		return nil, fmt.Errorf("the answer to %s does not read: %w", method, err)
 	}
-	return nil
+	return nil, nil
 }
 
 // apiError is a refusal as the API writes it. errorCode is mostly a number,
@@ -241,6 +256,8 @@ type apiError struct {
 	code    json.RawMessage
 	sub     int
 	message string
+	// wait is the time a free download is asked to wait, 0 for none.
+	wait time.Duration
 }
 
 // classify reads a refusal of the API. Codes 21 and 42 only say the download

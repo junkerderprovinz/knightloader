@@ -66,7 +66,7 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 	// quota, which premium only is there to stay off. The other clients of
 	// our own download for free as well, waits and limits and all, even when
 	// a stored login lends Pixeldrain or Gofile its key.
-	if resolverID == mega.ResolverID || resolverID == onefichier.ResolverID || hosterClientID(resolverID) {
+	if resolverID == mega.ResolverID || resolverID == onefichier.ResolverID || hosterClientID(resolverID) || ownFreeID(resolverID) {
 		return core.ModeFree
 	}
 	// An XFileSharing client downloads on the login while it has premium.
@@ -1280,7 +1280,7 @@ func (a *App) HonoursCollisionPolicy(resolverID string) bool {
 	switch a.backendFor(resolverID).(type) {
 	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *usenet.Files,
 		*onefichier.Backend, *xfs.Backend, *hoster.Backend, *rapidgator.Backend, *keep2share.Backend, *nitroflare.Backend,
-		*filer.Backend:
+		*filer.Backend, *rapidgator.FreeBackend, *keep2share.FreeBackend, *filer.FreeBackend:
 		return true
 	}
 	return false
@@ -1293,8 +1293,11 @@ func (a *App) backendFor(resolverID string) backend {
 		return b
 	}
 	for _, h := range a.own {
-		if h.id == resolverID {
+		switch {
+		case h.id == resolverID:
 			return h.be
+		case h.free != nil && h.free.id == resolverID:
+			return h.free.be
 		}
 	}
 	if b, ok := a.xfsBackends[resolverID]; ok {
@@ -1590,7 +1593,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 		if u.Takeover != "" {
 			t.Takeover = u.Takeover
 		}
-		if next := a.nextResolverLocked(t); next != "" {
+		if next := a.nextPastOwnFreeLocked(t); next != "" {
 			fallbackTo = a.backendFor(t.Resolver)
 			log.Printf("task %s: %s could not fetch the link, trying %s", id, t.Resolver, next)
 			t.Resolver = next
@@ -1797,6 +1800,24 @@ func (a *App) onUpdate(id string, u core.Update) {
 		log.Printf("stop mark reached at %s; the queue is halted", c.Name)
 		a.Hub.Broadcast("queue", a.Queue())
 	}
+}
+
+// nextPastOwnFreeLocked is nextResolverLocked for a task that may be going to
+// JD with the login of a hoster KnightLoader signs in to itself: it skips that
+// hoster's free client, which would download a premium user's link for free.
+// Caller holds a.mu.
+func (a *App) nextPastOwnFreeLocked(t *core.Task) string {
+	next := a.nextResolverLocked(t)
+	for t.Takeover != "" && ownFreeID(next) {
+		passed := a.fellBack[t.ID]
+		if passed == nil {
+			passed = map[string]bool{}
+			a.fellBack[t.ID] = passed
+		}
+		passed[next] = true
+		next = a.nextResolverLocked(t)
+	}
+	return next
 }
 
 // handOnLocked queues t for the backend onUpdate has just recorded, as

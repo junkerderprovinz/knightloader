@@ -3800,6 +3800,7 @@ export const ko: Dict = {
   'whatsnew.change.fichierNative': '1fichier 링크는 JDownloader 없이 다운로드되며, 1fichier가 무료 다운로드 사이에 요구하는 대기 시간이 다운로드에 표시됩니다.',
   'whatsnew.change.rapidgatorNative': '호스터 계정에 Rapidgator 프리미엄 로그인이 있으면 Rapidgator 링크를 JDownloader 없이 내려받습니다. 모든 Rapidgator 링크는 로그인 여부와 관계없이 도착하자마자 이름, 크기, 온라인 상태를 보여 줍니다.',
   'whatsnew.change.filerNative': '호스터 계정에 filer.net 프리미엄 로그인이 있으면 filer.net 링크를 JDownloader 없이 내려받습니다. 모든 filer.net 링크는 로그인 여부와 관계없이 도착하자마자 이름, 크기, 온라인 상태를 보여 줍니다.',
+  'whatsnew.change.freeHostersNative': 'Rapidgator, Keep2Share, FileBoom, TezFiles, filer.net의 무료 링크는 JDownloader 없이 연결 하나로 다운로드됩니다. 캡차는 휴대폰 앱과 캡차 계정으로 가고, 카운트다운과 무료 다운로드 사이의 대기 시간은 다운로드에 표시됩니다.',
   'whatsnew.change.k2sNitroflareNative': '호스터 계정에 프리미엄 로그인이 있으면 Keep2Share, FileBoom, TezFiles, Nitroflare 링크를 JDownloader 없이 내려받습니다. 이 링크들은 로그인 여부와 관계없이 도착하자마자 이름, 크기, 온라인 상태를 보여 줍니다.',
   'whatsnew.change.ddownloadNative': 'ddownload 링크는 JDownloader 없이 프리미엄 로그인이나 무료로 다운로드됩니다. ddownload의 캡차는 휴대폰 앱과 캡차 계정으로 가고, 대기 시간은 다운로드에 표시됩니다.',
   'whatsnew.change.xfsHosters': 'KatFile, Clicknupload, FileSpace, Uploadrar 링크도 JDownloader 없이 프리미엄 로그인이나 무료로 다운로드됩니다. 이들의 캡차는 휴대폰 앱과 캡차 계정으로 가고, 대기 시간은 다운로드에 표시됩니다.',

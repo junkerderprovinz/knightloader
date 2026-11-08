@@ -339,6 +339,9 @@ the login with KnightLoader and shows it on the row. JDownloader would be
 turned down too, and a hoster blocks an address that keeps trying. A hoster
 that cannot be reached at all changes nothing either.
 
+While JDownloader has the login, KnightLoader's free client for the hoster
+stands aside too, so the links go out on the login rather than for free.
+
 To give KnightLoader another try, save the login again or switch it off and on.
 KnightLoader checks it once more and takes it back if its client works with it.
 
@@ -367,9 +370,21 @@ has run out, Rapidgator links go to the next backend on the priority card for
 an hour, and then the login is tried again. When Rapidgator asks for a pause
 between sign-ins, the task waits five minutes and shows it.
 
-Free Rapidgator links stay with JDownloader, which waits out Rapidgator's
-countdown and answers its captcha. Against a debrid service that carries
-Rapidgator, the login's row on the priority card decides which goes first.
+Against a debrid service that carries Rapidgator, the login's row on the
+priority card decides which goes first.
+
+Without a premium login a Rapidgator link downloads for free, still without
+JDownloader. KnightLoader opens the file page, sits out the countdown it
+starts, which shows on the task, and then asks for the Cloudflare Turnstile
+captcha on Rapidgator's captcha page. The phone app or one of your captcha
+accounts can answer it, since a Turnstile captcha only runs on Rapidgator's
+own address. The file then comes over one connection. When Rapidgator makes
+the address wait between free downloads, the task keeps running, shows the
+time left and starts again once it is over. A file too large for a free
+download, or one kept for premium accounts, fails with that reason. The free
+client ranks below every debrid service and above JDownloader's free mode, and
+with **Allow free downloads** off a Rapidgator link waits for a login or a
+debrid service.
 
 ## Keep2Share, FileBoom and TezFiles
 
@@ -405,9 +420,17 @@ KnightLoader cannot answer it, and the login's row says so. Sign in to the site
 once in a browser on the same network and solve the captcha there, then switch
 the login off and on again.
 
-Free links stay with JDownloader, which answers the site's captcha. Against a
-debrid service that carries the site, the login's row on the priority card
-decides which goes first.
+Against a debrid service that carries the site, the login's row on the
+priority card decides which goes first.
+
+Without a premium login a link of these sites downloads for free through the
+same API. The site shows an image captcha, which the phone app or one of your
+captcha accounts can answer, then makes the download wait, mostly half a
+minute, and the task shows the time left. The file comes over one connection.
+When the site makes the address wait between free downloads, the task sits
+that out as well. A file only premium accounts may download, or one too large
+for a free download, fails with that reason. The free client ranks below every
+debrid service and above JDownloader's free mode.
 
 ## Nitroflare
 
@@ -463,8 +486,12 @@ is gone. Once the traffic has run out, filer.net links go to the next backend
 on the priority card for an hour, and then the login is tried again. A folder
 link goes to JDownloader.
 
-Free filer.net links stay with JDownloader, which waits out filer.net's
-countdown and answers its captcha.
+Without a premium login a filer.net link downloads for free, the way
+filer.net's own download page does it: an hCaptcha, which the phone app or one
+of your captcha accounts can answer, then the wait filer.net sets, shown on the
+task, then the file over one connection. When filer.net lets an address have
+only so many free downloads an hour, the task waits out the hour. The free
+client ranks below every debrid service and above JDownloader's free mode.
 
 FileFactory, Fikper and Upstore logins still go to JDownloader. FileFactory
 has no public API any more, Fikper's API did not answer while KnightLoader's

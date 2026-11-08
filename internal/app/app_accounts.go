@@ -189,10 +189,13 @@ func (a *App) rewireBackends() {
 	a.Registry.Register(onefichier.Resolver{Client: a.fichierBackend(eng).Client()})
 
 	// The hosters KnightLoader signs in to itself, on the user's own premium
-	// login. Without one a resolver claims nothing and the links stay with
-	// JD's free mode.
+	// login, and their free clients. Without a login the premium resolver
+	// claims nothing.
 	for _, h := range a.ownHosters(eng) {
 		a.Registry.Register(h.res)
+		if h.free != nil {
+			a.Registry.Register(h.free.res)
+		}
 	}
 	a.syncOwnLogins()
 

@@ -40,6 +40,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Added
 
+- **Free Rapidgator, Keep2Share, FileBoom, TezFiles and filer.net links
+  download without JDownloader.** Without a premium login KnightLoader goes
+  through the hoster's free download itself: it sits out the countdown, asks
+  for the captcha through the phone app and your captcha accounts and fetches
+  the file over one connection. The countdown and the wait a hoster sets
+  between free downloads show on the task. These free clients rank below every
+  debrid service and above JDownloader's free mode. Free Nitroflare links stay
+  with JDownloader, since Nitroflare's API turns free downloads away and its
+  website wants a chain of form posts.
+
 - **filer.net downloads on your premium login without JDownloader.** Save
   the login under Hoster accounts and KnightLoader asks filer.net's own API
   for the download link, fetches the file over one connection and shows on
