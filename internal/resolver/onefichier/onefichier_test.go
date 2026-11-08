@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -543,6 +544,45 @@ func TestPausingOrRemovingDuringAWaitCallsItOff(t *testing.T) {
 				awaitHandoff(t, eng)
 			}
 		})
+	}
+}
+
+func TestAWaitResumedAfterAPauseStillCountsAsWaitingWhenThePausedOneWindsDown(t *testing.T) {
+	srv := fichiertest.New(t)
+	link := srv.Add("k3m9x2p7q1", fichiertest.File{Name: "a.bin", Body: make([]byte, 1024)})
+	srv.CoolDown(90, 90)
+	b, _, _ := newBackend(srv)
+	waiting := make(chan struct{}, 2)
+	release := make(chan struct{})
+	var calls atomic.Int32
+	b.sleep = func(ctx context.Context, _ time.Duration) error {
+		first := calls.Add(1) == 1
+		waiting <- struct{}{}
+		<-ctx.Done()
+		if first {
+			// The paused run lingers until the resumed one is waiting too.
+			<-release
+		}
+		return ctx.Err()
+	}
+	t.Cleanup(func() { b.Remove("t1", false) })
+
+	b.Download("t1", link, nil, 1)
+	<-waiting
+	b.Pause("t1")
+	if b.Waiting("t1") {
+		t.Error("a paused task still counts as waiting")
+	}
+	b.Resume("t1")
+	<-waiting
+	close(release)
+
+	deadline := time.Now().Add(200 * time.Millisecond)
+	for time.Now().Before(deadline) {
+		if !b.Waiting("t1") {
+			t.Fatal("the paused run winding down took the resumed run's wait with it")
+		}
+		time.Sleep(5 * time.Millisecond)
 	}
 }
 
