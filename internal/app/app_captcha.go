@@ -18,6 +18,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -40,7 +41,9 @@ const captchaCallTimeout = 15 * time.Second
 type captchaState struct {
 	source captcha.Source
 	tests  *captcha.TestSource
-	store  *captcha.Store
+	// asks holds the captchas KnightLoader's own hoster clients wait on.
+	asks  *captcha.AskSource
+	store *captcha.Store
 
 	startOnce sync.Once
 	// pollMu serialises poll passes, so a manual refresh and a tick do not
@@ -70,6 +73,10 @@ func (a *App) captchaStateFor() *captchaState {
 	if !ok {
 		st = &captchaState{store: captcha.NewStore(), tests: captcha.NewTestSource()}
 		st.source = captcha.NewJDSource(jdBaseEnv, a.resolveJDTask)
+		st.asks = captcha.NewAskSource()
+		// A client waiting on a captcha should not wait for the next tick
+		// as well.
+		st.asks.Changed = func() { a.spawn(func() { a.pollCaptchasOnce(st) }) }
 		st.paid.path = filepath.Join(a.DataDir, paidLedgerFile)
 		captchaReg[a] = st
 	}
@@ -120,6 +127,9 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 			}
 			a.settleCaptcha(c, "switchedOff")
 		}
+		for _, c := range st.asks.List() {
+			st.asks.Abort(c.ID)
+		}
 		a.setActivityGauge(ActivityCaptcha, 0)
 		return nil
 	}
@@ -131,16 +141,17 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 		}
 		// A failed list is not "everything resolved": the JD challenges stay
 		// as they were, or every open prompt would close. The test captchas
-		// do not depend on JD and still come and go.
+		// and those of KnightLoader's own clients do not depend on JD and
+		// still come and go.
 		list = list[:0]
 		for _, c := range st.store.List() {
-			if !captcha.IsTest(c.ID) {
+			if !captcha.IsTest(c.ID) && !captcha.IsAsked(c.ID) {
 				list = append(list, c)
 			}
 		}
 	}
 
-	added, changed, removed := st.store.Sync(append(list, st.tests.List()...))
+	added, changed, removed := st.store.Sync(slices.Concat(list, st.tests.List(), st.asks.List()))
 	if err != nil && len(added) == 0 && len(removed) == 0 {
 		return st.store.List()
 	}
@@ -433,6 +444,17 @@ func (a *App) answerCaptcha(ctx context.Context, id, text, solver string) (Captc
 		}
 		return CaptchaAnswer{StillValid: true, Test: res}, nil
 	}
+	if captcha.IsAsked(id) {
+		live := st.asks.Answer(id, text)
+		if known {
+			reason := "expired"
+			if live {
+				reason = "solved"
+			}
+			a.settleCaptcha(ch, reason)
+		}
+		return CaptchaAnswer{StillValid: live}, nil
+	}
 
 	cctx, cancel := context.WithTimeout(ctx, captchaCallTimeout)
 	defer cancel()
@@ -456,9 +478,12 @@ func (a *App) AbortCaptcha(ctx context.Context, id string, scope captcha.AbortSc
 	st := a.captchaStateFor()
 	ch, known := st.store.Get(id)
 
-	if captcha.IsTest(id) {
+	switch {
+	case captcha.IsTest(id):
 		st.tests.Abort(id)
-	} else {
+	case captcha.IsAsked(id):
+		st.asks.Abort(id)
+	default:
 		cctx, cancel := context.WithTimeout(ctx, captchaCallTimeout)
 		defer cancel()
 		if err := st.source.Abort(cctx, id, scope); err != nil {
