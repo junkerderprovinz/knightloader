@@ -28,6 +28,11 @@ const PRODUCT_NAMES: Record<string, string> = {
   pixeldrain: 'Pixeldrain',
   gofile: 'Gofile',
   mediafire: 'Mediafire',
+  googledrive: 'Google Drive',
+  dropbox: 'Dropbox',
+  onedrive: 'OneDrive',
+  wetransfer: 'WeTransfer',
+  swisstransfer: 'SwissTransfer',
 };
 
 const DESCRIBED: Record<string, TranslationKey> = {

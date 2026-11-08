@@ -907,6 +907,7 @@ const BUILT_IN = [
   ...['jd', 'ytdlp', 'direct', 'torrent', 'mega', '1fichier'],
   ...['ddownload', 'katfile', 'clicknupload', 'filespace', 'uploadrar'],
   ...['pixeldrain', 'gofile', 'mediafire'],
+  ...['googledrive', 'dropbox', 'onedrive', 'wetransfer', 'swisstransfer'],
 ];
 
 /**

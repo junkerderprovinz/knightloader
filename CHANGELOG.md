@@ -98,6 +98,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   goes along with the downloads and ranks where the login's row sits on the
   priority card. Without one, a debrid service that carries the hoster goes
   first.
+- **Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer and SwissTransfer
+  links download without JDownloader.** The link collector names and sizes a
+  shared file as soon as it arrives, and a shared folder or a transfer becomes
+  one row per file, subfolders included. A large Google Drive file goes past
+  Drive's virus scan warning, a Google document downloads as its Word, Excel
+  or PowerPoint file, and a Drive folder opens without a Google API key. A
+  Dropbox, WeTransfer or SwissTransfer link locked with a password opens with
+  the link password from the add-links form. When Drive has used up a file's
+  download quota or Dropbox pauses a link, the task keeps running and shows
+  why and for how long. A debrid service that carries the service goes first.
 
 ### Changed
 

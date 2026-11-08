@@ -567,6 +567,110 @@ A debrid service that carries Mediafire and a Mediafire login in JDownloader
 go first. With **Allow free downloads** off, a Mediafire link waits for one of
 them.
 
+## Google Drive
+
+A Google Drive file link needs no JDownloader, in any of its forms:
+`drive.google.com/file/d/…`, `drive.google.com/uc?id=…`, `drive.google.com/open?id=…`
+and `drive.usercontent.google.com/download?id=…`. KnightLoader asks Drive's
+download server for the first byte of each file, so the link collector shows
+its name and size right away. A file too large for Google to scan for viruses
+comes with a warning page first, and KnightLoader goes past it the way the
+**Download anyway** button does. A download opens up to 6 connections.
+
+A folder link (`drive.google.com/drive/folders/…`) stages one task per file,
+subfolders included, and each subfolder becomes a package of its own.
+KnightLoader reads the folder through the files API that Drive's own folder
+page calls, with the key that page carries, so no Google API key is needed. A
+Google document, spreadsheet or presentation downloads as a Word, Excel or
+PowerPoint file, in a folder as well as linked on its own from
+`docs.google.com`. Forms, maps and sites have no file and are left out. An
+older link that names a `resourcekey` keeps it.
+
+When Drive says a file has been downloaded too often lately, the task keeps
+running, its row says so, and it tries again after an hour. A file Drive no
+longer has fails as gone. A file or folder shared with some Google accounts
+only, and a file Drive found a virus in, fail and say so.
+
+A debrid service that carries Google Drive and a Google login in JDownloader go
+first. With **Allow free downloads** off, a Google Drive link waits for one of
+them.
+
+## Dropbox
+
+A Dropbox file link (`dropbox.com/scl/fi/…`, or the older `dropbox.com/s/…`)
+needs no JDownloader, whether it ends in `dl=0`, `dl=1` or `raw=1`.
+KnightLoader follows the link with `dl=1` to Dropbox's content server and reads
+the file's name and size from its first byte. The download then comes from
+there over one connection, as it does in JDownloader.
+
+A folder link (`dropbox.com/scl/fo/…` or `dropbox.com/sh/…`) stages one task
+per file, subfolders included, each subfolder as a package of its own.
+KnightLoader lists it the way Dropbox's own folder page does. If Dropbox does
+not list the folder, the link stays one task and downloads as the zip Dropbox
+makes of the whole folder.
+
+A link locked with a password opens with the **Link password** given in the
+add-links form. When Dropbox pauses a link for drawing too much traffic, the
+task keeps running, its row says so, and it tries again later. A link Dropbox
+no longer has fails as gone.
+
+A debrid service that carries Dropbox and a Dropbox login in JDownloader go
+first. With **Allow free downloads** off, a Dropbox link waits for one of them.
+
+## OneDrive and SharePoint
+
+Share links from OneDrive (`1drv.ms/…`, `onedrive.live.com/…`) and from any
+SharePoint site (`….sharepoint.com/:u:/…`, `/:f:/…` and the other kinds) need
+no JDownloader. KnightLoader opens a share the way a browser does, which gives
+it a guest session on the site, and downloads with that session. A shared file
+is named and sized in the link collector as soon as it arrives. A shared folder
+stages one task per file, subfolders included, each subfolder as a package of
+its own, and KnightLoader lists it through SharePoint's REST API, which answers
+the guest too. Personal OneDrive shares go the same way, since Microsoft keeps
+them on SharePoint as well.
+
+When OneDrive throttles requests, the task keeps running and waits as long as
+OneDrive asks. A share that was removed fails as gone. A share for some
+Microsoft accounts only fails and says so, and so does a share locked with a
+password, which only OneDrive's website takes.
+
+A debrid service that carries OneDrive goes first. With **Allow free
+downloads** off, a OneDrive link waits for one.
+
+## WeTransfer
+
+A WeTransfer link (`wetransfer.com/downloads/…`, also on a company's own
+`….wetransfer.com`) and a short link (`we.tl/…`) need no JDownloader. A
+transfer stages one task per file, and the folders it was sent in become
+packages. KnightLoader asks WeTransfer's public download API, the one its own
+download page uses, for the transfer's files and for each file's download
+link. A file comes over one connection, as it does in JDownloader. A transfer
+link that stays one task downloads as the zip WeTransfer makes of the whole
+transfer.
+
+A transfer locked with a password opens with the **Link password** given in
+the add-links form. An expired or deleted transfer fails as gone. A transfer
+whose sender wants every recipient to confirm their email first fails and says
+so, since only WeTransfer's website can do that.
+
+A debrid service that carries WeTransfer goes first. With **Allow free
+downloads** off, a WeTransfer link waits for one.
+
+## SwissTransfer
+
+A SwissTransfer link (`swisstransfer.com/dl/…`) needs no JDownloader. A
+transfer stages one task per file, read from the transfer's own page, and the
+folders it was sent in become packages. When a download starts, KnightLoader
+asks SwissTransfer's API for the file's signed link, which works for an hour,
+and asks for a fresh one if the download outlasts it.
+
+A transfer locked with a password opens with the **Link password** given in
+the add-links form. An expired transfer, and one downloaded as often as its
+sender allowed, fail as gone.
+
+A debrid service that carries SwissTransfer goes first. With **Allow free
+downloads** off, a SwissTransfer link waits for one.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks

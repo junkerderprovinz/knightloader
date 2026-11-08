@@ -35,13 +35,22 @@ func (c *hostClaims) set(hosters, media map[string]bool) {
 	c.hosters, c.media = hosters, media
 }
 
+// cloudShares are the sites whose share links KnightLoader's own clients
+// open, subdomains included, as each SharePoint tenant has its own. A plain
+// GET on a share link fetches the site's viewer.
+var cloudShares = map[string]bool{
+	"drive.google.com": true, "dropbox.com": true, "onedrive.live.com": true, "sharepoint.com": true,
+	"wetransfer.com": true, "swisstransfer.com": true,
+}
+
 // fileHoster reports whether host is a file hoster: one JD fetches ahead of a
-// plain GET (jd.FileHoster), one on the curated list, or one a wired debrid or
-// TorBox account lists. These are the hosts the automatic order already gives
-// to a hoster backend before the direct download. All three know a hoster by
-// any of its domains (internal/hostalias).
+// plain GET (jd.FileHoster), one on the curated list, a cloud share site, or
+// one a wired debrid or TorBox account lists. These are the hosts the
+// automatic order already gives to a hoster backend before the direct
+// download. All of them know a hoster by any of its domains
+// (internal/hostalias).
 func (c *hostClaims) fileHoster(host string) bool {
-	if jd.FileHoster(host) || hosterauth.Curated(host) {
+	if jd.FileHoster(host) || hosterauth.Curated(host) || debrid.HostInSet(host, cloudShares) {
 		return true
 	}
 	c.mu.RLock()

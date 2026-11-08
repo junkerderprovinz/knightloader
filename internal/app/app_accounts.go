@@ -33,15 +33,20 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/dropbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/gofile"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/googledrive"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mediafire"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/onedrive"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/pixeldrain"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/swisstransfer"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/wetransfer"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/workdir"
@@ -204,7 +209,8 @@ func (a *App) rewireBackends() {
 	}
 
 	// Pixeldrain, Gofile and Mediafire, for free or with the key a stored
-	// Pixeldrain or Gofile login holds.
+	// Pixeldrain or Gofile login holds, and the shares of Google Drive,
+	// Dropbox, OneDrive, WeTransfer and SwissTransfer.
 	for _, h := range a.hosterClients(eng) {
 		a.Registry.Register(h.res)
 	}
@@ -692,8 +698,9 @@ type hosterClient struct {
 	be *hoster.Backend
 }
 
-// hosterClients returns the app's clients for Pixeldrain, Gofile and Mediafire,
-// made on first use.
+// hosterClients returns the app's clients for Pixeldrain, Gofile, Mediafire,
+// Google Drive, Dropbox, OneDrive, WeTransfer and SwissTransfer, made on first
+// use.
 func (a *App) hosterClients(eng hoster.Downloader) map[string]hosterClient {
 	a.bmu.Lock()
 	defer a.bmu.Unlock()
@@ -704,19 +711,34 @@ func (a *App) hosterClients(eng hoster.Downloader) map[string]hosterClient {
 		gf := gofile.NewClient(gofile.DefaultAPI, gofile.DefaultSite, hc)
 		gf.Token = func() string { return a.hosterSecret("gofile.io") }
 		mf := mediafire.NewClient(mediafire.DefaultSite, hc)
+		gd := googledrive.NewClient(googledrive.DefaultSites, hc)
+		db := dropbox.NewClient(dropbox.DefaultSite, hc)
+		od := onedrive.NewClient("", hc)
+		wt := wetransfer.NewClient(wetransfer.DefaultSite, hc)
+		st := swisstransfer.NewClient(swisstransfer.DefaultSite, hc)
 		a.hosters = map[string]hosterClient{
-			pixeldrain.ResolverID: {pixeldrain.Resolver{Client: pd}, a.hosterBackend("Pixeldrain", pd, eng)},
-			gofile.ResolverID:     {gofile.Resolver{Client: gf}, a.hosterBackend("Gofile", gf, eng)},
-			mediafire.ResolverID:  {mediafire.Resolver{Client: mf}, a.hosterBackend("Mediafire", mf, eng)},
+			pixeldrain.ResolverID:    {pixeldrain.Resolver{Client: pd}, a.hosterBackend("Pixeldrain", pd, eng)},
+			gofile.ResolverID:        {gofile.Resolver{Client: gf}, a.hosterBackend("Gofile", gf, eng)},
+			mediafire.ResolverID:     {mediafire.Resolver{Client: mf}, a.hosterBackend("Mediafire", mf, eng)},
+			googledrive.ResolverID:   {googledrive.Resolver{Client: gd}, a.hosterBackend("Google Drive", gd, eng)},
+			dropbox.ResolverID:       {dropbox.Resolver{Client: db}, a.hosterBackend("Dropbox", db, eng)},
+			onedrive.ResolverID:      {onedrive.Resolver{Client: od}, a.hosterBackend("OneDrive", od, eng)},
+			wetransfer.ResolverID:    {wetransfer.Resolver{Client: wt}, a.hosterBackend("WeTransfer", wt, eng)},
+			swisstransfer.ResolverID: {swisstransfer.Resolver{Client: st}, a.hosterBackend("SwissTransfer", st, eng)},
 		}
 	}
 	return a.hosters
 }
 
-// hosterClientID reports whether id is the resolver id of one of hosterClients.
-func hosterClientID(id string) bool {
-	return id == pixeldrain.ResolverID || id == gofile.ResolverID || id == mediafire.ResolverID
+// hosterClientIDs are the resolver ids of hosterClients.
+var hosterClientIDs = map[string]bool{
+	pixeldrain.ResolverID: true, gofile.ResolverID: true, mediafire.ResolverID: true,
+	googledrive.ResolverID: true, dropbox.ResolverID: true, onedrive.ResolverID: true,
+	wetransfer.ResolverID: true, swisstransfer.ResolverID: true,
 }
+
+// hosterClientID reports whether id is the resolver id of one of hosterClients.
+func hosterClientID(id string) bool { return hosterClientIDs[id] }
 
 func (a *App) hosterBackend(name string, u hoster.Unlocker, eng hoster.Downloader) *hoster.Backend {
 	b := hoster.NewBackend(name, u, eng, a.onUpdate)
