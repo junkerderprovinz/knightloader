@@ -370,6 +370,27 @@ only. As with Pixeldrain, JDownloader gets the login too and goes first while
 it has the login working, and so does a debrid service that carries Gofile.
 With **Allow free downloads** off, a Gofile link waits for one of those.
 
+## Mediafire
+
+A `mediafire.com` file or folder link needs no JDownloader, and neither does
+`mfi.re`. KnightLoader asks Mediafire's public API for the names, sizes and
+state of a paste's files in one go and opens a folder through the same API,
+one task per file with each subfolder as a package of its own. When the
+download starts it reads the file's page for the link behind its download
+button. A free download may open up to 15 connections, and the task's own
+setting decides how many it uses.
+
+When Mediafire limits an address for a while, or has a download unavailable
+for the moment, the task keeps running, its row says how long it waits, and
+then it reads the page again. A file Mediafire removed or blocked fails as
+gone. A file locked with a password, one Mediafire wants a captcha for and one
+it flagged as malware fail and say so, since only JDownloader's plugin or
+Mediafire's own website get past those.
+
+A debrid service that carries Mediafire and a Mediafire login in JDownloader
+go first. With **Allow free downloads** off, a Mediafire link waits for one of
+them.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks

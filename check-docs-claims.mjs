@@ -448,6 +448,7 @@ const RESOLVER_NAMES = {
   debrid: 'debrid',
   jd: 'JDownloader',
   gofile: 'Gofile',
+  mediafire: 'Mediafire',
   mega: 'MEGA',
   onefichier: '1fichier',
   pixeldrain: 'Pixeldrain',
