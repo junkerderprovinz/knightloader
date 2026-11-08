@@ -3,8 +3,8 @@
 // task while they are waited out. A debrid service that carries 1fichier and a
 // 1fichier login in JDownloader stay ahead of it, since neither has to wait.
 //
-// The page patterns and the form handling follow pyLoad's OneFichierCom
-// plugin (GPLv3).
+// The page patterns and the form handling follow the OneFichierCom plugins of
+// pyLoad and JDownloader (both GPLv3).
 package onefichier
 
 import (

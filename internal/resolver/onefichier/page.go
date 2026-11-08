@@ -11,22 +11,30 @@ import (
 )
 
 var (
-	namePattern = regexp.MustCompile(`<td class="normal"><span style="font-weight:bold">(.+?)<`)
+	namePattern = regexp.MustCompile(`<span class="tier-name">(.+?)<|<td class="normal"><span style="font-weight:bold">(.+?)<`)
 	// The unit is spelled out so that figures in a file name are not taken
 	// for the size.
-	sizePattern    = regexp.MustCompile(`(?i)<span [^>]*>([\d.,]+)\s*((?:[KMGT]i?)?[BO]|bytes|octets)</span></td>`)
-	gonePattern    = regexp.MustCompile(`File not found !\s*<|>\s*The requested file (?:has been deleted|do(?:es)? not exist)`)
-	premiumPattern = regexp.MustCompile(`is not possible to unregistered users|need a subscription`)
-	busyPattern    = regexp.MustCompile(`Without subscription, you can only download one file at|Our services are in maintenance|temporarily limited due to high demand`)
-	coolPattern    = regexp.MustCompile(`(?i)>\s*You must wait\s*(\d+)\s*minute`)
-	// Whether the countdown counts seconds or minutes is read from the word
-	// after it, and taken for seconds when there is none: a countdown read too
-	// short shows up again on the next page and is waited out once more.
-	countdownPattern = regexp.MustCompile(`(?i)Free download in\s*(?:⏳\s*)?(\d+)\s*([a-z]*)`)
-	linkPattern      = regexp.MustCompile(`(?i)<a href="([^"]+)"[^>]*>\s*(?:Start (?:your )?download|Click here to download the file)\s*</a>`)
-	formPattern      = regexp.MustCompile(`(?is)<form\b([^>]*)>(.*?)</form>`)
-	inputPattern     = regexp.MustCompile(`(?is)<input\b([^>]*)>`)
-	attrPattern      = regexp.MustCompile(`(?s)([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))`)
+	tierSizePattern = regexp.MustCompile(`(?i)<span class="tier-feat">([\d.,]+)\s*((?:[KMGT]i?)?[BO]|bytes|octets)</span>`)
+	sizePattern     = regexp.MustCompile(`(?i)<span [^>]*>([\d.,]+)\s*((?:[KMGT]i?)?[BO]|bytes|octets)</span></td>`)
+	gonePattern     = regexp.MustCompile(`File not found !\s*<|>\s*The requested file (?:has been deleted|do(?:es)? not exist)`)
+	premiumPattern  = regexp.MustCompile(`not possible to (?:free )?unregistered users|need a subscription|reserved access to the subscribers`)
+	busyPattern     = regexp.MustCompile(`Our services are in maintenance|temporarily limited due to high demand|all free guest slots are currently in use`)
+	coolPattern     = regexp.MustCompile(`(?i)(?:>\s*You must wait|you must wait (?:at least|up to)|>\s*Vous devez attendre encore)\s*(\d+)\s*minute`)
+	lockedPattern   = regexp.MustCompile(`>\s*IP Locked|>\s*Will be unlocked within 1h\.`)
+	// A wait without a figure, which JDownloader's plugin sits out for five
+	// minutes.
+	blockedPattern = regexp.MustCompile(`(?i)>\s*You must wait for another download|>\s*You already downloading (?:some|a) file|>\s*You can download only one file at a time|>\s*Please wait a few seconds before downloading new ones|Without (?:premium status|premium|subscription), you can (?:only )?download (?:only )?one file at|Without Premium, you must wait between downloads|En téléchargement standard, vous ne pouvez télécharger qu'un seul fichier|>\s*veuillez patienter avant de télécharger un autre fichier`)
+	// The page counts down in its script, in seconds. A countdown written out
+	// in the text names its unit after the figure and is taken for seconds
+	// without one: read too short, it shows up again on the next page and is
+	// waited out once more.
+	scriptCountdownPattern = regexp.MustCompile(`\bvar ct\s*=\s*(\d+)`)
+	countdownPattern       = regexp.MustCompile(`(?i)Free download in\s*(?:⏳\s*)?(\d+)\s*([a-z]*)`)
+	linkPattern            = regexp.MustCompile(`(?i)<a href="([^"]+)"[^>]*>\s*(?:Start (?:your )?download|Click here to download the file)\s*</a>`)
+	formPattern            = regexp.MustCompile(`(?is)<form\b([^>]*)>(.*?)</form>`)
+	inputPattern           = regexp.MustCompile(`(?is)<input\b([^>]*)>`)
+	checkedPattern         = regexp.MustCompile(`(?i)\bchecked\b`)
+	attrPattern            = regexp.MustCompile(`(?s)([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))`)
 )
 
 // page is what one of 1fichier's pages says.
@@ -60,16 +68,25 @@ func readPage(body string) page {
 		busy:    busyPattern.MatchString(body),
 	}
 	if m := namePattern.FindStringSubmatch(body); m != nil {
-		p.name = strings.TrimSpace(html.UnescapeString(m[1]))
+		p.name = strings.TrimSpace(html.UnescapeString(m[1] + m[2]))
 	}
-	if m := sizePattern.FindStringSubmatch(body); m != nil {
+	if m := tierSizePattern.FindStringSubmatch(body); m != nil {
+		p.size = parseSize(m[1], m[2])
+	} else if m := sizePattern.FindStringSubmatch(body); m != nil {
 		p.size = parseSize(m[1], m[2])
 	}
 	if m := coolPattern.FindStringSubmatch(body); m != nil {
 		n, _ := strconv.Atoi(m[1])
 		p.coolDown = time.Duration(n) * time.Minute
+	} else if lockedPattern.MatchString(body) {
+		p.coolDown = time.Hour
+	} else if blockedPattern.MatchString(body) {
+		p.coolDown = blockedWait
 	}
-	if m := countdownPattern.FindStringSubmatch(body); m != nil {
+	if m := scriptCountdownPattern.FindStringSubmatch(body); m != nil {
+		n, _ := strconv.Atoi(m[1])
+		p.countdown = time.Duration(n) * time.Second
+	} else if m := countdownPattern.FindStringSubmatch(body); m != nil {
 		n, _ := strconv.Atoi(m[1])
 		unit := time.Second
 		if strings.HasPrefix(strings.ToLower(m[2]), "min") {
@@ -88,8 +105,13 @@ func readPage(body string) page {
 			if name == "" {
 				continue
 			}
-			if strings.EqualFold(a["type"], "password") {
+			kind := strings.ToLower(a["type"])
+			if kind == "password" {
 				f.pass = true
+			}
+			// A browser sends a box only when it is ticked.
+			if (kind == "checkbox" || kind == "radio") && !checkedPattern.MatchString(in[1]) {
+				continue
 			}
 			f.fields.Set(name, html.UnescapeString(a["value"]))
 		}

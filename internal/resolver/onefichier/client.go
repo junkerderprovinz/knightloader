@@ -22,6 +22,10 @@ const DefaultSite = "https://1fichier.com"
 // long.
 const busyWait = 5 * time.Minute
 
+// blockedWait is how long a free download waits when 1fichier asks for a pause
+// between downloads without saying how long.
+const blockedWait = 5 * time.Minute
+
 // maxPage caps how much of a page is read. A file page is a few kilobytes.
 const maxPage = 2 << 20
 
@@ -132,8 +136,7 @@ func (p *Page) Fetch(ctx context.Context, password string) (string, error) {
 	fields := maps.Clone(p.form.fields)
 	// The submit button, which pyLoad leaves out as well.
 	fields.Del("save")
-	// Plain HTTP for the file itself, as pyLoad asks for.
-	fields.Set("dl_no_ssl", "on")
+	fields.Set("did", "1")
 	if p.form.pass {
 		if password == "" {
 			return "", ErrPassword

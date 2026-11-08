@@ -2,6 +2,7 @@ package onefichier
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"strings"
 	"sync"
@@ -96,12 +97,43 @@ func TestSizesAreReadInEveryUnitTheSiteUses(t *testing.T) {
 		{`<td class="normal"><span style="font-size:1.1em">700 MB</span></td>`, 700 << 20},
 		{`<td class="normal"><span style="font-size:1.1em">12,5 Ko</span></td>`, 12800},
 		{`<td class="normal"><span style="font-size:1.1em">831 B</span></td>`, 831},
+		{`<span class="tier-feat">42.99 GB</span>`, 46160161014},
 		// A file name with figures in it is not the size.
 		{`<td class="normal"><span style="font-weight:bold">Show 2018 1080p</span></td>`, 0},
 	}
 	for _, c := range cases {
 		if got := readPage(c.row).size; got != c.want {
 			t.Errorf("%s reads as %d bytes, want %d", c.row, got, c.want)
+		}
+	}
+}
+
+func TestEveryWayThePageHoldsADownloadBackIsRead(t *testing.T) {
+	cases := []struct {
+		text string
+		want error
+	}{
+		{"<div>You must wait 12 minutes to download again</div>", &WaitError{Wait: 12 * time.Minute}},
+		{"Without premium, you must wait at least 30 minutes between each downloads", &WaitError{Wait: 30 * time.Minute}},
+		{"<div>Vous devez attendre encore 7 minutes</div>", &WaitError{Wait: 7 * time.Minute}},
+		{"<p>IP Locked</p>", &WaitError{Wait: time.Hour}},
+		{"<div>You must wait for another download</div>", &WaitError{Wait: 5 * time.Minute}},
+		{"Without Premium, you can only download one file at a time", &WaitError{Wait: 5 * time.Minute}},
+		{"<b>High demand:</b> all free guest slots are currently in use.", &WaitError{Wait: busyWait, Busy: true}},
+		{"<div>Free download is temporarily limited due to high demand</div>", &WaitError{Wait: busyWait, Busy: true}},
+		{"It is not possible to free unregistered users to download this file", ErrPremium},
+		{"<div>The owner of this file has reserved access to the subscribers of our services</div>", ErrPremium},
+		{"<div>File not found !</div>", ErrGone},
+	}
+	for _, c := range cases {
+		got := readPage(c.text).hold()
+		var w, wantW *WaitError
+		if errors.As(c.want, &wantW) {
+			if !errors.As(got, &w) || *w != *wantW {
+				t.Errorf("%q holds back with %v, want %v", c.text, got, c.want)
+			}
+		} else if !errors.Is(got, c.want) {
+			t.Errorf("%q holds back with %v, want %v", c.text, got, c.want)
 		}
 	}
 }
@@ -115,6 +147,7 @@ func TestACountdownIsReadInTheUnitItNames(t *testing.T) {
 		{"Free download in ⏳ 45 seconds", 45 * time.Second},
 		{"Free download in ⏳ 2 minutes", 2 * time.Minute},
 		{"Free download in 30s", 30 * time.Second},
+		{"<script>\n        var ct = 60;\n", 60 * time.Second},
 	}
 	for _, c := range cases {
 		if got := readPage(c.text).countdown; got != c.want {
@@ -272,8 +305,8 @@ func TestTheFormIsSentAsABrowserWouldAndTheLinkHandedOnForOneConnection(t *testi
 		t.Fatalf("%d forms went in, want 1", len(posts))
 	}
 	form := posts[0]
-	if form.Get("adz") != "2.0.1" || form.Get("dl_no_ssl") != "on" || form.Has("save") || form.Has("pass") {
-		t.Errorf("the form went in as %v, want its hidden fields, dl_no_ssl=on and no save button", form)
+	if form.Get("did") != "1" || form.Has("dl_no_ssl") || form.Has("dlinline") || form.Has("save") || form.Has("pass") {
+		t.Errorf("the form went in as %v, want did=1 and none of its unticked boxes", form)
 	}
 	if asked := srv.WithoutEnglish(); len(asked) > 0 {
 		t.Errorf("1fichier was asked without the English cookie: %v", asked)

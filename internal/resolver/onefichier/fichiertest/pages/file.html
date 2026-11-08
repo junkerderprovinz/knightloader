@@ -3,26 +3,46 @@
 <head>
 <meta charset="utf-8">
 <title>1fichier.com: Cloud Storage</title>
-</head>
+{{if .Countdown}}<script type="text/javascript">
+        var ct = {{.Countdown}};
+        $(function() { setTimeout('ctt()', 1000); });
+          function ctt() { if(ct > 0) { ct--; $('#dlw').html('Free download in &#x23F3; ' + ct); if(ct > 0) { setTimeout('ctt()', 1000); } else { $('#dlw').html('Start download'); $('#dlw').removeAttr("disabled").click(function() { $('#f1').submit(); }); }}
+}
+</script>
+{{end}}</head>
 <body>
-<div class="bloc2">
-<table class="premium">
-<tr><td class="normal" style="width:120px">File name :</td><td class="normal"><span style="font-weight:bold">{{.Name}}</span></td></tr>
-<tr><td class="normal">Date :</td><td class="normal">05/11/2026 21:14</td></tr>
-<tr><td class="normal">Size :</td><td class="normal"><span style="font-size:1.1em">{{.Size}}</span></td></tr>
-</table>
-{{if .Countdown}}<div class="ct_warn">Free download in ⏳ {{.Countdown}}</div>
-{{end}}<form action="{{.Action}}" method="post">
-<input type="hidden" name="adz" value="2.0.1">
-{{if .Password}}<p>This file is protected by a password.</p>
-<input type="password" name="pass" id="pass" value="">
-{{end}}<input type="checkbox" name="dl_no_ssl" id="dl_no_ssl"> <label for="dl_no_ssl">Download without SSL</label>
-<input type="submit" id="dlb" name="save" value="Free download" class="ok btn-general btn-orange">
+<form id="f1" accept-charset="UTF-8" method="post" action="{{.Action}}" style="min-width:1000px;margin:auto" class="alc">
+	<div class="tiers">
+		<div class="tier" style="align-items:center;max-width:600px;margin:20px auto">
+			<img src="https://1fichier.com/qr.pl?do=0.k3m9x2p7q1&s=1" width="148" height="148" alt="QR code" />
+			<div class="tier-body">
+				<span class="tier-name">{{.Name}}</span>
+				<span class="tier-feat">{{.Size}}</span>
+			</div>
+		</div>
+	</div>
+	{{if .Password}}<p>This file is protected by a password.</p>
+	<input type="password" name="pass" id="pass" value="" />
+	{{end}}<div style="width:350px;margin:auto;text-align:left;line-height:32px">
+		<label class="CKBL">
+			<input type="checkbox" name="dl_no_ssl" />
+			<span></span>
+			Download without SSL encryption
+		</label>
+		<label class="CKBL">
+			<input type="checkbox" name="dlinline" />
+			<span></span>
+			Inline download
+		</label>
+	</div>
+	<div class="alc">
+		<button id="dlw" style="float:none;margin:auto;font-weight:bold;width:300px;height:35px;font-size:14px;border:2px solid red" class="btn-general btn-orange" disabled="disabled">Free download</button>
+		<div class="acc-hint" style="margin-top:6px">Free, with waiting time, limited speed and ads</div>
+	</div>
 </form>
 <form action="https://1fichier.com/console/abo.pl" method="get">
 <input type="hidden" name="from" value="dl">
 <input type="submit" value="Premium">
 </form>
-</div>
 </body>
 </html>
