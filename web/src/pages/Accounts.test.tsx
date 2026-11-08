@@ -191,7 +191,7 @@ it('lists a multihoster login kept for JDownloader with the hoster accounts, not
   expect(host.textContent).not.toContain('through JDownloader');
 });
 
-it('adds the login for an own server under its hostname, cut from a pasted link', async () => {
+it('adds a seedbox login under its hostname, cut from a pasted link', async () => {
   const posted: unknown[] = [];
   vi.stubGlobal(
     'fetch',
@@ -200,7 +200,7 @@ it('adds the login for an own server under its hostname, cut from a pasted link'
         return reply([
           {
             id: 'remotefs',
-            label: 'Own server (FTP, SFTP, WebDAV)',
+            label: 'Seedbox (FTP, SFTP, WebDAV)',
             kind: 'usernamePassword',
             group: 'remoteServer',
             whereUrl: 'https://junkerderprovinz.github.io/knightloader/getting-links-in/',
@@ -232,7 +232,7 @@ it('adds the login for an own server under its hostname, cut from a pasted link'
       </I18nProvider>,
     ),
   );
-  expect(host.querySelector('[aria-label="Own servers"]')?.textContent).toContain('nas.lan');
+  expect(host.querySelector('[aria-label="Seedboxes"]')?.textContent).toContain('nas.lan');
 
   const field = (caption: string) =>
     [...document.querySelectorAll('label')].find((l) => l.textContent?.startsWith(caption))!.querySelector('input')!;
@@ -241,7 +241,7 @@ it('adds the login for an own server under its hostname, cut from a pasted link'
     act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
   };
 
-  await addIn('Own servers');
+  await addIn('Seedboxes');
   type(field('Hostname'), 'ftp://Seedbox.Example.net:2121/files/');
   type(field('Username'), 'knight');
   type(field('Password'), 'hunter2');
@@ -250,7 +250,7 @@ it('adds the login for an own server under its hostname, cut from a pasted link'
   expect(posted).toEqual([{ service: 'remotefs', account: 'seedbox.example.net', username: 'knight', password: 'hunter2' }]);
 });
 
-it('saves an own server only under a name a host can have', async () => {
+it('saves a seedbox only under a name a host can have', async () => {
   const posted: unknown[] = [];
   vi.stubGlobal(
     'fetch',
@@ -259,7 +259,7 @@ it('saves an own server only under a name a host can have', async () => {
         return reply([
           {
             id: 'remotefs',
-            label: 'Own server (FTP, SFTP, WebDAV)',
+            label: 'Seedbox (FTP, SFTP, WebDAV)',
             kind: 'usernamePassword',
             group: 'remoteServer',
             whereUrl: 'https://junkerderprovinz.github.io/knightloader/getting-links-in/',
@@ -293,7 +293,7 @@ it('saves an own server only under a name a host can have', async () => {
     act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
   };
 
-  await addIn('Own servers');
+  await addIn('Seedboxes');
   type(field('Username'), 'knight');
   type(field('Password'), 'hunter2');
   for (const name of ['nas!box', 'nas"box', 'nas{box}', 'two words']) {
@@ -367,7 +367,7 @@ const page = (
 
 const services = [
   { id: 'torbox', label: 'TorBox', kind: 'apiKey', group: 'debrid', whereUrl: 'https://torbox.app/settings' },
-  { id: 'remotefs', label: 'Own server (FTP, SFTP, WebDAV)', kind: 'usernamePassword', group: 'remoteServer', whereUrl: '' },
+  { id: 'remotefs', label: 'Seedbox (FTP, SFTP, WebDAV)', kind: 'usernamePassword', group: 'remoteServer', whereUrl: '' },
   { id: 'capsolver', label: 'CapSolver', kind: 'apiKey', group: 'captchaSolver', whereUrl: 'https://dashboard.capsolver.com/' },
 ];
 
@@ -391,12 +391,12 @@ it('gives every card its own Add button at the end of its heading', async () => 
   stubCatalogue(services);
   await act(async () => root.render(page));
 
-  const titles = ['Debrid accounts', 'Usenet servers', 'Hoster accounts', 'Own servers', 'Captcha accounts'];
+  const titles = ['Debrid accounts', 'Usenet servers', 'Hoster accounts', 'Seedboxes', 'Captcha accounts'];
   expect(titles.map((t) => adder(t)?.textContent)).toEqual([
     'Add an account',
     'Add a server',
     'Add an account',
-    'Add a server',
+    'Add a seedbox',
     'Add an account',
   ]);
   const loose = [...document.querySelectorAll('button')].filter(
@@ -405,10 +405,10 @@ it('gives every card its own Add button at the end of its heading', async () => 
   expect(loose).toEqual([]);
 });
 
-it('offers no own server card where the instance has no such service', async () => {
+it('offers no seedbox card where the instance has no such service', async () => {
   stubCatalogue(services.filter((s) => s.group !== 'remoteServer'));
   await act(async () => root.render(page));
-  expect(card('Own servers')).toBeUndefined();
+  expect(card('Seedboxes')).toBeUndefined();
 });
 
 it('opens the picker of its own kind from a card, in one window', async () => {

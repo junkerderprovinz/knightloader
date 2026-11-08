@@ -337,7 +337,7 @@ The manual lives at
 - [Installing](https://junkerderprovinz.github.io/knightloader/installing/) the container, a desktop app, the Android app or the browser extension
 - [What it does](https://junkerderprovinz.github.io/knightloader/features/), area by area
 - [Configuration](https://junkerderprovinz.github.io/knightloader/configuration/): the environment variables
-- [Getting links in](https://junkerderprovinz.github.io/knightloader/getting-links-in/): watched folders, container files, your own servers, header profiles
+- [Getting links in](https://junkerderprovinz.github.io/knightloader/getting-links-in/): watched folders, container files, seedboxes, header profiles
 - [Moving over from JDownloader](https://junkerderprovinz.github.io/knightloader/from-jdownloader/): accounts, rules, passwords and the open download list
 - [Click'n'Load](https://junkerderprovinz.github.io/knightloader/clicknload/) and the [browser extension](https://junkerderprovinz.github.io/knightloader/browser-tools/)
 - [Connecting instances and apps](https://junkerderprovinz.github.io/knightloader/connecting/) with the twelve words

@@ -196,6 +196,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   follows Play, Open and Open with the default app, or leads the menu on its
   own when there is no single file to open, in the download list and the link
   collector alike.
+- **The Own servers card on the Accounts page is called Seedboxes.** It says
+  what a seedbox is and that KnightLoader brings its finished files home. Any
+  other FTP, SFTP or WebDAV server still works there the same way.
 
 ### Fixed
 

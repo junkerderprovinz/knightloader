@@ -29,7 +29,7 @@ where a mail client broke it across two lines. Beyond that:
   by default (`KL_PROVISION_JD`). With no backend at all, such a file is
   refused, with the missing backend named as the reason.
 - **An `.nzb`**: upload it the same way and it goes to Usenet, see below.
-- **Your own server**: see below.
+- **A seedbox**: see below.
 - **Sonarr and Radarr**: they hand their grabs over as if KnightLoader were
   qBittorrent or SABnzbd. See below.
 
@@ -252,14 +252,16 @@ While an `.nzb` waits for an account or is being fetched by a service, the
 status strip counts it under Usenet. One the service gives up on is listed
 with the links that were not added, together with the service's reason.
 
-## Own servers (FTP, SFTP, WebDAV)
+## Seedboxes (FTP, SFTP, WebDAV)
 
-A seedbox, a NAS or your own Nextcloud is a source like any other. Paste
-`ftp://`, `ftps://`, `sftp://`, `webdav://` or `webdavs://` and the file is
-staged, named and sized before it starts.
+A seedbox is a rented server that downloads torrents for you, and KnightLoader
+fetches the finished files from it. Paste an `ftp://`, `ftps://`, `sftp://`,
+`webdav://` or `webdavs://` link and the file is staged, named and sized before
+it starts. Any other server you reach over FTP, SFTP or WebDAV, a NAS for
+example, works the same way.
 
-**Credentials live in Accounts, never in the link.** Open **Add a server** on the
-**Own servers** card of the Accounts page and enter the server's **hostname**,
+**Credentials live in Accounts, never in the link.** Open **Add a seedbox** on the
+**Seedboxes** card of the Accounts page and enter the seedbox's **hostname**,
 for example `seedbox.example.net`, with the username and password. A pasted link
 is looked up by that name, so a login stored under anything else is never found.
 If you paste a whole link into the field, only the hostname is kept. A password

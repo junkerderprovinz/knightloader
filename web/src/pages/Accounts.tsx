@@ -252,7 +252,7 @@ export function Accounts() {
         <UsenetServersSection
           hue={1}
           onChanged={() => setUsenetSaves((n) => n + 1)}
-          add={add(t('accounts.server.add'), () => setAdding('usenet'))}
+          add={add(t('accounts.usenet.add'), () => setAdding('usenet'))}
           adding={adding === 'usenet'}
           onAddClose={() => setAdding(null)}
         />
