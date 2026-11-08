@@ -84,6 +84,12 @@ jobs:
       KL_DLC_KEY: ${{ secrets.KL_DLC_KEY }}
       KL_DLC_IV: ${{ secrets.KL_DLC_IV }}
 
+  # Built from the same manifest Flathub builds, which has no DLC key, so a
+  # .dlc opened in the Flatpak goes to JDownloader.
+  flatpak:
+    needs: tag
+    uses: ./.github/workflows/flatpak.yml
+
   # Android identifies an app by package name and signing certificate, so the
   # key can never change without an uninstall. expo prebuild signs release
   # builds with the public debug key unless told otherwise, and anybody could
@@ -260,7 +266,7 @@ jobs:
 
   # The release also waits for the images, so it never exists without them.
   publish:
-    needs: [desktop, android, extension, images]
+    needs: [desktop, flatpak, android, extension, images]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -276,6 +282,12 @@ jobs:
         with:
           pattern: knightloader-*
           path: bundles
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: flatpak-*
+          path: flatpak
+          merge-multiple: true
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
@@ -309,6 +321,11 @@ jobs:
               cp "$f" "dist/$name"
             done
           done
+          for f in flatpak/knightloader-*.flatpak; do
+            name="${f##*/}"
+            cp "$f" "dist/${name/knightloader-/knightloader-${v}-}"
+            cp "$f" "dist/$name"
+          done
           cp apk/app-release.apk "dist/knightloader-${v}-android.apk"
           cp apk/app-release.apk dist/knightloader-android.apk
           cp aab/app-release.aab "dist/knightloader-${v}-android.aab"
@@ -337,7 +354,7 @@ jobs:
       - name: Checksums
         run: |
           set -eu
-          (cd dist && sha256sum *.zip *.exe *.apk *.aab > checksums.txt)
+          (cd dist && sha256sum *.zip *.exe *.flatpak *.apk *.aab > checksums.txt)
           cat dist/checksums.txt
 
       # Only from a pushed tag. checksums.txt is named explicitly rather than
@@ -347,7 +364,7 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/*.apk dist/*.aab dist/checksums.txt
+        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/*.flatpak dist/*.apk dist/*.aab dist/checksums.txt
 
   # The KnightLoader image and the self-hostable relay image, which the
   # settings page's run command for a private relay points at. Only a pushed

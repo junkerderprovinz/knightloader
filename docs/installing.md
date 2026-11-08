@@ -242,6 +242,35 @@ left to do it lets it sleep again. The screen can still turn off. The switch is 
 Linux the app asks logind for a sleep lock, which a local desktop session gets
 without a password.
 
+### The Flatpak
+
+Every release also attaches `knightloader-linux-amd64.flatpak` and
+`knightloader-linux-arm64.flatpak`. Open one in your software center, or
+install it from a terminal:
+
+```sh
+flatpak install --user knightloader-linux-amd64.flatpak
+```
+
+Flatpak fetches the GNOME runtime it runs on from Flathub. The app keeps its
+data in `~/.var/app/io.github.junkerderprovinz.knightloader/config/KnightLoader`
+and fetches yt-dlp, ffmpeg and its Java runtime there, as a copy from the zip
+does. It can save downloads anywhere in your home folder and on the drives
+under `/media`, `/run/media` and `/mnt`. A download folder anywhere else needs
+an override first:
+
+```sh
+flatpak override --user --filesystem=/srv/downloads io.github.junkerderprovinz.knightloader
+```
+
+The Flatpak never replaces itself, so **Update automatically** stays off there:
+install the newer bundle to update it. It is built from the same sources as the
+other downloads but without the DLC service key, so a `.dlc` file goes to
+JDownloader. It keeps the computer awake through the desktop's Inhibit portal,
+but cannot put it to sleep once the queue is done, so the Idle card does not
+offer that there. On Wayland the clipboard watch sees a copied link once the
+window is in front, since the runtime has no `wl-paste`.
+
 ### Updates
 
 The desktop app updates itself from GitHub. It asks for the newest release,

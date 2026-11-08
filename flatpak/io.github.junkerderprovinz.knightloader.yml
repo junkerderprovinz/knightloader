@@ -1,0 +1,78 @@
+# Builds the desktop app as a Flatpak from this checkout:
+#
+#     flatpak-builder --user --install --force-clean --state-dir=flatpak/.state \
+#       flatpak/.build flatpak/io.github.junkerderprovinz.knightloader.yml
+#
+# The build has no network, so every Go module and npm package comes from
+# go-sources.json and node-sources.json. node flatpak/update-sources.mjs writes
+# both again after a dependency changes.
+id: io.github.junkerderprovinz.knightloader
+runtime: org.gnome.Platform
+runtime-version: '51'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.golang
+  - org.freedesktop.Sdk.Extension.node24
+command: knightloader
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # Hosters, debrid services, Usenet, torrents, and the JDownloader the app
+  # runs beside itself.
+  - --share=network
+  # Downloads go to whichever folder the person picks: anything in the home
+  # folder, and the drives and shares mounted under the other three.
+  - --filesystem=home
+  - --filesystem=/media
+  - --filesystem=/run/media
+  - --filesystem=/mnt
+  # A finished or failed download is told as a notification while the window
+  # is in the tray.
+  - --talk-name=org.freedesktop.Notifications
+  # The tray icon, which brings the hidden window back.
+  - --talk-name=org.kde.StatusNotifierWatcher
+  # The app key that seals the stored logins lives in the Secret Service.
+  - --talk-name=org.freedesktop.secrets
+modules:
+  - name: knightloader
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/golang/bin:/usr/lib/sdk/node24/bin
+      env:
+        GOTOOLCHAIN: local
+        GOFLAGS: -modcacherw
+        GOPROXY: file:///run/build/knightloader/gomod
+        GOSUMDB: 'off'
+        GOMODCACHE: /run/build/knightloader/gomodcache
+        GOCACHE: /run/build/knightloader/gocache
+        CGO_ENABLED: '1'
+    build-commands:
+      - npm --prefix web ci --offline --no-audit --no-fund --cache=$FLATPAK_BUILDER_BUILDDIR/flatpak-node/npm-cache
+      - npm --prefix web run build
+      # The newest release in the metainfo is the version the Updates card
+      # shows, so a tag cannot ship without its release entry.
+      - >-
+        version=$(sed -n 's|.*<release version="\([^"]*\)".*|\1|p' flatpak/io.github.junkerderprovinz.knightloader.metainfo.xml | head -1);
+        cd desktop && go build -tags production,gtk3 -trimpath -buildvcs=false
+        -ldflags "-s -w -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=v$version"
+        -o knightloader .
+      - install -Dm755 desktop/knightloader $FLATPAK_DEST/bin/knightloader
+      - install -Dm644 flatpak/$FLATPAK_ID.desktop $FLATPAK_DEST/share/applications/$FLATPAK_ID.desktop
+      - install -Dm644 flatpak/$FLATPAK_ID.metainfo.xml $FLATPAK_DEST/share/metainfo/$FLATPAK_ID.metainfo.xml
+      # logo.svg is taller than wide, and Flatpak exports square icons only.
+      - install -Dm644 desktop/installer/icon.png $FLATPAK_DEST/share/icons/hicolor/256x256/apps/$FLATPAK_ID.png
+      - install -Dm644 LICENSE $FLATPAK_DEST/share/licenses/$FLATPAK_ID/LICENSE
+    sources:
+      - type: dir
+        path: ..
+        skip:
+          - .git
+          - web/node_modules
+          - mobile/node_modules
+          - flatpak/.state
+          - flatpak/.build
+          - flatpak/.repo
+      - go-sources.json
+      - node-sources.json

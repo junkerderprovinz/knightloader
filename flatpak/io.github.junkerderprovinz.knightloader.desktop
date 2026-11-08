@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=KnightLoader
+GenericName=Download Manager
+Comment=Download from hosters, debrid services, Usenet and torrents in one queue
+Exec=knightloader
+Icon=io.github.junkerderprovinz.knightloader
+Terminal=false
+Categories=Network;FileTransfer;
+Keywords=download;downloader;debrid;usenet;torrent;jdownloader;hoster;
+StartupNotify=true
+StartupWMClass=io.github.junkerderprovinz.knightloader
+SingleMainWindow=true

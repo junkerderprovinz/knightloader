@@ -40,6 +40,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Added
 
+- **KnightLoader comes as a Flatpak for Linux.** Every release carries
+  `knightloader-linux-amd64.flatpak` and `knightloader-linux-arm64.flatpak`.
+  Open one in your software center or run `flatpak install` on it, and the
+  GNOME runtime comes along from Flathub. The Flatpak waits in the tray and
+  keeps the machine awake while downloads run, like the other Linux build, and
+  saves downloads anywhere in your home folder and on the drives under
+  `/media`, `/run/media` and `/mnt`. It never replaces itself: install the
+  newer bundle to update it. A `.dlc` file opened in the Flatpak goes to
+  JDownloader.
+
 - **Free 1fichier links download without JDownloader.** KnightLoader reads
   the file page itself, so a 1fichier link shows its name, size and whether
   it is still online in the link collector, and the file comes over one
@@ -107,6 +117,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   reaches both ends of its list, as the columns of the download list already
   did. KnightLoader follows GlimStone 4.2.8 in the web interface and the
   browser extension.
+
+### Fixed
+
+- **A second desktop copy on Linux with its own `KL_DATA` folder starts.**
+  Its single-instance name could begin with a digit, which D-Bus refuses, and
+  the copy stopped before it opened a window. The name starts with a letter.
 
 ## [2.7.3] - 2026-11-07
 
