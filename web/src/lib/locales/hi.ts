@@ -577,6 +577,7 @@ export const hi: Dict = {
   'list.ownLoginNeeded': 'दूसरा इंस्टेंस इसकी अनुमति केवल अपने वेब इंटरफ़ेस से देता है। ऐसा करने के लिए वहाँ साइन इन करें।',
   'task.waiting.slot': 'सभी स्लॉट व्यस्त',
   'task.takeover': '{host} के लिए KnightLoader का अपना क्लाइंट लॉगिन का उपयोग नहीं कर सका, JDownloader काम संभालता है',
+  'task.browserCheck': '{host} एक ब्राउज़र जाँच माँगता है जिसे KnightLoader पार नहीं कर सकता, इसलिए {backend} काम संभालता है',
   'task.waiting.host': 'इस होस्टर की सीमा',
   'task.waiting.forced': 'तुरंत शुरू करने के स्लॉट भरे',
   'task.waiting.captcha': 'कैप्चा की प्रतीक्षा',

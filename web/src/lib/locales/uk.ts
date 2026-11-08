@@ -577,6 +577,7 @@ export const uk: Dict = {
   'list.ownLoginNeeded': 'Інший екземпляр дозволяє це лише зі свого вебінтерфейсу. Увійди там, щоб це зробити.',
   'task.waiting.slot': 'Усі місця зайняті',
   'task.takeover': 'Власний клієнт KnightLoader для {host} не зміг використати вхід, його бере на себе JDownloader',
+  'task.browserCheck': '{host} вимагає перевірку браузера, яку KnightLoader пройти не може, тому завантаження бере на себе {backend}',
   'task.waiting.host': 'Ліміт цього хостера',
   'task.waiting.forced': 'Місця негайного запуску зайняті',
   'task.waiting.captcha': 'Чекає на капчу',

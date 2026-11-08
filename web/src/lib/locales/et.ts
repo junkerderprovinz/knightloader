@@ -576,6 +576,7 @@ export const et: Dict = {
   'list.ownLoginNeeded': 'Teine eksemplar lubab seda ainult oma veebiliideses. Logi seal sisse, et seda teha.',
   'task.waiting.slot': 'Kõik kohad hõivatud',
   'task.takeover': 'KnightLoaderi enda klient hosteri {host} jaoks ei saanud sisselogimist kasutada, JDownloader võtab üle',
+  'task.browserCheck': '{host} nõuab brauseri kontrolli, mida KnightLoader läbida ei suuda, seega võtab üle {backend}',
   'task.waiting.host': 'Selle hosteri piir',
   'task.waiting.forced': 'Kohesed käivituskohad täis',
   'task.waiting.captcha': 'Ootab captchat',

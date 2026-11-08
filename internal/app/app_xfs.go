@@ -60,7 +60,7 @@ func (a *App) xfsBackend(site *xfs.Site, eng xfs.Downloader) *xfs.Backend {
 	if b := a.xfsBackends[site.ID]; b != nil {
 		return b
 	}
-	c := xfs.NewClient(site, "https://"+site.Host, httpx.New(httpx.Options{Class: httpx.ClassHosters}))
+	c := xfs.NewClient(site, "https://"+site.Host, httpx.New(httpx.Options{Class: httpx.ClassHosters, RefuseBrowserChecks: true}))
 	b := a.newXFSBackend(c, eng)
 	if a.xfsBackends == nil {
 		a.xfsBackends = map[string]*xfs.Backend{}

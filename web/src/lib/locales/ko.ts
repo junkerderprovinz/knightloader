@@ -576,6 +576,7 @@ export const ko: Dict = {
   'list.ownLoginNeeded': '다른 인스턴스는 이 작업을 자체 웹 인터페이스에서만 허용합니다. 그곳에서 로그인하세요.',
   'task.waiting.slot': '빈 자리 없음',
   'task.takeover': '{host}용 KnightLoader 자체 클라이언트가 로그인을 사용할 수 없어 JDownloader가 이어받습니다',
+  'task.browserCheck': '{host}이(가) KnightLoader가 통과할 수 없는 브라우저 확인을 요구하므로 {backend}이(가) 이어받습니다',
   'task.waiting.host': '이 호스터의 한도',
   'task.waiting.forced': '즉시 시작 자리가 참',
   'task.waiting.captcha': '캡차 대기 중',

@@ -577,6 +577,7 @@ export const lv: Dict = {
   'list.ownLoginNeeded': 'Otra instance to atļauj tikai no savas tīmekļa saskarnes. Piesakies tur, lai to izdarītu.',
   'task.waiting.slot': 'Visas vietas aizņemtas',
   'task.takeover': 'KnightLoader paša klients vietnei {host} nevarēja izmantot pieteikšanos, to pārņem JDownloader',
+  'task.browserCheck': '{host} pieprasa pārlūka pārbaudi, ko KnightLoader nevar izturēt, tāpēc to pārņem {backend}',
   'task.waiting.host': 'Šī hostera ierobežojums',
   'task.waiting.forced': 'Tūlītējās palaišanas vietas aizņemtas',
   'task.waiting.captcha': 'Gaida captcha',

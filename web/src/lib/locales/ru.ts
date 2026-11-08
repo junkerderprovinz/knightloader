@@ -569,6 +569,7 @@ export const ru: Dict = {
   'list.ownLoginNeeded': 'Другой экземпляр разрешает это только из своего веб-интерфейса. Войди там, чтобы это сделать.',
   'task.waiting.slot': 'Все слоты заняты',
   'task.takeover': 'Собственный клиент KnightLoader для {host} не смог использовать вход, его берёт на себя JDownloader',
+  'task.browserCheck': '{host} требует проверку браузера, которую KnightLoader пройти не может, поэтому загрузку берёт на себя {backend}',
   'task.waiting.host': 'Лимит этого хостера',
   'task.waiting.forced': 'Места немедленного запуска заняты',
   'task.waiting.captcha': 'Ждёт капчу',

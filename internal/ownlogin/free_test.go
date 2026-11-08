@@ -3,6 +3,7 @@ package ownlogin
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"testing"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/hoster"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 var errRefused = errors.New("hoster: the answer to the captcha was not accepted")
@@ -204,6 +206,20 @@ func TestNobodyAnsweringFailsAsACaptcha(t *testing.T) {
 	f.Download("t1", "https://hoster.example/file/1", nil, 1)
 	if u, _ := awaitEnd(t, h, eng); u.Reason != core.ReasonCaptcha || !strings.Contains(u.Err, "nobody answered") {
 		t.Errorf("failed with %+v, want nobody answering the captcha", u)
+	}
+}
+
+func TestABrowserCheckHandsTheFreeDownloadOn(t *testing.T) {
+	h := &freeHarness{}
+	eng := handEngine{got: make(chan string, 1)}
+	f := newFree(h, &countingEngine{handEngine: eng}, func(context.Context, string, string, func(hoster.Captcha) (string, error), func(time.Duration) error) (string, error) {
+		return "", fmt.Errorf("hoster: the file page: %w", httpx.ErrBrowserCheck)
+	})
+	t.Cleanup(func() { f.Remove("t1", false) })
+
+	f.Download("t1", "https://hoster.example/file/1", nil, 1)
+	if u, _ := awaitEnd(t, h, eng); !u.Unsupported || u.BrowserCheck != "Hoster" {
+		t.Errorf("failed with %+v, want the download handed on for the browser check", u)
 	}
 }
 

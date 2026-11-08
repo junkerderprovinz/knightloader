@@ -568,6 +568,7 @@ export const nl: Dict = {
   'list.ownLoginNeeded': 'De andere instantie staat dit alleen toe vanuit haar eigen webinterface. Meld je daar aan om het te doen.',
   'task.waiting.slot': 'Alle plaatsen bezet',
   'task.takeover': 'De eigen client van KnightLoader voor {host} kon de login niet gebruiken, JDownloader neemt het over',
+  'task.browserCheck': '{host} vraagt om een browsercontrole die KnightLoader niet kan doorstaan, dus {backend} neemt het over',
   'task.waiting.host': 'Limiet van deze hoster',
   'task.waiting.forced': 'Plaatsen voor direct starten vol',
   'task.waiting.captcha': 'Wacht op een captcha',

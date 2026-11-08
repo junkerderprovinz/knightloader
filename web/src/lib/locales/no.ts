@@ -579,6 +579,7 @@ export const no: Dict = {
   'list.ownLoginNeeded': 'Den andre instansen tillater dette bare fra sitt eget nettgrensesnitt. Logg inn der for å gjøre det.',
   'task.waiting.slot': 'Alle plasser opptatt',
   'task.takeover': 'KnightLoaders egen klient for {host} kunne ikke bruke innloggingen, JDownloader tar over',
+  'task.browserCheck': '{host} krever en nettlesersjekk som KnightLoader ikke klarer, så {backend} tar over',
   'task.waiting.host': 'Denne hosterens grense',
   'task.waiting.forced': 'Plasser for umiddelbar start fulle',
   'task.waiting.captcha': 'Venter på captcha',

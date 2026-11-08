@@ -620,6 +620,7 @@ export const de: Dict = {
   'list.ownLoginNeeded': 'Die andere Instanz erlaubt das nur über ihre eigene Weboberfläche. Melde dich dort an.',
   'task.waiting.slot': 'Alle Plätze belegt',
   'task.takeover': 'KnightLoaders eigener Client für {host} konnte die Anmeldung nicht nutzen, JDownloader übernimmt',
+  'task.browserCheck': '{host} verlangt eine Browserprüfung, die KnightLoader nicht bestehen kann, deshalb übernimmt {backend}',
   'task.waiting.host': 'Grenze dieses Hosters',
   'task.waiting.forced': 'Plätze für „Jetzt starten“ belegt',
   'task.waiting.disabled': 'Deaktiviert',

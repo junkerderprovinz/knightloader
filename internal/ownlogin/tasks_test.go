@@ -2,11 +2,13 @@ package ownlogin
 
 import (
 	"context"
+	"fmt"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 type idleEngine struct{}
@@ -15,6 +17,31 @@ func (idleEngine) Handover(string, string, int, func(context.Context) (string, e
 func (idleEngine) Pause(string)                                                        {}
 func (idleEngine) Resume(string)                                                       {}
 func (idleEngine) Remove(string, bool)                                                 {}
+
+func TestABrowserCheckHandsTheDownloadOnAndLeavesTheLoginAlone(t *testing.T) {
+	login := NewLogin(Signer{Reason: func(error) core.Reason { return core.ReasonUnknown }})
+	got := make(chan core.Update, 1)
+	tasks := NewTasks(login, idleEngine{}, func(_ string, u core.Update) { got <- u }, Config{
+		Name: "Rapidgator",
+		Unlock: func(context.Context, string, string, func(time.Duration) error) (string, int64, error) {
+			return "", 0, fmt.Errorf("rapidgator: the download API: %w", httpx.ErrBrowserCheck)
+		},
+	})
+	t.Cleanup(func() { tasks.Remove("t1", false) })
+
+	tasks.Download("t1", "https://rapidgator.net/file/1", nil, 1)
+	select {
+	case u := <-got:
+		if !u.Unsupported || u.BrowserCheck != "Rapidgator" || u.Takeover != "" {
+			t.Errorf("failed with %+v, want the download handed on for the browser check", u)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("the download never ended")
+	}
+	if login.Handed() {
+		t.Error("a browser check gave the login to JDownloader")
+	}
+}
 
 func TestAWaitResumedAfterAPauseStillCountsAsWaitingWhenThePausedOneWindsDown(t *testing.T) {
 	login := NewLogin(Signer{Reason: func(error) core.Reason { return core.ReasonUnknown }})

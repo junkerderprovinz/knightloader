@@ -576,6 +576,7 @@ export const ja: Dict = {
   'list.ownLoginNeeded': '相手のインスタンスは、この操作を自身のWebインターフェースからしか許可していません。そちらでサインインしてください。',
   'task.waiting.slot': '空きスロットなし',
   'task.takeover': '{host} 用の KnightLoader 自身のクライアントはログインを使えなかったため、JDownloader が引き継ぎます',
+  'task.browserCheck': '{host} は KnightLoader が通過できないブラウザーチェックを求めているため、{backend} が引き継ぎます',
   'task.waiting.host': 'このホスターの上限',
   'task.waiting.forced': '即時開始の枠が満杯',
   'task.waiting.captcha': 'キャプチャ待ち',

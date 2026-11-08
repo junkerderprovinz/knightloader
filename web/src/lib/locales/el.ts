@@ -577,6 +577,7 @@ export const el: Dict = {
   'list.ownLoginNeeded': 'Το άλλο στιγμιότυπο το επιτρέπει μόνο από τη δική του διεπαφή ιστού. Συνδέσου εκεί για να το κάνεις.',
   'task.waiting.slot': 'Όλες οι θέσεις κατειλημμένες',
   'task.takeover': 'Ο δικός client του KnightLoader για το {host} δεν μπόρεσε να χρησιμοποιήσει τη σύνδεση, την αναλαμβάνει το JDownloader',
+  'task.browserCheck': 'Το {host} ζητά έλεγχο προγράμματος περιήγησης που το KnightLoader δεν μπορεί να περάσει, οπότε αναλαμβάνει το {backend}',
   'task.waiting.host': 'Όριο αυτού του hoster',
   'task.waiting.forced': 'Οι θέσεις άμεσης εκκίνησης γεμάτες',
   'task.waiting.captcha': 'Περιμένει captcha',

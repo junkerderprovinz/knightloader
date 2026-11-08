@@ -1015,6 +1015,13 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
           {t('task.takeover', { host: task.takeover })}
         </Tip>
       )}
+      {/* Why another backend has a download KnightLoader's own client for the
+          hoster started: the hoster asked for a browser check. */}
+      {!task.note && !task.takeover && task.browserCheck && task.status !== 'done' && task.status !== 'error' && (
+        <Tip tip={browserCheckNote(task, t)} className="min-w-0 truncate text-meta text-carbon-textMuted">
+          {browserCheckNote(task, t)}
+        </Tip>
+      )}
       {/* Why a queued row is not running: the slot count is full, this host is
           at its ceiling, the account behind the only backend that claims the
           link is benched. Without it ten queued rows all say "waiting" and
@@ -1024,7 +1031,7 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
           Only when there is no note: a backend's sentence about what it is
           doing right now is more specific than our reason for not having
           started it, and two greys on one line stop the cell being readable. */}
-      {!task.note && !task.takeover && task.waiting && !queueWideWaiting.has(task.waiting) && (
+      {!task.note && !task.takeover && !task.browserCheck && task.waiting && !queueWideWaiting.has(task.waiting) && (
         // A bubble for the same reason task.note has one: this column is narrow
         // by default and several of these reasons are longer in German than the
         // space they get, so the ellipsis needs somewhere to lead.
@@ -1060,6 +1067,11 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
       )}
     </span>
   );
+}
+
+/** The note of a download a hoster's browser check moved on, naming the backend that has it. */
+function browserCheckNote(task: Task, t: Translate): string {
+  return t('task.browserCheck', { host: task.browserCheck ?? '', backend: resolverLabel(task.resolver.split('#')[0], t) });
 }
 
 function RemoteNote({ task, remote, t }: { task: Task; remote: RemoteFetch; t: Translate }) {

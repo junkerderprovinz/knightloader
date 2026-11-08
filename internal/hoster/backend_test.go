@@ -3,6 +3,7 @@ package hoster
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"sync"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // script answers each Unlock with the next of its answers, the last one for
@@ -150,6 +152,17 @@ func awaitFailure(t *testing.T, ups *updates) core.Update {
 	}
 	t.Fatalf("the task never failed: %+v", ups.list())
 	return core.Update{}
+}
+
+func TestABrowserCheckHandsTheDownloadOnNamingTheHoster(t *testing.T) {
+	b, _, ups := newBackend(&script{answers: []answer{{err: fmt.Errorf("gofile: the content API: %w", httpx.ErrBrowserCheck)}}})
+	t.Cleanup(func() { b.Remove("t1", false) })
+
+	b.Download("t1", "https://gofile.io/d/AbCdEf", nil, 4)
+	u := awaitFailure(t, ups)
+	if !u.Unsupported || u.BrowserCheck != "Gofile" || u.Err != "Gofile asks for a browser check KnightLoader cannot pass" {
+		t.Errorf("failed with %+v, want the download handed on for the browser check", u)
+	}
 }
 
 func TestTheLinkGoesToTheEngineWithItsHeadersAndTheHostersConnectionCap(t *testing.T) {

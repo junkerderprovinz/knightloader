@@ -1553,6 +1553,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Status == core.StatusDone {
 		t.Online = core.AvailOnline
 		t.Takeover = ""
+		t.BrowserCheck = ""
 		// A link check that answered while the download ran can have left a
 		// reason the finished file disproves.
 		t.ClearFailure()
@@ -1604,6 +1605,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Status == core.StatusError && u.Unsupported {
 		if u.Takeover != "" {
 			t.Takeover = u.Takeover
+		}
+		if u.BrowserCheck != "" {
+			t.BrowserCheck = u.BrowserCheck
 		}
 		if next := a.nextPastOwnFreeLocked(t); next != "" {
 			fallbackTo = a.backendFor(t.Resolver)

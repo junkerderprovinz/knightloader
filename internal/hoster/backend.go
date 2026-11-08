@@ -67,6 +67,8 @@ func (b *Backend) run(ctx context.Context, taskID, link string, conns int) {
 			if b.wait(ctx, taskID, w) != nil {
 				return
 			}
+		case b.PassOnBrowserCheck(taskID, b.Name, err):
+			return
 		default:
 			b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: err.Error(), Reason: reasonOf(err)})
 			return

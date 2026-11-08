@@ -576,6 +576,7 @@ export const th: Dict = {
   'list.ownLoginNeeded': 'อินสแตนซ์อีกตัวอนุญาตให้ทำสิ่งนี้ได้จากเว็บอินเทอร์เฟซของตัวเองเท่านั้น ลงชื่อเข้าใช้ที่นั่นเพื่อทำ',
   'task.waiting.slot': 'ช่องเต็มทั้งหมด',
   'task.takeover': 'ไคลเอนต์ของ KnightLoader เองสำหรับ {host} ใช้การเข้าสู่ระบบไม่ได้ JDownloader รับช่วงต่อ',
+  'task.browserCheck': '{host} ขอให้ตรวจสอบเบราว์เซอร์ซึ่ง KnightLoader ผ่านไม่ได้ {backend} จึงรับช่วงต่อ',
   'task.waiting.host': 'ขีดจำกัดของโฮสเตอร์นี้',
   'task.waiting.forced': 'ช่องเริ่มทันทีเต็ม',
   'task.waiting.captcha': 'รอแคปช่า',

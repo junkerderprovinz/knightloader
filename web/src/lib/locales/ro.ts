@@ -577,6 +577,7 @@ export const ro: Dict = {
   'list.ownLoginNeeded': 'Cealaltă instanță permite asta doar din propria interfață web. Autentifică-te acolo ca să o faci.',
   'task.waiting.slot': 'Toate locurile ocupate',
   'task.takeover': 'Clientul propriu al KnightLoader pentru {host} nu a putut folosi autentificarea, preia JDownloader',
+  'task.browserCheck': '{host} cere o verificare a browserului pe care KnightLoader nu o poate trece, așa că preia {backend}',
   'task.waiting.host': 'Limita acestui hoster',
   'task.waiting.forced': 'Locurile de pornire imediată sunt pline',
   'task.waiting.captcha': 'Așteaptă un captcha',

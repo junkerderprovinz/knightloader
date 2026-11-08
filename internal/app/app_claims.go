@@ -44,13 +44,14 @@ var cloudShares = map[string]bool{
 }
 
 // fileHoster reports whether host is a file hoster: one JD fetches ahead of a
-// plain GET (jd.FileHoster), one on the curated list, a cloud share site, or
-// one a wired debrid or TorBox account lists. These are the hosts the
+// plain GET (jd.FileHoster), one on the curated list, one of KnightLoader's
+// own clients serves, a cloud share site, or one a wired debrid or TorBox
+// account lists. These are the hosts the
 // automatic order already gives to a hoster backend before the direct
 // download. All of them know a hoster by any of its domains
 // (internal/hostalias).
 func (c *hostClaims) fileHoster(host string) bool {
-	if jd.FileHoster(host) || hosterauth.Curated(host) || debrid.HostInSet(host, cloudShares) {
+	if jd.FileHoster(host) || hosterauth.Curated(host) || xfsSiteFor(host) != nil || ownSite(host) || debrid.HostInSet(host, cloudShares) {
 		return true
 	}
 	c.mu.RLock()

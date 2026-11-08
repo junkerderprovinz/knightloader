@@ -578,6 +578,7 @@ export const ar: Dict = {
   'list.ownLoginNeeded': 'النسخة الأخرى لا تسمح بذلك إلا من واجهة الويب الخاصة بها. سجّل الدخول هناك لتفعله.',
   'task.waiting.slot': 'كل الفتحات مشغولة',
   'task.takeover': 'تعذّر على عميل KnightLoader الخاص بـ {host} استخدام تسجيل الدخول، ويتولّى JDownloader الأمر',
+  'task.browserCheck': '{host} يطلب فحص متصفح لا يستطيع KnightLoader اجتيازه، لذا يتولّى {backend} الأمر',
   'task.waiting.host': 'حد هذا المستضيف',
   'task.waiting.forced': 'فتحات التشغيل الفوري ممتلئة',
   'task.waiting.captcha': 'بانتظار كابتشا',

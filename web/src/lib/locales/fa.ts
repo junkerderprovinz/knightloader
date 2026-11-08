@@ -576,6 +576,7 @@ export const fa: Dict = {
   'list.ownLoginNeeded': 'نمونهٔ دیگر این کار را فقط از رابط وب خودش اجازه می‌دهد. برای انجام آن همان‌جا وارد شوید.',
   'task.waiting.slot': 'همهٔ جایگاه‌ها اشغال',
   'task.takeover': 'کلاینت خود KnightLoader برای {host} نتوانست از ورود استفاده کند، JDownloader کار را به دست می‌گیرد',
+  'task.browserCheck': '{host} بررسی مرورگری می‌خواهد که KnightLoader نمی‌تواند از آن رد شود، پس {backend} کار را به دست می‌گیرد',
   'task.waiting.host': 'سقف این میزبان',
   'task.waiting.forced': 'جایگاه‌های شروع فوری پر است',
   'task.waiting.captcha': 'در انتظار کپچا',

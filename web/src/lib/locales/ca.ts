@@ -576,6 +576,7 @@ export const ca: Dict = {
   'list.ownLoginNeeded': 'L\'altra instància només ho permet des de la seva pròpia interfície web. Inicia-hi la sessió per fer-ho.',
   'task.waiting.slot': 'Totes les places ocupades',
   'task.takeover': 'El client propi de KnightLoader per a {host} no ha pogut fer servir l’inici de sessió, JDownloader se n’encarrega',
+  'task.browserCheck': '{host} demana una comprovació del navegador que KnightLoader no pot superar, així que {backend} se n’encarrega',
   'task.waiting.host': 'Límit d\'aquest allotjador',
   'task.waiting.forced': 'Places d\'inici immediat plenes',
   'task.waiting.captcha': 'Espera un captcha',

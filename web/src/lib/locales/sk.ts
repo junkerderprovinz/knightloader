@@ -576,6 +576,7 @@ export const sk: Dict = {
   'list.ownLoginNeeded': 'Druhá inštancia to dovolí len vo svojom vlastnom webovom rozhraní. Prihlás sa tam.',
   'task.waiting.slot': 'Všetky miesta obsadené',
   'task.takeover': 'Vlastný klient KnightLoadera pre {host} prihlásenie nedokázal použiť, preberá ho JDownloader',
+  'task.browserCheck': '{host} vyžaduje kontrolu prehliadača, ktorou KnightLoader nedokáže prejsť, preto preberá {backend}',
   'task.waiting.host': 'Limit tohto hosteru',
   'task.waiting.forced': 'Miesta okamžitého štartu obsadené',
   'task.waiting.captcha': 'Čaká na captchu',

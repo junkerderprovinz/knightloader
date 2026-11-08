@@ -345,6 +345,17 @@ stands aside too, so the links go out on the login rather than for free.
 To give KnightLoader another try, save the login again or switch it off and on.
 KnightLoader checks it once more and takes it back if its client works with it.
 
+## When a hoster asks for a browser check
+
+Some hosters sit behind Cloudflare, which at times answers with a browser
+check ("Just a moment...") that only a browser running the page's scripts can
+pass. KnightLoader's own clients do not try to solve it. The download moves on
+to the next backend on the priority card, such as JDownloader or a debrid
+service that carries the hoster, and its row says that the hoster asked for a
+browser check. If no other backend can take the link, the download fails with
+that message. A stored login stays where it is, since the check says nothing
+about it.
+
 ## Rapidgator
 
 With your Rapidgator premium login saved under **Hoster accounts** on the

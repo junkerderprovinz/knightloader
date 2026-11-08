@@ -96,6 +96,8 @@ func (f *Free) run(ctx context.Context, taskID, link string, _ int) {
 			}
 		case f.cfg.Refused != nil && errors.Is(err, f.cfg.Refused) && captchas < maxCaptchas:
 			captchas++
+		case f.PassOnBrowserCheck(taskID, f.cfg.Name, err):
+			return
 		default:
 			f.fail(taskID, err)
 			return

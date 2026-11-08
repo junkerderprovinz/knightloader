@@ -169,3 +169,11 @@ it('keeps a package on verifying while one of its files waits for the check', ()
   expect(text).toContain(en['status.verifying']);
   expect(text).not.toContain(en['status.done']);
 });
+
+it('says which backend took a link over from a hoster that asked for a browser check', () => {
+  const moved = { resolver: 'jd', browserCheck: 'FileSpace', loaded: 0 };
+  expect(cell(row('a', { ...moved, status: 'queued' }))).toContain(
+    'FileSpace asks for a browser check KnightLoader cannot pass, so JDownloader takes over',
+  );
+  expect(cell(row('a', { ...moved, status: 'done' }))).not.toContain('browser check');
+});

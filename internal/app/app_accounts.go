@@ -684,7 +684,7 @@ func (a *App) fichierBackend(eng onefichier.Downloader) *onefichier.Backend {
 	a.bmu.Lock()
 	defer a.bmu.Unlock()
 	if a.fichier == nil {
-		c := onefichier.NewClient(onefichier.DefaultSite, httpx.New(httpx.Options{Class: httpx.ClassHosters}))
+		c := onefichier.NewClient(onefichier.DefaultSite, httpx.New(httpx.Options{Class: httpx.ClassHosters, RefuseBrowserChecks: true}))
 		b := onefichier.NewBackend(c, eng, a.onUpdate)
 		b.Password = a.downloadPassword
 		a.fichier = b
@@ -710,7 +710,7 @@ func (a *App) hosterClients(eng hoster.Downloader) map[string]hosterClient {
 	a.bmu.Lock()
 	defer a.bmu.Unlock()
 	if a.hosters == nil {
-		hc := httpx.New(httpx.Options{Class: httpx.ClassHosters})
+		hc := httpx.New(httpx.Options{Class: httpx.ClassHosters, RefuseBrowserChecks: true})
 		pd := pixeldrain.NewClient(pixeldrain.DefaultAPI, hc)
 		pd.Key = func() string { return a.hosterSecret("pixeldrain.com") }
 		gf := gofile.NewClient(gofile.DefaultAPI, gofile.DefaultSite, hc)

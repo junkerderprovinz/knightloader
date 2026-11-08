@@ -576,6 +576,7 @@ export const id: Dict = {
   'list.ownLoginNeeded': 'Instance lain hanya mengizinkan ini dari antarmuka webnya sendiri. Masuklah di sana untuk melakukannya.',
   'task.waiting.slot': 'Semua slot sibuk',
   'task.takeover': 'Klien milik KnightLoader untuk {host} tidak bisa memakai login, JDownloader mengambil alih',
+  'task.browserCheck': '{host} meminta pemeriksaan peramban yang tidak bisa dilewati KnightLoader, jadi {backend} mengambil alih',
   'task.waiting.host': 'Batas hoster ini',
   'task.waiting.forced': 'Slot mulai sekarang penuh',
   'task.waiting.captcha': 'Menunggu captcha',

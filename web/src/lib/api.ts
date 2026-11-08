@@ -51,6 +51,9 @@ export interface Task {
   /** The hoster whose own client in KnightLoader could not use the login and
    *  gave this download to JDownloader with it. */
   takeover?: string;
+  /** The hoster whose browser check made its own client in KnightLoader give
+   *  this download to the next backend. */
+  browserCheck?: string;
   size: number;
   loaded: number;
   speed: number;

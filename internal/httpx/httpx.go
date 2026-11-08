@@ -115,6 +115,11 @@ type Options struct {
 	// Jar keeps cookies for callers that need a session. Nil means cookies are
 	// not kept at all, so nothing leaks between two unrelated hosts.
 	Jar http.CookieJar
+
+	// RefuseBrowserChecks turns Cloudflare's browser check into
+	// ErrBrowserCheck, for a hoster client that cannot pass it and hands the
+	// download on instead.
+	RefuseBrowserChecks bool
 }
 
 // NoProxy is the Proxy for a client that must stay direct: a loopback call, or
@@ -132,8 +137,12 @@ func UserAgent() string {
 // redirect rule, the user agent and the request ceiling.
 func New(o Options) *http.Client {
 	o = o.withDefaults()
+	var base http.RoundTripper = NewTransport(o)
+	if o.RefuseBrowserChecks {
+		base = &challengeTransport{base: base}
+	}
 	return &http.Client{
-		Transport:     &userAgentTransport{base: NewTransport(o), ua: o.UserAgent},
+		Transport:     &userAgentTransport{base: base, ua: o.UserAgent},
 		CheckRedirect: checkRedirect(o.MaxRedirects),
 		Jar:           o.Jar,
 		Timeout:       clientTimeout(o.Timeout),

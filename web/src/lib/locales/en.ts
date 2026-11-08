@@ -645,6 +645,7 @@ export const en = {
   'list.ownLoginNeeded': 'The other instance allows this only from its own web interface. Sign in there to do it.',
   'task.waiting.slot': 'All slots busy',
   'task.takeover': "KnightLoader's own client for {host} could not use the login, JDownloader takes over",
+  'task.browserCheck': '{host} asks for a browser check KnightLoader cannot pass, so {backend} takes over',
   'task.waiting.host': 'This host\'s limit',
   'task.waiting.forced': 'Start-now slots full',
   'task.waiting.disabled': 'Disabled',

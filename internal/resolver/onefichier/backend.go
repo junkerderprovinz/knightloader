@@ -70,6 +70,8 @@ func (b *Backend) run(ctx context.Context, taskID, link string, _ int) {
 			if b.wait(ctx, taskID, w) != nil {
 				return
 			}
+		case b.PassOnBrowserCheck(taskID, "1fichier", err):
+			return
 		default:
 			b.fail(taskID, err)
 			return

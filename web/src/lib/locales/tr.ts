@@ -576,6 +576,7 @@ export const tr: Dict = {
   'list.ownLoginNeeded': 'Diğer örnek buna yalnızca kendi web arayüzünden izin veriyor. Bunu yapmak için orada oturum aç.',
   'task.waiting.slot': 'Tüm yuvalar dolu',
   'task.takeover': 'KnightLoader’ın {host} için kendi istemcisi girişi kullanamadı, JDownloader devralıyor',
+  'task.browserCheck': '{host}, KnightLoader’ın geçemeyeceği bir tarayıcı denetimi istiyor, bu yüzden {backend} devralıyor',
   'task.waiting.host': 'Bu hosterin sınırı',
   'task.waiting.forced': 'Hemen başlat yuvaları dolu',
   'task.waiting.captcha': 'Captcha bekliyor',

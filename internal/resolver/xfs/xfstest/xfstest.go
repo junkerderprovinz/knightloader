@@ -21,6 +21,8 @@ import (
 	"testing"
 	"text/template"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx/cloudflaretest"
 )
 
 //go:embed pages/*.html
@@ -93,6 +95,7 @@ type Server struct {
 	captcha      string
 	loginCaptcha bool
 	premiumCode  bool
+	challenge    int
 	signIns      int
 	posts        []url.Values
 	requests     []string
@@ -149,6 +152,14 @@ func (s *Server) Captcha(kind string) {
 	s.captcha = kind
 }
 
+// Challenge makes every form sent in answer with Cloudflare's browser check
+// under status, as FileSpace's free form does.
+func (s *Server) Challenge(status int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.challenge = status
+}
+
 // LoginCaptcha puts a Turnstile check on the sign-in form.
 func (s *Server) LoginCaptcha() {
 	s.mu.Lock()
@@ -192,6 +203,8 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	_ = r.ParseForm()
 
 	switch {
+	case s.challenge != 0 && r.Method == http.MethodPost:
+		cloudflaretest.Challenge(w, s.challenge)
 	case strings.HasPrefix(r.URL.Path, "/d/"):
 		s.download(w, r)
 	case r.URL.Path == "/captchas/code.png":

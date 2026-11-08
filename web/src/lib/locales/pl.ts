@@ -569,6 +569,7 @@ export const pl: Dict = {
   'list.ownLoginNeeded': 'Druga instancja pozwala na to tylko z własnego interfejsu webowego. Zaloguj się tam, żeby to zrobić.',
   'task.waiting.slot': 'Wszystkie miejsca zajęte',
   'task.takeover': 'Własny klient KnightLoadera dla {host} nie mógł użyć logowania, przejmuje je JDownloader',
+  'task.browserCheck': '{host} wymaga sprawdzenia przeglądarki, którego KnightLoader nie potrafi przejść, więc przejmuje {backend}',
   'task.waiting.host': 'Limit tego hostera',
   'task.waiting.forced': 'Miejsca natychmiastowego startu zajęte',
   'task.waiting.captcha': 'Czeka na captchę',

@@ -578,6 +578,7 @@ export const he: Dict = {
   'list.ownLoginNeeded': 'המופע האחר מאפשר זאת רק מממשק האינטרנט שלו. התחבר שם כדי לעשות זאת.',
   'task.waiting.slot': 'כל המקומות תפוסים',
   'task.takeover': 'הלקוח של KnightLoader עצמו עבור {host} לא הצליח להשתמש בהתחברות, JDownloader לוקח את זה על עצמו',
+  'task.browserCheck': '{host} דורש בדיקת דפדפן ש-KnightLoader לא יכול לעבור, ולכן {backend} לוקח את זה על עצמו',
   'task.waiting.host': 'מגבלת המארח הזה',
   'task.waiting.forced': 'מקומות ההתחלה המיידית מלאים',
   'task.waiting.captcha': 'ממתין ל-captcha',

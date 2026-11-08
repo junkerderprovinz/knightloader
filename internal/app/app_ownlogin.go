@@ -140,7 +140,7 @@ func (a *App) ownHosters(eng ownlogin.Downloader) []*ownHoster {
 	if a.own != nil {
 		return a.own
 	}
-	hc := httpx.New(httpx.Options{Class: httpx.ClassHosters})
+	hc := httpx.New(httpx.Options{Class: httpx.ClassHosters, RefuseBrowserChecks: true})
 	// A login a hoster has just answered for may open or close the way down a
 	// link held for premium only was waiting for.
 	rg := rapidgator.NewBackend(rapidgator.NewClient(rapidgator.DefaultSite, hc), eng, a.onUpdate)

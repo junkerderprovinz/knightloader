@@ -576,6 +576,7 @@ export const is: Dict = {
   'list.ownLoginNeeded': 'Hitt tilvikið leyfir þetta aðeins úr eigin vefviðmóti. Skráðu þig inn þar til að gera það.',
   'task.waiting.slot': 'Öll sæti upptekin',
   'task.takeover': 'Eigin biðlari KnightLoader fyrir {host} gat ekki notað innskráninguna, JDownloader tekur við',
+  'task.browserCheck': '{host} biður um vafraprófun sem KnightLoader kemst ekki í gegnum, svo {backend} tekur við',
   'task.waiting.host': 'Mörk þessarar hýsingar',
   'task.waiting.forced': 'Sæti fyrir tafarlausa byrjun full',
   'task.waiting.captcha': 'Bíður eftir captcha',

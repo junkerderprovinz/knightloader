@@ -577,6 +577,7 @@ export const eu: Dict = {
   'list.ownLoginNeeded': 'Beste instantziak bere web interfazetik bakarrik uzten du hori egiten. Hasi saioa han hori egiteko.',
   'task.waiting.slot': 'Toki guztiak beteta',
   'task.takeover': '{host} ostalariarentzako KnightLoaderren bezero propioak ezin izan du saio-hasiera erabili, JDownloaderrek hartzen du bere gain',
+  'task.browserCheck': '{host} ostalariak KnightLoaderrek gainditu ezin duen nabigatzaile-egiaztapena eskatzen du, beraz {backend}(e)k hartzen du bere gain',
   'task.waiting.host': 'Ostalari honen muga',
   'task.waiting.forced': 'Berehalako hasierako tokiak beteta',
   'task.waiting.captcha': 'Captcha baten zain',

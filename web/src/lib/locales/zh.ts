@@ -576,6 +576,7 @@ export const zh: Dict = {
   'list.ownLoginNeeded': '另一个实例只允许在它自己的网页界面上这样做。请在那里登录后操作。',
   'task.waiting.slot': '所有并发位已满',
   'task.takeover': 'KnightLoader 自己的 {host} 客户端无法使用这个登录，由 JDownloader 接手',
+  'task.browserCheck': '{host} 要求进行 KnightLoader 无法通过的浏览器检查，因此由 {backend} 接手',
   'task.waiting.host': '该网盘的并发上限',
   'task.waiting.forced': '立即开始的名额已满',
   'task.waiting.captcha': '等待验证码',

@@ -576,6 +576,7 @@ export const vi: Dict = {
   'list.ownLoginNeeded': 'Phiên bản kia chỉ cho phép việc này từ giao diện web của chính nó. Hãy đăng nhập ở đó để thực hiện.',
   'task.waiting.slot': 'Hết chỗ trống',
   'task.takeover': 'Trình khách riêng của KnightLoader cho {host} không dùng được đăng nhập, JDownloader tiếp quản',
+  'task.browserCheck': '{host} yêu cầu kiểm tra trình duyệt mà KnightLoader không vượt qua được, nên {backend} tiếp quản',
   'task.waiting.host': 'Giới hạn của nhà lưu trữ này',
   'task.waiting.forced': 'Hết chỗ khởi động ngay',
   'task.waiting.captcha': 'Đang chờ captcha',

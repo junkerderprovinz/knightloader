@@ -576,6 +576,7 @@ export const sr: Dict = {
   'list.ownLoginNeeded': 'Друга инстанца то дозвољава само из свог веб интерфејса. Пријави се тамо да то урадиш.',
   'task.waiting.slot': 'Сва места заузета',
   'task.takeover': 'Сопствени клијент KnightLoader-а за {host} није могао да користи пријаву, преузима JDownloader',
+  'task.browserCheck': '{host} тражи проверу прегледача коју KnightLoader не може да прође, па преузима {backend}',
   'task.waiting.host': 'Ограничење овог хостера',
   'task.waiting.forced': 'Места за тренутни старт попуњена',
   'task.waiting.captcha': 'Чека капчу',

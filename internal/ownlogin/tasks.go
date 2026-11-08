@@ -94,6 +94,8 @@ func (t *Tasks) run(ctx context.Context, taskID, link string, conns int) {
 			if t.wait(ctx, taskID, t.cfg.BusyWait, t.cfg.BusyNote) != nil {
 				return
 			}
+		case t.PassOnBrowserCheck(taskID, t.cfg.Name, err):
+			return
 		default:
 			t.fail(taskID, err)
 			return

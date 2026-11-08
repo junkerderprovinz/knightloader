@@ -278,6 +278,8 @@ func (b *Backend) run(ctx context.Context, taskID, link string, _ int) {
 			}
 		case errors.Is(err, ErrCaptchaRefused) && captchas < maxCaptchaTries:
 			captchas++
+		case b.PassOnBrowserCheck(taskID, b.site.Name, err):
+			return
 		case premium && (b.Fail(err, misread(err)) || b.Handed() && ownlogin.Unexplained(misread(err))):
 			b.handBack(taskID, err)
 			return

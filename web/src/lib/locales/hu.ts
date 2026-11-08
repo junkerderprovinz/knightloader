@@ -577,6 +577,7 @@ export const hu: Dict = {
   'list.ownLoginNeeded': 'A másik példány ezt csak a saját webes felületéről engedi. Jelentkezz be ott, hogy megtehesd.',
   'task.waiting.slot': 'Minden hely foglalt',
   'task.takeover': 'A KnightLoader saját kliense a(z) {host} tárhelyhez nem tudta használni a bejelentkezést, a JDownloader veszi át',
+  'task.browserCheck': 'A(z) {host} böngészőellenőrzést kér, amelyen a KnightLoader nem tud átjutni, ezért a(z) {backend} veszi át',
   'task.waiting.host': 'Ennek a tárhelynek a korlátja',
   'task.waiting.forced': 'Az azonnali indítás helyei betelve',
   'task.waiting.captcha': 'Captchára vár',

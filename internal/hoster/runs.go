@@ -2,10 +2,12 @@ package hoster
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // Transfers is the engine as Runs sees it once a task's link is handed on.
@@ -168,6 +170,18 @@ func (r *Runs) Remove(taskID string, deleteFiles bool) {
 	if handed {
 		r.eng.Remove(taskID, deleteFiles)
 	}
+}
+
+// PassOnBrowserCheck hands the task to the next backend when err is the
+// browser check of name's site, which no client of KnightLoader's can pass,
+// and reports whether it did.
+func (r *Runs) PassOnBrowserCheck(taskID, name string, err error) bool {
+	if !errors.Is(err, httpx.ErrBrowserCheck) {
+		return false
+	}
+	r.onUpdate(taskID, core.Update{Status: core.StatusError, Err: name + " asks for a browser check KnightLoader cannot pass",
+		Unsupported: true, BrowserCheck: name})
+	return true
 }
 
 // Sleep waits d, or less when ctx ends first.

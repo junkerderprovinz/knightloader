@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"net/http"
 	"slices"
 	"strings"
 	"sync"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs/xfstest"
@@ -384,6 +386,27 @@ func TestAPremiumDownloadTheClientCannotReadGoesToJDownloaderWithTheLogin(t *tes
 	}
 	if !b.Handed() || b.Premium() {
 		t.Error("the login stayed with the site's client")
+	}
+}
+
+func TestABrowserCheckOnTheFormHandsTheDownloadOnNamingTheSite(t *testing.T) {
+	for _, status := range []int{http.StatusForbidden, http.StatusServiceUnavailable} {
+		srv := xfstest.New(t, site.Host, nil)
+		link := srv.Add("k3m9x2p7q1ab", xfstest.File{Name: "a.bin", Body: make([]byte, 1024)})
+		srv.Challenge(status)
+		eng := &fakeEngine{got: make(chan handoff, 4)}
+		h := &harness{}
+		b := xfs.NewBackend(xfs.NewClient(site, srv.URL, httpx.New(httpx.Options{RefuseBrowserChecks: true})), eng, h.add)
+		b.Sleep = h.sleep
+
+		b.Download("t1", link, nil, 1)
+		u := awaitFailure(t, h)
+		if !u.Unsupported || u.BrowserCheck != "Example" || u.Takeover != "" {
+			t.Errorf("status %d: failed with %+v, want the download handed on for the browser check", status, u)
+		}
+		if want := "Example asks for a browser check KnightLoader cannot pass"; u.Err != want {
+			t.Errorf("status %d: error %q, want %q", status, u.Err, want)
+		}
 	}
 }
 

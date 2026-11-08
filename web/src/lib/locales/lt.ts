@@ -577,6 +577,7 @@ export const lt: Dict = {
   'list.ownLoginNeeded': 'Kitas egzempliorius tai leidžia tik per savo žiniatinklio sąsają. Prisijunk ten, kad tai padarytum.',
   'task.waiting.slot': 'Visos vietos užimtos',
   'task.takeover': 'Paties KnightLoader klientas, skirtas {host}, negalėjo naudoti prisijungimo, perima JDownloader',
+  'task.browserCheck': '{host} reikalauja naršyklės patikros, kurios KnightLoader negali įveikti, todėl perima {backend}',
   'task.waiting.host': 'Šio hosterio riba',
   'task.waiting.forced': 'Tuoj pat paleidžiamų vietos užimtos',
   'task.waiting.captcha': 'Laukia captcha',

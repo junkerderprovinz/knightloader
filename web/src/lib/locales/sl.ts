@@ -576,6 +576,7 @@ export const sl: Dict = {
   'list.ownLoginNeeded': 'Druga instanca to dovoli samo iz svojega spletnega vmesnika. Prijavi se tam, da to narediš.',
   'task.waiting.slot': 'Vsa mesta zasedena',
   'task.takeover': 'KnightLoaderjev lastni odjemalec za {host} prijave ni mogel uporabiti, prevzame jo JDownloader',
+  'task.browserCheck': '{host} zahteva preverjanje brskalnika, ki ga KnightLoader ne more opraviti, zato prevzame {backend}',
   'task.waiting.host': 'Omejitev tega hosterja',
   'task.waiting.forced': 'Mesta za takojšen zagon zasedena',
   'task.waiting.captcha': 'Čaka na captcho',

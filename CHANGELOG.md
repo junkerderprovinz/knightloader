@@ -176,6 +176,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   place. JDownloader, yt-dlp, the direct download, the torrent client and MEGA
   keep their rows. Moving a row leaves the clients the card does not show
   where they were in the order.
+- **A hoster that asks for a browser check hands the download on.** When
+  FileSpace or another hoster answers KnightLoader's own client with
+  Cloudflare's browser check, the download moves on to JDownloader or a debrid
+  service that carries the hoster, and its row says why. If nothing else can
+  take the link, the download fails with that reason.
 - **Every list you reorder by hand places the moved item the same way.** An
   item passes a neighbour once its leading edge is past the neighbour's
   middle, so a wide card in the overview or a long entry in the settings rail

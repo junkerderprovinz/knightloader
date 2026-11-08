@@ -576,6 +576,7 @@ export const fi: Dict = {
   'list.ownLoginNeeded': 'Toinen instanssi sallii tämän vain omasta verkkokäyttöliittymästään. Kirjaudu sinne tehdäksesi sen.',
   'task.waiting.slot': 'Kaikki paikat varattuja',
   'task.takeover': 'KnightLoaderin oma asiakas hosterille {host} ei voinut käyttää kirjautumista, JDownloader ottaa hoitaakseen',
+  'task.browserCheck': '{host} vaatii selaintarkistuksen, jota KnightLoader ei pysty läpäisemään, joten {backend} ottaa hoitaakseen',
   'task.waiting.host': 'Tämän isännöijän raja',
   'task.waiting.forced': 'Heti-käynnistyspaikat täynnä',
   'task.waiting.captcha': 'Odottaa captchaa',
