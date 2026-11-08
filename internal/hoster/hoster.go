@@ -2,7 +2,10 @@
 // hosters that hand out a plain download link once asked: it asks the
 // hoster's client for the link, sits out the waits the hoster puts in the
 // way with the time left in the task's note, and passes the link on to the
-// engine. Each hoster's package only has to know how to ask.
+// engine. Each hoster's package only has to know how to ask. Runs, which
+// keeps a task's runs and waits, also carries the backends that ask their
+// hoster in more steps: 1fichier, the XFileSharing sites and the hosters on a
+// premium login (internal/ownlogin).
 package hoster
 
 import (

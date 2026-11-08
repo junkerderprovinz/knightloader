@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 )
 
 // Downloader is the byte-transfer backend the download link is handed to.
@@ -49,6 +50,8 @@ type LoginState struct {
 // whatever the site asks for, sends the download forms and hands the link to
 // the engine. A wait keeps the task running with the time left in its note.
 type Backend struct {
+	*hoster.Runs
+
 	client   *Client
 	site     *Site
 	eng      Downloader
@@ -71,14 +74,6 @@ type Backend struct {
 	// Sleep sits out a wait. Tests shorten it.
 	Sleep func(ctx context.Context, d time.Duration) error
 
-	mu     sync.Mutex
-	cancel map[string]context.CancelFunc
-	link   map[string]string
-	handed map[string]bool
-	// waiting holds the run that is sitting out a wait, so a paused run that
-	// winds down late cannot clear the wait of the run a Resume started.
-	waiting map[string]context.Context
-
 	// signMu lets one sign-in run at a time, so downloads that start together
 	// share its captcha.
 	signMu  sync.Mutex
@@ -92,13 +87,9 @@ type Backend struct {
 }
 
 func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
-	return &Backend{
-		client: c, site: c.site, eng: eng, onUpdate: onUpdate, Sleep: sleep,
-		cancel:  map[string]context.CancelFunc{},
-		link:    map[string]string{},
-		handed:  map[string]bool{},
-		waiting: map[string]context.Context{},
-	}
+	b := &Backend{client: c, site: c.site, eng: eng, onUpdate: onUpdate, Sleep: hoster.Sleep}
+	b.Runs = hoster.NewRuns(eng, onUpdate, b.run, func(ctx context.Context, d time.Duration) error { return b.Sleep(ctx, d) })
+	return b
 }
 
 // Client is the page client the backend and its resolver share.
@@ -245,26 +236,9 @@ func (b *Backend) learnAccount(change func(*Account)) {
 	b.learn(nil, &acct)
 }
 
-func (b *Backend) Download(taskID, link string, _ map[string]string, _ int) {
-	b.mu.Lock()
-	b.link[taskID] = link
-	b.handed[taskID] = false
-	b.mu.Unlock()
-	b.start(taskID, link)
-}
-
-// start begins a run. Its cancel stays in b.cancel until the next start or a
-// Remove replaces it, so a run that ends cannot take out the entry of the run
-// a Resume has just started.
-func (b *Backend) start(taskID, link string) {
-	ctx, cancel := context.WithCancel(context.Background())
-	b.mu.Lock()
-	b.cancel[taskID] = cancel
-	b.mu.Unlock()
-	go b.run(ctx, taskID, link)
-}
-
-func (b *Backend) run(ctx context.Context, taskID, link string) {
+// run is one go at a download, with the connections the site allows rather
+// than those the task asks for.
+func (b *Backend) run(ctx context.Context, taskID, link string, _ int) {
 	captchas := 1
 	for {
 		direct, conns, err := b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.wait(ctx, taskID, d) })
@@ -419,75 +393,20 @@ func (b *Backend) solve(ctx context.Context, taskID string, c Captcha) (string, 
 
 // handOn gives the link to the engine.
 func (b *Backend) handOn(ctx context.Context, taskID, link, direct string, conns int) {
-	// Pause and Remove cancel under b.mu, so one that came after the form was
-	// answered is seen here and the link is not handed on.
-	b.mu.Lock()
-	if ctx.Err() != nil {
-		b.mu.Unlock()
+	if !b.Handing(ctx, taskID) {
 		return
 	}
-	b.handed[taskID] = true
-	b.mu.Unlock()
 	b.eng.Handover(taskID, direct, conns, func(ctx context.Context) (string, error) {
 		direct, _, err := b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.Sleep(ctx, d) })
 		return direct, err
 	})
 }
 
-// Waiting reports whether the task is sitting out a wait the site asked for.
-// It moves no bytes meanwhile, and that is no stall.
-func (b *Backend) Waiting(taskID string) bool {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	run := b.waiting[taskID]
-	return run != nil && run.Err() == nil
-}
-
 // wait sits out d, keeping the time left in the task's note.
 func (b *Backend) wait(ctx context.Context, taskID string, d time.Duration) error {
-	b.setWaiting(ctx, taskID, true)
-	defer b.setWaiting(ctx, taskID, false)
-	for left := d; left > 0; {
-		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: "Waiting for " + b.site.Name + ": " + span(left) + " left"})
-		// Every note reaches every open browser, so a long wait counts down
-		// in coarser steps.
-		step := time.Second
-		if left > 2*time.Minute {
-			step = 30 * time.Second
-		}
-		step = min(step, left)
-		if err := b.Sleep(ctx, step); err != nil {
-			return err
-		}
-		left -= step
-	}
-	return nil
-}
-
-// span writes a wait as people read it, rounded up: "1 h 5 min", "37 min",
-// "45 s".
-func span(d time.Duration) string {
-	switch {
-	case d >= time.Hour:
-		m := int((d + time.Minute - 1) / time.Minute)
-		if m%60 == 0 {
-			return fmt.Sprintf("%d h", m/60)
-		}
-		return fmt.Sprintf("%d h %d min", m/60, m%60)
-	case d >= 2*time.Minute:
-		return fmt.Sprintf("%d min", (d+time.Minute-1)/time.Minute)
-	}
-	return fmt.Sprintf("%d s", (d+time.Second-1)/time.Second)
-}
-
-func (b *Backend) setWaiting(run context.Context, taskID string, on bool) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	if on {
-		b.waiting[taskID] = run
-	} else if b.waiting[taskID] == run {
-		delete(b.waiting, taskID)
-	}
+	return b.Wait(ctx, taskID, d, func(left time.Duration) string {
+		return "Waiting for " + b.site.Name + ": " + hoster.Span(left) + " left"
+	})
 }
 
 func (b *Backend) password(taskID string) string {
@@ -536,58 +455,4 @@ func (b *Backend) fail(taskID string, err error) {
 		u.Reason = core.ReasonUnavailable
 	}
 	b.onUpdate(taskID, u)
-}
-
-func (b *Backend) Pause(taskID string) {
-	b.mu.Lock()
-	handed := b.handed[taskID]
-	if cancel := b.cancel[taskID]; cancel != nil && !handed {
-		cancel()
-	}
-	b.mu.Unlock()
-	if handed {
-		b.eng.Pause(taskID)
-		return
-	}
-	b.onUpdate(taskID, core.Update{Status: core.StatusPaused})
-}
-
-// Resume reads the page again, as the wait it was paused in may be over.
-func (b *Backend) Resume(taskID string) {
-	b.mu.Lock()
-	handed, link := b.handed[taskID], b.link[taskID]
-	b.mu.Unlock()
-	if handed {
-		b.eng.Resume(taskID)
-		return
-	}
-	if link != "" {
-		b.start(taskID, link)
-	}
-}
-
-func (b *Backend) Remove(taskID string, deleteFiles bool) {
-	b.mu.Lock()
-	if cancel := b.cancel[taskID]; cancel != nil {
-		cancel()
-	}
-	handed := b.handed[taskID]
-	delete(b.cancel, taskID)
-	delete(b.link, taskID)
-	delete(b.handed, taskID)
-	b.mu.Unlock()
-	if handed {
-		b.eng.Remove(taskID, deleteFiles)
-	}
-}
-
-func sleep(ctx context.Context, d time.Duration) error {
-	t := time.NewTimer(d)
-	defer t.Stop()
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-t.C:
-		return nil
-	}
 }

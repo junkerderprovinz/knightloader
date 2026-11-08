@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 )
 
 // Downloader is the byte-transfer backend the download link is handed to.
@@ -48,64 +48,23 @@ type Config struct {
 // for each download link and hands it to the engine. A wait the hoster asks
 // for keeps the task running with the time left in its note.
 type Tasks struct {
+	*hoster.Runs
+
 	// Sleep waits d, or less when ctx ends first.
 	Sleep func(ctx context.Context, d time.Duration) error
 
 	eng      Downloader
 	onUpdate func(taskID string, u core.Update)
 	cfg      Config
-
-	mu     sync.Mutex
-	cancel map[string]context.CancelFunc
-	link   map[string]string
-	conns  map[string]int
-	handed map[string]bool
-	// waiting holds the run that is sitting out a wait, so a paused run that
-	// winds down late cannot clear the wait of the run a Resume started.
-	waiting map[string]context.Context
 }
 
 func NewTasks(eng Downloader, onUpdate func(taskID string, u core.Update), cfg Config) *Tasks {
-	return &Tasks{
-		Sleep: Sleep, eng: eng, onUpdate: onUpdate, cfg: cfg,
-		cancel:  map[string]context.CancelFunc{},
-		link:    map[string]string{},
-		conns:   map[string]int{},
-		handed:  map[string]bool{},
-		waiting: map[string]context.Context{},
-	}
+	t := &Tasks{Sleep: hoster.Sleep, eng: eng, onUpdate: onUpdate, cfg: cfg}
+	t.Runs = hoster.NewRuns(eng, onUpdate, t.run, func(ctx context.Context, d time.Duration) error { return t.Sleep(ctx, d) })
+	return t
 }
 
-// Waiting reports whether the task is sitting out a wait the hoster asked
-// for. It moves no bytes meanwhile, and that is no stall.
-func (t *Tasks) Waiting(taskID string) bool {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	run := t.waiting[taskID]
-	return run != nil && run.Err() == nil
-}
-
-func (t *Tasks) Download(taskID, link string, _ map[string]string, conns int) {
-	t.mu.Lock()
-	t.link[taskID] = link
-	t.conns[taskID] = conns
-	t.handed[taskID] = false
-	t.mu.Unlock()
-	t.start(taskID, link)
-}
-
-// start begins a run. Its cancel stays in t.cancel until the next start or a
-// Remove replaces it, so a run that ends cannot take out the entry of the run
-// a Resume has just started.
-func (t *Tasks) start(taskID, link string) {
-	ctx, cancel := context.WithCancel(context.Background())
-	t.mu.Lock()
-	t.cancel[taskID] = cancel
-	t.mu.Unlock()
-	go t.run(ctx, taskID, link)
-}
-
-func (t *Tasks) run(ctx context.Context, taskID, link string) {
+func (t *Tasks) run(ctx context.Context, taskID, link string, conns int) {
 	busy := 0
 	for {
 		direct, size, err := t.cfg.Unlock(ctx, taskID, link, func(d time.Duration) error {
@@ -116,7 +75,7 @@ func (t *Tasks) run(ctx context.Context, taskID, link string) {
 			// Pause and Remove set the task's state themselves.
 			return
 		case err == nil:
-			t.handOn(ctx, taskID, link, direct, size)
+			t.handOn(ctx, taskID, link, direct, size, conns)
 			return
 		case t.cfg.Busy != nil && errors.Is(err, t.cfg.Busy) && busy < t.cfg.MaxBusy:
 			busy++
@@ -131,17 +90,10 @@ func (t *Tasks) run(ctx context.Context, taskID, link string) {
 }
 
 // handOn gives the link to the engine, on one connection for a small file.
-func (t *Tasks) handOn(ctx context.Context, taskID, link, direct string, size int64) {
-	// Pause and Remove cancel under t.mu, so one that came after the hoster
-	// answered is seen here and the link is not handed on.
-	t.mu.Lock()
-	if ctx.Err() != nil {
-		t.mu.Unlock()
+func (t *Tasks) handOn(ctx context.Context, taskID, link, direct string, size int64, conns int) {
+	if !t.Handing(ctx, taskID) {
 		return
 	}
-	t.handed[taskID] = true
-	conns := t.conns[taskID]
-	t.mu.Unlock()
 	if size <= t.cfg.SmallFile || conns < 1 {
 		conns = 1
 	}
@@ -151,97 +103,8 @@ func (t *Tasks) handOn(ctx context.Context, taskID, link, direct string, size in
 	})
 }
 
-// wait sits out d, keeping the time left in the task's note.
+// wait sits out d, keeping the time left in the task's note, which is note
+// with %s for the time left.
 func (t *Tasks) wait(ctx context.Context, taskID string, d time.Duration, note string) error {
-	t.setWaiting(ctx, taskID, true)
-	defer t.setWaiting(ctx, taskID, false)
-	for left := d; left > 0; {
-		t.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: fmt.Sprintf(note, span(left))})
-		// Every note reaches every open browser, so a long wait counts down
-		// in coarser steps.
-		step := time.Second
-		if left > 2*time.Minute {
-			step = 30 * time.Second
-		}
-		step = min(step, left)
-		if err := t.Sleep(ctx, step); err != nil {
-			return err
-		}
-		left -= step
-	}
-	return nil
-}
-
-// span writes a wait as people read it, rounded up: "37 min", "45 s".
-func span(d time.Duration) string {
-	if d >= 2*time.Minute {
-		return fmt.Sprintf("%d min", (d+time.Minute-1)/time.Minute)
-	}
-	return fmt.Sprintf("%d s", (d+time.Second-1)/time.Second)
-}
-
-func (t *Tasks) setWaiting(run context.Context, taskID string, on bool) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	if on {
-		t.waiting[taskID] = run
-	} else if t.waiting[taskID] == run {
-		delete(t.waiting, taskID)
-	}
-}
-
-func (t *Tasks) Pause(taskID string) {
-	t.mu.Lock()
-	handed := t.handed[taskID]
-	if cancel := t.cancel[taskID]; cancel != nil && !handed {
-		cancel()
-	}
-	t.mu.Unlock()
-	if handed {
-		t.eng.Pause(taskID)
-		return
-	}
-	t.onUpdate(taskID, core.Update{Status: core.StatusPaused})
-}
-
-// Resume asks the hoster again, as the wait it was paused in may be over.
-func (t *Tasks) Resume(taskID string) {
-	t.mu.Lock()
-	handed, link := t.handed[taskID], t.link[taskID]
-	t.mu.Unlock()
-	if handed {
-		t.eng.Resume(taskID)
-		return
-	}
-	if link != "" {
-		t.start(taskID, link)
-	}
-}
-
-func (t *Tasks) Remove(taskID string, deleteFiles bool) {
-	t.mu.Lock()
-	if cancel := t.cancel[taskID]; cancel != nil {
-		cancel()
-	}
-	handed := t.handed[taskID]
-	delete(t.cancel, taskID)
-	delete(t.link, taskID)
-	delete(t.conns, taskID)
-	delete(t.handed, taskID)
-	t.mu.Unlock()
-	if handed {
-		t.eng.Remove(taskID, deleteFiles)
-	}
-}
-
-// Sleep waits d, or less when ctx ends first.
-func Sleep(ctx context.Context, d time.Duration) error {
-	timer := time.NewTimer(d)
-	defer timer.Stop()
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timer.C:
-		return nil
-	}
+	return t.Wait(ctx, taskID, d, func(left time.Duration) string { return fmt.Sprintf(note, hoster.Span(left)) })
 }

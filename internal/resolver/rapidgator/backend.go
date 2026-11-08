@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 )
 
@@ -53,7 +54,7 @@ type Backend struct {
 }
 
 func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
-	b := &Backend{client: c, onUpdate: onUpdate, sleep: ownlogin.Sleep, inspectPause: 500 * time.Millisecond}
+	b := &Backend{client: c, onUpdate: onUpdate, sleep: hoster.Sleep, inspectPause: 500 * time.Millisecond}
 	b.Login = ownlogin.NewLogin(ownlogin.Signer{
 		Login: c.Login, Account: c.User, Expired: func(err error) bool { return errors.Is(err, errSession) },
 		Age: sessionAge, None: ErrNoLogin,
