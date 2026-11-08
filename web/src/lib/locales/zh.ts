@@ -3795,6 +3795,7 @@ export const zh: Dict = {
   'whatsnew.change.megaNative': 'MEGA 文件和文件夹链接无需 JDownloader 即可下载，文件夹链接会变成每个文件一行。',
   'whatsnew.change.fichierNative': '1fichier 链接无需 JDownloader 即可下载，1fichier 在免费下载之间要求的等待时间会显示在下载上。',
   'whatsnew.change.rapidgatorNative': '在网盘账号中保存 Rapidgator 高级会员登录后，Rapidgator 链接无需 JDownloader 即可下载。每个 Rapidgator 链接一到就会显示名称、大小和在线状态，无论是否登录。',
+  'whatsnew.change.filerNative': '在网盘账号中保存 filer.net 高级会员登录后，filer.net 链接无需 JDownloader 即可下载。每个 filer.net 链接一到就会显示名称、大小和在线状态，无论是否登录。',
   'whatsnew.change.k2sNitroflareNative': '在网盘账号中保存高级会员登录后，Keep2Share、FileBoom、TezFiles 和 Nitroflare 的链接无需 JDownloader 即可下载。这些链接一到就会显示名称、大小和在线状态，无论是否登录。',
   'whatsnew.change.ddownloadNative': 'ddownload 链接无需 JDownloader 即可下载，用你的高级登录或免费下载。ddownload 的验证码会交给手机应用和你的验证码账户，等待时间会显示在下载上。',
   'whatsnew.change.xfsHosters': 'KatFile、Clicknupload、FileSpace 和 Uploadrar 链接同样无需 JDownloader 即可下载，用你的高级登录或免费下载。它们的验证码会交给手机应用和你的验证码账户，等待时间会显示在下载上。',

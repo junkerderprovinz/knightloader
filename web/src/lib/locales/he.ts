@@ -3828,6 +3828,7 @@ export const he: Dict = {
   'whatsnew.change.megaNative': 'קישורי MEGA לקבצים ולתיקיות יורדים בלי JDownloader, וקישור לתיקייה הופך לשורה אחת לכל קובץ.',
   'whatsnew.change.fichierNative': 'קישורי 1fichier יורדים בלי JDownloader, וזמן ההמתנה שדורש 1fichier בין הורדות חינמיות מוצג בהורדה.',
   'whatsnew.change.rapidgatorNative': 'עם התחברות הפרימיום שלך ל-Rapidgator בחשבונות המארחים, קישורי Rapidgator יורדים בלי JDownloader. כל קישור של Rapidgator מציג שם, גודל ומצב זמינות ברגע שהוא מגיע, עם התחברות או בלעדיה.',
+  'whatsnew.change.filerNative': 'עם התחברות הפרימיום שלך ל-filer.net בחשבונות המארחים, קישורי filer.net יורדים בלי JDownloader. כל קישור של filer.net מציג שם, גודל ומצב זמינות ברגע שהוא מגיע, עם התחברות או בלעדיה.',
   'whatsnew.change.k2sNitroflareNative': 'עם התחברות הפרימיום שלך בחשבונות המארחים, קישורים של Keep2Share, FileBoom, TezFiles ו-Nitroflare יורדים בלי JDownloader. כל קישור כזה מציג שם, גודל ומצב זמינות ברגע שהוא מגיע, עם התחברות או בלעדיה.',
   'whatsnew.change.ddownloadNative': 'קישורי ddownload יורדים בלי JDownloader, עם התחברות הפרימיום שלך או בחינם. הקאפצ׳ה של ddownload עוברת לאפליקציה בטלפון ולחשבונות הקאפצ׳ה שלך, וזמני ההמתנה מוצגים בהורדה.',
   'whatsnew.change.xfsHosters': 'גם קישורי KatFile, Clicknupload, FileSpace ו-Uploadrar יורדים בלי JDownloader, עם התחברות הפרימיום שלך או בחינם. הקאפצ׳ות שלהם עוברות לאפליקציה בטלפון ולחשבונות הקאפצ׳ה שלך, וזמני ההמתנה מוצגים בהורדה.',

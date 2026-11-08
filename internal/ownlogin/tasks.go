@@ -43,6 +43,8 @@ type Config struct {
 	BusyNote string
 	// SmallFile is the size up to which a file gets one connection.
 	SmallFile int64
+	// MaxConns caps the connections of a download, 0 for no cap.
+	MaxConns int
 }
 
 // Tasks runs the downloads that go out on a hoster login: it asks the hoster
@@ -124,6 +126,9 @@ func (t *Tasks) handBack(taskID, why string) {
 func (t *Tasks) handOn(ctx context.Context, taskID, link, direct string, size int64, conns int) {
 	if !t.Handing(ctx, taskID) {
 		return
+	}
+	if t.cfg.MaxConns > 0 {
+		conns = min(conns, t.cfg.MaxConns)
 	}
 	if size <= t.cfg.SmallFile || conns < 1 {
 		conns = 1

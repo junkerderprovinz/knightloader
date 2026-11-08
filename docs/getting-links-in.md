@@ -322,9 +322,9 @@ have no such waits, so both go first. With **Allow free downloads** off, a
 
 ## When KnightLoader cannot use a login
 
-Rapidgator, Keep2Share, FileBoom, TezFiles, Nitroflare, ddownload, KatFile,
-Clicknupload, FileSpace and Uploadrar logins stay with KnightLoader, which
-signs in to these hosters itself, and JDownloader never sees them. If
+Rapidgator, Keep2Share, FileBoom, TezFiles, Nitroflare, filer.net, ddownload,
+KatFile, Clicknupload, FileSpace and Uploadrar logins stay with KnightLoader,
+which signs in to these hosters itself, and JDownloader never sees them. If
 KnightLoader's own client cannot use one of them, because the hoster answers
 in a way the client does not understand or keeps failing three times in a row
 without saying why, the login goes back to JDownloader, which signs in through
@@ -440,6 +440,35 @@ login off and on again.
 Free Nitroflare links stay with JDownloader, which waits out Nitroflare's
 countdown and answers its captcha. Against a debrid service that carries
 Nitroflare, the login's row on the priority card decides which goes first.
+
+## filer.net
+
+With your filer.net premium login saved under **Hoster accounts**, a
+`filer.net/get/…` link needs no JDownloader. KnightLoader asks filer.net's own
+API for the download link and fetches the file over one connection, as
+JDownloader does for filer.net. The login stays with KnightLoader and is not
+handed to JDownloader. filer.net's API keeps no session and takes the email
+address and password with every call, over HTTPS. The login's row shows what
+filer.net says about it: premium or free, when the plan runs out and how much
+traffic is left.
+
+The link collector names every filer.net link as soon as it arrives, with its
+size to the byte and whether it is still online, with or without a login. A
+whole paste goes out as one question.
+
+A download fails with a clear reason when filer.net turns the login down, when
+the account has no premium, when its traffic has run out or does not cover the
+file, when the file sits in a folder locked with a password and when the file
+is gone. Once the traffic has run out, filer.net links go to the next backend
+on the priority card for an hour, and then the login is tried again. A folder
+link goes to JDownloader.
+
+Free filer.net links stay with JDownloader, which waits out filer.net's
+countdown and answers its captcha.
+
+FileFactory, Fikper and Upstore logins still go to JDownloader. FileFactory
+has no public API any more, Fikper's API did not answer while KnightLoader's
+client was being written, and Upstore has no API at all.
 
 ## ddownload
 

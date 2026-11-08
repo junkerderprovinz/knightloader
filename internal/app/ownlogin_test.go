@@ -12,6 +12,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/filer"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/filer/filertest"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share/k2stest"
@@ -275,5 +277,44 @@ func TestADownloadTheOwnClientGaveUpOnMovesToTheNextBackendNamingTheTakeover(t *
 	a.mu.Unlock()
 	if takeover != "" {
 		t.Errorf("a finished download still names the takeover %q", takeover)
+	}
+}
+
+func TestAFilerLoginDownloadsNativelyAndItsLinksAreNamedWithoutOne(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.Registry.Register(jd.Resolver{})
+	jd.SetKnownHosts([]string{"filer.net"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	srv := filertest.New(t)
+	srv.AddAccount(filertest.Account{Email: "john@example.com", Password: "hunter2", Premium: true,
+		Until: time.Now().AddDate(0, 1, 0), Traffic: 125 << 30, TrafficLeft: 100 << 30})
+	b := filer.NewBackend(filer.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
+	b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	useOwnHoster(a, &ownHoster{id: filer.ResolverID, site: filer.Site, normalize: filer.Normalize, be: b, res: filer.Resolver{Backend: b}})
+	link := srv.Add("dv6qg8tfckhk7mja", filertest.File{Name: "Isle of Dogs.mkv", Body: make([]byte, 500<<10)})
+
+	created := a.AddLinks([]string{link}, "")
+	if len(created) != 1 || created[0].Resolver != "jd" {
+		t.Fatalf("staged %+v, want the row with JD's free mode", created)
+	}
+	waitFor(t, "the API naming the file", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		task := a.tasks[created[0].ID]
+		return task.Name == "Isle of Dogs.mkv" && task.Size == 500<<10 && task.Online == core.AvailOnline
+	})
+
+	if err := a.SetHosterLogin("filer.net", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	if got := chainIDs(a, link); len(got) < 2 || got[0] != filer.ResolverID || got[1] != "jd" {
+		t.Errorf("chain = %v, want the login first, then JD", got)
+	}
+	waitFor(t, "filer.net's word on the login", func() bool {
+		row, ok := loginRow(a, "filer.net")
+		return ok && row.Status == hosterauth.StatusActive && row.Tier == "premium" && row.TrafficLeft == 100<<30
+	})
+	if !a.HonoursCollisionPolicy(filer.ResolverID) {
+		t.Error("the file the engine writes for filer.net skips the collision policy")
 	}
 }

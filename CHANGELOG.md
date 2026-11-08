@@ -40,6 +40,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Added
 
+- **filer.net downloads on your premium login without JDownloader.** Save
+  the login under Hoster accounts and KnightLoader asks filer.net's own API
+  for the download link, fetches the file over one connection and shows on
+  the login's row whether the account is premium, when it runs out and how
+  much traffic is left. Every filer.net link shows its name, size and whether
+  it is online in the link collector, with or without a login. A refused
+  login, a free account, spent traffic, a folder password and a deleted file
+  each fail with their own reason. Free filer.net links still go through
+  JDownloader.
+
 - **Free 1fichier links download without JDownloader.** KnightLoader reads
   the file page itself, so a 1fichier link shows its name, size and whether
   it is still online in the link collector, and the file comes over one
@@ -103,10 +113,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 - **A login KnightLoader cannot use goes back to JDownloader.** When
   KnightLoader's own client for Rapidgator, Keep2Share, FileBoom, TezFiles,
-  Nitroflare or one of the XFileSharing hosters cannot use your login, because
-  the hoster answers in a way the client does not understand or keeps failing
-  without saying why, JDownloader gets the login and signs in with it as
-  before. The login's row says that JDownloader has taken over, and a download
+  Nitroflare, filer.net or one of the XFileSharing hosters cannot use your
+  login, because the hoster answers in a way the client does not understand
+  or keeps failing without saying why, JDownloader gets the login and signs in
+  with it as before. The login's row says that JDownloader has taken over, and a download
   that was on its way moves on to the next backend instead of failing. A
   wrong password stays with KnightLoader and shows on the row. Save the login
   again, or switch it off and on, to have KnightLoader try once more.

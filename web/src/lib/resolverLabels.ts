@@ -20,6 +20,7 @@ const PRODUCT_NAMES: Record<string, string> = {
   fileboom: 'FileBoom',
   tezfiles: 'TezFiles',
   nitroflare: 'Nitroflare',
+  filer: 'filer.net',
   ddownload: 'ddownload',
   katfile: 'KatFile',
   clicknupload: 'Clicknupload',

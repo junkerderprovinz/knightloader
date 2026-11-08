@@ -3797,6 +3797,7 @@ export const da: Dict = {
   'whatsnew.change.megaNative': 'MEGA-links til filer og mapper downloades uden JDownloader, og et mappelink bliver til én række pr. fil.',
   'whatsnew.change.fichierNative': '1fichier-links downloades uden JDownloader, og den ventetid, 1fichier kræver mellem gratis downloads, vises på downloaden.',
   'whatsnew.change.rapidgatorNative': 'Med dit Rapidgator-premiumlogin under hosterkonti downloades Rapidgator-links uden JDownloader. Hvert Rapidgator-link viser navn, størrelse og onlinestatus, så snart det kommer ind, med eller uden login.',
+  'whatsnew.change.filerNative': 'Med dit filer.net-premiumlogin under hosterkonti downloades filer.net-links uden JDownloader. Hvert filer.net-link viser navn, størrelse og onlinestatus, så snart det kommer ind, med eller uden login.',
   'whatsnew.change.k2sNitroflareNative': 'Med dit premiumlogin under hosterkonti downloades links fra Keep2Share, FileBoom, TezFiles og Nitroflare uden JDownloader. Hvert af deres links viser navn, størrelse og onlinestatus, så snart det kommer ind, med eller uden login.',
   'whatsnew.change.ddownloadNative': 'ddownload-links downloades uden JDownloader, med dit premium-login eller gratis. ddownloads captcha går til telefonappen og dine captcha-konti, og ventetiderne vises på downloaden.',
   'whatsnew.change.xfsHosters': 'Links fra KatFile, Clicknupload, FileSpace og Uploadrar downloades også uden JDownloader, med dit premium-login eller gratis. Deres captchaer går til telefonappen og dine captcha-konti, og ventetiderne vises på downloaden.',

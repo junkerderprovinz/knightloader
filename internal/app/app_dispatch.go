@@ -25,6 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/filer"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share"
@@ -1278,7 +1279,8 @@ func (a *App) Resume(id string) {
 func (a *App) HonoursCollisionPolicy(resolverID string) bool {
 	switch a.backendFor(resolverID).(type) {
 	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *usenet.Files,
-		*onefichier.Backend, *xfs.Backend, *hoster.Backend, *rapidgator.Backend, *keep2share.Backend, *nitroflare.Backend:
+		*onefichier.Backend, *xfs.Backend, *hoster.Backend, *rapidgator.Backend, *keep2share.Backend, *nitroflare.Backend,
+		*filer.Backend:
 		return true
 	}
 	return false

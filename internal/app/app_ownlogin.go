@@ -18,6 +18,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/filer"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/nitroflare"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator"
@@ -40,10 +41,10 @@ type linkInspectingResolver interface {
 
 // ownHoster is one hoster KnightLoader signs in to itself, on the user's own
 // premium login, rather than handing the login to JD: Rapidgator, a site of
-// the Keep2Share family or Nitroflare. It downloads its links on the stored
-// login and names every link of its host in the collector. The login is kept
-// from JD (see ownLogin), and its row on the priority card stands for the
-// resolver (see dynamicPrio).
+// the Keep2Share family, Nitroflare or filer.net. It downloads its links on
+// the stored login and names every link of its host in the collector. The
+// login is kept from JD (see ownLogin), and its row on the priority card
+// stands for the resolver (see dynamicPrio).
 type ownHoster struct {
 	// id is the routing id of its resolver and backend.
 	id string
@@ -57,7 +58,7 @@ type ownHoster struct {
 // ownSites maps the resolver of every hoster downloaded on a premium login
 // only to the site its login is stored under.
 var ownSites = func() map[string]string {
-	m := map[string]string{rapidgator.ResolverID: rapidgator.Site, nitroflare.ResolverID: nitroflare.Site}
+	m := map[string]string{rapidgator.ResolverID: rapidgator.Site, nitroflare.ResolverID: nitroflare.Site, filer.ResolverID: filer.Site}
 	for _, h := range keep2share.Hosts {
 		m[h.ID] = h.Site
 	}
@@ -113,6 +114,10 @@ func (a *App) ownHosters(eng ownlogin.Downloader) []*ownHoster {
 	nf.Checked, nf.Moved = a.refreshPremiumHolds, a.ownLoginMoved
 	a.own = append(a.own, &ownHoster{id: nitroflare.ResolverID, site: nitroflare.Site,
 		normalize: nitroflare.Normalize, be: nf, res: nitroflare.Resolver{Backend: nf}})
+	fn := filer.NewBackend(filer.NewClient(filer.DefaultSite, hc), eng, a.onUpdate)
+	fn.Checked, fn.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	a.own = append(a.own, &ownHoster{id: filer.ResolverID, site: filer.Site,
+		normalize: filer.Normalize, be: fn, res: filer.Resolver{Backend: fn}})
 	return a.own
 }
 

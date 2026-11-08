@@ -3791,6 +3791,7 @@ export const ru: Dict = {
   'whatsnew.change.megaNative': 'Ссылки MEGA на файлы и папки скачиваются без JDownloader, а ссылка на папку превращается в отдельную строку для каждого файла.',
   'whatsnew.change.fichierNative': 'Ссылки 1fichier скачиваются без JDownloader, а ожидание, которое 1fichier требует между бесплатными загрузками, видно у загрузки.',
   'whatsnew.change.rapidgatorNative': 'С вашим премиум-входом Rapidgator в аккаунтах хостеров ссылки Rapidgator скачиваются без JDownloader. Каждая ссылка Rapidgator сразу показывает имя, размер и доступность, со входом или без него.',
+  'whatsnew.change.filerNative': 'С вашим премиум-входом filer.net в аккаунтах хостеров ссылки filer.net скачиваются без JDownloader. Каждая ссылка filer.net сразу показывает имя, размер и доступность, со входом или без него.',
   'whatsnew.change.k2sNitroflareNative': 'С вашим премиум-входом в аккаунтах хостеров ссылки Keep2Share, FileBoom, TezFiles и Nitroflare скачиваются без JDownloader. Каждая такая ссылка сразу показывает имя, размер и доступность, со входом или без него.',
   'whatsnew.change.ddownloadNative': 'Ссылки ddownload скачиваются без JDownloader, с вашим премиум-входом или бесплатно. Капча ddownload уходит в мобильное приложение и ваши аккаунты для капчи, а ожидание видно у загрузки.',
   'whatsnew.change.xfsHosters': 'Ссылки KatFile, Clicknupload, FileSpace и Uploadrar тоже скачиваются без JDownloader, с вашим премиум-входом или бесплатно. Их капчи уходят в мобильное приложение и ваши аккаунты для капчи, а ожидание видно у загрузки.',
