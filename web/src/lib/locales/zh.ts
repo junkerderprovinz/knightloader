@@ -821,6 +821,7 @@ export const zh: Dict = {
   'settings.look.updatesDownloading': '正在下载更新：{percent}%',
   'settings.look.updatesInstallFailed': '更新未成功：{error}',
   'settings.look.updatesAutoUpdateContainerHint': '只有桌面版可以这样做：容器无法从内部替换自己。请改为按你部署它的方式来更新（docker pull、Unraid Community Applications、Watchtower 等）。',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak 不会替换自己。从 Flathub 安装时，你的软件中心或 flatpak update 会让它保持最新。从发布页下载的软件包，安装更新的版本即可更新。',
   'settings.look.jdAutoUpdateHint': 'KnightLoader 每天询问一次 JDownloader 是否有待安装的更新，并让它安装。JDownloader 需要为此重启，所以更新会等到它没有任何下载在运行时再进行。',
   'settings.look.updatesAutoCheckHint': '开启时，打开此页面会向 GitHub 询问一次是否有更新的 KnightLoader。它只询问，因为容器的更新来自它的容器管理器。',
   'settings.look.jdAutoCheckHint': 'KnightLoader 启动后不久，之后每天一次，它会询问 JDownloader 是否有更新在等待。它只询问；安装由下面的开关负责。',

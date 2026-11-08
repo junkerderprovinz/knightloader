@@ -822,6 +822,7 @@ export const eu: Dict = {
   'settings.look.updatesDownloading': 'Eguneratzea deskargatzen: % {percent}',
   'settings.look.updatesInstallFailed': 'Eguneratzeak ez du funtzionatu: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Mahaigaineko bertsioan bakarrik da posible: edukiontzi batek ezin du bere burua barrutik ordezkatu. Eguneratu hura zabaldu zenuen modu berean (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak batek ez du bere burua ordezkatzen. Flathub-etik instalatu baduzu, zure software-zentroak edo flatpak update aginduak eguneratuta mantentzen du. Bertsioen orriko pakete bat berriagoa instalatuz eguneratzen da.',
   'settings.look.jdAutoUpdateHint': 'Egunean behin, KnightLoaderrek JDownloader-i galdetzen dio eguneraketarik zain dagoen, eta instalarazi egiten dio. JDownloader berrabiarazi egiten da horretarako, beraz eguneraketak itxaron egiten du bere deskargetako bat ere martxan ez dagoen arte.',
   'settings.look.updatesAutoCheckHint': 'Hau aktibatuta dagoen bitartean, orri hau irekitzean behin galdetzen dio GitHubi KnightLoader berriagorik dagoen. Galdetu baino ez du egiten, edukiontzi batek bere eguneraketak edukiontzi-kudeatzailetik jasotzen baititu.',
   'settings.look.jdAutoCheckHint': 'KnightLoader abiatu eta gutxira eta gero egunean behin, JDownloaderri galdetzen dio eguneraketarik zain dagoen. Galdetu baino ez du egiten; instalatzea beheko etengailuarena da.',

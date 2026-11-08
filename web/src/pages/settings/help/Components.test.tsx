@@ -439,6 +439,33 @@ describe('installing an update on the desktop build', () => {
     await act(async () => button(group('KnightLoader'), 'Install now').click());
     expect(detail('KnightLoader')).toContain('The update did not work:');
   });
+
+  it('leaves a Flatpak to Flatpak and lets it check on its own', async () => {
+    desktop();
+    answers['/api/system/deployment'] = {
+      deployment: 'desktop',
+      canQuit: false,
+      canRestart: false,
+      note: '',
+      engines: [],
+      updatesFromStore: true,
+    };
+    const patch = await draw({ autoUpdate: true });
+    expect(asked).not.toContain('/api/system/update-install');
+    await checkAll();
+    expect(status('KnightLoader')).toBe('v1.9.0 is available');
+    expect(button(group('KnightLoader'), 'Install now')).toBeUndefined();
+
+    const panel = settingsOf('KnightLoader');
+    const [check, update] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
+    expect(update.getAttribute('aria-checked')).toBe('false');
+    expect(update.parentElement!.className).toContain('opacity-40');
+    const tip = panel.querySelector('[data-glim-label="Update automatically"] [role="note"]');
+    expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoUpdateStoreHint']);
+    await act(async () => check.click());
+    await act(async () => update.click());
+    expect(patch.mock.calls).toEqual([[{ autoUpdateCheck: true }]]);
+  });
 });
 
 describe('the JDownloader backend the desktop build sets up', () => {

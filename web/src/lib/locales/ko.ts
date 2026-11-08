@@ -821,6 +821,7 @@ export const ko: Dict = {
   'settings.look.updatesDownloading': '업데이트 다운로드 중: {percent}%',
   'settings.look.updatesInstallFailed': '업데이트하지 못했습니다: {error}',
   'settings.look.updatesAutoUpdateContainerHint': '데스크톱 빌드에서만 가능합니다. 컨테이너는 내부에서 스스로를 교체할 수 없습니다. 대신 배포한 방식 그대로 업데이트하세요 (docker pull, Unraid Community Applications, Watchtower 등).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak은 스스로를 교체하지 않습니다. Flathub에서 설치했다면 소프트웨어 센터나 flatpak update가 최신 상태로 유지합니다. 릴리스 페이지의 번들은 더 새로운 번들을 설치해 업데이트합니다.',
   'settings.look.jdAutoUpdateHint': 'KnightLoader는 하루에 한 번 JDownloader에 대기 중인 업데이트가 있는지 묻고, 있으면 설치하게 합니다. JDownloader는 이를 위해 다시 시작하므로, 업데이트는 다운로드가 하나도 실행되지 않을 때까지 기다립니다.',
   'settings.look.updatesAutoCheckHint': '켜 두면 이 페이지를 열 때 GitHub에 더 새로운 KnightLoader가 있는지 한 번 묻습니다. 묻기만 합니다. 컨테이너는 컨테이너 관리자에서 업데이트를 받기 때문입니다.',
   'settings.look.jdAutoCheckHint': 'KnightLoader가 시작된 직후와 그 뒤 하루에 한 번 JDownloader에 기다리는 업데이트가 있는지 묻습니다. 묻기만 하며, 설치는 아래 스위치가 맡습니다.',

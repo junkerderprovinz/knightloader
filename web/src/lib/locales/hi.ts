@@ -822,6 +822,7 @@ export const hi: Dict = {
   'settings.look.updatesDownloading': 'अपडेट डाउनलोड हो रहा है: {percent}%',
   'settings.look.updatesInstallFailed': 'अपडेट नहीं हो पाया: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'यह सिर्फ़ डेस्कटॉप बिल्ड पर संभव है: कंटेनर अंदर से ख़ुद को नहीं बदल सकता। इसके बजाय उसे उसी तरीक़े से अपडेट करें जिससे आपने उसे डिप्लॉय किया था (docker pull, Unraid Community Applications, Watchtower, ...)।',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak ख़ुद को नहीं बदलता। Flathub से इंस्टॉल होने पर आपका सॉफ़्टवेयर सेंटर या flatpak update उसे अपडेट रखता है। रिलीज़ पेज से लिया गया बंडल नया वाला इंस्टॉल करके अपडेट होता है।',
   'settings.look.jdAutoUpdateHint': 'दिन में एक बार KnightLoader JDownloader से पूछता है कि कोई अपडेट इंतज़ार कर रहा है या नहीं, और उसे इंस्टॉल करवाता है। इसके लिए JDownloader फिर से शुरू होता है, इसलिए अपडेट तब तक रुकता है जब तक उसका कोई डाउनलोड नहीं चल रहा हो।',
   'settings.look.updatesAutoCheckHint': 'जब तक यह चालू है, यह पेज खोलने पर GitHub से एक बार पूछा जाता है कि KnightLoader का नया संस्करण आया है या नहीं। यह सिर्फ़ पूछता है, क्योंकि कंटेनर अपने अपडेट अपने कंटेनर मैनेजर से पाता है।',
   'settings.look.jdAutoCheckHint': 'KnightLoader शुरू होने के थोड़ी देर बाद और फिर दिन में एक बार, यह JDownloader से पूछता है कि कोई अपडेट इंतज़ार कर रहा है या नहीं। यह सिर्फ़ पूछता है; इंस्टॉल नीचे वाला स्विच करता है।',

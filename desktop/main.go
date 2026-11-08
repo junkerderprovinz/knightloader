@@ -25,6 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
+	"github.com/junkerderprovinz/knightloader/internal/flatpak"
 	"github.com/junkerderprovinz/knightloader/internal/keepawake"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
@@ -136,8 +137,11 @@ func main() {
 	}
 
 	// Only the desktop can put the machine to sleep; internal/idleaction offers
-	// the action when this is set. See power.go.
-	a.RequestSuspend = requestSuspend
+	// the action when this is set. See power.go. A Flatpak cannot: Flathub
+	// does not let a sandbox talk to logind, and no portal suspends.
+	if flatpak.ID() == "" {
+		a.RequestSuspend = requestSuspend
+	}
 
 	// The other half of power: while a download or the work after it runs and
 	// the setting is on, the machine stays up. See awake_*.go for how each OS
@@ -175,7 +179,7 @@ func main() {
 			DisableQuitOnLastWindowClosed: true,
 			WebviewUserDataPath:           webviewDataDir(),
 		},
-		Linux: application.LinuxOptions{DisableQuitOnLastWindowClosed: true, ProgramName: "KnightLoader"},
+		Linux: linuxOptions(),
 		// A second launch brings the first window back, since two copies would
 		// share one data folder and one Click'n'Load port. The installer finds
 		// the running copy by this lock and closes it before replacing it.
@@ -266,11 +270,29 @@ func webviewDataDir() string {
 }
 
 // instanceID is the single-instance lock for dir. A copy on its own KL_DATA
-// folder gets a lock of its own, so it runs beside the usual one.
+// folder gets a lock of its own, so it runs beside the usual one. A Flatpak may
+// own bus names under its own ID alone.
 func instanceID(dir string) string {
-	if os.Getenv("KL_DATA") == "" {
-		return appID
+	base := appID
+	if id := flatpak.ID(); id != "" {
+		base = id
 	}
+	if os.Getenv("KL_DATA") == "" {
+		return base
+	}
+	// The letter keeps the element a valid bus name, which may not start with a digit.
 	sum := sha256.Sum256([]byte(dir))
-	return appID + "." + hex.EncodeToString(sum[:4])
+	return base + ".d" + hex.EncodeToString(sum[:4])
+}
+
+// linuxOptions names the program to GTK. Inside a Flatpak the name is the
+// app's ID, the only one the sandbox lets it own on the bus and the one the
+// desktop matches a window to the app's launcher by.
+func linuxOptions() application.LinuxOptions {
+	opts := application.LinuxOptions{DisableQuitOnLastWindowClosed: true, ProgramName: "KnightLoader"}
+	if id := flatpak.ID(); id != "" {
+		opts.ApplicationID = id
+		opts.ProgramName = id
+	}
+	return opts
 }

@@ -60,3 +60,10 @@ extension/src/_metadata/
 
 # MkDocs build output; the Docs workflow builds it fresh.
 /site/
+
+# What flatpak-builder leaves behind when the Flatpak is built from the clone,
+# and the bundle made from it.
+/flatpak/.state/
+/flatpak/.build/
+/flatpak/.repo/
+*.flatpak

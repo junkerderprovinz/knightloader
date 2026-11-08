@@ -813,6 +813,7 @@ export const fr: Dict = {
   'settings.look.updatesDownloading': 'Téléchargement de la mise à jour : {percent} %',
   'settings.look.updatesInstallFailed': 'La mise à jour n’a pas abouti : {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Possible uniquement sur la version bureau : un conteneur ne peut pas se remplacer lui-même de l’intérieur. Mettez-le plutôt à jour de la même façon que vous l’avez déployé (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Un Flatpak ne se remplace pas lui-même. Installé depuis Flathub, il est tenu à jour par votre logithèque ou par flatpak update. Un paquet de la page des versions se met à jour en installant le plus récent.',
   'settings.look.jdAutoUpdateHint': 'Une fois par jour, KnightLoader demande à JDownloader si une mise à jour l’attend et la lui fait installer. JDownloader redémarre pour cela, donc la mise à jour attend qu’aucun de ses téléchargements ne soit en cours.',
   'settings.look.updatesAutoCheckHint': 'Tant que c’est activé, ouvrir cette page demande une fois à GitHub si un KnightLoader plus récent est sorti. Il ne fait que demander, car un conteneur reçoit ses mises à jour de son gestionnaire de conteneurs.',
   'settings.look.jdAutoCheckHint': 'Peu après le démarrage de KnightLoader, puis une fois par jour, il demande à JDownloader si une mise à jour attend. Il ne fait que demander ; l’installation dépend de l’interrupteur ci-dessous.',

@@ -821,6 +821,7 @@ export const tr: Dict = {
   'settings.look.updatesDownloading': 'Güncelleme indiriliyor: %{percent}',
   'settings.look.updatesInstallFailed': 'Güncelleme olmadı: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Yalnızca masaüstü sürümünde mümkün: bir konteyner kendini içeriden değiştiremez. Bunun yerine onu nasıl dağıttıysan öyle güncelle (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Bir Flatpak kendini değiştirmez. Flathub\'dan kurulduysa yazılım merkezin ya da flatpak update onu güncel tutar. Sürüm sayfasından aldığın bir paketi daha yenisini kurarak güncellersin.',
   'settings.look.jdAutoUpdateHint': 'KnightLoader günde bir kez JDownloader\'a bekleyen bir güncelleme olup olmadığını sorar ve onu kurdurur. JDownloader bunun için yeniden başlar, bu yüzden güncelleme indirmelerinden hiçbiri çalışmayana kadar bekler.',
   'settings.look.updatesAutoCheckHint': 'Bu açıkken, bu sayfayı açmak GitHub\'a bir kez daha yeni bir KnightLoader çıkıp çıkmadığını sorar. Yalnızca sorar, çünkü bir kapsayıcı güncellemelerini kapsayıcı yöneticisinden alır.',
   'settings.look.jdAutoCheckHint': 'KnightLoader başladıktan kısa süre sonra ve ardından günde bir kez, JDownloader\'a bekleyen bir güncelleme olup olmadığını sorar. Yalnızca sorar; kurulumu aşağıdaki anahtar yapar.',

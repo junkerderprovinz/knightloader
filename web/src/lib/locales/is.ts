@@ -821,6 +821,7 @@ export const is: Dict = {
   'settings.look.updatesDownloading': 'Sæki uppfærsluna: {percent}%',
   'settings.look.updatesInstallFailed': 'Uppfærslan tókst ekki: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Aðeins mögulegt í skjáborðsútgáfunni: gámur getur ekki skipt sjálfum sér út innan frá. Uppfærðu hann þess í stað á sama hátt og þú settir hann upp (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak skiptir sér ekki út sjálft. Sé það sett upp af Flathub heldur hugbúnaðarmiðstöðin þín eða flatpak update því uppfærðu. Pakka af útgáfusíðunni uppfærir þú með því að setja upp þann nýrri.',
   'settings.look.jdAutoUpdateHint': 'Einu sinni á dag spyr KnightLoader JDownloader hvort uppfærsla bíði og lætur það setja hana upp. JDownloader endurræsist til þess, svo uppfærslan bíður þar til ekkert af niðurhali þess er í gangi.',
   'settings.look.updatesAutoCheckHint': 'Á meðan kveikt er á þessu spyr þessi síða GitHub einu sinni þegar hún opnast hvort nýrri KnightLoader sé kominn. Hún spyr bara, því gámur fær uppfærslur frá gámastjóranum sínum.',
   'settings.look.jdAutoCheckHint': 'Skömmu eftir að KnightLoader ræsist og síðan einu sinni á dag spyr hann JDownloader hvort uppfærsla bíði. Hann spyr bara; rofinn fyrir neðan sér um uppsetninguna.',

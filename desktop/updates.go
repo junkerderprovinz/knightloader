@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/flatpak"
 	"github.com/junkerderprovinz/knightloader/internal/update"
 )
 
@@ -34,8 +35,9 @@ const updateReadyEvent = "updateReady"
 var launchInstaller = startInstaller
 
 var (
-	errUpdating     = errors.New("an update is already under way")
-	errNothingNewer = errors.New("there is no newer release to install")
+	errUpdating         = errors.New("an update is already under way")
+	errNothingNewer     = errors.New("there is no newer release to install")
+	errUpdatesFromStore = errors.New("a Flatpak is updated through Flatpak, from Flathub or a newer bundle")
 )
 
 // updater keeps the desktop app current. It is the only caller of
@@ -77,8 +79,13 @@ func newUpdater(logf func(format string, args ...any), announce func(version str
 
 // run removes what the last update left and then checks for updates until ctx
 // ends, whenever autoUpdate allows. A dev build never checks, since it has no
-// version to compare.
+// version to compare, and a Flatpak leaves updates to Flatpak, which owns its
+// files.
 func (up *updater) run(ctx context.Context, autoUpdate func() bool) {
+	if flatpak.ID() != "" {
+		up.logf("update: Flatpak installs this copy's updates, so it does not replace itself")
+		return
+	}
 	up.u.Cleanup()
 	if buildinfo.Version == "dev" {
 		return
@@ -166,6 +173,9 @@ func (up *updater) swap(ctx context.Context) (string, error) {
 // program and opens the new version. Any other copy puts the new version in
 // place for its next start, as the daily check does.
 func (up *updater) install(ctx context.Context, installed bool) error {
+	if flatpak.ID() != "" {
+		return errUpdatesFromStore
+	}
 	if !up.busy.CompareAndSwap(false, true) {
 		return errUpdating
 	}

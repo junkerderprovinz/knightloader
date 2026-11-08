@@ -822,6 +822,7 @@ export const bg: Dict = {
   'settings.look.updatesDownloading': 'Изтегляне на обновлението: {percent}%',
   'settings.look.updatesInstallFailed': 'Обновяването не успя: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Възможно е само в настолната компилация: контейнерът не може да замени себе си отвътре. Вместо това го актуализирай по начина, по който си го внедрил (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Един Flatpak не се заменя сам. Инсталиран от Flathub, той се поддържа актуален от твоя център за софтуер или от flatpak update. Пакет от страницата на изданието обновяваш, като инсталираш по-новия.',
   'settings.look.jdAutoUpdateHint': 'Веднъж на ден KnightLoader пита JDownloader дали го чака актуализация и го кара да я инсталира. JDownloader се рестартира за това, затова актуализацията чака, докато не тече нито едно от неговите изтегляния.',
   'settings.look.updatesAutoCheckHint': 'Докато това е включено, отварянето на тази страница пита GitHub веднъж дали има по-нов KnightLoader. Само пита, защото контейнерът получава обновленията си от своя контейнерен мениджър.',
   'settings.look.jdAutoCheckHint': 'Малко след старта на KnightLoader и после веднъж на ден той пита JDownloader дали чака обновление. Само пита; инсталирането е с ключа по-долу.',

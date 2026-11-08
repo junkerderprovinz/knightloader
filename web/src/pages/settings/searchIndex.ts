@@ -1324,11 +1324,12 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
         { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoCheckHint' },
       ],
-      // The container build uses its own sentence for the update hint, and
-      // yt-dlp's and JDownloader's switches carry their own hints. A status's
-      // (i) says what went wrong where something needs doing.
+      // The container build and the Flatpak use their own sentences for the
+      // update hint, and yt-dlp's and JDownloader's switches carry their own
+      // hints. A status's (i) says what went wrong where something needs doing.
       body: [
         'settings.look.updatesAutoUpdateContainerHint',
+        'settings.look.updatesAutoUpdateStoreHint',
         'settings.look.jdAutoUpdateHint',
         'settings.look.jdAutoCheckHint',
         'settings.resolvers.toolsAutoCheckHint',
