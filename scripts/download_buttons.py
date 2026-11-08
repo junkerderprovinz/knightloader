@@ -16,6 +16,7 @@ BUTTONS = {
     "linux": RELEASE + "knightloader-linux-amd64-installer",
     "linux-arm": RELEASE + "knightloader-linux-arm64-installer",
     "linux-flatpak": RELEASE + "knightloader-linux-amd64.flatpak",
+    "linux-flatpak-arm": RELEASE + "knightloader-linux-arm64.flatpak",
     "unraid": "https://unraid.net/community/apps?q=knightloader",
     "mos": "https://mos-official.net/apps.html?search=KnightLoader",
     "zimaos": "https://github.com/junkerderprovinz/zimaos-apps#install",
