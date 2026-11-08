@@ -38,6 +38,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Changed
+
+- **Every list you reorder by hand places the moved item the same way.** An
+  item passes a neighbour once its leading edge is past the neighbour's
+  middle, so a wide card in the overview or a long entry in the settings rail
+  reaches both ends of its list, as the columns of the download list already
+  did. KnightLoader follows GlimStone 4.2.7 in the web interface and the
+  browser extension.
+
 ## [2.7.3] - 2026-11-07
 
 ### Changed

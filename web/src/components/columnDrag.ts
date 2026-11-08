@@ -15,6 +15,7 @@ import { flushSync } from 'react-dom';
 import { COLUMN_BY_ID, moveColumn, type ColumnId, type ResolvedLayout } from './columns';
 import { HOLD_MS, HOLD_SLOP_PX, sameOrder, settleMs } from './dragLift';
 import { pastThreshold } from './rowDrag';
+import { dropIndex, type DropRect } from '../lib/dropIndex';
 
 /** A column as laid out in the head row: its left edge and its width. */
 export interface ColumnBox {
@@ -25,25 +26,16 @@ export interface ColumnBox {
 
 /**
  * liveColumnOrder is the order the carried column asks for when its left edge
- * stands at `x`. A column counts as passed once the carried one's leading edge,
- * the left one on the way left and the right one on the way right, is past
- * the column's middle. The centre would not do: a wide column held at the
- * table's edge keeps its centre beyond a narrow neighbour's and could never
- * reach the end. The passed column moves away by the carried one's width, so
- * two columns of different widths cannot trade places back and forth.
+ * stands at `x`, placed by dropIndex: a column is passed once the carried
+ * one's leading edge is past its middle, so a wide column reaches both ends.
  */
 export function liveColumnOrder(boxes: ColumnBox[], held: ColumnId, x: number, rtl: boolean): ColumnId[] {
+  const rect = (b: ColumnBox): DropRect => ({ left: b.x, top: 0, width: b.w, height: 1 });
   const from = boxes.find((b) => b.id === held);
-  const edge = from && x > from.x ? x + from.w : x;
-  const rest: ColumnId[] = [];
-  let ahead = 0;
-  for (const b of boxes) {
-    if (b.id === held) continue;
-    const mid = b.x + b.w / 2;
-    if (rtl ? mid > edge : mid < edge) ahead++;
-    rest.push(b.id);
-  }
-  rest.splice(ahead, 0, held);
+  if (!from) return boxes.map((b) => b.id);
+  const others = boxes.filter((b) => b.id !== held);
+  const rest = others.map((b) => b.id);
+  rest.splice(dropIndex({ ...rect(from), left: x }, rect(from), others.map(rect), { axis: 'x', rtl }), 0, held);
   return rest;
 }
 

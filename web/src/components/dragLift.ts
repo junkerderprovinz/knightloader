@@ -18,6 +18,7 @@ import {
 } from 'react';
 import { flushSync } from 'react-dom';
 import { pastThreshold } from './rowDrag';
+import { dropIndex, type DropRect } from '../lib/dropIndex';
 
 export const LIFT = 'glim-drag-lift';
 export const SHIFT = 'glim-drag-shift';
@@ -266,30 +267,25 @@ export function useReorder({ ids, container, attr, axis, arm, enabled, onReorder
   }
 
   /**
-   * aim returns the order the held item's position asks for. An item counts
-   * as before it once the held item's centre passes the item's centre; the
-   * passed item then moves away by the held item's own size, so two items of
-   * different sizes cannot trade places back and forth. Measured boxes, never
-   * one assumed size, since the items need not match.
+   * aim returns the order the held item's position asks for, placed by
+   * dropIndex from the boxes as laid out, so items of any size reach both
+   * ends. A wrapped row is placed as a grid.
    */
   function aim(h: Lifted): string[] {
+    const rect = (b: Box): DropRect => ({ left: b.x, top: b.y, width: b.w, height: b.h });
+    const self = nodeOf(h.id);
+    const from = rect(self ? boxOf(self) : h.from);
     const at = heldAt(h, false);
-    const cx = at.x + h.from.w / 2;
-    const cy = at.y + h.from.h / 2;
     const rest: string[] = [];
-    let ahead = 0;
+    const others: DropRect[] = [];
     for (const node of nodes()) {
       const id = node.getAttribute(attr);
       if (!id || id === h.id) continue;
-      const b = boxOf(node);
-      const mid = b.x + b.w / 2;
-      // A wrapped row reads by line first, then along the line.
-      const before =
-        axis === 'y' ? b.y + b.h / 2 < cy : cy > b.y + b.h || (cy >= b.y && (h.rtl ? mid > cx : mid < cx));
-      if (before) ahead++;
       rest.push(id);
+      others.push(rect(boxOf(node)));
     }
-    rest.splice(ahead, 0, h.id);
+    const along = axis === 'y' ? 'y' : h.free ? 'grid' : 'x';
+    rest.splice(dropIndex({ ...from, left: at.x, top: at.y }, from, others, { axis: along, rtl: h.rtl }), 0, h.id);
     return rest;
   }
 
