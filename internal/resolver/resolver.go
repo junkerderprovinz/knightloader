@@ -19,6 +19,10 @@ type Info struct {
 	// OwnLogin marks the priority card's row of a hoster login KnightLoader
 	// signs in with itself rather than through JDownloader.
 	OwnLogin bool `json:"ownLogin,omitempty"`
+	// OwnHoster marks the row of one of KnightLoader's own hoster clients.
+	// The priority card leaves it out: a login for the hoster brings a row of
+	// its own, and without one the client keeps its fixed priority.
+	OwnHoster bool `json:"ownHoster,omitempty"`
 }
 
 // AccountSep separates a service id from an account id inside a resolver id.

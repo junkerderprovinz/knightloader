@@ -531,6 +531,87 @@ it('keeps every connected debrid account in the download order, and says why one
   expect(rows[0].querySelector('[aria-label^="The last check"]')).toBeNull();
 });
 
+/** stubPriority answers the download order with `rows` and records what the card saves. */
+function stubPriority(rows: unknown[], saved: unknown[]) {
+  const debrid = { id: 'torbox', label: 'TorBox', kind: 'apiKey', group: 'debrid', whereUrl: '' };
+  const torbox = { id: 'torbox', service: 'torbox', account: '', label: '', enabled: true, configured: true, fromEnv: false, ok: true, detail: '' };
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/accounts/catalogue') return reply([debrid]);
+      if (url === '/api/accounts') return reply([torbox]);
+      if (url === '/api/resolvers/priority' && init?.method === 'POST') {
+        saved.push(JSON.parse(String(init.body)));
+        return reply(rows);
+      }
+      if (url === '/api/resolvers/priority') return reply(rows);
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
+      return reply([]);
+    }),
+  );
+}
+
+it('shows a hoster in the download order only once a login for it is connected', async () => {
+  stubPriority(
+    [
+      { id: 'mega', prio: 55 },
+      { id: 'torbox', prio: 50 },
+      { id: 'ddownload', prio: 42, ownHoster: true },
+      { id: 'login:ddownload.com', prio: 60, ownLogin: true },
+      { id: 'pixeldrain', prio: 42, ownHoster: true },
+      { id: 'direct', prio: 40 },
+      { id: 'jd', prio: 10 },
+    ],
+    [],
+  );
+  await act(async () => root.render(page));
+  const rows = [...host.querySelectorAll('ol[aria-label="Download priority order"] li')];
+  expect(rows.map((r) => r.getAttribute('data-ladder-id'))).toEqual(['mega', 'torbox', 'login:ddownload.com', 'direct', 'jd']);
+});
+
+it('has no order to set while only the built-in backends and the free hoster clients are there', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      if (url === '/api/resolvers/priority') {
+        return reply([
+          { id: 'mega', prio: 55 },
+          { id: 'torrent', prio: 50 },
+          { id: 'filespace', prio: 42, ownHoster: true },
+          { id: 'direct', prio: 40 },
+          { id: 'ytdlp', prio: 30 },
+          { id: 'jd', prio: 10 },
+        ]);
+      }
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
+      return reply([]);
+    }),
+  );
+  await act(async () => root.render(page));
+  expect(host.querySelector('ol[aria-label="Download priority order"]')).toBeNull();
+  expect(host.textContent).toContain('No account is connected, so there is no order to set yet.');
+});
+
+it('keeps the place of the hoster clients it leaves out when a row is moved', async () => {
+  const saved: unknown[] = [];
+  stubPriority(
+    [
+      { id: 'torbox', prio: 1000 },
+      { id: 'ddownload', prio: 999, ownHoster: true },
+      { id: 'jd', prio: 998 },
+      { id: 'katfile', prio: 42, ownHoster: true },
+      { id: 'direct', prio: 40 },
+    ],
+    saved,
+  );
+  await act(async () => root.render(page));
+  const grip = host.querySelector<HTMLButtonElement>('[aria-label="Download priority order"] button[aria-label="Move TorBox"]')!;
+  await act(async () => grip.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowDown' })));
+  expect(saved).toEqual([{ order: ['jd', 'ddownload', 'torbox', 'katfile', 'direct'] }]);
+});
+
 it('orders the connected captcha accounts beside the download backends and saves without a settings draft', async () => {
   const solver = (id: string, label: string) => ({ id, label, kind: 'apiKey', group: 'captchaSolver', whereUrl: '' });
   const key = (service: string) => ({ id: service, service, account: '', label: '', enabled: true, configured: true, fromEnv: false });

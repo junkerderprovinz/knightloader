@@ -2239,6 +2239,8 @@ export interface ResolverInfo {
   prio: number;
   /** Set on the row of a hoster login KnightLoader signs in with itself. */
   ownLogin?: boolean;
+  /** Set on the row of one of KnightLoader's own hoster clients, which the card leaves out. */
+  ownHoster?: boolean;
 }
 
 /**

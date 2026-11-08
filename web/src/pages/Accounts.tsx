@@ -903,12 +903,7 @@ function CredentialDialog({
 /** The id prefix of a hoster login's row (app.loginRowID). */
 const LOGIN_ROW = 'login:';
 /** The rows of backends that come with KnightLoader rather than with an account. */
-const BUILT_IN = [
-  ...['jd', 'ytdlp', 'direct', 'torrent', 'mega', '1fichier'],
-  ...['ddownload', 'katfile', 'clicknupload', 'filespace', 'uploadrar', 'sendnow'],
-  ...['pixeldrain', 'gofile', 'mediafire', 'krakenfiles', 'workupload'],
-  ...['googledrive', 'dropbox', 'onedrive', 'wetransfer', 'swisstransfer'],
-];
+const BUILT_IN = ['jd', 'ytdlp', 'direct', 'torrent', 'mega'];
 
 /**
  * connectedDebrid maps each debrid service with a connected, switched-on
@@ -935,6 +930,18 @@ function connectedDebrid(accounts: Account[], catalogue: Map<string, CatalogueSe
 function ladderOf(priority: ResolverInfo[], debrid: Map<string, string>): string[] {
   const ids = priority.map((r) => r.id);
   return [...ids, ...[...debrid.keys()].filter((id) => !ids.includes(id))];
+}
+
+/**
+ * withHidden is the order to store after the shown rows were arranged as
+ * `shown`: every row the card leaves out keeps its place in `full`, and the
+ * shown rows fill the other places in their new order. Dropping the hidden
+ * ones would move them below every stored row.
+ */
+function withHidden(full: string[], hidden: ReadonlySet<string>, shown: string[]): string[] {
+  const rest = [...shown];
+  const out = full.flatMap((id) => (hidden.has(id) ? [id] : rest.splice(0, 1)));
+  return [...out, ...rest];
 }
 
 /**
@@ -994,7 +1001,11 @@ function RoutingSection({
   };
 
   const debrid = connectedDebrid(accounts, byId);
-  const ids = priority && ladderOf(priority, debrid);
+  // A hoster shows up once a login for it is connected, as a row of its own.
+  // KnightLoader's own clients for it are no row: without a login there is
+  // nothing to arrange.
+  const hidden = new Set(priority?.filter((r) => r.ownHoster).map((r) => r.id));
+  const ids = priority && ladderOf(priority, debrid).filter((id) => !hidden.has(id));
   const troubleFor = (id: string) => {
     const failed = debrid.get(id);
     return failed && t('accounts.routing.checkFailed', { reason: failed });
@@ -1005,7 +1016,8 @@ function RoutingSection({
   async function store(next: string[]) {
     setBusy(true);
     try {
-      setPriority(await saveResolverPriority(next));
+      const order = next.length && priority ? withHidden(ladderOf(priority, debrid), hidden, next) : [];
+      setPriority(await saveResolverPriority(order));
     } catch (e) {
       toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
     } finally {

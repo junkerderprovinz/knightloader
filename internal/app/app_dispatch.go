@@ -232,6 +232,7 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 		prio := dynamicPrio(res, url, order)
 		// The service id, so a drag saves an order dynamicPrio matches.
 		info.ID = service
+		info.OwnHoster = ownHosterID(service)
 		rows = append(rows, row{info, 2 * prio})
 	}
 	if host == "" {
@@ -283,6 +284,17 @@ func barredPastOff(id string) bool {
 // KnightLoader signs in to itself is ranked by its login's row.
 func offCard(id string) bool {
 	return id == "http" || id == hostheaders.ResolverID || id == remotefs.ResolverID || id == usenet.ResolverID || ownSites[id] != ""
+}
+
+// ownHosterID reports whether id is the resolver of one of KnightLoader's own
+// hoster clients, which download for free or on the hoster's login. MEGA's is
+// not among them: it ranks above the debrid services, so it keeps a row a
+// debrid service can be dragged above.
+func ownHosterID(id string) bool {
+	if id == onefichier.ResolverID || hosterClientID(id) || ownFreeID(id) {
+		return true
+	}
+	return slices.ContainsFunc(xfsSites, func(s *xfs.Site) bool { return s.ID == id })
 }
 
 // SaveResolverOrder stores the order the priority card sends and answers with

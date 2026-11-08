@@ -236,6 +236,35 @@ func TestPriorityCardListsJDYtdlpAndTheDirectDownload(t *testing.T) {
 	}
 }
 
+// The card shows a hoster only once something is connected for it, so the
+// rows of KnightLoader's own hoster clients come marked for it to leave out.
+// They are still sent, since the host rules offer them to prefer, and the
+// card keeps their place when it saves.
+func TestPriorityRowsMarkTheOwnHosterClients(t *testing.T) {
+	a := newQueueApp(t)
+	a.Registry.Register(jd.Resolver{})
+	for _, id := range []string{"mega", "1fichier", "ddownload", "filespace", "pixeldrain", "googledrive", "rapidgator-free", "fakedebrid"} {
+		a.Registry.Register(fakeResolver{id: id, prio: 42, host: id + ".priority-own-hoster.example"})
+	}
+
+	marked := map[string]bool{}
+	for _, r := range a.ResolverPriority("") {
+		marked[r.ID] = r.OwnHoster
+	}
+	for _, id := range []string{"1fichier", "ddownload", "filespace", "pixeldrain", "googledrive", "rapidgator-free"} {
+		if !marked[id] {
+			t.Errorf("row %q is not marked as an own hoster client: %v", id, marked)
+		}
+	}
+	// MEGA's client ranks above the debrid services, and its row is where one
+	// of them is dragged above it.
+	for _, id := range []string{"mega", "fakedebrid", "jd", "direct", "torrent"} {
+		if marked[id] {
+			t.Errorf("row %q is marked as an own hoster client, so the card would hide it", id)
+		}
+	}
+}
+
 // What the card sends after a drag is stored as sent, JD, yt-dlp and the
 // direct download included, and the card reads it back in the same order.
 func TestADraggedOrderWithJDYtdlpAndDirectRoundTrips(t *testing.T) {
