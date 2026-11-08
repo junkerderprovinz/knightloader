@@ -173,7 +173,7 @@ func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool 
 // to.
 func (s *Server) serveFree(w http.ResponseWriter, r *http.Request) bool {
 	sid := r.URL.Query().Get("session_id")
-	if r.URL.Query().Get("r") != "download/index" || sid == "" {
+	if strings.Trim(r.URL.Path, "/") != "" || r.URL.Query().Get("r") != "download/index" || sid == "" {
 		return false
 	}
 	for _, run := range s.sessions {
