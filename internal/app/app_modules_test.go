@@ -6,7 +6,6 @@ package app
 import (
 	"testing"
 
-	"github.com/junkerderprovinz/knightloader/internal/captcha"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 )
@@ -154,27 +153,5 @@ func TestSwitchedOffConnectionsSendDownloadsOutDirectly(t *testing.T) {
 	a.mu.Unlock()
 	if !on {
 		t.Fatal("no connection picker after switching connections back on")
-	}
-}
-
-func TestSwitchingCaptchaOffClosesTheOpenPrompts(t *testing.T) {
-	a := newCaptchaTestApp(t)
-	a.mu.Lock()
-	a.tasks["t1"] = &core.Task{ID: "t1", URL: "https://host.example/t1", Status: core.StatusRunning, Reason: core.ReasonCaptcha}
-	a.mu.Unlock()
-	st := a.captchaStateFor()
-	st.store.Sync([]captcha.Challenge{{ID: "c1", Host: "host.example", TaskID: "t1", Kind: captcha.KindImage}})
-
-	switchModulesOff(t, a, "captcha")
-	a.pollCaptchasOnce(st)
-
-	if n := len(st.store.List()); n != 0 {
-		t.Fatalf("%d challenges still open after switching captcha off", n)
-	}
-	a.mu.Lock()
-	reason := a.tasks["t1"].Reason
-	a.mu.Unlock()
-	if reason == core.ReasonCaptcha {
-		t.Error("the task still says it waits for a captcha")
 	}
 }

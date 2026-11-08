@@ -751,7 +751,6 @@ export const lt: Dict = {
   'settings.modules.detail.torrentsOff': 'Išjungta. Vykstantys torrentai tęsiasi ir toliau sėja. Nauji laukia, kol jis vėl bus įjungtas.',
   'settings.modules.detail.torrentsUnregistered': 'Įtaisyto torrentų kliento nėra maršruto lentelėje, todėl magnet nuorodos ir įkelti .torrent failai nepriimami, nes jie nepalaikomi.',
   'settings.modules.detail.torrentsRouted': 'Magnet nuorodos ir įkelti .torrent failai keliauja į įtaisytą torrentų klientą.',
-  'settings.modules.detail.captchaOff': 'Išjungta. Joks užklausos langas neatsidaro, o JDownloader atsisako nuorodos, kai baigiasi jos captcha galiojimas.',
   'settings.modules.detail.challenges': 'Šiuo metu laukia captcha: {n}',
   'settings.modules.detail.challengesOne': 'Šiuo metu laukia 1 captcha',
   'settings.modules.detail.downloadclientOff': 'Išjungta. Sonarr ir Radarr iš jo gauna 404, kaip iš neegzistuojančio adreso.',
@@ -768,7 +767,8 @@ export const lt: Dict = {
   'settings.resolvers.toolsJdStarting': 'Nustatoma',
   'settings.resolvers.toolsJdFailed': 'Nustatyti nepavyko',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader nepavyko nustatyti savo JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captcha ateina tik iš JDownloader posistemės, o ji nesukonfigūruota.',
+  'settings.modules.reason.captchaNoJD': 'JDownloader captcha reikia JDownloader posistemės, o ji nesukonfigūruota. Captcha iš nuorodų, kurias KnightLoader atsisiunčia be jo, vis tiek rodomos.',
+  'settings.modules.reason.captchaAlways': 'Captcha negalima išjungti. Jos visada rodomos interneto sąsajoje ir telefono programėlėje.',
   'settings.modules.switchFailed': 'Jungiklis buvo atmestas: {reason}',
   'settings.modules.configureFirst': 'Kol kas nėra ko įjungti. Pirmiausia tai sutvarkykite puslapyje {page}; po to jungiklis čia jį sustabdo ir vėl paleidžia neprarasdamas to, ką nustatėte.',
 
@@ -787,7 +787,7 @@ export const lt: Dict = {
   'settings.modules.about.connections': 'Siunčia atsisiuntimus per čia pridėtus tarpinius serverius ir tiesioginius kelius.',
   'settings.modules.about.federation': 'Leidžia šiam egzemplioriui rodyti kitus tavo egzempliorius ir perduoti jiems nuorodas.',
   'settings.modules.about.torrents': 'Atsisiunčia magnet nuorodas ir .torrent failus šiame egzemplioriuje ir juos skleidžia, kaip nustatyta žemiau.',
-  'settings.modules.about.captcha': 'Rodo captcha, į kurias atsitrenkia JDownloader, čia ir telefono programėlėje ir perduoda jas tavo captcha paskyroms.',
+  'settings.modules.about.captcha': 'Captcha iš JDownloader ir iš nuorodų, kurias KnightLoader atsisiunčia be jo, visada rodomos interneto sąsajoje ir telefono programėlėje ir keliauja į tavo captcha paskyras.',
   'settings.modules.about.downloadclient': 'Leidžia Sonarr, Radarr ir Prowlarr naudoti šį egzempliorių kaip atsisiuntimų klientą per jo qBittorrent ir SABnzbd sąsajas.',
   'settings.module.extraction': 'Archyvų išskleidimas',
   'settings.module.watch': 'Stebimas aplankas',
@@ -3386,7 +3386,6 @@ export const lt: Dict = {
   'settings.captcha.testSolvers': 'Siųsti ir captcha paskyroms',
   'settings.captcha.testSolversHint':
     'Siunčia tą pačią bandomąją captcha ir tavo captcha paskyroms, aukščiau nurodyta tvarka, kad matytum, ar jos atsako ir teisingai. Jos ima mokestį kaip už bet kurią kitą captcha. Kai įjungta „Tik kai niekas nežiūri“, jos pirmiausia laukia tavęs: pereik į kitą kortelę arba leisk laukimo laikui baigtis.',
-  'settings.captcha.testOff': 'Captcha išjungtos. Vėl įjunk modulį Captcha, kad galėtum siųsti bandomąją captcha.',
   'settings.captcha.testNoAccount':
     'Nė viena tavo captcha paskyra negali jos priimti. Įjunk vieną aukščiau ir puslapyje Paskyros patikrink, ar ji turi raktą ir yra įjungta.',
   'captcha.solverStoppedTaken': '{solver} perėmė šią captcha, bet atsakymo neatsiuntė.',
@@ -3831,6 +3830,7 @@ export const lt: Dict = {
   'whatsnew.change.filehostsNative': 'Pixeldrain, Gofile ir Mediafire nuorodos atsisiunčiamos be JDownloader, o aplanko ar sąrašo nuoroda virsta atskira eilute kiekvienam failui.',
   'whatsnew.change.cloudNative': 'Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer ir SwissTransfer nuorodos atsisiunčiamos be JDownloader, o bendrinamas aplankas ar persiuntimas virsta atskira eilute kiekvienam failui.',
   'whatsnew.change.freeFilehostsNative': 'Krakenfiles, Workupload ir Send.now nuorodos taip pat atsisiunčiamos nemokamai be JDownloader. Krakenfiles captcha keliauja į telefono programėlę ir tavo captcha paskyras, o laukimas rodomas prie atsisiuntimo.',
+  'whatsnew.change.captchaAlwaysOn': 'Captcha nebegalima išjungti. Jos visada rodomos interneto sąsajoje ir telefono programėlėje.',
   'whatsnew.change.oled': '{oled} po {theme} paverčia tamsią išvaizdą tikra juoda OLED ir AMOLED ekranams. Tai galioja visada, kai rodoma tamsi išvaizda, ir kai ji seka sistemą, o kiekvienas įrenginys įsimena savo pasirinkimą.',
   'whatsnew.change.systemAccent': 'Pavyzdys su burtų lazdele {accent} pradžioje naudoja tavo sistemos spalvą: Material You nuo Android 12, Windows, macOS arba Linux akcentinę spalvą darbalaukio programėlėje ir sistemos spalvą Firefox ir Safari naršyklėse. Kur sistema jos neturi, pavyzdžio nėra. Pasirinkimas galioja tik šiam įrenginiui, o kiti išlaiko egzemplioriaus spalvą.',
   'whatsnew.change.fileKindsMore': 'Nuorodos savo simboliu rodo daugiau failų rūšių: PDF, biuro dokumentus, skaičiuokles, pristatymus, e. knygas, grojaraščius, disko atvaizdus, programas, šriftus, 3D modelius, kontrolines sumas, torrentus, RAW nuotraukas ir dizaino failus.',

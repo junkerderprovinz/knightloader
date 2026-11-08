@@ -750,7 +750,6 @@ export const gl: Dict = {
   'settings.modules.detail.torrentsOff': 'Apagado. Os torrents en marcha continúan e seguen facendo seed. Os novos agardan ata que volva estar aceso.',
   'settings.modules.detail.torrentsUnregistered': 'O cliente de torrents integrado non está na táboa de encamiñamento, así que as ligazóns magnet e os .torrent subidos non se aceptan por non seren compatibles.',
   'settings.modules.detail.torrentsRouted': 'As ligazóns magnet e os ficheiros .torrent subidos van ao cliente de torrents integrado.',
-  'settings.modules.detail.captchaOff': 'Apagado. Non se abre ningunha xanela de captcha, e JDownloader renuncia a unha ligazón en canto caduca o seu captcha.',
   'settings.modules.detail.challenges': '{n} captchas agardando agora mesmo',
   'settings.modules.detail.challengesOne': '1 captcha agardando agora mesmo',
   'settings.modules.detail.downloadclientOff': 'Apagado. Sonarr e Radarr reciben un 404, coma dun enderezo que non existe.',
@@ -767,7 +766,8 @@ export const gl: Dict = {
   'settings.resolvers.toolsJdStarting': 'Configurándose',
   'settings.resolvers.toolsJdFailed': 'A configuración fallou',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader non puido configurar o seu JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Os captchas só veñen do backend JDownloader, e non hai ningún configurado.',
+  'settings.modules.reason.captchaNoJD': 'Os captchas de JDownloader precisan o backend JDownloader, e non hai ningún configurado. Os captchas das ligazóns que KnightLoader descarga sen el aparecen igualmente.',
+  'settings.modules.reason.captchaAlways': 'Os captchas non se poden apagar. Aparecen sempre na interface web e na aplicación do móbil.',
   'settings.modules.switchFailed': 'Ese interruptor foi rexeitado: {reason}',
   'settings.modules.configureFirst': 'Aínda non hai nada que acender. Configúrao primeiro en {page}; despois o interruptor de aquí párao e vólveo arrincar sen perder o que puxeches.',
 
@@ -786,7 +786,7 @@ export const gl: Dict = {
   'settings.modules.about.connections': 'Envía as descargas polos proxys e as rutas directas que engadas aquí.',
   'settings.modules.about.federation': 'Permite que esta instancia amose as túas outras instancias e lles pase ligazóns.',
   'settings.modules.about.torrents': 'Descarga ligazóns magnet e ficheiros .torrent nesta instancia e sémbraos como se axusta abaixo.',
-  'settings.modules.about.captcha': 'Amosa aquí e na aplicación do móbil os captchas que atopa JDownloader e pásaos ás túas contas de captcha.',
+  'settings.modules.about.captcha': 'Os captchas de JDownloader e das ligazóns que KnightLoader descarga sen el aparecen sempre na interface web e na aplicación do móbil, e van ás túas contas de captcha.',
   'settings.modules.about.downloadclient': 'Permite que Sonarr, Radarr e Prowlarr usen esta instancia como cliente de descarga, a través das súas interfaces qBittorrent e SABnzbd.',
   'settings.module.extraction': 'Extracción de arquivos',
   'settings.module.watch': 'Cartafol vixiado',
@@ -3382,8 +3382,6 @@ export const gl: Dict = {
   'settings.captcha.testSolvers': 'Envialo tamén ás contas de captcha',
   'settings.captcha.testSolversHint':
     'Envía o mesmo captcha de proba tamén ás túas contas de captcha, na orde de arriba, para que vexas se o responden e acertan. Cóbrano coma calquera outro captcha. Con «Só cando ninguén está mirando» activado, primeiro agárdante a ti: cambia a outra lapela ou deixa que remate a espera.',
-  'settings.captcha.testOff':
-    'Os captchas están desactivados. Volve activar o módulo Captcha para enviar un captcha de proba.',
   'settings.captcha.testNoAccount':
     'Ningunha das túas contas de captcha pode collelo. Activa unha arriba e comproba na páxina Contas que ten unha chave e que está activada.',
   'captcha.solverStoppedTaken': '{solver} encargouse deste captcha, pero non enviou ningunha resposta.',
@@ -3827,6 +3825,7 @@ export const gl: Dict = {
   'whatsnew.change.filehostsNative': 'As ligazóns de Pixeldrain, Gofile e Mediafire descárganse sen JDownloader, e unha ligazón de cartafol ou de lista convértese nunha fila por ficheiro.',
   'whatsnew.change.cloudNative': 'As ligazóns de Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer e SwissTransfer descárganse sen JDownloader, e un cartafol compartido ou unha transferencia convértese nunha fila por ficheiro.',
   'whatsnew.change.freeFilehostsNative': 'As ligazóns de Krakenfiles, Workupload e Send.now tamén se descargan de balde sen JDownloader. O captcha de Krakenfiles vai á aplicación do móbil e ás túas contas de captcha, e as esperas vense na descarga.',
+  'whatsnew.change.captchaAlwaysOn': 'Os captchas xa non se poden apagar. Aparecen sempre na interface web e na aplicación do móbil.',
   'whatsnew.change.oled': '{oled}, baixo {theme}, pon o aspecto escuro en negro puro para pantallas OLED e AMOLED. Vale sempre que se ve o aspecto escuro, tamén cando segue o sistema, e cada dispositivo lembra a súa escolla.',
   'whatsnew.change.systemAccent': 'A mostra coa variña ao comezo de {accent} colle a cor do teu sistema: Material You desde Android 12, a cor de acento de Windows, macOS ou Linux na aplicación de escritorio e a cor do sistema en Firefox e Safari. Onde o sistema non ten ningunha, a mostra non aparece. A escolla vale só para este dispositivo, e os demais manteñen a cor da instancia.',
   'whatsnew.change.fileKindsMore': 'As ligazóns amosan máis tipos de ficheiro co seu símbolo: PDF, documentos de oficina, follas de cálculo, presentacións, libros electrónicos, listas de reprodución, imaxes de disco, programas, fontes, modelos 3D, sumas de verificación, torrents, fotos RAW e ficheiros de deseño.',

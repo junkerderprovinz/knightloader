@@ -742,7 +742,6 @@ export const fr: Dict = {
   'settings.modules.detail.torrentsOff': 'Désactivé. Les torrents en cours continuent et restent en partage. Les nouveaux attendent qu’il soit réactivé.',
   'settings.modules.detail.torrentsUnregistered': 'Le client torrent intégré ne figure pas dans la table de routage : les liens magnet et les fichiers .torrent envoyés sont donc écartés comme non pris en charge.',
   'settings.modules.detail.torrentsRouted': 'Les liens magnet et les fichiers .torrent envoyés vont au client torrent intégré.',
-  'settings.modules.detail.captchaOff': 'Désactivé. Aucune demande ne s’ouvre, et JDownloader abandonne un lien dès que son captcha expire.',
   'settings.modules.detail.challenges': '{n} captchas en attente en ce moment',
   'settings.modules.detail.challengesOne': '1 captcha en attente en ce moment',
   'settings.modules.detail.downloadclientOff': 'Désactivé. Sonarr et Radarr reçoivent une erreur 404, comme de la part d’une adresse qui n’existe pas.',
@@ -759,7 +758,8 @@ export const fr: Dict = {
   'settings.resolvers.toolsJdStarting': 'Configuration en cours',
   'settings.resolvers.toolsJdFailed': 'Échec de la configuration',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader n’a pas pu configurer son JDownloader : {error}',
-  'settings.modules.reason.captchaNoJD': 'Les captchas ne viennent que du backend JDownloader, et aucun n’est configuré.',
+  'settings.modules.reason.captchaNoJD': 'Les captchas de JDownloader ont besoin du backend JDownloader, et aucun n’est configuré. Les captchas des liens que KnightLoader télécharge sans lui s’affichent quand même.',
+  'settings.modules.reason.captchaAlways': 'Les captchas ne peuvent pas être désactivés. Ils s’affichent toujours dans l’interface web et dans l’application mobile.',
   'settings.modules.switchFailed': 'Cet interrupteur a été refusé : {reason}',
   'settings.modules.configureFirst': 'Il n’y a encore rien à activer. Configurez d’abord cela sur {page} ; ensuite l’interrupteur d’ici l’arrête et le relance sans perdre vos réglages.',
 
@@ -778,7 +778,7 @@ export const fr: Dict = {
   'settings.modules.about.connections': 'Envoie les téléchargements par les proxys et les routes directes que vous ajoutez ici.',
   'settings.modules.about.federation': 'Permet à cette instance de lister vos autres instances et de leur transmettre des liens.',
   'settings.modules.about.torrents': 'Télécharge les liens magnet et les fichiers .torrent sur cette instance et les partage comme réglé ci-dessous.',
-  'settings.modules.about.captcha': 'Affiche ici et dans l’application mobile les captchas que rencontre JDownloader, et les transmet à vos comptes captcha.',
+  'settings.modules.about.captcha': 'Les captchas de JDownloader et des liens que KnightLoader télécharge sans lui s’affichent toujours dans l’interface web et dans l’application mobile, et vont à vos comptes captcha.',
   'settings.modules.about.downloadclient': 'Permet à Sonarr, Radarr et Prowlarr d’utiliser cette instance comme client de téléchargement, via ses interfaces qBittorrent et SABnzbd.',
   'settings.module.extraction': 'Extraction des archives',
   'settings.module.watch': 'Dossier surveillé',
@@ -3373,8 +3373,6 @@ export const fr: Dict = {
   'settings.captcha.testSolvers': 'L’envoyer aussi aux comptes captcha',
   'settings.captcha.testSolversHint':
     'Envoie le même captcha de test à vos comptes captcha aussi, dans l’ordre ci-dessus, pour voir s’ils y répondent et juste. Ils le facturent comme n’importe quel captcha. Avec « Seulement quand personne ne regarde » activé, ils vous attendent d’abord : passez à un autre onglet ou laissez le délai s’écouler.',
-  'settings.captcha.testOff':
-    'Les captchas sont désactivés. Réactivez le module Captcha pour envoyer un captcha de test.',
   'settings.captcha.testNoAccount':
     'Aucun de vos comptes captcha ne peut le prendre. Activez-en un ci-dessus et vérifiez sur la page Comptes qu’il a une clé et qu’il est activé.',
   'captcha.solverStoppedTaken': '{solver} a pris ce captcha mais n’a envoyé aucune réponse.',
@@ -3819,6 +3817,7 @@ export const fr: Dict = {
   'whatsnew.change.filehostsNative': 'Les liens Pixeldrain, Gofile et Mediafire se téléchargent sans JDownloader, et un lien de dossier ou de liste donne une ligne par fichier.',
   'whatsnew.change.cloudNative': 'Les liens Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer et SwissTransfer se téléchargent sans JDownloader, et un dossier partagé ou un transfert donne une ligne par fichier.',
   'whatsnew.change.freeFilehostsNative': 'Les liens Krakenfiles, Workupload et Send.now se téléchargent eux aussi gratuitement sans JDownloader. Le captcha de Krakenfiles va à l’application mobile et à vos comptes captcha, et les attentes s’affichent sur le téléchargement.',
+  'whatsnew.change.captchaAlwaysOn': 'Les captchas ne peuvent plus être désactivés. Ils s’affichent toujours dans l’interface web et dans l’application mobile.',
   'whatsnew.change.oled': '{oled}, sous {theme}, passe l\'apparence sombre au noir pur pour les écrans OLED et AMOLED. Il compte dès que l\'apparence sombre s\'affiche, même quand elle suit le système, et chaque appareil retient son propre choix.',
   'whatsnew.change.systemAccent': 'La pastille à la baguette magique au début de {accent} reprend la couleur du système : Material You à partir d\'Android 12, la couleur d\'accentuation de Windows, macOS ou Linux dans l\'application de bureau, et la couleur du système dans Firefox et Safari. Là où le système n\'en a pas, la pastille n\'apparaît pas. Ce choix ne vaut que pour cet appareil, et les autres gardent la couleur de l\'instance.',
   'whatsnew.change.fileKindsMore': 'Les liens montrent plus de types de fichiers par leur symbole : PDF, documents bureautiques, tableurs, présentations, livres numériques, listes de lecture, images disque, programmes, polices, modèles 3D, sommes de contrôle, torrents, photos RAW et fichiers de conception.',

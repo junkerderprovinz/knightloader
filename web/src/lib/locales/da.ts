@@ -750,7 +750,6 @@ export const da: Dict = {
   'settings.modules.detail.torrentsOff': 'Fra. Torrents, der kører, fortsætter og bliver ved med at seede. Nye venter, til det er slået til igen.',
   'settings.modules.detail.torrentsUnregistered': 'Den indbyggede torrentklient står ikke i routingtabellen, så magnetlinks og uploadede .torrent-filer afslås som ikke understøttet.',
   'settings.modules.detail.torrentsRouted': 'Magnetlinks og uploadede .torrent-filer går til den indbyggede torrentklient.',
-  'settings.modules.detail.captchaOff': 'Fra. Der åbnes ingen forespørgsel, og JDownloader opgiver et link, så snart dets captcha udløber.',
   'settings.modules.detail.challenges': '{n} captchaer venter lige nu',
   'settings.modules.detail.challengesOne': '1 captcha venter lige nu',
   'settings.modules.detail.downloadclientOff': 'Fra. Sonarr og Radarr får 404 fra den, som fra en adresse, der ikke findes.',
@@ -767,7 +766,8 @@ export const da: Dict = {
   'settings.resolvers.toolsJdStarting': 'Sættes op',
   'settings.resolvers.toolsJdFailed': 'Opsætningen mislykkedes',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader kunne ikke sætte sin JDownloader op: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captchaer kommer kun fra JDownloader-backenden, og der er ikke sat nogen op.',
+  'settings.modules.reason.captchaNoJD': 'Captchaer fra JDownloader kræver JDownloader-backenden, og der er ikke sat nogen op. Captchaer fra links, KnightLoader downloader uden den, vises alligevel.',
+  'settings.modules.reason.captchaAlways': 'Captchaer kan ikke slås fra. De vises altid i webbrugerfladen og i telefonappen.',
   'settings.modules.switchFailed': 'Den kontakt blev afvist: {reason}',
   'settings.modules.configureFirst': 'Der er endnu ikke noget at tænde for. Sæt det op på {page} først; derefter stopper og genstarter kontakten her det uden at miste det, du har sat op.',
 
@@ -786,7 +786,7 @@ export const da: Dict = {
   'settings.modules.about.connections': 'Sender downloads gennem de proxyer og direkte ruter, du tilføjer her.',
   'settings.modules.about.federation': 'Lader denne instans vise dine andre instanser og give links videre til dem.',
   'settings.modules.about.torrents': 'Henter magnetlinks og .torrent-filer på denne instans og seeder dem som angivet nedenfor.',
-  'settings.modules.about.captcha': 'Viser de captchas, JDownloader støder på, her og i telefonappen, og sender dem videre til dine captcha-konti.',
+  'settings.modules.about.captcha': 'Captchaer fra JDownloader og fra links, KnightLoader downloader uden den, vises altid i webbrugerfladen og i telefonappen og går til dine captcha-konti.',
   'settings.modules.about.downloadclient': 'Lader Sonarr, Radarr og Prowlarr bruge denne instans som downloadklient gennem dens qBittorrent- og SABnzbd-grænseflader.',
   'settings.module.extraction': 'Udpakning af arkiver',
   'settings.module.watch': 'Overvåget mappe',
@@ -3371,7 +3371,6 @@ export const da: Dict = {
   'settings.captcha.testSolvers': 'Send den også til captcha-kontiene',
   'settings.captcha.testSolversHint':
     'Sender den samme test-captcha til dine captcha-konti også, i rækkefølgen ovenfor, så du kan se, om de svarer og rammer rigtigt. De tager betaling for den som for enhver anden captcha. Med »Kun når ingen kigger med« slået til venter de først på dig: skift til en anden fane, eller lad ventetiden løbe ud.',
-  'settings.captcha.testOff': 'Captchas er slået fra. Slå modulet Captcha til igen for at sende en test-captcha.',
   'settings.captcha.testNoAccount':
     'Ingen af dine captcha-konti kan tage den. Slå en til ovenfor, og tjek på siden Konti, at den har en nøgle og er slået til.',
   'captcha.solverStoppedTaken': '{solver} tog denne captcha, men sendte intet svar.',
@@ -3815,6 +3814,7 @@ export const da: Dict = {
   'whatsnew.change.filehostsNative': 'Links fra Pixeldrain, Gofile og Mediafire downloades uden JDownloader, og et link til en mappe eller liste bliver til én række pr. fil.',
   'whatsnew.change.cloudNative': 'Links fra Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer og SwissTransfer downloades uden JDownloader, og en delt mappe eller en overførsel bliver til én række pr. fil.',
   'whatsnew.change.freeFilehostsNative': 'Links fra Krakenfiles, Workupload og Send.now downloades også gratis uden JDownloader. Captchaen fra Krakenfiles går til telefonappen og dine captcha-konti, og ventetiderne vises på downloaden.',
+  'whatsnew.change.captchaAlwaysOn': 'Captchaer kan ikke længere slås fra. De vises altid i webbrugerfladen og i telefonappen.',
   'whatsnew.change.oled': '{oled} under {theme} giver det mørke udseende ægte sort til OLED- og AMOLED-skærme. Det gælder, når det mørke udseende vises, også når det følger systemet, og hver enhed husker sit eget valg.',
   'whatsnew.change.systemAccent': 'Farvefeltet med tryllestaven først i {accent} bruger systemets farve: Material You fra Android 12, accentfarven i Windows, macOS eller Linux i skrivebordsappen og systemfarven i Firefox og Safari. Hvor systemet ikke har nogen, er feltet der ikke. Valget gælder kun denne enhed, og de andre beholder instansens farve.',
   'whatsnew.change.fileKindsMore': 'Links viser flere slags filer med deres symbol: PDF\'er, kontordokumenter, regneark, præsentationer, e-bøger, playlister, diskaftryk, programmer, skrifttyper, 3D-modeller, tjeksummer, torrents, RAW-fotos og designfiler.',

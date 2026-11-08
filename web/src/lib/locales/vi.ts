@@ -750,7 +750,6 @@ export const vi: Dict = {
   'settings.modules.detail.torrentsOff': 'Tắt. Các torrent đang chạy vẫn tiếp tục và vẫn seed. Torrent mới thì chờ tới khi nó được bật lại.',
   'settings.modules.detail.torrentsUnregistered': 'Client torrent tích hợp không có trong bảng định tuyến, nên liên kết magnet và tệp .torrent tải lên không được nhận, với lý do không được hỗ trợ.',
   'settings.modules.detail.torrentsRouted': 'Liên kết magnet và tệp .torrent tải lên được chuyển tới client torrent tích hợp.',
-  'settings.modules.detail.captchaOff': 'Tắt. Không có hộp nhập nào mở ra, và JDownloader bỏ một liên kết ngay khi captcha của nó hết hạn.',
   'settings.modules.detail.challenges': '{n} captcha đang chờ lúc này',
   'settings.modules.detail.challengesOne': '1 captcha đang chờ lúc này',
   'settings.modules.detail.downloadclientOff': 'Tắt. Sonarr và Radarr nhận về 404, như từ một địa chỉ không tồn tại.',
@@ -767,7 +766,8 @@ export const vi: Dict = {
   'settings.resolvers.toolsJdStarting': 'Đang thiết lập',
   'settings.resolvers.toolsJdFailed': 'Thiết lập không thành công',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader không thiết lập được JDownloader của mình: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captcha chỉ đến từ backend JDownloader, mà chưa có backend nào được cấu hình.',
+  'settings.modules.reason.captchaNoJD': 'Captcha của JDownloader cần backend JDownloader, mà chưa có backend nào được cấu hình. Captcha từ các liên kết KnightLoader tải xuống mà không cần nó vẫn hiển thị.',
+  'settings.modules.reason.captchaAlways': 'Không thể tắt captcha. Captcha luôn hiển thị trong giao diện web và trong ứng dụng điện thoại.',
   'settings.modules.switchFailed': 'Công tắc đó bị từ chối: {reason}',
   'settings.modules.configureFirst': 'Chưa có gì để bật. Hãy thiết lập ở {page} trước; sau đó công tắc ở đây sẽ dừng và chạy lại mà không mất những gì bạn đã đặt.',
 
@@ -786,7 +786,7 @@ export const vi: Dict = {
   'settings.modules.about.connections': 'Gửi các lượt tải qua proxy và đường kết nối trực tiếp mà bạn thêm ở đây.',
   'settings.modules.about.federation': 'Liệt kê các phiên bản khác của bạn và có thể chuyển liên kết cho chúng.',
   'settings.modules.about.torrents': 'Tải liên kết magnet và tệp .torrent trên phiên bản này và seed chúng như đã đặt bên dưới.',
-  'settings.modules.about.captcha': 'Hiển thị các captcha mà JDownloader gặp, tại đây và trong ứng dụng điện thoại, rồi chuyển cho các tài khoản captcha của bạn.',
+  'settings.modules.about.captcha': 'Captcha từ JDownloader và từ các liên kết KnightLoader tải xuống mà không cần nó luôn hiển thị trong giao diện web và trong ứng dụng điện thoại, rồi chuyển cho các tài khoản captcha của bạn.',
   'settings.modules.about.downloadclient': 'Sonarr, Radarr và Prowlarr có thể dùng phiên bản này làm trình tải xuống, qua giao diện qBittorrent và SABnzbd của nó.',
   'settings.module.extraction': 'Giải nén tệp nén',
   'settings.module.watch': 'Thư mục theo dõi',
@@ -3385,7 +3385,6 @@ export const vi: Dict = {
   'settings.captcha.testSolvers': 'Gửi cả tới các tài khoản captcha',
   'settings.captcha.testSolversHint':
     'Gửi cùng captcha thử đó tới cả các tài khoản captcha của bạn, theo thứ tự ở trên, để bạn xem chúng có trả lời và trả lời đúng không. Chúng tính phí như với mọi captcha khác. Khi bật "Chỉ khi không ai đang xem", chúng sẽ chờ bạn trước: hãy chuyển sang thẻ khác hoặc để hết thời gian chờ.',
-  'settings.captcha.testOff': 'Captcha đang tắt. Hãy bật lại mô-đun Captcha để gửi captcha thử.',
   'settings.captcha.testNoAccount':
     'Không tài khoản captcha nào của bạn nhận được nó. Hãy bật một tài khoản ở trên và kiểm tra ở trang Tài khoản rằng nó có khóa và đang bật.',
   'captcha.solverStoppedTaken': '{solver} đã nhận captcha này nhưng không gửi câu trả lời.',
@@ -3829,6 +3828,7 @@ export const vi: Dict = {
   'whatsnew.change.filehostsNative': 'Liên kết Pixeldrain, Gofile và Mediafire tải xuống mà không cần JDownloader, và một liên kết thư mục hoặc danh sách trở thành một dòng cho mỗi tệp.',
   'whatsnew.change.cloudNative': 'Liên kết Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer và SwissTransfer tải xuống mà không cần JDownloader, và một thư mục chia sẻ hoặc một lượt chuyển trở thành một dòng cho mỗi tệp.',
   'whatsnew.change.freeFilehostsNative': 'Liên kết Krakenfiles, Workupload và Send.now cũng tải xuống miễn phí mà không cần JDownloader. Captcha của Krakenfiles được gửi tới ứng dụng điện thoại và các tài khoản captcha của bạn, còn thời gian chờ hiện trên mục tải.',
+  'whatsnew.change.captchaAlwaysOn': 'Không còn tắt được captcha nữa. Captcha luôn hiển thị trong giao diện web và trong ứng dụng điện thoại.',
   'whatsnew.change.oled': '{oled} dưới {theme} chuyển giao diện tối sang màu đen tuyệt đối cho màn hình OLED và AMOLED. Tùy chọn áp dụng mỗi khi giao diện tối hiển thị, cả khi theo hệ thống, và mỗi thiết bị nhớ lựa chọn của riêng mình.',
   'whatsnew.change.systemAccent': 'Mẫu màu có cây đũa phép ở đầu {accent} lấy màu của hệ thống bạn: Material You từ Android 12, màu nhấn của Windows, macOS hoặc Linux trong ứng dụng máy tính, và màu hệ thống trong Firefox và Safari. Nếu hệ thống không có màu này, mẫu sẽ không xuất hiện. Lựa chọn chỉ áp dụng cho thiết bị này, còn các thiết bị khác vẫn giữ màu của phiên bản.',
   'whatsnew.change.fileKindsMore': 'Liên kết hiển thị thêm nhiều loại tệp bằng biểu tượng của chúng: PDF, tài liệu văn phòng, bảng tính, bản trình chiếu, sách điện tử, danh sách phát, ảnh đĩa, chương trình, phông chữ, mô hình 3D, mã kiểm tra, torrent, ảnh RAW và tệp thiết kế.',

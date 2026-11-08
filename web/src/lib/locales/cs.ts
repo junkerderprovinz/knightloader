@@ -750,7 +750,6 @@ export const cs: Dict = {
   'settings.modules.detail.torrentsOff': 'Vypnuto. Běžící torrenty pokračují a dál seedují. Nové počkají, dokud se znovu nezapne.',
   'settings.modules.detail.torrentsUnregistered': 'Vestavěný torrentový klient není v tabulce směrování, takže magnet odkazy a nahrané soubory .torrent se nepřijímají, protože nejsou podporované.',
   'settings.modules.detail.torrentsRouted': 'Magnet odkazy a nahrané soubory .torrent jdou do vestavěného torrentového klienta.',
-  'settings.modules.detail.captchaOff': 'Vypnuto. Neotevře se žádné okno s captchou a JDownloader odkaz vzdá, jakmile jeho captcha vyprší.',
   'settings.modules.detail.challenges': 'Captchy, které právě čekají: {n}',
   'settings.modules.detail.challengesOne': '1 captcha právě čeká',
   'settings.modules.detail.downloadclientOff': 'Vypnuto. Sonarr a Radarr od něj dostanou 404, jako od adresy, která neexistuje.',
@@ -767,7 +766,8 @@ export const cs: Dict = {
   'settings.resolvers.toolsJdStarting': 'Nastavuje se',
   'settings.resolvers.toolsJdFailed': 'Nastavení selhalo',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader nemohl nastavit svůj JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captchy přicházejí jen z backendu JDownloader a žádný není nastavený.',
+  'settings.modules.reason.captchaNoJD': 'Captchy z JDownloaderu potřebují backend JDownloader a žádný není nastavený. Captchy z odkazů, které KnightLoader stahuje bez něj, se ukážou i tak.',
+  'settings.modules.reason.captchaAlways': 'Captchy nejde vypnout. Vždy se ukážou ve webovém rozhraní i v mobilní aplikaci.',
   'settings.modules.switchFailed': 'Přepínač byl odmítnut: {reason}',
   'settings.modules.configureFirst': 'Zatím není co zapínat. Nastavte to nejdřív na {page}; potom to přepínač tady zastaví a znovu spustí, aniž by se ztratilo, co jste nastavili.',
 
@@ -786,7 +786,7 @@ export const cs: Dict = {
   'settings.modules.about.connections': 'Posílá stahování přes proxy a přímé trasy, které tu přidáš.',
   'settings.modules.about.federation': 'Umožní téhle instanci vypsat tvoje další instance a předávat jim odkazy.',
   'settings.modules.about.torrents': 'Stahuje odkazy magnet a soubory .torrent na této instanci a seeduje je podle nastavení níže.',
-  'settings.modules.about.captcha': 'Ukazuje captchy, na které JDownloader narazí, tady i v mobilní aplikaci, a předává je tvým účtům captchy.',
+  'settings.modules.about.captcha': 'Captchy z JDownloaderu a z odkazů, které KnightLoader stahuje bez něj, se vždy ukážou ve webovém rozhraní i v mobilní aplikaci a jdou tvým účtům captchy.',
   'settings.modules.about.downloadclient': 'Umožní aplikacím Sonarr, Radarr a Prowlarr používat tuto instanci jako klienta pro stahování přes její rozhraní qBittorrent a SABnzbd.',
   'settings.module.extraction': 'Rozbalování archivů',
   'settings.module.watch': 'Sledovaná složka',
@@ -3395,7 +3395,6 @@ export const cs: Dict = {
   'settings.captcha.testSolvers': 'Poslat ji i na účty captchy',
   'settings.captcha.testSolversHint':
     'Pošle stejnou zkušební captchu i na tvé účty captchy, v pořadí výše, abys viděl, jestli ji vyřeší a správně. Účtují si ji jako každou jinou captchu. Když je zapnuto „Jen když se nikdo nedívá“, čekají nejdřív na tebe: přepni na jinou kartu nebo nech čekání vypršet.',
-  'settings.captcha.testOff': 'Captchy jsou vypnuté. Zapni znovu modul Captcha, abys mohl poslat zkušební captchu.',
   'settings.captcha.testNoAccount':
     'Žádný z tvých účtů captchy ji nemůže převzít. Zapni nahoře jeden a na stránce Účty zkontroluj, že má klíč a je zapnutý.',
   'captcha.solverStoppedTaken': '{solver} tuhle captchu převzal, ale neposlal odpověď.',
@@ -3839,6 +3838,7 @@ export const cs: Dict = {
   'whatsnew.change.filehostsNative': 'Odkazy z Pixeldrainu, Gofile a Mediafire se stahují bez JDownloaderu a z odkazu na složku nebo seznam vznikne jeden řádek pro každý soubor.',
   'whatsnew.change.cloudNative': 'Odkazy z Google Drive, Dropboxu, OneDrivu, SharePointu, WeTransferu a SwissTransferu se stahují bez JDownloaderu a ze sdílené složky nebo přenosu vznikne jeden řádek pro každý soubor.',
   'whatsnew.change.freeFilehostsNative': 'Odkazy Krakenfiles, Workupload a Send.now se také stahují zdarma bez JDownloaderu. Captcha z Krakenfiles jde do mobilní aplikace a tvým účtům captchy a čekání je vidět u stahování.',
+  'whatsnew.change.captchaAlwaysOn': 'Captchy už nejde vypnout. Vždy se ukážou ve webovém rozhraní i v mobilní aplikaci.',
   'whatsnew.change.oled': '{oled} pod {theme} přepne tmavý vzhled na skutečnou černou pro displeje OLED a AMOLED. Platí vždy, když je tmavý vzhled vidět, i když se řídí systémem, a každé zařízení si pamatuje vlastní volbu.',
   'whatsnew.change.systemAccent': 'Vzorek s kouzelnou hůlkou na začátku {accent} převezme barvu systému: Material You od Androidu 12, barvu zvýraznění Windows, macOS nebo Linuxu v desktopové aplikaci a systémovou barvu ve Firefoxu a Safari. Kde systém žádnou nemá, vzorek chybí. Volba platí jen pro toto zařízení a ostatní si ponechají barvu instance.',
   'whatsnew.change.fileKindsMore': 'Odkazy ukazují více druhů souborů jejich symbolem: PDF, kancelářské dokumenty, tabulky, prezentace, e-knihy, playlisty, obrazy disků, programy, písma, 3D modely, kontrolní součty, torrenty, RAW fotky a grafické soubory.',

@@ -290,16 +290,15 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 		// listed it again before that, the solve the poll started gave up on
 		// the claim, and the challenge is taken up again here.
 		ledger.release(c.ID)
-		if ctx.Err() != nil || a.ModuleOff("captcha") || !a.captchaPending(c.ID) || !ledger.claim(c.ID, time.Now()) {
+		if ctx.Err() != nil || !a.captchaPending(c.ID) || !ledger.claim(c.ID, time.Now()) {
 			return
 		}
 	}
 
 	for _, s := range willing {
-		// Asked before every paid solve and before the answer goes to JD,
-		// since a solve takes long enough for somebody to switch captchas off
-		// or answer the prompt meanwhile.
-		if a.ModuleOff("captcha") || !a.captchaPending(c.ID) {
+		// Asked before every paid solve, since somebody may have answered the
+		// prompt while the one before was working.
+		if !a.captchaPending(c.ID) {
 			return
 		}
 		report.State, report.Solver = captcha.SolverSolving, s.label
@@ -308,9 +307,6 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 		ledger.markSent(c.ID, time.Now())
 		text, err := s.Solve(ctx, c)
 		if err == nil {
-			if a.ModuleOff("captcha") {
-				return
-			}
 			if _, err := a.answerCaptcha(ctx, c.ID, text, s.label); err != nil {
 				log.Printf("captcha: %s answered %s but submitting it failed: %v", s.label, c.ID, err)
 			}
@@ -331,8 +327,7 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 
 // holdForWatchers keeps the solvers back while somebody is watching, when
 // CaptchaSolverOnlyUnwatched asks for that. It returns false once the
-// challenge needs no solver any more: answered, gone, captchas switched off,
-// or ctx over.
+// challenge needs no solver any more: answered, gone, or ctx over.
 func (a *App) holdForWatchers(ctx context.Context, c captcha.Challenge, report captcha.SolverReport) bool {
 	s := a.Settings.Get()
 	if !s.CaptchaSolverOnlyUnwatched || !a.captchaWatched(c) {
@@ -350,7 +345,7 @@ func (a *App) holdForWatchers(ctx context.Context, c captcha.Challenge, report c
 			return false
 		case <-tick.C:
 		}
-		if a.ModuleOff("captcha") || !a.captchaPending(c.ID) {
+		if !a.captchaPending(c.ID) {
 			return false
 		}
 		if !a.Settings.Get().CaptchaSolverOnlyUnwatched || !a.captchaWatched(c) || !time.Now().Before(until) {

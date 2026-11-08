@@ -751,7 +751,6 @@ export const el: Dict = {
   'settings.modules.detail.torrentsOff': 'Ανενεργό. Τα torrents που τρέχουν συνεχίζουν και κάνουν seeding κανονικά. Τα νέα περιμένουν μέχρι να ενεργοποιηθεί ξανά.',
   'settings.modules.detail.torrentsUnregistered': 'Ο ενσωματωμένος πελάτης torrent δεν βρίσκεται στον πίνακα δρομολόγησης, οπότε οι σύνδεσμοι magnet και τα ανεβασμένα αρχεία .torrent δεν γίνονται δεκτά ως μη υποστηριζόμενα.',
   'settings.modules.detail.torrentsRouted': 'Οι σύνδεσμοι magnet και τα ανεβασμένα αρχεία .torrent πηγαίνουν στον ενσωματωμένο πελάτη torrent.',
-  'settings.modules.detail.captchaOff': 'Ανενεργό. Δεν ανοίγει καμία ερώτηση, και ο JDownloader εγκαταλείπει έναν σύνδεσμο μόλις λήξει το captcha του.',
   'settings.modules.detail.challenges': '{n} captcha περιμένουν αυτή τη στιγμή',
   'settings.modules.detail.challengesOne': '1 captcha περιμένει αυτή τη στιγμή',
   'settings.modules.detail.downloadclientOff': 'Ανενεργό. Το Sonarr και το Radarr παίρνουν από αυτό 404, όπως από μια διεύθυνση που δεν υπάρχει.',
@@ -768,7 +767,8 @@ export const el: Dict = {
   'settings.resolvers.toolsJdStarting': 'Γίνεται ρύθμιση',
   'settings.resolvers.toolsJdFailed': 'Η ρύθμιση απέτυχε',
   'settings.resolvers.toolsJdFailedHint': 'Το KnightLoader δεν μπόρεσε να ρυθμίσει το JDownloader του: {error}',
-  'settings.modules.reason.captchaNoJD': 'Τα captcha έρχονται μόνο από το backend του JDownloader, και δεν έχει ρυθμιστεί κανένα.',
+  'settings.modules.reason.captchaNoJD': 'Τα captcha του JDownloader χρειάζονται το backend του JDownloader, και δεν έχει ρυθμιστεί κανένα. Τα captcha από συνδέσμους που το KnightLoader κατεβάζει χωρίς αυτό εμφανίζονται κανονικά.',
+  'settings.modules.reason.captchaAlways': 'Τα captcha δεν απενεργοποιούνται. Εμφανίζονται πάντα στη διεπαφή ιστού και στην εφαρμογή τηλεφώνου.',
   'settings.modules.switchFailed': 'Ο διακόπτης απορρίφθηκε: {reason}',
   'settings.modules.configureFirst': 'Δεν υπάρχει ακόμη κάτι να ανάψει. Ρυθμίστε το πρώτα στη σελίδα {page}· μετά ο διακόπτης εδώ το σταματά και το ξεκινά ξανά χωρίς να χαθεί ό,τι ορίσατε.',
 
@@ -787,7 +787,7 @@ export const el: Dict = {
   'settings.modules.about.connections': 'Στέλνει τις λήψεις μέσα από τους διακομιστές μεσολάβησης και τις άμεσες διαδρομές που προσθέτεις εδώ.',
   'settings.modules.about.federation': 'Επιτρέπει σε αυτό το στιγμιότυπο να εμφανίζει τα άλλα σου στιγμιότυπα και να τους περνά συνδέσμους.',
   'settings.modules.about.torrents': 'Κατεβάζει συνδέσμους magnet και αρχεία .torrent σε αυτό το στιγμιότυπο και τα κάνει seed όπως ορίζεται παρακάτω.',
-  'settings.modules.about.captcha': 'Εμφανίζει τα captcha που συναντά το JDownloader, εδώ και στην εφαρμογή τηλεφώνου, και τα περνά στους λογαριασμούς captcha σου.',
+  'settings.modules.about.captcha': 'Τα captcha από το JDownloader και από συνδέσμους που το KnightLoader κατεβάζει χωρίς αυτό εμφανίζονται πάντα στη διεπαφή ιστού και στην εφαρμογή τηλεφώνου, και πηγαίνουν στους λογαριασμούς captcha σου.',
   'settings.modules.about.downloadclient': 'Επιτρέπει στα Sonarr, Radarr και Prowlarr να χρησιμοποιούν αυτό το στιγμιότυπο ως πελάτη λήψης, μέσω των διεπαφών qBittorrent και SABnzbd.',
   'settings.module.extraction': 'Αποσυμπίεση αρχείων',
   'settings.module.watch': 'Παρακολουθούμενος φάκελος',
@@ -3385,8 +3385,6 @@ export const el: Dict = {
   'settings.captcha.testSolvers': 'Αποστολή και στους λογαριασμούς captcha',
   'settings.captcha.testSolversHint':
     'Στέλνει το ίδιο δοκιμαστικό captcha και στους λογαριασμούς captcha σου, με τη σειρά από πάνω, ώστε να δεις αν το απαντούν και το βρίσκουν σωστά. Το χρεώνουν όπως κάθε άλλο captcha. Με το «Μόνο όταν δεν κοιτάζει κανείς» ενεργό, περιμένουν πρώτα εσένα: πήγαινε σε άλλη καρτέλα ή άφησε τον χρόνο αναμονής να λήξει.',
-  'settings.captcha.testOff':
-    'Τα captcha είναι απενεργοποιημένα. Ενεργοποίησε ξανά τη μονάδα Captcha για να στείλεις δοκιμαστικό captcha.',
   'settings.captcha.testNoAccount':
     'Κανένας από τους λογαριασμούς captcha σου δεν μπορεί να το αναλάβει. Ενεργοποίησε έναν παραπάνω και έλεγξε στη σελίδα Λογαριασμοί ότι έχει κλειδί και είναι ενεργός.',
   'captcha.solverStoppedTaken': 'Ο επιλυτής {solver} ανέλαβε αυτό το captcha, αλλά δεν έστειλε απάντηση.',
@@ -3831,6 +3829,7 @@ export const el: Dict = {
   'whatsnew.change.filehostsNative': 'Οι σύνδεσμοι από Pixeldrain, Gofile και Mediafire κατεβαίνουν χωρίς το JDownloader, και ένας σύνδεσμος φακέλου ή λίστας γίνεται μία γραμμή για κάθε αρχείο.',
   'whatsnew.change.cloudNative': 'Οι σύνδεσμοι από Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer και SwissTransfer κατεβαίνουν χωρίς το JDownloader, και ένας κοινόχρηστος φάκελος ή μια μεταφορά γίνεται μία γραμμή για κάθε αρχείο.',
   'whatsnew.change.freeFilehostsNative': 'Οι σύνδεσμοι Krakenfiles, Workupload και Send.now κατεβαίνουν κι αυτοί δωρεάν χωρίς το JDownloader. Το captcha του Krakenfiles πηγαίνει στην εφαρμογή τηλεφώνου και στους λογαριασμούς captcha σου, και οι αναμονές φαίνονται στη λήψη.',
+  'whatsnew.change.captchaAlwaysOn': 'Τα captcha δεν απενεργοποιούνται πια. Εμφανίζονται πάντα στη διεπαφή ιστού και στην εφαρμογή τηλεφώνου.',
   'whatsnew.change.oled': 'Το {oled} κάτω από το {theme} κάνει το σκούρο θέμα πραγματικά μαύρο για οθόνες OLED και AMOLED. Ισχύει όποτε φαίνεται το σκούρο θέμα, και όταν ακολουθεί το σύστημα, και κάθε συσκευή θυμάται τη δική της επιλογή.',
   'whatsnew.change.systemAccent': 'Το δείγμα με το ραβδί στην αρχή του {accent} παίρνει το χρώμα του συστήματος: Material You από το Android 12 και μετά, το χρώμα επισήμανσης των Windows, του macOS ή του Linux στην εφαρμογή υπολογιστή και το χρώμα συστήματος στον Firefox και το Safari. Όπου το σύστημα δεν έχει, το δείγμα δεν εμφανίζεται. Η επιλογή ισχύει μόνο για αυτή τη συσκευή, και οι άλλες κρατούν το χρώμα του στιγμιότυπου.',
   'whatsnew.change.fileKindsMore': 'Οι σύνδεσμοι δείχνουν περισσότερα είδη αρχείων με το σύμβολό τους: PDF, έγγραφα γραφείου, υπολογιστικά φύλλα, παρουσιάσεις, ηλεκτρονικά βιβλία, λίστες αναπαραγωγής, είδωλα δίσκων, προγράμματα, γραμματοσειρές, τρισδιάστατα μοντέλα, αθροίσματα ελέγχου, torrent, φωτογραφίες RAW και αρχεία σχεδίασης.',

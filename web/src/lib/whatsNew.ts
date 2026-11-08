@@ -63,6 +63,7 @@ export const RELEASES: Release[] = [
       { id: 'filer-native', text: 'whatsnew.change.filerNative' },
       { id: 'free-hosters-native', text: 'whatsnew.change.freeHostersNative' },
       { id: 'free-filehosts-native', text: 'whatsnew.change.freeFilehostsNative' },
+      { id: 'captcha-always-on', text: 'whatsnew.change.captchaAlwaysOn' },
     ],
   },
   {

@@ -750,7 +750,6 @@ export const ca: Dict = {
   'settings.modules.detail.torrentsOff': 'Apagat. Els torrents en marxa continuen i segueixen fent seed. Els nous esperen que torni a estar encès.',
   'settings.modules.detail.torrentsUnregistered': 'El client de torrents integrat no és a la taula d’encaminament, així que els enllaços magnet i els fitxers .torrent pujats es descarten per no ser compatibles.',
   'settings.modules.detail.torrentsRouted': 'Els enllaços magnet i els fitxers .torrent pujats van al client de torrents integrat.',
-  'settings.modules.detail.captchaOff': 'Apagat. No s’obre cap sol·licitud, i JDownloader abandona un enllaç quan el seu captcha caduca.',
   'settings.modules.detail.challenges': '{n} captchas esperant ara mateix',
   'settings.modules.detail.challengesOne': '1 captcha esperant ara mateix',
   'settings.modules.detail.downloadclientOff': 'Apagat. Sonarr i Radarr reben un 404, com d’una adreça que no existeix.',
@@ -767,7 +766,8 @@ export const ca: Dict = {
   'settings.resolvers.toolsJdStarting': 'S’està configurant',
   'settings.resolvers.toolsJdFailed': 'La configuració ha fallat',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader no ha pogut configurar el seu JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Els captchas només vénen del rerefons JDownloader, i no n’hi ha cap de configurat.',
+  'settings.modules.reason.captchaNoJD': 'Els captchas de JDownloader necessiten el rerefons JDownloader, i no n’hi ha cap de configurat. Els captchas dels enllaços que KnightLoader baixa sense ell es mostren igualment.',
+  'settings.modules.reason.captchaAlways': 'Els captchas no es poden apagar. Es mostren sempre a la interfície web i a l’aplicació del mòbil.',
   'settings.modules.switchFailed': 'Aquest interruptor s’ha rebutjat: {reason}',
   'settings.modules.configureFirst': 'Encara no hi ha res per encendre. Configureu-ho primer a {page}; després l’interruptor d’aquí l’atura i el torna a engegar sense perdre el que hàgiu posat.',
 
@@ -786,7 +786,7 @@ export const ca: Dict = {
   'settings.modules.about.connections': 'Envia les baixades pels servidors intermediaris i les rutes directes que afegeixis aquí.',
   'settings.modules.about.federation': 'Permet que aquesta instància llisti les teves altres instàncies i els passi enllaços.',
   'settings.modules.about.torrents': 'Baixa enllaços magnet i fitxers .torrent en aquesta instància i els sembra segons el que hi ha a sota.',
-  'settings.modules.about.captcha': 'Mostra els captchas amb què es troba JDownloader, aquí i a l’aplicació del mòbil, i els passa als teus comptes de captcha.',
+  'settings.modules.about.captcha': 'Els captchas de JDownloader i dels enllaços que KnightLoader baixa sense ell es mostren sempre a la interfície web i a l’aplicació del mòbil, i van als teus comptes de captcha.',
   'settings.modules.about.downloadclient': 'Deixa que Sonarr, Radarr i Prowlarr facin servir aquesta instància com a client de baixada, mitjançant les seves interfícies qBittorrent i SABnzbd.',
   'settings.module.extraction': 'Extracció d’arxius',
   'settings.module.watch': 'Carpeta vigilada',
@@ -3371,8 +3371,6 @@ export const ca: Dict = {
   'settings.captcha.testSolvers': 'Envia’l també als comptes de captcha',
   'settings.captcha.testSolversHint':
     'Envia el mateix captcha de prova també als teus comptes de captcha, en l’ordre de dalt, perquè vegis si el responen i l’encerten. El cobren com qualsevol altre captcha. Amb «Només quan no mira ningú» activat, primer t’esperen a tu: canvia a una altra pestanya o deixa que s’acabi l’espera.',
-  'settings.captcha.testOff':
-    'Els captchas estan desactivats. Torna a activar el mòdul Captcha per enviar un captcha de prova.',
   'settings.captcha.testNoAccount':
     'Cap dels teus comptes de captcha no el pot agafar. Activa’n un a dalt i comprova a la pàgina Comptes que té una clau i que està activat.',
   'captcha.solverStoppedTaken': '{solver} s’ha fet càrrec d’aquest captcha, però no ha enviat cap resposta.',
@@ -3817,6 +3815,7 @@ export const ca: Dict = {
   'whatsnew.change.filehostsNative': 'Els enllaços de Pixeldrain, Gofile i Mediafire es baixen sense JDownloader, i un enllaç de carpeta o de llista es converteix en una fila per fitxer.',
   'whatsnew.change.cloudNative': 'Els enllaços de Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer i SwissTransfer es baixen sense JDownloader, i una carpeta compartida o una transferència es converteix en una fila per fitxer.',
   'whatsnew.change.freeFilehostsNative': 'Els enllaços de Krakenfiles, Workupload i Send.now també es baixen de franc sense JDownloader. El captcha de Krakenfiles va a l’aplicació del mòbil i als teus comptes de captcha, i les esperes es mostren a la baixada.',
+  'whatsnew.change.captchaAlwaysOn': 'Els captchas ja no es poden apagar. Es mostren sempre a la interfície web i a l’aplicació del mòbil.',
   'whatsnew.change.oled': '{oled}, sota {theme}, posa l\'aspecte fosc en negre pur per a pantalles OLED i AMOLED. Val sempre que es veu l\'aspecte fosc, també quan segueix el sistema, i cada dispositiu recorda la seva tria.',
   'whatsnew.change.systemAccent': 'La mostra amb la vareta al començament de {accent} agafa el color del sistema: Material You a partir d\'Android 12, el color d\'accent de Windows, macOS o Linux a l\'aplicació d\'escriptori i el color del sistema a Firefox i Safari. On el sistema no en té, la mostra no hi és. L\'elecció val només per a aquest dispositiu, i els altres mantenen el color de la instància.',
   'whatsnew.change.fileKindsMore': 'Els enllaços mostren més tipus de fitxer amb el seu símbol: PDF, documents d\'oficina, fulls de càlcul, presentacions, llibres electrònics, llistes de reproducció, imatges de disc, programes, tipus de lletra, models 3D, sumes de verificació, torrents, fotos RAW i fitxers de disseny.',

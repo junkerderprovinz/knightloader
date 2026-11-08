@@ -750,7 +750,6 @@ export const et: Dict = {
   'settings.modules.detail.torrentsOff': 'Väljas. Käimasolevad torrendid jätkavad ja levitavad edasi. Uued ootavad, kuni see jälle sees on.',
   'settings.modules.detail.torrentsUnregistered': 'Sisseehitatud torrendiklienti pole marsruutimistabelis, seega keeldutakse magnetlinkidest ja üles laaditud .torrent-failidest kui toetamatutest.',
   'settings.modules.detail.torrentsRouted': 'Magnetlingid ja üles laaditud .torrent-failid lähevad sisseehitatud torrendikliendile.',
-  'settings.modules.detail.captchaOff': 'Väljas. Ühtegi päringut ei avata ja JDownloader loobub lingist, kui selle captcha aegub.',
   'settings.modules.detail.challenges': '{n} captchat ootab praegu',
   'settings.modules.detail.challengesOne': '1 captcha ootab praegu',
   'settings.modules.detail.downloadclientOff': 'Väljas. Sonarr ja Radarr saavad sellelt vastuseks 404, nagu aadressilt, mida ei ole olemas.',
@@ -767,7 +766,8 @@ export const et: Dict = {
   'settings.resolvers.toolsJdStarting': 'Seadistatakse',
   'settings.resolvers.toolsJdFailed': 'Seadistamine ebaõnnestus',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader ei saanud oma JDownloaderit seadistada: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captchad tulevad ainult JDownloaderi taustsüsteemilt ja seda pole seadistatud.',
+  'settings.modules.reason.captchaNoJD': 'JDownloaderi captchad vajavad JDownloaderi taustsüsteemi ja seda pole seadistatud. Captchad linkidelt, mida KnightLoader ilma selleta alla laadib, on ikkagi näha.',
+  'settings.modules.reason.captchaAlways': 'Captchasid ei saa välja lülitada. Need on alati näha veebiliideses ja telefoniäpis.',
   'settings.modules.switchFailed': 'See lüliti lükati tagasi: {reason}',
   'settings.modules.configureFirst': 'Veel pole midagi sisse lülitada. Seadista see kõigepealt lehel {page}; pärast seda peatab ja käivitab siinne lüliti selle uuesti, kaotamata seatut.',
 
@@ -786,7 +786,7 @@ export const et: Dict = {
   'settings.modules.about.connections': 'Saadab allalaadimised läbi siin lisatud puhverserverite ja otseteede.',
   'settings.modules.about.federation': 'Lubab sellel eksemplaril loetleda sinu teisi eksemplare ja anda neile linke edasi.',
   'settings.modules.about.torrents': 'Laadib magnet-linke ja .torrent-faile selles eksemplaris alla ja jagab neid allpool seatud viisil.',
-  'settings.modules.about.captcha': 'Näitab captchasid, millega JDownloader kokku puutub, siin ja telefoniäpis, ning annab need edasi sinu captcha kontodele.',
+  'settings.modules.about.captcha': 'Captchad JDownloaderilt ja linkidelt, mida KnightLoader ilma selleta alla laadib, on alati näha veebiliideses ja telefoniäpis ning lähevad sinu captcha kontodele.',
   'settings.modules.about.downloadclient': 'Lubab Sonarril, Radarril ja Prowlarril kasutada seda eksemplari allalaadimiskliendina selle qBittorrenti ja SABnzbd liideste kaudu.',
   'settings.module.extraction': 'Arhiivide lahtipakkimine',
   'settings.module.watch': 'Jälgitav kaust',
@@ -3376,8 +3376,6 @@ export const et: Dict = {
   'settings.captcha.testSolvers': 'Saada ka captcha kontodele',
   'settings.captcha.testSolversHint':
     'Saadab sama proovi-captcha ka sinu captcha kontodele, ülaltoodud järjekorras, et näeksid, kas nad vastavad ja õigesti. Nad võtavad selle eest tasu nagu iga teise captcha eest. Kui „Ainult siis, kui keegi ei vaata“ on sees, ootavad nad kõigepealt sind: mine teisele vahelehele või lase ooteajal lõppeda.',
-  'settings.captcha.testOff':
-    'Captchad on välja lülitatud. Lülita moodul Captcha uuesti sisse, et proovi-captchat saata.',
   'settings.captcha.testNoAccount':
     'Ükski sinu captcha konto ei saa seda vastu võtta. Lülita üks ülal sisse ja vaata lehel Kontod, et sellel on võti ja see on sisse lülitatud.',
   'captcha.solverStoppedTaken': '{solver} võttis selle captcha üle, aga ei saatnud vastust.',
@@ -3821,6 +3819,7 @@ export const et: Dict = {
   'whatsnew.change.filehostsNative': 'Pixeldraini, Gofile’i ja Mediafire’i lingid laaditakse alla ilma JDownloaderita ning kausta- või loendilingist saab iga faili kohta eraldi rida.',
   'whatsnew.change.cloudNative': 'Google Drive’i, Dropboxi, OneDrive’i, SharePointi, WeTransferi ja SwissTransferi lingid laaditakse alla ilma JDownloaderita ning jagatud kaustast või ülekandest saab iga faili kohta eraldi rida.',
   'whatsnew.change.freeFilehostsNative': 'Krakenfilesi, Workuploadi ja Send.now lingid laaditakse samuti tasuta alla ilma JDownloaderita. Krakenfilesi captcha läheb telefoniäppi ja sinu captcha kontodele ning ooteajad on allalaadimise juures näha.',
+  'whatsnew.change.captchaAlwaysOn': 'Captchasid ei saa enam välja lülitada. Need on alati näha veebiliideses ja telefoniäpis.',
   'whatsnew.change.oled': '{oled} jaotise {theme} all muudab tumeda välimuse OLED- ja AMOLED-ekraanidel päris mustaks. See kehtib alati, kui tume välimus on nähtaval, ka siis, kui see järgib süsteemi, ja iga seade jätab oma valiku meelde.',
   'whatsnew.change.systemAccent': 'Võlukepiga värvinäidis rea {accent} alguses võtab süsteemi värvi: Material You alates Android 12-st, Windowsi, macOS-i või Linuxi rõhuvärvi töölauarakenduses ja süsteemi värvi Firefoxis ja Safaris. Kus süsteemil seda pole, näidist ei ole. Valik kehtib ainult selles seadmes, ja teised jäävad eksemplari värvi juurde.',
   'whatsnew.change.fileKindsMore': 'Lingid näitavad sümboliga rohkem failitüüpe: PDF-id, kontoridokumendid, tabelid, esitlused, e-raamatud, esitusloendid, kettatõmmised, programmid, fondid, 3D-mudelid, kontrollsummad, torrentid, RAW-fotod ja disainifailid.',

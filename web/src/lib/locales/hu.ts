@@ -751,7 +751,6 @@ export const hu: Dict = {
   'settings.modules.detail.torrentsOff': 'Ki. A futó torrentek folytatódnak és tovább seedelnek. Az újak várnak, amíg újra be nem kapcsolod.',
   'settings.modules.detail.torrentsUnregistered': 'A beépített torrentkliens nincs az irányítási táblában, ezért a magnet linkeket és a feltöltött .torrent fájlokat nem támogatottként visszautasítjuk.',
   'settings.modules.detail.torrentsRouted': 'A magnet linkek és a feltöltött .torrent fájlok a beépített torrentklienshez kerülnek.',
-  'settings.modules.detail.captchaOff': 'Ki. Nem nyílik meg kérdés, és a JDownloader feladja a linket, amint lejár a captchája.',
   'settings.modules.detail.challenges': '{n} captcha vár éppen',
   'settings.modules.detail.challengesOne': '1 captcha vár éppen',
   'settings.modules.detail.downloadclientOff': 'Ki. A Sonarr és a Radarr 404-et kap tőle, mint egy nem létező címtől.',
@@ -768,7 +767,8 @@ export const hu: Dict = {
   'settings.resolvers.toolsJdStarting': 'Beállítás alatt',
   'settings.resolvers.toolsJdFailed': 'A beállítás nem sikerült',
   'settings.resolvers.toolsJdFailedHint': 'A KnightLoader nem tudta beállítani a saját JDownloaderét: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captchák csak a JDownloader backendtől jönnek, és egy sincs beállítva.',
+  'settings.modules.reason.captchaNoJD': 'A JDownloader captcháihoz a JDownloader backend kell, és egy sincs beállítva. Azoknak a linkeknek a captchái, amelyeket a KnightLoader nélküle tölt le, így is megjelennek.',
+  'settings.modules.reason.captchaAlways': 'A captchák nem kapcsolhatók ki. Mindig megjelennek a webes felületen és a telefonos alkalmazásban.',
   'settings.modules.switchFailed': 'A kapcsolót elutasította: {reason}',
   'settings.modules.configureFirst': 'Még nincs mit bekapcsolni. Előbb állítsd be a(z) {page} oldalon; utána az itteni kapcsoló leállítja és újraindítja anélkül, hogy a beállított elveszne.',
 
@@ -787,7 +787,7 @@ export const hu: Dict = {
   'settings.modules.about.connections': 'A letöltéseket az itt felvett proxykon és közvetlen útvonalakon küldi át.',
   'settings.modules.about.federation': 'Lehetővé teszi, hogy ez a példány kilistázza a többi példányodat, és linkeket adjon át nekik.',
   'settings.modules.about.torrents': 'Magnet linkeket és .torrent fájlokat tölt le ezen a példányon, és az alábbi beállítások szerint seedeli őket.',
-  'settings.modules.about.captcha': 'Itt és a telefonos alkalmazásban megjeleníti a captchákat, amelyekkel a JDownloader találkozik, és továbbítja őket a captcha-fiókjaidnak.',
+  'settings.modules.about.captcha': 'A JDownloader captchái és azoknak a linkeknek a captchái, amelyeket a KnightLoader nélküle tölt le, mindig megjelennek a webes felületen és a telefonos alkalmazásban, és a captcha-fiókjaidhoz kerülnek.',
   'settings.modules.about.downloadclient': 'Lehetővé teszi, hogy a Sonarr, a Radarr és a Prowlarr letöltési kliensként használja ezt a példányt a qBittorrent és SABnzbd felületén keresztül.',
   'settings.module.extraction': 'Archívumok kicsomagolása',
   'settings.module.watch': 'Figyelt mappa',
@@ -3385,8 +3385,6 @@ export const hu: Dict = {
   'settings.captcha.testSolvers': 'Küldés a captcha-fiókoknak is',
   'settings.captcha.testSolversHint':
     'Ugyanazt a próba-captchát a captcha-fiókjaidnak is elküldi, a fenti sorrendben, hogy lásd, megválaszolják-e és jól-e. Úgy számlázzák, mint bármely más captchát. Ha a „Csak ha senki sem nézi” be van kapcsolva, először rád várnak: válts másik lapra, vagy hagyd lejárni a várakozási időt.',
-  'settings.captcha.testOff':
-    'A captchák ki vannak kapcsolva. Kapcsold vissza a Captcha modult, hogy próba-captchát küldhess.',
   'settings.captcha.testNoAccount':
     'Egyik captcha-fiókod sem tudja fogadni. Kapcsolj be egyet fent, és nézd meg a Fiókok oldalon, hogy van-e kulcsa és be van-e kapcsolva.',
   'captcha.solverStoppedTaken': '{solver} átvette ezt a captchát, de nem küldött választ.',
@@ -3831,6 +3829,7 @@ export const hu: Dict = {
   'whatsnew.change.filehostsNative': 'A Pixeldrain, a Gofile és a Mediafire linkjei JDownloader nélkül töltődnek le, egy mappa- vagy listalinkből pedig fájlonként egy sor lesz.',
   'whatsnew.change.cloudNative': 'A Google Drive, a Dropbox, a OneDrive, a SharePoint, a WeTransfer és a SwissTransfer linkjei JDownloader nélkül töltődnek le, egy megosztott mappából vagy átvitelből pedig fájlonként egy sor lesz.',
   'whatsnew.change.freeFilehostsNative': 'A Krakenfiles, a Workupload és a Send.now linkjei is ingyen, JDownloader nélkül töltődnek le. A Krakenfiles captchája a telefonos alkalmazásba és a captcha-fiókjaidhoz kerül, a várakozások pedig látszanak a letöltésen.',
+  'whatsnew.change.captchaAlwaysOn': 'A captchák már nem kapcsolhatók ki. Mindig megjelennek a webes felületen és a telefonos alkalmazásban.',
   'whatsnew.change.oled': 'A {theme} alatti {oled} valódi feketére állítja a sötét megjelenést OLED és AMOLED kijelzőkön. Mindig érvényes, amikor a sötét megjelenés látszik, akkor is, ha a rendszert követi, és minden eszköz a saját választását jegyzi meg.',
   'whatsnew.change.systemAccent': 'A {accent} elején álló varázspálcás színminta a rendszer színét veszi át: Android 12-től a Material You, az asztali alkalmazásban a Windows, a macOS vagy a Linux kiemelőszíne, Firefoxban és Safariban pedig a rendszerszín. Ahol a rendszernek nincs ilyen, a minta nem jelenik meg. A választás csak erre az eszközre érvényes, a többi megtartja a példány színét.',
   'whatsnew.change.fileKindsMore': 'A linkek több fájlfajtát mutatnak a jelükkel: PDF-eket, irodai dokumentumokat, táblázatokat, bemutatókat, e-könyveket, lejátszási listákat, lemezképeket, programokat, betűtípusokat, 3D modelleket, ellenőrzőösszegeket, torrenteket, RAW fotókat és tervezőfájlokat.',

@@ -750,7 +750,6 @@ export const fi: Dict = {
   'settings.modules.detail.torrentsOff': 'Pois. Käynnissä olevat torrentit jatkavat ja jakavat edelleen. Uudet odottavat, kunnes se on taas päällä.',
   'settings.modules.detail.torrentsUnregistered': 'Sisäänrakennettu torrent-asiakasohjelma ei ole reititystaulussa, joten magnet-linkit ja ladatut .torrent-tiedostot torjutaan ei-tuettuina.',
   'settings.modules.detail.torrentsRouted': 'Magnet-linkit ja ladatut .torrent-tiedostot menevät sisäänrakennetulle torrent-asiakasohjelmalle.',
-  'settings.modules.detail.captchaOff': 'Pois. Kehotetta ei avata, ja JDownloader luopuu linkistä, kun sen captcha vanhenee.',
   'settings.modules.detail.challenges': '{n} captchaa odottaa juuri nyt',
   'settings.modules.detail.challengesOne': '1 captcha odottaa juuri nyt',
   'settings.modules.detail.downloadclientOff': 'Pois. Sonarr ja Radarr saavat siltä vastauksen 404, kuin osoitteesta, jota ei ole olemassa.',
@@ -767,7 +766,8 @@ export const fi: Dict = {
   'settings.resolvers.toolsJdStarting': 'Otetaan käyttöön',
   'settings.resolvers.toolsJdFailed': 'Käyttöönotto epäonnistui',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader ei saanut omaa JDownloaderiaan käyttöön: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captchat tulevat vain JDownloader-taustaosalta, eikä sellaista ole määritetty.',
+  'settings.modules.reason.captchaNoJD': 'JDownloaderin captchat tarvitsevat JDownloader-taustaosan, eikä sellaista ole määritetty. Niiden linkkien captchat, jotka KnightLoader lataa ilman sitä, näkyvät silti.',
+  'settings.modules.reason.captchaAlways': 'Captchoja ei voi kytkeä pois. Ne näkyvät aina verkkokäyttöliittymässä ja puhelinsovelluksessa.',
   'settings.modules.switchFailed': 'Kytkin hylättiin: {reason}',
   'settings.modules.configureFirst': 'Mitään ei ole vielä kytkettävänä. Määritä tämä ensin sivulla {page}; sen jälkeen täkäläinen kytkin pysäyttää ja käynnistää sen uudelleen menettämättä asettamaasi.',
 
@@ -786,7 +786,7 @@ export const fi: Dict = {
   'settings.modules.about.connections': 'Ohjaa lataukset tässä lisäämiesi välityspalvelimien ja suorien reittien kautta.',
   'settings.modules.about.federation': 'Antaa tämän instanssin listata muut instanssisi ja välittää niille linkkejä.',
   'settings.modules.about.torrents': 'Lataa magnet-linkit ja .torrent-tiedostot tällä instanssilla ja jakaa niitä alla olevien asetusten mukaan.',
-  'settings.modules.about.captcha': 'Näyttää JDownloaderin kohtaamat captchat täällä ja puhelinsovelluksessa ja välittää ne captcha-tileillesi.',
+  'settings.modules.about.captcha': 'JDownloaderin captchat ja niiden linkkien captchat, jotka KnightLoader lataa ilman sitä, näkyvät aina verkkokäyttöliittymässä ja puhelinsovelluksessa ja menevät captcha-tileillesi.',
   'settings.modules.about.downloadclient': 'Antaa Sonarrin, Radarrin ja Prowlarrin käyttää tätä instanssia lataus-clientinä qBittorrent- ja SABnzbd-rajapintojen kautta.',
   'settings.module.extraction': 'Arkistojen purku',
   'settings.module.watch': 'Valvottu kansio',
@@ -3386,8 +3386,6 @@ export const fi: Dict = {
   'settings.captcha.testSolvers': 'Lähetä myös captcha-tileille',
   'settings.captcha.testSolversHint':
     'Lähettää saman testi-captchan myös captcha-tileillesi, yllä olevassa järjestyksessä, jotta näet, vastaavatko ne ja oikein. Ne veloittavat siitä kuten mistä tahansa captchasta. Kun ”Vain kun kukaan ei seuraa” on päällä, ne odottavat ensin sinua: vaihda toiseen välilehteen tai anna odotusajan kulua loppuun.',
-  'settings.captcha.testOff':
-    'Captchat on kytketty pois. Kytke Captcha-moduuli takaisin päälle lähettääksesi testi-captchan.',
   'settings.captcha.testNoAccount':
     'Mikään captcha-tileistäsi ei voi ottaa sitä vastaan. Kytke yksi päälle yllä ja tarkista Tilit-sivulta, että sillä on avain ja että se on päällä.',
   'captcha.solverStoppedTaken': '{solver} otti tämän captchan, mutta ei lähettänyt vastausta.',
@@ -3831,6 +3829,7 @@ export const fi: Dict = {
   'whatsnew.change.filehostsNative': 'Pixeldrainin, Gofilen ja Mediafiren linkit latautuvat ilman JDownloaderia, ja kansio- tai listalinkistä tulee yksi rivi jokaista tiedostoa kohden.',
   'whatsnew.change.cloudNative': 'Google Driven, Dropboxin, OneDriven, SharePointin, WeTransferin ja SwissTransferin linkit latautuvat ilman JDownloaderia, ja jaetusta kansiosta tai siirrosta tulee yksi rivi jokaista tiedostoa kohden.',
   'whatsnew.change.freeFilehostsNative': 'Myös Krakenfiles-, Workupload- ja Send.now-linkit latautuvat ilmaiseksi ilman JDownloaderia. Krakenfilesin captcha menee puhelinsovellukseen ja captcha-tileillesi, ja odotukset näkyvät latauksessa.',
+  'whatsnew.change.captchaAlwaysOn': 'Captchoja ei voi enää kytkeä pois. Ne näkyvät aina verkkokäyttöliittymässä ja puhelinsovelluksessa.',
   'whatsnew.change.oled': '{theme}-kohdan alla oleva {oled} vaihtaa tumman ulkoasun aidoksi mustaksi OLED- ja AMOLED-näytöillä. Se on käytössä aina, kun tumma ulkoasu näkyy, myös kun se seuraa järjestelmää, ja jokainen laite muistaa oman valintansa.',
   'whatsnew.change.systemAccent': 'Taikasauvalla merkitty värinäyte kohdan {accent} alussa käyttää järjestelmän väriä: Material You Android 12:sta alkaen, Windowsin, macOSin tai Linuxin korostusväri työpöytäsovelluksessa ja järjestelmän väri Firefoxissa ja Safarissa. Jos järjestelmällä ei ole väriä, näytettä ei ole. Valinta koskee vain tätä laitetta, ja muut pitävät instanssin värin.',
   'whatsnew.change.fileKindsMore': 'Linkit näyttävät symbolillaan useampia tiedostolajeja: PDF:t, toimistoasiakirjat, laskentataulukot, esitykset, e-kirjat, soittolistat, levykuvat, ohjelmat, fontit, 3D-mallit, tarkistussummat, torrentit, RAW-kuvat ja suunnittelutiedostot.',

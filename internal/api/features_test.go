@@ -393,8 +393,7 @@ func TestSwitchingOnWithNothingParkedNamesThePageAsACode(t *testing.T) {
 func TestUnswitchableModulesAreRefused(t *testing.T) {
 	t.Parallel()
 	a := testApp(t)
-	// KL_JD is unset here, so the captcha relay JD feeds has no switch, and
-	// JDownloader and yt-dlp have none at all.
+	// Captchas always show, and JDownloader and yt-dlp always run.
 	for _, id := range []string{"cnl", "jd", "ytdlp", "captcha", "nonsense"} {
 		if err := setFeature(a, id, false); err == nil {
 			t.Errorf("%s has no switch but setFeature accepted it", id)

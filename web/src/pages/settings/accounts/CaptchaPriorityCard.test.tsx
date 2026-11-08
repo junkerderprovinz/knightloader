@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { type Account, ApiError, type CatalogueService, type Settings } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
+import { en } from '../../../lib/locales/en';
 import { ToastProvider } from '../../../lib/toast';
 import { SettingsProvider, type SettingsDraft } from '../context';
 import type { Feature } from '../features';
@@ -44,10 +45,18 @@ function account(service: string, configured: boolean, enabled: boolean): Accoun
 const solver = (id: string, label: string) =>
   ({ id, label, kind: 'apiKey', group: 'captchaSolver', whereUrl: '' }) as CatalogueService;
 const CATALOGUE = [solver('2captcha', '2Captcha'), solver('9kw', '9kw.eu'), solver('capsolver', 'CapSolver')];
-const CAPTCHA: Feature = { id: 'captcha', verdict: 'shipped', page: 'accounts', enabled: true, switch: 'setting', parked: false };
+const CAPTCHA: Feature = {
+  id: 'captcha',
+  verdict: 'shipped',
+  page: 'accounts',
+  enabled: true,
+  switch: 'none',
+  parked: false,
+  reasonCode: 'captchaAlways',
+};
 const BOTH = [account('capsolver', true, true), account('2captcha', true, true)];
 
-async function drawCard(order: string[], accounts: Account[] = BOTH) {
+async function drawCard(order: string[], accounts: Account[] = BOTH, row: Feature = CAPTCHA) {
   const patch = vi.fn();
   const cfg = { captchaSolverOrder: order, captchaSolverOnlyUnwatched: false, captchaSolverWait: 60 } as Settings;
   const draft = { cfg, patch } as unknown as SettingsDraft;
@@ -56,7 +65,7 @@ async function drawCard(order: string[], accounts: Account[] = BOTH) {
       <I18nProvider>
         <ToastProvider>
           <MemoryRouter>
-            <SettingsProvider draft={draft} features={{ features: { modules: [CAPTCHA], pages: [] }, toggle: async () => {} }}>
+            <SettingsProvider draft={draft} features={{ features: { modules: [row], pages: [] }, toggle: async () => {} }}>
               <CaptchaPriorityCard hue={0} accounts={accounts} catalogue={CATALOGUE} />
             </SettingsProvider>
           </MemoryRouter>
@@ -99,14 +108,27 @@ describe('the captcha priority card', () => {
     expect(rows()).toEqual(['capsolver', '2captcha']);
   });
 
-  it('carries the Captcha module switch, when the accounts start and the test', async () => {
-    await drawCard([]);
-    expect(host.querySelector('[role="switch"][aria-label="Captcha"]')).not.toBeNull();
+  it('carries when the accounts start and the test, and no switch even from a server that offers one', async () => {
+    await drawCard([], BOTH, { ...CAPTCHA, switch: 'setting', reasonCode: undefined });
+    expect(host.querySelector('[role="switch"][aria-label="Captcha"]')).toBeNull();
     expect(host.querySelector('a[href]')).toBeNull();
     const row = [...host.querySelectorAll('button:not([role="switch"]):not([role="tab"])')].filter((b) => b.closest('.flex-wrap'));
     expect(row.map((b) => b.textContent)).toEqual(['Send a test captcha', 'Send one to the captcha accounts too']);
     expect(host.textContent).toContain('When captcha accounts start');
-    expect(host.textContent).toContain('Send one to the captcha accounts too');
+  });
+
+  it("says in its (i) what captchas do, and that JDownloader's need its backend while there is none", async () => {
+    const bubble = async () => {
+      const info = host.querySelector<HTMLElement>('.glim-info')!;
+      await act(async () => info.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })));
+      return document.body.textContent;
+    };
+    await drawCard([]);
+    expect(await bubble()).toContain(en['settings.modules.about.captcha']);
+    expect(document.body.textContent).not.toContain(en['settings.modules.reason.captchaNoJD']);
+
+    await drawCard([], BOTH, { ...CAPTCHA, reasonCode: 'captchaNoJD' });
+    expect(await bubble()).toContain(en['settings.modules.reason.captchaNoJD']);
   });
 
   it('has nothing to order and nothing to start while no account is connected', async () => {
@@ -186,7 +208,6 @@ describe('the connected captcha accounts', () => {
 
 describe('a refused test captcha', () => {
   it('names what stands in the way', () => {
-    expect(testRefusal(new ApiError('', 'captchaOff'))).toBe('settings.captcha.testOff');
     expect(testRefusal(new ApiError('', 'noCaptchaAccount'))).toBe('settings.captcha.testNoAccount');
     expect(testRefusal(new TypeError('Failed to fetch'))).toBe('captcha.networkError');
   });

@@ -118,22 +118,6 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 	st.pollMu.Lock()
 	defer st.pollMu.Unlock()
 
-	if a.ModuleOff("captcha") {
-		// Open prompts close and JD is not asked. JD keeps its challenges and
-		// gives up on those links itself once they expire.
-		for _, c := range st.store.List() {
-			if captcha.IsTest(c.ID) {
-				st.tests.Abort(c.ID)
-			}
-			a.settleCaptcha(c, "switchedOff")
-		}
-		for _, c := range st.asks.List() {
-			st.asks.Abort(c.ID)
-		}
-		a.setActivityGauge(ActivityCaptcha, 0)
-		return nil
-	}
-
 	list, err := st.source.List(a.ctx)
 	if err != nil {
 		if !errors.Is(err, captcha.ErrJDNotConfigured) {
@@ -247,9 +231,8 @@ type CaptchaResolution struct {
 	TaskID string `json:"taskId,omitempty"`
 	Host   string `json:"host"`
 	// Reason is "solved" (answered in time), "expired" (answered too late),
-	// "aborted", "timedOut" (gone after its ExpiresAt), "switchedOff" (the
-	// captcha or JD module was switched off) or "resolved" (gone for a reason
-	// this session cannot tell).
+	// "aborted", "timedOut" (gone after its ExpiresAt) or "resolved" (gone for
+	// a reason this session cannot tell).
 	Reason string `json:"reason"`
 	// Test is how a test captcha's answer compared, set when one was solved.
 	Test *TestCaptchaResult `json:"test,omitempty"`
@@ -274,25 +257,17 @@ type TestCaptchaResult struct {
 	Widget bool `json:"widget,omitempty"`
 }
 
-// The refusals of CreateTestCaptcha. With the captcha module off no prompt
-// would show the captcha.
-var (
-	ErrCaptchaOff = errors.New("captchas are switched off on the Accounts page")
-	// ErrNoCaptchaAccount refuses a test for the captcha accounts while none
-	// of them could take it: none is enabled with a key, or the account is
-	// switched off.
-	ErrNoCaptchaAccount = errors.New("no captcha account is enabled with a key")
-)
+// ErrNoCaptchaAccount refuses a test for the captcha accounts while none of
+// them could take it: none is enabled with a key, or the account is switched
+// off.
+var ErrNoCaptchaAccount = errors.New("no captcha account is enabled with a key")
 
 // CreateTestCaptcha puts up a test captcha of kind (see captcha.TestSource.New)
 // and publishes it at once, the way the poll publishes one JD listed: to the
 // windows, the phone app and the event targets. solvers lets the paid solvers
 // take it too, which they bill.
 func (a *App) CreateTestCaptcha(kind string, solvers bool) (captcha.Challenge, error) {
-	switch {
-	case a.ModuleOff("captcha"):
-		return captcha.Challenge{}, ErrCaptchaOff
-	case solvers && len(a.captchaSolvers()) == 0:
+	if solvers && len(a.captchaSolvers()) == 0 {
 		return captcha.Challenge{}, ErrNoCaptchaAccount
 	}
 	st := a.captchaStateFor()

@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -164,30 +165,37 @@ func TestATestCaptchaIsAnsweredOverTheCaptchaRoutes(t *testing.T) {
 	}
 }
 
-func TestATestCaptchaIsRefusedWhileCaptchasAreSwitchedOff(t *testing.T) {
-	a := testApp(t)
-	s := a.Settings.Get()
-	s.ModulesOff = []string{"captcha"}
-	if _, err := a.ApplySettings(s); err != nil {
-		t.Fatal(err)
-	}
-	reg := newRegistry()
-	registerCaptcha(reg, a)
-	mux := http.NewServeMux()
-	reg.attach(mux, http.NotFoundHandler())
-
-	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, jsonRequest(http.MethodPost, "/api/captcha/test", `{}`))
-	var got struct{ Code string }
-	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || rec.Code != http.StatusConflict || got.Code != "captchaOff" {
-		t.Errorf("POST /api/captcha/test with captchas off answered %d %q, want 409 captchaOff", rec.Code, rec.Body.String())
+// Captchas cannot be switched off, with a JDownloader backend or without one.
+// Without one the row says that JDownloader's captchas need it.
+func TestCaptchasHaveNoSwitch(t *testing.T) {
+	jd, _ := fakeJDWithHCaptcha(t)
+	for _, tc := range []struct {
+		name   string
+		jd     string
+		reason string
+	}{
+		{name: "without JDownloader", reason: "captchaNoJD"},
+		{name: "with JDownloader", jd: jd.URL, reason: "captchaAlways"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("KL_JD", tc.jd)
+			a := testApp(t)
+			if row := featureRow(t, a, "captcha"); row.Switch != SwitchNone || !row.Enabled || row.ReasonCode != tc.reason {
+				t.Errorf("the row is %+v, want on without a switch and the reason %s", row, tc.reason)
+			}
+			if err := setFeature(a, "captcha", false); !errors.Is(err, errNoSwitch) {
+				t.Errorf("switching captchas off answered %v, want errNoSwitch", err)
+			}
+			if a.Settings.Get().ModuleOff("captcha") {
+				t.Error("the refused switch still stored captchas as off")
+			}
+		})
 	}
 }
 
 func TestATestCaptchaRefusalSaysWhatStandsInTheWay(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
-		off      []string
 		order    []string
 		body     string
 		wantCode string
@@ -197,7 +205,7 @@ func TestATestCaptchaRefusalSaysWhatStandsInTheWay(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			a := testApp(t)
 			s := a.Settings.Get()
-			s.ModulesOff, s.CaptchaSolverOrder = tc.off, tc.order
+			s.CaptchaSolverOrder = tc.order
 			if _, err := a.ApplySettings(s); err != nil {
 				t.Fatal(err)
 			}

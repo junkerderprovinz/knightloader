@@ -389,7 +389,7 @@ func featureList(a *app.App, base string) []Feature {
 			ID: "torrents", Verdict: VerdictShipped, Page: "torrents",
 			Switch: SwitchSetting, Enabled: !s.ModuleOff("torrents"),
 		}, offDetail(s.ModuleOff("torrents"), torrentsOffDetail(a), torrentsDetail(a))),
-		captchaFeature(a, s),
+		captchaFeature(a),
 		withDetail(Feature{
 			// On the Security page: it decides who may reach in and
 			// create downloads, not how downloads behave.
@@ -506,7 +506,7 @@ func setFeature(a *app.App, id string, on bool) error {
 	// sub-document patched whole keeps the router and proxy passwords.
 	cur := a.Settings.Get()
 
-	// A row can lose its switch at run time (captchas with no JD wired);
+	// A row can lose its switch at run time (Click'n'Load without a listener);
 	// the table is the one place that knows.
 	var page string
 	for _, f := range featureList(a, "") {
@@ -575,7 +575,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		set := cur.LinkFilter
 		set.Disabled = !on
 		key, value = "linkFilter", set
-	case "connections", "federation", "torrents", "captcha", "scripting", "eventprograms":
+	case "connections", "federation", "torrents", "scripting", "eventprograms":
 		key, value = "modulesOff", switchModule(cur.ModulesOff, id, on)
 
 	case "watch":
@@ -933,22 +933,23 @@ func offDetail(off bool, whenOff, whenOn line) line {
 	return whenOn
 }
 
-// captchaFeature has a switch only when a JD backend is wired, since JD is the
-// only source of challenges (internal/captcha.JDSource).
-func captchaFeature(a *app.App, s settings.Settings) Feature {
-	f := Feature{ID: "captcha", Verdict: VerdictShipped, Page: "accounts"}
-	if !a.ContainerBackendConfigured() {
-		f.Switch = SwitchNone
-		return withReason(f, line{
-			text: "challenges come only from the JDownloader backend, and none is configured (KL_JD)",
-			code: "captchaNoJD",
-		})
+// captchaFeature has no switch: a captcha nobody is shown runs out, and its
+// download fails with it. Without a JD backend only the links KnightLoader
+// downloads without JD bring captchas.
+func captchaFeature(a *app.App) Feature {
+	f := Feature{ID: "captcha", Verdict: VerdictShipped, Page: "accounts", Enabled: true, Switch: SwitchNone}
+	reason := line{
+		text: "captchas cannot be switched off; they always show in the web interface and the phone app",
+		code: "captchaAlways",
 	}
-	off := s.ModuleOff("captcha")
-	f.Switch, f.Enabled = SwitchSetting, !off
-	return withDetail(f, offDetail(off,
-		line{text: "off; no prompt opens, and JDownloader gives up on a link once its captcha expires", code: "captchaOff"},
-		captchaDetail(a)))
+	if !a.ContainerBackendConfigured() {
+		reason = line{
+			text: "JDownloader's captchas need the JDownloader backend, and none is configured (KL_JD); " +
+				"captchas from links KnightLoader downloads without it still show",
+			code: "captchaNoJD",
+		}
+	}
+	return withDetail(withReason(f, reason), captchaDetail(a))
 }
 
 // switchModule returns a copy of the ModulesOff list with id added or taken

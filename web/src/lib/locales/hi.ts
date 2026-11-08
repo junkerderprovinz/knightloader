@@ -751,7 +751,6 @@ export const hi: Dict = {
   'settings.modules.detail.torrentsOff': 'बंद। चल रहे टॉरेंट जारी रहते हैं और सीडिंग करते रहते हैं। नए तब तक रुकते हैं जब तक यह फिर चालू न हो।',
   'settings.modules.detail.torrentsUnregistered': 'अंतर्निहित टॉरेंट क्लाइंट रूटिंग तालिका में नहीं है, इसलिए मैग्नेट लिंक और अपलोड की गई .torrent फ़ाइलें असमर्थित कहकर लौटा दी जाती हैं।',
   'settings.modules.detail.torrentsRouted': 'मैग्नेट लिंक और अपलोड की गई .torrent फ़ाइलें अंतर्निहित टॉरेंट क्लाइंट को जाती हैं।',
-  'settings.modules.detail.captchaOff': 'बंद। कोई पूछने वाली विंडो नहीं खुलती, और किसी लिंक का कैप्चा समाप्त होते ही JDownloader उस लिंक को छोड़ देता है।',
   'settings.modules.detail.challenges': 'अभी {n} कैप्चा प्रतीक्षा में हैं',
   'settings.modules.detail.challengesOne': 'अभी 1 कैप्चा प्रतीक्षा में है',
   'settings.modules.detail.downloadclientOff': 'बंद। Sonarr और Radarr को इससे 404 मिलता है, जैसे किसी ऐसे पते से जो मौजूद नहीं।',
@@ -768,7 +767,8 @@ export const hi: Dict = {
   'settings.resolvers.toolsJdStarting': 'सेट हो रहा है',
   'settings.resolvers.toolsJdFailed': 'सेटअप विफल रहा',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader अपना JDownloader सेट नहीं कर पाया: {error}',
-  'settings.modules.reason.captchaNoJD': 'कैप्चा सिर्फ़ JDownloader बैकएंड से आते हैं, और कोई कॉन्फ़िगर नहीं है।',
+  'settings.modules.reason.captchaNoJD': 'JDownloader के कैप्चा के लिए JDownloader बैकएंड चाहिए, और कोई कॉन्फ़िगर नहीं है। जिन लिंक को KnightLoader उसके बिना डाउनलोड करता है, उनके कैप्चा फिर भी दिखते हैं।',
+  'settings.modules.reason.captchaAlways': 'कैप्चा बंद नहीं किए जा सकते। वे हमेशा वेब इंटरफ़ेस और फ़ोन ऐप में दिखते हैं।',
   'settings.modules.switchFailed': 'वह स्विच अस्वीकार हुआ: {reason}',
   'settings.modules.configureFirst': 'अभी चालू करने को कुछ नहीं है। पहले इसे {page} पर सेट करें; उसके बाद यहाँ का स्विच उसे रोकता और फिर चालू करता है, बिना आपकी सेटिंग खोए।',
 
@@ -787,7 +787,7 @@ export const hi: Dict = {
   'settings.modules.about.connections': 'डाउनलोड को आपके जोड़े गए प्रॉक्सी और सीधे रास्तों से भेजता है।',
   'settings.modules.about.federation': 'इस इंस्टेंस को आपके दूसरे इंस्टेंस सूची में दिखाने और उन्हें लिंक भेजने देता है।',
   'settings.modules.about.torrents': 'इस इंस्टेंस पर मैग्नेट लिंक और .torrent फ़ाइलें डाउनलोड करता है और नीचे की सेटिंग के अनुसार सीड करता है।',
-  'settings.modules.about.captcha': 'JDownloader को मिलने वाले कैप्चा यहाँ और फ़ोन ऐप में दिखाता है और उन्हें आपके कैप्चा खातों को भेजता है।',
+  'settings.modules.about.captcha': 'JDownloader के कैप्चा और उन लिंक के कैप्चा जिन्हें KnightLoader उसके बिना डाउनलोड करता है, हमेशा वेब इंटरफ़ेस और फ़ोन ऐप में दिखते हैं और आपके कैप्चा खातों को जाते हैं।',
   'settings.modules.about.downloadclient': 'Sonarr, Radarr और Prowlarr को इस इंस्टेंस को डाउनलोड क्लाइंट की तरह इस्तेमाल करने देता है, इसके qBittorrent और SABnzbd इंटरफ़ेस से।',
   'settings.module.extraction': 'आर्काइव खोलना',
   'settings.module.watch': 'निगरानी फ़ोल्डर',
@@ -3386,7 +3386,6 @@ export const hi: Dict = {
   'settings.captcha.testSolvers': 'कैप्चा खातों को भी भेजें',
   'settings.captcha.testSolversHint':
     'वही टेस्ट कैप्चा आपके कैप्चा खातों को भी भेजता है, ऊपर दिए क्रम में, ताकि आप देख सकें कि वे जवाब देते हैं और सही देते हैं या नहीं। वे इसके पैसे किसी भी दूसरे कैप्चा की तरह लेते हैं। "सिर्फ़ तब जब कोई नहीं देख रहा" चालू हो तो वे पहले आपका इंतज़ार करते हैं: किसी दूसरे टैब पर जाएँ या इंतज़ार का समय खत्म होने दें।',
-  'settings.captcha.testOff': 'कैप्चा बंद हैं। टेस्ट कैप्चा भेजने के लिए कैप्चा मॉड्यूल फिर से चालू करें।',
   'settings.captcha.testNoAccount':
     'आपका कोई भी कैप्चा खाता इसे नहीं ले सकता। ऊपर कोई एक चालू करें और खाते पेज पर देखें कि उसकी कुंजी सेट है और वह चालू है।',
   'captcha.solverStoppedTaken': '{solver} ने यह कैप्चा लिया लेकिन कोई जवाब नहीं भेजा।',
@@ -3830,6 +3829,7 @@ export const hi: Dict = {
   'whatsnew.change.filehostsNative': 'Pixeldrain, Gofile और Mediafire के लिंक JDownloader के बिना डाउनलोड होते हैं, और फ़ोल्डर या सूची का लिंक हर फ़ाइल के लिए एक पंक्ति बन जाता है।',
   'whatsnew.change.cloudNative': 'Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer और SwissTransfer के लिंक JDownloader के बिना डाउनलोड होते हैं, और साझा फ़ोल्डर या ट्रांसफ़र हर फ़ाइल के लिए एक पंक्ति बन जाता है।',
   'whatsnew.change.freeFilehostsNative': 'Krakenfiles, Workupload और Send.now लिंक भी JDownloader के बिना मुफ़्त में डाउनलोड होते हैं। Krakenfiles का कैप्चा फ़ोन ऐप और आपके कैप्चा खातों में जाता है, और प्रतीक्षा का समय डाउनलोड पर दिखता है।',
+  'whatsnew.change.captchaAlwaysOn': 'कैप्चा अब बंद नहीं किए जा सकते। वे हमेशा वेब इंटरफ़ेस और फ़ोन ऐप में दिखते हैं।',
   'whatsnew.change.oled': '{theme} के नीचे {oled} गहरे रूप को OLED और AMOLED स्क्रीन के लिए असली काले रंग पर ले जाता है। यह तब भी लागू होता है जब गहरा रूप सिस्टम के साथ चलता है, और हर डिवाइस अपना चुनाव याद रखता है।',
   'whatsnew.change.systemAccent': '{accent} की शुरुआत में जादू की छड़ी वाला नमूना तुम्हारे सिस्टम का रंग लेता है: Android 12 और नए पर Material You, डेस्कटॉप ऐप में Windows, macOS या Linux का एक्सेंट रंग, और Firefox व Safari में सिस्टम का रंग। जहाँ सिस्टम का कोई रंग नहीं है, वहाँ यह नमूना नहीं दिखता। यह चुनाव सिर्फ़ इसी डिवाइस पर लागू होता है, और बाकी डिवाइस इंस्टेंस का रंग रखते हैं।',
   'whatsnew.change.fileKindsMore': 'लिंक अब अपने चिह्न से और तरह की फ़ाइलें दिखाते हैं: PDF, ऑफ़िस दस्तावेज़, स्प्रेडशीट, प्रस्तुतियाँ, ई-बुक, प्लेलिस्ट, डिस्क इमेज, प्रोग्राम, फ़ॉन्ट, 3D मॉडल, चेकसम, टॉरेंट, RAW फ़ोटो और डिज़ाइन फ़ाइलें।',

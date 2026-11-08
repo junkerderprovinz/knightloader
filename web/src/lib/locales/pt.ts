@@ -742,7 +742,6 @@ export const pt: Dict = {
   'settings.modules.detail.torrentsOff': 'Desligado. Os torrents em curso continuam e mantêm o seed. Os novos esperam até ele voltar a estar ligado.',
   'settings.modules.detail.torrentsUnregistered': 'O cliente de torrents integrado não está na tabela de encaminhamento, por isso os links magnet e os ficheiros .torrent enviados são descartados como não suportados.',
   'settings.modules.detail.torrentsRouted': 'Os links magnet e os ficheiros .torrent enviados vão para o cliente de torrents integrado.',
-  'settings.modules.detail.captchaOff': 'Desligado. Não se abre nenhum pedido, e o JDownloader desiste de um link assim que o captcha dele expira.',
   'settings.modules.detail.challenges': '{n} captchas à espera neste momento',
   'settings.modules.detail.challengesOne': '1 captcha à espera neste momento',
   'settings.modules.detail.downloadclientOff': 'Desligado. O Sonarr e o Radarr recebem um 404, como de um endereço que não existe.',
@@ -759,7 +758,8 @@ export const pt: Dict = {
   'settings.resolvers.toolsJdStarting': 'A configurar',
   'settings.resolvers.toolsJdFailed': 'A configuração falhou',
   'settings.resolvers.toolsJdFailedHint': 'O KnightLoader não conseguiu configurar o seu JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Os captchas só vêm do backend JDownloader, e não há nenhum configurado.',
+  'settings.modules.reason.captchaNoJD': 'Os captchas do JDownloader precisam do backend JDownloader, e não há nenhum configurado. Os captchas das ligações que o KnightLoader descarrega sem ele aparecem na mesma.',
+  'settings.modules.reason.captchaAlways': 'Os captchas não podem ser desligados. Aparecem sempre na interface web e na app do telemóvel.',
   'settings.modules.switchFailed': 'Esse interruptor foi recusado: {reason}',
   'settings.modules.configureFirst': 'Ainda não há nada para ligar. Configure isto primeiro em {page}; depois disso o interruptor daqui pára-o e volta a arrancá-lo sem perder o que definiu.',
 
@@ -778,7 +778,7 @@ export const pt: Dict = {
   'settings.modules.about.connections': 'Envia as transferências pelos proxies e pelas rotas diretas que adicionares aqui.',
   'settings.modules.about.federation': 'Permite que esta instância liste as tuas outras instâncias e lhes passe ligações.',
   'settings.modules.about.torrents': 'Transfere ligações magnet e ficheiros .torrent nesta instância e faz seed deles conforme definido abaixo.',
-  'settings.modules.about.captcha': 'Mostra os captchas que o JDownloader encontra, aqui e na app do telemóvel, e passa-os às tuas contas de captcha.',
+  'settings.modules.about.captcha': 'Os captchas do JDownloader e das ligações que o KnightLoader descarrega sem ele aparecem sempre na interface web e na app do telemóvel, e vão para as tuas contas de captcha.',
   'settings.modules.about.downloadclient': 'Deixa o Sonarr, o Radarr e o Prowlarr usar esta instância como cliente de transferências, através das interfaces qBittorrent e SABnzbd.',
   'settings.module.extraction': 'Extração de arquivos',
   'settings.module.watch': 'Pasta vigiada',
@@ -3374,8 +3374,6 @@ export const pt: Dict = {
   'settings.captcha.testSolvers': 'Enviar também para as contas de captcha',
   'settings.captcha.testSolversHint':
     'Envia o mesmo captcha de teste também para as tuas contas de captcha, pela ordem acima, para veres se o respondem e acertam. Cobram-no como qualquer outro captcha. Com «Só quando ninguém está a ver» ligado, esperam primeiro por ti: muda para outro separador ou deixa o tempo de espera acabar.',
-  'settings.captcha.testOff':
-    'Os captchas estão desligados. Volta a ligar o módulo Captcha para enviar um captcha de teste.',
   'settings.captcha.testNoAccount':
     'Nenhuma das tuas contas de captcha o pode receber. Liga uma acima e confirma na página Contas que tem uma chave e está ligada.',
   'captcha.solverStoppedTaken': '{solver} ficou com este captcha, mas não enviou nenhuma resposta.',
@@ -3820,6 +3818,7 @@ export const pt: Dict = {
   'whatsnew.change.filehostsNative': 'As ligações do Pixeldrain, do Gofile e do Mediafire descarregam-se sem o JDownloader, e uma ligação de pasta ou de lista passa a ser uma linha por ficheiro.',
   'whatsnew.change.cloudNative': 'As ligações do Google Drive, do Dropbox, do OneDrive, do SharePoint, do WeTransfer e do SwissTransfer descarregam-se sem o JDownloader, e uma pasta partilhada ou uma transferência passa a ser uma linha por ficheiro.',
   'whatsnew.change.freeFilehostsNative': 'As ligações do Krakenfiles, Workupload e Send.now também se descarregam de graça sem o JDownloader. O captcha do Krakenfiles vai para a app do telemóvel e para as tuas contas de captcha, e as esperas aparecem na transferência.',
+  'whatsnew.change.captchaAlwaysOn': 'Os captchas já não podem ser desligados. Aparecem sempre na interface web e na app do telemóvel.',
   'whatsnew.change.oled': '{oled}, em {theme}, leva o aspeto escuro ao preto puro para ecrãs OLED e AMOLED. Vale sempre que o aspeto escuro está à vista, também quando segue o sistema, e cada dispositivo guarda a sua escolha.',
   'whatsnew.change.systemAccent': 'A amostra com a varinha no início de {accent} usa a cor do teu sistema: Material You a partir do Android 12, a cor de destaque do Windows, macOS ou Linux na aplicação de computador e a cor do sistema no Firefox e no Safari. Onde o sistema não tem uma, a amostra não aparece. A escolha vale só para este dispositivo, e os outros mantêm a cor da instância.',
   'whatsnew.change.fileKindsMore': 'Os links mostram mais tipos de ficheiro com o seu símbolo: PDF, documentos de escritório, folhas de cálculo, apresentações, e-books, listas de reprodução, imagens de disco, programas, tipos de letra, modelos 3D, somas de verificação, torrents, fotos RAW e ficheiros de design.',

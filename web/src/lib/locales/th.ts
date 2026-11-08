@@ -750,7 +750,6 @@ export const th: Dict = {
   'settings.modules.detail.torrentsOff': 'ปิด ทอร์เรนต์ที่กำลังทำงานจะทำต่อและซีดต่อไป ส่วนทอร์เรนต์ใหม่จะรอจนกว่าจะเปิดกลับมา',
   'settings.modules.detail.torrentsUnregistered': 'ไคลเอนต์ทอร์เรนต์ในตัวไม่อยู่ในตารางเส้นทาง ลิงก์แม่เหล็กและไฟล์ .torrent ที่อัปโหลดจึงถูกตีกลับว่าไม่รองรับ',
   'settings.modules.detail.torrentsRouted': 'ลิงก์แม่เหล็กและไฟล์ .torrent ที่อัปโหลดจะไปที่ไคลเอนต์ทอร์เรนต์ในตัว',
-  'settings.modules.detail.captchaOff': 'ปิด จะไม่มีหน้าต่างถามขึ้นมา และ JDownloader จะเลิกพยายามกับลิงก์เมื่อแคปช่าของลิงก์นั้นหมดเวลา',
   'settings.modules.detail.challenges': 'ตอนนี้มีแคปช่ารออยู่ {n} รายการ',
   'settings.modules.detail.challengesOne': 'ตอนนี้มีแคปช่ารออยู่ 1 รายการ',
   'settings.modules.detail.downloadclientOff': 'ปิด Sonarr และ Radarr จะได้ 404 กลับไป เหมือนจากที่อยู่ที่ไม่มีอยู่จริง',
@@ -767,7 +766,8 @@ export const th: Dict = {
   'settings.resolvers.toolsJdStarting': 'กำลังตั้งค่า',
   'settings.resolvers.toolsJdFailed': 'ตั้งค่าไม่สำเร็จ',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader ตั้งค่า JDownloader ของตัวเองไม่ได้: {error}',
-  'settings.modules.reason.captchaNoJD': 'แคปช่ามาจากแบ็กเอนด์ JDownloader เท่านั้น และยังไม่ได้ตั้งค่าไว้',
+  'settings.modules.reason.captchaNoJD': 'แคปช่าของ JDownloader ต้องใช้แบ็กเอนด์ JDownloader และยังไม่ได้ตั้งค่าไว้ แต่แคปช่าจากลิงก์ที่ KnightLoader ดาวน์โหลดเองโดยไม่ใช้ JDownloader ยังแสดงอยู่',
+  'settings.modules.reason.captchaAlways': 'ปิดแคปช่าไม่ได้ แคปช่าจะแสดงในเว็บอินเทอร์เฟซและในแอปมือถือเสมอ',
   'settings.modules.switchFailed': 'สวิตช์นั้นถูกปฏิเสธ: {reason}',
   'settings.modules.configureFirst': 'ยังไม่มีอะไรให้เปิด ตั้งค่าที่ {page} ก่อน จากนั้นสวิตช์ตรงนี้จะหยุดและเริ่มใหม่ให้โดยไม่ทำสิ่งที่คุณตั้งไว้หาย',
 
@@ -786,7 +786,7 @@ export const th: Dict = {
   'settings.modules.about.connections': 'ส่งการดาวน์โหลดผ่านพร็อกซีและเส้นทางตรงที่คุณเพิ่มไว้ที่นี่',
   'settings.modules.about.federation': 'แสดงอินสแตนซ์อื่นของคุณและส่งลิงก์ไปให้ได้',
   'settings.modules.about.torrents': 'ดาวน์โหลดลิงก์ magnet และไฟล์ .torrent บนอินสแตนซ์นี้ และ seed ตามที่ตั้งไว้ด้านล่าง',
-  'settings.modules.about.captcha': 'แสดงแคปช่าที่ JDownloader เจอ ทั้งที่นี่และในแอปมือถือ แล้วส่งต่อให้บัญชีแคปช่าของคุณ',
+  'settings.modules.about.captcha': 'แคปช่าจาก JDownloader และจากลิงก์ที่ KnightLoader ดาวน์โหลดเองโดยไม่ใช้ JDownloader จะแสดงในเว็บอินเทอร์เฟซและในแอปมือถือเสมอ และส่งต่อให้บัญชีแคปช่าของคุณ',
   'settings.modules.about.downloadclient': 'Sonarr, Radarr และ Prowlarr ใช้อินสแตนซ์นี้เป็นไคลเอนต์ดาวน์โหลดได้ ผ่านอินเทอร์เฟซ qBittorrent และ SABnzbd',
   'settings.module.extraction': 'แตกไฟล์บีบอัด',
   'settings.module.watch': 'โฟลเดอร์ที่เฝ้าดู',
@@ -3384,7 +3384,6 @@ export const th: Dict = {
   'settings.captcha.testSolvers': 'ส่งไปยังบัญชีแคปช่าด้วย',
   'settings.captcha.testSolversHint':
     'ส่งแคปช่าทดสอบเดียวกันไปยังบัญชีแคปช่าของคุณด้วย ตามลำดับด้านบน เพื่อให้คุณเห็นว่าบัญชีเหล่านั้นตอบได้และตอบถูกหรือไม่ บัญชีเหล่านั้นคิดเงินเหมือนแคปช่าอื่น ๆ ถ้าเปิด "เฉพาะเมื่อไม่มีใครดูอยู่" ไว้ บัญชีจะรอคุณก่อน ให้สลับไปแท็บอื่นหรือปล่อยให้เวลารอหมดไป',
-  'settings.captcha.testOff': 'แคปช่าถูกปิดอยู่ เปิดโมดูลแคปช่าอีกครั้งเพื่อส่งแคปช่าทดสอบ',
   'settings.captcha.testNoAccount':
     'ไม่มีบัญชีแคปช่าใดของคุณรับได้ เปิดบัญชีหนึ่งด้านบน แล้วตรวจที่หน้าบัญชีว่ามีคีย์และเปิดอยู่',
   'captcha.solverStoppedTaken': '{solver} รับแคปช่านี้ไปแล้ว แต่ไม่ได้ส่งคำตอบมา',
@@ -3828,6 +3827,7 @@ export const th: Dict = {
   'whatsnew.change.filehostsNative': 'ลิงก์จาก Pixeldrain, Gofile และ Mediafire ดาวน์โหลดได้โดยไม่ต้องใช้ JDownloader และลิงก์โฟลเดอร์หรือรายการจะแยกเป็นหนึ่งแถวต่อหนึ่งไฟล์',
   'whatsnew.change.cloudNative': 'ลิงก์จาก Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer และ SwissTransfer ดาวน์โหลดได้โดยไม่ต้องใช้ JDownloader และโฟลเดอร์ที่แชร์หรือการโอนจะแยกเป็นหนึ่งแถวต่อหนึ่งไฟล์',
   'whatsnew.change.freeFilehostsNative': 'ลิงก์ Krakenfiles, Workupload และ Send.now ก็ดาวน์โหลดได้ฟรีโดยไม่ต้องใช้ JDownloader เช่นกัน แคปช่าของ Krakenfiles จะไปที่แอปมือถือและบัญชีแคปช่าของคุณ และเวลารอจะแสดงที่การดาวน์โหลด',
+  'whatsnew.change.captchaAlwaysOn': 'ปิดแคปช่าไม่ได้อีกต่อไป แคปช่าจะแสดงในเว็บอินเทอร์เฟซและในแอปมือถือเสมอ',
   'whatsnew.change.oled': '{oled} ใต้ {theme} เปลี่ยนรูปแบบมืดเป็นสีดำสนิทสำหรับหน้าจอ OLED และ AMOLED ใช้ทุกครั้งที่รูปแบบมืดแสดงอยู่ รวมถึงตอนที่ตามระบบ และแต่ละอุปกรณ์จำตัวเลือกของตัวเอง',
   'whatsnew.change.systemAccent': 'ตัวอย่างสีรูปไม้กายสิทธิ์ที่ต้น {accent} ใช้สีของระบบคุณ: Material You ใน Android 12 ขึ้นไป สีเน้นของ Windows, macOS หรือ Linux ในแอปเดสก์ท็อป และสีของระบบใน Firefox และ Safari ถ้าระบบไม่มีสีแบบนี้ ตัวอย่างนี้จะไม่แสดง ตัวเลือกนี้มีผลเฉพาะอุปกรณ์นี้ ส่วนอุปกรณ์อื่นยังใช้สีของอินสแตนซ์',
   'whatsnew.change.fileKindsMore': 'ลิงก์แสดงชนิดไฟล์ได้มากขึ้นด้วยสัญลักษณ์ของมัน ได้แก่ PDF เอกสารสำนักงาน สเปรดชีต งานนำเสนอ อีบุ๊ก เพลย์ลิสต์ อิมเมจดิสก์ โปรแกรม ฟอนต์ โมเดล 3D เช็กซัม ทอร์เรนต์ ภาพ RAW และไฟล์งานออกแบบ',

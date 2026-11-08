@@ -750,7 +750,6 @@ export const id: Dict = {
   'settings.modules.detail.torrentsOff': 'Mati. Torrent yang sedang berjalan tetap lanjut dan tetap melakukan seed. Yang baru menunggu sampai ia menyala lagi.',
   'settings.modules.detail.torrentsUnregistered': 'Klien torrent bawaan tidak ada di tabel perutean, jadi tautan magnet dan unggahan .torrent tidak diterima karena tidak didukung.',
   'settings.modules.detail.torrentsRouted': 'Tautan magnet dan berkas .torrent yang diunggah dikirim ke klien torrent bawaan.',
-  'settings.modules.detail.captchaOff': 'Mati. Tidak ada jendela captcha yang muncul, dan JDownloader menyerah pada sebuah tautan begitu captcha-nya kedaluwarsa.',
   'settings.modules.detail.challenges': '{n} captcha sedang menunggu',
   'settings.modules.detail.challengesOne': '1 captcha sedang menunggu',
   'settings.modules.detail.downloadclientOff': 'Mati. Sonarr dan Radarr mendapat 404 darinya, seperti dari alamat yang tidak ada.',
@@ -767,7 +766,8 @@ export const id: Dict = {
   'settings.resolvers.toolsJdStarting': 'Sedang disiapkan',
   'settings.resolvers.toolsJdFailed': 'Penyiapan gagal',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader tidak dapat menyiapkan JDownloader miliknya: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captcha hanya datang dari backend JDownloader, dan belum ada yang dikonfigurasi.',
+  'settings.modules.reason.captchaNoJD': 'Captcha JDownloader memerlukan backend JDownloader, dan belum ada yang dikonfigurasi. Captcha dari tautan yang diunduh KnightLoader tanpanya tetap muncul.',
+  'settings.modules.reason.captchaAlways': 'Captcha tidak bisa dimatikan. Captcha selalu muncul di antarmuka web dan di aplikasi ponsel.',
   'settings.modules.switchFailed': 'Sakelar itu ditolak: {reason}',
   'settings.modules.configureFirst': 'Belum ada yang bisa dinyalakan. Siapkan dulu di {page}; setelah itu sakelar di sini menghentikan dan menjalankannya lagi tanpa kehilangan apa yang Anda atur.',
 
@@ -786,7 +786,7 @@ export const id: Dict = {
   'settings.modules.about.connections': 'Mengirim unduhan lewat proxy dan jalur langsung yang Anda tambahkan di sini.',
   'settings.modules.about.federation': 'Memungkinkan instance ini menampilkan instance Anda yang lain dan meneruskan tautan ke sana.',
   'settings.modules.about.torrents': 'Mengunduh tautan magnet dan berkas .torrent di instance ini lalu menyebarkannya (seed) sesuai pengaturan di bawah.',
-  'settings.modules.about.captcha': 'Menampilkan captcha yang ditemui JDownloader, di sini dan di aplikasi ponsel, lalu meneruskannya ke akun captcha Anda.',
+  'settings.modules.about.captcha': 'Captcha dari JDownloader dan dari tautan yang diunduh KnightLoader tanpanya selalu muncul di antarmuka web dan di aplikasi ponsel, lalu diteruskan ke akun captcha Anda.',
   'settings.modules.about.downloadclient': 'Memungkinkan Sonarr, Radarr, dan Prowlarr memakai instance ini sebagai klien unduhan lewat antarmuka qBittorrent dan SABnzbd-nya.',
   'settings.module.extraction': 'Ekstraksi arsip',
   'settings.module.watch': 'Folder pantauan',
@@ -3385,7 +3385,6 @@ export const id: Dict = {
   'settings.captcha.testSolvers': 'Kirim juga ke akun captcha',
   'settings.captcha.testSolversHint':
     'Mengirim captcha uji yang sama ke akun captcha kamu juga, sesuai urutan di atas, supaya kamu bisa melihat apakah mereka menjawab dan benar. Mereka menagihnya seperti captcha lain. Kalau "Hanya saat tidak ada yang melihat" aktif, mereka menunggu kamu dulu: pindah ke tab lain atau biarkan waktu tunggunya habis.',
-  'settings.captcha.testOff': 'Captcha dimatikan. Nyalakan lagi modul Captcha untuk mengirim captcha uji.',
   'settings.captcha.testNoAccount':
     'Tidak ada akun captcha kamu yang bisa menerimanya. Nyalakan satu di atas, lalu periksa di halaman Akun bahwa akun itu punya kunci dan menyala.',
   'captcha.solverStoppedTaken': '{solver} mengambil captcha ini tetapi tidak mengirim jawaban.',
@@ -3829,6 +3828,7 @@ export const id: Dict = {
   'whatsnew.change.filehostsNative': 'Tautan Pixeldrain, Gofile, dan Mediafire diunduh tanpa JDownloader, dan tautan folder atau daftar menjadi satu baris untuk setiap file.',
   'whatsnew.change.cloudNative': 'Tautan Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer, dan SwissTransfer diunduh tanpa JDownloader, dan folder bersama atau transfer menjadi satu baris untuk setiap file.',
   'whatsnew.change.freeFilehostsNative': 'Tautan Krakenfiles, Workupload, dan Send.now juga diunduh gratis tanpa JDownloader. Captcha Krakenfiles dikirim ke aplikasi ponsel dan akun captcha Anda, dan waktu tunggunya tampil pada unduhan.',
+  'whatsnew.change.captchaAlwaysOn': 'Captcha tidak bisa dimatikan lagi. Captcha selalu muncul di antarmuka web dan di aplikasi ponsel.',
   'whatsnew.change.oled': '{oled} di bawah {theme} membuat tampilan gelap menjadi hitam pekat untuk layar OLED dan AMOLED. Ini berlaku setiap kali tampilan gelap muncul, juga saat mengikuti sistem, dan setiap perangkat mengingat pilihannya sendiri.',
   'whatsnew.change.systemAccent': 'Contoh warna bertongkat sihir di awal {accent} mengikuti warna sistemmu: Material You di Android 12 ke atas, warna aksen Windows, macOS, atau Linux di aplikasi desktop, dan warna sistem di Firefox dan Safari. Jika sistem tidak punya warna, contoh itu tidak muncul. Pilihan ini hanya berlaku di perangkat ini, dan perangkat lain tetap memakai warna instance.',
   'whatsnew.change.fileKindsMore': 'Tautan menampilkan lebih banyak jenis file dengan simbolnya: PDF, dokumen kantor, lembar kerja, presentasi, e-book, daftar putar, image disk, program, font, model 3D, checksum, torrent, foto RAW, dan file desain.',

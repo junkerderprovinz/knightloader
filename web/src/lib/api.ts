@@ -2984,7 +2984,7 @@ export interface CaptchaResolution {
   id: string;
   taskId?: string;
   host: string;
-  reason: 'solved' | 'expired' | 'aborted' | 'timedOut' | 'switchedOff' | 'resolved';
+  reason: 'solved' | 'expired' | 'aborted' | 'timedOut' | 'resolved';
   /** How the answer to a test captcha compared, set when one was solved. */
   test?: TestCaptchaResult;
   /** Set for a test captcha however it ended, so a timeout leaves no
@@ -3041,8 +3041,7 @@ export async function answerCaptcha(
 /**
  * createTestCaptcha puts up a test captcha of `kind`, which arrives like a real one.
  * With solvers it goes to the captcha accounts too, which bill it. A refusal
- * carries the code 'captchaOff' while the captcha module is switched off,
- * or 'noCaptchaAccount' when no captcha account could take it.
+ * carries the code 'noCaptchaAccount' when no captcha account could take it.
  */
 export async function createTestCaptcha(solvers: boolean, kind: TestCaptchaKind = 'image'): Promise<CaptchaChallenge> {
   return json<CaptchaChallenge>(await post('/api/captcha/test', { solvers, kind }));

@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/captcha"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -111,20 +114,37 @@ func TestATestCaptchaShowsWhileJDCannotBeAsked(t *testing.T) {
 	}
 }
 
-func TestNoTestCaptchaWhileCaptchasAreSwitchedOff(t *testing.T) {
-	a := newCaptchaTestApp(t)
-	if _, err := a.ApplySettings(settings.Settings{
-		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(), ModulesOff: []string{"captcha"},
-	}); err != nil {
+// Captchas have no switch. A settings file that still lists them as off keeps
+// the open prompts up and lets a test captcha and a hoster's captcha through.
+func TestCaptchasStayOnWhenTheSettingsFileListsThemAsOff(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"modulesOff": ["captcha"]}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
+	a, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+	pending(a, imageChallenge("c1"))
 
-	if _, err := a.CreateTestCaptcha(captcha.TestImage, false); !errors.Is(err, ErrCaptchaOff) {
-		t.Errorf("CreateTestCaptcha with captchas off = %v, want ErrCaptchaOff", err)
+	c, err := a.CreateTestCaptcha(captcha.TestImage, false)
+	if err != nil {
+		t.Fatalf("CreateTestCaptcha = %v, want a test captcha", err)
 	}
-	if got := a.CaptchaChallenges(); len(got) != 0 {
-		t.Errorf("a test captcha was put up while captchas are off: %+v", got)
+	if !a.captchaPending(c.ID) {
+		t.Error("the test captcha was not published")
 	}
+	if !a.captchaPending("c1") {
+		t.Error("the open captcha was closed")
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	go func() {
+		_, _ = a.solveFor("hoster.example")(ctx, "", hoster.Captcha{Kind: hoster.Image, Image: []byte("\x89PNG\r\n\x1a\n")})
+	}()
+	askedFor(t, a, "hoster.example")
 }
 
 // A captcha account bills a test captcha like any other, so it only gets one
