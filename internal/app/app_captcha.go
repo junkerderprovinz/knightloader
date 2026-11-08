@@ -269,6 +269,9 @@ type TestCaptchaResult struct {
 	// Solver is the captcha account that answered, by its catalogue label,
 	// and empty when a person did.
 	Solver string `json:"solver,omitempty"`
+	// Widget marks a widget on its vendor's test key, which any token
+	// answers. Want is the vendor's name then.
+	Widget bool `json:"widget,omitempty"`
 }
 
 // The refusals of CreateTestCaptcha. With the captcha module off no prompt
@@ -281,10 +284,11 @@ var (
 	ErrNoCaptchaAccount = errors.New("no captcha account is enabled with a key")
 )
 
-// CreateTestCaptcha draws a test captcha and publishes it at once, the way the
-// poll publishes one JD listed: to the windows, the phone app and the event
-// targets. solvers lets the paid solvers take it too, which they bill.
-func (a *App) CreateTestCaptcha(solvers bool) (captcha.Challenge, error) {
+// CreateTestCaptcha puts up a test captcha of kind (see captcha.TestSource.New)
+// and publishes it at once, the way the poll publishes one JD listed: to the
+// windows, the phone app and the event targets. solvers lets the paid solvers
+// take it too, which they bill.
+func (a *App) CreateTestCaptcha(kind string, solvers bool) (captcha.Challenge, error) {
 	switch {
 	case a.ModuleOff("captcha"):
 		return captcha.Challenge{}, ErrCaptchaOff
@@ -292,7 +296,7 @@ func (a *App) CreateTestCaptcha(solvers bool) (captcha.Challenge, error) {
 		return captcha.Challenge{}, ErrNoCaptchaAccount
 	}
 	st := a.captchaStateFor()
-	c, err := st.tests.New(solvers)
+	c, err := st.tests.New(kind, solvers)
 	if err != nil {
 		return captcha.Challenge{}, err
 	}
@@ -438,7 +442,8 @@ func (a *App) answerCaptcha(ctx context.Context, id, text, solver string) (Captc
 			}
 			return CaptchaAnswer{}, nil
 		}
-		res := &TestCaptchaResult{Correct: correct, Want: want, Given: strings.TrimSpace(text), Solver: solver}
+		res := &TestCaptchaResult{Correct: correct, Want: want, Given: strings.TrimSpace(text), Solver: solver,
+			Widget: known && ch.Kind == captcha.KindWidget}
 		if known {
 			a.endCaptcha(ch, CaptchaResolution{Reason: "solved", Test: res})
 		}

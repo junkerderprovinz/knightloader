@@ -2996,6 +2996,9 @@ export interface TestCaptchaResult {
   given: string;
   /** The captcha account that answered, empty when a person did. */
   solver?: string;
+  /** Set for a widget on its vendor's test key, any token of which is right;
+   *  `want` names the vendor then. */
+  widget?: boolean;
 }
 
 /**
@@ -3032,14 +3035,18 @@ export async function answerCaptcha(
 }
 
 /**
- * createTestCaptcha puts up a test captcha, which arrives like a real one.
+ * createTestCaptcha puts up a test captcha of `kind`, which arrives like a real one.
  * With solvers it goes to the captcha accounts too, which bill it. A refusal
  * carries the code 'captchaOff' while the captcha module is switched off,
  * or 'noCaptchaAccount' when no captcha account could take it.
  */
-export async function createTestCaptcha(solvers: boolean): Promise<CaptchaChallenge> {
-  return json<CaptchaChallenge>(await post('/api/captcha/test', { solvers }));
+export async function createTestCaptcha(solvers: boolean, kind: TestCaptchaKind = 'image'): Promise<CaptchaChallenge> {
+  return json<CaptchaChallenge>(await post('/api/captcha/test', { solvers, kind }));
 }
+
+/** The kinds of test captcha: a picture, or a vendor's widget on its always-passing test key. */
+export const TEST_CAPTCHA_KINDS = ['image', 'turnstile', 'hcaptcha', 'recaptcha'] as const;
+export type TestCaptchaKind = (typeof TEST_CAPTCHA_KINDS)[number];
 
 /**
  * skipCaptcha gives up on one challenge. JD keeps its own blacklist for the

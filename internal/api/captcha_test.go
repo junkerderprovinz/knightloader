@@ -215,3 +215,63 @@ func TestATestCaptchaRefusalSaysWhatStandsInTheWay(t *testing.T) {
 		})
 	}
 }
+
+// Each widget kind of test captcha goes up on its vendor's test key and loads
+// on the phone under the neutral page, and a token answers it.
+func TestAWidgetTestCaptchaLoadsOnThePhoneAndATokenAnswersIt(t *testing.T) {
+	t.Setenv("KL_JD", "")
+	a := testApp(t)
+	reg := newRegistry()
+	registerCaptcha(reg, a)
+	registerCaptchaWidget(reg, a)
+	mux := http.NewServeMux()
+	reg.attach(mux, http.NotFoundHandler())
+	call := func(method, path, body string) *httptest.ResponseRecorder {
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, jsonRequest(method, path, body))
+		return rec
+	}
+
+	for kind, key := range map[string]string{
+		"turnstile": "1x00000000000000000000AA",
+		"hcaptcha":  "10000000-ffff-ffff-ffff-000000000001",
+		"recaptcha": "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
+	} {
+		rec := call(http.MethodPost, "/api/captcha/test", `{"kind":"`+kind+`"}`)
+		var c struct {
+			ID   string `json:"id"`
+			Kind string `json:"kind"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &c); err != nil || rec.Code != http.StatusOK || c.Kind != "widget" {
+			t.Fatalf("%s: POST /api/captcha/test answered %d %q, want a widget test captcha", kind, rec.Code, rec.Body.String())
+		}
+		rec = call(http.MethodGet, "/api/captcha/"+c.ID+"/widget/phone", "")
+		var page phoneWidgetPage
+		if err := json.Unmarshal(rec.Body.Bytes(), &page); err != nil || rec.Code != http.StatusOK {
+			t.Fatalf("%s: the phone's page was refused: %d %q", kind, rec.Code, rec.Body.String())
+		}
+		if page.BaseURL != "https://example.com/" || !strings.Contains(page.HTML, key) || strings.Contains(page.HTML, `kind:"unsolvable"`) {
+			t.Errorf("%s: the phone loads %q under %s, want the widget on its test key", kind, page.HTML, page.BaseURL)
+		}
+
+		rec = call(http.MethodPost, "/api/captcha/"+c.ID+"/answer", `{"text":"XXXX.DUMMY.TOKEN.XXXX"}`)
+		var got app.CaptchaAnswer
+		if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || got.Test == nil || !got.Test.Correct || !got.Test.Widget {
+			t.Errorf("%s: the token came back %d %q, want a right widget answer", kind, rec.Code, rec.Body.String())
+		}
+	}
+}
+
+func TestATestCaptchaOfAnUnknownKindIsABadRequest(t *testing.T) {
+	a := testApp(t)
+	reg := newRegistry()
+	registerCaptcha(reg, a)
+	mux := http.NewServeMux()
+	reg.attach(mux, http.NotFoundHandler())
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, jsonRequest(http.MethodPost, "/api/captcha/test", `{"kind":"puzzle"}`))
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("POST /api/captcha/test of an unknown kind answered %d %q, want 400", rec.Code, rec.Body.String())
+	}
+}

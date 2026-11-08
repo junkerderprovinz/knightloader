@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"image"
 	"image/color"
 	"image/png"
@@ -39,8 +40,40 @@ const testAlphabet = "ACDEFHKMPRTUV3479"
 
 const testLength = 5
 
-// TestSource draws image captchas of its own, so the captcha window, the phone
-// app and the paid solvers can be tried without a hoster asking for one. The
+// TestImage is the kind of test captcha TestSource draws itself. The other
+// kinds are the widget vendors (VendorTurnstile, VendorHCaptcha,
+// VendorRecaptcha), each on the test key its vendor publishes, which always
+// passes and works on any domain.
+const TestImage = "image"
+
+// testSiteKeys are the vendors' always-passing test keys, from
+// https://developers.cloudflare.com/turnstile/troubleshooting/testing/,
+// https://docs.hcaptcha.com/#integration-testing-test-keys and
+// https://developers.google.com/recaptcha/docs/faq.
+var testSiteKeys = map[string]string{
+	VendorTurnstile: "1x00000000000000000000AA",
+	VendorHCaptcha:  "10000000-ffff-ffff-ffff-000000000001",
+	VendorRecaptcha: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
+}
+
+// testVendorNames are the vendors as a test captcha's result names them.
+var testVendorNames = map[string]string{
+	VendorTurnstile: "Cloudflare Turnstile",
+	VendorHCaptcha:  "hCaptcha",
+	VendorRecaptcha: "reCAPTCHA",
+}
+
+// TestPage is the page a widget test captcha says it is on, which the phone
+// app loads it under. The test keys run on any domain, and this one belongs
+// to nobody.
+const TestPage = "https://example.com/"
+
+// ErrTestKind refuses a test captcha of a kind TestSource does not make.
+var ErrTestKind = errors.New("no test captcha of that kind")
+
+// TestSource puts up captchas of its own, an image it draws or a vendor's
+// widget on its test key, so the captcha window, the phone app and the paid
+// solvers can be tried without a hoster asking for one. The
 // app lists them beside the JD ones and routes an answer here by its id. Safe
 // for concurrent use.
 type TestSource struct {
@@ -50,8 +83,10 @@ type TestSource struct {
 }
 
 type testChallenge struct {
-	c       Challenge
+	c Challenge
+	// text is the characters drawn, and for a widget the vendor's name.
 	text    string
+	widget  bool
 	solvers bool
 }
 
@@ -64,29 +99,40 @@ func NewTestSource() *TestSource {
 // answer that arrives after the captcha expired still comes here and not to JD.
 func IsTest(id string) bool { return strings.HasPrefix(id, testIDPrefix) }
 
-// New draws a test captcha and keeps it pending until it is answered, skipped
-// or expires. solvers says whether the paid solvers may take it, since they
-// bill a test like any other captcha.
-func (s *TestSource) New(solvers bool) (Challenge, error) {
-	text := make([]byte, testLength)
-	for i := range text {
-		text[i] = testAlphabet[mrand.IntN(len(testAlphabet))]
-	}
-	img, err := drawTestCaptcha(string(text))
-	if err != nil {
-		return Challenge{}, err
-	}
+// New puts up a test captcha of kind, TestImage or a widget vendor, and keeps
+// it pending until it is answered, skipped or expires. solvers says whether
+// the paid solvers may take it, since they bill a test like any other captcha.
+func (s *TestSource) New(kind string, solvers bool) (Challenge, error) {
 	c := Challenge{
 		ID:        testIDPrefix + rand.Text(),
 		Source:    SourceTest,
 		Host:      TestHost,
-		Kind:      KindImage,
-		Payload:   &ImagePayload{DataURL: "data:image/png;base64," + base64.StdEncoding.EncodeToString(img)},
 		ExpiresAt: s.now().Add(TestTTL),
 		Test:      true,
 	}
+	p := testChallenge{solvers: solvers}
+	if key, ok := testSiteKeys[kind]; ok {
+		c.Kind = KindWidget
+		c.Payload = &WidgetPayload{Vendor: kind, SiteKey: key, SiteURL: TestPage, ContextURL: TestPage}
+		p.text, p.widget = testVendorNames[kind], true
+	} else if kind == TestImage {
+		text := make([]byte, testLength)
+		for i := range text {
+			text[i] = testAlphabet[mrand.IntN(len(testAlphabet))]
+		}
+		img, err := drawTestCaptcha(string(text))
+		if err != nil {
+			return Challenge{}, err
+		}
+		c.Kind = KindImage
+		c.Payload = &ImagePayload{DataURL: "data:image/png;base64," + base64.StdEncoding.EncodeToString(img)}
+		p.text = string(text)
+	} else {
+		return Challenge{}, ErrTestKind
+	}
+	p.c = c
 	s.mu.Lock()
-	s.pending[c.ID] = testChallenge{c: c, text: string(text), solvers: solvers}
+	s.pending[c.ID] = p
 	s.mu.Unlock()
 	return c, nil
 }
@@ -116,8 +162,10 @@ func (s *TestSource) ForSolvers(id string) bool {
 }
 
 // Check compares given with the text drawn in id and forgets id. Case and
-// spaces do not count, as with most hosters. live is false for a captcha that
-// expired or was answered already, and want and correct are empty then.
+// spaces do not count, as with most hosters. A widget passes with any token,
+// since its test key always passes, and want is the vendor's name. live is
+// false for a captcha that expired or was answered already, and want and
+// correct are empty then.
 func (s *TestSource) Check(id, given string) (want string, correct, live bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -130,6 +178,9 @@ func (s *TestSource) Check(id, given string) (want string, correct, live bool) {
 		return "", false, false
 	}
 	given = strings.Join(strings.Fields(given), "")
+	if p.widget {
+		return p.text, given != "", true
+	}
 	return p.text, strings.EqualFold(given, p.text), true
 }
 

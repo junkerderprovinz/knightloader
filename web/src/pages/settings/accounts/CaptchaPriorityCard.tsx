@@ -1,10 +1,18 @@
-import type { ReactNode } from 'react';
-import { type Account, ApiError, type CatalogueService, createTestCaptcha } from '../../../lib/api';
+import { type ReactNode, useState } from 'react';
+import {
+  type Account,
+  ApiError,
+  type CatalogueService,
+  createTestCaptcha,
+  TEST_CAPTCHA_KINDS,
+  type TestCaptchaKind,
+} from '../../../lib/api';
 import { type TranslationKey, useT } from '../../../lib/i18n';
 import { IconCaptcha, IconSendTest } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { EmptyState, NumberInput, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import { PriorityCard, PriorityLadder } from '../../../components/PriorityLadder';
+import { Tabs } from '../../../components/Tabs';
 import { TestButton } from '../../../components/TestButton';
 import { useDraft, useFeatures } from '../context';
 import { SettingRow, SubHead } from '../controls';
@@ -170,22 +178,30 @@ export function testRefusal(e: unknown): TranslationKey {
   return (e instanceof ApiError && TEST_REFUSALS[e.code ?? '']) || 'captcha.networkError';
 }
 
+/** The widget vendors go by their own names in every language. */
+const VENDOR_NAMES: Record<Exclude<TestCaptchaKind, 'image'>, string> = {
+  turnstile: 'Turnstile',
+  hcaptcha: 'hCaptcha',
+  recaptcha: 'reCAPTCHA',
+};
+
 /**
- * Puts up a test captcha, which arrives in the captcha window and the phone app
- * like a real one; how the answer compared comes back as a toast from
- * CaptchaModal. The captcha accounts bill a test like any captcha, so it goes
- * to them only from the second button, which shows while one of them could
- * take it.
+ * Puts up a test captcha of the chosen kind, which arrives in the captcha
+ * window and the phone app like a real one; how the answer compared comes back
+ * as a toast from CaptchaModal. The captcha accounts bill a test like any
+ * captcha, so it goes to them only from the second button, which shows while
+ * one of them could take it.
  */
 function TestCaptcha({ solvers }: { solvers: boolean }) {
   const { t } = useT();
   const { toast } = useToast();
+  const [kind, setKind] = useState<TestCaptchaKind>('image');
   const words = { ok: t('test.sent'), fail: t('test.failed') };
 
   // The button says whether the captcha went up; why it did not is a toast.
   const send = (toSolvers: boolean) => async (): Promise<ButtonVerdict> => {
     try {
-      await createTestCaptcha(toSolvers);
+      await createTestCaptcha(toSolvers, kind);
       return 'ok';
     } catch (e) {
       toast(t(testRefusal(e)), 'fail');
@@ -196,6 +212,22 @@ function TestCaptcha({ solvers }: { solvers: boolean }) {
   return (
     <div className="flex flex-col gap-3 pt-4">
       <SubHead label={t('settings.captcha.testTitle')} />
+      <SettingRow label={t('settings.captcha.testKind')} hint={t('settings.captcha.testKindHint')}>
+        <Tabs
+          variant="well"
+          size="sm"
+          inline
+          hug
+          labelled
+          label={t('settings.captcha.testKind')}
+          active={kind}
+          onSelect={(id) => setKind(id as TestCaptchaKind)}
+          items={TEST_CAPTCHA_KINDS.map((id) => ({
+            id,
+            label: id === 'image' ? t('settings.captcha.testKindImage') : VENDOR_NAMES[id],
+          }))}
+        />
+      </SettingRow>
       <div className="flex flex-wrap gap-2">
         <TestButton
           icon={<IconSendTest />}

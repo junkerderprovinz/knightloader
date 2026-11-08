@@ -178,6 +178,7 @@ export function SolverStatus({
  *  it. */
 export function testResultText(t: ReturnType<typeof useT>['t'], r: TestCaptchaResult): string {
   const vars = { want: r.want, given: r.given, solver: r.solver ?? '' };
+  if (r.widget && r.correct) return t(r.solver ? 'captcha.testWidgetSolverRight' : 'captcha.testWidgetRight', vars);
   if (r.solver) return t(r.correct ? 'captcha.testSolverRight' : 'captcha.testSolverWrong', vars);
   return t(r.correct ? 'captcha.testRight' : 'captcha.testWrong', vars);
 }
@@ -485,7 +486,9 @@ export function CaptchaModal() {
     >
       <div className="flex flex-col gap-1">
         <p className="text-sm text-carbon-text" dir="auto">
-          {current.test ? t('captcha.testFor') : t('captcha.forHost', { host: current.host || '?' })}
+          {current.test
+            ? t(current.kind === 'widget' ? 'captcha.testForWidget' : 'captcha.testFor')
+            : t('captcha.forHost', { host: current.host || '?' })}
         </p>
         {current.prompt && (
           <p className="text-xs text-carbon-textSub" dir="auto">

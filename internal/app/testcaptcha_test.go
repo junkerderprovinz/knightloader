@@ -49,7 +49,7 @@ func TestATestCaptchaArrivesAndEndsLikeOneFromJD(t *testing.T) {
 	viewer := addViewer(t, a)
 	jd := answeringTo(a)
 
-	c, err := a.CreateTestCaptcha(false)
+	c, err := a.CreateTestCaptcha(captcha.TestImage, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestATestCaptchaArrivesAndEndsLikeOneFromJD(t *testing.T) {
 func TestATestCaptchaStaysOutOfJDsWayWhenSkipped(t *testing.T) {
 	a := newCaptchaTestApp(t)
 
-	c, err := a.CreateTestCaptcha(false)
+	c, err := a.CreateTestCaptcha(captcha.TestImage, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func TestATestCaptchaShowsWhileJDCannotBeAsked(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	pending(a, imageChallenge("c1"))
 
-	c, err := a.CreateTestCaptcha(false)
+	c, err := a.CreateTestCaptcha(captcha.TestImage, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestNoTestCaptchaWhileCaptchasAreSwitchedOff(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := a.CreateTestCaptcha(false); !errors.Is(err, ErrCaptchaOff) {
+	if _, err := a.CreateTestCaptcha(captcha.TestImage, false); !errors.Is(err, ErrCaptchaOff) {
 		t.Errorf("CreateTestCaptcha with captchas off = %v, want ErrCaptchaOff", err)
 	}
 	if got := a.CaptchaChallenges(); len(got) != 0 {
@@ -144,11 +144,11 @@ func TestATestCaptchaGoesToTheCaptchaAccountsOnlyWhenSentToThem(t *testing.T) {
 	}
 	addViewer(t, a)
 
-	mine, err := a.CreateTestCaptcha(false)
+	mine, err := a.CreateTestCaptcha(captcha.TestImage, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	theirs, err := a.CreateTestCaptcha(true)
+	theirs, err := a.CreateTestCaptcha(captcha.TestImage, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,13 +173,13 @@ func TestNoTestCaptchaForTheCaptchaAccountsWhileNoneHasAKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := a.CreateTestCaptcha(true); !errors.Is(err, ErrNoCaptchaAccount) {
+	if _, err := a.CreateTestCaptcha(captcha.TestImage, true); !errors.Is(err, ErrNoCaptchaAccount) {
 		t.Errorf("CreateTestCaptcha for the accounts without a key = %v, want ErrNoCaptchaAccount", err)
 	}
 	if got := a.CaptchaChallenges(); len(got) != 0 {
 		t.Errorf("a test captcha nobody could take was put up: %+v", got)
 	}
-	if _, err := a.CreateTestCaptcha(false); err != nil {
+	if _, err := a.CreateTestCaptcha(captcha.TestImage, false); err != nil {
 		t.Errorf("a test captcha for people only was refused: %v", err)
 	}
 }
@@ -188,7 +188,7 @@ func TestAWaitingTestCaptchaLeavesTheCaptchaHealthAlone(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	t.Setenv("KL_JD", "http://127.0.0.1:1")
 
-	if _, err := a.CreateTestCaptcha(false); err != nil {
+	if _, err := a.CreateTestCaptcha(captcha.TestImage, false); err != nil {
 		t.Fatal(err)
 	}
 	if row := a.captchaSubsystem(); row.State != StateOK || row.Remedy != "" {
@@ -202,7 +202,7 @@ func TestTheEndOfATestCaptchaSaysItWasATest(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	viewer := addViewer(t, a)
 
-	c, err := a.CreateTestCaptcha(false)
+	c, err := a.CreateTestCaptcha(captcha.TestImage, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,5 +217,24 @@ func TestTheEndOfATestCaptchaSaysItWasATest(t *testing.T) {
 		if json.Unmarshal(raw, &m) == nil && m.Type == "captchaResolved" && m.Data.ID == c.ID && !m.Data.TestCaptcha {
 			t.Errorf("the test captcha ended as %+v, not marked as a test", m.Data)
 		}
+	}
+}
+
+func TestAWidgetTestCaptchaIsAnsweredByItsToken(t *testing.T) {
+	a := newCaptchaTestApp(t)
+
+	c, err := a.CreateTestCaptcha(captcha.VendorHCaptcha, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Kind != captcha.KindWidget || !a.captchaPending(c.ID) {
+		t.Fatalf("challenge %+v, want a pending widget", c)
+	}
+	res, err := a.AnswerCaptcha(context.Background(), c.ID, "10000000-aaaa-bbbb-cccc-000000000001")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Test == nil || !res.Test.Correct || !res.Test.Widget || res.Test.Want != "hCaptcha" {
+		t.Errorf("the answer came back %+v, want a right hCaptcha widget", res.Test)
 	}
 }

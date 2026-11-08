@@ -181,6 +181,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Cloudflare's browser check, the download moves on to JDownloader or a debrid
   service that carries the hoster, and its row says why. If nothing else can
   take the link, the download fails with that reason.
+- **The test captcha comes as a widget too.** Next to the picture, the test
+  captcha under Captcha priority order can be a Cloudflare Turnstile, hCaptcha
+  or reCAPTCHA check, on the test key each service publishes, which always
+  passes. You see that the check opens in the window or the phone app and that
+  its answer comes through. A Turnstile test shows in the phone app only.
 - **Every list you reorder by hand places the moved item the same way.** An
   item passes a neighbour once its leading edge is past the neighbour's
   middle, so a wide card in the overview or a long entry in the settings rail

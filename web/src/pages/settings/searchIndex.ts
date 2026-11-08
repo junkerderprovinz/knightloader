@@ -397,6 +397,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
         { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
         { key: 'settings.captcha.testTitle' },
+        { key: 'settings.captcha.testKind', hint: 'settings.captcha.testKindHint' },
         { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
         { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
       ],

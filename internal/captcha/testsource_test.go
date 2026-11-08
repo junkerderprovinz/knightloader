@@ -3,6 +3,7 @@ package captcha
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"image"
 	"image/color"
 	"image/png"
@@ -13,7 +14,7 @@ import (
 
 func newTestCaptcha(t *testing.T, s *TestSource, solvers bool) (Challenge, string) {
 	t.Helper()
-	c, err := s.New(solvers)
+	c, err := s.New(TestImage, solvers)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,6 +114,50 @@ func TestATestCaptchaIsAnImageThePromptsAndSolversCanUse(t *testing.T) {
 	}
 	if b := img.Bounds(); b.Dx() < 150 || b.Dy() < 50 {
 		t.Errorf("the picture is %dx%d, too small to read", b.Dx(), b.Dy())
+	}
+}
+
+func TestAWidgetTestCaptchaCarriesTheVendorsAlwaysPassingKeyOnANeutralPage(t *testing.T) {
+	for kind, key := range map[string]string{
+		VendorTurnstile: "1x00000000000000000000AA",
+		VendorHCaptcha:  "10000000-ffff-ffff-ffff-000000000001",
+		VendorRecaptcha: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
+	} {
+		s := NewTestSource()
+		c, err := s.New(kind, false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		p, ok := c.Payload.(*WidgetPayload)
+		if !IsTest(c.ID) || !c.Test || c.Kind != KindWidget || !ok {
+			t.Fatalf("%s: challenge = %+v, want a test widget challenge", kind, c)
+		}
+		if p.Vendor != kind || p.SiteKey != key || p.SiteURL != TestPage || p.ContextURL != TestPage {
+			t.Errorf("%s: payload = %+v, want the test key on %s", kind, p, TestPage)
+		}
+	}
+}
+
+func TestAnyTokenAnswersAWidgetTestCaptcha(t *testing.T) {
+	s := NewTestSource()
+	c, err := s.New(VendorTurnstile, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, correct, live := s.Check(c.ID, "XXXX.DUMMY.TOKEN.XXXX")
+	if !live || !correct || want != "Cloudflare Turnstile" {
+		t.Errorf("Check = %q, %v, %v; want the vendor named, right, live", want, correct, live)
+	}
+
+	c, _ = s.New(VendorHCaptcha, false)
+	if _, correct, _ := s.Check(c.ID, " "); correct {
+		t.Error("a blank answer passed a widget test captcha")
+	}
+}
+
+func TestATestCaptchaOfAnUnknownKindIsRefused(t *testing.T) {
+	if _, err := NewTestSource().New("puzzle", false); !errors.Is(err, ErrTestKind) {
+		t.Errorf("err = %v, want ErrTestKind", err)
 	}
 }
 

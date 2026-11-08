@@ -1787,6 +1787,9 @@ export const en = {
   'captcha.testWrong': 'Wrong. The test captcha said {want}, not {given}.',
   'captcha.testSolverRight': '{solver} solved the test captcha: {want}.',
   'captcha.testSolverWrong': '{solver} got the test captcha wrong: it said {want}, not {given}.',
+  'captcha.testForWidget': 'A test captcha from KnightLoader. No download waits on it. Solve the check to see whether its answer comes through.',
+  'captcha.testWidgetRight': 'Right. The {want} test check answered.',
+  'captcha.testWidgetSolverRight': '{solver} solved the {want} test check.',
 
   // The captcha settings page (pages/settings/Captcha.tsx): the solver order
   // and when the solvers start. Their keys are on the Accounts page.
@@ -1801,6 +1804,9 @@ export const en = {
   'settings.captcha.waitHint':
     'How long the captcha accounts wait while someone is watching before they take over anyway. They never wait past half of the time the captcha has left, so a captcha account still has time to answer it. From 10 to 600 seconds.',
   'settings.captcha.testTitle': 'Test captcha',
+  'settings.captcha.testKind': 'Kind',
+  'settings.captcha.testKindHint': 'A picture shows five characters KnightLoader draws. Turnstile, hCaptcha and reCAPTCHA put up the real check of that service on its public test key, which always passes, so you can see that it opens and that its answer comes through. Turnstile runs in the phone app only.',
+  'settings.captcha.testKindImage': 'Picture',
   'settings.captcha.test': 'Send a test captcha',
   'settings.captcha.testHint':
     'Sends a captcha that KnightLoader draws itself. It shows up in the captcha window, in the phone app and at your event targets like one from a hoster, and once it is answered you see whether the answer was right. No download waits on it, and it does not go to your captcha accounts.',

@@ -103,7 +103,7 @@ describe('the captcha priority card', () => {
     await drawCard([]);
     expect(host.querySelector('[role="switch"][aria-label="Captcha"]')).not.toBeNull();
     expect(host.querySelector('a[href]')).toBeNull();
-    const row = [...host.querySelectorAll('button:not([role="switch"])')].filter((b) => b.closest('.flex-wrap'));
+    const row = [...host.querySelectorAll('button:not([role="switch"]):not([role="tab"])')].filter((b) => b.closest('.flex-wrap'));
     expect(row.map((b) => b.textContent)).toEqual(['Send a test captcha', 'Send one to the captcha accounts too']);
     expect(host.textContent).toContain('When captcha accounts start');
     expect(host.textContent).toContain('Send one to the captcha accounts too');
@@ -122,6 +122,46 @@ describe('the captcha priority card', () => {
       grip('2Captcha')!.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowUp' }));
     });
     expect(patch).toHaveBeenCalledWith({ captchaSolverOrder: ['2captcha', 'capsolver', '9kw'] });
+  });
+});
+
+describe('the test captcha', () => {
+  /** sendAs picks kind, unless it is null, sends one test captcha and returns what went out. */
+  async function sendAs(kind: string | null): Promise<unknown[]> {
+    const sent: unknown[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url === '/api/captcha/test') sent.push(JSON.parse(String(init?.body)));
+        return new Response('{"id":"test-1"}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }),
+    );
+    await drawCard([]);
+    if (kind) {
+      const tab = [...host.querySelectorAll<HTMLElement>('[role="tab"]')].find((t) => t.textContent === kind)!;
+      await act(async () => tab.click());
+    }
+    const send = [...host.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === 'Send a test captcha')!;
+    await act(async () => send.click());
+    return sent;
+  }
+
+  it('offers a picture and the three widget vendors', async () => {
+    await drawCard([]);
+    expect([...host.querySelectorAll('[role="tab"]')].map((t) => t.textContent)).toEqual([
+      'Picture',
+      'Turnstile',
+      'hCaptcha',
+      'reCAPTCHA',
+    ]);
+  });
+
+  it('goes up as a picture until another kind is picked', async () => {
+    expect(await sendAs(null)).toEqual([{ solvers: false, kind: 'image' }]);
+  });
+
+  it('goes up as the widget picked', async () => {
+    expect(await sendAs('hCaptcha')).toEqual([{ solvers: false, kind: 'hcaptcha' }]);
   });
 });
 

@@ -66,15 +66,23 @@ func registerCaptcha(reg *Registry, a *app.App) {
 			writeJSON(w, res)
 		})
 
-	reg.Add(http.MethodPost, "/api/captcha/test", "put up a test captcha, a picture of five characters this instance drew, which arrives and is answered like a real one and says whether the answer was right; it goes to the paid captcha accounts only with solvers set, since they bill it",
+	reg.Add(http.MethodPost, "/api/captcha/test", "put up a test captcha of kind image (the default, a picture of five characters this instance drew), turnstile, hcaptcha or recaptcha (the vendor's widget on its always-passing test key), which arrives and is answered like a real one and says whether the answer was right; it goes to the paid captcha accounts only with solvers set, since they bill it",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
-				Solvers bool `json:"solvers"`
+				Kind    string `json:"kind"`
+				Solvers bool   `json:"solvers"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			c, err := a.CreateTestCaptcha(body.Solvers)
+			if body.Kind == "" {
+				body.Kind = captcha.TestImage
+			}
+			c, err := a.CreateTestCaptcha(body.Kind, body.Solvers)
+			if errors.Is(err, captcha.ErrTestKind) {
+				http.Error(w, err.Error()+": "+body.Kind, http.StatusBadRequest)
+				return
+			}
 			if err != nil {
 				code := ""
 				switch {

@@ -382,6 +382,8 @@ describe('a test captcha', () => {
         testResultText(t, { correct: false, want: 'K7PQX', given: 'K7PQ' }),
         testResultText(t, { correct: true, want: 'K7PQX', given: 'K7PQX', solver: '2Captcha' }),
         testResultText(t, { correct: false, want: 'K7PQX', given: 'X7PQK', solver: '2Captcha' }),
+        testResultText(t, { correct: true, want: 'hCaptcha', given: '10000000-aaaa-bbbb-cccc-000000000001', widget: true }),
+        testResultText(t, { correct: true, want: 'reCAPTCHA', given: '03AFcWeA', widget: true, solver: '2Captcha' }),
       ];
       return null;
     }
@@ -397,6 +399,8 @@ describe('a test captcha', () => {
       'Wrong. The test captcha said K7PQX, not K7PQ.',
       '2Captcha solved the test captcha: K7PQX.',
       '2Captcha got the test captcha wrong: it said K7PQX, not X7PQK.',
+      'Right. The hCaptcha test check answered.',
+      '2Captcha solved the reCAPTCHA test check.',
     ]);
   });
 });

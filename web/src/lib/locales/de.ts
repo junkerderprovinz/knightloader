@@ -1578,6 +1578,9 @@ export const de: Dict = {
   'captcha.testWrong': 'Falsch. Im Test-Captcha stand {want}, nicht {given}.',
   'captcha.testSolverRight': '{solver} hat das Test-Captcha gelöst: {want}.',
   'captcha.testSolverWrong': '{solver} hat das Test-Captcha falsch gelöst: Da stand {want}, nicht {given}.',
+  'captcha.testForWidget': 'Ein Test-Captcha von KnightLoader. Kein Download wartet darauf. Löse die Prüfung, dann siehst du, ob ihre Antwort ankommt.',
+  'captcha.testWidgetRight': 'Richtig. Die Testprüfung von {want} hat geantwortet.',
+  'captcha.testWidgetSolverRight': '{solver} hat die Testprüfung von {want} gelöst.',
 
   'settings.captcha.orderTitle': 'Prioritätsreihenfolge Captchas',
   'settings.captcha.orderHint': 'Jedes verbundene Captcha-Konto, das eingeschaltet ist, wird in dieser Reihenfolge versucht, von oben nach unten. Ist keins da, oder scheitern oder verzichten alle, wirst du direkt gefragt. Ausschalten kannst du ein Konto unter „{accounts}“.',
@@ -1588,6 +1591,9 @@ export const de: Dict = {
   'settings.captcha.wait': 'Auf eine Antwort warten (Sekunden)',
   'settings.captcha.waitHint': 'Wie lange die Captcha-Konten warten, solange jemand zuschaut, bevor sie trotzdem übernehmen. Sie warten nie länger als die Hälfte der Zeit, die dem Captcha noch bleibt, damit ein Captcha-Konto es noch rechtzeitig beantworten kann. 10 bis 600 Sekunden.',
   'settings.captcha.testTitle': 'Test-Captcha',
+  'settings.captcha.testKind': 'Art',
+  'settings.captcha.testKindHint': 'Ein Bild zeigt fünf Zeichen, die KnightLoader zeichnet. Turnstile, hCaptcha und reCAPTCHA zeigen die echte Prüfung des Dienstes mit seinem öffentlichen Testschlüssel, der immer durchgeht. So siehst du, ob sie sich öffnet und ob ihre Antwort ankommt. Turnstile läuft nur in der Handy-App.',
+  'settings.captcha.testKindImage': 'Bild',
   'settings.captcha.test': 'Test-Captcha senden',
   'settings.captcha.testHint':
     'Schickt ein Captcha, das KnightLoader selbst zeichnet. Es taucht im Captcha-Fenster, in der Handy-App und bei deinen Ereigniszielen auf wie eins von einem Hoster, und sobald es beantwortet ist, siehst du, ob die Antwort stimmt. Kein Download wartet darauf, und es geht nicht an deine Captcha-Konten.',
