@@ -17,11 +17,11 @@ func (idleEngine) Resume(string)                                                
 func (idleEngine) Remove(string, bool)                                                 {}
 
 func TestAWaitResumedAfterAPauseStillCountsAsWaitingWhenThePausedOneWindsDown(t *testing.T) {
-	tasks := NewTasks(idleEngine{}, func(string, core.Update) {}, Config{
+	login := NewLogin(Signer{Reason: func(error) core.Reason { return core.ReasonUnknown }})
+	tasks := NewTasks(login, idleEngine{}, func(string, core.Update) {}, Config{
 		Unlock: func(_ context.Context, _, _ string, delay func(time.Duration) error) (string, int64, error) {
 			return "", 0, delay(90 * time.Second)
 		},
-		Reason:   func(error) core.Reason { return core.ReasonUnknown },
 		WaitNote: "waiting %s",
 	})
 	waiting := make(chan struct{}, 2)

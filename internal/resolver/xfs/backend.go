@@ -9,6 +9,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/hoster"
+	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 )
 
 // Downloader is the byte-transfer backend the download link is handed to.
@@ -51,6 +52,8 @@ type LoginState struct {
 // the engine. A wait keeps the task running with the time left in its note.
 type Backend struct {
 	*hoster.Runs
+	// Handback gives the login to JDownloader when the client cannot use it.
+	ownlogin.Handback
 
 	client   *Client
 	site     *Site
@@ -96,12 +99,13 @@ func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.U
 func (b *Backend) Client() *Client { return b.client }
 
 // Premium reports whether the stored login was last found with premium and
-// traffic left. It asks nothing, so the app may call it holding its lock.
+// traffic left, and is not with JDownloader. It asks nothing, so the app may
+// call it holding its lock.
 func (b *Backend) Premium() bool {
 	b.stateMu.Lock()
 	defer b.stateMu.Unlock()
 	st := b.state
-	return b.known && !st.Refused && st.Premium && (st.TrafficMax == 0 || st.TrafficLeft > 0)
+	return b.known && !st.Refused && st.Premium && (st.TrafficMax == 0 || st.TrafficLeft > 0) && !b.Handed()
 }
 
 // LoginStatus is what is known about the stored login, and whether a sign-in
@@ -122,6 +126,7 @@ func (b *Backend) Forget() {
 	b.stateMu.Lock()
 	b.state, b.known = LoginState{}, false
 	b.stateMu.Unlock()
+	b.Reclaim()
 }
 
 // CheckLogin reads the account page for the plan and the traffic left. It
@@ -139,6 +144,7 @@ func (b *Backend) CheckLogin(ctx context.Context, signIn bool) {
 		}
 		if err != nil {
 			b.learn(err, nil)
+			b.Fail(err, misread(err))
 			return
 		}
 		acct, err := b.client.Account(ctx, s)
@@ -147,6 +153,9 @@ func (b *Backend) CheckLogin(ctx context.Context, signIn bool) {
 			continue
 		}
 		b.learn(err, &acct)
+		if err != nil {
+			b.Fail(err, misread(err))
+		}
 		return
 	}
 }
@@ -239,15 +248,25 @@ func (b *Backend) learnAccount(change func(*Account)) {
 // run is one go at a download, with the connections the site allows rather
 // than those the task asks for.
 func (b *Backend) run(ctx context.Context, taskID, link string, _ int) {
+	// A download routed here before the login went to JDownloader follows
+	// the login.
+	if b.Handed() {
+		b.handBack(taskID, errors.New("the login is with JDownloader"))
+		return
+	}
+	premium := b.Premium()
 	captchas := 1
 	for {
-		direct, conns, err := b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.wait(ctx, taskID, d) })
+		direct, conns, err := b.unlock(ctx, taskID, link, premium, func(d time.Duration) error { return b.wait(ctx, taskID, d) })
 		var w *WaitError
 		switch {
 		case ctx.Err() != nil:
 			// Pause and Remove set the task's state themselves.
 			return
 		case err == nil:
+			if premium {
+				b.Worked()
+			}
 			b.handOn(ctx, taskID, link, direct, conns)
 			return
 		case errors.As(err, &w):
@@ -256,6 +275,9 @@ func (b *Backend) run(ctx context.Context, taskID, link string, _ int) {
 			}
 		case errors.Is(err, ErrCaptchaRefused) && captchas < maxCaptchaTries:
 			captchas++
+		case premium && (b.Fail(err, misread(err)) || b.Handed() && ownlogin.Unexplained(misread(err))):
+			b.handBack(taskID, err)
+			return
 		default:
 			b.fail(taskID, err)
 			return
@@ -264,10 +286,10 @@ func (b *Backend) run(ctx context.Context, taskID, link string, _ int) {
 }
 
 // unlock fetches the download link and the connections it may use, on the
-// login while it has premium and for free otherwise. countdown sits out the
+// login when premium is set and for free otherwise. countdown sits out the
 // free page's countdown.
-func (b *Backend) unlock(ctx context.Context, taskID, link string, countdown func(time.Duration) error) (string, int, error) {
-	if b.Premium() {
+func (b *Backend) unlock(ctx context.Context, taskID, link string, premium bool, countdown func(time.Duration) error) (string, int, error) {
+	if premium {
 		direct, err := b.unlockPremium(ctx, taskID, link)
 		return direct, b.site.PremiumConns, err
 	}
@@ -397,7 +419,7 @@ func (b *Backend) handOn(ctx context.Context, taskID, link, direct string, conns
 		return
 	}
 	b.eng.Handover(taskID, direct, conns, func(ctx context.Context) (string, error) {
-		direct, _, err := b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.Sleep(ctx, d) })
+		direct, _, err := b.unlock(ctx, taskID, link, b.Premium(), func(d time.Duration) error { return b.Sleep(ctx, d) })
 		return direct, err
 	})
 }
@@ -438,21 +460,41 @@ func (b *Backend) save(cookies string) {
 
 // fail reports err, named after the site, with the cause the backend knows.
 func (b *Backend) fail(taskID string, err error) {
-	u := core.Update{Status: core.StatusError, Err: b.site.Name + ": " + err.Error()}
+	b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: b.site.Name + ": " + err.Error(), Reason: reasonOf(err)})
+}
+
+// handBack hands the download to the next backend, which is JDownloader on
+// the login once the reconciler has given it there.
+func (b *Backend) handBack(taskID string, err error) {
+	b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: b.site.Name + ": " + err.Error(),
+		Unsupported: true, Takeover: b.site.Name})
+}
+
+func reasonOf(err error) core.Reason {
 	var w *WaitError
 	switch {
 	case errors.Is(err, ErrGone):
-		u.Reason = core.ReasonGone
+		return core.ReasonGone
 	case errors.Is(err, ErrTraffic):
-		u.Reason = core.ReasonLimit
+		return core.ReasonLimit
 	case errors.Is(err, ErrNoAnswer), errors.Is(err, ErrCaptchaRefused):
-		u.Reason = core.ReasonCaptcha
+		return core.ReasonCaptcha
 	case errors.Is(err, ErrPremiumOnly), errors.Is(err, ErrPassword), errors.Is(err, ErrPasswordRefused),
 		errors.Is(err, ErrPremiumExpired), errors.Is(err, ErrLoginRefused), errors.Is(err, ErrSignInBlocked),
 		errors.Is(err, ErrSignInFailed), errors.Is(err, ErrNoLogin):
-		u.Reason = core.ReasonAuth
+		return core.ReasonAuth
 	case errors.As(err, &w):
-		u.Reason = core.ReasonUnavailable
+		return core.ReasonUnavailable
 	}
-	b.onUpdate(taskID, u)
+	return core.ReasonUnknown
+}
+
+// misread is how a failure on the login is weighed (see ownlogin.Handback):
+// by its cause, except a sign-in the site neither took nor turned down in
+// words the client knows, which may be the client misreading the page.
+func misread(err error) core.Reason {
+	if errors.Is(err, ErrSignInFailed) {
+		return core.ReasonUnknown
+	}
+	return reasonOf(err)
 }

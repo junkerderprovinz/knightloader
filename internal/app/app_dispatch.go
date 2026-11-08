@@ -245,7 +245,7 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 			// resolver wins the tie, so its row goes right above.
 			host := hostalias.Canonical(l.Host)
 			prio, byJD := loginPrio(order, host)
-			own := ownLogin(host)
+			own := ownLogin(host) && !l.HandedOver
 			rank := 2 * prio
 			if byJD && own {
 				rank++
@@ -1535,6 +1535,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 	var named []taskCopy
 	if u.Status == core.StatusDone {
 		t.Online = core.AvailOnline
+		t.Takeover = ""
 		// A link check that answered while the download ran can have left a
 		// reason the finished file disproves.
 		t.ClearFailure()
@@ -1584,6 +1585,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// it (see handOnLocked).
 	var fallbackTo backend
 	if u.Status == core.StatusError && u.Unsupported {
+		if u.Takeover != "" {
+			t.Takeover = u.Takeover
+		}
 		if next := a.nextResolverLocked(t); next != "" {
 			fallbackTo = a.backendFor(t.Resolver)
 			log.Printf("task %s: %s could not fetch the link, trying %s", id, t.Resolver, next)

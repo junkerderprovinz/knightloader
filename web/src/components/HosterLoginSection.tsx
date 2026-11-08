@@ -232,6 +232,9 @@ function loginDetail(t: (key: TranslationKey) => string, login: HosterLogin): st
 function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
   const { t } = useT();
   const detail = loginDetail(t, login);
+  // Beside JD's word on the login, why JD has a login KnightLoader signs in
+  // with itself.
+  const handed = login.handedOver && <InfoBubble tip={t('accounts.hoster.handedOver', { host: login.host })} />;
   switch (login.status) {
     case 'off':
       // Not "queued": JD does not have a switched-off login at all.
@@ -246,6 +249,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
         <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusOk">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
           {t('accounts.hoster.status.active')}
+          {handed}
         </span>
       );
     case 'rejected':
@@ -254,6 +258,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
           {t('accounts.hoster.status.rejected')}
           {detail && <InfoBubble tip={detail} />}
+          {handed}
         </span>
       );
     default:
@@ -264,6 +269,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
           {t('accounts.hoster.status.queued')}
           {detail && <InfoBubble tip={detail} />}
+          {handed}
         </span>
       );
   }

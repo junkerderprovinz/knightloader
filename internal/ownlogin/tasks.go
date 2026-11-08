@@ -27,9 +27,10 @@ type Unlock func(ctx context.Context, taskID, link string, delay func(time.Durat
 
 // Config is what a hoster brings to the downloads on its login.
 type Config struct {
+	// Name is the hoster as a download names it when it goes on to the next
+	// backend with the login.
+	Name   string
 	Unlock Unlock
-	// Reason is the cause a failed unlock is reported with.
-	Reason func(error) core.Reason
 	// WaitNote is the task's note during a wait the link comes with, %s
 	// standing for the time left.
 	WaitNote string
@@ -53,18 +54,26 @@ type Tasks struct {
 	// Sleep waits d, or less when ctx ends first.
 	Sleep func(ctx context.Context, d time.Duration) error
 
+	login    *Login
 	eng      Downloader
 	onUpdate func(taskID string, u core.Update)
 	cfg      Config
 }
 
-func NewTasks(eng Downloader, onUpdate func(taskID string, u core.Update), cfg Config) *Tasks {
-	t := &Tasks{Sleep: hoster.Sleep, eng: eng, onUpdate: onUpdate, cfg: cfg}
+// NewTasks runs the downloads that go out on login.
+func NewTasks(login *Login, eng Downloader, onUpdate func(taskID string, u core.Update), cfg Config) *Tasks {
+	t := &Tasks{Sleep: hoster.Sleep, login: login, eng: eng, onUpdate: onUpdate, cfg: cfg}
 	t.Runs = hoster.NewRuns(eng, onUpdate, t.run, func(ctx context.Context, d time.Duration) error { return t.Sleep(ctx, d) })
 	return t
 }
 
 func (t *Tasks) run(ctx context.Context, taskID, link string, conns int) {
+	// A download routed here before the login went to JDownloader follows
+	// the login.
+	if t.login.Handed() {
+		t.handBack(taskID, t.cfg.Name+": the login is with JDownloader")
+		return
+	}
 	busy := 0
 	for {
 		direct, size, err := t.cfg.Unlock(ctx, taskID, link, func(d time.Duration) error {
@@ -75,6 +84,7 @@ func (t *Tasks) run(ctx context.Context, taskID, link string, conns int) {
 			// Pause and Remove set the task's state themselves.
 			return
 		case err == nil:
+			t.login.Worked()
 			t.handOn(ctx, taskID, link, direct, size, conns)
 			return
 		case t.cfg.Busy != nil && errors.Is(err, t.cfg.Busy) && busy < t.cfg.MaxBusy:
@@ -83,10 +93,31 @@ func (t *Tasks) run(ctx context.Context, taskID, link string, conns int) {
 				return
 			}
 		default:
-			t.onUpdate(taskID, core.Update{Status: core.StatusError, Err: err.Error(), Reason: t.cfg.Reason(err)})
+			t.fail(taskID, err)
 			return
 		}
 	}
+}
+
+// fail reports err, unless the login went to JDownloader over it or before
+// it, which takes the download along. A pause between sign-ins the hoster
+// keeps asking for counts against nothing, since JDownloader would be asked
+// for the same.
+func (t *Tasks) fail(taskID string, err error) {
+	reason := t.login.s.Reason(err)
+	if t.cfg.Busy == nil || !errors.Is(err, t.cfg.Busy) {
+		if t.login.Fail(err, reason) || t.login.Handed() && Unexplained(reason) {
+			t.handBack(taskID, err.Error())
+			return
+		}
+	}
+	t.onUpdate(taskID, core.Update{Status: core.StatusError, Err: err.Error(), Reason: reason})
+}
+
+// handBack hands the download to the next backend, which is JDownloader on
+// the login once the reconciler has given it there.
+func (t *Tasks) handBack(taskID, why string) {
+	t.onUpdate(taskID, core.Update{Status: core.StatusError, Err: why, Unsupported: true, Takeover: t.cfg.Name})
 }
 
 // handOn gives the link to the engine, on one connection for a small file.

@@ -101,6 +101,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
+- **A login KnightLoader cannot use goes back to JDownloader.** When
+  KnightLoader's own client for Rapidgator, Keep2Share, FileBoom, TezFiles,
+  Nitroflare or one of the XFileSharing hosters cannot use your login, because
+  the hoster answers in a way the client does not understand or keeps failing
+  without saying why, JDownloader gets the login and signs in with it as
+  before. The login's row says that JDownloader has taken over, and a download
+  that was on its way moves on to the next backend instead of failing. A
+  wrong password stays with KnightLoader and shows on the row. Save the login
+  again, or switch it off and on, to have KnightLoader try once more.
 - **Every list you reorder by hand places the moved item the same way.** An
   item passes a neighbour once its leading edge is past the neighbour's
   middle, so a wide card in the overview or a long entry in the settings rail

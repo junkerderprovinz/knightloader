@@ -56,11 +56,11 @@ type Backend struct {
 func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
 	b := &Backend{client: c, onUpdate: onUpdate, sleep: hoster.Sleep, inspectPause: 500 * time.Millisecond}
 	b.Login = ownlogin.NewLogin(ownlogin.Signer{
-		Login: c.Login, Account: c.User, Expired: func(err error) bool { return errors.Is(err, errSession) },
+		Login: c.Login, Account: c.User, Reason: reason, Expired: func(err error) bool { return errors.Is(err, errSession) },
 		Age: sessionAge, None: ErrNoLogin,
 	})
-	b.Tasks = ownlogin.NewTasks(eng, onUpdate, ownlogin.Config{
-		Unlock: b.unlock, Reason: reason,
+	b.Tasks = ownlogin.NewTasks(b.Login, eng, onUpdate, ownlogin.Config{
+		Name: "Rapidgator", Unlock: b.unlock,
 		WaitNote: "Waiting for Rapidgator: %s left",
 		Busy:     ErrBusy, BusyWait: loginWait, MaxBusy: maxBusy,
 		BusyNote:  "Rapidgator asks for a pause between sign-ins, next try in %s",

@@ -320,6 +320,28 @@ A debrid service that carries 1fichier and a 1fichier login in JDownloader
 have no such waits, so both go first. With **Allow free downloads** off, a
 1fichier link waits for one of them.
 
+## When KnightLoader cannot use a login
+
+Rapidgator, Keep2Share, FileBoom, TezFiles, Nitroflare, ddownload, KatFile,
+Clicknupload, FileSpace and Uploadrar logins stay with KnightLoader, which
+signs in to these hosters itself, and JDownloader never sees them. If
+KnightLoader's own client cannot use one of them, because the hoster answers
+in a way the client does not understand or keeps failing three times in a row
+without saying why, the login goes back to JDownloader, which signs in through
+its own plugin. The login's
+row then shows what JDownloader says about it, with a note that JDownloader
+has taken over, and the hoster's links go to JDownloader again. A download
+that was on its way moves on to the next backend on the priority card instead
+of failing, and its row says why.
+
+A hoster that turns the login down, for a wrong password for instance, keeps
+the login with KnightLoader and shows it on the row. JDownloader would be
+turned down too, and a hoster blocks an address that keeps trying. A hoster
+that cannot be reached at all changes nothing either.
+
+To give KnightLoader another try, save the login again or switch it off and on.
+KnightLoader checks it once more and takes it back if its client works with it.
+
 ## Rapidgator
 
 With your Rapidgator premium login saved under **Hoster accounts** on the

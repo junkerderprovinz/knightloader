@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"net/http"
 	"os"
 	"slices"
 	"testing"
@@ -40,7 +41,7 @@ const k2sFile = "2cfa1607527dc"
 func useKeep2Share(a *App, srv *k2stest.Server) {
 	h := keep2share.Keep2Share
 	b := keep2share.NewBackend(h, keep2share.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
-	b.Checked = a.refreshPremiumHolds
+	b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
 	useOwnHoster(a, &ownHoster{id: h.ID, site: h.Site, normalize: h.Normalize, be: b, res: keep2share.Resolver{Backend: b}})
 }
 
@@ -56,7 +57,7 @@ const nfFile = "CDB87F04326E3EE"
 // useNitroflare points the app's Nitroflare client at srv.
 func useNitroflare(a *App, srv *nftest.Server) {
 	b := nitroflare.NewBackend(nitroflare.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
-	b.Checked = a.refreshPremiumHolds
+	b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
 	useOwnHoster(a, &ownHoster{id: nitroflare.ResolverID, site: nitroflare.Site, normalize: nitroflare.Normalize,
 		be: b, res: nitroflare.Resolver{Backend: b}})
 }
@@ -203,5 +204,76 @@ func TestANitroflareFileIsNamedInTheCollectorAndDownloaded(t *testing.T) {
 	got, err := os.ReadFile(file)
 	if err != nil || !bytes.Equal(got, body) {
 		t.Errorf("%s does not hold the file (%v)", file, err)
+	}
+}
+
+func TestALoginTheOwnClientCannotUseGoesToJDAndComesBackWhenSavedAgain(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.Registry.Register(jd.Resolver{})
+	jd.SetKnownHosts([]string{"keep2share.cc"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	srv := k2sServer(t, false)
+	srv.Fail("login", http.StatusBadRequest, 99, "Something the API never said before", 0)
+	useKeep2Share(a, srv)
+	const link = "https://k2s.cc/file/" + k2sFile + "/a.rar"
+
+	if err := a.SetHosterLogin("k2s.cc", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "the row saying JD has the login", func() bool {
+		row, ok := loginRow(a, "k2s.cc")
+		return ok && row.HandedOver && row.Enabled
+	})
+	if got := chainIDs(a, link); slices.Contains(got, keep2share.Keep2Share.ID) {
+		t.Errorf("chain = %v, want the links gone from KnightLoader's client", got)
+	}
+	for _, r := range a.ResolverPriority("") {
+		if r.ID == loginRowID("k2s.cc") && r.OwnLogin {
+			t.Error("the card marks the login as KnightLoader's own")
+		}
+	}
+
+	if err := a.SetHosterLogin("k2s.cc", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "the login back with KnightLoader", func() bool {
+		row, ok := loginRow(a, "k2s.cc")
+		return ok && !row.HandedOver && row.Status == hosterauth.StatusActive && row.Tier == "premium"
+	})
+	if got := chainIDs(a, link); len(got) == 0 || got[0] != keep2share.Keep2Share.ID {
+		t.Errorf("chain = %v, want KnightLoader's client first again", got)
+	}
+}
+
+func TestADownloadTheOwnClientGaveUpOnMovesToTheNextBackendNamingTheTakeover(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.Registry.Register(jd.Resolver{})
+	jd.SetKnownHosts([]string{"keep2share.cc"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	task := &core.Task{ID: "1", URL: "https://k2s.cc/file/" + k2sFile, Resolver: keep2share.Keep2Share.ID, Status: core.StatusRunning, Enabled: true}
+	a.mu.Lock()
+	a.tasks[task.ID] = task
+	a.active[task.ID] = true
+	a.started[task.ID] = true
+	a.mu.Unlock()
+
+	a.onUpdate(task.ID, core.Update{Status: core.StatusError, Err: "Keep2Share: the answer does not read",
+		Unsupported: true, Takeover: "Keep2Share"})
+	a.mu.Lock()
+	resolverID, takeover, failed := task.Resolver, task.Takeover, task.Status == core.StatusError
+	a.mu.Unlock()
+	if resolverID != "jd" || takeover != "Keep2Share" || failed {
+		t.Errorf("task on %q with takeover %q, failed %v; want it with JD, naming Keep2Share", resolverID, takeover, failed)
+	}
+
+	a.mu.Lock()
+	a.active[task.ID] = true
+	a.mu.Unlock()
+	a.onUpdate(task.ID, core.Update{Status: core.StatusDone})
+	a.mu.Lock()
+	takeover = task.Takeover
+	a.mu.Unlock()
+	if takeover != "" {
+		t.Errorf("a finished download still names the takeover %q", takeover)
 	}
 }

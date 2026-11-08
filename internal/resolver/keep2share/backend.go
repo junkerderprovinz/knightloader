@@ -54,12 +54,13 @@ func NewBackend(h Host, c *Client, eng Downloader, onUpdate func(taskID string, 
 			acct, err := c.Account(ctx, token)
 			return acct, b.named(err)
 		},
+		Reason:  reason,
 		Expired: func(err error) bool { return errors.Is(err, errSession) },
 		None:    b.named(ErrNoLogin),
 	})
-	b.Tasks = ownlogin.NewTasks(eng, onUpdate, ownlogin.Config{
+	b.Tasks = ownlogin.NewTasks(b.Login, eng, onUpdate, ownlogin.Config{
+		Name:   h.Name,
 		Unlock: b.unlock,
-		Reason: reason,
 		Busy:   ErrBusy, BusyWait: loginWait, MaxBusy: 1,
 		BusyNote: h.Name + " counted too many sign-ins and asks for a pause, next try in %s",
 	})

@@ -1005,6 +1005,16 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
       {/* A debrid service fetching a torrent onto its own servers, whose
           progress the bar shows until the files start coming here. */}
       {!task.note && task.status === 'running' && task.remote && <RemoteNote task={task} remote={task.remote} t={t} />}
+      {/* Why JDownloader has a download KnightLoader's own client for the
+          hoster started: the client could not use the login. */}
+      {!task.note && task.takeover && task.status !== 'done' && (
+        <Tip
+          tip={t('task.takeover', { host: task.takeover })}
+          className="min-w-0 truncate text-meta text-carbon-textMuted"
+        >
+          {t('task.takeover', { host: task.takeover })}
+        </Tip>
+      )}
       {/* Why a queued row is not running: the slot count is full, this host is
           at its ceiling, the account behind the only backend that claims the
           link is benched. Without it ten queued rows all say "waiting" and
@@ -1014,7 +1024,7 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
           Only when there is no note: a backend's sentence about what it is
           doing right now is more specific than our reason for not having
           started it, and two greys on one line stop the cell being readable. */}
-      {!task.note && task.waiting && !queueWideWaiting.has(task.waiting) && (
+      {!task.note && !task.takeover && task.waiting && !queueWideWaiting.has(task.waiting) && (
         // A bubble for the same reason task.note has one: this column is narrow
         // by default and several of these reasons are longer in German than the
         // space they get, so the ellipsis needs somewhere to lead.

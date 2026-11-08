@@ -33,6 +33,11 @@ Accounts page decides; that includes a magnet link, which a debrid service that
 takes torrents can fetch in place of the torrent client. JDownloader, yt-dlp and the direct download always come
 last, because which of them fits depends on the link.
 
+A login KnightLoader signs in with itself is kept from JDownloader, so the
+hoster sees one sign-in. When KnightLoader's own client cannot use it, the
+login goes back to JDownloader and the hoster's links follow it there, until a
+check with KnightLoader's client works again (`internal/ownlogin`).
+
 The rate limit lives in a loopback proxy because the embedded engine offers no
 hook for one. Everything else is a plain Go package with its own tests.
 

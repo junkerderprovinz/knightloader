@@ -74,6 +74,9 @@ type LoginState struct {
 	// Enabled is the user's own switch: Status says what JD thinks, Enabled
 	// says whether JD was ever asked. The row needs both.
 	Enabled bool `json:"enabled"`
+	// HandedOver is a login KnightLoader signs in with itself whose client
+	// could not use it, so JD has it and the row says what JD thinks.
+	HandedOver bool `json:"handedOver,omitempty"`
 
 	// What JD knows about the account itself. Every field is optional: JD
 	// answers -1 or 0 for an account it has nothing to say about, and that has
@@ -229,6 +232,9 @@ func (r *Reconciler) Run(ctx context.Context) {
 	}
 }
 
+// Pass runs one pass at once, keeping a failure in the log as Run does.
+func (r *Reconciler) Pass(ctx context.Context) { r.reconcileAndLog(ctx) }
+
 func (r *Reconciler) reconcileAndLog(ctx context.Context) {
 	if _, err := r.Reconcile(ctx); err != nil && !errors.Is(err, errJDNotConfigured) {
 		log.Printf("hosterauth: reconcile against JD failed (will retry): %v", err)
@@ -326,7 +332,7 @@ func (r *Reconciler) desired() []DesiredLogin {
 		if err != nil || cred.IsZero() {
 			continue
 		}
-		if _, own := r.own(h); own || !r.enabled(h) {
+		if o, own := r.own(h); own && !o.Handed || !r.enabled(h) {
 			continue
 		}
 		out = append(out, DesiredLogin{Host: h, Username: cred.Username, Password: cred.Password,
@@ -425,7 +431,9 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 }
 
 // setActive hands the logins JD confirmed to routing (jd.SetHostActive) and
-// reports whether they differ from the last pass's.
+// reports whether they differ from the last pass's. A host the last pass made
+// active and this one leaves out, such as a login KnightLoader's own client
+// took back, leaves routing too.
 func (r *Reconciler) setActive(states map[string]LoginState) bool {
 	active := map[string]bool{}
 	for host, st := range states {
@@ -437,6 +445,11 @@ func (r *Reconciler) setActive(states map[string]LoginState) bool {
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	for host := range r.active {
+		if !active[host] {
+			jdresolver.SetHostActive(host, false)
+		}
+	}
 	changed := !maps.Equal(active, r.active)
 	r.active = active
 	return changed
@@ -534,7 +547,7 @@ func (r *Reconciler) States() []LoginState {
 			out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusOff,
 				Detail: "switched off, so KnightLoader is not using this login", Code: codeOwnOff})
 			continue
-		case isOwn:
+		case isOwn && !own.Handed:
 			out = append(out, own.row(h, cred.Username))
 			continue
 		}
@@ -543,13 +556,13 @@ func (r *Reconciler) States() []LoginState {
 				Detail: "switched off, so JDownloader is not using this login", Code: codeOff})
 			continue
 		}
-		if st, ok := r.states[h]; ok {
-			st.Enabled = true
-			out = append(out, st)
-			continue
+		st, ok := r.states[h]
+		if !ok {
+			st = LoginState{Host: h, Username: cred.Username, Status: StatusQueued,
+				Detail: "waiting for the next check", Code: codeWaiting}
 		}
-		out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusQueued,
-			Detail: "waiting for the next check", Code: codeWaiting, Enabled: true})
+		st.Enabled, st.HandedOver = true, isOwn
+		out = append(out, st)
 	}
 	return out
 }
@@ -573,6 +586,9 @@ type OwnState struct {
 	Detail  string
 	// Captcha is a refusal until the user solves a captcha at the hoster.
 	Captcha bool
+	// Handed is a login the client could not use and gave to JD, which
+	// then signs in with it and has the row.
+	Handed  bool
 	Premium bool
 	Expiry  time.Time
 	// TrafficLeft and TrafficMax are bytes, 0 when the plan has no quota.
@@ -629,7 +645,7 @@ func (r *Reconciler) TrafficSpent(host string) bool {
 		if accountKey(h) != key {
 			continue
 		}
-		if o, ok := r.own(h); ok && o.Checked && !o.Refused && spent(o.TrafficLeft, o.TrafficMax) {
+		if o, ok := r.own(h); ok && o.Checked && !o.Refused && !o.Handed && spent(o.TrafficLeft, o.TrafficMax) {
 			return true
 		}
 	}

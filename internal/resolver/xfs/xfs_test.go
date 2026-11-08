@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"testing/fstest"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -328,6 +329,71 @@ func TestAPremiumFormThatAsksForACaptchaToo(t *testing.T) {
 	awaitHandoff(t, eng)
 	if !b.Premium() || len(h.captchas) != 1 || h.captchas[0].Kind != xfs.Recaptcha {
 		t.Errorf("premium %v after captchas %+v, want the premium form's captcha answered", b.Premium(), h.captchas)
+	}
+}
+
+// noLink is a page after the download form the client cannot read a link
+// from.
+var noLink = fstest.MapFS{"link.html": {Data: []byte(`<html><body><h2>Download File</h2><p>Your link is on its way</p></body></html>`)}}
+
+func TestASignInPageTheClientCannotReadGivesTheLoginToJDownloader(t *testing.T) {
+	srv := xfstest.New(t, site.Host, fstest.MapFS{"login.html": {Data: []byte(`<html><body>New sign-in coming soon</body></html>`)}})
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0)})
+	b, _, h := newBackend(srv)
+	h.user, h.pass = "fox", "badger"
+	moved := 0
+	b.Moved = func() { moved++ }
+
+	b.CheckLogin(context.Background(), true)
+	if !b.Handed() || b.Premium() || moved != 1 {
+		t.Errorf("handed %v, premium %v after %d moves, want the login with JDownloader", b.Handed(), b.Premium(), moved)
+	}
+	b.Forget()
+	if b.Handed() {
+		t.Error("a login that was changed stayed with JDownloader")
+	}
+}
+
+func TestAWrongPasswordStaysWithTheSiteClient(t *testing.T) {
+	srv := xfstest.New(t, site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0)})
+	b, _, h := newBackend(srv)
+	h.user, h.pass = "fox", "weasel"
+
+	b.CheckLogin(context.Background(), true)
+	if st, _ := b.LoginStatus(); !st.Refused || b.Handed() {
+		t.Errorf("state %+v, handed %v, want a refusal kept from JDownloader", st, b.Handed())
+	}
+}
+
+func TestAPremiumDownloadTheClientCannotReadGoesToJDownloaderWithTheLogin(t *testing.T) {
+	srv := xfstest.New(t, site.Host, noLink)
+	link := srv.Add("k3m9x2p7q1ab", xfstest.File{Name: "a.bin", Body: make([]byte, 1024)})
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TrafficMB: 51200})
+	b, _, h := newBackend(srv)
+	h.user, h.pass = "fox", "badger"
+	b.CheckLogin(context.Background(), true)
+
+	b.Download("t1", link, nil, 1)
+	if u := awaitFailure(t, h); !u.Unsupported || u.Takeover != "Example" {
+		t.Errorf("failed with %+v, want the download handed on with the site named", u)
+	}
+	if !b.Handed() || b.Premium() {
+		t.Error("the login stayed with the site's client")
+	}
+}
+
+func TestAFreeDownloadTheClientCannotReadLeavesTheLoginAlone(t *testing.T) {
+	srv := xfstest.New(t, site.Host, noLink)
+	link := srv.Add("k3m9x2p7q1ab", xfstest.File{Name: "a.bin", Body: make([]byte, 1024)})
+	b, _, h := newBackend(srv)
+
+	b.Download("t1", link, nil, 1)
+	if u := awaitFailure(t, h); u.Unsupported {
+		t.Errorf("failed with %+v, want a plain failure", u)
+	}
+	if b.Handed() {
+		t.Error("a free download handed a login over")
 	}
 }
 

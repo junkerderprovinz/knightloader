@@ -48,6 +48,9 @@ export interface Task {
   /** What the backend is doing for a running task that is not moving bytes,
    *  such as "Waiting for reconnect". Not a failure. */
   note?: string;
+  /** The hoster whose own client in KnightLoader could not use the login and
+   *  gave this download to JDownloader with it. */
+  takeover?: string;
   size: number;
   loaded: number;
   speed: number;
@@ -2855,6 +2858,9 @@ export interface HosterLogin {
   expiry?: string;
   trafficLeft?: number;
   trafficMax?: number;
+  /** A login KnightLoader signs in with itself whose client could not use it,
+   *  so JDownloader has it and `status` is what JD thinks. */
+  handedOver?: boolean;
 }
 
 /** fetchHosterHosts is the "add a login" picker's host list. */

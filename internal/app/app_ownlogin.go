@@ -101,16 +101,16 @@ func (a *App) ownHosters(eng ownlogin.Downloader) []*ownHoster {
 	// A login a hoster has just answered for may open or close the way down a
 	// link held for premium only was waiting for.
 	rg := rapidgator.NewBackend(rapidgator.NewClient(rapidgator.DefaultSite, hc), eng, a.onUpdate)
-	rg.Checked = a.refreshPremiumHolds
+	rg.Checked, rg.Moved = a.refreshPremiumHolds, a.ownLoginMoved
 	a.own = append(a.own, &ownHoster{id: rapidgator.ResolverID, site: rapidgator.Site,
 		normalize: rapidgator.Normalize, be: rg, res: rapidgator.Resolver{Backend: rg}})
 	for _, h := range keep2share.Hosts {
 		b := keep2share.NewBackend(h, keep2share.NewClient(h.API, hc), eng, a.onUpdate)
-		b.Checked = a.refreshPremiumHolds
+		b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
 		a.own = append(a.own, &ownHoster{id: h.ID, site: h.Site, normalize: h.Normalize, be: b, res: keep2share.Resolver{Backend: b}})
 	}
 	nf := nitroflare.NewBackend(nitroflare.NewClient(nitroflare.DefaultSite, hc), eng, a.onUpdate)
-	nf.Checked = a.refreshPremiumHolds
+	nf.Checked, nf.Moved = a.refreshPremiumHolds, a.ownLoginMoved
 	a.own = append(a.own, &ownHoster{id: nitroflare.ResolverID, site: nitroflare.Site,
 		normalize: nitroflare.Normalize, be: nf, res: nitroflare.Resolver{Backend: nf}})
 	return a.own
@@ -153,10 +153,30 @@ func (a *App) syncOwnLogins() {
 }
 
 // ownLoginChanged hands the login stored under host to the client that signs
-// in with it, after the login was saved, switched or removed.
+// in with it, after the login was saved, switched or removed. A login the
+// client gave to JD is checked again, which takes it back once the client
+// can use it.
 func (a *App) ownLoginChanged(host string) {
 	a.syncOwnLogins()
+	a.bmu.RLock()
+	own := a.own
+	a.bmu.RUnlock()
+	for _, h := range own {
+		if h.site == hostalias.Canonical(host) && h.be.Status().Handed {
+			a.spawn(func() { h.be.Check(a.ctx) })
+		}
+	}
 	a.changedXFSLogin(host)
+}
+
+// ownLoginMoved follows a login one of KnightLoader's own clients gave to JD
+// or took back: the reconciler hands it over or takes it off JD at once
+// rather than on its next pass, and the links held for premium look again.
+func (a *App) ownLoginMoved() {
+	a.spawn(func() {
+		a.hosterAuth().Pass(a.ctx)
+		a.refreshPremiumHolds()
+	})
 }
 
 // ownLoginState answers hosterauth for the hosts KnightLoader signs in to
@@ -178,7 +198,7 @@ func (a *App) ownLoginState(host string) (hosterauth.OwnState, bool) {
 		if h.site == hostalias.Canonical(host) {
 			st := h.be.Status()
 			return hosterauth.OwnState{
-				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Premium: st.Premium,
+				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Handed: st.Handed, Premium: st.Premium,
 				Expiry: st.Expiry, TrafficLeft: st.TrafficLeft, TrafficMax: st.TrafficMax,
 			}, true
 		}
