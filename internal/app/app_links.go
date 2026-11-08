@@ -596,8 +596,9 @@ func (a *App) crawl(u string, within *httpx.Scope, password string) []crawler.Re
 	if res := a.Registry.For(u); res != nil && res.Info().ID == remotefs.ResolverID {
 		return a.listRemoteDir(res, u)
 	}
-	// The same holds for a folder on MEGA, Pixeldrain, Gofile or Mediafire,
-	// as long as our own client for it is the one that takes the link. Put
+	// The same holds for a folder on MEGA, Pixeldrain, Gofile, Mediafire or a
+	// cloud share, as long as our own client for it is the one that takes the
+	// link. Put
 	// behind JDownloader on the priority card, the folder goes to
 	// JDownloader's crawler instead.
 	staging := a.stagingResolverFor(u)

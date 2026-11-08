@@ -3801,6 +3801,7 @@ export const ko: Dict = {
   'whatsnew.change.ddownloadNative': 'ddownload 링크는 JDownloader 없이 프리미엄 로그인이나 무료로 다운로드됩니다. ddownload의 캡차는 휴대폰 앱과 캡차 계정으로 가고, 대기 시간은 다운로드에 표시됩니다.',
   'whatsnew.change.xfsHosters': 'KatFile, Clicknupload, FileSpace, Uploadrar 링크도 JDownloader 없이 프리미엄 로그인이나 무료로 다운로드됩니다. 이들의 캡차는 휴대폰 앱과 캡차 계정으로 가고, 대기 시간은 다운로드에 표시됩니다.',
   'whatsnew.change.filehostsNative': 'Pixeldrain, Gofile, Mediafire 링크는 JDownloader 없이 다운로드되며, 폴더나 목록 링크는 파일마다 한 줄씩 나뉩니다.',
+  'whatsnew.change.cloudNative': 'Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer, SwissTransfer 링크는 JDownloader 없이 다운로드되며, 공유 폴더나 전송은 파일마다 한 줄씩 나뉩니다.',
   'whatsnew.change.oled': '{theme} 아래의 {oled}은 OLED와 AMOLED 화면을 위해 어두운 모양을 완전한 검정으로 바꿉니다. 시스템을 따를 때를 포함해 어두운 모양이 보일 때마다 적용되며, 기기마다 자신의 선택을 기억합니다.',
   'whatsnew.change.systemAccent': '{accent} 맨 앞의 마법 지팡이 견본은 시스템 색상을 따릅니다. Android 12 이상에서는 Material You, 데스크톱 앱에서는 Windows, macOS, Linux의 강조 색상, Firefox와 Safari에서는 시스템 색상입니다. 시스템에 색상이 없으면 이 견본은 나타나지 않습니다. 이 선택은 이 기기에만 적용되며, 다른 기기는 인스턴스의 색상을 유지합니다.',
   'whatsnew.change.fileKindsMore': '링크가 기호로 더 많은 종류의 파일을 보여 줍니다. PDF, 오피스 문서, 스프레드시트, 프레젠테이션, 전자책, 재생 목록, 디스크 이미지, 프로그램, 글꼴, 3D 모델, 체크섬, 토렌트, RAW 사진, 디자인 파일입니다.',
