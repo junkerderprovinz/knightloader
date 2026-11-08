@@ -94,11 +94,16 @@ func TestSizesAreReadInEveryUnitTheSiteUses(t *testing.T) {
 		row  string
 		want int64
 	}{
-		{`<td class="normal"><span style="font-size:1.1em">1.37 GB</span></td>`, 1471026299},
-		{`<td class="normal"><span style="font-size:1.1em">700 MB</span></td>`, 700 << 20},
-		{`<td class="normal"><span style="font-size:1.1em">12,5 Ko</span></td>`, 12800},
+		// 1fichier counts in thousands: a file of 1048576 bytes is 1.05 MB.
+		{`<span class="tier-feat">1.05 MB</span>`, 1050000},
+		{`<td class="normal"><span style="font-size:1.1em">1.37 GB</span></td>`, 1370000000},
+		{`<td class="normal"><span style="font-size:1.1em">700 MB</span></td>`, 700000000},
+		{`<td class="normal"><span style="font-size:1.1em">12,5 Ko</span></td>`, 12500},
+		{`<td class="normal"><span style="font-size:1.1em">3 Go</span></td>`, 3000000000},
 		{`<td class="normal"><span style="font-size:1.1em">831 B</span></td>`, 831},
-		{`<span class="tier-feat">42.99 GB</span>`, 46160161014},
+		{`<td class="normal"><span style="font-size:1.1em">831 octets</span></td>`, 831},
+		{`<span class="tier-feat">42.99 GB</span>`, 42990000000},
+		{`<span class="tier-feat">2 MiB</span>`, 2 << 20},
 		// A file name with figures in it is not the size.
 		{`<td class="normal"><span style="font-weight:bold">Show 2018 1080p</span></td>`, 0},
 	}
@@ -292,7 +297,7 @@ func awaitSettled(t *testing.T, ups *updates) core.Update {
 
 func TestTheFormIsSentAsABrowserWouldAndTheLinkHandedOnForOneConnection(t *testing.T) {
 	srv := fichiertest.New(t)
-	link := srv.Add("k3m9x2p7q1", fichiertest.File{Name: "Isle of Dogs.mkv", Body: make([]byte, 4096)})
+	link := srv.Add("k3m9x2p7q1", fichiertest.File{Name: "Isle of Dogs.mkv", Body: make([]byte, 4000)})
 	b, eng, ups := newBackend(srv)
 
 	b.Download("t1", link, nil, 8)
@@ -313,7 +318,7 @@ func TestTheFormIsSentAsABrowserWouldAndTheLinkHandedOnForOneConnection(t *testi
 		t.Errorf("1fichier was asked without the English cookie: %v", asked)
 	}
 	if !slices.ContainsFunc(ups.list(), func(u core.Update) bool {
-		return u.Status == core.StatusRunning && u.Name == "Isle of Dogs.mkv" && u.Size == 4096
+		return u.Status == core.StatusRunning && u.Name == "Isle of Dogs.mkv" && u.Size == 4000
 	}) {
 		t.Errorf("the task was never named from the page: %+v", ups.list())
 	}

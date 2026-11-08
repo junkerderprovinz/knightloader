@@ -143,7 +143,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	}
 	data := map[string]any{
 		"Name":     html.EscapeString(f.Name),
-		"Size":     fmt.Sprintf("%.2f KB", float64(len(f.Body))/1024),
+		"Size":     fmt.Sprintf("%.2f KB", float64(len(f.Body))/1000),
 		"Action":   s.URL + "/?" + id,
 		"Password": f.Password != "",
 		"Link":     s.URL + "/dl/" + id,

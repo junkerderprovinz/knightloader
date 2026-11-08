@@ -141,7 +141,8 @@ func (p page) formFor(id string) *form {
 }
 
 // parseSize reads a size as 1fichier writes it, in English or French units,
-// with a decimal point or a decimal comma.
+// with a decimal point or a decimal comma. Its units count in thousands, so a
+// file of 1048576 bytes is 1.05 MB. A KiB or MiB counts in 1024s.
 func parseSize(figure, unit string) int64 {
 	if strings.Contains(figure, ".") {
 		figure = strings.ReplaceAll(figure, ",", "")
@@ -157,5 +158,9 @@ func parseSize(figure, unit string) int64 {
 		// O for octets.
 		shift = 0
 	}
-	return int64(math.Round(v * math.Pow(1024, float64(shift))))
+	base := 1000.0
+	if strings.ContainsAny(unit, "iI") {
+		base = 1024
+	}
+	return int64(math.Round(v * math.Pow(base, float64(shift))))
 }

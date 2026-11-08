@@ -68,7 +68,7 @@ func TestA1fichierFileIsNamedInTheCollectorAndDownloaded(t *testing.T) {
 	a := newCrawlApp(t, false)
 	useFichier(a, srv)
 	body := bytes.Repeat([]byte("isle of dogs "), 8192)
-	body = body[:len(body)/1024*1024]
+	body = body[:len(body)/1000*1000]
 	srv.Add("k3m9x2p7q1", fichiertest.File{Name: "Isle of Dogs.mkv", Body: body, Password: "hunter2"})
 
 	created := a.AddLinks([]string{"https://k3m9x2p7q1.1fichier.com/"}, "")
