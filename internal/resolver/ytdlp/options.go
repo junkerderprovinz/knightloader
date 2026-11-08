@@ -330,6 +330,35 @@ func (p HosterPreset) HasVariant(v Variant) bool {
 	return false
 }
 
+// LinkFormatVideo and LinkFormatAudio are the two choices of a link sent with
+// a format of its own that are not a resolution (see HosterPreset.ForLink).
+const (
+	LinkFormatVideo = "video"
+	LinkFormatAudio = "audio"
+)
+
+// ForLink is the preset for one link that arrived with a format of its own,
+// such as from the browser extension's button on a video: LinkFormatVideo for
+// the video row alone at its best, LinkFormatAudio for the audio row alone, or
+// a resolution such as "1080p" for the video row alone at most that tall. The
+// container and the audio format stay the host's. False for anything else.
+func (p HosterPreset) ForLink(format string) (HosterPreset, bool) {
+	switch format {
+	case LinkFormatVideo:
+		p.Variants = []Variant{VariantVideo}
+		p.Quality = QualityBest
+	case LinkFormatAudio:
+		p.Variants = []Variant{VariantAudio}
+	default:
+		if _, ok := ResCap(Quality(format)); !ok {
+			return p, false
+		}
+		p.Variants = []Variant{VariantVideo}
+		p.Quality = Quality(format)
+	}
+	return p.Sanitize(), true
+}
+
 // Quality is a format-selector preset offered on the settings page.
 type Quality string
 

@@ -113,6 +113,10 @@ type intake struct {
 	// file marks a link a browser was downloading as a file (see
 	// LinkBatchOptions.File).
 	file bool
+
+	// format is the batch's own choice for a yt-dlp link's rows (see
+	// LinkBatchOptions.Format).
+	format string
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -303,7 +307,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		if t := a.stage(u, batch.FileName, 0, intake{
 			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers, file: batch.File,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
-			sizeProbes: &probes,
+			sizeProbes: &probes, format: batch.Format,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
@@ -978,7 +982,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	} else if staged != nil && res.Info().ID == "ytdlp" {
 		// Local map writes and a save, so it runs inline and the variant rows
 		// exist as soon as the link appears.
-		a.expandYtdlpVariants(staged)
+		a.expandYtdlpVariants(staged, in.format)
 		// A title probe, except for playlist entries, whose listing already
 		// named them (see probePlaylistEntries).
 		if !in.playlistEntry {

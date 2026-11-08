@@ -136,3 +136,40 @@ func TestSanitizeFoldsAnUnknownVideoFormatOntoBest(t *testing.T) {
 		t.Errorf("VideoFormat webm = %q, want it kept", got)
 	}
 }
+
+func TestALinksOwnFormatKeepsOneRowAndTheHostsContainer(t *testing.T) {
+	host := HosterPreset{Variants: Variants(), VideoFormat: "mp4 avc1", Quality: Quality720p, AudioFormat: "opus"}.Sanitize()
+	cases := []struct {
+		format  string
+		variant Variant
+		pick    string
+	}{
+		{LinkFormatVideo, VariantVideo, "mp4 avc1"},
+		{"1080p", VariantVideo, "mp4 avc1 1080p"},
+		{LinkFormatAudio, VariantAudio, ""},
+	}
+	for _, c := range cases {
+		got, ok := host.ForLink(c.format)
+		if !ok {
+			t.Errorf("ForLink(%q) refused a format the button offers", c.format)
+			continue
+		}
+		if len(got.Variants) != 1 || got.Variants[0] != c.variant {
+			t.Errorf("ForLink(%q) stages %v, want the %s row alone", c.format, got.Variants, c.variant)
+		}
+		if c.variant == VariantVideo && got.VideoPick() != c.pick {
+			t.Errorf("ForLink(%q) picks %q, want %q", c.format, got.VideoPick(), c.pick)
+		}
+		if got.AudioFormat != "opus" {
+			t.Errorf("ForLink(%q) changed the audio format to %q", c.format, got.AudioFormat)
+		}
+	}
+}
+
+func TestALinksOwnFormatRefusesWhatNoRowCanMean(t *testing.T) {
+	for _, format := range []string{"", "best", "custom", "audioOnly", "999p", "thumbnail"} {
+		if _, ok := DefaultHosterPreset().ForLink(format); ok {
+			t.Errorf("ForLink(%q) was taken", format)
+		}
+	}
+}

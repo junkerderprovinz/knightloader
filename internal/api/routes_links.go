@@ -18,7 +18,7 @@ import (
 
 func registerLinks(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/links",
-		"stage links in the collector; optional per-batch destination, priority, unpacking switch, comment, the two passwords, whether they overwrite a matching Packagizer rule, which entrance they arrived by, the page they came from, and for a single link the browser's Cookie, Referer and User-Agent, kept in memory for that download only, and whether that link is a file the browser was downloading, with its name; returns the tasks created",
+		"stage links in the collector; optional per-batch destination, priority, unpacking switch, comment, the two passwords, whether they overwrite a matching Packagizer rule, which entrance they arrived by, the page they came from, and for a single link the browser's Cookie, Referer and User-Agent, kept in memory for that download only, and whether that link is a file the browser was downloading, with its name; for yt-dlp links a format (video, audio or a resolution) that stands in for the host's preset; returns the tasks created",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Links   string `json:"links"` // newline-separated, like JD's paste box
@@ -53,6 +53,10 @@ func registerLinks(reg *Registry, a *app.App) {
 				// app.LinkBatchOptions.File).
 				File bool   `json:"file"`
 				Name string `json:"name"`
+				// Format is how a yt-dlp link's rows are staged in place of
+				// the host's preset: "video", "audio" or a resolution such
+				// as "1080p" (see ytdlp.HosterPreset.ForLink).
+				Format string `json:"format"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
@@ -111,6 +115,7 @@ func registerLinks(reg *Registry, a *app.App) {
 					Headers:          handedOver,
 					File:             body.File,
 					FileName:         strings.TrimSpace(body.Name),
+					Format:           body.Format,
 				})
 				if err != nil {
 					// Usually a destination folder that was just typed and is

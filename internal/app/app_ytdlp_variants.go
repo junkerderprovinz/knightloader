@@ -138,9 +138,13 @@ func (a *App) SetHosterPreset(host string, p ytdlp.HosterPreset) error {
 // set aside and switched off rather than left out, so ticking the kind later
 // brings it back without pasting the link again. It runs once, right after
 // staging, so each sibling takes the folder, category, priority, comment and
-// unpacking switch the batch and the Packagizer gave the staged row.
-func (a *App) expandYtdlpVariants(primary *core.Task) {
+// unpacking switch the batch and the Packagizer gave the staged row. A format
+// the batch arrived with stands in for the preset for this link alone.
+func (a *App) expandYtdlpVariants(primary *core.Task, format string) {
 	preset := a.HosterPresetFor(primary.Host)
+	if own, ok := preset.ForLink(format); ok {
+		preset = own
+	}
 
 	a.mu.Lock()
 	live := a.tasks[primary.ID]

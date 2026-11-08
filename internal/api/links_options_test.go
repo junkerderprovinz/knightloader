@@ -114,6 +114,25 @@ func TestAddLinksWithNoBatchFieldsIsStillAPlainPaste(t *testing.T) {
 	}
 }
 
+// A format the server cannot stage refuses the submission rather than staging
+// the link with the host's preset, which would download something the sender
+// did not ask for.
+func TestAddLinksRefusesAnUnknownFormat(t *testing.T) {
+	t.Parallel()
+	srv, a := linkServer(t)
+
+	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
+		"links":  "https://host.example/clip",
+		"format": "8k",
+	})
+	if code != http.StatusBadRequest {
+		t.Fatalf("answered %d: %s, want 400", code, raw)
+	}
+	if n := len(a.Tasks()); n != 0 {
+		t.Errorf("%d tasks were staged for a refused submission", n)
+	}
+}
+
 // packagizerServer is linkServer's twin, with one Packagizer rule already in
 // place: everything from rule.example gets the comment "ruled" and priority
 // 3, so a test can tell the rule's answer apart from the form's.

@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"unicode"
@@ -10,6 +11,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -66,6 +68,9 @@ type LinkBatchOptions struct {
 	// file extension for a page and saves whatever it finds there.
 	File     bool
 	FileName string
+	// Format sets the host's preset aside for the yt-dlp links of this batch
+	// (see ytdlp.HosterPreset.ForLink). Empty stages them with the preset.
+	Format string
 }
 
 // AddLinksWithOptions stages a batch like AddLinksFrom and then applies the
@@ -96,6 +101,11 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 			return nil, err
 		}
 		opts.FileName = collide.SafeName(name)
+	}
+	if opts.Format != "" {
+		if _, ok := ytdlp.DefaultHosterPreset().ForLink(opts.Format); !ok {
+			return nil, fmt.Errorf("unknown format %q", opts.Format)
+		}
 	}
 
 	created := a.addLinksFrom(urls, pkg, origin, opts)

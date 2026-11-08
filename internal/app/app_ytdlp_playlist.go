@@ -138,6 +138,7 @@ func (a *App) stagePlaylistEntries(playlistURL string, pl ytdlp.Playlist, pkg st
 			autoExtract:   batch.AutoExtract,
 			comment:       batch.Comment,
 			category:      batch.Category,
+			format:        batch.Format,
 			playlistEntry: true,
 		})
 		if t == nil {

@@ -132,6 +132,66 @@ func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 	}
 }
 
+// A link sent with a format of its own, as the extension's video button sends
+// it, stages that one row in view and sets the others aside, whatever the
+// host's preset lists. The preset itself stays as it was.
+func TestALinksOwnFormatStandsInForThePreset(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Some Video"
+	wireYtdlp(a, fake)
+	if err := a.SetHosterPreset("youtube.com", ytdlp.HosterPreset{
+		Variants: []ytdlp.Variant{ytdlp.VariantVideo, ytdlp.VariantThumbnail}, Quality: ytdlp.Quality720p, AudioFormat: "mp3",
+	}); err != nil {
+		t.Fatalf("SetHosterPreset: %v", err)
+	}
+
+	cases := []struct {
+		format string
+		on     ytdlp.Variant
+		sub    string
+	}{
+		{"audio", ytdlp.VariantAudio, "mp3"},
+		{"1080p", ytdlp.VariantVideo, "1080p"},
+		{"video", ytdlp.VariantVideo, "best"},
+	}
+	for i, c := range cases {
+		url := "https://youtube.com/watch?v=ownformat0" + string(rune('a'+i))
+		if _, err := a.AddLinksWithOptions([]string{url}, "", OriginCnL, LinkBatchOptions{Format: c.format}); err != nil {
+			t.Fatalf("format %q: %v", c.format, err)
+		}
+		waitFor(t, "the family's five rows", func() bool { return len(tasksSharingURL(a, url)) == 5 })
+		for _, x := range tasksSharingURL(a, url) {
+			kind, sub := variantDecode(x.Variant)
+			if kind == c.on {
+				if !x.Enabled || x.VariantOff {
+					t.Errorf("format %q: the %s row is not in view", c.format, kind)
+				}
+				if sub != c.sub {
+					t.Errorf("format %q: the %s row stores %q, want %q", c.format, kind, sub, c.sub)
+				}
+				continue
+			}
+			if x.Enabled || !x.VariantOff {
+				t.Errorf("format %q: the %s row is in view, want it set aside", c.format, kind)
+			}
+		}
+	}
+	if got := a.HosterPresetFor("youtube.com"); got.Quality != ytdlp.Quality720p || len(got.Variants) != 2 {
+		t.Errorf("the saved preset became %+v", got)
+	}
+}
+
+func TestALinkWithAFormatNoRowCanMeanIsRefused(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	if _, err := a.AddLinksWithOptions([]string{"https://youtube.com/watch?v=badformat01"}, "", OriginCnL, LinkBatchOptions{Format: "8k"}); err == nil {
+		t.Error("an unknown format was taken")
+	}
+	if n := len(tasksSharingURL(a, "https://youtube.com/watch?v=badformat01")); n != 0 {
+		t.Errorf("%d rows were staged for a refused batch", n)
+	}
+}
+
 // An unconfigured host answers with what a bare paste would stage.
 func TestHosterPresetForReturnsTheDefaultWhenNothingWasSaved(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
