@@ -1,0 +1,207 @@
+package app
+
+import (
+	"bytes"
+	"os"
+	"slices"
+	"testing"
+	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/confirm"
+	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share/k2stest"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/nitroflare"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/nitroflare/nftest"
+)
+
+// useOwnHoster puts h in place of the app's hoster of the same id.
+func useOwnHoster(a *App, h *ownHoster) {
+	own := a.ownHosters(engineHandoff{a.Engine, a})
+	a.bmu.Lock()
+	// A fresh slice, as the app reads the old one without the lock.
+	a.own = slices.Clone(own)
+	for i := range a.own {
+		if a.own[i].id == h.id {
+			a.own[i] = h
+		}
+	}
+	a.bmu.Unlock()
+	a.Registry.Register(h.res)
+	a.syncOwnLogins()
+}
+
+const k2sFile = "2cfa1607527dc"
+
+// useKeep2Share points the app's Keep2Share client at srv.
+func useKeep2Share(a *App, srv *k2stest.Server) {
+	h := keep2share.Keep2Share
+	b := keep2share.NewBackend(h, keep2share.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
+	b.Checked = a.refreshPremiumHolds
+	useOwnHoster(a, &ownHoster{id: h.ID, site: h.Site, normalize: h.Normalize, be: b, res: keep2share.Resolver{Backend: b}})
+}
+
+func k2sServer(t *testing.T, captcha bool) *k2stest.Server {
+	srv := k2stest.New(t, "k2s.cc")
+	srv.AddAccount(k2stest.Account{Email: "john@example.com", Password: "hunter2", Traffic: 50 << 30,
+		Expires: time.Now().Add(30 * 24 * time.Hour), Captcha: captcha})
+	return srv
+}
+
+const nfFile = "CDB87F04326E3EE"
+
+// useNitroflare points the app's Nitroflare client at srv.
+func useNitroflare(a *App, srv *nftest.Server) {
+	b := nitroflare.NewBackend(nitroflare.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
+	b.Checked = a.refreshPremiumHolds
+	useOwnHoster(a, &ownHoster{id: nitroflare.ResolverID, site: nitroflare.Site, normalize: nitroflare.Normalize,
+		be: b, res: nitroflare.Resolver{Backend: b}})
+}
+
+func nfServer(t *testing.T) *nftest.Server {
+	srv := nftest.New(t)
+	srv.AddAccount(nftest.Account{Email: "john@example.com", Password: "hunter2", TrafficMax: 100 << 30, TrafficLeft: 80 << 30,
+		Expires: time.Now().Add(30 * 24 * time.Hour)})
+	return srv
+}
+
+func TestAKeep2ShareLoginDownloadsNativelyWhereItsJDLoginSat(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.Registry.Register(jd.Resolver{})
+	a.Registry.Register(debrid.Resolver{ServiceID: "alldebrid", Prio: 49, Hosts: map[string]bool{"keep2share.cc": true, "fileboom.me": true}})
+	jd.SetKnownHosts([]string{"keep2share.cc", "fileboom.me"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	useKeep2Share(a, k2sServer(t, false))
+	const link = "https://k2s.cc/file/" + k2sFile + "/a.rar"
+	const boom = "https://fboom.me/file/" + k2sFile
+
+	if got := chainIDs(a, link); !slices.Equal(got[:2], []string{"alldebrid", "jd"}) {
+		t.Errorf("chain without a login = %v, want the debrid service, then JD's free mode", got)
+	}
+
+	if err := a.SetHosterLogin("k2s.cc", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	if got := chainIDs(a, link); !slices.Equal(got[:3], []string{keep2share.Keep2Share.ID, "alldebrid", "jd"}) {
+		t.Errorf("chain = %v, want the login first, then the debrid service, then JD", got)
+	}
+	if got := chainIDs(a, boom); slices.Contains(got, keep2share.FileBoom.ID) || slices.Contains(got, keep2share.Keep2Share.ID) {
+		t.Errorf("a FileBoom link went to %v, without a FileBoom login", got)
+	}
+	a.mu.Lock()
+	mode := a.modeForLocked(&core.Task{URL: link}, keep2share.Keep2Share.ID)
+	a.mu.Unlock()
+	if mode != core.ModePremium {
+		t.Errorf("mode = %q, want premium", mode)
+	}
+
+	if _, err := a.SaveResolverOrder([]string{"alldebrid", loginRowID("k2s.cc"), "jd"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := chainIDs(a, link); !slices.Equal(got[:3], []string{"alldebrid", keep2share.Keep2Share.ID, "jd"}) {
+		t.Errorf("chain = %v, want the order the card was saved in", got)
+	}
+	if _, err := a.SaveResolverOrder([]string{"jd", "alldebrid"}); err != nil {
+		t.Fatal(err)
+	}
+	if ids := priorityIDs(a); slices.Contains(ids, keep2share.Keep2Share.ID) || slices.Index(ids, loginRowID("k2s.cc")) != slices.Index(ids, "jd")-1 {
+		t.Errorf("the card shows %v, want the login's row right above JD, where its links go, and no row for the client", ids)
+	}
+
+	waitFor(t, "Keep2Share's word on the login", func() bool {
+		row, ok := loginRow(a, "k2s.cc")
+		return ok && row.Status == hosterauth.StatusActive && row.Tier == "premium" && row.TrafficLeft == 50<<30
+	})
+	if jd.HostActive("keep2share.cc") {
+		t.Error("routing counts the login as JD's")
+	}
+	if !a.HonoursCollisionPolicy(keep2share.Keep2Share.ID) || !a.HonoursCollisionPolicy(nitroflare.ResolverID) {
+		t.Error("the files the engine writes for the new hosters skip the collision policy")
+	}
+}
+
+func TestACaptchaAtSignInShowsOnTheLoginsRow(t *testing.T) {
+	a := newCrawlApp(t, false)
+	useKeep2Share(a, k2sServer(t, true))
+	if err := a.SetHosterLogin("keep2share.cc", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "the row asking for the captcha", func() bool {
+		row, ok := loginRow(a, "keep2share.cc")
+		return ok && row.Status == hosterauth.StatusRejected && row.Code == "ownCaptcha"
+	})
+}
+
+func TestKeep2ShareAndNitroflareLinksAreNamedInTheCollectorWithoutALogin(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.Registry.Register(jd.Resolver{})
+	jd.SetKnownHosts([]string{"keep2share.cc", "nitroflare.com"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	k2s, nf := k2sServer(t, false), nfServer(t)
+	useKeep2Share(a, k2s)
+	useNitroflare(a, nf)
+	k2sLink := k2s.Add(k2sFile, k2stest.File{Name: "Holiday.part1.rar", Body: make([]byte, 700<<10)})
+	nfLink := nf.Add(nfFile, nftest.File{Name: "Holiday.part2.rar", Body: make([]byte, 300<<10)})
+
+	created := a.AddLinks([]string{k2sLink, nfLink, "https://nitroflare.com/view/A1B2C3D4E5F6071"}, "")
+	if len(created) != 3 || created[0].Resolver != "jd" || created[1].Resolver != "jd" {
+		t.Fatalf("staged %+v, want every row with JD's free mode", created)
+	}
+	waitFor(t, "the APIs naming the files and finding the third gone", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		k, n, gone := a.tasks[created[0].ID], a.tasks[created[1].ID], a.tasks[created[2].ID]
+		return k.Name == "Holiday.part1.rar" && k.Size == 700<<10 && k.Online == core.AvailOnline &&
+			n.Name == "Holiday.part2.rar" && n.Size == 300<<10 && n.Online == core.AvailOnline &&
+			gone.Online == core.AvailOffline
+	})
+	if slices.Contains(k2s.Requests(), "POST /api/v2/login") || slices.Contains(nf.Requests(), "GET /api/v2/getKeyInfo") {
+		t.Error("a login was used where none is stored")
+	}
+}
+
+func TestANitroflareFileIsNamedInTheCollectorAndDownloaded(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 races on a task's status when a real transfer starts")
+	}
+	srv := nfServer(t)
+	a := newCrawlApp(t, false)
+	useNitroflare(a, srv)
+	if err := a.SetHosterLogin("nitroflare.com", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	body := bytes.Repeat([]byte("isle of dogs "), 8192)
+	link := srv.Add(nfFile, nftest.File{Name: "Isle of Dogs.mkv", Body: body})
+
+	created := a.AddLinks([]string{link}, "")
+	if len(created) != 1 || created[0].Resolver != nitroflare.ResolverID {
+		t.Fatalf("staged %+v, want one row for the Nitroflare client", created)
+	}
+	id := created[0].ID
+	waitFor(t, "the API naming the file", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		task := a.tasks[id]
+		return task.Name == "Isle of Dogs.mkv" && task.Size == int64(len(body)) && task.Online == core.AvailOnline
+	})
+
+	a.ConfirmTasks([]string{id}, confirm.Config{}, confirm.TriggerManual)
+	var file string
+	waitFor(t, "the download finishing", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		task := a.tasks[id]
+		if task.Status == core.StatusError {
+			t.Fatalf("the download failed: %s", task.Error)
+		}
+		file = task.File
+		return task.Status == core.StatusDone
+	})
+	got, err := os.ReadFile(file)
+	if err != nil || !bytes.Equal(got, body) {
+		t.Errorf("%s does not hold the file (%v)", file, err)
+	}
+}

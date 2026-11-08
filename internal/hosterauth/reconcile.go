@@ -56,6 +56,7 @@ const (
 	// The codes of a login KnightLoader signs in with itself.
 	codeOwnChecking = "ownChecking"
 	codeOwnInvalid  = "ownInvalid"
+	codeOwnCaptcha  = "ownCaptcha"
 	codeOwnOff      = "ownOff"
 )
 
@@ -138,6 +139,7 @@ var curatedHosts = []string{
 	"rapidgator.net", "uploaded.net", "nitroflare.com", "turbobit.net",
 	"keep2share.cc", "katfile.com", "ddownload.com", "1fichier.com",
 	"mega.nz", "filefactory.com", "hitfile.net", "fikper.com",
+	"fileboom.me", "tezfiles.com",
 }
 
 // Curated reports whether host is one of curatedHosts or an alias domain of
@@ -559,6 +561,8 @@ type OwnState struct {
 	// Refused is the hoster turning the login down, and Detail says why.
 	Refused bool
 	Detail  string
+	// Captcha is a refusal until the user solves a captcha at the hoster.
+	Captcha bool
 	Premium bool
 	Expiry  time.Time
 	// TrafficLeft and TrafficMax are bytes, 0 when the plan has no quota.
@@ -571,6 +575,8 @@ func (o OwnState) row(host, username string) LoginState {
 	switch {
 	case !o.Checked:
 		st.Status, st.Code, st.Detail = StatusQueued, codeOwnChecking, "KnightLoader is checking this login"
+	case o.Refused && o.Captcha:
+		st.Status, st.Code, st.Detail = StatusRejected, codeOwnCaptcha, o.Detail
 	case o.Refused:
 		st.Status, st.Code, st.Detail = StatusRejected, codeOwnInvalid, o.Detail
 	default:

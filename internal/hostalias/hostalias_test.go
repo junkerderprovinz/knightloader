@@ -33,6 +33,10 @@ func TestNamesListsEveryDomainOfTheHoster(t *testing.T) {
 		{"rg.to", []string{"rapidgator.net", "rapidgator.asia", "rg.to"}},
 		{"www.mega.co.nz", []string{"mega.nz", "mega.co.nz"}},
 		{"ddownload.com", []string{"ddownload.com", "ddl.to"}},
+		{"k2s.cc", []string{"keep2share.cc", "k2s.cc", "k2share.cc", "keep2.cc", "keep2s.cc"}},
+		{"fboom.me", []string{"fileboom.me", "fboom.me"}},
+		{"publish2.me", []string{"tezfiles.com", "publish2.me"}},
+		{"nitroflare.net", []string{"nitroflare.com", "nitro.download", "nitroflare.net"}},
 		{"Example.com", []string{"example.com"}},
 	} {
 		if got := Names(c.in); !slices.Equal(got, c.want) {

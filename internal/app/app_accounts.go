@@ -25,8 +25,6 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
-	"github.com/junkerderprovinz/knightloader/internal/hostalias"
-	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/jre"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
@@ -36,7 +34,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -184,10 +181,13 @@ func (a *App) rewireBackends() {
 	// Free 1fichier links, which need no account either.
 	a.Registry.Register(onefichier.Resolver{Client: a.fichierBackend(eng).Client()})
 
-	// Rapidgator on the user's own premium login. Without one the resolver
-	// claims nothing and the links stay with JD's free mode.
-	a.Registry.Register(rapidgator.Resolver{Backend: a.rapidgatorBackend(eng)})
-	a.syncRapidgatorLogin()
+	// The hosters KnightLoader signs in to itself, on the user's own premium
+	// login. Without one a resolver claims nothing and the links stay with
+	// JD's free mode.
+	for _, h := range a.ownHosters(eng) {
+		a.Registry.Register(h.res)
+	}
+	a.syncOwnLogins()
 
 	// Stored header profiles. Registered here rather than in app.go because
 	// a.Accounts does not exist there yet. It builds its own client, which has
@@ -659,44 +659,6 @@ func (a *App) fichierBackend(eng onefichier.Downloader) *onefichier.Backend {
 		a.fichier = b
 	}
 	return a.fichier
-}
-
-// rapidgatorBackend returns the app's one Rapidgator backend, made on first
-// use.
-func (a *App) rapidgatorBackend(eng rapidgator.Downloader) *rapidgator.Backend {
-	a.bmu.Lock()
-	defer a.bmu.Unlock()
-	if a.rapidgator == nil {
-		c := rapidgator.NewClient(rapidgator.DefaultSite, httpx.New(httpx.Options{Class: httpx.ClassHosters}))
-		b := rapidgator.NewBackend(c, eng, a.onUpdate)
-		// A login Rapidgator has just answered for may open or close the way
-		// down a link held for premium only was waiting for.
-		b.Checked = a.refreshPremiumHolds
-		a.rapidgator = b
-	}
-	return a.rapidgator
-}
-
-// syncRapidgatorLogin hands the Rapidgator client the switched-on Rapidgator
-// login, or none, and has Rapidgator check one the client has not seen yet.
-func (a *App) syncRapidgatorLogin() {
-	b := a.rapidgatorBackend(engineHandoff{a.Engine, a})
-	var cred accounts.Credential
-	for _, host := range a.Accounts.AccountIDs(hosterauth.Service) {
-		if hostalias.Canonical(host) == rapidgator.Site && a.accountEnabled(hosterauth.Service, host) {
-			cred, _ = a.Accounts.GetCredential(hosterauth.Service, host)
-			break
-		}
-	}
-	if !b.SetLogin(cred.Username, cred.Password) {
-		return
-	}
-	a.spawn(func() {
-		if cred.Username != "" {
-			b.Check(a.ctx)
-		}
-		a.refreshPremiumHolds()
-	})
 }
 
 // downloadPassword is the password a task's hoster page asks for, "" for

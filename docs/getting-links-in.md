@@ -349,6 +349,76 @@ Free Rapidgator links stay with JDownloader, which waits out Rapidgator's
 countdown and answers its captcha. Against a debrid service that carries
 Rapidgator, the login's row on the priority card decides which goes first.
 
+## Keep2Share, FileBoom and TezFiles
+
+Keep2Share, FileBoom and TezFiles are three sites on one API, and each keeps
+its own accounts. With your premium login for one of them saved under
+**Hoster accounts** on the Accounts page, that site's links need no
+JDownloader. KnightLoader signs in through the site's own API, asks it for the
+download link and fetches the file over up to ten connections. Keep2Share
+links work under `k2s.cc`, `keep2share.cc`, `keep2s.cc`, `k2share.cc` and
+`keep2.cc`, FileBoom links under `fileboom.me` and `fboom.me`, and TezFiles
+links under `tezfiles.com` and `publish2.me`. The login may be saved under any
+of a site's domains. It stays with KnightLoader and is not handed to
+JDownloader, so the site sees one sign-in for the account. KnightLoader keeps
+the session for as long as the site accepts it, because signing in too often
+makes the site ask for a captcha. The login's row shows what the site says
+about it: premium or free, when the plan runs out and how much traffic is left
+for today.
+
+The link collector names every link of these sites as soon as it arrives, with
+its size to the byte and whether it is still online, with or without a login.
+A whole paste goes out as one question.
+
+A download fails with a clear reason when the site turns the login down, when
+the account has no premium, when today's traffic or download limit is used up,
+when only some accounts may fetch the file, such as a private one, and when the
+file is gone or blocked. Once the traffic is used up, that site's links go to
+the next backend on the priority card for an hour, and then the login is tried
+again. When the site has counted too many sign-ins, the task waits half an
+hour and shows it.
+
+Now and then a site asks for a captcha at sign-in, mostly from a new network.
+KnightLoader cannot answer it, and the login's row says so. Sign in to the site
+once in a browser on the same network and solve the captcha there, then switch
+the login off and on again.
+
+Free links stay with JDownloader, which answers the site's captcha. Against a
+debrid service that carries the site, the login's row on the priority card
+decides which goes first.
+
+## Nitroflare
+
+With your Nitroflare premium login saved under **Hoster accounts**, a
+Nitroflare link needs no JDownloader. KnightLoader asks Nitroflare's own API
+for the download link and fetches the file over as many connections as you
+have set, since Nitroflare puts no limit on a premium download. Links under
+`nitroflare.com`, `nitroflare.net` and `nitro.download` all work, and the login
+may be saved under any of them. The login stays with KnightLoader and is not
+handed to JDownloader. Nitroflare's API keeps no session and wants the email
+address and password with every call. They go over HTTPS, and KnightLoader
+keeps them out of its logs and error messages. The login's row shows what
+Nitroflare says about it: premium or free, when the plan runs out and how much
+traffic is left.
+
+The link collector names every Nitroflare link as soon as it arrives, with its
+size and whether it is still online, with or without a login.
+
+A download fails with a clear reason when Nitroflare turns the login down, when
+the account has no premium, when its traffic has run out and when the file is
+gone. Once the traffic has run out, Nitroflare links go to the next backend on
+the priority card for an hour, and then the login is tried again.
+
+Nitroflare's API sometimes asks for a captcha before it takes a login.
+KnightLoader cannot answer it, and the login's row and the failed download say
+so. Open `https://nitroflare.com/api/v2/solveCaptcha?user=` followed by the
+account's email address in a browser, solve the captcha there, then switch the
+login off and on again.
+
+Free Nitroflare links stay with JDownloader, which waits out Nitroflare's
+countdown and answers its captcha. Against a debrid service that carries
+Nitroflare, the login's row on the priority card decides which goes first.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks

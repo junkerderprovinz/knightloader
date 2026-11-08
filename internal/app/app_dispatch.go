@@ -26,7 +26,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/nitroflare"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
@@ -52,9 +54,9 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 	if host == "" || torrent.IsURI(t.URL) {
 		return core.ModeUnknown
 	}
-	// A debrid service is itself the account, and the Rapidgator client
-	// downloads on the user's premium login only.
-	if _, _, ok := a.accountForResolverLocked(resolverID); ok || resolverID == rapidgator.ResolverID {
+	// A debrid service is itself the account, and a hoster KnightLoader signs
+	// in to itself downloads on the user's premium login only.
+	if _, _, ok := a.accountForResolverLocked(resolverID); ok || ownSites[resolverID] != "" {
 		return core.ModePremium
 	}
 	// MEGA's own client logs in to nothing and lives on the free transfer
@@ -99,10 +101,10 @@ func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 	case id == "http":
 		// The fallback is last whatever an order entry says.
 		return res.Info().Prio
-	case id == rapidgator.ResolverID:
-		// The client downloads on the user's Rapidgator login, whose row on
-		// the priority card stands for it.
-		prio, _ := loginPrio(order, rapidgator.Site)
+	case ownSites[id] != "":
+		// A hoster KnightLoader signs in to itself downloads on the user's
+		// login, whose row on the priority card stands for it.
+		prio, _ := loginPrio(order, ownSites[id])
 		return prio
 	case id == "jd":
 		// A connected hoster login is a row of its own on the priority card, so
@@ -223,12 +225,12 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 			// Ranked where dynamicPrio sends the login's links: at its own row,
 			// else at JD's. A login the saved order does not name yet then sits
 			// right below JD, and saving the card as shown keeps its links there.
-			// The Rapidgator login is not JD's, and its client wins the tie, so
-			// its row goes right above.
+			// A login KnightLoader signs in with itself is not JD's, and its
+			// resolver wins the tie, so its row goes right above.
 			host := hostalias.Canonical(l.Host)
 			prio, byJD := loginPrio(order, host)
 			rank := 2 * prio
-			if byJD && host == rapidgator.Site {
+			if byJD && ownSite(host) {
 				rank++
 			}
 			rows = append(rows, row{resolver.Info{ID: loginRowID(l.Host), Prio: jd.ActiveLoginPrio}, rank})
@@ -256,13 +258,13 @@ func barredPastOff(id string) bool {
 
 // offCard reports whether the priority card leaves a resolver out: a stored
 // header profile, which goes first for its origin, the user's own servers, the
-// files an .nzb came back as, the HTTP fallback and the Rapidgator client. The
-// first three take only links that were pointed at them, so there is nothing
-// to rank, and the fallback is by definition last. dynamicPrio ignores an
-// order entry naming any of them. The Rapidgator client is ranked by its
-// login's row.
+// files an .nzb came back as, the HTTP fallback and the hosters KnightLoader
+// signs in to itself. The first three take only links that were pointed at
+// them, so there is nothing to rank, and the fallback is by definition last.
+// dynamicPrio ignores an order entry naming any of them. A hoster
+// KnightLoader signs in to itself is ranked by its login's row.
 func offCard(id string) bool {
-	return id == "http" || id == hostheaders.ResolverID || id == remotefs.ResolverID || id == usenet.ResolverID || id == rapidgator.ResolverID
+	return id == "http" || id == hostheaders.ResolverID || id == remotefs.ResolverID || id == usenet.ResolverID || ownSites[id] != ""
 }
 
 // SaveResolverOrder stores the order the priority card sends and answers with
@@ -1252,13 +1254,14 @@ func (a *App) Resume(id string) {
 
 // HonoursCollisionPolicy reports whether the collision policy reaches the file
 // a task on this resolver writes: the engine's own downloads and those a
-// debrid service, TorBox or the 1fichier or Rapidgator client passes on to it
-// (see engineHandoff). The other backends name files themselves, so only skip
+// debrid service, TorBox, the 1fichier client or a hoster KnightLoader signs
+// in to itself passes on to it (see engineHandoff). The other backends name files themselves, so only skip
 // applies to them. The interface uses this to avoid offering controls that
 // would be ignored.
 func (a *App) HonoursCollisionPolicy(resolverID string) bool {
 	switch a.backendFor(resolverID).(type) {
-	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *onefichier.Backend, *rapidgator.Backend, *usenet.Files:
+	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *onefichier.Backend,
+		*rapidgator.Backend, *keep2share.Backend, *nitroflare.Backend, *usenet.Files:
 		return true
 	}
 	return false
@@ -1270,6 +1273,11 @@ func (a *App) backendFor(resolverID string) backend {
 	if b, ok := a.debrid[resolverID]; ok && b != nil {
 		return b
 	}
+	for _, h := range a.own {
+		if h.id == resolverID {
+			return h.be
+		}
+	}
 	switch {
 	case resolverID == remotefs.ResolverID && a.remotefs != nil:
 		// The remotefs backend, even for WebDAV links the engine could fetch,
@@ -1279,8 +1287,6 @@ func (a *App) backendFor(resolverID string) backend {
 		return a.mega
 	case resolverID == onefichier.ResolverID && a.fichier != nil:
 		return a.fichier
-	case resolverID == rapidgator.ResolverID && a.rapidgator != nil:
-		return a.rapidgator
 	case resolverID == "jd" && a.jd != nil:
 		return a.jd
 	case resolverID == "torbox" && a.torbox != nil:

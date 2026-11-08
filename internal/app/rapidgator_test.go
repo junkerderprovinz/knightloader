@@ -21,11 +21,8 @@ const rgFile = "0001234422b3e37d648ea406d833c1d6"
 func useRapidgator(a *App, srv *rgtest.Server) {
 	b := rapidgator.NewBackend(rapidgator.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
 	b.Checked = a.refreshPremiumHolds
-	a.bmu.Lock()
-	a.rapidgator = b
-	a.bmu.Unlock()
-	a.Registry.Register(rapidgator.Resolver{Backend: b})
-	a.syncRapidgatorLogin()
+	useOwnHoster(a, &ownHoster{id: rapidgator.ResolverID, site: rapidgator.Site, normalize: rapidgator.Normalize,
+		be: b, res: rapidgator.Resolver{Backend: b}})
 }
 
 func rgServer(t *testing.T) *rgtest.Server {

@@ -20,14 +20,21 @@ var canonical = map[string]string{
 	"ul.to":       "uploaded.net",
 	"uploaded.to": "uploaded.net",
 
-	"k2s.cc":    "keep2share.cc",
-	"keep2s.cc": "keep2share.cc",
+	"k2s.cc":     "keep2share.cc",
+	"keep2s.cc":  "keep2share.cc",
+	"k2share.cc": "keep2share.cc",
+	"keep2.cc":   "keep2share.cc",
 
-	"ddl.to":         "ddownload.com",
-	"mega.co.nz":     "mega.nz",
+	"fboom.me":    "fileboom.me",
+	"publish2.me": "tezfiles.com",
+
 	"nitro.download": "nitroflare.com",
-	"turb.to":        "turbobit.net",
-	"hil.to":         "hitfile.net",
+	"nitroflare.net": "nitroflare.com",
+
+	"ddl.to":     "ddownload.com",
+	"mega.co.nz": "mega.nz",
+	"turb.to":    "turbobit.net",
+	"hil.to":     "hitfile.net",
 
 	"alterupload.com": "1fichier.com",
 	"cjoint.net":      "1fichier.com",

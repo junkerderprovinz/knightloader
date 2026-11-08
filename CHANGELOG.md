@@ -59,6 +59,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   login, a free account, spent traffic and a deleted file each fail with their
   own reason. Free Rapidgator links still go through JDownloader, which solves
   the captcha.
+- **Keep2Share, FileBoom, TezFiles and Nitroflare download on your premium
+  login without JDownloader.** Save the login under Hoster accounts and
+  KnightLoader signs in through the site's API itself, fetches the file over
+  several connections and shows on the login's row whether the account is
+  premium, when it runs out and how much traffic is left. Every link of these
+  sites shows its name, size and whether it is online in the link collector,
+  with or without a login. A refused login, a captcha at sign-in, a free
+  account, spent traffic and a deleted file each fail with their own reason.
+  Free links still go through JDownloader, which solves the captcha.
 
 ## [2.7.3] - 2026-11-07
 

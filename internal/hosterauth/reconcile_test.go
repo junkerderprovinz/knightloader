@@ -59,7 +59,7 @@ func TestPlanHostMatchIsCaseAndWWWInsensitive(t *testing.T) {
 }
 
 func TestCuratedKnowsAHosterByItsAliasDomains(t *testing.T) {
-	for _, host := range []string{"rapidgator.net", "rg.to", "www.rg.to", "ul.to", "desfichiers.com"} {
+	for _, host := range []string{"rapidgator.net", "rg.to", "www.rg.to", "ul.to", "desfichiers.com", "fboom.me", "publish2.me", "nitroflare.net"} {
 		if !Curated(host) {
 			t.Errorf("Curated(%q) = false, want true", host)
 		}
@@ -548,6 +548,10 @@ func TestALoginKnightLoaderSignsInWithItselfIsKeptFromJD(t *testing.T) {
 	own = OwnState{Checked: true, Refused: true, Detail: "rapidgator: check the email address and password"}
 	if got := row(); got.Status != StatusRejected || got.Code != codeOwnInvalid || got.Detail != own.Detail {
 		t.Errorf("refused row = %+v, want rejected in the hoster's words", got)
+	}
+	own = OwnState{Checked: true, Refused: true, Captcha: true, Detail: "keep2share: sign in once in a browser"}
+	if got := row(); got.Status != StatusRejected || got.Code != codeOwnCaptcha || got.Detail != own.Detail {
+		t.Errorf("row refused for a captcha = %+v, want rejected with the captcha's own code", got)
 	}
 
 	r.Enabled = func(string) bool { return false }

@@ -28,7 +28,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -488,7 +487,7 @@ type linkInspector interface {
 func (a *App) inspectHosterLinks(ids []string) {
 	ids = a.inspectMegaLinks(ids)
 	ids = a.inspectFichierLinks(ids)
-	ids = a.inspectRapidgatorLinks(ids)
+	ids = a.inspectOwnHosterLinks(ids)
 	a.bmu.RLock()
 	insp, ok := a.jd.(linkInspector)
 	a.bmu.RUnlock()
@@ -678,40 +677,6 @@ func (a *App) inspectFichierLinks(ids []string) []string {
 	a.bmu.RUnlock()
 	if len(targets) > 0 && be != nil {
 		a.inspectOwnLinks(onefichier.ResolverID, targets, urls, onefichier.Resolver{Client: be.Client()}.Inspect)
-	}
-	return rest
-}
-
-// inspectRapidgatorLinks fills in the name, size and state of every collected
-// Rapidgator file link, whichever backend is to fetch it, and returns the
-// other ids. Without a login the Rapidgator client reads the public file page,
-// so a link JD fetches in free mode is named without JD's plugin.
-func (a *App) inspectRapidgatorLinks(ids []string) []string {
-	a.bmu.RLock()
-	be := a.rapidgator
-	a.bmu.RUnlock()
-	if be == nil {
-		return ids
-	}
-	var rest, targets, urls []string
-	a.mu.Lock()
-	for _, id := range ids {
-		t := a.tasks[id]
-		if t == nil {
-			continue
-		}
-		if _, ok := rapidgator.Normalize(t.URL); !ok {
-			rest = append(rest, id)
-			continue
-		}
-		if t.Status == core.StatusCollected && !t.Skipped {
-			targets = append(targets, id)
-			urls = append(urls, t.URL)
-		}
-	}
-	a.mu.Unlock()
-	if len(targets) > 0 {
-		a.inspectOwnLinks(rapidgator.ResolverID, targets, urls, rapidgator.Resolver{Backend: be}.Inspect)
 	}
 	return rest
 }
