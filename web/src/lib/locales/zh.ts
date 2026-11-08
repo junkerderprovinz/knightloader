@@ -3311,6 +3311,8 @@ export const zh: Dict = {
   'archive.unpacked': '已解压',
   'archive.tally': '已解压 {done}/{total} 个压缩包',
   'columns.variant.convertTo': '转换为',
+  'columns.variant.probing': '正在检查质量…',
+  'columns.variant.probeFailed': '仅最佳质量。无法读取可用的质量：{reason}',
   'settings.browsertools.desktopArchHint': 'Windows 和 Linux 各有两个版本：适合大多数电脑的 x64，以及适合 ARM 处理器电脑（例如搭载骁龙芯片的笔记本）的 ARM64。如果浏览器告知这台电脑的处理器，按钮会给出匹配的版本，否则给出 x64。旁边的窄条给出另一个版本。macOS 应用可在 Intel 和 Apple 芯片上运行。',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader 还不知道 {host} 提供哪些格式，所以菜单列出全部格式。一旦检查过 {host} 的某个链接，菜单就列出到目前为止检查过的链接中找到的格式，音频菜单还会在下方列出可以转换成的其他格式。',
   'rename.linkHint': '保存文件时使用的名字。已经完成的下载也会在磁盘上改名，让列表和文件夹保持一致。名字不是路径，所以不能用 / 和 \\。',

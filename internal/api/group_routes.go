@@ -35,7 +35,9 @@ var groupRoutes = map[string]bool{
 	"GET /api/group/roster": true,
 
 	// Adding links. A folder outside the download folders is refused below.
-	"POST /api/links": true,
+	// The extension's video menu first asks what a video offers.
+	"POST /api/links":     true,
+	"GET /api/ytdlp/link": true,
 
 	// The list and what the rows do. Showing a member's downloads without
 	// being able to stop them would be half a connection.

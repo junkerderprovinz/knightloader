@@ -366,7 +366,7 @@ const (
 	// QualityBest passes no -f, leaving yt-dlp's own selection.
 	QualityBest Quality = "best"
 	// The ladder covers every resolution the supported sites publish;
-	// AvailableQualities trims what a source lacks.
+	// SourceQualities trims what a source lacks.
 	Quality4320p Quality = "4320p"
 	Quality2160p Quality = "2160p"
 	Quality1440p Quality = "1440p"
@@ -413,29 +413,6 @@ var resCaps = map[Quality]int{
 func ResCap(q Quality) (int, bool) {
 	r, ok := resCaps[q]
 	return r, ok
-}
-
-// AvailableQualities drops the presets above the highest resolution a source
-// offers (FormatEntry.Res). Those would still work, since the cap falls back
-// to the best track there is, but they only duplicate the top entry. maxRes
-// <= 0 (nothing probed) returns every quality. QualityBest and QualityCustom
-// are always kept.
-func AvailableQualities(maxRes int) []Quality {
-	all := Qualities()
-	if maxRes <= 0 {
-		return all
-	}
-	out := make([]Quality, 0, len(all))
-	for _, q := range all {
-		if q == QualityBest || q == QualityCustom {
-			out = append(out, q)
-			continue
-		}
-		if r, ok := ResCap(q); ok && r <= maxRes {
-			out = append(out, q)
-		}
-	}
-	return out
 }
 
 // DefaultSubtitleLangs is the --sub-langs value when no languages are set.

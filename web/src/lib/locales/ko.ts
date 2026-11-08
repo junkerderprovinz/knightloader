@@ -3315,6 +3315,8 @@ export const ko: Dict = {
   'archive.unpacked': '압축 풀림',
   'archive.tally': '압축 파일 {total}개 중 {done}개 풀림',
   'columns.variant.convertTo': '변환 대상',
+  'columns.variant.probing': '품질 확인 중…',
+  'columns.variant.probeFailed': '최고 품질만 가능합니다. 사용 가능한 품질을 읽을 수 없습니다: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows와 Linux는 각각 두 가지 빌드가 있습니다. 대부분의 PC용 x64와, Snapdragon 칩을 쓴 노트북처럼 ARM 프로세서를 쓴 컴퓨터용 ARM64입니다. 브라우저가 이 컴퓨터의 프로세서를 알려 주면 버튼이 맞는 빌드를, 아니면 x64를 줍니다. 옆의 좁은 부분은 다른 쪽을 줍니다. macOS 앱은 Intel과 Apple 실리콘 모두에서 동작합니다.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader는 {host}가 어떤 형식을 제공하는지 아직 모르므로 메뉴에 모든 형식이 나옵니다. {host}의 링크를 한 번 확인하면 지금까지 확인한 링크에서 찾은 형식이 나오고, 오디오 메뉴에는 그 아래에 변환할 수 있는 다른 형식이 나옵니다.',
   'rename.linkHint': '파일을 저장할 이름입니다. 이미 끝난 다운로드는 디스크에서도 이름이 바뀌어 목록과 폴더가 서로 맞습니다. 이름은 경로가 아니므로 / 와 \\ 는 쓸 수 없습니다.',

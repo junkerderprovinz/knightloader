@@ -3332,6 +3332,8 @@ export const ro: Dict = {
   'archive.unpacked': 'Dezarhivat',
   'archive.tally': '{done} din {total} arhive dezarhivate',
   'columns.variant.convertTo': 'Convertește în',
+  'columns.variant.probing': 'Se verifică calitățile…',
+  'columns.variant.probeFailed': 'Doar cea mai bună calitate. Calitățile disponibile nu au putut fi citite: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows și Linux au fiecare două versiuni: x64 pentru cele mai multe PC-uri și ARM64 pentru calculatoarele cu procesor ARM, cum ar fi laptopurile cu cip Snapdragon. Dacă browserul spune ce procesor are acest calculator, butonul oferă versiunea potrivită, altfel x64. Partea îngustă de alături o dă pe cealaltă. Aplicația pentru macOS rulează pe Intel și pe Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader nu știe încă ce formate oferă {host}, așa că meniurile le oferă pe toate. După ce un link de pe {host} a fost verificat, oferă formatele găsite în linkurile verificate până acum, iar meniul audio le listează dedesubt pe celelalte în care se poate converti.',
   'rename.linkHint': 'Numele sub care se salvează fișierul. O descărcare deja terminată este redenumită și pe disc, ca lista și dosarul să se potrivească. Un nume nu este o cale, așa că / și \\ nu sunt permise.',

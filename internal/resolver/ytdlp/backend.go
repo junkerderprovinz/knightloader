@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -873,6 +874,12 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	out, err := cmd.Output()
 	if err != nil {
+		var exit *exec.ExitError
+		if errors.As(err, &exit) && ctx.Err() == nil {
+			if line := errorLine(string(exit.Stderr)); line != "" {
+				return ProbeResult{}, errors.New(line)
+			}
+		}
 		return ProbeResult{}, err
 	}
 	line := firstLine(string(out))

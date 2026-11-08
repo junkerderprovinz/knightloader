@@ -3315,6 +3315,8 @@ export const et: Dict = {
   'archive.unpacked': 'Lahti pakitud',
   'archive.tally': '{total} arhiivist {done} lahti pakitud',
   'columns.variant.convertTo': 'Teisenda vormingusse',
+  'columns.variant.probing': 'Kvaliteetide kontrollimine…',
+  'columns.variant.probeFailed': 'Ainult parim kvaliteet. Saadaolevaid kvaliteete ei õnnestunud lugeda: {reason}',
   'settings.browsertools.desktopArchHint': 'Windowsil ja Linuxil on kummalgi kaks versiooni: x64 enamiku arvutite jaoks ja ARM64 ARM-protsessoriga arvutite jaoks, näiteks Snapdragon-kiibiga sülearvutid. Kui brauser ütleb, milline protsessor sellel arvutil on, pakub nupp sobivat versiooni, muidu x64. Selle kõrval olev kitsas osa annab teise. macOS-i rakendus töötab Inteli ja Apple silicon’i peal.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader ei tea veel, milliseid vorminguid {host} pakub, seega pakuvad menüüd kõiki. Niipea kui {host} link on kontrollitud, pakuvad need seni kontrollitud linkidest leitud vorminguid ja helimenüü loetleb nende all teised, millesse saab teisendada.',
   'rename.linkHint': 'Nimi, millega fail salvestatakse. Juba lõppenud allalaadimine nimetatakse ümber ka kettal, et loend ja kaust klapiksid. Nimi ei ole tee, seega / ja \\ pole lubatud.',

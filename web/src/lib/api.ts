@@ -138,8 +138,9 @@ export interface Task {
   /** File extension shown before the download starts, set only where it is
    *  certain ahead of time (see core.Task.Ext). */
   ext?: string;
-  /** Height caps the probed video offers for when no format is chosen; absent
-   *  falls back to the full menu. */
+  /** What the probed video offers when no format is chosen: "best" and the
+   *  height caps that download a track of their own (ytdlp.SourceQualities);
+   *  absent until a probe answers. */
   availableQualities?: string[];
   /** The formats the probed video comes in, "best" first, as
    *  "<container> <codec>" (ytdlp.VideoContainers); absent until a probe answers. */
@@ -155,6 +156,9 @@ export interface Task {
   availableAudioTracks?: string[];
   /** Bitrates a conversion may encode to, up to the source's best track. */
   availableAudioBitrates?: string[];
+  /** Why the probe could not read this link's formats, in yt-dlp's words; the
+   *  video and audio pickers then offer best alone. */
+  probeError?: string;
   /** The bitrate of a format the source has no track in, which is converted
    *  to (yt-dlp's --audio-quality, such as "192"), or a preset's bitrate no
    *  probe has matched to a track yet. */

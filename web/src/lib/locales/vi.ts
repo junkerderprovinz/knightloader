@@ -3324,6 +3324,8 @@ export const vi: Dict = {
   'archive.unpacked': 'Đã giải nén',
   'archive.tally': 'Đã giải nén {done} trên {total} kho lưu trữ',
   'columns.variant.convertTo': 'Chuyển sang',
+  'columns.variant.probing': 'Đang kiểm tra chất lượng…',
+  'columns.variant.probeFailed': 'Chỉ chất lượng tốt nhất. Không đọc được các mức chất lượng hiện có: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows và Linux mỗi thứ có hai bản: x64 cho hầu hết máy tính và ARM64 cho máy dùng bộ xử lý ARM, như máy tính xách tay có chip Snapdragon. Nếu trình duyệt cho biết máy này dùng bộ xử lý nào, nút sẽ đưa đúng bản, nếu không thì x64. Phần hẹp bên cạnh đưa bản còn lại. Ứng dụng macOS chạy trên Intel và Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader chưa biết {host} có những định dạng nào, nên các menu đưa ra tất cả. Ngay khi một liên kết từ {host} được kiểm tra, chúng đưa ra các định dạng tìm thấy trong những liên kết đã kiểm tra đến nay, và menu âm thanh liệt kê bên dưới các định dạng khác có thể chuyển sang.',
   'rename.linkHint': 'Tên dùng để lưu tệp. Lượt tải đã xong cũng được đổi tên trên đĩa, để danh sách và thư mục khớp nhau. Tên không phải đường dẫn, nên không được dùng / và \\.',

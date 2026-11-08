@@ -237,11 +237,16 @@ func TestProbeTitleTakesTheFirstLineOfAMultiLineAnswer(t *testing.T) {
 	}
 }
 
-func TestProbeTitleReturnsErrorOnAFailingInvocation(t *testing.T) {
+// The error carries yt-dlp's own sentence, which is what the collector shows
+// as the reason no qualities could be offered.
+func TestProbeTitleReturnsYtdlpsReasonOnAFailingInvocation(t *testing.T) {
 	b := fakeYtdlpBackend(t, "fail")
 	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=gone", nil)
 	if err == nil {
 		t.Fatalf("ProbeTitle returned no error for a failing invocation (title = %q)", got.Title)
+	}
+	if want := "ERROR: [youtube] abc123: Video unavailable"; err.Error() != want {
+		t.Errorf("ProbeTitle error = %q, want %q", err, want)
 	}
 }
 

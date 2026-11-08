@@ -206,6 +206,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **A second desktop copy on Linux with its own `KL_DATA` folder starts.**
   Its single-instance name could begin with a digit, which D-Bus refuses, and
   the copy stopped before it opened a window. The name starts with a letter.
+- **A video's quality pickers offer only what the video has.** Before yt-dlp
+  had answered, or when it could not, the collector listed every resolution
+  from 4320p down, and after an answer every step below the tallest track.
+  The pickers say they are checking until yt-dlp answers, then list the
+  resolutions and audio tracks the video has, and offer the best quality alone
+  with yt-dlp's reason when it cannot be asked. The extension's video button
+  asks the instance the same before its menu lists a resolution, and a
+  resolution the video lacks becomes the nearest one it has.
 
 ## [2.7.3] - 2026-11-07
 

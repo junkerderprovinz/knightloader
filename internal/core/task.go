@@ -543,9 +543,10 @@ type Task struct {
 	// app_ytdlp_variants.go's applyProbeFormats); the backend's real name
 	// supersedes it once the download runs.
 	Ext string `json:"ext,omitempty"`
-	// AvailableQualities narrows the quality picker to the resolution caps a
-	// probed yt-dlp video source offers, for when no format is chosen. Empty
-	// means not probed yet, and the full menu is shown.
+	// AvailableQualities is what the quality picker offers a probed yt-dlp
+	// video source when no format is chosen: best and the resolution caps that
+	// download a track of their own (see ytdlp.SourceQualities). Empty means
+	// not probed yet.
 	AvailableQualities []string `json:"availableQualities,omitempty"`
 	// AvailableVideoFormats lists the containers and codecs a probed source's
 	// video comes in, "best" first (see ytdlp.VideoContainers), for the format
@@ -556,15 +557,20 @@ type Task struct {
 	AvailableVideoTracks  []string `json:"availableVideoTracks,omitempty"`
 	// AvailableAudioFormats lists the codecs a probed source's audio comes in,
 	// "best" first (see ytdlp.AudioFormatsOf), so a lossy source is not
-	// offered as flac. Empty falls back to the full menu. AvailableAudioTracks
+	// offered as flac. Empty means not probed yet. AvailableAudioTracks
 	// is every audio track by format and bitrate (see ytdlp.AudioTracks), which
 	// the bitrate picker offers once a format is chosen.
 	AvailableAudioFormats []string `json:"availableAudioFormats,omitempty"`
 	AvailableAudioTracks  []string `json:"availableAudioTracks,omitempty"`
 	// AvailableAudioBitrates narrows the bitrates a conversion is offered at
-	// to what the source's best audio track supports. Empty falls back to the
-	// full menu.
+	// to what the source's best audio track supports. Empty means not probed
+	// yet.
 	AvailableAudioBitrates []string `json:"availableAudioBitrates,omitempty"`
+	// ProbeError is why a collected yt-dlp link's formats could not be read,
+	// in yt-dlp's words, on its video and audio rows. Their pickers then offer
+	// best alone rather than qualities the source may not have. A probe that
+	// answers clears it.
+	ProbeError string `json:"probeError,omitempty"`
 	// AudioBitrate is the bitrate of an audio row whose format the source has
 	// no track in and which is converted to it (yt-dlp's --audio-quality, e.g.
 	// "192"), or a host preset's bitrate the probe has not matched to a track

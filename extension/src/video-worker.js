@@ -76,6 +76,8 @@ function videoLabels() {
     more: t('video.more'),
     best: t('video.best'),
     audio: t('video.audio'),
+    checking: t('video.checking'),
+    unknown: t('video.unknown'),
     playlist: t('video.playlist'),
     hide: t('video.hide'),
     sending: t('video.sending'),
@@ -130,6 +132,26 @@ async function sendVideo(frameUrl, msg) {
   }
 }
 
+/**
+ * What the menu offers for the video of the page a button sits on: what the
+ * default instance's yt-dlp says it has, or the best video alone with
+ * `unknown` set where it cannot say. Checked like sendVideo, so a button only
+ * asks about the video it is showing.
+ */
+async function videoFormats(frameUrl, msg) {
+  const page = videoPage(msg.href);
+  if (!page || page.site !== videoSiteOf(frameUrl)?.id) return { formats: videoMenuFormats(null), unknown: true };
+  try {
+    return await withGroup(async ({ siblings, call }) => {
+      const target = defaultOf(siblings, await readDefaultTarget());
+      const answer = target ? await readJSON(call, target, `/api/ytdlp/link?url=${encodeURIComponent(page.url)}`) : null;
+      return answer ? { formats: videoMenuFormats(answer) } : { formats: videoMenuFormats(null), unknown: true };
+    });
+  } catch {
+    return { formats: videoMenuFormats(null), unknown: true };
+  }
+}
+
 /** Hides the button on the site a page belongs to, from the button's menu. */
 async function hideVideoSite(frameUrl) {
   const site = videoSiteOf(frameUrl);
@@ -148,6 +170,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg?.type === 'knightloader-video-send') {
     void sendVideo(sender.url, msg).then(sendResponse);
+    return true;
+  }
+  if (msg?.type === 'knightloader-video-formats') {
+    void videoFormats(sender.url, msg).then(sendResponse);
     return true;
   }
   if (msg?.type === 'knightloader-video-hide') void hideVideoSite(sender.url);

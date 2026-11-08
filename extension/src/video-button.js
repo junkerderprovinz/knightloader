@@ -96,6 +96,8 @@
     .menu [role="menuitemcheckbox"]::after { content: ""; margin-inline-start: auto; width: 14px; }
     .menu [role="menuitemcheckbox"][aria-checked="true"]::after { content: "\\2713"; color: var(--accent); }
     .menu [role="separator"] { height: 1px; margin: 4px 6px; background: var(--line); }
+    .note { display: flex; align-items: center; min-height: 30px; padding: 0 10px; color: var(--sub); }
+    .menu[aria-busy="true"] .note { animation: pulse 3.2s ease-in-out infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
     @keyframes shake {
       0%, 100% { transform: translateX(0); } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); }
@@ -113,7 +115,7 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .kl, button { transition: none; }
-      .kl[data-state="sending"] .send { animation: none; }
+      .kl[data-state="sending"] .send, .menu[aria-busy="true"] .note { animation: none; }
       .send.shake { animation: shake-reduced 220ms ease-in-out; }
     }
   `;
@@ -130,6 +132,9 @@
   let sending = false;
   let result = null;
   let resultTimer = 0;
+  // What the instance said the video has: the address asked about, and its
+  // answer once there is one.
+  let offered = null;
 
   const host = document.createElement('knightloader-video-button');
   const root = host.attachShadow({ mode: 'closed' });
@@ -352,7 +357,32 @@
     return line;
   }
 
-  function openMenu() {
+  function note(text) {
+    const line = document.createElement('div');
+    line.className = 'note';
+    line.setAttribute('role', 'none');
+    line.textContent = text;
+    return line;
+  }
+
+  /**
+   * Asks the instance once per video what it has, so the menu offers no
+   * resolution the video lacks. A plain click needs no answer.
+   */
+  function askFormats() {
+    if (offered?.url === page.url) return;
+    const asked = { url: page.url, answer: null };
+    offered = asked;
+    void chrome.runtime
+      .sendMessage({ type: 'knightloader-video-formats', href: location.href })
+      .catch(() => null)
+      .then((answer) => {
+        asked.answer = Array.isArray(answer?.formats) ? answer : { formats: ['video'], unknown: true };
+        if (offered === asked && !menu.hidden) renderMenu();
+      });
+  }
+
+  function renderMenu() {
     const items = [];
     if (page.playlist) {
       const whole = menuItem(labels.playlist, 'menuitemcheckbox', () => {
@@ -362,10 +392,15 @@
       whole.setAttribute('aria-checked', String(playlist));
       items.push(whole, separator());
     }
-    for (const format of VIDEO_FORMATS) {
+    const answer = offered?.answer;
+    menu.setAttribute('aria-busy', String(!answer));
+    if (!answer) items.push(note(labels.checking));
+    for (const format of answer?.formats ?? []) {
+      if (!VIDEO_FORMATS.includes(format)) continue;
       const text = format === 'video' ? labels.best : format === 'audio' ? labels.audio : format;
       items.push(menuItem(text, 'menuitem', () => void sendVideo(format)));
     }
+    if (answer?.unknown) items.push(note(labels.unknown));
     const site = VIDEO_SITES.find((s) => s.id === page.site);
     items.push(
       separator(),
@@ -374,9 +409,14 @@
       }),
     );
     menu.replaceChildren(...items);
+    menu.querySelectorAll('button')[0]?.focus();
+  }
+
+  function openMenu() {
+    askFormats();
+    renderMenu();
     menu.hidden = false;
     more.setAttribute('aria-expanded', 'true');
-    items[0].focus();
     position();
   }
 

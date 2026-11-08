@@ -3324,6 +3324,8 @@ export const sv: Dict = {
   'archive.unpacked': 'Uppackad',
   'archive.tally': '{done} av {total} arkiv uppackade',
   'columns.variant.convertTo': 'Konvertera till',
+  'columns.variant.probing': 'Kontrollerar kvaliteter…',
+  'columns.variant.probeFailed': 'Endast bästa kvalitet. De tillgängliga kvaliteterna kunde inte läsas: {reason}',
   'settings.browsertools.desktopArchHint': 'Windows och Linux finns i två versioner var: x64 för de flesta datorer och ARM64 för datorer med ARM-processor, som bärbara med Snapdragon-krets. Om din webbläsare säger vilken processor datorn har, ger knappen rätt version, annars x64. Den smala delen bredvid ger den andra. macOS-appen körs på Intel och på Apple silicon.',
   'settings.resolvers.presetFormatsUnknown': 'KnightLoader vet ännu inte vilka format {host} erbjuder, så menyerna erbjuder alla. Så snart en länk från {host} har kontrollerats erbjuder de formaten som hittats i de länkar som kontrollerats hittills, och ljudmenyn listar under dem de andra som det går att konvertera till.',
   'rename.linkHint': 'Namnet som filen sparas under. En nedladdning som redan är klar byter namn på disken också, så att listan och mappen stämmer. Ett namn är ingen sökväg, så / och \\ är inte tillåtna.',

@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"slices"
 	"sort"
@@ -253,7 +252,8 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 		if t.URL != rawurl {
 			continue
 		}
-		changed := false
+		changed := t.ProbeError != ""
+		t.ProbeError = ""
 		if t.Online != core.AvailOnline {
 			t.Online = core.AvailOnline
 			if t.Status != core.StatusError {
@@ -314,25 +314,22 @@ type probeFacts struct {
 }
 
 func readProbe(formats []ytdlp.FormatEntry) probeFacts {
-	var maxRes int
 	var maxAbr float64
 	for _, f := range formats {
-		if f.Vcodec != "none" && f.Res() > maxRes {
-			maxRes = f.Res()
-		}
 		if (f.Vcodec == "" || f.Vcodec == "none") && f.Abr > maxAbr {
 			maxAbr = f.Abr
 		}
 	}
 	p := probeFacts{
 		formats:       formats,
+		qualities:     []string{string(ytdlp.QualityBest)},
 		videoFormats:  ytdlp.VideoContainers(formats),
 		videoTracks:   ytdlp.VideoTracks(formats),
 		audioFormats:  ytdlp.AudioFormatsOf(formats),
 		audioTracks:   ytdlp.AudioTracks(formats),
 		audioBitrates: ytdlp.AvailableAudioBitrates(maxAbr),
 	}
-	for _, q := range ytdlp.AvailableQualities(maxRes) {
+	for _, q := range ytdlp.SourceQualities(formats) {
 		p.qualities = append(p.qualities, string(q))
 	}
 	return p
@@ -463,10 +460,9 @@ func (a *App) probeOnce(tp titleProber, rawurl string) {
 		delete(a.reprobing, rawurl)
 		a.mu.Unlock()
 	}()
-	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
-	defer cancel()
-	res, err := tp.ProbeTitle(ctx, rawurl, a.browserHeadersForLink(rawurl))
+	res, err := a.linkProbe(a.ctx, tp, rawurl, a.browserHeadersForLink(rawurl))
 	if err != nil {
+		a.failProbe(rawurl, err.Error())
 		return
 	}
 	a.applyProbeFormats(rawurl, res.Formats)
@@ -474,8 +470,8 @@ func (a *App) probeOnce(tp titleProber, rawurl string) {
 
 // backfillYtdlpProbes probes collector rows whose format menus the pickers
 // cannot read, because their probe never answered or filled them in another
-// shape (pickerMenusRead). Empty means no opinion, so the picker would offer
-// the full static menu (flac for a source that has no lossless track).
+// shape (pickerMenusRead). Until it answers, their pickers wait for it. Without
+// yt-dlp the rows are told why they offer best alone.
 //
 // It does not check the row's current resolver: routing is decided per attempt,
 // but the question is what the source offers, which only yt-dlp can answer.
@@ -485,10 +481,6 @@ func (a *App) backfillYtdlpProbes() {
 	// The fixed extensions first and without a network call, so a box without
 	// yt-dlp still shows them.
 	a.applyFixedVariantExts()
-	tp, ok := a.ytdlpTitleProber()
-	if !ok {
-		return
-	}
 	a.mu.Lock()
 	var urls []string
 	seen := make(map[string]bool)
@@ -512,13 +504,19 @@ func (a *App) backfillYtdlpProbes() {
 	}
 	a.mu.Unlock()
 
+	tp, ok := a.ytdlpTitleProber()
+	if !ok {
+		for _, u := range urls {
+			a.failProbe(u, ytdlpMissing)
+		}
+		return
+	}
 	for _, u := range urls {
 		select {
 		case <-a.ctx.Done():
 			return
 		default:
 		}
-		// An unreachable link keeps its menu as wide as it was.
 		a.probeOnce(tp, u)
 	}
 }

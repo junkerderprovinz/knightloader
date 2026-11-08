@@ -5,10 +5,13 @@ import {
   audioPickers,
   audioSummary,
   bitrateLabel,
+  bestOnlyPicker,
   formatLabel,
   hostPresetMenus,
+  menuSourceOf,
   presetPickers,
   type PresetMenus,
+  videoPickers,
 } from './VariantPicker';
 
 const t = (key: string) => key;
@@ -182,5 +185,46 @@ describe('a probed audio row', () => {
     }).format.onPick('flac');
     expect(picked).toEqual(['flac', '']);
     expect(row('flac').bitrate?.options).toEqual(FULL.audioBitrates);
+  });
+});
+
+describe('where a row finds its menus', () => {
+  it('reads them from its probe once one answered', () => {
+    expect(menuSourceOf({ formats: ['best', 'mp4 avc1'], collected: true })).toBe('probed');
+  });
+
+  it('waits for the probe of a collected row, never filling in qualities the source may lack', () => {
+    expect(menuSourceOf({ formats: undefined, collected: true })).toBe('waiting');
+  });
+
+  it('has none after a failed probe or once the row has left the collector', () => {
+    expect(menuSourceOf({ formats: undefined, collected: true, probeError: 'ERROR: Private video' })).toBe('none');
+    expect(menuSourceOf({ formats: undefined, collected: false })).toBe('none');
+  });
+});
+
+describe('a row without menus', () => {
+  it('offers best alone and says why', () => {
+    const p = bestOnlyPicker({ value: 'best', reason: 'ERROR: Private video', render: (v) => v, t, onPick: () => {} });
+    expect(p.options).toEqual(['best']);
+    expect(p.label).toBe('columns.variant.probeFailed');
+  });
+
+  it('keeps showing what the row holds, since that is what it downloads', () => {
+    expect(bestOnlyPicker({ value: '720p', render: (v) => v, t, onPick: () => {} }).options).toEqual(['best', '720p']);
+  });
+});
+
+describe('a probed video row', () => {
+  it('offers the resolutions the server found and none of the full ladder', () => {
+    const p = videoPickers({
+      pick: 'best',
+      formats: ['best', 'mp4 avc1'],
+      tracks: ['720p mp4 avc1', '480p mp4 avc1'],
+      caps: ['best', '720p', '480p'],
+      t,
+      onPick: () => {},
+    });
+    expect(p.quality.options).toEqual(['best', '720p', '480p']);
   });
 });

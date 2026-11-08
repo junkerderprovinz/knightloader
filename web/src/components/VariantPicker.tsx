@@ -193,6 +193,42 @@ export function probedFormats(list: string[] | undefined): string[] | undefined 
   return list;
 }
 
+/**
+ * Where a video or audio row's menus come from: its probe's answer, a probe
+ * still to answer, or nowhere, after a probe failed or for a row that left the
+ * collector without one. Only a probe knows what a source has, so a row
+ * without one offers best alone (bestOnlyPicker).
+ */
+export type MenuSource = 'probed' | 'waiting' | 'none';
+
+export function menuSourceOf(o: { formats: string[] | undefined; collected: boolean; probeError?: string }): MenuSource {
+  if (probedFormats(o.formats)) return 'probed';
+  return o.collected && !o.probeError ? 'waiting' : 'none';
+}
+
+/**
+ * The one picker of a row without menus: best, and the pick the row holds
+ * where that is another, since a preset's pick is still what it downloads. Its
+ * bubble says why there is no more to choose from where a probe failed.
+ */
+export function bestOnlyPicker(o: {
+  value: string;
+  reason?: string;
+  render: (option: string) => string;
+  t: Translate;
+  onPick: (value: string) => void;
+}): PickerProps {
+  const options = withValue(['best'], o.value || 'best');
+  return {
+    value: o.value || 'best',
+    options,
+    groups: [{ options }],
+    label: o.reason ? o.t('columns.variant.probeFailed', { reason: o.reason }) : o.t('settings.resolvers.quality'),
+    render: o.render,
+    onPick: o.onPick,
+  };
+}
+
 /** best in a run of its own above the rest, as every one of these menus has it. */
 const bestApart = (list: string[], best: string): PickerGroup[] => [
   { options: list.filter((x) => x === best) },
@@ -211,9 +247,9 @@ export function readVideoPick(pick: string): { format: string; quality: string }
 
 /**
  * The qualities a format offers. With tracks, a chosen format offers its own
- * tracks' resolutions and frame rates. Without them, as for a preset or a link
- * no probe has answered for, it offers the resolution caps, custom aside,
- * since a custom format string already says everything a format would.
+ * tracks' resolutions and frame rates. Without them, as for a preset, which
+ * knows no source, it offers the resolution caps, custom aside, since a custom
+ * format string already says everything a format would.
  */
 function qualitiesFor(format: string, tracks: string[] | null, caps: string[]): string[] {
   if (format === 'best') return caps;
@@ -242,9 +278,9 @@ function composeVideo(format: string, quality: string, tracks: string[] | null):
 
 /**
  * videoPickers lays out a video pick as its format picker and its quality
- * picker. `tracks` is null where nothing was probed, a preset or a link whose
- * probe has not answered, and the quality is then a resolution cap in any
- * format.
+ * picker. `tracks` is null for a preset, which knows no source, and the
+ * quality is then a resolution cap in any format. A link's `caps` are the ones
+ * its probe found.
  */
 export function videoPickers(o: {
   pick: string;
@@ -298,8 +334,9 @@ export function readAudioPick(pick: string, bitrate = ''): { format: string; bit
  * audioPickers lays out an audio pick as its format picker and its bitrate
  * picker. A format the source has a track in offers those tracks' bitrates and
  * resolves to one of them; any other format is a conversion, offered at
- * `conversions`. `tracks` is null where nothing was probed, and every format
- * is then offered at the conversion bitrates. Best has no bitrate picker.
+ * `conversions`. `tracks` is null for a preset, which knows no source, and
+ * every format is then offered at the conversion bitrates. Best has no bitrate
+ * picker.
  *
  * `formats` are what the source or the host has. The ones in `convertTo` it
  * lacks are offered below them, under "Convert to".
