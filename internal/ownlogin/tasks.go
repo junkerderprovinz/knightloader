@@ -55,12 +55,14 @@ type Tasks struct {
 	onUpdate func(taskID string, u core.Update)
 	cfg      Config
 
-	mu      sync.Mutex
-	cancel  map[string]context.CancelFunc
-	link    map[string]string
-	conns   map[string]int
-	handed  map[string]bool
-	waiting map[string]bool
+	mu     sync.Mutex
+	cancel map[string]context.CancelFunc
+	link   map[string]string
+	conns  map[string]int
+	handed map[string]bool
+	// waiting holds the run that is sitting out a wait, so a paused run that
+	// winds down late cannot clear the wait of the run a Resume started.
+	waiting map[string]context.Context
 }
 
 func NewTasks(eng Downloader, onUpdate func(taskID string, u core.Update), cfg Config) *Tasks {
@@ -70,7 +72,7 @@ func NewTasks(eng Downloader, onUpdate func(taskID string, u core.Update), cfg C
 		link:    map[string]string{},
 		conns:   map[string]int{},
 		handed:  map[string]bool{},
-		waiting: map[string]bool{},
+		waiting: map[string]context.Context{},
 	}
 }
 
@@ -79,7 +81,8 @@ func NewTasks(eng Downloader, onUpdate func(taskID string, u core.Update), cfg C
 func (t *Tasks) Waiting(taskID string) bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	return t.waiting[taskID]
+	run := t.waiting[taskID]
+	return run != nil && run.Err() == nil
 }
 
 func (t *Tasks) Download(taskID, link string, _ map[string]string, conns int) {
@@ -150,8 +153,8 @@ func (t *Tasks) handOn(ctx context.Context, taskID, link, direct string, size in
 
 // wait sits out d, keeping the time left in the task's note.
 func (t *Tasks) wait(ctx context.Context, taskID string, d time.Duration, note string) error {
-	t.setWaiting(taskID, true)
-	defer t.setWaiting(taskID, false)
+	t.setWaiting(ctx, taskID, true)
+	defer t.setWaiting(ctx, taskID, false)
 	for left := d; left > 0; {
 		t.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: fmt.Sprintf(note, span(left))})
 		// Every note reaches every open browser, so a long wait counts down
@@ -177,12 +180,12 @@ func span(d time.Duration) string {
 	return fmt.Sprintf("%d s", (d+time.Second-1)/time.Second)
 }
 
-func (t *Tasks) setWaiting(taskID string, on bool) {
+func (t *Tasks) setWaiting(run context.Context, taskID string, on bool) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if on {
-		t.waiting[taskID] = true
-	} else {
+		t.waiting[taskID] = run
+	} else if t.waiting[taskID] == run {
 		delete(t.waiting, taskID)
 	}
 }
