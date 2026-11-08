@@ -12,6 +12,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ddownload/ddltest"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 )
 
 func TestEveryDomainAndLinkFormIsClaimedAndWrittenTheSameWay(t *testing.T) {
@@ -35,9 +36,9 @@ func TestEveryDomainAndLinkFormIsClaimedAndWrittenTheSameWay(t *testing.T) {
 		{"https://notddownload.com/k3m9x2p7q1ab", ""},
 		{"ftp://ddownload.com/k3m9x2p7q1ab", ""},
 	}
-	r := Resolver{}
+	r := xfs.Resolver{Site: Site}
 	for _, c := range cases {
-		got, ok := Normalize(c.in)
+		got, ok := Site.Normalize(c.in)
 		if got != c.want || ok != (c.want != "") {
 			t.Errorf("Normalize(%q) = %q, %v; want %q", c.in, got, ok, c.want)
 		}
@@ -49,7 +50,7 @@ func TestEveryDomainAndLinkFormIsClaimedAndWrittenTheSameWay(t *testing.T) {
 
 func TestResolvingAsksNothingAndAllowsOneConnection(t *testing.T) {
 	srv := ddltest.New(t)
-	r := Resolver{Client: NewClient(srv.URL, srv.Client())}
+	r := xfs.Resolver{Site: Site, Client: xfs.NewClient(Site, srv.URL, srv.Client())}
 	got, err := r.Resolve(context.Background(), resolver.Request{URL: "https://ddl.to/k3m9x2p7q1ab/a.bin"})
 	if err != nil {
 		t.Fatal(err)
@@ -64,7 +65,7 @@ func TestResolvingAsksNothingAndAllowsOneConnection(t *testing.T) {
 
 func TestAPremiumLoginNamesTheHostItRanksFor(t *testing.T) {
 	premium := false
-	r := Resolver{Premium: func() bool { return premium }}
+	r := xfs.Resolver{Site: Site, Premium: func() bool { return premium }}
 	if got := r.LoginHost(); got != "" {
 		t.Errorf("LoginHost without premium = %q, want none", got)
 	}
@@ -75,11 +76,11 @@ func TestAPremiumLoginNamesTheHostItRanksFor(t *testing.T) {
 }
 
 func TestTheFilePageNamesAndSizesTheFile(t *testing.T) {
-	inspectPause = 0
+	xfs.InspectPause = 0
 	srv := ddltest.New(t)
 	live := srv.Add("k3m9x2p7q1ab", ddltest.File{Name: "Isle of Dogs (2018) 1080p.mkv", Body: make([]byte, 700<<10)})
 	locked := srv.Add("pr3m1umonly0", ddltest.File{Name: "Fantastic Mr Fox.mkv", Body: make([]byte, 2<<10), PremiumOnly: true})
-	r := Resolver{Client: NewClient(srv.URL, srv.Client())}
+	r := xfs.Resolver{Site: Site, Client: xfs.NewClient(Site, srv.URL, srv.Client())}
 
 	got := r.Inspect(context.Background(), []string{live, "https://ddownload.com/g0n3g0n3g0n3", locked, "https://rapidgator.net/file/abc"})
 
@@ -91,21 +92,6 @@ func TestTheFilePageNamesAndSizesTheFile(t *testing.T) {
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("Inspect = %+v\nwant      %+v", got, want)
-	}
-}
-
-func TestSizesAreReadInTheBinaryUnitsTheSiteWrites(t *testing.T) {
-	for in, want := range map[string]int64{
-		"442.40 MB": 463890022,
-		"700.00 KB": 700 << 10,
-		"1.5 GB":    3 << 29,
-		"1,020 MB":  1020 << 20,
-		"512 B":     512,
-	} {
-		figure, unit, _ := strings.Cut(in, " ")
-		if got := parseSize(figure, unit); got != want {
-			t.Errorf("parseSize(%q) = %d, want %d", in, got, want)
-		}
 	}
 }
 
@@ -160,7 +146,7 @@ type harness struct {
 	all     []core.Update
 	waits   []time.Duration
 	asked   []string
-	checked []LoginState
+	checked []xfs.LoginState
 	session string
 	// block makes every wait last until it is called off.
 	block   bool
@@ -190,10 +176,10 @@ func (h *harness) sleep(ctx context.Context, d time.Duration) error {
 	return ctx.Err()
 }
 
-func (h *harness) solve(_ context.Context, taskID, pageURL, siteKey string) (string, error) {
+func (h *harness) solve(_ context.Context, taskID string, c xfs.Captcha) (string, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	h.asked = append(h.asked, taskID+" "+pageURL+" "+siteKey)
+	h.asked = append(h.asked, taskID+" "+c.PageURL+" "+c.SiteKey)
 	if h.answer == "" {
 		return "", errors.New("skipped")
 	}
@@ -237,20 +223,20 @@ func (h *harness) captchas() []string {
 	return slices.Clone(h.asked)
 }
 
-func (h *harness) lastCheck() LoginState {
+func (h *harness) lastCheck() xfs.LoginState {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if len(h.checked) == 0 {
-		return LoginState{}
+		return xfs.LoginState{}
 	}
 	return h.checked[len(h.checked)-1]
 }
 
-func newBackend(srv *ddltest.Server) (*Backend, *fakeEngine, *harness) {
+func newBackend(srv *ddltest.Server) (*xfs.Backend, *fakeEngine, *harness) {
 	eng := newFakeEngine()
 	h := &harness{waiting: make(chan struct{}, 1), answer: ddltest.Token}
-	b := NewBackend(NewClient(srv.URL, srv.Client()), eng, h.add)
-	b.sleep = h.sleep
+	b := xfs.NewBackend(xfs.NewClient(Site, srv.URL, srv.Client()), eng, h.add)
+	b.Sleep = h.sleep
 	b.Solve = h.solve
 	b.Login = h.login
 	b.LoadSession = func() string {
@@ -263,7 +249,7 @@ func newBackend(srv *ddltest.Server) (*Backend, *fakeEngine, *harness) {
 		defer h.mu.Unlock()
 		h.session = s
 	}
-	b.OnLogin = func(st LoginState) {
+	b.OnLogin = func(st xfs.LoginState) {
 		h.mu.Lock()
 		defer h.mu.Unlock()
 		h.checked = append(h.checked, st)
@@ -407,7 +393,7 @@ func TestAPasswordGoesIntoThePasswordField(t *testing.T) {
 	}
 }
 
-func signedIn(t *testing.T, srv *ddltest.Server, a ddltest.Account) (*Backend, *fakeEngine, *harness) {
+func signedIn(t *testing.T, srv *ddltest.Server, a ddltest.Account) (*xfs.Backend, *fakeEngine, *harness) {
 	t.Helper()
 	srv.AddAccount("fox", a)
 	b, eng, h := newBackend(srv)

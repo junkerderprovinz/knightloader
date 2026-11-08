@@ -1,4 +1,4 @@
-package ddownload
+package xfs
 
 import (
 	"context"
@@ -21,14 +21,23 @@ type Downloader interface {
 }
 
 // maxCaptchaTries is how often a free download asks for a captcha again after
-// ddownload turned an answer down, before it fails.
+// the site turned an answer down, before it fails.
 const maxCaptchaTries = 3
+
+// maxSteps is how many forms a download sends before it gives up on a site
+// that keeps answering with another one.
+const maxSteps = 4
+
+// answerLife is how long a captcha's answer is sure to be taken. A countdown
+// longer than that is sat out mostly before the captcha is asked, as
+// JDownloader does, so the answer is still fresh when the form goes in.
+const answerLife = 100 * time.Second
 
 // LoginState is what the backend found out about the stored login.
 type LoginState struct {
 	// Checked is set once the account page was read.
 	Checked bool
-	// Refused is a login ddownload turned down.
+	// Refused is a login the site turned down.
 	Refused bool
 	// Err is why the last look found nothing out, nil when it did. What an
 	// earlier look found is kept beside it.
@@ -37,29 +46,30 @@ type LoginState struct {
 }
 
 // Backend signs in with the user's login, reads a file's page, waits out
-// whatever ddownload asks for, sends the download form and hands the link to
+// whatever the site asks for, sends the download forms and hands the link to
 // the engine. A wait keeps the task running with the time left in its note.
 type Backend struct {
 	client   *Client
+	site     *Site
 	eng      Downloader
 	onUpdate func(taskID string, u core.Update)
 
 	// Password returns the download password a task carries, "" for none.
 	Password func(taskID string) string
-	// Login returns the stored ddownload login, ok false for none or one
-	// that is switched off.
+	// Login returns the stored login, ok false for none or one that is
+	// switched off.
 	Login func() (user, password string, ok bool)
-	// Solve answers a Turnstile check on pageURL. taskID is the download
-	// waiting on it, "" for a sign-in no download waits on.
-	Solve func(ctx context.Context, taskID, pageURL, siteKey string) (string, error)
+	// Solve answers a captcha. taskID is the download waiting on it, "" for a
+	// sign-in no download waits on.
+	Solve func(ctx context.Context, taskID string, c Captcha) (string, error)
 	// LoadSession and SaveSession keep a signed-in session across restarts,
 	// so a restart needs no sign-in and no captcha. "" is none.
 	LoadSession func() string
 	SaveSession func(cookies string)
 	// OnLogin hears every change to what is known about the login.
 	OnLogin func(LoginState)
-
-	sleep func(ctx context.Context, d time.Duration) error
+	// Sleep sits out a wait. Tests shorten it.
+	Sleep func(ctx context.Context, d time.Duration) error
 
 	mu      sync.Mutex
 	cancel  map[string]context.CancelFunc
@@ -80,7 +90,7 @@ type Backend struct {
 
 func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
 	return &Backend{
-		client: c, eng: eng, onUpdate: onUpdate, sleep: sleep,
+		client: c, site: c.site, eng: eng, onUpdate: onUpdate, Sleep: sleep,
 		cancel:  map[string]context.CancelFunc{},
 		link:    map[string]string{},
 		handed:  map[string]bool{},
@@ -113,7 +123,7 @@ func (b *Backend) Forget() {
 }
 
 // CheckLogin reads the account page for the plan and the traffic left. It
-// signs in for that only when signIn is set, since a sign-in asks for a
+// signs in for that only when signIn is set, since a sign-in can ask for a
 // captcha.
 func (b *Backend) CheckLogin(ctx context.Context, signIn bool) {
 	if _, _, ok := b.credentials(); !ok {
@@ -162,8 +172,8 @@ func (b *Backend) signedIn(ctx context.Context, taskID string, signIn bool) (*Se
 	if !ok {
 		return nil, ErrNoLogin
 	}
-	s, err := b.client.SignIn(ctx, user, password, func(ctx context.Context, pageURL, siteKey string) (string, error) {
-		return b.solve(ctx, taskID, pageURL, siteKey)
+	s, err := b.client.SignIn(ctx, user, password, func(ctx context.Context, c Captcha) (string, error) {
+		return b.solve(ctx, taskID, c)
 	})
 	if err != nil {
 		return nil, err
@@ -173,7 +183,7 @@ func (b *Backend) signedIn(ctx context.Context, taskID string, signIn bool) (*Se
 	return s, nil
 }
 
-// dropSession forgets s once ddownload has ended it.
+// dropSession forgets s once the site has ended it.
 func (b *Backend) dropSession(s *Session) {
 	b.signMu.Lock()
 	defer b.signMu.Unlock()
@@ -238,14 +248,14 @@ func (b *Backend) start(taskID, link string) {
 func (b *Backend) run(ctx context.Context, taskID, link string) {
 	captchas := 1
 	for {
-		direct, err := b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.wait(ctx, taskID, d) })
+		direct, conns, err := b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.wait(ctx, taskID, d) })
 		var w *WaitError
 		switch {
 		case ctx.Err() != nil:
 			// Pause and Remove set the task's state themselves.
 			return
 		case err == nil:
-			b.handOn(ctx, taskID, link, direct)
+			b.handOn(ctx, taskID, link, direct, conns)
 			return
 		case errors.As(err, &w):
 			if b.wait(ctx, taskID, w.Wait) != nil {
@@ -260,13 +270,16 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	}
 }
 
-// unlock fetches the download link, on the login while it has premium and
-// for free otherwise. countdown sits out the free page's countdown.
-func (b *Backend) unlock(ctx context.Context, taskID, link string, countdown func(time.Duration) error) (string, error) {
+// unlock fetches the download link and the connections it may use, on the
+// login while it has premium and for free otherwise. countdown sits out the
+// free page's countdown.
+func (b *Backend) unlock(ctx context.Context, taskID, link string, countdown func(time.Duration) error) (string, int, error) {
 	if b.Premium() {
-		return b.unlockPremium(ctx, taskID, link)
+		direct, err := b.unlockPremium(ctx, taskID, link)
+		return direct, b.site.PremiumConns, err
 	}
-	return b.unlockFree(ctx, taskID, link, countdown)
+	direct, err := b.unlockFree(ctx, taskID, link, countdown)
+	return direct, b.site.FreeConns, err
 }
 
 func (b *Backend) unlockPremium(ctx context.Context, taskID, link string) (string, error) {
@@ -278,20 +291,26 @@ func (b *Backend) unlockPremium(ctx context.Context, taskID, link string) (strin
 		}
 		p, err := b.open(ctx, taskID, s, link)
 		direct := ""
-		switch {
-		case err != nil:
-		case p.Direct != "":
-			direct = p.Direct
-		case (p.SiteKey != "" || p.Countdown > 0) && !p.signedIn:
-			// The free page of a session that ended.
-			err = errSignedOut
-		case p.SiteKey != "" || p.Countdown > 0:
-			// The free page while signed in: the account has no premium
-			// any more.
-			b.learnAccount(func(a *Account) { a.Premium = false })
-			return "", ErrPremiumExpired
-		default:
-			direct, err = p.Send(ctx, b.password(taskID), "")
+		for step := 0; err == nil && direct == ""; step++ {
+			switch {
+			case p.Direct != "":
+				direct = p.Direct
+			case p.free() && !p.signedIn:
+				// The free page of a session that ended.
+				err = errSignedOut
+			case p.free():
+				// The free page while signed in: the account has no premium
+				// any more.
+				b.learnAccount(func(a *Account) { a.Premium = false })
+				return "", ErrPremiumExpired
+			case step == maxSteps:
+				err = errTooManySteps
+			default:
+				var answer string
+				if answer, err = b.pass(ctx, taskID, p, func(d time.Duration) error { return b.Sleep(ctx, d) }); err == nil {
+					p, err = p.Send(ctx, Input{Password: b.password(taskID), Answer: answer})
+				}
+			}
 		}
 		switch {
 		case errors.Is(err, errSignedOut) && try == 0:
@@ -300,7 +319,7 @@ func (b *Backend) unlockPremium(ctx context.Context, taskID, link string) (strin
 		case errors.Is(err, ErrTraffic):
 			b.learnAccount(func(a *Account) {
 				a.TrafficLeft = 0
-				a.TrafficMax = max(a.TrafficMax, trafficMax*1e6)
+				a.TrafficMax = max(a.TrafficMax, b.site.DailyTraffic)
 			})
 		case errors.Is(err, errSignedOut):
 			err = ErrSignInFailed
@@ -309,30 +328,49 @@ func (b *Backend) unlockPremium(ctx context.Context, taskID, link string) (strin
 	}
 }
 
+var errTooManySteps = errors.New("the site kept answering with another form and never with the download")
+
 func (b *Backend) unlockFree(ctx context.Context, taskID, link string, countdown func(time.Duration) error) (string, error) {
 	p, err := b.open(ctx, taskID, b.client.NewSession(), link)
+	for step := 0; err == nil; step++ {
+		if p.Direct != "" {
+			return p.Direct, nil
+		}
+		if step == maxSteps {
+			return "", errTooManySteps
+		}
+		var answer string
+		if answer, err = b.pass(ctx, taskID, p, countdown); err == nil {
+			p, err = p.Send(ctx, Input{Password: b.password(taskID), Answer: answer})
+		}
+	}
+	return "", err
+}
+
+// pass answers the page's captcha and sits out its countdown. The time the
+// captcha takes counts towards the countdown, as in a browser.
+func (b *Backend) pass(ctx context.Context, taskID string, p *Page, countdown func(time.Duration) error) (string, error) {
+	if p.Captcha == nil {
+		return "", sitOut(p.Countdown, countdown)
+	}
+	if err := sitOut(p.Countdown-answerLife, countdown); err != nil {
+		return "", err
+	}
+	start := time.Now()
+	b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: "Waiting for the captcha " + b.site.Name + " asks for"})
+	answer, err := b.solve(ctx, taskID, *p.Captcha)
 	if err != nil {
 		return "", err
 	}
-	if p.Direct != "" {
-		return p.Direct, nil
+	return answer, sitOut(min(p.Countdown, answerLife)-time.Since(start), countdown)
+}
+
+// sitOut waits d, if there is anything to wait.
+func sitOut(d time.Duration, countdown func(time.Duration) error) error {
+	if d > 0 {
+		return countdown(d)
 	}
-	start := time.Now()
-	token := ""
-	if p.SiteKey != "" {
-		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: "Waiting for the captcha ddownload asks for"})
-		if token, err = b.solve(ctx, taskID, p.URL, p.SiteKey); err != nil {
-			return "", err
-		}
-	}
-	// The time the captcha took counts towards the countdown, as in a
-	// browser.
-	if left := p.Countdown - time.Since(start); left > 0 {
-		if err := countdown(left); err != nil {
-			return "", err
-		}
-	}
-	return p.Send(ctx, b.password(taskID), token)
+	return nil
 }
 
 // open reads the file's page and puts the name and size it gives on the task.
@@ -346,11 +384,11 @@ func (b *Backend) open(ctx context.Context, taskID string, s *Session, link stri
 
 // solve asks Solve and turns its failures into ErrNoAnswer, other than a
 // download that stopped meanwhile.
-func (b *Backend) solve(ctx context.Context, taskID, pageURL, siteKey string) (string, error) {
+func (b *Backend) solve(ctx context.Context, taskID string, c Captcha) (string, error) {
 	if b.Solve == nil {
 		return "", ErrNoAnswer
 	}
-	token, err := b.Solve(ctx, taskID, pageURL, siteKey)
+	token, err := b.Solve(ctx, taskID, c)
 	switch {
 	case ctx.Err() != nil:
 		return "", ctx.Err()
@@ -360,9 +398,8 @@ func (b *Backend) solve(ctx context.Context, taskID, pageURL, siteKey string) (s
 	return token, nil
 }
 
-// handOn gives the link to the engine for one connection, all ddownload
-// serves.
-func (b *Backend) handOn(ctx context.Context, taskID, link, direct string) {
+// handOn gives the link to the engine.
+func (b *Backend) handOn(ctx context.Context, taskID, link, direct string, conns int) {
 	// Pause and Remove cancel under b.mu, so one that came after the form was
 	// answered is seen here and the link is not handed on.
 	b.mu.Lock()
@@ -372,12 +409,13 @@ func (b *Backend) handOn(ctx context.Context, taskID, link, direct string) {
 	}
 	b.handed[taskID] = true
 	b.mu.Unlock()
-	b.eng.Handover(taskID, direct, 1, func(ctx context.Context) (string, error) {
-		return b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.sleep(ctx, d) })
+	b.eng.Handover(taskID, direct, conns, func(ctx context.Context) (string, error) {
+		direct, _, err := b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.Sleep(ctx, d) })
+		return direct, err
 	})
 }
 
-// Waiting reports whether the task is sitting out a wait ddownload asked for.
+// Waiting reports whether the task is sitting out a wait the site asked for.
 // It moves no bytes meanwhile, and that is no stall.
 func (b *Backend) Waiting(taskID string) bool {
 	b.mu.Lock()
@@ -390,7 +428,7 @@ func (b *Backend) wait(ctx context.Context, taskID string, d time.Duration) erro
 	b.setWaiting(taskID, true)
 	defer b.setWaiting(taskID, false)
 	for left := d; left > 0; {
-		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: "Waiting for ddownload: " + span(left) + " left"})
+		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: "Waiting for " + b.site.Name + ": " + span(left) + " left"})
 		// Every note reaches every open browser, so a long wait counts down
 		// in coarser steps.
 		step := time.Second
@@ -398,7 +436,7 @@ func (b *Backend) wait(ctx context.Context, taskID string, d time.Duration) erro
 			step = 30 * time.Second
 		}
 		step = min(step, left)
-		if err := b.sleep(ctx, step); err != nil {
+		if err := b.Sleep(ctx, step); err != nil {
 			return err
 		}
 		left -= step
@@ -459,9 +497,9 @@ func (b *Backend) save(cookies string) {
 	}
 }
 
-// fail reports err with the cause the backend knows.
+// fail reports err, named after the site, with the cause the backend knows.
 func (b *Backend) fail(taskID string, err error) {
-	u := core.Update{Status: core.StatusError, Err: err.Error()}
+	u := core.Update{Status: core.StatusError, Err: b.site.Name + ": " + err.Error()}
 	var w *WaitError
 	switch {
 	case errors.Is(err, ErrGone):

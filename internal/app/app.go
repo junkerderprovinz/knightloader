@@ -56,7 +56,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/ddownload"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
@@ -64,6 +63,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
@@ -286,9 +286,10 @@ type App struct {
 	// fichier fetches free 1fichier links. It too lives across rewires, and
 	// its resolver shares its page client.
 	fichier *onefichier.Backend
-	// ddl fetches ddownload links, on the user's login when it has premium.
-	// It too lives across rewires, and its resolver shares its client.
-	ddl *ddownload.Backend
+	// xfsBackends fetch the links of the XFileSharing hosters, by resolver
+	// id, on the user's login when it has premium. They too live across
+	// rewires, and each resolver shares its backend's client.
+	xfsBackends map[string]*xfs.Backend
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through

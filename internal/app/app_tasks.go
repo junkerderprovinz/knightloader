@@ -25,10 +25,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/ddownload"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -493,12 +493,15 @@ func (a *App) inspectHosterLinks(ids []string) {
 		}
 		return onefichier.Resolver{Client: a.fichier.Client()}.Inspect
 	})
-	ids = a.inspectClientLinks(ids, ddownload.ResolverID, func() inspectFunc {
-		if a.ddl == nil {
-			return nil
-		}
-		return ddownload.Resolver{Client: a.ddl.Client()}.Inspect
-	})
+	for _, site := range xfsSites {
+		ids = a.inspectClientLinks(ids, site.ID, func() inspectFunc {
+			b := a.xfsBackends[site.ID]
+			if b == nil {
+				return nil
+			}
+			return xfs.Resolver{Site: site, Client: b.Client()}.Inspect
+		})
+	}
 	a.bmu.RLock()
 	insp, ok := a.jd.(linkInspector)
 	a.bmu.RUnlock()

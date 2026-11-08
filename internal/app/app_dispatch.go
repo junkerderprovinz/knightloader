@@ -23,7 +23,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/ddownload"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
@@ -32,6 +31,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -62,9 +62,9 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 	if resolverID == mega.ResolverID || resolverID == onefichier.ResolverID {
 		return core.ModeFree
 	}
-	// The ddownload client downloads on the login while it has premium.
-	if resolverID == ddownload.ResolverID {
-		if a.ddl != nil && a.ddl.Premium() {
+	// An XFileSharing client downloads on the login while it has premium.
+	if b, ok := a.xfsBackends[resolverID]; ok {
+		if b.Premium() {
 			return core.ModePremium
 		}
 		return core.ModeFree
@@ -1263,13 +1263,13 @@ func (a *App) Resume(id string) {
 
 // HonoursCollisionPolicy reports whether the collision policy reaches the file
 // a task on this resolver writes: the engine's own downloads and those a
-// debrid service, TorBox or the 1fichier or ddownload client passes on to it (see
+// debrid service, TorBox or the 1fichier or an XFileSharing client passes on to it (see
 // engineHandoff). The other backends name files themselves, so only skip
 // applies to them. The interface uses this to avoid offering controls that
 // would be ignored.
 func (a *App) HonoursCollisionPolicy(resolverID string) bool {
 	switch a.backendFor(resolverID).(type) {
-	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *onefichier.Backend, *ddownload.Backend, *usenet.Files:
+	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *onefichier.Backend, *xfs.Backend, *usenet.Files:
 		return true
 	}
 	return false
@@ -1281,6 +1281,9 @@ func (a *App) backendFor(resolverID string) backend {
 	if b, ok := a.debrid[resolverID]; ok && b != nil {
 		return b
 	}
+	if b, ok := a.xfsBackends[resolverID]; ok {
+		return b
+	}
 	switch {
 	case resolverID == remotefs.ResolverID && a.remotefs != nil:
 		// The remotefs backend, even for WebDAV links the engine could fetch,
@@ -1290,8 +1293,6 @@ func (a *App) backendFor(resolverID string) backend {
 		return a.mega
 	case resolverID == onefichier.ResolverID && a.fichier != nil:
 		return a.fichier
-	case resolverID == ddownload.ResolverID && a.ddl != nil:
-		return a.ddl
 	case resolverID == "jd" && a.jd != nil:
 		return a.jd
 	case resolverID == "torbox" && a.torbox != nil:

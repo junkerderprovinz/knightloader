@@ -50,7 +50,7 @@ func (a *App) hosterAuth() *hosterauth.Reconciler {
 // a.spawn so Close waits for it.
 func (a *App) StartHosterAuth() {
 	a.spawn(func() { a.hosterAuth().Run(a.ctx) })
-	a.spawn(a.watchDdownloadLogin)
+	a.spawn(a.watchXFSLogins)
 }
 
 // HosterHosts lists the hosts the "add a login" picker offers. Debrid services
@@ -108,9 +108,7 @@ func (a *App) SetHosterLogin(host, username, password string) error {
 	if err := r.SetLogin(host, username, password); err != nil {
 		return err
 	}
-	if ownLogin(host) {
-		a.forgetDdownloadLogin()
-		a.spawn(func() { a.checkDdownloadLogin(true) })
+	if a.changedXFSLogin(host, true) {
 		return nil
 	}
 	a.spawn(func() {
@@ -136,11 +134,7 @@ func (a *App) SetHosterLoginEnabled(host string, enabled bool) error {
 		// host has none, so it is taken out of routing here.
 		jdresolver.SetHostActive(host, false)
 	}
-	if ownLogin(host) {
-		a.forgetDdownloadLogin()
-		if enabled {
-			a.spawn(func() { a.checkDdownloadLogin(true) })
-		}
+	if a.changedXFSLogin(host, enabled) {
 		return nil
 	}
 	a.spawn(func() {
@@ -158,9 +152,7 @@ func (a *App) RemoveHosterLogin(host string) error {
 	if err := r.RemoveLogin(host); err != nil {
 		return err
 	}
-	if ownLogin(host) {
-		a.forgetDdownloadLogin()
-	}
+	a.changedXFSLogin(host, false)
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {
 			log.Printf("hosterauth: reconcile after remove failed: %v", err)

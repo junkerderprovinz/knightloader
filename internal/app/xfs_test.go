@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"net/http"
 	"os"
 	"slices"
 	"strings"
@@ -18,16 +19,25 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ddownload/ddltest"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // useDdownload points the app's ddownload client at srv.
-func useDdownload(a *App, srv *ddltest.Server) *ddownload.Backend {
-	b := a.newDdownloadBackend(ddownload.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a})
+func useDdownload(a *App, srv *ddltest.Server) *xfs.Backend {
+	return useXFS(a, ddownload.Site, srv.URL, srv.Client())
+}
+
+// useXFS points the app's client for site at the server at base.
+func useXFS(a *App, site *xfs.Site, base string, hc *http.Client) *xfs.Backend {
+	b := a.newXFSBackend(xfs.NewClient(site, base, hc), engineHandoff{a.Engine, a})
 	a.bmu.Lock()
-	a.ddl = b
+	if a.xfsBackends == nil {
+		a.xfsBackends = map[string]*xfs.Backend{}
+	}
+	a.xfsBackends[site.ID] = b
 	a.bmu.Unlock()
-	a.Registry.Register(ddownload.Resolver{Client: b.Client(), Premium: b.Premium})
+	a.Registry.Register(xfs.Resolver{Site: site, Client: b.Client(), Premium: b.Premium})
 	return b
 }
 
@@ -46,7 +56,7 @@ func answerTurnstile(t *testing.T, a *App, pageURL string) captcha.Challenge {
 		return false
 	})
 	w := c.Payload.(*captcha.WidgetPayload)
-	if c.Host != ddownload.Site || c.Kind != captcha.KindWidget || w.Vendor != captcha.VendorTurnstile || w.SiteKey != ddltest.SiteKey {
+	if c.Host != ddownload.Site.Host || c.Kind != captcha.KindWidget || w.Vendor != captcha.VendorTurnstile || w.SiteKey != ddltest.SiteKey {
 		t.Errorf("the prompt got %+v with %+v, want ddownload's Turnstile check", c, w)
 	}
 	got, err := a.AnswerCaptcha(context.Background(), c.ID, ddltest.Token)
@@ -68,16 +78,16 @@ func TestADdownloadLinkGoesFreeBelowDebridAndOnAPremiumLoginAboveIt(t *testing.T
 	mode := func() core.DownloadMode {
 		a.mu.Lock()
 		defer a.mu.Unlock()
-		return a.modeForLocked(&core.Task{URL: link}, ddownload.ResolverID)
+		return a.modeForLocked(&core.Task{URL: link}, ddownload.Site.ID)
 	}
 
-	if got := chainIDs(a, link); !slices.Equal(got[:3], []string{"zevera", ddownload.ResolverID, "jd"}) {
+	if got := chainIDs(a, link); !slices.Equal(got[:3], []string{"zevera", ddownload.Site.ID, "jd"}) {
 		t.Errorf("chain = %v, want the debrid service, then the ddownload client, then JD", got)
 	}
 	if mode() != core.ModeFree {
 		t.Errorf("mode = %q without a login, want free", mode())
 	}
-	if !a.HonoursCollisionPolicy(ddownload.ResolverID) {
+	if !a.HonoursCollisionPolicy(ddownload.Site.ID) {
 		t.Error("the collision policy does not reach a ddownload download")
 	}
 
@@ -101,20 +111,20 @@ func TestADdownloadLinkGoesFreeBelowDebridAndOnAPremiumLoginAboveIt(t *testing.T
 	if !b.Premium() || mode() != core.ModePremium {
 		t.Errorf("premium %v, mode %q; want the login used", b.Premium(), mode())
 	}
-	if got := chainIDs(a, link); got[0] != ddownload.ResolverID {
+	if got := chainIDs(a, link); got[0] != ddownload.Site.ID {
 		t.Errorf("chain = %v, want the ddownload client on the premium login first", got)
 	}
 	if rows := a.ResolverPriority(""); !slices.ContainsFunc(rows, func(r resolver.Info) bool { return r.ID == "login:ddl.to" }) ||
-		!slices.ContainsFunc(rows, func(r resolver.Info) bool { return r.ID == ddownload.ResolverID }) {
+		!slices.ContainsFunc(rows, func(r resolver.Info) bool { return r.ID == ddownload.Site.ID }) {
 		t.Errorf("the priority card = %v, want rows for the login and the free client", rows)
 	}
 
 	// A hand-arranged order that puts the debrid service above the login
 	// sends the link there.
-	if _, err := a.SaveResolverOrder([]string{"zevera", "login:ddl.to", ddownload.ResolverID, "jd"}); err != nil {
+	if _, err := a.SaveResolverOrder([]string{"zevera", "login:ddl.to", ddownload.Site.ID, "jd"}); err != nil {
 		t.Fatal(err)
 	}
-	if got := chainIDs(a, link); !slices.Equal(got[:2], []string{"zevera", ddownload.ResolverID}) {
+	if got := chainIDs(a, link); !slices.Equal(got[:2], []string{"zevera", ddownload.Site.ID}) {
 		t.Errorf("chain = %v, want the order's debrid service first", got)
 	}
 
@@ -138,7 +148,7 @@ func TestADdownloadFileIsNamedInTheCollectorAndDownloadedForFree(t *testing.T) {
 	link := srv.Add("k3m9x2p7q1ab", ddltest.File{Name: "Fantastic Mr Fox.mkv", Body: body})
 
 	created := a.AddLinks([]string{link}, "")
-	if len(created) != 1 || created[0].Resolver != ddownload.ResolverID {
+	if len(created) != 1 || created[0].Resolver != ddownload.Site.ID {
 		t.Fatalf("staged %+v, want one row for the ddownload client", created)
 	}
 	id := created[0].ID

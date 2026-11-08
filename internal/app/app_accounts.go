@@ -29,7 +29,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/jre"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/ddownload"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
@@ -37,6 +36,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
@@ -182,10 +182,12 @@ func (a *App) rewireBackends() {
 	// Free 1fichier links, which need no account either.
 	a.Registry.Register(onefichier.Resolver{Client: a.fichierBackend(eng).Client()})
 
-	// ddownload links, on the user's login while it has premium and for free
-	// otherwise.
-	ddl := a.ddownloadBackend(eng)
-	a.Registry.Register(ddownload.Resolver{Client: ddl.Client(), Premium: ddl.Premium})
+	// The XFileSharing hosters, on the user's login while it has premium and
+	// for free otherwise.
+	for _, site := range xfsSites {
+		b := a.xfsBackend(site, eng)
+		a.Registry.Register(xfs.Resolver{Site: site, Client: b.Client(), Premium: b.Premium})
+	}
 
 	// Stored header profiles. Registered here rather than in app.go because
 	// a.Accounts does not exist there yet. It builds its own client, which has
