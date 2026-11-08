@@ -36,6 +36,7 @@ func (a *App) hosterAuth() *hosterauth.Reconciler {
 	// as account, the same key accountEnabled uses, so this is the same switch
 	// as every other account's.
 	r.Enabled = func(host string) bool { return a.accountEnabled(hosterauth.Service, host) }
+	r.Own = ownLogin
 	// A login JD has just confirmed may be the way down a link held for
 	// premium only was waiting for, and until JD's hoster list is first read
 	// every link JD would fetch is held.
@@ -49,6 +50,7 @@ func (a *App) hosterAuth() *hosterauth.Reconciler {
 // a.spawn so Close waits for it.
 func (a *App) StartHosterAuth() {
 	a.spawn(func() { a.hosterAuth().Run(a.ctx) })
+	a.spawn(a.watchDdownloadLogin)
 }
 
 // HosterHosts lists the hosts the "add a login" picker offers. Debrid services
@@ -106,6 +108,11 @@ func (a *App) SetHosterLogin(host, username, password string) error {
 	if err := r.SetLogin(host, username, password); err != nil {
 		return err
 	}
+	if ownLogin(host) {
+		a.forgetDdownloadLogin()
+		a.spawn(func() { a.checkDdownloadLogin(true) })
+		return nil
+	}
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {
 			log.Printf("hosterauth: reconcile after save failed: %v", err)
@@ -129,6 +136,13 @@ func (a *App) SetHosterLoginEnabled(host string, enabled bool) error {
 		// host has none, so it is taken out of routing here.
 		jdresolver.SetHostActive(host, false)
 	}
+	if ownLogin(host) {
+		a.forgetDdownloadLogin()
+		if enabled {
+			a.spawn(func() { a.checkDdownloadLogin(true) })
+		}
+		return nil
+	}
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {
 			log.Printf("hosterauth: reconcile after enable/disable failed: %v", err)
@@ -143,6 +157,9 @@ func (a *App) RemoveHosterLogin(host string) error {
 	r := a.hosterAuth()
 	if err := r.RemoveLogin(host); err != nil {
 		return err
+	}
+	if ownLogin(host) {
+		a.forgetDdownloadLogin()
 	}
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {

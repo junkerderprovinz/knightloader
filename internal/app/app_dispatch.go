@@ -23,6 +23,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ddownload"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
@@ -61,6 +62,13 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 	if resolverID == mega.ResolverID || resolverID == onefichier.ResolverID {
 		return core.ModeFree
 	}
+	// The ddownload client downloads on the login while it has premium.
+	if resolverID == ddownload.ResolverID {
+		if a.ddl != nil && a.ddl.Premium() {
+			return core.ModePremium
+		}
+		return core.ModeFree
+	}
 	if resolverID == "jd" {
 		// An active login on the sidecar is premium; JD knowing the host
 		// without one is free mode.
@@ -88,16 +96,20 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 // full slot id is honoured as written.
 func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 	id := res.Info().ID
-	switch {
-	case id == hostheaders.ResolverID || id == remotefs.ResolverID:
+	switch id {
+	case hostheaders.ResolverID, remotefs.ResolverID:
 		// A header profile and the user's own servers take only the links they
 		// were set up for, so they stay above every row of the card, and an
 		// order entry naming one, which the card cannot write, is ignored.
 		return orderBase + res.Info().Prio
-	case id == "http":
+	case "http":
 		// The fallback is last whatever an order entry says.
 		return res.Info().Prio
-	case id == "jd":
+	}
+	if prio, ok := loginPrio(res, order); ok {
+		return prio
+	}
+	if id == "jd" {
 		// A connected hoster login is a row of its own on the priority card, so
 		// the order decides whether a link to that host goes out on the login
 		// or through a debrid service that carries the host too. The login's
@@ -124,6 +136,29 @@ func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 		return jd.PriorityFor(url)
 	}
 	return res.Info().Prio
+}
+
+// loginPrio is where a hoster client of KnightLoader's own ranks while it
+// downloads on a login: where JD would rank that login, at its row of the
+// card, else at JD's own entry, else at jd.ActiveLoginPrio. JD itself takes
+// such a host without the login, and on a tie the registry puts the client,
+// with its higher priority, first.
+func loginPrio(res resolver.Resolver, order []string) (int, bool) {
+	l, ok := res.(interface{ LoginHost() string })
+	if !ok {
+		return 0, false
+	}
+	host := l.LoginHost()
+	if host == "" {
+		return 0, false
+	}
+	if i := slices.IndexFunc(order, func(entry string) bool { return loginRowFor(entry, host) }); i >= 0 {
+		return orderBase - i, true
+	}
+	if i := slices.Index(order, "jd"); i >= 0 {
+		return orderBase - i, true
+	}
+	return jd.ActiveLoginPrio, true
 }
 
 // loginRowID is the order entry for one host's hoster login.
@@ -1228,13 +1263,13 @@ func (a *App) Resume(id string) {
 
 // HonoursCollisionPolicy reports whether the collision policy reaches the file
 // a task on this resolver writes: the engine's own downloads and those a
-// debrid service, TorBox or the 1fichier client passes on to it (see
+// debrid service, TorBox or the 1fichier or ddownload client passes on to it (see
 // engineHandoff). The other backends name files themselves, so only skip
 // applies to them. The interface uses this to avoid offering controls that
 // would be ignored.
 func (a *App) HonoursCollisionPolicy(resolverID string) bool {
 	switch a.backendFor(resolverID).(type) {
-	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *onefichier.Backend, *usenet.Files:
+	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *onefichier.Backend, *ddownload.Backend, *usenet.Files:
 		return true
 	}
 	return false
@@ -1255,6 +1290,8 @@ func (a *App) backendFor(resolverID string) backend {
 		return a.mega
 	case resolverID == onefichier.ResolverID && a.fichier != nil:
 		return a.fichier
+	case resolverID == ddownload.ResolverID && a.ddl != nil:
+		return a.ddl
 	case resolverID == "jd" && a.jd != nil:
 		return a.jd
 	case resolverID == "torbox" && a.torbox != nil:

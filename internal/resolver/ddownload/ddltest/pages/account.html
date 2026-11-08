@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Account</title>
+</head>
+<body>
+<a href="/pricing" class="mobile-nav-link">Ultimate</a>
+<a href="/?op=logout">Logout</a>
+<div class="ma-stat-card">
+    <div class="ma-stat-label"><i class="fas fa-id-badge"></i> Account Status</div>
+    {{if .Premium}}<div style="margin-top: 0.2rem;"><span class="ma-ultimate-pill" style="font-size: 0.95rem;">Ultimate</span></div>
+    <div class="ma-stat-sub" style="margin-top: 0.7rem;">Active until {{.Until}}</div>
+    {{else}}<div style="margin-top: 0.2rem;"><span class="ma-free-pill">Free</span></div>
+    {{end}}
+</div>
+<div class="ma-stat-card">
+    <div class="ma-traffic-bar" data-traffic="{{.TrafficMB}}"></div>
+    <span id="trafficValue">{{.TrafficMB}}</span> MB
+</div>
+<script>
+    var trafficLeftMB = parseFloat(trafficBar.attr('data-traffic')) || 0;
+    var totalTrafficMB = 200000;
+</script>
+</body>
+</html>
