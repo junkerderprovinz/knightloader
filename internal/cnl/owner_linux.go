@@ -15,10 +15,10 @@ func addrInUse(err error) bool {
 	return errors.Is(err, syscall.EADDRINUSE)
 }
 
-// portOwner finds the socket listening on port in /proc/net and the process
-// holding that socket among the open files in /proc. Another user's process
+// portOwners finds the sockets listening on port in /proc/net and the
+// processes holding them among the open files in /proc. Another user's process
 // keeps its files to itself, so it is found only when this one runs as root.
-func portOwner(_ context.Context, port int) (Process, bool) {
+func portOwners(_ context.Context, port int) []Process {
 	inodes := map[string]bool{}
 	for _, table := range []string{"/proc/net/tcp", "/proc/net/tcp6"} {
 		b, err := os.ReadFile(table)
@@ -30,20 +30,26 @@ func portOwner(_ context.Context, port int) (Process, bool) {
 		}
 	}
 	if len(inodes) == 0 {
-		return Process{}, false
+		return nil
 	}
+	var owners []Process
+	seen := map[int]bool{}
 	fds, _ := filepath.Glob("/proc/[0-9]*/fd/*")
 	for _, fd := range fds {
 		link, err := os.Readlink(fd)
 		if err != nil || !strings.HasPrefix(link, "socket:[") {
 			continue
 		}
-		if inodes[strings.TrimSuffix(strings.TrimPrefix(link, "socket:["), "]")] {
-			pid, _ := strconv.Atoi(strings.Split(fd, "/")[2])
-			return describe(pid), true
+		if !inodes[strings.TrimSuffix(strings.TrimPrefix(link, "socket:["), "]")] {
+			continue
+		}
+		pid, _ := strconv.Atoi(strings.Split(fd, "/")[2])
+		if !seen[pid] {
+			seen[pid] = true
+			owners = append(owners, describe(pid))
 		}
 	}
-	return Process{}, false
+	return owners
 }
 
 // listenInodes reads a /proc/net/tcp table and returns the inodes of the

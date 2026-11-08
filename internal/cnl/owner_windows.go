@@ -26,9 +26,11 @@ func addrInUse(err error) bool {
 	return errors.Is(err, windows.WSAEADDRINUSE)
 }
 
-// portOwner asks the system which process listens on port, over IPv4 and
+// portOwners asks the system which processes listen on port, over IPv4 and
 // then IPv6.
-func portOwner(_ context.Context, port int) (Process, bool) {
+func portOwners(_ context.Context, port int) []Process {
+	var owners []Process
+	seen := map[int]bool{}
 	for _, fam := range []struct {
 		af              uint32
 		size, at, pidAt int
@@ -40,11 +42,14 @@ func portOwner(_ context.Context, port int) (Process, bool) {
 		if err != nil {
 			continue
 		}
-		if pid, ok := pidOnPort(table, port, fam.size, fam.at, fam.pidAt); ok {
-			return describe(pid), true
+		for _, pid := range pidsOnPort(table, port, fam.size, fam.at, fam.pidAt) {
+			if !seen[pid] {
+				seen[pid] = true
+				owners = append(owners, describe(pid))
+			}
 		}
 	}
-	return Process{}, false
+	return owners
 }
 
 func listenerTable(af uint32) ([]byte, error) {
@@ -73,13 +78,14 @@ func listenerTable(af uint32) ([]byte, error) {
 	return nil, windows.ERROR_INSUFFICIENT_BUFFER
 }
 
-// pidOnPort finds port in a table GetExtendedTcpTable filled: a count, then
+// pidsOnPort finds port in a table GetExtendedTcpTable filled: a count, then
 // rows of size bytes. The port is in network order in the low two bytes of
 // its field.
-func pidOnPort(table []byte, port, size, at, pidAt int) (int, bool) {
+func pidsOnPort(table []byte, port, size, at, pidAt int) []int {
 	if len(table) < 4 {
-		return 0, false
+		return nil
 	}
+	var pids []int
 	n := int(binary.LittleEndian.Uint32(table))
 	for i := range n {
 		row := table[4+i*size:]
@@ -87,10 +93,10 @@ func pidOnPort(table []byte, port, size, at, pidAt int) (int, bool) {
 			break
 		}
 		if int(binary.BigEndian.Uint16(row[at:])) == port {
-			return int(binary.LittleEndian.Uint32(row[pidAt:])), true
+			pids = append(pids, int(binary.LittleEndian.Uint32(row[pidAt:])))
 		}
 	}
-	return 0, false
+	return pids
 }
 
 // describe names process pid. A process this user may not look into, such
