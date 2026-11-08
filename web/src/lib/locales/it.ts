@@ -812,6 +812,7 @@ export const it: Dict = {
   'settings.look.updatesDownloading': 'Download dell’aggiornamento: {percent}%',
   'settings.look.updatesInstallFailed': 'L’aggiornamento non è riuscito: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Possibile solo nella build desktop: un container non può sostituirsi da solo dall’interno. Aggiornalo invece nel modo in cui l’hai distribuito (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Un Flatpak non si sostituisce da solo. Se l’hai installato da Flathub, lo tiene aggiornato il tuo centro software o flatpak update. Un pacchetto dalla pagina delle release si aggiorna installando quello più recente.',
   'settings.look.jdAutoUpdateHint': 'Una volta al giorno KnightLoader chiede a JDownloader se c’è un aggiornamento in attesa e glielo fa installare. JDownloader si riavvia per farlo, quindi l’aggiornamento aspetta finché nessuno dei suoi download è in corso.',
   'settings.look.updatesAutoCheckHint': 'Finché è attivo, aprire questa pagina chiede una volta a GitHub se è uscito un KnightLoader più recente. Chiede soltanto, perché un container riceve gli aggiornamenti dal suo gestore di container.',
   'settings.look.jdAutoCheckHint': 'Poco dopo l’avvio di KnightLoader e poi una volta al giorno, chiede a JDownloader se c’è un aggiornamento in attesa. Chiede soltanto; l’installazione dipende dall’interruttore qui sotto.',

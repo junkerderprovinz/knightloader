@@ -820,6 +820,7 @@ export const cs: Dict = {
   'settings.look.updatesDownloading': 'Stahuje se aktualizace: {percent} %',
   'settings.look.updatesInstallFailed': 'Aktualizace se nepovedla: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Možné jen v desktopovém buildu: kontejner se nemůže nahradit sám zevnitř. Aktualizuj ho místo toho stejně, jako jsi ho nasadil (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak se sám nenahrazuje. Když je nainstalovaný z Flathubu, udržuje ho aktuální tvoje centrum softwaru nebo flatpak update. Balíček ze stránky vydání aktualizuješ instalací novějšího.',
   'settings.look.jdAutoUpdateHint': 'Jednou denně se KnightLoader zeptá JDownloaderu, jestli čeká aktualizace, a nechá ji nainstalovat. JDownloader se kvůli tomu restartuje, takže aktualizace počká, dokud neběží žádné z jeho stahování.',
   'settings.look.updatesAutoCheckHint': 'Dokud je tohle zapnuté, otevření této stránky se jednou zeptá GitHubu, jestli vyšel novější KnightLoader. Jen se ptá, protože kontejner dostává aktualizace od svého správce kontejnerů.',
   'settings.look.jdAutoCheckHint': 'Krátce po spuštění KnightLoaderu a pak jednou denně se zeptá JDownloaderu, jestli čeká aktualizace. Jen se ptá; instaluje přepínač níže.',

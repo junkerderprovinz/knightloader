@@ -820,6 +820,7 @@ export const fa: Dict = {
   'settings.look.updatesDownloading': 'در حال دانلود به‌روزرسانی: {percent}٪',
   'settings.look.updatesInstallFailed': 'به‌روزرسانی انجام نشد: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'فقط در نسخهٔ دسکتاپ ممکن است: کانتینر نمی‌تواند خودش را از درون جایگزین کند. به‌جایش آن را به همان روشی که مستقرش کرده‌ای به‌روز کن (docker pull، Unraid Community Applications، Watchtower، ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak خودش را جایگزین نمی‌کند. اگر از Flathub نصبش کرده‌ای، مرکز نرم‌افزارت یا flatpak update آن را به‌روز نگه می‌دارد. بسته‌ای را که از صفحهٔ انتشار گرفته‌ای با نصب نسخهٔ جدیدترش به‌روز می‌کنی.',
   'settings.look.jdAutoUpdateHint': 'KnightLoader روزی یک بار از JDownloader می‌پرسد که آیا به‌روزرسانی‌ای منتظر است و می‌گذارد آن را نصب کند. JDownloader برای این کار دوباره راه‌اندازی می‌شود، پس به‌روزرسانی صبر می‌کند تا هیچ‌کدام از دانلودهایش در حال اجرا نباشد.',
   'settings.look.updatesAutoCheckHint': 'تا وقتی این روشن است، باز کردن این صفحه یک بار از GitHub می‌پرسد که آیا KnightLoader تازه‌تری آمده است. فقط می‌پرسد، چون کانتینر به‌روزرسانی‌هایش را از مدیر کانتینرش می‌گیرد.',
   'settings.look.jdAutoCheckHint': 'کمی پس از شروع KnightLoader و سپس روزی یک بار، از JDownloader می‌پرسد که آیا به‌روزرسانی‌ای منتظر است. فقط می‌پرسد؛ نصب با کلید پایین است.',

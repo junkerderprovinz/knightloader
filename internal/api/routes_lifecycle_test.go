@@ -64,6 +64,29 @@ func TestDeploymentReflectsDesktop(t *testing.T) {
 	}
 }
 
+// A Flatpak is updated through Flatpak, so the Updates card says how in place
+// of the switch that would have the app replace itself.
+func TestAFlatpakLeavesUpdatesToFlatpak(t *testing.T) {
+	_, srv := lifecycleServer(t)
+	buildinfo.Deployment = "desktop"
+
+	var info struct {
+		UpdatesFromStore *bool `json:"updatesFromStore"`
+	}
+	t.Setenv("FLATPAK_ID", "")
+	getJSON(t, srv.URL+"/api/system/deployment", &info)
+	if info.UpdatesFromStore == nil || *info.UpdatesFromStore {
+		t.Errorf("outside a Flatpak updatesFromStore is %v", info.UpdatesFromStore)
+	}
+
+	t.Setenv("FLATPAK_ID", "io.github.junkerderprovinz.knightloader")
+	info.UpdatesFromStore = nil
+	getJSON(t, srv.URL+"/api/system/deployment", &info)
+	if info.UpdatesFromStore == nil || !*info.UpdatesFromStore {
+		t.Errorf("inside a Flatpak updatesFromStore is %v", info.UpdatesFromStore)
+	}
+}
+
 // The server build is a container inside one and a plain server outside, and
 // the cards learn which from the kind.
 func TestDeploymentKindTellsAContainerFromAPlainServer(t *testing.T) {

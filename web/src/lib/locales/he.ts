@@ -822,6 +822,7 @@ export const he: Dict = {
   'settings.look.updatesDownloading': 'מוריד את העדכון: {percent}%',
   'settings.look.updatesInstallFailed': 'העדכון לא הצליח: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'אפשרי רק בגרסת שולחן העבודה: קונטיינר לא יכול להחליף את עצמו מבפנים. במקום זאת עדכן אותו באותה דרך שבה פרסת אותו (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak לא מחליף את עצמו. אם התקנת אותו מ-Flathub, מרכז התוכנה שלך או flatpak update שומרים עליו מעודכן. חבילה מדף הגרסה מעדכנים על ידי התקנת החדשה יותר.',
   'settings.look.jdAutoUpdateHint': 'פעם ביום KnightLoader שואל את JDownloader אם מחכה לו עדכון וגורם לו להתקין אותו. JDownloader מופעל מחדש לשם כך, ולכן העדכון מחכה עד שאף אחת מההורדות שלו לא פועלת.',
   'settings.look.updatesAutoCheckHint': 'כל עוד זה פעיל, פתיחת הדף הזה שואלת את GitHub פעם אחת אם יצא KnightLoader חדש יותר. זה רק שואל, כי קונטיינר מקבל את העדכונים שלו ממנהל הקונטיינרים.',
   'settings.look.jdAutoCheckHint': 'זמן קצר אחרי ש־KnightLoader מתחיל ואחר כך פעם ביום, הוא שואל את JDownloader אם מחכה עדכון. הוא רק שואל; ההתקנה היא המתג שלמטה.',

@@ -820,6 +820,7 @@ export const id: Dict = {
   'settings.look.updatesDownloading': 'Mengunduh pembaruan: {percent}%',
   'settings.look.updatesInstallFailed': 'Pembaruan tidak berhasil: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Hanya bisa di build desktop: kontainer tidak bisa mengganti dirinya sendiri dari dalam. Perbarui dengan cara yang sama seperti saat kamu memasangnya (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak tidak mengganti dirinya sendiri. Jika dipasang dari Flathub, pusat perangkat lunakmu atau flatpak update menjaganya tetap terbaru. Bundel dari halaman rilis diperbarui dengan memasang yang lebih baru.',
   'settings.look.jdAutoUpdateHint': 'Sekali sehari KnightLoader bertanya ke JDownloader apakah ada pembaruan yang menunggu, lalu menyuruhnya memasang pembaruan itu. JDownloader dimulai ulang untuk itu, jadi pembaruan menunggu sampai tidak ada unduhannya yang berjalan.',
   'settings.look.updatesAutoCheckHint': 'Selama ini aktif, membuka halaman ini bertanya sekali ke GitHub apakah ada KnightLoader yang lebih baru. Ini hanya bertanya, karena kontainer mendapat pembaruannya dari pengelola kontainernya.',
   'settings.look.jdAutoCheckHint': 'Tak lama setelah KnightLoader dimulai lalu sekali sehari, ia bertanya ke JDownloader apakah ada pembaruan yang menunggu. Ia hanya bertanya; pemasangan diatur sakelar di bawah.',

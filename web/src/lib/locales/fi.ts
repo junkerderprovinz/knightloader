@@ -820,6 +820,7 @@ export const fi: Dict = {
   'settings.look.updatesDownloading': 'Päivitystä ladataan: {percent} %',
   'settings.look.updatesInstallFailed': 'Päivitys ei onnistunut: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Mahdollista vain työpöytäversiossa: kontti ei voi korvata itseään sisältäpäin. Päivitä se sen sijaan samalla tavalla kuin otit sen käyttöön (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak ei korvaa itseään. Flathubista asennettuna sen pitää ajan tasalla ohjelmistokeskuksesi tai flatpak update. Julkaisusivun paketin päivität asentamalla uudemman.',
   'settings.look.jdAutoUpdateHint': 'Kerran päivässä KnightLoader kysyy JDownloaderilta, odottaako päivitys, ja antaa sen asentaa sen. JDownloader käynnistyy sitä varten uudelleen, joten päivitys odottaa, kunnes mikään sen latauksista ei ole käynnissä.',
   'settings.look.updatesAutoCheckHint': 'Kun tämä on päällä, tämän sivun avaaminen kysyy GitHubilta kerran, onko uudempi KnightLoader julkaistu. Se vain kysyy, koska kontti saa päivityksensä konttien hallinnasta.',
   'settings.look.jdAutoCheckHint': 'Pian KnightLoaderin käynnistyttyä ja sitten kerran päivässä se kysyy JDownloaderilta, odottaako päivitys. Se vain kysyy; asentaminen on alla olevan kytkimen tehtävä.',

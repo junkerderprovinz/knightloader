@@ -1020,6 +1020,7 @@ export const en = {
   'settings.look.updatesDownloading': 'Downloading the update: {percent}%',
   'settings.look.updatesInstallFailed': 'The update did not work: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Only possible on the desktop build: a container cannot replace itself from the inside. Update it the way you deployed it instead (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'A Flatpak does not replace itself. Installed from Flathub, it is kept up to date by your software center or flatpak update. A bundle from the release page is updated by installing the newer one.',
   'settings.look.jdAutoUpdateHint': 'Once a day KnightLoader asks JDownloader whether an update is waiting and has it installed. JDownloader restarts for this, so the update waits until none of its downloads is running.',
   'settings.look.updatesAutoCheckHint': 'While this is on, opening this page asks GitHub once whether a newer KnightLoader is out. It only asks, since a container gets its updates from its container manager.',
   'settings.look.jdAutoCheckHint': 'Shortly after KnightLoader starts and then once a day, it asks JDownloader whether an update is waiting. It only asks; installing is the switch below.',

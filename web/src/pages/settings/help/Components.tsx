@@ -270,7 +270,7 @@ export function ComponentsCard({ hue }: { hue: number }) {
       {failed && <DeploymentError retry={reload} />}
       {deployment && (
         <div data-new="built-in" className="@container flex flex-col divide-y divide-carbon-border/40">
-          <AppUpdates deployment={deployment.deployment} register={register} />
+          <AppUpdates deployment={deployment.deployment} fromStore={!!deployment.updatesFromStore} register={register} />
           <YtdlpUpdates register={register} />
           <JDUpdates register={register} />
           <ComponentRow
@@ -369,9 +369,11 @@ function appStatus(
  * background (desktop/updates.go), and a check there also tells whether a
  * downloaded version waits for the next start. Once a check found a newer
  * one, Install fetches it at once: the copy installed for all users starts
- * the new installer, any other copy puts it in place for the next start.
+ * the new installer, any other copy puts it in place for the next start. A
+ * Flatpak is the desktop build, but Flatpak installs its updates, so its row
+ * behaves like a container's and says how it is updated.
  */
-function AppUpdates({ deployment, register }: { deployment: string; register: Register }) {
+function AppUpdates({ deployment, fromStore, register }: { deployment: string; fromStore: boolean; register: Register }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const [version, setVersion] = useState('');
@@ -381,7 +383,7 @@ function AppUpdates({ deployment, register }: { deployment: string; register: Re
   const [installShake, setInstallShake] = useState(0);
   // Ends the polling once the page is left.
   const mounted = useRef(true);
-  const isDesktop = deployment === 'desktop';
+  const updatesItself = deployment === 'desktop' && !fromStore;
 
   useEffect(() => {
     void fetchHealth()
@@ -418,7 +420,7 @@ function AppUpdates({ deployment, register }: { deployment: string; register: Re
   // An update started before the page opened is still shown.
   useEffect(() => {
     mounted.current = true;
-    if (isDesktop) {
+    if (updatesItself) {
       void fetchUpdateProgress()
         .then((p) => (p.state ? follow(p) : undefined))
         .catch(() => {});
@@ -426,7 +428,7 @@ function AppUpdates({ deployment, register }: { deployment: string; register: Re
     return () => {
       mounted.current = false;
     };
-  }, [isDesktop, follow]);
+  }, [updatesItself, follow]);
 
   const onInstall = useCallback(async () => {
     try {
@@ -438,11 +440,11 @@ function AppUpdates({ deployment, register }: { deployment: string; register: Re
   }, [follow]);
 
   const ready = check?.ready ?? (progress?.state === 'ready' ? progress.version : undefined);
-  // A container asks once on opening while its switch is on, never before
-  // the stored switch has resolved and not on every settings edit. The
-  // desktop build checks on its own.
+  // A container or a Flatpak asks once on opening while its switch is on,
+  // never before the stored switch has resolved and not on every settings
+  // edit. The desktop build that updates itself checks on its own.
   useEffect(() => {
-    if (!isDesktop && cfg.autoUpdateCheck) void onCheck();
+    if (!updatesItself && cfg.autoUpdateCheck) void onCheck();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cfg.autoUpdateCheck]);
 
@@ -460,7 +462,7 @@ function AppUpdates({ deployment, register }: { deployment: string; register: Re
       status={appStatus(t, { checking, progress, ready, available, check })}
       actions={
         <>
-          {isDesktop && available && !ready && progress?.state !== 'started' && (
+          {updatesItself && available && !ready && progress?.state !== 'started' && (
             <GlyphButton
               icon={<IconInstall />}
               title={installing(progress) ? t('settings.look.updatesInstalling') : t('settings.look.updatesInstall')}
@@ -475,7 +477,7 @@ function AppUpdates({ deployment, register }: { deployment: string; register: Re
         <>
           {/* The desktop build checks on its own and has no use for this
               switch. */}
-          {!isDesktop && (
+          {!updatesItself && (
             <ToggleRow
               label={t('settings.look.updatesAuto')}
               hint={t('settings.look.updatesAutoCheckHint')}
@@ -483,16 +485,22 @@ function AppUpdates({ deployment, register }: { deployment: string; register: Re
               onChange={(v) => patch({ autoUpdateCheck: v })}
             />
           )}
-          {/* A container cannot replace itself, so there the row is disabled
-              and says why. */}
+          {/* A container and a Flatpak cannot replace themselves, so there
+              the row is disabled and says why. */}
           <ToggleRow
             label={t('settings.look.updatesAutoUpdate')}
-            hint={isDesktop ? t('settings.look.updatesAutoUpdateHint') : t('settings.look.updatesAutoUpdateContainerHint')}
-            checked={isDesktop && cfg.autoUpdate}
-            disabled={!isDesktop}
+            hint={
+              fromStore
+                ? t('settings.look.updatesAutoUpdateStoreHint')
+                : updatesItself
+                  ? t('settings.look.updatesAutoUpdateHint')
+                  : t('settings.look.updatesAutoUpdateContainerHint')
+            }
+            checked={updatesItself && cfg.autoUpdate}
+            disabled={!updatesItself}
             // A key press still reaches a greyed-out switch, and a container keeps
             // the stored value as it is.
-            onChange={(v) => isDesktop && patch({ autoUpdate: v })}
+            onChange={(v) => updatesItself && patch({ autoUpdate: v })}
           />
         </>
       }

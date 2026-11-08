@@ -821,6 +821,7 @@ export const lv: Dict = {
   'settings.look.updatesDownloading': 'Lejupielādē atjauninājumu: {percent}%',
   'settings.look.updatesInstallFailed': 'Atjaunināt neizdevās: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Iespējams tikai darbvirsmas būvējumā: konteiners nevar aizstāt pats sevi no iekšpuses. Tā vietā atjaunini to tāpat, kā to izvietoji (docker pull, Unraid Community Applications, Watchtower u. c.).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak pats sevi neaizstāj. Ja tas instalēts no Flathub, to atjaunina tava programmatūras centrs vai flatpak update. Pakotni no laidiena lapas atjaunini, instalējot jaunāko.',
   'settings.look.jdAutoUpdateHint': 'Reizi dienā KnightLoader pajautā JDownloader, vai gaida atjauninājums, un liek to instalēt. JDownloader tam restartējas, tāpēc atjauninājums gaida, līdz nedarbojas neviena tā lejupielāde.',
   'settings.look.updatesAutoCheckHint': 'Kamēr šis ir ieslēgts, atverot šo lapu, GitHub vienreiz tiek pajautāts, vai iznācis jaunāks KnightLoader. Tas tikai jautā, jo konteiners atjauninājumus saņem no sava konteineru pārvaldnieka.',
   'settings.look.jdAutoCheckHint': 'Drīz pēc KnightLoader palaišanas un pēc tam reizi dienā tas pajautā JDownloader, vai gaida atjauninājums. Tas tikai jautā; instalēšanu veic slēdzis zemāk.',

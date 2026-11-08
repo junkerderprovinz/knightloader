@@ -820,6 +820,7 @@ export const sv: Dict = {
   'settings.look.updatesDownloading': 'Laddar ner uppdateringen: {percent} %',
   'settings.look.updatesInstallFailed': 'Uppdateringen fungerade inte: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Går bara i skrivbordsversionen: en container kan inte ersätta sig själv inifrån. Uppdatera den i stället på samma sätt som du driftsatte den (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'En Flatpak ersätter inte sig själv. Installerad från Flathub hålls den uppdaterad av ditt programcenter eller flatpak update. Ett paket från versionssidan uppdaterar du genom att installera det nyare.',
   'settings.look.jdAutoUpdateHint': 'En gång om dagen frågar KnightLoader JDownloader om en uppdatering väntar och låter den installeras. JDownloader startar om för det, så uppdateringen väntar tills ingen av dess nedladdningar pågår.',
   'settings.look.updatesAutoCheckHint': 'Så länge detta är på frågar den här sidan GitHub en gång när den öppnas om det finns en nyare KnightLoader. Den bara frågar, eftersom en container får sina uppdateringar från sin containerhanterare.',
   'settings.look.jdAutoCheckHint': 'Strax efter att KnightLoader startar och sedan en gång om dagen frågar den JDownloader om en uppdatering väntar. Den bara frågar; installationen sköts av reglaget nedanför.',

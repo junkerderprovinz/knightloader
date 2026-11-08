@@ -9,6 +9,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/flatpak"
 	"github.com/junkerderprovinz/knightloader/internal/update"
 )
 
@@ -27,6 +28,9 @@ type DeploymentInfo struct {
 	// Note is untranslated English about what quit and restart do in this
 	// build, like Feature.Reason.
 	Note string `json:"note"`
+	// UpdatesFromStore says Flatpak owns this copy's files and installs its
+	// newer versions, so the app never replaces itself.
+	UpdatesFromStore bool `json:"updatesFromStore"`
 	// Engines are the libraries compiled in that do a share of the work
 	// somebody sees, which the Updates card lists beside the programs.
 	Engines []buildinfo.Module `json:"engines"`
@@ -103,6 +107,8 @@ func deploymentInfo(a *app.App) DeploymentInfo {
 		CanQuit:    a.RequestExit != nil,
 		CanRestart: a.RequestExit != nil,
 		Engines:    buildinfo.Modules(engineModules...),
+
+		UpdatesFromStore: flatpak.ID() != "",
 	}
 	if buildinfo.Deployment == "desktop" {
 		info.Note = "this is the desktop build; quit and restart drain the same way closing the window does"

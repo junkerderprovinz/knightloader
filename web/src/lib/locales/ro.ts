@@ -822,6 +822,7 @@ export const ro: Dict = {
   'settings.look.updatesDownloading': 'Se descarcă actualizarea: {percent}%',
   'settings.look.updatesInstallFailed': 'Actualizarea nu a reușit: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Posibil doar în versiunea desktop: un container nu se poate înlocui singur din interior. Actualizează-l în schimb la fel cum l-ai implementat (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Un Flatpak nu se înlocuiește singur. Instalat din Flathub, este ținut la zi de centrul tău de software sau de flatpak update. Un pachet de pe pagina versiunii îl actualizezi instalându-l pe cel mai nou.',
   'settings.look.jdAutoUpdateHint': 'O dată pe zi, KnightLoader întreabă JDownloader dacă așteaptă o actualizare și îl pune să o instaleze. JDownloader repornește pentru asta, așa că actualizarea așteaptă până când nu rulează niciuna dintre descărcările lui.',
   'settings.look.updatesAutoCheckHint': 'Cât timp e pornit, deschiderea acestei pagini întreabă o dată GitHub dacă a apărut un KnightLoader mai nou. Doar întreabă, pentru că un container își primește actualizările de la managerul lui de containere.',
   'settings.look.jdAutoCheckHint': 'La scurt timp după pornirea KnightLoader și apoi o dată pe zi, întreabă JDownloader dacă așteaptă o actualizare. Doar întreabă; instalarea ține de comutatorul de dedesubt.',

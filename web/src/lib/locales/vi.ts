@@ -820,6 +820,7 @@ export const vi: Dict = {
   'settings.look.updatesDownloading': 'Đang tải bản cập nhật: {percent}%',
   'settings.look.updatesInstallFailed': 'Cập nhật không thành công: {error}',
   'settings.look.updatesAutoUpdateContainerHint': 'Chỉ làm được trên bản desktop: một container không thể tự thay thế chính nó từ bên trong. Thay vào đó, hãy cập nhật nó theo cách bạn đã triển khai (docker pull, Unraid Community Applications, Watchtower, ...).',
+  'settings.look.updatesAutoUpdateStoreHint': 'Flatpak không tự thay thế chính nó. Nếu cài từ Flathub, trung tâm phần mềm của bạn hoặc flatpak update sẽ giữ nó luôn được cập nhật. Gói tải từ trang phát hành được cập nhật bằng cách cài gói mới hơn.',
   'settings.look.jdAutoUpdateHint': 'Mỗi ngày một lần, KnightLoader hỏi JDownloader xem có bản cập nhật đang chờ không và cho nó cài đặt. JDownloader khởi động lại để làm việc này, nên bản cập nhật sẽ đợi đến khi không còn lượt tải xuống nào của nó đang chạy.',
   'settings.look.updatesAutoCheckHint': 'Khi bật, mở trang này sẽ hỏi GitHub một lần xem đã có KnightLoader mới hơn chưa. Nó chỉ hỏi, vì container nhận bản cập nhật từ trình quản lý container của nó.',
   'settings.look.jdAutoCheckHint': 'Ngay sau khi KnightLoader khởi động và sau đó mỗi ngày một lần, nó hỏi JDownloader xem có bản cập nhật đang chờ không. Nó chỉ hỏi; việc cài đặt do công tắc bên dưới đảm nhận.',

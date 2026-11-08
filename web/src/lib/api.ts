@@ -4072,6 +4072,8 @@ export interface DeploymentInfo {
   canQuit: boolean;
   canRestart: boolean;
   note: string;
+  /** Flatpak installs this copy's updates, so the app never replaces itself. */
+  updatesFromStore?: boolean;
   /** The libraries the Updates card lists beside the programs, null when the build carries none of them. */
   engines: BuiltModule[] | null;
 }
