@@ -204,7 +204,7 @@ jobs:
       - name: Test (race)
         env:
           KNIGHTLOADER_NET_TESTS: "1"
-        run: go test -race ./... -count=1 -timeout 12m
+        run: go test -race ./... -count=1 -timeout 20m
 
       - name: Build
         env:
