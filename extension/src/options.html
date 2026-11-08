@@ -464,6 +464,22 @@
           </div>
         </div>
 
+        <!-- The download button on a video's player (options-video.js). The
+             popup has the same switch; the sites under it go with it. -->
+        <div id="video">
+          <div class="glim-row">
+            <span class="glim-row-label" id="videoLabel"></span>
+            <button type="button" role="switch" aria-checked="false" id="videoEnabled" class="glim-switch">
+              <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+            </button>
+          </div>
+          <div class="glim-unavailable captureRefused" id="videoNotice" hidden>
+            <span class="glim-unavailable-title" id="videoNoticeTitle"></span>
+            <span class="glim-unavailable-reason" id="videoNoticeReason"></span>
+          </div>
+          <div class="captureRules" id="videoSites"></div>
+        </div>
+
         <!-- The clipboard watch (clipwatch.js). The notice says why the switch
              fell back: the browser refused the clipboard, another device
              switched this watch off, or there is no group to send to. -->
@@ -642,6 +658,7 @@
     <script src="colorpicker.js"></script>
     <script src="i18n.js"></script>
     <script src="i18n-capture.js"></script>
+    <script src="i18n-video.js"></script>
     <script src="glyphs.js"></script>
     <script src="shared.js"></script>
     <script src="capture.js"></script>
@@ -656,5 +673,7 @@
     <script src="vendor/qrcode.js"></script>
     <script src="options.js"></script>
     <script src="options-capture.js"></script>
+    <script src="video.js"></script>
+    <script src="options-video.js"></script>
   </body>
 </html>

@@ -128,6 +128,10 @@ Edge shows it read-only):
 >   work. If the hand-over fails, the browser keeps the download.
 > - Optionally list the video and audio a page plays, HLS and DASH playlists
 >   included, and send any of them to your instance from the popup.
+> - A download button on the player of YouTube, Vimeo, Dailymotion, Twitch and
+>   Bilibili sends the video you are watching to your instance with one click.
+>   Its menu picks audio only, a resolution or the whole playlist. Switch it off
+>   in the options or the popup, or hide it on single sites.
 > - Watch the clipboard, if you switch it on: a link you copy anywhere goes to
 >   your default instance. Only the links leave the browser. When another of
 >   your devices already watches, the extension names it and offers to switch
@@ -213,7 +217,8 @@ Both dashboards ask the same questions. Each justification below is under the
 > Keeps the user's settings in the browser: the connection phrase, a random ID for
 > this browser within the user's group, the default instance, and interface
 > settings (language, theme, Click'n'Load on or off, countdown length, clipboard
-> watch on or off). While a
+> watch on or off, the video download button on or off and the sites it is
+> hidden on). While a
 > send waits in the popup, it is held in session storage until the popup reads it.
 
 `scripting`
@@ -222,6 +227,10 @@ Both dashboards ask the same questions. Each justification below is under the
 > the user has switched Click'n'Load on and granted the optional site access. When
 > they switch it off, or take the access away in the browser, the scripts are
 > unregistered, so no extension code runs in pages opened or reloaded after that.
+> It also registers the download button for videos on YouTube, Vimeo,
+> Dailymotion, Twitch and Bilibili, only where the user granted access to those
+> sites, puts it into tabs of those sites that were already open, and
+> unregisters it when the user switches the button off.
 
 `declarativeNetRequest`
 
@@ -254,6 +263,13 @@ required host permission; `<all_urls>` is only under `optional_host_permissions`
 > whether a modifier key was held when the user pressed a mouse button, so a
 > download started that way stays in the browser. The access is given back once
 > none of the three features uses it.
+>
+> The download button on videos needs access to five sites only: YouTube,
+> Vimeo, Dailymotion, Twitch and Bilibili. It asks for exactly those addresses,
+> which the access to all websites already includes. Its script reads the page
+> address and the position of the largest video to draw a button in a closed
+> shadow root, and sends the video's address to the user's own instance only
+> when the user presses it.
 
 `downloads` (optional permission)
 
@@ -418,7 +434,8 @@ because the last line is what the field cuts.
 >    <PHRASE>
 >    One instance, "Review", appears as Online. Then press "Allow access" on the
 >    card at the top of the page and accept the browser's prompt. Click'n'Load
->    needs that access; nothing else does.
+>    needs that access, and the download button on videos uses it for its five
+>    video sites.
 > 3. Open https://review.halleluja.design/test/. Right-click the trailer link and choose "Send link to
 >    KnightLoader". The toolbar icon shows a green check mark.
 > 4. On the same page, press the "Click'n'Load: both films" button. The extension
@@ -440,7 +457,8 @@ because the last line is what the field cuts.
 > 2. Open the add-on's options, paste this connection phrase into Remote access,
 >    press Connect: <PHRASE>
 >    Then press "Allow access" on the card at the top of the page and accept
->    Firefox's prompt. Click'n'Load needs that access; nothing else does.
+>    Firefox's prompt. Click'n'Load needs that access, and the download button on
+>    videos uses it for its five video sites.
 > 3. Open https://review.halleluja.design/test/, right-click the trailer link, "Send link to KnightLoader".
 >    The add-on's toolbar icon shows a check mark.
 > 4. Press "Click'n'Load: both films" on that page; the popup counts down and

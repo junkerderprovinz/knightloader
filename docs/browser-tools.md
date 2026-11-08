@@ -249,6 +249,39 @@ way MyJDownloader's extension can) is still not built. Choosing per send and
 setting a default are; a rule engine on top of that is real but niche, and
 nothing about this shape blocks it later.
 
+### The download button on videos
+
+On YouTube, Vimeo, Dailymotion, Twitch and Bilibili a small button sits at the
+top of the player and sends the video being watched to the default instance
+with one click, the way a desktop download manager offers it. `video.js` holds
+the sites, the address each page sends and the switch. `video-worker.js`
+registers `video-button.js` with `scripting.registerContentScripts` on those
+sites only, in every frame so embedded players get it too, and brings it into
+tabs that were already open.
+
+The button sends the one address a video goes by, whatever form the page came
+in: a YouTube Short, live page or embedded player sends
+`https://www.youtube.com/watch?v=<id>`, and the playlist goes only when the
+menu asks for it. The worker works the address out again from the page's own,
+so a button can only send the video it shows. It goes as `POST /api/links`,
+with a `format` when the menu picked one: `video` for the video row alone at
+its best, `audio` for the audio row alone, or a resolution such as `1080p`.
+That stands in for the host's preset for this link (`HosterPreset.ForLink`),
+and the preset itself stays as it was.
+
+The button anchors on the largest video on screen and on the element in
+fullscreen, never on a site's class names, and steps down from the top edge
+past any link or button the player draws there. It follows a site's
+navigation from video to video, shows while the pointer moves over the video,
+and keeps its clicks and keys from reaching the player. It lives in a closed
+shadow root and wears the extension's own look.
+
+It is on by default and needs access to those five sites only, which the
+access to all websites for Click'n'Load includes. Its switch is in the options
+and in the toolbar popup, both on one stored setting, and the options switch
+it off per site. The button's own menu can hide it on the site it is on.
+Switching off takes it out of open tabs at once.
+
 ## PWA share target
 
 `web/public/manifest.webmanifest` declares `share_target` pointing at

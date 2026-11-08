@@ -17,10 +17,13 @@ if (typeof importScripts === 'function') {
     'group.js',
     'cnl.js',
     'i18n-capture.js',
+    'i18n-video.js',
     'capture.js',
     'takeover.js',
     'media.js',
     'clipwatch.js',
+    'video.js',
+    'video-worker.js',
   );
 }
 

@@ -143,6 +143,20 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Workupload archive and a Send.now folder stay with JDownloader, and so do
   Buzzheavier links, whose pages sit behind a Cloudflare check only a browser
   passes.
+- **The browser extension puts a download button on videos.** On YouTube,
+  Vimeo, Dailymotion, Twitch and Bilibili a small button sits at the top of
+  the player and sends the video you are watching to your default instance
+  with one click, and yt-dlp downloads it there. It follows YouTube from one
+  video to the next, stays in fullscreen and shows on embedded YouTube
+  players too. Its menu sends the best video, the audio alone, a resolution
+  from 2160p down to 360p or the whole playlist, and hides the button on a
+  site. The button is on by default, and its switch is in the extension's
+  settings and in the toolbar popup. Switching it off takes it off every open
+  tab at once. It needs access to these sites only, which Click'n'Load's
+  access to all websites already includes. For this, `POST /api/links` takes
+  a `format` of `video`, `audio` or a resolution, which stands in for the
+  host's preset for that link
+  ([#156](https://github.com/junkerderprovinz/knightloader/discussions/156)).
 
 ### Changed
 

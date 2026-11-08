@@ -20,7 +20,7 @@ if (end === -1) throw new Error('could not find the end of MESSAGES');
 const MESSAGES = new Function(`${src.slice(start, end + 3)}\nreturn MESSAGES;`)();
 // A feature's own catalogue merges itself into MESSAGES, as it does in the
 // pages, where it loads after i18n.js.
-for (const extra of ['i18n-capture.js']) {
+for (const extra of ['i18n-capture.js', 'i18n-video.js']) {
   new Function('MESSAGES', readFileSync(join(here, 'src', extra), 'utf8'))(MESSAGES);
 }
 
@@ -74,7 +74,7 @@ for (const loc of locales) {
 // search is enough because every key is spelled out at its t() call; a key
 // assembled at runtime would show up here as unread.
 const SRC = join(here, 'src');
-const sources = ['options.js', 'popup.js', 'picker.js', 'background.js', 'shared.js', 'group.js', 'appearance.js', 'donate.js', 'options-capture.js', 'popup-media.js', 'takeover.js', 'media.js']
+const sources = ['options.js', 'popup.js', 'picker.js', 'background.js', 'shared.js', 'group.js', 'appearance.js', 'donate.js', 'options-capture.js', 'popup-media.js', 'takeover.js', 'media.js', 'video-worker.js', 'options-video.js', 'popup-video.js']
   .map((f) => join(SRC, f))
   .filter((f) => existsSync(f))
   .map((f) => readFileSync(f, 'utf8'))

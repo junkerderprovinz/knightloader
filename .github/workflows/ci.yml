@@ -478,6 +478,9 @@ jobs:
       - name: Clipboard watch
         run: node extension/check-clipwatch.mjs
 
+      - name: Video button
+        run: node extension/check-video.mjs
+
       - name: Crypto window keyboard
         run: node extension/check-crypto-tab.mjs
 

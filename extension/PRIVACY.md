@@ -1,6 +1,6 @@
 # Privacy policy: KnightLoader browser extension
 
-Last updated: 2 October 2026. Applies to version 1.4.0 and later, until this
+Last updated: 8 November 2026. Applies to version 1.4.0 and later, until this
 date changes.
 
 ## The short version
@@ -9,7 +9,8 @@ The extension sends what you choose to send (a link, an image address, selected
 text, the current page, or links you paste, drop or load into its collector) to
 KnightLoader instances that you run yourself. Two features, off until you switch
 them on, also hand browser downloads over to your instance and list the video
-and audio a page plays so you can send them. It has no analytics, no
+and audio a page plays so you can send them. On a few video sites a download
+button on the player sends the video you are watching when you press it. It has no analytics, no
 advertising, no accounts and no tracking.
 
 It reaches your instances through a relay operated by the party named under "Who
@@ -33,6 +34,7 @@ profile. We back none of it up, and removing the extension removes all of it.
   Click'n'Load countdown length, whether the clipboard watch is on and why it
   last switched itself off, and whether the "pin the extension" hint has been
   shown.
+- Whether the download button on videos is on, and the sites you hid it on.
 - Whether taking over downloads and finding media are on, and the rules for
   taking over downloads: the file types, the minimum size, the sites to leave
   alone and the key that keeps a download in the browser.
@@ -118,6 +120,9 @@ These travel through the relay, and only your instances can read them:
   page it played on and that page's title, the cookies your browser holds for the
   stream's address, and your browser's user agent, under the same rules. Cookies
   from a private window are never sent.
+- When you press the download button on a video: the video's address, or its
+  playlist's when you picked the whole playlist in the button's menu, and the
+  format you picked there. Nothing else from the page is sent.
 - While the popup or options page is open: requests for your instances' queue
   status and web addresses, and a request for an instance's appearance settings
   if you chose to follow them.
@@ -180,6 +185,21 @@ the script until you reload it, but a button caught there is no longer sent
 anywhere. The same happens when you take the access away in the browser's own
 extension settings.
 
+## The download button on videos
+
+The button runs only on YouTube, Vimeo, Dailymotion, Twitch and Bilibili, and
+only with your browser's access to those sites. Access to all websites, if you
+gave it for Click'n'Load, includes them. Otherwise your browser asks when you
+switch the button on, and you can say no. It is on until you switch it off in the
+options or in the toolbar popup, and you can hide it on each site.
+
+On those sites a small script reads the page's address and where the largest
+video sits, so it can draw the button on the player, in a part of the page of
+its own that the site cannot read. It reads no other page content, no form
+fields, passwords or cookies, and it sends nothing until you press the button.
+Switching the button off takes it out of open tabs at once and stops the script
+from being added to pages you open after that.
+
 ## Taking over downloads
 
 This feature is off until you switch it on in the options, and switching it on asks
@@ -215,7 +235,7 @@ button in the popup.
 | `activeTab` | Reading the address and title of the tab you are on, and only when you press the toolbar button or pick a right-click entry there. |
 | `contextMenus` | The four right-click entries: send link, image, selection, page. |
 | `storage` | The settings listed above. |
-| `scripting` | Adding and removing the Click'n'Load script. |
+| `scripting` | Adding and removing the Click'n'Load script and the download button on videos. |
 | `declarativeNetRequest` | Answering the `127.0.0.1:9666/jdcheck.js` probe while Click'n'Load is on. |
 | Access to all websites (optional) | Running the Click'n'Load script in pages that may carry a button, and answering the `jdcheck.js` probe. Asked for only when you switch Click'n'Load on, and given back when you switch it off. |
 | `clipboardRead` (optional) | Pasting your phrase with the paste button, and the clipboard watch. Requested when you press the button or switch the watch on. |
@@ -226,6 +246,7 @@ button in the popup.
 | `notifications` (optional) | The short note that names the instance a download went to. Asked for with taking over downloads. |
 | `webRequest` (optional) | Seeing which video and audio streams a page loads. Asked for with finding media, and given back when you switch it off. |
 | Access to all websites (optional) | Also needed for the cookies of any download site and for the media a page loads. Kept while any of Click'n'Load, taking over downloads or finding media is on. |
+| Access to YouTube, Vimeo, Dailymotion, Twitch and Bilibili (optional) | Drawing the download button on their players. Included in the access to all websites. Otherwise asked for when you switch the button on, and kept when you switch it off, so switching it on again needs no second question. |
 
 ## What the extension does not do
 
