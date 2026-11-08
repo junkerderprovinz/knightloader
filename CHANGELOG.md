@@ -68,6 +68,26 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   with or without a login. A refused login, a captcha at sign-in, a free
   account, spent traffic and a deleted file each fail with their own reason.
   Free links still go through JDownloader, which solves the captcha.
+- **ddownload links download without JDownloader.** A `ddownload.com` or
+  `ddl.to` link shows its name, size and online state in the link collector.
+  With a ddownload login saved on the Accounts page, KnightLoader signs in
+  itself, downloads on your premium and shows the plan, the day it runs out
+  and the traffic left on the login's row. The login no longer goes to
+  JDownloader. ddownload asks for a Turnstile captcha at sign-in and before
+  each free download, which the phone app or one of your captcha accounts
+  can answer. The session is kept, so a restart needs no new sign-in. Without
+  premium the file comes for free, and the wait ddownload sets between free
+  downloads shows on the task until it is over. A wrong login, a premium that
+  ran out, used-up traffic, a deleted file and a file for premium accounts
+  only each stop the download with its own message.
+- **KatFile, Clicknupload, FileSpace and Uploadrar links download without
+  JDownloader.** They run on the same client as ddownload, one that fits
+  any hoster built on XFileSharing. The link collector shows each file's
+  name, size and online state. A login for one of them is signed in by
+  KnightLoader and downloads on your premium, and without premium the file
+  comes for free with the hoster's countdown, captcha and wait between
+  downloads. KatFile's sign-in asks for a Turnstile captcha, which the phone
+  app or a captcha account can answer.
 
 ## [2.7.3] - 2026-11-07
 

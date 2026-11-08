@@ -419,6 +419,80 @@ Free Nitroflare links stay with JDownloader, which waits out Nitroflare's
 countdown and answers its captcha. Against a debrid service that carries
 Nitroflare, the login's row on the priority card decides which goes first.
 
+## ddownload
+
+A `ddownload.com` or `ddl.to` link needs no JDownloader. KnightLoader reads
+the file page, so the link collector shows the name, the size and whether the
+file is still there, and it fetches the file over one connection, which is all
+ddownload serves.
+
+With a ddownload login saved under hoster accounts on the Accounts page,
+KnightLoader signs in itself and downloads on your premium. The login's row
+shows the plan, the day it runs out and the traffic left. ddownload asks for a
+Cloudflare Turnstile captcha at every sign-in, which the phone app or one of
+your captcha accounts can answer, since a Turnstile captcha only runs on
+ddownload's own address. KnightLoader keeps the session, so a restart needs
+no new sign-in and no new captcha. The login stays with KnightLoader and does
+not go to JDownloader.
+
+Without premium the download is free, and ddownload shows the same captcha
+before each file and a countdown of about a minute. Between two free
+downloads ddownload makes each address wait. The task keeps running through
+that wait and its row shows the time left, and once it is over the file
+starts by itself. Pausing or removing the task calls the wait off. A link
+protected by a password needs the download password set on it.
+
+A wrong login, a premium that ran out, traffic used up for the day, a deleted
+file and a file kept for premium accounts each stop the download with their
+own message. A premium login ranks where its row sits on the priority card,
+right where a ddownload login in JDownloader would. A debrid service that
+carries ddownload goes before a free download. With **Allow free downloads**
+off, a ddownload link waits for a premium login or a debrid service.
+
+## KatFile
+
+A `katfile.com` link needs no JDownloader, and neither does one of KatFile's
+other domains such as `katfile.cloud` or `katfile.online`. The link collector
+shows the name, the size and whether the file is still there.
+
+With a KatFile login saved under hoster accounts, KnightLoader signs in itself
+and downloads on your premium over two connections. KatFile asks for a
+Turnstile captcha at every sign-in and sometimes before a premium download,
+and the phone app or one of your captcha accounts can answer it. Without
+premium the download is free over one connection: the file page counts down
+for about half a minute, the next page asks for a captcha and may count down
+again, and the wait KatFile sets between free downloads shows on the task.
+Everything else works as for ddownload.
+
+## Clicknupload
+
+Clicknupload moves from domain to domain, and KnightLoader takes links of all
+the ones JDownloader knows, such as `clicknupload.click`, `clicknupload.co`,
+`clicknupload.org` and `clicknupload.name`. It reads the name, the size and
+whether the file is still there from the file page, as for KatFile.
+
+A saved Clicknupload login is signed in without a captcha, and a premium
+download uses up to five connections. A free download goes over one
+connection, with the countdown and the captcha Clicknupload shows before it
+hands out the file. Everything else works as for ddownload.
+
+## FileSpace
+
+A `filespace.com` or `spaceforfiles.com` link needs no JDownloader either,
+and the link collector names and sizes it like the others. FileSpace serves every download over one connection, free or premium. A saved
+FileSpace login is signed in without a captcha. A free download sits out
+FileSpace's countdown and answers its captcha first. Everything else works as
+for ddownload.
+
+## Uploadrar
+
+An `uploadrar.com` link needs no JDownloader either, and the link collector
+names and sizes it like the others. Uploadrar's file page carries an advert
+dressed up as the download button, which KnightLoader leaves alone. A
+saved Uploadrar login is signed in without a captcha, and a premium download
+uses up to four connections. A free download goes over one connection, with
+Uploadrar's countdown and captcha. Everything else works as for ddownload.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks

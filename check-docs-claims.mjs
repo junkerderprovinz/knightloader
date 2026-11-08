@@ -452,6 +452,13 @@ const RESOLVER_NAMES = {
   rapidgator: 'Rapidgator',
   keep2share: 'Keep2Share',
   nitroflare: 'Nitroflare',
+  ddownload: 'ddownload',
+  // The shared client of the hosters built on the XFileSharing script.
+  xfs: 'XFileSharing',
+  katfile: 'KatFile',
+  clicknupload: 'Clicknupload',
+  filespace: 'FileSpace',
+  uploadrar: 'Uploadrar',
   // The package is named after the shape it needs (list a tree, ask a size,
   // read from an offset), not after today's protocol list, so there is no one
   // obvious word. SFTP is the token to check for: it is one of the four this

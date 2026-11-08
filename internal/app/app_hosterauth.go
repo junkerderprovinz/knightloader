@@ -40,7 +40,7 @@ func (a *App) hosterAuth() *hosterauth.Reconciler {
 	// premium only was waiting for, and until JD's hoster list is first read
 	// every link JD would fetch is held.
 	r.Reconciled = a.refreshPremiumHolds
-	r.Own = a.ownLogin
+	r.Own = a.ownLoginState
 	hostAuthReg[a] = r
 	return r
 }
@@ -50,6 +50,7 @@ func (a *App) hosterAuth() *hosterauth.Reconciler {
 // a.spawn so Close waits for it.
 func (a *App) StartHosterAuth() {
 	a.spawn(func() { a.hosterAuth().Run(a.ctx) })
+	a.spawn(a.watchXFSLogins)
 }
 
 // HosterHosts lists the hosts the "add a login" picker offers. Debrid services
@@ -107,7 +108,7 @@ func (a *App) SetHosterLogin(host, username, password string) error {
 	if err := r.SetLogin(host, username, password); err != nil {
 		return err
 	}
-	a.syncOwnLogins()
+	a.ownLoginChanged(host)
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {
 			log.Printf("hosterauth: reconcile after save failed: %v", err)
@@ -131,6 +132,7 @@ func (a *App) SetHosterLoginEnabled(host string, enabled bool) error {
 		// host has none, so it is taken out of routing here.
 		jdresolver.SetHostActive(host, false)
 	}
+	a.ownLoginChanged(host)
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {
 			log.Printf("hosterauth: reconcile after enable/disable failed: %v", err)
@@ -146,7 +148,7 @@ func (a *App) RemoveHosterLogin(host string) error {
 	if err := r.RemoveLogin(host); err != nil {
 		return err
 	}
-	a.syncOwnLogins()
+	a.ownLoginChanged(host)
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {
 			log.Printf("hosterauth: reconcile after remove failed: %v", err)

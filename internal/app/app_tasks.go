@@ -28,6 +28,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -486,7 +487,21 @@ type linkInspector interface {
 // shows the bare address and no size until the download starts.
 func (a *App) inspectHosterLinks(ids []string) {
 	ids = a.inspectMegaLinks(ids)
-	ids = a.inspectFichierLinks(ids)
+	ids = a.inspectClientLinks(ids, onefichier.ResolverID, func() inspectFunc {
+		if a.fichier == nil {
+			return nil
+		}
+		return onefichier.Resolver{Client: a.fichier.Client()}.Inspect
+	})
+	for _, site := range xfsSites {
+		ids = a.inspectClientLinks(ids, site.ID, func() inspectFunc {
+			b := a.xfsBackends[site.ID]
+			if b == nil {
+				return nil
+			}
+			return xfs.Resolver{Site: site, Client: b.Client()}.Inspect
+		})
+	}
 	ids = a.inspectOwnHosterLinks(ids)
 	a.bmu.RLock()
 	insp, ok := a.jd.(linkInspector)
@@ -655,14 +670,19 @@ func (a *App) inspectMegaLinks(ids []string) []string {
 	return rest
 }
 
-// inspectFichierLinks fills in the name, size and state of the collected links
-// the 1fichier client takes, from their pages, and returns the other ids.
-func (a *App) inspectFichierLinks(ids []string) []string {
+// inspectFunc is a hoster client's Inspect.
+type inspectFunc = func(context.Context, []string) []resolver.LinkInfo
+
+// inspectClientLinks fills in the name, size and state of the collected links
+// one of KnightLoader's own hoster clients takes, from their pages, and
+// returns the other ids. inspect is read under a.bmu and is nil while the
+// client is not set up.
+func (a *App) inspectClientLinks(ids []string, resolverID string, inspect func() inspectFunc) []string {
 	var rest, targets, urls []string
 	a.mu.Lock()
 	for _, id := range ids {
 		t := a.tasks[id]
-		if t == nil || t.Resolver != onefichier.ResolverID {
+		if t == nil || t.Resolver != resolverID {
 			rest = append(rest, id)
 			continue
 		}
@@ -672,11 +692,14 @@ func (a *App) inspectFichierLinks(ids []string) []string {
 		}
 	}
 	a.mu.Unlock()
+	if len(targets) == 0 {
+		return rest
+	}
 	a.bmu.RLock()
-	be := a.fichier
+	fn := inspect()
 	a.bmu.RUnlock()
-	if len(targets) > 0 && be != nil {
-		a.inspectOwnLinks(onefichier.ResolverID, targets, urls, onefichier.Resolver{Client: be.Client()}.Inspect)
+	if fn != nil {
+		a.inspectOwnLinks(resolverID, targets, urls, fn)
 	}
 	return rest
 }

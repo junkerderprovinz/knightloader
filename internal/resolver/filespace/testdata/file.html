@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <Title>FileSpace - Download {{.Name}}</Title>
+</head>
+<body>
+{{if .SignedIn}}         <li><a href="/?op=my_account">My Account</a>&nbsp; &nbsp;</li><li><a href="/?op=logout">Logout</a></li>
+{{else}}         <li><a href="/login.html">Login</a>&nbsp; &nbsp;</li>
+{{end}}<input id="fileSize" type="hidden" value="{{.Size}}">
+<div style="max-width:694px;text-align:center;font-size:14pt;word-wrap:break-word;margin-bottom:50px;">Download&nbsp;File&nbsp;<span style="font-style:italic;">{{.Name}}</span> ({{.Size}})</div>
+<table class="table" style="width:724px;" cellpadding="3" cellspacing="1">
+    <tbody><tr>
+        <td style="padding-top:20px;font-size:13pt;vertical-align:top;text-align:left;border:0px;">Choose download type:</td>
+
+        <td style="background-color:#F9F9F9;border:0px;border-radius:6px 6px 0px 0px;">
+            <Form method="POST" name="dl" action=''>
+                <input type="hidden" name="op" value="download1">
+                <input type="hidden" name="usr_login" value="">
+                <input type="hidden" name="id" value="{{.ID}}">
+                <input type="hidden" name="fname" value="{{.Name}}">
+                <input type="hidden" name="referer" value="">
+                <input type="hidden" name="lck" value="1">
+                <input id="dlhigh" type="submit" name="method_premium" value="Premium Download" style="width: 212px;height:35px;border:0;">
+            </Form>
+        </td>
+        <td colspan="2" style="border:0px;">
+            <Form id='frm_free' method="POST" action='/fd/{{.ID}}'>
+                <input type="hidden" name="op" value="download1">
+                <input type="hidden" name="usr_login" value="">
+                <input type="hidden" name="id" value="{{.ID}}">
+                <input type="hidden" name="fname" value="{{.Name}}">
+                <input type="hidden" name="referer" value="">
+                <!-- <img src="/images/btn_slowspeed.jpg"> -->
+                <input id="dlfree" type="submit" name="method_free" value="Free Download" style="width: 212px;height:35px;border:0;">
+            </Form>
+        </td>
+    </tr>
+</tbody></table>
+<h2>Link for forums</h2>
+<textarea style="width:98%;" cols=24 rows=3 onFocus="copy(this);">[URL=https://filespace.com/{{.ID}}]{{.Name}} - {{.Size}}[/URL]</textarea>
+<script>
+    function adetect()
+    {
+        $("#frm_free").append("<input type='hidden' name='adetect' value='1'/>");
+    }
+</script>
+</body>
+</html>

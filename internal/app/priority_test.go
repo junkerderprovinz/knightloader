@@ -437,13 +437,13 @@ func TestTheUsersOwnServerStaysAboveEveryRow(t *testing.T) {
 // Each switched-on hoster login is a row of its own on the priority card.
 func TestPriorityCardListsEachConnectedHosterLogin(t *testing.T) {
 	a := newQueueApp(t)
-	if err := a.SetHosterLogin("ddownload.com", "user", "secret"); err != nil {
+	if err := a.SetHosterLogin("turbobit.net", "user", "secret"); err != nil {
 		t.Fatal(err)
 	}
 
 	rows := a.ResolverPriority("")
-	if !slices.ContainsFunc(rows, func(r resolver.Info) bool { return r.ID == "login:ddownload.com" }) {
-		t.Fatalf("ResolverPriority = %+v, want a row for the ddownload.com login", rows)
+	if !slices.ContainsFunc(rows, func(r resolver.Info) bool { return r.ID == "login:turbobit.net" }) {
+		t.Fatalf("ResolverPriority = %+v, want a row for the turbobit.net login", rows)
 	}
 }
 
@@ -453,10 +453,10 @@ func TestPriorityCardListsEachConnectedHosterLogin(t *testing.T) {
 func TestALoginRowDecidesBetweenTheOwnAccountAndADebrid(t *testing.T) {
 	a := newQueueApp(t)
 	a.Registry.Register(jd.Resolver{})
-	a.Registry.Register(fakeResolver{id: "fakedebrid", prio: 50, host: "ddownload.com"})
-	t.Cleanup(func() { jd.SetHostActive("ddownload.com", false) })
-	jd.SetHostActive("ddownload.com", true)
-	link := &core.Task{URL: "https://ddownload.com/abc123/movie.mkv"}
+	a.Registry.Register(fakeResolver{id: "fakedebrid", prio: 50, host: "turbobit.net"})
+	t.Cleanup(func() { jd.SetHostActive("turbobit.net", false) })
+	jd.SetHostActive("turbobit.net", true)
+	link := &core.Task{URL: "https://turbobit.net/abc123/movie.mkv"}
 
 	route := func(order ...string) string {
 		t.Helper()
@@ -465,16 +465,16 @@ func TestALoginRowDecidesBetweenTheOwnAccountAndADebrid(t *testing.T) {
 		}
 		return resolverIDOf(a.resolverForTaskLocked(link))
 	}
-	if got := route("login:ddownload.com", "fakedebrid"); got != "jd" {
+	if got := route("login:turbobit.net", "fakedebrid"); got != "jd" {
 		t.Errorf("login above the debrid: link goes to %q, want jd", got)
 	}
-	if got := route("fakedebrid", "login:ddownload.com"); got != "fakedebrid" {
+	if got := route("fakedebrid", "login:turbobit.net"); got != "fakedebrid" {
 		t.Errorf("debrid above the login: link goes to %q, want fakedebrid", got)
 	}
-	if got := route("login:ddownload.com", "fakedebrid", "jd"); got != "jd" {
+	if got := route("login:turbobit.net", "fakedebrid", "jd"); got != "jd" {
 		t.Errorf("login above the debrid, JD's own row below it: link goes to %q, want jd", got)
 	}
-	if got := route("jd", "fakedebrid", "login:ddownload.com"); got != "fakedebrid" {
+	if got := route("jd", "fakedebrid", "login:turbobit.net"); got != "fakedebrid" {
 		t.Errorf("JD's own row on top, the login below the debrid: link goes to %q, want fakedebrid", got)
 	}
 }
@@ -486,22 +486,22 @@ func TestALoginRowTheOrderDoesNotNameSitsBelowJD(t *testing.T) {
 	t.Setenv("KL_JD", "")
 	a := newQueueApp(t)
 	a.Registry.Register(jd.Resolver{})
-	a.Registry.Register(fakeResolver{id: "fakedebrid", prio: 50, host: "ddownload.com"})
+	a.Registry.Register(fakeResolver{id: "fakedebrid", prio: 50, host: "turbobit.net"})
 	if _, err := a.SaveResolverOrder([]string{"jd", "fakedebrid", "direct"}); err != nil {
 		t.Fatal(err)
 	}
-	if err := a.SetHosterLogin("ddownload.com", "user", "secret"); err != nil {
+	if err := a.SetHosterLogin("turbobit.net", "user", "secret"); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { jd.SetHostActive("ddownload.com", false) })
-	jd.SetHostActive("ddownload.com", true)
-	link := &core.Task{URL: "https://ddownload.com/abc123/movie.mkv"}
+	t.Cleanup(func() { jd.SetHostActive("turbobit.net", false) })
+	jd.SetHostActive("turbobit.net", true)
+	link := &core.Task{URL: "https://turbobit.net/abc123/movie.mkv"}
 
 	if got := resolverIDOf(a.resolverForTaskLocked(link)); got != "jd" {
 		t.Fatalf("fixture broken: the link goes to %q, want jd", got)
 	}
 	card := cardIDs(a.ResolverPriority(""))
-	if j, l, d := slices.Index(card, "jd"), slices.Index(card, "login:ddownload.com"), slices.Index(card, "fakedebrid"); j < 0 || l != j+1 || d < l {
+	if j, l, d := slices.Index(card, "jd"), slices.Index(card, "login:turbobit.net"), slices.Index(card, "fakedebrid"); j < 0 || l != j+1 || d < l {
 		t.Errorf("card = %q, want the login right below jd and above fakedebrid", card)
 	}
 	if _, err := a.SaveResolverOrder(card); err != nil {

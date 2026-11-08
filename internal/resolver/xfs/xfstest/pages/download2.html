@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Download {{.Name}}</title>
+</head>
+<body>
+{{if .SignedIn}}<a href="/?op=logout">Logout</a>
+{{end}}<h2>Download File {{.Name}}</h2>
+<Form name="F1" method="POST" action="">
+<input type="hidden" name="op" value="download2">
+<input type="hidden" name="id" value="{{.ID}}">
+<input type="hidden" name="rand" value="{{.Rand}}">
+<input type="hidden" name="referer" value="">
+<input type="hidden" name="method_free" value="{{if not .Premium}}Free Download{{end}}">
+<input type="hidden" name="method_premium" value="{{if .Premium}}1{{end}}">
+<input type="hidden" name="adblock_detected" value="">
+{{if .Password}}<br><b>Password:</b> <input type="password" name="password" class="myForm"><br>
+{{end}}{{if eq .Captcha "cf-turnstile" "g-recaptcha" "h-captcha"}}<div class="{{.Captcha}}" data-sitekey="{{.SiteKey}}"></div>
+{{end}}{{if eq .Captcha "image"}}<table><tr><td align=right><b>Enter code below:</b></td><td><img src="/captchas/code.png"></td></tr>
+<tr><td colspan=2><input type="text" name="code" class="captcha_code"></td></tr></table>
+{{end}}{{if eq .Captcha "plain"}}<table><tr><td align=right><b>Enter code below:</b></td>
+<td><div style="width:80px;height:26px;font:bold 13px Arial;background:#ccc;text-align:left;direction:ltr;">{{range .Digits}}<span style='position:absolute;padding-left:{{.Left}}px;padding-top:4px;'>{{.Char}}</span>{{end}}</div></td></tr>
+<tr><td colspan=2><input type="text" name="code" class="captcha_code"></td></tr></table>
+{{end}}{{if .Countdown}}<span id="countdown_str">Wait <span id="cx4kz2">{{.Countdown}}</span> seconds</span>
+{{end}}<button id="downloadbtn" class="btn">Create Download Link</button>
+</Form>
+</body>
+</html>

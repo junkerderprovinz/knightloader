@@ -68,6 +68,15 @@ func ownSite(host string) bool {
 	return false
 }
 
+// ownLogin reports whether KnightLoader signs in to host with its own client
+// rather than handing the login to JD.
+func ownLogin(host string) bool {
+	if s := xfsSiteFor(host); s != nil {
+		return s.OwnLogin
+	}
+	return ownSite(host)
+}
+
 // ownHosters returns the app's hosters KnightLoader signs in to itself, made
 // on first use. They live across rewires, which hand them the logins.
 func (a *App) ownHosters(eng ownlogin.Downloader) []*ownHoster {
@@ -131,9 +140,19 @@ func (a *App) syncOwnLogins() {
 	}
 }
 
-// ownLogin answers hosterauth for the hosts KnightLoader signs in to itself
-// with what the hoster said about the login.
-func (a *App) ownLogin(host string) (hosterauth.OwnState, bool) {
+// ownLoginChanged hands the login stored under host to the client that signs
+// in with it, after the login was saved, switched or removed.
+func (a *App) ownLoginChanged(host string) {
+	a.syncOwnLogins()
+	a.changedXFSLogin(host)
+}
+
+// ownLoginState answers hosterauth for the hosts KnightLoader signs in to
+// itself with what the hoster said about the login.
+func (a *App) ownLoginState(host string) (hosterauth.OwnState, bool) {
+	if site := xfsSiteFor(host); site != nil && site.OwnLogin {
+		return a.xfsLoginState(site), true
+	}
 	if !ownSite(host) {
 		return hosterauth.OwnState{}, false
 	}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Login</title>
+</head>
+<body>
+<li><a href="https://katfile.com/login.html">Login</a></li>
+{{if .Refused}}<div class="kfa-alert">Incorrect Login or Password</div>
+{{end}}{{if .WrongCaptcha}}<div class="kfa-alert">Wrong captcha</div>
+{{end}}<form method="POST" action="/" name="FL" onsubmit="var b=this.querySelector('.kfa-primary');if(b){setTimeout(function(){b.disabled=true},0)}">
+<input type="hidden" name="op" value="login">
+<input type="hidden" name="token" value="">
+<input type="hidden" name="rand" value="klaelmblxczc4xl5jgh2ohtx4yprdep4nwit5xa">
+<input type="hidden" name="redirect" value="">
+<div class="kfa-row"><label class="kfa-label" for="kfa-login">Username or email</label></div>
+<input id="kfa-login" class="kfa-input" type="text" name="login" value="" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Username or email">
+<div class="kfa-row"><label class="kfa-label" for="kfa-pass">Password</label><a class="kfa-link kfa-small" href="/?op=forgot_pass">Forgot password?</a></div>
+<div class="kfa-pw"><input id="kfa-pass" class="kfa-input" type="password" name="password" autocomplete="current-password" placeholder="Enter password"><button type="button" class="kfa-eye" aria-label="Show password"></button></div>
+<div class="kfa-captcha"><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+<div class="cf-turnstile" data-sitekey="{{.SiteKey}}"></div>
+</div>
+<button class="kfa-primary" type="submit" name="submit" value="1">Sign in</button>
+</form>
+</body>
+</html>

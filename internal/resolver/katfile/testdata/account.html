@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Account</title>
+</head>
+<body>
+<li><a href="https://katfile.com/?op=my_account">My Account</a></li><li><a href="https://katfile.com/?op=logout">Logout</a></li>
+<table class="table">
+<TR><TD>Username</TD><TD><b>fox</b></TD></TR>
+{{if .Premium}}<TR><TD>Premium Pro account expire</TD><TD><b>{{.Until}}</b> <a href="/?op=payments">Extend Premium account</a></TD></TR>
+{{end}}</table>
+<div class="col-sm-4">
+<span>Traffic available today</span>
+<small>{{.TrafficMB}} / 51200 MB</small>
+</div>
+</body>
+</html>

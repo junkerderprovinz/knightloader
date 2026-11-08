@@ -63,6 +63,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
@@ -288,6 +289,10 @@ type App struct {
 	// own are the hosters KnightLoader signs in to itself (see ownHoster).
 	// They live across rewires, which hand them the logins.
 	own []*ownHoster
+	// xfsBackends fetch the links of the XFileSharing hosters, by resolver
+	// id, on the user's login when it has premium. They too live across
+	// rewires, and each resolver shares its backend's client.
+	xfsBackends map[string]*xfs.Backend
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through

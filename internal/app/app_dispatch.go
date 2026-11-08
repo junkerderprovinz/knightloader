@@ -34,6 +34,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -65,6 +66,13 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 	if resolverID == mega.ResolverID || resolverID == onefichier.ResolverID {
 		return core.ModeFree
 	}
+	// An XFileSharing client downloads on the login while it has premium.
+	if b, ok := a.xfsBackends[resolverID]; ok {
+		if b.Premium() {
+			return core.ModePremium
+		}
+		return core.ModeFree
+	}
 	if resolverID == "jd" {
 		// An active login on the sidecar is premium; JD knowing the host
 		// without one is free mode.
@@ -92,21 +100,27 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 // full slot id is honoured as written.
 func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 	id := res.Info().ID
-	switch {
-	case id == hostheaders.ResolverID || id == remotefs.ResolverID:
+	switch id {
+	case hostheaders.ResolverID, remotefs.ResolverID:
 		// A header profile and the user's own servers take only the links they
 		// were set up for, so they stay above every row of the card, and an
 		// order entry naming one, which the card cannot write, is ignored.
 		return orderBase + res.Info().Prio
-	case id == "http":
+	case "http":
 		// The fallback is last whatever an order entry says.
 		return res.Info().Prio
-	case ownSites[id] != "":
-		// A hoster KnightLoader signs in to itself downloads on the user's
-		// login, whose row on the priority card stands for it.
-		prio, _ := loginPrio(order, ownSites[id])
-		return prio
-	case id == "jd":
+	}
+	// A client of KnightLoader's own that downloads on the user's login ranks
+	// where JD would rank that login, at the login's row of the card. JD
+	// itself takes such a host without the login, and on a tie the registry
+	// puts the client, with its higher priority, first.
+	if l, ok := res.(interface{ LoginHost() string }); ok {
+		if host := l.LoginHost(); host != "" {
+			prio, _ := loginPrio(order, host)
+			return prio
+		}
+	}
+	if id == "jd" {
 		// A connected hoster login is a row of its own on the priority card, so
 		// the order decides whether a link to that host goes out on the login
 		// or through a debrid service that carries the host too. The login's
@@ -230,7 +244,7 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 			host := hostalias.Canonical(l.Host)
 			prio, byJD := loginPrio(order, host)
 			rank := 2 * prio
-			if byJD && ownSite(host) {
+			if byJD && ownLogin(host) {
 				rank++
 			}
 			rows = append(rows, row{resolver.Info{ID: loginRowID(l.Host), Prio: jd.ActiveLoginPrio}, rank})
@@ -1254,13 +1268,14 @@ func (a *App) Resume(id string) {
 
 // HonoursCollisionPolicy reports whether the collision policy reaches the file
 // a task on this resolver writes: the engine's own downloads and those a
-// debrid service, TorBox, the 1fichier client or a hoster KnightLoader signs
-// in to itself passes on to it (see engineHandoff). The other backends name files themselves, so only skip
+// debrid service, TorBox, the 1fichier client, an XFileSharing client or a
+// hoster KnightLoader signs in to itself passes on to it (see engineHandoff).
+// The other backends name files themselves, so only skip
 // applies to them. The interface uses this to avoid offering controls that
 // would be ignored.
 func (a *App) HonoursCollisionPolicy(resolverID string) bool {
 	switch a.backendFor(resolverID).(type) {
-	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *onefichier.Backend,
+	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *onefichier.Backend, *xfs.Backend,
 		*rapidgator.Backend, *keep2share.Backend, *nitroflare.Backend, *usenet.Files:
 		return true
 	}
@@ -1277,6 +1292,9 @@ func (a *App) backendFor(resolverID string) backend {
 		if h.id == resolverID {
 			return h.be
 		}
+	}
+	if b, ok := a.xfsBackends[resolverID]; ok {
+		return b
 	}
 	switch {
 	case resolverID == remotefs.ResolverID && a.remotefs != nil:

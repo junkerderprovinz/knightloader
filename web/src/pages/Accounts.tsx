@@ -903,7 +903,7 @@ function CredentialDialog({
 /** The id prefix of a hoster login's row (app.loginRowID). */
 const LOGIN_ROW = 'login:';
 /** The rows of backends that come with KnightLoader rather than with an account. */
-const BUILT_IN = ['jd', 'ytdlp', 'direct', 'torrent', 'mega', '1fichier'];
+const BUILT_IN = ['jd', 'ytdlp', 'direct', 'torrent', 'mega', '1fichier', 'ddownload', 'katfile', 'clicknupload', 'filespace', 'uploadrar'];
 /**
  * The hosters KnightLoader signs in to itself rather than through JDownloader
  * (app.ownLogin), by every domain a login may be saved under.

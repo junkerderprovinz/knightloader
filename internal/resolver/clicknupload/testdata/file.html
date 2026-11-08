@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Clicknupload - {{.Name}}</title>
+</head>
+<body>
+{{if .SignedIn}}<li class="activemact"><a href="https://clicknupload.click/?op=my_account">My Account</a></li><li><a href="https://clicknupload.click/?op=logout">Logout</a></li>
+{{else}}<li><a href="https://clicknupload.click/login.html">Login</a></li>
+{{end}}			<!--start fileinfo panel-->
+                        <div id="content">
+                        <div class="filepanel lft">
+                        <div class="lft sec">
+			<img src="https://clicknupload.click/images_new/icon_down.png" id="icod" style="float: left;">
+                        <div class="dfile">
+                        <span class="dfilename">{{.Name}}</span>
+			</div></div>
+
+                        <div class="lft sec">
+			<span class="statd">size</span>
+			<span>{{.Size}}</span>
+			</div></div>
+
+			<div class="clear"></div>
+			<!--end fileinfo panel-->
+
+<center><div class="premiumbutt"><a href="https://clicknupload.click/?op=payments"><div class="superfast">Fast Download</div></a></div></center>
+
+		<div class="download">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td align="center">
+						<Form method="POST" action=''>
+						<input type="hidden" name="op" value="download1">
+						<input type="hidden" name="usr_login" value="">
+						<input type="hidden" name="id" value="{{.ID}}">
+						<input type="hidden" name="fname" value="{{.Name}}">
+						<input type="hidden" name="referer" value="">
+						<div class="regular"><i class="far fa-tachometer-alt-slow"></i> <input type="submit" id="method_free" name="method_free" value="Slow Download"></div>
+                        <br><br>
+						</Form>
+					</td>
+				</tr>
+			</table>
+		</div>
+</body>
+</html>

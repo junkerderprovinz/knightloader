@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Download {{.Name}}</title>
+</head>
+<body>
+{{if .SignedIn}}<a href="/?op=logout">Logout</a>
+{{else}}<a href="/login.html">Login</a>
+{{end}}<center><a href="https://ads.example.net/QVrIf24fe84f?q={{.Name}}" target="_blank" class="btn btn-success btn-lg" role="button">Direct Download Link</a></center>
+<div class="container">
+  <h1 class="text-center">
+    Download File
+      {{.Name}}
+  </h1>
+  <div class="text-center small text-muted mb-4">
+    You have requested
+      <font class="text-primary">
+        https://example.net/{{.ID}}/{{.Name}}
+      </font> ({{.Size}})
+  </div>
+  <div class="premiumTable">
+    <div class="xlarge fw-bold text-dark pt-2">XFileSharing Features</div>
+    <div>Download speed</div><div>Waiting time</div><div>Max file size</div>
+  </div>
+  <Form method="POST" action=''>
+    <input type="hidden" name="op" value="download1">
+    <input type="hidden" name="usr_login" value="">
+    <input type="hidden" name="id" value="{{.ID}}">
+    <input type="hidden" name="fname" value="{{.Name}}">
+    <input type="hidden" name="referer" value="">
+    <div class="text-center mb-4">
+      <button type="submit" class="btn btn-primary submit-btn m-2" name="method_premium" value="Premium Download">
+        Premium Download
+      </button>
+      <button type="submit" class="btn btn-outline-primary submit-btn m-2" name="method_free" value="Free Download">
+        Free Download
+      </button>
+    </div>
+  </Form>
+</div>
+</body>
+</html>

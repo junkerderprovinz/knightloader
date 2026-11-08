@@ -72,6 +72,10 @@ func (r Resolver) Match(raw string) bool {
 	return ok && r.Backend.Ready()
 }
 
+// LoginHost is the host whose login the resolver downloads on. The
+// dispatcher ranks it at that login's row.
+func (Resolver) LoginHost() string { return Site }
+
 // Resolve says what to fetch without asking Nitroflare. It runs while the app
 // holds its lock, so the name and size come from Inspect, and the backend asks
 // the API when the download starts. JDownloader's plugin sets no limit on the

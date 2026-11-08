@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Login</title>
+</head>
+<body>
+{{if .Refused}}<div class="alert alert-danger">Incorrect Login or Password</div>
+{{end}}{{if .WrongCaptcha}}<div class="alert alert-danger">Wrong captcha</div>
+{{end}}<form method="POST" action="{{.Action}}" name="FL">
+    <input type="hidden" name="op" value="login">
+    <input type="hidden" name="token" value="36e6eaa695a821f6fed0d0c8e191581e">
+    <input type="hidden" name="rand" value="wfzmsohz7vebl24ccky3elixfxk7belttnztq7fkjq">
+    <input type="hidden" name="redirect" value="">
+    <div class="form-group">
+        <label>Username or Email</label>
+        <input type="text" name="login" value="" class="form-control" placeholder="Enter your username or email" required>
+    </div>
+    <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+    </div>
+    <div class="form-group">
+        <label>I'm not a robot</label>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+<div class="cf-turnstile" data-sitekey="{{.SiteKey}}" id="cf-turnstile-widget"></div>
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
+</body>
+</html>

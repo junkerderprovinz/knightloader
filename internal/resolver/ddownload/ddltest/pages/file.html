@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Download {{.Name}}</title>
+<style>
+.dk-dl-name { font-size: 1.3rem; }
+.dk-prem-card { display: flex; }
+.dk-dl-btn.dk-btn-blocked { opacity: 0.5; }
+</style>
+</head>
+<body>
+{{if .SignedIn}}<a href="/logout" class="nav-link">Logout</a>
+{{end}}<form name="F1" method="POST" action="" style="display:contents;">
+    <input type="hidden" name="op" value="download2">
+    <input type="hidden" name="id" value="{{.ID}}">
+    <input type="hidden" name="rand" value="tdf3lrxk7x4gtyeng3hsgeayo5vcix7z5nox7ihyay">
+    <input type="hidden" name="referer" value="">
+    <input type="hidden" name="method_free" value="">
+    <input type="hidden" name="method_premium" value="">
+    <div class="dk-dl-card">
+        <div class="dk-dl-head">
+            <div class="dk-dl-icon" data-fn="{{.Name}}"></div>
+            <div class="dk-dl-meta">
+                <h2 class="dk-dl-name" title="{{.Name}}">{{.Name}}</h2>
+                <p class="dk-dl-size">{{.Size}}</p>
+            </div>
+        </div>
+        {{if .Password}}<div class="dk-dl-password">
+            <div class="dk-pw-header">Password Protected</div>
+            <label>This file is protected by a password</label>
+            <input type="password" name="password" value="">
+        </div>
+        {{end}}{{if .Free}}<div class="dk-dl-captcha">
+            <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+<div class="cf-turnstile" data-sitekey="{{.SiteKey}}" id="cf-turnstile-widget"></div>
+        </div>
+        <div class="dk-countdown" id="dk2Countdown">
+            <div class="dk-countdown-ring">
+                <span class="dk-countdown-num" id="dk2CountdownNum">{{.Countdown}}</span>
+            </div>
+            <span class="dk-countdown-label">Please wait before downloading</span>
+        </div>
+        {{end}}{{if .WaitSeconds}}<button type="button" id="downloadbtn" class="dk-dl-btn dk-btn-blocked" data-wait-seconds="{{.WaitSeconds}}" data-toast-msg="You have to wait {{.WaitText}} till the next download">
+            Regular Download
+        </button>
+        {{else}}<button type="button" id="downloadbtn" class="dk-dl-btn dk-btn-disabled" disabled>
+            Regular Download
+        </button>
+        {{end}}
+    </div>
+</form>
+<script>
+    var $blockedBtn = $('.dk-btn-blocked');
+    if ($blockedBtn.length) {
+        var dkWait = parseInt($blockedBtn.attr('data-wait-seconds'), 10) || 0;
+        if (dkWait > 0) {
+            var dkTpl = 'You have to wait {t} till the next download';
+        }
+    }
+</script>
+</body>
+</html>

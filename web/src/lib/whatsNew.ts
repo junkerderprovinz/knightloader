@@ -56,6 +56,8 @@ export const RELEASES: Release[] = [
       { id: 'fichier-native', text: 'whatsnew.change.fichierNative' },
       { id: 'rapidgator-native', text: 'whatsnew.change.rapidgatorNative' },
       { id: 'k2s-nitroflare-native', text: 'whatsnew.change.k2sNitroflareNative' },
+      { id: 'ddownload-native', text: 'whatsnew.change.ddownloadNative' },
+      { id: 'xfs-hosters', text: 'whatsnew.change.xfsHosters' },
     ],
   },
   {

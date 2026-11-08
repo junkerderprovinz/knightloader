@@ -58,6 +58,7 @@ const (
 	codeOwnInvalid  = "ownInvalid"
 	codeOwnCaptcha  = "ownCaptcha"
 	codeOwnOff      = "ownOff"
+	codeSigningIn   = "signingIn"
 )
 
 // LoginState is one row the accounts page shows. It has no field that could
@@ -558,6 +559,12 @@ func (r *Reconciler) States() []LoginState {
 type OwnState struct {
 	// Checked is set once the hoster has answered.
 	Checked bool
+	// Waiting is an unchecked login no check is under way for, before the
+	// first one or after one that could not reach the hoster.
+	Waiting bool
+	// SigningIn is a check that signs in, which can wait on a captcha the
+	// prompts show.
+	SigningIn bool
 	// Refused is the hoster turning the login down, and Detail says why.
 	Refused bool
 	Detail  string
@@ -573,6 +580,10 @@ type OwnState struct {
 func (o OwnState) row(host, username string) LoginState {
 	st := LoginState{Host: host, Username: username, Enabled: true}
 	switch {
+	case o.SigningIn:
+		st.Status, st.Code, st.Detail = StatusQueued, codeSigningIn, "signing in with this login"
+	case o.Waiting && !o.Checked:
+		st.Status, st.Code, st.Detail = StatusQueued, codeWaiting, "waiting for the next check"
 	case !o.Checked:
 		st.Status, st.Code, st.Detail = StatusQueued, codeOwnChecking, "KnightLoader is checking this login"
 	case o.Refused && o.Captcha:
@@ -592,17 +603,28 @@ func (o OwnState) row(host, username string) LoginState {
 	return st
 }
 
-// TrafficSpent reports whether the last pass found JD's login for host with
-// none of its traffic left. Only a plan that states a quota counts: JD reports
-// trafficLeft 0 for a free account and for one with nothing to meter as well.
-// It takes no callback under r.mu, so the app may ask while holding its own
-// lock.
+// TrafficSpent reports whether the login for host, JD's as of the last pass
+// or one KnightLoader signs in with itself, has none of its traffic left.
+// Only a plan that states a quota counts: JD reports trafficLeft 0 for a free
+// account and for one with nothing to meter as well. It calls Own outside
+// r.mu, so the app may ask while holding its own lock as long as Own takes
+// none of it.
 func (r *Reconciler) TrafficSpent(host string) bool {
 	key := accountKey(host)
+	spent := func(left, total int64) bool { return total > 0 && left <= 0 }
 	r.mu.Lock()
-	defer r.mu.Unlock()
 	for h, st := range r.states {
-		if accountKey(h) == key && st.Status == StatusActive && st.TrafficMax > 0 && st.TrafficLeft <= 0 {
+		if accountKey(h) == key && st.Status == StatusActive && spent(st.TrafficLeft, st.TrafficMax) {
+			r.mu.Unlock()
+			return true
+		}
+	}
+	r.mu.Unlock()
+	for _, h := range r.store.Hosts() {
+		if accountKey(h) != key {
+			continue
+		}
+		if o, ok := r.own(h); ok && o.Checked && !o.Refused && spent(o.TrafficLeft, o.TrafficMax) {
 			return true
 		}
 	}
