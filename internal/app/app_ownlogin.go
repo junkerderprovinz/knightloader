@@ -1,5 +1,13 @@
 package app
 
+// The hoster logins KnightLoader's own clients sign in with. Such a login
+// belongs to KnightLoader: hosterauth keeps it from JD through its Own hook
+// (ownLoginState), and the client ranks at the login's row of the priority
+// card through its resolver's LoginHost (see dynamicPrio). Three kinds share
+// that path: the hosters downloaded on a premium login only (ownHoster), the
+// XFileSharing sites (app_xfs.go), and Pixeldrain and Gofile, whose login is
+// an API key (keyLogins).
+
 import (
 	"context"
 
@@ -46,8 +54,8 @@ type ownHoster struct {
 	res       linkInspectingResolver
 }
 
-// ownSites maps the resolver of every hoster KnightLoader signs in to itself
-// to the site its login is stored under.
+// ownSites maps the resolver of every hoster downloaded on a premium login
+// only to the site its login is stored under.
 var ownSites = func() map[string]string {
 	m := map[string]string{rapidgator.ResolverID: rapidgator.Site, nitroflare.ResolverID: nitroflare.Site}
 	for _, h := range keep2share.Hosts {
@@ -56,8 +64,8 @@ var ownSites = func() map[string]string {
 	return m
 }()
 
-// ownSite reports whether host belongs to a hoster KnightLoader signs in to
-// itself.
+// ownSite reports whether host belongs to a hoster downloaded on a premium
+// login only.
 func ownSite(host string) bool {
 	host = hostalias.Canonical(host)
 	for _, site := range ownSites {
@@ -68,13 +76,17 @@ func ownSite(host string) bool {
 	return false
 }
 
+// keyLogins are the hosts whose stored login is an API key or token
+// KnightLoader's own client sends along (see hosterSecret).
+var keyLogins = map[string]bool{"pixeldrain.com": true, "gofile.io": true}
+
 // ownLogin reports whether KnightLoader signs in to host with its own client
 // rather than handing the login to JD.
 func ownLogin(host string) bool {
 	if s := xfsSiteFor(host); s != nil {
 		return s.OwnLogin
 	}
-	return ownSite(host)
+	return ownSite(host) || keyLogins[hostalias.Canonical(host)]
 }
 
 // ownHosters returns the app's hosters KnightLoader signs in to itself, made
@@ -152,6 +164,9 @@ func (a *App) ownLoginChanged(host string) {
 func (a *App) ownLoginState(host string) (hosterauth.OwnState, bool) {
 	if site := xfsSiteFor(host); site != nil && site.OwnLogin {
 		return a.xfsLoginState(site), true
+	}
+	if keyLogins[hostalias.Canonical(host)] {
+		return hosterauth.OwnState{Key: true}, true
 	}
 	if !ownSite(host) {
 		return hosterauth.OwnState{}, false

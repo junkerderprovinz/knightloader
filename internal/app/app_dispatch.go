@@ -116,7 +116,7 @@ func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 	// where JD would rank that login, at the login's row of the card. JD
 	// itself takes such a host without the login, and on a tie the registry
 	// puts the client, with its higher priority, first.
-	if l, ok := res.(interface{ LoginHost() string }); ok {
+	if l, ok := res.(resolver.LoginHoster); ok {
 		if host := l.LoginHost(); host != "" {
 			prio, _ := loginPrio(order, host)
 			return prio
@@ -245,11 +245,12 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 			// resolver wins the tie, so its row goes right above.
 			host := hostalias.Canonical(l.Host)
 			prio, byJD := loginPrio(order, host)
+			own := ownLogin(host)
 			rank := 2 * prio
-			if byJD && ownLogin(host) {
+			if byJD && own {
 				rank++
 			}
-			rows = append(rows, row{resolver.Info{ID: loginRowID(l.Host), Prio: jd.ActiveLoginPrio}, rank})
+			rows = append(rows, row{resolver.Info{ID: loginRowID(l.Host), Prio: jd.ActiveLoginPrio, OwnLogin: own}, rank})
 		}
 		sort.SliceStable(rows, func(i, j int) bool { return rows[i].rank > rows[j].rank })
 	}

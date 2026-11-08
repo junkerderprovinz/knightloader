@@ -84,7 +84,10 @@ type Resolver struct {
 	Backend *Backend
 }
 
-var _ resolver.Resolver = Resolver{}
+var (
+	_ resolver.Resolver    = Resolver{}
+	_ resolver.LoginHoster = Resolver{}
+)
 
 func (r Resolver) Info() resolver.Info { return resolver.Info{ID: r.Backend.host.ID, Prio: prio} }
 

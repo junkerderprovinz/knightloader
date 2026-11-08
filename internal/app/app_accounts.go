@@ -203,8 +203,8 @@ func (a *App) rewireBackends() {
 		a.Registry.Register(xfs.Resolver{Site: site, Client: b.Client(), Premium: b.Premium})
 	}
 
-	// Pixeldrain, Gofile and Mediafire, each with a stored login lent where
-	// the hoster takes one.
+	// Pixeldrain, Gofile and Mediafire, for free or with the key a stored
+	// Pixeldrain or Gofile login holds.
 	for _, h := range a.hosterClients(eng) {
 		a.Registry.Register(h.res)
 	}

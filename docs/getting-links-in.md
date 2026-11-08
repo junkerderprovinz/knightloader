@@ -512,12 +512,14 @@ its own page, or a download it takes for hotlinking, fails and says so.
 
 To use a Pixeldrain account, add a Pixeldrain login under **Hoster accounts**
 on the Accounts page with an API key from Pixeldrain's API keys page as the
-password. The user name does not matter. JDownloader gets the login as well,
-and while it has the login working it takes Pixeldrain links first. Otherwise
-KnightLoader's own client sends the key, and with a paid plan the download
-opens as many connections as the task allows. A debrid service that carries
-Pixeldrain goes first too. With **Allow free downloads** off, a Pixeldrain
-link waits for one of those.
+password. The user name does not matter. The key stays with KnightLoader and
+is not handed to JDownloader. KnightLoader's own client sends it along, and
+with a paid plan the download opens as many connections as the task allows.
+With a key stored, Pixeldrain links rank where the login's row sits on the
+priority card, as a Pixeldrain login in JDownloader would, so a debrid service
+that carries Pixeldrain comes after it unless the card says otherwise.
+Without a key, such a debrid service goes first. With **Allow free
+downloads** off, a Pixeldrain link waits for a debrid service.
 
 ## Gofile
 
@@ -539,9 +541,10 @@ on its row.
 A Gofile login under **Hoster accounts** takes the account token from the
 profile page on Gofile as the password, and KnightLoader then uses it in place
 of a guest account, which also opens content shared with premium accounts
-only. As with Pixeldrain, JDownloader gets the login too and goes first while
-it has the login working, and so does a debrid service that carries Gofile.
-With **Allow free downloads** off, a Gofile link waits for one of those.
+only. As with Pixeldrain, the token stays with KnightLoader, and the login's
+row on the priority card decides whether Gofile links go before a debrid
+service that carries Gofile. With **Allow free downloads** off, a Gofile link
+waits for such a debrid service.
 
 ## Mediafire
 

@@ -11,6 +11,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
@@ -39,6 +40,7 @@ func useFakeHosters(t *testing.T, a *App) fakeHosters {
 	pd := pixeldrain.NewClient(f.pd.URL, f.pd.Client())
 	pd.Key = func() string { return a.hosterSecret("pixeldrain.com") }
 	gf := gofile.NewClient(f.gf.API, f.gf.Site, f.gf.Client())
+	gf.Token = func() string { return a.hosterSecret("gofile.io") }
 	mf := mediafire.NewClient(f.mf.URL, f.mf.Client())
 	a.bmu.Lock()
 	a.hosters = map[string]hosterClient{
@@ -230,5 +232,45 @@ func TestAStoredLoginLendsItsKeyUnderAnyOfTheHostersDomainsWhileSwitchedOn(t *te
 	}
 	if got := a.hosterSecret("gofile.io"); got != "" {
 		t.Errorf("Gofile got Pixeldrain's key %q", got)
+	}
+}
+
+func TestAPixeldrainKeyOrGofileTokenStaysWithKnightLoaderAndRanksAtItsLoginRow(t *testing.T) {
+	for _, c := range []struct{ host, id, link, secret string }{
+		{"pixeldrain.net", pixeldrain.ResolverID, "https://pixeldrain.com/u/iniGVSnw", pdtest.Key},
+		{"gofile.io", gofile.ResolverID, "https://gofile.io/d/AMZyDw", gftest.PremiumToken},
+	} {
+		t.Run(c.id, func(t *testing.T) {
+			a := newCrawlApp(t, false)
+			useFakeHosters(t, a)
+			a.Registry.Register(jd.Resolver{})
+			a.Registry.Register(debrid.Resolver{ServiceID: "alldebrid", Prio: 49, Hosts: map[string]bool{hostalias.Canonical(c.host): true}})
+			jd.SetKnownHosts([]string{hostalias.Canonical(c.host)})
+			t.Cleanup(func() { jd.SetKnownHosts(nil) })
+
+			if err := a.SetHosterLogin(c.host, "reader", c.secret); err != nil {
+				t.Fatal(err)
+			}
+			if !ownLogin(c.host) || jd.HostActive(hostalias.Canonical(c.host)) {
+				t.Error("the login would go to JDownloader")
+			}
+			if got := chainIDs(a, c.link); !slices.Equal(got[:3], []string{c.id, "alldebrid", "jd"}) {
+				t.Errorf("chain = %v, want our own client on the login first, then the debrid service, then JD", got)
+			}
+			if row, ok := loginRow(a, c.host); !ok || row.Status != hosterauth.StatusActive {
+				t.Errorf("the login's row = %+v, want it active", row)
+			}
+			rows := a.ResolverPriority("")
+			if i := slices.IndexFunc(rows, func(r resolver.Info) bool { return r.ID == loginRowID(c.host) }); i < 0 || !rows[i].OwnLogin {
+				t.Errorf("the priority card = %+v, want the login's row marked as KnightLoader's own", rows)
+			}
+
+			if _, err := a.SaveResolverOrder([]string{"alldebrid", loginRowID(c.host), "jd"}); err != nil {
+				t.Fatal(err)
+			}
+			if got := chainIDs(a, c.link); !slices.Equal(got[:2], []string{"alldebrid", c.id}) {
+				t.Errorf("chain = %v, want the order the card was saved in", got)
+			}
+		})
 	}
 }

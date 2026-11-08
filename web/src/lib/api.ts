@@ -2234,6 +2234,8 @@ export async function abortActivity(kind: string): Promise<number> {
 export interface ResolverInfo {
   id: string;
   prio: number;
+  /** Set on the row of a hoster login KnightLoader signs in with itself. */
+  ownLogin?: boolean;
 }
 
 /**

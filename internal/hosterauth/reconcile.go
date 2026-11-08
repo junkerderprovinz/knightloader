@@ -565,6 +565,9 @@ type OwnState struct {
 	// SigningIn is a check that signs in, which can wait on a captcha the
 	// prompts show.
 	SigningIn bool
+	// Key is a login whose password is an API key or token the client sends
+	// along with its calls. Nothing checks it before a download.
+	Key bool
 	// Refused is the hoster turning the login down, and Detail says why.
 	Refused bool
 	Detail  string
@@ -580,6 +583,8 @@ type OwnState struct {
 func (o OwnState) row(host, username string) LoginState {
 	st := LoginState{Host: host, Username: username, Enabled: true}
 	switch {
+	case o.Key:
+		st.Status = StatusActive
 	case o.SigningIn:
 		st.Status, st.Code, st.Detail = StatusQueued, codeSigningIn, "signing in with this login"
 	case o.Waiting && !o.Checked:

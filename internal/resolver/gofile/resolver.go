@@ -28,9 +28,9 @@ import (
 // ResolverID is the routing id of the resolver and its backend.
 const ResolverID = "gofile"
 
-// prio puts the client below every debrid service (43 and up) and a Gofile
-// login in JDownloader (jd.ActiveLoginPrio), and above JDownloader's own
-// free mode (41).
+// prio puts the client without an account token below every debrid service
+// (43 and up) and above JDownloader's own free mode (41). With a token it
+// ranks at the login's row, see Resolver.LoginHost.
 const prio = 42
 
 // site is the domain every link is written out with.
@@ -83,9 +83,20 @@ var (
 	_ resolver.Resolver     = Resolver{}
 	_ resolver.Inspector    = Resolver{}
 	_ resolver.FolderLister = Resolver{}
+	_ resolver.LoginHoster  = Resolver{}
 )
 
 func (Resolver) Info() resolver.Info { return resolver.Info{ID: ResolverID, Prio: prio} }
+
+// LoginHost is the host of the stored Gofile login while there is an account
+// token to send, "" without one. Token reads only the stored logins, so the
+// app may ask while holding its lock.
+func (r Resolver) LoginHost() string {
+	if r.Client.Token == nil || r.Client.Token() == "" {
+		return ""
+	}
+	return site
+}
 
 func (Resolver) Match(raw string) bool {
 	_, ok := parse(raw)

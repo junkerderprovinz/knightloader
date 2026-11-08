@@ -908,16 +908,6 @@ const BUILT_IN = [
   ...['ddownload', 'katfile', 'clicknupload', 'filespace', 'uploadrar'],
   ...['pixeldrain', 'gofile', 'mediafire'],
 ];
-/**
- * The hosters KnightLoader signs in to itself rather than through JDownloader
- * (app.ownLogin), by every domain a login may be saved under.
- */
-const OWN_LOGINS = new Set([
-  ...['rapidgator.net', 'rg.to', 'rapidgator.asia'],
-  ...['keep2share.cc', 'k2s.cc', 'keep2s.cc', 'k2share.cc', 'keep2.cc'],
-  ...['fileboom.me', 'fboom.me', 'tezfiles.com', 'publish2.me'],
-  ...['nitroflare.com', 'nitroflare.net', 'nitro.download'],
-]);
 
 /**
  * connectedDebrid maps each debrid service with a connected, switched-on
@@ -994,13 +984,11 @@ function RoutingSection({
   };
   const tipFor = (id: string) => {
     if (byId.get(id)?.group === 'debrid') return t('accounts.routing.tip.debrid', { name: labelFor(id) });
-    const login = id.startsWith(LOGIN_ROW) ? id.slice(LOGIN_ROW.length) : undefined;
-    const tip =
-      login === undefined
-        ? ROW_TIPS[id]
-        : OWN_LOGINS.has(login)
-          ? 'accounts.routing.tip.ownLogin'
-          : 'accounts.routing.tip.login';
+    const tip = !id.startsWith(LOGIN_ROW)
+      ? ROW_TIPS[id]
+      : priority?.find((r) => r.id === id)?.ownLogin
+        ? 'accounts.routing.tip.ownLogin'
+        : 'accounts.routing.tip.login';
     return tip && t(tip);
   };
 

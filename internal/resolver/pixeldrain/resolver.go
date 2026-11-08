@@ -25,9 +25,9 @@ import (
 // ResolverID is the routing id of the resolver and its backend.
 const ResolverID = "pixeldrain"
 
-// prio puts the client below every debrid service (43 and up) and a
-// Pixeldrain login in JDownloader (jd.ActiveLoginPrio), which both get past
-// the free daily limit, and above JDownloader's own free mode (41).
+// prio puts the client without a key below every debrid service (43 and up),
+// which gets past the free daily limit, and above JDownloader's own free mode
+// (41). With a key it ranks at the login's row, see Resolver.LoginHost.
 const prio = 42
 
 // site is the domain every link is written out with.
@@ -102,9 +102,20 @@ var (
 	_ resolver.Resolver     = Resolver{}
 	_ resolver.Inspector    = Resolver{}
 	_ resolver.FolderLister = Resolver{}
+	_ resolver.LoginHoster  = Resolver{}
 )
 
 func (Resolver) Info() resolver.Info { return resolver.Info{ID: ResolverID, Prio: prio} }
+
+// LoginHost is the host of the stored Pixeldrain login while there is a key
+// to send, "" without one. Key reads only the stored logins, so the app may
+// ask while holding its lock.
+func (r Resolver) LoginHost() string {
+	if r.Client.key() == "" {
+		return ""
+	}
+	return site
+}
 
 func (Resolver) Match(raw string) bool {
 	_, ok := parse(raw)

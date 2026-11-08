@@ -94,9 +94,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   subfolders included. A Gofile folder locked with a password opens with the
   link password from the add-links form. When a hoster asks for a pause, the
   task keeps running and shows why and for how long. A Pixeldrain API key or
-  a Gofile account token stored as a hoster login goes along with the
-  downloads. A debrid service that carries the hoster and a login for it in
-  JDownloader still go first.
+  a Gofile account token stored as a hoster login stays with KnightLoader,
+  goes along with the downloads and ranks where the login's row sits on the
+  priority card. Without one, a debrid service that carries the hoster goes
+  first.
+
 ### Changed
 
 - **Every list you reorder by hand places the moved item the same way.** An

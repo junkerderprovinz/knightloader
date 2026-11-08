@@ -16,6 +16,9 @@ import (
 type Info struct {
 	ID   string `json:"id"`
 	Prio int    `json:"prio"`
+	// OwnLogin marks the priority card's row of a hoster login KnightLoader
+	// signs in with itself rather than through JDownloader.
+	OwnLogin bool `json:"ownLogin,omitempty"`
 }
 
 // AccountSep separates a service id from an account id inside a resolver id.
@@ -125,6 +128,14 @@ type Listing struct {
 // with, for a hoster that locks whole folders with one.
 type FolderLister interface {
 	List(ctx context.Context, url, password string) ([]Listing, error)
+}
+
+// LoginHoster is a hoster's own client that downloads on the user's stored
+// login for that hoster. LoginHost names the host the login is stored under,
+// "" while the client downloads without one. The dispatcher ranks such a
+// client where a JDownloader login for the host would rank.
+type LoginHoster interface {
+	LoginHost() string
 }
 
 // HostCapper is implemented by a resolver that can cap how many chunks one
