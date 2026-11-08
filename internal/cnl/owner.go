@@ -94,8 +94,8 @@ func (l *Listener) Holding(ctx context.Context) Holding {
 		return judge(nil, id, nil, nil)
 	}
 	var owner *Process
-	if p, ok := portOwner(ctx, l.port); ok {
-		owner = &p
+	if owners := portOwners(ctx, l.port); len(owners) > 0 {
+		owner = &owners[0]
 	}
 	return judge(l.Err(), id, idErr, owner)
 }

@@ -12,7 +12,7 @@ func addrInUse(err error) bool {
 	return errors.Is(err, syscall.EADDRINUSE)
 }
 
-// portOwner names no process on a system KnightLoader cannot ask.
-func portOwner(context.Context, int) (Process, bool) {
-	return Process{}, false
+// portOwners names no process on a system KnightLoader cannot ask.
+func portOwners(context.Context, int) []Process {
+	return nil
 }

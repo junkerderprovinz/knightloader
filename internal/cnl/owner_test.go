@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"slices"
 	"strings"
 	"syscall"
 	"testing"
@@ -100,26 +101,38 @@ func TestTheSystemNamesTheProcessOnAPort(t *testing.T) {
 	default:
 		t.Skip("this system is not asked who holds a port")
 	}
-	for _, addr := range []string{"127.0.0.1:0", "[::1]:0"} {
-		ln, err := net.Listen("tcp", addr)
-		if err != nil {
-			t.Logf("%s: %v", addr, err)
-			continue
-		}
-		p, ok := portOwner(context.Background(), ln.Addr().(*net.TCPAddr).Port)
-		ln.Close()
-		if !ok || p.PID != os.Getpid() {
-			t.Errorf("%s: owner = %+v, %v; want this process, %d", addr, p, ok, os.Getpid())
-			continue
-		}
-		if kind, name := classify(p); kind != HeldByProgram || !strings.HasPrefix(name, "cnl.test") || !strings.Contains(p.Cmdline, "cnl.test") {
-			t.Errorf("%s: %+v is %q, %q; want this test binary", addr, p, kind, name)
-		}
+	for _, family := range []struct{ name, addr string }{
+		{"IPv4", "127.0.0.1:0"},
+		{"IPv6", "[::1]:0"},
+	} {
+		t.Run(family.name, func(t *testing.T) {
+			ln, err := net.Listen("tcp", family.addr)
+			if err != nil && family.name == "IPv6" {
+				t.Skipf("no IPv6 loopback: %v", err)
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer ln.Close()
+			// Linux hands out a port number already listening at another
+			// address, such as a test server of a package running alongside
+			// on 127.0.0.1 when this one bound [::1], so the port may have
+			// more than one owner.
+			owners := portOwners(context.Background(), ln.Addr().(*net.TCPAddr).Port)
+			i := slices.IndexFunc(owners, func(p Process) bool { return p.PID == os.Getpid() })
+			if i < 0 {
+				t.Fatalf("owners = %+v; want this process, %d, among them", owners, os.Getpid())
+			}
+			p := owners[i]
+			if kind, name := classify(p); kind != HeldByProgram || !strings.HasPrefix(name, "cnl.test") || !strings.Contains(p.Cmdline, "cnl.test") {
+				t.Errorf("%+v is %q, %q; want this test binary", p, kind, name)
+			}
+		})
 	}
 }
 
 func TestAFreePortHasNoOwner(t *testing.T) {
-	if p, ok := portOwner(context.Background(), freePort(t)); ok {
-		t.Errorf("owner = %+v on a free port", p)
+	if owners := portOwners(context.Background(), freePort(t)); len(owners) > 0 {
+		t.Errorf("owners = %+v on a free port", owners)
 	}
 }

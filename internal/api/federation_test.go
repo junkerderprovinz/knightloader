@@ -134,7 +134,11 @@ func TestLinksHandedOverAreAnnouncedToTheOpenPages(t *testing.T) {
 	}
 	resp.Body.Close()
 
+	// The server adds a stream to the hub only after the handshake Dial waits
+	// for, so a broadcast sent in between misses it. The snapshot is queued
+	// right after the add.
 	sent := dialWS(t, "ws"+strings.TrimPrefix(aSrv.URL, "http"))
+	readOneOfType(t, sent, "snapshot")
 	handed := func(msg map[string]any) (string, bool) {
 		data, _ := msg["data"].(map[string]any)
 		peer, _ := data["peer"].(string)
@@ -159,6 +163,7 @@ func TestLinksHandedOverAreAnnouncedToTheOpenPages(t *testing.T) {
 	}
 
 	arrived := dialWS(t, "ws"+strings.TrimPrefix(bSrv.URL, "http"))
+	readOneOfType(t, arrived, "snapshot")
 	serve := announceArrivals(bApp, relayProxyHandler(Handler(bApp)))
 	add := relay.ProxyCall{Method: http.MethodPost, Path: "/api/links", Body: links}
 	if status, answer := serve(context.Background(), add); status/100 != 2 {
