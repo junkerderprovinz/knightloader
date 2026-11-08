@@ -20,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/katfile"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/sendnow"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs/xfstest"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -265,5 +266,28 @@ func TestAKatFileLoginIsSignedInByKnightLoaderAndRanksItsLinksAboveDebrid(t *tes
 	waitFor(t, "the login checked", b.Premium)
 	if got := chainIDs(a, link); got[0] != katfile.Site.ID {
 		t.Errorf("chain = %v, want the KatFile client on the premium login first", got)
+	}
+}
+
+func TestSendNowGoesFreeBetweenDebridAndJDAndLeavesItsLoginToJD(t *testing.T) {
+	srv := xfstest.New(t, sendnow.Site.Host, nil)
+	a := newCrawlApp(t, false)
+	useXFS(a, sendnow.Site, srv.URL, srv.Client())
+	a.Registry.Register(jd.Resolver{})
+	a.Registry.Register(debrid.Resolver{ServiceID: "zevera", Prio: 43, Hosts: map[string]bool{"send.now": true}})
+	jd.SetKnownHosts([]string{"send.now"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	const link = "https://send.cm/nuazfxwh18g4"
+
+	if ownLogin("send.cm") {
+		t.Error("a Send.now login would be kept from JDownloader")
+	}
+	if got := chainIDs(a, link); !slices.Equal(got[:3], []string{"zevera", sendnow.Site.ID, "jd"}) {
+		t.Errorf("chain = %v, want the debrid service, then the Send.now client, then JD", got)
+	}
+	jd.SetHostActive("send.now", true)
+	t.Cleanup(func() { jd.SetHostActive("send.now", false) })
+	if got := chainIDs(a, link); got[0] != "jd" {
+		t.Errorf("chain = %v, want JD with the login first", got)
 	}
 }

@@ -1,0 +1,88 @@
+{{define "file.html"}}<!DOCTYPE html>
+<html lang="en" class="js">
+<head>
+ <meta charset="utf-8">
+ <title>{{.Name}} - Krakenfiles.com</title>
+ <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
+ <script>
+     document.addEventListener("DOMContentLoaded", function(event) {
+         FingerprintJS.load().then(fp => {
+             fp.get().then(result => {
+                 $('#dl-form').find('input[name="fingerprint"]').val(result.visitorId)
+             });
+         });
+     });
+ </script>
+</head>
+<body class="nk-body npc-invest bg-lighter">
+<div class="col-lg-8">
+    <div class="invest-field form-group">
+        <div class="card card-bordered">
+            <div class="coin-item file-title">
+                <div class="coin-info">
+                    <span class="coin-name"><h5>{{.Name}}</h5></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-xl-4 col-lg-4 general-information" data-file-hash="{{.ID}}" data-file-server="hs3">
+    <div class="nk-iv-wg4">
+        <div class="nk-iv-wg4-sub">
+            <h6 class="nk-iv-wg4-title title">General file information</h6>
+            <ul class="nk-iv-wg4-overview g-2">
+                <li>
+                    <div class="sub-text">Upload date</div>
+                    <div class="lead-text">13.08.2022</div>
+                </li>
+                <li>
+                    <div class="sub-text">File size</div>
+                    <div class="lead-text">{{.Size}}</div>
+                </li>
+            </ul>
+        </div>
+        <div class="nk-iv-wg4-sub text-center bg-lighter file-download">
+            <div class="withoutad mybrsdbox" id="mybdbox">
+                <span class="myad-label">Ad</span>
+                <a target="_blank" href="https://ads.invalid/b86r9n0np" download class="download-btn">
+                    <em class="icon ni ni-download"></em>
+                    Download file
+                </a>
+            </div>
+            <div class="nk-fmg-status">
+                <h6 class="nk-fmg-status-title center"><em class="icon ni ni-download-cloud"></em><span>Daily free transfer usage:</span></h6>
+                <div class="progress progress-lg bg-light">
+                    <div class="progress-bar" data-progress="0" style="width: 0;">0%</div>
+                </div>
+                <div class="nk-fmg-status-info">Used {{.Used}} of 5 GB</div>
+                <div class="nk-fmg-status-action mt-3">
+                    Upgrade to <a href="/premium" class="link link-primary link-sm buy-premium">Premium MAX</a>
+                    <br> for unlimited download transfer
+                </div>
+                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+                <form action="/download/{{.ID}}" method="POST" id="dl-form" class="mt-3">
+                <input type="hidden" name="token" value="dl-token-{{.ID}}" title="dl-token" id="dl-token"/>
+                <input type="hidden" name="userdata" value="" />
+                <input type="hidden" name="fingerprint" value="" />
+                <div
+                    class="cf-turnstile mt-2"
+                    data-sitekey="{{.SiteKey}}"
+                    data-theme="auto"
+                    data-size="flexible"
+                    data-callback="onTurnstileSuccess"
+                ></div>
+                <button type="submit" class="mt-3 btn btn-lg btn-primary ttu">
+                    <div class="download-now-text">
+                        <span class="btn-text"> Download now</span>
+                    </div>
+                </button>
+                </form>
+                <span class="alert-danger" id="alert-server-overloaded" style="display: none;">Server overloaded. Please try again later.</span>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+{{end}}

@@ -28,6 +28,9 @@ const PRODUCT_NAMES: Record<string, string> = {
   pixeldrain: 'Pixeldrain',
   gofile: 'Gofile',
   mediafire: 'Mediafire',
+  krakenfiles: 'Krakenfiles',
+  workupload: 'Workupload',
+  sendnow: 'Send.now',
 };
 
 const DESCRIBED: Record<string, TranslationKey> = {

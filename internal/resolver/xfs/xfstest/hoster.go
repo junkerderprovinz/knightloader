@@ -31,7 +31,9 @@ type Hoster struct {
 }
 
 // CheckHoster runs the checks every hoster has to pass on its own pages: the
-// link check, a free download and a premium login.
+// link check, a free download and, for a site KnightLoader signs in to
+// itself, a premium login.
+
 func CheckHoster(t *testing.T, h Hoster) {
 	t.Run("link check", func(t *testing.T) {
 		pause := xfs.InspectPause
@@ -71,6 +73,9 @@ func CheckHoster(t *testing.T, h Hoster) {
 		}
 	})
 
+	if !h.Site.OwnLogin {
+		return
+	}
 	t.Run("premium login", func(t *testing.T) {
 		srv := h.server(t)
 		if h.LoginCaptcha {

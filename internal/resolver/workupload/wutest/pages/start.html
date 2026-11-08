@@ -1,0 +1,24 @@
+{{define "start.html"}}<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>{{.Name}}</title>
+</head>
+<body>
+<a id="directDownload" href="#">Download</a>
+<script>
+$.ajax({
+    url: '/api/file/getDownloadServer/{{.ID}}',
+    type: "GET",
+    dataType: "json",
+    triggerLoadingMask: false
+}).always(function(response, textStatus, xhr){
+    setTimeout(function(){
+        $('#directDownload').attr('href', response.data.url);
+        redirect(response.data.url);
+    }, 200);
+});
+</script>
+</body>
+</html>
+{{end}}

@@ -98,6 +98,17 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   goes along with the downloads and ranks where the login's row sits on the
   priority card. Without one, a debrid service that carries the hoster goes
   first.
+- **Krakenfiles, Workupload and Send.now links download for free without
+  JDownloader.** The link collector shows each file's name, size and online
+  state. Krakenfiles asks for a Turnstile captcha before each download, which
+  the phone app or one of your captcha accounts can answer. Workupload's robot
+  check is a small puzzle KnightLoader solves itself, and a file locked with a
+  password opens with the link password from the add-links form. When a
+  hoster's free limit for the day is used up, the task keeps running and shows
+  the wait. A Krakenfiles or Send.now login, a Krakenfiles profile, a
+  Workupload archive and a Send.now folder stay with JDownloader, and so do
+  Buzzheavier links, whose pages sit behind a Cloudflare check only a browser
+  passes.
 
 ### Changed
 

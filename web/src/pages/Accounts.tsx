@@ -905,8 +905,8 @@ const LOGIN_ROW = 'login:';
 /** The rows of backends that come with KnightLoader rather than with an account. */
 const BUILT_IN = [
   ...['jd', 'ytdlp', 'direct', 'torrent', 'mega', '1fichier'],
-  ...['ddownload', 'katfile', 'clicknupload', 'filespace', 'uploadrar'],
-  ...['pixeldrain', 'gofile', 'mediafire'],
+  ...['ddownload', 'katfile', 'clicknupload', 'filespace', 'uploadrar', 'sendnow'],
+  ...['pixeldrain', 'gofile', 'mediafire', 'krakenfiles', 'workupload'],
 ];
 
 /**

@@ -59,6 +59,7 @@ export const RELEASES: Release[] = [
       { id: 'ddownload-native', text: 'whatsnew.change.ddownloadNative' },
       { id: 'xfs-hosters', text: 'whatsnew.change.xfsHosters' },
       { id: 'filehosts-native', text: 'whatsnew.change.filehostsNative' },
+      { id: 'free-hosters-native', text: 'whatsnew.change.freeHostersNative' },
     ],
   },
   {

@@ -352,13 +352,14 @@ func TestTheLinkCheckReadsNameSizeAndStateFromTheFilePage(t *testing.T) {
 	}
 }
 
-func TestSizesAreReadInTheBinaryUnitsTheSiteWrites(t *testing.T) {
+func TestSizesAreReadInTheBinaryUnitsTheSiteWritesAndBareFiguresInBytes(t *testing.T) {
 	for in, want := range map[string]int64{
 		"442.40 MB": 463890022,
 		"700.00 KB": 700 << 10,
 		"1.5 GB":    3 << 29,
 		"1,020 MB":  1020 << 20,
 		"512 B":     512,
+		"101213890": 101213890,
 	} {
 		figure, unit, _ := strings.Cut(in, " ")
 		if got := xfs.ParseSize(figure, unit); got != want {

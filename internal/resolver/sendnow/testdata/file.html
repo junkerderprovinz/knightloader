@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Download {{.Name}}</title>
+</head>
+<body>
+<header class="navbar navbar-header navbar-header-fixed">
+<a href="/login" class="btn btn-primary tx-bold btn-uppercase mg-r-5"><span>Log in</span></a>
+</header>
+<form name="F1" id="F1" method="POST">
+<input type="hidden" name="op" value="download2">
+<input type="hidden" name="id" value="{{.ID}}">
+<input type="hidden" name="rand" value=".{{.Rand}}">
+<input type="hidden" name="referer" value="">
+{{if .Password}}<input type="password" name="password" class="form-control" placeholder="Enter File Password">
+{{end}}<input type="hidden" name="method_free" value="">
+<input type="hidden" name="method_premium" value="">
+<div class="content-fixed content-auth-alt">
+<div class="card-body tx-center">
+<h6 class="card-title">Your download limit for the next 24 hours: <strong></strong> <a href="/login" class="tx-dark tx-bold">Log in to raise your limit.</a></h6>
+<h6 class="card-title">Free users may get download speeds of <strong>100 kb/s</strong> when our servers are busy.</h6>
+</div>
+<div class="card card-body">
+<h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8 max-width-50" data-toggle="tooltip" data-placement="top" title="SHA-256: 57f66c40a194476c22ed5b0de8e553a26df4270256d0e59723c95719acd9a7a6"><i data-feather="file" style="height:16px; width:16px;"
+></i> {{.Name}}   </h6>
+<div class="dropdown-menu tx-13">
+<a class="dropdown-item btndiv" href="#qr" data-toggle="modal"  data-clipboard-text="https://send.now/qr/{{.ID}}">Show QR code</a>
+<a class='dropdown-item btndiv' href='#' data-clipboard-text='<a href="https://send.now/{{.ID}}" target=_blank>{{.Name}} - {{.Bytes}}</a>'>Copy HTML code</a>
+<a class='dropdown-item btndiv' href='#' data-clipboard-text='[URL=https://send.now/{{.ID}}]{{.Name}} -  {{.Bytes}}[/URL]'>Copy forum code</a>
+</div>
+</div>
+<div class="modal" id="qr" tabindex="-1" role="dialog" aria-labelledby="qr" aria-hidden="true">
+<div class="modal-header">
+<h6 class="modal-title" id="qr">{{.Name}}</h6>
+</div>
+</div>
+<center>
+{{if eq .Captcha "cf-turnstile" "g-recaptcha" "h-captcha"}}<div class="{{.Captcha}}" data-sitekey="{{.SiteKey}}"></div>
+{{end}}{{if .Countdown}}<span id="countdown_str">Wait <span id="cx4kz2">{{.Countdown}}</span> seconds</span>
+{{end}}<button id="downloadbtn" class="btn btn-lg  btn-brand-02 flex-fill tx-spacing-1 wd-100p ht-50 tx-18 tx-bold"><i class="fas fa-file-download tx-20"></i> Download [{{.Size}}]</button>
+</center>
+</div>
+</form>
+</body>
+</html>

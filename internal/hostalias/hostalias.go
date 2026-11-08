@@ -96,6 +96,14 @@ var canonical = map[string]string{
 
 	"gofile.net": "gofile.io",
 	"mfi.re":     "mediafire.com",
+
+	"send.cm":        "send.now",
+	"sendit.cloud":   "send.now",
+	"usersfiles.com": "send.now",
+	"tusfiles.com":   "send.now",
+	"tusfiles.net":   "send.now",
+	"userscloud.com": "send.now",
+	"usercdn.com":    "send.now",
 }
 
 // Canonical returns the main domain of the hoster host belongs to, lower-cased

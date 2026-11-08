@@ -658,7 +658,8 @@ func (a *App) inspectMegaLinks(ids []string) []string {
 
 // inspectNativeLinks fills in the name, size and state of the collected links
 // KnightLoader's own clients for 1fichier, the XFileSharing sites, Pixeldrain,
-// Gofile and Mediafire take, from those hosters, and returns the other ids.
+// Gofile, Mediafire, Krakenfiles and Workupload take, from those hosters, and
+// returns the other ids.
 func (a *App) inspectNativeLinks(ids []string) []string {
 	a.bmu.RLock()
 	inspectors := map[string]resolver.Inspector{}

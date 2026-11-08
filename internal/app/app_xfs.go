@@ -23,12 +23,13 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ddownload"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/filespace"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/katfile"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/sendnow"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/uploadrar"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 )
 
 // xfsSites are the XFileSharing hosters KnightLoader downloads from itself.
-var xfsSites = []*xfs.Site{ddownload.Site, katfile.Site, clicknupload.Site, filespace.Site, uploadrar.Site}
+var xfsSites = []*xfs.Site{ddownload.Site, katfile.Site, clicknupload.Site, filespace.Site, uploadrar.Site, sendnow.Site}
 
 // hosterSessionService is the accounts.Store service a hoster client's
 // signed-in session is sealed under, with the host as account.

@@ -278,6 +278,7 @@ func (s *Server) file(w http.ResponseWriter, r *http.Request) {
 		"ID":       id,
 		"Name":     html.EscapeString(f.Name),
 		"Size":     size(len(f.Body)),
+		"Bytes":    len(f.Body),
 		"Password": f.Password != "",
 		"SiteKey":  SiteKey,
 		"Link":     link,
@@ -304,6 +305,9 @@ func (s *Server) file(w http.ResponseWriter, r *http.Request) {
 		data["Notice"] = fmt.Sprintf("You have to wait %d minutes, %d seconds till next download", n/60, n%60)
 		s.render(w, "notice.html", data)
 	case r.Method == http.MethodGet:
+		// A site whose file page holds the second form shows its countdown
+		// and captcha there.
+		s.free(data)
 		s.render(w, "file.html", data)
 	case op == "download1" && (r.PostForm.Get("method_free") == "" || r.PostForm.Has("method_premium")):
 		data["Notice"] = "Choose a free or a premium download"
@@ -320,14 +324,21 @@ func (s *Server) file(w http.ResponseWriter, r *http.Request) {
 func (s *Server) second(w http.ResponseWriter, data map[string]any, free bool) {
 	data["Captcha"] = NoCaptcha
 	if free {
-		data["Countdown"] = s.countdown
-		data["Captcha"] = s.captcha
-		if s.captcha == Plain {
-			data["Digits"] = digits(Code)
-		}
+		s.free(data)
 	}
 	data["Rand"] = rand.Text()
 	s.render(w, "download2.html", data)
+}
+
+// free puts the countdown and the captcha of a free download's second form
+// into data.
+func (s *Server) free(data map[string]any) {
+	data["Countdown"] = s.countdown
+	data["Captcha"] = s.captcha
+	if s.captcha == Plain {
+		data["Digits"] = digits(Code)
+	}
+	data["Rand"] = rand.Text()
 }
 
 // post answers the second form: with the page that holds the download link,

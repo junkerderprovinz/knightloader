@@ -493,6 +493,21 @@ saved Uploadrar login is signed in without a captcha, and a premium download
 uses up to four connections. A free download goes over one connection, with
 Uploadrar's countdown and captcha. Everything else works as for ddownload.
 
+## Send.now
+
+A `send.now` link needs no JDownloader, and neither does one of the domains
+Send.now went by before, such as `send.cm`, `tusfiles.com` or
+`userscloud.com`. The link collector shows the name, the exact size and
+whether the file is still there. Send.now's file page goes straight to its
+download form, and KnightLoader downloads for free over one connection. When
+Send.now says an address has used up its free downloads for the day, the task
+keeps running, waits an hour with the reason on its row and then tries again.
+
+A Send.now login stays with JDownloader, whose plugin signs in with Send.now's
+API key, so with a premium login there JDownloader goes first, and so does a
+debrid service that carries Send.now. A short link (`send.now/d/…`) and a
+folder go to JDownloader as well.
+
 ## Pixeldrain
 
 A Pixeldrain file link (`pixeldrain.com/u/…`) needs no JDownloader, and
@@ -566,6 +581,36 @@ Mediafire's own website get past those.
 A debrid service that carries Mediafire and a Mediafire login in JDownloader
 go first. With **Allow free downloads** off, a Mediafire link waits for one of
 them.
+
+## Krakenfiles
+
+A `krakenfiles.com/view/…/file.html` link needs no JDownloader. KnightLoader
+asks Krakenfiles for the name, the size and the state of each file as soon as
+it arrives. Before a free download Krakenfiles wants a Cloudflare Turnstile
+captcha, and the phone app or one of your captcha accounts can answer it while
+the task's row says what it is waiting for. The download then goes over one
+connection. When an address has used up the 5 GB of free transfer Krakenfiles
+gives it a day, the task waits an hour at a time with the reason on its row.
+
+A profile's file list (`krakenfiles.com/profiles/…`) and a Krakenfiles login
+stay with JDownloader. A Krakenfiles login there and a debrid service that
+carries Krakenfiles go first. With **Allow free downloads** off, a Krakenfiles
+link waits for one of them.
+
+## Workupload
+
+A `workupload.com/file/…` link needs no JDownloader. Workupload puts a robot
+check in front of its pages, a small puzzle KnightLoader solves itself, so
+nobody has to answer anything. The link collector shows the name, the size
+and whether the file is still there. A file locked with a password opens with
+the **Link password** given in the add-links form. The download goes over one
+connection, since Workupload's servers do not resume. When Workupload has a
+download unavailable for the moment, the task waits half an hour with the
+reason on its row and then tries again.
+
+An archive link (`workupload.com/archive/…`) goes to JDownloader, and a debrid
+service that carries Workupload goes first. With **Allow free downloads** off,
+a Workupload link waits for one.
 
 ## Sonarr and Radarr
 
