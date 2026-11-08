@@ -71,11 +71,13 @@ type Backend struct {
 	// Sleep sits out a wait. Tests shorten it.
 	Sleep func(ctx context.Context, d time.Duration) error
 
-	mu      sync.Mutex
-	cancel  map[string]context.CancelFunc
-	link    map[string]string
-	handed  map[string]bool
-	waiting map[string]bool
+	mu     sync.Mutex
+	cancel map[string]context.CancelFunc
+	link   map[string]string
+	handed map[string]bool
+	// waiting holds the run that is sitting out a wait, so a paused run that
+	// winds down late cannot clear the wait of the run a Resume started.
+	waiting map[string]context.Context
 
 	// signMu lets one sign-in run at a time, so downloads that start together
 	// share its captcha.
@@ -94,7 +96,7 @@ func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.U
 		cancel:  map[string]context.CancelFunc{},
 		link:    map[string]string{},
 		handed:  map[string]bool{},
-		waiting: map[string]bool{},
+		waiting: map[string]context.Context{},
 	}
 }
 
@@ -420,13 +422,14 @@ func (b *Backend) handOn(ctx context.Context, taskID, link, direct string, conns
 func (b *Backend) Waiting(taskID string) bool {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	return b.waiting[taskID]
+	run := b.waiting[taskID]
+	return run != nil && run.Err() == nil
 }
 
 // wait sits out d, keeping the time left in the task's note.
 func (b *Backend) wait(ctx context.Context, taskID string, d time.Duration) error {
-	b.setWaiting(taskID, true)
-	defer b.setWaiting(taskID, false)
+	b.setWaiting(ctx, taskID, true)
+	defer b.setWaiting(ctx, taskID, false)
 	for left := d; left > 0; {
 		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: "Waiting for " + b.site.Name + ": " + span(left) + " left"})
 		// Every note reaches every open browser, so a long wait counts down
@@ -460,12 +463,12 @@ func span(d time.Duration) string {
 	return fmt.Sprintf("%d s", (d+time.Second-1)/time.Second)
 }
 
-func (b *Backend) setWaiting(taskID string, on bool) {
+func (b *Backend) setWaiting(run context.Context, taskID string, on bool) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	if on {
-		b.waiting[taskID] = true
-	} else {
+		b.waiting[taskID] = run
+	} else if b.waiting[taskID] == run {
 		delete(b.waiting, taskID)
 	}
 }
