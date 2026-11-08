@@ -356,7 +356,7 @@ func (a *asking) UnlockAsking(ctx context.Context, _, _ string, ask func(context
 	a.mu.Lock()
 	a.asks++
 	a.mu.Unlock()
-	answer, err := ask(ctx, Captcha{Vendor: "turnstile", SiteKey: "0x4AAA", PageURL: "https://krakenfiles.com/view/a/file.html"})
+	answer, err := ask(ctx, Captcha{Kind: "turnstile", SiteKey: "0x4AAA", PageURL: "https://krakenfiles.com/view/a/file.html"})
 	if err != nil {
 		return Link{}, err
 	}

@@ -3,7 +3,6 @@ package hoster
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -42,7 +41,7 @@ type Backend struct {
 	Password func(taskID string) string
 	// Solve answers a captcha for the task waiting on it. Nil leaves every
 	// captcha unanswered.
-	Solve func(ctx context.Context, taskID string, c Captcha) (string, error)
+	Solve Solve
 
 	sleep func(ctx context.Context, d time.Duration) error
 }
@@ -115,18 +114,7 @@ func (b *Backend) unlock(ctx context.Context, taskID, link string) (Link, error)
 		return b.unlocker.Unlock(ctx, link, b.password(taskID))
 	}
 	return au.UnlockAsking(ctx, link, b.password(taskID), func(ctx context.Context, c Captcha) (string, error) {
-		if b.Solve == nil {
-			return "", ErrNoAnswer
-		}
-		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: "Waiting for the captcha " + b.Name + " asks for"})
-		answer, err := b.Solve(ctx, taskID, c)
-		switch {
-		case ctx.Err() != nil:
-			return "", ctx.Err()
-		case err != nil:
-			return "", fmt.Errorf("%w: %v", ErrNoAnswer, err)
-		}
-		return answer, nil
+		return b.Ask(ctx, taskID, b.Name, b.Solve, c)
 	})
 }
 

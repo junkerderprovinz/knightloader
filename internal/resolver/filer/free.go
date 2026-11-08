@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
@@ -57,7 +58,7 @@ func NewFreeBackend(c *Client, eng Downloader, onUpdate func(taskID string, u co
 	return b
 }
 
-func (b *FreeBackend) unlock(ctx context.Context, _, link string, ask func(ownlogin.Captcha) (string, error), delay func(time.Duration) error) (string, error) {
+func (b *FreeBackend) unlock(ctx context.Context, _, link string, ask func(hoster.Captcha) (string, error), delay func(time.Duration) error) (string, error) {
 	norm, ok := Normalize(link)
 	if !ok {
 		return "", fmt.Errorf("filer.net: %s is not a link to a file", link)
@@ -76,7 +77,7 @@ func (b *FreeBackend) unlock(ctx context.Context, _, link string, ask func(ownlo
 	if file.PremiumOnly {
 		return "", ErrPremiumOnly
 	}
-	answer, err := ask(ownlogin.Captcha{Kind: ownlogin.HCaptcha, SiteKey: hCaptchaSite, PageURL: norm})
+	answer, err := ask(hoster.Captcha{Kind: hoster.HCaptcha, SiteKey: hCaptchaSite, PageURL: norm})
 	if err != nil {
 		return "", err
 	}

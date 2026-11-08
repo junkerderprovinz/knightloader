@@ -17,6 +17,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/captcha"
 	"github.com/junkerderprovinz/knightloader/internal/hostalias"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/clicknupload"
@@ -76,7 +77,8 @@ func (a *App) newXFSBackend(c *xfs.Client, eng xfs.Downloader) *xfs.Backend {
 	b := xfs.NewBackend(c, eng, a.onUpdate)
 	b.Password = a.downloadPassword
 	b.Solve = func(ctx context.Context, taskID string, ch xfs.Captcha) (string, error) {
-		return a.askCaptcha(ctx, site.Host, taskID, ch)
+		c := hoster.Captcha{Kind: hoster.CaptchaKind(ch.Kind), SiteKey: ch.SiteKey, PageURL: ch.PageURL, Image: ch.Image}
+		return a.askCaptcha(ctx, site.Host, taskID, c)
 	}
 	if !site.OwnLogin {
 		return b
@@ -197,15 +199,23 @@ func (a *App) changedXFSLogin(host string) {
 	}
 }
 
-// askCaptcha puts a captcha one of KnightLoader's own hoster clients met in
-// front of the captcha prompts and solvers, and waits for the answer. taskID
-// is the download waiting on it, "" for none.
-func (a *App) askCaptcha(ctx context.Context, host, taskID string, ch xfs.Captcha) (string, error) {
+// solveFor answers the captchas one of KnightLoader's own hoster clients
+// meets at host.
+func (a *App) solveFor(host string) hoster.Solve {
+	return func(ctx context.Context, taskID string, c hoster.Captcha) (string, error) {
+		return a.askCaptcha(ctx, host, taskID, c)
+	}
+}
+
+// askCaptcha puts a captcha one of KnightLoader's own hoster clients met at
+// host in front of the captcha prompts and solvers, and waits for the answer.
+// taskID is the download waiting on it, "" for none.
+func (a *App) askCaptcha(ctx context.Context, host, taskID string, ch hoster.Captcha) (string, error) {
 	if a.ModuleOff("captcha") {
 		return "", ErrCaptchaOff
 	}
 	c := captcha.Challenge{Host: host, TaskID: taskID}
-	if ch.Kind == xfs.Image {
+	if ch.Kind == hoster.Image {
 		c.Kind = captcha.KindImage
 		c.Payload = &captcha.ImagePayload{
 			DataURL: "data:" + http.DetectContentType(ch.Image) + ";base64," + base64.StdEncoding.EncodeToString(ch.Image),

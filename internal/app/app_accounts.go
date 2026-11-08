@@ -750,14 +750,12 @@ var hosterClientIDs = map[string]bool{
 // hosterClientID reports whether id is the resolver id of one of hosterClients.
 func hosterClientID(id string) bool { return hosterClientIDs[id] }
 
-// hosterBackend downloads for the hoster at host, whose captchas go the way an
-// XFileSharing site's do.
+// hosterBackend downloads for the hoster at host, whose captchas go the way
+// every own client's do.
 func (a *App) hosterBackend(name, host string, u hoster.Unlocker, eng hoster.Downloader) *hoster.Backend {
 	b := hoster.NewBackend(name, u, eng, a.onUpdate)
 	b.Password = a.downloadPassword
-	b.Solve = func(ctx context.Context, taskID string, c hoster.Captcha) (string, error) {
-		return a.askCaptcha(ctx, host, taskID, xfs.Captcha{Kind: xfs.CaptchaKind(c.Vendor), SiteKey: c.SiteKey, PageURL: c.PageURL})
-	}
+	b.Solve = a.solveFor(host)
 	return b
 }
 

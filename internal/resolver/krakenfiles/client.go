@@ -195,7 +195,7 @@ func (c *Client) unlockOnce(ctx context.Context, hc *http.Client, id string, ask
 	}
 	fields := p.fields
 	if p.siteKey != "" {
-		answer, err := ask(ctx, hoster.Captcha{Vendor: "turnstile", SiteKey: p.siteKey, PageURL: pageURL(id)})
+		answer, err := ask(ctx, hoster.Captcha{Kind: hoster.Turnstile, SiteKey: p.siteKey, PageURL: pageURL(id)})
 		if err != nil {
 			return l, false, fmt.Errorf("krakenfiles: %w", err)
 		}

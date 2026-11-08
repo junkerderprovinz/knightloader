@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 )
 
 var errRefused = errors.New("hoster: the answer to the captcha was not accepted")
@@ -19,7 +20,7 @@ type freeHarness struct {
 	mu       sync.Mutex
 	ups      []core.Update
 	slept    time.Duration
-	captchas []Captcha
+	captchas []hoster.Captcha
 	answer   string
 	solveErr error
 }
@@ -37,7 +38,7 @@ func (h *freeHarness) sleep(_ context.Context, d time.Duration) error {
 	return nil
 }
 
-func (h *freeHarness) solve(_ context.Context, _ string, c Captcha) (string, error) {
+func (h *freeHarness) solve(_ context.Context, _ string, c hoster.Captcha) (string, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.captchas = append(h.captchas, c)
@@ -69,7 +70,7 @@ func newFree(h *freeHarness, eng Downloader, steps ...FreeUnlock) *Free {
 	var mu sync.Mutex
 	f := NewFree(eng, h.add, FreeConfig{
 		Name: "Hoster",
-		Unlock: func(ctx context.Context, taskID, link string, ask func(Captcha) (string, error), delay func(time.Duration) error) (string, error) {
+		Unlock: func(ctx context.Context, taskID, link string, ask func(hoster.Captcha) (string, error), delay func(time.Duration) error) (string, error) {
 			mu.Lock()
 			step := steps[0]
 			if len(steps) > 1 {
@@ -106,8 +107,8 @@ func awaitEnd(t *testing.T, h *freeHarness, eng handEngine) (core.Update, bool) 
 
 // captchaThenCountdown asks for a Turnstile captcha, sits out a minute and
 // answers with a link that names the answer.
-func captchaThenCountdown(_ context.Context, _, _ string, ask func(Captcha) (string, error), delay func(time.Duration) error) (string, error) {
-	answer, err := ask(Captcha{Kind: Turnstile, SiteKey: "0x4AAA", PageURL: "https://hoster.example/file/1"})
+func captchaThenCountdown(_ context.Context, _, _ string, ask func(hoster.Captcha) (string, error), delay func(time.Duration) error) (string, error) {
+	answer, err := ask(hoster.Captcha{Kind: hoster.Turnstile, SiteKey: "0x4AAA", PageURL: "https://hoster.example/file/1"})
 	if err != nil {
 		return "", err
 	}
@@ -127,7 +128,7 @@ func TestAFreeDownloadAsksTheCaptchaSitsOutTheCountdownAndGoesOutOnOneConnection
 	if _, handed := awaitEnd(t, h, eng); !handed {
 		t.Fatalf("the download failed: %+v", h.last())
 	}
-	if len(h.captchas) != 1 || h.captchas[0].Kind != Turnstile || h.captchas[0].SiteKey != "0x4AAA" {
+	if len(h.captchas) != 1 || h.captchas[0].Kind != hoster.Turnstile || h.captchas[0].SiteKey != "0x4AAA" {
 		t.Errorf("captchas = %+v, want the hoster's Turnstile", h.captchas)
 	}
 	if h.slept != time.Minute {
@@ -142,7 +143,7 @@ func TestAFreeDownloadAsksTheCaptchaSitsOutTheCountdownAndGoesOutOnOneConnection
 func TestAPauseBetweenFreeDownloadsIsSatOutVisiblyAndCountsAsWaiting(t *testing.T) {
 	h := &freeHarness{answer: "token"}
 	eng := handEngine{got: make(chan string, 1)}
-	pause := func(context.Context, string, string, func(Captcha) (string, error), func(time.Duration) error) (string, error) {
+	pause := func(context.Context, string, string, func(hoster.Captcha) (string, error), func(time.Duration) error) (string, error) {
 		return "", &PauseError{Wait: 20 * time.Minute}
 	}
 	f := newFree(h, &countingEngine{handEngine: eng}, pause, captchaThenCountdown)
@@ -163,7 +164,7 @@ func TestAPauseBetweenFreeDownloadsIsSatOutVisiblyAndCountsAsWaiting(t *testing.
 func TestAPauseLongerThanARunSitsOutFailsWithItsWaitForTheRetry(t *testing.T) {
 	h := &freeHarness{}
 	eng := handEngine{got: make(chan string, 1)}
-	f := newFree(h, &countingEngine{handEngine: eng}, func(context.Context, string, string, func(Captcha) (string, error), func(time.Duration) error) (string, error) {
+	f := newFree(h, &countingEngine{handEngine: eng}, func(context.Context, string, string, func(hoster.Captcha) (string, error), func(time.Duration) error) (string, error) {
 		return "", &PauseError{Wait: 30 * time.Hour}
 	})
 	t.Cleanup(func() { f.Remove("t1", false) })
@@ -178,8 +179,8 @@ func TestAPauseLongerThanARunSitsOutFailsWithItsWaitForTheRetry(t *testing.T) {
 func TestARefusedAnswerAsksAgainAndThenGivesUpAsACaptchaFailure(t *testing.T) {
 	h := &freeHarness{answer: "wrong"}
 	eng := handEngine{got: make(chan string, 1)}
-	refused := func(_ context.Context, _, _ string, ask func(Captcha) (string, error), _ func(time.Duration) error) (string, error) {
-		if _, err := ask(Captcha{Kind: Image, Image: []byte("png")}); err != nil {
+	refused := func(_ context.Context, _, _ string, ask func(hoster.Captcha) (string, error), _ func(time.Duration) error) (string, error) {
+		if _, err := ask(hoster.Captcha{Kind: hoster.Image, Image: []byte("png")}); err != nil {
 			return "", err
 		}
 		return "", errRefused

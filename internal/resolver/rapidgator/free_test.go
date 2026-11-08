@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator/rgtest"
 )
@@ -19,10 +20,10 @@ import (
 type answers struct {
 	mu       sync.Mutex
 	token    string
-	captchas []ownlogin.Captcha
+	captchas []hoster.Captcha
 }
 
-func (a *answers) solve(_ context.Context, _ string, c ownlogin.Captcha) (string, error) {
+func (a *answers) solve(_ context.Context, _ string, c hoster.Captcha) (string, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.captchas = append(a.captchas, c)
@@ -59,7 +60,7 @@ func TestAFreeDownloadSitsOutTheCountdownAnswersTheTurnstileAndGoesOutOnOneConne
 	if fetched, _ := io.ReadAll(resp.Body); !bytes.Equal(fetched, body) {
 		t.Errorf("the link handed on does not serve the file: %s", got.url)
 	}
-	if len(a.captchas) != 1 || a.captchas[0].Kind != ownlogin.Turnstile || a.captchas[0].SiteKey != rgtest.SiteKey ||
+	if len(a.captchas) != 1 || a.captchas[0].Kind != hoster.Turnstile || a.captchas[0].SiteKey != rgtest.SiteKey ||
 		a.captchas[0].PageURL != "https://rapidgator.net/download/captcha" {
 		t.Errorf("captchas = %+v, want the captcha page's Turnstile", a.captchas)
 	}

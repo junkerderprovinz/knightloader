@@ -11,17 +11,17 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
-	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share/k2stest"
 )
 
 type answers struct {
 	mu       sync.Mutex
 	code     string
-	captchas []ownlogin.Captcha
+	captchas []hoster.Captcha
 }
 
-func (a *answers) solve(_ context.Context, _ string, c ownlogin.Captcha) (string, error) {
+func (a *answers) solve(_ context.Context, _ string, c hoster.Captcha) (string, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.captchas = append(a.captchas, c)
@@ -49,7 +49,7 @@ func TestAFreeDownloadAnswersTheImageCaptchaSitsOutTheWaitAndGoesOutOnOneConnect
 	if got.conns != 1 || !strings.Contains(got.url, "/download/"+fileID) {
 		t.Errorf("handed on %s for %d connections, want the free link over one", got.url, got.conns)
 	}
-	if len(a.captchas) != 1 || a.captchas[0].Kind != ownlogin.Image || !bytes.Equal(a.captchas[0].Image, k2stest.Picture) {
+	if len(a.captchas) != 1 || a.captchas[0].Kind != hoster.Image || !bytes.Equal(a.captchas[0].Image, k2stest.Picture) {
 		t.Errorf("captchas = %+v, want the API's picture", a.captchas)
 	}
 	if ups.waited() != 30*time.Second {

@@ -100,7 +100,7 @@ func TestTheDownloadFormGoesInWithTheTurnstileAnswerAndHandsOutTheLink(t *testin
 	if l.Headers["Referer"] != srv.URL+"/view/DP3nGKJNsX/file.html" {
 		t.Errorf("headers = %v, want the file page as referer", l.Headers)
 	}
-	if len(asked) != 1 || asked[0].Vendor != "turnstile" || asked[0].SiteKey != kftest.SiteKey || asked[0].PageURL != "https://krakenfiles.com/view/DP3nGKJNsX/file.html" {
+	if len(asked) != 1 || asked[0].Kind != "turnstile" || asked[0].SiteKey != kftest.SiteKey || asked[0].PageURL != "https://krakenfiles.com/view/DP3nGKJNsX/file.html" {
 		t.Errorf("asked %+v, want the page's Turnstile widget", asked)
 	}
 	posts := srv.Posts()

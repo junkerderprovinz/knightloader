@@ -22,7 +22,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/nitroflare"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 )
 
 // ownBackend is the backend of a hoster KnightLoader signs in to itself.
@@ -80,9 +79,7 @@ func (r handedFree) Match(url string) bool { return !r.handed() && r.Resolver.Ma
 // newOwnFree makes the free client whose captchas are asked for site, and
 // which stands aside while handed reports the hoster's login with JD.
 func (a *App) newOwnFree(id, site string, res resolver.Resolver, f *ownlogin.Free, be backend, handed func() bool) *ownFree {
-	f.Solve = func(ctx context.Context, taskID string, c ownlogin.Captcha) (string, error) {
-		return a.askCaptcha(ctx, site, taskID, xfs.Captcha{Kind: xfs.CaptchaKind(c.Kind), SiteKey: c.SiteKey, PageURL: c.PageURL, Image: c.Image})
-	}
+	f.Solve = a.solveFor(site)
 	return &ownFree{id: id, be: be, res: handedFree{res, handed}}
 }
 

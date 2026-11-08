@@ -10,31 +10,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/hoster"
 )
 
-// CaptchaKind is the kind of check a free download asks for. A widget's kind
-// is the vendor name the captcha package uses.
-type CaptchaKind string
-
-const (
-	Turnstile CaptchaKind = "turnstile"
-	Recaptcha CaptchaKind = "recaptcha"
-	HCaptcha  CaptchaKind = "hcaptcha"
-	Image     CaptchaKind = "image"
-)
-
-// Captcha is the check a hoster asks for before a free download.
-type Captcha struct {
-	Kind CaptchaKind
-	// SiteKey is a widget's key.
-	SiteKey string
-	// PageURL is the page the widget is on, which it is solved for.
-	PageURL string
-	// Image is the picture of an image captcha.
-	Image []byte
-}
-
-// ErrNoAnswer is a captcha nobody answered.
-var ErrNoAnswer = errors.New("nobody answered the captcha")
-
 // PauseError is the hoster making the address wait between free downloads.
 type PauseError struct {
 	Wait time.Duration
@@ -63,7 +38,7 @@ const (
 // FreeUnlock asks the hoster for the download link of a free download. ask
 // has a captcha answered and delay sits out a countdown, both shown on the
 // task.
-type FreeUnlock func(ctx context.Context, taskID, link string, ask func(Captcha) (string, error), delay func(time.Duration) error) (string, error)
+type FreeUnlock func(ctx context.Context, taskID, link string, ask func(hoster.Captcha) (string, error), delay func(time.Duration) error) (string, error)
 
 // FreeConfig is what a hoster brings to its free downloads.
 type FreeConfig struct {
@@ -87,7 +62,7 @@ type Free struct {
 	// Sleep waits d, or less when ctx ends first.
 	Sleep func(ctx context.Context, d time.Duration) error
 	// Solve answers a captcha for the task. Nil answers none.
-	Solve func(ctx context.Context, taskID string, c Captcha) (string, error)
+	Solve hoster.Solve
 
 	eng      Downloader
 	onUpdate func(taskID string, u core.Update)
@@ -129,24 +104,9 @@ func (f *Free) run(ctx context.Context, taskID, link string, _ int) {
 }
 
 func (f *Free) unlock(ctx context.Context, taskID, link string, delay func(time.Duration) error) (string, error) {
-	return f.cfg.Unlock(ctx, taskID, link, func(c Captcha) (string, error) { return f.ask(ctx, taskID, c) }, delay)
-}
-
-// ask puts the captcha in front of whoever answers captchas and waits for
-// the answer.
-func (f *Free) ask(ctx context.Context, taskID string, c Captcha) (string, error) {
-	if f.Solve == nil {
-		return "", ErrNoAnswer
-	}
-	f.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: "Waiting for the captcha " + f.cfg.Name + " asks for"})
-	answer, err := f.Solve(ctx, taskID, c)
-	switch {
-	case ctx.Err() != nil:
-		return "", ctx.Err()
-	case err != nil:
-		return "", fmt.Errorf("%w: %v", ErrNoAnswer, err)
-	}
-	return answer, nil
+	return f.cfg.Unlock(ctx, taskID, link, func(c hoster.Captcha) (string, error) {
+		return f.Ask(ctx, taskID, f.cfg.Name, f.Solve, c)
+	}, delay)
 }
 
 // fail reports err with its cause. A pause too long to sit out asks the app
@@ -157,7 +117,7 @@ func (f *Free) fail(taskID string, err error) {
 	switch {
 	case errors.As(err, &pause):
 		u.Reason, u.Retry = core.ReasonLimit, pause.Wait
-	case errors.Is(err, ErrNoAnswer), f.cfg.Refused != nil && errors.Is(err, f.cfg.Refused):
+	case errors.Is(err, hoster.ErrNoAnswer), f.cfg.Refused != nil && errors.Is(err, f.cfg.Refused):
 		u.Reason = core.ReasonCaptcha
 	default:
 		u.Reason = f.cfg.Reason(err)

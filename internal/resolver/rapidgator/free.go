@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
@@ -91,7 +92,7 @@ type session struct {
 	hc http.Client
 }
 
-func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(ownlogin.Captcha) (string, error), delay func(time.Duration) error) (string, error) {
+func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(hoster.Captcha) (string, error), delay func(time.Duration) error) (string, error) {
 	norm, ok := Normalize(link)
 	if !ok {
 		return "", fmt.Errorf("rapidgator: %s is not a link to a file", link)
@@ -162,11 +163,11 @@ func (b *FreeBackend) unlock(ctx context.Context, taskID, link string, ask func(
 	if key == nil {
 		return "", errors.New("rapidgator: the captcha page asks for a captcha KnightLoader does not know")
 	}
-	kind := ownlogin.Turnstile
+	kind := hoster.Turnstile
 	if w[1] == "g-recaptcha" {
-		kind = ownlogin.Recaptcha
+		kind = hoster.Recaptcha
 	}
-	answer, err := ask(ownlogin.Captcha{Kind: kind, SiteKey: key[1], PageURL: "https://" + Site + "/download/captcha"})
+	answer, err := ask(hoster.Captcha{Kind: kind, SiteKey: key[1], PageURL: "https://" + Site + "/download/captcha"})
 	if err != nil {
 		return "", err
 	}

@@ -8,18 +8,18 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
-	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/filer/filertest"
 )
 
 type freeHarness struct {
 	mu       sync.Mutex
 	answer   string
-	captchas []ownlogin.Captcha
+	captchas []hoster.Captcha
 	slept    time.Duration
 }
 
-func (h *freeHarness) solve(_ context.Context, _ string, c ownlogin.Captcha) (string, error) {
+func (h *freeHarness) solve(_ context.Context, _ string, c hoster.Captcha) (string, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.captchas = append(h.captchas, c)
@@ -54,7 +54,7 @@ func TestAFreeDownloadAnswersTheHCaptchaSitsOutTheTicketsWaitAndGoesOutOnOneConn
 	if got.conns != 1 || !strings.HasSuffix(got.url, "/download/"+fileID) {
 		t.Errorf("handed on %s for %d connections, want the ticket's link over one", got.url, got.conns)
 	}
-	if len(h.captchas) != 1 || h.captchas[0].Kind != ownlogin.HCaptcha || h.captchas[0].SiteKey != hCaptchaSite ||
+	if len(h.captchas) != 1 || h.captchas[0].Kind != hoster.HCaptcha || h.captchas[0].SiteKey != hCaptchaSite ||
 		h.captchas[0].PageURL != "https://filer.net/get/"+fileID {
 		t.Errorf("captchas = %+v, want the download page's hCaptcha", h.captchas)
 	}
