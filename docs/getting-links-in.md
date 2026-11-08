@@ -320,6 +320,32 @@ A debrid service that carries 1fichier and a 1fichier login in JDownloader
 have no such waits, so both go first. With **Allow free downloads** off, a
 1fichier link waits for one of them.
 
+## Pixeldrain
+
+A Pixeldrain file link (`pixeldrain.com/u/…`) needs no JDownloader, and
+neither does a list (`pixeldrain.com/l/…`), which stages one task per file
+under the list's title. The other domains Pixeldrain answers under, such as
+`pixeldrain.net` or `pixeldra.in`, work the same. KnightLoader asks
+Pixeldrain's API about all the files of a paste in one go, so the link
+collector shows their names, sizes and whether they are still there right
+away. A link into Pixeldrain's file system (`/d/…`) goes to JDownloader.
+
+A free download gets one connection. After 6 GB in a day Pixeldrain slows a
+free address down to 1 MiB/s, and the download carries on at that pace. When
+Pixeldrain says an address has used up its downloads for the moment or has too many
+open at once, the task keeps running, its row says why and how long it waits,
+and then it tries again. A file Pixeldrain hands out only after a captcha on
+its own page, or a download it takes for hotlinking, fails and says so.
+
+To use a Pixeldrain account, add a Pixeldrain login under **Hoster accounts**
+on the Accounts page with an API key from Pixeldrain's API keys page as the
+password. The user name does not matter. JDownloader gets the login as well,
+and while it has the login working it takes Pixeldrain links first. Otherwise
+KnightLoader's own client sends the key, and with a paid plan the download
+opens as many connections as the task allows. A debrid service that carries
+Pixeldrain goes first too. With **Allow free downloads** off, a Pixeldrain
+link waits for one of those.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks

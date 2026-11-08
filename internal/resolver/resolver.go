@@ -103,6 +103,30 @@ type LinkInfo struct {
 	Size         int64
 }
 
+// Inspector is a hoster's own client that can say what is behind its links
+// without downloading them, for the link collector. The answer holds one
+// LinkInfo per URL, in input order.
+type Inspector interface {
+	Inspect(ctx context.Context, urls []string) []LinkInfo
+}
+
+// Listing is one file a folder link opens into. Folder is the path of the
+// folder it sits in, from the opened folder's own name down.
+type Listing struct {
+	URL    string
+	Name   string
+	Size   int64
+	Folder string
+}
+
+// FolderLister is a hoster's own client that opens a folder link into the
+// files under it, subfolders included. A file link yields nothing, meaning
+// "stage it as itself". password is the download password the links came
+// with, for a hoster that locks whole folders with one.
+type FolderLister interface {
+	List(ctx context.Context, url, password string) ([]Listing, error)
+}
+
 // HostCapper is implemented by a resolver that can cap how many chunks one
 // download from a given host may open, such as a multihoster with per-host
 // limits (see debrid.HostLimiter). A result of 0 means no opinion, not zero
