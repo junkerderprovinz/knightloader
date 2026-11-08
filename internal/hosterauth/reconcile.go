@@ -52,6 +52,19 @@ const (
 	codeInvalid  = "invalid"
 	codeOff      = "off"
 	codeWaiting  = "waiting"
+	codeOwnOff   = "ownOff"
+)
+
+// The codes of a login KnightLoader signs in with itself (see Reconciler.Own).
+const (
+	// CodeSigningIn is a check that is signing in, which can wait on a
+	// captcha.
+	CodeSigningIn = "signingIn"
+	// CodeRefused is a login the hoster turned down.
+	CodeRefused = "refused"
+	// CodeWaiting is a login no check has covered yet, or whose last check
+	// could not reach the hoster.
+	CodeWaiting = codeWaiting
 )
 
 // LoginState is one row the accounts page shows. It has no field that could
@@ -165,6 +178,11 @@ type Reconciler struct {
 	// step with it.
 	Enabled func(host string) bool
 
+	// Own reports whether KnightLoader signs in to host with its own client.
+	// Such a login never goes to JD, and its row shows what that client's last
+	// check found (SetOwnState). Nil means every login goes to JD.
+	Own func(host string) bool
+
 	// Reconciled is called after a pass that changed which hosts JD fetches on
 	// a login and which in free mode: a login confirmed or lost, or JD's hoster
 	// list read for the first time or changed. nil calls nothing.
@@ -172,6 +190,7 @@ type Reconciler struct {
 
 	mu        sync.Mutex
 	states    map[string]LoginState
+	own       map[string]LoginState
 	firstFail map[string]time.Time // host -> when Reconcile first saw it present but invalid
 	// pushed is the fingerprint of the login JD holds for each host, so a
 	// changed password or username replaces the account JD already has.
@@ -312,13 +331,29 @@ func (r *Reconciler) desired() []DesiredLogin {
 		if err != nil || cred.IsZero() {
 			continue
 		}
-		if !r.enabled(h) {
+		if !r.enabled(h) || r.owned(h) {
 			continue
 		}
 		out = append(out, DesiredLogin{Host: h, Username: cred.Username, Password: cred.Password,
 			sum: fingerprint(cred.Username, cred.Password)})
 	}
 	return out
+}
+
+// owned is Own with its nil case folded in.
+func (r *Reconciler) owned(host string) bool {
+	return r.Own != nil && r.Own(host)
+}
+
+// SetOwnState records what KnightLoader's own client found when it checked
+// the login stored under host. Host, username and switch come from the store.
+func (r *Reconciler) SetOwnState(host string, st LoginState) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.own == nil {
+		r.own = map[string]LoginState{}
+	}
+	r.own[normalizeHost(host)] = st
 }
 
 // enabled is Enabled with its nil case folded in.
@@ -506,9 +541,22 @@ func (r *Reconciler) States() []LoginState {
 	out := make([]LoginState, 0, len(hosts))
 	for _, h := range hosts {
 		cred, _ := r.store.Get(h)
-		if !r.enabled(h) {
+		switch {
+		case !r.enabled(h) && r.owned(h):
+			out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusOff,
+				Detail: "switched off, so KnightLoader is not using this login", Code: codeOwnOff})
+			continue
+		case !r.enabled(h):
 			out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusOff,
 				Detail: "switched off, so JDownloader is not using this login", Code: codeOff})
+			continue
+		case r.owned(h):
+			st, ok := r.own[h]
+			if !ok {
+				st = LoginState{Status: StatusQueued, Detail: "waiting for the next check", Code: codeWaiting}
+			}
+			st.Host, st.Username, st.Enabled = h, cred.Username, true
+			out = append(out, st)
 			continue
 		}
 		if st, ok := r.states[h]; ok {
@@ -531,9 +579,11 @@ func (r *Reconciler) TrafficSpent(host string) bool {
 	key := accountKey(host)
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	for h, st := range r.states {
-		if accountKey(h) == key && st.Status == StatusActive && st.TrafficMax > 0 && st.TrafficLeft <= 0 {
-			return true
+	for _, states := range []map[string]LoginState{r.states, r.own} {
+		for h, st := range states {
+			if accountKey(h) == key && st.Status == StatusActive && st.TrafficMax > 0 && st.TrafficLeft <= 0 {
+				return true
+			}
 		}
 	}
 	return false
@@ -586,6 +636,7 @@ func (r *Reconciler) RemoveLogin(host string) error {
 	}
 	r.mu.Lock()
 	delete(r.states, host)
+	delete(r.own, host)
 	delete(r.firstFail, accountKey(host))
 	r.mu.Unlock()
 	jdresolver.SetHostActive(host, false)
