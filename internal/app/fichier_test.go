@@ -115,10 +115,17 @@ func TestA1fichierCoolDownKeepsTheTaskRunningAndIsNoStall(t *testing.T) {
 	}
 	useFichier(a, srv)
 	link := srv.Add("k3m9x2p7q1", fichiertest.File{Name: "Isle of Dogs.mkv", Body: make([]byte, 4096)})
-	srv.CoolDown(95)
 
 	created := a.AddLinks([]string{link}, "")
 	id := created[0].ID
+	// The collector reads the page as well, and would otherwise take the
+	// wait meant for the download.
+	waitFor(t, "the page naming the file", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		return a.tasks[id].Name == "Isle of Dogs.mkv"
+	})
+	srv.CoolDown(95)
 	a.ConfirmTasks([]string{id}, confirm.Config{}, confirm.TriggerManual)
 	t.Cleanup(func() { a.RemoveTasks([]string{id}, true) })
 	waitFor(t, "the wait showing", func() bool {
