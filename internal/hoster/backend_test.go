@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -203,6 +204,42 @@ func TestAWaitShowsInTheNoteAndIsNoStallThenTheLinkIsHandedOn(t *testing.T) {
 	awaitHandoff(t, eng)
 	if b.Waiting("t1") {
 		t.Error("the task still counts as waiting after the link was handed on")
+	}
+}
+
+func TestAWaitResumedAfterAPauseStillCountsAsWaitingWhenThePausedOneWindsDown(t *testing.T) {
+	b, _, _ := newBackend(&script{answers: []answer{{err: &WaitError{Wait: 90 * time.Second}}}})
+	waiting := make(chan struct{}, 2)
+	release := make(chan struct{})
+	var calls atomic.Int32
+	b.sleep = func(ctx context.Context, _ time.Duration) error {
+		first := calls.Add(1) == 1
+		waiting <- struct{}{}
+		<-ctx.Done()
+		if first {
+			// The paused run lingers until the resumed one is waiting too.
+			<-release
+		}
+		return ctx.Err()
+	}
+	t.Cleanup(func() { b.Remove("t1", false) })
+
+	b.Download("t1", "l", nil, 1)
+	<-waiting
+	b.Pause("t1")
+	if b.Waiting("t1") {
+		t.Error("a paused task still counts as waiting")
+	}
+	b.Resume("t1")
+	<-waiting
+	close(release)
+
+	deadline := time.Now().Add(200 * time.Millisecond)
+	for time.Now().Before(deadline) {
+		if !b.Waiting("t1") {
+			t.Fatal("the paused run winding down took the resumed run's wait with it")
+		}
+		time.Sleep(5 * time.Millisecond)
 	}
 }
 

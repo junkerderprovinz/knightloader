@@ -41,12 +41,14 @@ type Backend struct {
 
 	sleep func(ctx context.Context, d time.Duration) error
 
-	mu      sync.Mutex
-	cancel  map[string]context.CancelFunc
-	link    map[string]string
-	conns   map[string]int
-	handed  map[string]bool
-	waiting map[string]bool
+	mu     sync.Mutex
+	cancel map[string]context.CancelFunc
+	link   map[string]string
+	conns  map[string]int
+	handed map[string]bool
+	// waiting holds the run that is sitting out a wait, so a paused run that
+	// winds down late cannot clear the wait of the run a Resume started.
+	waiting map[string]context.Context
 }
 
 func NewBackend(name string, u Unlocker, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
@@ -56,7 +58,7 @@ func NewBackend(name string, u Unlocker, eng Downloader, onUpdate func(taskID st
 		link:    map[string]string{},
 		conns:   map[string]int{},
 		handed:  map[string]bool{},
-		waiting: map[string]bool{},
+		waiting: map[string]context.Context{},
 	}
 }
 
@@ -65,7 +67,8 @@ func NewBackend(name string, u Unlocker, eng Downloader, onUpdate func(taskID st
 func (b *Backend) Waiting(taskID string) bool {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	return b.waiting[taskID]
+	run := b.waiting[taskID]
+	return run != nil && run.Err() == nil
 }
 
 func (b *Backend) Download(taskID, link string, _ map[string]string, conns int) {
@@ -150,8 +153,8 @@ func (b *Backend) relink(ctx context.Context, taskID, link string) (string, erro
 
 // wait sits out w, keeping the time left in the task's note.
 func (b *Backend) wait(ctx context.Context, taskID string, w *WaitError) error {
-	b.setWaiting(taskID, true)
-	defer b.setWaiting(taskID, false)
+	b.setWaiting(ctx, taskID, true)
+	defer b.setWaiting(ctx, taskID, false)
 	for left := w.Wait; left > 0; {
 		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: b.note(w, left)})
 		// Every note reaches every open browser, so a long wait counts down
@@ -176,12 +179,12 @@ func (b *Backend) note(w *WaitError, left time.Duration) string {
 	return "Waiting for " + b.Name + ": " + Span(left) + " left"
 }
 
-func (b *Backend) setWaiting(taskID string, on bool) {
+func (b *Backend) setWaiting(run context.Context, taskID string, on bool) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	if on {
-		b.waiting[taskID] = true
-	} else {
+		b.waiting[taskID] = run
+	} else if b.waiting[taskID] == run {
 		delete(b.waiting, taskID)
 	}
 }
