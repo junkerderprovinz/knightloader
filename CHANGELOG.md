@@ -40,24 +40,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Added
 
-- **Free Rapidgator, Keep2Share, FileBoom, TezFiles and filer.net links
-  download without JDownloader.** Without a premium login KnightLoader goes
-  through the hoster's free download itself: it sits out the countdown, asks
-  for the captcha through the phone app and your captcha accounts and fetches
-  the file over one connection. The countdown and the wait a hoster sets
-  between free downloads show on the task. These free clients rank below every
-  debrid service and above JDownloader's free mode. Free Nitroflare links stay
-  with JDownloader, since Nitroflare's API turns free downloads away and its
-  website wants a chain of form posts.
-
-- **filer.net downloads on your premium login without JDownloader.** Save
-  the login under Hoster accounts and KnightLoader asks filer.net's own API
-  for the download link, fetches the file over one connection and shows on
-  the login's row whether the account is premium, when it runs out and how
-  much traffic is left. Every filer.net link shows its name, size and whether
-  it is online in the link collector, with or without a login. A refused
-  login, a free account, spent traffic, a folder password and a deleted file
-  each fail with their own reason. Free filer.net links still go through
 - **KnightLoader comes as a Flatpak for Linux.** Every release carries
   `knightloader-linux-amd64.flatpak` and `knightloader-linux-arm64.flatpak`.
   Open one in your software center or run `flatpak install` on it, and the
@@ -67,7 +49,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   `/media`, `/run/media` and `/mnt`. It never replaces itself: install the
   newer bundle to update it. A `.dlc` file opened in the Flatpak goes to
   JDownloader.
-
 - **Free 1fichier links download without JDownloader.** KnightLoader reads
   the file page itself, so a 1fichier link shows its name, size and whether
   it is still online in the link collector, and the file comes over one
@@ -85,8 +66,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   much traffic is left. Every Rapidgator link shows its name, size and whether
   it is online in the link collector, with or without a login. A refused
   login, a free account, spent traffic and a deleted file each fail with their
-  own reason. Free Rapidgator links still go through JDownloader, which solves
-  the captcha.
+  own reason.
 - **Keep2Share, FileBoom, TezFiles and Nitroflare download on your premium
   login without JDownloader.** Save the login under Hoster accounts and
   KnightLoader signs in through the site's API itself, fetches the file over
@@ -95,7 +75,23 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   sites shows its name, size and whether it is online in the link collector,
   with or without a login. A refused login, a captcha at sign-in, a free
   account, spent traffic and a deleted file each fail with their own reason.
-  Free links still go through JDownloader, which solves the captcha.
+- **filer.net downloads on your premium login without JDownloader.** Save
+  the login under Hoster accounts and KnightLoader asks filer.net's own API
+  for the download link, fetches the file over one connection and shows on
+  the login's row whether the account is premium, when it runs out and how
+  much traffic is left. Every filer.net link shows its name, size and whether
+  it is online in the link collector, with or without a login. A refused
+  login, a free account, spent traffic, a folder password and a deleted file
+  each fail with their own reason.
+- **Free Rapidgator, Keep2Share, FileBoom, TezFiles and filer.net links
+  download without JDownloader.** Without a premium login KnightLoader goes
+  through the hoster's free download itself: it sits out the countdown, asks
+  for the captcha through the phone app and your captcha accounts and fetches
+  the file over one connection. The countdown and the wait a hoster sets
+  between free downloads show on the task. These free clients rank below every
+  debrid service and above JDownloader's free mode. Free Nitroflare links stay
+  with JDownloader, since Nitroflare's API turns free downloads away and its
+  website wants a chain of form posts.
 - **ddownload links download without JDownloader.** A `ddownload.com` or
   `ddl.to` link shows its name, size and online state in the link collector.
   With a ddownload login saved on the Accounts page, KnightLoader signs in
@@ -155,10 +151,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Nitroflare, filer.net or one of the XFileSharing hosters cannot use your
   login, because the hoster answers in a way the client does not understand
   or keeps failing without saying why, JDownloader gets the login and signs in
-  with it as before. The login's row says that JDownloader has taken over, and a download
-  that was on its way moves on to the next backend instead of failing. A
-  wrong password stays with KnightLoader and shows on the row. Save the login
-  again, or switch it off and on, to have KnightLoader try once more.
+  with it as before. The login's row says that JDownloader has taken over,
+  and a download that was on its way moves on to the next backend instead of
+  failing. A wrong password stays with KnightLoader and shows on the row. Save
+  the login again, or switch it off and on, to have KnightLoader try once
+  more.
 - **Every list you reorder by hand places the moved item the same way.** An
   item passes a neighbour once its leading edge is past the neighbour's
   middle, so a wide card in the overview or a long entry in the settings rail

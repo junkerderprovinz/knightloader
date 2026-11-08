@@ -995,17 +995,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/junkerderprovinz/gopeed/@v/v0.0.0-20261028014801-7384cec971e9.mod",
+        "url": "https://proxy.golang.org/github.com/junkerderprovinz/gopeed/@v/v0.0.0-20261108080126-7ccce87b55a4.mod",
         "sha256": "afb3fbe28bf9b4ce76a31ea5a609e3d7a9700e683ab4f4a0692776d9b85cc19a",
         "dest": "gomod/github.com/junkerderprovinz/gopeed/@v",
-        "dest-filename": "v0.0.0-20261028014801-7384cec971e9.mod"
+        "dest-filename": "v0.0.0-20261108080126-7ccce87b55a4.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/junkerderprovinz/gopeed/@v/v0.0.0-20261028014801-7384cec971e9.zip",
-        "sha256": "f38b24567ee81fd51f93c10f81f96ef68961a0fc5de73fa769c67c81867636b7",
+        "url": "https://proxy.golang.org/github.com/junkerderprovinz/gopeed/@v/v0.0.0-20261108080126-7ccce87b55a4.zip",
+        "sha256": "8b0b2178b62e1f8d3d2722044f7f092c485ab8f1bcde3539e4ebd6f9ea73a3b7",
         "dest": "gomod/github.com/junkerderprovinz/gopeed/@v",
-        "dest-filename": "v0.0.0-20261028014801-7384cec971e9.zip"
+        "dest-filename": "v0.0.0-20261108080126-7ccce87b55a4.zip"
     },
     {
         "type": "file",

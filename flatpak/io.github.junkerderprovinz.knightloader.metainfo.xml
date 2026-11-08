@@ -84,10 +84,15 @@
         <p>Many hosters download without JDownloader, and KnightLoader comes as a Flatpak.</p>
         <ul>
           <li>Free 1fichier links download on their own, and wait out 1fichier's pause between free files</li>
-          <li>Rapidgator, Keep2Share, FileBoom, TezFiles and Nitroflare download on your premium login</li>
+          <li>Rapidgator, Keep2Share, FileBoom, TezFiles, Nitroflare and filer.net download on your premium login</li>
+          <li>Free Rapidgator, Keep2Share, FileBoom, TezFiles and filer.net links download with their countdown and captcha</li>
           <li>ddownload, KatFile, Clicknupload, FileSpace and Uploadrar download free or on your login</li>
           <li>Pixeldrain, Gofile and Mediafire links and folders download one row per file</li>
+          <li>Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer and SwissTransfer shares download one row per file</li>
+          <li>Krakenfiles, Workupload and Send.now links download for free</li>
+          <li>A login KnightLoader cannot use goes back to JDownloader</li>
           <li>Every list you reorder by hand places the moved item the same way</li>
+          <li>A second Linux desktop copy with its own data folder starts</li>
         </ul>
       </description>
       <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.0</url>
