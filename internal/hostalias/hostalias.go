@@ -96,6 +96,9 @@ var canonical = map[string]string{
 
 	"gofile.net": "gofile.io",
 	"mfi.re":     "mediafire.com",
+
+	"docs.google.com":              "drive.google.com",
+	"drive.usercontent.google.com": "drive.google.com",
 }
 
 // Canonical returns the main domain of the hoster host belongs to, lower-cased

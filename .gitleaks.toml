@@ -60,6 +60,10 @@ description = "Invented credentials that are test fixtures for the parsers that 
 #
 # web/src/lib/mcpSnippets.test.ts writes a made-up MCP token into every
 # client's configuration; it has the kl_ prefix the snippets are built around.
+#
+# internal/resolver/googledrive/gdtest serves a folder page carrying two
+# made-up Google API keys, since the client finds the files API's key by its
+# shape, the first of such a pair.
 regexes = [
   '''demo:s3cret''',
   '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
@@ -72,4 +76,6 @@ regexes = [
   '''rss24h\.torrentleech\.org''',
   '''relay-key-of-the-vector-0123456789''',
   '''kl_7Qa-Zb0_cD''',
+  '''AIzaInventedFilesKeyOfTheGdtestFake0000''',
+  '''AIzaInventedSecondKeyOfTheGdtestPage000''',
 ]
