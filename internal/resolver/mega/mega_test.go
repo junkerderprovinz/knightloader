@@ -112,7 +112,7 @@ func sampleFolder(f *megatest.Server) string {
 func TestAFolderOpensIntoItsFilesWithTheirFolders(t *testing.T) {
 	f := megatest.New(t)
 	link := sampleFolder(f)
-	got, err := Resolver{Client: client(f)}.List(context.Background(), link)
+	got, err := Resolver{Client: client(f)}.List(context.Background(), link, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,7 +139,7 @@ func TestAFolderOpensIntoItsFilesWithTheirFolders(t *testing.T) {
 func TestASubfolderLinkOpensOnlyThatSubfolder(t *testing.T) {
 	f := megatest.New(t)
 	link := sampleFolder(f) + "/folder/clips001"
-	got, err := Resolver{Client: client(f)}.List(context.Background(), link)
+	got, err := Resolver{Client: client(f)}.List(context.Background(), link, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +151,7 @@ func TestASubfolderLinkOpensOnlyThatSubfolder(t *testing.T) {
 func TestAFileInAFolderIsItsOwnRow(t *testing.T) {
 	f := megatest.New(t)
 	link := sampleFolder(f) + "/file/beach001"
-	got, err := Resolver{Client: client(f)}.List(context.Background(), link)
+	got, err := Resolver{Client: client(f)}.List(context.Background(), link, "")
 	if err != nil {
 		t.Fatal(err)
 	}

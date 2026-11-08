@@ -82,19 +82,16 @@ func (r Resolver) Inspect(ctx context.Context, urls []string) []Info {
 	return out
 }
 
-// Listing is one file a folder link opens into. Folder is the path of the
-// folder it sits in, from the opened folder's own name down.
-type Listing struct {
-	URL    string
-	Name   string
-	Size   int64
-	Folder string
-}
+// Listing is one file a folder link opens into.
+type Listing = resolver.Listing
+
+var _ resolver.FolderLister = Resolver{}
 
 // List opens a folder link into the files under it, subfolders included. A
 // file link yields nothing, meaning "stage it as itself", and so does a link
-// to one file inside a folder, which comes back as that file's own row.
-func (r Resolver) List(ctx context.Context, raw string) ([]Listing, error) {
+// to one file inside a folder, which comes back as that file's own row. A
+// MEGA folder carries its key in the link and takes no password.
+func (r Resolver) List(ctx context.Context, raw, _ string) ([]Listing, error) {
 	l, err := Parse(raw)
 	if err != nil || !l.Folder {
 		return nil, err

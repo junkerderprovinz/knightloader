@@ -447,6 +447,8 @@ for (const name of livingDocs) {
 const RESOLVER_NAMES = {
   debrid: 'debrid',
   jd: 'JDownloader',
+  gofile: 'Gofile',
+  mediafire: 'Mediafire',
   mega: 'MEGA',
   onefichier: '1fichier',
   rapidgator: 'Rapidgator',
@@ -459,6 +461,7 @@ const RESOLVER_NAMES = {
   clicknupload: 'Clicknupload',
   filespace: 'FileSpace',
   uploadrar: 'Uploadrar',
+  pixeldrain: 'Pixeldrain',
   // The package is named after the shape it needs (list a tree, ask a size,
   // read from an offset), not after today's protocol list, so there is no one
   // obvious word. SFTP is the token to check for: it is one of the four this

@@ -20,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/hostalias"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
@@ -61,9 +62,10 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 		return core.ModePremium
 	}
 	// MEGA's own client logs in to nothing and lives on the free transfer
-	// quota, which premium only is there to stay off. The 1fichier client
-	// downloads for free as well, waits and all.
-	if resolverID == mega.ResolverID || resolverID == onefichier.ResolverID {
+	// quota, which premium only is there to stay off. The other clients of
+	// our own download for free as well, waits and limits and all, even when
+	// a stored login lends Pixeldrain or Gofile its key.
+	if resolverID == mega.ResolverID || resolverID == onefichier.ResolverID || hosterClientID(resolverID) {
 		return core.ModeFree
 	}
 	// An XFileSharing client downloads on the login while it has premium.
@@ -1268,15 +1270,14 @@ func (a *App) Resume(id string) {
 
 // HonoursCollisionPolicy reports whether the collision policy reaches the file
 // a task on this resolver writes: the engine's own downloads and those a
-// debrid service, TorBox, the 1fichier client, an XFileSharing client or a
-// hoster KnightLoader signs in to itself passes on to it (see engineHandoff).
-// The other backends name files themselves, so only skip
-// applies to them. The interface uses this to avoid offering controls that
-// would be ignored.
+// debrid service, TorBox or one of KnightLoader's own hoster clients passes on
+// to it (see engineHandoff). The other backends name files themselves, so only
+// skip applies to them. The interface uses this to avoid offering controls
+// that would be ignored.
 func (a *App) HonoursCollisionPolicy(resolverID string) bool {
 	switch a.backendFor(resolverID).(type) {
-	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *onefichier.Backend, *xfs.Backend,
-		*rapidgator.Backend, *keep2share.Backend, *nitroflare.Backend, *usenet.Files:
+	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *usenet.Files,
+		*onefichier.Backend, *xfs.Backend, *hoster.Backend, *rapidgator.Backend, *keep2share.Backend, *nitroflare.Backend:
 		return true
 	}
 	return false
@@ -1305,6 +1306,8 @@ func (a *App) backendFor(resolverID string) backend {
 		return a.mega
 	case resolverID == onefichier.ResolverID && a.fichier != nil:
 		return a.fichier
+	case a.hosters[resolverID].be != nil:
+		return a.hosters[resolverID].be
 	case resolverID == "jd" && a.jd != nil:
 		return a.jd
 	case resolverID == "torbox" && a.torbox != nil:

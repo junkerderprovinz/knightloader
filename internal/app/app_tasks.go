@@ -487,21 +487,7 @@ type linkInspector interface {
 // shows the bare address and no size until the download starts.
 func (a *App) inspectHosterLinks(ids []string) {
 	ids = a.inspectMegaLinks(ids)
-	ids = a.inspectClientLinks(ids, onefichier.ResolverID, func() inspectFunc {
-		if a.fichier == nil {
-			return nil
-		}
-		return onefichier.Resolver{Client: a.fichier.Client()}.Inspect
-	})
-	for _, site := range xfsSites {
-		ids = a.inspectClientLinks(ids, site.ID, func() inspectFunc {
-			b := a.xfsBackends[site.ID]
-			if b == nil {
-				return nil
-			}
-			return xfs.Resolver{Site: site, Client: b.Client()}.Inspect
-		})
-	}
+	ids = a.inspectNativeLinks(ids)
 	ids = a.inspectOwnHosterLinks(ids)
 	a.bmu.RLock()
 	insp, ok := a.jd.(linkInspector)
@@ -670,36 +656,43 @@ func (a *App) inspectMegaLinks(ids []string) []string {
 	return rest
 }
 
-// inspectFunc is a hoster client's Inspect.
-type inspectFunc = func(context.Context, []string) []resolver.LinkInfo
+// inspectNativeLinks fills in the name, size and state of the collected links
+// KnightLoader's own clients for 1fichier, the XFileSharing sites, Pixeldrain,
+// Gofile and Mediafire take, from those hosters, and returns the other ids.
+func (a *App) inspectNativeLinks(ids []string) []string {
+	a.bmu.RLock()
+	inspectors := map[string]resolver.Inspector{}
+	if a.fichier != nil {
+		inspectors[onefichier.ResolverID] = onefichier.Resolver{Client: a.fichier.Client()}
+	}
+	for _, site := range xfsSites {
+		if b := a.xfsBackends[site.ID]; b != nil {
+			inspectors[site.ID] = xfs.Resolver{Site: site, Client: b.Client()}
+		}
+	}
+	for id, h := range a.hosters {
+		inspectors[id] = h.res
+	}
+	a.bmu.RUnlock()
 
-// inspectClientLinks fills in the name, size and state of the collected links
-// one of KnightLoader's own hoster clients takes, from their pages, and
-// returns the other ids. inspect is read under a.bmu and is nil while the
-// client is not set up.
-func (a *App) inspectClientLinks(ids []string, resolverID string, inspect func() inspectFunc) []string {
-	var rest, targets, urls []string
+	var rest []string
+	targets := map[string][]string{}
+	urls := map[string][]string{}
 	a.mu.Lock()
 	for _, id := range ids {
 		t := a.tasks[id]
-		if t == nil || t.Resolver != resolverID {
+		if t == nil || inspectors[t.Resolver] == nil {
 			rest = append(rest, id)
 			continue
 		}
 		if t.Status == core.StatusCollected && !t.Skipped {
-			targets = append(targets, id)
-			urls = append(urls, t.URL)
+			targets[t.Resolver] = append(targets[t.Resolver], id)
+			urls[t.Resolver] = append(urls[t.Resolver], t.URL)
 		}
 	}
 	a.mu.Unlock()
-	if len(targets) == 0 {
-		return rest
-	}
-	a.bmu.RLock()
-	fn := inspect()
-	a.bmu.RUnlock()
-	if fn != nil {
-		a.inspectOwnLinks(resolverID, targets, urls, fn)
+	for res, ids := range targets {
+		a.inspectOwnLinks(res, ids, urls[res], inspectors[res].Inspect)
 	}
 	return rest
 }

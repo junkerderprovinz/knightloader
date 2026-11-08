@@ -493,6 +493,77 @@ saved Uploadrar login is signed in without a captcha, and a premium download
 uses up to four connections. A free download goes over one connection, with
 Uploadrar's countdown and captcha. Everything else works as for ddownload.
 
+## Pixeldrain
+
+A Pixeldrain file link (`pixeldrain.com/u/…`) needs no JDownloader, and
+neither does a list (`pixeldrain.com/l/…`), which stages one task per file
+under the list's title. The other domains Pixeldrain answers under, such as
+`pixeldrain.net` or `pixeldra.in`, work the same. KnightLoader asks
+Pixeldrain's API about all the files of a paste in one go, so the link
+collector shows their names, sizes and whether they are still there right
+away. A link into Pixeldrain's file system (`/d/…`) goes to JDownloader.
+
+A free download gets one connection. After 6 GB in a day Pixeldrain slows a
+free address down to 1 MiB/s, and the download carries on at that pace. When
+Pixeldrain says an address has used up its downloads for the moment or has too many
+open at once, the task keeps running, its row says why and how long it waits,
+and then it tries again. A file Pixeldrain hands out only after a captcha on
+its own page, or a download it takes for hotlinking, fails and says so.
+
+To use a Pixeldrain account, add a Pixeldrain login under **Hoster accounts**
+on the Accounts page with an API key from Pixeldrain's API keys page as the
+password. The user name does not matter. JDownloader gets the login as well,
+and while it has the login working it takes Pixeldrain links first. Otherwise
+KnightLoader's own client sends the key, and with a paid plan the download
+opens as many connections as the task allows. A debrid service that carries
+Pixeldrain goes first too. With **Allow free downloads** off, a Pixeldrain
+link waits for one of those.
+
+## Gofile
+
+A `gofile.io/d/…` link needs no JDownloader. A folder stages one task per
+file, subfolders included, and each subfolder becomes a package of its own. A
+link to a single file stages that file. Gofile lets its documented API list a
+folder for premium accounts only, so KnightLoader reads a folder the way
+Gofile's own website does: it opens a guest account and signs each request
+with the script Gofile's pages use. It fetches that script again every hour,
+since Gofile changes it from time to time. A file comes over up to three
+connections.
+
+A folder locked with a password opens with the **Link password** given in the
+add-links form, and every file of it downloads with the same password. When
+Gofile turns away a burst of requests, KnightLoader pauses a few seconds and
+asks again, and if that does not help the task waits a minute with the reason
+on its row.
+
+A Gofile login under **Hoster accounts** takes the account token from the
+profile page on Gofile as the password, and KnightLoader then uses it in place
+of a guest account, which also opens content shared with premium accounts
+only. As with Pixeldrain, JDownloader gets the login too and goes first while
+it has the login working, and so does a debrid service that carries Gofile.
+With **Allow free downloads** off, a Gofile link waits for one of those.
+
+## Mediafire
+
+A `mediafire.com` file or folder link needs no JDownloader, and neither does
+`mfi.re`. KnightLoader asks Mediafire's public API for the names, sizes and
+state of a paste's files in one go and opens a folder through the same API,
+one task per file with each subfolder as a package of its own. When the
+download starts it reads the file's page for the link behind its download
+button. A free download may open up to 15 connections, and the task's own
+setting decides how many it uses.
+
+When Mediafire limits an address for a while, or has a download unavailable
+for the moment, the task keeps running, its row says how long it waits, and
+then it reads the page again. A file Mediafire removed or blocked fails as
+gone. A file locked with a password, one Mediafire wants a captcha for and one
+it flagged as malware fail and say so, since only JDownloader's plugin or
+Mediafire's own website get past those.
+
+A debrid service that carries Mediafire and a Mediafire login in JDownloader
+go first. With **Allow free downloads** off, a Mediafire link waits for one of
+them.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks

@@ -1,11 +1,12 @@
 package app
 
 // The engine as the backends that resolve a link and pass the transfer on see
-// it: a debrid service or TorBox after its unlock, the 1fichier client after
-// its wait, a Usenet service that fetched an NZB, and the user's own servers
-// for a WebDAV address. The file goes where the task's folder rules put it,
-// through the working folder and under the collision policy, and over the
-// route, as a direct download's does.
+// it: a debrid service or TorBox after its unlock, the clients for 1fichier,
+// Pixeldrain, Gofile and Mediafire once the hoster hands out a link, a Usenet
+// service that fetched an NZB, and the user's own servers for a WebDAV
+// address. The file goes where the task's folder rules put it, through the
+// working folder and under the collision policy, and over the route, as a
+// direct download's does.
 // Handed the engine as it is, they would write into its own folder, whatever
 // the category or package says, and go out over the machine's own connection
 // whatever the VPN switches say.
@@ -32,6 +33,12 @@ func (h engineHandoff) Download(taskID, url string, headers map[string]string, c
 // link (see engine.Job.Relink).
 func (h engineHandoff) Handover(taskID, url string, conns int, relink func(context.Context) (string, error)) {
 	h.start(taskID, url, nil, conns, relink)
+}
+
+// HandoverHeaders is Handover for a hoster whose download servers want
+// headers of their own, such as Gofile's account token cookie.
+func (h engineHandoff) HandoverHeaders(taskID, url string, headers map[string]string, conns int, relink func(context.Context) (string, error)) {
+	h.start(taskID, url, headers, conns, relink)
 }
 
 // start starts the transfer, unless the task was removed while its link was

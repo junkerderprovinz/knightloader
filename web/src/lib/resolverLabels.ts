@@ -25,6 +25,9 @@ const PRODUCT_NAMES: Record<string, string> = {
   clicknupload: 'Clicknupload',
   filespace: 'FileSpace',
   uploadrar: 'Uploadrar',
+  pixeldrain: 'Pixeldrain',
+  gofile: 'Gofile',
+  mediafire: 'Mediafire',
 };
 
 const DESCRIBED: Record<string, TranslationKey> = {

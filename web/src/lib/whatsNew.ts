@@ -58,6 +58,7 @@ export const RELEASES: Release[] = [
       { id: 'k2s-nitroflare-native', text: 'whatsnew.change.k2sNitroflareNative' },
       { id: 'ddownload-native', text: 'whatsnew.change.ddownloadNative' },
       { id: 'xfs-hosters', text: 'whatsnew.change.xfsHosters' },
+      { id: 'filehosts-native', text: 'whatsnew.change.filehostsNative' },
     ],
   },
   {

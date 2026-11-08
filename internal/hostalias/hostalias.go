@@ -86,6 +86,16 @@ var canonical = map[string]string{
 	"piecejointe.net": "1fichier.com",
 	"pjointe.com":     "1fichier.com",
 	"tenvoi.com":      "1fichier.com",
+
+	"pixeldra.in":     "pixeldrain.com",
+	"pixeldrain.biz":  "pixeldrain.com",
+	"pixeldrain.dev":  "pixeldrain.com",
+	"pixeldrain.net":  "pixeldrain.com",
+	"pixeldrain.nl":   "pixeldrain.com",
+	"pixeldrain.tech": "pixeldrain.com",
+
+	"gofile.net": "gofile.io",
+	"mfi.re":     "mediafire.com",
 }
 
 // Canonical returns the main domain of the hoster host belongs to, lower-cased

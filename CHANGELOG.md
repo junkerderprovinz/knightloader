@@ -88,6 +88,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   comes for free with the hoster's countdown, captcha and wait between
   downloads. KatFile's sign-in asks for a Turnstile captcha, which the phone
   app or a captcha account can answer.
+- **Pixeldrain, Gofile and Mediafire links download without JDownloader.**
+  The link collector names and sizes their files as soon as they arrive, and
+  a Pixeldrain list or a Gofile or Mediafire folder becomes one row per file,
+  subfolders included. A Gofile folder locked with a password opens with the
+  link password from the add-links form. When a hoster asks for a pause, the
+  task keeps running and shows why and for how long. A Pixeldrain API key or
+  a Gofile account token stored as a hoster login goes along with the
+  downloads. A debrid service that carries the hoster and a login for it in
+  JDownloader still go first.
 
 ## [2.7.3] - 2026-11-07
 

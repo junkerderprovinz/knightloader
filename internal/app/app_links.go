@@ -26,7 +26,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -263,7 +262,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		// A page that points at files becomes those files.
 		var crawled []crawler.Result
 		if !handedOver && !ytdlpKnows {
-			crawled = a.crawl(u, batch.Within)
+			crawled = a.crawl(u, batch.Within, batch.DownloadPassword)
 		}
 		if len(crawled) > 0 {
 			b := &bucket{title: crawlTitle(crawled)}
@@ -588,20 +587,22 @@ func hostScope(raw string, seen map[string]httpx.Scope) httpx.Scope {
 
 // crawl asks the page crawler what a link points at. It returns nothing when
 // crawling is off, the link is already a file, or the page yielded nothing;
-// the link is then staged as itself.
-func (a *App) crawl(u string, within *httpx.Scope) []crawler.Result {
+// the link is then staged as itself. password is the download password the
+// link came with, which opens a folder a hoster locks with one.
+func (a *App) crawl(u string, within *httpx.Scope, password string) []crawler.Result {
 	// A folder on the user's own server is expanded regardless of the Crawl
 	// setting, which is about fetching arbitrary web pages. A folder link
 	// cannot be downloaded as one file.
 	if res := a.Registry.For(u); res != nil && res.Info().ID == remotefs.ResolverID {
 		return a.listRemoteDir(res, u)
 	}
-	// The same holds for a MEGA folder, as long as MEGA's own client is the
-	// one that takes the link. Put behind JDownloader on the priority card,
-	// the folder goes to JDownloader's crawler instead.
+	// The same holds for a folder on MEGA, Pixeldrain, Gofile or Mediafire,
+	// as long as our own client for it is the one that takes the link. Put
+	// behind JDownloader on the priority card, the folder goes to
+	// JDownloader's crawler instead.
 	staging := a.stagingResolverFor(u)
-	if staging != nil && staging.Info().ID == mega.ResolverID {
-		return a.listMegaFolder(staging, u)
+	if lister, ok := staging.(resolver.FolderLister); ok {
+		return a.listFolder(lister, u, password)
 	}
 	if !a.Settings.Get().Crawl {
 		return nil
@@ -717,20 +718,17 @@ func (a *App) listRemoteDir(res resolver.Resolver, u string) []crawler.Result {
 	return out
 }
 
-// listMegaFolder opens a MEGA folder link into one entry per file, each titled
-// with the folder it sits in, so a subfolder becomes a package of its own. A
-// file link yields nothing and is staged as itself. A failure is logged and
-// the link is staged as itself, where it fails saying it is a folder.
-func (a *App) listMegaFolder(res resolver.Resolver, u string) []crawler.Result {
-	r, ok := res.(mega.Resolver)
-	if !ok {
-		return nil
-	}
+// listFolder opens a folder link of a hoster we have a client for into one
+// entry per file, each titled with the folder it sits in, so a subfolder
+// becomes a package of its own. A file link yields nothing and is staged as
+// itself. A failure is logged and the link is staged as itself, where it
+// fails saying it is a folder.
+func (a *App) listFolder(r resolver.FolderLister, u, password string) []crawler.Result {
 	ctx, cancel := context.WithTimeout(context.Background(), remoteListTimeout)
 	defer cancel()
 	done := a.startActivityRun(ActivityCrawl, cancel)
 	defer done()
-	found, err := r.List(ctx, u)
+	found, err := r.List(ctx, u, password)
 	if err != nil {
 		log.Printf("list %s: %v", u, err)
 		return nil
