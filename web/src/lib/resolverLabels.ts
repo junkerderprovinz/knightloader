@@ -15,6 +15,7 @@ const PRODUCT_NAMES: Record<string, string> = {
   jd: 'JDownloader',
   mega: 'MEGA',
   '1fichier': '1fichier',
+  rapidgator: 'Rapidgator',
 };
 
 const DESCRIBED: Record<string, TranslationKey> = {

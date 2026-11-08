@@ -52,7 +52,10 @@ const INTEGRATIONS = ['/settings/integrations'];
 export const RELEASES: Release[] = [
   {
     version: '2.8.0',
-    changes: [{ id: 'fichier-native', text: 'whatsnew.change.fichierNative' }],
+    changes: [
+      { id: 'fichier-native', text: 'whatsnew.change.fichierNative' },
+      { id: 'rapidgator-native', text: 'whatsnew.change.rapidgatorNative' },
+    ],
   },
   {
     version: '2.7.0',

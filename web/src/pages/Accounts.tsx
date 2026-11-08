@@ -904,6 +904,11 @@ function CredentialDialog({
 const LOGIN_ROW = 'login:';
 /** The rows of backends that come with KnightLoader rather than with an account. */
 const BUILT_IN = ['jd', 'ytdlp', 'direct', 'torrent', 'mega', '1fichier'];
+/**
+ * The hosters KnightLoader signs in to itself rather than through JDownloader
+ * (app.ownLogin), by every domain a login may be saved under.
+ */
+const OWN_LOGINS = new Set(['rapidgator.net', 'rg.to', 'rapidgator.asia']);
 
 /**
  * connectedDebrid maps each debrid service with a connected, switched-on
@@ -980,7 +985,13 @@ function RoutingSection({
   };
   const tipFor = (id: string) => {
     if (byId.get(id)?.group === 'debrid') return t('accounts.routing.tip.debrid', { name: labelFor(id) });
-    const tip = id.startsWith(LOGIN_ROW) ? 'accounts.routing.tip.login' : ROW_TIPS[id];
+    const login = id.startsWith(LOGIN_ROW) ? id.slice(LOGIN_ROW.length) : undefined;
+    const tip =
+      login === undefined
+        ? ROW_TIPS[id]
+        : OWN_LOGINS.has(login)
+          ? 'accounts.routing.tip.ownLogin'
+          : 'accounts.routing.tip.login';
     return tip && t(tip);
   };
 
