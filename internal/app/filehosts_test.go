@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"slices"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/captcha"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/hostalias"
@@ -19,34 +21,44 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/gofile"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/gofile/gftest"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/krakenfiles"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/krakenfiles/kftest"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mediafire"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mediafire/mftest"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/pixeldrain"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/pixeldrain/pdtest"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/workupload"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/workupload/wutest"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// fakeHosters are the stand-ins the app's clients for Pixeldrain, Gofile and
-// Mediafire are pointed at.
+// fakeHosters are the stand-ins the app's clients for Pixeldrain, Gofile,
+// Mediafire, Krakenfiles and Workupload are pointed at.
 type fakeHosters struct {
 	pd *pdtest.Server
 	gf *gftest.Server
 	mf *mftest.Server
+	kf *kftest.Server
+	wu *wutest.Server
 }
 
 func useFakeHosters(t *testing.T, a *App) fakeHosters {
-	f := fakeHosters{pd: pdtest.New(t), gf: gftest.New(t), mf: mftest.New(t)}
+	f := fakeHosters{pd: pdtest.New(t), gf: gftest.New(t), mf: mftest.New(t), kf: kftest.New(t), wu: wutest.New(t)}
 	eng := engineHandoff{a.Engine, a}
 	pd := pixeldrain.NewClient(f.pd.URL, f.pd.Client())
 	pd.Key = func() string { return a.hosterSecret("pixeldrain.com") }
 	gf := gofile.NewClient(f.gf.API, f.gf.Site, f.gf.Client())
 	gf.Token = func() string { return a.hosterSecret("gofile.io") }
 	mf := mediafire.NewClient(f.mf.URL, f.mf.Client())
+	kf := krakenfiles.NewClient(f.kf.URL, f.kf.Client())
+	wu := workupload.NewClient(f.wu.URL, f.wu.Client())
 	a.bmu.Lock()
 	a.hosters = map[string]hosterClient{
-		pixeldrain.ResolverID: {pixeldrain.Resolver{Client: pd}, a.hosterBackend("Pixeldrain", pd, eng)},
-		gofile.ResolverID:     {gofile.Resolver{Client: gf}, a.hosterBackend("Gofile", gf, eng)},
-		mediafire.ResolverID:  {mediafire.Resolver{Client: mf}, a.hosterBackend("Mediafire", mf, eng)},
+		pixeldrain.ResolverID:  {pixeldrain.Resolver{Client: pd}, a.hosterBackend("Pixeldrain", "pixeldrain.com", pd, eng)},
+		gofile.ResolverID:      {gofile.Resolver{Client: gf}, a.hosterBackend("Gofile", "gofile.io", gf, eng)},
+		mediafire.ResolverID:   {mediafire.Resolver{Client: mf}, a.hosterBackend("Mediafire", "mediafire.com", mf, eng)},
+		krakenfiles.ResolverID: {krakenfiles.Resolver{Client: kf}, a.hosterBackend("Krakenfiles", "krakenfiles.com", kf, eng)},
+		workupload.ResolverID:  {workupload.Resolver{Client: wu}, a.hosterBackend("Workupload", "workupload.com", wu, eng)},
 	}
 	hosters := a.hosters
 	a.bmu.Unlock()
@@ -58,9 +70,11 @@ func useFakeHosters(t *testing.T, a *App) fakeHosters {
 
 func TestTheOwnHosterClientsGoBelowDebridAndAJDLoginAndAboveJDsFreeMode(t *testing.T) {
 	for host, c := range map[string]struct{ id, link string }{
-		"pixeldrain.com": {pixeldrain.ResolverID, "https://pixeldrain.com/u/iniGVSnw"},
-		"gofile.io":      {gofile.ResolverID, "https://gofile.io/d/AMZyDw"},
-		"mediafire.com":  {mediafire.ResolverID, "https://www.mediafire.com/file/wt7dc5e9jgnym04/Poses.tar.gz/file"},
+		"pixeldrain.com":  {pixeldrain.ResolverID, "https://pixeldrain.com/u/iniGVSnw"},
+		"gofile.io":       {gofile.ResolverID, "https://gofile.io/d/AMZyDw"},
+		"mediafire.com":   {mediafire.ResolverID, "https://www.mediafire.com/file/wt7dc5e9jgnym04/Poses.tar.gz/file"},
+		"krakenfiles.com": {krakenfiles.ResolverID, "https://krakenfiles.com/view/DP3nGKJNsX/file.html"},
+		"workupload.com":  {workupload.ResolverID, "https://workupload.com/file/QpDxHzUJcL8"},
 	} {
 		t.Run(host, func(t *testing.T) {
 			a := newCrawlApp(t, false)
@@ -272,5 +286,76 @@ func TestAPixeldrainKeyOrGofileTokenStaysWithKnightLoaderAndRanksAtItsLoginRow(t
 				t.Errorf("chain = %v, want the order the card was saved in", got)
 			}
 		})
+	}
+}
+
+func TestAKrakenfilesDownloadAsksItsTurnstileCheckThroughTheCaptchaPrompts(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 races on a task's status when a real transfer starts")
+	}
+	a := newCrawlApp(t, false)
+	f := useFakeHosters(t, a)
+	body := bytes.Repeat([]byte("moonrise kingdom "), 4096)
+	link := f.kf.Add("DP3nGKJNsX", kftest.File{Name: "Moonrise Kingdom (2012).mkv", Body: body})
+
+	created := a.AddLinks([]string{link}, "")
+	id := created[0].ID
+	waitFor(t, "the collector naming the file", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		return a.tasks[id].Name == "Moonrise Kingdom (2012).mkv" && a.tasks[id].Online == core.AvailOnline
+	})
+	a.ConfirmTasks([]string{id}, confirm.Config{}, confirm.TriggerManual)
+	var c captcha.Challenge
+	waitFor(t, "the captcha reaching the prompts", func() bool {
+		for _, ch := range a.CaptchaChallenges() {
+			if ch.TaskID == id {
+				c = ch
+				return true
+			}
+		}
+		return false
+	})
+	w, ok := c.Payload.(*captcha.WidgetPayload)
+	if !ok || c.Host != "krakenfiles.com" || w.Vendor != captcha.VendorTurnstile || w.SiteKey != kftest.SiteKey || w.SiteURL != "https://krakenfiles.com/view/DP3nGKJNsX/file.html" {
+		t.Fatalf("the prompt got %+v with %+v, want the file page's Turnstile check", c, c.Payload)
+	}
+	if _, err := a.AnswerCaptcha(context.Background(), c.ID, kftest.Token); err != nil {
+		t.Fatal(err)
+	}
+	var file string
+	waitFor(t, "the download finishing", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		task := a.tasks[id]
+		if task.Status == core.StatusError {
+			t.Fatalf("the download failed: %s", task.Error)
+		}
+		file = task.File
+		return task.Status == core.StatusDone
+	})
+	if got, err := os.ReadFile(file); err != nil || !bytes.Equal(got, body) {
+		t.Errorf("the downloaded file does not hold what Krakenfiles served: %v", err)
+	}
+}
+
+func TestAWorkuploadFileIsNamedPastTheRobotCheckAndDownloads(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 races on a task's status when a real transfer starts")
+	}
+	a := newCrawlApp(t, false)
+	f := useFakeHosters(t, a)
+	body := bytes.Repeat([]byte("syscon "), 4096)
+	link := f.wu.Add("QpDxHzUJcL8", wutest.File{Name: "PS3-SYSCON-1.1.ova", Body: body})
+
+	created := a.AddLinks([]string{link}, "")
+	id := created[0].ID
+	waitFor(t, "the collector naming the file", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		return a.tasks[id].Name == "PS3-SYSCON-1.1.ova" && a.tasks[id].Size == int64(len(body))
+	})
+	if got := downloaded(t, a, id); !bytes.Equal(got, body) {
+		t.Error("the downloaded file does not hold what Workupload served")
 	}
 }

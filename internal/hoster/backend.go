@@ -3,6 +3,7 @@ package hoster
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -39,6 +40,9 @@ type Backend struct {
 
 	// Password returns the download password a task carries, "" for none.
 	Password func(taskID string) string
+	// Solve answers a captcha for the task waiting on it. Nil leaves every
+	// captcha unanswered.
+	Solve func(ctx context.Context, taskID string, c Captcha) (string, error)
 
 	sleep func(ctx context.Context, d time.Duration) error
 }
@@ -51,7 +55,7 @@ func NewBackend(name string, u Unlocker, eng Downloader, onUpdate func(taskID st
 
 func (b *Backend) run(ctx context.Context, taskID, link string, conns int) {
 	for waits := 0; ; waits++ {
-		l, err := b.unlocker.Unlock(ctx, link, b.password(taskID))
+		l, err := b.unlock(ctx, taskID, link)
 		var w *WaitError
 		switch {
 		case ctx.Err() != nil:
@@ -92,7 +96,7 @@ func (b *Backend) handOn(ctx context.Context, taskID, link string, l Link, conns
 // wait quietly, since the task shows its transfer meanwhile.
 func (b *Backend) relink(ctx context.Context, taskID, link string) (string, error) {
 	for waits := 0; ; waits++ {
-		l, err := b.unlocker.Unlock(ctx, link, b.password(taskID))
+		l, err := b.unlock(ctx, taskID, link)
 		var w *WaitError
 		if err == nil || !errors.As(err, &w) || waits >= maxWaits {
 			return l.URL, err
@@ -101,6 +105,29 @@ func (b *Backend) relink(ctx context.Context, taskID, link string) (string, erro
 			return "", err
 		}
 	}
+}
+
+// unlock asks the hoster for the link, with a way to answer its captcha when
+// it may ask for one.
+func (b *Backend) unlock(ctx context.Context, taskID, link string) (Link, error) {
+	au, ok := b.unlocker.(AskingUnlocker)
+	if !ok {
+		return b.unlocker.Unlock(ctx, link, b.password(taskID))
+	}
+	return au.UnlockAsking(ctx, link, b.password(taskID), func(ctx context.Context, c Captcha) (string, error) {
+		if b.Solve == nil {
+			return "", ErrNoAnswer
+		}
+		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: "Waiting for the captcha " + b.Name + " asks for"})
+		answer, err := b.Solve(ctx, taskID, c)
+		switch {
+		case ctx.Err() != nil:
+			return "", ctx.Err()
+		case err != nil:
+			return "", fmt.Errorf("%w: %v", ErrNoAnswer, err)
+		}
+		return answer, nil
+	})
 }
 
 // wait sits out w, keeping the time left in the task's note.

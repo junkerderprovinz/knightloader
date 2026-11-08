@@ -340,6 +340,64 @@ func TestPauseAndRemoveReachTheEngineOnceTheLinkIsHandedOn(t *testing.T) {
 	}
 }
 
+// asking is a hoster that puts a captcha in front of every link and hands
+// the link out for the answer it wants.
+type asking struct {
+	want string
+	mu   sync.Mutex
+	asks int
+}
+
+func (a *asking) Unlock(context.Context, string, string) (Link, error) {
+	return Link{}, errors.New("asked without a way to ask for the captcha")
+}
+
+func (a *asking) UnlockAsking(ctx context.Context, _, _ string, ask func(context.Context, Captcha) (string, error)) (Link, error) {
+	a.mu.Lock()
+	a.asks++
+	a.mu.Unlock()
+	answer, err := ask(ctx, Captcha{Vendor: "turnstile", SiteKey: "0x4AAA", PageURL: "https://krakenfiles.com/view/a/file.html"})
+	if err != nil {
+		return Link{}, err
+	}
+	if answer != a.want {
+		return Link{}, &Refusal{Reason: core.ReasonCaptcha, Msg: "wrong answer"}
+	}
+	return Link{URL: "https://dl.example/f"}, nil
+}
+
+func TestACaptchaTheHosterAsksForGoesToSolveForTheTaskAndShowsInTheNote(t *testing.T) {
+	eng := newFakeEngine()
+	ups := &updates{waiting: make(chan struct{}, 4)}
+	b := NewBackend("Krakenfiles", &asking{want: "token"}, eng, ups.add)
+	var got []Captcha
+	var tasks []string
+	b.Solve = func(_ context.Context, taskID string, c Captcha) (string, error) {
+		got, tasks = append(got, c), append(tasks, taskID)
+		return "token", nil
+	}
+
+	b.Download("t1", "l", nil, 1)
+	if h := awaitHandoff(t, eng); h.url != "https://dl.example/f" {
+		t.Errorf("handed on %+v", h)
+	}
+	if len(got) != 1 || got[0].SiteKey != "0x4AAA" || tasks[0] != "t1" {
+		t.Errorf("Solve got %+v for %v, want the page's widget for t1", got, tasks)
+	}
+	if !slices.ContainsFunc(ups.list(), func(u core.Update) bool { return u.Note == "Waiting for the captcha Krakenfiles asks for" }) {
+		t.Errorf("the note never said what the task waits for: %+v", ups.list())
+	}
+}
+
+func TestACaptchaNobodyCanAnswerFailsTheTaskAsACaptchaOne(t *testing.T) {
+	b, _, ups := newBackend(nil)
+	b.unlocker = &asking{want: "token"}
+	b.Download("t1", "l", nil, 1)
+	if u := awaitFailure(t, ups); u.Reason != core.ReasonCaptcha {
+		t.Errorf("failed with %+v, want a captcha failure", u)
+	}
+}
+
 func TestWaitsAreWrittenAsPeopleReadThem(t *testing.T) {
 	for d, want := range map[time.Duration]string{
 		45 * time.Second:               "45 s",

@@ -101,6 +101,13 @@ var canonical = map[string]string{
 	"drive.usercontent.google.com": "drive.google.com",
 	"1drv.ms":                      "onedrive.live.com",
 	"we.tl":                        "wetransfer.com",
+	"send.cm":                      "send.now",
+	"sendit.cloud":                 "send.now",
+	"usersfiles.com":               "send.now",
+	"tusfiles.com":                 "send.now",
+	"tusfiles.net":                 "send.now",
+	"userscloud.com":               "send.now",
+	"usercdn.com":                  "send.now",
 }
 
 // Canonical returns the main domain of the hoster host belongs to, lower-cased

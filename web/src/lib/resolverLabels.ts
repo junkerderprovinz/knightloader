@@ -39,6 +39,9 @@ const PRODUCT_NAMES: Record<string, string> = {
   onedrive: 'OneDrive',
   wetransfer: 'WeTransfer',
   swisstransfer: 'SwissTransfer',
+  krakenfiles: 'Krakenfiles',
+  workupload: 'Workupload',
+  sendnow: 'Send.now',
 };
 
 const DESCRIBED: Record<string, TranslationKey> = {

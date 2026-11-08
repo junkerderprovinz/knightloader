@@ -1,0 +1,43 @@
+{{define "file.html"}}<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>{{.Name}}</title>
+</head>
+<body>
+<div class="row">
+<div id="file" class="box col-sm-6 col-sm-offset-3">
+<!-- Intro text -->
+<div class="row">
+<div class="col-sm-12">
+<h1 style="word-wrap: break-word;">{{.Name}} ({{.Size}})</h1>
+<p style="word-wrap: break-word;">Die Datei {{.Name}} jetzt herunterladen.</p>
+</div>
+</div>
+{{if .Locked}}<div class="row">
+<div class="col-sm-12">
+<form name="passwordprotected_file" method="post">
+<div class="form-group"><label class="control-label required" for="passwordprotected_file_password">Passwort</label><input type="password" id="passwordprotected_file_password" name="passwordprotected_file[password]" required="required" class="form-control" /></div>
+<div class="form-group"><button type="submit" id="passwordprotected_file_submit" name="passwordprotected_file[submit]" class="btn-prio btn">Weiter</button></div>
+<input type="hidden" id="passwordprotected_file_key" name="passwordprotected_file[key]" value="{{.ID}}" />
+</form>
+</div>
+</div>
+{{else}}<div class="download row" style="display: block;">
+<div class="col-sm-12 text-center">
+<a href="/start/{{.ID}}" class="btn btn-prio nu-reward" style="margin-top: 15px;">
+<i class="fa fa-download"></i> <span>Download</span>
+</a>
+</div>
+</div>
+{{end}}</div>
+</div>
+<div class="row">
+<div id="notice" class="box col-sm-6 col-sm-offset-3 margin-top-10 margin-bottom-50">
+<table><tbody><tr><td>Dateiname:&nbsp;</td><td style="word-break: break-all;">{{.Name}}</td></tr><tr><td>Dateigröße:&nbsp;</td><td>{{.Bytes}} (Byte)</td></tr><tr><td>Prüfsumme:&nbsp;</td><td style="word-break: break-all;">ec12a69b7701b97d6b7ae764474c4b507894d15c9715fdd89244ab642e94b8cf (SHA256)</td></tr></tbody></table>
+Diese Datei wurde von einem Nutzer hochgeladen.
+<span class="file-report"><a href="/report/{{.ID}}"><i class="fa fa-exclamation-triangle"></i> Datei melden</a></span>    </div>
+</div>
+</body>
+</html>
+{{end}}

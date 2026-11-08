@@ -42,11 +42,11 @@ func useFakeClouds(t *testing.T, a *App) fakeClouds {
 	wt := wetransfer.NewClient(f.wt.URL, f.wt.Client())
 	st := swisstransfer.NewClient(f.st.URL, f.st.Client())
 	clients := map[string]hosterClient{
-		googledrive.ResolverID:   {googledrive.Resolver{Client: gd}, a.hosterBackend("Google Drive", gd, eng)},
-		dropbox.ResolverID:       {dropbox.Resolver{Client: db}, a.hosterBackend("Dropbox", db, eng)},
-		onedrive.ResolverID:      {onedrive.Resolver{Client: od}, a.hosterBackend("OneDrive", od, eng)},
-		wetransfer.ResolverID:    {wetransfer.Resolver{Client: wt}, a.hosterBackend("WeTransfer", wt, eng)},
-		swisstransfer.ResolverID: {swisstransfer.Resolver{Client: st}, a.hosterBackend("SwissTransfer", st, eng)},
+		googledrive.ResolverID:   {googledrive.Resolver{Client: gd}, a.hosterBackend("Google Drive", "drive.google.com", gd, eng)},
+		dropbox.ResolverID:       {dropbox.Resolver{Client: db}, a.hosterBackend("Dropbox", "dropbox.com", db, eng)},
+		onedrive.ResolverID:      {onedrive.Resolver{Client: od}, a.hosterBackend("OneDrive", "onedrive.live.com", od, eng)},
+		wetransfer.ResolverID:    {wetransfer.Resolver{Client: wt}, a.hosterBackend("WeTransfer", "wetransfer.com", wt, eng)},
+		swisstransfer.ResolverID: {swisstransfer.Resolver{Client: st}, a.hosterBackend("SwissTransfer", "swisstransfer.com", st, eng)},
 	}
 	a.bmu.Lock()
 	for id, c := range clients {

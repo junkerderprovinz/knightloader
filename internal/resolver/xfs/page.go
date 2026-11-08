@@ -97,6 +97,8 @@ func readPage(body string, p Patterns) page {
 		pg.wait = time.Duration(n) * time.Second
 	} else if m := match(p.WaitText, body); m != nil {
 		pg.wait = parseSpan(m[1])
+	} else if match(p.Limit, body) != nil {
+		pg.wait = LimitWait
 	}
 	if m := first(p.Countdown, body); m != nil {
 		n, _ := strconv.Atoi(m[1])
@@ -233,14 +235,21 @@ func match(p *regexp.Regexp, body string) []string {
 	return p.FindStringSubmatch(body)
 }
 
+// LimitWait is how long a free download waits once the page says the
+// address has used up its free downloads without saying for how long.
+const LimitWait = time.Hour
+
 // ParseSize reads a size as the script writes it. Its units are binary,
-// whatever their names say.
+// whatever their names say, and a figure without one is in bytes.
 func ParseSize(figure, unit string) int64 {
 	v, err := strconv.ParseFloat(strings.ReplaceAll(figure, ",", ""), 64)
 	if err != nil {
 		return 0
 	}
-	shift := max(strings.IndexByte("BKMGT", strings.ToUpper(unit)[0]), 0)
+	shift := 0
+	if unit != "" {
+		shift = max(strings.IndexByte("BKMGT", strings.ToUpper(unit)[0]), 0)
+	}
 	return int64(math.Round(v * math.Pow(1024, float64(shift))))
 }
 

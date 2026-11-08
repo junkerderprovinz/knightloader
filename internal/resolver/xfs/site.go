@@ -77,6 +77,9 @@ type Patterns struct {
 	// WaitText the same written out in words, such as "1 hours, 5 minutes".
 	WaitSeconds *regexp.Regexp
 	WaitText    *regexp.Regexp
+	// Limit matches a page that says the address has used up its free
+	// downloads without saying for how long, which is sat out for LimitWait.
+	Limit *regexp.Regexp
 	// Traffic matches a premium login whose traffic is used up.
 	Traffic *regexp.Regexp
 	// Countdown finds the seconds a form wants before it goes in.
@@ -148,6 +151,7 @@ func (p Patterns) with(base Patterns) Patterns {
 		PremiumOnly:   pick(p.PremiumOnly, base.PremiumOnly),
 		WaitSeconds:   pick(p.WaitSeconds, base.WaitSeconds),
 		WaitText:      pick(p.WaitText, base.WaitText),
+		Limit:         pick(p.Limit, base.Limit),
 		Traffic:       pick(p.Traffic, base.Traffic),
 		Countdown:     list(p.Countdown, base.Countdown),
 		Link:          list(p.Link, base.Link),

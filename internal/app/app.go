@@ -293,8 +293,9 @@ type App struct {
 	// id, on the user's login when it has premium. They too live across
 	// rewires, and each resolver shares its backend's client.
 	xfsBackends map[string]*xfs.Backend
-	// hosters are the clients for Pixeldrain, Gofile, Mediafire and the cloud
-	// shares, by resolver id. They too live across rewires.
+	// hosters are the clients for Pixeldrain, Gofile, Mediafire, Krakenfiles,
+	// Workupload and the cloud shares, by resolver id. They too live across
+	// rewires.
 	hosters map[string]hosterClient
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
