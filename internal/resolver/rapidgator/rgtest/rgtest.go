@@ -57,7 +57,27 @@ type Server struct {
 	logins   int
 	requests []string
 	queries  []string
+	// secs is the free page's countdown, pauses the free downloads still
+	// turned away with a delay, and sessions what each free download's
+	// cookie has got to.
+	secs     int
+	pauses   int
+	sessions map[string]*freeRun
 }
+
+// freeRun is one free download on its way through the website.
+type freeRun struct {
+	id      string
+	sid     string
+	counted bool
+}
+
+// SiteKey is the key of the Turnstile on the captcha page, and Token the one
+// answer it takes.
+const (
+	SiteKey = "0x4AAAAAACGwIXkmZ2lsGdCV"
+	Token   = "0.turnstile-answer"
+)
 
 type failure struct {
 	status  int
@@ -71,10 +91,100 @@ func New(t *testing.T) *Server {
 		files:    map[string]File{},
 		tokens:   map[string]*Account{},
 		fail:     map[string][]failure{},
+		secs:     180,
+		sessions: map[string]*freeRun{},
 	}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
 	return s
+}
+
+// Countdown sets the seconds the free page counts down.
+func (s *Server) Countdown(secs int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.secs = secs
+}
+
+// Pause turns the next n free downloads away with a delay of 15 minutes.
+func (s *Server) Pause(n int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.pauses = n
+}
+
+// free answers the steps of a free download after the file page, as
+// JDownloader's plugin finds them: the countdown's two calls, the captcha
+// page and its form. Each step needs the cookie the file page set.
+func (s *Server) free(w http.ResponseWriter, r *http.Request, step string) bool {
+	cookie, _ := r.Cookie("PHPSESSID")
+	var run *freeRun
+	if cookie != nil {
+		run = s.sessions[cookie.Value]
+	}
+	ajax := func(v map[string]any) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(v)
+	}
+	switch step {
+	case "AjaxStartTimer":
+		if run == nil || r.Header.Get("X-Requested-With") != "XMLHttpRequest" || r.URL.Query().Get("fid") == "" {
+			ajax(map[string]any{"state": "error"})
+			return true
+		}
+		run.sid = "s" + run.id[:12]
+		ajax(map[string]any{"state": "started", "sid": run.sid})
+	case "AjaxGetDownloadLink":
+		if run == nil || r.URL.Query().Get("sid") != run.sid {
+			ajax(map[string]any{"state": "error", "code": 1})
+			return true
+		}
+		run.counted = true
+		ajax(map[string]any{"state": "done", "code": 200})
+	case "captcha":
+		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		if run == nil || !run.counted {
+			fmt.Fprint(w, "<html><body><div class=\"error\">An unexpected error occurred.</div></body></html>")
+			return true
+		}
+		_ = r.ParseForm()
+		if r.Method == http.MethodPost {
+			if r.PostForm.Get("DownloadCaptchaForm[verifyCode]") == Token && r.PostForm.Get("DownloadCaptchaForm[captcha]") == "" {
+				link := "http://" + r.Host + "//?r=download/index&session_id=" + run.sid
+				fmt.Fprintf(w, "<html><body><script>var download_link = '%s'; location.href = '%s';</script></body></html>", link, link)
+				return true
+			}
+			fmt.Fprint(w, "<html><body><div class=\"errorSummary\"><p>Please fix the following input errors:</p>"+
+				"<ul><li>The verification code is incorrect.</li></ul></div>")
+		} else {
+			fmt.Fprint(w, "<html><body>")
+		}
+		fmt.Fprintf(w, "<form id=\"captchaform\" action=\"/download/captcha\" method=\"post\">"+
+			"<input type=\"hidden\" name=\"DownloadCaptchaForm[captcha]\" value=\"\" />"+
+			"<div class=\"cf-turnstile\" data-sitekey=\"%s\"></div>"+
+			"<input type=\"submit\" value=\"Download\" /></form></body></html>", SiteKey)
+	default:
+		return false
+	}
+	return true
+}
+
+// serveFree hands out a file through the link a free download's captcha led
+// to.
+func (s *Server) serveFree(w http.ResponseWriter, r *http.Request) bool {
+	sid := r.URL.Query().Get("session_id")
+	if strings.Trim(r.URL.Path, "/") != "" || r.URL.Query().Get("r") != "download/index" || sid == "" {
+		return false
+	}
+	for _, run := range s.sessions {
+		if run.sid == sid && run.counted {
+			f := s.files[run.id]
+			http.ServeContent(w, r, f.Name, time.Time{}, bytes.NewReader(f.Body))
+			return true
+		}
+	}
+	http.NotFound(w, r)
+	return true
 }
 
 // AddAccount lets a.Email sign in with a.Password.
@@ -152,6 +262,8 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	case strings.HasPrefix(path, "/api/v2/"):
 		s.queries = append(s.queries, r.URL.RawQuery)
 		s.api(w, r, strings.TrimPrefix(path, "/api/v2/"))
+	case s.serveFree(w, r):
+	case strings.HasPrefix(path, "/download/") && s.free(w, r, strings.TrimPrefix(path, "/download/")):
 	case strings.HasPrefix(path, "/download/"):
 		f, ok := s.files[strings.TrimPrefix(path, "/download/")]
 		if !ok {
@@ -178,9 +290,19 @@ func (s *Server) page(w http.ResponseWriter, r *http.Request, rest string) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	if s.pauses > 0 {
+		s.pauses--
+		fmt.Fprint(w, "<html><body><div class=\"error\">Delay between downloads must be not less than 15 min.</div></body></html>")
+		return
+	}
+	session := fmt.Sprintf("sess%d", len(s.sessions)+1)
+	s.sessions[session] = &freeRun{id: id}
+	http.SetCookie(w, &http.Cookie{Name: "PHPSESSID", Value: session, Path: "/"})
 	_ = pages.ExecuteTemplate(w, "file.html", map[string]any{
 		"Name": f.Name,
 		"Size": fmt.Sprintf("%.2f KB", float64(len(f.Body))/1024),
+		"Secs": s.secs,
+		"Fid":  894317393,
 	})
 }
 

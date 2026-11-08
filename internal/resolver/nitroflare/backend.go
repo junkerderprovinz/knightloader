@@ -39,8 +39,8 @@ type Backend struct {
 
 func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
 	b := &Backend{client: c, onUpdate: onUpdate, inspectPause: 500 * time.Millisecond}
-	b.Login = ownlogin.NewLogin(ownlogin.Signer{Login: c.Login, None: ErrNoLogin})
-	b.Tasks = ownlogin.NewTasks(eng, onUpdate, ownlogin.Config{Unlock: b.unlock, Reason: reason})
+	b.Login = ownlogin.NewLogin(ownlogin.Signer{Login: c.Login, Reason: reason, None: ErrNoLogin})
+	b.Tasks = ownlogin.NewTasks(b.Login, eng, onUpdate, ownlogin.Config{Name: "Nitroflare", Unlock: b.unlock})
 	return b
 }
 

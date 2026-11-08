@@ -93,6 +93,7 @@ func (a *App) newXFSBackend(c *xfs.Client, eng xfs.Downloader) *xfs.Backend {
 	// What the client found out may open or close the way down a link held
 	// for premium only.
 	b.OnLogin = func(xfs.LoginState) { a.spawn(a.refreshPremiumHolds) }
+	b.Moved = a.ownLoginMoved
 	return b
 }
 
@@ -162,6 +163,8 @@ func (a *App) xfsLoginState(site *xfs.Site) hosterauth.OwnState {
 	}
 	st, signingIn := b.LoginStatus()
 	switch {
+	case b.Handed():
+		return hosterauth.OwnState{Handed: true}
 	case signingIn:
 		return hosterauth.OwnState{SigningIn: true}
 	case st.Refused:

@@ -395,6 +395,24 @@ func TestTroubleAtNitroflareFailsAsUnavailable(t *testing.T) {
 	}
 }
 
+func TestAnAnswerTheClientCannotPlaceGivesTheLoginAndTheDownloadToJDownloader(t *testing.T) {
+	srv := newServer(t, premium())
+	link := srv.Add(fileID, nftest.File{Name: "a.bin", Body: make([]byte, 4096)})
+	srv.Fail("getDownloadLink", http.StatusBadRequest, 99, "Something the API never said before")
+	b, eng, ups := newBackend(srv)
+	b.SetLogin(email, password)
+
+	b.Download("t1", link, nil, 1)
+	u := awaitSettled(t, ups)
+
+	if !u.Unsupported || u.Takeover != "Nitroflare" {
+		t.Errorf("settled as %+v, want the download handed on with Nitroflare named", u)
+	}
+	if st := b.Status(); !st.Handed || b.Ready() || len(eng.handoffs()) > 0 {
+		t.Errorf("the login reads as %+v, want it with JDownloader and out of routing", st)
+	}
+}
+
 func TestThePasswordNeverShowsInAnError(t *testing.T) {
 	srv := nftest.New(t)
 	c := NewClient(srv.URL, srv.Client())

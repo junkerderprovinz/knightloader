@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
 // Account is what a hoster says about a login.
@@ -33,6 +35,9 @@ type Status struct {
 	// Captcha is a refusal that lasts until the user solves a captcha at the
 	// hoster.
 	Captcha bool
+	// Handed is a login KnightLoader's own client could not use and gave to
+	// JDownloader (see Handback).
+	Handed  bool
 	Premium bool
 	Expiry  time.Time
 	// TrafficLeft and TrafficMax are bytes, as in Account.
@@ -58,6 +63,9 @@ type Signer struct {
 	// Account reads the account behind a token, which also proves the token
 	// still works. A hoster without tokens leaves it nil.
 	Account func(ctx context.Context, token string) (Account, error)
+	// Reason is the cause a failure on the login is reported and weighed
+	// with (see Handback.Fail).
+	Reason func(error) core.Reason
 	// Expired reports whether an error of Account means the hoster has
 	// forgotten the token.
 	Expired func(error) bool
@@ -81,6 +89,8 @@ type Session struct {
 // Login is the one stored login of a hoster and what the hoster said about
 // it.
 type Login struct {
+	Handback
+
 	// Checked is called when the hoster's word on the login changes what it
 	// can download. Nil calls nothing.
 	Checked func()
@@ -105,35 +115,48 @@ func NewLogin(s Signer) *Login { return &Login{s: s} }
 // whether it differs from the one before. A different login starts unchecked.
 func (l *Login) SetLogin(user, password string) bool {
 	l.mu.Lock()
-	defer l.mu.Unlock()
 	if user == l.user && password == l.pass {
+		l.mu.Unlock()
 		return false
 	}
 	l.user, l.pass = user, password
 	l.current, l.status, l.benched = Session{}, Status{}, time.Time{}
+	l.mu.Unlock()
+	l.Reclaim()
 	return true
 }
 
 // Ready reports whether the stored login can be expected to download: there
-// is one, the hoster has not turned it down or called it free, and it is not
-// benched. It takes no lock but the login's, so the app may ask while holding
-// its own.
+// is one, the hoster has not turned it down or called it free, and it is
+// neither benched nor with JDownloader. It takes no lock but the login's, so
+// the app may ask while holding its own.
 func (l *Login) Ready() bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	return l.user != "" && !l.status.Refused && (!l.status.Checked || l.status.Premium) && time.Now().After(l.benched)
+	return l.user != "" && !l.status.Refused && (!l.status.Checked || l.status.Premium) &&
+		time.Now().After(l.benched) && !l.Handed()
 }
 
 // Status is what the hoster made of the stored login.
 func (l *Login) Status() Status {
 	l.mu.Lock()
-	defer l.mu.Unlock()
-	return l.status
+	st := l.status
+	l.mu.Unlock()
+	st.Handed = l.Handed()
+	return st
 }
 
-// Check asks the hoster about the stored login and returns its answer.
+// Check asks the hoster about the stored login and returns its answer. A
+// login with JDownloader comes back once the answer reads, a refusal
+// included, and a login whose answer does not read goes there.
 func (l *Login) Check(ctx context.Context) Status {
-	_, _ = l.Session(ctx, false)
+	_, err := l.Session(ctx, false)
+	var refused *LoginError
+	if err == nil || errors.As(err, &refused) {
+		l.Reclaim()
+	} else {
+		l.Fail(err, l.s.Reason(err))
+	}
 	return l.Status()
 }
 

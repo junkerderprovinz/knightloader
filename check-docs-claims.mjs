@@ -454,6 +454,7 @@ const RESOLVER_NAMES = {
   rapidgator: 'Rapidgator',
   keep2share: 'Keep2Share',
   nitroflare: 'Nitroflare',
+  filer: 'filer.net',
   ddownload: 'ddownload',
   // The shared client of the hosters built on the XFileSharing script.
   xfs: 'XFileSharing',

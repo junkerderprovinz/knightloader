@@ -467,6 +467,27 @@ func TestTroubleAtKeep2ShareFailsAsUnavailable(t *testing.T) {
 	}
 }
 
+func TestAnAnswerTheClientCannotPlaceGivesTheLoginAndTheDownloadToJDownloader(t *testing.T) {
+	srv := newServer(t, premium())
+	link := srv.Add(fileID, k2stest.File{Name: "a.bin", Body: make([]byte, 4096)})
+	srv.Fail("getUrl", http.StatusBadRequest, 99, "Something the API never said before", 0)
+	b, eng, ups := newBackend(srv)
+	b.SetLogin(email, password)
+
+	b.Download("t1", link, nil, 1)
+	u := awaitSettled(t, ups)
+
+	if !u.Unsupported || u.Takeover != "Keep2Share" {
+		t.Errorf("settled as %+v, want the download handed on with Keep2Share named", u)
+	}
+	if st := b.Status(); !st.Handed || b.Ready() || len(eng.handoffs()) > 0 {
+		t.Errorf("the login reads as %+v, want it with JDownloader and out of routing", st)
+	}
+	if st := b.Check(context.Background()); st.Handed || !b.Ready() {
+		t.Errorf("after a check that worked the login reads as %+v, want it back", st)
+	}
+}
+
 func TestTooManySignInsWaitAndShowOnTheTask(t *testing.T) {
 	srv := newServer(t, premium())
 	link := srv.Add(fileID, k2stest.File{Name: "a.bin", Body: make([]byte, 4096)})

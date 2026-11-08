@@ -208,6 +208,9 @@ type Update struct {
 	// The task moves on like Unsupported, and the service is passed over for
 	// that site alone instead of being benched for every site.
 	HostDown bool
+	// Takeover names the hoster whose own client could not use the login and
+	// gave it to JDownloader, on an Unsupported that takes the task along.
+	Takeover string
 	// Reason is a cause the backend itself recognised, and it wins over the
 	// shared classifier in internal/app. Only the backend has seen its tool's
 	// full output; Err is cut short. Empty means no opinion.
@@ -605,6 +608,9 @@ type Task struct {
 	// Note is the backend's own word for what is happening now, such as
 	// "Captcha recognition". See Update.Note.
 	Note string `json:"note,omitempty"`
+	// Takeover names the hoster whose own client gave this download to
+	// JDownloader with the login (see Update.Takeover), until it is done.
+	Takeover string `json:"takeover,omitempty"`
 	// Mode says whether the download uses a paid account, for display only;
 	// routing is jd.PriorityFor's job. It is not a Reason, which is
 	// failure-only and cleared on requeue.

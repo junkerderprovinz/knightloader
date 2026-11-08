@@ -2,6 +2,8 @@ package app
 
 import (
 	"bytes"
+	"errors"
+	"net/http"
 	"os"
 	"slices"
 	"testing"
@@ -11,6 +13,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/filer"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/filer/filertest"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share/k2stest"
@@ -18,19 +22,28 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/nitroflare/nftest"
 )
 
-// useOwnHoster puts h in place of the app's hoster of the same id.
+// useOwnHoster puts h in place of the app's hoster of the same id. The free
+// client of the hoster it replaces goes too, since it speaks to the live
+// site.
 func useOwnHoster(a *App, h *ownHoster) {
 	own := a.ownHosters(engineHandoff{a.Engine, a})
 	a.bmu.Lock()
 	// A fresh slice, as the app reads the old one without the lock.
 	a.own = slices.Clone(own)
 	for i := range a.own {
-		if a.own[i].id == h.id {
-			a.own[i] = h
+		if a.own[i].id != h.id {
+			continue
 		}
+		if old := a.own[i].free; old != nil {
+			a.Registry.Unregister(old.id)
+		}
+		a.own[i] = h
 	}
 	a.bmu.Unlock()
 	a.Registry.Register(h.res)
+	if h.free != nil {
+		a.Registry.Register(h.free.res)
+	}
 	a.syncOwnLogins()
 }
 
@@ -40,7 +53,7 @@ const k2sFile = "2cfa1607527dc"
 func useKeep2Share(a *App, srv *k2stest.Server) {
 	h := keep2share.Keep2Share
 	b := keep2share.NewBackend(h, keep2share.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
-	b.Checked = a.refreshPremiumHolds
+	b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
 	useOwnHoster(a, &ownHoster{id: h.ID, site: h.Site, normalize: h.Normalize, be: b, res: keep2share.Resolver{Backend: b}})
 }
 
@@ -56,7 +69,7 @@ const nfFile = "CDB87F04326E3EE"
 // useNitroflare points the app's Nitroflare client at srv.
 func useNitroflare(a *App, srv *nftest.Server) {
 	b := nitroflare.NewBackend(nitroflare.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
-	b.Checked = a.refreshPremiumHolds
+	b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
 	useOwnHoster(a, &ownHoster{id: nitroflare.ResolverID, site: nitroflare.Site, normalize: nitroflare.Normalize,
 		be: b, res: nitroflare.Resolver{Backend: b}})
 }
@@ -203,5 +216,163 @@ func TestANitroflareFileIsNamedInTheCollectorAndDownloaded(t *testing.T) {
 	got, err := os.ReadFile(file)
 	if err != nil || !bytes.Equal(got, body) {
 		t.Errorf("%s does not hold the file (%v)", file, err)
+	}
+}
+
+func TestALoginTheOwnClientCannotUseGoesToJDAndComesBackWhenSavedAgain(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.Registry.Register(jd.Resolver{})
+	jd.SetKnownHosts([]string{"keep2share.cc"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	srv := k2sServer(t, false)
+	srv.Fail("login", http.StatusBadRequest, 99, "Something the API never said before", 0)
+	useKeep2Share(a, srv)
+	const link = "https://k2s.cc/file/" + k2sFile + "/a.rar"
+
+	if err := a.SetHosterLogin("k2s.cc", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "the row saying JD has the login", func() bool {
+		row, ok := loginRow(a, "k2s.cc")
+		return ok && row.HandedOver && row.Enabled
+	})
+	if got := chainIDs(a, link); slices.Contains(got, keep2share.Keep2Share.ID) {
+		t.Errorf("chain = %v, want the links gone from KnightLoader's client", got)
+	}
+	for _, r := range a.ResolverPriority("") {
+		if r.ID == loginRowID("k2s.cc") && r.OwnLogin {
+			t.Error("the card marks the login as KnightLoader's own")
+		}
+	}
+
+	if err := a.SetHosterLogin("k2s.cc", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "the login back with KnightLoader", func() bool {
+		row, ok := loginRow(a, "k2s.cc")
+		return ok && !row.HandedOver && row.Status == hosterauth.StatusActive && row.Tier == "premium"
+	})
+	if got := chainIDs(a, link); len(got) == 0 || got[0] != keep2share.Keep2Share.ID {
+		t.Errorf("chain = %v, want KnightLoader's client first again", got)
+	}
+}
+
+func TestADownloadTheOwnClientGaveUpOnMovesToTheNextBackendNamingTheTakeover(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.Registry.Register(jd.Resolver{})
+	jd.SetKnownHosts([]string{"keep2share.cc"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	task := &core.Task{ID: "1", URL: "https://k2s.cc/file/" + k2sFile, Resolver: keep2share.Keep2Share.ID, Status: core.StatusRunning, Enabled: true}
+	a.mu.Lock()
+	// Held, so the task moved on starts nowhere: no JD is set up here, and the
+	// hoster's clients speak to the live site.
+	a.halted = true
+	a.tasks[task.ID] = task
+	a.active[task.ID] = true
+	a.started[task.ID] = true
+	a.mu.Unlock()
+
+	a.onUpdate(task.ID, core.Update{Status: core.StatusError, Err: "Keep2Share: the answer does not read",
+		Unsupported: true, Takeover: "Keep2Share"})
+	a.mu.Lock()
+	resolverID, takeover, failed := task.Resolver, task.Takeover, task.Status == core.StatusError
+	a.mu.Unlock()
+	if resolverID != "jd" || takeover != "Keep2Share" || failed {
+		t.Errorf("task on %q with takeover %q, failed %v; want it with JD, naming Keep2Share", resolverID, takeover, failed)
+	}
+
+	a.mu.Lock()
+	a.active[task.ID] = true
+	a.mu.Unlock()
+	a.onUpdate(task.ID, core.Update{Status: core.StatusDone})
+	a.mu.Lock()
+	takeover = task.Takeover
+	a.mu.Unlock()
+	if takeover != "" {
+		t.Errorf("a finished download still names the takeover %q", takeover)
+	}
+}
+
+func TestAFilerLoginDownloadsNativelyAndItsLinksAreNamedWithoutOne(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.Registry.Register(jd.Resolver{})
+	jd.SetKnownHosts([]string{"filer.net"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	srv := filertest.New(t)
+	srv.AddAccount(filertest.Account{Email: "john@example.com", Password: "hunter2", Premium: true,
+		Until: time.Now().AddDate(0, 1, 0), Traffic: 125 << 30, TrafficLeft: 100 << 30})
+	b := filer.NewBackend(filer.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
+	b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	useOwnHoster(a, &ownHoster{id: filer.ResolverID, site: filer.Site, normalize: filer.Normalize, be: b, res: filer.Resolver{Backend: b}})
+	link := srv.Add("dv6qg8tfckhk7mja", filertest.File{Name: "Isle of Dogs.mkv", Body: make([]byte, 500<<10)})
+
+	created := a.AddLinks([]string{link}, "")
+	if len(created) != 1 || created[0].Resolver != "jd" {
+		t.Fatalf("staged %+v, want the row with JD's free mode", created)
+	}
+	waitFor(t, "the API naming the file", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		task := a.tasks[created[0].ID]
+		return task.Name == "Isle of Dogs.mkv" && task.Size == 500<<10 && task.Online == core.AvailOnline
+	})
+
+	if err := a.SetHosterLogin("filer.net", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	if got := chainIDs(a, link); len(got) < 2 || got[0] != filer.ResolverID || got[1] != "jd" {
+		t.Errorf("chain = %v, want the login first, then JD", got)
+	}
+	waitFor(t, "filer.net's word on the login", func() bool {
+		row, ok := loginRow(a, "filer.net")
+		return ok && row.Status == hosterauth.StatusActive && row.Tier == "premium" && row.TrafficLeft == 100<<30
+	})
+	if !a.HonoursCollisionPolicy(filer.ResolverID) {
+		t.Error("the file the engine writes for filer.net skips the collision policy")
+	}
+}
+
+func TestAFreeFilerLinkGoesToTheFreeClientBelowTheDebridServicesAndAboveJD(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.Registry.Register(jd.Resolver{})
+	a.Registry.Register(debrid.Resolver{ServiceID: "alldebrid", Prio: 49, Hosts: map[string]bool{"filer.net": true}})
+	jd.SetKnownHosts([]string{"filer.net"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	srv := filertest.New(t)
+	srv.AddAccount(filertest.Account{Email: "john@example.com", Password: "hunter2", Premium: true,
+		Until: time.Now().AddDate(0, 1, 0), Traffic: 125 << 30, TrafficLeft: 100 << 30})
+	b := filer.NewBackend(filer.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
+	b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	fb := filer.NewFreeBackend(filer.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
+	useOwnHoster(a, &ownHoster{id: filer.ResolverID, site: filer.Site, normalize: filer.Normalize, be: b, res: filer.Resolver{Backend: b},
+		free: a.newOwnFree(filer.FreeResolverID, filer.Site, filer.FreeResolver{}, fb.Free, fb, b.Handed)})
+	const link = "https://filer.net/get/dv6qg8tfckhk7mja"
+
+	if got := chainIDs(a, link); !slices.Equal(got[:3], []string{"alldebrid", filer.FreeResolverID, "jd"}) {
+		t.Errorf("chain without a login = %v, want the debrid service, the free client, then JD", got)
+	}
+	a.mu.Lock()
+	mode := a.modeForLocked(&core.Task{URL: link}, filer.FreeResolverID)
+	a.mu.Unlock()
+	if mode != core.ModeFree {
+		t.Errorf("mode = %q, want free", mode)
+	}
+	if !slices.Contains(priorityIDs(a), filer.FreeResolverID) {
+		t.Errorf("the card shows %v, want a row for the free client", priorityIDs(a))
+	}
+	if a.backendFor(filer.FreeResolverID) != backend(fb) || !a.HonoursCollisionPolicy(filer.FreeResolverID) {
+		t.Error("the free client's tasks do not reach its backend")
+	}
+
+	if err := a.SetHosterLogin("filer.net", "john@example.com", "hunter2"); err != nil {
+		t.Fatal(err)
+	}
+	if got := chainIDs(a, link); len(got) < 3 || got[0] != filer.ResolverID || got[1] != "alldebrid" || got[2] != filer.FreeResolverID {
+		t.Errorf("chain = %v, want the login first, then the debrid service and the free client", got)
+	}
+
+	b.Fail(errors.New("filer.net: something new"), core.ReasonUnknown)
+	if got := chainIDs(a, link); slices.Contains(got, filer.FreeResolverID) || slices.Contains(got, filer.ResolverID) {
+		t.Errorf("chain = %v, want both clients standing aside while JD has the login", got)
 	}
 }

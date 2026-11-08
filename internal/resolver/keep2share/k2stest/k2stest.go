@@ -39,6 +39,11 @@ type File struct {
 	Blocked bool
 }
 
+// Code is the one answer the image captcha takes, and Picture its image.
+const Code = "48213"
+
+var Picture = []byte("PNG k2s captcha")
+
 // Server answers for the accounts and files it was given. A client pointed at
 // URL reaches it.
 type Server struct {
@@ -53,6 +58,10 @@ type Server struct {
 	fail     map[string][]failure
 	logins   int
 	requests []string
+	// freeWait is the wait an accepted captcha comes with, in seconds.
+	freeWait   int
+	challenges map[string]bool
+	keys       map[string]string
 }
 
 type failure struct {
@@ -70,6 +79,10 @@ func New(t *testing.T, domain string) *Server {
 		tokens:   map[string]*Account{},
 		paid:     map[string]bool{},
 		fail:     map[string][]failure{},
+
+		freeWait:   30,
+		challenges: map[string]bool{},
+		keys:       map[string]string{},
 	}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
@@ -112,6 +125,13 @@ func (s *Server) Fail(method string, status int, errorCode any, message string, 
 	s.fail[method] = append(s.fail[method], failure{status, body})
 }
 
+// FreeWait sets the wait an accepted captcha comes with.
+func (s *Server) FreeWait(seconds int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.freeWait = seconds
+}
+
 // Logins is how many times login was called.
 func (s *Server) Logins() int {
 	s.mu.Lock()
@@ -131,6 +151,13 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	defer s.mu.Unlock()
 	s.requests = append(s.requests, r.Method+" "+r.URL.Path)
 	switch path := r.URL.Path; {
+	case path == "/api/v2/captcha" && r.Method == http.MethodGet:
+		if !s.challenges[r.URL.Query().Get("id")] {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(Picture)
 	case strings.HasPrefix(path, "/api/v2/"):
 		s.api(w, r, strings.TrimPrefix(path, "/api/v2/"))
 	case strings.HasPrefix(path, "/download/"):
@@ -156,6 +183,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request, method string) {
 		AuthToken string   `json:"auth_token"`
 		IDs       []string `json:"ids"`
 		FileID    string   `json:"file_id"`
+		Challenge string   `json:"captcha_challenge"`
+		Response  string   `json:"captcha_response"`
+		FreeKey   string   `json:"free_download_key"`
 	}
 	if r.Method != http.MethodPost || json.NewDecoder(r.Body).Decode(&in) != nil {
 		answer(w, http.StatusBadRequest, map[string]any{"status": "error", "code": 400, "errorCode": 2, "message": "Invalid request params"})
@@ -184,10 +214,19 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request, method string) {
 			"available_traffic": acct.Traffic, "account_expires": expires})
 	case "getFilesInfo":
 		s.filesInfo(w, in.IDs)
+	case "requestCaptcha":
+		challenge := strings.ToLower(rand.Text())[:13]
+		s.challenges[challenge] = true
+		answer(w, http.StatusOK, map[string]any{"status": "success", "code": 200, "challenge": challenge,
+			"captcha_url": s.URL + "/api/v2/captcha?id=" + challenge})
 	case "getUrl":
 		acct := s.tokens[in.AuthToken]
 		if in.AuthToken != "" && acct == nil {
 			answer(w, http.StatusForbidden, notAuthorized)
+			return
+		}
+		if in.AuthToken == "" && (in.Challenge != "" || in.FreeKey != "") {
+			s.freeURL(w, in.FileID, in.Challenge, in.Response, in.FreeKey)
 			return
 		}
 		s.getURL(w, acct, in.FileID)
@@ -262,6 +301,35 @@ func (s *Server) getURL(w http.ResponseWriter, acct *Account, id string) {
 		}
 		answer(w, http.StatusOK, map[string]any{"status": "success", "code": 200,
 			"url": s.URL + "/download/" + id + "?temp_url_sig=" + rand.Text() + "&project=k2s"})
+	}
+}
+
+// freeURL answers a free getUrl as the API documents it: an accepted captcha
+// with a key and a wait, the key with the link.
+func (s *Server) freeURL(w http.ResponseWriter, id, challenge, response, key string) {
+	f, ok := s.files[id]
+	switch {
+	case !ok:
+		answer(w, http.StatusNotAcceptable, map[string]any{"status": "error", "code": 406, "message": "File not found", "errorCode": 20})
+	case key != "":
+		if s.keys[key] != id {
+			answer(w, http.StatusNotAcceptable, map[string]any{"status": "error", "code": 406, "message": "Wrong free download key", "errorCode": 40})
+			return
+		}
+		delete(s.keys, key)
+		answer(w, http.StatusOK, map[string]any{"status": "success", "code": 200,
+			"url": s.URL + "/download/" + id + "?temp_url_sig=" + rand.Text() + "&rate_limit=51200"})
+	case !s.challenges[challenge] || response != Code:
+		delete(s.challenges, challenge)
+		answer(w, http.StatusNotAcceptable, map[string]any{"status": "error", "code": 406, "message": "Invalid captcha code", "errorCode": 31})
+	case f.Blocked:
+		answer(w, http.StatusNotAcceptable, map[string]any{"status": "error", "code": 406, "message": "File is blocked", "errorCode": 22})
+	default:
+		delete(s.challenges, challenge)
+		k := strings.ToLower(rand.Text())[:16]
+		s.keys[k] = id
+		answer(w, http.StatusOK, map[string]any{"status": "success", "code": 200, "message": "Captcha accepted, please wait",
+			"free_download_key": k, "time_wait": s.freeWait})
 	}
 }
 

@@ -60,6 +60,8 @@ export const RELEASES: Release[] = [
       { id: 'xfs-hosters', text: 'whatsnew.change.xfsHosters' },
       { id: 'filehosts-native', text: 'whatsnew.change.filehostsNative' },
       { id: 'cloud-native', text: 'whatsnew.change.cloudNative' },
+      { id: 'filer-native', text: 'whatsnew.change.filerNative' },
+      { id: 'free-hosters-native', text: 'whatsnew.change.freeHostersNative' },
     ],
   },
   {
