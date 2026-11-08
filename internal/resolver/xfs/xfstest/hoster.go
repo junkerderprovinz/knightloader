@@ -60,8 +60,8 @@ func CheckHoster(t *testing.T, h Hoster) {
 
 		b.Download("t1", link, nil, 1)
 		got := await(t, eng, rec)
-		if got.url != srv.URL+"/d/k3m9x2p7q1ab/a.bin" || got.conns != h.Site.FreeConns {
-			t.Errorf("handed on %+v, want the link for %d connections", got, h.Site.FreeConns)
+		if got.url != srv.URL+"/d/k3m9x2p7q1ab/a.bin" || got.conns != h.Site.FreeConns || got.once != h.Site.FreeOnce {
+			t.Errorf("handed on %+v, want the link for %d connections, answering once: %v", got, h.Site.FreeConns, h.Site.FreeOnce)
 		}
 		if w := rec.waited(); w < h.Countdown+19*time.Second || w > h.Countdown+20*time.Second {
 			t.Errorf("waited %s, want the page's countdown and the second form's", w)
@@ -95,7 +95,7 @@ func CheckHoster(t *testing.T, h Hoster) {
 		}
 
 		b.Download("t1", link, nil, 1)
-		if got := await(t, eng, rec); got.conns != h.Site.PremiumConns {
+		if got := await(t, eng, rec); got.conns != h.Site.PremiumConns || got.once {
 			t.Errorf("handed on %+v, want the premium's %d connections", got, h.Site.PremiumConns)
 		}
 	})
@@ -110,12 +110,17 @@ func (h Hoster) server(t *testing.T) *Server {
 type handoff struct {
 	url   string
 	conns int
+	once  bool
 }
 
 type engine struct{ got chan handoff }
 
 func (e engine) Handover(_, url string, conns int, _ func(context.Context) (string, error)) {
-	e.got <- handoff{url, conns}
+	e.got <- handoff{url, conns, false}
+}
+
+func (e engine) HandoverOnce(_, url string, _ func(context.Context) (string, error)) {
+	e.got <- handoff{url, 1, true}
 }
 func (engine) Pause(string)        {}
 func (engine) Resume(string)       {}

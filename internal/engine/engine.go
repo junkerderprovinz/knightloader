@@ -485,6 +485,11 @@ type Job struct {
 	// over several sources (see multisource.go). Nil fetches from URL alone.
 	Sources func(ctx context.Context) []string
 
+	// Once is set for a link that answers a single request, such as a free
+	// 1fichier download's. The file is read whole from the response its
+	// resolve opened, over one connection, and cannot resume part way.
+	Once bool
+
 	// PassOnPlaylists is set for a link taken for a file by its look alone. A
 	// stream playlist arriving there fails the job as unsupported, so the app
 	// hands the link to the next backend. Only the first bytes tell, since a
@@ -643,7 +648,7 @@ func hungUp(err error) error {
 func (e *Engine) resolveAs(ctx context.Context, j Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
 	req := &base.Request{
 		URL:    j.URL,
-		Extra:  &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
+		Extra:  &fhttp.ReqExtra{Method: "GET", Header: j.Headers, Once: j.Once},
 		Labels: map[string]string{taskLabel: j.TaskID},
 		Proxy:  requestProxy(j.Route),
 	}

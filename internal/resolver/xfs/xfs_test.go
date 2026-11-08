@@ -30,6 +30,10 @@ type fakeEngine struct {
 func (f *fakeEngine) Handover(_, url string, conns int, _ func(context.Context) (string, error)) {
 	f.got <- handoff{url, conns}
 }
+
+func (f *fakeEngine) HandoverOnce(_, url string, _ func(context.Context) (string, error)) {
+	f.got <- handoff{url, 1}
+}
 func (f *fakeEngine) Pause(string)        {}
 func (f *fakeEngine) Resume(string)       {}
 func (f *fakeEngine) Remove(string, bool) {}

@@ -11,9 +11,10 @@ import (
 
 // Downloader is the byte-transfer backend the download link is handed to.
 type Downloader interface {
-	// Handover starts the transfer of url. relink reads the file's page again
-	// for a fresh url, for what is left when this one stops working part way.
-	Handover(taskID, url string, conns int, relink func(context.Context) (string, error))
+	// HandoverOnce starts the transfer of url, which answers a single
+	// request, over one connection. relink reads the file's page again for a
+	// fresh url, for what is left when this one stops working part way.
+	HandoverOnce(taskID, url string, relink func(context.Context) (string, error))
 	Pause(taskID string)
 	Resume(taskID string)
 	Remove(taskID string, deleteFiles bool)
@@ -95,13 +96,14 @@ func (b *Backend) unlock(ctx context.Context, taskID, link string, countdown fun
 	return p.Fetch(ctx, b.password(taskID))
 }
 
-// handOn gives the link to the engine for one connection, all a free
-// download gets.
+// handOn gives the link to the engine. A free download gets one connection,
+// and its link answers one request: a second, even for the rest of the file,
+// is answered 410.
 func (b *Backend) handOn(ctx context.Context, taskID, link, direct string) {
 	if !b.Handing(ctx, taskID) {
 		return
 	}
-	b.eng.Handover(taskID, direct, 1, func(ctx context.Context) (string, error) {
+	b.eng.HandoverOnce(taskID, direct, func(ctx context.Context) (string, error) {
 		return b.unlock(ctx, taskID, link, func(w *WaitError) error { return b.sleep(ctx, w.Wait) })
 	})
 }

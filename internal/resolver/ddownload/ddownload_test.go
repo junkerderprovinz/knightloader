@@ -120,6 +120,10 @@ func (f *fakeEngine) Handover(_, url string, conns int, relink func(context.Cont
 	f.got <- h
 }
 
+func (f *fakeEngine) HandoverOnce(taskID, url string, relink func(context.Context) (string, error)) {
+	f.Handover(taskID, url, 1, relink)
+}
+
 func (f *fakeEngine) Pause(id string) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

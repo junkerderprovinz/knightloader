@@ -1,6 +1,7 @@
 // Package fichiertest is a stand-in for 1fichier's website: the file pages a
 // free download goes through, the form behind them and the download server,
-// with the waits and refusals 1fichier hands out on request.
+// with the waits and refusals 1fichier hands out on request. Like 1fichier's,
+// the link a form hands out answers one request and is gone after it.
 package fichiertest
 
 import (
@@ -47,11 +48,15 @@ type Server struct {
 	posts     []url.Values
 	requests  []string
 	noCookie  []string
+
+	// unlocked holds the files whose link a form handed out and nobody has
+	// fetched since.
+	unlocked map[string]bool
 }
 
 // New starts a server that closes when the test ends.
 func New(t *testing.T) *Server {
-	s := &Server{files: map[string]File{}}
+	s := &Server{files: map[string]File{}, unlocked: map[string]bool{}}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
 	return s
@@ -128,6 +133,11 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			http.NotFound(w, r)
 			return
 		}
+		if !s.unlocked[id] {
+			w.WriteHeader(http.StatusGone)
+			return
+		}
+		delete(s.unlocked, id)
 		http.ServeContent(w, r, f.Name, time.Time{}, bytes.NewReader(f.Body))
 		return
 	}
@@ -163,7 +173,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		s.afterForm = 0
 		s.render(w, "cooldown.html", data)
 	case r.Method == http.MethodPost:
-		s.post(w, r, f, data)
+		s.post(w, r, id, f, data)
 	default:
 		data["Countdown"] = s.countdown
 		s.render(w, "file.html", data)
@@ -172,13 +182,14 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 
 // post answers the form: with the download link, or with the form again for
 // a wrong password.
-func (s *Server) post(w http.ResponseWriter, r *http.Request, f File, data map[string]any) {
+func (s *Server) post(w http.ResponseWriter, r *http.Request, id string, f File, data map[string]any) {
 	_ = r.ParseForm()
 	s.posts = append(s.posts, r.PostForm)
 	if f.Password != "" && r.PostForm.Get("pass") != f.Password {
 		s.render(w, "file.html", data)
 		return
 	}
+	s.unlocked[id] = true
 	s.render(w, "link.html", data)
 }
 

@@ -16,6 +16,9 @@ type Downloader interface {
 	// Handover starts the transfer of url. relink reads the file's page again
 	// for a fresh url, for what is left when this one stops working part way.
 	Handover(taskID, url string, conns int, relink func(context.Context) (string, error))
+	// HandoverOnce is Handover over one connection for a url that answers a
+	// single request.
+	HandoverOnce(taskID, url string, relink func(context.Context) (string, error))
 	Pause(taskID string)
 	Resume(taskID string)
 	Remove(taskID string, deleteFiles bool)
@@ -241,14 +244,14 @@ func (b *Backend) learnAccount(change func(*Account)) {
 func (b *Backend) run(ctx context.Context, taskID, link string, _ int) {
 	captchas := 1
 	for {
-		direct, conns, err := b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.wait(ctx, taskID, d) })
+		direct, terms, err := b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.wait(ctx, taskID, d) })
 		var w *WaitError
 		switch {
 		case ctx.Err() != nil:
 			// Pause and Remove set the task's state themselves.
 			return
 		case err == nil:
-			b.handOn(ctx, taskID, link, direct, conns)
+			b.handOn(ctx, taskID, link, direct, terms)
 			return
 		case errors.As(err, &w):
 			if b.wait(ctx, taskID, w.Wait) != nil {
@@ -263,16 +266,24 @@ func (b *Backend) run(ctx context.Context, taskID, link string, _ int) {
 	}
 }
 
-// unlock fetches the download link and the connections it may use, on the
+// terms are what the site allows with a download link.
+type terms struct {
+	conns int
+	// once is set for a link that answers a single request (see
+	// Site.FreeOnce).
+	once bool
+}
+
+// unlock fetches the download link and what it may be used for, on the
 // login while it has premium and for free otherwise. countdown sits out the
 // free page's countdown.
-func (b *Backend) unlock(ctx context.Context, taskID, link string, countdown func(time.Duration) error) (string, int, error) {
+func (b *Backend) unlock(ctx context.Context, taskID, link string, countdown func(time.Duration) error) (string, terms, error) {
 	if b.Premium() {
 		direct, err := b.unlockPremium(ctx, taskID, link)
-		return direct, b.site.PremiumConns, err
+		return direct, terms{conns: b.site.PremiumConns}, err
 	}
 	direct, err := b.unlockFree(ctx, taskID, link, countdown)
-	return direct, b.site.FreeConns, err
+	return direct, terms{conns: b.site.FreeConns, once: b.site.FreeOnce}, err
 }
 
 func (b *Backend) unlockPremium(ctx context.Context, taskID, link string) (string, error) {
@@ -392,14 +403,19 @@ func (b *Backend) solve(ctx context.Context, taskID string, c Captcha) (string, 
 }
 
 // handOn gives the link to the engine.
-func (b *Backend) handOn(ctx context.Context, taskID, link, direct string, conns int) {
+func (b *Backend) handOn(ctx context.Context, taskID, link, direct string, t terms) {
 	if !b.Handing(ctx, taskID) {
 		return
 	}
-	b.eng.Handover(taskID, direct, conns, func(ctx context.Context) (string, error) {
+	relink := func(ctx context.Context) (string, error) {
 		direct, _, err := b.unlock(ctx, taskID, link, func(d time.Duration) error { return b.Sleep(ctx, d) })
 		return direct, err
-	})
+	}
+	if t.once {
+		b.eng.HandoverOnce(taskID, direct, relink)
+		return
+	}
+	b.eng.Handover(taskID, direct, t.conns, relink)
 }
 
 // wait sits out d, keeping the time left in the task's note.

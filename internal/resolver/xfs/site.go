@@ -45,6 +45,10 @@ type Site struct {
 	PremiumCaptcha bool
 	// FreeConns and PremiumConns are the connections a download may use.
 	FreeConns, PremiumConns int
+	// FreeOnce is set for a site whose free link answers a single request,
+	// one that JDownloader's plugin downloads without resume. The file is
+	// then read whole from the first response (see engine.Job.Once).
+	FreeOnce bool
 	// DailyTraffic is what a premium plan gets per day, in bytes, when the
 	// account page does not say. 0 is not known.
 	DailyTraffic int64

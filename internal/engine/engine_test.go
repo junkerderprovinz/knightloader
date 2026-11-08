@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -416,6 +418,42 @@ func TestADownloadThatSteppedAroundAFileReportsWhereItWrote(t *testing.T) {
 	}
 	if b, err := os.ReadFile(theirs); err != nil || string(b) != "already here" {
 		t.Errorf("the file that was already there was touched: %q, %v", b, err)
+	}
+}
+
+// A free 1fichier link answers one request and turns away every later one
+// with 410, while it advertises ranges like any other.
+func TestALinkThatAnswersOnceIsDownloadedFromItsFirstResponse(t *testing.T) {
+	dir := t.TempDir()
+	body := make([]byte, 1<<20)
+	rand.Read(body)
+	var mu sync.Mutex
+	var asked []string
+	got := settleFrom(t, dir, "once.bin", Job{Once: true}, func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		asked = append(asked, r.Header.Get("Range"))
+		again := len(asked) > 1
+		mu.Unlock()
+		if again {
+			w.WriteHeader(http.StatusGone)
+			return
+		}
+		w.Header().Set("Accept-Ranges", "bytes")
+		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+		for p := body; len(p) > 0; p = p[min(len(p), 64<<10):] {
+			w.Write(p[:min(len(p), 64<<10)])
+			w.(http.Flusher).Flush()
+			time.Sleep(5 * time.Millisecond)
+		}
+	})
+	if last := got[len(got)-1]; last.Status != core.StatusDone {
+		t.Fatalf("the download ended as %q: %s", last.Status, last.Err)
+	}
+	if len(asked) != 1 {
+		t.Errorf("the link was asked %d times, with the ranges %q; want once", len(asked), asked)
+	}
+	if b, err := os.ReadFile(filepath.Join(dir, "once.bin")); err != nil || !bytes.Equal(b, body) {
+		t.Errorf("the file holds %d bytes, %v; want the download", len(b), err)
 	}
 }
 

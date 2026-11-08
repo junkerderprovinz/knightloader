@@ -185,10 +185,11 @@ require (
 // (ResolveContext) and releases a discarded one's files before Discard
 // returns, fixes a panic when the torrent client is closed right after it was
 // built, locks a task's connection list while the task is saved, spreads a
-// ranged download over mirror URLs, reads a file of a running task, and
-// starts a download restored from a saved task without a ten second wait:
+// ranged download over mirror URLs, reads a file of a running task, reads a
+// link that answers once from its resolve response, and starts a download
+// restored from a saved task without a ten second wait:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261028014801-7384cec971e9
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261108080126-7ccce87b55a4
 
 // The anacrolix/torrent fork the gopeed fork uses: trackers keep announcing
 // after a torrent is dropped or added again, closing the client sends the

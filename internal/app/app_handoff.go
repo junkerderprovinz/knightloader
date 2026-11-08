@@ -26,25 +26,31 @@ type engineHandoff struct {
 
 // Download is the WebDAV handover, whose login travels as headers.
 func (h engineHandoff) Download(taskID, url string, headers map[string]string, conns int) {
-	h.start(taskID, url, headers, conns, nil)
+	h.start(taskID, url, headers, conns, nil, false)
 }
 
 // Handover is a debrid service's or TorBox's, with its way back to a fresh
 // link (see engine.Job.Relink).
 func (h engineHandoff) Handover(taskID, url string, conns int, relink func(context.Context) (string, error)) {
-	h.start(taskID, url, nil, conns, relink)
+	h.start(taskID, url, nil, conns, relink, false)
 }
 
 // HandoverHeaders is Handover for a hoster whose download servers want
 // headers of their own, such as Gofile's account token cookie.
 func (h engineHandoff) HandoverHeaders(taskID, url string, headers map[string]string, conns int, relink func(context.Context) (string, error)) {
-	h.start(taskID, url, headers, conns, relink)
+	h.start(taskID, url, headers, conns, relink, false)
+}
+
+// HandoverOnce is Handover for a link that answers a single request, such as
+// a free 1fichier download's (see engine.Job.Once).
+func (h engineHandoff) HandoverOnce(taskID, url string, relink func(context.Context) (string, error)) {
+	h.start(taskID, url, nil, 1, relink, true)
 }
 
 // start starts the transfer, unless the task was removed while its link was
 // being unlocked. A folder a package rename is moving is waited for, so the
 // transfer starts in the new one.
-func (h engineHandoff) start(taskID, url string, headers map[string]string, conns int, relink func(context.Context) (string, error)) {
+func (h engineHandoff) start(taskID, url string, headers map[string]string, conns int, relink func(context.Context) (string, error), once bool) {
 	h.a.mu.Lock()
 	h.a.awaitRelocationLocked(taskID)
 	t := h.a.tasks[taskID]
@@ -57,6 +63,7 @@ func (h engineHandoff) start(taskID, url string, headers map[string]string, conn
 	h.a.mu.Unlock()
 	defer h.a.endHandover(taskID)
 	job.Relink = relink
+	job.Once = once
 	h.Engine.Start(job)
 }
 

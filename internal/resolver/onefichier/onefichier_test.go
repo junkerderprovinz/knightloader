@@ -173,14 +173,13 @@ type fakeEngine struct {
 
 type handoff struct {
 	url    string
-	conns  int
 	relink func(context.Context) (string, error)
 }
 
 func newFakeEngine() *fakeEngine { return &fakeEngine{got: make(chan handoff, 4)} }
 
-func (f *fakeEngine) Handover(_, url string, conns int, relink func(context.Context) (string, error)) {
-	h := handoff{url, conns, relink}
+func (f *fakeEngine) HandoverOnce(_, url string, relink func(context.Context) (string, error)) {
+	h := handoff{url, relink}
 	f.mu.Lock()
 	f.handed = append(f.handed, h)
 	f.mu.Unlock()
@@ -303,8 +302,8 @@ func TestTheFormIsSentAsABrowserWouldAndTheLinkHandedOnForOneConnection(t *testi
 	b.Download("t1", link, nil, 8)
 	h := awaitHandoff(t, eng)
 
-	if h.url != srv.URL+"/dl/k3m9x2p7q1" || h.conns != 1 {
-		t.Errorf("handed %q with %d connections, want the download link with one", h.url, h.conns)
+	if h.url != srv.URL+"/dl/k3m9x2p7q1" {
+		t.Errorf("handed %q, want the download link", h.url)
 	}
 	posts := srv.Posts()
 	if len(posts) != 1 {

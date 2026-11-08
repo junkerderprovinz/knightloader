@@ -27,6 +27,7 @@ var Site = &xfs.Site{
 	OwnLogin:       true,
 	PremiumCaptcha: true,
 	FreeConns:      1,
+	FreeOnce:       true,
 	PremiumConns:   2,
 	ReadAccount:    readAccount,
 	Adjust:         adjust,
