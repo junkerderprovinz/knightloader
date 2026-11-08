@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Download {{.Name}}</title>
+  <meta name="description" content="Download File {{.Name}}">
+</head>
+<body>
+{{if .SignedIn}}<a class="dropdown-item" href="https://uploadrar.com/?op=my_account">My account</a><a class="dropdown-item" href="https://uploadrar.com/?op=logout">Logout</a>
+{{else}}<a class="btn" href="https://uploadrar.com/login.html">Sign in</a>
+{{end}}<br>
+<center><a href="https://escaladochyometerparabrake.com/QVrIf24fe84fcf604b06ebd68552d731b0b441b773eb9?q={{.Name}}" target="_blank" class="btn btn-success btn-lg" role="button">Direct Download Link</a>
+</center>
+<br>
+
+<div class="container">
+  <h1 class="text-center fs-3 text-dark mb-2">
+    Download File
+      {{.Name}}
+  </h1>
+  <div class="text-center small text-muted mb-4">
+    You have requested
+      <font class="text-primary">
+        https://uploadrar.com
+          /{{.ID}}/{{.Name}}
+      </font> ({{.Size}})
+  </div>
+  <div class="premiumTable text-body-emphasis mb-lg-5">
+	<div class="row g-0 premiumTable-heading">
+		<div class="col text-end">
+			<div class="xlarge fw-bold text-dark pt-2">
+				XFileSharing Features
+			</div>
+		</div>
+		<div class="col">
+			<div class="xlarge fw-bold text-dark pt-2">
+				Free
+			</div>
+		</div>
+	</div>
+  </div>
+
+    <Form method="POST" action=''>
+      <input type="hidden" name="op" value="download1">
+      <input type="hidden" name="usr_login" value="">
+      <input type="hidden" name="id" value="{{.ID}}">
+      <input type="hidden" name="fname" value="{{.Name}}">
+      <input type="hidden" name="referer" value="">
+
+<center><div class="ad-box ad-top text-center my-3">
+  <div class="ad-label">Advertisement</div>
+</div></center>
+
+      <div class="text-center mb-4">
+        <button style="min-width: 260px;" type="submit" class="btn btn-primary submit-btn m-2" name="method_premium" value="Premium Download">
+          Premium Download
+        </button>
+        <button style="min-width: 260px;" type="submit" class="btn btn-outline-primary submit-btn m-2" name="method_free" value="Free Download">
+          Free Download
+        </button>
+      </div>
+    </Form>
+</div>
+<input type="button"  class="btn btn-primary" value="Agree" onclick="cookiesAgree()">
+</body>
+</html>

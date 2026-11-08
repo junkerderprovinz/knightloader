@@ -19,7 +19,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ddownload/ddltest"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/katfile"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs/xfstest"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -212,5 +214,49 @@ func TestADdownloadWaitKeepsTheTaskRunningAndIsNoStall(t *testing.T) {
 	}
 	if task.Status != core.StatusRunning || task.Error != "" {
 		t.Errorf("status %q, error %q; want it running without a failure", task.Status, task.Error)
+	}
+}
+
+func TestAKatFileLoginIsSignedInByKnightLoaderAndRanksItsLinksAboveDebrid(t *testing.T) {
+	srv := xfstest.New(t, katfile.Site.Host, nil)
+	srv.LoginCaptcha()
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(1, 0, 0), TrafficMB: 51200})
+	a := newCrawlApp(t, false)
+	b := useXFS(a, katfile.Site, srv.URL, srv.Client())
+	a.Registry.Register(jd.Resolver{})
+	a.Registry.Register(debrid.Resolver{ServiceID: "zevera", Prio: 43, Hosts: map[string]bool{"katfile.com": true}})
+	jd.SetKnownHosts([]string{"katfile.com"})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	const link = "https://katfile.cloud/073x8xif2bc5/a.rar.html"
+
+	if !ownLogin("katfile.online") {
+		t.Error("a KatFile login would go to JDownloader")
+	}
+	if got := chainIDs(a, link); !slices.Equal(got[:3], []string{"zevera", katfile.Site.ID, "jd"}) {
+		t.Errorf("chain = %v, want the debrid service, then the KatFile client, then JD", got)
+	}
+
+	if err := a.SetHosterLogin("katfile.com", "fox", "badger"); err != nil {
+		t.Fatal(err)
+	}
+	var c captcha.Challenge
+	waitFor(t, "the sign-in's captcha reaching the prompts", func() bool {
+		for _, ch := range a.CaptchaChallenges() {
+			if w, ok := ch.Payload.(*captcha.WidgetPayload); ok && w.SiteURL == srv.URL+"/login.html" {
+				c = ch
+				return true
+			}
+		}
+		return false
+	})
+	if w := c.Payload.(*captcha.WidgetPayload); c.Host != "katfile.com" || w.Vendor != captcha.VendorTurnstile || w.SiteKey != xfstest.SiteKey {
+		t.Errorf("the prompt got %+v with %+v, want KatFile's Turnstile check", c, w)
+	}
+	if _, err := a.AnswerCaptcha(context.Background(), c.ID, xfstest.Token); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "the login checked", b.Premium)
+	if got := chainIDs(a, link); got[0] != katfile.Site.ID {
+		t.Errorf("chain = %v, want the KatFile client on the premium login first", got)
 	}
 }

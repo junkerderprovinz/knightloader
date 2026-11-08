@@ -62,6 +62,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   downloads shows on the task until it is over. A wrong login, a premium that
   ran out, used-up traffic, a deleted file and a file for premium accounts
   only each stop the download with its own message.
+- **KatFile, Clicknupload, FileSpace and Uploadrar links download without
+  JDownloader.** They run on the same client as ddownload, one that fits
+  any hoster built on XFileSharing. The link collector shows each file's
+  name, size and online state. A login for one of them is signed in by
+  KnightLoader and downloads on your premium, and without premium the file
+  comes for free with the hoster's countdown, captcha and wait between
+  downloads. KatFile's sign-in asks for a Turnstile captcha, which the phone
+  app or a captcha account can answer.
 
 ## [2.7.3] - 2026-11-07
 

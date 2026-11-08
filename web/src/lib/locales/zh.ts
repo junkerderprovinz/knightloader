@@ -3790,6 +3790,7 @@ export const zh: Dict = {
   'whatsnew.change.megaNative': 'MEGA 文件和文件夹链接无需 JDownloader 即可下载，文件夹链接会变成每个文件一行。',
   'whatsnew.change.fichierNative': '1fichier 链接无需 JDownloader 即可下载，1fichier 在免费下载之间要求的等待时间会显示在下载上。',
   'whatsnew.change.ddownloadNative': 'ddownload 链接无需 JDownloader 即可下载，用你的高级登录或免费下载。ddownload 的验证码会交给手机应用和你的验证码账户，等待时间会显示在下载上。',
+  'whatsnew.change.xfsHosters': 'KatFile、Clicknupload、FileSpace 和 Uploadrar 链接同样无需 JDownloader 即可下载，用你的高级登录或免费下载。它们的验证码会交给手机应用和你的验证码账户，等待时间会显示在下载上。',
   'whatsnew.change.oled': '{theme} 下的 {oled} 让深色外观使用纯黑，适合 OLED 和 AMOLED 屏幕。只要显示深色外观就会生效，跟随系统时也一样，每台设备各自记住自己的选择。',
   'whatsnew.change.systemAccent': '{accent} 开头带魔杖的色块会使用系统的颜色：Android 12 及以上用 Material You，桌面应用用 Windows、macOS 或 Linux 的强调色，Firefox 和 Safari 用系统颜色。系统没有这种颜色时，就没有这个色块。这个选择只作用于此设备，其他设备仍使用实例的颜色。',
   'whatsnew.change.fileKindsMore': '链接用符号显示更多文件类型：PDF、办公文档、电子表格、演示文稿、电子书、播放列表、磁盘映像、程序、字体、3D 模型、校验和、种子、RAW 照片和设计文件。',

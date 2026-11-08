@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Download {{.Name}}</title>
+</head>
+<body>
+<!--[if lt IE 9]>
+<![if lt IE 9]>
+<div class="text-center" style="position:fixed;top:0;bottom:0;left:0;right:0;z-index:99999999;"><img src="https://assets.katfile.com/images/logo.png" alt="katfile.com"><h2 style="color:#fff;">Your browser is not supported!</h2></div>
+<![endif]>
+<![endif]-->
+<div class="wrapper">
+{{if .SignedIn}}<li><a href="https://katfile.com/?op=my_account">My Account</a></li><li><a href="https://katfile.com/?op=logout">Logout</a></li>
+{{else}}<li><a href="https://katfile.com/login.html">Login</a></li>
+{{end}}<li><a href="http://katfile.com/?op=payments">Premium</a></li>
+<Form method="POST" action='' id="btn_download">
+    <input type="hidden" name="op" value="download1">
+    <input type="hidden" name="usr_login" value="">
+    <input type="hidden" name="id" value="{{.ID}}">
+    <input type="hidden" name="fname" value="{{.Name}}">
+    <input type="hidden" name="referer" value="">
+    <div class="col-sm-4">
+        <ul class="free">
+            <li><span><strong>Free</strong></span></li>
+            <li><span>100 KB/Sec</span></li>
+            <li style="">
+                <div class="tt2">
+                    <button class="btn btn-default m_btn" id="fbtn1"  onclick="">
+                        SLOW SPEED DOWNLOAD
+                    </button>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div class="row hide">
+        <div class="col-md-12">
+            <h2 class="text-left"><span style="color:#777"> </span> <span class="file_status"> <small
+                        style="font-size:1px;">(<span id="fsize_">
+                            {{.Size}}
+                        </span>)</small></span></h2>
+            <table class="table borderless">
+                <tr>
+                    <td class="text-center">
+                        <input type="submit" name="method_free" id="freebtn" value="SLOW SPEED DOWNLOAD"
+                            style="padding:10px 20px; font-size:20px;">
+                    </td>
+                    <td class="text-center">
+                        <input type="submit" name="method_premium" value="HIGH SPEED DOWNLOAD"
+                            style="padding:10px 20px; font-size:20px;">
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</Form>
+</div>
+<script>
+        var estimated_time = 31;//31 Seconds
+
+        var tick;
+        function es() {
+            if (estimated_time <= 1) {
+                clearTimeout(tick);
+                $("#freebtn").click();
+            }
+            else {
+                estimated_time -= 1;
+                $(".tt2").html("<b> " + estimated_time + " </b>");
+                tick = setTimeout(es, 1000);
+            }
+        }
+</script>
+</body>
+</html>

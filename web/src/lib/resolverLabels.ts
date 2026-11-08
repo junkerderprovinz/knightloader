@@ -16,6 +16,10 @@ const PRODUCT_NAMES: Record<string, string> = {
   mega: 'MEGA',
   '1fichier': '1fichier',
   ddownload: 'ddownload',
+  katfile: 'KatFile',
+  clicknupload: 'Clicknupload',
+  filespace: 'FileSpace',
+  uploadrar: 'Uploadrar',
 };
 
 const DESCRIBED: Record<string, TranslationKey> = {
