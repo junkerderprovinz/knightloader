@@ -103,10 +103,10 @@ var Catalogue = []Service{
 	// Death By Captcha logs in with the account itself. An authtoken from its
 	// panel goes in the password field under the username "authtoken".
 	{ID: "deathbycaptcha", Label: "DeathByCaptcha", Kind: KindUsernamePassword, Group: GroupCaptchaSolver, WhereURL: "https://deathbycaptcha.com/user-pay"},
-	// There is no vendor page for a server the user owns, so WhereURL points
-	// at the documentation of the hostname convention. There is no Env either,
+	// A seedbox has no single vendor page, so WhereURL points at the
+	// documentation of the hostname convention. There is no Env either,
 	// since one variable could not say which of several servers it means.
-	{ID: "remotefs", Label: "Own server (FTP, SFTP, WebDAV)", Kind: KindUsernamePassword, Group: GroupRemoteServer, WhereURL: "https://github.com/junkerderprovinz/knightloader#own-servers-ftp-sftp-webdav"},
+	{ID: "remotefs", Label: "Seedbox (FTP, SFTP, WebDAV)", Kind: KindUsernamePassword, Group: GroupRemoteServer, WhereURL: "https://junkerderprovinz.github.io/knightloader/getting-links-in/#seedboxes-ftp-sftp-webdav"},
 }
 
 // Lookup returns the catalogue entry for a service id, or false if

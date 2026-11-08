@@ -32,7 +32,7 @@ domain.
 - [Configuration](configuration.md): the environment variables and what each
   one is for, and the way back in after a forgotten password.
 - [Getting links in](getting-links-in.md): pasting, watched folders, container
-  files, your own servers and sites that want their own headers.
+  files, seedboxes and sites that want their own headers.
 - [Click'n'Load](clicknload.md), and how it reaches an instance on another
   machine.
 - [Bookmarklet, extension and share target](browser-tools.md).

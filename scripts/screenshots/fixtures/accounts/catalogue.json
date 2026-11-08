@@ -167,9 +167,9 @@
   },
   {
     "id": "remotefs",
-    "label": "Own server (FTP, SFTP, WebDAV)",
+    "label": "Seedbox (FTP, SFTP, WebDAV)",
     "kind": "usernamePassword",
     "group": "remoteServer",
-    "whereUrl": "https://github.com/junkerderprovinz/knightloader#own-servers-ftp-sftp-webdav"
+    "whereUrl": "https://junkerderprovinz.github.io/knightloader/getting-links-in/#seedboxes-ftp-sftp-webdav"
   }
 ]
