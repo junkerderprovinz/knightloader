@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -494,5 +495,63 @@ func TestAfterARestartAnotherUsernameOnJDIsReplaced(t *testing.T) {
 	}
 	if len(fake.added) != 1 || fake.added[0].Username != "bob" {
 		t.Errorf("added %+v, want bob's login", fake.added)
+	}
+}
+
+func TestALoginKnightLoaderSignsInWithItselfIsKeptFromJD(t *testing.T) {
+	// A copy JD was given before KnightLoader signed in to the hoster itself.
+	fake := &fakeJD{accounts: []jdAccount{{UUID: 7, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Username: "u", Valid: true}}}}
+	r, store := newTestReconciler(t, fake)
+	for _, host := range []string{"rg.to", "uploaded.net"} {
+		if err := store.Set(host, accounts.Credential{Username: "u", Password: "p"}); err != nil {
+			t.Fatalf("store.Set: %v", err)
+		}
+	}
+	own := OwnState{}
+	r.Own = func(host string) (OwnState, bool) { return own, accountKey(host) == "rapidgator.net" }
+
+	p, err := r.Reconcile(context.Background())
+	if err != nil {
+		t.Fatalf("Reconcile: %v", err)
+	}
+	if len(p.Add) != 1 || p.Add[0].Host != "uploaded.net" {
+		t.Errorf("Add = %+v, want only uploaded.net handed to JD", p.Add)
+	}
+	if !slices.Contains(p.Remove, int64(7)) {
+		t.Errorf("Remove = %v, want JD's copy of the Rapidgator login dropped", p.Remove)
+	}
+	if jdresolver.HostActive("rapidgator.net") {
+		t.Error("routing counts the login as JD's")
+	}
+
+	row := func() LoginState {
+		for _, st := range r.States() {
+			if st.Host == "rg.to" {
+				return st
+			}
+		}
+		t.Fatal("no row for the Rapidgator login")
+		return LoginState{}
+	}
+	if got := row(); got.Status != StatusQueued || got.Code != codeOwnChecking || !got.Enabled || got.Username != "u" {
+		t.Errorf("unchecked row = %+v, want queued while KnightLoader checks it", got)
+	}
+
+	expiry := time.Date(2027, 3, 1, 0, 0, 0, 0, time.UTC)
+	own = OwnState{Checked: true, Premium: true, Expiry: expiry, TrafficLeft: 5, TrafficMax: 10}
+	want := LoginState{Host: "rg.to", Username: "u", Status: StatusActive, Enabled: true,
+		Tier: "premium", Expiry: expiry.Format(time.RFC3339), TrafficLeft: 5, TrafficMax: 10}
+	if got := row(); got != want {
+		t.Errorf("checked row = %+v, want %+v", got, want)
+	}
+
+	own = OwnState{Checked: true, Refused: true, Detail: "rapidgator: check the email address and password"}
+	if got := row(); got.Status != StatusRejected || got.Code != codeOwnInvalid || got.Detail != own.Detail {
+		t.Errorf("refused row = %+v, want rejected in the hoster's words", got)
+	}
+
+	r.Enabled = func(string) bool { return false }
+	if got := row(); got.Status != StatusOff || got.Code != codeOwnOff || got.Enabled {
+		t.Errorf("switched-off row = %+v, want off without naming JD", got)
 	}
 }

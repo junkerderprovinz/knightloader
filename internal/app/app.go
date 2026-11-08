@@ -60,6 +60,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -285,6 +286,10 @@ type App struct {
 	// fichier fetches free 1fichier links. It too lives across rewires, and
 	// its resolver shares its page client.
 	fichier *onefichier.Backend
+	// rapidgator downloads Rapidgator links on the stored premium login and
+	// names every Rapidgator link in the collector. It lives across rewires,
+	// which hand it the login.
+	rapidgator *rapidgator.Backend
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through

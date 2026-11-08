@@ -320,6 +320,35 @@ A debrid service that carries 1fichier and a 1fichier login in JDownloader
 have no such waits, so both go first. With **Allow free downloads** off, a
 1fichier link waits for one of them.
 
+## Rapidgator
+
+With your Rapidgator premium login saved under **Hoster accounts** on the
+Accounts page, a Rapidgator link needs no JDownloader. KnightLoader signs in
+through Rapidgator's own API, asks it for the download link and fetches the
+file over up to five connections, one for a small file. The domains
+`rapidgator.net`, `rg.to` and `rapidgator.asia` all work, and the login may be
+saved under any of them. The login stays with KnightLoader and is not handed to
+JDownloader, so Rapidgator sees one sign-in for the account rather than two.
+The login's row shows what Rapidgator says about it: premium or free, when the
+plan runs out and how much traffic is left.
+
+The link collector names every Rapidgator link as soon as it arrives, with its
+size and whether it is still online. With the login it asks the API, which
+knows the size to the byte. Without one it reads the public file page, which
+rounds the size.
+
+A download fails with a clear reason when Rapidgator turns the login down, when
+the account has no premium, when its traffic has run out or does not cover the
+file, and when the file is gone. An account that asks for a two-factor code
+cannot be used, since KnightLoader has no way to enter one. Once the traffic
+has run out, Rapidgator links go to the next backend on the priority card for
+an hour, and then the login is tried again. When Rapidgator asks for a pause
+between sign-ins, the task waits five minutes and shows it.
+
+Free Rapidgator links stay with JDownloader, which waits out Rapidgator's
+countdown and answers its captcha. Against a debrid service that carries
+Rapidgator, the login's row on the priority card decides which goes first.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks

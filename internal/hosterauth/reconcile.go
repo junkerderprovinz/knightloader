@@ -52,6 +52,11 @@ const (
 	codeInvalid  = "invalid"
 	codeOff      = "off"
 	codeWaiting  = "waiting"
+
+	// The codes of a login KnightLoader signs in with itself.
+	codeOwnChecking = "ownChecking"
+	codeOwnInvalid  = "ownInvalid"
+	codeOwnOff      = "ownOff"
 )
 
 // LoginState is one row the accounts page shows. It has no field that could
@@ -164,6 +169,12 @@ type Reconciler struct {
 	// App.accountEnabled), and a copy here would be a second thing to keep in
 	// step with it.
 	Enabled func(host string) bool
+
+	// Own answers for the hosts KnightLoader signs in to itself, with what
+	// the hoster said about the login. Their logins are kept from JD, which
+	// would otherwise sign in with the same account a second time and get it
+	// blocked for sharing. Nil leaves every login to JD.
+	Own func(host string) (OwnState, bool)
 
 	// Reconciled is called after a pass that changed which hosts JD fetches on
 	// a login and which in free mode: a login confirmed or lost, or JD's hoster
@@ -312,13 +323,21 @@ func (r *Reconciler) desired() []DesiredLogin {
 		if err != nil || cred.IsZero() {
 			continue
 		}
-		if !r.enabled(h) {
+		if _, own := r.own(h); own || !r.enabled(h) {
 			continue
 		}
 		out = append(out, DesiredLogin{Host: h, Username: cred.Username, Password: cred.Password,
 			sum: fingerprint(cred.Username, cred.Password)})
 	}
 	return out
+}
+
+// own is Own with its nil case folded in.
+func (r *Reconciler) own(host string) (OwnState, bool) {
+	if r.Own == nil {
+		return OwnState{}, false
+	}
+	return r.Own(host)
 }
 
 // enabled is Enabled with its nil case folded in.
@@ -506,6 +525,16 @@ func (r *Reconciler) States() []LoginState {
 	out := make([]LoginState, 0, len(hosts))
 	for _, h := range hosts {
 		cred, _ := r.store.Get(h)
+		own, isOwn := r.own(h)
+		switch {
+		case isOwn && !r.enabled(h):
+			out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusOff,
+				Detail: "switched off, so KnightLoader is not using this login", Code: codeOwnOff})
+			continue
+		case isOwn:
+			out = append(out, own.row(h, cred.Username))
+			continue
+		}
 		if !r.enabled(h) {
 			out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusOff,
 				Detail: "switched off, so JDownloader is not using this login", Code: codeOff})
@@ -520,6 +549,41 @@ func (r *Reconciler) States() []LoginState {
 			Detail: "waiting for the next check", Code: codeWaiting, Enabled: true})
 	}
 	return out
+}
+
+// OwnState is what a hoster KnightLoader signs in to itself said about a
+// login.
+type OwnState struct {
+	// Checked is set once the hoster has answered.
+	Checked bool
+	// Refused is the hoster turning the login down, and Detail says why.
+	Refused bool
+	Detail  string
+	Premium bool
+	Expiry  time.Time
+	// TrafficLeft and TrafficMax are bytes, 0 when the plan has no quota.
+	TrafficLeft, TrafficMax int64
+}
+
+// row is the accounts page's row for an enabled login in state o.
+func (o OwnState) row(host, username string) LoginState {
+	st := LoginState{Host: host, Username: username, Enabled: true}
+	switch {
+	case !o.Checked:
+		st.Status, st.Code, st.Detail = StatusQueued, codeOwnChecking, "KnightLoader is checking this login"
+	case o.Refused:
+		st.Status, st.Code, st.Detail = StatusRejected, codeOwnInvalid, o.Detail
+	default:
+		st.Status, st.Tier = StatusActive, "free"
+		if o.Premium {
+			st.Tier = "premium"
+		}
+		if !o.Expiry.IsZero() {
+			st.Expiry = o.Expiry.UTC().Format(time.RFC3339)
+		}
+		st.TrafficLeft, st.TrafficMax = o.TrafficLeft, o.TrafficMax
+	}
+	return st
 }
 
 // TrafficSpent reports whether the last pass found JD's login for host with

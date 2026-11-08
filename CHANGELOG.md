@@ -50,6 +50,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   1fichier's password field. A debrid service that carries 1fichier and a
   1fichier login in JDownloader still go first, since neither has to wait
   ([#155](https://github.com/junkerderprovinz/knightloader/issues/155)).
+- **Rapidgator downloads on your premium login without JDownloader.** Save
+  the login under Hoster accounts and KnightLoader signs in through
+  Rapidgator's API itself, fetches the file over several connections and shows
+  on the login's row whether the account is premium, when it runs out and how
+  much traffic is left. Every Rapidgator link shows its name, size and whether
+  it is online in the link collector, with or without a login. A refused
+  login, a free account, spent traffic and a deleted file each fail with their
+  own reason. Free Rapidgator links still go through JDownloader, which solves
+  the captcha.
 
 ## [2.7.3] - 2026-11-07
 

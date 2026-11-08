@@ -26,20 +26,20 @@ const jdCaptchaSkipped = "jd: Skipped - Captcha is required"
 // of its client.
 const debridLinkSpent = "debridlink: debrid-link /downloader/add: the daily traffic limit for this account is used up"
 
-// quotaApp routes rapidgator.net through Debrid-Link first and JDownloader
+// quotaApp routes nitroflare.com through Debrid-Link first and JDownloader
 // after it, as a container with a Debrid-Link key does.
 func quotaApp(t *testing.T) *App {
 	t.Helper()
 	a := retryApp(t, func(*settings.Settings) {})
 	isolateResolvers(a,
-		fakeResolver{id: "debridlink", prio: 10, host: "rapidgator.net"},
-		fakeResolver{id: "jd", prio: 50, host: "rapidgator.net"},
+		fakeResolver{id: "debridlink", prio: 10, host: "nitroflare.com"},
+		fakeResolver{id: "jd", prio: 50, host: "nitroflare.com"},
 	)
 	return a
 }
 
 func failCaptchaOnJD(a *App, id string) core.Task {
-	runningOn(a, id, "rapidgator.net", "jd")
+	runningOn(a, id, "nitroflare.com", "jd")
 	a.onUpdate(id, core.Update{Status: core.StatusError, Err: jdCaptchaSkipped, Note: "Skipped - Captcha is required"})
 	return liveTask(a, id)
 }
@@ -60,7 +60,7 @@ func TestACaptchaBehindASpentDebridVolumeNamesTheVolume(t *testing.T) {
 	if got.Reason != core.ReasonLimit || got.ErrorCode != core.CodeQuotaUsed {
 		t.Fatalf("Reason, ErrorCode = %q, %q; want %q, %q", got.Reason, got.ErrorCode, core.ReasonLimit, core.CodeQuotaUsed)
 	}
-	want := map[string]string{"host": "rapidgator.net", "service": "Debrid-Link", "resetsAt": reset.Format(time.RFC3339)}
+	want := map[string]string{"host": "nitroflare.com", "service": "Debrid-Link", "resetsAt": reset.Format(time.RFC3339)}
 	for k, v := range want {
 		if got.ErrorParams[k] != v {
 			t.Errorf("ErrorParams[%q] = %q, want %q", k, got.ErrorParams[k], v)
@@ -99,7 +99,7 @@ func TestACaptchaWithNoSpentAccountBehindItStaysACaptcha(t *testing.T) {
 	}
 }
 
-// fakeJDAccounts answers JDownloader's account list with one rapidgator.net
+// fakeJDAccounts answers JDownloader's account list with one nitroflare.com
 // login and the traffic given.
 func fakeJDAccounts(t *testing.T, left, max int64) {
 	t.Helper()
@@ -108,12 +108,12 @@ func fakeJDAccounts(t *testing.T, left, max int64) {
 			http.Error(w, "not here", http.StatusInternalServerError)
 			return
 		}
-		_, _ = w.Write([]byte(`{"data":[{"uuid":1,"hostname":"rapidgator.net","infoMap":{"username":"u","enabled":true,` +
+		_, _ = w.Write([]byte(`{"data":[{"uuid":1,"hostname":"nitroflare.com","infoMap":{"username":"u","enabled":true,` +
 			`"valid":true,"validUntil":1893456000000,"trafficLeft":` + strconv.FormatInt(left, 10) + `,"trafficMax":` + strconv.FormatInt(max, 10) + `}}]}`))
 	}))
 	t.Cleanup(srv.Close)
 	t.Setenv("KL_JD", srv.URL)
-	t.Cleanup(func() { jdresolver.SetHostActive("rapidgator.net", false) })
+	t.Cleanup(func() { jdresolver.SetHostActive("nitroflare.com", false) })
 }
 
 func TestACaptchaBehindASpentHosterLoginNamesTheLogin(t *testing.T) {
@@ -129,7 +129,7 @@ func TestACaptchaBehindASpentHosterLoginNamesTheLogin(t *testing.T) {
 			fakeJDAccounts(t, c.left, 50<<30)
 			a := quotaApp(t)
 			r := a.hosterAuth()
-			if err := r.SetLogin("rapidgator.net", "u", "p"); err != nil {
+			if err := r.SetLogin("nitroflare.com", "u", "p"); err != nil {
 				t.Fatal(err)
 			}
 			if _, err := r.Reconcile(context.Background()); err != nil {
@@ -147,7 +147,7 @@ func TestACaptchaBehindASpentHosterLoginNamesTheLogin(t *testing.T) {
 			if got.ErrorCode != core.CodeQuotaUsed {
 				t.Fatalf("ErrorCode = %q, want %q", got.ErrorCode, core.CodeQuotaUsed)
 			}
-			if got.ErrorParams["host"] != "rapidgator.net" || got.ErrorParams["service"] != "" {
+			if got.ErrorParams["host"] != "nitroflare.com" || got.ErrorParams["service"] != "" {
 				t.Errorf("ErrorParams = %v, want the hoster and no service, since the login is the hoster's own", got.ErrorParams)
 			}
 		})
@@ -159,7 +159,7 @@ func TestACaptchaBehindASpentHosterLoginNamesTheLogin(t *testing.T) {
 // unusable account.
 func TestAPinnedDebridTaskNamesTheSpentVolume(t *testing.T) {
 	a := quotaApp(t)
-	runningOn(a, "p1", "rapidgator.net", "debridlink")
+	runningOn(a, "p1", "nitroflare.com", "debridlink")
 	a.mu.Lock()
 	a.tasks["p1"].ResolverPin = "debridlink"
 	a.mu.Unlock()
@@ -171,7 +171,7 @@ func TestAPinnedDebridTaskNamesTheSpentVolume(t *testing.T) {
 	if got.Reason != core.ReasonLimit || got.ErrorCode != core.CodeQuotaUsed {
 		t.Fatalf("Reason, ErrorCode = %q, %q; want %q, %q", got.Reason, got.ErrorCode, core.ReasonLimit, core.CodeQuotaUsed)
 	}
-	if got.ErrorParams["service"] != "Debrid-Link" || got.ErrorParams["host"] != "rapidgator.net" {
+	if got.ErrorParams["service"] != "Debrid-Link" || got.ErrorParams["host"] != "nitroflare.com" {
 		t.Errorf("ErrorParams = %v", got.ErrorParams)
 	}
 }

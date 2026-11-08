@@ -13,8 +13,10 @@ import (
 	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
 	jdresolver "github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator"
 )
 
 var (
@@ -40,8 +42,28 @@ func (a *App) hosterAuth() *hosterauth.Reconciler {
 	// premium only was waiting for, and until JD's hoster list is first read
 	// every link JD would fetch is held.
 	r.Reconciled = a.refreshPremiumHolds
+	r.Own = a.ownLogin
 	hostAuthReg[a] = r
 	return r
+}
+
+// ownLogin answers hosterauth for the hosts KnightLoader signs in to itself,
+// which is Rapidgator, with what Rapidgator said about the login.
+func (a *App) ownLogin(host string) (hosterauth.OwnState, bool) {
+	if hostalias.Canonical(host) != rapidgator.Site {
+		return hosterauth.OwnState{}, false
+	}
+	a.bmu.RLock()
+	b := a.rapidgator
+	a.bmu.RUnlock()
+	if b == nil {
+		return hosterauth.OwnState{}, true
+	}
+	st := b.Status()
+	return hosterauth.OwnState{
+		Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Premium: st.Premium,
+		Expiry: st.Expiry, TrafficLeft: st.TrafficLeft, TrafficMax: st.TrafficMax,
+	}, true
 }
 
 // StartHosterAuth starts the loop that keeps the JD sidecar's account list in
@@ -106,6 +128,7 @@ func (a *App) SetHosterLogin(host, username, password string) error {
 	if err := r.SetLogin(host, username, password); err != nil {
 		return err
 	}
+	a.syncRapidgatorLogin()
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {
 			log.Printf("hosterauth: reconcile after save failed: %v", err)
@@ -144,6 +167,7 @@ func (a *App) RemoveHosterLogin(host string) error {
 	if err := r.RemoveLogin(host); err != nil {
 		return err
 	}
+	a.syncRapidgatorLogin()
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {
 			log.Printf("hosterauth: reconcile after remove failed: %v", err)

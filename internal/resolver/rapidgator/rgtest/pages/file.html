@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8 "/>
+    <meta name="keywords" content="Download {{.Name}}, file hosting, cloud hosting, safe and secure hosting, file sharing" />
+<meta name="description" content="Download {{.Name}} fast and secure" />
+<title>Download file {{.Name}}</title>    <!--[if lt IE 8]>
+    <link rel="stylesheet" type="text/css" href="/css/ie.css" media="screen" />    <![endif]-->
+</head>
+<body>
+    <div class="in">
+        <div class="text-block file-descr" style="height: 95px;">
+            <div class="btm" style="height: 95px;">
+                            <p style="word-wrap: break-word;width: 490px;line-height: 19px;">
+                    <strong>
+                        Downloading:
+                    </strong>
+                    <a href="">
+                    {{.Name}}                    </a>
+                    <br/>
+                </p>
+                <div>
+                    File size:
+                    <strong>{{.Size}}</strong>
+<!--                    -->                </div>
+                        </div>
+        </div>
+        <div class="text-block download-prepare">
+            <div class="btm low_padding">
+                <div class="table-download">
+                    <table>
+                        <tr>
+                            <th class="free">
+                                <a href="#" class="link act-link btn-free">
+                                    SLOW SPEED DOWNLOAD                                </a>
+                                <div class="download-timer">
+                                    Wait                                    <span class="download-timer-seconds">
+
+                                    </span>&nbsp;sec.                                </div>
+                            </th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+<script type="text/javascript">
+    var startTimerUrl = '/download/AjaxStartTimer';
+    var getDownloadUrl = '/download/AjaxGetDownloadLink';
+    var captchaUrl = '/download/captcha';
+    var secs = 180;
+    var fid = 894317393;
+    var premium_download_link = '';
+    var is_premium = 0;
+</script>
+</body>
+</html>
