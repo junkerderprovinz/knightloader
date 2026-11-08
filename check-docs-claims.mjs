@@ -447,6 +447,7 @@ for (const name of livingDocs) {
 const RESOLVER_NAMES = {
   debrid: 'debrid',
   jd: 'JDownloader',
+  gofile: 'Gofile',
   mega: 'MEGA',
   onefichier: '1fichier',
   pixeldrain: 'Pixeldrain',

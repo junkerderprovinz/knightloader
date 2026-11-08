@@ -46,6 +46,8 @@ var canonical = map[string]string{
 	"pixeldrain.net":  "pixeldrain.com",
 	"pixeldrain.nl":   "pixeldrain.com",
 	"pixeldrain.tech": "pixeldrain.com",
+
+	"gofile.net": "gofile.io",
 }
 
 // Canonical returns the main domain of the hoster host belongs to, lower-cased

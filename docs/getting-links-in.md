@@ -346,6 +346,30 @@ opens as many connections as the task allows. A debrid service that carries
 Pixeldrain goes first too. With **Allow free downloads** off, a Pixeldrain
 link waits for one of those.
 
+## Gofile
+
+A `gofile.io/d/…` link needs no JDownloader. A folder stages one task per
+file, subfolders included, and each subfolder becomes a package of its own. A
+link to a single file stages that file. Gofile lets its documented API list a
+folder for premium accounts only, so KnightLoader reads a folder the way
+Gofile's own website does: it opens a guest account and signs each request
+with the script Gofile's pages use. It fetches that script again every hour,
+since Gofile changes it from time to time. A file comes over up to three
+connections.
+
+A folder locked with a password opens with the **Link password** given in the
+add-links form, and every file of it downloads with the same password. When
+Gofile turns away a burst of requests, KnightLoader pauses a few seconds and
+asks again, and if that does not help the task waits a minute with the reason
+on its row.
+
+A Gofile login under **Hoster accounts** takes the account token from the
+profile page on Gofile as the password, and KnightLoader then uses it in place
+of a guest account, which also opens content shared with premium accounts
+only. As with Pixeldrain, JDownloader gets the login too and goes first while
+it has the login working, and so does a debrid service that carries Gofile.
+With **Allow free downloads** off, a Gofile link waits for one of those.
+
 ## Sonarr and Radarr
 
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks
