@@ -170,6 +170,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   failing. A wrong password stays with KnightLoader and shows on the row. Save
   the login again, or switch it off and on, to have KnightLoader try once
   more.
+- **The download priority order lists a hoster only once you connect it.**
+  KnightLoader's own hoster clients have no row of their own: a login stored
+  for a hoster brings its row, and without one the client keeps its fixed
+  place. JDownloader, yt-dlp, the direct download, the torrent client and MEGA
+  keep their rows. Moving a row leaves the clients the card does not show
+  where they were in the order.
 - **Every list you reorder by hand places the moved item the same way.** An
   item passes a neighbour once its leading edge is past the neighbour's
   middle, so a wide card in the overview or a long entry in the settings rail
