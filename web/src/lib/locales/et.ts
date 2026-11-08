@@ -3794,6 +3794,7 @@ export const et: Dict = {
   'whatsnew.change.hosterNames': 'Failimajutuse lingid näitavad faili nime, suurust ja võrguolekut kohe saabumisel, nagu JDownloaderi lingikoguja.',
   'whatsnew.change.megaNative': 'MEGA failide ja kaustade lingid laaditakse alla ilma JDownloaderita ning kaustalingist saab iga faili kohta eraldi rida.',
   'whatsnew.change.fichierNative': '1fichier lingid laaditakse alla ilma JDownloaderita ning ooteaeg, mida 1fichier tasuta allalaadimiste vahel nõuab, on allalaadimise juures näha.',
+  'whatsnew.change.filehostsNative': 'Pixeldraini, Gofile’i ja Mediafire’i lingid laaditakse alla ilma JDownloaderita ning kausta- või loendilingist saab iga faili kohta eraldi rida.',
   'whatsnew.change.oled': '{oled} jaotise {theme} all muudab tumeda välimuse OLED- ja AMOLED-ekraanidel päris mustaks. See kehtib alati, kui tume välimus on nähtaval, ka siis, kui see järgib süsteemi, ja iga seade jätab oma valiku meelde.',
   'whatsnew.change.systemAccent': 'Võlukepiga värvinäidis rea {accent} alguses võtab süsteemi värvi: Material You alates Android 12-st, Windowsi, macOS-i või Linuxi rõhuvärvi töölauarakenduses ja süsteemi värvi Firefoxis ja Safaris. Kus süsteemil seda pole, näidist ei ole. Valik kehtib ainult selles seadmes, ja teised jäävad eksemplari värvi juurde.',
   'whatsnew.change.fileKindsMore': 'Lingid näitavad sümboliga rohkem failitüüpe: PDF-id, kontoridokumendid, tabelid, esitlused, e-raamatud, esitusloendid, kettatõmmised, programmid, fondid, 3D-mudelid, kontrollsummad, torrentid, RAW-fotod ja disainifailid.',

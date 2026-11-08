@@ -25,15 +25,21 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
+	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/jre"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/gofile"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/mediafire"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/mega"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/onefichier"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/pixeldrain"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -180,6 +186,12 @@ func (a *App) rewireBackends() {
 
 	// Free 1fichier links, which need no account either.
 	a.Registry.Register(onefichier.Resolver{Client: a.fichierBackend(eng).Client()})
+
+	// Pixeldrain, Gofile and Mediafire, each with a stored login lent where
+	// the hoster takes one.
+	for _, h := range a.ownHosters(eng) {
+		a.Registry.Register(h.res)
+	}
 
 	// Stored header profiles. Registered here rather than in app.go because
 	// a.Accounts does not exist there yet. It builds its own client, which has
@@ -651,6 +663,65 @@ func (a *App) fichierBackend(eng onefichier.Downloader) *onefichier.Backend {
 		a.fichier = b
 	}
 	return a.fichier
+}
+
+// ownHoster is one of KnightLoader's own hoster clients: the resolver that
+// claims its links and the backend that downloads them, sharing one client.
+type ownHoster struct {
+	res interface {
+		resolver.Resolver
+		resolver.Inspector
+		resolver.FolderLister
+	}
+	be *hoster.Backend
+}
+
+// ownHosters returns the app's clients for Pixeldrain, Gofile and Mediafire,
+// made on first use.
+func (a *App) ownHosters(eng hoster.Downloader) map[string]ownHoster {
+	a.bmu.Lock()
+	defer a.bmu.Unlock()
+	if a.hosters == nil {
+		hc := httpx.New(httpx.Options{Class: httpx.ClassHosters})
+		pd := pixeldrain.NewClient(pixeldrain.DefaultAPI, hc)
+		pd.Key = func() string { return a.hosterSecret("pixeldrain.com") }
+		gf := gofile.NewClient(gofile.DefaultAPI, gofile.DefaultSite, hc)
+		gf.Token = func() string { return a.hosterSecret("gofile.io") }
+		mf := mediafire.NewClient(mediafire.DefaultSite, hc)
+		a.hosters = map[string]ownHoster{
+			pixeldrain.ResolverID: {pixeldrain.Resolver{Client: pd}, a.hosterBackend("Pixeldrain", pd, eng)},
+			gofile.ResolverID:     {gofile.Resolver{Client: gf}, a.hosterBackend("Gofile", gf, eng)},
+			mediafire.ResolverID:  {mediafire.Resolver{Client: mf}, a.hosterBackend("Mediafire", mf, eng)},
+		}
+	}
+	return a.hosters
+}
+
+// ownHosterID reports whether id is the resolver id of one of ownHosters.
+func ownHosterID(id string) bool {
+	return id == pixeldrain.ResolverID || id == gofile.ResolverID || id == mediafire.ResolverID
+}
+
+func (a *App) hosterBackend(name string, u hoster.Unlocker, eng hoster.Downloader) *hoster.Backend {
+	b := hoster.NewBackend(name, u, eng, a.onUpdate)
+	b.Password = a.downloadPassword
+	return b
+}
+
+// hosterSecret is the password of the switched-on hoster login stored for
+// host or one of its other domains, "" for none. Pixeldrain and Gofile take
+// an API key there, as JDownloader does.
+func (a *App) hosterSecret(host string) string {
+	store := hosterauth.NewStore(a.Accounts)
+	for _, h := range store.Hosts() {
+		if hostalias.Canonical(h) != host || !a.accountEnabled(hosterauth.Service, h) {
+			continue
+		}
+		if cred, err := store.Get(h); err == nil && cred.Password != "" {
+			return cred.Password
+		}
+	}
+	return ""
 }
 
 // downloadPassword is the password a task's hoster page asks for, "" for

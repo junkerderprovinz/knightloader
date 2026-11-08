@@ -285,6 +285,9 @@ type App struct {
 	// fichier fetches free 1fichier links. It too lives across rewires, and
 	// its resolver shares its page client.
 	fichier *onefichier.Backend
+	// hosters are the clients for Pixeldrain, Gofile and Mediafire, by
+	// resolver id. They too live across rewires.
+	hosters map[string]ownHoster
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through

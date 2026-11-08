@@ -3793,6 +3793,7 @@ export const lv: Dict = {
   'whatsnew.change.hosterNames': 'Mitinātāju saites uzreiz pēc saņemšanas rāda faila nosaukumu, izmēru un tiešsaistes statusu, tāpat kā JDownloader saišu savācējā.',
   'whatsnew.change.megaNative': 'MEGA failu un mapju saites tiek lejupielādētas bez JDownloader, un mapes saite kļūst par vienu rindu katram failam.',
   'whatsnew.change.fichierNative': '1fichier saites tiek lejupielādētas bez JDownloader, un gaidīšanas laiks, ko 1fichier prasa starp bezmaksas lejupielādēm, redzams pie lejupielādes.',
+  'whatsnew.change.filehostsNative': 'Pixeldrain, Gofile un Mediafire saites tiek lejupielādētas bez JDownloader, un mapes vai saraksta saite kļūst par vienu rindu katram failam.',
   'whatsnew.change.oled': '{oled} zem {theme} pārslēdz tumšo izskatu uz īstu melnu OLED un AMOLED ekrāniem. Tas darbojas vienmēr, kad redzams tumšais izskats, arī tad, ja tas seko sistēmai, un katra ierīce atceras savu izvēli.',
   'whatsnew.change.systemAccent': 'Paraugs ar burvju nūjiņu {accent} sākumā izmanto tavas sistēmas krāsu: Material You no Android 12, Windows, macOS vai Linux akcenta krāsu darbvirsmas lietotnē un sistēmas krāsu Firefox un Safari. Kur sistēmai tādas nav, parauga nav. Izvēle attiecas tikai uz šo ierīci, un citas saglabā instances krāsu.',
   'whatsnew.change.fileKindsMore': 'Saites ar savu simbolu rāda vairāk failu veidu: PDF, biroja dokumentus, izklājlapas, prezentācijas, e-grāmatas, atskaņošanas sarakstus, disku attēlus, programmas, fontus, 3D modeļus, kontrolsummas, torrentus, RAW fotoattēlus un dizaina failus.',

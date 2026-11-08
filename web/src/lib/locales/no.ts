@@ -3805,6 +3805,7 @@ export const no: Dict = {
   'whatsnew.change.hosterNames': 'Hosterlenker viser filnavn, størrelse og om de er tilgjengelige så snart de kommer inn, som i lenkesamleren til JDownloader.',
   'whatsnew.change.megaNative': 'MEGA-lenker til filer og mapper lastes ned uten JDownloader, og en mappelenke blir til én rad per fil.',
   'whatsnew.change.fichierNative': '1fichier-lenker lastes ned uten JDownloader, og ventetiden 1fichier krever mellom gratis nedlastinger, vises på nedlastingen.',
+  'whatsnew.change.filehostsNative': 'Lenker fra Pixeldrain, Gofile og Mediafire lastes ned uten JDownloader, og en lenke til en mappe eller liste blir til én rad per fil.',
   'whatsnew.change.oled': '{oled} under {theme} gir det mørke utseendet ekte svart for OLED- og AMOLED-skjermer. Det gjelder når det mørke utseendet vises, også når det følger systemet, og hver enhet husker sitt eget valg.',
   'whatsnew.change.systemAccent': 'Fargeprøven med tryllestaven først i {accent} bruker systemets farge: Material You fra Android 12, aksentfargen i Windows, macOS eller Linux i skrivebordsappen og systemfargen i Firefox og Safari. Der systemet ikke har noen, er prøven ikke der. Valget gjelder bare denne enheten, og de andre beholder instansens farge.',
   'whatsnew.change.fileKindsMore': 'Lenker viser flere filtyper med symbolet sitt: PDF-er, kontordokumenter, regneark, presentasjoner, e-bøker, spillelister, diskbilder, programmer, skrifter, 3D-modeller, kontrollsummer, torrenter, RAW-bilder og designfiler.',

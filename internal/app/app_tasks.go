@@ -486,7 +486,7 @@ type linkInspector interface {
 // shows the bare address and no size until the download starts.
 func (a *App) inspectHosterLinks(ids []string) {
 	ids = a.inspectMegaLinks(ids)
-	ids = a.inspectFichierLinks(ids)
+	ids = a.inspectNativeLinks(ids)
 	a.bmu.RLock()
 	insp, ok := a.jd.(linkInspector)
 	a.bmu.RUnlock()
@@ -654,28 +654,38 @@ func (a *App) inspectMegaLinks(ids []string) []string {
 	return rest
 }
 
-// inspectFichierLinks fills in the name, size and state of the collected links
-// the 1fichier client takes, from their pages, and returns the other ids.
-func (a *App) inspectFichierLinks(ids []string) []string {
-	var rest, targets, urls []string
+// inspectNativeLinks fills in the name, size and state of the collected links
+// KnightLoader's own clients for 1fichier, Pixeldrain, Gofile and Mediafire
+// take, from those hosters, and returns the other ids.
+func (a *App) inspectNativeLinks(ids []string) []string {
+	a.bmu.RLock()
+	inspectors := map[string]resolver.Inspector{}
+	if a.fichier != nil {
+		inspectors[onefichier.ResolverID] = onefichier.Resolver{Client: a.fichier.Client()}
+	}
+	for id, h := range a.hosters {
+		inspectors[id] = h.res
+	}
+	a.bmu.RUnlock()
+
+	var rest []string
+	targets := map[string][]string{}
+	urls := map[string][]string{}
 	a.mu.Lock()
 	for _, id := range ids {
 		t := a.tasks[id]
-		if t == nil || t.Resolver != onefichier.ResolverID {
+		if t == nil || inspectors[t.Resolver] == nil {
 			rest = append(rest, id)
 			continue
 		}
 		if t.Status == core.StatusCollected && !t.Skipped {
-			targets = append(targets, id)
-			urls = append(urls, t.URL)
+			targets[t.Resolver] = append(targets[t.Resolver], id)
+			urls[t.Resolver] = append(urls[t.Resolver], t.URL)
 		}
 	}
 	a.mu.Unlock()
-	a.bmu.RLock()
-	be := a.fichier
-	a.bmu.RUnlock()
-	if len(targets) > 0 && be != nil {
-		a.inspectOwnLinks(onefichier.ResolverID, targets, urls, onefichier.Resolver{Client: be.Client()}.Inspect)
+	for res, ids := range targets {
+		a.inspectOwnLinks(res, ids, urls[res], inspectors[res].Inspect)
 	}
 	return rest
 }

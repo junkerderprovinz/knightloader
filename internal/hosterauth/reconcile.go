@@ -133,6 +133,7 @@ var curatedHosts = []string{
 	"rapidgator.net", "uploaded.net", "nitroflare.com", "turbobit.net",
 	"keep2share.cc", "katfile.com", "ddownload.com", "1fichier.com",
 	"mega.nz", "filefactory.com", "hitfile.net", "fikper.com",
+	"pixeldrain.com", "gofile.io", "mediafire.com",
 }
 
 // Curated reports whether host is one of curatedHosts or an alias domain of
