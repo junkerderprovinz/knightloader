@@ -24,5 +24,10 @@ for (const line of lines.slice(start + 2)) {
 
 const text = notes.join("\n").replaceAll("<PHRASE>", phrase).replaceAll("<WEBUI_PASSWORD>", password);
 if (/<[A-Z_]+>/.test(text)) throw new Error("the AMO reviewer notes have a placeholder this script does not fill");
+// AMO refuses the whole submission over a longer note, after the upload.
+if (text.length > 3000) {
+  console.error(`::error::The AMO reviewer notes are ${text.length} characters and AMO takes 3000. Shorten the AMO block in extension/store/SUBMISSION.md.`);
+  process.exit(1);
+}
 writeFileSync(process.argv[2], JSON.stringify({ version: { approval_notes: text } }));
 console.log(`Reviewer notes: ${text.length} characters.`);

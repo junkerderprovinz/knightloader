@@ -469,13 +469,11 @@ because the last line is what the field cuts.
 > Notes on the code, which is unminified and has no build step:
 >
 > - `cnl-main.js` runs in the MAIN world. It wraps fetch, XMLHttpRequest,
->   HTMLFormElement.submit, navigator.sendBeacon and window.open. Inside
->   same-origin windows the page opens, it wraps only fetch, XMLHttpRequest and
->   HTMLFormElement.submit and adds a capture-phase submit listener. It redefines
->   the `src` setter of HTMLIFrameElement, HTMLImageElement and HTMLScriptElement,
->   and adds capture-phase `submit` and link `click` listeners. It only acts on
->   URLs whose host is 127.0.0.1:9666 or localhost:9666 (the Click'n'Load
->   protocol) and passes everything else to the original functions and setters.
+>   HTMLFormElement.submit, navigator.sendBeacon and window.open (in same-origin
+>   windows the page opens, only the first three), redefines the `src` setter of
+>   iframes, images and scripts, and adds capture-phase `submit` and link
+>   `click` listeners. It only acts on URLs whose host is 127.0.0.1:9666 or
+>   localhost:9666 (Click'n'Load) and passes everything else through unchanged.
 >   It also sets `window.jdownloader` and `window.version` when the page has not,
 >   because sites check them before showing a button. The `jk` field of a
 >   submission is JavaScript supplied by the site; `cnl.js` extracts the hex key
