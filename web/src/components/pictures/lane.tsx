@@ -98,8 +98,8 @@ export function Stop({
  * Name is the words beside a station: what it is and, under it, a note such as
  * why it is passed. `quiet` sets the name back for a station nothing reaches,
  * `onOpen` makes the words the button that opens what the station stands for,
- * and `actions` are the row's own buttons at the end of the line, for a
- * station inside a `.glim-row`.
+ * and `actions` are the row's own buttons just after the words, for a station
+ * inside a `.glim-row`.
  */
 export function Name({
   x = LANE + 22,
@@ -145,8 +145,8 @@ export function Name({
   return (
     <foreignObject x={x} y={y - height / 2} width={WIDTH - x - 2} height={height}>
       {actions ? (
-        <div className="flex h-full min-w-0 items-center gap-1">
-          <div className="h-full min-w-0 flex-1">{named}</div>
+        <div className="flex h-full min-w-0 items-center gap-1.5">
+          <div className="h-full min-w-0">{named}</div>
           <div className="glim-row-actions flex shrink-0 items-center gap-0.5">{actions}</div>
         </div>
       ) : (
