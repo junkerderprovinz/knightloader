@@ -48,6 +48,7 @@ func main() {
 			Logo:       logo,
 			Icon:       icon,
 			Categories: []string{"Network", "FileTransfer"},
+			Stays:      stays,
 			Payload:    executables{files, []string{"yt-dlp", "unrar"}},
 			// The lock a copy on the usual data folder holds, instanceID in
 			// desktop/main.go.
