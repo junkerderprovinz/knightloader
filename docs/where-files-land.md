@@ -12,6 +12,12 @@ usual `yyyy MM dd HH mm ss SSS` pattern letters. A task can also carry its own
 folder, which always wins, and a Packagizer rule can set one per link, which is
 how one paste lands in several places.
 
+A category has a folder for its downloads and one for unpacking. With the
+second one set, every download can land in one temporary folder while each
+category unpacks its archives somewhere else, series in one place and films in
+another. Left empty, the category unpacks where "Unpack to" on the Archives
+page says.
+
 ## Never in the data folder
 
 Nothing a download, an unpacking, a move or a rename writes may land in
@@ -43,7 +49,7 @@ them. JDownloader is told the package's new folder and picks up where it
 stopped. A torrent that is seeding goes on seeding from the new place, but its
 seeding goal, a ratio or a time, starts counting again. A folder of unpacked
 files named after the package, from "A folder per package" or a template under
-"Unpack to", moves along with it.
+"Unpack to" or a category's "Extraction folder", moves along with it.
 
 A link with a folder of its own, set by hand or by a Packagizer rule, stays
 where it is. So does a folder whose name does not come from the package.

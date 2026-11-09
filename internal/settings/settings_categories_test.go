@@ -36,7 +36,7 @@ func absPath(segs ...string) string {
 // least once.
 func threeDrawers() []Category {
 	return []Category{
-		{ID: "serien", Name: "Serien", Dir: absPath("media", "serien"), Priority: ptr(2), Extract: ptr(true)},
+		{ID: "serien", Name: "Serien", Dir: absPath("media", "serien"), ExtractTo: absPath("unpacked", "serien"), Priority: ptr(2), Extract: ptr(true)},
 		{ID: "filme", Name: "Filme", Dir: absPath("media", "filme"), Collision: string(collide.Skip)},
 		{ID: "software", Name: "Software", Extract: ptr(false), SpeedLimit: 2 << 20},
 	}
@@ -107,6 +107,25 @@ func TestExtractOffInADrawerSurvivesAGlobalThatIsOn(t *testing.T) {
 	}
 	if !s.ExtractFor("") {
 		t.Error("an untagged task stopped following the global switch")
+	}
+}
+
+// A drawer with its own extraction folder unpacks there, and every other task
+// keeps unpacking where the instance says.
+func TestADrawerUnpacksIntoItsOwnExtractionFolder(t *testing.T) {
+	s := Defaults()
+	s.ExtractTo = absPath("unpacked")
+	s.Categories = []Category{
+		{ID: "serien", ExtractTo: filepath.Join(absPath("media", "serien"), "<jd:packagename>")},
+		{ID: "filme", Dir: absPath("media", "filme")},
+	}
+	if got, want := s.ExtractToFor("serien"), filepath.Join(absPath("media", "serien"), "<jd:packagename>"); got != want {
+		t.Errorf("ExtractToFor(serien) = %q, want the drawer's own %q", got, want)
+	}
+	for _, id := range []string{"filme", "", "gone"} {
+		if got := s.ExtractToFor(id); got != s.ExtractTo {
+			t.Errorf("ExtractToFor(%q) = %q, want the instance's %q", id, got, s.ExtractTo)
+		}
 	}
 }
 
@@ -256,6 +275,26 @@ func TestATemplateThatExpandsToARelativeFolderIsDropped(t *testing.T) {
 	s := Settings{Categories: []Category{{ID: "serien", Dir: filepath.Join("<jd:packagename>", "x")}}}
 	if got := s.CategoryDir("serien", pathvars.Vars{Package: "Doctor Who"}); got != "" {
 		t.Errorf("CategoryDir = %q, want nothing rather than a folder nobody can locate", got)
+	}
+}
+
+// The extraction folder gets the rule the download folder gets: trimmed, and
+// dropped when nobody can say where it is, so the drawer falls back to the
+// instance's folder rather than unpack beside the process.
+func TestSanitizeHoldsTheExtractionFolderToTheDownloadFoldersRule(t *testing.T) {
+	kept := filepath.Join(absPath("media", "serien"), "<jd:packagename>")
+	n := sanitizeCategories(Settings{Categories: []Category{
+		{ID: "serien", ExtractTo: "  " + kept + "  "},
+		{ID: "filme", ExtractTo: filepath.Join("<jd:packagename>", "unpacked")},
+		{ID: "musik", ExtractTo: "musik"},
+	}})
+	if got := n.Categories[0].ExtractTo; got != kept {
+		t.Errorf("serien.extractTo = %q, want it trimmed to %q", got, kept)
+	}
+	for _, c := range n.Categories[1:] {
+		if c.ExtractTo != "" {
+			t.Errorf("%s.extractTo = %q, want a relative folder dropped", c.ID, c.ExtractTo)
+		}
 	}
 }
 
@@ -448,6 +487,9 @@ func TestTheTableSurvivesTheRoundTrip(t *testing.T) {
 	}
 	if got, ok := back.PriorityFor("serien"); !ok || got != 2 {
 		t.Errorf("serien.priority came back %d, %v; want 2, true", got, ok)
+	}
+	if got := back.CategoryFor("serien").ExtractTo; got != absPath("unpacked", "serien") {
+		t.Errorf("serien.extractTo came back %q, want %q", got, absPath("unpacked", "serien"))
 	}
 }
 

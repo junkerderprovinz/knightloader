@@ -244,6 +244,30 @@ func TestStartupFoldersCutsTemplatesBackToARealPath(t *testing.T) {
 	}
 }
 
+// A drawer's extraction folder is checked on boot like the instance's, at its
+// fixed prefix.
+func TestStartupFoldersIncludeADrawersExtractionFolder(t *testing.T) {
+	a, _ := newPreflightApp(t)
+	serien := filepath.Join(t.TempDir(), "serien")
+	cfg := a.Settings.Get()
+	cfg.Categories = []settings.Category{
+		{ID: "serien", Name: "Serien", ExtractTo: filepath.Join(serien, "<jd:packagename>")},
+	}
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, f := range a.startupFolders() {
+		if f.Dir == serien {
+			if f.Role != startupcheck.RoleExtract {
+				t.Errorf("the drawer's extraction folder is checked as %q, want %q", f.Role, startupcheck.RoleExtract)
+			}
+			return
+		}
+	}
+	t.Errorf("the boot check skips the drawer's extraction folder %s", serien)
+}
+
 // The diagnostics bundle goes into public bug reports, and a desktop data
 // directory contains the user's name. The default download folder sits inside
 // it. api's TestDiagnosticsShipsNoPaths pins the same rule from the other end.

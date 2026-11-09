@@ -210,10 +210,10 @@ func (a *App) unpackFoldersLocked(p *renamePlan) error {
 	cfg := a.Settings.Get()
 	seen := map[string]bool{}
 	for _, t := range p.members {
-		from := unpackRoot(a.expandFolder(t, cfg.ExtractTo), t, cfg.ExtractSubfolder)
+		from := unpackRoot(a.extractTo(t, cfg), t, cfg.ExtractSubfolder)
 		renamed := *t
 		renamed.Package = p.name
-		to := unpackRoot(a.expandFolder(&renamed, cfg.ExtractTo), &renamed, cfg.ExtractSubfolder)
+		to := unpackRoot(a.extractTo(&renamed, cfg), &renamed, cfg.ExtractSubfolder)
 		if from == "" || to == "" || sameDir(from, to) || seen[from] {
 			continue
 		}

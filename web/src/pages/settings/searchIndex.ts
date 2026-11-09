@@ -756,6 +756,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.categories.name', hint: 'settings.categories.nameHint' },
         { key: 'settings.categories.id', hint: 'settings.categories.idHint' },
         { key: 'settings.categories.dir', hint: 'settings.categories.dirHint' },
+        { key: 'settings.categories.extractTo', hint: 'settings.categories.extractToHint' },
         { key: 'props.priority', hint: 'settings.categories.priorityHint' },
         { key: 'props.autoExtract', hint: 'settings.categories.extractHint' },
         { key: 'settings.categories.speedLimit', hint: 'settings.categories.speedLimitHint' },

@@ -235,7 +235,7 @@ type unpackPlan struct {
 // the result moves to the folder it would have unpacked into; Subfolder is then
 // switched off so the level is not applied twice.
 func (a *App) unpackPlanFor(t *core.Task, cfg settings.Settings) unpackPlan {
-	p := unpackPlan{Dest: a.expandFolder(t, cfg.ExtractTo), Subfolder: cfg.ExtractSubfolder}
+	p := unpackPlan{Dest: a.extractTo(t, cfg), Subfolder: cfg.ExtractSubfolder}
 	root := a.workRoot()
 	if root != "" && deliverable(t) {
 		if base := unpackRoot(p.Dest, t, cfg.ExtractSubfolder); base != "" {
@@ -250,6 +250,16 @@ func (a *App) unpackPlanFor(t *core.Task, cfg settings.Settings) unpackPlan {
 		p.Deliver, p.Contents = move, true
 	}
 	return p
+}
+
+// extractTo is the extraction folder for t, expanded: its category's, else the
+// instance's.
+func (a *App) extractTo(t *core.Task, cfg settings.Settings) string {
+	template := cfg.ExtractTo
+	if t != nil {
+		template = cfg.ExtractToFor(t.Category)
+	}
+	return a.expandFolder(t, template)
 }
 
 // unpackRoot is the folder an extraction's output folder is created in, with

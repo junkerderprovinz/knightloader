@@ -368,7 +368,11 @@ func validateRows(dataDir string, s settings.Settings, named func(key string) bo
 	// share is offline does not refuse a change of theme either.
 	if sent("categories") {
 		for i, c := range s.Categories {
-			if err := settings.Validate(dataDir, "the folder", c.Dir); err != nil {
+			err := settings.Validate(dataDir, "the folder", c.Dir)
+			if err == nil {
+				err = settings.CheckTemplateFolder(dataDir, "the extraction folder", strings.TrimSpace(c.ExtractTo))
+			}
+			if err != nil {
 				return &settings.FieldError{Field: fmt.Sprintf("categories.%d", i),
 					Err: fmt.Errorf("category %d (%s): %w", i+1, categoryLabel(c, i), err)}
 			}

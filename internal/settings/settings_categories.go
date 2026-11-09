@@ -3,9 +3,9 @@ package settings
 // Categories: named bundles of defaults, picked once instead of described five
 // times.
 //
-// A category carries a destination folder, a priority, an unpacking switch, a
-// speed limit, a collision rule and a torrent's file selection under one word
-// somebody chose. It is picked when links are thrown in, it is a facet the
+// A category carries a destination folder, a priority, an unpacking switch and
+// folder, a speed limit, a collision rule and a torrent's file selection under
+// one word somebody chose. It is picked when links are thrown in, it is a facet the
 // list can be filtered by, and a Packagizer rule can set it. The alternative
 // was a Packagizer rule per drawer keyed on something in the file name, which
 // works only while the name says: "S01E03" is a series, "1080p" is anything
@@ -83,6 +83,11 @@ type Category struct {
 	// opinion and the global folder applies. See CategoryDir for when it is read
 	// and when it is not.
 	Dir string `json:"dir,omitempty"`
+	// ExtractTo replaces the instance's ExtractTo for this drawer and may be a
+	// template like it; empty takes the instance's. It is where unpacking
+	// writes, so ExtractSubfolder and a Packagizer rule's unpack folder apply
+	// on top of it as they do to the instance's.
+	ExtractTo string `json:"extractTo,omitempty"`
 	// Priority is the queue position every task filed here starts at. Nil rather
 	// than 0 because 0 is a real priority, the middle one, and a category that
 	// says nothing about priority must not push tasks a rule had lifted back
@@ -225,6 +230,15 @@ func (s Settings) ExtractFor(id string) bool {
 	return s.Extract
 }
 
+// ExtractToFor is the extraction folder for a task in this category, still a
+// template: the category's own, or the instance's when it has none.
+func (s Settings) ExtractToFor(id string) string {
+	if dir := strings.TrimSpace(s.CategoryFor(id).ExtractTo); dir != "" {
+		return dir
+	}
+	return s.ExtractTo
+}
+
 // PremiumOnlyFor is whether premium only holds a task in this category: the
 // category's own switch, or the instance's when it has none.
 func (s Settings) PremiumOnlyFor(id string) bool {
@@ -332,6 +346,10 @@ func sanitizeCategories(n Settings) Settings {
 			// starts with a real path level, which is how
 			// "/media/serien/<jd:packagename>" survives.
 			c.Dir = ""
+		}
+		c.ExtractTo = strings.TrimSpace(c.ExtractTo)
+		if relative(c.ExtractTo, true) {
+			c.ExtractTo = ""
 		}
 		c.Priority = clampCategoryPriority(c.Priority)
 		if c.SpeedLimit < 0 {

@@ -64,6 +64,12 @@ export const RELEASES: Release[] = [
       { id: 'free-hosters-native', text: 'whatsnew.change.freeHostersNative' },
       { id: 'free-filehosts-native', text: 'whatsnew.change.freeFilehostsNative' },
       { id: 'captcha-always-on', text: 'whatsnew.change.captchaAlwaysOn' },
+      {
+        id: 'category-extract-folder',
+        to: ['/settings/rules'],
+        text: 'whatsnew.change.categoryExtractFolder',
+        names: { name: 'settings.categories.extractTo' },
+      },
     ],
   },
   {

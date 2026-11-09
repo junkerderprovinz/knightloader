@@ -22,7 +22,7 @@ import { FileSelectionFields } from './Torrents';
 
 /**
  * CategoriesCard edits the named drawers, each a folder plus defaults, that a
- * Packagizer rule files a download into. The folder, unpacking, collision rule,
+ * Packagizer rule files a download into. The folders, unpacking, collision rule,
  * queue position and torrent file selection are live; the speed limit has no
  * caller yet, since internal/throttle is one limiter for the whole app, and its
  * hint says so.
@@ -304,6 +304,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
               priorities={priorities}
               collisions={options?.collisionPolicies ?? []}
               hooks={hooks}
+              globalExtractTo={cfg.extractTo ?? ''}
               onToggle={() => setOpenRow(openRow === i ? -1 : i)}
               onChange={(next) => writeRow(i, next)}
               onMove={(by) => move(i, by)}
@@ -322,6 +323,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
               priorities={priorities}
               collisions={options?.collisionPolicies ?? []}
               hooks={hooks}
+              globalExtractTo={cfg.extractTo ?? ''}
               onToggle={() => setOpenRow(openRow === cats.length ? -1 : cats.length)}
               onChange={writePending}
               onMove={() => {}}
@@ -349,6 +351,8 @@ function summarise(
   const parts: string[] = [];
   const dir = cat.dir?.trim();
   if (dir) parts.push(dir);
+  const extractTo = cat.extractTo?.trim();
+  if (extractTo) parts.push(`${t('settings.categories.extractTo')}: ${extractTo}`);
   if (cat.priority !== undefined) {
     const step = priorities.find((p) => p.id === String(cat.priority));
     parts.push(`${t('props.priority')}: ${step ? step.label : String(cat.priority)}`);
@@ -383,6 +387,7 @@ function CategoryRow({
   priorities,
   collisions,
   hooks,
+  globalExtractTo,
   onToggle,
   onChange,
   onMove,
@@ -396,6 +401,7 @@ function CategoryRow({
   priorities: { id: string; label: string }[];
   collisions: string[];
   hooks: MediaHook[];
+  globalExtractTo: string;
   onToggle: () => void;
   onChange: (next: Category) => void;
   onMove: (by: number) => void;
@@ -535,6 +541,21 @@ function CategoryRow({
               onValue={(dir) => onChange({ ...cat, dir })}
             />
           </SettingRow>
+          {/* The empty box shows the folder that applies in its place. */}
+          <div data-new="category-extract-folder">
+            <SettingRow
+              control="long"
+              label={t('settings.categories.extractTo')}
+              hint={`${t('settings.categories.extractToHint')} ${t('settings.pathVars')}`}
+            >
+              <PathInput
+                value={cat.extractTo ?? ''}
+                placeholder={globalExtractTo.trim() || t('settings.archives.besideArchive')}
+                title={t('settings.categories.extractTo')}
+                onValue={(extractTo) => onChange({ ...cat, extractTo })}
+              />
+            </SettingRow>
+          </div>
 
           {/* The server's ladder plus "no opinion"; ValidateCategories refuses
               anything outside -3..3. */}

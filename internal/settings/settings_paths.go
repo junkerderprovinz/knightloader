@@ -132,6 +132,17 @@ func CheckFolders(dataDir string, s Settings, named func(key string) bool) error
 	return nil
 }
 
+// CheckTemplateFolder is CheckFolders' check of the extraction folder, for a
+// folder outside the top level such as a category's: its fixed head has to be
+// absolute and it may not overlap dataDir. It is not tried on the disk, since
+// the first job that writes into it creates it.
+func CheckTemplateFolder(dataDir, what, dir string) error {
+	if relative(dir, true) {
+		return &PathProblem{What: what, Code: "notAbsolute", Dir: dir}
+	}
+	return dataFolderProblem(dataDir, what, dir)
+}
+
 // fixedPrefix returns the leading path segments of a folder template that hold
 // no placeholder, which is the deepest directory that is the same for every
 // task.

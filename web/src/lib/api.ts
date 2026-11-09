@@ -391,6 +391,8 @@ export interface Category {
   name?: string;
   /** Absolute, and may be a pathvars template. Empty = the global download folder. */
   dir?: string;
+  /** Where this drawer's archives unpack, like extractTo. Empty = the global one. */
+  extractTo?: string;
   /** -3..3; absent differs from 0. */
   priority?: number;
   extract?: boolean;
