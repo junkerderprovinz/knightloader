@@ -177,7 +177,13 @@ func TestARealNZBFromSonarrIsFollowedThroughTorBox(t *testing.T) {
 		rows := slots(t, doc, "queue")
 		return len(rows) == 1 && rows[0]["nzo_id"] == nzoID && rows[0]["status"] == "Queued"
 	})
-	tasks := a.Tasks()
+	// Sonarr sees a file still in the collector as queued too, and the file
+	// starts only once the job lists it, a moment after the queue shows it.
+	var tasks []*core.Task
+	waitUntil(t, "the file to leave the collector", func() bool {
+		tasks = a.Tasks()
+		return len(tasks) != 1 || tasks[0].Status != core.StatusCollected
+	})
 	if len(tasks) != 1 {
 		t.Fatalf("staged %d tasks, want TorBox's one file", len(tasks))
 	}
