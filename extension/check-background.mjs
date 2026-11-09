@@ -14,7 +14,9 @@
  *      moves there, and leaving the group deletes it. Every relay session
  *      joins under an id of its own, so two at once do not knock each other
  *      off, while the group knows the browser by one member id until it
- *      leaves. Only an extension page can pick a send's target.
+ *      leaves. Only an extension page can pick a send's target. A browser
+ *      that refuses the extension IndexedDB keeps the phrase and the member
+ *      key in storage.local instead, so the group still works there.
  *   4. Click'n'Load runs only with the optional site access: wanted without it
  *      stays off, granting or withdrawing it switches the scripts, the grant
  *      and the stored switch arriving together register nothing twice, and an
@@ -305,6 +307,45 @@ for (const stored of [false, undefined]) {
   }
 }
 
+// 3b. A browser that refuses the extension IndexedDB, as Firefox does when it
+// always browses privately, keeps the group in storage.local instead.
+{
+  const PHRASE = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+  const { chrome, store } = makeChrome({ withMenus: true });
+  const refusing = {
+    indexedDB: {
+      open() {
+        const req = {};
+        setTimeout(() => {
+          req.error = new Error('A mutation operation was attempted on a database that did not allow mutations.');
+          req.onerror?.();
+        }, 0);
+        return req;
+      },
+    },
+  };
+  const { ctx, error } = load(chrome, refusing);
+  if (error) fail(error);
+  else {
+    const run = (name) => vm.runInContext(name, ctx);
+    const settled = (p) => Promise.race([p.then((v) => ({ v }), (e) => ({ e })), new Promise((r) => setTimeout(() => r({ hung: true }), 1000))]);
+    let r = await settled(run('writePhrase')(PHRASE));
+    if (r.e || r.hung) fail(`without IndexedDB writePhrase() ${r.hung ? 'never settles' : `throws ${r.e?.message}`}, want the phrase kept in storage.local`);
+    r = await settled(run('readPhrase')());
+    if (r.v !== PHRASE) fail(`without IndexedDB readPhrase() gives ${r.hung ? 'nothing, it never settles' : r.e ? `the error ${r.e.message}` : JSON.stringify(r.v)}, want the phrase`);
+    const members = [];
+    for (let i = 0; i < 2; i++) {
+      r = await settled(run('readMember')());
+      members.push(r.v?.id);
+    }
+    if (!/^browser-[0-9a-f]{64}$/.test(members[0] ?? '')) fail(`without IndexedDB the member id is ${JSON.stringify(members[0])}, want "browser-" and 64 hex characters`);
+    else if (members[0] !== members[1]) fail('without IndexedDB the member id changes from one session to the next, so every session waits for approval again');
+    r = await settled(run('forgetGroup')());
+    if (r.e || r.hung) fail(`without IndexedDB forgetGroup() ${r.hung ? 'never settles' : `throws ${r.e?.message}`}`);
+    if ('phrase' in store || 'memberKey' in store) fail('without IndexedDB forgetGroup() leaves the phrase or the member key behind');
+  }
+}
+
 // 4. The site access decides.
 {
   // A fresh install wants the feature but has no access yet.
@@ -486,9 +527,53 @@ for (const granted of [true, false]) {
     fail(`following the group into a fortress: ${e.message}`);
   }
 }
+{
+  // Where IndexedDB is refused, the keys handed over go where the words were.
+  const PHRASE = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+  const moved = { groupKey: '1a'.repeat(32), frameKey: '2b'.repeat(32), peerAuthKey: '3c'.repeat(32) };
+  const { chrome, store } = makeChrome({ withMenus: true });
+  const refusing = {
+    indexedDB: {
+      open() {
+        const req = {};
+        setTimeout(() => {
+          req.error = new Error('A mutation operation was attempted on a database that did not allow mutations.');
+          req.onerror?.();
+        }, 0);
+        return req;
+      },
+    },
+  };
+  const page = () => {
+    const { ctx, error } = load(chrome, refusing);
+    if (error) throw new Error(error);
+    const opened = [];
+    ctx.record = (o) => opened.push(o);
+    ctx.moved = JSON.stringify(moved);
+    vm.runInContext(
+      "relaySession = (opts, work) => { record(opts); return work({ siblings: [{ instanceId: 'a'.repeat(40) }], call: async (t, m, p) => (p === '/api/group/peer/moved' ? { status: 200, body: moved } : { status: 200, body: '[]' }) }); }",
+      ctx,
+    );
+    return { opened, run: (name) => vm.runInContext(name, ctx) };
+  };
+  try {
+    let p = page();
+    await p.run('writePhrase')(PHRASE);
+    await p.run('groupInstances')();
+    if ('phrase' in store) fail('without IndexedDB the browser keeps the old words after it followed its group into a fortress');
+    if (store.keys?.groupKey !== moved.groupKey) fail('without IndexedDB the browser does not keep the keys it was handed');
+    p = page();
+    await p.run('groupInstances')();
+    if (p.opened[0]?.key !== moved.groupKey) fail('without IndexedDB a session after the move does not dial the keys handed over');
+    await p.run('forgetGroup')();
+    if ('keys' in store) fail('without IndexedDB leaving the group keeps the keys of the fortress pairing');
+  } catch (e) {
+    fail(`following the group into a fortress without IndexedDB: ${e.message}`);
+  }
+}
 
 if (problems.length) {
   for (const p of problems) console.error(`✗ ${p}`);
   process.exit(1);
 }
-console.log('ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, the phrase stays out of storage content scripts read, every session joins under its own id and one lasting member id, Click\'n\'Load follows the site access and its popup finds the sending site\'s window, and the browser follows its group into a fortress');
+console.log("ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, the phrase stays out of storage content scripts read, every session joins under its own id and one lasting member id, a browser that refuses IndexedDB keeps the group in storage.local, Click'n'Load follows the site access and its popup finds the sending site's window, and the browser follows its group into a fortress");

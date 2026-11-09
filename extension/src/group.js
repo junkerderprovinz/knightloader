@@ -9,7 +9,10 @@
  *
  * Both live in the extension's own IndexedDB rather than in storage.local,
  * which the Click'n'Load content scripts on every site can read. Only the
- * extension's pages and its background share that origin.
+ * extension's pages and its background share that origin. A browser that
+ * refuses the extension IndexedDB, as Firefox does when it always browses
+ * privately, keeps them and the member key in storage.local after all, since
+ * a group that cannot be joined is worse.
  *
  * `defaultInstance` holds a relay instance id, so renaming a member keeps the
  * choice on the same machine.
@@ -18,7 +21,10 @@
 const SECRET_DB = 'knightloader';
 const SECRET_STORE = 'secrets';
 
-/** Runs one request against the secret store and resolves with its result once the transaction commits. */
+/**
+ * Runs one request against the secret store and resolves with its result once
+ * the transaction commits. Rejects where the browser refuses the store.
+ */
 function secretStore(mode, request) {
   return new Promise((resolve, reject) => {
     const open = indexedDB.open(SECRET_DB, 1);
@@ -26,8 +32,15 @@ function secretStore(mode, request) {
     open.onerror = () => reject(open.error);
     open.onsuccess = () => {
       const db = open.result;
-      const tx = db.transaction(SECRET_STORE, mode);
-      const req = request(tx.objectStore(SECRET_STORE));
+      let tx, req;
+      try {
+        tx = db.transaction(SECRET_STORE, mode);
+        req = request(tx.objectStore(SECRET_STORE));
+      } catch (e) {
+        db.close();
+        reject(e);
+        return;
+      }
       tx.oncomplete = () => {
         db.close();
         resolve(req.result);
@@ -42,7 +55,13 @@ function secretStore(mode, request) {
 
 /** Reads the stored phrase, or '' when this browser has not joined a group. */
 async function readPhrase() {
-  const kept = await secretStore('readonly', (s) => s.get('phrase'));
+  let kept;
+  try {
+    kept = await secretStore('readonly', (s) => s.get('phrase'));
+  } catch {
+    const { phrase } = await chrome.storage.local.get('phrase');
+    return typeof phrase === 'string' ? phrase : '';
+  }
   if (typeof kept === 'string') return kept;
   // A phrase found in storage.local moves out of the content scripts' reach
   // the first time it is read.
@@ -60,10 +79,15 @@ async function readPhrase() {
 async function writePhrase(phrase) {
   const normalised = String(phrase).trim().toLowerCase().split(/\s+/).filter(Boolean).join(' ');
   await decodePhrase(normalised);
-  await secretStore('readwrite', (s) => {
-    s.delete('keys');
-    return s.put(normalised, 'phrase');
-  });
+  try {
+    await secretStore('readwrite', (s) => {
+      s.delete('keys');
+      return s.put(normalised, 'phrase');
+    });
+  } catch {
+    await chrome.storage.local.set({ phrase: normalised });
+    await chrome.storage.local.remove('keys');
+  }
   return normalised;
 }
 
@@ -73,8 +97,8 @@ async function forgetGroup() {
     s.delete('memberKey');
     s.delete('keys');
     return s.delete('phrase');
-  });
-  await chrome.storage.local.remove(['phrase', 'defaultInstance']);
+  }).catch(() => {});
+  await chrome.storage.local.remove(['phrase', 'keys', 'memberKey', 'defaultInstance']);
 }
 
 /**
@@ -102,7 +126,11 @@ function bytesOfHex(hex) {
 
 /** The keys handed over when the group moved into a fortress, or null. */
 async function readMovedKeys() {
-  return movedKeys(await secretStore('readonly', (s) => s.get('keys')));
+  try {
+    return movedKeys(await secretStore('readonly', (s) => s.get('keys')));
+  } catch {
+    return movedKeys((await chrome.storage.local.get('keys')).keys);
+  }
 }
 
 /** Whether this browser is in a group, by its words or by the keys it followed a move with. */
@@ -151,16 +179,24 @@ async function followMove({ siblings, call }, held) {
   }
   if (!keys || keys.groupKey === held.key) return;
   // Words entered on another page while this session ran win.
-  await secretStore('readwrite', (s) => {
-    const phrase = s.get('phrase');
-    const kept = s.get('keys');
-    kept.onsuccess = () => {
-      if ((phrase.result ?? '') !== held.phrase || (kept.result?.groupKey ?? '') !== held.movedKey) return;
-      s.delete('phrase');
-      s.put(keys, 'keys');
-    };
-    return kept;
-  });
+  const stillHeld = (phrase, kept) => (phrase ?? '') === held.phrase && (kept?.groupKey ?? '') === held.movedKey;
+  try {
+    await secretStore('readwrite', (s) => {
+      const phrase = s.get('phrase');
+      const kept = s.get('keys');
+      kept.onsuccess = () => {
+        if (!stillHeld(phrase.result, kept.result)) return;
+        s.delete('phrase');
+        s.put(keys, 'keys');
+      };
+      return kept;
+    });
+  } catch {
+    const local = await chrome.storage.local.get(['phrase', 'keys']);
+    if (!stillHeld(local.phrase, local.keys)) return;
+    await chrome.storage.local.set({ keys });
+    await chrome.storage.local.remove('phrase');
+  }
 }
 
 /** The relay instance id this browser sends to when it is not asked. */
@@ -253,10 +289,22 @@ function sessionInstanceId() {
  * the key's SHA-256. It is sealed into every announce and call, and an
  * instance lists the browser once under it, turns it away once removed and
  * takes a call under it only when that key signed it. The private half never
- * leaves WebCrypto. A browser without Ed25519 in WebCrypto gets null and calls
- * unsigned, which every instance refuses with a reason.
+ * leaves WebCrypto, except where the browser refuses IndexedDB (localMember).
+ * A browser without Ed25519 in WebCrypto gets null and calls unsigned, which
+ * every instance refuses with a reason.
  */
 async function readMember() {
+  let kept;
+  try {
+    kept = await storedMember();
+  } catch {
+    kept = await localMember();
+  }
+  return kept ? { id: await relayMemberId('extension', kept.publicKey), key: kept } : null;
+}
+
+/** The member key from IndexedDB, made and stored on first use. */
+async function storedMember() {
   let kept = await secretStore('readonly', (s) => s.get('memberKey'));
   if (!(kept && kept.privateKey && kept.publicKey)) {
     let pair;
@@ -280,7 +328,32 @@ async function readMember() {
     });
     kept = (await secretStore('readonly', (s) => s.get('memberKey'))) ?? made;
   }
-  return { id: await relayMemberId('extension', kept.publicKey), key: kept };
+  return kept;
+}
+
+/**
+ * The member key kept in storage.local. That cannot hold a CryptoKey, so the
+ * private half is stored as PKCS #8 and imported again for every session.
+ */
+async function localMember() {
+  let { memberKey } = await chrome.storage.local.get('memberKey');
+  if (!(memberKey && memberKey.pkcs8 && memberKey.publicKey)) {
+    let pair;
+    try {
+      pair = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
+    } catch {
+      return null;
+    }
+    const pkcs8 = new Uint8Array(await crypto.subtle.exportKey('pkcs8', pair.privateKey));
+    const publicKey = new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey));
+    await chrome.storage.local.set({ memberKey: { pkcs8: [...pkcs8], publicKey: [...publicKey] } });
+    // Read back, so two sessions starting together sign with the key stored last.
+    ({ memberKey } = await chrome.storage.local.get('memberKey'));
+  }
+  return {
+    privateKey: await crypto.subtle.importKey('pkcs8', new Uint8Array(memberKey.pkcs8), { name: 'Ed25519' }, false, ['sign']),
+    publicKey: new Uint8Array(memberKey.publicKey),
+  };
 }
 
 /**
