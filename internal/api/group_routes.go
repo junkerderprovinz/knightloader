@@ -34,6 +34,10 @@ var groupRoutes = map[string]bool{
 	// instance alone.
 	"GET /api/group/roster": true,
 
+	// How this instance is doing, which every member of a fortress may read.
+	"/api/fortress/v1/status": true,
+	"/api/fortress/v1/log":    true,
+
 	// Adding links. A folder outside the download folders is refused below.
 	// The extension's video menu first asks what a video offers.
 	"POST /api/links":     true,

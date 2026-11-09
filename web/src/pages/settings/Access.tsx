@@ -460,7 +460,7 @@ export function TokensSection() {
   );
 }
 
-const PRESETS: TokenPreset[] = ['full', 'addRead', 'read', 'custom'];
+const PRESETS: TokenPreset[] = ['full', 'addRead', 'read', 'status', 'custom'];
 
 /**
  * TokenScopePicker chooses what a new token may do: a preset, or the four

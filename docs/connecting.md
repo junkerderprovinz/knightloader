@@ -530,10 +530,18 @@ carries some of four rights:
 | Add | links, torrents, NZB files handed over by Sonarr or Radarr, and containers |
 | Control | pausing, resuming, removing and reordering downloads, the queue's own switches, captchas, unpacking, and the accent, corners and rainbow the apps take over |
 | Admin | settings, accounts, tokens, instances, scripts, the logs, backups and restarts, and picking the folder a download goes to |
+| Fortress status | how the instance is doing and its event log at `/api/fortress/v1/status` and `/api/fortress/v1/log`, and nothing else |
 
-The window that creates a token offers four presets: **Full access** (all
-four), **Add and read**, **Read only**, and **Custom**, which shows one switch
-per right.
+The window that creates a token offers five presets: **Full access** (every
+right), **Add and read**, **Read only**, **Fortress status only**, and
+**Custom**, which shows one switch per right.
+
+**Fortress status only** is the one for a dashboard such as Homepage or
+Homarr. It reads what the other apps of a fortress read: the state, what needs
+you, the running downloads and the log, with texts in the language the
+dashboard asks for (`?lang=de` or its `Accept-Language`). A token with Read
+opens these two addresses as well. Without any token they answer 401, also on
+an instance without a password.
 
 **Add and read** is enough for Sonarr and Radarr, through either of their
 doors. Through SABnzbd's they send their key in the address (`?apikey=`), where

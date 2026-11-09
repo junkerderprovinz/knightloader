@@ -41,6 +41,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/eventprog"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
+	"github.com/junkerderprovinz/knightloader/internal/fortress"
 	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
@@ -132,6 +133,9 @@ type App struct {
 	// EventPrograms starts a configured program on an event. It owns one
 	// goroutine per enabled program and must be closed (see app_eventprog.go).
 	EventPrograms *eventprog.Dispatcher
+	// FortressLog keeps the latest events for the members of the fortress and
+	// the dashboards that read /api/fortress/v1/log.
+	FortressLog *fortress.Log
 	// Throttle is the shared bandwidth allowance for everything downloading
 	// through the loopback proxy.
 	Throttle *throttle.Limiter
@@ -708,6 +712,8 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	a.Events.Subscribe("eventtargets", a.EventTargets.On)
 	a.EventPrograms = a.newEventPrograms(nil)
 	a.Events.Subscribe("eventprograms", a.EventPrograms.On)
+	a.FortressLog = fortress.NewLog(fortressLogSize)
+	a.Events.Subscribe("fortress", a.FortressLog.On)
 	scripts, err := script.NewHost(script.Options{DataDir: dataDir, Actions: scriptActions{a}, Hub: a.Hub, Bus: a.Events})
 	if err != nil {
 		st.Close()

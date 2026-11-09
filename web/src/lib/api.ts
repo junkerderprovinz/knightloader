@@ -3391,10 +3391,10 @@ export async function setPassword(current: string, next: string): Promise<AuthSt
 // as "Authorization: Bearer <secret>"; this UI never does.
 
 /** One right a token can carry (apitoken.Scope). */
-export type TokenScope = 'read' | 'add' | 'control' | 'admin';
+export type TokenScope = 'read' | 'add' | 'control' | 'admin' | 'status';
 
 /** Every right, in the server's canonical order. */
-export const TOKEN_SCOPES: readonly TokenScope[] = ['read', 'add', 'control', 'admin'];
+export const TOKEN_SCOPES: readonly TokenScope[] = ['read', 'add', 'control', 'admin', 'status'];
 
 /** One token's metadata. Never the secret. */
 export interface ApiToken {

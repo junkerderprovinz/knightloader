@@ -6,7 +6,8 @@ const t = (key: keyof typeof en) => en[key];
 
 describe('presetOf', () => {
   it('names the preset a set of rights matches, whatever the order', () => {
-    expect(presetOf(['admin', 'control', 'add', 'read'])).toBe('full');
+    expect(presetOf(['status', 'admin', 'control', 'add', 'read'])).toBe('full');
+    expect(presetOf(['status'])).toBe('status');
     expect(presetOf(['add', 'read'])).toBe('addRead');
     expect(presetOf(['read'])).toBe('read');
   });
@@ -14,6 +15,7 @@ describe('presetOf', () => {
   it('calls anything else custom', () => {
     expect(presetOf(['read', 'control'])).toBe('custom');
     expect(presetOf(['add'])).toBe('custom');
+    expect(presetOf(['admin', 'control', 'add', 'read'])).toBe('custom');
     expect(presetOf([])).toBe('custom');
   });
 });

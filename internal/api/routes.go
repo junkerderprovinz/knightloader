@@ -65,6 +65,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerSelfTest(reg, a)
 	registerFileOwner(reg, a)
 	registerHealth(reg, a)
+	registerFortress(reg, a)
 	registerFiles(reg, a)
 	registerLifecycle(reg, a)
 	registerBackup(reg, a)
