@@ -90,7 +90,7 @@ it('draws a part of an archive being unpacked at the unpacking, striped', () => 
   const got = cell(row('a2'), ctx(job('running', ['a1', 'a2'], { unpacked: 450, size: 1000 })));
   expect(got.value).toBe('45');
   expect(got.label).toBe('45%');
-  expect(got.clip).toBe('inset(0 55% 0 0)');
+  expect(got.clip).toBe('inset(0px 55% 0px 0px)');
   expect(got.striped).toBe(true);
   expect(got.colour).toBe('var(--accent)');
 });
