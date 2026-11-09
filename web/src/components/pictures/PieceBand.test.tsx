@@ -69,8 +69,8 @@ describe('the band of a file', () => {
     await draw(<PieceBand map={bytes} label="x" />);
     // The band is 1000 wide, as this file is; the stretch at its start runs a little past the end.
     expect(transforms('[data-piece="written"]')).toEqual([
-      'translateX(-2.00px) scaleX(302.00)',
-      'translateX(500.00px) scaleX(100.00)',
+      'translateX(-2px) scaleX(302)',
+      'translateX(500px) scaleX(100)',
     ]);
   });
 
@@ -78,19 +78,19 @@ describe('the band of a file', () => {
     const holed: PieceMap = { unit: 'articles', total: 10, runs: [run('done', 4), run('lost', 1), run('done', 5)] };
     await draw(<PieceBand map={holed} label="x" />);
     expect(transforms('[data-piece="written"]')).toEqual([
-      'translateX(-2.00px) scaleX(402.00)',
-      'translateX(500.00px) scaleX(502.00)',
+      'translateX(-2px) scaleX(402)',
+      'translateX(500px) scaleX(502)',
     ]);
   });
 
   it('stands a head where each connection is writing', async () => {
     await draw(<PieceBand map={bytes} label="x" />);
-    expect(transforms('[data-head]')).toEqual(['translateX(300.00px)', 'translateX(600.00px)']);
+    expect(transforms('[data-head]')).toEqual(['translateX(300px)', 'translateX(600px)']);
   });
 
   it('stands a head on the middle of an article that is being fetched', async () => {
     await draw(<PieceBand map={articles} label="x" />);
-    expect(transforms('[data-head]')).toEqual(['translateX(550.00px)', 'translateX(650.00px)']);
+    expect(transforms('[data-head]')).toEqual(['translateX(550px)', 'translateX(650px)']);
   });
 
   it('lights what arrived damaged or not at all, and keeps it out of the fill', async () => {
@@ -101,7 +101,7 @@ describe('the band of a file', () => {
       '100',
       'var(--status-fail-solid)',
     ]);
-    expect(transforms('[data-piece="written"]')).toEqual(['translateX(-2.00px) scaleX(402.00)']);
+    expect(transforms('[data-piece="written"]')).toEqual(['translateX(-2px) scaleX(402)']);
   });
 
   it('tells pieces apart by a line between them while they are few', async () => {

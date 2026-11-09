@@ -102,20 +102,13 @@ const link = (path: string) => host.querySelector(`a[href="${path}"]`)!;
 
 /**
  * layOut gives the page the boxes its `data-box` attributes name (left, top,
- * width, height) and lets `data-scrolls` scroll sideways, since jsdom has no
- * layout. Whatever names no box fills the window.
+ * width, height), since jsdom has no layout. Whatever names no box fills the
+ * window.
  */
 function layOut() {
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
     const [x, y, w, h] = (this.getAttribute('data-box') ?? '0,0,1000,800').split(',').map(Number);
     return new DOMRect(x, y, w, h);
-  });
-  const computed = globalThis.getComputedStyle;
-  vi.spyOn(globalThis, 'getComputedStyle').mockImplementation((el, pseudo) => {
-    const style = computed(el, pseudo);
-    style.overflowX = el.hasAttribute('data-scrolls') ? 'auto' : 'visible';
-    style.overflowY = 'visible';
-    return style;
   });
 }
 
@@ -256,7 +249,7 @@ describe('the dots', () => {
     await draw(
       '/',
       news([HEAD]),
-      <div data-box="0,0,300,200" data-scrolls>
+      <div data-box="0,0,300,200" style={{ overflowX: 'auto' }}>
         <div data-new="overview-head" data-box="0,10,900,30">
           Row
         </div>
