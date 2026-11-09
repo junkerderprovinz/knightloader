@@ -19,9 +19,11 @@ func TestABrowserCheckMovesTheDownloadToJDownloaderNamingTheHoster(t *testing.T)
 	t.Cleanup(func() { jd.SetKnownHosts(nil) })
 	task := &core.Task{ID: "1", URL: "https://filespace.com/k3m9x2p7q1ab", Resolver: filespace.Site.ID, Status: core.StatusRunning, Enabled: true}
 	useXFS(a, filespace.Site, "https://filespace.com", http.DefaultClient)
+	// Halted by hand, so the task moved on starts nowhere: no JD is set up here.
+	// The schedule's first pass may still be due, and it keeps only a halt set
+	// by hand.
+	a.SetHalted(true)
 	a.mu.Lock()
-	// Held, so the task moved on starts nowhere: no JD is set up here.
-	a.halted = true
 	a.tasks[task.ID] = task
 	a.active[task.ID] = true
 	a.started[task.ID] = true

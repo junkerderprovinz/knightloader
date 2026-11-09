@@ -263,10 +263,11 @@ func TestADownloadTheOwnClientGaveUpOnMovesToTheNextBackendNamingTheTakeover(t *
 	jd.SetKnownHosts([]string{"keep2share.cc"})
 	t.Cleanup(func() { jd.SetKnownHosts(nil) })
 	task := &core.Task{ID: "1", URL: "https://k2s.cc/file/" + k2sFile, Resolver: keep2share.Keep2Share.ID, Status: core.StatusRunning, Enabled: true}
+	// Halted by hand, so the task moved on starts nowhere: no JD is set up here,
+	// and the hoster's clients speak to the live site. The schedule's first pass
+	// may still be due, and it keeps only a halt set by hand.
+	a.SetHalted(true)
 	a.mu.Lock()
-	// Held, so the task moved on starts nowhere: no JD is set up here, and the
-	// hoster's clients speak to the live site.
-	a.halted = true
 	a.tasks[task.ID] = task
 	a.active[task.ID] = true
 	a.started[task.ID] = true
