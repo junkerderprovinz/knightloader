@@ -44,7 +44,7 @@ RUN --mount=type=secret,id=kl_dlc_key --mount=type=secret,id=kl_dlc_iv \
 # publishes: its Linux binary exists for x86-64 only and is linked against
 # glibc. The licence allows UnRAR inside other software and goes into the image
 # with it.
-FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS unrar
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS unrar
 # unrarsrc-7.2.7 is UnRAR 7.23, the release the desktop builds ship
 # (desktop/unrar.json).
 ARG UNRAR_VERSION=7.2.7
@@ -57,7 +57,7 @@ RUN apk add --no-cache g++ make \
     && install -Dm755 /tmp/unrar/unrar /out/unrar \
     && install -Dm644 /tmp/unrar/license.txt /out/license.txt
 
-FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 # The JRE runs the private headless JDownloader that KL_PROVISION_JD starts by
 # default, which DLC and other container links need. tini is PID 1 so the
 # ffmpeg left behind when a yt-dlp download is stopped gets reaped.
