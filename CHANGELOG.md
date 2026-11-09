@@ -205,6 +205,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
+- **Stop works while downloads run.** The page only heard how many downloads
+  were in flight when someone pressed Play or Pause, so Stop stayed greyed out
+  for downloads that started on their own.
 - **A yt-dlp that starts slowly is still found.** The one-file build of
   yt-dlp unpacks itself on its first start, which on a slow disk takes longer
   than the ten seconds KnightLoader waited, so video sites went without

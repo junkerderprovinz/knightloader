@@ -410,7 +410,12 @@ type App struct {
 	revision uint64
 	queue    []string        // task IDs waiting for a slot, FIFO with per-host skip-ahead
 	active   map[string]bool // dispatched and not yet terminal/paused
-	started  map[string]bool // ever handed to a backend (Resume vs fresh Download)
+	// runningSent is the in-flight count the last announced queue state carried.
+	runningSent int
+	// queueSendMu keeps a queue state read before another from going out after
+	// it.
+	queueSendMu sync.Mutex
+	started     map[string]bool // ever handed to a backend (Resume vs fresh Download)
 	// rerouting holds the engine transfers being moved onto another route,
 	// by engine id (see keepOnRoute).
 	rerouting map[string]bool

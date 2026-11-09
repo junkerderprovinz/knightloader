@@ -966,6 +966,22 @@ func (a *App) Queue() QueueState {
 	}
 }
 
+// announceRunningLocked sends the queue state when the number of transfers in
+// flight has changed since it was last sent, since the Stop button in every
+// open window is enabled by it. Caller holds a.mu.
+func (a *App) announceRunningLocked() {
+	if len(a.active) == a.runningSent {
+		return
+	}
+	a.runningSent = len(a.active)
+	// Queue takes a.mu, which the caller holds.
+	a.spawn(func() {
+		a.queueSendMu.Lock()
+		defer a.queueSendMu.Unlock()
+		a.Hub.Broadcast("queue", a.Queue())
+	})
+}
+
 // limitInForceLocked is the limit applyBudget shares out before the volume
 // cap folds in. Until the runner's first pass nothing has been put in force,
 // and the configured limit is what applies. Caller holds a.mu.

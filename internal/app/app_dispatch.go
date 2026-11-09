@@ -764,6 +764,9 @@ func (a *App) countStartLocked(t *core.Task, host string, perHost map[string]int
 // letting tasks for other hosts skip ahead of a host at its limit. Caller holds
 // a.mu.
 func (a *App) dispatchLocked() {
+	// Every start passes through here, and every freed slot is offered here,
+	// so this sees each change to the number in flight.
+	defer a.announceRunningLocked()
 	// The background watchers start here, once each, because dispatchLocked
 	// runs at start-up and on nearly every change. They start before the halt
 	// check, since captchas, stalls, disk space and the volume counter matter

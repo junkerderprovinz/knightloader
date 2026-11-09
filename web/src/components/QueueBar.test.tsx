@@ -10,9 +10,21 @@ import { QueueBar } from './QueueBar';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+let pushed: ((type: string, data: unknown) => void) | null = null;
+vi.mock('../lib/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../lib/api')>()),
+  connectWS: (onMessage: (type: string, data: unknown) => void) => {
+    pushed = onMessage;
+    return () => {
+      pushed = null;
+    };
+  },
+}));
+
 let root: Root;
 let host: HTMLDivElement;
 let halted: boolean;
+let running: number;
 let writes: boolean[];
 
 const reply = (body: unknown) =>
@@ -20,6 +32,7 @@ const reply = (body: unknown) =>
 
 beforeEach(() => {
   writes = [];
+  running = 1;
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init?: RequestInit) => {
@@ -28,7 +41,7 @@ beforeEach(() => {
         halted = (JSON.parse(String(init.body)) as { halted: boolean }).halted;
         writes.push(halted);
       }
-      return reply({ halted, running: 1 });
+      return reply({ halted, running });
     }),
   );
   host = document.createElement('div');
@@ -81,4 +94,14 @@ it('writes nothing when the state in force is pressed again', async () => {
   expect(writes).toEqual([]);
   await act(async () => play.click());
   expect(writes).toEqual([false]);
+});
+
+it('offers Stop once a download starts after the page loaded', async () => {
+  halted = false;
+  running = 0;
+  const [, , stop] = await show();
+  expect(stop.disabled).toBe(true);
+  await act(async () => pushed?.('queue', { halted: false, running: 1 }));
+  // A disabled button sits in a tooltip wrapper, so Stop is a new element.
+  expect([...host.querySelectorAll('button')][2].disabled).toBe(false);
 });

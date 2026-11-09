@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { type QueueState, type StopCost, fetchQueue, fetchStopCost, setQueue, stopAll } from '../lib/api';
+import {
+  type QueueState,
+  type StopCost,
+  apiBase,
+  connectWS,
+  fetchQueue,
+  fetchStopCost,
+  setQueue,
+  stopAll,
+} from '../lib/api';
 import { useDialogMute } from '../lib/dialogmute';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
@@ -36,6 +45,13 @@ export function useQueueControl(base: string, instance: string) {
       clearTimeout(retry);
     };
   }, [base, instance, attempt]);
+
+  // Downloads start and end without anyone pressing a switch here, and Stop is
+  // enabled by how many are in flight. A peer's stream is not ours to read.
+  useEffect(() => {
+    if (base !== apiBase('')) return;
+    return connectWS((type, data) => type === 'queue' && setQ(data as QueueState), ['queue']);
+  }, [base]);
 
   const toggle = useCallback(async () => {
     if (!queue) return;
