@@ -51,7 +51,7 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
-    version: '2.8.0',
+    version: '2.7.4',
     changes: [
       { id: 'fichier-native', text: 'whatsnew.change.fichierNative' },
       { id: 'rapidgator-native', text: 'whatsnew.change.rapidgatorNative' },

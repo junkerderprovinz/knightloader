@@ -1,0 +1,1 @@
+Viele Hoster laden ohne JDownloader, Countdown und Captcha erscheinen dabei in dieser App. Captchas erscheinen hier immer und lassen sich nicht mehr ausschalten.

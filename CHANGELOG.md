@@ -38,6 +38,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.7.4] - 2026-11-09
+
 ### Added
 
 - **Each category can unpack into its own folder.** A category has an

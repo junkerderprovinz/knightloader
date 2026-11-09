@@ -1,0 +1,1 @@
+Many hosters download without JDownloader, with their countdown and captcha shown in this app. Captchas always pop up here and can no longer be switched off.

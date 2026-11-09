@@ -79,7 +79,7 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
-    <release version="2.8.0" date="2026-11-08">
+    <release version="2.7.4" date="2026-11-09">
       <description>
         <p>Many hosters download without JDownloader, and KnightLoader comes as a Flatpak.</p>
         <ul>
@@ -91,11 +91,15 @@
           <li>Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer and SwissTransfer shares download one row per file</li>
           <li>Krakenfiles, Workupload and Send.now links download for free</li>
           <li>A login KnightLoader cannot use goes back to JDownloader</li>
+          <li>Each category can unpack into its own folder</li>
+          <li>The browser extension puts a download button on videos</li>
+          <li>A video's quality pickers offer only what the video has</li>
+          <li>Captchas always show, and Stop works while downloads run</li>
           <li>Every list you reorder by hand places the moved item the same way</li>
           <li>A second Linux desktop copy with its own data folder starts</li>
         </ul>
       </description>
-      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.0</url>
+      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.7.4</url>
     </release>
     <release version="2.7.3" date="2026-11-07">
       <description>
