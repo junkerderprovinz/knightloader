@@ -1,6 +1,7 @@
 import type { Flavour, LinkReport, Rule } from '../RuleEditor';
 import { useT } from '../../lib/i18n';
-import { IconCheck, IconClose, IconFolderOpen, IconLink } from '../../lib/icons';
+import { IconCheck, IconClose, IconFolderOpen, IconLink, IconPencil, IconTrash } from '../../lib/icons';
+import { IconBadge } from '../ui';
 import { ENTRY, Entry, LANE, Name, PITCH, RADIUS, Stop, Track, WIDTH, numbered, stopAt } from './lane';
 import { LinkParcel } from './PriorityFlow';
 import { FAIL, HUE, trip, useStage } from './scene';
@@ -56,7 +57,8 @@ const LANDING_GLYPH = { folder: IconFolderOpen, taken: IconCheck, rejected: Icon
  * at the top and passes them in order, every rule that matches takes it and
  * answers, and where the rules are done with it, it turns off the line and
  * lands. A rule below that point is never asked, which is why the order
- * counts. Without a sample the rules stand in their order and wait.
+ * counts. Without a sample the rules stand in their order and wait. Each
+ * rule is a row with the list's edit and remove at its end.
  */
 export function RuleSwitch({
   rules,
@@ -65,6 +67,7 @@ export function RuleSwitch({
   off,
   label,
   onOpen,
+  onRemove,
 }: {
   rules: SwitchRule[];
   way: Way | null;
@@ -73,6 +76,7 @@ export function RuleSwitch({
   off: boolean;
   label: string;
   onOpen: (index: number) => void;
+  onRemove: (index: number) => void;
 }) {
   const { t } = useT();
   const going = !off && way !== null && landing !== null;
@@ -128,9 +132,34 @@ export function RuleSwitch({
         const unasked = going && i > turn;
         const state = off || rule.skipped ? 'off' : takes(i) ? 'takes' : 'passed';
         return (
-          <g key={i} data-rule={i} data-state={unasked ? 'unasked' : state} opacity={unasked ? 0.45 : undefined}>
+          <g key={i} data-rule={i} data-state={unasked ? 'unasked' : state} opacity={unasked ? 0.45 : undefined} className="glim-row">
             <Stop y={stopAt(i)} state={state} face={numbered(i + 1)} at={walk.stops[i + 1]?.arrive ?? 1} loop={loop} still={still} />
-            <Name x={NAMES} y={stopAt(i)} quiet={state === 'off' || unasked} note={rule.skipped} onOpen={() => onOpen(i)}>
+            <Name
+              x={NAMES}
+              y={stopAt(i)}
+              quiet={state === 'off' || unasked}
+              note={rule.skipped}
+              onOpen={() => onOpen(i)}
+              actions={
+                <>
+                  <IconBadge
+                    quiet
+                    hue={i}
+                    icon={<IconPencil width={16} height={16} />}
+                    title={t('settings.rules.edit')}
+                    aria-haspopup="dialog"
+                    onClick={() => onOpen(i)}
+                  />
+                  <IconBadge
+                    quiet
+                    hue={i}
+                    icon={<IconTrash width={16} height={16} />}
+                    title={t('settings.rules.remove')}
+                    onClick={() => onRemove(i)}
+                  />
+                </>
+              }
+            >
               {rule.name}
             </Name>
           </g>

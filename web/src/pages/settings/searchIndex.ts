@@ -705,9 +705,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.module.packagizer', hint: 'settings.rules.setSwitchHint' },
         { key: 'settings.module.linkfilter', hint: 'settings.rules.setSwitchHint' },
+        { key: 'settings.rules.stopAfterMatch', hint: 'settings.rules.stopHint' },
       ],
-      also: ['settings.rules.flavourLabel', 'settings.rules.stopAfterMatch'],
-      body: ['settings.rules.stopHint'],
+      also: ['settings.rules.flavourLabel'],
     },
     {
       title: 'settings.rules.listTitle',

@@ -97,8 +97,9 @@ export function Stop({
 /**
  * Name is the words beside a station: what it is and, under it, a note such as
  * why it is passed. `quiet` sets the name back for a station nothing reaches,
- * and `onOpen` makes the words the button that opens what the station stands
- * for.
+ * `onOpen` makes the words the button that opens what the station stands for,
+ * and `actions` are the row's own buttons at the end of the line, for a
+ * station inside a `.glim-row`.
  */
 export function Name({
   x = LANE + 22,
@@ -106,6 +107,7 @@ export function Name({
   quiet = false,
   note,
   onOpen,
+  actions,
   children,
 }: {
   x?: number;
@@ -113,6 +115,7 @@ export function Name({
   quiet?: boolean;
   note?: ReactNode;
   onOpen?: () => void;
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   const words = (
@@ -124,20 +127,30 @@ export function Name({
       {note && <span className="block truncate text-meta leading-[14px] text-carbon-textMuted">{note}</span>}
     </>
   );
+  const named = onOpen ? (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-haspopup="dialog"
+      className="flex h-full w-full min-w-0 flex-col justify-center rounded-[var(--radius-control)] text-start
+        transition-colors hover:bg-carbon-hover"
+    >
+      {words}
+    </button>
+  ) : (
+    <div className="flex h-full min-w-0 flex-col justify-center">{words}</div>
+  );
+  // A row's badge is 2rem high, a little more than the words need.
+  const height = actions ? 32 : 30;
   return (
-    <foreignObject x={x} y={y - 15} width={WIDTH - x - 2} height="30">
-      {onOpen ? (
-        <button
-          type="button"
-          onClick={onOpen}
-          aria-haspopup="dialog"
-          className="flex h-full w-full min-w-0 flex-col justify-center rounded-[var(--radius-control)] text-start
-            transition-colors hover:bg-carbon-hover"
-        >
-          {words}
-        </button>
+    <foreignObject x={x} y={y - height / 2} width={WIDTH - x - 2} height={height}>
+      {actions ? (
+        <div className="flex h-full min-w-0 items-center gap-1">
+          <div className="h-full min-w-0 flex-1">{named}</div>
+          <div className="glim-row-actions flex shrink-0 items-center gap-0.5">{actions}</div>
+        </div>
       ) : (
-        <div className="flex h-full min-w-0 flex-col justify-center">{words}</div>
+        named
       )}
     </foreignObject>
   );
