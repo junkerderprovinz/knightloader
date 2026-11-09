@@ -10,6 +10,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/fortress"
 )
 
@@ -38,9 +39,16 @@ func (a *App) FortressSnapshot(ctx context.Context) (fortress.Snapshot, error) {
 		id = name
 	}
 
+	// Members and dashboards read this, so a task carries no password and its
+	// names and addresses no credentials, as a member reading /api/tasks gets them.
+	var tasks []*core.Task
+	for _, t := range a.Tasks() {
+		clean := t.WithoutCredentials()
+		tasks = append(tasks, &clean)
+	}
 	in := fortress.Inputs{
 		Now:      time.Now(),
-		Tasks:    a.Tasks(),
+		Tasks:    tasks,
 		Captchas: a.CaptchaChallenges(),
 		Logins:   a.HosterLogins(),
 		DiskLow:  s.DiskLowSpace,

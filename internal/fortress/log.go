@@ -9,6 +9,7 @@ import (
 
 	"github.com/junkerderprovinz/parleyport/kit/status"
 
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 )
 
@@ -104,10 +105,11 @@ func (l *Log) position(cursor string) uint64 {
 }
 
 // describe puts an event into the log's terms. An added link is left out: one
-// pasted container would push everything else out of the log.
+// pasted container would push everything else out of the log. Names lose any
+// credentials, since every member of the fortress reads the log.
 func describe(f script.Firing) (logEntry, bool) {
 	e := logEntry{level: status.SeverityInfo, link: "/downloads"}
-	named := func(name string) map[string]string { return map[string]string{"name": name} }
+	named := func(name string) map[string]string { return map[string]string{"name": core.RedactText(name)} }
 	switch {
 	case f.Trigger == script.TriggerTaskDone && f.Task != nil:
 		e.code, e.key, e.args = "download.done", "fortress.log.taskDone", named(taskName(f.Task))

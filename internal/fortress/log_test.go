@@ -2,6 +2,7 @@ package fortress
 
 import (
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -113,5 +114,16 @@ func TestLogLeavesOutAddedLinks(t *testing.T) {
 	l.On(script.Firing{Trigger: script.TriggerLinkAdded, Task: &script.TaskView{Name: "a"}})
 	if got := l.Page(status.LogQuery{Limit: 10}); len(got.Entries) != 0 {
 		t.Errorf("an added link was logged: %+v", got.Entries)
+	}
+}
+
+func TestLogLeavesCredentialsOutOfNames(t *testing.T) {
+	l := NewLog(10)
+	l.On(script.Firing{Trigger: script.TriggerTaskFailed, Task: &script.TaskView{Name: "https://u:PW@host.example/?passkey=LEAK"}})
+	l.On(script.Firing{Trigger: script.TriggerTaskDone, Task: &script.TaskView{URL: "https://host.example/?apikey=LEAK2"}})
+	for _, e := range l.Page(status.LogQuery{Limit: 10, Lang: "en"}).Entries {
+		if strings.Contains(e.Text, "LEAK") || strings.Contains(e.Text, "PW") {
+			t.Errorf("the log says %q", e.Text)
+		}
 	}
 }
