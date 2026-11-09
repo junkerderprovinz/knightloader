@@ -142,6 +142,11 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 		AnyMethod + " /mcp": "an AI assistant sends the API token made for its MCP client as a Bearer token " +
 			"or in X-API-Key, never a session. The route answers 404 until a client is set up, and lets in " +
 			"only a token a client holds, on every instance including one with no password",
+		AnyMethod + " /api/fortress/v1/status": "dashboards and other apps of a fortress send an API token " +
+			"with the status or read right, and members of the group come over the relay. The route checks " +
+			"both itself on every request, on every instance including one with no password, and answers " +
+			"401 to anything else",
+		AnyMethod + " /api/fortress/v1/log": "the log beside the status; same credentials, same check",
 		"POST /api/group/call": "a direct call from another member of the phrase group on the same " +
 			"network, which has no session here either. It is signed and sealed with keys derived " +
 			"from the phrase, refused when stale or replayed, answers 404 outside a group and reaches " +
