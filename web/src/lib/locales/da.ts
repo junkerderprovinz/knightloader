@@ -3823,6 +3823,8 @@ export const da: Dict = {
   'whatsnew.change.captchaAlwaysOn': 'Captchaer kan ikke længere slås fra. De vises altid i webbrugerfladen og i telefonappen.',
   'whatsnew.change.categoryExtractFolder': 'Hver kategori kan have sin egen „{name}“. Alle downloads kan lande i én mappe, mens hver kategori pakker sine arkiver ud i sin egen.',
   'whatsnew.change.deepbridTorrentsUsenet': 'En premiumkonto hos Deepbrid henter også torrents og .nzb-filer, ligesom TorBox og Premiumize.me. Tak til @Kayn2106 for ønsket.',
+  'whatsnew.change.usenetTiles': '„{add}“ under „{title}“ viser ti kendte Usenet-udbydere som fliser. Vælg din, så er server og krypteret port udfyldt, og antallet af forbindelser også, hvor udbyderen oplyser det, så kun dit login mangler. „{other}“ åbner den tomme formular til enhver anden udbyder.',
+  'whatsnew.change.flatpak': 'Kortet „{name}“ har en Flatpak-knap ved siden af Windows, macOS og Linux, til x64 og ARM64.',
   'whatsnew.change.oled': '{oled} under {theme} giver det mørke udseende ægte sort til OLED- og AMOLED-skærme. Det gælder, når det mørke udseende vises, også når det følger systemet, og hver enhed husker sit eget valg.',
   'whatsnew.change.systemAccent': 'Farvefeltet med tryllestaven først i {accent} bruger systemets farve: Material You fra Android 12, accentfarven i Windows, macOS eller Linux i skrivebordsappen og systemfarven i Firefox og Safari. Hvor systemet ikke har nogen, er feltet der ikke. Valget gælder kun denne enhed, og de andre beholder instansens farve.',
   'whatsnew.change.fileKindsMore': 'Links viser flere slags filer med deres symbol: PDF\'er, kontordokumenter, regneark, præsentationer, e-bøger, playlister, diskaftryk, programmer, skrifttyper, 3D-modeller, tjeksummer, torrents, RAW-fotos og designfiler.',

@@ -3825,6 +3825,8 @@ export const ko: Dict = {
   'whatsnew.change.captchaAlwaysOn': '이제 캡차를 끌 수 없습니다. 항상 웹 인터페이스와 휴대폰 앱에 표시됩니다.',
   'whatsnew.change.categoryExtractFolder': '카테고리마다 자기만의 “{name}”를 둘 수 있습니다. 모든 다운로드는 한 폴더에 받으면서 카테고리마다 압축 파일을 각자의 폴더에 풀 수 있습니다.',
   'whatsnew.change.deepbridTorrentsUsenet': 'Deepbrid 프리미엄 계정으로도 TorBox, Premiumize.me처럼 토렌트와 .nzb 파일을 가져옵니다. 요청해 주신 @Kayn2106 님께 감사드립니다.',
+  'whatsnew.change.usenetTiles': '“{title}”의 “{add}”에서 잘 알려진 Usenet 제공업체 10곳을 타일로 고를 수 있습니다. 제공업체를 고르면 서버와 암호화 포트가 채워지고, 제공업체가 연결 수를 밝힌 경우 그 값도 채워지므로 로그인 정보만 입력하면 됩니다. “{other}”는 다른 제공업체를 위한 빈 양식을 엽니다.',
+  'whatsnew.change.flatpak': '“{name}” 카드에는 Windows, macOS, Linux 옆에 Flatpak 버튼도 있으며 x64와 ARM64를 지원합니다.',
   'whatsnew.change.oled': '{theme} 아래의 {oled}은 OLED와 AMOLED 화면을 위해 어두운 모양을 완전한 검정으로 바꿉니다. 시스템을 따를 때를 포함해 어두운 모양이 보일 때마다 적용되며, 기기마다 자신의 선택을 기억합니다.',
   'whatsnew.change.systemAccent': '{accent} 맨 앞의 마법 지팡이 견본은 시스템 색상을 따릅니다. Android 12 이상에서는 Material You, 데스크톱 앱에서는 Windows, macOS, Linux의 강조 색상, Firefox와 Safari에서는 시스템 색상입니다. 시스템에 색상이 없으면 이 견본은 나타나지 않습니다. 이 선택은 이 기기에만 적용되며, 다른 기기는 인스턴스의 색상을 유지합니다.',
   'whatsnew.change.fileKindsMore': '링크가 기호로 더 많은 종류의 파일을 보여 줍니다. PDF, 오피스 문서, 스프레드시트, 프레젠테이션, 전자책, 재생 목록, 디스크 이미지, 프로그램, 글꼴, 3D 모델, 체크섬, 토렌트, RAW 사진, 디자인 파일입니다.',

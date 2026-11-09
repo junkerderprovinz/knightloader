@@ -463,6 +463,7 @@ function DesktopCard() {
         <ReadmeButton brand="linux" parts={parts('linux', 'Linux')} mark={<BrandMark svg={LINUX_SVG} />} />
         <ReadmeButton
           brand="flatpak"
+          data-new="flatpak"
           parts={[
             { name: 'Flatpak', sub: ARCH_LABEL[arch], href: flatpak(arch, release) },
             { name: 'Flatpak', sub: ARCH_LABEL[other], href: flatpak(other, release) },

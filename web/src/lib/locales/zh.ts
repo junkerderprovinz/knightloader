@@ -3821,6 +3821,8 @@ export const zh: Dict = {
   'whatsnew.change.captchaAlwaysOn': '验证码不再能关闭。它们总会显示在网页界面和手机应用中。',
   'whatsnew.change.categoryExtractFolder': '每个分类都可以有自己的“{name}”。所有下载可以落到同一个文件夹，而每个分类把自己的压缩包解压到各自的文件夹。',
   'whatsnew.change.deepbridTorrentsUsenet': 'Deepbrid 高级账户现在也能获取种子和 .nzb 文件，就像 TorBox 和 Premiumize.me 一样。感谢 @Kayn2106 提出这个需求。',
+  'whatsnew.change.usenetTiles': '“{title}”中的“{add}”以磁贴列出十家知名 Usenet 服务商。选中你的服务商后，服务器和加密端口会自动填好，服务商注明连接数时连接数也会填上，只剩登录信息需要填写。“{other}”会为其他任何服务商打开空白表单。',
+  'whatsnew.change.flatpak': '“{name}”卡片里，Windows、macOS 和 Linux 旁边还有 Flatpak 按钮，支持 x64 和 ARM64。',
   'whatsnew.change.oled': '{theme} 下的 {oled} 让深色外观使用纯黑，适合 OLED 和 AMOLED 屏幕。只要显示深色外观就会生效，跟随系统时也一样，每台设备各自记住自己的选择。',
   'whatsnew.change.systemAccent': '{accent} 开头带魔杖的色块会使用系统的颜色：Android 12 及以上用 Material You，桌面应用用 Windows、macOS 或 Linux 的强调色，Firefox 和 Safari 用系统颜色。系统没有这种颜色时，就没有这个色块。这个选择只作用于此设备，其他设备仍使用实例的颜色。',
   'whatsnew.change.fileKindsMore': '链接用符号显示更多文件类型：PDF、办公文档、电子表格、演示文稿、电子书、播放列表、磁盘映像、程序、字体、3D 模型、校验和、种子、RAW 照片和设计文件。',

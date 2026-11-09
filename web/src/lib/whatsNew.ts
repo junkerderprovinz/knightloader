@@ -51,6 +51,23 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.7.6',
+    changes: [
+      {
+        id: 'usenet-tiles',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.usenetTiles',
+        names: { add: 'accounts.usenet.add', title: 'accounts.usenet.title', other: 'accounts.usenet.other' },
+      },
+      {
+        id: 'flatpak',
+        to: ['/settings/browsertools'],
+        text: 'whatsnew.change.flatpak',
+        names: { name: 'settings.browsertools.desktopTitle' },
+      },
+    ],
+  },
+  {
     version: '2.7.4',
     changes: [
       { id: 'fichier-native', text: 'whatsnew.change.fichierNative' },

@@ -3834,6 +3834,8 @@ export const ja: Dict = {
   'whatsnew.change.captchaAlwaysOn': 'キャプチャはオフにできなくなりました。常にウェブインターフェースとスマホアプリに表示されます。',
   'whatsnew.change.categoryExtractFolder': 'カテゴリーごとに専用の「{name}」を設定できます。ダウンロードはすべて一つのフォルダーに集めたまま、カテゴリーごとにアーカイブを別々のフォルダーへ展開できます。',
   'whatsnew.change.deepbridTorrentsUsenet': 'Deepbrid のプレミアムアカウントでも、TorBox や Premiumize.me と同じようにトレントと .nzb ファイルを取得できるようになりました。@Kayn2106 さん、リクエストをありがとうございます。',
+  'whatsnew.change.usenetTiles': '「{title}」の「{add}」では、よく知られた Usenet プロバイダー 10 社がタイルで並びます。自分のプロバイダーを選ぶと、サーバーと暗号化ポートが入力され、プロバイダーが接続数を示している場合はそれも入るので、残るのはログイン情報だけです。「{other}」は、ほかのプロバイダー用に空のフォームを開きます。',
+  'whatsnew.change.flatpak': '「{name}」カードには、Windows、macOS、Linux と並んで Flatpak のボタンがあり、x64 と ARM64 に対応しています。',
   'whatsnew.change.oled': '{theme} の下にある {oled} は、OLED と AMOLED の画面向けに暗いデザインを真っ黒にします。システムに合わせているときも含め、暗いデザインが表示されているあいだ有効で、選択はデバイスごとに覚えます。',
   'whatsnew.change.systemAccent': '{accent} の先頭にある魔法の杖の見本は、システムの色を使います。Android 12 以降では Material You、デスクトップ版では Windows、macOS、Linux のアクセントカラー、Firefox と Safari ではシステムの色です。システムに色がない場合、この見本は表示されません。選択はこのデバイスだけに適用され、ほかのデバイスはインスタンスの色のままです。',
   'whatsnew.change.fileKindsMore': 'リンクがより多くの種類のファイルを記号で示します。PDF、オフィス文書、表計算、プレゼンテーション、電子書籍、プレイリスト、ディスクイメージ、プログラム、フォント、3D モデル、チェックサム、トレント、RAW 写真、デザインファイルです。',
