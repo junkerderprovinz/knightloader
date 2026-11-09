@@ -128,7 +128,9 @@ async function sendVideo(frameUrl, msg) {
       return { result: created.some((task) => task && !task.skipped) ? 'sent' : 'held' };
     });
   } catch (e) {
-    return { result: e?.code === 'no-phrase' ? 'unpaired' : 'failed' };
+    if (e?.code === 'no-phrase') return { result: 'unpaired' };
+    const key = { 'relay-unreachable': 'send.relayFailed', 'no-answer': 'options.followFailed' }[e?.code];
+    return key ? { result: 'failed', reason: t(key) } : { result: 'failed' };
   }
 }
 

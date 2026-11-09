@@ -247,7 +247,9 @@ async function relaySealCall(frameKey, requestId, target, method, path, body, fr
  * `siblings` leaves out clients such as phones and browsers, which cannot take
  * a download. `selfId` routes this one session; `memberId`, when given, is
  * what the group knows the browser by, and travels only inside the seals;
- * `memberKey` signs its calls under that id (see relaySealCall).
+ * `memberKey` signs its calls under that id (see relaySealCall). An error
+ * carries the code 'relay-unreachable' when the relay could not be reached or
+ * dropped the session, and 'no-answer' when an instance let a call time out.
  */
 async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, selfName, onRemoved }, work) {
   const socket = await new Promise((resolve, reject) => {
@@ -255,7 +257,7 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
     try {
       ws = new WebSocket(url);
     } catch (e) {
-      reject(e instanceof Error ? e : new Error(String(e)));
+      reject(Object.assign(e instanceof Error ? e : new Error(String(e)), { code: 'relay-unreachable' }));
       return;
     }
     const t = setTimeout(() => {
@@ -264,7 +266,7 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
       } catch {
         /* already closing */
       }
-      reject(new Error('relay: timed out reaching the relay'));
+      reject(Object.assign(new Error('relay: timed out reaching the relay'), { code: 'relay-unreachable' }));
     }, RELAY_TIMEOUT_MS);
     ws.onopen = () => {
       clearTimeout(t);
@@ -272,7 +274,7 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
     };
     ws.onerror = () => {
       clearTimeout(t);
-      reject(new Error('relay: could not reach the relay'));
+      reject(Object.assign(new Error('relay: could not reach the relay'), { code: 'relay-unreachable' }));
     };
   });
 
@@ -282,12 +284,12 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
   let closedReason = null;
 
   socket.onclose = () => {
-    closedReason = closedReason || new Error('relay: the connection closed');
+    closedReason = closedReason || Object.assign(new Error('relay: the connection closed'), { code: 'relay-unreachable' });
     for (const p of pending.values()) p.reject(closedReason);
     pending.clear();
   };
   socket.onerror = () => {
-    closedReason = new Error('relay: the connection failed');
+    closedReason = Object.assign(new Error('relay: the connection failed'), { code: 'relay-unreachable' });
   };
 
   // Frames are handled one after another. Opening a seal awaits WebCrypto, and
@@ -423,7 +425,7 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
       const answer = new Promise((resolve, reject) => {
         const t = setTimeout(() => {
           pending.delete(requestId);
-          reject(new Error('relay: the instance did not answer'));
+          reject(Object.assign(new Error('relay: the instance did not answer'), { code: 'no-answer' }));
         }, RELAY_TIMEOUT_MS);
         pending.set(requestId, {
           target,

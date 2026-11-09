@@ -218,6 +218,7 @@ function loadBackground(chrome) {
 
   const sent = [];
   let answer = { status: 200, body: '[{"id":"a"}]' };
+  const withGroup = ctx.withGroup;
   ctx.withGroup = async (work) => work({
     siblings: [{ instanceId: 'inst-1' }],
     call: async (target, method, path, body) => { sent.push({ target, method, path, body: body ? JSON.parse(body) : undefined }); return answer; },
@@ -277,6 +278,22 @@ function loadBackground(chrome) {
   ctx.withGroup = async () => { const e = new Error('no-phrase'); e.code = 'no-phrase'; throw e; };
   r = await sendVideo(embed, { href: embed });
   if (r.result !== 'unpaired') fail(`without a group the button shows ${r.result}, want unpaired`);
+
+  // A relay that cannot be reached, through the real session.
+  const t = vm.runInContext('t', ctx);
+  ctx.withGroup = withGroup;
+  ctx.readPhrase = async () => 'words';
+  ctx.keysFromPhrase = async () => ({ key: 'k', frameKey: new Uint8Array(32) });
+  ctx.readMember = async () => null;
+  ctx.WebSocket = class {
+    constructor() { setTimeout(() => this.onerror?.(), 0); }
+    close() {}
+  };
+  r = await sendVideo(embed, { href: embed });
+  if (r.result !== 'failed' || r.reason !== t('send.relayFailed')) fail(`with the relay out of reach the button shows ${r.result} "${r.reason ?? ''}", want failed "${t('send.relayFailed')}"`);
+  ctx.withGroup = async () => { throw vm.runInContext("Object.assign(new Error('relay: the instance did not answer'), { code: 'no-answer' })", ctx); };
+  r = await sendVideo(embed, { href: embed });
+  if (r.result !== 'failed' || r.reason !== t('options.followFailed')) fail(`with the instance not answering the button shows ${r.result} "${r.reason ?? ''}", want failed "${t('options.followFailed')}"`);
 
   const listener = chrome.runtime.onMessage.listeners.at(-1);
   let answered = false;
