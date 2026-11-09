@@ -248,9 +248,9 @@ describe('the Components card', () => {
     vi.useRealTimers();
   });
 
-  it('names the update switches the same for every component', async () => {
+  it('names the update switches the same for every component, with one for the app itself', async () => {
     await draw();
-    expect(switches(settingsOf('KnightLoader'))).toEqual(['Check automatically', 'Update automatically']);
+    expect(switches(settingsOf('KnightLoader'))).toEqual(['Update automatically']);
     expect(switches(settingsOf('yt-dlp'))).toEqual(['Check automatically', 'Update automatically']);
     expect(switches(settingsOf('JDownloader backend'))).toEqual(['Check automatically', 'Update automatically']);
   });
@@ -286,15 +286,15 @@ describe('the Components card', () => {
     expect(button(group('JDownloader backend'), 'Update now')).toBeDefined();
   });
 
-  it('lets a container check on its own and greys out only the update it cannot do', async () => {
+  it("gives a container one switch, which looks for a newer release and leaves the update to the container's manager", async () => {
     const patch = await draw({ autoUpdateCheck: false, autoUpdate: true });
     const panel = settingsOf('KnightLoader');
-    const [check, update] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
+    const [update, ...rest] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
+    expect(rest).toEqual([]);
     expect(update.getAttribute('aria-checked')).toBe('false');
-    expect(update.parentElement!.className).toContain('opacity-40');
-    const tip = panel.querySelector('[data-glim-label="Check automatically"] [role="note"]');
-    expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoCheckHint']);
-    await act(async () => check.click());
+    expect(update.parentElement!.className).not.toContain('opacity-40');
+    const tip = panel.querySelector('[data-glim-label="Update automatically"] [role="note"]');
+    expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoUpdateContainerHint']);
     await act(async () => update.click());
     expect(patch.mock.calls).toEqual([[{ autoUpdateCheck: true }]]);
   });
@@ -440,6 +440,19 @@ describe('installing an update on the desktop build', () => {
     expect(detail('KnightLoader')).toContain('The update did not work:');
   });
 
+  it('gives the desktop build one switch, which updates it in the background', async () => {
+    desktop();
+    const patch = await draw({ autoUpdateCheck: true, autoUpdate: false });
+    const panel = settingsOf('KnightLoader');
+    const [update, ...rest] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
+    expect(rest).toEqual([]);
+    expect(update.getAttribute('aria-checked')).toBe('false');
+    const tip = panel.querySelector('[data-glim-label="Update automatically"] [role="note"]');
+    expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoUpdateHint']);
+    await act(async () => update.click());
+    expect(patch.mock.calls).toEqual([[{ autoUpdate: true }]]);
+  });
+
   it('leaves a Flatpak to Flatpak and lets it check on its own', async () => {
     desktop();
     answers['/api/system/deployment'] = {
@@ -457,12 +470,12 @@ describe('installing an update on the desktop build', () => {
     expect(button(group('KnightLoader'), 'Install now')).toBeUndefined();
 
     const panel = settingsOf('KnightLoader');
-    const [check, update] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
+    const [update, ...rest] = panel.querySelectorAll<HTMLButtonElement>('[role="switch"]');
+    expect(rest).toEqual([]);
     expect(update.getAttribute('aria-checked')).toBe('false');
-    expect(update.parentElement!.className).toContain('opacity-40');
+    expect(update.parentElement!.className).not.toContain('opacity-40');
     const tip = panel.querySelector('[data-glim-label="Update automatically"] [role="note"]');
     expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoUpdateStoreHint']);
-    await act(async () => check.click());
     await act(async () => update.click());
     expect(patch.mock.calls).toEqual([[{ autoUpdateCheck: true }]]);
   });

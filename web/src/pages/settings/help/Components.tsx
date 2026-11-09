@@ -363,15 +363,15 @@ function appStatus(
 }
 
 /**
- * AppUpdates checks GitHub for a newer release on request. A container is
- * updated by its container manager, so both switches are greyed out there and
- * a check points at the release. The desktop build updates itself in the
- * background (desktop/updates.go), and a check there also tells whether a
- * downloaded version waits for the next start. Once a check found a newer
- * one, Install fetches it at once: the copy installed for all users starts
- * the new installer, any other copy puts it in place for the next start. A
- * Flatpak is the desktop build, but Flatpak installs its updates, so its row
- * behaves like a container's and says how it is updated.
+ * AppUpdates checks GitHub for a newer release on request. Its one switch
+ * updates the desktop build in the background (desktop/updates.go), and a
+ * check there also tells whether a downloaded version waits for the next
+ * start. A container is updated by its container manager, so there the switch
+ * only looks for a newer release when the card opens. Once a check found a
+ * newer one, Install fetches it at once: the copy installed for all users
+ * starts the new installer, any other copy puts it in place for the next
+ * start. A Flatpak is the desktop build, but Flatpak installs its updates, so
+ * its row behaves like a container's and says how it is updated.
  */
 function AppUpdates({ deployment, fromStore, register }: { deployment: string; fromStore: boolean; register: Register }) {
   const { t } = useT();
@@ -474,35 +474,18 @@ function AppUpdates({ deployment, fromStore, register }: { deployment: string; f
         </>
       }
       settings={
-        <>
-          {/* The desktop build checks on its own and has no use for this
-              switch. */}
-          {!updatesItself && (
-            <ToggleRow
-              label={t('settings.look.updatesAuto')}
-              hint={t('settings.look.updatesAutoCheckHint')}
-              checked={cfg.autoUpdateCheck}
-              onChange={(v) => patch({ autoUpdateCheck: v })}
-            />
+        <ToggleRow
+          label={t('settings.look.updatesAutoUpdate')}
+          hint={t(
+            updatesItself
+              ? 'settings.look.updatesAutoUpdateHint'
+              : fromStore
+                ? 'settings.look.updatesAutoUpdateStoreHint'
+                : 'settings.look.updatesAutoUpdateContainerHint',
           )}
-          {/* A container and a Flatpak cannot replace themselves, so there
-              the row is disabled and says why. */}
-          <ToggleRow
-            label={t('settings.look.updatesAutoUpdate')}
-            hint={
-              fromStore
-                ? t('settings.look.updatesAutoUpdateStoreHint')
-                : updatesItself
-                  ? t('settings.look.updatesAutoUpdateHint')
-                  : t('settings.look.updatesAutoUpdateContainerHint')
-            }
-            checked={updatesItself && cfg.autoUpdate}
-            disabled={!updatesItself}
-            // A key press still reaches a greyed-out switch, and a container keeps
-            // the stored value as it is.
-            onChange={(v) => updatesItself && patch({ autoUpdate: v })}
-          />
-        </>
+          checked={updatesItself ? cfg.autoUpdate : cfg.autoUpdateCheck}
+          onChange={(v) => patch(updatesItself ? { autoUpdate: v } : { autoUpdateCheck: v })}
+        />
       }
     />
   );

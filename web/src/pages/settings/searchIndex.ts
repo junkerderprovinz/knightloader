@@ -1325,10 +1325,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.info.componentsTitle',
       hint: 'settings.info.componentsHint',
-      // KnightLoader, yt-dlp and JDownloader share the switch labels.
+      // KnightLoader, yt-dlp and JDownloader share the update switch's label,
+      // and yt-dlp and JDownloader the check switch's.
       rows: [
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
-        { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoCheckHint' },
+        { key: 'settings.look.updatesAuto', hint: 'settings.resolvers.toolsAutoCheckHint' },
       ],
       // The container build and the Flatpak use their own sentences for the
       // update hint, and yt-dlp's and JDownloader's switches carry their own
@@ -1338,7 +1339,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.look.updatesAutoUpdateStoreHint',
         'settings.look.jdAutoUpdateHint',
         'settings.look.jdAutoCheckHint',
-        'settings.resolvers.toolsAutoCheckHint',
         'settings.resolvers.toolsAutoUpdateHint',
         'settings.resolvers.toolsShadowedOlder',
         'settings.resolvers.toolsManagedBroken',

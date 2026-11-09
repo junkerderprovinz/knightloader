@@ -263,9 +263,10 @@ an override first:
 flatpak override --user --filesystem=/srv/downloads io.github.junkerderprovinz.knightloader
 ```
 
-The Flatpak never replaces itself, so **Update automatically** stays off there:
-install the newer bundle to update it. It is built from the same sources as the
-other downloads but without the DLC service key, so a `.dlc` file goes to
+The Flatpak never replaces itself, so there **Update automatically** only asks
+GitHub for a newer release when the Info page opens: install the newer bundle to
+update it. It is built from the same sources as the other downloads but without
+the DLC service key, so a `.dlc` file goes to
 JDownloader. It keeps the computer awake through the desktop's Inhibit portal,
 but cannot put it to sleep once the queue is done, so the Idle card does not
 offer that there. On Wayland the clipboard watch sees a copied link once the
@@ -278,10 +279,10 @@ downloads the zip for your system in the background and checks it against the
 release's `checksums.txt`. The new version starts the next time you open
 KnightLoader, so nothing changes while it runs, and a note in the corner of the
 window says when it is ready. Pre-releases are never installed. **Update
-automatically** on the **General** page of Settings turns this off; it is on
-from the start. When **Check for updates** on the Updates card finds a newer
-release, **Install now** fetches it at once instead of waiting for the next
-daily check.
+automatically**, under KnightLoader's row on the Components card of the
+**Info** page, turns this off; it is on from the start. When **Check for
+updates** on the Updates card finds a newer release, **Install now** fetches it
+at once instead of waiting for the next daily check.
 
 **The installed copy** on Windows cannot replace itself, since no user may
 write to its folder. A scheduled task named **KnightLoader Update** does it instead,
@@ -339,8 +340,9 @@ well. Every user's settings, accounts and private JDownloader in
 `%APPDATA%\KnightLoader` stay, so a later install picks them up, and so do the
 files you downloaded.
 
-A container does not update itself. The same page tells you when a newer
-release exists; pull the new image the way you deployed this one.
+A container does not update itself. There **Update automatically** asks GitHub
+for a newer release when the Info page opens and shows it on KnightLoader's
+row; pull the new image the way you deployed this one.
 
 KnightLoader itself updates through the update card on the desktop, and
 through a new image in a container. yt-dlp, JDownloader and the desktop app's
