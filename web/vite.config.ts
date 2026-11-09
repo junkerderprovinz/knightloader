@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { readdirSync, readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -50,5 +51,8 @@ export default defineConfig({
     proxy: {
       '/api': { target: 'http://localhost:8749', ws: true, changeOrigin: true },
     },
+  },
+  test: {
+    setupFiles: ['./src/testSetup.ts'],
   },
 });

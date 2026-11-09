@@ -1,6 +1,7 @@
 // The arithmetic of a reorder: where the rows go while one is carried, where
 // it lands, and which order the list shows once it has. Free of React, so the
 // numbers can be run on their own.
+import { dropIndex } from '../theme/dropIndex';
 
 /** A cell's measured box, in the list's content coordinates. */
 export interface Kasten {
@@ -95,6 +96,31 @@ export function spielraum(kaesten: Record<number, Kasten>, rows: Zeile[], from: 
     unten = Math.max(unten, unterkante(kaesten, rows, i, b) - boden);
   });
   return [oben, unten];
+}
+
+/**
+ * landeplatz is the row whose slot the dragged block takes when carried `dy`
+ * from its own. It passes a block of its band once its edge in the direction
+ * of travel crosses that block's middle (dropIndex), so a package with its
+ * files open reaches both ends of the band, as a closed one does. Rows not
+ * measured yet are left out.
+ */
+export function landeplatz(kaesten: Record<number, Kasten>, rows: Zeile[], from: number, dy: number): number {
+  const a = kaesten[from];
+  if (!a) return from;
+  const band = rows[from].band;
+  const slots = rows.flatMap((r, i) => (r.band === band && kaesten[i] ? [i] : []));
+  const block = (i: number) => {
+    const b = kaesten[i];
+    return { left: 0, width: 0, top: b.y, height: unterkante(kaesten, rows, i, b) - b.y };
+  };
+  const own = block(from);
+  const k = dropIndex(
+    { ...own, top: own.top + dy },
+    own,
+    slots.filter((i) => i !== from).map(block),
+  );
+  return slots[k] ?? from;
 }
 
 /**

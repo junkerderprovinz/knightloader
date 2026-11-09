@@ -1450,6 +1450,7 @@ function segment(host, options, current, onPick) {
     b.addEventListener('click', () => onPick(o.value));
     host.appendChild(b);
   }
+  fitSegments(host);
 }
 
 /**

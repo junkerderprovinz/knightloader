@@ -1101,6 +1101,20 @@ body {
   flex: none;
 }
 
+/* A strip of one whose labels do not fit its row shows the dropdown in their
+   place and no groove around it (GlimStone, "It keeps to one row"). Tabs lifts
+   the class for each reading, so it measures the segments and the room as
+   the strip would show them. */
+.glim-sel--listed {
+  padding: 0;
+  background-color: transparent;
+}
+.glim-sel--listed > :not(.glim-sel-list) { display: none; }
+.glim-sel-list {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 /* A badge on a list row never shows a tile: six filled tiles on each of
    forty rows read as a wall of grey boxes, and one that appears under the
    pointer still reads as a box. Reached for, its glyph takes the colour
@@ -2001,8 +2015,8 @@ body {
   }
   .glim-toast {
     animation:
-      glim-toast-in var(--motion-toast-dur) var(--motion-toast-ease) both,
-      glim-fade-in var(--motion-toast-dur) ease-out both;
+      glim-toast-in var(--motion-toast-dur) var(--motion-toast-ease) backwards,
+      glim-fade-in var(--motion-toast-dur) ease-out backwards;
   }
   .glim-live { animation: glim-pulse var(--motion-pulse-dur) ease-in-out infinite; }
   /* Short, since the pointer is already waiting for the bubble. */
@@ -2534,7 +2548,7 @@ body {
    wanting something that never stops. */
 @media (prefers-reduced-motion: reduce) {
   :root:not([data-motion="storm"]) .glim-page-enter { animation: glim-fade-in 180ms ease backwards; }
-  :root:not([data-motion="storm"]) .glim-toast { animation: glim-fade-in 160ms ease both; }
+  :root:not([data-motion="storm"]) .glim-toast { animation: glim-fade-in 160ms ease backwards; }
   :root:not([data-motion="storm"]) .glim-shake { animation: glim-shake-reduced 300ms ease-in-out; }
   /* Both halves of the floating window become the same short fade, so the
      window still visibly arrives. */
@@ -2569,8 +2583,8 @@ body {
   }
   :root[data-motion="storm"] .glim-toast {
     animation:
-      glim-toast-in var(--motion-toast-dur) var(--motion-toast-ease) both,
-      glim-fade-in var(--motion-toast-dur) ease-out both;
+      glim-toast-in var(--motion-toast-dur) var(--motion-toast-ease) backwards,
+      glim-fade-in var(--motion-toast-dur) ease-out backwards;
   }
   :root[data-motion="storm"] .glim-shake { animation: glim-shake var(--motion-shake-dur) ease-in-out; }
   :root[data-motion="storm"] .glim-modal-backdrop { animation: glim-fade-in var(--motion-scrim-dur) ease both; }

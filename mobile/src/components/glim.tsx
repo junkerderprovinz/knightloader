@@ -2,23 +2,24 @@ import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  Modal,
   Pressable,
   StyleSheet,
   TouchableOpacity,
   View,
-  useWindowDimensions,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
-import { usePress } from '../theme/MotionContext';
+import { useMotion, usePress } from '../theme/MotionContext';
 import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
 import { contrastOn, valid } from '../theme/appearance';
 import { useT } from '../i18n/I18nContext';
 import { InfoTip, Tip } from './InfoTip';
-import { boxForInk } from './IconBadge';
-import { Arrive } from './Moving';
+import { Back, Check, boxForInk } from './IconBadge';
+import { Arrive, NoArrival } from './Moving';
 import { Text } from './Text';
+import { SEGMENT_PAD, WELL_GAP, WELL_PAD, wellForm } from './wellForm';
 
 /**
  * The GlimStone controls, as React Native.
@@ -98,10 +99,6 @@ export function NotchLabel({ title, hue }: { title: string; hue?: number }) {
 
 const SEGMENT_GLYPH = boxForInk(TYPE.meta);
 const SEGMENT_GAP = 5;
-const SEGMENT_PAD = 6;
-// The groove's padding and the space between its segments.
-const WELL_PAD = 3;
-const WELL_GAP = 2;
 
 /** The one horizontal selector: a groove one surface deeper, equal segments,
  *  and only the chosen segment is a badge. No per-segment borders.
@@ -112,118 +109,172 @@ const WELL_GAP = 2;
  *  ragged edge is the first thing the eye finds.
  *
  *  An option's `glyph` stands before its label with its ink as tall as the
- *  label's letters, so the two read as one name. It is decoration, and where
- *  the widest label and a glyph do not fit one segment, as on a narrow phone
- *  or at a large font scale, every glyph goes and the labels keep the room.
+ *  label's letters, so the two read as one name.
+ *
+ *  It keeps to one row at every width and font scale (GlimStone, "It keeps to
+ *  one row", wellForm.ts): where the names do not fit equal shares, each
+ *  segment takes its name's width, and where they do not fit that way either
+ *  a well with a glyph on every segment shows the glyphs alone, each name kept
+ *  for the screen reader. Any other well turns into a dropdown that shows the
+ *  chosen name and lists every name whole.
  *
  *  `hue` is this selector's place among the selectors of its page, for one
  *  that sets a value: under the rainbow its chosen segment wears that colour,
  *  so two selectors in one card can be told apart (GlimStone 3.5.0). Without
  *  it the segments choose a page, and each owns a position as a tab strip's
- *  tabs do.
- *
- *  `pairs` is for a selector whose labels run long. Below 600 points, where a
- *  glyph and the widest label do not fit one segment, its segments stand two
- *  to a row and keep their glyphs, and a label that does not fit its half
- *  wraps (GlimStone 3.8.0 and 4.2.0). */
+ *  tabs do. */
 export function WellSelector<T extends string>({
   options,
   value,
   onPick,
   hue,
-  pairs,
 }: {
   options: { value: T; label: string; glyph?: (p: { color: string; size?: number }) => ReactNode }[];
   value: T;
   onPick: (v: T) => void;
   hue?: number;
-  pairs?: boolean;
 }) {
   const { c, accent, accentContrast, corners, hueAt } = useAppearance();
-  const { width: screen } = useWindowDimensions();
-  const glyphed = options.some((o) => o.glyph);
-  // A segment's width inside its padding when all of them share one row, and
-  // each label's own width at the font scale in force, keyed by the label so a
-  // new language measures again. The room comes from the groove, whose width
-  // does not change when the segments go two to a row.
-  const [room, setRoom] = useState(0);
+  const [open, setOpen] = useState(false);
+  // The groove's width and each label's own width at the font scale in force,
+  // keyed by the label so a new language measures again. The groove spans its
+  // card in every form, so the dropdown is measured in the same box.
+  const [groove, setGroove] = useState(0);
   const [widths, setWidths] = useState<Record<string, number>>({});
   const labelWidths = options.map((o) => widths[o.label]);
-  const measured = room > 0 && labelWidths.every((w) => w !== undefined);
-  const fits = !measured || Math.max(...labelWidths) + SEGMENT_GLYPH + SEGMENT_GAP <= room;
-  const paired = !!pairs && glyphed && !fits && screen < 600;
-  const showGlyphs = glyphed && (fits || paired);
-  const n = options.length;
+  const glyphed = options.every((o) => o.glyph);
+  const form =
+    groove > 0 && labelWidths.every((w) => w !== undefined)
+      ? wellForm(groove, labelWidths as number[], glyphed ? SEGMENT_GLYPH + SEGMENT_GAP : null)
+      : 'even';
+  const chosen = options.find((o) => o.value === value);
   return (
     <View
-      onLayout={(e) =>
-        setRoom((e.nativeEvent.layout.width - 2 * WELL_PAD - (n - 1) * WELL_GAP) / n - 2 * SEGMENT_PAD)
-      }
-      // Two rows in a pill would be a lozenge with the segments jammed into
-      // its ends, so the groove takes a card's corners there.
-      style={[
-        styles.well,
-        { backgroundColor: c.surface2, ...(paired ? corners.card : corners.pill) },
-        paired && styles.wellPaired,
-      ]}
+      onLayout={(e) => setGroove(e.nativeEvent.layout.width)}
+      style={[styles.well, form === 'list' ? styles.wellListed : { backgroundColor: c.surface2, ...corners.pill }]}
     >
-      {glyphed && (
-        // The labels at full width, out of sight, so their width is known
-        // before a segment squeezes them.
-        <View
-          style={styles.measure}
-          pointerEvents="none"
-          importantForAccessibility="no-hide-descendants"
-          accessibilityElementsHidden
-        >
-          {options.map((o) => (
-            <Text
-              key={o.value}
-              style={styles.segmentText}
-              onLayout={(e) => {
-                const w = e.nativeEvent.layout.width;
-                setWidths((p) => (p[o.label] === w ? p : { ...p, [o.label]: w }));
-              }}
-            >
-              {o.label}
-            </Text>
-          ))}
-        </View>
-      )}
-      {options.map((o, i) => {
-        const on = o.value === value;
-        const fill = hueAt(hue ?? i) ?? accent;
-        const ink = on ? contrastFor(fill, accentContrast) : c.textSub;
-        const Glyph = showGlyphs ? o.glyph : undefined;
-        return (
-          <TouchableOpacity
+      {/* The labels at full width, out of sight, so their width is known
+          before a segment squeezes them. */}
+      <View
+        style={styles.measure}
+        pointerEvents="none"
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden
+      >
+        {options.map((o) => (
+          <Text
             key={o.value}
-            onPress={() => onPick(o.value)}
-            /* The segment takes the groove's radius, so in round the groove is
-               a pill with a pill inside it. Its 3 points of padding are far
-               too few to keep a square corner inside a pill's arc. */
-            style={[styles.segment, paired && styles.segmentPaired, corners.pill, on && { backgroundColor: fill }]}
+            style={styles.segmentText}
+            onLayout={(e) => {
+              const w = e.nativeEvent.layout.width;
+              setWidths((p) => (p[o.label] === w ? p : { ...p, [o.label]: w }));
+            }}
           >
-            {/* Computed against the fill it landed on rather than the flat
-                accent's contrast: a palette position can be far lighter or
-                darker than the accent, and reusing accentContrast puts white
-                text on a pale mint segment. A label longer than its share
-                shrinks rather than being cut off, or wraps in a pair. */}
-            <View style={styles.segmentName}>
-              {Glyph && <Glyph color={ink} size={SEGMENT_GLYPH} />}
-              <Text
-                numberOfLines={paired ? 2 : 1}
-                adjustsFontSizeToFit={!paired}
-                minimumFontScale={0.7}
-                style={[styles.segmentText, paired && styles.segmentTextPaired, { color: ink }]}
-              >
-                {o.label}
-              </Text>
+            {o.label}
+          </Text>
+        ))}
+      </View>
+      {form === 'list' ? (
+        <>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityState={{ expanded: open }}
+            onPress={() => setOpen(true)}
+            style={[styles.listTrigger, { backgroundColor: c.surface2, ...corners.control }]}
+          >
+            <Text numberOfLines={1} style={[styles.listText, { color: c.text }]}>
+              {chosen?.label}
+            </Text>
+            <View style={styles.listCaret}>
+              <Back color={c.textSub} size={SEGMENT_GLYPH} />
             </View>
           </TouchableOpacity>
-        );
-      })}
+          <WellList options={options} value={value} open={open} onClose={() => setOpen(false)} onPick={onPick} />
+        </>
+      ) : (
+        options.map((o, i) => {
+          const on = o.value === value;
+          const fill = hueAt(hue ?? i) ?? accent;
+          const ink = on ? contrastFor(fill, accentContrast) : c.textSub;
+          return (
+            <TouchableOpacity
+              key={o.value}
+              onPress={() => onPick(o.value)}
+              accessibilityLabel={form === 'squeezed' ? o.label : undefined}
+              /* The segment takes the groove's radius, so in round the groove is
+                 a pill with a pill inside it. Its 3 points of padding are far
+                 too few to keep a square corner inside a pill's arc. */
+              style={[
+                styles.segment,
+                form === 'content' && styles.segmentByName,
+                corners.pill,
+                on && { backgroundColor: fill },
+              ]}
+            >
+              {/* Computed against the fill it landed on rather than the flat
+                  accent's contrast: a palette position can be far lighter or
+                  darker than the accent, and reusing accentContrast puts white
+                  text on a pale mint segment. */}
+              <View style={styles.segmentName}>
+                {o.glyph && <o.glyph color={ink} size={SEGMENT_GLYPH} />}
+                {form !== 'squeezed' && (
+                  <Text numberOfLines={1} style={[styles.segmentText, { color: ink }]}>
+                    {o.label}
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        })
+      )}
     </View>
+  );
+}
+
+/** The list a well that ran out of room opens: every name whole, the chosen
+ *  one ticked. A press outside it or the back gesture closes it unchanged. */
+function WellList<T extends string>({
+  options,
+  value,
+  open,
+  onClose,
+  onPick,
+}: {
+  options: { value: T; label: string }[];
+  value: T;
+  open: boolean;
+  onClose: () => void;
+  onPick: (v: T) => void;
+}) {
+  const { c, corners } = useAppearance();
+  const { motion } = useMotion();
+  return (
+    <Modal visible={open} transparent animationType={motion === 'off' ? 'none' : 'fade'} onRequestClose={onClose}>
+      <NoArrival>
+        <Pressable style={[styles.listScrim, { backgroundColor: c.scrim }]} onPress={onClose}>
+          <View style={[styles.listCard, { backgroundColor: c.surface, ...corners.card }]} accessibilityViewIsModal>
+            {options.map((o) => {
+              const on = o.value === value;
+              return (
+                <TouchableOpacity
+                  key={o.value}
+                  accessibilityRole="menuitem"
+                  accessibilityState={{ checked: on }}
+                  onPress={() => {
+                    onClose();
+                    onPick(o.value);
+                  }}
+                  style={[styles.listRow, corners.control, on && { backgroundColor: c.surface2 }]}
+                >
+                  <Text style={[styles.listText, { color: c.text }]}>{o.label}</Text>
+                  {on && <Check color={c.text} size={SEGMENT_GLYPH} />}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </Pressable>
+      </NoArrival>
+    </Modal>
   );
 }
 
@@ -505,16 +556,23 @@ const styles = StyleSheet.create({
   // padding.
   notchText: { fontSize: TYPE.meta, lineHeight: 16, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1.2 },
   well: { flexDirection: 'row', padding: WELL_PAD, gap: WELL_GAP, alignSelf: 'stretch' },
-  wellPaired: { flexWrap: 'wrap' },
+  // The dropdown stands without the groove around it.
+  wellListed: { padding: 0 },
   segment: { flex: 1, minWidth: 0, paddingVertical: 7, paddingHorizontal: SEGMENT_PAD, alignItems: 'center' },
-  // Half the groove less the gap, growing into it, so a pair fills its row and
-  // a last segment on its own takes the whole of one.
-  segmentPaired: { flexGrow: 1, flexShrink: 0, flexBasis: '45%', justifyContent: 'center' },
+  // Laid out by their names, the segments start from them and share out what
+  // is left, so a long name keeps its words while the short ones give up room.
+  segmentByName: { flexGrow: 1, flexShrink: 0, flexBasis: 'auto' },
   segmentName: { flexDirection: 'row', alignItems: 'center', gap: SEGMENT_GAP, maxWidth: '100%' },
   // Wide enough that no label wraps while it is measured.
   measure: { position: 'absolute', top: 0, left: 0, width: 4000, flexDirection: 'row', opacity: 0 },
   segmentText: { flexShrink: 1, fontSize: TYPE.meta, fontWeight: '500' },
-  segmentTextPaired: { textAlign: 'center' },
+  listTrigger: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 9, paddingHorizontal: 12 },
+  listText: { flex: 1, fontSize: TYPE.body },
+  // The triangle points back; a quarter turn points it down, as a dropdown's caret does.
+  listCaret: { transform: [{ rotate: '-90deg' }] },
+  listScrim: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  listCard: { width: '100%', maxWidth: 420, padding: 6, gap: 2 },
+  listRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, paddingHorizontal: 12 },
   // No borderRadius here: it comes from the shape engine at render time, and a
   // value baked into the stylesheet cannot follow a setting.
   track: { width: 36, height: 20, padding: 2, justifyContent: 'center' },

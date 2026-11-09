@@ -8,6 +8,7 @@ import { Arrive, MovingList } from './Moving';
 import {
   bandFolgt,
   blockEnde,
+  landeplatz,
   landeziel,
   ordneBand,
   reiheNach,
@@ -175,12 +176,10 @@ export default function DragList({
    * vertical list that wrapper carries no style, so a row measured against it
    * reports y = 0 and `boxes` would hold heights and no positions.
    *
-   * indexAt scores a candidate by |probe - (b.y + b.h/2)| with the probe at
-   * b.y + b.h/2 + dy, so with every b.y = 0 the position cancels and the score
-   * collapses to a comparison of row heights. Rows in one band are the same
-   * height, so every candidate ties and `d < bestD` keeps the first: the target
-   * snaps to the top of the band on the first move and never follows the
-   * finger, and dragging the top row leaves to === from on every event.
+   * landeplatz compares the carried block's edge with each block's middle, so
+   * with every b.y = 0 the positions say nothing and every block of a band
+   * stands in one place: the target snaps to one end of the band on the first
+   * move and never follows the finger.
    *
    * The cell is a direct child of the list's content view, which is the space
    * the gesture's dy is a delta in, so measuring here puts the ruler and the
@@ -232,16 +231,22 @@ export default function DragList({
     () => hebung.interpolate({ inputRange: [0, 1], outputRange: [1, n.liftScale] }),
     [hebung, n.liftScale],
   );
-  const drehung = useMemo(
-    () => wiggle.interpolate({ inputRange: [-1, 1], outputRange: [`-${n.wiggleDeg}deg`, `${n.wiggleDeg}deg`] }),
-    [wiggle, n.wiggleDeg],
-  );
-  // Every second row swings the other way, as the web's neighbours start half a
-  // beat apart, so the list reads as loose rows rather than one tilting block.
-  const gegendrehung = useMemo(
-    () => wiggle.interpolate({ inputRange: [-1, 1], outputRange: [`${n.wiggleDeg}deg`, `-${n.wiggleDeg}deg`] }),
-    [wiggle, n.wiggleDeg],
-  );
+  // A row tilts a little and rises at one end of its sway and sinks at the
+  // other, GlimStone's row tremble. Every second row sways the other way, as
+  // the web's neighbours start half a beat apart, so the list reads as loose
+  // rows rather than one tilting block.
+  const zittern = useMemo(() => {
+    const sway = (sign: number) => [
+      { translateY: wiggle.interpolate({ inputRange: [-1, 1], outputRange: [-sign * n.wiggleLift, sign * n.wiggleLift] }) },
+      {
+        rotate: wiggle.interpolate({
+          inputRange: [-1, 1],
+          outputRange: [`${-sign * n.wiggleTilt}deg`, `${sign * n.wiggleTilt}deg`],
+        }),
+      },
+    ];
+    return [sway(1), sway(-1)];
+  }, [wiggle, n.wiggleLift, n.wiggleTilt]);
 
   /** The other rows of the dragged row's band, made fresh in arm(). */
   const nachbarn = useRef(new Map<string, Nachbar>());
@@ -258,7 +263,7 @@ export default function DragList({
     // at the quietest level gets a true stop. What the wiggle says is still
     // said by the row that lifts and by the neighbours stepping aside.
     const b = bewegung.current;
-    if (b.wiggleDeg === 0 || b.wiggleDur === 0) return;
+    if ((b.wiggleTilt === 0 && b.wiggleLift === 0) || b.wiggleDur === 0) return;
     wiggleLoop.current?.stop();
     // GlimStone's glim-wiggle: from one side to the other in wiggleDur and back,
     // eased at both ends, as the web plays it alternating.
@@ -460,38 +465,6 @@ export default function DragList({
   griffe.current = { beenden, landen, verteile };
 
   /**
-   * Which row a finger at this y belongs to, within one band: the one whose
-   * centre is nearest.
-   *
-   * Asking whether the finger is inside a row's box reads badly twice over.
-   * These rows are cards with margins, so between any two of them is a gap
-   * inside no box at all, and inside a tall row such as a package header the
-   * target only changes once the finger has crossed the whole of it, so the gap
-   * lags the hand by most of a card.
-   *
-   * Nearest centre always answers, answers the same on both sides of a margin,
-   * and moves the gap when the finger passes the halfway point.
-   */
-  const indexAt = useCallback(
-    (y: number, band: string, from: number) => {
-      let best = from;
-      let bestD = Infinity;
-      for (let i = 0; i < rows.length; i++) {
-        if (rows[i].band !== band) continue;
-        const b = boxes.current[i];
-        if (!b) continue;
-        const d = Math.abs(y - (b.y + b.h / 2));
-        if (d < bestD) {
-          bestD = d;
-          best = i;
-        }
-      }
-      return best;
-    },
-    [rows],
-  );
-
-  /**
    * One PanResponder for the whole list, created once, reading everything it
    * needs out of refs.
    *
@@ -505,8 +478,8 @@ export default function DragList({
    * itself causes, so anything a handler needs that changes during the gesture
    * goes in a ref rather than in a dependency array.
    */
-  const daten = useRef({ rows, indexAt, onReorder });
-  daten.current = { rows, indexAt, onReorder };
+  const daten = useRef({ rows, onReorder });
+  daten.current = { rows, onReorder };
 
   const responder = useRef(
     PanResponder.create({
@@ -529,14 +502,12 @@ export default function DragList({
       onPanResponderMove: (_e, g) => {
         const d = dragRef.current;
         if (!d) return;
-        const { rows: r, indexAt: finde } = daten.current;
+        const { rows: r } = daten.current;
         const [oben, unten] = spielraum(boxes.current, r, d.from);
         const dy = Math.min(unten, Math.max(oben, g.dy));
         lift.setValue(dy);
-        const b = boxes.current[d.from];
-        const zeile = r[d.from];
-        if (!b || !zeile) return;
-        const to = finde(b.y + b.h / 2 + dy, zeile.band, d.from);
+        if (!r[d.from]) return;
+        const to = landeplatz(boxes.current, r, d.from, dy);
         if (to === d.to) return;
         // Into the ref as well as into state: the neighbours start moving at
         // once, and a release before the next render has to land in the gap
@@ -610,7 +581,7 @@ export default function DragList({
                   // the offsets they landed on; see the effect on `gelandet`.
                   { translateY: gezogen ? lift : (nachbar?.wert ?? 0) },
                   { scale: gezogen ? skala : 1 },
-                  { rotate: armed && !gezogen ? (index % 2 ? gegendrehung : drehung) : '0deg' },
+                  ...(armed && !gezogen ? zittern[index % 2] : [{ translateY: 0 }, { rotate: '0deg' }]),
                 ],
               }}
               {...responder.panHandlers}

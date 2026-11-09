@@ -327,7 +327,9 @@ function renderTabs() {
     b.type = 'button';
     // A tab chooses a page, so each keeps a palette position of its own.
     setHue(b, i);
-    b.replaceChildren(glyph(d, 14, box), document.createTextNode(label));
+    const words = document.createElement('span');
+    words.textContent = label;
+    b.replaceChildren(glyph(d, 14, box), words);
     b.setAttribute('aria-pressed', String(value === pane));
     b.addEventListener('click', () => {
       cancelCountdown();
@@ -342,6 +344,7 @@ function renderTabs() {
     });
     tabsEl.appendChild(b);
   }
+  fitSegments(tabsEl);
 }
 
 function showPane() {

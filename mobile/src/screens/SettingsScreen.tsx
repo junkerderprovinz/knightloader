@@ -518,7 +518,6 @@ export default function SettingsScreen({
             }))}
             value={shape}
             hue={1}
-            pairs
             onPick={(v) => {
               // Taps on a chosen square count toward the hidden shape.
               const found = leafTap(leafTaps.current, v, shape);
@@ -793,7 +792,6 @@ export default function SettingsScreen({
           options={motionOptions}
           value={motion}
           hue={2}
-          pairs
           onPick={(v) => {
             // The gesture first, because it is a press on the segment that is
             // already active, the one press a picker would otherwise swallow as
