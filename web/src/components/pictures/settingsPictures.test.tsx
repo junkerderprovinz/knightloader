@@ -97,7 +97,16 @@ describe('the rule switch', () => {
   const state = (i: number) => host.querySelector(`[data-rule="${i}"]`)!.getAttribute('data-state');
   const states = () => rules.map((_, i) => state(i));
   const picture = (props: Partial<Parameters<typeof RuleSwitch>[0]> = {}) => (
-    <RuleSwitch rules={rules} way={null} landing={null} off={false} label="Rules, in the order they run" onOpen={() => {}} {...props} />
+    <RuleSwitch
+      rules={rules}
+      way={null}
+      landing={null}
+      off={false}
+      label="Rules, in the order they run"
+      onOpen={() => {}}
+      onRemove={() => {}}
+      {...props}
+    />
   );
 
   it('stands the rules in their order and waits while there is no sample', async () => {
@@ -154,6 +163,29 @@ describe('the rule switch', () => {
     expect(opened).toEqual([1]);
   });
 
+  it('offers to edit and remove each rule among the row actions beside its name', async () => {
+    const opened: number[] = [];
+    const removed: number[] = [];
+    await draw(picture({ onOpen: (i) => opened.push(i), onRemove: (i) => removed.push(i) }));
+    const rule = host.querySelector('[data-rule="2"]')!;
+    const edit = rule.querySelector<HTMLButtonElement>('[aria-label="Edit this rule"]')!;
+    const remove = rule.querySelector<HTMLButtonElement>('[aria-label="Remove this rule"]')!;
+    // The row actions come in under the pointer or the focus, and stay on a touch screen.
+    expect(rule.classList).toContain('glim-row');
+    expect(edit.closest('.glim-row-actions')).not.toBeNull();
+    expect(remove.closest('.glim-row-actions')).not.toBeNull();
+
+    await act(async () => edit.click());
+    await act(async () => remove.click());
+    expect(opened).toEqual([2]);
+    expect(removed).toEqual([2]);
+  });
+
+  it('offers no row actions at the landing', async () => {
+    await draw(picture({ onRemove: () => {} }));
+    expect(host.querySelector('[data-landing] [aria-label="Remove this rule"]')).toBeNull();
+  });
+
   it('sends the link along its way, and only the rules that match answer', async () => {
     letMove();
     await draw(picture({ way: { matched: [1], ends: 1, rejected: false }, landing: folder }));
@@ -167,20 +199,23 @@ describe('the rule switch', () => {
 describe('the rules card', () => {
   const reply = (body: unknown) =>
     new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  const packagizer = {
+    rules: [
+      { name: 'Films', conditions: [], action: {} },
+      { name: 'Series', conditions: [], action: { category: 'series' } },
+    ],
+  };
   const cfg = {
     downloadDir: '/downloads',
     categories: [{ id: 'series', name: 'Series', dir: '/media/series' }],
-    packagizer: {
-      rules: [
-        { name: 'Films', conditions: [], action: {} },
-        { name: 'Series', conditions: [], action: { category: 'series' } },
-      ],
-    },
+    packagizer,
   } as unknown as Settings;
   let asked: { set: { rules: Rule[] }; links: { url: string }[] }[];
+  let patched: Partial<Settings>[];
 
   beforeEach(() => {
     asked = [];
+    patched = [];
     const unobserved = class {
       observe() {}
       disconnect() {}
@@ -217,7 +252,9 @@ describe('the rules card', () => {
     const draft = {
       cfg,
       saved: cfg,
-      patch() {},
+      patch(p: Partial<Settings>) {
+        patched.push(p);
+      },
       replace() {},
       dirty: false,
       async patchNow() {},
@@ -289,6 +326,33 @@ describe('the rules card', () => {
     await show('Graphic');
     await act(async () => picture()!.querySelector<HTMLButtonElement>('[data-rule="1"] button')!.click());
     expect(document.querySelector('[role="dialog"]')!.textContent).toContain('Series');
+  });
+
+  it('opens a rule in the list view\'s window from the picture\'s pencil', async () => {
+    await draw(page());
+    await dryRun();
+    await show('Graphic');
+    await act(async () => picture()!.querySelector<HTMLButtonElement>('[data-rule="1"] [aria-label="Edit this rule"]')!.click());
+    expect(document.querySelector('[role="dialog"] h2')!.textContent).toContain('Series');
+  });
+
+  it('removes a rule from the picture the way the list does', async () => {
+    await draw(page());
+    await dryRun();
+    await show('Graphic');
+    await act(async () => picture()!.querySelector<HTMLButtonElement>('[data-rule="0"] [aria-label="Remove this rule"]')!.click());
+    expect(patched[patched.length - 1]).toEqual({ packagizer: { rules: [packagizer.rules[1]] } });
+  });
+
+  it('names the stop switch at the start of its row, with the switch after it', async () => {
+    await draw(page());
+    await dryRun();
+    const name = host.querySelector('[data-glim-label="Stop at the first matching rule"]')!;
+    const toggle = name.parentElement!.querySelector<HTMLButtonElement>('[role="switch"]')!;
+    expect(name.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    await act(async () => toggle.click());
+    expect(patched[patched.length - 1]).toEqual({ packagizer: { ...packagizer, stopAfterMatch: true } });
   });
 });
 

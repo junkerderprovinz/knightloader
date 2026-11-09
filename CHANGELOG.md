@@ -43,14 +43,29 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The Apps page offers the Flatpak.** Next to Windows, macOS and Linux, a
   Flatpak button downloads the build for this computer, with the other
   architecture as its second part.
+- **Well-known Usenet providers come as tiles.** Under Accounts, "Add a
+  server" offers ten of them, Eweka and Newshosting among them. Pick yours and
+  its server and encrypted port are filled in, along with the connection count
+  where the provider states one, so only your login is left. "Other server"
+  opens the empty form for any other provider.
 
 ### Changed
+
+- **Stop at the first matching rule is a switch like every other,** with its
+  name at the start of the row and the switch at the end, on the Rule set card
+  under Rules & categories.
 
 - **KnightLoader follows GlimStone 4.3.1 everywhere,** and the Version card
   names it. Every selector keeps to one row: where its labels do not fit, it
   shows its glyphs alone, or turns into a dropdown if it has no glyphs. In the
   phone app a package with its files open can be moved to either end of the
   list, and the rows sway gently while one is held.
+
+### Fixed
+
+- **Rules can be edited and removed in the Graphic view.** Point at a rule or
+  reach it with the keyboard, and the pencil and the bin from the list appear
+  beside its name. On a touch screen they stay in view.
 
 ## [2.7.5] - 2026-11-09
 

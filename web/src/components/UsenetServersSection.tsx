@@ -2,7 +2,8 @@
 // row plus a sealed login (internal/api/routes_usenetservers.go), so it is
 // edited here through its own routes rather than the catalogue's credential
 // dialog: it has a host, a port and limits that no debrid key has. The Add
-// button the page hands in opens the window for a new one through `adding`.
+// button the page hands in opens the window for a new one through `adding`,
+// which starts on the tiles of lib/usenetProviders.ts.
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   REDACTED_HEADER,
@@ -15,8 +16,10 @@ import {
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconCheck, IconClose, IconGlobe, IconSave, IconTrash } from '../lib/icons';
+import { IconBack, IconCheck, IconClose, IconGlobe, IconSave, IconTrash } from '../lib/icons';
+import { USENET_PROVIDERS, type UsenetProvider } from '../lib/usenetProviders';
 import { AccountTable } from './AccountTable';
+import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 import { TestButton } from './TestButton';
 import { Button, EmptyState, InfoBubble, Modal, NumberInput, PasswordInput, SectionTitle, TextInput, ToggleRow, type ButtonVerdict } from './ui';
 import { SettingRow } from '../pages/settings/controls';
@@ -244,6 +247,15 @@ function ServerStatus({ checked, busy }: { checked?: Checked; busy: boolean }) {
   );
 }
 
+/** The tile for a server of a provider the catalogue does not know. */
+const OTHER = 'other';
+
+/**
+ * ServerDialog is the window a server is added in, the way an account is:
+ * every well-known provider a tile, and the form of the one picked in the same
+ * window with its server, port and encryption filled in. Opened on a stored
+ * server, it is that server's form alone.
+ */
 function ServerDialog({
   hue,
   initial,
@@ -260,10 +272,39 @@ function ServerDialog({
   const [s, setS] = useState<UsenetServerSave>(initial);
   const [result, setResult] = useState<Checked | null>(null);
   const [saving, setSaving] = useState(false);
+  const [picking, setPicking] = useState(!initial.id);
+  const [provider, setProvider] = useState<UsenetProvider | null>(null);
+  const [query, setQuery] = useState('');
   const set = (patch: Partial<UsenetServerSave>) => {
     setS((cur) => ({ ...cur, ...patch }));
     setResult(null);
   };
+
+  function pick(id: string) {
+    const p = USENET_PROVIDERS.find((x) => x.id === id) ?? null;
+    setProvider(p);
+    setS(p ? { ...BLANK, host: p.host, port: p.port, connections: p.connections ?? BLANK.connections } : BLANK);
+    setResult(null);
+    setPicking(false);
+  }
+
+  // The other server stays in view whatever the search, since it is the way
+  // to a provider the list does not have.
+  const brands: Brand[] = [
+    ...USENET_PROVIDERS.map((p) => ({ id: p.id, name: p.name, host: p.site, sub: p.site })).filter((b) =>
+      brandMatches(b, query),
+    ),
+    {
+      id: OTHER,
+      name: t('accounts.usenet.other'),
+      mark: (
+        <span className="glim-house-mark flex h-full w-full items-center justify-center">
+          <IconGlobe width={18} height={18} />
+        </span>
+      ),
+      paint: { tile: '#000000', ink: '#ffffff' },
+    },
+  ];
 
   // The button says whether the server took the login; a test that could not
   // run at all says why in a toast.
@@ -292,76 +333,112 @@ function ServerDialog({
   }
 
   const filled = s.host.trim() !== '';
+  let title = t('accounts.usenet.addTitle');
+  if (picking) title = t('accounts.usenet.pick');
+  else if (initial.id) title = t('accounts.usenet.editTitle', { host: initial.host });
+  else if (provider) title = t('accounts.addAccountTitle', { service: provider.name });
+
+  const cancel = <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />;
   return (
     <Modal
-      title={initial.id ? t('accounts.usenet.editTitle', { host: initial.host }) : t('accounts.usenet.addTitle')}
+      title={title}
       hint={initial.id ? undefined : t('accounts.usenet.hint')}
       hue={hue}
+      // The picker's window, which the form of the picked provider stays in.
+      wide={!initial.id}
+      height={picking ? 'capped' : 'content'}
+      holdHeight={picking && query !== ''}
+      right={picking && <PickerSearch value={query} onChange={setQuery} placeholder={t('search.placeholder')} />}
       onClose={onClose}
       footer={
-        <>
-          <span className="flex-1" />
-          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
-          <TestButton
-            icon={<IconCheck />}
-            label={t('accounts.usenet.test')}
-            busyLabel={t('accounts.verifying')}
-            words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
-            disabled={!filled || saving}
-            run={onTest}
-            resetKey={JSON.stringify(s)}
-          />
-          <Button icon={<IconSave />} onClick={() => void onSaveClick()} disabled={!filled || saving}>
-            {saving ? t('accounts.saving') : t('accounts.save')}
-          </Button>
-        </>
+        picking ? (
+          <>
+            <span className="flex-1" />
+            {cancel}
+          </>
+        ) : (
+          <>
+            {/* A new server's form leads back to the tiles it was picked from;
+                an edit has no tiles behind it and offers the way out. */}
+            {!initial.id && (
+              <Button
+                kind="secondary"
+                labelled
+                icon={<IconBack className="rtl:-scale-x-100" />}
+                title={t('onboarding.back')}
+                onClick={() => {
+                  setPicking(true);
+                  setQuery('');
+                }}
+              />
+            )}
+            <span className="flex-1" />
+            {initial.id && cancel}
+            <TestButton
+              icon={<IconCheck />}
+              label={t('accounts.usenet.test')}
+              busyLabel={t('accounts.verifying')}
+              words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
+              disabled={!filled || saving}
+              run={onTest}
+              resetKey={JSON.stringify(s)}
+            />
+            <Button icon={<IconSave />} onClick={() => void onSaveClick()} disabled={!filled || saving}>
+              {saving ? t('accounts.saving') : t('accounts.save')}
+            </Button>
+          </>
+        )
       }
     >
-      <div className="flex flex-col gap-4">
-        <SettingRow control="long" label={t('accounts.usenet.host')} hint={t('accounts.usenet.hostHint')}>
-          <TextInput autoComplete="off" value={s.host} onChange={(e) => set({ host: e.target.value })} />
-        </SettingRow>
-        <SettingRow control="short" label={t('accounts.usenet.port')} hint={t('accounts.usenet.portHint')}>
-          <NumberInput value={s.port} min={0} max={65535} onValue={(n) => set({ port: n })} />
-        </SettingRow>
-        <SettingRow control="short" label={t('accounts.usenet.connections')} hint={t('accounts.usenet.connectionsHint')}>
-          <NumberInput value={s.connections} min={1} max={100} onValue={(n) => set({ connections: n })} />
-        </SettingRow>
-        <ToggleRow
-          label={t('accounts.usenet.tls')}
-          hint={t('accounts.usenet.tlsHint')}
-          checked={s.tls}
-          onChange={(tls) => set({ tls, port: s.port === (s.tls ? 563 : 119) ? (tls ? 563 : 119) : s.port })}
-        />
-        <SettingRow control="long" label={t('accounts.usernameField')} hint={t('accounts.usenet.loginHint')}>
-          <TextInput autoComplete="off" value={s.username} onChange={(e) => set({ username: e.target.value })} />
-        </SettingRow>
-        <SettingRow control="long" label={t('accounts.passwordField')} hint={t('accounts.usenet.loginHint')}>
-          <PasswordInput
-            autoComplete="new-password"
-            value={s.password}
-            onChange={(password) => set({ password })}
-            showLabel={t('common.showPassword')}
-            hideLabel={t('common.hidePassword')}
+      {picking ? (
+        <BrandPicker brands={brands} none="" onPick={pick} />
+      ) : (
+        <div className="flex flex-col gap-4">
+          <SettingRow control="long" label={t('accounts.usenet.host')} hint={t('accounts.usenet.hostHint')}>
+            <TextInput autoComplete="off" value={s.host} onChange={(e) => set({ host: e.target.value })} />
+          </SettingRow>
+          <SettingRow control="short" label={t('accounts.usenet.port')} hint={t('accounts.usenet.portHint')}>
+            <NumberInput value={s.port} min={0} max={65535} onValue={(n) => set({ port: n })} />
+          </SettingRow>
+          <SettingRow control="short" label={t('accounts.usenet.connections')} hint={t('accounts.usenet.connectionsHint')}>
+            <NumberInput value={s.connections} min={1} max={100} onValue={(n) => set({ connections: n })} />
+          </SettingRow>
+          <ToggleRow
+            label={t('accounts.usenet.tls')}
+            hint={t('accounts.usenet.tlsHint')}
+            checked={s.tls}
+            onChange={(tls) => set({ tls, port: s.port === (s.tls ? 563 : 119) ? (tls ? 563 : 119) : s.port })}
           />
-        </SettingRow>
-        <SettingRow control="short" label={t('accounts.usenet.level')} hint={t('accounts.usenet.levelHint')}>
-          <NumberInput value={s.level} min={0} max={9} onValue={(n) => set({ level: n })} />
-        </SettingRow>
-        <SettingRow control="short" label={t('accounts.usenet.retention')} hint={t('accounts.usenet.retentionHint')}>
-          <NumberInput value={s.retentionDays} min={0} onValue={(n) => set({ retentionDays: n })} />
-        </SettingRow>
-        <ToggleRow
-          label={t('accounts.usenet.optional')}
-          hint={t('accounts.usenet.optionalHint')}
-          checked={s.optional}
-          onChange={(optional) => set({ optional })}
-        />
-        {/* Why the server refused, above the buttons until the next test. */}
-        {result && !result.ok && (
-          <p className="text-xs text-carbon-textSub">{t('accounts.verifyFailed', { detail: result.detail })}</p>
-        )}
-      </div>
+          <SettingRow control="long" label={t('accounts.usernameField')} hint={t('accounts.usenet.loginHint')}>
+            <TextInput autoComplete="off" value={s.username} onChange={(e) => set({ username: e.target.value })} />
+          </SettingRow>
+          <SettingRow control="long" label={t('accounts.passwordField')} hint={t('accounts.usenet.loginHint')}>
+            <PasswordInput
+              autoComplete="new-password"
+              value={s.password}
+              onChange={(password) => set({ password })}
+              showLabel={t('common.showPassword')}
+              hideLabel={t('common.hidePassword')}
+            />
+          </SettingRow>
+          <SettingRow control="short" label={t('accounts.usenet.level')} hint={t('accounts.usenet.levelHint')}>
+            <NumberInput value={s.level} min={0} max={9} onValue={(n) => set({ level: n })} />
+          </SettingRow>
+          <SettingRow control="short" label={t('accounts.usenet.retention')} hint={t('accounts.usenet.retentionHint')}>
+            <NumberInput value={s.retentionDays} min={0} onValue={(n) => set({ retentionDays: n })} />
+          </SettingRow>
+          <ToggleRow
+            label={t('accounts.usenet.optional')}
+            hint={t('accounts.usenet.optionalHint')}
+            checked={s.optional}
+            onChange={(optional) => set({ optional })}
+          />
+          {/* Why the server refused, above the buttons until the next test. */}
+          {result && !result.ok && (
+            <p className="text-xs text-carbon-textSub">{t('accounts.verifyFailed', { detail: result.detail })}</p>
+          )}
+        </div>
+      )}
     </Modal>
   );
 }

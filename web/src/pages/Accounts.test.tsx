@@ -2,7 +2,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../lib/i18n';
 import { ToastProvider } from '../lib/toast';
@@ -450,11 +450,11 @@ it('opens the window of the cards that keep their own, each time it is asked for
   await act(async () => root.render(page));
 
   await addIn('Usenet servers');
-  expect(windowTitle()).toContain('New Usenet server');
+  expect(windowTitle()).toContain('Choose a Usenet provider');
   await act(async () => button('Cancel').click());
   expect(document.querySelector('[role="dialog"]')).toBeNull();
   await addIn('Usenet servers');
-  expect(windowTitle()).toContain('New Usenet server');
+  expect(windowTitle()).toContain('Choose a Usenet provider');
   await act(async () => button('Cancel').click());
 
   await addIn('Hoster accounts');
@@ -463,6 +463,73 @@ it('opens the window of the cards that keep their own, each time it is asked for
   expect(document.querySelector('[role="dialog"]')).toBeNull();
   await addIn('Hoster accounts');
   expect(windowTitle()).toContain('Choose a hoster account');
+});
+
+describe('a new Usenet server', () => {
+  const field = (caption: string) =>
+    [...document.querySelectorAll('[role="dialog"] label')].find((l) => l.textContent?.startsWith(caption))!.querySelector('input')!;
+  const type = (input: HTMLInputElement, text: string) => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, text);
+    act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
+  };
+  const tile = (name: string) =>
+    [...document.querySelectorAll<HTMLButtonElement>('[data-new="account-picker"] button')].find((b) =>
+      b.textContent?.startsWith(name),
+    )!;
+  const tls = () => document.querySelector('[role="dialog"] [role="switch"][aria-label="Encrypted connection (TLS)"]')!;
+
+  it('starts from the tiles of well-known providers and fills in the server of the one picked', async () => {
+    const posted: Record<string, unknown>[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url === '/api/usenet/servers' && init?.method === 'POST') {
+          posted.push(JSON.parse(String(init.body)));
+          return reply([]);
+        }
+        if (url === '/api/settings') return reply({ premiumOnly: false });
+        if (url === '/api/features') return reply({ modules: [], pages: [] });
+        return reply([]);
+      }),
+    );
+    await act(async () => root.render(page));
+    await addIn('Usenet servers');
+    expect(tile('Eweka').textContent).toBe('Ewekaeweka.nl');
+
+    await act(async () => tile('Eweka').click());
+    expect(windowTitle()).toContain('Add your Eweka account');
+    expect(field('Server').value).toBe('news.eweka.nl');
+    expect(field('Port').value).toBe('563');
+    expect(field('Connections').value).toBe('50');
+    expect(tls().getAttribute('aria-checked')).toBe('true');
+
+    type(field('Username'), 'reader');
+    type(field('Password'), 'hunter2');
+    await act(async () => button('Save').click());
+    expect(posted).toEqual([
+      expect.objectContaining({ id: '', host: 'news.eweka.nl', port: 563, tls: true, connections: 50, username: 'reader', password: 'hunter2' }),
+    ]);
+  });
+
+  it('keeps an empty form for any other server', async () => {
+    stubCatalogue(services);
+    await act(async () => root.render(page));
+    await addIn('Usenet servers');
+    await act(async () => tile('Other server').click());
+    expect(windowTitle()).toContain('New Usenet server');
+    expect(field('Server').value).toBe('');
+    expect(field('Port').value).toBe('563');
+  });
+
+  it('leads back from a provider\'s form to the tiles', async () => {
+    stubCatalogue(services);
+    await act(async () => root.render(page));
+    await addIn('Usenet servers');
+    await act(async () => tile('Newshosting').click());
+    await act(async () => button('Back').click());
+    expect(windowTitle()).toContain('Choose a Usenet provider');
+    expect(tile('Newshosting')).toBeDefined();
+  });
 });
 
 it('opens an account from anywhere on its row, and its menu on a right click', async () => {

@@ -10,6 +10,7 @@ import {
   PageHeader,
   SectionTitle,
   TextInput,
+  ToggleRow,
 } from '../../components/ui';
 import { PictureSwitch, usePictureView } from '../../components/pictures/PictureSwitch';
 import { RuleSwitch, wayOf, type Landing, type Way } from '../../components/pictures/RuleSwitch';
@@ -296,23 +297,20 @@ function RuleCards() {
           {/* What the chosen list does, beside the choice. */}
           <InfoBubble tip={flavour === 'packagizer' ? t('settings.rules.packagizerHint') : t('settings.rules.filterHint')} />
         </div>
-        {/* Each list is a module, switched through the registry. */}
-        {flavour === 'packagizer' ? (
-          <ModuleToggle id="packagizer" hint={t('settings.rules.setSwitchHint')} />
-        ) : (
-          <ModuleToggle id="linkfilter" hint={t('settings.rules.setSwitchHint')} />
-        )}
-
-        <div className="flex items-center gap-2.5">
-          <NeutralSwitch
-            on={Boolean(set.stopAfterMatch)}
+        <div className="flex flex-col gap-3">
+          {/* Each list is a module, switched through the registry. */}
+          {flavour === 'packagizer' ? (
+            <ModuleToggle id="packagizer" hue={0} hint={t('settings.rules.setSwitchHint')} />
+          ) : (
+            <ModuleToggle id="linkfilter" hue={0} hint={t('settings.rules.setSwitchHint')} />
+          )}
+          <ToggleRow
+            hue={1}
+            label={t('settings.rules.stopAfterMatch')}
+            hint={t('settings.rules.stopHint')}
+            checked={Boolean(set.stopAfterMatch)}
             onChange={(v) => write({ ...set, stopAfterMatch: v })}
-            name={t('settings.rules.stopAfterMatch')}
           />
-          <span className="flex items-center text-xs text-carbon-textSub">
-            {t('settings.rules.stopAfterMatch')}
-            <InfoBubble tip={t('settings.rules.stopHint')} />
-          </span>
         </div>
       </Card>
 
@@ -402,6 +400,7 @@ function RuleCards() {
               landing={link && way ? landingOf(t, link, way, flavour, cfg.categories ?? [], downloadDir) : null}
               off={Boolean(set.disabled)}
               onOpen={setOpenRule}
+              onRemove={removeAt}
             />
           </>
         ) : (
