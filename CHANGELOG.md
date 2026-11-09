@@ -67,6 +67,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Rules can be edited and removed in the Graphic view.** Point at a rule or
   reach it with the keyboard, and the pencil and the bin from the list appear
   beside its name. On a touch screen they stay in view.
+- **The browser extension works in a Firefox that never remembers history.**
+  Firefox refuses the extension its database there, so it could not keep its
+  pairing: the toolbar popup stayed empty and the video button said "Could not
+  send". It keeps the pairing in the extension's storage instead.
 - **The browser extension's video button says why a send failed.** Point at
   "Could not send" and it tells you whether the relay could not be reached or
   your instance did not answer in time.
