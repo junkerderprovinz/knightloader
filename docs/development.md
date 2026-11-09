@@ -5,6 +5,7 @@ go test ./... -count=1        # server
 cd web && npm ci && npx tsc --noEmit && npm run build
 node check-docs-claims.mjs    # the numbers the README and this manual assert
 node check-queue-reach.mjs    # the browser offers the queue verbs the server takes
+node flatpak/check-sources.mjs  # the Flatpak's offline sources hold every dependency
 ```
 
 A handful of tests open a socket on a real network interface instead of on
