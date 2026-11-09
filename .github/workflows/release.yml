@@ -25,8 +25,12 @@ permissions:
   contents: read
 
 jobs:
+  pommelporter:
+    uses: junkerderprovinz/junkerderprovinz/.github/workflows/pommelporter-current.yml@32ba0f5e3065bece6650d0d30d31342f7bfb7ffc # main
+
   # Both checks stop a tag here, before the long builds.
   tag:
+    needs: pommelporter
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
