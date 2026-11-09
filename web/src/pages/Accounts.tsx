@@ -248,7 +248,7 @@ export function Accounts() {
         )}
       </Card>
 
-      <Card hue={1} className="flex flex-col gap-3">
+      <Card hue={1} data-new="usenet-tiles" className="flex flex-col gap-3">
         <UsenetServersSection
           hue={1}
           onChanged={() => setUsenetSaves((n) => n + 1)}
