@@ -79,6 +79,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="2.7.5" date="2026-11-09">
+      <description>
+        <p>The browser extension reaches Firefox Add-ons again.</p>
+      </description>
+      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.7.5</url>
+    </release>
     <release version="2.7.4" date="2026-11-09">
       <description>
         <p>Many hosters download without JDownloader, and KnightLoader comes as a Flatpak.</p>

@@ -38,6 +38,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.7.5] - 2026-11-09
+
+### Fixed
+
+- **The browser extension reaches Firefox Add-ons again.** Firefox Add-ons
+  turned 2.7.4 away because its notes for the reviewers were one character
+  over the limit, so Firefox stayed on 2.7.3 without the video button.
+
 ## [2.7.4] - 2026-11-09
 
 ### Added
