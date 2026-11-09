@@ -155,11 +155,12 @@ func TestASettingsFileWithoutTheMergeSwitchMerges(t *testing.T) {
 	}
 }
 
-// JDownloader and yt-dlp have no switch, so a settings file that lists them as
-// off must not hold their links; the other modules keep their switch.
+// JDownloader, yt-dlp and captchas have no switch, so a settings file that
+// lists them as off must not hold their links or hide a captcha; the other
+// modules keep their switch.
 func TestLoadDropsModulesWithoutASwitchFromModulesOff(t *testing.T) {
 	dir := t.TempDir()
-	writeSettings(t, dir, `{"modulesOff": ["jd", "torrents", "ytdlp"]}`)
+	writeSettings(t, dir, `{"modulesOff": ["jd", "torrents", "captcha", "ytdlp"]}`)
 
 	s, err := Load(dir)
 	if err != nil {

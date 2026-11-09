@@ -752,7 +752,6 @@ export const ro: Dict = {
   'settings.modules.detail.torrentsOff': 'Oprit. Torrentele care rulează continuă și fac în continuare seed. Cele noi așteaptă până când este pornit din nou.',
   'settings.modules.detail.torrentsUnregistered': 'Clientul de torrente integrat nu este în tabela de rutare, deci linkurile magnet și fișierele .torrent încărcate sunt refuzate ca nesuportate.',
   'settings.modules.detail.torrentsRouted': 'Linkurile magnet și fișierele .torrent încărcate merg la clientul de torrente integrat.',
-  'settings.modules.detail.captchaOff': 'Oprit. Nu se deschide nicio fereastră de captcha, iar JDownloader renunță la un link de îndată ce captcha lui expiră.',
   'settings.modules.detail.challenges': '{n} captcha-uri așteaptă chiar acum',
   'settings.modules.detail.challengesOne': '1 captcha așteaptă chiar acum',
   'settings.modules.detail.downloadclientOff': 'Oprit. Sonarr și Radarr primesc un 404, ca de la o adresă care nu există.',
@@ -769,7 +768,8 @@ export const ro: Dict = {
   'settings.resolvers.toolsJdStarting': 'Se configurează',
   'settings.resolvers.toolsJdFailed': 'Configurarea a eșuat',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader nu și-a putut configura JDownloader-ul: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captcha-urile vin doar de la backendul JDownloader și nu este configurat niciunul.',
+  'settings.modules.reason.captchaNoJD': 'Captcha-urile de la JDownloader au nevoie de backendul JDownloader și nu este configurat niciunul. Captcha-urile de la linkurile pe care KnightLoader le descarcă fără el apar oricum.',
+  'settings.modules.reason.captchaAlways': 'Captcha-urile nu pot fi oprite. Apar mereu în interfața web și în aplicația de telefon.',
   'settings.modules.switchFailed': 'Comutatorul a fost refuzat: {reason}',
   'settings.modules.configureFirst': 'Încă nu e nimic de pornit. Configurează mai întâi în {page}; după aceea comutatorul de aici îl oprește și îl repornește fără să piardă ce ai stabilit.',
 
@@ -788,7 +788,7 @@ export const ro: Dict = {
   'settings.modules.about.connections': 'Trimite descărcările prin proxy-urile și rutele directe pe care le adaugi aici.',
   'settings.modules.about.federation': 'Lasă această instanță să afișeze celelalte instanțe ale tale și să le transmită linkuri.',
   'settings.modules.about.torrents': 'Descarcă linkuri magnet și fișiere .torrent pe această instanță și le face seed cum e setat mai jos.',
-  'settings.modules.about.captcha': 'Arată captcha-urile pe care le întâlnește JDownloader, aici și în aplicația de telefon, și le trimite conturilor tale de captcha.',
+  'settings.modules.about.captcha': 'Captcha-urile de la JDownloader și de la linkurile pe care KnightLoader le descarcă fără el apar mereu în interfața web și în aplicația de telefon și ajung la conturile tale de captcha.',
   'settings.modules.about.downloadclient': 'Lasă Sonarr, Radarr și Prowlarr să folosească această instanță drept client de descărcare, prin interfețele ei qBittorrent și SABnzbd.',
   'settings.module.extraction': 'Dezarhivare',
   'settings.module.watch': 'Dosar supravegheat',
@@ -3393,7 +3393,6 @@ export const ro: Dict = {
   'settings.captcha.testSolvers': 'Trimite-o și la conturile de captcha',
   'settings.captcha.testSolversHint':
     'Trimite aceeași captcha de test și la conturile tale de captcha, în ordinea de mai sus, ca să vezi dacă îi răspund și corect. O taxează ca pe orice altă captcha. Cu „Doar când nu se uită nimeni” pornit, te așteaptă întâi pe tine: treci în altă filă sau lasă timpul de așteptare să treacă.',
-  'settings.captcha.testOff': 'Captcha sunt oprite. Pornește din nou modulul Captcha ca să trimiți o captcha de test.',
   'settings.captcha.testNoAccount':
     'Niciunul dintre conturile tale de captcha nu o poate prelua. Pornește unul mai sus și verifică pe pagina Conturi că are o cheie și este pornit.',
   'captcha.solverStoppedTaken': '{solver} a preluat această captcha, dar nu a trimis niciun răspuns.',
@@ -3839,6 +3838,7 @@ export const ro: Dict = {
   'whatsnew.change.filehostsNative': 'Linkurile de pe Pixeldrain, Gofile și Mediafire se descarcă fără JDownloader, iar un link de folder sau de listă devine câte un rând pentru fiecare fișier.',
   'whatsnew.change.cloudNative': 'Linkurile de pe Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer și SwissTransfer se descarcă fără JDownloader, iar un folder partajat sau un transfer devine câte un rând pentru fiecare fișier.',
   'whatsnew.change.freeFilehostsNative': 'Linkurile Krakenfiles, Workupload și Send.now se descarcă și ele gratuit, fără JDownloader. Captcha-ul Krakenfiles ajunge în aplicația de telefon și la conturile tale de captcha, iar așteptările apar la descărcare.',
+  'whatsnew.change.captchaAlwaysOn': 'Captcha-urile nu mai pot fi oprite. Apar mereu în interfața web și în aplicația de telefon.',
   'whatsnew.change.oled': '{oled}, sub {theme}, trece aspectul întunecat pe negru adevărat pentru ecranele OLED și AMOLED. Se aplică oricând se vede aspectul întunecat, și când urmează sistemul, iar fiecare dispozitiv își ține minte alegerea.',
   'whatsnew.change.systemAccent': 'Mostra cu bagheta de la începutul {accent} preia culoarea sistemului tău: Material You de la Android 12, culoarea de accent din Windows, macOS sau Linux în aplicația desktop și culoarea sistemului în Firefox și Safari. Unde sistemul nu are una, mostra lipsește. Alegerea se aplică doar acestui dispozitiv, iar celelalte păstrează culoarea instanței.',
   'whatsnew.change.fileKindsMore': 'Linkurile arată mai multe tipuri de fișiere prin simbolul lor: PDF-uri, documente de birou, foi de calcul, prezentări, cărți electronice, liste de redare, imagini de disc, programe, fonturi, modele 3D, sume de control, torrente, fotografii RAW și fișiere de design.',

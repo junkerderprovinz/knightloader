@@ -750,7 +750,6 @@ export const fa: Dict = {
   'settings.modules.detail.torrentsOff': 'خاموش. تورنت‌های در حال اجرا ادامه می‌دهند و سید کردن را هم ادامه می‌دهند. تورنت‌های تازه تا وقتی دوباره روشن شود منتظر می‌مانند.',
   'settings.modules.detail.torrentsUnregistered': 'کلاینت تورنت داخلی در جدول مسیریابی نیست، پس پیوندهای مگنت و فایل‌های .torrent بارگذاری‌شده به‌عنوان پشتیبانی‌نشده پذیرفته نمی‌شوند.',
   'settings.modules.detail.torrentsRouted': 'پیوندهای مگنت و فایل‌های .torrent بارگذاری‌شده به کلاینت تورنت داخلی می‌روند.',
-  'settings.modules.detail.captchaOff': 'خاموش. هیچ درخواستی باز نمی‌شود، و JDownloader همین که کپچای یک پیوند منقضی شود از آن پیوند دست می‌کشد.',
   'settings.modules.detail.challenges': '{n} کپچا همین حالا منتظرند',
   'settings.modules.detail.challengesOne': 'یک کپچا همین حالا منتظر است',
   'settings.modules.detail.downloadclientOff': 'خاموش. Sonarr و Radarr از آن 404 می‌گیرند، مثل نشانی‌ای که وجود ندارد.',
@@ -767,7 +766,8 @@ export const fa: Dict = {
   'settings.resolvers.toolsJdStarting': 'در حال راه‌اندازی',
   'settings.resolvers.toolsJdFailed': 'راه‌اندازی ناموفق بود',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader نتوانست JDownloader خودش را راه بیندازد: {error}',
-  'settings.modules.reason.captchaNoJD': 'کپچاها فقط از بک‌اند JDownloader می‌آیند، و هیچ‌کدام پیکربندی نشده است.',
+  'settings.modules.reason.captchaNoJD': 'کپچاهای JDownloader به بک‌اند JDownloader نیاز دارند، و هیچ‌کدام پیکربندی نشده است. کپچای پیوندهایی که KnightLoader بدون آن دانلود می‌کند باز هم نشان داده می‌شوند.',
+  'settings.modules.reason.captchaAlways': 'کپچاها را نمی‌شود خاموش کرد. آن‌ها همیشه در رابط وب و برنامهٔ گوشی نشان داده می‌شوند.',
   'settings.modules.switchFailed': 'آن کلید رد شد: {reason}',
   'settings.modules.configureFirst': 'هنوز چیزی برای روشن کردن نیست. اول این را در {page} برپا کنید؛ پس از آن کلید اینجا آن را متوقف و دوباره اجرا می‌کند بی‌آنکه آنچه تنظیم کرده‌اید از دست برود.',
 
@@ -786,7 +786,7 @@ export const fa: Dict = {
   'settings.modules.about.connections': 'دانلودها را از راه پراکسی‌ها و مسیرهای مستقیمی که اینجا اضافه می‌کنی می‌فرستد.',
   'settings.modules.about.federation': 'به این نمونه اجازه می‌دهد نمونه‌های دیگرت را فهرست کند و پیوندها را به آن‌ها بدهد.',
   'settings.modules.about.torrents': 'پیوندهای magnet و فایل‌های .torrent را روی این نمونه دانلود می‌کند و طبق تنظیم پایین سید می‌کند.',
-  'settings.modules.about.captcha': 'کپچاهایی را که JDownloader با آن‌ها روبه‌رو می‌شود، اینجا و در برنامهٔ گوشی نشان می‌دهد و به حساب‌های کپچایت می‌دهد.',
+  'settings.modules.about.captcha': 'کپچاهای JDownloader و کپچای پیوندهایی که KnightLoader بدون آن دانلود می‌کند همیشه در رابط وب و برنامهٔ گوشی نشان داده می‌شوند و به حساب‌های کپچایت می‌روند.',
   'settings.modules.about.downloadclient': 'به Sonarr و Radarr و Prowlarr اجازه می‌دهد از این نمونه به‌عنوان کلاینت دانلود استفاده کنند، از راه رابط‌های qBittorrent و SABnzbd آن.',
   'settings.module.extraction': 'بازکردن آرشیوها',
   'settings.module.watch': 'پوشه دیده‌بانی',
@@ -3374,7 +3374,6 @@ export const fa: Dict = {
   'settings.captcha.testSolvers': 'به حساب‌های کپچا هم بفرست',
   'settings.captcha.testSolversHint':
     'همان کپچای آزمایشی را به حساب‌های کپچای تو هم می‌فرستد، به ترتیب بالا، تا ببینی آن را پاسخ می‌دهند و درست حل می‌کنند یا نه. هزینه‌اش را مثل هر کپچای دیگری حساب می‌کنند. اگر «فقط وقتی کسی نگاه نمی‌کند» روشن باشد، اول منتظر تو می‌مانند: به زبانهٔ دیگری برو یا بگذار زمان انتظار تمام شود.',
-  'settings.captcha.testOff': 'کپچاها خاموش‌اند. برای فرستادن کپچای آزمایشی، ماژول کپچا را دوباره روشن کن.',
   'settings.captcha.testNoAccount':
     'هیچ‌کدام از حساب‌های کپچای تو نمی‌تواند آن را بگیرد. یکی را در بالا روشن کن و در صفحهٔ حساب‌ها بررسی کن که کلید دارد و روشن است.',
   'captcha.solverStoppedTaken': '{solver} این کپچا را برداشت اما پاسخی نفرستاد.',
@@ -3819,6 +3818,7 @@ export const fa: Dict = {
   'whatsnew.change.filehostsNative': 'پیوندهای Pixeldrain و Gofile و Mediafire بدون JDownloader دانلود می‌شوند و پیوند یک پوشه یا فهرست برای هر فایل یک ردیف می‌شود.',
   'whatsnew.change.cloudNative': 'پیوندهای Google Drive و Dropbox و OneDrive و SharePoint و WeTransfer و SwissTransfer بدون JDownloader دانلود می‌شوند و یک پوشهٔ اشتراکی یا یک انتقال برای هر فایل یک ردیف می‌شود.',
   'whatsnew.change.freeFilehostsNative': 'پیوندهای Krakenfiles، Workupload و Send.now هم رایگان و بدون JDownloader دانلود می‌شوند. کپچای Krakenfiles به برنامهٔ گوشی و حساب‌های کپچایت می‌رود و زمان‌های انتظار روی دانلود نشان داده می‌شوند.',
+  'whatsnew.change.captchaAlwaysOn': 'کپچاها را دیگر نمی‌شود خاموش کرد. آن‌ها همیشه در رابط وب و برنامهٔ گوشی نشان داده می‌شوند.',
   'whatsnew.change.oled': '{oled} زیر {theme} ظاهر تیره را برای صفحه‌های OLED و AMOLED به سیاه واقعی می‌برد. هر بار که ظاهر تیره دیده شود اعمال می‌شود، حتی وقتی از سیستم پیروی می‌کند، و هر دستگاه انتخاب خودش را به خاطر می‌سپارد.',
   'whatsnew.change.systemAccent': 'نمونه‌ی رنگ با چوب جادو در ابتدای {accent} رنگ سیستمت را می‌گیرد: Material You در Android 12 و بالاتر، رنگ تأکیدی Windows، macOS یا Linux در برنامه‌ی دسکتاپ، و رنگ سیستم در Firefox و Safari. جایی که سیستم رنگی ندارد، این نمونه نیست. این انتخاب فقط برای این دستگاه است و دستگاه‌های دیگر رنگ نمونه را نگه می‌دارند.',
   'whatsnew.change.fileKindsMore': 'پیوندها انواع بیشتری از فایل را با نمادشان نشان می‌دهند: PDF، اسناد اداری، صفحه‌گسترده‌ها، ارائه‌ها، کتاب‌های الکترونیکی، فهرست‌های پخش، ایمیج دیسک، برنامه‌ها، قلم‌ها، مدل‌های سه‌بعدی، چک‌سام‌ها، تورنت‌ها، عکس‌های RAW و فایل‌های طراحی.',

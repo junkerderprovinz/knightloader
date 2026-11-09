@@ -199,6 +199,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The Own servers card on the Accounts page is called Seedboxes.** It says
   what a seedbox is and that KnightLoader brings its finished files home. Any
   other FTP, SFTP or WebDAV server still works there the same way.
+- **Captchas can no longer be switched off.** Captchas from JDownloader and
+  from links KnightLoader downloads without it always show in the web
+  interface and in the phone app.
 
 ### Fixed
 

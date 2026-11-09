@@ -750,7 +750,6 @@ export const is: Dict = {
   'settings.modules.detail.torrentsOff': 'Slökkt. Torrent-skrár í gangi halda áfram og sá áfram. Nýjar bíða þar til kveikt er á þessu aftur.',
   'settings.modules.detail.torrentsUnregistered': 'Innbyggði torrent-biðlarinn er ekki í beinitöflunni, svo segultenglum og .torrent-skrám sem hlaðið er upp er vísað frá sem óstuddum.',
   'settings.modules.detail.torrentsRouted': 'Segultenglar og .torrent-skrár sem hlaðið er upp fara til innbyggða torrent-biðlarans.',
-  'settings.modules.detail.captchaOff': 'Slökkt. Engin fyrirspurn opnast, og JDownloader gefst upp á tengli um leið og captcha hans rennur út.',
   'settings.modules.detail.challenges': '{n} captcha bíða núna',
   'settings.modules.detail.challengesOne': '1 captcha bíður núna',
   'settings.modules.detail.downloadclientOff': 'Slökkt. Sonarr og Radarr fá 404 frá því, eins og frá slóð sem er ekki til.',
@@ -767,7 +766,8 @@ export const is: Dict = {
   'settings.resolvers.toolsJdStarting': 'Verið að setja upp',
   'settings.resolvers.toolsJdFailed': 'Uppsetning mistókst',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader gat ekki sett upp sinn JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captcha koma aðeins frá JDownloader-bakendanum, og enginn er uppsettur.',
+  'settings.modules.reason.captchaNoJD': 'Captcha frá JDownloader þurfa JDownloader-bakendann, og enginn er uppsettur. Captcha frá tenglum sem KnightLoader sækir án hans birtast samt.',
+  'settings.modules.reason.captchaAlways': 'Ekki er hægt að slökkva á captcha. Þau birtast alltaf í vefviðmótinu og í símaforritinu.',
   'settings.modules.switchFailed': 'Rofanum var hafnað: {reason}',
   'settings.modules.configureFirst': 'Það er ekkert til að kveikja á enn. Settu þetta upp á {page} fyrst; eftir það stöðvar rofinn hér það og ræsir aftur án þess að tapa því sem þú stilltir.',
 
@@ -786,7 +786,7 @@ export const is: Dict = {
   'settings.modules.about.connections': 'Sendir niðurhal um þá milliþjóna og beinu leiðir sem þú bætir við hér.',
   'settings.modules.about.federation': 'Lætur þetta tilvik sýna önnur tilvik þín og senda þeim tengla.',
   'settings.modules.about.torrents': 'Sækir magnet-tengla og .torrent-skrár á þessu tilviki og deilir þeim eins og stillt er hér fyrir neðan.',
-  'settings.modules.about.captcha': 'Sýnir captcha sem JDownloader rekst á, hér og í símaforritinu, og sendir þau á captcha-reikningana þína.',
+  'settings.modules.about.captcha': 'Captcha frá JDownloader og frá tenglum sem KnightLoader sækir án hans birtast alltaf í vefviðmótinu og í símaforritinu og fara á captcha-reikningana þína.',
   'settings.modules.about.downloadclient': 'Leyfir Sonarr, Radarr og Prowlarr að nota þetta tilvik sem niðurhalsforrit í gegnum qBittorrent- og SABnzbd-viðmótin.',
   'settings.module.extraction': 'Afþjöppun safnskráa',
   'settings.module.watch': 'Vöktuð mappa',
@@ -3381,7 +3381,6 @@ export const is: Dict = {
   'settings.captcha.testSolvers': 'Senda líka til captcha-reikninganna',
   'settings.captcha.testSolversHint':
     'Sendir sama prófunar-captcha líka til captcha-reikninganna þinna, í röðinni hér að ofan, svo þú sjáir hvort þeir svara því og rétt. Þeir rukka fyrir það eins og hvert annað captcha. Þegar „Aðeins þegar enginn fylgist með“ er á bíða þeir fyrst eftir þér: farðu í annan flipa eða láttu biðtímann renna út.',
-  'settings.captcha.testOff': 'Slökkt er á captcha. Kveiktu aftur á Captcha-einingunni til að senda prófunar-captcha.',
   'settings.captcha.testNoAccount':
     'Enginn af captcha-reikningunum þínum getur tekið við því. Kveiktu á einum hér fyrir ofan og athugaðu á síðunni Reikningar að hann sé með lykil og að kveikt sé á honum.',
   'captcha.solverStoppedTaken': '{solver} tók þetta captcha en sendi ekkert svar.',
@@ -3826,6 +3825,7 @@ export const is: Dict = {
   'whatsnew.change.filehostsNative': 'Tenglar frá Pixeldrain, Gofile og Mediafire sækjast án JDownloader, og tengill á möppu eða lista verður að einni línu fyrir hverja skrá.',
   'whatsnew.change.cloudNative': 'Tenglar frá Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer og SwissTransfer sækjast án JDownloader, og deild mappa eða sending verður að einni línu fyrir hverja skrá.',
   'whatsnew.change.freeFilehostsNative': 'Krakenfiles-, Workupload- og Send.now-tenglar sækjast líka ókeypis án JDownloader. Captcha frá Krakenfiles fer í símaforritið og á captcha-reikningana þína, og biðin sést á niðurhalinu.',
+  'whatsnew.change.captchaAlwaysOn': 'Ekki er lengur hægt að slökkva á captcha. Þau birtast alltaf í vefviðmótinu og í símaforritinu.',
   'whatsnew.change.oled': '{oled} undir {theme} setur dökka útlitið á hreinan svartan lit fyrir OLED- og AMOLED-skjái. Það gildir alltaf þegar dökka útlitið sést, líka þegar það fylgir kerfinu, og hvert tæki man sitt eigið val.',
   'whatsnew.change.systemAccent': 'Litaprufan með töfrasprotanum fremst í {accent} notar lit kerfisins: Material You frá Android 12, áherslulit Windows, macOS eða Linux í skjáborðsforritinu og kerfislitinn í Firefox og Safari. Þar sem kerfið hefur engan er prufan ekki til staðar. Valið gildir aðeins um þetta tæki, og hin halda lit tilviksins.',
   'whatsnew.change.fileKindsMore': 'Tenglar sýna fleiri skráartegundir með tákni sínu: PDF-skjöl, skrifstofuskjöl, töflureikna, kynningar, rafbækur, spilunarlista, diskmyndir, forrit, letur, þrívíddarlíkön, gátsummur, torrent, RAW-myndir og hönnunarskrár.',

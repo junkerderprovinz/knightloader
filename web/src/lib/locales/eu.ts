@@ -751,7 +751,6 @@ export const eu: Dict = {
   'settings.modules.detail.torrentsOff': 'Itzalita. Martxan dauden torrentek aurrera jarraitzen dute eta seed egiten jarraitzen dute. Berriak zain geratzen dira berriro piztu arte.',
   'settings.modules.detail.torrentsUnregistered': 'Barneko torrent bezeroa ez dago bideratze-taulan, beraz magnet estekei eta igotako .torrent fitxategiei uko egiten zaie, onartzen ez direlako.',
   'settings.modules.detail.torrentsRouted': 'Magnet estekak eta igotako .torrent fitxategiak barneko torrent bezerora doaz.',
-  'settings.modules.detail.captchaOff': 'Itzalita. Ez da captcha-leihorik irekitzen, eta JDownloaderrek esteka bat bertan behera uzten du bere captcha iraungitzen denean.',
   'settings.modules.detail.challenges': '{n} captcha zain daude orain',
   'settings.modules.detail.challengesOne': 'captcha 1 zain dago orain',
   'settings.modules.detail.downloadclientOff': 'Itzalita. Sonarr eta Radarr-ek 404 bat jasotzen dute, existitzen ez den helbide batetik bezala.',
@@ -768,7 +767,8 @@ export const eu: Dict = {
   'settings.resolvers.toolsJdStarting': 'Konfiguratzen',
   'settings.resolvers.toolsJdFailed': 'Konfigurazioak huts egin du',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoaderrek ezin izan du bere JDownloader konfiguratu: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captchak JDownloader backendetik bakarrik datoz, eta ez dago bat ere konfiguratuta.',
+  'settings.modules.reason.captchaNoJD': 'JDownloaderren captchek JDownloader backenda behar dute, eta ez dago bat ere konfiguratuta. KnightLoaderrek hura gabe deskargatzen dituen esteken captchak hala ere agertzen dira.',
+  'settings.modules.reason.captchaAlways': 'Captchak ezin dira itzali. Beti agertzen dira web interfazean eta telefonoko aplikazioan.',
   'settings.modules.switchFailed': 'Etengailu hori ukatu da: {reason}',
   'settings.modules.configureFirst': 'Oraindik ez dago ezer pizteko. Ezarri hau lehenik {page} orrian; ondoren hemengo etengailuak gelditu eta berriro abiaraziko du, ezarritakoa galdu gabe.',
 
@@ -787,7 +787,7 @@ export const eu: Dict = {
   'settings.modules.about.connections': 'Deskargak hemen gehitzen dituzun proxyetatik eta ibilbide zuzenetatik bidaltzen ditu.',
   'settings.modules.about.federation': 'Instantzia honek zure beste instantziak zerrendatzea eta haiei estekak pasatzea ahalbidetzen du.',
   'settings.modules.about.torrents': 'Magnet estekak eta .torrent fitxategiak instantzia honetan deskargatzen ditu eta behean ezarritakoaren arabera ereiten ditu.',
-  'settings.modules.about.captcha': 'JDownloader-ek aurkitzen dituen captchak erakusten ditu, hemen eta telefonoko aplikazioan, eta zure captcha kontuei pasatzen dizkie.',
+  'settings.modules.about.captcha': 'JDownloaderren captchak eta KnightLoaderrek hura gabe deskargatzen dituen esteken captchak beti agertzen dira web interfazean eta telefonoko aplikazioan, eta zure captcha kontuetara doaz.',
   'settings.modules.about.downloadclient': 'Sonarr, Radarr eta Prowlarr-ek instantzia hau deskarga-bezero gisa erabil dezakete, bere qBittorrent eta SABnzbd interfazeen bidez.',
   'settings.module.extraction': 'Artxiboak erauztea',
   'settings.module.watch': 'Zaindutako karpeta',
@@ -3380,8 +3380,6 @@ export const eu: Dict = {
   'settings.captcha.testSolvers': 'Bidali captcha kontuetara ere',
   'settings.captcha.testSolversHint':
     'Proba-captcha bera zure captcha kontuetara ere bidaltzen du, goiko ordenan, erantzuten duten eta asmatzen duten ikus dezazun. Beste edozein captcha bezala kobratzen dute. «Inor begira ez dagoenean bakarrik» aktibatuta badago, lehenik zuri itxaroten dizute: aldatu beste fitxa batera edo utzi itxaronaldia amaitzen.',
-  'settings.captcha.testOff':
-    'Captchak desaktibatuta daude. Aktibatu berriro Captcha modulua proba-captcha bat bidaltzeko.',
   'settings.captcha.testNoAccount':
     'Zure captcha kontuetako batek ere ezin du hartu. Aktibatu bat goian, eta egiaztatu Kontuak orrian gakoa duela eta aktibatuta dagoela.',
   'captcha.solverStoppedTaken': '{solver}(e)k captcha hau hartu du, baina ez du erantzunik bidali.',
@@ -3827,6 +3825,7 @@ export const eu: Dict = {
   'whatsnew.change.filehostsNative': 'Pixeldrain, Gofile eta Mediafireko estekak JDownloader gabe deskargatzen dira, eta karpeta- edo zerrenda-esteka bat fitxategi bakoitzeko errenkada bat bihurtzen da.',
   'whatsnew.change.cloudNative': 'Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer eta SwissTransferreko estekak JDownloader gabe deskargatzen dira, eta partekatutako karpeta edo transferentzia bat fitxategi bakoitzeko errenkada bat bihurtzen da.',
   'whatsnew.change.freeFilehostsNative': 'Krakenfiles, Workupload eta Send.now-ko estekak ere doan deskargatzen dira JDownloader gabe. Krakenfilesen captcha telefonoko aplikaziora eta zure captcha kontuetara doa, eta itxaronaldiak deskargan ikusten dira.',
+  'whatsnew.change.captchaAlwaysOn': 'Captchak jada ezin dira itzali. Beti agertzen dira web interfazean eta telefonoko aplikazioan.',
   'whatsnew.change.oled': '{theme} azpiko {oled} aukerak itxura iluna benetako beltz bihurtzen du OLED eta AMOLED pantailetan. Itxura iluna ikusten den bakoitzean balio du, sistemari jarraitzen dionean ere, eta gailu bakoitzak bere aukera gogoratzen du.',
   'whatsnew.change.systemAccent': '{accent} hasierako makila magikodun laginak sistemaren kolorea hartzen du: Material You Android 12tik aurrera, Windows, macOS edo Linuxen azentu-kolorea mahaigaineko aplikazioan, eta sistemaren kolorea Firefox eta Safarin. Sistemak koloririk ez duenean, lagina ez da agertzen. Aukerak gailu honetan bakarrik balio du, eta besteek instantziaren kolorea gordetzen dute.',
   'whatsnew.change.fileKindsMore': 'Estekek fitxategi mota gehiago erakusten dituzte beren ikurrarekin: PDFak, bulegoko dokumentuak, kalkulu-orriak, aurkezpenak, liburu elektronikoak, erreprodukzio-zerrendak, disko-irudiak, programak, letra-tipoak, 3D ereduak, egiaztapen-baturak, torrentak, RAW argazkiak eta diseinu-fitxategiak.',

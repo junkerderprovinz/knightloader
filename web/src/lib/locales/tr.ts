@@ -750,7 +750,6 @@ export const tr: Dict = {
   'settings.modules.detail.torrentsOff': 'Kapalı. Süren torrentler devam eder ve seed etmeyi sürdürür. Yeniler, o yeniden açılana kadar bekler.',
   'settings.modules.detail.torrentsUnregistered': 'Yerleşik torrent istemcisi dağıtım tablosunda değil, bu yüzden magnet bağlantıları ve yüklenen .torrent dosyaları desteklenmediği gerekçesiyle geri çevrilir.',
   'settings.modules.detail.torrentsRouted': 'Magnet bağlantıları ve yüklenen .torrent dosyaları yerleşik torrent istemcisine gider.',
-  'settings.modules.detail.captchaOff': 'Kapalı. Hiçbir sorgu açılmaz ve JDownloader, captchasının süresi dolan bağlantıdan vazgeçer.',
   'settings.modules.detail.challenges': 'Şu anda {n} captcha bekliyor',
   'settings.modules.detail.challengesOne': 'Şu anda 1 captcha bekliyor',
   'settings.modules.detail.downloadclientOff': 'Kapalı. Sonarr ve Radarr, var olmayan bir adresten alır gibi ondan 404 alır.',
@@ -767,7 +766,8 @@ export const tr: Dict = {
   'settings.resolvers.toolsJdStarting': 'Kuruluyor',
   'settings.resolvers.toolsJdFailed': 'Kurulum başarısız',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader kendi JDownloader’ını kuramadı: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captchalar yalnızca JDownloader arka ucundan gelir ve yapılandırılmış bir tane yok.',
+  'settings.modules.reason.captchaNoJD': 'JDownloader\'ın captcha\'ları JDownloader arka ucunu gerektirir ve yapılandırılmış bir tane yok. KnightLoader\'ın onsuz indirdiği bağlantıların captcha\'ları yine de görünür.',
+  'settings.modules.reason.captchaAlways': 'Captcha\'lar kapatılamaz. Her zaman web arayüzünde ve telefon uygulamasında görünürler.',
   'settings.modules.switchFailed': 'Bu anahtar reddedildi: {reason}',
   'settings.modules.configureFirst': 'Henüz açılacak bir şey yok. Bunu önce {page} sayfasında kurun; ondan sonra buradaki anahtar, kurduğunuzu kaybetmeden onu durdurup yeniden başlatır.',
 
@@ -786,7 +786,7 @@ export const tr: Dict = {
   'settings.modules.about.connections': 'İndirmeleri burada eklediğin vekil sunucular ve doğrudan yollar üzerinden gönderir.',
   'settings.modules.about.federation': 'Diğer örneklerini listeler ve onlara bağlantı iletebilir.',
   'settings.modules.about.torrents': 'Magnet bağlantılarını ve .torrent dosyalarını bu örnekte indirir, aşağıda ayarlandığı gibi seed eder.',
-  'settings.modules.about.captcha': 'JDownloader\'ın karşılaştığı captcha\'ları burada ve telefon uygulamasında gösterir, captcha hesaplarına iletir.',
+  'settings.modules.about.captcha': 'JDownloader\'dan gelen captcha\'lar ve KnightLoader\'ın onsuz indirdiği bağlantıların captcha\'ları her zaman web arayüzünde ve telefon uygulamasında görünür ve captcha hesaplarına gider.',
   'settings.modules.about.downloadclient': 'Sonarr, Radarr ve Prowlarr bu örneği, qBittorrent ve SABnzbd arayüzleri üzerinden indirme istemcisi olarak kullanabilir.',
   'settings.module.extraction': 'Arşiv açma',
   'settings.module.watch': 'İzlenen klasör',
@@ -3384,7 +3384,6 @@ export const tr: Dict = {
   'settings.captcha.testSolvers': 'Captcha hesaplarına da gönder',
   'settings.captcha.testSolversHint':
     'Aynı deneme captcha’sını captcha hesaplarına da yukarıdaki sırayla gönderir; böylece yanıtlayıp yanıtlamadıklarını ve doğru bilip bilmediklerini görürsün. Diğer captcha’lar gibi bunun için de ücret alırlar. “Yalnızca kimse izlemiyorken” açıksa önce seni beklerler: başka bir sekmeye geç ya da bekleme süresinin dolmasını bekle.',
-  'settings.captcha.testOff': 'Captcha’lar kapalı. Deneme captcha’sı göndermek için Captcha modülünü yeniden aç.',
   'settings.captcha.testNoAccount':
     'Captcha hesaplarının hiçbiri bunu alamaz. Yukarıda birini aç ve Hesaplar sayfasında anahtarı olduğunu ve açık olduğunu kontrol et.',
   'captcha.solverStoppedTaken': '{solver} bu captchayı devraldı ama yanıt göndermedi.',
@@ -3829,6 +3828,7 @@ export const tr: Dict = {
   'whatsnew.change.filehostsNative': 'Pixeldrain, Gofile ve Mediafire bağlantıları JDownloader olmadan iner, bir klasör ya da liste bağlantısı da her dosya için bir satıra dönüşür.',
   'whatsnew.change.cloudNative': 'Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer ve SwissTransfer bağlantıları JDownloader olmadan iner, paylaşılan bir klasör ya da aktarım da her dosya için bir satıra dönüşür.',
   'whatsnew.change.freeFilehostsNative': 'Krakenfiles, Workupload ve Send.now bağlantıları da JDownloader olmadan ücretsiz iner. Krakenfiles\'ın captcha\'sı telefon uygulamasına ve captcha hesaplarına gider, bekleme süreleri de indirmede görünür.',
+  'whatsnew.change.captchaAlwaysOn': 'Captcha\'lar artık kapatılamaz. Her zaman web arayüzünde ve telefon uygulamasında görünürler.',
   'whatsnew.change.oled': '{theme} altındaki {oled}, OLED ve AMOLED ekranlar için koyu görünümü gerçek siyaha çevirir. Koyu görünüm göründüğü her an geçerlidir, sistemi izlediğinde de, ve her cihaz kendi seçimini hatırlar.',
   'whatsnew.change.systemAccent': '{accent} satırının başındaki sihirli değnekli örnek, sisteminin rengini alır: Android 12 ve sonrasında Material You, masaüstü uygulamasında Windows, macOS veya Linux vurgu rengi, Firefox ve Safari\'de sistem rengi. Sistemin böyle bir rengi yoksa örnek görünmez. Seçim yalnızca bu cihazı etkiler, diğer cihazlar değişmez.',
   'whatsnew.change.fileKindsMore': 'Bağlantılar daha fazla dosya türünü simgesiyle gösteriyor: PDF\'ler, ofis belgeleri, elektronik tablolar, sunumlar, e-kitaplar, çalma listeleri, disk görüntüleri, programlar, yazı tipleri, 3D modeller, sağlama toplamları, torrentler, RAW fotoğraflar ve tasarım dosyaları.',

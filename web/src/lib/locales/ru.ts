@@ -743,7 +743,6 @@ export const ru: Dict = {
   'settings.modules.detail.torrentsOff': 'Выключен. Идущие торренты продолжают работать и раздавать. Новые ждут, пока модуль снова не включат.',
   'settings.modules.detail.torrentsUnregistered': 'Встроенного торрент-клиента нет в таблице маршрутизации, поэтому magnet-ссылки и загруженные файлы .torrent не принимаются как неподдерживаемые.',
   'settings.modules.detail.torrentsRouted': 'Magnet-ссылки и загруженные файлы .torrent уходят во встроенный торрент-клиент.',
-  'settings.modules.detail.captchaOff': 'Выключен. Запрос не открывается, и JDownloader бросает ссылку, как только истекает её капча.',
   'settings.modules.detail.challenges': 'Капч в ожидании: {n}',
   'settings.modules.detail.challengesOne': '1 капча в ожидании',
   'settings.modules.detail.downloadclientOff': 'Выключен. Sonarr и Radarr получают от него 404, как от несуществующего адреса.',
@@ -760,7 +759,8 @@ export const ru: Dict = {
   'settings.resolvers.toolsJdStarting': 'Настраивается',
   'settings.resolvers.toolsJdFailed': 'Настроить не удалось',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader не смог настроить свой JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Капчи приходят только от бэкенда JDownloader, а он не настроен.',
+  'settings.modules.reason.captchaNoJD': 'Капчам от JDownloader нужен бэкенд JDownloader, а он не настроен. Капчи от ссылок, которые KnightLoader скачивает без него, всё равно показываются.',
+  'settings.modules.reason.captchaAlways': 'Капчи нельзя выключить. Они всегда показываются в веб-интерфейсе и в мобильном приложении.',
   'settings.modules.switchFailed': 'Переключатель отклонён: {reason}',
   'settings.modules.configureFirst': 'Включать пока нечего. Сначала настройте это на странице {page}; после этого переключатель здесь останавливает и снова запускает модуль, не теряя заданного.',
 
@@ -779,7 +779,7 @@ export const ru: Dict = {
   'settings.modules.about.connections': 'Отправляет загрузки через добавленные здесь прокси и прямые маршруты.',
   'settings.modules.about.federation': 'Показывает в списке ваши другие экземпляры и может передавать им ссылки.',
   'settings.modules.about.torrents': 'Скачивает magnet-ссылки и файлы .torrent на этом экземпляре и раздаёт их, как настроено ниже.',
-  'settings.modules.about.captcha': 'Показывает капчи, с которыми сталкивается JDownloader, здесь и в мобильном приложении и передаёт их вашим аккаунтам капчи.',
+  'settings.modules.about.captcha': 'Капчи от JDownloader и от ссылок, которые KnightLoader скачивает без него, всегда показываются в веб-интерфейсе и в мобильном приложении и уходят вашим аккаунтам капчи.',
   'settings.modules.about.downloadclient': 'Sonarr, Radarr и Prowlarr могут использовать этот экземпляр как клиент загрузки через интерфейсы qBittorrent и SABnzbd.',
   'settings.module.extraction': 'Распаковка архивов',
   'settings.module.watch': 'Наблюдаемая папка',
@@ -3365,7 +3365,6 @@ export const ru: Dict = {
   'settings.captcha.testSolvers': 'Отправить и на аккаунты капчи',
   'settings.captcha.testSolversHint':
     'Отправляет ту же тестовую капчу и на ваши аккаунты капчи, в порядке выше, чтобы вы увидели, отвечают ли они и правильно ли. Они берут за неё плату, как за любую другую капчу. Если включено «Только когда никто не смотрит», сначала они ждут вас: перейдите на другую вкладку или дождитесь конца ожидания.',
-  'settings.captcha.testOff': 'Капчи выключены. Снова включите модуль «Капча», чтобы отправить тестовую капчу.',
   'settings.captcha.testNoAccount':
     'Ни один из ваших аккаунтов капчи не может её принять. Включите один выше и проверьте на странице «Аккаунты», что у него есть ключ и он включён.',
   'captcha.solverStoppedTaken': '{solver} взял эту капчу, но не прислал ответа.',
@@ -3810,6 +3809,7 @@ export const ru: Dict = {
   'whatsnew.change.filehostsNative': 'Ссылки Pixeldrain, Gofile и Mediafire скачиваются без JDownloader, а ссылка на папку или список превращается в отдельную строку для каждого файла.',
   'whatsnew.change.cloudNative': 'Ссылки Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer и SwissTransfer скачиваются без JDownloader, а общая папка или передача превращается в отдельную строку для каждого файла.',
   'whatsnew.change.freeFilehostsNative': 'Ссылки Krakenfiles, Workupload и Send.now тоже скачиваются бесплатно без JDownloader. Капча Krakenfiles уходит в мобильное приложение и ваши аккаунты для капчи, а ожидание видно у загрузки.',
+  'whatsnew.change.captchaAlwaysOn': 'Капчи больше нельзя выключить. Они всегда показываются в веб-интерфейсе и в мобильном приложении.',
   'whatsnew.change.oled': '{oled} под {theme} делает тёмное оформление по-настоящему чёрным для экранов OLED и AMOLED. Он действует всякий раз, когда видно тёмное оформление, даже если оно следует за системой, и каждое устройство помнит свой выбор.',
   'whatsnew.change.systemAccent': 'Образец с волшебной палочкой в начале {accent} берёт цвет твоей системы: Material You начиная с Android 12, акцентный цвет Windows, macOS или Linux в настольном приложении и системный цвет в Firefox и Safari. Где у системы его нет, образца нет. Выбор действует только на этом устройстве, а остальные сохраняют цвет экземпляра.',
   'whatsnew.change.fileKindsMore': 'Ссылки показывают своим значком больше видов файлов: PDF, офисные документы, таблицы, презентации, электронные книги, плейлисты, образы дисков, программы, шрифты, 3D-модели, контрольные суммы, торренты, RAW-фото и файлы дизайна.',

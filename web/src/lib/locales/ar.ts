@@ -752,7 +752,6 @@ export const ar: Dict = {
   'settings.modules.detail.torrentsOff': 'مطفأ. التورنتات الجارية تستمر وتواصل البذر. والجديدة تنتظر حتى يعود للعمل.',
   'settings.modules.detail.torrentsUnregistered': 'عميل التورنت المدمج ليس في جدول التوجيه، لذلك تُردّ الروابط المغناطيسية وملفات ‎.torrent المرفوعة بوصفها غير مدعومة.',
   'settings.modules.detail.torrentsRouted': 'الروابط المغناطيسية وملفات ‎.torrent المرفوعة تذهب إلى عميل التورنت المدمج.',
-  'settings.modules.detail.captchaOff': 'مطفأ. لا تُفتح أي نافذة طلب، ويتخلى JDownloader عن الرابط بمجرد انتهاء صلاحية الكابتشا الخاصة به.',
   'settings.modules.detail.challenges': 'كابتشا تنتظر الآن: {n}',
   'settings.modules.detail.challengesOne': 'كابتشا واحدة تنتظر الآن',
   'settings.modules.detail.downloadclientOff': 'مطفأ. يتلقى Sonarr وRadarr منه 404، كما من عنوان غير موجود.',
@@ -769,7 +768,8 @@ export const ar: Dict = {
   'settings.resolvers.toolsJdStarting': 'جارٍ الإعداد',
   'settings.resolvers.toolsJdFailed': 'فشل الإعداد',
   'settings.resolvers.toolsJdFailedHint': 'تعذّر على KnightLoader إعداد JDownloader الخاص به: {error}',
-  'settings.modules.reason.captchaNoJD': 'الكابتشا لا تأتي إلا من خلفية JDownloader، ولا توجد واحدة مُعدّة.',
+  'settings.modules.reason.captchaNoJD': 'كابتشا JDownloader تحتاج إلى خلفية JDownloader، ولا توجد واحدة مُعدّة. أما كابتشا الروابط التي ينزّلها KnightLoader دونه فتظهر مع ذلك.',
+  'settings.modules.reason.captchaAlways': 'لا يمكن إطفاء الكابتشا. فهي تظهر دائمًا في واجهة الويب وفي تطبيق الهاتف.',
   'settings.modules.switchFailed': 'رُفض هذا المفتاح: {reason}',
   'settings.modules.configureFirst': 'لا شيء لتشغيله بعد. اضبط هذا في {page} أولًا؛ بعدها يوقفه المفتاح هنا ويعيد تشغيله دون فقد ما ضبطته.',
 
@@ -788,7 +788,7 @@ export const ar: Dict = {
   'settings.modules.about.connections': 'يمرّر التنزيلات عبر الوكلاء والمسارات المباشرة التي تضيفها هنا.',
   'settings.modules.about.federation': 'يتيح لهذا المثيل عرض مثيلاتك الأخرى وتمرير الروابط إليها.',
   'settings.modules.about.torrents': 'ينزّل روابط magnet وملفات .torrent على هذا المثيل ويبذرها وفق الإعدادات أدناه.',
-  'settings.modules.about.captcha': 'يعرض الكابتشا التي يصادفها JDownloader، هنا وفي تطبيق الهاتف، ويمرّرها إلى حسابات الكابتشا.',
+  'settings.modules.about.captcha': 'الكابتشا القادمة من JDownloader ومن الروابط التي ينزّلها KnightLoader دونه تظهر دائمًا في واجهة الويب وفي تطبيق الهاتف، وتذهب إلى حسابات الكابتشا.',
   'settings.modules.about.downloadclient': 'يتيح لـ Sonarr وRadarr وProwlarr استخدام هذا المثيل عميلَ تنزيل، عبر واجهتي qBittorrent وSABnzbd.',
   'settings.module.extraction': 'فك الأرشيفات',
   'settings.module.watch': 'مجلد مُراقَب',
@@ -3384,7 +3384,6 @@ export const ar: Dict = {
   'settings.captcha.testSolvers': 'أرسلها إلى حسابات الكابتشا أيضًا',
   'settings.captcha.testSolversHint':
     'ترسل الكابتشا التجريبية نفسها إلى حسابات الكابتشا لديك أيضًا، بالترتيب أعلاه، لترى إن كانت تجيب عنها وتصيب. تحتسب هذه الحسابات ثمنها كأي كابتشا أخرى. وإذا كان «فقط حين لا يشاهد أحد» مفعّلًا فإنها تنتظرك أولًا: انتقل إلى علامة تبويب أخرى أو دع وقت الانتظار ينتهي.',
-  'settings.captcha.testOff': 'الكابتشا متوقفة. شغّل وحدة الكابتشا من جديد لإرسال كابتشا تجريبية.',
   'settings.captcha.testNoAccount':
     'لا يستطيع أي من حسابات الكابتشا لديك استلامها. شغّل واحدًا منها أعلاه، ثم تحقّق في صفحة الحسابات من أن له مفتاحًا وأنه مفعّل.',
   'captcha.solverStoppedTaken': 'تولى {solver} هذه الكابتشا لكنه لم يرسل جوابًا.',
@@ -3828,6 +3827,7 @@ export const ar: Dict = {
   'whatsnew.change.filehostsNative': 'تُنزَّل روابط Pixeldrain وGofile وMediafire دون JDownloader، ويصبح رابط المجلد أو القائمة صفًّا لكل ملف.',
   'whatsnew.change.cloudNative': 'تُنزَّل روابط Google Drive وDropbox وOneDrive وSharePoint وWeTransfer وSwissTransfer دون JDownloader، ويصبح المجلد المشترك أو عملية النقل صفًّا لكل ملف.',
   'whatsnew.change.freeFilehostsNative': 'تُنزَّل روابط Krakenfiles وWorkupload وSend.now أيضًا مجانًا دون JDownloader. تذهب كابتشا Krakenfiles إلى تطبيق الهاتف وحسابات الكابتشا، ويظهر وقت الانتظار على التنزيل.',
+  'whatsnew.change.captchaAlwaysOn': 'لم يعد بالإمكان إطفاء الكابتشا. فهي تظهر دائمًا في واجهة الويب وفي تطبيق الهاتف.',
   'whatsnew.change.oled': '{oled} تحت {theme} يجعل المظهر الداكن أسود حقيقيًا لشاشات OLED وAMOLED. يعمل كلما ظهر المظهر الداكن، حتى عندما يتبع النظام، ويحتفظ كل جهاز باختياره.',
   'whatsnew.change.systemAccent': 'عينة العصا السحرية في بداية {accent} تأخذ لون نظامك: Material You في Android 12 وما بعده، ولون التمييز في Windows أو macOS أو Linux في تطبيق سطح المكتب، ولون النظام في Firefox وSafari. حيث لا يوجد لون للنظام لا تظهر العينة. يسري الاختيار على هذا الجهاز وحده، وتحتفظ الأجهزة الأخرى بلون النسخة.',
   'whatsnew.change.fileKindsMore': 'تعرض الروابط أنواعًا أكثر من الملفات برمزها: ملفات PDF والمستندات المكتبية وجداول البيانات والعروض التقديمية والكتب الإلكترونية وقوائم التشغيل وصور الأقراص والبرامج والخطوط والنماذج ثلاثية الأبعاد ومجاميع التحقق والتورنت وصور RAW وملفات التصميم.',

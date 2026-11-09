@@ -752,7 +752,6 @@ export const he: Dict = {
   'settings.modules.detail.torrentsOff': 'כבוי. טורנטים שרצים ממשיכים לרוץ ולהזריע. חדשים מחכים עד שהוא יופעל שוב.',
   'settings.modules.detail.torrentsUnregistered': 'לקוח הטורנטים המובנה לא נמצא בטבלת הניתוב, ולכן קישורי מגנט וקבצי ‎.torrent שהועלו מסורבים כלא נתמכים.',
   'settings.modules.detail.torrentsRouted': 'קישורי מגנט וקבצי ‎.torrent שהועלו עוברים ללקוח הטורנטים המובנה.',
-  'settings.modules.detail.captchaOff': 'כבוי. שום בקשה לא נפתחת, ו-JDownloader מוותר על קישור ברגע שהקאפצ׳ה שלו פגה.',
   'settings.modules.detail.challenges': '{n} קאפצ׳ות ממתינות כרגע',
   'settings.modules.detail.challengesOne': 'קאפצ׳ה אחת ממתינה כרגע',
   'settings.modules.detail.downloadclientOff': 'כבוי. Sonarr ו-Radarr מקבלים ממנו 404, כמו מכתובת שלא קיימת.',
@@ -769,7 +768,8 @@ export const he: Dict = {
   'settings.resolvers.toolsJdStarting': 'בהגדרה',
   'settings.resolvers.toolsJdFailed': 'ההגדרה נכשלה',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader לא הצליח להגדיר את ה-JDownloader שלו: {error}',
-  'settings.modules.reason.captchaNoJD': 'קאפצ׳ות מגיעות רק ממנוע JDownloader, ולא הוגדר אף אחד.',
+  'settings.modules.reason.captchaNoJD': 'קאפצ׳ות של JDownloader צריכות את מנוע JDownloader, ולא הוגדר אף אחד. קאפצ׳ות מקישורים ש-KnightLoader מוריד בלעדיו מופיעות בכל זאת.',
+  'settings.modules.reason.captchaAlways': 'אי אפשר לכבות קאפצ׳ות. הן מופיעות תמיד בממשק האינטרנט ובאפליקציה בטלפון.',
   'settings.modules.switchFailed': 'המתג נדחה: {reason}',
   'settings.modules.configureFirst': 'עדיין אין מה להדליק. הגדר את זה קודם ב{page}; אחרי כן המתג כאן עוצר ומפעיל אותו מחדש בלי לאבד את מה שהגדרת.',
 
@@ -788,7 +788,7 @@ export const he: Dict = {
   'settings.modules.about.connections': 'מעביר הורדות דרך הפרוקסי והנתיבים הישירים שתוסיף כאן.',
   'settings.modules.about.federation': 'מאפשר למופע הזה להציג את המופעים האחרים שלך ולהעביר אליהם קישורים.',
   'settings.modules.about.torrents': 'מוריד קישורי מגנט וקובצי .torrent במופע הזה ומזרע אותם לפי ההגדרות למטה.',
-  'settings.modules.about.captcha': 'מציג כאן ובאפליקציה בטלפון את הקאפצ׳ות ש-JDownloader נתקל בהן, ומעביר אותן לחשבונות הקאפצ׳ה שלך.',
+  'settings.modules.about.captcha': 'קאפצ׳ות מ-JDownloader ומקישורים ש-KnightLoader מוריד בלעדיו מופיעות תמיד בממשק האינטרנט ובאפליקציה בטלפון, ועוברות לחשבונות הקאפצ׳ה שלך.',
   'settings.modules.about.downloadclient': 'מאפשר ל-Sonarr, ל-Radarr ול-Prowlarr להשתמש במופע הזה כלקוח הורדות, דרך ממשקי qBittorrent ו-SABnzbd שלו.',
   'settings.module.extraction': 'חילוץ ארכיונים',
   'settings.module.watch': 'תיקייה במעקב',
@@ -3403,7 +3403,6 @@ export const he: Dict = {
   'settings.captcha.testSolvers': 'לשלוח גם לחשבונות הקאפצ׳ה',
   'settings.captcha.testSolversHint':
     'שולח את אותה קאפצ׳ה לבדיקה גם לחשבונות הקאפצ׳ה שלך, לפי הסדר שלמעלה, כדי שתראה אם הם עונים עליה ומצליחים. הם גובים עליה תשלום כמו על כל קאפצ׳ה אחרת. כש"רק כשאף אחד לא צופה" פעיל, הם מחכים קודם לך: עבור ללשונית אחרת או חכה שזמן ההמתנה ייגמר.',
-  'settings.captcha.testOff': 'הקאפצ׳ות כבויות. הפעל שוב את מודול הקאפצ׳ה כדי לשלוח קאפצ׳ה לבדיקה.',
   'settings.captcha.testNoAccount':
     'אף אחד מחשבונות הקאפצ׳ה שלך לא יכול לקבל אותה. הפעל אחד מהם למעלה ובדוק בעמוד חשבונות שיש לו מפתח ושהוא מופעל.',
   'captcha.solverStoppedTaken': '{solver} לקח את הקאפצ׳ה הזו אבל לא שלח תשובה.',
@@ -3847,6 +3846,7 @@ export const he: Dict = {
   'whatsnew.change.filehostsNative': 'קישורים מ-Pixeldrain, מ-Gofile ומ-Mediafire יורדים בלי JDownloader, וקישור לתיקייה או לרשימה הופך לשורה אחת לכל קובץ.',
   'whatsnew.change.cloudNative': 'קישורים מ-Google Drive, מ-Dropbox, מ-OneDrive, מ-SharePoint, מ-WeTransfer ומ-SwissTransfer יורדים בלי JDownloader, ותיקייה משותפת או העברה הופכות לשורה אחת לכל קובץ.',
   'whatsnew.change.freeFilehostsNative': 'גם קישורי Krakenfiles, Workupload ו-Send.now יורדים בחינם בלי JDownloader. הקאפצ׳ה של Krakenfiles עוברת לאפליקציה בטלפון ולחשבונות הקאפצ׳ה שלך, וזמני ההמתנה מוצגים בהורדה.',
+  'whatsnew.change.captchaAlwaysOn': 'כבר אי אפשר לכבות קאפצ׳ות. הן מופיעות תמיד בממשק האינטרנט ובאפליקציה בטלפון.',
   'whatsnew.change.oled': '{oled} תחת {theme} מעביר את המראה הכהה לשחור אמיתי במסכי OLED ו-AMOLED. הוא חל בכל פעם שהמראה הכהה מוצג, גם כשהוא עוקב אחרי המערכת, וכל מכשיר זוכר את הבחירה שלו.',
   'whatsnew.change.systemAccent': 'דוגמית שרביט הקסמים בתחילת {accent} לוקחת את צבע המערכת שלך: Material You מ-Android 12 ואילך, צבע ההדגשה של Windows, macOS או Linux באפליקציית שולחן העבודה, וצבע המערכת ב-Firefox וב-Safari. כשאין למערכת צבע כזה, הדוגמית לא מופיעה. הבחירה חלה רק על המכשיר הזה, ושאר המכשירים שומרים על צבע המופע.',
   'whatsnew.change.fileKindsMore': 'קישורים מציגים יותר סוגי קבצים בסמל שלהם: PDF, מסמכים משרדיים, גיליונות אלקטרוניים, מצגות, ספרים אלקטרוניים, רשימות השמעה, תמונות דיסק, תוכנות, גופנים, מודלים בתלת־ממד, סיכומי ביקורת, טורנטים, תמונות RAW וקובצי עיצוב.',

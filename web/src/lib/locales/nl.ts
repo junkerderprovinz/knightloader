@@ -742,7 +742,6 @@ export const nl: Dict = {
   'settings.modules.detail.torrentsOff': 'Uit. Lopende torrents gaan door en blijven seeden. Nieuwe wachten tot het weer aan staat.',
   'settings.modules.detail.torrentsUnregistered': 'De ingebouwde torrentclient staat niet in de routeringstabel, dus magnet-links en geüploade .torrent-bestanden worden als niet ondersteund afgewezen.',
   'settings.modules.detail.torrentsRouted': 'Magnet-links en geüploade .torrent-bestanden gaan naar de ingebouwde torrentclient.',
-  'settings.modules.detail.captchaOff': 'Uit. Er gaat geen venster open, en JDownloader geeft een link op zodra de captcha ervan verloopt.',
   'settings.modules.detail.challenges': '{n} captcha’s wachten nu',
   'settings.modules.detail.challengesOne': '1 captcha wacht nu',
   'settings.modules.detail.downloadclientOff': 'Uit. Sonarr en Radarr krijgen er een 404 van, zoals van een adres dat niet bestaat.',
@@ -759,7 +758,8 @@ export const nl: Dict = {
   'settings.resolvers.toolsJdStarting': 'Wordt ingesteld',
   'settings.resolvers.toolsJdFailed': 'Instellen mislukt',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader kon zijn JDownloader niet instellen: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captcha’s komen alleen van de JDownloader-backend, en die is niet ingesteld.',
+  'settings.modules.reason.captchaNoJD': 'Captcha’s van JDownloader hebben de JDownloader-backend nodig, en die is niet ingesteld. Captcha’s van links die KnightLoader zonder JDownloader downloadt, verschijnen toch.',
+  'settings.modules.reason.captchaAlways': 'Captcha’s kun je niet uitzetten. Ze verschijnen altijd in de webinterface en in de telefoon-app.',
   'settings.modules.switchFailed': 'Die schakelaar werd geweigerd: {reason}',
   'settings.modules.configureFirst': 'Er valt nog niets aan te zetten. Stel dit eerst in op {page}; daarna stopt en herstart de schakelaar hier het zonder te verliezen wat je hebt ingesteld.',
 
@@ -778,7 +778,7 @@ export const nl: Dict = {
   'settings.modules.about.connections': 'Stuurt downloads via de proxy’s en directe routes die je hier toevoegt.',
   'settings.modules.about.federation': 'Laat deze instantie je andere instanties tonen en er links aan doorgeven.',
   'settings.modules.about.torrents': 'Downloadt magnetlinks en .torrent-bestanden op deze instantie en seedt ze zoals hieronder ingesteld.',
-  'settings.modules.about.captcha': 'Toont de captcha’s waar JDownloader op stuit, hier en in de telefoon-app, en geeft ze door aan je captcha-accounts.',
+  'settings.modules.about.captcha': 'Captcha’s van JDownloader en van links die KnightLoader zonder JDownloader downloadt, verschijnen altijd in de webinterface en in de telefoon-app, en gaan naar je captcha-accounts.',
   'settings.modules.about.downloadclient': 'Laat Sonarr, Radarr en Prowlarr deze instantie als downloadclient gebruiken, via de qBittorrent- en SABnzbd-interface.',
   'settings.module.extraction': 'Archieven uitpakken',
   'settings.module.watch': 'Bewaakte map',
@@ -3368,7 +3368,6 @@ export const nl: Dict = {
   'settings.captcha.testSolvers': 'Ook naar de captcha-accounts sturen',
   'settings.captcha.testSolversHint':
     'Verstuurt dezelfde testcaptcha ook naar je captcha-accounts, in de volgorde hierboven, zodat je ziet of ze hem beantwoorden en goed. Ze rekenen hem af zoals elke andere captcha. Staat “Alleen als niemand meekijkt” aan, dan wachten ze eerst op jou: ga naar een ander tabblad of laat de wachttijd verlopen.',
-  'settings.captcha.testOff': 'Captcha’s staan uit. Zet de module Captcha weer aan om een testcaptcha te versturen.',
   'settings.captcha.testNoAccount':
     'Geen van je captcha-accounts kan hem aannemen. Zet er hierboven een aan en controleer op de pagina Accounts dat hij een sleutel heeft en aanstaat.',
   'captcha.solverStoppedTaken': '{solver} heeft deze captcha overgenomen, maar geen antwoord gestuurd.',
@@ -3813,6 +3812,7 @@ export const nl: Dict = {
   'whatsnew.change.filehostsNative': 'Links van Pixeldrain, Gofile en Mediafire downloaden zonder JDownloader, en een link naar een map of lijst wordt één rij per bestand.',
   'whatsnew.change.cloudNative': 'Links van Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer en SwissTransfer downloaden zonder JDownloader, en een gedeelde map of een transfer wordt één rij per bestand.',
   'whatsnew.change.freeFilehostsNative': 'Ook links van Krakenfiles, Workupload en Send.now downloaden gratis zonder JDownloader. De captcha van Krakenfiles gaat naar de telefoon-app en je captcha-accounts, en de wachttijden staan bij de download.',
+  'whatsnew.change.captchaAlwaysOn': 'Captcha’s kun je niet meer uitzetten. Ze verschijnen altijd in de webinterface en in de telefoon-app.',
   'whatsnew.change.oled': '{oled} onder {theme} zet het donkere uiterlijk op echt zwart voor OLED- en AMOLED-schermen. Het geldt zodra het donkere uiterlijk te zien is, ook als dat het systeem volgt, en elk apparaat onthoudt zijn eigen keuze.',
   'whatsnew.change.systemAccent': 'Het staal met de toverstaf vooraan bij {accent} neemt de kleur van je systeem over: Material You vanaf Android 12, de accentkleur van Windows, macOS of Linux in de desktop-app en de systeemkleur in Firefox en Safari. Waar het systeem er geen heeft, is het staal er niet. De keuze geldt alleen voor dit apparaat, en de andere houden de kleur van de instantie.',
   'whatsnew.change.fileKindsMore': 'Links tonen meer soorten bestanden met hun symbool: pdf\'s, kantoordocumenten, spreadsheets, presentaties, e-books, afspeellijsten, schijfkopieën, programma\'s, lettertypen, 3D-modellen, controlesommen, torrents, RAW-foto\'s en ontwerpbestanden.',

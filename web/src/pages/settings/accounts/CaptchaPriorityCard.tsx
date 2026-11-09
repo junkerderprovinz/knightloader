@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { useState } from 'react';
 import {
   type Account,
   ApiError,
@@ -16,14 +16,12 @@ import { Tabs } from '../../../components/Tabs';
 import { TestButton } from '../../../components/TestButton';
 import { useDraft, useFeatures } from '../context';
 import { SettingRow, SubHead } from '../controls';
-import { ModuleToggle } from '../ModuleToggle';
 
 // The captcha priority card orders the connected captcha accounts the way the
 // download priority card beside it orders the backends, and holds when they
-// start and the test captcha, all under the captcha module's switch. The order
-// lives in the settings and only says who goes first: every captcha account
-// with a key that is switched on is tried, the ones in captchaSolverOrder
-// first.
+// start and the test captcha. Captchas have no switch. The order lives in the
+// settings and only says who goes first: every captcha account with a key that
+// is switched on is tried, the ones in captchaSolverOrder first.
 
 // Copies of the bounds in internal/settings/settings_captcha.go, which no route
 // serves.
@@ -59,17 +57,6 @@ export function solverAccount(id: string, accounts: Account[]): Account | undefi
     .sort((x, y) => (x.account < y.account ? -1 : x.account > y.account ? 1 : 0))[0];
 }
 
-/** CaptchaSwitch is the captcha module's switch above the card's rows, where there is a switch to show. */
-function CaptchaSwitch({ on, hint, children }: { on: boolean; hint: string; children: ReactNode }) {
-  return on ? (
-    <ModuleToggle id="captcha" hint={hint}>
-      {children}
-    </ModuleToggle>
-  ) : (
-    <>{children}</>
-  );
-}
-
 /**
  * CaptchaPriorityCard draws the captcha priority card on `hue`. `accounts`
  * and `catalogue` are the Accounts page's own, so a key saved there shows here
@@ -87,9 +74,9 @@ export function CaptchaPriorityCard({
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
-  // Without a JDownloader backend no captcha can arrive and the module has no
-  // switch, so the card says why in its bubble rather than under an inert one.
-  const noSource = features.modules.find((m) => m.id === 'captcha')?.switch === 'none';
+  // Without a JDownloader backend only the links KnightLoader downloads without
+  // it bring captchas, and the bubble says so.
+  const noJD = features.modules.find((m) => m.id === 'captcha')?.reasonCode === 'captchaNoJD';
 
   const order = cfg.captchaSolverOrder ?? [];
   const solvers = connectedSolvers(order, accounts, catalogue);
@@ -110,66 +97,64 @@ export function CaptchaPriorityCard({
       data-new="captcha-priority"
       title={title}
       hint={[
+        t('settings.modules.about.captcha'),
         t('settings.captcha.orderHint', { accounts: t('accounts.captcha.title') }),
-        noSource ? t('settings.modules.reason.captchaNoJD') : '',
+        noJD ? t('settings.modules.reason.captchaNoJD') : '',
       ].join(' ').trim()}
       intro={t('settings.captcha.orderIntro')}
     >
-      <CaptchaSwitch on={!noSource} hint={t('settings.modules.about.captcha')}>
-        <div data-new="priority-accounts">
-          {solvers.length === 0 ? (
-            <EmptyState
-              nested
-              icon={<IconCaptcha width={26} height={26} />}
-              title={t('settings.captcha.orderEmpty')}
-            />
-          ) : (
-            <PriorityLadder
-              ids={solvers.map((s) => s.id)}
-              title={title}
-              entry={t('settings.captcha.orderEntry')}
-              labelFor={(id) => labelOf.get(id) ?? id}
-              troubleFor={troubleFor}
-              glyph={IconCaptcha}
-              onReorder={reorder}
-            />
+      <div data-new="priority-accounts">
+        {solvers.length === 0 ? (
+          <EmptyState
+            nested
+            icon={<IconCaptcha width={26} height={26} />}
+            title={t('settings.captcha.orderEmpty')}
+          />
+        ) : (
+          <PriorityLadder
+            ids={solvers.map((s) => s.id)}
+            title={title}
+            entry={t('settings.captcha.orderEntry')}
+            labelFor={(id) => labelOf.get(id) ?? id}
+            troubleFor={troubleFor}
+            glyph={IconCaptcha}
+            onReorder={reorder}
+          />
+        )}
+      </div>
+
+      {/* Nothing reads these while no captcha account is connected. */}
+      {solvers.length > 0 && (
+        <div className="flex flex-col gap-4 pt-4">
+          <SubHead label={t('settings.captcha.whenTitle')} />
+          <ToggleRow
+            hue={0}
+            checked={cfg.captchaSolverOnlyUnwatched}
+            onChange={(v) => patch({ captchaSolverOnlyUnwatched: v })}
+            label={t('settings.captcha.onlyUnwatched')}
+            hint={t('settings.captcha.onlyUnwatchedHint')}
+          />
+          {/* sanitizeCaptcha clamps to 10..600; onValue does not, or 60 could
+              not be typed digit by digit. */}
+          {cfg.captchaSolverOnlyUnwatched && (
+            <SettingRow control="short" label={t('settings.captcha.wait')} hint={t('settings.captcha.waitHint')}>
+              <NumberInput
+                value={cfg.captchaSolverWait}
+                min={MIN_WAIT}
+                max={MAX_WAIT}
+                step={10}
+                onValue={(v) => patch({ captchaSolverWait: v })}
+              />
+            </SettingRow>
           )}
         </div>
-
-        {/* Nothing reads these while no captcha account is connected. */}
-        {solvers.length > 0 && (
-          <div className="flex flex-col gap-4 pt-4">
-            <SubHead label={t('settings.captcha.whenTitle')} />
-            <ToggleRow
-              hue={0}
-              checked={cfg.captchaSolverOnlyUnwatched}
-              onChange={(v) => patch({ captchaSolverOnlyUnwatched: v })}
-              label={t('settings.captcha.onlyUnwatched')}
-              hint={t('settings.captcha.onlyUnwatchedHint')}
-            />
-            {/* sanitizeCaptcha clamps to 10..600; onValue does not, or 60 could
-                not be typed digit by digit. */}
-            {cfg.captchaSolverOnlyUnwatched && (
-              <SettingRow control="short" label={t('settings.captcha.wait')} hint={t('settings.captcha.waitHint')}>
-                <NumberInput
-                  value={cfg.captchaSolverWait}
-                  min={MIN_WAIT}
-                  max={MAX_WAIT}
-                  step={10}
-                  onValue={(v) => patch({ captchaSolverWait: v })}
-                />
-              </SettingRow>
-            )}
-          </div>
-        )}
-        <TestCaptcha solvers={solvers.length > 0} />
-      </CaptchaSwitch>
+      )}
+      <TestCaptcha solvers={solvers.length > 0} />
     </PriorityCard>
   );
 }
 
 const TEST_REFUSALS: Partial<Record<string, TranslationKey>> = {
-  captchaOff: 'settings.captcha.testOff',
   noCaptchaAccount: 'settings.captcha.testNoAccount',
 };
 

@@ -940,7 +940,6 @@ export const en = {
   'settings.modules.detail.torrentsOffDebrid': 'Off. Running torrents carry on and keep seeding. New ones go to a debrid service that takes torrents.',
   'settings.modules.detail.torrentsUnregistered': 'The built-in torrent client is not on the routing table, so magnet links and .torrent uploads are refused as unsupported.',
   'settings.modules.detail.torrentsRouted': 'Magnet links and uploaded .torrent files go to the built-in torrent client.',
-  'settings.modules.detail.captchaOff': 'Off. No prompt opens, and JDownloader gives up on a link once its captcha expires.',
   'settings.modules.detail.challenges': '{n} captchas waiting right now',
   'settings.modules.detail.challengesOne': '1 captcha waiting right now',
   'settings.modules.detail.downloadclientOff': 'Off. Sonarr and Radarr get a 404 from it, as from an address that does not exist.',
@@ -964,7 +963,8 @@ export const en = {
   'settings.resolvers.toolsJdStarting': 'Being set up',
   'settings.resolvers.toolsJdFailed': 'Setup failed',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader could not set up its JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captchas come only from the JDownloader backend, and none is configured.',
+  'settings.modules.reason.captchaNoJD': 'JDownloader\'s captchas need the JDownloader backend, and none is configured. Captchas from links KnightLoader downloads without it still show.',
+  'settings.modules.reason.captchaAlways': 'Captchas cannot be switched off. They always show in the web interface and in the phone app.',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
   'settings.modules.switchFailed': 'That switch was refused: {reason}',
   'settings.modules.configureFirst': 'There is nothing to switch on yet. Set this up on {page} first; after that the switch here stops and restarts it without losing what you set.',
@@ -984,7 +984,7 @@ export const en = {
   'settings.modules.about.connections': 'Sends downloads through the proxies and direct routes you add here.',
   'settings.modules.about.federation': 'Lets this instance list your other instances and hand links to them.',
   'settings.modules.about.torrents': 'Downloads magnet links and .torrent files on this instance and seeds them as set below.',
-  'settings.modules.about.captcha': 'Shows the captchas JDownloader runs into, here and in the phone app, and passes them to your captcha accounts.',
+  'settings.modules.about.captcha': 'Captchas from JDownloader and from links KnightLoader downloads without it always show in the web interface and in the phone app, and go to your captcha accounts.',
   'settings.modules.about.downloadclient': 'Lets Sonarr, Radarr and Prowlarr use this instance as a download client, through its qBittorrent and SABnzbd interfaces.',
 
   'settings.module.extraction': 'Archive extraction',
@@ -1814,7 +1814,6 @@ export const en = {
   'settings.captcha.testSolvers': 'Send one to the captcha accounts too',
   'settings.captcha.testSolversHint':
     'Sends the same test captcha to your captcha accounts as well, in the order above, so you can see whether they answer it and get it right. They charge for it like for any other captcha. With Only when nobody is watching on, they wait for you first: switch to another tab, or let the wait run out.',
-  'settings.captcha.testOff': 'Captchas are switched off. Switch the Captcha module back on to send a test captcha.',
   'settings.captcha.testNoAccount':
     'None of your captcha accounts can take it. Switch one on above, then check on the Accounts page that it has a key and is switched on.',
 
@@ -4134,6 +4133,7 @@ export const en = {
   'whatsnew.change.filehostsNative': 'Pixeldrain, Gofile and Mediafire links download without JDownloader, and a folder or list link becomes one row per file.',
   'whatsnew.change.cloudNative': 'Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer and SwissTransfer links download without JDownloader, and a shared folder or a transfer becomes one row per file.',
   'whatsnew.change.freeFilehostsNative': 'Krakenfiles, Workupload and Send.now links download for free without JDownloader too. Krakenfiles\' captcha goes to the phone app and your captcha accounts, and the waits show on the download.',
+  'whatsnew.change.captchaAlwaysOn': 'Captchas can no longer be switched off. They always show in the web interface and in the phone app.',
   'whatsnew.change.oled': '{oled} under {theme} puts the dark look on true black for OLED and AMOLED screens. It counts whenever the dark look shows, also when it follows the system, and each device keeps its own choice.',
   'whatsnew.change.systemAccent': 'The wand swatch at the start of {accent} takes the system\'s colour: Material You on Android 12 and newer, the accent colour of Windows, macOS or Linux in the desktop app, and the system colour in Firefox and Safari. Where the system has none, the swatch isn\'t there. Choosing it changes only this device, and the others keep the instance\'s colour.',
   'whatsnew.change.fileKindsMore': 'Links show more kinds of file by their symbol: PDFs, office documents, spreadsheets, presentations, e-books, playlists, disk images, programs, fonts, 3D models, checksums, torrents, RAW photos and design files.',

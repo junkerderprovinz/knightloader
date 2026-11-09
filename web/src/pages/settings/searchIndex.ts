@@ -392,7 +392,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.captcha.orderTitle',
       hint: 'settings.captcha.orderHint',
       rows: [
-        { key: 'settings.module.captcha', hint: 'settings.modules.about.captcha' },
         { key: 'settings.captcha.whenTitle' },
         { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
         { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
@@ -403,7 +402,12 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       // The hint sends the reader to the captcha accounts card by its name.
       also: ['accounts.captcha.title'],
-      body: ['settings.captcha.orderIntro', 'settings.captcha.orderEmpty', 'settings.modules.reason.captchaNoJD'],
+      body: [
+        'settings.captcha.orderIntro',
+        'settings.captcha.orderEmpty',
+        'settings.modules.about.captcha',
+        'settings.modules.reason.captchaNoJD',
+      ],
     },
     // The fields are in the window a server row opens, so they lead to the card.
     {

@@ -211,9 +211,6 @@ func (a *App) solveFor(host string) hoster.Solve {
 // host in front of the captcha prompts and solvers, and waits for the answer.
 // taskID is the download waiting on it, "" for none.
 func (a *App) askCaptcha(ctx context.Context, host, taskID string, ch hoster.Captcha) (string, error) {
-	if a.ModuleOff("captcha") {
-		return "", ErrCaptchaOff
-	}
 	c := captcha.Challenge{Host: host, TaskID: taskID}
 	if ch.Kind == hoster.Image {
 		c.Kind = captcha.KindImage

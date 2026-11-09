@@ -834,7 +834,6 @@ export const de: Dict = {
   'settings.modules.detail.torrentsOff': 'Aus. Laufende Torrents machen weiter und seeden weiter. Neue warten, bis es wieder an ist.',
   'settings.modules.detail.torrentsUnregistered': 'Der eingebaute Torrent-Client steht nicht in der Routing-Tabelle, deshalb werden Magnet-Links und hochgeladene .torrent-Dateien als nicht unterstützt abgelehnt.',
   'settings.modules.detail.torrentsRouted': 'Magnet-Links und hochgeladene .torrent-Dateien gehen an den eingebauten Torrent-Client.',
-  'settings.modules.detail.captchaOff': 'Aus. Es öffnet sich keine Abfrage, und JDownloader gibt einen Link auf, sobald sein Captcha abläuft.',
   'settings.modules.detail.challenges': '{n} Captchas warten gerade',
   'settings.modules.detail.challengesOne': '1 Captcha wartet gerade',
   'settings.modules.detail.downloadclientOff': 'Aus. Sonarr und Radarr bekommen eine 404, wie von einer Adresse, die es nicht gibt.',
@@ -858,7 +857,8 @@ export const de: Dict = {
   'settings.resolvers.toolsJdStarting': 'Wird eingerichtet',
   'settings.resolvers.toolsJdFailed': 'Einrichtung fehlgeschlagen',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader konnte seinen JDownloader nicht einrichten: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captchas kommen nur vom JDownloader-Backend, und es ist keins eingerichtet.',
+  'settings.modules.reason.captchaNoJD': 'Captchas von JDownloader brauchen das JDownloader-Backend, und es ist keins eingerichtet. Captchas von Links, die KnightLoader ohne JDownloader lädt, erscheinen trotzdem.',
+  'settings.modules.reason.captchaAlways': 'Captchas lassen sich nicht ausschalten. Sie erscheinen immer in der Weboberfläche und in der Handy-App.',
   'settings.modules.reason.keepawake': 'Nur die Desktop-App kann einen Rechner wach halten. Der Rechner, auf dem ein Container läuft, entscheidet selbst, wann er schläft.',
   'settings.modules.switchFailed': 'Der Schalter wurde abgelehnt: {reason}',
   'settings.modules.configureFirst': 'Es gibt noch nichts einzuschalten. Richte das zuerst auf {page} ein. Danach kannst du es mit diesem Schalter anhalten und neu starten, ohne das Eingerichtete zu verlieren.',
@@ -878,7 +878,7 @@ export const de: Dict = {
   'settings.modules.about.connections': 'Schickt Downloads über die Proxys und direkten Wege, die du hier anlegst.',
   'settings.modules.about.federation': 'Diese Instanz zeigt deine anderen Instanzen an und kann ihnen Links übergeben.',
   'settings.modules.about.torrents': 'Lädt Magnet-Links und .torrent-Dateien auf dieser Instanz und seedet sie so, wie unten eingestellt.',
-  'settings.modules.about.captcha': 'Zeigt die Captchas, auf die JDownloader stößt, hier und in der Handy-App, und gibt sie an deine Captcha-Konten weiter.',
+  'settings.modules.about.captcha': 'Captchas von JDownloader und von Links, die KnightLoader ohne JDownloader lädt, erscheinen immer in der Weboberfläche und in der Handy-App und gehen an deine Captcha-Konten.',
   'settings.modules.about.downloadclient': 'Sonarr, Radarr und Prowlarr können diese Instanz als Download-Client nutzen, über ihre qBittorrent- und SABnzbd-Schnittstelle.',
 
   'settings.module.extraction': 'Archive entpacken',
@@ -1600,8 +1600,6 @@ export const de: Dict = {
   'settings.captcha.testSolvers': 'Auch an die Captcha-Konten senden',
   'settings.captcha.testSolversHint':
     'Schickt dasselbe Test-Captcha auch an deine Captcha-Konten, in der Reihenfolge oben, damit du siehst, ob sie es beantworten und richtig lösen. Sie stellen es dir in Rechnung wie jedes andere Captcha. Ist „Nur wenn niemand zuschaut“ an, warten sie zuerst auf dich: Wechsle in einen anderen Tab oder lass die Wartezeit ablaufen.',
-  'settings.captcha.testOff':
-    'Captchas sind ausgeschaltet. Schalte das Modul Captcha wieder ein, um ein Test-Captcha zu senden.',
   'settings.captcha.testNoAccount':
     'Keins deiner Captcha-Konten kann es annehmen. Schalte oben eins ein und sieh auf der Seite Konten nach, ob es einen Schlüssel hat und eingeschaltet ist.',
   'collector.options': 'Optionen',
@@ -3897,6 +3895,7 @@ export const de: Dict = {
   'whatsnew.change.filehostsNative': 'Links von Pixeldrain, Gofile und Mediafire lädt KnightLoader ohne JDownloader herunter, und ein Ordner- oder Listenlink wird zu einer Zeile je Datei.',
   'whatsnew.change.cloudNative': 'Links von Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer und SwissTransfer lädt KnightLoader ohne JDownloader herunter, und ein geteilter Ordner oder ein Transfer wird zu einer Zeile je Datei.',
   'whatsnew.change.freeFilehostsNative': 'Links von Krakenfiles, Workupload und Send.now lädt KnightLoader auch ohne JDownloader kostenlos herunter. Das Captcha von Krakenfiles geht an die Handy-App und deine Captcha-Konten, und die Wartezeiten stehen am Download.',
+  'whatsnew.change.captchaAlwaysOn': 'Captchas lassen sich nicht mehr ausschalten. Sie erscheinen immer in der Weboberfläche und in der Handy-App.',
   'whatsnew.change.oled': '{oled} unter {theme} setzt das dunkle Design auf echtes Schwarz, für OLED- und AMOLED-Bildschirme. Es gilt, sobald das dunkle Design zu sehen ist, auch wenn es dem System folgt, und jedes Gerät merkt sich seine eigene Wahl.',
   'whatsnew.change.systemAccent': 'Das Farbfeld mit dem Zauberstab am Anfang von {accent} übernimmt die Farbe deines Systems: Material You ab Android 12, die Akzentfarbe von Windows, macOS oder Linux in der Desktop-App und die Systemfarbe in Firefox und Safari. Wo das System keine hat, gibt es das Feld nicht. Die Wahl gilt nur für dieses Gerät, und die anderen behalten die Farbe der Instanz.',
   'whatsnew.change.fileKindsMore': 'Links zeigen mehr Dateiarten mit ihrem Symbol: PDFs, Office-Dokumente, Tabellen, Präsentationen, E-Books, Playlists, Disk-Images, Programme, Schriften, 3D-Modelle, Prüfsummen, Torrents, RAW-Fotos und Designdateien.',

@@ -751,7 +751,6 @@ export const lv: Dict = {
   'settings.modules.detail.torrentsOff': 'Izslēgts. Notiekošie torrenti turpina darboties un sēt. Jaunie gaida, līdz tas atkal būs ieslēgts.',
   'settings.modules.detail.torrentsUnregistered': 'Iebūvētais torrentu klients nav maršrutēšanas tabulā, tāpēc magnet saites un augšupielādēti .torrent faili netiek pieņemti, jo tie netiek atbalstīti.',
   'settings.modules.detail.torrentsRouted': 'Magnet saites un augšupielādēti .torrent faili nonāk iebūvētajā torrentu klientā.',
-  'settings.modules.detail.captchaOff': 'Izslēgts. Neviens pieprasījums neatveras, un JDownloader atsakās no saites, tiklīdz tās captcha beidzas.',
   'settings.modules.detail.challenges': 'Pašlaik gaida captcha: {n}',
   'settings.modules.detail.challengesOne': 'Pašlaik gaida 1 captcha',
   'settings.modules.detail.downloadclientOff': 'Izslēgts. Sonarr un Radarr no tā saņem 404, kā no adreses, kas nepastāv.',
@@ -768,7 +767,8 @@ export const lv: Dict = {
   'settings.resolvers.toolsJdStarting': 'Tiek iestatīts',
   'settings.resolvers.toolsJdFailed': 'Iestatīšana neizdevās',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader nevarēja iestatīt savu JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captcha nāk tikai no JDownloader aizmugures, un neviena nav konfigurēta.',
+  'settings.modules.reason.captchaNoJD': 'JDownloader captcha vajag JDownloader aizmuguri, un neviena nav konfigurēta. Captcha no saitēm, ko KnightLoader lejupielādē bez tā, tik un tā parādās.',
+  'settings.modules.reason.captchaAlways': 'Captcha nevar izslēgt. Tās vienmēr parādās tīmekļa saskarnē un tālruņa lietotnē.',
   'settings.modules.switchFailed': 'Šis slēdzis tika atteikts: {reason}',
   'settings.modules.configureFirst': 'Vēl nav ko ieslēgt. Vispirms iestatiet to lapā {page}; pēc tam slēdzis šeit to aptur un palaiž no jauna, nezaudējot iestatīto.',
 
@@ -787,7 +787,7 @@ export const lv: Dict = {
   'settings.modules.about.connections': 'Sūta lejupielādes caur starpniekserveriem un tiešajiem ceļiem, ko šeit pievienosi.',
   'settings.modules.about.federation': 'Ļauj šai instancei rādīt tavas citas instances un nodot tām saites.',
   'settings.modules.about.torrents': 'Lejupielādē magnet saites un .torrent failus šajā instancē un tos sēj, kā iestatīts zemāk.',
-  'settings.modules.about.captcha': 'Rāda captcha, ar kurām saskaras JDownloader, šeit un tālruņa lietotnē un nodod tās taviem captcha kontiem.',
+  'settings.modules.about.captcha': 'Captcha no JDownloader un no saitēm, ko KnightLoader lejupielādē bez tā, vienmēr parādās tīmekļa saskarnē un tālruņa lietotnē un nonāk taviem captcha kontiem.',
   'settings.modules.about.downloadclient': 'Ļauj Sonarr, Radarr un Prowlarr izmantot šo instanci kā lejupielādes klientu, izmantojot tās qBittorrent un SABnzbd saskarnes.',
   'settings.module.extraction': 'Arhīvu izpakošana',
   'settings.module.watch': 'Uzraudzītā mape',
@@ -3376,7 +3376,6 @@ export const lv: Dict = {
   'settings.captcha.testSolvers': 'Sūtīt arī captcha kontiem',
   'settings.captcha.testSolversHint':
     'Sūta to pašu testa captcha arī taviem captcha kontiem, augstāk norādītajā secībā, lai tu redzētu, vai tie atbild un pareizi. Tie par to iekasē maksu kā par jebkuru citu captcha. Ja „Tikai tad, kad neviens neskatās“ ir ieslēgts, tie vispirms gaida tevi: pārej uz citu cilni vai ļauj gaidīšanas laikam beigties.',
-  'settings.captcha.testOff': 'Captcha ir izslēgtas. Ieslēdz atkal moduli Captcha, lai sūtītu testa captcha.',
   'settings.captcha.testNoAccount':
     'Neviens no taviem captcha kontiem to nevar pieņemt. Ieslēdz vienu augstāk un lapā Konti pārbaudi, vai tam ir atslēga un vai tas ir ieslēgts.',
   'captcha.solverStoppedTaken': '{solver} pārņēma šo captcha, bet atbildi nenosūtīja.',
@@ -3821,6 +3820,7 @@ export const lv: Dict = {
   'whatsnew.change.filehostsNative': 'Pixeldrain, Gofile un Mediafire saites tiek lejupielādētas bez JDownloader, un mapes vai saraksta saite kļūst par vienu rindu katram failam.',
   'whatsnew.change.cloudNative': 'Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer un SwissTransfer saites tiek lejupielādētas bez JDownloader, un koplietota mape vai pārsūtījums kļūst par vienu rindu katram failam.',
   'whatsnew.change.freeFilehostsNative': 'Arī Krakenfiles, Workupload un Send.now saites tiek lejupielādētas bez maksas un bez JDownloader. Krakenfiles captcha nonāk tālruņa lietotnē un taviem captcha kontiem, un gaidīšana redzama pie lejupielādes.',
+  'whatsnew.change.captchaAlwaysOn': 'Captcha vairs nevar izslēgt. Tās vienmēr parādās tīmekļa saskarnē un tālruņa lietotnē.',
   'whatsnew.change.oled': '{oled} zem {theme} pārslēdz tumšo izskatu uz īstu melnu OLED un AMOLED ekrāniem. Tas darbojas vienmēr, kad redzams tumšais izskats, arī tad, ja tas seko sistēmai, un katra ierīce atceras savu izvēli.',
   'whatsnew.change.systemAccent': 'Paraugs ar burvju nūjiņu {accent} sākumā izmanto tavas sistēmas krāsu: Material You no Android 12, Windows, macOS vai Linux akcenta krāsu darbvirsmas lietotnē un sistēmas krāsu Firefox un Safari. Kur sistēmai tādas nav, parauga nav. Izvēle attiecas tikai uz šo ierīci, un citas saglabā instances krāsu.',
   'whatsnew.change.fileKindsMore': 'Saites ar savu simbolu rāda vairāk failu veidu: PDF, biroja dokumentus, izklājlapas, prezentācijas, e-grāmatas, atskaņošanas sarakstus, disku attēlus, programmas, fontus, 3D modeļus, kontrolsummas, torrentus, RAW fotoattēlus un dizaina failus.',

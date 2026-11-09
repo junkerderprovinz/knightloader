@@ -750,7 +750,6 @@ export const sv: Dict = {
   'settings.modules.detail.torrentsOff': 'Av. Pågående torrents fortsätter och delar vidare. Nya väntar tills det är på igen.',
   'settings.modules.detail.torrentsUnregistered': 'Den inbyggda torrentklienten finns inte i fördelningstabellen, så magnetlänkar och uppladdade .torrent-filer nekas som ostödda.',
   'settings.modules.detail.torrentsRouted': 'Magnetlänkar och uppladdade .torrent-filer går till den inbyggda torrentklienten.',
-  'settings.modules.detail.captchaOff': 'Av. Ingen fråga öppnas, och JDownloader ger upp en länk när dess captcha går ut.',
   'settings.modules.detail.challenges': '{n} captchor väntar just nu',
   'settings.modules.detail.challengesOne': '1 captcha väntar just nu',
   'settings.modules.detail.downloadclientOff': 'Av. Sonarr och Radarr får 404 från den, som från en adress som inte finns.',
@@ -767,7 +766,8 @@ export const sv: Dict = {
   'settings.resolvers.toolsJdStarting': 'Ställs in',
   'settings.resolvers.toolsJdFailed': 'Inställningen misslyckades',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader kunde inte ställa in sin JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captchor kommer bara från JDownloader-backenden, och ingen är inställd.',
+  'settings.modules.reason.captchaNoJD': 'Captchor från JDownloader behöver JDownloader-backenden, och ingen är inställd. Captchor från länkar som KnightLoader laddar ner utan den visas ändå.',
+  'settings.modules.reason.captchaAlways': 'Captchor går inte att stänga av. De visas alltid i webbgränssnittet och i mobilappen.',
   'settings.modules.switchFailed': 'Den brytaren nekades: {reason}',
   'settings.modules.configureFirst': 'Det finns inget att slå på än. Ställ in det på {page} först; därefter stoppar och startar brytaren här om det utan att tappa det du ställt in.',
 
@@ -786,7 +786,7 @@ export const sv: Dict = {
   'settings.modules.about.connections': 'Skickar nedladdningar via de proxyservrar och direkta vägar du lägger till här.',
   'settings.modules.about.federation': 'Visar dina andra instanser och kan skicka länkar till dem.',
   'settings.modules.about.torrents': 'Laddar ned magnetlänkar och .torrent-filer på den här instansen och seedar dem som inställt nedan.',
-  'settings.modules.about.captcha': 'Visar de captchor som JDownloader stöter på, här och i mobilappen, och skickar dem vidare till dina captcha-konton.',
+  'settings.modules.about.captcha': 'Captchor från JDownloader och från länkar som KnightLoader laddar ner utan den visas alltid i webbgränssnittet och i mobilappen och går till dina captcha-konton.',
   'settings.modules.about.downloadclient': 'Sonarr, Radarr och Prowlarr kan använda den här instansen som nedladdningsklient via dess qBittorrent- och SABnzbd-gränssnitt.',
   'settings.module.extraction': 'Uppackning av arkiv',
   'settings.module.watch': 'Bevakad mapp',
@@ -3385,7 +3385,6 @@ export const sv: Dict = {
   'settings.captcha.testSolvers': 'Skicka den till captcha-kontona också',
   'settings.captcha.testSolversHint':
     'Skickar samma test-captcha till dina captcha-konton också, i ordningen ovan, så att du ser om de svarar och rätt. De tar betalt för den som för vilken captcha som helst. Med ”Bara när ingen tittar” påslaget väntar de först på dig: byt till en annan flik eller låt väntetiden gå ut.',
-  'settings.captcha.testOff': 'Captchor är avstängda. Slå på modulen Captcha igen för att skicka en test-captcha.',
   'settings.captcha.testNoAccount':
     'Inget av dina captcha-konton kan ta emot den. Slå på ett ovan och kontrollera på sidan Konton att det har en nyckel och är påslaget.',
   'captcha.solverStoppedTaken': '{solver} tog den här captchan men skickade inget svar.',
@@ -3830,6 +3829,7 @@ export const sv: Dict = {
   'whatsnew.change.filehostsNative': 'Länkar från Pixeldrain, Gofile och Mediafire laddas ner utan JDownloader, och en länk till en mapp eller lista blir en rad per fil.',
   'whatsnew.change.cloudNative': 'Länkar från Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer och SwissTransfer laddas ner utan JDownloader, och en delad mapp eller en överföring blir en rad per fil.',
   'whatsnew.change.freeFilehostsNative': 'Länkar från Krakenfiles, Workupload och Send.now laddas också ner gratis utan JDownloader. Captchan från Krakenfiles går till mobilappen och dina captcha-konton, och väntetiderna visas på nedladdningen.',
+  'whatsnew.change.captchaAlwaysOn': 'Captchor går inte längre att stänga av. De visas alltid i webbgränssnittet och i mobilappen.',
   'whatsnew.change.oled': '{oled} under {theme} ger det mörka utseendet äkta svart för OLED- och AMOLED-skärmar. Det gäller när det mörka utseendet syns, även när det följer systemet, och varje enhet minns sitt eget val.',
   'whatsnew.change.systemAccent': 'Färgprovet med trollstaven först i {accent} tar ditt systems färg: Material You från Android 12, accentfärgen i Windows, macOS eller Linux i skrivbordsappen och systemfärgen i Firefox och Safari. Där systemet saknar en finns provet inte. Valet gäller bara den här enheten, och de andra behåller instansens färg.',
   'whatsnew.change.fileKindsMore': 'Länkar visar fler sorters filer med sin symbol: PDF:er, kontorsdokument, kalkylblad, presentationer, e-böcker, spellistor, skivavbilder, program, typsnitt, 3D-modeller, kontrollsummor, torrenter, RAW-foton och designfiler.',

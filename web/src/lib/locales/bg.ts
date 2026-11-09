@@ -751,7 +751,6 @@ export const bg: Dict = {
   'settings.modules.detail.torrentsOff': 'Изключен. Текущите торенти продължават да вървят и да сийдват. Новите чакат, докато модулът отново се включи.',
   'settings.modules.detail.torrentsUnregistered': 'Вграденият торент клиент не е в таблицата за маршрутизиране, затова magnet връзките и качените .torrent файлове не се приемат, защото не се поддържат.',
   'settings.modules.detail.torrentsRouted': 'Magnet връзките и качените .torrent файлове отиват към вградения торент клиент.',
-  'settings.modules.detail.captchaOff': 'Изключен. Не се отваря запитване и JDownloader се отказва от връзката, щом нейната captcha изтече.',
   'settings.modules.detail.challenges': '{n} captcha чакат в момента',
   'settings.modules.detail.challengesOne': '1 captcha чака в момента',
   'settings.modules.detail.downloadclientOff': 'Изключен. Sonarr и Radarr получават от него 404 като от адрес, който не съществува.',
@@ -768,7 +767,8 @@ export const bg: Dict = {
   'settings.resolvers.toolsJdStarting': 'Настройва се',
   'settings.resolvers.toolsJdFailed': 'Настройката не успя',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader не успя да настрои своя JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captcha идват само от бекенда JDownloader, а такъв не е настроен.',
+  'settings.modules.reason.captchaNoJD': 'Captcha от JDownloader изискват бекенда JDownloader, а такъв не е настроен. Captcha от връзките, които KnightLoader изтегля без него, пак се показват.',
+  'settings.modules.reason.captchaAlways': 'Captcha не могат да се изключат. Те винаги се показват в уеб интерфейса и в приложението за телефон.',
   'settings.modules.switchFailed': 'Ключът беше отказан: {reason}',
   'settings.modules.configureFirst': 'Още няма какво да се включи. Настройте това първо в {page}; след това ключът тук го спира и пуска отново, без да губи зададеното.',
 
@@ -787,7 +787,7 @@ export const bg: Dict = {
   'settings.modules.about.connections': 'Праща изтеглянията през проксита и преки маршрути, които добавиш тук.',
   'settings.modules.about.federation': 'Позволява на тази инстанция да показва другите ти инстанции и да им предава връзки.',
   'settings.modules.about.torrents': 'Изтегля magnet връзки и .torrent файлове на тази инстанция и ги раздава според настройките по-долу.',
-  'settings.modules.about.captcha': 'Показва captcha, на които се натъква JDownloader, тук и в приложението за телефон, и ги предава на твоите captcha акаунти.',
+  'settings.modules.about.captcha': 'Captcha от JDownloader и от връзките, които KnightLoader изтегля без него, винаги се показват в уеб интерфейса и в приложението за телефон и отиват при твоите captcha акаунти.',
   'settings.modules.about.downloadclient': 'Позволява на Sonarr, Radarr и Prowlarr да ползват тази инстанция като клиент за изтегляне чрез интерфейсите ѝ qBittorrent и SABnzbd.',
   'settings.module.extraction': 'Разархивиране',
   'settings.module.watch': 'Наблюдавана папка',
@@ -3386,7 +3386,6 @@ export const bg: Dict = {
   'settings.captcha.testSolvers': 'Изпрати и към captcha акаунтите',
   'settings.captcha.testSolversHint':
     'Изпраща същата тестова captcha и към твоите captcha акаунти, в реда отгоре, за да видиш дали я решават и дали вярно. Те я таксуват като всяка друга captcha. Ако „Само когато никой не гледа“ е включено, първо чакат теб: премини в друг раздел или остави времето за чакане да изтече.',
-  'settings.captcha.testOff': 'Captcha е изключена. Включи отново модула Captcha, за да изпратиш тестова captcha.',
   'settings.captcha.testNoAccount':
     'Никой от твоите captcha акаунти не може да я поеме. Включи един отгоре и провери на страницата „Акаунти“, че има ключ и е включен.',
   'captcha.solverStoppedTaken': '{solver} пое тази captcha, но не изпрати отговор.',
@@ -3831,6 +3830,7 @@ export const bg: Dict = {
   'whatsnew.change.filehostsNative': 'Връзките от Pixeldrain, Gofile и Mediafire се изтеглят без JDownloader, а връзка към папка или списък става по един ред за всеки файл.',
   'whatsnew.change.cloudNative': 'Връзките от Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer и SwissTransfer се изтеглят без JDownloader, а споделена папка или трансфер става по един ред за всеки файл.',
   'whatsnew.change.freeFilehostsNative': 'Връзките към Krakenfiles, Workupload и Send.now също се изтеглят безплатно без JDownloader. Captcha на Krakenfiles отива в приложението за телефон и твоите captcha акаунти, а изчакванията се виждат при изтеглянето.',
+  'whatsnew.change.captchaAlwaysOn': 'Captcha вече не могат да се изключат. Те винаги се показват в уеб интерфейса и в приложението за телефон.',
   'whatsnew.change.oled': '{oled} под {theme} прави тъмния вид истински черен за OLED и AMOLED екрани. Важи винаги, когато тъмният вид е показан, и когато следва системата, а всяко устройство помни своя избор.',
   'whatsnew.change.systemAccent': 'Полето с магическата пръчка в началото на {accent} взима цвета на системата: Material You от Android 12 нататък, акцентния цвят на Windows, macOS или Linux в настолното приложение и системния цвят във Firefox и Safari. Където системата няма такъв, полето не се показва. Изборът важи само за това устройство, а другите запазват цвета на инстанцията.',
   'whatsnew.change.fileKindsMore': 'Връзките показват повече видове файлове със своя символ: PDF, офис документи, таблици, презентации, е-книги, плейлисти, дискови образи, програми, шрифтове, 3D модели, контролни суми, торенти, RAW снимки и дизайнерски файлове.',

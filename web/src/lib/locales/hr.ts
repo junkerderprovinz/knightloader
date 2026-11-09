@@ -750,7 +750,6 @@ export const hr: Dict = {
   'settings.modules.detail.torrentsOff': 'Isključeno. Torrenti u tijeku nastavljaju i dalje seedaju. Novi čekaju dok se ponovno ne uključi.',
   'settings.modules.detail.torrentsUnregistered': 'Ugrađeni torrent klijent nije u tablici usmjeravanja, pa se magnet poveznice i prenesene .torrent datoteke odbacuju kao nepodržane.',
   'settings.modules.detail.torrentsRouted': 'Magnet poveznice i prenesene .torrent datoteke idu ugrađenom torrent klijentu.',
-  'settings.modules.detail.captchaOff': 'Isključeno. Ne otvara se nikakav prozor s captchom, a JDownloader odustaje od poveznice čim njezina captcha istekne.',
   'settings.modules.detail.challenges': 'Captche koje upravo čekaju: {n}',
   'settings.modules.detail.challengesOne': '1 captcha upravo čeka',
   'settings.modules.detail.downloadclientOff': 'Isključeno. Sonarr i Radarr od njega dobivaju 404, kao od adrese koja ne postoji.',
@@ -767,7 +766,8 @@ export const hr: Dict = {
   'settings.resolvers.toolsJdStarting': 'Postavlja se',
   'settings.resolvers.toolsJdFailed': 'Postavljanje nije uspjelo',
   'settings.resolvers.toolsJdFailedHint': 'KnightLoader nije mogao postaviti svoj JDownloader: {error}',
-  'settings.modules.reason.captchaNoJD': 'Captche dolaze samo iz pozadine JDownloader, a nijedna nije postavljena.',
+  'settings.modules.reason.captchaNoJD': 'Captche iz JDownloadera trebaju pozadinu JDownloader, a nijedna nije postavljena. Captche s poveznica koje KnightLoader preuzima bez njega ipak se prikazuju.',
+  'settings.modules.reason.captchaAlways': 'Captche se ne mogu isključiti. Uvijek se prikazuju u web sučelju i u mobilnoj aplikaciji.',
   'settings.modules.switchFailed': 'Prekidač je odbijen: {reason}',
   'settings.modules.configureFirst': 'Zasad nema što uključiti. Postavite to najprije na {page}; nakon toga prekidač ovdje to zaustavlja i ponovno pokreće bez gubitka onoga što ste postavili.',
 
@@ -786,7 +786,7 @@ export const hr: Dict = {
   'settings.modules.about.connections': 'Šalje preuzimanja preko proxyja i izravnih putova koje ovdje dodaš.',
   'settings.modules.about.federation': 'Omogućuje ovoj instanci da prikaže tvoje ostale instance i proslijedi im poveznice.',
   'settings.modules.about.torrents': 'Preuzima magnet poveznice i .torrent datoteke na ovoj instanci i seeda ih prema postavkama ispod.',
-  'settings.modules.about.captcha': 'Prikazuje captche na koje JDownloader naiđe, ovdje i u mobilnoj aplikaciji, te ih prosljeđuje tvojim računima captche.',
+  'settings.modules.about.captcha': 'Captche iz JDownloadera i s poveznica koje KnightLoader preuzima bez njega uvijek se prikazuju u web sučelju i u mobilnoj aplikaciji te idu tvojim računima captche.',
   'settings.modules.about.downloadclient': 'Omogućuje Sonarru, Radarru i Prowlarru da ovu instancu koriste kao klijent za preuzimanje, preko njezinih sučelja qBittorrent i SABnzbd.',
   'settings.module.extraction': 'Raspakiravanje arhiva',
   'settings.module.watch': 'Nadzirana mapa',
@@ -3399,7 +3399,6 @@ export const hr: Dict = {
   'settings.captcha.testSolvers': 'Pošalji je i računima captche',
   'settings.captcha.testSolversHint':
     'Šalje istu probnu captchu i tvojim računima captche, redoslijedom odozgo, da vidiš odgovaraju li na nju i pogađaju li. Naplaćuju je kao svaku drugu captchu. Kad je uključeno „Samo kad nitko ne gleda“, prvo čekaju tebe: prijeđi na drugu karticu ili pusti da vrijeme čekanja istekne.',
-  'settings.captcha.testOff': 'Captche su isključene. Ponovno uključi modul Captcha da pošalješ probnu captchu.',
   'settings.captcha.testNoAccount':
     'Nijedan tvoj račun captche ne može je preuzeti. Uključi jedan gore i na stranici Računi provjeri ima li ključ i je li uključen.',
   'captcha.solverStoppedTaken': '{solver} je preuzeo ovu captchu, ali nije poslao odgovor.',
@@ -3844,6 +3843,7 @@ export const hr: Dict = {
   'whatsnew.change.filehostsNative': 'Poveznice s Pixeldraina, Gofilea i Mediafirea preuzimaju se bez JDownloadera, a poveznica na mapu ili popis postaje po jedan redak za svaku datoteku.',
   'whatsnew.change.cloudNative': 'Poveznice s Google Drivea, Dropboxa, OneDrivea, SharePointa, WeTransfera i SwissTransfera preuzimaju se bez JDownloadera, a dijeljena mapa ili prijenos postaje po jedan redak za svaku datoteku.',
   'whatsnew.change.freeFilehostsNative': 'Krakenfiles, Workupload i Send.now poveznice također se besplatno preuzimaju bez JDownloadera. Captcha s Krakenfilesa ide u mobilnu aplikaciju i tvojim računima captche, a čekanja se vide uz preuzimanje.',
+  'whatsnew.change.captchaAlwaysOn': 'Captche se više ne mogu isključiti. Uvijek se prikazuju u web sučelju i u mobilnoj aplikaciji.',
   'whatsnew.change.oled': '{oled} ispod {theme} prebacuje tamni izgled na pravu crnu za OLED i AMOLED zaslone. Vrijedi kad god se vidi tamni izgled, i kad prati sustav, a svaki uređaj pamti svoj izbor.',
   'whatsnew.change.systemAccent': 'Uzorak sa štapićem na početku {accent} preuzima boju tvog sustava: Material You od Androida 12, naglasnu boju sustava Windows, macOS ili Linux u aplikaciji za računalo te boju sustava u Firefoxu i Safariju. Gdje sustav nema boju, uzorka nema. Izbor vrijedi samo za ovaj uređaj, a ostali zadržavaju boju instance.',
   'whatsnew.change.fileKindsMore': 'Poveznice pokazuju više vrsta datoteka svojim simbolom: PDF-ove, uredske dokumente, proračunske tablice, prezentacije, e-knjige, popise za reprodukciju, slike diskova, programe, fontove, 3D modele, kontrolne zbrojeve, torrente, RAW fotografije i dizajnerske datoteke.',
