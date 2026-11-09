@@ -186,6 +186,9 @@ func (a *App) startupFolders() []startupcheck.FolderTarget {
 		add(c.Dir, startupcheck.RoleCategory)
 	}
 	add(cfg.ExtractTo, startupcheck.RoleExtract)
+	for _, c := range cfg.Categories {
+		add(c.ExtractTo, startupcheck.RoleExtract)
+	}
 	add(cfg.ExtractMoveTo, startupcheck.RoleExtractMove)
 	add(cfg.WatchDir, startupcheck.RoleWatch)
 	return out

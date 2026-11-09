@@ -141,6 +141,32 @@ func TestAPackageWhoseFolderCannotBeRenamedStaysAsItWas(t *testing.T) {
 	}
 }
 
+// A drawer's extraction folder is where its package's unpacked files are found
+// and renamed, not the instance's.
+func TestADrawersUnpackedFilesFollowTheName(t *testing.T) {
+	global, serien := t.TempDir(), t.TempDir()
+	a, base := packageAppWith(t, func(s *settings.Settings) {
+		s.ExtractTo, s.ExtractSubfolder = global, true
+		s.Categories = []settings.Category{{ID: "serien", Name: "Serien", ExtractTo: serien}}
+	})
+	oldPackage(t, a, base)
+	for _, id := range []string{"part1", "part2"} {
+		editTask(a, id, func(x *core.Task) { x.Category = "serien" })
+	}
+	stagedIn(t, filepath.Join(serien, "Old", "film"), "film.mkv", "the film")
+
+	if _, err := a.RenamePackage([]string{"part1", "part2"}, "Film"); err != nil {
+		t.Fatal(err)
+	}
+
+	if body, err := os.ReadFile(filepath.Join(serien, "Film", "film", "film.mkv")); err != nil || string(body) != "the film" {
+		t.Errorf("the unpacked film reads %q, %v; want it under the new name in the drawer's folder", body, err)
+	}
+	if _, err := os.Stat(filepath.Join(serien, "Old")); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("the old extraction folder is still there: %v", err)
+	}
+}
+
 // With unpacking collected in a folder per package, what the package unpacked
 // is in a folder named after it too, and it takes the new name along; the
 // extraction list follows it.

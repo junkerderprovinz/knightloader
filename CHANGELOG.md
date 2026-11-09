@@ -40,6 +40,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Added
 
+- **Each category can unpack into its own folder.** A category has an
+  Extraction folder next to its download folder, so all downloads can land in
+  one temporary folder while series unpack in one place and films in another.
+  It may be a template like the download folder. Left empty, the category
+  unpacks where "Unpack to" on the Archives page says
+  ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
+
 - **KnightLoader comes as a Flatpak for Linux.** Every release carries
   `knightloader-linux-amd64.flatpak` and `knightloader-linux-arm64.flatpak`.
   Open one in your software center or run `flatpak install` on it, and the

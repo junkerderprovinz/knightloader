@@ -186,6 +186,35 @@ func TestAFolderInTheDataFolderIsRefusedByEverySave(t *testing.T) {
 	}
 }
 
+// A category's extraction folder is held to the instance's rule: absolute, and
+// outside the data folder. The refusal names the row.
+func TestACategoryExtractionFolderIsCheckedLikeTheInstances(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	for _, dir := range []string{"<jd:packagename>/unpacked", filepath.Join(a.DataDir, "tools")} {
+		cats := fmt.Sprintf(`{"categories":[{"id":"filme","name":"Filme","extractTo":%q}]}`, dir)
+		code, _, msg := patchSettings(t, srv.URL, cats)
+		var body struct {
+			Field string `json:"field"`
+		}
+		_ = json.Unmarshal([]byte(msg), &body)
+		if code != http.StatusBadRequest || body.Field != "categories.0" {
+			t.Errorf("extraction folder %q answered %d %s, want it refused at categories.0", dir, code, msg)
+		}
+	}
+
+	good := filepath.Join(t.TempDir(), "<jd:packagename>")
+	cats := fmt.Sprintf(`{"categories":[{"id":"filme","name":"Filme","extractTo":%q}]}`, good)
+	if code, _, msg := patchSettings(t, srv.URL, cats); code != http.StatusOK {
+		t.Fatalf("an absolute template answered %d: %s", code, msg)
+	}
+	if got := a.Settings.Get().CategoryFor("filme").ExtractTo; got != good {
+		t.Errorf("stored extraction folder = %q, want %q", got, good)
+	}
+}
+
 // A package name that would move its folder into the data folder is refused
 // with the code the rename window words, and the name it is about.
 func TestARenameIntoTheDataFolderIsRefusedWithItsCode(t *testing.T) {

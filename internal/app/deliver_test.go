@@ -259,6 +259,105 @@ func TestThePackageSubfolderSurvivesTheMoveBackOut(t *testing.T) {
 	}
 }
 
+// unpackIn files a finished release.zip in package "The Show" under category,
+// unpacks it and returns the task.
+func unpackIn(t *testing.T, a *App, base, category string, edit func(*core.Task)) *core.Task {
+	t.Helper()
+	writeZip(t, filepath.Join(base, "release.zip"), "inside.txt", "unpacked")
+	task := stageDone(t, a, "1", "release.zip")
+	a.mu.Lock()
+	task.Package, task.Category = "The Show", category
+	if edit != nil {
+		edit(task)
+	}
+	a.mu.Unlock()
+	if err := a.StartExtraction([]string{task.ID}); err != nil {
+		t.Fatal(err)
+	}
+	return task
+}
+
+// A drawer's archives download with everyone else's and unpack into the
+// drawer's own folder, with the per-package level the instance asks for.
+func TestADrawersArchivesUnpackIntoItsOwnFolder(t *testing.T) {
+	global, serien := t.TempDir(), t.TempDir()
+	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.Extract, s.VerifyChecksums = false, false
+		s.ExtractTo, s.ExtractSubfolder = global, true
+		s.Categories = []settings.Category{{ID: "serien", Name: "Serien", ExtractTo: serien}}
+	})
+	task := unpackIn(t, a, base, "serien", nil)
+
+	want := filepath.Join(serien, "The Show", "release", "inside.txt")
+	waitFor(t, "the release landing in the drawer's extraction folder", func() bool {
+		_, err := os.Stat(want)
+		return err == nil
+	})
+	waitFor(t, "the job settling", func() bool {
+		j, ok := jobFor(a, task.ID)
+		return ok && j.Status == ExtractDone
+	})
+	if _, err := os.Stat(filepath.Join(global, "The Show")); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("the instance's extraction folder got the drawer's release too: %v", err)
+	}
+}
+
+// A drawer that names no extraction folder unpacks where the instance says.
+func TestADrawerWithoutAnExtractionFolderUnpacksWhereTheInstanceSays(t *testing.T) {
+	global := t.TempDir()
+	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.Extract, s.VerifyChecksums = false, false
+		s.ExtractTo = global
+		s.Categories = []settings.Category{{ID: "filme", Name: "Filme"}}
+	})
+	unpackIn(t, a, base, "filme", nil)
+
+	waitFor(t, "the release landing in the instance's extraction folder", func() bool {
+		_, err := os.Stat(filepath.Join(global, "release", "inside.txt"))
+		return err == nil
+	})
+}
+
+// A Packagizer rule's unpack folder looked at this one link, so it still
+// decides where the files end up, whichever drawer unpacked them.
+func TestARulesUnpackFolderOutranksTheDrawers(t *testing.T) {
+	serien, ruled := t.TempDir(), t.TempDir()
+	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.Extract, s.VerifyChecksums = false, false
+		s.Categories = []settings.Category{{ID: "serien", Name: "Serien", ExtractTo: serien}}
+	})
+	task := unpackIn(t, a, base, "serien", func(x *core.Task) { x.ExtractDir = ruled })
+
+	waitFor(t, "the content arriving in the rule's folder", func() bool {
+		_, err := os.Stat(filepath.Join(ruled, "inside.txt"))
+		return err == nil
+	})
+	waitFor(t, "the job settling", func() bool {
+		j, ok := jobFor(a, task.ID)
+		return ok && j.Status == ExtractDone
+	})
+	if _, err := os.Stat(filepath.Join(serien, "release", "inside.txt")); err == nil {
+		t.Error("the content stayed in the drawer's folder as well")
+	}
+}
+
+// A drawer's extraction folder may be a template, filled in for each task the
+// way the instance's is.
+func TestADrawersExtractionFolderIsFilledInPerTask(t *testing.T) {
+	serien := t.TempDir()
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.Categories = []settings.Category{{ID: "serien", Name: "Serien",
+			ExtractTo: filepath.Join(serien, "<jd:packagename>")}}
+	})
+	cfg := a.Settings.Get()
+	for _, pkg := range []string{"The Show", "Another Show"} {
+		task := &core.Task{ID: pkg, Name: "release.zip", Package: pkg, Category: "serien"}
+		if got, want := a.unpackPlanFor(task, cfg).Dest, filepath.Join(serien, pkg); got != want {
+			t.Errorf("package %q unpacks into %q, want %q", pkg, got, want)
+		}
+	}
+}
+
 // ExtractMoveTo receives the unpacked entries themselves, without the release
 // folder around them.
 func TestTheUnpackedContentGoesWhereTheSettingSays(t *testing.T) {
