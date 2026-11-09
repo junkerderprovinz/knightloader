@@ -18,7 +18,7 @@ require (
 	github.com/junkerderprovinz/knightloader v0.0.0
 	github.com/wailsapp/wails/v3 v3.1.0
 	github.com/zalando/go-keyring v0.2.8
-	golang.org/x/sys v0.49.0
+	golang.org/x/sys v0.50.0
 )
 
 require (

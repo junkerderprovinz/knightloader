@@ -8,11 +8,11 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
-	github.com/dop251/goja v0.0.0-20261105002551-2413f2132ac8
+	github.com/dop251/goja v0.0.0-20261108153707-d8dfb4d8b999
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707
 	github.com/go-webauthn/webauthn v0.18.2
 	github.com/jlaffaye/ftp v0.2.4
-	github.com/klauspost/compress v1.20.3
+	github.com/klauspost/compress v1.20.4
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/nwaples/rardecode/v2 v2.4.6
 	github.com/pkg/sftp v1.13.12
@@ -21,12 +21,12 @@ require (
 	golang.org/x/image v0.47.0
 	golang.org/x/mod v0.42.0
 	golang.org/x/net v0.62.0
-	golang.org/x/sys v0.49.0
+	golang.org/x/sys v0.50.0
 	golang.org/x/text v0.43.0
 	golang.org/x/time v0.16.0
 	golang.zx2c4.com/wireguard v0.0.0-20261024220952-b3bc704ef0ee
 	gvisor.dev/gvisor v0.0.0-20250503011706-39ed1f5ac29c
-	modernc.org/sqlite v1.61.1
+	modernc.org/sqlite v1.62.0
 	rsc.io/qr v0.2.0
 )
 
@@ -172,7 +172,7 @@ require (
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
-	modernc.org/libc v1.79.0 // indirect
+	modernc.org/libc v1.80.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	zombiezen.com/go/sqlite v1.4.2 // indirect
