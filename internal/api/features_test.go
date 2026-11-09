@@ -15,14 +15,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/parleyport/kit/notify"
+
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
-	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
-	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -251,14 +251,14 @@ func TestSwitchingOnForgetsWhatItBroughtBack(t *testing.T) {
 func TestSwitchingOnKeepsTargetsEditedSince(t *testing.T) {
 	t.Parallel()
 	a := testApp(t)
-	target := func(name string, enabled bool) notify.Target {
-		return notify.Target{
-			Name: name, Enabled: enabled, URL: "https://" + name + ".example/hook",
-			Triggers: []script.Trigger{script.TriggerTaskDone},
+	target := func(name string, enabled bool) notify.Channel {
+		return notify.Channel{
+			ID: name, Name: name, Kind: notify.KindWebhook, Enabled: enabled,
+			Webhook: &notify.Webhook{URL: "https://" + name + ".example/hook"},
 		}
 	}
 	s := a.Settings.Get()
-	s.EventTargets = []notify.Target{target("old", true)}
+	s.NotifyChannels = []notify.Channel{target("old", true)}
 	if _, err := a.ApplySettings(s); err != nil {
 		t.Fatal(err)
 	}
@@ -269,7 +269,7 @@ func TestSwitchingOnKeepsTargetsEditedSince(t *testing.T) {
 	}
 
 	s = a.Settings.Get()
-	s.EventTargets = []notify.Target{target("new", false)}
+	s.NotifyChannels = []notify.Channel{target("new", false)}
 	if _, err := a.ApplySettings(s); err != nil {
 		t.Fatal(err)
 	}
@@ -279,7 +279,7 @@ func TestSwitchingOnKeepsTargetsEditedSince(t *testing.T) {
 	if err := setFeature(a, "eventtargets", true); err != nil {
 		t.Fatal(err)
 	}
-	if got := a.Settings.Get().EventTargets; len(got) != 1 || got[0].Name != "new" {
+	if got := a.Settings.Get().NotifyChannels; len(got) != 1 || got[0].Name != "new" {
 		t.Errorf("switching on left the targets %+v, want the one edited since", got)
 	}
 }

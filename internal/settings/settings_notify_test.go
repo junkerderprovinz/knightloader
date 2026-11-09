@@ -4,29 +4,174 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
-	"github.com/junkerderprovinz/knightloader/internal/notify"
-	"github.com/junkerderprovinz/knightloader/internal/script"
+	"github.com/junkerderprovinz/parleyport/kit/notify"
 )
 
-func targetWithToken() notify.Target {
-	return notify.Target{
-		ID: "1", Name: "phone", Enabled: true,
-		URL:      "https://ntfy.example/knightloader",
-		Method:   notify.MethodPOST,
-		Headers:  map[string]string{"Authorization": "Bearer real-token"},
-		Body:     "%%task.name%%",
-		Triggers: []script.Trigger{script.TriggerTaskDone},
+func channelWithToken() notify.Channel {
+	return notify.Channel{
+		ID: "1", Kind: notify.KindNtfy, Name: "phone", Enabled: true, On: notify.OnFailure,
+		Ntfy: &notify.Ntfy{URL: "https://ntfy.example/knightloader", Token: "tk_real"},
 	}
 }
 
-// The field is absent from a settings.json written before it existed, decodes
-// to nil, and produces no goroutine, no request and no key in the file.
-func TestAFreshInstallHasNoEventTargetsAtAll(t *testing.T) {
-	if Defaults().EventTargets != nil {
-		t.Fatalf("a fresh install starts with %d event target(s); nothing may send until somebody says so", len(Defaults().EventTargets))
+// migratedTargets is testdata/eventtargets-2.7.json as channels.
+var migratedTargets = []notify.Channel{
+	{
+		ID: "1", Kind: notify.KindWebhook, Name: "Phone", Enabled: true, On: notify.OnAlways,
+		Events: []string{"task.done", "package.done"}, Attempts: 2, TimeoutSeconds: 20,
+		Webhook: &notify.Webhook{
+			URL: "https://ntfy.example/downloads?token=%%instance%%", Method: "POST",
+			Headers: map[string]string{"Authorization": "Bearer tk_alpha", "Title": "%%task.name%%"},
+			Body:    "%%task.name%% is done",
+		},
+	},
+	{
+		ID: "2", Kind: notify.KindDiscord, Name: "Discord", Enabled: true, On: notify.OnAlways,
+		Events:  []string{"task.failed"},
+		Discord: &notify.Discord{URL: "https://discord.com/api/webhooks/123/beta-token"},
+	},
+	{
+		ID: "3", Kind: notify.KindWebhook, Name: "Matrix, being built", On: notify.OnNever,
+		Webhook: &notify.Webhook{
+			URL:     "https://matrix.example/_matrix/client/v3/rooms/!room:example/send/m.room.message",
+			Method:  "PUT",
+			Headers: map[string]string{"Authorization": "Bearer syt_gamma", "Content-Type": "application/json"},
+			Body:    `{"msgtype":"m.text","body":"%%task.name%%"}`,
+		},
+	},
+	{
+		ID: "7", Kind: notify.KindWebhook, Name: "Healthcheck", Enabled: true, On: notify.OnAlways,
+		Events: []string{"queue.idle"}, Attempts: 5, TimeoutSeconds: 60,
+		Webhook: &notify.Webhook{URL: "https://hc.example/ping/abc", Method: "GET"},
+	},
+}
+
+func oldSettings(t *testing.T) string {
+	t.Helper()
+	b, err := os.ReadFile(filepath.Join("testdata", "eventtargets-2.7.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, FileName), b, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return dir
+}
+
+func sameChannels(t *testing.T, got, want []notify.Channel) {
+	t.Helper()
+	if len(got) != len(want) {
+		t.Fatalf("%d channels, want %d: %+v", len(got), len(want), got)
+	}
+	for i := range want {
+		if !reflect.DeepEqual(got[i], want[i]) {
+			g, _ := json.Marshal(got[i])
+			w, _ := json.Marshal(want[i])
+			t.Errorf("channel %d\n got %s\nwant %s", i, g, w)
+		}
+	}
+}
+
+func TestOldEventTargetsBecomeChannels(t *testing.T) {
+	dir := oldSettings(t)
+	st, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sameChannels(t, st.Get().NotifyChannels, migratedTargets)
+
+	raw, err := os.ReadFile(filepath.Join(dir, FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := doc["notifyChannels"]; !ok {
+		t.Error("the channels were not written to the file")
+	}
+	var kept []LegacyEventTarget
+	if err := json.Unmarshal(doc["eventTargets"], &kept); err != nil || len(kept) != 4 || kept[0].Headers["Authorization"] != "Bearer tk_alpha" {
+		t.Errorf("the old targets did not stay in the file: %v %+v", err, kept)
+	}
+}
+
+func TestOldSealedEventTargetsBecomeChannels(t *testing.T) {
+	dir := oldSettings(t)
+	key := appKey(t)
+	if _, err := LoadWithKey(dir, key); err != nil {
+		t.Fatal(err)
+	}
+	// The first load sealed the file, as an upgrade with an app key does.
+	raw, _ := os.ReadFile(filepath.Join(dir, FileName))
+	if strings.Contains(string(raw), "tk_alpha") {
+		t.Fatal("the token is still in the clear")
+	}
+	var doc map[string]json.RawMessage
+	_ = json.Unmarshal(raw, &doc)
+	delete(doc, "notifyChannels")
+	again, _ := json.Marshal(doc)
+	if err := os.WriteFile(filepath.Join(dir, FileName), again, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	st, err := LoadWithKey(dir, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sameChannels(t, st.Get().NotifyChannels, migratedTargets)
+}
+
+func TestDeletedChannelsDoNotComeBackFromTheOldTargets(t *testing.T) {
+	dir := oldSettings(t)
+	st, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := st.Get()
+	n.NotifyChannels = nil
+	if _, err := st.Set(n); err != nil {
+		t.Fatal(err)
+	}
+	again, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := again.Get().NotifyChannels; len(got) != 0 {
+		t.Errorf("deleted channels came back: %+v", got)
+	}
+	if len(again.Get().EventTargets) != 4 {
+		t.Errorf("the old targets were lost: %+v", again.Get().EventTargets)
+	}
+}
+
+func TestTheBrowserNeverSeesTheOldTargetsAndCannotDropThem(t *testing.T) {
+	st, err := Load(oldSettings(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	shown := st.Get().Redacted()
+	if shown.EventTargets != nil {
+		t.Fatalf("the browser is served the old targets: %+v", shown.EventTargets)
+	}
+	back, err := st.Set(shown)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(back.EventTargets) != 4 || back.EventTargets[0].Headers["Authorization"] != "Bearer tk_alpha" {
+		t.Errorf("a save from the browser changed the old targets: %+v", back.EventTargets)
+	}
+}
+
+func TestAFreshInstallHasNoChannels(t *testing.T) {
+	if Defaults().NotifyChannels != nil {
+		t.Fatalf("a fresh install starts with %d channel(s)", len(Defaults().NotifyChannels))
 	}
 	dir := t.TempDir()
 	st, err := Load(dir)
@@ -36,142 +181,98 @@ func TestAFreshInstallHasNoEventTargetsAtAll(t *testing.T) {
 	if _, err := st.Set(Defaults()); err != nil {
 		t.Fatal(err)
 	}
-	b, err := os.ReadFile(filepath.Join(dir, "settings.json"))
+	b, err := os.ReadFile(filepath.Join(dir, FileName))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if strings.Contains(string(b), "eventTargets") {
-		t.Errorf("a fresh settings.json names eventTargets; the field is omitempty precisely so that an upgrade "+
-			"changes nothing about the file:\n%s", b)
+		t.Errorf("a fresh settings.json names eventTargets:\n%s", b)
 	}
 }
 
-// The trip every settings page makes: the browser is served Redacted(), edits
-// one unrelated field, and posts the whole document back. Without the merge in
-// setLocked the first save from any page writes eight literal stars over the
-// token.
-func TestAnEventTargetSecretSurvivesTheRedactedRoundTrip(t *testing.T) {
+// The browser is served Redacted(), edits an unrelated field and posts the
+// whole document back, stars and all.
+func TestAChannelSecretSurvivesTheRedactedRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	st, err := Load(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
 	n := Defaults()
-	n.EventTargets = []notify.Target{targetWithToken()}
+	n.NotifyChannels = []notify.Channel{channelWithToken()}
 	saved, err := st.Set(n)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	shown := saved.Redacted()
-	if got := shown.EventTargets[0].Headers["Authorization"]; got != notify.RedactedValue {
-		t.Fatalf("the browser is served %q; the moment a client is shown a header value, the merge is protecting a value it already holds", got)
+	if got := shown.NotifyChannels[0].Ntfy.Token; got != notify.RedactedValue {
+		t.Fatalf("the browser is served %q", got)
 	}
-	// The redaction must not have reached the stored copy through a shared map.
-	if got := saved.EventTargets[0].Headers["Authorization"]; got != "Bearer real-token" {
-		t.Fatalf("Redacted() blanked the stored token as well (%q)", got)
+	if got := saved.NotifyChannels[0].Ntfy.Token; got != "tk_real" {
+		t.Fatalf("Redacted() reached the stored token (%q)", got)
 	}
-
-	// What the browser sends back: the whole document, stars and all.
 	shown.MaxConcurrent = 7
 	back, err := st.Set(shown)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := back.EventTargets[0].Headers["Authorization"]; got != "Bearer real-token" {
-		t.Errorf("after a save from a page that was shown stars the token is %q; every settings page would clear it", got)
+	if got := back.NotifyChannels[0].Ntfy.Token; got != "tk_real" {
+		t.Errorf("after the round trip the token is %q", got)
 	}
-
-	// And on disk, which is the copy the next start reads.
 	reloaded, err := Load(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := reloaded.Get().EventTargets[0].Headers["Authorization"]; got != "Bearer real-token" {
-		t.Errorf("the file holds %q", got)
+	if got := reloaded.Get().NotifyChannels[0].Ntfy.Token; got != "tk_real" {
+		t.Errorf("after a restart the token is %q", got)
 	}
 }
 
-// The browser was never shown the token and the browser is what types the
-// address, so a token that followed a changed address could be aimed at a
-// machine the client controls. Advanced.tsx hands the whole list back as raw
-// editable JSON, so that is one paste away.
-func TestAnEventTargetSecretDoesNotFollowAChangedAddress(t *testing.T) {
-	dir := t.TempDir()
-	st, err := Load(dir)
+func TestAChannelSecretDoesNotFollowAMovedAddress(t *testing.T) {
+	st, err := Load(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
 	n := Defaults()
-	n.EventTargets = []notify.Target{targetWithToken()}
+	n.NotifyChannels = []notify.Channel{channelWithToken()}
 	saved, err := st.Set(n)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	moved := saved.Redacted()
-	moved.EventTargets[0].URL = "https://attacker.example/collect"
+	moved.NotifyChannels[0].Ntfy.URL = "https://attacker.example/collect"
 	back, err := st.Set(moved)
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := back.EventTargets[0].Headers["Authorization"]
-	if got == "Bearer real-token" {
-		t.Fatal("the stored token was carried onto an address the client typed; a client that was never allowed to read it " +
-			"can now have this server post it wherever it likes")
-	}
-	if strings.Contains(got, "*") {
-		t.Errorf("the header kept the literal placeholder (%q); eight stars sent as a bearer token is a 401 nobody can diagnose", got)
+	if got := back.NotifyChannels[0].Ntfy.Token; got == "tk_real" {
+		t.Error("the token followed the channel to another address")
 	}
 }
 
-// The one line in sanitize() is wired, rather than the field being stored
-// verbatim.
-func TestSanitizeReachesTheEventTargets(t *testing.T) {
+func TestChannelSecretsAreSealedAtRest(t *testing.T) {
 	dir := t.TempDir()
-	st, err := Load(dir)
+	st, err := LoadWithKey(dir, appKey(t))
 	if err != nil {
 		t.Fatal(err)
 	}
 	n := Defaults()
-	n.EventTargets = []notify.Target{{
-		Name: "  spaced  ", URL: "  https://x.example/  ", Method: "delete", TimeoutSeconds: 9999,
-	}}
-	saved, err := st.Set(n)
+	n.NotifyChannels = []notify.Channel{
+		channelWithToken(),
+		{ID: "2", Kind: notify.KindSMTP, Enabled: true, SMTP: &notify.SMTP{Host: "mail.example", From: "a@example", To: "b@example", Password: "smtp-secret"}},
+		{ID: "3", Kind: notify.KindMatrix, Enabled: true, Matrix: &notify.Matrix{Homeserver: "https://matrix.example", Room: "!r:example", Token: "matrix-secret"}},
+		{ID: "4", Kind: notify.KindWebhook, Enabled: true, Webhook: &notify.Webhook{URL: "https://hook.example/in", Headers: map[string]string{"X-Key": "header-secret"}, Body: "body-secret"}},
+	}
+	if _, err := st.Set(n); err != nil {
+		t.Fatal(err)
+	}
+	raw, err := os.ReadFile(filepath.Join(dir, FileName))
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := saved.EventTargets[0]
-	if got.ID == "" {
-		t.Error("no id was assigned, so the health table and the secret merge have nothing to join on")
-	}
-	if got.Name != "spaced" || got.URL != "https://x.example/" {
-		t.Errorf("name %q address %q, want both trimmed", got.Name, got.URL)
-	}
-	if got.Method != notify.MethodPOST {
-		t.Errorf("method %q survived; the closed list is what keeps a route that sends from inside the instance to three verbs", got.Method)
-	}
-	if got.TimeoutSeconds != notify.MaxTimeoutSeconds {
-		t.Errorf("timeout %d was not clamped", got.TimeoutSeconds)
-	}
-}
-
-// What ApplyPatch's marshal, merge and unmarshal round trip can break: a field
-// whose JSON shape does not survive being encoded and decoded again.
-func TestTheWholeDocumentStillDecodesWithEventTargetsPresent(t *testing.T) {
-	base := Defaults()
-	base.EventTargets = []notify.Target{targetWithToken()}
-	patched, err := ApplyPatch(base, map[string]json.RawMessage{"maxConcurrent": json.RawMessage("9")})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(patched.EventTargets) != 1 {
-		t.Fatalf("a patch of an unrelated field lost the event targets: %+v", patched.EventTargets)
-	}
-	if patched.EventTargets[0].Headers["Authorization"] != "Bearer real-token" {
-		t.Error("the header did not survive the JSON round trip ApplyPatch makes")
-	}
-	if len(patched.EventTargets[0].Triggers) != 1 {
-		t.Error("the trigger list did not survive the JSON round trip")
+	for _, secret := range []string{"tk_real", "smtp-secret", "matrix-secret", "header-secret", "body-secret", "hook.example/in"} {
+		if strings.Contains(string(raw), secret) {
+			t.Errorf("%s is in the clear in settings.json", secret)
+		}
 	}
 }

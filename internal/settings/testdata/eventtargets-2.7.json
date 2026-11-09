@@ -1,0 +1,55 @@
+{
+  "maxConcurrent": 3,
+  "instanceName": "Tower",
+  "eventTargets": [
+    {
+      "id": "1",
+      "name": "Phone",
+      "enabled": true,
+      "url": "https://ntfy.example/downloads?token=%%instance%%",
+      "method": "POST",
+      "headers": {
+        "Authorization": "Bearer tk_alpha",
+        "Title": "%%task.name%%"
+      },
+      "body": "%%task.name%% is done",
+      "triggers": ["task.done", "package.done"],
+      "attempts": 2,
+      "timeoutSeconds": 20
+    },
+    {
+      "id": "2",
+      "name": "Discord",
+      "enabled": true,
+      "url": "https://discord.com/api/webhooks/123/beta-token",
+      "method": "POST",
+      "triggers": ["task.failed"],
+      "attempts": 0,
+      "timeoutSeconds": 0
+    },
+    {
+      "id": "3",
+      "name": "Matrix, being built",
+      "enabled": false,
+      "url": "https://matrix.example/_matrix/client/v3/rooms/!room:example/send/m.room.message",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "Bearer syt_gamma",
+        "Content-Type": "application/json"
+      },
+      "body": "{\"msgtype\":\"m.text\",\"body\":\"%%task.name%%\"}",
+      "attempts": 0,
+      "timeoutSeconds": 0
+    },
+    {
+      "id": "7",
+      "name": "Healthcheck",
+      "enabled": true,
+      "url": "https://hc.example/ping/abc",
+      "method": "GET",
+      "triggers": ["queue.idle"],
+      "attempts": 5,
+      "timeoutSeconds": 60
+    }
+  ]
+}

@@ -7,8 +7,9 @@ package settings
 // first: does a browser ever need to see it?
 
 import (
+	kitnotify "github.com/junkerderprovinz/parleyport/kit/notify"
+
 	"github.com/junkerderprovinz/knightloader/internal/eventprog"
-	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -61,12 +62,10 @@ func sanitizeNetwork(n Settings) Settings {
 // Archives page, where somebody is editing their own passwords, and
 // routes_diagnostics.go clears it on its own side.
 //
-// Event target headers are redacted whole-map rather than per header. There is
-// no way to look at a header called X-Anything and decide whether it holds a
-// token without reading it, and a rule that guesses hands out a Matrix access
-// token the first time somebody names a header something unforeseen. The
-// browser also types the destination, which is why notify.Merge binds the
-// carry-back on save to the address and not only to the row id.
+// A channel's tokens, passwords and header values are redacted by the kit,
+// which also puts them back on save only while the channel keeps its
+// destination. The old event targets are not served at all: nothing edits
+// them any more.
 func (s Settings) Redacted() Settings {
 	s.Reconnect = s.Reconnect.Redacted()
 	s.IdleAction = s.IdleAction.Redacted()
@@ -78,13 +77,8 @@ func (s Settings) Redacted() Settings {
 		}
 		s.Connections = out
 	}
-	if len(s.EventTargets) > 0 {
-		out := make([]notify.Target, len(s.EventTargets))
-		for i, t := range s.EventTargets {
-			out[i] = notify.Redacted(t)
-		}
-		s.EventTargets = out
-	}
+	s.NotifyChannels = kitnotify.Redacted(s.NotifyChannels)
+	s.EventTargets = nil
 	if len(s.EventPrograms) > 0 {
 		out := make([]eventprog.Program, len(s.EventPrograms))
 		for i, p := range s.EventPrograms {

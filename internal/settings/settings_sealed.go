@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"slices"
 
+	kitnotify "github.com/junkerderprovinz/parleyport/kit/notify"
+
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
@@ -48,9 +50,10 @@ func LoadWithKey(dir string, key *appkey.Key) (*Store, error) {
 			return v, nil
 		})
 	}
+	plain, migrated := migrateEventTargets(b, plain)
 	s.cur = loadInstanceID(dir, plain)
 	s.cur = sanitize(s.cur)
-	if unsealed {
+	if unsealed || migrated {
 		b, err := s.encode(s.cur)
 		if err == nil {
 			err = writeFileAtomic(s.path, b)
@@ -132,14 +135,14 @@ func (s Settings) mapSecrets(f func(string) (string, error)) (Settings, error) {
 
 	s.EventTargets = slices.Clone(s.EventTargets)
 	for i := range s.EventTargets {
-		h := maps.Clone(s.EventTargets[i].Headers)
-		for k, v := range h {
-			apply(&v)
-			h[k] = v
-		}
-		s.EventTargets[i].Headers = h
+		s.EventTargets[i].Headers = mapValues(s.EventTargets[i].Headers, apply)
 		apply(&s.EventTargets[i].URL)
 		apply(&s.EventTargets[i].Body)
+	}
+
+	s.NotifyChannels = slices.Clone(s.NotifyChannels)
+	for i := range s.NotifyChannels {
+		channelSecrets(&s.NotifyChannels[i], apply)
 	}
 
 	apply(&s.IdleAction.Command.Program)
@@ -158,6 +161,78 @@ func (s Settings) mapSecrets(f func(string) (string, error)) (Settings, error) {
 		}
 	}
 	return s, firstErr
+}
+
+// channelSecrets applies f to every value of c that is or may hold a secret.
+// Each settings block is copied first, so the caller's channel keeps its own.
+func channelSecrets(c *kitnotify.Channel, f func(*string)) {
+	if w := c.Webhook; w != nil {
+		cp := *w
+		f(&cp.URL)
+		cp.Headers = mapValues(cp.Headers, f)
+		f(&cp.Body)
+		c.Webhook = &cp
+	}
+	if d := c.Discord; d != nil {
+		cp := *d
+		f(&cp.URL)
+		c.Discord = &cp
+	}
+	if sl := c.Slack; sl != nil {
+		cp := *sl
+		f(&cp.URL)
+		c.Slack = &cp
+	}
+	if g := c.Gotify; g != nil {
+		cp := *g
+		f(&cp.URL)
+		f(&cp.Token)
+		c.Gotify = &cp
+	}
+	if n := c.Ntfy; n != nil {
+		cp := *n
+		f(&cp.URL)
+		f(&cp.Token)
+		c.Ntfy = &cp
+	}
+	if m := c.Matrix; m != nil {
+		cp := *m
+		f(&cp.Token)
+		c.Matrix = &cp
+	}
+	if sm := c.SMTP; sm != nil {
+		cp := *sm
+		f(&cp.Password)
+		c.SMTP = &cp
+	}
+	if a := c.Apprise; a != nil {
+		cp := *a
+		f(&cp.URL)
+		cp.URLs = slices.Clone(cp.URLs)
+		for i := range cp.URLs {
+			f(&cp.URLs[i])
+		}
+		c.Apprise = &cp
+	}
+	if h := c.Healthchecks; h != nil {
+		cp := *h
+		f(&cp.URL)
+		cp.ByKey = mapValues(cp.ByKey, f)
+		c.Healthchecks = &cp
+	}
+}
+
+// mapValues is a copy of m with f applied to every value.
+func mapValues(m map[string]string, f func(*string)) map[string]string {
+	if m == nil {
+		return nil
+	}
+	out := make(map[string]string, len(m))
+	for k, v := range m {
+		f(&v)
+		out[k] = v
+	}
+	return out
 }
 
 // Scrubbed is s for a document that leaves the owner's hands, such as the

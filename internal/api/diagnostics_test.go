@@ -11,13 +11,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/parleyport/kit/notify"
+
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
-	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
-	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -130,11 +130,9 @@ func TestDiagnosticsRedactsTheSecretsTheSettingsPageShows(t *testing.T) {
 	defer srv.Close()
 
 	withSecrets := settingsWith(func(s *settings.Settings) {
-		s.EventTargets = []notify.Target{{
-			ID: "1", Name: "chat", Enabled: true, Method: notify.MethodPOST,
-			URL:      "https://discord.example/api/webhooks/1/HOOKLEAK",
-			Body:     `{"token":"BODYLEAK"}`,
-			Triggers: []script.Trigger{script.TriggerTaskDone},
+		s.NotifyChannels = []notify.Channel{{
+			ID: "1", Name: "chat", Kind: notify.KindWebhook, Enabled: true,
+			Webhook: &notify.Webhook{URL: "https://discord.example/api/webhooks/1/HOOKLEAK", Body: `{"token":"BODYLEAK"}`},
 		}}
 		s.Feeds = []feed.Subscription{{URL: "https://user:FEEDPW@indexer.example/api?t=search&apikey=FEEDLEAK"}}
 		s.Reconnect = reconnect.Config{

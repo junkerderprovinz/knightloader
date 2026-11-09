@@ -80,10 +80,10 @@ func TestARefusedSaveNamesItsField(t *testing.T) {
 			field: "feeds.1",
 		},
 		{
-			name:  "an event target without an address",
-			patch: `{"eventTargets":[{"id":"1","url":""}]}`,
-			field: "eventTargets.0",
-			code:  "eventTargets.problem.noUrl",
+			name:  "a channel without an address",
+			patch: `{"notifyChannels":[{"id":"1","kind":"webhook","enabled":true,"webhook":{"url":""}}]}`,
+			field: "notifyChannels.0",
+			code:  "eventTargets.problem.missing_field",
 		},
 		{
 			name:  "a category calling an address that is not stored",

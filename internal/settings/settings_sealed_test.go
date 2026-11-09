@@ -8,10 +8,11 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/junkerderprovinz/parleyport/kit/notify"
+
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/eventprog"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
-	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 )
@@ -51,10 +52,14 @@ func everySecret() Settings {
 	s.Torrent.QBittorrent.URL = "http://qbittorrent:8080"
 	s.Torrent.QBittorrent.Username = "admin"
 	s.Torrent.QBittorrent.Password = "qbit-secret"
-	target := targetWithToken()
-	target.URL = "https://discord.example/api/webhooks/1/hook-token"
-	target.Body = `{"token":"body-token"}`
-	s.EventTargets = []notify.Target{target}
+	s.NotifyChannels = []notify.Channel{{
+		ID: "1", Kind: notify.KindWebhook, Enabled: true,
+		Webhook: &notify.Webhook{
+			URL:     "https://discord.example/api/webhooks/1/hook-token",
+			Headers: map[string]string{"Authorization": "Bearer real-token"},
+			Body:    `{"token":"body-token"}`,
+		},
+	}}
 	s.Feeds = []feed.Subscription{{URL: "https://indexer.example/api?t=search&apikey=feed-key"}}
 	s.Reconnect.Requests = []reconnect.Request{{
 		URL:     "https://192.168.0.1/reconnect",
@@ -146,7 +151,7 @@ func TestSecretsInSettingsNeedTheAppKey(t *testing.T) {
 	if got := back.Get(); !reflect.DeepEqual(got.Reconnect, saved.Reconnect) ||
 		!reflect.DeepEqual(got.Connections, saved.Connections) ||
 		!reflect.DeepEqual(got.ArchivePasswords, saved.ArchivePasswords) ||
-		!reflect.DeepEqual(got.EventTargets, saved.EventTargets) ||
+		!reflect.DeepEqual(got.NotifyChannels, saved.NotifyChannels) ||
 		!reflect.DeepEqual(got.EventPrograms, saved.EventPrograms) ||
 		!reflect.DeepEqual(got.IdleAction, saved.IdleAction) ||
 		got.Torrent.QBittorrent != saved.Torrent.QBittorrent {

@@ -18,6 +18,8 @@ import (
 	"sync"
 	"time"
 
+	kitnotify "github.com/junkerderprovinz/parleyport/kit/notify"
+
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
@@ -29,7 +31,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/mediahook"
-	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/playback"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reclaim"
@@ -272,19 +273,16 @@ type Settings struct {
 	//
 	// No omitempty, see CrawlInclude.
 	Feeds []feed.Subscription `json:"feeds"`
-	// EventTargets are the addresses this instance reports to when one of the
-	// events internal/script publishes happens: a URL, a method, headers and a
-	// body template the operator wrote, per row. See settings_notify.go.
+	// NotifyChannels are the services this instance tells when one of the
+	// events internal/script publishes happens. See settings_notify.go.
 	//
-	// omitempty here, unlike Feeds: an absent key has to keep decoding to nil
-	// so that a settings.json written before this field existed reads back as
-	// "nothing sends". The frontend types it `EventTargetRow[] | null |
-	// undefined` for the same reason.
-	//
-	// Every header value in here is a secret. See Redacted in
-	// settings_network.go, and notify.Merge for why the carry-back on save is
-	// bound to the address and not only to the row id.
-	EventTargets []notify.Target `json:"eventTargets,omitempty"`
+	// No omitempty: the key being in the file is what says the old event
+	// targets were moved over, so channels deleted later stay deleted.
+	NotifyChannels []kitnotify.Channel `json:"notifyChannels"`
+	// EventTargets are the event targets of builds before NotifyChannels. They
+	// are moved over once at load and kept as they were, never served to a
+	// client and never changed by a save.
+	EventTargets []LegacyEventTarget `json:"eventTargets,omitempty"`
 	// EventPrograms are the programs this instance starts when one of those
 	// same events happens: a path, arguments with placeholders and the events
 	// that start it, per row. See settings_eventprog.go.
@@ -1119,7 +1117,8 @@ func (s *Store) setLocked(n Settings) (Settings, error) {
 	// to read the token cannot have this server post it somewhere else. It runs
 	// before sanitize(n) below, because Merge matches on the ids the previous
 	// Sanitize handed out.
-	n.EventTargets = notify.Merge(n.EventTargets, s.cur.EventTargets)
+	n.NotifyChannels = kitnotify.Merge(n.NotifyChannels, s.cur.NotifyChannels)
+	n.EventTargets = s.cur.EventTargets
 	n.Connections = proxycfg.Merge(n.Connections, s.cur.Connections)
 	// The end-of-queue command line is the third thing a client is never shown
 	// (see Settings.Redacted and idleaction.CommandSpec.Redacted), so it needs
@@ -1236,7 +1235,6 @@ func sanitize(n Settings) Settings {
 	n = sanitizeArchives(n)
 	n = sanitizeIntake(n)
 	n = sanitizeFeeds(n)
-	n = sanitizeEventTargets(n)
 	n = sanitizeEventPrograms(n)
 	n = sanitizeNetwork(n)
 	n = sanitizeResolvers(n)
