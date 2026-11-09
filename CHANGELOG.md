@@ -38,6 +38,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.7.6] - 2026-11-09
+
 ### Added
 
 - **The Apps page offers the Flatpak.** Next to Windows, macOS and Linux, a
@@ -54,7 +56,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Stop at the first matching rule is a switch like every other,** with its
   name at the start of the row and the switch at the end, on the Rule set card
   under Rules & categories.
-
 - **KnightLoader follows GlimStone 4.3.1 everywhere,** and the Version card
   names it. Every selector keeps to one row: where its labels do not fit, it
   shows its glyphs alone, or turns into a dropdown if it has no glyphs. In the

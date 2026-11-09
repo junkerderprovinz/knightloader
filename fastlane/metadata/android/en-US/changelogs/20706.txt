@@ -1,0 +1,1 @@
+Well-known Usenet providers come as tiles: pick one and its server and port are already filled in. Plus the look of GlimStone 4.3.1.
