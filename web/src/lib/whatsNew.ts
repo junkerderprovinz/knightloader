@@ -70,6 +70,7 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.categoryExtractFolder',
         names: { name: 'settings.categories.extractTo' },
       },
+      { id: 'deepbrid-torrents-usenet', text: 'whatsnew.change.deepbridTorrentsUsenet' },
     ],
   },
   {

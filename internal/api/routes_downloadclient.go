@@ -8,9 +8,10 @@ package api
 // (routes_qbittorrent.go), which the same switch opens.
 //
 // Sonarr and Radarr only call addfile, uploading an .nzb they fetched
-// themselves. A real one goes to the own Usenet servers or a TorBox or
-// Premiumize.me account (internal/usenet), and its files come back as tasks,
-// at once from the own servers and once a service has fetched them otherwise.
+// themselves. A real one goes to the own Usenet servers or a TorBox,
+// Premiumize.me or Deepbrid account (internal/usenet), and its files come
+// back as tasks, at once from the own servers and once a service has fetched
+// them otherwise.
 // Anything else is scanned for links, which suits a DDL indexer whose "nzb" is
 // really a link list or a container; a payload without links is refused rather
 // than faked. addurl is served too, for scripts.

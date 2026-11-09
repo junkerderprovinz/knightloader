@@ -981,3 +981,16 @@ func TestAStagedJobListsItsTasksBeforeTheyStart(t *testing.T) {
 		t.Fatalf("the tasks started while their job was %+v", atStart)
 	}
 }
+
+func TestAStagedJobKeepsWhatTheServiceSaidAboutItsFiles(t *testing.T) {
+	note := "left out what Deepbrid cannot serve: movie.mkv (truncated_missing_volumes)"
+	svc := &fakeService{slot: "deepbrid", status: Status{Phase: PhaseReady, Files: []File{{ID: "0", Name: "show.mkv"}}, Note: note}}
+	h := newHarness(t, svc)
+	j := h.add(t, "Show")
+
+	h.m.round(context.Background())
+
+	if j = h.job(t, j.ID); j.State != StateStaged || j.Note != note {
+		t.Errorf("job = %+v, want it staged with the service's note", j)
+	}
+}

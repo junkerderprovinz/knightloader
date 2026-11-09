@@ -91,6 +91,7 @@
           <li>Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer and SwissTransfer shares download one row per file</li>
           <li>Krakenfiles, Workupload and Send.now links download for free</li>
           <li>A login KnightLoader cannot use goes back to JDownloader</li>
+          <li>A Deepbrid premium account fetches torrents and .nzb files</li>
           <li>Each category can unpack into its own folder</li>
           <li>The browser extension puts a download button on videos</li>
           <li>A video's quality pickers offer only what the video has</li>

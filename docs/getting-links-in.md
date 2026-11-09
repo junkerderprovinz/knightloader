@@ -76,10 +76,12 @@ a restart, since the download keeps a magnet's file list once the swarm has
 sent it.
 
 **Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
-Premiumize.me, Debrid-Link or Linksnappy ranks above "Built-in torrent client" on the Accounts
-page, that service fetches the torrent and the files come here over HTTP. The
-file selection counts there as well: Real-Debrid and Debrid-Link are told which
-files to fetch, and from the other services only those files come here. A
+Premiumize.me, Debrid-Link, Linksnappy or Deepbrid ranks above "Built-in
+torrent client" on the Accounts page, that service fetches the torrent and the
+files come here over HTTP. The file selection counts there as well: Real-Debrid
+and Debrid-Link are told which files to fetch, and from the other services only
+those files come here. Deepbrid does not list a torrent's files, so it always
+sends the whole torrent, and it takes torrents only from a premium account. A
 torrent from a private tracker stays with the built-in torrent client, because its
 passkey would go to the service with it. A `.torrent` says whether it is
 private. A magnet link counts as private when its own tracker address carries
@@ -161,9 +163,9 @@ service fetches are not affected: they come over HTTP from the service.
 ## Usenet
 
 An `.nzb` is fetched from your own Usenet servers, or by a debrid service that
-has Usenet access: TorBox or Premiumize.me. Which goes first is the order of
-their rows under Accounts, Download priority order. Your own servers rank
-first until you move them.
+has Usenet access: TorBox, Premiumize.me or Deepbrid. Which goes first is the
+order of their rows under Accounts, Download priority order. Your own servers
+rank first until you move them.
 
 ### Your own Usenet servers
 
@@ -194,11 +196,11 @@ older articles.
 When some articles are on none of your servers and the release comes with
 par2 files, the file is finished with gaps where those articles belong, and the
 par2 check below fills them in. Without par2 files the release goes to the next
-account in the priority order, TorBox or Premiumize.me, if you have one. Files
-your servers have already finished stay where they are and are not fetched
-again. The other downloads from your servers are removed, and the service
-fetches those files instead. Without such an account the file fails, and the
-error names how many articles are missing.
+account in the priority order, TorBox, Premiumize.me or Deepbrid, if you have
+one. Files your servers have already finished stay where they are and are not
+fetched again. The other downloads from your servers are removed, and the
+service fetches those files instead. Without such an account the file fails,
+and the error names how many articles are missing.
 
 ### Checking and repairing with par2
 
@@ -224,10 +226,11 @@ rebuild, the release goes to the next account, or fails with both numbers in
 the error. Once the par2 index is here this shows while the files are still
 downloading, and the rest of the release is not fetched for nothing.
 
-### Through TorBox or Premiumize.me
+### Through TorBox, Premiumize.me or Deepbrid
 
 Add the account under Accounts; there is nothing else to set up. TorBox goes
-before Premiumize.me unless you move them. The next account also takes over
+before Premiumize.me, and Premiumize.me before Deepbrid, unless you move them.
+The next account also takes over
 when TorBox turns the file down or is not taking new ones for the moment. The
 service downloads the articles, repairs and unpacks them, and hands back
 ordinary files, which then download into the package's folder like any other
@@ -247,6 +250,16 @@ include Usenet is passed over for an hour once it has said so. With no
 account that can take it, a real `.nzb` is refused, with that as the reason.
 A DDL indexer's "nzb" that is really a list of links is read for its links
 either way.
+
+Deepbrid reads an `.nzb` the moment it gets it and serves the files straight
+out of the release's archives, so they start downloading at once. A file it
+cannot serve that way, from an archive that is missing volumes, packed with
+compression or locked with a password it does not have, is left out, and the
+log names it. Deepbrid takes an `.nzb` only from a premium account. When it
+takes your server for a proxy or a VPN, the `.nzb` goes to the next account,
+and Deepbrid's support can allow the account. An `.nzb` you had uploaded to
+Deepbrid yourself stays there after the download. KnightLoader deletes only
+what it uploaded.
 
 While an `.nzb` waits for an account or is being fetched by a service, the
 status strip counts it under Usenet. One the service gives up on is listed

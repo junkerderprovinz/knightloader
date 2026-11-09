@@ -64,19 +64,31 @@ func (s deepbridStatus) failed() (int, bool) {
 }
 
 // call performs one request and returns the body of a successful answer.
-// Failures come both as HTTP errors and as a nonzero error code in a 200, and
-// both carry the same body.
 func (d *Deepbrid) call(ctx context.Context, method, path string, form url.Values) ([]byte, error) {
 	var body io.Reader
+	contentType := ""
 	if form != nil {
 		body = strings.NewReader(form.Encode())
+		contentType = "application/x-www-form-urlencoded"
 	}
+	raw, err := d.send(ctx, method, path, body, contentType)
+	if err != nil {
+		return nil, err
+	}
+	return raw, nil
+}
+
+// send performs one request. Failures come both as HTTP errors and as a
+// nonzero error code in a 200, and both carry the same body. The body of the
+// latter comes back beside the error, since a torrent's status is read from
+// such an answer too.
+func (d *Deepbrid) send(ctx context.Context, method, path string, body io.Reader, contentType string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, method, d.base+path, body)
 	if err != nil {
 		return nil, err
 	}
-	if form != nil {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
 	}
 	// Without it a refused request is redirected to the login page instead of
 	// getting the JSON 401.
@@ -102,26 +114,54 @@ func (d *Deepbrid) call(ctx context.Context, method, path string, form url.Value
 	if json.Unmarshal(raw, &st) == nil {
 		code, failed = st.failed()
 	}
-	if resp.StatusCode >= 400 || failed {
+	switch {
+	case resp.StatusCode >= 400:
 		return nil, deepbridFailure(path, resp, code, st.Message)
+	case failed:
+		return raw, deepbridFailure(path, resp, code, st.Message)
 	}
 	return raw, nil
 }
 
-// deepbridFailure names the kind of refusal, followed by Deepbrid's own
-// message. The small codes are the per-link ones JDownloader handles; an HTTP
-// error repeats its status as the code.
+// deepbridError is a refusal by Deepbrid with its code: the answer's error
+// field, or the HTTP status where that is empty. msg is Deepbrid's own
+// message, without its markup.
+type deepbridError struct {
+	code int
+	msg  string
+	err  error
+}
+
+func (e *deepbridError) Error() string { return e.err.Error() }
+
+// deepbridCode is the code Deepbrid refused with, 0 for any other error.
+func deepbridCode(err error) int {
+	var de *deepbridError
+	if errors.As(err, &de) {
+		return de.code
+	}
+	return 0
+}
+
+// deepbridFailure is the error for a refusal. An HTTP error repeats its status
+// as the code.
 func deepbridFailure(path string, resp *http.Response, code int, msg string) error {
 	msg = deepbridPlain(msg)
+	if code == 0 {
+		code = resp.StatusCode
+	}
+	return &deepbridError{code: code, msg: msg, err: deepbridSay(path, resp, code, msg)}
+}
+
+// deepbridSay names the kind of refusal, followed by Deepbrid's own message.
+// The small codes are the per-link ones JDownloader handles.
+func deepbridSay(path string, resp *http.Response, code int, msg string) error {
 	say := func(format string, args ...any) error {
 		s := fmt.Sprintf(format, args...)
 		if msg == "" {
 			return errors.New(s)
 		}
 		return fmt.Errorf("%s: %s", s, msg)
-	}
-	if code == 0 {
-		code = resp.StatusCode
 	}
 	switch code {
 	case 3:
@@ -349,6 +389,11 @@ func deepbridSize(raw json.RawMessage) int64 {
 	if json.Unmarshal(raw, &s) != nil {
 		return 0
 	}
+	return deepbridBytes(s)
+}
+
+// deepbridBytes reads a figure like "1.50 GB".
+func deepbridBytes(s string) int64 {
 	m := deepbridSizeText.FindStringSubmatch(strings.TrimSpace(s))
 	if m == nil {
 		return 0

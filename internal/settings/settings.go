@@ -574,8 +574,8 @@ type Settings struct {
 
 	// UsenetServers are the servers an .nzb is fetched from without a debrid
 	// service, see settings_usenet.go. The logins are sealed in accounts.Store.
-	// Empty, the default, leaves every .nzb to TorBox or Premiumize.me. No
-	// omitempty, see CrawlInclude.
+	// Empty, the default, leaves every .nzb to TorBox, Premiumize.me or
+	// Deepbrid. No omitempty, see CrawlInclude.
 	UsenetServers []UsenetServer `json:"usenetServers"`
 
 	// Reconnect gets the box a new public address when a hoster's free-user limit
