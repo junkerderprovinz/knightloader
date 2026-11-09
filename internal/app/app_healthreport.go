@@ -191,6 +191,9 @@ type HealthReport struct {
 	Halted bool `json:"halted"`
 	Quiet  bool `json:"quiet"`
 
+	// Release is a newer KnightLoader the daily release check found.
+	Release *ReleaseNotice `json:"release,omitempty"`
+
 	// SampledAt is when the probed rows were taken; they are shared for
 	// sysHealthTTL. Task counts and the queue row are always current.
 	SampledAt time.Time `json:"sampledAt"`
@@ -292,6 +295,7 @@ func (a *App) HealthReport() HealthReport {
 		Volumes:       probe.volumes,
 		Halted:        q.Halted,
 		Quiet:         q.Quiet,
+		Release:       a.ReleaseNotice(),
 		SampledAt:     probe.sampledAt,
 	}
 }

@@ -40,6 +40,8 @@ export type Need = NeedBase &
     | { kind: 'disk'; volume: DiskVolume; stopped: boolean }
     | { kind: 'volumeCap'; usage: VolumeUsage }
     | { kind: 'health'; part: HealthSubsystem }
+    /** A newer KnightLoader, which only a container or a Flatpak is told about. */
+    | { kind: 'update'; version: string; url: string; flatpak: boolean }
   );
 
 export interface NeedSources {
@@ -174,6 +176,17 @@ export function needsOf(src: NeedSources): Need[] {
     if (!open([key])) continue;
     const tone = part.state === 'failed' ? 'fail' : 'warn';
     (tone === 'fail' ? fails : warns).push({ kind: 'health', key, covers: [key], tone, part });
+  }
+
+  const release = src.health?.release;
+  if (release) {
+    // The version is in the key, so "Done" lasts until the next release.
+    const key = `update:${release.version}`;
+    if (open([key])) {
+      // Of the desktop builds only the Flatpak runs the daily check.
+      const flatpak = src.health?.deployment === 'desktop';
+      warns.push({ kind: 'update', key, covers: [key], tone: 'warn', ...release, flatpak });
+    }
   }
 
   return [...captchas, ...fails, ...warns];

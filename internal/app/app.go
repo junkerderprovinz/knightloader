@@ -31,6 +31,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -509,6 +510,9 @@ type App struct {
 	// javaUpdateState is the weekly update of the desktop build's Java
 	// runtime (app_jreupdate.go).
 	javaUpdateState
+	// releaseCheckState is the daily look for a newer KnightLoader of a copy
+	// that cannot replace itself (app_releasecheck.go).
+	releaseCheckState
 	// jdSetupState is why the desktop build has no JDownloader of its own
 	// yet (app_jdsetup.go).
 	jdSetupState
@@ -582,6 +586,8 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	a.latestYtdlp, a.installYtdlp = mediatools.CheckLatest, mediatools.Install
 	a.installFFmpeg = mediatools.InstallFFmpeg
 	a.checkJD, a.restartJD = a.CheckJDUpdate, restartJDForUpdate
+	a.releaseVersion = buildinfo.Version
+	a.checkRelease = func(ctx context.Context) update.Info { return update.Check(ctx, a.releaseVersion) }
 	a.latestJava = func(ctx context.Context) (*jre.Release, error) { return jre.Latest(ctx, jre.AdoptiumAPI) }
 	a.stageJava = func(ctx context.Context, rel *jre.Release) error { return jre.Stage(ctx, a.DataDir, rel) }
 	// Every outbound client comes from internal/httpx, so proxy, user agent,

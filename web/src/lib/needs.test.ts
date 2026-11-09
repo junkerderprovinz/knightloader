@@ -175,6 +175,16 @@ describe('what needs the person', () => {
       ['health:relay:relay.down', 'warn'],
     ]);
   });
+
+  it('lists a newer release the daily check found until it is set aside, and the next one again', () => {
+    const release = { version: 'v2.8.0', url: 'https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.0' };
+    const report = health({ deployment: 'container', release });
+    expect(needsOf(sources({ health: report })).map((n) => [n.key, n.tone])).toEqual([['update:v2.8.0', 'warn']]);
+    expect(kinds({ health: report, done: new Set(['update:v2.8.0']) })).toEqual([]);
+    const next = health({ deployment: 'container', release: { ...release, version: 'v2.9.0' } });
+    expect(kinds({ health: next, done: new Set(['update:v2.8.0']) })).toEqual(['update']);
+    expect(kinds({ health: health({ deployment: 'container' }) })).toEqual([]);
+  });
 });
 
 describe('the ring', () => {

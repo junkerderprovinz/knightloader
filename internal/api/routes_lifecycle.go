@@ -10,7 +10,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/flatpak"
-	"github.com/junkerderprovinz/knightloader/internal/update"
 )
 
 // DeploymentInfo is what the interface needs to label a quit or restart
@@ -68,7 +67,7 @@ func registerLifecycle(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/system/update-check",
 		"whether a newer release exists on GitHub than this build's own version, and on desktop which one waits for the next start",
 		func(w http.ResponseWriter, r *http.Request) {
-			info := update.Check(r.Context(), buildinfo.Version)
+			info := a.CheckRelease(r.Context())
 			if a.UpdateReady != nil {
 				info.Ready = a.UpdateReady()
 			}

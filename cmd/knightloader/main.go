@@ -161,12 +161,13 @@ func main() {
 
 	// Hoster logins are pushed into the JD sidecar on a loop, so a recreated JD
 	// container gets them back without a restart. This, the account health
-	// sweep and the daily yt-dlp and JD updates belong to the binaries rather
-	// than app.New, which every test calls.
+	// sweep, the daily yt-dlp and JD updates and the daily release check
+	// belong to the binaries rather than app.New, which every test calls.
 	a.StartHosterAuth()
 	a.StartAccountHealthNow()
 	a.StartYtdlpAutoUpdate()
 	a.StartJDAutoUpdate()
+	a.StartReleaseCheck()
 
 	// A port inside a container is not the 127.0.0.1:9666 a browser posts to,
 	// so the container opens none unless KL_CNL asks for it, as with host

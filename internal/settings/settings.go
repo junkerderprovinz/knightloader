@@ -403,9 +403,10 @@ type Settings struct {
 	TorrentCard  bool `json:"torrentCard"`
 	FinishedCard bool `json:"finishedCard"`
 
-	// AutoUpdateCheck has a container's Components card ask GitHub for a newer
-	// release once when it opens. A container is updated through its container
-	// manager, so this only asks; the desktop build checks on its own, see
+	// AutoUpdateCheck has a container or a Flatpak ask GitHub once a day for a
+	// newer release and report it (app_releasecheck.go), and its Components
+	// card ask once when it opens. Both are updated the way they were
+	// installed, so this only asks; the desktop build checks on its own, see
 	// AutoUpdate. On by default.
 	AutoUpdateCheck bool `json:"autoUpdateCheck"`
 

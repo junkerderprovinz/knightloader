@@ -107,6 +107,10 @@ func main() {
 	if a.SwitchJava != nil {
 		a.StartJavaAutoUpdate()
 	}
+	// Flatpak installs this copy's updates, so it only looks for them.
+	if flatpak.ID() != "" {
+		a.StartReleaseCheck()
+	}
 
 	// Window and tray preferences stay out of settings.Settings, which every
 	// connected browser reads and writes; see config.go.

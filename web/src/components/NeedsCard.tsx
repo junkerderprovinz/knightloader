@@ -175,6 +175,16 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
           main: { label: t('overview.needs.open'), icon: <IconSliders />, run: cap },
         };
       }
+      case 'update': {
+        const info = settings('help', 'settings.info.componentsTitle');
+        const notes = () => openExternal(need.url);
+        return {
+          name: t('overview.needs.update', { version: need.version }),
+          sub: t(need.flatpak ? 'overview.needs.updateFlatpakHint' : 'overview.needs.updateContainerHint'),
+          open: info,
+          main: { label: t('settings.look.updatesReleaseNotes'), icon: <IconExternalLink />, run: notes },
+        };
+      }
       case 'health': {
         const health = settings('health', 'settings.health.stateTitle');
         const part = healthLabel(t, 'health.part.', need.part.id);

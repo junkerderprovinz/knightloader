@@ -1792,6 +1792,8 @@ export interface HealthReport {
   volumes: DiskVolume[];
   halted: boolean;
   quiet: boolean;
+  /** A newer KnightLoader the daily release check of a container or a Flatpak found. */
+  release?: { version: string; url: string };
   /** When the probed rows were taken. Shared for half a minute, so not live. */
   sampledAt: string;
 }

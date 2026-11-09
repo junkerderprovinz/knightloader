@@ -367,11 +367,12 @@ function appStatus(
  * updates the desktop build in the background (desktop/updates.go), and a
  * check there also tells whether a downloaded version waits for the next
  * start. A container is updated by its container manager, so there the switch
- * only looks for a newer release when the card opens. Once a check found a
- * newer one, Install fetches it at once: the copy installed for all users
- * starts the new installer, any other copy puts it in place for the next
- * start. A Flatpak is the desktop build, but Flatpak installs its updates, so
- * its row behaves like a container's and says how it is updated.
+ * only looks for a newer release, once a day on the server
+ * (app_releasecheck.go) and when the card opens. Once a check found a newer
+ * one, Install fetches it at once: the copy installed for all users starts
+ * the new installer, any other copy puts it in place for the next start. A
+ * Flatpak is the desktop build, but Flatpak installs its updates, so its row
+ * behaves like a container's and says how it is updated.
  */
 function AppUpdates({ deployment, fromStore, register }: { deployment: string; fromStore: boolean; register: Register }) {
   const { t } = useT();
