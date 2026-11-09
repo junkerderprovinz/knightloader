@@ -2874,6 +2874,8 @@ body {
 /* The browsers the extension buttons offer: Chrome in the README button's
    blue, the others in the colour Simple Icons publishes for each. */
 .kl-tile-chrome    { --tile: #188038; --tile-ink: #ffffff; } /* 5.0:1 */
+/* Flatpak's own blue, the README's Flatpak button. */
+.kl-tile-flatpak   { --tile: #4a90d9; --tile-ink: #ffffff; } /* 3.3:1 */
 .kl-tile-edge      { --tile: #0078d7; --tile-ink: #ffffff; } /* 4.5:1 */
 .kl-tile-brave     { --tile: #fb542b; --tile-ink: #ffffff; } /* 3.3:1 */
 .kl-tile-opera     { --tile: #ff1b2d; --tile-ink: #ffffff; } /* 3.9:1 */

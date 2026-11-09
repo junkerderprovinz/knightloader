@@ -19,6 +19,7 @@ const TILES = {
   windows: 'glim-tile-windows',
   apple: 'glim-tile-apple',
   linux: 'glim-tile-linux',
+  flatpak: 'kl-tile-flatpak',
   android: 'glim-tile-android',
   play: 'glim-tile-play',
   fdroid: 'glim-tile-fdroid',

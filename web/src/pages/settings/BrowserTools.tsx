@@ -15,6 +15,7 @@ import {
   FDROID_SVG,
   APPLE_SVG,
   DOCKER_SVG,
+  FLATPAK_SVG,
   KNIGHTLOADER_LIT_SVG,
   KNIGHTLOADER_SVG,
   LINUX_SVG,
@@ -460,6 +461,14 @@ function DesktopCard() {
           mark={<BrandMark svg={APPLE_SVG} />}
         />
         <ReadmeButton brand="linux" parts={parts('linux', 'Linux')} mark={<BrandMark svg={LINUX_SVG} />} />
+        <ReadmeButton
+          brand="flatpak"
+          parts={[
+            { name: 'Flatpak', sub: ARCH_LABEL[arch], href: flatpak(arch, release) },
+            { name: 'Flatpak', sub: ARCH_LABEL[other], href: flatpak(other, release) },
+          ]}
+          mark={<BrandMark svg={FLATPAK_SVG} />}
+        />
       </div>
     </Card>
   );
@@ -607,6 +616,11 @@ const RELEASE = /^v\d+\.\d+\.\d+$/;
 function desktopZip(slug: DesktopSlug, release: string): string {
   const from = release ? `download/${release}` : 'latest/download';
   return `${REPO_URL}/releases/${from}/knightloader-${slug}.zip`;
+}
+
+function flatpak(arch: Arch, release: string): string {
+  const from = release ? `download/${release}` : 'latest/download';
+  return `${REPO_URL}/releases/${from}/knightloader-${desktopSlug('linux', arch)}.flatpak`;
 }
 
 /** The README's docker run on one line, in the reader's own time zone. */

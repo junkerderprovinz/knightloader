@@ -38,6 +38,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Added
+
+- **The Apps page offers the Flatpak.** Next to Windows, macOS and Linux, a
+  Flatpak button downloads the build for this computer, with the other
+  architecture as its second part.
+
 ### Changed
 
 - **KnightLoader follows GlimStone 4.3.1 everywhere,** and the Version card

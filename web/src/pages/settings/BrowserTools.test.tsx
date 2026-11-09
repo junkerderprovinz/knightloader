@@ -120,6 +120,18 @@ describe('BrowserTools', () => {
       expect(card.querySelector('a[href$="/releases/tag/v1.8.4"]')?.textContent).toBe('1.8.4');
     });
 
+    it('offers the Flatpak of the release it runs for x64 and for ARM', async () => {
+      await macOS('v1.8.4');
+      const flatpaks = [...host.querySelectorAll<HTMLAnchorElement>('a[aria-label^="Flatpak"]')].map((a) => a.href);
+      expect(flatpaks).toHaveLength(2);
+      expect(flatpaks).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('/releases/download/v1.8.4/knightloader-linux-amd64.flatpak'),
+          expect.stringContaining('/releases/download/v1.8.4/knightloader-linux-arm64.flatpak'),
+        ]),
+      );
+    });
+
     it('gives the newest desktop app where it runs no release, and names no number', async () => {
       expect(await macOS('v1.8.4-12-gabc123')).toContain('/releases/latest/download/knightloader-macos-universal.zip');
       const card = [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('macOS'))!;
