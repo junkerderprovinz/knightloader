@@ -18,8 +18,7 @@ groups, so the gap between groups is about twice the gap between rows.
 A button carries one line, its name, as the apps' buttons do at rest. Only a
 listing still to come adds a second line saying so.
 Windows on ARM and the portable build are segments of the Windows button, and
-the ARM builds of Linux and the Flatpak segments of theirs, so the desktop row
-keeps to the four places a row has.
+the ARM builds of Linux and the Flatpak segments of theirs.
 
 Size and corner radius are the Buy Me a Coffee button's (841.9 by 245.3, rx
 38.2), so every button on the page has the same shape.
@@ -364,29 +363,22 @@ def rows():
 
 
 def split(items):
-    """A group as few rows of at most PLACES as it fits in, as even as they come.
+    """A group as rows of at most PLACES, each filled before the next begins.
 
-    Filling each row before the next would leave a lone button under a full
-    row. Of the evenest splits, the one with the fuller rows on top wins.
+    A plain button left alone below a full row takes the last one of that row
+    with it. One with segments is wide enough to stand alone and stays.
     """
-    sizes = [1 + (len(parts) - 1) / 2 for parts in items]
-    best = None
-    for cuts in breaks(len(items)):
-        bounds = [0, *cuts, len(items)]
-        rows = [sum(sizes[a:b]) for a, b in zip(bounds, bounds[1:])]
-        if max(rows) > PLACES:
-            continue
-        rank = (len(rows), max(rows) - min(rows), [-r for r in rows])
-        if best is None or rank < best[0]:
-            best = (rank, bounds)
-    bounds = best[1]
-    return [items[a:b] for a, b in zip(bounds, bounds[1:])]
-
-
-def breaks(n):
-    """Every way to cut n buttons into rows, as the indices the rows start at."""
-    for mask in range(1 << max(n - 1, 0)):
-        yield [i + 1 for i in range(n - 1) if mask >> i & 1]
+    out, used = [[]], 0.0
+    for parts in items:
+        size = 1 + (len(parts) - 1) / 2
+        if out[-1] and used + size > PLACES:
+            out.append([])
+            used = 0.0
+        out[-1].append(parts)
+        used += size
+    if len(out) > 1 and len(out[-1]) == 1 and len(out[-1][0]) == 1 and len(out[-2]) > 1:
+        out[-1].insert(0, out[-2].pop())
+    return out
 
 
 def outline(w, corners):
