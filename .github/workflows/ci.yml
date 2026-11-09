@@ -34,6 +34,7 @@ jobs:
       docs: ${{ steps.filter.outputs.docs }}
       queuereach: ${{ steps.filter.outputs.queuereach }}
       pins: ${{ steps.filter.outputs.pins }}
+      flatpak: ${{ steps.filter.outputs.flatpak }}
     steps:
       # On push, paths-filter diffs with git and needs the history; on
       # pull_request it uses the API.
@@ -158,6 +159,13 @@ jobs:
               - 'Dockerfile'
               - 'desktop/unrar.json'
               - 'web/src/lib/glimstoneVersion.ts'
+              - '.github/workflows/ci.yml'
+            # The Flatpak build installs offline from the two source lists, so
+            # a dependency update has to bring them along.
+            flatpak:
+              - 'flatpak/**'
+              - 'web/package-lock.json'
+              - 'desktop/go.mod'
               - '.github/workflows/ci.yml'
 
   server:
@@ -558,6 +566,23 @@ jobs:
 
       - name: The queue verbs reach as far as the server does
         run: node check-queue-reach.mjs
+
+  # Holds the Flatpak's offline sources to the lock file and desktop/go.mod. A
+  # separate job for the same reason as docs.
+  flatpak-sources:
+    needs: changes
+    if: needs.changes.outputs.flatpak == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "24"
+
+      - name: The Flatpak sources hold every dependency
+        run: node flatpak/check-sources.mjs
 
   # The weekly pin updater's parsers and rewrites, on saved pages, so a change
   # to a pinned file shows here rather than in Monday's run.
