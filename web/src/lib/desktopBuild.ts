@@ -6,8 +6,8 @@ export type Arch = 'x64' | 'arm64';
 export type DesktopOS = 'windows' | 'linux';
 export type DesktopSlug = `${DesktopOS}-${'amd64' | 'arm64'}` | 'macos-universal';
 
-/** How the reader knows each architecture, which is not how Go names x64. */
-export const ARCH_LABEL: Record<Arch, string> = { x64: 'x64', arm64: 'ARM64' };
+/** Each architecture as the README's download buttons name it, which is not how Go names x64. */
+export const ARCH_LABEL: Record<Arch, string> = { x64: 'x64', arm64: 'ARM' };
 
 export function desktopSlug(os: DesktopOS, arch: Arch): DesktopSlug {
   return `${os}-${arch === 'x64' ? 'amd64' : 'arm64'}`;

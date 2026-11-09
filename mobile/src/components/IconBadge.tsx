@@ -696,6 +696,10 @@ export function LinuxMark({ color }: { color: string }) {
   );
 }
 
+export function FlatpakMark({ color }: { color: string }) {
+  return <Tinted source={require('../../assets/flatpak-mark.png')} color={color} style={styles.fill} />;
+}
+
 /** Chrome in its own colours, and in one ink while pressed, where its
  *  gradients would flatten to a blot. The Chromium browsers after it work the
  *  same way. */

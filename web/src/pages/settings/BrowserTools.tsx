@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { createPortal } from 'react-dom';
 import { buildBookmarklet } from '../../lib/browserTools';
 import { appAddress, withBase } from '../../lib/basePath';
-import { ARCH_LABEL, desktopSlug, visitorArch, type Arch, type DesktopOS, type DesktopSlug } from '../../lib/desktopBuild';
+import { ARCH_LABEL, desktopSlug, visitorArch, type Arch, type DesktopOS } from '../../lib/desktopBuild';
 import { fetchDeploymentInfo, fetchExtensionVersion, fetchHealth } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
 import { useInstallPrompt } from '../../lib/pwaInstall';
@@ -15,6 +15,7 @@ import {
   FDROID_SVG,
   APPLE_SVG,
   DOCKER_SVG,
+  FLATPAK_SVG,
   KNIGHTLOADER_LIT_SVG,
   KNIGHTLOADER_SVG,
   LINUX_SVG,
@@ -409,7 +410,7 @@ function QrWindow({
 
 /**
  * DesktopCard offers the desktop app to a reader in a container or a browser.
- * The Windows and Linux buttons give the build for this computer's
+ * The Windows, Linux and Flatpak buttons give the build for this computer's
  * architecture, x64 where the browser does not tell, and the segment beside
  * each the other one. Where this instance runs a release, the buttons give the
  * desktop app of that release and the card names it; a build between two
@@ -429,10 +430,12 @@ function DesktopCard() {
   const tag = releaseTag(version);
   const release = RELEASE.test(tag) ? tag : '';
   // The build for this computer first, the other architecture as its segment.
-  const parts = (os: DesktopOS, name: string): [ReadmePart, ReadmePart] => [
-    { name, sub: ARCH_LABEL[arch], href: desktopZip(desktopSlug(os, arch), release) },
-    { name, sub: ARCH_LABEL[other], href: desktopZip(desktopSlug(os, other), release) },
+  const parts = (name: string, file: (arch: Arch) => string): [ReadmePart, ReadmePart] => [
+    { name, sub: ARCH_LABEL[arch], href: releaseFile(file(arch), release) },
+    { name: ARCH_LABEL[other], label: `${name} ${ARCH_LABEL[other]}`, href: releaseFile(file(other), release) },
   ];
+  const bundle = (os: DesktopOS) => (a: Arch) => `${desktopSlug(os, a)}.zip`;
+  const flatpak = (a: Arch) => `${desktopSlug('linux', a)}.flatpak`;
 
   return (
     <Card hue={0} className="flex flex-col gap-4">
@@ -450,16 +453,17 @@ function DesktopCard() {
       <div className="glim-readme-btn-rows">
         <ReadmeButton
           brand="windows"
-          parts={parts('windows', 'Windows')}
+          parts={parts('Windows', bundle('windows'))}
           mark={<BrandMark svg={WINDOWS_SVG} />}
           markClass="glim-windows-mark"
         />
         <ReadmeButton
           brand="apple"
-          parts={[{ name: 'macOS', sub: 'Universal', href: desktopZip('macos-universal', release) }]}
+          parts={[{ name: 'macOS', sub: 'Universal', href: releaseFile('macos-universal.zip', release) }]}
           mark={<BrandMark svg={APPLE_SVG} />}
         />
-        <ReadmeButton brand="linux" parts={parts('linux', 'Linux')} mark={<BrandMark svg={LINUX_SVG} />} />
+        <ReadmeButton brand="linux" parts={parts('Linux', bundle('linux'))} mark={<BrandMark svg={LINUX_SVG} />} />
+        <ReadmeButton brand="flatpak" parts={parts('Flatpak', flatpak)} mark={<BrandMark svg={FLATPAK_SVG} />} />
       </div>
     </Card>
   );
@@ -600,13 +604,13 @@ const UNRAID_CA_URL = '';
 const RELEASE = /^v\d+\.\d+\.\d+$/;
 
 /**
- * desktopZip is the desktop bundle release.yml attaches to every release under
- * a name without a version: that of the release tagged `release`, or of the
- * newest one where there is no tag to name.
+ * releaseFile is a desktop download release.yml attaches to every release
+ * under a name without a version: that of the release tagged `release`, or of
+ * the newest one where there is no tag to name.
  */
-function desktopZip(slug: DesktopSlug, release: string): string {
+function releaseFile(file: string, release: string): string {
   const from = release ? `download/${release}` : 'latest/download';
-  return `${REPO_URL}/releases/${from}/knightloader-${slug}.zip`;
+  return `${REPO_URL}/releases/${from}/knightloader-${file}`;
 }
 
 /** The README's docker run on one line, in the reader's own time zone. */

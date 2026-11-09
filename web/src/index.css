@@ -2837,6 +2837,8 @@ body {
 .glim-tile-windows { --tile: #0078d4; --tile-ink: #ffffff; } /* 4.5:1 */
 .glim-tile-apple   { --tile: #6e6e73; --tile-ink: #ffffff; } /* 5.1:1 */
 .glim-tile-linux   { --tile: #fcc624; --tile-ink: #161616; } /* 11.4:1 */
+/* Flatpak's blue from the README's button. */
+.glim-tile-flatpak { --tile: #4a90d9; --tile-ink: #ffffff; } /* 3.3:1 */
 .glim-tile-android { --tile: #32de84; --tile-ink: #161616; } /* 10.3:1 */
 .glim-tile-play    { --tile: #01875f; --tile-ink: #ffffff; } /* 4.5:1 */
 /* F-Droid's blue from the README's button. */

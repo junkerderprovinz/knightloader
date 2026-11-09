@@ -6,7 +6,7 @@ import { InfoBubble } from './ui';
 // A button in the shape of the README's download buttons, on the Apps page and
 // the About card (GlimStone's "The App tab"), from its reference/react
 // ReadmeButton. The first part carries the mark and the full name; the parts
-// after it are segments that name only what differs, such as ARM64 beside
+// after it are segments that name only what differs, such as ARM beside
 // Windows. The unit lights up as one in its brand's colour ("Brand tiles"). A
 // link where a part leads to a file or a listing, a button where it does
 // something on the page, and a quiet unit with "Soon" as its second line where
@@ -19,6 +19,7 @@ const TILES = {
   windows: 'glim-tile-windows',
   apple: 'glim-tile-apple',
   linux: 'glim-tile-linux',
+  flatpak: 'glim-tile-flatpak',
   android: 'glim-tile-android',
   play: 'glim-tile-play',
   fdroid: 'glim-tile-fdroid',
@@ -45,6 +46,8 @@ export interface ReadmePart {
   name: string;
   /** The second line, shown under the pointer. Without one the name stays in the middle. */
   sub?: string;
+  /** The accessible name of a segment, whose own name leans on the part before it. */
+  label?: string;
   href?: string;
   onClick?: () => void;
   /** A javascript: address for a link that is dragged into a bookmarks bar
@@ -115,7 +118,7 @@ export function ReadmeButton({
     <div ref={ref} data-new={news} className={unit.join(' ')}>
       {parts.map((part, i) => {
         const sub = soon ? soonLabel : part.sub;
-        const label = sub ? `${part.name} ${sub}` : part.name;
+        const label = part.label ?? (sub ? `${part.name} ${sub}` : part.name);
         const className = `glim-readme-btn${i > 0 ? ' glim-readme-btn-seg' : ''}${soon ? '' : ' glim-brand-tile'}`;
         const face =
           i === 0 && art ? (

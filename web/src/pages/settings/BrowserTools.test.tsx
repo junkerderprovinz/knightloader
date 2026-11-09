@@ -100,8 +100,8 @@ describe('BrowserTools', () => {
   });
 
   describe('in a container', () => {
-    /** The page as a container at `version` draws it, and where its macOS button leads. */
-    async function macOS(version: string): Promise<string> {
+    /** The page as a container at `version` draws it, and its desktop card. */
+    async function desktopCard(version: string): Promise<Element> {
       vi.stubGlobal(
         'fetch',
         vi.fn((url: string) => {
@@ -111,8 +111,30 @@ describe('BrowserTools', () => {
         }),
       );
       await act(async () => root.render(<BrowserTools />));
-      return host.querySelector<HTMLAnchorElement>('a[aria-label^="macOS"]')!.href;
+      return [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('macOS'))!;
     }
+
+    /** Where the macOS button of a container at `version` leads. */
+    async function macOS(version: string): Promise<string> {
+      const card = await desktopCard(version);
+      return card.querySelector<HTMLAnchorElement>('a[aria-label^="macOS"]')!.href;
+    }
+
+    it('names each segment by its architecture alone, as the README does', async () => {
+      const card = await desktopCard('v1.8.4');
+      const segments = [...card.querySelectorAll<HTMLAnchorElement>('.glim-readme-btn-seg')];
+      expect(segments.map((s) => s.textContent)).toEqual(['ARM', 'ARM', 'ARM']);
+      expect(segments.map((s) => s.getAttribute('aria-label'))).toEqual(['Windows ARM', 'Linux ARM', 'Flatpak ARM']);
+    });
+
+    it('offers the Flatpak for both architectures of the release it runs', async () => {
+      const card = await desktopCard('v1.8.4');
+      const flatpak = card.querySelector('.glim-tile-flatpak')!;
+      expect([...flatpak.querySelectorAll('a')].map((a) => a.href)).toEqual([
+        expect.stringContaining('/releases/download/v1.8.4/knightloader-linux-amd64.flatpak'),
+        expect.stringContaining('/releases/download/v1.8.4/knightloader-linux-arm64.flatpak'),
+      ]);
+    });
 
     it('gives the desktop app of the release it runs and names that release on the card', async () => {
       expect(await macOS('v1.8.4')).toContain('/releases/download/v1.8.4/knightloader-macos-universal.zip');

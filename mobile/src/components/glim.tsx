@@ -835,9 +835,11 @@ export function ReadmeButton({
       github: c.brandGithub,
       windows: c.brandWindows,
       docker: c.brandDocker,
-      // Neither has a colour of its own, so both take the words' ink.
+      // Neither has a colour of its own, so both take the words' ink. Flatpak's
+      // blue holds under 3:1 on the light theme's button, so it does too.
       apple: c.text,
       linux: c.text,
+      flatpak: c.text,
       zip: c.textSub,
       // Drawn in their own colours at rest; the value reaches no mark.
       unraid: c.text,

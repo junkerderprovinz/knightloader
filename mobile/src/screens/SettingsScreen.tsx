@@ -43,6 +43,7 @@ import IconBadge, {
   DockerMark,
   EdgeMark,
   FirefoxMark,
+  FlatpakMark,
   Github,
   LinuxMark,
   MailMark,
@@ -90,6 +91,8 @@ const APP_URLS = {
   macos: `${RELEASE}macos-universal.zip`,
   linux: `${RELEASE}linux-amd64.zip`,
   linuxArm: `${RELEASE}linux-arm64.zip`,
+  flatpak: `${RELEASE}linux-amd64.flatpak`,
+  flatpakArm: `${RELEASE}linux-arm64.flatpak`,
   chromeWebStore: 'https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf',
   edgeAddons: 'https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl',
 };
@@ -871,7 +874,7 @@ export default function SettingsScreen({
           <ReadmeButton
             brand="windows"
             label="Windows"
-            sub="ARM64"
+            sub="ARM"
             mark={({ mark }) => <WindowsMark color={mark} />}
             onPress={() => Linking.openURL(APP_URLS.windowsArm)}
           />
@@ -892,9 +895,23 @@ export default function SettingsScreen({
           <ReadmeButton
             brand="linux"
             label="Linux"
-            sub="ARM64"
+            sub="ARM"
             mark={({ mark }) => <LinuxMark color={mark} />}
             onPress={() => Linking.openURL(APP_URLS.linuxArm)}
+          />
+          <ReadmeButton
+            brand="flatpak"
+            label="Flatpak"
+            sub="x64"
+            mark={({ mark }) => <FlatpakMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.flatpak)}
+          />
+          <ReadmeButton
+            brand="flatpak"
+            label="Flatpak"
+            sub="ARM"
+            mark={({ mark }) => <FlatpakMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.flatpakArm)}
           />
         </View>
       </NotchCard>
