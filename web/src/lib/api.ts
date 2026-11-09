@@ -2,7 +2,7 @@
 // they are named here rather than restated.
 import type { LabelMode } from './labelModes';
 import type { EventProgramRow } from './eventprograms';
-import type { EventTargetRow } from './eventtargets';
+import type { Channel } from './eventtargets';
 import type { Shape } from './appearance';
 import type { Theme } from './theme';
 import { socketURL, withBase } from './basePath';
@@ -649,12 +649,12 @@ export interface Settings {
   /** The RSS and Atom subscriptions. `null` rather than an empty array when there are none. */
   feeds: FeedSubscription[] | null;
   /**
-   * Where this instance reports events. Optional as well as nullable, because
-   * a settings file written before the feature carries no key; read it with
-   * `?? []`. Header values arrive masked and are sent back untouched; the
-   * server merges the real ones in while the row keeps its address.
+   * The services this instance tells about events, read with `?? []`.
+   * Tokens, passwords and header values arrive masked and are sent back
+   * untouched; the server merges the real ones in while a channel keeps its
+   * destination.
    */
-  eventTargets?: EventTargetRow[] | null;
+  notifyChannels?: Channel[] | null;
   /**
    * What this instance starts on events, read with `?? []` for the same
    * reason. The program and its arguments arrive masked and are sent back

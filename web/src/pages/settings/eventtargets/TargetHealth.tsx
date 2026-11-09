@@ -1,11 +1,12 @@
 import { FieldGroup } from '../../../components/ui';
 import { happened } from '../../../lib/countdown';
 import { fmtDate } from '../../../lib/format';
-import { useT, type TranslationKey } from '../../../lib/i18n';
+import { useT } from '../../../lib/i18n';
 import type { EventTargetStatus } from '../../../lib/eventtargets';
+import { problemText } from './problems';
 
 /**
- * TargetHealth shows what the server knows about a stored target. The health
+ * TargetHealth shows what the server knows about a stored channel. The health
  * lives in memory, so no lastAttempt means nothing was sent since the server
  * started, and the counters are withheld rather than shown as zeroes. A refusal
  * by the far end is shown apart from a transport error.
@@ -41,16 +42,6 @@ export function TargetHealth({ status }: { status?: EventTargetStatus }) {
       </div>
     </FieldGroup>
   );
-}
-
-/**
- * problemText returns the sentence for a notify.Problem code, or the code
- * itself when this build has no key for it, since `t()` returns undefined then.
- */
-function problemText(t: (key: TranslationKey) => string, code: string): string {
-  const key = `settings.eventTargets.problem.${code}` as TranslationKey;
-  const text = t(key) as string | undefined;
-  return text && text !== key ? text : code;
 }
 
 /**

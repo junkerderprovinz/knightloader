@@ -1,14 +1,4 @@
-import { useEffect, useState } from 'react';
-import {
-  Field,
-  FieldGroup,
-  IconBadge,
-  NumberInput,
-  TextArea,
-  TextInput,
-  ToggleRow,
-  useTooltip,
-} from '../../../components/ui';
+import { FieldGroup, IconBadge, NumberInput, TextInput, ToggleRow, useTooltip } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { IconTrash } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
@@ -16,53 +6,39 @@ import {
   DEFAULT_TIMEOUT_SECONDS,
   MAX_ATTEMPTS,
   MAX_TIMEOUT_SECONDS,
-  balancedTemplate,
-  discordWebhook,
-  formatHeaders,
+  addressOf,
   hostOf,
-  parseHeaders,
-  usableAddress,
-  type EventTargetRow,
+  type Channel,
+  type ChannelOn,
   type EventTargetStatus,
   type Placeholder,
-  type TargetMethod,
 } from '../../../lib/eventtargets';
-import type { TargetBrand } from '../../../lib/targetBrands';
 import { RowRefusal, SettingRow, Sheet } from '../controls';
+import { ChannelFields } from './ChannelFields';
+import { useKindName } from './kinds';
 import { TargetEvents } from './TargetEvents';
 import { TargetHealth } from './TargetHealth';
-import { TargetMark } from './TargetMark';
 import { TargetProbe } from './TargetProbe';
 
 /**
- * TargetRow shows one target as its name and host, and the whole request in
- * the window the row opens. The address, headers and body are committed on
- * blur, because the server refuses the whole settings document when one row is
- * invalid and the autosave would fire mid-typing. A refused value stays in its
- * box, marked, while the row shows what is stored.
+ * TargetRow shows one channel as its name, kind and host, and everything about
+ * it in the window the row opens.
  */
 export function TargetRow({
   row,
   index,
   last,
-  stored,
-  brand,
   open,
   triggers,
   placeholders,
   status,
   onToggle,
   onChange,
-  onCommit,
   onRemove,
 }: {
-  row: EventTargetRow;
+  row: Channel;
   index: number;
   last: boolean;
-  /** Already in the shared draft, so the server can report its health. */
-  stored: boolean;
-  /** The service a new row was picked as, before its address says so. */
-  brand?: TargetBrand;
   open: boolean;
   /** From GET /api/scripts/triggers. */
   triggers: string[];
@@ -70,92 +46,16 @@ export function TargetRow({
   placeholders: Placeholder[];
   status?: EventTargetStatus;
   onToggle: () => void;
-  onChange: (next: EventTargetRow) => void;
-  /** For a row not in the draft yet: called once its address is valid. */
-  onCommit?: (next: EventTargetRow) => void;
+  onChange: (next: Channel) => void;
   onRemove: () => void;
 }) {
   const { t } = useT();
-
-  const [urlText, setUrlText] = useState(row.url);
-  const [urlBad, setUrlBad] = useState(false);
-  const [headersText, setHeadersText] = useState(() => formatHeaders(row.headers));
-  const [headersBad, setHeadersBad] = useState(false);
-  const [bodyText, setBodyText] = useState(row.body ?? '');
-  const [bodyBad, setBodyBad] = useState(false);
-
-  // The save answer replaces the draft, and the server may have trimmed a
-  // value or dropped a header because the address moved, so follow it.
-  useEffect(() => {
-    setUrlText(row.url);
-    setUrlBad(false);
-  }, [row.url]);
-  useEffect(() => {
-    setHeadersText(formatHeaders(row.headers));
-    setHeadersBad(false);
-  }, [row.headers]);
-  useEffect(() => {
-    setBodyText(row.body ?? '');
-    setBodyBad(false);
-  }, [row.body]);
-
-  const commitUrl = () => {
-    const url = urlText.trim();
-    if (url === row.url) {
-      setUrlBad(false);
-      return;
-    }
-    if (!usableAddress(url)) {
-      setUrlBad(true);
-      // An unsaved row keeps the half-typed address; a stored row's draft is
-      // left alone so the save is not refused.
-      if (!stored) onChange({ ...row, url });
-      return;
-    }
-    setUrlBad(false);
-    if (stored) onChange({ ...row, url });
-    else if (onCommit) onCommit({ ...row, url });
-  };
-
-  const commitHeaders = () => {
-    const parsed = parseHeaders(headersText);
-    // A bad line refuses the whole block, since a dropped header is a token
-    // that silently stops being sent.
-    if (parsed === null || Object.values(parsed).some((v) => !balancedTemplate(v))) {
-      setHeadersBad(true);
-      return;
-    }
-    setHeadersBad(false);
-    const next = { ...row };
-    if (Object.keys(parsed).length === 0) delete next.headers;
-    else next.headers = parsed;
-    if (formatHeaders(next.headers) === formatHeaders(row.headers)) return;
-    onChange(next);
-  };
-
-  const commitBody = () => {
-    if (bodyText === (row.body ?? '')) {
-      setBodyBad(false);
-      return;
-    }
-    if (!balancedTemplate(bodyText)) {
-      setBodyBad(true);
-      return;
-    }
-    setBodyBad(false);
-    const next = { ...row };
-    if (bodyText === '') delete next.body;
-    else next.body = bodyText;
-    onChange(next);
-  };
-
-  // The address as typed, which is newer than the server's reading of it until
-  // the next save; the server's where the typed one has no host to show.
-  const host = hostOf(urlText) || status?.host || '';
-  const ticked = row.triggers?.length ?? 0;
-  const method: TargetMethod = row.method ?? 'POST';
-  // A row picked as Discord says so until its address is a whole one of something else.
-  const discord = discordWebhook(urlText) || (brand === 'discord' && !usableAddress(urlText));
+  const kindName = useKindName();
+  // Only the host, since ntfy and Gotify can take their credential in the query.
+  const host = hostOf(addressOf(row)) || addressOf(row);
+  const ticked = row.events?.length ?? 0;
+  const on: ChannelOn = row.on || 'failure';
+  const title = row.name?.trim() || kindName(row.kind);
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
@@ -163,13 +63,9 @@ export function TargetRow({
         <button type="button" onClick={onToggle} aria-haspopup="dialog" className="flex min-w-0 items-center gap-3 text-start">
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm text-carbon-text">
-              {row.name.trim() || <span className="text-carbon-textMuted">{t('settings.eventTargets.name')}</span>}
-            </span>
-            {/* Only the host, since ntfy and Gotify take their credential in
-                the query. */}
+            <span className="block truncate text-sm text-carbon-text">{title}</span>
             <span dir="ltr" className="block truncate text-meta text-carbon-textMuted">
-              {host}
+              {host ? `${kindName(row.kind)} · ${host}` : kindName(row.kind)}
             </span>
           </span>
           {ticked > 0 && <TickedCount n={ticked} />}
@@ -180,29 +76,20 @@ export function TargetRow({
             </span>
           )}
         </button>
-        <div className="flex items-center gap-1.5">
-          <IconBadge
-            // A lone glyph takes half its 32px badge.
-            icon={<IconTrash width={16} height={16} />}
-            hue={index}
-            title={t('settings.eventTargets.remove')}
-            aria-label={t('settings.eventTargets.remove')}
-            // No blur, so no commit happens in front of the removal.
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={onRemove}
-          />
-        </div>
+        <IconBadge
+          icon={<IconTrash width={16} height={16} />}
+          hue={index}
+          title={t('settings.eventTargets.remove')}
+          aria-label={t('settings.eventTargets.remove')}
+          // No blur, so no commit happens in front of the removal.
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onRemove}
+        />
       </div>
-      {stored && <RowRefusal field={`eventTargets.${index}`} />}
+      <RowRefusal field={`notifyChannels.${index}`} />
 
       {open && (
-        <Sheet title={row.name.trim() || t('settings.eventTargets.name')} hue={index} wide onClose={onToggle}>
-          {discord && (
-            <div className="flex items-center gap-3">
-              <TargetMark brand="discord" size={36} />
-              <p className="text-sm text-carbon-textSub">{t('settings.eventTargets.discordNote')}</p>
-            </div>
-          )}
+        <Sheet title={title} hue={index} wide onClose={onToggle}>
           <ToggleRow
             label={t('settings.eventTargets.enabled')}
             hint={t('settings.eventTargets.enabledHint')}
@@ -210,171 +97,87 @@ export function TargetRow({
             onChange={(v) => onChange({ ...row, enabled: v })}
             hue={index}
           />
-
           <SettingRow control="long" label={t('settings.eventTargets.name')} hint={t('settings.eventTargets.nameHint')}>
-            <TextInput value={row.name} onChange={(e) => onChange({ ...row, name: e.target.value })} />
+            <TextInput value={row.name ?? ''} onChange={(e) => onChange({ ...row, name: e.target.value })} />
           </SettingRow>
 
-          <SettingRow
-            control="long"
-            label={t('settings.eventTargets.url')}
-            hint={t(discord ? 'settings.eventTargets.discordUrlHint' : 'settings.eventTargets.urlHint')}
-          >
-            <TextInput
-              dir="ltr"
-              spellCheck={false}
-              value={urlText}
-              placeholder={discord ? 'https://discord.com/api/webhooks/...' : 'https://ntfy.example/my-topic'}
-              // Marked, not corrected; the focus ring covers the halo while typing.
-              aria-invalid={urlBad}
-              className={urlBad ? 'shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}
-              onChange={(e) => {
-                setUrlText(e.target.value);
-                setUrlBad(false);
-              }}
-              onBlur={commitUrl}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  e.currentTarget.blur();
-                }
-              }}
-            />
-          </SettingRow>
-          {host !== '' && (
-            <p className="text-xs text-carbon-textMuted">{t('settings.eventTargets.leavesTheBox', { host })}</p>
-          )}
+          <ChannelFields row={row} onChange={onChange} />
+          {host !== '' && <p className="text-xs text-carbon-textMuted">{t('settings.eventTargets.leavesTheBox', { host })}</p>}
 
-          <SettingRow label={t('settings.eventTargets.method')} hint={t('settings.eventTargets.methodHint')}>
+          <SettingRow label={t('settings.eventTargets.on')} hint={t('settings.eventTargets.onHint')}>
             <Tabs
               variant="well"
               size="sm"
               inline
               hug
-              label={t('settings.eventTargets.method')}
-              active={method}
-              onSelect={(id) => onChange({ ...row, method: id as TargetMethod })}
+              label={t('settings.eventTargets.on')}
+              active={on === 'never' ? 'failure' : on}
+              onSelect={(id) => onChange({ ...row, on: id as ChannelOn })}
               items={[
-                { id: 'POST', label: 'POST' },
-                { id: 'PUT', label: 'PUT' },
-                { id: 'GET', label: 'GET' },
+                { id: 'failure', label: t('settings.eventTargets.on.failure') },
+                { id: 'always', label: t('settings.eventTargets.on.always') },
               ]}
             />
           </SettingRow>
 
-          <Field label={t('settings.eventTargets.headers')} hint={t('settings.eventTargets.headersHint')}>
-            {/* The halo sits on a wrapper because TextArea's className prop
-                would replace its own styling. */}
-            <div className={headersBad ? 'rounded-[var(--radius-control)] shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}>
-              <TextArea
-                dir="ltr"
-                spellCheck={false}
-                rows={3}
-                value={headersText}
-                placeholder={discord ? '' : 'Authorization: Bearer ...\nContent-Type: text/plain'}
-                aria-invalid={headersBad}
-                onChange={(e) => {
-                  setHeadersText(e.target.value);
-                  setHeadersBad(false);
-                }}
-                onBlur={commitHeaders}
-              />
-            </div>
-          </Field>
-
-          {/* GET sends no body. */}
-          {method !== 'GET' && (
-            <Field label={t('settings.eventTargets.body')} hint={t('settings.eventTargets.bodyHint')}>
-              <div className={bodyBad ? 'rounded-[var(--radius-control)] shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}>
-                <TextArea
-                  dir="ltr"
-                  spellCheck={false}
-                  rows={4}
-                  value={bodyText}
-                  // Left empty, the body is what gives a Discord row its ready-made message.
-                  placeholder={discord ? '' : '%%task.name%%'}
-                  aria-invalid={bodyBad}
-                  onChange={(e) => {
-                    setBodyText(e.target.value);
-                    setBodyBad(false);
-                  }}
-                  onBlur={commitBody}
-                />
-              </div>
-            </Field>
-          )}
-
           <TargetEvents
             triggers={triggers}
-            picked={row.triggers ?? []}
+            picked={row.events ?? []}
             hue={index}
+            noneText={t('settings.eventTargets.eventsAll')}
+            noneQuiet
             onChange={(next) => {
               const out = { ...row };
-              if (next.length === 0) delete out.triggers;
-              else out.triggers = next;
+              if (next.length === 0) delete out.events;
+              else out.events = next;
               onChange(out);
             }}
           />
 
-          <Placeholders list={placeholders} picked={row.triggers ?? []} />
+          {row.kind === 'webhook' && <Placeholders list={placeholders} picked={row.events ?? []} />}
 
           <div className="flex flex-col gap-4">
-            {/* 0 takes the server's default of three, which is shown beside
-                the box. */}
-            <SettingRow
-              control="short"
-              label={t('settings.eventTargets.attempts')}
-              hint={t('settings.eventTargets.attemptsHint')}
-            >
+            <SettingRow control="short" label={t('settings.eventTargets.attempts')} hint={t('settings.eventTargets.attemptsHint')}>
               <div className="flex items-center gap-2">
                 <NumberInput
                   dir="ltr"
-                  value={row.attempts}
+                  value={row.attempts ?? 0}
                   min={0}
                   max={MAX_ATTEMPTS}
                   step={1}
                   onValue={(v) => onChange({ ...row, attempts: clamp(v, MAX_ATTEMPTS) })}
                 />
                 <span className="shrink-0 text-meta text-carbon-textMuted">
-                  {row.attempts === 0
-                    ? t('settings.eventTargets.attemptsDefault')
-                    : String(Math.min(row.attempts, MAX_ATTEMPTS))}
+                  {(row.attempts ?? 0) === 0 ? t('settings.eventTargets.attemptsDefault') : String(row.attempts)}
                 </span>
               </div>
             </SettingRow>
-            <SettingRow
-              control="short"
-              label={t('settings.eventTargets.timeout')}
-              hint={t('settings.eventTargets.timeoutHint')}
-            >
+            <SettingRow control="short" label={t('settings.eventTargets.timeout')} hint={t('settings.eventTargets.timeoutHint')}>
               <div className="flex items-center gap-2">
                 <NumberInput
                   dir="ltr"
-                  value={row.timeoutSeconds}
+                  value={row.timeoutSeconds ?? 0}
                   min={0}
                   max={MAX_TIMEOUT_SECONDS}
                   step={1}
                   onValue={(v) => onChange({ ...row, timeoutSeconds: clamp(v, MAX_TIMEOUT_SECONDS) })}
                 />
                 <span className="glim-num shrink-0 text-meta text-carbon-textMuted">
-                  {row.timeoutSeconds === 0 ? DEFAULT_TIMEOUT_SECONDS : Math.min(row.timeoutSeconds, MAX_TIMEOUT_SECONDS)}
+                  {(row.timeoutSeconds ?? 0) === 0 ? DEFAULT_TIMEOUT_SECONDS : row.timeoutSeconds}
                 </span>
               </div>
             </SettingRow>
           </div>
 
-          {stored && <TargetHealth status={status} />}
-          <TargetProbe row={{ ...row, url: urlText.trim() }} />
+          <TargetHealth status={status} />
+          <TargetProbe row={row} />
         </Sheet>
       )}
     </li>
   );
 }
 
-/**
- * clamp stores a number the way notify.Sanitize would, keeping 0, so the box
- * does not change once the save comes back.
- */
+/** clamp keeps 0, which means the default, and the kit's ceiling. */
 function clamp(v: number, max: number): number {
   if (!Number.isFinite(v)) return 0;
   const whole = Math.round(v);
@@ -386,8 +189,7 @@ function clamp(v: number, max: number): number {
 function TickedCount({ n }: { n: number }) {
   const { t } = useT();
   const tip = useTooltip<HTMLSpanElement>(t('settings.eventTargets.events'));
-  // The span sits inside the row's button, so it takes no role and no tab stop
-  // of its own.
+  // The span sits inside the row's button, so it takes no role and no tab stop of its own.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <>
@@ -419,9 +221,9 @@ function PlaceholderChip({ name, tip: tipText, unused }: { name: string; tip: st
 }
 
 /**
- * Placeholders lists the names the server fills into the address, a header or
- * the body, and marks the ones no ticked event carries, which expand to nothing.
- * The event programs show their own list with it, under their own (i).
+ * Placeholders lists the names the server fills into a webhook's address,
+ * headers and body, and marks the ones no ticked event carries. The event
+ * programs show their own list with it.
  */
 export function Placeholders({ list, picked, hint }: { list: Placeholder[]; picked: string[]; hint?: string }) {
   const { t } = useT();
@@ -430,8 +232,6 @@ export function Placeholders({ list, picked, hint }: { list: Placeholder[]; pick
     <FieldGroup label={t('settings.eventTargets.placeholders')} hint={hint ?? t('settings.eventTargets.placeholdersHint')}>
       <div className="flex flex-wrap gap-1.5">
         {list.map((p) => {
-          // Empty triggers means every event carries it. Nothing ticked is
-          // reported by the events picker instead.
           const unused =
             picked.length > 0 && p.triggers !== undefined && p.triggers.length > 0 && !p.triggers.some((tr) => picked.includes(tr));
           const name = `%%${p.name}%%`;

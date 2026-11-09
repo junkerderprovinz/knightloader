@@ -1,70 +1,39 @@
 import { useEffect, useState } from 'react';
 import { BrandPicker, type Brand } from '../../components/BrandPicker';
 import { Button, Modal } from '../../components/ui';
-import { IconAdd, IconClose, IconLink } from '../../lib/icons';
+import { IconAdd, IconClose } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import {
   fetchEventTargets,
   fetchPlaceholders,
-  type EventTargetRow,
+  newChannel,
+  nextId,
+  type Channel,
+  type ChannelKind,
   type EventTargetStatus,
   type Placeholder,
 } from '../../lib/eventtargets';
 import { FALLBACK_TRIGGERS, fetchScriptTriggers } from '../../lib/scripts';
-import { TARGET_BRANDS, type TargetBrand } from '../../lib/targetBrands';
+import { TARGET_BRANDS } from '../../lib/targetBrands';
 import { useDraft } from './context';
+import { KINDS, useKindName } from './eventtargets/kinds';
 import { TargetMark } from './eventtargets/TargetMark';
 import { TargetRow } from './eventtargets/TargetRow';
 import { ModuleCard } from './ModuleToggle';
 
 /**
- * EventTargetsCard lists the addresses this instance reports to when something
- * happens, each with its own method, headers, body template and events. It is
- * the outbound side of the event bus internal/script publishes on, and has a
- * name of its own so it is not taken for the in-browser notifications.
+ * EventTargetsCard lists the services this instance tells when something
+ * happens, each a channel of one kind with its own events. It has a name of
+ * its own so it is not taken for the in-browser notifications.
  *
- * Add asks first what the target is, Discord or any address, the way a media
- * server or a VPN is picked; Discord only names the row and words its address.
- * A new row starts off with no event ticked. The address, headers and body are
- * committed on blur, because the server refuses the whole settings document
- * when one row is invalid. Header values come back as stars and are merged
- * back on save only while the row keeps its address, so a token cannot be
- * redirected to another machine.
+ * Add asks first what the channel is. A new channel starts switched off, so
+ * the server takes it into the settings before anything is filled in; it
+ * checks a channel in full only once it is switched on. Secrets come back as
+ * stars and are merged back on save only while the channel keeps its
+ * destination.
  */
 
-/**
- * PendingRow is a new row without a usable address. It stays out of the draft,
- * where notify.Sanitize would drop it on the next autosave.
- */
-interface PendingRow {
-  key: string;
-  row: EventTargetRow;
-  /** The service it was picked as, which words its address before one is typed. */
-  brand?: TargetBrand;
-}
-
-let pendingCounter = 0;
-const freshKey = () => `p${(pendingCounter++).toString(36)}`;
-
-/**
- * nextId returns the lowest unused positive number, as notify.identify does.
- * The id is assigned here because the health table and the React key depend on
- * it before the save returns.
- */
-function nextId(rows: EventTargetRow[]): string {
-  const taken = new Set(rows.map((r) => r.id));
-  for (let n = 1; ; n++) {
-    const id = String(n);
-    if (!taken.has(id)) return id;
-  }
-}
-
-/**
- * useHealth fetches the health table keyed by target id, again whenever the
- * stored targets change: an id freed by a removal is taken by the next target
- * added, which must not show the removed one's health. Otherwise it changes
- * only when an event fires, so it is not polled.
- */
+/** useHealth fetches the health table keyed by channel id, again whenever the stored channels change. */
 function useHealth(stored: string): Record<string, EventTargetStatus> {
   const [health, setHealth] = useState<Record<string, EventTargetStatus>>({});
   useEffect(() => {
@@ -108,129 +77,75 @@ function useVocabulary(): { triggers: string[]; placeholders: Placeholder[] } {
 
 export function EventTargetsCard({ hue }: { hue: number }) {
   const { t } = useT();
+  const kindName = useKindName();
   const { cfg, saved, patch } = useDraft();
 
-  // omitempty, so an older settings.json sends nothing.
-  const rows = cfg.eventTargets ?? [];
-  const health = useHealth(JSON.stringify(saved.eventTargets ?? []));
+  const rows = cfg.notifyChannels ?? [];
+  const health = useHealth(JSON.stringify(saved.notifyChannels ?? []));
   const { triggers, placeholders } = useVocabulary();
 
   const [openRow, setOpenRow] = useState('');
   const [picking, setPicking] = useState(false);
-  const [pending, setPending] = useState<PendingRow[]>([]);
-  // A row keeps the React key it was typed under once it is stored, so the
-  // window it is edited in stays open; that key is kept by the row's id.
-  const [rowKeys, setRowKeys] = useState<Record<string, string>>({});
-  const keyOf = (id: string) => rowKeys[id] ?? id;
 
   // An emptied list goes out as [], never undefined, which the shell's diff
   // would send as a key without a value.
-  const write = (next: EventTargetRow[]) => patch({ eventTargets: next });
+  const write = (next: Channel[]) => patch({ notifyChannels: next });
 
-  const add = (id: string) => {
-    const brand = TARGET_BRANDS.find((b) => b.id === id);
-    const row: PendingRow = {
-      key: freshKey(),
-      // Off, nothing ticked, and no opinion on attempts or the time limit.
-      row: { id: '', name: brand?.name ?? '', enabled: false, url: '', attempts: 0, timeoutSeconds: 0 },
-      brand: brand?.id,
-    };
+  const add = (kind: string) => {
+    const c = newChannel(nextId(rows), kind as ChannelKind, kindName(kind as ChannelKind));
     setPicking(false);
-    setPending((p) => [...p, row]);
-    setOpenRow(row.key);
+    write([...rows, c]);
+    setOpenRow(c.id);
   };
 
-  const brands: Brand[] = [
-    ...TARGET_BRANDS.map((b) => ({ id: b.id, name: b.name, mark: <TargetMark brand={b.id} size={25} lit />, paint: b.logo })),
-    {
-      id: '',
-      name: t('settings.eventTargets.anyAddress'),
-      mark: (
-        <span className="glim-house-mark flex h-full w-full items-center justify-center">
-          <IconLink width={18} height={18} />
-        </span>
-      ),
-      // An address of no brand lights in black, as the MCP card's other client does.
-      paint: { tile: '#000000', ink: '#ffffff' },
-    },
-  ];
-
-  /** Moves a pending row into the draft once its address is valid. */
-  const commit = (key: string, next: EventTargetRow) => {
-    const id = nextId(rows);
-    write([...rows, { ...next, id }]);
-    setPending((list) => list.filter((r) => r.key !== key));
-    setRowKeys((keys) => ({ ...keys, [id]: key }));
-  };
-
-  const total = rows.length + pending.length;
+  const brands: Brand[] = KINDS.map(({ kind, host, icon }) => {
+    if (kind === 'discord') {
+      const b = TARGET_BRANDS.find((x) => x.id === 'discord')!;
+      return { id: kind, name: b.name, mark: <TargetMark brand="discord" size={25} lit />, paint: b.logo };
+    }
+    const mark = icon && (
+      <span className="glim-house-mark flex h-full w-full items-center justify-center">{icon}</span>
+    );
+    return host ? { id: kind, name: kindName(kind), host } : { id: kind, name: kindName(kind), mark, paint: { tile: '#000000', ink: '#ffffff' } };
+  });
 
   return (
-    // Switched off, the rows are parked on the server and the card folds, so
-    // Add cannot put a row in their place.
+    // Switched off, the channels are parked on the server and the card folds,
+    // so Add cannot put a channel in their place.
     <ModuleCard
       id="eventtargets"
       hue={hue}
       className="flex flex-col gap-4"
       titleHint={t('settings.eventTargets.titleHint')}
       titleRight={
-        <Button
-          kind="secondary"
-          icon={<IconAdd width={16} height={16} />}
-          data-new="discord-target"
-          onClick={() => setPicking(true)}
-        >
+        <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setPicking(true)}>
           {t('settings.eventTargets.add')}
         </Button>
       }
     >
       <div>
-        {total === 0 ? (
-          // Inside the card rather than an EmptyState, which would hide Add.
+        {rows.length === 0 ? (
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {t('settings.eventTargets.empty')}
             <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.eventTargets.emptyHint')}</span>
           </p>
         ) : (
           <ul className="flex flex-col">
-            {/* One list, so a row that gets stored keeps its place among the
-                keys React compares. */}
-            {[
-              ...rows.map((row, i) => (
-                <TargetRow
-                  key={keyOf(row.id)}
-                  row={row}
-                  index={i}
-                  last={i === total - 1}
-                  stored
-                  triggers={triggers}
-                  placeholders={placeholders}
-                  status={health[row.id]}
-                  open={openRow === keyOf(row.id)}
-                  onToggle={() => setOpenRow(openRow === keyOf(row.id) ? '' : keyOf(row.id))}
-                  onChange={(next) => write(rows.map((r) => (r.id === row.id ? next : r)))}
-                  onRemove={() => write(rows.filter((r) => r.id !== row.id))}
-                />
-              )),
-              ...pending.map((p, i) => (
-                <TargetRow
-                  key={p.key}
-                  row={p.row}
-                  index={rows.length + i}
-                  last={rows.length + i === total - 1}
-                  stored={false}
-                  brand={p.brand}
-                  triggers={triggers}
-                  placeholders={placeholders}
-                  open={openRow === p.key}
-                  onToggle={() => setOpenRow(openRow === p.key ? '' : p.key)}
-                  // Kept so closing a half-typed row keeps the text.
-                  onChange={(next) => setPending((list) => list.map((r) => (r.key === p.key ? { ...r, row: next } : r)))}
-                  onCommit={(next) => commit(p.key, next)}
-                  onRemove={() => setPending((list) => list.filter((r) => r.key !== p.key))}
-                />
-              )),
-            ]}
+            {rows.map((row, i) => (
+              <TargetRow
+                key={row.id}
+                row={row}
+                index={i}
+                last={i === rows.length - 1}
+                triggers={triggers}
+                placeholders={placeholders}
+                status={health[row.id]}
+                open={openRow === row.id}
+                onToggle={() => setOpenRow(openRow === row.id ? '' : row.id)}
+                onChange={(next) => write(rows.map((r) => (r.id === row.id ? next : r)))}
+                onRemove={() => write(rows.filter((r) => r.id !== row.id))}
+              />
+            ))}
           </ul>
         )}
       </div>

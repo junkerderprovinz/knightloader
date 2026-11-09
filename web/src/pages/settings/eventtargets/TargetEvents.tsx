@@ -5,7 +5,7 @@ import { FIRES_PER_LINK, ON_DEMAND, REPLAYS_AFTER_RESTART, useTriggerLabel } fro
 /**
  * TargetEvents picks the events that reach this target, one switch per trigger.
  * The list comes from the server, less the script editor's manual run, and the
- * labels from lib/triggers.ts. An empty list means the target never sends. The
+ * labels from lib/triggers.ts. What an empty list means is the caller's. The
  * events that fire again after every restart, and link.added, which fires once
  * per link, say so in their own (i). The event programs use it too, with their
  * own wording for the (i) and for nothing ticked.
@@ -17,6 +17,7 @@ export function TargetEvents({
   onChange,
   hint,
   noneText,
+  noneQuiet = false,
   burstHint,
 }: {
   /** From GET /api/scripts/triggers, kept in the registry's order like the script editor. */
@@ -25,7 +26,9 @@ export function TargetEvents({
   hue: number;
   onChange: (next: string[]) => void;
   hint?: string;
-  noneText?: string;
+  noneText: string;
+  /** Nothing ticked is a choice here, not a mistake, so it is not shown as a warning. */
+  noneQuiet?: boolean;
   burstHint?: string;
 }) {
   const { t } = useT();
@@ -58,7 +61,9 @@ export function TargetEvents({
         ))}
 
         {picked.length === 0 && (
-          <p className="text-xs text-statusWarn">{noneText ?? t('settings.eventTargets.eventsNone')}</p>
+          <p className={`text-xs ${noneQuiet ? 'text-carbon-textMuted' : 'text-statusWarn'}`}>
+            {noneText}
+          </p>
         )}
       </div>
     </FieldGroup>

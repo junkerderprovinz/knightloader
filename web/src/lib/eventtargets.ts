@@ -1,93 +1,88 @@
-// Wire types and helpers for the event targets: where this instance reports
-// when something happens. The only part in lib/api.ts is the Settings field.
-//
-// The types mirror internal/notify's Go shapes field for field, and the
-// constants are copies of the Go constants with the same names.
+// Wire types and helpers for the event targets: the services this instance
+// tells when something happens. The only part in lib/api.ts is the Settings
+// field. The types mirror parleyport kit's notify.Channel.
 
-/** notify's GET, POST and PUT. A closed union, unlike the triggers, because
- *  the server accepts only these three. */
-export type TargetMethod = 'GET' | 'POST' | 'PUT';
+/** The kinds a channel can be. healthchecks and unraid exist in the kit but are not offered here. */
+export type ChannelKind =
+  | 'webhook'
+  | 'discord'
+  | 'slack'
+  | 'gotify'
+  | 'ntfy'
+  | 'matrix'
+  | 'smtp'
+  | 'apprise'
+  | 'healthchecks'
+  | 'unraid';
 
-/** notify.RedactedValue. Stored header values are served as this and sent back
- *  untouched; the server restores them while the row keeps its address. */
+/** When a channel sends: never, on failures, warnings and critical events, or always. */
+export type ChannelOn = 'never' | 'failure' | 'always';
+
+export type WebhookMethod = 'GET' | 'POST' | 'PUT';
+export type SmtpTls = 'starttls' | 'tls' | 'none';
+
+/** notify.RedactedValue: a stored secret is served as this and sent back untouched. */
 export const REDACTED = '********';
 
-/** notify.DefaultAttempts and the ceiling Sanitize clamps to. 0 means no
- *  opinion and is stored as 0. */
 export const DEFAULT_ATTEMPTS = 3;
 export const MAX_ATTEMPTS = 5;
-
-/** notify.DefaultTimeoutSeconds and its ceiling; 0 reads as for attempts. */
 export const DEFAULT_TIMEOUT_SECONDS = 15;
 export const MAX_TIMEOUT_SECONDS = 60;
 
-/** notify.MaxResponseBody: how much of the far end's answer the test panel gets. */
-export const MAX_RESPONSE_BODY = 8192;
-
-/**
- * One stored row, mirroring notify.Target. Not called EventTarget, which is a
- * DOM global. `triggers` is an open string list, since a newer server may fire
- * an event this build does not know.
- */
-export interface EventTargetRow {
+/** One stored channel. Only the block named by kind is read. */
+export interface Channel {
   id: string;
-  name: string;
+  kind: ChannelKind;
+  name?: string;
   enabled: boolean;
-  url: string;
-  method?: TargetMethod;
-  /** Stored secrets come back as REDACTED and are sent back untouched. A new
-   *  address drops the stored values, so they cannot be sent elsewhere
-   *  (notify.Merge). */
-  headers?: Record<string, string>;
-  body?: string;
-  triggers?: string[];
-  /** 0 is "no opinion", never "off": it resolves to DEFAULT_ATTEMPTS. */
-  attempts: number;
-  /** 0 is "no opinion": it resolves to DEFAULT_TIMEOUT_SECONDS. */
-  timeoutSeconds: number;
+  /** Empty means failure. */
+  on?: ChannelOn;
+  /** Event kinds this channel takes; empty means every one that `on` lets through. */
+  events?: string[];
+  /** 0 or absent means the default. */
+  attempts?: number;
+  timeoutSeconds?: number;
+  webhook?: { url: string; method?: WebhookMethod; headers?: Record<string, string>; body?: string };
+  discord?: { url: string };
+  slack?: { url: string };
+  gotify?: { url: string; token?: string; priorityFailure?: number; prioritySuccess?: number };
+  ntfy?: { url: string; token?: string };
+  matrix?: { homeserver: string; room: string; token: string };
+  smtp?: { host: string; port?: number; username?: string; password?: string; from: string; to: string; tls?: SmtpTls };
+  apprise?: { url: string; urls?: string[]; tags?: string };
+  healthchecks?: { url?: string; byKey?: Record<string, string> };
 }
 
-/** GET /api/eventtargets: the configured rows joined onto live health. */
+/** GET /api/eventtargets: the configured channels joined onto live health. */
 export interface EventTargetStatus {
   id: string;
   name: string;
+  kind: ChannelKind;
   enabled: boolean;
-  /** The URL's host only, so a token in the query is not shown. */
-  host: string;
-  /** RFC3339. Absent means nothing since the server started; the health table
-   *  lives in memory. */
+  /** RFC3339. Absent means nothing since the server started. */
   lastAttempt?: string;
-  /** RFC3339, absent on the same terms. */
   lastOk?: string;
   lastStatus: number;
-  /** The transport failure, redacted by the server. Empty when the far end
-   *  answered; its answer is in lastStatus and lastCode. */
+  /** The failure in English, free of secrets. */
   lastError?: string;
-  /** A notify.Problem code, translated as settings.eventTargets.problem.<code>. */
+  /** A kit result code, translated as settings.eventTargets.problem.<code>. */
   lastCode?: string;
-  /** Requests made, retries included. */
   attempts: number;
   sent: number;
-  /** Messages that never left the queue because it was full. */
   dropped: number;
 }
 
 /** POST /api/eventtargets/test, answered with 200 even when the far end refused. */
 export interface EventTargetTest {
-  /** The request as it went out, with stored header values masked again. */
-  sent: { method: string; url: string; headers: Record<string, string>; body: string };
+  ok: boolean;
+  attempts: number;
   status: number;
-  statusText: string;
-  durationMs: number;
-  responseHeaders: Record<string, string>;
-  body: string;
-  truncated: boolean;
-  /** Empty when the far end answered at all, whatever it answered. */
-  error?: string;
   code?: string;
+  error?: string;
+  durationMs: number;
 }
 
-/** GET /api/eventtargets/placeholders, from the expander's own table. */
+/** GET /api/eventtargets/placeholders. */
 export interface Placeholder {
   /** Without the %% wrapper: "task.name". */
   name: string;
@@ -106,8 +101,6 @@ export class EventTargetApiError extends Error {
   }
 }
 
-// decode works like api.ts's json(): a refusal throws the {error,code}
-// envelope where the route sends one, and the raw text otherwise.
 async function decode<T>(r: Response): Promise<T> {
   if (!r.ok) {
     const body = (await r.text()).trim();
@@ -116,11 +109,9 @@ async function decode<T>(r: Response): Promise<T> {
       if (p && typeof p.error === 'string') throw new EventTargetApiError(p.error, p.code);
     } catch (e) {
       if (e instanceof EventTargetApiError) throw e;
-      // Plain text, as http.Error writes it.
     }
     throw new EventTargetApiError(body || String(r.status));
   }
-  if (r.status === 204) return undefined as T;
   const text = await r.text();
   return text ? (JSON.parse(text) as T) : (undefined as T);
 }
@@ -129,11 +120,7 @@ export async function fetchEventTargets(): Promise<EventTargetStatus[]> {
   return (await decode<EventTargetStatus[]>(await fetch('/api/eventtargets'))) ?? [];
 }
 
-/**
- * fetchPlaceholders returns the placeholder vocabulary, or an empty list on
- * failure so the card stays hidden. A guessed list could offer names that are
- * never filled in.
- */
+/** fetchPlaceholders returns the placeholder vocabulary, or an empty list on failure. */
 export async function fetchPlaceholders(): Promise<Placeholder[]> {
   try {
     return (await decode<Placeholder[]>(await fetch('/api/eventtargets/placeholders'))) ?? [];
@@ -143,26 +130,75 @@ export async function fetchPlaceholders(): Promise<Placeholder[]> {
 }
 
 /**
- * testEventTarget really sends one made-up event to this row; it is not a dry
- * run. The draft goes over as it stands, masked secrets included, and the
- * server merges the stored values back as it does on save.
+ * testEventTarget really sends one made-up event to this channel. The draft
+ * goes over with its masked secrets, and the server puts the stored ones back
+ * while the channel keeps its destination.
  */
-export async function testEventTarget(t: EventTargetRow): Promise<EventTargetTest> {
+export async function testEventTarget(c: Channel): Promise<EventTargetTest> {
   return decode<EventTargetTest>(
     await fetch('/api/eventtargets/test', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(t),
+      body: JSON.stringify({ ...c, enabled: true }),
     }),
   );
 }
 
+/** newChannel is a channel of a kind with nothing filled in, switched off. */
+export function newChannel(id: string, kind: ChannelKind, name: string): Channel {
+  const c: Channel = { id, kind, name, enabled: false, on: 'failure' };
+  switch (kind) {
+    case 'webhook':
+      c.webhook = { url: '', method: 'POST' };
+      break;
+    case 'matrix':
+      c.matrix = { homeserver: '', room: '', token: '' };
+      break;
+    case 'smtp':
+      c.smtp = { host: '', from: '', to: '', tls: 'starttls' };
+      break;
+    case 'apprise':
+      c.apprise = { url: '' };
+      break;
+    case 'healthchecks':
+      c.healthchecks = {};
+      break;
+    case 'unraid':
+      break;
+    default:
+      c[kind] = { url: '' };
+  }
+  return c;
+}
+
+/** addressOf is the address a channel sends to, for the row and the host line. */
+export function addressOf(c: Channel): string {
+  switch (c.kind) {
+    case 'matrix':
+      return c.matrix?.homeserver ?? '';
+    case 'smtp':
+      return c.smtp?.host ?? '';
+    case 'unraid':
+      return '';
+    case 'healthchecks':
+      return c.healthchecks?.url ?? '';
+    default:
+      return c[c.kind]?.url ?? '';
+  }
+}
+
+/** nextId returns the lowest unused positive number, as the kit's migration does. */
+export function nextId(channels: readonly Channel[]): string {
+  const taken = new Set(channels.map((c) => c.id));
+  for (let n = 1; ; n++) {
+    if (!taken.has(String(n))) return String(n);
+  }
+}
+
 /**
- * usableAddress asks notify.Validate's questions: does it parse, is it http or
- * https, does it name a host. A refused row would fail the whole settings
- * save, so it is caught here; the server stays the authority, since
- * JavaScript's URL parser is not Go's. Placeholders are stripped first, as
- * `new URL()` rejects "%%".
+ * usableAddress asks the kit's question of an address: does it parse as http
+ * or https with a host. Placeholders are stripped first, as `new URL()`
+ * rejects "%%".
  */
 export function usableAddress(raw: string): boolean {
   const stripped = stripPlaceholders(raw.trim());
@@ -175,11 +211,7 @@ export function usableAddress(raw: string): boolean {
   }
 }
 
-/**
- * hostOf returns the address's host, or "" when it does not parse, like
- * notify.Target.Host: ntfy and Gotify put the credential in the query. Saved
- * rows get it from the server; this covers unsaved ones.
- */
+/** hostOf returns the address's host, or "" when it does not parse. */
 export function hostOf(raw: string): string {
   const stripped = stripPlaceholders(raw.trim());
   if (stripped === null) return '';
@@ -190,42 +222,9 @@ export function hostOf(raw: string): string {
   }
 }
 
-/** The hosts notify's discordHosts names. */
-const DISCORD_HOSTS = new Set([
-  'discord.com',
-  'discordapp.com',
-  'ptb.discord.com',
-  'canary.discord.com',
-  'ptb.discordapp.com',
-  'canary.discordapp.com',
-]);
-
-/**
- * discordWebhook reports whether an address is a Discord webhook, which the
- * server writes a message for while the row has no body of its own. Read the
- * way notify.discordToken reads it: the webhook path exactly, with or without
- * an API version, since the same path with /slack or /github after it takes
- * another payload.
- */
-export function discordWebhook(raw: string): boolean {
-  const stripped = stripPlaceholders(raw.trim());
-  if (stripped === null) return false;
-  try {
-    const u = new URL(stripped);
-    if (!DISCORD_HOSTS.has(u.hostname.toLowerCase())) return false;
-    const parts = u.pathname.replace(/^\/+|\/+$/g, '').split('/');
-    if (parts.length === 5 && parts[1].startsWith('v')) parts.splice(1, 1);
-    return parts.length === 4 && parts[0] === 'api' && parts[1] === 'webhooks' && parts[2] !== '' && parts[3] !== '';
-  } catch {
-    return false;
-  }
-}
-
 /**
  * stripPlaceholders replaces every closed %%name%% with one harmless
- * character, or returns null when a marker is unclosed. A walk, like
- * notify.stripPlaceholders, since counting markers cannot tell valid from
- * invalid.
+ * character, or returns null when a marker is unclosed.
  */
 export function stripPlaceholders(s: string): string | null {
   let out = '';
@@ -240,14 +239,10 @@ export function stripPlaceholders(s: string): string | null {
   }
 }
 
-/** Whether every %% in this template is closed. The server refuses an
- *  unclosed one along with the whole settings save. */
+/** Whether every %% in this template is closed. */
 export const balancedTemplate = (s: string): boolean => stripPlaceholders(s) !== null;
 
-/**
- * formatHeaders writes the headers one per line as "Name: value", sorted like
- * encoding/json sorts map keys, so a save does not reorder them.
- */
+/** formatHeaders writes the headers one per line as "Name: value", sorted. */
 export function formatHeaders(h?: Record<string, string>): string {
   if (!h) return '';
   return Object.keys(h)
@@ -258,9 +253,7 @@ export function formatHeaders(h?: Record<string, string>): string {
 
 /**
  * parseHeaders is the inverse of formatHeaders, or null when a line is not a
- * header; dropping it silently would stop a token being sent. It splits on the
- * first colon, since values often contain one, and trims only the name,
- * because spaces are legal in a value.
+ * header, since dropping it would quietly stop a token being sent.
  */
 export function parseHeaders(text: string): Record<string, string> | null {
   const out: Record<string, string> = {};
@@ -270,7 +263,6 @@ export function parseHeaders(text: string): Record<string, string> | null {
     if (at <= 0) return null;
     const name = raw.slice(0, at).trim();
     if (name === '') return null;
-    // The one space after the colon is formatting, not part of the value.
     out[name] = raw.slice(at + 1).replace(/^ /, '');
   }
   return out;
