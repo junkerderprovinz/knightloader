@@ -799,7 +799,7 @@ export const en = {
   'container.noJD': 'it is encrypted, and only a JDownloader backend can open it. None is set up: set KL_JD to a JDownloader this instance can reach, then restart.',
   'container.usenet': '{file} went to {service}. Its files appear here once {service} has fetched them from Usenet.',
   'container.usenetOwn': '{file} went to your Usenet servers. Its files appear here in a moment and download from there.',
-  'container.noUsenet': 'it is an .nzb, and nothing here can fetch it from Usenet. Add a Usenet server or a TorBox or Premiumize.me account under Accounts.',
+  'container.noUsenet': 'it is an .nzb, and nothing here can fetch it from Usenet. Add a Usenet server or a TorBox, Premiumize.me or Deepbrid account under Accounts.',
 
   // Uploading a .torrent file, and the file tree a multi-file torrent shows
   // before it is added. A magnet link needs none of this: it stages through
@@ -1631,7 +1631,7 @@ export const en = {
   'accounts.server.uncheckedHint': 'KnightLoader logs in to this server only when it downloads from it, so the login is not checked here. If the username or password is wrong, that download says so.',
   'accounts.usenet.title': 'Usenet servers',
   'accounts.usenet.hint':
-    'The servers of your own Usenet provider. KnightLoader logs in and fetches every article of an .nzb itself, with no TorBox or Premiumize.me in between. If an article is missing on every server, the .nzb goes to a debrid account instead, if you have one. The priority order below sets which goes first. Damaged downloads are not repaired yet.',
+    'The servers of your own Usenet provider. KnightLoader logs in and fetches every article of an .nzb itself, with no TorBox, Premiumize.me or Deepbrid in between. If an article is missing on every server, the .nzb goes to a debrid account instead, if you have one. The priority order below sets which goes first. Damaged downloads are not repaired yet.',
   'accounts.usenet.empty': 'No Usenet servers yet',
   'accounts.usenet.emptyHint': 'Add the server your Usenet provider gave you, with your login, and .nzb files are fetched straight from it.',
   'accounts.usenet.add': 'Add a server',
@@ -1708,7 +1708,7 @@ export const en = {
   'accounts.routing.tip.direct': 'Downloads a link that points straight at a file. Filehoster links never go here, and neither do video sites while yt-dlp runs, wherever you put this row.',
   'accounts.routing.tip.login': 'Your own account at this hoster. JDownloader signs in with it.',
   'accounts.routing.tip.ownLogin': 'Your own account at this hoster. KnightLoader signs in with it directly, without JDownloader.',
-  'accounts.routing.tip.nntp': 'Your own Usenet servers. Their place against TorBox and Premiumize.me decides who gets an .nzb first. A job your servers cannot finish goes to the next one down.',
+  'accounts.routing.tip.nntp': 'Your own Usenet servers. Their place against TorBox, Premiumize.me and Deepbrid decides who gets an .nzb first. A job your servers cannot finish goes to the next one down.',
   'accounts.routing.tip.torrent': 'The built-in torrent client. A debrid service that takes torrents and sits above this row fetches magnet links and .torrent files instead.',
   'accounts.routing.tip.debrid': 'Your account at {name}, a debrid service. KnightLoader hands it the link and loads the direct link it gets back, at full speed, without waiting and without captchas.',
   'accounts.hoster.col.host': 'Host',
@@ -2452,13 +2452,13 @@ export const en = {
     'One host name or tracker address per line; its subdomains count too. A torrent that announces to one of them is not added: it is rejected with the reason and waits in the link collector beside the links the link filter rejected. Restoring it there lets it past the line that caught it, not past one you add later. A banned tracker is never added as an extra tracker either.',
   'settings.torrents.debridTitle': 'Through a debrid service',
   'settings.torrents.debridHint':
-    'TorBox, Real-Debrid, AllDebrid, Premiumize.me, Debrid-Link and Linksnappy can fetch magnet links and .torrent files instead of the built-in torrent client. The service downloads the torrent to its own servers, and KnightLoader then fetches the files from there like any other link. Unless you switch on seeding below, nothing seeds from this machine and your address never appears in a swarm, so no port needs to be open. A torrent the service already has is ready at once. The priority order on the Accounts page decides whether a debrid service or the built-in torrent client goes first. A torrent from a private tracker always stays with the built-in torrent client. The file selection on this page chooses the files here too: Real-Debrid and Debrid-Link fetch only those, and from the other services only those come here.',
+    'TorBox, Real-Debrid, AllDebrid, Premiumize.me, Debrid-Link, Linksnappy and Deepbrid can fetch magnet links and .torrent files instead of the built-in torrent client. The service downloads the torrent to its own servers, and KnightLoader then fetches the files from there like any other link. Unless you switch on seeding below, nothing seeds from this machine and your address never appears in a swarm, so no port needs to be open. A torrent the service already has is ready at once. The priority order on the Accounts page decides whether a debrid service or the built-in torrent client goes first. A torrent from a private tracker always stays with the built-in torrent client. The file selection on this page chooses the files here too: Real-Debrid and Debrid-Link fetch only those, and from the other services only those come here. Deepbrid does not list a torrent\'s files, so it always sends the whole torrent.',
   'settings.torrents.keepOnService': 'Keep downloads on the debrid service',
   'settings.torrents.keepOnServiceHint':
     'When this is off, KnightLoader deletes a torrent from the debrid service once all its files are here, so torrents do not pile up against the account\'s limits. When this is on, they stay on the service, for example so you can stream them from there later. A torrent KnightLoader added is deleted either way if you remove it before it has finished, and one the account already had is never deleted.',
   'settings.torrents.cachedOnly': 'Send only cached torrents to the debrid service',
   'settings.torrents.cachedOnlyHint':
-    'When this is on, KnightLoader first asks a debrid service whether it already has the torrent cached. If it has, the service fetches the torrent as usual. If not, the torrent moves on down the priority order on the Accounts page, usually to the built-in torrent client, even though the service would have taken it. TorBox, Premiumize.me and Linksnappy are asked directly. Real-Debrid, AllDebrid and Debrid-Link have no way to ask, so KnightLoader adds the torrent there and removes it again if they do not have it ready, which takes a few seconds. A check that fails or takes longer than 15 seconds counts as not cached. A torrent pinned to a debrid service still goes there.',
+    'When this is on, KnightLoader first asks a debrid service whether it already has the torrent cached. If it has, the service fetches the torrent as usual. If not, the torrent moves on down the priority order on the Accounts page, usually to the built-in torrent client, even though the service would have taken it. TorBox, Premiumize.me and Linksnappy are asked directly. Real-Debrid, AllDebrid, Debrid-Link and Deepbrid have no way to ask, so KnightLoader adds the torrent there and removes it again if they do not have it ready, which takes a few seconds. A check that fails or takes longer than 15 seconds counts as not cached. A torrent pinned to a debrid service still goes there.',
   'settings.torrents.debridStall': 'Give up on a debrid service after',
   'settings.torrents.debridStallUnit': 'minutes without progress',
   'settings.torrents.debridStallHint':
@@ -4134,6 +4134,7 @@ export const en = {
   'whatsnew.change.cloudNative': 'Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer and SwissTransfer links download without JDownloader, and a shared folder or a transfer becomes one row per file.',
   'whatsnew.change.freeFilehostsNative': 'Krakenfiles, Workupload and Send.now links download for free without JDownloader too. Krakenfiles\' captcha goes to the phone app and your captcha accounts, and the waits show on the download.',
   'whatsnew.change.captchaAlwaysOn': 'Captchas can no longer be switched off. They always show in the web interface and in the phone app.',
+  'whatsnew.change.deepbridTorrentsUsenet': 'A Deepbrid premium account fetches torrents and .nzb files too, like TorBox and Premiumize.me. Thanks to @Kayn2106 for asking for it.',
   'whatsnew.change.oled': '{oled} under {theme} puts the dark look on true black for OLED and AMOLED screens. It counts whenever the dark look shows, also when it follows the system, and each device keeps its own choice.',
   'whatsnew.change.systemAccent': 'The wand swatch at the start of {accent} takes the system\'s colour: Material You on Android 12 and newer, the accent colour of Windows, macOS or Linux in the desktop app, and the system colour in Firefox and Safari. Where the system has none, the swatch isn\'t there. Choosing it changes only this device, and the others keep the instance\'s colour.',
   'whatsnew.change.fileKindsMore': 'Links show more kinds of file by their symbol: PDFs, office documents, spreadsheets, presentations, e-books, playlists, disk images, programs, fonts, 3D models, checksums, torrents, RAW photos and design files.',

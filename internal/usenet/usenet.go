@@ -1,7 +1,8 @@
 // Package usenet fetches an .nzb through a debrid service that has Usenet
-// access, TorBox or Premiumize.me. The service downloads the articles, repairs
-// and unpacks them in its own cloud, and hands back ordinary files, which the
-// app then downloads with its own engine like any other link.
+// access, TorBox, Premiumize.me or Deepbrid. The service downloads the
+// articles, repairs and unpacks them in its own cloud, and hands back ordinary
+// files, which the app then downloads with its own engine like any other link.
+// Deepbrid serves the files straight out of the archives instead.
 //
 // This package owns the part in between: the queue of NZBs waiting for a
 // service that will take them, the per-account submit limit, the polling until
@@ -80,6 +81,9 @@ type Status struct {
 	Speed    int64
 	// Files is set once Phase is PhaseReady.
 	Files []File
+	// Note is what the service says about the files of a ready job, such as
+	// those it left out because it cannot serve them.
+	Note string
 	// Reason is the service's explanation for PhaseFailed.
 	Reason string
 }

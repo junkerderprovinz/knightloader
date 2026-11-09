@@ -2,8 +2,8 @@ package app
 
 // Usenet. An .nzb from Sonarr or Radarr, the upload button or a drop folder
 // goes to the first account on the priority card that takes it
-// (internal/usenet): the user's own Usenet servers or a TorBox or
-// Premiumize.me account. A service fetches and unpacks it first, and each
+// (internal/usenet): the user's own Usenet servers or a TorBox, Premiumize.me
+// or Deepbrid account. A service fetches and unpacks it first, and each
 // file it hands back becomes an ordinary task the engine downloads. With the
 // own servers each file of the .nzb is a task at once, whose articles
 // internal/usenet/local fetches; a job they cannot complete goes on to the
@@ -31,7 +31,7 @@ import (
 // it from Usenet. It is refused rather than read for links: the only address
 // in it is its XML namespace.
 var ErrNZBNeedsUsenet = errors.New(
-	"an .nzb needs a Usenet server, or a TorBox or Premiumize.me account, and none is set up here")
+	"an .nzb needs a Usenet server, or a TorBox, Premiumize.me or Deepbrid account, and none is set up here")
 
 // usenetState is one App's NZB queue and the backends its files download
 // through.
@@ -82,9 +82,9 @@ func (a *App) usenetStateFor() *usenetState {
 	return st
 }
 
-// rewireUsenet offers NZBs to the own Usenet servers, the stored TorBox
-// accounts and the Premiumize.me ones, in the order the priority card ranks
-// the three. It runs with every rewireBackends and every saved settings
+// rewireUsenet offers NZBs to the own Usenet servers and the stored TorBox,
+// Premiumize.me and Deepbrid accounts, in the order the priority card ranks
+// them. It runs with every rewireBackends and every saved settings
 // document, since the card and the servers are both kept there.
 func (a *App) rewireUsenet() {
 	// Both claim only the links a job's files were staged under, so they are
@@ -120,6 +120,11 @@ func (a *App) rewireUsenet() {
 			services = append(services, usenet.NewPremiumize(usenet.PremiumizeAPI, resolver.SlotID("premiumize", acct.account), acct.cred.APIKey))
 		}
 	}
+	for _, acct := range a.routedAccounts("deepbrid") {
+		if acct.cred.APIKey != "" {
+			services = append(services, usenet.NewDeepbrid(usenet.DeepbridAPI, resolver.SlotID("deepbrid", acct.account), acct.cred.APIKey))
+		}
+	}
 	order := a.Settings.Get().ResolverOrder
 	slices.SortStableFunc(services, func(x, y usenet.Service) int {
 		return usenetRank(y.Slot(), order) - usenetRank(x.Slot(), order)
@@ -130,7 +135,7 @@ func (a *App) rewireUsenet() {
 // usenetRank is where the priority card puts the service behind slot, ranked
 // as dynamicPrio ranks the resolvers: a hand-arranged order first, the
 // resolvers' own priorities otherwise, the own servers above TorBox above
-// Premiumize.me.
+// Premiumize.me above Deepbrid.
 func usenetRank(slot string, order []string) int {
 	service, _ := resolver.SplitSlot(slot)
 	if i := slices.Index(order, service); i >= 0 {

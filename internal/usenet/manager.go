@@ -72,8 +72,10 @@ type Job struct {
 	Size   int64 `json:"size,omitempty"`
 	Loaded int64 `json:"loaded,omitempty"`
 	Speed  int64 `json:"-"`
-	// Reason is why a failed job failed.
+	// Reason is why a failed job failed, and Note what the service said about
+	// the files of a staged one.
 	Reason  string   `json:"reason,omitempty"`
+	Note    string   `json:"note,omitempty"`
 	TaskIDs []string `json:"taskIds,omitempty"`
 	// Kept lists the tasks whose files an account had finished before the job
 	// was handed on. The next account's copies of those files are not staged,
@@ -106,7 +108,7 @@ const (
 )
 
 // ErrNoService is an NZB offered while no account can take one.
-var ErrNoService = errors.New("no Usenet server, TorBox or Premiumize.me account here can fetch an .nzb")
+var ErrNoService = errors.New("no Usenet server, TorBox, Premiumize.me or Deepbrid account here can fetch an .nzb")
 
 const (
 	defaultInterval = 5 * time.Second
@@ -769,12 +771,12 @@ func (m *Manager) observe(id string, st Status, found bool) {
 	}
 	m.mu.Unlock()
 	if st.Phase == PhaseReady {
-		m.stage(id, st.Files)
+		m.stage(id, st.Files, st.Note)
 	}
 }
 
 // stage hands a finished job's files to the app.
-func (m *Manager) stage(id string, files []File) {
+func (m *Manager) stage(id string, files []File, note string) {
 	m.stageMu.Lock()
 	defer m.stageMu.Unlock()
 	j, ok := m.Get(id)
@@ -791,8 +793,11 @@ func (m *Manager) stage(id string, files []File) {
 			m.failLocked(j, "every file of this download is already in the list")
 		default:
 			j.State, j.TaskIDs, j.Kept, j.Ended = StateStaged, ids, nil, m.o.Now()
-			j.Loaded, j.Speed = j.Size, 0
+			j.Loaded, j.Speed, j.Note = j.Size, 0, note
 			staged = true
+			if note != "" {
+				log.Printf("usenet: %s from %s: %s", j.Name, j.Label, note)
+			}
 		}
 	})
 	if staged && start != nil {
@@ -861,7 +866,7 @@ func (m *Manager) Fallback(slot, remote, reason string) ([]string, bool) {
 	j.State, j.Refused, j.Reason = StateWaiting, trial.Refused, reason
 	j.Service, j.Label, j.Remote, j.Taken = "", "", "", time.Time{}
 	j.TaskIDs, j.Loaded, j.Speed, j.Ended, j.Cleared = nil, 0, 0, time.Time{}, false
-	j.Attempts, j.RetryAt, j.Check = 0, time.Time{}, CheckNone
+	j.Attempts, j.RetryAt, j.Check, j.Note = 0, time.Time{}, CheckNone, ""
 	m.saveLocked()
 	m.mu.Unlock()
 	log.Printf("usenet: %s goes to the next account: %s", trial.Name, reason)

@@ -64,6 +64,7 @@ export const RELEASES: Release[] = [
       { id: 'free-hosters-native', text: 'whatsnew.change.freeHostersNative' },
       { id: 'free-filehosts-native', text: 'whatsnew.change.freeFilehostsNative' },
       { id: 'captcha-always-on', text: 'whatsnew.change.captchaAlwaysOn' },
+      { id: 'deepbrid-torrents-usenet', text: 'whatsnew.change.deepbridTorrentsUsenet' },
     ],
   },
   {
