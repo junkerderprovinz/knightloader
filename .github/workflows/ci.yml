@@ -502,6 +502,9 @@ jobs:
       - name: No :has() reads the class or style attribute
         run: node extension/check-has-selector.mjs
 
+      - name: A well keeps to one row
+        run: node extension/check-selector-fit.mjs
+
       # --self-hosted checks the package without AMO listing metadata. Two
       # findings are skipped, both from one manifest serving every browser: it
       # declares both background forms, and it uses Chromium's offscreen
@@ -672,6 +675,12 @@ jobs:
 
       - name: Instances that are away
         run: node check-away.mjs
+
+      - name: Where a carried row lands
+        run: node check-drag-order.mjs
+
+      - name: A well keeps to one row
+        run: node check-well-selector.mjs
 
   # Compiles and tests the desktop module on every relevant push, since
   # desktop.yml only runs for releases. Packaging stays in desktop.yml. gtk3 is

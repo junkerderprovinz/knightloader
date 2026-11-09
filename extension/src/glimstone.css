@@ -456,15 +456,17 @@ body {
 
 /* The "well" variant of the web UI's Tabs: one padded track across the whole
  * width of its box, as the popup's tab strip, since a track that stops short
- * reads as a control that ran out of options. The segments share that width
- * equally while every label fits on one line; a label that needs more keeps
- * its line and the others share the rest. A long translation in a narrow
- * window wraps the track rather than pushing it out of the card, and each row
- * fills its width, so the track shows no empty end.
+ * reads as a control that ran out of options. It keeps to one row
+ * (selectorFit.js): the segments share that width equally while every label
+ * fits on one line, a label that needs more keeps its line and the others
+ * share the rest, and where that does not fit either the glyphs stand alone.
+ * A row that does not fit gives way inside its box, so its labels must not
+ * widen the box around it.
  */
 .glim-seg {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  contain: inline-size;
   gap: 2px;
   padding: 3px;
   background: var(--carbon-surface2);
@@ -476,7 +478,7 @@ body {
    inside a pill's arc. */
 .glim-seg button {
   flex: 1 1 0;
-  min-width: max-content;
+  min-width: 0;
   padding: 6px 14px;
   border: 0;
   border-radius: var(--radius-pill);
@@ -497,20 +499,36 @@ body {
   gap: 6px;
 }
 
-/* The small size, for a selector at the end of a settings row: the same well
- * with the width binding off. The track is as wide as its segments and each
- * segment hugs its own label, wrapping inside itself before it pushes the
- * track out of its row. */
-.glim-seg--hug { width: fit-content; max-width: 100%; }
-.glim-seg--hug button { flex: 1 1 auto; min-width: 0; }
-
-/* A selector whose labels run long stands two to a row below 600px
-   (GlimStone 3.8.0), so its segments make a grid of halves instead of a row
-   that cuts its words, and a label that does not fit its half wraps. */
-.glim-seg--pairs button { flex: 1 0 var(--seg-basis, auto); }
-@media (max-width: 600px) {
-  .glim-seg--pairs { width: 100%; --seg-basis: calc(50% - 1px); }
+/* A label never takes a second line. */
+.glim-seg button > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
+/* Laid out by their labels, the segments start from them and share out what
+   is left, so a long name keeps its words while the short ones give up room. */
+.glim-seg--content button { flex: 1 0 auto; }
+
+/* Squeezed, each segment shows its glyph and keeps its label as its name and
+   its bubble. */
+.glim-seg--squeezed button > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The small size, for a selector at the end of a settings row: the same well
+ * with the width binding off. Each segment hugs its own label, and
+ * selectorFit.js gives the track its width, the segments side by side or the
+ * whole box once they do not fit. */
+.glim-seg--hug { max-width: 100%; }
+.glim-seg--hug button { flex: 1 0 auto; }
+.glim-seg--hug.glim-seg--squeezed button { flex: 1 1 0; }
 
 .glim-seg button:hover { color: var(--carbon-text); }
 

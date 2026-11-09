@@ -161,7 +161,7 @@ if (m) {
     }
     const sn = m.motionNumbers('storm', true);
     const st = table.storm ?? {};
-    if (sn.wiggleDeg !== 0 || sn.wiggleDur !== 0) {
+    if (sn.wiggleTilt !== 0 || sn.wiggleLift !== 0 || sn.wiggleDur !== 0) {
       fail(`${MOTION_MODULE}: the storm's wiggle still loops under reduced motion - the exemption stops at anything continuous`);
     }
     for (const k of Object.keys(st).filter((k) => !k.startsWith('wiggle'))) {

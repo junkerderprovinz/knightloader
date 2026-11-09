@@ -177,21 +177,21 @@ export const IconClose = (p: GlyphProps) => (
   </svg>
 );
 
-/** Minimise a window: Drawn for KnightLoader. */
+/** Minimise a window: Drawn for GlimStone. */
 export const IconWindowMinimise = (p: GlyphProps) => (
   <svg {...glyph([0, 6, 14, 2], p)}>
     <rect x="0" y="6" width="14" height="2" rx="1" />
   </svg>
 );
 
-/** Maximise a window: Drawn for KnightLoader. */
+/** Maximise a window: Drawn for GlimStone. */
 export const IconWindowMaximise = (p: GlyphProps) => (
   <svg {...glyph([0, 0, 14, 14], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M2.5 0h9A2.5 2.5 0 0 1 14 2.5v9a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 0 11.5v-9A2.5 2.5 0 0 1 2.5 0Zm0 2a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5Z" />
   </svg>
 );
 
-/** Restore a maximised window: Drawn for KnightLoader. */
+/** Restore a maximised window: Drawn for GlimStone. */
 export const IconWindowRestore = (p: GlyphProps) => (
   <svg {...glyph([0, 0, 14, 14], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M2.5 3h6A2.5 2.5 0 0 1 11 5.5v6A2.5 2.5 0 0 1 8.5 14h-6A2.5 2.5 0 0 1 0 11.5v-6A2.5 2.5 0 0 1 2.5 3Zm0 2a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5Z" />
@@ -349,7 +349,7 @@ export const IconMore = (p: GlyphProps) => (
   </svg>
 );
 
-/** Menu: KnightLoader's drawing on a 20-unit grid. */
+/** Menu: Drawn on a 20-unit grid. */
 export const IconMenu = (p: GlyphProps) => (
   <svg {...glyph([3, 5, 14, 10], p)}>
     <rect x="3" y="5" width="14" height="2" rx="1" />
@@ -372,14 +372,14 @@ export const IconCompact = (p: GlyphProps) => (
   </svg>
 );
 
-/** Back: KnightLoader's drawing on a 20-unit grid. */
+/** Back: Drawn on a 20-unit grid. */
 export const IconBack = (p: GlyphProps) => (
   <svg {...glyph([6.6, 3.6, 8.1, 12.8], p)}>
     <path d="M6.6 10 13 3.6l1.7 1.7L10 10l4.7 4.7-1.7 1.7L6.6 10Z" />
   </svg>
 );
 
-/** Next, continue: KnightLoader's drawing on a 20-unit grid. */
+/** Next, continue: Drawn on a 20-unit grid. */
 export const IconForward = (p: GlyphProps) => (
   <svg {...glyph([5.3, 3.6, 8.1, 12.8], p)}>
     <path d="M13.4 10 7 16.4l-1.7-1.7L10 10 5.3 5.3 7 3.6 13.4 10Z" />
@@ -425,14 +425,14 @@ export const IconMove = (p: GlyphProps) => (
   </svg>
 );
 
-/** Expand: KnightLoader's drawing on a 20-unit grid. */
+/** Expand: Drawn on a 20-unit grid. */
 export const IconExpand = (p: GlyphProps) => (
   <svg {...glyph([3.6, 5.3, 12.8, 8.1], p)}>
     <path d="M10 13.4 3.6 7l1.7-1.7L10 10l4.7-4.7L16.4 7 10 13.4Z" />
   </svg>
 );
 
-/** Collapse: KnightLoader's drawing on a 20-unit grid. */
+/** Collapse: Drawn on a 20-unit grid. */
 export const IconCollapse = (p: GlyphProps) => (
   <svg {...glyph([3.6, 6.6, 12.8, 8.1], p)}>
     <path d="M10 6.6 16.4 13l-1.7 1.7L10 10l-4.7 4.7L3.6 13 10 6.6Z" />
@@ -474,14 +474,14 @@ export const IconFilter = (p: GlyphProps) => (
   </svg>
 );
 
-/** Pin: KnightLoader's drawing on a 20-unit grid. */
+/** Pin: Drawn on a 20-unit grid. */
 export const IconPin = (p: GlyphProps) => (
   <svg {...glyph([5, 2.5, 10, 15.5], p)}>
     <path d="M6 2.5h8v2h-1.8v4.5l2.8 2v1.6h-4.3v3.9L10 18l-.7-1.5v-3.9H5V11l2.8-2V4.5H6Z" />
   </svg>
 );
 
-/** Priority: KnightLoader's drawing on a 20-unit grid. */
+/** Priority: Drawn on a 20-unit grid. */
 export const IconPriority = (p: GlyphProps) => (
   <svg {...glyph([4, 4.7, 12, 10.6], p)}>
     <rect x="4" y="4.7" width="12" height="1.6" rx=".8" />
@@ -490,7 +490,7 @@ export const IconPriority = (p: GlyphProps) => (
   </svg>
 );
 
-/** Drag to reorder: Drawn for TowerTorch, commit 25aab69. */
+/** Drag to reorder: Drawn for GlimStone. */
 export const IconGrip = (p: GlyphProps) => (
   <svg {...glyph([3, 1, 8, 12], p)}>
     <path d="M4.5 1a1.5 1.5 0 1 1 0 3a1.5 1.5 0 1 1 0 -3ZM9.5 1a1.5 1.5 0 1 1 0 3a1.5 1.5 0 1 1 0 -3ZM4.5 5.5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 1 1 0 -3ZM9.5 5.5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 1 1 0 -3ZM4.5 10a1.5 1.5 0 1 1 0 3a1.5 1.5 0 1 1 0 -3ZM9.5 10a1.5 1.5 0 1 1 0 3a1.5 1.5 0 1 1 0 -3Z" />
@@ -511,7 +511,7 @@ export const IconWarning = (p: GlyphProps) => (
   </svg>
 );
 
-/** Right away: KnightLoader's drawing on a 20-unit grid. */
+/** Right away: Drawn on a 20-unit grid. */
 export const IconBolt = (p: GlyphProps) => (
   <svg {...glyph([4.8, 2.4, 10.4, 15.2], p)}>
     <path d="M11.3 2.4 4.8 11.2h3.6L7.6 17.6 15.2 8.8h-3.7z" />
@@ -567,63 +567,63 @@ export const IconSun = (p: GlyphProps) => (
   </svg>
 );
 
-/** The look follows the device, light or dark: Drawn for ArrowLoop after BombVault's System theme mark, ArrowLoop commit 771005df. */
+/** The look follows the device, light or dark: Drawn for GlimStone. */
 export const IconThemeSystem = (p: GlyphProps) => (
   <svg {...glyph([0, 0, 14, 14], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M7 0a7 7 0 1 0 0 14A7 7 0 1 0 7 0ZM7 2A5 5 0 0 0 7 12Z" />
   </svg>
 );
 
-/** Round corners: Drawn for ArrowLoop, commit 771005df. */
+/** Round corners: Drawn for GlimStone. */
 export const IconCornerRound = (p: GlyphProps) => (
   <svg {...glyph([0, 0, 14, 14], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M6 0H8A6 6 0 0 1 14 6V8A6 6 0 0 1 8 14H6A6 6 0 0 1 0 8V6A6 6 0 0 1 6 0ZM6 2H8A4 4 0 0 1 12 6V8A4 4 0 0 1 8 12H6A4 4 0 0 1 2 8V6A4 4 0 0 1 6 2Z" />
   </svg>
 );
 
-/** Softly rounded corners: Drawn for ArrowLoop, commit 771005df. */
+/** Softly rounded corners: Drawn for GlimStone. */
 export const IconCornerSoft = (p: GlyphProps) => (
   <svg {...glyph([0, 0, 14, 14], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M3 0H11A3 3 0 0 1 14 3V11A3 3 0 0 1 11 14H3A3 3 0 0 1 0 11V3A3 3 0 0 1 3 0ZM3 2H11A1 1 0 0 1 12 3V11A1 1 0 0 1 11 12H3A1 1 0 0 1 2 11V3A1 1 0 0 1 3 2Z" />
   </svg>
 );
 
-/** Square corners: Drawn for ArrowLoop, commit 771005df. */
+/** Square corners: Drawn for GlimStone. */
 export const IconCornerSquare = (p: GlyphProps) => (
   <svg {...glyph([0, 0, 14, 14], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M0 0H14V14H0ZM2 2H12V12H2Z" />
   </svg>
 );
 
-/** The leaf: two opposite corners round, the other two square: Drawn for ArrowLoop, commit 771005df. */
+/** The leaf: two opposite corners round, the other two square: Drawn for GlimStone. */
 export const IconCornerLeaf = (p: GlyphProps) => (
   <svg {...glyph([0, 0, 14, 14], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M6 0H14V8A6 6 0 0 1 8 14H0V6A6 6 0 0 1 6 0ZM6 2H12V8A4 4 0 0 1 8 12H2V6A4 4 0 0 1 6 2Z" />
   </svg>
 );
 
-/** No motion: Drawn for ArrowLoop, commit 771005df. */
+/** No motion: Drawn for GlimStone. */
 export const IconMotionOff = (p: GlyphProps) => (
   <svg {...glyph([0, 6, 14, 2], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M1 6H13A1 1 0 0 1 13 8H1A1 1 0 0 1 1 6Z" />
   </svg>
 );
 
-/** Gentle motion: Drawn for ArrowLoop, commit 771005df. */
+/** Gentle motion: Drawn for GlimStone. */
 export const IconMotionSubtle = (p: GlyphProps) => (
   <svg {...glyph([0, 4.408, 14, 5.184], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M1.48 7.88 2.63 6.98 3.24 6.6 3.51 6.49 3.79 6.42 4.04 6.4 4.3 6.44 4.76 6.6 5.24 6.89 5.78 7.29 7.3 8.52 7.73 8.83 8.18 9.1 8.73 9.36 9.24 9.51 9.77 9.59 10.23 9.59 10.76 9.51 11.37 9.32 11.93 9.04 12.54 8.65 13.26 8.09 13.78 7.63 13.89 7.46 13.96 7.28 14 7.09 13.99 6.89 13.95 6.7 13.88 6.52 13.77 6.36 13.63 6.22 13.46 6.11 13.28 6.04 13.09 6 12.89 6.01 12.7 6.05 12.52 6.12 11.44 6.97 11.05 7.23 10.76 7.4 10.49 7.51 10.21 7.58 9.96 7.6 9.7 7.56 9.24 7.4 8.76 7.11 8.22 6.71 6.7 5.48 6.27 5.17 5.82 4.9 5.27 4.64 4.76 4.49 4.23 4.41 3.77 4.41 3.34 4.47 2.86 4.6 2.44 4.77 2 5 1.46 5.35 0.82 5.85 0.36 6.23 0.22 6.37 0.11 6.54 0.04 6.72 0 6.91 0.01 7.11 0.05 7.3 0.12 7.48 0.23 7.64 0.37 7.78 0.54 7.89 0.72 7.96 0.91 8 1.11 7.99 1.3 7.95Z" />
   </svg>
 );
 
-/** Wild motion: Drawn for ArrowLoop, commit 771005df. */
+/** Wild motion: Drawn for GlimStone. */
 export const IconMotionWild = (p: GlyphProps) => (
   <svg {...glyph([0, 2.401, 14, 9.196], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M1.86 7.51 2.6 5.56 3 4.7 3.24 5.18 3.52 5.86 4.73 9.14 5.04 9.87 5.32 10.39 5.7 10.94 5.88 11.12 6.1 11.3 6.39 11.47 6.61 11.55 6.84 11.59 7.08 11.6 7.32 11.56 7.53 11.5 7.73 11.41 7.97 11.25 8.18 11.07 8.37 10.85 8.7 10.36 8.96 9.87 9.27 9.14 10.48 5.86 10.76 5.18 11 4.7 11.19 5.08 11.47 5.73 12.06 7.33 12.14 7.51 12.26 7.67 12.4 7.8 12.57 7.9 12.75 7.97 12.95 8 13.14 7.99 13.33 7.94 13.51 7.86 13.67 7.74 13.8 7.6 13.9 7.43 13.97 7.25 14 7.05 13.99 6.86 13.94 6.67 13.25 4.81 12.84 3.91 12.44 3.25 12.21 2.97 12 2.77 11.74 2.6 11.54 2.5 11.24 2.42 11 2.4 10.76 2.42 10.53 2.48 10.14 2.67 9.84 2.92 9.49 3.35 9.19 3.85 8.93 4.37 8.62 5.13 7.42 8.38 7.22 8.87 7 9.3 6.78 8.87 6.51 8.2 5.3 4.93 4.98 4.19 4.71 3.66 4.33 3.11 4.16 2.92 3.95 2.73 3.68 2.56 3.47 2.48 3.24 2.42 3 2.4 2.76 2.42 2.54 2.48 2.16 2.66 1.79 2.97 1.45 3.4 1.08 4.05 0.75 4.79 0.28 6.03 0.06 6.67 0.01 6.86 0 7.05 0.03 7.25 0.1 7.43 0.2 7.6 0.33 7.74 0.49 7.86 0.67 7.94 0.86 7.99 1.05 8 1.25 7.97 1.43 7.9 1.6 7.8 1.74 7.67Z" />
   </svg>
 );
 
-/** The storm, the hidden level above wild: Drawn for ArrowLoop, commit 771005df. */
+/** The storm, the hidden level above wild: Drawn for GlimStone. */
 export const IconMotionStorm = (p: GlyphProps) => (
   <svg {...glyph([0, 1.2, 14, 11.588], p)}>
     <path fillRule="evenodd" clipRule="evenodd" d="M2.5 4.72 3.44 9.26 3.82 10.77 4.03 11.42 4.25 11.91 4.52 12.32 4.76 12.55 5.01 12.69 5.34 12.79 5.66 12.79 5.99 12.69 6.24 12.55 6.42 12.39 6.61 12.15 6.81 11.79 6.97 11.42 7.12 10.99 7.43 9.81 8.5 4.72 9.32 8.69 9.63 10.06 9.95 11.19 10.09 11.57 10.25 11.91 10.45 12.23 10.7 12.5 11.01 12.69 11.34 12.79 11.66 12.79 11.99 12.69 12.3 12.5 12.55 12.23 12.75 11.91 12.97 11.42 13.18 10.79 13.37 10.06 13.62 8.97 13.98 7.2 14 7 13.98 6.81 13.92 6.62 13.83 6.44 13.71 6.29 13.56 6.17 13.38 6.08 13.2 6.02 13 6 12.81 6.02 12.62 6.08 12.44 6.17 12.29 6.29 12.17 6.44 12.08 6.62 12.02 6.8 11.5 9.28 10.56 4.74 10.18 3.23 9.97 2.58 9.75 2.09 9.48 1.68 9.24 1.45 8.99 1.31 8.66 1.21 8.34 1.21 8.01 1.31 7.76 1.45 7.58 1.61 7.39 1.85 7.19 2.21 7.03 2.58 6.88 3.01 6.57 4.19 5.5 9.28 4.49 4.46 4.24 3.44 3.98 2.61 3.72 2.03 3.55 1.77 3.42 1.61 3.24 1.45 2.99 1.31 2.72 1.22 2.5 1.2 2.28 1.22 1.95 1.33 1.7 1.5 1.52 1.68 1.34 1.93 1.19 2.21 1.03 2.58 0.88 3.01 0.69 3.7 0.44 4.74 0.02 6.8 0 7 0.02 7.19 0.08 7.38 0.17 7.56 0.29 7.71 0.44 7.83 0.62 7.92 0.8 7.98 1 8 1.19 7.98 1.38 7.92 1.56 7.83 1.71 7.71 1.83 7.56 1.92 7.38 1.98 7.2Z" />
@@ -770,98 +770,98 @@ export const IconFile = (p: GlyphProps) => (
   </svg>
 );
 
-/** A RAW photo straight from the camera: Drawn for CannonCommander. */
+/** A RAW photo straight from the camera: Drawn for GlimStone. */
 export const IconFileRaw = (p: GlyphProps) => (
   <svg {...glyph([0.5, 1.5, 13, 11], p)}>
     <path fillRule="evenodd" d="M2 3H4L4.8 1.5H9.2L10 3H12A1.5 1.5 0 0 1 13.5 4.5V11A1.5 1.5 0 0 1 12 12.5H2A1.5 1.5 0 0 1 0.5 11V4.5A1.5 1.5 0 0 1 2 3ZM4 7.75A3 3 0 1 0 10 7.75A3 3 0 1 0 4 7.75ZM5.5 7.75A1.5 1.5 0 1 0 8.5 7.75A1.5 1.5 0 1 0 5.5 7.75Z" />
   </svg>
 );
 
-/** A design or vector graphic: Drawn for CannonCommander. */
+/** A design or vector graphic: Drawn for GlimStone. */
 export const IconFileDesign = (p: GlyphProps) => (
   <svg {...glyph([2.5, 0.75, 9, 12.75], p)}>
     <path fillRule="evenodd" d="M7 0.75L11.5 6.25L9 11.75H5L2.5 6.25ZM5.85 7A1.15 1.15 0 1 0 8.15 7A1.15 1.15 0 1 0 5.85 7ZM6.6 1.9H7.4V5.8H6.6ZM5 12.5H9A0.5 0.5 0 0 1 9.5 13V13A0.5 0.5 0 0 1 9 13.5H5A0.5 0.5 0 0 1 4.5 13V13A0.5 0.5 0 0 1 5 12.5Z" />
   </svg>
 );
 
-/** A playlist: Drawn for CannonCommander. */
+/** A playlist: Drawn for GlimStone. */
 export const IconFilePlaylist = (p: GlyphProps) => (
   <svg {...glyph([0.75, 1.75, 12.75, 11.504], p)}>
     <path fillRule="evenodd" d="M1.5 1.75H9A0.75 0.75 0 0 1 9.75 2.5V2.5A0.75 0.75 0 0 1 9 3.25H1.5A0.75 0.75 0 0 1 0.75 2.5V2.5A0.75 0.75 0 0 1 1.5 1.75ZM1.5 5.25H9A0.75 0.75 0 0 1 9.75 6V6A0.75 0.75 0 0 1 9 6.75H1.5A0.75 0.75 0 0 1 0.75 6V6A0.75 0.75 0 0 1 1.5 5.25ZM1.5 8.75H5A0.75 0.75 0 0 1 5.75 9.5V9.5A0.75 0.75 0 0 1 5 10.25H1.5A0.75 0.75 0 0 1 0.75 9.5V9.5A0.75 0.75 0 0 1 1.5 8.75ZM11.5 4.25H12.75L13.5 5V6.25L12.75 5.75V11.25A2 2 0 1 1 11.5 9.4Z" />
   </svg>
 );
 
-/** A PDF document: Drawn for CannonCommander. */
+/** A PDF document: Drawn for GlimStone. */
 export const IconFilePdf = (p: GlyphProps) => (
   <svg {...glyph([2, 0.5, 10, 13], p)}>
     <path fillRule="evenodd" d="M3.5 0.5H8.75L12 3.75V12A1.5 1.5 0 0 1 10.5 13.5H3.5A1.5 1.5 0 0 1 2 12V2A1.5 1.5 0 0 1 3.5 0.5ZM5 5H7.75A1.75 1.75 0 0 1 7.75 8.5H6.5V11H5ZM6.5 6.25H7.65A0.5 0.5 0 0 1 7.65 7.25H6.5Z" />
   </svg>
 );
 
-/** A text document from an office suite: Drawn for CannonCommander. */
+/** A text document from an office suite: Drawn for GlimStone. */
 export const IconFileDoc = (p: GlyphProps) => (
   <svg {...glyph([2, 0.5, 10, 13], p)}>
     <path fillRule="evenodd" d="M3.5 0.5H8.75L12 3.75V12A1.5 1.5 0 0 1 10.5 13.5H3.5A1.5 1.5 0 0 1 2 12V2A1.5 1.5 0 0 1 3.5 0.5ZM4.55 5.25H9.45A0.55 0.55 0 0 1 10 5.8V5.8A0.55 0.55 0 0 1 9.45 6.35H4.55A0.55 0.55 0 0 1 4 5.8V5.8A0.55 0.55 0 0 1 4.55 5.25ZM4.55 7.5H9.45A0.55 0.55 0 0 1 10 8.05V8.05A0.55 0.55 0 0 1 9.45 8.6H4.55A0.55 0.55 0 0 1 4 8.05V8.05A0.55 0.55 0 0 1 4.55 7.5ZM4.55 9.75H7.45A0.55 0.55 0 0 1 8 10.3V10.3A0.55 0.55 0 0 1 7.45 10.85H4.55A0.55 0.55 0 0 1 4 10.3V10.3A0.55 0.55 0 0 1 4.55 9.75Z" />
   </svg>
 );
 
-/** A spreadsheet: Drawn for CannonCommander. */
+/** A spreadsheet: Drawn for GlimStone. */
 export const IconFileSheet = (p: GlyphProps) => (
   <svg {...glyph([2, 0.5, 10, 13], p)}>
     <path fillRule="evenodd" d="M3.5 0.5H8.75L12 3.75V12A1.5 1.5 0 0 1 10.5 13.5H3.5A1.5 1.5 0 0 1 2 12V2A1.5 1.5 0 0 1 3.5 0.5ZM4 5H6.6V6.75H4ZM7.4 5H10V6.75H7.4ZM4 7.5H6.6V9.25H4ZM7.4 7.5H10V9.25H7.4ZM4 10H6.6V11.75H4ZM7.4 10H10V11.75H7.4Z" />
   </svg>
 );
 
-/** A presentation: Drawn for CannonCommander. */
+/** A presentation: Drawn for GlimStone. */
 export const IconFileSlides = (p: GlyphProps) => (
   <svg {...glyph([0.5, 1, 13, 12.25], p)}>
     <path fillRule="evenodd" d="M1.75 1H12.25A1.25 1.25 0 0 1 13.5 2.25V8.25A1.25 1.25 0 0 1 12.25 9.5H1.75A1.25 1.25 0 0 1 0.5 8.25V2.25A1.25 1.25 0 0 1 1.75 1ZM3 5.5H4.5V8H3ZM6.25 3.5H7.75V8H6.25ZM9.5 4.5H11V8H9.5ZM6.25 9.5H7.75V12H6.25ZM4.125 12H9.875A0.625 0.625 0 0 1 10.5 12.625V12.625A0.625 0.625 0 0 1 9.875 13.25H4.125A0.625 0.625 0 0 1 3.5 12.625V12.625A0.625 0.625 0 0 1 4.125 12Z" />
   </svg>
 );
 
-/** An e-book: Drawn for CannonCommander. */
+/** An e-book: Drawn for GlimStone. */
 export const IconBook = (p: GlyphProps) => (
   <svg {...glyph([0.5, 1.709, 13, 10.891], p)}>
     <path fillRule="evenodd" d="M0.5 2Q3.5 1.2 6.5 2.6V12.6Q3.5 11.2 0.5 12ZM13.5 2Q10.5 1.2 7.5 2.6V12.6Q10.5 11.2 13.5 12Z" />
   </svg>
 );
 
-/** A disk image or virtual disk: Drawn for CannonCommander. */
+/** A disk image or virtual disk: Drawn for GlimStone. */
 export const IconDisc = (p: GlyphProps) => (
   <svg {...glyph([0.5, 0.5, 13, 13], p)}>
     <path fillRule="evenodd" d="M0.5 7A6.5 6.5 0 1 0 13.5 7A6.5 6.5 0 1 0 0.5 7ZM4.5 7A2.5 2.5 0 1 0 9.5 7A2.5 2.5 0 1 0 4.5 7ZM5.9 7A1.1 1.1 0 1 0 8.1 7A1.1 1.1 0 1 0 5.9 7Z" />
   </svg>
 );
 
-/** A program or installable package: Drawn for CannonCommander. */
+/** A program or installable package: Drawn for GlimStone. */
 export const IconFileProgram = (p: GlyphProps) => (
   <svg {...glyph([0.5, 1, 13, 12], p)}>
     <path fillRule="evenodd" d="M2 1H12A1.5 1.5 0 0 1 13.5 2.5V11.5A1.5 1.5 0 0 1 12 13H2A1.5 1.5 0 0 1 0.5 11.5V2.5A1.5 1.5 0 0 1 2 1ZM0.5 3.75H13.5V4.5H0.5ZM1.85 2.4A0.55 0.55 0 1 0 2.95 2.4A0.55 0.55 0 1 0 1.85 2.4ZM3.65 2.4A0.55 0.55 0 1 0 4.75 2.4A0.55 0.55 0 1 0 3.65 2.4ZM5.5 6.25L10 8.75L5.5 11.25Z" />
   </svg>
 );
 
-/** A font: Drawn for CannonCommander. */
+/** A font: Drawn for GlimStone. */
 export const IconFont = (p: GlyphProps) => (
   <svg {...glyph([1, 1, 12, 12], p)}>
     <path fillRule="evenodd" d="M5.6 1H8.4L13 13H10.4L9.4 10.25H4.6L3.6 13H1ZM7 4.2L8.6 8.4H5.4Z" />
   </svg>
 );
 
-/** A checksum or signature: Drawn for CannonCommander. */
+/** A checksum or signature: Drawn for GlimStone. */
 export const IconHash = (p: GlyphProps) => (
   <svg {...glyph([0.75, 1, 12.5, 12], p)}>
     <path fillRule="nonzero" d="M4.65 1H6.15L5.15 13H3.65ZM8.85 1H10.35L9.35 13H7.85ZM1.75 3.9H12.5A0.75 0.75 0 0 1 13.25 4.65V4.65A0.75 0.75 0 0 1 12.5 5.4H1.75A0.75 0.75 0 0 1 1 4.65V4.65A0.75 0.75 0 0 1 1.75 3.9ZM1.5 8.6H12.25A0.75 0.75 0 0 1 13 9.35V9.35A0.75 0.75 0 0 1 12.25 10.1H1.5A0.75 0.75 0 0 1 0.75 9.35V9.35A0.75 0.75 0 0 1 1.5 8.6Z" />
   </svg>
 );
 
-/** A torrent or magnet link: Drawn for CannonCommander. */
+/** A torrent or magnet link: Drawn for GlimStone. */
 export const IconMagnet = (p: GlyphProps) => (
   <svg {...glyph([1.5, 1, 11, 11.5], p)}>
     <path fillRule="evenodd" d="M1.5 1H5.5V7A1.5 1.5 0 0 0 8.5 7V1H12.5V7A5.5 5.5 0 0 1 1.5 7ZM1.5 3.2H5.5V3.95H1.5ZM8.5 3.2H12.5V3.95H8.5Z" />
   </svg>
 );
 
-/** A 3D model or CAD drawing: Drawn for CannonCommander. */
+/** A 3D model or CAD drawing: Drawn for GlimStone. */
 export const IconCube = (p: GlyphProps) => (
   <svg {...glyph([1, 0.5, 12, 13], p)}>
     <path fillRule="evenodd" d="M7 0.5L13 3.75V10.25L7 13.5L1 10.25V3.75ZM2.115 3.844L7 6.49L11.885 3.844L12.315 4.636L7.45 7.27V12.6H6.55V7.27L1.685 4.636Z" />
@@ -875,7 +875,7 @@ export const IconFleet = (p: GlyphProps) => (
   </svg>
 );
 
-/** Accounts: KnightLoader's drawing on a 20-unit grid. */
+/** Accounts: Drawn on a 20-unit grid. */
 export const IconAccounts = (p: GlyphProps) => (
   <svg {...glyph([3.5, 3.3, 13, 13.7], p)}>
     <circle cx="10" cy="6.5" r="3.2" />

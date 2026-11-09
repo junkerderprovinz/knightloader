@@ -19,8 +19,9 @@ import { countSelectorHues } from '../lib/appearance';
 import { useLabelMode, type LabelMode } from '../lib/labelModes';
 import { IconExpand } from '../lib/icons';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup, type MenuItem } from './ContextMenu';
+import { Dropdown } from './Dropdown';
 import { useReorder } from './dragLift';
-import { segmentLayout, type SegmentWidths } from './segmentLayout';
+import { segmentFit, type SegmentFit } from './segmentLayout';
 import { hueStyle, segBase, segOff, segOn, useTooltip } from './ui';
 
 export interface TabDef {
@@ -58,8 +59,6 @@ interface Common {
    * pushes a history entry.
    */
   activateOnFocus?: boolean;
-  /** Rendered inside the strip after the tabs. */
-  after?: ReactNode;
   className?: string;
   /**
    * Long-press reordering: a hold of about 300ms with under 8px of movement
@@ -72,7 +71,7 @@ interface Common {
   onReorder?: (ids: string[]) => void;
   /**
    * Gives every tab a minimum width from the longest label, in `em` of visual
-   * units, so a navigation strip does not read ragged but still wraps.
+   * units, so a navigation strip does not read ragged.
    */
   equalWidth?: boolean;
   /**
@@ -188,8 +187,8 @@ function emWidth(units: number): string {
 
 /**
  * A big well segment is at least this wide, so every page-level selector in
- * the app matches, and at most this many rem. A longer label takes its own
- * width where the row has room for it (segmentLayout) and wraps where not.
+ * the app matches, and at most this many rem. Past that the row is shared by
+ * the labels (segmentFit).
  */
 const WELL_FLOOR_PX = 200;
 const WELL_CEIL_REM = 22;
@@ -199,22 +198,29 @@ const WELL_GAP = '0.2rem';
 const STRIP_GAP = '0.25rem';
 
 /**
- * segmentWidths measures each segment at max-content and at min-content. The
- * segments are held to their flex share, so each is set to the size being read
- * and given its own style back straight after. The width comes from the
- * computed style, since a window's scale-in animation shrinks the box.
+ * oneLineWidths measures each segment with its label on one line. The
+ * segments are held to their flex share, so each is set to max-content for the
+ * reading and given its own style back straight after. The width comes from
+ * the computed style, since a window's scale-in animation shrinks the box.
  */
-function segmentWidths(segs: HTMLElement[]): SegmentWidths[] {
+function oneLineWidths(segs: HTMLElement[]): number[] {
   const own = segs.map((s) => s.style.cssText);
-  const at = (width: string) => {
-    for (const s of segs) Object.assign(s.style, { flex: 'none', width, minWidth: '0', maxWidth: 'none' });
-    return segs.map((s) => parseFloat(getComputedStyle(s).width));
-  };
-  const oneLine = at('max-content');
-  const narrowest = at('min-content');
+  for (const s of segs) Object.assign(s.style, { flex: 'none', width: 'max-content', minWidth: '0', maxWidth: 'none' });
+  const oneLine = segs.map((s) => parseFloat(getComputedStyle(s).width));
   segs.forEach((s, i) => (s.style.cssText = own[i]));
-  return segs.map((_, i) => ({ oneLine: oneLine[i], narrowest: narrowest[i] }));
+  return oneLine;
 }
+
+/**
+ * How a strip holds its one row. `hug` is how wide an inline track is with its
+ * segments side by side, or 0 once they do not fit and it takes the whole box.
+ */
+interface StripLayout extends SegmentFit {
+  hug: number;
+}
+
+const sameLayout = (a: StripLayout | null, b: StripLayout) =>
+  !!a && a.fit === b.fit && Math.abs(a.hug - b.hug) < 0.5 && a.cut.join() === b.cut.join();
 
 /** Tabs renders a tab strip or chip row; see the props above for its modes. */
 export function Tabs(props: TabsProps) {
@@ -222,7 +228,6 @@ export function Tabs(props: TabsProps) {
     items,
     label,
     size = 'md',
-    after,
     className = '',
     reorderable = false,
     onReorder,
@@ -288,7 +293,7 @@ export function Tabs(props: TabsProps) {
   });
   const byId = new Map(items.map((i) => [i.id, i] as const));
   const orderedItems = drag.order.map((id) => byId.get(id)).filter((i): i is TabDef => !!i);
-  const span = inline ? 'w-fit max-w-full' : 'w-full';
+  const span = inline ? 'max-w-full' : 'w-full';
 
   // The width every segment of a well or an equal-width strip is pinned to,
   // derived from the labels so it is known before first paint: the widest
@@ -311,63 +316,90 @@ export function Tabs(props: TabsProps) {
         : undefined;
   const gap = isWell ? WELL_GAP : STRIP_GAP;
 
-  // How the pinned segments share the room the strip has (segmentLayout). The
-  // room is the parent's: while the strip hugs its segments its own width says
-  // nothing about the space around it. Worked out again whenever the parent
-  // resizes, since a narrower window holds fewer to a row, and whenever a
-  // segment does, since a font that arrives late changes what a label needs.
-  const [perRow, setPerRow] = useState(items.length);
-  const [byContent, setByContent] = useState(false);
-  const [room, setRoom] = useState<number | null>(null);
+  // A horizontal strip keeps to one row (GlimStone, "It keeps to one row"):
+  // pinned while every label fits its pinned width, shared by the labels'
+  // one-line widths after that, then glyphs alone where every segment has one.
+  // A strip that picks one value then turns into the dropdown, and one that
+  // toggles several cuts its long labels short. Measured again whenever the
+  // box or a segment resizes, since a font that arrives late changes what a
+  // label needs. The labels hidden for glyphs and the segments behind the
+  // dropdown are put back for each reading, so the strip sees when they fit.
+  const canSqueeze = display === 'both' && items.length > 0 && items.every((i) => i.icon);
+  const [layout, setLayout] = useState<StripLayout | null>(null);
   const labels = items.map((i) => i.label).join('\n');
   useLayoutEffect(() => {
     const el = strip.current;
-    const parent = el?.parentElement;
-    if (pinned === undefined || !el || !parent) return;
+    if (vertical || !el) {
+      setLayout(null);
+      return;
+    }
     const segs = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-tab-id]'));
     function measure() {
-      if (!el || !parent || segs.length === 0) return;
-      const outer = getComputedStyle(parent);
+      if (!el || segs.length === 0) return;
+      const hidden = Array.from(el.querySelectorAll('[data-tab-label].sr-only'));
+      for (const l of hidden) l.classList.remove('sr-only');
+      const listed = el.classList.contains('glim-sel--listed');
+      el.classList.remove('glim-sel--listed');
+      // An inline track is only as wide as its segments; given the whole box
+      // for the reading, it shows the room it could take.
+      const { width: ownWidth, minWidth } = el.style;
+      Object.assign(el.style, { width: '100%', minWidth: '0' });
+      const oneLine = oneLineWidths(segs);
       const own = getComputedStyle(el);
       const inset = parseFloat(own.paddingLeft) + parseFloat(own.paddingRight);
-      const room = parent.clientWidth - parseFloat(outer.paddingLeft) - parseFloat(outer.paddingRight) - inset;
+      const room = el.clientWidth - inset;
+      const gapPx = parseFloat(own.columnGap) || 0;
+      Object.assign(el.style, { width: ownWidth, minWidth });
+      for (const l of hidden) l.classList.add('sr-only');
+      if (listed) el.classList.add('glim-sel--listed');
+      // A hidden box measures nothing; it is laid out once it shows.
+      if (room <= 0) return;
       // The same sum `pinned` hands the stylesheet, in pixels.
-      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-      const label = pinUnits * EM_PER_UNIT * parseFloat(getComputedStyle(segs[0]).fontSize) + glyphRem * rem;
-      const width = bigWell ? Math.max(WELL_FLOOR_PX, Math.min(label, WELL_CEIL_REM * rem)) : label;
-      const layout = segmentLayout(room, width, segmentWidths(segs), parseFloat(own.columnGap) || 0);
-      setPerRow(layout.perRow);
-      setByContent(layout.byContent);
-      setRoom(Math.floor(room));
+      let even: number | null = null;
+      if (pinned !== undefined) {
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        const label = pinUnits * EM_PER_UNIT * parseFloat(getComputedStyle(segs[0]).fontSize) + glyphRem * rem;
+        even = bigWell ? Math.max(WELL_FLOOR_PX, Math.min(label, WELL_CEIL_REM * rem)) : label;
+      }
+      const fits = segmentFit(room, even, oneLine, gapPx, canSqueeze, !many);
+      const row =
+        fits.fit === 'even' ? (even ?? 0) * segs.length : fits.fit === 'content' ? oneLine.reduce((a, w) => a + w, 0) : 0;
+      // A pixel over, so rounding cannot leave the last segment short of room.
+      const next = { ...fits, hug: row && row + gapPx * (segs.length - 1) + inset + 1 };
+      setLayout((last) => (sameLayout(last, next) ? last : next));
     }
     measure();
     const watch = new ResizeObserver(measure);
-    watch.observe(parent);
+    watch.observe(el);
+    if (el.parentElement) watch.observe(el.parentElement);
     for (const seg of segs) watch.observe(seg);
+    void document.fonts?.ready.then(measure);
     return () => watch.disconnect();
-  }, [pinned, bigWell, pinUnits, glyphRem, labels]);
+  }, [vertical, pinned, bigWell, pinUnits, glyphRem, labels, canSqueeze, many, display, size]);
 
-  // A pinned segment keeps the pinned width as its floor and grows into its
-  // share of the row, so a spanning strip fills every row to its end. The
-  // basis leaves one gap of slack against sub-pixel rounding, and the growth
-  // takes it back. An inline track on one row hugs its segments and leaves
-  // them nothing to grow into. The floor gives way to the measured room, so a
-  // window narrower than one segment squeezes it instead of pushing it out of
-  // the card; it is a length because a percentage would count as zero while
-  // an inline track sizes itself to its content. A segment that hugs its label
-  // grows too, and so does a pinned one whose strip is laid out by content.
-  const contentRow = pinned !== undefined && byContent;
+  // Pinned segments that fit keep the pinned width as their floor and grow
+  // into an even share of a spanning track; in an inline track they start from
+  // it and the track ends where they do. Segments laid out by their labels
+  // start from them and share out what is left, so a long name keeps its
+  // words while the short ones give up room. Squeezed or cut short, they take
+  // even shares of the row, and their floor gives way so the row never
+  // overflows its box.
+  const fit = layout?.fit ?? 'even';
+  const listed = fit === 'list';
+  const squeezed = fit === 'squeezed';
   const segmentFlex: CSSProperties = vertical
     ? {}
-    : hug
-      ? // A label wider than the whole row wraps inside its segment.
-        { flex: '1 1 auto', minWidth: 0 }
-      : pinned === undefined || contentRow
-        ? { flex: '1 0 auto' }
-        : {
-            minWidth: room === null ? pinned : `min(${pinned}, ${room}px)`,
-            flex: `1 0 calc((100% - ${perRow} * ${gap}) / ${perRow})`,
-          };
+    : fit === 'squeezed' || fit === 'list' || fit === 'truncated'
+      ? { flex: '1 1 0', minWidth: 0 }
+      : fit === 'even' && pinned !== undefined
+        ? inline
+          ? { flex: `1 0 ${pinned}` }
+          : { flex: '1 1 0', minWidth: pinned }
+        : { flex: '1 0 auto' };
+  // The track's labels do not size it (contain: inline-size), so an inline
+  // track is given its width here: its segments side by side while they fit,
+  // the whole box once they do not.
+  const trackWidth: CSSProperties = inline && layout ? { width: layout.hug ? `${layout.hug}px` : '100%' } : {};
 
   // Roving tabindex: the strip is one tab stop and the arrows move inside it.
   const roved = Math.max(
@@ -376,6 +408,8 @@ export function Tabs(props: TabsProps) {
   );
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    // The dropdown's keys reach the track through the menu's portal too.
+    if (listed) return;
     // Space on an <a> would scroll the page instead of activating it.
     if (e.key === ' ' && e.target instanceof HTMLAnchorElement) {
       const id = e.target.getAttribute('data-tab-id');
@@ -459,14 +493,15 @@ export function Tabs(props: TabsProps) {
   return (
     <div
       ref={strip}
-      role={many ? 'group' : 'tablist'}
-      aria-label={label}
-      aria-orientation={vertical ? 'vertical' : 'horizontal'}
+      role={listed ? undefined : many ? 'group' : 'tablist'}
+      aria-label={listed ? undefined : label}
+      aria-orientation={listed ? undefined : vertical ? 'vertical' : 'horizontal'}
       data-hue-selector={pages ? undefined : ''}
+      data-strip={vertical ? undefined : ''}
       onKeyDown={onKeyDown}
-      // Horizontal strips, the well included, wrap rather than scroll, so they
-      // never push the page sideways. The vertical rail scrolls; min-h-0 lets
-      // it shrink below its content inside a flex parent.
+      // Horizontal strips, the well included, keep to one row and never
+      // scroll, so they never push the page sideways. The vertical rail
+      // scrolls; min-h-0 lets it shrink below its content inside a flex parent.
       //
       // A reorderable strip is the tabs' offsetParent, the layout a drag
       // measures in. A reorderable rail also gets 4px of room inside its
@@ -478,22 +513,22 @@ export function Tabs(props: TabsProps) {
       // a glim-well, which is surface2 itself.
       //
       // A horizontal track spans its box, so a card of stacked selectors ends
-      // in one edge, and its segments share the width, on every row once it
-      // wraps (segmentFlex). An inline track hugs its segments instead and is
-      // never wider than its room. A track laid out by content does not wrap,
-      // since its fit allows for a pixel of rounding that would otherwise push
-      // the last segment onto a row of its own.
+      // in one edge, and its segments share the width (segmentFlex). An inline
+      // track hugs its segments instead and is never wider than its room. A
+      // row that does not fit gives way inside its box, so its labels must not
+      // widen the box around it: without the containment a grid or flex
+      // parent grows to hold the whole row, and the strip never sees that it
+      // ran out of room.
       className={
         vertical
           ? `flex min-h-0 flex-col gap-1 overflow-y-auto ${fill ? 'h-full' : ''} ${
               reorderable ? 'relative -mx-1 px-1' : ''
             } ${className}`
-          : isWell
-            ? `flex ${span} flex-wrap items-center rounded-[var(--radius-pill)] bg-carbon-surface3
-              p-[0.2rem] ${className}`
-            : `flex ${span} flex-wrap items-center ${reorderable ? 'relative' : ''} ${className}`
+          : `flex ${span} flex-nowrap items-center [contain:inline-size] ${
+              isWell ? 'rounded-[var(--radius-pill)] bg-carbon-surface3 p-[0.2rem]' : reorderable ? 'relative' : ''
+            } ${listed ? 'glim-sel--listed' : ''} ${className}`
       }
-      style={vertical ? undefined : contentRow ? { gap, width: '100%', flexWrap: 'nowrap' } : { gap }}
+      style={vertical ? undefined : { gap, ...trackWidth }}
     >
       {orderedItems.map((item, i) => {
         const on = isOn(item.id);
@@ -545,21 +580,20 @@ export function Tabs(props: TabsProps) {
           <>
             {showIcon && item.icon}
             {(showLabel || glyphless) && (
-              // A well segment can grow taller, so it wraps. A rail tile beside
-              // its glyph takes a second line where its name needs one, split
-              // evenly. A 20px line holds the font at 14px, so two lines fill
-              // the 40px every tile has without cutting a descender, and the
-              // clip reaches 3px further for the marks that Arabic and
-              // Devanagari set outside the line. Elsewhere the row height is
-              // fixed, so the label truncates.
+              // A rail tile beside its glyph takes a second line where its name
+              // needs one, split evenly. A 20px line holds the font at 14px, so
+              // two lines fill the 40px every tile has without cutting a
+              // descender, and the clip reaches 3px further for the marks that
+              // Arabic and Devanagari set outside the line. A strip's label
+              // never takes a second line: cut short, it keeps its whole text
+              // in the bubble, and squeezed it stays the segment's name.
               <span
+                data-tab-label
                 className={`${
-                  isWell
-                    ? 'text-pretty break-words'
-                    : vertical && !stacked
-                      ? 'line-clamp-2 overflow-clip [overflow-clip-margin:3px] break-words text-balance leading-5'
-                      : 'truncate'
-                } ${labelOnHover ? hiddenLabel : ''} ${captioned ? 'text-xs' : ''}`}
+                  vertical && !stacked
+                    ? 'line-clamp-2 overflow-clip [overflow-clip-margin:3px] break-words text-balance leading-5'
+                    : 'min-w-0 truncate'
+                } ${squeezed ? 'sr-only' : ''} ${labelOnHover ? hiddenLabel : ''} ${captioned ? 'text-xs' : ''}`}
               >
                 {item.label}
               </span>
@@ -579,7 +613,9 @@ export function Tabs(props: TabsProps) {
         const shared: TabShared = {
           'data-tab-id': item.id,
           'aria-label': nameOnly && !glyphless ? item.label : undefined,
-          tabIndex: i === roved ? 0 : -1,
+          // Behind the dropdown a segment is only there to be measured.
+          'aria-hidden': listed || undefined,
+          tabIndex: i === roved && !listed ? 0 : -1,
           style: isWell
             ? // The filled segment follows the shape setting, or its square
               // corner would poke out of the track's rounded one. Inline, since
@@ -601,14 +637,25 @@ export function Tabs(props: TabsProps) {
             href={item.href}
             many={many}
             on={on}
-            tip={item.title ?? (nameOnly ? item.label : undefined)}
+            tip={item.title ?? (nameOnly || squeezed || layout?.cut[i] ? item.label : undefined)}
             shared={shared}
           >
             {inner}
           </TabTrigger>
         );
       })}
-      {after}
+      {listed && (
+        <div className="glim-sel-list">
+          <Dropdown
+            label={label}
+            look={size === 'sm' ? 'dense' : 'field'}
+            width="fill"
+            value={only}
+            options={items.map((i) => ({ value: i.id, label: i.label }))}
+            onChange={onSelect}
+          />
+        </div>
+      )}
     </div>
   );
 }

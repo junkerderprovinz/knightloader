@@ -65,9 +65,12 @@ interface Gestures {
    *  the substitution the language prescribes under system reduced motion. 1
    *  leaves the signal to the travel. */
   shakeFadeTo: number;
-  /** The wiggle that says the list can be rearranged: half its swing, in degrees,
-   *  GlimStone's --motion-wiggle-angle. */
-  wiggleDeg: number;
+  /** The wiggle that says the list can be rearranged, at its peak: the tilt in
+   *  degrees and the rise in points, GlimStone's --motion-row-tremble-tilt and
+   *  --motion-row-tremble-lift. A row is as wide as the list, and at a tile's
+   *  angle its ends would swing far, so it trembles by lifting. */
+  wiggleTilt: number;
+  wiggleLift: number;
   /** One swing from one side to the other, in ms, GlimStone's
    *  --motion-wiggle-dur; a full sway there and back takes twice this. */
   wiggleDur: number;
@@ -85,7 +88,8 @@ const GESTURES: Record<Motion, Gestures> = {
     shakeDur: 220,
     shakeTravel: 0,
     shakeFadeTo: 0.45,
-    wiggleDeg: 0,
+    wiggleTilt: 0,
+    wiggleLift: 0,
     wiggleDur: 400,
     liftScale: 1,
   },
@@ -95,7 +99,8 @@ const GESTURES: Record<Motion, Gestures> = {
     shakeDur: 220,
     shakeTravel: 2,
     shakeFadeTo: 1,
-    wiggleDeg: 1.4,
+    wiggleTilt: 0.1,
+    wiggleLift: 1,
     wiggleDur: 140,
     liftScale: 1.015,
   },
@@ -107,7 +112,8 @@ const GESTURES: Record<Motion, Gestures> = {
     shakeDur: 360,
     shakeTravel: 4,
     shakeFadeTo: 1,
-    wiggleDeg: 2,
+    wiggleTilt: 0.15,
+    wiggleLift: 1.5,
     wiggleDur: 120,
     liftScale: 1.03,
   },
@@ -119,7 +125,8 @@ const GESTURES: Record<Motion, Gestures> = {
     shakeDur: 520,
     shakeTravel: 7.2,
     shakeFadeTo: 1,
-    wiggleDeg: 2.8,
+    wiggleTilt: 0.2,
+    wiggleLift: 2,
     wiggleDur: 100,
     liftScale: 1.054,
   },
@@ -170,8 +177,8 @@ export function resolveMotion(chosen: Motion, reduced: boolean): Motion {
 export function motionNumbers(chosen: Motion, reduced: boolean): MotionNumbers {
   const level = resolveMotion(chosen, reduced);
   const n = MOTION[level];
-  // The offered levels are already `off` here, whose wiggle has no angle.
-  return reduced && level === 'storm' ? { ...n, wiggleDeg: 0, wiggleDur: 0 } : n;
+  // The offered levels are already `off` here, whose wiggle does not move.
+  return reduced && level === 'storm' ? { ...n, wiggleTilt: 0, wiggleLift: 0, wiggleDur: 0 } : n;
 }
 
 /**

@@ -38,6 +38,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Changed
+
+- **KnightLoader follows GlimStone 4.3.1 everywhere,** and the Version card
+  names it. Every selector keeps to one row: where its labels do not fit, it
+  shows its glyphs alone, or turns into a dropdown if it has no glyphs. In the
+  phone app a package with its files open can be moved to either end of the
+  list, and the rows sway gently while one is held.
+
 ## [2.7.5] - 2026-11-09
 
 ### Fixed
