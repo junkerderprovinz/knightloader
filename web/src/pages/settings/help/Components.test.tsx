@@ -363,14 +363,36 @@ describe('the Components card', () => {
 
   it('asks GitHub on opening only while the check switches are on', async () => {
     await draw();
-    expect(asked).not.toContain('/api/system/update-check');
+    expect(asked).not.toContain('/api/health/detail');
     expect(asked).not.toContain('/api/mediatools/ytdlp/latest');
 
     act(() => root.unmount());
     root = createRoot(host);
     await draw({ autoUpdateCheck: true, ytdlpVersionCheck: true });
-    expect(asked).toContain('/api/system/update-check');
     expect(asked).toContain('/api/mediatools/ytdlp/latest');
+  });
+
+  it("shows a newer release the daily check found on KnightLoader's row without asking GitHub again", async () => {
+    answers['/api/health/detail'] = {
+      status: 'ok',
+      subsystems: [],
+      volumes: [],
+      release: { version: 'v2.8.0', url: 'https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.0' },
+    };
+    await draw({ autoUpdateCheck: true });
+    expect(status('KnightLoader')).toBe('KnightLoader v2.8.0 is out');
+    expect(asked).not.toContain('/api/system/update-check');
+  });
+
+  it("says nothing of the daily check's find while the switch is off", async () => {
+    answers['/api/health/detail'] = {
+      status: 'ok',
+      subsystems: [],
+      volumes: [],
+      release: { version: 'v2.8.0', url: 'https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.0' },
+    };
+    await draw({ autoUpdateCheck: false });
+    expect(status('KnightLoader')).toBe('');
   });
 });
 

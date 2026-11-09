@@ -404,10 +404,10 @@ type Settings struct {
 	FinishedCard bool `json:"finishedCard"`
 
 	// AutoUpdateCheck has a container or a Flatpak ask GitHub once a day for a
-	// newer release and report it (app_releasecheck.go), and its Components
-	// card ask once when it opens. Both are updated the way they were
-	// installed, so this only asks; the desktop build checks on its own, see
-	// AutoUpdate. On by default.
+	// newer release and report it (app_releasecheck.go). Both are updated the
+	// way they were installed, so this only asks; the desktop build checks on
+	// its own, see AutoUpdate. Off on a new install, since it reaches out to
+	// GitHub; Load keeps the value an older install stored.
 	AutoUpdateCheck bool `json:"autoUpdateCheck"`
 
 	// AutoUpdate lets the desktop build download a newer release once a day
@@ -859,7 +859,6 @@ func Defaults() Settings {
 		PreParserEnabled:  true,
 		KeepAwake:         true,
 		AutoUpdate:        true,
-		AutoUpdateCheck:   true,
 		YtdlpVersionCheck: true,
 		YtdlpAutoUpdate:   true,
 		JDVersionCheck:    true,

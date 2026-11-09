@@ -188,6 +188,30 @@ func TestAutoUpdateIsOnForAnInstallThatNeverSawIt(t *testing.T) {
 	}
 }
 
+func TestTheReleaseCheckIsOffOnANewInstall(t *testing.T) {
+	st, err := Load(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Get().AutoUpdateCheck {
+		t.Error("a new install asks GitHub for releases before anybody switched it on")
+	}
+}
+
+func TestAStoredReleaseCheckKeepsItsValue(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"autoUpdateCheck": true}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	st, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !st.Get().AutoUpdateCheck {
+		t.Error("an install that had the release check on lost it")
+	}
+}
+
 // A file that turned the page-load check off says nothing about the daily
 // update.
 func TestYtdlpAutoUpdateIsOnForAnInstallThatNeverSawIt(t *testing.T) {

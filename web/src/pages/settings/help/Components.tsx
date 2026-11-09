@@ -4,6 +4,7 @@ import {
   ApiError,
   fetchDeploymentInfo,
   fetchHealth,
+  fetchHealthReport,
   fetchJDStatus,
   fetchJDUpdate,
   fetchMediaTools,
@@ -348,7 +349,14 @@ function installLine(t: Translate, p: UpdateProgress): string {
 /** appStatus is what KnightLoader's row says about a check or an update, null while nothing is to say. */
 function appStatus(
   t: Translate,
-  s: { checking: boolean; progress: UpdateProgress | null; ready?: string; available: boolean; check: UpdateCheck | null },
+  s: {
+    checking: boolean;
+    progress: UpdateProgress | null;
+    ready?: string;
+    available: boolean;
+    check: UpdateCheck | null;
+    found: string;
+  },
 ): Status | null {
   if (s.checking) return { text: t('settings.look.updatesChecking') };
   const p = s.progress;
@@ -359,6 +367,8 @@ function appStatus(
   if (s.ready) return { text: t('settings.info.statusReady'), tone: 'ok' };
   if (s.available) return { text: t('settings.look.updatesAvailable', { version: s.check?.latest ?? '' }), tone: 'warn' };
   if (s.check && !s.check.checked) return { text: t('settings.info.checkFailed'), tone: 'fail' };
+  // What the daily check found stands until a check made here says otherwise.
+  if (!s.check && s.found) return { text: t('overview.needs.update', { version: s.found }), tone: 'warn' };
   return null;
 }
 
@@ -366,13 +376,13 @@ function appStatus(
  * AppUpdates checks GitHub for a newer release on request. Its one switch
  * updates the desktop build in the background (desktop/updates.go), and a
  * check there also tells whether a downloaded version waits for the next
- * start. A container is updated by its container manager, so there the switch
- * only looks for a newer release, once a day on the server
- * (app_releasecheck.go) and when the card opens. Once a check found a newer
- * one, Install fetches it at once: the copy installed for all users starts
- * the new installer, any other copy puts it in place for the next start. A
- * Flatpak is the desktop build, but Flatpak installs its updates, so its row
- * behaves like a container's and says how it is updated.
+ * start. A container is updated by its container manager, so there the
+ * switch only has the server look for a newer release once a day
+ * (app_releasecheck.go), and the row shows what it found. Once a check found
+ * a newer one, Install fetches it at once: the copy installed for all users
+ * starts the new installer, any other copy puts it in place for the next
+ * start. A Flatpak is the desktop build, but Flatpak installs its updates,
+ * so its row behaves like a container's and says how it is updated.
  */
 function AppUpdates({ deployment, fromStore, register }: { deployment: string; fromStore: boolean; register: Register }) {
   const { t } = useT();
@@ -381,6 +391,7 @@ function AppUpdates({ deployment, fromStore, register }: { deployment: string; f
   const [check, setCheck] = useState<UpdateCheck | null>(null);
   const [checking, setChecking] = useState(false);
   const [progress, setProgress] = useState<UpdateProgress | null>(null);
+  const [found, setFound] = useState('');
   const [installShake, setInstallShake] = useState(0);
   // Ends the polling once the page is left.
   const mounted = useRef(true);
@@ -441,13 +452,22 @@ function AppUpdates({ deployment, fromStore, register }: { deployment: string; f
   }, [follow]);
 
   const ready = check?.ready ?? (progress?.state === 'ready' ? progress.version : undefined);
-  // A container or a Flatpak asks once on opening while its switch is on,
-  // never before the stored switch has resolved and not on every settings
-  // edit. The desktop build that updates itself checks on its own.
+  // A container or a Flatpak shows what the server's daily check found while
+  // its switch is on, rather than asking GitHub on every visit. The desktop
+  // build that updates itself checks on its own.
   useEffect(() => {
-    if (!updatesItself && cfg.autoUpdateCheck) void onCheck();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cfg.autoUpdateCheck]);
+    if (updatesItself || !cfg.autoUpdateCheck) {
+      setFound('');
+      return;
+    }
+    let live = true;
+    void fetchHealthReport()
+      .then((r) => live && setFound(r.release?.version ?? ''))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [updatesItself, cfg.autoUpdateCheck]);
 
   const available = !!check?.checked && check.available;
   // Not while an update is being put in place.
@@ -460,7 +480,7 @@ function AppUpdates({ deployment, fromStore, register }: { deployment: string; f
       name="KnightLoader"
       version={stamped ? version : t('nav.workingTitle')}
       href={stamped ? releasePage(REPO_URL, version) || REPO_URL : undefined}
-      status={appStatus(t, { checking, progress, ready, available, check })}
+      status={appStatus(t, { checking, progress, ready, available, check, found })}
       actions={
         <>
           {updatesItself && available && !ready && progress?.state !== 'started' && (

@@ -265,12 +265,13 @@ flatpak override --user --filesystem=/srv/downloads io.github.junkerderprovinz.k
 
 The Flatpak never replaces itself, so there **Update automatically** only asks
 GitHub once a day for a newer release and reports it under **Needs you** on the
-overview: install the newer bundle to update it. It is built from the same
-sources as the other downloads but without the DLC service key, so a `.dlc`
-file goes to JDownloader. It keeps the computer awake through the desktop's
-Inhibit portal, but cannot put it to sleep once the queue is done, so the Idle
-card does not offer that there. On Wayland the clipboard watch sees a copied
-link once the window is in front, since the runtime has no `wl-paste`.
+overview and on KnightLoader's row of the Info page. It is off until you switch
+it on. Install the newer bundle to update it. It is built from the same sources
+as the other downloads but without the DLC service key, so a `.dlc` file goes
+to JDownloader. It keeps the computer awake through the desktop's Inhibit
+portal, but cannot put it to sleep once the queue is done, so the Idle card
+does not offer that there. On Wayland the clipboard watch sees a copied link
+once the window is in front, since the runtime has no `wl-paste`.
 
 ### Updates
 
@@ -342,8 +343,9 @@ files you downloaded.
 
 A container does not update itself. There **Update automatically** asks GitHub
 once a day for a newer release and reports it under **Needs you** on the
-overview, where **Done** sets it aside until the next one; pull the new image
-the way you deployed this one.
+overview, where **Done** sets it aside until the next one, and on KnightLoader's
+row of the Info page. It is off until you switch it on. Pull the new image the
+way you deployed this one.
 
 KnightLoader itself updates through the update card on the desktop, and
 through a new image in a container. yt-dlp, JDownloader and the desktop app's
