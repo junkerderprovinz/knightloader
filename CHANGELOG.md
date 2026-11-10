@@ -46,6 +46,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   so a batch lands in its category from the start. A Packagizer rule that
   names a category still wins. Thanks to @Kayn2106 for asking how
   ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
+### Fixed
+
+- **The Flatpak opens on a PC with an NVIDIA graphics card.** Under Wayland
+  the window could stay away, with "Error 71 (Protocol error) dispatching to
+  Wayland display" at the end of the log. The desktop app switches off the
+  WebKit renderer that NVIDIA's driver trips over, but inside the Flatpak it
+  could not see the driver. It now reads the driver from where Flatpak can see
+  it, as ArrowLoop does since
+  [arrowloop #143](https://github.com/junkerderprovinz/arrowloop/issues/143).
 
 ## [2.7.6] - 2026-11-09
 
