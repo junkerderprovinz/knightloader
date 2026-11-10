@@ -917,6 +917,11 @@ type ProbeResult struct {
 	Duration float64
 	// IsLive reports a running live stream (see Options.Live).
 	IsLive bool
+	// PlainFile reports an address the generic extractor offers as the file
+	// itself, having found no page around it. yt-dlp would save it under the
+	// title and a guessed extension, "LICENSE (best).unknown_video" for a
+	// text file, where a plain fetch keeps the server's name.
+	PlainFile bool
 }
 
 // ProbeTitle asks yt-dlp for a link's title and available formats without
@@ -996,6 +1001,8 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 		IsLive       bool                       `json:"is_live"`
 		WasLive      bool                       `json:"was_live"`
 		LiveStatus   string                     `json:"live_status"`
+		ExtractorKey string                     `json:"extractor_key"`
+		Direct       bool                       `json:"direct"`
 	}
 	if err := json.Unmarshal([]byte(line), &raw); err != nil {
 		return ProbeResult{}, fmt.Errorf("ytdlp: probe returned unparseable data: %w", err)
@@ -1013,6 +1020,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 		IsLive:       raw.IsLive || raw.LiveStatus == "is_live",
 		Subtitles:    keysOf(raw.Subtitles),
 		AutoCaptions: keysOf(raw.AutoCaptions),
+		PlainFile:    raw.ExtractorKey == "Generic" && raw.Direct,
 	}
 	picked := map[string]bool{}
 	for _, id := range strings.Split(raw.FormatID, "+") {

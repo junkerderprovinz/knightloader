@@ -72,6 +72,17 @@ func TestMain(m *testing.M) {
 		// A finished stream, which is an ordinary recording.
 		fmt.Println(`{"title":"Yesterday's Stream","was_live":true,"live_status":"was_live","duration":7200,"formats":[]}`)
 		os.Exit(0)
+	case "plainfile":
+		// The generic extractor on a text file served without an extension:
+		// no page around it, so it offers the address itself.
+		fmt.Println(`{"title":"LICENSE","extractor_key":"Generic","direct":true,"ext":"unknown_video",` +
+			`"formats":[{"format_id":"0","ext":"unknown_video","protocol":"https"}]}`)
+		os.Exit(0)
+	case "embedded":
+		// The generic extractor on a page with a player in it.
+		fmt.Println(`{"title":"Product Launch","extractor_key":"Generic",` +
+			`"formats":[{"format_id":"hls-1080","ext":"mp4","protocol":"m3u8_native","height":1080}]}`)
+		os.Exit(0)
 	case "playlist":
 		// A playlist probed without --flat-playlist: one line per entry.
 		fmt.Println(`{"title":"Entry One","formats":[]}`)
@@ -224,6 +235,20 @@ func TestProbeTitleEstimatesASizeFromTheBitrateWhereNoneIsReported(t *testing.T)
 	}
 	if ext, size := VideoFile("best", got.Formats, Options{}); ext != "mkv" || size != 240334643+3433755 {
 		t.Errorf("VideoFile(best) = %q, %d; want mkv and the two picked formats together", ext, size)
+	}
+}
+
+// Only an address the generic extractor offers as the file itself is a plain
+// file. A player it found in a page, or a site's own extractor, is media.
+func TestProbeTitleTellsAPlainFileFromMedia(t *testing.T) {
+	for mode, want := range map[string]bool{"plainfile": true, "embedded": false, "formats": false} {
+		got, err := fakeYtdlpBackend(t, mode).ProbeTitle(context.Background(), "https://example.com/x", nil)
+		if err != nil {
+			t.Fatalf("%s: ProbeTitle: %v", mode, err)
+		}
+		if got.PlainFile != want {
+			t.Errorf("%s: PlainFile = %v, want %v", mode, got.PlainFile, want)
+		}
 	}
 }
 

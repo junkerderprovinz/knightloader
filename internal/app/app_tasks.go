@@ -838,6 +838,9 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 		a.failProbe(rawurl, err.Error())
 		return
 	}
+	if res.PlainFile && a.restageAsFile(id, rawurl) {
+		return
+	}
 	title := strings.TrimSpace(res.Title)
 	if title == "" {
 		a.fileUnprobedMedia(id)
@@ -845,6 +848,54 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 		a.setTaskName(id, title)
 	}
 	a.applyProbeFormats(rawurl, res.Formats)
+}
+
+// restageAsFile hands a collected yt-dlp link that its probe found to be a
+// plain file to the first backend that fetches addresses as they are, as one
+// row: yt-dlp would save it under a guessed extension, and the side rows have
+// nothing to fetch. The row is marked as a file, so routing it again on a
+// restart does not end up at yt-dlp. It reports false, and leaves the family
+// to yt-dlp, when no such backend may fetch the host or a row of the family
+// has left the collector.
+func (a *App) restageAsFile(id, rawurl string) bool {
+	res := a.fileResolverFor(rawurl, nil)
+	if res == nil {
+		return false
+	}
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil || t.Status != core.StatusCollected || t.Resolver != "ytdlp" {
+		a.mu.Unlock()
+		return false
+	}
+	family := a.familyLocked(t)
+	var siblings []string
+	enabled := false
+	for _, x := range family {
+		if x.Status != core.StatusCollected {
+			a.mu.Unlock()
+			return false
+		}
+		enabled = enabled || x.Enabled
+		if x != t {
+			siblings = append(siblings, x.ID)
+		}
+	}
+	t.Resolver = res.Info().ID
+	t.Mode = a.modeForLocked(t, t.Resolver)
+	t.Variant, t.VariantOff, t.Ext = "", false, ""
+	t.Enabled = enabled
+	t.BrowserFile = true
+	c := a.copyLocked(t)
+	a.mu.Unlock()
+	a.publish(&c)
+	for _, sid := range siblings {
+		a.removeTask(sid, false)
+	}
+	a.wakeAutoConfirm()
+	a.fileUnprobedMedia(id)
+	a.analyze(id, rawurl)
+	return true
 }
 
 // fileUnprobedMedia gives a media link a package after its title probe came
