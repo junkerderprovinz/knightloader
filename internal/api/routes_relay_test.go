@@ -755,6 +755,13 @@ func TestARelayedAnswerCarriesUpToEightMiB(t *testing.T) {
 		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 	}
 	approve(t, a, "phone-reader", member.KindMobile)
+	// The instance dials the relay after the config is saved, and a call
+	// before it is there is answered by the relay alone.
+	for deadline := time.Now().Add(10 * time.Second); !a.Federation.RelayConnected(); time.Sleep(20 * time.Millisecond) {
+		if time.Now().After(deadline) {
+			t.Fatal("the instance never connected to its relay")
+		}
+	}
 	phone := idAs("phone-reader", member.KindMobile)
 	call := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks/" + id + "/file", From: phone, Kind: member.KindMobile}
 	status, body := relayCall(t, srv.URL, secret, phone, groupID(a), keyOf("phone-reader"), call)
