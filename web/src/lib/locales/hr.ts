@@ -244,6 +244,7 @@ export const hr: Dict = {
   'pairing.confirmLeave': 'Doista napusti',
   'pairing.actionError': 'To nije uspjelo.',
   'pairing.loadError': 'Stanje uparivanja nije se moglo učitati.',
+  'pairing.relayKeyDropped': 'Ova instanca bila je uparena ključem releja koji si ručno upisao. S ovim ažuriranjem takvo uparivanje više ne postoji, pa je instanca zasad sama. Samo je ponovno upari s dvanaest riječi svojih drugih instanci.',
   'pairing.notFirst': 'Već imate frazu?',
   'pairing.nextTitle': 'Sada, na drugoj instanci',
   'pairing.nextTail': 'i ondje zalijepite ove riječi.',

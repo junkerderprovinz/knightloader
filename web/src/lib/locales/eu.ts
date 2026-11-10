@@ -244,6 +244,7 @@ export const eu: Dict = {
   'pairing.confirmLeave': 'Utzi benetan',
   'pairing.actionError': 'Horrek ez du funtzionatu.',
   'pairing.loadError': 'Ezin izan da parekatze-egoera kargatu.',
+  'pairing.relayKeyDropped': 'Instantzia hau eskuz idatzi zenuen errele-gako batekin parekatuta zegoen. Eguneratze honekin ezin da horrela parekatu, beraz instantzia bakarrik dago oraingoz. Parekatu berriro zure beste instantzien hamabi hitzekin.',
   'pairing.notFirst': 'Esaldia baduzu jada?',
   'pairing.nextTitle': 'Orain, beste instantzian',
   'pairing.nextTail': 'eta itsatsi hitz hauek han.',

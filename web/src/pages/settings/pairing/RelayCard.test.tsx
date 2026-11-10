@@ -50,9 +50,10 @@ const group = {
   pending: [],
   awaiting: false,
   fingerprint: '',
+  relayKeyDropped: false,
 } satisfies ConnectInfo;
 
-const relay: RelayConfig = { mode: 'project', relayUrl: '', keySet: false, connected: false, serve: false, serveClients: 0 };
+const relay: RelayConfig = { mode: 'project', relayUrl: '', connected: false, serve: false, serveClients: 0 };
 
 function draw(g: Partial<ConnectInfo>, r: Partial<RelayConfig> = {}) {
   act(() =>

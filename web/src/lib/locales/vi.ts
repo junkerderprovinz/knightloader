@@ -244,6 +244,7 @@ export const vi: Dict = {
   'pairing.confirmLeave': 'Thật sự rời đi',
   'pairing.actionError': 'Việc đó không thành công.',
   'pairing.loadError': 'Không thể tải trạng thái ghép nối.',
+  'pairing.relayKeyDropped': 'Phiên bản này từng được ghép đôi bằng khóa bộ tiếp sức do bạn tự nhập. Bản cập nhật này bỏ cách ghép đôi đó, nên phiên bản này tạm thời đứng một mình. Bạn chỉ cần ghép đôi lại bằng mười hai từ của các phiên bản khác.',
   'pairing.notFirst': 'Bạn đã có cụm từ chưa?',
   'pairing.nextTitle': 'Bây giờ, trên phiên bản kia',
   'pairing.nextTail': 'rồi dán các từ này vào đó.',

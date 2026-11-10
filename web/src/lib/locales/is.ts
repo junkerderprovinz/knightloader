@@ -244,6 +244,7 @@ export const is: Dict = {
   'pairing.confirmLeave': 'Örugglega yfirgefa',
   'pairing.actionError': 'Það virkaði ekki.',
   'pairing.loadError': 'Ekki tókst að hlaða pörunarstöðunni.',
+  'pairing.relayKeyDropped': 'Þetta tilvik var parað með endurvarpalykli sem þú slóst inn handvirkt. Með þessari uppfærslu hverfur sú leið til að para, svo tilvikið stendur eitt í bili. Paraðu það bara aftur með tólf orðunum frá hinum tilvikunum þínum.',
   'pairing.notFirst': 'Ertu þegar með setningu?',
   'pairing.nextTitle': 'Núna, á hinu tilvikinu',
   'pairing.nextTail': 'og límdu þessi orð þar inn.',

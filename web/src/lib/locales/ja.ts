@@ -244,6 +244,7 @@ export const ja: Dict = {
   'pairing.confirmLeave': '本当に抜ける',
   'pairing.actionError': 'うまくいきませんでした。',
   'pairing.loadError': 'ペアリング状態を読み込めませんでした。',
+  'pairing.relayKeyDropped': 'このインスタンスは手入力したリレーキーでペアリングされていました。このアップデートでその方法は使えなくなったため、インスタンスは今ひとりです。ほかのインスタンスの12個の単語でもう一度ペアリングしてください。',
   'pairing.notFirst': 'すでにフレーズをお持ちですか？',
   'pairing.nextTitle': '次に、もう一方のインスタンスで',
   'pairing.nextTail': 'そして、そこにこの単語を貼り付けてください。',

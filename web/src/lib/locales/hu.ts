@@ -244,6 +244,7 @@ export const hu: Dict = {
   'pairing.confirmLeave': 'Tényleg elhagyod',
   'pairing.actionError': 'Ez nem sikerült.',
   'pairing.loadError': 'A párosítási állapotot nem sikerült betölteni.',
+  'pairing.relayKeyDropped': 'Ezt a példányt egy kézzel beírt relékulccsal párosítottad. Ezzel a frissítéssel ez a párosítási mód megszűnik, ezért a példány most egyedül áll. Párosítsd újra a többi példányod tizenkét szavával.',
   'pairing.notFirst': 'Már van jelmondatod?',
   'pairing.nextTitle': 'Most a másik példányon',
   'pairing.nextTail': 'és illeszd be ott ezeket a szavakat.',

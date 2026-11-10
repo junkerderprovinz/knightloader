@@ -53,6 +53,7 @@ const base: ConnectInfo = {
   pending: [],
   awaiting: false,
   fingerprint: '',
+  relayKeyDropped: false,
 };
 
 function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = () => {}, onRefresh: () => void = () => {}) {

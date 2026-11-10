@@ -238,6 +238,7 @@ export const it: Dict = {
   'pairing.confirmLeave': 'Lascia davvero',
   'pairing.actionError': 'Non ha funzionato.',
   'pairing.loadError': "Impossibile caricare lo stato dell'associazione.",
+  'pairing.relayKeyDropped': 'Questa istanza era abbinata con una chiave del relay inserita a mano. Con questo aggiornamento non si può più abbinare così, quindi per ora l’istanza è da sola. Abbinala di nuovo con le dodici parole delle tue altre istanze.',
   'pairing.notFirst': 'Hai già una frase?',
   'pairing.nextTitle': "Ora, sull'altra istanza",
   'pairing.nextTail': 'e incolla lì queste parole.',

@@ -55,6 +55,11 @@ export function PairingSection({
   return (
     <section className="flex flex-col gap-10">
       <PairingSteps hues={[0, 1, 2]} />
+      {group?.relayKeyDropped && (
+        <p role="status" className="rounded-[var(--radius-card)] bg-statusWarnBgSoft px-3 py-2.5 text-sm text-carbon-text">
+          {t('pairing.relayKeyDropped')}
+        </p>
+      )}
       {error && <p className="text-sm text-statusFail">{t('pairing.loadError')}</p>}
       {group && <PairingGroup group={group} onGroup={takeGroup} onRefresh={load} hues={[3, 4]} />}
       {/* Between the group and the relay, since both show the name it sets. */}

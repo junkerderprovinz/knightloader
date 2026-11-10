@@ -244,6 +244,7 @@ export const sl: Dict = {
   'pairing.confirmLeave': 'Res zapusti',
   'pairing.actionError': 'To ni uspelo.',
   'pairing.loadError': 'Stanja seznanitve ni bilo mogoče naložiti.',
+  'pairing.relayKeyDropped': 'Ta instanca je bila seznanjena s ključem releja, ki si ga vpisal ročno. S to posodobitvijo tak način seznanjanja izgine, zato je instanca zaenkrat sama. Preprosto jo znova seznani z dvanajstimi besedami svojih drugih instanc.',
   'pairing.notFirst': 'Že imaš frazo?',
   'pairing.nextTitle': 'Zdaj na drugi instanci',
   'pairing.nextTail': 'in tam prilepi te besede.',

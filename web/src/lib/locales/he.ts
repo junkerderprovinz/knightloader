@@ -246,6 +246,7 @@ export const he: Dict = {
   'pairing.confirmLeave': 'עזוב באמת',
   'pairing.actionError': 'זה לא עבד.',
   'pairing.loadError': 'לא ניתן היה לטעון את מצב הצימוד.',
+  'pairing.relayKeyDropped': 'המופע הזה היה מצומד באמצעות מפתח ממסר שהקלדת ידנית. העדכון הזה מבטל את דרך הצימוד הזו, ולכן המופע לבד בינתיים. פשוט צמד אותו שוב עם שתים־עשרה המילים של המופעים האחרים שלך.',
   'pairing.notFirst': 'כבר יש לך ביטוי?',
   'pairing.nextTitle': 'עכשיו, במופע האחר',
   'pairing.nextTail': 'והדבק שם את המילים האלה.',

@@ -238,6 +238,7 @@ export const pl: Dict = {
   'pairing.confirmLeave': 'Naprawdę opuść',
   'pairing.actionError': 'To się nie udało.',
   'pairing.loadError': 'Nie udało się wczytać stanu parowania.',
+  'pairing.relayKeyDropped': 'Ta instancja była sparowana kluczem przekaźnika wpisanym ręcznie. Ta aktualizacja usuwa taki sposób parowania, więc instancja jest na razie sama. Po prostu sparuj ją ponownie dwunastoma słowami swoich pozostałych instancji.',
   'pairing.notFirst': 'Masz już frazę?',
   'pairing.nextTitle': 'Teraz, na drugiej instancji',
   'pairing.nextTail': 'i wklej tam te słowa.',

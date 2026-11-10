@@ -244,6 +244,7 @@ export const ca: Dict = {
   'pairing.confirmLeave': 'Confirma la sortida',
   'pairing.actionError': 'Això no ha funcionat.',
   'pairing.loadError': "No s'ha pogut carregar l'estat de l'aparellament.",
+  'pairing.relayKeyDropped': 'Aquesta instància estava aparellada amb una clau de relé que vas escriure a mà. Amb aquesta actualització ja no es pot aparellar així, per això ara està sola. Torna-la a aparellar amb les dotze paraules de les teves altres instàncies.',
   'pairing.notFirst': 'Ja tens una frase?',
   'pairing.nextTitle': "Ara, a l'altra instància",
   'pairing.nextTail': 'i enganxa aquestes paraules allà.',

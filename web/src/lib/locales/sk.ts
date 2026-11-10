@@ -244,6 +244,7 @@ export const sk: Dict = {
   'pairing.confirmLeave': 'Naozaj opustiť',
   'pairing.actionError': 'To sa nepodarilo.',
   'pairing.loadError': 'Stav párovania sa nepodarilo načítať.',
+  'pairing.relayKeyDropped': 'Táto inštancia bola spárovaná kľúčom relay, ktorý si zadal ručne. S touto aktualizáciou tento spôsob párovania skončil, a preto je inštancia teraz sama. Stačí ju znova spárovať dvanástimi slovami tvojich ostatných inštancií.',
   'pairing.notFirst': 'Frázu už máte?',
   'pairing.nextTitle': 'Teraz na druhej inštancii',
   'pairing.nextTail': 'a vložte tam tieto slová.',

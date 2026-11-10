@@ -244,6 +244,7 @@ export const sv: Dict = {
   'pairing.confirmLeave': 'Lämna på riktigt',
   'pairing.actionError': 'Det gick inte.',
   'pairing.loadError': 'Kunde inte läsa in parkopplingens status.',
+  'pairing.relayKeyDropped': 'Den här instansen var parkopplad med en relänyckel som du skrev in för hand. Det sättet att parkoppla försvinner med den här uppdateringen, så instansen står ensam så länge. Parkoppla den bara igen med de tolv orden från dina andra instanser.',
   'pairing.notFirst': 'Har du redan en fras?',
   'pairing.nextTitle': 'Nu, på den andra instansen',
   'pairing.nextTail': 'och klistra in orden där.',

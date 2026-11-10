@@ -4306,13 +4306,11 @@ export const removeInstance = async (name: string) =>
  *  network and find each other through local discovery. */
 export type RelayMode = 'project' | 'own' | 'off';
 
-/** GET and PUT /api/relay/config. The relay key is never in it, not even
- *  masked; `keySet` is all that is reported. */
+/** GET and PUT /api/relay/config. */
 export interface RelayConfig {
   /** Always one of the three; the server resolves an empty stored value. */
   mode: RelayMode;
   relayUrl: string;
-  keySet: boolean;
   /** Whether the socket to the relay is up right now, not merely configured. */
   connected: boolean;
   /** Whether this instance runs the relay itself, under /relay/connect. */
@@ -4327,21 +4325,14 @@ export async function fetchRelayConfig(): Promise<RelayConfig> {
 }
 
 /**
- * saveRelayConfig stores the address and answers with what is now stored.
- * `key` undefined keeps the stored key, '' clears it, anything else replaces
- * it. An unreachable relay is not a failure: the address is stored and the
- * client keeps dialling.
+ * saveRelayConfig stores the address and answers with what is now stored. An
+ * unreachable relay is not a failure: the address is stored and the group
+ * keeps dialling.
  */
-export async function saveRelayConfig(
-  relayUrl: string,
-  key?: string,
-  serve?: boolean,
-  mode?: RelayMode,
-): Promise<RelayConfig> {
+export async function saveRelayConfig(relayUrl: string, serve?: boolean, mode?: RelayMode): Promise<RelayConfig> {
   // Fields left undefined stay off the wire, so a save from one control does
   // not reset the others to what they were when its form was drawn.
   const body: Record<string, unknown> = { relayUrl };
-  if (key !== undefined) body.key = key;
   if (serve !== undefined) body.serve = serve;
   if (mode !== undefined) body.mode = mode;
   return json<RelayConfig>(
@@ -4403,6 +4394,9 @@ export interface ConnectInfo {
   /** This instance's own key as the others list it while it waits for
    *  approval there, '' outside a group. */
   fingerprint: string;
+  /** Whether this instance was paired by a relay key typed in by hand, which
+   *  the update took away, and has not paired with the phrase since. */
+  relayKeyDropped: boolean;
 }
 
 /** A device whose key is pinned here but nobody approved yet. */

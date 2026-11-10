@@ -244,6 +244,7 @@ export const cs: Dict = {
   'pairing.confirmLeave': 'Potvrdit odchod',
   'pairing.actionError': 'To nefungovalo.',
   'pairing.loadError': 'Nepodařilo se načíst stav párování.',
+  'pairing.relayKeyDropped': 'Tato instance byla spárována klíčem relé, který jsi zadal ručně. S touto aktualizací tento způsob párování skončil, a proto je instance teď sama. Stačí ji znovu spárovat dvanácti slovy svých ostatních instancí.',
   'pairing.notFirst': 'Už frázi máte?',
   'pairing.nextTitle': 'Nyní na druhé instanci',
   'pairing.nextTail': 'a vložte tam tato slova.',

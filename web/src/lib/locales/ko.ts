@@ -244,6 +244,7 @@ export const ko: Dict = {
   'pairing.confirmLeave': '정말로 나가기',
   'pairing.actionError': '실패했습니다.',
   'pairing.loadError': '페어링 상태를 불러올 수 없습니다.',
+  'pairing.relayKeyDropped': '이 인스턴스는 직접 입력한 릴레이 키로 페어링되어 있었습니다. 이번 업데이트로 그 방식의 페어링은 사라져서, 지금은 이 인스턴스 혼자입니다. 다른 인스턴스의 열두 단어로 다시 페어링하면 됩니다.',
   'pairing.notFirst': '이미 문구가 있나요?',
   'pairing.nextTitle': '이제 다른 인스턴스에서',
   'pairing.nextTail': '그리고 그곳에 이 단어를 붙여넣으세요.',

@@ -238,6 +238,7 @@ export const es: Dict = {
   'pairing.confirmLeave': 'Confirmar salida',
   'pairing.actionError': 'Eso no ha funcionado.',
   'pairing.loadError': 'No se pudo cargar el estado del emparejamiento.',
+  'pairing.relayKeyDropped': 'Esta instancia estaba emparejada con una clave de relé que escribiste a mano. Con esta actualización ya no se puede emparejar así, por eso ahora está sola. Vuelve a emparejarla con las doce palabras de tus otras instancias.',
   'pairing.notFirst': '¿Ya tienes una frase?',
   'pairing.nextTitle': 'Ahora, en la otra instancia',
   'pairing.nextTail': 'y pega estas palabras allí.',

@@ -244,6 +244,7 @@ export const gl: Dict = {
   'pairing.confirmLeave': 'Deixar de verdade',
   'pairing.actionError': 'Iso non funcionou.',
   'pairing.loadError': 'Non se puido cargar o estado de emparellamento.',
+  'pairing.relayKeyDropped': 'Esta instancia estaba emparellada cunha chave de relé que escribiches a man. Con esta actualización xa non se pode emparellar así, por iso agora está soa. Volve emparellala coas doce palabras das túas outras instancias.',
   'pairing.notFirst': 'Xa tes unha frase?',
   'pairing.nextTitle': 'Agora, na outra instancia',
   'pairing.nextTail': 'e pega alí estas palabras.',

@@ -244,6 +244,7 @@ export const et: Dict = {
   'pairing.confirmLeave': 'Kinnita lahkumine',
   'pairing.actionError': 'See ei õnnestunud.',
   'pairing.loadError': 'Sidumise olekut ei õnnestunud laadida.',
+  'pairing.relayKeyDropped': 'See eksemplar oli seotud releevõtmega, mille sa käsitsi sisestasid. Selle uuendusega see sidumisviis kaob, seega on eksemplar praegu üksi. Seo see lihtsalt uuesti oma teiste eksemplaride kaheteistkümne sõnaga.',
   'pairing.notFirst': 'Kas sul on juba fraas?',
   'pairing.nextTitle': 'Nüüd, teises eksemplaris',
   'pairing.nextTail': 'ja kleebi need sõnad sinna.',

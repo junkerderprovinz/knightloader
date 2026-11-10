@@ -238,6 +238,7 @@ export const pt: Dict = {
   'pairing.confirmLeave': 'Sair mesmo',
   'pairing.actionError': 'Isso não funcionou.',
   'pairing.loadError': 'Não foi possível carregar o estado de emparelhamento.',
+  'pairing.relayKeyDropped': 'Esta instância estava emparelhada com uma chave de relé que escreveste à mão. Com esta atualização já não é possível emparelhar assim, por isso a instância está sozinha por agora. Basta emparelhá-la de novo com as doze palavras das tuas outras instâncias.',
   'pairing.notFirst': 'Já tem uma frase?',
   'pairing.nextTitle': 'Agora, na outra instância',
   'pairing.nextTail': 'e cole aí estas palavras.',

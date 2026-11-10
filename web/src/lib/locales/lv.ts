@@ -244,6 +244,7 @@ export const lv: Dict = {
   'pairing.confirmLeave': 'Tiešām pamest',
   'pairing.actionError': 'Tas neizdevās.',
   'pairing.loadError': 'Neizdevās ielādēt pārošanas stāvokli.',
+  'pairing.relayKeyDropped': 'Šī instance bija savienota ar releja atslēgu, ko ievadīji ar roku. Ar šo atjauninājumu šāds savienošanas veids vairs nedarbojas, tāpēc instance pagaidām ir viena. Vienkārši savieno to vēlreiz ar savu citu instanču divpadsmit vārdiem.',
   'pairing.notFirst': 'Jums jau ir frāze?',
   'pairing.nextTitle': 'Tagad otrā instancē',
   'pairing.nextTail': 'un ielīmējiet tur šos vārdus.',

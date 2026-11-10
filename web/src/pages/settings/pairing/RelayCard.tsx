@@ -170,7 +170,7 @@ export function RelayCard({
 
   async function save(patch: { mode?: RelayMode; url?: string; serve?: boolean }): Promise<boolean> {
     try {
-      onRelay(await saveRelayConfig(patch.url ?? url, undefined, patch.serve, patch.mode));
+      onRelay(await saveRelayConfig(patch.url ?? url, patch.serve, patch.mode));
       return true;
     } catch (e) {
       const msg = e instanceof Error && e.message ? e.message : t('relay.saveError');

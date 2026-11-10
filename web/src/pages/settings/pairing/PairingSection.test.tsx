@@ -29,8 +29,9 @@ const alone: ConnectInfo = {
   pending: [],
   awaiting: false,
   fingerprint: '',
+  relayKeyDropped: false,
 };
-const relay: RelayConfig = { mode: 'project', relayUrl: '', keySet: false, connected: false, serve: false, serveClients: 0 };
+const relay: RelayConfig = { mode: 'project', relayUrl: '', connected: false, serve: false, serveClients: 0 };
 const WORDS = 'orbit wagon lemon crisp absent tunnel galaxy harbor pencil ribbon velvet yellow';
 
 const json = (body: unknown) => new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } });
@@ -88,4 +89,44 @@ it('keeps words just created when a poll sent before them answers late', async (
   host.remove();
   vi.unstubAllGlobals();
   vi.useRealTimers();
+});
+
+it('says why an instance paired by a relay key typed in by hand stands alone', async () => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  );
+  const notice = (dropped: boolean) =>
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => Promise.resolve(json(url === '/api/relay/config' ? relay : { ...alone, relayKeyDropped: dropped }))),
+    );
+  const host = document.createElement('div');
+  document.body.append(host);
+  const root = createRoot(host);
+  const draw = () =>
+    act(async () =>
+      root.render(
+        <MemoryRouter>
+          <I18nProvider>
+            <PairingSection key={String(Math.random())} identity={() => null} />
+          </I18nProvider>
+        </MemoryRouter>,
+      ),
+    );
+
+  notice(true);
+  await draw();
+  expect(host.querySelector('[role="status"]')?.textContent).toContain('relay key you typed in by hand');
+
+  notice(false);
+  await draw();
+  expect(host.querySelector('[role="status"]')).toBeNull();
+
+  act(() => root.unmount());
+  host.remove();
+  vi.unstubAllGlobals();
 });

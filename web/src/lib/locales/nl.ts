@@ -238,6 +238,7 @@ export const nl: Dict = {
   'pairing.confirmLeave': 'Echt verlaten',
   'pairing.actionError': 'Dat is niet gelukt.',
   'pairing.loadError': 'Kon de koppelingsstatus niet laden.',
+  'pairing.relayKeyDropped': 'Deze instantie was gekoppeld met een relay-sleutel die je met de hand hebt ingevoerd. Met deze update verdwijnt die manier van koppelen, dus staat de instantie nu even alleen. Koppel haar gewoon opnieuw met de twaalf woorden van je andere instanties.',
   'pairing.notFirst': 'Heb je al een frase?',
   'pairing.nextTitle': 'Nu, op de andere instantie',
   'pairing.nextTail': 'en plak daar deze woorden.',

@@ -244,6 +244,7 @@ export const tr: Dict = {
   'pairing.confirmLeave': 'Gerçekten ayrıl',
   'pairing.actionError': 'Bu işe yaramadı.',
   'pairing.loadError': 'Eşleştirme durumu yüklenemedi.',
+  'pairing.relayKeyDropped': 'Bu örnek, elle yazdığın bir aktarıcı anahtarıyla eşleştirilmişti. Bu güncellemeyle o eşleştirme yolu kalktı, bu yüzden örnek şimdilik yalnız. Diğer örneklerinin on iki kelimesiyle onu yeniden eşleştirmen yeterli.',
   'pairing.notFirst': 'Zaten bir ifaden var mı?',
   'pairing.nextTitle': 'Şimdi, diğer örnekte',
   'pairing.nextTail': 've bu kelimeleri oraya yapıştır.',

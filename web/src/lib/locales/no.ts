@@ -246,6 +246,7 @@ export const no: Dict = {
   'pairing.confirmLeave': 'Forlat likevel',
   'pairing.actionError': 'Det fungerte ikke.',
   'pairing.loadError': 'Kunne ikke laste paringsstatusen.',
+  'pairing.relayKeyDropped': 'Denne instansen var paret med en relénøkkel du skrev inn for hånd. Den måten å pare på forsvinner med denne oppdateringen, så instansen står alene inntil videre. Bare par den igjen med de tolv ordene fra de andre instansene dine.',
   'pairing.notFirst': 'Har du allerede en frase?',
   'pairing.nextTitle': 'Nå, på den andre instansen',
   'pairing.nextTail': 'og lim inn disse ordene der.',

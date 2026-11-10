@@ -290,6 +290,7 @@ export const en = {
   'pairing.confirmLeave': 'Really leave',
   'pairing.actionError': 'That did not work.',
   'pairing.loadError': 'Could not load the pairing state.',
+  'pairing.relayKeyDropped': 'This instance was paired with a relay key you typed in by hand. Pairing that way is gone with this update, so the instance is on its own for now. Just pair it again with the twelve words of your other instances.',
   'pairing.notFirst': 'Already have a phrase?',
   'pairing.nextTitle': 'Now, on the other instance',
   'pairing.nextTail': 'and paste these words there.',

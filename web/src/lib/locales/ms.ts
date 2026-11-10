@@ -244,6 +244,7 @@ export const ms: Dict = {
   'pairing.confirmLeave': 'Benar-benar tinggalkan',
   'pairing.actionError': 'Itu tidak berjaya.',
   'pairing.loadError': 'Status gandingan gagal dimuatkan.',
+  'pairing.relayKeyDropped': 'Instans ini dipasangkan dengan kunci relay yang anda taip sendiri. Cara memasangkan itu hilang dengan kemas kini ini, jadi instans ini bersendirian buat masa ini. Pasangkan semula sahaja dengan dua belas perkataan daripada instans anda yang lain.',
   'pairing.notFirst': 'Sudah ada frasa?',
   'pairing.nextTitle': 'Sekarang, pada instans yang satu lagi',
   'pairing.nextTail': 'dan tampal perkataan ini di sana.',

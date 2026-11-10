@@ -244,6 +244,7 @@ export const zh: Dict = {
   'pairing.confirmLeave': '确认退出',
   'pairing.actionError': '没有成功。',
   'pairing.loadError': '无法加载配对状态。',
+  'pairing.relayKeyDropped': '此实例曾通过你手动输入的中继密钥配对。此次更新后不再支持这种配对方式，所以它现在是单独的。只需用你其他实例的十二个单词重新配对即可。',
   'pairing.notFirst': '已经有口令了？',
   'pairing.nextTitle': '现在，在另一台实例上',
   'pairing.nextTail': '然后把这些单词粘贴到那边。',

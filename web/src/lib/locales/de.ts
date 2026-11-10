@@ -267,6 +267,7 @@ export const de: Dict = {
   'pairing.confirmLeave': 'Wirklich verlassen',
   'pairing.actionError': 'Das hat nicht geklappt.',
   'pairing.loadError': 'Der Kopplungsstand ließ sich nicht laden.',
+  'pairing.relayKeyDropped': 'Diese Instanz war mit einem Relay-Schlüssel gekoppelt, den du von Hand eingetragen hast. Mit diesem Update geht das nicht mehr, deshalb steht sie gerade allein da. Kopple sie einfach wieder mit den zwölf Wörtern deiner anderen Instanzen.',
   'pairing.notFirst': 'Schon eine Phrase vorhanden?',
   'pairing.nextTitle': 'Jetzt auf der anderen Instanz',
   'pairing.nextTail': 'und füg dort diese Wörter ein.',

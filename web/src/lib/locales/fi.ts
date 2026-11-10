@@ -244,6 +244,7 @@ export const fi: Dict = {
   'pairing.confirmLeave': 'Poistu varmasti',
   'pairing.actionError': 'Se ei onnistunut.',
   'pairing.loadError': 'Pariliitostilaa ei voitu ladata.',
+  'pairing.relayKeyDropped': 'Tämä instanssi oli yhdistetty käsin syötetyllä välittimen avaimella. Tämä päivitys poistaa sen tavan yhdistää, joten instanssi on nyt omillaan. Yhdistä se vain uudelleen muiden instanssiesi kahdellatoista sanalla.',
   'pairing.notFirst': 'Onko sinulla jo lause?',
   'pairing.nextTitle': 'Nyt toisella instanssilla',
   'pairing.nextTail': 'ja liitä nämä sanat sinne.',

@@ -244,6 +244,7 @@ export const da: Dict = {
   'pairing.confirmLeave': 'Bekræft udtræden',
   'pairing.actionError': 'Det virkede ikke.',
   'pairing.loadError': 'Kunne ikke indlæse parringstilstanden.',
+  'pairing.relayKeyDropped': 'Denne instans var parret med en relænøgle, du skrev ind i hånden. Den måde at parre på forsvinder med denne opdatering, så instansen står alene indtil videre. Par den bare igen med de tolv ord fra dine andre instanser.',
   'pairing.notFirst': 'Har du allerede en sætning?',
   'pairing.nextTitle': 'Nu, på den anden instans',
   'pairing.nextTail': 'og indsæt disse ord der.',

@@ -244,6 +244,7 @@ export const id: Dict = {
   'pairing.confirmLeave': 'Benar-benar tinggalkan',
   'pairing.actionError': 'Itu tidak berhasil.',
   'pairing.loadError': 'Status pemasangan gagal dimuat.',
+  'pairing.relayKeyDropped': 'Instance ini dipasangkan dengan kunci relay yang kamu ketik sendiri. Cara memasangkan itu hilang dengan pembaruan ini, jadi instance ini sendirian untuk sementara. Pasangkan lagi saja dengan dua belas kata dari instance kamu yang lain.',
   'pairing.notFirst': 'Sudah punya frasa?',
   'pairing.nextTitle': 'Sekarang, di instance lainnya',
   'pairing.nextTail': 'dan tempelkan kata-kata ini di sana.',

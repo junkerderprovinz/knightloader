@@ -238,6 +238,7 @@ export const fr: Dict = {
   'pairing.confirmLeave': 'Vraiment quitter',
   'pairing.actionError': "Cela n'a pas fonctionné.",
   'pairing.loadError': "Impossible de charger l'état d'appairage.",
+  'pairing.relayKeyDropped': 'Cette instance était appairée avec une clé de relais saisie à la main. Cette mise à jour supprime ce mode d’appairage, l’instance est donc seule pour l’instant. Appaire-la simplement de nouveau avec les douze mots de tes autres instances.',
   'pairing.notFirst': 'Vous avez déjà une phrase ?',
   'pairing.nextTitle': "Maintenant, sur l'autre instance",
   'pairing.nextTail': 'et collez ces mots là-bas.',

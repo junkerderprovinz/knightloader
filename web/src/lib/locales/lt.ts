@@ -244,6 +244,7 @@ export const lt: Dict = {
   'pairing.confirmLeave': 'Tikrai palikti',
   'pairing.actionError': 'Nepavyko.',
   'pairing.loadError': 'Nepavyko įkelti susiejimo būsenos.',
+  'pairing.relayKeyDropped': 'Šis egzempliorius buvo susietas rankiniu būdu įvestu relės raktu. Su šiuo atnaujinimu toks susiejimas nebegalimas, todėl egzempliorius kol kas vienas. Tiesiog vėl susiekite jį su kitų savo egzempliorių dvylika žodžių.',
   'pairing.notFirst': 'Jau turite frazę?',
   'pairing.nextTitle': 'Dabar kitame egzemplioriuje',
   'pairing.nextTail': 'ir įklijuokite ten šiuos žodžius.',

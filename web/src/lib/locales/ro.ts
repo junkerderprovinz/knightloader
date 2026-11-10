@@ -244,6 +244,7 @@ export const ro: Dict = {
   'pairing.confirmLeave': 'Părăsește totuși',
   'pairing.actionError': 'Asta nu a funcționat.',
   'pairing.loadError': 'Starea împerecherii nu a putut fi încărcată.',
+  'pairing.relayKeyDropped': 'Această instanță era asociată printr-o cheie de releu introdusă de mână. Cu această actualizare, acest mod de asociere dispare, așa că instanța e deocamdată singură. Asociaz-o din nou cu cele douăsprezece cuvinte ale celorlalte instanțe ale tale.',
   'pairing.notFirst': 'Ai deja o frază?',
   'pairing.nextTitle': 'Acum, pe cealaltă instanță',
   'pairing.nextTail': 'și lipește aceste cuvinte acolo.',
