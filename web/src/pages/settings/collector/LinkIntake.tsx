@@ -36,7 +36,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
   const { watch, flip, dialog } = useWatchSwitch();
   const [target, setTarget] = useClipboardWatchTarget();
   const { data: peers } = useResource(fetchInstances);
-  const { ways, open } = useWays(watch, peers);
+  const { ways, open } = useWays(watch);
   const watchHint = isDesktop() ? t('intake.clipboardWatchHintDesktop') : t('intake.clipboardWatchHint');
   // A target that has gone offline stays listed, so it can still be seen and
   // changed.

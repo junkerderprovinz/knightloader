@@ -526,8 +526,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     { title: 'settings.module.federation', rows: [], body: ['settings.modules.about.federation'] },
     // The page drawn below that card.
     {
-      title: 'instances.foundTitle',
-      hint: 'instances.foundHint',
+      title: 'instances.title',
       rows: [],
       // The page's floating action.
       also: ['pairing.title'],
@@ -559,7 +558,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'pairing.groupHint',
       rows: [],
       // How a member of the group is reached, and the state of one that is away.
-      also: ['pairing.direct', 'pairing.byAddress', 'pairing.viaRelay', 'instances.inactive'],
+      also: ['pairing.direct', 'pairing.viaRelay', 'instances.inactive'],
     },
     {
       title: 'settings.access.identity.title',

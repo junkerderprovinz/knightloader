@@ -1,87 +1,40 @@
 package api
 
-// Other KnightLoader instances on the same network: registering them, and
-// forwarding task operations to one.
+// The other instances of the group: listing them, and forwarding task
+// operations to one.
 
 import (
 	"context"
-	"errors"
 	"io"
+	"log"
 	"net/http"
 	"path"
 	"strings"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
-// refuseFederationOff answers every call that would reach a peer while the
-// module is switched off. The peers stay stored and come back with it. The
-// code lets the interface say it in the reader's language.
+// refuseFederationOff answers every call that would reach another instance
+// while the module is switched off. The group stays and comes back with it.
+// The code lets the interface say it in the reader's language.
 func refuseFederationOff(w http.ResponseWriter) {
 	writeRefusal(w, http.StatusServiceUnavailable, "federationOff",
 		`"Instances" is switched off on the Instances page`, nil)
 }
 
 func registerFederation(reg *Registry, a *app.App) {
-	reg.Add(http.MethodGet, "/api/instances", "the peer instances this one knows about; none while the module is switched off",
+	forgetInstancesAddedByAddress(a)
+
+	reg.Add(http.MethodGet, "/api/instances", "the other instances of this instance's group reachable now; none while the module is switched off",
 		func(w http.ResponseWriter, r *http.Request) {
 			if a.ModuleOff("federation") {
 				writeJSON(w, []federation.Instance{})
 				return
 			}
-			list := a.Federation.List()
-			if !seesCredentials(r) {
-				for i := range list {
-					list[i].URL = core.RedactURL(list[i].URL)
-				}
-			}
-			writeJSON(w, list)
-		})
-	reg.Add(http.MethodPost, "/api/instances", "register a peer instance and report whether it answered",
-		func(w http.ResponseWriter, r *http.Request) {
-			var in federation.Instance
-			if !decodeJSON(w, r, &in) {
-				return
-			}
-			if a.ModuleOff("federation") {
-				refuseFederationOff(w)
-				return
-			}
-			if err := addPeer(a, in); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			// Three outcomes, not two: "reached it and it refused this
-			// instance's credentials" needs a different fix from "could not
-			// reach it at all", and adding a peer by address exchanges no
-			// credential. Collapsing both into "offline" makes a
-			// password-locked peer look switched off. The answer is the
-			// connection phrase, which authenticates both ends by the same
-			// key with nothing to copy per peer; refused says which of the
-			// two happened.
-			err := a.Federation.Ping(r.Context(), in.Name)
-			writeJSON(w, map[string]any{
-				"name": in.Name, "url": in.URL,
-				"online":  err == nil,
-				"refused": errors.Is(err, federation.ErrUnauthorized),
-			})
-		})
-	reg.Add(http.MethodDelete, "/api/instances/{name}", "forget a peer instance",
-		func(w http.ResponseWriter, r *http.Request) {
-			name := r.PathValue("name")
-			if err := a.Federation.Remove(name); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			// Removing a peer has to end the credentials too. Otherwise the
-			// peer keeps a live full-power token on this instance, and the
-			// token this instance held gets re-attached to whatever is
-			// registered under that name next.
-			forgetPeerCredentials(a, name)
-			w.WriteHeader(http.StatusNoContent)
+			writeJSON(w, a.Federation.List())
 		})
 	// Proxy task operations to a peer instance: only the task, link and queue
 	// routes, the read of the unpackings and a clipboard watcher's lease are
@@ -95,9 +48,8 @@ func registerFederation(reg *Registry, a *app.App) {
 				return
 			}
 			// rest arrives unescaped, so tasks%2F..%2Fsettings reads
-			// tasks/../settings. It would pass the list below, and the peer's
-			// mux would redirect it to /api/settings with the peer token still
-			// attached.
+			// tasks/../settings. It would pass the list below, and the other
+			// instance would serve /api/settings to this one's member key.
 			if path.Clean("/"+rest) != "/"+rest {
 				http.Error(w, "route not proxied", http.StatusForbidden)
 				return
@@ -119,7 +71,7 @@ func registerFederation(reg *Registry, a *app.App) {
 			if r.Body != nil {
 				body, _ = io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
 			}
-			// The peer takes the call on this instance's own full token, so a
+			// The other instance takes the call as from this one, so a
 			// narrower token is held to what the call would need here.
 			if tok, ok := tokenOf(r); ok {
 				if need := reg.scopeOfCall(r.Method, "/api/"+rest, body); !tok.Has(need) {
@@ -176,5 +128,28 @@ func announceArrivals(a *app.App, serve relay.ProxyHandler) relay.ProxyHandler {
 			a.Hub.Broadcast("handover", handover{Peer: call.From})
 		}
 		return status, out
+	}
+}
+
+// addressCredentials is the accounts service older releases kept the token
+// for calling an instance added by its address under.
+const addressCredentials = "federation-peer"
+
+// forgetInstancesAddedByAddress drops the credentials older releases kept for
+// instances added by their address: the token for calling each one, and the
+// tokens minted for them, which would stay live with nothing left to use
+// them. Instances pair by the phrase alone.
+func forgetInstancesAddedByAddress(a *app.App) {
+	for _, peer := range a.Accounts.AccountIDs(addressCredentials) {
+		if err := a.Accounts.SetCredential(addressCredentials, peer, accounts.Credential{}); err != nil {
+			log.Printf("instances: could not forget the credential for %s: %v", peer, err)
+		}
+	}
+	for _, t := range a.APITokens.List() {
+		if strings.HasPrefix(t.Name, "peer: ") {
+			if err := a.APITokens.Revoke(t.ID); err != nil {
+				log.Printf("instances: could not revoke the token %q: %v", t.Name, err)
+			}
+		}
 	}
 }

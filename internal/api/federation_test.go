@@ -17,7 +17,7 @@ import (
 )
 
 // TestFederationProxy runs two real instances and drives instance B entirely
-// through instance A's proxy routes: register, list tasks, add a link, remove.
+// through instance A's proxy routes: list tasks, add a link, delete one.
 func TestFederationProxy(t *testing.T) {
 	t.Parallel()
 	aApp, err := app.New(t.TempDir())
@@ -36,27 +36,14 @@ func TestFederationProxy(t *testing.T) {
 	bSrv := httptest.NewServer(Handler(bApp))
 	defer bSrv.Close()
 
-	// Register B as a peer of A; the add response reports it online.
-	body, _ := json.Marshal(map[string]string{"name": "cellar", "url": bSrv.URL})
-	resp, err := http.Post(aSrv.URL+"/api/instances", "application/json", bytes.NewReader(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-	var added struct {
-		Online bool `json:"online"`
-	}
-	_ = json.NewDecoder(resp.Body).Decode(&added)
-	resp.Body.Close()
-	if !added.Online {
-		t.Fatal("peer not reported online")
-	}
+	aApp.Federation.SetGroup(&servedMember{url: bSrv.URL})
 
 	// A task added directly on B must be visible through A's proxy.
 	seed := bApp.AddLinks([]string{"https://example.com/direct-file.zip"}, "fed")
 	if len(seed) != 1 {
 		t.Fatalf("seed task not created on B")
 	}
-	resp, err = http.Get(aSrv.URL + "/api/instances/cellar/tasks")
+	resp, err := http.Get(aSrv.URL + "/api/instances/" + nasID + "/tasks")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,8 +55,8 @@ func TestFederationProxy(t *testing.T) {
 	}
 
 	// Adding links through the proxy lands on B, not on A.
-	body, _ = json.Marshal(map[string]string{"links": "https://example.com/second.zip", "package": "fed"})
-	resp, err = http.Post(aSrv.URL+"/api/instances/cellar/links", "application/json", bytes.NewReader(body))
+	body, _ := json.Marshal(map[string]string{"links": "https://example.com/second.zip", "package": "fed"})
+	resp, err = http.Post(aSrv.URL+"/api/instances/"+nasID+"/links", "application/json", bytes.NewReader(body))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +69,7 @@ func TestFederationProxy(t *testing.T) {
 	}
 
 	// Deleting through the proxy removes on B.
-	req, _ := http.NewRequest(http.MethodDelete, aSrv.URL+"/api/instances/cellar/tasks/"+seed[0].ID, nil)
+	req, _ := http.NewRequest(http.MethodDelete, aSrv.URL+"/api/instances/"+nasID+"/tasks/"+seed[0].ID, nil)
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)
@@ -93,7 +80,7 @@ func TestFederationProxy(t *testing.T) {
 	}
 
 	// Non-task routes must not be proxied.
-	resp, err = http.Get(aSrv.URL + "/api/instances/cellar/settings")
+	resp, err = http.Get(aSrv.URL + "/api/instances/" + nasID + "/settings")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,19 +89,10 @@ func TestFederationProxy(t *testing.T) {
 		t.Fatalf("settings proxy = HTTP %d, want 403", resp.StatusCode)
 	}
 
-	// Peer list is persisted + removable.
 	resp, _ = http.Get(aSrv.URL + "/api/instances")
 	b, _ := readAll(resp)
-	if !strings.Contains(string(b), "cellar") {
-		t.Fatalf("instances list %s missing peer", b)
-	}
-	req, _ = http.NewRequest(http.MethodDelete, aSrv.URL+"/api/instances/cellar", nil)
-	resp, _ = http.DefaultClient.Do(req)
-	resp.Body.Close()
-	resp, _ = http.Get(aSrv.URL + "/api/instances")
-	b, _ = readAll(resp)
-	if strings.Contains(string(b), "cellar") {
-		t.Fatalf("peer still listed after delete: %s", b)
+	if !strings.Contains(string(b), nasID) {
+		t.Fatalf("instances list %s missing the member", b)
 	}
 }
 
@@ -128,12 +106,7 @@ func TestLinksHandedOverAreAnnouncedToTheOpenPages(t *testing.T) {
 	defer aSrv.Close()
 	bSrv, bApp := testServer(t)
 	defer bSrv.Close()
-	body, _ := json.Marshal(map[string]string{"name": "cellar", "url": bSrv.URL})
-	resp, err := http.Post(aSrv.URL+"/api/instances", "application/json", bytes.NewReader(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-	resp.Body.Close()
+	aApp.Federation.SetGroup(&servedMember{url: bSrv.URL})
 
 	// The server adds a stream to the hub only after the handshake Dial waits
 	// for, so a broadcast sent in between misses it. The snapshot is queued
@@ -147,20 +120,20 @@ func TestLinksHandedOverAreAnnouncedToTheOpenPages(t *testing.T) {
 		return peer, out
 	}
 
-	resp, err = http.Get(aSrv.URL + "/api/instances/cellar/tasks")
+	resp, err := http.Get(aSrv.URL + "/api/instances/" + nasID + "/tasks")
 	if err != nil {
 		t.Fatal(err)
 	}
 	resp.Body.Close()
 	links, _ := json.Marshal(map[string]string{"links": "https://example.com/one.zip"})
-	resp, err = http.Post(aSrv.URL+"/api/instances/cellar/links", "application/json", bytes.NewReader(links))
+	resp, err = http.Post(aSrv.URL+"/api/instances/"+nasID+"/links", "application/json", bytes.NewReader(links))
 	if err != nil {
 		t.Fatal(err)
 	}
 	resp.Body.Close()
 	// The read went first, so a handover it had announced would be read here.
-	if peer, out := handed(readOneOfType(t, sent, "handover")); peer != "cellar" || !out {
-		t.Errorf("forwarded links announced as peer %q, out %v, want cellar going out", peer, out)
+	if peer, out := handed(readOneOfType(t, sent, "handover")); peer != nasID || !out {
+		t.Errorf("forwarded links announced as peer %q, out %v, want the member going out", peer, out)
 	}
 
 	arrived := dialWS(t, "ws"+strings.TrimPrefix(bSrv.URL, "http"))
@@ -200,17 +173,12 @@ func TestAForwardedPathCannotClimbOutOfTheTaskRoutes(t *testing.T) {
 	}))
 	defer peer.Close()
 
-	srv, _ := testServer(t)
+	srv, a := testServer(t)
 	defer srv.Close()
-	body, _ := json.Marshal(map[string]string{"name": "cellar", "url": peer.URL})
-	resp, err := http.Post(srv.URL+"/api/instances", "application/json", bytes.NewReader(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-	resp.Body.Close()
+	a.Federation.SetGroup(&servedMember{url: peer.URL})
 
 	for _, p := range []string{"tasks%2F..%2Fsettings", "tasks%2F%2E%2E%2Fsettings", "tasks%2F.%2F..%2Fsettings", "queue%2F..%2F..%2Fapi%2Fsettings"} {
-		resp, err := http.Get(srv.URL + "/api/instances/cellar/" + p)
+		resp, err := http.Get(srv.URL + "/api/instances/" + nasID + "/" + p)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -330,71 +298,6 @@ func TestRelayOnlyPeerIsListedAndReachable(t *testing.T) {
 	}
 }
 
-// TestAddingAPasswordProtectedPeerSaysWhy covers what adding a peer does.
-// Adding by address, typed or from the discovery card, stores an address and
-// exchanges nothing, so a peer with a password refuses the next call. Reported
-// as "offline" that is the same word a switched-off machine gets, with a
-// different fix behind it.
-func TestAddingAPasswordProtectedPeerSaysWhy(t *testing.T) {
-	t.Parallel()
-	locked, err := app.New(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer locked.Close()
-	lockedSrv := httptest.NewServer(Handler(locked))
-	defer lockedSrv.Close()
-	if err := locked.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
-
-	me, err := app.New(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer me.Close()
-	meSrv := httptest.NewServer(Handler(me))
-	defer meSrv.Close()
-
-	add := func(name, url string) (online, refused bool) {
-		t.Helper()
-		body, _ := json.Marshal(map[string]string{"name": name, "url": url})
-		resp, err := http.Post(meSrv.URL+"/api/instances", "application/json", bytes.NewReader(body))
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer resp.Body.Close()
-		var got struct {
-			Online  bool `json:"online"`
-			Refused bool `json:"refused"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&got); err != nil {
-			t.Fatal(err)
-		}
-		return got.Online, got.Refused
-	}
-
-	// Reached and refused: a credential problem, fixed by putting both
-	// instances in the same phrase group. The case below is fixed by switching
-	// a machine on, so the two need different answers.
-	online, refused := add("locked", lockedSrv.URL)
-	if online {
-		t.Error("online = true for a peer that answered 401")
-	}
-	if !refused {
-		t.Error("refused = false for a peer that was reached and refused us - the page can only say \"offline\", which points at the wrong fix")
-	}
-
-	// Not reached at all, and it must not be reported as the other one.
-	online, refused = add("gone", "http://127.0.0.1:1")
-	if online {
-		t.Error("online = true for an address nothing listens on")
-	}
-	if refused {
-		t.Error("refused = true for an unreachable peer - that sends somebody hunting a credential problem on a machine that is switched off")
-	}
-}
-
 // A peer's list reads its unpackings through the forward, and nothing more of
 // them: starting or stopping one stays on the peer.
 func TestAPeersUnpackingsAreForwardedReadOnly(t *testing.T) {
@@ -409,17 +312,12 @@ func TestAPeersUnpackingsAreForwardedReadOnly(t *testing.T) {
 	}))
 	defer peer.Close()
 
-	srv, _ := testServer(t)
+	srv, a := testServer(t)
 	defer srv.Close()
-	body, _ := json.Marshal(map[string]string{"name": "cellar", "url": peer.URL})
-	resp, err := http.Post(srv.URL+"/api/instances", "application/json", bytes.NewReader(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-	resp.Body.Close()
+	a.Federation.SetGroup(&servedMember{url: peer.URL})
 
 	call := func(method, rest string) int {
-		req, _ := http.NewRequest(method, srv.URL+"/api/instances/cellar/"+rest, strings.NewReader(`{}`))
+		req, _ := http.NewRequest(method, srv.URL+"/api/instances/"+nasID+"/"+rest, strings.NewReader(`{}`))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -444,7 +342,6 @@ func TestAPeersUnpackingsAreForwardedReadOnly(t *testing.T) {
 	}
 	mu.Lock()
 	defer mu.Unlock()
-	// Registering the peer asks for its tasks, to say whether it is online.
 	var jobs []string
 	for _, a := range asked {
 		if strings.Contains(a, "/extract") {

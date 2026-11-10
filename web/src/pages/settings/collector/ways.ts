@@ -6,7 +6,7 @@
 // nothing that is set up.
 import { useNavigate } from 'react-router-dom';
 import type { Way } from '../../../components/pictures/WaysIn';
-import { fetchConnect, type Instance } from '../../../lib/api';
+import { fetchConnect } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   IconAdd,
@@ -52,10 +52,10 @@ const names = (list: { name: string }[]) => list.map((item) => item.name).join('
 
 /**
  * useWays lists the ways in with their state, and `open` goes to where one is
- * set up. `watch` is this browser's clipboard watch and `peers` the instances
- * added by address, both of which the card around the picture already holds.
+ * set up. `watch` is this browser's clipboard watch, which the card around the
+ * picture already holds.
  */
-export function useWays(watch: boolean, peers: Instance[] | null): { ways: Way[]; open: (id: string) => void } {
+export function useWays(watch: boolean): { ways: Way[]; open: (id: string) => void } {
   const { t } = useT();
   const { tx } = useTx();
   const navigate = useNavigate();
@@ -106,10 +106,7 @@ export function useWays(watch: boolean, peers: Instance[] | null): { ways: Way[]
 
   const federation = shipped('federation');
   if (federation) {
-    const others = [
-      ...(group?.members ?? []).map((m) => ({ name: m.name || m.id })),
-      ...(peers ?? []).filter((p) => !p.relayId).map((p) => ({ name: p.displayName ?? p.name })),
-    ];
+    const others = (group?.members ?? []).map((m) => ({ name: m.name || m.id }));
     ways.push({
       id: 'instances',
       name: t('settings.module.federation'),

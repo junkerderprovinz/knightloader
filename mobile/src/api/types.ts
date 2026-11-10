@@ -214,26 +214,19 @@ export function needsAddingAgain(c: ServerConnection): boolean {
   return isRelayConnection(c) ? !c.relayFrameKey : /^http:/i.test(c.baseUrl);
 }
 
-// Mirrors internal/federation.Instance, a peer the connected server knows
-// about. A peer has no separate token: /api/instances/{name}/* on the connected
-// server proxies task, link and queue requests to it with that server's own
-// credentials, so the app needs the peer's registered name and nothing else.
-// Reaching a relay-visible peer needs no relay wire protocol here either, since
-// the one server this app is connected to proxies those like stored peers, as
-// the web UI's Instances and Dashboard pages do.
+// Mirrors internal/federation.Instance, another instance of the connected
+// server's group. It has no separate token: /api/instances/{name}/* on the
+// connected server proxies task, link and queue requests to it, so the app
+// needs its name and nothing else.
 export interface Instance {
-  // The address every proxied call is built from. For a relay peer this is its
-  // InstanceID rather than the name it announced, so it does not change when
-  // something else about the peer list does (see
-  // federation.Manager.reachable). Render displayName instead of this one.
+  // The address every proxied call is built from: the member's stable id
+  // rather than the name it announced (see federation.Manager.reachable).
+  // Render displayName instead of this one.
   name: string;
-  url: string;
-  // What a relay peer calls itself, present only when it differs from `name`.
-  // A label; nothing addresses a peer by it. Falls back to `name`.
+  // What the member calls itself, present only when it differs from `name`.
+  // A label; nothing addresses a member by it. Falls back to `name`.
   displayName?: string;
-  // Set only for a peer reached through the relay right now; a stored peer
-  // carries none. `url` is empty for one of these, which is why
-  // InstancesScreen shows a "connected via relay" line instead.
+  // The member's id, the same as `name`.
   relayId?: string;
 }
 

@@ -113,7 +113,7 @@ func waitForMember(t *testing.T, a *app.App, id string) {
 	t.Helper()
 	deadline := time.Now().Add(10 * time.Second)
 	for time.Now().Before(deadline) {
-		for _, m := range a.Federation.Members() {
+		for _, m := range a.Federation.List() {
 			if m.RelayID == id {
 				return
 			}

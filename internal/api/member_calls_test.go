@@ -197,3 +197,30 @@ func groupCall(method, target, body string) *http.Request {
 	c := group.Caller{ID: idAs("phone-member", member.KindMobile), Kind: member.KindMobile}
 	return r.WithContext(context.WithValue(r.Context(), memberCallKey{}, c))
 }
+
+// nasID is the member id of the instance servedMember stands for.
+var nasID = strings.Repeat("d", 40)
+
+// servedMember is a group whose one member, nas, is the instance at url,
+// called over plain HTTP the way kit/group calls it sealed.
+type servedMember struct{ url string }
+
+func (m *servedMember) Members() []group.Member {
+	return []group.Member{{ID: nasID, Kind: member.KindInstance, Name: "nas", Relay: true}}
+}
+func (m *servedMember) RelayConnected() bool { return true }
+func (m *servedMember) Close() error         { return nil }
+func (m *servedMember) Call(ctx context.Context, _, method, path string, body []byte) (int, []byte, error) {
+	req, err := http.NewRequestWithContext(ctx, method, m.url+path, bytes.NewReader(body))
+	if err != nil {
+		return 0, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer resp.Body.Close()
+	out, err := io.ReadAll(resp.Body)
+	return resp.StatusCode, out, err
+}

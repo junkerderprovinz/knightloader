@@ -130,8 +130,8 @@ extension's, renews a three-minute lease with the instance it sends to
 (`PUT /api/clipboard-watchers/{id}`, `internal/clipwatch`). A page whose links go
 to a peer of the instance serving it renews there, through
 `/api/instances/{name}/clipboard-watchers/{id}`. Switching a watch on asks for
-the group's list (`GET /api/clipboard-watchers`, which asks every member and
-every instance added by address for its own), and when another device already
+the group's list (`GET /api/clipboard-watchers`, which asks every member for
+its own), and when another device already
 watches, a window names it and offers to switch it off there
 (`POST /api/clipboard-watchers/{id}/stop`, sent to all of them at once) or keep
 both. A stopped watcher hears it on its next renewal, even if its instance

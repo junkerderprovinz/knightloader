@@ -1,23 +1,19 @@
 // GroupCard lists who is in the group: the devices that wait for approval,
-// this instance with the stage it is in and its key, the other instances, the
-// instances added by their address and every phone and browser extension, each
-// with the button that takes it out. Beside the list the same group stands as
+// this instance with the stage it is in and its key, the other instances and
+// every phone and browser extension, each with the button that takes it out. Beside the list the same group stands as
 // a net, and a row and its node light up together.
 import { useEffect, useState, type ReactNode } from 'react';
 import { GroupNet, SELF_KEY, useNetHover, type NetNode } from '../../../components/GroupNet';
-import { CheckingState, usePeerStats } from '../../../components/InstanceCard';
 import { RemovalWindow, type Removal } from '../../../components/InstanceRemoval';
 import { OkState, StatePill } from '../../../components/StatePill';
 import { Button, Card, InfoBubble, SectionTitle } from '../../../components/ui';
 import {
   approveDevice,
   fetchDeploymentInfo,
-  fetchInstances,
   pairedBetweenCalls,
   type ConnectInfo,
   type GroupApp,
   type GroupMember,
-  type Instance,
   type PendingDevice,
 } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
@@ -75,40 +71,6 @@ function reached(on: boolean, t: T, route?: string): ReactNode {
     <OkState parts={route ? [t('instances.connected'), route] : [t('instances.connected')]} />
   ) : (
     <StatePill label={t('instances.notConnected')} tone="fail" />
-  );
-}
-
-/** PeerRow is an instance added by its address, asked live whether it answers. */
-function PeerRow({
-  p,
-  hot,
-  action,
-  onReach,
-  t,
-}: {
-  p: Instance;
-  hot: boolean;
-  action: ReactNode;
-  /** Tells the card whether the instance answers, for its node in the net. */
-  onReach: (name: string, online: boolean) => void;
-  t: T;
-}) {
-  const stats = usePeerStats(`/api/instances/${encodeURIComponent(p.name)}`);
-  const online = stats?.online ?? false;
-  const answered = stats !== null;
-  useEffect(() => {
-    if (answered) onReach(p.name, online);
-  }, [p.name, answered, online]);
-  return (
-    <Row
-      entry={`peer:${p.name}`}
-      hot={hot}
-      glyph={<IconFleet />}
-      name={p.displayName ?? p.name}
-      tag={t('pairing.byAddress')}
-      state={answered ? reached(online, t) : <CheckingState />}
-      action={action}
-    />
   );
 }
 
@@ -195,27 +157,15 @@ export function GroupCard({
   const { toast } = useToast();
   const net = useNetHover<HTMLDivElement>();
   const [approving, setApproving] = useState(false);
-  // Instances added by address rather than by the phrase, listed with the
-  // group so every connection can be taken out in one place.
-  const [peers, setPeers] = useState<Instance[]>([]);
-  const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [removing, setRemoving] = useState<Removal | null>(null);
   // Which build this instance is, for the badge on its node.
   const [ownKind, setOwnKind] = useState('');
 
   useEffect(() => {
-    fetchInstances()
-      .then((list) => setPeers(list.filter((p) => !p.relayId)))
-      .catch(() => {});
-  }, [group]);
-  useEffect(() => {
     fetchDeploymentInfo()
       .then((d) => setOwnKind(d.kind || d.deployment))
       .catch(() => {});
   }, []);
-
-  const onReach = (name: string, online: boolean) =>
-    setAnswers((a) => (a[name] === online ? a : { ...a, [name]: online }));
 
   const removeButton = (r: Removal) => (
     <Button
@@ -269,16 +219,6 @@ export function GroupCard({
         name: m.name || m.id,
         sub: t('instances.inactive'),
         dim: true,
-      }),
-    ),
-    ...peers.map(
-      (p): NetNode => ({
-        key: `peer:${p.name}`,
-        // A peer added by its address is a server build, as on its card.
-        deployment: 'server',
-        name: p.displayName ?? p.name,
-        sub: t('pairing.byAddress'),
-        dim: answers[p.name] === false,
       }),
     ),
     ...apps.map(
@@ -351,16 +291,6 @@ export function GroupCard({
             name={m.name || m.id}
             state={inactive}
             action={removeButton({ kind: 'member', id: m.id, name: m.name || m.id })}
-          />
-        ))}
-        {peers.map((p) => (
-          <PeerRow
-            key={p.name}
-            p={p}
-            hot={net.hot === `peer:${p.name}`}
-            onReach={onReach}
-            t={t}
-            action={removeButton({ kind: 'peer', id: p.name, name: p.displayName ?? p.name })}
           />
         ))}
         {apps.map((a) => (

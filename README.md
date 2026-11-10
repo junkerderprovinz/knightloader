@@ -239,8 +239,8 @@ The downloads, hosts and accounts in these pictures are made up.
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-9-instances.png" alt="Instances: this one, one at home, one through the relay and one found on the network" width="100%">
-  <br><em>Instances: your other KnightLoaders, at home or through the relay, and the ones found on your network.</em>
+  <img src=".github/assets/screenshots/knightloader-9-instances.png" alt="Instances: this one, one at home and one through the relay" width="100%">
+  <br><em>Instances: your other KnightLoaders, at home or through the relay.</em>
 </p>
 
 <br>

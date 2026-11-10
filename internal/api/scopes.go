@@ -103,6 +103,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/clipboard-watchers/{id}/stop": apitoken.ScopeControl,
 
 	"DELETE /api/connect":                    apitoken.ScopeAdmin,
+	"DELETE /api/connect/dropped-instances":  apitoken.ScopeAdmin,
 	"DELETE /api/connect/apps/{id}":          apitoken.ScopeAdmin,
 	"DELETE /api/connect/members/{id}":       apitoken.ScopeAdmin,
 	"POST /api/connect/devices/{id}/approve": apitoken.ScopeAdmin,
@@ -124,7 +125,6 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/diagnostics/logfile/{gen}": apitoken.ScopeAdmin,
 	"POST /api/diagnostics/startup":      apitoken.ScopeAdmin,
 	"GET /api/diagnostics/task/{id}":     apitoken.ScopeAdmin,
-	"GET /api/discovery":                 apitoken.ScopeAdmin,
 	"GET /api/diskspace":                 apitoken.ScopeRead,
 
 	// An event program is code this instance runs, as a script is.
@@ -183,9 +183,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/jdimport/read":  apitoken.ScopeAdmin,
 
 	// Listing the peers is what a client needs to show their downloads.
-	"GET /api/instances":           apitoken.ScopeRead,
-	"POST /api/instances":          apitoken.ScopeAdmin,
-	"DELETE /api/instances/{name}": apitoken.ScopeAdmin,
+	"GET /api/instances": apitoken.ScopeRead,
 
 	"POST /api/links": apitoken.ScopeAdd,
 

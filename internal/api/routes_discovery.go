@@ -1,13 +1,10 @@
 package api
 
-// The instances on this network, found with nothing configured. The relay
-// solves reaching an instance that cannot be reached; for a server and a
-// desktop on one home network the missing piece is only the address. See
-// kit/lan for the protocol and for why this pairs nothing by
-// itself.
+// Where this instance answers on its network, and the multicast service its
+// group finds the members on this network through. See kit/lan for the
+// protocol.
 
 import (
-	"net/http"
 	"os"
 	"strconv"
 
@@ -18,93 +15,9 @@ import (
 	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
-// discovered is one instance seen on the network, as the Instances page wants
-// it: enough to show a row and to fill in the "add" form, and a flag saying
-// whether it is already known so the page can leave those out.
-type discovered struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	URL  string `json:"url"`
-	// Deployment is "container", "server" or "desktop" (instanceKind). A
-	// desktop build has no address anything could dial and never announces,
-	// so this is one of the first two in practice; it is carried because the
-	// announce carries it.
-	Deployment string `json:"deployment"`
-	// Known is true when this instance is already a stored or relay peer, by
-	// name or by address. The page shows it greyed rather than hiding it: "the
-	// one I expected is missing" and "it is here and already added" are
-	// different answers.
-	Known bool `json:"known"`
-}
-
-func registerDiscovery(reg *Registry, a *app.App) {
-	// In a group the group announces this instance, outside one applyRelay
-	// announces it untagged.
-	svc := startDiscovery(a)
-	if svc != nil {
+func registerDiscovery(_ *Registry, a *app.App) {
+	if svc := startDiscovery(a); svc != nil {
 		a.SetDiscovery(svc)
-	}
-
-	reg.Add(http.MethodGet, "/api/discovery",
-		"the KnightLoader instances announcing themselves on this network right now",
-		func(w http.ResponseWriter, r *http.Request) {
-			if svc == nil {
-				// Not an error: a host with multicast blocked is an ordinary
-				// host. An empty list says "none found", which is the truth.
-				writeJSON(w, []discovered{})
-				return
-			}
-			known := map[string]bool{}
-			for _, in := range a.Federation.List() {
-				known[in.Name] = true
-				if in.URL != "" {
-					known[in.URL] = true
-				}
-				if in.RelayID != "" {
-					known[in.RelayID] = true
-				}
-			}
-			out := []discovered{}
-			for _, p := range svc.Strangers() {
-				// Sanitised on arrival as well as on the way out: the sender
-				// is whatever is on the network, and a name this side cannot
-				// add is a row with a button that can only fail.
-				name := federation.SanitiseName(p.Name)
-				if name == "" {
-					name = federation.SanitiseName(p.ID)
-				}
-				if name == "" {
-					continue // nothing addressable; not worth a row
-				}
-				out = append(out, discovered{
-					ID:         p.ID,
-					Name:       name,
-					URL:        p.URL,
-					Deployment: p.Deployment,
-					Known:      known[p.ID] || known[p.Name] || known[p.URL],
-				})
-			}
-			writeJSON(w, out)
-		})
-}
-
-// discoverySelf is what this instance announces on its network outside a
-// group.
-func discoverySelf(a *app.App) lan.Peer {
-	// A receiving instance adds the peer by this name, and federation's naming
-	// rule is narrower than what a person may have called their box. Without
-	// sanitising, the card offers an Add button that can only answer "invalid
-	// instance name".
-	name := federation.SanitiseName(instanceDisplayName(a))
-	if name == "" {
-		name = a.Settings.Get().InstanceID
-	}
-	return lan.Peer{
-		ID:         a.Settings.Get().InstanceID,
-		Name:       name,
-		URL:        networkAddress(),
-		Deployment: instanceKind(),
-		Address:    groupAddress(a),
 	}
 }
 
@@ -115,8 +28,8 @@ func discoverySelf(a *app.App) lan.Peer {
 // KL_ADDR=127.0.0.1:8749, the documented way to run behind a local reverse
 // proxy, has a port that nothing outside the box can reach. The multicast
 // socket is separate from that listener, so without this check it would
-// announce a LAN address it does not serve and every other instance would
-// offer an Add button for a peer that is always offline.
+// announce a LAN address it does not serve, and the members of its group
+// would try it on every call.
 func networkAddress() string {
 	if buildinfo.Deployment == "desktop" || !buildinfo.ListensWidely || buildinfo.ListenPort <= 0 {
 		return ""
@@ -142,10 +55,10 @@ func groupAddress(a *app.App) string {
 	return networkAddress()
 }
 
-// startDiscovery builds the announce this instance sends, and starts listening
-// either way. A build with no address to announce still listens, so a desktop
-// can find the server on its network and add it even though nothing can dial
-// the desktop back.
+// startDiscovery starts the multicast service the group announces this
+// instance and finds the others through. A build with no address to announce
+// still listens, so a desktop reaches the server on its network directly even
+// though nothing can dial the desktop back.
 func startDiscovery(a *app.App) *lan.Service {
 	// Only when a main package that serves has asked for it: see
 	// buildinfo.DiscoveryEnabled for why this stays off in tests.

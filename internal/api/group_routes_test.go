@@ -56,15 +56,13 @@ var groupRefused = []string{
 	"POST /api/mcp/clients",
 	"DELETE /api/mcp/clients/{id}",
 
-	// The phrase, the group, the relay and the peers.
+	// The phrase, the group and the relay.
 	"DELETE /api/connect",
 	"GET /api/connect",
 	"POST /api/connect/activate",
 	"POST /api/connect/join",
 	"POST /api/connect/reveal",
-	"GET /api/discovery",
-	"POST /api/instances",
-	"DELETE /api/instances/{name}",
+	"DELETE /api/connect/dropped-instances",
 	"/api/instances/{name}/{rest...}",
 	"GET /api/relay/config",
 	"PUT /api/relay/config",
@@ -838,12 +836,9 @@ func TestAMemberSeesNoCredentialsInWhatItReads(t *testing.T) {
 	if err != nil || len(created) != 4 {
 		t.Fatalf("staging the links: %v, %d tasks", err, len(created))
 	}
-	if err := addPeer(a, federation.Instance{Name: "attic", URL: "http://admin:PEERLEAK@192.0.2.7:8080"}); err != nil {
-		t.Fatal(err)
-	}
 	leaks := []string{
 		"s3cr", "QUERYLEAK", "NOFILELEAK", "NOFILEPW", "FAILEDLEAK", "ERRORLEAK", "ERRORKEYLEAK", "PARAMLEAK",
-		"PASSKEYLEAK", "ARCHIVELEAK", "DOWNLOADLEAK", "SOURCELEAK", "PEERLEAK",
+		"PASSKEYLEAK", "ARCHIVELEAK", "DOWNLOADLEAK", "SOURCELEAK",
 	}
 	id := created[0].ID
 

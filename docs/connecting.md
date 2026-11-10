@@ -5,42 +5,18 @@ build, the Android app, and the browser extension. Any of them can also talk to
 a *second* KnightLoader. This is how each of those connections is made, and what
 happens when one of them cannot be.
 
-The short version: on one network, nothing needs configuring. Across networks,
-twelve words connect every instance you run. The relay section after that is
-the same machinery reached the manual way, for anyone who wants to name the
-relay and the key themselves.
+The short version: twelve words connect every instance you run, on one
+network and across networks alike. The relay section after that is for anyone
+who wants to run the relay themselves.
 
 ## On one network
 
-An instance announces itself every five seconds over UDP multicast, to an
-administratively-scoped group that routers do not forward off the local network.
-Every other instance listening picks it up.
+Instances pair with the twelve words alone, described in the next section.
+Once they share a phrase, the ones on one network find each other by
+themselves. Each announces itself every five seconds over UDP multicast, to an
+administratively-scoped group that routers do not forward off the local
+network.
 
-The Instances page shows what it heard under **Found on your network**, with
-an **Add** button on each row.
-
-Being on the same network is *not* consent, so nothing is connected until that
-button is pressed. A guest laptop and an IoT device sit on that network too.
-
-Adding stores an address. It exchanges nothing: no credential travels in
-either direction. A credential exchange triggered by an announce that anything
-on the LAN can send would let any device there help itself to a token.
-
-So if the instance you add has a password set, it will refuse the calls that
-follow, and the page says so. An address is not a credential; the connection
-phrase is, and it covers every instance in the group at once instead of one
-peer at a time. An instance with no password works immediately.
-
-Nothing in an announce is trusted. Anything on the network can send one, so the
-fields are length-capped on arrival and the list is bounded, so a device
-announcing endless invented instances cannot grow it without limit. What a row
-shows is a claim. That is why the address is displayed next to the name, and
-why nothing is added until you decide to add it.
-
-Multicast blocked, or no network at all, means an empty list. Everything below
-still works.
-
-Instances in the same phrase group use the same announce to find each other.
 A member tags its announce with a MAC over everything in it, its time
 included, under a key derived from the phrase
 (`SHA-256("knightloader/peer-auth/v1" || secret)`). Another member recognises
@@ -50,8 +26,16 @@ than two minutes does not pass, so one played back later does not bring a
 departed member back. Members on one network call each other over plain HTTP
 at `/api/group/call`: every call is sealed under the frame key, as over the
 relay, signed with the peer-auth key and refused when it is stale or has run
-before. The relay only carries what cannot go directly. They do not show under
-**Found on your network**, because they are already on the page as cards.
+before. The relay only carries what cannot go directly.
+
+Nothing in an announce is trusted. Anything on the network can send one, so the
+fields are length-capped on arrival and the list is bounded. Multicast blocked,
+or no network at all, only means the members reach each other through the
+relay.
+
+Older releases could also add an instance by its address. Such instances are
+gone from the Instances page after the update, which names them once, and they
+join the group with the phrase like any other.
 
 ## Across networks: the connection phrase
 

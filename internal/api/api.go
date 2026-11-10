@@ -37,13 +37,11 @@ func Handler(a *app.App) http.Handler {
 	reg.attach(mux, spaHandler())
 	h := withBasePath(reg.proxySeen.note(knownHost(a, sameOrigin(guard(a, reg, mux)))))
 
-	// A relay-proxied call is answered by this same handler, so it cannot drift
-	// from what a browser or an API token gets. Wiring the relay and the peer
-	// tokens here means a saved relay address and saved peer credentials take
-	// effect as soon as either binary boots.
+	// A member's call is answered by this same handler, so it cannot drift
+	// from what a browser or an API token gets. Opening the group here means a
+	// saved relay takes effect as soon as either binary boots.
 	a.SetSelfServeHandler(h)
 	applyRelay(a)
-	a.Federation.SetPeerTokens(peerTokens{a: a})
 	return h
 }
 

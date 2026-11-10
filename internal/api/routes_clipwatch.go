@@ -92,8 +92,7 @@ func registerClipWatch(reg *Registry, a *app.App) {
 
 // groupWatchers is this instance's watchers and every reachable peer's, each
 // named with the instance it sends to. A peer that does not answer in time,
-// or runs a version without watchers, adds nothing. Peers added by address
-// are asked too, since a watcher leases with the instance it sends to.
+// or runs a version without watchers, adds nothing.
 func groupWatchers(ctx context.Context, a *app.App) []clipwatch.Watcher {
 	self := instanceDisplayName(a)
 	out := a.ClipWatch.List(time.Now())

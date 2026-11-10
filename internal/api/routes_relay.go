@@ -275,8 +275,7 @@ func applyRelay(a *app.App) {
 }
 
 // regroup closes the group, runs change, when there is one, and opens the
-// group from what is stored then. Outside a group this instance announces
-// itself on its network untagged, so the others can still offer to add it.
+// group from what is stored then.
 func regroup(a *app.App, change func() error) error {
 	applyRetired(a)
 	err := a.Federation.Reopen(func() (*group.Group, error) {
@@ -290,10 +289,6 @@ func regroup(a *app.App, change func() error) error {
 		}
 		return g, err
 	})
-	if svc := a.Discovery(); svc != nil && a.Federation.Group() == nil {
-		svc.SetAccept(nil)
-		svc.SetSelf(discoverySelf(a), nil)
-	}
 	return err
 }
 

@@ -89,6 +89,9 @@ type ConnectInfo struct {
 	// typed in by hand, which the update took away, and has not paired with
 	// the phrase since.
 	RelayKeyDropped bool `json:"relayKeyDropped"`
+	// DroppedInstances names the instances that were added here by their
+	// address, which the update took away, until the owner puts the note away.
+	DroppedInstances []string `json:"droppedInstances"`
 }
 
 type pendingDevice struct {
@@ -148,7 +151,7 @@ type groupView struct {
 // viewOf lists the members of this instance's group.
 func viewOf(a *app.App) groupView {
 	v := groupView{members: []groupMember{}, apps: []groupApp{}, away: []awayMember{}, pending: []pendingDevice{}}
-	for _, p := range a.Federation.Members() {
+	for _, p := range a.Federation.List() {
 		name := p.DisplayName
 		if name == "" {
 			name = p.Name
@@ -438,6 +441,16 @@ func registerConnect(reg *Registry, a *app.App) {
 			w.WriteHeader(http.StatusNoContent)
 		})
 
+	reg.Add(http.MethodDelete, "/api/connect/dropped-instances",
+		"put away the note naming the instances that were added by their address, which pair by the phrase now",
+		func(w http.ResponseWriter, r *http.Request) {
+			if err := a.Federation.PutAwayDroppedInstances(); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
+		})
+
 	reg.Add(http.MethodDelete, "/api/connect",
 		"leave the group: forget this instance's connection secret and stop dialling the relay",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -609,25 +622,26 @@ func connectInfo(a *app.App) ConnectInfo {
 	}
 
 	return ConnectInfo{
-		Active:          secretHex != "",
-		Connected:       a.Federation.RelayConnected(),
-		PasswordSet:     a.Auth.Enabled(),
-		RelayURL:        url,
-		SelfHosted:      selfHosted,
-		RelayMode:       mode,
-		ProjectRelayURL: relay.DefaultURL,
-		Name:            instanceDisplayName(a),
-		Address:         groupAddress(a),
-		NetworkAddress:  networkAddress(),
-		Members:         v.members,
-		Apps:            v.apps,
-		Away:            v.away,
-		JoinedAgo:       joinedAgo,
-		MemberSeen:      !st.MemberSeenAt.IsZero(),
-		Pending:         v.pending,
-		Awaiting:        v.awaiting,
-		Fingerprint:     ownFingerprint(a),
-		RelayKeyDropped: st.RelayKeyDropped,
+		Active:           secretHex != "",
+		Connected:        a.Federation.RelayConnected(),
+		PasswordSet:      a.Auth.Enabled(),
+		RelayURL:         url,
+		SelfHosted:       selfHosted,
+		RelayMode:        mode,
+		ProjectRelayURL:  relay.DefaultURL,
+		Name:             instanceDisplayName(a),
+		Address:          groupAddress(a),
+		NetworkAddress:   networkAddress(),
+		Members:          v.members,
+		Apps:             v.apps,
+		Away:             v.away,
+		JoinedAgo:        joinedAgo,
+		MemberSeen:       !st.MemberSeenAt.IsZero(),
+		Pending:          v.pending,
+		Awaiting:         v.awaiting,
+		Fingerprint:      ownFingerprint(a),
+		RelayKeyDropped:  st.RelayKeyDropped,
+		DroppedInstances: append([]string{}, st.DroppedInstances...),
 	}
 }
 

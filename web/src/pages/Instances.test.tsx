@@ -27,13 +27,23 @@ const noGroup = {
   memberSeen: false,
   pending: [],
   awaiting: false,
+  droppedInstances: [] as string[],
+};
+
+/** An instance of the group reached directly, which announced itself as a
+ *  server build at its address on the network. */
+const cellar = {
+  name: 'id-cellar',
+  relayId: 'id-cellar',
+  displayName: 'cellar',
+  deployment: 'server',
+  address: 'http://192.168.1.9:8749',
 };
 
 function serve(connect: object, instances: object[] = []) {
   const answers: Record<string, unknown> = {
     '/api/connect': connect,
     '/api/instances': instances,
-    '/api/discovery': [],
     '/api/features': { modules: [], pages: [] },
     '/api/settings': { instanceName: 'nas' },
     '/api/tasks': [],
@@ -121,7 +131,7 @@ describe('Instances', () => {
 
   it('stands every card on the page itself, the picture of the group included', async () => {
     serve({ ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] }, [
-      { name: 'cellar', url: 'http://192.168.1.9:8749' },
+      cellar,
     ]);
     await draw();
     const picture = host.querySelector<HTMLElement>('[data-testid="group-net"]')!.closest<HTMLElement>('.glim-card')!;
@@ -158,9 +168,9 @@ describe('Instances', () => {
         ],
       },
       [
-        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop', deployment: 'desktop' },
-        { name: 'id-nas', url: '', relayId: 'id-nas', displayName: 'NAS', deployment: 'container' },
-        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+        { name: 'id-laptop', relayId: 'id-laptop', displayName: 'Laptop', deployment: 'desktop' },
+        { name: 'id-nas', relayId: 'id-nas', displayName: 'NAS', deployment: 'container' },
+        cellar,
       ],
     );
     await draw();
@@ -176,7 +186,6 @@ describe('Instances', () => {
     expect(kindName(card('Browser'))).toBe('Browser extension');
     expect(kindName(card('Laptop'))).toBe('Desktop app');
     expect(kindName(card('NAS'))).toBe('Container');
-    // A peer added by address is a server build that never said more.
     expect(kindName(card('cellar'))).toBe('Server');
     // A phone has no details, so its mark is no button.
     expect(kindOf(card('Pixel 8'))!.querySelector('button')).toBeNull();
@@ -202,21 +211,19 @@ describe('Instances', () => {
         ],
       },
       [
-        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' },
-        { name: 'id-nas', url: '', relayId: 'id-nas', displayName: 'NAS' },
-        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+        { name: 'id-laptop', relayId: 'id-laptop', displayName: 'Laptop' },
+        { name: 'id-nas', relayId: 'id-nas', displayName: 'NAS' },
       ],
     );
     await draw();
     expect(card('Laptop').textContent).toContain('Direct');
     expect(card('NAS').textContent).toContain('Via relay');
-    expect(card('cellar').textContent).toContain('By address');
   });
 
   it('draws the group as a net above the cards and lights a card with its node', async () => {
     serve(
       { ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: false, lastSeen: 1 }] },
-      [{ name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' }],
+      [{ name: 'id-laptop', relayId: 'id-laptop', displayName: 'Laptop' }],
     );
     await draw();
     const wide = host.querySelector('[data-testid="group-net"] svg.wide')!;
@@ -252,8 +259,8 @@ describe('Instances', () => {
         ],
       },
       [
-        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' },
-        { name: 'id-new', url: '', relayId: 'id-new', displayName: 'Newcomer' },
+        { name: 'id-laptop', relayId: 'id-laptop', displayName: 'Laptop' },
+        { name: 'id-new', relayId: 'id-new', displayName: 'Newcomer' },
       ],
     );
     await draw();
@@ -268,7 +275,7 @@ describe('Instances', () => {
   });
 
   it('opens the rest about an instance in a window', async () => {
-    serve({ ...noGroup, active: true }, [{ name: 'cellar', url: 'http://192.168.1.9:8749' }]);
+    serve({ ...noGroup, active: true }, [cellar]);
     await draw();
     expect(buttons(card('cellar'))).toEqual(['Server', 'Open', 'Details', 'Remove']);
     // This instance has nothing more to say about itself and cannot be taken out.
@@ -285,15 +292,14 @@ describe('Instances', () => {
     await act(async () => kindOf(card('cellar'))!.querySelector('button')!.click());
     expect(document.body.querySelector('[role="dialog"] h2')!.textContent).toBe('cellar');
     expect(window.textContent).toContain('192.168.1.9:8749');
-    expect(window.textContent).toContain('By address');
   });
 
   it('takes an instance or a phone out only after the window asks', async () => {
     const calls = serve(
       { ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] },
       [
-        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' },
-        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+        { name: 'id-laptop', relayId: 'id-laptop', displayName: 'Laptop' },
+        cellar,
       ],
     );
     await draw();
@@ -309,7 +315,7 @@ describe('Instances', () => {
 
     await act(async () => button(card('cellar'), 'Remove').click());
     await act(async () => confirm().click());
-    expect(calls).toContain('DELETE /api/instances/cellar');
+    expect(calls).toContain('DELETE /api/connect/members/id-cellar');
 
     await act(async () => button(card('Pixel 8'), 'Remove').click());
     await act(async () => confirm().click());
@@ -319,7 +325,7 @@ describe('Instances', () => {
   it('shows every instance under its address and opens a member there', async () => {
     const open = vi.fn();
     serve({ ...noGroup, active: true, address: 'https://nas.example.org' }, [
-      { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop', address: 'http://192.168.20.86:8749' },
+      { name: 'id-laptop', relayId: 'id-laptop', displayName: 'Laptop', address: 'http://192.168.20.86:8749' },
     ]);
     vi.stubGlobal('open', open);
     await draw();
@@ -330,6 +336,17 @@ describe('Instances', () => {
     const cards = [...host.querySelectorAll('button')].filter((b) => b.textContent === 'Open');
     await act(async () => cards[1].click());
     expect(open).toHaveBeenCalledWith('http://192.168.20.86:8749', '_blank', 'noopener,noreferrer');
+  });
+
+  it('names the instances that were added by their address once, until the note is put away', async () => {
+    serve({ ...noGroup, active: true, droppedInstances: ['cellar', 'attic'] });
+    await draw();
+    const note = host.querySelector('[role="status"]')!;
+    expect(note.textContent).toContain('cellar, attic had been added here by their address.');
+    const calls = serve({ ...noGroup, active: true });
+    await act(async () => button(note.closest('.glim-card')!, 'Got it').click());
+    expect(calls).toContain('DELETE /api/connect/dropped-instances');
+    expect(host.querySelector('[role="status"]')).toBeNull();
   });
 
   it('gives the Pairing button no info bubble', async () => {
@@ -360,12 +377,15 @@ describe('Instances', () => {
       {
         ...noGroup,
         active: true,
-        members: [{ id: 'id-nas', name: 'NAS', direct: false, relay: true }],
+        members: [
+          { id: 'id-nas', name: 'NAS', direct: false, relay: true },
+          { id: 'id-cellar', name: 'cellar', direct: true, relay: false },
+        ],
         apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }],
       },
       [
-        { name: 'id-nas', url: '', relayId: 'id-nas', displayName: 'NAS' },
-        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+        { name: 'id-nas', relayId: 'id-nas', displayName: 'NAS' },
+        cellar,
       ],
     );
     await draw();
@@ -373,15 +393,15 @@ describe('Instances', () => {
     const parcels = (key: string) => spoke(key).querySelectorAll('.kl-net-parcel').length;
     const dashed = (key: string) => spoke(key).querySelector('.kl-net-link')!.classList.contains('relay');
     // The line says what the card says: through the relay or not.
-    expect([dashed('member:id-nas'), dashed('app:p1'), dashed('peer:cellar')]).toEqual([true, true, false]);
+    expect([dashed('member:id-nas'), dashed('app:p1'), dashed('member:id-cellar')]).toEqual([true, true, false]);
 
     const hear = (data: object) =>
       act(() => sockets.forEach((s) => s.onmessage?.({ data: JSON.stringify({ type: 'handover', data }) })));
-    hear({ peer: 'cellar', out: true });
-    expect([parcels('peer:cellar'), parcels('member:id-nas'), parcels('app:p1')]).toEqual([1, 0, 0]);
+    hear({ peer: 'id-cellar', out: true });
+    expect([parcels('member:id-cellar'), parcels('member:id-nas'), parcels('app:p1')]).toEqual([1, 0, 0]);
     hear({ peer: 'p1', out: false });
     hear({ peer: 'id-nas', out: true });
-    expect([parcels('peer:cellar'), parcels('member:id-nas'), parcels('app:p1')]).toEqual([1, 1, 1]);
+    expect([parcels('member:id-cellar'), parcels('member:id-nas'), parcels('app:p1')]).toEqual([1, 1, 1]);
     // Somebody the page does not list has no line to travel on.
     hear({ peer: 'stranger', out: false });
     expect(host.querySelectorAll('svg.wide .kl-net-parcel')).toHaveLength(3);
@@ -431,7 +451,7 @@ describe('Instances', () => {
   });
 
   it('says a card is being checked until its instance answers, and shows this instance connected at once', async () => {
-    serve({ ...noGroup, active: true }, [{ name: 'id-nas', url: '', relayId: 'id-nas', displayName: 'NAS' }]);
+    serve({ ...noGroup, active: true }, [{ name: 'id-nas', relayId: 'id-nas', displayName: 'NAS' }]);
     const answered = vi.mocked(fetch);
     vi.stubGlobal(
       'fetch',
@@ -483,7 +503,7 @@ describe('Instances', () => {
         members: [{ id: 'id-zath', name: 'Zathallia', direct: true, relay: false }],
         away: [{ id: 'id-zath', name: 'Zathallia', deployment: 'desktop', address: '', lastSeen: 1 }],
       },
-      [{ name: 'id-zath', url: '', relayId: 'id-zath', displayName: 'Zathallia', deployment: 'desktop' }],
+      [{ name: 'id-zath', relayId: 'id-zath', displayName: 'Zathallia', deployment: 'desktop' }],
     );
     await draw();
     const cards = [...host.querySelectorAll('[data-nk="member:id-zath"]')].filter((c) => !c.closest('svg'));
@@ -502,7 +522,7 @@ describe('Instances', () => {
           { id: 'b1', name: 'Firefox', deployment: 'extension', connected: false, approved: true, lastSeen: 1 },
         ],
       },
-      [{ name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop', deployment: 'desktop' }],
+      [{ name: 'id-laptop', relayId: 'id-laptop', displayName: 'Laptop', deployment: 'desktop' }],
     );
     await draw();
     const spokes = [...host.querySelectorAll('svg.wide g[data-nk]')].filter((g) => g.getAttribute('data-nk') !== 'self');

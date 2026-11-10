@@ -111,12 +111,8 @@ func TestAnUpdatedInstanceKeepsItsPlaceInTheGroup(t *testing.T) {
 	if len(info.Away) != 1 || info.Away[0].ID != want["bottich"] || info.Away[0].Name != "Bottich" {
 		t.Errorf("away: %+v, want the other instance under its name", info.Away)
 	}
-	stored := false
-	for _, in := range a.Federation.List() {
-		stored = stored || (in.Name == "nas" && in.URL == "http://192.168.1.5:8749")
-	}
-	if !stored {
-		t.Error("the instance added by address is gone")
+	if len(info.DroppedInstances) != 1 || info.DroppedInstances[0] != "nas" {
+		t.Errorf("the note names %v, want the instance that was added by address", info.DroppedInstances)
 	}
 }
 

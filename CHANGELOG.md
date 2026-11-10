@@ -54,6 +54,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Removed
 
+- **Instances are no longer added by their address.** Every app pairs the
+  same simple way, with the twelve words. Instances you had added by address
+  are gone after the update, the Instances page names them once, and the
+  tokens kept for them are revoked. Enter your group's phrase on them, and
+  they are back.
 - **A relay key typed in by hand no longer pairs instances.** Older releases
   let you pair instances with a relay key instead of the twelve words. The
   relay could read along with such a key, so it is gone. An instance paired

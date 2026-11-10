@@ -30,6 +30,7 @@ const alone: ConnectInfo = {
   awaiting: false,
   fingerprint: '',
   relayKeyDropped: false,
+  droppedInstances: [],
 };
 const relay: RelayConfig = { mode: 'project', relayUrl: '', connected: false, serve: false, serveClients: 0 };
 const WORDS = 'orbit wagon lemon crisp absent tunnel galaxy harbor pencil ribbon velvet yellow';

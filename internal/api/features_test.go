@@ -526,7 +526,6 @@ func TestSwitchedOffFederationShowsAndReachesNoPeer(t *testing.T) {
 	}
 	for _, req := range []*http.Request{
 		httptest.NewRequest(http.MethodGet, "/api/instances/peer/tasks", nil),
-		jsonRequest(http.MethodPost, "/api/instances", `{"name":"peer","url":"http://peer:8749"}`),
 	} {
 		rec = httptest.NewRecorder()
 		h.ServeHTTP(rec, req)

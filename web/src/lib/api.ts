@@ -904,25 +904,20 @@ export interface LoginResult extends AuthState {
 
 export interface Instance {
   /**
-   * The key proxied calls are built from (`/api/instances/${name}`). For a
-   * relay peer it is the stable instance ID, so render displayName instead.
+   * The key proxied calls are built from (`/api/instances/${name}`): the
+   * member's stable id, so render displayName instead.
    */
   name: string;
-  url: string;
-  /** What a relay peer calls itself, when it differs from `name`. A label
-   *  only; two peers may share one. */
+  /** What the member calls itself, when it differs from `name`. A label
+   *  only; two members may share one. */
   displayName?: string;
-  /**
-   * The instance ID a relay peer is addressed by, set only while the relay
-   * reaches it. Stored peers never carry one, and a relay peer has an empty
-   * `url` because it has no address of its own.
-   */
-  relayId?: string;
-  /** Where a group member's web interface is, as it told the group: its
-   *  first known domain, else its address on its network. */
+  /** The member's id, the same as `name`. */
+  relayId: string;
+  /** Where the member's web interface is, as it told the group: its first
+   *  known domain, else its address on its network. */
   address?: string;
-  /** What a group member announced itself as, "container", "server" or
-   *  "desktop"; absent for a stored peer. */
+  /** What the member announced itself as, "container", "server" or
+   *  "desktop". */
   deployment?: string;
 }
 
@@ -4264,43 +4259,10 @@ export async function fetchInstances(): Promise<Instance[]> {
   return (await json<Instance[]>(await fetch('/api/instances'))) ?? [];
 }
 
-/**
- * An instance announcing itself on this network. Being on the same network is
- * not consent: adding it stores the address only, and a peer with a password
- * still refuses until the connection phrase is shared.
- */
-export interface DiscoveredInstance {
-  id: string;
-  name: string;
-  url: string;
-  deployment: string;
-  /** Already a stored or relay peer. Shown greyed rather than hidden. */
-  known: boolean;
-}
-
-export async function fetchDiscovered(): Promise<DiscoveredInstance[]> {
-  return (await json<DiscoveredInstance[]>(await fetch('/api/discovery'))) ?? [];
-}
-
-/**
- * addInstance registers a peer by address, without a credential. `refused`
- * tells a peer that said no, which needs the connection phrase, from one that
- * could not be reached.
- */
-export async function addInstance(
-  name: string,
-  url: string,
-): Promise<{ online: boolean; refused: boolean }> {
-  const r = await fetch('/api/instances', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, url }),
-  });
-  return json(r);
-}
-
-export const removeInstance = async (name: string) =>
-  ok(await fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' }));
+/** putAwayDroppedInstances puts away the note naming the instances that were
+ *  added by their address before the update. */
+export const putAwayDroppedInstances = async () =>
+  ok(await fetch('/api/connect/dropped-instances', { method: 'DELETE' }));
 
 /** Which relay an instance uses. 'off' suits instances that all sit on one
  *  network and find each other through local discovery. */
@@ -4397,6 +4359,9 @@ export interface ConnectInfo {
   /** Whether this instance was paired by a relay key typed in by hand, which
    *  the update took away, and has not paired with the phrase since. */
   relayKeyDropped: boolean;
+  /** The instances that were added here by their address, which the update
+   *  took away, until the owner puts the note away. */
+  droppedInstances: string[];
 }
 
 /** A device whose key is pinned here but nobody approved yet. */

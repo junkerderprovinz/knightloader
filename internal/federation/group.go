@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"time"
 
@@ -41,6 +42,10 @@ type GroupState struct {
 	// hand that this instance was paired by, until it pairs again with the
 	// phrase.
 	RelayKeyDropped bool `json:"relayKeyDropped,omitempty"`
+	// DroppedInstances names the instances that were added here by their
+	// address, which the update took away, until the owner puts the note on
+	// the Instances page away.
+	DroppedInstances []string `json:"droppedInstances,omitempty"`
 }
 
 // oldGroup is what group.json held of the group's members before kit/group.
@@ -135,7 +140,7 @@ func (g *groupFile) flushLocked() error {
 func (m *Manager) SetJoined(at time.Time) error {
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
-	m.group.state = GroupState{JoinedAt: at}
+	m.group.state = GroupState{JoinedAt: at, DroppedInstances: m.group.state.DroppedInstances}
 	m.group.old = oldGroup{}
 	return m.group.flushLocked()
 }
@@ -145,8 +150,50 @@ func (m *Manager) SetJoined(at time.Time) error {
 func (m *Manager) DropRelayKey() error {
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
-	m.group.state = GroupState{RelayKeyDropped: true}
+	m.group.state = GroupState{RelayKeyDropped: true, DroppedInstances: m.group.state.DroppedInstances}
 	m.group.old = oldGroup{}
+	return m.group.flushLocked()
+}
+
+// dropInstances takes the names of the instances that were added by their
+// address in the file at path, keeps them for the note and removes the file.
+func (g *groupFile) dropInstances(path string) error {
+	b, err := os.ReadFile(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	var stored []struct {
+		Name string `json:"name"`
+	}
+	if json.Unmarshal(b, &stored) == nil && len(stored) > 0 {
+		g.mu.Lock()
+		for _, in := range stored {
+			if in.Name != "" && !slices.Contains(g.state.DroppedInstances, in.Name) {
+				g.state.DroppedInstances = append(g.state.DroppedInstances, in.Name)
+			}
+		}
+		slices.Sort(g.state.DroppedInstances)
+		err = g.flushLocked()
+		g.mu.Unlock()
+		if err != nil {
+			return err
+		}
+	}
+	return os.Remove(path)
+}
+
+// PutAwayDroppedInstances forgets the instances the update took away, once
+// their note was read.
+func (m *Manager) PutAwayDroppedInstances() error {
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	if len(m.group.state.DroppedInstances) == 0 {
+		return nil
+	}
+	m.group.state.DroppedInstances = nil
 	return m.group.flushLocked()
 }
 
@@ -199,19 +246,6 @@ func (m *Manager) OldGroup() (group.Roster, bool) {
 		r.Members = append(r.Members, mb)
 	}
 	return r, true
-}
-
-// Members returns the other instances of the group reachable right now,
-// directly or through the relay. Instances added by address are not members:
-// they share no phrase.
-func (m *Manager) Members() []Instance {
-	var out []Instance
-	for _, in := range m.List() {
-		if in.RelayID != "" {
-			out = append(out, in)
-		}
-	}
-	return out
 }
 
 // GroupMembers lists the members of the group this instance is in, none

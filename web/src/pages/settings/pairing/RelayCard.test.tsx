@@ -51,6 +51,7 @@ const group = {
   awaiting: false,
   fingerprint: '',
   relayKeyDropped: false,
+  droppedInstances: [],
 } satisfies ConnectInfo;
 
 const relay: RelayConfig = { mode: 'project', relayUrl: '', connected: false, serve: false, serveClients: 0 };

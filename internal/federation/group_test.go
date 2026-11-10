@@ -165,3 +165,33 @@ func TestStillMemberIsOnlyAnApprovedMember(t *testing.T) {
 		t.Errorf("approved phone %v, waiting phone %v, want only the approved one", m.StillMember(phone), m.StillMember(waiting))
 	}
 }
+
+func TestInstancesAddedByAddressAreNamedUntilTheNoteIsPutAway(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "instances.json"), []byte(`[{"name":"nas","url":"http://192.168.1.5:8749"}]`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "instances.json")); !os.IsNotExist(err) {
+		t.Fatalf("instances.json is still there: %v", err)
+	}
+	if err := m.SetJoined(time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	again, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st, _ := again.Joined(false, time.Now()); len(st.DroppedInstances) != 1 || st.DroppedInstances[0] != "nas" {
+		t.Fatalf("after joining and a restart the note names %v, want nas", st.DroppedInstances)
+	}
+	if err := again.PutAwayDroppedInstances(); err != nil {
+		t.Fatal(err)
+	}
+	if st, _ := again.Joined(false, time.Now()); len(st.DroppedInstances) != 0 {
+		t.Errorf("the note still names %v once put away", st.DroppedInstances)
+	}
+}

@@ -615,11 +615,11 @@ func TestAServedRelayAdmitsTheInstancesPhraseGroup(t *testing.T) {
 	deadline := time.Now().Add(5 * time.Second)
 	for {
 		_, cfg := getRelayConfig(t, srv.URL)
-		if cfg.ServeClients == 2 && len(a.Federation.Members()) == 1 {
+		if cfg.ServeClients == 2 && len(a.Federation.List()) == 1 {
 			return
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("config = %+v, members %+v; want this instance and the other member both on the relay it serves", cfg, a.Federation.Members())
+			t.Fatalf("config = %+v, members %+v; want this instance and the other member both on the relay it serves", cfg, a.Federation.List())
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
