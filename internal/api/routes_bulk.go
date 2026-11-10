@@ -44,9 +44,18 @@ func bulkDone(w http.ResponseWriter, ids []string) {
 // categoryKey is the key of the category raw names by its name or its key, and
 // "" for an empty raw. A name no category has is refused, because filing links
 // under it would look like it worked and change nothing.
+//
+// The key is matched first: the web menu sends keys, and one category's key
+// can be another's name.
 func categoryKey(s settings.Settings, raw string) (string, error) {
-	if strings.TrimSpace(raw) == "" {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
 		return "", nil
+	}
+	for _, c := range s.Categories {
+		if c.ID == raw {
+			return c.ID, nil
+		}
 	}
 	c, ok := s.CategoryByName(raw)
 	if !ok {
