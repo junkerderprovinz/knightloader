@@ -50,7 +50,8 @@ interface Stats {
    * The peer answered with 401 or 403, typically because changing its password
    * revoked the pairing token. The fix is re-pairing, not checking cables.
    */
-  refused: boolean;
+  /** Whether the instance answered that it has not approved this one yet. */
+  waiting: boolean;
   active: number;
   total: number;
   speed: number;
@@ -67,10 +68,10 @@ export function usePeerStats(base: string): Stats | null {
         if (!alive) return;
         const running = list.filter((x) => x.status === 'running' || x.status === 'extracting').length;
         const speed = list.reduce((s, x) => s + (x.status === 'running' ? x.speed : 0), 0);
-        setStats({ online: true, refused: false, active: running, total: list.length, speed });
+        setStats({ online: true, waiting: false, active: running, total: list.length, speed });
       } catch (e) {
-        const refused = e instanceof ApiError && (e.status === 401 || e.status === 403);
-        if (alive) setStats({ online: false, refused, active: 0, total: 0, speed: 0 });
+        const waiting = e instanceof ApiError && e.code === 'memberPending';
+        if (alive) setStats({ online: false, waiting, active: 0, total: 0, speed: 0 });
       }
     };
     load();
@@ -100,14 +101,14 @@ export function InstanceRow({
   const { t } = useT();
   const stats = usePeerStats(base);
   const online = local || (stats?.online ?? false);
-  const refused = !local && (stats?.refused ?? false);
+  const waiting = !local && (stats?.waiting ?? false);
   const checking = !local && stats === null;
   const state = online
     ? t('instances.connected')
     : checking
       ? t('instances.checking')
-      : refused
-        ? t('instances.refused')
+      : waiting
+        ? t('instances.notApproved')
         : t('instances.notConnected');
 
   const body = (
@@ -115,9 +116,9 @@ export function InstanceRow({
       <span className="min-w-0 flex-1 truncate text-[14px] text-carbon-text">{name}</span>
       <LabelBadge
         label={state}
-        tip={refused ? t('instances.refusedByPassword') : undefined}
-        tone={online ? 'ok' : checking || refused ? undefined : 'fail'}
-        hue={refused ? 3 : undefined}
+        tip={waiting ? t('instances.notApprovedTip') : undefined}
+        tone={online ? 'ok' : checking || waiting ? undefined : 'fail'}
+        hue={waiting ? 3 : undefined}
       />
     </>
   );
@@ -384,20 +385,20 @@ export function InstanceCard({
   const stats = usePeerStats(base);
   const [details, setDetails] = useState(false);
   const online = local || (stats?.online ?? false);
-  const refused = !local && (stats?.refused ?? false);
+  const waiting = !local && (stats?.waiting ?? false);
   const answered = stats !== null;
   useEffect(() => {
     if (answered) onReach?.(online);
   }, [answered, online]);
 
-  // "Refused" is neither up nor down: the instance is there and wants pairing
-  // again, which the (i) says.
+  // "Not approved yet" is neither up nor down: the instance is there and waits
+  // for its owner, which the (i) says.
   const state = online ? (
     <StatePill label={t('instances.connected')} tone="ok" />
   ) : !answered ? (
     <CheckingState />
-  ) : refused ? (
-    <StatePill label={t('instances.refused')} tone="warn" tip={t('instances.refusedByPassword')} />
+  ) : waiting ? (
+    <StatePill label={t('instances.notApproved')} tone="warn" tip={t('instances.notApprovedTip')} />
   ) : (
     <StatePill label={t('instances.notConnected')} tone="fail" />
   );
@@ -471,7 +472,7 @@ export function InstanceCard({
             )}
             {route && <DetailRow label={t('columns.connection')}>{route}</DetailRow>}
           </dl>
-          {refused && <p className="text-sm text-carbon-textSub">{t('instances.refusedByPassword')}</p>}
+          {waiting && <p className="text-sm text-carbon-textSub">{t('instances.notApprovedTip')}</p>}
           <div className="flex flex-wrap items-baseline gap-x-7 gap-y-3 rounded-[var(--radius-control)] bg-carbon-surface2 px-4 py-3">
             {figures}
           </div>

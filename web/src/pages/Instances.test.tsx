@@ -349,6 +349,22 @@ describe('Instances', () => {
     expect(host.querySelector('[role="status"]')).toBeNull();
   });
 
+  it('says when an instance of the group has not approved this one yet', async () => {
+    serve({ ...noGroup, active: true }, [{ name: 'id-laptop', relayId: 'id-laptop', displayName: 'Laptop' }]);
+    const answer = vi.mocked(fetch).getMockImplementation()!;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) =>
+        url.startsWith('/api/instances/id-laptop/tasks')
+          ? Promise.resolve(Response.json({ code: 'memberPending', error: 'this device waits for approval' }, { status: 403 }))
+          : answer(url, init),
+      ),
+    );
+    await draw();
+    expect(card('Laptop').textContent).toContain('Not approved yet');
+    expect(card('Laptop').textContent).not.toContain('Not connected');
+  });
+
   it('gives the Pairing button no info bubble', async () => {
     serve({ ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', connected: true, lastSeen: 1 }] });
     await draw();
