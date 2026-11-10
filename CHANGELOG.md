@@ -46,6 +46,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   downloads and KnightLoader's own hoster clients each get a glyph. Right-click
   the list header to switch the column on (thanks to @Kayn2106,
   [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
+- **The speed column shows how fast a debrid service fetches a torrent.**
+  While the service is still downloading the torrent to its own servers, the
+  column shows its speed in muted ink and names the service when you hover it.
+  The time left stays blank until the files come here (thanks to @Kayn2106,
+  [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
 
 ## [2.7.6] - 2026-11-09
 

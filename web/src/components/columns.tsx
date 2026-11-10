@@ -1413,8 +1413,14 @@ const sum = (items: Task[], pick: (t: Task) => number): number => items.reduce((
 
 const seeding = (t: Task): boolean => rowState(t) === 'seeding';
 
+/**
+ * How fast a debrid service fetches a torrent onto its own servers. Nothing
+ * comes here in that phase, so it is the only speed such a row has.
+ */
+const remoteRate = (t: Task): number => (t.status === 'running' ? (t.remote?.speed ?? 0) : 0);
+
 /** The rate the speed column shows: what a seeding torrent sends, what anything else receives. */
-const shownRate = (t: Task): number => (seeding(t) ? (t.uploadSpeed ?? 0) : t.speed);
+const shownRate = (t: Task): number => (seeding(t) ? (t.uploadSpeed ?? 0) : t.speed || remoteRate(t));
 
 /**
  * UploadRate is the speed cell of a seeding torrent. The status pill beside it
@@ -1427,6 +1433,22 @@ function UploadRate({ rate, t }: { rate: number; t: Translate }) {
     <span data-new="seed-rate" className="inline-flex max-w-full align-middle">
       <Tip tip={`${t('overview.torrents.up')} ${text}`} className="truncate">
         {text}
+      </Tip>
+    </span>
+  );
+}
+
+/**
+ * RemoteRate is the speed cell of a torrent a debrid service still fetches. It
+ * is in muted ink, like the status line beside it, and the bubble names the
+ * service, so it is not read as this instance's own download.
+ */
+function RemoteRate({ task, t }: { task: Task; t: Translate }) {
+  const service = resolverLabel(task.resolver.split('#')[0], t);
+  return (
+    <span data-remote-rate className="inline-flex max-w-full align-middle">
+      <Tip tip={t('task.remote', { service })} className="truncate text-carbon-textMuted">
+        {fmtSpeed(remoteRate(task))}
       </Tip>
     </span>
   );
@@ -1786,7 +1808,10 @@ export const COLUMNS: ColumnDef[] = [
     numeric: true,
     hideable: true,
     compare: (a, b) => shownRate(a) - shownRate(b),
-    render: (task, ctx) => (seeding(task) ? <UploadRate rate={task.uploadSpeed ?? 0} t={ctx.t} /> : fmtSpeed(task.speed)),
+    render: (task, ctx) => {
+      if (seeding(task)) return <UploadRate rate={task.uploadSpeed ?? 0} t={ctx.t} />;
+      return remoteRate(task) > 0 ? <RemoteRate task={task} t={ctx.t} /> : fmtSpeed(task.speed);
+    },
     // A package that only seeds shows what it sends, like its rows.
     aggregate: (items, ctx) => {
       const down = sum(items, (x) => (x.status === 'running' ? x.speed : 0));
