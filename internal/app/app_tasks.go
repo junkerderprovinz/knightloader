@@ -1445,7 +1445,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	var unrecorded bool
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
-		unpacked = a.ownOutputsLocked(t)
+		unpacked = a.ownOutputsLocked(t, map[string]bool{id: true})
 		// An unpacking with nothing recorded, on the last part of its set:
 		// only the log can say what was left.
 		unrecorded = t.Unpack == core.UnpackDone && len(t.Unpacked) == 0 && len(a.volumeSetLocked(t)) == 1
@@ -1469,6 +1469,9 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	var named []taskCopy
 	if t != nil {
 		named = a.settleRemovedVariantLocked(t, deleteFiles)
+	}
+	if t != nil && !deleteFiles {
+		named = append(named, a.keepSharedLocked(t)...)
 	}
 	delete(a.active, id)
 	delete(a.started, id)

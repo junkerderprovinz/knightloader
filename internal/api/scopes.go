@@ -280,8 +280,9 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/system/update-install":  apitoken.ScopeAdmin,
 	"POST /api/system/update-install": apitoken.ScopeAdmin,
 
-	// Asking which backends could take a selection changes nothing, POST or
-	// not. Streaming a finished file is reading what was downloaded.
+	// Asking which backends could take a selection, or what removing it with
+	// its files would erase, changes nothing, POST or not. Streaming a
+	// finished file is reading what was downloaded.
 	"GET /api/tasks":                     apitoken.ScopeRead,
 	"POST /api/tasks/backends":           apitoken.ScopeRead,
 	"POST /api/tasks/delete":             apitoken.ScopeControl,
@@ -303,6 +304,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/tasks/seeding/stop":       apitoken.ScopeControl,
 	"POST /api/tasks/start":              apitoken.ScopeControl,
 	"POST /api/tasks/undo-delete":        apitoken.ScopeControl,
+	"POST /api/tasks/unpacked-weight":    apitoken.ScopeRead,
 	"DELETE /api/tasks/{id}":             apitoken.ScopeControl,
 	"GET /api/tasks/{id}/file":           apitoken.ScopeRead,
 	"POST /api/tasks/{id}/pause":         apitoken.ScopeControl,

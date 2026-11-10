@@ -140,6 +140,9 @@ type Outcome struct {
 	// Reused is what was there before and the job wrote into or over: the
 	// folders it unpacked into and the files it replaced.
 	Reused []string
+	// Written is every file the job wrote, as far as its record of them
+	// reaches (see recordedFiles).
+	Written []string
 }
 
 // bound is the job the byte tap reports to, or nil when nothing is running.
@@ -365,14 +368,14 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 			queue = append(queue, step{path: p, depth: cur.depth + 1})
 		}
 	}
-	out.Created, out.Reused = s.created(before)
+	out.Created, out.Reused, out.Written = s.created(before)
 	return out, nil
 }
 
-// created is what the job made and what it reused (see Outcome). A folder it
-// meant to create and never did, as for a single stream that unpacks beside
-// its archive, is neither.
-func (s *sink) created(before map[string]bool) (made, reused []string) {
+// created is what the job made, what it reused and what it wrote (see
+// Outcome). A folder it meant to create and never did, as for a single stream
+// that unpacks beside its archive, is neither.
+func (s *sink) created(before map[string]bool) (made, reused, written []string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, d := range s.owned {
@@ -388,7 +391,7 @@ func (s *sink) created(before map[string]bool) (made, reused []string) {
 		}
 		made = append(made, topNew(f, s.reused, before))
 	}
-	return outermost(made), outermost(reused)
+	return outermost(made), outermost(reused), slices.Clone(s.written)
 }
 
 // topNew is the first path on the way from a reused destination to file f that

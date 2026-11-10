@@ -188,13 +188,18 @@ const (
 	UnpackPassword UnpackResult = "password"
 )
 
-// UnpackOutput is one file or folder an unpacking created, with how many files
-// and bytes it held once the unpacking was over. Holding more than that later
-// means something else has put files there since.
+// UnpackOutput is one file or folder an unpacking created, with every file the
+// unpacking wrote there. A file it holds later that is not among them, or not
+// of that size, was put there by something else.
 type UnpackOutput struct {
-	Path  string `json:"path"`
-	Files int    `json:"files"`
-	Bytes int64  `json:"bytes"`
+	Path string `json:"path"`
+	// Files is the size of each file, by its path relative to Path: "." for an
+	// output that is a file itself.
+	Files map[string]int64 `json:"files"`
+	// KeptBy names the tasks that recorded what lies in or around Path and
+	// left the list with their files kept. While it names any, the output
+	// stays: those files are the user's to keep.
+	KeptBy []string `json:"keptBy,omitempty"`
 }
 
 // Update is a change to a task reported by a download backend. Empty fields
@@ -666,9 +671,10 @@ type Task struct {
 	// memory, and after a restart it is all that says an archive was unpacked.
 	Unpack UnpackResult `json:"unpack,omitempty"`
 	// Unpacked is what unpacking this file's archive created, on every part of
-	// the set, for a removal with files to take along. The interface counts
-	// it into what such a removal erases.
-	Unpacked []UnpackOutput `json:"unpacked,omitempty"`
+	// the set, for a removal with files to take along. It can list thousands
+	// of files, so the interface asks what such a removal would erase rather
+	// than being sent it with every row.
+	Unpacked []UnpackOutput `json:"-"`
 
 	// The torrent fields stay zero for every other task. Peers, Seeds and
 	// Seeding are live readings and not persisted. Ratio, Uploaded and

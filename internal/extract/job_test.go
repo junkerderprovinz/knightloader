@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -792,6 +793,30 @@ func TestAJobReportsWhatItCreatedAndNotWhatWasThere(t *testing.T) {
 	}
 	if len(got.Reused) != 1 || got.Reused[0] != out {
 		t.Errorf("Reused = %v, want only the folder that was there", got.Reused)
+	}
+}
+
+// A job lists every file it wrote, the one it wrote over among them, and none
+// of those it found in the folder.
+func TestAJobListsTheFilesItWrote(t *testing.T) {
+	dir := t.TempDir()
+	out := filepath.Join(dir, "release")
+	write(t, filepath.Join(out, "theirs.txt"), []byte("theirs"))
+	write(t, filepath.Join(out, "same.txt"), []byte("before"))
+	archive := write(t, filepath.Join(dir, "release.zip"), zipBytes(t,
+		entry{"same.txt", []byte("after")},
+		entry{"sub/new.txt", []byte("new")},
+	))
+
+	got, err := Run(context.Background(), Request{Path: archive})
+	if err != nil {
+		t.Fatal(err)
+	}
+	written := slices.Clone(got.Written)
+	slices.Sort(written)
+	want := []string{filepath.Join(out, "same.txt"), filepath.Join(out, "sub", "new.txt")}
+	if !slices.Equal(written, want) {
+		t.Errorf("Written = %v, want %v", written, want)
 	}
 }
 

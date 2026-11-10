@@ -180,6 +180,19 @@ func registerBulk(reg *Registry, a *app.App) {
 			}
 			writeJSON(w, out)
 		})
+	// Which of what unpacking wrote a removal takes is the server's rule, so
+	// the confirmation asks instead of working it out again.
+	reg.Add(http.MethodPost, "/api/tasks/unpacked-weight", "how many files and bytes of what unpacking wrote removing a selection with its files would delete",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Ids []string `json:"ids"`
+			}
+			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
+				return
+			}
+			files, bytes := a.UnpackedWeight(body.Ids)
+			writeJSON(w, map[string]any{"files": files, "bytes": bytes})
+		})
 	reg.Add(http.MethodPost, "/api/tasks/undo-delete", "put back the rows one removal took, while its token is still good",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
