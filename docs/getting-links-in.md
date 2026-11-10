@@ -70,10 +70,10 @@ can name the torrent differently, or not at all, and the torrent's real name
 only comes with its file list. If that name is taken, the magnet is not
 downloaded. A torrent that starts again, after a restart or by hand, carries
 on where it was. Removing a torrent with its files deletes the files it
-downloaded and any folders that end up empty. Anything else in its folder
-stays, such as what an archive was unpacked to. Removing works the same after
-a restart, since the download keeps a magnet's file list once the swarm has
-sent it.
+downloaded, what KnightLoader unpacked from them, and any folders that end up
+empty. Anything else in its folder stays. Removing works the same after a
+restart, since the download keeps a magnet's file list once the swarm has sent
+it.
 
 **Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
 Premiumize.me, Debrid-Link, Linksnappy or Deepbrid ranks above "Built-in
@@ -847,8 +847,8 @@ out of that folder. A rule that files them in another category still changes
 their category. Sonarr and Radarr need this, because once they have imported a
 download they delete the folder its client named, with everything in it. When
 they remove a download and ask for its files to go, KnightLoader deletes that
-download's files and then the folder, as long as nothing else is left in it,
-for example the files an archive was unpacked to.
+download's files and what unpacking them wrote, and then the folder, as long
+as nothing else is left in it.
 
 ### Torrents through qBittorrent's API
 

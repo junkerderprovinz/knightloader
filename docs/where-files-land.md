@@ -18,6 +18,19 @@ category unpacks its archives somewhere else, series in one place and films in
 another. Left empty, the category unpacks where "Unpack to" on the Archives
 page says.
 
+## Removing a download with its files
+
+"Remove and delete files" (Shift+Del) deletes what was downloaded and what
+unpacking it wrote: the folder the archive was unpacked into, or the files it
+put into a folder that was already there, wherever "Move the unpacked files to"
+took them. The folder you unpack into and the files that were in it before stay.
+For an archive in several parts the unpacked files go with the last part still
+in the list, and while another download's unpacking wrote into the same folder,
+that folder stays until both are removed. A folder that holds more than the
+unpacking left in it, such as subtitles fetched later, stays, and the
+download's log says so. The confirmation counts the unpacked files into what
+goes. "Remove" (Del) keeps every file.
+
 ## Never in the data folder
 
 Nothing a download, an unpacking, a move or a rename writes may land in

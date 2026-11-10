@@ -723,6 +723,9 @@ func extractCompressed(path string, dest target, suffix string, open func(io.Rea
 	if err != nil {
 		return nil, err
 	}
+	if !missing(dst) {
+		replacedWatched(dst)
+	}
 	if err := writeFile(dst, 0, br); err != nil {
 		return nil, err
 	}

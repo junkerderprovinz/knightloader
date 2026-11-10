@@ -15,6 +15,7 @@ import {
   type Task,
   type TaskOptionsPatch,
   type TaskStatus,
+  type UnpackOutput,
   apiBase,
   cleanupPreview,
   connectWS,
@@ -277,16 +278,28 @@ interface Weight {
 
 /**
  * weigh counts what a removal would erase, in bytes already on disk rather
- * than announced sizes.
+ * than announced sizes. What an unpacking created goes too, unless a row that
+ * stays records it or something inside it, as the server decides.
  */
 function weigh(all: Task[], ids: string[]): Weight {
   const want = new Set(ids);
   let files = 0;
   let bytes = 0;
+  const unpacked = new Map<string, UnpackOutput>();
+  const kept: string[] = [];
   for (const t of all) {
+    for (const o of t.unpacked ?? []) {
+      if (want.has(t.id)) unpacked.set(o.path, o);
+      else kept.push(o.path);
+    }
     if (!want.has(t.id) || t.loaded <= 0) continue;
     files++;
     bytes += t.loaded;
+  }
+  for (const o of unpacked.values()) {
+    if (kept.some((p) => p === o.path || p.startsWith(o.path + '/') || p.startsWith(o.path + '\\'))) continue;
+    files += o.files;
+    bytes += o.bytes;
   }
   return { count: ids.length, files, bytes };
 }

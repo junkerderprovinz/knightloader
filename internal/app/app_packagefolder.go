@@ -748,7 +748,8 @@ func (a *App) moveUnpacked(p *renamePlan) relocation {
 
 // followJobs carries the extraction list along with what a rename moved, so a
 // finished unpacking still says where its archive and its content are, and
-// gives the members' unpackings the new package name.
+// gives the members' unpackings the new package name. What the tasks record
+// as unpacked goes along too, for a removal with files to find it.
 func (a *App) followJobs(reloc relocation, p *renamePlan) {
 	member := make(map[string]bool, len(p.members))
 	for _, t := range p.members {
@@ -773,7 +774,24 @@ func (a *App) followJobs(reloc relocation, p *renamePlan) {
 		j.path, j.Dir, j.MovedTo, j.Package = path, dir, movedTo, pkg
 		changed = append(changed, j.ExtractJob)
 	}
+	var records []taskCopy
+	for _, t := range a.tasks {
+		var next []core.UnpackOutput
+		for i, o := range t.Unpacked {
+			if to := reloc.path(o.Path); to != o.Path {
+				if next == nil {
+					next = slices.Clone(t.Unpacked)
+				}
+				next[i].Path = to
+			}
+		}
+		if next != nil {
+			t.Unpacked = next
+			records = append(records, a.copyLocked(t))
+		}
+	}
 	a.mu.Unlock()
+	a.publishTasks(records)
 	for _, snap := range changed {
 		a.Hub.Broadcast("extract", snap)
 	}

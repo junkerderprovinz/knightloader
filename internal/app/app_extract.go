@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -598,6 +599,10 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 		}
 		moved = a.deliverExtraction(jobID, out)
 	}
+	var record, shared []core.UnpackOutput
+	if err == nil && out != nil {
+		record, shared = a.unpackRecord(a.extractionParts(jobID), moved.relocate(out.Created), moved.relocate(out.Reused))
+	}
 	// Swept on every settle, so the trash still ages after the disposal is
 	// switched away from it. Without retention or a trash folder it does
 	// nothing.
@@ -679,6 +684,17 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 			}
 		}
 	}
+	if result == core.UnpackDone {
+		for _, id := range a.shareLocked(shared) {
+			touched[id] = true
+		}
+		for _, id := range j.Parts {
+			if t := a.tasks[id]; t != nil && !slices.Equal(t.Unpacked, record) {
+				t.Unpacked = record
+				touched[id] = true
+			}
+		}
+	}
 	settled := make([]taskCopy, 0, len(touched))
 	for id := range touched {
 		settled = append(settled, a.copyLocked(a.tasks[id]))
@@ -695,6 +711,16 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 	if !cancelled {
 		a.fireExtractDone(snap, snap.Status == ExtractFailed)
 	}
+}
+
+// extractionParts returns the tasks of every part of a job's set.
+func (a *App) extractionParts(jobID string) []string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if j := a.unpackLocked().jobs[jobID]; j != nil {
+		return slices.Clone(j.Parts)
+	}
+	return nil
 }
 
 // extractErrorPrefix marks the errors this package puts on a task, so a

@@ -188,6 +188,15 @@ const (
 	UnpackPassword UnpackResult = "password"
 )
 
+// UnpackOutput is one file or folder an unpacking created, with how many files
+// and bytes it held once the unpacking was over. Holding more than that later
+// means something else has put files there since.
+type UnpackOutput struct {
+	Path  string `json:"path"`
+	Files int    `json:"files"`
+	Bytes int64  `json:"bytes"`
+}
+
 // Update is a change to a task reported by a download backend. Empty fields
 // are left untouched.
 type Update struct {
@@ -655,6 +664,10 @@ type Task struct {
 	// part of the set. It is persisted because the extraction jobs live in
 	// memory, and after a restart it is all that says an archive was unpacked.
 	Unpack UnpackResult `json:"unpack,omitempty"`
+	// Unpacked is what unpacking this file's archive created, on every part of
+	// the set, for a removal with files to take along. The interface counts
+	// it into what such a removal erases.
+	Unpacked []UnpackOutput `json:"unpacked,omitempty"`
 
 	// The torrent fields stay zero for every other task. Peers, Seeds and
 	// Seeding are live readings and not persisted. Ratio, Uploaded and

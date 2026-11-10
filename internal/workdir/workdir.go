@@ -228,6 +228,8 @@ type Report struct {
 	Skipped int
 	// Copied is set when any one of the entries had to be copied.
 	Copied bool
+	// Landed is where each moved entry ended up, by the path it had.
+	Landed map[string]string
 }
 
 // Move takes one entry - a file or a whole folder - out of the working folder
@@ -348,7 +350,7 @@ func MoveContents(ctx context.Context, srcDir, dstDir string, o Options) (Report
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	rep := Report{Dir: dstDir}
+	rep := Report{Dir: dstDir, Landed: map[string]string{}}
 	entries, err := os.ReadDir(srcDir)
 	if err != nil {
 		return rep, err
@@ -367,6 +369,7 @@ func MoveContents(ctx context.Context, srcDir, dstDir string, o Options) (Report
 			continue
 		}
 		rep.Moved++
+		rep.Landed[filepath.Join(srcDir, e.Name())] = r.Path
 	}
 	if rep.Skipped == 0 {
 		// Emptied by this call, so the shell it came in is ours to remove. A

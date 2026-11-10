@@ -1390,8 +1390,14 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	var work []string
 	var workFolders []string
 	var taken bool
+	var unpacked []core.UnpackOutput
+	var unrecorded bool
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
+		unpacked = a.ownOutputsLocked(t)
+		// An unpacking with nothing recorded, on the last part of its set:
+		// only the log can say what was left.
+		unrecorded = t.Unpack == core.UnpackDone && len(t.Unpacked) == 0 && len(a.volumeSetLocked(t)) == 1
 		usenetPart = a.usenetPartLocked(t)
 		remotePart = a.partFileLocked(t)
 		work, workFolders = t.WorkFiles, a.downloadFolders(t)
@@ -1447,6 +1453,12 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 			}
 		}
 		ytdlp.Discard(id, workFolders, work, a.usedByOther)
+		for _, o := range unpacked {
+			dropUnpacked(o, id)
+		}
+		if unrecorded {
+			log.Printf("left what unpacking %s wrote where it is: nothing records which files that was%s", t.Name, taskTag(id))
+		}
 	}
 	for i := range named {
 		a.publish(&named[i])
