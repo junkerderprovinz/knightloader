@@ -95,24 +95,28 @@ export function openLoopback(source: PlaySource): Promise<Loopback> {
     socket.on('close', () => {
       gone = true;
     });
-    socket.write(answerHead(asked, source.size, source.type), 'latin1');
-    if (typeof asked === 'number' || asked.method === 'HEAD') {
-      socket.end();
-      return;
-    }
-    const pieces = piecesOf(asked.start, asked.end, PLAY_PIECE);
-    // One piece ahead, so the player is not left waiting for a whole call
-    // between two pieces.
-    const fetch = (i: number) => {
-      const read = source.read(...pieces[i]);
-      // A piece fetched ahead for a player that has gone is never awaited.
-      read.catch(() => {});
-      return read;
-    };
-    let next = fetch(0);
     try {
+      socket.write(answerHead(asked, source.size, source.type), 'latin1');
+      if (typeof asked === 'number' || asked.method === 'HEAD') {
+        socket.end();
+        return;
+      }
+      const pieces = piecesOf(asked.start, asked.end, PLAY_PIECE);
+      // One piece ahead, so the player is not left waiting for a whole call
+      // between two pieces.
+      const fetch = (i: number) => {
+        const read = source.read(...pieces[i]);
+        // A piece fetched ahead for a player that has gone is never awaited.
+        read.catch(() => {});
+        return read;
+      };
+      let next = fetch(0);
       for (let i = 0; i < pieces.length && !gone; i++) {
         const data = await next;
+        // A file still downloading may send less than asked for once its
+        // bytes take too long to arrive. The rest would land in the wrong
+        // place, so the answer ends there.
+        if (data.length !== pieces[i][1]) throw new Error('a piece came short');
         if (i + 1 < pieces.length) next = fetch(i + 1);
         for (let at = 0; at < data.length && !gone; at += WRITE_BYTES) {
           if (!socket.write(data.subarray(at, at + WRITE_BYTES))) {
@@ -123,10 +127,10 @@ export function openLoopback(source: PlaySource): Promise<Loopback> {
           }
         }
       }
-      socket.end();
+      if (!gone) socket.end();
     } catch {
-      // A piece the instance did not send ends the answer short, and the
-      // player asks again from where it stopped.
+      // An answer the instance did not finish ends short, and the player asks
+      // again from where it stopped.
       socket.destroy();
     }
   };
