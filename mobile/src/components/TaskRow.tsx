@@ -102,6 +102,7 @@ export default function TaskRow({
   task,
   index,
   onSwitch,
+  onPlay,
   files,
   unpack,
 }: {
@@ -113,6 +114,8 @@ export default function TaskRow({
   /** Disables this link, or enables it again; the package header's badge
    *  does the same for all of its links. */
   onSwitch?: () => void;
+  /** Opens the file in a player app; absent where there is nothing to play. */
+  onPlay?: () => void;
   /** A torrent's files, drawn under the rest of the card in the row's own
    *  colour. */
   files?: (hue: string) => ReactNode;
@@ -280,6 +283,12 @@ export default function TaskRow({
         ) : null}
         {files?.(rowAccent)}
       </View>
+
+      {/* Hands the file to a player app, which plays it while it still
+          downloads. */}
+      {onPlay && (
+        <IconBadge symbol="▶" onPress={onPlay} accessibilityLabel={t('task.play')} />
+      )}
 
       {/* The package header's switch, per link, so one mirror or one part can
           be parked on its own. */}

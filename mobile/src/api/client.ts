@@ -11,7 +11,7 @@ import type {
   WatchList,
 } from './types';
 import { WATCHED, widgetPagePath } from './captcha';
-import { relayClientFor, type RelayClient } from './relayClient';
+import { relayClientFor, type RelayClient, type RelayProxyResult } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
 import type { CardSwitches } from './taskState';
@@ -33,15 +33,21 @@ export { ApiError, errorText } from './refusal';
 // reaches it: the phone's member key signs every call, and the instance it
 // reaches signs the answer, which relayClient.ts checks.
 export async function request<T>(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<T> {
+  const r = await answer(conn, base, path, init);
+  if (r.status === 204 || r.bytes.length === 0) return undefined as T;
+  return JSON.parse(r.body) as T;
+}
+
+/** answer is a call's answer as it came, refused unless it is a 2xx. */
+async function answer(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<RelayProxyResult> {
   // Said plainly, at the one place that can tell, instead of a call that
   // times out or a transport error that names nothing.
   if (!conn.relayFrameKey) {
     throw new ApiError('this connection has to be added again with the phrase', 0, 'addAgain');
   }
-  const { status, body } = await relayRequest(conn, conn.relayFrameKey, base + path, init);
-  if (status < 200 || status >= 300) throw refusedCall(status, body || `relay ${status}`);
-  if (status === 204 || body === '') return undefined as T;
-  return JSON.parse(body) as T;
+  const r = await relayRequest(conn, conn.relayFrameKey, base + path, init);
+  if (r.status < 200 || r.status >= 300) throw refusedCall(r.status, r.body || `relay ${r.status}`);
+  return r;
 }
 
 let removedHandler: (() => void) | null = null;
@@ -70,7 +76,7 @@ async function relayRequest(
   frameKey: string,
   path: string,
   init?: RequestInit,
-): Promise<{ status: number; body: string }> {
+): Promise<RelayProxyResult> {
   const client = await relayClientOf(conn, frameKey);
   const body = typeof init?.body === 'string' ? init.body : undefined;
   const r = await client.proxy(conn.instanceId, init?.method ?? 'GET', path, body);
@@ -84,7 +90,7 @@ async function relayRequest(
     await resetRelayIdentity();
     removedHandler?.();
   }
-  return { status: r.status, body: r.body };
+  return r;
 }
 
 export async function fetchTasks(conn: ServerConnection, base = '/api', signal?: AbortSignal): Promise<Task[]> {
@@ -139,6 +145,32 @@ export async function setSeeding(conn: ServerConnection, ids: string[], seed: bo
 // just their count, since a torrent can list thousands.
 export async function fetchTorrentFiles(conn: ServerConnection, id: string, base = '/api'): Promise<TorrentFileView[]> {
   return (await request<TorrentFileView[] | null>(conn, base, `/tasks/${encodeURIComponent(id)}/torrent-files`)) ?? [];
+}
+
+/** What plays when a task's Play button is pressed: the file, its length and its type. */
+export interface Playable {
+  size: number;
+  type: string;
+  /** The file of a torrent that plays, '' for a task of one file. */
+  file: string;
+}
+
+export async function fetchPlayable(conn: ServerConnection, id: string, base = '/api'): Promise<Playable> {
+  return request<Playable>(conn, base, `/tasks/${encodeURIComponent(id)}/play`, { method: 'POST' });
+}
+
+/** fetchRange is length bytes of the file that plays, from from on. The instance sends at most 4 MiB at once. */
+export async function fetchRange(
+  conn: ServerConnection,
+  id: string,
+  file: string,
+  from: number,
+  length: number,
+  base = '/api',
+): Promise<Uint8Array> {
+  const q = new URLSearchParams({ from: String(from), length: String(length) });
+  if (file) q.set('file', file);
+  return (await answer(conn, base, `/tasks/${encodeURIComponent(id)}/range?${q.toString()}`)).bytes;
 }
 
 // selectTorrentFiles makes `paths` the files a torrent fetches. A running

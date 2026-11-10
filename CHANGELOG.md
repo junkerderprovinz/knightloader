@@ -52,6 +52,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   out. If you run your own ParleyPort, update it first too, since an older one
   closes the connection when an answer is that large.
 
+- **The Android app's Play button plays through your group.** VLC or any
+  other player opens the file without an address of the instance: the app
+  hands the player a link on the phone itself and fetches what the player
+  reads through the group, in pieces, so seeking works too.
+
 ### Removed
 
 - **Instances are no longer added by their address.** Every app pairs the
@@ -62,8 +67,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The Android app keeps only the connections made with the phrase.** A
   connection an older build saved by its address leaves the list on the first
   start after the update, and the app names it once. Scan your group's phrase,
-  and it is back. The Play button goes with it, since a player app could only
-  reach an instance by its address.
+  and it is back.
 - **A relay key typed in by hand no longer pairs instances.** Older releases
   let you pair instances with a relay key instead of the twelve words. The
   relay could read along with such a key, so it is gone. An instance paired

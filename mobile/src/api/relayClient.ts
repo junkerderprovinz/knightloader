@@ -29,8 +29,10 @@ export interface RelaySibling {
 
 export interface RelayProxyResult {
   status: number;
+  /** The response body as it came, such as a range of a file. */
+  bytes: Uint8Array;
   /** The response body as text; '' when the answer carried none. */
-  body: string;
+  readonly body: string;
 }
 
 // Mirrors the Go client's own constants, so the two behave alike on a flaky
@@ -480,7 +482,14 @@ export class RelayClient {
           p.reject(new Error('relay: the answer is not signed by the instance it claims to come from'));
           return;
         }
-        p.resolve({ status, body: bytesToUtf8(body) });
+        p.resolve({
+          status,
+          bytes: new Uint8Array(body),
+          // Read as text only when asked, since a range of a film is no text.
+          get body() {
+            return bytesToUtf8(body);
+          },
+        });
         return;
       }
       case T_PROXY_REQUEST: {

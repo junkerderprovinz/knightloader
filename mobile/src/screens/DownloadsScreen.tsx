@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-nat
 import { fetchListCards, fetchQueue, fetchSpeedHistory, pollTasks, setQueueHalted, stopAll, type Polling } from '../api/client';
 import { splitByCard, unpackingByTask, type CardSwitches } from '../api/taskState';
 import { needsAddingAgain, type ExtractJob, type Instance, type QueueState, type ServerConnection, type Task } from '../api/types';
+import { playTask } from '../api/play';
 import PackageList from '../components/PackageList';
 import { GlimButton, WellSelector } from '../components/glim';
 import { useCaptchas } from '../components/CaptchaWatch';
@@ -403,6 +404,14 @@ export default function DownloadsScreen({
           } catch (e) {
             setStartError(errorText(t, e));
             return null;
+          }
+        }}
+        onPlay={async (task) => {
+          setStartError('');
+          try {
+            await playTask(conn, task, base);
+          } catch (e) {
+            setStartError(t('task.playFailed', { reason: errorText(t, e) }));
           }
         }}
         onSetEnabled={async (links, enabled) => {

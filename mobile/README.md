@@ -145,6 +145,17 @@ The task list is polled, as above. `pollTasks` in `src/api/client.ts` drops
 an answer that is not the newest, so a slow one cannot put an older list back
 on screen after an action.
 
+## Playing a file
+
+The Play button hands a player app a link to a server the app opens on
+127.0.0.1 (`src/play/loopback.ts`, on `react-native-tcp-socket`), at a random
+port and a path made for that one playback, and no other path is answered. The
+player never needs the instance's address. Each range it asks for, a seek
+included, is fetched from the instance through the group with
+`GET /api/tasks/{id}/range`, in pieces of 2 MiB with the next one already on
+its way. The server closes once no player has been connected for two minutes,
+or when the app comes back to the front with none connected.
+
 ## Captchas
 
 A captcha that holds up a download shows in three places: a card at the top of
