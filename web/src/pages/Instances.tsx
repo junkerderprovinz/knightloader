@@ -65,7 +65,7 @@ export function Instances({
   // and which build it is, for the glyph before that name.
   const [ownName, setOwnName] = useState('');
   const [ownKind, setOwnKind] = useState('');
-  // Instances announcing themselves on this network (internal/discovery),
+  // Instances announcing themselves on this network (kit/lan),
   // polled so an open page follows them coming and going.
   const [found, setFound] = useState<DiscoveredInstance[]>([]);
   // The module's row while it is switched off. The server then lists no peers,
