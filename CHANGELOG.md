@@ -38,6 +38,24 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Changed
+
+- **Pairing runs on the code your whole fortress shares.** The twelve words,
+  the device keys, the relay, the search on your network and the list of who
+  is in your group come from ParleyPort's kit, which the other apps of your
+  fortress use as well. Your group, its phones and browsers and every approval
+  come along with the update, and instances that are not updated yet still
+  talk to it, so you can update them one at a time.
+
+### Removed
+
+- **A relay key typed in by hand no longer pairs instances.** Older releases
+  let you pair instances with a relay key instead of the twelve words. The
+  relay could read along with such a key, so it is gone. An instance paired
+  that way stands on its own after the update, and Settings > Pairing tells
+  you so. Generate a phrase on one instance, enter it on the others, and they
+  are back together.
+
 ## [2.7.5] - 2026-11-09
 
 ### Fixed
