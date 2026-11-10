@@ -143,7 +143,6 @@ export const ca: Dict = {
   'error.groupJoinsBusy': 'Massa dispositius nous s’han unit al grup en l’última hora. Torna-ho a provar més tard.',
   'error.memberNotPinned': 'La instància no ha pogut desar la clau d’aquest dispositiu. Torna-ho a provar d’aquí a un moment.',
   'error.answerTooLarge': 'La resposta de la instància és massa gran per al relé. A la xarxa de la instància sí que arriba.',
-  'error.connectionEnded': 'La instància ja no accepta aquesta connexió perquè se n’ha canviat o restablert la contrasenya. Elimina la connexió i torna a connectar amb les dotze paraules que la instància mostra a Configuració, Aparellament. Després d’un restabliment, són paraules noves.',
   'addDownload.cancel': 'Cancel·la',
   'addDownload.button': 'Afegeix',
 
@@ -210,8 +209,6 @@ export const ca: Dict = {
   'task.mode.free': 'Gratuït',
   'task.mode.premium': 'Premium',
   'task.remote': 'Baixant a {service}',
-  'task.play': 'Reprodueix',
-  'task.playFailed': 'El reproductor no s’ha obert: {reason}',
   'task.enable': 'Activa aquest enllaç',
   'task.disable': 'Desactiva aquest enllaç',
   'settings.aboutTitle': 'Quant a KnightLoader',
@@ -382,6 +379,10 @@ export const ca: Dict = {
   'group.removedBody': 'Una instància ha tret aquest dispositiu del grup. Escaneja la frase de nou per connectar-lo.',
   'group.removedLater': 'Més tard',
   'group.removedRescan': 'Escaneja la frase',
+  'connections.addressGoneTitle': 'Torna a aparellar amb la frase',
+  'connections.addressGoneBody': 'Aquestes connexions es van desar per adreça: {names}. Ara l’aplicació es connecta amb les dotze paraules. Escaneja la frase que la instància mostra a Configuració, Aparellament, i ho tornaràs a tenir tot, baixades incloses.',
+  'connections.addressGoneLater': 'Més tard',
+  'connections.addressGoneScan': 'Escaneja la frase',
   'connections.default': 'Instància per defecte',
   'connections.makeDefault': 'Estableix-la per defecte',
 

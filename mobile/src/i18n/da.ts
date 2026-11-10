@@ -143,7 +143,6 @@ export const da: Dict = {
   'error.groupJoinsBusy': 'For mange nye enheder kom med i gruppen inden for den seneste time. Prøv igen senere.',
   'error.memberNotPinned': 'Instansen kunne ikke gemme denne enheds nøgle. Prøv igen om lidt.',
   'error.answerTooLarge': 'Instansens svar er for stort til relæet. På instansens eget netværk kommer det igennem.',
-  'error.connectionEnded': 'Instansen tager ikke længere imod denne forbindelse, fordi dens adgangskode er ændret eller nulstillet. Fjern forbindelsen, og forbind igen med de tolv ord, som instansen viser under Indstillinger, Parring. Efter en nulstilling er det nye ord.',
   'addDownload.cancel': 'Annuller',
   'addDownload.button': 'Tilføj',
 
@@ -210,8 +209,6 @@ export const da: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Henter hos {service}',
-  'task.play': 'Afspil',
-  'task.playFailed': 'Afspilleren åbnede ikke: {reason}',
   'task.enable': 'Slå dette link til',
   'task.disable': 'Slå dette link fra',
   'settings.aboutTitle': 'Om KnightLoader',
@@ -382,6 +379,10 @@ export const da: Dict = {
   'group.removedBody': 'En instans fjernede denne enhed fra gruppen. Skan sætningen igen for at forbinde den.',
   'group.removedLater': 'Senere',
   'group.removedRescan': 'Skan sætningen',
+  'connections.addressGoneTitle': 'Par igen med sætningen',
+  'connections.addressGoneBody': 'Disse forbindelser var gemt via adresse: {names}. Appen forbinder nu med de tolv ord. Skan sætningen, som instansen viser under Indstillinger, Parring, så er du tilbage, downloads og det hele.',
+  'connections.addressGoneLater': 'Senere',
+  'connections.addressGoneScan': 'Skan sætningen',
   'connections.default': 'Standardinstans',
   'connections.makeDefault': 'Gør til standard',
 

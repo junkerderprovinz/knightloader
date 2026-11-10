@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { fetchListCards, fetchQueue, fetchSpeedHistory, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
+import { fetchListCards, fetchQueue, fetchSpeedHistory, pollTasks, setQueueHalted, stopAll, type Polling } from '../api/client';
 import { splitByCard, unpackingByTask, type CardSwitches } from '../api/taskState';
-import { isRelayConnection, needsAddingAgain, type ExtractJob, type Instance, type QueueState, type ServerConnection, type Task } from '../api/types';
-import { mediaKind } from '../api/media';
-import { openInPlayer } from '../api/play';
+import { needsAddingAgain, type ExtractJob, type Instance, type QueueState, type ServerConnection, type Task } from '../api/types';
 import PackageList from '../components/PackageList';
 import { GlimButton, WellSelector } from '../components/glim';
 import { useCaptchas } from '../components/CaptchaWatch';
@@ -19,7 +17,6 @@ import {
   deleteTasks,
   errorText,
   fetchTorrentFiles,
-  playURL,
   reorderTasks,
   selectTorrentFiles,
   setSeeding,
@@ -33,10 +30,6 @@ import { usePress } from '../theme/MotionContext';
 // peer, when set, means this screen is showing a federation peer of conn rather
 // than conn's own queue, so base becomes the proxy prefix (/api/instances/{name},
 // see internal/api/routes_federation.go).
-//
-// Whether the task list then streams or polls is liveTasks' decision: a
-// federation peer and a relay connection both forward plain REST calls with no
-// socket to attach to, and only api/client.ts knows which is in play.
 export default function DownloadsScreen({
   conn,
   peer,
@@ -106,7 +99,7 @@ export default function DownloadsScreen({
   /** The live handle, kept so an action that just changed something on the
    *  server can ask for the truth immediately instead of waiting out the
    *  polling cycle. */
-  const live = useRef<LiveTasks | null>(null);
+  const live = useRef<Polling | null>(null);
 
   useEffect(() => {
     setConnected(false);
@@ -117,7 +110,7 @@ export default function DownloadsScreen({
       setTasks(snapshot);
     };
     const onError = () => setConnected(false);
-    const handle = liveTasks(conn, base, onSnapshot, onError, setJobs);
+    const handle = pollTasks(conn, base, onSnapshot, onError, setJobs);
     live.current = handle;
     return () => {
       live.current = null;
@@ -385,7 +378,7 @@ export default function DownloadsScreen({
                     // and this costs one request; over the relay it is the
                     // difference between seeing the move now and waiting out
                     // the polling cycle plus a round trip.
-                    await live.current?.refresh?.().catch(() => {
+                    await live.current?.refresh().catch(() => {
                       /* the next tick will get it; a failed refresh is not a
                          reason to leave somebody on the wrong tab */
                     });
@@ -420,24 +413,10 @@ export default function DownloadsScreen({
             setStartError(errorText(t, e));
             return;
           }
-          await live.current?.refresh?.().catch(() => {
+          await live.current?.refresh().catch(() => {
             /* the next tick brings it */
           });
         }}
-        // A player app reaches the instance by its address and nothing else: not
-        // through the relay, and not through the proxy that reaches a peer.
-        onPlay={
-          peer || isRelayConnection(conn)
-            ? undefined
-            : async (task) => {
-                setStartError('');
-                try {
-                  await openInPlayer(await playURL(conn, task.id), mediaKind(task) ?? 'video');
-                } catch (e) {
-                  setStartError(t('task.playFailed', { reason: errorText(t, e) }));
-                }
-              }
-        }
         onSeeding={async (links, seed) => {
           setStartError('');
           try {
@@ -446,7 +425,7 @@ export default function DownloadsScreen({
             setStartError(errorText(t, e));
             return;
           }
-          await live.current?.refresh?.().catch(() => {
+          await live.current?.refresh().catch(() => {
             /* the next tick brings it */
           });
         }}
@@ -483,7 +462,7 @@ export default function DownloadsScreen({
           }
           // The list holds that order until the live one agrees, and over a
           // relay or to a peer the live one would agree only at the next poll.
-          await live.current?.refresh?.().catch(() => {
+          await live.current?.refresh().catch(() => {
             /* the next tick brings it */
           });
         }}

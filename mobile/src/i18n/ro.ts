@@ -143,7 +143,6 @@ export const ro: Dict = {
   'error.groupJoinsBusy': 'Prea multe dispozitive noi s-au alăturat grupului în ultima oră. Încearcă din nou mai târziu.',
   'error.memberNotPinned': 'Instanța nu a putut salva cheia acestui dispozitiv. Încearcă din nou peste câteva momente.',
   'error.answerTooLarge': 'Răspunsul instanței este prea mare pentru releu. În rețeaua instanței ajunge.',
-  'error.connectionEnded': 'Instanța nu mai acceptă această conexiune, pentru că parola ei a fost schimbată sau resetată. Elimină conexiunea și conectează-te din nou cu cele douăsprezece cuvinte pe care instanța le arată în Setări, Împerechere. După o resetare, acestea sunt cuvinte noi.',
   'addDownload.cancel': 'Anulează',
   'addDownload.button': 'Adaugă',
 
@@ -210,8 +209,6 @@ export const ro: Dict = {
   'task.mode.free': 'Gratuit',
   'task.mode.premium': 'Premium',
   'task.remote': 'Se descarcă la {service}',
-  'task.play': 'Redă',
-  'task.playFailed': 'Playerul nu s-a deschis: {reason}',
   'task.enable': 'Activează acest link',
   'task.disable': 'Dezactivează acest link',
   'settings.aboutTitle': 'Despre KnightLoader',
@@ -382,6 +379,10 @@ export const ro: Dict = {
   'group.removedBody': 'O instanță a scos acest dispozitiv din grup. Scanează din nou fraza pentru a-l reconecta.',
   'group.removedLater': 'Mai târziu',
   'group.removedRescan': 'Scanează fraza',
+  'connections.addressGoneTitle': 'Împerechează din nou cu fraza',
+  'connections.addressGoneBody': 'Aceste conexiuni erau salvate după adresă: {names}. Aplicația se conectează acum cu cele douăsprezece cuvinte. Scanează fraza pe care instanța o arată în Setări, Împerechere, și ai totul înapoi, cu descărcări cu tot.',
+  'connections.addressGoneLater': 'Mai târziu',
+  'connections.addressGoneScan': 'Scanează fraza',
   'connections.default': 'Instanța implicită',
   'connections.makeDefault': 'Setează ca implicită',
 

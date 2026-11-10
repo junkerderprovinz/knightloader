@@ -143,7 +143,6 @@ export const id: Dict = {
   'error.groupJoinsBusy': 'Terlalu banyak perangkat baru bergabung ke grup dalam satu jam terakhir. Coba lagi nanti.',
   'error.memberNotPinned': 'Instans tidak dapat menyimpan kunci perangkat ini. Coba lagi sebentar lagi.',
   'error.answerTooLarge': 'Jawaban instans terlalu besar untuk relay. Di jaringan instans itu sendiri, jawabannya sampai.',
-  'error.connectionEnded': 'Instans tidak lagi menerima sambungan ini karena kata sandinya diubah atau disetel ulang. Hapus sambungan, lalu sambungkan lagi dengan dua belas kata yang ditampilkan instans di Pengaturan, Pemasangan. Setelah setel ulang, kata-katanya baru.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambahkan',
 
@@ -210,8 +209,6 @@ export const id: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Mengambil di {service}',
-  'task.play': 'Putar',
-  'task.playFailed': 'Pemutar tidak terbuka: {reason}',
   'task.enable': 'Aktifkan tautan ini',
   'task.disable': 'Nonaktifkan tautan ini',
   'settings.aboutTitle': 'Tentang KnightLoader',
@@ -382,6 +379,10 @@ export const id: Dict = {
   'group.removedBody': 'Sebuah instans mengeluarkan perangkat ini dari grup. Pindai frasa lagi untuk menghubungkannya.',
   'group.removedLater': 'Nanti',
   'group.removedRescan': 'Pindai frasa',
+  'connections.addressGoneTitle': 'Pasangkan lagi dengan frasa',
+  'connections.addressGoneBody': 'Sambungan ini disimpan lewat alamat: {names}. Aplikasi kini tersambung dengan dua belas kata. Pindai frasa yang ditampilkan instans di Pengaturan, Pemasangan, dan semuanya kembali, termasuk unduhannya.',
+  'connections.addressGoneLater': 'Nanti',
+  'connections.addressGoneScan': 'Pindai frasa',
   'connections.default': 'Instans bawaan',
   'connections.makeDefault': 'Jadikan bawaan',
 

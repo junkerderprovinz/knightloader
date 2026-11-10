@@ -143,7 +143,6 @@ export const et: Dict = {
   'error.groupJoinsBusy': 'Viimase tunni jooksul liitus grupiga liiga palju uusi seadmeid. Proovi hiljem uuesti.',
   'error.memberNotPinned': 'Eksemplar ei saanud selle seadme võtit salvestada. Proovi hetke pärast uuesti.',
   'error.answerTooLarge': 'Eksemplari vastus on relee jaoks liiga suur. Eksemplari enda võrgus jõuab see kohale.',
-  'error.connectionEnded': 'Eksemplar ei võta seda ühendust enam vastu, sest selle parooli muudeti või lähtestati. Eemalda ühendus ja ühenda uuesti kaheteistkümne sõnaga, mida eksemplar näitab jaotises Seaded, Sidumine. Pärast lähtestamist on need uued sõnad.',
   'addDownload.cancel': 'Tühista',
   'addDownload.button': 'Lisa',
 
@@ -210,8 +209,6 @@ export const et: Dict = {
   'task.mode.free': 'Tasuta',
   'task.mode.premium': 'Premium',
   'task.remote': 'Tuuakse teenuses {service}',
-  'task.play': 'Esita',
-  'task.playFailed': 'Mängija ei avanenud: {reason}',
   'task.enable': 'Lülita see link sisse',
   'task.disable': 'Lülita see link välja',
   'settings.aboutTitle': 'Teave KnightLoaderi kohta',
@@ -382,6 +379,10 @@ export const et: Dict = {
   'group.removedBody': 'Üks eksemplar eemaldas selle seadme grupist. Ühendamiseks skanni fraas uuesti.',
   'group.removedLater': 'Hiljem',
   'group.removedRescan': 'Skanni fraas',
+  'connections.addressGoneTitle': 'Seo uuesti fraasiga',
+  'connections.addressGoneBody': 'Need ühendused olid salvestatud aadressi järgi: {names}. Rakendus ühendub nüüd kaheteistkümne sõnaga. Skanni fraas, mida eksemplar näitab jaotises Seaded, Sidumine, ja kõik on tagasi koos allalaadimistega.',
+  'connections.addressGoneLater': 'Hiljem',
+  'connections.addressGoneScan': 'Skanni fraas',
   'connections.default': 'Vaikeeksemplar',
   'connections.makeDefault': 'Määra vaikimisi',
 

@@ -143,7 +143,6 @@ export const gl: Dict = {
   'error.groupJoinsBusy': 'Demasiados dispositivos novos uníronse ao grupo na última hora. Téntao de novo máis tarde.',
   'error.memberNotPinned': 'A instancia non puido gardar a chave deste dispositivo. Téntao de novo nun momento.',
   'error.answerTooLarge': 'A resposta da instancia é grande de máis para o relé. Na rede da instancia si chega.',
-  'error.connectionEnded': 'A instancia xa non acepta esta conexión porque o seu contrasinal se cambiou ou se restableceu. Elimina a conexión e volve conectar coas doce palabras que a instancia mostra en Axustes, Emparellamento. Despois dun restablecemento, son palabras novas.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Engadir',
 
@@ -210,8 +209,6 @@ export const gl: Dict = {
   'task.mode.free': 'Gratuíto',
   'task.mode.premium': 'Premium',
   'task.remote': 'Descargando en {service}',
-  'task.play': 'Reproducir',
-  'task.playFailed': 'O reprodutor non se abriu: {reason}',
   'task.enable': 'Activar esta ligazón',
   'task.disable': 'Desactivar esta ligazón',
   'settings.aboutTitle': 'Sobre KnightLoader',
@@ -382,6 +379,10 @@ export const gl: Dict = {
   'group.removedBody': 'Unha instancia sacou este dispositivo do grupo. Escanea a frase de novo para conectalo.',
   'group.removedLater': 'Máis tarde',
   'group.removedRescan': 'Escanear a frase',
+  'connections.addressGoneTitle': 'Volve emparellar coa frase',
+  'connections.addressGoneBody': 'Estas conexións gardáronse por enderezo: {names}. A aplicación conéctase agora coas doce palabras. Escanea a frase que a instancia mostra en Axustes, Emparellamento, e volves telo todo, descargas incluídas.',
+  'connections.addressGoneLater': 'Máis tarde',
+  'connections.addressGoneScan': 'Escanear a frase',
   'connections.default': 'Instancia predeterminada',
   'connections.makeDefault': 'Definir como predeterminada',
 

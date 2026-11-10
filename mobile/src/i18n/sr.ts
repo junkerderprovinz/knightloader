@@ -143,7 +143,6 @@ export const sr: Dict = {
   'error.groupJoinsBusy': 'У последњих сат времена групи се придружило превише нових уређаја. Покушај поново касније.',
   'error.memberNotPinned': 'Инстанца није могла да сачува кључ овог уређаја. Покушај поново за тренутак.',
   'error.answerTooLarge': 'Одговор инстанце је превелик за релеј. У мрежи инстанце пролази.',
-  'error.connectionEnded': 'Инстанца више не прихвата ову везу јер јој је лозинка промењена или ресетована. Уклони везу и повежи се поново са дванаест речи које инстанца приказује у одељку Подешавања, Упаривање. После ресетовања то су нове речи.',
   'addDownload.cancel': 'Откажи',
   'addDownload.button': 'Додај',
 
@@ -210,8 +209,6 @@ export const sr: Dict = {
   'task.mode.free': 'Бесплатно',
   'task.mode.premium': 'Премијум',
   'task.remote': 'Преузима се код услуге {service}',
-  'task.play': 'Пусти',
-  'task.playFailed': 'Плејер се није отворио: {reason}',
   'task.enable': 'Укључи ову везу',
   'task.disable': 'Искључи ову везу',
   'settings.aboutTitle': 'О KnightLoader-у',
@@ -382,6 +379,10 @@ export const sr: Dict = {
   'group.removedBody': 'Нека инстанца је уклонила овај уређај из групе. Поново скенирај фразу да га повежеш.',
   'group.removedLater': 'Касније',
   'group.removedRescan': 'Скенирај фразу',
+  'connections.addressGoneTitle': 'Поново упари фразом',
+  'connections.addressGoneBody': 'Ове везе су биле сачуване по адреси: {names}. Апликација се сада повезује са дванаест речи. Скенирај фразу коју инстанца приказује у одељку Подешавања, Упаривање и све је опет ту, заједно са преузимањима.',
+  'connections.addressGoneLater': 'Касније',
+  'connections.addressGoneScan': 'Скенирај фразу',
   'connections.default': 'Подразумевана инстанца',
   'connections.makeDefault': 'Постави као подразумевану',
 

@@ -59,6 +59,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   are gone after the update, the Instances page names them once, and the
   tokens kept for them are revoked. Enter your group's phrase on them, and
   they are back.
+- **The Android app keeps only the connections made with the phrase.** A
+  connection an older build saved by its address leaves the list on the first
+  start after the update, and the app names it once. Scan your group's phrase,
+  and it is back. The Play button goes with it, since a player app could only
+  reach an instance by its address.
 - **A relay key typed in by hand no longer pairs instances.** Older releases
   let you pair instances with a relay key instead of the twelve words. The
   relay could read along with such a key, so it is gone. An instance paired

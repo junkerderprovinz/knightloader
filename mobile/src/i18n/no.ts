@@ -143,7 +143,6 @@ export const no: Dict = {
   'error.groupJoinsBusy': 'For mange nye enheter ble med i gruppen den siste timen. Prøv igjen senere.',
   'error.memberNotPinned': 'Instansen kunne ikke lagre nøkkelen til denne enheten. Prøv igjen om litt.',
   'error.answerTooLarge': 'Svaret fra instansen er for stort for reléet. På instansens eget nettverk kommer det fram.',
-  'error.connectionEnded': 'Instansen godtar ikke lenger denne tilkoblingen, fordi passordet er endret eller tilbakestilt. Fjern tilkoblingen og koble til på nytt med de tolv ordene instansen viser under Innstillinger, Paring. Etter en tilbakestilling er det nye ord.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Legg til',
 
@@ -210,8 +209,6 @@ export const no: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Henter hos {service}',
-  'task.play': 'Spill av',
-  'task.playFailed': 'Avspilleren åpnet seg ikke: {reason}',
   'task.enable': 'Slå på denne lenka',
   'task.disable': 'Slå av denne lenka',
   'settings.aboutTitle': 'Om KnightLoader',
@@ -382,6 +379,10 @@ export const no: Dict = {
   'group.removedBody': 'En instans fjernet denne enheten fra gruppen. Skann frasen på nytt for å koble den til.',
   'group.removedLater': 'Senere',
   'group.removedRescan': 'Skann frasen',
+  'connections.addressGoneTitle': 'Par på nytt med frasen',
+  'connections.addressGoneBody': 'Disse tilkoblingene var lagret med adresse: {names}. Appen kobler seg nå til med de tolv ordene. Skann frasen instansen viser under Innstillinger, Paring, så er du tilbake, nedlastinger og alt.',
+  'connections.addressGoneLater': 'Senere',
+  'connections.addressGoneScan': 'Skann frasen',
   'connections.default': 'Standardinstans',
   'connections.makeDefault': 'Angi som standard',
 

@@ -143,7 +143,6 @@ export const sv: Dict = {
   'error.groupJoinsBusy': 'För många nya enheter gick med i gruppen under den senaste timmen. Försök igen senare.',
   'error.memberNotPinned': 'Instansen kunde inte spara den här enhetens nyckel. Försök igen om en stund.',
   'error.answerTooLarge': 'Instansens svar är för stort för relät. På instansens eget nätverk kommer det fram.',
-  'error.connectionEnded': 'Instansen tar inte längre emot den här anslutningen, eftersom dess lösenord har ändrats eller återställts. Ta bort anslutningen och anslut igen med de tolv ord som instansen visar under Inställningar, Parkoppling. Efter en återställning är det nya ord.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Lägg till',
 
@@ -210,8 +209,6 @@ export const sv: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Hämtar hos {service}',
-  'task.play': 'Spela upp',
-  'task.playFailed': 'Spelaren öppnades inte: {reason}',
   'task.enable': 'Slå på den här länken',
   'task.disable': 'Slå av den här länken',
   'settings.aboutTitle': 'Om KnightLoader',
@@ -382,6 +379,10 @@ export const sv: Dict = {
   'group.removedBody': 'En instans tog bort den här enheten från gruppen. Skanna frasen igen för att ansluta den.',
   'group.removedLater': 'Senare',
   'group.removedRescan': 'Skanna frasen',
+  'connections.addressGoneTitle': 'Parkoppla igen med frasen',
+  'connections.addressGoneBody': 'De här anslutningarna var sparade med adress: {names}. Appen ansluter nu med de tolv orden. Skanna frasen som instansen visar under Inställningar, Parkoppling, så är du tillbaka, nedladdningar och allt.',
+  'connections.addressGoneLater': 'Senare',
+  'connections.addressGoneScan': 'Skanna frasen',
   'connections.default': 'Standardinstans',
   'connections.makeDefault': 'Ange som standard',
 

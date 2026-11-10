@@ -143,7 +143,6 @@ export const nl: Dict = {
   'error.groupJoinsBusy': 'In het afgelopen uur zijn te veel nieuwe apparaten bij de groep gekomen. Probeer het later opnieuw.',
   'error.memberNotPinned': 'De instantie kon de sleutel van dit apparaat niet opslaan. Probeer het zo meteen opnieuw.',
   'error.answerTooLarge': 'Het antwoord van de instantie is te groot voor de relay. Op het netwerk van de instantie komt het wel door.',
-  'error.connectionEnded': 'De instantie accepteert deze verbinding niet meer, omdat haar wachtwoord is gewijzigd of opnieuw ingesteld. Verwijder de verbinding en maak opnieuw verbinding met de twaalf woorden die de instantie toont onder Instellingen, Koppeling. Na het opnieuw instellen zijn dat nieuwe woorden.',
   'addDownload.cancel': 'Annuleren',
   'addDownload.button': 'Toevoegen',
 
@@ -210,8 +209,6 @@ export const nl: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Ophalen bij {service}',
-  'task.play': 'Afspelen',
-  'task.playFailed': 'De speler ging niet open: {reason}',
   'task.enable': 'Deze link aanzetten',
   'task.disable': 'Deze link uitzetten',
   'settings.aboutTitle': 'Over KnightLoader',
@@ -382,6 +379,10 @@ export const nl: Dict = {
   'group.removedBody': 'Een instantie heeft dit apparaat uit de groep verwijderd. Scan de zin opnieuw om het weer te verbinden.',
   'group.removedLater': 'Straks',
   'group.removedRescan': 'Scan de zin',
+  'connections.addressGoneTitle': 'Opnieuw koppelen met de zin',
+  'connections.addressGoneBody': 'Deze verbindingen waren op adres opgeslagen: {names}. De app verbindt nu met de twaalf woorden. Scan de zin die de instantie toont onder Instellingen, Koppeling, en je bent terug, downloads en al.',
+  'connections.addressGoneLater': 'Straks',
+  'connections.addressGoneScan': 'Scan de zin',
   'connections.default': 'Standaardinstantie',
   'connections.makeDefault': 'Als standaard instellen',
 

@@ -134,35 +134,6 @@ expect(
 expect('the phone asks for its page by id', cap.widgetPagePath('17/a b', 'pt-BR'), '/captcha/17%2Fa%20b/widget/phone?lang=pt-BR');
 expect('without a language it sends none', cap.widgetPagePath('1', ''), '/captcha/1/widget/phone');
 
-// The web UI's page, the one an older instance offers, reads every field from
-// the query string (see parseCaptchaWidgetRequest in
-// internal/api/routes_captcha_widget.go).
-const widget = ch('17/a b', ZERO, {
-  kind: 'widget',
-  host: 'files.example',
-  prompt: 'Prove it & go',
-  payload: { vendor: 'recaptcha', siteKey: 'k+ey', siteUrl: 'https://files.example/x', contextUrl: '', type: 'INVISIBLE', enterprise: true, v3Action: '{"action":"login"}', secureToken: 's' },
-});
-const path = cap.widgetPath(widget, 'de');
-const [route, query] = path.split('?');
-expect('the id is one path segment', route, '/captcha/17%2Fa%20b/widget');
-expect('the query carries what the page renders from', Object.fromEntries(new URLSearchParams(query)), {
-  vendor: 'recaptcha',
-  siteKey: 'k+ey',
-  type: 'INVISIBLE',
-  enterprise: '1',
-  v3Action: '{"action":"login"}',
-  secureToken: 's',
-  lang: 'de',
-  host: 'files.example',
-  prompt: 'Prove it & go',
-});
-expect(
-  'an empty field stays out of the query',
-  new URLSearchParams(cap.widgetPath(ch('1', ZERO, { kind: 'widget', host: '', payload: { vendor: 'hcaptcha', siteKey: 'k' } }), '').split('?')[1]).toString(),
-  'vendor=hcaptcha&siteKey=k',
-);
-
 // The vendors captchaWidgetVendor renders under the hoster's address, and a
 // missing one it decides itself.
 const vendorOf = (vendor) => ch('1', ZERO, { kind: 'widget', payload: { vendor, siteKey: 'k' } });
@@ -239,8 +210,7 @@ expect('a vendor code is the vendor refusing', cap.widgetFailure(null, 'invalid-
 // key, which no amount of network would fix.
 expect('an HTTP error is the instance refusing', cap.widgetFailure(400, null), { by: 'instance', status: 400 });
 // The relay refuses a route an instance does not forward with a bare 403.
-expect('a 403 over the relay is an instance too old for the page', cap.widgetFailure(403, null, true), { by: 'outdated' });
-expect('by address it is the instance refusing', cap.widgetFailure(403, null, false), { by: 'instance', status: 403 });
+expect('a 403 is an instance too old for the page', cap.widgetFailure(403, null), { by: 'outdated' });
 
 // What the phone tells the instance, one window after another, so the paid
 // solvers stop waiting for a phone that cannot show the widget and wait for it
@@ -279,4 +249,4 @@ if (problems.length) {
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log('ok: captchas come nearest deadline first, a click answer is in JD’s shape and the picture’s pixels, the widget page is asked for by id, the web UI’s gets every field, and a window opens only for a vendor the page runs, only its own messages reach the app, the phone watches only for what it can answer and says when a widget will not load and when it does after all, the solver line explains itself only there, and the banner says what came and went and how a test captcha was answered');
+console.log('ok: captchas come nearest deadline first, a click answer is in JD’s shape and the picture’s pixels, the widget page is asked for by id, and a window opens only for a vendor the page runs, only its own messages reach the app, the phone watches only for what it can answer and says when a widget will not load and when it does after all, the solver line explains itself only there, and the banner says what came and went and how a test captcha was answered');

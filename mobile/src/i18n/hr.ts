@@ -143,7 +143,6 @@ export const hr: Dict = {
   'error.groupJoinsBusy': 'U posljednjih sat vremena grupi se pridružilo previše novih uređaja. Pokušaj ponovno kasnije.',
   'error.memberNotPinned': 'Instanca nije mogla spremiti ključ ovog uređaja. Pokušaj ponovno za trenutak.',
   'error.answerTooLarge': 'Odgovor instance prevelik je za relej. U mreži instance prolazi.',
-  'error.connectionEnded': 'Instanca više ne prihvaća ovu vezu jer je njezina lozinka promijenjena ili ponovno postavljena. Ukloni vezu i ponovno se poveži s dvanaest riječi koje instanca prikazuje u odjeljku Postavke, Uparivanje. Nakon ponovnog postavljanja to su nove riječi.',
   'addDownload.cancel': 'Odustani',
   'addDownload.button': 'Dodaj',
 
@@ -210,8 +209,6 @@ export const hr: Dict = {
   'task.mode.free': 'Besplatno',
   'task.mode.premium': 'Premium',
   'task.remote': 'Preuzima se kod usluge {service}',
-  'task.play': 'Reproduciraj',
-  'task.playFailed': 'Player se nije otvorio: {reason}',
   'task.enable': 'Uključi ovu poveznicu',
   'task.disable': 'Isključi ovu poveznicu',
   'settings.aboutTitle': 'O KnightLoaderu',
@@ -382,6 +379,10 @@ export const hr: Dict = {
   'group.removedBody': 'Neka je instanca uklonila ovaj uređaj iz skupine. Ponovno skeniraj frazu da ga povežeš.',
   'group.removedLater': 'Kasnije',
   'group.removedRescan': 'Skeniraj frazu',
+  'connections.addressGoneTitle': 'Ponovno upari frazom',
+  'connections.addressGoneBody': 'Ove su veze bile spremljene po adresi: {names}. Aplikacija se sada povezuje s dvanaest riječi. Skeniraj frazu koju instanca prikazuje u odjeljku Postavke, Uparivanje i sve je opet tu, zajedno s preuzimanjima.',
+  'connections.addressGoneLater': 'Kasnije',
+  'connections.addressGoneScan': 'Skeniraj frazu',
   'connections.default': 'Zadana instanca',
   'connections.makeDefault': 'Postavi kao zadanu',
 

@@ -143,7 +143,6 @@ export const bg: Dict = {
   'error.groupJoinsBusy': 'Твърде много нови устройства се присъединиха към групата през последния час. Опитай отново по-късно.',
   'error.memberNotPinned': 'Инстанцията не успя да запази ключа на това устройство. Опитай отново след малко.',
   'error.answerTooLarge': 'Отговорът на инстанцията е твърде голям за релето. В мрежата на инстанцията той минава.',
-  'error.connectionEnded': 'Инстанцията вече не приема тази връзка, защото паролата ѝ е сменена или нулирана. Премахни връзката и се свържи отново с дванадесетте думи, които инстанцията показва в Настройки, Сдвояване. След нулиране думите са нови.',
   'addDownload.cancel': 'Отказ',
   'addDownload.button': 'Добави',
 
@@ -210,8 +209,6 @@ export const bg: Dict = {
   'task.mode.free': 'Безплатно',
   'task.mode.premium': 'Премиум',
   'task.remote': 'Изтегля се при {service}',
-  'task.play': 'Пусни',
-  'task.playFailed': 'Плейърът не се отвори: {reason}',
   'task.enable': 'Включи тази връзка',
   'task.disable': 'Изключи тази връзка',
   'settings.aboutTitle': 'За KnightLoader',
@@ -382,6 +379,10 @@ export const bg: Dict = {
   'group.removedBody': 'Инстанция премахна това устройство от групата. Сканирай фразата отново, за да го свържеш.',
   'group.removedLater': 'По-късно',
   'group.removedRescan': 'Сканиране на фразата',
+  'connections.addressGoneTitle': 'Сдвои отново с фразата',
+  'connections.addressGoneBody': 'Тези връзки бяха запазени по адрес: {names}. Приложението вече се свързва с дванадесетте думи. Сканирай фразата, която инстанцията показва в Настройки, Сдвояване, и всичко е отново тук, заедно с изтеглянията.',
+  'connections.addressGoneLater': 'По-късно',
+  'connections.addressGoneScan': 'Сканиране на фразата',
   'connections.default': 'Основна инстанция',
   'connections.makeDefault': 'Направи основна',
 

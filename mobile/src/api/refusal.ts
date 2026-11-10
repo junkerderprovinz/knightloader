@@ -26,17 +26,8 @@ function refusal(body: string, status: number): ApiError {
   return new ApiError(body, status);
 }
 
-/**
- * refusedCall is the error for a call the instance answered with status. A
- * direct connection signs in with an API token, and the instance drops every
- * token when its password is changed or reset. This app has nowhere to enter
- * a new one, so the connection is made again from the phrase. A peer's 401
- * comes through another base and keeps its own words.
- */
-export function refusedCall(direct: boolean, base: string, status: number, text: string): ApiError {
-  if (status === 401 && direct && base === '/api') {
-    return new ApiError(text, status, 'connectionEnded');
-  }
+/** refusedCall is the error for a call the instance answered with status. */
+export function refusedCall(status: number, text: string): ApiError {
   // An instance that was reset answers the old words with a plain 410
   // "reset" (internal/api/retired_group.go).
   if (status === 410 && text === 'reset') {
@@ -52,7 +43,6 @@ export function refusedCall(direct: boolean, base: string, status: number, text:
 const REFUSALS: Partial<Record<string, TranslationKey>> = {
   federationOff: 'error.federationOff',
   addAgain: 'error.addAgain',
-  connectionEnded: 'error.connectionEnded',
   groupReset: 'error.groupReset',
   ownLoginNeeded: 'error.ownLoginNeeded',
   memberPending: 'error.memberPending',

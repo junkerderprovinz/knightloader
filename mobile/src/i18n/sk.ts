@@ -143,7 +143,6 @@ export const sk: Dict = {
   'error.groupJoinsBusy': 'Za poslednú hodinu sa ku skupine pripojilo priveľa nových zariadení. Skús to neskôr.',
   'error.memberNotPinned': 'Inštancia nemohla uložiť kľúč tohto zariadenia. Skús to o chvíľu znova.',
   'error.answerTooLarge': 'Odpoveď inštancie je pre relay príliš veľká. V sieti inštancie prejde.',
-  'error.connectionEnded': 'Inštancia už toto pripojenie neprijíma, pretože jej heslo bolo zmenené alebo resetované. Odstráň pripojenie a pripoj sa znova pomocou dvanástich slov, ktoré inštancia ukazuje v časti Nastavenia, Párovanie. Po resetovaní sú to nové slová.',
   'addDownload.cancel': 'Zrušiť',
   'addDownload.button': 'Pridať',
 
@@ -210,8 +209,6 @@ export const sk: Dict = {
   'task.mode.free': 'Zdarma',
   'task.mode.premium': 'Premium',
   'task.remote': 'Sťahuje sa v službe {service}',
-  'task.play': 'Prehrať',
-  'task.playFailed': 'Prehrávač sa neotvoril: {reason}',
   'task.enable': 'Zapnúť tento odkaz',
   'task.disable': 'Vypnúť tento odkaz',
   'settings.aboutTitle': 'O KnightLoaderi',
@@ -382,6 +379,10 @@ export const sk: Dict = {
   'group.removedBody': 'Nejaká inštancia odstránila toto zariadenie zo skupiny. Naskenuj frázu znova, aby si ho znova pripojil.',
   'group.removedLater': 'Neskôr',
   'group.removedRescan': 'Naskenovať frázu',
+  'connections.addressGoneTitle': 'Spáruj znova pomocou frázy',
+  'connections.addressGoneBody': 'Tieto pripojenia boli uložené podľa adresy: {names}. Aplikácia sa teraz pripája pomocou dvanástich slov. Naskenuj frázu, ktorú inštancia ukazuje v časti Nastavenia, Párovanie, a máš všetko späť aj so sťahovaniami.',
+  'connections.addressGoneLater': 'Neskôr',
+  'connections.addressGoneScan': 'Naskenovať frázu',
   'connections.default': 'Predvolená inštancia',
   'connections.makeDefault': 'Nastaviť ako predvolenú',
 

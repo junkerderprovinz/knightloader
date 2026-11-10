@@ -142,7 +142,6 @@ export const ja: Dict = {
   'error.groupJoinsBusy': '直近 1 時間に新しいデバイスが多数グループに参加しました。しばらくしてからもう一度お試しください。',
   'error.memberNotPinned': 'インスタンスはこのデバイスの鍵を保存できませんでした。少ししてからもう一度お試しください。',
   'error.answerTooLarge': 'インスタンスの応答がリレーには大きすぎます。インスタンスと同じネットワークなら届きます。',
-  'error.connectionEnded': 'インスタンスのパスワードが変更またはリセットされたため、この接続はもう受け付けられません。接続を削除して、インスタンスの「設定」の「ペアリング」に表示される12個の単語でもう一度接続してください。リセット後は新しい単語になっています。',
   'addDownload.cancel': 'キャンセル',
   'addDownload.button': '追加',
 
@@ -209,8 +208,6 @@ export const ja: Dict = {
   'task.mode.free': '無料',
   'task.mode.premium': 'プレミアム',
   'task.remote': '{service} で取得中',
-  'task.play': '再生',
-  'task.playFailed': 'プレーヤーを開けませんでした: {reason}',
   'task.enable': 'このリンクを有効にする',
   'task.disable': 'このリンクを無効にする',
   'settings.aboutTitle': 'KnightLoader について',
@@ -381,6 +378,10 @@ export const ja: Dict = {
   'group.removedBody': 'インスタンスがこの端末をグループから削除しました。再接続するにはフレーズをもう一度スキャンしてください。',
   'group.removedLater': '後で',
   'group.removedRescan': 'フレーズをスキャン',
+  'connections.addressGoneTitle': 'フレーズでもう一度ペアリング',
+  'connections.addressGoneBody': '次の接続はアドレスで保存されていました: {names}。アプリは今後12個の単語で接続します。インスタンスの「設定」の「ペアリング」に表示されるフレーズをスキャンすれば、ダウンロードも含めてすべて元どおりです。',
+  'connections.addressGoneLater': '後で',
+  'connections.addressGoneScan': 'フレーズをスキャン',
   'connections.default': '既定のインスタンス',
   'connections.makeDefault': '既定に設定',
 

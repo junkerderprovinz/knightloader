@@ -143,7 +143,6 @@ export const vi: Dict = {
   'error.groupJoinsBusy': 'Có quá nhiều thiết bị mới tham gia nhóm trong giờ qua. Hãy thử lại sau.',
   'error.memberNotPinned': 'Phiên bản không lưu được khóa của thiết bị này. Hãy thử lại sau giây lát.',
   'error.answerTooLarge': 'Phản hồi của phiên bản quá lớn để đi qua bộ tiếp sức. Trong mạng của chính phiên bản, nó vẫn đến được.',
-  'error.connectionEnded': 'Phiên bản không còn chấp nhận kết nối này vì mật khẩu của nó đã bị đổi hoặc đặt lại. Hãy xóa kết nối rồi kết nối lại bằng mười hai từ mà phiên bản hiển thị trong Cài đặt, Ghép nối. Sau khi đặt lại, đó là những từ mới.',
   'addDownload.cancel': 'Hủy',
   'addDownload.button': 'Thêm',
 
@@ -210,8 +209,6 @@ export const vi: Dict = {
   'task.mode.free': 'Miễn phí',
   'task.mode.premium': 'Premium',
   'task.remote': 'Đang lấy trên {service}',
-  'task.play': 'Phát',
-  'task.playFailed': 'Trình phát không mở được: {reason}',
   'task.enable': 'Bật liên kết này',
   'task.disable': 'Tắt liên kết này',
   'settings.aboutTitle': 'Giới thiệu về KnightLoader',
@@ -382,6 +379,10 @@ export const vi: Dict = {
   'group.removedBody': 'Một phiên bản đã đưa thiết bị này ra khỏi nhóm. Quét lại cụm từ để kết nối lại.',
   'group.removedLater': 'Để sau',
   'group.removedRescan': 'Quét cụm từ',
+  'connections.addressGoneTitle': 'Ghép nối lại bằng cụm từ',
+  'connections.addressGoneBody': 'Các kết nối này đã được lưu theo địa chỉ: {names}. Giờ ứng dụng kết nối bằng mười hai từ. Hãy quét cụm từ mà phiên bản hiển thị trong Cài đặt, Ghép nối, và mọi thứ sẽ trở lại, kể cả các lượt tải.',
+  'connections.addressGoneLater': 'Để sau',
+  'connections.addressGoneScan': 'Quét cụm từ',
   'connections.default': 'Phiên bản mặc định',
   'connections.makeDefault': 'Đặt làm mặc định',
 

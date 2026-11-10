@@ -143,7 +143,6 @@ export const ms: Dict = {
   'error.groupJoinsBusy': 'Terlalu banyak peranti baharu menyertai kumpulan dalam sejam yang lalu. Cuba lagi kemudian.',
   'error.memberNotPinned': 'Instans tidak dapat menyimpan kunci peranti ini. Cuba lagi sebentar nanti.',
   'error.answerTooLarge': 'Jawapan instans terlalu besar untuk relay. Di rangkaian instans itu sendiri, ia sampai.',
-  'error.connectionEnded': 'Tika tidak lagi menerima sambungan ini kerana kata laluannya telah diubah atau ditetapkan semula. Alih keluar sambungan itu dan sambung semula dengan dua belas perkataan yang ditunjukkan oleh tika di Tetapan, Gandingan. Selepas tetapan semula, perkataan itu baharu.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambah',
 
@@ -210,8 +209,6 @@ export const ms: Dict = {
   'task.mode.free': 'Percuma',
   'task.mode.premium': 'Premium',
   'task.remote': 'Mengambil di {service}',
-  'task.play': 'Main',
-  'task.playFailed': 'Pemain tidak dibuka: {reason}',
   'task.enable': 'Hidupkan pautan ini',
   'task.disable': 'Matikan pautan ini',
   'settings.aboutTitle': 'Perihal KnightLoader',
@@ -382,6 +379,10 @@ export const ms: Dict = {
   'group.removedBody': 'Satu tika mengalih keluar peranti ini daripada kumpulan. Imbas frasa itu semula untuk menyambungkannya.',
   'group.removedLater': 'Kemudian',
   'group.removedRescan': 'Imbas frasa',
+  'connections.addressGoneTitle': 'Gandingkan semula dengan frasa',
+  'connections.addressGoneBody': 'Sambungan ini disimpan mengikut alamat: {names}. Apl kini menyambung dengan dua belas perkataan. Imbas frasa yang ditunjukkan oleh tika di Tetapan, Gandingan, dan semuanya kembali, termasuk muat turun.',
+  'connections.addressGoneLater': 'Kemudian',
+  'connections.addressGoneScan': 'Imbas frasa',
   'connections.default': 'Tika lalai',
   'connections.makeDefault': 'Jadikan lalai',
 

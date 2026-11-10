@@ -25,7 +25,6 @@ const relayConn = (instanceId) => ({ kind: 'relay', id: 'c1', name: 'Zathallia',
 
 expect('a closed desktop app the group lists as away', awayFor(relayConn('a1b2'), [desktop]), desktop);
 expect('an instance the group does not list as away', awayFor(relayConn('ffff'), [desktop]), undefined);
-expect('a connection by address, which the group knows nothing of', awayFor({ id: 'c2', name: 'nas', url: 'http://nas' }, [desktop]), undefined);
 expect('an instance from before the away list', awayList(undefined), null);
 expect('entries without an id or a time are dropped', awayList([desktop, { name: 'x' }, null, { id: 'b', lastSeen: '1' }]), [desktop]);
 expect('an instance from before the members list', memberList(undefined), null);

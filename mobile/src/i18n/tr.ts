@@ -143,7 +143,6 @@ export const tr: Dict = {
   'error.groupJoinsBusy': 'Son bir saatte gruba çok fazla yeni cihaz katıldı. Daha sonra yeniden dene.',
   'error.memberNotPinned': 'Örnek bu cihazın anahtarını kaydedemedi. Birazdan yeniden dene.',
   'error.answerTooLarge': 'Örneğin yanıtı aktarıcı için fazla büyük. Örneğin kendi ağında yanıt ulaşır.',
-  'error.connectionEnded': 'Örnek bu bağlantıyı artık kabul etmiyor, çünkü parolası değiştirildi ya da sıfırlandı. Bağlantıyı kaldır ve örneğin Ayarlar, Eşleştirme altında gösterdiği on iki kelimeyle yeniden bağlan. Sıfırlamadan sonra bunlar yeni kelimelerdir.',
   'addDownload.cancel': 'İptal',
   'addDownload.button': 'Ekle',
 
@@ -210,8 +209,6 @@ export const tr: Dict = {
   'task.mode.free': 'Ücretsiz',
   'task.mode.premium': 'Premium',
   'task.remote': '{service} indiriyor',
-  'task.play': 'Oynat',
-  'task.playFailed': 'Oynatıcı açılmadı: {reason}',
   'task.enable': 'Bu bağlantıyı etkinleştir',
   'task.disable': 'Bu bağlantıyı devre dışı bırak',
   'settings.aboutTitle': 'KnightLoader hakkında',
@@ -382,6 +379,10 @@ export const tr: Dict = {
   'group.removedBody': 'Bir örnek bu cihazı gruptan çıkardı. Yeniden bağlamak için ifadeyi tekrar tara.',
   'group.removedLater': 'Sonra',
   'group.removedRescan': 'İfadeyi tara',
+  'connections.addressGoneTitle': 'İfadeyle yeniden eşleştir',
+  'connections.addressGoneBody': 'Bu bağlantılar adresle kaydedilmişti: {names}. Uygulama artık on iki kelimeyle bağlanıyor. Örneğin Ayarlar, Eşleştirme altında gösterdiği ifadeyi tara, indirmeler dahil her şey geri gelir.',
+  'connections.addressGoneLater': 'Sonra',
+  'connections.addressGoneScan': 'İfadeyi tara',
   'connections.default': 'Varsayılan örnek',
   'connections.makeDefault': 'Varsayılan yap',
 

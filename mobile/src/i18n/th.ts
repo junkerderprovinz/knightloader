@@ -143,7 +143,6 @@ export const th: Dict = {
   'error.groupJoinsBusy': 'มีอุปกรณ์ใหม่เข้าร่วมกลุ่มมากเกินไปในชั่วโมงที่ผ่านมา ลองอีกครั้งภายหลัง',
   'error.memberNotPinned': 'อินสแตนซ์บันทึกคีย์ของอุปกรณ์นี้ไม่ได้ ลองอีกครั้งในอีกสักครู่',
   'error.answerTooLarge': 'คำตอบของอินสแตนซ์ใหญ่เกินไปสำหรับรีเลย์ ในเครือข่ายของอินสแตนซ์เองจะส่งมาได้',
-  'error.connectionEnded': 'อินสแตนซ์ไม่รับการเชื่อมต่อนี้อีกแล้ว เพราะรหัสผ่านของอินสแตนซ์ถูกเปลี่ยนหรือรีเซ็ต ลบการเชื่อมต่อออกแล้วเชื่อมต่อใหม่ด้วยสิบสองคำที่อินสแตนซ์แสดงในหน้าการจับคู่ของการตั้งค่า หลังการรีเซ็ต คำเหล่านี้จะเป็นชุดใหม่',
   'addDownload.cancel': 'ยกเลิก',
   'addDownload.button': 'เพิ่ม',
 
@@ -210,8 +209,6 @@ export const th: Dict = {
   'task.mode.free': 'ฟรี',
   'task.mode.premium': 'พรีเมียม',
   'task.remote': 'กำลังดึงที่ {service}',
-  'task.play': 'เล่น',
-  'task.playFailed': 'เปิดเครื่องเล่นไม่ได้: {reason}',
   'task.enable': 'เปิดใช้ลิงก์นี้',
   'task.disable': 'ปิดใช้ลิงก์นี้',
   'settings.aboutTitle': 'เกี่ยวกับ KnightLoader',
@@ -382,6 +379,10 @@ export const th: Dict = {
   'group.removedBody': 'อินสแตนซ์หนึ่งนำอุปกรณ์นี้ออกจากกลุ่ม สแกนวลีอีกครั้งเพื่อเชื่อมต่อ',
   'group.removedLater': 'ไว้ทีหลัง',
   'group.removedRescan': 'สแกนวลี',
+  'connections.addressGoneTitle': 'จับคู่ใหม่ด้วยวลี',
+  'connections.addressGoneBody': 'การเชื่อมต่อเหล่านี้บันทึกไว้ด้วยที่อยู่: {names} ตอนนี้แอปเชื่อมต่อด้วยสิบสองคำ สแกนวลีที่อินสแตนซ์แสดงในหน้าการจับคู่ของการตั้งค่า แล้วทุกอย่างจะกลับมา รวมถึงรายการดาวน์โหลด',
+  'connections.addressGoneLater': 'ไว้ทีหลัง',
+  'connections.addressGoneScan': 'สแกนวลี',
   'connections.default': 'อินสแตนซ์เริ่มต้น',
   'connections.makeDefault': 'ตั้งเป็นค่าเริ่มต้น',
 

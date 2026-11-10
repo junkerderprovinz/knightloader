@@ -142,7 +142,6 @@ export const ko: Dict = {
   'error.groupJoinsBusy': '지난 1시간 동안 너무 많은 새 기기가 그룹에 참여했습니다. 나중에 다시 시도하세요.',
   'error.memberNotPinned': '인스턴스가 이 기기의 키를 저장하지 못했습니다. 잠시 후 다시 시도하세요.',
   'error.answerTooLarge': '인스턴스의 응답이 릴레이로 보내기에는 너무 큽니다. 인스턴스와 같은 네트워크에서는 전달됩니다.',
-  'error.connectionEnded': '인스턴스의 암호가 변경되었거나 재설정되어 이 연결을 더 이상 받아들이지 않습니다. 연결을 삭제한 뒤 인스턴스가 설정의 페어링에 표시하는 12개 단어로 다시 연결하세요. 재설정 후에는 새 단어입니다.',
   'addDownload.cancel': '취소',
   'addDownload.button': '추가',
 
@@ -209,8 +208,6 @@ export const ko: Dict = {
   'task.mode.free': '무료',
   'task.mode.premium': '프리미엄',
   'task.remote': '{service}에서 가져오는 중',
-  'task.play': '재생',
-  'task.playFailed': '플레이어를 열지 못했습니다: {reason}',
   'task.enable': '이 링크 켜기',
   'task.disable': '이 링크 끄기',
   'settings.aboutTitle': 'KnightLoader 정보',
@@ -381,6 +378,10 @@ export const ko: Dict = {
   'group.removedBody': '한 인스턴스가 이 기기를 그룹에서 제거했습니다. 다시 연결하려면 문구를 다시 스캔하세요.',
   'group.removedLater': '나중에',
   'group.removedRescan': '문구 스캔',
+  'connections.addressGoneTitle': '문구로 다시 페어링',
+  'connections.addressGoneBody': '다음 연결은 주소로 저장되어 있었습니다: {names}. 이제 앱은 12개 단어로 연결합니다. 인스턴스가 설정의 페어링에 표시하는 문구를 스캔하면 다운로드까지 모두 그대로 돌아옵니다.',
+  'connections.addressGoneLater': '나중에',
+  'connections.addressGoneScan': '문구 스캔',
   'connections.default': '기본 인스턴스',
   'connections.makeDefault': '기본으로 설정',
 

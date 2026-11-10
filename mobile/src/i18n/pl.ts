@@ -143,7 +143,6 @@ export const pl: Dict = {
   'error.groupJoinsBusy': 'W ciągu ostatniej godziny do grupy dołączyło zbyt wiele nowych urządzeń. Spróbuj ponownie później.',
   'error.memberNotPinned': 'Instancja nie mogła zapisać klucza tego urządzenia. Spróbuj ponownie za chwilę.',
   'error.answerTooLarge': 'Odpowiedź instancji jest za duża dla przekaźnika. W sieci instancji dociera bez problemu.',
-  'error.connectionEnded': 'Instancja nie przyjmuje już tego połączenia, bo jej hasło zostało zmienione lub zresetowane. Usuń połączenie i połącz się ponownie za pomocą dwunastu słów, które instancja pokazuje w sekcji Ustawienia, Parowanie. Po resecie są to nowe słowa.',
   'addDownload.cancel': 'Anuluj',
   'addDownload.button': 'Dodaj',
 
@@ -210,8 +209,6 @@ export const pl: Dict = {
   'task.mode.free': 'Darmowy',
   'task.mode.premium': 'Premium',
   'task.remote': 'Pobieranie w usłudze {service}',
-  'task.play': 'Odtwórz',
-  'task.playFailed': 'Odtwarzacz się nie otworzył: {reason}',
   'task.enable': 'Włącz ten link',
   'task.disable': 'Wyłącz ten link',
   'settings.aboutTitle': 'O KnightLoaderze',
@@ -382,6 +379,10 @@ export const pl: Dict = {
   'group.removedBody': 'Jakaś instancja usunęła to urządzenie z grupy. Zeskanuj frazę ponownie, aby je połączyć.',
   'group.removedLater': 'Później',
   'group.removedRescan': 'Zeskanuj frazę',
+  'connections.addressGoneTitle': 'Sparuj ponownie frazą',
+  'connections.addressGoneBody': 'Te połączenia były zapisane według adresu: {names}. Aplikacja łączy się teraz za pomocą dwunastu słów. Zeskanuj frazę, którą instancja pokazuje w sekcji Ustawienia, Parowanie, i wszystko wróci razem z pobieraniami.',
+  'connections.addressGoneLater': 'Później',
+  'connections.addressGoneScan': 'Zeskanuj frazę',
   'connections.default': 'Instancja domyślna',
   'connections.makeDefault': 'Ustaw jako domyślną',
 

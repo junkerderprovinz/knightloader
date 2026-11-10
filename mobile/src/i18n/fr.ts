@@ -143,7 +143,6 @@ export const fr: Dict = {
   'error.groupJoinsBusy': 'Trop de nouveaux appareils ont rejoint le groupe au cours de la dernière heure. Réessayez plus tard.',
   'error.memberNotPinned': 'L’instance n’a pas pu enregistrer la clé de cet appareil. Réessayez dans un instant.',
   'error.answerTooLarge': 'La réponse de l’instance est trop grande pour le relais. Sur le réseau de l’instance, elle passe.',
-  'error.connectionEnded': 'L’instance n’accepte plus cette connexion, car son mot de passe a été modifié ou réinitialisé. Supprimez la connexion et reconnectez-vous avec les douze mots que l’instance affiche dans Paramètres, Appairage. Après une réinitialisation, ce sont de nouveaux mots.',
   'addDownload.cancel': 'Annuler',
   'addDownload.button': 'Ajouter',
 
@@ -210,8 +209,6 @@ export const fr: Dict = {
   'task.mode.free': 'Gratuit',
   'task.mode.premium': 'Premium',
   'task.remote': 'Récupération chez {service}',
-  'task.play': 'Lire',
-  'task.playFailed': 'Le lecteur ne s’est pas ouvert : {reason}',
   'task.enable': 'Activer ce lien',
   'task.disable': 'Désactiver ce lien',
   'settings.aboutTitle': 'À propos de KnightLoader',
@@ -382,6 +379,10 @@ export const fr: Dict = {
   'group.removedBody': 'Une instance a retiré cet appareil du groupe. Scannez de nouveau la phrase pour le reconnecter.',
   'group.removedLater': 'Plus tard',
   'group.removedRescan': 'Scanner la phrase',
+  'connections.addressGoneTitle': 'Appairez de nouveau avec la phrase',
+  'connections.addressGoneBody': 'Ces connexions étaient enregistrées par adresse : {names}. L’application se connecte désormais avec les douze mots. Scannez la phrase que l’instance affiche dans Paramètres, Appairage, et vous retrouvez tout, téléchargements compris.',
+  'connections.addressGoneLater': 'Plus tard',
+  'connections.addressGoneScan': 'Scanner la phrase',
   'connections.default': 'Instance par défaut',
   'connections.makeDefault': 'Définir par défaut',
 

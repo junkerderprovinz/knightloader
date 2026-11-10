@@ -7,6 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useShareIntent } from 'expo-share-intent';
 import {
   dismissConnection,
+  dropAddressConnections,
   listConnections,
   loadActiveConnection,
   loadDefaultConnection,
@@ -94,6 +95,9 @@ function Shell() {
   const { t } = useT();
   // Set when an instance has taken this phone out of its group.
   const [removed, setRemoved] = useState(false);
+  // The names of the connections an older build saved by address, which the
+  // first start of this one takes off the list.
+  const [addressGone, setAddressGone] = useState<string[]>([]);
   // The scheme only names the key the library clears a share under. Without
   // it the library asks expo-linking for one, which throws in a release build
   // of an app that registers none.
@@ -148,6 +152,7 @@ function Shell() {
 
   useEffect(() => {
     (async () => {
+      setAddressGone(await dropAddressConnections());
       const [active, standardConn] = await Promise.all([loadActiveConnection(), loadDefaultConnection(), loadDeviceName()]);
       setStandard(standardConn);
       const opening = standardConn ?? active;
@@ -199,6 +204,19 @@ function Shell() {
         onCancel={() => setRemoved(false)}
         onConfirm={() => {
           setRemoved(false);
+          nav.navigate('RelayConnect');
+        }}
+      />
+      <ConfirmDialog
+        visible={addressGone.length > 0}
+        title={t('connections.addressGoneTitle')}
+        message={t('connections.addressGoneBody', { names: addressGone.join(', ') })}
+        cancelLabel={t('connections.addressGoneLater')}
+        confirmLabel={t('connections.addressGoneScan')}
+        confirmIcon={(ink) => <Scan color={ink} />}
+        onCancel={() => setAddressGone([])}
+        onConfirm={() => {
+          setAddressGone([]);
           nav.navigate('RelayConnect');
         }}
       />

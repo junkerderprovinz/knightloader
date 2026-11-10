@@ -143,7 +143,6 @@ export const is: Dict = {
   'error.groupJoinsBusy': 'Of mörg ný tæki bættust í hópinn síðustu klukkustundina. Reyndu aftur síðar.',
   'error.memberNotPinned': 'Tilvikið gat ekki vistað lykil þessa tækis. Reyndu aftur eftir smástund.',
   'error.answerTooLarge': 'Svar tilviksins er of stórt fyrir endurvarpann. Á neti tilviksins sjálfs kemst það í gegn.',
-  'error.connectionEnded': 'Tilvikið tekur ekki lengur við þessari tengingu, af því að lykilorði þess var breytt eða það endurstillt. Fjarlægðu tenginguna og tengstu aftur með orðunum tólf sem tilvikið sýnir undir Stillingar, Pörun. Eftir endurstillingu eru þetta ný orð.',
   'addDownload.cancel': 'Hætta við',
   'addDownload.button': 'Bæta við',
 
@@ -210,8 +209,6 @@ export const is: Dict = {
   'task.mode.free': 'Ókeypis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Sækir hjá {service}',
-  'task.play': 'Spila',
-  'task.playFailed': 'Spilarinn opnaðist ekki: {reason}',
   'task.enable': 'Kveikja á þessum tengli',
   'task.disable': 'Slökkva á þessum tengli',
   'settings.aboutTitle': 'Um KnightLoader',
@@ -382,6 +379,10 @@ export const is: Dict = {
   'group.removedBody': 'Tilvik fjarlægði þetta tæki úr hópnum. Skannaðu setninguna aftur til að tengja það.',
   'group.removedLater': 'Seinna',
   'group.removedRescan': 'Skanna setninguna',
+  'connections.addressGoneTitle': 'Paraðu aftur með setningunni',
+  'connections.addressGoneBody': 'Þessar tengingar voru vistaðar eftir vistfangi: {names}. Forritið tengist núna með orðunum tólf. Skannaðu setninguna sem tilvikið sýnir undir Stillingar, Pörun, og allt er komið aftur, niðurhölin líka.',
+  'connections.addressGoneLater': 'Seinna',
+  'connections.addressGoneScan': 'Skanna setninguna',
   'connections.default': 'Sjálfgefið tilvik',
   'connections.makeDefault': 'Gera að sjálfgefnu',
 

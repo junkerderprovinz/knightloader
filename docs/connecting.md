@@ -412,11 +412,9 @@ and cannot be explained.
   and the kind `mobile`, which keeps it apart from the instances and from the
   browser extension. A connected phone counts as somebody in the group, so an
   instance whose only partner is a phone shows Paired.
-- **A connection saved by address** in an earlier build of the app keeps
-  working if the address starts with `https://`, but the app no longer makes
-  one. One saved with an `http://` address does not, since the app permits no
-  cleartext traffic: its card says it has to be added again with the twelve
-  words. Those builds took the address
+- **A connection saved by address** in an earlier build of the app leaves the
+  list on the first start after the update, and the app names it once and asks
+  for the phrase. Those builds took the address
   typed in, scanned from the QR code the Security page showed then or found with **Find on this
   network**, plus a token where the instance had a password.
 
@@ -445,13 +443,12 @@ and cannot be explained.
 - **Captchas** are answered on the phone. A card on the instance's downloads,
   a count on its overview card and a banner over the open screen lead to a list
   of what is waiting, and picture and click captchas are answered right there.
-  reCAPTCHA, hCaptcha and Cloudflare Turnstile open in a window of their own,
-  on either kind of connection. The app fetches the instance's widget page,
-  over the relay as well, and shows it under the address of the hoster's page
-  the captcha came from. The captcha service then sees the hoster's website,
-  as it would in a browser on that page. Many hosters tie their captcha to
-  their own domains, and every Turnstile key is tied that way, so anywhere
-  else the service refuses to run.
+  reCAPTCHA, hCaptcha and Cloudflare Turnstile open in a window of their own.
+  The app fetches the instance's widget page over the relay and shows it under
+  the address of the hoster's page the captcha came from. The captcha service
+  then sees the hoster's website, as it would in a browser on that page. Many
+  hosters tie their captcha to their own domains, and every Turnstile key is
+  tied that way, so anywhere else the service refuses to run.
   The banner also says when a captcha timed out or was answered somewhere else,
   as the web UI's messages do.
 
@@ -500,10 +497,9 @@ over downloads and finding media each ask for it when switched on; see
 
 ## API tokens and their rights
 
-A script, Sonarr, a dashboard, or the phone app connected by address rather
-than by phrase signs in with an API token: **Settings → Security → API
-tokens → New token**. Every token has a name, can be revoked on its own, and
-carries some of four rights:
+A script, Sonarr or a dashboard signs in with an API token: **Settings →
+Security → API tokens → New token**. Every token has a name, can be revoked on
+its own, and carries some of four rights:
 
 | Right | What it covers |
 |---|---|
@@ -548,14 +544,13 @@ write to. Without one, links go where the download folder, a category or a
 Packagizer rule puts them.
 
 **Read only** suits a dashboard, or a monitoring system reading `/api/metrics`.
-The phone app uses Read, Add and Control and never needs Admin. The switch of
-the Sonarr bridge and the one for `/api/metrics` warn in their (i) when no
-token has the rights they need.
+The switch of the Sonarr bridge and the one for `/api/metrics` warn in their
+(i) when no token has the rights they need.
 
-The phone app's Play button asks for a play link with `POST
-/api/tasks/{id}/play`, which needs Read. A player app opens the link without a
-token, so the link itself is the key: it opens that one file and nothing
-else, for twelve hours, and anyone who has it can play the file in that time.
+A play link comes from `POST /api/tasks/{id}/play`, which needs Read. A player
+app opens the link without a token, so the link itself is the key: it opens
+that one file and nothing else, for twelve hours, and anyone who has it can
+play the file in that time.
 The link stops working before that when the instance restarts, when the token
 that asked for it is revoked, and when you change the password or sign out
 everywhere. For a torrent of several files that is the

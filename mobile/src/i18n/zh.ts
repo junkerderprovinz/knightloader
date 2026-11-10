@@ -142,7 +142,6 @@ export const zh: Dict = {
   'error.groupJoinsBusy': '过去一小时内加入组的新设备太多。请稍后再试。',
   'error.memberNotPinned': '实例无法保存此设备的密钥。请稍后再试。',
   'error.answerTooLarge': '实例的回应太大，中继无法传送。在实例所在的网络中可以正常收到。',
-  'error.connectionEnded': '实例的密码已更改或重置，所以它不再接受这个连接。请删除这个连接，再用实例在“设置”的“配对”里显示的十二个词重新连接。重置之后，这些词是新的。',
   'addDownload.cancel': '取消',
   'addDownload.button': '添加',
 
@@ -209,8 +208,6 @@ export const zh: Dict = {
   'task.mode.free': '免费',
   'task.mode.premium': '会员',
   'task.remote': '正在 {service} 上获取',
-  'task.play': '播放',
-  'task.playFailed': '播放器没有打开：{reason}',
   'task.enable': '启用此链接',
   'task.disable': '停用此链接',
   'settings.aboutTitle': '关于 KnightLoader',
@@ -381,6 +378,10 @@ export const zh: Dict = {
   'group.removedBody': '有实例把这台设备移出了组。请重新扫描词语以重新连接。',
   'group.removedLater': '稍后',
   'group.removedRescan': '扫描词语',
+  'connections.addressGoneTitle': '用词语重新配对',
+  'connections.addressGoneBody': '这些连接是按地址保存的：{names}。应用现在用十二个词连接。扫描实例在“设置”的“配对”里显示的词语，一切就都回来了，下载也在。',
+  'connections.addressGoneLater': '稍后',
+  'connections.addressGoneScan': '扫描词语',
   'connections.default': '默认实例',
   'connections.makeDefault': '设为默认',
 

@@ -143,7 +143,6 @@ export const pt: Dict = {
   'error.groupJoinsBusy': 'Demasiados dispositivos novos entraram no grupo na última hora. Tenta de novo mais tarde.',
   'error.memberNotPinned': 'A instância não conseguiu guardar a chave deste dispositivo. Tenta de novo daqui a pouco.',
   'error.answerTooLarge': 'A resposta da instância é grande demais para o relé. Na rede da própria instância chega.',
-  'error.connectionEnded': 'A instância já não aceita esta ligação, porque a palavra-passe dela foi alterada ou reposta. Remove a ligação e volta a ligar com as doze palavras que a instância mostra em Definições, Emparelhamento. Depois de uma reposição, são palavras novas.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Adicionar',
 
@@ -210,8 +209,6 @@ export const pt: Dict = {
   'task.mode.free': 'Grátis',
   'task.mode.premium': 'Premium',
   'task.remote': 'A obter em {service}',
-  'task.play': 'Reproduzir',
-  'task.playFailed': 'O leitor não abriu: {reason}',
   'task.enable': 'Ativar este link',
   'task.disable': 'Desativar este link',
   'settings.aboutTitle': 'Sobre o KnightLoader',
@@ -382,6 +379,10 @@ export const pt: Dict = {
   'group.removedBody': 'Uma instância removeu este dispositivo do grupo. Lê a frase outra vez para o ligar.',
   'group.removedLater': 'Mais tarde',
   'group.removedRescan': 'Ler a frase',
+  'connections.addressGoneTitle': 'Emparelha de novo com a frase',
+  'connections.addressGoneBody': 'Estas ligações estavam guardadas por endereço: {names}. A aplicação liga-se agora com as doze palavras. Lê a frase que a instância mostra em Definições, Emparelhamento, e voltas a ter tudo, transferências incluídas.',
+  'connections.addressGoneLater': 'Mais tarde',
+  'connections.addressGoneScan': 'Ler a frase',
   'connections.default': 'Instância predefinida',
   'connections.makeDefault': 'Definir como predefinida',
 

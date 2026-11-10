@@ -143,7 +143,6 @@ export const fa: Dict = {
   'error.groupJoinsBusy': 'در یک ساعت گذشته دستگاه‌های جدید زیادی به گروه پیوسته‌اند. بعداً دوباره امتحان کنید.',
   'error.memberNotPinned': 'نمونه نتوانست کلید این دستگاه را ذخیره کند. کمی بعد دوباره امتحان کنید.',
   'error.answerTooLarge': 'پاسخ نمونه برای رله بیش از حد بزرگ است. در شبکهٔ خود نمونه کامل می‌رسد.',
-  'error.connectionEnded': 'نمونه دیگر این اتصال را نمی‌پذیرد، چون رمز آن تغییر کرده یا بازنشانی شده است. اتصال را حذف کنید و دوباره با دوازده کلمه‌ای وصل شوید که نمونه در تنظیمات، بخش جفت‌سازی، نشان می‌دهد. پس از بازنشانی، این‌ها کلمه‌های تازه‌اند.',
   'addDownload.cancel': 'لغو',
   'addDownload.button': 'افزودن',
 
@@ -210,8 +209,6 @@ export const fa: Dict = {
   'task.mode.free': 'رایگان',
   'task.mode.premium': 'ویژه',
   'task.remote': 'در حال دانلود در {service}',
-  'task.play': 'پخش',
-  'task.playFailed': 'پخش‌کننده باز نشد: {reason}',
   'task.enable': 'روشن کردن این پیوند',
   'task.disable': 'خاموش کردن این پیوند',
   'settings.aboutTitle': 'درباره KnightLoader',
@@ -382,6 +379,10 @@ export const fa: Dict = {
   'group.removedBody': 'یک نمونه این دستگاه را از گروه حذف کرد. برای اتصال دوباره، عبارت را دوباره پویش کنید.',
   'group.removedLater': 'بعداً',
   'group.removedRescan': 'پویش عبارت',
+  'connections.addressGoneTitle': 'دوباره با عبارت جفت کنید',
+  'connections.addressGoneBody': 'این اتصال‌ها با نشانی ذخیره شده بودند: {names}. برنامه اکنون با دوازده کلمه وصل می‌شود. عبارتی را که نمونه در تنظیمات، بخش جفت‌سازی نشان می‌دهد پویش کنید تا همه‌چیز همراه با دانلودها برگردد.',
+  'connections.addressGoneLater': 'بعداً',
+  'connections.addressGoneScan': 'پویش عبارت',
   'connections.default': 'نمونهٔ پیش‌فرض',
   'connections.makeDefault': 'پیش‌فرض کردن',
 

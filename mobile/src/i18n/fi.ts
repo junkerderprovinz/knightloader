@@ -143,7 +143,6 @@ export const fi: Dict = {
   'error.groupJoinsBusy': 'Ryhmään liittyi viimeisen tunnin aikana liian monta uutta laitetta. Yritä myöhemmin uudelleen.',
   'error.memberNotPinned': 'Instanssi ei voinut tallentaa tämän laitteen avainta. Yritä hetken päästä uudelleen.',
   'error.answerTooLarge': 'Instanssin vastaus on liian suuri välittimelle. Instanssin omassa verkossa se menee läpi.',
-  'error.connectionEnded': 'Instanssi ei enää hyväksy tätä yhteyttä, koska sen salasana on vaihdettu tai nollattu. Poista yhteys ja yhdistä uudelleen kahdellatoista sanalla, jotka instanssi näyttää kohdassa Asetukset, Pariliitos. Nollauksen jälkeen sanat ovat uusia.',
   'addDownload.cancel': 'Peruuta',
   'addDownload.button': 'Lisää',
 
@@ -210,8 +209,6 @@ export const fi: Dict = {
   'task.mode.free': 'Ilmainen',
   'task.mode.premium': 'Premium',
   'task.remote': 'Haetaan palvelussa {service}',
-  'task.play': 'Toista',
-  'task.playFailed': 'Soitin ei avautunut: {reason}',
   'task.enable': 'Kytke tämä linkki päälle',
   'task.disable': 'Kytke tämä linkki pois',
   'settings.aboutTitle': 'Tietoja KnightLoaderista',
@@ -382,6 +379,10 @@ export const fi: Dict = {
   'group.removedBody': 'Eräs instanssi poisti tämän laitteen ryhmästä. Skannaa lause uudelleen yhdistääksesi sen.',
   'group.removedLater': 'Myöhemmin',
   'group.removedRescan': 'Skannaa lause',
+  'connections.addressGoneTitle': 'Muodosta pari uudelleen lauseella',
+  'connections.addressGoneBody': 'Nämä yhteydet oli tallennettu osoitteella: {names}. Sovellus yhdistää nyt kahdellatoista sanalla. Skannaa lause, jonka instanssi näyttää kohdassa Asetukset, Pariliitos, niin kaikki on taas tallella latauksineen.',
+  'connections.addressGoneLater': 'Myöhemmin',
+  'connections.addressGoneScan': 'Skannaa lause',
   'connections.default': 'Oletusinstanssi',
   'connections.makeDefault': 'Aseta oletukseksi',
 

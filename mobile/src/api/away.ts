@@ -1,5 +1,5 @@
 import type { RelaySibling } from './relayClient';
-import type { RelayConnection, ServerConnection } from './types';
+import type { ServerConnection } from './types';
 
 /** An instance approved in the group that is not there now, as it last announced itself. */
 export interface AwayInstance {
@@ -35,7 +35,6 @@ export function memberList(raw: unknown): RelaySibling[] | null {
  * A connection the group does not list as away gets undefined.
  */
 export function awayFor(conn: ServerConnection, away: AwayInstance[]): AwayInstance | undefined {
-  if (conn.kind !== 'relay') return undefined;
   return away.find((m) => m.id === conn.instanceId);
 }
 
@@ -65,7 +64,7 @@ export function followGroup({
   settled,
   dismissed,
 }: {
-  saved: RelayConnection[];
+  saved: ServerConnection[];
   live: RelaySibling[];
   away: AwayInstance[] | null;
   /** The instances that answered this round, which are there whatever the relay says. */

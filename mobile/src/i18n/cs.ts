@@ -143,7 +143,6 @@ export const cs: Dict = {
   'error.groupJoinsBusy': 'Za poslední hodinu se ke skupině připojilo příliš mnoho nových zařízení. Zkus to později.',
   'error.memberNotPinned': 'Instance nemohla uložit klíč tohoto zařízení. Zkus to za chvíli znovu.',
   'error.answerTooLarge': 'Odpověď instance je pro relé příliš velká. V síti instance projde.',
-  'error.connectionEnded': 'Instance už toto připojení nepřijímá, protože její heslo bylo změněno nebo obnoveno. Odeber připojení a připoj se znovu pomocí dvanácti slov, která instance ukazuje v části Nastavení, Párování. Po obnovení hesla jsou to nová slova.',
   'addDownload.cancel': 'Zrušit',
   'addDownload.button': 'Přidat',
 
@@ -210,8 +209,6 @@ export const cs: Dict = {
   'task.mode.free': 'Zdarma',
   'task.mode.premium': 'Premium',
   'task.remote': 'Stahuje se ve službě {service}',
-  'task.play': 'Přehrát',
-  'task.playFailed': 'Přehrávač se neotevřel: {reason}',
   'task.enable': 'Zapnout tento odkaz',
   'task.disable': 'Vypnout tento odkaz',
   'settings.aboutTitle': 'O KnightLoaderu',
@@ -382,6 +379,10 @@ export const cs: Dict = {
   'group.removedBody': 'Nějaká instance odebrala toto zařízení ze skupiny. Naskenuj frázi znovu, abys ho znovu připojil.',
   'group.removedLater': 'Později',
   'group.removedRescan': 'Naskenovat frázi',
+  'connections.addressGoneTitle': 'Spáruj znovu pomocí fráze',
+  'connections.addressGoneBody': 'Tato připojení byla uložena podle adresy: {names}. Aplikace se teď připojuje pomocí dvanácti slov. Naskenuj frázi, kterou instance ukazuje v části Nastavení, Párování, a máš vše zpátky i se stahováním.',
+  'connections.addressGoneLater': 'Později',
+  'connections.addressGoneScan': 'Naskenovat frázi',
   'connections.default': 'Výchozí instance',
   'connections.makeDefault': 'Nastavit jako výchozí',
 

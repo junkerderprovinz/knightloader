@@ -232,26 +232,6 @@ export function widgetPagePath(id: string, lang: string): string {
   return `/captcha/${encodeURIComponent(id)}/widget/phone${q}`;
 }
 
-/**
- * The path below /api of the web UI's widget page, with the rendering data in
- * the query string, since that page looks nothing up by id. An instance from
- * before the phone's page has only this one.
- */
-export function widgetPath(ch: CaptchaChallenge, lang: string): string {
-  const p = (ch.payload ?? {}) as Partial<CaptchaWidgetPayload>;
-  const q = new URLSearchParams();
-  if (p.vendor) q.set('vendor', p.vendor);
-  if (p.siteKey) q.set('siteKey', p.siteKey);
-  if (p.type) q.set('type', p.type);
-  if (p.enterprise) q.set('enterprise', '1');
-  if (p.v3Action) q.set('v3Action', p.v3Action);
-  if (p.secureToken) q.set('secureToken', p.secureToken);
-  if (lang) q.set('lang', lang);
-  if (ch.host) q.set('host', ch.host);
-  if (ch.prompt) q.set('prompt', ch.prompt);
-  return `/captcha/${encodeURIComponent(ch.id)}/widget?${q.toString()}`;
-}
-
 /** What the widget page reports, as routes_captcha_widget.go documents it. */
 export interface WidgetMessage {
   kind: 'ready' | 'loaded' | 'solved' | 'expired' | 'error' | 'unsolvable';
@@ -289,8 +269,8 @@ export type WidgetFailure =
  * relay refuses a route the instance does not forward with a bare 403, which
  * for the page means the instance predates it.
  */
-export function widgetFailure(httpStatus: number | null, detail: string | null, relay = false): WidgetFailure {
-  if (httpStatus === 403 && relay) return { by: 'outdated' };
+export function widgetFailure(httpStatus: number | null, detail: string | null): WidgetFailure {
+  if (httpStatus === 403) return { by: 'outdated' };
   if (httpStatus !== null) return { by: 'instance', status: httpStatus };
   if (detail === null || detail === 'script' || detail === 'timeout' || detail === 'network') return { by: 'network' };
   return { by: 'vendor', code: detail };

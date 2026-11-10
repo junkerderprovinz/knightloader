@@ -1,21 +1,16 @@
-import {
-  isRelayConnection,
-  needsAddingAgain,
-  type AuthState,
-  type CaptchaAbortScope,
-  type CaptchaChallenge,
-  type CaptchaTestResult,
-  type DirectConnection,
-  type ExtractJob,
-  type Instance,
-  type QueueState,
-  type RelayConnection,
-  type ServerConnection,
-  type Task,
-  type TorrentFileView,
-  type WatchList,
+import type {
+  CaptchaAbortScope,
+  CaptchaChallenge,
+  CaptchaTestResult,
+  ExtractJob,
+  Instance,
+  QueueState,
+  ServerConnection,
+  Task,
+  TorrentFileView,
+  WatchList,
 } from './types';
-import { WATCHED, widgetPagePath, widgetPath } from './captcha';
+import { WATCHED, widgetPagePath } from './captcha';
 import { relayClientFor, type RelayClient } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
@@ -29,48 +24,24 @@ import { ApiError, errorText, refusedCall } from './refusal';
 export { ApiError, errorText } from './refusal';
 
 // Every call takes a connection and a base path prefix. base is '/api' for the
-// connection's own instance; a peer's routes proxy through the connected server
-// at '/api/instances/{name}' (internal/api/routes_federation.go), same host and
-// token, only the prefix changes. The web UI's lib/api.ts is shaped the same
-// way, so the two clients cannot drift on it.
+// connection's own instance; a peer's routes proxy through it at
+// '/api/instances/{name}' (internal/api/routes_federation.go), only the prefix
+// changes. The web UI's lib/api.ts is shaped the same way, so the two clients
+// cannot drift on it.
 //
-// This is also the only place that knows a connection has a transport at all.
-// Everything above it works in terms of (connection, base, path), so a relay
-// connection reaches the same routes with the same code, federation prefix
-// included.
+// This app has no sign-in, which is why neither a second factor nor a passkey
+// reaches it: the phone's member key signs every call, and the instance it
+// reaches signs the answer, which relayClient.ts checks.
 export async function request<T>(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<T> {
   // Said plainly, at the one place that can tell, instead of a call that
   // times out or a transport error that names nothing.
-  if (needsAddingAgain(conn)) {
+  if (!conn.relayFrameKey) {
     throw new ApiError('this connection has to be added again with the phrase', 0, 'addAgain');
   }
-  const { status, body, statusText } = isRelayConnection(conn)
-    ? await relayRequest(conn, base + path, init)
-    : await httpRequest(conn, base + path, init);
-
-  if (status < 200 || status >= 300) {
-    throw refusedCall(!isRelayConnection(conn), base, status, body || statusText);
-  }
+  const { status, body } = await relayRequest(conn, conn.relayFrameKey, base + path, init);
+  if (status < 200 || status >= 300) throw refusedCall(status, body || `relay ${status}`);
   if (status === 204 || body === '') return undefined as T;
   return JSON.parse(body) as T;
-}
-
-interface RawResponse {
-  status: number;
-  body: string;
-  statusText: string;
-}
-
-async function httpRequest(conn: DirectConnection, path: string, init?: RequestInit): Promise<RawResponse> {
-  const res = await fetch(`${conn.baseUrl}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${conn.token}`,
-      ...(init?.headers ?? {}),
-    },
-  });
-  return { status: res.status, body: await res.text().catch(() => ''), statusText: res.statusText };
 }
 
 let removedHandler: (() => void) | null = null;
@@ -82,7 +53,7 @@ export function onRemovedFromGroup(handler: () => void): void {
 }
 
 /** relayClientOf is the shared relay client of conn's group. */
-export async function relayClientOf(conn: RelayConnection, frameKey: string): Promise<RelayClient> {
+export async function relayClientOf(conn: ServerConnection, frameKey: string): Promise<RelayClient> {
   return relayClientFor({
     url: conn.relayUrl,
     key: conn.relayKey,
@@ -93,11 +64,14 @@ export async function relayClientOf(conn: RelayConnection, frameKey: string): Pr
 }
 
 // A relay call is the same request, addressed to an instance id instead of a
-// host. It carries no token: the phone's member key signs it, and the instance
-// it reaches signs the answer, which relayClient.ts checks.
-async function relayRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
-  if (!isRelayConnection(conn) || !conn.relayFrameKey) throw new Error('relayRequest called with an unusable connection');
-  const client = await relayClientOf(conn, conn.relayFrameKey);
+// host.
+async function relayRequest(
+  conn: ServerConnection,
+  frameKey: string,
+  path: string,
+  init?: RequestInit,
+): Promise<{ status: number; body: string }> {
+  const client = await relayClientOf(conn, frameKey);
   const body = typeof init?.body === 'string' ? init.body : undefined;
   const r = await client.proxy(conn.instanceId, init?.method ?? 'GET', path, body);
   // A transport failure or an answer the instance did not sign throws out of
@@ -110,30 +84,7 @@ async function relayRequest(conn: ServerConnection, path: string, init?: Request
     await resetRelayIdentity();
     removedHandler?.();
   }
-  return { status: r.status, body: r.body, statusText: `relay ${r.status}` };
-}
-
-// checkConnection is what the connect screen calls before saving anything: it
-// proves the URL is reachable and the token is accepted, without requiring a
-// password (a token stands on its own, see routes_tokens.go).
-//
-// This app has no sign-in, which is why neither a second factor nor a passkey
-// reaches it. It never posts to /api/auth/login; every call carries a named API
-// token in an Authorization header, and internal/api's `authenticated` accepts
-// that token on its own, while the second factor sits in front of the password
-// exchange this client never performs.
-//
-// Passkeys are refused with the reason rather than offered as a button that
-// fails (GlimStone 1.15.0). WebAuthn does not exist in this runtime: React
-// Native's navigator is `{product: 'ReactNative'}`, with no
-// navigator.credentials and no PublicKeyCredential, so
-// /api/auth/passkey/login/begin has nothing to hand its challenge to. There
-// would also be no password for a passkey to replace, and app.json blocks
-// USE_BIOMETRIC and USE_FINGERPRINT. The reason sits here rather than beside a
-// control because there is no control, and this is the file somebody opens when
-// they ask where the app logs in.
-export async function checkConnection(conn: ServerConnection): Promise<AuthState> {
-  return request<AuthState>(conn, '/api', '/auth');
+  return { status: r.status, body: r.body };
 }
 
 export async function fetchTasks(conn: ServerConnection, base = '/api', signal?: AbortSignal): Promise<Task[]> {
@@ -188,17 +139,6 @@ export async function setSeeding(conn: ServerConnection, ids: string[], seed: bo
 // just their count, since a torrent can list thousands.
 export async function fetchTorrentFiles(conn: ServerConnection, id: string, base = '/api'): Promise<TorrentFileView[]> {
   return (await request<TorrentFileView[] | null>(conn, base, `/tasks/${encodeURIComponent(id)}/torrent-files`)) ?? [];
-}
-
-// playURL is a link to task id's file that a media player opens without the
-// token, for twelve hours. While the download runs, the instance fetches the
-// part being played first. Only a direct connection has an address a player
-// can reach.
-export async function playURL(conn: DirectConnection, id: string): Promise<string> {
-  const { path } = await request<{ path: string }>(conn, '/api', `/tasks/${encodeURIComponent(id)}/play`, {
-    method: 'POST',
-  });
-  return conn.baseUrl + path;
 }
 
 // selectTorrentFiles makes `paths` the files a torrent fetches. A running
@@ -318,144 +258,16 @@ export async function stopAll(conn: ServerConnection, base = '/api'): Promise<Qu
   return res.queue;
 }
 
-// The live task stream mirrors internal/api's /api/ws contract: on connect the
-// server sends one {"type":"snapshot","data":Task[]} with the full list, then
-// {"type":"task","data":Task} messages as things change. Both fold into one
-// onSnapshot(tasks) callback, since every screen wants the current list rather
-// than the delta mechanics.
-//
-// Only a directly connected server's own queue has this. The federation proxy
-// (routes_federation.go) and the relay (kit/relay) both forward plain REST
-// calls with no socket to upgrade, so they fall back to pollTasks. liveTasks
-// picks between them, so a screen can ask for the tasks kept current without
-// knowing which transport it got.
 export type UnsubscribeFn = () => void;
-
-/**
- * An unsubscribe that can also be asked to pull once, now.
- *
- * A plain function with a property, so it is still a valid React effect cleanup
- * and still assignable to `() => void`. `refresh` is optional because a direct
- * connection is told about a change before the request that caused it answers.
- */
-export type LiveTasks = UnsubscribeFn & { refresh?: () => Promise<void> };
-
-export function liveTasks(
-  conn: ServerConnection,
-  base: string,
-  onSnapshot: (tasks: Task[]) => void,
-  onError?: (err: unknown) => void,
-  onJobs?: (jobs: ExtractJob[]) => void
-): LiveTasks {
-  // A connection that has to be added again polls, so it fails with the
-  // reason each cycle rather than retrying a socket nothing will open.
-  const streamable = !isRelayConnection(conn) && base === '/api' && !needsAddingAgain(conn);
-  return streamable
-    ? subscribeTasks(conn, onSnapshot, onError, onJobs)
-    : pollTasks(conn, base, onSnapshot, onError, onJobs);
-}
 
 /** Every unpacking the instance knows about, oldest first. */
 export async function fetchExtractJobs(conn: ServerConnection, base = '/api'): Promise<ExtractJob[]> {
   return request<ExtractJob[]>(conn, base, '/extract');
 }
 
-export function subscribeTasks(
-  conn: ServerConnection,
-  onSnapshot: (tasks: Task[]) => void,
-  onError?: (err: unknown) => void,
-  onJobs?: (jobs: ExtractJob[]) => void
-): UnsubscribeFn {
-  if (isRelayConnection(conn)) throw new Error('subscribeTasks: a relay connection has no stream - use liveTasks');
-  const wsUrl = conn.baseUrl.replace(/^http/, 'ws') + '/api/ws';
-  let tasks = new Map<string, Task>();
-  let jobs = new Map<string, ExtractJob>();
-  let closedByCaller = false;
-  let socket: WebSocket | null = null;
-  let retryDelayMs = 1000;
-  let retryTimer: ReturnType<typeof setTimeout> | null = null;
-
-  const emit = () => {
-    onSnapshot(Array.from(tasks.values()).sort((a, b) => a.position - b.position));
-  };
-  // Map keeps insertion order, and the server lists jobs oldest first, which
-  // is the order unpackingByTask needs.
-  const emitJobs = () => onJobs?.(Array.from(jobs.values()));
-  // A job that ended while the socket was down never sends its last message,
-  // so every (re)connect reads the whole list once.
-  const catchUp = () => {
-    if (!onJobs) return;
-    fetchExtractJobs(conn)
-      .then((list) => {
-        if (closedByCaller) return;
-        jobs = new Map(list.map((j) => [j.id, j]));
-        emitJobs();
-      })
-      .catch(() => {});
-  };
-
-  const connect = () => {
-    // The server's guard (internal/api/api.go, bearerToken()) reads only the
-    // Authorization header, with no query-param fallback. A browser's WebSocket
-    // cannot set one; React Native's takes a third constructor argument that
-    // is not in the browser spec, so this works from the app alone.
-    type RNWebSocketCtor = new (url: string, protocols: string[], options: { headers: Record<string, string> }) => WebSocket;
-    socket = new (WebSocket as unknown as RNWebSocketCtor)(wsUrl, [], {
-      headers: { Authorization: `Bearer ${conn.token}` },
-    });
-
-    socket.onopen = () => {
-      retryDelayMs = 1000;
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data as string) as { type: string; data: unknown };
-        if (msg.type === 'snapshot' && Array.isArray(msg.data)) {
-          tasks = new Map((msg.data as Task[]).map((t) => [t.id, t]));
-          emit();
-          catchUp();
-        } else if (msg.type === 'task' && msg.data && typeof msg.data === 'object') {
-          const t = msg.data as Task;
-          tasks.set(t.id, t);
-          emit();
-        } else if (msg.type === 'taskRemoved' && typeof msg.data === 'string') {
-          tasks.delete(msg.data);
-          emit();
-        } else if (msg.type === 'extract' && onJobs && msg.data && typeof msg.data === 'object') {
-          const j = msg.data as ExtractJob;
-          jobs.set(j.id, j);
-          emitJobs();
-        }
-        // Other broadcast kinds (activity, activitySnapshot and so on) are
-        // ignored: this client tracks the queue, not the activity feed.
-      } catch (err) {
-        onError?.(err);
-      }
-    };
-
-    socket.onerror = (err) => {
-      onError?.(err);
-    };
-
-    socket.onclose = () => {
-      if (closedByCaller) return;
-      retryTimer = setTimeout(connect, retryDelayMs);
-      retryDelayMs = Math.min(retryDelayMs * 2, 30_000);
-    };
-  };
-
-  connect();
-
-  return () => {
-    closedByCaller = true;
-    if (retryTimer) clearTimeout(retryTimer);
-    socket?.close();
-  };
-}
-
-// pollTasks is subscribeTasks' equivalent for a proxied peer, which has no
-// WebSocket to attach to. Same callback shape, so a screen can point at either.
+// pollTasks follows the task list of an instance or a peer behind it. The relay
+// forwards plain calls and has no socket to attach to, so the list is read
+// again every few seconds.
 export function pollTasks(
   conn: ServerConnection,
   base: string,
@@ -463,7 +275,7 @@ export function pollTasks(
   onError?: (err: unknown) => void,
   onJobs?: (jobs: ExtractJob[]) => void,
   intervalMs = 3000
-): UnsubscribeFn {
+): Polling {
   // The unpackings are read only while an archive waits for its turn or is
   // being unpacked, and once more after that, so a job that ended leaves its
   // last state on the rows. An idle list costs one request per cycle.
@@ -619,26 +431,10 @@ export async function fetchCaptchaWidgetPage(
   return request<{ html: string; baseUrl: string }>(conn, '/api', widgetPagePath(id, lang));
 }
 
-/**
- * What a WebView loads for a widget challenge from an instance that predates
- * fetchCaptchaWidgetPage: the web UI's widget page, from the instance's own
- * address, and the token it asks for.
- */
-export function captchaWidgetSource(
-  conn: DirectConnection,
-  ch: CaptchaChallenge,
-  lang: string
-): { uri: string; headers: Record<string, string> } {
-  return {
-    uri: `${conn.baseUrl}/api${widgetPath(ch, lang)}`,
-    headers: conn.token ? { Authorization: `Bearer ${conn.token}` } : {},
-  };
-}
-
 /** errorText for a captcha call. The relay refuses a route the instance does
  *  not forward with a bare 403, which on these routes means it predates them. */
-export function captchaErrorText(t: (key: TranslationKey) => string, conn: ServerConnection, e: unknown): string {
-  if (isRelayConnection(conn) && e instanceof ApiError && e.status === 403) return t('captcha.relayRefused');
+export function captchaErrorText(t: (key: TranslationKey) => string, e: unknown): string {
+  if (e instanceof ApiError && e.status === 403) return t('captcha.relayRefused');
   return errorText(t, e);
 }
 

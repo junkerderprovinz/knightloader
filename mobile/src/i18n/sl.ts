@@ -143,7 +143,6 @@ export const sl: Dict = {
   'error.groupJoinsBusy': 'V zadnji uri se je skupini pridružilo preveč novih naprav. Poskusi znova pozneje.',
   'error.memberNotPinned': 'Primerek ni mogel shraniti ključa te naprave. Poskusi znova čez trenutek.',
   'error.answerTooLarge': 'Odgovor primerka je prevelik za rele. V omrežju primerka pride skozi.',
-  'error.connectionEnded': 'Instanca te povezave ne sprejema več, ker je bilo njeno geslo spremenjeno ali ponastavljeno. Odstrani povezavo in se znova poveži z dvanajstimi besedami, ki jih instanca prikazuje v razdelku Nastavitve, Seznanjanje. Po ponastavitvi so to nove besede.',
   'addDownload.cancel': 'Prekliči',
   'addDownload.button': 'Dodaj',
 
@@ -210,8 +209,6 @@ export const sl: Dict = {
   'task.mode.free': 'Brezplačno',
   'task.mode.premium': 'Premium',
   'task.remote': 'Prenaša se v storitvi {service}',
-  'task.play': 'Predvajaj',
-  'task.playFailed': 'Predvajalnik se ni odprl: {reason}',
   'task.enable': 'Vklopi to povezavo',
   'task.disable': 'Izklopi to povezavo',
   'settings.aboutTitle': 'O KnightLoaderju',
@@ -382,6 +379,10 @@ export const sl: Dict = {
   'group.removedBody': 'Neki primerek je odstranil to napravo iz skupine. Znova skeniraj frazo, da jo povežeš.',
   'group.removedLater': 'Pozneje',
   'group.removedRescan': 'Skeniraj frazo',
+  'connections.addressGoneTitle': 'Znova seznani s frazo',
+  'connections.addressGoneBody': 'Te povezave so bile shranjene po naslovu: {names}. Aplikacija se zdaj povezuje z dvanajstimi besedami. Skeniraj frazo, ki jo instanca prikazuje v razdelku Nastavitve, Seznanjanje, in vse je spet tu, skupaj s prenosi.',
+  'connections.addressGoneLater': 'Pozneje',
+  'connections.addressGoneScan': 'Skeniraj frazo',
   'connections.default': 'Privzeti primerek',
   'connections.makeDefault': 'Nastavi kot privzetega',
 

@@ -143,7 +143,6 @@ export const he: Dict = {
   'error.groupJoinsBusy': 'יותר מדי מכשירים חדשים הצטרפו לקבוצה בשעה האחרונה. נסו שוב מאוחר יותר.',
   'error.memberNotPinned': 'המופע לא הצליח לשמור את המפתח של המכשיר הזה. נסו שוב בעוד רגע.',
   'error.answerTooLarge': 'התשובה של המופע גדולה מדי עבור הממסר. ברשת של המופע עצמו היא עוברת.',
-  'error.connectionEnded': 'המופע כבר לא מקבל את החיבור הזה, כי הסיסמה שלו שונתה או אופסה. הסירו את החיבור והתחברו מחדש עם שתים עשרה המילים שהמופע מציג בהגדרות, תחת צימוד. אחרי איפוס אלה מילים חדשות.',
   'addDownload.cancel': 'ביטול',
   'addDownload.button': 'הוספה',
 
@@ -210,8 +209,6 @@ export const he: Dict = {
   'task.mode.free': 'חינם',
   'task.mode.premium': 'פרימיום',
   'task.remote': 'בהורדה ב-{service}',
-  'task.play': 'הפעלה',
-  'task.playFailed': 'הנגן לא נפתח: {reason}',
   'task.enable': 'הפעלת הקישור',
   'task.disable': 'כיבוי הקישור',
   'settings.aboutTitle': 'על KnightLoader',
@@ -382,6 +379,10 @@ export const he: Dict = {
   'group.removedBody': 'מופע הסיר את המכשיר הזה מהקבוצה. סרקו את הביטוי שוב כדי לחבר אותו.',
   'group.removedLater': 'מאוחר יותר',
   'group.removedRescan': 'סריקת הביטוי',
+  'connections.addressGoneTitle': 'צימוד מחדש עם הביטוי',
+  'connections.addressGoneBody': 'החיבורים האלה נשמרו לפי כתובת: {names}. האפליקציה מתחברת עכשיו עם שתים עשרה המילים. סרקו את הביטוי שהמופע מציג בהגדרות, תחת צימוד, והכול חוזר, כולל ההורדות.',
+  'connections.addressGoneLater': 'מאוחר יותר',
+  'connections.addressGoneScan': 'סריקת הביטוי',
   'connections.default': 'מופע ברירת המחדל',
   'connections.makeDefault': 'הגדר כברירת מחדל',
 

@@ -143,7 +143,6 @@ export const hi: Dict = {
   'error.groupJoinsBusy': 'पिछले एक घंटे में बहुत सारे नए डिवाइस समूह में जुड़े। बाद में फिर कोशिश करें।',
   'error.memberNotPinned': 'इंस्टेंस इस डिवाइस की कुंजी सहेज नहीं सका। थोड़ी देर में फिर कोशिश करें।',
   'error.answerTooLarge': 'इंस्टेंस का जवाब रिले के लिए बहुत बड़ा है। इंस्टेंस के अपने नेटवर्क पर यह पहुँच जाता है।',
-  'error.connectionEnded': 'इंस्टेंस अब यह कनेक्शन स्वीकार नहीं करता, क्योंकि उसका पासवर्ड बदला गया या रीसेट किया गया। कनेक्शन हटाएँ और उन बारह शब्दों से फिर से जोड़ें, जो इंस्टेंस सेटिंग्स में पेयरिंग के अंतर्गत दिखाता है। रीसेट के बाद ये नए शब्द होते हैं।',
   'addDownload.cancel': 'रद्द करें',
   'addDownload.button': 'जोड़ें',
 
@@ -210,8 +209,6 @@ export const hi: Dict = {
   'task.mode.free': 'निःशुल्क',
   'task.mode.premium': 'प्रीमियम',
   'task.remote': '{service} पर लाया जा रहा है',
-  'task.play': 'चलाएँ',
-  'task.playFailed': 'प्लेयर नहीं खुला: {reason}',
   'task.enable': 'यह लिंक चालू करें',
   'task.disable': 'यह लिंक बंद करें',
   'settings.aboutTitle': 'KnightLoader के बारे में',
@@ -382,6 +379,10 @@ export const hi: Dict = {
   'group.removedBody': 'किसी इंस्टेंस ने इस डिवाइस को समूह से हटा दिया। इसे फिर से जोड़ने के लिए वाक्यांश फिर से स्कैन करें।',
   'group.removedLater': 'बाद में',
   'group.removedRescan': 'वाक्यांश स्कैन करें',
+  'connections.addressGoneTitle': 'वाक्यांश से फिर से जोड़ें',
+  'connections.addressGoneBody': 'ये कनेक्शन पते से सहेजे गए थे: {names}। ऐप अब बारह शब्दों से जुड़ता है। इंस्टेंस सेटिंग्स में पेयरिंग के अंतर्गत जो वाक्यांश दिखाता है, उसे स्कैन करें, और डाउनलोड समेत सब कुछ वापस आ जाएगा।',
+  'connections.addressGoneLater': 'बाद में',
+  'connections.addressGoneScan': 'वाक्यांश स्कैन करें',
   'connections.default': 'डिफ़ॉल्ट इंस्टेंस',
   'connections.makeDefault': 'डिफ़ॉल्ट बनाएं',
 

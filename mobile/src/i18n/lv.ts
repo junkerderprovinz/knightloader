@@ -143,7 +143,6 @@ export const lv: Dict = {
   'error.groupJoinsBusy': 'Pēdējās stundas laikā grupai pievienojās pārāk daudz jaunu ierīču. Mēģini vēlāk.',
   'error.memberNotPinned': 'Instance nevarēja saglabāt šīs ierīces atslēgu. Mēģini vēlreiz pēc brīža.',
   'error.answerTooLarge': 'Instances atbilde relejam ir par lielu. Instances tīklā tā tiek cauri.',
-  'error.connectionEnded': 'Instance vairs nepieņem šo savienojumu, jo tās parole ir mainīta vai atiestatīta. Noņem savienojumu un savienojies vēlreiz ar divpadsmit vārdiem, ko instance rāda sadaļā Iestatījumi, Pārošana. Pēc atiestatīšanas tie ir jauni vārdi.',
   'addDownload.cancel': 'Atcelt',
   'addDownload.button': 'Pievienot',
 
@@ -210,8 +209,6 @@ export const lv: Dict = {
   'task.mode.free': 'Bez maksas',
   'task.mode.premium': 'Premium',
   'task.remote': 'Ielādē pie {service}',
-  'task.play': 'Atskaņot',
-  'task.playFailed': 'Atskaņotājs neatvērās: {reason}',
   'task.enable': 'Ieslēgt šo saiti',
   'task.disable': 'Izslēgt šo saiti',
   'settings.aboutTitle': 'Par KnightLoader',
@@ -382,6 +379,10 @@ export const lv: Dict = {
   'group.removedBody': 'Kāda instance izņēma šo ierīci no grupas. Skenē frāzi vēlreiz, lai to savienotu.',
   'group.removedLater': 'Vēlāk',
   'group.removedRescan': 'Skenēt frāzi',
+  'connections.addressGoneTitle': 'Savieno pārī vēlreiz ar frāzi',
+  'connections.addressGoneBody': 'Šie savienojumi bija saglabāti pēc adreses: {names}. Lietotne tagad savienojas ar divpadsmit vārdiem. Skenē frāzi, ko instance rāda sadaļā Iestatījumi, Pārošana, un viss ir atpakaļ kopā ar lejupielādēm.',
+  'connections.addressGoneLater': 'Vēlāk',
+  'connections.addressGoneScan': 'Skenēt frāzi',
   'connections.default': 'Noklusējuma instance',
   'connections.makeDefault': 'Iestatīt kā noklusējuma',
 

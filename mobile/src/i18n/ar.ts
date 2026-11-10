@@ -143,7 +143,6 @@ export const ar: Dict = {
   'error.groupJoinsBusy': 'انضم عدد كبير جدًا من الأجهزة الجديدة إلى المجموعة في الساعة الأخيرة. حاول مرة أخرى لاحقًا.',
   'error.memberNotPinned': 'تعذّر على النسخة حفظ مفتاح هذا الجهاز. حاول مرة أخرى بعد لحظة.',
   'error.answerTooLarge': 'ردّ النسخة أكبر من أن يمرّ عبر المُرحِّل. على شبكة النسخة نفسها يصل كاملًا.',
-  'error.connectionEnded': 'لم تعد النسخة تقبل هذا الاتصال، لأن كلمة مرورها تغيّرت أو أُعيد تعيينها. أزِل الاتصال واتصل من جديد بالكلمات الاثنتي عشرة التي تعرضها النسخة في الإعدادات، ضمن الاقتران. بعد إعادة التعيين تكون هذه كلمات جديدة.',
   'addDownload.cancel': 'إلغاء',
   'addDownload.button': 'إضافة',
 
@@ -210,8 +209,6 @@ export const ar: Dict = {
   'task.mode.free': 'مجاني',
   'task.mode.premium': 'مدفوع',
   'task.remote': 'قيد التنزيل لدى {service}',
-  'task.play': 'تشغيل',
-  'task.playFailed': 'لم يُفتح المشغّل: {reason}',
   'task.enable': 'تفعيل هذا الرابط',
   'task.disable': 'تعطيل هذا الرابط',
   'settings.aboutTitle': 'حول KnightLoader',
@@ -382,6 +379,10 @@ export const ar: Dict = {
   'group.removedBody': 'أزالت إحدى النسخ هذا الجهاز من المجموعة. امسح العبارة مرة أخرى لتوصيله.',
   'group.removedLater': 'لاحقًا',
   'group.removedRescan': 'مسح العبارة',
+  'connections.addressGoneTitle': 'اقترن من جديد بالعبارة',
+  'connections.addressGoneBody': 'هذه الاتصالات كانت محفوظة بالعنوان: {names}. يتصل التطبيق الآن بالكلمات الاثنتي عشرة. امسح العبارة التي تعرضها النسخة في الإعدادات، ضمن الاقتران، وسيعود كل شيء مع التنزيلات.',
+  'connections.addressGoneLater': 'لاحقًا',
+  'connections.addressGoneScan': 'مسح العبارة',
   'connections.default': 'النسخة الافتراضية',
   'connections.makeDefault': 'تعيين كافتراضية',
 

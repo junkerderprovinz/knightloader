@@ -143,7 +143,6 @@ export const hu: Dict = {
   'error.groupJoinsBusy': 'Az elmúlt órában túl sok új eszköz csatlakozott a csoporthoz. Próbáld újra később.',
   'error.memberNotPinned': 'A példány nem tudta elmenteni ennek az eszköznek a kulcsát. Próbáld újra egy kis idő múlva.',
   'error.answerTooLarge': 'A példány válasza túl nagy a reléhez. A példány saját hálózatán átjut.',
-  'error.connectionEnded': 'A példány már nem fogadja el ezt a kapcsolatot, mert a jelszavát megváltoztatták vagy visszaállították. Távolítsd el a kapcsolatot, és csatlakozz újra azzal a tizenkét szóval, amelyet a példány a Beállítások, Párosítás oldalon mutat. Visszaállítás után ezek új szavak.',
   'addDownload.cancel': 'Mégse',
   'addDownload.button': 'Hozzáadás',
 
@@ -210,8 +209,6 @@ export const hu: Dict = {
   'task.mode.free': 'Ingyenes',
   'task.mode.premium': 'Prémium',
   'task.remote': '{service} tölti le',
-  'task.play': 'Lejátszás',
-  'task.playFailed': 'A lejátszó nem nyílt meg: {reason}',
   'task.enable': 'Link bekapcsolása',
   'task.disable': 'Link kikapcsolása',
   'settings.aboutTitle': 'A KnightLoaderről',
@@ -382,6 +379,10 @@ export const hu: Dict = {
   'group.removedBody': 'Egy példány eltávolította ezt az eszközt a csoportból. Csatlakoztatásához olvasd be újra a jelmondatot.',
   'group.removedLater': 'Később',
   'group.removedRescan': 'Jelmondat beolvasása',
+  'connections.addressGoneTitle': 'Párosítás újra a jelmondattal',
+  'connections.addressGoneBody': 'Ezek a kapcsolatok cím alapján voltak mentve: {names}. Az alkalmazás mostantól a tizenkét szóval csatlakozik. Olvasd be a jelmondatot, amelyet a példány a Beállítások, Párosítás oldalon mutat, és minden visszatér, a letöltésekkel együtt.',
+  'connections.addressGoneLater': 'Később',
+  'connections.addressGoneScan': 'Jelmondat beolvasása',
   'connections.default': 'Alapértelmezett példány',
   'connections.makeDefault': 'Beállítás alapértelmezettként',
 

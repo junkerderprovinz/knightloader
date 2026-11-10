@@ -43,20 +43,12 @@ beside them. Every instance in the group then appears at once and is saved as
 a connection of its own, with no address and no token to look up. The overview
 is the list of those connections, and the app switches between them.
 
-A connection saved by address in an earlier build keeps working if the address
-is `https://`, but the app no longer makes one. One saved with an `http://`
-address cannot work, because the app permits no cleartext traffic; its card
-says it has to be added again with the twelve words. Those builds took the
-server's address and an API token
-from the web UI's Security page (`POST /api/tokens`, see
-`internal/api/routes_tokens.go`). The app only uses Read, Add and Control, so a
-Custom token with those three was enough. Such a connection sends its token as
-`Authorization: Bearer <token>` on every request, the same header a script
-would use.
+A connection an earlier build saved by its address leaves the list on the
+first start of this one, and the app names it once in a note that asks for the
+phrase (`dropAddressConnections` in `src/storage/connections.ts`).
 
 Every saved connection sits in the OS keychain (`expo-secure-store`), never in
-plain storage: one made with the phrase holds the group key, one saved by
-address holds its token.
+plain storage, since it holds the group key.
 
 ### Joining a group (the phrase)
 
@@ -71,17 +63,15 @@ that relay's address on a second line under the words (`relay.PairingCode`),
 and `src/api/pairingCode.ts` reads it back and takes it only at a `wss://`
 address. Typed words always pair on the default relay.
 
-From there a relay connection behaves like one saved by address: the same
-screens, the same calls. `src/api/client.ts`'s `request()` is the only place
-that knows the difference, and it swaps `fetch` for a relay frame.
+From there every screen makes ordinary calls, and `src/api/client.ts`'s
+`request()` sends each one as a relay frame.
 
-Three things are different, all of them consequences of the transport rather
-than choices:
+Three things follow from the transport rather than from a choice:
 
 - **It polls, it does not stream.** The relay carries request/response frames,
-  not a tunnelled WebSocket, so there is no `/api/ws` to attach to. `liveTasks()`
-  picks streaming or polling per connection; a federation peer already had the
-  same limitation for the same reason.
+  not a tunnelled WebSocket, so there is no `/api/ws` to attach to.
+  `pollTasks()` reads the list again every few seconds, and a federation peer
+  behind an instance is read the same way.
 - **No token, even for an instance with a password.** Being on the relay under
   the group key is the credential: a request arriving that way came off a
   socket the relay only joins to connections presenting the same key, so the
@@ -151,12 +141,9 @@ different ones.
 
 ## Live updates
 
-A connection saved by address follows `GET /api/ws`, the same task/queue
-stream the web UI subscribes to; one made with the phrase polls, as above. React
-Native's `WebSocket` supports a non-standard third constructor argument for
-headers (browsers' does not), so the token rides as a real `Authorization`
-header on the socket too, not a query parameter. See `src/api/client.ts`'s
-`subscribeTasks` for the exact mechanics and the reconnect/backoff behaviour.
+The task list is polled, as above. `pollTasks` in `src/api/client.ts` drops
+an answer that is not the newest, so a slow one cannot put an older list back
+on screen after an action.
 
 ## Captchas
 
@@ -200,10 +187,7 @@ can:
   stop holding the captcha accounts back for it. Once Refresh loads the widget
   after all, the app withdraws the report (`widgetReport`, through
   `reportWidget` in `CaptchaWatch`). A challenge answered or dropped while
-  the window opened closes it (a 404 with the code `gone`). An instance from
-  before the phone's route answers it with a plain 404; on a connection saved
-  by address the app then loads the web UI's page from the instance's own
-  address, as it used to, where a Turnstile gets the page's refusal.
+  the window opened closes it (a 404 with the code `gone`).
 - Anything else shows JD's name for it and offers Cancel.
 
 The list comes from `/api/captcha`, the route the web UI's `CaptchaModal` reads,
@@ -285,11 +269,10 @@ stop, how fast to look) live in `src/watch/rules.ts`, which
   `internal/app.QueueState`). Keep these in sync with the Go structs, not
   the other way round.
 - `src/api/client.ts`: REST calls (each taking a `base`, `/api` for the
-  connected instance or `/api/instances/{name}` for a proxied peer), the
-  WebSocket task subscription for a connection saved by address, and
-  `pollTasks` as its polling equivalent for the relay.
+  connected instance or `/api/instances/{name}` for a proxied peer), and
+  `pollTasks`, which keeps the task list current.
 - `src/api/captcha.ts`: the rules the captcha screen follows (the order, the
-  countdown, a click answer, the widget page's paths and the vendors it runs,
+  countdown, a click answer, the widget page's path and the vendors it runs,
   which of the page's messages count, who to blame when it does not load and
   when to tell the instance, the bridge script, and what the banner says after
   a look), kept free of React so
@@ -380,11 +363,10 @@ code names, which `src/api/pairingCode.ts` refuses unless it is `wss://`.
 Debug builds allow cleartext anyway, because Expo turns it on for the dev
 server, so only a release build shows what is blocked.
 
-The one thing left that would need HTTP is a connection saved by address in a
-build before 1.5.0, when the app still reached a LAN address such as
-`http://192.168.x.x:8749` directly. `needsAddingAgain` in `src/api/types.ts`
-marks such a connection, and `request()` refuses it with a sentence that asks
-for the twelve words rather than a transport error that names nothing.
+A relay connection saved before frames were sealed has no frame key.
+`needsAddingAgain` in `src/api/types.ts` marks it, and `request()` refuses it
+with a sentence that asks for the twelve words rather than a transport error
+that names nothing.
 
 ## App icon
 

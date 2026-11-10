@@ -143,7 +143,6 @@ export const eu: Dict = {
   'error.groupJoinsBusy': 'Azken orduan gailu berri gehiegi batu dira taldera. Saiatu berriro geroago.',
   'error.memberNotPinned': 'Instantziak ezin izan du gailu honen gakoa gorde. Saiatu berriro une batean.',
   'error.answerTooLarge': 'Instantziaren erantzuna handiegia da errelearentzat. Instantziaren sarean bertan iristen da.',
-  'error.connectionEnded': 'Instantziak ez du konexio hau onartzen jada, haren pasahitza aldatu edo berrezarri delako. Kendu konexioa eta konektatu berriro instantziak Ezarpenak, Parekatzea atalean erakusten dituen hamabi hitzekin. Berrezarri ondoren, hitz berriak dira.',
   'addDownload.cancel': 'Utzi',
   'addDownload.button': 'Gehitu',
 
@@ -210,8 +209,6 @@ export const eu: Dict = {
   'task.mode.free': 'Doan',
   'task.mode.premium': 'Premium',
   'task.remote': '{service} zerbitzuan deskargatzen',
-  'task.play': 'Erreproduzitu',
-  'task.playFailed': 'Erreproduzitzailea ez da ireki: {reason}',
   'task.enable': 'Piztu esteka hau',
   'task.disable': 'Itzali esteka hau',
   'settings.aboutTitle': 'KnightLoader-i buruz',
@@ -382,6 +379,10 @@ export const eu: Dict = {
   'group.removedBody': 'Instantzia batek gailu hau taldetik kendu du. Eskaneatu esaldia berriro konektatzeko.',
   'group.removedLater': 'Geroago',
   'group.removedRescan': 'Eskaneatu esaldia',
+  'connections.addressGoneTitle': 'Parekatu berriro esaldiarekin',
+  'connections.addressGoneBody': 'Konexio hauek helbidearen bidez gorde ziren: {names}. Aplikazioa hamabi hitzekin konektatzen da orain. Eskaneatu instantziak Ezarpenak, Parekatzea atalean erakusten duen esaldia, eta dena itzuliko da, deskargak barne.',
+  'connections.addressGoneLater': 'Geroago',
+  'connections.addressGoneScan': 'Eskaneatu esaldia',
   'connections.default': 'Instantzia lehenetsia',
   'connections.makeDefault': 'Lehenetsi',
 

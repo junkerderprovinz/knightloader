@@ -145,39 +145,18 @@ export interface TorrentFileView {
   done?: number;
 }
 
-export interface AuthState {
-  enabled: boolean;
-  authenticated: boolean;
-}
-
-// A saved connection is one KnightLoader this phone talks to, over one of two
-// transports. Every screen and every call in api/client.ts takes a
-// ServerConnection without asking which kind it got; request() is the single
-// place that branches.
-
-/** Reached by opening an HTTP connection straight to it. */
-export interface DirectConnection {
-  // Absent on every connection saved before relay support existed. Those are
-  // all direct ones, so a missing kind reads as direct and the stored list
-  // needs no migration; see isRelayConnection.
-  kind?: 'direct';
-  id: string; // stable local id, so a rename doesn't orphan the "last active" pointer
-  baseUrl: string; // e.g. "https://192.168.10.10:1234", no trailing slash
-  token: string; // the API token secret, sent as "Authorization: Bearer <token>"
-  name: string; // whatever the user called this connection, e.g. "Home KL"
-}
-
 /**
- * Reached through a relay both ends dial out to, for the case where nothing on
- * this phone's network can open a connection to the instance.
+ * A saved connection is one KnightLoader this phone reaches through the relay
+ * of its group, which both ends dial out to, so nothing on this phone's
+ * network has to open a connection to the instance.
  *
  * It carries no token: the phone's member key signs every call, and the
  * instance takes it as a member's, held to the routes a member may reach
  * (groupRoutes in internal/api/group_routes.go).
  */
-export interface RelayConnection {
+export interface ServerConnection {
   kind: 'relay';
-  id: string;
+  id: string; // stable local id, so a rename doesn't orphan the "last active" pointer
   name: string;
   relayUrl: string; // the relay's address, as typed - normalised when dialled
   relayKey: string; // the relay's only credential, shared with the instances
@@ -198,20 +177,12 @@ export interface RelayConnection {
   instanceId: string; // which sibling on that key this connection is for
 }
 
-export type ServerConnection = DirectConnection | RelayConnection;
-
-export function isRelayConnection(c: ServerConnection): c is RelayConnection {
-  return c.kind === 'relay';
-}
-
 /**
- * needsAddingAgain is true for a saved connection this build cannot use: a
- * relay one from before frames were sealed, or a direct one to an http://
- * address, which Android refuses since the app permits no cleartext traffic.
- * Either is made again from the phrase.
+ * needsAddingAgain is true for a saved connection this build cannot use, one
+ * from before frames were sealed. It is made again from the phrase.
  */
 export function needsAddingAgain(c: ServerConnection): boolean {
-  return isRelayConnection(c) ? !c.relayFrameKey : /^http:/i.test(c.baseUrl);
+  return !c.relayFrameKey;
 }
 
 // Mirrors internal/federation.Instance, another instance of the connected

@@ -1,7 +1,7 @@
 import { relayClientOf } from './client';
 import { followGroup, type AwayInstance } from './away';
 import { fetchGroupRoster, type GroupApp, type GroupRoster } from './groupApps';
-import { isRelayConnection, type RelayConnection, type ServerConnection } from './types';
+import type { ServerConnection } from './types';
 import { followGroupChange, listDismissed, newConnectionId } from '../storage/connections';
 
 export interface GroupsView {
@@ -11,7 +11,7 @@ export interface GroupsView {
   changed: boolean;
 }
 
-const groupOf = (c: RelayConnection) => JSON.stringify([c.relayUrl, c.relayKey]);
+const groupOf = (c: ServerConnection) => JSON.stringify([c.relayUrl, c.relayKey]);
 
 /**
  * followGroups reads every group the saved connections belong to and brings
@@ -22,23 +22,23 @@ const groupOf = (c: RelayConnection) => JSON.stringify([c.relayUrl, c.relayKey])
  */
 export async function followGroups(saved: ServerConnection[], reachable: ServerConnection[]): Promise<GroupsView> {
   const first = await fetchGroupRoster(reachable);
-  const groups = new Map<string, RelayConnection[]>();
+  const groups = new Map<string, ServerConnection[]>();
   for (const c of saved) {
-    if (isRelayConnection(c)) groups.set(groupOf(c), [...(groups.get(groupOf(c)) ?? []), c]);
+    groups.set(groupOf(c), [...(groups.get(groupOf(c)) ?? []), c]);
   }
-  const answered = reachable.filter(isRelayConnection).map((c) => c.instanceId);
+  const answered = reachable.map((c) => c.instanceId);
   const dismissed = await listDismissed();
   const away: AwayInstance[] = [];
-  const added: RelayConnection[] = [];
+  const added: ServerConnection[] = [];
   const dropped: string[] = [];
   const renamed = new Map<string, string>();
   for (const [key, mine] of groups) {
     const keyed = mine.find((c) => c.relayFrameKey);
     if (!keyed?.relayFrameKey) continue;
     const roster: GroupRoster =
-      first.from && isRelayConnection(first.from) && groupOf(first.from) === key
+      first.from && groupOf(first.from) === key
         ? first
-        : await fetchGroupRoster(reachable.filter((c) => isRelayConnection(c) && groupOf(c) === key));
+        : await fetchGroupRoster(reachable.filter((c) => groupOf(c) === key));
     away.push(...(roster.away ?? []));
     const client = await relayClientOf(keyed, keyed.relayFrameKey);
     const change = followGroup({

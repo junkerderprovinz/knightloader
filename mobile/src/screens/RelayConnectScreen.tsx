@@ -9,7 +9,7 @@ import { deviceName } from '../api/deviceName';
 import { toHex } from '../api/sha256';
 import { memberOptions } from '../storage/relayIdentity';
 import { addConnection, listConnections, newConnectionId, setActiveConnectionId } from '../storage/connections';
-import type { RelayConnection, ServerConnection } from '../api/types';
+import type { ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useShake } from '../theme/MotionContext';
 import { NUM, TYPE } from '../theme/tokens';
@@ -97,7 +97,7 @@ export default function RelayConnectScreen({
     const open = liveRef.current;
     if (!open) return;
     const saved = await listConnections();
-    const stillUsed = saved.some((sc) => sc.kind === 'relay' && sc.relayUrl === open.url && sc.relayKey === open.key);
+    const stillUsed = saved.some((sc) => sc.relayUrl === open.url && sc.relayKey === open.key);
     if (!stillUsed) closeRelayClient(open.url, open.key);
     liveRef.current = null;
   }, []);
@@ -167,19 +167,19 @@ export default function RelayConnectScreen({
   const saveAll = async () => {
     if (!live || sibs.length === 0) return;
     const existing = await listConnections();
-    let first: RelayConnection | null = null;
+    let first: ServerConnection | null = null;
     for (const s of sibs) {
       // Re-joining with the same phrase must not double every row. An
       // instance is the same instance if the group and its id match; its name
       // is a label it may have changed since.
       const already = existing.find(
-        (e) => e.kind === 'relay' && e.relayUrl === live.url && e.relayKey === live.key && e.instanceId === s.instanceId,
+        (e) => e.relayUrl === live.url && e.relayKey === live.key && e.instanceId === s.instanceId,
       );
       if (already) {
-        first = first ?? (already as RelayConnection);
+        first = first ?? already;
         continue;
       }
-      const conn: RelayConnection = {
+      const conn: ServerConnection = {
         kind: 'relay',
         id: newConnectionId(),
         name: s.name || s.instanceId,

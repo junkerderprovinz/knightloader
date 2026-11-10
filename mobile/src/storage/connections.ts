@@ -1,12 +1,13 @@
 import * as SecureStore from 'expo-secure-store';
-import type { RelayConnection, ServerConnection } from '../api/types';
+import type { ServerConnection } from '../api/types';
 import { closeAllRelayClients, closeRelayClient } from '../api/relayClient';
+import { splitSaved } from '../api/savedConnections';
 
-// Every saved connection carries an API token, a bearer secret with the reach
-// of the account it belongs to, so the whole list goes in the OS keychain
-// (SecureStore) rather than AsyncStorage. The active-connection pointer is no
-// secret on its own, but it lives here too rather than in a second storage
-// mechanism, being meaningless without the list it points into.
+// Every saved connection carries its group's relay key, a secret, so the whole
+// list goes in the OS keychain (SecureStore) rather than AsyncStorage. The
+// active-connection pointer is no secret on its own, but it lives here too
+// rather than in a second storage mechanism, being meaningless without the list
+// it points into.
 const LIST_KEY = 'knightloader-connections';
 const ACTIVE_KEY = 'knightloader-active-connection';
 const DEFAULT_KEY = 'knightloader-default-connection';
@@ -18,15 +19,32 @@ export function newConnectionId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export async function listConnections(): Promise<ServerConnection[]> {
+async function readList(): Promise<unknown> {
   const raw = await SecureStore.getItemAsync(LIST_KEY);
-  if (!raw) return [];
+  if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as ServerConnection[]) : [];
+    return JSON.parse(raw);
   } catch {
-    return [];
+    return null;
   }
+}
+
+export async function listConnections(): Promise<ServerConnection[]> {
+  return splitSaved(await readList()).kept;
+}
+
+/**
+ * dropAddressConnections takes the connections an older build saved by their
+ * address off the list for good and returns their names, so the app can say
+ * once that those instances are added again with the phrase.
+ */
+export async function dropAddressConnections(): Promise<string[]> {
+  const { kept, dropped } = splitSaved(await readList());
+  if (dropped.length === 0) return [];
+  await saveList(kept);
+  const active = await getActiveConnectionId();
+  if (active && !kept.some((c) => c.id === active)) await setActiveConnectionId(null);
+  return dropped;
 }
 
 async function saveList(list: ServerConnection[]): Promise<void> {
@@ -38,10 +56,8 @@ export async function addConnection(conn: ServerConnection): Promise<void> {
   await saveList([...list.filter((c) => c.id !== conn.id), conn]);
   // Saving an instance by hand, by joining with the phrase again, takes back
   // its removal.
-  if (conn.kind === 'relay') {
-    const dismissed = await listDismissed();
-    if (dismissed.includes(conn.instanceId)) await saveDismissed(dismissed.filter((id) => id !== conn.instanceId));
-  }
+  const dismissed = await listDismissed();
+  if (dismissed.includes(conn.instanceId)) await saveDismissed(dismissed.filter((id) => id !== conn.instanceId));
 }
 
 export async function listDismissed(): Promise<string[]> {
@@ -63,7 +79,7 @@ async function saveDismissed(ids: string[]): Promise<void> {
 export async function dismissConnection(id: string): Promise<void> {
   const conn = (await listConnections()).find((c) => c.id === id);
   await removeConnection(id);
-  if (conn?.kind !== 'relay') return;
+  if (!conn) return;
   const dismissed = await listDismissed();
   if (!dismissed.includes(conn.instanceId)) await saveDismissed([...dismissed, conn.instanceId]);
 }
@@ -71,7 +87,7 @@ export async function dismissConnection(id: string): Promise<void> {
 /** followGroupChange saves the instances a group gained, drops the
  *  connections of those it lost and renames the rest, in one write. */
 export async function followGroupChange(
-  added: RelayConnection[],
+  added: ServerConnection[],
   dropped: string[],
   renamed: Map<string, string>,
 ): Promise<void> {
@@ -96,9 +112,9 @@ export async function removeConnection(id: string): Promise<void> {
 // (see api/relayClient.ts), so removing one of two instances behind one relay
 // has to leave the transport the other uses open.
 function releaseRelayFor(removed: ServerConnection | undefined, remaining: ServerConnection[]): void {
-  if (!removed || removed.kind !== 'relay') return;
+  if (!removed) return;
   const stillUsed = remaining.some(
-    (c) => c.kind === 'relay' && c.relayUrl === removed.relayUrl && c.relayKey === removed.relayKey,
+    (c) => c.relayUrl === removed.relayUrl && c.relayKey === removed.relayKey,
   );
   if (!stillUsed) closeRelayClient(removed.relayUrl, removed.relayKey);
 }
@@ -107,14 +123,14 @@ function releaseRelayFor(removed: ServerConnection | undefined, remaining: Serve
 // instance ends when it takes this phone out of the group.
 export async function removeGroupConnections(relayUrl: string, relayKey: string): Promise<void> {
   const list = await listConnections();
-  const inGroup = (c: ServerConnection) => c.kind === 'relay' && c.relayUrl === relayUrl && c.relayKey === relayKey;
+  const inGroup = (c: ServerConnection) => c.relayUrl === relayUrl && c.relayKey === relayKey;
   await saveList(list.filter((c) => !inGroup(c)));
   closeRelayClient(relayUrl, relayKey);
   const active = await getActiveConnectionId();
   if (active && list.some((c) => c.id === active && inGroup(c))) await setActiveConnectionId(null);
 }
 
-// removeAllConnections is Settings' start-over action: every saved token gone
+// removeAllConnections is Settings' start-over action: every saved key gone
 // from this device in one step.
 export async function removeAllConnections(): Promise<void> {
   await saveList([]);

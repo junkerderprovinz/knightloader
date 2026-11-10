@@ -143,7 +143,6 @@ export const it: Dict = {
   'error.groupJoinsBusy': 'Troppi nuovi dispositivi sono entrati nel gruppo nell’ultima ora. Riprova più tardi.',
   'error.memberNotPinned': 'L’istanza non è riuscita a salvare la chiave di questo dispositivo. Riprova tra un momento.',
   'error.answerTooLarge': 'La risposta dell’istanza è troppo grande per il relay. Sulla rete dell’istanza arriva senza problemi.',
-  'error.connectionEnded': 'L’istanza non accetta più questa connessione perché la sua password è stata cambiata o reimpostata. Rimuovi la connessione e ricollegati con le dodici parole che l’istanza mostra in Impostazioni, Associazione. Dopo una reimpostazione, sono parole nuove.',
   'addDownload.cancel': 'Annulla',
   'addDownload.button': 'Aggiungi',
 
@@ -210,8 +209,6 @@ export const it: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'In download su {service}',
-  'task.play': 'Riproduci',
-  'task.playFailed': 'Il lettore non si è aperto: {reason}',
   'task.enable': 'Attiva questo link',
   'task.disable': 'Disattiva questo link',
   'settings.aboutTitle': 'Informazioni su KnightLoader',
@@ -382,6 +379,10 @@ export const it: Dict = {
   'group.removedBody': 'Un\'istanza ha rimosso questo dispositivo dal gruppo. Scansiona di nuovo la frase per ricollegarlo.',
   'group.removedLater': 'Più tardi',
   'group.removedRescan': 'Scansiona la frase',
+  'connections.addressGoneTitle': 'Associa di nuovo con la frase',
+  'connections.addressGoneBody': 'Queste connessioni erano salvate per indirizzo: {names}. Ora l’app si collega con le dodici parole. Scansiona la frase che l’istanza mostra in Impostazioni, Associazione, e ritrovi tutto, download compresi.',
+  'connections.addressGoneLater': 'Più tardi',
+  'connections.addressGoneScan': 'Scansiona la frase',
   'connections.default': 'Istanza predefinita',
   'connections.makeDefault': 'Imposta come predefinita',
 

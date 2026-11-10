@@ -143,7 +143,6 @@ export const lt: Dict = {
   'error.groupJoinsBusy': 'Per paskutinę valandą prie grupės prisijungė per daug naujų įrenginių. Bandyk vėliau.',
   'error.memberNotPinned': 'Egzempliorius negalėjo išsaugoti šio įrenginio rakto. Bandyk dar kartą po akimirkos.',
   'error.answerTooLarge': 'Egzemplioriaus atsakymas per didelis relei. Egzemplioriaus tinkle jis praeina.',
-  'error.connectionEnded': 'Egzempliorius šio ryšio nebepriima, nes jo slaptažodis buvo pakeistas arba nustatytas iš naujo. Pašalink ryšį ir prisijunk iš naujo su dvylika žodžių, kuriuos egzempliorius rodo skiltyje Nustatymai, Susiejimas. Po nustatymo iš naujo tai nauji žodžiai.',
   'addDownload.cancel': 'Atšaukti',
   'addDownload.button': 'Pridėti',
 
@@ -210,8 +209,6 @@ export const lt: Dict = {
   'task.mode.free': 'Nemokamai',
   'task.mode.premium': 'Premium',
   'task.remote': 'Parsiunčia {service}',
-  'task.play': 'Leisti',
-  'task.playFailed': 'Grotuvas neatsidarė: {reason}',
   'task.enable': 'Įjungti šią nuorodą',
   'task.disable': 'Išjungti šią nuorodą',
   'settings.aboutTitle': 'Apie KnightLoader',
@@ -382,6 +379,10 @@ export const lt: Dict = {
   'group.removedBody': 'Egzempliorius pašalino šį įrenginį iš grupės. Nuskaityk frazę dar kartą, kad jį vėl prijungtum.',
   'group.removedLater': 'Vėliau',
   'group.removedRescan': 'Nuskaityti frazę',
+  'connections.addressGoneTitle': 'Susiek iš naujo su fraze',
+  'connections.addressGoneBody': 'Šie ryšiai buvo išsaugoti pagal adresą: {names}. Programėlė dabar jungiasi su dvylika žodžių. Nuskaityk frazę, kurią egzempliorius rodo skiltyje Nustatymai, Susiejimas, ir viskas grįš kartu su atsisiuntimais.',
+  'connections.addressGoneLater': 'Vėliau',
+  'connections.addressGoneScan': 'Nuskaityti frazę',
   'connections.default': 'Numatytasis egzempliorius',
   'connections.makeDefault': 'Nustatyti kaip numatytąjį',
 
