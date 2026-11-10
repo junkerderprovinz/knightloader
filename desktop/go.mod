@@ -16,6 +16,7 @@ require (
 	// accent_linux.go for the settings portal.
 	github.com/godbus/dbus/v5 v5.2.4
 	github.com/junkerderprovinz/knightloader v0.0.0
+	github.com/junkerderprovinz/parleyport/kit v0.0.0-20261110180703-85563775f682
 	github.com/wailsapp/wails/v3 v3.1.0
 	github.com/zalando/go-keyring v0.2.8
 	golang.org/x/sys v0.50.0
@@ -98,7 +99,6 @@ require (
 	github.com/imroc/req/v3 v3.61.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jlaffaye/ftp v0.2.4 // indirect
-	github.com/junkerderprovinz/parleyport/kit v0.0.0-20261110180703-85563775f682 // indirect
 	github.com/kevinburke/ssh_config v1.4.0 // indirect
 	github.com/klauspost/compress v1.20.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
