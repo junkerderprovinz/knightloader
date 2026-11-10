@@ -16,7 +16,7 @@ import {
   type Task,
   type TaskOptionsPatch,
   type TaskStatus,
-  type UnpackOutput,
+  type UnpackedWeight,
   apiBase,
   cleanupPreview,
   connectWS,
@@ -43,6 +43,7 @@ import {
   ok,
   stopSeeding,
   undoDelete,
+  unpackedWeight,
 } from '../lib/api';
 import { seedingOff, seedingOn } from '../lib/listCards';
 import { fmtBytes } from '../lib/format';
@@ -282,30 +283,41 @@ interface Weight {
 
 /**
  * weigh counts what a removal would erase, in bytes already on disk rather
- * than announced sizes. What an unpacking created goes too, unless a row that
- * stays records it or something inside it, as the server decides.
+ * than announced sizes, and what the server says it would take of what
+ * unpacking wrote.
  */
-function weigh(all: Task[], ids: string[]): Weight {
+function weigh(all: Task[], ids: string[], unpacked: UnpackedWeight | null): Weight {
   const want = new Set(ids);
-  let files = 0;
-  let bytes = 0;
-  const unpacked = new Map<string, UnpackOutput>();
-  const kept: string[] = [];
+  let files = unpacked?.files ?? 0;
+  let bytes = unpacked?.bytes ?? 0;
   for (const t of all) {
-    for (const o of t.unpacked ?? []) {
-      if (want.has(t.id)) unpacked.set(o.path, o);
-      else kept.push(o.path);
-    }
     if (!want.has(t.id) || t.loaded <= 0) continue;
     files++;
     bytes += t.loaded;
   }
-  for (const o of unpacked.values()) {
-    if (kept.some((p) => p === o.path || p.startsWith(o.path + '/') || p.startsWith(o.path + '\\'))) continue;
-    files += o.files;
-    bytes += o.bytes;
-  }
   return { count: ids.length, files, bytes };
+}
+
+/**
+ * useUnpackedWeight asks the server what removing ids with their files would
+ * erase of what unpacking wrote, null until it answers. A peer on a build
+ * without the question deletes none of it, so a refusal counts as nothing.
+ */
+function useUnpackedWeight(ids: string[], base: string): UnpackedWeight | null {
+  const [weight, setWeight] = useState<UnpackedWeight | null>(null);
+  useEffect(() => {
+    let live = true;
+    setWeight(null);
+    unpackedWeight(ids, base)
+      .catch(() => ({ files: 0, bytes: 0 }))
+      .then((w) => {
+        if (live) setWeight(w);
+      });
+    return () => {
+      live = false;
+    };
+  }, [ids, base]);
+  return weight;
 }
 
 /**
@@ -317,7 +329,9 @@ function weigh(all: Task[], ids: string[]): Weight {
 function ConfirmRemove({
   title,
   what,
-  weight,
+  all,
+  ids,
+  base = '/api',
   allowFiles,
   withFiles: filesAsked = false,
   note,
@@ -329,7 +343,10 @@ function ConfirmRemove({
   title: string;
   /** What a clean-up class selects, when the rows were not chosen by hand. */
   what?: string;
-  weight: Weight;
+  /** Every task this instance holds, and the ones the removal takes. */
+  all: Task[];
+  ids: string[];
+  base?: string;
   allowFiles: boolean;
   /** Where the files switch starts. Only Shift+Del and its menu entry start it on. */
   withFiles?: boolean;
@@ -348,6 +365,8 @@ function ConfirmRemove({
 }) {
   const { t } = useT();
   const [withFiles, setWithFiles] = useState(filesAsked);
+  const unpacked = useUnpackedWeight(ids, base);
+  const weight = weigh(all, ids, unpacked);
   const files = allowFiles && weight.files > 0;
   const erase = files && withFiles;
 
@@ -377,7 +396,8 @@ function ConfirmRemove({
         <p className="glim-num text-carbon-text">{t('remove.count', { n: weight.count })}</p>
         {weight.files === 0 && <p>{t('remove.noFiles')}</p>}
         {files && <ToggleRow hue={1} label={t('remove.alsoFiles')} checked={withFiles} onChange={setWithFiles} />}
-        {erase && (
+        {/* Only the full count, so the number does not change under the reader. */}
+        {erase && unpacked && (
           <p className="glim-num">{t('remove.filesGone', { files: weight.files, bytes: fmtBytes(weight.bytes) })}</p>
         )}
         {note && <p className="text-carbon-textMuted">{note}</p>}
@@ -594,7 +614,9 @@ export function useRemoval({
   const dialog = asking && (
     <ConfirmRemove
       title={t('remove.title')}
-      weight={weigh(all, asking.ids)}
+      all={all}
+      ids={asking.ids}
+      base={base}
       allowFiles
       withFiles={asking.withFiles}
       mute="remove"
@@ -795,7 +817,8 @@ export function useCleanup(all: Task[]) {
     <ConfirmRemove
       title={classLabel(confirm.cls, t)}
       what={CLEANUP_WHAT[confirm.cls] ? t(CLEANUP_WHAT[confirm.cls]!) : undefined}
-      weight={weigh(all, confirm.ids)}
+      all={all}
+      ids={confirm.ids}
       allowFiles={!KEEPS_FILES.has(confirm.cls)}
       note={KEEPS_FILES.has(confirm.cls) ? t('cleanup.finishedKeepsFiles') : undefined}
       mute="cleanup"

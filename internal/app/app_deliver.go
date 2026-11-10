@@ -319,13 +319,9 @@ type delivery struct {
 	// when the contents were moved.
 	Entries int
 	Err     error
-	// from is the folder the unpacking wrote, and landed where each entry
-	// moved out of it went: the folder itself, or with contents each entry in
-	// it. An entry that went onto a name that was taken lands on "" (see
-	// arrivals).
-	from     string
-	contents bool
-	landed   map[string]string
+	// What the move did with the folder the unpacking wrote, for the record
+	// of what it created to follow.
+	entryMove
 }
 
 // deliverExtraction moves a finished extraction's output where the settings or
@@ -366,7 +362,7 @@ func (a *App) deliverExtraction(jobID string, out *extract.Outcome) delivery {
 	if plan.Contents {
 		taken := takenAt(out.Dir, plan.Deliver)
 		rep, err := workdir.MoveContents(a.ctx, out.Dir, plan.Deliver, o)
-		d := delivery{Entries: rep.Moved, Err: err, from: out.Dir, contents: true, landed: arrivals(rep.Landed, taken)}
+		d := delivery{Entries: rep.Moved, Err: err, entryMove: entryMove{from: out.Dir, contents: true, landed: arrivals(rep.Landed, taken)}}
 		if rep.Moved > 0 {
 			d.Dir = plan.Deliver
 		}
@@ -389,7 +385,7 @@ func (a *App) deliverExtraction(jobID string, out *extract.Outcome) delivery {
 		return delivery{Err: fmt.Errorf("%s already exists and the collision policy is to skip, so the unpacked content was left in %s", filepath.Join(plan.Deliver, filepath.Base(out.Dir)), out.Dir)}
 	}
 	landed := arrivals(map[string]string{out.Dir: res.Path}, taken)
-	return delivery{Dir: res.Path, Entries: 1, from: out.Dir, landed: landed}
+	return delivery{Dir: res.Path, Entries: 1, entryMove: entryMove{from: out.Dir, landed: landed}}
 }
 
 // deliverVolumes moves what is left of an archive's set out of the working

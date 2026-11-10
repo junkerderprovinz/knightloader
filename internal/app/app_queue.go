@@ -462,9 +462,11 @@ func (a *App) UndoRemove(token string) []string {
 	// rather than leaving restored rows at the end.
 	a.sortQueueLocked()
 	a.dispatchLocked()
+	unkept := a.unkeepLocked()
 	// Copied after dispatching, as in startTasks.
 	copies := a.copiesLocked(live)
 	a.mu.Unlock()
+	a.publishTasks(unkept)
 	ids := make([]string, len(live))
 	for i, t := range live {
 		ids[i] = t.ID

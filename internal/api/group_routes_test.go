@@ -212,8 +212,9 @@ var groupRefused = []string{
 	"GET /api/ws",
 
 	// Work the phone and the extension do not do: uploads, the history, the
-	// holding areas, cleanup by class, starting or stopping an unpacking and
-	// the web interface's own captcha calls.
+	// holding areas, cleanup by class, starting or stopping an unpacking,
+	// weighing a removal with files, which a member may not make, and the web
+	// interface's own captcha calls.
 	"POST /api/containers",
 	"GET /api/containers/relay/{token}",
 	"POST /api/torrents",
@@ -229,6 +230,7 @@ var groupRefused = []string{
 	"POST /api/cleanup/{class}",
 	"POST /api/extract/start",
 	"POST /api/extract/{id}/abort",
+	"POST /api/tasks/unpacked-weight",
 	"POST /api/activity/{kind}/abort",
 	"POST /api/captcha/test",
 	"POST /api/captcha/{id}/unanswerable",

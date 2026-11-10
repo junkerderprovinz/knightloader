@@ -2,6 +2,7 @@ package store
 
 import (
 	"path/filepath"
+	"reflect"
 	"slices"
 	"sync"
 	"testing"
@@ -456,5 +457,25 @@ func TestAPinnedBackendSurvivesARestart(t *testing.T) {
 	}
 	if all[0].ResolverPin != "debridlink#work" {
 		t.Errorf("pin = %q after a restart, want debridlink#work", all[0].ResolverPin)
+	}
+}
+
+// What an unpacking created is all a removal with files after a restart has to
+// go by: every file it wrote, and the removals that kept it.
+func TestWhatAnUnpackingCreatedSurvivesARestart(t *testing.T) {
+	s := open(t)
+	record := []core.UnpackOutput{
+		{Path: "/dl/release", Files: map[string]int64{"film.mkv": 4096, filepath.Join("subs", "en.srt"): 12}},
+		{Path: "/dl/notes.txt", Files: map[string]int64{".": 20}, KeptBy: []string{"gone"}},
+	}
+	if err := s.Save(&core.Task{ID: "u1", URL: "https://host.example/r.zip", CreatedAt: time.Now(), Unpacked: record}); err != nil {
+		t.Fatal(err)
+	}
+	all, err := s.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 || !reflect.DeepEqual(all[0].Unpacked, record) {
+		t.Fatalf("reloaded %+v, want %+v", all, record)
 	}
 }

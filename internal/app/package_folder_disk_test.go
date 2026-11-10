@@ -280,7 +280,7 @@ func TestAPackagesUnpackedRecordFollowsTheName(t *testing.T) {
 	})
 	oldPackage(t, a, base)
 	stagedIn(t, filepath.Join(unpacked, "Old", "film"), "film.mkv", "the film")
-	record := []core.UnpackOutput{{Path: filepath.Join(unpacked, "Old", "film"), Files: 1, Bytes: 8}}
+	record := []core.UnpackOutput{{Path: filepath.Join(unpacked, "Old", "film"), Files: map[string]int64{"film.mkv": 8}}}
 	for _, id := range []string{"part1", "part2"} {
 		editTask(a, id, func(x *core.Task) { x.Unpack, x.Unpacked = core.UnpackDone, record })
 	}

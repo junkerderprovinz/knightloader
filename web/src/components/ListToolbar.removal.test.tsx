@@ -12,15 +12,23 @@ import { useRemoval } from './ListToolbar';
 
 let root: Root;
 let host: HTMLDivElement;
+/** What the server says a removal with files takes of what unpacking wrote. */
+let unpacked: Response;
+
+const answer = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+
+const fetchMock = vi.fn((url: string, _init?: RequestInit) =>
+  Promise.resolve(url.endsWith('/tasks/unpacked-weight') ? unpacked : answer({})),
+);
 
 beforeEach(() => {
   host = document.createElement('div');
   document.body.append(host);
   root = createRoot(host);
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(() => Promise.resolve(new Response('{}', { headers: { 'Content-Type': 'application/json' } }))),
-  );
+  unpacked = answer({ files: 0, bytes: 0 });
+  fetchMock.mockClear();
+  vi.stubGlobal('fetch', fetchMock);
 });
 
 afterEach(() => {
@@ -80,20 +88,31 @@ describe('the removal dialog', () => {
     expect(filesSwitch(dialog).getAttribute('aria-checked')).toBe('true');
   });
 
-  // Both parts record the same folder, which goes once and only with the last of them.
-  const unpacked = [{ path: '/dl/film', files: 3, bytes: 3000 }];
   const parts = [
-    { id: 'p1', name: 'film.part1.rar', loaded: 1000, unpacked },
-    { id: 'p2', name: 'film.part2.rar', loaded: 1000, unpacked },
+    { id: 'p1', name: 'film.part1.rar', loaded: 1000 },
+    { id: 'p2', name: 'film.part2.rar', loaded: 1000 },
   ] as Task[];
 
-  it('counts what the unpacking wrote into what goes', async () => {
+  it('counts what the server says the unpacking wrote into what goes', async () => {
+    unpacked = answer({ files: 3, bytes: 3000 });
     const dialog = await openDialog(true, parts, ['p1', 'p2']);
     expect(dialog.textContent).toContain('This also erases 5 file(s), 5.0 kB');
+    const asked = fetchMock.mock.calls.find(([url]) => url.endsWith('/tasks/unpacked-weight'));
+    expect(JSON.parse(String(asked?.[1]?.body))).toEqual({ ids: ['p1', 'p2'] });
   });
 
-  it('leaves out what a part staying in the list still holds', async () => {
+  it('counts only the downloads on a peer that does not delete what unpacking wrote', async () => {
+    unpacked = answer({ error: 'not found' }, 404);
     const dialog = await openDialog(true, parts, ['p1']);
     expect(dialog.textContent).toContain('This also erases 1 file(s), 1.0 kB');
+  });
+
+  it('shows no count before the server has answered', async () => {
+    let reply: (r: Response) => void = () => {};
+    fetchMock.mockImplementationOnce(() => new Promise<Response>((resolve) => (reply = resolve)));
+    const dialog = await openDialog(true, parts, ['p1']);
+    expect(dialog.textContent).not.toContain('This also erases');
+    await act(async () => reply(answer({ files: 2, bytes: 24 })));
+    expect(dialog.textContent).toContain('This also erases 3 file(s)');
   });
 });

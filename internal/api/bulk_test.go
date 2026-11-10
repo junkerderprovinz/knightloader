@@ -519,3 +519,23 @@ func TestAddedLinksAreFiledInTheChosenCategory(t *testing.T) {
 		t.Fatalf("adding with a missing category = %d: %s", code, body)
 	}
 }
+
+// The removal dialog counts what unpacking wrote from the server's answer, so
+// the server's own rule decides it. A row that unpacked nothing weighs nothing.
+func TestTheUnpackedWeightOfASelectionIsAsked(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	created := stage(t, a, "https://host.example/one.bin")
+
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/unpacked-weight", map[string]any{"ids": ids(created)})
+	if code != http.StatusOK {
+		t.Fatalf("weighing = %d: %s", code, body)
+	}
+	if strings.TrimSpace(string(body)) != `{"bytes":0,"files":0}` {
+		t.Errorf("weighing a row that unpacked nothing = %s", body)
+	}
+	if left := len(a.Tasks()); left != 1 {
+		t.Errorf("weighing a removal removed rows: %d left", left)
+	}
+}

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"io/fs"
 	"log"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -99,7 +100,7 @@ func (a *App) RenamePackage(ids []string, name string) ([]string, error) {
 		copies := a.applyRenameLocked(p, nil)
 		a.mu.Unlock()
 		a.publishTasks(copies)
-		a.followJobs(a.moveUnpacked(p), p)
+		a.followJobs(nil, a.moveUnpacked(p), p)
 		return idsOf(p.members), nil
 	}
 	a.mu.Unlock()
@@ -406,10 +407,7 @@ func (a *App) relocate(p *renamePlan) error {
 	}
 	a.publishTasks(copies)
 	if err == nil {
-		for from, to := range a.moveUnpacked(p) {
-			reloc[from] = to
-		}
-		a.followJobs(reloc, p)
+		a.followJobs(reloc, a.moveUnpacked(p), p)
 	}
 	a.endRelocation(p.folders, held)
 	return err
@@ -723,37 +721,64 @@ func (a *App) applyRenameLocked(p *renamePlan, reloc relocation) []taskCopy {
 	return copies
 }
 
+// unpackedMoves is what moveUnpacked did: where each extraction folder went,
+// and where each entry in it landed.
+type unpackedMoves struct {
+	folders relocation
+	entries []entryMove
+}
+
 // moveUnpacked takes the members' extraction folders to the new name, entry by
 // entry under the collision rule a delivery follows, since what a package of
 // the new name unpacked may be there already. It returns where they went. A
 // failure is logged: nothing but the extraction list remembers these folders,
 // and whatever did not move is still where it was.
-func (a *App) moveUnpacked(p *renamePlan) relocation {
-	reloc := relocation{}
+func (a *App) moveUnpacked(p *renamePlan) unpackedMoves {
+	moves := unpackedMoves{folders: relocation{}}
 	for _, m := range p.unpacked {
 		// A folder inside the download folder has already moved with it.
 		if _, err := os.Lstat(m.from); err != nil {
 			continue
 		}
+		taken := takenAt(m.from, m.to)
 		rep, err := workdir.MoveContents(a.ctx, m.from, m.to, p.moveOpts)
 		if err != nil {
 			log.Printf("the unpacked files in %s could not all be moved to %s: %v", m.from, m.to, err)
 		}
 		if rep.Moved > 0 {
-			reloc[m.from] = m.to
+			moves.folders[m.from] = m.to
+			moves.entries = append(moves.entries, entryMove{from: m.from, contents: true, landed: arrivals(rep.Landed, taken)})
 		}
 	}
-	return reloc
+	return moves
 }
 
 // followJobs carries the extraction list along with what a rename moved, so a
 // finished unpacking still says where its archive and its content are, and
 // gives the members' unpackings the new package name. What the tasks record
-// as unpacked goes along too, for a removal with files to find it.
-func (a *App) followJobs(reloc relocation, p *renamePlan) {
+// as unpacked goes along too, for a removal with files to find it: by where
+// each entry landed, since one that went onto a name another package's
+// unpacking had taken is not this unpacking's alone. folders is where the
+// download folders went.
+func (a *App) followJobs(folders relocation, unpacked unpackedMoves, p *renamePlan) {
 	member := make(map[string]bool, len(p.members))
 	for _, t := range p.members {
 		member[t.ID] = true
+	}
+	reloc := relocation{}
+	maps.Copy(reloc, folders)
+	maps.Copy(reloc, unpacked.folders)
+	follow := func(_ string, o core.UnpackOutput) []core.UnpackOutput {
+		o.Path = folders.path(o.Path)
+		out := []core.UnpackOutput{o}
+		for _, m := range unpacked.entries {
+			var next []core.UnpackOutput
+			for _, o := range out {
+				next = append(next, m.carry(o)...)
+			}
+			out = next
+		}
+		return out
 	}
 	a.mu.Lock()
 	st := a.unpackLocked()
@@ -774,24 +799,9 @@ func (a *App) followJobs(reloc relocation, p *renamePlan) {
 		j.path, j.Dir, j.MovedTo, j.Package = path, dir, movedTo, pkg
 		changed = append(changed, j.ExtractJob)
 	}
-	var records []taskCopy
-	for _, t := range a.tasks {
-		var next []core.UnpackOutput
-		for i, o := range t.Unpacked {
-			if to := reloc.path(o.Path); to != o.Path {
-				if next == nil {
-					next = slices.Clone(t.Unpacked)
-				}
-				next[i].Path = to
-			}
-		}
-		if next != nil {
-			t.Unpacked = next
-			records = append(records, a.copyLocked(t))
-		}
-	}
+	moved := a.copiesOfLocked(a.editRecordsLocked(follow))
 	a.mu.Unlock()
-	a.publishTasks(records)
+	a.publishTasks(moved)
 	for _, snap := range changed {
 		a.Hub.Broadcast("extract", snap)
 	}

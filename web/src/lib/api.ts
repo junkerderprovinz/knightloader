@@ -34,13 +34,6 @@ export type Reason = string;
 // Click'n'Load, a container upload. Open for the same reason as Reason.
 export type Origin = string;
 
-/** UnpackOutput is one file or folder an unpacking created, and what it held. */
-export interface UnpackOutput {
-  path: string;
-  files: number;
-  bytes: number;
-}
-
 export interface Task {
   id: string;
   url: string;
@@ -201,9 +194,6 @@ export interface Task {
   /** How the last unpacking of this file's archive ended, on every part of the
    *  set. Kept by the server, so it outlives the job after a restart. */
   unpack?: 'done' | 'error' | 'password';
-  /** What unpacking this file's archive created, on every part of the set: a
-   *  removal with files takes it along once no row left in the list records it. */
-  unpacked?: UnpackOutput[];
 
   /** How many files a torrent has, once that is known; absent for everything
    *  else and for a magnet whose swarm has not sent its list. The files
@@ -1597,6 +1587,20 @@ export const startSeeding = async (ids: string[], base = '/api') =>
 /** deleteTasks removes a selection from the list; `withFiles` also erases what was downloaded. */
 export const deleteTasks = async (ids: string[], withFiles = false, base = '/api') =>
   json<BulkResult>(await ok(await post(`${base}/tasks/delete`, { ids, files: withFiles })));
+
+/** UnpackedWeight is how much of what unpacking wrote a removal with files erases. */
+export interface UnpackedWeight {
+  files: number;
+  bytes: number;
+}
+
+/**
+ * unpackedWeight asks what removing a selection with its files would erase of
+ * what unpacking wrote. Which of it stays is the server's rule, so the
+ * confirmation counts by this answer rather than working it out again.
+ */
+export const unpackedWeight = async (ids: string[], base = '/api') =>
+  json<UnpackedWeight>(await ok(await post(`${base}/tasks/unpacked-weight`, { ids })));
 
 /**
  * undoDelete puts back the rows one removal took. An expired or spent token

@@ -601,7 +601,7 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 	}
 	var record, shared []core.UnpackOutput
 	if err == nil && out != nil {
-		record, shared = a.unpackRecord(a.extractionParts(jobID), moved.relocate(out.Created), moved.relocate(out.Reused))
+		record, shared = a.unpackRecord(a.extractionParts(jobID), moved.relocate(out.Created), moved.relocate(out.Reused), moved.relocate(out.Written))
 	}
 	// Swept on every settle, so the trash still ages after the disposal is
 	// switched away from it. Without retention or a trash folder it does
@@ -689,7 +689,7 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 			touched[id] = true
 		}
 		for _, id := range j.Parts {
-			if t := a.tasks[id]; t != nil && !slices.Equal(t.Unpacked, record) {
+			if t := a.tasks[id]; t != nil && !sameRecord(t.Unpacked, record) {
 				t.Unpacked = record
 				touched[id] = true
 			}
