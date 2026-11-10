@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/afterdownload"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
@@ -152,6 +153,13 @@ type App struct {
 	// MediaHooks calls the address a category points at once a package filed
 	// there has finished and its files are in place (see app_mediahook.go).
 	MediaHooks *mediahook.Runner
+
+	// AfterDownload starts the ArrowLoop job a category names once a package filed
+	// there has landed (see app_afterdownload.go).
+	AfterDownload *afterdownload.Runner
+	// joined is the fortress this instance is in, nil until it joins one.
+	joinedMu sync.Mutex
+	joined   afterdownload.Fortress
 
 	// Playback asks the media servers what is playing and holds quiet mode
 	// while something counts (see app_playback.go).
@@ -724,6 +732,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 
 	// After the bus and the credential store, both of which it needs.
 	a.startMediaHooks()
+	a.startAfterDownload()
 
 	a.switchOffUnorderedSolvers()
 	a.rewireBackends()
@@ -1029,7 +1038,7 @@ func (a *App) Close() error {
 	}
 	a.wmu.Unlock()
 	// Waits for a poll in flight so no entry is still being added. cancel has
-	// already aborted any fetch, so this is bounded by the handover.
+	// already aborted any fetch, so this is bounded by the afterdownload.
 	a.fmu.Lock()
 	if a.feeds != nil {
 		_ = a.feeds.Close()
@@ -1058,6 +1067,9 @@ func (a *App) Close() error {
 	// Pending media hook calls are dropped rather than flushed: their files
 	// were never moved into place.
 	a.stopMediaHooks()
+	if a.AfterDownload != nil {
+		_ = a.AfterDownload.Close()
+	}
 	// Before the engine and the store: a torrent on a debrid service has its
 	// files fetched by the one and its job noted in the other.
 	a.serviceRuns.stop()

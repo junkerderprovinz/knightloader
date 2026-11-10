@@ -145,6 +145,11 @@ type Category struct {
 	// Extract.
 	PremiumOnly *bool `json:"premiumOnly,omitempty"`
 
+	// AfterDownload is the ArrowLoop job started once a package filed in this
+	// drawer has landed, nil for none. A package in two drawers that name the
+	// same job starts it once.
+	AfterDownload *AfterDownload `json:"afterDownload,omitempty"`
+
 	// TorrentFiles is this drawer's own file selection for a torrent, in place
 	// of the Torrents page's as a whole. Nil is "no opinion"; a set with
 	// nothing in it is a drawer that fetches every file whatever the global
@@ -361,6 +366,7 @@ func sanitizeCategories(n Settings) Settings {
 		// undo a drawer's setting the moment somebody hand-edited their hooks
 		// list. ValidateMediaHooks refuses that state at the door.
 		c.Notify = mediahook.HookID(c.Notify)
+		c.AfterDownload = c.AfterDownload.sanitized()
 		if c.TorrentFiles != nil {
 			// A fresh pointer, for the reason clampCategoryPriority gives.
 			r := c.TorrentFiles.sanitized()

@@ -85,6 +85,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerEventTargets(reg, a)
 	registerEventPrograms(reg, a)
 	registerMediaHooks(reg, a)
+	registerAfterDownload(reg, a)
 	registerPlayback(reg, a)
 	registerDebridDrive(reg, a)
 	registerUsenetServers(reg, a)

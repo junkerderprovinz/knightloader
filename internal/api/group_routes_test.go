@@ -144,7 +144,7 @@ var groupRefused = []string{
 	"POST /api/ytdlp/preset",
 
 	// What this instance runs: scripts, event programs and targets, media
-	// hooks, the idle command and the tools.
+	// hooks, the After download stations, the idle command and the tools.
 	"GET /api/scripts",
 	"POST /api/scripts",
 	"GET /api/scripts/triggers",
@@ -156,6 +156,7 @@ var groupRefused = []string{
 	"GET /api/eventtargets",
 	"GET /api/eventtargets/placeholders",
 	"POST /api/eventtargets/test",
+	"GET /api/afterdownload",
 	"GET /api/mediahooks",
 	"POST /api/mediahooks",
 	"DELETE /api/mediahooks/{id}",

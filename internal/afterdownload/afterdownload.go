@@ -1,8 +1,8 @@
-// Package handover hands a finished package to ArrowLoop: once its files are
-// in their folder, KnightLoader asks an ArrowLoop instance of the fortress to
-// run the job a category names. Only the job's name crosses, never a path,
-// since the two containers mount the same share under different names.
-package handover
+// Package afterdownload hands a finished package to ArrowLoop: once its
+// files are in their folder, KnightLoader asks an ArrowLoop instance of the
+// fortress to run the job a category names. Only the job's name crosses, never
+// a path, since the two containers mount the same share under different names.
+package afterdownload
 
 import (
 	"cmp"
@@ -86,9 +86,9 @@ const (
 
 var (
 	// ErrNoFortress is a hand-over on an instance that has not joined one.
-	ErrNoFortress = errors.New("handover: this instance is in no fortress")
+	ErrNoFortress = errors.New("after download: this instance is in no fortress")
 	// ErrGone is an instance the fortress no longer lists.
-	ErrGone = errors.New("handover: that ArrowLoop instance is no longer in the fortress")
+	ErrGone = errors.New("after download: that ArrowLoop instance has left the fortress")
 )
 
 // Code names why a call failed, and "" for no error.
@@ -150,7 +150,7 @@ func list(ctx context.Context, f Fortress, id string, into *[]Job) error {
 		return err
 	}
 	if err := json.Unmarshal(raw, into); err != nil {
-		return fmt.Errorf("handover: %s answered %s with %q: %w", id, ListAction, raw, err)
+		return fmt.Errorf("after download: %s answered %s with %q: %w", id, ListAction, raw, err)
 	}
 	return nil
 }
@@ -176,7 +176,7 @@ func Run(ctx context.Context, f Fortress, t Target) (string, error) {
 		Status string `json:"status"`
 	}
 	if err := json.Unmarshal(raw, &answer); err != nil {
-		return "", fmt.Errorf("handover: %s answered %s with %q: %w", t.Member, RunAction, raw, err)
+		return "", fmt.Errorf("after download: %s answered %s with %q: %w", t.Member, RunAction, raw, err)
 	}
 	return answer.Status, nil
 }

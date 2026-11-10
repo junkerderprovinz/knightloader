@@ -1,4 +1,4 @@
-package handover
+package afterdownload
 
 import (
 	"context"
@@ -127,7 +127,7 @@ func (r *Runner) Enqueue(t Target, pkg string) {
 	select {
 	case r.queue <- armed{t, pkg}:
 	default:
-		log.Printf("handover: the queue is full, %s does not start job %s", pkg, t.Job)
+		log.Printf("after download: the queue is full, %s does not start job %s", pkg, t.Job)
 	}
 }
 
@@ -192,9 +192,9 @@ func (r *Runner) call(t Target, p *pending) (again bool) {
 	r.last[t] = res
 	r.mu.Unlock()
 	if err != nil {
-		log.Printf("handover: %s could not start job %s: %v", names[0], t.Job, err)
+		log.Printf("after download: %s could not start job %s: %v", names[0], t.Job, err)
 		return res.Error == CodeUnreachable
 	}
-	log.Printf("handover: %s started job %s (%s)", names[0], t.Job, status)
+	log.Printf("after download: %s started job %s (%s)", names[0], t.Job, status)
 	return false
 }
