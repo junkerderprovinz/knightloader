@@ -139,6 +139,8 @@ func TestALinksOwnFormatStandsInForThePreset(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	fake, _ := newFakeYtdlp()
 	fake.title = "Some Video"
+	// A source without formats would turn every cap into best.
+	fake.formats = testProbeFormats
 	wireYtdlp(a, fake)
 	if err := a.SetHosterPreset("youtube.com", ytdlp.HosterPreset{
 		Variants: []ytdlp.Variant{ytdlp.VariantVideo, ytdlp.VariantThumbnail}, Quality: ytdlp.Quality720p, AudioFormat: "mp3",
@@ -161,6 +163,16 @@ func TestALinksOwnFormatStandsInForThePreset(t *testing.T) {
 			t.Fatalf("format %q: %v", c.format, err)
 		}
 		waitFor(t, "the family's five rows", func() bool { return len(tasksSharingURL(a, url)) == 5 })
+		// The probe resolves each pick against the source's formats, so the
+		// rows are read once it has.
+		waitFor(t, "the probe", func() bool {
+			for _, x := range tasksSharingURL(a, url) {
+				if x.Online != core.AvailOnline {
+					return false
+				}
+			}
+			return true
+		})
 		for _, x := range tasksSharingURL(a, url) {
 			kind, sub := variantDecode(x.Variant)
 			if kind == c.on {
