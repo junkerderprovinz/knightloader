@@ -77,6 +77,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   that way stands on its own after the update, and Settings > Pairing tells
   you so. Generate a phrase on one instance, enter it on the others, and they
   are back together.
+- **The `knightloader-relay` image hands over to ParleyPort.** If you run
+  your own relay with it, switch the image to `junkerderprovinz/parleyport`.
+  ParleyPort reads the same `KL_RELAY_…` settings, so your configuration
+  carries over as it is, and it brings the 16 MiB frames this release needs.
+  Only the certificate folder moves to `/var/lib/parleyport/certs`, so mount
+  your volume there or let ParleyPort fetch a new certificate.
 
 ## [2.7.5] - 2026-11-09
 

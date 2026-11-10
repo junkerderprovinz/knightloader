@@ -375,8 +375,7 @@ if (!/ARG COMMIT=/.test(DOCKERFILE)) {
  *
  * Inside a fenced block only, which is the one mechanical difference between an
  * instruction and a mention: every runnable command in these documents is
- * fenced and all three prose mentions in the tree are not. Dockerfile.relay is
- * skipped either way - it builds a different binary, with no UI and no crest.
+ * fenced and all three prose mentions in the tree are not.
  */
 function buildCommands(text) {
   const out = [];
@@ -386,7 +385,7 @@ function buildCommands(text) {
       fenced = !fenced;
       return;
     }
-    if (!fenced || !/\bdocker build\b/.test(line) || /Dockerfile\.relay/.test(line)) return;
+    if (!fenced || !/\bdocker build\b/.test(line)) return;
     out.push({ line: i + 1, text: line });
   });
   return out;

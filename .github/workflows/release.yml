@@ -370,10 +370,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/*.flatpak dist/*.apk dist/*.aab dist/checksums.txt
 
-  # The KnightLoader image and the self-hostable relay image, which the
-  # settings page's run command for a private relay points at. Only a pushed
-  # tag pushes, and only the exact version; the moving tags wait for the
-  # release in image-latest. KnightLoader also goes to Docker Hub once the
+  # The KnightLoader image. A relay of your own is ParleyPort, which has its
+  # own image. Only a pushed tag pushes, and only the exact version; the moving
+  # tags wait for the release in image-latest. KnightLoader also goes to Docker Hub once the
   # DOCKERHUB_USERNAME variable and the DOCKERHUB_TOKEN secret are set
   # together.
   images:
@@ -393,10 +392,6 @@ jobs:
             file: Dockerfile
             image: ghcr.io/junkerderprovinz/knightloader
             hub: knightloader
-          - name: Relay
-            file: Dockerfile.relay
-            image: ghcr.io/junkerderprovinz/knightloader-relay
-            hub: ""
     env:
       PUSH: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
       HUB: ${{ vars.DOCKERHUB_USERNAME != '' && matrix.hub != '' }}
@@ -435,7 +430,7 @@ jobs:
 
       # .dockerignore keeps .git out of the context, so the commit is passed in.
       # The DLC key goes in as BuildKit secrets, which no layer, build argument
-      # or provenance record keeps; Dockerfile.relay does not mount them.
+      # or provenance record keeps.
       - name: Build and push
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
@@ -474,8 +469,6 @@ jobs:
         include:
           - image: ghcr.io/junkerderprovinz/knightloader
             hub: knightloader
-          - image: ghcr.io/junkerderprovinz/knightloader-relay
-            hub: ""
     env:
       HUB: ${{ vars.DOCKERHUB_USERNAME != '' && matrix.hub != '' }}
     steps:

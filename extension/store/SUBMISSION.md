@@ -40,7 +40,7 @@ skipped or reordered.
      `/var/log/syslog*` and `/var/log/daemon.log*` as well.
    - Check that nothing is left: `journalctl -u <relay unit> -o cat | grep -E
      '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b|\[[0-9A-Fa-f]*:[0-9A-Fa-f:.]*(%[^]]*)?\]'`
-     prints nothing. `-o cat` drops the `knightloader-relay[812]:` prefix, and the
+     prints nothing. `-o cat` drops the `parleyport[812]:` prefix, and the
      pattern needs a colon inside the brackets, so the relay's own `[address]`
      placeholder does not match.
 

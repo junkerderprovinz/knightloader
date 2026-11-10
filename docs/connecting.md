@@ -285,6 +285,13 @@ name, and a whitelist of one would stop issuing a certificate for it the moment
 you switch, so those clients fail in the handshake instead of moving across.
 Run both names for as long as anything still dials the old one, then drop it.
 
+Older releases came with a relay image of their own,
+`ghcr.io/junkerderprovinz/knightloader-relay`. ParleyPort took its place and
+reads the same `KL_RELAY_…` settings, so switching the image is all it takes.
+Only the certificate folder moves, from `/var/lib/knightloader-relay/certs` to
+`/var/lib/parleyport/certs`: mount your volume there, or ParleyPort simply
+fetches a new certificate.
+
 The relay takes all of its settings from the environment. Its one flag,
 `-version`, prints the version and the commit it was built from and exits
 without opening a port. Any other flag or argument is refused, so a mistyped
@@ -369,21 +376,20 @@ connection takes over an id that is already connected only when its hello
 proves the key behind that id, which is how an instance or a phone whose old
 socket the relay still holds gets back in. The relay opens every connection
 with random bytes of its own that the proof signs, so a hello somebody saw
-proves nothing on another connection. A standalone relay has to run the same
-release as the instances for this.
+proves nothing on another connection. A relay you run yourself needs a
+current ParleyPort for this.
 
 The proof also names the relay the device dialled, by its host name without
 the port, and a relay takes it only under a name of its own. So a relay a
 device dials with the same key cannot pass another relay's random bytes on to
 it and use the proof there. An instance that serves the relay goes by the name
 a connection reached it under, when it answers on that name, and by its known
-domains. The standalone relay in this repository, `knightloader-relay`, goes
-by the address the instances dial it at, set in `KL_RELAY_PUBLIC_URL` such as
-`https://relay.example.com` (several separated by commas), and by the names in
-`KL_RELAY_DOMAIN`. With neither set it goes by the Host header
-each connection arrives with, which whoever opens the connection writes, so a
-relay that can be reached from outside your network needs one of the two.
-Behind a reverse proxy, set `KL_RELAY_PUBLIC_URL`.
+domains. A ParleyPort relay goes by the address the instances dial it at,
+set in `PARLEYPORT_PUBLIC_URL` such as `https://relay.example.com` (several
+separated by commas), and by the names in `PARLEYPORT_DOMAIN`. With neither set
+it goes by the Host header each connection arrives with, which whoever opens
+the connection writes, so a relay that can be reached from outside your network
+needs one of the two. Behind a reverse proxy, set `PARLEYPORT_PUBLIC_URL`.
 
 A relay peer is never written to disk. It exists for as long as the relay sees
 it, and one remembered across a restart would be a peer that cannot be reached
