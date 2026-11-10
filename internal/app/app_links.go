@@ -119,8 +119,10 @@ type intake struct {
 	choice *ytdlp.LinkChoice
 
 	// listed gathers the rows already in the list that the link is folded
-	// into (see LinkBatch.Listed).
-	listed *listedRows
+	// into (see LinkBatch.Listed), and foldDone folds it into its finished
+	// rows too (see LinkBatchOptions.foldDone).
+	listed   *listedRows
+	foldDone bool
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -290,7 +292,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 				t := a.stage(c.URL, c.Name, c.Size, intake{
 					pkg: pkg, origin: OriginCrawl, source: u,
 					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
-					sizeProbes: &probes, listed: batch.listed,
+					sizeProbes: &probes, listed: batch.listed, foldDone: batch.foldDone,
 				})
 				if t == nil {
 					continue
@@ -311,7 +313,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		if t := a.stage(u, batch.FileName, 0, intake{
 			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers, file: batch.File,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
-			sizeProbes: &probes, choice: batch.Choice, listed: batch.listed,
+			sizeProbes: &probes, choice: batch.Choice, listed: batch.listed, foldDone: batch.foldDone,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
@@ -858,8 +860,16 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// size first.
 	if m := a.mirror(dedupe.Entry{URL: u, Name: cand.Filename}); m.Seen() && !a.keepsAsSibling(m) {
 		a.recordSkipped(u, m)
-		in.listed.add(m)
+		in.listed.add(m.Of.ID)
 		return nil
+	}
+	if in.foldDone {
+		if done := a.doneRowsOf(u); len(done) > 0 {
+			for _, id := range done {
+				in.listed.add(id)
+			}
+			return nil
+		}
 	}
 	// After the list, so a link that is in both is noted once, as a copy of the
 	// row the user can see.
@@ -1048,7 +1058,7 @@ func (a *App) finishStaging(t *core.Task, cand rules.Candidate, listed *listedRo
 			return t
 		}
 		a.recordSkipped(t.URL, m)
-		listed.add(m)
+		listed.add(m.Of.ID)
 		return nil
 	}
 	return t
@@ -1234,7 +1244,7 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Ti
 	}
 	if m, ok := a.put(t); !ok {
 		a.recordSkipped(t.URL, m)
-		in.listed.add(m)
+		in.listed.add(m.Of.ID)
 		return nil
 	}
 	return t

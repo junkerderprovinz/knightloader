@@ -241,6 +241,77 @@ func TestAVideoSentToStartQueuesItsChosenRows(t *testing.T) {
 	}
 }
 
+// A video sent to start again while its first send runs or is done starts no
+// second download where the duplicate policy keeps copies out, and the answer
+// names the row it already has. Nobody is there to answer ask, so it keeps
+// the copy out too. Include downloads a finished video again, and a running
+// one is folded into its row as any second paste is.
+func TestAVideoSentToStartAgainIsAlreadyThere(t *testing.T) {
+	for _, c := range []struct {
+		policy string
+		first  core.Status
+		again  bool
+	}{
+		{"exclude", core.StatusRunning, false},
+		{"exclude", core.StatusDone, false},
+		{"ask", core.StatusRunning, false},
+		{"ask", core.StatusDone, false},
+		{"exclude-and-remove", core.StatusRunning, false},
+		{"exclude-and-remove", core.StatusDone, false},
+		{"include", core.StatusRunning, false},
+		{"include", core.StatusDone, true},
+	} {
+		name := c.policy + " with the first " + string(c.first)
+		a, base := wiredYtdlpApp(t, func(s *settings.Settings, _ string) { s.AutoConfirm, s.OnDupes = false, c.policy })
+		a.SetHalted(true)
+		const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+		send := func() LinkBatch {
+			b, err := a.AddLinkBatch([]string{url}, "", OriginCnL, LinkBatchOptions{
+				Start: true, Choice: &ytdlp.LinkChoice{Variants: []ytdlp.Variant{ytdlp.VariantVideo}, Quality: ytdlp.Quality360p},
+			})
+			if err != nil {
+				t.Fatalf("%s: %v", name, err)
+			}
+			return b
+		}
+		first := send()
+		if len(first.Created) != 1 {
+			t.Fatalf("%s: the first send created %d rows", name, len(first.Created))
+		}
+		id := first.Created[0].ID
+		if c.first == core.StatusDone {
+			// With its name and size known, as a real download leaves it.
+			finish(t, a, base, id, "Me at the zoo.mp4")
+			a.mu.Lock()
+			a.tasks[id].Size = 791367
+			a.mu.Unlock()
+		} else {
+			setStatus(a, id, c.first)
+		}
+
+		again := send()
+		rows := tasksSharingURL(a, url)
+		if c.again {
+			started := 0
+			for _, x := range rows {
+				if x.Status == core.StatusQueued {
+					started++
+				}
+			}
+			if len(again.Created) != 1 || started != 1 {
+				t.Errorf("%s: sent again, %d rows were created and %d queued, want a second download", name, len(again.Created), started)
+			}
+			continue
+		}
+		if len(rows) != 1 {
+			t.Errorf("%s: sent again, %d rows share the link, want the first alone", name, len(rows))
+		}
+		if len(again.Listed) != 1 || again.Listed[0].ID != id {
+			t.Errorf("%s: sent again, the answer lists %d rows, want the first send's", name, len(again.Listed))
+		}
+	}
+}
+
 func TestALinkWithAFormatNoRowCanMeanIsRefused(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	if _, err := a.AddLinksWithOptions([]string{"https://youtube.com/watch?v=badformat01"}, "", OriginCnL, LinkBatchOptions{Format: "8k"}); err == nil {

@@ -81,7 +81,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   setting says.
 - **The video button says when a video is already in your list.** It showed
   "Sent" although nothing was added. Now it shows "Already there", and the
-  instance's answer tells the two apart.
+  instance's answer tells the two apart. A video that has finished
+  downloading counts as there too, unless duplicates are set to be included.
 - **"Remove and delete files" takes the unpacked files along.** The archive
   went, but the folder it had been unpacked into stayed. Now what unpacking
   the download wrote goes too, also after a restart and where "Move the

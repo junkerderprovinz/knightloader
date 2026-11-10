@@ -11,7 +11,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
-	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -84,6 +83,9 @@ type LinkBatchOptions struct {
 	// listed collects the rows already in the list that links of the batch
 	// were folded into (see LinkBatch.Listed).
 	listed *listedRows
+	// foldDone folds a link into its finished rows as well, which the mirror
+	// set lets go of (see AddLinkBatch).
+	foldDone bool
 }
 
 // LinkBatch is what a batch of links came to: the rows it created, and the
@@ -98,9 +100,9 @@ type LinkBatch struct {
 // Nil gathers nothing, for the entrances that do not answer with them.
 type listedRows []string
 
-func (l *listedRows) add(m dedupe.Match) {
-	if l != nil && !slices.Contains(*l, m.Of.ID) {
-		*l = append(*l, m.Of.ID)
+func (l *listedRows) add(id string) {
+	if l != nil && !slices.Contains(*l, id) {
+		*l = append(*l, id)
 	}
 }
 
@@ -155,6 +157,10 @@ func (a *App) AddLinkBatch(urls []string, pkg string, origin core.Origin, opts L
 
 	var listed listedRows
 	opts.listed = &listed
+	// The mirror set lets a finished download be added again, and the confirm
+	// below matches it by a name and size the new row does not know yet, so a
+	// batch sent to start would download it twice where the policy says not to.
+	opts.foldDone = opts.Start && a.keepsCopiesOut()
 	created := a.addLinksFrom(urls, pkg, origin, opts)
 	if len(created) == 0 {
 		return LinkBatch{Listed: a.rowsOf(listed)}, nil
@@ -215,6 +221,27 @@ func (a *App) AddLinkBatch(urls []string, pkg string, origin core.Origin, opts L
 		a.autoConfirm(ids)
 	}
 	return LinkBatch{Created: a.detached(created), Listed: a.rowsOf(listed)}, nil
+}
+
+// keepsCopiesOut reports whether the duplicate policy keeps a second copy of a
+// download from starting with nobody there to ask.
+func (a *App) keepsCopiesOut() bool {
+	return confirm.ResolveConfig(confirm.Config{}, globalConfirmConfig(a.Settings.Get()), confirm.TriggerCnL).OnDupes != confirm.Include
+}
+
+// doneRowsOf lists the finished rows of a link, oldest first.
+func (a *App) doneRowsOf(u string) []string {
+	key := dedupeURL(u)
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	var done []*core.Task
+	for _, t := range a.tasks {
+		if t.Status == core.StatusDone && !t.VariantOff && dedupeURL(t.URL) == key {
+			done = append(done, t)
+		}
+	}
+	sortByAge(done)
+	return idsOf(done)
 }
 
 // rowsOf copies the rows among ids that are still in the list.

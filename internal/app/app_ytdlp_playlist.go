@@ -140,6 +140,7 @@ func (a *App) stagePlaylistEntries(playlistURL string, pl ytdlp.Playlist, pkg st
 			category:      batch.Category,
 			choice:        batch.Choice,
 			listed:        batch.listed,
+			foldDone:      batch.foldDone,
 			playlistEntry: true,
 		})
 		if t == nil {
