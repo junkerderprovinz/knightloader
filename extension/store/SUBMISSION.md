@@ -130,8 +130,11 @@ Edge shows it read-only):
 >   included, and send any of them to your instance from the popup.
 > - A download button on the player of YouTube, Vimeo, Dailymotion, Twitch and
 >   Bilibili sends the video you are watching to your instance with one click.
->   Its menu picks audio only, a resolution or the whole playlist. Switch it off
->   in the options or the popup, or hide it on single sites.
+>   For each site you pick what a click downloads (the video, its audio,
+>   subtitles, the thumbnail or the description) and in which quality. The arrow
+>   next to the button lists what that one video offers, and the whole playlist.
+>   Drag the button anywhere on the player, let it appear only when you point at
+>   the video, or hide it on single sites. Its switch is in the options.
 > - Watch the clipboard, if you switch it on: a link you copy anywhere goes to
 >   your default instance. Only the links leave the browser. When another of
 >   your devices already watches, the extension names it and offers to switch
@@ -139,7 +142,7 @@ Edge shows it read-only):
 >
 > Setting it up takes one step: enter the twelve-word connection phrase your
 > KnightLoader instances share. The extension stores no server address and no
-> web interface password; the phrase is the only credential it keeps.
+> web interface password. The phrase is the only credential it keeps.
 >
 > You need a running KnightLoader instance. KnightLoader is free and open source:
 > https://github.com/junkerderprovinz/knightloader
@@ -149,8 +152,9 @@ Edge shows it read-only):
 > no ads and no tracking. The extension asks for no website access when you
 > install it, and it reads the tab you are on only when you click its button or
 > use its right-click menu. It reads the clipboard only while you have the
-> clipboard watch switched on, after the browser asked you for that. Click'n'Load needs access to all websites, because its
-> buttons can be on any site. The extension asks for that access when you switch
+> clipboard watch switched on, after the browser asked you for that.
+> Click'n'Load needs access to all websites, because its buttons can be on any
+> site. The extension asks for that access when you switch
 > Click'n'Load on, and gives it back when you switch it off. Taking over downloads
 > and listing media are off until you switch them on, and each asks for its own
 > permissions at that moment.
@@ -217,9 +221,10 @@ Both dashboards ask the same questions. Each justification below is under the
 > Keeps the user's settings in the browser: the connection phrase, a random ID for
 > this browser within the user's group, the default instance, and interface
 > settings (language, theme, Click'n'Load on or off, countdown length, clipboard
-> watch on or off, the video download button on or off and the sites it is
-> hidden on). While a
-> send waits in the popup, it is held in session storage until the popup reads it.
+> watch on or off, and for the video download button whether it is on, what it
+> downloads on each site, where it sits on the player, whether it waits for the
+> pointer and the sites it is hidden on). While a send waits in the popup, it is
+> held in session storage until the popup reads it.
 
 `scripting`
 

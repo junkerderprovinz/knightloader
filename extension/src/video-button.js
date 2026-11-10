@@ -47,7 +47,7 @@
     :host { all: initial; position: fixed; z-index: 2147483647; translate: -50% -50%; }
     .kl {
       --surface: #262626; --raised: #393939; --text: #f4f4f4; --sub: #c6c6c6;
-      --ok: #6fdc8c; --fail: #ff8389; --line: rgba(255, 255, 255, .08); --edge: rgba(255, 255, 255, .16);
+      --ok: #6fdc8c; --fail: #ff8389; --line: rgba(255, 255, 255, .08);
       --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
       position: relative;
       font: 500 14px/1.4 "Noto Sans Variable", "Noto Sans", system-ui, sans-serif;
@@ -58,16 +58,15 @@
     }
     .kl[data-theme="light"] {
       --surface: #ffffff; --raised: #e8e8e8; --text: #161616; --sub: #525252;
-      --ok: #0e6027; --fail: #da1e28; --line: rgba(0, 0, 0, .08); --edge: rgba(0, 0, 0, .22);
+      --ok: #0e6027; --fail: #da1e28; --line: rgba(0, 0, 0, .08);
       --elevation: 0 1px 2px rgba(0, 0, 0, .10), 0 16px 36px -26px rgba(0, 0, 0, .45);
     }
     .kl.shown { opacity: 1; pointer-events: auto; }
-    /* The edge keeps the light button apart from a bright frame, and shows
-       between its two halves. */
+    /* The faint line shows only between the two halves. */
     .bar {
       display: flex; gap: 1px;
-      background: var(--edge);
-      border-radius: var(--radius); box-shadow: var(--elevation), 0 0 0 1px var(--edge);
+      background: var(--line);
+      border-radius: var(--radius); box-shadow: var(--elevation);
       touch-action: none; user-select: none;
     }
     .kl.dragging, .kl.dragging button { cursor: grabbing; }
