@@ -145,6 +145,19 @@ func TestAPhoneStreamsARangeOnTheLocalNetwork(t *testing.T) {
 	}
 }
 
+// The phone learns from the hello where the instance takes calls on its
+// network, and asks for it like any call.
+func TestAPhoneReadsTheHelloOfTheInstance(t *testing.T) {
+	t.Parallel()
+	_, phone, _ := joinedFilesApp(t, "film.mkv", []byte("0123456789"))
+
+	status, body := phone(http.MethodGet, "/kit/group/v1/hello")
+	var hello struct{ ID string }
+	if status != http.StatusOK || json.Unmarshal(body, &hello) != nil || hello.ID == "" {
+		t.Errorf("the hello = %d %s, want 200 with the instance's id", status, body)
+	}
+}
+
 // streamCall asks a for path as a stream on the direct route, the way a phone
 // on its network does, and opens what comes back: a sealed head with the
 // stream's key, the pieces sealed under that key, and the end.

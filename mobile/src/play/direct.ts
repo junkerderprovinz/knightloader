@@ -40,11 +40,13 @@ export type RangeReader = (from: number, length: number) => Promise<Uint8Array>;
 export async function directReader(conn: ServerConnection, id: string, file: string, base: string): Promise<RangeReader | null> {
   if (base !== '/api' || !conn.peerAuthKey || !conn.relayFrameKey) return null;
   const hello = await request<{ url?: string }>(conn, '', HELLO_PATH).catch(() => null);
-  const at = /^http:\/\/([a-z0-9.-]+)(?::(\d+))?\/?$/i.exec(hello?.url ?? '');
+  // An instance served under a base path takes direct calls under it too.
+  const at = /^http:\/\/([a-z0-9.-]+)(?::(\d+))?(\/[^?#]*)?$/i.exec(hello?.url ?? '');
   const { selfId, memberSeed } = await memberOptions();
   if (!at || !memberSeed) return null;
   const host = at[1];
   const port = at[2] ? Number(at[2]) : 80;
+  const call = (at[3] ?? '').replace(/\/$/, '') + DIRECT_PATH;
   const frameKey = fromHex(conn.relayFrameKey);
   const peerAuth = fromHex(conn.peerAuthKey);
   const target = conn.instanceId;
@@ -58,7 +60,7 @@ export async function directReader(conn: ServerConnection, id: string, file: str
     const body = new Uint8Array(utf8ToBytes(JSON.stringify({ requestId, target, sealed })));
     const unix = String(Math.floor(Date.now() / 1000));
     const head =
-      `POST ${DIRECT_PATH} HTTP/1.0\r\nHost: ${host}:${port}\r\nContent-Type: application/json\r\n` +
+      `POST ${call} HTTP/1.0\r\nHost: ${host}:${port}\r\nContent-Type: application/json\r\n` +
       `Content-Length: ${body.length}\r\nX-Knightloader-Peer: ${selfId}\r\nX-Knightloader-Target: ${target}\r\n` +
       `X-Knightloader-Time: ${unix}\r\nX-Knightloader-Signature: ${directSignature(peerAuth, selfId, unix, body)}\r\n\r\n`;
     const raw = await exchange(host, port, head, body);
