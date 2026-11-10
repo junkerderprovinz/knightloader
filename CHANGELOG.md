@@ -38,6 +38,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.7.7] - 2026-11-10
+
 ### Added
 
 - **You can put links in a category by hand.** Right-click a package or a
@@ -46,21 +48,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   so a batch lands in its category from the start. A Packagizer rule that
   names a category still wins. Thanks to @Kayn2106 for asking how
   ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
-### Fixed
 
-- **The Flatpak opens on a PC with an NVIDIA graphics card.** Under Wayland
-  the window could stay away, with "Error 71 (Protocol error) dispatching to
-  Wayland display" at the end of the log. The desktop app switches off the
-  WebKit renderer that NVIDIA's driver trips over, but inside the Flatpak it
-  could not see the driver. It now reads the driver from where Flatpak can see
-  it, as ArrowLoop does since
-  [arrowloop #143](https://github.com/junkerderprovinz/arrowloop/issues/143).
-### Fixed
-
-- **A plain file behind a link without an extension downloads under its own
-  name.** Such a link went to yt-dlp, which saved a text file from GitHub as
-  "LICENSE (best).unknown_video" and added four empty variant rows. Once yt-dlp
-  says the link is just a file, KnightLoader fetches it directly as one row.
 ### Changed
 
 - **The Backend column shows who handles a download by its mark.** A debrid
@@ -74,6 +62,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   column shows its speed in muted ink and names the service when you hover it.
   The time left stays blank until the files come here (thanks to @Kayn2106,
   [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
+
 ### Fixed
 
 - **"Remove and delete files" takes the unpacked files along.** The archive
@@ -84,6 +73,27 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the unpacked folder later stay. "Remove" still keeps every file. Thanks to
   @Kayn2106 for the report
   ([#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
+- **The browser extension keeps its pairing in a Firefox that lets it read its
+  database but not write to it.** The toolbar popup stopped before it showed
+  your group, and the video button said "Could not send". The extension keeps
+  the pairing in its own storage in that case as well. Thanks to @sabascos for
+  the photos
+  ([#156](https://github.com/junkerderprovinz/knightloader/discussions/156)).
+- **A page's own short sounds stay off "Media on this page".** On YouTube the
+  extension listed the voice-search sounds instead of anything worth sending.
+  Audio of a few seconds is left out, and the size shown for a file the browser
+  fetched in parts is the whole file's.
+- **A plain file behind a link without an extension downloads under its own
+  name.** Such a link went to yt-dlp, which saved a text file from GitHub as
+  "LICENSE (best).unknown_video" and added four empty variant rows. Once yt-dlp
+  says the link is just a file, KnightLoader fetches it directly as one row.
+- **The Flatpak opens on a PC with an NVIDIA graphics card.** Under Wayland
+  the window could stay away, with "Error 71 (Protocol error) dispatching to
+  Wayland display" at the end of the log. The desktop app switches off the
+  WebKit renderer that NVIDIA's driver trips over, but inside the Flatpak it
+  could not see the driver. It now reads the driver from where Flatpak can see
+  it, as ArrowLoop does since
+  [arrowloop #143](https://github.com/junkerderprovinz/arrowloop/issues/143).
 
 ## [2.7.6] - 2026-11-09
 

@@ -1,0 +1,1 @@
+Pick a category by hand, see which debrid service is doing the heavy lifting, and "delete files" finally means the unpacked ones too.

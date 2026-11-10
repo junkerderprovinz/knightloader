@@ -51,6 +51,31 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.7.7',
+    changes: [
+      {
+        id: 'category',
+        text: 'whatsnew.change.category',
+        names: {
+          collector: 'nav.collector',
+          downloads: 'nav.downloads',
+          menu: 'menu.category',
+          none: 'menu.categoryNone',
+          options: 'collector.options',
+          field: 'collector.category',
+        },
+      },
+      {
+        id: 'remove-unpacked',
+        text: 'whatsnew.change.removeUnpacked',
+        names: { withFiles: 'task.removeWithFiles', remove: 'task.remove' },
+      },
+      { id: 'backend-marks', text: 'whatsnew.change.backendMarks', names: { name: 'columns.resolver' } },
+      { id: 'service-speed', text: 'whatsnew.change.serviceSpeed', names: { speed: 'columns.speed' } },
+      { id: 'plain-file', text: 'whatsnew.change.plainFile' },
+    ],
+  },
+  {
     version: '2.7.6',
     changes: [
       {

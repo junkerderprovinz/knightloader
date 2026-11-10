@@ -79,6 +79,19 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="2.7.7" date="2026-11-10">
+      <description>
+        <p>Categories by hand, a mark for each backend, and removing with files takes the unpacked files along.</p>
+        <ul>
+          <li>Right-click links to put them in a category, or pick one when adding them</li>
+          <li>The Backend column shows the service or client that handles each download</li>
+          <li>The speed column shows how fast a debrid service fetches a torrent</li>
+          <li>Removing a download with its files also deletes what unpacking wrote</li>
+          <li>The Flatpak opens on NVIDIA graphics under Wayland</li>
+        </ul>
+      </description>
+      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.7.7</url>
+    </release>
     <release version="2.7.6" date="2026-11-09">
       <description>
         <p>Usenet providers come as tiles, and KnightLoader follows GlimStone 4.3.1.</p>
