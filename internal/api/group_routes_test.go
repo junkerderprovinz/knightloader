@@ -724,9 +724,12 @@ func TestOnlyAnApprovedInstanceMakesThisInstanceLeaveTheGroup(t *testing.T) {
 	if status, body := instance(http.MethodDelete, "/api/connect/members/"+self); status != http.StatusNoContent {
 		t.Fatalf("an approved instance taking this one out = %d (%s), want 204", status, body)
 	}
+	// Leaving ends with group.json written anew, which the test waits for so
+	// nothing is still writing to its folder when it is removed.
 	deadline := time.Now().Add(5 * time.Second)
 	for {
-		if got, _ := a.Accounts.Get(federation.SeedAccount); got == "" {
+		got, _ := a.Accounts.Get(federation.SeedAccount)
+		if st, _ := a.Federation.Joined(false, time.Now()); got == "" && st.JoinedAt.IsZero() {
 			break
 		}
 		if time.Now().After(deadline) {

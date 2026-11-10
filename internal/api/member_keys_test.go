@@ -289,7 +289,8 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	}
 	deadline = time.Now().Add(5 * time.Second)
 	for {
-		if stored, _ := secondApp.Accounts.Get(federation.SeedAccount); stored == "" {
+		stored, _ := secondApp.Accounts.Get(federation.SeedAccount)
+		if st, _ := secondApp.Federation.Joined(false, time.Now()); stored == "" && st.JoinedAt.IsZero() {
 			break
 		}
 		if time.Now().After(deadline) {
