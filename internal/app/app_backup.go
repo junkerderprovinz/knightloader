@@ -9,6 +9,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,6 +20,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	kitfortress "github.com/junkerderprovinz/parleyport/kit/fortress"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
@@ -154,6 +157,54 @@ func (a *App) WriteBackup(w io.Writer, parts BackupParts) error {
 		return fmt.Errorf("could not encrypt the backup: %w", err)
 	}
 	_, err = w.Write(sealed)
+	return err
+}
+
+// FortressExport hands the archive Download backup sends to an app of the
+// fortress that keeps backups, for fortress.Config.Export. It is staged next to
+// the snapshot because the kit needs its length before it streams; without an
+// app key it holds every secret in the clear, which is why the kit sends it
+// only on the local network.
+func (a *App) FortressExport(ctx context.Context, from kitfortress.Caller) (io.ReadCloser, int64, error) {
+	parts, err := a.PrepareBackup()
+	if err != nil {
+		return nil, 0, err
+	}
+	f, err := os.Create(filepath.Join(filepath.Dir(parts.DBPath), "export"))
+	if err != nil {
+		parts.Discard()
+		return nil, 0, fmt.Errorf("could not stage the backup: %w", err)
+	}
+	export := &stagedExport{File: f, parts: parts}
+	if err := a.WriteBackup(f, parts); err != nil {
+		export.Close()
+		return nil, 0, fmt.Errorf("could not build the backup: %w", err)
+	}
+	n, err := f.Seek(0, io.SeekCurrent)
+	if err == nil {
+		_, err = f.Seek(0, io.SeekStart)
+	}
+	if err == nil {
+		err = ctx.Err()
+	}
+	if err != nil {
+		export.Close()
+		return nil, 0, err
+	}
+	log.Printf("backup: handing a backup of %d bytes to %s on %s", n, from.App, from.Device)
+	return export, n, nil
+}
+
+// stagedExport is a staged backup that takes its snapshot folder with it when
+// it is closed.
+type stagedExport struct {
+	*os.File
+	parts BackupParts
+}
+
+func (e *stagedExport) Close() error {
+	err := e.File.Close()
+	e.parts.Discard()
 	return err
 }
 
