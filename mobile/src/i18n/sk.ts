@@ -142,6 +142,7 @@ export const sk: Dict = {
   'error.groupFull': 'Skupina už má toľko zariadení, koľko pojme. Odstráň jedno v Nastavenia, Párovanie na niektorej inštancii a skús to znova.',
   'error.groupJoinsBusy': 'Za poslednú hodinu sa ku skupine pripojilo priveľa nových zariadení. Skús to neskôr.',
   'error.memberNotPinned': 'Inštancia nemohla uložiť kľúč tohto zariadenia. Skús to o chvíľu znova.',
+  'error.answerTooLarge': 'Odpoveď inštancie je pre relay príliš veľká. V sieti inštancie prejde.',
   'error.connectionEnded': 'Inštancia už toto pripojenie neprijíma, pretože jej heslo bolo zmenené alebo resetované. Odstráň pripojenie a pripoj sa znova pomocou dvanástich slov, ktoré inštancia ukazuje v časti Nastavenia, Párovanie. Po resetovaní sú to nové slová.',
   'addDownload.cancel': 'Zrušiť',
   'addDownload.button': 'Pridať',

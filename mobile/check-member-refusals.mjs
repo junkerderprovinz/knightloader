@@ -3,10 +3,10 @@
 // catalogue, so the app never shows the server's English for something the
 // person could fix.
 //
-// The codes are read from the server (internal/federation/members.go,
-// internal/federation/wire_test.go and internal/api/group_routes.go), so a code added
-// there fails this check until it is mapped in src/api/refusal.ts or listed
-// below as one no phone can meet.
+// The codes are read from the server (kitRefusals in
+// internal/federation/wire_test.go, which holds the codes of kit/group, and
+// internal/api/group_routes.go), so a code added there fails this check until
+// it is mapped in src/api/refusal.ts or listed below as one no phone can meet.
 //
 // Run by CI and by hand, from mobile/: `node check-member-refusals.mjs`
 import { readFileSync, readdirSync } from 'node:fs';
@@ -24,15 +24,17 @@ const UNREACHABLE = {
   memberKind: 'the app goes by the id its key makes',
   // The app's signature is held to the server's vector by check-member-key.mjs.
   memberSignature: 'the signature is checked against the server vector',
+  // An instance takes phones and browsers, and the app joins as a phone.
+  memberKindRefused: 'the instance takes phones',
 };
 
-const server =
-  read('..', 'internal', 'federation', 'members.go') +
-  read('..', 'internal', 'federation', 'wire_test.go') +
-  read('..', 'internal', 'api', 'group_routes.go');
-const codes = new Set(
-  [...server.matchAll(/(?:refuse\([^,]+,|RefusalBody\(|writeRefusal\([^,]+,[^,]+,)\s*"([A-Za-z]+)"/g)].map((m) => m[1]),
-);
+const wire = read('..', 'internal', 'federation', 'wire_test.go');
+const routes = read('..', 'internal', 'api', 'group_routes.go');
+const kit = wire.match(/var kitRefusals = \[\]string\{([\s\S]*?)\n\}/);
+const codes = new Set([
+  ...[...(kit?.[1] ?? '').matchAll(/"([A-Za-z]+)"/g)].map((m) => m[1]),
+  ...[...routes.matchAll(/(?:refuse\([^,]+,|RefusalBody\(|writeRefusal\([^,]+,[^,]+,)\s*"([A-Za-z]+)"/g)].map((m) => m[1]),
+]);
 const problems = [];
 if (codes.size === 0) problems.push('no refusal codes found in the server; the pattern in this check no longer matches it');
 

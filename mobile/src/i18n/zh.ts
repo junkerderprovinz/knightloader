@@ -141,6 +141,7 @@ export const zh: Dict = {
   'error.groupFull': '组内设备已达上限。请在某个实例的“设置”、“配对”中移除一台，然后再试。',
   'error.groupJoinsBusy': '过去一小时内加入组的新设备太多。请稍后再试。',
   'error.memberNotPinned': '实例无法保存此设备的密钥。请稍后再试。',
+  'error.answerTooLarge': '实例的回应太大，中继无法传送。在实例所在的网络中可以正常收到。',
   'error.connectionEnded': '实例的密码已更改或重置，所以它不再接受这个连接。请删除这个连接，再用实例在“设置”的“配对”里显示的十二个词重新连接。重置之后，这些词是新的。',
   'addDownload.cancel': '取消',
   'addDownload.button': '添加',

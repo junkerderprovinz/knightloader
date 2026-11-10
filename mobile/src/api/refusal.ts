@@ -62,6 +62,7 @@ const REFUSALS: Partial<Record<string, TranslationKey>> = {
   groupFull: 'error.groupFull',
   groupJoinsBusy: 'error.groupJoinsBusy',
   memberNotPinned: 'error.memberNotPinned',
+  answerTooLarge: 'error.answerTooLarge',
 };
 
 /** errorText is what a failed call shows: translated where the code is known. */

@@ -5,8 +5,12 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"encoding/hex"
+	"maps"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
@@ -271,5 +275,55 @@ func TestRelayHost(t *testing.T) {
 		if got := relay.RelayHost(tc.in); got != tc.want {
 			t.Errorf("%s: RelayHost(%q) = %q, want %q", tc.name, tc.in, got, tc.want)
 		}
+	}
+}
+
+// kitRefusals are the codes kit/group turns a member's call away with. The
+// refusal checks of the phone and the extension read them from here, since
+// the kit's source is not in this repository.
+var kitRefusals = []string{
+	"answerTooLarge",
+	"groupFull",
+	"groupJoinsBusy",
+	"memberBusy",
+	"memberKeyChanged",
+	"memberKind",
+	"memberKindRefused",
+	"memberNotPinned",
+	"memberPending",
+	"memberSignature",
+	"memberUnnamed",
+	"memberUnsigned",
+}
+
+func TestTheKitRefusesWithTheListedCodes(t *testing.T) {
+	out, err := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", "github.com/junkerderprovinz/parleyport/kit").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := strings.TrimSpace(string(out))
+	code := regexp.MustCompile(`(?:refuse\([^,]+,|RefusalBody\()\s*"([A-Za-z]+)"`)
+	found := map[string]bool{}
+	for _, pkg := range []string{"group", "relay"} {
+		files, err := filepath.Glob(filepath.Join(dir, pkg, "*.go"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, f := range files {
+			if strings.HasSuffix(f, "_test.go") {
+				continue
+			}
+			b, err := os.ReadFile(f)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, m := range code.FindAllStringSubmatch(string(b), -1) {
+				found[m[1]] = true
+			}
+		}
+	}
+	got := slices.Sorted(maps.Keys(found))
+	if !slices.Equal(got, kitRefusals) {
+		t.Errorf("the kit refuses with %v, kitRefusals lists %v", got, kitRefusals)
 	}
 }

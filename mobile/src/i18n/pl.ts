@@ -142,6 +142,7 @@ export const pl: Dict = {
   'error.groupFull': 'Grupa ma już tyle urządzeń, ile może pomieścić. Usuń jedno w Ustawienia, Parowanie na którejś instancji i spróbuj ponownie.',
   'error.groupJoinsBusy': 'W ciągu ostatniej godziny do grupy dołączyło zbyt wiele nowych urządzeń. Spróbuj ponownie później.',
   'error.memberNotPinned': 'Instancja nie mogła zapisać klucza tego urządzenia. Spróbuj ponownie za chwilę.',
+  'error.answerTooLarge': 'Odpowiedź instancji jest za duża dla przekaźnika. W sieci instancji dociera bez problemu.',
   'error.connectionEnded': 'Instancja nie przyjmuje już tego połączenia, bo jej hasło zostało zmienione lub zresetowane. Usuń połączenie i połącz się ponownie za pomocą dwunastu słów, które instancja pokazuje w sekcji Ustawienia, Parowanie. Po resecie są to nowe słowa.',
   'addDownload.cancel': 'Anuluj',
   'addDownload.button': 'Dodaj',
