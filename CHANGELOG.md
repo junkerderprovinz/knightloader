@@ -38,6 +38,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A plain file behind a link without an extension downloads under its own
+  name.** Such a link went to yt-dlp, which saved a text file from GitHub as
+  "LICENSE (best).unknown_video" and added four empty variant rows. Once yt-dlp
+  says the link is just a file, KnightLoader fetches it directly as one row.
+
 ## [2.7.6] - 2026-11-09
 
 ### Added
