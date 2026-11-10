@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"crypto/ed25519"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -13,31 +12,31 @@ import (
 	"testing"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/discovery"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/lan"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
 // fakeNetwork stands in for the multicast service: it hands out the announces
 // a test puts on it, filtered through the membership check the instance
-// installs, as discovery.Service does.
+// installs, as lan.Service does.
 type fakeNetwork struct {
 	mu       sync.Mutex
-	heard    []discovery.Peer
-	sign     func(discovery.Peer) string
-	isMember func(discovery.Peer) bool
+	heard    []lan.Peer
+	sign     func(lan.Peer) string
+	isMember func(lan.Peer) bool
 }
 
-func (f *fakeNetwork) SetGroup(_ string, sign func(discovery.Peer) string, isMember func(discovery.Peer) bool) {
+func (f *fakeNetwork) SetGroup(_ string, sign func(lan.Peer) string, isMember func(lan.Peer) bool) {
 	f.mu.Lock()
 	f.sign, f.isMember = sign, isMember
 	f.mu.Unlock()
 }
 
-func (f *fakeNetwork) Members() []discovery.Peer {
+func (f *fakeNetwork) Members() []lan.Peer {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	var out []discovery.Peer
+	var out []lan.Peer
 	for _, p := range f.heard {
 		if f.isMember != nil && f.isMember(p) {
 			out = append(out, p)
@@ -48,9 +47,9 @@ func (f *fakeNetwork) Members() []discovery.Peer {
 
 // announce is what the instance behind srv puts on the network: its id and
 // address, tagged the way its own discovery service would tag it.
-func announce(t *testing.T, srv *httptest.Server, net *fakeNetwork, id string) discovery.Peer {
+func announce(t *testing.T, srv *httptest.Server, net *fakeNetwork, id string) lan.Peer {
 	t.Helper()
-	p := discovery.Peer{ID: id, Name: id, URL: srv.URL, Sent: time.Now().Unix()}
+	p := lan.Peer{ID: id, Name: id, URL: srv.URL, Sent: time.Now().Unix()}
 	net.mu.Lock()
 	sign := net.sign
 	net.mu.Unlock()
@@ -68,8 +67,8 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 	t.Parallel()
 	first, firstApp, firstToken := pairingServer(t)
 	second, secondApp, secondToken := pairingServer(t)
-	phrase := activate(t, firstToken, first.URL)
-	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/join", map[string]string{"phrase": phrase}); code != http.StatusOK {
+	words := activate(t, firstToken, first.URL)
+	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/join", map[string]string{"phrase": words}); code != http.StatusOK {
 		t.Fatalf("join answered %d: %s", code, body)
 	}
 
@@ -78,11 +77,11 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 	secondID := groupID(secondApp)
 	// Both hold the same keys, so the second instance's announce is tagged
 	// with the tag the first one computes.
-	net.heard = []discovery.Peer{announce(t, second, net, secondID), {ID: "id-stranger", Name: "Stranger", URL: "http://192.168.1.99:8749", Sent: time.Now().Unix(), Tag: "forged"}}
+	net.heard = []lan.Peer{announce(t, second, net, secondID), {ID: "id-stranger", Name: "Stranger", URL: "http://192.168.1.99:8749", Sent: time.Now().Unix(), Tag: "forged"}}
 	// The second instance hears the first too, so its Pairing card names it.
 	seen := &fakeNetwork{}
 	secondApp.Federation.SetDiscovery(seen)
-	seen.heard = []discovery.Peer{announce(t, first, seen, groupID(firstApp))}
+	seen.heard = []lan.Peer{announce(t, first, seen, groupID(firstApp))}
 
 	info := connectInfoOf(t, firstToken, first.URL)
 	if len(info.Members) != 1 || info.Members[0].ID != secondID || !info.Members[0].Direct {
@@ -93,7 +92,7 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 	// approves the first, as every instance approves the others it meets in
 	// its group.
 	firstID := groupID(firstApp)
-	if _, _, err := firstApp.Federation.Approve(secondID, memberKey(secondApp).Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+	if _, _, err := firstApp.Federation.Approve(secondID, memberKey(secondApp).Public(), member.KindInstance); err != nil {
 		t.Fatal(err)
 	}
 	if code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
@@ -108,7 +107,7 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 	}
 	// The direct call was signed like one over the relay.
 	st, _ := secondApp.Federation.Group(false, time.Now())
-	if pin, ok := st.Keys[groupID(firstApp)]; !ok || pin.Kind != relay.KindInstance {
+	if pin, ok := st.Keys[groupID(firstApp)]; !ok || pin.Kind != member.KindInstance {
 		t.Fatalf("the second instance pinned %+v, want the first instance's key", st.Keys)
 	}
 }
@@ -157,16 +156,16 @@ func TestADirectCallNeedsTheGroupsSignature(t *testing.T) {
 	defer tap.Close()
 
 	caller, callerApp, callerToken := pairingServer(t)
-	phrase := revealed(t, token, srv.URL)
-	if code, body := call(t, callerToken, http.MethodPost, caller.URL+"/api/connect/join", map[string]string{"phrase": phrase}); code != http.StatusOK {
+	words := revealed(t, token, srv.URL)
+	if code, body := call(t, callerToken, http.MethodPost, caller.URL+"/api/connect/join", map[string]string{"phrase": words}); code != http.StatusOK {
 		t.Fatalf("join answered %d: %s", code, body)
 	}
 	net := &fakeNetwork{}
 	callerApp.Federation.SetDiscovery(net)
-	net.heard = []discovery.Peer{announce(t, tap, net, self)}
+	net.heard = []lan.Peer{announce(t, tap, net, self)}
 	// The caller entered the words of a group that was there already, so it
 	// waits for approval here first. Its own owner approved this one.
-	if _, _, err := callerApp.Federation.Approve(self, memberKey(a).Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+	if _, _, err := callerApp.Federation.Approve(self, memberKey(a).Public(), member.KindInstance); err != nil {
 		t.Fatal(err)
 	}
 	if code, body := call(t, callerToken, http.MethodGet, caller.URL+"/api/instances/"+self+"/tasks", nil); code != http.StatusForbidden {

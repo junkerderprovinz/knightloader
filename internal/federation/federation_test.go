@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/junkerderprovinz/knightloader/internal/discovery"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/lan"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // fakeRelay stands in for *relay.Client and records the last call it was asked
@@ -59,11 +59,11 @@ var (
 )
 
 // fakeLocal stands in for discovery: members announcing on this network.
-type fakeLocal struct{ members []discovery.Peer }
+type fakeLocal struct{ members []lan.Peer }
 
-func (f *fakeLocal) Members() []discovery.Peer { return f.members }
+func (f *fakeLocal) Members() []lan.Peer { return f.members }
 
-func (f *fakeLocal) SetGroup(string, func(discovery.Peer) string, func(discovery.Peer) bool) {}
+func (f *fakeLocal) SetGroup(string, func(lan.Peer) string, func(lan.Peer) bool) {}
 
 func newManager(t *testing.T) *Manager {
 	t.Helper()
@@ -452,7 +452,7 @@ func TestOnlyAStoredPeerIsCalledWithACredential(t *testing.T) {
 	}))
 	defer member.Close()
 	m.SetGroup(make([]byte, 16), officeID, nil)
-	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: bravoID, Name: "Laptop", URL: member.URL}}})
+	m.SetDiscovery(&fakeLocal{members: []lan.Peer{{ID: bravoID, Name: "Laptop", URL: member.URL}}})
 	_, _, _ = m.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil)
 	if len(toMember) != 1 || toMember[0] != "" {
 		t.Errorf("the member was called with %q, want one call without a credential", toMember)
@@ -496,7 +496,7 @@ func TestAMemberCannotTakeAStoredPeersName(t *testing.T) {
 	}
 	m.SetPeerTokens(staticTokens{"nas": "secret-the-nas-issued"})
 	m.SetGroup(make([]byte, 16), officeID, nil)
-	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: "nas", Name: "nas", URL: "http://192.168.1.66:8749"}}})
+	m.SetDiscovery(&fakeLocal{members: []lan.Peer{{ID: "nas", Name: "nas", URL: "http://192.168.1.66:8749"}}})
 	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "nas", Name: "nas"}}}
 	m.SetRelay(rt)
 
@@ -517,7 +517,7 @@ func TestAMemberCannotTakeAStoredPeersName(t *testing.T) {
 func TestAMemberIsListedOnlyUnderAnInstanceID(t *testing.T) {
 	m := newManager(t)
 	m.SetGroup(make([]byte, 16), officeID, nil)
-	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{
+	m.SetDiscovery(&fakeLocal{members: []lan.Peer{
 		{ID: "cellar", Name: "Cellar", URL: "http://192.168.1.66:8749"},
 		{ID: nasID, Name: "NAS", URL: "http://192.168.1.5:8749"},
 	}})
@@ -554,7 +554,7 @@ func TestAStoredPeerIsNeverReplacedByAMember(t *testing.T) {
 		t.Fatal(err)
 	}
 	m.SetGroup(make([]byte, 16), officeID, nil)
-	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: bravoID, URL: "http://192.168.1.66:8749"}}})
+	m.SetDiscovery(&fakeLocal{members: []lan.Peer{{ID: bravoID, URL: "http://192.168.1.66:8749"}}})
 	m.SetRelay(&fakeRelay{sibs: []relay.Announce{{InstanceID: bravoID, Name: "Laptop"}}})
 
 	if list := m.List(); len(list) != 1 || list[0].RelayID != "" || list[0].URL != "http://127.0.0.1:1" {

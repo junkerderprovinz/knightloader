@@ -1,12 +1,12 @@
 // The app dials a relay address the way the server does, and names the relay
 // in its hello the way the relay checks it.
 //
-// src/api/relayClient.ts ports internal/relay's connectURL and RelayHost. When
+// src/api/relayClient.ts ports kit/relay's connectURL and RelayHost. When
 // connectURL disagrees, an address that works on the instances fails on the
 // phone with nothing but "not connected"; when relayHost does, the relay never
 // lets the phone take back its place after a dropped connection. So both ports
 // are run against every row of the Go tests' tables, TestConnectURL and
-// TestRelayHost in internal/relay/client_test.go. A connectURL row wanting ""
+// TestRelayHost in internal/federation/wire_test.go. A connectURL row wanting ""
 // is an address the server refuses, which the app answers with null.
 //
 // Run by hand and by CI, from mobile/: `node check-relay-url.mjs`
@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const source = readFileSync(join(here, 'src', 'api', 'relayClient.ts'), 'utf8');
-const goTest = readFileSync(join(here, '..', 'internal', 'relay', 'client_test.go'), 'utf8');
+const goTest = readFileSync(join(here, '..', 'internal', 'federation', 'wire_test.go'), 'utf8');
 
 const port = (name) => {
   const fn = source.match(new RegExp(`^export function ${name}\\([\\s\\S]*?^\\}$`, 'm'));

@@ -8,7 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 func TestAnInstanceTakesTheDevicesAnotherOneSaw(t *testing.T) {
@@ -21,13 +22,13 @@ func TestAnInstanceTakesTheDevicesAnotherOneSaw(t *testing.T) {
 	phoneKey := memberKeyOf(202).Public().(ed25519.PublicKey)
 	// The phone called here once and waits for approval, which the other
 	// instance gave while this one was away.
-	m.group.state.Keys = map[string]PinnedKey{phone1: {Key: phoneKey, Kind: relay.KindMobile, Used: joined}}
+	m.group.state.Keys = map[string]PinnedKey{phone1: {Key: phoneKey, Kind: member.KindMobile, Used: joined}}
 
 	seen := joined.Add(time.Hour)
 	now := seen.Add(time.Hour)
 	changed, err := m.Merge(Roster{Apps: []RosterApp{
-		{ID: browser1, Name: "Firefox", Deployment: relay.KindExtension, LastSeen: seen, Key: browserKey},
-		{ID: phone1, Name: "Pixel 8", Deployment: relay.KindMobile, LastSeen: seen, Key: phoneKey},
+		{ID: browser1, Name: "Firefox", Deployment: string(member.KindExtension), LastSeen: seen, Key: browserKey},
+		{ID: phone1, Name: "Pixel 8", Deployment: string(member.KindMobile), LastSeen: seen, Key: phoneKey},
 	}}, now)
 	if err != nil || !changed {
 		t.Fatalf("merge = %v, %v; want a change", changed, err)
@@ -54,8 +55,8 @@ func TestAnInstanceTakesARemovalItMissed(t *testing.T) {
 		t.Fatal(err)
 	}
 	phoneKey := memberKeyOf(202).Public().(ed25519.PublicKey)
-	m.group.state.Apps = map[string]KnownApp{phone1: {Name: "Pixel 8", Deployment: relay.KindMobile, LastSeen: joined}}
-	m.group.state.Keys = map[string]PinnedKey{phone1: {Key: phoneKey, Kind: relay.KindMobile, Approved: true, Used: joined}}
+	m.group.state.Apps = map[string]KnownApp{phone1: {Name: "Pixel 8", Deployment: string(member.KindMobile), LastSeen: joined}}
+	m.group.state.Keys = map[string]PinnedKey{phone1: {Key: phoneKey, Kind: member.KindMobile, Approved: true, Used: joined}}
 
 	removed := joined.Add(time.Hour)
 	if _, err := m.Merge(Roster{Removed: map[string]time.Time{phone1: removed}}, removed.Add(time.Hour)); err != nil {
@@ -66,7 +67,7 @@ func TestAnInstanceTakesARemovalItMissed(t *testing.T) {
 	}
 
 	// Another instance that still lists it does not bring it back.
-	m.Merge(Roster{Apps: []RosterApp{{ID: phone1, Name: "Pixel 8", Deployment: relay.KindMobile, LastSeen: removed, Key: phoneKey}}}, removed.Add(time.Hour))
+	m.Merge(Roster{Apps: []RosterApp{{ID: phone1, Name: "Pixel 8", Deployment: string(member.KindMobile), LastSeen: removed, Key: phoneKey}}}, removed.Add(time.Hour))
 	if apps, _ := m.Apps(removed.Add(time.Hour)); len(apps) != 0 || m.StillMember(phone1) {
 		t.Fatalf("apps = %+v, want the removed phone kept out", apps)
 	}
@@ -80,8 +81,8 @@ func TestARosterCannotPutAKeyUnderADevicesID(t *testing.T) {
 	}
 	other := memberKeyOf(99).Public().(ed25519.PublicKey)
 	m.Merge(Roster{Apps: []RosterApp{
-		{ID: browser1, Name: "Firefox", Deployment: relay.KindExtension, LastSeen: joined, Key: other},
-		{ID: officeID, Name: "office", Deployment: relay.KindExtension, LastSeen: joined},
+		{ID: browser1, Name: "Firefox", Deployment: string(member.KindExtension), LastSeen: joined, Key: other},
+		{ID: officeID, Name: "office", Deployment: string(member.KindExtension), LastSeen: joined},
 	}}, joined.Add(time.Hour))
 	if m.StillMember(browser1) {
 		t.Error("a key that does not make the extension's id was approved under it")
@@ -97,7 +98,7 @@ func TestSyncAppsAsksApprovedInstancesOnly(t *testing.T) {
 	if err := m.SetJoined(joined); err != nil {
 		t.Fatal(err)
 	}
-	roster, _ := json.Marshal(Roster{Apps: []RosterApp{{ID: browser1, Name: "Firefox", Deployment: relay.KindExtension, LastSeen: joined}}})
+	roster, _ := json.Marshal(Roster{Apps: []RosterApp{{ID: browser1, Name: "Firefox", Deployment: string(member.KindExtension), LastSeen: joined}}})
 	rt := &fakeRelay{
 		sibs:   []relay.Announce{{InstanceID: officeID, Name: "Bottich", Deployment: "container"}},
 		resp:   roster,
@@ -111,7 +112,7 @@ func TestSyncAppsAsksApprovedInstancesOnly(t *testing.T) {
 	}
 
 	m.group.state.Keys = map[string]PinnedKey{
-		officeID: {Key: memberKeyOf(210).Public().(ed25519.PublicKey), Kind: relay.KindInstance, Approved: true, Used: joined},
+		officeID: {Key: memberKeyOf(210).Public().(ed25519.PublicKey), Kind: member.KindInstance, Approved: true, Used: joined},
 	}
 	if !m.SyncApps(context.Background(), now) || rt.path != "/api/group/roster" {
 		t.Fatalf("the approved instance was not asked, or its roster changed nothing (%q)", rt.path)

@@ -54,7 +54,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // shutdownGrace bounds how long a graceful stop waits for connections. Nothing

@@ -2,7 +2,7 @@
 //
 // relay.PairingCode puts the instance's own relay on a second line, and
 // src/api/pairingCode.ts reads it back. Every row of the Go test's table,
-// TestPairingCode in internal/relay/key_test.go, is scanned here: a code
+// TestPairingCode in internal/federation/wire_test.go, is scanned here: a code
 // without a second line pairs on the project relay, a wss:// relay is taken
 // over, and anything else is refused rather than dialled, since the app
 // permits no cleartext traffic. The connect screen then keeps searching the
@@ -16,7 +16,7 @@ import { compile, mount } from './stand-in-react.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const { readPairingCode } = await import(pathToFileURL(join(here, 'src', 'api', 'pairingCode.ts')).href);
-const goTest = readFileSync(join(here, '..', 'internal', 'relay', 'key_test.go'), 'utf8');
+const goTest = readFileSync(join(here, '..', 'internal', 'federation', 'wire_test.go'), 'utf8');
 
 const problems = [];
 const expect = (what, got, want) => {
@@ -28,7 +28,7 @@ const expect = (what, got, want) => {
 const phrase = goTest.match(/^func TestPairingCode\(t \*testing\.T\) \{\n\tconst phrase = "([^"]+)"/m)?.[1];
 const table = goTest.match(/^func TestPairingCode\([\s\S]*?^\}$/m);
 if (!phrase || !table) {
-  console.error('TestPairingCode was not found; the patterns in this check no longer match internal/relay/key_test.go');
+  console.error('TestPairingCode was not found; the patterns in this check no longer match internal/federation/wire_test.go');
   process.exit(1);
 }
 

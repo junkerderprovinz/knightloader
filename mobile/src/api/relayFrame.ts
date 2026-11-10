@@ -1,11 +1,11 @@
 // Sealing and opening relay proxy frames, the phone's half of
-// internal/relay/seal.go and the SealCall/OpenResult pair in protocol.go.
+// kit/relay/seal.go and the SealCall/OpenResult pair in protocol.go.
 //
 // The two implementations have to agree byte for byte or this app joins a group
 // and can speak to nobody in it, so everything that could drift is stated in one
 // place here: the domain string (seedphrase.ts), the additional-data layout
 // below, the nonce length, and the nonce||ciphertext framing. The shared vector
-// is internal/relay/announce_seal_test.go, which extension/check-relay-seal.mjs
+// is internal/federation/wire_test.go, which extension/check-relay-seal.mjs
 // holds all three ports to.
 //
 // The cipher comes from a library although sha256.ts next door is

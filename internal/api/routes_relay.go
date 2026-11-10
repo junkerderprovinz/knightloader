@@ -2,14 +2,13 @@ package api
 
 // The relay configuration: the address this instance dials out to, kept in
 // settings.json, and the key that authorises it there, sealed in
-// internal/accounts under relay.AccountService. The key is never answered
+// internal/accounts under federation.RelayKeyAccount. The key is never answered
 // with, and it does not ride on /api/settings, which hands the whole document
 // back.
 
 import (
 	"bytes"
 	"context"
-	"crypto/ed25519"
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
@@ -23,9 +22,10 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
-	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/phrase"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // relayConfig is what both GET and PUT /api/relay/config answer with: the
@@ -63,7 +63,7 @@ func registerRelay(reg *Registry, a *app.App) {
 		if !ok || subtle.ConstantTimeCompare([]byte(key), []byte(g.Key)) != 1 {
 			return ""
 		}
-		return idOf(a, g.member())
+		return idOf(a, g.identity())
 	}
 	// A hello proves an id only to the relay it names. This one goes by the
 	// name a connection reached it under, when that is a name this instance
@@ -165,8 +165,8 @@ func registerRelay(reg *Registry, a *app.App) {
 				return
 			}
 			if body.Key != nil {
-				before, _ := a.Accounts.Get(relay.AccountService)
-				if err := a.Accounts.Set(relay.AccountService, *body.Key); err != nil {
+				before, _ := a.Accounts.Get(federation.RelayKeyAccount)
+				if err := a.Accounts.Set(federation.RelayKeyAccount, *body.Key); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -186,7 +186,7 @@ func registerRelay(reg *Registry, a *app.App) {
 // it when joined is false. Its instances sign their calls and approve each
 // other as in a group reached by the words, under a member key of its own.
 func enterManualGroup(a *app.App, joined bool) error {
-	if err := a.Accounts.Set(relay.MemberAccountService, ""); err != nil {
+	if err := a.Accounts.Set(federation.MemberAccount, ""); err != nil {
 		return err
 	}
 	at := time.Time{}
@@ -201,11 +201,11 @@ func enterManualGroup(a *app.App, joined bool) error {
 // relayTarget).
 func servesKey(a *app.App, key string) bool {
 	var served []string
-	if manual, err := a.Accounts.Get(relay.AccountService); err == nil && manual != "" {
+	if manual, err := a.Accounts.Get(federation.RelayKeyAccount); err == nil && manual != "" {
 		served = append(served, manual)
 	}
 	if secret := groupSecret(a); secret != nil {
-		served = append(served, relay.DeriveKey(secret))
+		served = append(served, federation.Domain.GroupKey(secret))
 	}
 	if g, ok := retiredOf(a, time.Now()); ok {
 		served = append(served, g.Key)
@@ -224,7 +224,7 @@ func servesKey(a *app.App, key string) bool {
 // answers with what is stored. A key that will not decrypt reads as not set,
 // as in app.accountRow.
 func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
-	key, err := a.Accounts.Get(relay.AccountService)
+	key, err := a.Accounts.Get(federation.RelayKeyAccount)
 	cfg := a.Settings.Get()
 	// Sockets opened before the switch went off linger until they drop, so the
 	// count is only reported while it is on.
@@ -246,11 +246,11 @@ func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
 // which key the frames are sealed.
 //
 // A stored connection secret from the seed phrase comes first: the relay key
-// and the frame key are derived from it under different domains
-// (relay.DeriveKey, relay.DeriveFrameKey), so the relay can hold one and never
-// compute the other. Without a seed, a hand-entered relay key is used, and the
-// frame key comes from it (relay.FrameKeyFromRelayKey), a weaker guarantee no
-// UI text claims.
+// and the frame key are derived from it under different labels
+// (federation.Domain.GroupKey and FrameKey), so the relay can hold one and
+// never compute the other. Without a seed, a hand-entered relay key is used,
+// and the frame key comes from it (ManualFrameKey), a weaker guarantee no UI
+// text claims.
 func relayTarget(a *app.App) (url, key string, frameKey []byte) {
 	cfg := a.Settings.Get()
 	// Checked before any credential is read, so switching the relay off does
@@ -271,28 +271,28 @@ func relayTarget(a *app.App) (url, key string, frameKey []byte) {
 		}
 	}
 
-	if secretHex, err := a.Accounts.Get(relay.SeedAccountService); err == nil && secretHex != "" {
+	if secretHex, err := a.Accounts.Get(federation.SeedAccount); err == nil && secretHex != "" {
 		secret, err := hex.DecodeString(secretHex)
-		if err != nil || len(secret) != seedphrase.SecretLen {
+		if err != nil || len(secret) != phrase.SecretLen {
 			// Logged, because the instance looks configured while reaching
 			// nothing.
 			log.Printf("relay: the stored connection secret is malformed, remote access is off until the phrase is entered again")
 			return "", "", nil
 		}
 		if override != "" {
-			return override, relay.DeriveKey(secret), relay.DeriveFrameKey(secret)
+			return override, federation.Domain.GroupKey(secret), federation.Domain.FrameKey(secret)
 		}
-		return relay.DefaultRelayURL, relay.DeriveKey(secret), relay.DeriveFrameKey(secret)
+		return relay.DefaultURL, federation.Domain.GroupKey(secret), federation.Domain.FrameKey(secret)
 	}
 
-	manual, err := a.Accounts.Get(relay.AccountService)
+	manual, err := a.Accounts.Get(federation.RelayKeyAccount)
 	if err != nil {
 		log.Printf("relay: the stored key could not be read, connecting without one: %v", err)
 	}
 	if manual == "" {
 		return override, "", nil
 	}
-	return override, manual, relay.FrameKeyFromRelayKey(manual)
+	return override, manual, federation.Domain.ManualFrameKey(manual)
 }
 
 // applyRelay rebuilds the relay client from what is stored and installs it on
@@ -309,20 +309,21 @@ func applyRelay(a *app.App) {
 		return
 	}
 
-	member := memberKey(a)
+	identity := memberKey(a)
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      relayURL,
 		Key:      key,
 		FrameKey: frameKey,
+		Signing:  federation.Signing,
 		Self: relay.Announce{
-			InstanceID: idOf(a, member),
+			InstanceID: idOf(a, identity),
 			Name:       instanceDisplayName(a),
 			Deployment: instanceKind(),
 			Address:    groupAddress(a),
 		},
-		Member: member,
-		Trusts: a.Federation.TrustsAnswer,
-		Serve:  a.Federation.Guard(announceArrivals(a, relayProxyHandler(serve))),
+		Identity: identity,
+		Trusts:   a.Federation.TrustsAnswer,
+		Serve:    a.Federation.Guard(announceArrivals(a, relayProxyHandler(serve))),
 		// A browser extension holds its socket only for the length of a call,
 		// so its card is written while it is there rather than whenever a page
 		// next asks, and the open pages hear of it.
@@ -353,8 +354,8 @@ func applyRelay(a *app.App) {
 // applyGroup hands the stored group secret to the direct transport, which
 // works whichever relay is chosen, none included.
 func applyGroup(a *app.App) {
-	member := memberKey(a)
-	a.Federation.SetGroup(groupSecret(a), idOf(a, member), member)
+	identity := memberKey(a)
+	a.Federation.SetGroup(groupSecret(a), idOf(a, identity), identity)
 }
 
 // memberMu keeps two callers from minting two member keys at once.
@@ -364,36 +365,38 @@ var memberMu sync.Mutex
 // outside a group. A group reached by a hand-entered relay key signs the same
 // way as one reached by the words. The key is minted here the first time it is
 // needed.
-func memberKey(a *app.App) ed25519.PrivateKey {
-	if manual, _ := a.Accounts.Get(relay.AccountService); groupSecret(a) == nil && manual == "" {
+func memberKey(a *app.App) *member.Identity {
+	if manual, _ := a.Accounts.Get(federation.RelayKeyAccount); groupSecret(a) == nil && manual == "" {
 		return nil
 	}
 	memberMu.Lock()
 	defer memberMu.Unlock()
-	if stored, err := a.Accounts.Get(relay.MemberAccountService); err == nil && stored != "" {
-		if seed, err := hex.DecodeString(stored); err == nil && len(seed) == ed25519.SeedSize {
-			return ed25519.NewKeyFromSeed(seed)
+	if stored, err := a.Accounts.Get(federation.MemberAccount); err == nil && stored != "" {
+		if seed, err := hex.DecodeString(stored); err == nil {
+			if id, err := member.FromSeed(member.KindInstance, seed); err == nil {
+				return &id
+			}
 		}
 		log.Printf("relay: the stored member key is malformed, minting a new one; the group pins it as a new key")
 	}
-	seed, err := relay.NewMemberSeed()
+	id, err := member.NewIdentity(member.KindInstance)
 	if err == nil {
-		err = a.Accounts.Set(relay.MemberAccountService, hex.EncodeToString(seed))
+		err = a.Accounts.Set(federation.MemberAccount, hex.EncodeToString(id.Seed()))
 	}
 	if err != nil {
 		log.Printf("relay: no member key, the group refuses this instance's calls until one can be made: %v", err)
 		return nil
 	}
-	return ed25519.NewKeyFromSeed(seed)
+	return &id
 }
 
-// idOf is the id this instance goes by with member: the one the key makes
-// (relay.MemberID), or its own instance id without one.
-func idOf(a *app.App, member ed25519.PrivateKey) string {
-	if member == nil {
+// idOf is the id this instance goes by with identity: the one its key makes,
+// or its own instance id without one.
+func idOf(a *app.App, identity *member.Identity) string {
+	if identity == nil {
 		return a.Settings.Get().InstanceID
 	}
-	return relay.MemberID(relay.KindInstance, member.Public().(ed25519.PublicKey))
+	return identity.ID()
 }
 
 // groupID is the id the group knows this instance by.
@@ -402,12 +405,12 @@ func groupID(a *app.App) string { return idOf(a, memberKey(a)) }
 // groupSecret is the stored connection secret of this instance's phrase
 // group, nil outside a group or when the stored value is malformed.
 func groupSecret(a *app.App) []byte {
-	secretHex, err := a.Accounts.Get(relay.SeedAccountService)
+	secretHex, err := a.Accounts.Get(federation.SeedAccount)
 	if err != nil || secretHex == "" {
 		return nil
 	}
 	secret, err := hex.DecodeString(secretHex)
-	if err != nil || len(secret) != seedphrase.SecretLen {
+	if err != nil || len(secret) != phrase.SecretLen {
 		return nil
 	}
 	return secret

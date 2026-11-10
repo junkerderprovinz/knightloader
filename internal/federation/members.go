@@ -11,7 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // The rules a call from another member passes before it is served, on the
@@ -46,7 +47,7 @@ const (
 // Caller is the member a call came from: the id its pinned key speaks for.
 type Caller struct {
 	ID   string
-	Kind string
+	Kind member.Kind
 	Key  []byte
 }
 
@@ -237,30 +238,30 @@ func (m *Manager) admit(call relay.ProxyCall, source string, now time.Time) (Cal
 }
 
 // claimFits reports whether id is the one key makes for a member of kind
-// (relay.MemberID). Whoever holds the words sees every member's id, and only
+// (member.ID). Whoever holds the words sees every member's id, and only
 // this keeps them from pinning a key of their own under one, whether a device
 // of the group has called yet or not.
-func claimFits(id, kind string, key []byte) bool {
-	return id != "" && relay.MemberID(kind, key) == id
+func claimFits(id string, kind member.Kind, key []byte) bool {
+	return id != "" && member.ID(kind, key) == id
 }
 
 // kindOfID is the kind of device whose ids have id's shape, "" for none. The
 // shapes never overlap, so no device can be listed, refused or removed under
 // an instance's id, nor an instance under a device's.
-func kindOfID(id string) string {
+func kindOfID(id string) member.Kind {
 	switch {
 	case relay.ValidInstanceID(id):
-		return relay.KindInstance
+		return member.KindInstance
 	case hashAfter(id, "phone-"):
-		return relay.KindMobile
+		return member.KindMobile
 	case hashAfter(id, "browser-"):
-		return relay.KindExtension
+		return member.KindExtension
 	}
 	return ""
 }
 
 // hashAfter reports whether id is prefix and then a SHA-256 in lowercase hex,
-// as relay.MemberID writes it.
+// as member.ID writes it.
 func hashAfter(id, prefix string) bool {
 	rest, ok := strings.CutPrefix(id, prefix)
 	if !ok || len(rest) != 2*sha256.Size {
@@ -284,7 +285,7 @@ func (m *Manager) ApprovedInstance(c Caller) bool {
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
 	pin, ok := m.group.state.Keys[c.ID]
-	return ok && pin.Approved && pin.Kind == relay.KindInstance && relay.ValidInstanceID(c.ID) && bytes.Equal(pin.Key, c.Key)
+	return ok && pin.Approved && pin.Kind == member.KindInstance && relay.ValidInstanceID(c.ID) && bytes.Equal(pin.Key, c.Key)
 }
 
 // TrustsAnswer reports whether an answer signed by key may count as instance
@@ -292,7 +293,7 @@ func (m *Manager) ApprovedInstance(c Caller) bool {
 // what the relay client and the direct transport ask before they hand an
 // answer on, a "removed" included.
 func (m *Manager) TrustsAnswer(target string, key ed25519.PublicKey) bool {
-	return m.ApprovedInstance(Caller{ID: target, Kind: relay.KindInstance, Key: key})
+	return m.ApprovedInstance(Caller{ID: target, Kind: member.KindInstance, Key: key})
 }
 
 // StillMember reports whether id may still act in the group here: approved
@@ -330,7 +331,7 @@ var kindRefusal = refuse(http.StatusForbidden, "memberKind",
 func idlePinLocked(st *GroupState, now time.Time) string {
 	idlest := ""
 	for id, pin := range st.Keys {
-		if pin.Approved && pin.Kind != relay.KindInstance && now.Sub(pin.Used) >= pinIdle && (idlest == "" || pin.Used.Before(st.Keys[idlest].Used)) {
+		if pin.Approved && pin.Kind != member.KindInstance && now.Sub(pin.Used) >= pinIdle && (idlest == "" || pin.Used.Before(st.Keys[idlest].Used)) {
 			idlest = id
 		}
 	}

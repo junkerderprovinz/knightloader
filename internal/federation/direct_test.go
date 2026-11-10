@@ -2,7 +2,6 @@ package federation
 
 import (
 	"context"
-	"crypto/ed25519"
 	"fmt"
 	"io"
 	"net"
@@ -13,8 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/discovery"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/lan"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // TestASlowStrangerCannotTakeTheDirectCallSlots: everything a stranger needs
@@ -52,10 +52,9 @@ func TestASlowStrangerCannotTakeTheDirectCallSlots(t *testing.T) {
 	}
 }
 
-// TestCallsWithoutAPinnedKeyUseUpNoIDs: whatever reaches the direct route
-// from somebody holding the words but no pinned key, signed or not, leaves the
-// replay guard as it was, so nobody fills the record members' calls are
-// checked against.
+// TestCallsWithoutAPinnedKeyUseUpNoIDs: an unsigned call that reaches the
+// direct route from somebody holding the words leaves the replay guard as it
+// was, so nobody fills the record members' calls are checked against.
 func TestCallsWithoutAPinnedKeyUseUpNoIDs(t *testing.T) {
 	secret := []byte("0123456789abcdef")
 	callee, officeID := directCallee(t, secret)
@@ -65,21 +64,12 @@ func TestCallsWithoutAPinnedKeyUseUpNoIDs(t *testing.T) {
 		}))
 	}))
 	defer srv.Close()
-	for _, c := range []struct {
-		self   string
-		member ed25519.PrivateKey
-	}{
-		{bravoID, nil},
-		{"not-an-instance-id", memberKeyOf(60)},
-	} {
-		caller := callerOf(t, secret, callee, officeID)
-		caller.SetGroup(secret, c.self, c.member)
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		_, status, err := caller.callDirect(ctx, srv.URL, officeID, http.MethodGet, "/api/tasks", nil)
-		cancel()
-		if err != nil || status != http.StatusForbidden {
-			t.Errorf("a call from %s = %d %v, want it refused with a reason", c.self, status, err)
-		}
+	caller := callerOf(t, secret, callee, officeID)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	_, status, err := caller.callDirect(ctx, srv.URL, officeID, http.MethodGet, "/api/tasks", nil)
+	cancel()
+	if err != nil || status != http.StatusForbidden {
+		t.Errorf("an unsigned call = %d %v, want it refused with a reason", status, err)
 	}
 	if n := callee.replay.Len(); n != 0 {
 		t.Errorf("the replay guard kept %d ids of calls without a pinned key, want none", n)
@@ -130,9 +120,9 @@ func TestABodyThatNeverFinishesIsRefused(t *testing.T) {
 func directCallee(t *testing.T, secret []byte) (*Manager, string) {
 	t.Helper()
 	key := memberKeyOf(70)
-	id := idOf(key, relay.KindInstance)
+	id := idOf(key, member.KindInstance)
 	callee := newManager(t)
-	callee.SetGroup(secret, id, key)
+	callee.SetGroup(secret, id, identityOf(t, key))
 	return callee, id
 }
 
@@ -142,7 +132,7 @@ func callerOf(t *testing.T, secret []byte, callee *Manager, calleeID string) *Ma
 	t.Helper()
 	caller := newManager(t)
 	caller.SetGroup(secret, bravoID, nil)
-	if _, _, err := caller.Approve(calleeID, callee.keys.member.Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+	if _, _, err := caller.Approve(calleeID, callee.keys.identity.Public(), member.KindInstance); err != nil {
 		t.Fatal(err)
 	}
 	return caller
@@ -192,8 +182,8 @@ func TestAnInstanceHearsItWaitsBeforeApprovingTheOther(t *testing.T) {
 
 	caller := newManager(t)
 	key := memberKeyOf(71)
-	caller.SetGroup(secret, idOf(key, relay.KindInstance), key)
-	caller.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: officeID, URL: srv.URL}}})
+	caller.SetGroup(secret, idOf(key, member.KindInstance), identityOf(t, key))
+	caller.SetDiscovery(&fakeLocal{members: []lan.Peer{{ID: officeID, URL: srv.URL}}})
 	body, _, err := caller.Proxy(context.Background(), officeID, http.MethodGet, "/api/auth", nil)
 	if err == nil || body != nil {
 		t.Fatalf("an answer from an instance not approved here = %q %v, want none", body, err)

@@ -4,7 +4,7 @@
 // person could fix.
 //
 // The codes are read from the server (internal/federation/members.go,
-// internal/relay/member.go and internal/api/group_routes.go), so a code added
+// internal/federation/wire_test.go and internal/api/group_routes.go), so a code added
 // there fails this check until it is mapped in src/api/refusal.ts or listed
 // below as one no phone can meet.
 //
@@ -28,7 +28,7 @@ const UNREACHABLE = {
 
 const server =
   read('..', 'internal', 'federation', 'members.go') +
-  read('..', 'internal', 'relay', 'member.go') +
+  read('..', 'internal', 'federation', 'wire_test.go') +
   read('..', 'internal', 'api', 'group_routes.go');
 const codes = new Set(
   [...server.matchAll(/(?:refuse\([^,]+,|RefusalBody\(|writeRefusal\([^,]+,[^,]+,)\s*"([A-Za-z]+)"/g)].map((m) => m[1]),

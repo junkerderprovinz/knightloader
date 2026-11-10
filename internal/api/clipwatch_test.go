@@ -11,7 +11,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // watchingMember is a group member reached through the relay that holds one

@@ -13,7 +13,7 @@ import (
 	"github.com/coder/websocket"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 func TestTheThrottleKeyIsTheCallerBehindATrustedProxy(t *testing.T) {

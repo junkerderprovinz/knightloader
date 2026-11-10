@@ -811,7 +811,7 @@ func cleanModulesOff(ids []string) []string {
 // The three answers to "which relay does this instance use".
 const (
 	// RelayModeProject: the address compiled into the binary
-	// (relay.DefaultRelayURL), run by the project.
+	// (relay.DefaultURL), run by the project.
 	RelayModeProject = "project"
 	// RelayModeOwn: an address the user gave, or this instance itself when
 	// RelayServe is on.

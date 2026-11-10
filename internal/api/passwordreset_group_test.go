@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/junkerderprovinz/knightloader/internal/relay"
-	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/store"
+	"github.com/junkerderprovinz/parleyport/kit/phrase"
 )
 
 // TestAResetLeavesThePairingGroup: the phrase opens the group's routes
@@ -24,15 +24,15 @@ func TestAResetLeavesThePairingGroup(t *testing.T) {
 	t.Cleanup(srv.Close)
 	relayOff(t, a)
 	armTwoFactor(t, a, resetOldPassword)
-	old, _, err := seedphrase.New()
+	old, _, err := phrase.New()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err := enterGroup(a, old); err != nil {
 		t.Fatal(err)
 	}
-	before, _ := a.Accounts.Get(relay.SeedAccountService)
-	if err := a.Accounts.Set(relay.AccountService, "a-hand-entered-relay-key"); err != nil {
+	before, _ := a.Accounts.Get(federation.SeedAccount)
+	if err := a.Accounts.Set(federation.RelayKeyAccount, "a-hand-entered-relay-key"); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"the phone", "the extension"} {
@@ -53,11 +53,11 @@ func TestAResetLeavesThePairingGroup(t *testing.T) {
 		t.Fatalf("the right code answered %d: %s", status, body)
 	}
 
-	after, _ := a.Accounts.Get(relay.SeedAccountService)
+	after, _ := a.Accounts.Get(federation.SeedAccount)
 	if after == "" || after == before {
 		t.Errorf("the connection secret after the reset is %q, want a new one", after)
 	}
-	if manual, _ := a.Accounts.Get(relay.AccountService); manual != "" {
+	if manual, _ := a.Accounts.Get(federation.RelayKeyAccount); manual != "" {
 		t.Error("the hand-entered relay key outlived the reset")
 	}
 	var answer struct {
@@ -76,7 +76,7 @@ func TestAResetLeavesThePairingGroup(t *testing.T) {
 // not be written is still there, and the page must not say otherwise.
 func TestTheResetPageListsOnlyWhatWasRemoved(t *testing.T) {
 	srv, a, out := resetServer(t)
-	old, _, err := seedphrase.New()
+	old, _, err := phrase.New()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,7 +127,7 @@ func TestAResetOutsideAGroupStartsNone(t *testing.T) {
 	if status != http.StatusOK {
 		t.Fatalf("the right code answered %d: %s", status, body)
 	}
-	if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret != "" {
+	if secret, _ := a.Accounts.Get(federation.SeedAccount); secret != "" {
 		t.Error("a reset put an instance that was in no group into one")
 	}
 	var answer struct {
@@ -147,7 +147,7 @@ func TestNoGroupJoinedDuringAResetSurvivesIt(t *testing.T) {
 	srv, a, out := resetServer(t)
 	code := askForCode(t, srv.URL, out)
 	_, session := signedIn(t, srv.URL, resetOldPassword)
-	_, phrase, err := seedphrase.New()
+	_, words, err := phrase.New()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +166,7 @@ func TestNoGroupJoinedDuringAResetSurvivesIt(t *testing.T) {
 		resp.Body.Close()
 		answered <- resp.StatusCode
 	}()
-	start, _ := json.Marshal(phrase)
+	start, _ := json.Marshal(words)
 	if _, err := slow.Write([]byte(`{"phrase":` + string(start))); err != nil {
 		t.Fatal(err)
 	}
@@ -180,7 +180,7 @@ func TestNoGroupJoinedDuringAResetSurvivesIt(t *testing.T) {
 	if status := <-answered; status == http.StatusOK {
 		t.Error("a join went through for a session the reset had ended")
 	}
-	if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret != "" {
+	if secret, _ := a.Accounts.Get(federation.SeedAccount); secret != "" {
 		t.Error("the instance is in a group joined with a session the reset had ended")
 	}
 }

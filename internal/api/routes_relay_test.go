@@ -15,15 +15,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/relay"
-	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/phrase"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // Member ids in the shape instances mint them, the only one a member is
 // listed under.
 var (
-	siblingID = idAs("sibling", relay.KindInstance)
+	siblingID = idAs("sibling", member.KindInstance)
 	officeID  = strings.Repeat("0", 40)
 	desktopID = strings.Repeat("d", 40)
 )
@@ -120,7 +122,7 @@ func TestRelayConfigRoundTripsWithoutLeakingTheKey(t *testing.T) {
 	}
 
 	// The key was stored, not dropped: the relay client dials with it.
-	stored, err := a.Accounts.Get(relay.AccountService)
+	stored, err := a.Accounts.Get(federation.RelayKeyAccount)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +151,7 @@ func TestRelayConfigWithoutAKeyLeavesTheStoredOne(t *testing.T) {
 	if !put.KeySet {
 		t.Error("keySet = false after a PUT that did not mention the key; the stored key was cleared")
 	}
-	if stored, _ := a.Accounts.Get(relay.AccountService); stored != "keep-me-relay-test-key-0123456789" {
+	if stored, _ := a.Accounts.Get(federation.RelayKeyAccount); stored != "keep-me-relay-test-key-0123456789" {
 		t.Errorf("stored key = %q, want it untouched by a PUT that did not name it", stored)
 	}
 }
@@ -171,7 +173,7 @@ func TestRelayConfigEmptyKeyClearsIt(t *testing.T) {
 	if put.KeySet {
 		t.Error("keySet = true after an explicitly empty key; there is then no way to ever remove one")
 	}
-	if stored, _ := a.Accounts.Get(relay.AccountService); stored != "" {
+	if stored, _ := a.Accounts.Get(federation.RelayKeyAccount); stored != "" {
 		t.Errorf("stored key = %q, want it cleared", stored)
 	}
 }
@@ -212,9 +214,10 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	sibling, err := relay.NewClient(relay.ClientOptions{
 		URL:      relaySrv.URL,
 		Key:      key,
-		FrameKey: relay.FrameKeyFromRelayKey(key),
+		FrameKey: federation.Domain.ManualFrameKey(key),
 		Self:     relay.Announce{InstanceID: siblingID, Name: "Sibling", Deployment: "container"},
-		Member:   keyOf("sibling"),
+		Signing:  federation.Signing,
+		Identity: identityAs("sibling", member.KindInstance),
 		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
@@ -305,7 +308,7 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 	observer, err := relay.NewClient(relay.ClientOptions{
 		URL:      relaySrv.URL,
 		Key:      key,
-		FrameKey: relay.FrameKeyFromRelayKey(key),
+		FrameKey: federation.Domain.ManualFrameKey(key),
 		Self:     relay.Announce{InstanceID: "observer-1", Name: "Observer", Deployment: "container"},
 	})
 	if err != nil {
@@ -500,9 +503,10 @@ func fixedSibling(t *testing.T, url, key, label string) *relay.Client {
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      url,
 		Key:      key,
-		FrameKey: relay.FrameKeyFromRelayKey(key),
-		Self:     relay.Announce{InstanceID: idAs(label, relay.KindInstance), Name: "Sibling", Deployment: "desktop"},
-		Member:   keyOf(label),
+		FrameKey: federation.Domain.ManualFrameKey(key),
+		Self:     relay.Announce{InstanceID: idAs(label, member.KindInstance), Name: "Sibling", Deployment: "desktop"},
+		Signing:  federation.Signing,
+		Identity: identityAs(label, member.KindInstance),
 		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
@@ -551,7 +555,7 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay this instance is serving", list)
 	}
 
-	if _, _, err := a.Federation.Approve(siblingID, keyOf("sibling").Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+	if _, _, err := a.Federation.Approve(siblingID, keyOf("sibling").Public().(ed25519.PublicKey), member.KindInstance); err != nil {
 		t.Fatal(err)
 	}
 	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
@@ -606,11 +610,11 @@ func TestAServedRelayAdmitsTheInstancesPhraseGroup(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	secret, _, err := seedphrase.New()
+	secret, _, err := phrase.New()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := a.Accounts.Set(relay.SeedAccountService, hex.EncodeToString(secret)); err != nil {
+	if err := a.Accounts.Set(federation.SeedAccount, hex.EncodeToString(secret)); err != nil {
 		t.Fatal(err)
 	}
 	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"`+srv.URL+`","mode":"own","serve":true}`); code != http.StatusOK || !put.Serve {
@@ -619,8 +623,8 @@ func TestAServedRelayAdmitsTheInstancesPhraseGroup(t *testing.T) {
 
 	member, err := relay.NewClient(relay.ClientOptions{
 		URL:      srv.URL,
-		Key:      relay.DeriveKey(secret),
-		FrameKey: relay.DeriveFrameKey(secret),
+		Key:      federation.Domain.GroupKey(secret),
+		FrameKey: federation.Domain.FrameKey(secret),
 		Self:     relay.Announce{InstanceID: siblingID, Name: "Member", Deployment: "desktop"},
 	})
 	if err != nil {
@@ -722,14 +726,14 @@ func TestRelayProxyTurnsAwayARemovedPhone(t *testing.T) {
 	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if err := a.Federation.RemoveApp(idAs("phone-gone", relay.KindMobile), time.Now()); err != nil {
+	if err := a.Federation.RemoveApp(idAs("phone-gone", member.KindMobile), time.Now()); err != nil {
 		t.Fatal(err)
 	}
 
-	if status, body := signedAs(serve, idAs("phone-gone", relay.KindMobile), relay.KindMobile, keyOf("phone-gone"))(http.MethodGet, "/api/tasks"); status != http.StatusGone {
+	if status, body := signedAs(serve, idAs("phone-gone", member.KindMobile), member.KindMobile, keyOf("phone-gone"))(http.MethodGet, "/api/tasks"); status != http.StatusGone {
 		t.Fatalf("the removed phone = %d (%s), want 410", status, body)
 	}
-	if status, body := signedMember(t, a, "phone-kept", relay.KindMobile)(http.MethodGet, "/api/tasks"); status != http.StatusOK {
+	if status, body := signedMember(t, a, "phone-kept", member.KindMobile)(http.MethodGet, "/api/tasks"); status != http.StatusOK {
 		t.Fatalf("another phone = %d (%s), want 200", status, body)
 	}
 }

@@ -2,7 +2,7 @@ package federation
 
 // The direct transport: members of one phrase group on the same network call
 // each other over plain HTTP, and the relay is only needed across networks.
-// A member is found by its tagged announce (internal/discovery). Every call
+// A member is found by its tagged announce (kit/lan). Every call
 // is sealed under the frame key, as over the relay, and signed with the
 // peer-auth key, so neither the network in between nor a stranger who reaches
 // the route can read, forge or replay one.
@@ -10,7 +10,6 @@ package federation
 import (
 	"bytes"
 	"context"
-	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -25,8 +24,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/discovery"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/lan"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // DirectPath is the route a member answers direct calls on.
@@ -50,17 +50,17 @@ var directReadTimeout = 10 * time.Second
 type LocalNetwork interface {
 	// Members is the members of this instance's group announcing on this
 	// network.
-	Members() []discovery.Peer
+	Members() []lan.Peer
 	// SetGroup announces this instance under id, tagged with sign, and
 	// accepts an announce as a member's when isMember says so; nil for both
 	// leaves.
-	SetGroup(id string, sign func(discovery.Peer) string, isMember func(discovery.Peer) bool)
+	SetGroup(id string, sign func(lan.Peer) string, isMember func(lan.Peer) bool)
 }
 
 type groupKeys struct {
 	frameKey []byte
 	peerAuth []byte
-	member   ed25519.PrivateKey
+	identity *member.Identity
 }
 
 // SetDiscovery installs the service members are found through, and hands it
@@ -75,12 +75,12 @@ func (m *Manager) SetDiscovery(ln LocalNetwork) {
 
 // SetGroup puts this instance into the group secret belongs to, or takes it
 // out of any with a nil secret, for the direct transport. selfID is the id
-// this instance answers direct calls under, and member the key it signs its
-// calls with.
-func (m *Manager) SetGroup(secret []byte, selfID string, member ed25519.PrivateKey) {
+// this instance answers direct calls under, and identity the key it signs
+// its calls with.
+func (m *Manager) SetGroup(secret []byte, selfID string, identity *member.Identity) {
 	var keys *groupKeys
 	if len(secret) > 0 {
-		keys = &groupKeys{frameKey: relay.DeriveFrameKey(secret), peerAuth: relay.DerivePeerAuthKey(secret), member: member}
+		keys = &groupKeys{frameKey: Domain.FrameKey(secret), peerAuth: Domain.PeerAuthKey(secret), identity: identity}
 	}
 	m.mu.Lock()
 	m.keys, m.selfID = keys, selfID
@@ -97,7 +97,7 @@ func configureLocal(ln LocalNetwork, selfID string, keys *groupKeys) {
 		ln.SetGroup("", nil, nil)
 		return
 	}
-	ln.SetGroup(selfID, func(p discovery.Peer) string { return announceTag(keys.peerAuth, p) }, func(p discovery.Peer) bool {
+	ln.SetGroup(selfID, func(p lan.Peer) string { return announceTag(keys.peerAuth, p) }, func(p lan.Peer) bool {
 		if d := time.Since(time.Unix(p.Sent, 0)); d > relay.ClockSkew || d < -relay.ClockSkew {
 			return false
 		}
@@ -108,7 +108,7 @@ func configureLocal(ln LocalNetwork, selfID string, keys *groupKeys) {
 // announceTag signs everything an announce claims, its time included, so a
 // device on the network can neither point members at an address of its
 // choosing nor keep a departed member listed by playing its announces back.
-func announceTag(peerAuth []byte, p discovery.Peer) string {
+func announceTag(peerAuth []byte, p lan.Peer) string {
 	mac := hmac.New(sha256.New, peerAuth)
 	mac.Write([]byte("announce\x00" + p.ID + "\x00" + p.URL + "\x00" + p.Name + "\x00" + p.Deployment + "\x00" + p.Address + "\x00" + strconv.FormatInt(p.Sent, 10)))
 	return hex.EncodeToString(mac.Sum(nil))
@@ -123,7 +123,7 @@ func directSignature(peerAuth []byte, sender, unix string, body []byte) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func (m *Manager) localMembers() []discovery.Peer {
+func (m *Manager) localMembers() []lan.Peer {
 	m.mu.Lock()
 	ln, keys := m.local, m.keys
 	m.mu.Unlock()
@@ -147,12 +147,7 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 		return nil, http.StatusInternalServerError, err
 	}
 	id := hex.EncodeToString(raw)
-	call := relay.ProxyCall{Method: method, Path: path, Body: body}
-	if keys.member != nil {
-		call.From, call.Kind = self, relay.KindInstance
-	}
-	call = relay.SignCall(keys.member, id, target, call)
-	sealed, err := relay.SealCall(keys.frameKey, id, target, call)
+	sealed, err := relay.SealSignedCall(keys.frameKey, Signing, keys.identity, id, target, relay.ProxyCall{Method: method, Path: path, Body: body})
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -191,7 +186,7 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 	if err != nil {
 		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s answered unreadably: %w", target, err)
 	}
-	if !relay.VerifyResult(id, target, sealed, result) {
+	if !relay.VerifyResult(Signing, id, target, sealed, result) {
 		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s's answer is not signed by its key", target)
 	}
 	if !m.TrustsAnswer(target, result.Key) {
@@ -238,7 +233,7 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
-	call, err := relay.OpenCall(keys.frameKey, req.RequestID, self, req.Sealed)
+	call, err := relay.OpenCall(keys.frameKey, Signing, req.RequestID, self, req.Sealed)
 	var status int
 	var out []byte
 	switch {
@@ -258,10 +253,7 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 			return
 		}
 	}
-	result := relay.ProxyResult{Status: status, Body: out}
-	if keys.member != nil {
-		result = relay.SignResult(keys.member, req.RequestID, self, req.Sealed, result)
-	}
+	result := relay.SignResult(Signing, keys.identity, req.RequestID, req.Sealed, relay.ProxyResult{Status: status, Body: out})
 	sealed, err := relay.SealResult(keys.frameKey, req.RequestID, result)
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)

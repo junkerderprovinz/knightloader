@@ -11,7 +11,7 @@
  * worker's idle shutdown.
  *
  * The frame layer ports mobile/src/api/relayFrame.ts, itself a port of
- * internal/relay/seal.go and protocol.go. The AAD layout, the nonce length and
+ * kit/relay/seal.go and protocol.go. The AAD layout, the nonce length and
  * the nonce||ciphertext framing must match byte for byte. AES-GCM comes from
  * WebCrypto.
  */
@@ -112,7 +112,7 @@ function relayRequestId() {
 }
 
 /**
- * relayMemberId mirrors relay.MemberID: the id a member of kind goes by with
+ * relayMemberId mirrors member.ID: the id a member of kind goes by with
  * the raw 32 bytes of its public key. An instance's is the first 20 bytes of
  * the key's SHA-256 in hex, a phone's and a browser's the whole hash after
  * their prefix.

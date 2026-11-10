@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // Instance is a peer KnightLoader, either reachable over HTTP at URL or

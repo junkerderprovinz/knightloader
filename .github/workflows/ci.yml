@@ -88,30 +88,27 @@ jobs:
               - '.github/workflows/ci.yml'
             # The crypto window's list, the clipboard link rule and the
             # contrast arithmetic are held to the web UI's, the signed call to
-            # internal/relay's vector and the refusals to the server's codes.
+            # the vector internal/federation/wire_test.go pins and the refusals
+            # to the server's codes.
             extension:
               - 'extension/**'
-              - 'internal/relay/member_test.go'
-              - 'internal/relay/member.go'
+              - 'internal/federation/wire_test.go'
               - 'internal/federation/members.go'
               - 'web/src/lib/donate.ts'
               - 'web/src/lib/clipboardWatch.ts'
               - 'web/src/lib/contrast.ts'
               - '.github/workflows/ci.yml'
             # check-relay-url.mjs, check-pairing-code.mjs and
-            # check-member-key.mjs read their cases from internal/relay's
-            # tests, check-failures.mjs the failure codes,
-            # check-member-refusals.mjs the refusals and check-contrast.mjs
-            # the web's contrast arithmetic.
+            # check-member-key.mjs read their cases from
+            # internal/federation/wire_test.go, check-failures.mjs the failure
+            # codes, check-member-refusals.mjs the refusals and
+            # check-contrast.mjs the web's contrast arithmetic.
             mobile:
               - 'mobile/**'
               - 'web/src/lib/donate.ts'
               - 'web/src/lib/contrast.ts'
-              - 'internal/relay/client_test.go'
-              - 'internal/relay/member_test.go'
-              - 'internal/relay/member.go'
+              - 'internal/federation/wire_test.go'
               - 'internal/federation/members.go'
-              - 'internal/relay/key_test.go'
               - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
             # The desktop module replaces the main one, so a change to either

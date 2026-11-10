@@ -5,7 +5,7 @@ import { fingerprint, memberId, memberPublicKey } from '../api/memberKey';
 
 // This device's own id on a relay, and the member key it signs its calls with.
 //
-// The id is made from the key (relay.MemberID): "phone-" and the hex of the
+// The id is made from the key (member.ID): "phone-" and the hex of the
 // key's SHA-256. An instance takes a call under that id only with a signature
 // by that key, so nobody else can speak for this phone, and the relay can
 // tell a reconnecting phone from somebody announcing its id. The key's seed

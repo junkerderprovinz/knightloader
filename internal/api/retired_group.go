@@ -11,7 +11,6 @@ package api
 
 import (
 	"context"
-	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"log"
@@ -19,7 +18,9 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // retiredAccountService is the credential-store service the retired group's
@@ -44,14 +45,18 @@ type retiredGroup struct {
 	Until  time.Time `json:"until"`
 }
 
-// member is the member key the instance had in the group, nil when it had
+// identity is the member key the instance had in the group, nil when it had
 // none.
-func (g retiredGroup) member() ed25519.PrivateKey {
+func (g retiredGroup) identity() *member.Identity {
 	seed, err := hex.DecodeString(g.Member)
-	if err != nil || len(seed) != ed25519.SeedSize {
+	if err != nil {
 		return nil
 	}
-	return ed25519.NewKeyFromSeed(seed)
+	id, err := member.FromSeed(member.KindInstance, seed)
+	if err != nil {
+		return nil
+	}
+	return &id
 }
 
 // retireGroup keeps the keys of the group this instance dials now, before a
@@ -62,8 +67,8 @@ func retireGroup(a *app.App, now time.Time) error {
 		return nil
 	}
 	g := retiredGroup{URL: url, Key: key, FrameKey: hex.EncodeToString(frameKey), Until: now.Add(retiredFor)}
-	if member := memberKey(a); member != nil {
-		g.Member = hex.EncodeToString(member.Seed())
+	if identity := memberKey(a); identity != nil {
+		g.Member = hex.EncodeToString(identity.Seed())
 	}
 	b, err := json.Marshal(g)
 	if err != nil {
@@ -97,18 +102,19 @@ func applyRetired(a *app.App) {
 		a.Federation.SetRetired(nil, time.Time{})
 		return
 	}
-	member := g.member()
+	identity := g.identity()
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      g.URL,
 		Key:      g.Key,
 		FrameKey: frameKey,
+		Signing:  federation.Signing,
 		Self: relay.Announce{
-			InstanceID: idOf(a, member),
+			InstanceID: idOf(a, identity),
 			Name:       instanceDisplayName(a),
 			Deployment: instanceKind(),
 		},
-		Member: member,
-		Serve:  retiredAnswer(g.Until),
+		Identity: identity,
+		Serve:    retiredAnswer(g.Until),
 	})
 	if err != nil {
 		log.Printf("relay: could not stay on the group left at the reset: %v", err)

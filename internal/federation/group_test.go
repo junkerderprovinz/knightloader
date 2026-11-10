@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 func TestGroupRemembersABoundedNumberOfPhones(t *testing.T) {
@@ -33,7 +34,7 @@ func TestGroupRemembersABoundedNumberOfPhones(t *testing.T) {
 
 	rt.sibs = nil
 	for i := 0; i < maxApps; i++ {
-		rt.sibs = append(rt.sibs, relay.Announce{InstanceID: idOf(memberKeyOf(byte(i)), relay.KindMobile), Deployment: "mobile", Client: true})
+		rt.sibs = append(rt.sibs, relay.Announce{InstanceID: idOf(memberKeyOf(byte(i)), member.KindMobile), Deployment: "mobile", Client: true})
 	}
 	if apps, err = m.Apps(joined.Add(time.Hour)); err != nil {
 		t.Fatal(err)
@@ -196,8 +197,8 @@ func TestAnExtensionBetweenCallsIsSeenWhenItsKeyLastSigned(t *testing.T) {
 	rt.sibs = nil
 	called := seen.Add(time.Hour)
 	m.group.state.Keys = map[string]PinnedKey{
-		browser1: {Key: memberKeyOf(204).Public().(ed25519.PublicKey), Kind: relay.KindExtension, Approved: true, Used: called},
-		phone1:   {Key: memberKeyOf(202).Public().(ed25519.PublicKey), Kind: relay.KindMobile, Used: joined},
+		browser1: {Key: memberKeyOf(204).Public().(ed25519.PublicKey), Kind: member.KindExtension, Approved: true, Used: called},
+		phone1:   {Key: memberKeyOf(202).Public().(ed25519.PublicKey), Kind: member.KindMobile, Used: joined},
 	}
 	apps, err := m.Apps(called.Add(time.Minute))
 	if err != nil {
@@ -266,7 +267,7 @@ func TestABrowserJoiningUnderAFreshIDEachSessionKeepsOneCard(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	member := idOf(memberKeyOf(201), relay.KindExtension)
+	member := idOf(memberKeyOf(201), member.KindExtension)
 	for i := range 40 {
 		now = now.Add(time.Minute)
 		session := fmt.Sprintf("%040x", i)
@@ -300,7 +301,7 @@ func TestAnApprovedInstanceThatClosedKeepsItsCardThroughARestart(t *testing.T) {
 		t.Fatal(err)
 	}
 	m.group.state.Keys = map[string]PinnedKey{
-		laptopID: {Key: memberKeyOf(210).Public().(ed25519.PublicKey), Kind: relay.KindInstance, Approved: true, Used: joined},
+		laptopID: {Key: memberKeyOf(210).Public().(ed25519.PublicKey), Kind: member.KindInstance, Approved: true, Used: joined},
 	}
 	rt := &fakeRelay{sibs: []relay.Announce{
 		{InstanceID: laptopID, Name: "Zathallia", Deployment: "desktop", Address: "http://192.168.20.86:8749"},
@@ -345,7 +346,7 @@ func TestAnInstanceNobodyApprovedLeavesNoCardBehind(t *testing.T) {
 		t.Fatal(err)
 	}
 	m.group.state.Keys = map[string]PinnedKey{
-		nasID: {Key: memberKeyOf(211).Public().(ed25519.PublicKey), Kind: relay.KindInstance, Used: joined},
+		nasID: {Key: memberKeyOf(211).Public().(ed25519.PublicKey), Kind: member.KindInstance, Used: joined},
 	}
 	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: nasID, Name: "stranger"}, {InstanceID: bravoID, Name: "unsigned"}}}
 	m.SetRelay(rt)
@@ -365,7 +366,7 @@ func TestAnAwayInstanceIsSeenWhenItsKeyLastSigned(t *testing.T) {
 		t.Fatal(err)
 	}
 	key := memberKeyOf(212).Public().(ed25519.PublicKey)
-	m.group.state.Keys = map[string]PinnedKey{laptopID: {Key: key, Kind: relay.KindInstance, Approved: true, Used: joined}}
+	m.group.state.Keys = map[string]PinnedKey{laptopID: {Key: key, Kind: member.KindInstance, Approved: true, Used: joined}}
 	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: laptopID, Name: "Zathallia", Deployment: "desktop"}}}
 	m.SetRelay(rt)
 	if _, err := m.AwayMembers(joined.Add(time.Minute)); err != nil {
@@ -374,7 +375,7 @@ func TestAnAwayInstanceIsSeenWhenItsKeyLastSigned(t *testing.T) {
 
 	rt.sibs = nil
 	called := joined.Add(time.Hour)
-	m.group.state.Keys[laptopID] = PinnedKey{Key: key, Kind: relay.KindInstance, Approved: true, Used: called}
+	m.group.state.Keys[laptopID] = PinnedKey{Key: key, Kind: member.KindInstance, Approved: true, Used: called}
 	if away, _ := m.AwayMembers(called.Add(time.Hour)); len(away) != 1 || !away[0].LastSeen.Equal(called) {
 		t.Fatalf("away = %+v, want the desktop app last seen %v", away, called)
 	}
@@ -382,8 +383,8 @@ func TestAnAwayInstanceIsSeenWhenItsKeyLastSigned(t *testing.T) {
 
 // Device ids as the app and the extension make them.
 var (
-	phoneOld = idOf(memberKeyOf(200), relay.KindMobile)
-	phone1   = idOf(memberKeyOf(202), relay.KindMobile)
-	phone2   = idOf(memberKeyOf(203), relay.KindMobile)
-	browser1 = idOf(memberKeyOf(204), relay.KindExtension)
+	phoneOld = idOf(memberKeyOf(200), member.KindMobile)
+	phone1   = idOf(memberKeyOf(202), member.KindMobile)
+	phone2   = idOf(memberKeyOf(203), member.KindMobile)
+	browser1 = idOf(memberKeyOf(204), member.KindExtension)
 )

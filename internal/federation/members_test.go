@@ -13,7 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // memberKeyOf is a member key made from one byte, so a test can name a few
@@ -22,9 +23,22 @@ func memberKeyOf(b byte) ed25519.PrivateKey {
 	return ed25519.NewKeyFromSeed(bytes.Repeat([]byte{b}, ed25519.SeedSize))
 }
 
-// idOf is the id member goes by as a device of kind.
-func idOf(member ed25519.PrivateKey, kind string) string {
-	return relay.MemberID(kind, member.Public().(ed25519.PublicKey))
+// idOf is the id key goes by as a device of kind.
+func idOf(key ed25519.PrivateKey, kind member.Kind) string {
+	return member.ID(kind, key.Public().(ed25519.PublicKey))
+}
+
+// identityOf is key as the member key of an instance, nil for none.
+func identityOf(t *testing.T, key ed25519.PrivateKey) *member.Identity {
+	t.Helper()
+	if key == nil {
+		return nil
+	}
+	id, err := member.FromSeed(member.KindInstance, key.Seed())
+	if err != nil {
+		t.Fatal(err)
+	}
+	return &id
 }
 
 var callIDs atomic.Int64
@@ -38,20 +52,20 @@ func withID(call relay.ProxyCall) relay.ProxyCall {
 	return call
 }
 
-// signedCall is a call as relay.OpenCall hands it over: signed by member in
-// the name of from, with an id of its own and the time it was sent.
-func signedCall(member ed25519.PrivateKey, from, kind string) relay.ProxyCall {
+// signedCall is a call as relay.OpenCall hands it over: signed by key in the
+// name of from, with an id of its own and the time it was sent.
+func signedCall(key ed25519.PrivateKey, from string, kind member.Kind) relay.ProxyCall {
 	return relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks", From: from, Kind: kind,
-		Key: member.Public().(ed25519.PublicKey), Sig: []byte("checked by OpenCall"),
+		Key: key.Public().(ed25519.PublicKey), Sig: []byte("checked by OpenCall"),
 		ID: nextCallID(), Sent: time.Now().Unix(),
 	}
 }
 
-// callAs is member's call as the device of kind it is, under the id its key
-// makes.
-func callAs(member ed25519.PrivateKey, kind string) relay.ProxyCall {
-	return signedCall(member, idOf(member, kind), kind)
+// callAs is the call of the device of kind that holds key, under the id the
+// key makes.
+func callAs(key ed25519.PrivateKey, kind member.Kind) relay.ProxyCall {
+	return signedCall(key, idOf(key, kind), kind)
 }
 
 // guarded is a manager in a group with a guard whose handler names the
@@ -68,13 +82,13 @@ func guarded(t *testing.T) (*Manager, relay.ProxyHandler) {
 	})
 }
 
-// letIn makes member's first signed call as a device of kind, which pins its
+// letIn makes the first signed call of the key as a device of kind, which pins its
 // key, and approves it the way a person at the instance does. It returns the
 // device's id.
-func letIn(t *testing.T, m *Manager, serve relay.ProxyHandler, member ed25519.PrivateKey, kind string) string {
+func letIn(t *testing.T, m *Manager, serve relay.ProxyHandler, key ed25519.PrivateKey, kind member.Kind) string {
 	t.Helper()
-	id := idOf(member, kind)
-	if status, body := serve(context.Background(), signedCall(member, id, kind)); status != http.StatusForbidden || codeOf(body) != "memberPending" {
+	id := idOf(key, kind)
+	if status, body := serve(context.Background(), signedCall(key, id, kind)); status != http.StatusForbidden || codeOf(body) != "memberPending" {
 		t.Fatalf("the first signed call of %s = %d %s, want 403 memberPending", id, status, body)
 	}
 	if _, _, err := m.Approve(id, nil, ""); err != nil {
@@ -93,11 +107,11 @@ func TestAMembersKeyIsPinnedUnderTheIDItMakes(t *testing.T) {
 	m, serve := guarded(t)
 	phone, forger := memberKeyOf(1), memberKeyOf(2)
 
-	phoneID := letIn(t, m, serve, phone, relay.KindMobile)
-	if status, body := serve(context.Background(), callAs(phone, relay.KindMobile)); status != http.StatusOK || string(body) != phoneID {
+	phoneID := letIn(t, m, serve, phone, member.KindMobile)
+	if status, body := serve(context.Background(), callAs(phone, member.KindMobile)); status != http.StatusOK || string(body) != phoneID {
 		t.Fatalf("the approved call = %d %s, want it served as %s", status, body, phoneID)
 	}
-	status, body := serve(context.Background(), signedCall(forger, phoneID, relay.KindMobile))
+	status, body := serve(context.Background(), signedCall(forger, phoneID, member.KindMobile))
 	if status != http.StatusForbidden || codeOf(body) != "memberKind" {
 		t.Fatalf("another key in the phone's name = %d %s, want 403 memberKind", status, body)
 	}
@@ -105,13 +119,13 @@ func TestAMembersKeyIsPinnedUnderTheIDItMakes(t *testing.T) {
 	if status != http.StatusForbidden || codeOf(body) != "memberUnsigned" {
 		t.Fatalf("an unsigned call in the phone's name = %d %s, want 403 memberUnsigned", status, body)
 	}
-	status, body = serve(context.Background(), callAs(phone, relay.KindExtension))
+	status, body = serve(context.Background(), callAs(phone, member.KindExtension))
 	if status != http.StatusForbidden || codeOf(body) != "memberKeyChanged" {
 		t.Fatalf("the phone's key as a browser = %d %s, want 403 memberKeyChanged", status, body)
 	}
 
 	st, _ := m.Group(false, time.Now())
-	if pin := st.Keys[phoneID]; !bytes.Equal(pin.Key, phone.Public().(ed25519.PublicKey)) || pin.Kind != relay.KindMobile {
+	if pin := st.Keys[phoneID]; !bytes.Equal(pin.Key, phone.Public().(ed25519.PublicKey)) || pin.Kind != member.KindMobile {
 		t.Fatalf("pinned %+v, want the phone's own key as a phone", pin)
 	}
 	// The pin outlives a restart.
@@ -120,7 +134,7 @@ func TestAMembersKeyIsPinnedUnderTheIDItMakes(t *testing.T) {
 		t.Fatal(err)
 	}
 	if status, _ := again.Guard(func(context.Context, relay.ProxyCall) (int, []byte) { return http.StatusOK, nil })(
-		context.Background(), callAs(phone, relay.KindMobile)); status != http.StatusOK {
+		context.Background(), callAs(phone, member.KindMobile)); status != http.StatusOK {
 		t.Fatalf("after a restart the phone = %d, want it served", status)
 	}
 }
@@ -135,8 +149,8 @@ func TestNobodyPinsAKeyUnderAnotherDevicesID(t *testing.T) {
 	squatter := memberKeyOf(3)
 	for _, real := range []struct {
 		key  ed25519.PrivateKey
-		kind string
-	}{{memberKeyOf(4), relay.KindInstance}, {memberKeyOf(5), relay.KindMobile}, {memberKeyOf(6), relay.KindExtension}} {
+		kind member.Kind
+	}{{memberKeyOf(4), member.KindInstance}, {memberKeyOf(5), member.KindMobile}, {memberKeyOf(6), member.KindExtension}} {
 		id := idOf(real.key, real.kind)
 		if status, body := serve(context.Background(), signedCall(squatter, id, real.kind)); status != http.StatusForbidden || codeOf(body) != "memberKind" {
 			t.Errorf("a stranger's key under %s = %d %s, want 403 memberKind", id, status, body)
@@ -159,11 +173,11 @@ func TestNobodyPinsAKeyUnderAnotherDevicesID(t *testing.T) {
 func TestTakingADeviceOutRevokesItsKeyForGood(t *testing.T) {
 	m, serve := guarded(t)
 	phone := memberKeyOf(5)
-	gone := letIn(t, m, serve, phone, relay.KindMobile)
+	gone := letIn(t, m, serve, phone, member.KindMobile)
 	if err := m.RemoveApp(gone, time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	for _, kind := range []string{relay.KindMobile, relay.KindExtension} {
+	for _, kind := range []member.Kind{member.KindMobile, member.KindExtension} {
 		if status, body := serve(context.Background(), callAs(phone, kind)); status != http.StatusGone || string(body) != "removed" {
 			t.Errorf("the removed key as a %s = %d %s, want 410 removed", kind, status, body)
 		}
@@ -178,11 +192,11 @@ func TestTakingADeviceOutRevokesItsKeyForGood(t *testing.T) {
 // make it never gets that answer signed.
 func TestOnlyTheRemovedDevicesOwnKeyHearsItIsOut(t *testing.T) {
 	m, serve := guarded(t)
-	gone := letIn(t, m, serve, memberKeyOf(13), relay.KindMobile)
+	gone := letIn(t, m, serve, memberKeyOf(13), member.KindMobile)
 	if err := m.RemoveApp(gone, time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if status, body := serve(context.Background(), signedCall(memberKeyOf(14), gone, relay.KindMobile)); status == http.StatusGone || codeOf(body) != "memberKind" {
+	if status, body := serve(context.Background(), signedCall(memberKeyOf(14), gone, member.KindMobile)); status == http.StatusGone || codeOf(body) != "memberKind" {
 		t.Errorf("another key under the removed id = %d %s, want 403 memberKind", status, body)
 	}
 }
@@ -190,17 +204,17 @@ func TestOnlyTheRemovedDevicesOwnKeyHearsItIsOut(t *testing.T) {
 func TestAnInstanceIsNotTakenOutAsAPhoneAndComesBackOnlyForApproval(t *testing.T) {
 	m, serve := guarded(t)
 	old := memberKeyOf(7)
-	bravo := letIn(t, m, serve, old, relay.KindInstance)
+	bravo := letIn(t, m, serve, old, member.KindInstance)
 	if err := m.RemoveApp(bravo, time.Now()); err != ErrIsInstance {
 		t.Fatalf("removing an instance as a phone = %v, want ErrIsInstance", err)
 	}
 	if err := m.RemoveMember(bravo, time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if status, _ := serve(context.Background(), callAs(old, relay.KindInstance)); status != http.StatusGone {
+	if status, _ := serve(context.Background(), callAs(old, member.KindInstance)); status != http.StatusGone {
 		t.Errorf("the instance's old key = %d, want 410", status)
 	}
-	if status, body := serve(context.Background(), callAs(memberKeyOf(8), relay.KindInstance)); status != http.StatusForbidden || codeOf(body) != "memberPending" {
+	if status, body := serve(context.Background(), callAs(memberKeyOf(8), member.KindInstance)); status != http.StatusForbidden || codeOf(body) != "memberPending" {
 		t.Errorf("the instance entering the phrase again = %d %s, want it waiting for approval under its new id", status, body)
 	}
 }
@@ -223,11 +237,11 @@ func TestOneKeysCallsDoNotUseUpAnothersShare(t *testing.T) {
 	})
 	forger, real := memberKeyOf(9), memberKeyOf(10)
 	for _, key := range []ed25519.PrivateKey{forger, real} {
-		if _, _, err := m.Approve(idOf(key, relay.KindMobile), key.Public().(ed25519.PublicKey), relay.KindMobile); err != nil {
+		if _, _, err := m.Approve(idOf(key, member.KindMobile), key.Public().(ed25519.PublicKey), member.KindMobile); err != nil {
 			t.Fatal(err)
 		}
 	}
-	busy := callAs(forger, relay.KindMobile)
+	busy := callAs(forger, member.KindMobile)
 	busy.Path = "/api/hold"
 	var done sync.WaitGroup
 	for range perMemberCalls {
@@ -241,10 +255,10 @@ func TestOneKeysCallsDoNotUseUpAnothersShare(t *testing.T) {
 	started.Wait()
 	defer func() { close(hold); done.Wait() }()
 
-	if status, body := serve(context.Background(), callAs(forger, relay.KindMobile)); status != http.StatusTooManyRequests || codeOf(body) != "memberBusy" {
+	if status, body := serve(context.Background(), callAs(forger, member.KindMobile)); status != http.StatusTooManyRequests || codeOf(body) != "memberBusy" {
 		t.Errorf("the flooding key's next call = %d %s, want 429 memberBusy", status, body)
 	}
-	if status, _ := serve(context.Background(), callAs(real, relay.KindMobile)); status != http.StatusOK {
+	if status, _ := serve(context.Background(), callAs(real, member.KindMobile)); status != http.StatusOK {
 		t.Errorf("another member = %d, want it served while one key is at its limit", status)
 	}
 }
@@ -256,7 +270,7 @@ func TestOneSenderCannotUseUpTheHourForTheOthers(t *testing.T) {
 	minting := relay.WithSource(context.Background(), "relay\x00phone-minting")
 	refused := 0
 	for i := range maxNewPinsPerSource + 2 {
-		_, body := serve(minting, callAs(memberKeyOf(byte(150+i)), relay.KindMobile))
+		_, body := serve(minting, callAs(memberKeyOf(byte(150+i)), member.KindMobile))
 		if codeOf(body) == "groupJoinsBusy" {
 			refused++
 		}
@@ -265,7 +279,7 @@ func TestOneSenderCannotUseUpTheHourForTheOthers(t *testing.T) {
 		t.Errorf("%d keys from one connection were refused, want all past its %d", refused, maxNewPinsPerSource)
 	}
 	other := relay.WithSource(context.Background(), "relay\x00phone-honest")
-	if status, body := serve(other, callAs(memberKeyOf(170), relay.KindMobile)); codeOf(body) != "memberPending" {
+	if status, body := serve(other, callAs(memberKeyOf(170), member.KindMobile)); codeOf(body) != "memberPending" {
 		t.Errorf("a device on another connection = %d %s, want it pinned and waiting", status, body)
 	}
 }
@@ -277,7 +291,7 @@ func fillApproved(m *Manager) {
 	defer m.group.mu.Unlock()
 	for i := 0; len(m.group.state.Keys) < maxPinned; i++ {
 		key := memberKeyOf(byte(100 + i)).Public().(ed25519.PublicKey)
-		m.group.state.Keys[relay.MemberID(relay.KindMobile, key)] = PinnedKey{Key: key, Kind: relay.KindMobile, Approved: true, Used: time.Now()}
+		m.group.state.Keys[member.ID(member.KindMobile, key)] = PinnedKey{Key: key, Kind: member.KindMobile, Approved: true, Used: time.Now()}
 	}
 }
 
@@ -287,16 +301,16 @@ func fillApproved(m *Manager) {
 func TestAFullGroupMakesRoomOnlyWithAnIdleApprovedKey(t *testing.T) {
 	m, serve := guarded(t)
 	real := memberKeyOf(11)
-	realID := letIn(t, m, serve, real, relay.KindMobile)
+	realID := letIn(t, m, serve, real, member.KindMobile)
 	waiting := memberKeyOf(12)
-	serve(context.Background(), callAs(waiting, relay.KindMobile))
+	serve(context.Background(), callAs(waiting, member.KindMobile))
 	fillApproved(m)
 
 	late := memberKeyOf(250)
-	if status, body := serve(context.Background(), callAs(late, relay.KindMobile)); status != http.StatusTooManyRequests || codeOf(body) != "groupFull" {
+	if status, body := serve(context.Background(), callAs(late, member.KindMobile)); status != http.StatusTooManyRequests || codeOf(body) != "groupFull" {
 		t.Fatalf("a new key in a full group = %d %s, want 429 groupFull", status, body)
 	}
-	if status, body := serve(context.Background(), callAs(waiting, relay.KindMobile)); codeOf(body) != "memberPending" {
+	if status, body := serve(context.Background(), callAs(waiting, member.KindMobile)); codeOf(body) != "memberPending" {
 		t.Errorf("the device that waited before the group filled = %d %s, want it still waiting", status, body)
 	}
 
@@ -305,10 +319,10 @@ func TestAFullGroupMakesRoomOnlyWithAnIdleApprovedKey(t *testing.T) {
 	pin.Used = time.Now().Add(-pinIdle - time.Hour)
 	m.group.state.Keys[realID] = pin
 	m.group.mu.Unlock()
-	if status, body := serve(context.Background(), callAs(late, relay.KindMobile)); codeOf(body) != "memberPending" {
+	if status, body := serve(context.Background(), callAs(late, member.KindMobile)); codeOf(body) != "memberPending" {
 		t.Errorf("a new key once an approved one had been idle for long = %d %s, want it pinned and waiting", status, body)
 	}
-	if status, body := serve(context.Background(), callAs(waiting, relay.KindMobile)); codeOf(body) != "memberPending" {
+	if status, body := serve(context.Background(), callAs(waiting, member.KindMobile)); codeOf(body) != "memberPending" {
 		t.Errorf("the waiting device after the new key came in = %d %s, want it still waiting", status, body)
 	}
 }
@@ -320,18 +334,18 @@ func TestWaitingKeysNeverFillTheGroup(t *testing.T) {
 	m, serve := guarded(t)
 	for n := range maxWaiting {
 		from := relay.WithSource(context.Background(), "relay\x00conn"+strconv.Itoa(n))
-		if _, body := serve(from, callAs(memberKeyOf(byte(n)), relay.KindMobile)); codeOf(body) != "memberPending" {
+		if _, body := serve(from, callAs(memberKeyOf(byte(n)), member.KindMobile)); codeOf(body) != "memberPending" {
 			t.Fatalf("key %d = %s, want it pinned and waiting", n, body)
 		}
 	}
 	other := relay.WithSource(context.Background(), "relay\x00another")
-	if status, body := serve(other, callAs(memberKeyOf(200), relay.KindMobile)); status != http.StatusTooManyRequests || codeOf(body) != "groupFull" {
+	if status, body := serve(other, callAs(memberKeyOf(200), member.KindMobile)); status != http.StatusTooManyRequests || codeOf(body) != "groupFull" {
 		t.Fatalf("a key past the waiting ones = %d %s, want 429 groupFull", status, body)
 	}
-	if err := m.Refuse(idOf(memberKeyOf(0), relay.KindMobile), time.Now()); err != nil {
+	if err := m.Refuse(idOf(memberKeyOf(0), member.KindMobile), time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if _, body := serve(other, callAs(memberKeyOf(200), relay.KindMobile)); codeOf(body) != "memberPending" {
+	if _, body := serve(other, callAs(memberKeyOf(200), member.KindMobile)); codeOf(body) != "memberPending" {
 		t.Errorf("a key once the owner refused a waiting one = %s, want it pinned and waiting", body)
 	}
 }
@@ -342,15 +356,15 @@ func TestWaitingKeysNeverFillTheGroup(t *testing.T) {
 func TestAnApprovalPassedOnIsNotIdle(t *testing.T) {
 	m, serve := guarded(t)
 	phone := memberKeyOf(11)
-	phoneID := idOf(phone, relay.KindMobile)
-	if _, _, err := m.Approve(phoneID, phone.Public().(ed25519.PublicKey), relay.KindMobile); err != nil {
+	phoneID := idOf(phone, member.KindMobile)
+	if _, _, err := m.Approve(phoneID, phone.Public().(ed25519.PublicKey), member.KindMobile); err != nil {
 		t.Fatal(err)
 	}
 	fillApproved(m)
-	if status, body := serve(context.Background(), callAs(memberKeyOf(250), relay.KindMobile)); codeOf(body) != "groupFull" {
+	if status, body := serve(context.Background(), callAs(memberKeyOf(250), member.KindMobile)); codeOf(body) != "groupFull" {
 		t.Errorf("a new key in a full group = %d %s, want 429 groupFull", status, body)
 	}
-	if status, _ := serve(context.Background(), callAs(phone, relay.KindMobile)); status != http.StatusOK {
+	if status, _ := serve(context.Background(), callAs(phone, member.KindMobile)); status != http.StatusOK {
 		t.Errorf("the phone approved elsewhere = %d, want it served", status)
 	}
 }
@@ -361,14 +375,14 @@ func TestAnApprovalPassedOnIsNotIdle(t *testing.T) {
 func TestAnIdleInstanceIsNeverPushedOut(t *testing.T) {
 	m, serve := guarded(t)
 	office := memberKeyOf(12)
-	officeID := letIn(t, m, serve, office, relay.KindInstance)
+	officeID := letIn(t, m, serve, office, member.KindInstance)
 	m.group.mu.Lock()
 	pin := m.group.state.Keys[officeID]
 	pin.Used = time.Now().Add(-2 * pinIdle)
 	m.group.state.Keys[officeID] = pin
 	m.group.mu.Unlock()
 	fillApproved(m)
-	if status, body := serve(context.Background(), callAs(memberKeyOf(250), relay.KindMobile)); codeOf(body) != "groupFull" {
+	if status, body := serve(context.Background(), callAs(memberKeyOf(250), member.KindMobile)); codeOf(body) != "groupFull" {
 		t.Errorf("a new key in a full group = %d %s, want 429 groupFull", status, body)
 	}
 	if !m.TrustsAnswer(officeID, office.Public().(ed25519.PublicKey)) {
@@ -384,14 +398,14 @@ func TestAnIdleInstanceIsNeverPushedOut(t *testing.T) {
 func TestAFullHourPushesNoWaitingDeviceOut(t *testing.T) {
 	m, serve := guarded(t)
 	real := memberKeyOf(250)
-	realID := idOf(real, relay.KindMobile)
+	realID := idOf(real, member.KindMobile)
 	ctx := relay.WithSource(context.Background(), "relay\x00realphone")
-	if status, body := serve(ctx, callAs(real, relay.KindMobile)); codeOf(body) != "memberPending" {
+	if status, body := serve(ctx, callAs(real, member.KindMobile)); codeOf(body) != "memberPending" {
 		t.Fatalf("a real new phone = %d %s, want it pinned and waiting", status, body)
 	}
 	mint := func(n int) []byte {
 		from := relay.WithSource(context.Background(), "relay\x00conn"+strconv.Itoa(n))
-		_, body := serve(from, callAs(memberKeyOf(byte(n)), relay.KindMobile))
+		_, body := serve(from, callAs(memberKeyOf(byte(n)), member.KindMobile))
 		return body
 	}
 	refuseMinted := func() {
@@ -425,7 +439,7 @@ func TestAFullHourPushesNoWaitingDeviceOut(t *testing.T) {
 	if _, _, err := m.Approve(realID, nil, ""); err != nil {
 		t.Fatal(err)
 	}
-	if status, _ := serve(ctx, callAs(real, relay.KindMobile)); status != http.StatusOK {
+	if status, _ := serve(ctx, callAs(real, member.KindMobile)); status != http.StatusOK {
 		t.Errorf("the real phone once approved = %d, want it served", status)
 	}
 }
@@ -435,8 +449,8 @@ func TestAFullHourPushesNoWaitingDeviceOut(t *testing.T) {
 func TestACallPlayedAgainIsDropped(t *testing.T) {
 	m, serve := guarded(t)
 	phone := memberKeyOf(12)
-	letIn(t, m, serve, phone, relay.KindMobile)
-	call := callAs(phone, relay.KindMobile)
+	letIn(t, m, serve, phone, member.KindMobile)
+	call := callAs(phone, member.KindMobile)
 	if status, _ := serve(context.Background(), call); status != http.StatusOK {
 		t.Fatalf("the call = %d, want it served", status)
 	}

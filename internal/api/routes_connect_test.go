@@ -14,10 +14,12 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
-	"github.com/junkerderprovinz/knightloader/internal/discovery"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
-	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/parleyport/kit/lan"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/phrase"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 const pairingPassword = "a-good-password"
@@ -125,8 +127,8 @@ func TestConnectStartsInactive(t *testing.T) {
 	if info.Active {
 		t.Error("a fresh instance reports an active connection phrase")
 	}
-	if info.RelayURL != relay.DefaultRelayURL {
-		t.Errorf("RelayURL = %q, want the compiled-in default %q", info.RelayURL, relay.DefaultRelayURL)
+	if info.RelayURL != relay.DefaultURL {
+		t.Errorf("RelayURL = %q, want the compiled-in default %q", info.RelayURL, relay.DefaultURL)
 	}
 	if info.SelfHosted {
 		t.Error("a fresh instance reports a self-hosted relay")
@@ -141,7 +143,7 @@ func TestConnectStartsInactive(t *testing.T) {
 // what the group is told, since the Pairing page lists it above the domains.
 func TestConnectKeepsTheNetworkAddressBesideAKnownDomain(t *testing.T) {
 	requireContainerDeployment(t)
-	ip := discovery.LocalIPv4()
+	ip := lan.LocalIPv4()
 	if ip == "" {
 		t.Skip("this machine has no network address to find")
 	}
@@ -204,8 +206,8 @@ func TestConnectNamesTheProjectRelayInEveryMode(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if info.ProjectRelayURL != relay.DefaultRelayURL {
-			t.Errorf("in %s mode projectRelayUrl = %q, want %q", mode, info.ProjectRelayURL, relay.DefaultRelayURL)
+		if info.ProjectRelayURL != relay.DefaultURL {
+			t.Errorf("in %s mode projectRelayUrl = %q, want %q", mode, info.ProjectRelayURL, relay.DefaultURL)
 		}
 	}
 }
@@ -242,7 +244,7 @@ func TestPairingWorksWithoutALoginPassword(t *testing.T) {
 	if info := connectInfoOf(t, "", srv.URL); info.PasswordSet || !info.Active {
 		t.Fatalf("passwordSet %v active %v, want no password and a group", info.PasswordSet, info.Active)
 	}
-	if stored, _ := a.Accounts.Get(relay.SeedAccountService); stored == "" {
+	if stored, _ := a.Accounts.Get(federation.SeedAccount); stored == "" {
 		t.Fatal("no secret was stored")
 	}
 }
@@ -264,16 +266,16 @@ func TestActivateReturnsAUsablePhrase(t *testing.T) {
 	if err := json.Unmarshal(body, &out); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(strings.Fields(out.Phrase)); got != seedphrase.WordCount {
-		t.Fatalf("phrase has %d words, want %d: %q", got, seedphrase.WordCount, out.Phrase)
+	if got := len(strings.Fields(out.Phrase)); got != phrase.WordCount {
+		t.Fatalf("phrase has %d words, want %d: %q", got, phrase.WordCount, out.Phrase)
 	}
-	if _, err := seedphrase.Decode(out.Phrase); err != nil {
+	if _, err := phrase.Decode(out.Phrase); err != nil {
 		t.Fatalf("the returned phrase does not decode: %v", err)
 	}
 	if !out.Info.Active {
 		t.Error("info reports inactive right after activating")
 	}
-	if stored, _ := a.Accounts.Get(relay.SeedAccountService); stored == "" {
+	if stored, _ := a.Accounts.Get(federation.SeedAccount); stored == "" {
 		t.Error("no secret was stored")
 	}
 }
@@ -300,13 +302,13 @@ func TestJoinAcceptsAPhraseFromElsewhere(t *testing.T) {
 	first, firstApp, firstToken := pairingServer(t)
 	second, secondApp, secondToken := pairingServer(t)
 
-	phrase := activate(t, firstToken, first.URL)
-	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/join", map[string]string{"phrase": phrase}); code != http.StatusOK {
+	words := activate(t, firstToken, first.URL)
+	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/join", map[string]string{"phrase": words}); code != http.StatusOK {
 		t.Fatalf("join answered %d: %s", code, body)
 	}
 
-	a, _ := firstApp.Accounts.Get(relay.SeedAccountService)
-	b, _ := secondApp.Accounts.Get(relay.SeedAccountService)
+	a, _ := firstApp.Accounts.Get(federation.SeedAccount)
+	b, _ := secondApp.Accounts.Get(federation.SeedAccount)
 	if a == "" || a != b {
 		t.Fatalf("the two instances hold different secrets:\n first: %q\nsecond: %q", a, b)
 	}
@@ -424,13 +426,13 @@ func TestRevealNeedsThePasswordEvenWithASession(t *testing.T) {
 func TestRevealedQRNamesTheInstancesOwnRelay(t *testing.T) {
 	t.Parallel()
 	srv, a, token := pairingServer(t)
-	phrase := activate(t, token, srv.URL)
+	words := activate(t, token, srv.URL)
 
 	for _, c := range []struct {
 		mode, url, want string
 	}{
-		{settings.RelayModeProject, "https://relay.example.com", phrase},
-		{settings.RelayModeOwn, "https://relay.example.com", phrase + "\nwss://relay.example.com/relay/connect"},
+		{settings.RelayModeProject, "https://relay.example.com", words},
+		{settings.RelayModeOwn, "https://relay.example.com", words + "\nwss://relay.example.com/relay/connect"},
 	} {
 		cfg := a.Settings.Get()
 		cfg.RelayMode, cfg.RelayURL = c.mode, c.url
@@ -474,7 +476,7 @@ func TestDeleteForgetsTheSecretAndIsIdempotent(t *testing.T) {
 			t.Fatalf("delete #%d answered %d, want 204: %s", i+1, code, body)
 		}
 	}
-	if stored, _ := a.Accounts.Get(relay.SeedAccountService); stored != "" {
+	if stored, _ := a.Accounts.Get(federation.SeedAccount); stored != "" {
 		t.Fatalf("the secret survived the delete: %q", stored)
 	}
 }
@@ -542,7 +544,7 @@ func TestAPhoneCountsAsSomebodyInTheGroup(t *testing.T) {
 	srv, a, token := pairingServer(t)
 	activate(t, token, srv.URL)
 	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{
-		{InstanceID: idAs("pixel", relay.KindMobile), Name: "Pixel 8", Deployment: "mobile", Client: true},
+		{InstanceID: idAs("pixel", member.KindMobile), Name: "Pixel 8", Deployment: "mobile", Client: true},
 	}})
 
 	info := connectInfoOf(t, token, srv.URL)
@@ -567,8 +569,8 @@ func TestAClosedDesktopAppStaysListedAsAwayUntilItIsTakenOut(t *testing.T) {
 	t.Parallel()
 	srv, a, token := pairingServer(t)
 	activate(t, token, srv.URL)
-	id := idAs("zathallia", relay.KindInstance)
-	if _, _, err := a.Federation.Approve(id, keyOf("zathallia").Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+	id := idAs("zathallia", member.KindInstance)
+	if _, _, err := a.Federation.Approve(id, keyOf("zathallia").Public().(ed25519.PublicKey), member.KindInstance); err != nil {
 		t.Fatal(err)
 	}
 	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{
@@ -608,11 +610,11 @@ func TestAGroupWithoutAJoiningTimeCountsAsJoinedAtStart(t *testing.T) {
 	}
 	t.Cleanup(func() { a.Close() })
 	relayOff(t, a)
-	secret, _, err := seedphrase.New()
+	secret, _, err := phrase.New()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := a.Accounts.Set(relay.SeedAccountService, hex.EncodeToString(secret)); err != nil {
+	if err := a.Accounts.Set(federation.SeedAccount, hex.EncodeToString(secret)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -646,11 +648,11 @@ func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
 	if _, err := a.Settings.Set(cfg); err != nil {
 		t.Fatal(err)
 	}
-	storedHex, _ := a.Accounts.Get(relay.SeedAccountService)
+	storedHex, _ := a.Accounts.Get(federation.SeedAccount)
 
 	url, key, frameKey := relayTarget(a)
-	if url != relay.DefaultRelayURL {
-		t.Errorf("url = %q, want %q", url, relay.DefaultRelayURL)
+	if url != relay.DefaultURL {
+		t.Errorf("url = %q, want %q", url, relay.DefaultURL)
 	}
 	if key == storedHex {
 		t.Fatal("the key sent to the relay is the stored secret")
@@ -670,7 +672,7 @@ func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
 	if hex.EncodeToString(frameKey) == storedHex {
 		t.Error("the frame key is the stored secret")
 	}
-	if bytes.Equal(frameKey, relay.FrameKeyFromRelayKey(key)) {
+	if bytes.Equal(frameKey, federation.Domain.ManualFrameKey(key)) {
 		t.Error("the frame key is derivable from the key the relay is already given")
 	}
 }

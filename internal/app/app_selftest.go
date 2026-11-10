@@ -34,11 +34,12 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
-	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 	"github.com/junkerderprovinz/knightloader/internal/selftest"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/parleyport/kit/phrase"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // The limits are per check, since the checks run in parallel and one slow
@@ -559,22 +560,22 @@ func (a *App) selfTestRelay(_ context.Context, cfg settings.Settings) selftest.R
 	}
 
 	address := ""
-	if secretHex, err := a.Accounts.Get(relay.SeedAccountService); err == nil && secretHex != "" {
+	if secretHex, err := a.Accounts.Get(federation.SeedAccount); err == nil && secretHex != "" {
 		secret, decErr := hex.DecodeString(secretHex)
-		if decErr != nil || len(secret) != seedphrase.SecretLen {
+		if decErr != nil || len(secret) != phrase.SecretLen {
 			// Stored but unusable: the instance looks configured and reaches
 			// nothing.
 			r.Status, r.Code = selftest.StatusFail, "relay.badSecret"
 			return r
 		}
-		address = relay.DefaultRelayURL
+		address = relay.DefaultURL
 		if override != "" {
 			address = override
 		}
 	} else if override != "" {
 		// A hand-entered key only reaches a relay whose address the operator
 		// gave; in project mode relayTarget returns no URL for it.
-		if manual, mErr := a.Accounts.Get(relay.AccountService); mErr == nil && manual != "" {
+		if manual, mErr := a.Accounts.Get(federation.RelayKeyAccount); mErr == nil && manual != "" {
 			address = override
 		}
 	}

@@ -26,8 +26,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
 // filesServer is this one route on a throwaway app with a real, writable
@@ -327,7 +327,7 @@ func TestAPlayLinkEndsWithTheRemovalOfTheDeviceThatAskedForIt(t *testing.T) {
 	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	phone := signedMember(t, a, "phone-player", relay.KindMobile)
+	phone := signedMember(t, a, "phone-player", member.KindMobile)
 	status, body := phone(http.MethodPost, "/api/tasks/"+id+"/play")
 	var link struct{ Path string }
 	if err := json.Unmarshal(body, &link); err != nil || status != http.StatusOK {
@@ -336,7 +336,7 @@ func TestAPlayLinkEndsWithTheRemovalOfTheDeviceThatAskedForIt(t *testing.T) {
 	if got := getStatus(t, srv.URL+link.Path); got != http.StatusOK {
 		t.Fatalf("the link answered %d, want 200", got)
 	}
-	if err := a.Federation.RemoveApp(idAs("phone-player", relay.KindMobile), time.Now()); err != nil {
+	if err := a.Federation.RemoveApp(idAs("phone-player", member.KindMobile), time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	if got := getStatus(t, srv.URL+link.Path); got != http.StatusUnauthorized {

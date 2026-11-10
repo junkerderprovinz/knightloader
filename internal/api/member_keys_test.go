@@ -13,8 +13,10 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
-	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/phrase"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // onOwnRelay points an instance at relayURL, the way the Pairing page's own
@@ -27,15 +29,15 @@ func onOwnRelay(t *testing.T, token, base, relayURL string) {
 }
 
 // relayCall is one call a member of the group sends over the relay by hand:
-// a hello in id's name, then call to target, signed by member when it is not
+// a hello in id's name, then call to target, signed by key when it is not
 // nil. It returns what target answered. The relay turns a hello away while the
 // previous connection in the same name is still registered, which a call made
 // right after another one in that name can meet, so that one is tried again.
-func relayCall(t *testing.T, relayURL string, secret []byte, id, target string, member ed25519.PrivateKey, call relay.ProxyCall) (int, []byte) {
+func relayCall(t *testing.T, relayURL string, secret []byte, id, target string, key ed25519.PrivateKey, call relay.ProxyCall) (int, []byte) {
 	t.Helper()
 	deadline := time.Now().Add(5 * time.Second)
 	for {
-		code, body, err := relayCallOnce(t, relayURL, secret, id, target, member, call)
+		code, body, err := relayCallOnce(t, relayURL, secret, id, target, key, call)
 		if err == nil {
 			return code, body
 		}
@@ -46,7 +48,7 @@ func relayCall(t *testing.T, relayURL string, secret []byte, id, target string, 
 	}
 }
 
-func relayCallOnce(t *testing.T, relayURL string, secret []byte, id, target string, member ed25519.PrivateKey, call relay.ProxyCall) (int, []byte, error) {
+func relayCallOnce(t *testing.T, relayURL string, secret []byte, id, target string, key ed25519.PrivateKey, call relay.ProxyCall) (int, []byte, error) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -56,7 +58,7 @@ func relayCallOnce(t *testing.T, relayURL string, secret []byte, id, target stri
 	}
 	defer conn.CloseNow()
 	conn.SetReadLimit(8 << 20)
-	frameKey := relay.DeriveFrameKey(secret)
+	frameKey := federation.Domain.FrameKey(secret)
 	sealedID, err := relay.SealIdentity(frameKey, id, relay.Identity{Name: "by hand", Deployment: "mobile", Client: true})
 	if err != nil {
 		t.Fatal(err)
@@ -70,9 +72,9 @@ func relayCallOnce(t *testing.T, relayURL string, secret []byte, id, target stri
 			t.Fatal(err)
 		}
 	}
-	write(relay.TypeHello, relay.Hello{Key: relay.DeriveKey(secret), Announce: relay.Announce{InstanceID: id, Sealed: sealedID}})
+	write(relay.TypeHello, relay.Hello{Key: federation.Domain.GroupKey(secret), Announce: relay.Announce{InstanceID: id, Sealed: sealedID}})
 	requestID := hex.EncodeToString([]byte(time.Now().Format(time.RFC3339Nano)))
-	sealed, err := relay.SealSignedCall(frameKey, member, requestID, target, call)
+	sealed, err := relay.SealCall(frameKey, requestID, target, signedFor(key, requestID, target, call))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,8 +139,8 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	defer relaySrv.Close()
 	first, firstApp, firstToken := pairingServer(t)
 	second, secondApp, secondToken := pairingServer(t)
-	phrase := activate(t, firstToken, first.URL)
-	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/join", map[string]string{"phrase": phrase}); code != http.StatusOK {
+	words := activate(t, firstToken, first.URL)
+	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/join", map[string]string{"phrase": words}); code != http.StatusOK {
 		t.Fatalf("join answered %d: %s", code, body)
 	}
 	onOwnRelay(t, firstToken, first.URL, relaySrv.URL)
@@ -146,7 +148,7 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	firstID, secondID := groupID(firstApp), groupID(secondApp)
 	waitForMember(t, firstApp, secondID)
 	waitForMember(t, secondApp, firstID)
-	secret, err := seedphrase.Decode(phrase)
+	secret, err := phrase.Decode(words)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,7 +157,7 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	// lists the other as waiting.
 	waitingOn := func(token, base, id string) bool {
 		for _, p := range connectInfoOf(t, token, base).Pending {
-			if p.ID == id && p.Kind == relay.KindInstance && p.Fingerprint != "" {
+			if p.ID == id && p.Kind == string(member.KindInstance) && p.Fingerprint != "" {
 				return true
 			}
 		}
@@ -197,8 +199,8 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	// Somebody holding the words announces an instance of their own while the
 	// two meet. It waits like any other.
 	impostor := ed25519.NewKeyFromSeed([]byte(strings.Repeat("i", ed25519.SeedSize)))
-	impostorID := relay.MemberID(relay.KindInstance, impostor.Public().(ed25519.PublicKey))
-	if code, body := relayCall(t, relaySrv.URL, secret, impostorID, secondID, impostor, relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: impostorID, Kind: relay.KindInstance}); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
+	impostorID := member.ID(member.KindInstance, impostor.Public().(ed25519.PublicKey))
+	if code, body := relayCall(t, relaySrv.URL, secret, impostorID, secondID, impostor, relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: impostorID, Kind: member.KindInstance}); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
 		t.Errorf("an instance announced by somebody holding the words = %d %s, want 403 memberPending", code, body)
 	}
 
@@ -210,11 +212,11 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	}
 	st, _ := secondApp.Federation.Group(false, time.Now())
 	pin, ok := st.Keys[firstID]
-	if !ok || pin.Kind != relay.KindInstance || string(pin.Key) != string(memberKey(firstApp).Public().(ed25519.PublicKey)) {
+	if !ok || pin.Kind != member.KindInstance || string(pin.Key) != string(memberKey(firstApp).Public()) {
 		t.Fatalf("the second instance pinned %+v for the first, want the first's own member key as an instance", st.Keys)
 	}
 
-	tasks := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: firstID, Kind: relay.KindInstance}
+	tasks := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: firstID, Kind: member.KindInstance}
 	forger := ed25519.NewKeyFromSeed([]byte(strings.Repeat("f", ed25519.SeedSize)))
 	if code, body := relayCall(t, relaySrv.URL, secret, "phone-forger", secondID, forger, tasks); code != http.StatusForbidden || refusalCode(body) != "memberKind" {
 		t.Errorf("another key in the first instance's name = %d %s, want 403 memberKind", code, body)
@@ -232,8 +234,8 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 
 	// A phone is approved on the first instance, and the second honours it.
 	phone := ed25519.NewKeyFromSeed([]byte(strings.Repeat("p", ed25519.SeedSize)))
-	phoneID := relay.MemberID(relay.KindMobile, phone.Public().(ed25519.PublicKey))
-	asPhone := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: phoneID, Kind: relay.KindMobile}
+	phoneID := member.ID(member.KindMobile, phone.Public().(ed25519.PublicKey))
+	asPhone := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: phoneID, Kind: member.KindMobile}
 	if code, body := relayCall(t, relaySrv.URL, secret, phoneID, firstID, phone, asPhone); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
 		t.Fatalf("a new phone = %d %s, want 403 memberPending", code, body)
 	}
@@ -254,7 +256,7 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	if code, body := relayCall(t, relaySrv.URL, secret, "phone-older", secondID, nil, relay.ProxyCall{Method: http.MethodPost, Path: "/api/connect/devices/phone-forged/approve", Body: []byte(`{"key":"AAAA"}`)}); code != http.StatusForbidden {
 		t.Errorf("an unsigned member passing an approval on = %d %s, want it refused", code, body)
 	}
-	if code, body := relayCall(t, relaySrv.URL, secret, phoneID, secondID, phone, relay.ProxyCall{Method: http.MethodDelete, Path: "/api/connect/apps/phone-older", From: phoneID, Kind: relay.KindMobile}); code != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
+	if code, body := relayCall(t, relaySrv.URL, secret, phoneID, secondID, phone, relay.ProxyCall{Method: http.MethodDelete, Path: "/api/connect/apps/phone-older", From: phoneID, Kind: member.KindMobile}); code != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
 		t.Errorf("an approved phone passing a removal on = %d %s, want it refused", code, body)
 	}
 
@@ -275,17 +277,17 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 		time.Sleep(50 * time.Millisecond)
 	}
 
-	secondKey := memberKey(secondApp)
+	secondKey := ed25519.NewKeyFromSeed(memberKey(secondApp).Seed())
 	if code, body := call(t, firstToken, http.MethodDelete, first.URL+"/api/connect/members/"+secondID, nil); code != http.StatusNoContent {
 		t.Fatalf("taking the second instance out = %d %s", code, body)
 	}
-	byOldKey := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: secondID, Kind: relay.KindInstance}
+	byOldKey := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: secondID, Kind: member.KindInstance}
 	if code, body := relayCall(t, relaySrv.URL, secret, "phone-replay", firstID, secondKey, byOldKey); code != http.StatusGone {
 		t.Errorf("the removed instance's old key = %d %s, want 410", code, body)
 	}
 	deadline = time.Now().Add(5 * time.Second)
 	for {
-		if stored, _ := secondApp.Accounts.Get(relay.SeedAccountService); stored == "" {
+		if stored, _ := secondApp.Accounts.Get(federation.SeedAccount); stored == "" {
 			break
 		}
 		if time.Now().After(deadline) {

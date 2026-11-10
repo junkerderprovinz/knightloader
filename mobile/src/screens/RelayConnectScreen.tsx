@@ -30,7 +30,7 @@ import { Text, TextInput } from '../components/Text';
 //
 // The phone is a full group member rather than a client of one instance. It
 // derives the same key its siblings derive (api/seedphrase.ts, a port of
-// internal/seedphrase held to the Go side's own vectors), dials the same relay,
+// kit/phrase held to the Go side's own vectors), dials the same relay,
 // and is authenticated by that: the server accepts a relay-delivered request
 // from anything presenting the group key, so there is no token to enter. See
 // relayProxyHandler for what that admits and what it does not.

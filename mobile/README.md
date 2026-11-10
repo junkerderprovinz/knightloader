@@ -309,12 +309,12 @@ stop, how fast to look) live in `src/watch/rules.ts`, which
   active, in the OS keychain.
 - `src/api/seedphrase.ts`: twelve words to the group key, entirely on the
   phone, because a phrase exists for the case where there is no server to ask
-  yet. A port of `internal/seedphrase`, checked against that
+  yet. A port of `kit/phrase`, checked against that
   package's own vectors; `src/api/wordlist.ts` is generated from its
   `english.txt` so the two cannot disagree, and `src/api/sha256.ts` is
   SHA-256 written out rather than a native module.
 - `src/api/relayClient.ts`: this app's own client for
-  `internal/relay`'s wire protocol; see "Joining a group" above. One shared
+  `kit/relay`'s wire protocol; see "Joining a group" above. One shared
   socket per (relay, key), because the relay treats a second connection
   under the same identity as the first one reconnecting.
 - `src/api/base64.ts`: base64 and UTF-8 in both directions, by hand rather

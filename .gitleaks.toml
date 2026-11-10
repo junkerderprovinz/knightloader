@@ -47,7 +47,7 @@ description = "Invented credentials that are test fixtures for the parsers that 
 # its dashes put back, and a ProLeech API key is 21 lower-case characters, the
 # shape the importer tells a key from a website password by.
 #
-# internal/relay/member_test.go pins the Ed25519 public key of a fixed test
+# internal/federation/wire_test.go pins the Ed25519 public key of a fixed test
 # seed (32 bytes of 0x2a), which the app's and the extension's signing ports
 # are checked against. A public key of a published seed opens nothing.
 #
@@ -55,8 +55,12 @@ description = "Invented credentials that are test fixtures for the parsers that 
 # while cutting the key from its path; the scanner takes the host name for a
 # key because of its digits.
 #
-# internal/relay/member_test.go also signs a hello for a made-up relay key,
+# internal/federation/wire_test.go also signs a hello for a made-up relay key,
 # which the app's port is held to.
+#
+# internal/api/testdata/group-2.7/group.json is a group as 2.7 wrote it, which
+# the update is checked to keep. It pins the public keys of four devices made
+# from published seeds (32 bytes of 0x02 to 0x05), which open nothing.
 #
 # web/src/lib/mcpSnippets.test.ts writes a made-up MCP token into every
 # client's configuration; it has the kl_ prefix the snippets are built around.
@@ -78,4 +82,8 @@ regexes = [
   '''kl_7Qa-Zb0_cD''',
   '''AIzaInventedFilesKeyOfTheGdtestFake0000''',
   '''AIzaInventedSecondKeyOfTheGdtestPage000''',
+  '''gTl3Dqh9F19Wo1Rmw0x\+zMuNipG07jeiXfYPW4/Js5Q=''',
+  '''ypOsFwUYcHHWe4PH/w7\+gQjo7EUwV113JoeTM9vavnw=''',
+  '''bnoc3Smwt4/ROvTFWY/v9O8qlxZuPKby5Pv8zYBQW/E=''',
+  '''7UkoxijRwsbq6QM4kFmVYSlZJzpcY/k2NsFGFKyHN9E=''',
 ]

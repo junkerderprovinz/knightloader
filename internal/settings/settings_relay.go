@@ -12,8 +12,8 @@ package settings
 // The relay key does not live here. Possession of the key is the whole
 // authorization check the relay makes, with no account and no password behind
 // it, so it is a credential and is sealed in internal/accounts under
-// relay.AccountService beside the TorBox and debrid keys. That is why this hook
-// has one field to clean.
+// federation.RelayKeyAccount beside the TorBox and debrid keys. That is why
+// this hook has one field to clean.
 //
 // RelayServe is the other direction: this instance being the relay, on its own
 // address, for instances carrying the same key. It removes the second binary

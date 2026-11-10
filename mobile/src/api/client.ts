@@ -325,7 +325,7 @@ export async function stopAll(conn: ServerConnection, base = '/api'): Promise<Qu
 // than the delta mechanics.
 //
 // Only a directly connected server's own queue has this. The federation proxy
-// (routes_federation.go) and the relay (internal/relay) both forward plain REST
+// (routes_federation.go) and the relay (kit/relay) both forward plain REST
 // calls with no socket to upgrade, so they fall back to pollTasks. liveTasks
 // picks between them, so a screen can ask for the tasks kept current without
 // knowing which transport it got.

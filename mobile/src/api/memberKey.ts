@@ -1,10 +1,10 @@
-// The phone's half of internal/relay/member.go: the id a member key makes, the
+// The phone's half of kit/member and kit/relay: the id a member key makes, the
 // messages a member signs, and the signatures. The phone's relay id is made
 // from its key, an instance takes a call under that id only with a signature
 // by it, and the phone takes an instance's answer only signed by the key the
 // instance's id is made from. Every message has to match the Go side byte for
 // byte; check-member-key.mjs holds them to the vectors in
-// internal/relay/member_test.go.
+// internal/federation/wire_test.go.
 //
 // Ed25519 comes from @noble/curves, from the same audited family as the
 // cipher in relayFrame.ts; React Native ships no WebCrypto to do it.
@@ -75,7 +75,7 @@ export function memberPublicKey(seed: Uint8Array): Uint8Array {
 
 const ID_PREFIX: Record<string, string> = { mobile: 'phone-', extension: 'browser-' };
 
-/** Mirrors relay.MemberID: the id a member of kind goes by with publicKey. An
+/** Mirrors member.ID: the id a member of kind goes by with publicKey. An
  *  instance's is the first 20 bytes of the key's SHA-256 in hex, a phone's and
  *  a browser's the whole hash after their prefix. */
 export function memberId(kind: 'instance' | 'mobile' | 'extension', publicKey: Uint8Array): string {

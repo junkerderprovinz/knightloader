@@ -195,7 +195,7 @@ func main() {
 	}
 	// Only the resolved address says whether we listen beyond loopback, since
 	// the default ":8749" means every interface. It also carries the port that
-	// internal/discovery announces.
+	// kit/lan announces.
 	if host, portStr, err := net.SplitHostPort(listener.Addr().String()); err == nil {
 		ip := net.ParseIP(host)
 		buildinfo.ListensWidely = host == "" || (ip != nil && !ip.IsLoopback())

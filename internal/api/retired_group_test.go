@@ -11,15 +11,17 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
-	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/phrase"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // callUnder sends one call to target over the relay at relayURL under
-// relayKey, sealed under frameKey and signed by member, and returns the
+// relayKey, sealed under frameKey and signed by key, and returns the
 // answer. answered is false when none came within wait or the relay answered
 // instead of the target.
-func callUnder(t *testing.T, relayURL, relayKey string, frameKey []byte, target string, member ed25519.PrivateKey, call relay.ProxyCall, wait time.Duration) (status int, body []byte, answered bool) {
+func callUnder(t *testing.T, relayURL, relayKey string, frameKey []byte, target string, key ed25519.PrivateKey, call relay.ProxyCall, wait time.Duration) (status int, body []byte, answered bool) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), wait)
 	defer cancel()
@@ -29,7 +31,7 @@ func callUnder(t *testing.T, relayURL, relayKey string, frameKey []byte, target 
 	}
 	defer conn.CloseNow()
 	const self = "phone-old-words"
-	sealedID, err := relay.SealIdentity(frameKey, self, relay.Identity{Name: "old phone", Deployment: relay.KindMobile, Client: true})
+	sealedID, err := relay.SealIdentity(frameKey, self, relay.Identity{Name: "old phone", Deployment: string(member.KindMobile), Client: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,8 +46,8 @@ func callUnder(t *testing.T, relayURL, relayKey string, frameKey []byte, target 
 	}
 	write(relay.TypeHello, relay.Hello{Key: relayKey, Announce: relay.Announce{InstanceID: self, Sealed: sealedID}})
 	requestID := hex.EncodeToString([]byte(time.Now().Format(time.RFC3339Nano)))
-	call.From, call.Kind = self, relay.KindMobile
-	call = relay.SignCall(member, requestID, target, call)
+	call.From, call.Kind = self, member.KindMobile
+	call = signedFor(key, requestID, target, call)
 	sealed, err := relay.SealCall(frameKey, requestID, target, call)
 	if err != nil {
 		t.Fatal(err)
@@ -68,7 +70,7 @@ func callUnder(t *testing.T, relayURL, relayKey string, frameKey []byte, target 
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !relay.VerifyResult(requestID, target, sealed, res) {
+		if !relay.VerifyResult(federation.Signing, requestID, target, sealed, res) {
 			t.Errorf("the answer from %s is not signed by the key its id is made from", target)
 		}
 		return res.Status, res.Body, true
@@ -84,9 +86,9 @@ func TestAResetTellsTheOldGroupToPairAgain(t *testing.T) {
 	relaySrv := httptest.NewServer(relay.New())
 	defer relaySrv.Close()
 	srv, a, token := pairingServer(t)
-	phrase := activate(t, token, srv.URL)
+	words := activate(t, token, srv.URL)
 	onOwnRelay(t, token, srv.URL, relaySrv.URL)
-	old, err := seedphrase.Decode(phrase)
+	old, err := phrase.Decode(words)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +105,7 @@ func TestAResetTellsTheOldGroupToPairAgain(t *testing.T) {
 	} {
 		deadline := time.Now().Add(5 * time.Second)
 		for {
-			status, body, answered := callUnder(t, relaySrv.URL, relay.DeriveKey(old), relay.DeriveFrameKey(old), self, phone, call, 2*time.Second)
+			status, body, answered := callUnder(t, relaySrv.URL, federation.Domain.GroupKey(old), federation.Domain.FrameKey(old), self, phone, call, 2*time.Second)
 			if answered {
 				if status != http.StatusGone || string(body) != "reset" {
 					t.Errorf("%s %s with the old words = %d %s, want 410 reset", call.Method, call.Path, status, body)
@@ -120,11 +122,11 @@ func TestAResetTellsTheOldGroupToPairAgain(t *testing.T) {
 		t.Error("a call under the old words halted the queue")
 	}
 
-	other, _, err := seedphrase.New()
+	other, _, err := phrase.New()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if status, body, answered := callUnder(t, relaySrv.URL, relay.DeriveKey(old), relay.DeriveFrameKey(other), self, phone,
+	if status, body, answered := callUnder(t, relaySrv.URL, federation.Domain.GroupKey(old), federation.Domain.FrameKey(other), self, phone,
 		relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}, 500*time.Millisecond); answered {
 		t.Errorf("a call on the old relay key without the old words = %d %s, want no answer", status, body)
 	}
@@ -142,9 +144,9 @@ func TestTheOldGroupHearsNothingAfterThirtyDays(t *testing.T) {
 	relaySrv := httptest.NewServer(relay.New())
 	defer relaySrv.Close()
 	srv, a, token := pairingServer(t)
-	phrase := activate(t, token, srv.URL)
+	words := activate(t, token, srv.URL)
 	onOwnRelay(t, token, srv.URL, relaySrv.URL)
-	old, err := seedphrase.Decode(phrase)
+	old, err := phrase.Decode(words)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,7 +154,7 @@ func TestTheOldGroupHearsNothingAfterThirtyDays(t *testing.T) {
 	if err := retireGroup(a, time.Now().Add(-retiredFor-time.Minute)); err != nil {
 		t.Fatal(err)
 	}
-	fresh, _, err := seedphrase.New()
+	fresh, _, err := phrase.New()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +163,7 @@ func TestTheOldGroupHearsNothingAfterThirtyDays(t *testing.T) {
 	}
 	phone := ed25519.NewKeyFromSeed([]byte(strings.Repeat("o", ed25519.SeedSize)))
 	time.Sleep(300 * time.Millisecond)
-	if status, body, answered := callUnder(t, relaySrv.URL, relay.DeriveKey(old), relay.DeriveFrameKey(old), self, phone,
+	if status, body, answered := callUnder(t, relaySrv.URL, federation.Domain.GroupKey(old), federation.Domain.FrameKey(old), self, phone,
 		relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}, time.Second); answered {
 		t.Errorf("the old words after thirty days = %d %s, want no answer", status, body)
 	}

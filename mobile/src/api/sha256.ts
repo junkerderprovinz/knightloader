@@ -4,7 +4,7 @@
 // Not expo-crypto, which is a native module: one hash per phrase somebody
 // types does not earn native surface this app otherwise keeps out.
 //
-// Checked against the Go side rather than trusted: internal/seedphrase's own
+// Checked against the Go side rather than trusted: kit/phrase's own
 // vectors are run through this file and compared, so a phrase this app
 // derives a key from lands on the same key the server does. A quiet
 // disagreement here would look exactly like "the relay never connects".

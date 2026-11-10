@@ -1,7 +1,7 @@
 /**
  * The extension's half of the connection phrase.
  *
- * A line-for-line port of internal/seedphrase and mobile/src/api/seedphrase.ts.
+ * A line-for-line port of kit/phrase and mobile/src/api/seedphrase.ts.
  * All three must agree on the 2048 words and the bit packing, or the derived
  * key differs and the relay never connects, with nothing in any log.
  *
@@ -16,7 +16,7 @@ const WORD_COUNT = 12;
 const BITS_PER_WORD = 11;
 const CHECKSUM_BITS = (SECRET_LEN * 8) / 32; // BIP39's own rule
 
-/** relay.DefaultRelayURL. A fixed relay keeps the phrase at twelve words
+/** relay.DefaultURL. A fixed relay keeps the phrase at twelve words
  *  instead of a URL plus a key. */
 const DEFAULT_RELAY_URL = 'wss://parleyport.halleluja.design/relay/connect';
 
@@ -25,7 +25,7 @@ const KEY_DOMAIN = 'knightloader/relay/group-key/v1';
 
 /**
  * The second domain over the same secret, mirroring frameDomain in
- * internal/relay/key.go. The relay receives the group key in every hello frame,
+ * kit/keys. The relay receives the group key in every hello frame,
  * so a frame key under the same domain would be one the relay already holds.
  */
 const FRAME_KEY_DOMAIN = 'knightloader/relay/frame-key/v1';
@@ -113,7 +113,7 @@ async function deriveKey(secret) {
 }
 
 /** deriveFrameKey returns the 32-byte key that seals proxy frames, mirroring
- *  relay.DeriveFrameKey. */
+ *  federation.Domain.FrameKey. */
 async function deriveFrameKey(secret) {
   const domain = phraseUtf8(FRAME_KEY_DOMAIN);
   const buf = new Uint8Array(domain.length + secret.length);

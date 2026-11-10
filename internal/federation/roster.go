@@ -9,7 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // Sharing the phones and browsers. A browser extension is on the relay only
@@ -89,7 +90,7 @@ func (m *Manager) Merge(r Roster, now time.Time) (bool, error) {
 		if i >= maxApps {
 			break
 		}
-		if _, gone := st.Removed[app.ID]; gone || !clientDeployments[app.Deployment] || kindOfID(app.ID) != app.Deployment {
+		if _, gone := st.Removed[app.ID]; gone || !clientDeployments[member.Kind(app.Deployment)] || kindOfID(app.ID) != member.Kind(app.Deployment) {
 			continue
 		}
 		seen := earliest(app.LastSeen, now)
@@ -104,7 +105,7 @@ func (m *Manager) Merge(r Roster, now time.Time) (bool, error) {
 			st.Apps[app.ID] = KnownApp{Name: relay.ClipName(app.Name), Deployment: app.Deployment, LastSeen: seen}
 			changed = true
 		}
-		if len(app.Key) > 0 && approvePassedLocked(st, app.ID, app.Deployment, app.Key, seen) {
+		if len(app.Key) > 0 && approvePassedLocked(st, app.ID, member.Kind(app.Deployment), app.Key, seen) {
 			changed = true
 		}
 	}
@@ -117,7 +118,7 @@ func (m *Manager) Merge(r Roster, now time.Time) (bool, error) {
 // approvePassedLocked pins key as approved for device id unless id was taken
 // out, the key was revoked, another key is pinned or the key does not make id.
 // It reports whether it changed anything.
-func approvePassedLocked(st *GroupState, id, kind string, key []byte, used time.Time) bool {
+func approvePassedLocked(st *GroupState, id string, kind member.Kind, key []byte, used time.Time) bool {
 	if _, revoked := st.Revoked[hex.EncodeToString(key)]; revoked || !claimFits(id, kind, key) {
 		return false
 	}

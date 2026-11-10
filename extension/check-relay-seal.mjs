@@ -1,14 +1,14 @@
 // Checks the extension's port of the relay frame format against the fixed
-// vector internal/relay's Go tests pin. The Go server, the phone
+// vector internal/federation/wire_test.go pins. The Go server, the phone
 // (mobile/src/api/relayFrame.ts) and the extension have to agree byte for byte.
 //
-// The vector matches internal/relay/announce_seal_test.go. Its nonce is a fixed
+// The vector matches internal/federation/wire_test.go. Its nonce is a fixed
 // run of 0x07 so it is reproducible; nothing in production uses a fixed nonce.
 // src/relay.js is loaded as is, so the shipped code is what gets checked. Checks
 // six to eight hold a session to the order the relay sent its frames in,
 // to taking a peer's identity only from a seal that opens and to keeping the
 // browser's member id inside the seals. The ninth holds a signed call to the
-// member-call vector of internal/relay/member_test.go, the tenth the ids that
+// member-call vector of internal/federation/wire_test.go, the tenth the ids that
 // vector's key makes, and the eleventh takes an answer only signed by the
 // key its instance's id is made from and only for the call it answers. The
 // twelfth holds that check to the answer vector the Go side signs, and the
@@ -52,7 +52,7 @@ const ctx = vm.createContext({
 });
 vm.runInContext(src, ctx);
 
-// relay.DeriveFrameKey, over the same secret the Go vector uses.
+// federation.Domain.FrameKey, over the same secret the Go vector uses.
 const frameKey = new Uint8Array(
   createHash('sha256')
     .update('knightloader/relay/frame-key/v1')
@@ -287,8 +287,8 @@ if (askedCall?.from !== member) failures.push(`a call goes out from ${JSON.strin
 
 // 9. A signed call carries the key and a signature over relay.CallMessage, or
 //    the instance refuses it. The message is held to the Go vector in
-//    internal/relay/member_test.go: its seed, signed here, gives its signature.
-const goMember = readFileSync(join(here, '..', 'internal', 'relay', 'member_test.go'), 'utf8');
+//    internal/federation/wire_test.go: its seed, signed here, gives its signature.
+const goMember = readFileSync(join(here, '..', 'internal', 'federation', 'wire_test.go'), 'utf8');
 const vectorSig = goMember.match(/vectorSig\s*=\s*"([^"]+)"/)?.[1];
 const pkcs8 = new Uint8Array([...Buffer.from('302e020100300506032b657004220420', 'hex'), ...new Uint8Array(32).fill(0x2a)]);
 const vectorPrivate = await webcrypto.subtle.importKey('pkcs8', pkcs8, 'Ed25519', false, ['sign']);
@@ -435,7 +435,7 @@ if (!wantPrint || gotPrint !== wantPrint) failures.push(`the fingerprint of the 
 if (failures.length) {
   console.error('The extension’s relay port fails its checks:\n');
   for (const f of failures) console.error(`  - ${f}`);
-  console.error('\nThe frame format has to agree with the Go and mobile ports byte for byte. See internal/relay/protocol.go.');
+  console.error('\nThe frame format has to agree with the Go and mobile ports byte for byte. See kit/relay/protocol.go.');
   process.exit(1);
 }
 

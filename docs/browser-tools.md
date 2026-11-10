@@ -76,7 +76,7 @@ anyone can build it from a checkout and compare.
 ### Setup is one connection phrase
 
 The options page asks for the same twelve words the instances themselves are
-paired with (`docs/connecting.md`, `internal/seedphrase`) and for nothing
+paired with (`docs/connecting.md`, `kit/phrase`) and for nothing
 else: no name, no address, no password. `extension/src/phrase.js` is a
 WebCrypto port of the Go derivation, so the browser derives the identical two
 keys: one that joins the relay group, one that encrypts the frames.

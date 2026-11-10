@@ -2,17 +2,16 @@ package api
 
 // The connection phrase: generating one, showing it again, and joining a
 // group another instance already started. There is no account: the project
-// relay's address is compiled in (relay.DefaultRelayURL), an instance on its
+// relay's address is compiled in (relay.DefaultURL), an instance on its
 // own relay names that relay in the QR code beside the phrase, and holding the
 // secret is the whole authorization.
 //
 // The secret is stored and the phrase handed out; the relay only ever sees
-// relay.DeriveKey of the secret, so neither its operator nor its memory can
-// give back what a person would type.
+// federation.Domain.GroupKey of the secret, so neither its operator nor its
+// memory can give back what a person would type.
 
 import (
 	"context"
-	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -25,9 +24,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
-	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/phrase"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // ConnectInfo is what GET /api/connect answers with. It never carries the
@@ -169,7 +169,7 @@ func groupApps(known []federation.App) []groupApp {
 func registerConnect(reg *Registry, a *app.App) {
 	// A stored secret without a joining time counts as joined at start, so
 	// the page waits a minute before it says nobody came.
-	if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret != "" {
+	if secret, _ := a.Accounts.Get(federation.SeedAccount); secret != "" {
 		if st, err := a.Federation.Group(false, time.Now()); err == nil && st.JoinedAt.IsZero() {
 			if err := a.Federation.SetJoined(time.Now()); err != nil {
 				log.Printf("connect: could not record when this instance joined its group: %v", err)
@@ -220,7 +220,7 @@ func registerConnect(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/connect/activate",
 		"generate a new connection phrase for this instance and start dialling the relay - answers with the phrase, the only time it is returned without the password",
 		func(w http.ResponseWriter, r *http.Request) {
-			secret, phrase, err := seedphrase.New()
+			secret, words, err := phrase.New()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -229,7 +229,7 @@ func registerConnect(reg *Registry, a *app.App) {
 			err = a.Auth.Mint(stillAdmitted(a, r), func() error {
 				// Replacing an existing secret would orphan every instance
 				// joined to the old phrase; leaving is an explicit DELETE.
-				if existing, err := a.Accounts.Get(relay.SeedAccountService); err == nil && existing != "" {
+				if existing, err := a.Accounts.Get(federation.SeedAccount); err == nil && existing != "" {
 					exists = true
 					return nil
 				}
@@ -243,7 +243,7 @@ func registerConnect(reg *Registry, a *app.App) {
 			if refuseGroupChange(w, err) {
 				return
 			}
-			writeJSON(w, map[string]any{"phrase": phrase, "qr": phraseQR(a, phrase), "info": connectInfo(a)})
+			writeJSON(w, map[string]any{"phrase": words, "qr": phraseQR(a, words), "info": connectInfo(a)})
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/join",
@@ -255,11 +255,11 @@ func registerConnect(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			secret, err := seedphrase.Decode(body.Phrase)
+			secret, err := phrase.Decode(body.Phrase)
 			if err != nil {
 				// The reason and its details rather than a sentence, so the
 				// browser can explain the mistyped word in the user's language.
-				var de *seedphrase.DecodeError
+				var de *phrase.DecodeError
 				if errors.As(err, &de) {
 					w.WriteHeader(http.StatusBadRequest)
 					writeJSON(w, map[string]any{
@@ -306,7 +306,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				}
 				reg.passwordGate.pass(r)
 			}
-			secretHex, err := a.Accounts.Get(relay.SeedAccountService)
+			secretHex, err := a.Accounts.Get(federation.SeedAccount)
 			if err != nil || secretHex == "" {
 				http.Error(w, "this instance has no connection phrase", http.StatusNotFound)
 				return
@@ -316,14 +316,14 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, "the stored secret is unreadable", http.StatusInternalServerError)
 				return
 			}
-			phrase, err := seedphrase.Encode(secret)
+			words, err := phrase.Encode(secret)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			// The QR comes along, since the phrase is usually needed again to
 			// set up a phone.
-			writeJSON(w, map[string]any{"phrase": phrase, "qr": phraseQR(a, phrase)})
+			writeJSON(w, map[string]any{"phrase": words, "qr": phraseQR(a, words)})
 		})
 
 	// A removal starts at the owner's session and reaches the other instances
@@ -483,12 +483,12 @@ func enterGroup(a *app.App, secret []byte) error {
 		stored = hex.EncodeToString(secret)
 		joined = time.Now()
 	}
-	if err := a.Accounts.Set(relay.SeedAccountService, stored); err != nil {
+	if err := a.Accounts.Set(federation.SeedAccount, stored); err != nil {
 		return err
 	}
 	// The member key belongs to one group, so a group entered again is
 	// entered under a new key, which the members pin as a new device.
-	if err := a.Accounts.Set(relay.MemberAccountService, ""); err != nil {
+	if err := a.Accounts.Set(federation.MemberAccount, ""); err != nil {
 		return err
 	}
 	// No relay mode is written: an unset mode already resolves to the
@@ -518,8 +518,8 @@ func refuseGroupChange(w http.ResponseWriter, err error) bool {
 // every member and phone has to pair again, and tells them so for a while (see
 // retired_group.go). It reports whether there was a group to leave.
 func renewGroup(a *app.App) (bool, error) {
-	seed, _ := a.Accounts.Get(relay.SeedAccountService)
-	manual, _ := a.Accounts.Get(relay.AccountService)
+	seed, _ := a.Accounts.Get(federation.SeedAccount)
+	manual, _ := a.Accounts.Get(federation.RelayKeyAccount)
 	if seed == "" && manual == "" {
 		return false, nil
 	}
@@ -527,11 +527,11 @@ func renewGroup(a *app.App) (bool, error) {
 		log.Printf("connect: the devices of the group left at the reset will not hear why: %v", err)
 	}
 	if manual != "" {
-		if err := a.Accounts.Set(relay.AccountService, ""); err != nil {
+		if err := a.Accounts.Set(federation.RelayKeyAccount, ""); err != nil {
 			return true, err
 		}
 	}
-	secret, _, err := seedphrase.New()
+	secret, _, err := phrase.New()
 	if err != nil {
 		return true, err
 	}
@@ -540,17 +540,17 @@ func renewGroup(a *app.App) (bool, error) {
 
 // phraseQR is the QR code for the app, naming the relay this instance dials
 // when that is its own (relay.PairingCode).
-func phraseQR(a *app.App, phrase string) *QRMatrix {
+func phraseQR(a *app.App, words string) *QRMatrix {
 	cfg := a.Settings.Get()
 	own := ""
 	if cfg.RelayModeOf() == settings.RelayModeOwn {
 		own = cfg.RelayURL
 	}
-	return renderQR(relay.PairingCode(phrase, own))
+	return renderQR(relay.PairingCode(words, own))
 }
 
 func connectInfo(a *app.App) ConnectInfo {
-	secretHex, _ := a.Accounts.Get(relay.SeedAccountService)
+	secretHex, _ := a.Accounts.Get(federation.SeedAccount)
 	// Which relay this instance points at, answerable before anything is
 	// activated; relayTarget instead reports what to dial right now.
 	cfg := a.Settings.Get()
@@ -558,7 +558,7 @@ func connectInfo(a *app.App) ConnectInfo {
 	url := cfg.RelayURL
 	selfHosted := mode == settings.RelayModeOwn
 	if !selfHosted {
-		url = relay.DefaultRelayURL
+		url = relay.DefaultURL
 	}
 	if mode == settings.RelayModeOff {
 		url = ""
@@ -594,7 +594,7 @@ func connectInfo(a *app.App) ConnectInfo {
 	}
 	pending := []pendingDevice{}
 	for _, p := range a.Federation.PendingMembers() {
-		pending = append(pending, pendingDevice{ID: p.ID, Name: names[p.ID], Kind: p.Kind, Fingerprint: p.Fingerprint})
+		pending = append(pending, pendingDevice{ID: p.ID, Name: names[p.ID], Kind: string(p.Kind), Fingerprint: p.Fingerprint})
 	}
 	sort.Slice(pending, func(i, j int) bool { return pending[i].ID < pending[j].ID })
 
@@ -605,7 +605,7 @@ func connectInfo(a *app.App) ConnectInfo {
 		RelayURL:        url,
 		SelfHosted:      selfHosted,
 		RelayMode:       mode,
-		ProjectRelayURL: relay.DefaultRelayURL,
+		ProjectRelayURL: relay.DefaultURL,
 		Name:            instanceDisplayName(a),
 		Address:         groupAddress(a),
 		NetworkAddress:  networkAddress(),
@@ -625,8 +625,8 @@ func connectInfo(a *app.App) ConnectInfo {
 // yet pins it as approved. A refusal carries the kind alone, so an instance
 // that never saw the device knows whether to keep its id out for good.
 type deviceDecision struct {
-	Key  []byte `json:"key,omitempty"`
-	Kind string `json:"kind,omitempty"`
+	Key  []byte      `json:"key,omitempty"`
+	Kind member.Kind `json:"kind,omitempty"`
 }
 
 // fromApprovedInstance reports whether a call from the group came from an
@@ -672,9 +672,9 @@ func syncGroupDevices(ctx context.Context, a *app.App) {
 // ownFingerprint is the fingerprint of the key this instance signs its calls
 // to the group with, "" outside a group.
 func ownFingerprint(a *app.App) string {
-	member := memberKey(a)
-	if member == nil {
+	identity := memberKey(a)
+	if identity == nil {
 		return ""
 	}
-	return relay.Fingerprint(member.Public().(ed25519.PublicKey))
+	return member.Fingerprint(identity.Public())
 }

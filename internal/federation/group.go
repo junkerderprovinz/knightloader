@@ -12,7 +12,8 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/fsretry"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
 // groupFile keeps when this instance entered its phrase group, when another
@@ -55,8 +56,8 @@ type GroupState struct {
 
 // PinnedKey is the key a member signs with, pinned on its first signed call.
 type PinnedKey struct {
-	Key  []byte `json:"key"`
-	Kind string `json:"kind"`
+	Key  []byte      `json:"key"`
+	Kind member.Kind `json:"kind"`
 	// Used is when the key last signed a call here, kept to within
 	// lastSeenStep.
 	Used time.Time `json:"used"`
@@ -105,7 +106,7 @@ type App struct {
 
 // clientDeployments are the clients that join a group without being an
 // instance: the Android app and the browser extension.
-var clientDeployments = map[string]bool{relay.KindMobile: true, relay.KindExtension: true}
+var clientDeployments = map[member.Kind]bool{member.KindMobile: true, member.KindExtension: true}
 
 // lastSeenStep is how far a connected phone's last-seen time may lag before
 // it is written again, so an open page does not rewrite the file on every
@@ -259,7 +260,7 @@ func (m *Manager) AwayMembers(now time.Time) ([]AwayMember, error) {
 // a stranger holding the words leaves nothing behind.
 func approvedInstanceLocked(st *GroupState, id string) bool {
 	pin, ok := st.Keys[id]
-	return ok && pin.Approved && pin.Kind == relay.KindInstance
+	return ok && pin.Approved && pin.Kind == member.KindInstance
 }
 
 // Apps returns every phone and browser of the group, connected ones first,
@@ -274,7 +275,7 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	connected := map[string]relay.Announce{}
 	if rt != nil {
 		for _, sib := range rt.Siblings() {
-			if id := appID(sib); sib.Client && clientDeployments[sib.Deployment] && kindOfID(id) == sib.Deployment {
+			if id := appID(sib); sib.Client && clientDeployments[member.Kind(sib.Deployment)] && kindOfID(id) == member.Kind(sib.Deployment) {
 				sib.Name = relay.ClipName(sib.Name)
 				connected[id] = sib
 			}
@@ -288,7 +289,7 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	if !st.JoinedAt.IsZero() {
 		dirty := false
 		for id, known := range st.Apps {
-			if kindOfID(id) != deploymentOf(known) {
+			if kindOfID(id) != member.Kind(deploymentOf(known)) {
 				delete(st.Apps, id)
 				dirty = true
 			}
@@ -348,7 +349,7 @@ func appID(sib relay.Announce) string {
 // is a phone's.
 func deploymentOf(known KnownApp) string {
 	if known.Deployment == "" {
-		return relay.KindMobile
+		return string(member.KindMobile)
 	}
 	return known.Deployment
 }
@@ -372,7 +373,7 @@ var ErrIsInstance = errors.New("federation: that id belongs to an instance of th
 // decides the kind, never a card or a key under it, so nothing a device says
 // about itself can have an instance taken out this way.
 func (m *Manager) RemoveApp(id string, now time.Time) error {
-	if kind := kindOfID(id); kind != relay.KindMobile && kind != relay.KindExtension {
+	if kind := kindOfID(id); kind != member.KindMobile && kind != member.KindExtension {
 		return ErrIsInstance
 	}
 	m.group.mu.Lock()

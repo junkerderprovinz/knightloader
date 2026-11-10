@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
 // Approving members. A device that enters the words is pinned on its first
@@ -20,7 +20,7 @@ import (
 // Pending is a member whose key is pinned and waits for approval.
 type Pending struct {
 	ID          string
-	Kind        string
+	Kind        member.Kind
 	Key         []byte
 	Fingerprint string
 }
@@ -47,7 +47,7 @@ func (m *Manager) PendingMembers() []Pending {
 	var out []Pending
 	for id, pin := range m.group.state.Keys {
 		if !pin.Approved {
-			out = append(out, Pending{ID: id, Kind: pin.Kind, Key: bytes.Clone(pin.Key), Fingerprint: relay.Fingerprint(pin.Key)})
+			out = append(out, Pending{ID: id, Kind: pin.Kind, Key: bytes.Clone(pin.Key), Fingerprint: member.Fingerprint(pin.Key)})
 		}
 	}
 	return out
@@ -57,7 +57,7 @@ func (m *Manager) PendingMembers() []Pending {
 // which is what a person at this instance does; with a key, as passed on by
 // another instance, it pins that key as approved if nothing is pinned yet.
 // It returns the key and kind it approved, for passing on.
-func (m *Manager) Approve(id string, key []byte, kind string) ([]byte, string, error) {
+func (m *Manager) Approve(id string, key []byte, kind member.Kind) ([]byte, member.Kind, error) {
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
 	st := &m.group.state
@@ -98,9 +98,9 @@ func (m *Manager) Approve(id string, key []byte, kind string) ([]byte, string, e
 // revoked either way. An id no device mints is ignored.
 func (m *Manager) Refuse(id string, now time.Time) error {
 	switch kindOfID(id) {
-	case relay.KindInstance:
+	case member.KindInstance:
 		return m.RemoveMember(id, now)
-	case relay.KindMobile, relay.KindExtension:
+	case member.KindMobile, member.KindExtension:
 		return m.RemoveApp(id, now)
 	}
 	return nil

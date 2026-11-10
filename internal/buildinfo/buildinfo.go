@@ -69,7 +69,7 @@ var Deployment = "container"
 var ListensWidely bool
 
 // ListenPort is the port the HTTP listener resolved to, or 0 when there is
-// none. internal/discovery needs it before any request has arrived, and only
+// none. kit/lan needs it before any request has arrived, and only
 // the resolved address knows what ":0" became.
 var ListenPort int
 
@@ -78,7 +78,7 @@ var ListenPort int
 // KL_BASE_PATH; the desktop build has no proxy and leaves it empty.
 var BasePath string
 
-// DiscoveryEnabled turns on internal/discovery's multicast announce and
+// DiscoveryEnabled turns on kit/lan's multicast announce and
 // listener. It is off by default so the many api.Handler instances in tests
 // do not each open a multicast socket; a serving main package opts in.
 var DiscoveryEnabled bool

@@ -497,7 +497,7 @@ and cannot be explained.
 The extension takes the same twelve words and nothing else. There is no address
 field, no name field, no token field and no sync button on the options page any
 more. The extension carries its own relay client (`extension/src/relay.js`) and derives
-the group key from the phrase with a WebCrypto port of `internal/seedphrase`
+the group key from the phrase with a WebCrypto port of `kit/phrase`
 (`extension/src/phrase.js`), so it is a group member in its own right rather
 than a guest of one configured instance.
 
