@@ -9,8 +9,9 @@
  * storage.local, which the Click'n'Load content scripts on every site can read.
  * Only the extension's pages and its background share that origin. A browser
  * that refuses the extension IndexedDB, as Firefox does when it always browses
- * privately, keeps the phrase and the member key in storage.local after all,
- * since a group that cannot be joined is worse.
+ * privately, or lets it be read but not written, keeps the phrase and the
+ * member key in storage.local after all, since a group that cannot be joined
+ * is worse.
  *
  * `defaultInstance` holds a relay instance id, so renaming a member keeps the
  * choice on the same machine.
@@ -65,7 +66,13 @@ async function readPhrase() {
   // the first time it is read.
   const { phrase } = await chrome.storage.local.get('phrase');
   if (typeof phrase !== 'string' || !phrase) return '';
-  await secretStore('readwrite', (s) => s.put(phrase, 'phrase'));
+  try {
+    await secretStore('readwrite', (s) => s.put(phrase, 'phrase'));
+  } catch {
+    // A store that can be read but not written is where writePhrase fell back
+    // to storage.local, so the phrase stays there.
+    return phrase;
+  }
   await chrome.storage.local.remove('phrase');
   return phrase;
 }
