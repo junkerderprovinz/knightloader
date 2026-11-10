@@ -153,6 +153,12 @@ func main() {
 	})
 	awake.Start()
 
+	// Wails turns WebKit's DMA-BUF renderer off on NVIDIA itself, but cannot
+	// see the driver from inside a Flatpak.
+	if flatpak.ID() != "" && os.Getenv("WEBKIT_DISABLE_DMABUF_RENDERER") == "" && flatpak.NVIDIARenders("/sys", os.Getenv) {
+		os.Setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1")
+	}
+
 	// The page calls these as main.DesktopFiles, main.HubBridge, main.Tray,
 	// main.LinkPopup and main.Accent; see web/src/lib/desktop.ts.
 	desktopFiles := newDesktopFiles(a)
