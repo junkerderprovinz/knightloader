@@ -182,6 +182,65 @@ func TestALinksOwnFormatStandsInForThePreset(t *testing.T) {
 	}
 }
 
+func TestALinksOwnChoiceStagesThoseRowsAtThoseQualities(t *testing.T) {
+	a, _ := wiredYtdlpApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=ownchoice01"
+	if _, err := a.AddLinksWithOptions([]string{url}, "", OriginCnL, LinkBatchOptions{Choice: &ytdlp.LinkChoice{
+		Variants: []ytdlp.Variant{ytdlp.VariantVideo, ytdlp.VariantAudio, ytdlp.VariantSubtitle}, Quality: ytdlp.Quality720p, AudioFormat: "mp3",
+	}}); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "the family's five rows", func() bool { return len(tasksSharingURL(a, url)) == 5 })
+	want := map[ytdlp.Variant]string{ytdlp.VariantVideo: "720p", ytdlp.VariantAudio: "mp3", ytdlp.VariantSubtitle: ""}
+	for _, x := range tasksSharingURL(a, url) {
+		kind, sub := variantDecode(x.Variant)
+		pick, chosen := want[kind]
+		if chosen != (x.Enabled && !x.VariantOff) {
+			t.Errorf("the %s row in view is %v, want %v", kind, x.Enabled && !x.VariantOff, chosen)
+		}
+		if chosen && sub != pick {
+			t.Errorf("the %s row stores %q, want %q", kind, sub, pick)
+		}
+	}
+}
+
+func TestALinkWithAChoiceAndAFormatIsRefused(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	choice := &ytdlp.LinkChoice{Variants: []ytdlp.Variant{ytdlp.VariantVideo}}
+	if _, err := a.AddLinksWithOptions([]string{"https://youtube.com/watch?v=bothsent001"}, "", OriginCnL, LinkBatchOptions{Format: "audio", Choice: choice}); err == nil {
+		t.Error("a format and a choice were taken together")
+	}
+	if _, err := a.AddLinksWithOptions([]string{"https://youtube.com/watch?v=badchoice01"}, "", OriginCnL, LinkBatchOptions{Choice: &ytdlp.LinkChoice{}}); err == nil {
+		t.Error("a choice of no rows was taken")
+	}
+}
+
+// A video sent to download starts the rows it chose, with auto-confirm off,
+// and the rows set aside go as the last shown one leaves the collector.
+func TestAVideoSentToStartQueuesItsChosenRows(t *testing.T) {
+	a, _ := wiredYtdlpApp(t, func(s *settings.Settings, _ string) { s.AutoConfirm = false })
+	a.SetHalted(true)
+	const url = "https://youtube.com/watch?v=startnow001"
+	if _, err := a.AddLinksWithOptions([]string{url}, "", OriginCnL, LinkBatchOptions{
+		Start: true, Choice: &ytdlp.LinkChoice{Variants: []ytdlp.Variant{ytdlp.VariantVideo, ytdlp.VariantThumbnail}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	rows := tasksSharingURL(a, url)
+	if len(rows) != 2 {
+		t.Errorf("the link kept %d rows, want the two chosen", len(rows))
+	}
+	for _, x := range rows {
+		kind, _ := variantDecode(x.Variant)
+		if kind != ytdlp.VariantVideo && kind != ytdlp.VariantThumbnail {
+			t.Errorf("the %s row was kept, though it was not chosen", kind)
+		}
+		if x.Status != core.StatusQueued {
+			t.Errorf("the chosen %s row is %s, want queued", kind, x.Status)
+		}
+	}
+}
+
 func TestALinkWithAFormatNoRowCanMeanIsRefused(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	if _, err := a.AddLinksWithOptions([]string{"https://youtube.com/watch?v=badformat01"}, "", OriginCnL, LinkBatchOptions{Format: "8k"}); err == nil {

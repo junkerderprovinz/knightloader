@@ -330,33 +330,68 @@ func (p HosterPreset) HasVariant(v Variant) bool {
 	return false
 }
 
-// LinkFormatVideo and LinkFormatAudio are the two choices of a link sent with
-// a format of its own that are not a resolution (see HosterPreset.ForLink).
+// LinkChoice is what one link is staged with in place of its host's preset,
+// as the browser extension's button on a video sends it: the rows to stage
+// and the video row's quality and the audio row's format. An empty Quality
+// or AudioFormat keeps the preset's.
+type LinkChoice struct {
+	Variants    []Variant `json:"variants"`
+	Quality     Quality   `json:"quality"`
+	AudioFormat string    `json:"audioFormat"`
+}
+
+// Valid reports whether c stages at least one row and names only rows,
+// resolutions and audio formats a row can be staged with.
+func (c LinkChoice) Valid() bool {
+	if len(c.Variants) == 0 {
+		return false
+	}
+	for _, v := range c.Variants {
+		if !validVariant(v) {
+			return false
+		}
+	}
+	if _, capped := ResCap(c.Quality); c.Quality != "" && c.Quality != QualityBest && !capped {
+		return false
+	}
+	return c.AudioFormat == "" || validAudioFormat(c.AudioFormat)
+}
+
+// LinkFormatVideo and LinkFormatAudio are the two formats of a link sent with
+// a format of its own that are not a resolution (see FormatChoice).
 const (
 	LinkFormatVideo = "video"
 	LinkFormatAudio = "audio"
 )
 
-// ForLink is the preset for one link that arrived with a format of its own,
-// such as from the browser extension's button on a video: LinkFormatVideo for
+// FormatChoice is the choice a link's format stands for: LinkFormatVideo for
 // the video row alone at its best, LinkFormatAudio for the audio row alone, or
-// a resolution such as "1080p" for the video row alone at most that tall. The
-// container and the audio format stay the host's. False for anything else.
-func (p HosterPreset) ForLink(format string) (HosterPreset, bool) {
+// a resolution such as "1080p" for the video row alone at most that tall.
+// False for anything else.
+func FormatChoice(format string) (LinkChoice, bool) {
 	switch format {
 	case LinkFormatVideo:
-		p.Variants = []Variant{VariantVideo}
-		p.Quality = QualityBest
+		return LinkChoice{Variants: []Variant{VariantVideo}, Quality: QualityBest}, true
 	case LinkFormatAudio:
-		p.Variants = []Variant{VariantAudio}
-	default:
-		if _, ok := ResCap(Quality(format)); !ok {
-			return p, false
-		}
-		p.Variants = []Variant{VariantVideo}
-		p.Quality = Quality(format)
+		return LinkChoice{Variants: []Variant{VariantAudio}}, true
 	}
-	return p.Sanitize(), true
+	if _, ok := ResCap(Quality(format)); !ok {
+		return LinkChoice{}, false
+	}
+	return LinkChoice{Variants: []Variant{VariantVideo}, Quality: Quality(format)}, true
+}
+
+// ForChoice is the preset for one link that arrived with a choice of its own.
+// The container and the audio bitrate stay the host's.
+func (p HosterPreset) ForChoice(c LinkChoice) HosterPreset {
+	p.Variants = c.Variants
+	if c.Quality != "" {
+		p.Quality = c.Quality
+	}
+	if c.AudioFormat != "" {
+		p.AudioFormat = c.AudioFormat
+	}
+	return p.Sanitize()
 }
 
 // Quality is a format-selector preset offered on the settings page.

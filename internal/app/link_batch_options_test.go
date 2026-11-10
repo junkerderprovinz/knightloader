@@ -261,6 +261,57 @@ func TestABatchKeptInTheCollectorIsNotAutoConfirmed(t *testing.T) {
 	}
 }
 
+// A batch sent as a download leaves the collector at once, with auto-confirm
+// off and with it on and counting down.
+func TestABatchSentToStartLeavesTheCollectorWhateverAutoConfirmSays(t *testing.T) {
+	for _, c := range []struct {
+		name  string
+		on    bool
+		delay int
+	}{{"off", false, 0}, {"counting down", true, 600}} {
+		a, _ := newRuleApp(t, func(s *settings.Settings, base string) {
+			s.AutoConfirm, s.AutoConfirmDelay = c.on, c.delay
+		})
+		a.SetHalted(true)
+
+		started, err := a.AddLinksWithOptions([]string{"https://host.example/now.bin"}, "", OriginCnL, LinkBatchOptions{Start: true})
+		if err != nil || len(started) != 1 {
+			t.Fatalf("auto-confirm %s: staged %d tasks: %v", c.name, len(started), err)
+		}
+		waiting, err := a.AddLinksWithOptions([]string{"https://host.example/later.bin"}, "", OriginCnL, LinkBatchOptions{})
+		if err != nil || len(waiting) != 1 {
+			t.Fatalf("auto-confirm %s: staged %d tasks: %v", c.name, len(waiting), err)
+		}
+		if got := liveTask(a, started[0].ID).Status; got != core.StatusQueued {
+			t.Errorf("auto-confirm %s: the batch sent to start is %s, want queued", c.name, got)
+		}
+		if got := liveTask(a, waiting[0].ID).Status; got != core.StatusCollected {
+			t.Errorf("auto-confirm %s: the ordinary batch is %s, so the test proves nothing", c.name, got)
+		}
+	}
+}
+
+// A link already in the list is answered with the row it was folded into, so
+// the sender can say it is there rather than that nothing was added.
+func TestALinkAlreadyInTheListIsAnsweredWithItsRow(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const link = "https://host.example/twice.bin"
+	first, err := a.AddLinkBatch([]string{link}, "", OriginCnL, LinkBatchOptions{})
+	if err != nil || len(first.Created) != 1 || len(first.Listed) != 0 {
+		t.Fatalf("the first send created %d rows and listed %d: %v", len(first.Created), len(first.Listed), err)
+	}
+	again, err := a.AddLinkBatch([]string{link, "https://host.example/new.bin"}, "", OriginCnL, LinkBatchOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(again.Created) != 1 || again.Created[0].URL != "https://host.example/new.bin" {
+		t.Errorf("sent again, the batch created %d rows, want the new link's alone", len(again.Created))
+	}
+	if len(again.Listed) != 1 || again.Listed[0].ID != first.Created[0].ID {
+		t.Errorf("sent again, the batch listed %d rows, want the first send's row", len(again.Listed))
+	}
+}
+
 // A destination that cannot be used stops the whole batch before anything is
 // staged, rather than sending every link to the default folder and reporting
 // the mistake in a log alone.

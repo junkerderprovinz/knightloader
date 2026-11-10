@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -124,6 +125,81 @@ func TestAddLinksRefusesAnUnknownFormat(t *testing.T) {
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
 		"links":  "https://host.example/clip",
 		"format": "8k",
+	})
+	if code != http.StatusBadRequest {
+		t.Fatalf("answered %d: %s, want 400", code, raw)
+	}
+	if n := len(a.Tasks()); n != 0 {
+		t.Errorf("%d tasks were staged for a refused submission", n)
+	}
+}
+
+// With report set, a link already in the list comes back under listed, with
+// the row it was folded into, where the bare answer is only an empty list.
+func TestAddLinksReportsALinkAlreadyInTheList(t *testing.T) {
+	t.Parallel()
+	srv, _ := linkServer(t)
+	send := func(report bool) []byte {
+		code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
+			"links":  "https://host.example/listed.bin",
+			"origin": "cnl",
+			"report": report,
+		})
+		if code != http.StatusOK {
+			t.Fatalf("answered %d: %s", code, raw)
+		}
+		return raw
+	}
+	var first struct{ Tasks, Listed []core.Task }
+	if err := json.Unmarshal(send(true), &first); err != nil {
+		t.Fatal(err)
+	}
+	if len(first.Tasks) != 1 || first.Listed == nil || len(first.Listed) != 0 {
+		t.Fatalf("the first send answered %d tasks and %v listed, want one task and an empty list", len(first.Tasks), first.Listed)
+	}
+	var again struct{ Tasks, Listed []core.Task }
+	if err := json.Unmarshal(send(true), &again); err != nil {
+		t.Fatal(err)
+	}
+	if len(again.Tasks) != 0 || len(again.Listed) != 1 || again.Listed[0].ID != first.Tasks[0].ID {
+		t.Errorf("sent again, the answer has %d tasks and %d listed, want none and the first send's row", len(again.Tasks), len(again.Listed))
+	}
+	if bare := strings.TrimSpace(string(send(false))); bare != "[]" {
+		t.Errorf("without report the answer is %s, want the bare empty list", bare)
+	}
+}
+
+// start reaches the batch: with auto-confirm off, the link leaves the
+// collector, where it would otherwise wait.
+func TestAddLinksStartsABatchSentToStart(t *testing.T) {
+	t.Parallel()
+	srv, a := linkServer(t)
+	a.SetHalted(true)
+	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
+		"links":  "https://host.example/now.bin",
+		"origin": "cnl",
+		"start":  true,
+	})
+	if code != http.StatusOK {
+		t.Fatalf("answered %d: %s", code, raw)
+	}
+	var created []core.Task
+	if err := json.Unmarshal(raw, &created); err != nil || len(created) != 1 {
+		t.Fatalf("staged %d tasks: %v", len(created), err)
+	}
+	if got := a.Tasks()[0].Status; got != core.StatusQueued {
+		t.Errorf("the link sent to start is %s, want queued", got)
+	}
+}
+
+// A choice of rows that names something yt-dlp has not got is refused like
+// an unknown format.
+func TestAddLinksRefusesAChoiceOfNoRow(t *testing.T) {
+	t.Parallel()
+	srv, a := linkServer(t)
+	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
+		"links":  "https://host.example/clip",
+		"choice": map[string]any{"variants": []string{"video"}, "quality": "8k"},
 	})
 	if code != http.StatusBadRequest {
 		t.Fatalf("answered %d: %s, want 400", code, raw)

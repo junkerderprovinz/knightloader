@@ -14,11 +14,12 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/linkscan"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
 func registerLinks(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/links",
-		"stage links in the collector; optional per-batch destination, category, priority, unpacking switch, comment, the two passwords, whether they overwrite a matching Packagizer rule, which entrance they arrived by, the page they came from, and for a single link the browser's Cookie, Referer and User-Agent, kept in memory for that download only, and whether that link is a file the browser was downloading, with its name; for yt-dlp links a format (video, audio or a resolution) that stands in for the host's preset; returns the tasks created",
+		"stage links in the collector; optional per-batch destination, category, priority, unpacking switch, comment, the two passwords, whether they overwrite a matching Packagizer rule, which entrance they arrived by, the page they came from, and for a single link the browser's Cookie, Referer and User-Agent, kept in memory for that download only, and whether that link is a file the browser was downloading, with its name; for yt-dlp links a format (video, audio or a resolution) or a choice of rows and qualities that stands in for the host's preset; start to confirm and start the batch whatever auto-confirm says; returns the tasks created, or with report {tasks, listed}, listed being the rows already in the list that links were folded into",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Links   string `json:"links"` // newline-separated, like JD's paste box
@@ -56,8 +57,17 @@ func registerLinks(reg *Registry, a *app.App) {
 				Name string `json:"name"`
 				// Format is how a yt-dlp link's rows are staged in place of
 				// the host's preset: "video", "audio" or a resolution such
-				// as "1080p" (see ytdlp.HosterPreset.ForLink).
-				Format string `json:"format"`
+				// as "1080p" (see ytdlp.FormatChoice), and Choice the rows
+				// and qualities in full (see ytdlp.LinkChoice).
+				Format string            `json:"format"`
+				Choice *ytdlp.LinkChoice `json:"choice"`
+				// Start is a download asked for, not a list entry (see
+				// app.LinkBatchOptions.Start).
+				Start bool `json:"start"`
+				// Report answers with the rows a link was folded into as
+				// well, so a client can say the link is already there
+				// rather than that nothing was added.
+				Report bool `json:"report"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
@@ -102,14 +112,14 @@ func registerLinks(reg *Registry, a *app.App) {
 				http.Error(w, "a file comes as exactly one link and no passwords", http.StatusBadRequest)
 				return
 			}
-			var created []*core.Task
+			var batch app.LinkBatch
 			if len(body.Passwords) > 0 {
 				// Click'n'Load offers several candidate passwords rather than the
 				// form's one, so it keeps its own path.
-				created = a.AddLinksWithPasswords(urls, body.Package, body.Passwords, origin)
+				batch.Created = a.AddLinksWithPasswords(urls, body.Package, body.Passwords, origin)
 			} else {
 				var err error
-				created, err = a.AddLinksWithOptions(urls, body.Package, origin, app.LinkBatchOptions{
+				batch, err = a.AddLinkBatch(urls, body.Package, origin, app.LinkBatchOptions{
 					Dir:              body.Dir,
 					Password:         body.Password,
 					DownloadPassword: body.DownloadPassword,
@@ -123,6 +133,8 @@ func registerLinks(reg *Registry, a *app.App) {
 					File:             body.File,
 					FileName:         strings.TrimSpace(body.Name),
 					Format:           body.Format,
+					Choice:           body.Choice,
+					Start:            body.Start,
 				})
 				if err != nil {
 					// Usually a destination folder that was just typed and is
@@ -131,10 +143,16 @@ func registerLinks(reg *Registry, a *app.App) {
 					return
 				}
 			}
-			if created == nil {
-				created = []*core.Task{} // an empty result is [] for clients, never null
+			// An empty result is [] for clients, never null.
+			created := shownTasks(r, append([]*core.Task{}, batch.Created...))
+			if !body.Report {
+				writeJSON(w, created)
+				return
 			}
-			writeJSON(w, shownTasks(r, created))
+			writeJSON(w, map[string][]*core.Task{
+				"tasks":  created,
+				"listed": shownTasks(r, append([]*core.Task{}, batch.Listed...)),
+			})
 		})
 
 	// A browser sees held links on the task stream; this is for other clients.

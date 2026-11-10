@@ -114,9 +114,13 @@ type intake struct {
 	// LinkBatchOptions.File).
 	file bool
 
-	// format is the batch's own choice for a yt-dlp link's rows (see
-	// LinkBatchOptions.Format).
-	format string
+	// choice is the batch's own choice for a yt-dlp link's rows (see
+	// LinkBatchOptions.Choice).
+	choice *ytdlp.LinkChoice
+
+	// listed gathers the rows already in the list that the link is folded
+	// into (see LinkBatch.Listed).
+	listed *listedRows
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -238,7 +242,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		// otherwise contact a host a rule told us to avoid.
 		cand := rules.Candidate{URL: u, Package: pkg, Filename: batch.FileName, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.hold(cand, v, intake{origin: origin, file: batch.File}, cand.Added, nil); t != nil {
+			if t := a.hold(cand, v, intake{origin: origin, file: batch.File, listed: batch.listed}, cand.Added, nil); t != nil {
 				created = append(created, t)
 			}
 			continue
@@ -286,7 +290,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 				t := a.stage(c.URL, c.Name, c.Size, intake{
 					pkg: pkg, origin: OriginCrawl, source: u,
 					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
-					sizeProbes: &probes,
+					sizeProbes: &probes, listed: batch.listed,
 				})
 				if t == nil {
 					continue
@@ -307,7 +311,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		if t := a.stage(u, batch.FileName, 0, intake{
 			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers, file: batch.File,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
-			sizeProbes: &probes, format: batch.Format,
+			sizeProbes: &probes, choice: batch.Choice, listed: batch.listed,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
@@ -854,6 +858,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// size first.
 	if m := a.mirror(dedupe.Entry{URL: u, Name: cand.Filename}); m.Seen() && !a.keepsAsSibling(m) {
 		a.recordSkipped(u, m)
+		in.listed.add(m)
 		return nil
 	}
 	// After the list, so a link that is in both is noted once, as a copy of the
@@ -918,14 +923,14 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		t.Reason = core.ReasonUnsupported
 		t.SetError(a.unhandledError(u, "no backend handles this link"))
 		t.Online = core.AvailOffline
-		return a.finishStaging(t, cand)
+		return a.finishStaging(t, cand, in.listed)
 	}
 	t.Resolver = res.Info().ID
 	t.Mode = a.modeForLocked(t, t.Resolver)
 	result, err := res.Resolve(context.Background(), resolver.Request{URL: u})
 	if err != nil {
 		recordFailure(t, failure{err: err})
-		return a.finishStaging(t, cand)
+		return a.finishStaging(t, cand, in.listed)
 	}
 	// Resolvers that do not know the name yet answer with the URL itself; that
 	// placeholder must not replace a name the link arrived with.
@@ -961,7 +966,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	if v := a.downloadedVerdict(cand); v.Rejected {
 		return a.hold(cand, v, in, now, nil)
 	}
-	staged := a.finishStaging(t, cand)
+	staged := a.finishStaging(t, cand, in.listed)
 	if staged != nil {
 		a.keepBrowserHeaders(in.headers, []string{staged.ID})
 	}
@@ -982,7 +987,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	} else if staged != nil && res.Info().ID == "ytdlp" {
 		// Local map writes and a save, so it runs inline and the variant rows
 		// exist as soon as the link appears.
-		a.expandYtdlpVariants(staged, in.format)
+		a.expandYtdlpVariants(staged, in.choice)
 		// A title probe, except for playlist entries, whose listing already
 		// named them (see probePlaylistEntries).
 		if !in.playlistEntry {
@@ -1031,9 +1036,9 @@ func (a *App) refusesPasswordLink(u string) bool {
 }
 
 // finishStaging applies the Packagizer and stages the task, or records the
-// link as already covered. The Packagizer runs before put, so a rule's folder
-// is in place before anything asks dirFor.
-func (a *App) finishStaging(t *core.Task, cand rules.Candidate) *core.Task {
+// link as already covered, in listed as well. The Packagizer runs before put,
+// so a rule's folder is in place before anything asks dirFor.
+func (a *App) finishStaging(t *core.Task, cand rules.Candidate, listed *listedRows) *core.Task {
 	cand.Filename, cand.Filesize, cand.Package = filename(t), t.Size, t.Package
 	a.packagize(t, cand)
 	if m, ok := a.put(t); !ok {
@@ -1043,6 +1048,7 @@ func (a *App) finishStaging(t *core.Task, cand rules.Candidate) *core.Task {
 			return t
 		}
 		a.recordSkipped(t.URL, m)
+		listed.add(m)
 		return nil
 	}
 	return t
@@ -1228,6 +1234,7 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Ti
 	}
 	if m, ok := a.put(t); !ok {
 		a.recordSkipped(t.URL, m)
+		in.listed.add(m)
 		return nil
 	}
 	return t

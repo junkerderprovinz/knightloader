@@ -4,11 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"unicode"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -68,25 +71,60 @@ type LinkBatchOptions struct {
 	// file extension for a page and saves whatever it finds there.
 	File     bool
 	FileName string
-	// Format sets the host's preset aside for the yt-dlp links of this batch
-	// (see ytdlp.HosterPreset.ForLink). Empty stages them with the preset.
+	// Choice sets the host's preset aside for the yt-dlp links of this batch
+	// (see ytdlp.HosterPreset.ForChoice), and Format is its short form for a
+	// single row (see ytdlp.FormatChoice). With neither, they stage with the
+	// preset.
+	Choice *ytdlp.LinkChoice
 	Format string
+	// Start confirms and starts the batch at once, whatever AutoConfirm says,
+	// for a caller that asked for a download rather than a list entry.
+	Start bool
+
+	// listed collects the rows already in the list that links of the batch
+	// were folded into (see LinkBatch.Listed).
+	listed *listedRows
 }
 
-// AddLinksWithOptions stages a batch like AddLinksFrom and then applies the
-// form's own destination, passwords and, with Overrule, priority, unpacking
-// and comment. The destination is validated before anything is staged, so a
-// bad folder refuses the whole batch with an error the user sees.
+// LinkBatch is what a batch of links came to: the rows it created, and the
+// rows already in the list that some of its links were folded into, which a
+// caller can tell apart from links that were refused.
+type LinkBatch struct {
+	Created []*core.Task
+	Listed  []*core.Task
+}
+
+// listedRows gathers the ids of the rows a batch's links were folded into.
+// Nil gathers nothing, for the entrances that do not answer with them.
+type listedRows []string
+
+func (l *listedRows) add(m dedupe.Match) {
+	if l != nil && !slices.Contains(*l, m.Of.ID) {
+		*l = append(*l, m.Of.ID)
+	}
+}
+
+// AddLinksWithOptions is AddLinkBatch for the callers that only want the rows
+// it created.
 func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin, opts LinkBatchOptions) ([]*core.Task, error) {
+	b, err := a.AddLinkBatch(urls, pkg, origin, opts)
+	return b.Created, err
+}
+
+// AddLinkBatch stages a batch like AddLinksFrom and then applies the form's
+// own destination, passwords and, with Overrule, priority, unpacking and
+// comment. The destination is validated before anything is staged, so a bad
+// folder refuses the whole batch with an error the user sees.
+func (a *App) AddLinkBatch(urls []string, pkg string, origin core.Origin, opts LinkBatchOptions) (LinkBatch, error) {
 	dir := strings.TrimSpace(opts.Dir)
 	if dir != "" {
 		if err := settings.Validate(a.DataDir, "the folder for this batch", dir); err != nil {
-			return nil, err
+			return LinkBatch{}, err
 		}
 	}
 	if opts.FileName != "" {
 		if !opts.File {
-			return nil, errors.New("a file name comes with a file the browser was downloading")
+			return LinkBatch{}, errors.New("a file name comes with a file the browser was downloading")
 		}
 		// A control character, which only a script sends, becomes a space as
 		// in a rename, and a name too long for a file is cut the way the
@@ -98,19 +136,28 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 			return r
 		}, opts.FileName))
 		if err != nil {
-			return nil, err
+			return LinkBatch{}, err
 		}
 		opts.FileName = collide.SafeName(name)
 	}
-	if opts.Format != "" {
-		if _, ok := ytdlp.DefaultHosterPreset().ForLink(opts.Format); !ok {
-			return nil, fmt.Errorf("unknown format %q", opts.Format)
+	switch {
+	case opts.Format != "" && opts.Choice != nil:
+		return LinkBatch{}, errors.New("a batch comes with a format or a choice of rows, not both")
+	case opts.Format != "":
+		c, ok := ytdlp.FormatChoice(opts.Format)
+		if !ok {
+			return LinkBatch{}, fmt.Errorf("unknown format %q", opts.Format)
 		}
+		opts.Choice = &c
+	case opts.Choice != nil && !opts.Choice.Valid():
+		return LinkBatch{}, errors.New("the choice names no row, or a row, quality or audio format yt-dlp has not got")
 	}
 
+	var listed listedRows
+	opts.listed = &listed
 	created := a.addLinksFrom(urls, pkg, origin, opts)
 	if len(created) == 0 {
-		return a.detached(created), nil
+		return LinkBatch{Listed: a.rowsOf(listed)}, nil
 	}
 	// The form's values are for every row a yt-dlp link became, and so is the
 	// confirm below.
@@ -160,9 +207,26 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 		a.rememberPasswords([]string{password})
 	}
 	// Last, so the batch's own folder is on the tasks before a confirm can
-	// start one.
-	if !opts.KeepCollected {
+	// start one. Nobody is there to answer a question the confirm policy asks.
+	switch {
+	case opts.Start:
+		a.ConfirmTasks(ids, confirm.Config{}, confirm.TriggerCnL)
+	case !opts.KeepCollected:
 		a.autoConfirm(ids)
 	}
-	return a.detached(created), nil
+	return LinkBatch{Created: a.detached(created), Listed: a.rowsOf(listed)}, nil
+}
+
+// rowsOf copies the rows among ids that are still in the list.
+func (a *App) rowsOf(ids []string) []*core.Task {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	var out []*core.Task
+	for _, id := range ids {
+		if t := a.tasks[id]; t != nil {
+			c := *t
+			out = append(out, &c)
+		}
+	}
+	return out
 }

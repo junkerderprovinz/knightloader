@@ -103,7 +103,7 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 		return a.hold(cand, v, intake{origin: origin}, now, files), nil
 	}
 
-	staged := a.finishStaging(t, cand)
+	staged := a.finishStaging(t, cand, nil)
 	if staged == nil {
 		return nil, nil
 	}

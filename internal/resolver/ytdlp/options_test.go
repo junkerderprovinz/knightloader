@@ -2,6 +2,7 @@ package ytdlp
 
 import (
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -149,27 +150,69 @@ func TestALinksOwnFormatKeepsOneRowAndTheHostsContainer(t *testing.T) {
 		{LinkFormatAudio, VariantAudio, ""},
 	}
 	for _, c := range cases {
-		got, ok := host.ForLink(c.format)
+		choice, ok := FormatChoice(c.format)
 		if !ok {
-			t.Errorf("ForLink(%q) refused a format the button offers", c.format)
+			t.Errorf("FormatChoice(%q) refused a format the button offers", c.format)
 			continue
 		}
+		got := host.ForChoice(choice)
 		if len(got.Variants) != 1 || got.Variants[0] != c.variant {
-			t.Errorf("ForLink(%q) stages %v, want the %s row alone", c.format, got.Variants, c.variant)
+			t.Errorf("format %q stages %v, want the %s row alone", c.format, got.Variants, c.variant)
 		}
 		if c.variant == VariantVideo && got.VideoPick() != c.pick {
-			t.Errorf("ForLink(%q) picks %q, want %q", c.format, got.VideoPick(), c.pick)
+			t.Errorf("format %q picks %q, want %q", c.format, got.VideoPick(), c.pick)
 		}
 		if got.AudioFormat != "opus" {
-			t.Errorf("ForLink(%q) changed the audio format to %q", c.format, got.AudioFormat)
+			t.Errorf("format %q changed the audio format to %q", c.format, got.AudioFormat)
 		}
 	}
 }
 
 func TestALinksOwnFormatRefusesWhatNoRowCanMean(t *testing.T) {
 	for _, format := range []string{"", "best", "custom", "audioOnly", "999p", "thumbnail"} {
-		if _, ok := DefaultHosterPreset().ForLink(format); ok {
-			t.Errorf("ForLink(%q) was taken", format)
+		if _, ok := FormatChoice(format); ok {
+			t.Errorf("FormatChoice(%q) was taken", format)
+		}
+	}
+}
+
+func TestALinksOwnChoiceStagesItsRowsAtItsQualities(t *testing.T) {
+	host := HosterPreset{Variants: Variants(), VideoFormat: "mp4 avc1", Quality: Quality720p, AudioFormat: "opus", AudioBitrate: "160"}.Sanitize()
+	got := host.ForChoice(LinkChoice{Variants: []Variant{VariantVideo, VariantAudio, VariantSubtitle}, Quality: Quality1080p, AudioFormat: "mp3"})
+	if !slices.Equal(got.Variants, []Variant{VariantVideo, VariantAudio, VariantSubtitle}) {
+		t.Errorf("the choice stages %v", got.Variants)
+	}
+	if got.VideoPick() != "mp4 avc1 1080p" {
+		t.Errorf("the video row picks %q, want the host's container at the chosen 1080p", got.VideoPick())
+	}
+	if got.AudioFormat != "mp3" || got.AudioBitrate != "160" {
+		t.Errorf("the audio row is %s at %q kbit/s, want mp3 at the host's 160", got.AudioFormat, got.AudioBitrate)
+	}
+	kept := host.ForChoice(LinkChoice{Variants: []Variant{VariantAudio}})
+	if kept.Quality != Quality720p || kept.AudioFormat != "opus" {
+		t.Errorf("a choice naming no quality changed the host's to %s and %s", kept.Quality, kept.AudioFormat)
+	}
+}
+
+func TestALinksOwnChoiceRefusesWhatNoRowCanMean(t *testing.T) {
+	for _, c := range []LinkChoice{
+		{},
+		{Variants: []Variant{"chapters"}},
+		{Variants: []Variant{VariantVideo}, Quality: QualityCustom},
+		{Variants: []Variant{VariantVideo}, Quality: "999p"},
+		{Variants: []Variant{VariantAudio}, AudioFormat: "m4b"},
+	} {
+		if c.Valid() {
+			t.Errorf("%+v was taken", c)
+		}
+	}
+	for _, c := range []LinkChoice{
+		{Variants: []Variant{VariantDescription}},
+		{Variants: []Variant{VariantVideo}, Quality: QualityBest},
+		{Variants: []Variant{VariantVideo, VariantAudio}, Quality: Quality480p, AudioFormat: "flac"},
+	} {
+		if !c.Valid() {
+			t.Errorf("%+v was refused", c)
 		}
 	}
 }
