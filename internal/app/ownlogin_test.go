@@ -20,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share/k2stest"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/nitroflare"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/nitroflare/nftest"
+	"github.com/junkerderprovinz/knightloader/internal/schedule"
 )
 
 // useOwnHoster puts h in place of the app's hoster of the same id. The free
@@ -263,22 +264,25 @@ func TestADownloadTheOwnClientGaveUpOnMovesToTheNextBackendNamingTheTakeover(t *
 	jd.SetKnownHosts([]string{"keep2share.cc"})
 	t.Cleanup(func() { jd.SetKnownHosts(nil) })
 	task := &core.Task{ID: "1", URL: "https://k2s.cc/file/" + k2sFile, Resolver: keep2share.Keep2Share.ID, Status: core.StatusRunning, Enabled: true}
-	a.mu.Lock()
 	// Held, so the task moved on starts nowhere: no JD is set up here, and the
 	// hoster's clients speak to the live site.
-	a.halted = true
+	a.SetHalted(true)
+	a.mu.Lock()
 	a.tasks[task.ID] = task
 	a.active[task.ID] = true
 	a.started[task.ID] = true
 	a.mu.Unlock()
+	// The schedule's runner may pass in between, as it does when the app is
+	// slow to start; the halt has to hold through it.
+	a.applySchedule(schedule.State{})
 
 	a.onUpdate(task.ID, core.Update{Status: core.StatusError, Err: "Keep2Share: the answer does not read",
 		Unsupported: true, Takeover: "Keep2Share"})
 	a.mu.Lock()
-	resolverID, takeover, failed := task.Resolver, task.Takeover, task.Status == core.StatusError
+	resolverID, takeover, failed, started := task.Resolver, task.Takeover, task.Status == core.StatusError, a.started[task.ID]
 	a.mu.Unlock()
-	if resolverID != "jd" || takeover != "Keep2Share" || failed {
-		t.Errorf("task on %q with takeover %q, failed %v; want it with JD, naming Keep2Share", resolverID, takeover, failed)
+	if resolverID != "jd" || takeover != "Keep2Share" || failed || started {
+		t.Errorf("task on %q with takeover %q, failed %v, started %v; want it waiting for JD, naming Keep2Share", resolverID, takeover, failed, started)
 	}
 
 	a.mu.Lock()

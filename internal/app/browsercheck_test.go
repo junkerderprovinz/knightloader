@@ -10,6 +10,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/filespace"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs/xfstest"
+	"github.com/junkerderprovinz/knightloader/internal/schedule"
 )
 
 func TestABrowserCheckMovesTheDownloadToJDownloaderNamingTheHoster(t *testing.T) {
@@ -19,22 +20,25 @@ func TestABrowserCheckMovesTheDownloadToJDownloaderNamingTheHoster(t *testing.T)
 	t.Cleanup(func() { jd.SetKnownHosts(nil) })
 	task := &core.Task{ID: "1", URL: "https://filespace.com/k3m9x2p7q1ab", Resolver: filespace.Site.ID, Status: core.StatusRunning, Enabled: true}
 	useXFS(a, filespace.Site, "https://filespace.com", http.DefaultClient)
-	a.mu.Lock()
 	// Held, so the task moved on starts nowhere: no JD is set up here.
-	a.halted = true
+	a.SetHalted(true)
+	a.mu.Lock()
 	a.tasks[task.ID] = task
 	a.active[task.ID] = true
 	a.started[task.ID] = true
 	a.mu.Unlock()
+	// The schedule's runner may pass in between, as it does when the app is
+	// slow to start; the halt has to hold through it.
+	a.applySchedule(schedule.State{})
 
 	a.onUpdate(task.ID, core.Update{Status: core.StatusError, Err: "FileSpace asks for a browser check KnightLoader cannot pass",
 		Unsupported: true, BrowserCheck: "FileSpace"})
 	a.mu.Lock()
-	resolverID, check, takeover, failed := task.Resolver, task.BrowserCheck, task.Takeover, task.Status == core.StatusError
+	resolverID, check, takeover, failed, started := task.Resolver, task.BrowserCheck, task.Takeover, task.Status == core.StatusError, a.started[task.ID]
 	a.mu.Unlock()
-	if resolverID != "jd" || check != "FileSpace" || takeover != "" || failed {
-		t.Errorf("task on %q naming the browser check of %q, takeover %q, failed %v; want it with JD, naming FileSpace",
-			resolverID, check, takeover, failed)
+	if resolverID != "jd" || check != "FileSpace" || takeover != "" || failed || started {
+		t.Errorf("task on %q naming the browser check of %q, takeover %q, failed %v, started %v; want it waiting for JD, naming FileSpace",
+			resolverID, check, takeover, failed, started)
 	}
 
 	a.mu.Lock()
