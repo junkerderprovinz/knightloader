@@ -38,10 +38,10 @@ async function syncVideoScript() {
 
 /**
  * A registered script only reaches pages loaded after it, so the tabs already
- * showing one of the sites get it too, and switching the button on from the
- * popup shows it on the video playing behind. A frame that has it from an
- * earlier round is left alone, since loading it twice would declare its
- * constants twice.
+ * showing one of the sites get it too, and switching the button on in the
+ * options shows it on the video playing in another tab. A frame that has it
+ * from an earlier round is left alone, since loading it twice would declare
+ * its constants twice.
  */
 async function injectVideoButton(matches) {
   if (!chrome.tabs?.query) return;
@@ -67,44 +67,79 @@ function applyVideoButton() {
   return videoQueue;
 }
 
+/** The extension's mark as SVG markup, read once, which the button draws
+ *  inline since the page may not load the extension's files. */
+let videoMarkSvg = null;
+
 /** Everything the button says, in the extension's language, since the page
- *  it sits on has no catalogue. */
-function videoLabels() {
+ *  it sits on has no catalogue, and the mark it shows. */
+async function videoLabels() {
+  videoMarkSvg ??= await fetch(chrome.runtime.getURL('logo.svg')).then((r) => r.text());
   return {
     send: t('video.send'),
     sendTip: t('video.sendTip'),
     more: t('video.more'),
-    best: t('video.best'),
-    audio: t('video.audio'),
+    best: t('video.qualityBest'),
+    quality: t('video.quality'),
+    audioFormat: t('video.audioFormat'),
+    parts: Object.fromEntries(VIDEO_PARTS.map((p) => [p, t(VIDEO_PART_KEYS[p])])),
     checking: t('video.checking'),
     unknown: t('video.unknown'),
     playlist: t('video.playlist'),
     hide: t('video.hide'),
     sending: t('video.sending'),
-    sent: t('video.sent'),
+    started: t('video.started'),
     already: t('video.already'),
     held: t('video.held'),
     refused: t('video.refused'),
     offline: t('video.offline'),
     unpaired: t('video.unpaired'),
     failed: t('video.failed'),
+    mark: videoMarkSvg,
     dir: LANGUAGES.find((l) => l.code === currentLanguage())?.rtl ? 'rtl' : 'ltr',
     lang: currentLanguage(),
   };
 }
 
+/** Each part's name, spelled out so check-locales.mjs sees every key read. */
+const VIDEO_PART_KEYS = {
+  video: 'video.partVideo',
+  audio: 'video.partAudio',
+  subtitle: 'video.partSubtitle',
+  thumbnail: 'video.partThumbnail',
+  description: 'video.partDescription',
+};
+
 /**
- * Sends the video of the page a button sits on. The address is worked out
+ * What became of a send, from the instance's answer to POST /api/links with
+ * report set: started where it created a row it did not hold back, held
+ * where it held back every one, already where the video was in the list
+ * before. An instance older than report answers with the bare list, empty
+ * for a video it already had.
+ */
+function videoResult(answer) {
+  const tasks = Array.isArray(answer) ? answer : answer?.tasks;
+  const listed = Array.isArray(answer) ? [] : answer?.listed;
+  if (!Array.isArray(tasks) || !Array.isArray(listed)) return { result: 'refused' };
+  if (tasks.some((task) => task && !task.skipped)) return { result: 'started' };
+  if (tasks.length) return { result: 'held' };
+  return { result: listed.length || Array.isArray(answer) ? 'already' : 'refused' };
+}
+
+/**
+ * Sends the video of the page a button sits on, to download at once whatever
+ * the instance does with links added otherwise. The address is worked out
  * here again from the page's own, on the site the message came from, so a
- * button can only ever send the video it is showing. Answers what became of
- * it, for the button to show.
+ * button can only ever send the video it is showing, and the pick is cleaned
+ * of anything the instance would refuse. Answers what became of it, for the
+ * button to show.
  */
 async function sendVideo(frameUrl, msg) {
   const page = videoPage(msg.href);
   if (!page || page.site !== videoSiteOf(frameUrl)?.id) return { result: 'refused' };
   if (!(await videoButtonState()).running.includes(page.site)) return { result: 'refused' };
   const link = msg.playlist && page.playlist ? page.playlist : page.url;
-  const format = VIDEO_FORMATS.includes(msg.format) ? msg.format : '';
+  const choice = videoChoice(videoPick(msg.pick));
   try {
     return await withGroup(async ({ siblings, call }) => {
       const target = defaultOf(siblings, await readDefaultTarget());
@@ -113,19 +148,14 @@ async function sendVideo(frameUrl, msg) {
         target,
         'POST',
         '/api/links',
-        JSON.stringify({ links: link, package: '', origin: 'cnl', source: page.url, ...(format ? { format } : {}) }),
+        JSON.stringify({ links: link, package: '', origin: 'cnl', source: page.url, choice, start: true, report: true }),
       );
       if (res.status < 200 || res.status >= 300) return { result: 'refused', reason: t(refusalKey(res)) };
-      let created;
       try {
-        created = JSON.parse(res.body);
+        return videoResult(JSON.parse(res.body));
       } catch {
         return { result: 'refused' };
       }
-      if (!Array.isArray(created) || created.length === 0) return { result: 'already' };
-      // A skipped task is one the instance held back, as already downloaded
-      // or by its filter.
-      return { result: created.some((task) => task && !task.skipped) ? 'sent' : 'held' };
     });
   } catch (e) {
     if (e?.code === 'no-phrase') return { result: 'unpaired' };
@@ -136,22 +166,33 @@ async function sendVideo(frameUrl, msg) {
 
 /**
  * What the menu offers for the video of the page a button sits on: what the
- * default instance's yt-dlp says it has, or the best video alone with
- * `unknown` set where it cannot say. Checked like sendVideo, so a button only
- * asks about the video it is showing.
+ * default instance's yt-dlp says it has (videoOffer), or `unknown` where it
+ * cannot say. Checked like sendVideo, so a button only asks about the video
+ * it is showing. The resolutions found are kept for the site, for the
+ * options page to offer.
  */
 async function videoFormats(frameUrl, msg) {
   const page = videoPage(msg.href);
-  if (!page || page.site !== videoSiteOf(frameUrl)?.id) return { formats: videoMenuFormats(null), unknown: true };
+  if (!page || page.site !== videoSiteOf(frameUrl)?.id) return videoOffer(null);
+  let answer = null;
   try {
-    return await withGroup(async ({ siblings, call }) => {
+    answer = await withGroup(async ({ siblings, call }) => {
       const target = defaultOf(siblings, await readDefaultTarget());
-      const answer = target ? await readJSON(call, target, `/api/ytdlp/link?url=${encodeURIComponent(page.url)}`) : null;
-      return answer ? { formats: videoMenuFormats(answer) } : { formats: videoMenuFormats(null), unknown: true };
+      return target ? readJSON(call, target, `/api/ytdlp/link?url=${encodeURIComponent(page.url)}`) : null;
     });
   } catch {
-    return { formats: videoMenuFormats(null), unknown: true };
+    return videoOffer(null);
   }
+  const offer = videoOffer(answer);
+  if (offer.qualities.length) await keepVideoQualities(page.site, offer.qualities);
+  return offer;
+}
+
+async function keepVideoQualities(siteId, qualities) {
+  const { videoQualities } = await chrome.storage.local.get('videoQualities');
+  const seen = videoQualities?.[siteId] ?? [];
+  const all = VIDEO_CAPS.filter((q) => seen.includes(q) || qualities.includes(q));
+  if (all.length !== seen.length) await chrome.storage.local.set({ videoQualities: { ...videoQualities, [siteId]: all } });
 }
 
 /** Hides the button on the site a page belongs to, from the button's menu. */
@@ -167,7 +208,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // runs; the page itself cannot reach this listener.
   if (!sender?.tab || !videoSiteOf(sender.url ?? '')) return;
   if (msg?.type === 'knightloader-video-labels') {
-    void loadLanguage().then(() => sendResponse(videoLabels()));
+    void loadLanguage().then(videoLabels).then(sendResponse);
     return true;
   }
   if (msg?.type === 'knightloader-video-send') {

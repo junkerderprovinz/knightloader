@@ -1,7 +1,7 @@
 /**
  * The download button on a video's player (src/video.js, src/video-worker.js,
- * src/video-button.js, src/popup-video.js), run against a stubbed `chrome` and
- * a small stand-in for the page.
+ * src/video-button.js), run against a stubbed `chrome` and a small stand-in
+ * for the page.
  *
  *   1. Every form a video's page comes in sends the one address the video
  *      goes by, the playlist only when asked, and a page that plays no one
@@ -9,18 +9,24 @@
  *   2. The sites are a short list of https addresses inside the optional
  *      access, none of them a static content script, and each is a site
  *      yt-dlp on the instance knows.
- *   3. The worker registers the button only where it runs, and sends only the
- *      video of the page that asked, with a format only from the menu's list,
- *      and tells the button what became of it. The menu lists what the
- *      instance says the video has, and the best video alone where it cannot
- *      say.
- *   4. The popup's switch and the page's button share one stored setting:
- *      switching off takes the button out of an open tab at once, without a
- *      reload, and switching on brings it back. The button follows the page
- *      to another video and away from one, says it is checking until the
- *      instance answers and asks once per video, sits in the element shown in
- *      fullscreen, picks the video that is on screen, and moves down past
- *      the controls a player keeps along the top of its video.
+ *   3. A site's stored defaults become the choice a click sends, cleaned of
+ *      anything the instance would refuse. A dragged button is stored as
+ *      shares of its player, kept inside it, so it keeps its place when the
+ *      player changes size. Auto-hide shows the button only with the pointer
+ *      over the video or while it is in use.
+ *   4. The worker registers the button only where it runs, sends only the
+ *      video of the page that asked, to start at once with its choice, and
+ *      tells the button whether it started, was held back or was there
+ *      already. The menu lists what the instance says the video has, and the
+ *      resolutions found are kept for the site.
+ *   5. On the page, a click sends the site's defaults and the menu a pick of
+ *      its own, a drag places the button and sends nothing, auto-hide and the
+ *      keyboard decide when it shows, and the switches take it off an open
+ *      tab at once and back. The button follows the page to another video
+ *      and away from one, asks the instance once per video, sits in the
+ *      element shown in fullscreen, picks the video that is on screen, and
+ *      moves down past the controls a player keeps along the top of its
+ *      video.
  *
  * Run by CI and by hand: `node extension/check-video.mjs`
  */
@@ -187,12 +193,65 @@ function loadBackground(chrome) {
     crypto: globalThis.crypto, TextEncoder, TextDecoder, URL, navigator: { language: 'en-US', languages: ['en-US'], userAgent: 'test' },
     btoa: (s) => Buffer.from(s, 'binary').toString('base64'), atob: (s) => Buffer.from(s, 'base64').toString('binary'),
     WebSocket: class {}, indexedDB: { open: () => ({}) },
+    fetch: async (url) => ({ text: async () => (String(url).endsWith('logo.svg') ? '<svg viewBox="0 0 587 901.8"></svg>' : '') }),
   });
   for (const f of manifest.background.scripts) vm.runInContext(read('src', f), ctx, { filename: f });
   return ctx;
 }
 
-// 3. The worker.
+// 3. What a click downloads, where the button sits and when it shows.
+{
+  const ctx = vm.createContext({ URL, chrome: {} });
+  vm.runInContext(read('src', 'video.js'), ctx, { filename: 'video.js' });
+  const run = (src) => JSON.parse(JSON.stringify(vm.runInContext(src, ctx)));
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+  ctx.stored = {
+    videoDefaults: {
+      youtube: { parts: ['subtitle', 'video', 'chapters'], quality: '720p', audio: 'opus' },
+      vimeo: { parts: [], quality: '1080p' },
+      twitch: { parts: ['audio'], quality: '8k', audio: 'm4b' },
+    },
+  };
+  const choice = (site) => run(`videoChoice(videoDefaultsFor(stored, '${site}'))`);
+  const best = { variants: ['video'], quality: 'best', audioFormat: 'best' };
+  if (!same(choice('youtube'), { variants: ['video', 'subtitle'], quality: '720p', audioFormat: 'opus' })) fail(`YouTube's defaults send ${JSON.stringify(choice('youtube'))}, want the video at 720p with its subtitles, and opus kept for the audio`);
+  if (!same(choice('vimeo'), best)) fail(`a site set to download no part sends ${JSON.stringify(choice('vimeo'))}, want the best video`);
+  if (!same(choice('dailymotion'), best)) fail(`a site with nothing set sends ${JSON.stringify(choice('dailymotion'))}, want the best video`);
+  if (!same(choice('twitch'), { variants: ['audio'], quality: 'best', audioFormat: 'best' })) fail(`a quality and an audio format the instance has not got are sent as ${JSON.stringify(choice('twitch'))}, want the best`);
+
+  ctx.stored = { videoQualities: { youtube: ['480p', '2160p', '9999p'] } };
+  if (run(`videoSiteQualities(stored, 'youtube')`).join() !== '2160p,480p') fail('the options offer a site other resolutions than those the instance found there');
+  if (run(`videoSiteQualities(stored, 'vimeo')`).join() !== run('VIDEO_CAPS').join()) fail('for a site the instance has found nothing on, the options do not offer every resolution it knows');
+
+  const rect = { left: 100, top: 50, width: 800, height: 450 };
+  const size = { width: 160, height: 32 };
+  ctx.rect = rect;
+  ctx.size = size;
+  if (!same(run('videoSpotOf({ x: 500, y: 275 }, rect, size)'), { x: 0.5, y: 0.5 })) fail('a button dropped in the middle of the player is not stored as half its width and height');
+  const corner = run('videoSpotOf({ x: 0, y: 1000 }, rect, size)');
+  if (!same(corner, { x: 0.1, y: 0.9644 })) fail(`a button dropped past the player's corner is stored at ${JSON.stringify(corner)}, want it kept inside at 0.1, 0.9644`);
+  ctx.spot = corner;
+  ctx.full = { left: 0, top: 0, width: 1600, height: 900 };
+  const scaled = run('videoSpotPoint(spot, full, size)');
+  if (Math.round(scaled.x) !== 160 || Math.round(scaled.y) !== 868) fail(`in a player twice the size the button sits at ${scaled.x}, ${scaled.y}, want the same share of it at 160, 868`);
+  if (!same(run('videoSpotPoint({ x: 0, y: 0 }, rect, size)'), { x: 180, y: 66 })) fail('a spot at the edge puts part of the button outside the player');
+  if (!same(run(`videoSpotPoint({ x: 0.9, y: 0.1 }, { left: 0, top: 0, width: 100, height: 20 }, size)`), { x: 50, y: 10 })) fail('a player smaller than the button does not get it in its middle');
+  for (const bad of [{ x: 2, y: 0.5 }, { x: '0.5', y: 0.5 }, { y: 0.5 }, null]) {
+    ctx.stored = { videoButtonSpot: { youtube: bad } };
+    if (run(`videoSpotFor(stored, 'youtube')`) !== null) fail(`a stored spot of ${JSON.stringify(bad)} is used`);
+  }
+
+  const shows = (s) => vm.runInContext('videoButtonShows', ctx)(s);
+  if (!shows({ autoHide: false })) fail('without auto-hide the button does not show on its own');
+  if (shows({ autoHide: true })) fail('with auto-hide the button shows with the pointer away from the video');
+  if (!shows({ autoHide: true, pointerOver: true })) fail('with auto-hide the button does not show with the pointer over the video');
+  for (const k of ['hovering', 'focused', 'menuOpen', 'dragging', 'busy']) {
+    if (!shows({ autoHide: true, [k]: true })) fail(`with auto-hide the button hides while ${k}`);
+  }
+}
+
+// 4. The worker.
 {
   const store = makeStore();
   const { chrome, calls, live } = makeChrome(store);
@@ -216,8 +275,12 @@ function loadBackground(chrome) {
   await store.local.set({ videoButton: true, videoButtonHidden: [] });
   await settle();
 
+  const labels = await vm.runInContext('videoLabels', ctx)();
+  if (!labels.mark?.startsWith('<svg')) fail('the button gets no mark to show');
+  if (Object.keys(labels.parts ?? {}).join() !== 'video,audio,subtitle,thumbnail,description') fail('the button gets no name for every part');
+
   const sent = [];
-  let answer = { status: 200, body: '[{"id":"a"}]' };
+  let answer = { status: 200, body: '{"tasks":[{"id":"a"}],"listed":[]}' };
   const withGroup = ctx.withGroup;
   ctx.withGroup = async (work) => work({
     siblings: [{ instanceId: 'inst-1' }],
@@ -226,19 +289,21 @@ function loadBackground(chrome) {
   const sendVideo = vm.runInContext('sendVideo', ctx);
   const embed = 'https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?list=PLbpi6ZahtOH6Ar_3GPy3workIMw9vB9wB';
 
-  let r = await sendVideo(embed, { href: embed, format: 'audio' });
+  let r = await sendVideo(embed, { href: embed, pick: { parts: ['audio', 'video', 'chapters'], quality: '1080p', audio: 'mp3' } });
   const last = () => sent.at(-1)?.body;
-  if (r.result !== 'sent') fail(`a send the instance took answers ${r.result}, want sent`);
+  if (r.result !== 'started') fail(`a send the instance started answers ${r.result}, want started`);
   if (last()?.links !== 'https://www.youtube.com/watch?v=aqz-KE-bpKQ') fail(`an embedded player sends ${last()?.links}`);
-  if (last()?.format !== 'audio') fail(`a format from the menu arrives as ${last()?.format}`);
+  if (JSON.stringify(last()?.choice) !== '{"variants":["video","audio"],"quality":"1080p","audioFormat":"mp3"}') fail(`a pick arrives as ${JSON.stringify(last()?.choice)}, want the video at 1080p and the audio as mp3`);
+  if (last()?.start !== true || last()?.report !== true) fail('the video is not sent to start at once and to report a link already there');
+  if ('format' in last()) fail('the send still names a format beside its choice');
   if (sent.at(-1)?.path !== '/api/links' || sent.at(-1)?.method !== 'POST') fail('the video is not sent as POST /api/links');
 
-  await sendVideo(embed, { href: embed, playlist: true, format: 'everything' });
+  await sendVideo(embed, { href: embed, playlist: true, pick: { parts: ['everything'], quality: '8k' } });
   if (last()?.links !== 'https://www.youtube.com/playlist?list=PLbpi6ZahtOH6Ar_3GPy3workIMw9vB9wB') fail(`asked for the playlist, the button sends ${last()?.links}`);
-  if ('format' in last()) fail(`a format outside the menu's list was sent: ${last().format}`);
+  if (JSON.stringify(last()?.choice) !== '{"variants":["video"],"quality":"best","audioFormat":"best"}') fail(`a pick the instance would refuse arrives as ${JSON.stringify(last()?.choice)}, want the best video`);
 
-  // The menu offers what the instance says the video has, and best alone
-  // where it cannot say.
+  // The menu offers what the instance says the video has, and the
+  // resolutions found are kept for the site.
   const videoFormats = vm.runInContext('videoFormats', ctx);
   answer = { status: 200, body: '{"qualities":["720p","480p","9999p"],"audio":true}' };
   let menu = await videoFormats(embed, { href: embed });
@@ -246,17 +311,17 @@ function loadBackground(chrome) {
   if (asked?.method !== 'GET' || asked.path !== `/api/ytdlp/link?url=${encodeURIComponent('https://www.youtube.com/watch?v=aqz-KE-bpKQ')}`) {
     fail(`the menu asks ${asked?.method} ${asked?.path}, want GET /api/ytdlp/link for the video's address`);
   }
-  if (menu.formats?.join() !== 'video,720p,480p,audio') fail(`the menu offers ${menu.formats}, want the best video, the two resolutions the video has and its sound`);
-  answer = { status: 200, body: '{"qualities":[],"audio":false}' };
-  menu = await videoFormats(embed, { href: embed });
-  if (menu.formats?.join() !== 'video') fail(`a video with nothing to choose offers ${menu.formats}`);
+  if (menu.qualities?.join() !== '720p,480p' || menu.audio !== true || menu.unknown) fail(`the menu offers ${JSON.stringify(menu)}, want the two resolutions the video has and its sound`);
+  answer = { status: 200, body: '{"qualities":["1080p","720p"],"audio":false}' };
+  await videoFormats(embed, { href: embed });
+  if (store.data.videoQualities?.youtube?.join() !== '1080p,720p,480p') fail(`the resolutions kept for YouTube are ${store.data.videoQualities?.youtube}, want every one found there`);
   answer = { status: 502, body: 'ERROR: [youtube] aqz-KE-bpKQ: Private video' };
   menu = await videoFormats(embed, { href: embed });
-  if (menu.formats?.join() !== 'video' || !menu.unknown) fail(`a probe that failed offers ${menu.formats}, want the best video alone and a note`);
+  if (menu.qualities?.length || !menu.unknown) fail(`a probe that failed offers ${JSON.stringify(menu)}, want nothing known`);
   const asking = sent.length;
   menu = await videoFormats('https://www.youtube.com/watch?v=aqz-KE-bpKQ', { href: 'https://vimeo.com/1084537' });
-  if (sent.length !== asking || menu.formats?.join() !== 'video') fail('a frame on one site could ask about a video of another');
-  answer = { status: 200, body: '[{"id":"a"}]' };
+  if (sent.length !== asking || !menu.unknown) fail('a frame on one site could ask about a video of another');
+  answer = { status: 200, body: '{"tasks":[{"id":"a"}],"listed":[]}' };
 
   const before = sent.length;
   r = await sendVideo('https://www.youtube.com/watch?v=aqz-KE-bpKQ', { href: 'https://vimeo.com/1084537' });
@@ -267,8 +332,12 @@ function loadBackground(chrome) {
   await store.local.set({ videoButtonHidden: [] });
 
   for (const [res, want] of [
+    [{ status: 200, body: '{"tasks":[],"listed":[{"id":"a"}]}' }, 'already'],
+    [{ status: 200, body: '{"tasks":[{"id":"a","skipped":true}],"listed":[]}' }, 'held'],
+    [{ status: 200, body: '{"tasks":[],"listed":[]}' }, 'refused'],
+    // An instance from before report answers with the bare list.
     [{ status: 200, body: '[]' }, 'already'],
-    [{ status: 200, body: '[{"id":"a","skipped":true}]' }, 'held'],
+    [{ status: 200, body: '[{"id":"a"}]' }, 'started'],
     [{ status: 403, body: '{"code":"memberPending"}' }, 'refused'],
   ]) {
     answer = res;
@@ -302,7 +371,7 @@ function loadBackground(chrome) {
   if (answered) fail('a content script on a site without the button got an answer to a send');
 }
 
-/** A small stand-in for the DOM, enough for the button and the popup. */
+/** A small stand-in for the DOM, enough for the button. */
 class Node {
   constructor(tag, doc) {
     this.tagName = tag;
@@ -322,6 +391,7 @@ class Node {
     };
     this.rect = { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0 };
     this.offsetWidth = 0;
+    this.offsetHeight = 0;
   }
   get parentElement() { return this.parentNode; }
   get isConnected() {
@@ -335,6 +405,10 @@ class Node {
       n.parentNode = this;
       this.children.push(n);
     }
+  }
+  prepend(n) {
+    this.append(n);
+    this.children.unshift(this.children.pop());
   }
   replaceChildren(...nodes) {
     for (const n of this.children) n.parentNode = null;
@@ -360,8 +434,25 @@ class Node {
   setAttribute(k, v) { this.attrs[k] = String(v); }
   getAttribute(k) { return this.attrs[k] ?? null; }
   removeAttribute(k) { delete this.attrs[k]; }
-  addEventListener(type, f) { (this.listeners[type] ??= []).push(f); }
-  dispatch(type, e = {}) { for (const f of this.listeners[type] ?? []) f({ isTrusted: true, stopPropagation() {}, preventDefault() {}, composedPath: () => [], ...e }); }
+  addEventListener(type, f, opts) { (this.listeners[type] ??= []).push({ f, capture: opts === true || opts?.capture === true }); }
+  dispatch(type, e = {}) { for (const l of this.listeners[type] ?? []) l.f({ isTrusted: true, stopPropagation() {}, preventDefault() {}, composedPath: () => [], ...e }); }
+  /** Dispatches as the browser does: capturing listeners from the top down,
+   *  then the bubbling ones back up, until one stops it. */
+  fire(type, e = {}) {
+    const path = [];
+    for (let n = this; n; n = n.parentNode) path.unshift(n);
+    let stopped = false;
+    const ev = { isTrusted: true, preventDefault() {}, composedPath: () => [], ...e, stopPropagation() { stopped = true; } };
+    for (const n of path) {
+      for (const l of n.listeners[type] ?? []) if (l.capture || n === this) l.f(ev);
+      if (stopped) return;
+    }
+    for (const n of path.slice(0, -1).reverse()) {
+      for (const l of n.listeners[type] ?? []) if (!l.capture) l.f(ev);
+      if (stopped) return;
+    }
+  }
+  setPointerCapture() {}
   attachShadow() {
     this.shadow = new Node('#shadow', this.doc);
     return this.shadow;
@@ -371,9 +462,13 @@ class Node {
   getBoundingClientRect() { return this.rect; }
   querySelectorAll(tag) {
     const out = [];
-    const walk = (n) => n.children.forEach((c) => { if (c.tagName === tag) out.push(c); walk(c); });
+    const walk = (n) => n.children.forEach((c) => { if (c.tagName === tag || tag === '*') out.push(c); walk(c); });
     walk(this);
     return out;
+  }
+  querySelector(selector) {
+    const cls = selector.startsWith('.') ? selector.slice(1) : null;
+    return this.querySelectorAll('*').find((n) => (cls ? n.attrs.class === cls || n.className === cls : n.tagName === selector)) ?? null;
   }
   focus() {}
 }
@@ -383,11 +478,12 @@ function makeDocument() {
   doc.documentElement = new Node('html', doc);
   doc.createElement = (tag) => new Node(tag, doc);
   doc.createElementNS = (_, tag) => new Node(tag, doc);
+  doc.importNode = (n) => n;
   doc.querySelectorAll = (tag) => doc.documentElement.querySelectorAll(tag);
   doc.getElementById = (id) => doc.documentElement.querySelectorAll('*').find((n) => n.attrs.id === id) ?? doc.byId?.[id];
   doc.elementsFromPoint = () => doc.documentElement.querySelectorAll('video');
   doc.addEventListener = (type, f) => (doc.listeners[type] ??= []).push(f);
-  doc.dispatch = (type) => (doc.listeners[type] ?? []).forEach((f) => f({}));
+  doc.dispatch = (type, e = {}) => (doc.listeners[type] ?? []).forEach((f) => f({ composedPath: () => [], ...e }));
   return doc;
 }
 
@@ -408,6 +504,7 @@ function loadPage(chrome, href) {
     matchMedia: () => ({ matches: false, addEventListener() {} }),
     window: { addEventListener() {} }, innerWidth: 1280, innerHeight: 800,
     navigator: { userAgent: 'test' }, CSS: { supports: () => false },
+    DOMParser: class { parseFromString() { return { documentElement: doc.createElementNS('', 'svg') }; } },
   });
   ctx.globalThis = ctx;
   return { ctx, doc, location, run: () => {
@@ -415,18 +512,29 @@ function loadPage(chrome, href) {
   } };
 }
 
-// 4. The switch, the page and the button.
+const PAGE_LABELS = {
+  send: 'Download', sendTip: 'Send', more: 'More', best: 'Best', quality: 'Video quality', audioFormat: 'Audio format',
+  parts: { video: 'Video', audio: 'Audio', subtitle: 'Subtitles', thumbnail: 'Thumbnail', description: 'Text' },
+  hide: 'Hide on {site}', checking: 'Checking', unknown: 'Unknown', started: 'Started', already: 'Already there',
+  mark: '<svg viewBox="0 0 587 901.8"></svg>', dir: 'ltr', lang: 'en',
+};
+
+// 5. The switch, the page and the button.
 {
-  const store = makeStore();
+  const store = makeStore({ videoDefaults: { youtube: { parts: ['video', 'subtitle'], quality: '1080p', audio: 'best' } } });
   const { chrome } = makeChrome(store);
-  const labels = { send: 'Download', sendTip: 'Send', more: 'More', best: 'Best video', audio: 'Audio only', hide: 'Hide on {site}', checking: 'Checking', unknown: 'Unknown', dir: 'ltr', lang: 'en' };
   let formatsAnswer;
   let formatsAsked = 0;
+  const sends = [];
   chrome.runtime.sendMessage = async (msg) => {
-    if (msg.type === 'knightloader-video-labels') return labels;
+    if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
     if (msg.type === 'knightloader-video-formats') {
       formatsAsked++;
       return new Promise((resolve) => { formatsAnswer = resolve; });
+    }
+    if (msg.type === 'knightloader-video-send') {
+      sends.push(msg);
+      return { result: 'already' };
     }
     return undefined;
   };
@@ -443,43 +551,92 @@ function loadPage(chrome, href) {
   if (!button()) fail('on a watch page the button does not appear');
   else if (button().style.left !== '640px') fail(`the button sits at ${button().style.left}, want the middle of the video's top edge`);
 
-  // The menu says it is checking until the instance answers, then lists what
-  // the video has, and opening it again asks nothing more.
   const shadow = button()?.shadow;
-  const more = () => shadow.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'menu');
-  const entries = () => shadow.querySelectorAll('div').find((d) => d.attrs.role === 'menu').children.map((c) => c.textContent).filter(Boolean);
-  more().dispatch('click');
+  const buttons = () => shadow.querySelectorAll('button');
+  const send = () => buttons().find((b) => b.className === 'send');
+  const more = () => buttons().find((b) => b.attrs['aria-haspopup'] === 'menu');
+  const frame = () => shadow.querySelectorAll('div').find((d) => d.className === 'kl');
+  const bar = () => shadow.querySelectorAll('div').find((d) => d.className === 'bar');
+  if (!send()?.children.some((c) => c.attrs.class === 'mark')) fail('the button shows no mark in front of its label');
+  if (!frame()?.classList.contains('shown')) fail('without auto-hide the button does not show over the video');
+
+  // A click sends the site's defaults; the instance having the video already
+  // shows on the button.
+  send().fire('click');
   await settle();
-  if (entries().join('|') !== 'Checking|Hide on YouTube') fail(`while the instance is asked the menu shows ${entries().join(', ')}, want Checking`);
-  formatsAnswer({ formats: ['video', '1080p', '720p', 'audio'] });
+  if (JSON.stringify(sends.at(-1)?.pick) !== '{"parts":["video","subtitle"],"quality":"1080p","audio":"best"}') fail(`a click sends ${JSON.stringify(sends.at(-1)?.pick)}, want YouTube's defaults`);
+  if (frame()?.dataset.state !== 'already' || send().children.at(-1)?.textContent !== 'Already there') fail(`a video already there shows ${frame()?.dataset.state} "${send().children.at(-1)?.textContent}", want already`);
+
+  // The menu lists the parts with the site's defaults ticked, says it is
+  // checking until the instance answers, then offers what the video has,
+  // and opening it again asks nothing more.
+  const menuEl = () => shadow.querySelectorAll('div').find((d) => d.attrs.role === 'menu');
+  const entries = () => menuEl().querySelectorAll('*').filter((n) => n.text).map((n) => (n.attrs['aria-checked'] === 'true' ? `[${n.text}]` : n.text));
+  more().fire('click');
   await settle();
-  if (entries().join('|') !== 'Best video|1080p|720p|Audio only|Hide on YouTube') fail(`the menu shows ${entries().join(', ')}, want what the instance listed`);
-  more().dispatch('click');
-  more().dispatch('click');
+  const checking = 'Video|Audio|Subtitles|Thumbnail|Text|Video quality|Checking|Download|Hide on YouTube';
+  if (entries().join('|').replace(/[[\]]/g, '') !== checking) fail(`while the instance is asked the menu shows ${entries().join(', ')}, want ${checking}`);
+  formatsAnswer({ qualities: ['720p'], audio: true });
+  await settle();
+  const listed = '[Video]|Audio|[Subtitles]|Thumbnail|Text|Video quality|Best|[1080p]|720p|Download|Hide on YouTube';
+  if (entries().join('|') !== listed) fail(`the menu shows ${entries().join(', ')}, want ${listed}, with the default 1080p beside what the video has`);
+  const item = (text) => menuEl().querySelectorAll('button').find((b) => b.text === text);
+  item('Audio').fire('click');
+  item('720p').fire('click');
+  item('MP3').fire('click');
+  item('Subtitles').fire('click');
+  item('Download').fire('click');
+  await settle();
+  if (JSON.stringify(sends.at(-1)?.pick) !== '{"parts":["video","audio"],"quality":"720p","audio":"mp3"}') fail(`the menu's own pick sends ${JSON.stringify(sends.at(-1)?.pick)}, want the video at 720p and its audio as mp3`);
+  more().fire('click');
   await settle();
   if (formatsAsked !== 1) fail(`opening the menu again asked the instance ${formatsAsked} times, want once`);
-  if (entries().join('|') !== 'Best video|1080p|720p|Audio only|Hide on YouTube') fail(`opened again, the menu shows ${entries().join(', ')}`);
-  more().dispatch('click');
+  if (!entries().includes('[1080p]')) fail('opened again, the menu does not start from the defaults');
+  more().fire('click');
 
-  // The popup in its own context, on the same storage.
-  const popupDoc = makeDocument();
-  const row = popupDoc.createElement('div');
-  const label = popupDoc.createElement('span');
-  const toggle = popupDoc.createElement('button');
-  popupDoc.byId = { videoRow: row, videoLabel: label, videoEnabled: toggle };
-  const popup = vm.createContext({ chrome, document: popupDoc, URL, console, window: { close() {} }, t: (k) => k, loadLanguage: async () => 'en' });
-  for (const f of ['video.js', 'popup-video.js']) vm.runInContext(read('src', f), popup, { filename: f });
+  // A drag places the button and keeps the place as shares of the player,
+  // and sends nothing.
+  bar().offsetWidth = 160;
+  bar().offsetHeight = 32;
+  button().rect = { left: 560, top: 68, width: 160, height: 32, right: 720, bottom: 100 };
+  const before = sends.length;
+  bar().dispatch('pointerdown', { button: 0, pointerId: 1, clientX: 600, clientY: 80 });
+  bar().dispatch('pointermove', { pointerId: 1, clientX: 602, clientY: 81 });
+  if (frame()?.classList.contains('dragging')) fail('a press that barely moves already drags');
+  bar().dispatch('pointermove', { pointerId: 1, clientX: 1000, clientY: 700 });
+  bar().dispatch('pointermove', { pointerId: 1, clientX: 1400, clientY: 700 });
+  bar().dispatch('pointerup', { pointerId: 1, clientX: 1400, clientY: 700 });
+  send().fire('click');
   await settle();
-  if (toggle.getAttribute('aria-checked') !== 'true') fail('the popup does not show the button as on');
+  if (sends.length !== before) fail('the click that ends a drag sends the video');
+  const spot = store.data.videoButtonSpot?.youtube;
+  if (JSON.stringify(spot) !== '{"x":0.9375,"y":0.9}') fail(`the dragged button is stored at ${JSON.stringify(spot)}, want shares of the player kept inside it, 0.9375 and 0.9`);
+  if (button().style.left !== '1200px' || button().style.top !== '704px') fail(`after the drag the button sits at ${button().style.left}, ${button().style.top}, want 1200px, 704px`);
+  send().fire('click');
+  await settle();
+  if (sends.length !== before + 1) fail('after a drag the next click sends nothing');
 
-  toggle.dispatch('click');
+  // Auto-hide: away until the pointer moves over the video, and back while
+  // the keyboard is on it.
+  await store.local.set({ videoButtonAutoHide: true });
   await settle();
-  if (store.data.videoButton !== false) fail('the popup switch does not store the button as off');
-  if (button()) fail('switched off in the popup, the button stays on the open page until a reload');
-  if (toggle.getAttribute('aria-checked') !== 'false') fail('switched off, the popup still shows it on');
-  toggle.dispatch('click');
-  await settle();
-  if (!button()) fail('switched on again in the popup, the button does not come back to the open page');
+  await new Promise((r) => setTimeout(r, 4100));
+  doc.dispatch('pointermove', { clientX: 5, clientY: 5 });
+  if (frame()?.classList.contains('shown')) fail('with auto-hide the button shows with the pointer away from the video');
+  doc.dispatch('pointermove', { clientX: 300, clientY: 300 });
+  if (!frame()?.classList.contains('shown')) fail('with auto-hide the button does not show with the pointer over the video');
+  doc.dispatch('pointermove', { clientX: 5, clientY: 900 });
+  if (frame()?.classList.contains('shown')) fail('with auto-hide the button stays once the pointer leaves the video');
+  shadow.dispatch('focusin');
+  if (!frame()?.classList.contains('shown')) fail('with auto-hide the button does not show when the keyboard reaches it');
+  await store.local.set({ videoButtonAutoHide: false });
+
+  // The switch and the site's own switch take the button off an open page
+  // at once, without a reload, and bring it back.
+  await store.local.set({ videoButton: false });
+  if (button()) fail('switched off, the button stays on the open page until a reload');
+  await store.local.set({ videoButton: true });
+  if (!button()) fail('switched on again, the button does not come back to the open page');
 
   await store.local.set({ videoButtonHidden: ['youtube'] });
   if (button()) fail('hidden on this site, the button stays');
@@ -503,7 +660,9 @@ function loadPage(chrome, href) {
   doc.dispatch('fullscreenchange');
   if (where() !== doc.documentElement) fail('out of fullscreen the button does not return to the page');
 
-  // Shorts keep the next video loaded below the screen.
+  // Shorts keep the next video loaded below the screen. The place dragged to
+  // goes with the site, so the reset puts the button back on the top edge.
+  await store.local.set({ videoButtonSpot: undefined });
   location.href = 'https://www.youtube.com/shorts/aqz-KE-bpKQ';
   main.remove();
   video(doc, player, { left: 400, top: 1000, width: 480, height: 850 });
@@ -535,4 +694,4 @@ if (problems.length) {
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log('ok: every form of a video page sends its one address, the sites are a short list yt-dlp knows inside the optional access, the worker sends only the asking page\'s video and says what became of it, the menu offers only what the instance says the video has, and the popup switch takes the button off an open page at once and back, while it follows navigation and fullscreen');
+console.log("ok: every form of a video page sends its one address, the sites are a short list yt-dlp knows inside the optional access, a click sends the site's defaults to start at once and says when the video was there already, the menu offers what the video has, a drag keeps its place as shares of the player and sends nothing, auto-hide shows the button only over the video, and the switches take it off an open page at once and back");

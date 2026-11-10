@@ -175,7 +175,6 @@
       .mediaHost { color: var(--carbon-text-muted); font-size: var(--text-subline); }
       .mediaNone { margin: 0; color: var(--carbon-text-muted); font-size: var(--text-subline); }
       #cnlAccess { margin-bottom: 16px; }
-      #videoRow { margin-top: 16px; }
       #cnlAccess button { margin-top: 10px; }
     </style>
   </head>
@@ -231,14 +230,6 @@
         <p id="mediaLabel" class="glim-eyebrow"></p>
         <div id="mediaList"></div>
       </div>
-      <!-- The download button on videos, the options page's switch one click
-           away (popup-video.js). -->
-      <div id="videoRow" class="glim-row" hidden>
-        <span class="glim-row-label" id="videoLabel"></span>
-        <button type="button" role="switch" aria-checked="false" id="videoEnabled" class="glim-switch">
-          <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
-        </button>
-      </div>
     </div>
 
     <!-- The link collector: paste or drop links, or pick files. -->
@@ -266,7 +257,6 @@
     <script src="disco.js"></script>
     <script src="i18n.js"></script>
     <script src="i18n-capture.js"></script>
-    <script src="i18n-video.js"></script>
     <script src="glyphs.js"></script>
     <script src="shared.js"></script>
     <script src="capture.js"></script>
@@ -279,7 +269,5 @@
     <script src="selectorFit.js"></script>
     <script src="popup.js"></script>
     <script src="popup-media.js"></script>
-    <script src="video.js"></script>
-    <script src="popup-video.js"></script>
   </body>
 </html>

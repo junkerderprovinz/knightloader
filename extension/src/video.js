@@ -1,9 +1,9 @@
 // The download button on a video's player. This part is shared by the button
 // itself (video-button.js, inside the site), the service worker
-// (video-worker.js), the options page and the popup: the sites it appears on,
-// the address it sends for a page, the formats its menu can offer and its
-// switch. The rules are plain functions so check-video.mjs can run them
-// without a browser.
+// (video-worker.js) and the options page: the sites it appears on, the address
+// it sends for a page, what a click downloads there, where the button sits and
+// when it shows, and its switch. The rules are plain functions so
+// check-video.mjs can run them without a browser.
 
 /**
  * The sites the button appears on, with the addresses their players live
@@ -27,22 +27,103 @@ const VIDEO_SITES = [
 /** The resolutions POST /api/links takes as `format` (ytdlp.Qualities). */
 const VIDEO_CAPS = ['4320p', '2160p', '1440p', '1080p', '720p', '480p', '360p', '240p', '144p'];
 
-/**
- * The formats the menu can send, in the words POST /api/links takes as
- * `format` (HosterPreset.ForLink): the video at its best, the audio alone,
- * and a cap on the resolution. A plain click sends none and the host's preset
- * decides.
- */
-const VIDEO_FORMATS = ['video', 'audio', ...VIDEO_CAPS];
+/** The rows a video becomes on the instance (ytdlp.Variants), in the order
+ *  the menu and the options page list them. */
+const VIDEO_PARTS = ['video', 'audio', 'subtitle', 'thumbnail', 'description'];
+
+/** The formats the audio row converts to (ytdlp.AudioFormats), "best" keeping
+ *  the source's own. */
+const VIDEO_AUDIO_FORMATS = ['best', 'aac', 'alac', 'flac', 'mp3', 'opus', 'vorbis', 'wav'];
+
+/** What a click downloads on a site nothing is set for: the video at its
+ *  best. */
+const VIDEO_DEFAULTS = { parts: ['video'], quality: 'best', audio: 'best' };
 
 /**
- * The menu's formats for what the instance says a video has (GET
- * /api/ytdlp/link): the video at its best, each resolution it has, and the
- * audio alone where it has sound. Without an answer, the best video alone.
+ * A pick of parts and qualities from what is stored or what a page sent,
+ * with every value the instance would refuse dropped: parts it has no row
+ * for, and a quality or audio format it does not know, which become the best.
+ * A pick with no part left is the defaults.
  */
-function videoMenuFormats(answer) {
-  const caps = Array.isArray(answer?.qualities) ? answer.qualities.filter((q) => VIDEO_CAPS.includes(q)) : [];
-  return ['video', ...caps, ...(answer?.audio === true ? ['audio'] : [])];
+function videoPick(raw) {
+  const parts = Array.isArray(raw?.parts) ? VIDEO_PARTS.filter((p) => raw.parts.includes(p)) : [];
+  if (parts.length === 0) return { ...VIDEO_DEFAULTS };
+  return {
+    parts,
+    quality: VIDEO_CAPS.includes(raw.quality) ? raw.quality : 'best',
+    audio: VIDEO_AUDIO_FORMATS.includes(raw.audio) ? raw.audio : 'best',
+  };
+}
+
+/** What a click downloads on a site, from the stored defaults per site. */
+function videoDefaultsFor(stored, siteId) {
+  return videoPick(stored?.videoDefaults?.[siteId]);
+}
+
+/** The choice POST /api/links takes for a pick (ytdlp.LinkChoice). */
+function videoChoice(pick) {
+  return { variants: pick.parts, quality: pick.quality, audioFormat: pick.audio };
+}
+
+/**
+ * What the menu offers for what the instance says a video has (GET
+ * /api/ytdlp/link): the resolutions it has, highest first, and whether it
+ * has sound. Without an answer, none and `unknown` set.
+ */
+function videoOffer(answer) {
+  if (!answer) return { qualities: [], audio: true, unknown: true };
+  const qualities = Array.isArray(answer.qualities) ? VIDEO_CAPS.filter((q) => answer.qualities.includes(q)) : [];
+  return { qualities, audio: answer.audio === true };
+}
+
+/** The resolutions offered for a site: those the instance has found there so
+ *  far (videoQualities, by site), or every one it knows where it has found
+ *  none. */
+function videoSiteQualities(stored, siteId) {
+  const seen = stored?.videoQualities?.[siteId];
+  const known = Array.isArray(seen) ? VIDEO_CAPS.filter((q) => seen.includes(q)) : [];
+  return known.length ? known : VIDEO_CAPS;
+}
+
+/**
+ * Where the button's middle goes for a spot stored as a share of the
+ * player's width and height, kept inside the player with the whole button in
+ * view. A player smaller than the button gets it in its middle.
+ */
+function videoSpotPoint(spot, rect, size) {
+  const along = (start, length, share, half) => {
+    const room = Math.max(0, length / 2 - half);
+    return start + length / 2 + Math.min(room, Math.max(-room, share * length - length / 2));
+  };
+  return { x: along(rect.left, rect.width, spot.x, size.width / 2), y: along(rect.top, rect.height, spot.y, size.height / 2) };
+}
+
+/** The spot a point in the player is stored as: where the button's middle
+ *  lands, clamped like videoSpotPoint, as shares of the player rounded to a
+ *  ten-thousandth. */
+function videoSpotOf(point, rect, size) {
+  const p = videoSpotPoint({ x: (point.x - rect.left) / rect.width, y: (point.y - rect.top) / rect.height }, rect, size);
+  const share = (v) => Math.round(v * 10000) / 10000;
+  return { x: share((p.x - rect.left) / rect.width), y: share((p.y - rect.top) / rect.height) };
+}
+
+/** The spot stored for a site (videoButtonSpot, by site), or null where the
+ *  button keeps its place at the top of the video. */
+function videoSpotFor(stored, siteId) {
+  const spot = stored?.videoButtonSpot?.[siteId];
+  const share = (v) => typeof v === 'number' && v >= 0 && v <= 1;
+  return share(spot?.x) && share(spot?.y) ? { x: spot.x, y: spot.y } : null;
+}
+
+/**
+ * Whether the button shows. While it is in use it always does: the pointer
+ * or the keyboard on it, its menu open, a drag or a send going on. Otherwise
+ * it shows wherever its player is in view, or with auto-hide on only while
+ * the pointer moves over the video, as the player's own controls do.
+ */
+function videoButtonShows(s) {
+  if (s.hovering || s.focused || s.menuOpen || s.dragging || s.busy) return true;
+  return !s.autoHide || s.pointerOver;
 }
 
 /** Each site by the host names of its addresses. */

@@ -206,6 +206,19 @@
       .captureField input { width: 100%; }
       .captureRules select { min-width: 140px; }
       .clipNotice { margin-top: 14px; }
+      /* One well per site on the video button's card: its switch, then what a
+         click downloads there while it is shown. */
+      .videoSites { display: flex; flex-direction: column; gap: 10px; }
+      .videoSite { display: flex; flex-direction: column; gap: 12px; padding: 12px 14px; }
+      .videoSite > .glim-row { margin-top: 0; }
+      /* A step up the ramp from the well, so the controls stand out of it. */
+      .videoSite .glim-seg,
+      .videoSite select { background: var(--carbon-surface3); }
+      .videoParts { flex-wrap: wrap; contain: none; }
+      .videoParts button { flex: 1 0 auto; }
+      .videoPicks { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+      .videoPicks label { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+      .videoPicks select { min-width: 140px; }
       .clipWatchers { margin: 0 0 10px; padding-left: 18px; color: var(--carbon-text); }
       /* Underlined only on hover, in the accent ink. */
       .versionLink { color: var(--accent-ink); text-decoration: none; }
@@ -464,22 +477,6 @@
           </div>
         </div>
 
-        <!-- The download button on a video's player (options-video.js). The
-             popup has the same switch; the sites under it go with it. -->
-        <div id="video">
-          <div class="glim-row">
-            <span class="glim-row-label" id="videoLabel"></span>
-            <button type="button" role="switch" aria-checked="false" id="videoEnabled" class="glim-switch">
-              <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
-            </button>
-          </div>
-          <div class="glim-unavailable captureRefused" id="videoNotice" hidden>
-            <span class="glim-unavailable-title" id="videoNoticeTitle"></span>
-            <span class="glim-unavailable-reason" id="videoNoticeReason"></span>
-          </div>
-          <div class="captureRules" id="videoSites"></div>
-        </div>
-
         <!-- The clipboard watch (clipwatch.js). The notice says why the switch
              fell back: the browser refused the clipboard, another device
              switched this watch off, or there is no group to send to. -->
@@ -498,7 +495,42 @@
       </div>
     </section>
 
-    <section class="glim-card glim-stagger-row" style="--row-i: 5">
+    <!-- The download button on a video's player (options-video.js): its
+         switch, how it shows, where it sits, and under the sites what a click
+         downloads on each. Everything below the switch goes with it. -->
+    <section class="glim-card glim-stagger-row" id="video" style="--row-i: 5">
+      <h2 class="glim-section-badge" id="videoHeading"></h2>
+      <div class="axes">
+        <div class="glim-row">
+          <span class="glim-row-label" id="videoLabel"></span>
+          <button type="button" role="switch" aria-checked="false" id="videoEnabled" class="glim-switch">
+            <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+          </button>
+        </div>
+        <div class="glim-unavailable" id="videoNotice" hidden>
+          <span class="glim-unavailable-title" id="videoNoticeTitle"></span>
+          <span class="glim-unavailable-reason" id="videoNoticeReason"></span>
+        </div>
+        <div class="axes" id="videoMore">
+          <div class="glim-row">
+            <span class="glim-row-label" id="videoAutoHideLabel"></span>
+            <button type="button" role="switch" aria-checked="false" id="videoAutoHide" class="glim-switch">
+              <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+            </button>
+          </div>
+          <div class="glim-row">
+            <span class="glim-row-label" id="videoSpotLabel"></span>
+            <button type="button" id="videoSpotReset" class="glim-btn-subtle"></button>
+          </div>
+          <div class="glim-row">
+            <span class="glim-row-label" id="videoSitesLabel"></span>
+          </div>
+          <div class="videoSites" id="videoSites"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glim-card glim-stagger-row" style="--row-i: 6">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
       <!-- Only a copy button; the Help card carries the ways to report. -->
@@ -512,12 +544,12 @@
          to report something, then who made the extension and the ways to
          give. The browser updates the extension, so the card has no update
          check. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 6">
+    <section class="glim-card glim-stagger-row" style="--row-i: 7">
       <h2 class="glim-section-badge" id="versionHeading">Version</h2>
       <div class="axes" id="versionRows"></div>
     </section>
 
-    <section class="glim-card glim-stagger-row" style="--row-i: 7">
+    <section class="glim-card glim-stagger-row" style="--row-i: 8">
       <h2 class="glim-section-badge" id="helpHeading">Help</h2>
       <p id="aboutReport" class="aboutText"></p>
       <div class="glim-readme-btn-rows" id="aboutReportRow">
@@ -535,7 +567,7 @@
     </section>
 
     <!-- The About card, the one card whose body is prose (GlimStone 1.7.0). -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 8">
+    <section class="glim-card glim-stagger-row" style="--row-i: 9">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
