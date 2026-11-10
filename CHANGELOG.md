@@ -55,7 +55,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The Android app's Play button plays through your group.** VLC or any
   other player opens the file without an address of the instance: the app
   hands the player a link on the phone itself and fetches what the player
-  reads through the group, in pieces, so seeking works too.
+  reads through the group, in pieces, so seeking works too. At home it comes
+  straight from the instance, and away through the relay. A phone paired
+  before this release streams at home once you scan the phrase again.
 
 ### Removed
 

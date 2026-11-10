@@ -3,6 +3,7 @@ import * as IntentLauncher from 'expo-intent-launcher';
 import { fetchPlayable, fetchRange } from './client';
 import { mediaKind } from './media';
 import type { ServerConnection, Task } from './types';
+import { StreamBusy, directReader, type RangeReader } from '../play/direct';
 import { openLoopback } from '../play/loopback';
 
 /**
@@ -12,10 +13,24 @@ import { openLoopback } from '../play/loopback';
  */
 export async function playTask(conn: ServerConnection, task: Task, base = '/api'): Promise<void> {
   const playable = await fetchPlayable(conn, task.id, base);
+  const relayed: RangeReader = (from, length) => fetchRange(conn, task.id, playable.file, from, length, base);
+  // On the instance's own network the file comes as a stream, straight from
+  // it. A piece the instance is too busy to stream goes through the relay, and
+  // any other failure plays the rest through the relay.
+  let direct = await directReader(conn, task.id, playable.file, base).catch(() => null);
   const way = await openLoopback({
     size: playable.size,
     type: playable.type,
-    read: (from, length) => fetchRange(conn, task.id, playable.file, from, length, base),
+    read: async (from, length) => {
+      if (direct) {
+        try {
+          return await direct(from, length);
+        } catch (e) {
+          if (!(e instanceof StreamBusy)) direct = null;
+        }
+      }
+      return relayed(from, length);
+    },
   });
   try {
     await openInPlayer(way.url, mediaKind(task) ?? 'video');

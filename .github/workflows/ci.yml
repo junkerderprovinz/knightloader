@@ -655,6 +655,9 @@ jobs:
       - name: The key of the local network
         run: node check-peer-auth.mjs
 
+      - name: A stream on the local network
+        run: node check-direct-stream.mjs
+
       - name: Free QR scanner
         run: node check-free-scanner.mjs
 

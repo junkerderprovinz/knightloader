@@ -156,6 +156,18 @@ included, is fetched from the instance through the group with
 its way. The server closes once no player has been connected for two minutes,
 or when the app comes back to the front with none connected.
 
+On the instance's own network a piece comes as a stream of the kit, straight
+from the instance (`src/play/direct.ts`, `src/play/directStream.ts`). The
+instance names its address there in its hello, which the app asks for over the
+relay, and the call is tagged with the peer-auth key the app keeps from the
+phrase. It goes over a socket of its own, because `fetch` is held to the
+no-cleartext rule below, and what travels is sealed and signed as on the relay.
+A piece is taken only whole: every piece of the stream has to open, and the length
+and SHA-256 the instance signs at its end have to match. A connection paired
+before the app kept the peer-auth key, a peer behind the instance, and a
+stream that fails play through the relay. A phone gets the key once the phrase
+is entered again.
+
 ## Captchas
 
 A captcha that holds up a download shows in three places: a card at the top of
