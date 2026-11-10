@@ -46,6 +46,10 @@ const streamWait = 90 * time.Second
 // to outlast a long film paused halfway, and it opens that one file only.
 const playTicketTTL = 12 * time.Hour
 
+// maxPlayRange is the most one call to the range route answers with, well
+// inside what a relay answer may hold.
+const maxPlayRange = 4 << 20
+
 // inlineTypes is what this route shows in the tab rather than handing the
 // browser a save dialog: media a browser displays or plays, plus plain text.
 // Extending it means answering again whether the type can run as active
@@ -104,7 +108,12 @@ func registerFiles(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), taskFileStatus(err))
 				return
 			}
+			size, err := of.File.Seek(0, io.SeekEnd)
 			_ = of.File.Close()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 			file := ""
 			if of.Index >= 0 {
 				file = strconv.Itoa(of.Index)
@@ -120,8 +129,65 @@ func registerFiles(reg *Registry, a *app.App) {
 			if file != "" {
 				path += "&file=" + file
 			}
-			writeJSON(w, map[string]string{"path": path})
+			ctype, _ := inlineType(of.Name)
+			writeJSON(w, map[string]any{"path": path, "size": size, "type": ctype, "file": file})
 		})
+	reg.Add(http.MethodGet, "/api/tasks/{id}/range",
+		"length bytes of a task's file from from on, or with ?file= of one file of its torrent, as a 200 that is never longer than a relay answer may be. "+
+			"The phone app plays a file through it, over the relay and as a stream on the local network, neither of which carries a Range header",
+		func(w http.ResponseWriter, r *http.Request) {
+			serveTaskRange(w, r, a, r.PathValue("id"))
+		})
+}
+
+// serveTaskRange answers the range route.
+func serveTaskRange(w http.ResponseWriter, r *http.Request, a *app.App, id string) {
+	q := r.URL.Query()
+	from, err1 := strconv.ParseInt(q.Get("from"), 10, 64)
+	length, err2 := strconv.ParseInt(q.Get("length"), 10, 64)
+	if err1 != nil || err2 != nil || from < 0 || length <= 0 {
+		http.Error(w, "from and length must say which bytes to send", http.StatusBadRequest)
+		return
+	}
+	index := -1
+	if v := q.Get("file"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 0 {
+			http.Error(w, "file must be the index of a file of the torrent", http.StatusBadRequest)
+			return
+		}
+		index = n
+	}
+	of, err := a.OpenTaskFile(id, index)
+	if err != nil {
+		http.Error(w, err.Error(), taskFileStatus(err))
+		return
+	}
+	defer of.File.Close()
+	size, err := of.File.Seek(0, io.SeekEnd)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if from >= size {
+		http.Error(w, "the file ends before from", http.StatusRequestedRangeNotSatisfiable)
+		return
+	}
+	n := min(length, size-from, maxPlayRange)
+	if _, err := of.File.Seek(from, io.SeekStart); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var content io.Reader = of.File
+	if of.Live {
+		content = waitingReader{ctx: r.Context(), f: of.File, wait: streamWait}
+	}
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Length", strconv.FormatInt(n, 10))
+	rc := http.NewResponseController(w)
+	defer context.AfterFunc(r.Context(), func() { _ = rc.SetWriteDeadline(time.Now()) })()
+	_, _ = io.CopyN(w, content, n)
 }
 
 func serveTaskFile(w http.ResponseWriter, r *http.Request, a *app.App, id string) {

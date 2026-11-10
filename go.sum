@@ -308,6 +308,8 @@ github.com/junkerderprovinz/parleyport/kit v0.0.0-20261110093822-081023298f1a h1
 github.com/junkerderprovinz/parleyport/kit v0.0.0-20261110093822-081023298f1a/go.mod h1:/GHVd/HB+Br/336IHKuQBYSc4UGG3NXAfowh1q/DYx8=
 github.com/junkerderprovinz/parleyport/kit v0.0.0-20261110180703-85563775f682 h1:DbjkFIFX2+ir7ywQimt7fd5VusP3vDSDmwnMvfIgXR8=
 github.com/junkerderprovinz/parleyport/kit v0.0.0-20261110180703-85563775f682/go.mod h1:/GHVd/HB+Br/336IHKuQBYSc4UGG3NXAfowh1q/DYx8=
+github.com/junkerderprovinz/parleyport/kit v0.0.0-20261110212926-88ba24df583f h1:z1yl87ZvoMV+soUQh8HnBpzUXoaBF9bFNugY7BePhpc=
+github.com/junkerderprovinz/parleyport/kit v0.0.0-20261110212926-88ba24df583f/go.mod h1:/GHVd/HB+Br/336IHKuQBYSc4UGG3NXAfowh1q/DYx8=
 github.com/junkerderprovinz/torrent v1.61.1-0.20261014215729-7f7e9bdefc17 h1:iU66M6aAO5sjj3ZIYYSGYbEcBkJvMjS654S0p6oAvTk=
 github.com/junkerderprovinz/torrent v1.61.1-0.20261014215729-7f7e9bdefc17/go.mod h1:oHlhT+qWalx6yncaxd0nGInnsvkd8GncTgpxpbZ46YE=
 github.com/kevinburke/ssh_config v1.2.0 h1:x584FjTGwHzMwvHx18PXxbBVzfnxogHaAReU4gf13a4=

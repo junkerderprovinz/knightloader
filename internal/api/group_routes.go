@@ -71,6 +71,7 @@ var groupRoutes = map[string]bool{
 	"POST /api/tasks/{id}/pause":         true,
 	"GET /api/tasks/{id}/pieces":         true,
 	"POST /api/tasks/{id}/play":          true,
+	"GET /api/tasks/{id}/range":          true,
 	"POST /api/tasks/{id}/resume":        true,
 	"GET /api/tasks/{id}/torrent-files":  true,
 	"POST /api/tasks/{id}/torrent-files": true,

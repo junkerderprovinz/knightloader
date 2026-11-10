@@ -341,6 +341,8 @@ func openGroup(a *app.App) (*group.Group, error) {
 			defer cancel()
 			a.Federation.SyncLegacy(ctx, time.Now())
 		},
+		// A file a phone plays on this network comes as a stream.
+		Stream: memberHandler(a, serve),
 	}, memberHandler(a, serve))
 	if err != nil {
 		return nil, err

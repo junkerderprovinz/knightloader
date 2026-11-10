@@ -305,6 +305,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/tasks/{id}/pause":         apitoken.ScopeControl,
 	"GET /api/tasks/{id}/pieces":         apitoken.ScopeRead,
 	"POST /api/tasks/{id}/play":          apitoken.ScopeRead,
+	"GET /api/tasks/{id}/range":          apitoken.ScopeRead,
 	"POST /api/tasks/{id}/resume":        apitoken.ScopeControl,
 	"GET /api/tasks/{id}/torrent-files":  apitoken.ScopeRead,
 	"POST /api/tasks/{id}/torrent-files": apitoken.ScopeControl,

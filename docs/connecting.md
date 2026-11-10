@@ -554,7 +554,13 @@ play the file in that time.
 The link stops working before that when the instance restarts, when the token
 that asked for it is revoked, and when you change the password or sign out
 everywhere. For a torrent of several files that is the
-file Play picked, not the rest of the torrent.
+file Play picked, not the rest of the torrent. The answer also gives the
+file's `size` and `type`.
+
+`GET /api/tasks/{id}/range?from=…&length=…` sends that many bytes of the file
+from `from` on as a plain 200, at most 4 MiB at a time, and needs Read too. The
+phone app plays a file through it, because neither the relay nor a stream on
+the local network carries a `Range` header.
 
 A call the token has no right to is answered with a 403 that names the missing
 right:
