@@ -50,17 +50,21 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
 - **The extension's video button has a card of its own in the settings.**
   For each site you pick what a click downloads: the video, the audio, the
-  subtitles, the thumbnail or the description as text, with the video's
-  quality and the audio's format. The arrow next to the button picks
-  something else for one video. You can drag the button anywhere on the
-  player, and each site keeps its place, or let it hide until the pointer is
-  over the video. It carries the KnightLoader mark.
+  subtitles, the thumbnail or the description as text, with the highest
+  resolution, the audio codec and the subtitle languages and format you
+  prefer, from what the site has offered so far. The arrow next to the
+  button lists what this one video offers, its resolutions, audio tracks
+  and languages, subtitles and their formats, and nothing it lacks, and
+  downloads your pick as the site serves it. You can drag the button
+  anywhere on the player, and each site keeps its place, or let it show only
+  on hover. It carries the KnightLoader mark, follows the extension's light
+  or dark theme, turns gold under the pointer and lets a few stars fly when a
+  video went through.
 
 ### Changed
 
 - **The video button's switch is in the extension's settings only.** The
   toolbar popup no longer has one.
-
 - **The Backend column shows who handles a download by its mark.** A debrid
   service shows its logo before its name, with the account where it is not the
   default one. JDownloader, yt-dlp, the built-in torrent client, Usenet, direct
@@ -83,6 +87,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   "Sent" although nothing was added. Now it shows "Already there", and the
   instance's answer tells the two apart. A video that has finished
   downloading counts as there too, unless duplicates are set to be included.
+- **The video button's menu stays open while it checks the qualities.** It
+  could close by itself after a few seconds when the player let go of its
+  video for a moment.
 - **"Remove and delete files" takes the unpacked files along.** The archive
   went, but the folder it had been unpacked into stayed. Now what unpacking
   the download wrote goes too, also after a restart and where "Move the
