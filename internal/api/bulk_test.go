@@ -519,3 +519,42 @@ func TestAddedLinksAreFiledInTheChosenCategory(t *testing.T) {
 		t.Fatalf("adding with a missing category = %d: %s", code, body)
 	}
 }
+
+func TestACategoryKeyWinsOverAnotherCategorysName(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	s := a.Settings.Get()
+	s.Categories = []settings.Category{{ID: "serien", Name: "Filme"}, {ID: "filme", Name: "Movies"}}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/links",
+		map[string]any{"links": "https://host.example/one.bin", "category": "filme"})
+	if code != http.StatusOK {
+		t.Fatalf("adding with a category = %d: %s", code, body)
+	}
+	if got := a.Tasks()[0].Category; got != "filme" {
+		t.Errorf("a link added under the key filme is filed under %q", got)
+	}
+
+	sel := ids(a.Tasks())
+	code, body = postJSON(t, http.MethodPost, srv.URL+"/api/tasks/category",
+		map[string]any{"ids": sel, "category": "Filme"})
+	if code != http.StatusOK {
+		t.Fatalf("filing by name = %d: %s", code, body)
+	}
+	if got := a.Tasks()[0].Category; got != "serien" {
+		t.Errorf("filing under the name Filme put the link under %q, want serien", got)
+	}
+
+	code, body = postJSON(t, http.MethodPost, srv.URL+"/api/tasks/category",
+		map[string]any{"ids": sel, "category": "filme"})
+	if code != http.StatusOK {
+		t.Fatalf("filing by key = %d: %s", code, body)
+	}
+	if got := a.Tasks()[0].Category; got != "filme" {
+		t.Errorf("filing under the key filme put the link under %q", got)
+	}
+}

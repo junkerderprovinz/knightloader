@@ -233,11 +233,12 @@ function mediaKind(url, contentType, requestType, size = 0) {
 /**
  * The full size in bytes a response's headers give, or 0 when they do not. A
  * media element asks for a range, and then Content-Length counts only the part
- * sent while Content-Range ends with the whole file's size.
+ * sent while Content-Range ends with the whole file's size, or with * when the
+ * server does not know it.
  */
 function responseSize(contentLength, contentRange) {
-  const whole = Number(/\/(\d+)\s*$/.exec(contentRange ?? '')?.[1]);
-  return whole || Number(contentLength) || 0;
+  if (contentRange) return Number(/\/(\d+)\s*$/.exec(contentRange)?.[1]) || 0;
+  return Number(contentLength) || 0;
 }
 
 /** Where the media a tab played is kept, in session storage, which the

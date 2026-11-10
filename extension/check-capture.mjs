@@ -165,13 +165,16 @@ function load(chrome) {
   const sizes = [
     ['4000000', undefined, 4e6],
     ['2', 'bytes 0-1/4000000', 4e6],
-    ['1000', 'bytes 0-999/*', 1000],
+    ['1000', 'bytes 0-999/*', 0],
     [undefined, undefined, 0],
   ];
   for (const [length, range, want] of sizes) {
     const got = size(length, range);
     if (got !== want) fail(`responseSize(${length}, ${range}) = ${got}, want ${want}`);
   }
+  // The first range of a song whose length the server does not say.
+  const first = size('32768', 'bytes 0-32767/*');
+  if (kind('https://cdn.example/song.mp3', 'audio/mpeg', 'media', first) !== 'audio') fail(`a song sent in ranges of unknown length is taken for a page sound (size ${first})`);
 }
 
 // 2. The headers.
