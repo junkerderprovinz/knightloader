@@ -1,12 +1,15 @@
 [
   {
-    "name": "Gatehouse",
-    "url": "http://gatehouse.home.arpa:8749"
+    "name": "9a3e51c07d2b4f86e1a05c9d73b2e4f18c6a0d57",
+    "displayName": "Gatehouse",
+    "relayId": "9a3e51c07d2b4f86e1a05c9d73b2e4f18c6a0d57",
+    "address": "http://gatehouse.home.arpa:8749",
+    "deployment": "server"
   },
   {
     "name": "b7e2c94f1a6d3e8b05c7f2a9d4e6b1c3a8f0d2e5",
-    "url": "",
     "displayName": "Watchtower",
-    "relayId": "b7e2c94f1a6d3e8b05c7f2a9d4e6b1c3a8f0d2e5"
+    "relayId": "b7e2c94f1a6d3e8b05c7f2a9d4e6b1c3a8f0d2e5",
+    "deployment": "desktop"
   }
 ]
