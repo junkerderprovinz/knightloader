@@ -61,6 +61,19 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   name.** Such a link went to yt-dlp, which saved a text file from GitHub as
   "LICENSE (best).unknown_video" and added four empty variant rows. Once yt-dlp
   says the link is just a file, KnightLoader fetches it directly as one row.
+### Changed
+
+- **The Backend column shows who handles a download by its mark.** A debrid
+  service shows its logo before its name, with the account where it is not the
+  default one. JDownloader, yt-dlp, the built-in torrent client, Usenet, direct
+  downloads and KnightLoader's own hoster clients each get a glyph. Right-click
+  the list header to switch the column on (thanks to @Kayn2106,
+  [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
+- **The speed column shows how fast a debrid service fetches a torrent.**
+  While the service is still downloading the torrent to its own servers, the
+  column shows its speed in muted ink and names the service when you hover it.
+  The time left stays blank until the files come here (thanks to @Kayn2106,
+  [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
 
 ## [2.7.6] - 2026-11-09
 

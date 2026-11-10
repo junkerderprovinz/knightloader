@@ -11,6 +11,21 @@ const PRODUCT_NAMES: Record<string, string> = {
   realdebrid: 'Real-Debrid',
   premiumize: 'Premiumize.me',
   debridlink: 'Debrid-Link',
+  linksnappy: 'Linksnappy',
+  offcloud: 'Offcloud',
+  bestdebrid: 'BestDebrid',
+  cocoleech: 'CocoLeech',
+  cooldebrid: 'CoolDebrid',
+  debriditalia: 'DebridItalia',
+  deepbrid: 'Deepbrid',
+  fakirdebrid: 'FakirDebrid',
+  megadebrid: 'Mega-Debrid',
+  multiup: 'MultiUp',
+  mydebrid: 'MyDebrid',
+  neodebrid: 'NeoDebrid',
+  proleech: 'ProLeech',
+  rpnet: 'RPNet',
+  zevera: 'Zevera',
   ytdlp: 'yt-dlp',
   jd: 'JDownloader',
   mega: 'MEGA',
@@ -57,3 +72,29 @@ export function resolverLabel(id: string, t: Translate): string {
   const key = DESCRIBED[id];
   return key ? t(key) : (PRODUCT_NAMES[id] ?? id);
 }
+
+// The debrid services of the accounts catalogue (internal/accounts), by the
+// site whose mark stands for them: bundled in public/hosters where there is
+// one, else fetched by the instance.
+export const DEBRID_SITES: Readonly<Record<string, string>> = {
+  torbox: 'torbox.app',
+  alldebrid: 'alldebrid.com',
+  realdebrid: 'real-debrid.com',
+  debridlink: 'debrid-link.com',
+  premiumize: 'premiumize.me',
+  linksnappy: 'linksnappy.com',
+  offcloud: 'offcloud.com',
+  bestdebrid: 'bestdebrid.com',
+  cocoleech: 'cocoleech.com',
+  cooldebrid: 'cooldebrid.com',
+  debriditalia: 'debriditalia.com',
+  deepbrid: 'deepbrid.com',
+  fakirdebrid: 'fakirdebrid.net',
+  megadebrid: 'mega-debrid.eu',
+  multiup: 'multiup.io',
+  mydebrid: 'mydebrid.com',
+  neodebrid: 'neodebrid.com',
+  proleech: 'proleech.link',
+  rpnet: 'rpnet.biz',
+  zevera: 'zevera.com',
+};

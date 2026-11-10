@@ -2,20 +2,27 @@ import type { ComponentType, SVGProps } from 'react';
 import type { ExtractJob, RepairProgress, Task, TaskStatus } from '../lib/api';
 import { fmtPct } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { resolverLabel } from '../lib/resolverLabels';
+import { DEBRID_SITES, resolverLabel } from '../lib/resolverLabels';
 import {
   IconArchive,
   IconCheck,
   IconCollector,
   IconDownload,
+  IconFileVideo,
+  IconGlobe,
   IconKey,
+  IconLink,
+  IconMagnet,
   IconPause,
+  IconPlug,
   IconQueued,
+  IconServer,
   IconShield,
   IconShieldOn,
   IconUpload,
   IconWarning,
 } from '../lib/icons';
+import { HosterIcon } from './HosterIcon';
 
 /**
  * RowState is what a row's status column says. Seeding is a flag beside
@@ -196,15 +203,54 @@ export function RepairPill({ repair }: { repair: RepairProgress }) {
 }
 
 /**
- * ResolverBadge names the backend carrying a task and, for a hoster, whether it
- * runs free or premium. It is metadata, so it stays in muted ink.
+ * The glyph of each backend that comes with KnightLoader. Its own clients for
+ * a filehoster, MEGA among them, share the link, since the host column already
+ * shows that hoster's mark.
  */
-export function ResolverBadge({ resolver, mode }: { resolver: string; mode?: Task['mode'] }) {
+const BACKEND_GLYPH: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
+  torrent: IconMagnet,
+  jd: IconPlug,
+  ytdlp: IconFileVideo,
+  direct: IconGlobe,
+  http: IconGlobe,
+  hostheaders: IconGlobe,
+  nntp: IconServer,
+  remotefs: IconServer,
+};
+
+/**
+ * backendOf splits a task's backend into the service and its account, as in
+ * "realdebrid#work". The files of a Usenet job a service fetched carry that
+ * service in their own link (usenet.FileLink).
+ */
+function backendOf(task: Pick<Task, 'resolver' | 'url'>): { id: string; account: string } {
+  if (task.resolver === 'usenet') {
+    const link = new URL(task.url);
+    return { id: link.hostname, account: link.searchParams.get('account') ?? '' };
+  }
+  const [id, account = ''] = task.resolver.split('#');
+  return { id, account };
+}
+
+/**
+ * ResolverBadge names the backend carrying a task behind its mark and, for a
+ * hoster, whether it runs free or premium. It is metadata, so it stays in
+ * muted ink.
+ */
+export function ResolverBadge({ task }: { task: Pick<Task, 'resolver' | 'url' | 'mode'> }) {
   const { t } = useT();
+  if (!task.resolver) return null;
+  const { id, account } = backendOf(task);
+  const site = DEBRID_SITES[id];
+  const Glyph = BACKEND_GLYPH[id] ?? IconLink;
   return (
-    <span className="text-meta text-carbon-textMuted">
-      {resolverLabel(resolver, t)}
-      {mode ? ` · ${t(mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}` : ''}
+    <span className="flex min-w-0 items-center gap-1.5 text-meta text-carbon-textMuted">
+      {site ? <HosterIcon host={site} size={16} /> : <Glyph width={16} height={16} />}
+      <span className="truncate">
+        {resolverLabel(id, t)}
+        {account ? ` (${account})` : ''}
+        {task.mode ? ` · ${t(task.mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}` : ''}
+      </span>
     </span>
   );
 }

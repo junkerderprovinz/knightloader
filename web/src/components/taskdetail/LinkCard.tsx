@@ -51,7 +51,7 @@ export function LinkCard({
       {/* The pick, which the file's name carries once it is written. */}
       <Fact label={t('columns.variant')} value={variantText(task, t)} />
       <Fact label={t('columns.resolver')}>
-        <ResolverBadge resolver={task.resolver} mode={task.mode} />
+        <ResolverBadge task={task} />
       </Fact>
       {connection && <Fact label={t('columns.connection')} value={connection.text} ltr />}
       <Fact label={t('detail.origin')} value={origin} />
