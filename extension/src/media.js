@@ -28,11 +28,11 @@ function onMediaResponse(details) {
     void updateMedia(details.tabId, () => ({ page: details.url, items: [] }));
     return;
   }
-  const contentType = (details.responseHeaders ?? []).find((h) => h.name.toLowerCase() === 'content-type')?.value;
-  const kind = mediaKind(details.url, contentType, details.type);
+  const header = (name) => (details.responseHeaders ?? []).find((h) => h.name.toLowerCase() === name)?.value;
+  const size = responseSize(header('content-length'), header('content-range'));
+  const kind = mediaKind(details.url, header('content-type'), details.type, size);
   if (!kind) return;
-  const length = Number((details.responseHeaders ?? []).find((h) => h.name.toLowerCase() === 'content-length')?.value);
-  const entry = { url: details.url, kind, size: kind === 'video' || kind === 'audio' ? length || 0 : 0 };
+  const entry = { url: details.url, kind, size: kind === 'video' || kind === 'audio' ? size : 0 };
   void updateMedia(details.tabId, (list) => withMedia(list, entry));
 }
 

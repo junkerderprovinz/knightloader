@@ -201,13 +201,18 @@ const DASH_TYPES = ['application/dash+xml'];
 const VIDEO_EXT = ['mp4', 'm4v', 'webm', 'mkv', 'mov', 'ogv'];
 const AUDIO_EXT = ['mp3', 'm4a', 'ogg', 'oga', 'opus', 'flac', 'wav'];
 
+/** Audio smaller than this lasts a few seconds at most: a click or a chime that
+ *  belongs to the page, such as the sounds of a site's voice search. */
+const SOUND_BYTES = 64 * 1024;
+
 /**
  * What a request a page made is, as media worth sending: 'hls' or 'dash' for a
  * streaming playlist, 'video' or 'audio' for a file a player element loads, or
  * '' for anything else. A player's fragments (.ts, .m4s, and the byte ranges a
- * script fetches) are left out, since the playlist stands for all of them.
+ * script fetches) are left out, since the playlist stands for all of them, and
+ * so is audio of a known size below SOUND_BYTES.
  */
-function mediaKind(url, contentType, requestType) {
+function mediaKind(url, contentType, requestType, size = 0) {
   let path = '';
   try {
     path = new URL(url).pathname.toLowerCase();
@@ -221,8 +226,18 @@ function mediaKind(url, contentType, requestType) {
   if (requestType !== 'media') return '';
   if (ext === 'ts' || ext === 'm4s' || mime === 'video/mp2t') return '';
   if (VIDEO_EXT.includes(ext) || mime.startsWith('video/')) return 'video';
-  if (AUDIO_EXT.includes(ext) || mime.startsWith('audio/')) return 'audio';
+  if (AUDIO_EXT.includes(ext) || mime.startsWith('audio/')) return size > 0 && size < SOUND_BYTES ? '' : 'audio';
   return '';
+}
+
+/**
+ * The full size in bytes a response's headers give, or 0 when they do not. A
+ * media element asks for a range, and then Content-Length counts only the part
+ * sent while Content-Range ends with the whole file's size.
+ */
+function responseSize(contentLength, contentRange) {
+  const whole = Number(/\/(\d+)\s*$/.exec(contentRange ?? '')?.[1]);
+  return whole || Number(contentLength) || 0;
 }
 
 /** Where the media a tab played is kept, in session storage, which the

@@ -3,7 +3,7 @@
  * src/takeover.js, src/media.js), run against a stubbed `chrome`.
  *
  *   1. The rules: which downloads go to KnightLoader and which stay, and which
- *      responses count as media.
+ *      responses count as media, leaving out a page's own short sounds.
  *   2. The headers a link is handed over with: the cookies for its own
  *      address, the page and the user agent, nothing empty.
  *   3. A download is cancelled only once the instance has it. A hand-over that
@@ -152,10 +152,25 @@ function load(chrome) {
     ['https://cdn.example/chunk-3.m4s', 'video/mp4', 'media', ''],
     ['https://cdn.example/range.mp4', 'video/mp4', 'xmlhttprequest', ''],
     ['https://cdn.example/app.js', 'text/javascript', 'other', ''],
+    ['https://site.example/s/search/audio/success.mp3', 'audio/mpeg', 'media', '', 6600],
+    ['https://cdn.example/song.mp3', 'audio/mpeg', 'media', 'audio', 4e6],
+    ['https://cdn.example/clip.mp4', 'video/mp4', 'media', 'video', 6600],
   ];
-  for (const [url, mime, type, want] of kinds) {
-    const got = kind(url, mime, type);
-    if (got !== want) fail(`mediaKind(${url}, ${mime}, ${type}) = '${got}', want '${want}'`);
+  for (const [url, mime, type, want, size] of kinds) {
+    const got = kind(url, mime, type, size);
+    if (got !== want) fail(`mediaKind(${url}, ${mime}, ${type}${size ? `, ${size}` : ''}) = '${got}', want '${want}'`);
+  }
+
+  const size = vm.runInContext('responseSize', ctx);
+  const sizes = [
+    ['4000000', undefined, 4e6],
+    ['2', 'bytes 0-1/4000000', 4e6],
+    ['1000', 'bytes 0-999/*', 1000],
+    [undefined, undefined, 0],
+  ];
+  for (const [length, range, want] of sizes) {
+    const got = size(length, range);
+    if (got !== want) fail(`responseSize(${length}, ${range}) = ${got}, want ${want}`);
   }
 }
 
@@ -298,6 +313,14 @@ for (const chromium of [true, false]) {
     hear({ tabId: 3, type: 'main_frame', url: 'https://site.example/next' });
     await settle();
     if (session['media:3']?.items.length !== 0) fail('a new page in the tab kept the last page\'s streams');
+
+    // The page's own sounds stay off the list, and a song asked for in a range
+    // goes on it with its whole size.
+    hear({ tabId: 3, type: 'media', url: 'https://site.example/s/search/audio/open.mp3', responseHeaders: [{ name: 'Content-Type', value: 'audio/mpeg' }, { name: 'Content-Length', value: '6300' }] });
+    hear({ tabId: 3, type: 'media', url: 'https://cdn.example/song.mp3', responseHeaders: [{ name: 'Content-Type', value: 'audio/mpeg' }, { name: 'Content-Length', value: '2' }, { name: 'Content-Range', value: 'bytes 0-1/4000000' }] });
+    await settle();
+    const heard = session['media:3']?.items ?? [];
+    if (heard.length !== 1 || heard[0].url !== 'https://cdn.example/song.mp3' || heard[0].size !== 4e6) fail(`after a page sound and a song tab 3's list is ${JSON.stringify(heard)}, want the song alone at 4000000 bytes`);
   }
 }
 
@@ -317,4 +340,4 @@ if (problems.length) {
   for (const p of problems) console.error(`✗ ${p}`);
   process.exit(1);
 }
-console.log('ok: downloads go over only by the rules and leave the browser only once the instance has them, with the cookies for their own host; streams go only from the popup, with their page; switching one feature off keeps what another runs on');
+console.log('ok: downloads go over only by the rules and leave the browser only once the instance has them, with the cookies for their own host; short sounds that belong to a page stay off the media list; streams go only from the popup, with their page; switching one feature off keeps what another runs on');
