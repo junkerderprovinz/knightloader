@@ -734,3 +734,31 @@ func TestARelayedAnswerStopsAtWhatAMemberCanRead(t *testing.T) {
 			2*maxAnswer>>20, status, len(body)>>20, maxAnswer>>20)
 	}
 }
+
+// A phone reading a long list over the relay gets up to 8 MiB back, twice
+// what kit/group lets through a relay unless told otherwise.
+func TestARelayedAnswerCarriesUpToEightMiB(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	base := t.TempDir()
+	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 2, MaxPerHost: 1, DownloadDir: base}); err != nil {
+		t.Fatal(err)
+	}
+	id := putFile(t, a, base, "film.mkv", []byte("frames"))
+	const size = 6 << 20
+	if err := os.Truncate(filepath.Join(base, "film.mkv"), size); err != nil {
+		t.Fatal(err)
+	}
+	secret := phraseGroup(t, a)
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"`+srv.URL+`","mode":"own","serve":true}`); code != http.StatusOK || !put.Serve {
+		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
+	}
+	approve(t, a, "phone-reader", member.KindMobile)
+	phone := idAs("phone-reader", member.KindMobile)
+	call := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks/" + id + "/file", From: phone, Kind: member.KindMobile}
+	status, body := relayCall(t, srv.URL, secret, phone, groupID(a), keyOf("phone-reader"), call)
+	if status != http.StatusOK || len(body) != size {
+		t.Fatalf("a %d MiB file over the relay answered %d with %d bytes (%s), want all of it", size>>20, status, len(body), refusalCode(body))
+	}
+}

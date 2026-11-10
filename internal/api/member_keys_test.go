@@ -57,7 +57,7 @@ func relayCallOnce(t *testing.T, relayURL string, secret []byte, id, target stri
 		t.Fatal(err)
 	}
 	defer conn.CloseNow()
-	conn.SetReadLimit(8 << 20)
+	conn.SetReadLimit(16 << 20)
 	frameKey := federation.Domain.FrameKey(secret)
 	sealedID, err := relay.SealIdentity(frameKey, id, relay.Identity{Name: "by hand", Deployment: "mobile", Client: true})
 	if err != nil {

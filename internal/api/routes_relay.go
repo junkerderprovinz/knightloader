@@ -43,10 +43,14 @@ type relayConfig struct {
 	Mode string `json:"mode"`
 }
 
-// maxAnswer is the most a member answers a direct call with. The Overview of
-// a busy instance lists thousands of tasks, which a relay frame cannot carry
-// but the network next door can.
-const maxAnswer = 32 << 20
+// maxAnswer is the most a member answers a direct call with, and
+// maxRelayAnswer the most it answers over the relay. The Overview of a busy
+// instance lists thousands of tasks, which the network next door carries
+// whole and a relay frame up to its size.
+const (
+	maxAnswer      = 32 << 20
+	maxRelayAnswer = 8 << 20
+)
 
 func registerRelay(reg *Registry, a *app.App) {
 	dropRelayKey(a)
@@ -332,9 +336,10 @@ func openGroup(a *app.App) (*group.Group, error) {
 				log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
 			}
 		},
-		Kinds:          []member.Kind{member.KindMobile, member.KindExtension},
-		Ports:          federation.LAN.Ports,
-		MaxAnswerBytes: maxAnswer,
+		Kinds:               []member.Kind{member.KindMobile, member.KindExtension},
+		Ports:               federation.LAN.Ports,
+		MaxAnswerBytes:      maxAnswer,
+		MaxRelayAnswerBytes: maxRelayAnswer,
 		OnChange: func() {
 			a.Hub.Broadcast("group", nil)
 			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)

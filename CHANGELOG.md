@@ -46,6 +46,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   fortress use as well. Your group, its phones and browsers and every approval
   come along with the update, and instances that are not updated yet still
   talk to it, so you can update them one at a time.
+- **Answers over the relay may be up to 8 MiB again,** so a long download
+  list still reaches your phone away from home. This needs a ParleyPort relay
+  with 16 MiB frames, so the project relay is updated before this release goes
+  out. If you run your own ParleyPort, update it first too, since an older one
+  closes the connection when an answer is that large.
 
 ### Removed
 
