@@ -532,7 +532,7 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
           </TooltipField>
         )}
         <TooltipField label={t('columns.resolver')}>
-          <ResolverBadge resolver={task.resolver} mode={task.mode} />
+          <ResolverBadge task={task} />
         </TooltipField>
         {/* Peers, seeds and ratio have their own columns, hidden by default
             like the other low-traffic ones, so they are here for the same
@@ -1925,15 +1925,17 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'resolver',
     labelKey: 'columns.resolver',
-    width: 124,
-    minWidth: 76,
+    // Like the host column, the width pays for the mark and its gap before the
+    // name gets any.
+    width: 146,
+    minWidth: 96,
     align: 'start',
     hideable: true,
     compare: (a, b) => cmpText(a.resolver, b.resolver),
-    render: (task) => <ResolverBadge resolver={task.resolver} mode={task.mode} />,
+    render: (task) => <ResolverBadge task={task} />,
     aggregate: (items) => {
       const one = new Set(items.map((x) => x.resolver));
-      return one.size === 1 ? <ResolverBadge resolver={items[0].resolver} mode={items[0].mode} /> : null;
+      return one.size === 1 ? <ResolverBadge task={items[0]} /> : null;
     },
   },
   {
@@ -2083,7 +2085,9 @@ const SHOWN_SINCE: Record<ListProfile, Partial<Record<ColumnId, number>>> = {
  *
  * `connection` ships hidden in both because it is empty until somebody
  * configures a connection, and peers, seeds and ratio because they are blank on
- * every row that is not a torrent.
+ * every row that is not a torrent. `resolver` would leave the name under 100px
+ * in downloads at 1440px, and in the collector no link has a backend before it
+ * starts.
  */
 export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
   // The collector's 'variant' is on, although it is blank on every row that is
