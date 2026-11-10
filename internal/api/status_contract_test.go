@@ -24,10 +24,10 @@ func fortressApp(t *testing.T) (http.Handler, *app.App) {
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
-	at := time.Now().Add(-time.Minute)
+	// Dated as they happen: the queue's idle event, which the instance logs a
+	// moment after it starts, would otherwise land between them out of order.
 	for _, name := range []string{"first.mkv", "second.mkv"} {
-		a.Events.Publish(script.Firing{Trigger: script.TriggerTaskDone, At: at, Task: &script.TaskView{Name: name}})
-		at = at.Add(time.Second)
+		a.Events.Publish(script.Firing{Trigger: script.TriggerTaskDone, At: time.Now(), Task: &script.TaskView{Name: name}})
 	}
 	return Handler(a), a
 }
