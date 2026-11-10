@@ -74,6 +74,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   column shows its speed in muted ink and names the service when you hover it.
   The time left stays blank until the files come here (thanks to @Kayn2106,
   [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
+### Fixed
+
+- **"Remove and delete files" takes the unpacked files along.** The archive
+  went, but the folder it had been unpacked into stayed. Now what unpacking
+  the download wrote goes too, also after a restart and where "Move the
+  unpacked files to" took it, and the confirmation counts it in. The folder
+  you unpack into, files that were there before and anything that arrived in
+  the unpacked folder later stay. "Remove" still keeps every file. Thanks to
+  @Kayn2106 for the report
+  ([#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
 
 ## [2.7.6] - 2026-11-09
 

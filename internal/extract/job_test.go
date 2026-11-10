@@ -763,3 +763,96 @@ func TestUnwrappingKeepsNestedArchivesBesideTheirParent(t *testing.T) {
 		t.Error("the nested archive was unpacked into the collect folder")
 	}
 }
+
+// A job reports what it made, and leaves out what it found there: the folder
+// it reused, a folder already inside it and a file it wrote over.
+func TestAJobReportsWhatItCreatedAndNotWhatWasThere(t *testing.T) {
+	dir := t.TempDir()
+	out := filepath.Join(dir, "release")
+	write(t, filepath.Join(out, "old", "theirs.txt"), []byte("theirs"))
+	write(t, filepath.Join(out, "same.txt"), []byte("before"))
+	archive := write(t, filepath.Join(dir, "release.zip"), zipBytes(t,
+		entry{"same.txt", []byte("after")},
+		entry{"new.txt", []byte("new")},
+		entry{"old/mine.txt", []byte("mine")},
+		entry{"fresh/deep/file.txt", []byte("deep")},
+	))
+
+	got, err := Run(context.Background(), Request{Path: archive})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{
+		filepath.Join(out, "fresh"),
+		filepath.Join(out, "new.txt"),
+		filepath.Join(out, "old", "mine.txt"),
+	}
+	if strings.Join(got.Created, "|") != strings.Join(want, "|") {
+		t.Errorf("Created = %v, want %v", got.Created, want)
+	}
+	if len(got.Reused) != 1 || got.Reused[0] != out {
+		t.Errorf("Reused = %v, want only the folder that was there", got.Reused)
+	}
+}
+
+// A folder of its own is all a job made, whatever it holds.
+func TestAJobThatMadeItsFolderReportsOnlyTheFolder(t *testing.T) {
+	dir := t.TempDir()
+	archive := write(t, filepath.Join(dir, "release.zip"), zipBytes(t,
+		entry{"a.txt", []byte("a")},
+		entry{"sub/b.txt", []byte("b")},
+	))
+
+	got, err := Run(context.Background(), Request{Path: archive})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := filepath.Join(dir, "release"); len(got.Created) != 1 || got.Created[0] != want {
+		t.Errorf("Created = %v, want only %s", got.Created, want)
+	}
+	if len(got.Reused) != 0 {
+		t.Errorf("Reused = %v, want nothing", got.Reused)
+	}
+}
+
+// A single stream writes beside its archive, and a payload that replaced a file
+// of the same name is not something the job made.
+func TestAStreamThatReplacedAFileDoesNotClaimIt(t *testing.T) {
+	dir := t.TempDir()
+	payload := write(t, filepath.Join(dir, "notes.txt"), []byte("before"))
+	var gz bytes.Buffer
+	gzipInto(t, &gz, []byte("mine"))
+	archive := write(t, filepath.Join(dir, "notes.txt.gz"), gz.Bytes())
+
+	got, err := Run(context.Background(), Request{Path: archive})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.Created) != 0 {
+		t.Errorf("Created = %v, want nothing", got.Created)
+	}
+	if !contains(got.Reused, payload) {
+		t.Errorf("Reused = %v, want the replaced %s", got.Reused, payload)
+	}
+	if err := os.Remove(payload); err != nil {
+		t.Fatal(err)
+	}
+	got, err = Run(context.Background(), Request{Path: archive})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.Created) != 1 || got.Created[0] != payload {
+		t.Errorf("Created = %v, want the payload it wrote", got.Created)
+	}
+}
+
+// A name that sorts between a folder and what is inside it does not hide the
+// folder's contents from the check.
+func TestOutermostDropsWhatIsInsideAnotherPath(t *testing.T) {
+	dir := t.TempDir()
+	rel, other := filepath.Join(dir, "rel"), filepath.Join(dir, "rel 2")
+	got := outermost([]string{filepath.Join(rel, "a"), other, rel, rel})
+	if strings.Join(got, "|") != strings.Join([]string{rel, other}, "|") {
+		t.Errorf("outermost = %v, want %s and %s", got, rel, other)
+	}
+}

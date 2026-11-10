@@ -25,6 +25,19 @@ Or let a Packagizer rule file them, which wins over the choice you made when
 adding. A download that has already started keeps the folder it started in,
 and only links still waiting follow the new category's folder.
 
+## Removing a download with its files
+
+"Remove and delete files" (Shift+Del) deletes what was downloaded and what
+unpacking it wrote: the folder the archive was unpacked into, or the files it
+put into a folder that was already there, wherever "Move the unpacked files to"
+took them. The folder you unpack into and the files that were in it before stay.
+For an archive in several parts the unpacked files go with the last part still
+in the list, and while another download's unpacking wrote into the same folder,
+that folder stays until both are removed. A folder that holds more than the
+unpacking left in it, such as subtitles fetched later, stays, and the
+download's log says so. The confirmation counts the unpacked files into what
+goes. "Remove" (Del) keeps every file.
+
 ## Never in the data folder
 
 Nothing a download, an unpacking, a move or a rename writes may land in

@@ -31,22 +31,22 @@ afterEach(() => {
 
 const task = { id: 't1', name: 'film.mkv', loaded: 4096 } as Task;
 
-function Harness({ withFiles }: { withFiles: boolean }) {
-  const removal = useRemoval({ all: [task], selected: new Set([task.id]), base: '/api', onDone: () => {} });
+function Harness({ withFiles, all, ids }: { withFiles: boolean; all: Task[]; ids: string[] }) {
+  const removal = useRemoval({ all, selected: new Set(ids), base: '/api', onDone: () => {} });
   return (
     <>
-      <button type="button" data-ask onClick={() => removal.ask([task.id], withFiles)} />
+      <button type="button" data-ask onClick={() => removal.ask(ids, withFiles)} />
       {removal.dialog}
     </>
   );
 }
 
-async function openDialog(withFiles = false) {
+async function openDialog(withFiles = false, all: Task[] = [task], ids: string[] = [task.id]) {
   await act(async () =>
     root.render(
       <I18nProvider>
         <ToastProvider>
-          <Harness withFiles={withFiles} />
+          <Harness withFiles={withFiles} all={all} ids={ids} />
         </ToastProvider>
       </I18nProvider>,
     ),
@@ -78,5 +78,22 @@ describe('the removal dialog', () => {
   it('starts with the switch on for Shift+Del', async () => {
     const dialog = await openDialog(true);
     expect(filesSwitch(dialog).getAttribute('aria-checked')).toBe('true');
+  });
+
+  // Both parts record the same folder, which goes once and only with the last of them.
+  const unpacked = [{ path: '/dl/film', files: 3, bytes: 3000 }];
+  const parts = [
+    { id: 'p1', name: 'film.part1.rar', loaded: 1000, unpacked },
+    { id: 'p2', name: 'film.part2.rar', loaded: 1000, unpacked },
+  ] as Task[];
+
+  it('counts what the unpacking wrote into what goes', async () => {
+    const dialog = await openDialog(true, parts, ['p1', 'p2']);
+    expect(dialog.textContent).toContain('This also erases 5 file(s), 5.0 kB');
+  });
+
+  it('leaves out what a part staying in the list still holds', async () => {
+    const dialog = await openDialog(true, parts, ['p1']);
+    expect(dialog.textContent).toContain('This also erases 1 file(s), 1.0 kB');
   });
 });

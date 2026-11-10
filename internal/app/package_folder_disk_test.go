@@ -269,3 +269,30 @@ func TestASeedingTorrentGoesOnSeedingFromTheNewFolder(t *testing.T) {
 		t.Errorf("the torrent's files did not move: %v", err)
 	}
 }
+
+// What a package's unpacking created is recorded where the rename put it, so a
+// removal with files still finds it.
+func TestAPackagesUnpackedRecordFollowsTheName(t *testing.T) {
+	unpacked := t.TempDir()
+	a, base := packageAppWith(t, func(s *settings.Settings) {
+		s.ExtractTo = unpacked
+		s.ExtractSubfolder = true
+	})
+	oldPackage(t, a, base)
+	stagedIn(t, filepath.Join(unpacked, "Old", "film"), "film.mkv", "the film")
+	record := []core.UnpackOutput{{Path: filepath.Join(unpacked, "Old", "film"), Files: 1, Bytes: 8}}
+	for _, id := range []string{"part1", "part2"} {
+		editTask(a, id, func(x *core.Task) { x.Unpack, x.Unpacked = core.UnpackDone, record })
+	}
+
+	if _, err := a.RenamePackage([]string{"part1", "part2"}, "Film"); err != nil {
+		t.Fatal(err)
+	}
+
+	moved := filepath.Join(unpacked, "Film", "film")
+	for _, id := range []string{"part1", "part2"} {
+		if got := liveTask(a, id).Unpacked; len(got) != 1 || got[0].Path != moved {
+			t.Errorf("%s records %+v, want %s", id, got, moved)
+		}
+	}
+}

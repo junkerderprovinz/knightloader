@@ -34,6 +34,13 @@ export type Reason = string;
 // Click'n'Load, a container upload. Open for the same reason as Reason.
 export type Origin = string;
 
+/** UnpackOutput is one file or folder an unpacking created, and what it held. */
+export interface UnpackOutput {
+  path: string;
+  files: number;
+  bytes: number;
+}
+
 export interface Task {
   id: string;
   url: string;
@@ -194,6 +201,9 @@ export interface Task {
   /** How the last unpacking of this file's archive ended, on every part of the
    *  set. Kept by the server, so it outlives the job after a restart. */
   unpack?: 'done' | 'error' | 'password';
+  /** What unpacking this file's archive created, on every part of the set: a
+   *  removal with files takes it along once no row left in the list records it. */
+  unpacked?: UnpackOutput[];
 
   /** How many files a torrent has, once that is known; absent for everything
    *  else and for a magnet whose swarm has not sent its list. The files

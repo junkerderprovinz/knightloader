@@ -132,6 +132,14 @@ type Outcome struct {
 	Joined []string
 	// Nested counts the archives found inside the output and unpacked in turn.
 	Nested int
+	// Created is what the job made at the top: every folder it created that
+	// is not inside another, and every file it wrote outside them that was not
+	// there before. Inside a folder that was already there, a file counts
+	// from the first folder on its way that was not.
+	Created []string
+	// Reused is what was there before and the job wrote into or over: the
+	// folders it unpacked into and the files it replaced.
+	Reused []string
 }
 
 // bound is the job the byte tap reports to, or nil when nothing is running.
@@ -155,6 +163,16 @@ func copyWatched(f *os.File, r io.Reader) (int64, error) {
 func noteWatched(path string) {
 	if s := bound.Load(); s != nil {
 		s.note(path)
+	}
+}
+
+// replacedWatched records that a reader is about to write over a file that is
+// already there, which the job then does not count among what it created.
+func replacedWatched(path string) {
+	if s := bound.Load(); s != nil {
+		s.mu.Lock()
+		s.replaced = append(s.replaced, path)
+		s.mu.Unlock()
 	}
 }
 
@@ -233,7 +251,11 @@ type sink struct {
 	written   []string
 	truncated bool
 	owned     []string
-	lastAt    time.Time
+	// reused are the destinations that were there before the job wrote into
+	// them, and replaced the files it wrote over outside those.
+	reused   []string
+	replaced []string
+	lastAt   time.Time
 }
 
 func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
@@ -246,9 +268,9 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 	// itself would otherwise be a job that never ends, and the depth cap alone
 	// would only make it end late.
 	seen := map[string]bool{}
-	// Files that were in a reused destination before the job wrote there. They
-	// belong to some other download, so the job neither opens nor disposes of
-	// them; it is only consulted once the written record has overflowed.
+	// What was in a reused destination before the job wrote there. It belongs
+	// to some other download, so the job neither opens nor disposes of it, nor
+	// counts it among what it created.
 	before := map[string]bool{}
 	queue := []step{{path: req.Path}}
 
@@ -310,7 +332,8 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 		if missing(dest) {
 			s.own(dest)
 		} else {
-			filesIn(dest, before)
+			s.reuse(dest)
+			entriesIn(dest, before)
 		}
 		s.open(cur.path, cur.depth)
 		mark := s.recorded()
@@ -342,7 +365,62 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 			queue = append(queue, step{path: p, depth: cur.depth + 1})
 		}
 	}
+	out.Created, out.Reused = s.created(before)
 	return out, nil
+}
+
+// created is what the job made and what it reused (see Outcome). A folder it
+// meant to create and never did, as for a single stream that unpacks beside
+// its archive, is neither.
+func (s *sink) created(before map[string]bool) (made, reused []string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, d := range s.owned {
+		if fi, err := os.Stat(d); err == nil && fi.IsDir() {
+			made = append(made, d)
+		}
+	}
+	reused = append(reused, s.reused...)
+	for _, f := range s.written {
+		if before[f] || slices.Contains(s.replaced, f) {
+			reused = append(reused, f)
+			continue
+		}
+		made = append(made, topNew(f, s.reused, before))
+	}
+	return outermost(made), outermost(reused)
+}
+
+// topNew is the first path on the way from a reused destination to file f that
+// was not there before, or f itself when no reused destination holds it.
+func topNew(f string, reused []string, before map[string]bool) string {
+	for _, r := range reused {
+		rel, err := filepath.Rel(r, f)
+		if err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			continue
+		}
+		top := r
+		for _, part := range strings.Split(rel, string(filepath.Separator)) {
+			top = filepath.Join(top, part)
+			if !before[top] {
+				return top
+			}
+		}
+	}
+	return f
+}
+
+// outermost drops every path that lies inside another one of paths, and the
+// repeats.
+func outermost(paths []string) []string {
+	sort.Strings(paths)
+	var out []string
+	for _, p := range paths {
+		if !slices.ContainsFunc(out, func(o string) bool { return o == p || strings.HasPrefix(p, o+string(filepath.Separator)) }) {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 // produced is what an archive left behind that is worth opening in turn: the
@@ -401,10 +479,10 @@ func candidatesIn(dir string) []string {
 	return out
 }
 
-// filesIn adds every file under dir to set.
-func filesIn(dir string, set map[string]bool) {
-	_ = filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
-		if err == nil && !d.IsDir() {
+// entriesIn adds dir and every file and folder under it to set.
+func entriesIn(dir string, set map[string]bool) {
+	_ = filepath.WalkDir(dir, func(p string, _ fs.DirEntry, err error) error {
+		if err == nil {
 			set[p] = true
 		}
 		return nil
@@ -509,6 +587,12 @@ func (s *sink) note(path string) {
 func (s *sink) own(dir string) {
 	s.mu.Lock()
 	s.owned = append(s.owned, dir)
+	s.mu.Unlock()
+}
+
+func (s *sink) reuse(dir string) {
+	s.mu.Lock()
+	s.reused = append(s.reused, dir)
 	s.mu.Unlock()
 }
 

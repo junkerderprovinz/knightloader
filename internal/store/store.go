@@ -247,6 +247,10 @@ var migrations = []string{
 	// Whether somebody removed the download from the list. The history keeps
 	// the row, but such a link may be added again.
 	`ALTER TABLE history ADD COLUMN removed INTEGER NOT NULL DEFAULT 0`,
+	// What unpacking a task's archive created (JSON). The jobs are kept in
+	// memory, so without it a removal with files after a restart leaves the
+	// unpacked files on disk.
+	`ALTER TABLE tasks ADD COLUMN unpacked TEXT NOT NULL DEFAULT ''`,
 }
 
 // ErrNewerSchema is the refusal to open a database a newer build has written.
@@ -365,7 +369,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
 	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin,
 	service_job,seeding_ended,skip_code,skip_params,reject_code,reject_params,magnet_files,error_code,error_params,
-	uploaded,ratio,seed_seconds,seeding_over,seed_mark_ratio,seed_mark_seconds,work_files,browser_file`
+	uploaded,ratio,seed_seconds,seeding_over,seed_mark_ratio,seed_mark_seconds,work_files,browser_file,unpacked`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -446,6 +450,14 @@ func (s *Store) Save(t *core.Task) error {
 		}
 		workFiles = string(b)
 	}
+	unpacked := ""
+	if len(t.Unpacked) > 0 {
+		b, err := json.Marshal(t.Unpacked)
+		if err != nil {
+			return err
+		}
+		unpacked = string(b)
+	}
 	serviceJob := ""
 	if t.ServiceJob != nil {
 		b, err := json.Marshal(t.ServiceJob)
@@ -478,7 +490,7 @@ func (s *Store) Save(t *core.Task) error {
 		t.CreatedAt.Nanosecond()%int(time.Millisecond), t.File, string(t.Unpack), t.ResolverPin,
 		serviceJob, seedingEnded, t.SkipCode, codeParams(t.SkipParams), t.RejectCode, codeParams(t.RejectParams),
 		magnetFiles, string(t.ErrorCode), codeParams(t.ErrorParams),
-		t.Uploaded, t.Ratio, t.SeedSeconds, t.SeedingOver, t.SeedMark.Ratio, t.SeedMark.SeedSeconds, workFiles, t.BrowserFile)
+		t.Uploaded, t.Ratio, t.SeedSeconds, t.SeedingOver, t.SeedMark.Ratio, t.SeedMark.SeedSeconds, workFiles, t.BrowserFile, unpacked)
 	if err != nil {
 		return err
 	}
@@ -515,7 +527,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	for rows.Next() {
 		t := &core.Task{}
 		var status, online, matched, reason, origin, torrentFiles, trackers, mode, unpack, serviceJob string
-		var skipParams, rejectParams, magnetFiles, errorCode, errorParams, workFiles string
+		var skipParams, rejectParams, magnetFiles, errorCode, errorParams, workFiles, unpacked string
 		var created, createdNs, nextTry, finishedAt, changedAt, confirmDue, seedingEnded int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
@@ -530,7 +542,7 @@ func (s *Store) All() ([]*core.Task, error) {
 			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue,
 			&createdNs, &t.File, &unpack, &t.ResolverPin, &serviceJob, &seedingEnded,
 			&t.SkipCode, &skipParams, &t.RejectCode, &rejectParams, &magnetFiles, &errorCode, &errorParams,
-			&t.Uploaded, &t.Ratio, &t.SeedSeconds, &t.SeedingOver, &t.SeedMark.Ratio, &t.SeedMark.SeedSeconds, &workFiles, &t.BrowserFile); err != nil {
+			&t.Uploaded, &t.Ratio, &t.SeedSeconds, &t.SeedingOver, &t.SeedMark.Ratio, &t.SeedMark.SeedSeconds, &workFiles, &t.BrowserFile, &unpacked); err != nil {
 			return nil, err
 		}
 		s.openPasswords(t)
@@ -581,6 +593,9 @@ func (s *Store) All() ([]*core.Task, error) {
 		}
 		if workFiles != "" {
 			_ = json.Unmarshal([]byte(workFiles), &t.WorkFiles)
+		}
+		if unpacked != "" {
+			_ = json.Unmarshal([]byte(unpacked), &t.Unpacked)
 		}
 		if skipParams != "" {
 			_ = json.Unmarshal([]byte(skipParams), &t.SkipParams)
