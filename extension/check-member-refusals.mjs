@@ -29,6 +29,11 @@ const UNREACHABLE = {
   // The browser hands links over and reads small answers, far below what a
   // relay frame carries.
   answerTooLarge: 'the browser reads no large answer',
+  // Streams are for playing a file on a phone.
+  noStreams: 'the browser asks for no stream',
+  streamBusy: 'the browser asks for no stream',
+  streamDirectOnly: 'the browser asks for no stream',
+  streamLength: 'the browser asks for no stream',
 };
 
 const wire = read('..', 'internal', 'federation', 'wire_test.go');

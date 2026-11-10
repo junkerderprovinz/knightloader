@@ -294,6 +294,10 @@ var kitRefusals = []string{
 	"memberSignature",
 	"memberUnnamed",
 	"memberUnsigned",
+	"noStreams",
+	"streamBusy",
+	"streamDirectOnly",
+	"streamLength",
 }
 
 func TestTheKitRefusesWithTheListedCodes(t *testing.T) {

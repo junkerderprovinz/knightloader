@@ -26,6 +26,12 @@ const UNREACHABLE = {
   memberSignature: 'the signature is checked against the server vector',
   // An instance takes phones and browsers, and the app joins as a phone.
   memberKindRefused: 'the instance takes phones',
+  // A stream is asked for only to play a file, on the local network, and any
+  // refusal of it plays the file through the relay instead.
+  noStreams: 'a refused stream plays through the relay',
+  streamBusy: 'a refused stream plays through the relay',
+  streamDirectOnly: 'a refused stream plays through the relay',
+  streamLength: 'a refused stream plays through the relay',
 };
 
 const wire = read('..', 'internal', 'federation', 'wire_test.go');

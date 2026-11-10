@@ -118,7 +118,7 @@ export function openLoopback(source: PlaySource): Promise<Loopback> {
           if (!socket.write(data.subarray(at, at + WRITE_BYTES))) {
             await new Promise<void>((resolve) => {
               socket.once('drain', resolve);
-              socket.once('close', resolve);
+              socket.once('close', () => resolve());
             });
           }
         }
