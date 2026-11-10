@@ -31,28 +31,52 @@ const VIDEO_CAPS = ['4320p', '2160p', '1440p', '1080p', '720p', '480p', '360p', 
  *  the menu and the options page list them. */
 const VIDEO_PARTS = ['video', 'audio', 'subtitle', 'thumbnail', 'description'];
 
-/** The formats the audio row converts to (ytdlp.AudioFormats), "best" keeping
- *  the source's own. */
-const VIDEO_AUDIO_FORMATS = ['best', 'aac', 'alac', 'flac', 'mp3', 'opus', 'vorbis', 'wav'];
+/** The codecs an audio track comes in (audioFamilies in
+ *  internal/resolver/ytdlp/formats.go), which a site's default can prefer. */
+const VIDEO_AUDIO_CODECS = ['aac', 'opus', 'vorbis', 'mp3', 'flac', 'alac'];
 
 /** What a click downloads on a site nothing is set for: the video at its
  *  best. */
-const VIDEO_DEFAULTS = { parts: ['video'], quality: 'best', audio: 'best' };
+const VIDEO_DEFAULTS = { parts: ['video'], quality: 'best', audio: 'best', subLangs: [], subFormat: 'best' };
+
+// The words the instance's choices are made of, as ytdlp.LinkChoice.Valid
+// takes them: a language as yt-dlp reports one, a format, and the keys of a
+// video and an audio track (VideoTracks and AudioTracks).
+const VIDEO_LANG = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8}){0,2}$/;
+const VIDEO_TOKEN = /^[a-z0-9]{1,10}$/;
+const VIDEO_TRACK = /^[1-9][0-9]{1,4}p([1-9][0-9]{1,2})? [a-z0-9]{1,10}( [a-z0-9]{1,10})?$/;
+const AUDIO_TRACK = /^[a-z0-9]{1,10} [1-9][0-9]{0,3}k$/;
+
+/** Whether v is a string of the form re describes. A pattern alone would
+ *  take undefined, which it reads as the word. */
+function videoIs(re, v) {
+  return typeof v === 'string' && re.test(v);
+}
 
 /**
- * A pick of parts and qualities from what is stored or what a page sent,
- * with every value the instance would refuse dropped: parts it has no row
- * for, and a quality or audio format it does not know, which become the best.
- * A pick with no part left is the defaults.
+ * A pick from what is stored or what a page sent, with every value the
+ * instance would refuse dropped. The part of it a site's defaults hold says
+ * what is wanted wherever a video has it: the parts, a cap on the
+ * resolution, a codec for the audio, subtitle languages in order and a
+ * subtitle format. The menu adds the tracks, the audio language and whether
+ * generated subtitles count, from what one video has. A pick with no part
+ * left is the defaults.
  */
 function videoPick(raw) {
   const parts = Array.isArray(raw?.parts) ? VIDEO_PARTS.filter((p) => raw.parts.includes(p)) : [];
-  if (parts.length === 0) return { ...VIDEO_DEFAULTS };
-  return {
+  if (parts.length === 0) return { ...VIDEO_DEFAULTS, subLangs: [] };
+  const pick = {
     parts,
     quality: VIDEO_CAPS.includes(raw.quality) ? raw.quality : 'best',
-    audio: VIDEO_AUDIO_FORMATS.includes(raw.audio) ? raw.audio : 'best',
+    audio: VIDEO_AUDIO_CODECS.includes(raw.audio) ? raw.audio : 'best',
+    subLangs: Array.isArray(raw.subLangs) ? raw.subLangs.filter((l) => videoIs(VIDEO_LANG, l)) : [],
+    subFormat: videoIs(VIDEO_TOKEN, raw.subFormat) ? raw.subFormat : 'best',
   };
+  if (videoIs(VIDEO_TRACK, raw.videoTrack)) pick.videoTrack = raw.videoTrack;
+  if (videoIs(AUDIO_TRACK, raw.audioTrack)) pick.audioTrack = raw.audioTrack;
+  if (videoIs(VIDEO_LANG, raw.audioLang)) pick.audioLang = raw.audioLang;
+  if (typeof raw.subAuto === 'boolean') pick.subAuto = raw.subAuto;
+  return pick;
 }
 
 /** What a click downloads on a site, from the stored defaults per site. */
@@ -60,29 +84,167 @@ function videoDefaultsFor(stored, siteId) {
   return videoPick(stored?.videoDefaults?.[siteId]);
 }
 
-/** The choice POST /api/links takes for a pick (ytdlp.LinkChoice). */
+/**
+ * The choice POST /api/links takes for a pick (ytdlp.LinkChoice). A pick
+ * without tracks leaves them to the instance, which takes the best under the
+ * cap and the preferred codec's track where the video has one. Generated
+ * subtitles count unless the menu said otherwise, so a video without
+ * subtitles by hand still gets its own language's.
+ */
 function videoChoice(pick) {
-  return { variants: pick.parts, quality: pick.quality, audioFormat: pick.audio };
+  return {
+    variants: pick.parts,
+    quality: pick.quality,
+    audioFormat: pick.audio,
+    subtitleLangs: pick.subLangs,
+    subtitleAuto: pick.subAuto ?? true,
+    subtitleFormat: pick.subFormat,
+    ...(pick.videoTrack ? { videoTrack: pick.videoTrack } : {}),
+    ...(pick.audioTrack ? { audioTrack: pick.audioTrack } : {}),
+    ...(pick.audioLang ? { audioLang: pick.audioLang } : {}),
+  };
 }
 
 /**
- * What the menu offers for what the instance says a video has (GET
- * /api/ytdlp/link): the resolutions it has, highest first, and whether it
- * has sound. Without an answer, none and `unknown` set.
+ * What a video offers, from what the instance says it has (GET
+ * /api/ytdlp/link): its video and audio tracks, the languages its audio
+ * comes in, its subtitles by hand and generated and the formats they come
+ * in, the picture the thumbnail row fetches and whether it has a
+ * description. `known` is false where there is no answer, or one from an
+ * instance that only lists resolutions, and then nothing is ruled out.
  */
 function videoOffer(answer) {
-  if (!answer) return { qualities: [], audio: true, unknown: true };
-  const qualities = Array.isArray(answer.qualities) ? VIDEO_CAPS.filter((q) => answer.qualities.includes(q)) : [];
-  return { qualities, audio: answer.audio === true };
+  const list = (v, re) => (Array.isArray(v) ? v.filter((x) => videoIs(re, x)) : []);
+  const qualities = Array.isArray(answer?.qualities) ? VIDEO_CAPS.filter((q) => answer.qualities.includes(q)) : [];
+  if (!Array.isArray(answer?.videoTracks)) {
+    return {
+      known: false, qualities, audio: answer ? answer.audio === true : true, videoTracks: [], audioTracks: [], audioLangs: [],
+      subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true,
+    };
+  }
+  const th = answer.thumbnail;
+  const size = (n) => (Number.isInteger(n) && n > 0 ? n : 0);
+  return {
+    known: true,
+    qualities,
+    audio: answer.audio === true,
+    videoTracks: list(answer.videoTracks, VIDEO_TRACK),
+    audioTracks: list(answer.audioTracks, AUDIO_TRACK),
+    audioLangs: Array.isArray(answer.audioLangs)
+      ? answer.audioLangs.filter((l) => videoIs(VIDEO_LANG, l?.code)).map((l) => ({ code: l.code, dubbed: l.dubbed === true }))
+      : [],
+    subtitles: list(answer.subtitles, VIDEO_LANG),
+    autoCaptions: list(answer.autoCaptions, VIDEO_LANG),
+    subtitleFormats: list(answer.subtitleFormats, VIDEO_TOKEN),
+    thumbnail: videoIs(VIDEO_TOKEN, th?.ext) ? { width: size(th.width), height: size(th.height), ext: th.ext } : null,
+    description: answer.description === true,
+  };
 }
 
-/** The resolutions offered for a site: those the instance has found there so
- *  far (videoQualities, by site), or every one it knows where it has found
- *  none. */
-function videoSiteQualities(stored, siteId) {
-  const seen = stored?.videoQualities?.[siteId];
-  const known = Array.isArray(seen) ? VIDEO_CAPS.filter((q) => seen.includes(q)) : [];
-  return known.length ? known : VIDEO_CAPS;
+/** Whether a video offers a part. One the instance could not say about
+ *  offers everything. */
+function videoHas(offer, part) {
+  if (!offer.known) return true;
+  switch (part) {
+    case 'video':
+      return offer.videoTracks.length > 0 || offer.qualities.length > 0;
+    case 'audio':
+      return offer.audio;
+    case 'subtitle':
+      return offer.subtitles.length > 0 || offer.autoCaptions.length > 0;
+    case 'thumbnail':
+      return offer.thumbnail !== null;
+    default:
+      return offer.description;
+  }
+}
+
+/** The language a subtitle or audio code is in: "en" for "en-orig" or
+ *  "en-US". */
+function videoLangBase(code) {
+  return code.split('-')[0].toLowerCase();
+}
+
+/**
+ * The subtitles a video's menu offers: every one by hand, and of the
+ * generated ones the original ("en-orig") and those in a language the pick
+ * asks for, since a host translates its generated subtitles into every
+ * language it knows.
+ */
+function videoSubtitleChoices(offer, pick) {
+  const wanted = new Set(pick.subLangs.map(videoLangBase));
+  const auto = offer.autoCaptions.filter((c) => c.endsWith('-orig') || wanted.has(c.toLowerCase()));
+  return { manual: offer.subtitles, auto };
+}
+
+/**
+ * A pick made exact for one video, where the menu starts: the parts it has,
+ * the best video track under the cap, the best audio track in the preferred
+ * codec, the original audio where there are several languages, the wanted
+ * subtitle languages it has (by hand before generated, else its original
+ * generated ones), and the wanted subtitle format where it has that one.
+ */
+function videoResolve(pick, offer) {
+  if (!offer.known) return { ...pick, subLangs: [...pick.subLangs] };
+  const sel = { ...pick, parts: pick.parts.filter((p) => videoHas(offer, p)) };
+  if (sel.parts.length === 0) sel.parts = VIDEO_PARTS.filter((p) => videoHas(offer, p)).slice(0, 1);
+  const cap = pick.quality === 'best' ? Infinity : parseInt(pick.quality, 10);
+  sel.videoTrack = offer.videoTracks.find((k) => parseInt(k, 10) <= cap) ?? offer.videoTracks.at(-1);
+  sel.audioTrack =
+    (pick.audio === 'best' ? undefined : offer.audioTracks.find((k) => k.split(' ')[0] === pick.audio)) ?? offer.audioTracks[0];
+  if (offer.audioLangs.length > 1) sel.audioLang = (offer.audioLangs.find((l) => !l.dubbed) ?? offer.audioLangs[0]).code;
+  const { manual, auto } = videoSubtitleChoices(offer, pick);
+  const langs = [];
+  let fromAuto = false;
+  for (const want of pick.subLangs.map(videoLangBase)) {
+    const own = manual.find((c) => videoLangBase(c) === want);
+    const made = auto.find((c) => c.toLowerCase() === `${want}-orig`) ?? auto.find((c) => c.toLowerCase() === want);
+    if (own) langs.push(own);
+    else if (made) {
+      langs.push(made);
+      fromAuto = true;
+    }
+  }
+  if (langs.length === 0) {
+    const first = manual[0] ?? auto.find((c) => c.endsWith('-orig'));
+    if (first) langs.push(first);
+    fromAuto = !manual[0] && !!first;
+  }
+  sel.subLangs = langs;
+  sel.subAuto = fromAuto;
+  if (!offer.subtitleFormats.includes(sel.subFormat)) sel.subFormat = 'best';
+  for (const k of ['videoTrack', 'audioTrack']) if (!sel[k]) delete sel[k];
+  return sel;
+}
+
+/** What a video offered, folded into what its site has offered so far
+ *  (videoSeen, by site): the resolutions, the audio codecs, the subtitle
+ *  languages by hand and generated originals, and the subtitle formats. */
+function videoSeenWith(seen, offer) {
+  const merge = (old, add, order) => {
+    const all = new Set([...(Array.isArray(old) ? old : []), ...add]);
+    return order ? order.filter((x) => all.has(x)) : [...all].sort();
+  };
+  const subLangs = [...offer.subtitles, ...offer.autoCaptions.filter((c) => c.endsWith('-orig'))].map(videoLangBase);
+  return {
+    qualities: merge(seen?.qualities, offer.qualities, VIDEO_CAPS),
+    audio: merge(seen?.audio, offer.audioTracks.map((k) => k.split(' ')[0]), VIDEO_AUDIO_CODECS),
+    subLangs: merge(seen?.subLangs, subLangs),
+    subFormats: merge(seen?.subFormats, offer.subtitleFormats),
+  };
+}
+
+/** What a site has offered so far, for the options page to offer as
+ *  defaults: never more than the instance has reported there. */
+function videoSiteSeen(stored, siteId) {
+  const seen = stored?.videoSeen?.[siteId];
+  const list = (v, keep) => (Array.isArray(v) ? v.filter(keep) : []);
+  return {
+    qualities: VIDEO_CAPS.filter((q) => list(seen?.qualities, () => true).includes(q)),
+    audio: VIDEO_AUDIO_CODECS.filter((c) => list(seen?.audio, () => true).includes(c)),
+    subLangs: list(seen?.subLangs, (l) => videoIs(VIDEO_LANG, l)),
+    subFormats: list(seen?.subFormats, (f) => videoIs(VIDEO_TOKEN, f)),
+  };
 }
 
 /**

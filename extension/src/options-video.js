@@ -1,9 +1,10 @@
 // The options page's card for the download button on a video's player
 // (video.js): the switch, whether it hides until the pointer is over the
 // video, the place it was dragged to, and per site whether it shows there and
-// what a click downloads. Switching on asks the browser for the sites it
-// needs. Switching off keeps what the browser granted, so switching on again
-// needs no question.
+// what a click downloads, offering only what the site has offered so far.
+// Switching on asks the browser for the sites it needs. Switching off keeps
+// what the browser granted, so switching on again needs no question, and
+// leaves every row in view with its controls switched off.
 
 const videoEnabledEl = document.getElementById('videoEnabled');
 const videoNoticeEl = document.getElementById('videoNotice');
@@ -12,8 +13,8 @@ const videoAutoHideEl = document.getElementById('videoAutoHide');
 const videoSpotResetEl = document.getElementById('videoSpotReset');
 const videoSitesEl = document.getElementById('videoSites');
 
-const VIDEO_STORED = ['videoButtonAutoHide', 'videoButtonSpot', 'videoDefaults', 'videoQualities'];
-const VIDEO_AUDIO_NAMES = { aac: 'AAC', alac: 'ALAC', flac: 'FLAC', mp3: 'MP3', opus: 'Opus', vorbis: 'Vorbis', wav: 'WAV' };
+const VIDEO_STORED = ['videoButtonAutoHide', 'videoButtonSpot', 'videoDefaults', 'videoSeen'];
+const VIDEO_AUDIO_NAMES = { aac: 'AAC', opus: 'Opus', vorbis: 'Vorbis', mp3: 'MP3', flac: 'FLAC', alac: 'ALAC' };
 
 /** The state last drawn. A click asks the browser before anything else, while
  *  it still counts as the user's, so it reads what to ask for from here. */
@@ -41,13 +42,15 @@ async function renderVideo() {
   videoNoticeEl.hidden = !videoRefused && !waiting;
   document.getElementById('videoNoticeTitle').textContent = t(videoRefused ? 'options.videoRefusedTitle' : 'options.videoAccessTitle');
   document.getElementById('videoNoticeReason').textContent = t(videoRefused ? 'options.videoRefused' : 'options.videoAccess');
-  videoMoreEl.hidden = !videoNow.on;
   videoAutoHideEl.setAttribute('aria-checked', String(videoNow.stored.videoButtonAutoHide === true));
-  videoSpotResetEl.disabled = Object.keys(videoNow.stored.videoButtonSpot ?? {}).length === 0;
   // Every change redraws the sites, so the keyboard goes back to the control
   // it was on.
   const focusKey = document.activeElement?.dataset?.videoKey;
   videoSitesEl.replaceChildren(...VIDEO_SITES.map(videoSiteBlock));
+  // Off, the rows stay in view, so what the button will do can be read and
+  // found, and each control refuses on its own.
+  for (const el of videoMoreEl.querySelectorAll('button, select')) el.disabled = !videoNow.on;
+  if (videoNow.on) videoSpotResetEl.disabled = Object.keys(videoNow.stored.videoButtonSpot ?? {}).length === 0;
   if (focusKey) videoSitesEl.querySelector(`[data-video-key="${focusKey}"]`)?.focus();
 }
 
@@ -67,8 +70,7 @@ function videoSwitch(on, name) {
   return toggle;
 }
 
-/** One site: whether the button shows there, and while it does, what a click
- *  downloads. */
+/** One site: whether the button shows there, and what a click downloads. */
 function videoSiteBlock(site) {
   const block = document.createElement('div');
   block.className = 'videoSite glim-well';
@@ -94,15 +96,18 @@ function videoSiteBlock(site) {
     await chrome.storage.local.set({ videoButtonHidden: hidden.filter((id) => id !== site.id) });
   });
   row.append(label, toggle);
-  block.append(row);
-  if (on) block.append(...videoDefaultsRows(site));
+  block.append(row, ...videoDefaultsRows(site));
   return block;
 }
 
-/** The parts a click downloads on a site, and the video's quality and the
- *  audio's format where those parts are on. */
+/** The parts a click downloads on a site, and where those parts are on, the
+ *  video's cap, the audio's codec and the subtitles' languages and format,
+ *  each from what the site has offered so far. */
 function videoDefaultsRows(site) {
   const pick = videoDefaultsFor(videoNow.stored, site.id);
+  const seen = videoSiteSeen(videoNow.stored, site.id);
+  // A default stored before the site stopped offering it stays readable.
+  const offered = (list, current) => (current === 'best' || list.includes(current) ? list : [...list, current]);
   const save = (change) => {
     const all = videoNow.stored.videoDefaults ?? {};
     void chrome.storage.local.set({ videoDefaults: { ...all, [site.id]: { ...pick, ...change } } });
@@ -133,17 +138,61 @@ function videoDefaultsRows(site) {
     parts.append(b);
   }
 
+  const best = (name) => (v) => (v === 'best' ? t('video.qualityBest') : name(v));
   const picks = document.createElement('div');
   picks.className = 'videoPicks';
   if (pick.parts.includes('video')) {
-    const qualities = ['best', ...videoSiteQualities(videoNow.stored, site.id)];
-    picks.append(videoSelect(`${site.id}-quality`, t('video.quality'), qualities, pick.quality, (q) => (q === 'best' ? t('video.qualityBest') : q), (quality) => save({ quality })));
+    const qualities = ['best', ...offered(seen.qualities, pick.quality)];
+    picks.append(videoSelect(`${site.id}-quality`, t('video.quality'), qualities, pick.quality, best((q) => q), (quality) => save({ quality })));
   }
   if (pick.parts.includes('audio')) {
-    const name = (f) => (f === 'best' ? t('video.qualityBest') : VIDEO_AUDIO_NAMES[f]);
-    picks.append(videoSelect(`${site.id}-audio`, t('video.audioFormat'), VIDEO_AUDIO_FORMATS, pick.audio, name, (audio) => save({ audio })));
+    const codecs = ['best', ...offered(seen.audio, pick.audio)];
+    picks.append(videoSelect(`${site.id}-audio`, t('video.audioFormat'), codecs, pick.audio, best((c) => VIDEO_AUDIO_NAMES[c]), (audio) => save({ audio })));
   }
-  return picks.children.length ? [parts, picks] : [parts];
+  if (pick.parts.includes('subtitle')) {
+    const formats = ['best', ...offered(seen.subFormats, pick.subFormat)];
+    picks.append(videoSelect(`${site.id}-subformat`, t('options.videoSubFormat'), formats, pick.subFormat, best((f) => f), (subFormat) => save({ subFormat })));
+  }
+  const rows = [parts];
+  if (picks.children.length) rows.push(picks);
+  if (pick.parts.includes('subtitle')) rows.push(videoSubLangs(site, pick, seen, save));
+  return rows;
+}
+
+/** The subtitle languages a click asks for on a site, in the order they were
+ *  ticked, from those the site has offered so far. */
+function videoSubLangs(site, pick, seen, save) {
+  const box = document.createElement('div');
+  box.className = 'videoLangs';
+  const words = document.createElement('span');
+  words.textContent = t('options.videoSubLangs');
+  box.append(words);
+  const langs = [...seen.subLangs, ...pick.subLangs.filter((l) => !seen.subLangs.includes(l))];
+  if (langs.length === 0) {
+    const none = document.createElement('span');
+    none.className = 'videoNone';
+    none.textContent = t('options.videoNoneYet');
+    box.append(none);
+    return box;
+  }
+  const chips = document.createElement('div');
+  chips.className = 'glim-seg videoParts';
+  chips.setAttribute('role', 'group');
+  chips.setAttribute('aria-label', `${site.name}: ${t('options.videoSubLangs')}`);
+  for (const lang of langs) {
+    const on = pick.subLangs.includes(lang);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-pressed', String(on));
+    b.dataset.videoKey = `${site.id}-sub-${lang}`;
+    const code = document.createElement('span');
+    code.textContent = lang;
+    b.append(code);
+    b.addEventListener('click', () => save({ subLangs: on ? pick.subLangs.filter((l) => l !== lang) : [...pick.subLangs, lang] }));
+    chips.append(b);
+  }
+  box.append(chips);
+  return box;
 }
 
 /** Each part's name, spelled out so check-locales.mjs sees every key read. */

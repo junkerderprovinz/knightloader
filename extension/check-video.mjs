@@ -10,18 +10,24 @@
  *      access, none of them a static content script, and each is a site
  *      yt-dlp on the instance knows.
  *   3. A site's stored defaults become the choice a click sends, cleaned of
- *      anything the instance would refuse. A dragged button is stored as
+ *      anything the instance would refuse. What the instance says a video
+ *      has rules out what it lacks and makes a pick exact for it, and is
+ *      kept per site for the options page. A dragged button is stored as
  *      shares of its player, kept inside it, so it keeps its place when the
  *      player changes size. Auto-hide shows the button only with the pointer
  *      over the video or while it is in use.
  *   4. The worker registers the button only where it runs, sends only the
  *      video of the page that asked, to start at once with its choice, and
- *      tells the button whether it started, was held back or was there
- *      already. The menu lists what the instance says the video has, and the
- *      resolutions found are kept for the site.
+ *      tells the button whether it was sent, was held back or was there
+ *      already. The menu lists what the instance says the video has, and
+ *      what it offered is kept for the site.
  *   5. On the page, a click sends the site's defaults and the menu a pick of
- *      its own, a drag places the button and sends nothing, auto-hide and the
- *      keyboard decide when it shows, and the switches take it off an open
+ *      its own from what the video has, a success cheers with stars (a
+ *      colour flash alone with reduced motion) and a refusal does not, the
+ *      menu stays open while the player loses its video for a moment, the
+ *      button takes the theme's colours, a drag places it and sends nothing,
+ *      auto-hide and the keyboard decide when it shows, and the switches take
+ *      it off an open
  *      tab at once and back. The button follows the page to another video
  *      and away from one, asks the instance once per video, sits in the
  *      element shown in fullscreen, picks the video that is on screen, and
@@ -208,21 +214,52 @@ function loadBackground(chrome) {
 
   ctx.stored = {
     videoDefaults: {
-      youtube: { parts: ['subtitle', 'video', 'chapters'], quality: '720p', audio: 'opus' },
+      youtube: { parts: ['subtitle', 'video', 'chapters'], quality: '720p', audio: 'opus', subLangs: ['de', 'en', 'd e'], subFormat: 'vtt' },
       vimeo: { parts: [], quality: '1080p' },
-      twitch: { parts: ['audio'], quality: '8k', audio: 'm4b' },
+      twitch: { parts: ['audio'], quality: '8k', audio: 'wav', subFormat: 'v t t' },
     },
   };
   const choice = (site) => run(`videoChoice(videoDefaultsFor(stored, '${site}'))`);
-  const best = { variants: ['video'], quality: 'best', audioFormat: 'best' };
-  if (!same(choice('youtube'), { variants: ['video', 'subtitle'], quality: '720p', audioFormat: 'opus' })) fail(`YouTube's defaults send ${JSON.stringify(choice('youtube'))}, want the video at 720p with its subtitles, and opus kept for the audio`);
+  const best = { variants: ['video'], quality: 'best', audioFormat: 'best', subtitleLangs: [], subtitleAuto: true, subtitleFormat: 'best' };
+  const youtube = { variants: ['video', 'subtitle'], quality: '720p', audioFormat: 'opus', subtitleLangs: ['de', 'en'], subtitleAuto: true, subtitleFormat: 'vtt' };
+  if (!same(choice('youtube'), youtube)) fail(`YouTube's defaults send ${JSON.stringify(choice('youtube'))}, want the video up to 720p, opus preferred and German then English subtitles as vtt`);
   if (!same(choice('vimeo'), best)) fail(`a site set to download no part sends ${JSON.stringify(choice('vimeo'))}, want the best video`);
   if (!same(choice('dailymotion'), best)) fail(`a site with nothing set sends ${JSON.stringify(choice('dailymotion'))}, want the best video`);
-  if (!same(choice('twitch'), { variants: ['audio'], quality: 'best', audioFormat: 'best' })) fail(`a quality and an audio format the instance has not got are sent as ${JSON.stringify(choice('twitch'))}, want the best`);
+  if (!same(choice('twitch'), { ...best, variants: ['audio'] })) fail(`a quality, an audio codec and a subtitle format the instance has not got are sent as ${JSON.stringify(choice('twitch'))}, want the best`);
 
-  ctx.stored = { videoQualities: { youtube: ['480p', '2160p', '9999p'] } };
-  if (run(`videoSiteQualities(stored, 'youtube')`).join() !== '2160p,480p') fail('the options offer a site other resolutions than those the instance found there');
-  if (run(`videoSiteQualities(stored, 'vimeo')`).join() !== run('VIDEO_CAPS').join()) fail('for a site the instance has found nothing on, the options do not offer every resolution it knows');
+  // What one video has decides what the menu offers and where it starts.
+  ctx.answer = {
+    qualities: ['1080p', '720p'], audio: true,
+    videoTracks: ['1080p60 webm vp9', '1080p mp4 avc1', '720p mp4 avc1', 'rm -rf'],
+    audioTracks: ['opus 160k', 'aac 128k'], audioLangs: [{ code: 'de', dubbed: true }, { code: 'en' }],
+    subtitles: ['de'], autoCaptions: ['en-orig', 'fr', 'de', 'x y'], subtitleFormats: ['srv3', 'vtt'],
+    thumbnail: { width: 1280, height: 720, ext: 'webp' }, description: false,
+  };
+  vm.runInContext('offer = videoOffer(answer)', ctx);
+  if (run('offer.videoTracks').length !== 3 || run('offer.autoCaptions').includes('x y')) fail('the offer keeps tracks or languages the instance would refuse');
+  if (run(`VIDEO_PARTS.filter((p) => videoHas(offer, p))`).join() !== 'video,audio,subtitle,thumbnail') fail('a video without a description still offers its text');
+  ctx.want = { parts: ['video', 'audio', 'subtitle', 'description'], quality: '720p', audio: 'aac', subLangs: ['en', 'de'], subFormat: 'vtt' };
+  const exact = run('videoResolve(videoPick(want), offer)');
+  const wantExact = { parts: ['video', 'audio', 'subtitle'], videoTrack: '720p mp4 avc1', audioTrack: 'aac 128k', audioLang: 'en', subLangs: ['en-orig', 'de'], subAuto: true, subFormat: 'vtt' };
+  for (const [k, v] of Object.entries(wantExact)) {
+    if (!same(exact[k], v)) fail(`made exact for the video, the pick's ${k} is ${JSON.stringify(exact[k])}, want ${JSON.stringify(v)}`);
+  }
+  ctx.want = { parts: ['video', 'subtitle'], quality: 'best', audio: 'best', subLangs: [], subFormat: 'best' };
+  const bestOf = run('videoResolve(videoPick(want), offer)');
+  if (bestOf.videoTrack !== '1080p60 webm vp9' || bestOf.audioTrack !== 'opus 160k' || !same(bestOf.subLangs, ['de']) || bestOf.subAuto || bestOf.subFormat !== 'best') {
+    fail(`with nothing preferred the pick becomes ${JSON.stringify(bestOf)}, want the best tracks, the subtitles by hand and the host's own format`);
+  }
+  if (!same(run(`videoSubtitleChoices(offer, videoPick({ parts: ['subtitle'], subLangs: ['fr'] })).auto`), ['en-orig', 'fr'])) fail('the menu offers generated subtitles beyond the original and the wanted languages');
+  const sentExact = run(`videoChoice(videoPick({ ...videoResolve(videoPick(want), offer), videoTrack: 'evil;rm', audioLang: 'de' }))`);
+  if ('videoTrack' in sentExact || sentExact.audioTrack !== 'opus 160k' || sentExact.audioLang !== 'de' || sentExact.subtitleAuto !== false) fail(`an exact pick is sent as ${JSON.stringify(sentExact)}`);
+  vm.runInContext(`old = videoOffer({ qualities: ['720p'], audio: true })`, ctx);
+  if (run('old.known') || run(`VIDEO_PARTS.filter((p) => videoHas(old, p))`).length !== 5) fail('an older instance that only lists resolutions rules parts out');
+
+  const seen = run('videoSeenWith(undefined, offer)');
+  if (!same(seen, { qualities: ['1080p', '720p'], audio: ['aac', 'opus'], subLangs: ['de', 'en'], subFormats: ['srv3', 'vtt'] })) fail(`a site is remembered as offering ${JSON.stringify(seen)}`);
+  ctx.stored = { videoSeen: { youtube: { qualities: ['480p', '2160p', '9999p'], audio: ['wav', 'opus'], subLangs: ['de', 'x y'], subFormats: ['vtt', 'V T'] } } };
+  if (!same(run(`videoSiteSeen(stored, 'youtube')`), { qualities: ['2160p', '480p'], audio: ['opus'], subLangs: ['de'], subFormats: ['vtt'] })) fail('the options offer a site something it has not offered');
+  if (!same(run(`videoSiteSeen(stored, 'vimeo')`), { qualities: [], audio: [], subLangs: [], subFormats: [] })) fail('the options offer choices for a site that has offered none');
 
   const rect = { left: 100, top: 50, width: 800, height: 450 };
   const size = { width: 160, height: 32 };
@@ -289,18 +326,18 @@ function loadBackground(chrome) {
   const sendVideo = vm.runInContext('sendVideo', ctx);
   const embed = 'https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?list=PLbpi6ZahtOH6Ar_3GPy3workIMw9vB9wB';
 
-  let r = await sendVideo(embed, { href: embed, pick: { parts: ['audio', 'video', 'chapters'], quality: '1080p', audio: 'mp3' } });
+  let r = await sendVideo(embed, { href: embed, pick: { parts: ['audio', 'video', 'chapters'], quality: '1080p', audio: 'mp3', videoTrack: '1080p60 webm vp9', audioLang: 'de' } });
   const last = () => sent.at(-1)?.body;
-  if (r.result !== 'started') fail(`a send the instance started answers ${r.result}, want started`);
+  if (r.result !== 'sent') fail(`a send the instance started answers ${r.result}, want sent`);
   if (last()?.links !== 'https://www.youtube.com/watch?v=aqz-KE-bpKQ') fail(`an embedded player sends ${last()?.links}`);
-  if (JSON.stringify(last()?.choice) !== '{"variants":["video","audio"],"quality":"1080p","audioFormat":"mp3"}') fail(`a pick arrives as ${JSON.stringify(last()?.choice)}, want the video at 1080p and the audio as mp3`);
+  if (JSON.stringify(last()?.choice) !== '{"variants":["video","audio"],"quality":"1080p","audioFormat":"mp3","subtitleLangs":[],"subtitleAuto":true,"subtitleFormat":"best","videoTrack":"1080p60 webm vp9","audioLang":"de"}') fail(`a pick arrives as ${JSON.stringify(last()?.choice)}, want the 1080p60 track and mp3 audio in German`);
   if (last()?.start !== true || last()?.report !== true) fail('the video is not sent to start at once and to report a link already there');
   if ('format' in last()) fail('the send still names a format beside its choice');
   if (sent.at(-1)?.path !== '/api/links' || sent.at(-1)?.method !== 'POST') fail('the video is not sent as POST /api/links');
 
   await sendVideo(embed, { href: embed, playlist: true, pick: { parts: ['everything'], quality: '8k' } });
   if (last()?.links !== 'https://www.youtube.com/playlist?list=PLbpi6ZahtOH6Ar_3GPy3workIMw9vB9wB') fail(`asked for the playlist, the button sends ${last()?.links}`);
-  if (JSON.stringify(last()?.choice) !== '{"variants":["video"],"quality":"best","audioFormat":"best"}') fail(`a pick the instance would refuse arrives as ${JSON.stringify(last()?.choice)}, want the best video`);
+  if (JSON.stringify(last()?.choice) !== '{"variants":["video"],"quality":"best","audioFormat":"best","subtitleLangs":[],"subtitleAuto":true,"subtitleFormat":"best"}') fail(`a pick the instance would refuse arrives as ${JSON.stringify(last()?.choice)}, want the best video`);
 
   // The menu offers what the instance says the video has, and the
   // resolutions found are kept for the site.
@@ -311,16 +348,18 @@ function loadBackground(chrome) {
   if (asked?.method !== 'GET' || asked.path !== `/api/ytdlp/link?url=${encodeURIComponent('https://www.youtube.com/watch?v=aqz-KE-bpKQ')}`) {
     fail(`the menu asks ${asked?.method} ${asked?.path}, want GET /api/ytdlp/link for the video's address`);
   }
-  if (menu.qualities?.join() !== '720p,480p' || menu.audio !== true || menu.unknown) fail(`the menu offers ${JSON.stringify(menu)}, want the two resolutions the video has and its sound`);
-  answer = { status: 200, body: '{"qualities":["1080p","720p"],"audio":false}' };
-  await videoFormats(embed, { href: embed });
-  if (store.data.videoQualities?.youtube?.join() !== '1080p,720p,480p') fail(`the resolutions kept for YouTube are ${store.data.videoQualities?.youtube}, want every one found there`);
+  if (menu.qualities?.join() !== '720p,480p' || menu.audio !== true || menu.known) fail(`an older instance's answer offers ${JSON.stringify(menu)}, want its two resolutions and nothing ruled out`);
+  if (store.data.videoSeen) fail('an answer that rules nothing out is kept for the site');
+  answer = { status: 200, body: JSON.stringify({ qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p mp4 avc1'], audioTracks: ['opus 160k'], audioLangs: [], subtitles: ['de'], autoCaptions: [], subtitleFormats: ['vtt'], thumbnail: null, description: true }) };
+  menu = await videoFormats(embed, { href: embed });
+  if (!menu.known || menu.videoTracks?.join() !== '1080p mp4 avc1' || menu.subtitles?.join() !== 'de') fail(`the menu offers ${JSON.stringify(menu)}, want the video's own tracks and subtitles`);
+  if (JSON.stringify(store.data.videoSeen?.youtube) !== '{"qualities":["1080p","720p"],"audio":["opus"],"subLangs":["de"],"subFormats":["vtt"]}') fail(`YouTube is remembered as offering ${JSON.stringify(store.data.videoSeen?.youtube)}`);
   answer = { status: 502, body: 'ERROR: [youtube] aqz-KE-bpKQ: Private video' };
   menu = await videoFormats(embed, { href: embed });
-  if (menu.qualities?.length || !menu.unknown) fail(`a probe that failed offers ${JSON.stringify(menu)}, want nothing known`);
+  if (menu.qualities?.length || menu.known) fail(`a probe that failed offers ${JSON.stringify(menu)}, want nothing known`);
   const asking = sent.length;
   menu = await videoFormats('https://www.youtube.com/watch?v=aqz-KE-bpKQ', { href: 'https://vimeo.com/1084537' });
-  if (sent.length !== asking || !menu.unknown) fail('a frame on one site could ask about a video of another');
+  if (sent.length !== asking || menu.known) fail('a frame on one site could ask about a video of another');
   answer = { status: 200, body: '{"tasks":[{"id":"a"}],"listed":[]}' };
 
   const before = sent.length;
@@ -337,7 +376,7 @@ function loadBackground(chrome) {
     [{ status: 200, body: '{"tasks":[],"listed":[]}' }, 'refused'],
     // An instance from before report answers with the bare list.
     [{ status: 200, body: '[]' }, 'already'],
-    [{ status: 200, body: '[{"id":"a"}]' }, 'started'],
+    [{ status: 200, body: '[{"id":"a"}]' }, 'sent'],
     [{ status: 403, body: '{"code":"memberPending"}' }, 'refused'],
   ]) {
     answer = res;
@@ -392,6 +431,8 @@ class Node {
     this.rect = { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0 };
     this.offsetWidth = 0;
     this.offsetHeight = 0;
+    this.offsetLeft = 0;
+    this.offsetTop = 0;
   }
   get parentElement() { return this.parentNode; }
   get isConnected() {
@@ -453,6 +494,10 @@ class Node {
     }
   }
   setPointerCapture() {}
+  animate(keyframes, options) {
+    (this.doc.animations ??= []).push({ node: this, keyframes, options });
+    return { finished: Promise.resolve(), cancel() {} };
+  }
   attachShadow() {
     this.shadow = new Node('#shadow', this.doc);
     return this.shadow;
@@ -495,13 +540,13 @@ function video(doc, parent, rect) {
 }
 
 /** The page's context: a site with the button's content scripts in it. */
-function loadPage(chrome, href) {
+function loadPage(chrome, href, { reduced = false } = {}) {
   const doc = makeDocument();
   const location = { href };
   const ctx = vm.createContext({
     chrome, document: doc, location, URL, console, setTimeout, clearTimeout,
     setInterval: () => 0, requestAnimationFrame: () => 0, performance,
-    matchMedia: () => ({ matches: false, addEventListener() {} }),
+    matchMedia: (q) => ({ matches: reduced && q.includes('reduce'), addEventListener() {} }),
     window: { addEventListener() {} }, innerWidth: 1280, innerHeight: 800,
     navigator: { userAgent: 'test' }, CSS: { supports: () => false },
     DOMParser: class { parseFromString() { return { documentElement: doc.createElementNS('', 'svg') }; } },
@@ -513,9 +558,9 @@ function loadPage(chrome, href) {
 }
 
 const PAGE_LABELS = {
-  send: 'Download', sendTip: 'Send', more: 'More', best: 'Best', quality: 'Video quality', audioFormat: 'Audio format',
+  send: 'Download', sendTip: 'Send', more: 'More', best: 'Best', language: 'Language', dubbed: 'dubbed', autoCaptions: 'Auto-generated', subFormat: 'Format',
   parts: { video: 'Video', audio: 'Audio', subtitle: 'Subtitles', thumbnail: 'Thumbnail', description: 'Text' },
-  hide: 'Hide on {site}', checking: 'Checking', unknown: 'Unknown', started: 'Started', already: 'Already there',
+  hide: 'Hide on {site}', checking: 'Checking', unknown: 'Unknown', sent: 'Sent', already: 'Already there',
   mark: '<svg viewBox="0 0 587 901.8"></svg>', dir: 'ltr', lang: 'en',
 };
 
@@ -564,7 +609,9 @@ const PAGE_LABELS = {
   // shows on the button.
   send().fire('click');
   await settle();
-  if (JSON.stringify(sends.at(-1)?.pick) !== '{"parts":["video","subtitle"],"quality":"1080p","audio":"best"}') fail(`a click sends ${JSON.stringify(sends.at(-1)?.pick)}, want YouTube's defaults`);
+  if (JSON.stringify(sends.at(-1)?.pick) !== '{"parts":["video","subtitle"],"quality":"1080p","audio":"best","subLangs":[],"subFormat":"best"}') fail(`a click sends ${JSON.stringify(sends.at(-1)?.pick)}, want YouTube's defaults`);
+  const stars = () => (doc.animations ?? []).filter((a) => a.node.attrs.class === 'star').length;
+  if (stars() < 5 || stars() > 7) fail(`a video already there cheers with ${stars()} stars, want five to seven`);
   if (frame()?.dataset.state !== 'already' || send().children.at(-1)?.textContent !== 'Already there') fail(`a video already there shows ${frame()?.dataset.state} "${send().children.at(-1)?.textContent}", want already`);
 
   // The menu lists the parts with the site's defaults ticked, says it is
@@ -574,20 +621,29 @@ const PAGE_LABELS = {
   const entries = () => menuEl().querySelectorAll('*').filter((n) => n.text).map((n) => (n.attrs['aria-checked'] === 'true' ? `[${n.text}]` : n.text));
   more().fire('click');
   await settle();
-  const checking = 'Video|Audio|Subtitles|Thumbnail|Text|Video quality|Checking|Download|Hide on YouTube';
+  const checking = 'Video|Audio|Subtitles|Thumbnail|Text|Checking|Download|Hide on YouTube';
   if (entries().join('|').replace(/[[\]]/g, '') !== checking) fail(`while the instance is asked the menu shows ${entries().join(', ')}, want ${checking}`);
-  formatsAnswer({ qualities: ['720p'], audio: true });
+  formatsAnswer({
+    known: true, qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p mp4 avc1', '720p mp4 avc1'],
+    audioTracks: ['opus 160k', 'aac 128k'], audioLangs: [], subtitles: ['de'], autoCaptions: ['en-orig'], subtitleFormats: ['vtt'],
+    thumbnail: { width: 1280, height: 720, ext: 'webp' }, description: false,
+  });
   await settle();
-  const listed = '[Video]|Audio|[Subtitles]|Thumbnail|Text|Video quality|Best|[1080p]|720p|Download|Hide on YouTube';
-  if (entries().join('|') !== listed) fail(`the menu shows ${entries().join(', ')}, want ${listed}, with the default 1080p beside what the video has`);
+  const listed = '[Video]|Best|[1080p]|720p|Audio|[Subtitles]|[de]|Auto-generated|en|Format|[Best]|vtt|Thumbnail|Download|Hide on YouTube';
+  if (entries().join('|') !== listed) fail(`the menu shows ${entries().join(', ')}, want ${listed}, made exact for the video and without the text it lacks`);
   const item = (text) => menuEl().querySelectorAll('button').find((b) => b.text === text);
   item('Audio').fire('click');
+  item('aac 128k').fire('click');
   item('720p').fire('click');
-  item('MP3').fire('click');
-  item('Subtitles').fire('click');
+  item('en').fire('click');
+  item('vtt').fire('click');
+  item('Thumbnail').fire('click');
+  if (!entries().includes('1280\u00d7720 webp')) fail(`the menu does not say which picture the thumbnail is: ${entries().join(', ')}`);
   item('Download').fire('click');
   await settle();
-  if (JSON.stringify(sends.at(-1)?.pick) !== '{"parts":["video","audio"],"quality":"720p","audio":"mp3"}') fail(`the menu's own pick sends ${JSON.stringify(sends.at(-1)?.pick)}, want the video at 720p and its audio as mp3`);
+  const norm = (o) => JSON.stringify(Object.fromEntries(Object.entries(o ?? {}).sort()));
+  const wantPick = { parts: ['video', 'audio', 'subtitle', 'thumbnail'], quality: '1080p', audio: 'best', subLangs: ['de', 'en-orig'], subFormat: 'vtt', videoTrack: '720p mp4 avc1', audioTrack: 'aac 128k', subAuto: true };
+  if (norm(sends.at(-1)?.pick) !== norm(wantPick)) fail(`the menu's own pick sends ${JSON.stringify(sends.at(-1)?.pick)}, want ${JSON.stringify(wantPick)}`);
   more().fire('click');
   await settle();
   if (formatsAsked !== 1) fail(`opening the menu again asked the instance ${formatsAsked} times, want once`);
@@ -669,6 +725,96 @@ const PAGE_LABELS = {
   video(doc, player, { left: 500, top: 0, width: 400, height: 710 });
   doc.dispatch('yt-navigate-finish');
   if (button()?.style.left !== '700px') fail(`on Shorts the button sits at ${button()?.style.left}, want over the video on screen at 700px`);
+
+  // The button takes the extension's theme.
+  for (const theme of ['light', 'dark']) {
+    await store.local.set({ theme });
+    if (frame()?.dataset.theme !== theme) fail(`with the ${theme} theme the button is ${frame()?.dataset.theme}`);
+  }
+}
+
+// The menu stays open, and fills in, while the player lets go of its video for
+// a moment; a refusal cheers with nothing, and with reduced motion a success
+// flashes without stars.
+for (const reduced of [false, true]) {
+  const store = makeStore();
+  const { chrome } = makeChrome(store);
+  let formatsAnswer;
+  let answer = { result: 'refused' };
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
+    if (msg.type === 'knightloader-video-formats') return new Promise((resolve) => { formatsAnswer = resolve; });
+    if (msg.type === 'knightloader-video-send') return answer;
+    return undefined;
+  };
+  const { doc, run } = loadPage(chrome, 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', { reduced });
+  const player = doc.createElement('div');
+  doc.documentElement.append(player);
+  const main = video(doc, player, { left: 0, top: 56, width: 1280, height: 720 });
+  run();
+  await settle();
+  const host = doc.documentElement.querySelectorAll('knightloader-video-button')[0];
+  const shadow = host.shadow;
+  const send = shadow.querySelectorAll('button').find((b) => b.className === 'send');
+  const more = shadow.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'menu');
+  const frame = shadow.querySelectorAll('div').find((d) => d.className === 'kl');
+  const menu = shadow.querySelectorAll('div').find((d) => d.attrs.role === 'menu');
+  const stars = () => (doc.animations ?? []).filter((a) => a.node.attrs.class === 'star').length;
+  const flashes = () => (doc.animations ?? []).filter((a) => a.node === send).length;
+
+  if (!reduced) {
+    more.fire('click');
+    await settle();
+    main.rect = { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0 };
+    // The spot under the button now reads as the page, which is far taller
+    // than the player.
+    doc.elementsFromPoint = () => [doc.documentElement];
+    doc.documentElement.rect = { left: 0, top: 0, width: 1280, height: 5000, right: 1280, bottom: 5000 };
+    doc.dispatch('yt-navigate-finish');
+    doc.dispatch('scroll');
+    if (!host.isConnected || menu.hidden) fail('the menu closes while the player lets go of its video for a moment');
+    if (!frame.classList.contains('shown')) fail('the open menu fades out where the spot under the button reads as the site');
+    formatsAnswer({ known: false, qualities: [], audio: true });
+    await settle();
+    if (menu.hidden || !menu.children.some((c) => c.text === 'Unknown')) fail('the menu does not fill in once the instance answers');
+    more.fire('click');
+    main.rect = { left: 0, top: 56, width: 1280, height: 720, right: 1280, bottom: 776 };
+    doc.documentElement.rect = { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0 };
+    doc.elementsFromPoint = () => doc.documentElement.querySelectorAll('video');
+    doc.dispatch('yt-navigate-finish');
+  }
+
+  send.fire('click');
+  await settle();
+  if (stars() || flashes()) fail(`a refused send cheers with ${stars()} stars and ${flashes()} flashes`);
+  answer = { result: 'sent' };
+  send.fire('click');
+  await settle();
+  if (reduced && (stars() || flashes() !== 1)) fail(`with reduced motion a success shows ${stars()} stars and ${flashes()} animations of the button, want one flash alone`);
+  if (!reduced && (stars() < 5 || stars() > 7 || flashes() !== 2)) fail(`a success shows ${stars()} stars and ${flashes()} animations of the button, want five to seven and a flash with a pulse`);
+  const scaled = (doc.animations ?? []).some((a) => a.node === send && a.keyframes.some((k) => /scale/.test(k.transform ?? '')));
+  if (reduced && scaled) fail('with reduced motion the button still grows');
+}
+
+// The button's words stay readable on both themes and on the accent it turns
+// to under the pointer (WCAG AA, 4.5:1).
+{
+  const ctx = vm.createContext({ matchMedia: () => ({ matches: false }), navigator: { userAgent: 'test' }, CSS: { supports: () => false } });
+  vm.runInContext(read('src', 'appearance.js'), ctx, { filename: 'appearance.js' });
+  const ratio = vm.runInContext('contrastRatio', ctx);
+  const ink = vm.runInContext('contrastOn(DEFAULT_ACCENT)', ctx);
+  const css = read('src', 'video-button.js');
+  const tokens = (selector) => {
+    const block = css.slice(css.indexOf(selector)).split('}')[0];
+    return Object.fromEntries([...block.matchAll(/--([a-z]+): (#[0-9a-f]{6})/g)].map((m) => [m[1], m[2]]));
+  };
+  for (const [theme, t] of [['dark', tokens('.kl {')], ['light', tokens('.kl[data-theme="light"] {')]]) {
+    for (const k of ['text', 'sub', 'ok', 'fail']) {
+      if (ratio(t[k], t.surface) < 4.5) fail(`in the ${theme} theme --${k} on the surface is ${ratio(t[k], t.surface).toFixed(2)}:1`);
+    }
+  }
+  const gold = vm.runInContext('DEFAULT_ACCENT', ctx);
+  if (ratio(ink, gold) < 4.5) fail(`the label on the accent is ${ratio(ink, gold).toFixed(2)}:1`);
 }
 
 // An embedded player keeps its title, a link, along the top of the video.

@@ -80,15 +80,17 @@ async function videoLabels() {
     sendTip: t('video.sendTip'),
     more: t('video.more'),
     best: t('video.qualityBest'),
-    quality: t('video.quality'),
-    audioFormat: t('video.audioFormat'),
+    language: t('video.language'),
+    dubbed: t('video.dubbed'),
+    autoCaptions: t('video.autoCaptions'),
+    subFormat: t('video.subFormat'),
     parts: Object.fromEntries(VIDEO_PARTS.map((p) => [p, t(VIDEO_PART_KEYS[p])])),
     checking: t('video.checking'),
     unknown: t('video.unknown'),
     playlist: t('video.playlist'),
     hide: t('video.hide'),
     sending: t('video.sending'),
-    started: t('video.started'),
+    sent: t('video.sent'),
     already: t('video.already'),
     held: t('video.held'),
     refused: t('video.refused'),
@@ -112,7 +114,7 @@ const VIDEO_PART_KEYS = {
 
 /**
  * What became of a send, from the instance's answer to POST /api/links with
- * report set: started where it created a row it did not hold back, held
+ * report set: sent where it created a row it did not hold back, held
  * where it held back every one, already where the video was in the list
  * before. An instance older than report answers with the bare list, empty
  * for a video it already had.
@@ -121,7 +123,7 @@ function videoResult(answer) {
   const tasks = Array.isArray(answer) ? answer : answer?.tasks;
   const listed = Array.isArray(answer) ? [] : answer?.listed;
   if (!Array.isArray(tasks) || !Array.isArray(listed)) return { result: 'refused' };
-  if (tasks.some((task) => task && !task.skipped)) return { result: 'started' };
+  if (tasks.some((task) => task && !task.skipped)) return { result: 'sent' };
   if (tasks.length) return { result: 'held' };
   return { result: listed.length || Array.isArray(answer) ? 'already' : 'refused' };
 }
@@ -166,10 +168,10 @@ async function sendVideo(frameUrl, msg) {
 
 /**
  * What the menu offers for the video of the page a button sits on: what the
- * default instance's yt-dlp says it has (videoOffer), or `unknown` where it
- * cannot say. Checked like sendVideo, so a button only asks about the video
- * it is showing. The resolutions found are kept for the site, for the
- * options page to offer.
+ * default instance's yt-dlp says it has (videoOffer), or nothing known where
+ * it cannot say. Checked like sendVideo, so a button only asks about the
+ * video it is showing. What it offered is kept for the site, for the options
+ * page to offer as defaults.
  */
 async function videoFormats(frameUrl, msg) {
   const page = videoPage(msg.href);
@@ -184,15 +186,11 @@ async function videoFormats(frameUrl, msg) {
     return videoOffer(null);
   }
   const offer = videoOffer(answer);
-  if (offer.qualities.length) await keepVideoQualities(page.site, offer.qualities);
+  if (offer.known) {
+    const { videoSeen } = await chrome.storage.local.get('videoSeen');
+    await chrome.storage.local.set({ videoSeen: { ...videoSeen, [page.site]: videoSeenWith(videoSeen?.[page.site], offer) } });
+  }
   return offer;
-}
-
-async function keepVideoQualities(siteId, qualities) {
-  const { videoQualities } = await chrome.storage.local.get('videoQualities');
-  const seen = videoQualities?.[siteId] ?? [];
-  const all = VIDEO_CAPS.filter((q) => seen.includes(q) || qualities.includes(q));
-  if (all.length !== seen.length) await chrome.storage.local.set({ videoQualities: { ...videoQualities, [siteId]: all } });
 }
 
 /** Hides the button on the site a page belongs to, from the button's menu. */

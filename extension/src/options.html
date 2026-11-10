@@ -219,6 +219,10 @@
       .videoPicks { display: flex; flex-wrap: wrap; gap: 8px 16px; }
       .videoPicks label { display: flex; flex-direction: column; gap: 6px; margin: 0; }
       .videoPicks select { min-width: 140px; }
+      .videoLangs { display: flex; flex-direction: column; gap: 6px; font-size: var(--text-subline); color: var(--carbon-text-sub); }
+      .videoNone { color: var(--carbon-text-muted); }
+      #videoSpotReset:disabled,
+      .videoPicks select:disabled { opacity: 0.55; cursor: default; }
       .clipWatchers { margin: 0 0 10px; padding-left: 18px; color: var(--carbon-text); }
       /* Underlined only on hover, in the accent ink. */
       .versionLink { color: var(--accent-ink); text-decoration: none; }
