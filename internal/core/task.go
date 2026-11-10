@@ -642,7 +642,8 @@ type Task struct {
 	ResolverPin string `json:"resolverPin,omitempty"`
 	// Origin is the intake path this link arrived by.
 	Origin Origin `json:"origin,omitempty"`
-	// BrowserFile says the link is a file a browser was downloading, which
+	// BrowserFile says the link is a plain file: one a browser was
+	// downloading, or one yt-dlp's probe found nothing in but the file. It
 	// is fetched as a plain file on every start, and under the browser's
 	// name when it gave one (see app.LinkBatchOptions.File).
 	BrowserFile bool `json:"browserFile,omitempty"`

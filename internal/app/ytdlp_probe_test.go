@@ -28,8 +28,10 @@ type fakeYtdlpBackend struct {
 	// formats stands in for a probe's discovered format list. Nil means a
 	// source that reported no formats, as an empty array would.
 	formats []ytdlp.FormatEntry
-	err     error
-	done    chan struct{}
+	// plainFile is the probe finding the address to be a file and no media.
+	plainFile bool
+	err       error
+	done      chan struct{}
 	// closeOnce keeps a second probe from closing done twice, which would panic
 	// and abort every remaining test in the package instead of failing one. The
 	// second call is logged, so whatever probes twice is still a finding.
@@ -78,7 +80,7 @@ func (f fakeYtdlpBackend) ProbeTitle(_ context.Context, url string, _ map[string
 	if f.err != nil {
 		return ytdlp.ProbeResult{}, f.err
 	}
-	return ytdlp.ProbeResult{Title: f.title, Formats: f.formats}, nil
+	return ytdlp.ProbeResult{Title: f.title, Formats: f.formats, PlainFile: f.plainFile}, nil
 }
 
 // blockingYtdlpBackend answers ProbeTitle only once release is closed, so a
@@ -330,4 +332,89 @@ func TestAFailedProbeStillFilesTheLink(t *testing.T) {
 	waitFor(t, "the failed probe to fall back to the URL-path guess", func() bool {
 		return snapshot(t, a, created[0].ID).Package == "watch"
 	})
+}
+
+// rowsOf counts the rows of a link, set-aside variant rows included.
+func rowsOf(a *App, url string) int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	n := 0
+	for _, t := range a.tasks {
+		if t.URL == url {
+			n++
+		}
+	}
+	return n
+}
+
+// yt-dlp takes any address without a file extension, and its generic
+// extractor offers a plain file as a video of unknown type. Such a link is
+// fetched as the file it is, as one row, and stays a file when it is routed
+// again.
+func TestAPlainFileTheProbeFindsIsFetchedAsAFile(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	fake, _ := newFakeYtdlp()
+	fake.title = "LICENSE"
+	fake.plainFile = true
+	wireYtdlp(a, fake)
+
+	const url = "https://files.example.com/main/LICENSE"
+	created := a.AddLinks([]string{url}, "")
+	if len(created) != 1 || created[0].Resolver != "ytdlp" {
+		t.Fatalf("AddLinks staged %+v, want one row on ytdlp", created)
+	}
+	id := created[0].ID
+
+	waitFor(t, "the link to be checked as a plain file", func() bool {
+		live := snapshot(t, a, id)
+		return live.Resolver == "http" && live.Online == core.AvailOnline
+	})
+	live := snapshot(t, a, id)
+	if live.Variant != "" || !live.Enabled {
+		t.Errorf("row has variant %q, enabled %v; want a plain enabled row", live.Variant, live.Enabled)
+	}
+	if live.Name != url {
+		t.Errorf("Name = %q, want the placeholder, so the fetch names the file", live.Name)
+	}
+	if live.Package == "" {
+		t.Error("the row was left without a package")
+	}
+	if n := rowsOf(a, url); n != 1 {
+		t.Errorf("the link has %d rows, want the variant rows gone", n)
+	}
+
+	a.mu.Lock()
+	a.tasks[id].Resolver = ""
+	res := a.resolverForTaskLocked(a.tasks[id])
+	a.mu.Unlock()
+	if res == nil || res.Info().ID != "http" {
+		t.Errorf("routed again to %v, want http", res)
+	}
+}
+
+// Where nothing else may fetch the host, yt-dlp keeps the link and its rows.
+func TestAPlainFileNoOtherBackendMayFetchStaysWithYtdlp(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.HostRules["files.example.com"] = settings.HostRule{Exclude: []string{"direct", "http"}}
+	})
+	fake, _ := newFakeYtdlp()
+	fake.title = "LICENSE"
+	fake.plainFile = true
+	wireYtdlp(a, fake)
+
+	const url = "https://files.example.com/main/LICENSE"
+	created := a.AddLinks([]string{url}, "")
+	if len(created) != 1 {
+		t.Fatalf("AddLinks created %d tasks, want 1", len(created))
+	}
+	id := created[0].ID
+	waitFor(t, "the probe to name the row", func() bool {
+		return snapshot(t, a, id).Name == "LICENSE"
+	})
+	if live := snapshot(t, a, id); live.Resolver != "ytdlp" {
+		t.Errorf("Resolver = %q, want ytdlp", live.Resolver)
+	}
+	if n := rowsOf(a, url); n != 5 {
+		t.Errorf("the link has %d rows, want the five variant rows", n)
+	}
 }
