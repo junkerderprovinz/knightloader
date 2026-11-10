@@ -191,7 +191,7 @@ func TestALinksOwnChoiceStagesThoseRowsAtThoseQualities(t *testing.T) {
 		t.Fatal(err)
 	}
 	waitFor(t, "the family's five rows", func() bool { return len(tasksSharingURL(a, url)) == 5 })
-	want := map[ytdlp.Variant]string{ytdlp.VariantVideo: "720p", ytdlp.VariantAudio: "mp3", ytdlp.VariantSubtitle: ""}
+	want := map[ytdlp.Variant]string{ytdlp.VariantVideo: "720p", ytdlp.VariantAudio: "mp3", ytdlp.VariantSubtitle: "best"}
 	for _, x := range tasksSharingURL(a, url) {
 		kind, sub := variantDecode(x.Variant)
 		pick, chosen := want[kind]

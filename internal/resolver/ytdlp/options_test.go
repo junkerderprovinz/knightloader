@@ -207,6 +207,19 @@ func TestALinksOwnChoiceRefusesWhatNoRowCanMean(t *testing.T) {
 		}
 	}
 	for _, c := range []LinkChoice{
+		{Variants: []Variant{VariantVideo}, VideoTrack: "1080p"},
+		{Variants: []Variant{VariantAudio}, AudioTrack: "opus"},
+		{Variants: []Variant{VariantAudio}, AudioLang: "de]/b"},
+		{Variants: []Variant{VariantSubtitle}, SubtitleLangs: []string{"de,en"}},
+		{Variants: []Variant{VariantSubtitle}, SubtitleFormat: "v t t"},
+	} {
+		if c.Valid() {
+			t.Errorf("%+v was taken", c)
+		}
+	}
+	for _, c := range []LinkChoice{
+		{Variants: []Variant{VariantVideo, VariantAudio}, VideoTrack: "1080p60 webm vp9", AudioTrack: "opus 160k", AudioLang: "de-DE"},
+		{Variants: []Variant{VariantSubtitle}, SubtitleLangs: []string{"de", "en-orig"}, SubtitleAuto: true, SubtitleFormat: "vtt"},
 		{Variants: []Variant{VariantDescription}},
 		{Variants: []Variant{VariantVideo}, Quality: QualityBest},
 		{Variants: []Variant{VariantVideo, VariantAudio}, Quality: Quality480p, AudioFormat: "flac"},

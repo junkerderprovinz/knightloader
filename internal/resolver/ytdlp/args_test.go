@@ -294,3 +294,28 @@ func TestBuildArgsVideoFormatYieldsToTheRowsOwnChoice(t *testing.T) {
 		}
 	}
 }
+
+func TestBuildArgsKeepsTheSubtitleFormatTheHostServes(t *testing.T) {
+	for _, format := range []string{"vtt", "best"} {
+		args := buildArgs("d", Options{Variant: VariantSubtitle, SubtitleLangs: "de,en-orig", SubtitleAuto: true, SubtitleFormat: format})
+		if got, _ := valueAfter(args, "--sub-format"); got != format {
+			t.Errorf("format %s: --sub-format = %q", format, got)
+		}
+		if hasArg(args, "--convert-subs") {
+			t.Errorf("format %s: the subtitles are converted: %v", format, args)
+		}
+		if got, _ := valueAfter(args, "--sub-langs"); got != "de,en-orig" {
+			t.Errorf("format %s: --sub-langs = %q", format, got)
+		}
+		if !hasArg(args, "--write-auto-subs") {
+			t.Errorf("format %s: generated subtitles are not asked for: %v", format, args)
+		}
+	}
+}
+
+func TestBuildArgsKeepsTheThumbnailTheHostServes(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantThumbnail, ThumbnailAsIs: true})
+	if !hasArg(args, "--write-thumbnail") || hasArg(args, "--convert-thumbnails") {
+		t.Errorf("a thumbnail kept as the host serves it is written as %v", args)
+	}
+}

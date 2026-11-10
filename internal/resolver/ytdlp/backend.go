@@ -912,6 +912,14 @@ type ProbeResult struct {
 	// (see AvailableSubtitleLangs).
 	Subtitles    []string
 	AutoCaptions []string
+	// SubtitleFormats are the formats the host serves its subtitles in, by
+	// hand and generated alike, sorted.
+	SubtitleFormats []string
+	// Thumbnails are the pictures the host offers, worst first as yt-dlp
+	// sorts them, so the last is the one --write-thumbnail fetches.
+	Thumbnails []Thumbnail
+	// Description reports whether the source has a description to write.
+	Description bool
 	// Duration is the runtime the source announced in seconds, 0 when none
 	// (as for a live stream).
 	Duration float64
@@ -922,6 +930,15 @@ type ProbeResult struct {
 	// title and a guessed extension, "LICENSE (best).unknown_video" for a
 	// text file, where a plain fetch keeps the server's name.
 	PlainFile bool
+}
+
+// Thumbnail is one picture a source offers beside its media. Width and
+// Height are 0 where the host does not say.
+type Thumbnail struct {
+	ID     string
+	Width  int
+	Height int
+	Ext    string
 }
 
 // ProbeTitle asks yt-dlp for a link's title and available formats without
@@ -997,12 +1014,19 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 		// unexpected shape inside from breaking the decode.
 		Subtitles    map[string]json.RawMessage `json:"subtitles"`
 		AutoCaptions map[string]json.RawMessage `json:"automatic_captions"`
-		Duration     float64                    `json:"duration"`
-		IsLive       bool                       `json:"is_live"`
-		WasLive      bool                       `json:"was_live"`
-		LiveStatus   string                     `json:"live_status"`
-		ExtractorKey string                     `json:"extractor_key"`
-		Direct       bool                       `json:"direct"`
+		Thumbnails   []struct {
+			ID     string `json:"id"`
+			URL    string `json:"url"`
+			Width  int    `json:"width"`
+			Height int    `json:"height"`
+		} `json:"thumbnails"`
+		Description  string  `json:"description"`
+		Duration     float64 `json:"duration"`
+		IsLive       bool    `json:"is_live"`
+		WasLive      bool    `json:"was_live"`
+		LiveStatus   string  `json:"live_status"`
+		ExtractorKey string  `json:"extractor_key"`
+		Direct       bool    `json:"direct"`
 	}
 	if err := json.Unmarshal([]byte(line), &raw); err != nil {
 		return ProbeResult{}, fmt.Errorf("ytdlp: probe returned unparseable data: %w", err)
@@ -1017,10 +1041,15 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 		Duration: raw.Duration,
 		// Newer extractors set live_status, older ones only is_live. A
 		// finished stream (was_live) is an ordinary recording.
-		IsLive:       raw.IsLive || raw.LiveStatus == "is_live",
-		Subtitles:    keysOf(raw.Subtitles),
-		AutoCaptions: keysOf(raw.AutoCaptions),
-		PlainFile:    raw.ExtractorKey == "Generic" && raw.Direct,
+		IsLive:          raw.IsLive || raw.LiveStatus == "is_live",
+		Subtitles:       keysOf(raw.Subtitles),
+		AutoCaptions:    keysOf(raw.AutoCaptions),
+		SubtitleFormats: subtitleFormats(raw.Subtitles, raw.AutoCaptions),
+		Description:     strings.TrimSpace(raw.Description) != "",
+		PlainFile:       raw.ExtractorKey == "Generic" && raw.Direct,
+	}
+	for _, th := range raw.Thumbnails {
+		res.Thumbnails = append(res.Thumbnails, Thumbnail{ID: th.ID, Width: th.Width, Height: th.Height, Ext: thumbnailExt(th.URL)})
 	}
 	picked := map[string]bool{}
 	for _, id := range strings.Split(raw.FormatID, "+") {
@@ -1054,6 +1083,41 @@ func sizeFromBitrate(tbr, duration float64) int64 {
 		return 0
 	}
 	return int64(duration * tbr * 1000 / 8)
+}
+
+// subtitleFormats lists the formats of every subtitle track in the maps,
+// sorted. A track whose shape is unexpected adds nothing.
+func subtitleFormats(maps ...map[string]json.RawMessage) []string {
+	seen := map[string]bool{}
+	for _, m := range maps {
+		for _, raw := range m {
+			var tracks []struct {
+				Ext string `json:"ext"`
+			}
+			_ = json.Unmarshal(raw, &tracks)
+			for _, tr := range tracks {
+				if keyToken.MatchString(tr.Ext) {
+					seen[tr.Ext] = true
+				}
+			}
+		}
+	}
+	out := make([]string, 0, len(seen))
+	for f := range seen {
+		out = append(out, f)
+	}
+	slices.Sort(out)
+	return out
+}
+
+// thumbnailExt is the format a picture is written in, read from its address
+// as yt-dlp does, jpg where the address names none.
+func thumbnailExt(rawurl string) string {
+	path, _, _ := strings.Cut(rawurl, "?")
+	if ext := strings.ToLower(strings.TrimPrefix(filepath.Ext(path), ".")); keyToken.MatchString(ext) {
+		return ext
+	}
+	return "jpg"
 }
 
 // keysOf returns the keys of one subtitle map, unsorted.
@@ -1137,17 +1201,26 @@ func buildArgs(dir string, o Options) []string {
 			args = append(args, musicArgs(dir, tmpl)...)
 		}
 	case VariantThumbnail:
-		// Converted to jpg so the row's extension is known in advance.
-		args = append(args, "--skip-download", "--write-thumbnail", "--convert-thumbnails", "jpg")
+		args = append(args, "--skip-download", "--write-thumbnail")
+		// Converted to jpg so the row's extension is known in advance, unless
+		// the row asked for the picture as the host serves it.
+		if !o.ThumbnailAsIs {
+			args = append(args, "--convert-thumbnails", "jpg")
+		}
 	case VariantSubtitle:
 		langs := o.SubtitleLangs
 		if langs == "" {
 			langs = DefaultSubtitleLangs
 		}
-		// srt instead of the site's default (usually vtt), so every player
-		// reads it and the extension is known. --sub-format is only a
-		// preference, so a source without srt is converted.
-		args = append(args, "--skip-download", "--write-subs", "--sub-langs", langs, "--sub-format", "srt", "--convert-subs", "srt")
+		args = append(args, "--skip-download", "--write-subs", "--sub-langs", langs)
+		if o.SubtitleFormat != "" {
+			args = append(args, "--sub-format", o.SubtitleFormat)
+		} else {
+			// srt instead of the site's default (usually vtt), so every
+			// player reads it and the extension is known. --sub-format is
+			// only a preference, so a source without srt is converted.
+			args = append(args, "--sub-format", "srt", "--convert-subs", "srt")
+		}
 		if o.SubtitleAuto {
 			args = append(args, "--write-auto-subs")
 		}

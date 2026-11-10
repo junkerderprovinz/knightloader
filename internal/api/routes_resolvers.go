@@ -127,7 +127,7 @@ func registerResolvers(reg *Registry, a *app.App) {
 	// The browser extension's video menu asks before it offers anything, so a
 	// resolution the video lacks is never on it.
 	reg.Add(http.MethodGet, "/api/ytdlp/link",
-		"the resolutions one yt-dlp link (?url=) offers and whether it has sound, from one yt-dlp probe shared with the link's staging",
+		"what one yt-dlp link (?url=) offers for each row: resolutions and video tracks, audio tracks and languages, subtitles and their formats, the thumbnail and whether it has a description, from one yt-dlp probe shared with the link's staging",
 		func(w http.ResponseWriter, r *http.Request) {
 			menus, err := a.LinkQualities(r.Context(), strings.TrimSpace(r.URL.Query().Get("url")))
 			switch {

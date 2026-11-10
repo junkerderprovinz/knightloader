@@ -64,6 +64,16 @@ func TestMain(m *testing.M) {
 			`{"format_id":"137","ext":"mp4","vcodec":"avc1.640028","acodec":"none","height":1080}` +
 			`]}`)
 		os.Exit(0)
+	case "offers":
+		// What a host offers beside the media: subtitles by hand and
+		// generated, in the formats it serves them in, its pictures, worst
+		// first as yt-dlp sorts them, and a description.
+		fmt.Println(`{"title":"Offers","description":"About this video","formats":[],` +
+			`"subtitles":{"de":[{"ext":"vtt"},{"ext":"srv3"}]},` +
+			`"automatic_captions":{"en-orig":[{"ext":"json3"},{"ext":"vtt"}]},` +
+			`"thumbnails":[{"id":"0","url":"https://i.ytimg.com/vi/x/default.jpg","width":120,"height":90},` +
+			`{"id":"41","url":"https://i.ytimg.com/vi_webp/x/maxresdefault.webp?v=1","width":1280,"height":720}]}`)
+		os.Exit(0)
 	case "live":
 		// A running stream flagged only by live_status, without a duration.
 		fmt.Println(`{"title":"Weekend Stream","live_status":"is_live","formats":[]}`)
@@ -240,6 +250,28 @@ func TestProbeTitleEstimatesASizeFromTheBitrateWhereNoneIsReported(t *testing.T)
 
 // Only an address the generic extractor offers as the file itself is a plain
 // file. A player it found in a page, or a site's own extractor, is media.
+func TestProbeTitleReadsWhatTheHostOffersBesideTheMedia(t *testing.T) {
+	got, err := fakeYtdlpBackend(t, "offers").ProbeTitle(context.Background(), "https://youtube.com/watch?v=offers", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !got.Description {
+		t.Error("a video with a description reads as having none")
+	}
+	if strings.Join(got.SubtitleFormats, ",") != "json3,srv3,vtt" {
+		t.Errorf("subtitle formats = %v, want every one the host serves", got.SubtitleFormats)
+	}
+	if len(got.Thumbnails) != 2 {
+		t.Fatalf("thumbnails = %+v, want both", got.Thumbnails)
+	}
+	if best := got.Thumbnails[1]; best.ID != "41" || best.Width != 1280 || best.Height != 720 || best.Ext != "webp" {
+		t.Errorf("the best thumbnail reads as %+v, want 41, 1280x720 webp", best)
+	}
+	if got.Thumbnails[0].Ext != "jpg" {
+		t.Errorf("the first thumbnail reads as %q, want jpg from its address", got.Thumbnails[0].Ext)
+	}
+}
+
 func TestProbeTitleTellsAPlainFileFromMedia(t *testing.T) {
 	for mode, want := range map[string]bool{"plainfile": true, "embedded": false, "formats": false} {
 		got, err := fakeYtdlpBackend(t, mode).ProbeTitle(context.Background(), "https://example.com/x", nil)

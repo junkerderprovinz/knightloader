@@ -71,8 +71,20 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 		if t.AudioBitrate != "" {
 			base.AudioBitrate = t.AudioBitrate
 		}
+		if t.AudioLang != "" {
+			base.AudioLang = t.AudioLang
+		}
 	case ytdlp.VariantThumbnail, ytdlp.VariantSubtitle, ytdlp.VariantDescription:
 		base.SideTag = t.ID
+		base.ThumbnailAsIs = kind == ytdlp.VariantThumbnail && sub == thumbnailAsIs
+		if kind == ytdlp.VariantSubtitle && sub != "" {
+			p := subtitleDecode(sub)
+			base.SubtitleFormat = p.format
+			if p.langs != "" {
+				base.SubtitleLangs = p.langs
+			}
+			base.SubtitleAuto = base.SubtitleAuto || p.auto
+		}
 	}
 	return base
 }
@@ -141,8 +153,14 @@ func (a *App) SetHosterPreset(host string, p ytdlp.HosterPreset) error {
 // the batch arrived with stands in for the preset for this link alone.
 func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice) {
 	preset := a.HosterPresetFor(primary.Host)
+	var own ytdlp.LinkChoice
 	if choice != nil {
 		preset = preset.ForChoice(*choice)
+		own = *choice
+	}
+	videoPick := preset.VideoPick()
+	if own.VideoTrack != "" {
+		videoPick = own.VideoTrack
 	}
 
 	a.mu.Lock()
@@ -151,7 +169,7 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice) 
 		a.mu.Unlock()
 		return
 	}
-	live.Variant = variantEncode(ytdlp.VariantVideo, preset.VideoPick())
+	live.Variant = variantEncode(ytdlp.VariantVideo, videoPick)
 	if !preset.HasVariant(ytdlp.VariantVideo) {
 		live.VariantOff = true
 		live.Enabled = false
@@ -164,9 +182,17 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice) 
 		if v == ytdlp.VariantVideo {
 			continue // the primary itself
 		}
-		sub, bitrate := "", ""
-		if v == ytdlp.VariantAudio {
-			sub, bitrate = preset.AudioFormat, preset.AudioBitrate
+		sub, bitrate, lang := "", "", ""
+		switch {
+		case v == ytdlp.VariantAudio:
+			sub, bitrate, lang = preset.AudioFormat, preset.AudioBitrate, own.AudioLang
+			if own.AudioTrack != "" {
+				sub = own.AudioTrack
+			}
+		case v == ytdlp.VariantSubtitle && choice != nil:
+			sub = subtitleEncode(own)
+		case v == ytdlp.VariantThumbnail && choice != nil:
+			sub = thumbnailAsIs
 		}
 		a.insertVariantSibling(&core.Task{
 			URL: pc.URL,
@@ -184,6 +210,7 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice) 
 			Resolver:     pc.Resolver,
 			Variant:      variantEncode(v, sub),
 			AudioBitrate: bitrate,
+			AudioLang:    lang,
 			Ext:          fixedVariantExt(v, sub),
 			CreatedAt:    pc.CreatedAt,
 			Dir:          pc.Dir,
@@ -195,6 +222,48 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice) 
 	}
 }
 
+// thumbnailAsIs is a thumbnail row's pick for the picture as the host serves
+// it, which a link sent with a choice of its own takes.
+const thumbnailAsIs = "source"
+
+// subtitlePick is what a subtitle row stores as its pick: the format the
+// host serves the subtitles in ("best" for the host's own), the languages,
+// empty for the instance's, and whether generated ones count.
+type subtitlePick struct {
+	format string
+	langs  string
+	auto   bool
+}
+
+// subtitleEncode is a choice's subtitle pick as the row stores it: the
+// format, then the languages and "auto" as further words.
+func subtitleEncode(c ytdlp.LinkChoice) string {
+	words := []string{c.SubtitleFormat}
+	if c.SubtitleFormat == "" {
+		words[0] = "best"
+	}
+	if len(c.SubtitleLangs) > 0 {
+		words = append(words, strings.Join(c.SubtitleLangs, ","))
+	}
+	if c.SubtitleAuto {
+		words = append(words, "auto")
+	}
+	return strings.Join(words, " ")
+}
+
+func subtitleDecode(sub string) subtitlePick {
+	words := strings.Fields(sub)
+	p := subtitlePick{format: words[0]}
+	for _, w := range words[1:] {
+		if w == "auto" {
+			p.auto = true
+		} else {
+			p.langs = w
+		}
+	}
+	return p
+}
+
 // fixedVariantExt is the extension a variant row knows without asking the
 // source. buildArgs pins thumbnails to jpg and subtitles to srt, a description
 // is a text file, and audio in a named format or a picked track is written
@@ -204,9 +273,18 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice) 
 func fixedVariantExt(v ytdlp.Variant, sub string) string {
 	switch v {
 	case ytdlp.VariantThumbnail:
+		if sub == thumbnailAsIs {
+			return ""
+		}
 		return "jpg"
 	case ytdlp.VariantSubtitle:
-		return "srt"
+		if sub == "" {
+			return "srt"
+		}
+		if f := subtitleDecode(sub).format; f != "best" {
+			return f
+		}
+		return ""
 	case ytdlp.VariantDescription:
 		return "description"
 	case ytdlp.VariantAudio:
@@ -404,12 +482,11 @@ func applyProbeLocked(t *core.Task, p probeFacts, yt ytdlp.Options) bool {
 		ext, size := ytdlp.VideoFile(pick, p.formats, yt)
 		setExt(ext)
 		setSize(size)
-	case ytdlp.VariantThumbnail:
-		// --convert-thumbnails jpg (backend.go).
-		setExt("jpg")
-	case ytdlp.VariantSubtitle:
-		// --convert-subs srt (backend.go).
-		setExt("srt")
+	case ytdlp.VariantThumbnail, ytdlp.VariantSubtitle:
+		// The conversion or the format the row asked for (backend.go).
+		if ext := fixedVariantExt(kind, sub); ext != "" {
+			setExt(ext)
+		}
 	}
 	return changed
 }

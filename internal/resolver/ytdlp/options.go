@@ -2,6 +2,7 @@ package ytdlp
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -62,6 +63,14 @@ type Options struct {
 	// free text and a source that changed after the probe. It is off by
 	// default so upgrades do not start failing existing tasks.
 	SubtitleStrict bool `json:"subtitleStrict"`
+	// SubtitleFormat is the format a subtitle row asked for as the host
+	// serves it ("vtt", or "best" for the host's own pick), written without
+	// conversion. Empty converts to srt. Like VideoPick it is a row's own
+	// choice and has no settings key.
+	SubtitleFormat string `json:"-"`
+	// ThumbnailAsIs keeps the thumbnail in the format the host serves
+	// instead of converting it to jpg. A row's own choice, like VideoPick.
+	ThumbnailAsIs bool `json:"-"`
 	// AudioLang narrows the audio row to one spoken language through a
 	// [language^=xx] filter in -f. Auto-dubbed YouTube videos offer several
 	// tracks, and bestaudio does not reliably pick the original (see
@@ -331,17 +340,29 @@ func (p HosterPreset) HasVariant(v Variant) bool {
 }
 
 // LinkChoice is what one link is staged with in place of its host's preset,
-// as the browser extension's button on a video sends it: the rows to stage
-// and the video row's quality and the audio row's format. An empty Quality
-// or AudioFormat keeps the preset's.
+// as the browser extension's button on a video sends it: the rows to stage,
+// the video row's quality cap or one of its tracks (VideoTracks), the audio
+// row's format or one of its tracks (AudioTracks) and spoken language, and
+// the subtitle row's languages and the format the host serves them in. An
+// empty Quality or AudioFormat keeps the preset's.
 type LinkChoice struct {
-	Variants    []Variant `json:"variants"`
-	Quality     Quality   `json:"quality"`
-	AudioFormat string    `json:"audioFormat"`
+	Variants       []Variant `json:"variants"`
+	Quality        Quality   `json:"quality"`
+	VideoTrack     string    `json:"videoTrack"`
+	AudioFormat    string    `json:"audioFormat"`
+	AudioTrack     string    `json:"audioTrack"`
+	AudioLang      string    `json:"audioLang"`
+	SubtitleLangs  []string  `json:"subtitleLangs"`
+	SubtitleAuto   bool      `json:"subtitleAuto"`
+	SubtitleFormat string    `json:"subtitleFormat"`
 }
 
+// langCode is a language as yt-dlp reports one ("de", "en-orig", "pt-BR"),
+// which ends up inside a -f filter and a --sub-langs list.
+var langCode = regexp.MustCompile(`^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8}){0,2}$`)
+
 // Valid reports whether c stages at least one row and names only rows,
-// resolutions and audio formats a row can be staged with.
+// resolutions, tracks, languages and formats a row can be staged with.
 func (c LinkChoice) Valid() bool {
 	if len(c.Variants) == 0 {
 		return false
@@ -354,7 +375,21 @@ func (c LinkChoice) Valid() bool {
 	if _, capped := ResCap(c.Quality); c.Quality != "" && c.Quality != QualityBest && !capped {
 		return false
 	}
-	return c.AudioFormat == "" || validAudioFormat(c.AudioFormat)
+	if c.AudioFormat != "" && !validAudioFormat(c.AudioFormat) {
+		return false
+	}
+	if (c.VideoTrack != "" && !IsVideoTrack(c.VideoTrack)) || (c.AudioTrack != "" && !IsAudioTrack(c.AudioTrack)) {
+		return false
+	}
+	if c.AudioLang != "" && !langCode.MatchString(c.AudioLang) {
+		return false
+	}
+	for _, l := range c.SubtitleLangs {
+		if !langCode.MatchString(l) {
+			return false
+		}
+	}
+	return c.SubtitleFormat == "" || keyToken.MatchString(c.SubtitleFormat)
 }
 
 // LinkFormatVideo and LinkFormatAudio are the two formats of a link sent with

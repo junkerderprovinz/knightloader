@@ -30,8 +30,11 @@ type fakeYtdlpBackend struct {
 	formats []ytdlp.FormatEntry
 	// plainFile is the probe finding the address to be a file and no media.
 	plainFile bool
-	err       error
-	done      chan struct{}
+	// offers is the rest of what the probe answers: formats where formats is
+	// nil, subtitles, pictures and the description.
+	offers ytdlp.ProbeResult
+	err    error
+	done   chan struct{}
 	// closeOnce keeps a second probe from closing done twice, which would panic
 	// and abort every remaining test in the package instead of failing one. The
 	// second call is logged, so whatever probes twice is still a finding.
@@ -80,7 +83,12 @@ func (f fakeYtdlpBackend) ProbeTitle(_ context.Context, url string, _ map[string
 	if f.err != nil {
 		return ytdlp.ProbeResult{}, f.err
 	}
-	return ytdlp.ProbeResult{Title: f.title, Formats: f.formats, PlainFile: f.plainFile}, nil
+	res := f.offers
+	res.Title, res.PlainFile = f.title, f.plainFile
+	if f.formats != nil {
+		res.Formats = f.formats
+	}
+	return res, nil
 }
 
 // blockingYtdlpBackend answers ProbeTitle only once release is closed, so a

@@ -120,18 +120,48 @@ func (a *App) failProbe(rawurl, reason string) {
 // fetch.
 var ErrNotAMediaLink = errors.New("yt-dlp does not fetch this address")
 
-// LinkMenus is what the browser extension's video menu offers for one link.
+// LinkMenus is what the browser extension's video menu offers for one link:
+// for every row, what the host has.
 type LinkMenus struct {
 	// Qualities are the resolution caps that download a track of their own,
 	// highest first (see ytdlp.SourceQualities).
 	Qualities []string `json:"qualities"`
 	// Audio reports whether the source has sound to download on its own.
 	Audio bool `json:"audio"`
+	// VideoTracks and AudioTracks are the tracks the rows can pick, as
+	// ytdlp.VideoTracks and ytdlp.AudioTracks key them.
+	VideoTracks []string `json:"videoTracks"`
+	AudioTracks []string `json:"audioTracks"`
+	// AudioLangs are the languages the audio comes in, originals first.
+	AudioLangs []LinkLang `json:"audioLangs"`
+	// Subtitles and AutoCaptions are the subtitle languages by hand and
+	// generated, and SubtitleFormats what the host serves them as.
+	Subtitles       []string `json:"subtitles"`
+	AutoCaptions    []string `json:"autoCaptions"`
+	SubtitleFormats []string `json:"subtitleFormats"`
+	// Thumbnail is the picture the thumbnail row fetches, nil for none.
+	Thumbnail *LinkThumbnail `json:"thumbnail"`
+	// Description reports whether there is a description to write.
+	Description bool `json:"description"`
 }
 
-// LinkQualities is what one link offers, from the format list a collector
-// probe kept or from the probe its staging shares (linkProbe), so the
-// extension's menu lists what the video has and nothing else.
+// LinkLang is one language of a source's audio, Dubbed for an automatic dub.
+type LinkLang struct {
+	Code   string `json:"code"`
+	Dubbed bool   `json:"dubbed"`
+}
+
+// LinkThumbnail is a picture's size, 0 where the host does not say, and its
+// format.
+type LinkThumbnail struct {
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+	Ext    string `json:"ext"`
+}
+
+// LinkQualities is what one link offers, from the probe its staging shares
+// (linkProbe), so the extension's menu lists what the video has and nothing
+// else.
 func (a *App) LinkQualities(ctx context.Context, rawurl string) (LinkMenus, error) {
 	u, err := url.Parse(rawurl)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
@@ -140,26 +170,47 @@ func (a *App) LinkQualities(ctx context.Context, rawurl string) (LinkMenus, erro
 	if res := a.stagingResolverFor(rawurl); res == nil || res.Info().ID != "ytdlp" {
 		return LinkMenus{}, ErrNotAMediaLink
 	}
-	a.mu.Lock()
-	formats, kept := a.probed[rawurl]
-	a.mu.Unlock()
-	if !kept {
-		tp, ok := a.ytdlpTitleProber()
-		if !ok {
-			return LinkMenus{}, errors.New(ytdlpMissing)
-		}
-		res, err := a.linkProbe(ctx, tp, rawurl, nil)
-		if err != nil {
-			return LinkMenus{}, err
-		}
-		formats = res.Formats
+	tp, ok := a.ytdlpTitleProber()
+	if !ok {
+		return LinkMenus{}, errors.New(ytdlpMissing)
 	}
-	menus := LinkMenus{Qualities: []string{}}
+	res, err := a.linkProbe(ctx, tp, rawurl, nil)
+	if err != nil {
+		return LinkMenus{}, err
+	}
+	formats := res.Formats
+	subs := ytdlp.AvailableSubtitleLangs(res)
+	menus := LinkMenus{
+		Qualities:       []string{},
+		VideoTracks:     orEmpty(ytdlp.VideoTracks(formats)),
+		AudioTracks:     orEmpty(ytdlp.AudioTracks(formats)),
+		AudioLangs:      []LinkLang{},
+		Subtitles:       orEmpty(subs.Manual),
+		AutoCaptions:    orEmpty(subs.Auto),
+		SubtitleFormats: orEmpty(res.SubtitleFormats),
+		Description:     res.Description,
+	}
 	for _, q := range ytdlp.SourceQualities(formats) {
 		menus.Qualities = append(menus.Qualities, string(q))
 	}
 	menus.Audio = slices.ContainsFunc(formats, func(f ytdlp.FormatEntry) bool {
 		return f.Acodec != "" && f.Acodec != "none"
 	})
+	for _, l := range ytdlp.AvailableAudioLangs(formats) {
+		menus.AudioLangs = append(menus.AudioLangs, LinkLang{Code: l.Code, Dubbed: l.Dubbed})
+	}
+	if n := len(res.Thumbnails); n > 0 {
+		th := res.Thumbnails[n-1]
+		menus.Thumbnail = &LinkThumbnail{Width: th.Width, Height: th.Height, Ext: th.Ext}
+	}
 	return menus, nil
+}
+
+// orEmpty is an empty list for nil, so the answer has [] where a client
+// reads a list.
+func orEmpty(s []string) []string {
+	if s == nil {
+		return []string{}
+	}
+	return s
 }

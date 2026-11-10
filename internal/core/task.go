@@ -591,6 +591,10 @@ type Task struct {
 	// yet (see ytdlp.ResolveAudioPick). Empty leaves it to the track or to
 	// ffmpeg.
 	AudioBitrate string `json:"audioBitrate,omitempty"`
+	// AudioLang is the spoken language an audio row was asked for, where the
+	// source has its audio in several (see ytdlp.Options.AudioLang). Empty
+	// leaves it to the instance's setting.
+	AudioLang string `json:"audioLang,omitempty"`
 	// Category is the id of the settings.Category this link is filed under,
 	// or empty for the instance defaults.
 	//
