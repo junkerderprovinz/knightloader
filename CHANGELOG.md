@@ -48,8 +48,18 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   so a batch lands in its category from the start. A Packagizer rule that
   names a category still wins. Thanks to @Kayn2106 for asking how
   ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
+- **The extension's video button has a card of its own in the settings.**
+  For each site you pick what a click downloads: the video, the audio, the
+  subtitles, the thumbnail or the description as text, with the video's
+  quality and the audio's format. The arrow next to the button picks
+  something else for one video. You can drag the button anywhere on the
+  player, and each site keeps its place, or let it hide until the pointer is
+  over the video. It carries the KnightLoader mark.
 
 ### Changed
+
+- **The video button's switch is in the extension's settings only.** The
+  toolbar popup no longer has one.
 
 - **The Backend column shows who handles a download by its mark.** A debrid
   service shows its logo before its name, with the account where it is not the
@@ -65,6 +75,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
+- **The extension's video button starts the download.** With "Start added
+  links immediately" off, the video waited in the link collector although the
+  button said it was sent. A video from the button now starts whatever that
+  setting says.
+- **The video button says when a video is already in your list.** It showed
+  "Sent" although nothing was added. Now it shows "Already there", and the
+  instance's answer tells the two apart.
 - **"Remove and delete files" takes the unpacked files along.** The archive
   went, but the folder it had been unpacked into stayed. Now what unpacking
   the download wrote goes too, also after a restart and where "Move the
