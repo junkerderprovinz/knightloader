@@ -538,7 +538,7 @@ func (a *App) selfTestOneAccount(ctx context.Context, service, account, label st
 //
 // The dialled relay is resolved here rather than read off the mode: an
 // untouched install resolves to "project" but dials nothing until a connection
-// secret is stored. This mirrors internal/api's relayTarget, which cannot be
+// secret is stored. This mirrors internal/api's relayOf, which cannot be
 // called from here without an import cycle.
 func (a *App) selfTestRelay(_ context.Context, cfg settings.Settings) selftest.Result {
 	r := selftest.Result{ID: selftest.CheckRelay, At: time.Now()}
@@ -553,7 +553,7 @@ func (a *App) selfTestRelay(_ context.Context, cfg settings.Settings) selftest.R
 		override = strings.TrimRight(strings.TrimSpace(cfg.RelayURL), "/")
 		if override == "" {
 			// "My own relay" without an address is not the project relay, as
-			// in relayTarget.
+			// in relayOf.
 			r.Status, r.Code = selftest.StatusSkipped, "relay.ownNoAddress"
 			return r
 		}
@@ -570,12 +570,6 @@ func (a *App) selfTestRelay(_ context.Context, cfg settings.Settings) selftest.R
 		}
 		address = relay.DefaultURL
 		if override != "" {
-			address = override
-		}
-	} else if override != "" {
-		// A hand-entered key only reaches a relay whose address the operator
-		// gave; in project mode relayTarget returns no URL for it.
-		if manual, mErr := a.Accounts.Get(federation.RelayKeyAccount); mErr == nil && manual != "" {
 			address = override
 		}
 	}

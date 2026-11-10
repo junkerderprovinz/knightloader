@@ -26,7 +26,7 @@ func newProxySeen() *proxySeen { return &proxySeen{now: time.Now} }
 // of this instance, so it does not count.
 func (p *proxySeen) note(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if forwarded(r) && !fromRelayGroup(r) {
+		if forwarded(r) && !fromGroup(r) {
 			p.last.Store(p.now().UnixNano())
 		}
 		next.ServeHTTP(w, r)

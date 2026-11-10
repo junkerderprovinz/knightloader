@@ -2,9 +2,9 @@
 // peer instances are stored locally, and their REST APIs are proxied so the UI
 // can view and control every instance from one place.
 //
-// A peer is reached over HTTP at a stored address, or through a self-hosted
-// relay both sides dial out to when neither accepts inbound connections.
-// List and Proxy hide which. The relay is optional.
+// A peer is reached over HTTP at a stored address, or as a member of this
+// instance's phrase group through kit/group, which calls it directly on this
+// network or through a relay. List and Proxy hide which.
 package federation
 
 import (
@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,22 +26,24 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
+	"github.com/junkerderprovinz/parleyport/kit/group"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
-// Instance is a peer KnightLoader, either reachable over HTTP at URL or
-// visible through the relay under RelayID.
+// Instance is a peer KnightLoader, either reachable over HTTP at URL or a
+// member of this instance's group under RelayID.
 type Instance struct {
 	// Name is the stable key routes address a peer by
 	// (/api/instances/{name}/...): the chosen name for a stored peer, the
-	// InstanceID for a relay peer. A relay peer's announced name is not used,
-	// since peers may share or change it; see DisplayName.
+	// member id for a member of the group. A member's announced name is not
+	// used, since members may share or change it; see DisplayName.
 	Name string `json:"name"`
 	URL  string `json:"url"`
-	// DisplayName is what a relay peer calls itself, set only when it differs
+	// DisplayName is what a member calls itself, set only when it differs
 	// from Name. The UI shows it; nothing addresses a peer by it.
 	DisplayName string `json:"displayName,omitempty"`
-	// RelayID is the instance ID of a member of this instance's phrase group,
+	// RelayID is the member id of an instance of this instance's group,
 	// reached directly on this network or through the relay, and empty for
 	// stored peers. It is never persisted, since it is only true while the
 	// member is reachable.
@@ -53,33 +56,21 @@ type Instance struct {
 	// stored peer never announced anything and leaves it empty.
 	Deployment string `json:"deployment,omitempty"`
 
-	// directURL is where a member on this network takes direct calls, and
-	// viaRelay whether the relay reaches it too.
-	directURL string
-	viaRelay  bool
+	direct, viaRelay bool
 }
 
-// Direct reports whether the member announced itself on this network.
-func (in Instance) Direct() bool { return in.directURL != "" }
+// Direct reports whether the member is reachable on this network.
+func (in Instance) Direct() bool { return in.direct }
 
 // ViaRelay reports whether the member is connected to the same relay.
 func (in Instance) ViaRelay() bool { return in.viaRelay }
 
-// RelayTransport is the relay client as this package uses it. It is an
-// interface so tests can run relay peers without a socket; *relay.Client
-// satisfies it as is.
-type RelayTransport interface {
-	// Siblings is the instances the relay makes visible now; empty while the
-	// relay is unreachable.
-	Siblings() []relay.Announce
-	// Proxy calls one sibling by instance ID and returns its answer once the
-	// sibling's key signed it.
-	Proxy(ctx context.Context, target, method, path string, body []byte) ([]byte, int, error)
-	// Connected reports whether the socket to the relay is up. Siblings alone
-	// cannot tell an unreachable relay from one where nobody else is on the
-	// key.
-	Connected() bool
-	// Close stops the connection for good.
+// GroupView is the part of *group.Group the Manager lists and calls members
+// through, so tests can stand in for a whole group.
+type GroupView interface {
+	Members() []group.Member
+	Call(ctx context.Context, id, method, path string, body []byte) (int, []byte, error)
+	RelayConnected() bool
 	Close() error
 }
 
@@ -94,29 +85,20 @@ type Manager struct {
 	path string
 	hc   *http.Client
 
+	// opening keeps one group open at a time, as Reopen says.
+	opening sync.Mutex
+
 	mu   sync.Mutex
 	list map[string]Instance // by name
-	rt   RelayTransport      // nil while no relay is configured
+	grp  GroupView           // nil outside a group
 	pt   PeerTokens          // nil means peers are called unauthenticated
 	// retired is the connection to the group this instance left at a
 	// password reset, nil when there is none (see SetRetired).
-	retired RelayTransport
+	retired io.Closer
+	// shared is when SyncLegacy last asked each member for its roster.
+	shared map[string]time.Time
 
-	local  LocalNetwork // nil where discovery does not run
-	keys   *groupKeys   // nil outside a phrase group
-	selfID string
-
-	group  *groupFile
-	replay *relay.ReplayGuard
-	limits *memberLimits
-	// awaiting is when each member last answered that this instance waits
-	// for approval there, heard which members served a call from it, and
-	// greeted when Greet last called each, and shared when SyncApps last
-	// asked each for its roster.
-	awaiting map[string]time.Time
-	heard    map[string]bool
-	greeted  map[string]time.Time
-	shared   map[string]time.Time
+	group *groupFile
 }
 
 // Load reads instances.json and group.json from dir; a missing file is an
@@ -127,12 +109,10 @@ func Load(dir string) (*Manager, error) {
 		return nil, err
 	}
 	m := &Manager{
-		path:   filepath.Join(dir, "instances.json"),
-		hc:     httpx.New(httpx.Options{Timeout: peerTimeout}),
-		list:   map[string]Instance{},
-		group:  group,
-		replay: relay.NewReplayGuard(),
-		limits: newMemberLimits(),
+		path:  filepath.Join(dir, "instances.json"),
+		hc:    httpx.New(httpx.Options{Timeout: peerTimeout}),
+		list:  map[string]Instance{},
+		group: group,
 	}
 	if b, err := os.ReadFile(m.path); err == nil {
 		var arr []Instance
@@ -145,50 +125,76 @@ func Load(dir string) (*Manager, error) {
 	return m, nil
 }
 
-// RelayConnected reports whether a relay is configured and its socket is up.
+// RelayConnected reports whether this instance is in a group and its relay
+// socket is up.
 func (m *Manager) RelayConnected() bool {
 	m.mu.Lock()
-	rt := m.rt
+	g := m.grp
 	m.mu.Unlock()
-	return rt != nil && rt.Connected()
+	return g != nil && g.RelayConnected()
 }
 
-// SetRelay installs the transport for relay peers, or clears it with nil, and
-// closes the transport it replaces so repeated settings saves do not leak
-// connections. Relay peers are never stored.
-func (m *Manager) SetRelay(rt RelayTransport) {
+// SetGroup installs the group members are listed and called through, or
+// leaves it with nil, and closes the group it replaces.
+func (m *Manager) SetGroup(g GroupView) {
 	m.mu.Lock()
-	prev := m.rt
-	m.rt = rt
+	prev := m.grp
+	m.grp = g
+	m.shared = nil
 	m.mu.Unlock()
 	if prev != nil {
-		_ = prev.Close()
+		if err := prev.Close(); err != nil {
+			log.Printf("federation: could not save the group it left: %v", err)
+		}
 	}
+}
+
+// Reopen closes the group this instance is in and installs the one open
+// returns, nil for none, even alongside an error. Only one runs at a time:
+// two groups open at once would each take over the network announce and the
+// relay connection of this instance.
+func (m *Manager) Reopen(open func() (*group.Group, error)) error {
+	m.opening.Lock()
+	defer m.opening.Unlock()
+	m.SetGroup(nil)
+	g, err := open()
+	if g != nil {
+		m.SetGroup(g)
+	}
+	return err
+}
+
+// Group is the group this instance is in, nil outside one.
+func (m *Manager) Group() *group.Group {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	g, _ := m.grp.(*group.Group)
+	return g
 }
 
 // SetRetired installs the relay connection an instance keeps to the group it
 // left at a password reset, or clears it with nil, and closes the one it
 // replaces. The connection closes by itself at until.
-func (m *Manager) SetRetired(rt RelayTransport, until time.Time) {
+func (m *Manager) SetRetired(c io.Closer, until time.Time) {
 	m.mu.Lock()
 	prev := m.retired
-	m.retired = rt
+	m.retired = c
 	m.mu.Unlock()
 	if prev != nil {
 		_ = prev.Close()
 	}
-	if rt == nil {
+	if c == nil {
 		return
 	}
 	time.AfterFunc(time.Until(until), func() {
 		m.mu.Lock()
-		current := m.retired == rt
+		current := m.retired == c
 		if current {
 			m.retired = nil
 		}
 		m.mu.Unlock()
 		if current {
-			_ = rt.Close()
+			_ = c.Close()
 		}
 	})
 }
@@ -218,8 +224,9 @@ func (m *Manager) tokenFor(peer string) string {
 	return pt.TokenFor(peer)
 }
 
-// List returns the stored peers and the relay-visible ones in one list,
-// sorted by what a person reads: DisplayName where there is one, else Name.
+// List returns the stored peers and the members of the group reachable now in
+// one list, sorted by what a person reads: DisplayName where there is one,
+// else Name.
 func (m *Manager) List() []Instance {
 	all, _ := m.reachable()
 	out := make([]Instance, 0, len(all))
@@ -237,66 +244,37 @@ func (m *Manager) List() []Instance {
 }
 
 // reachable returns every peer addressable now, keyed by name, together with
-// the relay transport, from one snapshot so a relay peer never outlives its
-// transport.
+// the group, from one snapshot so a member never outlives its group.
 //
-// A relay peer is always keyed by its InstanceID, so its address never shifts
-// when other peers come and go. The announcer chooses that id, so a member is
-// listed only under one shaped like an InstanceID and never in place of a
-// stored peer, whose calls and credential would otherwise go to it.
-func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
-	local := m.localMembers()
+// A member is always keyed by its id, so its address never shifts when other
+// peers come and go. It is listed only under an id shaped like an instance's
+// and never in place of a stored peer, whose calls and credential would
+// otherwise go to it.
+func (m *Manager) reachable() (map[string]Instance, GroupView) {
 	m.mu.Lock()
-	rt := m.rt
+	g := m.grp
 	out := make(map[string]Instance, len(m.list))
 	for name, in := range m.list {
 		out[name] = in
 	}
 	m.mu.Unlock()
-	member := func(id, name string) Instance {
-		in := Instance{Name: id, RelayID: id}
-		if name != "" && name != id {
-			in.DisplayName = name
-		}
-		return in
-	}
-	admit := func(id string) bool {
-		in, taken := out[id]
-		return relay.ValidInstanceID(id) && (!taken || in.RelayID != "")
-	}
-	for _, p := range local {
-		if !admit(p.ID) {
-			continue
-		}
-		in := member(p.ID, p.Name)
-		in.directURL = p.URL
-		in.Address = p.Address
-		in.Deployment = p.Deployment
-		out[p.ID] = in
-	}
-	if rt == nil {
+	if g == nil {
 		return out, nil
 	}
-	for _, sib := range rt.Siblings() {
-		// A client-only sibling (the mobile app) calls instances but is not
-		// one; see relay.Announce.Client.
-		if sib.Client || !admit(sib.InstanceID) {
+	for _, mb := range g.Members() {
+		if mb.Kind != member.KindInstance || !mb.Online() || !relay.ValidInstanceID(mb.ID) {
 			continue
 		}
-		in, ok := out[sib.InstanceID]
-		if !ok {
-			in = member(sib.InstanceID, sib.Name)
+		if _, taken := out[mb.ID]; taken {
+			continue
 		}
-		if in.Address == "" {
-			in.Address = sib.Address
+		in := Instance{Name: mb.ID, RelayID: mb.ID, Address: mb.Address, Deployment: mb.Deployment, direct: mb.Direct, viaRelay: mb.Relay}
+		if mb.Name != "" && mb.Name != mb.ID {
+			in.DisplayName = mb.Name
 		}
-		if in.Deployment == "" {
-			in.Deployment = sib.Deployment
-		}
-		in.viaRelay = true
-		out[sib.InstanceID] = in
+		out[mb.ID] = in
 	}
-	return out, rt
+	return out, g
 }
 
 // Add validates and stores a peer (overwrites the same name).
@@ -349,7 +327,7 @@ func (m *Manager) flushLocked() error {
 // and path are the peer-local route (e.g. GET /api/tasks). The transport
 // follows from the peer, so callers never learn which one was used.
 func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []byte) ([]byte, int, error) {
-	all, rt := m.reachable()
+	all, g := m.reachable()
 	in, ok := all[name]
 	if !ok {
 		return nil, http.StatusNotFound, fmt.Errorf("federation: unknown instance %q", name)
@@ -359,18 +337,11 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	// in turn, so a stranger holding the words that takes the member's place
 	// learns nothing it could use and cannot answer for it.
 	if in.RelayID != "" {
-		out, code, err := m.proxyMember(ctx, in, rt, method, path, body)
-		var untrusted *relay.UntrustedAnswer
-		switch {
-		case err == nil:
-			m.noteAnswer(in.RelayID, code, out, time.Now())
-		case errors.As(err, &untrusted) && waitsForApproval(untrusted.Status, untrusted.Body):
-			// The member has not been approved here yet either, which is
-			// how two instances meet; that this one waits there is all its
-			// answer is taken for.
-			m.noteAnswer(in.RelayID, untrusted.Status, untrusted.Body, time.Now())
+		code, out, err := g.Call(ctx, in.RelayID, method, path, body)
+		if err != nil {
+			return nil, http.StatusBadGateway, fmt.Errorf("federation: %s: %w", in.RelayID, err)
 		}
-		return out, code, err
+		return out, code, nil
 	}
 	auth := ""
 	if tok := m.tokenFor(in.Name); tok != "" {
@@ -397,19 +368,6 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	defer resp.Body.Close()
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 32<<20))
 	return b, resp.StatusCode, nil
-}
-
-// proxyMember calls a member of the group: directly when it is on this
-// network, and through the relay when that fails or the member is elsewhere.
-// rt is set whenever viaRelay is, since both came from the same snapshot.
-func (m *Manager) proxyMember(ctx context.Context, in Instance, rt RelayTransport, method, path string, body []byte) ([]byte, int, error) {
-	if in.directURL != "" {
-		out, code, err := m.callDirect(ctx, in.directURL, in.RelayID, method, path, body)
-		if err == nil || !in.viaRelay {
-			return out, code, err
-		}
-	}
-	return rt.Proxy(ctx, in.RelayID, method, path, body)
 }
 
 // ErrUnauthorized is what Ping reports when a peer answered but refused the

@@ -515,7 +515,7 @@ func narrowToken(r *http.Request) bool {
 // task or a peer carries. A token that may not administer and a member of the
 // group get them redacted.
 func seesCredentials(r *http.Request) bool {
-	return !narrowToken(r) && !fromRelayGroup(r)
+	return !narrowToken(r) && !fromGroup(r)
 }
 
 // shownTasks is tasks as the caller of r may see them.

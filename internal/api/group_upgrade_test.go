@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"context"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
@@ -11,9 +10,11 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/parleyport/kit/group"
 	"github.com/junkerderprovinz/parleyport/kit/keys"
 	"github.com/junkerderprovinz/parleyport/kit/member"
 	"github.com/junkerderprovinz/parleyport/kit/relay"
@@ -119,13 +120,11 @@ func TestAnUpdatedInstanceKeepsItsPlaceInTheGroup(t *testing.T) {
 	}
 }
 
-// Each device signs a real call under the group's labels, sealed under the
-// frame key the phrase makes, and is answered as 2.7 answered it.
+// Each device makes a real call, sealed under the frame key the phrase makes
+// and signed under the group's labels, and is answered as 2.7 answered it.
 func TestEveryDeviceOfAnUpdatedGroupKeepsItsStanding(t *testing.T) {
 	t.Parallel()
-	_, a, _, want := upgradedServer(t)
-	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
-	frameKey := federation.Domain.FrameKey([]byte(upgradeSecret))
+	_, a, _, _ := upgradedServer(t)
 	for _, d := range []struct {
 		name   string
 		seed   byte
@@ -140,24 +139,49 @@ func TestEveryDeviceOfAnUpdatedGroupKeepsItsStanding(t *testing.T) {
 		{"the phone taken out", 6, member.KindMobile, http.StatusGone, ""},
 	} {
 		t.Run(d.name, func(t *testing.T) {
-			id, err := member.FromSeed(d.kind, upgradeSeed(d.seed))
-			if err != nil {
-				t.Fatal(err)
-			}
-			requestID := "upgrade-" + d.name
-			sealed, err := relay.SealSignedCall(frameKey, fieldLabels, &id, requestID, want["ownID"],
+			key := ed25519.NewKeyFromSeed(upgradeSeed(d.seed))
+			status, body := deviceCall(t, a, member.ID(d.kind, key.Public().(ed25519.PublicKey)), d.kind, key,
 				relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks"})
-			if err != nil {
-				t.Fatal(err)
-			}
-			call, err := relay.OpenCall(frameKey, federation.Signing, requestID, want["ownID"], sealed)
-			if err != nil {
-				t.Fatalf("the call does not open as the group signs: %v", err)
-			}
-			status, body := serve(context.Background(), call)
 			if status != d.status || refusalCode(body) != d.code {
-				t.Errorf("%s = %d %s, want %d %s", id.ID(), status, body, d.status, d.code)
+				t.Errorf("%s = %d %s, want %d %s", d.name, status, body, d.status, d.code)
 			}
 		})
+	}
+}
+
+func TestTheUpdateKeepsTheOldGroupInTheKitAndNotInGroupJSON(t *testing.T) {
+	t.Parallel()
+	_, a, _, want := upgradedServer(t)
+	r := groupOf(t, a).Roster()
+	states := map[string]group.State{}
+	for _, m := range r.Members {
+		states[m.ID] = m.State
+	}
+	if states[want["bottich"]] != group.StateApproved || states[want["pixel"]] != group.StateApproved ||
+		states[want["firefox"]] != group.StateApproved || states[want["waiting"]] != group.StatePending {
+		t.Errorf("the kit holds %v, want the instance, the phone and the browser approved and one phone waiting", states)
+	}
+	if _, ok := r.Removed[want["lost"]]; !ok || len(r.Revoked) == 0 {
+		t.Errorf("removed %v and revoked %v, want the phone taken out and its key", r.Removed, r.Revoked)
+	}
+	if stored, err := a.Accounts.Get(federation.GroupAccount); err != nil || stored == "" {
+		t.Fatalf("the group is not sealed in the credential store: %q, %v", stored, err)
+	}
+
+	// The next start opens the group from the kit's store, so a group.json
+	// without the members leaves them where they are.
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	applyRelay(a)
+	if got := len(groupOf(t, a).Roster().Members); got != len(r.Members) {
+		t.Errorf("after reopening the kit holds %d members, want %d", got, len(r.Members))
+	}
+	b, err := os.ReadFile(filepath.Join(a.DataDir, "group.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Contains(b, []byte(`"keys"`)) {
+		t.Errorf("group.json still holds the members: %s", b)
 	}
 }

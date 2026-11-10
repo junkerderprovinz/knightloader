@@ -16,7 +16,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -75,6 +74,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/update"
 	"github.com/junkerderprovinz/knightloader/internal/vpnconn"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
+	"github.com/junkerderprovinz/parleyport/kit/lan"
 )
 
 // backend is a download backend: the embedded Gopeed engine or headless JD.
@@ -333,7 +333,7 @@ type App struct {
 	savedHooks []func(settings.Settings)
 	// discovery is the multicast announce/listen service, nil unless a main
 	// package enabled it (buildinfo.DiscoveryEnabled).
-	discovery io.Closer
+	discovery *lan.Service
 
 	// bmu guards the backend fields above. It is separate from mu because
 	// re-wiring makes network calls, and task state must not wait for those.
@@ -966,10 +966,17 @@ func (a *App) SetSelfServeHandler(h http.Handler) {
 
 // SetDiscovery stores the network-discovery service so Close can stop it; a
 // shutting-down instance must stop announcing itself.
-func (a *App) SetDiscovery(c io.Closer) {
+func (a *App) SetDiscovery(svc *lan.Service) {
 	a.smu.Lock()
-	a.discovery = c
+	a.discovery = svc
 	a.smu.Unlock()
+}
+
+// Discovery is the network-discovery service, nil where it does not run.
+func (a *App) Discovery() *lan.Service {
+	a.smu.Lock()
+	defer a.smu.Unlock()
+	return a.discovery
 }
 
 // SelfServeHandler returns whatever SetSelfServeHandler last stored, or nil
@@ -1001,9 +1008,9 @@ func (a *App) Close() error {
 	if a.cancel != nil {
 		a.cancel()
 	}
-	// Leave the relay and stop announcing on the network.
+	// Leave the group and stop announcing on the network.
 	if a.Federation != nil {
-		a.Federation.SetRelay(nil)
+		a.Federation.SetGroup(nil)
 		a.Federation.SetRetired(nil, time.Time{})
 	}
 	a.smu.Lock()

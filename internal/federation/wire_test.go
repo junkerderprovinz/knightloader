@@ -91,7 +91,6 @@ func TestTheKeysAPhraseMakesStayTheSame(t *testing.T) {
 		{"frame key of a word", hex.EncodeToString(Domain.FrameKey([]byte("knightloader"))), "e04113452443266a47195c6b866225201d6312a88a6cfc0e2af1ecf5a4beeb88"},
 		{"peer-auth key of nothing", hex.EncodeToString(Domain.PeerAuthKey(nil)), "d5fd8bbc11c8356f31352cd5c560e5d04a4ade1eba27c80fa7e8c05ddefd78b9"},
 		{"peer-auth key of a word", hex.EncodeToString(Domain.PeerAuthKey([]byte("knightloader"))), "21790e0c4ac07b8589440547a85bb3f6243a99d55190d2a118065cc0d230e739"},
-		{"frame key of a relay key typed in", hex.EncodeToString(Domain.ManualFrameKey("hand-typed-relay-key-0123456789abcdef")), "c22041c07af19d22cafc6b127515828e4dbbd245b021dd6deb0c59b373942c3b"},
 	} {
 		if tc.got != tc.want {
 			t.Errorf("%s = %s, want %s", tc.name, tc.got, tc.want)

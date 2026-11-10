@@ -35,7 +35,6 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/federation"
 )
 
 // streamWait is how long one read of a file that is still downloading waits
@@ -114,7 +113,7 @@ func registerFiles(reg *Registry, a *app.App) {
 			if tok, ok := tokenOf(r); ok {
 				by = tok.ID
 			}
-			if c, ok := federation.CallerOf(r.Context()); ok && fromRelayGroup(r) {
+			if c, ok := memberOf(r); ok {
 				by = memberTicket + c.ID
 			}
 			path := "/api/tasks/" + id + "/file?ticket=" + playTicket(id, file, by, a.Auth.Epoch(), time.Now().Add(playTicketTTL))

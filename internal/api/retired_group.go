@@ -62,11 +62,13 @@ func (g retiredGroup) identity() *member.Identity {
 // retireGroup keeps the keys of the group this instance dials now, before a
 // reset leaves it.
 func retireGroup(a *app.App, now time.Time) error {
-	url, key, frameKey := relayTarget(a)
-	if url == "" || key == "" {
+	_, url := relayOf(a)
+	secret := groupSecret(a)
+	if url == "" || secret == nil {
 		return nil
 	}
-	g := retiredGroup{URL: url, Key: key, FrameKey: hex.EncodeToString(frameKey), Until: now.Add(retiredFor)}
+	g := retiredGroup{URL: url, Key: federation.Domain.GroupKey(secret), FrameKey: hex.EncodeToString(federation.Domain.FrameKey(secret)),
+		Until: now.Add(retiredFor)}
 	if identity := memberKey(a); identity != nil {
 		g.Member = hex.EncodeToString(identity.Seed())
 	}

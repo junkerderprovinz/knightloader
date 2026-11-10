@@ -160,13 +160,10 @@ claim an instance is absent (a denial of service it could equally perform by
 dropping the frame), but not fabricate an answer: a response with no sealed
 payload is never mistaken for one.
 
-If you configure a relay by hand-entered key instead of by phrase, there is no
-secret to derive from and the frame key comes from the relay key itself. That
-still seals the traffic against anything sitting *between* you and the relay
-(a reverse proxy, a TLS terminator, a captured log), but not against the relay
-operator, who is handed that key. That trade fits the case it exists for:
-somebody hosting the relay themselves. The instances on such a key sign their
-calls and approve each other just as a group made with the words does.
+Instances pair by the phrase alone. Older releases also took a relay key typed
+in by hand, whose frame key came from the relay key itself, so the relay
+operator could read the traffic. An instance paired that way stands alone
+after the update, and its Pairing page asks to pair it again with the words.
 
 **Every member signs its own calls.** The words are shared, so a sealed frame
 only proves that its sender holds them. On top of that, every instance, the
@@ -324,10 +321,10 @@ such as `https://example.com/kl`, and the others dial `/relay/connect` below
 it. A `relayUrl` whose path already ends in `/connect` is dialled as it stands,
 for a relay a proxy has mounted somewhere else.
 
-It admits only the relay key that instance stores, so switching it on does not
-turn a published address into a meeting place for whoever finds it. With the
-switch off, `/relay/connect` answers 404, the same as any build that never had
-the feature.
+It admits only the relay key that instance's group dials with, so switching it
+on does not turn a published address into a meeting place for whoever finds
+it. With the switch off, `/relay/connect` answers 404, the same as any build
+that never had the feature.
 
 What this does *not* change is the one requirement a relay has: it is the third
 point both sides dial out to, so it has to be reachable by both. Turning it on

@@ -11,7 +11,8 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
-	"github.com/junkerderprovinz/parleyport/kit/relay"
+	"github.com/junkerderprovinz/parleyport/kit/group"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
 // watchingMember is a group member reached through the relay that holds one
@@ -22,23 +23,23 @@ type watchingMember struct {
 	stopped []string
 }
 
-func (m *watchingMember) Siblings() []relay.Announce {
-	return []relay.Announce{{InstanceID: desktopID, Name: "Workshop laptop", Deployment: "desktop"}}
+func (m *watchingMember) Members() []group.Member {
+	return []group.Member{{Kind: member.KindInstance, Relay: true, ID: desktopID, Name: "Workshop laptop", Deployment: "desktop"}}
 }
-func (m *watchingMember) Connected() bool { return true }
-func (m *watchingMember) Close() error    { return nil }
-func (m *watchingMember) Proxy(_ context.Context, target, method, path string, _ []byte) ([]byte, int, error) {
+func (m *watchingMember) RelayConnected() bool { return true }
+func (m *watchingMember) Close() error         { return nil }
+func (m *watchingMember) Call(_ context.Context, target, method, path string, _ []byte) (int, []byte, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	switch {
 	case method == http.MethodGet && path == "/api/clipboard-watchers?local=1":
 		b, _ := json.Marshal([]clipwatch.Watcher{m.watcher})
-		return b, http.StatusOK, nil
+		return http.StatusOK, b, nil
 	case method == http.MethodPost && path == "/api/clipboard-watchers/"+m.watcher.ID+"/stop?local=1":
 		m.stopped = append(m.stopped, target)
-		return nil, http.StatusNoContent, nil
+		return http.StatusNoContent, nil, nil
 	}
-	return nil, http.StatusNotFound, nil
+	return http.StatusNotFound, nil, nil
 }
 
 func (m *watchingMember) stops() []string {
@@ -96,7 +97,7 @@ func TestTheGroupListNamesEachWatchersInstance(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
-	a.Federation.SetRelay(&watchingMember{watcher: clipwatch.Watcher{ID: "desk", Name: "Workshop laptop", Kind: "desktop"}})
+	a.Federation.SetGroup(&watchingMember{watcher: clipwatch.Watcher{ID: "desk", Name: "Workshop laptop", Kind: "desktop"}})
 	if _, err := a.ClipWatch.Renew(clipwatch.Watcher{ID: "tab", Name: "Chrome, Windows", Kind: "web"}, time.Now()); err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +127,7 @@ func TestStoppingAWatcherReachesTheMemberThatHoldsIt(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 	member := &watchingMember{watcher: clipwatch.Watcher{ID: "desk", Kind: "desktop"}}
-	a.Federation.SetRelay(member)
+	a.Federation.SetGroup(member)
 
 	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/desk/stop", nil); code != http.StatusNoContent {
 		t.Fatalf("stopping the member's watcher = %d, want 204", code)
@@ -144,7 +145,7 @@ func TestAStopAskedOfThisInstanceAloneIsNotPassedOn(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 	member := &watchingMember{watcher: clipwatch.Watcher{ID: "desk", Kind: "desktop"}}
-	a.Federation.SetRelay(member)
+	a.Federation.SetGroup(member)
 
 	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/desk/stop?local=1", nil); code != http.StatusNotFound {
 		t.Fatalf("a local stop for a watcher held elsewhere = %d, want 404", code)
@@ -221,26 +222,26 @@ var (
 	zebraID    = strings.Repeat("e", 40)
 )
 
-func (m *twoMembers) Siblings() []relay.Announce {
-	return []relay.Announce{{InstanceID: aardvarkID, Name: "Aardvark"}, {InstanceID: zebraID, Name: "Zebra"}}
+func (m *twoMembers) Members() []group.Member {
+	return []group.Member{{Kind: member.KindInstance, Relay: true, ID: aardvarkID, Name: "Aardvark"}, {Kind: member.KindInstance, Relay: true, ID: zebraID, Name: "Zebra"}}
 }
-func (m *twoMembers) Connected() bool { return true }
-func (m *twoMembers) Close() error    { return nil }
-func (m *twoMembers) Proxy(ctx context.Context, target, method, path string, _ []byte) ([]byte, int, error) {
+func (m *twoMembers) RelayConnected() bool { return true }
+func (m *twoMembers) Close() error         { return nil }
+func (m *twoMembers) Call(ctx context.Context, target, method, path string, _ []byte) (int, []byte, error) {
 	if target == aardvarkID {
 		<-ctx.Done()
-		return nil, http.StatusBadGateway, ctx.Err()
+		return http.StatusBadGateway, nil, ctx.Err()
 	}
 	if ctx.Err() != nil {
-		return nil, http.StatusBadGateway, ctx.Err()
+		return http.StatusBadGateway, nil, ctx.Err()
 	}
 	if method == http.MethodPost && path == "/api/clipboard-watchers/desk/stop?local=1" {
 		m.mu.Lock()
 		defer m.mu.Unlock()
 		m.zebraLive = false
-		return nil, http.StatusNoContent, nil
+		return http.StatusNoContent, nil, nil
 	}
-	return nil, http.StatusNotFound, nil
+	return http.StatusNotFound, nil, nil
 }
 
 func TestAMemberThatDoesNotAnswerDoesNotHideTheOneHoldingTheWatcher(t *testing.T) {
@@ -248,7 +249,7 @@ func TestAMemberThatDoesNotAnswerDoesNotHideTheOneHoldingTheWatcher(t *testing.T
 	srv, a := testServer(t)
 	defer srv.Close()
 	members := &twoMembers{zebraLive: true}
-	a.Federation.SetRelay(members)
+	a.Federation.SetGroup(members)
 
 	if code, body := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/desk/stop", nil); code != http.StatusNoContent {
 		t.Fatalf("stopping Zebra's watcher behind a silent Aardvark = %d %s, want 204", code, body)
@@ -265,7 +266,7 @@ func TestAStopReachesTheMemberEvenWhenThisInstanceHoldsAStaleLease(t *testing.T)
 	srv, a := testServer(t)
 	defer srv.Close()
 	member := &watchingMember{watcher: clipwatch.Watcher{ID: "ext", Kind: "extension"}}
-	a.Federation.SetRelay(member)
+	a.Federation.SetGroup(member)
 	// The extension renewed here before its default instance moved to the
 	// member.
 	if _, err := a.ClipWatch.Renew(clipwatch.Watcher{ID: "ext", Kind: "extension"}, time.Now()); err != nil {
@@ -362,7 +363,7 @@ func TestTheWatcherListAndStopLeaveThePeersAloneWhileInstancesIsOff(t *testing.T
 	srv, a := testServer(t)
 	defer srv.Close()
 	member := &watchingMember{watcher: clipwatch.Watcher{ID: "desk", Kind: "desktop"}}
-	a.Federation.SetRelay(member)
+	a.Federation.SetGroup(member)
 	if err := setFeature(a, "federation", false); err != nil {
 		t.Fatal(err)
 	}
@@ -382,7 +383,7 @@ func TestAStopAnswersWithoutWaitingForAPeerThatDoesNotAnswer(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
-	a.Federation.SetRelay(&twoMembers{zebraLive: true})
+	a.Federation.SetGroup(&twoMembers{zebraLive: true})
 	if _, err := a.ClipWatch.Renew(clipwatch.Watcher{ID: "tab", Kind: "web"}, time.Now()); err != nil {
 		t.Fatal(err)
 	}

@@ -32,9 +32,6 @@ func TestAResetLeavesThePairingGroup(t *testing.T) {
 		t.Fatal(err)
 	}
 	before, _ := a.Accounts.Get(federation.SeedAccount)
-	if err := a.Accounts.Set(federation.RelayKeyAccount, "a-hand-entered-relay-key"); err != nil {
-		t.Fatal(err)
-	}
 	for _, name := range []string{"the phone", "the extension"} {
 		if _, _, err := a.APITokens.Create(name); err != nil {
 			t.Fatal(err)
@@ -56,9 +53,6 @@ func TestAResetLeavesThePairingGroup(t *testing.T) {
 	after, _ := a.Accounts.Get(federation.SeedAccount)
 	if after == "" || after == before {
 		t.Errorf("the connection secret after the reset is %q, want a new one", after)
-	}
-	if manual, _ := a.Accounts.Get(federation.RelayKeyAccount); manual != "" {
-		t.Error("the hand-entered relay key outlived the reset")
 	}
 	var answer struct {
 		Removed resetRemoved `json:"removed"`

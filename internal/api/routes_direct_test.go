@@ -1,68 +1,21 @@
 package api
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
 	"net/http"
-	"net/http/httptest"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/federation"
-	"github.com/junkerderprovinz/parleyport/kit/lan"
+	"github.com/junkerderprovinz/parleyport/kit/group"
 	"github.com/junkerderprovinz/parleyport/kit/member"
+	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
-// fakeNetwork stands in for the multicast service: it hands out the announces
-// a test puts on it, filtered through the membership check the instance
-// installs, as lan.Service does.
-type fakeNetwork struct {
-	mu       sync.Mutex
-	heard    []lan.Peer
-	sign     func(lan.Peer) string
-	isMember func(lan.Peer) bool
-}
-
-func (f *fakeNetwork) SetGroup(_ string, sign func(lan.Peer) string, isMember func(lan.Peer) bool) {
-	f.mu.Lock()
-	f.sign, f.isMember = sign, isMember
-	f.mu.Unlock()
-}
-
-func (f *fakeNetwork) Members() []lan.Peer {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	var out []lan.Peer
-	for _, p := range f.heard {
-		if f.isMember != nil && f.isMember(p) {
-			out = append(out, p)
-		}
-	}
-	return out
-}
-
-// announce is what the instance behind srv puts on the network: its id and
-// address, tagged the way its own discovery service would tag it.
-func announce(t *testing.T, srv *httptest.Server, net *fakeNetwork, id string) lan.Peer {
-	t.Helper()
-	p := lan.Peer{ID: id, Name: id, URL: srv.URL, Sent: time.Now().Unix()}
-	net.mu.Lock()
-	sign := net.sign
-	net.mu.Unlock()
-	if sign == nil {
-		t.Fatal("the instance installed no group tag")
-	}
-	p.Tag = sign(p)
-	return p
-}
-
 // TestMembersOnOneNetworkTalkWithoutARelay pairs two instances with the relay
-// switched off and puts them on one network: each finds the other by its
-// tagged announce and reaches its downloads directly.
+// switched off and gives each the other's address, as somebody does where
+// nothing announces them: each finds the other there, both owners approve,
+// and the downloads come over directly.
 func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 	t.Parallel()
 	first, firstApp, firstToken := pairingServer(t)
@@ -71,44 +24,52 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/join", map[string]string{"phrase": words}); code != http.StatusOK {
 		t.Fatalf("join answered %d: %s", code, body)
 	}
-
-	net := &fakeNetwork{}
-	firstApp.Federation.SetDiscovery(net)
-	secondID := groupID(secondApp)
-	// Both hold the same keys, so the second instance's announce is tagged
-	// with the tag the first one computes.
-	net.heard = []lan.Peer{announce(t, second, net, secondID), {ID: "id-stranger", Name: "Stranger", URL: "http://192.168.1.99:8749", Sent: time.Now().Unix(), Tag: "forged"}}
-	// The second instance hears the first too, so its Pairing card names it.
-	seen := &fakeNetwork{}
-	secondApp.Federation.SetDiscovery(seen)
-	seen.heard = []lan.Peer{announce(t, first, seen, groupID(firstApp))}
-
-	info := connectInfoOf(t, firstToken, first.URL)
-	if len(info.Members) != 1 || info.Members[0].ID != secondID || !info.Members[0].Direct {
-		t.Fatalf("members = %+v, want the second instance, reached directly", info.Members)
-	}
-
-	// The first instance's owner approves the second, and the second's owner
-	// approves the first, as every instance approves the others it meets in
-	// its group.
-	firstID := groupID(firstApp)
-	if _, _, err := firstApp.Federation.Approve(secondID, memberKey(secondApp).Public(), member.KindInstance); err != nil {
+	if err := firstApp.Federation.Group().SetAddresses([]string{second.URL}); err != nil {
 		t.Fatal(err)
 	}
-	if code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
-		t.Fatalf("the second instance's downloads before it approved the first answered %d: %s, want 403 memberPending", code, body)
+	if err := secondApp.Federation.Group().SetAddresses([]string{first.URL}); err != nil {
+		t.Fatal(err)
+	}
+	firstID, secondID := groupID(firstApp), groupID(secondApp)
+
+	waitFor := func(what string, ok func() bool) {
+		t.Helper()
+		deadline := time.Now().Add(15 * time.Second)
+		for !ok() {
+			if time.Now().After(deadline) {
+				t.Fatalf("%s never happened", what)
+			}
+			time.Sleep(50 * time.Millisecond)
+		}
+	}
+	lists := func(token, base, id string) bool {
+		for _, p := range connectInfoOf(t, token, base).Pending {
+			if p.ID == id {
+				return true
+			}
+		}
+		return false
+	}
+	waitFor("the first listing the second as waiting", func() bool { return lists(firstToken, first.URL, secondID) })
+	waitFor("the second listing the first as waiting", func() bool { return lists(secondToken, second.URL, firstID) })
+	if code, body := call(t, firstToken, http.MethodPost, first.URL+"/api/connect/devices/"+secondID+"/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the second instance on the first = %d %s", code, body)
 	}
 	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/devices/"+firstID+"/approve", nil); code != http.StatusNoContent {
 		t.Fatalf("approving the first instance on the second = %d %s", code, body)
 	}
+
+	waitFor("the first reaching the second directly", func() bool {
+		for _, m := range connectInfoOf(t, firstToken, first.URL).Members {
+			if m.ID == secondID && m.Direct && !m.Relay {
+				return true
+			}
+		}
+		return false
+	})
 	code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil)
 	if code != http.StatusOK || !strings.HasPrefix(strings.TrimSpace(string(body)), "[") {
 		t.Fatalf("the second instance's downloads answered %d: %s", code, body)
-	}
-	// The direct call was signed like one over the relay.
-	st, _ := secondApp.Federation.Group(false, time.Now())
-	if pin, ok := st.Keys[groupID(firstApp)]; !ok || pin.Kind != member.KindInstance {
-		t.Fatalf("the second instance pinned %+v, want the first instance's key", st.Keys)
 	}
 }
 
@@ -121,7 +82,7 @@ func TestADirectCallNeedsTheGroupsSignature(t *testing.T) {
 	activate(t, token, srv.URL)
 	self := groupID(a)
 
-	forged, _ := http.NewRequest(http.MethodPost, srv.URL+federation.DirectPath, strings.NewReader(`{"requestId":"r1","target":"`+self+`"}`))
+	forged, _ := http.NewRequest(http.MethodPost, srv.URL+group.DirectPath, strings.NewReader(`{"requestId":"r1","target":"`+self+`"}`))
 	forged.Header.Set("Content-Type", "application/json")
 	forged.Header.Set("X-Knightloader-Peer", "id-stranger")
 	forged.Header.Set("X-Knightloader-Target", self)
@@ -136,73 +97,22 @@ func TestADirectCallNeedsTheGroupsSignature(t *testing.T) {
 		t.Fatalf("an unsigned direct call answered %d, want 403", resp.StatusCode)
 	}
 
-	// A member's real call, captured on its way and sent again.
-	var captured *http.Request
-	var capturedBody []byte
-	tap := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		capturedBody, _ = io.ReadAll(r.Body)
-		captured = r
-		fwd, _ := http.NewRequest(r.Method, srv.URL+r.URL.Path, bytes.NewReader(capturedBody))
-		fwd.Header = r.Header.Clone()
-		resp, err := http.DefaultClient.Do(fwd)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadGateway)
-			return
+	approve(t, a, "phone-mine", member.KindMobile)
+	req, _ := directRequest(t, a, phoneMine, member.KindMobile, keyOf("phone-mine"), relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks"})
+	again := req.Clone(req.Context())
+	again.Body, _ = req.GetBody()
+	for i, want := range []int{http.StatusOK, http.StatusForbidden} {
+		r := req
+		if i == 1 {
+			r = again
 		}
-		defer resp.Body.Close()
-		w.WriteHeader(resp.StatusCode)
-		_, _ = io.Copy(w, resp.Body)
-	}))
-	defer tap.Close()
-
-	caller, callerApp, callerToken := pairingServer(t)
-	words := revealed(t, token, srv.URL)
-	if code, body := call(t, callerToken, http.MethodPost, caller.URL+"/api/connect/join", map[string]string{"phrase": words}); code != http.StatusOK {
-		t.Fatalf("join answered %d: %s", code, body)
+		resp, err := http.DefaultClient.Do(r)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != want {
+			t.Errorf("the member's call, sent %d times, answered %d, want %d", i+1, resp.StatusCode, want)
+		}
 	}
-	net := &fakeNetwork{}
-	callerApp.Federation.SetDiscovery(net)
-	net.heard = []lan.Peer{announce(t, tap, net, self)}
-	// The caller entered the words of a group that was there already, so it
-	// waits for approval here first. Its own owner approved this one.
-	if _, _, err := callerApp.Federation.Approve(self, memberKey(a).Public(), member.KindInstance); err != nil {
-		t.Fatal(err)
-	}
-	if code, body := call(t, callerToken, http.MethodGet, caller.URL+"/api/instances/"+self+"/tasks", nil); code != http.StatusForbidden {
-		t.Fatalf("the new member's first direct call answered %d: %s, want 403 until it is approved", code, body)
-	}
-	if code, body := call(t, token, http.MethodPost, srv.URL+"/api/connect/devices/"+groupID(callerApp)+"/approve", nil); code != http.StatusNoContent {
-		t.Fatalf("approving the caller answered %d: %s", code, body)
-	}
-	captured = nil
-	if code, body := call(t, callerToken, http.MethodGet, caller.URL+"/api/instances/"+self+"/tasks", nil); code != http.StatusOK {
-		t.Fatalf("the member's direct call answered %d: %s", code, body)
-	}
-	if captured == nil {
-		t.Fatal("the call did not go through the network tap, so it was not direct")
-	}
-
-	again, _ := http.NewRequest(http.MethodPost, srv.URL+federation.DirectPath, bytes.NewReader(capturedBody))
-	again.Header = captured.Header.Clone()
-	resp, err = http.DefaultClient.Do(again)
-	if err != nil {
-		t.Fatal(err)
-	}
-	resp.Body.Close()
-	if resp.StatusCode != http.StatusForbidden {
-		t.Fatalf("the same direct call sent again answered %d, want 403", resp.StatusCode)
-	}
-}
-
-func revealed(t *testing.T, token, base string) string {
-	t.Helper()
-	code, body := call(t, token, http.MethodPost, base+"/api/connect/reveal", map[string]string{"password": pairingPassword})
-	if code != http.StatusOK {
-		t.Fatalf("reveal answered %d: %s", code, body)
-	}
-	var out struct{ Phrase string }
-	if err := json.Unmarshal(body, &out); err != nil {
-		t.Fatal(err)
-	}
-	return out.Phrase
 }

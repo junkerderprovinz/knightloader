@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -16,6 +15,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/parleyport/kit/group"
 	"github.com/junkerderprovinz/parleyport/kit/lan"
 	"github.com/junkerderprovinz/parleyport/kit/member"
 	"github.com/junkerderprovinz/parleyport/kit/phrase"
@@ -508,18 +508,18 @@ func TestConnectCountsFromWhenThisInstanceJoined(t *testing.T) {
 	}
 }
 
-// TestConnectRemembersThatAMemberCame checks that an instance seen on the
-// relay is listed while it is there and counted as having come after it
-// leaves, which tells "gone for now" from "never came".
+// TestConnectRemembersThatAMemberCame checks that an instance of the group
+// is listed while it is there and counted as having come after it leaves,
+// which tells "gone for now" from "never came".
 func TestConnectRemembersThatAMemberCame(t *testing.T) {
 	t.Parallel()
 	srv, a, token := pairingServer(t)
 	activate(t, token, srv.URL)
 
-	// After activate, whose applyRelay would replace the transport.
-	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{
-		{InstanceID: officeID, Name: "office"},
-		{InstanceID: "id-phone", Name: "KnightLoader app", Client: true},
+	// After activate, which opens the group again.
+	a.Federation.SetGroup(&relayOnlyPeer{members: []group.Member{
+		onTheRelay(officeID, "office", ""),
+		{ID: idAs("phone", member.KindMobile), Kind: member.KindMobile, Name: "KnightLoader app", Relay: true},
 	}})
 	info := connectInfoOf(t, token, srv.URL)
 	if len(info.Members) != 1 || info.Members[0].ID != officeID || info.Members[0].Name != "office" {
@@ -529,7 +529,7 @@ func TestConnectRemembersThatAMemberCame(t *testing.T) {
 		t.Error("memberSeen is false with a member there")
 	}
 
-	a.Federation.SetRelay(nil)
+	a.Federation.SetGroup(&relayOnlyPeer{})
 	info = connectInfoOf(t, token, srv.URL)
 	if len(info.Members) != 0 || !info.MemberSeen {
 		t.Fatalf("after the member left: members %+v, memberSeen %v", info.Members, info.MemberSeen)
@@ -543,9 +543,9 @@ func TestAPhoneCountsAsSomebodyInTheGroup(t *testing.T) {
 	t.Parallel()
 	srv, a, token := pairingServer(t)
 	activate(t, token, srv.URL)
-	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{
-		{InstanceID: idAs("pixel", member.KindMobile), Name: "Pixel 8", Deployment: "mobile", Client: true},
-	}})
+	pixel := group.Member{ID: idAs("pixel", member.KindMobile), Kind: member.KindMobile, Name: "Pixel 8", State: group.StateApproved,
+		Relay: true, LastSeen: time.Now()}
+	a.Federation.SetGroup(&relayOnlyPeer{members: []group.Member{pixel}})
 
 	info := connectInfoOf(t, token, srv.URL)
 	if len(info.Members) != 0 {
@@ -558,43 +558,34 @@ func TestAPhoneCountsAsSomebodyInTheGroup(t *testing.T) {
 		t.Error("memberSeen is false with the phone there")
 	}
 
-	a.Federation.SetRelay(nil)
+	pixel.Relay = false
+	a.Federation.SetGroup(&relayOnlyPeer{members: []group.Member{pixel}})
 	info = connectInfoOf(t, token, srv.URL)
 	if len(info.Apps) != 1 || info.Apps[0].Connected {
 		t.Fatalf("apps after the phone left = %+v, want it listed as not connected", info.Apps)
 	}
 }
 
-func TestAClosedDesktopAppStaysListedAsAwayUntilItIsTakenOut(t *testing.T) {
+func TestAClosedDesktopAppStaysListedAsAway(t *testing.T) {
 	t.Parallel()
 	srv, a, token := pairingServer(t)
 	activate(t, token, srv.URL)
-	id := idAs("zathallia", member.KindInstance)
-	if _, _, err := a.Federation.Approve(id, keyOf("zathallia").Public().(ed25519.PublicKey), member.KindInstance); err != nil {
-		t.Fatal(err)
-	}
-	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{
-		{InstanceID: id, Name: "Zathallia", Deployment: "desktop", Address: "http://192.168.20.86:8749"},
-	}})
+	desktop := onTheRelay(idAs("zathallia", member.KindInstance), "Zathallia", "desktop")
+	desktop.Address = "http://192.168.20.86:8749"
+	a.Federation.SetGroup(&relayOnlyPeer{members: []group.Member{desktop}})
 	if info := connectInfoOf(t, token, srv.URL); len(info.Members) != 1 || len(info.Away) != 0 {
 		t.Fatalf("while it is open: members %+v, away %+v; want it a member and nothing away", info.Members, info.Away)
 	}
 
-	a.Federation.SetRelay(nil)
+	desktop.Relay, desktop.LastSeen = false, time.Now().Add(-time.Hour)
+	a.Federation.SetGroup(&relayOnlyPeer{members: []group.Member{desktop}})
 	info := connectInfoOf(t, token, srv.URL)
 	if len(info.Members) != 0 || len(info.Away) != 1 {
 		t.Fatalf("after it closed: members %+v, away %+v; want it away", info.Members, info.Away)
 	}
-	if got := info.Away[0]; got.ID != id || got.Name != "Zathallia" || got.Deployment != "desktop" ||
-		got.Address != "http://192.168.20.86:8749" || got.LastSeen == 0 {
+	if got := info.Away[0]; got.ID != desktop.ID || got.Name != "Zathallia" || got.Deployment != "desktop" ||
+		got.Address != "http://192.168.20.86:8749" || got.LastSeen != desktop.LastSeen.Unix() {
 		t.Fatalf("away = %+v, want the desktop app as it last announced itself", got)
-	}
-
-	if code, body := call(t, token, http.MethodDelete, srv.URL+"/api/connect/members/"+id, nil); code != http.StatusNoContent {
-		t.Fatalf("removing it answered %d: %s", code, body)
-	}
-	if info := connectInfoOf(t, token, srv.URL); len(info.Away) != 0 {
-		t.Fatalf("after it was taken out: away %+v, want none", info.Away)
 	}
 }
 
@@ -632,105 +623,35 @@ func TestAGroupWithoutAJoiningTimeCountsAsJoinedAtStart(t *testing.T) {
 	if !info.Active || info.JoinedAgo > 5 || info.MemberSeen {
 		t.Fatalf("at start: active %v, joinedAgo %d, memberSeen %v", info.Active, info.JoinedAgo, info.MemberSeen)
 	}
-	if st, _ := a.Federation.Group(false, time.Now()); st.JoinedAt.IsZero() {
+	if st, _ := a.Federation.Joined(false, time.Now()); st.JoinedAt.IsZero() {
 		t.Fatal("the joining time was not stored")
 	}
 }
 
-// TestRelayTargetDerivesRatherThanSendingTheSecret checks that the relay gets
-// a derived key and never the secret, so its operator cannot rebuild a phrase.
-func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
+// TestTheGroupDialsTheRelayTheSettingsName checks which relay the group is
+// opened on: the project's by default, the own one at its address, and none
+// for an own relay without an address rather than the project's.
+func TestTheGroupDialsTheRelayTheSettingsName(t *testing.T) {
 	t.Parallel()
 	srv, a, token := pairingServer(t)
 	activate(t, token, srv.URL)
-	cfg := a.Settings.Get()
-	cfg.RelayMode = settings.RelayModeProject
-	if _, err := a.Settings.Set(cfg); err != nil {
-		t.Fatal(err)
-	}
-	storedHex, _ := a.Accounts.Get(federation.SeedAccount)
-
-	url, key, frameKey := relayTarget(a)
-	if url != relay.DefaultURL {
-		t.Errorf("url = %q, want %q", url, relay.DefaultURL)
-	}
-	if key == storedHex {
-		t.Fatal("the key sent to the relay is the stored secret")
-	}
-	if len(key) < 32 {
-		t.Errorf("derived key is %d characters, below the relay's own minimum", len(key))
-	}
-
-	// The relay gets key in every hello frame, so the frame key must be
-	// neither equal to it nor derivable from it.
-	if len(frameKey) != 32 {
-		t.Fatalf("frame key is %d bytes, want 32", len(frameKey))
-	}
-	if hex.EncodeToString(frameKey) == key {
-		t.Error("the frame key is the key handed to the relay")
-	}
-	if hex.EncodeToString(frameKey) == storedHex {
-		t.Error("the frame key is the stored secret")
-	}
-	if bytes.Equal(frameKey, federation.Domain.ManualFrameKey(key)) {
-		t.Error("the frame key is derivable from the key the relay is already given")
-	}
-}
-
-// TestRelayTargetHonoursASelfHostedOverride checks that the same phrase can be
-// pointed at somebody's own relay.
-func TestRelayTargetHonoursASelfHostedOverride(t *testing.T) {
-	t.Parallel()
-	srv, a, token := pairingServer(t)
-	activate(t, token, srv.URL)
-	cfg := a.Settings.Get()
-	cfg.RelayMode = settings.RelayModeOwn
-	cfg.RelayURL = "wss://relay.example.com"
-	if _, err := a.Settings.Set(cfg); err != nil {
-		t.Fatal(err)
-	}
-
-	url, key, frameKey := relayTarget(a)
-	if url != "wss://relay.example.com" {
-		t.Errorf("url = %q, want the override", url)
-	}
-	if key == "" {
-		t.Error("no key with an override set")
-	}
-	// Frames are still sealed with an override.
-	if len(frameKey) != 32 {
-		t.Errorf("frame key is %d bytes with an override set, want 32", len(frameKey))
-	}
-}
-
-// TestOwnRelayWithNoAddressDialsNothing checks that choosing an own relay
-// without an address dials nothing rather than falling back to the project
-// relay.
-func TestOwnRelayWithNoAddressDialsNothing(t *testing.T) {
-	t.Parallel()
-	srv, a, token := pairingServer(t)
-	activate(t, token, srv.URL)
-	cfg := a.Settings.Get()
-	cfg.RelayMode = settings.RelayModeOwn
-	cfg.RelayURL = ""
-	if _, err := a.Settings.Set(cfg); err != nil {
-		t.Fatal(err)
-	}
-
-	url, key, _ := relayTarget(a)
-	if url != "" {
-		t.Errorf("url = %q, want nothing dialled; own relay is selected with no address", url)
-	}
-	if key != "" {
-		t.Errorf("key = %q, want none: there is nowhere to send it", key)
-	}
-
-	// Once an address is given it is dialled.
-	cfg.RelayURL = "wss://relay.example.com"
-	if _, err := a.Settings.Set(cfg); err != nil {
-		t.Fatal(err)
-	}
-	if url, _, _ := relayTarget(a); url != "wss://relay.example.com" {
-		t.Errorf("url = %q, want the address that was just set", url)
+	for _, c := range []struct {
+		mode, url string
+		want      group.RelayMode
+		wantURL   string
+	}{
+		{settings.RelayModeProject, "wss://relay.example.com", group.RelayProject, relay.DefaultURL},
+		{settings.RelayModeOwn, "wss://relay.example.com", group.RelayOwn, "wss://relay.example.com"},
+		{settings.RelayModeOwn, "", group.RelayOff, ""},
+		{settings.RelayModeOff, "wss://relay.example.com", group.RelayOff, ""},
+	} {
+		cfg := a.Settings.Get()
+		cfg.RelayMode, cfg.RelayURL = c.mode, c.url
+		if _, err := a.Settings.Set(cfg); err != nil {
+			t.Fatal(err)
+		}
+		if mode, url := relayOf(a); mode != c.want || url != c.wantURL {
+			t.Errorf("mode %q at %q dials %q at %q, want %q at %q", c.mode, c.url, mode, url, c.want, c.wantURL)
+		}
 	}
 }

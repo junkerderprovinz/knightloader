@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -39,15 +38,11 @@ type discovered struct {
 }
 
 func registerDiscovery(reg *Registry, a *app.App) {
+	// In a group the group announces this instance, outside one applyRelay
+	// announces it untagged.
 	svc := startDiscovery(a)
 	if svc != nil {
 		a.SetDiscovery(svc)
-		local := newLocalNetwork(svc, discoverySelf(a))
-		a.Federation.SetDiscovery(local)
-		// Rebuilt on a settings save, so renaming an instance reaches the
-		// network on the next announce rather than after a restart. Same shape
-		// as applyRelay in routes_settings.go.
-		reg.refreshDiscovery = func() { local.SetSelf(discoverySelf(a)) }
 	}
 
 	reg.Add(http.MethodGet, "/api/discovery",
@@ -93,7 +88,8 @@ func registerDiscovery(reg *Registry, a *app.App) {
 		})
 }
 
-// discoverySelf is what this instance announces right now.
+// discoverySelf is what this instance announces on its network outside a
+// group.
 func discoverySelf(a *app.App) lan.Peer {
 	// A receiving instance adds the peer by this name, and federation's naming
 	// rule is narrower than what a person may have called their box. Without
@@ -161,63 +157,10 @@ func startDiscovery(a *app.App) *lan.Service {
 	return svc
 }
 
-// announcer is the part of lan.Service a localNetwork announces through.
-type announcer interface {
-	SetSelf(self lan.Peer, sign func(lan.Peer) string)
-	SetAccept(accept func(lan.Peer) bool)
-	Members() []lan.Peer
-}
-
-// localNetwork is what this instance announces on its network: its own id,
-// untagged, outside a group, and the id its member key makes, tagged, in one.
-// Settings change the first and the group the second, independently.
-type localNetwork struct {
-	announcer
-
-	mu   sync.Mutex
-	self lan.Peer
-	id   string
-	sign func(lan.Peer) string
-}
-
-func newLocalNetwork(a announcer, self lan.Peer) *localNetwork {
-	n := &localNetwork{announcer: a}
-	n.SetSelf(self)
-	return n
-}
-
-// SetSelf replaces what this instance says about itself.
-func (n *localNetwork) SetSelf(self lan.Peer) {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	n.self = self
-	n.announceLocked()
-}
-
-// SetGroup announces under id, tagged by sign, and takes an announce as a
-// member's when isMember says so; nil for both leaves the group.
-func (n *localNetwork) SetGroup(id string, sign func(lan.Peer) string, isMember func(lan.Peer) bool) {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	n.id, n.sign = id, sign
-	n.announcer.SetAccept(isMember)
-	n.announceLocked()
-}
-
-func (n *localNetwork) announceLocked() {
-	self := n.self
-	if n.sign == nil || n.id == "" {
-		n.announcer.SetSelf(self, nil)
-		return
-	}
-	self.ID = n.id
-	n.announcer.SetSelf(self, n.sign)
-}
-
 // instanceDisplayName is InstanceName if the user set one, else os.Hostname,
 // else "KnightLoader". One function rather than the same precedence written
-// out twice: this instance announces itself both on the LAN and on the relay
-// (routes_relay.go's Announce), and two resolutions eventually disagree.
+// out twice: this instance announces itself both on the LAN and to its group
+// (routes_relay.go's groupSelf), and two resolutions eventually disagree.
 func instanceDisplayName(a *app.App) string {
 	if name := a.Settings.Get().InstanceName; name != "" {
 		return name

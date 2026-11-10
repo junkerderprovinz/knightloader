@@ -23,12 +23,15 @@ const (
 	// SeedAccount holds the secret behind the phrase. Only Domain.GroupKey of
 	// it ever reaches a relay.
 	SeedAccount = "relay-seed"
-	// RelayKeyAccount holds a relay key typed in by hand, for a group that
-	// has no phrase.
+	// RelayKeyAccount held a relay key typed in by hand, for a group without
+	// a phrase. It is read once more, to drop it.
 	RelayKeyAccount = "relay"
 	// MemberAccount holds the seed of this instance's member key. It belongs
 	// to the group: joining one mints a new seed and leaving deletes it.
 	MemberAccount = "relay-member"
+	// GroupAccount holds what kit/group keeps of the group: who is approved,
+	// who was taken out and where the members answered.
+	GroupAccount = "relay-group"
 )
 
 // LAN is where KnightLoader instances announce themselves on their network,

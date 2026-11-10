@@ -91,8 +91,8 @@ keep you from resetting by guessing. The new password switches two-factor
 authentication off, removes every passkey and every API token, signs out every
 other browser and replaces the key sessions are signed with, so a copy of
 `auth.json` taken earlier opens nothing either. An instance in a pairing group
-leaves it: it gets new connection words that nobody else holds, a relay key
-entered by hand is removed, and every phone, browser extension and other
+leaves it: it gets new connection words that nobody else holds, and every
+phone, browser extension and other
 instance has to pair again with the new words, which Settings > Pairing shows
 once you are signed in. For 30 days it tells the devices that still hold the
 old words that it was reset, in an answer signed with its old key, and on a

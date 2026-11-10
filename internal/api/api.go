@@ -25,6 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/web"
+	"github.com/junkerderprovinz/parleyport/kit/group"
 )
 
 // Handler builds the full HTTP handler.
@@ -46,20 +47,23 @@ func Handler(a *app.App) http.Handler {
 	return h
 }
 
-// relayGroupKey marks a request as having arrived over this instance's own
-// relay socket, from a sibling that presented the same group key. It is a
-// context value rather than a header because a header can be forged by whoever
-// composed the frame; relayProxyHandler attaches it only after the relay client
-// has accepted the frame.
-type relayGroupKeyType struct{}
+// memberCallKey marks a request as a call from a member of this instance's
+// group and carries who it is. It is a context value rather than a header
+// because a header can be forged by whoever composed the call; memberHandler
+// attaches it only after kit/group admitted the member.
+type memberCallKey struct{}
 
-var relayGroupKey relayGroupKeyType
+// fromGroup reports whether this request is a call from a member of this
+// instance's group, over the relay or directly.
+func fromGroup(r *http.Request) bool {
+	_, ok := memberOf(r)
+	return ok
+}
 
-// fromRelayGroup reports whether this request came in over the relay from a
-// sibling holding the same connection phrase.
-func fromRelayGroup(r *http.Request) bool {
-	v, _ := r.Context().Value(relayGroupKey).(bool)
-	return v
+// memberOf is the member of the group a request came from.
+func memberOf(r *http.Request) (group.Caller, bool) {
+	c, ok := r.Context().Value(memberCallKey{}).(group.Caller)
+	return c, ok
 }
 
 // authenticated reports whether the request carries a valid session or a
@@ -77,10 +81,10 @@ func caller(a *app.App, r *http.Request) (tok *apitoken.Token, ok bool) {
 	if !a.Auth.Enabled() {
 		return nil, true
 	}
-	// A sibling on the relay already holds the group key, derived from the
-	// connection phrase that reaches every instance in the group, so a second
-	// credential would protect nothing. guard holds such calls to groupRoutes.
-	if fromRelayGroup(r) {
+	// A member already holds the phrase that reaches every instance in the
+	// group, so a second credential would protect nothing. guard holds such
+	// calls to groupRoutes.
+	if fromGroup(r) {
 		return nil, true
 	}
 	if c, err := r.Cookie(auth.CookieName); err == nil && a.Auth.Valid(c.Value) {
@@ -179,7 +183,7 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Before the open routes, which a member reaches only when they are
 		// on its list too.
-		if fromRelayGroup(r) {
+		if fromGroup(r) {
 			if reg.admitGroup(a, w, r) {
 				next.ServeHTTP(w, r)
 			}

@@ -186,7 +186,7 @@ func TestTheOldKeyOnAServedRelayReachesOnlyThisInstance(t *testing.T) {
 	if code, body := call(t, token, http.MethodPut, srv.URL+"/api/relay/config", map[string]any{"relayUrl": srv.URL, "mode": "own", "serve": true}); code != http.StatusOK {
 		t.Fatalf("PUT /api/relay/config = %d %s", code, body)
 	}
-	_, oldKey, _ := relayTarget(a)
+	oldKey := federation.Domain.GroupKey(groupSecret(a))
 	oldID := groupID(a)
 	if _, err := renewGroup(a); err != nil {
 		t.Fatal(err)

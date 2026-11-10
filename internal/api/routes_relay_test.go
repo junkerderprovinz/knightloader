@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"context"
-	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -15,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/parleyport/kit/member"
@@ -81,111 +81,113 @@ func TestRelayConfigStartsUnconfigured(t *testing.T) {
 	if code != http.StatusOK {
 		t.Fatalf("GET /api/relay/config answered %d", code)
 	}
-	if cfg.RelayURL != "" || cfg.KeySet {
-		t.Errorf("config = %+v, want an empty address and keySet=false before anything is saved", cfg)
+	if cfg.RelayURL != "" {
+		t.Errorf("config = %+v, want an empty address before anything is saved", cfg)
 	}
 }
 
-// TestRelayConfigRoundTripsWithoutLeakingTheKey checks that a later GET
-// returns the saved address and the key only as a boolean. The raw body is
-// searched for the key, since a decoded struct would not see an extra field.
-func TestRelayConfigRoundTripsWithoutLeakingTheKey(t *testing.T) {
+// phraseGroup puts a into a group under a new phrase and returns its secret.
+func phraseGroup(t *testing.T, a *app.App) []byte {
+	t.Helper()
+	secret, _, err := phrase.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Accounts.Set(federation.SeedAccount, hex.EncodeToString(secret)); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	return secret
+}
+
+func TestARelayKeyTypedInByHandIsRefused(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	const secret = "s3cret-relay-key-abc123-0123456789"
-	code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com/","key":"`+secret+`"}`)
-	if code != http.StatusOK {
-		t.Fatalf("PUT /api/relay/config answered %d", code)
-	}
-	if put.RelayURL != "https://relay.example.com" || !put.KeySet {
-		t.Errorf("PUT answered %+v, want the sanitised address and keySet=true", put)
-	}
-
-	code, got := getRelayConfig(t, srv.URL)
-	if code != http.StatusOK {
-		t.Fatalf("GET /api/relay/config answered %d", code)
-	}
-	if got != put {
-		t.Errorf("GET answered %+v, want the same %+v PUT just reported", got, put)
-	}
-
-	resp, err := http.Get(srv.URL + "/api/relay/config")
+	resp, err := http.DefaultClient.Do(mustRequest(t, http.MethodPut, srv.URL+"/api/relay/config", `{"relayUrl":"https://relay.example.com","key":"typed-in-by-hand"}`))
 	if err != nil {
 		t.Fatal(err)
 	}
-	raw, _ := io.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	resp.Body.Close()
-	if bytes.Contains(raw, []byte(secret)) {
-		t.Errorf("GET /api/relay/config answered %s, which carries the stored key itself", raw)
-	}
-
-	// The key was stored, not dropped: the relay client dials with it.
-	stored, err := a.Accounts.Get(federation.RelayKeyAccount)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if stored != secret {
-		t.Errorf("stored key = %q, want the one that was PUT", stored)
-	}
-}
-
-// TestRelayConfigWithoutAKeyLeavesTheStoredOne covers saving an edited address
-// from a form that was never shown the key.
-func TestRelayConfigWithoutAKeyLeavesTheStoredOne(t *testing.T) {
-	t.Parallel()
-	srv, a := testServer(t)
-	defer srv.Close()
-
-	if code, _ := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com","key":"keep-me-relay-test-key-0123456789"}`); code != http.StatusOK {
-		t.Fatalf("first PUT answered %d", code)
-	}
-	code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay2.example.com"}`)
-	if code != http.StatusOK {
-		t.Fatalf("second PUT answered %d", code)
-	}
-	if put.RelayURL != "https://relay2.example.com" {
-		t.Errorf("RelayURL = %q, want the newly saved address", put.RelayURL)
-	}
-	if !put.KeySet {
-		t.Error("keySet = false after a PUT that did not mention the key; the stored key was cleared")
-	}
-	if stored, _ := a.Accounts.Get(federation.RelayKeyAccount); stored != "keep-me-relay-test-key-0123456789" {
-		t.Errorf("stored key = %q, want it untouched by a PUT that did not name it", stored)
-	}
-}
-
-// TestRelayConfigEmptyKeyClearsIt checks that an explicit empty key removes
-// the stored one, as accounts.Store.Set does.
-func TestRelayConfigEmptyKeyClearsIt(t *testing.T) {
-	t.Parallel()
-	srv, a := testServer(t)
-	defer srv.Close()
-
-	if code, _ := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com","key":"drop-me-relay-test-key"}`); code != http.StatusOK {
-		t.Fatalf("first PUT answered %d", code)
-	}
-	code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com","key":""}`)
-	if code != http.StatusOK {
-		t.Fatalf("clearing PUT answered %d", code)
-	}
-	if put.KeySet {
-		t.Error("keySet = true after an explicitly empty key; there is then no way to ever remove one")
+	if resp.StatusCode != http.StatusBadRequest || refusalCode(body) != "relayKeyGone" {
+		t.Fatalf("a relay key typed in = %d %s, want 400 relayKeyGone", resp.StatusCode, body)
 	}
 	if stored, _ := a.Accounts.Get(federation.RelayKeyAccount); stored != "" {
-		t.Errorf("stored key = %q, want it cleared", stored)
+		t.Errorf("the refused key was stored as %q", stored)
+	}
+	if code, _ := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com","key":""}`); code != http.StatusOK {
+		t.Errorf("an empty key from an older page = %d, want the address saved", code)
+	}
+}
+
+func mustRequest(t *testing.T, method, url, body string) *http.Request {
+	t.Helper()
+	req, err := http.NewRequest(method, url, strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	return req
+}
+
+// An instance that was paired by a relay key typed in by hand loses that
+// group with the update and says why, until it pairs with the phrase. One
+// that holds a phrase as well keeps its group and only forgets the key.
+func TestAnUpdateDropsTheRelayKeyTypedInByHand(t *testing.T) {
+	t.Parallel()
+	for _, withPhrase := range []bool{false, true} {
+		a, err := app.New(t.TempDir())
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { a.Close() })
+		relayOff(t, a)
+		if err := a.Accounts.Set(federation.RelayKeyAccount, "a-hand-entered-relay-key-0123456789"); err != nil {
+			t.Fatal(err)
+		}
+		if err := a.Accounts.Set(federation.MemberAccount, hex.EncodeToString(keyOf("manual").Seed())); err != nil {
+			t.Fatal(err)
+		}
+		if withPhrase {
+			phraseGroup(t, a)
+		} else if err := a.Federation.SetJoined(time.Now()); err != nil {
+			t.Fatal(err)
+		}
+		srv := httptest.NewServer(Handler(a))
+		t.Cleanup(srv.Close)
+
+		if stored, _ := a.Accounts.Get(federation.RelayKeyAccount); stored != "" {
+			t.Errorf("phrase %v: the relay key typed in by hand outlived the update", withPhrase)
+		}
+		info := connectInfoOf(t, "", srv.URL)
+		if info.RelayKeyDropped == withPhrase || info.Active != withPhrase {
+			t.Errorf("phrase %v: the card says dropped %v, active %v", withPhrase, info.RelayKeyDropped, info.Active)
+		}
+		if withPhrase {
+			continue
+		}
+		if member, _ := a.Accounts.Get(federation.MemberAccount); member != "" {
+			t.Error("the member key of the group the relay key made outlived the update")
+		}
+		activate(t, "", srv.URL)
+		if info := connectInfoOf(t, "", srv.URL); info.RelayKeyDropped {
+			t.Error("the card still says the relay key is gone after pairing with the phrase")
+		}
 	}
 }
 
 // TestRelayConfigAddressReachesSettings checks that the address lands in
-// settings.json while the key goes to the sealed credential store.
+// settings.json.
 func TestRelayConfigAddressReachesSettings(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	if code, _ := putRelayConfig(t, srv.URL, `{"relayUrl":"  ws://192.168.20.11:8760/  ","key":"ws-relay-test-key-xyz"}`); code != http.StatusOK {
+	if code, _ := putRelayConfig(t, srv.URL, `{"relayUrl":"  ws://192.168.20.11:8760/  "}`); code != http.StatusOK {
 		t.Fatalf("PUT answered %d", code)
 	}
 	if got := a.Settings.Get().RelayURL; got != "ws://192.168.20.11:8760" {
@@ -194,9 +196,9 @@ func TestRelayConfigAddressReachesSettings(t *testing.T) {
 }
 
 // TestRelayConnectsAndProxiesBothDirections checks end to end, against a real
-// relay and a second client standing in for a sibling, that PUT
-// /api/relay/config leaves a connected client in a.Federation and that calls
-// cross in both directions.
+// relay and a second client standing in for a sibling, that choosing an own
+// relay leaves the group connected there and that calls cross in both
+// directions once both sides approved each other.
 func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	t.Parallel()
 	relaySrv := httptest.NewServer(relay.New())
@@ -204,29 +206,11 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 
 	srv, a := testServer(t)
 	defer srv.Close()
-
-	const key = "end-to-end-relay-test-key-0123456789"
-	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"`+relaySrv.URL+`","key":"`+key+`"}`); code != http.StatusOK || !put.KeySet {
+	secret := phraseGroup(t, a)
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"`+relaySrv.URL+`","mode":"own"}`); code != http.StatusOK {
 		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 	}
-
-	// The sibling answers every call with a fixed body.
-	sibling, err := relay.NewClient(relay.ClientOptions{
-		URL:      relaySrv.URL,
-		Key:      key,
-		FrameKey: federation.Domain.ManualFrameKey(key),
-		Self:     relay.Announce{InstanceID: siblingID, Name: "Sibling", Deployment: "container"},
-		Signing:  federation.Signing,
-		Identity: identityAs("sibling", member.KindInstance),
-		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
-			return http.StatusOK, []byte(`{"from":"sibling"}`)
-		},
-	})
-	if err != nil {
-		t.Fatalf("build sibling client: %v", err)
-	}
-	sibling.Start()
-	defer sibling.Close()
+	sibling := fixedSibling(t, relaySrv.URL, secret, "sibling")
 
 	// Both sides connect and announce asynchronously.
 	var list []struct {
@@ -245,15 +229,11 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	// A relay peer's Name is its InstanceID; the announced name is
-	// DisplayName.
+	// A member's Name is its id; the announced name is DisplayName.
 	if len(list) != 1 || list[0].Name != siblingID || list[0].DisplayName != "Sibling" || list[0].RelayID != siblingID {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay", list)
 	}
 
-	// Both ways the owner approves the other side first. A hand-entered relay
-	// key makes a group whose members sign and are approved like one reached
-	// by the words.
 	selfID := groupID(a)
 	if _, _, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil); err == nil {
 		t.Fatal("the sibling's answer was taken before the sibling was approved here")
@@ -261,11 +241,11 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	if _, status, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil); err != nil || status != http.StatusForbidden {
 		t.Fatalf("the sibling before it was approved = %d %v, want 403", status, err)
 	}
-	if _, _, err := a.Federation.Approve(siblingID, nil, ""); err != nil {
+	if err := a.Federation.Group().Approve(siblingID); err != nil {
 		t.Fatal(err)
 	}
 
-	// Outbound, addressed by the sibling's InstanceID.
+	// Outbound, addressed by the sibling's id.
 	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("proxy to sibling: %v", err)
@@ -274,8 +254,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		t.Errorf("proxy to sibling = %d %s, want the sibling's own fixed answer", status, body)
 	}
 
-	// Inbound: the sibling reaches the app's real API through
-	// relayProxyHandler.
+	// Inbound: the sibling reaches the app's real API.
 	inBody, inStatus, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("sibling proxy into the app: %v", err)
@@ -297,18 +276,17 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 	relaySrv := httptest.NewServer(relay.New())
 	defer relaySrv.Close()
 
-	srv, _ := testServer(t)
+	srv, a := testServer(t)
 	defer srv.Close()
-
-	const key = "instance-name-reconnect-test-key"
-	if code, _ := putRelayConfig(t, srv.URL, `{"relayUrl":"`+relaySrv.URL+`","key":"`+key+`"}`); code != http.StatusOK {
+	secret := phraseGroup(t, a)
+	if code, _ := putRelayConfig(t, srv.URL, `{"relayUrl":"`+relaySrv.URL+`","mode":"own"}`); code != http.StatusOK {
 		t.Fatalf("PUT /api/relay/config failed: %d", code)
 	}
 
 	observer, err := relay.NewClient(relay.ClientOptions{
 		URL:      relaySrv.URL,
-		Key:      key,
-		FrameKey: federation.Domain.ManualFrameKey(key),
+		Key:      federation.Domain.GroupKey(secret),
+		FrameKey: federation.Domain.FrameKey(secret),
 		Self:     relay.Announce{InstanceID: "observer-1", Name: "Observer", Deployment: "container"},
 	})
 	if err != nil {
@@ -498,12 +476,12 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 // fixedSibling is a second relay client standing in for another instance, so a
 // test can prove a relay carried something rather than only that a socket
 // opened.
-func fixedSibling(t *testing.T, url, key, label string) *relay.Client {
+func fixedSibling(t *testing.T, url string, secret []byte, label string) *relay.Client {
 	t.Helper()
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      url,
-		Key:      key,
-		FrameKey: federation.Domain.ManualFrameKey(key),
+		Key:      federation.Domain.GroupKey(secret),
+		FrameKey: federation.Domain.FrameKey(secret),
 		Self:     relay.Announce{InstanceID: idAs(label, member.KindInstance), Name: "Sibling", Deployment: "desktop"},
 		Signing:  federation.Signing,
 		Identity: identityAs(label, member.KindInstance),
@@ -521,19 +499,18 @@ func fixedSibling(t *testing.T, url, key, label string) *relay.Client {
 
 // TestServingARelayFromInsideAnInstance runs the whole loop: the switch opens
 // the socket, the instance dials its own relay, a second instance joins with
-// the same key, they see each other, and a call crosses.
+// the same phrase, they see each other, and a call crosses.
 func TestServingARelayFromInsideAnInstance(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
-
-	const key = "a-relay-served-from-inside-an-instance"
-	code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"`+srv.URL+`","key":"`+key+`","serve":true}`)
+	secret := phraseGroup(t, a)
+	code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"`+srv.URL+`","mode":"own","serve":true}`)
 	if code != http.StatusOK || !put.Serve {
 		t.Fatalf("PUT /api/relay/config = %d %+v, want serve=true", code, put)
 	}
 
-	fixedSibling(t, srv.URL, key, "sibling")
+	fixedSibling(t, srv.URL, secret, "sibling")
 
 	var list []struct {
 		Name        string `json:"name"`
@@ -555,9 +532,7 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay this instance is serving", list)
 	}
 
-	if _, _, err := a.Federation.Approve(siblingID, keyOf("sibling").Public().(ed25519.PublicKey), member.KindInstance); err != nil {
-		t.Fatal(err)
-	}
+	approve(t, a, "sibling", member.KindInstance)
 	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("proxy to the sibling through our own relay: %v", err)
@@ -573,19 +548,23 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 	}
 }
 
-// TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores checks Admit: unlike the
+// TestAServedRelayAdmitsOnlyTheInstancesGroup checks Admit: unlike the
 // standalone relay, which groups any key, a relay served from an instance must
 // not become a meeting place for whoever finds its address.
-func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
+func TestAServedRelayAdmitsOnlyTheInstancesGroup(t *testing.T) {
 	t.Parallel()
-	srv, _ := testServer(t)
+	srv, a := testServer(t)
 	defer srv.Close()
-
-	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"the-key-this-instance-serves-0123456789","serve":true}`); code != http.StatusOK || !put.Serve {
+	phraseGroup(t, a)
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","mode":"off","serve":true}`); code != http.StatusOK || !put.Serve {
 		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 	}
 
-	stranger := fixedSibling(t, srv.URL, "some-other-relay-key-entirely-0123456789", "stranger")
+	other, _, err := phrase.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	stranger := fixedSibling(t, srv.URL, other, "stranger")
 
 	// Long enough for a connection or a retry to succeed. The relay's count is
 	// what shows admission: the client counts itself connected as soon as its
@@ -664,7 +643,7 @@ func TestWithTheSwitchOffTheRelaySocketIsNotThere(t *testing.T) {
 
 	// With the switch on, the same GET reaches the WebSocket handshake, so
 	// the 404 came from the switch.
-	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"a-key-long-enough-to-pass","serve":true}`); code != http.StatusOK || !put.Serve {
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","serve":true}`); code != http.StatusOK || !put.Serve {
 		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 	}
 	on, err := http.Get(srv.URL + "/relay/connect")
@@ -684,7 +663,7 @@ func TestTheServeSwitchIsLeftAloneWhenTheRequestOmitsIt(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
 
-	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"a-key-long-enough-to-pass","serve":true}`); code != http.StatusOK || !put.Serve {
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","serve":true}`); code != http.StatusOK || !put.Serve {
 		t.Fatalf("turning it on = %d %+v", code, put)
 	}
 	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com"}`); code != http.StatusOK || !put.Serve {
@@ -722,15 +701,12 @@ func TestRelayForwardsOnlyTheReadOfTheUnpackings(t *testing.T) {
 func TestRelayProxyTurnsAwayARemovedPhone(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
-	if err := a.Federation.SetJoined(time.Now()); err != nil {
-		t.Fatal(err)
-	}
-	if err := a.Federation.RemoveApp(idAs("phone-gone", member.KindMobile), time.Now()); err != nil {
+	approve(t, a, "phone-gone", member.KindMobile)
+	if err := groupOf(t, a).Remove(idAs("phone-gone", member.KindMobile)); err != nil {
 		t.Fatal(err)
 	}
 
-	if status, body := signedAs(serve, idAs("phone-gone", member.KindMobile), member.KindMobile, keyOf("phone-gone"))(http.MethodGet, "/api/tasks"); status != http.StatusGone {
+	if status, body := deviceAs(t, a, idAs("phone-gone", member.KindMobile), member.KindMobile, keyOf("phone-gone"))(http.MethodGet, "/api/tasks"); status != http.StatusGone {
 		t.Fatalf("the removed phone = %d (%s), want 410", status, body)
 	}
 	if status, body := signedMember(t, a, "phone-kept", member.KindMobile)(http.MethodGet, "/api/tasks"); status != http.StatusOK {
@@ -749,12 +725,12 @@ func TestARelayedAnswerStopsAtWhatAMemberCanRead(t *testing.T) {
 		t.Fatal(err)
 	}
 	id := putFile(t, a, base, "film.mkv", []byte("frames"))
-	if err := os.Truncate(filepath.Join(base, "film.mkv"), 2*relayAnswerMax); err != nil {
+	if err := os.Truncate(filepath.Join(base, "film.mkv"), 2*maxAnswer); err != nil {
 		t.Fatal(err)
 	}
 	status, body := asMember(t, a)(relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks/" + id + "/file"})
-	if status == http.StatusOK || len(body) > relayAnswerMax {
+	if status == http.StatusOK || len(body) > maxAnswer {
 		t.Fatalf("a relayed %d MiB file answered %d with %d MiB, want a refusal within %d MiB",
-			2*relayAnswerMax>>20, status, len(body)>>20, relayAnswerMax>>20)
+			2*maxAnswer>>20, status, len(body)>>20, maxAnswer>>20)
 	}
 }

@@ -1,390 +1,167 @@
 package federation
 
 import (
+	"bytes"
 	"crypto/ed25519"
-	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/parleyport/kit/group"
 	"github.com/junkerderprovinz/parleyport/kit/member"
-	"github.com/junkerderprovinz/parleyport/kit/relay"
 )
 
-func TestGroupRemembersABoundedNumberOfPhones(t *testing.T) {
-	m := newManager(t)
-	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
+// keyFrom is the member key a test names by one byte, and its id as kind.
+func keyFrom(b byte, kind member.Kind) (ed25519.PublicKey, string) {
+	key := ed25519.NewKeyFromSeed(bytes.Repeat([]byte{b}, ed25519.SeedSize)).Public().(ed25519.PublicKey)
+	return key, member.ID(kind, key)
+}
+
+func loadFile(t *testing.T, body string) *Manager {
+	t.Helper()
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "group.json"), []byte(body), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	rt := &fakeRelay{sibs: []relay.Announce{
-		{InstanceID: phoneOld, Name: strings.Repeat("x", 10000), Deployment: "mobile", Client: true},
-	}}
-	m.SetRelay(rt)
-	apps, err := m.Apps(joined.Add(time.Minute))
+	m, err := Load(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(apps) != 1 {
-		t.Fatalf("%d phones, want one", len(apps))
-	}
-	if len(apps[0].Name) != relay.MaxNameBytes {
-		t.Fatalf("its name is %d bytes, want it clipped to %d", len(apps[0].Name), relay.MaxNameBytes)
-	}
+	return m
+}
 
-	rt.sibs = nil
-	for i := 0; i < maxApps; i++ {
-		rt.sibs = append(rt.sibs, relay.Announce{InstanceID: idOf(memberKeyOf(byte(i)), member.KindMobile), Deployment: "mobile", Client: true})
+func TestTheOldGroupComesOverAsTheKitTakesIt(t *testing.T) {
+	_, other := keyFrom(2, member.KindInstance)
+	_, phone := keyFrom(3, member.KindMobile)
+	_, waiting := keyFrom(5, member.KindMobile)
+	m := loadFile(t, `{"joinedAt":"2026-10-01T12:00:00Z",
+		"apps":{"`+phone+`":{"name":"Pixel 8","deployment":"mobile","lastSeen":"2026-11-03T09:00:00Z"}},
+		"members":{"`+other+`":{"name":"Bottich","deployment":"container","address":"https://kl.example.lan","lastSeen":"2026-11-01T09:00:00Z"}},
+		"removed":{"phone-`+strings.Repeat("7", 64)+`":"2026-11-02T09:00:00Z"},
+		"keys":{
+			"`+other+`":{"key":"gTl3Dqh9F19Wo1Rmw0x+zMuNipG07jeiXfYPW4/Js5Q=","kind":"instance","used":"2026-11-04T09:00:00Z","approved":true},
+			"`+phone+`":{"key":"7UkoxijRwsbq6QM4kFmVYSlZJzpcY/k2NsFGFKyHN9E=","kind":"mobile","used":"2026-11-02T09:00:00Z","approved":true},
+			"`+waiting+`":{"key":"bnoc3Smwt4/ROvTFWY/v9O8qlxZuPKby5Pv8zYBQW/E=","kind":"mobile","used":"2026-11-05T09:00:00Z","approved":false}},
+		"revoked":{"`+strings.Repeat("8", 64)+`":"2026-11-02T09:00:00Z"}}`)
+
+	r, ok := m.OldGroup()
+	if !ok {
+		t.Fatal("no old group, want the one group.json holds")
 	}
-	if apps, err = m.Apps(joined.Add(time.Hour)); err != nil {
+	got := map[string]group.Member{}
+	for _, mb := range r.Members {
+		got[mb.ID] = mb
+	}
+	at := func(s string) time.Time {
+		v, _ := time.Parse(time.RFC3339, s)
+		return v
+	}
+	if b := got[other]; b.Kind != member.KindInstance || b.State != group.StateApproved || b.Name != "Bottich" ||
+		b.Deployment != "container" || b.Address != "https://kl.example.lan" || !b.LastSeen.Equal(at("2026-11-04T09:00:00Z")) {
+		t.Errorf("the other instance comes over as %+v", b)
+	}
+	if p := got[phone]; p.Kind != member.KindMobile || p.State != group.StateApproved || p.Name != "Pixel 8" ||
+		!p.LastSeen.Equal(at("2026-11-03T09:00:00Z")) {
+		t.Errorf("the phone comes over as %+v", p)
+	}
+	if w := got[waiting]; w.State != group.StatePending || w.Name != "" {
+		t.Errorf("the phone that waits comes over as %+v", w)
+	}
+	if len(r.Removed) != 1 || len(r.Revoked) != 1 {
+		t.Errorf("removed %v and revoked %v, want one of each", r.Removed, r.Revoked)
+	}
+	if st, _ := m.Joined(false, time.Now()); !st.JoinedAt.Equal(at("2026-10-01T12:00:00Z")) {
+		t.Errorf("joined at %v, want the time group.json keeps", st.JoinedAt)
+	}
+}
+
+func TestANewGroupLeavesNothingOfTheOldOne(t *testing.T) {
+	_, phone := keyFrom(3, member.KindMobile)
+	m := loadFile(t, `{"joinedAt":"2026-10-01T12:00:00Z","keys":{"`+phone+`":{"key":"7UkoxijRwsbq6QM4kFmVYSlZJzpcY/k2NsFGFKyHN9E=","kind":"mobile","approved":true}}}`)
+	if err := m.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if len(apps) != maxApps {
-		t.Fatalf("%d phones remembered, want %d", len(apps), maxApps)
+	if _, ok := m.OldGroup(); ok {
+		t.Error("the old group is still there after entering a new one")
 	}
-	for _, a := range apps {
-		if a.ID == phoneOld {
-			t.Fatal("the phone seen longest ago was kept over a connected one")
-		}
+	again, err := Load(filepath.Dir(m.group.path))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := again.OldGroup(); ok {
+		t.Error("group.json still holds the old group after a restart")
+	}
+}
+
+func TestAGroupJSONWithoutMembersHasNoOldGroup(t *testing.T) {
+	m := loadFile(t, `{"joinedAt":"2026-10-01T12:00:00Z","memberSeenAt":"2026-10-01T12:01:00Z"}`)
+	if r, ok := m.OldGroup(); ok {
+		t.Errorf("old group %+v from a file that holds none", r)
+	}
+}
+
+func TestADamagedGroupFileStopsTheStart(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "group.json"), []byte(`{"keys":`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(dir); err == nil {
+		t.Fatal("a damaged group.json loaded as an empty group")
 	}
 }
 
 func TestGroupKeepsTheFirstTimeAMemberCame(t *testing.T) {
-	dir := t.TempDir()
-	m, err := Load(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
+	m := newManager(t)
+	joined := time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC)
 	if err := m.SetJoined(joined); err != nil {
 		t.Fatal(err)
 	}
-
-	st, err := m.Group(false, joined.Add(30*time.Second))
-	if err != nil {
-		t.Fatal(err)
+	if st, _ := m.Joined(false, joined.Add(time.Minute)); !st.MemberSeenAt.IsZero() {
+		t.Fatalf("member seen at %v with nobody there", st.MemberSeenAt)
 	}
-	if !st.JoinedAt.Equal(joined) || !st.MemberSeenAt.IsZero() {
-		t.Fatalf("alone in the group: %+v", st)
+	first := joined.Add(2 * time.Minute)
+	if st, _ := m.Joined(true, first); !st.MemberSeenAt.Equal(first) {
+		t.Fatalf("member seen at %v, want %v", st.MemberSeenAt, first)
 	}
-
-	came := joined.Add(2 * time.Minute)
-	if st, err = m.Group(true, came); err != nil {
-		t.Fatal(err)
-	}
-	if !st.MemberSeenAt.Equal(came) {
-		t.Fatalf("MemberSeenAt = %v, want %v", st.MemberSeenAt, came)
-	}
-	if st, err = m.Group(false, came.Add(time.Hour)); err != nil {
-		t.Fatal(err)
-	}
-	if !st.MemberSeenAt.Equal(came) {
-		t.Fatalf("a member going away moved MemberSeenAt to %v", st.MemberSeenAt)
-	}
-
-	again, err := Load(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if st, _ := again.Group(false, came.Add(time.Hour)); !st.JoinedAt.Equal(joined) || !st.MemberSeenAt.Equal(came) {
-		t.Fatalf("after a restart: %+v", st)
+	if st, _ := m.Joined(true, first.Add(time.Hour)); !st.MemberSeenAt.Equal(first) {
+		t.Errorf("member seen at %v later, want the first time kept", st.MemberSeenAt)
 	}
 }
 
-func TestLeavingStartsTheNextGroupWithNobodySeen(t *testing.T) {
+func TestADroppedRelayKeyIsRememberedUntilTheNextGroup(t *testing.T) {
 	m := newManager(t)
-	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
+	if err := m.DropRelayKey(); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := m.Group(true, joined.Add(time.Minute)); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := m.SetJoined(time.Time{}); err != nil {
-		t.Fatal(err)
-	}
-	st, err := m.Group(true, joined.Add(2*time.Minute))
+	again, err := Load(filepath.Dir(m.group.path))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !st.JoinedAt.IsZero() || !st.MemberSeenAt.IsZero() {
-		t.Fatalf("outside a group: %+v", st)
+	if st, _ := again.Joined(false, time.Now()); !st.RelayKeyDropped || !st.JoinedAt.IsZero() {
+		t.Fatalf("after a restart %+v, want the dropped key noted and no group", st)
 	}
-
-	rejoined := joined.Add(3 * time.Minute)
-	if err := m.SetJoined(rejoined); err != nil {
+	if err := again.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if st, _ := m.Group(false, rejoined); !st.MemberSeenAt.IsZero() {
-		t.Fatalf("a new group starts with a member seen: %+v", st)
+	if st, _ := again.Joined(false, time.Now()); st.RelayKeyDropped {
+		t.Error("the dropped key is still noted in a group entered with the phrase")
 	}
 }
 
-func TestMembersAreTheInstancesOnTheRelay(t *testing.T) {
+func TestStillMemberIsOnlyAnApprovedMember(t *testing.T) {
 	m := newManager(t)
-	if err := m.Add(Instance{Name: "nas", URL: "http://192.168.1.5:8749"}); err != nil {
-		t.Fatal(err)
+	_, phone := keyFrom(3, member.KindMobile)
+	_, waiting := keyFrom(5, member.KindMobile)
+	if m.StillMember(phone) {
+		t.Error("a member outside any group")
 	}
-	m.SetRelay(&fakeRelay{sibs: []relay.Announce{
-		{InstanceID: officeID, Name: "office"},
-		{InstanceID: "bbbb", Name: "phone", Client: true},
+	m.SetGroup(&fakeGroup{members: []group.Member{
+		{ID: phone, Kind: member.KindMobile, State: group.StateApproved},
+		{ID: waiting, Kind: member.KindMobile, State: group.StatePending},
 	}})
-
-	got := m.Members()
-	if len(got) != 1 || got[0].RelayID != officeID {
-		t.Fatalf("Members() = %+v, want only the instance on the relay", got)
+	if !m.StillMember(phone) || m.StillMember(waiting) {
+		t.Errorf("approved phone %v, waiting phone %v, want only the approved one", m.StillMember(phone), m.StillMember(waiting))
 	}
 }
-
-func TestAPhoneOrExtensionThatWentAwayKeepsItsCard(t *testing.T) {
-	m := newManager(t)
-	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
-		t.Fatal(err)
-	}
-	rt := &fakeRelay{sibs: []relay.Announce{
-		{InstanceID: phone1, Name: "Pixel 8", Deployment: "mobile", Client: true},
-		{InstanceID: browser1, Name: "Chrome", Deployment: "extension", Client: true},
-		{InstanceID: officeID, Name: "office"},
-	}}
-	m.SetRelay(rt)
-
-	seen := joined.Add(time.Minute)
-	apps, err := m.Apps(seen)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// Connected ones first, then by name.
-	if len(apps) != 2 || apps[0].ID != browser1 || apps[0].Deployment != "extension" || !apps[0].Connected ||
-		apps[1].ID != phone1 || apps[1].Deployment != "mobile" || !apps[1].Connected {
-		t.Fatalf("apps = %+v, want the extension and the phone connected and not the instance", apps)
-	}
-
-	rt.sibs = rt.sibs[2:]
-	apps, _ = m.Apps(seen.Add(time.Hour))
-	if len(apps) != 2 || apps[0].Connected || apps[1].Connected || !apps[1].LastSeen.Equal(seen) {
-		t.Fatalf("apps after both left = %+v, want them not connected, last seen %v", apps, seen)
-	}
-
-	if err := m.SetJoined(time.Time{}); err != nil {
-		t.Fatal(err)
-	}
-	if apps, _ := m.Apps(seen); len(apps) != 0 {
-		t.Fatalf("apps after leaving = %+v, want none", apps)
-	}
-}
-
-func TestAnExtensionBetweenCallsIsSeenWhenItsKeyLastSigned(t *testing.T) {
-	m := newManager(t)
-	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
-		t.Fatal(err)
-	}
-	rt := &fakeRelay{sibs: []relay.Announce{
-		{InstanceID: browser1, Name: "Chrome", Deployment: "extension", Client: true},
-		{InstanceID: phone1, Name: "Pixel 8", Deployment: "mobile", Client: true},
-	}}
-	m.SetRelay(rt)
-	seen := joined.Add(time.Minute)
-	if _, err := m.Apps(seen); err != nil {
-		t.Fatal(err)
-	}
-
-	// The extension signs a call an hour later, on a socket that is gone
-	// again before anybody asks. The phone's key signed before its card was
-	// last written and waits for approval.
-	rt.sibs = nil
-	called := seen.Add(time.Hour)
-	m.group.state.Keys = map[string]PinnedKey{
-		browser1: {Key: memberKeyOf(204).Public().(ed25519.PublicKey), Kind: member.KindExtension, Approved: true, Used: called},
-		phone1:   {Key: memberKeyOf(202).Public().(ed25519.PublicKey), Kind: member.KindMobile, Used: joined},
-	}
-	apps, err := m.Apps(called.Add(time.Minute))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(apps) != 2 {
-		t.Fatalf("apps = %+v, want the extension and the phone", apps)
-	}
-	browser, phone := apps[0], apps[1]
-	if browser.ID != browser1 || browser.Connected || !browser.Approved || !browser.LastSeen.Equal(called) {
-		t.Errorf("extension = %+v, want it approved, not connected, last seen %v", browser, called)
-	}
-	if phone.ID != phone1 || phone.Approved || !phone.LastSeen.Equal(seen) {
-		t.Errorf("phone = %+v, want it not approved and last seen %v", phone, seen)
-	}
-}
-
-func TestARemovedPhoneStaysOutUntilItComesBackAsANewOne(t *testing.T) {
-	m := newManager(t)
-	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
-		t.Fatal(err)
-	}
-	phone := relay.Announce{InstanceID: phone1, Name: "Pixel 8", Deployment: "mobile", Client: true}
-	rt := &fakeRelay{sibs: []relay.Announce{phone}}
-	m.SetRelay(rt)
-	seen := joined.Add(time.Minute)
-	if _, err := m.Apps(seen); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := m.RemoveApp(phone1, seen); err != nil {
-		t.Fatal(err)
-	}
-	if !m.Removed(phone1) {
-		t.Fatal("the removed phone is not listed as removed")
-	}
-	if apps, _ := m.Apps(seen.Add(time.Hour)); len(apps) != 0 {
-		t.Fatalf("apps while the removed phone is still connected = %+v, want none", apps)
-	}
-
-	rescanned := relay.Announce{InstanceID: phone2, Name: "Pixel 8", Deployment: "mobile", Client: true}
-	rt.sibs = []relay.Announce{rescanned}
-	if apps, _ := m.Apps(seen.Add(2 * time.Hour)); len(apps) != 1 || apps[0].ID != phone2 {
-		t.Fatalf("apps after scanning the phrase again = %+v, want the new id", apps)
-	}
-
-	if err := m.SetJoined(time.Time{}); err != nil {
-		t.Fatal(err)
-	}
-	if m.Removed(phone1) {
-		t.Fatal("a new group still turns away a phone removed from the old one")
-	}
-}
-
-func TestABrowserJoiningUnderAFreshIDEachSessionKeepsOneCard(t *testing.T) {
-	m := newManager(t)
-	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
-		t.Fatal(err)
-	}
-	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: phone1, Name: "Pixel 8", Deployment: "mobile", Client: true}}}
-	m.SetRelay(rt)
-	now := joined.Add(time.Minute)
-	if _, err := m.Apps(now); err != nil {
-		t.Fatal(err)
-	}
-
-	member := idOf(memberKeyOf(201), member.KindExtension)
-	for i := range 40 {
-		now = now.Add(time.Minute)
-		session := fmt.Sprintf("%040x", i)
-		rt.sibs = []relay.Announce{{InstanceID: session, Name: "Browser", Deployment: "extension", Client: true, Member: member}}
-		if _, err := m.Apps(now); err != nil {
-			t.Fatal(err)
-		}
-	}
-	rt.sibs = nil
-	apps, _ := m.Apps(now.Add(time.Minute))
-	if len(apps) != 2 || apps[0].ID != member || apps[1].ID != phone1 {
-		t.Fatalf("apps = %+v, want one card for the browser and the phone's", apps)
-	}
-
-	if err := m.RemoveApp(member, now); err != nil {
-		t.Fatal(err)
-	}
-	if !m.Removed(member) {
-		t.Fatal("a removed browser's next call is not turned away")
-	}
-}
-
-func TestAnApprovedInstanceThatClosedKeepsItsCardThroughARestart(t *testing.T) {
-	dir := t.TempDir()
-	m, err := Load(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
-		t.Fatal(err)
-	}
-	m.group.state.Keys = map[string]PinnedKey{
-		laptopID: {Key: memberKeyOf(210).Public().(ed25519.PublicKey), Kind: member.KindInstance, Approved: true, Used: joined},
-	}
-	rt := &fakeRelay{sibs: []relay.Announce{
-		{InstanceID: laptopID, Name: "Zathallia", Deployment: "desktop", Address: "http://192.168.20.86:8749"},
-	}}
-	m.SetRelay(rt)
-	seen := joined.Add(time.Minute)
-	if away, err := m.AwayMembers(seen); err != nil || len(away) != 0 {
-		t.Fatalf("away while it is there = %+v, %v; want none", away, err)
-	}
-
-	rt.sibs = nil
-	want := AwayMember{ID: laptopID, KnownMember: KnownMember{Name: "Zathallia", Deployment: "desktop",
-		Address: "http://192.168.20.86:8749", LastSeen: seen}}
-	away, err := m.AwayMembers(seen.Add(time.Hour))
-	if err != nil || len(away) != 1 || away[0] != want {
-		t.Fatalf("away after it closed = %+v, %v; want %+v", away, err, want)
-	}
-
-	restarted, err := Load(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if away, _ := restarted.AwayMembers(seen.Add(2 * time.Hour)); len(away) != 1 || !away[0].LastSeen.Equal(seen) {
-		t.Fatalf("away after a restart = %+v, want the desktop app last seen %v", away, seen)
-	}
-
-	if err := restarted.RemoveMember(laptopID, seen.Add(3*time.Hour)); err != nil {
-		t.Fatal(err)
-	}
-	if away, _ := restarted.AwayMembers(seen.Add(3 * time.Hour)); len(away) != 0 {
-		t.Fatalf("away after it was taken out = %+v, want none", away)
-	}
-	if again, _ := Load(dir); len(again.group.state.Members) != 0 {
-		t.Fatalf("the card of the instance taken out is still stored: %+v", again.group.state.Members)
-	}
-}
-
-func TestAnInstanceNobodyApprovedLeavesNoCardBehind(t *testing.T) {
-	m := newManager(t)
-	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
-		t.Fatal(err)
-	}
-	m.group.state.Keys = map[string]PinnedKey{
-		nasID: {Key: memberKeyOf(211).Public().(ed25519.PublicKey), Kind: member.KindInstance, Used: joined},
-	}
-	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: nasID, Name: "stranger"}, {InstanceID: bravoID, Name: "unsigned"}}}
-	m.SetRelay(rt)
-	if _, err := m.AwayMembers(joined.Add(time.Minute)); err != nil {
-		t.Fatal(err)
-	}
-	rt.sibs = nil
-	if away, _ := m.AwayMembers(joined.Add(time.Hour)); len(away) != 0 {
-		t.Fatalf("away = %+v, want nobody, since nobody was approved", away)
-	}
-}
-
-func TestAnAwayInstanceIsSeenWhenItsKeyLastSigned(t *testing.T) {
-	m := newManager(t)
-	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
-		t.Fatal(err)
-	}
-	key := memberKeyOf(212).Public().(ed25519.PublicKey)
-	m.group.state.Keys = map[string]PinnedKey{laptopID: {Key: key, Kind: member.KindInstance, Approved: true, Used: joined}}
-	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: laptopID, Name: "Zathallia", Deployment: "desktop"}}}
-	m.SetRelay(rt)
-	if _, err := m.AwayMembers(joined.Add(time.Minute)); err != nil {
-		t.Fatal(err)
-	}
-
-	rt.sibs = nil
-	called := joined.Add(time.Hour)
-	m.group.state.Keys[laptopID] = PinnedKey{Key: key, Kind: member.KindInstance, Approved: true, Used: called}
-	if away, _ := m.AwayMembers(called.Add(time.Hour)); len(away) != 1 || !away[0].LastSeen.Equal(called) {
-		t.Fatalf("away = %+v, want the desktop app last seen %v", away, called)
-	}
-}
-
-// Device ids as the app and the extension make them.
-var (
-	phoneOld = idOf(memberKeyOf(200), member.KindMobile)
-	phone1   = idOf(memberKeyOf(202), member.KindMobile)
-	phone2   = idOf(memberKeyOf(203), member.KindMobile)
-	browser1 = idOf(memberKeyOf(204), member.KindExtension)
-)

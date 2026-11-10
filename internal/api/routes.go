@@ -137,11 +137,6 @@ type Registry struct {
 	// ServeMux panicking at startup in production.
 	seen map[string]bool
 
-	// refreshDiscovery re-reads what this instance announces on the network,
-	// for a settings save that renames it. registerDiscovery sets it; until
-	// then, and on a build without discovery, it does nothing.
-	refreshDiscovery func()
-
 	// passwordGate throttles every route that checks the login password, so
 	// a route that asks for it again cannot serve as an unthrottled way to
 	// guess it.
@@ -160,10 +155,9 @@ type Registry struct {
 
 func newRegistry() *Registry {
 	return &Registry{
-		seen:             map[string]bool{},
-		refreshDiscovery: func() {},
-		passwordGate:     newLoginGate(nil),
-		proxySeen:        newProxySeen(),
+		seen:         map[string]bool{},
+		passwordGate: newLoginGate(nil),
+		proxySeen:    newProxySeen(),
 	}
 }
 

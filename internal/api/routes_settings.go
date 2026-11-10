@@ -60,7 +60,6 @@ func registerSettings(reg *Registry, a *app.App) {
 			if applied.InstanceName != prev.InstanceName || applied.RelayURL != prev.RelayURL ||
 				!slices.Equal(applied.KnownDomains, prev.KnownDomains) {
 				applyRelay(a)
-				reg.refreshDiscovery()
 			}
 			writeJSON(w, settingsBody(a, applied))
 		})
@@ -115,15 +114,13 @@ func registerSettings(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// The relay client is rebuilt only when the patch touches what it
-			// is built from: the name and address it announces in its hello
-			// frame, and the relay it dials.
+			// The group is opened again only when the patch touches what it
+			// is opened with: the name and address it announces and the relay
+			// it dials.
 			_, renamed := patch["instanceName"]
 			_, readdressed := patch["knownDomains"]
-			if renamed || readdressed {
-				applyRelay(a)
-				reg.refreshDiscovery()
-			} else if _, ok := patch["relayUrl"]; ok {
+			_, rerouted := patch["relayUrl"]
+			if renamed || readdressed || rerouted {
 				applyRelay(a)
 			}
 			writeJSON(w, settingsBody(a, applied))

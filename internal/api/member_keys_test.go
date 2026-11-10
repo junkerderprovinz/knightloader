@@ -210,10 +210,12 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	if code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil); code != http.StatusOK {
 		t.Fatalf("the first instance asking the second = %d %s", code, body)
 	}
-	st, _ := secondApp.Federation.Group(false, time.Now())
-	pin, ok := st.Keys[firstID]
-	if !ok || pin.Kind != member.KindInstance || string(pin.Key) != string(memberKey(firstApp).Public()) {
-		t.Fatalf("the second instance pinned %+v for the first, want the first's own member key as an instance", st.Keys)
+	pinned := false
+	for _, m := range secondApp.Federation.Group().Roster().Members {
+		pinned = pinned || (m.ID == firstID && m.Kind == member.KindInstance && string(m.Key) == string(memberKey(firstApp).Public()))
+	}
+	if !pinned {
+		t.Fatalf("the second instance pinned %+v, want the first's own member key as an instance", secondApp.Federation.Group().Roster().Members)
 	}
 
 	tasks := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: firstID, Kind: member.KindInstance}

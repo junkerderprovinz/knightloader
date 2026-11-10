@@ -37,7 +37,7 @@ func registerFortress(reg *Registry, a *app.App) {
 // fortressAccess decides who may read the fortress status.
 func fortressAccess(a *app.App) func(*http.Request) error {
 	return func(r *http.Request) error {
-		if fromRelayGroup(r) {
+		if fromGroup(r) {
 			return nil
 		}
 		if c, err := r.Cookie(auth.CookieName); err == nil && a.Auth.Enabled() && a.Auth.Valid(c.Value) {

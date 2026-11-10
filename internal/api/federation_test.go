@@ -12,7 +12,8 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
-	"github.com/junkerderprovinz/parleyport/kit/relay"
+	"github.com/junkerderprovinz/parleyport/kit/group"
+	"github.com/junkerderprovinz/parleyport/kit/member"
 )
 
 // TestFederationProxy runs two real instances and drives instance B entirely
@@ -120,7 +121,7 @@ func TestFederationProxy(t *testing.T) {
 // TestLinksHandedOverAreAnnouncedToTheOpenPages checks both ends of a
 // handover: the instance that forwards links says who they went to, and the
 // one a group member hands links to says who they came from. Reading a peer's
-// list announces nothing, nor do links from a sender nothing names.
+// list announces nothing.
 func TestLinksHandedOverAreAnnouncedToTheOpenPages(t *testing.T) {
 	t.Parallel()
 	aSrv, aApp := testServer(t)
@@ -164,17 +165,14 @@ func TestLinksHandedOverAreAnnouncedToTheOpenPages(t *testing.T) {
 
 	arrived := dialWS(t, "ws"+strings.TrimPrefix(bSrv.URL, "http"))
 	readOneOfType(t, arrived, "snapshot")
-	serve := announceArrivals(bApp, relayProxyHandler(Handler(bApp)))
-	add := relay.ProxyCall{Method: http.MethodPost, Path: "/api/links", Body: links}
-	if status, answer := serve(context.Background(), add); status/100 != 2 {
-		t.Fatalf("links from an unnamed member answered %d: %s", status, answer)
+	w := httptest.NewRecorder()
+	add := httptest.NewRequest(http.MethodPost, "/api/links", bytes.NewReader(links))
+	add.Header.Set("Content-Type", "application/json")
+	add.Host = "127.0.0.1:8080"
+	serveMember(bApp, bApp.SelfServeHandler(), group.Caller{ID: "pixel", Kind: member.KindMobile}, w, add)
+	if w.Code/100 != 2 {
+		t.Fatalf("links from the phone answered %d: %s", w.Code, w.Body.Bytes())
 	}
-	add.From = "pixel"
-	add.Body, _ = json.Marshal(map[string]string{"links": "https://example.com/two.zip"})
-	if status, answer := serve(context.Background(), add); status/100 != 2 {
-		t.Fatalf("links from the phone answered %d: %s", status, answer)
-	}
-	// The unnamed call went first, so its announcement would be read here.
 	if peer, out := handed(readOneOfType(t, arrived, "handover")); peer != "pixel" || out {
 		t.Errorf("arriving links announced as peer %q, out %v, want pixel coming in", peer, out)
 	}
@@ -237,24 +235,29 @@ func readAll(r *http.Response) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-// relayOnlyPeer is a relay transport carrying one sibling with no address of
-// its own, such as a desktop build. It answers one path so the proxy below has
+// relayOnlyPeer is a group with members reached through the relay alone,
+// such as a desktop build. It answers one path so the proxy below has
 // something real to reach.
 type relayOnlyPeer struct {
-	sibs    []relay.Announce
+	members []group.Member
 	gotPath string
 	gotBody []byte
 	gotBoth bool
 }
 
-func (r *relayOnlyPeer) Siblings() []relay.Announce { return r.sibs }
-func (r *relayOnlyPeer) Connected() bool            { return true }
-func (r *relayOnlyPeer) Close() error               { return nil }
-func (r *relayOnlyPeer) Proxy(_ context.Context, target, method, path string, body []byte) ([]byte, int, error) {
+func (r *relayOnlyPeer) Members() []group.Member { return r.members }
+func (r *relayOnlyPeer) RelayConnected() bool    { return true }
+func (r *relayOnlyPeer) Close() error            { return nil }
+func (r *relayOnlyPeer) Call(_ context.Context, target, method, path string, body []byte) (int, []byte, error) {
 	r.gotPath = path
 	r.gotBody = body
 	r.gotBoth = target == desktopID && method == http.MethodPost
-	return []byte(`[{"id":"t1","name":"file.zip"}]`), http.StatusOK, nil
+	return http.StatusOK, []byte(`[{"id":"t1","name":"file.zip"}]`), nil
+}
+
+// onTheRelay is an instance of the group the relay reaches.
+func onTheRelay(id, name, deployment string) group.Member {
+	return group.Member{ID: id, Kind: member.KindInstance, Name: name, Deployment: deployment, State: group.StateApproved, Relay: true}
 }
 
 // TestRelayOnlyPeerIsListedAndReachable pins the two facts the browser
@@ -277,13 +280,10 @@ func TestRelayOnlyPeerIsListedAndReachable(t *testing.T) {
 	srv := httptest.NewServer(Handler(a))
 	defer srv.Close()
 
-	// After Handler, not before: Handler calls applyRelay, which reconciles
-	// the transport against the saved settings and would drop one installed
-	// ahead of it.
-	rt := &relayOnlyPeer{sibs: []relay.Announce{
-		{InstanceID: desktopID, Name: "Workshop laptop", Deployment: "desktop"},
-	}}
-	a.Federation.SetRelay(rt)
+	// After Handler, not before: Handler calls applyRelay, which opens the
+	// group from the saved settings and would drop one installed ahead of it.
+	rt := &relayOnlyPeer{members: []group.Member{onTheRelay(desktopID, "Workshop laptop", "desktop")}}
+	a.Federation.SetGroup(rt)
 
 	resp, err := http.Get(srv.URL + "/api/instances")
 	if err != nil {
