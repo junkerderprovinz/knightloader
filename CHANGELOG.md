@@ -38,6 +38,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Added
+
+- **You can put links in a category by hand.** Right-click a package or a
+  selection in the collector or in Downloads and pick one under Category, or
+  None to take them out. When you add links, Options has a Category field too,
+  so a batch lands in its category from the start. A Packagizer rule that
+  names a category still wins. Thanks to @Kayn2106 for asking how
+  ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
+
 ## [2.7.6] - 2026-11-09
 
 ### Added

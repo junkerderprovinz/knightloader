@@ -20,7 +20,7 @@ globalThis.ResizeObserver ??= class {
 let root: Root;
 let host: HTMLDivElement;
 let switched: unknown[];
-let sent: { links: string }[];
+let sent: { links: string; category?: string }[];
 
 const reply = (body: unknown) =>
   new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -52,6 +52,7 @@ beforeEach(() => {
         return reply([{ id: 't1', url: 'https://example.com/a.bin', status: 'collected' }]);
       }
       if (url.startsWith('/api/uistate')) return reply({});
+      if (url === '/api/settings') return reply({ categories: [{ id: 'filme', name: 'Movies' }] });
       return reply([]);
     }),
   );
@@ -146,4 +147,20 @@ it('sends the links in the box when Add links is pressed', async () => {
   await act(async () => button('Add links').click());
 
   expect(sent.map((s) => s.links)).toEqual(['https://example.com/a.bin']);
+});
+
+it('files the batch under the category picked in the options', async () => {
+  await act(async () => root.render(<Card />));
+  const box = host.querySelector('textarea')!;
+  Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(box, 'https://example.com/a.bin');
+  act(() => box.dispatchEvent(new Event('input', { bubbles: true })));
+
+  await act(async () => button('Options').click());
+  await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="Category: None"]')!.click());
+  await act(async () => [...document.querySelectorAll<HTMLElement>('[role^="menuitem"]')].find((x) => x.textContent?.includes('Movies'))!.click());
+  expect(host.querySelector('[data-marked]')).not.toBeNull();
+  await act(async () => button('Close').click());
+  await act(async () => button('Add links').click());
+
+  expect(sent.map((s) => s.category)).toEqual(['filme']);
 });

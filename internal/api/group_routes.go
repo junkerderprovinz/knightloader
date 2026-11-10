@@ -44,6 +44,7 @@ var groupRoutes = map[string]bool{
 	"GET /api/tasks":                     true,
 	"GET /api/tasks/watch":               true,
 	"POST /api/tasks/backends":           true,
+	"POST /api/tasks/category":           true,
 	"POST /api/tasks/delete":             true,
 	"POST /api/tasks/enabled":            true,
 	"POST /api/tasks/force":              true,

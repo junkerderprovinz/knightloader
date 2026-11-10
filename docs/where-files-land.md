@@ -18,6 +18,13 @@ category unpacks its archives somewhere else, series in one place and films in
 another. Left empty, the category unpacks where "Unpack to" on the Archives
 page says.
 
+There are three ways to put links in a category. Pick it under Options when
+you add the links. Right-click a package or a selection in the collector or
+in Downloads and choose it under Category, where None takes them out again.
+Or let a Packagizer rule file them, which wins over the choice you made when
+adding. A download that has already started keeps the folder it started in,
+and only links still waiting follow the new category's folder.
+
 ## Never in the data folder
 
 Nothing a download, an unpacking, a move or a rename writes may land in

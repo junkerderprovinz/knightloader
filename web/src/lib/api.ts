@@ -84,6 +84,8 @@ export interface Task {
 
   /** What a Packagizer rule attached; nothing in the app acts on it. */
   comment?: string;
+  /** The id of the category this link is filed under; absent when none. */
+  category?: string;
   /** Connections this download opens. 0 hands the count to the global setting;
    *  a resolver's limit can only lower it. */
   chunks?: number;
@@ -1321,6 +1323,8 @@ export interface AddLinksOptions {
   password?: string;
   downloadPassword?: string;
   comment?: string;
+  /** The id of the category the batch is filed under. A rule naming another wins. */
+  category?: string;
   priority?: number;
   autoExtract?: boolean;
   overrule?: boolean;
@@ -1555,6 +1559,10 @@ export async function setEnabled(ids: string[], enabled: boolean, base = '/api')
   if (enabled && base !== '/api') await post(`${base}/tasks/hold`, { ids, hold: false }).catch(() => undefined);
   return done;
 }
+
+/** setCategory files a selection under a category by its id, or under none for ''. */
+export const setCategory = async (ids: string[], category: string, base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/tasks/category`, { ids, category })));
 
 /** setForced marks a selection to run ahead of the concurrency limits. */
 export const setForced = async (ids: string[], forced: boolean, base = '/api') =>

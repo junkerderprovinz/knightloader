@@ -15,6 +15,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
@@ -446,5 +447,75 @@ func TestRemovingALinksShownRowsOneByOneLeavesNothingBehind(t *testing.T) {
 
 	for _, left := range a.Tasks() {
 		t.Errorf("the %s row is still listed for a link whose shown rows were both removed", left.Variant)
+	}
+}
+
+func withCategory(t *testing.T, a *app.App) {
+	t.Helper()
+	s := a.Settings.Get()
+	s.Categories = []settings.Category{{ID: "serien", Name: "Serien"}}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestBulkCategoryFilesASelectionAndTakesItOut(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	withCategory(t, a)
+	sel := ids(stage(t, a, "https://host.example/one.bin", "https://host.example/two.bin"))
+
+	for _, want := range []string{"serien", ""} {
+		code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/category",
+			map[string]any{"ids": sel, "category": want})
+		if code != http.StatusOK {
+			t.Fatalf("filing under %q = %d: %s", want, code, body)
+		}
+		for _, task := range a.Tasks() {
+			if task.Category != want {
+				t.Errorf("task %s is filed under %q, want %q", task.ID, task.Category, want)
+			}
+		}
+	}
+}
+
+func TestBulkCategoryRefusesAKeyNoCategoryHas(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	withCategory(t, a)
+	sel := ids(stage(t, a, "https://host.example/one.bin"))
+
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/category",
+		map[string]any{"ids": sel, "category": "filme"})
+	if code != http.StatusBadRequest {
+		t.Fatalf("filing under a missing category = %d: %s", code, body)
+	}
+	if got := a.Tasks()[0].Category; got != "" {
+		t.Errorf("the refused request filed the link under %q", got)
+	}
+}
+
+func TestAddedLinksAreFiledInTheChosenCategory(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	withCategory(t, a)
+
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/links",
+		map[string]any{"links": "https://host.example/one.bin", "category": "Serien"})
+	if code != http.StatusOK {
+		t.Fatalf("adding with a category = %d: %s", code, body)
+	}
+	tasks := a.Tasks()
+	if len(tasks) != 1 || tasks[0].Category != "serien" {
+		t.Fatalf("the added link is not filed under serien: %+v", tasks)
+	}
+
+	code, body = postJSON(t, http.MethodPost, srv.URL+"/api/links",
+		map[string]any{"links": "https://host.example/two.bin", "category": "filme"})
+	if code != http.StatusBadRequest {
+		t.Fatalf("adding with a missing category = %d: %s", code, body)
 	}
 }

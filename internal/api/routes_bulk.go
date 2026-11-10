@@ -6,9 +6,12 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // bulkResult is the answer for every route here: what was actually touched, so
@@ -36,6 +39,20 @@ func bulkDone(w http.ResponseWriter, ids []string) {
 		ids = []string{}
 	}
 	writeJSON(w, bulkResult{Ids: ids, Count: len(ids)})
+}
+
+// categoryKey is the key of the category raw names by its name or its key, and
+// "" for an empty raw. A name no category has is refused, because filing links
+// under it would look like it worked and change nothing.
+func categoryKey(s settings.Settings, raw string) (string, error) {
+	if strings.TrimSpace(raw) == "" {
+		return "", nil
+	}
+	c, ok := s.CategoryByName(raw)
+	if !ok {
+		return "", fmt.Errorf("there is no category %q", raw)
+	}
+	return c.ID, nil
 }
 
 func registerBulk(reg *Registry, a *app.App) {
@@ -112,6 +129,22 @@ func registerBulk(reg *Registry, a *app.App) {
 				return
 			}
 			bulkDone(w, a.SetForced(body.Ids, body.Forced))
+		})
+	reg.Add(http.MethodPost, "/api/tasks/category", "file a selection under a category, by its name or key, or under none for an empty one",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Ids      []string `json:"ids"`
+				Category string   `json:"category"`
+			}
+			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
+				return
+			}
+			key, err := categoryKey(a.Settings.Get(), body.Category)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			bulkDone(w, a.SetCategory(body.Ids, key))
 		})
 	// Deleting the rows and deleting the files are two fields, so the
 	// destructive one is never implied by the other. The interface confirms it

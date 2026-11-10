@@ -1,6 +1,7 @@
-// The add-links form: the paste box plus per-batch destination, priority,
-// unpacking, comment, the archive and hoster passwords (two different
-// secrets, see TaskOptionsPatch) and a history of recent destinations.
+// The add-links form: the paste box plus per-batch destination, category,
+// priority, unpacking, comment, the archive and hoster passwords (two
+// different secrets, see TaskOptionsPatch) and a history of recent
+// destinations.
 //
 // A matching Packagizer rule wins over priority, unpacking and comment unless
 // "Overrule" is on; a destination picked here always wins (see
@@ -22,6 +23,8 @@ import {
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
+import { useCategories } from '../lib/useCategories';
+import { Dropdown } from './Dropdown';
 import { PathInput } from './FolderPicker';
 import { AnchoredPanel } from './AnchoredPanel';
 import { LinkIntakeButtons } from './LinkIntakeButtons';
@@ -134,6 +137,10 @@ export function AddLinksForm({
   const [overrule, setOverrule] = useUIState(OVERRULE_KEY, false);
 
   const [dir, setDir] = useState('');
+  const categories = useCategories('/api');
+  const [category, setCategory] = useState('');
+  // A category deleted while it was picked would refuse the whole batch.
+  const filed = categories.some((c) => c.id === category) ? category : '';
   const [priority, setPriority] = useState<string | null>(null);
   const [autoExtract, setAutoExtract] = useState<'inherit' | 'on' | 'off'>('inherit');
   const [comment, setComment] = useState('');
@@ -157,13 +164,14 @@ export function AddLinksForm({
         password: password.trim() || undefined,
         downloadPassword: downloadPassword.trim() || undefined,
         comment: comment.trim() || undefined,
+        category: filed || undefined,
         priority: priority === null ? undefined : Number(priority),
         autoExtract: autoExtract === 'inherit' ? undefined : autoExtract === 'on',
         overrule: overrule || undefined,
       });
       setLinks('');
-      // Comment and passwords belong to this batch; destination, priority,
-      // unpacking and Overrule carry over to the next one.
+      // Comment and passwords belong to this batch; destination, category,
+      // priority, unpacking and Overrule carry over to the next one.
       setComment('');
       setPassword('');
       setDownloadPassword('');
@@ -232,6 +240,7 @@ export function AddLinksForm({
   const optionsSet =
     pkg.trim() !== '' ||
     dir.trim() !== '' ||
+    filed !== '' ||
     priority !== null ||
     autoExtract !== 'inherit' ||
     comment.trim() !== '' ||
@@ -316,6 +325,20 @@ export function AddLinksForm({
             ))}
           </div>
         </div>
+      )}
+
+      {categories.length > 0 && (
+        <SettingRow control="long" label={t('collector.category')} hint={t('collector.categoryHint')}>
+          <Dropdown
+            value={filed}
+            onChange={setCategory}
+            options={[
+              { value: '', label: t('menu.categoryNone') },
+              ...categories.map((c) => ({ value: c.id, label: c.name || c.id })),
+            ]}
+            label={t('collector.category')}
+          />
+        </SettingRow>
       )}
 
       <SettingRow label={t('props.priority')} hint={t('props.priorityHint')}>

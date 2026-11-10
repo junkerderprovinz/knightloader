@@ -18,7 +18,7 @@ import (
 
 func registerLinks(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/links",
-		"stage links in the collector; optional per-batch destination, priority, unpacking switch, comment, the two passwords, whether they overwrite a matching Packagizer rule, which entrance they arrived by, the page they came from, and for a single link the browser's Cookie, Referer and User-Agent, kept in memory for that download only, and whether that link is a file the browser was downloading, with its name; for yt-dlp links a format (video, audio or a resolution) that stands in for the host's preset; returns the tasks created",
+		"stage links in the collector; optional per-batch destination, category, priority, unpacking switch, comment, the two passwords, whether they overwrite a matching Packagizer rule, which entrance they arrived by, the page they came from, and for a single link the browser's Cookie, Referer and User-Agent, kept in memory for that download only, and whether that link is a file the browser was downloading, with its name; for yt-dlp links a format (video, audio or a resolution) that stands in for the host's preset; returns the tasks created",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Links   string `json:"links"` // newline-separated, like JD's paste box
@@ -37,6 +37,7 @@ func registerLinks(reg *Registry, a *app.App) {
 				Password         string `json:"password"`
 				DownloadPassword string `json:"downloadPassword"`
 				Comment          string `json:"comment"`
+				Category         string `json:"category"`
 				Priority         *int   `json:"priority"`
 				AutoExtract      *bool  `json:"autoExtract"`
 				// Overrule makes Priority, AutoExtract and Comment win over a
@@ -76,6 +77,11 @@ func registerLinks(reg *Registry, a *app.App) {
 				}
 				origin = known
 			}
+			category, err := categoryKey(a.Settings.Get(), body.Category)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
 			urls := extractLinks(a.Settings.Get().PreParserEnabled, body.Links)
 			var handedOver hostheaders.Set
 			if len(body.Headers) > 0 {
@@ -108,6 +114,7 @@ func registerLinks(reg *Registry, a *app.App) {
 					Password:         body.Password,
 					DownloadPassword: body.DownloadPassword,
 					Comment:          body.Comment,
+					Category:         category,
 					Priority:         body.Priority,
 					AutoExtract:      body.AutoExtract,
 					Overrule:         body.Overrule,

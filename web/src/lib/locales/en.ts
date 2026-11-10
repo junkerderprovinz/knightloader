@@ -748,6 +748,8 @@ export const en = {
   'menu.enable': 'Enable',
   'menu.disable': 'Disable',
   'menu.unforce': 'Cancel start now',
+  'menu.category': 'Category',
+  'menu.categoryNone': 'None',
   'menu.setFolder': 'Set download folder',
   'menu.setConnections': 'Set connections',
   'menu.openInBrowser': 'Open in browser',
@@ -1830,6 +1832,8 @@ export const en = {
   'collector.linkPassword': 'Link password',
   'collector.linkPasswordHint':
     'The password the hoster’s own page asks for before it hands over the file. The archive password above is a different one.',
+  'collector.category': 'Category',
+  'collector.categoryHint': 'The category every link of this batch is filed under, with its folder, extraction folder and other defaults. A Packagizer rule that names a category still wins.',
   'collector.overrule': 'Overrule a matching Packagizer rule',
   'collector.overruleHint':
     'When off, a matching Packagizer rule wins over priority, unpacking and the comment above. When on, these values win instead. The destination is never part of this: it always applies as typed.',

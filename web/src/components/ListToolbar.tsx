@@ -8,6 +8,7 @@ import {
   ApiError,
   type ApiOptions,
   type BulkResult,
+  type Category,
   type CleanupClass,
   type PriorityChoice,
   type QueueMove,
@@ -31,6 +32,7 @@ import {
   restartTasks,
   resumeTasks,
   runCleanup,
+  setCategory,
   setEnabled,
   setForced,
   setPackage,
@@ -48,6 +50,7 @@ import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
 import { taskRefusal } from '../lib/taskRefusal';
 import { useStartTasks } from '../lib/useStartTasks';
+import { useCategories } from '../lib/useCategories';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { readShortcutOverrides } from '../lib/commands/overrides';
 import { formatShortcut } from '../lib/commands/shortcuts';
@@ -75,6 +78,7 @@ import {
   IconExpand,
   IconFirst,
   IconFolder,
+  IconFolderOpen,
   IconKey,
   IconLatest,
   IconMove,
@@ -982,6 +986,49 @@ export function queueMenuGroup({
 }
 
 /**
+ * categoryMenuItem files the rows under a category, or under none, with a tick
+ * on the one they all share. Without categories there is nothing to offer.
+ */
+export function categoryMenuItem({
+  chosen,
+  base,
+  t,
+  fail,
+  categories,
+}: {
+  chosen: Task[];
+  base: string;
+  t: (key: TranslationKey) => string;
+  fail: (e: unknown) => void;
+  categories: Category[];
+}): MenuItem | null {
+  if (categories.length === 0 || chosen.length === 0) return null;
+  const ids = chosen.map((x) => x.id);
+  const first = chosen[0].category ?? '';
+  const shared = chosen.every((x) => (x.category ?? '') === first) ? first : undefined;
+  const file = (id: string) => () => void setCategory(ids, id, base).catch(fail);
+  return {
+    id: 'category',
+    label: t('menu.category'),
+    icon: <IconFolderOpen width={14} height={14} />,
+    submenu: [
+      {
+        id: 'values',
+        items: [
+          { id: '', label: t('menu.categoryNone'), checked: shared === '', onSelect: file('') },
+          ...categories.map((c) => ({
+            id: c.id,
+            label: c.name || c.id,
+            checked: shared === c.id,
+            onSelect: file(c.id),
+          })),
+        ],
+      },
+    ],
+  };
+}
+
+/**
  * taskMenuGroups builds the verbs for a selection of any size. An entry that
  * applies to none of the selected rows is left out rather than greyed.
  */
@@ -996,6 +1043,7 @@ function taskMenuGroups({
   removal,
   queue,
   onOptions,
+  categories,
   settled,
 }: {
   chosen: Task[];
@@ -1014,6 +1062,7 @@ function taskMenuGroups({
   /** The priorities this server offers and where the stop mark currently sits. */
   queue: QueueVerbs;
   onOptions: (focus: 'dir' | 'password' | 'chunks') => void;
+  categories: Category[];
   settled?: boolean;
 }): MenuGroup[] {
   const some = (p: (x: Task) => boolean) => chosen.some(p);
@@ -1137,6 +1186,9 @@ function taskMenuGroups({
     ],
   };
 
+  const category = categoryMenuItem({ chosen: scope, base, t, fail, categories });
+  if (category) options.items.splice(1, 0, category);
+
   // Not coloured as faults; the glyph, label and position say enough.
   const gone: MenuGroup = {
     id: 'remove',
@@ -1254,6 +1306,7 @@ export function ListMenu({
     [t, toast],
   );
   const start = useStartTasks();
+  const categories = useCategories(base);
   const cleanup = useCleanup(all);
   const [options, setOptions] = useState<{ tasks: Task[]; focus: 'dir' | 'password' | 'chunks' } | null>(null);
   // The rows being moved into a package right now. PackageMoveDialog is also
@@ -1405,6 +1458,7 @@ export function ListMenu({
         removal,
         queue,
         onOptions: (focus) => setOptions({ tasks: chosen, focus }),
+        categories,
         settled,
       }),
       ...extraGroups,
