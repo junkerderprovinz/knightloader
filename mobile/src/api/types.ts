@@ -174,6 +174,12 @@ export interface ServerConnection {
    * needsAddingAgain.
    */
   relayFrameKey?: string;
+  /**
+   * Hex of the key a direct call on the local network is tagged with,
+   * seedphrase.ts's derivePeerAuth. Absent on a connection paired before the
+   * phone kept it, which then plays files through the relay alone.
+   */
+  peerAuthKey?: string;
   instanceId: string; // which sibling on that key this connection is for
 }
 

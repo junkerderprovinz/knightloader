@@ -146,3 +146,24 @@ export function deriveFrameKey(secret: Uint8Array): Uint8Array {
 export function frameKeyFromPhrase(phrase: string): Uint8Array {
   return deriveFrameKey(decodePhrase(phrase));
 }
+
+/** PEER_AUTH_DOMAIN mirrors kit/keys' peer-auth label. */
+const PEER_AUTH_DOMAIN = 'knightloader/peer-auth/v1';
+
+/**
+ * derivePeerAuth returns the key a direct call on the local network is tagged
+ * with, mirroring federation.Domain.PeerAuthKey. An instance turns away a
+ * direct call without it before it reads the body.
+ */
+export function derivePeerAuth(secret: Uint8Array): Uint8Array {
+  const domain = utf8(PEER_AUTH_DOMAIN);
+  const buf = new Uint8Array(domain.length + secret.length);
+  buf.set(domain);
+  buf.set(secret, domain.length);
+  return sha256(buf);
+}
+
+/** peerAuthFromPhrase is derivePeerAuth's counterpart to keyFromPhrase. */
+export function peerAuthFromPhrase(phrase: string): Uint8Array {
+  return derivePeerAuth(decodePhrase(phrase));
+}

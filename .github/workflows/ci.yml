@@ -652,6 +652,9 @@ jobs:
       - name: The player's way in
         run: node check-loopback.mjs
 
+      - name: The key of the local network
+        run: node check-peer-auth.mjs
+
       - name: Free QR scanner
         run: node check-free-scanner.mjs
 

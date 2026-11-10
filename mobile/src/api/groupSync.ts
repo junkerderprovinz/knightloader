@@ -35,6 +35,7 @@ export async function followGroups(saved: ServerConnection[], reachable: ServerC
   for (const [key, mine] of groups) {
     const keyed = mine.find((c) => c.relayFrameKey);
     if (!keyed?.relayFrameKey) continue;
+    const peerAuthKey = mine.find((c) => c.peerAuthKey)?.peerAuthKey;
     const roster: GroupRoster =
       first.from && groupOf(first.from) === key
         ? first
@@ -57,6 +58,7 @@ export async function followGroups(saved: ServerConnection[], reachable: ServerC
         relayUrl: keyed.relayUrl,
         relayKey: keyed.relayKey,
         relayFrameKey: keyed.relayFrameKey,
+        ...(peerAuthKey ? { peerAuthKey } : {}),
         instanceId: f.instanceId,
       });
     }

@@ -92,6 +92,7 @@ for (const address of [
       WORD_COUNT: 12,
       keyFromPhrase: () => 'key',
       frameKeyFromPhrase: () => new Uint8Array(32),
+      peerAuthFromPhrase: () => new Uint8Array(32),
     },
     '../api/phraseWords': {
       splitPhrase: split,
