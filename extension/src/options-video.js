@@ -19,7 +19,6 @@ const videoShortcutActionEl = document.getElementById('videoShortcutAction');
 const videoShortcutErrorEl = document.getElementById('videoShortcutError');
 
 const VIDEO_STORED = ['videoButtonAutoHide', 'videoButtonSpot', 'videoDefaults', 'videoSeen'];
-const VIDEO_AUDIO_NAMES = { aac: 'AAC', opus: 'Opus', vorbis: 'Vorbis', mp3: 'MP3', flac: 'FLAC', alac: 'ALAC' };
 
 /** Firefox lets the page change the shortcut. Chromium changes it only on its
  *  own shortcuts page, which the row opens instead. */
@@ -184,8 +183,8 @@ function videoSiteBlock(site) {
 }
 
 /** The parts a click downloads on a site, and where those parts are on, the
- *  video's cap, the audio's codec and the subtitles' languages and format,
- *  each from what the site has offered so far. */
+ *  video's cap, the audio's codec, the subtitles' languages and format and
+ *  the thumbnail's format, each from what the site has offered so far. */
 function videoDefaultsRows(site) {
   const pick = videoDefaultsFor(videoNow.stored, site.id);
   const seen = videoSiteSeen(videoNow.stored, site.id);
@@ -229,20 +228,26 @@ function videoDefaultsRows(site) {
     const formats = ['best', ...offered(seen.videoFormats, pick.videoFormat)];
     picks.append(
       videoSelect(`${site.id}-quality`, t('video.quality'), qualities, pick.quality, best((q) => q), (quality) => save({ quality })),
-      videoSelect(`${site.id}-format`, t('video.videoFormat'), formats, pick.videoFormat, best((f) => f.replace(' ', ' · ')), (videoFormat) => save({ videoFormat })),
+      videoSelect(`${site.id}-format`, t('video.videoFormat'), formats, pick.videoFormat, best((f) => f.split(' ').map(videoFormatName).join(' · ')), (videoFormat) => save({ videoFormat })),
     );
   }
   if (pick.parts.includes('audio')) {
     const rates = ['best', ...offered(seen.audioRates, pick.audioRate)];
-    const codecs = ['best', ...offered(seen.audio, pick.audio)];
+    // As in the button's menu, a format the site has not served is one the
+    // instance converts to, which an option says on its one line.
+    const codecs = ['best', ...[...new Set([...offered(seen.audio, pick.audio), ...VIDEO_AUDIO_MENU])].sort(audioCodecOrder)];
+    const codecName = (c) => (seen.audio.includes(c) ? videoFormatName(c) : `${videoFormatName(c)} (${t('video.converted')})`);
     picks.append(
       videoSelect(`${site.id}-rate`, t('video.audioQuality'), rates, pick.audioRate, best((r) => r), (audioRate) => save({ audioRate })),
-      videoSelect(`${site.id}-audio`, t('video.audioFormat'), codecs, pick.audio, best((c) => VIDEO_AUDIO_NAMES[c]), (audio) => save({ audio })),
+      videoSelect(`${site.id}-audio`, t('video.audioFormat'), codecs, pick.audio, best(codecName), (audio) => save({ audio })),
     );
   }
   if (pick.parts.includes('subtitle')) {
-    const formats = ['best', ...offered(seen.subFormats, pick.subFormat)];
-    picks.append(videoSelect(`${site.id}-subformat`, t('options.videoSubFormat'), formats, pick.subFormat, best((f) => f), (subFormat) => save({ subFormat })));
+    picks.append(videoSelect(`${site.id}-subformat`, t('options.videoSubFormat'), VIDEO_SUB_FORMATS, pick.subFormat, videoFormatName, (subFormat) => save({ subFormat })));
+  }
+  if (pick.parts.includes('thumbnail') && seen.thumbFormats.length) {
+    const thumbFormat = videoThumbFormat(pick.thumbFormat, seen.thumbFormats);
+    picks.append(videoSelect(`${site.id}-thumbformat`, t('options.videoThumbFormat'), seen.thumbFormats, thumbFormat, videoFormatName, (f) => save({ thumbFormat: f })));
   }
   const rows = [parts];
   if (picks.children.length) rows.push(picks);

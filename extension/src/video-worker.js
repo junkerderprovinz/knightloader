@@ -83,13 +83,13 @@ async function videoLabels() {
     language: t('video.language'),
     dubbed: t('video.dubbed'),
     autoCaptions: t('video.autoCaptions'),
+    converted: t('video.converted'),
     quality: t('video.rowQuality'),
     format: t('video.rowFormat'),
     parts: Object.fromEntries(VIDEO_PARTS.map((p) => [p, t(VIDEO_PART_KEYS[p])])),
     checking: t('video.checking'),
     unknown: t('video.unknown'),
     playlist: t('video.playlist'),
-    hide: t('video.hide'),
     sending: t('video.sending'),
     sent: t('video.sent'),
     already: t('video.already'),
@@ -329,14 +329,6 @@ async function openVideoInstance(msg) {
   if (url) await chrome.tabs.create({ url: `${url.replace(/\/+$/, '')}/downloads` });
 }
 
-/** Hides the button on the site a page belongs to, from the button's menu. */
-async function hideVideoSite(frameUrl) {
-  const site = videoSiteOf(frameUrl);
-  const { videoButtonHidden } = await chrome.storage.local.get('videoButtonHidden');
-  const hidden = Array.isArray(videoButtonHidden) ? videoButtonHidden : [];
-  if (!hidden.includes(site.id)) await chrome.storage.local.set({ videoButtonHidden: [...hidden, site.id] });
-}
-
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // Only from a content script on one of the sites, which is where the button
   // runs; the page itself cannot reach this listener.
@@ -358,7 +350,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg?.type === 'knightloader-video-open') void openVideoInstance(msg);
-  if (msg?.type === 'knightloader-video-hide') void hideVideoSite(sender.url);
   if (msg?.type === 'knightloader-video-setup') chrome.runtime.openOptionsPage();
 });
 

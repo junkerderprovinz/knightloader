@@ -43,7 +43,9 @@
   const STAR = 'M5 0 L6.2 3.6 L10 3.8 L7 6.1 L8.1 10 L5 7.8 L1.9 10 L3 6.1 L0 3.8 L3.8 3.6 Z';
   // GlimStone's quick out curve, which settles without a bounce.
   const EASE_OUT = 'cubic-bezier(0.16, 1, 0.3, 1)';
-  const RADIUS = { round: '9999px', soft: '5px', square: '0px', leaf: '18px' };
+  // GlimStone's control radius per shape. Round and leaf stop at 12px, since a
+  // pressable thing is rounded but never a pill.
+  const RADIUS = { round: '12px', soft: '5px', square: '0px', leaf: '12px' };
   // What a player draws over its video for people to use, whatever the site
   // calls it.
   const CONTROLS = 'a, button, input, select, textarea, [role="button"], [role="link"], [role="slider"], [role="checkbox"], [role="menuitem"]';
@@ -53,9 +55,9 @@
   const STYLE = `
     :host { all: initial; position: fixed; z-index: 2147483647; translate: -50% -50%; }
     .kl {
-      --surface: #262626; --text: #f4f4f4; --sub: #c6c6c6;
+      --surface: #262626; --surface2: #393939; --surface3: #525252; --raised: #6f6f6f; --text: #f4f4f4; --sub: #c6c6c6;
       --ok: #6fdc8c; --fail: #ff8389; --line: rgba(255, 255, 255, .08);
-      --knob: #c6c6c6; --ring: #8d8d8d; --track: rgba(255, 255, 255, .16); --hover: rgba(255, 255, 255, .05); --edge: transparent;
+      --knob: #c6c6c6; --track: rgba(255, 255, 255, .16); --hover: rgba(255, 255, 255, .05);
       --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
       position: relative;
       font: 500 14px/1.4 "Noto Sans Variable", "Noto Sans", system-ui, sans-serif;
@@ -65,9 +67,9 @@
       transition: opacity 140ms ease;
     }
     .kl[data-theme="light"] {
-      --surface: #ffffff; --text: #161616; --sub: #525252;
+      --surface: #ffffff; --surface2: #e8e8e8; --surface3: #d1d1d1; --raised: #c6c6c6; --text: #161616; --sub: #525252;
       --ok: #0e6027; --fail: #da1e28; --line: rgba(0, 0, 0, .08);
-      --knob: #6f6f6f; --ring: #8d8d8d; --track: rgba(0, 0, 0, .12); --hover: rgba(0, 0, 0, .04); --edge: rgba(0, 0, 0, .14);
+      --knob: #6f6f6f; --track: rgba(0, 0, 0, .12); --hover: rgba(0, 0, 0, .04);
       --elevation: 0 1px 2px rgba(0, 0, 0, .10), 0 16px 36px -26px rgba(0, 0, 0, .45);
     }
     .kl.shown { opacity: 1; pointer-events: auto; }
@@ -130,12 +132,13 @@
     /* The outline keeps a pale star readable on a bright frame. */
     .star { position: absolute; display: block; pointer-events: none; filter: drop-shadow(0 0 1px rgba(0, 0, 0, .45)); }
     /* As tall as the player leaves room for (position sets max-height), so
-       the parts sit in order without scrolling on most videos. */
+       the parts sit in order without scrolling on most videos. It is a
+       window, and each part a sub-card on it one surface up. */
     .menu {
       position: absolute; top: calc(100% + 8px); left: 50%; translate: -50% 0;
-      box-sizing: border-box; width: 340px; max-width: calc(100vw - 16px); max-height: 460px; overflow-y: auto; overscroll-behavior: contain;
-      padding: 4px 6px 0;
-      display: flex; flex-direction: column;
+      box-sizing: border-box; width: 400px; max-width: calc(100vw - 16px); max-height: 460px; overflow-y: auto; overscroll-behavior: contain;
+      padding: 16px 8px 0;
+      display: flex; flex-direction: column; gap: 18px;
       font-size: 13px; line-height: 1.35;
       background: var(--surface);
       border-radius: min(var(--radius), 10px);
@@ -147,69 +150,78 @@
     .menu[data-side="end"] { left: auto; right: 0; translate: 0 0; }
     .menu[hidden] { display: none; }
     .menu button { position: relative; justify-content: flex-start; height: auto; border-radius: min(var(--radius), 6px); color: var(--text); }
-    /* A ring with a gap of the surface, so it shows on gold as well. */
-    .kl .menu button:focus-visible { z-index: 1; outline: none; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
-    .menu .part { flex: 0 0 auto; }
-    .menu .part + .part { border-top: 1px solid var(--line); }
-    .menu .switch { width: 100%; height: 38px; padding-block: 0; padding-inline: 8px 46px; color: var(--sub); }
-    .menu .switch:hover { background: var(--hover); }
-    .menu .switch[aria-checked="true"] { color: var(--text); font-weight: 600; }
-    /* The track, and over it the knob that slides along. */
-    .switch::before, .switch::after { content: ""; position: absolute; top: 50%; translate: 0 -50%; }
+    /* The ring reaches over the neighbours, and its gap shows whatever the
+       control sits on, so it reads on a tile and on gold alike. */
+    .kl .menu button:focus-visible { z-index: 1; }
+    .menu .card {
+      position: relative; flex: 0 0 auto; box-sizing: border-box; min-height: 40px; padding-top: 14px;
+      background: var(--surface2); border-radius: min(var(--radius), 8px);
+    }
+    /* A part's name is its heading, the accent badge the extension's pages
+       head a card with, sitting half over the card's top edge and filled
+       whether the part is on or off. The switch's track at the end of the
+       first row belongs to the same control, so a click on either toggles
+       the part. */
+    .menu .switch {
+      position: static; display: block; box-sizing: border-box; width: fit-content;
+      max-width: calc(100% - 66px); height: 22px; margin-top: -25px; margin-bottom: 3px; margin-inline-start: 10px; padding: 2px 10px;
+      box-shadow: var(--elevation);
+      overflow: hidden; text-overflow: ellipsis;
+      background: var(--accent); color: var(--accent-contrast); border-radius: min(var(--radius), 6px);
+      font-size: 12px; font-weight: 500; line-height: 18px; letter-spacing: 1.2px; text-transform: uppercase;
+    }
+    /* The track, and over it the knob that slides along, centred on the
+       card's first row. */
+    .switch::before, .switch::after { content: ""; position: absolute; top: 20px; translate: 0 -50%; }
     .switch::after {
-      inset-inline-end: 6px; width: 28px; height: 16px; border-radius: 8px;
+      inset-inline-end: 8px; width: 28px; height: 16px; border-radius: 8px;
       background: var(--track); transition: background-color 150ms ease;
     }
     .switch::before {
-      z-index: 1; inset-inline-end: 21px; width: 10px; height: 10px; border-radius: 50%;
+      z-index: 1; inset-inline-end: 23px; width: 10px; height: 10px; border-radius: 50%;
       background: var(--knob); transition: inset-inline-end 180ms ${EASE_OUT}, background-color 150ms ease;
     }
-    .switch[aria-checked="true"]::after { background: var(--accent); box-shadow: inset 0 0 0 1px var(--edge); }
-    .switch[aria-checked="true"]::before { inset-inline-end: 9px; background: var(--accent-contrast); }
-    .choices { padding: 0 2px 12px; }
+    .switch[aria-checked="true"]::after { background: var(--accent); }
+    .switch[aria-checked="true"]::before { inset-inline-end: 11px; background: var(--accent-contrast); }
+    .choices { padding: 0 4px 10px; }
     .choices .label { display: block; margin: 0 6px 4px; color: var(--sub); font-size: 11px; }
     .choices > * + .label { margin-top: 10px; }
-    /* Two columns filled top to bottom, so the qualities read in order down
-       the first and on down the second. */
-    .list { display: grid; grid-auto-flow: column; grid-template-columns: 1fr 1fr; gap: 2px 6px; }
-    .menu .list button { gap: 9px; padding-block: 0; padding-inline: 8px 9px; }
-    .list button::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ring); }
-    .list [role="checkbox"]::before { border-radius: min(var(--radius), 3px); }
-    .list button:not([aria-checked="true"]):hover { background: var(--hover); }
-    .list [aria-checked="true"] { background: color-mix(in srgb, var(--accent) 15%, transparent); }
-    .list [aria-checked="true"]::before { background: radial-gradient(var(--accent-contrast) 2.2px, var(--accent) 2.8px); box-shadow: inset 0 0 0 1px var(--edge); }
-    .list [role="checkbox"][aria-checked="true"]::before { background: var(--accent); }
-    .list [role="checkbox"][aria-checked="true"]::after {
-      content: ""; position: absolute; inset-inline-start: 12px; top: 8.5px; width: 3px; height: 6.5px;
-      border: solid var(--accent-contrast); border-width: 0 1.5px 1.5px 0; rotate: 45deg;
-    }
+    /* Every list is one column of tiles, the same whether one or several can
+       be picked, with the sizes lined up at the end. A tile rests one surface
+       above its sub-card, which would swallow it otherwise, and the picked
+       ones are filled. */
+    .list { display: flex; flex-direction: column; gap: 2px; }
+    .menu .list button { gap: 8px; height: 28px; padding-block: 0; padding-inline: 10px; background: var(--surface3); }
+    .list button:not([aria-checked="true"]):hover { background: var(--raised); }
+    .menu .list [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
     .list .aside { margin-inline-start: auto; color: var(--sub); font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; }
-    .list [aria-checked="true"] .aside { color: var(--text); }
+    .list button:hover .aside, .list [aria-checked="true"] .aside { color: inherit; }
+    /* The groove one surface below the sub-card around a row of formats,
+       whose idle segments stay unfilled. */
     .segments {
-      display: flex; flex-wrap: wrap; gap: 2px; margin: 0 2px; padding: 2px;
-      border-radius: min(var(--radius), 7px); background: var(--hover); box-shadow: inset 0 0 0 1px var(--line);
+      display: flex; flex-wrap: wrap; gap: 0.2rem; margin: 0 2px; padding: 0.2rem;
+      border-radius: min(var(--radius), 7px); background: var(--surface3);
     }
     .menu .segments button {
       flex: 1 1 0; min-width: 52px; min-height: 30px; flex-direction: column; justify-content: center; gap: 0;
       padding: 6px; border-radius: min(var(--radius), 5px); font-size: 12.5px; line-height: 1.15;
     }
-    .segments button:not([aria-checked="true"]):not(:disabled):hover { background: var(--hover); }
+    .segments button:not([aria-checked="true"]):not(:disabled):hover { background: var(--raised); }
     .segments .aside { color: var(--sub); font-size: 10.5px; font-weight: 400; }
-    .menu .segments [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); box-shadow: inset 0 0 0 1px var(--edge); }
+    .segments button:hover .aside { color: inherit; }
+    .menu .segments [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
     .segments [aria-checked="true"] .aside { color: inherit; opacity: .7; }
     .menu .segments button:disabled { opacity: .4; cursor: default; }
-    /* Download and hide stay in view at the bottom whatever scrolls above. */
+    /* Download stays in view at the bottom whatever scrolls above. */
     .menu .foot {
       position: sticky; bottom: 0; z-index: 2; flex: 0 0 auto;
-      display: flex; flex-direction: column; gap: 2px;
-      margin: 0 -6px; padding: 6px; border-top: 1px solid var(--line);
+      display: flex; flex-direction: column;
+      margin: -10px -8px 0; padding: 0 8px 8px;
       background: var(--surface);
     }
-    .menu .go { justify-content: center; gap: 0; height: 34px; background: var(--accent); color: var(--accent-contrast); font-weight: 600; box-shadow: inset 0 0 0 1px var(--edge); }
+    .menu .go { justify-content: center; gap: 0; height: 34px; background: var(--accent); color: var(--accent-contrast); font-weight: 600; }
     .menu .go:hover { background: color-mix(in srgb, var(--accent) 85%, var(--text)); }
     .go .total { margin-inline-start: .35em; font-weight: 500; font-variant-numeric: tabular-nums; }
-    .menu .hide { justify-content: center; height: 30px; color: var(--sub); font-size: 12.5px; }
-    .menu .hide:hover { background: var(--hover); color: var(--text); }
     .note { display: flex; flex: 0 0 auto; align-items: center; min-height: 30px; padding: 0 8px; color: var(--sub); font-size: 12px; }
     .choices .note { min-height: 0; padding: 0 6px; }
     .menu[aria-busy="true"] .note.busy { animation: pulse 3.2s ease-in-out infinite; }
@@ -466,13 +478,20 @@
     const up = at.y > r.top + r.height / 2;
     menu.classList.toggle('up', up);
     // Near a side of the player the menu opens along it, not over its edge.
-    const room = 180;
+    const room = 210;
     menu.dataset.side = at.x - r.left < room ? 'start' : r.right - at.x < room ? 'end' : '';
     // The menu takes the height the player leaves it above or below the
     // button, of the part on screen.
     const half = barSize().height / 2 + 8;
     const tall = up ? at.y - half - Math.max(r.top, 0) : Math.min(r.bottom, innerHeight) - at.y - half;
     menu.style.setProperty('max-height', `${Math.max(240, Math.floor(tall) - 8)}px`);
+    // A page narrower than the way the menu opens, such as a small embedded
+    // player, gets it moved back in view.
+    if (!menu.hidden) {
+      menu.style.setProperty('transform', 'translateX(0px)');
+      const box = menu.getBoundingClientRect();
+      menu.style.setProperty('transform', `translateX(${Math.max(8 - box.left, Math.min(0, innerWidth - 8 - box.right))}px)`);
+    }
     const state = {
       autoHide: stored.videoButtonAutoHide === true,
       pointerOver: pointerAt > 0 && performance.now() - pointerAt < IDLE_MS,
@@ -709,7 +728,7 @@
   }
 
   /**
-   * A row of choices under a part, as a list in two columns or as segments,
+   * A row of choices under a part, as a list or as segments,
    * of which one is picked, or with `several` any number. A choice `off`
    * rules out stays in the row but takes no click. `aside` is what a choice
    * shows small beside its name: the size in a list, the container under the
@@ -719,8 +738,6 @@
     const group = document.createElement('div');
     group.className = look;
     group.setAttribute('role', several ? 'group' : 'radiogroup');
-    const rows = look === 'list' ? Math.ceil(values.length / 2) : 1;
-    if (look === 'list') group.style.setProperty('grid-template-rows', `repeat(${rows}, 28px)`);
     const items = values.map((v, i) => {
       const item = control(name(v), () => onPick(v));
       item.setAttribute('role', several ? 'checkbox' : 'radio');
@@ -740,7 +757,7 @@
       if (!several) {
         item.setAttribute('tabindex', isOn(v) ? '0' : '-1');
         item.addEventListener('keydown', (e) => {
-          const step = arrowStep(e.key, rows);
+          const step = arrowStep(e.key);
           if (!step) return;
           e.preventDefault();
           e.stopPropagation();
@@ -755,24 +772,22 @@
     return group;
   }
 
-  /** How far an arrow key moves in a row of choices: down and up by one,
-   *  across to the other column of a list, or along a row of segments. */
-  function arrowStep(key, across) {
+  /** Which way an arrow key moves in a row of choices: down and forward to
+   *  the next, up and back to the one before, as with the browser's own
+   *  radios. */
+  function arrowStep(key) {
     const forward = labels.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
     const back = labels.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft';
-    if (key === 'ArrowDown') return 1;
-    if (key === 'ArrowUp') return -1;
-    if (key === forward) return across;
-    if (key === back) return -across;
+    if (key === 'ArrowDown' || key === forward) return 1;
+    if (key === 'ArrowUp' || key === back) return -1;
     return 0;
   }
 
-  /** Where a step from `at` lands among n choices: one step wraps round the
-   *  ends, a jump across stops at them, and both pass over a choice `off`,
-   *  which `at` itself never is. */
+  /** Where a step from `at` lands among n choices, round the ends and past
+   *  a choice `off`, which `at` itself never is. */
   function stepTo(n, at, step, off) {
-    let i = Math.abs(step) === 1 ? (at + step + n) % n : Math.min(Math.max(at + step, 0), n - 1);
-    while (off(i)) i = (i + Math.sign(step) + n) % n;
+    let i = (at + step + n) % n;
+    while (off(i)) i = (i + step + n) % n;
     return i;
   }
 
@@ -808,10 +823,11 @@
   }
 
   /** What a click sends: the site's defaults, made exact for the video where
-   *  they name a format or a bitrate, which only one video's tracks have. */
+   *  they name a format or a bitrate, which only one video's tracks have, or
+   *  where they take the thumbnail, whose formats depend on the instance. */
   async function clickPick() {
     const defaults = videoDefaultsFor(stored, page.site);
-    if (defaults.videoFormat === 'best' && defaults.audioRate === 'best') return defaults;
+    if (defaults.videoFormat === 'best' && defaults.audioRate === 'best' && !defaults.parts.includes('thumbnail')) return defaults;
     const offer = await askFormats();
     return videoExact(videoResolve(defaults, offer), offer);
   }
@@ -870,14 +886,16 @@
           onPick: quality,
           aside: (q) => size(videoPickSize({ ...pick, quality: q, videoFormat: videoTrackOffered(offer, q, pick.videoFormat) ? pick.videoFormat : 'best' }, offer, 'video')),
         });
-        // A format reads as its codec over its container, "avc1" over "mp4".
-        row('format', labels.format, ['best', ...formats], {
+        // A format reads as its codec over its container, "H.264" over "MP4".
+        // Left to the instance, it shows the one the best track has.
+        const format = pick.videoFormat === 'best' ? videoBestFormat(offer, pick.quality) : pick.videoFormat;
+        row('format', labels.format, formats, {
           look: 'segments',
-          isOn: (f) => f === pick.videoFormat,
-          name: best((f) => f.split(' ').at(-1)),
+          isOn: (f) => f === format,
+          name: (f) => videoFormatName(f.split(' ').at(-1)),
           onPick: (f) => redraw(() => (pick.videoFormat = f)),
-          off: (f) => f !== 'best' && !videoTrackOffered(offer, pick.quality, f),
-          aside: (f) => (f.includes(' ') ? f.split(' ')[0] : ''),
+          off: (f) => !videoTrackOffered(offer, pick.quality, f),
+          aside: (f) => (f.includes(' ') ? videoFormatName(f.split(' ')[0]) : ''),
         });
         break;
       }
@@ -896,21 +914,32 @@
             onPick: rate,
             aside: (r) => size(videoPickSize({ ...pick, audioRate: r, audio: audioTrackOffered(offer, r, pick.audio) ? pick.audio : 'best' }, offer, 'audio')),
           });
-          row('format', labels.format, ['best', ...codecs], {
+          // A format the video lacks is a conversion, made from its best
+          // track, so it takes no bitrate.
+          const codec = pick.audio === 'best' ? audioBestCodec(offer, pick.audioRate) : pick.audio;
+          row('format', labels.format, [...new Set([...codecs, ...VIDEO_AUDIO_MENU])].sort(audioCodecOrder), {
             look: 'segments',
-            isOn: (c) => c === pick.audio,
-            name: best((c) => c),
-            onPick: (c) => redraw(() => (pick.audio = c)),
-            off: (c) => c !== 'best' && !audioTrackOffered(offer, pick.audioRate, c),
+            isOn: (c) => c === codec,
+            name: videoFormatName,
+            onPick: (c) =>
+              redraw(() => {
+                pick.audio = c;
+                if (!codecs.includes(c)) pick.audioRate = 'best';
+              }),
+            off: (c) => codecs.includes(c) && !audioTrackOffered(offer, pick.audioRate, c),
+            aside: (c) => (codecs.includes(c) ? '' : labels.converted),
           });
         }
         if (offer.audioLangs.length > 1) {
-          const name = (code) => {
-            const lang = offer.audioLangs.find((l) => l.code === code);
-            return lang.dubbed ? `${code} (${labels.dubbed})` : code;
-          };
+          const dubbed = (code) => offer.audioLangs.find((l) => l.code === code).dubbed;
           const codes = offer.audioLangs.map((l) => l.code);
-          row('language', labels.language, codes, { look: 'list', isOn: (c) => c === pick.audioLang, name, onPick: (c) => redraw(() => (pick.audioLang = c)) });
+          row('language', labels.language, codes, {
+            look: 'list',
+            isOn: (c) => c === pick.audioLang,
+            name: languageName,
+            onPick: (c) => redraw(() => (pick.audioLang = c)),
+            aside: (c) => (dubbed(c) ? labels.dubbed : ''),
+          });
         }
         break;
       }
@@ -922,25 +951,52 @@
             pick.subAuto = pick.subLangs.some((c) => auto.includes(c) && !manual.includes(c));
           });
         const isOn = (code) => pick.subLangs.includes(code);
-        if (manual.length) row('language', labels.language, manual, { look: 'list', isOn, name: (c) => c, onPick, several: true });
-        if (auto.length) row('auto', labels.autoCaptions, auto, { look: 'list', isOn, name: (c) => c.replace(/-orig$/, ''), onPick, several: true });
-        if (offer.subtitleFormats.length) {
-          row('format', labels.format, ['best', ...offer.subtitleFormats], { look: 'segments', isOn: (f) => f === pick.subFormat, name: best((f) => f), onPick: (f) => redraw(() => (pick.subFormat = f)) });
-        }
+        // One list by name, those by hand first; a language the video has
+        // both ways is offered once, by hand.
+        const langs = [...manual, ...auto.filter((c) => !manual.includes(c))];
+        row('language', labels.language, langs, { look: 'list', isOn, name: languageName, onPick, several: true, aside: (c) => (manual.includes(c) ? '' : labels.autoCaptions) });
+        row('format', labels.format, VIDEO_SUB_FORMATS, {
+          look: 'segments',
+          isOn: (f) => f === pick.subFormat,
+          name: videoFormatName,
+          onPick: (f) => redraw(() => (pick.subFormat = f)),
+          aside: (f) => (VIDEO_SUB_CONVERTS.includes(f) && !offer.subtitleFormats.includes(f) ? labels.converted : ''),
+        });
         break;
       }
       case 'thumbnail': {
         const th = offer.thumbnail;
-        if (th) nodes.push(note(th.width && th.height ? `${th.width}×${th.height} ${th.ext}` : th.ext));
+        if (!th) break;
+        const formats = videoThumbFormats(offer);
+        const one = formats.length === 1 ? videoFormatName(formats[0]) : '';
+        const dims = th.width && th.height ? `${th.width}×${th.height}` : '';
+        if (dims || one) nodes.push(note([dims, one].filter(Boolean).join(' ')));
+        // A row of one choice would offer nothing.
+        if (!one) {
+          row('format', labels.format, formats, {
+            look: 'segments',
+            isOn: (f) => f === pick.thumbFormat,
+            name: videoFormatName,
+            onPick: (f) => redraw(() => (pick.thumbFormat = f)),
+            aside: (f) => (f === th.ext ? '' : labels.converted),
+          });
+        }
         break;
       }
     }
     return nodes;
   }
 
-  function section(head, body) {
+  /** A language's name in the menu's language, "Deutsch" for "de" or a
+   *  generated "de-orig". */
+  function languageName(code) {
+    const name = new Intl.DisplayNames(labels.lang, { type: 'language' }).of(code.replace(/-orig$/, ''));
+    return name.charAt(0).toLocaleUpperCase(labels.lang) + name.slice(1);
+  }
+
+  function card(head, body) {
     const part = document.createElement('div');
-    part.className = 'part';
+    part.className = 'card';
     part.append(head);
     if (body.length) {
       const box = document.createElement('div');
@@ -960,12 +1016,12 @@
     };
     const offer = offered?.answer;
     const items = [];
-    if (page.playlist) items.push(section(toggle(labels.playlist, playlist, 'playlist', () => redraw(() => (playlist = !playlist))), []));
+    if (page.playlist) items.push(card(toggle(labels.playlist, playlist, 'playlist', () => redraw(() => (playlist = !playlist))), []));
     for (const part of VIDEO_PARTS) {
       if (offer && !videoHas(offer, part)) continue;
       const on = pick.parts.includes(part);
       const head = toggle(labels.parts[part], on, part, () => redraw(() => togglePart(part)));
-      items.push(section(head, offer && on ? partChoices(part, offer, redraw) : []));
+      items.push(card(head, offer && on ? partChoices(part, offer, redraw) : []));
     }
     menu.setAttribute('aria-label', labels.more);
     menu.setAttribute('aria-busy', String(!offer));
@@ -983,15 +1039,9 @@
       go.append(weight);
       go.setAttribute('aria-label', `${labels.send}, ${videoSize(total, labels.lang)}`);
     }
-    const site = VIDEO_SITES.find((s) => s.id === page.site);
-    const hide = control(labels.hide.replace('{site}', site.name), () => {
-      chrome.runtime.sendMessage({ type: 'knightloader-video-hide' }).catch(() => {});
-    });
-    hide.className = 'hide';
-    hide.dataset.key = 'hide';
     const foot = document.createElement('div');
     foot.className = 'foot';
-    foot.append(go, hide);
+    foot.append(go);
     menu.replaceChildren(...items, foot);
     const controls = menu.querySelectorAll('button');
     ([...controls].find((b) => b.dataset.key === focusKey) ?? controls[0]).focus();

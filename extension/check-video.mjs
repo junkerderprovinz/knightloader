@@ -226,7 +226,7 @@ function loadBackground(chrome) {
     },
   };
   const choice = (site) => run(`videoChoice(videoDefaultsFor(stored, '${site}'))`);
-  const best = { variants: ['video'], quality: 'best', audioFormat: 'best', subtitleLangs: [], subtitleAuto: true, subtitleFormat: 'best' };
+  const best = { variants: ['video'], quality: 'best', audioFormat: 'best', subtitleLangs: [], subtitleAuto: true, subtitleFormat: 'srt' };
   const youtube = { variants: ['video', 'subtitle'], quality: '720p', audioFormat: 'opus', subtitleLangs: ['de', 'en'], subtitleAuto: true, subtitleFormat: 'vtt' };
   if (!same(choice('youtube'), youtube)) fail(`YouTube's defaults send ${JSON.stringify(choice('youtube'))}, want the video up to 720p, opus preferred and German then English subtitles as vtt`);
   if (!same(choice('vimeo'), best)) fail(`a site set to download no part sends ${JSON.stringify(choice('vimeo'))}, want the best video`);
@@ -253,14 +253,77 @@ function loadBackground(chrome) {
   if ('videoTrack' in exact || 'audioTrack' in exact) fail(`the menu starts from a track, ${exact.videoTrack ?? exact.audioTrack}, rather than the quality and format the defaults name`);
   ctx.want = { parts: ['video', 'subtitle'], quality: 'best', audio: 'best', subLangs: [], subFormat: 'best' };
   const bestOf = run('videoResolve(videoPick(want), offer)');
-  if (bestOf.quality !== 'best' || bestOf.videoFormat !== 'best' || bestOf.audio !== 'best' || bestOf.audioRate !== 'best' || !same(bestOf.subLangs, ['de']) || bestOf.subAuto || bestOf.subFormat !== 'best') {
-    fail(`with nothing preferred the pick becomes ${JSON.stringify(bestOf)}, want Best everywhere, the subtitles by hand and the host's own format`);
+  if (bestOf.quality !== 'best' || bestOf.videoFormat !== 'best' || bestOf.audio !== 'best' || bestOf.audioRate !== 'best' || !same(bestOf.subLangs, ['de']) || bestOf.subAuto || bestOf.subFormat !== 'srt') {
+    fail(`with nothing preferred the pick becomes ${JSON.stringify(bestOf)}, want Best everywhere, the subtitles by hand and SRT`);
   }
   if (!same(run(`videoSubtitleChoices(offer, videoPick({ parts: ['subtitle'], subLangs: ['fr'] })).auto`), ['en-orig', 'fr'])) fail('the menu offers generated subtitles beyond the original and the wanted languages');
   const sentExact = run(`videoChoice(videoPick({ ...videoExact({ ...videoResolve(videoPick(want), offer), audioRate: '160k' }, offer), videoTrack: 'evil;rm', audioLang: 'de' }))`);
   if ('videoTrack' in sentExact || sentExact.audioTrack !== 'opus 160k' || sentExact.audioLang !== 'de' || sentExact.subtitleAuto !== false) fail(`an exact pick is sent as ${JSON.stringify(sentExact)}`);
   vm.runInContext(`old = videoOffer({ qualities: ['720p'], audio: true })`, ctx);
   if (run('old.known') || run(`VIDEO_PARTS.filter((p) => videoHas(old, p))`).length !== 5) fail('an older instance that only lists resolutions rules parts out');
+
+  // Subtitles come as SRT, WebVTT or TTML, whatever else the host lists, and
+  // have no Best: a default of Best or of YouTube's own srv and json3 reads
+  // as SRT, which is also what the instance is sent.
+  if (!same(run('VIDEO_SUB_FORMATS'), ['srt', 'vtt', 'ttml'])) fail(`the subtitle formats are ${run('VIDEO_SUB_FORMATS')}, want srt, vtt and ttml`);
+  for (const stored of ['best', 'srv3', 'json3', undefined]) {
+    ctx.raw = { parts: ['subtitle'], subFormat: stored };
+    if (run('videoPick(raw).subFormat') !== 'srt') fail(`a subtitle default stored as ${stored} reads as ${run('videoPick(raw).subFormat')}, want srt`);
+    if (run('videoChoice(videoPick(raw)).subtitleFormat') !== 'srt') fail(`a subtitle default stored as ${stored} is sent as ${run('videoChoice(videoPick(raw)).subtitleFormat')}, want srt`);
+  }
+
+  // A thumbnail comes in a format the host has, JPEG where it has that and
+  // otherwise its first. Best is no choice.
+  for (const [want, formats, got] of [
+    ['best', ['webp', 'jpg'], 'jpg'],
+    ['png', ['webp', 'jpg'], 'jpg'],
+    ['webp', ['webp', 'jpg'], 'webp'],
+    ['jpg', ['webp'], 'webp'],
+    [undefined, ['png', 'webp'], 'png'],
+  ]) {
+    const picked = vm.runInContext(`videoThumbFormat(${JSON.stringify(want)}, ${JSON.stringify(formats)})`, ctx);
+    if (picked !== got) fail(`a thumbnail wanted as ${want} among ${formats} is ${picked}, want ${got}`);
+  }
+  if (run(`videoResolve(videoPick({ parts: ['thumbnail'], thumbFormat: 'best' }), offer).thumbFormat`) !== 'webp') fail('a video whose thumbnail is webp does not start the menu at WebP');
+
+  // MP3 and FLAC are conversions: they go as the audio format, without a
+  // track, whatever bitrate was picked, and a default naming one stays.
+  for (const audio of ['mp3', 'flac']) {
+    const sent = run(`videoChoice(videoExact(videoResolve(videoPick({ parts: ['audio'], audio: '${audio}', audioRate: '128k' }), offer), offer))`);
+    if (sent.audioFormat !== audio || 'audioTrack' in sent) fail(`a pick of ${audio} sends ${JSON.stringify(sent)}, want the format alone`);
+  }
+  if (!same(run('VIDEO_AUDIO_MENU'), ['aac', 'opus', 'mp3', 'flac'])) fail(`the audio formats offered are ${run('VIDEO_AUDIO_MENU')}, want AAC, Opus, MP3 and FLAC`);
+  if (!same(run(`videoOffer({ ...answer, subtitleFormats: ['vtt', 'srv3'] }).subtitleFormats`), ['vtt', 'srv3'])) fail('the offer forgets which subtitle formats the host serves');
+
+  // An instance that converts thumbnails lists the formats it writes, and
+  // the pick goes to it as thumbnailFormat: JPEG unless another is wanted.
+  // One that only names the served picture is sent no format, so it keeps
+  // the picture as it is.
+  ctx.converts = run(`videoOffer({ ...answer, thumbnail: { width: 1280, height: 720, ext: 'avif', formats: ['jpg', 'png', 'webp', 'avif', 'x y'] } })`);
+  if (!same(ctx.converts.thumbnail.formats, ['jpg', 'png', 'webp', 'avif'])) fail(`the thumbnail formats offered are ${ctx.converts.thumbnail.formats}, want those the instance writes`);
+  if ('formats' in run('offer.thumbnail')) fail('a thumbnail from an instance that converts nothing is offered in formats');
+  const thumbSent = (raw, offerName) => vm.runInContext(`videoChoice(videoPick(videoExact(videoResolve(videoPick(${JSON.stringify(raw)}), ${offerName}), ${offerName}))).thumbnailFormat`, ctx);
+  for (const [raw, offerName, want] of [
+    [{ parts: ['thumbnail'] }, 'converts', 'jpg'],
+    [{ parts: ['thumbnail'], thumbFormat: 'best' }, 'converts', 'jpg'],
+    [{ parts: ['thumbnail'], thumbFormat: 'png' }, 'converts', 'png'],
+    [{ parts: ['thumbnail'], thumbFormat: 'avif' }, 'converts', 'avif'],
+    [{ parts: ['thumbnail'], thumbFormat: 'png' }, 'offer', undefined],
+    [{ parts: ['video'], thumbFormat: 'png' }, 'converts', undefined],
+  ]) {
+    if (thumbSent(raw, offerName) !== want) fail(`a thumbnail pick ${JSON.stringify(raw)} on ${offerName} sends thumbnailFormat ${thumbSent(raw, offerName)}, want ${want}`);
+  }
+
+  // Formats and codecs read as they are written, whatever yt-dlp calls them.
+  const formatNames = {
+    avc1: 'H.264', hevc: 'H.265', vp9: 'VP9', vp8: 'VP8', av1: 'AV1', mp4: 'MP4', webm: 'WebM', aac: 'AAC', mp4a: 'AAC', opus: 'Opus',
+    vorbis: 'Vorbis', mp3: 'MP3', flac: 'FLAC', alac: 'ALAC', m4a: 'M4A', srt: 'SRT', vtt: 'WebVTT', ttml: 'TTML',
+    srv1: 'SRV1', srv2: 'SRV2', srv3: 'SRV3', json3: 'JSON3', webp: 'WebP', jpg: 'JPEG', png: 'PNG',
+  };
+  for (const [token, want] of Object.entries(formatNames)) {
+    const got = vm.runInContext(`videoFormatName('${token}')`, ctx);
+    if (got !== want) fail(`${token} reads ${got}, want ${want}`);
+  }
 
   // A video's quality and format are two rows: the qualities high to low,
   // each once and with a frame rate only where one resolution comes at two,
@@ -281,6 +344,15 @@ function loadBackground(chrome) {
   if (!same(offered('best'), rows.formats)) fail(`at the best quality the formats offered are ${offered('best')}, want every one`);
   if (!same(offered('720p60'), ['mp4 avc1'])) fail(`at 720p the formats offered are ${offered('720p60')}, want mp4 avc1 alone`);
   if (!same(offered('1080p'), ['mp4 avc1', 'mp4 vp9', 'mp4 av1', 'webm vp9'])) fail(`at 1080p the formats offered are ${offered('1080p')}`);
+  // Where a pick leaves the format to the instance, the menu shows the one
+  // the best track at that quality has, and for the audio the codec of the
+  // best track at that bitrate.
+  for (const [quality, want] of [['best', 'webm vp9'], ['1080p', 'mp4 av1'], ['720p60', 'mp4 avc1']]) {
+    if (run(`videoBestFormat(yt, '${quality}')`) !== want) fail(`at ${quality} the best track's format reads ${run(`videoBestFormat(yt, '${quality}')`)}, want ${want}`);
+  }
+  for (const [rate, want] of [['best', 'opus'], ['130k', 'aac'], ['49k', 'opus']]) {
+    if (run(`audioBestCodec(yt, '${rate}')`) !== want) fail(`at ${rate} the best audio's codec reads ${run(`audioBestCodec(yt, '${rate}')`)}, want ${want}`);
+  }
   const audioRows = run('audioMenuRows(yt)');
   if (!same(audioRows, { rates: ['130k', '124k', '62k', '49k'], codecs: ['aac', 'opus'] })) fail(`the audio rows list ${JSON.stringify(audioRows)}, want the bitrates high to low and aac, opus`);
   if (!run(`audioTrackOffered(yt, '49k', 'opus')`) || run(`audioTrackOffered(yt, '130k', 'opus')`)) fail('the audio formats offered do not follow the bitrate picked');
@@ -297,7 +369,7 @@ function loadBackground(chrome) {
     [{ videoFormat: 'webm vp9' }, { quality: 'best', videoTrack: '2160p webm vp9', audio: 'best' }],
     [{ quality: '1080p', videoFormat: 'mp4 av1' }, { quality: 'best', videoTrack: '1080p mp4 av1', audio: 'best' }],
     [{ audio: 'opus' }, { quality: 'best', audio: 'opus' }],
-    [{ audioRate: '49k' }, { quality: 'best', audio: 'best', audioTrack: 'aac 49k' }],
+    [{ audioRate: '49k' }, { quality: 'best', audio: 'best', audioTrack: 'opus 49k' }],
     [{ audioRate: '49k', audio: 'opus' }, { quality: 'best', audio: 'best', audioTrack: 'opus 49k' }],
   ]) {
     const got = sends(sel);
@@ -389,13 +461,13 @@ function loadBackground(chrome) {
   if (run(`videoDefaultsFor(stored, 'vimeo').videoFormat`) !== 'best' || run(`videoDefaultsFor(stored, 'vimeo').audioRate`) !== 'best') fail('a stored format or bitrate the instance would refuse is kept');
 
   const seen = run('videoSeenWith(undefined, offer)');
-  const seenWant = { qualities: ['1080p', '720p'], audio: ['aac', 'opus'], subLangs: ['de', 'en'], subFormats: ['srv3', 'vtt'], videoFormats: ['mp4 avc1', 'webm vp9'], audioRates: ['160k', '128k'] };
+  const seenWant = { qualities: ['1080p', '720p'], audio: ['aac', 'opus'], subLangs: ['de', 'en'], videoFormats: ['mp4 avc1', 'webm vp9'], audioRates: ['160k', '128k'], thumbFormats: ['webp'] };
   if (!same(seen, seenWant)) fail(`a site is remembered as offering ${JSON.stringify(seen)}`);
   const seenMore = run('videoSeenWith(videoSeenWith(undefined, offer), yt)');
   if (!same(seenMore.videoFormats, ['mp4 avc1', 'mp4 vp9', 'mp4 av1', 'webm vp9']) || !same(seenMore.audioRates, ['160k', '130k', '128k', '124k', '62k', '49k'])) fail(`two videos of a site are remembered as offering ${JSON.stringify(seenMore)}`);
-  ctx.stored = { videoSeen: { youtube: { qualities: ['480p', '2160p', '9999p'], audio: ['wav', 'opus'], subLangs: ['de', 'x y'], subFormats: ['vtt', 'V T'], videoFormats: ['webm vp9', 'mp4;rm'], audioRates: ['128k', 'x'] } } };
-  if (!same(run(`videoSiteSeen(stored, 'youtube')`), { qualities: ['2160p', '480p'], audio: ['opus'], subLangs: ['de'], subFormats: ['vtt'], videoFormats: ['webm vp9'], audioRates: ['128k'] })) fail('the options offer a site something it has not offered');
-  if (!same(run(`videoSiteSeen(stored, 'vimeo')`), { qualities: [], audio: [], subLangs: [], subFormats: [], videoFormats: [], audioRates: [] })) fail('the options offer choices for a site that has offered none');
+  ctx.stored = { videoSeen: { youtube: { qualities: ['480p', '2160p', '9999p'], audio: ['wav', 'opus'], subLangs: ['de', 'x y'], subFormats: ['vtt'], videoFormats: ['webm vp9', 'mp4;rm'], audioRates: ['128k', 'x'], thumbFormats: ['webp', 'x y'] } } };
+  if (!same(run(`videoSiteSeen(stored, 'youtube')`), { qualities: ['2160p', '480p'], audio: ['opus'], subLangs: ['de'], videoFormats: ['webm vp9'], audioRates: ['128k'], thumbFormats: ['webp'] })) fail('the options offer a site something it has not offered');
+  if (!same(run(`videoSiteSeen(stored, 'vimeo')`), { qualities: [], audio: [], subLangs: [], videoFormats: [], audioRates: [], thumbFormats: [] })) fail('the options offer choices for a site that has offered none');
 
   const rect = { left: 100, top: 50, width: 800, height: 450 };
   const size = { width: 160, height: 32 };
@@ -466,14 +538,14 @@ function loadBackground(chrome) {
   const last = () => sent.at(-1)?.body;
   if (r.result !== 'sent') fail(`a send the instance started answers ${r.result}, want sent`);
   if (last()?.links !== 'https://www.youtube.com/watch?v=aqz-KE-bpKQ') fail(`an embedded player sends ${last()?.links}`);
-  if (JSON.stringify(last()?.choice) !== '{"variants":["video","audio"],"quality":"1080p","audioFormat":"mp3","subtitleLangs":[],"subtitleAuto":true,"subtitleFormat":"best","videoTrack":"1080p60 webm vp9","audioLang":"de"}') fail(`a pick arrives as ${JSON.stringify(last()?.choice)}, want the 1080p60 track and mp3 audio in German`);
+  if (JSON.stringify(last()?.choice) !== '{"variants":["video","audio"],"quality":"1080p","audioFormat":"mp3","subtitleLangs":[],"subtitleAuto":true,"subtitleFormat":"srt","videoTrack":"1080p60 webm vp9","audioLang":"de"}') fail(`a pick arrives as ${JSON.stringify(last()?.choice)}, want the 1080p60 track and mp3 audio in German`);
   if (last()?.start !== true || last()?.report !== true) fail('the video is not sent to start at once and to report a link already there');
   if ('format' in last()) fail('the send still names a format beside its choice');
   if (sent.at(-1)?.path !== '/api/links' || sent.at(-1)?.method !== 'POST') fail('the video is not sent as POST /api/links');
 
   await sendVideo(embed, { href: embed, playlist: true, pick: { parts: ['everything'], quality: '8k' } });
   if (last()?.links !== 'https://www.youtube.com/playlist?list=PLbpi6ZahtOH6Ar_3GPy3workIMw9vB9wB') fail(`asked for the playlist, the button sends ${last()?.links}`);
-  if (JSON.stringify(last()?.choice) !== '{"variants":["video"],"quality":"best","audioFormat":"best","subtitleLangs":[],"subtitleAuto":true,"subtitleFormat":"best"}') fail(`a pick the instance would refuse arrives as ${JSON.stringify(last()?.choice)}, want the best video`);
+  if (JSON.stringify(last()?.choice) !== '{"variants":["video"],"quality":"best","audioFormat":"best","subtitleLangs":[],"subtitleAuto":true,"subtitleFormat":"srt"}') fail(`a pick the instance would refuse arrives as ${JSON.stringify(last()?.choice)}, want the best video`);
 
   // The menu offers what the instance says the video has, and the
   // resolutions found are kept for the site.
@@ -490,7 +562,7 @@ function loadBackground(chrome) {
   menu = await videoFormats(embed, { href: embed });
   if (menu.videoSizes?.['1080p mp4 avc1'] !== 5000000) fail(`the menu does not get the sizes the instance reports: ${JSON.stringify(menu.videoSizes)}`);
   if (!menu.known || menu.videoTracks?.join() !== '1080p mp4 avc1' || menu.subtitles?.join() !== 'de') fail(`the menu offers ${JSON.stringify(menu)}, want the video's own tracks and subtitles`);
-  if (JSON.stringify(store.data.videoSeen?.youtube) !== '{"qualities":["1080p","720p"],"audio":["opus"],"subLangs":["de"],"subFormats":["vtt"],"videoFormats":["mp4 avc1"],"audioRates":["160k"]}') fail(`YouTube is remembered as offering ${JSON.stringify(store.data.videoSeen?.youtube)}`);
+  if (JSON.stringify(store.data.videoSeen?.youtube) !== '{"qualities":["1080p","720p"],"audio":["opus"],"subLangs":["de"],"videoFormats":["mp4 avc1"],"audioRates":["160k"],"thumbFormats":[]}') fail(`YouTube is remembered as offering ${JSON.stringify(store.data.videoSeen?.youtube)}`);
   answer = { status: 502, body: 'ERROR: [youtube] aqz-KE-bpKQ: Private video' };
   menu = await videoFormats(embed, { href: embed });
   if (menu.qualities?.length || menu.known) fail(`a probe that failed offers ${JSON.stringify(menu)}, want nothing known`);
@@ -698,9 +770,9 @@ function loadPage(chrome, href, { reduced = false } = {}) {
 }
 
 const PAGE_LABELS = {
-  send: 'Download', sendTip: 'Send', more: 'More', best: 'Best', language: 'Language', dubbed: 'dubbed', autoCaptions: 'Auto-generated', quality: 'Quality', format: 'Format',
+  send: 'Download', sendTip: 'Send', more: 'More', best: 'Best', language: 'Language', dubbed: 'dubbed', autoCaptions: 'auto', converted: 'converted', quality: 'Quality', format: 'Format',
   parts: { video: 'Video', audio: 'Audio', subtitle: 'Subtitles', thumbnail: 'Thumbnail', description: 'Text' },
-  hide: 'Hide on {site}', checking: 'Checking', unknown: 'Unknown', sent: 'Sent', already: 'Already there',
+  checking: 'Checking', unknown: 'Unknown', sent: 'Sent', already: 'Already there',
   mark: '<svg viewBox="0 0 587 901.8"></svg>', dir: 'ltr', lang: 'en',
 };
 
@@ -749,7 +821,7 @@ const PAGE_LABELS = {
   // shows on the button.
   send().fire('click');
   await settle();
-  if (JSON.stringify(sends.at(-1)?.pick) !== '{"parts":["video","subtitle"],"quality":"1080p","videoFormat":"best","audio":"best","audioRate":"best","subLangs":[],"subFormat":"best"}') fail(`a click sends ${JSON.stringify(sends.at(-1)?.pick)}, want YouTube's defaults`);
+  if (JSON.stringify(sends.at(-1)?.pick) !== '{"parts":["video","subtitle"],"quality":"1080p","videoFormat":"best","audio":"best","audioRate":"best","subLangs":[],"subFormat":"srt"}') fail(`a click sends ${JSON.stringify(sends.at(-1)?.pick)}, want YouTube's defaults`);
   const stars = () => (doc.animations ?? []).filter((a) => a.node.attrs.class === 'star').length;
   if (stars() < 5 || stars() > 7) fail(`a video already there cheers with ${stars()} stars, want five to seven`);
   if (frame()?.dataset.state !== 'already' || send().children.at(-1)?.textContent !== 'Already there') fail(`a video already there shows ${frame()?.dataset.state} "${send().children.at(-1)?.textContent}", want already`);
@@ -768,7 +840,7 @@ const PAGE_LABELS = {
   more().fire('click');
   await settle();
   if (more().attrs['aria-expanded'] !== 'true' || !menuEl()?.attrs['aria-label']) fail('the arrow does not say it opened a named dialog');
-  const checking = 'Video|Audio|Subtitles|Thumbnail|Text|Checking|Download|Hide on YouTube';
+  const checking = 'Video|Audio|Subtitles|Thumbnail|Text|Checking|Download';
   if (entries().join('|').replace(/[[\]]/g, '') !== checking) fail(`while the instance is asked the menu shows ${entries().join(', ')}, want ${checking}`);
   formatsAnswer({
     known: true, qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p mp4 avc1', '1080p webm vp9', '720p mp4 avc1'],
@@ -777,7 +849,7 @@ const PAGE_LABELS = {
     videoSizes: { best: 404000000, '1080p': 303000000, '720p': 90000000 }, audioSizes: { 'aac 128k': 3000000 },
   });
   await settle();
-  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|[Best]|avc1|mp4|vp9|webm|Audio|[Subtitles]|Language|[de]|Auto-generated|en|Format|[Best]|vtt|Thumbnail|Download|Hide on YouTube';
+  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|H.264|MP4|[VP9]|WebM|Audio|[Subtitles]|Language|[German]|English|auto|Format|[SRT]|converted|WebVTT|TTML|Thumbnail|Download';
   if (entries().join('|') !== listed) fail(`the menu shows ${entries().join(', ')}, want ${listed}, made exact for the video and without the text it lacks`);
 
   // Each part is a switch, a quality a radio in a list, a format a radio in
@@ -786,6 +858,11 @@ const PAGE_LABELS = {
   for (const role of ['menu', 'menuitem', 'menuitemcheckbox', 'menuitemradio']) if (withRole(role).length) fail(`the menu still has a ${role}`);
   const switches = withRole('switch').map((s) => `${s.text}:${s.attrs['aria-checked']}`).join('|');
   if (switches !== 'Video:true|Audio:false|Subtitles:true|Thumbnail:false') fail(`the parts read ${switches}, want a switch each with its state`);
+  // Each part is a card of its own, its switch on top and, while it is on,
+  // its choices under it.
+  const cards = menuEl().children.filter((c) => c.className === 'card');
+  if (cards.map((c) => c.children[0]?.text).join('|') !== 'Video|Audio|Subtitles|Thumbnail') fail(`the menu's cards are ${cards.map((c) => c.children[0]?.text).join(', ')}, want one per part with its switch first`);
+  if (!cards[0]?.querySelectorAll('*').some((n) => n.attrs.role === 'radiogroup') || cards[1]?.children.length !== 1) fail("a part's choices are not in its own card, or a part switched off shows choices");
   const groups = withRole('radiogroup');
   if (groups.map((g) => g.className).join('|') !== 'list|segments|segments') fail(`the choices come as ${groups.map((g) => g.className).join(', ')}, want the video's qualities as a list and the formats as segments`);
   const ids = new Set(menuEl().querySelectorAll('*').map((n) => n.attrs.id).filter(Boolean));
@@ -795,58 +872,108 @@ const PAGE_LABELS = {
     const stops = radios(g).filter((r) => r.attrs.tabindex !== '-1');
     if (radios(g).some((r) => r.attrs.role !== 'radio') || stops.length !== 1 || stops[0] !== picked(g)) fail(`a radio group has ${stops.length} tab stops, want its picked radio alone`);
   }
-  if (withRole('checkbox').map((c) => `${c.text}:${c.attrs['aria-checked']}`).join('|') !== 'de:true|en:false') fail('the subtitle languages are not checkboxes with their state');
+  if (withRole('checkbox').map((c) => `${c.text}:${c.attrs['aria-checked']}`).join('|') !== 'German:true|English:false') fail('the subtitle languages are not checkboxes named by their language, with their state');
   if (radios(groups[0]).find((r) => r.text === '720p')?.attrs['aria-label'] !== '720p, 90 MB') fail('a quality does not say its size to a screen reader');
-  if (radios(groups[1]).find((r) => r.text === 'avc1')?.attrs['aria-label'] !== 'avc1, mp4') fail('a format does not say its container to a screen reader');
+  if (radios(groups[1]).find((r) => r.text === 'H.264')?.attrs['aria-label'] !== 'H.264, MP4') fail('a format does not say its container to a screen reader');
   // Video and subtitles are ticked, and subtitles have no size, so the
   // button weighs nothing rather than less than it downloads.
   if (goShows() !== 'Download') fail(`with subtitles ticked the download button reads "${goShows()}", want no total`);
 
   const foot = menuEl().children.at(-1);
-  if (foot?.className !== 'foot' || foot.children.map((b) => b.text).join('|') !== 'Download|Hide on YouTube') fail('Download and Hide are not kept together at the foot of the menu, where they stay in view');
+  if (foot?.className !== 'foot' || foot.children.map((b) => b.text).join('|') !== 'Download') fail('Download is not alone at the foot of the menu, where it stays in view');
   const room = parseInt(menuEl().style['max-height'] ?? '0', 10);
   if (!(room > 460 && room <= 720)) fail(`the menu may grow to ${room}px, want the room the player leaves below the button`);
+  // On a page too narrow for it where it opens, such as a small embedded
+  // player, the menu moves back in view, 8px from the edge.
+  menuEl().rect = { left: -50, top: 100, width: 400, height: 600, right: 350, bottom: 700 };
+  doc.dispatch('scroll');
+  if (menuEl().style.transform !== 'translateX(58px)') fail(`a menu 50px past the page's left edge is moved by ${menuEl().style.transform}, want 58px`);
+  menuEl().rect = { left: 1000, top: 100, width: 400, height: 600, right: 1400, bottom: 700 };
+  doc.dispatch('scroll');
+  if (menuEl().style.transform !== 'translateX(-128px)') fail(`a menu 120px past the page's right edge is moved by ${menuEl().style.transform}, want -128px`);
+  menuEl().rect = { left: 400, top: 100, width: 400, height: 600, right: 800, bottom: 700 };
+  doc.dispatch('scroll');
+  if (menuEl().style.transform !== 'translateX(0px)') fail(`a menu in view is moved by ${menuEl().style.transform}`);
   const item = (text) => menuEl().querySelectorAll('button').find((b) => b.text === text);
   const off = (text) => item(text)?.disabled === true;
-  item('vp9').fire('click');
-  if (!entries().includes('[vp9]')) fail('a format picked in the menu is not marked');
+  // Best is a quality, never a format: a format row offers what the video
+  // has and marks the one the best track takes until another is picked.
+  for (const g of withRole('radiogroup').filter((r) => r.className === 'segments')) if (radios(g).some((r) => r.text === 'Best')) fail('a format row offers Best');
+  item('H.264').fire('click');
+  if (!entries().includes('[H.264]')) fail('a format picked in the menu is not marked');
+  item('VP9').fire('click');
   item('720p').fire('click');
-  if (!entries().join('|').includes('Format|[Best]|avc1|mp4|vp9|webm') || !off('vp9') || off('avc1')) {
-    fail(`at a quality without the format picked the menu shows ${entries().join(', ')}, want Best again and the missing format listed but off`);
+  if (!entries().join('|').includes('Format|[H.264]|MP4|VP9|WebM') || !off('VP9') || off('H.264')) {
+    fail(`at a quality without VP9 the menu shows ${entries().join(', ')}, want H.264 marked and VP9 listed but off`);
   }
 
+  // The menu is a window and each part a sub-card one surface up, without
+  // a border. Every list is one column of tiles without a marker, whether one
+  // or several can be picked; only the roles tell the two apart.
+  const css = read('src', 'video-button.js');
+  const rule = (selector) => css.slice(css.indexOf(`${selector} {`)).split('}')[0];
+  if (!/background: var\(--surface2\)/.test(rule('.menu .card')) || /box-shadow|(^|[\s;])border(-top|-bottom|-left|-right|-width|-style|-color)?:/.test(rule('.menu .card'))) fail('a part is not a sub-card filled one surface up without a border');
+  if (!/background: var\(--surface\)/.test(rule('    .menu'))) fail('the menu is not a window on the surface');
+  if (/\.list[^{}]*::(before|after)/.test(css)) fail('a list of choices still draws a radio dot or a checkbox');
+  // A part's name is its heading, an accent badge with rounded corners that
+  // stays filled whether the part is on or off; the track beside it says which.
+  const head = rule('.menu .switch');
+  // The heading sits half over the sub-card's top edge, as GlimStone's notch:
+  // the card's top padding plus half the badge's 22px pulls it up.
+  const cardTop = parseFloat(rule('.menu .card').match(/padding-top: (\d+)px/)?.[1]);
+  const pulled = parseFloat(head.match(/margin-top: -(\d+)px/)?.[1]);
+  if (!(pulled === cardTop + 11)) fail(`a part's heading is pulled up ${pulled}px over a ${cardTop}px top padding, want it centred on the card's edge`);
+  const width = parseFloat(rule('    .menu').match(/ width: (\d+)px/)?.[1]);
+  if (!(width >= 380 && width <= 420)) fail(`the menu is ${width}px wide, want 380 to 420`);
+  if (!/background: var\(--accent\)/.test(head) || !/color: var\(--accent-contrast\)/.test(head) || !/text-transform: uppercase/.test(head) || !/border-radius: min\(var\(--radius\), 6px\)/.test(head)) fail('a part\'s name is not a filled heading badge with rounded corners');
+  if (/opacity|var\(--sub\)/.test(head) || /\.switch\[aria-checked="(true|false)"\]\s*\{/.test(css)) fail('a part\'s heading badge changes with its switch');
+  // Nothing in the menu draws a line round itself: sub-cards, tiles, format
+  // rails, switches and the download button part by their fill alone. The
+  // one line left is the window's hairline, GlimStone's card edge.
+  const lined = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, , body]) => /inset 0 0 0 1px|(^|[;\s])border(-top|-bottom|-left|-right)?:/.test(body)).map(([, sel]) => sel.replace(/\/\*[\s\S]*?\*\//g, '').trim());
+  if (lined.join() !== '.menu') fail(`inside the menu these draw a line: ${lined.filter((s) => s !== '.menu').join(', ')}`);
+  if (!/background: var\(--surface3\)/.test(rule('.segments')) || !/padding: 0\.2rem/.test(rule('.segments'))) fail('a format rail is not the groove one surface below its sub-card, padded 0.2rem');
+  if (!/background: var\(--surface3\)/.test(rule('.menu .list button')) || !/background: var\(--raised\)/.test(css.slice(css.indexOf('.list button:not([aria-checked="true"]):hover')))) fail('a tile does not rest one surface above its sub-card and rise one more under the pointer');
+
+  // Every list of choices is one column, so it reads top to bottom like the
+  // subtitle languages.
+  const lists = menuEl().querySelectorAll('div').filter((d) => d.className === 'list');
+  if (lists.length !== 2 || lists.some((l) => l.style['grid-template-rows']) || /1fr 1fr/.test(read('src', 'video-button.js'))) fail('a list of choices in the menu is laid out in two columns');
+
   // The arrow keys move the pick and the keyboard together inside a group,
-  // past a format the quality rules out and round the ends, and across the
-  // list's two columns; outside the groups they go from one stop to the next.
+  // past a format the quality rules out and round the ends, and left and
+  // right step as up and down do, as the browser's own radios. Outside the
+  // groups they go from one stop to the next.
   const quality = () => withRole('radiogroup')[0];
   const format = () => withRole('radiogroup')[1];
   key(picked(format()), 'ArrowRight');
-  if (picked(format())?.text !== 'avc1' || doc.activeElement !== picked(format())) fail('an arrow key in the format row does not move the pick and the keyboard to the next format');
-  key(picked(format()), 'ArrowRight');
-  if (picked(format())?.text !== 'Best') fail(`the arrow key from avc1 lands on ${picked(format())?.text}, want past the format ruled out and round to Best`);
-  key(picked(format()), 'ArrowLeft');
-  if (picked(format())?.text !== 'avc1') fail('back from Best the arrow key does not skip the format ruled out');
+  if (picked(format())?.text !== 'H.264' || doc.activeElement !== picked(format())) fail(`at 720p the arrow key in the format row lands on ${picked(format())?.text}, want past VP9, which the quality rules out, and round to H.264`);
   key(picked(quality()), 'ArrowUp');
   if (picked(quality())?.text !== '1080p' || doc.activeElement !== picked(quality())) fail('the up arrow in the quality list does not pick the quality above');
   key(picked(quality()), 'ArrowDown');
   key(picked(quality()), 'ArrowLeft');
-  if (picked(quality())?.text !== 'Best') fail(`the left arrow from 720p in the second column picks ${picked(quality())?.text}, want Best beside it`);
+  if (picked(quality())?.text !== '1080p') fail(`the left arrow from 720p picks ${picked(quality())?.text}, want 1080p above it`);
   key(picked(quality()), 'ArrowRight');
-  if (picked(quality())?.text !== '720p' || picked(format())?.text !== 'avc1') fail('the right arrow from Best does not go back to 720p, or the format did not stay');
+  if (picked(quality())?.text !== '720p' || picked(format())?.text !== 'H.264') fail('the right arrow from 1080p does not go back to 720p, or the format did not stay');
+  key(picked(quality()), 'ArrowDown');
+  if (picked(quality())?.text !== 'Best') fail(`the down arrow from the last quality picks ${picked(quality())?.text}, want round to Best`);
+  key(picked(quality()), 'ArrowUp');
   withRole('switch')[0].focus();
   key(withRole('switch')[0], 'ArrowDown');
   if (doc.activeElement !== picked(quality())) fail('the down arrow from the Video switch does not reach the quality picked');
 
   item('Audio').fire('click');
   if (withRole('switch')[1]?.attrs['aria-checked'] !== 'true') fail('a click on the Audio switch does not turn it on');
-  const audioRows = 'Audio]|Quality|[Best]|160k|128k|3 MB|Format|[Best]|aac|opus|';
+  const audioRows = 'Audio]|Quality|[Best]|160k|128k|3 MB|Format|AAC|[Opus]|MP3|converted|FLAC|converted|';
   if (!entries().join('|').includes(audioRows)) fail(`the audio part shows ${entries().join(', ')}, want ${audioRows}`);
   item('128k').fire('click');
-  if (!off('opus') || off('aac')) fail('at 128k the audio format opus, which the video lacks there, is not off');
-  item('en').fire('click');
-  item('vtt').fire('click');
+  if (!off('Opus') || off('AAC')) fail('at 128k the audio format opus, which the video lacks there, is not off');
+  item('English').fire('click');
+  item('WebVTT').fire('click');
   item('Thumbnail').fire('click');
-  if (!entries().includes('1280×720 webp')) fail(`the menu does not say which picture the thumbnail is: ${entries().join(', ')}`);
+  // A thumbnail the host has in one format only says which. A row of one
+  // choice would offer nothing.
+  if (!entries().join('|').includes('Thumbnail]|1280×720 WebP|Download')) fail(`the menu does not say which picture the thumbnail is, in the host's format: ${entries().join(', ')}`);
   item('Download').fire('click');
   await settle();
   const norm = (o) => JSON.stringify(Object.fromEntries(Object.entries(o ?? {}).sort()));
@@ -864,12 +991,15 @@ const PAGE_LABELS = {
   await store.local.set({ videoDefaults: { youtube: { parts: ['video'], quality: 'best' } } });
   more().fire('click');
   await settle();
-  if (!entries().join('|').startsWith('[Video]|Quality|[Best]|404 MB|1080p|303 MB|720p|90 MB|Format|[Best]|')) fail(`with Best stored the menu starts at ${entries().join(', ')}, want Best marked in both rows`);
+  if (!entries().join('|').startsWith('[Video]|Quality|[Best]|404 MB|1080p|303 MB|720p|90 MB|Format|H.264|MP4|[VP9]|')) fail(`with Best stored the menu starts at ${entries().join(', ')}, want Best marked and the best track's VP9`);
   if (goShows() !== 'Download · 404 MB' || go()?.attrs['aria-label'] !== 'Download, 404 MB') fail(`with the video alone ticked the download button reads "${goShows()}", want its size`);
   item('Audio').fire('click');
   if (goShows() !== 'Download') fail(`with the best audio's size unknown the download button reads "${goShows()}", want no total`);
   item('128k').fire('click');
   if (goShows() !== 'Download · 407 MB') fail(`with video and the 128k audio the download button reads "${goShows()}", want 407 MB`);
+  // A conversion has no size until it is made, so the button weighs nothing.
+  item('MP3').fire('click');
+  if (goShows() !== 'Download' || !entries().join('|').includes('Quality|[Best]|')) fail(`with MP3 picked the menu shows ${entries().join(', ')} and the button reads "${goShows()}", want Best and no total`);
   item('Audio').fire('click');
   item('Download').fire('click');
   await settle();
@@ -952,10 +1082,17 @@ const PAGE_LABELS = {
   doc.dispatch('yt-navigate-finish');
   if (button()?.style.left !== '700px') fail(`on Shorts the button sits at ${button()?.style.left}, want over the video on screen at 700px`);
 
-  // The button takes the extension's theme.
+  // The button takes the extension's theme, and its corners are rounded in
+  // every shape but never so far that the 32px bar reads as a pill.
   for (const theme of ['light', 'dark']) {
     await store.local.set({ theme });
     if (frame()?.dataset.theme !== theme) fail(`with the ${theme} theme the button is ${frame()?.dataset.theme}`);
+  }
+  for (const shape of ['round', 'soft', 'square', 'leaf']) {
+    await store.local.set({ shape });
+    const radius = parseFloat(frame()?.style['--radius']);
+    if (!(radius < 16)) fail(`with the ${shape} shape the button's corners are ${frame()?.style['--radius']}, want under half its height`);
+    if (shape === 'round' && !(radius >= 8)) fail(`with the round shape the button's corners are ${radius}px, want clearly rounded`);
   }
 }
 
@@ -1022,6 +1159,20 @@ for (const reduced of [false, true]) {
   if (reduced && scaled) fail('with reduced motion the button still grows');
 }
 
+// The part a video's description is saved as reads as its description in
+// every language, not as plain text.
+{
+  const ctx = vm.createContext({ MESSAGES: {} });
+  vm.runInContext(`${read('src', 'i18n-video.js')}\nglobalThis.V = VIDEO_MESSAGES;`, ctx);
+  const named = Object.fromEntries(Object.entries(ctx.V).map(([l, m]) => [l, m['video.partDescription']]));
+  const word = (k) => Object.values(ctx.V).map((m) => m[k]);
+  if (ctx.V.de['video.converted'] !== 'umgewandelt' || ctx.V.de['video.autoCaptions'] !== 'automatisch' || word('video.converted').some((w) => !w)) fail('the menu does not say "umgewandelt" and "automatisch" in every language');
+  if (named.en !== 'Description' || named.de !== 'Beschreibung') fail(`the description part reads ${named.en} and ${named.de}, want Description and Beschreibung`);
+  const texts = ['Text', 'Texte', 'Texto', 'Testo', 'Tekst', 'Текст', 'Teksti', 'Metin', 'نص', 'Κείμενο', 'Testua', 'متن', 'טקסט', 'टेक्स्ट', 'Szöveg', 'Teks', 'Texti', 'テキスト', '텍스트', 'Tekstas', 'Teksts', 'Besedilo', 'ข้อความ', 'Văn bản'];
+  const plain = Object.entries(named).filter(([, v]) => texts.includes(v)).map(([l]) => l);
+  if (plain.length) fail(`the description part still reads as plain text in ${plain.join(', ')}`);
+}
+
 // The button's words stay readable on both themes and on the accent it turns
 // to under the pointer (WCAG AA, 4.5:1).
 {
@@ -1032,17 +1183,20 @@ for (const reduced of [false, true]) {
   const css = read('src', 'video-button.js');
   const tokens = (selector) => {
     const block = css.slice(css.indexOf(selector)).split('}')[0];
-    return Object.fromEntries([...block.matchAll(/--([a-z]+): (#[0-9a-f]{6})/g)].map((m) => [m[1], m[2]]));
+    return Object.fromEntries([...block.matchAll(/--([a-z0-9]+): (#[0-9a-f]{6})/g)].map((m) => [m[1], m[2]]));
   };
   for (const [theme, t] of [['dark', tokens('.kl {')], ['light', tokens('.kl[data-theme="light"] {')]]) {
     for (const k of ['text', 'sub', 'ok', 'fail']) {
       if (ratio(t[k], t.surface) < 4.5) fail(`in the ${theme} theme --${k} on the surface is ${ratio(t[k], t.surface).toFixed(2)}:1`);
     }
-    // A switch's knob and a radio's ring show whether it is on, so they need
-    // the 3:1 a control's outline does.
-    for (const k of ['knob', 'ring']) {
-      if (!t[k] || ratio(t[k], t.surface) < 3) fail(`in the ${theme} theme --${k} on the surface is ${t[k] ? ratio(t[k], t.surface).toFixed(2) : 'missing'}, want 3:1`);
+    // The labels sit on the sub-card, a tile's words on the tile at rest and
+    // under the pointer.
+    for (const [k, ground] of [['sub', 'surface2'], ['text', 'surface2'], ['sub', 'surface3'], ['text', 'raised']]) {
+      if (!t[ground] || ratio(t[k], t[ground]) < 4.5) fail(`in the ${theme} theme --${k} on --${ground} is ${t[ground] ? ratio(t[k], t[ground]).toFixed(2) : 'missing'}`);
     }
+    // A switch's knob shows whether it is on, so on its sub-card it needs the
+    // 3:1 a control's outline does.
+    if (ratio(t.knob, t.surface2) < 3) fail(`in the ${theme} theme the knob on a sub-card is ${ratio(t.knob, t.surface2).toFixed(2)}:1, want 3:1`);
   }
   const gold = vm.runInContext('DEFAULT_ACCENT', ctx);
   if (ratio(ink, gold) < 4.5) fail(`the label on the accent is ${ratio(ink, gold).toFixed(2)}:1`);
@@ -1102,6 +1256,53 @@ for (const known of [true, false]) {
     fail(`${known ? 'with' : 'without'} the video's tracks known, a click with a format and a bitrate in the defaults sends ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
   }
 }
+// A thumbnail from an instance that converts is offered as JPEG, PNG and
+// WebP, JPEG picked, and the pick is sent; a click with the part on sends the
+// site's default, and an instance that converts nothing is sent no format.
+for (const converts of [true, false]) {
+  const store = makeStore({ videoDefaults: { youtube: { parts: ['thumbnail'], thumbFormat: 'webp' } } });
+  const { chrome } = makeChrome(store);
+  const sends = [];
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
+    if (msg.type === 'knightloader-video-formats') {
+      return {
+        known: true, qualities: ['720p'], audio: true, videoTracks: ['720p mp4 avc1'], audioTracks: [], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [],
+        thumbnail: { width: 1280, height: 720, ext: 'webp', ...(converts ? { formats: ['jpg', 'png', 'webp'] } : {}) }, description: false,
+      };
+    }
+    if (msg.type === 'knightloader-video-send') {
+      sends.push(msg.pick);
+      return { result: 'sent' };
+    }
+    return undefined;
+  };
+  const { doc, run } = loadPage(chrome, 'https://www.youtube.com/watch?v=aqz-KE-bpKQ');
+  const player = doc.createElement('div');
+  doc.documentElement.append(player);
+  video(doc, player, { left: 0, top: 56, width: 1280, height: 720 });
+  run();
+  await settle();
+  const shadow = doc.documentElement.querySelectorAll('knightloader-video-button')[0].shadow;
+  const button = (cls) => shadow.querySelectorAll('button').find((b) => b.className === cls);
+  button('send').fire('click');
+  await settle();
+  if (sends.at(-1)?.thumbFormat !== (converts ? 'webp' : undefined)) fail(`${converts ? 'to an instance that converts' : 'to one that does not'} a click sends the thumbnail as ${sends.at(-1)?.thumbFormat}, want ${converts ? "the site's WebP" : 'no format'}`);
+  await store.local.set({ videoDefaults: { youtube: { parts: ['thumbnail'] } } });
+  shadow.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'dialog').fire('click');
+  await settle();
+  const menu = shadow.querySelectorAll('div').find((d) => d.attrs.role === 'dialog');
+  const shown = menu.querySelectorAll('*').filter((n) => n.text).map((n) => (n.attrs['aria-checked'] === 'true' ? `[${n.text}]` : n.text)).join('|');
+  const want = converts ? 'Thumbnail]|1280×720|Format|[JPEG]|converted|PNG|converted|WebP|Download' : 'Thumbnail]|1280×720 WebP|Download';
+  if (!shown.includes(want)) fail(`${converts ? 'from an instance that converts' : 'from one that does not'} the thumbnail card shows ${shown}, want ${want}`);
+  if (converts) {
+    menu.querySelectorAll('button').find((b) => b.text === 'PNG')?.fire('click');
+    menu.querySelectorAll('button').find((b) => b.text === 'Download').fire('click');
+    await settle();
+    if (sends.at(-1)?.thumbFormat !== 'png') fail(`the thumbnail picked as PNG is sent as ${sends.at(-1)?.thumbFormat}`);
+  }
+}
+
 // With more than one instance the popup asks where to: the button keeps
 // sending until the worker says what became of it, and a popup closed
 // without a pick takes it back to rest with nothing shown.
@@ -1211,7 +1412,7 @@ for (const known of [true, false]) {
   const frame = host?.shadow.querySelectorAll('div').find((d) => d.className === 'kl');
   if (frame?.classList.contains('shown')) fail('with auto-hide the button shows before the shortcut');
   await shortcut();
-  if (sends.length !== 1 || JSON.stringify(sends[0].pick) !== '{"parts":["audio"],"quality":"best","videoFormat":"best","audio":"opus","audioRate":"best","subLangs":[],"subFormat":"best"}') {
+  if (sends.length !== 1 || JSON.stringify(sends[0].pick) !== '{"parts":["audio"],"quality":"best","videoFormat":"best","audio":"opus","audioRate":"best","subLangs":[],"subFormat":"srt"}') {
     fail(`the shortcut sends ${JSON.stringify(sends.map((s) => s.pick))}, want YouTube's defaults once`);
   }
   if (frame?.dataset.state !== 'sent') fail(`after the shortcut the button shows ${frame?.dataset.state}, want sent`);
@@ -1244,7 +1445,10 @@ for (const known of [true, false]) {
 // way to the browser's own shortcuts page.
 for (const editable of [true, false]) {
   const browser = editable ? 'Firefox' : 'Chromium';
-  const store = makeStore();
+  const store = makeStore({
+    videoDefaults: { youtube: { parts: ['video', 'audio', 'subtitle', 'thumbnail'], subFormat: 'srv3', thumbFormat: 'best' } },
+    videoSeen: { youtube: { videoFormats: ['mp4 avc1', 'webm vp9'], audio: ['aac', 'opus'], subFormats: ['srv3', 'vtt'], thumbFormats: ['webp', 'jpg'] } },
+  });
   const { chrome, calls } = makeChrome(store);
   const command = Object.keys(manifest.commands ?? {})[0] ?? 'send-video';
   const fallback = manifest.commands?.[command]?.suggested_key?.default ?? 'Alt+Shift+K';
@@ -1282,6 +1486,17 @@ for (const editable of [true, false]) {
   vm.runInContext(read('src', 'video.js'), ctx, { filename: 'video.js' });
   vm.runInContext(source, ctx, { filename: 'options-video.js' });
   await settle();
+  // The site's defaults name formats and codecs as they are written, and
+  // offer subtitles as SRT, WebVTT or TTML and a thumbnail in a format the
+  // site has, neither with a Best.
+  const options = doc.byId.videoSites.querySelectorAll('option');
+  const names = options.map((o) => o.text);
+  for (const name of ['MP4 · H.264', 'WebM · VP9', 'AAC', 'Opus', 'MP3 (video.converted)', 'FLAC (video.converted)', 'SRT', 'WebVTT', 'TTML', 'WebP', 'JPEG']) if (!names.includes(name)) fail(`${browser}: the site's defaults offer ${names.join(', ')}, want ${name} among them`);
+  if (names.some((n) => /srv/i.test(n))) fail(`${browser}: the site's defaults offer YouTube's own subtitle format`);
+  const select = (key) => doc.byId.videoSites.querySelectorAll('select').find((s) => s.dataset.videoKey === `youtube-${key}`);
+  const choices = (key) => select(key)?.children.map((o) => (o.selected ? `[${o.value}]` : o.value)).join(' ');
+  if (choices('subformat') !== '[srt] vtt ttml') fail(`${browser}: with srv3 stored the subtitle formats read ${choices('subformat')}, want SRT picked and no Best`);
+  if (choices('thumbformat') !== 'webp [jpg]') fail(`${browser}: with Best stored the thumbnail formats read ${choices('thumbformat')}, want JPEG picked and no Best`);
   const field = doc.byId.videoShortcut;
   const action = doc.byId.videoShortcutAction;
   const problem = doc.byId.videoShortcutError;
