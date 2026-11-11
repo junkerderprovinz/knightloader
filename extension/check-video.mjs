@@ -344,6 +344,19 @@ function loadBackground(chrome) {
   const twoRates = (q) => vm.runInContext(`videoPickSize({ ...videoResolve(videoPick({ parts: ['video'] }), twoRates), quality: '${q}' }, twoRates, 'video')`, ctx);
   if (twoRates('2160p60') !== twoRates('best')) fail(`at the top resolution the chip weighs ${twoRates('2160p60')} bytes and Best ${twoRates('best')}, want the same`);
   if (twoRates('2160p') !== 450000000) fail(`the lower frame rate weighs ${twoRates('2160p')} bytes, want its vp9 track's, the codec yt-dlp prefers`);
+  // The download button weighs the whole pick, and only when every ticked
+  // part has a size: a partial sum would read as the total.
+  const totalOf = (sel) => vm.runInContext(`videoPickTotal({ ...videoResolve(videoPick({ parts: ['video', 'audio'] }), sized), ...${JSON.stringify(sel)} }, sized)`, ctx);
+  for (const [sel, want] of [
+    [{}, 903400000],
+    [{ parts: ['video'] }, 900000000],
+    [{ quality: '1080p', audioRate: '49k' }, 381200000],
+    [{ audioRate: '130k' }, undefined],
+    [{ parts: ['video', 'audio', 'description'] }, undefined],
+    [{ parts: ['thumbnail'] }, undefined],
+  ]) {
+    if (totalOf(sel) !== want) fail(`the pick ${JSON.stringify(sel)} weighs ${totalOf(sel)} bytes in all, want ${want}`);
+  }
   for (const [bytes, lang, want] of [[412000000, 'en', '412 MB'], [3400000, 'en', '3.4 MB'], [1234000000, 'de', '1,2 GB'], [20000, 'en', '0.1 MB']]) {
     const got = run(`videoSize(${bytes}, '${lang}')`).replace(/ /g, ' ');
     if (got !== want) fail(`${bytes} bytes read ${got} in ${lang}, want ${want}`);
@@ -624,6 +637,7 @@ class Node {
   }
   attachShadow() {
     this.shadow = new Node('#shadow', this.doc);
+    Object.defineProperty(this.shadow, 'activeElement', { get: () => this.doc.activeElement ?? null });
     return this.shadow;
   }
   get textContent() { return this.text ?? ''; }
@@ -725,7 +739,7 @@ const PAGE_LABELS = {
   const shadow = button()?.shadow;
   const buttons = () => shadow.querySelectorAll('button');
   const send = () => buttons().find((b) => b.className === 'send');
-  const more = () => buttons().find((b) => b.attrs['aria-haspopup'] === 'menu');
+  const more = () => buttons().find((b) => b.attrs['aria-haspopup'] === 'dialog');
   const frame = () => shadow.querySelectorAll('div').find((d) => d.className === 'kl');
   const bar = () => shadow.querySelectorAll('div').find((d) => d.className === 'bar');
   if (!send()?.children.some((c) => c.attrs.class === 'mark')) fail('the button shows no mark in front of its label');
@@ -740,13 +754,20 @@ const PAGE_LABELS = {
   if (stars() < 5 || stars() > 7) fail(`a video already there cheers with ${stars()} stars, want five to seven`);
   if (frame()?.dataset.state !== 'already' || send().children.at(-1)?.textContent !== 'Already there') fail(`a video already there shows ${frame()?.dataset.state} "${send().children.at(-1)?.textContent}", want already`);
 
-  // The menu lists the parts with the site's defaults ticked, says it is
-  // checking until the instance answers, then offers what the video has,
+  // The menu lists the parts with the site's defaults switched on, says it
+  // is checking until the instance answers, then offers what the video has,
   // and opening it again asks nothing more.
-  const menuEl = () => shadow.querySelectorAll('div').find((d) => d.attrs.role === 'menu');
+  const menuEl = () => shadow.querySelectorAll('div').find((d) => d.attrs.role === 'dialog');
   const entries = () => menuEl().querySelectorAll('*').filter((n) => n.text).map((n) => (n.attrs['aria-checked'] === 'true' ? `[${n.text}]` : n.text));
+  const withRole = (role) => menuEl().querySelectorAll('*').filter((n) => n.attrs.role === role);
+  const radios = (group) => group.querySelectorAll('button');
+  const picked = (group) => radios(group).find((r) => r.attrs['aria-checked'] === 'true');
+  const key = (node, k) => node.fire('keydown', { key: k });
+  const go = () => menuEl().children.at(-1)?.children[0];
+  const goShows = () => [go()?.text, ...(go()?.children ?? []).map((c) => c.text)].join(' ');
   more().fire('click');
   await settle();
+  if (more().attrs['aria-expanded'] !== 'true' || !menuEl()?.attrs['aria-label']) fail('the arrow does not say it opened a named dialog');
   const checking = 'Video|Audio|Subtitles|Thumbnail|Text|Checking|Download|Hide on YouTube';
   if (entries().join('|').replace(/[[\]]/g, '') !== checking) fail(`while the instance is asked the menu shows ${entries().join(', ')}, want ${checking}`);
   formatsAnswer({
@@ -756,22 +777,68 @@ const PAGE_LABELS = {
     videoSizes: { best: 404000000, '1080p': 303000000, '720p': 90000000 }, audioSizes: { 'aac 128k': 3000000 },
   });
   await settle();
-  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|[Best]|mp4 · avc1|webm · vp9|Audio|[Subtitles]|Language|[de]|Auto-generated|en|Format|[Best]|vtt|Thumbnail|Download|Hide on YouTube';
+  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|[Best]|avc1|mp4|vp9|webm|Audio|[Subtitles]|Language|[de]|Auto-generated|en|Format|[Best]|vtt|Thumbnail|Download|Hide on YouTube';
   if (entries().join('|') !== listed) fail(`the menu shows ${entries().join(', ')}, want ${listed}, made exact for the video and without the text it lacks`);
+
+  // Each part is a switch, a quality a radio in a list, a format a radio in
+  // a segmented row, a subtitle language a checkbox; nothing is left a menu
+  // item, which a panel of switches is not.
+  for (const role of ['menu', 'menuitem', 'menuitemcheckbox', 'menuitemradio']) if (withRole(role).length) fail(`the menu still has a ${role}`);
+  const switches = withRole('switch').map((s) => `${s.text}:${s.attrs['aria-checked']}`).join('|');
+  if (switches !== 'Video:true|Audio:false|Subtitles:true|Thumbnail:false') fail(`the parts read ${switches}, want a switch each with its state`);
+  const groups = withRole('radiogroup');
+  if (groups.map((g) => g.className).join('|') !== 'list|segments|segments') fail(`the choices come as ${groups.map((g) => g.className).join(', ')}, want the video's qualities as a list and the formats as segments`);
+  const ids = new Set(menuEl().querySelectorAll('*').map((n) => n.attrs.id).filter(Boolean));
+  for (const g of groups) {
+    const named = (g.attrs['aria-labelledby'] ?? '').split(' ').filter(Boolean);
+    if (named.length !== 2 || !named.every((id) => ids.has(id))) fail(`the ${g.className} of choices is not named by its part and its row: ${g.attrs['aria-labelledby']}`);
+    const stops = radios(g).filter((r) => r.attrs.tabindex !== '-1');
+    if (radios(g).some((r) => r.attrs.role !== 'radio') || stops.length !== 1 || stops[0] !== picked(g)) fail(`a radio group has ${stops.length} tab stops, want its picked radio alone`);
+  }
+  if (withRole('checkbox').map((c) => `${c.text}:${c.attrs['aria-checked']}`).join('|') !== 'de:true|en:false') fail('the subtitle languages are not checkboxes with their state');
+  if (radios(groups[0]).find((r) => r.text === '720p')?.attrs['aria-label'] !== '720p, 90 MB') fail('a quality does not say its size to a screen reader');
+  if (radios(groups[1]).find((r) => r.text === 'avc1')?.attrs['aria-label'] !== 'avc1, mp4') fail('a format does not say its container to a screen reader');
+  // Video and subtitles are ticked, and subtitles have no size, so the
+  // button weighs nothing rather than less than it downloads.
+  if (goShows() !== 'Download') fail(`with subtitles ticked the download button reads "${goShows()}", want no total`);
+
   const foot = menuEl().children.at(-1);
   if (foot?.className !== 'foot' || foot.children.map((b) => b.text).join('|') !== 'Download|Hide on YouTube') fail('Download and Hide are not kept together at the foot of the menu, where they stay in view');
   const room = parseInt(menuEl().style['max-height'] ?? '0', 10);
   if (!(room > 460 && room <= 720)) fail(`the menu may grow to ${room}px, want the room the player leaves below the button`);
   const item = (text) => menuEl().querySelectorAll('button').find((b) => b.text === text);
   const off = (text) => item(text)?.disabled === true;
-  item('webm · vp9').fire('click');
-  if (!entries().includes('[webm · vp9]')) fail('a format picked in the menu is not marked');
+  item('vp9').fire('click');
+  if (!entries().includes('[vp9]')) fail('a format picked in the menu is not marked');
   item('720p').fire('click');
-  if (!entries().join('|').includes('Format|[Best]|mp4 · avc1|webm · vp9') || !off('webm · vp9') || off('mp4 · avc1')) {
+  if (!entries().join('|').includes('Format|[Best]|avc1|mp4|vp9|webm') || !off('vp9') || off('avc1')) {
     fail(`at a quality without the format picked the menu shows ${entries().join(', ')}, want Best again and the missing format listed but off`);
   }
-  item('mp4 · avc1').fire('click');
+
+  // The arrow keys move the pick and the keyboard together inside a group,
+  // past a format the quality rules out and round the ends, and across the
+  // list's two columns; outside the groups they go from one stop to the next.
+  const quality = () => withRole('radiogroup')[0];
+  const format = () => withRole('radiogroup')[1];
+  key(picked(format()), 'ArrowRight');
+  if (picked(format())?.text !== 'avc1' || doc.activeElement !== picked(format())) fail('an arrow key in the format row does not move the pick and the keyboard to the next format');
+  key(picked(format()), 'ArrowRight');
+  if (picked(format())?.text !== 'Best') fail(`the arrow key from avc1 lands on ${picked(format())?.text}, want past the format ruled out and round to Best`);
+  key(picked(format()), 'ArrowLeft');
+  if (picked(format())?.text !== 'avc1') fail('back from Best the arrow key does not skip the format ruled out');
+  key(picked(quality()), 'ArrowUp');
+  if (picked(quality())?.text !== '1080p' || doc.activeElement !== picked(quality())) fail('the up arrow in the quality list does not pick the quality above');
+  key(picked(quality()), 'ArrowDown');
+  key(picked(quality()), 'ArrowLeft');
+  if (picked(quality())?.text !== 'Best') fail(`the left arrow from 720p in the second column picks ${picked(quality())?.text}, want Best beside it`);
+  key(picked(quality()), 'ArrowRight');
+  if (picked(quality())?.text !== '720p' || picked(format())?.text !== 'avc1') fail('the right arrow from Best does not go back to 720p, or the format did not stay');
+  withRole('switch')[0].focus();
+  key(withRole('switch')[0], 'ArrowDown');
+  if (doc.activeElement !== picked(quality())) fail('the down arrow from the Video switch does not reach the quality picked');
+
   item('Audio').fire('click');
+  if (withRole('switch')[1]?.attrs['aria-checked'] !== 'true') fail('a click on the Audio switch does not turn it on');
   const audioRows = 'Audio]|Quality|[Best]|160k|128k|3 MB|Format|[Best]|aac|opus|';
   if (!entries().join('|').includes(audioRows)) fail(`the audio part shows ${entries().join(', ')}, want ${audioRows}`);
   item('128k').fire('click');
@@ -792,11 +859,18 @@ const PAGE_LABELS = {
   more().fire('click');
 
   // Best in the defaults stays Best in the menu, rather than the track the
-  // instance would take for it.
+  // instance would take for it. The download button weighs what is ticked
+  // while every part of it has a size.
   await store.local.set({ videoDefaults: { youtube: { parts: ['video'], quality: 'best' } } });
   more().fire('click');
   await settle();
   if (!entries().join('|').startsWith('[Video]|Quality|[Best]|404 MB|1080p|303 MB|720p|90 MB|Format|[Best]|')) fail(`with Best stored the menu starts at ${entries().join(', ')}, want Best marked in both rows`);
+  if (goShows() !== 'Download · 404 MB' || go()?.attrs['aria-label'] !== 'Download, 404 MB') fail(`with the video alone ticked the download button reads "${goShows()}", want its size`);
+  item('Audio').fire('click');
+  if (goShows() !== 'Download') fail(`with the best audio's size unknown the download button reads "${goShows()}", want no total`);
+  item('128k').fire('click');
+  if (goShows() !== 'Download · 407 MB') fail(`with video and the 128k audio the download button reads "${goShows()}", want 407 MB`);
+  item('Audio').fire('click');
   item('Download').fire('click');
   await settle();
   if (sends.at(-1)?.pick?.videoTrack || sends.at(-1)?.pick?.quality !== 'best') fail(`Best and Best send ${JSON.stringify(sends.at(-1)?.pick)}, want no track and the best quality`);
@@ -908,9 +982,9 @@ for (const reduced of [false, true]) {
   const host = doc.documentElement.querySelectorAll('knightloader-video-button')[0];
   const shadow = host.shadow;
   const send = shadow.querySelectorAll('button').find((b) => b.className === 'send');
-  const more = shadow.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'menu');
+  const more = shadow.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'dialog');
   const frame = shadow.querySelectorAll('div').find((d) => d.className === 'kl');
-  const menu = shadow.querySelectorAll('div').find((d) => d.attrs.role === 'menu');
+  const menu = shadow.querySelectorAll('div').find((d) => d.attrs.role === 'dialog');
   const stars = () => (doc.animations ?? []).filter((a) => a.node.attrs.class === 'star').length;
   const flashes = () => (doc.animations ?? []).filter((a) => a.node === send).length;
 
@@ -963,6 +1037,11 @@ for (const reduced of [false, true]) {
   for (const [theme, t] of [['dark', tokens('.kl {')], ['light', tokens('.kl[data-theme="light"] {')]]) {
     for (const k of ['text', 'sub', 'ok', 'fail']) {
       if (ratio(t[k], t.surface) < 4.5) fail(`in the ${theme} theme --${k} on the surface is ${ratio(t[k], t.surface).toFixed(2)}:1`);
+    }
+    // A switch's knob and a radio's ring show whether it is on, so they need
+    // the 3:1 a control's outline does.
+    for (const k of ['knob', 'ring']) {
+      if (!t[k] || ratio(t[k], t.surface) < 3) fail(`in the ${theme} theme --${k} on the surface is ${t[k] ? ratio(t[k], t.surface).toFixed(2) : 'missing'}, want 3:1`);
     }
   }
   const gold = vm.runInContext('DEFAULT_ACCENT', ctx);

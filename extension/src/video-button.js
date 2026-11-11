@@ -53,8 +53,9 @@
   const STYLE = `
     :host { all: initial; position: fixed; z-index: 2147483647; translate: -50% -50%; }
     .kl {
-      --surface: #262626; --raised: #393939; --text: #f4f4f4; --sub: #c6c6c6;
+      --surface: #262626; --text: #f4f4f4; --sub: #c6c6c6;
       --ok: #6fdc8c; --fail: #ff8389; --line: rgba(255, 255, 255, .08);
+      --knob: #c6c6c6; --ring: #8d8d8d; --track: rgba(255, 255, 255, .16); --hover: rgba(255, 255, 255, .05); --edge: transparent;
       --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
       position: relative;
       font: 500 14px/1.4 "Noto Sans Variable", "Noto Sans", system-ui, sans-serif;
@@ -64,8 +65,9 @@
       transition: opacity 140ms ease;
     }
     .kl[data-theme="light"] {
-      --surface: #ffffff; --raised: #e8e8e8; --text: #161616; --sub: #525252;
+      --surface: #ffffff; --text: #161616; --sub: #525252;
       --ok: #0e6027; --fail: #da1e28; --line: rgba(0, 0, 0, .08);
+      --knob: #6f6f6f; --ring: #8d8d8d; --track: rgba(0, 0, 0, .12); --hover: rgba(0, 0, 0, .04); --edge: rgba(0, 0, 0, .14);
       --elevation: 0 1px 2px rgba(0, 0, 0, .10), 0 16px 36px -26px rgba(0, 0, 0, .45);
     }
     .kl.shown { opacity: 1; pointer-events: auto; }
@@ -128,52 +130,88 @@
     /* The outline keeps a pale star readable on a bright frame. */
     .star { position: absolute; display: block; pointer-events: none; filter: drop-shadow(0 0 1px rgba(0, 0, 0, .45)); }
     /* As tall as the player leaves room for (position sets max-height), so
-       the rows sit in order without scrolling on most videos. */
+       the parts sit in order without scrolling on most videos. */
     .menu {
       position: absolute; top: calc(100% + 8px); left: 50%; translate: -50% 0;
       box-sizing: border-box; width: 340px; max-width: calc(100vw - 16px); max-height: 460px; overflow-y: auto; overscroll-behavior: contain;
-      padding: 4px 4px 0;
+      padding: 4px 6px 0;
       display: flex; flex-direction: column;
+      font-size: 13px; line-height: 1.35;
       background: var(--surface);
       border-radius: min(var(--radius), 10px);
       box-shadow: var(--elevation), inset 0 0 0 1px var(--line);
+      scrollbar-width: thin; scrollbar-color: var(--track) transparent;
     }
     .menu.up { top: auto; bottom: calc(100% + 8px); }
     .menu[data-side="start"] { left: 0; translate: 0 0; }
     .menu[data-side="end"] { left: auto; right: 0; translate: 0 0; }
     .menu[hidden] { display: none; }
-    .menu button { justify-content: flex-start; flex: 0 0 auto; height: 30px; padding: 0 10px; border-radius: min(var(--radius), 6px); color: var(--text); }
-    .menu button:hover, .menu button:focus-visible { background: var(--raised); color: var(--text); outline: none; }
-    .menu [role="menuitemcheckbox"]::after { content: ""; margin-inline-start: auto; width: 14px; }
-    .menu [role="menuitemcheckbox"][aria-checked="true"]::after { content: "\\2713"; color: var(--accent); }
-    .menu [role="separator"] { flex: 0 0 auto; height: 1px; margin: 4px 6px; background: var(--line); }
-    /* A part's choices, a label beside each row, the labels in one column. */
-    .menu .fields {
-      display: grid; grid-template-columns: fit-content(92px) 1fr; gap: 6px 10px; align-items: start;
-      flex: 0 0 auto; padding: 2px 6px 8px 10px;
+    .menu button { position: relative; justify-content: flex-start; height: auto; border-radius: min(var(--radius), 6px); color: var(--text); }
+    /* A ring with a gap of the surface, so it shows on gold as well. */
+    .kl .menu button:focus-visible { z-index: 1; outline: none; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
+    .menu .part { flex: 0 0 auto; }
+    .menu .part + .part { border-top: 1px solid var(--line); }
+    .menu .switch { width: 100%; height: 38px; padding-block: 0; padding-inline: 8px 46px; color: var(--sub); }
+    .menu .switch:hover { background: var(--hover); }
+    .menu .switch[aria-checked="true"] { color: var(--text); font-weight: 600; }
+    /* The track, and over it the knob that slides along. */
+    .switch::before, .switch::after { content: ""; position: absolute; top: 50%; translate: 0 -50%; }
+    .switch::after {
+      inset-inline-end: 6px; width: 28px; height: 16px; border-radius: 8px;
+      background: var(--track); transition: background-color 150ms ease;
     }
-    .menu .label { padding-top: 5px; color: var(--sub); font-size: 12px; line-height: 1.3; }
-    .menu .chips { display: flex; flex-wrap: wrap; gap: 4px; }
-    .menu .chips button { height: 26px; padding: 0 9px; border-radius: min(var(--radius), 13px); background: var(--raised); color: var(--sub); }
-    .menu .chips button[role]::after { content: none; }
-    .menu .chips button:hover, .menu .chips button:focus-visible { color: var(--text); }
-    .menu .chips button[aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
-    /* The size a pick downloads sits small under its name, so a row of
-       qualities stays as narrow as without it. */
-    .menu .chips.sized button { flex-direction: column; gap: 0; height: auto; min-height: 36px; padding: 3px 9px; line-height: 1.2; }
-    .menu .chips .size { font-size: 11px; font-weight: 400; color: var(--sub); opacity: .85; }
-    .menu .chips button[aria-checked="true"] .size { color: inherit; }
-    .menu .chips button:disabled { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--sub); opacity: .5; cursor: default; }
+    .switch::before {
+      z-index: 1; inset-inline-end: 21px; width: 10px; height: 10px; border-radius: 50%;
+      background: var(--knob); transition: inset-inline-end 180ms ${EASE_OUT}, background-color 150ms ease;
+    }
+    .switch[aria-checked="true"]::after { background: var(--accent); box-shadow: inset 0 0 0 1px var(--edge); }
+    .switch[aria-checked="true"]::before { inset-inline-end: 9px; background: var(--accent-contrast); }
+    .choices { padding: 0 2px 12px; }
+    .choices .label { display: block; margin: 0 6px 4px; color: var(--sub); font-size: 11px; }
+    .choices > * + .label { margin-top: 10px; }
+    /* Two columns filled top to bottom, so the qualities read in order down
+       the first and on down the second. */
+    .list { display: grid; grid-auto-flow: column; grid-template-columns: 1fr 1fr; gap: 2px 6px; }
+    .menu .list button { gap: 9px; padding-block: 0; padding-inline: 8px 9px; }
+    .list button::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ring); }
+    .list [role="checkbox"]::before { border-radius: min(var(--radius), 3px); }
+    .list button:not([aria-checked="true"]):hover { background: var(--hover); }
+    .list [aria-checked="true"] { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+    .list [aria-checked="true"]::before { background: radial-gradient(var(--accent-contrast) 2.2px, var(--accent) 2.8px); box-shadow: inset 0 0 0 1px var(--edge); }
+    .list [role="checkbox"][aria-checked="true"]::before { background: var(--accent); }
+    .list [role="checkbox"][aria-checked="true"]::after {
+      content: ""; position: absolute; inset-inline-start: 12px; top: 8.5px; width: 3px; height: 6.5px;
+      border: solid var(--accent-contrast); border-width: 0 1.5px 1.5px 0; rotate: 45deg;
+    }
+    .list .aside { margin-inline-start: auto; color: var(--sub); font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; }
+    .list [aria-checked="true"] .aside { color: var(--text); }
+    .segments {
+      display: flex; flex-wrap: wrap; gap: 2px; margin: 0 2px; padding: 2px;
+      border-radius: min(var(--radius), 7px); background: var(--hover); box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .menu .segments button {
+      flex: 1 1 0; min-width: 52px; min-height: 30px; flex-direction: column; justify-content: center; gap: 0;
+      padding: 6px; border-radius: min(var(--radius), 5px); font-size: 12.5px; line-height: 1.15;
+    }
+    .segments button:not([aria-checked="true"]):not(:disabled):hover { background: var(--hover); }
+    .segments .aside { color: var(--sub); font-size: 10.5px; font-weight: 400; }
+    .menu .segments [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); box-shadow: inset 0 0 0 1px var(--edge); }
+    .segments [aria-checked="true"] .aside { color: inherit; opacity: .7; }
+    .menu .segments button:disabled { opacity: .4; cursor: default; }
     /* Download and hide stay in view at the bottom whatever scrolls above. */
     .menu .foot {
-      position: sticky; bottom: 0; flex: 0 0 auto;
-      display: flex; flex-direction: column;
-      margin: 0 -4px; padding: 4px 4px 4px; border-top: 1px solid var(--line);
+      position: sticky; bottom: 0; z-index: 2; flex: 0 0 auto;
+      display: flex; flex-direction: column; gap: 2px;
+      margin: 0 -6px; padding: 6px; border-top: 1px solid var(--line);
       background: var(--surface);
     }
-    .menu .go { justify-content: center; margin: 0 0 2px; background: var(--accent); color: var(--accent-contrast); }
-    .menu .go:hover, .menu .go:focus-visible { background: color-mix(in srgb, var(--accent) 85%, var(--text)); color: var(--accent-contrast); }
-    .note { display: flex; flex: 0 0 auto; align-items: center; min-height: 24px; padding: 0 10px; color: var(--sub); font-size: 12px; }
+    .menu .go { justify-content: center; gap: 0; height: 34px; background: var(--accent); color: var(--accent-contrast); font-weight: 600; box-shadow: inset 0 0 0 1px var(--edge); }
+    .menu .go:hover { background: color-mix(in srgb, var(--accent) 85%, var(--text)); }
+    .go .total { margin-inline-start: .35em; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .menu .hide { justify-content: center; height: 30px; color: var(--sub); font-size: 12.5px; }
+    .menu .hide:hover { background: var(--hover); color: var(--text); }
+    .note { display: flex; flex: 0 0 auto; align-items: center; min-height: 30px; padding: 0 8px; color: var(--sub); font-size: 12px; }
+    .choices .note { min-height: 0; padding: 0 6px; }
     .menu[aria-busy="true"] .note.busy { animation: pulse 3.2s ease-in-out infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
     @keyframes spin { from { rotate: -90deg; } to { rotate: 270deg; } }
@@ -186,7 +224,7 @@
       .send.shake { animation: shake 220ms ease-in-out; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .kl, button, .mark *, .ring .arc { transition: none; }
+      .kl, button, .mark *, .ring .arc, .switch::before, .switch::after { transition: none; }
       .kl[data-state="sending"] .send, .menu[aria-busy="true"] .note.busy, .kl[data-ring="unknown"] .ring { animation: none; }
       .send.shake { animation: shake-reduced 220ms ease-in-out; }
     }
@@ -254,13 +292,13 @@
   const more = document.createElement('button');
   more.type = 'button';
   more.className = 'more';
-  more.setAttribute('aria-haspopup', 'menu');
+  more.setAttribute('aria-haspopup', 'dialog');
   more.setAttribute('aria-expanded', 'false');
   more.append(icon(CARET, '0 0 10 6', 10));
   bar.append(send, more);
   const menu = document.createElement('div');
   menu.className = 'menu';
-  menu.setAttribute('role', 'menu');
+  menu.setAttribute('role', 'dialog');
   menu.hidden = true;
   // The stars fly in a layer of their own over the button, which neither clips
   // them nor catches the pointer.
@@ -646,72 +684,101 @@
     el.classList.add(cls);
   }
 
-  function menuItem(text, role, onPick) {
+  function control(text, onPick) {
     const item = document.createElement('button');
     item.type = 'button';
-    item.setAttribute('role', role);
     item.textContent = text;
     item.addEventListener('click', (e) => {
-      if (e.isTrusted) onPick();
+      if (!e.isTrusted) return;
+      // The menu is drawn again after most picks, and the keyboard goes back
+      // to whatever had it.
+      item.focus();
+      onPick();
     });
     return item;
   }
 
-  function checkItem(text, checked, onPick) {
-    const item = menuItem(text, 'menuitemcheckbox', onPick);
-    item.setAttribute('aria-checked', String(checked));
+  function toggle(text, on, key, onPick) {
+    const item = control(text, onPick);
+    item.className = 'switch';
+    item.setAttribute('role', 'switch');
+    item.setAttribute('aria-checked', String(on));
+    item.setAttribute('id', `kl-${key}`);
+    item.dataset.key = key;
     return item;
   }
 
-  /** A row of choices, of which one is picked, or with `several` any number.
-   *  A choice `off` rules out stays in the row but takes no click. */
-  function chips(values, { isOn, name, onPick, several = false, off = () => false, bytes = () => undefined }) {
-    const row = document.createElement('div');
-    row.className = 'chips';
-    row.setAttribute('role', 'group');
-    for (const v of values) {
-      const item = checkItem(name(v), isOn(v), () => onPick(v));
-      if (!several) item.setAttribute('role', 'menuitemradio');
+  /**
+   * A row of choices under a part, as a list in two columns or as segments,
+   * of which one is picked, or with `several` any number. A choice `off`
+   * rules out stays in the row but takes no click. `aside` is what a choice
+   * shows small beside its name: the size in a list, the container under the
+   * codec in segments.
+   */
+  function choices(values, { look, key, name, isOn, onPick, several = false, off = () => false, aside = () => '' }) {
+    const group = document.createElement('div');
+    group.className = look;
+    group.setAttribute('role', several ? 'group' : 'radiogroup');
+    const rows = look === 'list' ? Math.ceil(values.length / 2) : 1;
+    if (look === 'list') group.style.setProperty('grid-template-rows', `repeat(${rows}, 28px)`);
+    const items = values.map((v, i) => {
+      const item = control(name(v), () => onPick(v));
+      item.setAttribute('role', several ? 'checkbox' : 'radio');
+      item.setAttribute('aria-checked', String(isOn(v)));
+      item.dataset.key = `${key}:${v}`;
       if (off(v)) item.disabled = true;
-      const n = bytes(v);
-      if (n) {
-        const size = document.createElement('span');
-        size.className = 'size';
-        size.textContent = videoSize(n, labels.lang);
-        item.setAttribute('aria-label', `${name(v)}, ${size.textContent}`);
-        item.append(size);
-        row.classList.add('sized');
+      const extra = aside(v);
+      if (extra) {
+        const small = document.createElement('span');
+        small.className = 'aside';
+        small.textContent = extra;
+        item.append(small);
+        item.setAttribute('aria-label', `${name(v)}, ${extra}`);
       }
-      row.append(item);
-    }
-    return row;
+      // A radio group is one stop for Tab, its picked radio, and the arrow
+      // keys pick within it, as with the browser's own radios.
+      if (!several) {
+        item.setAttribute('tabindex', isOn(v) ? '0' : '-1');
+        item.addEventListener('keydown', (e) => {
+          const step = arrowStep(e.key, rows);
+          if (!step) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const next = stepTo(values.length, i, step, (j) => off(values[j]));
+          items[next].focus();
+          onPick(values[next]);
+        });
+      }
+      group.append(item);
+      return item;
+    });
+    return group;
   }
 
-  /** A part's rows of choices, each with its label beside it. */
-  function fields(rows) {
-    const grid = document.createElement('div');
-    grid.className = 'fields';
-    grid.setAttribute('role', 'none');
-    for (const [text, row] of rows) {
-      const label = document.createElement('span');
-      label.className = 'label';
-      label.textContent = text;
-      row.setAttribute('aria-label', text);
-      grid.append(label, row);
-    }
-    return grid;
+  /** How far an arrow key moves in a row of choices: down and up by one,
+   *  across to the other column of a list, or along a row of segments. */
+  function arrowStep(key, across) {
+    const forward = labels.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
+    const back = labels.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft';
+    if (key === 'ArrowDown') return 1;
+    if (key === 'ArrowUp') return -1;
+    if (key === forward) return across;
+    if (key === back) return -across;
+    return 0;
   }
 
-  function separator() {
-    const line = document.createElement('div');
-    line.setAttribute('role', 'separator');
-    return line;
+  /** Where a step from `at` lands among n choices: one step wraps round the
+   *  ends, a jump across stops at them, and both pass over a choice `off`,
+   *  which `at` itself never is. */
+  function stepTo(n, at, step, off) {
+    let i = Math.abs(step) === 1 ? (at + step + n) % n : Math.min(Math.max(at + step, 0), n - 1);
+    while (off(i)) i = (i + Math.sign(step) + n) % n;
+    return i;
   }
 
   function note(text, busy = false) {
     const line = document.createElement('div');
     line.className = busy ? 'note busy' : 'note';
-    line.setAttribute('role', 'none');
     line.textContent = text;
     return line;
   }
@@ -767,14 +834,25 @@
   }
 
   /** The choices under a ticked part: what this video has of it, as rows of
-   *  their own for its quality and its format. */
+   *  their own for its quality and its format, each with its label above it
+   *  and named by the part and the label together. */
   function partChoices(part, offer, redraw) {
     const best = (name) => (v) => (v === 'best' ? labels.best : name(v));
-    const rows = [];
+    const size = (n) => (n ? videoSize(n, labels.lang) : '');
+    const nodes = [];
+    const row = (key, text, values, opts) => {
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.setAttribute('id', `kl-${part}-${key}`);
+      label.textContent = text;
+      const group = choices(values, { key: `${part}-${key}`, ...opts });
+      group.setAttribute('aria-labelledby', `kl-${part} kl-${part}-${key}`);
+      nodes.push(label, group);
+    };
     switch (part) {
       case 'video': {
         if (!offer.known || offer.videoTracks.length === 0) {
-          rows.push([labels.quality, chips(['best', ...menuQualities(offer)], { isOn: (q) => q === pick.quality, name: best((q) => q), onPick: (q) => redraw(() => (pick.quality = q)) })]);
+          row('quality', labels.quality, ['best', ...menuQualities(offer)], { look: 'list', isOn: (q) => q === pick.quality, name: best((q) => q), onPick: (q) => redraw(() => (pick.quality = q)) });
           break;
         }
         const { qualities, formats } = videoMenuRows(offer);
@@ -785,26 +863,22 @@
             pick.quality = q;
             if (!videoTrackOffered(offer, q, pick.videoFormat)) pick.videoFormat = 'best';
           });
-        rows.push(
-          [
-            labels.quality,
-            chips(['best', ...qualities], {
-              isOn: (q) => q === pick.quality,
-              name: best((q) => videoQualityName(q, qualities)),
-              onPick: quality,
-              bytes: (q) => videoPickSize({ ...pick, quality: q, videoFormat: videoTrackOffered(offer, q, pick.videoFormat) ? pick.videoFormat : 'best' }, offer, 'video'),
-            }),
-          ],
-          [
-            labels.format,
-            chips(['best', ...formats], {
-              isOn: (f) => f === pick.videoFormat,
-              name: best((f) => f.replace(' ', ' · ')),
-              onPick: (f) => redraw(() => (pick.videoFormat = f)),
-              off: (f) => f !== 'best' && !videoTrackOffered(offer, pick.quality, f),
-            }),
-          ],
-        );
+        row('quality', labels.quality, ['best', ...qualities], {
+          look: 'list',
+          isOn: (q) => q === pick.quality,
+          name: best((q) => videoQualityName(q, qualities)),
+          onPick: quality,
+          aside: (q) => size(videoPickSize({ ...pick, quality: q, videoFormat: videoTrackOffered(offer, q, pick.videoFormat) ? pick.videoFormat : 'best' }, offer, 'video')),
+        });
+        // A format reads as its codec over its container, "avc1" over "mp4".
+        row('format', labels.format, ['best', ...formats], {
+          look: 'segments',
+          isOn: (f) => f === pick.videoFormat,
+          name: best((f) => f.split(' ').at(-1)),
+          onPick: (f) => redraw(() => (pick.videoFormat = f)),
+          off: (f) => f !== 'best' && !videoTrackOffered(offer, pick.quality, f),
+          aside: (f) => (f.includes(' ') ? f.split(' ')[0] : ''),
+        });
         break;
       }
       case 'audio': {
@@ -815,26 +889,20 @@
               pick.audioRate = r;
               if (!audioTrackOffered(offer, r, pick.audio)) pick.audio = 'best';
             });
-          rows.push(
-            [
-              labels.quality,
-              chips(['best', ...rates], {
-                isOn: (r) => r === pick.audioRate,
-                name: best((r) => r),
-                onPick: rate,
-                bytes: (r) => videoPickSize({ ...pick, audioRate: r, audio: audioTrackOffered(offer, r, pick.audio) ? pick.audio : 'best' }, offer, 'audio'),
-              }),
-            ],
-            [
-              labels.format,
-              chips(['best', ...codecs], {
-                isOn: (c) => c === pick.audio,
-                name: best((c) => c),
-                onPick: (c) => redraw(() => (pick.audio = c)),
-                off: (c) => c !== 'best' && !audioTrackOffered(offer, pick.audioRate, c),
-              }),
-            ],
-          );
+          row('quality', labels.quality, ['best', ...rates], {
+            look: 'list',
+            isOn: (r) => r === pick.audioRate,
+            name: best((r) => r),
+            onPick: rate,
+            aside: (r) => size(videoPickSize({ ...pick, audioRate: r, audio: audioTrackOffered(offer, r, pick.audio) ? pick.audio : 'best' }, offer, 'audio')),
+          });
+          row('format', labels.format, ['best', ...codecs], {
+            look: 'segments',
+            isOn: (c) => c === pick.audio,
+            name: best((c) => c),
+            onPick: (c) => redraw(() => (pick.audio = c)),
+            off: (c) => c !== 'best' && !audioTrackOffered(offer, pick.audioRate, c),
+          });
         }
         if (offer.audioLangs.length > 1) {
           const name = (code) => {
@@ -842,7 +910,7 @@
             return lang.dubbed ? `${code} (${labels.dubbed})` : code;
           };
           const codes = offer.audioLangs.map((l) => l.code);
-          rows.push([labels.language, chips(codes, { isOn: (c) => c === pick.audioLang, name, onPick: (c) => redraw(() => (pick.audioLang = c)) })]);
+          row('language', labels.language, codes, { look: 'list', isOn: (c) => c === pick.audioLang, name, onPick: (c) => redraw(() => (pick.audioLang = c)) });
         }
         break;
       }
@@ -854,60 +922,79 @@
             pick.subAuto = pick.subLangs.some((c) => auto.includes(c) && !manual.includes(c));
           });
         const isOn = (code) => pick.subLangs.includes(code);
-        if (manual.length) rows.push([labels.language, chips(manual, { isOn, name: (c) => c, onPick, several: true })]);
-        if (auto.length) rows.push([labels.autoCaptions, chips(auto, { isOn, name: (c) => c.replace(/-orig$/, ''), onPick, several: true })]);
+        if (manual.length) row('language', labels.language, manual, { look: 'list', isOn, name: (c) => c, onPick, several: true });
+        if (auto.length) row('auto', labels.autoCaptions, auto, { look: 'list', isOn, name: (c) => c.replace(/-orig$/, ''), onPick, several: true });
         if (offer.subtitleFormats.length) {
-          const formats = ['best', ...offer.subtitleFormats];
-          rows.push([labels.format, chips(formats, { isOn: (f) => f === pick.subFormat, name: best((f) => f), onPick: (f) => redraw(() => (pick.subFormat = f)) })]);
+          row('format', labels.format, ['best', ...offer.subtitleFormats], { look: 'segments', isOn: (f) => f === pick.subFormat, name: best((f) => f), onPick: (f) => redraw(() => (pick.subFormat = f)) });
         }
         break;
       }
       case 'thumbnail': {
         const th = offer.thumbnail;
-        return th ? [note(th.width && th.height ? `${th.width}\u00d7${th.height} ${th.ext}` : th.ext)] : [];
+        if (th) nodes.push(note(th.width && th.height ? `${th.width}×${th.height} ${th.ext}` : th.ext));
+        break;
       }
-      default:
-        return [];
     }
-    return rows.length ? [fields(rows)] : [];
+    return nodes;
   }
 
-  /** Draws the menu for the current pick, keeping the keyboard on the item
-   *  it was on. */
-  function renderMenu() {
-    const focusAt = [...menu.querySelectorAll('button')].indexOf(root.activeElement);
+  function section(head, body) {
+    const part = document.createElement('div');
+    part.className = 'part';
+    part.append(head);
+    if (body.length) {
+      const box = document.createElement('div');
+      box.className = 'choices';
+      box.append(...body);
+      part.append(box);
+    }
+    return part;
+  }
+
+  /** Draws the menu for the current pick, with the keyboard back on the
+   *  control it was on, or on the first one. */
+  function renderMenu(focusKey = root.activeElement?.dataset.key) {
     const redraw = (change) => {
       change();
       renderMenu();
     };
     const offer = offered?.answer;
     const items = [];
-    if (page.playlist) {
-      items.push(checkItem(labels.playlist, playlist, () => redraw(() => (playlist = !playlist))), separator());
-    }
+    if (page.playlist) items.push(section(toggle(labels.playlist, playlist, 'playlist', () => redraw(() => (playlist = !playlist))), []));
     for (const part of VIDEO_PARTS) {
       if (offer && !videoHas(offer, part)) continue;
-      items.push(checkItem(labels.parts[part], pick.parts.includes(part), () => redraw(() => togglePart(part))));
-      if (offer && pick.parts.includes(part)) items.push(...partChoices(part, offer, redraw));
+      const on = pick.parts.includes(part);
+      const head = toggle(labels.parts[part], on, part, () => redraw(() => togglePart(part)));
+      items.push(section(head, offer && on ? partChoices(part, offer, redraw) : []));
     }
+    menu.setAttribute('aria-label', labels.more);
     menu.setAttribute('aria-busy', String(!offer));
     if (!offer) items.push(note(labels.checking, true));
     else if (!offer.known) items.push(note(labels.unknown));
-    const go = menuItem(labels.send, 'menuitem', () => void sendVideo(async () => videoExact(pick, offered?.answer ?? videoOffer(null))));
-    go.classList.add('go');
+    const go = control(labels.send, () => void sendVideo(async () => videoExact(pick, offered?.answer ?? videoOffer(null))));
+    go.className = 'go';
+    go.dataset.key = 'go';
+    // The sizes are those of one video, so a whole playlist shows none.
+    const total = offer?.known && !playlist ? videoPickTotal(pick, offer) : undefined;
+    if (total) {
+      const weight = document.createElement('span');
+      weight.className = 'total';
+      weight.textContent = `· ${videoSize(total, labels.lang)}`;
+      go.append(weight);
+      go.setAttribute('aria-label', `${labels.send}, ${videoSize(total, labels.lang)}`);
+    }
     const site = VIDEO_SITES.find((s) => s.id === page.site);
+    const hide = control(labels.hide.replace('{site}', site.name), () => {
+      chrome.runtime.sendMessage({ type: 'knightloader-video-hide' }).catch(() => {});
+    });
+    hide.className = 'hide';
+    hide.dataset.key = 'hide';
     const foot = document.createElement('div');
     foot.className = 'foot';
-    foot.setAttribute('role', 'none');
-    foot.append(
-      go,
-      menuItem(labels.hide.replace('{site}', site.name), 'menuitem', () => {
-        chrome.runtime.sendMessage({ type: 'knightloader-video-hide' }).catch(() => {});
-      }),
-    );
+    foot.append(go, hide);
     menu.replaceChildren(...items, foot);
-    const buttons = menu.querySelectorAll('button');
-    (buttons[focusAt] ?? buttons[0])?.focus();
+    const controls = menu.querySelectorAll('button');
+    ([...controls].find((b) => b.dataset.key === focusKey) ?? controls[0]).focus();
   }
 
   function openMenu() {
@@ -938,16 +1025,20 @@
     if (menu.hidden) openMenu();
     else closeMenu();
   });
+  // Up and down go from one stop to the next, as Tab does: each switch, the
+  // picked choice of each radio group, each subtitle language and the
+  // buttons at the foot. Inside a radio group they pick instead.
   menu.addEventListener('keydown', (e) => {
-    const items = [...menu.querySelectorAll('button')].filter((b) => !b.disabled);
-    const at = items.indexOf(root.activeElement);
     if (e.key === 'Escape') {
       closeMenu();
       more.focus();
-    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      items[(at + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length]?.focus();
+      return;
     }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const stops = [...menu.querySelectorAll('button')].filter((b) => !b.disabled && b.getAttribute('tabindex') !== '-1');
+    const at = stops.indexOf(root.activeElement);
+    stops[(at + (e.key === 'ArrowDown' ? 1 : stops.length - 1)) % stops.length]?.focus();
   });
 
   // A press on the bar that moves becomes a drag, which places the button

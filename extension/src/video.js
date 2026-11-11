@@ -180,6 +180,18 @@ function videoPickSize(sel, offer, part) {
   return part === 'video' ? offer.videoSizes?.[exact.videoTrack ?? exact.quality] : offer.audioSizes?.[exact.audioTrack ?? exact.audio];
 }
 
+/** The bytes a whole pick downloads, or undefined where any part of it has
+ *  no size, since a sum of the parts known would pass for the total. */
+function videoPickTotal(sel, offer) {
+  let total = 0;
+  for (const part of sel.parts) {
+    const bytes = part === 'video' || part === 'audio' ? videoPickSize(sel, offer, part) : undefined;
+    if (!bytes) return undefined;
+    total += bytes;
+  }
+  return total;
+}
+
 /** A size in bytes as the menu shows it, in megabytes or from a thousand on
  *  in gigabytes, with a decimal below ten. */
 function videoSize(bytes, lang) {
