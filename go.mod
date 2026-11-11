@@ -2,6 +2,8 @@ module github.com/junkerderprovinz/knightloader
 
 go 1.27.3
 
+toolchain go1.27.4
+
 require (
 	github.com/GopeedLab/gopeed v1.9.3
 	github.com/anacrolix/torrent v1.61.1-0.20260823090931-70072f1a7460 // BEP 27 private-torrent DHT/PEX fix (upstream PR #1053, see settings_torrent.go's DHTEnabled doc comment) and the fix for a lost peer-writer wakeup that stalls a download at zero bytes (upstream #1070); do not downgrade below this commit

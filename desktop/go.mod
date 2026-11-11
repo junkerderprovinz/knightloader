@@ -9,6 +9,8 @@ module github.com/junkerderprovinz/knightloader/desktop
 // stops at vet. Bump this whenever ../go.mod moves.
 go 1.27.3
 
+toolchain go1.27.4
+
 require (
 	github.com/coder/websocket v1.8.15
 	// godbus is how Wails talks StatusNotifierItem on Linux and BSD.
