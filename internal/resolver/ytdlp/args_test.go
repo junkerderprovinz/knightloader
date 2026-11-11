@@ -57,11 +57,13 @@ func TestBuildArgsPlaylistTrueDropsNoPlaylist(t *testing.T) {
 }
 
 // A portrait track taller than the cap but no wider comes first, since the
-// height filter alone would take a far smaller portrait track over it.
+// height filter alone would take a far smaller portrait track over it. No side
+// may be as long as the 1440p frame is wide, which a 2560x1080 track fills.
 func TestBuildArgsResolutionCappedQuality(t *testing.T) {
 	args := buildArgs("d", Options{Quality: Quality1080p})
 	got, ok := valueAfter(args, "-f")
-	want := "bv[width<=1080][height>1080]+ba/bv[height<=?1080]+ba/b[width<=1080][height>1080]/b[height<=?1080]"
+	tall, short := "[width<=1080][height>1080][height<=?2559]", "[height<=?1080][width<=?2559]"
+	want := "bv" + tall + "+ba/bv" + short + "+ba/b" + tall + "/b" + short
 	if !ok || got != want {
 		t.Errorf("-f = %q (found=%v), want %q", got, ok, want)
 	}
@@ -295,20 +297,54 @@ func TestBuildArgsVideoFormatYieldsToTheRowsOwnChoice(t *testing.T) {
 	}
 }
 
-func TestBuildArgsKeepsTheSubtitleFormatTheHostServes(t *testing.T) {
-	for _, format := range []string{"vtt", "best"} {
+// srt and vtt are written as asked, converted from whatever the host serves.
+// yt-dlp converts to neither ttml nor the host's own best, so those are taken
+// as served.
+func TestBuildArgsWritesTheSubtitleFormatARowAskedFor(t *testing.T) {
+	for format, convert := range map[string]string{"srt": "srt", "vtt": "vtt", "ttml": "", "best": ""} {
 		args := buildArgs("d", Options{Variant: VariantSubtitle, SubtitleLangs: "de,en-orig", SubtitleAuto: true, SubtitleFormat: format})
 		if got, _ := valueAfter(args, "--sub-format"); got != format {
 			t.Errorf("format %s: --sub-format = %q", format, got)
 		}
-		if hasArg(args, "--convert-subs") {
-			t.Errorf("format %s: the subtitles are converted: %v", format, args)
+		if got, _ := valueAfter(args, "--convert-subs"); got != convert {
+			t.Errorf("format %s: --convert-subs = %q, want %q", format, got, convert)
 		}
 		if got, _ := valueAfter(args, "--sub-langs"); got != "de,en-orig" {
 			t.Errorf("format %s: --sub-langs = %q", format, got)
 		}
 		if !hasArg(args, "--write-auto-subs") {
 			t.Errorf("format %s: generated subtitles are not asked for: %v", format, args)
+		}
+	}
+}
+
+// The video row's yt-dlp names the file before fetching it, so a video
+// already there under its quality is not fetched again. A typed template and
+// a video kept apart have no quality to find.
+func TestBuildArgsAsksForTheVideosNameBeforeItIsFetched(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		o    Options
+		want bool
+	}{
+		{"video", Options{Variant: VariantVideo}, true},
+		{"typed template", Options{Variant: VariantVideo, OutputTemplate: "%(id)s.%(ext)s"}, false},
+		{"kept apart", Options{Variant: VariantVideo, Embed: Embed{Separate: true}}, false},
+		{"audio", Options{Variant: VariantAudio}, false},
+	} {
+		args := buildArgs("d", c.o)
+		got, _ := valueAfter(args, "--print")
+		if asked := got == "video:"+plannedPrefix+"%(filename)s" && hasArg(args, "--no-simulate") && hasArg(args, "--no-quiet"); asked != c.want {
+			t.Errorf("%s: --print %q, want it asked for: %v", c.name, got, c.want)
+		}
+	}
+}
+
+func TestBuildArgsConvertsTheThumbnailToTheFormatARowAskedFor(t *testing.T) {
+	for format, want := range map[string]string{"png": "png", "webp": "webp", "jpg": "jpg", "": "jpg"} {
+		args := buildArgs("d", Options{Variant: VariantThumbnail, ThumbnailFormat: format})
+		if got, _ := valueAfter(args, "--convert-thumbnails"); got != want {
+			t.Errorf("format %q: --convert-thumbnails = %q, want %q", format, got, want)
 		}
 	}
 }

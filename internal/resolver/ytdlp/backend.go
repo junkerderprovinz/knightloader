@@ -16,6 +16,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -451,6 +452,10 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 		subFiles  int
 		guard     = newLiveGuard(opts.Live)
 		stoppedBy string
+		// already is a video found under its quality before it was fetched.
+		// The run stops and finishes as when yt-dlp finds the file under its
+		// own name.
+		already bool
 	)
 	apart := opts.Variant == VariantVideo && opts.Embed.Separate
 	sc := bufio.NewScanner(stdout)
@@ -484,6 +489,13 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			b.onUpdate(taskID, u)
 			continue
 		}
+		if planned, ok := strings.CutPrefix(line, plannedPrefix); ok {
+			if b.ownFile(taskID, dir, out, planned) && alreadyThere(planned) {
+				already = true
+				cancel()
+			}
+			continue
+		}
 		if name, ok := finishedFile(line); ok {
 			if !b.ownFile(taskID, dir, out, name) {
 				continue
@@ -509,7 +521,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			subFiles++
 		}
 		if opts.Variant == VariantSubtitle {
-			if from, to, ok := convertedSubtitle(line); ok && b.ownFile(taskID, dir, out, to) {
+			if from, to, ok := convertedSubtitle(line, subtitleTarget(opts.SubtitleFormat)); ok && b.ownFile(taskID, dir, out, to) {
 				if final == from {
 					final = to
 				}
@@ -527,7 +539,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	if grace != nil {
 		grace.Stop()
 	}
-	if ctx.Err() != nil && stoppedBy == "" {
+	if ctx.Err() != nil && stoppedBy == "" && !already {
 		return core.Update{}, false // cancelled by Pause/Remove
 	}
 	if final == "" {
@@ -544,6 +556,17 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 		// A recording that hit its own limit is finished, with the reason on
 		// the task.
 		return done(stoppedBy), true
+	}
+	if already {
+		b.mu.Lock()
+		var files []string
+		if p := b.parts[taskID]; p != nil {
+			files = slices.Clone(p.files)
+		}
+		b.mu.Unlock()
+		Discard(taskID, []string{dir}, files, b.InUse)
+		final = ""
+		return done(""), true
 	}
 	if err == nil && scanErr != nil {
 		err = scanErr
@@ -704,6 +727,9 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 		// name (see core.Task.Ext). The NFO and the measurement describe
 		// media, and an info json beside a thumbnail is the video row's.
 		u.Name = o.shown(strings.TrimSuffix(filepath.Base(final), filepath.Ext(final)))
+		if got := strings.TrimPrefix(filepath.Ext(final), "."); o.Variant == VariantSubtitle && servedAsAsked(o.SubtitleFormat) && got != o.SubtitleFormat {
+			u.Note = joinNote(u.Note, fmt.Sprintf("saved as %s, the site has no %s", got, o.SubtitleFormat))
+		}
 		return u
 	}
 	info, haveInfo := infoDict{}, false
@@ -739,7 +765,66 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 		// A failed ffprobe (none installed, a lost mount) says nothing about
 		// the download and adds no note.
 	}
+	if namedByQuality(o) && u.File != "" {
+		u.File = nameByQuality(u.File)
+	}
 	return u
+}
+
+// namedByQuality reports a video row whose file takes the quality of its
+// frame once it is written (nameByQuality): one under the video template.
+func namedByQuality(o Options) bool {
+	return o.Variant == VariantVideo && o.OutputTemplate == "" && !o.Embed.Separate
+}
+
+// plannedPrefix marks the line on which a video row's yt-dlp names the file it
+// is about to write, before it fetches a byte of it.
+const plannedPrefix = "KLF:"
+
+// alreadyThere reports whether the video yt-dlp is about to write as planned
+// is there under the quality nameByQuality would give it. yt-dlp looks for its
+// own name alone, and would fetch the video again.
+func alreadyThere(planned string) bool {
+	named := filepath.Join(filepath.Dir(planned), qualityName(filepath.Base(planned)))
+	fi, err := os.Stat(named)
+	return named != planned && err == nil && fi.Mode().IsRegular()
+}
+
+// nameByQuality moves a finished video and its NFO from the frame the
+// template wrote to the quality that frame is named by (qualityName), and
+// returns where the video is. A name already taken gets a counter, as
+// collide.Rename gives one, and a video that cannot be moved stays where
+// yt-dlp put it.
+func nameByQuality(file string) string {
+	name := qualityName(filepath.Base(file))
+	if name == filepath.Base(file) {
+		return file
+	}
+	ext := filepath.Ext(name)
+	to := filepath.Join(filepath.Dir(file), name)
+	for n := 2; ; n++ {
+		if _, err := os.Lstat(to); err != nil {
+			break
+		}
+		to = filepath.Join(filepath.Dir(file), fmt.Sprintf("%s (%d)%s", strings.TrimSuffix(name, ext), n, ext))
+	}
+	if err := os.Rename(file, to); err != nil {
+		return file
+	}
+	if err := os.Rename(nfoPath(file), nfoPath(to)); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		log.Printf("yt-dlp: the NFO of %s stays under its old name: %v", to, err)
+	}
+	return to
+}
+
+// subtitleTargets are the formats --convert-subs writes. A subtitle row asking
+// for one of them gets it whatever the host serves.
+var subtitleTargets = []string{"srt", "vtt", "ass", "lrc"}
+
+// servedAsAsked reports a subtitle format only the host can provide: one
+// --convert-subs cannot write, other than the host's own best.
+func servedAsAsked(format string) bool {
+	return format != "" && format != "best" && !slices.Contains(subtitleTargets, format)
 }
 
 // joinNote puts two sentences on one line, dropping whichever is empty. The
@@ -842,10 +927,10 @@ func sidecarFile(v Variant, written []string) string {
 	return written[len(written)-1]
 }
 
-// convertedSubtitle reads the line --convert-subs prints after writing the srt
-// copy of a subtitle file and deleting the original, the only line that names
-// the file.
-func convertedSubtitle(line string) (from, to string, ok bool) {
+// convertedSubtitle reads the line --convert-subs prints after writing the
+// copy of a subtitle file in format and deleting the original, the only line
+// that names the file.
+func convertedSubtitle(line, format string) (from, to string, ok bool) {
 	const prefix = "Deleting original file "
 	i := strings.Index(line, prefix)
 	if i < 0 {
@@ -855,7 +940,17 @@ func convertedSubtitle(line string) (from, to string, ok bool) {
 	if !ok || from == "" {
 		return "", "", false
 	}
-	return from, strings.TrimSuffix(from, filepath.Ext(from)) + ".srt", true
+	return from, strings.TrimSuffix(from, filepath.Ext(from)) + "." + format, true
+}
+
+// subtitleTarget is the format a subtitle row asking for format converts its
+// files to: that one where --convert-subs writes it, else srt, as for a row
+// that names none.
+func subtitleTarget(format string) string {
+	if slices.Contains(subtitleTargets, format) {
+		return format
+	}
+	return "srt"
 }
 
 // wroteSubtitle recognises yt-dlp announcing a written subtitle file, the
@@ -1202,10 +1297,15 @@ func buildArgs(dir string, o Options) []string {
 		}
 	case VariantThumbnail:
 		args = append(args, "--skip-download", "--write-thumbnail")
-		// Converted to jpg so the row's extension is known in advance, unless
-		// the row asked for the picture as the host serves it.
+		// Converted to the format the row picked, jpg where it picked none, so
+		// its extension is known in advance. yt-dlp leaves a picture already
+		// in that format alone.
 		if !o.ThumbnailAsIs {
-			args = append(args, "--convert-thumbnails", "jpg")
+			format := o.ThumbnailFormat
+			if format == "" {
+				format = "jpg"
+			}
+			args = append(args, "--convert-thumbnails", format)
 		}
 	case VariantSubtitle:
 		langs := o.SubtitleLangs
@@ -1215,6 +1315,9 @@ func buildArgs(dir string, o Options) []string {
 		args = append(args, "--skip-download", "--write-subs", "--sub-langs", langs)
 		if o.SubtitleFormat != "" {
 			args = append(args, "--sub-format", o.SubtitleFormat)
+			if slices.Contains(subtitleTargets, o.SubtitleFormat) {
+				args = append(args, "--convert-subs", o.SubtitleFormat)
+			}
 		} else {
 			// srt instead of the site's default (usually vtt), so every
 			// player reads it and the extension is known. --sub-format is
@@ -1247,6 +1350,11 @@ func buildArgs(dir string, o Options) []string {
 		}
 		args = append(args, "--merge-output-format", merge)
 		args = append(args, embedArgs(o, true)...)
+		if namedByQuality(o) {
+			// --print alone would silence the progress lines and skip the
+			// download.
+			args = append(args, "--print", "video:"+plannedPrefix+"%(filename)s", "--no-simulate", "--no-quiet")
+		}
 	}
 	// Only the rows that download media need these.
 	if o.Variant == VariantVideo || o.Variant == VariantAudio {
@@ -1276,7 +1384,7 @@ func outputTemplate(o Options) string {
 	case o.Variant == VariantAudio:
 		return audioOutputTemplate
 	case o.Variant == VariantVideo && !o.Embed.Separate && o.NameTag != "":
-		return "%(title)s (%(height&{}p|best)s " + o.NameTag + ").%(ext)s"
+		return "%(title)s (" + frameField + " " + o.NameTag + ").%(ext)s"
 	case o.Variant == VariantVideo && !o.Embed.Separate:
 		return videoOutputTemplate
 	case o.SideTag != "":
@@ -1285,17 +1393,45 @@ func outputTemplate(o Options) string {
 	return defaultOutputTemplate
 }
 
-// The quality in a media file's name: the height of the video stream and the
-// bitrate of the audio one, "best" where the site does not say. The brackets
-// stand outside the fields, since a ")" inside a replacement ends yt-dlp's
-// field. The thumbnail, subtitle and description rows write the title with
-// their SideMark and are named after their video once it is written
-// (internal/app's app_variant_names.go). A video kept as separate streams
+// The quality in a media file's name: the frame of the video stream, which
+// finish turns into the quality it is named by (qualityName), and the bitrate
+// of the audio one, "best" where the site does not say. The brackets stand
+// outside the fields, since a ")" inside a replacement ends yt-dlp's field.
+// The thumbnail, subtitle and description rows write the title with their
+// SideMark and are named after their video once it is written (internal/app's
+// app_variant_names.go). A video kept as separate streams
 // keeps the plain title, its two files told apart by their format codes.
 const (
-	videoOutputTemplate = "%(title)s (%(height&{}p|best)s).%(ext)s"
+	videoOutputTemplate = "%(title)s (" + frameField + ").%(ext)s"
 	audioOutputTemplate = "%(title)s (%(abr&{:.0f}kbit|best)s).%(ext)s"
 )
+
+// frameField writes the video's frame as "1920x960p", or its height alone
+// where the site gives no width. yt-dlp has no field for the quality a frame
+// is named by, which takes both sides.
+const frameField = "%(width&{}x|)s%(height&{}p|best)s"
+
+// framed finds the frame frameField wrote in a file name: the last bracket,
+// with nothing in brackets after it, and a tag such as a codec beside the
+// frame.
+var framed = regexp.MustCompile(`\((\d{1,5})x(\d{1,5})p( [^()]*)?\)([^()]*)$`)
+
+// qualityName is name with the frame frameField wrote replaced by the quality
+// it is named by: "Clip (1920x960p).mkv" is "Clip (1080p).mkv". A name
+// without one comes back as it is.
+func qualityName(name string) string {
+	m := framed.FindStringSubmatchIndex(name)
+	if m == nil {
+		return name
+	}
+	w, _ := strconv.Atoi(name[m[2]:m[3]])
+	h, _ := strconv.Atoi(name[m[4]:m[5]])
+	tag := ""
+	if m[6] >= 0 {
+		tag = name[m[6]:m[7]]
+	}
+	return fmt.Sprintf("%s(%dp%s)%s", name[:m[0]], FormatEntry{Width: w, Height: h}.Res(), tag, name[m[8]:])
+}
 
 // audioSelector is the audio row's -f value, with a language filter when one
 // was asked for. Most sites report no per-track language, so the chain falls

@@ -51,23 +51,25 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The extension's video button has a card of its own in the settings.**
   For each site you pick whether the button shows there and what a click
   downloads: the video, the audio, the subtitles, the thumbnail or the
-  description as text, with the video and audio quality and format and the
+  description, with the video and audio quality and format and the
   subtitle languages and format you prefer, from what the site has offered
   so far. The arrow next to the button opens a card for each of these with
   every quality and format this one video offers, each with its size and
   under its proper name, such as H.264, VP9, AAC or Opus, along with its
-  audio languages and its subtitles as SRT, WebVTT or TTML, and downloads
-  your pick as the site serves it. A pick that differs from what is
+  audio languages and its subtitles as SRT, WebVTT or TTML. Audio can also
+  come as MP3 or FLAC, and a format KnightLoader converts to says so. A pick
+  that differs from what is
   already in your list downloads as a row of its own, named after its
   codec where another row has the same height. After a send, a ring around
   the mark follows the download and "Done" opens your downloads. With more
   than one instance online, the toolbar popup asks where the video goes.
   Alt+Shift+K sends the video you are watching, and the card lets you
-  change the shortcut. You can drag the button
-  anywhere on the player, and each site keeps its place, or let it show only
-  on hover. It carries the KnightLoader mark, follows the extension's light
+  change the shortcut. You can drag the button anywhere on the player, and
+  each site keeps its place, or let it show only on hover. It carries the KnightLoader mark, follows the extension's light
   or dark theme, turns gold under the pointer and lets a few stars fly when a
   video went through.
+- **The thumbnail can come as JPG, PNG or WebP,** whatever format the site
+  serves it in.
 
 ### Changed
 
@@ -105,6 +107,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Where YouTube offers a Premium track, 1080p and "Best" both fetch it, but
   1080p showed the smaller size of another track. Now the two match, in the
   list and in the video button's menu.
+- **A video wider than 16:9 names its qualities the way YouTube does,** so a
+  2:1 video offers its 1920x960 track as 1080p rather than 960p, and "Up to
+  1080p" on a 21:9 video no longer takes the 2560x1080 track that YouTube
+  calls 1440p.
+- **A video file carries the quality the menu showed,** so the 1080p track of
+  a 2:1 video and a portrait 1080x1920 video both save as "(1080p)" instead of
+  "(960p)" and "(1920p)", and their subtitles and thumbnail take the same name.
+- **Subtitles picked as SRT or VTT come in that format from every site,**
+  converted where the site serves another, and a TTML pick on a site without
+  TTML keeps the site's own format and says so on the row.
 - **"Remove and delete files" takes the unpacked files along.** The archive
   went, but the folder it had been unpacked into stayed. Now what unpacking
   the download wrote goes too, also after a restart and where "Move the

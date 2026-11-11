@@ -1,6 +1,7 @@
 package ytdlp
 
 import (
+	"fmt"
 	"reflect"
 	"regexp"
 	"slices"
@@ -84,8 +85,15 @@ func TestAHostWithoutCodecsStillOffersItsTracks(t *testing.T) {
 		t.Errorf("VideoContainers = %v, want %v", got, want)
 	}
 	sel, _ := valueAfter(buildArgs("d", Options{VideoPick: "720p avi"}), "-f")
-	portrait, landscape := "[width=720][height>720][ext=avi][fps<?30.5]", "[height=720][width>=?720][ext=avi][fps<?30.5]"
-	if want := "bv" + portrait + "+ba/bv" + landscape + "+ba/b" + portrait + "/b" + landscape; sel != want {
+	var video, both []string
+	for _, shape := range []string{
+		"[width=720][height>720][height<=?1919]", "[height=720][width>=?720][width<=?1919]",
+		"[height<720][width>=1280][width<=?1919]", "[width<720][height>=1280][height<=?1919]",
+	} {
+		video = append(video, "bv"+shape+"[ext=avi][fps<?30.5]+ba")
+		both = append(both, "b"+shape+"[ext=avi][fps<?30.5]")
+	}
+	if want := strings.Join(append(video, both...), "/"); sel != want {
 		t.Errorf("-f = %q, want %q", sel, want)
 	}
 	if ext, size := VideoFile("720p avi", archiveLike, Options{}); ext != "avi" || size != 332243668 {
@@ -148,11 +156,20 @@ func TestAPickedVideoTrackSelectsByItsAttributesAndKeepsItsContainer(t *testing.
 	args := buildArgs("d", Options{VideoPick: "1080p mp4 avc1"})
 	got, _ := valueAfter(args, "-f")
 	rest := "[ext=mp4][vcodec~='(?i)^(avc|h264)'][fps<?30.5]"
-	portrait, landscape := "[width=1080][height>1080]"+rest, "[height=1080][width>=?1080]"+rest
-	want := "bv" + portrait + "+ba[ext=m4a]/bv" + landscape + "+ba[ext=m4a]/" +
-		"bv" + portrait + "+ba/bv" + landscape + "+ba/" +
-		"b" + portrait + "/b" + landscape
-	if got != want {
+	shapes := []string{
+		"[width=1080][height>1080][height<=?2559]", "[height=1080][width>=?1080][width<=?2559]",
+		"[height<1080][width>=1920][width<=?2559]", "[width<1080][height>=1920][height<=?2559]",
+	}
+	var alts []string
+	for _, audio := range []string{"ba[ext=m4a]", "ba"} {
+		for _, shape := range shapes {
+			alts = append(alts, "bv"+shape+rest+"+"+audio)
+		}
+	}
+	for _, shape := range shapes {
+		alts = append(alts, "b"+shape+rest)
+	}
+	if want := strings.Join(alts, "/"); got != want {
 		t.Errorf("-f =\n  %q\nwant\n  %q", got, want)
 	}
 	if merge, _ := valueAfter(args, "--merge-output-format"); merge != "mp4/mkv" {
@@ -170,7 +187,7 @@ func TestAHighFrameRateTrackSelectsAroundItsRoundedRate(t *testing.T) {
 
 func TestAPickedVideoTrackOutranksTheQualityCap(t *testing.T) {
 	got, _ := valueAfter(buildArgs("d", Options{Quality: Quality720p, VideoPick: "1080p webm vp9"}), "-f")
-	if !strings.Contains(got, "[height=1080][width>=?1080][ext=webm][vcodec~='(?i)^vp0?9']") {
+	if !strings.Contains(got, "[height=1080][width>=?1080][width<=?2559][ext=webm][vcodec~='(?i)^vp0?9']") {
 		t.Errorf("-f = %q, want the picked 1080p webm track, not the 720p cap", got)
 	}
 }
@@ -270,7 +287,7 @@ func TestAnUnresolvedWishFallsBackToTheCap(t *testing.T) {
 	args := buildArgs("d", Options{VideoPick: "webm vp9 1080p"})
 	got, _ := valueAfter(args, "-f")
 	container := "[ext=webm][vcodec~='(?i)^vp0?9']"
-	tall, short := container+"[width<=1080][height>1080]", container+"[height<=?1080]"
+	tall, short := container+"[width<=1080][height>1080][height<=?2559]", container+"[height<=?1080][width<=?2559]"
 	want := "bv" + tall + "+ba[ext=webm]/bv" + short + "+ba[ext=webm]/" +
 		"bv" + tall + "+ba/bv" + short + "+ba/" +
 		"b" + tall + "/b" + short + "/" + capChoice(1080).merged()
@@ -669,10 +686,176 @@ func TestAPortraitTrackKeyedByItsHeightTakesItsOwnKey(t *testing.T) {
 	}
 }
 
+// wideLike is a 2:1 video as YouTube serves it, trimmed from a real probe.
+// Each step is scaled to the width of its 16:9 frame, so the 1080p track is
+// 1920x960.
+var wideLike = []FormatEntry{
+	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129.475, Filesize: 30417788, Protocol: "https"},
+	{FormatID: "251", Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 144.271, Filesize: 33893270, Protocol: "https", Default: true},
+	{FormatID: "160", Ext: "mp4", Vcodec: "avc1.4D400C", Acodec: "none", Width: 256, Height: 128, FPS: 25, Filesize: 12007692, Protocol: "https"},
+	{FormatID: "133", Ext: "mp4", Vcodec: "avc1.4D400D", Acodec: "none", Width: 426, Height: 214, FPS: 25, Filesize: 28236678, Protocol: "https"},
+	{FormatID: "134", Ext: "mp4", Vcodec: "avc1.4D4016", Acodec: "none", Width: 640, Height: 320, FPS: 25, Filesize: 49786978, Protocol: "https"},
+	{FormatID: "18", Ext: "mp4", Vcodec: "avc1.42001E", Acodec: "mp4a.40.2", Width: 640, Height: 320, FPS: 25, Filesize: 61003271, Protocol: "https"},
+	{FormatID: "135", Ext: "mp4", Vcodec: "avc1.4D401E", Acodec: "none", Width: 854, Height: 428, FPS: 25, Filesize: 103277262, Protocol: "https"},
+	{FormatID: "136", Ext: "mp4", Vcodec: "avc1.64001F", Acodec: "none", Width: 1280, Height: 640, FPS: 25, Filesize: 205951143, Protocol: "https"},
+	{FormatID: "270", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Width: 1920, Height: 960, FPS: 25, FilesizeApprox: 1262406150, Protocol: "m3u8_native"},
+	{FormatID: "137", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Width: 1920, Height: 960, FPS: 25, Filesize: 403674105, Protocol: "https"},
+	{FormatID: "248", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 1920, Height: 960, FPS: 25, Filesize: 237334123, Protocol: "https"},
+	{FormatID: "399", Ext: "mp4", Vcodec: "av01.0.08M.08", Acodec: "none", Width: 1920, Height: 960, FPS: 25, Filesize: 139169370, Protocol: "https"},
+	{FormatID: "271", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 2560, Height: 1280, FPS: 25, Filesize: 751825695, Protocol: "https"},
+	{FormatID: "313", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 3840, Height: 1920, FPS: 25, Filesize: 2176474718, Protocol: "https"},
+	{FormatID: "401", Ext: "mp4", Vcodec: "av01.0.12M.08", Acodec: "none", Width: 3840, Height: 1920, FPS: 25, Filesize: 908434651, Protocol: "https", Default: true},
+}
+
+// ultrawideLike is a 21:9 recording at 60 fps, trimmed from a real probe. Its
+// 1440p track is 2560x1080, as tall as the 1080p track of an ordinary video.
+var ultrawideLike = []FormatEntry{
+	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129.476, Filesize: 15663183, Protocol: "https"},
+	{FormatID: "251", Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 121.58, Filesize: 14707323, Protocol: "https", Default: true},
+	{FormatID: "136", Ext: "mp4", Vcodec: "avc1.4D401F", Acodec: "none", Width: 1280, Height: 540, FPS: 30, Filesize: 162933184, Protocol: "https"},
+	{FormatID: "298", Ext: "mp4", Vcodec: "avc1.4D4020", Acodec: "none", Width: 1280, Height: 540, FPS: 60, Filesize: 226987422, Protocol: "https"},
+	{FormatID: "299", Ext: "mp4", Vcodec: "avc1.64002A", Acodec: "none", Width: 1920, Height: 810, FPS: 60, Filesize: 397123179, Protocol: "https"},
+	{FormatID: "303", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 1920, Height: 810, FPS: 60, Filesize: 277722656, Protocol: "https"},
+	{FormatID: "308", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 2560, Height: 1080, FPS: 60, Filesize: 672272019, Protocol: "https", Default: true},
+}
+
+func TestAWideVideoOffersItsQualitiesUnderTheNamesYouTubeGivesThem(t *testing.T) {
+	cases := []struct {
+		name    string
+		formats []FormatEntry
+		tracks  []string
+		caps    []Quality
+	}{
+		{
+			"2:1", wideLike,
+			[]string{"2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"},
+			[]Quality{Quality2160p, Quality1440p, Quality1080p, Quality720p, Quality480p, Quality360p, Quality240p, Quality144p},
+		},
+		{
+			"21:9", ultrawideLike,
+			[]string{"1440p60", "1080p60", "720p60", "720p"},
+			[]Quality{Quality1440p, Quality1080p, Quality720p},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var tracks []string
+			for _, k := range VideoTracks(c.formats) {
+				if q, _, _ := strings.Cut(k, " "); !slices.Contains(tracks, q) {
+					tracks = append(tracks, q)
+				}
+			}
+			if !slices.Equal(tracks, c.tracks) {
+				t.Errorf("VideoTracks name %v, want %v", tracks, c.tracks)
+			}
+			if got := SourceQualities(c.formats); !slices.Equal(got, c.caps) {
+				t.Errorf("SourceQualities = %v, want %v", got, c.caps)
+			}
+		})
+	}
+}
+
+func TestAQualityDownloadsTheTrackItNamesOnAWideVideo(t *testing.T) {
+	sources := map[string][]FormatEntry{"2:1": wideLike, "21:9": ultrawideLike}
+	cases := []struct {
+		source string
+		pick   string
+		want   string
+	}{
+		{"2:1", "2160p webm vp9", "3840x1920"},
+		{"2:1", "1080p webm vp9", "1920x960"},
+		{"2:1", "1080p mp4 avc1", "1920x960"},
+		{"2:1", "480p mp4 avc1", "854x428"},
+		{"2:1", "240p mp4 avc1", "426x214"},
+		{"2:1", "1440p", "2560x1280"},
+		{"2:1", "1080p", "1920x960"},
+		{"2:1", "720p", "1280x640"},
+		{"2:1", "mp4 avc1 1080p", "1920x960"},
+		{"21:9", "1440p60 webm vp9", "2560x1080"},
+		{"21:9", "1080p60 webm vp9", "1920x810"},
+		{"21:9", "1080p", "1920x810"},
+		{"21:9", "webm vp9 1080p", "1920x810"},
+		{"21:9", "720p", "1280x540"},
+	}
+	for _, c := range cases {
+		t.Run(c.source+" "+c.pick, func(t *testing.T) {
+			o := Options{VideoPick: c.pick}
+			if !IsVideoPick(c.pick) {
+				o = Options{Quality: Quality(c.pick)}
+			}
+			sel, _ := valueAfter(buildArgs("d", o), "-f")
+			id := ytdlpVideoPick(t, sel, sources[c.source])
+			got := "nothing"
+			for _, f := range sources[c.source] {
+				if f.FormatID == id {
+					got = fmt.Sprintf("%dx%d", f.Width, f.Height)
+				}
+			}
+			if got != c.want {
+				t.Errorf("-f %q takes %s, want %s", sel, got, c.want)
+			}
+		})
+	}
+}
+
+func TestAWideVideoShowsTheSizeOfTheTrackAPickDownloads(t *testing.T) {
+	cases := []struct {
+		name    string
+		formats []FormatEntry
+		pick    string
+		ext     string
+		size    int64
+	}{
+		{"2:1 webm track", wideLike, "1080p webm vp9", "webm", 237334123 + 33893270},
+		{"2:1 mp4 track", wideLike, "1080p mp4 avc1", "mp4", 403674105 + 30417788},
+		{"2:1 cap", wideLike, "1080p", "mkv", 139169370 + 33893270},
+		{"21:9 cap under its tallest track", ultrawideLike, "1080p", "mkv", 277722656 + 14707323},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if ext, size := VideoFile(c.pick, c.formats, Options{}); ext != c.ext || size != c.size {
+				t.Errorf("VideoFile(%q) = %q, %d; want %q, %d", c.pick, ext, size, c.ext, c.size)
+			}
+		})
+	}
+}
+
+// A DCI 2K upload keeps its 2048x1080 track beside the 1920x1012 one YouTube
+// scales it to, and both are 1080p. yt-dlp ranks them by the smaller side, so
+// the 1080p cap takes the taller one whatever their codecs.
+func TestACapIsMeasuredOnTheTallerOfTwoTracksOfOneQuality(t *testing.T) {
+	formats := []FormatEntry{
+		{FormatID: "251", Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 129.989, Filesize: 2308625, Protocol: "https"},
+		{FormatID: "399", Ext: "mp4", Vcodec: "av01.0.08M.08", Acodec: "none", Width: 1920, Height: 1012, FPS: 25, Filesize: 9000000, Protocol: "https"},
+		{FormatID: "271", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 2048, Height: 1080, FPS: 25, Filesize: 10632788, Protocol: "https"},
+	}
+	if got, want := SourceQualities(formats), []Quality{Quality1080p}; !slices.Equal(got, want) {
+		t.Errorf("SourceQualities = %v, want %v", got, want)
+	}
+	if _, size := VideoFile("1080p", formats, Options{}); size != 10632788+2308625 {
+		t.Errorf("VideoFile(1080p) weighs %d, want the 2048x1080 track merged with the audio", size)
+	}
+}
+
+// A wide track's key can name it by its height; the next probe gives it the
+// key the track has.
+func TestAWideTrackKeyedByItsHeightTakesItsOwnKey(t *testing.T) {
+	cases := map[string]string{
+		"960p webm vp9":  "1080p webm vp9",
+		"428p mp4 avc1":  "480p mp4 avc1",
+		"1080p webm vp9": "1080p webm vp9",
+	}
+	for pick, want := range cases {
+		if got := ResolveVideoPick(pick, wideLike); got != want {
+			t.Errorf("ResolveVideoPick(%q) = %q, want %q", pick, got, want)
+		}
+	}
+}
+
 // ytdlpVideoPick is the id of the video format yt-dlp takes for sel from
-// formats: the first alternative that matches any, and in it the highest
-// resolution. It reads the filters this package writes and fails the test on
-// any other.
+// formats: the first alternative that matches any, and in it the one with the
+// longest smaller side, as yt-dlp ranks resolution. It reads the filters this
+// package writes and fails the test on any other.
 func ytdlpVideoPick(t *testing.T, sel string, formats []FormatEntry) string {
 	t.Helper()
 	filter := regexp.MustCompile(`\[(\w+)(<=|>=|~=|<|>|=)(\??)('[^']*'|[^\]]*)\]`)
@@ -688,7 +871,7 @@ func ytdlpVideoPick(t *testing.T, sel string, formats []FormatEntry) string {
 			if !carries(f.Vcodec) || (kind != "b" && f.Acodec != "none") || (kind == "b" && !carries(f.Acodec)) {
 				continue
 			}
-			if matchesFilters(t, matches, f) && (best == nil || f.Res() > best.Res()) {
+			if matchesFilters(t, matches, f) && (best == nil || f.shortSide() > best.shortSide()) {
 				best = &formats[i]
 			}
 		}
@@ -753,5 +936,35 @@ func TestVideoFileMeasuresAQualityPickInTheInstancesVideoFormat(t *testing.T) {
 	}
 	if ext, _ := VideoFile("webm vp9 1080p", youtubeLike, o); ext != "webm" {
 		t.Errorf("a row's own format came out as %q, want webm", ext)
+	}
+}
+
+func TestATrackIsNamedByTheQualityYouTubeGivesIt(t *testing.T) {
+	cases := []struct {
+		name          string
+		width, height int
+		want          int
+	}{
+		{"2:1 at 2160p", 3840, 1920, 2160},
+		{"2:1 at 1080p", 1920, 960, 1080},
+		{"2:1 at 480p", 854, 428, 480},
+		{"2:1 at 240p", 426, 214, 240},
+		{"2:1 at 144p", 256, 128, 144},
+		{"21:9 at 1440p", 2560, 1080, 1440},
+		{"32:9 at 2160p", 3840, 1080, 2160},
+		{"DCI 2K at 1080p", 2048, 1080, 1080},
+		{"16:9", 1920, 1080, 1080},
+		{"4:3", 640, 480, 480},
+		{"16:9 between two steps", 1000, 562, 562},
+		{"portrait 9:16", 1080, 1920, 1080},
+		{"portrait 1:2", 960, 1920, 1080},
+		{"no width", 0, 300, 300},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := (FormatEntry{Width: c.width, Height: c.height}).Res(); got != c.want {
+				t.Errorf("Res of %dx%d = %d, want %d", c.width, c.height, got, c.want)
+			}
+		})
 	}
 }

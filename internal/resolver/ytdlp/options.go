@@ -66,13 +66,17 @@ type Options struct {
 	// free text and a source that changed after the probe. It is off by
 	// default so upgrades do not start failing existing tasks.
 	SubtitleStrict bool `json:"subtitleStrict"`
-	// SubtitleFormat is the format a subtitle row asked for as the host
-	// serves it ("vtt", or "best" for the host's own pick), written without
-	// conversion. Empty converts to srt. Like VideoPick it is a row's own
-	// choice and has no settings key.
+	// SubtitleFormat is the format a subtitle row asked for: srt or vtt,
+	// converted from whatever the host serves, or another as the host serves
+	// it ("ttml", or "best" for the host's own pick). Empty converts to srt.
+	// Like VideoPick it is a row's own choice and has no settings key.
 	SubtitleFormat string `json:"-"`
+	// ThumbnailFormat is the picture format a thumbnail row is converted to,
+	// one of ThumbnailFormats. Empty converts to jpg. A row's own choice,
+	// like VideoPick.
+	ThumbnailFormat string `json:"-"`
 	// ThumbnailAsIs keeps the thumbnail in the format the host serves
-	// instead of converting it to jpg. A row's own choice, like VideoPick.
+	// instead of converting it. A row's own choice, like VideoPick.
 	ThumbnailAsIs bool `json:"-"`
 	// AudioLang narrows the audio row to one spoken language through a
 	// [language^=xx] filter in -f. Auto-dubbed YouTube videos offer several
@@ -345,20 +349,26 @@ func (p HosterPreset) HasVariant(v Variant) bool {
 // LinkChoice is what one link is staged with in place of its host's preset,
 // as the browser extension's button on a video sends it: the rows to stage,
 // the video row's quality cap or one of its tracks (VideoTracks), the audio
-// row's format or one of its tracks (AudioTracks) and spoken language, and
-// the subtitle row's languages and the format the host serves them in. An
-// empty Quality or AudioFormat keeps the preset's.
+// row's format or one of its tracks (AudioTracks) and spoken language, the
+// subtitle row's languages and format, and the thumbnail row's format. An
+// empty Quality or AudioFormat keeps the preset's, and an empty
+// ThumbnailFormat takes the picture as the host serves it.
 type LinkChoice struct {
-	Variants       []Variant `json:"variants"`
-	Quality        Quality   `json:"quality"`
-	VideoTrack     string    `json:"videoTrack"`
-	AudioFormat    string    `json:"audioFormat"`
-	AudioTrack     string    `json:"audioTrack"`
-	AudioLang      string    `json:"audioLang"`
-	SubtitleLangs  []string  `json:"subtitleLangs"`
-	SubtitleAuto   bool      `json:"subtitleAuto"`
-	SubtitleFormat string    `json:"subtitleFormat"`
+	Variants        []Variant `json:"variants"`
+	Quality         Quality   `json:"quality"`
+	VideoTrack      string    `json:"videoTrack"`
+	AudioFormat     string    `json:"audioFormat"`
+	AudioTrack      string    `json:"audioTrack"`
+	AudioLang       string    `json:"audioLang"`
+	SubtitleLangs   []string  `json:"subtitleLangs"`
+	SubtitleAuto    bool      `json:"subtitleAuto"`
+	SubtitleFormat  string    `json:"subtitleFormat"`
+	ThumbnailFormat string    `json:"thumbnailFormat"`
 }
+
+// ThumbnailFormats are the picture formats --convert-thumbnails writes. A
+// thumbnail row can ask for one of them whatever the host serves.
+var ThumbnailFormats = []string{"jpg", "png", "webp"}
 
 // langCode is a language as yt-dlp reports one ("de", "en-orig", "pt-BR"),
 // which ends up inside a -f filter and a --sub-langs list.
@@ -392,7 +402,8 @@ func (c LinkChoice) Valid() bool {
 			return false
 		}
 	}
-	return c.SubtitleFormat == "" || keyToken.MatchString(c.SubtitleFormat)
+	return (c.SubtitleFormat == "" || keyToken.MatchString(c.SubtitleFormat)) &&
+		(c.ThumbnailFormat == "" || keyToken.MatchString(c.ThumbnailFormat))
 }
 
 // LinkFormatVideo and LinkFormatAudio are the two formats of a link sent with
@@ -500,10 +511,11 @@ const defaultOutputTemplate = "%(title)s.%(ext)s"
 // already there, so without it only the first pick would get one.
 func SideMark(tag string) string { return ".kl-" + tag }
 
-// shown is the name a row shows for a file it wrote, without the side mark.
+// shown is the name a row shows for a file it wrote: without the side mark,
+// and with the quality the finished file will carry (qualityName).
 func (o Options) shown(name string) string {
 	if o.SideTag == "" {
-		return name
+		return qualityName(name)
 	}
 	return strings.Replace(name, SideMark(o.SideTag), "", 1)
 }

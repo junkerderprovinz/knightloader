@@ -77,7 +77,14 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 		}
 	case ytdlp.VariantThumbnail, ytdlp.VariantSubtitle, ytdlp.VariantDescription:
 		base.SideTag = t.ID
-		base.ThumbnailAsIs = kind == ytdlp.VariantThumbnail && sub == thumbnailAsIs
+		if kind == ytdlp.VariantThumbnail {
+			// A format yt-dlp cannot write is one the host serves.
+			if slices.Contains(ytdlp.ThumbnailFormats, sub) {
+				base.ThumbnailFormat = sub
+			} else {
+				base.ThumbnailAsIs = sub != ""
+			}
+		}
 		if kind == ytdlp.VariantSubtitle && sub != "" {
 			p := subtitleDecode(sub)
 			base.SubtitleFormat = p.format
@@ -200,7 +207,10 @@ func (a *App) familyRows(host string, choice *ytdlp.LinkChoice) []familyRow {
 		case v == ytdlp.VariantSubtitle && choice != nil:
 			sub = subtitleEncode(own)
 		case v == ytdlp.VariantThumbnail && choice != nil:
-			sub = thumbnailAsIs
+			sub = own.ThumbnailFormat
+			if sub == "" {
+				sub = thumbnailAsIs
+			}
 		}
 		r.variant = variantEncode(v, sub)
 		rows = append(rows, r)
@@ -292,7 +302,8 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice, 
 }
 
 // thumbnailAsIs is a thumbnail row's pick for the picture as the host serves
-// it, which a link sent with a choice of its own takes.
+// it, which a link sent with a choice of its own takes unless it names a
+// format. A thumbnail row's other picks are the format it comes in.
 const thumbnailAsIs = "source"
 
 // subtitlePick is what a subtitle row stores as its pick: the format the
@@ -334,7 +345,8 @@ func subtitleDecode(sub string) subtitlePick {
 }
 
 // fixedVariantExt is the extension a variant row knows without asking the
-// source. buildArgs pins thumbnails to jpg and subtitles to srt, a description
+// source. buildArgs converts thumbnails to jpg or the format picked and
+// subtitles to srt, a description
 // is a text file, and audio in a named format or a picked track is written
 // with that codec's. Best audio and video depend on the source and wait for
 // the probe. Setting these at creation means a probe that never answers still
@@ -342,10 +354,13 @@ func subtitleDecode(sub string) subtitlePick {
 func fixedVariantExt(v ytdlp.Variant, sub string) string {
 	switch v {
 	case ytdlp.VariantThumbnail:
-		if sub == thumbnailAsIs {
+		switch sub {
+		case "":
+			return "jpg"
+		case thumbnailAsIs:
 			return ""
 		}
-		return "jpg"
+		return sub
 	case ytdlp.VariantSubtitle:
 		if sub == "" {
 			return "srt"
