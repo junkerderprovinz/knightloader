@@ -876,6 +876,11 @@ const PAGE_LABELS = {
   if (!/background: var\(--surface2\)/.test(rule('.menu .card')) || /box-shadow|border(?!-radius)/.test(rule('.menu .card'))) fail('a part is not a sub-card filled one surface up without a border');
   if (!/background: var\(--surface\)/.test(rule('    .menu'))) fail('the menu is not a window on the surface');
   if (/\.list[^{}]*::(before|after)/.test(css)) fail('a list of choices still draws a radio dot or a checkbox');
+  // A part's name is its heading, an accent badge with rounded corners that
+  // stays filled whether the part is on or off; the track beside it says which.
+  const head = rule('.menu .switch');
+  if (!/background: var\(--accent\)/.test(head) || !/color: var\(--accent-contrast\)/.test(head) || !/text-transform: uppercase/.test(head) || !/border-radius: min\(var\(--radius\), 6px\)/.test(head)) fail('a part\'s name is not a filled heading badge with rounded corners');
+  if (/opacity|var\(--sub\)/.test(head) || /\.switch\[aria-checked="(true|false)"\]\s*\{/.test(css)) fail('a part\'s heading badge changes with its switch');
   // Nothing in the menu draws a line round itself: sub-cards, tiles, format
   // rails, switches and the download button part by their fill alone. The
   // one line left is the window's hairline, GlimStone's card edge.
@@ -1103,6 +1108,18 @@ for (const reduced of [false, true]) {
   if (!reduced && (stars() < 5 || stars() > 7 || flashes() !== 2)) fail(`a success shows ${stars()} stars and ${flashes()} animations of the button, want five to seven and a flash with a pulse`);
   const scaled = (doc.animations ?? []).some((a) => a.node === send && a.keyframes.some((k) => /scale/.test(k.transform ?? '')));
   if (reduced && scaled) fail('with reduced motion the button still grows');
+}
+
+// The part a video's description is saved as reads as its description in
+// every language, not as plain text.
+{
+  const ctx = vm.createContext({ MESSAGES: {} });
+  vm.runInContext(`${read('src', 'i18n-video.js')}\nglobalThis.V = VIDEO_MESSAGES;`, ctx);
+  const named = Object.fromEntries(Object.entries(ctx.V).map(([l, m]) => [l, m['video.partDescription']]));
+  if (named.en !== 'Description' || named.de !== 'Beschreibung') fail(`the description part reads ${named.en} and ${named.de}, want Description and Beschreibung`);
+  const texts = ['Text', 'Texte', 'Texto', 'Testo', 'Tekst', 'Текст', 'Teksti', 'Metin', 'نص', 'Κείμενο', 'Testua', 'متن', 'טקסט', 'टेक्स्ट', 'Szöveg', 'Teks', 'Texti', 'テキスト', '텍스트', 'Tekstas', 'Teksts', 'Besedilo', 'ข้อความ', 'Văn bản'];
+  const plain = Object.entries(named).filter(([, v]) => texts.includes(v)).map(([l]) => l);
+  if (plain.length) fail(`the description part still reads as plain text in ${plain.join(', ')}`);
 }
 
 // The button's words stay readable on both themes and on the accent it turns

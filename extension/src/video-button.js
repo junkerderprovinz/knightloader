@@ -153,12 +153,21 @@
     /* The ring reaches over the neighbours, and its gap shows whatever the
        control sits on, so it reads on a tile and on gold alike. */
     .kl .menu button:focus-visible { z-index: 1; }
-    .menu .card { flex: 0 0 auto; background: var(--surface2); border-radius: min(var(--radius), 8px); }
-    .menu .switch { width: 100%; height: 36px; padding-block: 0; padding-inline: 10px 46px; color: var(--sub); border-radius: min(var(--radius), 8px); }
-    .menu .switch:hover { background: var(--hover); }
-    .menu .switch[aria-checked="true"] { color: var(--text); font-weight: 600; }
-    /* The track, and over it the knob that slides along. */
-    .switch::before, .switch::after { content: ""; position: absolute; top: 50%; translate: 0 -50%; }
+    .menu .card { position: relative; flex: 0 0 auto; background: var(--surface2); border-radius: min(var(--radius), 8px); }
+    /* A part's name is its heading, the accent badge the extension's pages
+       head a card with, filled whether the part is on or off. The switch's
+       track at the end of the row belongs to the same control, so a click on
+       either toggles the part. */
+    .menu .switch {
+      position: static; display: inline-block; box-sizing: border-box; vertical-align: top;
+      max-width: calc(100% - 66px); height: 22px; margin: 7px 10px; padding: 2px 10px;
+      overflow: hidden; text-overflow: ellipsis;
+      background: var(--accent); color: var(--accent-contrast); border-radius: min(var(--radius), 6px);
+      font-size: 12px; font-weight: 500; line-height: 18px; letter-spacing: 1.2px; text-transform: uppercase;
+    }
+    /* The track, and over it the knob that slides along, centred on the
+       header row. */
+    .switch::before, .switch::after { content: ""; position: absolute; top: 18px; translate: 0 -50%; }
     .switch::after {
       inset-inline-end: 8px; width: 28px; height: 16px; border-radius: 8px;
       background: var(--track); transition: background-color 150ms ease;
