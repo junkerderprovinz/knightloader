@@ -9,19 +9,34 @@ import (
 	"testing"
 )
 
+// Not parallel: it points unraidFlash, where the template mounts the flash,
+// at a folder of its own.
 func TestTheServerNameFromTheFlashIsTheDefaultDevice(t *testing.T) {
 	flash := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(flash, "config"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(flash, "config", "ident.cfg"), []byte("# Unraid\nNAME=\"Tower\"\nCOMMENT=\"media\"\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(flash, "config", "ident.cfg"), []byte("# Unraid\r\nNAME=\"Tower\"\r\nCOMMENT=\"media\"\r\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if got := unraidServerName(flash); got != "Tower" {
-		t.Errorf("unraidServerName = %q, want Tower", got)
+	mounted := unraidFlash
+	t.Cleanup(func() { unraidFlash = mounted })
+	unraidFlash = flash
+	srv, a := testServer(t)
+	defer srv.Close()
+	s := a.Settings.Get()
+	s.InstanceName = "e8fc22d4db7b"
+	if _, err := a.Settings.Set(s); err != nil {
+		t.Fatal(err)
 	}
-	if got := unraidServerName(t.TempDir()); got != "" {
-		t.Errorf("without ident.cfg unraidServerName = %q, want nothing", got)
+
+	var v deviceAnswer
+	if code := getJSON(t, srv.URL+"/api/fortress", &v); code != http.StatusOK || v.Device != "Tower" || v.DefaultDevice != "Tower" {
+		t.Errorf("with the flash mounted the fortress reads %d %+v, want Tower", code, v)
+	}
+	unraidFlash = t.TempDir()
+	if code := getJSON(t, srv.URL+"/api/fortress", &v); code != http.StatusOK || v.DefaultDevice != "e8fc22d4db7b" {
+		t.Errorf("without ident.cfg the fortress reads %d %+v, want the instance name", code, v)
 	}
 }
 

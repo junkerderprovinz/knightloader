@@ -589,8 +589,9 @@ func fortressViewOf(a *app.App) fortressView {
 	return v
 }
 
-// unraidFlash is where the Unraid flash is mounted, when the owner mounts it.
-const unraidFlash = "/boot"
+// unraidFlash is where the Unraid template mounts the flash, read-only and at
+// the same place as in BombVault.
+var unraidFlash = "/host/boot"
 
 // maxDeviceName bounds the name in the fortress, as the kit bounds an app's.
 const maxDeviceName = 64
