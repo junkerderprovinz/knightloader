@@ -16,7 +16,7 @@ require (
 	// accent_linux.go for the settings portal.
 	github.com/godbus/dbus/v5 v5.2.4
 	github.com/junkerderprovinz/knightloader v0.0.0
-	github.com/junkerderprovinz/parleyport/kit v0.0.0-20261111021153-139f11f60f0d
+	github.com/junkerderprovinz/parleyport/kit v0.0.0-20261111071643-7e223fa182b2
 	github.com/wailsapp/wails/v3 v3.1.0
 	github.com/zalando/go-keyring v0.2.8
 	golang.org/x/sys v0.50.0

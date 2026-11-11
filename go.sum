@@ -300,8 +300,8 @@ github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfV
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/junkerderprovinz/gopeed v0.0.0-20261108080126-7ccce87b55a4 h1:2XOrL9aQZSZu/sk+UMdua6E/PPwjuNTOblS0Sm/GU4s=
 github.com/junkerderprovinz/gopeed v0.0.0-20261108080126-7ccce87b55a4/go.mod h1:eKdnery16emlCbVdVZxuHmyX5nR9TkGcgkTfWDTw0hc=
-github.com/junkerderprovinz/parleyport/kit v0.0.0-20261111021153-139f11f60f0d h1:atupqObR8AixzUDVLODh1qfJXqDr4NLMg5IO0j+82E4=
-github.com/junkerderprovinz/parleyport/kit v0.0.0-20261111021153-139f11f60f0d/go.mod h1:/GHVd/HB+Br/336IHKuQBYSc4UGG3NXAfowh1q/DYx8=
+github.com/junkerderprovinz/parleyport/kit v0.0.0-20261111071643-7e223fa182b2 h1:1JqHq695OTnDIkPwUzWigXCyPOnVpOC26r5Fn9ZTzzs=
+github.com/junkerderprovinz/parleyport/kit v0.0.0-20261111071643-7e223fa182b2/go.mod h1:wn9oPR6K+5XCbY5z/fHCG5HvFJxYm4ItJrJk2gwV/e0=
 github.com/junkerderprovinz/torrent v1.61.1-0.20261014215729-7f7e9bdefc17 h1:iU66M6aAO5sjj3ZIYYSGYbEcBkJvMjS654S0p6oAvTk=
 github.com/junkerderprovinz/torrent v1.61.1-0.20261014215729-7f7e9bdefc17/go.mod h1:oHlhT+qWalx6yncaxd0nGInnsvkd8GncTgpxpbZ46YE=
 github.com/kevinburke/ssh_config v1.2.0 h1:x584FjTGwHzMwvHx18PXxbBVzfnxogHaAReU4gf13a4=
