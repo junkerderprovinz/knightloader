@@ -2,17 +2,15 @@
 // it the keys of the pairing there, which take the place of the saved ones on
 // every connection into that group, the key of the local network included.
 //
-// src/api/moved.ts imports nothing at run time, so node strips its types and
-// these checks call the real functions.
-//
 // Run by hand and by CI, from mobile/: `node check-moved.mjs`
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { compile } from './stand-in-react.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const { MOVED_PATH, parseMoved, followMove, rememberMove, currentConnection, askDue } = await import(
-  pathToFileURL(join(here, 'src', 'api', 'moved.ts')).href
-);
+const api = (name) => join(here, 'src', 'api', name);
+const base64 = await import(pathToFileURL(api('base64.ts')).href);
+const { MOVED_PATH, parseMoved, followMove, rememberMove, currentConnection, askDue } = compile(api('moved.ts'), { './base64': base64 });
 
 const problems = [];
 const expect = (what, got, want) => {
@@ -21,15 +19,19 @@ const expect = (what, got, want) => {
   if (g !== w) problems.push(`${what}: got ${g}, want ${w}`);
 };
 
-expect('the route the instance answers on', MOVED_PATH, '/api/group/peer/moved');
+expect('the route the instance answers on', MOVED_PATH, '/kit/fortress/v1/moved');
 
-const moved = { groupKey: '1a'.repeat(32), frameKey: '2b'.repeat(32), peerAuthKey: '3c'.repeat(32) };
-const keys = { relayKey: moved.groupKey, relayFrameKey: moved.frameKey, peerAuthKey: moved.peerAuthKey };
+// As kit/fortress's Moved answers: the group key in hex, the two others as
+// Go marshals a []byte.
+const b64 = (hex) => Buffer.from(hex, 'hex').toString('base64');
+const moved = { group: '1a'.repeat(32), frame: b64('2b'.repeat(32)), peerAuth: b64('3c'.repeat(32)) };
+const keys = { relayKey: '1a'.repeat(32), relayFrameKey: '2b'.repeat(32), peerAuthKey: '3c'.repeat(32) };
 expect('the keys an instance hands over', parseMoved(JSON.stringify(moved)), keys);
-expect('a frame key too short', parseMoved(JSON.stringify({ ...moved, frameKey: '2b'.repeat(16) })), null);
-expect('a group key that is no hex', parseMoved(JSON.stringify({ ...moved, groupKey: 'not hex' })), null);
-expect('no peer-auth key', parseMoved(JSON.stringify({ groupKey: moved.groupKey, frameKey: moved.frameKey })), null);
-expect('the refusal before a move', parseMoved('{"code":"notMoved"}'), null);
+expect('a frame key too short', parseMoved(JSON.stringify({ ...moved, frame: b64('2b'.repeat(16)) })), null);
+expect('a group key that is no hex', parseMoved(JSON.stringify({ ...moved, group: 'not hex' })), null);
+expect('a frame key that is no base64', parseMoved(JSON.stringify({ ...moved, frame: '%%' })), null);
+expect('no peer-auth key', parseMoved(JSON.stringify({ group: moved.group, frame: moved.frame })), null);
+expect('the refusal before a move', parseMoved('{"error":"not_moved"}'), null);
 expect('an answer that is no JSON', parseMoved('moved'), null);
 expect('an answer of null', parseMoved('null'), null);
 

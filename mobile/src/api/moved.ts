@@ -1,3 +1,4 @@
+import { base64Decode } from './base64';
 import type { ServerConnection } from './types';
 
 // How the phone follows its group into a fortress. An instance whose group
@@ -6,8 +7,8 @@ import type { ServerConnection } from './types';
 // phone keeps them in place of the old keys and never learns the fortress
 // phrase, which opens every app of the household.
 
-/** Where an instance hands them over (internal/api/fortress.go). */
-export const MOVED_PATH = '/api/group/peer/moved';
+/** Where an instance hands them over (kit/fortress's Moved). */
+export const MOVED_PATH = '/kit/fortress/v1/moved';
 
 /** The keys of a pairing, under the names a saved connection keeps them by. */
 export interface PairingKeys {
@@ -21,18 +22,26 @@ const HEX_KEY = /^[0-9a-f]{64}$/;
 /** How long the phone waits before it asks a group again whether it moved. */
 const MOVED_CHECK_MS = 5 * 60 * 1000;
 
+/** hexOf is the 32-byte key k, base64 as Go marshals a []byte, in hex, or '' for anything else. */
+function hexOf(k: unknown): string {
+  if (typeof k !== 'string') return '';
+  const hex = base64Decode(k).map((b) => b.toString(16).padStart(2, '0')).join('');
+  return HEX_KEY.test(hex) ? hex : '';
+}
+
 /** parseMoved reads the keys an instance answered with, or null for anything that is no set of them. */
 export function parseMoved(body: string): PairingKeys | null {
-  let o: { groupKey?: unknown; frameKey?: unknown; peerAuthKey?: unknown } | null;
+  let o: { group?: unknown; frame?: unknown; peerAuth?: unknown } | null;
   try {
     o = JSON.parse(body);
   } catch {
     return null;
   }
-  const { groupKey, frameKey, peerAuthKey } = o ?? {};
-  const hex = (k: unknown): k is string => typeof k === 'string' && HEX_KEY.test(k);
-  if (!hex(groupKey) || !hex(frameKey) || !hex(peerAuthKey)) return null;
-  return { relayKey: groupKey, relayFrameKey: frameKey, peerAuthKey };
+  const { group, frame, peerAuth } = o ?? {};
+  const relayFrameKey = hexOf(frame);
+  const peerAuthKey = hexOf(peerAuth);
+  if (typeof group !== 'string' || !HEX_KEY.test(group) || !relayFrameKey || !peerAuthKey) return null;
+  return { relayKey: group, relayFrameKey, peerAuthKey };
 }
 
 const groupOf = (c: { relayUrl: string; relayKey: string }) => JSON.stringify([c.relayUrl, c.relayKey]);

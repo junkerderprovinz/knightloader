@@ -440,7 +440,7 @@ for (const granted of [true, false]) {
 //    words. Every load below is a page opened afresh over the same storage.
 {
   const PHRASE = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
-  const MOVED = '/api/group/peer/moved';
+  const MOVED = '/kit/fortress/v1/moved';
   const { chrome, store } = makeChrome({ withMenus: true });
   const idb = fakeIndexedDB();
   const page = () => {
@@ -463,6 +463,10 @@ for (const granted of [true, false]) {
   const hex = (b) => Buffer.from(b).toString('hex');
   const movedAsks = (asked) => asked.filter((a) => a.path === MOVED);
   const moved = { groupKey: '1a'.repeat(32), frameKey: '2b'.repeat(32), peerAuthKey: '3c'.repeat(32) };
+  // As kit/fortress's Moved answers: the group key in hex, the two others as
+  // Go marshals a []byte.
+  const b64 = (h) => Buffer.from(h, 'hex').toString('base64');
+  const answer = (k) => JSON.stringify({ group: k.groupKey, frame: b64(k.frameKey), peerAuth: b64(k.peerAuthKey) });
 
   try {
     let p = page();
@@ -480,14 +484,16 @@ for (const granted of [true, false]) {
     // Paired anew with the fortress phrase, the keys handed over are the
     // ones the words give, and the words stay.
     p = page();
-    p.ctx.answers[MOVED] = { status: 200, body: JSON.stringify({ groupKey: words.key, frameKey: hex(words.frameKey), peerAuthKey: '3c'.repeat(32) }) };
+    p.ctx.answers[MOVED] = { status: 200, body: answer({ groupKey: words.key, frameKey: hex(words.frameKey), peerAuthKey: '3c'.repeat(32) }) };
     await p.run('groupInstances')();
     if ((await p.run('readPhrase')()) !== PHRASE) fail('the browser drops words that already give the keys of the fortress');
 
     for (const bad of [
-      { ...moved, frameKey: '2b'.repeat(16) },
-      { ...moved, groupKey: 'not hex' },
-      { groupKey: moved.groupKey, frameKey: moved.frameKey },
+      { group: moved.groupKey, frame: b64('2b'.repeat(16)), peerAuth: b64(moved.peerAuthKey) },
+      { group: 'not hex', frame: b64(moved.frameKey), peerAuth: b64(moved.peerAuthKey) },
+      { group: moved.groupKey, frame: '%%', peerAuth: b64(moved.peerAuthKey) },
+      { group: moved.groupKey, frame: b64(moved.frameKey) },
+      { groupKey: moved.groupKey, frameKey: moved.frameKey, peerAuthKey: moved.peerAuthKey },
     ]) {
       p = page();
       p.ctx.answers[MOVED] = { status: 200, body: JSON.stringify(bad) };
@@ -496,7 +502,7 @@ for (const granted of [true, false]) {
     }
 
     p = page();
-    p.ctx.answers[MOVED] = { status: 200, body: JSON.stringify(moved) };
+    p.ctx.answers[MOVED] = { status: 200, body: answer(moved) };
     await p.run('groupInstances')();
     if ((await p.run('readPhrase')()) !== '') fail('the browser keeps the old words after it followed its group into a fortress');
     if (!(await p.run('inGroup')())) fail('a browser that followed its group into a fortress counts as in no group');
@@ -519,7 +525,7 @@ for (const granted of [true, false]) {
     if (idb.stores.get('secrets')?.has('keys')) fail('words entered after a move leave the keys handed over in store');
 
     p = page();
-    p.ctx.answers[MOVED] = { status: 200, body: JSON.stringify(moved) };
+    p.ctx.answers[MOVED] = { status: 200, body: answer(moved) };
     await p.run('groupInstances')();
     await p.run('forgetGroup')();
     if (await p.run('inGroup')()) fail('leaving the group keeps the keys of the fortress pairing');
@@ -549,9 +555,10 @@ for (const granted of [true, false]) {
     if (error) throw new Error(error);
     const opened = [];
     ctx.record = (o) => opened.push(o);
-    ctx.moved = JSON.stringify(moved);
+    const b64 = (h) => Buffer.from(h, 'hex').toString('base64');
+    ctx.moved = JSON.stringify({ group: moved.groupKey, frame: b64(moved.frameKey), peerAuth: b64(moved.peerAuthKey) });
     vm.runInContext(
-      "relaySession = (opts, work) => { record(opts); return work({ siblings: [{ instanceId: 'a'.repeat(40) }], call: async (t, m, p) => (p === '/api/group/peer/moved' ? { status: 200, body: moved } : { status: 200, body: '[]' }) }); }",
+      "relaySession = (opts, work) => { record(opts); return work({ siblings: [{ instanceId: 'a'.repeat(40) }], call: async (t, m, p) => (p === '/kit/fortress/v1/moved' ? { status: 200, body: moved } : { status: 200, body: '[]' }) }); }",
       ctx,
     );
     return { opened, run: (name) => vm.runInContext(name, ctx) };

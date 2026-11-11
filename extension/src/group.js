@@ -103,9 +103,9 @@ async function forgetGroup() {
 
 /**
  * Where an instance whose group moved into a fortress hands a phone or browser
- * of the group the keys of the pairing there (internal/api/fortress.go).
+ * of the group the keys of the pairing there (kit/fortress's Moved).
  */
-const MOVED_PATH = '/api/group/peer/moved';
+const MOVED_PATH = '/kit/fortress/v1/moved';
 
 /** How long a page waits before it asks again whether its group moved. */
 const MOVED_CHECK_MS = 5 * 60 * 1000;
@@ -122,6 +122,22 @@ function movedKeys(o) {
 
 function bytesOfHex(hex) {
   return new Uint8Array(hex.match(/../g).map((b) => parseInt(b, 16)));
+}
+
+/** hexOfBase64 is b64, a []byte as Go marshals it, in hex, or '' where it is no base64. */
+function hexOfBase64(b64) {
+  try {
+    return [...atob(b64)].map((c) => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+  } catch {
+    return '';
+  }
+}
+
+/** handedKeys is the keys a kit/fortress Moved answer o holds, as this browser keeps them, or null. */
+function handedKeys(o) {
+  const { group, frame, peerAuth } = o ?? {};
+  if (typeof frame !== 'string' || typeof peerAuth !== 'string') return null;
+  return movedKeys({ groupKey: group, frameKey: hexOfBase64(frame), peerAuthKey: hexOfBase64(peerAuth) });
 }
 
 /** The keys handed over when the group moved into a fortress, or null. */
@@ -173,7 +189,7 @@ async function followMove({ siblings, call }, held) {
   if (res?.status !== 200) return;
   let keys = null;
   try {
-    keys = movedKeys(JSON.parse(res.body));
+    keys = handedKeys(JSON.parse(res.body));
   } catch {
     return;
   }
