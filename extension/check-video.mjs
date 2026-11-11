@@ -344,8 +344,32 @@ function loadBackground(chrome) {
   })})`);
   const rows = run('videoMenuRows(yt)');
   if (!same(rows.qualities, ['2160p', '1080p60', '1080p', '720p60'])) fail(`the quality row lists ${rows.qualities}, want each resolution once, highest first`);
-  const rates = run('videoMenuRows(yt).qualities.map(videoFrameRate)');
-  if (!same(rates, [0, 60, 0, 60])) fail(`the qualities carry the frame rates ${rates}, want 60 where a track runs above 30 fps and nothing else`);
+  const plaques = run('videoMenuRows(yt).qualities.map(videoPlaques)');
+  if (!same(plaques, [[], ['60 fps'], [], ['60 fps']])) fail(`the qualities carry the plaques ${JSON.stringify(plaques)}, want 60 fps where a track runs above 30 fps and nothing else`);
+
+  // An HDR track's key carries hdr after its quality. The menu keeps it as a
+  // quality of its own, above the plain one of its height, with an HDR plaque,
+  // and a pick of either sends its own track: a cap alone would let yt-dlp take
+  // the HDR track for the plain row, since it ranks HDR first.
+  ctx.hdr = run(`videoOffer(${JSON.stringify({
+    qualities: ['2160p', '1080p'], audio: false,
+    videoTracks: ['2160phdr webm vp9', '2160p webm vp9', '1080p60hdr mp4 av1', '1080p mp4 avc1'], audioTracks: [], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [],
+    thumbnail: null, description: true,
+  })})`);
+  if (run('hdr.videoTracks').length !== 4) fail(`the offer keeps the tracks ${run('hdr.videoTracks')}, want the HDR ones too`);
+  if (!same(run('videoMenuRows(hdr).qualities'), ['2160phdr', '2160p', '1080p60hdr', '1080p'])) fail(`the HDR qualities read ${run('videoMenuRows(hdr).qualities')}, want each HDR one above the plain one of its height`);
+  if (!same(run(`videoPlaques('1080p60hdr')`), ['60 fps', 'HDR'])) fail(`1080p60hdr carries ${run(`videoPlaques('1080p60hdr')`)}, want 60 fps and HDR`);
+  const hdrSends = (sel) => run(`videoExact({ ...videoResolve(videoPick({ parts: ['video'] }), hdr), ...${JSON.stringify(sel)} }, hdr)`);
+  for (const [sel, want] of [
+    [{ quality: '2160phdr' }, { quality: 'best', videoTrack: '2160phdr webm vp9' }],
+    [{ quality: '2160p' }, { quality: 'best', videoTrack: '2160p webm vp9' }],
+    [{ quality: '1080p' }, { quality: 'best', videoTrack: '1080p mp4 avc1' }],
+    [{}, { quality: 'best' }],
+  ]) {
+    const got = hdrSends(sel);
+    const picked = { quality: got.quality, ...(got.videoTrack ? { videoTrack: got.videoTrack } : {}) };
+    if (!same(picked, want)) fail(`picked ${JSON.stringify(sel)} with HDR at its height, the send is ${JSON.stringify(picked)}, want ${JSON.stringify(want)}`);
+  }
   if (!same(rows.formats, ['mp4 avc1', 'mp4 vp9', 'mp4 av1', 'webm vp9'])) fail(`the format row lists ${rows.formats}, want mp4 before webm and avc1, vp9, av1`);
   const offered = (q) => run(`videoMenuRows(yt).formats.filter((f) => videoTrackOffered(yt, '${q}', f))`);
   if (!same(offered('best'), rows.formats)) fail(`at the best quality the formats offered are ${offered('best')}, want every one`);
@@ -1344,8 +1368,8 @@ for (const converts of [true, false]) {
     if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
     if (msg.type === 'knightloader-video-formats') {
       return {
-        known: true, qualities: ['1080p', '720p'], audio: false, videoTracks: ['1080p60 mp4 avc1', '1080p mp4 avc1', '720p50 mp4 avc1'], audioTracks: [], audioLangs: [],
-        subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: false, videoSizes: { '1080p': 9000000 },
+        known: true, qualities: ['1080p', '720p'], audio: false, videoTracks: ['1080p60hdr mp4 avc1', '1080p60 mp4 avc1', '1080p mp4 avc1', '720p50 mp4 avc1'], audioTracks: [], audioLangs: [],
+        subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: false, videoSizes: { '1080p60 mp4 avc1': 9000000 },
       };
     }
     return undefined;
@@ -1361,7 +1385,9 @@ for (const converts of [true, false]) {
   await settle();
   const menu = shadow.querySelectorAll('div').find((d) => d.attrs.role === 'dialog');
   const shown = menu.querySelectorAll('*').filter((n) => n.text).map((n) => n.text).join('|');
-  if (!shown.includes('Quality|Best|1080p|60 fps|9 MB|1080p|720p|50 fps|Format')) fail(`the qualities read ${shown}, want 60 fps and 50 fps beside their resolutions`);
+  if (!shown.includes('Quality|Best|1080p|60 fps|HDR|1080p|60 fps|9 MB|1080p|720p|50 fps|Format')) fail(`the qualities read ${shown}, want 60 fps, HDR and 50 fps beside their resolutions`);
+  const hdrRow = menu.querySelectorAll('button').find((b) => b.dataset.key === 'video-quality:1080p60hdr');
+  if (hdrRow?.attrs['aria-label'] !== '1080p, 60 fps, HDR') fail(`the 60 fps HDR quality is read as ${hdrRow?.attrs['aria-label']}`);
   const rated = menu.querySelectorAll('button').find((b) => b.dataset.key === 'video-quality:1080p60');
   if (rated?.attrs['aria-label'] !== '1080p, 60 fps, 9 MB') fail(`the 60 fps quality is read as ${rated?.attrs['aria-label']}`);
 }
