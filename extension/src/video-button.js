@@ -43,7 +43,9 @@
   const STAR = 'M5 0 L6.2 3.6 L10 3.8 L7 6.1 L8.1 10 L5 7.8 L1.9 10 L3 6.1 L0 3.8 L3.8 3.6 Z';
   // GlimStone's quick out curve, which settles without a bounce.
   const EASE_OUT = 'cubic-bezier(0.16, 1, 0.3, 1)';
-  const RADIUS = { round: '9999px', soft: '5px', square: '0px', leaf: '18px' };
+  // GlimStone's control radius per shape. Round and leaf stop at 12px, since a
+  // pressable thing is rounded but never a pill.
+  const RADIUS = { round: '12px', soft: '5px', square: '0px', leaf: '12px' };
   // What a player draws over its video for people to use, whatever the site
   // calls it.
   const CONTROLS = 'a, button, input, select, textarea, [role="button"], [role="link"], [role="slider"], [role="checkbox"], [role="menuitem"]';
@@ -55,7 +57,7 @@
     .kl {
       --surface: #262626; --surface2: #393939; --surface3: #525252; --raised: #6f6f6f; --text: #f4f4f4; --sub: #c6c6c6;
       --ok: #6fdc8c; --fail: #ff8389; --line: rgba(255, 255, 255, .08);
-      --knob: #c6c6c6; --track: rgba(255, 255, 255, .16); --hover: rgba(255, 255, 255, .05); --edge: transparent;
+      --knob: #c6c6c6; --track: rgba(255, 255, 255, .16); --hover: rgba(255, 255, 255, .05);
       --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
       position: relative;
       font: 500 14px/1.4 "Noto Sans Variable", "Noto Sans", system-ui, sans-serif;
@@ -67,7 +69,7 @@
     .kl[data-theme="light"] {
       --surface: #ffffff; --surface2: #e8e8e8; --surface3: #d1d1d1; --raised: #c6c6c6; --text: #161616; --sub: #525252;
       --ok: #0e6027; --fail: #da1e28; --line: rgba(0, 0, 0, .08);
-      --knob: #6f6f6f; --track: rgba(0, 0, 0, .12); --hover: rgba(0, 0, 0, .04); --edge: rgba(0, 0, 0, .14);
+      --knob: #6f6f6f; --track: rgba(0, 0, 0, .12); --hover: rgba(0, 0, 0, .04);
       --elevation: 0 1px 2px rgba(0, 0, 0, .10), 0 16px 36px -26px rgba(0, 0, 0, .45);
     }
     .kl.shown { opacity: 1; pointer-events: auto; }
@@ -165,7 +167,7 @@
       z-index: 1; inset-inline-end: 23px; width: 10px; height: 10px; border-radius: 50%;
       background: var(--knob); transition: inset-inline-end 180ms ${EASE_OUT}, background-color 150ms ease;
     }
-    .switch[aria-checked="true"]::after { background: var(--accent); box-shadow: inset 0 0 0 1px var(--edge); }
+    .switch[aria-checked="true"]::after { background: var(--accent); }
     .switch[aria-checked="true"]::before { inset-inline-end: 11px; background: var(--accent-contrast); }
     .choices { padding: 0 4px 10px; }
     .choices .label { display: block; margin: 0 6px 4px; color: var(--sub); font-size: 11px; }
@@ -180,17 +182,20 @@
     .menu .list [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
     .list .aside { margin-inline-start: auto; color: var(--sub); font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; }
     .list button:hover .aside, .list [aria-checked="true"] .aside { color: inherit; }
+    /* The groove one surface below the sub-card around a row of formats,
+       whose idle segments stay unfilled. */
     .segments {
-      display: flex; flex-wrap: wrap; gap: 2px; margin: 0 2px; padding: 2px;
-      border-radius: min(var(--radius), 7px); background: var(--hover); box-shadow: inset 0 0 0 1px var(--line);
+      display: flex; flex-wrap: wrap; gap: 0.2rem; margin: 0 2px; padding: 0.2rem;
+      border-radius: min(var(--radius), 7px); background: var(--surface3);
     }
     .menu .segments button {
       flex: 1 1 0; min-width: 52px; min-height: 30px; flex-direction: column; justify-content: center; gap: 0;
       padding: 6px; border-radius: min(var(--radius), 5px); font-size: 12.5px; line-height: 1.15;
     }
-    .segments button:not([aria-checked="true"]):not(:disabled):hover { background: var(--hover); }
+    .segments button:not([aria-checked="true"]):not(:disabled):hover { background: var(--raised); }
     .segments .aside { color: var(--sub); font-size: 10.5px; font-weight: 400; }
-    .menu .segments [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); box-shadow: inset 0 0 0 1px var(--edge); }
+    .segments button:hover .aside { color: inherit; }
+    .menu .segments [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
     .segments [aria-checked="true"] .aside { color: inherit; opacity: .7; }
     .menu .segments button:disabled { opacity: .4; cursor: default; }
     /* Download stays in view at the bottom whatever scrolls above. */
@@ -200,7 +205,7 @@
       margin: 0 -6px; padding: 0 6px 6px;
       background: var(--surface);
     }
-    .menu .go { justify-content: center; gap: 0; height: 34px; background: var(--accent); color: var(--accent-contrast); font-weight: 600; box-shadow: inset 0 0 0 1px var(--edge); }
+    .menu .go { justify-content: center; gap: 0; height: 34px; background: var(--accent); color: var(--accent-contrast); font-weight: 600; }
     .menu .go:hover { background: color-mix(in srgb, var(--accent) 85%, var(--text)); }
     .go .total { margin-inline-start: .35em; font-weight: 500; font-variant-numeric: tabular-nums; }
     .note { display: flex; flex: 0 0 auto; align-items: center; min-height: 30px; padding: 0 8px; color: var(--sub); font-size: 12px; }

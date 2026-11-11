@@ -876,6 +876,12 @@ const PAGE_LABELS = {
   if (!/background: var\(--surface2\)/.test(rule('.menu .card')) || /box-shadow|border(?!-radius)/.test(rule('.menu .card'))) fail('a part is not a sub-card filled one surface up without a border');
   if (!/background: var\(--surface\)/.test(rule('    .menu'))) fail('the menu is not a window on the surface');
   if (/\.list[^{}]*::(before|after)/.test(css)) fail('a list of choices still draws a radio dot or a checkbox');
+  // Nothing in the menu draws a line round itself: sub-cards, tiles, format
+  // rails, switches and the download button part by their fill alone. The
+  // one line left is the window's hairline, GlimStone's card edge.
+  const lined = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, , body]) => /inset 0 0 0 1px|(^|[;\s])border(-top|-bottom|-left|-right)?:/.test(body)).map(([, sel]) => sel.replace(/\/\*[\s\S]*?\*\//g, '').trim());
+  if (lined.join() !== '.menu') fail(`inside the menu these draw a line: ${lined.filter((s) => s !== '.menu').join(', ')}`);
+  if (!/background: var\(--surface3\)/.test(rule('.segments')) || !/padding: 0\.2rem/.test(rule('.segments'))) fail('a format rail is not the groove one surface below its sub-card, padded 0.2rem');
   if (!/background: var\(--surface3\)/.test(rule('.menu .list button')) || !/background: var\(--raised\)/.test(css.slice(css.indexOf('.list button:not([aria-checked="true"]):hover')))) fail('a tile does not rest one surface above its sub-card and rise one more under the pointer');
 
   // Every list of choices is one column, so it reads top to bottom like the
@@ -1022,10 +1028,17 @@ const PAGE_LABELS = {
   doc.dispatch('yt-navigate-finish');
   if (button()?.style.left !== '700px') fail(`on Shorts the button sits at ${button()?.style.left}, want over the video on screen at 700px`);
 
-  // The button takes the extension's theme.
+  // The button takes the extension's theme, and its corners are rounded in
+  // every shape but never so far that the 32px bar reads as a pill.
   for (const theme of ['light', 'dark']) {
     await store.local.set({ theme });
     if (frame()?.dataset.theme !== theme) fail(`with the ${theme} theme the button is ${frame()?.dataset.theme}`);
+  }
+  for (const shape of ['round', 'soft', 'square', 'leaf']) {
+    await store.local.set({ shape });
+    const radius = parseFloat(frame()?.style['--radius']);
+    if (!(radius < 16)) fail(`with the ${shape} shape the button's corners are ${frame()?.style['--radius']}, want under half its height`);
+    if (shape === 'round' && !(radius >= 8)) fail(`with the round shape the button's corners are ${radius}px, want clearly rounded`);
   }
 }
 
