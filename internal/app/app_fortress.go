@@ -73,7 +73,7 @@ func (a *App) FortressSnapshot(ctx context.Context) (fortress.Snapshot, error) {
 
 	return fortress.Snapshot{
 		App:      status.App{ID: "knightloader", Name: "KnightLoader", Version: buildinfo.Version, Commit: buildinfo.Revision()},
-		Instance: status.Instance{ID: id, Name: name},
+		Instance: status.Instance{ID: id, Name: name, Container: buildinfo.ContainerID()},
 		Health:   string(health.Status),
 		Inputs:   in,
 	}, ctx.Err()

@@ -3,8 +3,12 @@
 package buildinfo
 
 import (
+	"bufio"
+	"io"
 	"os"
 	"runtime/debug"
+	"strings"
+	"sync"
 )
 
 // Version is the running build; "dev" for untagged local/main builds.
@@ -54,6 +58,48 @@ var InContainer = func() bool {
 		}
 	}
 	return os.Getenv("KUBERNETES_SERVICE_HOST") != ""
+}
+
+// ContainerID is the id Docker or Podman gave the container this process runs
+// in, "" outside one. A backup app in the fortress matches it against the ids
+// its engine reports. A variable, so a test can stand in.
+var ContainerID = sync.OnceValue(func() string {
+	if !InContainer() {
+		return ""
+	}
+	var table io.Reader = strings.NewReader("")
+	if f, err := os.Open("/proc/self/mountinfo"); err == nil {
+		defer f.Close()
+		table = f
+	}
+	host, _ := os.Hostname()
+	return containerIDIn(table, host)
+})
+
+// containerIDIn finds the container id in a mount table: the engine mounts
+// /etc/hostname from a folder named after the full id. Without that it falls
+// back to host, which Docker sets to the short id unless told otherwise.
+func containerIDIn(mountinfo io.Reader, host string) string {
+	sc := bufio.NewScanner(mountinfo)
+	for sc.Scan() {
+		fields := strings.Fields(sc.Text())
+		if len(fields) < 5 || fields[4] != "/etc/hostname" {
+			continue
+		}
+		for _, part := range strings.Split(fields[3], "/") {
+			if len(part) == 64 && isHex(part) {
+				return part
+			}
+		}
+	}
+	if len(host) == 12 && isHex(host) {
+		return host
+	}
+	return ""
+}
+
+func isHex(s string) bool {
+	return strings.Trim(s, "0123456789abcdef") == ""
 }
 
 // Deployment says which binary this build is: "container" for
