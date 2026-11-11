@@ -172,10 +172,10 @@
     .choices { padding: 0 4px 10px; }
     .choices .label { display: block; margin: 0 6px 4px; color: var(--sub); font-size: 11px; }
     .choices > * + .label { margin-top: 10px; }
-    /* Two columns filled top to bottom, so the qualities read in order down
-       the first and on down the second. */
-    .list { display: grid; grid-auto-flow: column; grid-template-columns: 1fr 1fr; gap: 2px 6px; }
-    .menu .list button { gap: 9px; padding-block: 0; padding-inline: 8px 9px; }
+    /* Every list is one column of the same rows, radio or checkbox alike,
+       so the sizes line up at the end of each. */
+    .list { display: flex; flex-direction: column; gap: 1px; }
+    .menu .list button { gap: 9px; height: 28px; padding-block: 0; padding-inline: 8px 10px; }
     .list button::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ring); }
     .list [role="checkbox"]::before { border-radius: min(var(--radius), 3px); }
     .list button:not([aria-checked="true"]):hover { background: var(--hover); }
@@ -710,7 +710,7 @@
   }
 
   /**
-   * A row of choices under a part, as a list in two columns or as segments,
+   * A row of choices under a part, as a list or as segments,
    * of which one is picked, or with `several` any number. A choice `off`
    * rules out stays in the row but takes no click. `aside` is what a choice
    * shows small beside its name: the size in a list, the container under the
@@ -720,8 +720,6 @@
     const group = document.createElement('div');
     group.className = look;
     group.setAttribute('role', several ? 'group' : 'radiogroup');
-    const rows = look === 'list' ? Math.ceil(values.length / 2) : 1;
-    if (look === 'list') group.style.setProperty('grid-template-rows', `repeat(${rows}, 28px)`);
     const items = values.map((v, i) => {
       const item = control(name(v), () => onPick(v));
       item.setAttribute('role', several ? 'checkbox' : 'radio');
@@ -741,7 +739,7 @@
       if (!several) {
         item.setAttribute('tabindex', isOn(v) ? '0' : '-1');
         item.addEventListener('keydown', (e) => {
-          const step = arrowStep(e.key, rows);
+          const step = arrowStep(e.key);
           if (!step) return;
           e.preventDefault();
           e.stopPropagation();
@@ -756,24 +754,22 @@
     return group;
   }
 
-  /** How far an arrow key moves in a row of choices: down and up by one,
-   *  across to the other column of a list, or along a row of segments. */
-  function arrowStep(key, across) {
+  /** Which way an arrow key moves in a row of choices: down and forward to
+   *  the next, up and back to the one before, as with the browser's own
+   *  radios. */
+  function arrowStep(key) {
     const forward = labels.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
     const back = labels.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft';
-    if (key === 'ArrowDown') return 1;
-    if (key === 'ArrowUp') return -1;
-    if (key === forward) return across;
-    if (key === back) return -across;
+    if (key === 'ArrowDown' || key === forward) return 1;
+    if (key === 'ArrowUp' || key === back) return -1;
     return 0;
   }
 
-  /** Where a step from `at` lands among n choices: one step wraps round the
-   *  ends, a jump across stops at them, and both pass over a choice `off`,
-   *  which `at` itself never is. */
+  /** Where a step from `at` lands among n choices, round the ends and past
+   *  a choice `off`, which `at` itself never is. */
   function stepTo(n, at, step, off) {
-    let i = Math.abs(step) === 1 ? (at + step + n) % n : Math.min(Math.max(at + step, 0), n - 1);
-    while (off(i)) i = (i + Math.sign(step) + n) % n;
+    let i = (at + step + n) % n;
+    while (off(i)) i = (i + step + n) % n;
     return i;
   }
 

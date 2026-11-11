@@ -855,9 +855,15 @@ const PAGE_LABELS = {
     fail(`at a quality without the format picked the menu shows ${entries().join(', ')}, want Best again and the missing format listed but off`);
   }
 
+  // Every list of choices is one column, so it reads top to bottom like the
+  // subtitle languages.
+  const lists = menuEl().querySelectorAll('div').filter((d) => d.className === 'list');
+  if (lists.length !== 3 || lists.some((l) => l.style['grid-template-rows']) || /1fr 1fr/.test(read('src', 'video-button.js'))) fail('a list of choices in the menu is laid out in two columns');
+
   // The arrow keys move the pick and the keyboard together inside a group,
-  // past a format the quality rules out and round the ends, and across the
-  // list's two columns; outside the groups they go from one stop to the next.
+  // past a format the quality rules out and round the ends, and left and
+  // right step as up and down do, as the browser's own radios. Outside the
+  // groups they go from one stop to the next.
   const quality = () => withRole('radiogroup')[0];
   const format = () => withRole('radiogroup')[1];
   key(picked(format()), 'ArrowRight');
@@ -870,9 +876,12 @@ const PAGE_LABELS = {
   if (picked(quality())?.text !== '1080p' || doc.activeElement !== picked(quality())) fail('the up arrow in the quality list does not pick the quality above');
   key(picked(quality()), 'ArrowDown');
   key(picked(quality()), 'ArrowLeft');
-  if (picked(quality())?.text !== 'Best') fail(`the left arrow from 720p in the second column picks ${picked(quality())?.text}, want Best beside it`);
+  if (picked(quality())?.text !== '1080p') fail(`the left arrow from 720p picks ${picked(quality())?.text}, want 1080p above it`);
   key(picked(quality()), 'ArrowRight');
-  if (picked(quality())?.text !== '720p' || picked(format())?.text !== 'H.264') fail('the right arrow from Best does not go back to 720p, or the format did not stay');
+  if (picked(quality())?.text !== '720p' || picked(format())?.text !== 'H.264') fail('the right arrow from 1080p does not go back to 720p, or the format did not stay');
+  key(picked(quality()), 'ArrowDown');
+  if (picked(quality())?.text !== 'Best') fail(`the down arrow from the last quality picks ${picked(quality())?.text}, want round to Best`);
+  key(picked(quality()), 'ArrowUp');
   withRole('switch')[0].focus();
   key(withRole('switch')[0], 'ArrowDown');
   if (doc.activeElement !== picked(quality())) fail('the down arrow from the Video switch does not reach the quality picked');
