@@ -1,4 +1,5 @@
 import { relayClientOf } from './client';
+import { currentConnection } from './moved';
 import { followGroup, type AwayInstance } from './away';
 import { fetchGroupRoster, type GroupApp, type GroupRoster } from './groupApps';
 import type { ServerConnection } from './types';
@@ -20,7 +21,10 @@ const groupOf = (c: ServerConnection) => JSON.stringify([c.relayUrl, c.relayKey]
  * its own, and one taken out of the group goes. `reachable` comes default
  * first, and the phones and extensions shown are those the first of it lists.
  */
-export async function followGroups(saved: ServerConnection[], reachable: ServerConnection[]): Promise<GroupsView> {
+export async function followGroups(read: ServerConnection[], answering: ServerConnection[]): Promise<GroupsView> {
+  // A group that moved while the caller read the list is followed where it went.
+  const saved = read.map(currentConnection);
+  const reachable = answering.map(currentConnection);
   const first = await fetchGroupRoster(reachable);
   const groups = new Map<string, ServerConnection[]>();
   for (const c of saved) {

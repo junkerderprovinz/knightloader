@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import type { ServerConnection } from '../api/types';
 import { closeAllRelayClients, closeRelayClient } from '../api/relayClient';
 import { offersPeerAuth, splitSaved } from '../api/savedConnections';
+import { followMove, type PairingKeys } from '../api/moved';
 
 // Every saved connection carries its group's relay key, a secret, so the whole
 // list goes in the OS keychain (SecureStore) rather than AsyncStorage. The
@@ -110,6 +111,17 @@ export async function followGroupChange(
   await saveList([...kept, ...added]);
   const active = await getActiveConnectionId();
   if (active && dropped.includes(active)) await setActiveConnectionId(null);
+}
+
+/**
+ * followConnections puts every connection into from's group on the keys the
+ * group moved into a fortress with, and reports whether that changed anything.
+ */
+export async function followConnections(from: ServerConnection, keys: PairingKeys): Promise<boolean> {
+  const next = followMove(await listConnections(), from, keys);
+  if (!next) return false;
+  await saveList(next);
+  return true;
 }
 
 export async function removeConnection(id: string): Promise<void> {

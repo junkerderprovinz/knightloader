@@ -36,6 +36,9 @@ In the Android keystore-protected storage (`expo-secure-store`):
 
 The twelve words of your phrase are not stored. The app derives the two keys from
 them when you connect, and the words are gone after that.
+When one of your instances joins a fortress, it hands the app the keys of its
+pairing there, and they replace the saved ones. The fortress phrase itself never
+reaches the phone.
 
 In the app's ordinary storage:
 

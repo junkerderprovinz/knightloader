@@ -11,12 +11,13 @@ import type {
   WatchList,
 } from './types';
 import { WATCHED, widgetPagePath } from './captcha';
-import { relayClientFor, type RelayClient, type RelayProxyResult } from './relayClient';
+import { closeRelayClient, relayClientFor, type RelayClient, type RelayProxyResult } from './relayClient';
+import { MOVED_PATH, askDue, currentConnection, parseMoved, rememberMove } from './moved';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
 import type { CardSwitches } from './taskState';
 import { memberOptions, resetRelayIdentity } from '../storage/relayIdentity';
-import { removeGroupConnections } from '../storage/connections';
+import { followConnections, removeGroupConnections } from '../storage/connections';
 import { deviceName } from './deviceName';
 import type { TranslationKey } from '../i18n/en';
 import { ApiError, errorText, refusedCall } from './refusal';
@@ -39,15 +40,32 @@ export async function request<T>(conn: ServerConnection, base: string, path: str
 }
 
 /** answer is a call's answer as it came, refused unless it is a 2xx. */
-async function answer(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<RelayProxyResult> {
+async function answer(saved: ServerConnection, base: string, path: string, init?: RequestInit): Promise<RelayProxyResult> {
+  const conn = currentConnection(saved);
   // Said plainly, at the one place that can tell, instead of a call that
   // times out or a transport error that names nothing.
   if (!conn.relayFrameKey) {
     throw new ApiError('this connection has to be added again with the phrase', 0, 'addAgain');
   }
   const r = await relayRequest(conn, conn.relayFrameKey, base + path, init);
+  if (askDue(conn, Date.now())) void followIfMoved(conn, conn.relayFrameKey);
   if (r.status < 200 || r.status >= 300) throw refusedCall(r.status, r.body || `relay ${r.status}`);
   return r;
+}
+
+/**
+ * followIfMoved asks conn's instance whether its group moved into a fortress,
+ * and takes every connection into the group there with the keys it hands
+ * over. The answer is signed by the instance this phone saved, so holding the
+ * old words is not enough to send the phone elsewhere.
+ */
+async function followIfMoved(conn: ServerConnection, frameKey: string): Promise<void> {
+  const r = await relayRequest(conn, frameKey, MOVED_PATH).catch(() => null);
+  const keys = r?.status === 200 ? parseMoved(r.body) : null;
+  if (!keys || !(await followConnections(conn, keys).catch(() => false))) return;
+  rememberMove(conn, keys);
+  // No saved connection dials the old keys any more.
+  closeRelayClient(conn.relayUrl, conn.relayKey);
 }
 
 let removedHandler: (() => void) | null = null;

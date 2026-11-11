@@ -9,6 +9,7 @@ import {
 import TcpSocket from 'react-native-tcp-socket';
 import { base64Decode, utf8ToBytes } from '../api/base64';
 import { request } from '../api/client';
+import { currentConnection } from '../api/moved';
 import { sealSignedCall } from '../api/relayFrame';
 import { fromHex } from '../api/sha256';
 import type { ServerConnection } from '../api/types';
@@ -57,7 +58,8 @@ export type RangeReader = (from: number, length: number) => Promise<Uint8Array>;
  * on the relay, so the plain connection shows nobody on the network more than
  * the relay would.
  */
-export async function directReader(conn: ServerConnection, id: string, file: string, base: string): Promise<RangeReader | null> {
+export async function directReader(saved: ServerConnection, id: string, file: string, base: string): Promise<RangeReader | null> {
+  const conn = currentConnection(saved);
   if (base !== '/api' || !conn.peerAuthKey || !conn.relayFrameKey) return null;
   const hello = await request<{ url?: string }>(conn, '', HELLO_PATH).catch(() => null);
   // An instance served under a base path takes direct calls under it too.
