@@ -21,7 +21,7 @@ const STREAM_TYPE = 'application/x-kit-stream';
  */
 export interface StreamCrypto {
   open(key: Uint8Array, nonce: Uint8Array, aad: Uint8Array, sealed: Uint8Array): Promise<Uint8Array>;
-  sha256(data: Uint8Array): Promise<Uint8Array>;
+  sha256(data: Uint8Array<ArrayBuffer>): Promise<Uint8Array>;
 }
 
 /** What the phone sent, which an answer has to be signed against. */
