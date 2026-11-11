@@ -33,7 +33,6 @@ export const tr: Dict = {
   'instance.files': '{n} dosya',
   'instance.filesOne': '1 dosya',
   'instance.left': 'kaldı',
-  'instance.notConnected': 'Bağlı değil',
   'instance.notReachable': 'Ulaşılamıyor',
   'instance.checking': 'Denetleniyor',
   'instance.connected': 'Bağlı',

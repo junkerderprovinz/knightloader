@@ -33,7 +33,6 @@ export const he: Dict = {
   'instance.files': '{n} קבצים',
   'instance.filesOne': 'קובץ אחד',
   'instance.left': 'נותרו',
-  'instance.notConnected': 'לא מחובר',
   'instance.notReachable': 'לא נגיש',
   'instance.checking': 'בודק',
   'instance.connected': 'מחובר',

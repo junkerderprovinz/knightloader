@@ -8,6 +8,7 @@ describe('instances.notReachable', () => {
     for (const lang of AVAILABLE) {
       const dict = await load(lang);
       expect([lang, dict['instances.notReachable']]).toEqual([lang, fortressText(lang).away]);
+      expect([lang, 'instances.notConnected' in dict]).toEqual([lang, false]);
     }
   });
 });

@@ -175,7 +175,6 @@ export const zh: Dict = {
   'instances.connected': '已连接',
   'instances.notApproved': '尚未批准',
   'instances.notApprovedTip': '它已应答，但还没有批准本实例。请在那个实例的“设置”、“配对”中批准本实例，它的下载就会显示在这里。',
-  'instances.notConnected': '未连接',
   'instances.metricActive': '进行中',
   'instances.metricTasks': '任务',
   'instances.metricSpeed': '速度',

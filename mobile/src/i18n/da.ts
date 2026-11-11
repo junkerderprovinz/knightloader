@@ -33,7 +33,6 @@ export const da: Dict = {
   'instance.files': '{n} filer',
   'instance.filesOne': '1 fil',
   'instance.left': 'tilbage',
-  'instance.notConnected': 'Ikke forbundet',
   'instance.notReachable': 'Ikke tilgængelig',
   'instance.checking': 'Tjekker',
   'instance.connected': 'Forbundet',

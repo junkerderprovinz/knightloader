@@ -55,7 +55,6 @@ export const en = {
   'instance.files': '{n} files',
   'instance.filesOne': '1 file',
   'instance.left': 'left',
-  'instance.notConnected': 'Not connected',
   'instance.notReachable': 'Not reachable',
   'instance.checking': 'Checking',
   'instance.connected': 'Connected',

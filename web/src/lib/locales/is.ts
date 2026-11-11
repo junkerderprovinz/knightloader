@@ -175,7 +175,6 @@ export const is: Dict = {
   'instances.connected': 'Tengt',
   'instances.notApproved': 'Ekki samþykkt enn',
   'instances.notApprovedTip': 'Það svaraði en hefur ekki samþykkt þetta tilvik enn. Samþykktu þetta tilvik þar undir Stillingar, Pörun og niðurhal þess birtist hér.',
-  'instances.notConnected': 'Ekki tengt',
   'instances.metricActive': 'Virk',
   'instances.metricTasks': 'Verk',
   'instances.metricSpeed': 'Hraði',

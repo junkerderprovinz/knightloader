@@ -33,7 +33,6 @@ export const eu: Dict = {
   'instance.files': '{n} fitxategi',
   'instance.filesOne': 'fitxategi 1',
   'instance.left': 'falta',
-  'instance.notConnected': 'Konektatu gabe',
   'instance.notReachable': 'Ez dago eskuragarri',
   'instance.checking': 'Egiaztatzen',
   'instance.connected': 'Konektatuta',

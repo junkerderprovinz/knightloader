@@ -40,7 +40,7 @@ function statusLine(
   s: InstanceStats | null | undefined,
 ): string {
   if (s === undefined) return '…';
-  if (s === null) return t('instance.notConnected');
+  if (s === null) return t('instance.notReachable');
   const parts: string[] = [];
   if (s.halted) parts.push(t('downloads.queueHalted'));
   else if (s.running > 0) parts.push(t('downloads.queueRunning'));

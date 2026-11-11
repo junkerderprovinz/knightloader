@@ -175,7 +175,6 @@ export const lt: Dict = {
   'instances.connected': 'Prisijungta',
   'instances.notApproved': 'Dar nepatvirtinta',
   'instances.notApprovedTip': 'Jis atsakė, bet dar nepatvirtino šio egzemplioriaus. Patvirtinkite šį egzempliorių ten skiltyje Nustatymai, Susiejimas, ir jo atsisiuntimai atsiras čia.',
-  'instances.notConnected': 'Neprisijungta',
   'instances.metricActive': 'Aktyvūs',
   'instances.metricTasks': 'Užduotys',
   'instances.metricSpeed': 'Greitis',

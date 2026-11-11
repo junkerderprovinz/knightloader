@@ -33,7 +33,6 @@ export const fa: Dict = {
   'instance.files': '{n} فایل',
   'instance.filesOne': 'یک فایل',
   'instance.left': 'باقی‌مانده',
-  'instance.notConnected': 'متصل نیست',
   'instance.notReachable': 'در دسترس نیست',
   'instance.checking': 'در حال بررسی',
   'instance.connected': 'متصل',

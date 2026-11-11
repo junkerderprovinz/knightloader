@@ -175,7 +175,6 @@ export const lv: Dict = {
   'instances.connected': 'Savienots',
   'instances.notApproved': 'Vēl nav apstiprināta',
   'instances.notApprovedTip': 'Tā atbildēja, bet vēl nav apstiprinājusi šo instanci. Apstipriniet šo instanci tur sadaļā Iestatījumi, Pārošana, un tās lejupielādes parādīsies šeit.',
-  'instances.notConnected': 'Nav savienots',
   'instances.metricActive': 'Aktīvi',
   'instances.metricTasks': 'Uzdevumi',
   'instances.metricSpeed': 'Ātrums',

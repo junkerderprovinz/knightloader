@@ -33,7 +33,6 @@ export const ar: Dict = {
   'instance.files': 'الملفات: {n}',
   'instance.filesOne': 'ملف واحد',
   'instance.left': 'متبقٍ',
-  'instance.notConnected': 'غير متصل',
   'instance.notReachable': 'غير قابل للوصول',
   'instance.checking': 'جارٍ الفحص',
   'instance.connected': 'متصل',

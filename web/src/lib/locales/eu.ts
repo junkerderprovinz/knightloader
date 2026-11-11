@@ -175,7 +175,6 @@ export const eu: Dict = {
   'instances.connected': 'Konektatuta',
   'instances.notApproved': 'Oraindik onartu gabe',
   'instances.notApprovedTip': 'Erantzun du, baina oraindik ez du instantzia hau onartu. Onartu instantzia hau han, Ezarpenak, Parekatzea atalean, eta haren deskargak hemen agertuko dira.',
-  'instances.notConnected': 'Konektatu gabe',
   'instances.metricActive': 'Aktibo',
   'instances.metricTasks': 'Atazak',
   'instances.metricSpeed': 'Abiadura',

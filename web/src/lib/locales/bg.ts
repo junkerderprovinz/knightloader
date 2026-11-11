@@ -175,7 +175,6 @@ export const bg: Dict = {
   'instances.connected': 'Свързан',
   'instances.notApproved': 'Още не е одобрена',
   'instances.notApprovedTip': 'Тя отговори, но още не е одобрила тази инстанция. Одобри тази инстанция там в Настройки, Сдвояване и изтеглянията ѝ ще се появят тук.',
-  'instances.notConnected': 'Не е свързан',
   'instances.metricActive': 'Активни',
   'instances.metricTasks': 'Задачи',
   'instances.metricSpeed': 'Скорост',

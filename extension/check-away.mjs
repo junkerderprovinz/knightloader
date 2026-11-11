@@ -54,6 +54,7 @@ for (const [lang, messages] of Object.entries(words.MESSAGES)) {
   const [web] = Object.values(await import(pathToFileURL(join(here, '..', 'web', 'src', 'lib', 'locales', `${lang}.ts`)).href));
   expect(`${lang}: an instance that is away`, messages['instance.notReachable'], web['instances.notReachable']);
   expect(`${lang}: the word for it before`, messages['instance.inactive'], undefined);
+  expect(`${lang}: the word for one that does not answer`, messages['instance.notConnected'], undefined);
 }
 
 if (problems.length) {

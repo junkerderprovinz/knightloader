@@ -33,7 +33,6 @@ export const cs: Dict = {
   'instance.files': 'Soubory: {n}',
   'instance.filesOne': '1 soubor',
   'instance.left': 'zbývá',
-  'instance.notConnected': 'Nepřipojeno',
   'instance.notReachable': 'Nedostupné',
   'instance.checking': 'Kontroluje se',
   'instance.connected': 'Připojeno',

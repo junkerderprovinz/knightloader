@@ -33,7 +33,6 @@ export const is: Dict = {
   'instance.files': 'Skrár: {n}',
   'instance.filesOne': '1 skrá',
   'instance.left': 'eftir',
-  'instance.notConnected': 'Ekki tengt',
   'instance.notReachable': 'Ekki aðgengilegt',
   'instance.checking': 'Athuga',
   'instance.connected': 'Tengt',

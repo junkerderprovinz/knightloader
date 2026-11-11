@@ -33,7 +33,6 @@ export const ja: Dict = {
   'instance.files': '{n} ファイル',
   'instance.filesOne': '1 ファイル',
   'instance.left': '残り',
-  'instance.notConnected': '未接続',
   'instance.notReachable': '到達できません',
   'instance.checking': '確認中',
   'instance.connected': '接続済み',

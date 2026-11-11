@@ -70,7 +70,7 @@ function reached(on: boolean, t: T, route?: string): ReactNode {
   return on ? (
     <OkState parts={route ? [t('instances.connected'), route] : [t('instances.connected')]} />
   ) : (
-    <StatePill label={t('instances.notConnected')} tone="fail" />
+    <StatePill label={t('instances.notReachable')} tone="fail" />
   );
 }
 

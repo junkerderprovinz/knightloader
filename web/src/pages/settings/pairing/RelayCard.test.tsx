@@ -67,7 +67,7 @@ function draw(g: Partial<ConnectInfo>, r: Partial<RelayConfig> = {}) {
 const state = () => host.querySelector('[data-testid="relay-state"]')!.textContent;
 
 describe('RelayCard', () => {
-  it('says there is no group yet instead of Not connected before a phrase', () => {
+  it('says there is no group yet instead of Not reachable before a phrase', () => {
     draw({});
     expect(state()).toBe('No group yet');
     // The sentence behind the word stands in the state's (i).
@@ -78,7 +78,7 @@ describe('RelayCard', () => {
 
   it('reports the connection once there is a group', () => {
     draw({ active: true });
-    expect(state()).toBe('Not connected');
+    expect(state()).toBe('Not reachable');
     draw({ active: true }, { connected: true });
     expect(state()).toBe('Connected');
     expect(host.querySelector('[data-testid="relay-state"] [role="note"]')).toBeNull();

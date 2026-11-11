@@ -177,7 +177,6 @@ export const ar: Dict = {
   'instances.connected': 'متصل',
   'instances.notApproved': 'لم تتم الموافقة بعد',
   'instances.notApprovedTip': 'أجابت، لكنها لم توافق على هذه النسخة بعد. وافق على هذه النسخة هناك من الإعدادات، الاقتران، وستظهر تنزيلاتها هنا.',
-  'instances.notConnected': 'غير متصل',
   'instances.metricActive': 'نشط',
   'instances.metricTasks': 'المهام',
   'instances.metricSpeed': 'السرعة',

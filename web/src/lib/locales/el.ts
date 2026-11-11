@@ -175,7 +175,6 @@ export const el: Dict = {
   'instances.connected': 'Συνδεδεμένο',
   'instances.notApproved': 'Δεν έχει εγκριθεί ακόμη',
   'instances.notApprovedTip': 'Απάντησε, αλλά δεν έχει εγκρίνει ακόμη αυτό το στιγμιότυπο. Εγκρίνετε αυτό το στιγμιότυπο εκεί στις Ρυθμίσεις, Σύζευξη, και οι λήψεις του θα εμφανιστούν εδώ.',
-  'instances.notConnected': 'Μη συνδεδεμένο',
   'instances.metricActive': 'Ενεργά',
   'instances.metricTasks': 'Εργασίες',
   'instances.metricSpeed': 'Ταχύτητα',

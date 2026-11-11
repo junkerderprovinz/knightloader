@@ -175,7 +175,6 @@ export const tr: Dict = {
   'instances.connected': 'Bağlı',
   'instances.notApproved': 'Henüz onaylanmadı',
   'instances.notApprovedTip': 'Yanıt verdi ama bu örneği henüz onaylamadı. Bu örneği orada Ayarlar, Eşleştirme altında onayla, indirmeleri burada görünür.',
-  'instances.notConnected': 'Bağlı değil',
   'instances.metricActive': 'Etkin',
   'instances.metricTasks': 'Görevler',
   'instances.metricSpeed': 'Hız',

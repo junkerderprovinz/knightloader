@@ -167,7 +167,7 @@ export const RELEASES: Release[] = [
         id: 'checking-state',
         to: INSTANCES,
         text: 'whatsnew.change.checkingState',
-        names: { name: 'instances.title', checking: 'instances.checking', notConnected: 'instances.notConnected' },
+        names: { name: 'instances.title', checking: 'instances.checking', notConnected: 'instances.notReachable' },
       },
       { id: 'card-names', to: INSTANCES, text: 'whatsnew.change.cardNames', names: { name: 'instances.title' } },
       { id: 'card-size', to: INSTANCES, text: 'whatsnew.change.cardSize', names: { name: 'instances.title' } },

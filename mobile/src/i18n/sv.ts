@@ -33,7 +33,6 @@ export const sv: Dict = {
   'instance.files': '{n} filer',
   'instance.filesOne': '1 fil',
   'instance.left': 'kvar',
-  'instance.notConnected': 'Inte ansluten',
   'instance.notReachable': 'Går inte att nå',
   'instance.checking': 'Kontrollerar',
   'instance.connected': 'Ansluten',

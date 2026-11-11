@@ -177,7 +177,6 @@ export const no: Dict = {
   'instances.connected': 'Tilkoblet',
   'instances.notApproved': 'Ikke godkjent ennå',
   'instances.notApprovedTip': 'Den svarte, men har ikke godkjent denne instansen ennå. Godkjenn denne instansen der under Innstillinger, Paring, så dukker nedlastingene opp her.',
-  'instances.notConnected': 'Ikke tilkoblet',
   'instances.metricActive': 'Aktive',
   'instances.metricTasks': 'Oppgaver',
   'instances.metricSpeed': 'Hastighet',

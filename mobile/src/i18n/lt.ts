@@ -33,7 +33,6 @@ export const lt: Dict = {
   'instance.files': 'Failai: {n}',
   'instance.filesOne': '1 failas',
   'instance.left': 'liko',
-  'instance.notConnected': 'Neprisijungta',
   'instance.notReachable': 'Nepasiekiama',
   'instance.checking': 'Tikrinama',
   'instance.connected': 'Prisijungta',

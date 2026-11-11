@@ -215,7 +215,7 @@ export function RelayCard({
     ) : relay.connected ? (
       <StatePill label={t('instances.connected')} tone="ok" />
     ) : (
-      <StatePill label={t('instances.notConnected')} tone="warn" />
+      <StatePill label={t('instances.notReachable')} tone="warn" />
     );
   const unreachable = group.active && mode !== 'off' && !relay.connected;
 

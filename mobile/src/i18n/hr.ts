@@ -33,7 +33,6 @@ export const hr: Dict = {
   'instance.files': 'Datoteke: {n}',
   'instance.filesOne': '1 datoteka',
   'instance.left': 'preostalo',
-  'instance.notConnected': 'Nije povezano',
   'instance.notReachable': 'Nedostupno',
   'instance.checking': 'Provjera',
   'instance.connected': 'Povezano',

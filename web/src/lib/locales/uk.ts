@@ -175,7 +175,6 @@ export const uk: Dict = {
   'instances.connected': 'Підключено',
   'instances.notApproved': 'Ще не схвалено',
   'instances.notApprovedTip': "Він відповів, але ще не схвалив цей екземпляр. Схваліть цей екземпляр там у розділі Налаштування, Спарювання, і його завантаження з'являться тут.",
-  'instances.notConnected': 'Не підключено',
   'instances.metricActive': 'Активні',
   'instances.metricTasks': 'Завдання',
   'instances.metricSpeed': 'Швидкість',

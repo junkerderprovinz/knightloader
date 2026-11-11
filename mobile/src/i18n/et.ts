@@ -33,7 +33,6 @@ export const et: Dict = {
   'instance.files': '{n} faili',
   'instance.filesOne': '1 fail',
   'instance.left': 'jäänud',
-  'instance.notConnected': 'Pole ühendatud',
   'instance.notReachable': 'Ei ole kättesaadav',
   'instance.checking': 'Kontrollin',
   'instance.connected': 'Ühendatud',

@@ -175,7 +175,6 @@ export const ms: Dict = {
   'instances.connected': 'Bersambung',
   'instances.notApproved': 'Belum diluluskan',
   'instances.notApprovedTip': 'Instans itu menjawab, tetapi belum meluluskan instans ini. Luluskan instans ini di sana di Tetapan, Gandingan, dan muat turunnya akan muncul di sini.',
-  'instances.notConnected': 'Tidak bersambung',
   'instances.metricActive': 'Aktif',
   'instances.metricTasks': 'Tugas',
   'instances.metricSpeed': 'Kelajuan',

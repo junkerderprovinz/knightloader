@@ -177,7 +177,6 @@ export const he: Dict = {
   'instances.connected': 'מחובר',
   'instances.notApproved': 'עדיין לא אושר',
   'instances.notApprovedTip': 'הוא ענה, אבל עדיין לא אישר את המופע הזה. אשר את המופע הזה שם בהגדרות, צימוד, וההורדות שלו יופיעו כאן.',
-  'instances.notConnected': 'לא מחובר',
   'instances.metricActive': 'פעילים',
   'instances.metricTasks': 'משימות',
   'instances.metricSpeed': 'מהירות',

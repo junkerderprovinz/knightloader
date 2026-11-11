@@ -33,7 +33,6 @@ export const vi: Dict = {
   'instance.files': '{n} tệp',
   'instance.filesOne': '1 tệp',
   'instance.left': 'còn lại',
-  'instance.notConnected': 'Chưa kết nối',
   'instance.notReachable': 'Không truy cập được',
   'instance.checking': 'Đang kiểm tra',
   'instance.connected': 'Đã kết nối',

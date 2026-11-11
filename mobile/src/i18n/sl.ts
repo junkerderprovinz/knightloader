@@ -33,7 +33,6 @@ export const sl: Dict = {
   'instance.files': 'Datoteke: {n}',
   'instance.filesOne': '1 datoteka',
   'instance.left': 'preostalo',
-  'instance.notConnected': 'Ni povezano',
   'instance.notReachable': 'Ni dosegljivo',
   'instance.checking': 'Preverjanje',
   'instance.connected': 'Povezano',

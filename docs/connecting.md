@@ -208,7 +208,7 @@ waits for approval.
 
 The **Relay** card under the phrase card picks the relay: **Project relay**,
 **Own relay**, **Instance as relay** or **No relay**, with a badge that says
-Connected, Not connected or No relay. The phrase card shows the same badge
+Connected, Not reachable or No relay. The phrase card shows the same badge
 beside its state. **Instance as relay** makes this instance the relay of the
 group, which works for any instance that can be reached from outside. For
 your own relay the card names the two ways to run one, the
@@ -414,7 +414,7 @@ and cannot be explained.
   words alone, so every build of the app reads it; a build too old for the
   second line refuses the longer code because it counts thirteen words.
 - **The phone has a card of its own** on the Instances page of every instance
-  in the group: the device name Android reports, Connected or Not connected,
+  in the group: the device name Android reports, Connected or Not reachable,
   and when it was last seen. It announces itself on the relay with that name
   and the kind `mobile`, which keeps it apart from the instances and from the
   browser extension. A connected phone counts as somebody in the group, so an

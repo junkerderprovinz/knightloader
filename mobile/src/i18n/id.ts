@@ -33,7 +33,6 @@ export const id: Dict = {
   'instance.files': '{n} berkas',
   'instance.filesOne': '1 berkas',
   'instance.left': 'tersisa',
-  'instance.notConnected': 'Tidak terhubung',
   'instance.notReachable': 'Tidak dapat dijangkau',
   'instance.checking': 'Memeriksa',
   'instance.connected': 'Terhubung',

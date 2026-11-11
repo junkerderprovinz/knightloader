@@ -33,7 +33,6 @@ export const ms: Dict = {
   'instance.files': '{n} fail',
   'instance.filesOne': '1 fail',
   'instance.left': 'baki',
-  'instance.notConnected': 'Tidak bersambung',
   'instance.notReachable': 'Tidak dapat dicapai',
   'instance.checking': 'Menyemak',
   'instance.connected': 'Bersambung',

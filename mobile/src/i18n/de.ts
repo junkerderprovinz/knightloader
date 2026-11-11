@@ -54,7 +54,6 @@ export const de: Dict = {
   'instance.files': '{n} Dateien',
   'instance.filesOne': '1 Datei',
   'instance.left': 'übrig',
-  'instance.notConnected': 'Nicht verbunden',
   'instance.notReachable': 'Nicht erreichbar',
   'instance.checking': 'Wird geprüft',
   'instance.connected': 'Verbunden',

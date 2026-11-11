@@ -70,6 +70,7 @@ for (const f of langs) {
   const [web] = Object.values(await import(pathToFileURL(join(here, '..', 'web', 'src', 'lib', 'locales', f)).href));
   expect(`${lang}: an instance that is away`, phone['instance.notReachable'], web['instances.notReachable']);
   expect(`${lang}: the word for it before`, phone['instance.inactive'], undefined);
+  expect(`${lang}: the word for one that does not answer`, phone['instance.notConnected'], undefined);
 }
 
 if (problems.length) {

@@ -175,7 +175,6 @@ export const gl: Dict = {
   'instances.connected': 'Conectado',
   'instances.notApproved': 'Aínda sen aprobar',
   'instances.notApprovedTip': 'Respondeu, pero aínda non aprobou esta instancia. Aproba esta instancia alí en Axustes, Emparellamento, e as súas descargas aparecerán aquí.',
-  'instances.notConnected': 'Sen conexión',
   'instances.metricActive': 'Activas',
   'instances.metricTasks': 'Tarefas',
   'instances.metricSpeed': 'Velocidade',

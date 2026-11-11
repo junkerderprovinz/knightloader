@@ -175,7 +175,6 @@ export const sr: Dict = {
   'instances.connected': 'Повезано',
   'instances.notApproved': 'Још није одобрена',
   'instances.notApprovedTip': 'Одговорила је, али још није одобрила ову инстанцу. Одобри ову инстанцу тамо под Подешавања, Упаривање и њена преузимања ће се појавити овде.',
-  'instances.notConnected': 'Није повезано',
   'instances.metricActive': 'Активно',
   'instances.metricTasks': 'Задаци',
   'instances.metricSpeed': 'Брзина',

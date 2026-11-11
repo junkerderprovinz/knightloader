@@ -33,7 +33,6 @@ export const pl: Dict = {
   'instance.files': 'Pliki: {n}',
   'instance.filesOne': '1 plik',
   'instance.left': 'pozostało',
-  'instance.notConnected': 'Brak połączenia',
   'instance.notReachable': 'Nieosiągalna',
   'instance.checking': 'Sprawdzanie',
   'instance.connected': 'Połączono',

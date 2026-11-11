@@ -175,7 +175,6 @@ export const id: Dict = {
   'instances.connected': 'Terhubung',
   'instances.notApproved': 'Belum disetujui',
   'instances.notApprovedTip': 'Instance itu menjawab, tetapi belum menyetujui instance ini. Setujui instance ini di sana di Pengaturan, Pemasangan, lalu unduhannya muncul di sini.',
-  'instances.notConnected': 'Tidak terhubung',
   'instances.metricActive': 'Aktif',
   'instances.metricTasks': 'Tugas',
   'instances.metricSpeed': 'Kecepatan',

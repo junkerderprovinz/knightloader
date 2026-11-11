@@ -33,7 +33,6 @@ export const hi: Dict = {
   'instance.files': '{n} फ़ाइलें',
   'instance.filesOne': '1 फ़ाइल',
   'instance.left': 'शेष',
-  'instance.notConnected': 'कनेक्ट नहीं',
   'instance.notReachable': 'पहुँच से बाहर',
   'instance.checking': 'जाँच रहे हैं',
   'instance.connected': 'कनेक्टेड',

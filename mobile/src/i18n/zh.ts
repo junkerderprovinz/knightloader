@@ -33,7 +33,6 @@ export const zh: Dict = {
   'instance.files': '{n} 个文件',
   'instance.filesOne': '1 个文件',
   'instance.left': '剩余',
-  'instance.notConnected': '未连接',
   'instance.notReachable': '无法连接',
   'instance.checking': '检查中',
   'instance.connected': '已连接',

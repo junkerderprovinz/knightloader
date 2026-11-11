@@ -175,7 +175,6 @@ export const cs: Dict = {
   'instances.connected': 'Připojeno',
   'instances.notApproved': 'Zatím neschváleno',
   'instances.notApprovedTip': 'Odpověděla, ale tuto instanci ještě neschválila. Schvalte tuto instanci tam v Nastavení, Párování a její stahování se objeví tady.',
-  'instances.notConnected': 'Nepřipojeno',
   'instances.metricActive': 'Aktivní',
   'instances.metricTasks': 'Úlohy',
   'instances.metricSpeed': 'Rychlost',

@@ -175,7 +175,6 @@ export const th: Dict = {
   'instances.connected': 'เชื่อมต่อแล้ว',
   'instances.notApproved': 'ยังไม่ได้รับการอนุมัติ',
   'instances.notApprovedTip': 'อินสแตนซ์นั้นตอบกลับแล้ว แต่ยังไม่ได้อนุมัติอินสแตนซ์นี้ อนุมัติอินสแตนซ์นี้ที่นั่นในการตั้งค่า การจับคู่ แล้วรายการดาวน์โหลดจะแสดงที่นี่',
-  'instances.notConnected': 'ไม่ได้เชื่อมต่อ',
   'instances.metricActive': 'กำลังทำงาน',
   'instances.metricTasks': 'งาน',
   'instances.metricSpeed': 'ความเร็ว',

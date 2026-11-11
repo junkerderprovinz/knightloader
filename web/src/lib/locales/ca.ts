@@ -175,7 +175,6 @@ export const ca: Dict = {
   'instances.connected': 'Connectat',
   'instances.notApproved': 'Encara no aprovada',
   'instances.notApprovedTip': 'Ha respost, però encara no ha aprovat aquesta instància. Aprova aquesta instància allà a Configuració, Aparellament, i les seves baixades apareixeran aquí.',
-  'instances.notConnected': 'No connectat',
   'instances.metricActive': 'Actives',
   'instances.metricTasks': 'Tasques',
   'instances.metricSpeed': 'Velocitat',

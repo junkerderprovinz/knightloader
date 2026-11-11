@@ -169,7 +169,6 @@ export const pl: Dict = {
   'instances.connected': 'Połączono',
   'instances.notApproved': 'Jeszcze niezatwierdzona',
   'instances.notApprovedTip': 'Odpowiedziała, ale jeszcze nie zatwierdziła tej instancji. Zatwierdź tę instancję tam w Ustawienia, Parowanie, a jej pobierania pojawią się tutaj.',
-  'instances.notConnected': 'Brak połączenia',
   'instances.metricActive': 'Aktywne',
   'instances.metricTasks': 'Zadania',
   'instances.metricSpeed': 'Prędkość',

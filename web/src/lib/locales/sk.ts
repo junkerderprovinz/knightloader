@@ -175,7 +175,6 @@ export const sk: Dict = {
   'instances.connected': 'Pripojené',
   'instances.notApproved': 'Zatiaľ neschválená',
   'instances.notApprovedTip': 'Odpovedala, ale túto inštanciu ešte neschválila. Schváľte túto inštanciu tam v Nastavenia, Párovanie a jej sťahovania sa zobrazia tu.',
-  'instances.notConnected': 'Nepripojené',
   'instances.metricActive': 'Aktívne',
   'instances.metricTasks': 'Úlohy',
   'instances.metricSpeed': 'Rýchlosť',

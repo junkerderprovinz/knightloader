@@ -33,7 +33,6 @@ export const fi: Dict = {
   'instance.files': '{n} tiedostoa',
   'instance.filesOne': '1 tiedosto',
   'instance.left': 'jäljellä',
-  'instance.notConnected': 'Ei yhdistetty',
   'instance.notReachable': 'Ei tavoitettavissa',
   'instance.checking': 'Tarkistetaan',
   'instance.connected': 'Yhdistetty',

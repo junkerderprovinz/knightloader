@@ -169,7 +169,6 @@ export const ru: Dict = {
   'instances.connected': 'Подключено',
   'instances.notApproved': 'Ещё не одобрен',
   'instances.notApprovedTip': 'Он ответил, но ещё не одобрил этот экземпляр. Одобрите этот экземпляр там в разделе Настройки, Сопряжение, и его загрузки появятся здесь.',
-  'instances.notConnected': 'Не подключено',
   'instances.metricActive': 'Активные',
   'instances.metricTasks': 'Задачи',
   'instances.metricSpeed': 'Скорость',

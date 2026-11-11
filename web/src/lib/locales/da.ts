@@ -175,7 +175,6 @@ export const da: Dict = {
   'instances.connected': 'Forbundet',
   'instances.notApproved': 'Ikke godkendt endnu',
   'instances.notApprovedTip': 'Den svarede, men har ikke godkendt denne instans endnu. Godkend denne instans der under Indstillinger, Parring, så dukker dens downloads op her.',
-  'instances.notConnected': 'Ikke forbundet',
   'instances.metricActive': 'Aktive',
   'instances.metricTasks': 'Opgaver',
   'instances.metricSpeed': 'Hastighed',

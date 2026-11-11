@@ -169,7 +169,6 @@ export const es: Dict = {
   'instances.connected': 'Conectado',
   'instances.notApproved': 'Aún sin aprobar',
   'instances.notApprovedTip': 'Ha respondido, pero aún no ha aprobado esta instancia. Aprueba esta instancia allí en Ajustes, Emparejamiento, y sus descargas aparecerán aquí.',
-  'instances.notConnected': 'Sin conexión',
   'instances.metricActive': 'Activas',
   'instances.metricTasks': 'Tareas',
   'instances.metricSpeed': 'Velocidad',

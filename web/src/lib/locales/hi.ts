@@ -175,7 +175,6 @@ export const hi: Dict = {
   'instances.connected': 'कनेक्टेड',
   'instances.notApproved': 'अभी मंज़ूरी नहीं मिली',
   'instances.notApprovedTip': 'उसने जवाब दिया, लेकिन इस इंस्टेंस को अभी मंज़ूरी नहीं दी है। वहाँ सेटिंग्स, पेयरिंग में इस इंस्टेंस को मंज़ूरी दें, फिर उसके डाउनलोड यहाँ दिखेंगे।',
-  'instances.notConnected': 'कनेक्ट नहीं',
   'instances.metricActive': 'सक्रिय',
   'instances.metricTasks': 'कार्य',
   'instances.metricSpeed': 'गति',

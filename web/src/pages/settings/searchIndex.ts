@@ -585,7 +585,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'relay.off',
         'relay.noGroup',
         'instances.connected',
-        'instances.notConnected',
+        'instances.notReachable',
         'relay.seesTitle',
         'relay.seesLabel',
         'relay.notSeesLabel',

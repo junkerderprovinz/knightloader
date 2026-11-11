@@ -109,7 +109,7 @@ export function InstanceRow({
       ? t('instances.checking')
       : waiting
         ? t('instances.notApproved')
-        : t('instances.notConnected');
+        : t('instances.notReachable');
 
   const body = (
     <>
@@ -397,7 +397,7 @@ export function InstanceCard({
   ) : waiting ? (
     <StatePill label={t('instances.notApproved')} tone="warn" tip={t('instances.notApprovedTip')} />
   ) : (
-    <StatePill label={t('instances.notConnected')} tone="fail" />
+    <StatePill label={t('instances.notReachable')} tone="fail" />
   );
   const kind = deployment && KINDS[deployment] ? t(KINDS[deployment]) : '';
   const figures = (

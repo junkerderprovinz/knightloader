@@ -175,7 +175,6 @@ export const sv: Dict = {
   'instances.connected': 'Ansluten',
   'instances.notApproved': 'Inte godkänd än',
   'instances.notApprovedTip': 'Den svarade men har inte godkänt den här instansen än. Godkänn den här instansen där under Inställningar, Parkoppling, så syns dess nedladdningar här.',
-  'instances.notConnected': 'Inte ansluten',
   'instances.metricActive': 'Aktiva',
   'instances.metricTasks': 'Uppgifter',
   'instances.metricSpeed': 'Hastighet',

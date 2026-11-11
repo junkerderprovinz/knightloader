@@ -33,7 +33,6 @@ export const gl: Dict = {
   'instance.files': '{n} ficheiros',
   'instance.filesOne': '1 ficheiro',
   'instance.left': 'restantes',
-  'instance.notConnected': 'Sen conexión',
   'instance.notReachable': 'Non accesible',
   'instance.checking': 'Comprobando',
   'instance.connected': 'Conectado',

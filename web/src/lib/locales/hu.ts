@@ -175,7 +175,6 @@ export const hu: Dict = {
   'instances.connected': 'Csatlakozva',
   'instances.notApproved': 'Még nincs jóváhagyva',
   'instances.notApprovedTip': 'Válaszolt, de még nem hagyta jóvá ezt a példányt. Hagyd jóvá ezt a példányt ott a Beállítások, Párosítás alatt, és a letöltései itt is megjelennek.',
-  'instances.notConnected': 'Nincs csatlakozva',
   'instances.metricActive': 'Aktív',
   'instances.metricTasks': 'Feladatok',
   'instances.metricSpeed': 'Sebesség',

@@ -175,7 +175,6 @@ export const ro: Dict = {
   'instances.connected': 'Conectat',
   'instances.notApproved': 'Încă neaprobată',
   'instances.notApprovedTip': 'A răspuns, dar încă nu a aprobat această instanță. Aprob-o acolo în Setări, Împerechere, și descărcările ei apar aici.',
-  'instances.notConnected': 'Neconectat',
   'instances.metricActive': 'Active',
   'instances.metricTasks': 'Sarcini',
   'instances.metricSpeed': 'Viteză',

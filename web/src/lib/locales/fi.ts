@@ -175,7 +175,6 @@ export const fi: Dict = {
   'instances.connected': 'Yhdistetty',
   'instances.notApproved': 'Ei vielä hyväksytty',
   'instances.notApprovedTip': 'Se vastasi, mutta ei ole vielä hyväksynyt tätä instanssia. Hyväksy tämä instanssi siellä kohdassa Asetukset, Pariliitos, niin sen lataukset näkyvät täällä.',
-  'instances.notConnected': 'Ei yhdistetty',
   'instances.metricActive': 'Aktiiviset',
   'instances.metricTasks': 'Tehtävät',
   'instances.metricSpeed': 'Nopeus',

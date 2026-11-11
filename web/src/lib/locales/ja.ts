@@ -175,7 +175,6 @@ export const ja: Dict = {
   'instances.connected': '接続済み',
   'instances.notApproved': 'まだ承認されていません',
   'instances.notApprovedTip': '応答はありましたが、まだこのインスタンスを承認していません。そちらの「設定」の「ペアリング」でこのインスタンスを承認すると、ダウンロードがここに表示されます。',
-  'instances.notConnected': '未接続',
   'instances.metricActive': '実行中',
   'instances.metricTasks': 'タスク',
   'instances.metricSpeed': '速度',

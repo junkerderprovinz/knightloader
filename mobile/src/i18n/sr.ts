@@ -33,7 +33,6 @@ export const sr: Dict = {
   'instance.files': 'Фајлови: {n}',
   'instance.filesOne': '1 фајл',
   'instance.left': 'преостало',
-  'instance.notConnected': 'Није повезано',
   'instance.notReachable': 'Недоступно',
   'instance.checking': 'Провера',
   'instance.connected': 'Повезано',

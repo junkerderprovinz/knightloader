@@ -175,7 +175,6 @@ export const vi: Dict = {
   'instances.connected': 'Đã kết nối',
   'instances.notApproved': 'Chưa được duyệt',
   'instances.notApprovedTip': 'Phiên bản đó đã trả lời nhưng chưa duyệt phiên bản này. Hãy duyệt phiên bản này ở đó tại Cài đặt, Ghép nối, rồi các lượt tải của nó sẽ hiện ở đây.',
-  'instances.notConnected': 'Chưa kết nối',
   'instances.metricActive': 'Đang chạy',
   'instances.metricTasks': 'Tác vụ',
   'instances.metricSpeed': 'Tốc độ',

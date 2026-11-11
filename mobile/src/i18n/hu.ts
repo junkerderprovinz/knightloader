@@ -33,7 +33,6 @@ export const hu: Dict = {
   'instance.files': '{n} fájl',
   'instance.filesOne': '1 fájl',
   'instance.left': 'van hátra',
-  'instance.notConnected': 'Nincs csatlakozva',
   'instance.notReachable': 'Nem érhető el',
   'instance.checking': 'Ellenőrzés',
   'instance.connected': 'Csatlakozva',

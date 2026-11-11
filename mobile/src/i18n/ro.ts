@@ -33,7 +33,6 @@ export const ro: Dict = {
   'instance.files': 'Fișiere: {n}',
   'instance.filesOne': '1 fișier',
   'instance.left': 'rămase',
-  'instance.notConnected': 'Neconectat',
   'instance.notReachable': 'Inaccesibil',
   'instance.checking': 'Se verifică',
   'instance.connected': 'Conectat',

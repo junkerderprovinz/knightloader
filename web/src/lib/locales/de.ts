@@ -193,7 +193,6 @@ export const de: Dict = {
   'instances.connected': 'Verbunden',
   'instances.notApproved': 'Noch nicht freigegeben',
   'instances.notApprovedTip': 'Sie antwortet, hat diese Instanz aber noch nicht freigegeben. Gib diese Instanz dort unter Einstellungen, Kopplung frei, dann erscheinen hier ihre Downloads.',
-  'instances.notConnected': 'Nicht verbunden',
   'instances.metricActive': 'Aktiv',
   'instances.metricTasks': 'Aufgaben',
   'instances.metricSpeed': 'Tempo',

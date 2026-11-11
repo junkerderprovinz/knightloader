@@ -169,7 +169,6 @@ export const pt: Dict = {
   'instances.connected': 'Ligado',
   'instances.notApproved': 'Ainda não aprovada',
   'instances.notApprovedTip': 'Respondeu, mas ainda não aprovou esta instância. Aprove esta instância lá em Definições, Emparelhamento, e as transferências dela aparecem aqui.',
-  'instances.notConnected': 'Sem ligação',
   'instances.metricActive': 'Ativas',
   'instances.metricTasks': 'Tarefas',
   'instances.metricSpeed': 'Velocidade',

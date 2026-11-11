@@ -33,7 +33,6 @@ export const nl: Dict = {
   'instance.files': '{n} bestanden',
   'instance.filesOne': '1 bestand',
   'instance.left': 'resterend',
-  'instance.notConnected': 'Niet verbonden',
   'instance.notReachable': 'Niet bereikbaar',
   'instance.checking': 'Controleren',
   'instance.connected': 'Verbonden',

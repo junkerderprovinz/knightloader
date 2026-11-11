@@ -33,7 +33,6 @@ export const lv: Dict = {
   'instance.files': 'Faili: {n}',
   'instance.filesOne': '1 fails',
   'instance.left': 'atlicis',
-  'instance.notConnected': 'Nav savienots',
   'instance.notReachable': 'Nav sasniedzams',
   'instance.checking': 'Pārbauda',
   'instance.connected': 'Savienots',

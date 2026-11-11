@@ -175,7 +175,6 @@ export const ko: Dict = {
   'instances.connected': '연결됨',
   'instances.notApproved': '아직 승인되지 않음',
   'instances.notApprovedTip': '응답은 했지만 아직 이 인스턴스를 승인하지 않았습니다. 그쪽의 설정, 페어링에서 이 인스턴스를 승인하면 다운로드가 여기에 표시됩니다.',
-  'instances.notConnected': '연결 안 됨',
   'instances.metricActive': '진행 중',
   'instances.metricTasks': '작업',
   'instances.metricSpeed': '속도',

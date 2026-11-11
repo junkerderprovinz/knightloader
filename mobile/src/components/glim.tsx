@@ -592,7 +592,7 @@ export function StatusBadge({
     checking: [c.statusWarnSolid, c.statusWarnBg, t('instance.checking')],
     pending: [c.statusWarnSolid, c.statusWarnBg, t('devices.pending')],
     paired: [c.statusNeutralText, c.statusNeutralBg, t('devices.paired')],
-    offline: [c.statusFailSolid, c.statusFailBg, t('instance.notConnected')],
+    offline: [c.statusFailSolid, c.statusFailBg, t('instance.notReachable')],
     // Grey like paired: an instance or phone that is closed or away is no fault.
     inactive: [c.statusNeutralText, c.statusNeutralBg, t('instance.notReachable')],
   }[status];

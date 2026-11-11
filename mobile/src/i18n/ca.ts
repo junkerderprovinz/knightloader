@@ -33,7 +33,6 @@ export const ca: Dict = {
   'instance.files': '{n} fitxers',
   'instance.filesOne': '1 fitxer',
   'instance.left': 'restants',
-  'instance.notConnected': 'No connectat',
   'instance.notReachable': 'No accessible',
   'instance.checking': 'Comprovant',
   'instance.connected': 'Connectat',

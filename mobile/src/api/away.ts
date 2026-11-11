@@ -30,7 +30,7 @@ export function memberList(raw: unknown): RelaySibling[] | null {
 
 /**
  * awayFor is the group's entry for a saved connection that did not answer, so
- * its card says Inactive and when it was last seen rather than Not connected.
+ * its card says when it was last seen.
  * A connection the group does not list as away gets undefined.
  */
 export function awayFor(conn: ServerConnection, away: AwayInstance[]): AwayInstance | undefined {

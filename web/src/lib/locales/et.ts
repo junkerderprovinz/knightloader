@@ -175,7 +175,6 @@ export const et: Dict = {
   'instances.connected': 'Ühendatud',
   'instances.notApproved': 'Veel kinnitamata',
   'instances.notApprovedTip': 'See vastas, kuid pole seda eksemplari veel kinnitanud. Kinnita see eksemplar seal jaotises Seaded, Sidumine ja selle allalaadimised ilmuvad siia.',
-  'instances.notConnected': 'Pole ühendatud',
   'instances.metricActive': 'Aktiivsed',
   'instances.metricTasks': 'Ülesanded',
   'instances.metricSpeed': 'Kiirus',

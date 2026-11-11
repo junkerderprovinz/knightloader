@@ -213,7 +213,6 @@ export const en = {
   'instances.connected': 'Connected',
   'instances.notApproved': 'Not approved yet',
   'instances.notApprovedTip': "It answered, but it hasn't approved this instance yet. Approve this one on that instance under Settings, Pairing, and its downloads show up here.",
-  'instances.notConnected': 'Not connected',
   'instances.metricActive': 'Active',
   'instances.metricTasks': 'Tasks',
   'instances.metricSpeed': 'Speed',

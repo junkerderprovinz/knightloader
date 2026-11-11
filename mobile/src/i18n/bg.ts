@@ -33,7 +33,6 @@ export const bg: Dict = {
   'instance.files': '{n} файла',
   'instance.filesOne': '1 файл',
   'instance.left': 'остават',
-  'instance.notConnected': 'Не е свързан',
   'instance.notReachable': 'Недостъпно',
   'instance.checking': 'Проверка',
   'instance.connected': 'Свързан',

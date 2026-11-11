@@ -33,7 +33,6 @@ export const el: Dict = {
   'instance.files': '{n} αρχεία',
   'instance.filesOne': '1 αρχείο',
   'instance.left': 'απομένουν',
-  'instance.notConnected': 'Μη συνδεδεμένο',
   'instance.notReachable': 'Μη προσβάσιμο',
   'instance.checking': 'Έλεγχος',
   'instance.connected': 'Συνδεδεμένο',

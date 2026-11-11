@@ -175,7 +175,6 @@ export const fa: Dict = {
   'instances.connected': 'متصل',
   'instances.notApproved': 'هنوز تأیید نشده',
   'instances.notApprovedTip': 'پاسخ داد، اما هنوز این نمونه را تأیید نکرده است. این نمونه را آنجا در تنظیمات، جفت‌سازی تأیید کن تا دانلودهایش اینجا نمایش داده شوند.',
-  'instances.notConnected': 'متصل نیست',
   'instances.metricActive': 'فعال',
   'instances.metricTasks': 'کارها',
   'instances.metricSpeed': 'سرعت',

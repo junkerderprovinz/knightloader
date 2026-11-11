@@ -169,7 +169,6 @@ export const nl: Dict = {
   'instances.connected': 'Verbonden',
   'instances.notApproved': 'Nog niet goedgekeurd',
   'instances.notApprovedTip': 'Ze antwoordde, maar heeft deze instantie nog niet goedgekeurd. Keur deze instantie daar goed onder Instellingen, Koppeling, dan verschijnen haar downloads hier.',
-  'instances.notConnected': 'Niet verbonden',
   'instances.metricActive': 'Actief',
   'instances.metricTasks': 'Taken',
   'instances.metricSpeed': 'Snelheid',
