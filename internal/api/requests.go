@@ -11,6 +11,8 @@ package api
 import (
 	"mime"
 	"net/http"
+
+	"github.com/junkerderprovinz/parleyport/kit/group"
 )
 
 // otherBodies are the routes that take a body other than JSON, each for a
@@ -30,6 +32,15 @@ var otherBodies = map[string]string{
 	drivePrefix + "/{path...}":               "the drive refuses every other method itself, whatever the body",
 }
 
+// alsoTakes are the routes that take one other type of body besides JSON.
+// Another site cannot send a type outside the three a form posts without a
+// preflight either, so such a route stays as closed to it as one taking JSON.
+var alsoTakes = map[string]string{
+	// kit/group sends an upload, a backup an app of the fortress hands back,
+	// as a stream of this type.
+	"POST " + group.DirectPath: "application/x-kit-upload",
+}
+
 // changesState reports whether method can change something. GET, HEAD and
 // OPTIONS cannot on any route here, and another site can read none of their
 // answers.
@@ -42,14 +53,17 @@ func changesState(method string) bool {
 }
 
 // requireJSON answers 415 to a request with a body that is not declared as
-// JSON, unless the route pattern is one of otherBodies. A request without a
-// body has nothing to declare: plenty of routes act on a bare POST.
+// JSON, unless the route pattern is one of otherBodies or the body is of the
+// type alsoTakes names for it. A request without a body has nothing to
+// declare: plenty of routes act on a bare POST.
 func requireJSON(pattern string, next http.HandlerFunc) http.HandlerFunc {
 	if _, ok := otherBodies[pattern]; ok {
 		return next
 	}
+	other := alsoTakes[pattern]
 	return func(w http.ResponseWriter, r *http.Request) {
-		if changesState(r.Method) && r.ContentLength != 0 && !isJSON(r.Header.Get("Content-Type")) {
+		ct := r.Header.Get("Content-Type")
+		if changesState(r.Method) && r.ContentLength != 0 && !isJSON(ct) && (other == "" || !isType(ct, other)) {
 			http.Error(w, "this endpoint takes application/json; set the Content-Type header", http.StatusUnsupportedMediaType)
 			return
 		}
@@ -59,7 +73,9 @@ func requireJSON(pattern string, next http.HandlerFunc) http.HandlerFunc {
 
 // isJSON reports whether a Content-Type header names JSON, with or without a
 // charset.
-func isJSON(contentType string) bool {
+func isJSON(contentType string) bool { return isType(contentType, "application/json") }
+
+func isType(contentType, want string) bool {
 	mediaType, _, err := mime.ParseMediaType(contentType)
-	return err == nil && mediaType == "application/json"
+	return err == nil && mediaType == want
 }
