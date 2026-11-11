@@ -2266,9 +2266,9 @@
         "commands": [
             "version=$(node --version | sed \"s/^v//\")",
             "nodedir=$(dirname \"$(dirname \"$(which node)\")\")",
-            "mkdir -p \"flatpak-node\\cache\\node-gyp/$version\"",
-            "ln -s \"$nodedir/include\" \"flatpak-node\\cache\\node-gyp/$version/include\"",
-            "echo 11 > \"flatpak-node\\cache\\node-gyp/$version/installVersion\""
+            "mkdir -p \"flatpak-node/cache/node-gyp/$version\"",
+            "ln -s \"$nodedir/include\" \"flatpak-node/cache/node-gyp/$version/include\"",
+            "echo 11 > \"flatpak-node/cache/node-gyp/$version/installVersion\""
         ],
         "dest-filename": "setup_sdk_node_headers.sh",
         "dest": "flatpak-node"
@@ -2276,7 +2276,7 @@
     {
         "type": "shell",
         "commands": [
-            "bash flatpak-node\\setup_sdk_node_headers.sh"
+            "bash flatpak-node/setup_sdk_node_headers.sh"
         ]
     }
 ]
