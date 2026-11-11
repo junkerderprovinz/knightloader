@@ -312,6 +312,102 @@ func TestAVideoSentToStartAgainIsAlreadyThere(t *testing.T) {
 	}
 }
 
+// A video sent again with a pick of its own that the list has no row for gets
+// a row for that pick, while the rows the list already has for it are not
+// fetched twice, and a row of the link still in the collector is left there.
+func TestAVideoSentAgainWithAnotherPickGetsARowOfItsOwn(t *testing.T) {
+	video := []ytdlp.Variant{ytdlp.VariantVideo}
+	both := []ytdlp.Variant{ytdlp.VariantVideo, ytdlp.VariantAudio}
+	for _, c := range []struct {
+		name   string
+		first  core.Status
+		before ytdlp.LinkChoice
+		again  ytdlp.LinkChoice
+		want   []string
+	}{
+		{"a track after the best video, done", core.StatusDone,
+			ytdlp.LinkChoice{Variants: video, Quality: ytdlp.QualityBest},
+			ytdlp.LinkChoice{Variants: video, Quality: ytdlp.QualityBest, VideoTrack: "720p mp4 avc1"},
+			[]string{"video:720p mp4 avc1"}},
+		{"a cap after the best video, running", core.StatusRunning,
+			ytdlp.LinkChoice{Variants: video, Quality: ytdlp.QualityBest},
+			ytdlp.LinkChoice{Variants: video, Quality: ytdlp.Quality720p},
+			[]string{"video:720p"}},
+		{"another audio track beside the same video", core.StatusDone,
+			ytdlp.LinkChoice{Variants: both, Quality: ytdlp.QualityBest, AudioFormat: "best"},
+			ytdlp.LinkChoice{Variants: both, Quality: ytdlp.QualityBest, AudioFormat: "best", AudioTrack: "opus 160k"},
+			[]string{"audio:opus 160k"}},
+	} {
+		a, base := wiredYtdlpApp(t, func(s *settings.Settings, _ string) { s.AutoConfirm = false })
+		a.SetHalted(true)
+		const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+		send := func(choice ytdlp.LinkChoice) LinkBatch {
+			b, err := a.AddLinkBatch([]string{url}, "", OriginCnL, LinkBatchOptions{Start: true, Choice: &choice})
+			if err != nil {
+				t.Fatalf("%s: %v", c.name, err)
+			}
+			return b
+		}
+		first := send(c.before)
+		had := map[string]bool{}
+		for _, x := range tasksSharingURL(a, url) {
+			had[x.ID] = true
+			if c.first == core.StatusDone {
+				finish(t, a, base, x.ID, "Me at the zoo "+x.ID+".mp4")
+			} else {
+				setStatus(a, x.ID, c.first)
+			}
+		}
+		if len(first.Created) == 0 {
+			t.Fatalf("%s: the first send created nothing", c.name)
+		}
+
+		again := send(c.again)
+		if len(again.Created) == 0 {
+			t.Errorf("%s: sent again with another pick, nothing was created and %d rows were listed", c.name, len(again.Listed))
+			continue
+		}
+		var added []string
+		for _, x := range tasksSharingURL(a, url) {
+			if had[x.ID] {
+				continue
+			}
+			if x.Status != core.StatusQueued {
+				t.Errorf("%s: the new %s row is %s, want queued", c.name, x.Variant, x.Status)
+			}
+			added = append(added, x.Variant)
+		}
+		if !slices.Equal(added, c.want) {
+			t.Errorf("%s: sent again, the new rows are %q, want %q", c.name, added, c.want)
+		}
+
+		same := send(c.again)
+		if len(same.Created) != 0 || len(same.Listed) == 0 {
+			t.Errorf("%s: the same pick a third time created %d rows and listed %d, want it already there", c.name, len(same.Created), len(same.Listed))
+		}
+	}
+
+	a, _ := wiredYtdlpApp(t, func(s *settings.Settings, _ string) { s.AutoConfirm = false })
+	a.SetHalted(true)
+	const url = "https://www.youtube.com/watch?v=collected01"
+	if _, err := a.AddLinksWithOptions([]string{url}, "", OriginPaste, LinkBatchOptions{Choice: &ytdlp.LinkChoice{Variants: video}}); err != nil {
+		t.Fatal(err)
+	}
+	pasted := tasksSharingURL(a, url)
+	if _, err := a.AddLinkBatch([]string{url}, "", OriginCnL, LinkBatchOptions{
+		Start: true, Choice: &ytdlp.LinkChoice{Variants: video, Quality: ytdlp.Quality480p},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	for _, x := range pasted {
+		for _, y := range tasksSharingURL(a, url) {
+			if y.ID == x.ID && y.Status != core.StatusCollected {
+				t.Errorf("the pasted %s row is %s after another pick was sent to start, want it left in the collector", x.Variant, y.Status)
+			}
+		}
+	}
+}
+
 func TestALinkWithAFormatNoRowCanMeanIsRefused(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	if _, err := a.AddLinksWithOptions([]string{"https://youtube.com/watch?v=badformat01"}, "", OriginCnL, LinkBatchOptions{Format: "8k"}); err == nil {
@@ -1276,6 +1372,32 @@ func TestPickingAVideoTrackGivesTheRowThatTracksFile(t *testing.T) {
 	}
 	if got := pick("best"); got.Ext != "mkv" {
 		t.Errorf("best: Ext %q, want mkv for the merge", got.Ext)
+	}
+}
+
+// A video sent again for another track of a height the link already has
+// writes its codec beside the height, so the two files do not share a name,
+// and a best pick keeps the plain name.
+func TestASecondTrackOfOneHeightNamesItsCodec(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=nametag0001"
+	first := putTask(t, a, core.Task{URL: url, Name: "Clip", Status: core.StatusDone, Enabled: true, Variant: "video:720p mp4 avc1"})
+	if tag := a.ytdlpOptionsForTask(first.ID).NameTag; tag != "" {
+		t.Errorf("a track alone is tagged %q, want the plain name", tag)
+	}
+	second := putTask(t, a, core.Task{URL: url, Name: "Clip", Status: core.StatusCollected, Enabled: true, Variant: "video:720p mp4 av1"})
+	if tag := a.ytdlpOptionsForTask(second.ID).NameTag; tag != "av1" {
+		t.Errorf("a second 720p track is tagged %q, want av1", tag)
+	}
+	best := putTask(t, a, core.Task{URL: url, Name: "Clip", Status: core.StatusCollected, Enabled: true, Variant: "video:best"})
+	if tag := a.ytdlpOptionsForTask(best.ID).NameTag; tag != "" {
+		t.Errorf("a best pick is tagged %q, want the plain name", tag)
+	}
+	const other = "https://youtube.com/watch?v=nametag0002"
+	putTask(t, a, core.Task{URL: other, Name: "Clip", Status: core.StatusCollected, VariantOff: true, Variant: "video:720p mp4 avc1"})
+	lone := putTask(t, a, core.Task{URL: other, Name: "Clip", Status: core.StatusCollected, Enabled: true, Variant: "video:720p mp4 vp9"})
+	if tag := a.ytdlpOptionsForTask(lone.ID).NameTag; tag != "" {
+		t.Errorf("a track beside a row set aside, or another video's, is tagged %q, want the plain name", tag)
 	}
 }
 

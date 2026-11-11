@@ -44,9 +44,17 @@ const VIDEO_PARTS = ['video', 'audio', 'subtitle', 'thumbnail', 'description'];
  *  internal/resolver/ytdlp/formats.go), which a site's default can prefer. */
 const VIDEO_AUDIO_CODECS = ['aac', 'opus', 'vorbis', 'mp3', 'flac', 'alac'];
 
+/** The containers and codecs a video comes in, in the order the menu and the
+ *  options page list them (containerRank in internal/resolver/ytdlp). */
+const VIDEO_CONTAINERS = ['mp4', 'webm'];
+const VIDEO_CODECS = ['avc1', 'hevc', 'vp9', 'vp8', 'av1'];
+// The order yt-dlp ranks codecs in at one resolution and frame rate
+// (preferredVideoCodecs), which picks the track where only a quality is.
+const VIDEO_PREFERRED = ['av1', 'vp9', 'hevc', 'avc1', 'vp8'];
+
 /** What a click downloads on a site nothing is set for: the video at its
  *  best. */
-const VIDEO_DEFAULTS = { parts: ['video'], quality: 'best', audio: 'best', subLangs: [], subFormat: 'best' };
+const VIDEO_DEFAULTS = { parts: ['video'], quality: 'best', videoFormat: 'best', audio: 'best', audioRate: 'best', subLangs: [], subFormat: 'best' };
 
 // The words the instance's choices are made of, as ytdlp.LinkChoice.Valid
 // takes them: a language as yt-dlp reports one, a format, and the keys of a
@@ -55,6 +63,10 @@ const VIDEO_LANG = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8}){0,2}$/;
 const VIDEO_TOKEN = /^[a-z0-9]{1,10}$/;
 const VIDEO_TRACK = /^[1-9][0-9]{1,4}p([1-9][0-9]{1,2})? [a-z0-9]{1,10}( [a-z0-9]{1,10})?$/;
 const AUDIO_TRACK = /^[a-z0-9]{1,10} [1-9][0-9]{0,3}k$/;
+// A video track's container with its codec, and an audio track's bitrate:
+// the halves of a track the menu offers apart.
+const VIDEO_FORMAT = /^[a-z0-9]{1,10}( [a-z0-9]{1,10})?$/;
+const AUDIO_RATE = /^[1-9][0-9]{0,3}k$/;
 
 /** Whether v is a string of the form re describes. A pattern alone would
  *  take undefined, which it reads as the word. */
@@ -66,10 +78,10 @@ function videoIs(re, v) {
  * A pick from what is stored or what a page sent, with every value the
  * instance would refuse dropped. The part of it a site's defaults hold says
  * what is wanted wherever a video has it: the parts, a cap on the
- * resolution, a codec for the audio, subtitle languages in order and a
- * subtitle format. The menu adds the tracks, the audio language and whether
- * generated subtitles count, from what one video has. A pick with no part
- * left is the defaults.
+ * resolution and a video format, a bitrate and a codec for the audio,
+ * subtitle languages in order and a subtitle format. The menu adds the
+ * tracks, the audio language and whether generated subtitles count, from
+ * what one video has. A pick with no part left is the defaults.
  */
 function videoPick(raw) {
   const parts = Array.isArray(raw?.parts) ? VIDEO_PARTS.filter((p) => raw.parts.includes(p)) : [];
@@ -77,7 +89,9 @@ function videoPick(raw) {
   const pick = {
     parts,
     quality: VIDEO_CAPS.includes(raw.quality) ? raw.quality : 'best',
+    videoFormat: videoIs(VIDEO_FORMAT, raw.videoFormat) ? raw.videoFormat : 'best',
     audio: VIDEO_AUDIO_CODECS.includes(raw.audio) ? raw.audio : 'best',
+    audioRate: videoIs(AUDIO_RATE, raw.audioRate) ? raw.audioRate : 'best',
     subLangs: Array.isArray(raw.subLangs) ? raw.subLangs.filter((l) => videoIs(VIDEO_LANG, l)) : [],
     subFormat: videoIs(VIDEO_TOKEN, raw.subFormat) ? raw.subFormat : 'best',
   };
@@ -128,7 +142,7 @@ function videoOffer(answer) {
   if (!Array.isArray(answer?.videoTracks)) {
     return {
       known: false, qualities, audio: answer ? answer.audio === true : true, videoTracks: [], audioTracks: [], audioLangs: [],
-      subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true,
+      subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true, videoSizes: {}, audioSizes: {},
     };
   }
   const th = answer.thumbnail;
@@ -147,7 +161,31 @@ function videoOffer(answer) {
     subtitleFormats: list(answer.subtitleFormats, VIDEO_TOKEN),
     thumbnail: videoIs(VIDEO_TOKEN, th?.ext) ? { width: size(th.width), height: size(th.height), ext: th.ext } : null,
     description: answer.description === true,
+    videoSizes: videoSizes(answer.videoSizes, (k) => k === 'best' || VIDEO_CAPS.includes(k) || videoIs(VIDEO_TRACK, k)),
+    audioSizes: videoSizes(answer.audioSizes, (k) => videoIs(VIDEO_TOKEN, k) || videoIs(AUDIO_TRACK, k)),
   };
+}
+
+/** The bytes the instance says each pick downloads, of the picks a row
+ *  can make. */
+function videoSizes(raw, pick) {
+  const all = raw && typeof raw === 'object' ? Object.entries(raw) : [];
+  return Object.fromEntries(all.filter(([k, n]) => pick(k) && Number.isInteger(n) && n > 0));
+}
+
+/** The bytes a pick from the menu downloads of a part, video or audio, or
+ *  undefined where the instance does not know. */
+function videoPickSize(sel, offer, part) {
+  const exact = videoExact(sel, offer);
+  return part === 'video' ? offer.videoSizes?.[exact.videoTrack ?? exact.quality] : offer.audioSizes?.[exact.audioTrack ?? exact.audio];
+}
+
+/** A size in bytes as the menu shows it, in megabytes or from a thousand on
+ *  in gigabytes, with a decimal below ten. */
+function videoSize(bytes, lang) {
+  const mb = Math.max(bytes / 1e6, 0.1);
+  const [n, unit] = mb >= 1000 ? [mb / 1000, 'gigabyte'] : [mb, 'megabyte'];
+  return new Intl.NumberFormat(lang, { style: 'unit', unit, unitDisplay: 'short', maximumFractionDigits: n < 10 ? 1 : 0 }).format(n);
 }
 
 /** Whether a video offers a part. One the instance could not say about
@@ -186,21 +224,126 @@ function videoSubtitleChoices(offer, pick) {
   return { manual: offer.subtitles, auto };
 }
 
+/** A video track's key in its halves: "1080p60 webm vp9" is the quality
+ *  "1080p60", 1080 lines tall, in the format "webm vp9". */
+function videoTrackOf(key) {
+  const [quality, ...format] = key.split(' ');
+  return { quality, height: parseInt(quality, 10), fps: parseInt(quality.split('p')[1], 10) || 0, format: format.join(' ') };
+}
+
+/** An audio track's key in its halves: "opus 160k" is the codec "opus" at
+ *  the bitrate "160k". */
+function audioTrackOf(key) {
+  const [codec, rate] = key.split(' ');
+  return { codec, rate, kbps: parseInt(rate, 10) };
+}
+
+/** Where a value comes in a fixed order, anything the order lacks after it. */
+function videoRank(order, v) {
+  const i = order.indexOf(v);
+  return i === -1 ? order.length : i;
+}
+
+/** Video formats in the menu's order: mp4 before webm, and within one the
+ *  codecs in the order yt-dlp's family table lists them. */
+function videoFormatOrder(a, b) {
+  const [ca, ka = ''] = a.split(' ');
+  const [cb, kb = ''] = b.split(' ');
+  return (
+    videoRank(VIDEO_CONTAINERS, ca) - videoRank(VIDEO_CONTAINERS, cb) ||
+    ca.localeCompare(cb) ||
+    videoRank(VIDEO_CODECS, ka) - videoRank(VIDEO_CODECS, kb) ||
+    ka.localeCompare(kb)
+  );
+}
+
+function audioCodecOrder(a, b) {
+  return videoRank(VIDEO_AUDIO_CODECS, a) - videoRank(VIDEO_AUDIO_CODECS, b) || a.localeCompare(b);
+}
+
+function audioRateOrder(a, b) {
+  return parseInt(b, 10) - parseInt(a, 10);
+}
+
+/** The two rows a video's tracks become: its qualities, highest first, and
+ *  its formats, each once. */
+function videoMenuRows(offer) {
+  const tracks = offer.videoTracks.map(videoTrackOf);
+  const qualities = [...new Map(tracks.map((t) => [t.quality, t])).values()]
+    .sort((a, b) => b.height - a.height || b.fps - a.fps)
+    .map((t) => t.quality);
+  return { qualities, formats: [...new Set(tracks.map((t) => t.format))].sort(videoFormatOrder) };
+}
+
+/** The two rows a video's audio tracks become: the bitrates, highest first,
+ *  and the codecs. */
+function audioMenuRows(offer) {
+  const tracks = offer.audioTracks.map(audioTrackOf);
+  return {
+    rates: [...new Set(tracks.map((t) => t.rate))].sort(audioRateOrder),
+    codecs: [...new Set(tracks.map((t) => t.codec))].sort(audioCodecOrder),
+  };
+}
+
+/** A quality as the menu names it: with its frame rate only where the video
+ *  has its resolution at two. */
+function videoQualityName(quality, qualities) {
+  const height = parseInt(quality, 10);
+  return qualities.filter((q) => parseInt(q, 10) === height).length > 1 ? quality : `${height}p`;
+}
+
+/** Whether a video has a format at a quality; at the best quality, whether
+ *  it has the format at all. */
+function videoTrackOffered(offer, quality, format) {
+  return offer.videoTracks.some((k) => {
+    const t = videoTrackOf(k);
+    return t.format === format && (quality === 'best' || t.quality === quality);
+  });
+}
+
+function audioTrackOffered(offer, rate, codec) {
+  return offer.audioTracks.some((k) => {
+    const t = audioTrackOf(k);
+    return t.codec === codec && (rate === 'best' || t.rate === rate);
+  });
+}
+
 /**
- * A pick made exact for one video, where the menu starts: the parts it has,
- * the best video track under the cap, the best audio track in the preferred
- * codec, the original audio where there are several languages, the wanted
- * subtitle languages it has (by hand before generated, else its original
- * generated ones), and the wanted subtitle format where it has that one.
+ * A pick made exact for one video, where the menu starts. Best stays Best,
+ * since that is what was asked for. A quality becomes the video's own, or
+ * the highest one under it, and a bitrate the nearest, the higher one on a
+ * tie; a format or a codec the video lacks there falls back to Best. The
+ * parts are those it has, the audio the original where there are several
+ * languages, and the subtitles the wanted languages it has (by hand before
+ * generated, else its original generated ones) in the wanted format where it
+ * has that one.
  */
 function videoResolve(pick, offer) {
-  if (!offer.known) return { ...pick, subLangs: [...pick.subLangs] };
-  const sel = { ...pick, parts: pick.parts.filter((p) => videoHas(offer, p)) };
+  const { videoTrack, audioTrack, ...rest } = pick;
+  const sel = { ...rest, subLangs: [...pick.subLangs] };
+  if (!offer.known) return sel;
+  sel.parts = pick.parts.filter((p) => videoHas(offer, p));
   if (sel.parts.length === 0) sel.parts = VIDEO_PARTS.filter((p) => videoHas(offer, p)).slice(0, 1);
-  const cap = pick.quality === 'best' ? Infinity : parseInt(pick.quality, 10);
-  sel.videoTrack = offer.videoTracks.find((k) => parseInt(k, 10) <= cap) ?? offer.videoTracks.at(-1);
-  sel.audioTrack =
-    (pick.audio === 'best' ? undefined : offer.audioTracks.find((k) => k.split(' ')[0] === pick.audio)) ?? offer.audioTracks[0];
+  if (offer.videoTracks.length) {
+    const { qualities } = videoMenuRows(offer);
+    if (sel.quality !== 'best' && !qualities.includes(sel.quality)) {
+      const cap = parseInt(sel.quality, 10);
+      sel.quality = qualities.find((q) => parseInt(q, 10) <= cap) ?? qualities.at(-1);
+    }
+    if (!videoTrackOffered(offer, sel.quality, sel.videoFormat)) sel.videoFormat = 'best';
+  }
+  if (offer.audioTracks.length) {
+    const tracks = offer.audioTracks.map(audioTrackOf);
+    if (!tracks.some((t) => t.codec === sel.audio)) sel.audio = 'best';
+    if (sel.audioRate !== 'best') {
+      const want = parseInt(sel.audioRate, 10);
+      const [near] = tracks
+        .filter((t) => sel.audio === 'best' || t.codec === sel.audio)
+        .map((t) => t.kbps)
+        .sort((a, b) => Math.abs(a - want) - Math.abs(b - want) || b - a);
+      sel.audioRate = `${near}k`;
+    }
+  }
   if (offer.audioLangs.length > 1) sel.audioLang = (offer.audioLangs.find((l) => !l.dubbed) ?? offer.audioLangs[0]).code;
   const { manual, auto } = videoSubtitleChoices(offer, pick);
   const langs = [];
@@ -222,17 +365,56 @@ function videoResolve(pick, offer) {
   sel.subLangs = langs;
   sel.subAuto = fromAuto;
   if (!offer.subtitleFormats.includes(sel.subFormat)) sel.subFormat = 'best';
-  for (const k of ['videoTrack', 'audioTrack']) if (!sel[k]) delete sel[k];
   return sel;
+}
+
+/**
+ * What a pick from the menu sends: the track its quality and format name
+ * together, or with Best in one of them the instance's own pick under the
+ * cap or in the codec. A resolution the video has at two frame rates, or one
+ * no cap names, is a track as well. Where the video's tracks are not known,
+ * the cap and the codec alone.
+ */
+function videoExact(sel, offer) {
+  const { videoFormat, audioRate, ...out } = sel;
+  out.quality = VIDEO_CAPS.includes(sel.quality) ? sel.quality : 'best';
+  if (offer.videoTracks.length && (videoFormat !== 'best' || sel.quality !== 'best')) {
+    const height = parseInt(sel.quality, 10);
+    // A cap takes a resolution's highest frame rate, the first of it in the
+    // row, as Best does at the top.
+    const capped = videoMenuRows(offer).qualities.find((q) => parseInt(q, 10) === height) === sel.quality;
+    if (videoFormat === 'best' && capped && VIDEO_CAPS.includes(`${height}p`)) {
+      out.quality = `${height}p`;
+    } else {
+      out.quality = 'best';
+      const codec = (k) => videoRank(VIDEO_PREFERRED, videoTrackOf(k).format.split(' ')[1]);
+      [out.videoTrack] = offer.videoTracks
+        .filter((k) => {
+          const t = videoTrackOf(k);
+          return (videoFormat === 'best' || t.format === videoFormat) && (sel.quality === 'best' || t.quality === sel.quality);
+        })
+        .sort((a, b) => parseInt(b, 10) - parseInt(a, 10) || videoTrackOf(b).fps - videoTrackOf(a).fps || codec(a) - codec(b));
+    }
+  }
+  if (offer.audioTracks.length && audioRate !== 'best') {
+    out.audioTrack = offer.audioTracks.find((k) => {
+      const t = audioTrackOf(k);
+      return t.rate === audioRate && (sel.audio === 'best' || t.codec === sel.audio);
+    });
+    out.audio = 'best';
+  }
+  for (const k of ['videoTrack', 'audioTrack']) if (!out[k]) delete out[k];
+  return out;
 }
 
 /** What a video offered, folded into what its site has offered so far
  *  (videoSeen, by site): the resolutions, the audio codecs, the subtitle
- *  languages by hand and generated originals, and the subtitle formats. */
+ *  languages by hand and generated originals, the subtitle formats, the
+ *  video formats and the audio bitrates. */
 function videoSeenWith(seen, offer) {
   const merge = (old, add, order) => {
     const all = new Set([...(Array.isArray(old) ? old : []), ...add]);
-    return order ? order.filter((x) => all.has(x)) : [...all].sort();
+    return Array.isArray(order) ? order.filter((x) => all.has(x)) : [...all].sort(order);
   };
   const subLangs = [...offer.subtitles, ...offer.autoCaptions.filter((c) => c.endsWith('-orig'))].map(videoLangBase);
   return {
@@ -240,6 +422,8 @@ function videoSeenWith(seen, offer) {
     audio: merge(seen?.audio, offer.audioTracks.map((k) => k.split(' ')[0]), VIDEO_AUDIO_CODECS),
     subLangs: merge(seen?.subLangs, subLangs),
     subFormats: merge(seen?.subFormats, offer.subtitleFormats),
+    videoFormats: merge(seen?.videoFormats, offer.videoTracks.map((k) => videoTrackOf(k).format), videoFormatOrder),
+    audioRates: merge(seen?.audioRates, offer.audioTracks.map((k) => audioTrackOf(k).rate), audioRateOrder),
   };
 }
 
@@ -253,6 +437,8 @@ function videoSiteSeen(stored, siteId) {
     audio: VIDEO_AUDIO_CODECS.filter((c) => list(seen?.audio, () => true).includes(c)),
     subLangs: list(seen?.subLangs, (l) => videoIs(VIDEO_LANG, l)),
     subFormats: list(seen?.subFormats, (f) => videoIs(VIDEO_TOKEN, f)),
+    videoFormats: list(seen?.videoFormats, (f) => f !== 'best' && videoIs(VIDEO_FORMAT, f)),
+    audioRates: list(seen?.audioRates, (r) => videoIs(AUDIO_RATE, r)),
   };
 }
 

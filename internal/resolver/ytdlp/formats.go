@@ -461,6 +461,40 @@ func IsVideoTrack(s string) bool {
 	return ok
 }
 
+// NameTag is what a video row that picked a track writes beside the height in
+// its file name, its frame rate above 30 and its codec, where another video
+// row of the link, one of others, may land on the same height and so on the
+// same name. Any other pick, and a track no other pick can meet, write none.
+func NameTag(pick string, others []string) string {
+	v, ok := parseVideoFormat(pick)
+	if !ok || !slices.ContainsFunc(others, func(o string) bool { return reaches(o, v.res) }) {
+		return ""
+	}
+	tag := v.codec.name
+	if tag == "" {
+		tag = v.ext
+	}
+	if v.fps > 0 {
+		tag = fmt.Sprintf("%dfps %s", v.fps, tag)
+	}
+	return tag
+}
+
+// reaches reports whether a video pick may download a track of res lines: a
+// track of that height, a cap at or above it, or anything without a cap.
+func reaches(pick string, res int) bool {
+	if v, ok := parseVideoFormat(pick); ok {
+		return v.res == res
+	}
+	if w, ok := parseVideoWish(pick); ok && w.capRes > 0 {
+		return w.capRes >= res
+	}
+	if r, ok := ResCap(Quality(pick)); ok {
+		return r >= res
+	}
+	return true
+}
+
 // IsVideoPick reports whether s is a video track's key or a preset's wish,
 // the two picks a video row stores beside the plain quality caps.
 func IsVideoPick(s string) bool {

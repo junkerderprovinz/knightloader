@@ -855,15 +855,23 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 			return a.hold(cand, v, in, now, nil)
 		}
 	}
+	// A video sent with a pick the list has no row for is a download of its
+	// own, which the duplicate checks below would fold into the rows it has,
+	// since they know a link by its address alone.
+	var have map[string]bool
+	if in.choice != nil && !in.file {
+		have = a.lackedPicks(u, in.choice)
+	}
+	beside := have != nil
 	// An advisory duplicate check; the binding one is in put. A mirror the user
 	// keeps is not short-circuited here, because it needs a resolved name and
 	// size first.
-	if m := a.mirror(dedupe.Entry{URL: u, Name: cand.Filename}); m.Seen() && !a.keepsAsSibling(m) {
+	if m := a.mirror(dedupe.Entry{URL: u, Name: cand.Filename}); m.Seen() && !a.keepsAsSibling(m) && !beside {
 		a.recordSkipped(u, m)
 		in.listed.add(m.Of.ID)
 		return nil
 	}
-	if in.foldDone {
+	if in.foldDone && !beside {
 		if done := a.doneRowsOf(u); len(done) > 0 {
 			for _, id := range done {
 				in.listed.add(id)
@@ -976,7 +984,12 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	if v := a.downloadedVerdict(cand); v.Rejected {
 		return a.hold(cand, v, in, now, nil)
 	}
-	staged := a.finishStaging(t, cand, in.listed)
+	var staged *core.Task
+	if beside && res.Info().ID == "ytdlp" {
+		staged = a.stageBeside(t, cand)
+	} else {
+		staged = a.finishStaging(t, cand, in.listed)
+	}
 	if staged != nil {
 		a.keepBrowserHeaders(in.headers, []string{staged.ID})
 	}
@@ -997,7 +1010,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	} else if staged != nil && res.Info().ID == "ytdlp" {
 		// Local map writes and a save, so it runs inline and the variant rows
 		// exist as soon as the link appears.
-		a.expandYtdlpVariants(staged, in.choice)
+		a.expandYtdlpVariants(staged, in.choice, have)
 		// A title probe, except for playlist entries, whose listing already
 		// named them (see probePlaylistEntries).
 		if !in.playlistEntry {
@@ -1061,6 +1074,24 @@ func (a *App) finishStaging(t *core.Task, cand rules.Candidate, listed *listedRo
 		listed.add(m.Of.ID)
 		return nil
 	}
+	return t
+}
+
+// stageBeside is finishStaging for a yt-dlp link staged beside the rows the
+// list has of it (see lackedPicks), which the mirror set would refuse by its
+// address.
+func (a *App) stageBeside(t *core.Task, cand rules.Candidate) *core.Task {
+	cand.Filename, cand.Filesize, cand.Package = filename(t), t.Size, t.Package
+	a.packagize(t, cand)
+	a.mu.Lock()
+	t.ID = a.freshIDLocked()
+	a.tasks[t.ID] = t
+	a.dupes.Add(linkEntry(t))
+	a.markPremiumLocked(t)
+	c := a.copyLocked(t)
+	a.mu.Unlock()
+	a.publish(&c)
+	a.fireLinkAdded(c.Task)
 	return t
 }
 

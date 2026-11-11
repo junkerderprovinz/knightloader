@@ -226,11 +226,19 @@ function videoDefaultsRows(site) {
   picks.className = 'videoPicks';
   if (pick.parts.includes('video')) {
     const qualities = ['best', ...offered(seen.qualities, pick.quality)];
-    picks.append(videoSelect(`${site.id}-quality`, t('video.quality'), qualities, pick.quality, best((q) => q), (quality) => save({ quality })));
+    const formats = ['best', ...offered(seen.videoFormats, pick.videoFormat)];
+    picks.append(
+      videoSelect(`${site.id}-quality`, t('video.quality'), qualities, pick.quality, best((q) => q), (quality) => save({ quality })),
+      videoSelect(`${site.id}-format`, t('video.videoFormat'), formats, pick.videoFormat, best((f) => f.replace(' ', ' · ')), (videoFormat) => save({ videoFormat })),
+    );
   }
   if (pick.parts.includes('audio')) {
+    const rates = ['best', ...offered(seen.audioRates, pick.audioRate)];
     const codecs = ['best', ...offered(seen.audio, pick.audio)];
-    picks.append(videoSelect(`${site.id}-audio`, t('video.audioFormat'), codecs, pick.audio, best((c) => VIDEO_AUDIO_NAMES[c]), (audio) => save({ audio })));
+    picks.append(
+      videoSelect(`${site.id}-rate`, t('video.audioQuality'), rates, pick.audioRate, best((r) => r), (audioRate) => save({ audioRate })),
+      videoSelect(`${site.id}-audio`, t('video.audioFormat'), codecs, pick.audio, best((c) => VIDEO_AUDIO_NAMES[c]), (audio) => save({ audio })),
+    );
   }
   if (pick.parts.includes('subtitle')) {
     const formats = ['best', ...offered(seen.subFormats, pick.subFormat)];

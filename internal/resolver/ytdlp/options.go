@@ -41,6 +41,9 @@ type Options struct {
 	// AudioTracks), copied as it is instead of converted to AudioFormat. Like
 	// VideoPick it has no settings key.
 	AudioTrack string `json:"-"`
+	// NameTag is what a video row writes beside the height in its file name
+	// (see NameTag). Like VideoPick it has no settings key.
+	NameTag string `json:"-"`
 	// SideTag is the task ID a thumbnail, subtitle or description row puts in
 	// its file name (see SideMark). Like VideoPick it has no settings key.
 	SideTag string `json:"-"`

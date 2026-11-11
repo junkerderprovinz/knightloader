@@ -107,10 +107,12 @@
     .burst { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
     /* The outline keeps a pale star readable on a bright frame. */
     .star { position: absolute; display: block; pointer-events: none; filter: drop-shadow(0 0 1px rgba(0, 0, 0, .45)); }
+    /* As tall as the player leaves room for (position sets max-height), so
+       the rows sit in order without scrolling on most videos. */
     .menu {
       position: absolute; top: calc(100% + 8px); left: 50%; translate: -50% 0;
-      min-width: 220px; max-width: 290px; max-height: min(70vh, 460px); overflow-y: auto; overscroll-behavior: contain;
-      padding: 4px;
+      box-sizing: border-box; width: 340px; max-width: calc(100vw - 16px); max-height: 460px; overflow-y: auto; overscroll-behavior: contain;
+      padding: 4px 4px 0;
       display: flex; flex-direction: column;
       background: var(--surface);
       border-radius: min(var(--radius), 10px);
@@ -125,12 +127,31 @@
     .menu [role="menuitemcheckbox"]::after { content: ""; margin-inline-start: auto; width: 14px; }
     .menu [role="menuitemcheckbox"][aria-checked="true"]::after { content: "\\2713"; color: var(--accent); }
     .menu [role="separator"] { flex: 0 0 auto; height: 1px; margin: 4px 6px; background: var(--line); }
-    .menu .chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 6px 6px; }
-    .menu .chips button { height: 26px; padding: 0 10px; border-radius: min(var(--radius), 13px); background: var(--raised); color: var(--sub); }
+    /* A part's choices, a label beside each row, the labels in one column. */
+    .menu .fields {
+      display: grid; grid-template-columns: fit-content(92px) 1fr; gap: 6px 10px; align-items: start;
+      flex: 0 0 auto; padding: 2px 6px 8px 10px;
+    }
+    .menu .label { padding-top: 5px; color: var(--sub); font-size: 12px; line-height: 1.3; }
+    .menu .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+    .menu .chips button { height: 26px; padding: 0 9px; border-radius: min(var(--radius), 13px); background: var(--raised); color: var(--sub); }
     .menu .chips button[role]::after { content: none; }
     .menu .chips button:hover, .menu .chips button:focus-visible { color: var(--text); }
     .menu .chips button[aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
-    .menu .go { justify-content: center; margin: 2px 0; background: var(--accent); color: var(--accent-contrast); }
+    /* The size a pick downloads sits small under its name, so a row of
+       qualities stays as narrow as without it. */
+    .menu .chips.sized button { flex-direction: column; gap: 0; height: auto; min-height: 36px; padding: 3px 9px; line-height: 1.2; }
+    .menu .chips .size { font-size: 11px; font-weight: 400; color: var(--sub); opacity: .85; }
+    .menu .chips button[aria-checked="true"] .size { color: inherit; }
+    .menu .chips button:disabled { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--sub); opacity: .5; cursor: default; }
+    /* Download and hide stay in view at the bottom whatever scrolls above. */
+    .menu .foot {
+      position: sticky; bottom: 0; flex: 0 0 auto;
+      display: flex; flex-direction: column;
+      margin: 0 -4px; padding: 4px 4px 4px; border-top: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .menu .go { justify-content: center; margin: 0 0 2px; background: var(--accent); color: var(--accent-contrast); }
     .menu .go:hover, .menu .go:focus-visible { background: color-mix(in srgb, var(--accent) 85%, var(--text)); color: var(--accent-contrast); }
     .note { display: flex; flex: 0 0 auto; align-items: center; min-height: 24px; padding: 0 10px; color: var(--sub); font-size: 12px; }
     .menu[aria-busy="true"] .note.busy { animation: pulse 3.2s ease-in-out infinite; }
@@ -360,10 +381,16 @@
     const at = dragAt ?? placeOnVideo(r);
     host.style.setProperty('left', `${Math.round(at.x)}px`);
     host.style.setProperty('top', `${Math.round(at.y)}px`);
-    menu.classList.toggle('up', at.y > r.top + r.height / 2);
+    const up = at.y > r.top + r.height / 2;
+    menu.classList.toggle('up', up);
     // Near a side of the player the menu opens along it, not over its edge.
-    const room = 150;
+    const room = 180;
     menu.dataset.side = at.x - r.left < room ? 'start' : r.right - at.x < room ? 'end' : '';
+    // The menu takes the height the player leaves it above or below the
+    // button, of the part on screen.
+    const half = barSize().height / 2 + 8;
+    const tall = up ? at.y - half - Math.max(r.top, 0) : Math.min(r.bottom, innerHeight) - at.y - half;
+    menu.style.setProperty('max-height', `${Math.max(240, Math.floor(tall) - 8)}px`);
     const state = {
       autoHide: stored.videoButtonAutoHide === true,
       pointerOver: pointerAt > 0 && performance.now() - pointerAt < IDLE_MS,
@@ -415,7 +442,9 @@
     return { theme: dark ? 'dark' : 'light', accent, ink: contrastOn(accent), radius: RADIUS[s.shape] ?? RADIUS[DEFAULT_SHAPE] };
   }
 
-  async function sendVideo(chosen) {
+  /** Sends what choose picks, which may first ask the instance what the
+   *  video has. */
+  async function sendVideo(choose) {
     if (sending || !page) return;
     closeMenu();
     if (result?.result === 'unpaired') {
@@ -426,6 +455,7 @@
     result = null;
     sending = true;
     update();
+    const chosen = await choose();
     const answer = await chrome.runtime
       .sendMessage({ type: 'knightloader-video-send', href: location.href, pick: chosen, playlist })
       .catch(() => null);
@@ -522,14 +552,43 @@
     return item;
   }
 
-  /** A row of choices, of which one is picked, or with `isOn` any number. */
-  function chips(values, isOn, name, onPick, several = false) {
+  /** A row of choices, of which one is picked, or with `several` any number.
+   *  A choice `off` rules out stays in the row but takes no click. */
+  function chips(values, { isOn, name, onPick, several = false, off = () => false, bytes = () => undefined }) {
     const row = document.createElement('div');
     row.className = 'chips';
     row.setAttribute('role', 'group');
-    row.append(...values.map((v) => checkItem(name(v), isOn(v), () => onPick(v))));
-    if (!several) for (const item of row.children) item.setAttribute('role', 'menuitemradio');
+    for (const v of values) {
+      const item = checkItem(name(v), isOn(v), () => onPick(v));
+      if (!several) item.setAttribute('role', 'menuitemradio');
+      if (off(v)) item.disabled = true;
+      const n = bytes(v);
+      if (n) {
+        const size = document.createElement('span');
+        size.className = 'size';
+        size.textContent = videoSize(n, labels.lang);
+        item.setAttribute('aria-label', `${name(v)}, ${size.textContent}`);
+        item.append(size);
+        row.classList.add('sized');
+      }
+      row.append(item);
+    }
     return row;
+  }
+
+  /** A part's rows of choices, each with its label beside it. */
+  function fields(rows) {
+    const grid = document.createElement('div');
+    grid.className = 'fields';
+    grid.setAttribute('role', 'none');
+    for (const [text, row] of rows) {
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = text;
+      row.setAttribute('aria-label', text);
+      grid.append(label, row);
+    }
+    return grid;
   }
 
   function separator() {
@@ -548,22 +607,35 @@
 
   /**
    * Asks the instance once per video what it has, so the menu offers nothing
-   * the video lacks. A plain click needs no answer. An answer that comes
-   * while the menu is open makes its pick exact for the video.
+   * the video lacks, and answers with it. A click needs no answer unless the
+   * defaults name a format or a bitrate. An answer that comes while the menu
+   * is open makes its pick exact for the video.
    */
   function askFormats() {
-    if (offered?.url === page.url) return;
+    if (offered?.url === page.url) return offered.ready;
     const asked = { url: page.url, answer: null };
     offered = asked;
-    void chrome.runtime
+    asked.ready = chrome.runtime
       .sendMessage({ type: 'knightloader-video-formats', href: location.href })
       .catch(() => null)
       .then((answer) => {
         asked.answer = typeof answer?.known === 'boolean' ? answer : videoOffer(null);
-        if (offered !== asked || menu.hidden) return;
-        pick = videoResolve(pick, asked.answer);
-        renderMenu();
+        if (offered === asked && !menu.hidden) {
+          pick = videoResolve(pick, asked.answer);
+          renderMenu();
+        }
+        return asked.answer;
       });
+    return asked.ready;
+  }
+
+  /** What a click sends: the site's defaults, made exact for the video where
+   *  they name a format or a bitrate, which only one video's tracks have. */
+  async function clickPick() {
+    const defaults = videoDefaultsFor(stored, page.site);
+    if (defaults.videoFormat === 'best' && defaults.audioRate === 'best') return defaults;
+    const offer = await askFormats();
+    return videoExact(videoResolve(defaults, offer), offer);
   }
 
   /** The resolutions the menu offers where the instance lists no tracks: the
@@ -583,54 +655,101 @@
     pick.parts = VIDEO_PARTS.filter((p) => (p === part ? !on : pick.parts.includes(p)));
   }
 
-  /** A video track by its quality, with its container and codec where the
-   *  video has that quality in more than one. */
-  function trackName(key, tracks) {
-    const quality = key.split(' ')[0];
-    return tracks.filter((k) => k.split(' ')[0] === quality).length > 1 ? key : quality;
-  }
-
-  /** The choices under a ticked part: what this video has of it. */
+  /** The choices under a ticked part: what this video has of it, as rows of
+   *  their own for its quality and its format. */
   function partChoices(part, offer, redraw) {
-    const best = (v) => (v === '' ? labels.best : v);
+    const best = (name) => (v) => (v === 'best' ? labels.best : name(v));
+    const rows = [];
     switch (part) {
       case 'video': {
         if (!offer.known || offer.videoTracks.length === 0) {
-          return [chips(['best', ...menuQualities(offer)], (q) => q === pick.quality, (q) => (q === 'best' ? labels.best : q), (q) => redraw(() => (pick.quality = q)))];
+          rows.push([labels.quality, chips(['best', ...menuQualities(offer)], { isOn: (q) => q === pick.quality, name: best((q) => q), onPick: (q) => redraw(() => (pick.quality = q)) })]);
+          break;
         }
-        const tracks = offer.videoTracks;
-        return [chips(['', ...tracks], (k) => k === (pick.videoTrack ?? ''), (k) => (k ? trackName(k, tracks) : labels.best), (k) => redraw(() => (pick.videoTrack = k || undefined)))];
+        const { qualities, formats } = videoMenuRows(offer);
+        // A quality without the format picked takes the best format there,
+        // and the row shows it.
+        const quality = (q) =>
+          redraw(() => {
+            pick.quality = q;
+            if (!videoTrackOffered(offer, q, pick.videoFormat)) pick.videoFormat = 'best';
+          });
+        rows.push(
+          [
+            labels.quality,
+            chips(['best', ...qualities], {
+              isOn: (q) => q === pick.quality,
+              name: best((q) => videoQualityName(q, qualities)),
+              onPick: quality,
+              bytes: (q) => videoPickSize({ ...pick, quality: q, videoFormat: videoTrackOffered(offer, q, pick.videoFormat) ? pick.videoFormat : 'best' }, offer, 'video'),
+            }),
+          ],
+          [
+            labels.format,
+            chips(['best', ...formats], {
+              isOn: (f) => f === pick.videoFormat,
+              name: best((f) => f.replace(' ', ' · ')),
+              onPick: (f) => redraw(() => (pick.videoFormat = f)),
+              off: (f) => f !== 'best' && !videoTrackOffered(offer, pick.quality, f),
+            }),
+          ],
+        );
+        break;
       }
       case 'audio': {
-        const out = [];
         if (offer.audioTracks.length) {
-          out.push(chips(['', ...offer.audioTracks], (k) => k === (pick.audioTrack ?? ''), best, (k) => redraw(() => (pick.audioTrack = k || undefined))));
+          const { rates, codecs } = audioMenuRows(offer);
+          const rate = (r) =>
+            redraw(() => {
+              pick.audioRate = r;
+              if (!audioTrackOffered(offer, r, pick.audio)) pick.audio = 'best';
+            });
+          rows.push(
+            [
+              labels.quality,
+              chips(['best', ...rates], {
+                isOn: (r) => r === pick.audioRate,
+                name: best((r) => r),
+                onPick: rate,
+                bytes: (r) => videoPickSize({ ...pick, audioRate: r, audio: audioTrackOffered(offer, r, pick.audio) ? pick.audio : 'best' }, offer, 'audio'),
+              }),
+            ],
+            [
+              labels.format,
+              chips(['best', ...codecs], {
+                isOn: (c) => c === pick.audio,
+                name: best((c) => c),
+                onPick: (c) => redraw(() => (pick.audio = c)),
+                off: (c) => c !== 'best' && !audioTrackOffered(offer, pick.audioRate, c),
+              }),
+            ],
+          );
         }
         if (offer.audioLangs.length > 1) {
           const name = (code) => {
             const lang = offer.audioLangs.find((l) => l.code === code);
             return lang.dubbed ? `${code} (${labels.dubbed})` : code;
           };
-          out.push(note(labels.language), chips(offer.audioLangs.map((l) => l.code), (c) => c === pick.audioLang, name, (c) => redraw(() => (pick.audioLang = c))));
+          const codes = offer.audioLangs.map((l) => l.code);
+          rows.push([labels.language, chips(codes, { isOn: (c) => c === pick.audioLang, name, onPick: (c) => redraw(() => (pick.audioLang = c)) })]);
         }
-        return out;
+        break;
       }
       case 'subtitle': {
         const { manual, auto } = videoSubtitleChoices(offer, pick);
-        const toggle = (code) =>
+        const onPick = (code) =>
           redraw(() => {
             pick.subLangs = pick.subLangs.includes(code) ? pick.subLangs.filter((c) => c !== code) : [...pick.subLangs, code];
             pick.subAuto = pick.subLangs.some((c) => auto.includes(c) && !manual.includes(c));
           });
         const isOn = (code) => pick.subLangs.includes(code);
-        const out = [];
-        if (manual.length) out.push(chips(manual, isOn, (c) => c, toggle, true));
-        if (auto.length) out.push(note(labels.autoCaptions), chips(auto, isOn, (c) => c.replace(/-orig$/, ''), toggle, true));
+        if (manual.length) rows.push([labels.language, chips(manual, { isOn, name: (c) => c, onPick, several: true })]);
+        if (auto.length) rows.push([labels.autoCaptions, chips(auto, { isOn, name: (c) => c.replace(/-orig$/, ''), onPick, several: true })]);
         if (offer.subtitleFormats.length) {
-          const name = (f) => (f === 'best' ? labels.best : f);
-          out.push(note(labels.subFormat), chips(['best', ...offer.subtitleFormats], (f) => f === pick.subFormat, name, (f) => redraw(() => (pick.subFormat = f))));
+          const formats = ['best', ...offer.subtitleFormats];
+          rows.push([labels.format, chips(formats, { isOn: (f) => f === pick.subFormat, name: best((f) => f), onPick: (f) => redraw(() => (pick.subFormat = f)) })]);
         }
-        return out;
+        break;
       }
       case 'thumbnail': {
         const th = offer.thumbnail;
@@ -639,6 +758,7 @@
       default:
         return [];
     }
+    return rows.length ? [fields(rows)] : [];
   }
 
   /** Draws the menu for the current pick, keeping the keyboard on the item
@@ -662,24 +782,26 @@
     menu.setAttribute('aria-busy', String(!offer));
     if (!offer) items.push(note(labels.checking, true));
     else if (!offer.known) items.push(note(labels.unknown));
-    const go = menuItem(labels.send, 'menuitem', () => void sendVideo(pick));
+    const go = menuItem(labels.send, 'menuitem', () => void sendVideo(async () => videoExact(pick, offered?.answer ?? videoOffer(null))));
     go.classList.add('go');
     const site = VIDEO_SITES.find((s) => s.id === page.site);
-    items.push(
-      separator(),
+    const foot = document.createElement('div');
+    foot.className = 'foot';
+    foot.setAttribute('role', 'none');
+    foot.append(
       go,
       menuItem(labels.hide.replace('{site}', site.name), 'menuitem', () => {
         chrome.runtime.sendMessage({ type: 'knightloader-video-hide' }).catch(() => {});
       }),
     );
-    menu.replaceChildren(...items);
+    menu.replaceChildren(...items, foot);
     const buttons = menu.querySelectorAll('button');
     (buttons[focusAt] ?? buttons[0])?.focus();
   }
 
   function openMenu() {
     pick = videoDefaultsFor(stored, page.site);
-    askFormats();
+    void askFormats();
     if (offered.answer) pick = videoResolve(pick, offered.answer);
     renderMenu();
     menu.hidden = false;
@@ -694,7 +816,7 @@
   }
 
   send.addEventListener('click', (e) => {
-    if (e.isTrusted) void sendVideo(videoDefaultsFor(stored, page.site));
+    if (e.isTrusted) void sendVideo(clickPick);
   });
   more.addEventListener('click', (e) => {
     if (!e.isTrusted) return;
@@ -702,7 +824,7 @@
     else closeMenu();
   });
   menu.addEventListener('keydown', (e) => {
-    const items = [...menu.querySelectorAll('button')];
+    const items = [...menu.querySelectorAll('button')].filter((b) => !b.disabled);
     const at = items.indexOf(root.activeElement);
     if (e.key === 'Escape') {
       closeMenu();
@@ -827,7 +949,7 @@
   // The keyboard shortcut (video-worker.js) counts as a click, wherever the
   // button is on the page, shown or waiting for the pointer.
   chrome.runtime.onMessage.addListener((msg) => {
-    if (msg?.type === 'knightloader-video-shortcut' && host.isConnected) void sendVideo(videoDefaultsFor(stored, page.site));
+    if (msg?.type === 'knightloader-video-shortcut' && host.isConnected) void sendVideo(clickPick);
   });
 
   // The popup's answer, from the worker. None means it was closed without a

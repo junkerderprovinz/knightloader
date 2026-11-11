@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -132,6 +133,12 @@ type LinkMenus struct {
 	// ytdlp.VideoTracks and ytdlp.AudioTracks key them.
 	VideoTracks []string `json:"videoTracks"`
 	AudioTracks []string `json:"audioTracks"`
+	// VideoSizes and AudioSizes are the bytes each pick of the two rows
+	// downloads, as the collector predicts them (ytdlp.VideoFile,
+	// ytdlp.AudioFile): every track, cap and codec, and "best". A pick the
+	// host gave no size or bitrate for is left out.
+	VideoSizes map[string]int64 `json:"videoSizes"`
+	AudioSizes map[string]int64 `json:"audioSizes"`
 	// AudioLangs are the languages the audio comes in, originals first.
 	AudioLangs []LinkLang `json:"audioLangs"`
 	// Subtitles and AutoCaptions are the subtitle languages by hand and
@@ -193,6 +200,21 @@ func (a *App) LinkQualities(ctx context.Context, rawurl string) (LinkMenus, erro
 	for _, q := range ytdlp.SourceQualities(formats) {
 		menus.Qualities = append(menus.Qualities, string(q))
 	}
+	yt := a.Settings.Get().Ytdlp
+	menus.VideoSizes = pickSizes(slices.Concat([]string{"best"}, menus.Qualities, menus.VideoTracks), func(pick string) int64 {
+		_, size := ytdlp.VideoFile(pick, formats, yt)
+		return size
+	})
+	codecs := []string{"best"}
+	for _, k := range menus.AudioTracks {
+		if c, _, _ := strings.Cut(k, " "); !slices.Contains(codecs, c) {
+			codecs = append(codecs, c)
+		}
+	}
+	menus.AudioSizes = pickSizes(slices.Concat(codecs, menus.AudioTracks), func(pick string) int64 {
+		_, size := ytdlp.AudioFile(pick, formats)
+		return size
+	})
 	menus.Audio = slices.ContainsFunc(formats, func(f ytdlp.FormatEntry) bool {
 		return f.Acodec != "" && f.Acodec != "none"
 	})
@@ -204,6 +226,18 @@ func (a *App) LinkQualities(ctx context.Context, rawurl string) (LinkMenus, erro
 		menus.Thumbnail = &LinkThumbnail{Width: th.Width, Height: th.Height, Ext: th.Ext}
 	}
 	return menus, nil
+}
+
+// pickSizes maps each pick to the bytes it downloads, leaving out those
+// nothing is known of.
+func pickSizes(picks []string, size func(string) int64) map[string]int64 {
+	out := map[string]int64{}
+	for _, p := range picks {
+		if n := size(p); n > 0 {
+			out[p] = n
+		}
+	}
+	return out
 }
 
 // orEmpty is an empty list for nil, so the answer has [] where a client
