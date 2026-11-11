@@ -76,6 +76,9 @@ func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	fake, _ := newFakeYtdlp()
 	fake.title = "Some Video"
+	// A source without formats would turn every cap into best, and one
+	// without a 720p track would lower it.
+	fake.formats = probeUpTo720
 	wireYtdlp(a, fake)
 
 	if err := a.SetHosterPreset("youtube.com", ytdlp.HosterPreset{
@@ -94,6 +97,16 @@ func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 
 	waitFor(t, "expandYtdlpVariants to add the four sibling rows", func() bool {
 		return len(tasksSharingURL(a, url)) == 5
+	})
+	// The probe resolves each pick against the source's formats, so the rows
+	// are read once it has.
+	waitFor(t, "the probe", func() bool {
+		for _, x := range tasksSharingURL(a, url) {
+			if x.Online != core.AvailOnline {
+				return false
+			}
+		}
+		return true
 	})
 
 	for _, x := range tasksSharingURL(a, url) {
