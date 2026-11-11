@@ -1,4 +1,11 @@
-import { getRandomBytes } from 'expo-crypto';
+import {
+  AESEncryptionKey,
+  AESSealedData,
+  CryptoDigestAlgorithm,
+  aesDecryptAsync,
+  digest,
+  getRandomBytes,
+} from 'expo-crypto';
 import TcpSocket from 'react-native-tcp-socket';
 import { base64Decode, utf8ToBytes } from '../api/base64';
 import { request } from '../api/client';
@@ -6,7 +13,7 @@ import { sealSignedCall } from '../api/relayFrame';
 import { fromHex } from '../api/sha256';
 import type { ServerConnection } from '../api/types';
 import { memberOptions } from '../storage/relayIdentity';
-import { STREAM_PREFIX, directSignature, readAnswer } from './directStream';
+import { STREAM_PREFIX, directSignature, readAnswer, type StreamCrypto } from './directStream';
 
 // Where an instance takes direct calls, and where it says which address that
 // is (kit/group's DirectPath and hello).
@@ -16,6 +23,19 @@ const HELLO_PATH = '/kit/group/v1/hello';
 // A piece on the local network comes in well under this, and an address that
 // stopped answering should hand the playback to the relay soon.
 const CALL_TIMEOUT_MS = 15_000;
+
+// The pieces of a stream are opened by Android's own AES-GCM and SHA-256. In
+// JavaScript the same work held a film to under 1 MiB/s.
+let keyOf: { raw: Uint8Array; key: ReturnType<typeof AESEncryptionKey.import> } | null = null;
+const nativeCrypto: StreamCrypto = {
+  async open(raw, nonce, aad, sealed) {
+    if (keyOf?.raw !== raw) keyOf = { raw, key: AESEncryptionKey.import(raw) };
+    return aesDecryptAsync(AESSealedData.fromParts(nonce, sealed, 16), await keyOf.key, { additionalData: aad });
+  },
+  async sha256(data) {
+    return new Uint8Array(await digest(CryptoDigestAlgorithm.SHA256, data));
+  },
+};
 
 /**
  * StreamBusy is an instance sending as many streams as it may. The piece goes
@@ -65,7 +85,7 @@ export async function directReader(conn: ServerConnection, id: string, file: str
       `X-Knightloader-Time: ${unix}\r\nX-Knightloader-Signature: ${directSignature(peerAuth, selfId, unix, body)}\r\n\r\n`;
     const raw = await exchange(host, port, head, body);
     if (/^HTTP\/1\.\d 503 /.test(String.fromCharCode(...raw.subarray(0, 16)))) throw new StreamBusy();
-    const answer = readAnswer(raw, { frameKey, requestId, target, sealedCall: base64Decode(sealed) });
+    const answer = await readAnswer(raw, { frameKey, requestId, target, sealedCall: base64Decode(sealed) }, nativeCrypto);
     if (answer.status === 503) throw new StreamBusy();
     if (answer.status !== 200) throw new Error(`the instance refused the stream with ${answer.status}`);
     return answer.bytes;

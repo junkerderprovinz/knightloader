@@ -4,7 +4,6 @@
 // sealed under that key, and an end the instance signs over the length and the
 // SHA-256 of the whole. A stream that breaks off, runs long or does not match
 // what the instance signed throws, and the caller plays through the relay.
-import { gcm } from '@noble/ciphers/aes.js';
 import { base64Decode, bytesToUtf8, utf8ToBytes } from '../api/base64';
 import { verifyResult } from '../api/memberKey';
 import { openResult } from '../api/relayFrame';
@@ -14,6 +13,16 @@ import { sha256, toHex } from '../api/sha256';
 export const STREAM_PREFIX = '/kit/group/v1/stream';
 
 const STREAM_TYPE = 'application/x-kit-stream';
+
+/**
+ * The crypto a stream is opened with: AES-GCM and SHA-256 over a few MiB per
+ * piece, which the phone's native code does many times faster than
+ * JavaScript, fast enough for a film to keep up.
+ */
+export interface StreamCrypto {
+  open(key: Uint8Array, nonce: Uint8Array, aad: Uint8Array, sealed: Uint8Array): Promise<Uint8Array>;
+  sha256(data: Uint8Array): Promise<Uint8Array>;
+}
 
 /** What the phone sent, which an answer has to be signed against. */
 export interface Sent {
@@ -67,7 +76,7 @@ function opened(raw: Uint8Array, sent: Sent): { status: number; body: number[]; 
  * readAnswer reads the whole HTTP answer to a direct call: the stream a 200
  * carries, or the instance's refusal with its status.
  */
-export function readAnswer(raw: Uint8Array, sent: Sent): { status: number; bytes: Uint8Array } {
+export async function readAnswer(raw: Uint8Array, sent: Sent, crypto: StreamCrypto): Promise<{ status: number; bytes: Uint8Array }> {
   let end = -1;
   for (let i = 0; i + 3 < raw.length; i++) {
     if (raw[i] === 13 && raw[i + 1] === 10 && raw[i + 2] === 13 && raw[i + 3] === 10) {
@@ -84,50 +93,52 @@ export function readAnswer(raw: Uint8Array, sent: Sent): { status: number; bytes
     const answer = opened(body, sent);
     return { status: answer.status, bytes: new Uint8Array(answer.body) };
   }
-  return { status: 200, bytes: readStream(body, sent) };
+  return { status: 200, bytes: await readStream(body, sent, crypto) };
 }
 
-function readStream(body: Uint8Array, sent: Sent): Uint8Array {
-  let at = 0;
-  const piece = (): [number, Uint8Array] => {
+async function readStream(body: Uint8Array, sent: Sent, crypto: StreamCrypto): Promise<Uint8Array> {
+  const pieces: [number, Uint8Array][] = [];
+  for (let at = 0; at < body.length; ) {
     if (at + 5 > body.length) throw new Error('the stream broke off');
-    const kind = body[at];
     const n = ((body[at + 1] << 24) | (body[at + 2] << 16) | (body[at + 3] << 8) | body[at + 4]) >>> 0;
     if (at + 5 + n > body.length) throw new Error('the stream broke off');
-    const b = body.subarray(at + 5, at + 5 + n);
+    pieces.push([body[at], body.subarray(at + 5, at + 5 + n)]);
     at += 5 + n;
-    return [kind, b];
-  };
-  const [kind, raw] = piece();
-  if (kind !== 0x68) throw new Error('the stream began unreadably');
-  const head = opened(raw, sent);
-  const { length, key } = JSON.parse(bytesToUtf8(head.body)) as { length: number; key: string };
+  }
+  const [head, ...rest] = pieces;
+  if (!head || head[0] !== 0x68) throw new Error('the stream began unreadably');
+  const last = rest[rest.length - 1];
+  if (!last || last[0] !== 0x65) throw new Error('the stream broke off');
+  const opener = opened(head[1], sent);
+  const { length, key } = JSON.parse(bytesToUtf8(opener.body)) as { length: number; key: string };
   const streamKey = new Uint8Array(base64Decode(key));
+  // Every piece is opened at once: they do not depend on each other, and the
+  // native code opens them side by side.
+  const plain = await Promise.all(
+    rest.map(([kind, sealed], count) => {
+      if (kind !== 0x64 && count !== rest.length - 1) throw new Error('the stream holds a piece of no known kind');
+      // A big-endian count in the last eight bytes. A range of a few MiB has
+      // far fewer than 2^32 pieces, so the upper half stays zero.
+      const nonce = new Uint8Array(12);
+      new DataView(nonce.buffer).setUint32(8, count);
+      return crypto.open(streamKey, nonce, new Uint8Array([kind]), sealed);
+    }),
+  );
   const out = new Uint8Array(length);
   let got = 0;
-  for (let count = 0; ; count++) {
-    const [kind, sealed] = piece();
-    // A big-endian count in the last eight bytes. A range of a few MiB has
-    // far fewer than 2^32 pieces, so the upper half stays zero.
-    const nonce = new Uint8Array(12);
-    new DataView(nonce.buffer).setUint32(8, count);
-    const plain = gcm(streamKey, nonce, new Uint8Array([kind])).decrypt(sealed);
-    if (kind === 0x64) {
-      if (got + plain.length > length) throw new Error('the stream runs past its length');
-      out.set(plain, got);
-      got += plain.length;
-      continue;
-    }
-    if (kind !== 0x65) throw new Error('the stream holds a piece of no known kind');
-    const end = JSON.parse(bytesToUtf8(Array.from(plain))) as { length: number; sha256: string; sig: string };
-    const sum = sha256(out);
-    if (got !== length || end.length !== length || end.sha256 !== toHex(sum)) {
-      throw new Error('the stream does not match what the instance sent');
-    }
-    const sig = new Uint8Array(base64Decode(end.sig));
-    if (!verifyResult(sent.requestId, sent.target, sent.sealedCall, 200, endBody(length, sum), head.key, sig)) {
-      throw new Error('the end of the stream is not signed by the instance');
-    }
-    return out;
+  for (const p of plain.slice(0, -1)) {
+    if (got + p.length > length) throw new Error('the stream runs past its length');
+    out.set(p, got);
+    got += p.length;
   }
+  const endPiece = JSON.parse(bytesToUtf8(Array.from(plain[plain.length - 1]))) as { length: number; sha256: string; sig: string };
+  const sum = await crypto.sha256(out);
+  if (got !== length || endPiece.length !== length || endPiece.sha256 !== toHex(sum)) {
+    throw new Error('the stream does not match what the instance sent');
+  }
+  const sig = new Uint8Array(base64Decode(endPiece.sig));
+  if (!verifyResult(sent.requestId, sent.target, sent.sealedCall, 200, endBody(length, sum), opener.key, sig)) {
+    throw new Error('the end of the stream is not signed by the instance');
+  }
+  return out;
 }

@@ -7,7 +7,9 @@
 //
 // The seal of the head and the signatures have checks of their own
 // (check-member-key.mjs and the vectors in internal/federation/wire_test.go),
-// so here they stand in, and the pieces are sealed for real.
+// so here they stand in, and the pieces are sealed for real. The app opens the
+// pieces and sums the stream with the phone's own crypto; here noble and
+// sha256.ts stand in for it, counted, so the check sees every piece go there.
 //
 // Run by hand and by CI, from mobile/: `node check-direct-stream.mjs`
 import { dirname, join } from 'node:path';
@@ -35,13 +37,24 @@ const expect = (what, got, want) => {
   const w = JSON.stringify(want);
   if (g !== w) problems.push(`${what}: got ${g}, want ${w}`);
 };
-const throws = (what, f) => {
+const throws = async (what, f) => {
   try {
-    f();
+    await f();
     problems.push(`${what}: it was taken`);
   } catch {
     // Refused, as it should be.
   }
+};
+const used = { open: 0, sum: 0 };
+const crypto = {
+  open: async (key, nonce, aad, sealed) => {
+    used.open++;
+    return gcm(key, nonce, aad).decrypt(sealed);
+  },
+  sha256: async (bytes) => {
+    used.sum++;
+    return sha.sha256(bytes);
+  },
 };
 
 const enc = (s) => new Uint8Array(base64.utf8ToBytes(s));
@@ -94,21 +107,25 @@ const streamOf = (data, { length = data.length, sum = sha.sha256(data), tamper =
   return http('application/x-kit-stream', ...parts);
 };
 
-expect('a whole stream', readAnswer(streamOf(film), sent).bytes.length, film.length);
-expect('its bytes', sha.toHex(sha.sha256(readAnswer(streamOf(film), sent).bytes)), sha.toHex(sha.sha256(film)));
-throws('a piece that was changed', () => readAnswer(streamOf(film, { tamper: true }), sent));
-throws('a stream without its end', () => readAnswer(streamOf(film, { cut: true }), sent));
-throws('a stream whose sum is not the bytes', () => readAnswer(streamOf(film, { sum: new Uint8Array(32) }), sent));
-throws('a stream shorter than it announced', () => readAnswer(streamOf(film, { length: film.length + 1 }), sent));
+used.open = used.sum = 0;
+const whole = await readAnswer(streamOf(film), sent, crypto);
+expect('a whole stream', whole.bytes.length, film.length);
+expect('its bytes', sha.toHex(sha.sha256(whole.bytes)), sha.toHex(sha.sha256(film)));
+expect('every piece and the end opened by the given crypto', used.open, Math.ceil(film.length / 65536) + 1);
+expect('the stream summed by the given crypto', used.sum, 1);
+await throws('a piece that was changed', () => readAnswer(streamOf(film, { tamper: true }), sent, crypto));
+await throws('a stream without its end', () => readAnswer(streamOf(film, { cut: true }), sent, crypto));
+await throws('a stream whose sum is not the bytes', () => readAnswer(streamOf(film, { sum: new Uint8Array(32) }), sent, crypto));
+await throws('a stream shorter than it announced', () => readAnswer(streamOf(film, { length: film.length + 1 }), sent, crypto));
 signed = (_id, _target, _call, _status, body) => !base64.bytesToUtf8(body).startsWith('{"length"');
-throws('an end the instance did not sign', () => readAnswer(streamOf(film), sent));
+await throws('an end the instance did not sign', () => readAnswer(streamOf(film), sent, crypto));
 signed = () => false;
-throws('a head the instance did not sign', () => readAnswer(streamOf(film), sent));
+await throws('a head the instance did not sign', () => readAnswer(streamOf(film), sent, crypto));
 signed = () => true;
 
-expect('a refusal', readAnswer(http('application/json', [enc(answerOf(404, enc('{"error":"no streams","code":"noStreams"}')))]), sent).status, 404);
-throws('a direct call turned away', () => readAnswer(enc('HTTP/1.1 403 Forbidden\r\nContent-Type: text/plain\r\n\r\nforbidden\n'), sent));
-throws('an answer without a head', () => readAnswer(enc('HTTP/1.1 200 OK\r\n'), sent));
+expect('a refusal', (await readAnswer(http('application/json', [enc(answerOf(404, enc('{"error":"no streams","code":"noStreams"}')))]), sent, crypto)).status, 404);
+await throws('a direct call turned away', () => readAnswer(enc('HTTP/1.1 403 Forbidden\r\nContent-Type: text/plain\r\n\r\nforbidden\n'), sent, crypto));
+await throws('an answer without a head', () => readAnswer(enc('HTTP/1.1 200 OK\r\n'), sent, crypto));
 
 if (problems.length) {
   console.error(problems.join('\n'));
