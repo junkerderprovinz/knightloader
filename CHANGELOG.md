@@ -50,12 +50,18 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
 - **The extension's video button has a card of its own in the settings.**
   For each site you pick what a click downloads: the video, the audio, the
-  subtitles, the thumbnail or the description as text, with the highest
-  resolution, the audio codec and the subtitle languages and format you
+  subtitles, the thumbnail or the description as text, with the video and
+  audio quality and format and the subtitle languages and format you
   prefer, from what the site has offered so far. The arrow next to the
-  button lists what this one video offers, its resolutions, audio tracks
-  and languages, subtitles and their formats, and nothing it lacks, and
-  downloads your pick as the site serves it. You can drag the button
+  button lists every quality and format this one video offers, each with
+  its size, along with its audio languages and subtitles, and downloads
+  your pick as the site serves it. A pick that differs from what is
+  already in your list downloads as a row of its own, named after its
+  codec where another row has the same height. After a send, a ring around
+  the mark follows the download and "Done" opens your downloads. With more
+  than one instance online, the toolbar popup asks where the video goes.
+  Alt+Shift+D sends the video you are watching, and the card lets you
+  change the shortcut. You can drag the button
   anywhere on the player, and each site keeps its place, or let it show only
   on hover. It carries the KnightLoader mark, follows the extension's light
   or dark theme, turns gold under the pointer and lets a few stars fly when a
