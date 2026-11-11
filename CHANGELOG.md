@@ -49,12 +49,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   names a category still wins. Thanks to @Kayn2106 for asking how
   ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
 - **The extension's video button has a card of its own in the settings.**
-  For each site you pick what a click downloads: the video, the audio, the
-  subtitles, the thumbnail or the description as text, with the video and
-  audio quality and format and the subtitle languages and format you
-  prefer, from what the site has offered so far. The arrow next to the
-  button lists every quality and format this one video offers, each with
-  its size, along with its audio languages and subtitles, and downloads
+  For each site you pick whether the button shows there and what a click
+  downloads: the video, the audio, the subtitles, the thumbnail or the
+  description as text, with the video and audio quality and format and the
+  subtitle languages and format you prefer, from what the site has offered
+  so far. The arrow next to the button opens a card for each of these with
+  every quality and format this one video offers, each with its size and
+  under its proper name, such as H.264, VP9, AAC or Opus, along with its
+  audio languages and its subtitles as SRT, WebVTT or TTML, and downloads
   your pick as the site serves it. A pick that differs from what is
   already in your list downloads as a row of its own, named after its
   codec where another row has the same height. After a send, a ring around

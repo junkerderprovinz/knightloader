@@ -52,9 +52,24 @@ const VIDEO_CODECS = ['avc1', 'hevc', 'vp9', 'vp8', 'av1'];
 // (preferredVideoCodecs), which picks the track where only a quality is.
 const VIDEO_PREFERRED = ['av1', 'vp9', 'hevc', 'avc1', 'vp8'];
 
+/** The subtitle formats the menu and the options page offer, SRT first as
+ *  the one every player reads. YouTube's own srv1 to srv3 and json3 open in
+ *  nothing but its player, so they are not offered. */
+const VIDEO_SUB_FORMATS = ['srt', 'vtt', 'ttml'];
+
+// Names that are not the token in capitals.
+const VIDEO_FORMAT_NAMES = { avc1: 'H.264', hevc: 'H.265', mp4a: 'AAC', webm: 'WebM', opus: 'Opus', vorbis: 'Vorbis', vtt: 'WebVTT', webp: 'WebP', jpg: 'JPEG' };
+
+/** A container, codec or file type as it is written ("H.264" for avc1),
+ *  for what the menu and the options page show; the token stays what is
+ *  stored and sent. */
+function videoFormatName(token) {
+  return VIDEO_FORMAT_NAMES[token] ?? token.toUpperCase();
+}
+
 /** What a click downloads on a site nothing is set for: the video at its
  *  best. */
-const VIDEO_DEFAULTS = { parts: ['video'], quality: 'best', videoFormat: 'best', audio: 'best', audioRate: 'best', subLangs: [], subFormat: 'best' };
+const VIDEO_DEFAULTS = { parts: ['video'], quality: 'best', videoFormat: 'best', audio: 'best', audioRate: 'best', subLangs: [], subFormat: 'srt', thumbFormat: 'jpg' };
 
 // The words the instance's choices are made of, as ytdlp.LinkChoice.Valid
 // takes them: a language as yt-dlp reports one, a format, and the keys of a
@@ -79,9 +94,11 @@ function videoIs(re, v) {
  * instance would refuse dropped. The part of it a site's defaults hold says
  * what is wanted wherever a video has it: the parts, a cap on the
  * resolution and a video format, a bitrate and a codec for the audio,
- * subtitle languages in order and a subtitle format. The menu adds the
- * tracks, the audio language and whether generated subtitles count, from
- * what one video has. A pick with no part left is the defaults.
+ * subtitle languages in order, a subtitle format and a thumbnail format.
+ * Subtitles and thumbnails have no Best, so anything else reads as SRT and
+ * JPEG. The menu adds the tracks, the audio language and whether generated
+ * subtitles count, from what one video has. A pick with no part left is the
+ * defaults.
  */
 function videoPick(raw) {
   const parts = Array.isArray(raw?.parts) ? VIDEO_PARTS.filter((p) => raw.parts.includes(p)) : [];
@@ -93,7 +110,8 @@ function videoPick(raw) {
     audio: VIDEO_AUDIO_CODECS.includes(raw.audio) ? raw.audio : 'best',
     audioRate: videoIs(AUDIO_RATE, raw.audioRate) ? raw.audioRate : 'best',
     subLangs: Array.isArray(raw.subLangs) ? raw.subLangs.filter((l) => videoIs(VIDEO_LANG, l)) : [],
-    subFormat: videoIs(VIDEO_TOKEN, raw.subFormat) ? raw.subFormat : 'best',
+    subFormat: VIDEO_SUB_FORMATS.includes(raw.subFormat) ? raw.subFormat : 'srt',
+    thumbFormat: videoIs(VIDEO_TOKEN, raw.thumbFormat) && raw.thumbFormat !== 'best' ? raw.thumbFormat : 'jpg',
   };
   if (videoIs(VIDEO_TRACK, raw.videoTrack)) pick.videoTrack = raw.videoTrack;
   if (videoIs(AUDIO_TRACK, raw.audioTrack)) pick.audioTrack = raw.audioTrack;
@@ -112,7 +130,9 @@ function videoDefaultsFor(stored, siteId) {
  * without tracks leaves them to the instance, which takes the best under the
  * cap and the preferred codec's track where the video has one. Generated
  * subtitles count unless the menu said otherwise, so a video without
- * subtitles by hand still gets its own language's.
+ * subtitles by hand still gets its own language's. The thumbnail's format
+ * has no place in it, since the instance keeps the picture as the host
+ * serves it.
  */
 function videoChoice(pick) {
   return {
@@ -131,10 +151,10 @@ function videoChoice(pick) {
 /**
  * What a video offers, from what the instance says it has (GET
  * /api/ytdlp/link): its video and audio tracks, the languages its audio
- * comes in, its subtitles by hand and generated and the formats they come
- * in, the picture the thumbnail row fetches and whether it has a
- * description. `known` is false where there is no answer, or one from an
- * instance that only lists resolutions, and then nothing is ruled out.
+ * comes in, its subtitles by hand and generated, the picture the thumbnail
+ * row fetches and whether it has a description. `known` is false where
+ * there is no answer, or one from an instance that only lists resolutions,
+ * and then nothing is ruled out.
  */
 function videoOffer(answer) {
   const list = (v, re) => (Array.isArray(v) ? v.filter((x) => videoIs(re, x)) : []);
@@ -142,7 +162,7 @@ function videoOffer(answer) {
   if (!Array.isArray(answer?.videoTracks)) {
     return {
       known: false, qualities, audio: answer ? answer.audio === true : true, videoTracks: [], audioTracks: [], audioLangs: [],
-      subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true, videoSizes: {}, audioSizes: {},
+      subtitles: [], autoCaptions: [], thumbnail: null, description: true, videoSizes: {}, audioSizes: {},
     };
   }
   const th = answer.thumbnail;
@@ -158,7 +178,6 @@ function videoOffer(answer) {
       : [],
     subtitles: list(answer.subtitles, VIDEO_LANG),
     autoCaptions: list(answer.autoCaptions, VIDEO_LANG),
-    subtitleFormats: list(answer.subtitleFormats, VIDEO_TOKEN),
     thumbnail: videoIs(VIDEO_TOKEN, th?.ext) ? { width: size(th.width), height: size(th.height), ext: th.ext } : null,
     description: answer.description === true,
     videoSizes: videoSizes(answer.videoSizes, (k) => k === 'best' || VIDEO_CAPS.includes(k) || videoIs(VIDEO_TRACK, k)),
@@ -216,6 +235,18 @@ function videoHas(offer, part) {
     default:
       return offer.description;
   }
+}
+
+/** The formats a video's thumbnail comes in. The instance names the one
+ *  picture the row fetches, which it keeps as the host serves it. */
+function videoThumbFormats(offer) {
+  return offer.thumbnail ? [offer.thumbnail.ext] : [];
+}
+
+/** The thumbnail format a pick gets among those offered: the one it wants,
+ *  else JPEG, else the first. */
+function videoThumbFormat(want, formats) {
+  return [want, 'jpg'].find((f) => formats.includes(f)) ?? formats[0];
 }
 
 /** The language a subtitle or audio code is in: "en" for "en-orig" or
@@ -327,8 +358,8 @@ function audioTrackOffered(offer, rate, codec) {
  * tie; a format or a codec the video lacks there falls back to Best. The
  * parts are those it has, the audio the original where there are several
  * languages, and the subtitles the wanted languages it has (by hand before
- * generated, else its original generated ones) in the wanted format where it
- * has that one.
+ * generated, else its original generated ones), and the thumbnail in a
+ * format the video has it in.
  */
 function videoResolve(pick, offer) {
   const { videoTrack, audioTrack, ...rest } = pick;
@@ -376,7 +407,7 @@ function videoResolve(pick, offer) {
   }
   sel.subLangs = langs;
   sel.subAuto = fromAuto;
-  if (!offer.subtitleFormats.includes(sel.subFormat)) sel.subFormat = 'best';
+  if (offer.thumbnail) sel.thumbFormat = videoThumbFormat(sel.thumbFormat, videoThumbFormats(offer));
   return sel;
 }
 
@@ -421,8 +452,8 @@ function videoExact(sel, offer) {
 
 /** What a video offered, folded into what its site has offered so far
  *  (videoSeen, by site): the resolutions, the audio codecs, the subtitle
- *  languages by hand and generated originals, the subtitle formats, the
- *  video formats and the audio bitrates. */
+ *  languages by hand and generated originals, the video formats, the audio
+ *  bitrates and the thumbnail formats. */
 function videoSeenWith(seen, offer) {
   const merge = (old, add, order) => {
     const all = new Set([...(Array.isArray(old) ? old : []), ...add]);
@@ -433,9 +464,9 @@ function videoSeenWith(seen, offer) {
     qualities: merge(seen?.qualities, offer.qualities, VIDEO_CAPS),
     audio: merge(seen?.audio, offer.audioTracks.map((k) => k.split(' ')[0]), VIDEO_AUDIO_CODECS),
     subLangs: merge(seen?.subLangs, subLangs),
-    subFormats: merge(seen?.subFormats, offer.subtitleFormats),
     videoFormats: merge(seen?.videoFormats, offer.videoTracks.map((k) => videoTrackOf(k).format), videoFormatOrder),
     audioRates: merge(seen?.audioRates, offer.audioTracks.map((k) => audioTrackOf(k).rate), audioRateOrder),
+    thumbFormats: merge(seen?.thumbFormats, videoThumbFormats(offer)),
   };
 }
 
@@ -448,9 +479,9 @@ function videoSiteSeen(stored, siteId) {
     qualities: VIDEO_CAPS.filter((q) => list(seen?.qualities, () => true).includes(q)),
     audio: VIDEO_AUDIO_CODECS.filter((c) => list(seen?.audio, () => true).includes(c)),
     subLangs: list(seen?.subLangs, (l) => videoIs(VIDEO_LANG, l)),
-    subFormats: list(seen?.subFormats, (f) => videoIs(VIDEO_TOKEN, f)),
     videoFormats: list(seen?.videoFormats, (f) => f !== 'best' && videoIs(VIDEO_FORMAT, f)),
     audioRates: list(seen?.audioRates, (r) => videoIs(AUDIO_RATE, r)),
+    thumbFormats: list(seen?.thumbFormats, (f) => videoIs(VIDEO_TOKEN, f)),
   };
 }
 
