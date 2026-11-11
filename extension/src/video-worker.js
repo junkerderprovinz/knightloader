@@ -206,7 +206,7 @@ async function askVideoTarget(siblings, send, msg, sender) {
     frameUrl: sender.url,
     tabId: sender.tab.id,
     frameId: sender.frameId,
-    title: (sender.frameId === 0 && sender.tab.title) || videoName(send.page.url),
+    title: (sender.frameId === 0 && videoTitle(sender.tab.title ?? '', send.page.site)) || videoName(send.page.url),
     detail: playlist ? `${t('video.playlist')} · ${parts}` : parts,
   };
   await park({ payload, defaultName: await readDefaultTarget(), siblings, origin: '' });

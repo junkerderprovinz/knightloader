@@ -24,6 +24,15 @@ const VIDEO_SITES = [
   { id: 'bilibili', name: 'Bilibili', origins: ['https://www.bilibili.com/*'] },
 ];
 
+/** What each site puts after the video's title in its tab title. */
+const VIDEO_TITLE_ENDS = {
+  youtube: / - YouTube$/,
+  vimeo: / (?:\||on) Vimeo$/,
+  dailymotion: / - (?:video )?Dailymotion$/,
+  twitch: / - Twitch$/,
+  bilibili: /_哔哩哔哩.*bilibili$/,
+};
+
 /** The resolutions POST /api/links takes as `format` (ytdlp.Qualities). */
 const VIDEO_CAPS = ['4320p', '2160p', '1440p', '1080p', '720p', '480p', '360p', '240p', '144p'];
 
@@ -364,6 +373,11 @@ function videoPage(href) {
   if (!site) return null;
   const page = VIDEO_PAGES[site.id](new URL(href));
   return page ? { site: site.id, ...page } : null;
+}
+
+/** A tab title without the site's name after it, so it names the video. */
+function videoTitle(title, siteId) {
+  return title.replace(VIDEO_TITLE_ENDS[siteId], '');
 }
 
 /**

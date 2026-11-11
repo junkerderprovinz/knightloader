@@ -17,6 +17,7 @@
  *      the button off and still goes through the popup as before.
  *   6. The popup tells the worker when it closes, shows the video's name and
  *      the parts in one line, and names the send button for a video.
+ *   7. The name is the tab's title without the site's own name after it.
  *
  * Run by CI and by hand: `node extension/check-video-pick.mjs`
  */
@@ -173,7 +174,7 @@ let straight;
       fail(`the parked video reads ${JSON.stringify(v)}, want its address, the playlist and the frame that asked`);
     }
     if (JSON.stringify(v.pick?.parts) !== '["video","subtitle"]') fail(`the parked pick holds ${JSON.stringify(v.pick)}, want it cleaned to video and subtitles`);
-    if (v.title !== 'Big Buck Bunny - YouTube') fail(`the parked video is called "${v.title}", want the tab's title`);
+    if (v.title !== 'Big Buck Bunny') fail(`the parked video is called "${v.title}", want the tab's title without the site's name`);
     if (v.detail !== 'Whole playlist · Video, Subtitles') fail(`the parked video's parts read "${v.detail}", want "Whole playlist · Video, Subtitles"`);
     if (parked.origin === 'cnl') fail('a video send is parked as a Click\'n\'Load batch, which counts down');
     if (parked.siblings?.map((s) => s.instanceId).join() !== 'inst-1,inst-2' || parked.defaultName !== 'inst-1') fail('the popup does not get the instances the worker found, preset to the default');
@@ -265,6 +266,31 @@ let straight;
   vm.runInContext(read('src', 'shared.js'), ctx);
   const key = vm.runInContext('sendLabelKey', ctx)({ origin: '', payload: { kind: 'video' } });
   if (key !== 'popup.sendVideo') fail(`the popup's button for a video reads ${key}, want popup.sendVideo`);
+}
+
+// 7. The site's name comes off the end of a tab title, and nothing else does.
+{
+  const ctx = vm.createContext({ URL });
+  vm.runInContext(read('src', 'video.js'), ctx);
+  const videoTitle = vm.runInContext('typeof videoTitle === "function" ? videoTitle : null', ctx);
+  if (!videoTitle) fail('src/video.js: no videoTitle() takes the site off a tab title');
+  else {
+    for (const [site, tab, want] of [
+      ['youtube', 'Big Buck Bunny - YouTube', 'Big Buck Bunny'],
+      ['vimeo', 'Sintel | Vimeo', 'Sintel'],
+      ['vimeo', 'Sintel on Vimeo', 'Sintel'],
+      ['dailymotion', 'Tears of Steel - video Dailymotion', 'Tears of Steel'],
+      ['dailymotion', 'Tears of Steel - Dailymotion', 'Tears of Steel'],
+      ['twitch', 'Speedrun highlights - Twitch', 'Speedrun highlights'],
+      ['bilibili', '大雄兔_哔哩哔哩_bilibili', '大雄兔'],
+      ['youtube', 'Twitch - YouTube', 'Twitch'],
+      ['youtube', 'A day on Vimeo', 'A day on Vimeo'],
+      ['youtube', 'YouTube', 'YouTube'],
+    ]) {
+      const got = videoTitle(tab, site);
+      if (got !== want) fail(`on ${site} the tab title "${tab}" names the video "${got}", want "${want}"`);
+    }
+  }
 }
 
 if (problems.length) {
