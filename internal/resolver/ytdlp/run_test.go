@@ -86,14 +86,20 @@ func ytdlpHelper(mode string) {
 		fmt.Println("[download] Destination: " + audio)
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(audio) + `"}`)
 		fmt.Printf("[Merger] Merging formats into \"%s\"\n", final)
-	case "wide", "upright":
+	case "wide", "upright", "widelate":
 		// A merge under the video template, whose bracket holds the frame
-		// yt-dlp picked: a 2:1 video's 1080p track, or a portrait one.
+		// yt-dlp picked: a 2:1 video's 1080p track, or a portrait one. It
+		// names the file before fetching it, which widelate takes its time
+		// over.
 		frame := "1920x960p"
 		if mode == "upright" {
 			frame = "1080x1920p"
 		}
 		merged := filepath.Join(dir, "A Video ("+frame+").mkv")
+		fmt.Println(plannedPrefix + merged)
+		if mode == "widelate" {
+			time.Sleep(5 * time.Second)
+		}
 		part := filepath.Join(dir, "A Video ("+frame+").f248.webm")
 		_ = os.WriteFile(merged, []byte("merged bytes"), 0o644)
 		info := filepath.Join(dir, "A Video ("+frame+").info.json")
@@ -397,8 +403,10 @@ func TestRunNamesAVideoAfterTheQualityOfItsFrame(t *testing.T) {
 	}
 }
 
-func TestRunNamesAVideoBesideAnotherOfTheSameQuality(t *testing.T) {
-	t.Setenv(runHelperEnv, "wide:full")
+// A video already there under its quality is not fetched again, and the row
+// finishes as it does when yt-dlp finds the file under its own name.
+func TestRunTakesAVideoAlreadyThereUnderItsQualityAsDownloaded(t *testing.T) {
+	t.Setenv(runHelperEnv, "widelate:full")
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "A Video (1080p).mkv"), []byte("earlier"), 0o644); err != nil {
 		t.Fatal(err)
@@ -409,8 +417,12 @@ func TestRunNamesAVideoBesideAnotherOfTheSameQuality(t *testing.T) {
 	b.Options = func(string) Options { return Options{Variant: VariantVideo} }
 	b.run("task-1", "https://example.invalid/watch?v=x")
 
-	if got, want := rec.last().File, filepath.Join(dir, "A Video (1080p) (2).mkv"); got != want {
-		t.Errorf("File = %q, want %q beside the earlier file", got, want)
+	if got := rec.last(); got.Status != core.StatusDone || got.File != "" || got.Err != "" {
+		t.Errorf("last update = %+v, want Done without a file of its own", got)
+	}
+	entries, _ := os.ReadDir(dir)
+	if len(entries) != 1 || entries[0].Name() != "A Video (1080p).mkv" {
+		t.Errorf("the folder holds %v, want the earlier file alone", entries)
 	}
 	if body, _ := os.ReadFile(filepath.Join(dir, "A Video (1080p).mkv")); string(body) != "earlier" {
 		t.Errorf("the earlier file holds %q, want it untouched", body)

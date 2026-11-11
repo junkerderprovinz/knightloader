@@ -318,6 +318,28 @@ func TestBuildArgsWritesTheSubtitleFormatARowAskedFor(t *testing.T) {
 	}
 }
 
+// The video row's yt-dlp names the file before fetching it, so a video
+// already there under its quality is not fetched again. A typed template and
+// a video kept apart have no quality to find.
+func TestBuildArgsAsksForTheVideosNameBeforeItIsFetched(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		o    Options
+		want bool
+	}{
+		{"video", Options{Variant: VariantVideo}, true},
+		{"typed template", Options{Variant: VariantVideo, OutputTemplate: "%(id)s.%(ext)s"}, false},
+		{"kept apart", Options{Variant: VariantVideo, Embed: Embed{Separate: true}}, false},
+		{"audio", Options{Variant: VariantAudio}, false},
+	} {
+		args := buildArgs("d", c.o)
+		got, _ := valueAfter(args, "--print")
+		if asked := got == "video:"+plannedPrefix+"%(filename)s" && hasArg(args, "--no-simulate") && hasArg(args, "--no-quiet"); asked != c.want {
+			t.Errorf("%s: --print %q, want it asked for: %v", c.name, got, c.want)
+		}
+	}
+}
+
 func TestBuildArgsConvertsTheThumbnailToTheFormatARowAskedFor(t *testing.T) {
 	for format, want := range map[string]string{"png": "png", "webp": "webp", "jpg": "jpg", "": "jpg"} {
 		args := buildArgs("d", Options{Variant: VariantThumbnail, ThumbnailFormat: format})

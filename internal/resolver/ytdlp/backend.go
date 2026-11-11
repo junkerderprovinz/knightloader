@@ -452,6 +452,10 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 		subFiles  int
 		guard     = newLiveGuard(opts.Live)
 		stoppedBy string
+		// already is a video found under its quality before it was fetched.
+		// The run stops and finishes as when yt-dlp finds the file under its
+		// own name.
+		already bool
 	)
 	apart := opts.Variant == VariantVideo && opts.Embed.Separate
 	sc := bufio.NewScanner(stdout)
@@ -483,6 +487,13 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 				}
 			}
 			b.onUpdate(taskID, u)
+			continue
+		}
+		if planned, ok := strings.CutPrefix(line, plannedPrefix); ok {
+			if b.ownFile(taskID, dir, out, planned) && alreadyThere(planned) {
+				already = true
+				cancel()
+			}
 			continue
 		}
 		if name, ok := finishedFile(line); ok {
@@ -528,7 +539,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	if grace != nil {
 		grace.Stop()
 	}
-	if ctx.Err() != nil && stoppedBy == "" {
+	if ctx.Err() != nil && stoppedBy == "" && !already {
 		return core.Update{}, false // cancelled by Pause/Remove
 	}
 	if final == "" {
@@ -545,6 +556,17 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 		// A recording that hit its own limit is finished, with the reason on
 		// the task.
 		return done(stoppedBy), true
+	}
+	if already {
+		b.mu.Lock()
+		var files []string
+		if p := b.parts[taskID]; p != nil {
+			files = slices.Clone(p.files)
+		}
+		b.mu.Unlock()
+		Discard(taskID, []string{dir}, files, b.InUse)
+		final = ""
+		return done(""), true
 	}
 	if err == nil && scanErr != nil {
 		err = scanErr
@@ -743,10 +765,29 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 		// A failed ffprobe (none installed, a lost mount) says nothing about
 		// the download and adds no note.
 	}
-	if o.Variant == VariantVideo && o.OutputTemplate == "" && u.File != "" {
+	if namedByQuality(o) && u.File != "" {
 		u.File = nameByQuality(u.File)
 	}
 	return u
+}
+
+// namedByQuality reports a video row whose file takes the quality of its
+// frame once it is written (nameByQuality): one under the video template.
+func namedByQuality(o Options) bool {
+	return o.Variant == VariantVideo && o.OutputTemplate == "" && !o.Embed.Separate
+}
+
+// plannedPrefix marks the line on which a video row's yt-dlp names the file it
+// is about to write, before it fetches a byte of it.
+const plannedPrefix = "KLF:"
+
+// alreadyThere reports whether the video yt-dlp is about to write as planned
+// is there under the quality nameByQuality would give it. yt-dlp looks for its
+// own name alone, and would fetch the video again.
+func alreadyThere(planned string) bool {
+	named := filepath.Join(filepath.Dir(planned), qualityName(filepath.Base(planned)))
+	fi, err := os.Stat(named)
+	return named != planned && err == nil && fi.Mode().IsRegular()
 }
 
 // nameByQuality moves a finished video and its NFO from the frame the
@@ -1309,6 +1350,11 @@ func buildArgs(dir string, o Options) []string {
 		}
 		args = append(args, "--merge-output-format", merge)
 		args = append(args, embedArgs(o, true)...)
+		if namedByQuality(o) {
+			// --print alone would silence the progress lines and skip the
+			// download.
+			args = append(args, "--print", "video:"+plannedPrefix+"%(filename)s", "--no-simulate", "--no-quiet")
+		}
 	}
 	// Only the rows that download media need these.
 	if o.Variant == VariantVideo || o.Variant == VariantAudio {
