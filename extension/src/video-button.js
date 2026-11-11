@@ -53,9 +53,9 @@
   const STYLE = `
     :host { all: initial; position: fixed; z-index: 2147483647; translate: -50% -50%; }
     .kl {
-      --surface: #262626; --ground: #161616; --text: #f4f4f4; --sub: #c6c6c6;
+      --surface: #262626; --surface2: #393939; --surface3: #525252; --raised: #6f6f6f; --text: #f4f4f4; --sub: #c6c6c6;
       --ok: #6fdc8c; --fail: #ff8389; --line: rgba(255, 255, 255, .08);
-      --knob: #c6c6c6; --ring: #8d8d8d; --track: rgba(255, 255, 255, .16); --hover: rgba(255, 255, 255, .05); --edge: transparent;
+      --knob: #c6c6c6; --track: rgba(255, 255, 255, .16); --hover: rgba(255, 255, 255, .05); --edge: transparent;
       --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
       position: relative;
       font: 500 14px/1.4 "Noto Sans Variable", "Noto Sans", system-ui, sans-serif;
@@ -65,9 +65,9 @@
       transition: opacity 140ms ease;
     }
     .kl[data-theme="light"] {
-      --surface: #ffffff; --ground: #f4f4f4; --text: #161616; --sub: #525252;
+      --surface: #ffffff; --surface2: #e8e8e8; --surface3: #d1d1d1; --raised: #c6c6c6; --text: #161616; --sub: #525252;
       --ok: #0e6027; --fail: #da1e28; --line: rgba(0, 0, 0, .08);
-      --knob: #6f6f6f; --ring: #8d8d8d; --track: rgba(0, 0, 0, .12); --hover: rgba(0, 0, 0, .04); --edge: rgba(0, 0, 0, .14);
+      --knob: #6f6f6f; --track: rgba(0, 0, 0, .12); --hover: rgba(0, 0, 0, .04); --edge: rgba(0, 0, 0, .14);
       --elevation: 0 1px 2px rgba(0, 0, 0, .10), 0 16px 36px -26px rgba(0, 0, 0, .45);
     }
     .kl.shown { opacity: 1; pointer-events: auto; }
@@ -130,15 +130,15 @@
     /* The outline keeps a pale star readable on a bright frame. */
     .star { position: absolute; display: block; pointer-events: none; filter: drop-shadow(0 0 1px rgba(0, 0, 0, .45)); }
     /* As tall as the player leaves room for (position sets max-height), so
-       the parts sit in order without scrolling on most videos. The parts are
-       cards on a darker ground, as on the extension's own pages. */
+       the parts sit in order without scrolling on most videos. It is a
+       window, and each part a sub-card on it one surface up. */
     .menu {
       position: absolute; top: calc(100% + 8px); left: 50%; translate: -50% 0;
       box-sizing: border-box; width: 340px; max-width: calc(100vw - 16px); max-height: 460px; overflow-y: auto; overscroll-behavior: contain;
       padding: 6px 6px 0;
       display: flex; flex-direction: column; gap: 6px;
       font-size: 13px; line-height: 1.35;
-      background: var(--ground);
+      background: var(--surface);
       border-radius: min(var(--radius), 10px);
       box-shadow: var(--elevation), inset 0 0 0 1px var(--line);
       scrollbar-width: thin; scrollbar-color: var(--track) transparent;
@@ -148,12 +148,10 @@
     .menu[data-side="end"] { left: auto; right: 0; translate: 0 0; }
     .menu[hidden] { display: none; }
     .menu button { position: relative; justify-content: flex-start; height: auto; border-radius: min(var(--radius), 6px); color: var(--text); }
-    /* A ring with a gap of the surface, so it shows on gold as well. */
-    .kl .menu button:focus-visible { z-index: 1; outline: none; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
-    .menu .card {
-      flex: 0 0 auto;
-      background: var(--surface); border-radius: min(var(--radius), 8px); box-shadow: inset 0 0 0 1px var(--line);
-    }
+    /* The ring reaches over the neighbours, and its gap shows whatever the
+       control sits on, so it reads on a tile and on gold alike. */
+    .kl .menu button:focus-visible { z-index: 1; }
+    .menu .card { flex: 0 0 auto; background: var(--surface2); border-radius: min(var(--radius), 8px); }
     .menu .switch { width: 100%; height: 36px; padding-block: 0; padding-inline: 10px 46px; color: var(--sub); border-radius: min(var(--radius), 8px); }
     .menu .switch:hover { background: var(--hover); }
     .menu .switch[aria-checked="true"] { color: var(--text); font-weight: 600; }
@@ -172,22 +170,16 @@
     .choices { padding: 0 4px 10px; }
     .choices .label { display: block; margin: 0 6px 4px; color: var(--sub); font-size: 11px; }
     .choices > * + .label { margin-top: 10px; }
-    /* Every list is one column of the same rows, radio or checkbox alike,
-       so the sizes line up at the end of each. */
-    .list { display: flex; flex-direction: column; gap: 1px; }
-    .menu .list button { gap: 9px; height: 28px; padding-block: 0; padding-inline: 8px 10px; }
-    .list button::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ring); }
-    .list [role="checkbox"]::before { border-radius: min(var(--radius), 3px); }
-    .list button:not([aria-checked="true"]):hover { background: var(--hover); }
-    .list [aria-checked="true"] { background: color-mix(in srgb, var(--accent) 15%, transparent); }
-    .list [aria-checked="true"]::before { background: radial-gradient(var(--accent-contrast) 2.2px, var(--accent) 2.8px); box-shadow: inset 0 0 0 1px var(--edge); }
-    .list [role="checkbox"][aria-checked="true"]::before { background: var(--accent); }
-    .list [role="checkbox"][aria-checked="true"]::after {
-      content: ""; position: absolute; inset-inline-start: 12px; top: 8.5px; width: 3px; height: 6.5px;
-      border: solid var(--accent-contrast); border-width: 0 1.5px 1.5px 0; rotate: 45deg;
-    }
+    /* Every list is one column of tiles, the same whether one or several can
+       be picked, with the sizes lined up at the end. A tile rests one surface
+       above its sub-card, which would swallow it otherwise, and the picked
+       ones are filled. */
+    .list { display: flex; flex-direction: column; gap: 2px; }
+    .menu .list button { gap: 8px; height: 28px; padding-block: 0; padding-inline: 10px; background: var(--surface3); }
+    .list button:not([aria-checked="true"]):hover { background: var(--raised); }
+    .menu .list [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
     .list .aside { margin-inline-start: auto; color: var(--sub); font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; }
-    .list [aria-checked="true"] .aside { color: var(--text); }
+    .list button:hover .aside, .list [aria-checked="true"] .aside { color: inherit; }
     .segments {
       display: flex; flex-wrap: wrap; gap: 2px; margin: 0 2px; padding: 2px;
       border-radius: min(var(--radius), 7px); background: var(--hover); box-shadow: inset 0 0 0 1px var(--line);
@@ -206,7 +198,7 @@
       position: sticky; bottom: 0; z-index: 2; flex: 0 0 auto;
       display: flex; flex-direction: column;
       margin: 0 -6px; padding: 0 6px 6px;
-      background: var(--ground);
+      background: var(--surface);
     }
     .menu .go { justify-content: center; gap: 0; height: 34px; background: var(--accent); color: var(--accent-contrast); font-weight: 600; box-shadow: inset 0 0 0 1px var(--edge); }
     .menu .go:hover { background: color-mix(in srgb, var(--accent) 85%, var(--text)); }
@@ -868,12 +860,14 @@
           aside: (q) => size(videoPickSize({ ...pick, quality: q, videoFormat: videoTrackOffered(offer, q, pick.videoFormat) ? pick.videoFormat : 'best' }, offer, 'video')),
         });
         // A format reads as its codec over its container, "H.264" over "MP4".
-        row('format', labels.format, ['best', ...formats], {
+        // Left to the instance, it shows the one the best track has.
+        const format = pick.videoFormat === 'best' ? videoBestFormat(offer, pick.quality) : pick.videoFormat;
+        row('format', labels.format, formats, {
           look: 'segments',
-          isOn: (f) => f === pick.videoFormat,
-          name: best((f) => videoFormatName(f.split(' ').at(-1))),
+          isOn: (f) => f === format,
+          name: (f) => videoFormatName(f.split(' ').at(-1)),
           onPick: (f) => redraw(() => (pick.videoFormat = f)),
-          off: (f) => f !== 'best' && !videoTrackOffered(offer, pick.quality, f),
+          off: (f) => !videoTrackOffered(offer, pick.quality, f),
           aside: (f) => (f.includes(' ') ? videoFormatName(f.split(' ')[0]) : ''),
         });
         break;
@@ -893,12 +887,13 @@
             onPick: rate,
             aside: (r) => size(videoPickSize({ ...pick, audioRate: r, audio: audioTrackOffered(offer, r, pick.audio) ? pick.audio : 'best' }, offer, 'audio')),
           });
-          row('format', labels.format, ['best', ...codecs], {
+          const codec = pick.audio === 'best' ? audioBestCodec(offer, pick.audioRate) : pick.audio;
+          row('format', labels.format, codecs, {
             look: 'segments',
-            isOn: (c) => c === pick.audio,
-            name: best(videoFormatName),
+            isOn: (c) => c === codec,
+            name: videoFormatName,
             onPick: (c) => redraw(() => (pick.audio = c)),
-            off: (c) => c !== 'best' && !audioTrackOffered(offer, pick.audioRate, c),
+            off: (c) => !audioTrackOffered(offer, pick.audioRate, c),
           });
         }
         if (offer.audioLangs.length > 1) {

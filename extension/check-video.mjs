@@ -316,6 +316,15 @@ function loadBackground(chrome) {
   if (!same(offered('best'), rows.formats)) fail(`at the best quality the formats offered are ${offered('best')}, want every one`);
   if (!same(offered('720p60'), ['mp4 avc1'])) fail(`at 720p the formats offered are ${offered('720p60')}, want mp4 avc1 alone`);
   if (!same(offered('1080p'), ['mp4 avc1', 'mp4 vp9', 'mp4 av1', 'webm vp9'])) fail(`at 1080p the formats offered are ${offered('1080p')}`);
+  // Where a pick leaves the format to the instance, the menu shows the one
+  // the best track at that quality has, and for the audio the codec of the
+  // best track at that bitrate.
+  for (const [quality, want] of [['best', 'webm vp9'], ['1080p', 'mp4 av1'], ['720p60', 'mp4 avc1']]) {
+    if (run(`videoBestFormat(yt, '${quality}')`) !== want) fail(`at ${quality} the best track's format reads ${run(`videoBestFormat(yt, '${quality}')`)}, want ${want}`);
+  }
+  for (const [rate, want] of [['best', 'opus'], ['130k', 'aac'], ['49k', 'opus']]) {
+    if (run(`audioBestCodec(yt, '${rate}')`) !== want) fail(`at ${rate} the best audio's codec reads ${run(`audioBestCodec(yt, '${rate}')`)}, want ${want}`);
+  }
   const audioRows = run('audioMenuRows(yt)');
   if (!same(audioRows, { rates: ['130k', '124k', '62k', '49k'], codecs: ['aac', 'opus'] })) fail(`the audio rows list ${JSON.stringify(audioRows)}, want the bitrates high to low and aac, opus`);
   if (!run(`audioTrackOffered(yt, '49k', 'opus')`) || run(`audioTrackOffered(yt, '130k', 'opus')`)) fail('the audio formats offered do not follow the bitrate picked');
@@ -332,7 +341,7 @@ function loadBackground(chrome) {
     [{ videoFormat: 'webm vp9' }, { quality: 'best', videoTrack: '2160p webm vp9', audio: 'best' }],
     [{ quality: '1080p', videoFormat: 'mp4 av1' }, { quality: 'best', videoTrack: '1080p mp4 av1', audio: 'best' }],
     [{ audio: 'opus' }, { quality: 'best', audio: 'opus' }],
-    [{ audioRate: '49k' }, { quality: 'best', audio: 'best', audioTrack: 'aac 49k' }],
+    [{ audioRate: '49k' }, { quality: 'best', audio: 'best', audioTrack: 'opus 49k' }],
     [{ audioRate: '49k', audio: 'opus' }, { quality: 'best', audio: 'best', audioTrack: 'opus 49k' }],
   ]) {
     const got = sends(sel);
@@ -812,7 +821,7 @@ const PAGE_LABELS = {
     videoSizes: { best: 404000000, '1080p': 303000000, '720p': 90000000 }, audioSizes: { 'aac 128k': 3000000 },
   });
   await settle();
-  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|[Best]|H.264|MP4|VP9|WebM|Audio|[Subtitles]|Language|[de]|Auto-generated|en|Format|[SRT]|WebVTT|TTML|Thumbnail|Download';
+  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|H.264|MP4|[VP9]|WebM|Audio|[Subtitles]|Language|[de]|Auto-generated|en|Format|[SRT]|WebVTT|TTML|Thumbnail|Download';
   if (entries().join('|') !== listed) fail(`the menu shows ${entries().join(', ')}, want ${listed}, made exact for the video and without the text it lacks`);
 
   // Each part is a switch, a quality a radio in a list, a format a radio in
@@ -848,12 +857,26 @@ const PAGE_LABELS = {
   if (!(room > 460 && room <= 720)) fail(`the menu may grow to ${room}px, want the room the player leaves below the button`);
   const item = (text) => menuEl().querySelectorAll('button').find((b) => b.text === text);
   const off = (text) => item(text)?.disabled === true;
+  // Best is a quality, never a format: a format row offers what the video
+  // has and marks the one the best track takes until another is picked.
+  for (const g of withRole('radiogroup').filter((r) => r.className === 'segments')) if (radios(g).some((r) => r.text === 'Best')) fail('a format row offers Best');
+  item('H.264').fire('click');
+  if (!entries().includes('[H.264]')) fail('a format picked in the menu is not marked');
   item('VP9').fire('click');
-  if (!entries().includes('[VP9]')) fail('a format picked in the menu is not marked');
   item('720p').fire('click');
-  if (!entries().join('|').includes('Format|[Best]|H.264|MP4|VP9|WebM') || !off('VP9') || off('H.264')) {
-    fail(`at a quality without the format picked the menu shows ${entries().join(', ')}, want Best again and the missing format listed but off`);
+  if (!entries().join('|').includes('Format|[H.264]|MP4|VP9|WebM') || !off('VP9') || off('H.264')) {
+    fail(`at a quality without VP9 the menu shows ${entries().join(', ')}, want H.264 marked and VP9 listed but off`);
   }
+
+  // The menu is a window and each part a sub-card one surface up, without
+  // a border. Every list is one column of tiles without a marker, whether one
+  // or several can be picked; only the roles tell the two apart.
+  const css = read('src', 'video-button.js');
+  const rule = (selector) => css.slice(css.indexOf(`${selector} {`)).split('}')[0];
+  if (!/background: var\(--surface2\)/.test(rule('.menu .card')) || /box-shadow|border(?!-radius)/.test(rule('.menu .card'))) fail('a part is not a sub-card filled one surface up without a border');
+  if (!/background: var\(--surface\)/.test(rule('    .menu'))) fail('the menu is not a window on the surface');
+  if (/\.list[^{}]*::(before|after)/.test(css)) fail('a list of choices still draws a radio dot or a checkbox');
+  if (!/background: var\(--surface3\)/.test(rule('.menu .list button')) || !/background: var\(--raised\)/.test(css.slice(css.indexOf('.list button:not([aria-checked="true"]):hover')))) fail('a tile does not rest one surface above its sub-card and rise one more under the pointer');
 
   // Every list of choices is one column, so it reads top to bottom like the
   // subtitle languages.
@@ -867,11 +890,7 @@ const PAGE_LABELS = {
   const quality = () => withRole('radiogroup')[0];
   const format = () => withRole('radiogroup')[1];
   key(picked(format()), 'ArrowRight');
-  if (picked(format())?.text !== 'H.264' || doc.activeElement !== picked(format())) fail('an arrow key in the format row does not move the pick and the keyboard to the next format');
-  key(picked(format()), 'ArrowRight');
-  if (picked(format())?.text !== 'Best') fail(`the arrow key from H.264 lands on ${picked(format())?.text}, want past the format ruled out and round to Best`);
-  key(picked(format()), 'ArrowLeft');
-  if (picked(format())?.text !== 'H.264') fail('back from Best the arrow key does not skip the format ruled out');
+  if (picked(format())?.text !== 'H.264' || doc.activeElement !== picked(format())) fail(`at 720p the arrow key in the format row lands on ${picked(format())?.text}, want past VP9, which the quality rules out, and round to H.264`);
   key(picked(quality()), 'ArrowUp');
   if (picked(quality())?.text !== '1080p' || doc.activeElement !== picked(quality())) fail('the up arrow in the quality list does not pick the quality above');
   key(picked(quality()), 'ArrowDown');
@@ -888,7 +907,7 @@ const PAGE_LABELS = {
 
   item('Audio').fire('click');
   if (withRole('switch')[1]?.attrs['aria-checked'] !== 'true') fail('a click on the Audio switch does not turn it on');
-  const audioRows = 'Audio]|Quality|[Best]|160k|128k|3 MB|Format|[Best]|AAC|Opus|';
+  const audioRows = 'Audio]|Quality|[Best]|160k|128k|3 MB|Format|AAC|[Opus]|';
   if (!entries().join('|').includes(audioRows)) fail(`the audio part shows ${entries().join(', ')}, want ${audioRows}`);
   item('128k').fire('click');
   if (!off('Opus') || off('AAC')) fail('at 128k the audio format opus, which the video lacks there, is not off');
@@ -915,7 +934,7 @@ const PAGE_LABELS = {
   await store.local.set({ videoDefaults: { youtube: { parts: ['video'], quality: 'best' } } });
   more().fire('click');
   await settle();
-  if (!entries().join('|').startsWith('[Video]|Quality|[Best]|404 MB|1080p|303 MB|720p|90 MB|Format|[Best]|')) fail(`with Best stored the menu starts at ${entries().join(', ')}, want Best marked in both rows`);
+  if (!entries().join('|').startsWith('[Video]|Quality|[Best]|404 MB|1080p|303 MB|720p|90 MB|Format|H.264|MP4|[VP9]|')) fail(`with Best stored the menu starts at ${entries().join(', ')}, want Best marked and the best track's VP9`);
   if (goShows() !== 'Download · 404 MB' || go()?.attrs['aria-label'] !== 'Download, 404 MB') fail(`with the video alone ticked the download button reads "${goShows()}", want its size`);
   item('Audio').fire('click');
   if (goShows() !== 'Download') fail(`with the best audio's size unknown the download button reads "${goShows()}", want no total`);
@@ -1083,21 +1102,20 @@ for (const reduced of [false, true]) {
   const css = read('src', 'video-button.js');
   const tokens = (selector) => {
     const block = css.slice(css.indexOf(selector)).split('}')[0];
-    return Object.fromEntries([...block.matchAll(/--([a-z]+): (#[0-9a-f]{6})/g)].map((m) => [m[1], m[2]]));
+    return Object.fromEntries([...block.matchAll(/--([a-z0-9]+): (#[0-9a-f]{6})/g)].map((m) => [m[1], m[2]]));
   };
   for (const [theme, t] of [['dark', tokens('.kl {')], ['light', tokens('.kl[data-theme="light"] {')]]) {
     for (const k of ['text', 'sub', 'ok', 'fail']) {
       if (ratio(t[k], t.surface) < 4.5) fail(`in the ${theme} theme --${k} on the surface is ${ratio(t[k], t.surface).toFixed(2)}:1`);
     }
-    // The menu's ground, around its cards, carries its notes.
-    for (const k of ['text', 'sub']) {
-      if (!t.ground || ratio(t[k], t.ground) < 4.5) fail(`in the ${theme} theme --${k} on the menu's ground is ${t.ground ? ratio(t[k], t.ground).toFixed(2) : 'missing'}`);
+    // The labels sit on the sub-card, a tile's words on the tile at rest and
+    // under the pointer.
+    for (const [k, ground] of [['sub', 'surface2'], ['text', 'surface2'], ['sub', 'surface3'], ['text', 'raised']]) {
+      if (!t[ground] || ratio(t[k], t[ground]) < 4.5) fail(`in the ${theme} theme --${k} on --${ground} is ${t[ground] ? ratio(t[k], t[ground]).toFixed(2) : 'missing'}`);
     }
-    // A switch's knob and a radio's ring show whether it is on, so they need
-    // the 3:1 a control's outline does.
-    for (const k of ['knob', 'ring']) {
-      if (!t[k] || ratio(t[k], t.surface) < 3) fail(`in the ${theme} theme --${k} on the surface is ${t[k] ? ratio(t[k], t.surface).toFixed(2) : 'missing'}, want 3:1`);
-    }
+    // A switch's knob shows whether it is on, so on its sub-card it needs the
+    // 3:1 a control's outline does.
+    if (ratio(t.knob, t.surface2) < 3) fail(`in the ${theme} theme the knob on a sub-card is ${ratio(t.knob, t.surface2).toFixed(2)}:1, want 3:1`);
   }
   const gold = vm.runInContext('DEFAULT_ACCENT', ctx);
   if (ratio(ink, gold) < 4.5) fail(`the label on the accent is ${ratio(ink, gold).toFixed(2)}:1`);

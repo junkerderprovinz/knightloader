@@ -51,6 +51,9 @@ const VIDEO_CODECS = ['avc1', 'hevc', 'vp9', 'vp8', 'av1'];
 // The order yt-dlp ranks codecs in at one resolution and frame rate
 // (preferredVideoCodecs), which picks the track where only a quality is.
 const VIDEO_PREFERRED = ['av1', 'vp9', 'hevc', 'avc1', 'vp8'];
+// The order yt-dlp ranks audio codecs in before their bitrate (its acodec
+// sort), which picks the track where only a bitrate is.
+const AUDIO_PREFERRED = ['flac', 'alac', 'opus', 'vorbis', 'aac', 'mp3'];
 
 /** The subtitle formats the menu and the options page offer, SRT first as
  *  the one every player reads. YouTube's own srv1 to srv3 and json3 open in
@@ -351,6 +354,34 @@ function audioTrackOffered(offer, rate, codec) {
   });
 }
 
+/** yt-dlp's order for video tracks: the tallest first, then the higher
+ *  frame rate, then the codec it prefers. */
+function videoTrackRank(a, b) {
+  const codec = (k) => videoRank(VIDEO_PREFERRED, videoTrackOf(k).format.split(' ')[1]);
+  return parseInt(b, 10) - parseInt(a, 10) || videoTrackOf(b).fps - videoTrackOf(a).fps || codec(a) - codec(b);
+}
+
+/** yt-dlp's order for audio tracks: the codec it prefers, then the higher
+ *  bitrate. */
+function audioTrackRank(a, b) {
+  const [ta, tb] = [audioTrackOf(a), audioTrackOf(b)];
+  return videoRank(AUDIO_PREFERRED, ta.codec) - videoRank(AUDIO_PREFERRED, tb.codec) || tb.kbps - ta.kbps;
+}
+
+/** The format of the track Best takes at a quality, which the menu marks
+ *  where a pick leaves the format to the instance. */
+function videoBestFormat(offer, quality) {
+  const [track] = offer.videoTracks.filter((k) => quality === 'best' || videoTrackOf(k).quality === quality).sort(videoTrackRank);
+  return track && videoTrackOf(track).format;
+}
+
+/** The codec of the audio track Best takes at a bitrate, which the menu
+ *  marks where a pick leaves the codec to the instance. */
+function audioBestCodec(offer, rate) {
+  const [track] = offer.audioTracks.filter((k) => rate === 'best' || audioTrackOf(k).rate === rate).sort(audioTrackRank);
+  return track && audioTrackOf(track).codec;
+}
+
 /**
  * A pick made exact for one video, where the menu starts. Best stays Best,
  * since that is what was asked for. A quality becomes the video's own, or
@@ -430,20 +461,21 @@ function videoExact(sel, offer) {
       out.quality = `${height}p`;
     } else {
       out.quality = 'best';
-      const codec = (k) => videoRank(VIDEO_PREFERRED, videoTrackOf(k).format.split(' ')[1]);
       [out.videoTrack] = offer.videoTracks
         .filter((k) => {
           const t = videoTrackOf(k);
           return (videoFormat === 'best' || t.format === videoFormat) && (sel.quality === 'best' || t.quality === sel.quality);
         })
-        .sort((a, b) => parseInt(b, 10) - parseInt(a, 10) || videoTrackOf(b).fps - videoTrackOf(a).fps || codec(a) - codec(b));
+        .sort(videoTrackRank);
     }
   }
   if (offer.audioTracks.length && audioRate !== 'best') {
-    out.audioTrack = offer.audioTracks.find((k) => {
-      const t = audioTrackOf(k);
-      return t.rate === audioRate && (sel.audio === 'best' || t.codec === sel.audio);
-    });
+    [out.audioTrack] = offer.audioTracks
+      .filter((k) => {
+        const t = audioTrackOf(k);
+        return t.rate === audioRate && (sel.audio === 'best' || t.codec === sel.audio);
+      })
+      .sort(audioTrackRank);
     out.audio = 'best';
   }
   for (const k of ['videoTrack', 'audioTrack']) if (!out[k]) delete out[k];
