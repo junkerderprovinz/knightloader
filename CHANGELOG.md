@@ -82,6 +82,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   column shows its speed in muted ink and names the service when you hover it.
   The time left stays blank until the files come here (thanks to @Kayn2106,
   [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
+- **The password fields on the sign-in page show their name inside.** It
+  stands there in grey until you start typing, and a password manager that
+  fills the field in takes it away too.
 
 ### Fixed
 

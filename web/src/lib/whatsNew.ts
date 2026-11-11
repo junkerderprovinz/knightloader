@@ -72,6 +72,7 @@ export const RELEASES: Release[] = [
       },
       { id: 'backend-marks', text: 'whatsnew.change.backendMarks', names: { name: 'columns.resolver' } },
       { id: 'service-speed', text: 'whatsnew.change.serviceSpeed', names: { speed: 'columns.speed' } },
+      { id: 'signin-label', text: 'whatsnew.change.signInLabel' },
       { id: 'plain-file', text: 'whatsnew.change.plainFile' },
     ],
   },

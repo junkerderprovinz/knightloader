@@ -3832,6 +3832,7 @@ export const zh: Dict = {
   'whatsnew.change.backendMarks': '“{name}”列用标记显示由哪个后端处理下载：Debrid 服务的标志、内置种子客户端的磁铁，以及 JDownloader、yt-dlp 和直接下载各自的图标。在列标题上右键点击即可开启此列。',
   'whatsnew.change.serviceSpeed': '当 Debrid 服务仍在自己的服务器上获取种子时，“{speed}”列会以淡色显示该服务的速度。把指针移到上面即可看到是哪个服务。',
   'whatsnew.change.plainFile': '没有文件扩展名、但本身只是一个文件的链接，例如 GitHub 上的文本文件，会以它自己的名称作为一行直接下载，而不是经由 yt-dlp 并得到一个编造的名称。',
+  'whatsnew.change.signInLabel': '在登录页面上，密码框会在框内以灰色显示自己的名称，直到你开始输入。',
   'whatsnew.change.oled': '{theme} 下的 {oled} 让深色外观使用纯黑，适合 OLED 和 AMOLED 屏幕。只要显示深色外观就会生效，跟随系统时也一样，每台设备各自记住自己的选择。',
   'whatsnew.change.systemAccent': '{accent} 开头带魔杖的色块会使用系统的颜色：Android 12 及以上用 Material You，桌面应用用 Windows、macOS 或 Linux 的强调色，Firefox 和 Safari 用系统颜色。系统没有这种颜色时，就没有这个色块。这个选择只作用于此设备，其他设备仍使用实例的颜色。',
   'whatsnew.change.fileKindsMore': '链接用符号显示更多文件类型：PDF、办公文档、电子表格、演示文稿、电子书、播放列表、磁盘映像、程序、字体、3D 模型、校验和、种子、RAW 照片和设计文件。',
