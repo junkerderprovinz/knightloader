@@ -518,8 +518,8 @@ function listbox(host, options, current, onPick) {
 /**
  * The translation key for the popup's send button, given what is parked: the
  * current tab when nothing is, otherwise a right-clicked link, image or
- * selection, or a caught Click'n'Load batch. A payload without `kind` keeps the
- * page label.
+ * selection, a video from the button on its player, or a caught Click'n'Load
+ * batch. A payload without `kind` keeps the page label.
  */
 function sendLabelKey(pending) {
   if (!pending) return 'popup.send';
@@ -531,6 +531,8 @@ function sendLabelKey(pending) {
       return 'popup.sendImage';
     case 'selection':
       return 'popup.sendSelection';
+    case 'video':
+      return 'popup.sendVideo';
     default:
       return 'popup.send';
   }

@@ -81,7 +81,7 @@ function makeChrome(store, { granted = ['<all_urls>'] } = {}) {
   const live = new Map();
   const chrome = {
     runtime: {
-      onInstalled: event(), onMessage: event(), onStartup: event(),
+      onInstalled: event(), onMessage: event(), onStartup: event(), onConnect: event(),
       openOptionsPage() {}, getManifest: () => manifest,
       getURL: (p) => `chrome-extension://test/${p}`,
       sendMessage: async () => undefined,
@@ -833,6 +833,46 @@ for (const reduced of [false, true]) {
   await settle();
   const top = parseInt(doc.documentElement.querySelectorAll('knightloader-video-button')[0]?.style.top ?? '0', 10);
   if (top < 60) fail(`in an embedded player the button sits at ${top}px, over the title link along the top`);
+}
+
+// With more than one instance the popup asks where to: the button keeps
+// sending until the worker says what became of it, and a popup closed
+// without a pick takes it back to rest with nothing shown.
+{
+  const store = makeStore();
+  const { chrome } = makeChrome(store);
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') return { ...PAGE_LABELS, sending: 'Sending', failed: 'Could not send' };
+    if (msg.type === 'knightloader-video-send') return { result: 'asking' };
+    return undefined;
+  };
+  const { doc, run } = loadPage(chrome, 'https://www.youtube.com/watch?v=aqz-KE-bpKQ');
+  const player = doc.createElement('div');
+  doc.documentElement.append(player);
+  video(doc, player, { left: 0, top: 0, width: 1280, height: 720 });
+  run();
+  await settle();
+  const shadow = doc.documentElement.querySelectorAll('knightloader-video-button')[0]?.shadow;
+  const send = () => shadow.querySelectorAll('button').find((b) => b.className === 'send');
+  const frame = () => shadow.querySelectorAll('div').find((d) => d.className === 'kl');
+  const shows = () => `${frame()?.dataset.state} "${send().children.at(-1)?.textContent}"`;
+  const answer = (a) => { for (const f of chrome.runtime.onMessage.listeners) f({ type: 'knightloader-video-result', answer: a }, {}); };
+
+  send().fire('click');
+  await settle();
+  if (shows() !== 'sending "Sending"') fail(`while the popup asks the button shows ${shows()}, want sending`);
+  answer(null);
+  await settle();
+  if (shows() !== ' "Download"') fail(`after the popup closed without a pick the button shows ${shows()}, want it at rest`);
+  answer({ result: 'sent' });
+  await settle();
+  if (shows() !== ' "Download"') fail(`an answer nobody waits for shows ${shows()} on the button`);
+
+  send().fire('click');
+  await settle();
+  answer({ result: 'sent' });
+  await settle();
+  if (shows() !== 'sent "Sent"') fail(`after the popup's pick went through the button shows ${shows()}, want sent`);
 }
 
 if (problems.length) {

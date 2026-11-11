@@ -162,6 +162,8 @@
   let drop = 12;
   let playlist = false;
   let sending = false;
+  // While the popup asks which instance a send goes to.
+  let asking = false;
   let result = null;
   let resultTimer = 0;
   // What the instance said the video has: the address asked about, and its
@@ -427,6 +429,16 @@
     const answer = await chrome.runtime
       .sendMessage({ type: 'knightloader-video-send', href: location.href, pick: chosen, playlist })
       .catch(() => null);
+    // With more than one instance the popup asks where to, and what became
+    // of the send comes later in a message of its own.
+    if (answer?.result === 'asking') {
+      asking = true;
+      return;
+    }
+    showResult(answer);
+  }
+
+  function showResult(answer) {
     sending = false;
     result = RESULTS.includes(answer?.result) ? answer : { result: 'failed' };
     update();
@@ -811,6 +823,19 @@
   window.addEventListener('popstate', update);
   setInterval(update, 1000);
   matchMedia('(prefers-color-scheme: light)').addEventListener('change', update);
+
+  // The popup's answer, from the worker. None means it was closed without a
+  // pick, and the button goes back to rest with nothing to report.
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type !== 'knightloader-video-result' || !asking) return;
+    asking = false;
+    if (msg.answer) {
+      showResult(msg.answer);
+      return;
+    }
+    sending = false;
+    update();
+  });
 
   async function loadLabels() {
     labels = await chrome.runtime.sendMessage({ type: 'knightloader-video-labels' }).catch(() => null);

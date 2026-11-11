@@ -76,6 +76,10 @@
         color: var(--carbon-text-sub);
         overflow-wrap: anywhere;
       }
+      /* A video keeps to one line, and its name gives way before its parts. */
+      #target.videoTarget { display: flex; gap: 8px; white-space: nowrap; }
+      .videoName { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+      .videoParts { flex-shrink: 0; color: var(--carbon-text-muted); }
       /* Every button is --btn-h high and carries a glyph beside its label. */
       button {
         display: inline-flex;

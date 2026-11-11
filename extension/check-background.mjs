@@ -114,6 +114,7 @@ function makeChrome({ withMenus, scriptingThrows = false, granted = true }) {
     runtime: {
       onInstalled: event(),
       onMessage: event(),
+      onConnect: event(),
       onStartup: event(),
       openOptionsPage: () => { calls.openedOptions++; },
       getManifest: () => manifest,

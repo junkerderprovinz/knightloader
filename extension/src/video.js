@@ -366,6 +366,18 @@ function videoPage(href) {
   return page ? { site: site.id, ...page } : null;
 }
 
+/**
+ * What to call a video whose page gives no title, such as an embedded player:
+ * its site and its id, from the address videoPage settled on. Vimeo puts the
+ * key of an unlisted video after the id, the others end with it.
+ */
+function videoName(url) {
+  const u = new URL(url);
+  const path = u.pathname.split('/').filter(Boolean);
+  const id = u.searchParams.get('v') ?? (u.hostname === 'vimeo.com' ? path[0] : path.at(-1));
+  return `${u.hostname.replace(/^www\./, '')} · ${id}`;
+}
+
 /** Whether the stored switches show the button on a site. Off means the
  *  switch was turned off; nothing stored means on. */
 function videoButtonWanted(stored, siteId) {

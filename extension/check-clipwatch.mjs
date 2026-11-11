@@ -116,7 +116,7 @@ function background({ stopAnswer = false, alarms = new Map() } = {}) {
   const store = { clipWatch: true, clipWatcherId: 'ext-test' };
   const calls = [];
   const chrome = {
-    runtime: { onInstalled: event(), onMessage: event(), onStartup: event(), getURL: (p) => `chrome-extension://test/${p}`, getManifest: () => ({}) },
+    runtime: { onInstalled: event(), onMessage: event(), onStartup: event(), onConnect: event(), getURL: (p) => `chrome-extension://test/${p}`, getManifest: () => ({}) },
     storage: {
       onChanged: event(),
       local: {

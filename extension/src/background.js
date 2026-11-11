@@ -194,7 +194,8 @@ let parking = Promise.resolve();
 
 /**
  * Parks one send for the popup. A Click'n'Load batch that finds another still
- * parked joins it instead of replacing it.
+ * parked joins it instead of replacing it. A video it replaces has its button
+ * waiting, which is called off.
  */
 function park(entry) {
   const run = parking.then(async () => {
@@ -203,6 +204,7 @@ function park(entry) {
       entry.origin === 'cnl' && held?.origin === 'cnl'
         ? { ...entry, payload: joinCnlBatches(held.payload, entry.payload) }
         : entry;
+    if (held?.payload?.kind === 'video') answerVideoButton(held.payload, null);
     await chrome.storage.session.set({ pendingSend: joined });
   });
   parking = run.catch(() => {});
@@ -247,9 +249,11 @@ async function showPopupOrMark(pageUrl) {
  * deliver puts one payload into one instance through the relay. `text` carries
  * a whole batch; the server pulls every URL out of it, so a Click'n'Load batch
  * and a single link take the same path. `origin: 'cnl'` tells the collector it
- * came from the browser rather than the paste box.
+ * came from the browser rather than the paste box. A video from the button on
+ * its player goes its own way, with its choice, and its button reports it.
  */
 async function deliver(target, payload) {
+  if (payload.kind === 'video') return deliverVideo(target, payload);
   const links = [payload.url, payload.text].filter(Boolean).join('\n\n');
   if (!links) return;
   try {

@@ -63,8 +63,8 @@ openOptionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage())
 let group = [];
 let chosen = null;
 /** A payload the service worker parked for this window: a Click'n'Load batch,
- *  or a right-clicked link that needed a choice. Null on an ordinary click on
- *  the toolbar button. */
+ *  or a right-clicked link or a video's button that needed a choice. Null on
+ *  an ordinary click on the toolbar button. */
 let pending = null;
 
 /**
@@ -95,10 +95,15 @@ function paintHues() {
   targetEl.hidden = false;
   void renderCnlAccess();
 
-  // A send parked by the service worker (a Click'n'Load batch or a right-click
-  // that needs a choice) takes precedence over the current tab. It is read
-  // once, so a popup closed without choosing cannot resend it later.
+  // A send parked by the service worker (a Click'n'Load batch, or a
+  // right-click or a video's button that needs a choice) takes precedence
+  // over the current tab. It is read once, so a popup closed without choosing
+  // cannot resend it later.
   const { pendingSend } = await chrome.storage.session.get('pendingSend');
+  // The port closing with the window tells the worker that a video's button
+  // was left without a pick. It opens before the send leaves storage, so no
+  // close goes unheard.
+  if (pendingSend?.payload?.kind === 'video') chrome.runtime.connect({ name: 'knightloader-video-pick' }).postMessage(pendingSend.payload);
   await chrome.storage.session.remove('pendingSend');
   pending = pendingSend ?? null;
 
@@ -109,7 +114,8 @@ function paintHues() {
     // The roster the service worker decided with comes along, so the choice is
     // offered over the same list.
     group = pending.siblings ?? [];
-    targetEl.textContent = pending.payload?.title || pending.payload?.url || pending.payload?.text || t('picker.untitled');
+    if (pending.payload?.kind === 'video') showVideoTarget(pending.payload);
+    else targetEl.textContent = pending.payload?.title || pending.payload?.url || pending.payload?.text || t('picker.untitled');
     label(sendBtn, t(sendLabelKey(pending)), glyph(G_SEND));
     if (group.length === 0) {
       statusEl.textContent = t('popup.noneOnline');
@@ -160,6 +166,19 @@ function paintHues() {
   watchStatus();
   showCollector();
 })();
+
+/** A video from the button on its player, in one line: its name, cut short
+ *  where it is long, and the parts it downloads. */
+function showVideoTarget(payload) {
+  const name = document.createElement('span');
+  name.className = 'videoName';
+  name.textContent = payload.title;
+  const parts = document.createElement('span');
+  parts.className = 'videoParts';
+  parts.textContent = payload.detail;
+  targetEl.classList.add('videoTarget');
+  targetEl.replaceChildren(name, parts);
+}
 
 /**
  * Keeps the status line live while the popup is open. A timer here rather than

@@ -489,6 +489,9 @@ jobs:
       - name: Video button
         run: node extension/check-video.mjs
 
+      - name: Video button with more than one instance
+        run: node extension/check-video-pick.mjs
+
       - name: Crypto window keyboard
         run: node extension/check-crypto-tab.mjs
 

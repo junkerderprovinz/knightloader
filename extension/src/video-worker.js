@@ -1,8 +1,8 @@
 // The service worker's half of the download button on a video's player
 // (video.js): it registers the button on the sites it runs on, brings it into
-// tabs that were open before, and sends the video a button asks for to the
-// default instance, the one a send goes to without asking, since the button is
-// one click.
+// tabs that were open before, and sends the video a button asks for: straight
+// to the one instance online, or through the popup's choice where there are
+// more.
 //
 // Loaded by background.js.
 
@@ -129,42 +129,133 @@ function videoResult(answer) {
 }
 
 /**
- * Sends the video of the page a button sits on, to download at once whatever
- * the instance does with links added otherwise. The address is worked out
- * here again from the page's own, on the site the message came from, so a
- * button can only ever send the video it is showing, and the pick is cleaned
- * of anything the instance would refuse. Answers what became of it, for the
- * button to show.
+ * What a button may send: the address is worked out here again from the
+ * page's own, on the site the message came from, so a button can only ever
+ * send the video it is showing, and the pick is cleaned of anything the
+ * instance would refuse. Null for a send the button may not make.
  */
-async function sendVideo(frameUrl, msg) {
+async function videoSend(frameUrl, msg) {
   const page = videoPage(msg.href);
-  if (!page || page.site !== videoSiteOf(frameUrl)?.id) return { result: 'refused' };
-  if (!(await videoButtonState()).running.includes(page.site)) return { result: 'refused' };
+  if (!page || page.site !== videoSiteOf(frameUrl)?.id) return null;
+  if (!(await videoButtonState()).running.includes(page.site)) return null;
   const link = msg.playlist && page.playlist ? page.playlist : page.url;
-  const choice = videoChoice(videoPick(msg.pick));
+  return { page, link, choice: videoChoice(videoPick(msg.pick)) };
+}
+
+/** Adds the video to one instance, to download at once whatever the instance
+ *  does with links added otherwise. */
+async function postVideo(call, target, send) {
+  const res = await call(
+    target,
+    'POST',
+    '/api/links',
+    JSON.stringify({ links: send.link, package: '', origin: 'cnl', source: send.page.url, choice: send.choice, start: true, report: true }),
+  );
+  if (res.status < 200 || res.status >= 300) return { result: 'refused', reason: t(refusalKey(res)) };
   try {
-    return await withGroup(async ({ siblings, call }) => {
-      const target = defaultOf(siblings, await readDefaultTarget());
-      if (!target) return { result: 'offline' };
-      const res = await call(
-        target,
-        'POST',
-        '/api/links',
-        JSON.stringify({ links: link, package: '', origin: 'cnl', source: page.url, choice, start: true, report: true }),
-      );
-      if (res.status < 200 || res.status >= 300) return { result: 'refused', reason: t(refusalKey(res)) };
-      try {
-        return videoResult(JSON.parse(res.body));
-      } catch {
-        return { result: 'refused' };
-      }
-    });
-  } catch (e) {
-    if (e?.code === 'no-phrase') return { result: 'unpaired' };
-    const key = { 'relay-unreachable': 'send.relayFailed', 'no-answer': 'options.followFailed' }[e?.code];
-    return key ? { result: 'failed', reason: t(key) } : { result: 'failed' };
+    return videoResult(JSON.parse(res.body));
+  } catch {
+    return { result: 'refused' };
   }
 }
+
+function videoFailure(e) {
+  if (e?.code === 'no-phrase') return { result: 'unpaired' };
+  const key = { 'relay-unreachable': 'send.relayFailed', 'no-answer': 'options.followFailed' }[e?.code];
+  return key ? { result: 'failed', reason: t(key) } : { result: 'failed' };
+}
+
+/**
+ * Sends the video of the page a button sits on and answers what became of
+ * it, for the button to show. With more than one instance online the popup
+ * asks where to, as it does for a right-clicked link, and the answer is
+ * `asking`; the button hears the rest from answerVideoButton. `sender` is the
+ * frame that asked, where that answer goes.
+ */
+async function sendVideo(frameUrl, msg, sender) {
+  const send = await videoSend(frameUrl, msg);
+  if (!send) return { result: 'refused' };
+  try {
+    return await withGroup(async ({ siblings, call }) => {
+      if (siblings.length > 1) return askVideoTarget(siblings, send, msg, sender);
+      const target = defaultOf(siblings, await readDefaultTarget());
+      if (!target) return { result: 'offline' };
+      return postVideo(call, target, send);
+    });
+  } catch (e) {
+    return videoFailure(e);
+  }
+}
+
+/**
+ * Parks the video for the popup and opens it. The message goes along as the
+ * button sent it, since it is checked again on its way out. Only a top
+ * frame's tab title names the video; an embedded player's tab is the page
+ * around it.
+ */
+async function askVideoTarget(siblings, send, msg, sender) {
+  await loadLanguage();
+  const pick = videoPick(msg.pick);
+  const playlist = send.link === send.page.playlist;
+  const parts = new Intl.ListFormat(currentLanguage(), { style: 'short', type: 'unit' }).format(pick.parts.map((p) => t(VIDEO_PART_KEYS[p])));
+  const payload = {
+    kind: 'video',
+    href: msg.href,
+    pick,
+    playlist,
+    frameUrl: sender.url,
+    tabId: sender.tab.id,
+    frameId: sender.frameId,
+    title: (sender.frameId === 0 && sender.tab.title) || videoName(send.page.url),
+    detail: playlist ? `${t('video.playlist')} · ${parts}` : parts,
+  };
+  await park({ payload, defaultName: await readDefaultTarget(), siblings, origin: '' });
+  await showPopupOrMark(sender.tab.url);
+  return { result: 'asking' };
+}
+
+/**
+ * Sends a parked video to the instance picked in the popup and tells the
+ * button. The frame is marked before anything is awaited, so the popup
+ * closing right after its hand-over does not call the button off.
+ */
+async function deliverVideo(target, v) {
+  videoPicked.add(videoFrameKey(v));
+  let answer;
+  try {
+    const send = await videoSend(v.frameUrl, v);
+    answer = send ? await withGroup(({ call }) => postVideo(call, target, send)) : { result: 'refused' };
+  } catch (e) {
+    answer = videoFailure(e);
+  }
+  answerVideoButton(v, answer);
+}
+
+/** Tells the button that asked what became of its video; null calls it off,
+ *  and the button goes back to rest. */
+function answerVideoButton(v, answer) {
+  chrome.tabs.sendMessage(v.tabId, { type: 'knightloader-video-result', answer }, { frameId: v.frameId }).catch(() => {});
+}
+
+const videoFrameKey = (v) => `${v.tabId}/${v.frameId}`;
+
+/** The frames whose video the popup sent, which its closing must not call
+ *  off. */
+const videoPicked = new Set();
+
+// An open popup holding a video keeps a port to the worker. It closing
+// without a pick is the only word of that, and the button waits until then.
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name !== 'knightloader-video-pick' || !String(port.sender?.url ?? '').startsWith(chrome.runtime.getURL(''))) return;
+  let asked = null;
+  port.onMessage.addListener((v) => {
+    if (v?.kind === 'video') asked = v;
+  });
+  port.onDisconnect.addListener(() => {
+    if (!asked) return;
+    if (!videoPicked.delete(videoFrameKey(asked))) answerVideoButton(asked, null);
+  });
+});
 
 /**
  * What the menu offers for the video of the page a button sits on: what the
@@ -210,7 +301,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg?.type === 'knightloader-video-send') {
-    void sendVideo(sender.url, msg).then(sendResponse);
+    void sendVideo(sender.url, msg, sender).then(sendResponse);
     return true;
   }
   if (msg?.type === 'knightloader-video-formats') {

@@ -45,7 +45,7 @@ function makeChrome({ chromium = true, granted = true } = {}) {
   if (chromium) downloads.onDeterminingFilename = event();
   const chrome = {
     runtime: {
-      onInstalled: event(), onMessage: event(), onStartup: event(),
+      onInstalled: event(), onMessage: event(), onStartup: event(), onConnect: event(),
       openOptionsPage() {}, getManifest: () => manifest,
       getURL: (p) => `chrome-extension://test/${p}`,
     },

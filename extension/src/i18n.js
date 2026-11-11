@@ -255,6 +255,7 @@ const MESSAGES = {
     'options.clipKind.web': `web interface`,
     'options.clipKind.extension': `browser extension`,
     'options.clipKind.desktop': `desktop app`,
+    'popup.sendVideo': `Send this video`,
   },
   de: {
     'common.settings': `Einstellungen`,
@@ -453,6 +454,7 @@ const MESSAGES = {
     'options.clipKind.web': `Weboberfläche`,
     'options.clipKind.extension': `Browsererweiterung`,
     'options.clipKind.desktop': `Desktop-App`,
+    'popup.sendVideo': `Dieses Video senden`,
   },
   fr: {
     'common.settings': `Paramètres`,
@@ -651,6 +653,7 @@ const MESSAGES = {
     'options.clipKind.web': `interface web`,
     'options.clipKind.extension': `extension de navigateur`,
     'options.clipKind.desktop': `application de bureau`,
+    'popup.sendVideo': `Envoyer cette vidéo`,
   },
   es: {
     'common.settings': `Ajustes`,
@@ -849,6 +852,7 @@ const MESSAGES = {
     'options.clipKind.web': `interfaz web`,
     'options.clipKind.extension': `extensión del navegador`,
     'options.clipKind.desktop': `aplicación de escritorio`,
+    'popup.sendVideo': `Enviar este vídeo`,
   },
   it: {
     'common.settings': `Impostazioni`,
@@ -1047,6 +1051,7 @@ const MESSAGES = {
     'options.clipKind.web': `interfaccia web`,
     'options.clipKind.extension': `estensione del browser`,
     'options.clipKind.desktop': `app desktop`,
+    'popup.sendVideo': `Invia questo video`,
   },
   pt: {
     'common.settings': `Definições`,
@@ -1245,6 +1250,7 @@ const MESSAGES = {
     'options.clipKind.web': `interface web`,
     'options.clipKind.extension': `extensão do navegador`,
     'options.clipKind.desktop': `aplicação de ambiente de trabalho`,
+    'popup.sendVideo': `Enviar este vídeo`,
   },
   nl: {
     'common.settings': `Instellingen`,
@@ -1443,6 +1449,7 @@ const MESSAGES = {
     'options.clipKind.web': `webinterface`,
     'options.clipKind.extension': `browserextensie`,
     'options.clipKind.desktop': `desktop-app`,
+    'popup.sendVideo': `Deze video verzenden`,
   },
   pl: {
     'common.settings': `Ustawienia`,
@@ -1641,6 +1648,7 @@ const MESSAGES = {
     'options.clipKind.web': `interfejs webowy`,
     'options.clipKind.extension': `rozszerzenie przeglądarki`,
     'options.clipKind.desktop': `aplikacja na komputer`,
+    'popup.sendVideo': `Wyślij to wideo`,
   },
   ru: {
     'common.settings': `Настройки`,
@@ -1839,6 +1847,7 @@ const MESSAGES = {
     'options.clipKind.web': `веб-интерфейс`,
     'options.clipKind.extension': `расширение браузера`,
     'options.clipKind.desktop': `настольное приложение`,
+    'popup.sendVideo': `Отправить это видео`,
   },
   uk: {
     'common.settings': `Налаштування`,
@@ -2037,6 +2046,7 @@ const MESSAGES = {
     'options.clipKind.web': `вебінтерфейс`,
     'options.clipKind.extension': `розширення браузера`,
     'options.clipKind.desktop': `настільний застосунок`,
+    'popup.sendVideo': `Надіслати це відео`,
   },
   cs: {
     'common.settings': `Nastavení`,
@@ -2235,6 +2245,7 @@ const MESSAGES = {
     'options.clipKind.web': `webové rozhraní`,
     'options.clipKind.extension': `rozšíření prohlížeče`,
     'options.clipKind.desktop': `aplikace pro počítač`,
+    'popup.sendVideo': `Odeslat toto video`,
   },
   sv: {
     'common.settings': `Inställningar`,
@@ -2433,6 +2444,7 @@ const MESSAGES = {
     'options.clipKind.web': `webbgränssnitt`,
     'options.clipKind.extension': `webbläsartillägg`,
     'options.clipKind.desktop': `skrivbordsapp`,
+    'popup.sendVideo': `Skicka den här videon`,
   },
   da: {
     'common.settings': `Indstillinger`,
@@ -2631,6 +2643,7 @@ const MESSAGES = {
     'options.clipKind.web': `webbrugerflade`,
     'options.clipKind.extension': `browserudvidelse`,
     'options.clipKind.desktop': `skrivebordsapp`,
+    'popup.sendVideo': `Send denne video`,
   },
   fi: {
     'common.settings': `Asetukset`,
@@ -2829,6 +2842,7 @@ const MESSAGES = {
     'options.clipKind.web': `verkkokäyttöliittymä`,
     'options.clipKind.extension': `selainlaajennus`,
     'options.clipKind.desktop': `työpöytäsovellus`,
+    'popup.sendVideo': `Lähetä tämä video`,
   },
   no: {
     'common.settings': `Innstillinger`,
@@ -3027,6 +3041,7 @@ const MESSAGES = {
     'options.clipKind.web': `nettgrensesnitt`,
     'options.clipKind.extension': `nettleserutvidelse`,
     'options.clipKind.desktop': `skrivebordsapp`,
+    'popup.sendVideo': `Send denne videoen`,
   },
   tr: {
     'common.settings': `Ayarlar`,
@@ -3225,6 +3240,7 @@ const MESSAGES = {
     'options.clipKind.web': `web arayüzü`,
     'options.clipKind.extension': `tarayıcı eklentisi`,
     'options.clipKind.desktop': `masaüstü uygulaması`,
+    'popup.sendVideo': `Bu videoyu gönder`,
   },
   ar: {
     'common.settings': `الإعدادات`,
@@ -3423,6 +3439,7 @@ const MESSAGES = {
     'options.clipKind.web': `واجهة الويب`,
     'options.clipKind.extension': `امتداد المتصفح`,
     'options.clipKind.desktop': `تطبيق سطح المكتب`,
+    'popup.sendVideo': `إرسال هذا الفيديو`,
   },
   bg: {
     'common.settings': `Настройки`,
@@ -3621,6 +3638,7 @@ const MESSAGES = {
     'options.clipKind.web': `уеб интерфейс`,
     'options.clipKind.extension': `разширение за браузър`,
     'options.clipKind.desktop': `настолно приложение`,
+    'popup.sendVideo': `Изпрати това видео`,
   },
   ca: {
     'common.settings': `Configuració`,
@@ -3819,6 +3837,7 @@ const MESSAGES = {
     'options.clipKind.web': `interfície web`,
     'options.clipKind.extension': `extensió del navegador`,
     'options.clipKind.desktop': `aplicació d'escriptori`,
+    'popup.sendVideo': `Envia aquest vídeo`,
   },
   el: {
     'common.settings': `Ρυθμίσεις`,
@@ -4017,6 +4036,7 @@ const MESSAGES = {
     'options.clipKind.web': `διεπαφή ιστού`,
     'options.clipKind.extension': `επέκταση προγράμματος περιήγησης`,
     'options.clipKind.desktop': `εφαρμογή υπολογιστή`,
+    'popup.sendVideo': `Αποστολή αυτού του βίντεο`,
   },
   et: {
     'common.settings': `Seaded`,
@@ -4215,6 +4235,7 @@ const MESSAGES = {
     'options.clipKind.web': `veebiliides`,
     'options.clipKind.extension': `brauserilaiend`,
     'options.clipKind.desktop': `töölauarakendus`,
+    'popup.sendVideo': `Saada see video`,
   },
   eu: {
     'common.settings': `Ezarpenak`,
@@ -4413,6 +4434,7 @@ const MESSAGES = {
     'options.clipKind.web': `web interfaze`,
     'options.clipKind.extension': `nabigatzailearen hedapena`,
     'options.clipKind.desktop': `mahaigaineko aplikazioa`,
+    'popup.sendVideo': `Bidali bideo hau`,
   },
   fa: {
     'common.settings': `تنظیمات`,
@@ -4611,6 +4633,7 @@ const MESSAGES = {
     'options.clipKind.web': `رابط وب`,
     'options.clipKind.extension': `افزونهٔ مرورگر`,
     'options.clipKind.desktop': `برنامهٔ رومیزی`,
+    'popup.sendVideo': `ارسال این ویدیو`,
   },
   gl: {
     'common.settings': `Configuración`,
@@ -4809,6 +4832,7 @@ const MESSAGES = {
     'options.clipKind.web': `interface web`,
     'options.clipKind.extension': `extensión do navegador`,
     'options.clipKind.desktop': `aplicación de escritorio`,
+    'popup.sendVideo': `Enviar este vídeo`,
   },
   he: {
     'common.settings': `הגדרות`,
@@ -5007,6 +5031,7 @@ const MESSAGES = {
     'options.clipKind.web': `ממשק אינטרנט`,
     'options.clipKind.extension': `תוסף דפדפן`,
     'options.clipKind.desktop': `יישום שולחני`,
+    'popup.sendVideo': `שלח סרטון זה`,
   },
   hi: {
     'common.settings': `सेटिंग्स`,
@@ -5205,6 +5230,7 @@ const MESSAGES = {
     'options.clipKind.web': `वेब इंटरफ़ेस`,
     'options.clipKind.extension': `ब्राउज़र एक्सटेंशन`,
     'options.clipKind.desktop': `डेस्कटॉप ऐप`,
+    'popup.sendVideo': `यह वीडियो भेजें`,
   },
   hr: {
     'common.settings': `Postavke`,
@@ -5403,6 +5429,7 @@ const MESSAGES = {
     'options.clipKind.web': `web sučelje`,
     'options.clipKind.extension': `proširenje preglednika`,
     'options.clipKind.desktop': `aplikacija za računalo`,
+    'popup.sendVideo': `Pošalji ovaj video`,
   },
   hu: {
     'common.settings': `Beállítások`,
@@ -5601,6 +5628,7 @@ const MESSAGES = {
     'options.clipKind.web': `webes felület`,
     'options.clipKind.extension': `böngészőbővítmény`,
     'options.clipKind.desktop': `asztali alkalmazás`,
+    'popup.sendVideo': `Ezen videó küldése`,
   },
   id: {
     'common.settings': `Pengaturan`,
@@ -5799,6 +5827,7 @@ const MESSAGES = {
     'options.clipKind.web': `antarmuka web`,
     'options.clipKind.extension': `ekstensi browser`,
     'options.clipKind.desktop': `aplikasi desktop`,
+    'popup.sendVideo': `Kirim video ini`,
   },
   is: {
     'common.settings': `Stillingar`,
@@ -5997,6 +6026,7 @@ const MESSAGES = {
     'options.clipKind.web': `vefviðmót`,
     'options.clipKind.extension': `vafraviðbót`,
     'options.clipKind.desktop': `skjáborðsforrit`,
+    'popup.sendVideo': `Senda þetta myndskeið`,
   },
   ja: {
     'common.settings': `設定`,
@@ -6195,6 +6225,7 @@ const MESSAGES = {
     'options.clipKind.web': `ウェブインターフェース`,
     'options.clipKind.extension': `ブラウザ拡張機能`,
     'options.clipKind.desktop': `デスクトップアプリ`,
+    'popup.sendVideo': `この動画を送信`,
   },
   ko: {
     'common.settings': `설정`,
@@ -6393,6 +6424,7 @@ const MESSAGES = {
     'options.clipKind.web': `웹 인터페이스`,
     'options.clipKind.extension': `브라우저 확장 프로그램`,
     'options.clipKind.desktop': `데스크톱 앱`,
+    'popup.sendVideo': `이 동영상 보내기`,
   },
   lt: {
     'common.settings': `Nustatymai`,
@@ -6591,6 +6623,7 @@ const MESSAGES = {
     'options.clipKind.web': `interneto sąsaja`,
     'options.clipKind.extension': `naršyklės priedas`,
     'options.clipKind.desktop': `kompiuterio programa`,
+    'popup.sendVideo': `Siųsti šį vaizdo įrašą`,
   },
   lv: {
     'common.settings': `Iestatījumi`,
@@ -6789,6 +6822,7 @@ const MESSAGES = {
     'options.clipKind.web': `tīmekļa saskarne`,
     'options.clipKind.extension': `pārlūka paplašinājums`,
     'options.clipKind.desktop': `darbvirsmas lietotne`,
+    'popup.sendVideo': `Sūtīt šo video`,
   },
   ms: {
     'common.settings': `Tetapan`,
@@ -6987,6 +7021,7 @@ const MESSAGES = {
     'options.clipKind.web': `antara muka web`,
     'options.clipKind.extension': `sambungan pelayar`,
     'options.clipKind.desktop': `aplikasi desktop`,
+    'popup.sendVideo': `Hantar video ini`,
   },
   ro: {
     'common.settings': `Setări`,
@@ -7185,6 +7220,7 @@ const MESSAGES = {
     'options.clipKind.web': `interfață web`,
     'options.clipKind.extension': `extensie de browser`,
     'options.clipKind.desktop': `aplicație de birou`,
+    'popup.sendVideo': `Trimite acest videoclip`,
   },
   sk: {
     'common.settings': `Nastavenia`,
@@ -7383,6 +7419,7 @@ const MESSAGES = {
     'options.clipKind.web': `webové rozhranie`,
     'options.clipKind.extension': `rozšírenie prehliadača`,
     'options.clipKind.desktop': `aplikácia pre počítač`,
+    'popup.sendVideo': `Odoslať toto video`,
   },
   sl: {
     'common.settings': `Nastavitve`,
@@ -7581,6 +7618,7 @@ const MESSAGES = {
     'options.clipKind.web': `spletni vmesnik`,
     'options.clipKind.extension': `razširitev za brskalnik`,
     'options.clipKind.desktop': `namizna aplikacija`,
+    'popup.sendVideo': `Pošlji ta videoposnetek`,
   },
   sr: {
     'common.settings': `Подешавања`,
@@ -7779,6 +7817,7 @@ const MESSAGES = {
     'options.clipKind.web': `веб интерфејс`,
     'options.clipKind.extension': `проширење за прегледач`,
     'options.clipKind.desktop': `десктоп апликација`,
+    'popup.sendVideo': `Пошаљи овај видео`,
   },
   th: {
     'common.settings': `การตั้งค่า`,
@@ -7977,6 +8016,7 @@ const MESSAGES = {
     'options.clipKind.web': `เว็บอินเทอร์เฟซ`,
     'options.clipKind.extension': `ส่วนขยายเบราว์เซอร์`,
     'options.clipKind.desktop': `แอปเดสก์ท็อป`,
+    'popup.sendVideo': `ส่งวิดีโอนี้`,
   },
   vi: {
     'common.settings': `Cài đặt`,
@@ -8175,6 +8215,7 @@ const MESSAGES = {
     'options.clipKind.web': `giao diện web`,
     'options.clipKind.extension': `tiện ích mở rộng trình duyệt`,
     'options.clipKind.desktop': `ứng dụng máy tính`,
+    'popup.sendVideo': `Gửi video này`,
   },
   zh: {
     'common.settings': `设置`,
@@ -8373,6 +8414,7 @@ const MESSAGES = {
     'options.clipKind.web': `网页界面`,
     'options.clipKind.extension': `浏览器扩展`,
     'options.clipKind.desktop': `桌面应用`,
+    'popup.sendVideo': `发送此视频`,
   },
 };
 
