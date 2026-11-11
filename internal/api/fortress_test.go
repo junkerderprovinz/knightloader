@@ -3,18 +3,21 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"slices"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/junkerderprovinz/parleyport/kit/fortress"
 	"github.com/junkerderprovinz/parleyport/kit/group"
+	"github.com/junkerderprovinz/parleyport/kit/lan"
 	"github.com/junkerderprovinz/parleyport/kit/member"
 	"github.com/junkerderprovinz/parleyport/kit/phrase"
 	"github.com/junkerderprovinz/parleyport/kit/relay"
@@ -357,5 +360,85 @@ func TestOnlyAPhoneOrABrowserAsksForTheMovedKeys(t *testing.T) {
 
 	if code, raw := call(http.MethodGet, movedPath, nil); code != http.StatusNotFound {
 		t.Errorf("before any move the phone was answered %d %s", code, raw)
+	}
+}
+
+// announceOf is the announce instance id makes on the network for the
+// pairing of secret, tagged as kit/group tags it.
+func announceOf(secret []byte, id string) lan.Peer {
+	p := lan.Peer{ID: id, Name: "Attic", URL: "http://attic.home.arpa:8749", Deployment: "container", Sent: time.Now().Unix()}
+	mac := hmac.New(sha256.New, federation.Domain.PeerAuthKey(secret))
+	mac.Write([]byte("announce\x00" + p.ID + "\x00" + p.URL + "\x00" + p.Name + "\x00" + p.Deployment + "\x00" + p.Address + "\x00" + strconv.FormatInt(p.Sent, 10)))
+	p.Tag = hex.EncodeToString(mac.Sum(nil))
+	return p
+}
+
+func TestTheGroupOnTheOldPhraseLeavesThePairingOnTheNetwork(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	relayURL := ownRelay(t, a, srv.URL)
+	network := lan.New(federation.LAN)
+	t.Cleanup(func() { _ = network.Close() })
+	a.SetDiscovery(network)
+	phraseGroup(t, a)
+	applyRelay(a)
+	approve(t, a, "phone", member.KindMobile)
+	secret, words := newWords(t)
+
+	if code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/fortress/join", map[string]string{"phrase": words}); code != http.StatusOK {
+		t.Fatalf("join answered %d: %s", code, raw)
+	}
+	sibling := idAs("attic", member.KindInstance)
+	known := func() bool {
+		network.Observe(announceOf(secret, sibling))
+		return slices.ContainsFunc(network.Members(), func(p lan.Peer) bool { return p.ID == sibling })
+	}
+	if !known() {
+		t.Fatal("beside the group on the old phrase the pairing does not know its members on the network")
+	}
+
+	waitFor(t, "the instance on the relay", a.Federation.RelayConnected)
+	phone := idAs("phone", member.KindMobile)
+	if code, raw := relayCall(t, relayURL, secret, phone, groupID(a), keyOf("phone"),
+		relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: phone, Kind: member.KindMobile}); code != http.StatusOK {
+		t.Fatalf("the phone on the fortress's keys answered %d %s", code, raw)
+	}
+	waitFor(t, "the old phrase to go once the phone followed", func() bool { return groupSecret(a) == nil })
+	if !known() {
+		t.Error("closing the group on the old phrase took the pairing off the network")
+	}
+}
+
+func TestAPhoneOnTheOldPhraseFetchesTheMovedKeysOnThisNetwork(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	ownRelay(t, a, srv.URL)
+	phraseGroup(t, a)
+	applyRelay(a)
+	approve(t, a, "phone", member.KindMobile)
+	secret, words := newWords(t)
+
+	if code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/fortress/join", map[string]string{"phrase": words}); code != http.StatusOK {
+		t.Fatalf("join answered %d: %s", code, raw)
+	}
+	// The kit's route, which phones and browsers ask, and the one older ones
+	// still do.
+	code, raw := deviceCall(t, a, idAs("phone", member.KindMobile), member.KindMobile, keyOf("phone"),
+		relay.ProxyCall{Method: http.MethodGet, Path: "/kit/fortress/v1/moved"})
+	var moved struct {
+		Group    string `json:"group"`
+		Frame    []byte `json:"frame"`
+		PeerAuth []byte `json:"peerAuth"`
+	}
+	_ = json.Unmarshal(raw, &moved)
+	if code != http.StatusOK || moved.Group != federation.Domain.GroupKey(secret) ||
+		!bytes.Equal(moved.Frame, federation.Domain.FrameKey(secret)) || !bytes.Equal(moved.PeerAuth, federation.Domain.PeerAuthKey(secret)) {
+		t.Fatalf("the kit's moved keys answered %d %s", code, raw)
+	}
+	if code, raw := deviceCall(t, a, idAs("phone", member.KindMobile), member.KindMobile, keyOf("phone"),
+		relay.ProxyCall{Method: http.MethodGet, Path: movedPath}); code != http.StatusOK {
+		t.Errorf("the moved keys on the older route answered %d %s", code, raw)
 	}
 }

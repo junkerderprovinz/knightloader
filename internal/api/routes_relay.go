@@ -22,6 +22,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/parleyport/kit/fortress"
 	"github.com/junkerderprovinz/parleyport/kit/group"
+	"github.com/junkerderprovinz/parleyport/kit/lan"
 	"github.com/junkerderprovinz/parleyport/kit/member"
 	"github.com/junkerderprovinz/parleyport/kit/phrase"
 	"github.com/junkerderprovinz/parleyport/kit/relay"
@@ -106,6 +107,10 @@ func registerRelay(reg *Registry, a *app.App) {
 	reg.AddOpen(http.MethodPost, group.DirectPath,
 		"a call from another member of this instance's phrase group on the same network - authorised by the group's keys, never by a session",
 		func(w http.ResponseWriter, r *http.Request) {
+			if f := fortressOf(a); f != nil {
+				f.direct.ServeHTTP(w, r)
+				return
+			}
 			g := a.Federation.Group()
 			if g == nil {
 				http.NotFound(w, r)
@@ -293,7 +298,7 @@ func regroup(a *app.App, change func() error) error {
 		var err error
 		if secret := fortressSecret(a); secret != nil {
 			g, err = openFortress(a, secret)
-		} else if pg, perr := openPhraseGroup(a); pg != nil {
+		} else if pg, perr := openPhraseGroup(a, a.Discovery()); pg != nil {
 			g, err = pg, perr
 		} else {
 			err = perr
@@ -306,18 +311,24 @@ func regroup(a *app.App, change func() error) error {
 	return err
 }
 
-// openPhraseGroup opens the group the stored phrase makes, nil outside one.
-// A group that has never been opened here takes over what group.json holds
-// from releases before kit/group. An instance in a fortress keeps it open
-// until every member followed, and an instance of the group that joins a
-// fortress hands the fortress phrase over through it (moveKeeper).
-func openPhraseGroup(a *app.App) (*group.Group, error) {
+// openPhraseGroup opens the group the stored phrase makes, nil outside one,
+// announcing it on network. A group that has never been opened here takes
+// over what group.json holds from releases before kit/group. An instance in a
+// fortress keeps it open until every member followed, handing the phones and
+// browsers the keys of the pairing there, and an instance of the group that
+// joins a fortress hands the fortress phrase over through it (moveKeeper).
+func openPhraseGroup(a *app.App, network *lan.Service) (*group.Group, error) {
 	secret := groupSecret(a)
 	serve := a.SelfServeHandler()
 	if secret == nil || serve == nil {
 		return nil, nil
 	}
-	members := fortress.Moving(memberHandler(a, serve), moveKeeper{a})
+	members := fortress.Moved(fortress.Moving(memberHandler(a, serve), moveKeeper{a}), func() *fortress.Fortress {
+		if g := fortressOf(a); g != nil {
+			return g.f
+		}
+		return nil
+	})
 	identity := memberKey(a)
 	if identity == nil {
 		return nil, nil
@@ -329,6 +340,7 @@ func openPhraseGroup(a *app.App) (*group.Group, error) {
 	}
 	mode, url := relayOf(a)
 	cfg := pairingConfig(a, serve, store)
+	cfg.LAN = network
 	cfg.Domain = federation.Domain
 	cfg.Secret = secret
 	cfg.Identity = *identity

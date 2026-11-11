@@ -46,7 +46,8 @@ var fortressLAN = true
 var followEvery = 15 * time.Second
 
 // movedPath is where a phone or a browser on the old phrase asks for the
-// keys of the pairing in the fortress.
+// keys of the pairing in the fortress. Newer ones ask kit/fortress's Moved,
+// which the group on the old phrase serves beside it (openPhraseGroup).
 const movedPath = "/api/group/peer/moved"
 
 var (
@@ -80,17 +81,30 @@ type fortressGroup struct {
 	f      *kitfortress.Fortress
 	lan    *lan.Service
 	secret []byte
-
-	// opened is when the pairing opened in the fortress. A phone or browser
-	// calls and hangs up, so a call since then counts as much as being online.
-	opened time.Time
+	// direct answers the direct calls of the fortress, the pairing and the
+	// group on the old phrase, which all arrive at group.DirectPath.
+	direct http.Handler
 
 	mu     sync.Mutex
-	former *group.Group
-	// met holds the members seen in the pairing since it moved, by id.
-	met  map[string]bool
-	stop chan struct{}
-	wg   sync.WaitGroup
+	former *formerGroup
+	stop   chan struct{}
+	wg     sync.WaitGroup
+}
+
+// formerGroup is the group on the old phrase beside the fortress. It
+// announces itself on a network service of its own, since closing a group
+// takes back what it announced and the pairing announces on a.Discovery().
+type formerGroup struct {
+	*group.Group
+	lan *lan.Service
+}
+
+func (f *formerGroup) Close() error {
+	err := f.Group.Close()
+	if f.lan != nil {
+		err = errors.Join(err, f.lan.Close())
+	}
+	return err
 }
 
 func (g *fortressGroup) Pairing() *group.Group { return g.f.Pairing() }
@@ -118,32 +132,22 @@ func (g *fortressGroup) Close() error {
 	return errors.Join(errs...)
 }
 
-func (g *fortressGroup) formerGroup() *group.Group {
+func (g *fortressGroup) formerGroup() *formerGroup {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	return g.former
 }
 
-// left names the approved members of the group on the old phrase that the
-// pairing has not met yet.
+// left names the approved members of the group on the old phrase that have
+// not followed it into the fortress yet.
 func (g *fortressGroup) left() []string {
 	former := g.formerGroup()
 	if former == nil {
 		return nil
 	}
-	online := g.f.Pairing().Members()
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	for _, m := range online {
-		if m.Online() || m.LastSeen.After(g.opened) {
-			g.met[m.ID] = true
-		}
-	}
 	var out []string
-	for _, m := range former.Members() {
-		if m.State == group.StateApproved && !g.met[m.ID] {
-			out = append(out, cmp.Or(m.Name, m.ID))
-		}
+	for _, m := range g.f.Left(former.Group) {
+		out = append(out, cmp.Or(m.Name, m.ID))
 	}
 	slices.Sort(out)
 	return out
@@ -169,7 +173,7 @@ func (g *fortressGroup) moveOn() bool {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	kitfortress.Move(ctx, former, g.secret)
+	kitfortress.Move(ctx, former.Group, g.secret)
 	return false
 }
 
@@ -244,7 +248,6 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 		l.Start()
 		cfg.LAN = l
 	}
-	opened := time.Now()
 	f, err := kitfortress.Open(cfg)
 	if err != nil {
 		if l != nil {
@@ -252,20 +255,40 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 		}
 		return nil, err
 	}
-	g := &fortressGroup{a: a, f: f, lan: l, secret: bytes.Clone(secret), opened: opened, met: map[string]bool{}, stop: make(chan struct{})}
+	g := &fortressGroup{a: a, f: f, lan: l, secret: bytes.Clone(secret), stop: make(chan struct{})}
+	var former *group.Group
 	if groupSecret(a) != nil {
-		former, err := openPhraseGroup(a)
-		if err != nil {
-			log.Printf("fortress: open the group on the old phrase: %v", err)
-		}
-		g.former = former
-		if former != nil {
+		g.former = openFormerGroup(a)
+		if g.former != nil {
+			former = g.former.Group
 			g.wg.Add(1)
 			go g.follow()
 		}
 	}
+	g.direct = f.DirectHandler(former)
 	a.SetFortress(f)
 	return g, nil
+}
+
+// openFormerGroup opens the group on the old phrase beside the fortress, nil
+// where there is none or it does not open.
+func openFormerGroup(a *app.App) *formerGroup {
+	var l *lan.Service
+	if fortressLAN && a.Discovery() != nil {
+		l = lan.New(federation.LAN)
+		l.Start()
+	}
+	g, err := openPhraseGroup(a, l)
+	if g == nil {
+		if err != nil {
+			log.Printf("fortress: open the group on the old phrase: %v", err)
+		}
+		if l != nil {
+			_ = l.Close()
+		}
+		return nil
+	}
+	return &formerGroup{Group: g, lan: l}
 }
 
 // fortressOf is the fortress this instance is in now, nil outside one.
