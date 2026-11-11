@@ -286,6 +286,15 @@ function loadBackground(chrome) {
   }
   if (run(`videoResolve(videoPick({ parts: ['thumbnail'], thumbFormat: 'best' }), offer).thumbFormat`) !== 'webp') fail('a video whose thumbnail is webp does not start the menu at WebP');
 
+  // MP3 and FLAC are conversions: they go as the audio format, without a
+  // track, whatever bitrate was picked, and a default naming one stays.
+  for (const audio of ['mp3', 'flac']) {
+    const sent = run(`videoChoice(videoExact(videoResolve(videoPick({ parts: ['audio'], audio: '${audio}', audioRate: '128k' }), offer), offer))`);
+    if (sent.audioFormat !== audio || 'audioTrack' in sent) fail(`a pick of ${audio} sends ${JSON.stringify(sent)}, want the format alone`);
+  }
+  if (!same(run('VIDEO_AUDIO_MENU'), ['aac', 'opus', 'mp3', 'flac'])) fail(`the audio formats offered are ${run('VIDEO_AUDIO_MENU')}, want AAC, Opus, MP3 and FLAC`);
+  if (!same(run(`videoOffer({ ...answer, subtitleFormats: ['vtt', 'srv3'] }).subtitleFormats`), ['vtt', 'srv3'])) fail('the offer forgets which subtitle formats the host serves');
+
   // An instance that converts thumbnails lists the formats it writes, and
   // the pick goes to it as thumbnailFormat: JPEG unless another is wanted.
   // One that only names the served picture is sent no format, so it keeps
@@ -761,7 +770,7 @@ function loadPage(chrome, href, { reduced = false } = {}) {
 }
 
 const PAGE_LABELS = {
-  send: 'Download', sendTip: 'Send', more: 'More', best: 'Best', language: 'Language', dubbed: 'dubbed', autoCaptions: 'Auto-generated', quality: 'Quality', format: 'Format',
+  send: 'Download', sendTip: 'Send', more: 'More', best: 'Best', language: 'Language', dubbed: 'dubbed', autoCaptions: 'auto', converted: 'converted', quality: 'Quality', format: 'Format',
   parts: { video: 'Video', audio: 'Audio', subtitle: 'Subtitles', thumbnail: 'Thumbnail', description: 'Text' },
   checking: 'Checking', unknown: 'Unknown', sent: 'Sent', already: 'Already there',
   mark: '<svg viewBox="0 0 587 901.8"></svg>', dir: 'ltr', lang: 'en',
@@ -840,7 +849,7 @@ const PAGE_LABELS = {
     videoSizes: { best: 404000000, '1080p': 303000000, '720p': 90000000 }, audioSizes: { 'aac 128k': 3000000 },
   });
   await settle();
-  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|H.264|MP4|[VP9]|WebM|Audio|[Subtitles]|Language|[de]|Auto-generated|en|Format|[SRT]|WebVTT|TTML|Thumbnail|Download';
+  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|H.264|MP4|[VP9]|WebM|Audio|[Subtitles]|Language|[German]|English|auto|Format|[SRT]|converted|WebVTT|TTML|Thumbnail|Download';
   if (entries().join('|') !== listed) fail(`the menu shows ${entries().join(', ')}, want ${listed}, made exact for the video and without the text it lacks`);
 
   // Each part is a switch, a quality a radio in a list, a format a radio in
@@ -863,7 +872,7 @@ const PAGE_LABELS = {
     const stops = radios(g).filter((r) => r.attrs.tabindex !== '-1');
     if (radios(g).some((r) => r.attrs.role !== 'radio') || stops.length !== 1 || stops[0] !== picked(g)) fail(`a radio group has ${stops.length} tab stops, want its picked radio alone`);
   }
-  if (withRole('checkbox').map((c) => `${c.text}:${c.attrs['aria-checked']}`).join('|') !== 'de:true|en:false') fail('the subtitle languages are not checkboxes with their state');
+  if (withRole('checkbox').map((c) => `${c.text}:${c.attrs['aria-checked']}`).join('|') !== 'German:true|English:false') fail('the subtitle languages are not checkboxes named by their language, with their state');
   if (radios(groups[0]).find((r) => r.text === '720p')?.attrs['aria-label'] !== '720p, 90 MB') fail('a quality does not say its size to a screen reader');
   if (radios(groups[1]).find((r) => r.text === 'H.264')?.attrs['aria-label'] !== 'H.264, MP4') fail('a format does not say its container to a screen reader');
   // Video and subtitles are ticked, and subtitles have no size, so the
@@ -874,6 +883,17 @@ const PAGE_LABELS = {
   if (foot?.className !== 'foot' || foot.children.map((b) => b.text).join('|') !== 'Download') fail('Download is not alone at the foot of the menu, where it stays in view');
   const room = parseInt(menuEl().style['max-height'] ?? '0', 10);
   if (!(room > 460 && room <= 720)) fail(`the menu may grow to ${room}px, want the room the player leaves below the button`);
+  // On a page too narrow for it where it opens, such as a small embedded
+  // player, the menu moves back in view, 8px from the edge.
+  menuEl().rect = { left: -50, top: 100, width: 400, height: 600, right: 350, bottom: 700 };
+  doc.dispatch('scroll');
+  if (menuEl().style.transform !== 'translateX(58px)') fail(`a menu 50px past the page's left edge is moved by ${menuEl().style.transform}, want 58px`);
+  menuEl().rect = { left: 1000, top: 100, width: 400, height: 600, right: 1400, bottom: 700 };
+  doc.dispatch('scroll');
+  if (menuEl().style.transform !== 'translateX(-128px)') fail(`a menu 120px past the page's right edge is moved by ${menuEl().style.transform}, want -128px`);
+  menuEl().rect = { left: 400, top: 100, width: 400, height: 600, right: 800, bottom: 700 };
+  doc.dispatch('scroll');
+  if (menuEl().style.transform !== 'translateX(0px)') fail(`a menu in view is moved by ${menuEl().style.transform}`);
   const item = (text) => menuEl().querySelectorAll('button').find((b) => b.text === text);
   const off = (text) => item(text)?.disabled === true;
   // Best is a quality, never a format: a format row offers what the video
@@ -892,12 +912,19 @@ const PAGE_LABELS = {
   // or several can be picked; only the roles tell the two apart.
   const css = read('src', 'video-button.js');
   const rule = (selector) => css.slice(css.indexOf(`${selector} {`)).split('}')[0];
-  if (!/background: var\(--surface2\)/.test(rule('.menu .card')) || /box-shadow|border(?!-radius)/.test(rule('.menu .card'))) fail('a part is not a sub-card filled one surface up without a border');
+  if (!/background: var\(--surface2\)/.test(rule('.menu .card')) || /box-shadow|(^|[\s;])border(-top|-bottom|-left|-right|-width|-style|-color)?:/.test(rule('.menu .card'))) fail('a part is not a sub-card filled one surface up without a border');
   if (!/background: var\(--surface\)/.test(rule('    .menu'))) fail('the menu is not a window on the surface');
   if (/\.list[^{}]*::(before|after)/.test(css)) fail('a list of choices still draws a radio dot or a checkbox');
   // A part's name is its heading, an accent badge with rounded corners that
   // stays filled whether the part is on or off; the track beside it says which.
   const head = rule('.menu .switch');
+  // The heading sits half over the sub-card's top edge, as GlimStone's notch:
+  // the card's top padding plus half the badge's 22px pulls it up.
+  const cardTop = parseFloat(rule('.menu .card').match(/padding-top: (\d+)px/)?.[1]);
+  const pulled = parseFloat(head.match(/margin-top: -(\d+)px/)?.[1]);
+  if (!(pulled === cardTop + 11)) fail(`a part's heading is pulled up ${pulled}px over a ${cardTop}px top padding, want it centred on the card's edge`);
+  const width = parseFloat(rule('    .menu').match(/ width: (\d+)px/)?.[1]);
+  if (!(width >= 380 && width <= 420)) fail(`the menu is ${width}px wide, want 380 to 420`);
   if (!/background: var\(--accent\)/.test(head) || !/color: var\(--accent-contrast\)/.test(head) || !/text-transform: uppercase/.test(head) || !/border-radius: min\(var\(--radius\), 6px\)/.test(head)) fail('a part\'s name is not a filled heading badge with rounded corners');
   if (/opacity|var\(--sub\)/.test(head) || /\.switch\[aria-checked="(true|false)"\]\s*\{/.test(css)) fail('a part\'s heading badge changes with its switch');
   // Nothing in the menu draws a line round itself: sub-cards, tiles, format
@@ -911,7 +938,7 @@ const PAGE_LABELS = {
   // Every list of choices is one column, so it reads top to bottom like the
   // subtitle languages.
   const lists = menuEl().querySelectorAll('div').filter((d) => d.className === 'list');
-  if (lists.length !== 3 || lists.some((l) => l.style['grid-template-rows']) || /1fr 1fr/.test(read('src', 'video-button.js'))) fail('a list of choices in the menu is laid out in two columns');
+  if (lists.length !== 2 || lists.some((l) => l.style['grid-template-rows']) || /1fr 1fr/.test(read('src', 'video-button.js'))) fail('a list of choices in the menu is laid out in two columns');
 
   // The arrow keys move the pick and the keyboard together inside a group,
   // past a format the quality rules out and round the ends, and left and
@@ -937,11 +964,11 @@ const PAGE_LABELS = {
 
   item('Audio').fire('click');
   if (withRole('switch')[1]?.attrs['aria-checked'] !== 'true') fail('a click on the Audio switch does not turn it on');
-  const audioRows = 'Audio]|Quality|[Best]|160k|128k|3 MB|Format|AAC|[Opus]|';
+  const audioRows = 'Audio]|Quality|[Best]|160k|128k|3 MB|Format|AAC|[Opus]|MP3|converted|FLAC|converted|';
   if (!entries().join('|').includes(audioRows)) fail(`the audio part shows ${entries().join(', ')}, want ${audioRows}`);
   item('128k').fire('click');
   if (!off('Opus') || off('AAC')) fail('at 128k the audio format opus, which the video lacks there, is not off');
-  item('en').fire('click');
+  item('English').fire('click');
   item('WebVTT').fire('click');
   item('Thumbnail').fire('click');
   // A thumbnail the host has in one format only says which. A row of one
@@ -970,6 +997,9 @@ const PAGE_LABELS = {
   if (goShows() !== 'Download') fail(`with the best audio's size unknown the download button reads "${goShows()}", want no total`);
   item('128k').fire('click');
   if (goShows() !== 'Download · 407 MB') fail(`with video and the 128k audio the download button reads "${goShows()}", want 407 MB`);
+  // A conversion has no size until it is made, so the button weighs nothing.
+  item('MP3').fire('click');
+  if (goShows() !== 'Download' || !entries().join('|').includes('Quality|[Best]|')) fail(`with MP3 picked the menu shows ${entries().join(', ')} and the button reads "${goShows()}", want Best and no total`);
   item('Audio').fire('click');
   item('Download').fire('click');
   await settle();
@@ -1135,6 +1165,8 @@ for (const reduced of [false, true]) {
   const ctx = vm.createContext({ MESSAGES: {} });
   vm.runInContext(`${read('src', 'i18n-video.js')}\nglobalThis.V = VIDEO_MESSAGES;`, ctx);
   const named = Object.fromEntries(Object.entries(ctx.V).map(([l, m]) => [l, m['video.partDescription']]));
+  const word = (k) => Object.values(ctx.V).map((m) => m[k]);
+  if (ctx.V.de['video.converted'] !== 'umgewandelt' || ctx.V.de['video.autoCaptions'] !== 'automatisch' || word('video.converted').some((w) => !w)) fail('the menu does not say "umgewandelt" and "automatisch" in every language');
   if (named.en !== 'Description' || named.de !== 'Beschreibung') fail(`the description part reads ${named.en} and ${named.de}, want Description and Beschreibung`);
   const texts = ['Text', 'Texte', 'Texto', 'Testo', 'Tekst', 'Текст', 'Teksti', 'Metin', 'نص', 'Κείμενο', 'Testua', 'متن', 'טקסט', 'टेक्स्ट', 'Szöveg', 'Teks', 'Texti', 'テキスト', '텍스트', 'Tekstas', 'Teksts', 'Besedilo', 'ข้อความ', 'Văn bản'];
   const plain = Object.entries(named).filter(([, v]) => texts.includes(v)).map(([l]) => l);
@@ -1261,7 +1293,7 @@ for (const converts of [true, false]) {
   await settle();
   const menu = shadow.querySelectorAll('div').find((d) => d.attrs.role === 'dialog');
   const shown = menu.querySelectorAll('*').filter((n) => n.text).map((n) => (n.attrs['aria-checked'] === 'true' ? `[${n.text}]` : n.text)).join('|');
-  const want = converts ? 'Thumbnail]|1280×720|Format|[JPEG]|PNG|WebP|Download' : 'Thumbnail]|1280×720 WebP|Download';
+  const want = converts ? 'Thumbnail]|1280×720|Format|[JPEG]|converted|PNG|converted|WebP|Download' : 'Thumbnail]|1280×720 WebP|Download';
   if (!shown.includes(want)) fail(`${converts ? 'from an instance that converts' : 'from one that does not'} the thumbnail card shows ${shown}, want ${want}`);
   if (converts) {
     menu.querySelectorAll('button').find((b) => b.text === 'PNG')?.fire('click');

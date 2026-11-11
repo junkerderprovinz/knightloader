@@ -83,6 +83,7 @@ async function videoLabels() {
     language: t('video.language'),
     dubbed: t('video.dubbed'),
     autoCaptions: t('video.autoCaptions'),
+    converted: t('video.converted'),
     quality: t('video.rowQuality'),
     format: t('video.rowFormat'),
     parts: Object.fromEntries(VIDEO_PARTS.map((p) => [p, t(VIDEO_PART_KEYS[p])])),

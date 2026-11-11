@@ -59,6 +59,12 @@ const AUDIO_PREFERRED = ['flac', 'alac', 'opus', 'vorbis', 'aac', 'mp3'];
  *  the one every player reads. YouTube's own srv1 to srv3 and json3 open in
  *  nothing but its player, so they are not offered. */
 const VIDEO_SUB_FORMATS = ['srt', 'vtt', 'ttml'];
+// Those the instance writes from whatever the host serves (--convert-subs).
+const VIDEO_SUB_CONVERTS = ['srt', 'vtt'];
+
+/** The audio formats the menu offers beside any other the video has: the two
+ *  the big sites serve, and MP3 and FLAC, which the instance converts to. */
+const VIDEO_AUDIO_MENU = ['aac', 'opus', 'mp3', 'flac'];
 
 // Names that are not the token in capitals.
 const VIDEO_FORMAT_NAMES = { avc1: 'H.264', hevc: 'H.265', mp4a: 'AAC', webm: 'WebM', opus: 'Opus', vorbis: 'Vorbis', vtt: 'WebVTT', webp: 'WebP', jpg: 'JPEG' };
@@ -155,8 +161,9 @@ function videoChoice(pick) {
 /**
  * What a video offers, from what the instance says it has (GET
  * /api/ytdlp/link): its video and audio tracks, the languages its audio
- * comes in, its subtitles by hand and generated, the picture the thumbnail
- * row fetches and whether it has a description. `known` is false where
+ * comes in, its subtitles by hand and generated and the formats the host
+ * serves them in, the picture the thumbnail row fetches and whether it has a
+ * description. `known` is false where
  * there is no answer, or one from an instance that only lists resolutions,
  * and then nothing is ruled out.
  */
@@ -166,7 +173,7 @@ function videoOffer(answer) {
   if (!Array.isArray(answer?.videoTracks)) {
     return {
       known: false, qualities, audio: answer ? answer.audio === true : true, videoTracks: [], audioTracks: [], audioLangs: [],
-      subtitles: [], autoCaptions: [], thumbnail: null, description: true, videoSizes: {}, audioSizes: {},
+      subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true, videoSizes: {}, audioSizes: {},
     };
   }
   const th = answer.thumbnail;
@@ -182,6 +189,7 @@ function videoOffer(answer) {
       : [],
     subtitles: list(answer.subtitles, VIDEO_LANG),
     autoCaptions: list(answer.autoCaptions, VIDEO_LANG),
+    subtitleFormats: list(answer.subtitleFormats, VIDEO_TOKEN),
     thumbnail: videoIs(VIDEO_TOKEN, th?.ext)
       ? { width: size(th.width), height: size(th.height), ext: th.ext, ...(Array.isArray(th.formats) ? { formats: list(th.formats, VIDEO_TOKEN) } : {}) }
       : null,
@@ -412,8 +420,11 @@ function videoResolve(pick, offer) {
   }
   if (offer.audioTracks.length) {
     const tracks = offer.audioTracks.map(audioTrackOf);
-    if (!tracks.some((t) => t.codec === sel.audio)) sel.audio = 'best';
-    if (sel.audioRate !== 'best') {
+    const served = tracks.some((t) => t.codec === sel.audio);
+    if (!served && !VIDEO_AUDIO_MENU.includes(sel.audio)) sel.audio = 'best';
+    // A conversion starts from the best track, whatever its bitrate.
+    if (sel.audio !== 'best' && !served) sel.audioRate = 'best';
+    else if (sel.audioRate !== 'best') {
       const want = parseInt(sel.audioRate, 10);
       const [near] = tracks
         .filter((t) => sel.audio === 'best' || t.codec === sel.audio)

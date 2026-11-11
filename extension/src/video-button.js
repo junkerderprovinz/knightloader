@@ -136,9 +136,9 @@
        window, and each part a sub-card on it one surface up. */
     .menu {
       position: absolute; top: calc(100% + 8px); left: 50%; translate: -50% 0;
-      box-sizing: border-box; width: 340px; max-width: calc(100vw - 16px); max-height: 460px; overflow-y: auto; overscroll-behavior: contain;
-      padding: 6px 6px 0;
-      display: flex; flex-direction: column; gap: 6px;
+      box-sizing: border-box; width: 400px; max-width: calc(100vw - 16px); max-height: 460px; overflow-y: auto; overscroll-behavior: contain;
+      padding: 16px 8px 0;
+      display: flex; flex-direction: column; gap: 18px;
       font-size: 13px; line-height: 1.35;
       background: var(--surface);
       border-radius: min(var(--radius), 10px);
@@ -153,21 +153,26 @@
     /* The ring reaches over the neighbours, and its gap shows whatever the
        control sits on, so it reads on a tile and on gold alike. */
     .kl .menu button:focus-visible { z-index: 1; }
-    .menu .card { position: relative; flex: 0 0 auto; background: var(--surface2); border-radius: min(var(--radius), 8px); }
+    .menu .card {
+      position: relative; flex: 0 0 auto; box-sizing: border-box; min-height: 40px; padding-top: 14px;
+      background: var(--surface2); border-radius: min(var(--radius), 8px);
+    }
     /* A part's name is its heading, the accent badge the extension's pages
-       head a card with, filled whether the part is on or off. The switch's
-       track at the end of the row belongs to the same control, so a click on
-       either toggles the part. */
+       head a card with, sitting half over the card's top edge and filled
+       whether the part is on or off. The switch's track at the end of the
+       first row belongs to the same control, so a click on either toggles
+       the part. */
     .menu .switch {
-      position: static; display: inline-block; box-sizing: border-box; vertical-align: top;
-      max-width: calc(100% - 66px); height: 22px; margin: 7px 10px; padding: 2px 10px;
+      position: static; display: block; box-sizing: border-box; width: fit-content;
+      max-width: calc(100% - 66px); height: 22px; margin-top: -25px; margin-bottom: 3px; margin-inline-start: 10px; padding: 2px 10px;
+      box-shadow: var(--elevation);
       overflow: hidden; text-overflow: ellipsis;
       background: var(--accent); color: var(--accent-contrast); border-radius: min(var(--radius), 6px);
       font-size: 12px; font-weight: 500; line-height: 18px; letter-spacing: 1.2px; text-transform: uppercase;
     }
     /* The track, and over it the knob that slides along, centred on the
-       header row. */
-    .switch::before, .switch::after { content: ""; position: absolute; top: 18px; translate: 0 -50%; }
+       card's first row. */
+    .switch::before, .switch::after { content: ""; position: absolute; top: 20px; translate: 0 -50%; }
     .switch::after {
       inset-inline-end: 8px; width: 28px; height: 16px; border-radius: 8px;
       background: var(--track); transition: background-color 150ms ease;
@@ -211,7 +216,7 @@
     .menu .foot {
       position: sticky; bottom: 0; z-index: 2; flex: 0 0 auto;
       display: flex; flex-direction: column;
-      margin: 0 -6px; padding: 0 6px 6px;
+      margin: -10px -8px 0; padding: 0 8px 8px;
       background: var(--surface);
     }
     .menu .go { justify-content: center; gap: 0; height: 34px; background: var(--accent); color: var(--accent-contrast); font-weight: 600; }
@@ -473,13 +478,20 @@
     const up = at.y > r.top + r.height / 2;
     menu.classList.toggle('up', up);
     // Near a side of the player the menu opens along it, not over its edge.
-    const room = 180;
+    const room = 210;
     menu.dataset.side = at.x - r.left < room ? 'start' : r.right - at.x < room ? 'end' : '';
     // The menu takes the height the player leaves it above or below the
     // button, of the part on screen.
     const half = barSize().height / 2 + 8;
     const tall = up ? at.y - half - Math.max(r.top, 0) : Math.min(r.bottom, innerHeight) - at.y - half;
     menu.style.setProperty('max-height', `${Math.max(240, Math.floor(tall) - 8)}px`);
+    // A page narrower than the way the menu opens, such as a small embedded
+    // player, gets it moved back in view.
+    if (!menu.hidden) {
+      menu.style.setProperty('transform', 'translateX(0px)');
+      const box = menu.getBoundingClientRect();
+      menu.style.setProperty('transform', `translateX(${Math.max(8 - box.left, Math.min(0, innerWidth - 8 - box.right))}px)`);
+    }
     const state = {
       autoHide: stored.videoButtonAutoHide === true,
       pointerOver: pointerAt > 0 && performance.now() - pointerAt < IDLE_MS,
@@ -902,22 +914,32 @@
             onPick: rate,
             aside: (r) => size(videoPickSize({ ...pick, audioRate: r, audio: audioTrackOffered(offer, r, pick.audio) ? pick.audio : 'best' }, offer, 'audio')),
           });
+          // A format the video lacks is a conversion, made from its best
+          // track, so it takes no bitrate.
           const codec = pick.audio === 'best' ? audioBestCodec(offer, pick.audioRate) : pick.audio;
-          row('format', labels.format, codecs, {
+          row('format', labels.format, [...new Set([...codecs, ...VIDEO_AUDIO_MENU])].sort(audioCodecOrder), {
             look: 'segments',
             isOn: (c) => c === codec,
             name: videoFormatName,
-            onPick: (c) => redraw(() => (pick.audio = c)),
-            off: (c) => !audioTrackOffered(offer, pick.audioRate, c),
+            onPick: (c) =>
+              redraw(() => {
+                pick.audio = c;
+                if (!codecs.includes(c)) pick.audioRate = 'best';
+              }),
+            off: (c) => codecs.includes(c) && !audioTrackOffered(offer, pick.audioRate, c),
+            aside: (c) => (codecs.includes(c) ? '' : labels.converted),
           });
         }
         if (offer.audioLangs.length > 1) {
-          const name = (code) => {
-            const lang = offer.audioLangs.find((l) => l.code === code);
-            return lang.dubbed ? `${code} (${labels.dubbed})` : code;
-          };
+          const dubbed = (code) => offer.audioLangs.find((l) => l.code === code).dubbed;
           const codes = offer.audioLangs.map((l) => l.code);
-          row('language', labels.language, codes, { look: 'list', isOn: (c) => c === pick.audioLang, name, onPick: (c) => redraw(() => (pick.audioLang = c)) });
+          row('language', labels.language, codes, {
+            look: 'list',
+            isOn: (c) => c === pick.audioLang,
+            name: languageName,
+            onPick: (c) => redraw(() => (pick.audioLang = c)),
+            aside: (c) => (dubbed(c) ? labels.dubbed : ''),
+          });
         }
         break;
       }
@@ -929,9 +951,17 @@
             pick.subAuto = pick.subLangs.some((c) => auto.includes(c) && !manual.includes(c));
           });
         const isOn = (code) => pick.subLangs.includes(code);
-        if (manual.length) row('language', labels.language, manual, { look: 'list', isOn, name: (c) => c, onPick, several: true });
-        if (auto.length) row('auto', labels.autoCaptions, auto, { look: 'list', isOn, name: (c) => c.replace(/-orig$/, ''), onPick, several: true });
-        row('format', labels.format, VIDEO_SUB_FORMATS, { look: 'segments', isOn: (f) => f === pick.subFormat, name: videoFormatName, onPick: (f) => redraw(() => (pick.subFormat = f)) });
+        // One list by name, those by hand first; a language the video has
+        // both ways is offered once, by hand.
+        const langs = [...manual, ...auto.filter((c) => !manual.includes(c))];
+        row('language', labels.language, langs, { look: 'list', isOn, name: languageName, onPick, several: true, aside: (c) => (manual.includes(c) ? '' : labels.autoCaptions) });
+        row('format', labels.format, VIDEO_SUB_FORMATS, {
+          look: 'segments',
+          isOn: (f) => f === pick.subFormat,
+          name: videoFormatName,
+          onPick: (f) => redraw(() => (pick.subFormat = f)),
+          aside: (f) => (VIDEO_SUB_CONVERTS.includes(f) && !offer.subtitleFormats.includes(f) ? labels.converted : ''),
+        });
         break;
       }
       case 'thumbnail': {
@@ -939,14 +969,29 @@
         if (!th) break;
         const formats = videoThumbFormats(offer);
         const one = formats.length === 1 ? videoFormatName(formats[0]) : '';
-        const size = th.width && th.height ? `${th.width}×${th.height}` : '';
-        if (size || one) nodes.push(note([size, one].filter(Boolean).join(' ')));
+        const dims = th.width && th.height ? `${th.width}×${th.height}` : '';
+        if (dims || one) nodes.push(note([dims, one].filter(Boolean).join(' ')));
         // A row of one choice would offer nothing.
-        if (!one) row('format', labels.format, formats, { look: 'segments', isOn: (f) => f === pick.thumbFormat, name: videoFormatName, onPick: (f) => redraw(() => (pick.thumbFormat = f)) });
+        if (!one) {
+          row('format', labels.format, formats, {
+            look: 'segments',
+            isOn: (f) => f === pick.thumbFormat,
+            name: videoFormatName,
+            onPick: (f) => redraw(() => (pick.thumbFormat = f)),
+            aside: (f) => (f === th.ext ? '' : labels.converted),
+          });
+        }
         break;
       }
     }
     return nodes;
+  }
+
+  /** A language's name in the menu's language, "Deutsch" for "de" or a
+   *  generated "de-orig". */
+  function languageName(code) {
+    const name = new Intl.DisplayNames(labels.lang, { type: 'language' }).of(code.replace(/-orig$/, ''));
+    return name.charAt(0).toLocaleUpperCase(labels.lang) + name.slice(1);
   }
 
   function card(head, body) {
