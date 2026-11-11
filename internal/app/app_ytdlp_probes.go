@@ -158,12 +158,13 @@ type LinkLang struct {
 	Dubbed bool   `json:"dubbed"`
 }
 
-// LinkThumbnail is a picture's size, 0 where the host does not say, and its
-// format.
+// LinkThumbnail is a picture's size, 0 where the host does not say, its
+// format, and the formats the thumbnail row can fetch it in.
 type LinkThumbnail struct {
-	Width  int    `json:"width"`
-	Height int    `json:"height"`
-	Ext    string `json:"ext"`
+	Width   int      `json:"width"`
+	Height  int      `json:"height"`
+	Ext     string   `json:"ext"`
+	Formats []string `json:"formats"`
 }
 
 // LinkQualities is what one link offers, from the probe its staging shares
@@ -223,7 +224,11 @@ func (a *App) LinkQualities(ctx context.Context, rawurl string) (LinkMenus, erro
 	}
 	if n := len(res.Thumbnails); n > 0 {
 		th := res.Thumbnails[n-1]
-		menus.Thumbnail = &LinkThumbnail{Width: th.Width, Height: th.Height, Ext: th.Ext}
+		formats := slices.Clone(ytdlp.ThumbnailFormats)
+		if th.Ext != "" && !slices.Contains(formats, th.Ext) {
+			formats = append(formats, th.Ext)
+		}
+		menus.Thumbnail = &LinkThumbnail{Width: th.Width, Height: th.Height, Ext: th.Ext, Formats: formats}
 	}
 	return menus, nil
 }

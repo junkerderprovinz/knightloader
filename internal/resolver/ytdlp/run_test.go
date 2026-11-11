@@ -86,6 +86,22 @@ func ytdlpHelper(mode string) {
 		fmt.Println("[download] Destination: " + audio)
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(audio) + `"}`)
 		fmt.Printf("[Merger] Merging formats into \"%s\"\n", final)
+	case "wide", "upright":
+		// A merge under the video template, whose bracket holds the frame
+		// yt-dlp picked: a 2:1 video's 1080p track, or a portrait one.
+		frame := "1920x960p"
+		if mode == "upright" {
+			frame = "1080x1920p"
+		}
+		merged := filepath.Join(dir, "A Video ("+frame+").mkv")
+		part := filepath.Join(dir, "A Video ("+frame+").f248.webm")
+		_ = os.WriteFile(merged, []byte("merged bytes"), 0o644)
+		info := filepath.Join(dir, "A Video ("+frame+").info.json")
+		_ = os.WriteFile(info, []byte(helperInfoJSON), 0o644)
+		fmt.Println("[info] Writing video metadata as JSON to: " + info)
+		fmt.Println("[download] Destination: " + part)
+		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(part) + `"}`)
+		fmt.Printf("[Merger] Merging formats into \"%s\"\n", merged)
 	case "apart":
 		// A video and its audio downloaded as two files, both webm, each with
 		// its own info json, then the subtitles and the cover beside them,
@@ -140,6 +156,22 @@ func ytdlpHelper(mode string) {
 			_ = os.Remove(vtt)
 			fmt.Println("Deleting original file " + vtt + " (pass -k to keep)")
 		}
+	case "srv3subs":
+		// A host that serves srv3 alone, converted to the vtt the row asked
+		// for.
+		srv3 := filepath.Join(dir, "A Video.de.srv3")
+		_ = os.WriteFile(srv3, []byte("<timedtext/>"), 0o644)
+		fmt.Println("[info] Writing video subtitles to: " + srv3)
+		fmt.Println("[SubtitlesConvertor] Converting subtitles")
+		_ = os.WriteFile(strings.TrimSuffix(srv3, ".srv3")+".vtt", []byte("WEBVTT"), 0o644)
+		_ = os.Remove(srv3)
+		fmt.Println("Deleting original file " + srv3 + " (pass -k to keep)")
+	case "plainvtt":
+		// What the host serves when it lacks the format asked for, which
+		// yt-dlp takes without a word under --no-warnings.
+		vtt := filepath.Join(dir, "A Video.de.vtt")
+		_ = os.WriteFile(vtt, []byte("WEBVTT\n"), 0o644)
+		fmt.Println("[info] Writing video subtitles to: " + vtt)
 	case "thumbnail":
 		// Fetched as webp, then converted to the jpg the row asked for.
 		webp := filepath.Join(dir, "A Video.webp")
@@ -333,6 +365,55 @@ func TestRunWritesTheNFOBesideTheFileAndTakesTheInfoJSONAwayAgain(t *testing.T) 
 	// Nobody asked for the info json itself.
 	if _, err := os.Stat(filepath.Join(dir, "A Video.info.json")); !os.IsNotExist(err) {
 		t.Errorf("the info json survived the download (stat err = %v)", err)
+	}
+}
+
+// The video template writes the frame yt-dlp picked, and the finished file
+// takes the quality that frame is named by, its NFO along with it. The row
+// shows that name while the download runs.
+func TestRunNamesAVideoAfterTheQualityOfItsFrame(t *testing.T) {
+	for _, mode := range []string{"wide", "upright"} {
+		t.Run(mode, func(t *testing.T) {
+			dir, rec := runFake(t, mode+":full", Options{Variant: VariantVideo, Embed: Embed{NFO: true}})
+			got := rec.last()
+			want := filepath.Join(dir, "A Video (1080p).mkv")
+			if got.Status != core.StatusDone || got.File != want {
+				t.Fatalf("last update = %+v, want Done with %q", got, want)
+			}
+			entries, _ := os.ReadDir(dir)
+			var names []string
+			for _, e := range entries {
+				names = append(names, e.Name())
+			}
+			if want := []string{"A Video (1080p).mkv", "A Video (1080p).nfo"}; !slices.Equal(names, want) {
+				t.Errorf("the folder holds %q, want %q", names, want)
+			}
+			for _, u := range rec.all() {
+				if strings.Contains(u.Name, "x1") {
+					t.Errorf("the row showed %q, want the quality, not the frame", u.Name)
+				}
+			}
+		})
+	}
+}
+
+func TestRunNamesAVideoBesideAnotherOfTheSameQuality(t *testing.T) {
+	t.Setenv(runHelperEnv, "wide:full")
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "A Video (1080p).mkv"), []byte("earlier"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], dir, rec.add)
+	b.SetFFmpeg("", os.Args[0])
+	b.Options = func(string) Options { return Options{Variant: VariantVideo} }
+	b.run("task-1", "https://example.invalid/watch?v=x")
+
+	if got, want := rec.last().File, filepath.Join(dir, "A Video (1080p) (2).mkv"); got != want {
+		t.Errorf("File = %q, want %q beside the earlier file", got, want)
+	}
+	if body, _ := os.ReadFile(filepath.Join(dir, "A Video (1080p).mkv")); string(body) != "earlier" {
+		t.Errorf("the earlier file holds %q, want it untouched", body)
 	}
 }
 
@@ -809,6 +890,29 @@ func TestASubtitleRowFromAWebVTTSourceReportsTheSrtItWasConvertedTo(t *testing.T
 	want := filepath.Join(dir, "A Video.de.srt")
 	if got.Status != core.StatusDone || got.File != want || got.Name != "A Video.de" {
 		t.Errorf("last update = %+v, want Done with File %q named %q", got, want, "A Video.de")
+	}
+}
+
+func TestASubtitleRowReportsTheVttItWasConvertedTo(t *testing.T) {
+	dir, rec := runFake(t, "srv3subs:full", Options{Variant: VariantSubtitle, SubtitleLangs: "de", SubtitleFormat: "vtt"})
+	if got, want := rec.last(), filepath.Join(dir, "A Video.de.vtt"); got.Status != core.StatusDone || got.File != want || got.Note != "" {
+		t.Errorf("last update = %+v, want Done with %q and no note", got, want)
+	}
+}
+
+// yt-dlp cannot convert to ttml, so a host without it gives its own format,
+// and the row says so beside the file it got.
+func TestASubtitleRowAskingForAFormatTheHostLacksSaysWhatItGot(t *testing.T) {
+	dir, rec := runFake(t, "plainvtt:full", Options{Variant: VariantSubtitle, SubtitleLangs: "de", SubtitleFormat: "ttml"})
+	got := rec.last()
+	if want := filepath.Join(dir, "A Video.de.vtt"); got.Status != core.StatusDone || got.File != want {
+		t.Fatalf("last update = %+v, want Done with %q", got, want)
+	}
+	if want := "saved as vtt, the site has no ttml"; got.Note != want {
+		t.Errorf("Note = %q, want %q", got.Note, want)
+	}
+	if _, rec := runFake(t, "plainvtt:full", Options{Variant: VariantSubtitle, SubtitleLangs: "de", SubtitleFormat: "vtt"}); rec.last().Note != "" {
+		t.Errorf("a vtt row that got vtt notes %q, want nothing", rec.last().Note)
 	}
 }
 

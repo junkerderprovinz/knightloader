@@ -59,8 +59,11 @@ func TestTheExtensionsMenuListsWhatTheHostOffersForEveryPart(t *testing.T) {
 	if !slices.Equal(m.SubtitleFormats, []string{"srv3", "vtt"}) {
 		t.Errorf("subtitle formats = %v", m.SubtitleFormats)
 	}
-	if m.Thumbnail == nil || *m.Thumbnail != (LinkThumbnail{Width: 1280, Height: 720, Ext: "webp"}) {
-		t.Errorf("thumbnail = %+v, want the 1280x720 webp yt-dlp fetches", m.Thumbnail)
+	if m.Thumbnail == nil || m.Thumbnail.Width != 1280 || m.Thumbnail.Height != 720 || m.Thumbnail.Ext != "webp" {
+		t.Fatalf("thumbnail = %+v, want the 1280x720 webp yt-dlp fetches", m.Thumbnail)
+	}
+	if want := []string{"jpg", "png", "webp"}; !slices.Equal(m.Thumbnail.Formats, want) {
+		t.Errorf("thumbnail formats = %v, want %v", m.Thumbnail.Formats, want)
 	}
 	if !m.Description {
 		t.Error("the description is missing from the menu")
@@ -167,6 +170,35 @@ func TestAVideoSentWithExactPicksDownloadsExactlyThose(t *testing.T) {
 			}
 			if x.Ext == "jpg" {
 				t.Error("the thumbnail row promises a jpg it is not converted to")
+			}
+		}
+	}
+}
+
+// A thumbnail sent with a format of its own is converted to it, and one sent
+// with a format yt-dlp cannot write is kept as the host serves it.
+func TestAThumbnailSentWithAFormatComesInThatFormat(t *testing.T) {
+	a := offersApp(t)
+	for _, c := range []struct {
+		url, format string
+		asIs        bool
+	}{
+		{"https://youtube.com/watch?v=offers00005", "png", false},
+		{"https://youtube.com/watch?v=offers00006", "jpg", false},
+		{"https://youtube.com/watch?v=offers00007", "avif", true},
+	} {
+		if _, err := a.AddLinksWithOptions([]string{c.url}, "", OriginCnL, LinkBatchOptions{Choice: &ytdlp.LinkChoice{
+			Variants: []ytdlp.Variant{ytdlp.VariantThumbnail}, ThumbnailFormat: c.format,
+		}}); err != nil {
+			t.Fatal(err)
+		}
+		for _, x := range fiveRows(t, a, c.url) {
+			if kind, _ := variantDecode(x.Variant); kind != ytdlp.VariantThumbnail {
+				continue
+			}
+			o := a.ytdlpOptionsForTask(x.ID)
+			if x.Ext != c.format || o.ThumbnailAsIs != c.asIs || (!c.asIs && o.ThumbnailFormat != c.format) {
+				t.Errorf("%s: the thumbnail row shows %q and asks for %q (as served %v)", c.format, x.Ext, o.ThumbnailFormat, o.ThumbnailAsIs)
 			}
 		}
 	}

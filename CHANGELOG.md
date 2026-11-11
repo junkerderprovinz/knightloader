@@ -66,6 +66,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   on hover. It carries the KnightLoader mark, follows the extension's light
   or dark theme, turns gold under the pointer and lets a few stars fly when a
   video went through.
+- **The thumbnail can come as JPG, PNG or WebP,** whatever format the site
+  serves it in.
 
 ### Changed
 
@@ -107,6 +109,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   2:1 video offers its 1920x960 track as 1080p rather than 960p, and "Up to
   1080p" on a 21:9 video no longer takes the 2560x1080 track that YouTube
   calls 1440p.
+- **A video file carries the quality the menu showed,** so the 1080p track of
+  a 2:1 video and a portrait 1080x1920 video both save as "(1080p)" instead of
+  "(960p)" and "(1920p)", and their subtitles and thumbnail take the same name.
+- **Subtitles picked as SRT or VTT come in that format from every site,**
+  converted where the site serves another, and a TTML pick on a site without
+  TTML keeps the site's own format and says so on the row.
 - **"Remove and delete files" takes the unpacked files along.** The archive
   went, but the folder it had been unpacked into stayed. Now what unpacking
   the download wrote goes too, also after a restart and where "Move the

@@ -297,20 +297,32 @@ func TestBuildArgsVideoFormatYieldsToTheRowsOwnChoice(t *testing.T) {
 	}
 }
 
-func TestBuildArgsKeepsTheSubtitleFormatTheHostServes(t *testing.T) {
-	for _, format := range []string{"vtt", "best"} {
+// srt and vtt are written as asked, converted from whatever the host serves.
+// yt-dlp converts to neither ttml nor the host's own best, so those are taken
+// as served.
+func TestBuildArgsWritesTheSubtitleFormatARowAskedFor(t *testing.T) {
+	for format, convert := range map[string]string{"srt": "srt", "vtt": "vtt", "ttml": "", "best": ""} {
 		args := buildArgs("d", Options{Variant: VariantSubtitle, SubtitleLangs: "de,en-orig", SubtitleAuto: true, SubtitleFormat: format})
 		if got, _ := valueAfter(args, "--sub-format"); got != format {
 			t.Errorf("format %s: --sub-format = %q", format, got)
 		}
-		if hasArg(args, "--convert-subs") {
-			t.Errorf("format %s: the subtitles are converted: %v", format, args)
+		if got, _ := valueAfter(args, "--convert-subs"); got != convert {
+			t.Errorf("format %s: --convert-subs = %q, want %q", format, got, convert)
 		}
 		if got, _ := valueAfter(args, "--sub-langs"); got != "de,en-orig" {
 			t.Errorf("format %s: --sub-langs = %q", format, got)
 		}
 		if !hasArg(args, "--write-auto-subs") {
 			t.Errorf("format %s: generated subtitles are not asked for: %v", format, args)
+		}
+	}
+}
+
+func TestBuildArgsConvertsTheThumbnailToTheFormatARowAskedFor(t *testing.T) {
+	for format, want := range map[string]string{"png": "png", "webp": "webp", "jpg": "jpg", "": "jpg"} {
+		args := buildArgs("d", Options{Variant: VariantThumbnail, ThumbnailFormat: format})
+		if got, _ := valueAfter(args, "--convert-thumbnails"); got != want {
+			t.Errorf("format %q: --convert-thumbnails = %q, want %q", format, got, want)
 		}
 	}
 }

@@ -43,6 +43,40 @@ func TestTwoPicksOfOneVideoLandOnTwoNames(t *testing.T) {
 	}
 }
 
+// The template can only write the frame yt-dlp picked, and the finished file
+// takes the quality that frame is named by.
+func TestAVideoIsNamedAfterTheQualityOfItsFrame(t *testing.T) {
+	cases := []struct {
+		name   string
+		tag    string
+		fields map[string]string
+		want   string
+	}{
+		{"2:1", "", map[string]string{"width": "1920", "height": "960"}, "Clip (1080p).mkv"},
+		{"portrait", "", map[string]string{"width": "1080", "height": "1920"}, "Clip (1080p).mkv"},
+		{"16:9", "", map[string]string{"width": "1280", "height": "720"}, "Clip (720p).mkv"},
+		{"21:9", "", map[string]string{"width": "2560", "height": "1080"}, "Clip (1440p).mkv"},
+		{"beside another of its quality", "vp9", map[string]string{"width": "1920", "height": "960"}, "Clip (1080p vp9).mkv"},
+		{"no width", "", map[string]string{"height": "300"}, "Clip (300p).mkv"},
+		{"no size", "", map[string]string{}, "Clip (best).mkv"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			fields := map[string]string{"title": "Clip", "ext": "mkv"}
+			for k, v := range c.fields {
+				fields[k] = v
+			}
+			written := fill(outputTemplate(Options{Variant: VariantVideo, NameTag: c.tag}), fields)
+			if got := qualityName(written); got != c.want {
+				t.Errorf("%q is named %q, want %q", written, got, c.want)
+			}
+		})
+	}
+	if got := qualityName("Song (640x480p) (1920x960p).f248.webm"); got != "Song (640x480p) (1080p).f248.webm" {
+		t.Errorf("a frame in the title came out as %q, want only the last bracket named", got)
+	}
+}
+
 func TestATrackBesideAnotherOfItsHeightNamesItsCodec(t *testing.T) {
 	tmpl := outputTemplate(Options{Variant: VariantVideo, NameTag: "av1"})
 	if got := fill(tmpl, map[string]string{"title": "Clip", "height": "720", "ext": "mp4"}); got != "Clip (720p av1).mp4" {
