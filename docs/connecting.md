@@ -97,8 +97,9 @@ domain (the addresses you type under **Settings → Pairing**; a name a request
 arrived on is never added there), else its address on its
 network, such as `192.168.20.86:8749`. The address travels in the announce
 members already send, sealed on the relay and signed on the network. An
-instance drops it from an announce that comes from outside the group. The Instances page shows it under each
-instance's name and **Open** goes there. A phone shows no address.
+instance drops it from an announce that comes from outside the group. **Open**
+on the Instances page goes there. No page shows it, and neither does the phone
+or the browser extension.
 
 The words *are* the credential. Whoever has them reaches every instance in the
 group, so keep that in mind before you read them out over the phone.

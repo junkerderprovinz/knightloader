@@ -138,10 +138,10 @@ func TestConnectStartsInactive(t *testing.T) {
 	}
 }
 
-// TestConnectTellsTheGroupAKnownDomainBeforeTheNetworkAddress checks that the
+// TestTheGroupIsToldTheNetworkAddressUntilADomainIsKnown checks that the
 // address the group is told is the one this instance found on its network
 // until the owner adds a domain, which then stands in for it.
-func TestConnectTellsTheGroupAKnownDomainBeforeTheNetworkAddress(t *testing.T) {
+func TestTheGroupIsToldTheNetworkAddressUntilADomainIsKnown(t *testing.T) {
 	requireContainerDeployment(t)
 	ip := lan.LocalIPv4()
 	if ip == "" {
@@ -153,8 +153,8 @@ func TestConnectTellsTheGroupAKnownDomainBeforeTheNetworkAddress(t *testing.T) {
 
 	srv, a := testServer(t)
 	defer srv.Close()
-	if got, found := connectInfoOf(t, "", srv.URL).Address, "http://"+ip+":8749"+buildinfo.BasePath; got != found {
-		t.Errorf("Address = %q, want %q", got, found)
+	if got, found := groupAddress(a), "http://"+ip+":8749"+buildinfo.BasePath; got != found {
+		t.Errorf("groupAddress = %q, want %q", got, found)
 	}
 
 	domains, err := json.Marshal([]string{"https://kl.example.org"})
@@ -164,8 +164,8 @@ func TestConnectTellsTheGroupAKnownDomainBeforeTheNetworkAddress(t *testing.T) {
 	if _, err := a.Settings.SetPartial(map[string]json.RawMessage{"knownDomains": domains}); err != nil {
 		t.Fatal(err)
 	}
-	if got := connectInfoOf(t, "", srv.URL).Address; got != "https://kl.example.org" {
-		t.Errorf("Address = %q, want the known domain", got)
+	if got := groupAddress(a); got != "https://kl.example.org" {
+		t.Errorf("groupAddress = %q, want the known domain", got)
 	}
 }
 
@@ -572,8 +572,18 @@ func TestAClosedDesktopAppStaysListedAsAway(t *testing.T) {
 		t.Fatalf("after it closed: members %+v, away %+v; want it away", info.Members, info.Away)
 	}
 	if got := info.Away[0]; got.ID != desktop.ID || got.Name != "Zathallia" || got.Deployment != "desktop" ||
-		got.Address != "http://192.168.20.86:8749" || got.LastSeen != desktop.LastSeen.Unix() {
+		got.LastSeen != desktop.LastSeen.Unix() {
 		t.Fatalf("away = %+v, want the desktop app as it last announced itself", got)
+	}
+	_, body := call(t, token, http.MethodGet, srv.URL+"/api/connect", nil)
+	var raw struct {
+		Away []map[string]any `json:"away"`
+	}
+	if err := json.Unmarshal(body, &raw); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := raw.Away[0]["address"]; ok {
+		t.Errorf("the desktop app away is listed with its address: %v", raw.Away[0])
 	}
 }
 

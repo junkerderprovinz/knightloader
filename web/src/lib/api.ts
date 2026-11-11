@@ -4411,8 +4411,6 @@ export interface ConnectInfo {
   projectRelayUrl: string;
   /** What the other instances of the group see this one as. */
   name: string;
-  /** Where they open it, '' when it has no address anybody else can reach. */
-  address: string;
   /** The other instances of the group reachable now. */
   members: GroupMember[];
   /** Every phone that joined the group with the phrase. */
@@ -4469,7 +4467,6 @@ export interface AwayMember {
   name: string;
   /** "container", "server" or "desktop", '' when it never said. */
   deployment: string;
-  address: string;
   /** Unix seconds. */
   lastSeen: number;
 }

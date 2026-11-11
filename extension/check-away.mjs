@@ -21,7 +21,7 @@ const expect = (what, got, want) => {
   if (g !== w) problems.push(`${what}: got ${g}, want ${w}`);
 };
 
-const desktop = { id: 'desk', name: 'Zathallia', deployment: 'desktop', address: 'http://192.168.20.86:8749', lastSeen: 1790000000 };
+const desktop = { id: 'desk', name: 'Zathallia', deployment: 'desktop', lastSeen: 1790000000 };
 const nas = { instanceId: 'nas', name: 'Unraid', deployment: 'container' };
 
 // Every instance answers its queue; the one asked for the roster sends `roster`.

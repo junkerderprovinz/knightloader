@@ -23,7 +23,6 @@ import {
   putAwayDroppedInstances,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { basePath } from '../lib/basePath';
 import { openExternal } from '../lib/external';
 import { IconConfirm, IconFleet, IconLink } from '../lib/icons';
 import { PageAction, PageActions } from '../components/PageActions';
@@ -38,11 +37,6 @@ import { RemovalWindow, type Removal } from '../components/InstanceRemoval';
  *  view of the group, so asking costs nothing on the network; each card reads
  *  its own figures. */
 export const INSTANCES_REFRESH_MS = 20_000;
-
-/** The address as a card shows it, the way it would be typed. */
-function withoutScheme(url: string): string {
-  return url.replace(/^https?:\/\//, '');
-}
 
 export function Instances({
   firstHue = 0,
@@ -244,15 +238,13 @@ export function Instances({
             and on the Instances settings tab, whatever a card holds. A narrow
             window shows fewer cards. */}
         <div data-new="card-size" className="grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(min(100%,24rem),1fr))] gap-5">
-          {/* This instance shows the address the group is told, and Open stays
-              here on the local download list. */}
+          {/* Open on this instance stays here on the local download list. */}
           <InstanceCard
             entry={SELF_KEY}
             hot={net.hot === SELF_KEY}
             hue={selfHue}
             name={ownName || t('instances.thisInstance')}
             deployment={ownKind}
-            address={withoutScheme(group?.address || location.host + basePath())}
             base="/api"
             // Without a configured name the title already says "this instance".
             isSelf={ownName !== ''}
@@ -260,8 +252,8 @@ export function Instances({
             onOpen={() => navigate('/downloads')}
           />
           {shown.map((p, i) => {
-            // The address the member announced. Without one, Open shows its
-            // downloads here.
+            // Open goes where the member said its interface is, and without
+            // that shows its downloads here.
             const address = p.address ?? '';
             const entry = entryOf(p);
             const name = p.displayName ?? p.name;
@@ -273,7 +265,6 @@ export function Instances({
                 hue={selfHue + 1 + i}
                 name={name}
                 deployment={p.deployment}
-                address={withoutScheme(address)}
                 route={routeOf(p)}
                 base={`/api/instances/${encodeURIComponent(p.name)}`}
                 onOpen={
@@ -292,7 +283,6 @@ export function Instances({
               hue={selfHue + 1 + shown.length + i}
               name={m.name || m.id}
               deployment={m.deployment}
-              address={withoutScheme(m.address)}
               lastSeen={m.lastSeen}
               onRemove={() => setRemoving({ kind: 'member', id: m.id, name: m.name || m.id })}
             />

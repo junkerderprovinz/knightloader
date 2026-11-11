@@ -291,7 +291,7 @@ describe('Instances', () => {
     expect(document.body.querySelector('[role="dialog"]')).toBeNull();
     await act(async () => kindOf(card('cellar'))!.querySelector('button')!.click());
     expect(document.body.querySelector('[role="dialog"] h2')!.textContent).toBe('cellar');
-    expect(window.textContent).toContain('192.168.1.9:8749');
+    expect(document.body.querySelector('[role="dialog"]')!.textContent).not.toContain('192.168.1.9');
   });
 
   it('takes an instance or a phone out only after the window asks', async () => {
@@ -322,16 +322,15 @@ describe('Instances', () => {
     expect(calls).toContain('DELETE /api/connect/apps/p1');
   });
 
-  it('shows every instance under its address and opens a member there', async () => {
+  it('shows no address on any card and still opens a member where it answers', async () => {
     const open = vi.fn();
-    serve({ ...noGroup, active: true, address: 'https://nas.example.org' }, [
+    serve({ ...noGroup, active: true }, [
       { name: 'id-laptop', relayId: 'id-laptop', displayName: 'Laptop', address: 'http://192.168.20.86:8749' },
     ]);
     vi.stubGlobal('open', open);
     await draw();
-    expect(host.textContent).toContain('nas.example.org');
-    expect(host.textContent).toContain('192.168.20.86:8749');
-    expect(host.textContent).not.toContain('http://');
+    expect(host.textContent).not.toContain('192.168.20.86');
+    expect(host.textContent).not.toContain(location.host);
 
     const cards = [...host.querySelectorAll('button')].filter((b) => b.textContent === 'Open');
     await act(async () => cards[1].click());
@@ -488,7 +487,6 @@ describe('Instances', () => {
       id: 'id-zath',
       name: 'Zathallia',
       deployment: 'desktop',
-      address: 'http://192.168.20.86:8749',
       lastSeen: 1_800_000_000,
     };
     const calls = serve({ ...noGroup, active: true, away: [zathallia] });
@@ -497,7 +495,6 @@ describe('Instances', () => {
     expect(away.textContent).toContain('Inactive');
     expect(away.textContent).toContain('Last seen');
     expect(away.textContent).toContain('Desktop app');
-    expect(away.textContent).toContain('192.168.20.86:8749');
     expect(away.textContent).not.toContain('Not connected');
     expect(kindName(away)).toBe('Desktop app');
     // Nothing to open or count while it is closed.
@@ -517,7 +514,7 @@ describe('Instances', () => {
         ...noGroup,
         active: true,
         members: [{ id: 'id-zath', name: 'Zathallia', direct: true, relay: false }],
-        away: [{ id: 'id-zath', name: 'Zathallia', deployment: 'desktop', address: '', lastSeen: 1 }],
+        away: [{ id: 'id-zath', name: 'Zathallia', deployment: 'desktop', lastSeen: 1 }],
       },
       [{ name: 'id-zath', relayId: 'id-zath', displayName: 'Zathallia', deployment: 'desktop' }],
     );

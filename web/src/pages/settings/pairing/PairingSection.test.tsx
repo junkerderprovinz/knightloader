@@ -19,7 +19,6 @@ const alone: ConnectInfo = {
   relayMode: 'project',
   projectRelayUrl: '',
   name: 'nas',
-  address: '',
   members: [],
   apps: [],
   away: [],

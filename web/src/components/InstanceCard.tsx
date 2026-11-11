@@ -336,12 +336,11 @@ function DetailRow({ label, children }: { label: string; children: ReactNode }) 
   );
 }
 
-// InstanceCard shows one instance: its state, where and how it is reached, and
-// three live figures. What does not fit a compact card opens in a window.
+// InstanceCard shows one instance: its state, how it is reached, and three
+// live figures. What does not fit a compact card opens in a window.
 export function InstanceCard({
   entry,
   name,
-  address,
   route,
   base,
   onOpen,
@@ -359,10 +358,8 @@ export function InstanceCard({
   name: string;
   /** What the instance is, "container", "server" or "desktop", when it is known. */
   deployment?: string;
-  /** Where the instance is reached, empty when it has no address. */
-  address: string;
-  /** How this instance reaches it: directly, through the relay or by its
-   *  address. Empty on the card of the instance being viewed. */
+  /** How this instance reaches it, directly or through the relay. Empty on
+   *  the card of the instance being viewed. */
   route?: string;
   base: string;
   onOpen?: () => void;
@@ -425,7 +422,7 @@ export function InstanceCard({
             {state}
           </StateWithKind>
         }
-        facts={[address, kind, route ?? '']}
+        facts={[kind, route ?? '']}
         figures={figures}
         actions={
           <>
@@ -465,11 +462,6 @@ export function InstanceCard({
               <span className="inline-flex">{state}</span>
             </DetailRow>
             {kind && <DetailRow label={t('events.filterLabel')}>{kind}</DetailRow>}
-            {address && (
-              <DetailRow label={t('detail.address')}>
-                <span dir="ltr">{address}</span>
-              </DetailRow>
-            )}
             {route && <DetailRow label={t('columns.connection')}>{route}</DetailRow>}
           </dl>
           {waiting && <p className="text-sm text-carbon-textSub">{t('instances.notApprovedTip')}</p>}
@@ -556,7 +548,6 @@ export function AwayCard({
   entry,
   name,
   deployment,
-  address,
   lastSeen,
   onRemove,
   hot = false,
@@ -566,7 +557,6 @@ export function AwayCard({
   entry: string;
   name: string;
   deployment: string;
-  address: string;
   /** Unix seconds. */
   lastSeen: number;
   onRemove: () => void;
@@ -587,7 +577,7 @@ export function AwayCard({
           <InactiveState />
         </StateWithKind>
       }
-      facts={[address, KINDS[deployment] ? t(KINDS[deployment]) : '', lastSeenOf(t, lastSeen)]}
+      facts={[KINDS[deployment] ? t(KINDS[deployment]) : '', lastSeenOf(t, lastSeen)]}
       actions={
         <Button
           kind="secondary"

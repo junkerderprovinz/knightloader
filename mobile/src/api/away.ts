@@ -6,7 +6,6 @@ export interface AwayInstance {
   id: string;
   name: string;
   deployment: string;
-  address: string;
   /** Unix seconds. */
   lastSeen: number;
 }

@@ -56,10 +56,8 @@ type ConnectInfo struct {
 	// ProjectRelayURL is the compiled-in default in every mode, so the page
 	// can say where the project relay is before anybody switches to it.
 	ProjectRelayURL string `json:"projectRelayUrl"`
-	// Name is what the other instances of the group see this one as, and
-	// Address where they open it (groupAddress), "" when there is none.
-	Name    string `json:"name"`
-	Address string `json:"address"`
+	// Name is what the other instances of the group see this one as.
+	Name string `json:"name"`
 	// Members is the other instances of the group reachable now, and Apps
 	// every phone that joined it with the phrase.
 	Members []groupMember `json:"members"`
@@ -127,7 +125,6 @@ type awayMember struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
 	Deployment string `json:"deployment"`
-	Address    string `json:"address"`
 	// LastSeen is Unix seconds.
 	LastSeen int64 `json:"lastSeen"`
 }
@@ -164,8 +161,7 @@ func viewOf(a *app.App) groupView {
 			v.apps = append(v.apps, groupApp{ID: m.ID, Name: m.Name, Deployment: string(m.Kind), Connected: m.Online(),
 				Approved: m.State == group.StateApproved, LastSeen: m.LastSeen.Unix()})
 		case m.Kind == member.KindInstance && m.State == group.StateApproved && !m.Online():
-			v.away = append(v.away, awayMember{ID: m.ID, Name: m.Name, Deployment: m.Deployment, Address: m.Address,
-				LastSeen: m.LastSeen.Unix()})
+			v.away = append(v.away, awayMember{ID: m.ID, Name: m.Name, Deployment: m.Deployment, LastSeen: m.LastSeen.Unix()})
 		}
 	}
 	// Connected phones first, then by name, as the cards stand on the page.
@@ -626,7 +622,6 @@ func connectInfo(a *app.App) ConnectInfo {
 		RelayMode:        mode,
 		ProjectRelayURL:  relay.DefaultURL,
 		Name:             instanceDisplayName(a),
-		Address:          groupAddress(a),
 		Members:          v.members,
 		Apps:             v.apps,
 		Away:             v.away,

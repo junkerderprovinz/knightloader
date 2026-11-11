@@ -20,7 +20,7 @@ const expect = (what, got, want) => {
   if (g !== w) problems.push(`${what}: got ${g}, want ${w}`);
 };
 
-const desktop = { id: 'a1b2', name: 'Zathallia', deployment: 'desktop', address: 'http://192.168.20.86:8749', lastSeen: 1790000000 };
+const desktop = { id: 'a1b2', name: 'Zathallia', deployment: 'desktop', lastSeen: 1790000000 };
 const relayConn = (instanceId) => ({ kind: 'relay', id: 'c1', name: 'Zathallia', relayUrl: 'wss://r', relayKey: 'k', instanceId });
 
 expect('a closed desktop app the group lists as away', awayFor(relayConn('a1b2'), [desktop]), desktop);

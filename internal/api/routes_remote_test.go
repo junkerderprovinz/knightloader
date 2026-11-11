@@ -342,17 +342,6 @@ func signInOn(t *testing.T, a *app.App, url, host string) int {
 	return doJSON(t, req, nil)
 }
 
-// groupAddressOf is the address GET /api/connect says the group is told.
-func groupAddressOf(t *testing.T, url string) string {
-	t.Helper()
-	req, _ := http.NewRequest(http.MethodGet, url+"/api/connect", nil)
-	var info ConnectInfo
-	if code := doJSON(t, req, &info); code != http.StatusOK {
-		t.Fatalf("GET /api/connect answered %d", code)
-	}
-	return info.Address
-}
-
 // TestTheHostOfASignInIsNeverAdopted: the Host header is whatever the caller
 // or a proxy in between wrote, and the first known domain is what the group,
 // the relay and the network announce are told. Only the owner's own entry
@@ -381,7 +370,7 @@ func TestTheHostOfASignInIsNeverAdopted(t *testing.T) {
 	if err := a.Auth.SetPassword(signInPassword, ""); err != nil {
 		t.Fatal(err)
 	}
-	if got := groupAddressOf(t, srv.URL); strings.Contains(got, "example.tld") || strings.Contains(got, "home.lan") {
+	if got := groupAddress(a); strings.Contains(got, "example.tld") || strings.Contains(got, "home.lan") {
 		t.Fatalf("the group is told %q, a name only a request header carried", got)
 	}
 }
@@ -417,7 +406,7 @@ func TestTheGroupIsToldTheFirstKnownDomain(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	if got := groupAddressOf(t, srv.URL); strings.HasPrefix(got, "https://") {
+	if got := groupAddress(a); strings.HasPrefix(got, "https://") {
 		t.Fatalf("address = %q before any domain is known", got)
 	}
 
@@ -426,7 +415,7 @@ func TestTheGroupIsToldTheFirstKnownDomain(t *testing.T) {
 	if _, err := a.Settings.Set(cfg); err != nil {
 		t.Fatal(err)
 	}
-	if got := groupAddressOf(t, srv.URL); got != "https://first.example.tld/kl" {
+	if got := groupAddress(a); got != "https://first.example.tld/kl" {
 		t.Fatalf("address = %q, want the first known domain", got)
 	}
 }

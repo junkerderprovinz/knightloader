@@ -44,7 +44,6 @@ const base: ConnectInfo = {
   relayMode: 'project',
   projectRelayUrl: 'wss://parleyport.halleluja.design/relay/connect',
   name: 'nas',
-  address: '',
   members: [],
   apps: [],
   away: [],
@@ -313,7 +312,7 @@ describe('PairingGroup', () => {
       joinedAgo: 500,
       memberSeen: true,
       members: [{ id: 'b', name: 'office', direct: false, relay: true, deployment: 'container' }],
-      away: [{ id: 'z', name: 'Zathallia', deployment: 'desktop', address: '', lastSeen: 1 }],
+      away: [{ id: 'z', name: 'Zathallia', deployment: 'desktop', lastSeen: 1 }],
     });
     expect(rows().map((li) => li.textContent)).toEqual([
       'nasThis instancePaired',

@@ -40,7 +40,6 @@ const group = {
   relayMode: 'project',
   projectRelayUrl: 'wss://parleyport.halleluja.design/relay/connect',
   name: 'nas',
-  address: '',
   members: [],
   apps: [],
   away: [],
