@@ -72,6 +72,7 @@ const FILE_PAGES = [
   { file: 'src/components/RuleEditor.tsx', pages: ['rules'] },
   // The categories card, drawn at the foot of the rules page.
   { file: 'src/pages/settings/Categories.tsx', pages: ['rules'] },
+  { file: 'src/pages/settings/AfterDownload.tsx', pages: ['rules'] },
   { file: 'src/pages/settings/Network.tsx', pages: ['network'] },
   { file: 'src/pages/settings/network/', pages: ['network'] },
   { file: 'src/pages/settings/Connections.tsx', pages: ['network'] },

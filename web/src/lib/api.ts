@@ -409,6 +409,62 @@ export interface Category {
   /** This drawer's own torrent file selection, in place of the Torrents page's
    *  as a whole. Absent is no opinion. */
   torrentFiles?: TorrentFileRules;
+  /** The ArrowLoop job started once a package filed here has landed. */
+  afterDownload?: AfterDownloadPick;
+}
+
+/** settings.AfterDownload: one job on one ArrowLoop instance of the fortress.
+ *  device names the instance while it is away. */
+export interface AfterDownloadPick {
+  member: string;
+  device?: string;
+  job: string;
+}
+
+export type AfterDownloadMode = 'sync' | 'mirror' | 'move';
+export type AfterDownloadDirection = 'both' | 'leftToRight' | 'rightToLeft';
+
+/** A job as ArrowLoop's jobs.list describes it. */
+export interface AfterDownloadJob {
+  name: string;
+  direction: AfterDownloadDirection;
+  mode: AfterDownloadMode;
+  paused: boolean;
+  running: boolean;
+  /** outcome is done, quiet, left or failed. */
+  lastRun?: { at: string; outcome: string };
+}
+
+/** One ArrowLoop instance with its jobs, or the code of why they are missing. */
+export interface AfterDownloadEngine {
+  id: string;
+  device: string;
+  jobs: AfterDownloadJob[];
+  error?: string;
+}
+
+/** The last hand-over of one category: status when it went through, error
+ *  (a code of afterdownload.Code) when it did not. */
+export interface AfterDownloadResult {
+  at: string;
+  package: string;
+  job: string;
+  status?: 'started' | 'queued';
+  error?: string;
+}
+
+export interface AfterDownloadState {
+  fortress: boolean;
+  engines: AfterDownloadEngine[];
+  last: Record<string, AfterDownloadResult>;
+}
+
+/** A place ArrowLoop already knows and can copy to. kind is share, disk or remote. */
+export interface AfterDownloadDestination {
+  id: string;
+  name: string;
+  kind: string;
+  where: string;
 }
 
 /** settings.TorrentFileRules: the files a torrent fetches when nobody ticked
@@ -2603,6 +2659,31 @@ export interface MediaHookSave {
 
 /** fetchMediaHooks is every stored address in stored order, which is the
  *  order the Categories picker offers. */
+/** fetchAfterDownload lists the ArrowLoop instances of the fortress with their
+ *  jobs and how each category's last hand-over went. */
+export async function fetchAfterDownload(): Promise<AfterDownloadState> {
+  return json<AfterDownloadState>(await fetch('/api/afterdownload'));
+}
+
+/** fetchAfterDownloadDestinations lists where one ArrowLoop instance can copy to. */
+export async function fetchAfterDownloadDestinations(member: string): Promise<AfterDownloadDestination[]> {
+  return (await json<AfterDownloadDestination[]>(
+    await fetch(`/api/afterdownload/engines/${encodeURIComponent(member)}/targets`),
+  )) ?? [];
+}
+
+/** createAfterDownloadJob makes a job in ArrowLoop that starts from the
+ *  category's folder, and answers its name. */
+export async function createAfterDownloadJob(req: {
+  category: string;
+  member: string;
+  name: string;
+  target: string;
+  mode: AfterDownloadMode;
+}): Promise<string> {
+  return (await json<{ job: string }>(await post('/api/afterdownload/jobs', req))).job;
+}
+
 export async function fetchMediaHooks(): Promise<MediaHook[]> {
   return (await json<MediaHook[]>(await fetch('/api/mediahooks'))) ?? [];
 }

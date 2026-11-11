@@ -762,6 +762,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.categories.collision', hint: 'settings.categories.collisionHint' },
         { key: 'settings.categories.free', hint: 'settings.categories.freeHint' },
         { key: 'settings.categories.notify', hint: 'settings.categories.notifyHint' },
+        { key: 'settings.categories.afterDownload', hint: 'settings.categories.afterDownloadHint' },
+        { key: 'settings.categories.afterDownloadNew', hint: 'settings.categories.afterDownloadNewHint' },
         { key: 'settings.categories.torrentFiles', hint: 'settings.categories.torrentFilesHint' },
       ],
       also: ['settings.categories.notifyNone', 'settings.categories.torrentFilesOwn'],

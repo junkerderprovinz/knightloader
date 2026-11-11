@@ -51,6 +51,10 @@
   /* The hover step of an accent fill, which has no surface ramp to climb. */
   --color-accentHover: var(--accent-hover);
 
+  /* ArrowLoop's bronze, for the marks of its jobs on the After download station. */
+  --color-arrowloop: var(--arrowloop-ink);
+  --color-arrowloopSoft: var(--arrowloop-soft);
+  --color-arrowloopLine: var(--arrowloop-line);
   --color-statusOk: var(--status-ok-text);
   --color-statusOkBg: var(--status-ok-bg);
   --color-statusOkSolid: var(--status-ok-solid);
@@ -434,6 +438,11 @@ body {
   --status-warn-bg-soft: rgba(255, 131, 43, 0.06);
   --status-warn-solid:   #FF832B;
 
+  /* ArrowLoop's bronze, from the rings of its logo, lifted for a dark card. */
+  --arrowloop-ink:       #e6bc59;
+  --arrowloop-soft:      rgba(230, 188, 89, 0.12);
+  --arrowloop-line:      rgba(230, 188, 89, 0.38);
+
   --status-neutral-text: #a8a8a8;
   --status-neutral-bg:   rgba(255, 255, 255, 0.05);
   --status-neutral-solid: #8d8d8d;
@@ -513,6 +522,10 @@ body {
     --status-warn-bg-soft: rgba(186, 78, 0, 0.05);
     --status-warn-solid:   #ba4e00;
 
+    --arrowloop-ink:       #855a1a;
+    --arrowloop-soft:      rgba(186, 131, 49, 0.11);
+    --arrowloop-line:      rgba(186, 131, 49, 0.45);
+
     --status-neutral-text: #6f6f6f;
     --status-neutral-bg:   rgba(0, 0, 0, 0.045);
     --status-neutral-solid: #8d8d8d;
@@ -586,6 +599,10 @@ body {
   --status-warn-bg-strong: #fff2e8;
   --status-warn-bg-soft: rgba(186, 78, 0, 0.05);
   --status-warn-solid:   #ba4e00;
+
+  --arrowloop-ink:       #855a1a;
+  --arrowloop-soft:      rgba(186, 131, 49, 0.11);
+  --arrowloop-line:      rgba(186, 131, 49, 0.45);
 
   --status-neutral-text: #6f6f6f;
   --status-neutral-bg:   rgba(0, 0, 0, 0.045);
