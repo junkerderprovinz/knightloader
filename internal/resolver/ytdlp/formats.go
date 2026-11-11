@@ -12,10 +12,11 @@ import (
 
 // A probe lists a source's tracks one by one. The video and audio rows offer
 // them in two steps, a format and then a quality or bitrate within it, and
-// store the pair as one key: "1080p60 webm vp9" for a video track, "opus 160k"
-// for an audio track. The selector built from a key matches the track's
-// attributes rather than its format id, so a pick means the same file to a host
-// that renumbers its formats between the probe and the download.
+// store the pair as one key: "1080p60 webm vp9" for a video track,
+// "1080p60hdr webm vp9" for its HDR version, "opus 160k" for an audio track.
+// The selector built from a key matches the track's attributes rather than its
+// format id, so a pick means the same file to a host that renumbers its formats
+// between the probe and the download.
 //
 // A host preset names a format before any probe has listed the link's tracks:
 // "webm vp9 1080p" on a video row, a bare "opus" and a bitrate on an audio row.
@@ -62,9 +63,9 @@ var audioFamilies = []codecFamily{
 var keyToken = regexp.MustCompile(`^[a-z0-9]{1,10}$`)
 
 var (
-	// qualityToken is the first word of a video track's key: a resolution, and
-	// the frame rate where it is above 30.
-	qualityToken = regexp.MustCompile(`^([1-9][0-9]{1,4})p([1-9][0-9]{1,2})?$`)
+	// qualityToken is the first word of a video track's key: a resolution,
+	// the frame rate where it is above 30, and "hdr" for an HDR track.
+	qualityToken = regexp.MustCompile(`^([1-9][0-9]{1,4})p([1-9][0-9]{1,2})?(hdr)?$`)
 	// capToken is the last word of a video wish: the resolution it may not
 	// exceed.
 	capToken = regexp.MustCompile(`^([1-9][0-9]{1,4})p$`)
@@ -204,6 +205,9 @@ type videoFormat struct {
 	// and 0 otherwise, which is how one resolution's 30 and 60 fps tracks tell
 	// apart.
 	fps int
+	// hdr is a track of any dynamic range but SDR, which yt-dlp ranks above
+	// the SDR track of the same height.
+	hdr bool
 	videoContainer
 }
 
@@ -213,7 +217,11 @@ func (v videoFormat) quality() string {
 	if v.fps > 0 {
 		fps = strconv.Itoa(v.fps)
 	}
-	return fmt.Sprintf("%dp%s", v.res, fps)
+	hdr := ""
+	if v.hdr {
+		hdr = "hdr"
+	}
+	return fmt.Sprintf("%dp%s%s", v.res, fps, hdr)
 }
 
 func (v videoFormat) key() string { return v.quality() + " " + v.id() }
@@ -239,7 +247,7 @@ func parseVideoFormat(key string) (videoFormat, bool) {
 	if !ok {
 		return videoFormat{}, false
 	}
-	return videoFormat{res: res, fps: fps, videoContainer: c}, true
+	return videoFormat{res: res, fps: fps, hdr: m[3] != "", videoContainer: c}, true
 }
 
 // videoFormatOf reads a format as a video track. A format that reports a
@@ -265,7 +273,13 @@ func videoFormatOf(f FormatEntry) (videoFormat, bool) {
 	if r := int(math.Round(f.FPS)); r > 30 {
 		fps = r
 	}
-	return videoFormat{res: f.Res(), fps: fps, videoContainer: c}, true
+	return videoFormat{res: f.Res(), fps: fps, hdr: isHDR(f.DynamicRange), videoContainer: c}, true
+}
+
+// isHDR reports a dynamic range other than SDR. A host that names none
+// serves SDR.
+func isHDR(dynamicRange string) bool {
+	return dynamicRange != "" && dynamicRange != "SDR"
 }
 
 // filters match the track by its attributes, once for each shape a track of
@@ -280,6 +294,13 @@ func (v videoFormat) filters() []string {
 		// key videoFormatOf gave it. The ? keeps a track that reports no rate,
 		// as most outside YouTube do.
 		rest += "[fps<?30.5]"
+	}
+	// A plain track asks for SDR, which yt-dlp would otherwise pass over for
+	// the HDR track of the same height.
+	if v.hdr {
+		rest += "[dynamic_range!=SDR]"
+	} else {
+		rest += "[dynamic_range=?SDR]"
 	}
 	out := atRes(v.res)
 	for i := range out {
@@ -488,9 +509,9 @@ func IsVideoTrack(s string) bool {
 }
 
 // NameTag is what a video row that picked a track writes beside the height in
-// its file name, its frame rate above 30 and its codec, where another video
-// row of the link, one of others, may land on the same height and so on the
-// same name. Any other pick, and a track no other pick can meet, write none.
+// its file name, its frame rate above 30, its codec and HDR, where another
+// video row of the link, one of others, may land on the same height and so on
+// the same name. Any other pick, and a track no other pick can meet, write none.
 func NameTag(pick string, others []string) string {
 	v, ok := parseVideoFormat(pick)
 	if !ok || !slices.ContainsFunc(others, func(o string) bool { return reaches(o, v.res) }) {
@@ -502,6 +523,9 @@ func NameTag(pick string, others []string) string {
 	}
 	if v.fps > 0 {
 		tag = fmt.Sprintf("%dfps %s", v.fps, tag)
+	}
+	if v.hdr {
+		tag += " HDR"
 	}
 	return tag
 }
@@ -559,6 +583,9 @@ func VideoTracks(formats []FormatEntry) []string {
 		}
 		if a.fps != b.fps {
 			return a.fps > b.fps
+		}
+		if a.hdr != b.hdr {
+			return a.hdr
 		}
 		if a.ext != b.ext {
 			return a.ext < b.ext
@@ -627,11 +654,14 @@ func containerRank(c videoContainer) int {
 // under its cap, or, when the source has no track in that container, into the
 // cap alone. A cap becomes the one of SourceQualities that downloads the same
 // track. A track's key that the source does not list may name a portrait or
-// wide track by its height, and takes that track's key. Any other pick comes
-// back as it is.
+// wide track by its height, or be the plain key of a track the source has in
+// HDR alone, and takes that track's key. Any other pick comes back as it is.
 func ResolveVideoPick(pick string, formats []FormatEntry) string {
 	if v, ok := parseVideoFormat(pick); ok {
 		if k, ok := v.byHeight(formats); ok {
+			return k
+		}
+		if k, ok := v.inHDR(formats); ok {
 			return k
 		}
 		return pick
@@ -655,7 +685,9 @@ func (w videoWish) resolve(formats []FormatEntry) string {
 		if !ok || !w.holds(v.videoContainer) || (w.capRes > 0 && v.res > w.capRes) {
 			continue
 		}
-		if !found || v.res > best.res || (v.res == best.res && v.fps > best.fps) {
+		// A preset that names no dynamic range takes the plain track of a
+		// height.
+		if !found || v.res > best.res || (v.res == best.res && (v.fps > best.fps || (v.fps == best.fps && best.hdr && !v.hdr))) {
 			best, found = v, true
 		}
 	}
@@ -675,7 +707,7 @@ func (v videoFormat) byHeight(formats []FormatEntry) (string, bool) {
 	renamed := ""
 	for _, f := range formats {
 		got, ok := videoFormatOf(f)
-		if !ok || got.fps != v.fps || got.id() != v.id() {
+		if !ok || got.fps != v.fps || got.hdr != v.hdr || got.id() != v.id() {
 			continue
 		}
 		if got.res == v.res {
@@ -686,6 +718,21 @@ func (v videoFormat) byHeight(formats []FormatEntry) (string, bool) {
 		}
 	}
 	return renamed, renamed != ""
+}
+
+// inHDR is the key of v's track in HDR, where v is a plain key the source has
+// in HDR alone, which is the track yt-dlp's own ranking gives such a key.
+func (v videoFormat) inHDR(formats []FormatEntry) (string, bool) {
+	if v.hdr {
+		return "", false
+	}
+	h := v
+	h.hdr = true
+	keys := VideoTracks(formats)
+	if slices.Contains(keys, v.key()) || !slices.Contains(keys, h.key()) {
+		return "", false
+	}
+	return h.key(), true
 }
 
 // VideoFile predicts what a video row's pick downloads from formats: the
@@ -877,7 +924,8 @@ func carriesBoth(f FormatEntry) bool { return f.Vcodec != "none" && f.Acodec != 
 // probe's default is first in that sort, so it wins wherever it is among
 // them: on YouTube a Premium track outranks a better codec of the same
 // height. Otherwise the track whose smaller side is longer wins, as yt-dlp
-// ranks resolution, then the frame rate, then the codec yt-dlp prefers.
+// ranks resolution, then the frame rate, the dynamic range and the codec
+// yt-dlp prefers.
 func bestVideo(formats []FormatEntry, capRes int, want func(FormatEntry) bool) *FormatEntry {
 	var best *FormatEntry
 	for i, f := range formats {
@@ -901,10 +949,27 @@ func preferVideo(a, b FormatEntry) bool {
 	if ra, rb := math.Round(a.FPS), math.Round(b.FPS); ra != rb {
 		return ra > rb
 	}
+	if ha, hb := hdrRank(a.DynamicRange), hdrRank(b.DynamicRange); ha != hb {
+		return ha < hb
+	}
 	if ca, cb := videoCodecPreference(a.Vcodec), videoCodecPreference(b.Vcodec); ca != cb {
 		return ca < cb
 	}
 	return preferCopy(a, b)
+}
+
+// hdrRanks is the order of yt-dlp's default sort (hdr:12): HDR ahead of SDR,
+// and Dolby Vision, beyond the limit, after it.
+var hdrRanks = []string{"HDR12", "HDR10+", "HDR10", "HLG"}
+
+func hdrRank(dynamicRange string) int {
+	if i := slices.Index(hdrRanks, dynamicRange); i >= 0 {
+		return i
+	}
+	if dynamicRange == "DV" {
+		return len(hdrRanks) + 1
+	}
+	return len(hdrRanks)
 }
 
 func videoCodecPreference(vcodec string) int {
