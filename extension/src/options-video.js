@@ -233,10 +233,13 @@ function videoDefaultsRows(site) {
   }
   if (pick.parts.includes('audio')) {
     const rates = ['best', ...offered(seen.audioRates, pick.audioRate)];
-    const codecs = ['best', ...offered(seen.audio, pick.audio)];
+    // As in the button's menu, a format the site has not served is one the
+    // instance converts to, which an option says on its one line.
+    const codecs = ['best', ...[...new Set([...offered(seen.audio, pick.audio), ...VIDEO_AUDIO_MENU])].sort(audioCodecOrder)];
+    const codecName = (c) => (seen.audio.includes(c) ? videoFormatName(c) : `${videoFormatName(c)} (${t('video.converted')})`);
     picks.append(
       videoSelect(`${site.id}-rate`, t('video.audioQuality'), rates, pick.audioRate, best((r) => r), (audioRate) => save({ audioRate })),
-      videoSelect(`${site.id}-audio`, t('video.audioFormat'), codecs, pick.audio, best(videoFormatName), (audio) => save({ audio })),
+      videoSelect(`${site.id}-audio`, t('video.audioFormat'), codecs, pick.audio, best(codecName), (audio) => save({ audio })),
     );
   }
   if (pick.parts.includes('subtitle')) {

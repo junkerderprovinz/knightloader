@@ -1491,7 +1491,7 @@ for (const editable of [true, false]) {
   // site has, neither with a Best.
   const options = doc.byId.videoSites.querySelectorAll('option');
   const names = options.map((o) => o.text);
-  for (const name of ['MP4 · H.264', 'WebM · VP9', 'AAC', 'Opus', 'SRT', 'WebVTT', 'TTML', 'WebP', 'JPEG']) if (!names.includes(name)) fail(`${browser}: the site's defaults offer ${names.join(', ')}, want ${name} among them`);
+  for (const name of ['MP4 · H.264', 'WebM · VP9', 'AAC', 'Opus', 'MP3 (video.converted)', 'FLAC (video.converted)', 'SRT', 'WebVTT', 'TTML', 'WebP', 'JPEG']) if (!names.includes(name)) fail(`${browser}: the site's defaults offer ${names.join(', ')}, want ${name} among them`);
   if (names.some((n) => /srv/i.test(n))) fail(`${browser}: the site's defaults offer YouTube's own subtitle format`);
   const select = (key) => doc.byId.videoSites.querySelectorAll('select').find((s) => s.dataset.videoKey === `youtube-${key}`);
   const choices = (key) => select(key)?.children.map((o) => (o.selected ? `[${o.value}]` : o.value)).join(' ');
