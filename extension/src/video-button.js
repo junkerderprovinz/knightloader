@@ -1057,11 +1057,12 @@
     // The sizes are those of one video, so a whole playlist shows none.
     const total = offer?.known && !playlist ? videoPickTotal(pick, offer) : undefined;
     if (total) {
+      const size = `${total.atLeast ? '≥ ' : ''}${videoSize(total.bytes, labels.lang)}`;
       const weight = document.createElement('span');
       weight.className = 'total';
-      weight.textContent = `· ${videoSize(total, labels.lang)}`;
+      weight.textContent = `· ${size}`;
       go.append(weight);
-      go.setAttribute('aria-label', `${labels.send}, ${videoSize(total, labels.lang)}`);
+      go.setAttribute('aria-label', `${labels.send}, ${size}`);
     }
     const foot = document.createElement('div');
     foot.className = 'foot';

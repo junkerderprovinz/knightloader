@@ -423,18 +423,21 @@ function loadBackground(chrome) {
   const twoRates = (q) => vm.runInContext(`videoPickSize({ ...videoResolve(videoPick({ parts: ['video'] }), twoRates), quality: '${q}' }, twoRates, 'video')`, ctx);
   if (twoRates('2160p60') !== twoRates('best')) fail(`at the top resolution the chip weighs ${twoRates('2160p60')} bytes and Best ${twoRates('best')}, want the same`);
   if (twoRates('2160p') !== 450000000) fail(`the lower frame rate weighs ${twoRates('2160p')} bytes, want its vp9 track's, the codec yt-dlp prefers`);
-  // The download button weighs the whole pick, and only when every ticked
-  // part has a size: a partial sum would read as the total.
-  const totalOf = (sel) => vm.runInContext(`videoPickTotal({ ...videoResolve(videoPick({ parts: ['video', 'audio'] }), sized), ...${JSON.stringify(sel)} }, sized)`, ctx);
+  // The download button weighs the whole pick. Subtitles, a thumbnail and a
+  // description weigh next to nothing; a video or audio part the instance
+  // cannot weigh, such as a conversion, makes the sum a lower bound rather
+  // than hiding it.
+  const totalOf = (sel) => JSON.stringify(vm.runInContext(`videoPickTotal({ ...videoResolve(videoPick({ parts: ['video', 'audio'] }), sized), ...${JSON.stringify(sel)} }, sized)`, ctx));
   for (const [sel, want] of [
-    [{}, 903400000],
-    [{ parts: ['video'] }, 900000000],
-    [{ quality: '1080p', audioRate: '49k' }, 381200000],
-    [{ audioRate: '130k' }, undefined],
-    [{ parts: ['video', 'audio', 'description'] }, undefined],
-    [{ parts: ['thumbnail'] }, undefined],
+    [{}, { bytes: 903400000, atLeast: false }],
+    [{ parts: ['video'] }, { bytes: 900000000, atLeast: false }],
+    [{ quality: '1080p', audioRate: '49k' }, { bytes: 381200000, atLeast: false }],
+    [{ audioRate: '130k' }, { bytes: 900000000, atLeast: true }],
+    [{ audio: 'mp3' }, { bytes: 900000000, atLeast: true }],
+    [{ parts: ['video', 'audio', 'subtitle', 'thumbnail', 'description'] }, { bytes: 903400000, atLeast: false }],
+    [{ parts: ['thumbnail', 'description'] }, undefined],
   ]) {
-    if (totalOf(sel) !== want) fail(`the pick ${JSON.stringify(sel)} weighs ${totalOf(sel)} bytes in all, want ${want}`);
+    if (totalOf(sel) !== JSON.stringify(want)) fail(`the pick ${JSON.stringify(sel)} weighs ${totalOf(sel)} in all, want ${JSON.stringify(want)}`);
   }
   for (const [bytes, lang, want] of [[412000000, 'en', '412 MB'], [3400000, 'en', '3.4 MB'], [1234000000, 'de', '1,2 GB'], [20000, 'en', '0.1 MB']]) {
     const got = run(`videoSize(${bytes}, '${lang}')`).replace(/ /g, ' ');
@@ -856,7 +859,7 @@ const PAGE_LABELS = {
     videoSizes: { best: 404000000, '1080p': 303000000, '720p': 90000000 }, audioSizes: { 'aac 128k': 3000000 },
   });
   await settle();
-  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|H.264|MP4|[VP9]|WebM|Audio|[Subtitles]|Language|[German]|English|auto|Format|[SRT]|converted|WebVTT|TTML|Thumbnail|Download';
+  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|H.264|MP4|[VP9]|WebM|Audio|[Subtitles]|Language|[German]|English|auto|Format|[SRT]|converted|WebVTT|TTML|Thumbnail|Download|· 303 MB';
   if (entries().join('|') !== listed) fail(`the menu shows ${entries().join(', ')}, want ${listed}, made exact for the video and without the text it lacks`);
 
   // Each part is a switch, a quality a radio in a list, a format a radio in
@@ -882,9 +885,9 @@ const PAGE_LABELS = {
   if (withRole('checkbox').map((c) => `${c.text}:${c.attrs['aria-checked']}`).join('|') !== 'German:true|English:false') fail('the subtitle languages are not checkboxes named by their language, with their state');
   if (radios(groups[0]).find((r) => r.text === '720p')?.attrs['aria-label'] !== '720p, 90 MB') fail('a quality does not say its size to a screen reader');
   if (radios(groups[1]).find((r) => r.text === 'H.264')?.attrs['aria-label'] !== 'H.264, MP4') fail('a format does not say its container to a screen reader');
-  // Video and subtitles are ticked, and subtitles have no size, so the
-  // button weighs nothing rather than less than it downloads.
-  if (goShows() !== 'Download') fail(`with subtitles ticked the download button reads "${goShows()}", want no total`);
+  // Video and subtitles are ticked, and subtitles weigh next to nothing, so
+  // the button weighs the video.
+  if (goShows() !== 'Download · 303 MB') fail(`with subtitles ticked the download button reads "${goShows()}", want the video's 303 MB`);
 
   const foot = menuEl().children.at(-1);
   if (foot?.className !== 'foot' || foot.children.map((b) => b.text).join('|') !== 'Download') fail('Download is not alone at the foot of the menu, where it stays in view');
@@ -1005,12 +1008,12 @@ const PAGE_LABELS = {
   if (!entries().join('|').startsWith('[Video]|Quality|[Best]|404 MB|1080p|303 MB|720p|90 MB|Format|H.264|MP4|[VP9]|')) fail(`with Best stored the menu starts at ${entries().join(', ')}, want Best marked and the best track's VP9`);
   if (goShows() !== 'Download · 404 MB' || go()?.attrs['aria-label'] !== 'Download, 404 MB') fail(`with the video alone ticked the download button reads "${goShows()}", want its size`);
   item('Audio').fire('click');
-  if (goShows() !== 'Download') fail(`with the best audio's size unknown the download button reads "${goShows()}", want no total`);
+  if (goShows() !== 'Download · ≥ 404 MB' || go()?.attrs['aria-label'] !== 'Download, ≥ 404 MB') fail(`with the best audio's size unknown the download button reads "${goShows()}", want at least the video's 404 MB`);
   item('128k').fire('click');
   if (goShows() !== 'Download · 407 MB') fail(`with video and the 128k audio the download button reads "${goShows()}", want 407 MB`);
   // A conversion has no size until it is made, so the button weighs nothing.
   item('MP3').fire('click');
-  if (goShows() !== 'Download' || !entries().join('|').includes('Quality|[Best]|')) fail(`with MP3 picked the menu shows ${entries().join(', ')} and the button reads "${goShows()}", want Best and no total`);
+  if (goShows() !== 'Download · ≥ 404 MB' || !entries().join('|').includes('Quality|[Best]|')) fail(`with MP3 picked the menu shows ${entries().join(', ')} and the button reads "${goShows()}", want Best and at least the video's 404 MB`);
   item('Audio').fire('click');
   item('Download').fire('click');
   await settle();
