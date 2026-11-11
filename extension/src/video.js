@@ -345,11 +345,10 @@ function audioMenuRows(offer) {
   };
 }
 
-/** A quality as the menu names it: with its frame rate only where the video
- *  has its resolution at two. */
-function videoQualityName(quality, qualities) {
-  const height = parseInt(quality, 10);
-  return qualities.filter((q) => parseInt(q, 10) === height).length > 1 ? quality : `${height}p`;
+/** The frame rate a quality names above 30 fps ("1080p60" runs at 60), which
+ *  the menu shows beside the resolution, and 0 for the common rates. */
+function videoFrameRate(quality) {
+  return videoTrackOf(quality).fps;
 }
 
 /** Whether a video has a format at a quality; at the best quality, whether

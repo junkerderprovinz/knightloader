@@ -19,6 +19,8 @@
   // Smaller videos are previews and ads, not the player.
   const MIN_WIDTH = 200;
   const MIN_HEIGHT = 112;
+  // A video under half the largest one's size is a preview beside a player.
+  const PREVIEW_SHARE = 0.5;
   // About as long as the players keep their controls up after the pointer
   // stops.
   const IDLE_MS = 2500;
@@ -186,16 +188,23 @@
     .choices { padding: 0 4px 10px; }
     .choices .label { display: block; margin: 0 6px 4px; color: var(--sub); font-size: 11px; }
     .choices > * + .label { margin-top: 10px; }
-    /* Every list is one column of tiles, the same whether one or several can
-       be picked, with the sizes lined up at the end. A tile rests one surface
-       above its sub-card, which would swallow it otherwise, and the picked
-       ones are filled. */
-    .list { display: flex; flex-direction: column; gap: 2px; }
-    .menu .list button { gap: 8px; height: 28px; padding-block: 0; padding-inline: 10px; background: var(--surface3); }
-    .list button:not([aria-checked="true"]):hover { background: var(--raised); }
+    /* Every list is one column of plain rows, the same whether one or several
+       can be picked, with the sizes lined up at the end. Only the picked ones
+       are filled, and a row rises one surface under the pointer. */
+    .list { display: flex; flex-direction: column; gap: 0; }
+    .menu .list button { gap: 8px; height: 26px; padding-block: 0; padding-inline: 10px; background: transparent; }
+    .list button:not([aria-checked="true"]):hover { background: var(--surface3); }
     .menu .list [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
     .list .aside { margin-inline-start: auto; color: var(--sub); font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; }
     .list button:hover .aside, .list [aria-checked="true"] .aside { color: inherit; }
+    /* A frame rate above the usual, as a small neutral plaque beside the
+       resolution. */
+    .list .rate {
+      padding: 0 5px; border-radius: min(var(--radius), 4px); background: var(--surface3); color: var(--sub);
+      font-size: 11px; font-weight: 500; line-height: 16px; font-variant-numeric: tabular-nums;
+    }
+    .list button:not([aria-checked="true"]):hover .rate { background: var(--raised); color: var(--text); }
+    .list [aria-checked="true"] .rate { background: color-mix(in srgb, var(--accent-contrast) 14%, transparent); color: inherit; }
     /* The groove one surface below the sub-card around a row of formats,
        whose idle segments stay unfilled. */
     .segments {
@@ -359,14 +368,20 @@
   /**
    * The video with the most of itself on screen, which is the player's. Shorts
    * keep the next ones loaded below the one playing, and the small ones are
-   * previews and ads.
+   * previews and ads. A preview playing in a list beside the player is far
+   * smaller than the player, so it never takes the button, not even while
+   * the player is scrolled out of view.
    */
   function largestVideo() {
+    const area = (r) => r.width * r.height;
+    const videos = [...document.querySelectorAll('video')]
+      .map((v) => ({ v, r: v.getBoundingClientRect() }))
+      .filter(({ r }) => r.width >= MIN_WIDTH && r.height >= MIN_HEIGHT);
+    const largest = Math.max(0, ...videos.map(({ r }) => area(r)));
     let best = null;
     let most = 0;
-    for (const v of document.querySelectorAll('video')) {
-      const r = v.getBoundingClientRect();
-      if (r.width < MIN_WIDTH || r.height < MIN_HEIGHT) continue;
+    for (const { v, r } of videos) {
+      if (area(r) < largest * PREVIEW_SHARE) continue;
       const seen = Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
       if (seen > most) {
         best = v;
@@ -732,9 +747,10 @@
    * of which one is picked, or with `several` any number. A choice `off`
    * rules out stays in the row but takes no click. `aside` is what a choice
    * shows small beside its name: the size in a list, the container under the
-   * codec in segments.
+   * codec in segments. `plaque` is a word right after the name, such as a
+   * frame rate.
    */
-  function choices(values, { look, key, name, isOn, onPick, several = false, off = () => false, aside = () => '' }) {
+  function choices(values, { look, key, name, isOn, onPick, several = false, off = () => false, aside = () => '', plaque = () => '' }) {
     const group = document.createElement('div');
     group.className = look;
     group.setAttribute('role', several ? 'group' : 'radiogroup');
@@ -744,14 +760,21 @@
       item.setAttribute('aria-checked', String(isOn(v)));
       item.dataset.key = `${key}:${v}`;
       if (off(v)) item.disabled = true;
+      const tag = plaque(v);
+      if (tag) {
+        const rate = document.createElement('span');
+        rate.className = 'rate';
+        rate.textContent = tag;
+        item.append(rate);
+      }
       const extra = aside(v);
       if (extra) {
         const small = document.createElement('span');
         small.className = 'aside';
         small.textContent = extra;
         item.append(small);
-        item.setAttribute('aria-label', `${name(v)}, ${extra}`);
       }
+      if (tag || extra) item.setAttribute('aria-label', [name(v), tag, extra].filter(Boolean).join(', '));
       // A radio group is one stop for Tab, its picked radio, and the arrow
       // keys pick within it, as with the browser's own radios.
       if (!several) {
@@ -882,7 +905,8 @@
         row('quality', labels.quality, ['best', ...qualities], {
           look: 'list',
           isOn: (q) => q === pick.quality,
-          name: best((q) => videoQualityName(q, qualities)),
+          name: best((q) => `${parseInt(q, 10)}p`),
+          plaque: (q) => (videoFrameRate(q) ? `${videoFrameRate(q)} fps` : ''),
           onPick: quality,
           aside: (q) => size(videoPickSize({ ...pick, quality: q, videoFormat: videoTrackOffered(offer, q, pick.videoFormat) ? pick.videoFormat : 'best' }, offer, 'video')),
         });

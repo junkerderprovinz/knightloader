@@ -344,8 +344,8 @@ function loadBackground(chrome) {
   })})`);
   const rows = run('videoMenuRows(yt)');
   if (!same(rows.qualities, ['2160p', '1080p60', '1080p', '720p60'])) fail(`the quality row lists ${rows.qualities}, want each resolution once, highest first`);
-  const names = run('videoMenuRows(yt).qualities.map((q) => videoQualityName(q, videoMenuRows(yt).qualities))');
-  if (!same(names, ['2160p', '1080p60', '1080p', '720p'])) fail(`the qualities read ${names}, want a frame rate only where 1080p comes at two`);
+  const rates = run('videoMenuRows(yt).qualities.map(videoFrameRate)');
+  if (!same(rates, [0, 60, 0, 60])) fail(`the qualities carry the frame rates ${rates}, want 60 where a track runs above 30 fps and nothing else`);
   if (!same(rows.formats, ['mp4 avc1', 'mp4 vp9', 'mp4 av1', 'webm vp9'])) fail(`the format row lists ${rows.formats}, want mp4 before webm and avc1, vp9, av1`);
   const offered = (q) => run(`videoMenuRows(yt).formats.filter((f) => videoTrackOffered(yt, '${q}', f))`);
   if (!same(offered('best'), rows.formats)) fail(`at the best quality the formats offered are ${offered('best')}, want every one`);
@@ -940,7 +940,11 @@ const PAGE_LABELS = {
   const lined = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, , body]) => /inset 0 0 0 1px|(^|[;\s])border(-top|-bottom|-left|-right)?:/.test(body)).map(([, sel]) => sel.replace(/\/\*[\s\S]*?\*\//g, '').trim());
   if (lined.join() !== '.menu') fail(`inside the menu these draw a line: ${lined.filter((s) => s !== '.menu').join(', ')}`);
   if (!/background: var\(--surface3\)/.test(rule('.segments')) || !/padding: 0\.2rem/.test(rule('.segments'))) fail('a format rail is not the groove one surface below its sub-card, padded 0.2rem');
-  if (!/background: var\(--surface3\)/.test(rule('.menu .list button')) || !/background: var\(--raised\)/.test(css.slice(css.indexOf('.list button:not([aria-checked="true"]):hover')))) fail('a tile does not rest one surface above its sub-card and rise one more under the pointer');
+  // A list is plain rows packed close, unfilled at rest and one surface up
+  // under the pointer; only the picked rows are filled.
+  if (!/background: transparent/.test(rule('.menu .list button')) || !/height: 26px/.test(rule('.menu .list button')) || !/gap: 0/.test(rule('.list'))) fail('a list row is not a plain 26px row packed close to the next');
+  if (!/background: var\(--surface3\)/.test(css.slice(css.indexOf('.list button:not([aria-checked="true"]):hover')).split('}')[0])) fail('a list row does not rise one surface under the pointer');
+  if (!/background: var\(--accent\)/.test(rule('.menu .list [aria-checked="true"]'))) fail('a picked row is not filled with the accent');
 
   // Every list of choices is one column, so it reads top to bottom like the
   // subtitle languages.
@@ -1088,6 +1092,24 @@ const PAGE_LABELS = {
   video(doc, player, { left: 500, top: 0, width: 400, height: 710 });
   doc.dispatch('yt-navigate-finish');
   if (button()?.style.left !== '700px') fail(`on Shorts the button sits at ${button()?.style.left}, want over the video on screen at 700px`);
+
+  // A preview playing in a list is no player: the home page, search results
+  // and a channel get no button, and on a watch page a preview beside a
+  // player scrolled out of view does not take it either.
+  for (const v of player.querySelectorAll('video')) v.remove();
+  const preview = video(doc, player, { left: 100, top: 300, width: 360, height: 202 });
+  for (const href of ['https://www.youtube.com/', 'https://www.youtube.com/results?search_query=insel', 'https://www.youtube.com/@channel/videos', 'https://m.youtube.com/']) {
+    location.href = href;
+    doc.dispatch('yt-navigate-finish');
+    if (button()) fail(`on ${href} with a preview playing the button shows`);
+  }
+  location.href = 'https://www.youtube.com/watch?v=NFHGtAS8Su4';
+  const watched = video(doc, player, { left: 0, top: -900, width: 1280, height: 720 });
+  doc.dispatch('yt-navigate-finish');
+  if (button() && button().style.left === '280px') fail('on a watch page the button moves onto a preview while the player is scrolled out of view');
+  preview.remove();
+  watched.rect = { left: 0, top: 56, width: 1280, height: 720, right: 1280, bottom: 776 };
+  doc.dispatch('yt-navigate-finish');
 
   // The button takes the extension's theme, and its corners are rounded in
   // every shape but never so far that the 32px bar reads as a pill.
@@ -1308,6 +1330,37 @@ for (const converts of [true, false]) {
     await settle();
     if (sends.at(-1)?.thumbFormat !== 'png') fail(`the thumbnail picked as PNG is sent as ${sends.at(-1)?.thumbFormat}`);
   }
+}
+
+// A quality whose track runs above 30 fps carries its rate as a Plakette
+// beside the resolution, and a screen reader hears it with the size.
+{
+  const store = makeStore({ videoDefaults: { youtube: { parts: ['video'], quality: 'best' } } });
+  const { chrome } = makeChrome(store);
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
+    if (msg.type === 'knightloader-video-formats') {
+      return {
+        known: true, qualities: ['1080p', '720p'], audio: false, videoTracks: ['1080p60 mp4 avc1', '1080p mp4 avc1', '720p50 mp4 avc1'], audioTracks: [], audioLangs: [],
+        subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: false, videoSizes: { '1080p': 9000000 },
+      };
+    }
+    return undefined;
+  };
+  const { doc, run } = loadPage(chrome, 'https://www.youtube.com/watch?v=aqz-KE-bpKQ');
+  const player = doc.createElement('div');
+  doc.documentElement.append(player);
+  video(doc, player, { left: 0, top: 56, width: 1280, height: 720 });
+  run();
+  await settle();
+  const shadow = doc.documentElement.querySelectorAll('knightloader-video-button')[0].shadow;
+  shadow.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'dialog').fire('click');
+  await settle();
+  const menu = shadow.querySelectorAll('div').find((d) => d.attrs.role === 'dialog');
+  const shown = menu.querySelectorAll('*').filter((n) => n.text).map((n) => n.text).join('|');
+  if (!shown.includes('Quality|Best|1080p|60 fps|9 MB|1080p|720p|50 fps|Format')) fail(`the qualities read ${shown}, want 60 fps and 50 fps beside their resolutions`);
+  const rated = menu.querySelectorAll('button').find((b) => b.dataset.key === 'video-quality:1080p60');
+  if (rated?.attrs['aria-label'] !== '1080p, 60 fps, 9 MB') fail(`the 60 fps quality is read as ${rated?.attrs['aria-label']}`);
 }
 
 // With more than one instance the popup asks where to: the button keeps
