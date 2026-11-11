@@ -221,7 +221,13 @@
       .videoPicks select { min-width: 140px; }
       .videoLangs { display: flex; flex-direction: column; gap: 6px; font-size: var(--text-subline); color: var(--carbon-text-sub); }
       .videoNone { color: var(--carbon-text-muted); }
+      #videoShortcutRow > .glim-row { margin-top: 0; }
+      #videoShortcut { width: 9.5rem; text-align: center; font-variant-numeric: tabular-nums; cursor: pointer; }
+      #videoShortcut[tabindex="-1"] { cursor: default; }
+      .videoShortcutError { margin: 6px 0 0; font-size: var(--text-subline); color: var(--status-fail-text); text-align: end; }
       #videoSpotReset:disabled,
+      #videoShortcut:disabled,
+      #videoShortcutAction:disabled,
       .videoPicks select:disabled { opacity: 0.55; cursor: default; }
       .clipWatchers { margin: 0 0 10px; padding-left: 18px; color: var(--carbon-text); }
       /* Underlined only on hover, in the accent ink. */
@@ -525,6 +531,19 @@
           <div class="glim-row">
             <span class="glim-row-label" id="videoSpotLabel"></span>
             <button type="button" id="videoSpotReset" class="glim-btn-subtle"></button>
+          </div>
+          <!-- The field takes a new shortcut where the browser lets the page
+               change it, and otherwise only shows it beside the way to the
+               browser's own shortcuts page. -->
+          <div id="videoShortcutRow">
+            <div class="glim-row">
+              <span class="glim-row-label" id="videoShortcutLabel"></span>
+              <span class="glim-row-control">
+                <input id="videoShortcut" type="text" readonly autocomplete="off" spellcheck="false" aria-describedby="videoShortcutError" />
+                <button type="button" id="videoShortcutAction" class="glim-btn-subtle"></button>
+              </span>
+            </div>
+            <p class="videoShortcutError" id="videoShortcutError" role="alert" hidden></p>
           </div>
           <div class="glim-row">
             <span class="glim-row-label" id="videoSitesLabel"></span>

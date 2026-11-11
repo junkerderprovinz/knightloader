@@ -41,6 +41,14 @@
       "background.js"
     ]
   },
+  "commands": {
+    "send-video": {
+      "suggested_key": {
+        "default": "Alt+Shift+D"
+      },
+      "description": "Send the video in this tab with the site's defaults"
+    }
+  },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true

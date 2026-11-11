@@ -196,9 +196,9 @@ options or in the toolbar popup, and you can hide it on each site.
 On those sites a small script reads the page's address and where the largest
 video sits, so it can draw the button on the player, in a part of the page of
 its own that the site cannot read. It reads no other page content, no form
-fields, passwords or cookies, and it sends nothing until you press the button.
-Switching the button off takes it out of open tabs at once and stops the script
-from being added to pages you open after that.
+fields, passwords or cookies, and it sends nothing until you press the button
+or its keyboard shortcut. Switching the button off takes it out of open tabs at
+once and stops the script from being added to pages you open after that.
 
 ## Taking over downloads
 

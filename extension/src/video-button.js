@@ -824,6 +824,12 @@
   setInterval(update, 1000);
   matchMedia('(prefers-color-scheme: light)').addEventListener('change', update);
 
+  // The keyboard shortcut (video-worker.js) counts as a click, wherever the
+  // button is on the page, shown or waiting for the pointer.
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === 'knightloader-video-shortcut' && host.isConnected) void sendVideo(videoDefaultsFor(stored, page.site));
+  });
+
   // The popup's answer, from the worker. None means it was closed without a
   // pick, and the button goes back to rest with nothing to report.
   chrome.runtime.onMessage.addListener((msg) => {
