@@ -286,7 +286,6 @@ export const is: Dict = {
   'pairing.movedTitle': 'Pörun í víginu',
   'pairing.moved': 'Tilvikin þín, símar og vafraviðbætur eru pöruð með setningu vígisins. Þú finnur hana neðar undir Vígi.',
   'pairing.oldPhrase': 'Enn á gömlu setningunni: {names}. Þau fylgja sjálf um leið og þau eru tengd.',
-  'pairing.fortressAway': 'Ekki aðgengilegt',
   'relay.title': 'Relay',
   'relay.hint': 'Á sama neti tala tilvikin þín beint saman. Fyrir tilvik á ólíkum netum ber relay skilaboðin áfram.',
   'relay.lead': 'Relay tengir KnightLoader-tilvik saman, líka á milli ólíkra neta.',

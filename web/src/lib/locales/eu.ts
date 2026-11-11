@@ -286,7 +286,6 @@ export const eu: Dict = {
   'pairing.movedTitle': 'Parekatzea gotorlekuan',
   'pairing.moved': 'Zure instantziak, telefonoak eta nabigatzaile-luzapenak gotorlekuaren esaldiarekin daude parekatuta. Behean aurkituko duzu, Gotorlekua atalean.',
   'pairing.oldPhrase': 'Oraindik esaldi zaharrarekin: {names}. Berez etorriko dira konektatu bezain laster.',
-  'pairing.fortressAway': 'Ez dago eskuragarri',
   'relay.title': 'Bitartekaria',
   'relay.hint': 'Sare berean, zure instantziek zuzenean hitz egiten dute elkarrekin. Sare desberdinetako instantzientzat, bitartekari batek mezuak bidaltzen ditu.',
   'relay.lead': 'Bitartekariak KnightLoader instantziak konektatzen ditu, sare desberdinetan egon arren.',

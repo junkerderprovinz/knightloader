@@ -286,7 +286,6 @@ export const cs: Dict = {
   'pairing.movedTitle': 'Párování v pevnosti',
   'pairing.moved': 'Vaše instance, telefony a rozšíření prohlížeče jsou spárované frází pevnosti. Najdete ji níže pod Pevnost.',
   'pairing.oldPhrase': 'Ještě na staré frázi: {names}. Připojí se samy, jakmile budou online.',
-  'pairing.fortressAway': 'Nedostupné',
   'relay.title': 'Přeposílač',
   'relay.hint': 'Ve stejné síti spolu vaše instance komunikují přímo. Pro instance v různých sítích předává zprávy přeposílač.',
   'relay.lead': 'Přeposílač propojí instance KnightLoaderu i napříč různými sítěmi.',

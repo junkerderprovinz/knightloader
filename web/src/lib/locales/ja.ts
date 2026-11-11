@@ -286,7 +286,6 @@ export const ja: Dict = {
   'pairing.movedTitle': '要塞でのペアリング',
   'pairing.moved': 'インスタンス、スマートフォン、ブラウザ拡張機能は要塞のフレーズでペアリングされています。フレーズは下の「要塞」にあります。',
   'pairing.oldPhrase': 'まだ古いフレーズのまま: {names}。オンラインになれば自動で移ります。',
-  'pairing.fortressAway': '到達できません',
   'relay.title': 'リレー',
   'relay.hint': '同じネットワーク上ではインスタンス同士が直接通信します。異なるネットワーク上のインスタンスには、リレーがメッセージを中継します。',
   'relay.lead': 'リレーは、異なるネットワーク上にあっても KnightLoader のインスタンス同士をつなぎます。',

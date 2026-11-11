@@ -280,7 +280,6 @@ export const pl: Dict = {
   'pairing.movedTitle': 'Parowanie w twierdzy',
   'pairing.moved': 'Twoje instancje, telefony i rozszerzenia przeglądarki są sparowane frazą twierdzy. Znajdziesz ją niżej, w sekcji Twierdza.',
   'pairing.oldPhrase': 'Wciąż na starej frazie: {names}. Dołączą same, gdy tylko będą online.',
-  'pairing.fortressAway': 'Nieosiągalny',
   'relay.title': 'Relay',
   'relay.hint': 'W tej samej sieci twoje instancje rozmawiają ze sobą bezpośrednio. Dla instancji w różnych sieciach relay przekazuje wiadomości dalej.',
   'relay.lead': 'Relay łączy instancje KnightLoader także między różnymi sieciami.',

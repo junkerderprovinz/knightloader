@@ -286,7 +286,6 @@ export const zh: Dict = {
   'pairing.movedTitle': '堡垒中的配对',
   'pairing.moved': '你的实例、手机和浏览器扩展已用堡垒口令配对。口令在下方的堡垒部分。',
   'pairing.oldPhrase': '仍在使用旧口令：{names}。它们一上线就会自动跟上。',
-  'pairing.fortressAway': '无法连接',
   'relay.title': '中继',
   'relay.hint': '在同一个网络里，你的实例会直接对话。对于处在不同网络的实例，中继会转发消息。',
   'relay.lead': '中继让 KnightLoader 实例即使处在不同网络也能相连。',

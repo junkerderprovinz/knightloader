@@ -286,7 +286,6 @@ export const et: Dict = {
   'pairing.movedTitle': 'Sidumine kindluses',
   'pairing.moved': 'Sinu eksemplarid, telefonid ja brauserilaiendused on seotud kindluse fraasiga. Selle leiad allpool jaotisest Kindlus.',
   'pairing.oldPhrase': 'Veel vana fraasi peal: {names}. Need tulevad ise järele, kui on võrgus.',
-  'pairing.fortressAway': 'Ei ole kättesaadav',
   'relay.title': 'Edastaja',
   'relay.hint': 'Samas võrgus suhtlevad su eksemplarid omavahel otse. Eri võrkudes olevate eksemplaride puhul edastab edastaja sõnumeid edasi.',
   'relay.lead': 'Edastaja ühendab KnightLoaderi eksemplarid ka eri võrkude vahel.',

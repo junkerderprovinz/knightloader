@@ -286,7 +286,6 @@ export const ko: Dict = {
   'pairing.movedTitle': '요새에서의 페어링',
   'pairing.moved': '인스턴스, 휴대폰, 브라우저 확장 프로그램은 요새 문구로 페어링되어 있어요. 문구는 아래 요새에서 찾을 수 있어요.',
   'pairing.oldPhrase': '아직 이전 문구 사용 중: {names}. 온라인이 되면 알아서 따라와요.',
-  'pairing.fortressAway': '연결할 수 없음',
   'relay.title': '릴레이',
   'relay.hint': '같은 네트워크에서는 인스턴스가 서로 직접 통신합니다. 다른 네트워크에 있는 인스턴스는 릴레이가 메시지를 전달합니다.',
   'relay.lead': '릴레이는 서로 다른 네트워크에 있는 KnightLoader 인스턴스도 연결합니다.',

@@ -286,7 +286,6 @@ export const lv: Dict = {
   'pairing.movedTitle': 'Pārošana cietoksnī',
   'pairing.moved': 'Jūsu instances, tālruņi un pārlūka paplašinājumi ir sapāroti ar cietokšņa frāzi. To atradīsiet zemāk, sadaļā Cietoksnis.',
   'pairing.oldPhrase': 'Vēl ar veco frāzi: {names}. Tie paši sekos, tiklīdz būs tiešsaistē.',
-  'pairing.fortressAway': 'Nav sasniedzams',
   'relay.title': 'Relay',
   'relay.hint': 'Vienā tīklā jūsu instances sarunājas tieši. Instancēm dažādos tīklos relay pārraida ziņojumus.',
   'relay.lead': 'Relay savieno KnightLoader instances arī starp dažādiem tīkliem.',

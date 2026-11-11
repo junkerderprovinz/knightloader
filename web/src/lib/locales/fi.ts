@@ -286,7 +286,6 @@ export const fi: Dict = {
   'pairing.movedTitle': 'Pariliitos linnoituksessa',
   'pairing.moved': 'Instanssisi, puhelimesi ja selainlaajennuksesi on pariliitetty linnoituksen lauseella. Löydät sen alempaa kohdasta Linnoitus.',
   'pairing.oldPhrase': 'Vielä vanhalla lauseella: {names}. Ne seuraavat itse heti, kun ovat verkossa.',
-  'pairing.fortressAway': 'Ei tavoitettavissa',
   'relay.title': 'Rele',
   'relay.hint': 'Samassa verkossa instanssisi puhuvat toisilleen suoraan. Eri verkoissa oleville instansseille rele välittää viestit eteenpäin.',
   'relay.lead': 'Rele yhdistää KnightLoader-instanssit myös eri verkkojen välillä.',

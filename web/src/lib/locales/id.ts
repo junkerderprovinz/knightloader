@@ -286,7 +286,6 @@ export const id: Dict = {
   'pairing.movedTitle': 'Pemasangan di benteng',
   'pairing.moved': 'Instance, ponsel, dan ekstensi browser Anda dipasangkan dengan frasa benteng. Frasanya ada di bawah, di bagian Benteng.',
   'pairing.oldPhrase': 'Masih memakai frasa lama: {names}. Mereka menyusul sendiri begitu online.',
-  'pairing.fortressAway': 'Tidak dapat dijangkau',
   'relay.title': 'Relay',
   'relay.hint': 'Pada jaringan yang sama, instance Anda berbicara langsung satu sama lain. Untuk instance di jaringan yang berbeda, sebuah relay meneruskan pesannya.',
   'relay.lead': 'Relay menghubungkan instance KnightLoader, bahkan di jaringan yang berbeda.',

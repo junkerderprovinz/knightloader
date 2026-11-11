@@ -260,8 +260,8 @@ describe('FortressSection', () => {
     expect(server.calls).toEqual(['change hunter2', 'refresh']);
     expect(hook('words')!.textContent).toContain('wrong');
     expect(page()).toContain('Still on the old phrase: Cellar. Enter the new one there once.');
-    const done = [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.includes('Done'))!;
-    await act(async () => done.click());
+    const close = [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.trim() === 'Close')!;
+    await act(async () => close.click());
     await settle();
 
     await press('open-leave');
@@ -282,7 +282,7 @@ describe('FortressSection', () => {
     );
     await press('others');
     expect(page()).toContain('Connected');
-    expect(page()).toContain(en['pairing.fortressAway']);
+    expect(page()).toContain('Not reachable');
     expect(page()).not.toContain('Inactive');
   });
 

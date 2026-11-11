@@ -286,7 +286,6 @@ export const ro: Dict = {
   'pairing.movedTitle': 'Împerechere în fortăreață',
   'pairing.moved': 'Instanțele, telefoanele și extensiile de browser ale tale sunt împerecheate cu fraza fortăreței. O găsești mai jos, la Fortăreață.',
   'pairing.oldPhrase': 'Încă pe fraza veche: {names}. Vor urma singure imediat ce sunt online.',
-  'pairing.fortressAway': 'Inaccesibil',
   'relay.title': 'Relay',
   'relay.hint': 'În aceeași rețea, instanțele tale vorbesc direct între ele. Pentru instanțe din rețele diferite, un relay transmite mesajele mai departe.',
   'relay.lead': 'Relay-ul conectează instanțele KnightLoader chiar și între rețele diferite.',

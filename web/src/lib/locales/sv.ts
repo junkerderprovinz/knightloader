@@ -286,7 +286,6 @@ export const sv: Dict = {
   'pairing.movedTitle': 'Parkoppling i fästningen',
   'pairing.moved': 'Dina instanser, telefoner och webbläsartillägg är parkopplade med fästningens fras. Du hittar den längre ner under Fästning.',
   'pairing.oldPhrase': 'Fortfarande på den gamla frasen: {names}. De följer efter av sig själva så fort de är online.',
-  'pairing.fortressAway': 'Går inte att nå',
   'relay.title': 'Relä',
   'relay.hint': 'På samma nätverk pratar dina instanser direkt med varandra. För instanser på olika nätverk för ett relä meddelandena vidare.',
   'relay.lead': 'Reläet kopplar ihop KnightLoader-instanser, även över olika nätverk.',

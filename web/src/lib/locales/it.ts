@@ -280,7 +280,6 @@ export const it: Dict = {
   'pairing.movedTitle': 'Associazione nella fortezza',
   'pairing.moved': 'Le tue istanze, i telefoni e le estensioni del browser sono associati con la frase della fortezza. La trovi più in basso, sotto Fortezza.',
   'pairing.oldPhrase': 'Ancora sulla vecchia frase: {names}. Seguiranno da soli appena saranno online.',
-  'pairing.fortressAway': 'Non raggiungibile',
   'relay.title': 'Relay',
   'relay.hint': 'Sulla stessa rete le tue istanze parlano direttamente tra loro. Per istanze su reti diverse, un relay inoltra i messaggi.',
   'relay.lead': 'Il relay collega le istanze di KnightLoader anche tra reti diverse.',

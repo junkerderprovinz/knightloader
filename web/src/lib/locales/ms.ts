@@ -286,7 +286,6 @@ export const ms: Dict = {
   'pairing.movedTitle': 'Gandingan dalam kubu',
   'pairing.moved': 'Instans, telefon dan sambungan pelayar anda digandingkan dengan frasa kubu. Anda boleh menemuinya di bawah, dalam Kubu.',
   'pairing.oldPhrase': 'Masih pada frasa lama: {names}. Mereka akan menyusul sendiri sebaik sahaja dalam talian.',
-  'pairing.fortressAway': 'Tidak dapat dicapai',
   'relay.title': 'Relay',
   'relay.hint': 'Dalam rangkaian yang sama, instans anda bercakap terus antara satu sama lain. Untuk instans dalam rangkaian berlainan, relay menyampaikan mesej itu.',
   'relay.lead': 'Relay menyambungkan instans KnightLoader walaupun dalam rangkaian berlainan.',

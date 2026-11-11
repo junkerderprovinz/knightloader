@@ -280,7 +280,6 @@ export const fr: Dict = {
   'pairing.movedTitle': 'Appairage dans la forteresse',
   'pairing.moved': 'Vos instances, téléphones et extensions de navigateur sont appairés avec la phrase de la forteresse. Vous la trouverez plus bas, sous Forteresse.',
   'pairing.oldPhrase': "Encore sur l'ancienne phrase : {names}. Ils suivront d'eux-mêmes dès qu'ils seront en ligne.",
-  'pairing.fortressAway': 'Injoignable',
   'relay.title': 'Relais',
   'relay.hint': 'Sur le même réseau, vos instances se parlent directement. Pour des instances sur des réseaux différents, un relais transmet les messages.',
   'relay.lead': "Le relais relie les instances KnightLoader, même d'un réseau à l'autre.",

@@ -286,7 +286,6 @@ export const vi: Dict = {
   'pairing.movedTitle': 'Ghép nối trong pháo đài',
   'pairing.moved': 'Các phiên bản, điện thoại và tiện ích mở rộng trình duyệt của bạn được ghép nối bằng cụm từ của pháo đài. Bạn sẽ thấy nó ở mục Pháo đài bên dưới.',
   'pairing.oldPhrase': 'Vẫn dùng cụm từ cũ: {names}. Chúng sẽ tự theo sang khi trực tuyến.',
-  'pairing.fortressAway': 'Không truy cập được',
   'relay.title': 'Relay',
   'relay.hint': 'Trên cùng một mạng, các phiên bản của bạn nói chuyện trực tiếp với nhau. Với các phiên bản ở mạng khác nhau, một relay sẽ chuyển tiếp các thông điệp.',
   'relay.lead': 'Relay kết nối các phiên bản KnightLoader, kể cả khi chúng ở các mạng khác nhau.',

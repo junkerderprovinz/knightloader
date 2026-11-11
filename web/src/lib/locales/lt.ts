@@ -286,7 +286,6 @@ export const lt: Dict = {
   'pairing.movedTitle': 'Susiejimas tvirtovėje',
   'pairing.moved': 'Jūsų egzemplioriai, telefonai ir naršyklės plėtiniai susieti tvirtovės fraze. Ją rasite žemiau, skiltyje Tvirtovė.',
   'pairing.oldPhrase': 'Dar su senąja fraze: {names}. Jie patys prisijungs, kai tik bus prisijungę prie tinklo.',
-  'pairing.fortressAway': 'Nepasiekiamas',
   'relay.title': 'Relay',
   'relay.hint': 'Tame pačiame tinkle jūsų egzemplioriai kalbasi tiesiogiai. Egzemplioriams skirtinguose tinkluose relay perduoda pranešimus.',
   'relay.lead': 'Relay sujungia KnightLoader egzempliorius net per skirtingus tinklus.',

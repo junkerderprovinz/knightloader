@@ -286,7 +286,6 @@ export const hu: Dict = {
   'pairing.movedTitle': 'Párosítás az erődben',
   'pairing.moved': 'A példányaid, a telefonjaid és a böngészőbővítményeid az erőd jelmondatával vannak párosítva. Lejjebb, az Erőd alatt találod.',
   'pairing.oldPhrase': 'Még a régi jelmondaton: {names}. Maguktól követik, amint elérhetők.',
-  'pairing.fortressAway': 'Nem érhető el',
   'relay.title': 'Relay',
   'relay.hint': 'Ugyanazon a hálózaton a példányaid közvetlenül beszélnek egymással. A különböző hálózatokon lévő példányoknak egy relay adja tovább az üzeneteket.',
   'relay.lead': 'A relay akkor is összeköti a KnightLoader-példányokat, ha különböző hálózatokon vannak.',

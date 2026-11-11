@@ -286,7 +286,6 @@ export const da: Dict = {
   'pairing.movedTitle': 'Parring i fæstningen',
   'pairing.moved': 'Dine instanser, telefoner og browserudvidelser er parret med fæstningens sætning. Du finder den længere nede under Fæstning.',
   'pairing.oldPhrase': 'Stadig på den gamle sætning: {names}. De følger selv efter, så snart de er online.',
-  'pairing.fortressAway': 'Ikke tilgængelig',
   'relay.title': 'Videresender',
   'relay.hint': 'På samme netværk taler dine instanser direkte med hinanden. For instanser på forskellige netværk sender en videresender beskederne videre.',
   'relay.lead': 'Videresenderen forbinder KnightLoader-instanser, også på tværs af forskellige netværk.',

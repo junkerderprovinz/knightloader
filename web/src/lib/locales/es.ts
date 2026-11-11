@@ -280,7 +280,6 @@ export const es: Dict = {
   'pairing.movedTitle': 'Emparejamiento en la fortaleza',
   'pairing.moved': 'Tus instancias, teléfonos y extensiones del navegador están emparejados con la frase de la fortaleza. La encontrarás más abajo, en Fortaleza.',
   'pairing.oldPhrase': 'Aún con la frase antigua: {names}. Se unirán solos en cuanto estén en línea.',
-  'pairing.fortressAway': 'No accesible',
   'relay.title': 'Repetidor',
   'relay.hint': 'En la misma red, tus instancias se hablan directamente. Para instancias en redes distintas, un repetidor pasa los mensajes.',
   'relay.lead': 'El repetidor conecta instancias de KnightLoader incluso entre redes distintas.',

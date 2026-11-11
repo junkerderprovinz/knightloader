@@ -332,7 +332,6 @@ export const en = {
   'pairing.movedTitle': 'Pairing in the fortress',
   'pairing.moved': "Your instances, phones and browser extensions are paired with the fortress phrase. You'll find it under Fortress below.",
   'pairing.oldPhrase': "Still on the old phrase: {names}. They follow by themselves once they're online.",
-  'pairing.fortressAway': 'Not reachable',
   'relay.title': 'Relay',
   'relay.hint': 'On the same network your instances talk to each other directly. For instances on different networks, a relay passes the messages on.',
   'relay.lead': 'The relay connects KnightLoader instances even across different networks.',

@@ -286,7 +286,6 @@ export const tr: Dict = {
   'pairing.movedTitle': 'Kaledeki eşleştirme',
   'pairing.moved': 'Örneklerin, telefonların ve tarayıcı uzantıların kale ifadesiyle eşleştirildi. İfadeyi aşağıda Kale bölümünde bulursun.',
   'pairing.oldPhrase': 'Hâlâ eski ifadede: {names}. Çevrimiçi olur olmaz kendiliğinden gelirler.',
-  'pairing.fortressAway': 'Ulaşılamıyor',
   'relay.title': 'Röle',
   'relay.hint': 'Aynı ağdayken örneklerin doğrudan birbiriyle konuşur. Farklı ağlardaki örnekler için bir röle mesajları iletir.',
   'relay.lead': 'Röle, KnightLoader örneklerini farklı ağlarda olsalar bile birbirine bağlar.',

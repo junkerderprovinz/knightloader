@@ -286,7 +286,6 @@ export const hr: Dict = {
   'pairing.movedTitle': 'Uparivanje u utvrdi',
   'pairing.moved': 'Vaše instance, telefoni i proširenja preglednika upareni su frazom utvrde. Pronaći ćete je niže, pod Utvrda.',
   'pairing.oldPhrase': 'Još na staroj frazi: {names}. Slijedit će sami čim budu na mreži.',
-  'pairing.fortressAway': 'Nije dostupan',
   'relay.title': 'Relej',
   'relay.hint': 'U istoj mreži vaše instance razgovaraju izravno jedna s drugom. Za instance u različitim mrežama, relej prosljeđuje poruke.',
   'relay.lead': 'Relej povezuje instance KnightLoadera i kroz različite mreže.',

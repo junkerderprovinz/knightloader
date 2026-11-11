@@ -286,7 +286,6 @@ export const gl: Dict = {
   'pairing.movedTitle': 'Emparellamento na fortaleza',
   'pairing.moved': 'As túas instancias, teléfonos e extensións do navegador están emparellados coa frase da fortaleza. Atoparala máis abaixo, en Fortaleza.',
   'pairing.oldPhrase': 'Aínda coa frase antiga: {names}. Seguirán por si mesmos en canto estean en liña.',
-  'pairing.fortressAway': 'Non accesible',
   'relay.title': 'Relé',
   'relay.hint': 'Na mesma rede, as túas instancias fálanse directamente. Para instancias en redes distintas, un relé pasa as mensaxes.',
   'relay.lead': 'O relé conecta instancias de KnightLoader mesmo entre redes distintas.',

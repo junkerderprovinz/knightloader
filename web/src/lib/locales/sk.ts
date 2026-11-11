@@ -286,7 +286,6 @@ export const sk: Dict = {
   'pairing.movedTitle': 'Párovanie v pevnosti',
   'pairing.moved': 'Vaše inštancie, telefóny a rozšírenia prehliadača sú spárované frázou pevnosti. Nájdete ju nižšie pod Pevnosť.',
   'pairing.oldPhrase': 'Ešte na starej fráze: {names}. Pripoja sa samy, hneď ako budú online.',
-  'pairing.fortressAway': 'Nedostupné',
   'relay.title': 'Relay',
   'relay.hint': 'V rovnakej sieti vaše inštancie komunikujú priamo. Pre inštancie v rôznych sieťach posiela relay správy ďalej.',
   'relay.lead': 'Relay prepojí inštancie KnightLoaderu aj naprieč rôznymi sieťami.',

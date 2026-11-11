@@ -309,7 +309,6 @@ export const de: Dict = {
   'pairing.movedTitle': 'Kopplung in der Festung',
   'pairing.moved': 'Deine Instanzen, Handys und Browser-Erweiterungen sind mit der Festungs-Phrase gekoppelt. Du findest sie weiter unten unter Festung.',
   'pairing.oldPhrase': 'Noch auf der alten Phrase: {names}. Sie ziehen von selbst nach, sobald sie online sind.',
-  'pairing.fortressAway': 'Nicht erreichbar',
   'relay.title': 'Relay',
   'relay.hint': 'Im selben Netzwerk sprechen deine Instanzen direkt miteinander. Für Instanzen in verschiedenen Netzen reicht ein Relay die Nachrichten weiter.',
   'relay.lead': 'Das Relay verbindet KnightLoader-Instanzen auch über verschiedene Netzwerke hinweg.',

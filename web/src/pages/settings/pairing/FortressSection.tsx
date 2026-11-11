@@ -43,14 +43,12 @@ export function FortressSection({
   const { toast } = useToast();
   // GlimStone words the fortress for an Instances tab. On this page the
   // group's card has an Enter phrase too, so the fortress's says what it
-  // joins, and the hints do not send anybody to Instances. A member is either
-  // connected or not reachable, never merely inactive.
+  // joins, and the hints do not send anybody to Instances.
   const text = useMemo(() => {
     const own = fortressText(lang);
     return {
       ...own,
       enterPhrase: own.joinTitle,
-      away: t('pairing.fortressAway'),
       outHint: t('pairing.fortressOutHint'),
       phraseWhere: t('pairing.fortressPhraseWhere'),
     };

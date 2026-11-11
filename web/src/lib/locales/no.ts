@@ -288,7 +288,6 @@ export const no: Dict = {
   'pairing.movedTitle': 'Paring i festningen',
   'pairing.moved': 'Instansene, telefonene og nettleserutvidelsene dine er paret med festningsfrasen. Du finner den lenger ned under Festning.',
   'pairing.oldPhrase': 'Fortsatt på den gamle frasen: {names}. De følger etter av seg selv så snart de er på nett.',
-  'pairing.fortressAway': 'Ikke tilgjengelig',
   'relay.title': 'Relay',
   'relay.hint': 'På samme nettverk snakker instansene dine direkte med hverandre. For instanser på forskjellige nettverk sender et relay meldingene videre.',
   'relay.lead': 'Relayet kobler sammen KnightLoader-instanser, også på tvers av ulike nettverk.',

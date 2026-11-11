@@ -286,7 +286,6 @@ export const sl: Dict = {
   'pairing.movedTitle': 'Seznanjanje v trdnjavi',
   'pairing.moved': 'Tvoje instance, telefoni in razširitve za brskalnik so seznanjeni s frazo trdnjave. Najdeš jo spodaj pod Trdnjava.',
   'pairing.oldPhrase': 'Še na stari frazi: {names}. Sledili bodo sami, takoj ko bodo povezani.',
-  'pairing.fortressAway': 'Ni dosegljiv',
   'relay.title': 'Relay',
   'relay.hint': 'V istem omrežju tvoje instance govorijo neposredno druga z drugo. Za instance v različnih omrežjih relay posreduje sporočila.',
   'relay.lead': 'Relay poveže instance KnightLoadera tudi med različnimi omrežji.',

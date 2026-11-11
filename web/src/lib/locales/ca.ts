@@ -286,7 +286,6 @@ export const ca: Dict = {
   'pairing.movedTitle': 'Aparellament a la fortalesa',
   'pairing.moved': 'Les teves instàncies, mòbils i extensions del navegador estan aparellats amb la frase de la fortalesa. La trobaràs més avall, a Fortalesa.',
   'pairing.oldPhrase': 'Encara amb la frase antiga: {names}. Seguiran pel seu compte quan estiguin en línia.',
-  'pairing.fortressAway': 'No accessible',
   'relay.title': 'Repetidor',
   'relay.hint': 'A la mateixa xarxa, les teves instàncies es parlen directament. Per a instàncies en xarxes diferents, un repetidor passa els missatges.',
   'relay.lead': 'El repetidor connecta instàncies de KnightLoader fins i tot entre xarxes diferents.',

@@ -280,7 +280,6 @@ export const nl: Dict = {
   'pairing.movedTitle': 'Koppeling in de vesting',
   'pairing.moved': 'Je instanties, telefoons en browserextensies zijn gekoppeld met de frase van de vesting. Je vindt hem verderop onder Vesting.',
   'pairing.oldPhrase': 'Nog op de oude frase: {names}. Ze volgen vanzelf zodra ze online zijn.',
-  'pairing.fortressAway': 'Niet bereikbaar',
   'relay.title': 'Relay',
   'relay.hint': 'Op hetzelfde netwerk praten je instanties rechtstreeks met elkaar. Voor instanties op verschillende netwerken geeft een relay de berichten door.',
   'relay.lead': 'De relay verbindt KnightLoader-instanties, ook over verschillende netwerken heen.',

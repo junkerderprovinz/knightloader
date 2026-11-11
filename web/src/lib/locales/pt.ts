@@ -280,7 +280,6 @@ export const pt: Dict = {
   'pairing.movedTitle': 'Emparelhamento na fortaleza',
   'pairing.moved': 'As suas instâncias, telemóveis e extensões do navegador estão emparelhados com a frase da fortaleza. Encontra-a mais abaixo, em Fortaleza.',
   'pairing.oldPhrase': 'Ainda na frase antiga: {names}. Seguem sozinhos assim que estiverem online.',
-  'pairing.fortressAway': 'Não acessível',
   'relay.title': 'Relay',
   'relay.hint': 'Na mesma rede, as suas instâncias falam diretamente entre si. Para instâncias em redes diferentes, um relay transmite as mensagens.',
   'relay.lead': 'O relay liga instâncias do KnightLoader mesmo entre redes diferentes.',
