@@ -104,6 +104,24 @@ func TestTheExtensionsMenuSaysHowLargeEachPickIs(t *testing.T) {
 	}
 }
 
+// The best quality and the highest resolution download the same tracks on a
+// YouTube video, so the menu gives them the same size.
+func TestTheBestQualityAndTheHighestResolutionWeighTheSame(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Offers"
+	fake.offers = ytdlp.ProbeResult{Formats: youtubeProbe}
+	wireYtdlp(a, fake)
+	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00005")
+	if err != nil {
+		t.Fatal(err)
+	}
+	top := m.Qualities[0]
+	if m.VideoSizes["best"] == 0 || m.VideoSizes["best"] != m.VideoSizes[top] {
+		t.Errorf("best weighs %d bytes and %s %d, want the same", m.VideoSizes["best"], top, m.VideoSizes[top])
+	}
+}
+
 // A video sent with exact picks stages rows that download exactly those, as
 // the host serves them.
 func TestAVideoSentWithExactPicksDownloadsExactlyThose(t *testing.T) {

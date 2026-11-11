@@ -286,7 +286,7 @@ function loadBackground(chrome) {
   for (const [sel, want] of [
     [{}, { quality: 'best', audio: 'best' }],
     [{ quality: '2160p' }, { quality: '2160p', audio: 'best' }],
-    [{ quality: '1080p' }, { quality: 'best', videoTrack: '1080p mp4 avc1', audio: 'best' }],
+    [{ quality: '1080p' }, { quality: 'best', videoTrack: '1080p mp4 av1', audio: 'best' }],
     [{ quality: '720p60' }, { quality: '720p', audio: 'best' }],
     [{ videoFormat: 'webm vp9' }, { quality: 'best', videoTrack: '2160p webm vp9', audio: 'best' }],
     [{ quality: '1080p', videoFormat: 'mp4 av1' }, { quality: 'best', videoTrack: '1080p mp4 av1', audio: 'best' }],
@@ -316,7 +316,7 @@ function loadBackground(chrome) {
   const sizeOf = (sel, part) => vm.runInContext(`videoPickSize({ ...videoResolve(videoPick({ parts: ['video', 'audio'] }), sized), ...${JSON.stringify(sel)} }, sized, '${part}')`, ctx);
   for (const [sel, part, want] of [
     [{}, 'video', 900000000],
-    [{ quality: '1080p' }, 'video', 412000000],
+    [{ quality: '1080p' }, 'video', 380000000],
     [{ quality: '1080p', videoFormat: 'webm vp9' }, 'video', 380000000],
     [{ quality: '720p60' }, 'video', 90000000],
     [{ quality: '1080p60' }, 'video', undefined],
@@ -327,6 +327,17 @@ function loadBackground(chrome) {
   ]) {
     if (sizeOf(sel, part) !== want) fail(`the ${part} pick ${JSON.stringify(sel)} says ${sizeOf(sel, part)} bytes, want ${want}`);
   }
+  // The highest frame rate of a resolution is what its cap downloads, so at
+  // the top resolution it weighs what Best weighs; the lower rate is a track,
+  // in the codec yt-dlp would prefer.
+  ctx.twoRates = run(`videoOffer(${JSON.stringify({
+    qualities: ['2160p'], audio: true, videoTracks: ['2160p60 mp4 avc1', '2160p60 mp4 av1', '2160p mp4 avc1', '2160p webm vp9'],
+    audioTracks: [], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true,
+    videoSizes: { best: 900000000, '2160p': 900000000, '2160p60 mp4 avc1': 700000000, '2160p mp4 avc1': 500000000, '2160p webm vp9': 450000000 }, audioSizes: {},
+  })})`);
+  const twoRates = (q) => vm.runInContext(`videoPickSize({ ...videoResolve(videoPick({ parts: ['video'] }), twoRates), quality: '${q}' }, twoRates, 'video')`, ctx);
+  if (twoRates('2160p60') !== twoRates('best')) fail(`at the top resolution the chip weighs ${twoRates('2160p60')} bytes and Best ${twoRates('best')}, want the same`);
+  if (twoRates('2160p') !== 450000000) fail(`the lower frame rate weighs ${twoRates('2160p')} bytes, want its vp9 track's, the codec yt-dlp prefers`);
   for (const [bytes, lang, want] of [[412000000, 'en', '412 MB'], [3400000, 'en', '3.4 MB'], [1234000000, 'de', '1,2 GB'], [20000, 'en', '0.1 MB']]) {
     const got = run(`videoSize(${bytes}, '${lang}')`).replace(/ /g, ' ');
     if (got !== want) fail(`${bytes} bytes read ${got} in ${lang}, want ${want}`);

@@ -39,6 +39,9 @@ const VIDEO_AUDIO_CODECS = ['aac', 'opus', 'vorbis', 'mp3', 'flac', 'alac'];
  *  options page list them (containerRank in internal/resolver/ytdlp). */
 const VIDEO_CONTAINERS = ['mp4', 'webm'];
 const VIDEO_CODECS = ['avc1', 'hevc', 'vp9', 'vp8', 'av1'];
+// The order yt-dlp ranks codecs in at one resolution and frame rate
+// (preferredVideoCodecs), which picks the track where only a quality is.
+const VIDEO_PREFERRED = ['av1', 'vp9', 'hevc', 'avc1', 'vp8'];
 
 /** What a click downloads on a site nothing is set for: the video at its
  *  best. */
@@ -368,15 +371,20 @@ function videoExact(sel, offer) {
   out.quality = VIDEO_CAPS.includes(sel.quality) ? sel.quality : 'best';
   if (offer.videoTracks.length && (videoFormat !== 'best' || sel.quality !== 'best')) {
     const height = parseInt(sel.quality, 10);
-    const alone = videoMenuRows(offer).qualities.filter((q) => parseInt(q, 10) === height).length === 1;
-    if (videoFormat === 'best' && alone && VIDEO_CAPS.includes(`${height}p`)) {
+    // A cap takes a resolution's highest frame rate, the first of it in the
+    // row, as Best does at the top.
+    const capped = videoMenuRows(offer).qualities.find((q) => parseInt(q, 10) === height) === sel.quality;
+    if (videoFormat === 'best' && capped && VIDEO_CAPS.includes(`${height}p`)) {
       out.quality = `${height}p`;
     } else {
       out.quality = 'best';
-      out.videoTrack = offer.videoTracks.find((k) => {
-        const t = videoTrackOf(k);
-        return (videoFormat === 'best' || t.format === videoFormat) && (sel.quality === 'best' || t.quality === sel.quality);
-      });
+      const codec = (k) => videoRank(VIDEO_PREFERRED, videoTrackOf(k).format.split(' ')[1]);
+      [out.videoTrack] = offer.videoTracks
+        .filter((k) => {
+          const t = videoTrackOf(k);
+          return (videoFormat === 'best' || t.format === videoFormat) && (sel.quality === 'best' || t.quality === sel.quality);
+        })
+        .sort((a, b) => parseInt(b, 10) - parseInt(a, 10) || videoTrackOf(b).fps - videoTrackOf(a).fps || codec(a) - codec(b));
     }
   }
   if (offer.audioTracks.length && audioRate !== 'best') {
