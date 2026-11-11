@@ -85,7 +85,7 @@ const VIDEO_DEFAULTS = { parts: ['video'], quality: 'best', videoFormat: 'best',
 // video and an audio track (VideoTracks and AudioTracks).
 const VIDEO_LANG = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8}){0,2}$/;
 const VIDEO_TOKEN = /^[a-z0-9]{1,10}$/;
-const VIDEO_TRACK = /^[1-9][0-9]{1,4}p([1-9][0-9]{1,2})? [a-z0-9]{1,10}( [a-z0-9]{1,10})?$/;
+const VIDEO_TRACK = /^[1-9][0-9]{1,4}p([1-9][0-9]{1,2})?(hdr)? [a-z0-9]{1,10}( [a-z0-9]{1,10})?$/;
 const AUDIO_TRACK = /^[a-z0-9]{1,10} [1-9][0-9]{0,3}k$/;
 // A video track's container with its codec, and an audio track's bitrate:
 // the halves of a track the menu offers apart.
@@ -289,11 +289,11 @@ function videoSubtitleChoices(offer, pick) {
   return { manual: offer.subtitles, auto };
 }
 
-/** A video track's key in its halves: "1080p60 webm vp9" is the quality
- *  "1080p60", 1080 lines tall, in the format "webm vp9". */
+/** A video track's key in its halves: "1080p60hdr webm vp9" is the quality
+ *  "1080p60hdr", 1080 lines tall at 60 fps in HDR, in the format "webm vp9". */
 function videoTrackOf(key) {
   const [quality, ...format] = key.split(' ');
-  return { quality, height: parseInt(quality, 10), fps: parseInt(quality.split('p')[1], 10) || 0, format: format.join(' ') };
+  return { quality, height: parseInt(quality, 10), fps: parseInt(quality.split('p')[1], 10) || 0, hdr: quality.endsWith('hdr'), format: format.join(' ') };
 }
 
 /** An audio track's key in its halves: "opus 160k" is the codec "opus" at
@@ -335,7 +335,7 @@ function audioRateOrder(a, b) {
 function videoMenuRows(offer) {
   const tracks = offer.videoTracks.map(videoTrackOf);
   const qualities = [...new Map(tracks.map((t) => [t.quality, t])).values()]
-    .sort((a, b) => b.height - a.height || b.fps - a.fps)
+    .sort((a, b) => b.height - a.height || b.fps - a.fps || b.hdr - a.hdr)
     .map((t) => t.quality);
   return { qualities, formats: [...new Set(tracks.map((t) => t.format))].sort(videoFormatOrder) };
 }
@@ -350,10 +350,11 @@ function audioMenuRows(offer) {
   };
 }
 
-/** The frame rate a quality names above 30 fps ("1080p60" runs at 60), which
- *  the menu shows beside the resolution, and 0 for the common rates. */
-function videoFrameRate(quality) {
-  return videoTrackOf(quality).fps;
+/** What the menu shows beside a quality's resolution: its frame rate where it
+ *  is above 30 fps ("1080p60") and HDR ("1080p60hdr"). */
+function videoPlaques(quality) {
+  const { fps, hdr } = videoTrackOf(quality);
+  return [fps ? `${fps} fps` : '', hdr ? 'HDR' : ''].filter(Boolean);
 }
 
 /** Whether a video has a format at a quality; at the best quality, whether
@@ -476,8 +477,11 @@ function videoExact(sel, offer) {
   if (offer.videoTracks.length && (videoFormat !== 'best' || sel.quality !== 'best')) {
     const height = parseInt(sel.quality, 10);
     // A cap takes a resolution's highest frame rate, the first of it in the
-    // row, as Best does at the top.
-    const capped = videoMenuRows(offer).qualities.find((q) => parseInt(q, 10) === height) === sel.quality;
+    // row, as Best does at the top. Where the height comes in HDR, a cap
+    // would take that track too, since yt-dlp ranks HDR first, so every
+    // quality of that height is sent as its own track.
+    const same = videoMenuRows(offer).qualities.filter((q) => parseInt(q, 10) === height);
+    const capped = same[0] === sel.quality && !same.some((q) => videoTrackOf(q).hdr);
     if (videoFormat === 'best' && capped && VIDEO_CAPS.includes(`${height}p`)) {
       out.quality = `${height}p`;
     } else {

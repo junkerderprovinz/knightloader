@@ -197,14 +197,14 @@
     .menu .list [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
     .list .aside { margin-inline-start: auto; color: var(--sub); font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; }
     .list button:hover .aside, .list [aria-checked="true"] .aside { color: inherit; }
-    /* A frame rate above the usual, as a small neutral plaque beside the
-       resolution. */
-    .list .rate {
+    /* A frame rate above the usual and HDR, as small neutral plaques beside
+       the resolution. */
+    .list .plaque {
       padding: 0 5px; border-radius: min(var(--radius), 4px); background: var(--surface3); color: var(--sub);
       font-size: 11px; font-weight: 500; line-height: 16px; font-variant-numeric: tabular-nums;
     }
-    .list button:not([aria-checked="true"]):hover .rate { background: var(--raised); color: var(--text); }
-    .list [aria-checked="true"] .rate { background: color-mix(in srgb, var(--accent-contrast) 14%, transparent); color: inherit; }
+    .list button:not([aria-checked="true"]):hover .plaque { background: var(--raised); color: var(--text); }
+    .list [aria-checked="true"] .plaque { background: color-mix(in srgb, var(--accent-contrast) 14%, transparent); color: inherit; }
     /* The groove one surface below the sub-card around a row of formats,
        whose idle segments stay unfilled. */
     .segments {
@@ -747,10 +747,10 @@
    * of which one is picked, or with `several` any number. A choice `off`
    * rules out stays in the row but takes no click. `aside` is what a choice
    * shows small beside its name: the size in a list, the container under the
-   * codec in segments. `plaque` is a word right after the name, such as a
-   * frame rate.
+   * codec in segments. `plaques` are words right after the name, such as a
+   * frame rate and HDR.
    */
-  function choices(values, { look, key, name, isOn, onPick, several = false, off = () => false, aside = () => '', plaque = () => '' }) {
+  function choices(values, { look, key, name, isOn, onPick, several = false, off = () => false, aside = () => '', plaques = () => [] }) {
     const group = document.createElement('div');
     group.className = look;
     group.setAttribute('role', several ? 'group' : 'radiogroup');
@@ -760,12 +760,12 @@
       item.setAttribute('aria-checked', String(isOn(v)));
       item.dataset.key = `${key}:${v}`;
       if (off(v)) item.disabled = true;
-      const tag = plaque(v);
-      if (tag) {
-        const rate = document.createElement('span');
-        rate.className = 'rate';
-        rate.textContent = tag;
-        item.append(rate);
+      const tags = plaques(v);
+      for (const tag of tags) {
+        const plaque = document.createElement('span');
+        plaque.className = 'plaque';
+        plaque.textContent = tag;
+        item.append(plaque);
       }
       const extra = aside(v);
       if (extra) {
@@ -774,7 +774,7 @@
         small.textContent = extra;
         item.append(small);
       }
-      if (tag || extra) item.setAttribute('aria-label', [name(v), tag, extra].filter(Boolean).join(', '));
+      if (tags.length || extra) item.setAttribute('aria-label', [name(v), ...tags, extra].filter(Boolean).join(', '));
       // A radio group is one stop for Tab, its picked radio, and the arrow
       // keys pick within it, as with the browser's own radios.
       if (!several) {
@@ -906,7 +906,7 @@
           look: 'list',
           isOn: (q) => q === pick.quality,
           name: best((q) => `${parseInt(q, 10)}p`),
-          plaque: (q) => (videoFrameRate(q) ? `${videoFrameRate(q)} fps` : ''),
+          plaques: videoPlaques,
           onPick: quality,
           aside: (q) => size(videoPickSize({ ...pick, quality: q, videoFormat: videoTrackOffered(offer, q, pick.videoFormat) ? pick.videoFormat : 'best' }, offer, 'video')),
         });
