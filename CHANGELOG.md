@@ -57,7 +57,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   hands the player a link on the phone itself and fetches what the player
   reads through the group, in pieces, so seeking works too. At home it comes
   straight from the instance, and away through the relay. A phone paired
-  before this release streams at home once you scan the phrase again.
+  before this release streams at home once you scan the phrase again, and
+  the app offers that once.
 
 ### Removed
 

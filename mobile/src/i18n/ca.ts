@@ -385,6 +385,10 @@ export const ca: Dict = {
   'connections.addressGoneBody': 'Aquestes connexions es van desar per adreça: {names}. Ara l’aplicació es connecta amb les dotze paraules. Escaneja la frase que la instància mostra a Configuració, Aparellament, i ho tornaràs a tenir tot, baixades incloses.',
   'connections.addressGoneLater': 'Més tard',
   'connections.addressGoneScan': 'Escaneja la frase',
+  'connections.peerAuthTitle': 'Reproducció més ràpida a casa',
+  'connections.peerAuthBody': 'Escaneja un cop més la frase del teu grup i els fitxers que reprodueixis a casa vindran directament de la teva instància en lloc de fer la volta pel relé. Tota la resta queda igual.',
+  'connections.peerAuthLater': 'Més tard',
+  'connections.peerAuthScan': 'Escaneja la frase',
   'connections.default': 'Instància per defecte',
   'connections.makeDefault': 'Estableix-la per defecte',
 

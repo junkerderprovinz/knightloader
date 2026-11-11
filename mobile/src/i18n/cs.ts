@@ -385,6 +385,10 @@ export const cs: Dict = {
   'connections.addressGoneBody': 'Tato připojení byla uložena podle adresy: {names}. Aplikace se teď připojuje pomocí dvanácti slov. Naskenuj frázi, kterou instance ukazuje v části Nastavení, Párování, a máš vše zpátky i se stahováním.',
   'connections.addressGoneLater': 'Později',
   'connections.addressGoneScan': 'Naskenovat frázi',
+  'connections.peerAuthTitle': 'Rychlejší přehrávání doma',
+  'connections.peerAuthBody': 'Naskenuj frázi své skupiny ještě jednou a soubory, které přehráváš doma, půjdou přímo z tvé instance místo oklikou přes relay. Všechno ostatní zůstane, jak je.',
+  'connections.peerAuthLater': 'Později',
+  'connections.peerAuthScan': 'Naskenovat frázi',
   'connections.default': 'Výchozí instance',
   'connections.makeDefault': 'Nastavit jako výchozí',
 

@@ -385,6 +385,10 @@ export const he: Dict = {
   'connections.addressGoneBody': 'החיבורים האלה נשמרו לפי כתובת: {names}. האפליקציה מתחברת עכשיו עם שתים עשרה המילים. סרקו את הביטוי שהמופע מציג בהגדרות, תחת צימוד, והכול חוזר, כולל ההורדות.',
   'connections.addressGoneLater': 'מאוחר יותר',
   'connections.addressGoneScan': 'סריקת הביטוי',
+  'connections.peerAuthTitle': 'ניגון מהיר יותר בבית',
+  'connections.peerAuthBody': 'סרקו שוב את הביטוי של הקבוצה, וקבצים שתנגנו בבית יגיעו ישר מהמופע שלכם במקום בדרך הארוכה דרך הממסר. כל השאר נשאר כמו שהוא.',
+  'connections.peerAuthLater': 'מאוחר יותר',
+  'connections.peerAuthScan': 'סריקת הביטוי',
   'connections.default': 'מופע ברירת המחדל',
   'connections.makeDefault': 'הגדר כברירת מחדל',
 

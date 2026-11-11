@@ -385,6 +385,10 @@ export const hu: Dict = {
   'connections.addressGoneBody': 'Ezek a kapcsolatok cím alapján voltak mentve: {names}. Az alkalmazás mostantól a tizenkét szóval csatlakozik. Olvasd be a jelmondatot, amelyet a példány a Beállítások, Párosítás oldalon mutat, és minden visszatér, a letöltésekkel együtt.',
   'connections.addressGoneLater': 'Később',
   'connections.addressGoneScan': 'Jelmondat beolvasása',
+  'connections.peerAuthTitle': 'Gyorsabb lejátszás otthon',
+  'connections.peerAuthBody': 'Olvasd be még egyszer a csoportod jelmondatát, és az otthon lejátszott fájlok közvetlenül a példányodról jönnek, nem kerülőúton a közvetítőn át. Minden más marad a régiben.',
+  'connections.peerAuthLater': 'Később',
+  'connections.peerAuthScan': 'Jelmondat beolvasása',
   'connections.default': 'Alapértelmezett példány',
   'connections.makeDefault': 'Beállítás alapértelmezettként',
 

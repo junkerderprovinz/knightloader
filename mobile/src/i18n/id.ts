@@ -385,6 +385,10 @@ export const id: Dict = {
   'connections.addressGoneBody': 'Sambungan ini disimpan lewat alamat: {names}. Aplikasi kini tersambung dengan dua belas kata. Pindai frasa yang ditampilkan instans di Pengaturan, Pemasangan, dan semuanya kembali, termasuk unduhannya.',
   'connections.addressGoneLater': 'Nanti',
   'connections.addressGoneScan': 'Pindai frasa',
+  'connections.peerAuthTitle': 'Pemutaran lebih cepat di rumah',
+  'connections.peerAuthBody': 'Pindai frasa grupmu sekali lagi, dan berkas yang kamu putar di rumah datang langsung dari instansmu, bukan lewat jalan memutar melalui relay. Selebihnya tetap sama.',
+  'connections.peerAuthLater': 'Nanti',
+  'connections.peerAuthScan': 'Pindai frasa',
   'connections.default': 'Instans bawaan',
   'connections.makeDefault': 'Jadikan bawaan',
 

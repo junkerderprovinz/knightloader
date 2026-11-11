@@ -385,6 +385,10 @@ export const nl: Dict = {
   'connections.addressGoneBody': 'Deze verbindingen waren op adres opgeslagen: {names}. De app verbindt nu met de twaalf woorden. Scan de zin die de instantie toont onder Instellingen, Koppeling, en je bent terug, downloads en al.',
   'connections.addressGoneLater': 'Straks',
   'connections.addressGoneScan': 'Scan de zin',
+  'connections.peerAuthTitle': 'Sneller afspelen thuis',
+  'connections.peerAuthBody': 'Scan de zin van je groep nog één keer, dan komen bestanden die je thuis afspeelt rechtstreeks van je instantie in plaats van via de omweg over de relay. Al het andere blijft zoals het is.',
+  'connections.peerAuthLater': 'Straks',
+  'connections.peerAuthScan': 'Scan de zin',
   'connections.default': 'Standaardinstantie',
   'connections.makeDefault': 'Als standaard instellen',
 

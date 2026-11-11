@@ -385,6 +385,10 @@ export const ms: Dict = {
   'connections.addressGoneBody': 'Sambungan ini disimpan mengikut alamat: {names}. Apl kini menyambung dengan dua belas perkataan. Imbas frasa yang ditunjukkan oleh tika di Tetapan, Gandingan, dan semuanya kembali, termasuk muat turun.',
   'connections.addressGoneLater': 'Kemudian',
   'connections.addressGoneScan': 'Imbas frasa',
+  'connections.peerAuthTitle': 'Main balik lebih pantas di rumah',
+  'connections.peerAuthBody': 'Imbas frasa kumpulan anda sekali lagi, dan fail yang anda mainkan di rumah datang terus dari tika anda, bukan melalui jalan jauh menerusi geganti. Yang lain kekal seperti sedia ada.',
+  'connections.peerAuthLater': 'Kemudian',
+  'connections.peerAuthScan': 'Imbas frasa',
   'connections.default': 'Tika lalai',
   'connections.makeDefault': 'Jadikan lalai',
 

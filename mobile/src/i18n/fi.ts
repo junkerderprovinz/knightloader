@@ -385,6 +385,10 @@ export const fi: Dict = {
   'connections.addressGoneBody': 'Nämä yhteydet oli tallennettu osoitteella: {names}. Sovellus yhdistää nyt kahdellatoista sanalla. Skannaa lause, jonka instanssi näyttää kohdassa Asetukset, Pariliitos, niin kaikki on taas tallella latauksineen.',
   'connections.addressGoneLater': 'Myöhemmin',
   'connections.addressGoneScan': 'Skannaa lause',
+  'connections.peerAuthTitle': 'Nopeampi toisto kotona',
+  'connections.peerAuthBody': 'Skannaa ryhmäsi lause vielä kerran, niin kotona toistamasi tiedostot tulevat suoraan instanssistasi eivätkä kierrä välityspalvelimen kautta. Kaikki muu pysyy ennallaan.',
+  'connections.peerAuthLater': 'Myöhemmin',
+  'connections.peerAuthScan': 'Skannaa lause',
   'connections.default': 'Oletusinstanssi',
   'connections.makeDefault': 'Aseta oletukseksi',
 

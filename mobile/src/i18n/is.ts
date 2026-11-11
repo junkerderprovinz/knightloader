@@ -385,6 +385,10 @@ export const is: Dict = {
   'connections.addressGoneBody': 'Þessar tengingar voru vistaðar eftir vistfangi: {names}. Forritið tengist núna með orðunum tólf. Skannaðu setninguna sem tilvikið sýnir undir Stillingar, Pörun, og allt er komið aftur, niðurhölin líka.',
   'connections.addressGoneLater': 'Seinna',
   'connections.addressGoneScan': 'Skanna setninguna',
+  'connections.peerAuthTitle': 'Hraðari spilun heima',
+  'connections.peerAuthBody': 'Skannaðu setningu hópsins þíns einu sinni enn, og skrár sem þú spilar heima koma beint frá tilvikinu þínu í stað þess að fara langa leið um endurvarpann. Allt annað helst óbreytt.',
+  'connections.peerAuthLater': 'Seinna',
+  'connections.peerAuthScan': 'Skanna setninguna',
   'connections.default': 'Sjálfgefið tilvik',
   'connections.makeDefault': 'Gera að sjálfgefnu',
 

@@ -385,6 +385,10 @@ export const no: Dict = {
   'connections.addressGoneBody': 'Disse tilkoblingene var lagret med adresse: {names}. Appen kobler seg nå til med de tolv ordene. Skann frasen instansen viser under Innstillinger, Paring, så er du tilbake, nedlastinger og alt.',
   'connections.addressGoneLater': 'Senere',
   'connections.addressGoneScan': 'Skann frasen',
+  'connections.peerAuthTitle': 'Raskere avspilling hjemme',
+  'connections.peerAuthBody': 'Skann gruppens frase én gang til, så kommer filer du spiller av hjemme rett fra instansen din i stedet for den lange veien gjennom reléet. Alt annet forblir som det er.',
+  'connections.peerAuthLater': 'Senere',
+  'connections.peerAuthScan': 'Skann frasen',
   'connections.default': 'Standardinstans',
   'connections.makeDefault': 'Angi som standard',
 

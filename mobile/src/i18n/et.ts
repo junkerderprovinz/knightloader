@@ -385,6 +385,10 @@ export const et: Dict = {
   'connections.addressGoneBody': 'Need ühendused olid salvestatud aadressi järgi: {names}. Rakendus ühendub nüüd kaheteistkümne sõnaga. Skanni fraas, mida eksemplar näitab jaotises Seaded, Sidumine, ja kõik on tagasi koos allalaadimistega.',
   'connections.addressGoneLater': 'Hiljem',
   'connections.addressGoneScan': 'Skanni fraas',
+  'connections.peerAuthTitle': 'Kiirem esitus kodus',
+  'connections.peerAuthBody': 'Skanni oma grupi fraas veel kord ja failid, mida kodus esitad, tulevad otse sinu eksemplarist, mitte pikka teed mööda relee kaudu. Kõik muu jääb samaks.',
+  'connections.peerAuthLater': 'Hiljem',
+  'connections.peerAuthScan': 'Skanni fraas',
   'connections.default': 'Vaikeeksemplar',
   'connections.makeDefault': 'Määra vaikimisi',
 

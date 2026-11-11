@@ -385,6 +385,10 @@ export const it: Dict = {
   'connections.addressGoneBody': 'Queste connessioni erano salvate per indirizzo: {names}. Ora l’app si collega con le dodici parole. Scansiona la frase che l’istanza mostra in Impostazioni, Associazione, e ritrovi tutto, download compresi.',
   'connections.addressGoneLater': 'Più tardi',
   'connections.addressGoneScan': 'Scansiona la frase',
+  'connections.peerAuthTitle': 'Riproduzione più veloce a casa',
+  'connections.peerAuthBody': "Scansiona ancora una volta la frase del tuo gruppo e i file che riproduci a casa arriveranno direttamente dalla tua istanza invece di fare il giro lungo attraverso il relay. Tutto il resto rimane com'è.",
+  'connections.peerAuthLater': 'Più tardi',
+  'connections.peerAuthScan': 'Scansiona la frase',
   'connections.default': 'Istanza predefinita',
   'connections.makeDefault': 'Imposta come predefinita',
 

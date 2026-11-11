@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import type { ServerConnection } from '../api/types';
 import { closeAllRelayClients, closeRelayClient } from '../api/relayClient';
-import { splitSaved } from '../api/savedConnections';
+import { offersPeerAuth, splitSaved } from '../api/savedConnections';
 
 // Every saved connection carries its group's relay key, a secret, so the whole
 // list goes in the OS keychain (SecureStore) rather than AsyncStorage. The
@@ -14,6 +14,8 @@ const DEFAULT_KEY = 'knightloader-default-connection';
 // The group's instances this phone was told to leave off its list. The overview
 // adds every instance of the group on its own, so a removal has to be kept.
 const DISMISSED_KEY = 'knightloader-dismissed-instances';
+// Set once the app has offered to scan the phrase again, so it offers once.
+const PEER_AUTH_OFFERED_KEY = 'knightloader-peer-auth-offered';
 
 export function newConnectionId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -31,6 +33,18 @@ async function readList(): Promise<unknown> {
 
 export async function listConnections(): Promise<ServerConnection[]> {
   return splitSaved(await readList()).kept;
+}
+
+/**
+ * offerPeerAuthOnce is true the one time the app should offer to scan the
+ * phrase again, for connections paired before it kept the key of the local
+ * network.
+ */
+export async function offerPeerAuthOnce(): Promise<boolean> {
+  if (await SecureStore.getItemAsync(PEER_AUTH_OFFERED_KEY)) return false;
+  if (!offersPeerAuth(await listConnections())) return false;
+  await SecureStore.setItemAsync(PEER_AUTH_OFFERED_KEY, '1');
+  return true;
 }
 
 /**

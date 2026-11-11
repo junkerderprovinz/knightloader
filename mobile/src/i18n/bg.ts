@@ -385,6 +385,10 @@ export const bg: Dict = {
   'connections.addressGoneBody': 'Тези връзки бяха запазени по адрес: {names}. Приложението вече се свързва с дванадесетте думи. Сканирай фразата, която инстанцията показва в Настройки, Сдвояване, и всичко е отново тук, заедно с изтеглянията.',
   'connections.addressGoneLater': 'По-късно',
   'connections.addressGoneScan': 'Сканиране на фразата',
+  'connections.peerAuthTitle': 'По-бързо пускане у дома',
+  'connections.peerAuthBody': 'Сканирай фразата на групата си още веднъж и файловете, които пускаш у дома, ще идват направо от инстанцията ти, а не по дългия път през релето. Всичко останало си остава същото.',
+  'connections.peerAuthLater': 'По-късно',
+  'connections.peerAuthScan': 'Сканиране на фразата',
   'connections.default': 'Основна инстанция',
   'connections.makeDefault': 'Направи основна',
 

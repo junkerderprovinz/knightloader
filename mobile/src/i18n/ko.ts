@@ -384,6 +384,10 @@ export const ko: Dict = {
   'connections.addressGoneBody': '다음 연결은 주소로 저장되어 있었습니다: {names}. 이제 앱은 12개 단어로 연결합니다. 인스턴스가 설정의 페어링에 표시하는 문구를 스캔하면 다운로드까지 모두 그대로 돌아옵니다.',
   'connections.addressGoneLater': '나중에',
   'connections.addressGoneScan': '문구 스캔',
+  'connections.peerAuthTitle': '집에서 더 빠른 재생',
+  'connections.peerAuthBody': '그룹 문구를 한 번 더 스캔하면 집에서 재생하는 파일이 릴레이를 돌아오지 않고 인스턴스에서 바로 옵니다. 다른 것은 모두 그대로입니다.',
+  'connections.peerAuthLater': '나중에',
+  'connections.peerAuthScan': '문구 스캔',
   'connections.default': '기본 인스턴스',
   'connections.makeDefault': '기본으로 설정',
 

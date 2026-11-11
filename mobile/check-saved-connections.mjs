@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const { splitSaved } = await import(pathToFileURL(join(here, 'src', 'api', 'savedConnections.ts')).href);
+const { splitSaved, offersPeerAuth } = await import(pathToFileURL(join(here, 'src', 'api', 'savedConnections.ts')).href);
 
 const problems = [];
 const expect = (what, got, want) => {
@@ -29,8 +29,14 @@ expect('nothing saved yet', splitSaved(null), { kept: [], dropped: [] });
 expect('a list that does not read', splitSaved('not a list'), { kept: [], dropped: [] });
 expect('an entry that is no connection', splitSaved([relay, null, 7]), { kept: [relay], dropped: [] });
 
+const keyed = { ...relay, peerAuthKey: 'aa' };
+expect('every connection keeps the key of the local network', offersPeerAuth([keyed, { ...keyed, id: 'r2' }]), false);
+expect('a connection paired before the key was kept', offersPeerAuth([keyed, relay]), true);
+expect('one that has to be added again anyway', offersPeerAuth([{ ...relay, relayFrameKey: undefined }]), false);
+expect('nothing saved', offersPeerAuth([]), false);
+
 if (problems.length) {
   console.error(problems.join('\n'));
   process.exit(1);
 }
-console.log('ok: connections saved by address leave the list, named once, and the phrase connections stay');
+console.log('ok: connections saved by address leave the list, named once, the phrase connections stay, and one without the key of the local network asks for the phrase');

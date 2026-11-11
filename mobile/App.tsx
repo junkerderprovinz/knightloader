@@ -8,6 +8,7 @@ import { useShareIntent } from 'expo-share-intent';
 import {
   dismissConnection,
   dropAddressConnections,
+  offerPeerAuthOnce,
   listConnections,
   loadActiveConnection,
   loadDefaultConnection,
@@ -98,6 +99,9 @@ function Shell() {
   // The names of the connections an older build saved by address, which the
   // first start of this one takes off the list.
   const [addressGone, setAddressGone] = useState<string[]>([]);
+  // Set once when a connection lacks the key of the local network, which a
+  // new scan of the phrase brings.
+  const [peerAuthOffer, setPeerAuthOffer] = useState(false);
   // The scheme only names the key the library clears a share under. Without
   // it the library asks expo-linking for one, which throws in a release build
   // of an app that registers none.
@@ -153,6 +157,7 @@ function Shell() {
   useEffect(() => {
     (async () => {
       setAddressGone(await dropAddressConnections());
+      setPeerAuthOffer(await offerPeerAuthOnce());
       const [active, standardConn] = await Promise.all([loadActiveConnection(), loadDefaultConnection(), loadDeviceName()]);
       setStandard(standardConn);
       const opening = standardConn ?? active;
@@ -217,6 +222,19 @@ function Shell() {
         onCancel={() => setAddressGone([])}
         onConfirm={() => {
           setAddressGone([]);
+          nav.navigate('RelayConnect');
+        }}
+      />
+      <ConfirmDialog
+        visible={peerAuthOffer && addressGone.length === 0}
+        title={t('connections.peerAuthTitle')}
+        message={t('connections.peerAuthBody')}
+        cancelLabel={t('connections.peerAuthLater')}
+        confirmLabel={t('connections.peerAuthScan')}
+        confirmIcon={(ink) => <Scan color={ink} />}
+        onCancel={() => setPeerAuthOffer(false)}
+        onConfirm={() => {
+          setPeerAuthOffer(false);
           nav.navigate('RelayConnect');
         }}
       />

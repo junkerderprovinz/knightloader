@@ -385,6 +385,10 @@ export const vi: Dict = {
   'connections.addressGoneBody': 'Các kết nối này đã được lưu theo địa chỉ: {names}. Giờ ứng dụng kết nối bằng mười hai từ. Hãy quét cụm từ mà phiên bản hiển thị trong Cài đặt, Ghép nối, và mọi thứ sẽ trở lại, kể cả các lượt tải.',
   'connections.addressGoneLater': 'Để sau',
   'connections.addressGoneScan': 'Quét cụm từ',
+  'connections.peerAuthTitle': 'Phát nhanh hơn khi ở nhà',
+  'connections.peerAuthBody': 'Quét lại cụm từ của nhóm một lần nữa, và các tệp bạn phát ở nhà sẽ đến thẳng từ phiên bản của bạn thay vì đi đường vòng qua relay. Mọi thứ khác vẫn giữ nguyên.',
+  'connections.peerAuthLater': 'Để sau',
+  'connections.peerAuthScan': 'Quét cụm từ',
   'connections.default': 'Phiên bản mặc định',
   'connections.makeDefault': 'Đặt làm mặc định',
 

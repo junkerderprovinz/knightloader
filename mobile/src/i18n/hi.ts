@@ -385,6 +385,10 @@ export const hi: Dict = {
   'connections.addressGoneBody': 'ये कनेक्शन पते से सहेजे गए थे: {names}। ऐप अब बारह शब्दों से जुड़ता है। इंस्टेंस सेटिंग्स में पेयरिंग के अंतर्गत जो वाक्यांश दिखाता है, उसे स्कैन करें, और डाउनलोड समेत सब कुछ वापस आ जाएगा।',
   'connections.addressGoneLater': 'बाद में',
   'connections.addressGoneScan': 'वाक्यांश स्कैन करें',
+  'connections.peerAuthTitle': 'घर पर तेज़ प्लेबैक',
+  'connections.peerAuthBody': 'अपने समूह का वाक्यांश एक बार और स्कैन करें, फिर घर पर चलाई जाने वाली फ़ाइलें रिले के लंबे रास्ते के बजाय सीधे आपके इंस्टेंस से आएँगी। बाकी सब वैसा ही रहेगा।',
+  'connections.peerAuthLater': 'बाद में',
+  'connections.peerAuthScan': 'वाक्यांश स्कैन करें',
   'connections.default': 'डिफ़ॉल्ट इंस्टेंस',
   'connections.makeDefault': 'डिफ़ॉल्ट बनाएं',
 

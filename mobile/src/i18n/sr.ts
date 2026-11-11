@@ -385,6 +385,10 @@ export const sr: Dict = {
   'connections.addressGoneBody': 'Ове везе су биле сачуване по адреси: {names}. Апликација се сада повезује са дванаест речи. Скенирај фразу коју инстанца приказује у одељку Подешавања, Упаривање и све је опет ту, заједно са преузимањима.',
   'connections.addressGoneLater': 'Касније',
   'connections.addressGoneScan': 'Скенирај фразу',
+  'connections.peerAuthTitle': 'Брже пуштање код куће',
+  'connections.peerAuthBody': 'Скенирај фразу своје групе још једном и датотеке које пушташ код куће стизаће директно са твоје инстанце уместо дугим путем преко релеја. Све остало остаје како јесте.',
+  'connections.peerAuthLater': 'Касније',
+  'connections.peerAuthScan': 'Скенирај фразу',
   'connections.default': 'Подразумевана инстанца',
   'connections.makeDefault': 'Постави као подразумевану',
 

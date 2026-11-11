@@ -385,6 +385,10 @@ export const lt: Dict = {
   'connections.addressGoneBody': 'Šie ryšiai buvo išsaugoti pagal adresą: {names}. Programėlė dabar jungiasi su dvylika žodžių. Nuskaityk frazę, kurią egzempliorius rodo skiltyje Nustatymai, Susiejimas, ir viskas grįš kartu su atsisiuntimais.',
   'connections.addressGoneLater': 'Vėliau',
   'connections.addressGoneScan': 'Nuskaityti frazę',
+  'connections.peerAuthTitle': 'Greitesnis atkūrimas namuose',
+  'connections.peerAuthBody': 'Dar kartą nuskaityk savo grupės frazę, ir namuose atkuriami failai ateis tiesiai iš tavo egzemplioriaus, o ne ilguoju keliu per retransliatorių. Visa kita lieka kaip buvo.',
+  'connections.peerAuthLater': 'Vėliau',
+  'connections.peerAuthScan': 'Nuskaityti frazę',
   'connections.default': 'Numatytasis egzempliorius',
   'connections.makeDefault': 'Nustatyti kaip numatytąjį',
 

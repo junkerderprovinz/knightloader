@@ -385,6 +385,10 @@ export const tr: Dict = {
   'connections.addressGoneBody': 'Bu bağlantılar adresle kaydedilmişti: {names}. Uygulama artık on iki kelimeyle bağlanıyor. Örneğin Ayarlar, Eşleştirme altında gösterdiği ifadeyi tara, indirmeler dahil her şey geri gelir.',
   'connections.addressGoneLater': 'Sonra',
   'connections.addressGoneScan': 'İfadeyi tara',
+  'connections.peerAuthTitle': 'Evde daha hızlı oynatma',
+  'connections.peerAuthBody': 'Grubunun ifadesini bir kez daha tara, evde oynattığın dosyalar röle üzerinden uzun yoldan değil, doğrudan örneğinden gelsin. Geri kalan her şey olduğu gibi kalır.',
+  'connections.peerAuthLater': 'Sonra',
+  'connections.peerAuthScan': 'İfadeyi tara',
   'connections.default': 'Varsayılan örnek',
   'connections.makeDefault': 'Varsayılan yap',
 

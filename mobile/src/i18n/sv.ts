@@ -385,6 +385,10 @@ export const sv: Dict = {
   'connections.addressGoneBody': 'De här anslutningarna var sparade med adress: {names}. Appen ansluter nu med de tolv orden. Skanna frasen som instansen visar under Inställningar, Parkoppling, så är du tillbaka, nedladdningar och allt.',
   'connections.addressGoneLater': 'Senare',
   'connections.addressGoneScan': 'Skanna frasen',
+  'connections.peerAuthTitle': 'Snabbare uppspelning hemma',
+  'connections.peerAuthBody': 'Skanna gruppens fras en gång till, så kommer filer du spelar upp hemma direkt från din instans i stället för den långa vägen genom reläet. Allt annat förblir som det är.',
+  'connections.peerAuthLater': 'Senare',
+  'connections.peerAuthScan': 'Skanna frasen',
   'connections.default': 'Standardinstans',
   'connections.makeDefault': 'Ange som standard',
 

@@ -385,6 +385,10 @@ export const fr: Dict = {
   'connections.addressGoneBody': 'Ces connexions étaient enregistrées par adresse : {names}. L’application se connecte désormais avec les douze mots. Scannez la phrase que l’instance affiche dans Paramètres, Appairage, et vous retrouvez tout, téléchargements compris.',
   'connections.addressGoneLater': 'Plus tard',
   'connections.addressGoneScan': 'Scanner la phrase',
+  'connections.peerAuthTitle': 'Lecture plus rapide à la maison',
+  'connections.peerAuthBody': 'Scannez la phrase de votre groupe une fois de plus, et les fichiers que vous lisez à la maison viendront directement de votre instance au lieu de faire le détour par le relais. Tout le reste ne change pas.',
+  'connections.peerAuthLater': 'Plus tard',
+  'connections.peerAuthScan': 'Scanner la phrase',
   'connections.default': 'Instance par défaut',
   'connections.makeDefault': 'Définir par défaut',
 

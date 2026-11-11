@@ -385,6 +385,10 @@ export const eu: Dict = {
   'connections.addressGoneBody': 'Konexio hauek helbidearen bidez gorde ziren: {names}. Aplikazioa hamabi hitzekin konektatzen da orain. Eskaneatu instantziak Ezarpenak, Parekatzea atalean erakusten duen esaldia, eta dena itzuliko da, deskargak barne.',
   'connections.addressGoneLater': 'Geroago',
   'connections.addressGoneScan': 'Eskaneatu esaldia',
+  'connections.peerAuthTitle': 'Erreprodukzio azkarragoa etxean',
+  'connections.peerAuthBody': 'Eskaneatu zure taldearen esaldia beste behin, eta etxean erreproduzitzen dituzun fitxategiak zuzenean etorriko dira zure instantziatik, errelearen bide luzetik joan beharrean. Gainerako guztia dagoen bezala geratzen da.',
+  'connections.peerAuthLater': 'Geroago',
+  'connections.peerAuthScan': 'Eskaneatu esaldia',
   'connections.default': 'Instantzia lehenetsia',
   'connections.makeDefault': 'Lehenetsi',
 

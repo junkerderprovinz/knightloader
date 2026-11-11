@@ -384,6 +384,10 @@ export const ja: Dict = {
   'connections.addressGoneBody': '次の接続はアドレスで保存されていました: {names}。アプリは今後12個の単語で接続します。インスタンスの「設定」の「ペアリング」に表示されるフレーズをスキャンすれば、ダウンロードも含めてすべて元どおりです。',
   'connections.addressGoneLater': '後で',
   'connections.addressGoneScan': 'フレーズをスキャン',
+  'connections.peerAuthTitle': '自宅での再生をもっと速く',
+  'connections.peerAuthBody': 'グループのフレーズをもう一度スキャンすると、自宅で再生するファイルがリレーを遠回りせず、インスタンスから直接届くようになります。それ以外は何も変わりません。',
+  'connections.peerAuthLater': '後で',
+  'connections.peerAuthScan': 'フレーズをスキャン',
   'connections.default': '既定のインスタンス',
   'connections.makeDefault': '既定に設定',
 

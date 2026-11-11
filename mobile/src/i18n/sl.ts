@@ -385,6 +385,10 @@ export const sl: Dict = {
   'connections.addressGoneBody': 'Te povezave so bile shranjene po naslovu: {names}. Aplikacija se zdaj povezuje z dvanajstimi besedami. Skeniraj frazo, ki jo instanca prikazuje v razdelku Nastavitve, Seznanjanje, in vse je spet tu, skupaj s prenosi.',
   'connections.addressGoneLater': 'Pozneje',
   'connections.addressGoneScan': 'Skeniraj frazo',
+  'connections.peerAuthTitle': 'Hitrejše predvajanje doma',
+  'connections.peerAuthBody': 'Še enkrat skeniraj frazo svoje skupine in datoteke, ki jih predvajaš doma, bodo prihajale neposredno iz tvoje instance namesto po dolgi poti prek releja. Vse drugo ostane, kot je.',
+  'connections.peerAuthLater': 'Pozneje',
+  'connections.peerAuthScan': 'Skeniraj frazo',
   'connections.default': 'Privzeti primerek',
   'connections.makeDefault': 'Nastavi kot privzetega',
 

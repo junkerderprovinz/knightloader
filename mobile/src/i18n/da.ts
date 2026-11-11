@@ -385,6 +385,10 @@ export const da: Dict = {
   'connections.addressGoneBody': 'Disse forbindelser var gemt via adresse: {names}. Appen forbinder nu med de tolv ord. Skan sætningen, som instansen viser under Indstillinger, Parring, så er du tilbage, downloads og det hele.',
   'connections.addressGoneLater': 'Senere',
   'connections.addressGoneScan': 'Skan sætningen',
+  'connections.peerAuthTitle': 'Hurtigere afspilning derhjemme',
+  'connections.peerAuthBody': 'Skan din gruppes sætning én gang til, så kommer filer, du afspiller derhjemme, direkte fra din instans i stedet for den lange vej gennem relæet. Alt andet forbliver, som det er.',
+  'connections.peerAuthLater': 'Senere',
+  'connections.peerAuthScan': 'Skan sætningen',
   'connections.default': 'Standardinstans',
   'connections.makeDefault': 'Gør til standard',
 

@@ -385,6 +385,10 @@ export const fa: Dict = {
   'connections.addressGoneBody': 'این اتصال‌ها با نشانی ذخیره شده بودند: {names}. برنامه اکنون با دوازده کلمه وصل می‌شود. عبارتی را که نمونه در تنظیمات، بخش جفت‌سازی نشان می‌دهد پویش کنید تا همه‌چیز همراه با دانلودها برگردد.',
   'connections.addressGoneLater': 'بعداً',
   'connections.addressGoneScan': 'پویش عبارت',
+  'connections.peerAuthTitle': 'پخش سریع‌تر در خانه',
+  'connections.peerAuthBody': 'عبارت گروهتان را یک بار دیگر پویش کنید تا فایل‌هایی که در خانه پخش می‌کنید مستقیم از نمونهٔ شما بیایند، نه از راه طولانی رله. همه‌چیز دیگر همان‌طور می‌ماند.',
+  'connections.peerAuthLater': 'بعداً',
+  'connections.peerAuthScan': 'پویش عبارت',
   'connections.default': 'نمونهٔ پیش‌فرض',
   'connections.makeDefault': 'پیش‌فرض کردن',
 

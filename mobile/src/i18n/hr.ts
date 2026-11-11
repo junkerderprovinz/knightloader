@@ -385,6 +385,10 @@ export const hr: Dict = {
   'connections.addressGoneBody': 'Ove su veze bile spremljene po adresi: {names}. Aplikacija se sada povezuje s dvanaest riječi. Skeniraj frazu koju instanca prikazuje u odjeljku Postavke, Uparivanje i sve je opet tu, zajedno s preuzimanjima.',
   'connections.addressGoneLater': 'Kasnije',
   'connections.addressGoneScan': 'Skeniraj frazu',
+  'connections.peerAuthTitle': 'Brža reprodukcija kod kuće',
+  'connections.peerAuthBody': 'Skeniraj frazu svoje grupe još jednom i datoteke koje reproduciraš kod kuće stizat će izravno s tvoje instance umjesto dugim putem preko releja. Sve ostalo ostaje kako jest.',
+  'connections.peerAuthLater': 'Kasnije',
+  'connections.peerAuthScan': 'Skeniraj frazu',
   'connections.default': 'Zadana instanca',
   'connections.makeDefault': 'Postavi kao zadanu',
 

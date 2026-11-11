@@ -384,6 +384,10 @@ export const zh: Dict = {
   'connections.addressGoneBody': '这些连接是按地址保存的：{names}。应用现在用十二个词连接。扫描实例在“设置”的“配对”里显示的词语，一切就都回来了，下载也在。',
   'connections.addressGoneLater': '稍后',
   'connections.addressGoneScan': '扫描词语',
+  'connections.peerAuthTitle': '在家播放更快',
+  'connections.peerAuthBody': '再扫描一次你的组的词语，在家播放的文件就会直接来自你的实例，而不必绕道中继。其他一切保持不变。',
+  'connections.peerAuthLater': '稍后',
+  'connections.peerAuthScan': '扫描词语',
   'connections.default': '默认实例',
   'connections.makeDefault': '设为默认',
 

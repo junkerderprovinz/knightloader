@@ -385,6 +385,10 @@ export const pt: Dict = {
   'connections.addressGoneBody': 'Estas ligações estavam guardadas por endereço: {names}. A aplicação liga-se agora com as doze palavras. Lê a frase que a instância mostra em Definições, Emparelhamento, e voltas a ter tudo, transferências incluídas.',
   'connections.addressGoneLater': 'Mais tarde',
   'connections.addressGoneScan': 'Ler a frase',
+  'connections.peerAuthTitle': 'Reprodução mais rápida em casa',
+  'connections.peerAuthBody': 'Lê a frase do teu grupo mais uma vez e os ficheiros que reproduzes em casa chegam diretamente da tua instância em vez de darem a volta pelo relé. Tudo o resto fica como está.',
+  'connections.peerAuthLater': 'Mais tarde',
+  'connections.peerAuthScan': 'Ler a frase',
   'connections.default': 'Instância predefinida',
   'connections.makeDefault': 'Definir como predefinida',
 

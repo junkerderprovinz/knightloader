@@ -385,6 +385,10 @@ export const pl: Dict = {
   'connections.addressGoneBody': 'Te połączenia były zapisane według adresu: {names}. Aplikacja łączy się teraz za pomocą dwunastu słów. Zeskanuj frazę, którą instancja pokazuje w sekcji Ustawienia, Parowanie, i wszystko wróci razem z pobieraniami.',
   'connections.addressGoneLater': 'Później',
   'connections.addressGoneScan': 'Zeskanuj frazę',
+  'connections.peerAuthTitle': 'Szybsze odtwarzanie w domu',
+  'connections.peerAuthBody': 'Zeskanuj frazę swojej grupy jeszcze raz, a pliki odtwarzane w domu będą przychodzić prosto z twojej instancji zamiast okrężną drogą przez przekaźnik. Wszystko inne zostaje bez zmian.',
+  'connections.peerAuthLater': 'Później',
+  'connections.peerAuthScan': 'Zeskanuj frazę',
   'connections.default': 'Instancja domyślna',
   'connections.makeDefault': 'Ustaw jako domyślną',
 

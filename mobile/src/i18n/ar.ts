@@ -385,6 +385,10 @@ export const ar: Dict = {
   'connections.addressGoneBody': 'هذه الاتصالات كانت محفوظة بالعنوان: {names}. يتصل التطبيق الآن بالكلمات الاثنتي عشرة. امسح العبارة التي تعرضها النسخة في الإعدادات، ضمن الاقتران، وسيعود كل شيء مع التنزيلات.',
   'connections.addressGoneLater': 'لاحقًا',
   'connections.addressGoneScan': 'مسح العبارة',
+  'connections.peerAuthTitle': 'تشغيل أسرع في المنزل',
+  'connections.peerAuthBody': 'امسح عبارة مجموعتك مرة أخرى، وستأتي الملفات التي تشغّلها في المنزل مباشرة من نسختك بدلًا من الطريق الطويل عبر المرحّل. كل شيء آخر يبقى كما هو.',
+  'connections.peerAuthLater': 'لاحقًا',
+  'connections.peerAuthScan': 'مسح العبارة',
   'connections.default': 'النسخة الافتراضية',
   'connections.makeDefault': 'تعيين كافتراضية',
 

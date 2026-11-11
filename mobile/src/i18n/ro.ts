@@ -385,6 +385,10 @@ export const ro: Dict = {
   'connections.addressGoneBody': 'Aceste conexiuni erau salvate după adresă: {names}. Aplicația se conectează acum cu cele douăsprezece cuvinte. Scanează fraza pe care instanța o arată în Setări, Împerechere, și ai totul înapoi, cu descărcări cu tot.',
   'connections.addressGoneLater': 'Mai târziu',
   'connections.addressGoneScan': 'Scanează fraza',
+  'connections.peerAuthTitle': 'Redare mai rapidă acasă',
+  'connections.peerAuthBody': 'Scanează încă o dată fraza grupului tău, iar fișierele pe care le redai acasă vin direct de la instanța ta, nu pe drumul lung prin releu. Restul rămâne la fel.',
+  'connections.peerAuthLater': 'Mai târziu',
+  'connections.peerAuthScan': 'Scanează fraza',
   'connections.default': 'Instanța implicită',
   'connections.makeDefault': 'Setează ca implicită',
 

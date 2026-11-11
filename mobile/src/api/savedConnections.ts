@@ -17,3 +17,12 @@ export function splitSaved(raw: unknown): { kept: ServerConnection[]; dropped: s
   }
   return { kept, dropped: dropped.filter((name) => name !== '') };
 }
+
+/**
+ * offersPeerAuth reports whether a saved connection lacks the key of the local
+ * network, paired before the app kept it. Scanning the phrase again gives it,
+ * and files then play at home straight from the instance.
+ */
+export function offersPeerAuth(list: ServerConnection[]): boolean {
+  return list.some((c) => c.relayFrameKey && !c.peerAuthKey);
+}

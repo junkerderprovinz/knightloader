@@ -385,6 +385,10 @@ export const uk: Dict = {
   'connections.addressGoneBody': 'Ці підключення були збережені за адресою: {names}. Тепер застосунок підключається за дванадцятьма словами. Відскануйте фразу, яку екземпляр показує на сторінці «Спарювання» у розділі «Налаштування», і все повернеться разом із завантаженнями.',
   'connections.addressGoneLater': 'Пізніше',
   'connections.addressGoneScan': 'Сканувати фразу',
+  'connections.peerAuthTitle': 'Швидше відтворення вдома',
+  'connections.peerAuthBody': 'Відскануйте фразу своєї групи ще раз, і файли, які ви відтворюєте вдома, надходитимуть просто з вашого екземпляра, а не довгим шляхом через ретранслятор. Усе інше лишиться як є.',
+  'connections.peerAuthLater': 'Пізніше',
+  'connections.peerAuthScan': 'Сканувати фразу',
   'connections.default': 'Основний екземпляр',
   'connections.makeDefault': 'Зробити основним',
 

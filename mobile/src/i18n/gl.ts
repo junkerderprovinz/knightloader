@@ -385,6 +385,10 @@ export const gl: Dict = {
   'connections.addressGoneBody': 'Estas conexións gardáronse por enderezo: {names}. A aplicación conéctase agora coas doce palabras. Escanea a frase que a instancia mostra en Axustes, Emparellamento, e volves telo todo, descargas incluídas.',
   'connections.addressGoneLater': 'Máis tarde',
   'connections.addressGoneScan': 'Escanear a frase',
+  'connections.peerAuthTitle': 'Reprodución máis rápida na casa',
+  'connections.peerAuthBody': 'Escanea unha vez máis a frase do teu grupo e os ficheiros que reproduzas na casa chegarán directamente da túa instancia en vez de dar a volta polo relé. Todo o demais queda igual.',
+  'connections.peerAuthLater': 'Máis tarde',
+  'connections.peerAuthScan': 'Escanear a frase',
   'connections.default': 'Instancia predeterminada',
   'connections.makeDefault': 'Definir como predeterminada',
 

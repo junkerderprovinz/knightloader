@@ -385,6 +385,10 @@ export const th: Dict = {
   'connections.addressGoneBody': 'การเชื่อมต่อเหล่านี้บันทึกไว้ด้วยที่อยู่: {names} ตอนนี้แอปเชื่อมต่อด้วยสิบสองคำ สแกนวลีที่อินสแตนซ์แสดงในหน้าการจับคู่ของการตั้งค่า แล้วทุกอย่างจะกลับมา รวมถึงรายการดาวน์โหลด',
   'connections.addressGoneLater': 'ไว้ทีหลัง',
   'connections.addressGoneScan': 'สแกนวลี',
+  'connections.peerAuthTitle': 'เล่นเร็วขึ้นเมื่ออยู่บ้าน',
+  'connections.peerAuthBody': 'สแกนวลีของกลุ่มอีกครั้ง แล้วไฟล์ที่คุณเล่นที่บ้านจะมาจากอินสแตนซ์ของคุณโดยตรง แทนที่จะอ้อมผ่านรีเลย์ ส่วนอื่นยังคงเหมือนเดิมทุกอย่าง',
+  'connections.peerAuthLater': 'ไว้ทีหลัง',
+  'connections.peerAuthScan': 'สแกนวลี',
   'connections.default': 'อินสแตนซ์เริ่มต้น',
   'connections.makeDefault': 'ตั้งเป็นค่าเริ่มต้น',
 

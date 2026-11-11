@@ -385,6 +385,10 @@ export const sk: Dict = {
   'connections.addressGoneBody': 'Tieto pripojenia boli uložené podľa adresy: {names}. Aplikácia sa teraz pripája pomocou dvanástich slov. Naskenuj frázu, ktorú inštancia ukazuje v časti Nastavenia, Párovanie, a máš všetko späť aj so sťahovaniami.',
   'connections.addressGoneLater': 'Neskôr',
   'connections.addressGoneScan': 'Naskenovať frázu',
+  'connections.peerAuthTitle': 'Rýchlejšie prehrávanie doma',
+  'connections.peerAuthBody': 'Naskenuj frázu svojej skupiny ešte raz a súbory, ktoré prehrávaš doma, prídu priamo z tvojej inštancie namiesto oklikou cez relay. Všetko ostatné zostane, ako je.',
+  'connections.peerAuthLater': 'Neskôr',
+  'connections.peerAuthScan': 'Naskenovať frázu',
   'connections.default': 'Predvolená inštancia',
   'connections.makeDefault': 'Nastaviť ako predvolenú',
 

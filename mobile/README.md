@@ -166,7 +166,8 @@ A piece is taken only whole: every piece of the stream has to open, and the leng
 and SHA-256 the instance signs at its end have to match. A connection paired
 before the app kept the peer-auth key, a peer behind the instance, and a
 stream that fails play through the relay. A phone gets the key once the phrase
-is entered again.
+is entered again, which the app offers once (`offerPeerAuthOnce` in
+`src/storage/connections.ts`).
 
 ## Captchas
 

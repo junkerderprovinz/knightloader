@@ -385,6 +385,10 @@ export const el: Dict = {
   'connections.addressGoneBody': 'Αυτές οι συνδέσεις είχαν αποθηκευτεί με διεύθυνση: {names}. Η εφαρμογή συνδέεται πλέον με τις δώδεκα λέξεις. Σάρωσε τη φράση που δείχνει η παρουσία στις Ρυθμίσεις, Σύζευξη, και όλα επιστρέφουν, μαζί με τις λήψεις.',
   'connections.addressGoneLater': 'Αργότερα',
   'connections.addressGoneScan': 'Σάρωση της φράσης',
+  'connections.peerAuthTitle': 'Ταχύτερη αναπαραγωγή στο σπίτι',
+  'connections.peerAuthBody': 'Σάρωσε τη φράση της ομάδας σου άλλη μία φορά, και τα αρχεία που παίζεις στο σπίτι θα έρχονται κατευθείαν από την παρουσία σου αντί για τον μακρύ δρόμο μέσω του αναμεταδότη. Όλα τα άλλα μένουν ως έχουν.',
+  'connections.peerAuthLater': 'Αργότερα',
+  'connections.peerAuthScan': 'Σάρωση της φράσης',
   'connections.default': 'Προεπιλεγμένη υπηρεσία',
   'connections.makeDefault': 'Ορισμός ως προεπιλογή',
 

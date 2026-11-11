@@ -385,6 +385,10 @@ export const lv: Dict = {
   'connections.addressGoneBody': 'Šie savienojumi bija saglabāti pēc adreses: {names}. Lietotne tagad savienojas ar divpadsmit vārdiem. Skenē frāzi, ko instance rāda sadaļā Iestatījumi, Pārošana, un viss ir atpakaļ kopā ar lejupielādēm.',
   'connections.addressGoneLater': 'Vēlāk',
   'connections.addressGoneScan': 'Skenēt frāzi',
+  'connections.peerAuthTitle': 'Ātrāka atskaņošana mājās',
+  'connections.peerAuthBody': 'Noskenē savas grupas frāzi vēlreiz, un faili, ko atskaņo mājās, nāks tieši no tavas instances, nevis garo ceļu caur releju. Viss pārējais paliek, kā ir.',
+  'connections.peerAuthLater': 'Vēlāk',
+  'connections.peerAuthScan': 'Skenēt frāzi',
   'connections.default': 'Noklusējuma instance',
   'connections.makeDefault': 'Iestatīt kā noklusējuma',
 
