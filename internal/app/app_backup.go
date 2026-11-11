@@ -16,6 +16,7 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -193,6 +194,46 @@ func (a *App) FortressExport(ctx context.Context, from kitfortress.Caller) (io.R
 	}
 	log.Printf("backup: handing a backup of %d bytes to %s on %s", n, from.App, from.Device)
 	return export, n, nil
+}
+
+// FortressImport takes a backup an app of the fortress hands back, for
+// fortress.Config.Import, the way an uploaded restore is taken: it is read to
+// the end before anything happens, so a stream that breaks on the way leaves
+// the instance as it was, then checked and staged for the next start.
+func (a *App) FortressImport(ctx context.Context, from kitfortress.Caller, r io.Reader, n int64) error {
+	if n > backup.MaxUploadBytes {
+		return &kitfortress.Refusal{Status: http.StatusRequestEntityTooLarge, Code: "too_large"}
+	}
+	data, err := io.ReadAll(io.LimitReader(r, backup.MaxUploadBytes+1))
+	if err != nil {
+		return err
+	}
+	if len(data) > backup.MaxUploadBytes {
+		return &kitfortress.Refusal{Status: http.StatusRequestEntityTooLarge, Code: "too_large"}
+	}
+	data, err = backup.Unseal(data, a.AppKey)
+	switch {
+	case errors.Is(err, backup.ErrNeedsKey):
+		return &kitfortress.Refusal{Status: http.StatusBadRequest, Code: "needs_app_key"}
+	case errors.Is(err, backup.ErrWrongKey):
+		return &kitfortress.Refusal{Status: http.StatusBadRequest, Code: "wrong_app_key"}
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if _, err := backup.Stage(a.DataDir, data, buildinfo.Version, a.AppKey); err != nil {
+		code := "invalid_backup"
+		if errors.Is(err, store.ErrNewerSchema) {
+			code = "newer_schema"
+		}
+		log.Printf("backup: refused the backup %s on %s handed back: %v", from.App, from.Device, err)
+		return &kitfortress.Refusal{Status: http.StatusBadRequest, Code: code}
+	}
+	log.Printf("backup: %s on %s handed back a backup of %d bytes, which applies at the next start", from.App, from.Device, len(data))
+	if a.RequestExit != nil {
+		a.RequestExit(true)
+	}
+	return nil
 }
 
 // stagedExport is a staged backup that takes its snapshot folder with it when
