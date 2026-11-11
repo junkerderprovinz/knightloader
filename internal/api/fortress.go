@@ -20,6 +20,7 @@ import (
 	"time"
 
 	kitfortress "github.com/junkerderprovinz/parleyport/kit/fortress"
+	"github.com/junkerderprovinz/parleyport/kit/fortressmcp"
 	"github.com/junkerderprovinz/parleyport/kit/group"
 	"github.com/junkerderprovinz/parleyport/kit/lan"
 	"github.com/junkerderprovinz/parleyport/kit/member"
@@ -224,7 +225,8 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 		Keeper:              fortressKeeper{a},
 		Pairing:             &kitfortress.Pairing{Group: pairing, Serve: memberHandler(a, serve)},
 		Status:              fortress.Source{Events: a.FortressLog, Read: a.FortressSnapshot},
-		Uses:                afterdownload.Uses,
+		Actions:             []kitfortress.Action{fortressToolsAction(a)},
+		Uses:                slices.Concat(afterdownload.Uses, []string{fortressmcp.ActAction}),
 		Export:              a.FortressExport,
 		Import:              a.FortressImport,
 		MaxAnswerBytes:      maxAnswer,

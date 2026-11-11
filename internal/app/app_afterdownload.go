@@ -17,7 +17,7 @@ import (
 // startMediaHooks does, with the same wait for the files to land.
 func (a *App) startAfterDownload() {
 	a.AfterDownload = afterdownload.New(afterdownload.Options{
-		Fortress: a.joinedFortress,
+		Fortress: a.Fortress,
 		Ready:    a.packageFilesLanded,
 	})
 	a.AfterDownload.Start()
@@ -40,9 +40,10 @@ func (a *App) SetFortress(f afterdownload.Fortress) {
 }
 
 // InFortress reports whether this instance is in a fortress.
-func (a *App) InFortress() bool { return a.joinedFortress() != nil }
+func (a *App) InFortress() bool { return a.Fortress() != nil }
 
-func (a *App) joinedFortress() afterdownload.Fortress {
+// Fortress is the fortress this instance is in, nil while it is in none.
+func (a *App) Fortress() afterdownload.Fortress {
 	a.joinedMu.Lock()
 	defer a.joinedMu.Unlock()
 	return a.joined
@@ -88,12 +89,12 @@ func (a *App) LastAfterDownload(categoryID string) (afterdownload.Result, bool) 
 // AfterDownloadEngines lists the ArrowLoop instances of the fortress with their
 // jobs, for the station's picker.
 func (a *App) AfterDownloadEngines(ctx context.Context) []afterdownload.Engine {
-	return afterdownload.Engines(ctx, a.joinedFortress())
+	return afterdownload.Engines(ctx, a.Fortress())
 }
 
 // AfterDownloadDestinations lists what ArrowLoop on member can copy to.
 func (a *App) AfterDownloadDestinations(ctx context.Context, member string) ([]afterdownload.Destination, error) {
-	return afterdownload.Destinations(ctx, a.joinedFortress(), member)
+	return afterdownload.Destinations(ctx, a.Fortress(), member)
 }
 
 // ErrNoFolder is a new job for a category without a folder of its own to
@@ -120,7 +121,7 @@ func (a *App) CreateAfterDownloadJob(ctx context.Context, category, member, name
 	if err != nil {
 		return "", err
 	}
-	return afterdownload.Create(ctx, a.joinedFortress(), member, afterdownload.CreateRequest{
+	return afterdownload.Create(ctx, a.Fortress(), member, afterdownload.CreateRequest{
 		Name: strings.TrimSpace(name), Source: filepath.ToSlash(source), Target: target, Mode: mode,
 	})
 }

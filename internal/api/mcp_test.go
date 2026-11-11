@@ -200,7 +200,8 @@ func TestTheOfficialClientListsAndCallsTheTools(t *testing.T) {
 	if err != nil {
 		t.Fatalf("tools/list: %v", err)
 	}
-	if want := len(mcpToolDefs(a)); len(tools.Tools) != want {
+	// The own tools and fortress_members, fortress_status and fortress_log.
+	if want := len(mcpToolDefs(a)) + 3; len(tools.Tools) != want {
 		t.Fatalf("the client sees %d tools, want %d", len(tools.Tools), want)
 	}
 	for _, tool := range tools.Tools {

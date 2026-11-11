@@ -58,6 +58,27 @@ only the JDownloader backend can open. Whatever an assistant reads goes to the
 AI provider behind it, so the answers never carry the passwords or credentials
 a link may hold, whatever the token's rights.
 
+## The fortress {#fortress}
+
+Once KnightLoader is in a fortress, one client set up here sees the other apps
+of your household as well:
+
+| Tool | What it does | Right |
+|---|---|---|
+| `fortress_members` | The other apps in the fortress, with their name, version, device and whether they are connected, but never an address | any |
+| `fortress_status` | How each connected app is doing: its state, what needs you, the work running and coming up | any |
+| `fortress_log` | The latest log entries of the other apps, newest first | any |
+
+Apps that offer their own tools to the fortress show up with them, named after
+the app, such as `bombvault_start_backup`. A call runs in that app, which checks
+it against its own limits, and only a client with the **control** right can make
+one. When more than one device runs that app, the call names the device.
+
+The other apps may in turn call `add_links`, `start_collector`,
+`pause_downloads`, `resume_downloads` and `set_queue` here. Each app has a
+switch for that under the fortress permissions (`mcp.act`), on until you turn
+it off.
+
 ## Clients in the cloud {#cloud}
 
 Grok and Le Chat call KnightLoader from their vendors' servers, so KnightLoader

@@ -198,10 +198,10 @@ func mcpToolDefs(a *app.App) []mcpToolDef {
 	}
 }
 
-// newMCPServer builds the one server every client talks to. The tool list is
+// newOwnMCPServer is the server of KnightLoader's own tools. The tool list is
 // the same for every token; a right is checked when a tool is called, so a
 // token's rights decide on the next call rather than on the next reconnect.
-func newMCPServer(a *app.App) *mcp.Server {
+func newOwnMCPServer(a *app.App) *mcp.Server {
 	srv := mcp.NewServer(&mcp.Implementation{
 		Name:    "knightloader",
 		Title:   "KnightLoader",
