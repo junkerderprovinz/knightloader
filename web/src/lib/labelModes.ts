@@ -4,6 +4,7 @@
 // sidebarPrefs.ts, because the sidebar renders outside the settings provider
 // tree and has to restyle the moment a selector changes.
 import { useSyncExternalStore } from 'react';
+import { labelModeChanged, setLabelMode as setGlimLabelMode, type LabelMode as GlimLabelMode } from '@glimstone/core';
 import type { Settings } from './api';
 
 /**
@@ -47,7 +48,14 @@ export function setLabelMode(axis: LabelAxis, next: LabelMode): void {
   if (modes[axis] === next) return;
   modes[axis] = next;
   for (const fn of listeners) fn();
+  if (axis === 'buttons') {
+    setGlimLabelMode('buttons', GLIM_MODE[next]);
+    labelModeChanged();
+  }
 }
+
+/** The same modes under GlimStone's names, for the buttons its own components draw. */
+const GLIM_MODE: Record<LabelMode, GlimLabelMode> = { text: 'text', both: 'textGlyph', glyph: 'glyph', hover: 'reactive' };
 
 /** seedLabelModes takes all four from the saved settings, at boot. */
 export function seedLabelModes(s: Pick<Settings, (typeof LABEL_SETTING)[LabelAxis]>): void {

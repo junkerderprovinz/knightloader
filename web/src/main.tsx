@@ -17,6 +17,14 @@ import { listenForPageHue } from './lib/pageHue';
 import { sendApiCallsUnderBase, settleUnderBase, withBase } from './lib/basePath';
 import { followWindowGround } from './lib/desktop';
 import { watchSystemAccent } from './lib/systemAccent';
+import { setStoragePrefix } from '@glimstone/core';
+import { setGlyphResolver } from '@glimstone/react/glyphs';
+import { glyphFor } from './lib/glyphFor';
+
+// GlimStone's own components keep their choices under kl- and pick their
+// glyphs from KnightLoader's set.
+setStoragePrefix('kl');
+setGlyphResolver(glyphFor);
 
 // Before anything fetches or routes.
 sendApiCallsUnderBase();
