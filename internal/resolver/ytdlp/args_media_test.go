@@ -276,7 +276,7 @@ func TestBuildArgsKeepsAVideoRowApart(t *testing.T) {
 	args := buildArgs("d", o)
 
 	f, _ := valueAfter(args, "-f")
-	tall, short := "[width<=1080][height>1080]", "[height<=?1080]"
+	tall, short := "[width<=1080][height>1080][height<=?2559]", "[height<=?1080][width<=?2559]"
 	want := "(bv" + tall + "/bv" + short + "/b" + tall + "/b" + short + "),(ba/b" + tall + "/b" + short + ")"
 	if f != want {
 		t.Errorf("-f = %q, want %q", f, want)

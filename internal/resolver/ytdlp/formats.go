@@ -268,8 +268,9 @@ func videoFormatOf(f FormatEntry) (videoFormat, bool) {
 	return videoFormat{res: f.Res(), fps: fps, videoContainer: c}, true
 }
 
-// filters match the track by its attributes, once for each way up it may
-// stand, since its key names a resolution and not the side it is measured on.
+// filters match the track by its attributes, once for each shape a track of
+// its resolution may have, since its key names a resolution and not the side
+// it is measured on.
 func (v videoFormat) filters() []string {
 	rest := v.videoContainer.filter()
 	if v.fps > 0 {
@@ -295,26 +296,51 @@ func (v videoFormat) choice() videoChoice {
 	return videoChoice{streamsFor(v.filters(), v.companionAudio())}
 }
 
-// atRes matches a track of resolution r either way up: a portrait track by its
-// width, any other by its height. A track that reports no width counts as
-// landscape, as it does for FormatEntry.Res.
+// atRes matches a track of resolution r (FormatEntry.Res) in each shape it may
+// have: a portrait track by its width, any other by its height, and, where r
+// is a step of the ladder, a track wider or taller than 16:9 whose longer side
+// fills that step's frame. A track that reports no width counts as landscape,
+// as it does for FormatEntry.Res.
 func atRes(r int) []string {
-	return []string{
-		fmt.Sprintf("[width=%d][height>%d]", r, r),
-		fmt.Sprintf("[height=%d][width>=?%d]", r, r),
+	out := []string{
+		fmt.Sprintf("[width=%d][height>%d]", r, r) + noLonger("height", r),
+		fmt.Sprintf("[height=%d][width>=?%d]", r, r) + noLonger("width", r),
 	}
+	if slices.Contains(ladder, r) {
+		w := frameWidth(r)
+		out = append(out,
+			fmt.Sprintf("[height<%d][width>=%d]", r, w)+noLonger("width", r),
+			fmt.Sprintf("[width<%d][height>=%d]", r, w)+noLonger("height", r))
+	}
+	return out
 }
 
-// underRes keeps the tracks whose resolution is at most r. yt-dlp filters by
+// underRes keeps the tracks whose resolution is at most r: the smaller side
+// at most r, the longer one short of the next step's frame. yt-dlp filters by
 // width or by height but not by the smaller of the two, so a portrait track
 // taller than r but no wider is asked for first; the height filter alone would
 // pass over it for a far smaller one. "<=?" keeps a track of unknown height in
 // the running, where "<=" would drop it.
 func underRes(r int) []string {
 	return []string{
-		fmt.Sprintf("[width<=%d][height>%d]", r, r),
-		fmt.Sprintf("[height<=?%d]", r),
+		fmt.Sprintf("[width<=%d][height>%d]", r, r) + noLonger("height", r),
+		fmt.Sprintf("[height<=?%d]", r) + noLonger("width", r),
 	}
+}
+
+// noLonger keeps the tracks whose side is no longer than that of a track of
+// resolution at most r. It is empty above the ladder, where any length is.
+func noLonger(side string, r int) string {
+	w := 0
+	for _, s := range ladder {
+		if s > r {
+			w = frameWidth(s) - 1
+		}
+	}
+	if w == 0 {
+		return ""
+	}
+	return fmt.Sprintf("[%s<=?%d]", side, w)
 }
 
 // streams is one step of a video row's format choice: video-only formats, the
@@ -600,9 +626,9 @@ func containerRank(c videoContainer) int {
 // ResolveVideoPick turns a preset's wish into the best track of its container
 // under its cap, or, when the source has no track in that container, into the
 // cap alone. A cap becomes the one of SourceQualities that downloads the same
-// track. A track's key that the source does not list may name a portrait track
-// by its height, and takes that track's key. Any other pick comes back as it
-// is.
+// track. A track's key that the source does not list may name a portrait or
+// wide track by its height, and takes that track's key. Any other pick comes
+// back as it is.
 func ResolveVideoPick(pick string, formats []FormatEntry) string {
 	if v, ok := parseVideoFormat(pick); ok {
 		if k, ok := v.byHeight(formats); ok {
@@ -850,8 +876,8 @@ func carriesBoth(f FormatEntry) bool { return f.Vcodec != "none" && f.Acodec != 
 // want accepts and whose resolution is at most capRes (0 for no cap). The
 // probe's default is first in that sort, so it wins wherever it is among
 // them: on YouTube a Premium track outranks a better codec of the same
-// height. Otherwise the highest resolution wins, then the frame rate, then
-// the codec yt-dlp prefers.
+// height. Otherwise the track whose smaller side is longer wins, as yt-dlp
+// ranks resolution, then the frame rate, then the codec yt-dlp prefers.
 func bestVideo(formats []FormatEntry, capRes int, want func(FormatEntry) bool) *FormatEntry {
 	var best *FormatEntry
 	for i, f := range formats {
@@ -869,7 +895,7 @@ func preferVideo(a, b FormatEntry) bool {
 	if a.Default != b.Default {
 		return a.Default
 	}
-	if ra, rb := a.Res(), b.Res(); ra != rb {
+	if ra, rb := a.shortSide(), b.shortSide(); ra != rb {
 		return ra > rb
 	}
 	if ra, rb := math.Round(a.FPS), math.Round(b.FPS); ra != rb {
@@ -1207,16 +1233,47 @@ func AudioFile(pick string, formats []FormatEntry) (ext string, size int64) {
 	return "", 0
 }
 
-// Res is the resolution a quality such as 1080p names, as yt-dlp's format
-// sort reads it: the smaller of width and height, so a portrait 1080x1920
-// track is 1080p like a landscape 1920x1080 one. A format that reports no
-// width is taken by its height.
+// Res is the resolution a quality such as 1080p names, as YouTube names its
+// tracks: the smaller of width and height, so a portrait 1080x1920 track is
+// 1080p like a landscape 1920x1080 one, but at least the step of the ladder
+// whose 16:9 frame the longer side fills, so the 1920x960 track of a 2:1
+// video is 1080p too. A format that reports no width is taken by its height.
 func (f FormatEntry) Res() int {
+	if f.Width <= 0 {
+		return f.Height
+	}
+	short, long := min(f.Width, f.Height), max(f.Width, f.Height)
+	for _, r := range ladder {
+		if frameWidth(r) <= long {
+			return max(short, r)
+		}
+	}
+	return short
+}
+
+// shortSide is the resolution yt-dlp's format sort ranks tracks by: the
+// smaller of width and height, the height where no width is reported.
+func (f FormatEntry) shortSide() int {
 	if f.Width > 0 && f.Width < f.Height {
 		return f.Width
 	}
 	return f.Height
 }
+
+// ladder holds the resolutions of the quality caps, highest first.
+var ladder = func() []int {
+	var out []int
+	for _, q := range Qualities() {
+		if r, ok := ResCap(q); ok {
+			out = append(out, r)
+		}
+	}
+	return out
+}()
+
+// frameWidth is the narrowest track that fills a 16:9 frame r lines tall,
+// one whose width at 16:9 rounds to r: 426 for 240p, 1920 for 1080p.
+func frameWidth(r int) int { return 16 * r / 9 }
 
 // Size is a format's best known byte count: exact when the host reports one,
 // an estimate otherwise (see ProbeTitle), 0 when neither is known.

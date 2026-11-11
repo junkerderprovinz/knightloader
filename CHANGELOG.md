@@ -103,6 +103,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Where YouTube offers a Premium track, 1080p and "Best" both fetch it, but
   1080p showed the smaller size of another track. Now the two match, in the
   list and in the video button's menu.
+- **A video wider than 16:9 names its qualities the way YouTube does,** so a
+  2:1 video offers its 1920x960 track as 1080p rather than 960p, and "Up to
+  1080p" on a 21:9 video no longer takes the 2560x1080 track that YouTube
+  calls 1440p.
 - **"Remove and delete files" takes the unpacked files along.** The archive
   went, but the folder it had been unpacked into stayed. Now what unpacking
   the download wrote goes too, also after a restart and where "Move the
