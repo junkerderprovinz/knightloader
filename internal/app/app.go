@@ -161,8 +161,8 @@ type App struct {
 	joinedMu sync.Mutex
 	joined   afterdownload.Fortress
 	// ToHost turns a folder this process sees into the path the host knows it
-	// by, for a job another container sets up on the same folder. Nil keeps
-	// the folder as it is, which is right outside a container.
+	// by, for a job another container sets up on the same folder. Nil reads
+	// this process's mount table (hostpath.ToHost).
 	ToHost func(dir string) (string, error)
 
 	// Playback asks the media servers what is playing and holds quiet mode

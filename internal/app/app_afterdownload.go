@@ -7,6 +7,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/junkerderprovinz/parleyport/kit/hostpath"
+
 	"github.com/junkerderprovinz/knightloader/internal/afterdownload"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 )
@@ -110,12 +112,13 @@ func (a *App) CreateAfterDownloadJob(ctx context.Context, category, member, name
 	if dir == "" || !filepath.IsAbs(dir) {
 		return "", ErrNoFolder
 	}
-	source := filepath.Clean(dir)
-	if a.ToHost != nil {
-		var err error
-		if source, err = a.ToHost(source); err != nil {
-			return "", err
-		}
+	toHost := a.ToHost
+	if toHost == nil {
+		toHost = hostpath.ToHost
+	}
+	source, err := toHost(filepath.Clean(dir))
+	if err != nil {
+		return "", err
 	}
 	return afterdownload.Create(ctx, a.joinedFortress(), member, afterdownload.CreateRequest{
 		Name: strings.TrimSpace(name), Source: filepath.ToSlash(source), Target: target, Mode: mode,
