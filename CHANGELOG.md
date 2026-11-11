@@ -38,8 +38,43 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Added
+
+- **KnightLoader joins a fortress.** Enter the fortress's twelve words on the
+  Pairing page, and KnightLoader joins your other apps there. The instances,
+  phones and browser extensions it is paired with come along, and one that
+  was away follows once it is back.
+- **Devices that did not come along are named.** The old pairing stays open
+  until everyone has followed, for 30 days at most. A device still missing
+  after that shows up on the Pairing page by name, so you can bring it in
+  with the fortress phrase or remove it.
+- **Every permission between apps has its own switch.** The Pairing page
+  shows what the other apps of your fortress may do at KnightLoader and what
+  KnightLoader may do at them, each with a switch of its own.
+- **You can show and change the fortress phrase, or leave the fortress.**
+  The words appear once you enter your password. A new phrase reaches every
+  app and instance in reach, and any it missed are named, so you know where
+  to type the new words.
+- **An ArrowLoop job can follow a download.** Pick a job per category under
+  After download, and KnightLoader starts it once a package has landed and
+  left the working folder. You can also set up a new ArrowLoop job for the
+  category's folder right there.
+- **A backup app in your fortress can keep your settings.** It fetches
+  KnightLoader's backup and can hand it back later, and KnightLoader puts it
+  in place at the next start, just like a restore you upload.
+- **Status for dashboards.** Homepage, Homarr and the like read how
+  KnightLoader is doing and what happened at `/api/fortress/v1/status` and
+  `/api/fortress/v1/log`, with an API token that has the status right. That
+  token opens nothing else.
+- **More kinds of event targets.** Add target on the Automation page offers
+  Slack, Gotify, ntfy, Matrix, e-mail and Apprise next to Discord and your
+  own webhook. Your targets come over as they are.
+
 ### Changed
 
+- **No network address on any page.** KnightLoader shows no address of an
+  instance any more. Every member reads Connected or Not reachable, in the
+  web interface, on the phone and in the browser extension.
 - **Pairing runs on the code your whole fortress shares.** The twelve words,
   the device keys, the relay, the search on your network and the list of who
   is in your group come from ParleyPort's kit, which the other apps of your
