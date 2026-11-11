@@ -143,49 +143,42 @@ func (a *App) SetHosterPreset(host string, p ytdlp.HosterPreset) error {
 	return err
 }
 
-// expandYtdlpVariants turns the task stage created into a full family: it
-// becomes the video row, and the other four variants are added as rows
-// regardless of the preset. A row whose kind the host's preset leaves out is
-// set aside and switched off rather than left out, so ticking the kind later
-// brings it back without pasting the link again. It runs once, right after
-// staging, so each sibling takes the folder, category, priority, comment and
-// unpacking switch the batch and the Packagizer gave the staged row. A choice
-// the batch arrived with stands in for the preset for this link alone.
-func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice) {
-	preset := a.HosterPresetFor(primary.Host)
+// familyRow is one row a yt-dlp link is staged as: its kind with its pick,
+// the audio row's bitrate and language, and whether it is in view.
+type familyRow struct {
+	kind    ytdlp.Variant
+	variant string
+	bitrate string
+	lang    string
+	on      bool
+}
+
+// key tells rows of one link apart by what they fetch.
+func (r familyRow) key() string { return r.variant + "\x00" + r.bitrate + "\x00" + r.lang }
+
+func rowKey(t *core.Task) string { return t.Variant + "\x00" + t.AudioBitrate + "\x00" + t.AudioLang }
+
+// familyRows lists the rows a link of host is staged as, video first, from
+// the host's preset or a choice the link arrived with.
+func (a *App) familyRows(host string, choice *ytdlp.LinkChoice) []familyRow {
+	preset := a.HosterPresetFor(host)
 	var own ytdlp.LinkChoice
 	if choice != nil {
 		preset = preset.ForChoice(*choice)
 		own = *choice
 	}
-	videoPick := preset.VideoPick()
-	if own.VideoTrack != "" {
-		videoPick = own.VideoTrack
-	}
-
-	a.mu.Lock()
-	live := a.tasks[primary.ID]
-	if live == nil {
-		a.mu.Unlock()
-		return
-	}
-	live.Variant = variantEncode(ytdlp.VariantVideo, videoPick)
-	if !preset.HasVariant(ytdlp.VariantVideo) {
-		live.VariantOff = true
-		live.Enabled = false
-	}
-	pc := a.copyLocked(live)
-	a.mu.Unlock()
-	a.publish(&pc)
-
+	rows := make([]familyRow, 0, len(ytdlp.Variants()))
 	for _, v := range ytdlp.Variants() {
-		if v == ytdlp.VariantVideo {
-			continue // the primary itself
-		}
-		sub, bitrate, lang := "", "", ""
+		r := familyRow{kind: v, on: preset.HasVariant(v)}
+		sub := ""
 		switch {
+		case v == ytdlp.VariantVideo:
+			sub = preset.VideoPick()
+			if own.VideoTrack != "" {
+				sub = own.VideoTrack
+			}
 		case v == ytdlp.VariantAudio:
-			sub, bitrate, lang = preset.AudioFormat, preset.AudioBitrate, own.AudioLang
+			sub, r.bitrate, r.lang = preset.AudioFormat, preset.AudioBitrate, own.AudioLang
 			if own.AudioTrack != "" {
 				sub = own.AudioTrack
 			}
@@ -194,6 +187,67 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice) 
 		case v == ytdlp.VariantThumbnail && choice != nil:
 			sub = thumbnailAsIs
 		}
+		r.variant = variantEncode(v, sub)
+		rows = append(rows, r)
+	}
+	return rows
+}
+
+// lackedPicks returns the rows the list has of u, by what they fetch, where
+// it lacks a row the choice puts in view, and nil where it has none of u or
+// every one. A row set aside fetches nothing.
+func (a *App) lackedPicks(u string, choice *ytdlp.LinkChoice) map[string]bool {
+	key := dedupeURL(u)
+	a.mu.Lock()
+	have := map[string]bool{}
+	for _, t := range a.tasks {
+		if t.Variant != "" && !t.VariantOff && dedupeURL(t.URL) == key {
+			have[rowKey(t)] = true
+		}
+	}
+	a.mu.Unlock()
+	if len(have) == 0 {
+		return nil
+	}
+	for _, r := range a.familyRows(torrentHost(u), choice) {
+		if r.on && !have[r.key()] {
+			return have
+		}
+	}
+	return nil
+}
+
+// expandYtdlpVariants turns the task stage created into a full family: it
+// becomes the video row, and the other four variants are added as rows
+// regardless of the preset. A row whose kind the host's preset leaves out is
+// set aside and switched off rather than left out, so ticking the kind later
+// brings it back without pasting the link again. It runs once, right after
+// staging, so each sibling takes the folder, category, priority, comment and
+// unpacking switch the batch and the Packagizer gave the staged row. A choice
+// the batch arrived with stands in for the preset for this link alone, and
+// the rows in have, which the list already fetches, are set aside too.
+func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice, have map[string]bool) {
+	rows := a.familyRows(primary.Host, choice)
+	video := rows[0]
+
+	a.mu.Lock()
+	live := a.tasks[primary.ID]
+	if live == nil {
+		a.mu.Unlock()
+		return
+	}
+	live.Variant = video.variant
+	if !video.on || have[video.key()] {
+		live.VariantOff = true
+		live.Enabled = false
+	}
+	pc := a.copyLocked(live)
+	a.mu.Unlock()
+	a.publish(&pc)
+
+	for _, r := range rows[1:] {
+		on := r.on && !have[r.key()]
+		_, sub := variantDecode(r.variant)
 		a.insertVariantSibling(&core.Task{
 			URL: pc.URL,
 			// pc.Name rather than the URL: a playlist entry is already named by
@@ -202,16 +256,16 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice) 
 			Name:         pc.Name,
 			Package:      pc.Package,
 			Status:       core.StatusCollected,
-			Enabled:      preset.HasVariant(v),
-			VariantOff:   !preset.HasVariant(v),
+			Enabled:      on,
+			VariantOff:   !on,
 			Source:       pc.Source,
 			Origin:       pc.Origin,
 			Host:         pc.Host,
 			Resolver:     pc.Resolver,
-			Variant:      variantEncode(v, sub),
-			AudioBitrate: bitrate,
-			AudioLang:    lang,
-			Ext:          fixedVariantExt(v, sub),
+			Variant:      r.variant,
+			AudioBitrate: r.bitrate,
+			AudioLang:    r.lang,
+			Ext:          fixedVariantExt(r.kind, sub),
 			CreatedAt:    pc.CreatedAt,
 			Dir:          pc.Dir,
 			Category:     pc.Category,
@@ -703,23 +757,29 @@ func (a *App) applyVariantPresets() {
 	a.publishTasks(touched)
 }
 
-// variantSiblingsLocked lists the collected rows that share a yt-dlp link with
-// a row in ids and are not in ids themselves. Caller holds a.mu.
+// variantSiblingsLocked lists the collected rows of the yt-dlp families of the
+// rows in ids that are not in ids themselves. A family is the rows one link
+// was staged as together, so a link sent again for another pick leaves the
+// rows it already had alone. Caller holds a.mu.
 func (a *App) variantSiblingsLocked(ids []string) []string {
+	type family struct {
+		url    string
+		staged int64
+	}
 	named := make(map[string]bool, len(ids))
-	urls := map[string]bool{}
+	families := map[family]bool{}
 	for _, id := range ids {
 		named[id] = true
 		if t := a.tasks[id]; t != nil && t.Variant != "" {
-			urls[t.URL] = true
+			families[family{t.URL, t.CreatedAt.UnixNano()}] = true
 		}
 	}
-	if len(urls) == 0 {
+	if len(families) == 0 {
 		return nil
 	}
 	var out []string
 	for id, t := range a.tasks {
-		if !named[id] && urls[t.URL] && t.Variant != "" && t.Status == core.StatusCollected {
+		if !named[id] && families[family{t.URL, t.CreatedAt.UnixNano()}] && t.Variant != "" && t.Status == core.StatusCollected {
 			out = append(out, id)
 		}
 	}

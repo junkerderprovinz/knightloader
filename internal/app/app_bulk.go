@@ -325,17 +325,18 @@ func (a *App) duplicatesLocked() []string {
 // duplicateKey identifies a download: by file name and size, which matches the
 // same file on two hosters, else by URL, else by id so it groups with nothing.
 //
-// The variant kind is part of both keys. The rows of one yt-dlp link share
+// What a yt-dlp row fetches is part of both keys. The rows of one link share
 // its URL and its name, and the rows whose size is not known yet would
 // otherwise all read as copies of one file, so confirming the link would hold
-// back all but one of them.
+// back all but one of them, and a second pick of a video sent to download
+// would be held back as a copy of the first.
 func duplicateKey(t *core.Task) string {
-	kind, _ := variantDecode(t.Variant)
+	fetches := rowKey(t)
 	if t.Name != "" && t.Name != t.URL && t.Size > 0 {
-		return fmt.Sprintf("file\x00%s\x00%s\x00%d", kind, strings.ToLower(t.Name), t.Size)
+		return fmt.Sprintf("file\x00%s\x00%s\x00%d", fetches, strings.ToLower(t.Name), t.Size)
 	}
 	if t.URL != "" {
-		return "url\x00" + string(kind) + "\x00" + strings.ToLower(t.URL)
+		return "url\x00" + fetches + "\x00" + strings.ToLower(t.URL)
 	}
 	return "id\x00" + t.ID
 }
