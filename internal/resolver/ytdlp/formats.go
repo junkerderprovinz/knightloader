@@ -847,8 +847,11 @@ func isVideoOnly(f FormatEntry) bool { return carries(f.Vcodec) && f.Acodec == "
 func carriesBoth(f FormatEntry) bool { return f.Vcodec != "none" && f.Acodec != "none" }
 
 // bestVideo is the video format yt-dlp's sort puts first among those that
-// want accepts and whose resolution is at most capRes (0 for no cap): the
-// highest resolution, then the highest frame rate, then the codec it prefers.
+// want accepts and whose resolution is at most capRes (0 for no cap). The
+// probe's default is first in that sort, so it wins wherever it is among
+// them: on YouTube a Premium track outranks a better codec of the same
+// height. Otherwise the highest resolution wins, then the frame rate, then
+// the codec yt-dlp prefers.
 func bestVideo(formats []FormatEntry, capRes int, want func(FormatEntry) bool) *FormatEntry {
 	var best *FormatEntry
 	for i, f := range formats {
@@ -863,6 +866,9 @@ func bestVideo(formats []FormatEntry, capRes int, want func(FormatEntry) bool) *
 }
 
 func preferVideo(a, b FormatEntry) bool {
+	if a.Default != b.Default {
+		return a.Default
+	}
 	if ra, rb := a.Res(), b.Res(); ra != rb {
 		return ra > rb
 	}

@@ -96,6 +96,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The video button's menu stays open while it checks the qualities.** It
   could close by itself after a few seconds when the player let go of its
   video for a moment.
+- **A YouTube video set to 1080p shows the size of what yt-dlp downloads.**
+  Where YouTube offers a Premium track, 1080p and "Best" both fetch it, but
+  1080p showed the smaller size of another track. Now the two match, in the
+  list and in the video button's menu.
 - **"Remove and delete files" takes the unpacked files along.** The archive
   went, but the folder it had been unpacked into stayed. Now what unpacking
   the download wrote goes too, also after a restart and where "Move the

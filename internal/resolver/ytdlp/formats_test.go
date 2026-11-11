@@ -457,6 +457,40 @@ func TestTheBestVideoIsWhatTheProbeSaidYtdlpPicks(t *testing.T) {
 	}
 }
 
+// premiumLike is a YouTube video at most 1080p tall as yt-dlp probed it. Its
+// default pick is the Premium vp9 track over HLS, which YouTube's sort ranks
+// above the av1 one of the same height.
+var premiumLike = []FormatEntry{
+	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129.508, Filesize: 2839891, Protocol: "https"},
+	{FormatID: "251", Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 123.729, Filesize: 2712484, Protocol: "https", Default: true},
+	{FormatID: "232", Ext: "mp4", Vcodec: "avc1.4D401F", Acodec: "none", Width: 1280, Height: 720, FPS: 25, FilesizeApprox: 34548543, Protocol: "m3u8_native"},
+	{FormatID: "136", Ext: "mp4", Vcodec: "avc1.4D401F", Acodec: "none", Width: 1280, Height: 720, FPS: 25, Filesize: 15556995, Protocol: "https"},
+	{FormatID: "609", Ext: "mp4", Vcodec: "vp09.00.31.08", Acodec: "none", Width: 1280, Height: 720, FPS: 25, FilesizeApprox: 33535928, Protocol: "m3u8_native"},
+	{FormatID: "247", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 1280, Height: 720, FPS: 25, Filesize: 15843026, Protocol: "https"},
+	{FormatID: "398", Ext: "mp4", Vcodec: "av01.0.05M.08", Acodec: "none", Width: 1280, Height: 720, FPS: 25, Filesize: 18879681, Protocol: "https"},
+	{FormatID: "270", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Width: 1920, Height: 1080, FPS: 25, FilesizeApprox: 102556365, Protocol: "m3u8_native"},
+	{FormatID: "137", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Width: 1920, Height: 1080, FPS: 25, Filesize: 43669578, Protocol: "https"},
+	{FormatID: "614", Ext: "mp4", Vcodec: "vp09.00.40.08", Acodec: "none", Width: 1920, Height: 1080, FPS: 25, FilesizeApprox: 51679271, Protocol: "m3u8_native"},
+	{FormatID: "248", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 1920, Height: 1080, FPS: 25, Filesize: 25512711, Protocol: "https"},
+	{FormatID: "399", Ext: "mp4", Vcodec: "av01.0.08M.08", Acodec: "none", Width: 1920, Height: 1080, FPS: 25, Filesize: 25562646, Protocol: "https"},
+	{FormatID: "616", Ext: "mp4", Vcodec: "vp09.00.40.08", Acodec: "none", Width: 1920, Height: 1080, FPS: 25, FilesizeApprox: 77491968, Protocol: "m3u8_native", Default: true},
+}
+
+// A cap that lets yt-dlp's default track through downloads that track, as
+// yt-dlp itself answers for these formats: 616+251 for 1080p and for best,
+// 398+251 for 720p.
+func TestACapDownloadsTheDefaultTrackWhereItFitsUnderIt(t *testing.T) {
+	for pick, want := range map[string]int64{
+		"best":  77491968 + 2712484,
+		"1080p": 77491968 + 2712484,
+		"720p":  18879681 + 2712484,
+	} {
+		if _, size := VideoFile(pick, premiumLike, Options{}); size != want {
+			t.Errorf("VideoFile(%q) weighs %d, want %d", pick, size, want)
+		}
+	}
+}
+
 // A custom format string goes to -f as it is, so the probe's default pair says
 // nothing about what downloads. Without a string, custom is best.
 func TestACustomFormatIsNotMeasuredAsTheDefaultPick(t *testing.T) {
