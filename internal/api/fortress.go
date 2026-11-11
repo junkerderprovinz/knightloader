@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -233,7 +234,7 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 	cfg := kitfortress.Config{
 		App:                 kitfortress.App{ID: appID, Name: "KnightLoader", Version: buildinfo.Version},
 		Secret:              secret,
-		Previous:            storedSecret(a.Accounts, federation.FortressPreviousAccount),
+		Previous:            fortressPrevious(a),
 		Identity:            *identity,
 		Self:                fortressSelf(a),
 		Relay:               mode,
@@ -343,6 +344,39 @@ func (p pairingStore) Save(b []byte) error {
 // then leaves opening the fortress again to the change.
 var changing sync.Map
 
+// previousKept is how long the phrase before a change still opens the
+// fortress, for the members that hold only its keys to follow the change.
+const previousKept = 30 * 24 * time.Hour
+
+// fortressPrevious is the secret before the last phrase change, nil once
+// previousKept has passed, when it is forgotten.
+func fortressPrevious(a *app.App) []byte {
+	previous := storedSecret(a.Accounts, federation.FortressPreviousAccount)
+	if previous == nil {
+		return nil
+	}
+	raw, _ := a.Accounts.Get(federation.FortressPreviousSinceAccount)
+	since, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		// Without a time the days start now, rather than the members that
+		// hold only keys losing the way to the new phrase.
+		if err := a.Accounts.Set(federation.FortressPreviousSinceAccount, strconv.FormatInt(time.Now().Unix(), 10)); err != nil {
+			log.Printf("fortress: keep when the phrase changed: %v", err)
+		}
+		return previous
+	}
+	if time.Since(time.Unix(since, 0)) < previousKept {
+		return previous
+	}
+	for _, account := range []string{federation.FortressPreviousAccount, federation.FortressPreviousSinceAccount} {
+		if err := a.Accounts.Set(account, ""); err != nil {
+			log.Printf("fortress: forget the phrase before the change: %v", err)
+		}
+	}
+	log.Printf("fortress: the phrase before the change opens nothing any more")
+	return nil
+}
+
 // fortressKeeper takes a fortress phrase: one a member of the old group hands
 // over as the group moves into a fortress, or a new one when the phrase
 // changes.
@@ -355,6 +389,9 @@ func (k fortressKeeper) Keep(secret []byte) error {
 	}
 	if current != nil {
 		if err := k.a.Accounts.Set(federation.FortressPreviousAccount, hex.EncodeToString(current)); err != nil {
+			return err
+		}
+		if err := k.a.Accounts.Set(federation.FortressPreviousSinceAccount, strconv.FormatInt(time.Now().Unix(), 10)); err != nil {
 			return err
 		}
 	}
@@ -404,7 +441,7 @@ func joinFortress(a *app.App, secret []byte) error {
 // ends with it, since it lived under the fortress phrase.
 func forgetFortress(a *app.App) error {
 	for _, account := range []string{
-		federation.FortressAccount, federation.FortressPreviousAccount,
+		federation.FortressAccount, federation.FortressPreviousAccount, federation.FortressPreviousSinceAccount,
 		federation.FortressGroupAccount, federation.FortressPairingAccount,
 	} {
 		if err := a.Accounts.Set(account, ""); err != nil {

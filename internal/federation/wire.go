@@ -39,6 +39,9 @@ const (
 	// FortressPreviousAccount holds the fortress secret before the phrase
 	// last changed, which members, removals and permissions carry over from.
 	FortressPreviousAccount = "fortress-previous"
+	// FortressPreviousSinceAccount holds when, in Unix seconds, the phrase
+	// changed away from FortressPreviousAccount.
+	FortressPreviousSinceAccount = "fortress-previous-since"
 	// FortressGroupAccount and FortressPairingAccount hold what kit/group
 	// keeps of the fortress and of the pairing in it.
 	FortressGroupAccount   = "fortress-group"
