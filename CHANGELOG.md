@@ -100,6 +100,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   "Sent" although nothing was added. Now it shows "Already there", and the
   instance's answer tells the two apart. A video that has finished
   downloading counts as there too, unless duplicates are set to be included.
+  This also holds once KnightLoader has matched the first pick to one of the
+  video's own tracks, which could start the same video a second time.
 - **The video button's menu stays open while it checks the qualities.** It
   could close by itself after a few seconds when the player let go of its
   video for a moment.

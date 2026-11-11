@@ -547,6 +547,10 @@ type Task struct {
 	// Variant is which form of the resource was picked, such as a yt-dlp
 	// format, so a re-run fetches the same one.
 	Variant string `json:"variant,omitempty"`
+	// PickSent is what a variant row was sent to fetch, before a probe turned
+	// its pick into one of the source's own tracks, so the same pick sent
+	// again is known as this row and not downloaded twice.
+	PickSent string `json:"pickSent,omitempty"`
 	// VariantOff sets aside a collected variant row whose kind its host's
 	// preset leaves out: kept, switched off and out of the collector's view,
 	// so ticking the kind again brings the row back with its own pick.

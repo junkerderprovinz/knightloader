@@ -228,6 +228,9 @@ func (a *App) lackedPicks(u string, choice *ytdlp.LinkChoice) map[string]bool {
 	for _, t := range a.tasks {
 		if t.Variant != "" && !t.VariantOff && dedupeURL(t.URL) == key {
 			have[rowKey(t)] = true
+			if t.PickSent != "" {
+				have[t.PickSent] = true
+			}
 		}
 	}
 	a.mu.Unlock()
@@ -262,6 +265,7 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice, 
 		return
 	}
 	live.Variant = video.variant
+	live.PickSent = video.key()
 	if !video.on || have[video.key()] {
 		live.VariantOff = true
 		live.Enabled = false
@@ -288,6 +292,7 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice, 
 			Host:         pc.Host,
 			Resolver:     pc.Resolver,
 			Variant:      r.variant,
+			PickSent:     r.key(),
 			AudioBitrate: r.bitrate,
 			AudioLang:    r.lang,
 			Ext:          fixedVariantExt(r.kind, sub),

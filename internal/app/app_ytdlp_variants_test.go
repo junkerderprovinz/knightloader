@@ -312,6 +312,59 @@ func TestAVideoSentToStartAgainIsAlreadyThere(t *testing.T) {
 	}
 }
 
+// A video sent to start again with the same pick is the same download, also
+// once the probe has turned the first row's pick into the source's own track.
+func TestAVideoSentAgainAfterItsPickWasResolvedIsAlreadyThere(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.AutoConfirm, s.OnDupes = false, "exclude" })
+	fake, probed := newFakeYtdlp()
+	fake.title = "Some Video"
+	wireYtdlp(a, fake)
+	a.SetHalted(true)
+	const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+	send := func(start bool) LinkBatch {
+		b, err := a.AddLinkBatch([]string{url}, "", OriginCnL, LinkBatchOptions{
+			Start: start, KeepCollected: !start,
+			Choice: &ytdlp.LinkChoice{Variants: []ytdlp.Variant{ytdlp.VariantVideo}, Quality: ytdlp.Quality360p},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return b
+	}
+	// Kept in the collector, where the probe resolves a row's pick, as it does
+	// when the probe answers before the start reaches the row.
+	first := send(false)
+	if len(first.Created) != 1 {
+		t.Fatalf("the first send created %d rows", len(first.Created))
+	}
+	id := first.Created[0].ID
+	asked := first.Created[0].Variant
+	<-probed
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		a.mu.Lock()
+		resolved := a.tasks[id].Variant != asked
+		a.mu.Unlock()
+		if resolved {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("the probe never resolved the row's pick %q", asked)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	setStatus(a, id, core.StatusRunning)
+	before := len(tasksSharingURL(a, url))
+
+	again := send(true)
+	if rows := tasksSharingURL(a, url); len(again.Created) != 0 || len(rows) != before {
+		t.Errorf("sent again, %d rows were created and %d share the link, want none and %d", len(again.Created), len(rows), before)
+	}
+	if len(again.Listed) != 1 || again.Listed[0].ID != id {
+		t.Errorf("sent again, the answer lists %d rows, want the first send's", len(again.Listed))
+	}
+}
+
 // A video sent again with a pick of its own that the list has no row for gets
 // a row for that pick, while the rows the list already has for it are not
 // fetched twice, and a row of the link still in the collector is left there.
