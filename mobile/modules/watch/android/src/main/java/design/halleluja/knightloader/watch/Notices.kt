@@ -29,6 +29,7 @@ data class OpenRequest(val open: String, val connection: String) {
 
 object Notices {
   const val WATCH_ID = 1
+  const val SERVE_ID = 2
 
   const val CHANNEL_CAPTCHA = "captcha"
   const val CHANNEL_FINISHED = "finished"
@@ -104,6 +105,19 @@ object Notices {
       .setOngoing(true)
       .setSilent(true)
       .setOnlyAlertOnce(true)
+      .setShowWhen(false)
+      .setCategory(NotificationCompat.CATEGORY_SERVICE)
+      .setPriority(NotificationCompat.PRIORITY_MIN)
+      .build()
+
+  /** The quiet notification Android requires while a player reads a file from the app. */
+  fun serving(context: Context, title: String, text: String): Notification =
+    NotificationCompat.Builder(context, CHANNEL_WATCH)
+      .setSmallIcon(R.drawable.knightloader_watch)
+      .setContentTitle(title)
+      .setContentText(text.ifEmpty { null })
+      .setOngoing(true)
+      .setSilent(true)
       .setShowWhen(false)
       .setCategory(NotificationCompat.CATEGORY_SERVICE)
       .setPriority(NotificationCompat.PRIORITY_MIN)

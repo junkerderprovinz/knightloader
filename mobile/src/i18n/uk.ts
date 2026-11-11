@@ -211,6 +211,7 @@ export const uk: Dict = {
   'task.remote': 'Завантажується в сервісі {service}',
   'task.play': 'Відтворити',
   'task.playFailed': 'Програвач не відкрився: {reason}',
+  'task.playing': 'Відтворюється у вашому програвачі',
   'task.enable': 'Увімкнути це посилання',
   'task.disable': 'Вимкнути це посилання',
   'settings.aboutTitle': 'Про KnightLoader',

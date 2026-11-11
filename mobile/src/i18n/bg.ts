@@ -211,6 +211,7 @@ export const bg: Dict = {
   'task.remote': 'Изтегля се при {service}',
   'task.play': 'Пусни',
   'task.playFailed': 'Плейърът не се отвори: {reason}',
+  'task.playing': 'Пуска се в твоя плейър',
   'task.enable': 'Включи тази връзка',
   'task.disable': 'Изключи тази връзка',
   'settings.aboutTitle': 'За KnightLoader',

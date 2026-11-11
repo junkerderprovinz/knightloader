@@ -211,6 +211,7 @@ export const ca: Dict = {
   'task.remote': 'Baixant a {service}',
   'task.play': 'Reprodueix',
   'task.playFailed': 'El reproductor no s’ha obert: {reason}',
+  'task.playing': "S'està reproduint al teu reproductor",
   'task.enable': 'Activa aquest enllaç',
   'task.disable': 'Desactiva aquest enllaç',
   'settings.aboutTitle': 'Quant a KnightLoader',

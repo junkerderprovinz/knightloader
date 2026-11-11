@@ -211,6 +211,7 @@ export const et: Dict = {
   'task.remote': 'Tuuakse teenuses {service}',
   'task.play': 'Esita',
   'task.playFailed': 'Mängija ei avanenud: {reason}',
+  'task.playing': 'Mängib sinu mängijas',
   'task.enable': 'Lülita see link sisse',
   'task.disable': 'Lülita see link välja',
   'settings.aboutTitle': 'Teave KnightLoaderi kohta',

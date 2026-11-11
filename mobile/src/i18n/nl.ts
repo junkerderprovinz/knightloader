@@ -211,6 +211,7 @@ export const nl: Dict = {
   'task.remote': 'Ophalen bij {service}',
   'task.play': 'Afspelen',
   'task.playFailed': 'De speler ging niet open: {reason}',
+  'task.playing': 'Speelt af in je speler',
   'task.enable': 'Deze link aanzetten',
   'task.disable': 'Deze link uitzetten',
   'settings.aboutTitle': 'Over KnightLoader',

@@ -211,6 +211,7 @@ export const eu: Dict = {
   'task.remote': '{service} zerbitzuan deskargatzen',
   'task.play': 'Erreproduzitu',
   'task.playFailed': 'Erreproduzitzailea ez da ireki: {reason}',
+  'task.playing': 'Zure erreproduzigailuan erreproduzitzen',
   'task.enable': 'Piztu esteka hau',
   'task.disable': 'Itzali esteka hau',
   'settings.aboutTitle': 'KnightLoader-i buruz',

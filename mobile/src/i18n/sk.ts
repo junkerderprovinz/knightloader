@@ -211,6 +211,7 @@ export const sk: Dict = {
   'task.remote': 'Sťahuje sa v službe {service}',
   'task.play': 'Prehrať',
   'task.playFailed': 'Prehrávač sa neotvoril: {reason}',
+  'task.playing': 'Prehráva sa v tvojom prehrávači',
   'task.enable': 'Zapnúť tento odkaz',
   'task.disable': 'Vypnúť tento odkaz',
   'settings.aboutTitle': 'O KnightLoaderi',

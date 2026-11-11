@@ -211,6 +211,7 @@ export const vi: Dict = {
   'task.remote': 'Đang lấy trên {service}',
   'task.play': 'Phát',
   'task.playFailed': 'Trình phát không mở được: {reason}',
+  'task.playing': 'Đang phát trong trình phát của bạn',
   'task.enable': 'Bật liên kết này',
   'task.disable': 'Tắt liên kết này',
   'settings.aboutTitle': 'Giới thiệu về KnightLoader',

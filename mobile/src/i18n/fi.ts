@@ -211,6 +211,7 @@ export const fi: Dict = {
   'task.remote': 'Haetaan palvelussa {service}',
   'task.play': 'Toista',
   'task.playFailed': 'Soitin ei avautunut: {reason}',
+  'task.playing': 'Toistetaan soittimessasi',
   'task.enable': 'Kytke tämä linkki päälle',
   'task.disable': 'Kytke tämä linkki pois',
   'settings.aboutTitle': 'Tietoja KnightLoaderista',

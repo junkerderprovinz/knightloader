@@ -210,6 +210,7 @@ export const zh: Dict = {
   'task.remote': '正在 {service} 上获取',
   'task.play': '播放',
   'task.playFailed': '播放器没有打开：{reason}',
+  'task.playing': '正在你的播放器中播放',
   'task.enable': '启用此链接',
   'task.disable': '停用此链接',
   'settings.aboutTitle': '关于 KnightLoader',

@@ -210,6 +210,7 @@ export const ja: Dict = {
   'task.remote': '{service} で取得中',
   'task.play': '再生',
   'task.playFailed': 'プレーヤーを開けませんでした: {reason}',
+  'task.playing': 'プレーヤーで再生中',
   'task.enable': 'このリンクを有効にする',
   'task.disable': 'このリンクを無効にする',
   'settings.aboutTitle': 'KnightLoader について',

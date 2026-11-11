@@ -211,6 +211,7 @@ export const ru: Dict = {
   'task.remote': 'Загружает {service}',
   'task.play': 'Воспроизвести',
   'task.playFailed': 'Плеер не открылся: {reason}',
+  'task.playing': 'Воспроизводится в вашем плеере',
   'task.enable': 'Включить эту ссылку',
   'task.disable': 'Выключить эту ссылку',
   'settings.aboutTitle': 'О KnightLoader',

@@ -5,33 +5,40 @@ import { mediaKind } from './media';
 import type { ServerConnection, Task } from './types';
 import { StreamBusy, directReader, type RangeReader } from '../play/direct';
 import { openLoopback } from '../play/loopback';
+import { KnightWatch } from '../../modules/watch';
 
 /**
  * playTask opens task's file in a player app. The player reads it from this
  * phone, on 127.0.0.1, and the phone fetches what it reads from the instance
  * through the group, so the player needs no address of the instance.
  */
-export async function playTask(conn: ServerConnection, task: Task, base = '/api'): Promise<void> {
+export async function playTask(conn: ServerConnection, task: Task, title: string, base = '/api'): Promise<void> {
   const playable = await fetchPlayable(conn, task.id, base);
   const relayed: RangeReader = (from, length) => fetchRange(conn, task.id, playable.file, from, length, base);
   // On the instance's own network the file comes as a stream, straight from
   // it. A piece the instance is too busy to stream goes through the relay, and
   // any other failure plays the rest through the relay.
   let direct = await directReader(conn, task.id, playable.file, base).catch(() => null);
-  const way = await openLoopback({
-    size: playable.size,
-    type: playable.type,
-    read: async (from, length) => {
-      if (direct) {
-        try {
-          return await direct(from, length);
-        } catch (e) {
-          if (!(e instanceof StreamBusy)) direct = null;
-        }
+  // Once the player is in front, Android freezes this app as cached, and the
+  // player would wait for bytes forever. A foreground service keeps it awake
+  // for as long as the player reads.
+  KnightWatch?.serve(title, task.name);
+  const read = async (from: number, length: number) => {
+    if (direct) {
+      try {
+        return await direct(from, length);
+      } catch (e) {
+        if (!(e instanceof StreamBusy)) direct = null;
       }
-      return relayed(from, length);
+    }
+    return relayed(from, length);
+  };
+  const way = await openLoopback({ size: playable.size, type: playable.type, read }, () => KnightWatch?.endServe()).catch(
+    (e: unknown) => {
+      KnightWatch?.endServe();
+      throw e;
     },
-  });
+  );
   try {
     await openInPlayer(way.url, mediaKind(task) ?? 'video');
   } catch (e) {

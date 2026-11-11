@@ -211,6 +211,7 @@ export const is: Dict = {
   'task.remote': 'Sækir hjá {service}',
   'task.play': 'Spila',
   'task.playFailed': 'Spilarinn opnaðist ekki: {reason}',
+  'task.playing': 'Spilast í spilaranum þínum',
   'task.enable': 'Kveikja á þessum tengli',
   'task.disable': 'Slökkva á þessum tengli',
   'settings.aboutTitle': 'Um KnightLoader',

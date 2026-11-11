@@ -211,6 +211,7 @@ export const lt: Dict = {
   'task.remote': 'Parsiunčia {service}',
   'task.play': 'Leisti',
   'task.playFailed': 'Grotuvas neatsidarė: {reason}',
+  'task.playing': 'Leidžiama tavo grotuve',
   'task.enable': 'Įjungti šią nuorodą',
   'task.disable': 'Išjungti šią nuorodą',
   'settings.aboutTitle': 'Apie KnightLoader',

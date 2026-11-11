@@ -154,7 +154,11 @@ player never needs the instance's address. Each range it asks for, a seek
 included, is fetched from the instance through the group with
 `GET /api/tasks/{id}/range`, in pieces of 2 MiB with the next one already on
 its way. The server closes once no player has been connected for two minutes,
-or when the app comes back to the front with none connected.
+or when the app comes back to the front with none connected. While it is open,
+a foreground service (`ServeService` in `modules/watch`) with a quiet
+notification keeps the app running: once the player is in front, Android
+counts the app as cached and freezes it, and the player would wait for bytes
+that never come.
 
 On the instance's own network a piece comes as a stream of the kit, straight
 from the instance (`src/play/direct.ts`, `src/play/directStream.ts`). The

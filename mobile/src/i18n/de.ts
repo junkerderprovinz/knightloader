@@ -334,6 +334,7 @@ export const de: Dict = {
   'failure.unknown.next': 'Versuch es noch einmal. Passiert es wieder, meld es zusammen mit dem, was das Backend gesagt hat.',
   'task.play': 'Abspielen',
   'task.playFailed': 'Der Player ließ sich nicht öffnen: {reason}',
+  'task.playing': 'Läuft in deinem Player',
   'task.enable': 'Diesen Link aktivieren',
   'task.disable': 'Diesen Link deaktivieren',
   'settings.aboutTitle': 'Über KnightLoader',

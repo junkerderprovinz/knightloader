@@ -211,6 +211,7 @@ export const no: Dict = {
   'task.remote': 'Henter hos {service}',
   'task.play': 'Spill av',
   'task.playFailed': 'Avspilleren åpnet seg ikke: {reason}',
+  'task.playing': 'Spilles av i spilleren din',
   'task.enable': 'Slå på denne lenka',
   'task.disable': 'Slå av denne lenka',
   'settings.aboutTitle': 'Om KnightLoader',

@@ -211,6 +211,7 @@ export const ro: Dict = {
   'task.remote': 'Se descarcă la {service}',
   'task.play': 'Redă',
   'task.playFailed': 'Playerul nu s-a deschis: {reason}',
+  'task.playing': 'Se redă în playerul tău',
   'task.enable': 'Activează acest link',
   'task.disable': 'Dezactivează acest link',
   'settings.aboutTitle': 'Despre KnightLoader',

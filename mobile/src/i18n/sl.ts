@@ -211,6 +211,7 @@ export const sl: Dict = {
   'task.remote': 'Prenaša se v storitvi {service}',
   'task.play': 'Predvajaj',
   'task.playFailed': 'Predvajalnik se ni odprl: {reason}',
+  'task.playing': 'Predvaja se v tvojem predvajalniku',
   'task.enable': 'Vklopi to povezavo',
   'task.disable': 'Izklopi to povezavo',
   'settings.aboutTitle': 'O KnightLoaderju',

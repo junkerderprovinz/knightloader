@@ -211,6 +211,7 @@ export const fa: Dict = {
   'task.remote': 'در حال دانلود در {service}',
   'task.play': 'پخش',
   'task.playFailed': 'پخش‌کننده باز نشد: {reason}',
+  'task.playing': 'در حال پخش در پخش‌کنندهٔ شما',
   'task.enable': 'روشن کردن این پیوند',
   'task.disable': 'خاموش کردن این پیوند',
   'settings.aboutTitle': 'درباره KnightLoader',

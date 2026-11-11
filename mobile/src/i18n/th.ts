@@ -211,6 +211,7 @@ export const th: Dict = {
   'task.remote': 'กำลังดึงที่ {service}',
   'task.play': 'เล่น',
   'task.playFailed': 'เปิดเครื่องเล่นไม่ได้: {reason}',
+  'task.playing': 'กำลังเล่นในเครื่องเล่นของคุณ',
   'task.enable': 'เปิดใช้ลิงก์นี้',
   'task.disable': 'ปิดใช้ลิงก์นี้',
   'settings.aboutTitle': 'เกี่ยวกับ KnightLoader',

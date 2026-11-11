@@ -211,6 +211,7 @@ export const ar: Dict = {
   'task.remote': 'قيد التنزيل لدى {service}',
   'task.play': 'تشغيل',
   'task.playFailed': 'لم يُفتح المشغّل: {reason}',
+  'task.playing': 'يُشغَّل في مشغّلك',
   'task.enable': 'تفعيل هذا الرابط',
   'task.disable': 'تعطيل هذا الرابط',
   'settings.aboutTitle': 'حول KnightLoader',

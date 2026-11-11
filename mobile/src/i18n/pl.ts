@@ -211,6 +211,7 @@ export const pl: Dict = {
   'task.remote': 'Pobieranie w usłudze {service}',
   'task.play': 'Odtwórz',
   'task.playFailed': 'Odtwarzacz się nie otworzył: {reason}',
+  'task.playing': 'Odtwarzanie w twoim odtwarzaczu',
   'task.enable': 'Włącz ten link',
   'task.disable': 'Wyłącz ten link',
   'settings.aboutTitle': 'O KnightLoaderze',

@@ -211,6 +211,7 @@ export const fr: Dict = {
   'task.remote': 'Récupération chez {service}',
   'task.play': 'Lire',
   'task.playFailed': 'Le lecteur ne s’est pas ouvert : {reason}',
+  'task.playing': 'Lecture dans votre lecteur',
   'task.enable': 'Activer ce lien',
   'task.disable': 'Désactiver ce lien',
   'settings.aboutTitle': 'À propos de KnightLoader',

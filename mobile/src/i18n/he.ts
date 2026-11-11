@@ -211,6 +211,7 @@ export const he: Dict = {
   'task.remote': 'בהורדה ב-{service}',
   'task.play': 'הפעלה',
   'task.playFailed': 'הנגן לא נפתח: {reason}',
+  'task.playing': 'מתנגן בנגן שלכם',
   'task.enable': 'הפעלת הקישור',
   'task.disable': 'כיבוי הקישור',
   'settings.aboutTitle': 'על KnightLoader',

@@ -335,6 +335,7 @@ export const en = {
   'failure.unknown.next': 'Try again. If it keeps happening, report it together with what the backend said.',
   'task.play': 'Play',
   'task.playFailed': 'The player did not open: {reason}',
+  'task.playing': 'Playing in your player',
   'task.enable': 'Enable this link',
   'task.disable': 'Disable this link',
   'settings.aboutTitle': 'About KnightLoader',

@@ -211,6 +211,7 @@ export const hr: Dict = {
   'task.remote': 'Preuzima se kod usluge {service}',
   'task.play': 'Reproduciraj',
   'task.playFailed': 'Player se nije otvorio: {reason}',
+  'task.playing': 'Reproducira se u tvom playeru',
   'task.enable': 'Uključi ovu poveznicu',
   'task.disable': 'Isključi ovu poveznicu',
   'settings.aboutTitle': 'O KnightLoaderu',

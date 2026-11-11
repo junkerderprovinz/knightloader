@@ -211,6 +211,7 @@ export const el: Dict = {
   'task.remote': 'Λήψη στο {service}',
   'task.play': 'Αναπαραγωγή',
   'task.playFailed': 'Η εφαρμογή αναπαραγωγής δεν άνοιξε: {reason}',
+  'task.playing': 'Αναπαράγεται στο πρόγραμμα αναπαραγωγής σου',
   'task.enable': 'Ενεργοποίηση αυτού του συνδέσμου',
   'task.disable': 'Απενεργοποίηση αυτού του συνδέσμου',
   'settings.aboutTitle': 'Σχετικά με το KnightLoader',

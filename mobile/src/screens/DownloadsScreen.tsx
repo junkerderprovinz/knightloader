@@ -409,7 +409,7 @@ export default function DownloadsScreen({
         onPlay={async (task) => {
           setStartError('');
           try {
-            await playTask(conn, task, base);
+            await playTask(conn, task, t('task.playing'), base);
           } catch (e) {
             setStartError(t('task.playFailed', { reason: errorText(t, e) }));
           }

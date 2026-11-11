@@ -20,6 +20,18 @@
         android:value="Keeps a connection to the user's own self-hosted KnightLoader servers to notify about captchas that need an answer and downloads that finished or failed. The servers are reached directly or through a relay, with no push service in between. By default it runs all the time and looks once a minute while nothing is downloading; with the Stay connected setting off it runs only while a server is busy. The user switches either off in the app's settings." />
     </service>
 
+    <!-- specialUse too: while a media player app reads a file from the app on
+         127.0.0.1, the app has to stay out of the cached state Android freezes
+         apps in. It ends when the player is done. -->
+    <service
+      android:name=".ServeService"
+      android:exported="false"
+      android:foregroundServiceType="specialUse">
+      <property
+        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        android:value="Serves a file from the user's own self-hosted KnightLoader server to a media player app on the same phone, through a local address only that player is given. It runs only while the player is connected and stops within two minutes after the player is closed." />
+    </service>
+
     <receiver android:name=".WatchTick" android:exported="false" />
 
     <receiver android:name=".WatchBoot" android:exported="true">

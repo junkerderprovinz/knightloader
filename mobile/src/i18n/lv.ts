@@ -211,6 +211,7 @@ export const lv: Dict = {
   'task.remote': 'Ielādē pie {service}',
   'task.play': 'Atskaņot',
   'task.playFailed': 'Atskaņotājs neatvērās: {reason}',
+  'task.playing': 'Atskaņo tavā atskaņotājā',
   'task.enable': 'Ieslēgt šo saiti',
   'task.disable': 'Izslēgt šo saiti',
   'settings.aboutTitle': 'Par KnightLoader',

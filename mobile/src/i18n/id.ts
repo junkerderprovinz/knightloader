@@ -211,6 +211,7 @@ export const id: Dict = {
   'task.remote': 'Mengambil di {service}',
   'task.play': 'Putar',
   'task.playFailed': 'Pemutar tidak terbuka: {reason}',
+  'task.playing': 'Diputar di pemutarmu',
   'task.enable': 'Aktifkan tautan ini',
   'task.disable': 'Nonaktifkan tautan ini',
   'settings.aboutTitle': 'Tentang KnightLoader',

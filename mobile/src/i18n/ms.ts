@@ -211,6 +211,7 @@ export const ms: Dict = {
   'task.remote': 'Mengambil di {service}',
   'task.play': 'Main',
   'task.playFailed': 'Pemain tidak dibuka: {reason}',
+  'task.playing': 'Dimainkan dalam pemain anda',
   'task.enable': 'Hidupkan pautan ini',
   'task.disable': 'Matikan pautan ini',
   'settings.aboutTitle': 'Perihal KnightLoader',

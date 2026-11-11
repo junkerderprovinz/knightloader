@@ -211,6 +211,7 @@ export const hi: Dict = {
   'task.remote': '{service} पर लाया जा रहा है',
   'task.play': 'चलाएँ',
   'task.playFailed': 'प्लेयर नहीं खुला: {reason}',
+  'task.playing': 'आपके प्लेयर में चल रहा है',
   'task.enable': 'यह लिंक चालू करें',
   'task.disable': 'यह लिंक बंद करें',
   'settings.aboutTitle': 'KnightLoader के बारे में',

@@ -211,6 +211,7 @@ export const tr: Dict = {
   'task.remote': '{service} indiriyor',
   'task.play': 'Oynat',
   'task.playFailed': 'Oynatıcı açılmadı: {reason}',
+  'task.playing': 'Oynatıcında oynatılıyor',
   'task.enable': 'Bu bağlantıyı etkinleştir',
   'task.disable': 'Bu bağlantıyı devre dışı bırak',
   'settings.aboutTitle': 'KnightLoader hakkında',

@@ -43,7 +43,7 @@ type Socket = ReturnType<typeof TcpSocket.createConnection>;
  * no player has been connected for a while, and when the app comes back to
  * the front with none connected, since the player is then done.
  */
-export function openLoopback(source: PlaySource): Promise<Loopback> {
+export function openLoopback(source: PlaySource, onClose?: () => void): Promise<Loopback> {
   const path = '/' + Array.from(getRandomBytes(16), (b) => b.toString(16).padStart(2, '0')).join('');
   const sockets = new Set<Socket>();
   let idle: ReturnType<typeof setTimeout> | null = null;
@@ -68,6 +68,7 @@ export function openLoopback(source: PlaySource): Promise<Loopback> {
     front.remove();
     for (const s of sockets) s.destroy();
     server.close();
+    onClose?.();
   };
   const waitForNext = () => {
     if (idle) clearTimeout(idle);

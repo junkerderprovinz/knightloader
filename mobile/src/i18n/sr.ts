@@ -211,6 +211,7 @@ export const sr: Dict = {
   'task.remote': 'Преузима се код услуге {service}',
   'task.play': 'Пусти',
   'task.playFailed': 'Плејер се није отворио: {reason}',
+  'task.playing': 'Пушта се у твом плејеру',
   'task.enable': 'Укључи ову везу',
   'task.disable': 'Искључи ову везу',
   'settings.aboutTitle': 'О KnightLoader-у',
