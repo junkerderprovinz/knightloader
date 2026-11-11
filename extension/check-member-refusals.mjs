@@ -34,6 +34,11 @@ const UNREACHABLE = {
   streamBusy: 'the browser asks for no stream',
   streamDirectOnly: 'the browser asks for no stream',
   streamLength: 'the browser asks for no stream',
+  // Uploads go from one instance to another, a backup handed back.
+  noUploads: 'the browser uploads nothing',
+  uploadBusy: 'the browser uploads nothing',
+  uploadDirectOnly: 'the browser uploads nothing',
+  uploadFromInstance: 'the browser uploads nothing',
 };
 
 const wire = read('..', 'internal', 'federation', 'wire_test.go');

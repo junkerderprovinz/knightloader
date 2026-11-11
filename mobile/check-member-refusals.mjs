@@ -32,6 +32,11 @@ const UNREACHABLE = {
   streamBusy: 'a refused stream plays through the relay',
   streamDirectOnly: 'a refused stream plays through the relay',
   streamLength: 'a refused stream plays through the relay',
+  // Uploads go from one instance to another, a backup handed back.
+  noUploads: 'the app uploads nothing',
+  uploadBusy: 'the app uploads nothing',
+  uploadDirectOnly: 'the app uploads nothing',
+  uploadFromInstance: 'the app uploads nothing',
 };
 
 const wire = read('..', 'internal', 'federation', 'wire_test.go');

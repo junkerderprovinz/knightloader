@@ -295,9 +295,13 @@ var kitRefusals = []string{
 	"memberUnnamed",
 	"memberUnsigned",
 	"noStreams",
+	"noUploads",
 	"streamBusy",
 	"streamDirectOnly",
 	"streamLength",
+	"uploadBusy",
+	"uploadDirectOnly",
+	"uploadFromInstance",
 }
 
 func TestTheKitRefusesWithTheListedCodes(t *testing.T) {
