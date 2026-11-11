@@ -130,7 +130,7 @@ function videoOffer(answer) {
   if (!Array.isArray(answer?.videoTracks)) {
     return {
       known: false, qualities, audio: answer ? answer.audio === true : true, videoTracks: [], audioTracks: [], audioLangs: [],
-      subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true,
+      subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true, videoSizes: {}, audioSizes: {},
     };
   }
   const th = answer.thumbnail;
@@ -149,7 +149,31 @@ function videoOffer(answer) {
     subtitleFormats: list(answer.subtitleFormats, VIDEO_TOKEN),
     thumbnail: videoIs(VIDEO_TOKEN, th?.ext) ? { width: size(th.width), height: size(th.height), ext: th.ext } : null,
     description: answer.description === true,
+    videoSizes: videoSizes(answer.videoSizes, (k) => k === 'best' || VIDEO_CAPS.includes(k) || videoIs(VIDEO_TRACK, k)),
+    audioSizes: videoSizes(answer.audioSizes, (k) => videoIs(VIDEO_TOKEN, k) || videoIs(AUDIO_TRACK, k)),
   };
+}
+
+/** The bytes the instance says each pick downloads, of the picks a row
+ *  can make. */
+function videoSizes(raw, pick) {
+  const all = raw && typeof raw === 'object' ? Object.entries(raw) : [];
+  return Object.fromEntries(all.filter(([k, n]) => pick(k) && Number.isInteger(n) && n > 0));
+}
+
+/** The bytes a pick from the menu downloads of a part, video or audio, or
+ *  undefined where the instance does not know. */
+function videoPickSize(sel, offer, part) {
+  const exact = videoExact(sel, offer);
+  return part === 'video' ? offer.videoSizes?.[exact.videoTrack ?? exact.quality] : offer.audioSizes?.[exact.audioTrack ?? exact.audio];
+}
+
+/** A size in bytes as the menu shows it, in megabytes or from a thousand on
+ *  in gigabytes, with a decimal below ten. */
+function videoSize(bytes, lang) {
+  const mb = Math.max(bytes / 1e6, 0.1);
+  const [n, unit] = mb >= 1000 ? [mb / 1000, 'gigabyte'] : [mb, 'megabyte'];
+  return new Intl.NumberFormat(lang, { style: 'unit', unit, unitDisplay: 'short', maximumFractionDigits: n < 10 ? 1 : 0 }).format(n);
 }
 
 /** Whether a video offers a part. One the instance could not say about

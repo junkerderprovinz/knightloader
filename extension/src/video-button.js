@@ -138,6 +138,11 @@
     .menu .chips button[role]::after { content: none; }
     .menu .chips button:hover, .menu .chips button:focus-visible { color: var(--text); }
     .menu .chips button[aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
+    /* The size a pick downloads sits small under its name, so a row of
+       qualities stays as narrow as without it. */
+    .menu .chips.sized button { flex-direction: column; gap: 0; height: auto; min-height: 36px; padding: 3px 9px; line-height: 1.2; }
+    .menu .chips .size { font-size: 11px; font-weight: 400; color: var(--sub); opacity: .85; }
+    .menu .chips button[aria-checked="true"] .size { color: inherit; }
     .menu .chips button:disabled { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--sub); opacity: .5; cursor: default; }
     /* Download and hide stay in view at the bottom whatever scrolls above. */
     .menu .foot {
@@ -537,7 +542,7 @@
 
   /** A row of choices, of which one is picked, or with `several` any number.
    *  A choice `off` rules out stays in the row but takes no click. */
-  function chips(values, { isOn, name, onPick, several = false, off = () => false }) {
+  function chips(values, { isOn, name, onPick, several = false, off = () => false, bytes = () => undefined }) {
     const row = document.createElement('div');
     row.className = 'chips';
     row.setAttribute('role', 'group');
@@ -545,6 +550,15 @@
       const item = checkItem(name(v), isOn(v), () => onPick(v));
       if (!several) item.setAttribute('role', 'menuitemradio');
       if (off(v)) item.disabled = true;
+      const n = bytes(v);
+      if (n) {
+        const size = document.createElement('span');
+        size.className = 'size';
+        size.textContent = videoSize(n, labels.lang);
+        item.setAttribute('aria-label', `${name(v)}, ${size.textContent}`);
+        item.append(size);
+        row.classList.add('sized');
+      }
       row.append(item);
     }
     return row;
@@ -649,7 +663,15 @@
             if (!videoTrackOffered(offer, q, pick.videoFormat)) pick.videoFormat = 'best';
           });
         rows.push(
-          [labels.quality, chips(['best', ...qualities], { isOn: (q) => q === pick.quality, name: best((q) => videoQualityName(q, qualities)), onPick: quality })],
+          [
+            labels.quality,
+            chips(['best', ...qualities], {
+              isOn: (q) => q === pick.quality,
+              name: best((q) => videoQualityName(q, qualities)),
+              onPick: quality,
+              bytes: (q) => videoPickSize({ ...pick, quality: q, videoFormat: videoTrackOffered(offer, q, pick.videoFormat) ? pick.videoFormat : 'best' }, offer, 'video'),
+            }),
+          ],
           [
             labels.format,
             chips(['best', ...formats], {
@@ -671,7 +693,15 @@
               if (!audioTrackOffered(offer, r, pick.audio)) pick.audio = 'best';
             });
           rows.push(
-            [labels.quality, chips(['best', ...rates], { isOn: (r) => r === pick.audioRate, name: best((r) => r), onPick: rate })],
+            [
+              labels.quality,
+              chips(['best', ...rates], {
+                isOn: (r) => r === pick.audioRate,
+                name: best((r) => r),
+                onPick: rate,
+                bytes: (r) => videoPickSize({ ...pick, audioRate: r, audio: audioTrackOffered(offer, r, pick.audio) ? pick.audio : 'best' }, offer, 'audio'),
+              }),
+            ],
             [
               labels.format,
               chips(['best', ...codecs], {

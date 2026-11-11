@@ -300,6 +300,38 @@ function loadBackground(chrome) {
     if ('videoFormat' in got || 'audioRate' in got) fail(`the send carries the menu's own words: ${JSON.stringify(got)}`);
   }
 
+  // Each quality and bitrate says how large the pick it makes downloads,
+  // with the format picked beside it, and nothing where the host gave no
+  // size.
+  ctx.sized = run(`videoOffer(${JSON.stringify({
+    qualities: ['2160p', '1080p', '720p'], audio: true,
+    videoTracks: ['2160p webm vp9', '1080p60 mp4 avc1', '1080p mp4 avc1', '1080p webm vp9', '720p60 mp4 avc1'],
+    audioTracks: ['aac 130k', 'opus 124k', 'aac 49k'], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true,
+    videoSizes: { best: 900000000, '2160p': 900000000, '1080p mp4 avc1': 412000000, '1080p webm vp9': 380000000, '720p': 90000000, 'rm -rf': 1, '1080p60 mp4 avc1': -5, '2160p webm vp9': 'big' },
+    audioSizes: { best: 3400000, 'aac 49k': 1200000, opus: 3000000, 'x y z': 2 },
+  })})`);
+  if (!same(Object.keys(run('sized.videoSizes')), ['best', '2160p', '1080p mp4 avc1', '1080p webm vp9', '720p']) || !same(Object.keys(run('sized.audioSizes')), ['best', 'aac 49k', 'opus'])) {
+    fail(`the offer keeps the sizes ${JSON.stringify(run('sized.videoSizes'))} and ${JSON.stringify(run('sized.audioSizes'))}, want those of picks the instance knows, in bytes`);
+  }
+  const sizeOf = (sel, part) => vm.runInContext(`videoPickSize({ ...videoResolve(videoPick({ parts: ['video', 'audio'] }), sized), ...${JSON.stringify(sel)} }, sized, '${part}')`, ctx);
+  for (const [sel, part, want] of [
+    [{}, 'video', 900000000],
+    [{ quality: '1080p' }, 'video', 412000000],
+    [{ quality: '1080p', videoFormat: 'webm vp9' }, 'video', 380000000],
+    [{ quality: '720p60' }, 'video', 90000000],
+    [{ quality: '1080p60' }, 'video', undefined],
+    [{}, 'audio', 3400000],
+    [{ audioRate: '49k' }, 'audio', 1200000],
+    [{ audio: 'opus' }, 'audio', 3000000],
+    [{ audioRate: '130k' }, 'audio', undefined],
+  ]) {
+    if (sizeOf(sel, part) !== want) fail(`the ${part} pick ${JSON.stringify(sel)} says ${sizeOf(sel, part)} bytes, want ${want}`);
+  }
+  for (const [bytes, lang, want] of [[412000000, 'en', '412 MB'], [3400000, 'en', '3.4 MB'], [1234000000, 'de', '1,2 GB'], [20000, 'en', '0.1 MB']]) {
+    const got = run(`videoSize(${bytes}, '${lang}')`).replace(/ /g, ' ');
+    if (got !== want) fail(`${bytes} bytes read ${got} in ${lang}, want ${want}`);
+  }
+
   // The defaults start the menu as they are: Best stays Best, a quality the
   // video lacks becomes the nearest below it, a format the video lacks at
   // that quality falls back to Best, and a bitrate to the nearest one.
@@ -424,8 +456,9 @@ function loadBackground(chrome) {
   }
   if (menu.qualities?.join() !== '720p,480p' || menu.audio !== true || menu.known) fail(`an older instance's answer offers ${JSON.stringify(menu)}, want its two resolutions and nothing ruled out`);
   if (store.data.videoSeen) fail('an answer that rules nothing out is kept for the site');
-  answer = { status: 200, body: JSON.stringify({ qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p mp4 avc1'], audioTracks: ['opus 160k'], audioLangs: [], subtitles: ['de'], autoCaptions: [], subtitleFormats: ['vtt'], thumbnail: null, description: true }) };
+  answer = { status: 200, body: JSON.stringify({ qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p mp4 avc1'], audioTracks: ['opus 160k'], audioLangs: [], subtitles: ['de'], autoCaptions: [], subtitleFormats: ['vtt'], thumbnail: null, description: true, videoSizes: { '1080p mp4 avc1': 5000000 }, audioSizes: {} }) };
   menu = await videoFormats(embed, { href: embed });
+  if (menu.videoSizes?.['1080p mp4 avc1'] !== 5000000) fail(`the menu does not get the sizes the instance reports: ${JSON.stringify(menu.videoSizes)}`);
   if (!menu.known || menu.videoTracks?.join() !== '1080p mp4 avc1' || menu.subtitles?.join() !== 'de') fail(`the menu offers ${JSON.stringify(menu)}, want the video's own tracks and subtitles`);
   if (JSON.stringify(store.data.videoSeen?.youtube) !== '{"qualities":["1080p","720p"],"audio":["opus"],"subLangs":["de"],"subFormats":["vtt"],"videoFormats":["mp4 avc1"],"audioRates":["160k"]}') fail(`YouTube is remembered as offering ${JSON.stringify(store.data.videoSeen?.youtube)}`);
   answer = { status: 502, body: 'ERROR: [youtube] aqz-KE-bpKQ: Private video' };
@@ -701,9 +734,10 @@ const PAGE_LABELS = {
     known: true, qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p mp4 avc1', '1080p webm vp9', '720p mp4 avc1'],
     audioTracks: ['opus 160k', 'aac 128k'], audioLangs: [], subtitles: ['de'], autoCaptions: ['en-orig'], subtitleFormats: ['vtt'],
     thumbnail: { width: 1280, height: 720, ext: 'webp' }, description: false,
+    videoSizes: { best: 404000000, '1080p': 303000000, '720p': 90000000 }, audioSizes: { 'aac 128k': 3000000 },
   });
   await settle();
-  const listed = '[Video]|Quality|Best|[1080p]|720p|Format|[Best]|mp4 · avc1|webm · vp9|Audio|[Subtitles]|Language|[de]|Auto-generated|en|Format|[Best]|vtt|Thumbnail|Download|Hide on YouTube';
+  const listed = '[Video]|Quality|Best|404 MB|[1080p]|303 MB|720p|90 MB|Format|[Best]|mp4 · avc1|webm · vp9|Audio|[Subtitles]|Language|[de]|Auto-generated|en|Format|[Best]|vtt|Thumbnail|Download|Hide on YouTube';
   if (entries().join('|') !== listed) fail(`the menu shows ${entries().join(', ')}, want ${listed}, made exact for the video and without the text it lacks`);
   const foot = menuEl().children.at(-1);
   if (foot?.className !== 'foot' || foot.children.map((b) => b.text).join('|') !== 'Download|Hide on YouTube') fail('Download and Hide are not kept together at the foot of the menu, where they stay in view');
@@ -719,7 +753,7 @@ const PAGE_LABELS = {
   }
   item('mp4 · avc1').fire('click');
   item('Audio').fire('click');
-  const audioRows = 'Audio]|Quality|[Best]|160k|128k|Format|[Best]|aac|opus|';
+  const audioRows = 'Audio]|Quality|[Best]|160k|128k|3 MB|Format|[Best]|aac|opus|';
   if (!entries().join('|').includes(audioRows)) fail(`the audio part shows ${entries().join(', ')}, want ${audioRows}`);
   item('128k').fire('click');
   if (!off('opus') || off('aac')) fail('at 128k the audio format opus, which the video lacks there, is not off');
@@ -743,7 +777,7 @@ const PAGE_LABELS = {
   await store.local.set({ videoDefaults: { youtube: { parts: ['video'], quality: 'best' } } });
   more().fire('click');
   await settle();
-  if (!entries().join('|').startsWith('[Video]|Quality|[Best]|1080p|720p|Format|[Best]|')) fail(`with Best stored the menu starts at ${entries().join(', ')}, want Best marked in both rows`);
+  if (!entries().join('|').startsWith('[Video]|Quality|[Best]|404 MB|1080p|303 MB|720p|90 MB|Format|[Best]|')) fail(`with Best stored the menu starts at ${entries().join(', ')}, want Best marked in both rows`);
   item('Download').fire('click');
   await settle();
   if (sends.at(-1)?.pick?.videoTrack || sends.at(-1)?.pick?.quality !== 'best') fail(`Best and Best send ${JSON.stringify(sends.at(-1)?.pick)}, want no track and the best quality`);

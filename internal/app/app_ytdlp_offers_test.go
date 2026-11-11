@@ -67,6 +67,43 @@ func TestTheExtensionsMenuListsWhatTheHostOffersForEveryPart(t *testing.T) {
 	}
 }
 
+// The menu says how large each pick downloads, a video track with the audio
+// merged into it, and says nothing where the host gave no size.
+func TestTheExtensionsMenuSaysHowLargeEachPickIs(t *testing.T) {
+	sized := probeWithOffers
+	sized.Formats = slices.Clone(probeWithOffers.Formats)
+	bytes := map[string]int64{"303": 400_000_000, "137": 300_000_000, "251": 4_000_000, "140": 3_000_000}
+	for i := range sized.Formats {
+		sized.Formats[i].Filesize = bytes[sized.Formats[i].FormatID]
+	}
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Offers"
+	fake.offers = sized
+	wireYtdlp(a, fake)
+
+	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00004")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for pick, want := range map[string]int64{"1080p60 webm vp9": 404_000_000, "1080p mp4 avc1": 303_000_000} {
+		if got := m.VideoSizes[pick]; got != want {
+			t.Errorf("the video pick %q is %d bytes, want %d", pick, got, want)
+		}
+	}
+	for pick, want := range map[string]int64{"opus 160k": 4_000_000, "aac 128k": 3_000_000} {
+		if got := m.AudioSizes[pick]; got != want {
+			t.Errorf("the audio pick %q is %d bytes, want %d", pick, got, want)
+		}
+	}
+	if _, ok := m.VideoSizes["720p mp4 avc1"]; ok {
+		t.Error("a track the host gave no size for has one in the menu")
+	}
+	if _, ok := m.AudioSizes["opus 130k"]; ok {
+		t.Error("an audio track the host gave no size for has one in the menu")
+	}
+}
+
 // A video sent with exact picks stages rows that download exactly those, as
 // the host serves them.
 func TestAVideoSentWithExactPicksDownloadsExactlyThose(t *testing.T) {
