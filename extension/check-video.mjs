@@ -286,6 +286,25 @@ function loadBackground(chrome) {
   }
   if (run(`videoResolve(videoPick({ parts: ['thumbnail'], thumbFormat: 'best' }), offer).thumbFormat`) !== 'webp') fail('a video whose thumbnail is webp does not start the menu at WebP');
 
+  // An instance that converts thumbnails lists the formats it writes, and
+  // the pick goes to it as thumbnailFormat: JPEG unless another is wanted.
+  // One that only names the served picture is sent no format, so it keeps
+  // the picture as it is.
+  ctx.converts = run(`videoOffer({ ...answer, thumbnail: { width: 1280, height: 720, ext: 'avif', formats: ['jpg', 'png', 'webp', 'avif', 'x y'] } })`);
+  if (!same(ctx.converts.thumbnail.formats, ['jpg', 'png', 'webp', 'avif'])) fail(`the thumbnail formats offered are ${ctx.converts.thumbnail.formats}, want those the instance writes`);
+  if ('formats' in run('offer.thumbnail')) fail('a thumbnail from an instance that converts nothing is offered in formats');
+  const thumbSent = (raw, offerName) => vm.runInContext(`videoChoice(videoPick(videoExact(videoResolve(videoPick(${JSON.stringify(raw)}), ${offerName}), ${offerName}))).thumbnailFormat`, ctx);
+  for (const [raw, offerName, want] of [
+    [{ parts: ['thumbnail'] }, 'converts', 'jpg'],
+    [{ parts: ['thumbnail'], thumbFormat: 'best' }, 'converts', 'jpg'],
+    [{ parts: ['thumbnail'], thumbFormat: 'png' }, 'converts', 'png'],
+    [{ parts: ['thumbnail'], thumbFormat: 'avif' }, 'converts', 'avif'],
+    [{ parts: ['thumbnail'], thumbFormat: 'png' }, 'offer', undefined],
+    [{ parts: ['video'], thumbFormat: 'png' }, 'converts', undefined],
+  ]) {
+    if (thumbSent(raw, offerName) !== want) fail(`a thumbnail pick ${JSON.stringify(raw)} on ${offerName} sends thumbnailFormat ${thumbSent(raw, offerName)}, want ${want}`);
+  }
+
   // Formats and codecs read as they are written, whatever yt-dlp calls them.
   const formatNames = {
     avc1: 'H.264', hevc: 'H.265', vp9: 'VP9', vp8: 'VP8', av1: 'AV1', mp4: 'MP4', webm: 'WebM', aac: 'AAC', mp4a: 'AAC', opus: 'Opus',
@@ -793,7 +812,7 @@ const PAGE_LABELS = {
   // shows on the button.
   send().fire('click');
   await settle();
-  if (JSON.stringify(sends.at(-1)?.pick) !== '{"parts":["video","subtitle"],"quality":"1080p","videoFormat":"best","audio":"best","audioRate":"best","subLangs":[],"subFormat":"srt","thumbFormat":"jpg"}') fail(`a click sends ${JSON.stringify(sends.at(-1)?.pick)}, want YouTube's defaults`);
+  if (JSON.stringify(sends.at(-1)?.pick) !== '{"parts":["video","subtitle"],"quality":"1080p","videoFormat":"best","audio":"best","audioRate":"best","subLangs":[],"subFormat":"srt"}') fail(`a click sends ${JSON.stringify(sends.at(-1)?.pick)}, want YouTube's defaults`);
   const stars = () => (doc.animations ?? []).filter((a) => a.node.attrs.class === 'star').length;
   if (stars() < 5 || stars() > 7) fail(`a video already there cheers with ${stars()} stars, want five to seven`);
   if (frame()?.dataset.state !== 'already' || send().children.at(-1)?.textContent !== 'Already there') fail(`a video already there shows ${frame()?.dataset.state} "${send().children.at(-1)?.textContent}", want already`);
@@ -931,7 +950,7 @@ const PAGE_LABELS = {
   item('Download').fire('click');
   await settle();
   const norm = (o) => JSON.stringify(Object.fromEntries(Object.entries(o ?? {}).sort()));
-  const wantPick = { parts: ['video', 'audio', 'subtitle', 'thumbnail'], quality: 'best', audio: 'best', subLangs: ['de', 'en-orig'], subFormat: 'vtt', thumbFormat: 'webp', videoTrack: '720p mp4 avc1', audioTrack: 'aac 128k', subAuto: true };
+  const wantPick = { parts: ['video', 'audio', 'subtitle', 'thumbnail'], quality: 'best', audio: 'best', subLangs: ['de', 'en-orig'], subFormat: 'vtt', videoTrack: '720p mp4 avc1', audioTrack: 'aac 128k', subAuto: true };
   if (norm(sends.at(-1)?.pick) !== norm(wantPick)) fail(`the menu's own pick sends ${JSON.stringify(sends.at(-1)?.pick)}, want ${JSON.stringify(wantPick)}`);
   more().fire('click');
   await settle();
@@ -1205,6 +1224,53 @@ for (const known of [true, false]) {
     fail(`${known ? 'with' : 'without'} the video's tracks known, a click with a format and a bitrate in the defaults sends ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
   }
 }
+// A thumbnail from an instance that converts is offered as JPEG, PNG and
+// WebP, JPEG picked, and the pick is sent; a click with the part on sends the
+// site's default, and an instance that converts nothing is sent no format.
+for (const converts of [true, false]) {
+  const store = makeStore({ videoDefaults: { youtube: { parts: ['thumbnail'], thumbFormat: 'webp' } } });
+  const { chrome } = makeChrome(store);
+  const sends = [];
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
+    if (msg.type === 'knightloader-video-formats') {
+      return {
+        known: true, qualities: ['720p'], audio: true, videoTracks: ['720p mp4 avc1'], audioTracks: [], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [],
+        thumbnail: { width: 1280, height: 720, ext: 'webp', ...(converts ? { formats: ['jpg', 'png', 'webp'] } : {}) }, description: false,
+      };
+    }
+    if (msg.type === 'knightloader-video-send') {
+      sends.push(msg.pick);
+      return { result: 'sent' };
+    }
+    return undefined;
+  };
+  const { doc, run } = loadPage(chrome, 'https://www.youtube.com/watch?v=aqz-KE-bpKQ');
+  const player = doc.createElement('div');
+  doc.documentElement.append(player);
+  video(doc, player, { left: 0, top: 56, width: 1280, height: 720 });
+  run();
+  await settle();
+  const shadow = doc.documentElement.querySelectorAll('knightloader-video-button')[0].shadow;
+  const button = (cls) => shadow.querySelectorAll('button').find((b) => b.className === cls);
+  button('send').fire('click');
+  await settle();
+  if (sends.at(-1)?.thumbFormat !== (converts ? 'webp' : undefined)) fail(`${converts ? 'to an instance that converts' : 'to one that does not'} a click sends the thumbnail as ${sends.at(-1)?.thumbFormat}, want ${converts ? "the site's WebP" : 'no format'}`);
+  await store.local.set({ videoDefaults: { youtube: { parts: ['thumbnail'] } } });
+  shadow.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'dialog').fire('click');
+  await settle();
+  const menu = shadow.querySelectorAll('div').find((d) => d.attrs.role === 'dialog');
+  const shown = menu.querySelectorAll('*').filter((n) => n.text).map((n) => (n.attrs['aria-checked'] === 'true' ? `[${n.text}]` : n.text)).join('|');
+  const want = converts ? 'Thumbnail]|1280×720|Format|[JPEG]|PNG|WebP|Download' : 'Thumbnail]|1280×720 WebP|Download';
+  if (!shown.includes(want)) fail(`${converts ? 'from an instance that converts' : 'from one that does not'} the thumbnail card shows ${shown}, want ${want}`);
+  if (converts) {
+    menu.querySelectorAll('button').find((b) => b.text === 'PNG')?.fire('click');
+    menu.querySelectorAll('button').find((b) => b.text === 'Download').fire('click');
+    await settle();
+    if (sends.at(-1)?.thumbFormat !== 'png') fail(`the thumbnail picked as PNG is sent as ${sends.at(-1)?.thumbFormat}`);
+  }
+}
+
 // With more than one instance the popup asks where to: the button keeps
 // sending until the worker says what became of it, and a popup closed
 // without a pick takes it back to rest with nothing shown.
@@ -1314,7 +1380,7 @@ for (const known of [true, false]) {
   const frame = host?.shadow.querySelectorAll('div').find((d) => d.className === 'kl');
   if (frame?.classList.contains('shown')) fail('with auto-hide the button shows before the shortcut');
   await shortcut();
-  if (sends.length !== 1 || JSON.stringify(sends[0].pick) !== '{"parts":["audio"],"quality":"best","videoFormat":"best","audio":"opus","audioRate":"best","subLangs":[],"subFormat":"srt","thumbFormat":"jpg"}') {
+  if (sends.length !== 1 || JSON.stringify(sends[0].pick) !== '{"parts":["audio"],"quality":"best","videoFormat":"best","audio":"opus","audioRate":"best","subLangs":[],"subFormat":"srt"}') {
     fail(`the shortcut sends ${JSON.stringify(sends.map((s) => s.pick))}, want YouTube's defaults once`);
   }
   if (frame?.dataset.state !== 'sent') fail(`after the shortcut the button shows ${frame?.dataset.state}, want sent`);

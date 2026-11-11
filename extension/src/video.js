@@ -72,7 +72,7 @@ function videoFormatName(token) {
 
 /** What a click downloads on a site nothing is set for: the video at its
  *  best. */
-const VIDEO_DEFAULTS = { parts: ['video'], quality: 'best', videoFormat: 'best', audio: 'best', audioRate: 'best', subLangs: [], subFormat: 'srt', thumbFormat: 'jpg' };
+const VIDEO_DEFAULTS = { parts: ['video'], quality: 'best', videoFormat: 'best', audio: 'best', audioRate: 'best', subLangs: [], subFormat: 'srt' };
 
 // The words the instance's choices are made of, as ytdlp.LinkChoice.Valid
 // takes them: a language as yt-dlp reports one, a format, and the keys of a
@@ -98,10 +98,10 @@ function videoIs(re, v) {
  * what is wanted wherever a video has it: the parts, a cap on the
  * resolution and a video format, a bitrate and a codec for the audio,
  * subtitle languages in order, a subtitle format and a thumbnail format.
- * Subtitles and thumbnails have no Best, so anything else reads as SRT and
- * JPEG. The menu adds the tracks, the audio language and whether generated
- * subtitles count, from what one video has. A pick with no part left is the
- * defaults.
+ * Subtitles have no Best, so anything else reads as SRT, and a thumbnail
+ * without a format of its own takes JPEG where the video offers it. The menu
+ * adds the tracks, the audio language and whether generated subtitles count,
+ * from what one video has. A pick with no part left is the defaults.
  */
 function videoPick(raw) {
   const parts = Array.isArray(raw?.parts) ? VIDEO_PARTS.filter((p) => raw.parts.includes(p)) : [];
@@ -114,8 +114,8 @@ function videoPick(raw) {
     audioRate: videoIs(AUDIO_RATE, raw.audioRate) ? raw.audioRate : 'best',
     subLangs: Array.isArray(raw.subLangs) ? raw.subLangs.filter((l) => videoIs(VIDEO_LANG, l)) : [],
     subFormat: VIDEO_SUB_FORMATS.includes(raw.subFormat) ? raw.subFormat : 'srt',
-    thumbFormat: videoIs(VIDEO_TOKEN, raw.thumbFormat) && raw.thumbFormat !== 'best' ? raw.thumbFormat : 'jpg',
   };
+  if (videoIs(VIDEO_TOKEN, raw.thumbFormat) && raw.thumbFormat !== 'best') pick.thumbFormat = raw.thumbFormat;
   if (videoIs(VIDEO_TRACK, raw.videoTrack)) pick.videoTrack = raw.videoTrack;
   if (videoIs(AUDIO_TRACK, raw.audioTrack)) pick.audioTrack = raw.audioTrack;
   if (videoIs(VIDEO_LANG, raw.audioLang)) pick.audioLang = raw.audioLang;
@@ -133,9 +133,9 @@ function videoDefaultsFor(stored, siteId) {
  * without tracks leaves them to the instance, which takes the best under the
  * cap and the preferred codec's track where the video has one. Generated
  * subtitles count unless the menu said otherwise, so a video without
- * subtitles by hand still gets its own language's. The thumbnail's format
- * has no place in it, since the instance keeps the picture as the host
- * serves it.
+ * subtitles by hand still gets its own language's. A thumbnail's format
+ * goes only to an instance that converts thumbnails (videoExact), and
+ * without one it keeps the picture as the host serves it.
  */
 function videoChoice(pick) {
   return {
@@ -148,6 +148,7 @@ function videoChoice(pick) {
     ...(pick.videoTrack ? { videoTrack: pick.videoTrack } : {}),
     ...(pick.audioTrack ? { audioTrack: pick.audioTrack } : {}),
     ...(pick.audioLang ? { audioLang: pick.audioLang } : {}),
+    ...(pick.thumbFormat && pick.parts.includes('thumbnail') ? { thumbnailFormat: pick.thumbFormat } : {}),
   };
 }
 
@@ -181,7 +182,9 @@ function videoOffer(answer) {
       : [],
     subtitles: list(answer.subtitles, VIDEO_LANG),
     autoCaptions: list(answer.autoCaptions, VIDEO_LANG),
-    thumbnail: videoIs(VIDEO_TOKEN, th?.ext) ? { width: size(th.width), height: size(th.height), ext: th.ext } : null,
+    thumbnail: videoIs(VIDEO_TOKEN, th?.ext)
+      ? { width: size(th.width), height: size(th.height), ext: th.ext, ...(Array.isArray(th.formats) ? { formats: list(th.formats, VIDEO_TOKEN) } : {}) }
+      : null,
     description: answer.description === true,
     videoSizes: videoSizes(answer.videoSizes, (k) => k === 'best' || VIDEO_CAPS.includes(k) || videoIs(VIDEO_TRACK, k)),
     audioSizes: videoSizes(answer.audioSizes, (k) => videoIs(VIDEO_TOKEN, k) || videoIs(AUDIO_TRACK, k)),
@@ -240,10 +243,11 @@ function videoHas(offer, part) {
   }
 }
 
-/** The formats a video's thumbnail comes in. The instance names the one
- *  picture the row fetches, which it keeps as the host serves it. */
+/** The formats a video's thumbnail comes in: those the instance converts
+ *  to, or where it converts nothing, the one the host serves. */
 function videoThumbFormats(offer) {
-  return offer.thumbnail ? [offer.thumbnail.ext] : [];
+  if (!offer.thumbnail) return [];
+  return offer.thumbnail.formats ?? [offer.thumbnail.ext];
 }
 
 /** The thumbnail format a pick gets among those offered: the one it wants,
@@ -478,7 +482,9 @@ function videoExact(sel, offer) {
       .sort(audioTrackRank);
     out.audio = 'best';
   }
-  for (const k of ['videoTrack', 'audioTrack']) if (!out[k]) delete out[k];
+  // Only an instance that lists the formats it converts to is sent one.
+  out.thumbFormat = sel.parts.includes('thumbnail') && offer.thumbnail?.formats ? videoThumbFormat(sel.thumbFormat, offer.thumbnail.formats) : undefined;
+  for (const k of ['videoTrack', 'audioTrack', 'thumbFormat']) if (!out[k]) delete out[k];
   return out;
 }
 

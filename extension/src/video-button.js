@@ -811,10 +811,11 @@
   }
 
   /** What a click sends: the site's defaults, made exact for the video where
-   *  they name a format or a bitrate, which only one video's tracks have. */
+   *  they name a format or a bitrate, which only one video's tracks have, or
+   *  where they take the thumbnail, whose formats depend on the instance. */
   async function clickPick() {
     const defaults = videoDefaultsFor(stored, page.site);
-    if (defaults.videoFormat === 'best' && defaults.audioRate === 'best') return defaults;
+    if (defaults.videoFormat === 'best' && defaults.audioRate === 'best' && !defaults.parts.includes('thumbnail')) return defaults;
     const offer = await askFormats();
     return videoExact(videoResolve(defaults, offer), offer);
   }
