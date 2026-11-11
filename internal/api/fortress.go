@@ -429,9 +429,28 @@ func changeFortressPhrase(ctx context.Context, a *app.App) (string, []string, er
 		return "", nil, err
 	}
 	left := []string{}
+	noted := map[string]bool{}
+	note := func(id, name string) {
+		if !slices.Contains(took, id) && !noted[id] && !slices.Contains(left, name) {
+			noted[id] = true
+			left = append(left, name)
+		}
+	}
 	for _, m := range g.f.Members() {
-		if m.Kind == member.KindInstance && !slices.Contains(took, m.ID) && !slices.Contains(left, m.Device) {
-			left = append(left, m.Device)
+		if m.Kind == member.KindInstance {
+			note(m.ID, m.Device)
+		}
+	}
+	// Every instance the pairing approved counts, whether or not it has met
+	// the pairing in the fortress yet: one still moving in holds the phrase
+	// from before. Those left behind are listed apart.
+	behind := map[string]bool{}
+	for _, m := range g.f.Behind() {
+		behind[m.ID] = true
+	}
+	for _, m := range g.f.Pairing().Members() {
+		if m.Kind == member.KindInstance && m.State == group.StateApproved && !behind[m.ID] {
+			note(m.ID, cmp.Or(m.Name, m.ID))
 		}
 	}
 	slices.Sort(left)

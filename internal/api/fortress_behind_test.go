@@ -68,6 +68,29 @@ func moveStarted(a *app.App) bool {
 	return json.Unmarshal([]byte(raw), &doc) == nil && !doc.Retired.IsZero()
 }
 
+func TestAPhraseChangeNamesAnInstanceStillOnItsWayIn(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	ownRelay(t, a, srv.URL)
+	phraseGroup(t, a)
+	applyRelay(a)
+	awayInstance(t, a, "Attic")
+	_, words := newWords(t)
+	if code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/fortress/join", map[string]string{"phrase": words}); code != http.StatusOK {
+		t.Fatalf("join answered %d: %s", code, raw)
+	}
+
+	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/fortress/phrase", map[string]string{})
+	var changed struct {
+		Left []string `json:"left"`
+	}
+	_ = json.Unmarshal(raw, &changed)
+	if code != http.StatusOK || !slices.Contains(changed.Left, "Attic") {
+		t.Errorf("the change answered %d and left %v on the old phrase, want Attic among them", code, changed.Left)
+	}
+}
+
 type behindView struct {
 	Behind []map[string]any `json:"behind"`
 	Away   []struct {
