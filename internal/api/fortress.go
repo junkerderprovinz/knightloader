@@ -81,6 +81,10 @@ type fortressGroup struct {
 	lan    *lan.Service
 	secret []byte
 
+	// opened is when the pairing opened in the fortress. A phone or browser
+	// calls and hangs up, so a call since then counts as much as being online.
+	opened time.Time
+
 	mu     sync.Mutex
 	former *group.Group
 	// met holds the members seen in the pairing since it moved, by id.
@@ -131,7 +135,7 @@ func (g *fortressGroup) left() []string {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	for _, m := range online {
-		if m.Online() {
+		if m.Online() || m.LastSeen.After(g.opened) {
 			g.met[m.ID] = true
 		}
 	}
@@ -240,6 +244,7 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 		l.Start()
 		cfg.LAN = l
 	}
+	opened := time.Now()
 	f, err := kitfortress.Open(cfg)
 	if err != nil {
 		if l != nil {
@@ -247,7 +252,7 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 		}
 		return nil, err
 	}
-	g := &fortressGroup{a: a, f: f, lan: l, secret: bytes.Clone(secret), met: map[string]bool{}, stop: make(chan struct{})}
+	g := &fortressGroup{a: a, f: f, lan: l, secret: bytes.Clone(secret), opened: opened, met: map[string]bool{}, stop: make(chan struct{})}
 	if groupSecret(a) != nil {
 		former, err := openPhraseGroup(a)
 		if err != nil {

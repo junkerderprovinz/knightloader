@@ -313,6 +313,10 @@ func TestJoiningTakesThePhoneAlong(t *testing.T) {
 	}
 	instance := groupID(a)
 	waitFor(t, "the instance on the relay", a.Federation.RelayConnected)
+	waitFor(t, "the group on the old phrase on the relay", func() bool {
+		former := fortressOf(a).formerGroup()
+		return former != nil && former.RelayConnected()
+	})
 
 	// The phone asks on the old phrase where the group went.
 	code, raw := relayCall(t, relayURL, old, phone, instance, keyOf("phone"),
@@ -328,6 +332,10 @@ func TestJoiningTakesThePhoneAlong(t *testing.T) {
 		moved.PeerAuthKey != hex.EncodeToString(federation.Domain.PeerAuthKey(secret)) {
 		t.Fatalf("the moved keys answered %d %s", code, raw)
 	}
+	time.Sleep(3 * followEvery)
+	if groupSecret(a) == nil {
+		t.Fatal("a call on the old phrase counted as following")
+	}
 
 	// With them it reaches the instance as the member it was.
 	code, raw = relayCall(t, relayURL, secret, phone, instance, keyOf("phone"),
@@ -335,6 +343,9 @@ func TestJoiningTakesThePhoneAlong(t *testing.T) {
 	if code != http.StatusOK {
 		t.Errorf("the phone on the fortress's keys answered %d %s", code, raw)
 	}
+
+	// The phone hung up after that one call, and still counts as followed.
+	waitFor(t, "the old phrase to go once the phone called on the fortress's keys", func() bool { return groupSecret(a) == nil })
 }
 
 func TestOnlyAPhoneOrABrowserAsksForTheMovedKeys(t *testing.T) {
