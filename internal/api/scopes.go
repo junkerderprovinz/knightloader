@@ -187,6 +187,13 @@ var routeScopes = map[string]apitoken.Scope{
 
 	"POST /api/links": apitoken.ScopeAdd,
 
+	"GET /api/fortress":                           apitoken.ScopeAdmin,
+	"POST /api/fortress/join":                     apitoken.ScopeAdmin,
+	"POST /api/fortress/phrase/show":              apitoken.ScopeAdmin,
+	"POST /api/fortress/phrase":                   apitoken.ScopeAdmin,
+	"PUT /api/fortress/permissions":               apitoken.ScopeAdmin,
+	"DELETE /api/fortress":                        apitoken.ScopeAdmin,
+	"GET /api/group/peer/moved":                   apitoken.ScopeAdmin,
 	"GET /api/afterdownload":                      apitoken.ScopeAdmin,
 	"GET /api/afterdownload/engines/{id}/targets": apitoken.ScopeAdmin,
 	"POST /api/afterdownload/jobs":                apitoken.ScopeAdmin,

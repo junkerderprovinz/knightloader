@@ -32,6 +32,17 @@ const (
 	// GroupAccount holds what kit/group keeps of the group: who is approved,
 	// who was taken out and where the members answered.
 	GroupAccount = "relay-group"
+	// FortressAccount holds the secret behind the fortress phrase. Once it is
+	// set, the pairing lives in the fortress under the same phrase, and
+	// SeedAccount holds the old one only until every member followed.
+	FortressAccount = "fortress-secret"
+	// FortressPreviousAccount holds the fortress secret before the phrase
+	// last changed, which members, removals and permissions carry over from.
+	FortressPreviousAccount = "fortress-previous"
+	// FortressGroupAccount and FortressPairingAccount hold what kit/group
+	// keeps of the fortress and of the pairing in it.
+	FortressGroupAccount   = "fortress-group"
+	FortressPairingAccount = "fortress-pairing"
 )
 
 // LAN is where KnightLoader instances announce themselves on their network,

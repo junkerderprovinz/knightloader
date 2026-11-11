@@ -21,11 +21,13 @@ var groupRoutes = map[string]bool{
 	// Whether a password is wanted, the look, the instances of the group and
 	// the addresses this instance answers on. The addresses travel inside the
 	// sealed frame, so the relay operator never learns them.
-	"GET /api/auth":          true,
-	"GET /api/appearance":    true,
-	"POST /api/appearance":   true,
-	"GET /api/instances":     true,
-	"GET /api/remote-access": true,
+	"GET /api/auth": true,
+	// A phone or browser on the old phrase asks where the group moved.
+	"GET /api/group/peer/moved": true,
+	"GET /api/appearance":       true,
+	"POST /api/appearance":      true,
+	"GET /api/instances":        true,
+	"GET /api/remote-access":    true,
 
 	// The phones and browsers of the group, which the phone app and the
 	// extension list beside the instances.

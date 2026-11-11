@@ -20,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/parleyport/kit/fortress"
 	"github.com/junkerderprovinz/parleyport/kit/group"
 	"github.com/junkerderprovinz/parleyport/kit/member"
 	"github.com/junkerderprovinz/parleyport/kit/phrase"
@@ -212,6 +213,11 @@ func servesKey(a *app.App, key string) bool {
 	if secret := groupSecret(a); secret != nil {
 		served = append(served, federation.Domain.GroupKey(secret))
 	}
+	// The pairing in a fortress dials under the fortress phrase, and so do
+	// the apps of the fortress.
+	if secret := fortressSecret(a); secret != nil {
+		served = append(served, federation.Domain.GroupKey(secret), fortress.Domain.GroupKey(secret))
+	}
 	if g, ok := retiredOf(a, time.Now()); ok {
 		served = append(served, g.Key)
 	}
@@ -278,12 +284,20 @@ func applyRelay(a *app.App) {
 // group from what is stored then.
 func regroup(a *app.App, change func() error) error {
 	applyRetired(a)
-	err := a.Federation.Reopen(func() (*group.Group, error) {
+	err := a.Federation.Reopen(func() (federation.GroupView, error) {
 		var changeErr error
 		if change != nil {
 			changeErr = change()
 		}
-		g, err := openGroup(a)
+		var g federation.GroupView
+		var err error
+		if secret := fortressSecret(a); secret != nil {
+			g, err = openFortress(a, secret)
+		} else if pg, perr := openPhraseGroup(a); pg != nil {
+			g, err = pg, perr
+		} else {
+			err = perr
+		}
 		if changeErr != nil {
 			return g, changeErr
 		}
@@ -292,15 +306,18 @@ func regroup(a *app.App, change func() error) error {
 	return err
 }
 
-// openGroup opens the group the stored phrase makes, nil outside one. A group
-// that has never been opened here takes over what group.json holds from
-// releases before kit/group.
-func openGroup(a *app.App) (*group.Group, error) {
+// openPhraseGroup opens the group the stored phrase makes, nil outside one.
+// A group that has never been opened here takes over what group.json holds
+// from releases before kit/group. An instance in a fortress keeps it open
+// until every member followed, and an instance of the group that joins a
+// fortress hands the fortress phrase over through it (moveKeeper).
+func openPhraseGroup(a *app.App) (*group.Group, error) {
 	secret := groupSecret(a)
 	serve := a.SelfServeHandler()
 	if secret == nil || serve == nil {
 		return nil, nil
 	}
+	members := fortress.Moving(memberHandler(a, serve), moveKeeper{a})
 	identity := memberKey(a)
 	if identity == nil {
 		return nil, nil
@@ -311,26 +328,44 @@ func openGroup(a *app.App) (*group.Group, error) {
 		return nil, err
 	}
 	mode, url := relayOf(a)
-	g, err := group.Open(group.Config{
-		Domain:   federation.Domain,
-		Signing:  federation.Signing,
-		Secret:   secret,
-		Identity: *identity,
-		Self:     groupSelf(a),
-		Relay:    mode,
-		RelayURL: url,
-		LAN:      a.Discovery(),
-		Store:    store,
-		// The owner of an instance that was taken out leaves only the group
-		// it was taken out of: a reset in between put it in a group of its
-		// own, which nobody else may make it leave.
-		OnRemoved: func() {
-			err := a.Auth.Mint(func() bool { return subtle.ConstantTimeCompare(groupSecret(a), secret) == 1 },
-				func() error { return enterGroup(a, nil) })
-			if err != nil {
-				log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
+	cfg := pairingConfig(a, serve, store)
+	cfg.Domain = federation.Domain
+	cfg.Secret = secret
+	cfg.Identity = *identity
+	cfg.Self = groupSelf(a)
+	cfg.Relay, cfg.RelayURL = mode, url
+	// The owner of an instance that was taken out leaves only the group it
+	// was taken out of: a reset in between put it in a group of its own,
+	// which nobody else may make it leave.
+	cfg.OnRemoved = func() {
+		err := a.Auth.Mint(func() bool { return subtle.ConstantTimeCompare(groupSecret(a), secret) == 1 },
+			func() error { return enterGroup(a, nil) })
+		if err != nil {
+			log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
+		}
+	}
+	g, err := group.Open(cfg, members)
+	if err != nil {
+		return nil, err
+	}
+	if len(kept) == 0 {
+		if old, ok := a.Federation.OldGroup(); ok {
+			if err := g.Import(old); err != nil {
+				log.Printf("relay: could not keep the group this instance was in before the update: %v", err)
 			}
-		},
+		}
+	}
+	return g, nil
+}
+
+// pairingConfig is how KnightLoader pairs its own instances, phones and
+// browsers, on its own phrase or in a fortress, where the fortress sets who
+// joins and where.
+func pairingConfig(a *app.App, serve http.Handler, store group.Store) group.Config {
+	return group.Config{
+		Signing:             federation.Signing,
+		LAN:                 a.Discovery(),
+		Store:               store,
 		Kinds:               []member.Kind{member.KindMobile, member.KindExtension},
 		Ports:               federation.LAN.Ports,
 		MaxAnswerBytes:      maxAnswer,
@@ -343,18 +378,7 @@ func openGroup(a *app.App) (*group.Group, error) {
 		},
 		// A file a phone plays on this network comes as a stream.
 		Stream: memberHandler(a, serve),
-	}, memberHandler(a, serve))
-	if err != nil {
-		return nil, err
 	}
-	if len(kept) == 0 {
-		if old, ok := a.Federation.OldGroup(); ok {
-			if err := g.Import(old); err != nil {
-				log.Printf("relay: could not keep the group this instance was in before the update: %v", err)
-			}
-		}
-	}
-	return g, nil
 }
 
 // groupSelf is what the other members see of this instance.
@@ -422,7 +446,7 @@ var memberMu sync.Mutex
 // memberKey is the key this instance signs its calls to the group with, nil
 // outside a group. The key is minted here the first time it is needed.
 func memberKey(a *app.App) *member.Identity {
-	if groupSecret(a) == nil {
+	if groupSecret(a) == nil && fortressSecret(a) == nil {
 		return nil
 	}
 	memberMu.Lock()

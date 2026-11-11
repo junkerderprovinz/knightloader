@@ -115,7 +115,7 @@ func (m *Manager) SetGroup(g GroupView) {
 // returns, nil for none, even alongside an error. Only one runs at a time:
 // two groups open at once would each take over the network announce and the
 // relay connection of this instance.
-func (m *Manager) Reopen(open func() (*group.Group, error)) error {
+func (m *Manager) Reopen(open func() (GroupView, error)) error {
 	m.opening.Lock()
 	defer m.opening.Unlock()
 	m.SetGroup(nil)
@@ -126,10 +126,20 @@ func (m *Manager) Reopen(open func() (*group.Group, error)) error {
 	return err
 }
 
+// View is what the members are reached through, nil outside a group.
+func (m *Manager) View() GroupView {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.grp
+}
+
 // Group is the group this instance is in, nil outside one.
 func (m *Manager) Group() *group.Group {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if p, ok := m.grp.(interface{ Pairing() *group.Group }); ok {
+		return p.Pairing()
+	}
 	g, _ := m.grp.(*group.Group)
 	return g
 }
