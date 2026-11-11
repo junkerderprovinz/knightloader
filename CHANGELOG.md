@@ -60,7 +60,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   codec where another row has the same height. After a send, a ring around
   the mark follows the download and "Done" opens your downloads. With more
   than one instance online, the toolbar popup asks where the video goes.
-  Alt+Shift+D sends the video you are watching, and the card lets you
+  Alt+Shift+K sends the video you are watching, and the card lets you
   change the shortcut. You can drag the button
   anywhere on the player, and each site keeps its place, or let it show only
   on hover. It carries the KnightLoader mark, follows the extension's light

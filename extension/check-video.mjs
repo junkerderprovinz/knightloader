@@ -34,7 +34,8 @@
  *      moves down past the controls a player keeps along the top of its
  *      video.
  *   6. The keyboard shortcut has the button in the active tab send the site's
- *      defaults, only on a video page of a site the button runs on.
+ *      defaults, only on a video page of a site the button runs on, and its
+ *      default opens none of Firefox's menus.
  *   7. The options card shows the shortcut, changes and resets it in Firefox
  *      within the shortcuts Firefox takes, and in Chromium opens the
  *      browser's shortcuts page.
@@ -1144,6 +1145,21 @@ for (const known of [true, false]) {
   if (sends.length !== sent) fail('on a page without a video the shortcut sends');
 }
 
+// Firefox on Windows and Linux takes Alt with a menu's access key for the menu
+// bar, Shift held or not, so the default's letter opens no menu in the common
+// locales (from Firefox's menubar.ftl, Profiles included).
+{
+  const menuKeys = {
+    de: 'DBACLPXH', en: 'FEVSBPTH', fr: 'FNAHMPOE', es: 'AEVSMPTU', it: 'FMVCEPSA',
+    nl: 'BWLGAPXH', pl: 'PEWHZONC', 'pt-BR': 'AEXHVPFU', sv: 'ARSOBPVH',
+  };
+  const shortcut = Object.values(manifest.commands ?? {})[0]?.suggested_key?.default ?? '';
+  const letter = shortcut.split('+').at(-1).toUpperCase();
+  for (const [locale, keys] of Object.entries(menuKeys)) {
+    if (keys.includes(letter)) fail(`the default shortcut ${shortcut} opens a menu in Firefox's ${locale} menu bar`);
+  }
+}
+
 // 7. The shortcut's row on the options page: the current shortcut, changed
 // and reset in place where the browser allows it (Firefox), and otherwise a
 // way to the browser's own shortcuts page.
@@ -1152,7 +1168,7 @@ for (const editable of [true, false]) {
   const store = makeStore();
   const { chrome, calls } = makeChrome(store);
   const command = Object.keys(manifest.commands ?? {})[0] ?? 'send-video';
-  const fallback = manifest.commands?.[command]?.suggested_key?.default ?? 'Alt+Shift+D';
+  const fallback = manifest.commands?.[command]?.suggested_key?.default ?? 'Alt+Shift+K';
   let current = 'Alt+Shift+Y';
   const updates = [];
   chrome.commands = {
