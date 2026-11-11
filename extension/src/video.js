@@ -213,16 +213,21 @@ function videoPickSize(sel, offer, part) {
   return part === 'video' ? offer.videoSizes?.[exact.videoTrack ?? exact.quality] : offer.audioSizes?.[exact.audioTrack ?? exact.audio];
 }
 
-/** The bytes a whole pick downloads, or undefined where any part of it has
- *  no size, since a sum of the parts known would pass for the total. */
+/**
+ * What a whole pick downloads: the bytes of its video and audio, and whether
+ * a part the instance cannot weigh, such as a conversion, makes that a lower
+ * bound. Subtitles, a thumbnail and a description weigh next to nothing.
+ * Undefined where no part has a size.
+ */
 function videoPickTotal(sel, offer) {
-  let total = 0;
-  for (const part of sel.parts) {
-    const bytes = part === 'video' || part === 'audio' ? videoPickSize(sel, offer, part) : undefined;
-    if (!bytes) return undefined;
-    total += bytes;
+  let bytes = 0;
+  let atLeast = false;
+  for (const part of sel.parts.filter((p) => p === 'video' || p === 'audio')) {
+    const size = videoPickSize(sel, offer, part);
+    if (size) bytes += size;
+    else atLeast = true;
   }
-  return total;
+  return bytes ? { bytes, atLeast } : undefined;
 }
 
 /** A size in bytes as the menu shows it, in megabytes or from a thousand on
