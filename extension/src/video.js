@@ -274,11 +274,13 @@ function videoLangBase(code) {
  * The subtitles a video's menu offers: every one by hand, and of the
  * generated ones the original ("en-orig") and those in a language the pick
  * asks for, since a host translates its generated subtitles into every
- * language it knows.
+ * language it knows. A translation into the original's own language is the
+ * original again ("de" beside "de-orig"), so only the original is offered.
  */
 function videoSubtitleChoices(offer, pick) {
   const wanted = new Set(pick.subLangs.map(videoLangBase));
-  const auto = offer.autoCaptions.filter((c) => c.endsWith('-orig') || wanted.has(c.toLowerCase()));
+  const originals = new Set(offer.autoCaptions.filter((c) => c.endsWith('-orig')).map(videoLangBase));
+  const auto = offer.autoCaptions.filter((c) => c.endsWith('-orig') || (wanted.has(c.toLowerCase()) && !originals.has(c.toLowerCase())));
   return { manual: offer.subtitles, auto };
 }
 

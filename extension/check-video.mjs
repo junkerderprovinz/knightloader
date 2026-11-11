@@ -257,6 +257,13 @@ function loadBackground(chrome) {
     fail(`with nothing preferred the pick becomes ${JSON.stringify(bestOf)}, want Best everywhere, the subtitles by hand and SRT`);
   }
   if (!same(run(`videoSubtitleChoices(offer, videoPick({ parts: ['subtitle'], subLangs: ['fr'] })).auto`), ['en-orig', 'fr'])) fail('the menu offers generated subtitles beyond the original and the wanted languages');
+  // YouTube lists its speech recognition twice, as "de-orig" and as a
+  // translation into the same language, so the menu offers it once, as the
+  // original, and a wish for German picks that one.
+  ctx.twice = run(`videoOffer({ ...answer, subtitles: [], autoCaptions: ['de-orig', 'de', 'en', 'fr'] })`);
+  const wantsDe = `videoPick({ parts: ['subtitle'], subLangs: ['de'] })`;
+  if (!same(run(`videoSubtitleChoices(twice, ${wantsDe}).auto`), ['de-orig'])) fail(`with de-orig and de listed the menu offers ${run(`videoSubtitleChoices(twice, ${wantsDe}).auto`)}, want de-orig alone`);
+  if (!same(run(`videoResolve(${wantsDe}, twice).subLangs`), ['de-orig'])) fail(`a wish for German picks ${run(`videoResolve(${wantsDe}, twice).subLangs`)}, want de-orig`);
   const sentExact = run(`videoChoice(videoPick({ ...videoExact({ ...videoResolve(videoPick(want), offer), audioRate: '160k' }, offer), videoTrack: 'evil;rm', audioLang: 'de' }))`);
   if ('videoTrack' in sentExact || sentExact.audioTrack !== 'opus 160k' || sentExact.audioLang !== 'de' || sentExact.subtitleAuto !== false) fail(`an exact pick is sent as ${JSON.stringify(sentExact)}`);
   vm.runInContext(`old = videoOffer({ qualities: ['720p'], audio: true })`, ctx);
