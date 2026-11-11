@@ -1,13 +1,15 @@
 /**
  * The group this browser belongs to.
  *
- * Only the phrase is stored. The keys are cheap to derive again, and a stored
- * copy could go stale if the derivation changed; who is online comes from the
- * relay on every connect.
+ * The phrase is stored and the keys are derived from it again on every
+ * connect; who is online comes from the relay. A group that moved into a
+ * fortress hands the browser the keys of the pairing there instead, which
+ * take the place of the words: the fortress phrase opens every app of the
+ * household, so it never reaches a browser.
  *
- * The phrase lives in the extension's own IndexedDB rather than in
- * storage.local, which the Click'n'Load content scripts on every site can read.
- * Only the extension's pages and its background share that origin.
+ * Both live in the extension's own IndexedDB rather than in storage.local,
+ * which the Click'n'Load content scripts on every site can read. Only the
+ * extension's pages and its background share that origin.
  *
  * `defaultInstance` holds a relay instance id, so renaming a member keeps the
  * choice on the same machine.
@@ -58,17 +60,107 @@ async function readPhrase() {
 async function writePhrase(phrase) {
   const normalised = String(phrase).trim().toLowerCase().split(/\s+/).filter(Boolean).join(' ');
   await decodePhrase(normalised);
-  await secretStore('readwrite', (s) => s.put(normalised, 'phrase'));
+  await secretStore('readwrite', (s) => {
+    s.delete('keys');
+    return s.put(normalised, 'phrase');
+  });
   return normalised;
 }
 
-/** Leaves the group, dropping the phrase, the member key, and with it the member id, and the default target. */
+/** Leaves the group, dropping the phrase or the keys handed over, the member key, and with it the member id, and the default target. */
 async function forgetGroup() {
   await secretStore('readwrite', (s) => {
     s.delete('memberKey');
+    s.delete('keys');
     return s.delete('phrase');
   });
   await chrome.storage.local.remove(['phrase', 'defaultInstance']);
+}
+
+/**
+ * Where an instance whose group moved into a fortress hands a phone or browser
+ * of the group the keys of the pairing there (internal/api/fortress.go).
+ */
+const MOVED_PATH = '/api/group/peer/moved';
+
+/** How long a page waits before it asks again whether its group moved. */
+const MOVED_CHECK_MS = 5 * 60 * 1000;
+let movedAskedAt = 0;
+
+const HEX_KEY = /^[0-9a-f]{64}$/;
+
+/** movedKeys is the three keys of a pairing in o, or null for anything else. */
+function movedKeys(o) {
+  const { groupKey, frameKey, peerAuthKey } = o ?? {};
+  if (![groupKey, frameKey, peerAuthKey].every((k) => typeof k === 'string' && HEX_KEY.test(k))) return null;
+  return { groupKey, frameKey, peerAuthKey };
+}
+
+function bytesOfHex(hex) {
+  return new Uint8Array(hex.match(/../g).map((b) => parseInt(b, 16)));
+}
+
+/** The keys handed over when the group moved into a fortress, or null. */
+async function readMovedKeys() {
+  return movedKeys(await secretStore('readonly', (s) => s.get('keys')));
+}
+
+/** Whether this browser is in a group, by its words or by the keys it followed a move with. */
+async function inGroup() {
+  return (await readPhrase()) !== '' || (await readMovedKeys()) !== null;
+}
+
+/**
+ * Whether this browser followed its group into a fortress, so it holds the
+ * keys of the pairing there and no words to show.
+ */
+async function followedIntoFortress() {
+  return (await readPhrase()) === '' && (await readMovedKeys()) !== null;
+}
+
+/**
+ * readGroupKeys is what this browser dials its group with: the relay key, the
+ * frame key, and the phrase or relay key they came from, which followMove
+ * compares before it replaces them. null without a group.
+ */
+async function readGroupKeys() {
+  const phrase = await readPhrase();
+  if (phrase) return { ...(await keysFromPhrase(phrase)), phrase, movedKey: '' };
+  const moved = await readMovedKeys();
+  if (!moved) return null;
+  return { key: moved.groupKey, frameKey: bytesOfHex(moved.frameKey), phrase: '', movedKey: moved.groupKey };
+}
+
+/**
+ * followMove asks the instance this browser sends to whether the group moved
+ * into a fortress, and follows it there with the keys it hands over, in place
+ * of what `held` dialled with. The answer is signed by that instance's key,
+ * so holding the old words is not enough to send the browser elsewhere.
+ */
+async function followMove({ siblings, call }, held) {
+  const target = defaultOf(siblings, await readDefaultTarget());
+  if (!target || Date.now() - movedAskedAt < MOVED_CHECK_MS) return;
+  movedAskedAt = Date.now();
+  const res = await call(target, 'GET', MOVED_PATH).catch(() => null);
+  if (res?.status !== 200) return;
+  let keys = null;
+  try {
+    keys = movedKeys(JSON.parse(res.body));
+  } catch {
+    return;
+  }
+  if (!keys || keys.groupKey === held.key) return;
+  // Words entered on another page while this session ran win.
+  await secretStore('readwrite', (s) => {
+    const phrase = s.get('phrase');
+    const kept = s.get('keys');
+    kept.onsuccess = () => {
+      if ((phrase.result ?? '') !== held.phrase || (kept.result?.groupKey ?? '') !== held.movedKey) return;
+      s.delete('phrase');
+      s.put(keys, 'keys');
+    };
+    return kept;
+  });
 }
 
 /** The relay instance id this browser sends to when it is not asked. */
@@ -192,24 +284,24 @@ async function readMember() {
 }
 
 /**
- * withGroup opens a relay session for the stored phrase and hands it to `work`,
- * like relaySession. Without a phrase it throws an Error with code 'no-phrase'
- * for callers to translate.
+ * withGroup opens a relay session for the group and hands it to `work`, like
+ * relaySession, asking alongside whether the group moved into a fortress.
+ * Without a group it throws an Error with code 'no-phrase' for callers to
+ * translate.
  */
 async function withGroup(work) {
-  const phrase = await readPhrase();
-  if (!phrase) {
+  const held = await readGroupKeys();
+  if (!held) {
     const err = new Error('no-phrase');
     err.code = 'no-phrase';
     throw err;
   }
-  const { key, frameKey } = await keysFromPhrase(phrase);
   const member = await readMember();
   return relaySession(
     {
       url: DEFAULT_RELAY_URL,
-      key,
-      frameKey,
+      key: held.key,
+      frameKey: held.frameKey,
       selfId: sessionInstanceId(),
       memberId: member?.id,
       memberKey: member?.key,
@@ -218,7 +310,10 @@ async function withGroup(work) {
       // fresh install: the phrase entered again joins it as a new member.
       onRemoved: forgetGroup,
     },
-    work,
+    async (session) => {
+      const [done] = await Promise.all([work(session), followMove(session, held).catch(() => {})]);
+      return done;
+    },
   );
 }
 

@@ -101,7 +101,7 @@ if (html.includes('id="followUnavailable"') || /followInstanceRow\.hidden\s*=/.t
 }
 {
   const handler = options.match(/followInstanceEl\.addEventListener\('click',[\s\S]*?\n\}\);/)?.[0] ?? '';
-  const refusal = handler.match(/if \(on && \(await readPhrase\(\)\) === ''\) \{([\s\S]*?)\n {2}\}/)?.[1];
+  const refusal = handler.match(/if \(on && !\(await inGroup\(\)\)\) \{([\s\S]*?)\n {2}\}/)?.[1];
   if (!refusal) {
     fail("src/options.js: the follow switch's click never asks for the group first, so with none it turns on, asks nobody and snaps back");
   } else {

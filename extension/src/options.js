@@ -14,6 +14,7 @@ const joinBtn = document.getElementById('join');
 const leaveBtn = document.getElementById('leave');
 const refreshBtn = document.getElementById('refreshGroup');
 const ownKeyEl = document.getElementById('ownKey');
+const phraseMovedEl = document.getElementById('phraseMoved');
 const languageHeadingEl = document.getElementById('languageHeading');
 const languageBox = document.getElementById('languageBox');
 const cnlEnabledEl = document.getElementById('cnlEnabled');
@@ -327,6 +328,7 @@ function applyStaticText() {
   groupHeadingEl.textContent = t('options.groupHeading');
   glimSetInfo('groupHeading', t('options.groupInfo'));
   phraseInput.placeholder = t('options.phrasePlaceholder');
+  phraseMovedEl.textContent = t('options.phraseMoved');
   renderPhraseEye();
   renderPhrasePaste();
   joinBtn.replaceChildren(glimGlyph('IconLink', 14), document.createTextNode(t('options.join')));
@@ -517,10 +519,12 @@ async function renderGroup({ quiet = false } = {}) {
   clearTimeout(recheckTimer);
   recheckDue = false;
   const phrase = await readPhrase();
+  const followed = await followedIntoFortress();
   if (turn !== groupTurn) return;
-  const joined = phrase !== '';
+  const joined = phrase !== '' || followed;
   // The field may hold a phrase being typed.
   if (!quiet) phraseInput.value = phrase;
+  phraseMovedEl.hidden = !followed;
   leaveBtn.hidden = !joined;
   refreshBtn.hidden = !joined;
   joinBtn.replaceChildren(glimGlyph('IconLink', 14), document.createTextNode(joined ? t('options.reconnect') : t('options.join')));
@@ -647,7 +651,7 @@ document.addEventListener('visibilitychange', () => {
  * browser while it waits for approval there, so the owner can compare them.
  */
 async function showOwnKey() {
-  if (!(await readPhrase())) return;
+  if (!(await inGroup())) return;
   const member = await readMember();
   if (!member) return;
   ownKeyEl.textContent = t('options.ownKey', { fingerprint: await relayFingerprint(member.key.publicKey) });
@@ -717,7 +721,7 @@ async function saveDeviceName() {
   }
   deviceNameEl.value = await writeDeviceName(next);
   confirmPulse(deviceNameEl);
-  if (await readPhrase()) void renderGroup({ quiet: true });
+  if (await inGroup()) void renderGroup({ quiet: true });
 }
 
 deviceNameEl.addEventListener('change', () => void saveDeviceName());
@@ -1025,7 +1029,7 @@ async function turnClipOn() {
   } catch {
     granted = false;
   }
-  if (!granted || !(await readPhrase())) {
+  if (!granted || !(await inGroup())) {
     await chrome.storage.local.set({ clipNotice: granted ? 'noGroup' : 'refused' });
     await renderClip();
     shake(clipEnabledEl);
@@ -1228,7 +1232,7 @@ followInstanceEl.addEventListener('click', async () => {
   const on = followInstanceEl.getAttribute('aria-checked') !== 'true';
   // Without a group there is no instance to ask, so the switch stays off and
   // the bubble names the card that fixes it.
-  if (on && (await readPhrase()) === '') {
+  if (on && !(await inGroup())) {
     shake(followInstanceEl);
     glimFlashTip(followInstanceEl, t('options.followNoGroup', { card: t('options.groupHeading') }));
     return;
@@ -1660,10 +1664,10 @@ async function renderAppearance() {
     }),
   );
 
-  // `joined` comes from the phrase, not the roster, so an instance that is
+  // `joined` comes from what is stored, not the roster, so an instance that is
   // briefly offline does not flip the switch. `&& joined` covers a stored
   // followInstance left over without a group.
-  const joined = (await readPhrase()) !== '';
+  const joined = await inGroup();
   const following = a.followInstance && joined;
   followInstanceEl.setAttribute('aria-checked', String(following));
 
@@ -2043,7 +2047,7 @@ function paintReportCopy(copied) {
 async function buildReport() {
   // The relay is asked, so the report tells an unreachable group from a
   // healthy one.
-  const joined = (await readPhrase()) !== '';
+  const joined = await inGroup();
   let reachable = 'not joined';
   if (joined) {
     try {

@@ -130,7 +130,7 @@ function paintHues() {
   // For an ordinary click the target line would only repeat the button.
   targetEl.hidden = true;
 
-  if (!(await readPhrase())) {
+  if (!(await inGroup())) {
     // The popup stays open and offers the way to the options page rather
     // than jumping there.
     label(sendBtn, t('popup.addInstance'), glimGlyph('IconAdd', 14));

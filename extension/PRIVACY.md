@@ -26,7 +26,10 @@ profile. We back none of it up, and removing the extension removes all of it.
 
 - Your connection phrase: the twelve words your KnightLoader instances share.
   It is kept in the extension's own database, which the scripts the extension
-  runs on websites for Click'n'Load cannot read.
+  runs on websites for Click'n'Load cannot read. Once your instance joins a
+  fortress, it hands the browser the keys of its pairing there, and those take
+  the place of the words in the same database. The fortress phrase itself never
+  reaches the browser.
 - A random ID for this browser in your group. The extension creates it the
   first time it talks to the group and deletes it when the browser leaves.
 - Which of your instances is the default target.
@@ -260,7 +263,8 @@ button in the popup.
 ## Your choices and your data
 
 - **See what is stored:** the options page shows your phrase (behind the eye
-  button), your default instance and every setting.
+  button), your default instance and every setting. A browser that followed its
+  instance into a fortress has no words to show and says so there.
 - **Switch Click'n'Load off** in the options, as described above.
 - **Switch taking over downloads or finding media off** in the options. Each gives
   back the permissions no other feature still uses.

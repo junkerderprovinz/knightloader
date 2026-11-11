@@ -86,7 +86,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   // does by default. An extension cannot pin itself, so the page explains where
   // it went.
   const hidden = await notOnToolbar();
-  if (details.reason === 'install' && (!(await readPhrase()) || hidden)) {
+  if (details.reason === 'install' && (!(await inGroup()) || hidden)) {
     if (hidden) await chrome.storage.local.set({ showPinHint: true });
     chrome.runtime.openOptionsPage();
     return;

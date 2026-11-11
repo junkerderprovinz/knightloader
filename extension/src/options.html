@@ -117,6 +117,7 @@
       #refreshGroup { margin-top: 16px; }
       #ownKey { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: var(--carbon-text-muted); font-size: var(--text-meta); font-variant-numeric: tabular-nums; }
       #ownKey[hidden] { display: none; }
+      #phraseMoved { margin: 8px 0 0; color: var(--carbon-text-muted); font-size: var(--text-meta); }
       #refreshGroup:disabled { opacity: 0.55; cursor: default; }
       /* The info glyph inside a heading badge takes the badge's ink. */
       .glim-section-badge .glim-info-icon { color: currentColor; }
@@ -277,6 +278,10 @@
           <button id="leave" class="iconBadge glim-btn-subtle" type="button" hidden></button>
         </div>
       </form>
+      <!-- Shown once the browser followed its instance into a fortress and
+           holds the keys of the pairing there, with no words to fill the
+           field with. -->
+      <p id="phraseMoved" hidden></p>
       <!-- Outside the form, so Enter here saves the name instead of
            connecting. -->
       <div class="glim-row">

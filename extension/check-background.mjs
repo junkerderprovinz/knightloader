@@ -21,6 +21,9 @@
  *      update that finds the access missing opens the page that asks for it.
  *   5. When a site's helper window holds the focus, the popup opens in the
  *      browser window showing the same site, not in the helper.
+ *   6. A group that moved into a fortress takes the browser along: the
+ *      instance it sends to hands over the keys of the pairing there, which
+ *      take the place of the words, and words entered later take theirs.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -391,8 +394,101 @@ for (const granted of [true, false]) {
   }
 }
 
+// 6. The browser follows its group into a fortress: the instance it sends to
+//    hands over the keys of the pairing there, which take the place of the
+//    words. Every load below is a page opened afresh over the same storage.
+{
+  const PHRASE = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+  const MOVED = '/api/group/peer/moved';
+  const { chrome, store } = makeChrome({ withMenus: true });
+  const idb = fakeIndexedDB();
+  const page = () => {
+    const { ctx, error } = load(chrome, idb);
+    if (error) throw new Error(error);
+    const opened = [];
+    const asked = [];
+    ctx.answers = { [MOVED]: { status: 404, body: '{"code":"notMoved"}' } };
+    ctx.record = (o) => opened.push(o);
+    ctx.ask = (target, method, path) => {
+      asked.push({ target, method, path });
+      return ctx.answers[path] ?? { status: 200, body: '[]' };
+    };
+    vm.runInContext(
+      "relaySession = (opts, work) => { record(opts); return work({ siblings: [{ instanceId: 'a'.repeat(40) }, { instanceId: 'b'.repeat(40) }], call: async (t, m, p) => ask(t, m, p) }); }",
+      ctx,
+    );
+    return { ctx, opened, asked, run: (name) => vm.runInContext(name, ctx) };
+  };
+  const hex = (b) => Buffer.from(b).toString('hex');
+  const movedAsks = (asked) => asked.filter((a) => a.path === MOVED);
+  const moved = { groupKey: '1a'.repeat(32), frameKey: '2b'.repeat(32), peerAuthKey: '3c'.repeat(32) };
+
+  try {
+    let p = page();
+    await p.run('writePhrase')(PHRASE);
+    const words = await p.run('keysFromPhrase')(PHRASE);
+    store.defaultInstance = 'b'.repeat(40);
+
+    await p.run('groupInstances')();
+    await p.run('groupInstances')();
+    const first = movedAsks(p.asked);
+    if (first.length !== 1) fail(`two sessions of one page asked ${first.length} time(s) whether the group moved, want once`);
+    else if (first[0].target !== 'b'.repeat(40) || first[0].method !== 'GET') fail(`the browser asked ${JSON.stringify(first[0])} whether the group moved, want a GET of the instance it sends to`);
+    if ((await p.run('readPhrase')()) !== PHRASE) fail('a group that has not moved loses its words');
+
+    // Paired anew with the fortress phrase, the keys handed over are the
+    // ones the words give, and the words stay.
+    p = page();
+    p.ctx.answers[MOVED] = { status: 200, body: JSON.stringify({ groupKey: words.key, frameKey: hex(words.frameKey), peerAuthKey: '3c'.repeat(32) }) };
+    await p.run('groupInstances')();
+    if ((await p.run('readPhrase')()) !== PHRASE) fail('the browser drops words that already give the keys of the fortress');
+
+    for (const bad of [
+      { ...moved, frameKey: '2b'.repeat(16) },
+      { ...moved, groupKey: 'not hex' },
+      { groupKey: moved.groupKey, frameKey: moved.frameKey },
+    ]) {
+      p = page();
+      p.ctx.answers[MOVED] = { status: 200, body: JSON.stringify(bad) };
+      await p.run('groupInstances')();
+      if ((await p.run('readPhrase')()) !== PHRASE) fail(`the browser followed the keys ${JSON.stringify(bad)}, which are no keys of a pairing`);
+    }
+
+    p = page();
+    p.ctx.answers[MOVED] = { status: 200, body: JSON.stringify(moved) };
+    await p.run('groupInstances')();
+    if ((await p.run('readPhrase')()) !== '') fail('the browser keeps the old words after it followed its group into a fortress');
+    if (!(await p.run('inGroup')())) fail('a browser that followed its group into a fortress counts as in no group');
+    if ('keys' in store || JSON.stringify(store).includes(moved.frameKey)) fail('the keys of the fortress pairing are kept in storage.local, which every content script can read');
+    if (idb.stores.get('secrets')?.get('keys')?.peerAuthKey !== moved.peerAuthKey) fail('the browser does not keep the peer-auth key it was handed');
+
+    p = page();
+    await p.run('groupInstances')();
+    const dialled = p.opened[0];
+    if (dialled?.key !== moved.groupKey || hex(dialled?.frameKey ?? []) !== moved.frameKey) {
+      fail(`after following, a session dials the relay key ${dialled?.key} and frame key ${hex(dialled?.frameKey ?? [])}, want the ones handed over`);
+    }
+    if (!dialled?.memberId) fail('after following, the browser no longer signs as the member the instances approved');
+
+    // New words from the Pairing page take the place of the keys.
+    await p.run('writePhrase')(PHRASE);
+    p = page();
+    await p.run('groupInstances')();
+    if (p.opened[0]?.key !== words.key) fail('words entered after a move do not take the place of the keys handed over');
+    if (idb.stores.get('secrets')?.has('keys')) fail('words entered after a move leave the keys handed over in store');
+
+    p = page();
+    p.ctx.answers[MOVED] = { status: 200, body: JSON.stringify(moved) };
+    await p.run('groupInstances')();
+    await p.run('forgetGroup')();
+    if (await p.run('inGroup')()) fail('leaving the group keeps the keys of the fortress pairing');
+  } catch (e) {
+    fail(`following the group into a fortress: ${e.message}`);
+  }
+}
+
 if (problems.length) {
   for (const p of problems) console.error(`✗ ${p}`);
   process.exit(1);
 }
-console.log('ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, the phrase stays out of storage content scripts read, every session joins under its own id and one lasting member id, Click\'n\'Load follows the site access and its popup finds the sending site\'s window');
+console.log('ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, the phrase stays out of storage content scripts read, every session joins under its own id and one lasting member id, Click\'n\'Load follows the site access and its popup finds the sending site\'s window, and the browser follows its group into a fortress');
