@@ -132,10 +132,12 @@ func TestWSUnsubscribedConnectionIsUnaffectedByOthersSubscribing(t *testing.T) {
 	cancel()
 	time.Sleep(150 * time.Millisecond)
 
+	// The queue may broadcast its own state first.
 	a.Hub.Broadcast("queue", "wide should still get this")
-	got := readOneOfType(t, wide, "queue")
-	if got["data"] != "wide should still get this" {
-		t.Errorf("queue data = %v", got["data"])
+	for {
+		if got := readOneOfType(t, wide, "queue"); got["data"] == "wide should still get this" {
+			return
+		}
 	}
 }
 
