@@ -1,0 +1,295 @@
+// @vitest-environment jsdom
+// The fortress on the Pairing page: outside one, the twelve words join it;
+// inside, the phrase shows behind the password with its QR code, and the
+// phrase changes and KnightLoader leaves from the Fortress card.
+import { act, useState } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { FortressState } from '../../../lib/api';
+import { I18nProvider } from '../../../lib/i18n';
+import { interpolate } from '../../../lib/interpolate';
+import { en } from '../../../lib/locales/en';
+import { FortressSection } from './FortressSection';
+
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+const PHRASE = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+const NEW_PHRASE = 'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong';
+
+const server = vi.hoisted(() => ({
+  view: null as unknown as FortressState,
+  join: null as null | (() => never),
+  throttled: false,
+  calls: [] as string[],
+}));
+
+vi.mock('../../../lib/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../lib/api')>();
+  const wrong = () => new actual.ApiError('the password is required to show the phrase', 'passwordWrong', undefined, 403);
+  return {
+    ...actual,
+    joinFortress: async (phrase: string) => {
+      server.calls.push(`join ${phrase}`);
+      server.join?.();
+      server.view = { ...server.view, joined: true, phrase: true };
+      return server.view;
+    },
+    showFortressPhrase: async (password: string) => {
+      if (server.throttled) throw new actual.ApiError('too many attempts, wait a moment', undefined, undefined, 429);
+      if (password !== 'hunter2') throw wrong();
+      return { phrase: PHRASE };
+    },
+    changeFortressPhrase: async (password: string) => {
+      server.calls.push(`change ${password}`);
+      if (server.view.passwordSet && password !== 'hunter2') throw wrong();
+      return { phrase: NEW_PHRASE, left: ['Cellar'] };
+    },
+    leaveFortress: async () => {
+      server.calls.push('leave');
+      server.view = { ...server.view, joined: false, phrase: false };
+      return server.view;
+    },
+  };
+});
+
+const toasts = vi.hoisted(() => [] as string[]);
+vi.mock('../../../lib/toast', () => ({ useToast: () => ({ toast: (m: string) => toasts.push(m) }) }));
+
+function state(over: Partial<FortressState> = {}): FortressState {
+  return {
+    joined: false,
+    phrase: false,
+    device: 'nas',
+    passwordSet: true,
+    members: [],
+    permissions: [],
+    pairedWith: [],
+    left: [],
+    ...over,
+  };
+}
+const joined = (over: Partial<FortressState> = {}) => state({ joined: true, phrase: true, ...over });
+
+/** The section with the page's state around it, so an answer reaches it. */
+function Host({ start }: { start: FortressState }) {
+  const [view, setView] = useState(start);
+  return <FortressSection view={view} onView={setView} onRefresh={() => server.calls.push('refresh')} hueStart={7} />;
+}
+
+let root: Root;
+let host: HTMLDivElement;
+
+beforeEach(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener() {},
+    removeEventListener() {},
+    addListener() {},
+    removeListener() {},
+  }));
+  host = document.createElement('div');
+  document.body.append(host);
+  root = createRoot(host);
+  server.join = null;
+  server.throttled = false;
+  server.calls.length = 0;
+  toasts.length = 0;
+});
+
+afterEach(() => {
+  act(() => root.unmount());
+  host.remove();
+  document.body.innerHTML = '';
+  vi.unstubAllGlobals();
+  localStorage.clear();
+});
+
+async function draw(start: FortressState) {
+  server.view = start;
+  await act(async () =>
+    root.render(
+      <I18nProvider>
+        <Host start={start} />
+      </I18nProvider>,
+    ),
+  );
+}
+
+/** settle lets the promises and the frame a window opens in run out. */
+const settle = () => act(async () => new Promise((done) => setTimeout(done, 20)));
+
+const hook = (name: string) => document.querySelector<HTMLElement>(`[data-fortress="${name}"]`);
+const press = async (name: string) => {
+  await act(async () => hook(name)!.click());
+  await settle();
+};
+const typeInto = async (field: HTMLInputElement, value: string) => {
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!;
+  await act(async () => {
+    setter.call(field, value);
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+};
+const passwordField = () => document.querySelector<HTMLInputElement>('input[aria-label="Password of KnightLoader"]')!;
+const alertText = () => document.querySelector('[role="alert"]')?.textContent;
+const page = () => document.body.textContent ?? '';
+
+describe('FortressSection', () => {
+  it('joins with the twelve words pasted into the first field and reads the page again', async () => {
+    await draw(state());
+    expect(page()).toContain('Not in a fortress yet');
+    await press('open-join');
+    await typeInto(document.querySelector<HTMLInputElement>('[data-word="0"]')!, PHRASE);
+    expect(document.querySelectorAll<HTMLInputElement>('[data-word]')[11].value).toBe('about');
+    await press('join');
+    expect(server.calls).toEqual([`join ${PHRASE}`, 'refresh']);
+    expect(page()).toContain('KnightLoader is in the fortress now');
+  });
+
+  it('names a mistyped word in the words of the group card and keeps the window open', async () => {
+    const { PhraseRejected } = await vi.importActual<typeof import('../../../lib/api')>('../../../lib/api');
+    server.join = () => {
+      throw new PhraseRejected({ reason: 'unknown_word', word: 'recieve', position: 7 });
+    };
+    await draw(state());
+    await press('open-join');
+    await typeInto(document.querySelector<HTMLInputElement>('[data-word="0"]')!, PHRASE);
+    await press('join');
+    expect(alertText()).toBe(interpolate(en['pairing.errUnknownWord'], { position: 7, word: 'recieve' }));
+    expect(document.querySelector('[data-word="0"]')).toBeTruthy();
+  });
+
+  it('says KnightLoader is in a fortress already when the server says so', async () => {
+    const { ApiError } = await vi.importActual<typeof import('../../../lib/api')>('../../../lib/api');
+    server.join = () => {
+      throw new ApiError('KnightLoader is in a fortress already', 'fortress.inFortress', undefined, 409);
+    };
+    await draw(state());
+    await press('open-join');
+    await typeInto(document.querySelector<HTMLInputElement>('[data-word="0"]')!, PHRASE);
+    await press('join');
+    expect(alertText()).toBe(en['pairing.fortressInFortress']);
+  });
+
+  it('says where the phrase comes from in words that fit this page', async () => {
+    await draw(state());
+    expect(page()).toContain(interpolate(en['pairing.fortressOutHint'], { app: 'KnightLoader' }));
+    await press('open-join');
+    expect(page()).toContain(en['pairing.fortressPhraseWhere']);
+    expect(page()).not.toMatch(/under Instances|instances of KnightLoader show up here/);
+  });
+
+  it('says that the pairing with the other instances comes along into the fortress', async () => {
+    await draw(state({ pairedWith: ['attic'] }));
+    await press('open-join');
+    expect(hook('moves')?.textContent).toBe(
+      'KnightLoader is already paired with attic. Joining moves that pairing into the fortress, so there is nothing to pair again.',
+    );
+  });
+
+  it('shows the phrase with its QR code only after the password', async () => {
+    await draw(joined());
+    await press('show');
+    await typeInto(passwordField(), 'wrong');
+    await press('unlock');
+    expect(alertText()).toBe('That password is not right.');
+    await typeInto(passwordField(), 'hunter2');
+    await press('unlock');
+    expect(hook('words')!.querySelectorAll('li')).toHaveLength(12);
+    expect(hook('qr')).toBeTruthy();
+  });
+
+  it('asks to wait after too many wrong passwords', async () => {
+    server.throttled = true;
+    await draw(joined());
+    await press('show');
+    await typeInto(passwordField(), 'hunter2');
+    await press('unlock');
+    expect(alertText()).toBe(en['auth.tooMany']);
+  });
+
+  it('asks for the password before the phrase changes, and a wrong one changes nothing', async () => {
+    await draw(joined());
+    await press('open-change');
+    await press('change');
+    expect(server.calls).toEqual([]);
+    await typeInto(passwordField(), 'wrong');
+    await press('change-unlock');
+    expect(server.calls).toEqual(['change wrong']);
+    expect(alertText()).toBe('That password is not right.');
+    expect(hook('words')).toBeNull();
+  });
+
+  it('keeps the phrase when the password window closes', async () => {
+    await draw(joined());
+    await press('open-change');
+    await press('change');
+    await act(async () => {
+      (document.activeElement ?? document.body).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
+    await settle();
+    expect(server.calls).toEqual([]);
+    expect(alertText()).toBe(en['pairing.fortressChangeKept']);
+  });
+
+  it('changes the phrase without asking where KnightLoader has no password', async () => {
+    await draw(joined({ passwordSet: false }));
+    await press('open-change');
+    await press('change');
+    expect(server.calls).toEqual(['change ', 'refresh']);
+    expect(hook('words')!.textContent).toContain('wrong');
+  });
+
+  it('changes the phrase for the password and leaves from the Fortress card', async () => {
+    await draw(joined());
+    expect(page()).toContain(en['pairing.fortressTitle']);
+    await press('open-change');
+    await press('change');
+    await typeInto(passwordField(), 'hunter2');
+    await press('change-unlock');
+    expect(server.calls).toEqual(['change hunter2', 'refresh']);
+    expect(hook('words')!.textContent).toContain('wrong');
+    expect(page()).toContain('Still on the old phrase: Cellar. Enter the new one there once.');
+    const done = [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.includes('Done'))!;
+    await act(async () => done.click());
+    await settle();
+
+    await press('open-leave');
+    await press('leave');
+    expect(server.calls).toEqual(['change hunter2', 'refresh', 'leave', 'refresh']);
+    expect(page()).toContain('Not in a fortress yet');
+  });
+
+  it('calls a member connected or not reachable', async () => {
+    const member = { app: 'arrowloop', name: 'ArrowLoop', version: '3.0.0', deployment: 'container', kind: 'instance', relay: false };
+    await draw(
+      joined({
+        members: [
+          { ...member, id: 'm1', device: 'Tower', online: true },
+          { ...member, id: 'm2', device: 'Cellar', online: false },
+        ],
+      }),
+    );
+    await press('others');
+    expect(page()).toContain('Connected');
+    expect(page()).toContain(en['pairing.fortressAway']);
+    expect(page()).not.toContain('Inactive');
+  });
+
+  it('offers neither showing nor changing a phrase KnightLoader does not keep', async () => {
+    await draw(joined({ phrase: false }));
+    expect(hook('show')).toBeNull();
+    expect(hook('open-change')).toBeNull();
+    expect(hook('open-leave')).toBeTruthy();
+  });
+});

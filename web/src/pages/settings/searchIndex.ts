@@ -553,6 +553,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // nobody has come to opens.
       body: ['pairing.lead', 'pairing.keyNote', 'pairing.wordsTip', 'pairing.twoBody'],
     },
+    // The card in the phrase card's place once the pairing is in a fortress.
+    { title: 'pairing.movedTitle', rows: [], body: ['pairing.moved'] },
     {
       title: 'instances.title',
       hint: 'pairing.groupHint',
@@ -595,6 +597,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // of what to check.
       body: ['relay.lead', 'relay.serveHint', 'pairing.relayCheckTip'],
     },
+    // GlimStone's fortress below the relay, worded in its own texts but for
+    // these, which say where the phrase comes from.
+    { title: 'pairing.fortressTitle', rows: [], body: ['pairing.fortressOutHint', 'pairing.fortressPhraseWhere'] },
   ],
 
   access: [

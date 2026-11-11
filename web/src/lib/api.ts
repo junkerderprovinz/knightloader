@@ -4535,27 +4535,27 @@ export class PhraseRejected extends Error {
   }
 }
 
+/**
+ * phraseRefusal reads a refused join. A rejected phrase answers with a
+ * reason, a refusal such as a missing password with a code, and other
+ * failures (an expired session, a proxy) with text.
+ */
+async function phraseRefusal(r: Response): Promise<Error> {
+  const raw = await r.text();
+  let body: { error?: string; code?: string; reason?: string } | null = null;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return new Error(raw.trim() || `${r.status}`);
+  }
+  if (body?.reason) return new PhraseRejected(body);
+  return new ApiError(body?.error ?? `${r.status}`, body?.code, undefined, r.status);
+}
+
 /** joinConnect is the other half: every instance after the first. */
 export async function joinConnect(phrase: string): Promise<ConnectInfo> {
-  const r = await fetch('/api/connect/join', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phrase }),
-  });
-  if (!r.ok) {
-    const raw = await r.text();
-    // A rejected phrase answers with a reason, a refusal such as a missing
-    // password with a code, and other failures (an expired session, a proxy)
-    // with text.
-    let body: { error?: string; code?: string; reason?: string } | null = null;
-    try {
-      body = JSON.parse(raw);
-    } catch {
-      throw new Error(raw.trim() || `${r.status}`);
-    }
-    if (body?.reason) throw new PhraseRejected(body);
-    throw new ApiError(body?.error ?? `${r.status}`, body?.code, undefined, r.status);
-  }
+  const r = await post('/api/connect/join', { phrase });
+  if (!r.ok) throw await phraseRefusal(r);
   return json(r);
 }
 
@@ -4614,6 +4614,86 @@ export async function refuseDevice(id: string): Promise<void> {
 export async function leaveConnect(): Promise<void> {
   const r = await fetch('/api/connect', { method: 'DELETE' });
   if (!r.ok) throw new Error(await r.text());
+}
+
+/** Another instance of the fortress that said which app it runs. */
+export interface FortressMember {
+  id: string;
+  app: string;
+  name: string;
+  version: string;
+  device: string;
+  deployment: string;
+  /** "instance", "mobile" or "extension". */
+  kind: string;
+  online: boolean;
+  /** Reached through the relay alone. */
+  relay: boolean;
+  /** Unix seconds. */
+  lastSeen?: number;
+}
+
+/** Whether one app of the fortress may run an action at another. */
+export interface FortressPermissionState {
+  from: string;
+  to: string;
+  action: string;
+  on: boolean;
+}
+
+/** What GET /api/fortress answers. It never carries the phrase. */
+export interface FortressState {
+  joined: boolean;
+  /** Whether the phrase can be shown and changed here. */
+  phrase: boolean;
+  device: string;
+  passwordSet: boolean;
+  members: FortressMember[];
+  /** The permissions that involve KnightLoader. */
+  permissions: FortressPermissionState[];
+  /** The devices of this instance's pairing, which moves into the fortress on
+   *  joining and ends on leaving. */
+  pairedWith: string[];
+  /** The members of the pairing that have not followed it into the fortress yet. */
+  left: string[];
+}
+
+export async function fetchFortress(): Promise<FortressState> {
+  return json(await fetch('/api/fortress'));
+}
+
+/** joinFortress joins the fortress of a phrase, and the pairing moves along.
+ *  A phrase that does not decode throws PhraseRejected, as joinConnect does. */
+export async function joinFortress(phrase: string): Promise<FortressState> {
+  const r = await post('/api/fortress/join', { phrase });
+  if (!r.ok) throw await phraseRefusal(r);
+  return json(r);
+}
+
+/** showFortressPhrase shows the phrase again, for the login password where one is set. */
+export async function showFortressPhrase(password: string): Promise<{ phrase: string; qr?: QRMatrix }> {
+  return json(await post('/api/fortress/phrase/show', { password }));
+}
+
+/** changeFortressPhrase gives the fortress a new phrase. `left` names the
+ *  devices out of reach, which still hold the old one. */
+export async function changeFortressPhrase(password: string): Promise<{ phrase: string; qr?: QRMatrix; left: string[] }> {
+  return json(await post('/api/fortress/phrase', { password }));
+}
+
+export async function setFortressPermission(p: FortressPermissionState): Promise<FortressState> {
+  return json(
+    await fetch('/api/fortress/permissions', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(p),
+    }),
+  );
+}
+
+/** leaveFortress takes this instance out of the fortress; its pairing ends with it. */
+export async function leaveFortress(): Promise<FortressState> {
+  return json(await fetch('/api/fortress', { method: 'DELETE' }));
 }
 
 /**

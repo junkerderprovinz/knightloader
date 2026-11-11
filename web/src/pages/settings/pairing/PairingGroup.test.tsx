@@ -4,8 +4,9 @@ import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ConnectInfo } from '../../../lib/api';
+import type { ConnectInfo, FortressState } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
+import { en } from '../../../lib/locales/en';
 import { PairingGroup } from './PairingGroup';
 
 // Nobody else reaches the desktop window, so it shows the words without the warning a browser gets.
@@ -464,5 +465,47 @@ describe('PairingGroup', () => {
     expect(host.textContent).toContain('waiting for approval from the others in the group');
     draw({ joinedAgo: 500, memberSeen: true, awaiting: false });
     expect(host.textContent).not.toContain('waiting for approval from the others in the group');
+  });
+});
+
+describe('PairingGroup in a fortress', () => {
+  const fortress = (left: string[]): FortressState => ({
+    joined: true,
+    phrase: true,
+    device: 'nas',
+    passwordSet: true,
+    members: [],
+    permissions: [],
+    pairedWith: ['attic'],
+    left,
+  });
+  const drawMoved = (group: Partial<ConnectInfo>, left: string[]) =>
+    act(() =>
+      root.render(
+        <MemoryRouter>
+          <I18nProvider>
+            <PairingGroup group={{ ...base, ...group }} fortress={fortress(left)} onGroup={() => {}} onRefresh={() => {}} />
+          </I18nProvider>
+        </MemoryRouter>,
+      ),
+    );
+
+  it('says the pairing runs on the fortress phrase, names who has not followed and offers no phrase of its own', () => {
+    drawMoved({}, ['attic', 'pixel']);
+    expect(host.textContent).toContain(en['pairing.movedTitle']);
+    expect(host.textContent).toContain(en['pairing.moved']);
+    expect(host.textContent).toContain(en['pairing.oldPhrase'].replace('{names}', 'attic and pixel'));
+    const words = [...host.querySelectorAll('button')].map((b) => b.textContent);
+    expect(words).not.toContain(en['pairing.show']);
+    expect(words).not.toContain(en['pairing.leave']);
+    expect(tiles()).toHaveLength(0);
+  });
+
+  it('says nothing about the old phrase once everybody followed, and still lists the group', () => {
+    drawMoved({ active: false, members: [{ id: 'm1', name: 'attic', deployment: 'container', direct: true, relay: false }] }, []);
+    expect(host.textContent).toContain(en['pairing.moved']);
+    expect(host.textContent).not.toContain('old phrase');
+    expect(tiles()).toHaveLength(0);
+    expect(host.textContent).toContain('attic');
   });
 });
