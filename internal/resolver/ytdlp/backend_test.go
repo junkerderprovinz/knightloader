@@ -51,6 +51,11 @@ func TestMain(m *testing.M) {
 			`{"format_id":"401","ext":"mp4","vcodec":"av01.0.12M.08","acodec":"none","height":2160,"fps":25,"tbr":9024.958,"filesize":240334643,"protocol":"https"}` +
 			`]}`)
 		os.Exit(0)
+	case "hdr":
+		fmt.Println(`{"title":"HDR","formats":[` +
+			`{"format_id":"337","ext":"webm","vcodec":"vp9.2","acodec":"none","width":3840,"height":2160,"dynamic_range":"HDR10"}` +
+			`]}`)
+		os.Exit(0)
 	case "languages":
 		// Manual subtitles without English, automatic captions with it, and
 		// auto-dubbed audio whose language_preference marks the original.
@@ -245,6 +250,16 @@ func TestProbeTitleEstimatesASizeFromTheBitrateWhereNoneIsReported(t *testing.T)
 	}
 	if ext, size := VideoFile("best", got.Formats, Options{}); ext != "mkv" || size != 240334643+3433755 {
 		t.Errorf("VideoFile(best) = %q, %d; want mkv and the two picked formats together", ext, size)
+	}
+}
+
+func TestProbeTitleReadsTheDynamicRange(t *testing.T) {
+	got, err := fakeYtdlpBackend(t, "hdr").ProbeTitle(context.Background(), "https://youtube.com/watch?v=hdr", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.Formats) != 1 || got.Formats[0].DynamicRange != "HDR10" {
+		t.Errorf("Formats = %+v, want the HDR10 track", got.Formats)
 	}
 }
 

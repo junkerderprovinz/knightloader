@@ -107,6 +107,34 @@ func TestTheExtensionsMenuSaysHowLargeEachPickIs(t *testing.T) {
 	}
 }
 
+// An HDR track is offered under a key of its own beside the plain track of
+// its height, each with the size of what it downloads.
+func TestTheExtensionsMenuOffersAnHDRTrackApart(t *testing.T) {
+	hdr := ytdlp.ProbeResult{Formats: []ytdlp.FormatEntry{
+		{FormatID: "251", Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 135, Filesize: 4_000_000},
+		{FormatID: "303", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 1920, Height: 1080, FPS: 60, DynamicRange: "SDR", Filesize: 300_000_000},
+		{FormatID: "335", Ext: "webm", Vcodec: "vp9.2", Acodec: "none", Width: 1920, Height: 1080, FPS: 60, DynamicRange: "HDR10", Filesize: 900_000_000},
+	}}
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	fake, _ := newFakeYtdlp()
+	fake.title = "HDR"
+	fake.offers = hdr
+	wireYtdlp(a, fake)
+
+	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offershdr01")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"1080p60hdr webm vp9", "1080p60 webm vp9"}; !slices.Equal(m.VideoTracks, want) {
+		t.Errorf("video tracks = %v, want %v", m.VideoTracks, want)
+	}
+	for pick, want := range map[string]int64{"1080p60hdr webm vp9": 904_000_000, "1080p60 webm vp9": 304_000_000} {
+		if got := m.VideoSizes[pick]; got != want {
+			t.Errorf("the video pick %q is %d bytes, want %d", pick, got, want)
+		}
+	}
+}
+
 // The best quality and the highest resolution download the same tracks on a
 // YouTube video, so the menu gives them the same size.
 func TestTheBestQualityAndTheHighestResolutionWeighTheSame(t *testing.T) {

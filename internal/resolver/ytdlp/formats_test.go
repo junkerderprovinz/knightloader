@@ -90,8 +90,8 @@ func TestAHostWithoutCodecsStillOffersItsTracks(t *testing.T) {
 		"[width=720][height>720][height<=?1919]", "[height=720][width>=?720][width<=?1919]",
 		"[height<720][width>=1280][width<=?1919]", "[width<720][height>=1280][height<=?1919]",
 	} {
-		video = append(video, "bv"+shape+"[ext=avi][fps<?30.5]+ba")
-		both = append(both, "b"+shape+"[ext=avi][fps<?30.5]")
+		video = append(video, "bv"+shape+"[ext=avi][fps<?30.5][dynamic_range=?SDR]+ba")
+		both = append(both, "b"+shape+"[ext=avi][fps<?30.5][dynamic_range=?SDR]")
 	}
 	if want := strings.Join(append(video, both...), "/"); sel != want {
 		t.Errorf("-f = %q, want %q", sel, want)
@@ -155,7 +155,7 @@ func TestKeysRefuseAnythingTheyCouldNotHaveProduced(t *testing.T) {
 func TestAPickedVideoTrackSelectsByItsAttributesAndKeepsItsContainer(t *testing.T) {
 	args := buildArgs("d", Options{VideoPick: "1080p mp4 avc1"})
 	got, _ := valueAfter(args, "-f")
-	rest := "[ext=mp4][vcodec~='(?i)^(avc|h264)'][fps<?30.5]"
+	rest := "[ext=mp4][vcodec~='(?i)^(avc|h264)'][fps<?30.5][dynamic_range=?SDR]"
 	shapes := []string{
 		"[width=1080][height>1080][height<=?2559]", "[height=1080][width>=?1080][width<=?2559]",
 		"[height<1080][width>=1920][width<=?2559]", "[width<1080][height>=1920][height<=?2559]",
@@ -858,7 +858,7 @@ func TestAWideTrackKeyedByItsHeightTakesItsOwnKey(t *testing.T) {
 // package writes and fails the test on any other.
 func ytdlpVideoPick(t *testing.T, sel string, formats []FormatEntry) string {
 	t.Helper()
-	filter := regexp.MustCompile(`\[(\w+)(<=|>=|~=|<|>|=)(\??)('[^']*'|[^\]]*)\]`)
+	filter := regexp.MustCompile(`\[(\w+)(<=|>=|~=|!=|<|>|=)(\??)('[^']*'|[^\]]*)\]`)
 	for _, alt := range strings.Split(sel, "/") {
 		video, _, _ := strings.Cut(alt, "+")
 		kind, filters, _ := strings.Cut(video, "[")
@@ -894,6 +894,17 @@ func matchesFilters(t *testing.T, matches [][]string, f FormatEntry) bool {
 			continue
 		case "vcodec":
 			if !regexp.MustCompile(strings.Trim(value, "'")).MatchString(f.Vcodec) {
+				return false
+			}
+			continue
+		case "dynamic_range":
+			if f.DynamicRange == "" {
+				if !orNone {
+					return false
+				}
+				continue
+			}
+			if (op == "=") != (f.DynamicRange == value) {
 				return false
 			}
 			continue
@@ -936,6 +947,95 @@ func TestVideoFileMeasuresAQualityPickInTheInstancesVideoFormat(t *testing.T) {
 	}
 	if ext, _ := VideoFile("webm vp9 1080p", youtubeLike, o); ext != "webm" {
 		t.Errorf("a row's own format came out as %q, want webm", ext)
+	}
+}
+
+// hdrLike is a YouTube video filmed in HDR, trimmed from a real probe: at
+// 1080p and 2160p it has an SDR track beside HDR10 ones in vp9 and av1, and
+// av1 in HDR alone.
+var hdrLike = []FormatEntry{
+	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129.472, Filesize: 92365238, Protocol: "https"},
+	{FormatID: "251", Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 135.515, Filesize: 96676417, Protocol: "https", Default: true},
+	{FormatID: "299", Ext: "mp4", Vcodec: "avc1.64002A", Acodec: "none", Width: 1920, Height: 1080, FPS: 60, DynamicRange: "SDR", Filesize: 2253848622, Protocol: "https"},
+	{FormatID: "303", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 1920, Height: 1080, FPS: 60, DynamicRange: "SDR", Filesize: 1419358064, Protocol: "https"},
+	{FormatID: "335", Ext: "webm", Vcodec: "vp9.2", Acodec: "none", Width: 1920, Height: 1080, FPS: 60, DynamicRange: "HDR10", Filesize: 4803172978, Protocol: "https"},
+	{FormatID: "699", Ext: "mp4", Vcodec: "av01.0.09M.10.0.110.09.18.09.0", Acodec: "none", Width: 1920, Height: 1080, FPS: 60, DynamicRange: "HDR10", Filesize: 3937667946, Protocol: "https"},
+	{FormatID: "315", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 3840, Height: 2160, FPS: 60, DynamicRange: "SDR", Filesize: 8469344000, Protocol: "https"},
+	{FormatID: "337", Ext: "webm", Vcodec: "vp9.2", Acodec: "none", Width: 3840, Height: 2160, FPS: 60, DynamicRange: "HDR10", Filesize: 19078593369, Protocol: "https"},
+	{FormatID: "701", Ext: "mp4", Vcodec: "av01.0.13M.10.0.110.09.18.09.0", Acodec: "none", Width: 3840, Height: 2160, FPS: 60, DynamicRange: "HDR10", Filesize: 19636907430, Protocol: "https", Default: true},
+}
+
+func TestAnHDRVideoListsItsHDRTracksBesideItsPlainOnes(t *testing.T) {
+	want := []string{
+		"2160p60hdr mp4 av1", "2160p60hdr webm vp9", "2160p60 webm vp9",
+		"1080p60hdr mp4 av1", "1080p60hdr webm vp9", "1080p60 mp4 avc1", "1080p60 webm vp9",
+	}
+	got := VideoTracks(hdrLike)
+	if !slices.Equal(got, want) {
+		t.Errorf("VideoTracks =\n  %v\nwant\n  %v", got, want)
+	}
+	for _, k := range got {
+		if !IsVideoTrack(k) {
+			t.Errorf("VideoTracks listed %q, which IsVideoTrack refuses", k)
+		}
+	}
+}
+
+// yt-dlp ranks HDR above SDR at one height, so a plain pick has to ask for SDR
+// to get it.
+func TestAnHDRPickTakesTheHDRTrackAndAPlainPickTheSDROne(t *testing.T) {
+	for pick, want := range map[string]string{
+		"2160p60 webm vp9":    "315",
+		"2160p60hdr webm vp9": "337",
+		"2160p60hdr mp4 av1":  "701",
+		"1080p60 webm vp9":    "303",
+		"1080p60hdr webm vp9": "335",
+		"1080p60 mp4 avc1":    "299",
+	} {
+		sel, _ := valueAfter(buildArgs("d", Options{VideoPick: pick}), "-f")
+		if got := ytdlpVideoPick(t, sel, hdrLike); got != want {
+			t.Errorf("%s: -f %q takes format %q, want %q", pick, sel, got, want)
+		}
+	}
+	plain, _ := valueAfter(buildArgs("d", Options{VideoPick: "1080p mp4 avc1"}), "-f")
+	if got := ytdlpVideoPick(t, plain, landscapeLike); got != "137" {
+		t.Errorf("a host that names no dynamic range: -f %q takes format %q, want 137", plain, got)
+	}
+}
+
+func TestAnHDRVideoShowsTheSizeOfTheTrackAPickDownloads(t *testing.T) {
+	for pick, want := range map[string]int64{
+		"2160p60 webm vp9":    8469344000 + 96676417,
+		"2160p60hdr webm vp9": 19078593369 + 96676417,
+	} {
+		if ext, size := VideoFile(pick, hdrLike, Options{}); ext != "webm" || size != want {
+			t.Errorf("VideoFile(%q) = %q, %d; want webm, %d", pick, ext, size, want)
+		}
+	}
+	// Under a cap yt-dlp takes the HDR track of a height over the SDR one,
+	// whichever is larger.
+	formats := []FormatEntry{
+		{FormatID: "251", Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 135, Filesize: 100, Protocol: "https"},
+		{FormatID: "303", Ext: "webm", Vcodec: "vp9", Acodec: "none", Width: 1920, Height: 1080, FPS: 60, DynamicRange: "SDR", Filesize: 5000, Protocol: "https"},
+		{FormatID: "335", Ext: "webm", Vcodec: "vp9.2", Acodec: "none", Width: 1920, Height: 1080, FPS: 60, DynamicRange: "HDR10", Filesize: 4000, Protocol: "https"},
+	}
+	if _, size := VideoFile("1080p", formats, Options{}); size != 4000+100 {
+		t.Errorf("VideoFile(1080p) weighs %d, want the HDR track's 4100", size)
+	}
+}
+
+// A plain key the source has only in HDR takes the HDR track's key, the one
+// yt-dlp would pick for it, and a preset's format takes the plain track of a
+// height.
+func TestAPickOnAnHDRVideoResolvesToTheTrackItMeans(t *testing.T) {
+	for pick, want := range map[string]string{
+		"2160p60 mp4 av1":  "2160p60hdr mp4 av1",
+		"2160p60 webm vp9": "2160p60 webm vp9",
+		"webm vp9 2160p":   "2160p60 webm vp9",
+	} {
+		if got := ResolveVideoPick(pick, hdrLike); got != want {
+			t.Errorf("ResolveVideoPick(%q) = %q, want %q", pick, got, want)
+		}
 	}
 }
 

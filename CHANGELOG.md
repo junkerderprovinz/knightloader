@@ -70,6 +70,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   video went through.
 - **The thumbnail can come as JPG, PNG or WebP,** whatever format the site
   serves it in.
+- **A video filmed in HDR offers its HDR tracks apart from the plain ones,**
+  and a plain quality downloads the SDR track, where yt-dlp took the HDR one
+  of the same height.
 
 ### Changed
 

@@ -88,6 +88,8 @@ func TestATrackBesideAnotherOfItsHeightNamesItsCodec(t *testing.T) {
 		want   string
 	}{
 		{"720p mp4 av1", []string{"720p mp4 avc1"}, "av1"},
+		{"2160p60hdr webm vp9", []string{"2160p60 webm vp9"}, "60fps vp9 HDR"},
+		{"2160p60 webm vp9", []string{"2160p60hdr webm vp9"}, "60fps vp9"},
 		{"720p60 mp4 avc1", []string{"720p mp4 avc1"}, "60fps avc1"},
 		{"720p mp4 av1", []string{"best"}, "av1"},
 		{"720p mp4 av1", []string{"1080p"}, "av1"},

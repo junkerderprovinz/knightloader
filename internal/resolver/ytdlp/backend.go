@@ -966,11 +966,14 @@ func wroteSubtitle(line string) bool {
 // wherever the host reports none.
 type FormatEntry struct {
 	FormatID string
-	Ext      string
-	Vcodec   string
-	Acodec   string
-	Width    int
-	Height   int
+	// DynamicRange is yt-dlp's dynamic_range: "SDR", "HDR10", "HDR10+",
+	// "HLG", "DV", or "" where the host names none.
+	DynamicRange string
+	Ext          string
+	Vcodec       string
+	Acodec       string
+	Width        int
+	Height       int
 	// FPS is the frame rate, 0 when not reported or for an audio format.
 	FPS float64
 	// Filesize is the exact size when the host reports one. FilesizeApprox is
@@ -1101,6 +1104,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 			FilesizeApprox     float64 `json:"filesize_approx"`
 			TBR                float64 `json:"tbr"`
 			Abr                float64 `json:"abr"`
+			DynamicRange       string  `json:"dynamic_range"`
 			Protocol           string  `json:"protocol"`
 			Language           string  `json:"language"`
 			LanguagePreference int     `json:"language_preference"`
@@ -1159,7 +1163,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 		}
 		res.Formats = append(res.Formats, FormatEntry{
 			FormatID: f.FormatID, Ext: f.Ext, Vcodec: f.Vcodec, Acodec: f.Acodec,
-			Width: f.Width, Height: f.Height, FPS: f.FPS,
+			Width: f.Width, Height: f.Height, FPS: f.FPS, DynamicRange: f.DynamicRange,
 			Filesize: f.Filesize, FilesizeApprox: approx,
 			Abr: f.Abr, Language: f.Language, LanguagePreference: f.LanguagePreference,
 			Protocol: f.Protocol, Default: picked[f.FormatID],
