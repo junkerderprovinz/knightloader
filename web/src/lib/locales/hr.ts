@@ -183,7 +183,7 @@ export const hr: Dict = {
   'instances.moduleOff': 'Instance su isključene, pa ova instanca ne prikazuje i ne kontaktira ostale.',
   'instances.lastSeen': 'Zadnji put viđen {time}',
   'instances.paired': 'Upareno',
-  'instances.inactive': 'Neaktivno',
+  'instances.notReachable': 'Nedostupno',
   'instances.checking': 'Provjera',
   'instances.extensionPairedTip': 'Proširenje se povezuje samo dok ga koristite, na primjer za slanje poveznice. U međuvremenu ostaje upareno.',
   'pairing.noPasswordHint': 'Ova instanca nema lozinku za prijavu. Svatko tko može otvoriti ovo web sučelje može njome upravljati, a preko nje i preuzimanjima svake instance u skupini.',

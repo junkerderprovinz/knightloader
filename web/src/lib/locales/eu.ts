@@ -183,7 +183,7 @@ export const eu: Dict = {
   'instances.moduleOff': 'Instantziak itzalita dago, beraz instantzia honek ez ditu besteak zerrendatzen eta ez du haiekin harremanik izaten.',
   'instances.lastSeen': 'Azken aldiz ikusia: {time}',
   'instances.paired': 'Parekatuta',
-  'instances.inactive': 'Inaktibo',
+  'instances.notReachable': 'Ez dago eskuragarri',
   'instances.checking': 'Egiaztatzen',
   'instances.extensionPairedTip': 'Luzapena erabiltzen duzun bitartean bakarrik konektatzen da, adibidez esteka bat bidaltzeko. Bitartean parekatuta jarraitzen du.',
   'pairing.noPasswordHint': 'Instantzia honek ez du saioa hasteko pasahitzik. Web interfaze hau ireki dezakeen edonork kontrola dezake, eta haren bidez taldeko instantzia guztien deskargak.',

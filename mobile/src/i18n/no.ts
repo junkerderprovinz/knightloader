@@ -34,7 +34,7 @@ export const no: Dict = {
   'instance.filesOne': '1 fil',
   'instance.left': 'igjen',
   'instance.notConnected': 'Ikke tilkoblet',
-  'instance.inactive': 'Inaktiv',
+  'instance.notReachable': 'Ikke tilgjengelig',
   'instance.checking': 'Sjekker',
   'instance.connected': 'Tilkoblet',
   'instance.captchas': '{n} captchaer venter akkurat nå',

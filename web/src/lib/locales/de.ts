@@ -206,7 +206,7 @@ export const de: Dict = {
   'instances.moduleOff': 'Instanzen ist ausgeschaltet, deshalb zeigt diese Instanz die anderen nicht an und nimmt keinen Kontakt zu ihnen auf.',
   'instances.lastSeen': 'Zuletzt gesehen {time}',
   'instances.paired': 'Gekoppelt',
-  'instances.inactive': 'Inaktiv',
+  'instances.notReachable': 'Nicht erreichbar',
   'instances.checking': 'Wird geprüft',
   'instances.extensionPairedTip': 'Die Erweiterung verbindet sich nur, während du sie benutzt, etwa um einen Link zu schicken. Dazwischen bleibt sie gekoppelt.',
   'pairing.noPasswordHint': 'Diese Instanz hat kein Anmeldepasswort. Wer diese Oberfläche öffnen kann, kann sie steuern und über sie die Downloads jeder Instanz der Gruppe.',

@@ -183,7 +183,7 @@ export const zh: Dict = {
   'instances.moduleOff': '“实例”已关闭，所以这个实例既不会列出其他实例，也不会联系它们。',
   'instances.lastSeen': '最后在线 {time}',
   'instances.paired': '已配对',
-  'instances.inactive': '非活动',
+  'instances.notReachable': '无法连接',
   'instances.checking': '检查中',
   'instances.extensionPairedTip': '扩展只在你使用它时连接，比如发送链接的时候。其余时间它仍保持配对。',
   'pairing.noPasswordHint': '这个实例没有登录密码。任何能打开这个网页界面的人都能控制它，并通过它控制组里每个实例的下载。',

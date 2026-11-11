@@ -161,7 +161,7 @@ export const RELEASES: Release[] = [
         id: 'inactive-state',
         to: INSTANCES,
         text: 'whatsnew.change.inactiveMember',
-        names: { name: 'instances.title', inactive: 'instances.inactive' },
+        names: { name: 'instances.title', inactive: 'instances.notReachable' },
       },
       {
         id: 'checking-state',

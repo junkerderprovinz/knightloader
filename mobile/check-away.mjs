@@ -1,5 +1,6 @@
-// A saved instance that is closed, such as a desktop app, reads Inactive with
-// when it was last seen as long as the group lists it as away, and only then.
+// A saved instance that is closed, such as a desktop app, reads Not reachable
+// with when it was last seen as long as the group lists it as away, and only
+// then. The words are the web interface's, which are GlimStone's.
 // The saved list follows the group: an instance that joined later or was away
 // at the join is added, and one taken out of the group goes.
 //
@@ -7,6 +8,7 @@
 // these checks call the real functions.
 //
 // Run by hand and by CI, from mobile/: `node check-away.mjs`
+import { readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -60,6 +62,15 @@ expect('an instance taken out of the group goes', round({ away: [] }).drop, ['c3
 expect('nothing goes before the relay announced everybody', round({ away: [], settled: false }).drop, []);
 expect('nothing goes when no instance sent the away list', round({ away: null }).drop, []);
 expect('an instance that answered stays though the relay has not announced it', round({ live: [], away: [] }).drop, ['c3']);
+
+const langs = readdirSync(join(here, 'src', 'i18n')).filter((f) => /^[a-z]{2}\.ts$/.test(f));
+for (const f of langs) {
+  const lang = f.slice(0, 2);
+  const [phone] = Object.values(await import(pathToFileURL(join(here, 'src', 'i18n', f)).href));
+  const [web] = Object.values(await import(pathToFileURL(join(here, '..', 'web', 'src', 'lib', 'locales', f)).href));
+  expect(`${lang}: an instance that is away`, phone['instance.notReachable'], web['instances.notReachable']);
+  expect(`${lang}: the word for it before`, phone['instance.inactive'], undefined);
+}
 
 if (problems.length) {
   console.error(problems.join('\n'));

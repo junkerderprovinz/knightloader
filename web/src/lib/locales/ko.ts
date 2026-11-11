@@ -183,7 +183,7 @@ export const ko: Dict = {
   'instances.moduleOff': '인스턴스 모듈이 꺼져 있어, 이 인스턴스는 다른 인스턴스를 목록에 보여 주지도 연락하지도 않습니다.',
   'instances.lastSeen': '마지막 확인 {time}',
   'instances.paired': '페어링됨',
-  'instances.inactive': '비활성',
+  'instances.notReachable': '연결할 수 없음',
   'instances.checking': '확인 중',
   'instances.extensionPairedTip': '확장 프로그램은 링크를 보낼 때처럼 사용하는 동안에만 연결됩니다. 그 사이에도 페어링은 유지됩니다.',
   'pairing.noPasswordHint': '이 인스턴스에는 로그인 비밀번호가 없습니다. 이 웹 인터페이스를 열 수 있는 사람은 누구나 이 인스턴스를 제어할 수 있고, 이를 통해 그룹의 모든 인스턴스의 다운로드도 제어할 수 있습니다.',

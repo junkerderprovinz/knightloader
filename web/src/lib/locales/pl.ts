@@ -177,7 +177,7 @@ export const pl: Dict = {
   'instances.moduleOff': 'Instancje są wyłączone, więc ta instancja ani nie pokazuje pozostałych, ani się z nimi nie łączy.',
   'instances.lastSeen': 'Ostatnia aktywność {time}',
   'instances.paired': 'Sparowane',
-  'instances.inactive': 'Nieaktywne',
+  'instances.notReachable': 'Nieosiągalna',
   'instances.checking': 'Sprawdzanie',
   'instances.extensionPairedTip': 'Rozszerzenie łączy się tylko wtedy, gdy go używasz, na przykład żeby wysłać link. W międzyczasie pozostaje sparowane.',
   'pairing.noPasswordHint': 'Ta instancja nie ma hasła logowania. Każdy, kto może otworzyć ten interfejs webowy, może nią sterować, a przez nią także pobieraniami każdej instancji w grupie.',

@@ -183,7 +183,7 @@ export const id: Dict = {
   'instances.moduleOff': 'Instance dimatikan, jadi instance ini tidak menampilkan maupun menghubungi instance lain.',
   'instances.lastSeen': 'Terakhir terlihat {time}',
   'instances.paired': 'Dipasangkan',
-  'instances.inactive': 'Tidak aktif',
+  'instances.notReachable': 'Tidak dapat dijangkau',
   'instances.checking': 'Memeriksa',
   'instances.extensionPairedTip': 'Ekstensi hanya tersambung saat Anda menggunakannya, misalnya untuk mengirim tautan. Di antara itu, ekstensi tetap dipasangkan.',
   'pairing.noPasswordHint': 'Instance ini tidak punya kata sandi login. Siapa pun yang dapat membuka antarmuka web ini dapat mengendalikannya, dan lewat instance ini juga unduhan setiap instance di grup.',

@@ -185,7 +185,7 @@ export const he: Dict = {
   'instances.moduleOff': 'מופעים כבוי, ולכן המופע הזה לא מציג את האחרים ולא פונה אליהם.',
   'instances.lastSeen': 'נראה לאחרונה {time}',
   'instances.paired': 'מצומד',
-  'instances.inactive': 'לא פעיל',
+  'instances.notReachable': 'לא נגיש',
   'instances.checking': 'בבדיקה',
   'instances.extensionPairedTip': 'התוסף מתחבר רק בזמן שאתה משתמש בו, למשל כדי לשלוח קישור. בין לבין הוא נשאר מצומד.',
   'pairing.noPasswordHint': 'למופע הזה אין סיסמת כניסה. כל מי שיכול לפתוח את ממשק האינטרנט הזה יכול לשלוט בו, ודרכו בהורדות של כל מופע בקבוצה.',

@@ -185,7 +185,7 @@ export const ar: Dict = {
   'instances.moduleOff': 'النُسخ مطفأة، لذا لا يعرض هذا المثيل المثيلات الأخرى ولا يتصل بها.',
   'instances.lastSeen': 'آخر ظهور {time}',
   'instances.paired': 'مقترنة',
-  'instances.inactive': 'غير نشط',
+  'instances.notReachable': 'غير قابل للوصول',
   'instances.checking': 'جارٍ التحقق',
   'instances.extensionPairedTip': 'لا تتصل الإضافة إلا أثناء استخدامك لها، مثلًا لإرسال رابط. وتبقى مقترنة فيما بين ذلك.',
   'pairing.noPasswordHint': 'ليس لهذا المثيل كلمة مرور لتسجيل الدخول. يستطيع أي شخص يمكنه فتح واجهة الويب هذه أن يتحكم فيه، ومن خلاله في تنزيلات كل مثيل في المجموعة.',

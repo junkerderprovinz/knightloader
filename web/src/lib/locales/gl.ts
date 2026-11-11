@@ -183,7 +183,7 @@ export const gl: Dict = {
   'instances.moduleOff': 'Instancias está desactivado, así que esta instancia nin amosa nin contacta coas demais.',
   'instances.lastSeen': 'Visto por última vez: {time}',
   'instances.paired': 'Emparellada',
-  'instances.inactive': 'Inactivo',
+  'instances.notReachable': 'Non accesible',
   'instances.checking': 'Comprobando',
   'instances.extensionPairedTip': 'A extensión só se conecta mentres a usas, por exemplo para enviar unha ligazón. Entrementres segue emparellada.',
   'pairing.noPasswordHint': 'Esta instancia non ten contrasinal de acceso. Calquera que poida abrir esta interface web pode controlala e, a través dela, as descargas de todas as instancias do grupo.',

@@ -34,7 +34,7 @@ export const hu: Dict = {
   'instance.filesOne': '1 fájl',
   'instance.left': 'van hátra',
   'instance.notConnected': 'Nincs csatlakozva',
-  'instance.inactive': 'Inaktív',
+  'instance.notReachable': 'Nem érhető el',
   'instance.checking': 'Ellenőrzés',
   'instance.connected': 'Csatlakozva',
   'instance.captchas': '{n} captcha vár éppen',

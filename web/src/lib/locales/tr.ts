@@ -183,7 +183,7 @@ export const tr: Dict = {
   'instances.moduleOff': 'Örnekler kapalı, bu yüzden bu örnek diğerlerini ne listeler ne de onlarla iletişim kurar.',
   'instances.lastSeen': 'Son görülme {time}',
   'instances.paired': 'Eşleştirildi',
-  'instances.inactive': 'Etkin değil',
+  'instances.notReachable': 'Ulaşılamıyor',
   'instances.checking': 'Denetleniyor',
   'instances.extensionPairedTip': 'Uzantı yalnızca sen onu kullanırken bağlanır, örneğin bir bağlantı gönderirken. Arada eşleşmiş olarak kalır.',
   'pairing.noPasswordHint': 'Bu örneğin giriş parolası yok. Bu web arayüzünü açabilen herkes onu kontrol edebilir, onun üzerinden de gruptaki her örneğin indirmelerini.',

@@ -183,7 +183,7 @@ export const fi: Dict = {
   'instances.moduleOff': 'Instanssit on kytketty pois, joten tämä instanssi ei listaa muita eikä ota niihin yhteyttä.',
   'instances.lastSeen': 'Nähty viimeksi {time}',
   'instances.paired': 'Pariutettu',
-  'instances.inactive': 'Ei käytössä',
+  'instances.notReachable': 'Ei tavoitettavissa',
   'instances.checking': 'Tarkistetaan',
   'instances.extensionPairedTip': 'Laajennus yhdistää vain silloin, kun käytät sitä, esimerkiksi linkin lähettämiseen. Siinä välissä se pysyy pariutettuna.',
   'pairing.noPasswordHint': 'Tällä instanssilla ei ole kirjautumissalasanaa. Kuka tahansa, joka voi avata tämän verkkokäyttöliittymän, voi ohjata sitä ja sen kautta jokaisen ryhmän instanssin latauksia.',

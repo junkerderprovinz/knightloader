@@ -183,7 +183,7 @@ export const ja: Dict = {
   'instances.moduleOff': '「インスタンス」がオフになっているため、このインスタンスは他のインスタンスを一覧に表示せず、接続もしません。',
   'instances.lastSeen': '最終確認: {time}',
   'instances.paired': 'ペアリング済み',
-  'instances.inactive': '非アクティブ',
+  'instances.notReachable': '到達できません',
   'instances.checking': '確認中',
   'instances.extensionPairedTip': '拡張機能は、リンクを送るときなど使っている間だけ接続します。それ以外のときもペアリングは保たれています。',
   'pairing.noPasswordHint': 'このインスタンスにはログインパスワードがありません。この Web インターフェースを開ける人なら誰でもこのインスタンスを操作でき、そこからグループ内のすべてのインスタンスのダウンロードも操作できます。',

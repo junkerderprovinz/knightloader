@@ -162,7 +162,7 @@ export function Instances({
         key: `member:${m.id}`,
         deployment: m.deployment,
         name: m.name || m.id,
-        sub: t('instances.inactive'),
+        sub: t('instances.notReachable'),
         dim: true,
       }),
     ),

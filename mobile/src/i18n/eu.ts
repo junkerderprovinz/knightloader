@@ -34,7 +34,7 @@ export const eu: Dict = {
   'instance.filesOne': 'fitxategi 1',
   'instance.left': 'falta',
   'instance.notConnected': 'Konektatu gabe',
-  'instance.inactive': 'Inaktibo',
+  'instance.notReachable': 'Ez dago eskuragarri',
   'instance.checking': 'Egiaztatzen',
   'instance.connected': 'Konektatuta',
   'instance.captchas': '{n} captcha zain daude orain',

@@ -200,7 +200,7 @@ export function GroupCard({
   const members = group.members.filter((m) => !waiting.has(m.id));
   const apps = group.apps.filter((a) => !waiting.has(a.id));
   const away = group.away.filter((m) => !members.some((there) => there.id === m.id));
-  const inactive = <StatePill label={t('instances.inactive')} tone="neutral" />;
+  const notReachable = <StatePill label={t('instances.notReachable')} tone="neutral" />;
 
   const nodes: NetNode[] = [
     ...members.map(
@@ -217,7 +217,7 @@ export function GroupCard({
         key: `member:${m.id}`,
         deployment: m.deployment,
         name: m.name || m.id,
-        sub: t('instances.inactive'),
+        sub: t('instances.notReachable'),
         dim: true,
       }),
     ),
@@ -289,7 +289,7 @@ export function GroupCard({
             hot={net.hot === `member:${m.id}`}
             glyph={<IconFleet />}
             name={m.name || m.id}
-            state={inactive}
+            state={notReachable}
             action={removeButton({ kind: 'member', id: m.id, name: m.name || m.id })}
           />
         ))}
@@ -310,7 +310,7 @@ export function GroupCard({
               ) : a.connected ? (
                 reached(true, t)
               ) : (
-                inactive
+                notReachable
               )
             }
             action={removeButton({ kind: 'app', id: a.id, name: a.name || a.id })}

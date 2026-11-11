@@ -183,7 +183,7 @@ export const sl: Dict = {
   'instances.moduleOff': 'Instance so izklopljene, zato ta instanca drugih ne prikazuje in z njimi ne vzpostavlja stika.',
   'instances.lastSeen': 'Zadnja aktivnost {time}',
   'instances.paired': 'Seznanjena',
-  'instances.inactive': 'Neaktivno',
+  'instances.notReachable': 'Ni dosegljivo',
   'instances.checking': 'Preverjanje',
   'instances.extensionPairedTip': 'Razširitev se poveže samo, ko jo uporabljaš, na primer za pošiljanje povezave. Vmes ostane seznanjena.',
   'pairing.noPasswordHint': 'Ta instanca nima gesla za prijavo. Vsak, ki lahko odpre ta spletni vmesnik, jo lahko upravlja, prek nje pa tudi prenose vseh instanc v skupini.',

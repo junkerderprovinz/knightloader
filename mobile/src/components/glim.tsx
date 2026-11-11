@@ -594,7 +594,7 @@ export function StatusBadge({
     paired: [c.statusNeutralText, c.statusNeutralBg, t('devices.paired')],
     offline: [c.statusFailSolid, c.statusFailBg, t('instance.notConnected')],
     // Grey like paired: an instance or phone that is closed or away is no fault.
-    inactive: [c.statusNeutralText, c.statusNeutralBg, t('instance.inactive')],
+    inactive: [c.statusNeutralText, c.statusNeutralBg, t('instance.notReachable')],
   }[status];
   return (
     <View style={[styles.statusBadge, { backgroundColor: ground, ...corners.pill }]}>

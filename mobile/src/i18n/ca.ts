@@ -34,7 +34,7 @@ export const ca: Dict = {
   'instance.filesOne': '1 fitxer',
   'instance.left': 'restants',
   'instance.notConnected': 'No connectat',
-  'instance.inactive': 'Inactiu',
+  'instance.notReachable': 'No accessible',
   'instance.checking': 'Comprovant',
   'instance.connected': 'Connectat',
   'instance.captchas': '{n} captchas esperant ara mateix',

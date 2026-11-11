@@ -226,7 +226,7 @@ export const en = {
   'instances.moduleOff': 'Instances is switched off, so this instance neither lists nor contacts the others.',
   'instances.lastSeen': 'Last seen {time}',
   'instances.paired': 'Paired',
-  'instances.inactive': 'Inactive',
+  'instances.notReachable': 'Not reachable',
   'instances.checking': 'Checking',
   'instances.extensionPairedTip': 'The extension connects only while you use it, for example to send a link. In between it stays paired.',
 

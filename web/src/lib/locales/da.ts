@@ -183,7 +183,7 @@ export const da: Dict = {
   'instances.moduleOff': 'Instanser er slået fra, så denne instans hverken viser eller kontakter de andre.',
   'instances.lastSeen': 'Sidst set {time}',
   'instances.paired': 'Parret',
-  'instances.inactive': 'Inaktiv',
+  'instances.notReachable': 'Ikke tilgængelig',
   'instances.checking': 'Kontrollerer',
   'instances.extensionPairedTip': 'Udvidelsen forbinder sig kun, mens du bruger den, for eksempel til at sende et link. Ind imellem forbliver den parret.',
   'pairing.noPasswordHint': 'Denne instans har ingen login-adgangskode. Alle, der kan åbne denne webbrugerflade, kan styre den og gennem den downloadsene i alle instanser i gruppen.',

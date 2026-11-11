@@ -183,7 +183,7 @@ export const cs: Dict = {
   'instances.moduleOff': 'Instance jsou vypnuté, takže tato instance ostatní nezobrazuje ani nekontaktuje.',
   'instances.lastSeen': 'Naposledy viděn {time}',
   'instances.paired': 'Spárováno',
-  'instances.inactive': 'Neaktivní',
+  'instances.notReachable': 'Nedostupné',
   'instances.checking': 'Ověřování',
   'instances.extensionPairedTip': 'Rozšíření se připojuje jen ve chvíli, kdy ho používáte, třeba když posíláte odkaz. Mezitím zůstává spárované.',
   'pairing.noPasswordHint': 'Tato instance nemá přihlašovací heslo. Kdokoli, kdo může otevřít toto webové rozhraní, ji může ovládat a přes ni i stahování každé instance ve skupině.',

@@ -177,7 +177,7 @@ export const pt: Dict = {
   'instances.moduleOff': 'Instâncias está desligado, por isso esta instância não lista nem contacta as outras.',
   'instances.lastSeen': 'Visto pela última vez {time}',
   'instances.paired': 'Emparelhada',
-  'instances.inactive': 'Inativo',
+  'instances.notReachable': 'Inacessível',
   'instances.checking': 'A verificar',
   'instances.extensionPairedTip': 'A extensão só se liga enquanto a utiliza, por exemplo para enviar uma ligação. Entretanto, mantém-se emparelhada.',
   'pairing.noPasswordHint': 'Esta instância não tem palavra-passe de início de sessão. Qualquer pessoa que consiga abrir esta interface web pode controlá-la e, através dela, as transferências de todas as instâncias do grupo.',

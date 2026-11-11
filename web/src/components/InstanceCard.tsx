@@ -228,11 +228,11 @@ function CardLogo() {
 
 /** The state of an instance or a device that is in the group but not there
  *  now. It is grey rather than red, since being closed is no fault. */
-function InactiveState() {
+function NotReachableState() {
   const { t } = useT();
   return (
     <span data-new="inactive-state" className="inline-flex">
-      <StatePill label={t('instances.inactive')} tone="neutral" />
+      <StatePill label={t('instances.notReachable')} tone="neutral" />
     </span>
   );
 }
@@ -511,7 +511,7 @@ export function AppCard({
   ) : pairedBetweenCalls({ deployment, connected, approved }) ? (
     <StatePill label={t('instances.paired')} tone="ok" tip={t('instances.extensionPairedTip')} />
   ) : (
-    <InactiveState />
+    <NotReachableState />
   );
   return (
     <Tile
@@ -574,7 +574,7 @@ export function AwayCard({
       name={name}
       state={
         <StateWithKind kind={deployment}>
-          <InactiveState />
+          <NotReachableState />
         </StateWithKind>
       }
       facts={[KINDS[deployment] ? t(KINDS[deployment]) : '', lastSeenOf(t, lastSeen)]}

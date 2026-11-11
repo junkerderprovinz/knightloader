@@ -34,7 +34,7 @@ export const fa: Dict = {
   'instance.filesOne': 'یک فایل',
   'instance.left': 'باقی‌مانده',
   'instance.notConnected': 'متصل نیست',
-  'instance.inactive': 'غیرفعال',
+  'instance.notReachable': 'در دسترس نیست',
   'instance.checking': 'در حال بررسی',
   'instance.connected': 'متصل',
   'instance.captchas': '{n} کپچا همین حالا منتظرند',

@@ -177,7 +177,7 @@ export const it: Dict = {
   'instances.moduleOff': 'Istanze è disattivato, quindi questa istanza non mostra le altre e non le contatta.',
   'instances.lastSeen': 'Ultimo accesso: {time}',
   'instances.paired': 'Associata',
-  'instances.inactive': 'Inattivo',
+  'instances.notReachable': 'Non raggiungibile',
   'instances.checking': 'Verifica in corso',
   'instances.extensionPairedTip': "L'estensione si collega solo mentre la usi, per esempio per inviare un link. Nel frattempo resta associata.",
   'pairing.noPasswordHint': 'Questa istanza non ha una password di accesso. Chiunque possa aprire questa interfaccia web può controllarla e, attraverso di essa, i download di ogni istanza del gruppo.',

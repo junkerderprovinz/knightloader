@@ -183,7 +183,7 @@ export const ro: Dict = {
   'instances.moduleOff': 'Instanțe este oprit, așa că această instanță nici nu le listează, nici nu le contactează pe celelalte.',
   'instances.lastSeen': 'Văzut ultima dată {time}',
   'instances.paired': 'Împerecheată',
-  'instances.inactive': 'Inactiv',
+  'instances.notReachable': 'Inaccesibil',
   'instances.checking': 'Se verifică',
   'instances.extensionPairedTip': 'Extensia se conectează doar cât timp o folosești, de exemplu ca să trimiți un link. Între timp rămâne împerecheată.',
   'pairing.noPasswordHint': 'Această instanță nu are parolă de autentificare. Oricine poate deschide această interfață web o poate controla și, prin ea, descărcările fiecărei instanțe din grup.',

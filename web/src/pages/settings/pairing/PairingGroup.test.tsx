@@ -300,14 +300,14 @@ describe('PairingGroup', () => {
       'nasThis instancePaired',
       'officePaired·Via relayRemove',
       'Pixel 8Android appConnectedRemove',
-      'Old phoneAndroid appInactiveRemove',
+      'Old phoneAndroid appNot reachableRemove',
       'FirefoxBrowser extensionPairedRemove',
     ]);
     // The row without a button is as high as those with one.
     expect(rows().map((li) => li.classList.contains('min-h-11'))).toEqual([true, true, true, true, true]);
   });
 
-  it('lists an instance of the group that is away as inactive and dims its node', () => {
+  it('lists an instance of the group that is away as not reachable and dims its node', () => {
     draw({
       joinedAgo: 500,
       memberSeen: true,
@@ -317,7 +317,7 @@ describe('PairingGroup', () => {
     expect(rows().map((li) => li.textContent)).toEqual([
       'nasThis instancePaired',
       'officePaired·Via relayRemove',
-      'ZathalliaInactiveRemove',
+      'ZathalliaNot reachableRemove',
     ]);
     const spokes = [...net()!.querySelectorAll('svg.wide g[data-nk]')];
     expect(spokes.map((g) => g.getAttribute('data-nk'))).toEqual(['member:b', 'member:z', 'self']);

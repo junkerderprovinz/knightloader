@@ -34,7 +34,7 @@ export const th: Dict = {
   'instance.filesOne': '1 ไฟล์',
   'instance.left': 'เหลือ',
   'instance.notConnected': 'ไม่ได้เชื่อมต่อ',
-  'instance.inactive': 'ไม่ใช้งาน',
+  'instance.notReachable': 'เข้าถึงไม่ได้',
   'instance.checking': 'กำลังตรวจสอบ',
   'instance.connected': 'เชื่อมต่อแล้ว',
   'instance.captchas': 'ตอนนี้มีแคปช่ารออยู่ {n} รายการ',

@@ -183,7 +183,7 @@ export const ms: Dict = {
   'instances.moduleOff': 'Instance dimatikan, jadi instans ini tidak menyenaraikan atau menghubungi instans lain.',
   'instances.lastSeen': 'Kali terakhir dilihat {time}',
   'instances.paired': 'Digandingkan',
-  'instances.inactive': 'Tidak aktif',
+  'instances.notReachable': 'Tidak dapat dicapai',
   'instances.checking': 'Menyemak',
   'instances.extensionPairedTip': 'Sambungan hanya bersambung semasa anda menggunakannya, contohnya untuk menghantar pautan. Di antara itu, ia kekal digandingkan.',
   'pairing.noPasswordHint': 'Instans ini tiada kata laluan log masuk. Sesiapa yang boleh membuka antara muka web ini boleh mengawalnya, dan melaluinya muat turun setiap instans dalam kumpulan.',

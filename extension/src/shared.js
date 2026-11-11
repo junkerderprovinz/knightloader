@@ -218,7 +218,7 @@ function deviceCard(app, { index, own }) {
     badge.textContent = t('device.paired');
     top.appendChild(glimInfoIcon(t('device.pairedTip')));
   } else {
-    inactiveBadge(badge);
+    notReachableBadge(badge);
   }
 
   const what = document.createElement('span');
@@ -256,7 +256,7 @@ function awayCard(member, { index }) {
   name.className = 'glim-instance-name';
   name.textContent = instanceLabel({ name: member.name, instanceId: member.id });
   const badge = document.createElement('span');
-  inactiveBadge(badge);
+  notReachableBadge(badge);
   top.append(name, badge);
   const what = document.createElement('span');
   what.className = 'glim-instance-what';
@@ -281,9 +281,9 @@ function cardMark() {
 }
 
 /** Grey rather than red, since being closed or away is no fault. */
-function inactiveBadge(badge) {
+function notReachableBadge(badge) {
   badge.className = 'glim-status glim-status--idle';
-  badge.textContent = t('instance.inactive');
+  badge.textContent = t('instance.notReachable');
 }
 
 function lastSeenLine(unix) {

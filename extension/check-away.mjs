@@ -1,13 +1,14 @@
 // An instance approved in the group that is away, such as a desktop app that
 // was closed, is listed on the options page with when it was last seen, and
-// once it is back on the relay it is listed once, as an instance.
+// once it is back on the relay it is listed once, as an instance. It reads
+// Not reachable, in the web interface's words, which are GlimStone's.
 //
 // groupView runs for real against a stand-in relay session.
 //
 // Run by CI and by hand: `node extension/check-away.mjs`.
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import vm from 'node:vm';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -46,6 +47,14 @@ expect('a desktop app back on the relay is listed as an instance', back.instance
 
 const old = await view([nas], { apps: [] });
 expect('an instance from before the away list lists none', old.away, []);
+
+const words = vm.createContext({ navigator: { language: 'en', languages: ['en'] } });
+vm.runInContext(readFileSync(join(here, 'src', 'i18n.js'), 'utf8') + ';globalThis.MESSAGES = MESSAGES;', words);
+for (const [lang, messages] of Object.entries(words.MESSAGES)) {
+  const [web] = Object.values(await import(pathToFileURL(join(here, '..', 'web', 'src', 'lib', 'locales', `${lang}.ts`)).href));
+  expect(`${lang}: an instance that is away`, messages['instance.notReachable'], web['instances.notReachable']);
+  expect(`${lang}: the word for it before`, messages['instance.inactive'], undefined);
+}
 
 if (problems.length) {
   console.error(problems.join('\n'));

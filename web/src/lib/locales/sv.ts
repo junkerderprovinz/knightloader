@@ -183,7 +183,7 @@ export const sv: Dict = {
   'instances.moduleOff': 'Instanser är avstängt, så den här instansen varken listar eller kontaktar de andra.',
   'instances.lastSeen': 'Senast sedd {time}',
   'instances.paired': 'Parkopplat',
-  'instances.inactive': 'Inaktiv',
+  'instances.notReachable': 'Går inte att nå',
   'instances.checking': 'Kontrollerar',
   'instances.extensionPairedTip': 'Tillägget ansluter bara medan du använder det, till exempel för att skicka en länk. Däremellan förblir det parkopplat.',
   'pairing.noPasswordHint': 'Den här instansen har inget inloggningslösenord. Alla som kan öppna det här webbgränssnittet kan styra den och genom den nedladdningarna i alla instanser i gruppen.',

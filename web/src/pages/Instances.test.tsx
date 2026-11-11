@@ -444,8 +444,8 @@ describe('Instances', () => {
     await draw();
     expect(card('Firefox').textContent).toContain('Paired');
     expect(card('Firefox').textContent).not.toContain('Not connected');
-    // A phone that is away is inactive, which is no fault.
-    expect(card('Pixel 8').textContent).toContain('Inactive');
+    // A phone that is away is not reachable, which is no fault.
+    expect(card('Pixel 8').textContent).toContain('Not reachable');
     expect(card('Pixel 8').textContent).not.toContain('Not connected');
     const dim = (key: string) => host.querySelector(`svg.wide g[data-nk="${key}"]`)!.classList.contains('dim');
     expect([dim('app:b1'), dim('app:p1')]).toEqual([false, true]);
@@ -462,7 +462,7 @@ describe('Instances', () => {
     }
     await act(async () => {});
     expect(card('Pixel 8').textContent).toContain('Connected');
-    expect(card('Pixel 8').textContent).not.toContain('Inactive');
+    expect(card('Pixel 8').textContent).not.toContain('Not reachable');
   });
 
   it('says a card is being checked until its instance answers, and shows this instance connected at once', async () => {
@@ -482,7 +482,7 @@ describe('Instances', () => {
     expect(card('nas').textContent).not.toMatch(/Checking|Not connected/);
   });
 
-  it('keeps a desktop app of the group that was closed as inactive until it is removed', async () => {
+  it('keeps a desktop app of the group that was closed as not reachable until it is removed', async () => {
     const zathallia = {
       id: 'id-zath',
       name: 'Zathallia',
@@ -492,7 +492,8 @@ describe('Instances', () => {
     const calls = serve({ ...noGroup, active: true, away: [zathallia] });
     await draw();
     const away = card('Zathallia');
-    expect(away.textContent).toContain('Inactive');
+    expect(away.textContent).toContain('Not reachable');
+    expect(away.textContent).not.toContain('Inactive');
     expect(away.textContent).toContain('Last seen');
     expect(away.textContent).toContain('Desktop app');
     expect(away.textContent).not.toContain('Not connected');
@@ -501,7 +502,7 @@ describe('Instances', () => {
     expect(buttons(away)).toEqual(['Remove']);
     const node = host.querySelector('svg.wide g[data-nk="member:id-zath"]')!;
     expect(node.classList.contains('dim')).toBe(true);
-    expect(node.textContent).toContain('Inactive');
+    expect(node.textContent).toContain('Not reachable');
 
     await act(async () => button(away, 'Remove').click());
     await act(async () => button(document.body.querySelector('[role="dialog"]')!, 'Remove').click());
@@ -521,7 +522,7 @@ describe('Instances', () => {
     await draw();
     const cards = [...host.querySelectorAll('[data-nk="member:id-zath"]')].filter((c) => !c.closest('svg'));
     expect(cards).toHaveLength(1);
-    expect(cards[0].textContent).not.toContain('Inactive');
+    expect(cards[0].textContent).not.toContain('Not reachable');
     expect(host.querySelectorAll('svg.wide g[data-nk="member:id-zath"]')).toHaveLength(1);
   });
 
