@@ -495,6 +495,7 @@ describe('PairingGroup in a fortress', () => {
     joined: true,
     phrase: true,
     device: 'nas',
+    defaultDevice: 'nas',
     passwordSet: true,
     members: [],
     permissions: [],

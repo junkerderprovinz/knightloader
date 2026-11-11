@@ -4653,7 +4653,10 @@ export interface FortressState {
   joined: boolean;
   /** Whether the phrase can be shown and changed here. */
   phrase: boolean;
+  /** The name the other members know this server by. */
   device: string;
+  /** The name device falls back to when none is set. */
+  defaultDevice: string;
   passwordSet: boolean;
   members: FortressMember[];
   /** The permissions that involve KnightLoader. */
@@ -4688,6 +4691,17 @@ export async function showFortressPhrase(password: string): Promise<{ phrase: st
  *  devices out of reach, which still hold the old one. */
 export async function changeFortressPhrase(password: string): Promise<{ phrase: string; qr?: QRMatrix; left: string[] }> {
   return json(await post('/api/fortress/phrase', { password }));
+}
+
+/** setFortressDevice names this server for the other members; "" takes the one it finds. */
+export async function setFortressDevice(device: string): Promise<FortressState> {
+  return json(
+    await fetch('/api/fortress/device', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device }),
+    }),
+  );
 }
 
 export async function setFortressPermission(p: FortressPermissionState): Promise<FortressState> {

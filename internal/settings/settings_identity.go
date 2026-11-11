@@ -58,6 +58,7 @@ const maxKnownDomains = 8
 
 func sanitizeIdentity(n Settings) Settings {
 	n.InstanceName = strings.TrimSpace(n.InstanceName)
+	n.FortressDevice = strings.TrimSpace(n.FortressDevice)
 	n.InstanceID = strings.TrimSpace(n.InstanceID)
 	if n.InstanceID == "" {
 		n.InstanceID = newInstanceID()

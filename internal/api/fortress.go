@@ -9,16 +9,23 @@ package api
 // that ask. Whoever had not followed by then is listed as left behind.
 
 import (
+	"bufio"
 	"bytes"
 	"cmp"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	kitfortress "github.com/junkerderprovinz/parleyport/kit/fortress"
 	"github.com/junkerderprovinz/parleyport/kit/group"
@@ -228,7 +235,7 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 		Secret:              secret,
 		Previous:            storedSecret(a.Accounts, federation.FortressPreviousAccount),
 		Identity:            *identity,
-		Self:                groupSelf(a),
+		Self:                fortressSelf(a),
 		Relay:               mode,
 		RelayURL:            url,
 		Store:               accountStore{a.Accounts, federation.FortressGroupAccount},
@@ -489,11 +496,13 @@ type fortressPermissionView struct {
 type fortressView struct {
 	Joined bool `json:"joined"`
 	// Phrase says whether the phrase can be shown and changed here.
-	Phrase      bool                     `json:"phrase"`
-	Device      string                   `json:"device"`
-	PasswordSet bool                     `json:"passwordSet"`
-	Members     []fortressMemberView     `json:"members"`
-	Permissions []fortressPermissionView `json:"permissions"`
+	Phrase bool   `json:"phrase"`
+	Device string `json:"device"`
+	// DefaultDevice is the name Device falls back to when none is set.
+	DefaultDevice string                   `json:"defaultDevice"`
+	PasswordSet   bool                     `json:"passwordSet"`
+	Members       []fortressMemberView     `json:"members"`
+	Permissions   []fortressPermissionView `json:"permissions"`
 	// PairedWith names the devices of this instance's pairing, which moves
 	// into the fortress on joining and ends on leaving.
 	PairedWith []string `json:"pairedWith"`
@@ -528,15 +537,16 @@ func behindOf(a *app.App) []behindDevice {
 
 func fortressViewOf(a *app.App) fortressView {
 	v := fortressView{
-		Joined:      fortressSecret(a) != nil,
-		Phrase:      fortressSecret(a) != nil,
-		Device:      instanceDisplayName(a),
-		PasswordSet: a.Auth.Enabled(),
-		Members:     []fortressMemberView{},
-		Permissions: []fortressPermissionView{},
-		PairedWith:  []string{},
-		Left:        []string{},
-		Behind:      behindOf(a),
+		Joined:        fortressSecret(a) != nil,
+		Phrase:        fortressSecret(a) != nil,
+		Device:        fortressDevice(a),
+		DefaultDevice: defaultFortressDevice(a),
+		PasswordSet:   a.Auth.Enabled(),
+		Members:       []fortressMemberView{},
+		Permissions:   []fortressPermissionView{},
+		PairedWith:    []string{},
+		Left:          []string{},
+		Behind:        behindOf(a),
 	}
 	behind := map[string]bool{}
 	for _, d := range v.Behind {
@@ -577,6 +587,55 @@ func fortressViewOf(a *app.App) fortressView {
 		}
 	}
 	return v
+}
+
+// unraidFlash is where the Unraid flash is mounted, when the owner mounts it.
+const unraidFlash = "/boot"
+
+// maxDeviceName bounds the name in the fortress, as the kit bounds an app's.
+const maxDeviceName = 64
+
+// fortressDevice is the name the other members know this server by. The other
+// apps find KnightLoader on their own server by it, so it is the server's
+// name unless the owner gives another.
+func fortressDevice(a *app.App) string {
+	if name := a.Settings.Get().FortressDevice; name != "" {
+		return name
+	}
+	return defaultFortressDevice(a)
+}
+
+// defaultFortressDevice is the name of the Unraid server, else the name this
+// instance goes by in its group.
+func defaultFortressDevice(a *app.App) string {
+	if name := unraidServerName(unraidFlash); name != "" {
+		return name
+	}
+	return instanceDisplayName(a)
+}
+
+// unraidServerName reads the server's name from config/ident.cfg on the
+// flash, empty where there is none.
+func unraidServerName(flash string) string {
+	raw, err := os.ReadFile(filepath.Join(flash, "config", "ident.cfg"))
+	if err != nil {
+		return ""
+	}
+	sc := bufio.NewScanner(bytes.NewReader(raw))
+	for sc.Scan() {
+		if v, ok := strings.CutPrefix(strings.TrimSpace(sc.Text()), "NAME="); ok {
+			return strings.TrimSpace(strings.Trim(strings.TrimSpace(v), `"`))
+		}
+	}
+	return ""
+}
+
+// fortressSelf is what the other members see of this instance, under the
+// name of the server.
+func fortressSelf(a *app.App) group.Self {
+	s := groupSelf(a)
+	s.Name = fortressDevice(a)
+	return s
 }
 
 // refuseFortress answers a failed fortress change and reports whether err
@@ -690,6 +749,34 @@ func registerFortressMembership(reg *Registry, a *app.App) {
 				return
 			}
 			writeJSON(w, map[string]any{"phrase": words, "qr": phraseQR(a, words), "left": left})
+		})
+
+	reg.Add(http.MethodPut, "/api/fortress/device",
+		"name this server for the other apps of the fortress; an empty name takes the one KnightLoader finds",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Device string `json:"device"`
+			}
+			if !decodeJSON(w, r, &body) {
+				return
+			}
+			name := strings.TrimSpace(body.Device)
+			if utf8.RuneCountInString(name) > maxDeviceName || strings.IndexFunc(name, unicode.IsControl) >= 0 {
+				writeRefusal(w, http.StatusBadRequest, "fortress.deviceName", "the name must be one line of at most 64 characters", nil)
+				return
+			}
+			if a.Settings.Get().FortressDevice != name {
+				raw, _ := json.Marshal(name)
+				if _, err := a.Settings.SetPartial(map[string]json.RawMessage{"fortressDevice": raw}); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				// The fortress tells the others its name when it opens.
+				if fortressSecret(a) != nil {
+					applyRelay(a)
+				}
+			}
+			writeJSON(w, fortressViewOf(a))
 		})
 
 	reg.Add(http.MethodPut, "/api/fortress/permissions",

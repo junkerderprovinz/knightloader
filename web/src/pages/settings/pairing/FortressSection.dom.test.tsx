@@ -45,6 +45,12 @@ vi.mock('../../../lib/api', async (importOriginal) => {
       if (server.view.passwordSet && password !== 'hunter2') throw wrong();
       return { phrase: NEW_PHRASE, left: ['Cellar'] };
     },
+    setFortressDevice: async (device: string) => {
+      server.calls.push(`device ${device}`);
+      if (device.length > 64) throw new actual.ApiError('the name must be one line of at most 64 characters', 'fortress.deviceName', undefined, 400);
+      server.view = { ...server.view, device: device || server.view.defaultDevice };
+      return server.view;
+    },
     leaveFortress: async () => {
       server.calls.push('leave');
       server.view = { ...server.view, joined: false, phrase: false };
@@ -61,6 +67,7 @@ function state(over: Partial<FortressState> = {}): FortressState {
     joined: false,
     phrase: false,
     device: 'nas',
+    defaultDevice: 'nas',
     passwordSet: true,
     members: [],
     permissions: [],
@@ -285,6 +292,32 @@ describe('FortressSection', () => {
     expect(page()).toContain('Connected');
     expect(page()).toContain('Not reachable');
     expect(page()).not.toContain('Inactive');
+  });
+
+  it('saves the name of this server a moment after the typing stops', async () => {
+    await draw(joined());
+    const field = document.querySelector<HTMLInputElement>('#fortress-device')!;
+    expect(field.value).toBe('nas');
+    expect(field.placeholder).toBe('nas');
+    await typeInto(field, 'Towe');
+    await typeInto(field, 'Tower');
+    expect(server.calls).toEqual([]);
+    await act(async () => new Promise((done) => setTimeout(done, 1000)));
+    expect(server.calls).toEqual(['device Tower']);
+    expect(field.value).toBe('Tower');
+    expect(toasts).toEqual([en['settings.saved']]);
+  });
+
+  it('says why a name that is too long is not kept', async () => {
+    await draw(joined());
+    await typeInto(document.querySelector<HTMLInputElement>('#fortress-device')!, 'x'.repeat(65));
+    await act(async () => new Promise((done) => setTimeout(done, 1000)));
+    expect(toasts).toEqual([en['pairing.fortressDeviceTooLong']]);
+  });
+
+  it('asks for the name of this server only inside a fortress', async () => {
+    await draw(state());
+    expect(document.querySelector('#fortress-device')).toBeNull();
   });
 
   it('offers neither showing nor changing a phrase KnightLoader does not keep', async () => {

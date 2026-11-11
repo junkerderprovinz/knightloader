@@ -598,6 +598,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     // GlimStone's fortress below the relay, worded in its own texts but for
     // these, which say where the phrase comes from.
     { title: 'pairing.fortressTitle', rows: [], body: ['pairing.fortressOutHint', 'pairing.fortressPhraseWhere'] },
+    // The name of this server in the fortress, once KnightLoader is in one.
+    {
+      title: 'pairing.fortressDeviceTitle',
+      rows: [{ key: 'pairing.fortressDeviceName', hint: 'pairing.fortressDeviceHint' }],
+    },
   ],
 
   access: [

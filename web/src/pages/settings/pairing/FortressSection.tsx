@@ -1,18 +1,19 @@
 // FortressSection is KnightLoader's place in the fortress, on the Pairing page:
 // GlimStone's fortress with the twelve words to join, the phrase behind the
-// password and the other apps with their permissions, then the card where the
-// phrase changes and KnightLoader leaves. The name the other members see is
-// the instance name on the identity card above.
-import { useMemo, useState } from 'react';
+// password and the other apps with their permissions, then the name of this
+// server and the card where the phrase changes and KnightLoader leaves.
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { fill, fortressText, type ChangeAnswer, type FortressAnswer, type FortressText, type PhraseAnswer } from '@glimstone/core';
 import { Fortress, FortressPairing } from '@glimstone/react/Fortress';
 import { PasswordField } from '@glimstone/react/PasswordField';
 import { Window } from '@glimstone/react/Window';
+import { Card, SectionTitle, TextInput } from '../../../components/ui';
 import {
   ApiError,
   changeFortressPhrase,
   joinFortress,
   leaveFortress,
+  setFortressDevice,
   setFortressPermission,
   showFortressPhrase,
   type FortressState,
@@ -20,12 +21,15 @@ import {
 import { fmtDate } from '../../../lib/format';
 import { useT } from '../../../lib/i18n';
 import { useToast } from '../../../lib/toast';
+import { SetRow } from './parts';
 import { refusalText } from './PhraseCard';
 import { SELF, fortressApps, fortressPermissions, permissionOf } from './fortressModel';
 
 type T = ReturnType<typeof useT>['t'];
 
 const TONE = { success: 'ok', warn: 'info', fail: 'fail' } as const;
+// The name saves itself after a pause in typing, as the settings do.
+const SAVE_AFTER_MS = 800;
 
 export function FortressSection({
   view,
@@ -122,15 +126,18 @@ export function FortressSection({
         hueStart={hueStart}
       />
       {view.joined && (
-        <FortressPairing
-          text={{ ...text, pairing: t('pairing.fortressTitle') }}
-          lang={lang}
-          app={SELF}
-          onLeave={onLeave}
-          onChangePhrase={view.phrase ? onChangePhrase : undefined}
-          pairedWith={view.pairedWith}
-          hueIndex={hueStart + apps.length + 2}
-        />
+        <>
+          <DeviceCard view={view} onView={onView} hue={hueStart + apps.length + 2} />
+          <FortressPairing
+            text={{ ...text, pairing: t('pairing.fortressTitle') }}
+            lang={lang}
+            app={SELF}
+            onLeave={onLeave}
+            onChangePhrase={view.phrase ? onChangePhrase : undefined}
+            pairedWith={view.pairedWith}
+            hueIndex={hueStart + apps.length + 3}
+          />
+        </>
       )}
       {asking && (
         <ChangePassword
@@ -143,6 +150,53 @@ export function FortressSection({
         />
       )}
     </section>
+  );
+}
+
+/** DeviceCard holds the name the other members know this server by. */
+function DeviceCard({ view, onView, hue }: { view: FortressState; onView: (v: FortressState) => void; hue: number }) {
+  const { t } = useT();
+  const { toast } = useToast();
+  // What is being typed, null while the field shows the saved name.
+  const [draft, setDraft] = useState<string | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const save = async (name: string) => {
+    try {
+      onView(await setFortressDevice(name));
+      setDraft((d) => (d === name ? null : d));
+      toast(t('settings.saved'), 'ok');
+    } catch (e) {
+      toast(e instanceof ApiError && e.code === 'fortress.deviceName' ? t('pairing.fortressDeviceTooLong') : refusalText(t, e), 'fail');
+    }
+  };
+
+  return (
+    <Card hue={hue} className="flex flex-col">
+      <SectionTitle>{t('pairing.fortressDeviceTitle')}</SectionTitle>
+      <SetRow
+        label={t('pairing.fortressDeviceName')}
+        hint={t('pairing.fortressDeviceHint', { name: view.defaultDevice })}
+        htmlFor="fortress-device"
+      >
+        <div className="w-[18rem] max-w-full">
+          <TextInput
+            id="fortress-device"
+            value={draft ?? view.device}
+            placeholder={view.defaultDevice}
+            spellCheck={false}
+            autoComplete="off"
+            onChange={(e) => {
+              const name = e.target.value;
+              setDraft(name);
+              clearTimeout(timer.current);
+              timer.current = setTimeout(() => void save(name), SAVE_AFTER_MS);
+            }}
+          />
+        </div>
+      </SetRow>
+    </Card>
   );
 }
 

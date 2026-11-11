@@ -36,6 +36,7 @@ const outside: FortressState = {
   joined: false,
   phrase: false,
   device: 'nas',
+  defaultDevice: 'nas',
   passwordSet: true,
   members: [],
   permissions: [],

@@ -757,6 +757,10 @@ type Settings struct {
 	InstanceName string   `json:"instanceName"`
 	KnownDomains []string `json:"knownDomains"`
 
+	// FortressDevice is the name the other apps of the fortress know this
+	// server by, empty for the one KnightLoader finds.
+	FortressDevice string `json:"fortressDevice"`
+
 	// TrustedProxies are the reverse proxies, as IP addresses or CIDR ranges,
 	// whose X-Forwarded-For the sign-in throttle reads. See
 	// settings_access.go.

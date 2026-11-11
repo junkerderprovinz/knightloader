@@ -161,6 +161,7 @@ var groupRefused = []string{
 	"POST /api/fortress/join",
 	"POST /api/fortress/phrase/show",
 	"POST /api/fortress/phrase",
+	"PUT /api/fortress/device",
 	"PUT /api/fortress/permissions",
 	"DELETE /api/fortress",
 	"GET /api/afterdownload/engines/{id}/targets",
