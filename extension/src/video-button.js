@@ -23,6 +23,13 @@
   // stops.
   const IDLE_MS = 2500;
   const RESULT_MS = 4000;
+  // How long "Done" or a failed download stays on the button.
+  const END_MS = 20000;
+  // How often the button asks about the rows it follows, and less often once
+  // a download has run for a minute.
+  const POLL_MS = 3000;
+  const POLL_SLOW_MS = 10000;
+  const POLL_SLOW_AFTER = 60000;
   // How far the pointer moves on the button before a press is a drag rather
   // than a click.
   const DRAG_PX = 5;
@@ -81,6 +88,7 @@
     }
     button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .send {
+      position: relative;
       padding: 0 14px 0 10px;
       background: var(--surface); color: var(--text);
       border-start-start-radius: var(--radius); border-end-start-radius: var(--radius);
@@ -98,11 +106,23 @@
       background: var(--accent); color: var(--accent-contrast);
     }
     .send:hover .mark *, .send:focus-visible .mark * { fill: currentColor; }
+    /* Centred on the mark, which is 13px wide behind 10px of padding. */
+    .ring {
+      position: absolute; inset-inline-start: 3.5px; top: 3px; width: 26px; height: 26px;
+      display: none; overflow: visible; pointer-events: none; rotate: -90deg;
+    }
+    .kl[data-ring] .ring { display: block; }
+    .ring circle { fill: none; stroke-width: 2; }
+    .ring .track { stroke: color-mix(in srgb, var(--accent) 22%, transparent); }
+    .ring .arc { stroke: var(--accent); stroke-linecap: round; transition: stroke-dasharray 400ms ease; }
+    .send:hover .ring .arc, .send:focus-visible .ring .arc { stroke: currentColor; }
+    .send:hover .ring .track, .send:focus-visible .ring .track { stroke: color-mix(in srgb, currentColor 30%, transparent); }
+    .kl[data-ring="unknown"] .ring { animation: spin 2.4s linear infinite; }
     .kl[data-state="sending"] .send { animation: pulse 3.2s ease-in-out infinite; }
-    .kl[data-state="sent"] .send { color: var(--ok); }
+    .kl[data-state="sent"] .send, .kl[data-state="done"] .send { color: var(--ok); }
     .kl[data-state="already"] .send { color: var(--text); }
     .kl[data-state="held"] .send, .kl[data-state="refused"] .send, .kl[data-state="offline"] .send,
-    .kl[data-state="unpaired"] .send, .kl[data-state="failed"] .send { color: var(--fail); }
+    .kl[data-state="unpaired"] .send, .kl[data-state="failed"] .send, .kl[data-state="loadFailed"] .send { color: var(--fail); }
     .kl[data-state] .send:hover, .kl[data-state] .send:focus-visible { color: var(--accent-contrast); }
     .burst { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
     /* The outline keeps a pale star readable on a bright frame. */
@@ -156,6 +176,7 @@
     .note { display: flex; flex: 0 0 auto; align-items: center; min-height: 24px; padding: 0 10px; color: var(--sub); font-size: 12px; }
     .menu[aria-busy="true"] .note.busy { animation: pulse 3.2s ease-in-out infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+    @keyframes spin { from { rotate: -90deg; } to { rotate: 270deg; } }
     @keyframes shake {
       0%, 100% { transform: translateX(0); } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); }
       60% { transform: translateX(-2px); } 80% { transform: translateX(2px); }
@@ -165,8 +186,8 @@
       .send.shake { animation: shake 220ms ease-in-out; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .kl, button, .mark * { transition: none; }
-      .kl[data-state="sending"] .send, .menu[aria-busy="true"] .note.busy { animation: none; }
+      .kl, button, .mark *, .ring .arc { transition: none; }
+      .kl[data-state="sending"] .send, .menu[aria-busy="true"] .note.busy, .kl[data-ring="unknown"] .ring { animation: none; }
       .send.shake { animation: shake-reduced 220ms ease-in-out; }
     }
   `;
@@ -187,6 +208,10 @@
   let asking = false;
   let result = null;
   let resultTimer = 0;
+  // The rows of a send the instance is downloading, while the button follows
+  // them: the instance and the ids to ask about, and the share downloaded
+  // once it has answered, null while that is unknown.
+  let watch = null;
   // What the instance said the video has: the address asked about, and its
   // answer once there is one.
   let offered = null;
@@ -218,7 +243,13 @@
   send.type = 'button';
   send.className = 'send';
   const sendLabel = document.createElement('span');
-  send.append(sendLabel);
+  const ring = document.createElementNS(SVG, 'svg');
+  ring.setAttribute('class', 'ring');
+  ring.setAttribute('viewBox', '0 0 26 26');
+  ring.setAttribute('aria-hidden', 'true');
+  const arc = circle('arc');
+  ring.append(circle('track'), arc);
+  send.append(ring, sendLabel);
   let markOf = '';
   const more = document.createElement('button');
   more.type = 'button';
@@ -237,6 +268,16 @@
   burst.className = 'burst';
   frame.append(bar, burst, menu);
   root.append(style, frame);
+
+  function circle(cls) {
+    const c = document.createElementNS(SVG, 'circle');
+    c.setAttribute('class', cls);
+    c.setAttribute('cx', '13');
+    c.setAttribute('cy', '13');
+    c.setAttribute('r', '12');
+    c.setAttribute('pathLength', '100');
+    return c;
+  }
 
   function icon(d, box, size) {
     const svg = document.createElementNS(SVG, 'svg');
@@ -336,9 +377,12 @@
       clearTimeout(resultTimer);
       result = null;
       closeMenu();
+      // The old video's download goes on without the button.
+      unfollow();
     }
     page = next;
     const wanted = page && labels && videoButtonWanted(stored, page.site);
+    if (labels && !wanted) unfollow();
     const found = wanted ? largestVideo() : null;
     // Players let go of their video for a moment, between an advert and the
     // video or while they lay themselves out again. Somebody in the menu or
@@ -425,7 +469,12 @@
     frame.dataset.state = sending ? 'sending' : (result?.result ?? '');
     showMark(labels.mark);
     sendLabel.textContent = sending ? labels.sending : result ? labels[result.result] : labels.send;
-    const tip = result?.reason || (result ? labels[result.result] : labels.sendTip);
+    const share = watch?.share;
+    if (share === undefined) delete frame.dataset.ring;
+    else frame.dataset.ring = share === null ? 'unknown' : 'share';
+    arc.setAttribute('stroke-dasharray', typeof share === 'number' ? `${Math.round(share * 1000) / 10} 100` : '25 75');
+    const going = share === undefined ? '' : share === null ? labels.downloading : `${labels.downloading} ${new Intl.NumberFormat(labels.lang, { style: 'percent' }).format(share)}`;
+    const tip = result?.reason || (result?.result === 'done' ? labels.doneTip : result ? labels[result.result] : going || labels.sendTip);
     send.setAttribute('aria-label', tip);
     send.title = tip;
     send.setAttribute('aria-busy', String(sending));
@@ -471,6 +520,7 @@
   function showResult(answer) {
     sending = false;
     result = RESULTS.includes(answer?.result) ? answer : { result: 'failed' };
+    if (result.watch) follow(result.watch);
     update();
     if (SUCCESS.includes(result.result)) celebrate();
     else replay(send, 'shake');
@@ -478,6 +528,67 @@
       result = null;
       update();
     }, RESULT_MS);
+  }
+
+  /**
+   * Follows the rows a send started on the instance, a new send's in place of
+   * an older one's. The ring shows once the instance has said where they
+   * stand.
+   */
+  function follow(found) {
+    unfollow();
+    watch = { instance: found.instance, ids: found.ids, share: undefined, since: performance.now(), timer: 0 };
+    askLater(watch);
+  }
+
+  function unfollow() {
+    if (watch) clearTimeout(watch.timer);
+    watch = null;
+  }
+
+  function askLater(w) {
+    const slow = performance.now() - w.since > POLL_SLOW_AFTER;
+    w.timer = setTimeout(() => void askProgress(w), slow ? POLL_SLOW_MS : POLL_MS);
+  }
+
+  /** Asks where the rows stand, while the button is on the page. No answer
+   *  leaves the ring as it was until the next time. */
+  async function askProgress(w) {
+    const answer = host.isConnected
+      ? await chrome.runtime.sendMessage({ type: 'knightloader-video-progress', instance: w.instance, ids: w.ids }).catch(() => null)
+      : null;
+    if (watch !== w) return;
+    switch (answer?.state) {
+      case 'running':
+        w.share = typeof answer.share === 'number' ? Math.min(1, Math.max(0, answer.share)) : null;
+        break;
+      case 'done':
+        end({ result: 'done', instance: w.instance });
+        return;
+      case 'failed':
+        end({ result: 'loadFailed', reason: answer.reason, instance: w.instance });
+        replay(send, 'shake');
+        return;
+      case 'gone':
+        unfollow();
+        update();
+        return;
+    }
+    update();
+    askLater(w);
+  }
+
+  /** Shows how the download ended for a while, in place of whatever the
+   *  button said. */
+  function end(shown) {
+    unfollow();
+    clearTimeout(resultTimer);
+    result = shown;
+    update();
+    resultTimer = setTimeout(() => {
+      result = null;
+      update();
+    }, END_MS);
   }
 
   /**
@@ -815,8 +926,12 @@
     more.setAttribute('aria-expanded', 'false');
   }
 
+  // "Done" and a failed download open the instance's downloads, where the
+  // file is, or the row with its error and a retry.
   send.addEventListener('click', (e) => {
-    if (e.isTrusted) void sendVideo(clickPick);
+    if (!e.isTrusted) return;
+    if (result?.instance) chrome.runtime.sendMessage({ type: 'knightloader-video-open', instance: result.instance }).catch(() => {});
+    else void sendVideo(clickPick);
   });
   more.addEventListener('click', (e) => {
     if (!e.isTrusted) return;

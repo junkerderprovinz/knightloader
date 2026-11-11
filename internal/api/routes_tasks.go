@@ -15,8 +15,12 @@ import (
 )
 
 func registerTasks(reg *Registry, a *app.App) {
-	reg.Add(http.MethodGet, "/api/tasks", "every task, oldest first",
+	reg.Add(http.MethodGet, "/api/tasks", "every task, oldest first; ?ids=a,b only those and the other rows of their links",
 		func(w http.ResponseWriter, r *http.Request) {
+			if ids := idsFromQuery(r); ids != nil {
+				writeJSON(w, shownTasks(r, a.TasksOf(ids)))
+				return
+			}
 			writeJSON(w, shownTasks(r, a.Tasks()))
 		})
 	reg.Add(http.MethodGet, "/api/tasks/watch", "what a background watch compares between two looks: each task's state without its progress, or only the tag when ?tag= names the list as it still is",

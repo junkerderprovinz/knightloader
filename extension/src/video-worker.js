@@ -98,6 +98,10 @@ async function videoLabels() {
     offline: t('video.offline'),
     unpaired: t('video.unpaired'),
     failed: t('video.failed'),
+    downloading: t('video.downloading'),
+    done: t('video.done'),
+    doneTip: t('video.doneTip'),
+    loadFailed: t('video.loadFailed'),
     mark: videoMarkSvg,
     dir: LANGUAGES.find((l) => l.code === currentLanguage())?.rtl ? 'rtl' : 'ltr',
     lang: currentLanguage(),
@@ -144,7 +148,8 @@ async function videoSend(frameUrl, msg) {
 }
 
 /** Adds the video to one instance, to download at once whatever the instance
- *  does with links added otherwise. */
+ *  does with links added otherwise. A send that started rows says where they
+ *  are, for the button to follow. */
 async function postVideo(call, target, send) {
   const res = await call(
     target,
@@ -153,11 +158,15 @@ async function postVideo(call, target, send) {
     JSON.stringify({ links: send.link, package: '', origin: 'cnl', source: send.page.url, choice: send.choice, start: true, report: true }),
   );
   if (res.status < 200 || res.status >= 300) return { result: 'refused', reason: t(refusalKey(res)) };
+  let answer;
   try {
-    return videoResult(JSON.parse(res.body));
+    answer = JSON.parse(res.body);
   } catch {
     return { result: 'refused' };
   }
+  const result = videoResult(answer);
+  const ids = videoWatchIds(answer);
+  return result.result === 'sent' && ids.length ? { ...result, watch: { instance: target, ids } } : result;
 }
 
 function videoFailure(e) {
@@ -285,6 +294,41 @@ async function videoFormats(frameUrl, msg) {
   return offer;
 }
 
+/**
+ * Where the rows a button follows stand on the instance it sent them to
+ * (videoProgress), or null where that cannot be said this time, for the
+ * button to ask again. Only task ids are taken, from an instance of the
+ * group, so a button can do no more than read the state of rows by id.
+ */
+async function videoRowsProgress(msg) {
+  const ids = Array.isArray(msg.ids) ? msg.ids : [];
+  if (typeof msg.instance !== 'string' || ids.length === 0 || ids.length > VIDEO_WATCH_MAX || !ids.every((id) => videoIs(VIDEO_TASK_ID, id))) return null;
+  try {
+    return await withGroup(async ({ siblings, call }) => {
+      if (!siblings.some((s) => s.instanceId === msg.instance)) return null;
+      const tasks = await readJSON(call, msg.instance, `/api/tasks?ids=${ids.join(',')}`);
+      return Array.isArray(tasks) ? videoProgress(tasks, ids) : null;
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** Opens the downloads in the web interface of the instance a button sent to,
+ *  at the address the popup's cards open (bestWebUrl). */
+async function openVideoInstance(msg) {
+  if (typeof msg.instance !== 'string') return;
+  let url = '';
+  try {
+    url = await withGroup(async ({ siblings, call }) =>
+      siblings.some((s) => s.instanceId === msg.instance) ? bestWebUrl(await readJSON(call, msg.instance, '/api/remote-access')) : '',
+    );
+  } catch {
+    return;
+  }
+  if (url) await chrome.tabs.create({ url: `${url.replace(/\/+$/, '')}/downloads` });
+}
+
 /** Hides the button on the site a page belongs to, from the button's menu. */
 async function hideVideoSite(frameUrl) {
   const site = videoSiteOf(frameUrl);
@@ -309,6 +353,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     void videoFormats(sender.url, msg).then(sendResponse);
     return true;
   }
+  if (msg?.type === 'knightloader-video-progress') {
+    void videoRowsProgress(msg).then(sendResponse);
+    return true;
+  }
+  if (msg?.type === 'knightloader-video-open') void openVideoInstance(msg);
   if (msg?.type === 'knightloader-video-hide') void hideVideoSite(sender.url);
   if (msg?.type === 'knightloader-video-setup') chrome.runtime.openOptionsPage();
 });
