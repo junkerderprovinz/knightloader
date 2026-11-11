@@ -43,6 +43,32 @@ func TestTwoPicksOfOneVideoLandOnTwoNames(t *testing.T) {
 	}
 }
 
+func TestATrackBesideAnotherOfItsHeightNamesItsCodec(t *testing.T) {
+	tmpl := outputTemplate(Options{Variant: VariantVideo, NameTag: "av1"})
+	if got := fill(tmpl, map[string]string{"title": "Clip", "height": "720", "ext": "mp4"}); got != "Clip (720p av1).mp4" {
+		t.Errorf("video name = %q, want the codec beside the height", got)
+	}
+	for _, c := range []struct {
+		pick   string
+		others []string
+		want   string
+	}{
+		{"720p mp4 av1", []string{"720p mp4 avc1"}, "av1"},
+		{"720p60 mp4 avc1", []string{"720p mp4 avc1"}, "60fps avc1"},
+		{"720p mp4 av1", []string{"best"}, "av1"},
+		{"720p mp4 av1", []string{"1080p"}, "av1"},
+		{"720p mp4 av1", []string{"480p"}, ""},
+		{"720p mp4 av1", []string{"1080p mp4 avc1"}, ""},
+		{"720p mp4 av1", nil, ""},
+		{"720p", []string{"720p mp4 avc1"}, ""},
+		{"best", []string{"720p mp4 avc1"}, ""},
+	} {
+		if got := NameTag(c.pick, c.others); got != c.want {
+			t.Errorf("NameTag(%q, %q) = %q, want %q", c.pick, c.others, got, c.want)
+		}
+	}
+}
+
 func TestTheAudioRowCarriesItsBitrate(t *testing.T) {
 	tmpl := outputTemplate(Options{Variant: VariantAudio})
 	if got := fill(tmpl, map[string]string{"title": "Clip", "abr": "128", "ext": "m4a"}); got != "Clip (128kbit).m4a" {

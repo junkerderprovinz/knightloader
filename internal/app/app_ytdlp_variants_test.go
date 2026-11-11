@@ -1375,6 +1375,32 @@ func TestPickingAVideoTrackGivesTheRowThatTracksFile(t *testing.T) {
 	}
 }
 
+// A video sent again for another track of a height the link already has
+// writes its codec beside the height, so the two files do not share a name,
+// and a best pick keeps the plain name.
+func TestASecondTrackOfOneHeightNamesItsCodec(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=nametag0001"
+	first := putTask(t, a, core.Task{URL: url, Name: "Clip", Status: core.StatusDone, Enabled: true, Variant: "video:720p mp4 avc1"})
+	if tag := a.ytdlpOptionsForTask(first.ID).NameTag; tag != "" {
+		t.Errorf("a track alone is tagged %q, want the plain name", tag)
+	}
+	second := putTask(t, a, core.Task{URL: url, Name: "Clip", Status: core.StatusCollected, Enabled: true, Variant: "video:720p mp4 av1"})
+	if tag := a.ytdlpOptionsForTask(second.ID).NameTag; tag != "av1" {
+		t.Errorf("a second 720p track is tagged %q, want av1", tag)
+	}
+	best := putTask(t, a, core.Task{URL: url, Name: "Clip", Status: core.StatusCollected, Enabled: true, Variant: "video:best"})
+	if tag := a.ytdlpOptionsForTask(best.ID).NameTag; tag != "" {
+		t.Errorf("a best pick is tagged %q, want the plain name", tag)
+	}
+	const other = "https://youtube.com/watch?v=nametag0002"
+	putTask(t, a, core.Task{URL: other, Name: "Clip", Status: core.StatusCollected, VariantOff: true, Variant: "video:720p mp4 avc1"})
+	lone := putTask(t, a, core.Task{URL: other, Name: "Clip", Status: core.StatusCollected, Enabled: true, Variant: "video:720p mp4 vp9"})
+	if tag := a.ytdlpOptionsForTask(lone.ID).NameTag; tag != "" {
+		t.Errorf("a track beside a row set aside, or another video's, is tagged %q, want the plain name", tag)
+	}
+}
+
 func TestPickingAnAudioTrackGivesTheRowThatTracksFile(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=tracks0003"

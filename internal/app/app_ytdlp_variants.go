@@ -61,6 +61,7 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 		case sub != "":
 			base.Quality = ytdlp.Quality(sub)
 		}
+		base.NameTag = ytdlp.NameTag(sub, a.otherVideoPicks(t))
 	case ytdlp.VariantAudio:
 		switch {
 		case ytdlp.IsAudioTrack(sub):
@@ -141,6 +142,20 @@ func (a *App) SetHosterPreset(host string, p ytdlp.HosterPreset) error {
 	}
 	_, err = a.PatchSettings(map[string]json.RawMessage{"ytdlpPresets": raw})
 	return err
+}
+
+// otherVideoPicks lists the picks of the video rows of t's link other than t,
+// leaving out those set aside.
+func (a *App) otherVideoPicks(t *core.Task) []string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	var out []string
+	for _, x := range a.tasks {
+		if kind, sub := variantDecode(x.Variant); kind == ytdlp.VariantVideo && x.ID != t.ID && x.URL == t.URL && !x.VariantOff {
+			out = append(out, sub)
+		}
+	}
+	return out
 }
 
 // familyRow is one row a yt-dlp link is staged as: its kind with its pick,

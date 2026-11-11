@@ -1275,6 +1275,8 @@ func outputTemplate(o Options) string {
 		return musicOutputTemplate
 	case o.Variant == VariantAudio:
 		return audioOutputTemplate
+	case o.Variant == VariantVideo && !o.Embed.Separate && o.NameTag != "":
+		return "%(title)s (%(height&{}p|best)s " + o.NameTag + ").%(ext)s"
 	case o.Variant == VariantVideo && !o.Embed.Separate:
 		return videoOutputTemplate
 	case o.SideTag != "":
