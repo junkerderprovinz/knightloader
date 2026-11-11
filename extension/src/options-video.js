@@ -1,7 +1,8 @@
 // The options page's card for the download button on a video's player
 // (video.js): the switch, whether it hides until the pointer is over the
 // video, the place it was dragged to, and per site whether it shows there and
-// what a click downloads, offering only what the site has offered so far.
+// what a click downloads, offering only what the site has offered so far,
+// and the keyboard shortcut that sends as a click does.
 // Switching on asks the browser for the sites it needs. Switching off keeps
 // what the browser granted, so switching on again needs no question, and
 // leaves every row in view with its controls switched off.
@@ -12,9 +13,25 @@ const videoMoreEl = document.getElementById('videoMore');
 const videoAutoHideEl = document.getElementById('videoAutoHide');
 const videoSpotResetEl = document.getElementById('videoSpotReset');
 const videoSitesEl = document.getElementById('videoSites');
+const videoShortcutRowEl = document.getElementById('videoShortcutRow');
+const videoShortcutEl = document.getElementById('videoShortcut');
+const videoShortcutActionEl = document.getElementById('videoShortcutAction');
+const videoShortcutErrorEl = document.getElementById('videoShortcutError');
 
 const VIDEO_STORED = ['videoButtonAutoHide', 'videoButtonSpot', 'videoDefaults', 'videoSeen'];
 const VIDEO_AUDIO_NAMES = { aac: 'AAC', opus: 'Opus', vorbis: 'Vorbis', mp3: 'MP3', flac: 'FLAC', alac: 'ALAC' };
+
+/** Firefox lets the page change the shortcut. Chromium changes it only on its
+ *  own shortcuts page, which the row opens instead. */
+const VIDEO_SHORTCUT_EDITABLE = typeof chrome.commands?.update === 'function';
+const VIDEO_SHORTCUT_PAGE = 'chrome://extensions/shortcuts';
+const VIDEO_SHORTCUT_DEFAULT = chrome.runtime.getManifest().commands?.[VIDEO_COMMAND]?.suggested_key?.default ?? '';
+const VIDEO_SHORTCUT_MAC = /Mac/.test(navigator.platform);
+// What Firefox takes in a shortcut (commands.update), by name.
+const VIDEO_SHORTCUT_MODIFIERS = ['Alt', 'Ctrl', 'Command', 'MacCtrl', 'Shift'];
+const VIDEO_SHORTCUT_KEY = /^([A-Z0-9]|Comma|Period|Home|End|PageUp|PageDown|Space|Insert|Delete|Up|Down|Left|Right)$/;
+const VIDEO_SHORTCUT_FKEY = /^F([1-9]|1[0-2])$/;
+const VIDEO_SHORTCUT_MEDIA = { MediaTrackNext: 'MediaNextTrack', MediaPlayPause: 'MediaPlayPause', MediaTrackPrevious: 'MediaPrevTrack', MediaStop: 'MediaStop' };
 
 /** The state last drawn. A click asks the browser before anything else, while
  *  it still counts as the user's, so it reads what to ask for from here. */
@@ -31,26 +48,92 @@ function videoText() {
   rowLabel('videoSpotLabel', t('options.videoSpot'), t('options.videoSpotInfo'));
   videoSpotResetEl.replaceChildren(glimGlyph('IconRetry', 14), document.createTextNode(t('options.videoSpotReset')));
   rowLabel('videoSitesLabel', t('options.videoSites'), t('options.videoSitesInfo'));
+  rowLabel('videoShortcutLabel', t('options.videoShortcut'), t('options.videoShortcutInfo'), videoShortcutEl);
+  if (VIDEO_SHORTCUT_EDITABLE) {
+    videoShortcutActionEl.replaceChildren(glimGlyph('IconRetry', 14), document.createTextNode(t('options.videoSpotReset')));
+  } else {
+    videoShortcutActionEl.replaceChildren(glimGlyph('IconExternalLink', 14), document.createTextNode(t('options.videoShortcutChange')));
+    videoShortcutActionEl.setAttribute('data-tip', VIDEO_SHORTCUT_PAGE);
+    videoShortcutEl.tabIndex = -1;
+  }
+  if (videoNow) drawVideoShortcut();
+}
+
+/** The shortcut the browser has for the button, '' where it has none. */
+async function videoShortcut() {
+  if (!chrome.commands) return '';
+  return (await chrome.commands.getAll()).find((c) => c.name === VIDEO_COMMAND)?.shortcut ?? '';
+}
+
+/** The field shows the shortcut, and is empty for the new one while it has
+ *  the keyboard in Firefox. */
+function drawVideoShortcut() {
+  const recording = VIDEO_SHORTCUT_EDITABLE && document.activeElement === videoShortcutEl;
+  videoShortcutEl.value = recording ? '' : videoNow.shortcut;
+  videoShortcutEl.placeholder = t(recording ? 'options.videoShortcutPress' : 'options.videoShortcutNone');
+}
+
+/** The shortcut a key press makes, as commands.update spells it, or '' while
+ *  only modifiers are down. Letters and digits come from the character typed,
+ *  which Firefox matches, unless Option or Shift turned it into another. */
+function videoShortcutOf(e) {
+  if (['Alt', 'AltGraph', 'Control', 'Meta', 'OS', 'Shift'].includes(e.key)) return '';
+  const modifiers = [];
+  if (e.ctrlKey) modifiers.push(VIDEO_SHORTCUT_MAC ? 'MacCtrl' : 'Ctrl');
+  if (e.metaKey) modifiers.push(VIDEO_SHORTCUT_MAC ? 'Command' : 'Meta');
+  if (e.altKey) modifiers.push('Alt');
+  if (e.shiftKey) modifiers.push('Shift');
+  const key = /^[a-z0-9]$/i.test(e.key)
+    ? e.key.toUpperCase()
+    : /^(Key[A-Z]|Digit[0-9])$/.test(e.code)
+      ? e.code.slice(-1)
+      : (VIDEO_SHORTCUT_MEDIA[e.code] ?? e.code.replace(/^Arrow/, ''));
+  return [...modifiers, key].join('+');
+}
+
+/** Whether Firefox takes a shortcut: a media key alone, or one or two
+ *  different modifiers with a key, where Shift alone or no modifier at all
+ *  goes only with an F key. */
+function videoShortcutValid(shortcut) {
+  if (Object.values(VIDEO_SHORTCUT_MEDIA).includes(shortcut)) return true;
+  const modifiers = shortcut.split('+');
+  const key = modifiers.pop();
+  const fkey = VIDEO_SHORTCUT_FKEY.test(key);
+  if (!fkey && !VIDEO_SHORTCUT_KEY.test(key)) return false;
+  if (modifiers.length > 2 || new Set(modifiers).size < modifiers.length || modifiers.some((m) => !VIDEO_SHORTCUT_MODIFIERS.includes(m))) return false;
+  return fkey || modifiers.some((m) => m !== 'Shift');
+}
+
+function refuseVideoShortcut() {
+  videoShortcutErrorEl.textContent = t('options.videoShortcutInvalid');
+  videoShortcutErrorEl.hidden = false;
+  shake(videoShortcutEl);
 }
 
 /** The switch shows whether the button runs anywhere, never only whether it
  *  is wanted. Wanted without the access brings up the notice. */
 async function renderVideo() {
-  videoNow = { ...(await videoButtonState()), stored: await chrome.storage.local.get(VIDEO_STORED) };
+  videoNow = { ...(await videoButtonState()), stored: await chrome.storage.local.get(VIDEO_STORED), shortcut: await videoShortcut() };
   videoEnabledEl.setAttribute('aria-checked', String(videoNow.on));
   const waiting = videoNow.wanted && !videoNow.on && videoNow.shown.length > 0;
   videoNoticeEl.hidden = !videoRefused && !waiting;
   document.getElementById('videoNoticeTitle').textContent = t(videoRefused ? 'options.videoRefusedTitle' : 'options.videoAccessTitle');
   document.getElementById('videoNoticeReason').textContent = t(videoRefused ? 'options.videoRefused' : 'options.videoAccess');
   videoAutoHideEl.setAttribute('aria-checked', String(videoNow.stored.videoButtonAutoHide === true));
+  // Firefox for Android has no keyboard shortcuts.
+  videoShortcutRowEl.hidden = !chrome.commands;
+  drawVideoShortcut();
   // Every change redraws the sites, so the keyboard goes back to the control
   // it was on.
   const focusKey = document.activeElement?.dataset?.videoKey;
   videoSitesEl.replaceChildren(...VIDEO_SITES.map(videoSiteBlock));
   // Off, the rows stay in view, so what the button will do can be read and
   // found, and each control refuses on its own.
-  for (const el of videoMoreEl.querySelectorAll('button, select')) el.disabled = !videoNow.on;
-  if (videoNow.on) videoSpotResetEl.disabled = Object.keys(videoNow.stored.videoButtonSpot ?? {}).length === 0;
+  for (const el of videoMoreEl.querySelectorAll('button, select, input')) el.disabled = !videoNow.on;
+  if (videoNow.on) {
+    videoSpotResetEl.disabled = Object.keys(videoNow.stored.videoButtonSpot ?? {}).length === 0;
+    if (VIDEO_SHORTCUT_EDITABLE) videoShortcutActionEl.disabled = videoNow.shortcut === VIDEO_SHORTCUT_DEFAULT;
+  }
   if (focusKey) videoSitesEl.querySelector(`[data-video-key="${focusKey}"]`)?.focus();
 }
 
@@ -248,6 +331,53 @@ videoAutoHideEl.addEventListener('click', () => {
 
 videoSpotResetEl.addEventListener('click', () => {
   void chrome.storage.local.remove('videoButtonSpot');
+});
+
+videoShortcutEl.addEventListener('focus', () => {
+  if (videoNow) drawVideoShortcut();
+});
+videoShortcutEl.addEventListener('blur', () => {
+  videoShortcutErrorEl.hidden = true;
+  if (videoNow) drawVideoShortcut();
+});
+// Tab still moves on, and Escape leaves the shortcut as it was.
+videoShortcutEl.addEventListener('keydown', async (e) => {
+  if (!VIDEO_SHORTCUT_EDITABLE || e.key === 'Tab') return;
+  e.preventDefault();
+  if (e.key === 'Escape') {
+    videoShortcutEl.blur();
+    return;
+  }
+  const shortcut = videoShortcutOf(e);
+  if (!shortcut) return;
+  if (!videoShortcutValid(shortcut)) {
+    refuseVideoShortcut();
+    return;
+  }
+  try {
+    await chrome.commands.update({ name: VIDEO_COMMAND, shortcut });
+  } catch {
+    refuseVideoShortcut();
+    return;
+  }
+  videoShortcutErrorEl.hidden = true;
+  videoShortcutEl.blur();
+  await renderVideo();
+});
+
+videoShortcutActionEl.addEventListener('click', async () => {
+  if (!VIDEO_SHORTCUT_EDITABLE) {
+    void chrome.tabs.create({ url: VIDEO_SHORTCUT_PAGE });
+    return;
+  }
+  await chrome.commands.reset(VIDEO_COMMAND);
+  videoShortcutErrorEl.hidden = true;
+  await renderVideo();
+});
+
+// The shortcut also changes on the browser's own page, in another tab.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) void renderVideo();
 });
 
 // The button's own menu and its drags change the same storage.

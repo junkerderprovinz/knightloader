@@ -221,6 +221,22 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === 'knightloader-video-setup') chrome.runtime.openOptionsPage();
 });
 
+/**
+ * The keyboard shortcut has the button on the active tab's page send, so it
+ * shows how the send went just as after a click. A tab whose page plays no
+ * video, or on a site the button is off on, is left alone. The top frame
+ * only, since a page full of embedded players would otherwise send them all.
+ */
+async function sendVideoByShortcut(command, tab) {
+  if (command !== VIDEO_COMMAND) return;
+  const page = videoPage(tab?.url ?? '');
+  if (!page || !(await videoButtonState()).running.includes(page.site)) return;
+  await chrome.tabs.sendMessage(tab.id, { type: 'knightloader-video-shortcut' }, { frameId: 0 }).catch(() => {});
+}
+
+// Firefox for Android has no keyboard shortcuts.
+chrome.commands?.onCommand.addListener((command, tab) => void sendVideoByShortcut(command, tab));
+
 chrome.runtime.onInstalled.addListener(() => void applyVideoButton());
 chrome.runtime.onStartup?.addListener(() => void applyVideoButton());
 chrome.permissions.onAdded.addListener(() => void applyVideoButton());

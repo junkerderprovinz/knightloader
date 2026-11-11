@@ -33,6 +33,11 @@
  *      element shown in fullscreen, picks the video that is on screen, and
  *      moves down past the controls a player keeps along the top of its
  *      video.
+ *   6. The keyboard shortcut has the button in the active tab send the site's
+ *      defaults, only on a video page of a site the button runs on.
+ *   7. The options card shows the shortcut, changes and resets it in Firefox
+ *      within the shortcuts Firefox takes, and in Chromium opens the
+ *      browser's shortcuts page.
  *
  * Run by CI and by hand: `node extension/check-video.mjs`
  */
@@ -505,9 +510,10 @@ class Node {
   get textContent() { return this.text ?? ''; }
   set textContent(s) { this.text = s; }
   getBoundingClientRect() { return this.rect; }
-  querySelectorAll(tag) {
+  querySelectorAll(selector) {
+    const tags = selector.split(',').map((s) => s.trim());
     const out = [];
-    const walk = (n) => n.children.forEach((c) => { if (c.tagName === tag || tag === '*') out.push(c); walk(c); });
+    const walk = (n) => n.children.forEach((c) => { if (tags.includes(c.tagName) || selector === '*') out.push(c); walk(c); });
     walk(this);
     return out;
   }
@@ -515,7 +521,8 @@ class Node {
     const cls = selector.startsWith('.') ? selector.slice(1) : null;
     return this.querySelectorAll('*').find((n) => (cls ? n.attrs.class === cls || n.className === cls : n.tagName === selector)) ?? null;
   }
-  focus() {}
+  focus() { this.doc.activeElement = this; }
+  blur() { if (this.doc.activeElement === this) this.doc.activeElement = null; }
 }
 
 function makeDocument() {
@@ -833,6 +840,201 @@ for (const reduced of [false, true]) {
   await settle();
   const top = parseInt(doc.documentElement.querySelectorAll('knightloader-video-button')[0]?.style.top ?? '0', 10);
   if (top < 60) fail(`in an embedded player the button sits at ${top}px, over the title link along the top`);
+}
+
+// 6. The keyboard shortcut sends the video in the active tab, through the
+// button on its page, as a click would.
+{
+  const command = Object.keys(manifest.commands ?? {})[0];
+  if (!command) fail('the manifest has no keyboard shortcut for the button');
+  else if (!manifest.commands[command].description) fail('the shortcut has no description for the browser to list it by');
+
+  for (const granted of [['<all_urls>'], []]) {
+    const store = makeStore();
+    const { chrome } = makeChrome(store, { granted });
+    chrome.commands = { onCommand: event() };
+    const asked = [];
+    chrome.tabs.sendMessage = async (tabId, msg, options) => { asked.push({ tabId, msg, options }); };
+    const ctx = loadBackground(chrome);
+    const listens = vm.runInContext('typeof VIDEO_COMMAND === "string" ? VIDEO_COMMAND : undefined', ctx);
+    if (listens !== command) fail(`the worker listens for ${listens}, the manifest names ${command}`);
+    const press = async (tab, name = command) => {
+      for (const f of chrome.commands.onCommand.listeners) f(name, tab);
+      await settle();
+    };
+    const watch = { id: 3, url: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ' };
+    await press(watch);
+    if (!granted.length) {
+      if (asked.length) fail('without access to the site the shortcut still asks the tab to send');
+      continue;
+    }
+    const got = asked.at(-1);
+    if (asked.length !== 1 || got.tabId !== 3 || got.msg?.type !== 'knightloader-video-shortcut' || got.options?.frameId !== 0) {
+      fail(`on a watch page the shortcut asks ${JSON.stringify(asked)}, want the top frame of tab 3 to send once`);
+    }
+    const first = asked.length;
+    await press(watch, 'something-else');
+    await press({ id: 4, url: 'https://example.org/watch?v=aqz-KE-bpKQ' });
+    await press({ id: 5, url: 'https://www.youtube.com/feed/subscriptions' });
+    await press({ id: 6 });
+    await store.local.set({ videoButtonHidden: ['youtube'] });
+    await press(watch);
+    await store.local.set({ videoButtonHidden: [], videoButton: false });
+    await press(watch);
+    if (asked.length !== first) fail(`another command, a page without a video or a site the button is off on still sent: ${JSON.stringify(asked.slice(1))}`);
+  }
+
+  // On the page the button sends the site's defaults and shows how it went,
+  // even with auto-hide keeping it out of sight until then.
+  const store = makeStore({ videoButtonAutoHide: true, videoDefaults: { youtube: { parts: ['audio'], quality: 'best', audio: 'opus' } } });
+  const { chrome } = makeChrome(store);
+  const sends = [];
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
+    if (msg.type === 'knightloader-video-send') {
+      sends.push(msg);
+      return { result: 'sent' };
+    }
+    return undefined;
+  };
+  const { doc, location, run } = loadPage(chrome, 'https://www.youtube.com/watch?v=aqz-KE-bpKQ');
+  const player = doc.createElement('div');
+  doc.documentElement.append(player);
+  video(doc, player, { left: 0, top: 56, width: 1280, height: 720 });
+  run();
+  await settle();
+  const shortcut = async () => {
+    for (const f of chrome.runtime.onMessage.listeners) f({ type: 'knightloader-video-shortcut' }, { id: 'test' }, () => {});
+    await settle();
+  };
+  const host = doc.documentElement.querySelectorAll('knightloader-video-button')[0];
+  const frame = host?.shadow.querySelectorAll('div').find((d) => d.className === 'kl');
+  if (frame?.classList.contains('shown')) fail('with auto-hide the button shows before the shortcut');
+  await shortcut();
+  if (sends.length !== 1 || JSON.stringify(sends[0].pick) !== '{"parts":["audio"],"quality":"best","audio":"opus","subLangs":[],"subFormat":"best"}') {
+    fail(`the shortcut sends ${JSON.stringify(sends.map((s) => s.pick))}, want YouTube's defaults once`);
+  }
+  if (frame?.dataset.state !== 'sent') fail(`after the shortcut the button shows ${frame?.dataset.state}, want sent`);
+  if (!frame?.classList.contains('shown')) fail('with auto-hide the button stays out of sight while it shows what the shortcut did');
+  if (!(doc.animations ?? []).some((a) => a.node.attrs.class === 'star')) fail('a send by the shortcut does not cheer');
+  location.href = 'https://www.youtube.com/feed/subscriptions';
+  doc.dispatch('yt-navigate-finish');
+  const sent = sends.length;
+  await shortcut();
+  if (sends.length !== sent) fail('on a page without a video the shortcut sends');
+}
+
+// 7. The shortcut's row on the options page: the current shortcut, changed
+// and reset in place where the browser allows it (Firefox), and otherwise a
+// way to the browser's own shortcuts page.
+for (const editable of [true, false]) {
+  const browser = editable ? 'Firefox' : 'Chromium';
+  const store = makeStore();
+  const { chrome, calls } = makeChrome(store);
+  const command = Object.keys(manifest.commands ?? {})[0] ?? 'send-video';
+  const fallback = manifest.commands?.[command]?.suggested_key?.default ?? 'Alt+Shift+D';
+  let current = 'Alt+Shift+Y';
+  const updates = [];
+  chrome.commands = {
+    getAll: async () => [{ name: command, shortcut: current, description: 'Send' }],
+    ...(editable && {
+      update: async ({ name, shortcut }) => {
+        updates.push({ name, shortcut });
+        current = shortcut;
+      },
+      reset: async (name) => {
+        updates.push({ name, reset: true });
+        current = fallback;
+      },
+    }),
+  };
+  const doc = makeDocument();
+  const source = read('src', 'options-video.js');
+  const html = read('src', 'options.html');
+  doc.byId = Object.fromEntries([...source.matchAll(/getElementById\('(\w+)'\)/g)].map(([, id]) => {
+    const n = new Node(/Reset|Action|Enabled|AutoHide$/.test(id) ? 'button' : id === 'videoShortcut' ? 'input' : 'div', doc);
+    n.attrs.id = id;
+    n.hidden = new RegExp(`id="${id}"[^>]* hidden[ >]`).test(html);
+    return [id, n];
+  }));
+  for (const id of ['videoAutoHide', 'videoSpotReset', 'videoShortcut', 'videoShortcutAction', 'videoSites']) if (doc.byId[id]) doc.byId.videoMore.append(doc.byId[id]);
+  doc.createTextNode = (text) => Object.assign(new Node('#text', doc), { text });
+  const shaken = [];
+  const ctx = vm.createContext({
+    chrome, document: doc, URL, console, setTimeout, clearTimeout, navigator: { platform: 'Win32', userAgent: 'test' },
+    t: (key) => key, loadLanguage: async () => {}, rowLabel() {}, glimGlyph: (name) => Object.assign(new Node('svg', doc), { glyph: name }), shake: (el) => shaken.push(el),
+  });
+  vm.runInContext(read('src', 'video.js'), ctx, { filename: 'video.js' });
+  vm.runInContext(source, ctx, { filename: 'options-video.js' });
+  await settle();
+  const field = doc.byId.videoShortcut;
+  const action = doc.byId.videoShortcutAction;
+  const problem = doc.byId.videoShortcutError;
+  if (!field || !action || !problem) {
+    fail(`${browser}: the video card has no shortcut row`);
+    continue;
+  }
+  if (field.value !== 'Alt+Shift+Y') fail(`${browser}: the row shows "${field.value}", want the current Alt+Shift+Y`);
+  const key = (e) => field.dispatch('keydown', { ctrlKey: false, altKey: false, shiftKey: false, metaKey: false, code: '', ...e });
+
+  if (editable) {
+    const valid = vm.runInContext('videoShortcutValid', ctx);
+    if (!valid(fallback)) fail(`the manifest's shortcut ${fallback} is one Firefox would refuse`);
+    for (const s of ['Alt+Shift+D', 'Ctrl+Comma', 'MacCtrl+Shift+Up', 'Command+K', 'F5', 'Shift+F12', 'MediaPlayPause']) if (!valid(s)) fail(`${s} is refused, Firefox takes it`);
+    for (const s of ['D', 'Shift+D', 'Ctrl+Alt+Shift+D', 'Alt+Alt+D', 'Meta+D', 'Ctrl+Tab', 'Ctrl+F13', 'Ctrl+MediaStop', '']) if (valid(s)) fail(`${JSON.stringify(s)} is taken, Firefox refuses it`);
+
+    field.focus();
+    field.dispatch('focus');
+    key({ key: 'Control', ctrlKey: true });
+    key({ key: 'Shift', ctrlKey: true, shiftKey: true });
+    if (updates.length || !problem.hidden) fail('holding the modifiers alone already changes the shortcut or complains');
+    key({ key: 'K', code: 'KeyK', ctrlKey: true, shiftKey: true });
+    await settle();
+    if (JSON.stringify(updates) !== JSON.stringify([{ name: command, shortcut: 'Ctrl+Shift+K' }])) fail(`${browser}: Ctrl+Shift+K changes the shortcut with ${JSON.stringify(updates)}`);
+    // A QWERTZ keyboard has Z where QWERTY has Y, and Firefox matches the
+    // letter the key types.
+    key({ key: 'z', code: 'KeyY', altKey: true });
+    await settle();
+    if (updates.at(-1)?.shortcut !== 'Alt+Z') fail(`Alt with the key that types z becomes ${updates.at(-1)?.shortcut}, want Alt+Z`);
+    key({ key: '!', code: 'Digit1', altKey: true, shiftKey: true });
+    await settle();
+    if (updates.at(-1)?.shortcut !== 'Alt+Shift+1') fail(`Alt+Shift with the 1 key becomes ${updates.at(-1)?.shortcut}, want Alt+Shift+1`);
+    const before = updates.length;
+    key({ key: 'K', code: 'KeyK', shiftKey: true });
+    await settle();
+    if (updates.length !== before) fail('Shift with a letter changes the shortcut, which Firefox refuses');
+    if (problem.hidden || problem.text !== 'options.videoShortcutInvalid') fail('a shortcut Firefox refuses shows no error');
+    if (!shaken.includes(field)) fail('a refused shortcut does not shake the field');
+    field.blur();
+    field.dispatch('blur');
+    await settle();
+    if (field.value !== 'Alt+Shift+1') fail(`after the change the row shows "${field.value}", want Alt+Shift+1`);
+    if (!problem.hidden) fail('the error stays after the field is left');
+    if (action.disabled) fail('the reset is off while the shortcut differs from the default');
+    action.dispatch('click');
+    await settle();
+    if (updates.at(-1)?.reset !== true || field.value !== fallback) fail(`the reset leaves "${field.value}", want ${fallback}`);
+    if (!action.disabled) fail('the reset stays on at the default');
+  } else {
+    if (!/<input id="videoShortcut"[^>]* readonly/.test(html)) fail('the shortcut field can be typed in, where only a key press should change it');
+    if (field.tabIndex !== -1) fail('Chromium: the shortcut field takes the keyboard, but the page cannot change the shortcut');
+    key({ key: 'K', code: 'KeyK', ctrlKey: true, shiftKey: true });
+    await settle();
+    if (field.value !== 'Alt+Shift+Y') fail('Chromium: a key press in the field changes what the row shows');
+    if (!action.children.some((c) => c.text === 'options.videoShortcutChange')) fail('Chromium: the row offers no way to change the shortcut');
+    action.dispatch('click');
+    await settle();
+    if (calls.tabs.at(-1) !== 'chrome://extensions/shortcuts') fail(`Chromium: the row opens ${calls.tabs.at(-1)}, want chrome://extensions/shortcuts`);
+    current = '';
+    doc.hidden = false;
+    doc.dispatch('visibilitychange');
+    await settle();
+    if (field.value !== '' || field.placeholder !== 'options.videoShortcutNone') fail(`Chromium: back from its shortcuts page with none set, the row shows "${field.value || field.placeholder}"`);
+  }
+
+  await store.local.set({ videoButton: false });
+  await settle();
+  if (!field.disabled || !action.disabled) fail(`${browser}: with the button off the shortcut row stays usable`);
 }
 
 if (problems.length) {

@@ -373,6 +373,9 @@ function videoButtonWanted(stored, siteId) {
   return stored?.videoButton !== false && !hidden.includes(siteId);
 }
 
+/** The keyboard shortcut's name in the manifest's commands. */
+const VIDEO_COMMAND = 'send-video';
+
 /** The access a list of sites needs. */
 function videoAccess(siteIds) {
   return { origins: VIDEO_SITES.filter((s) => siteIds.includes(s.id)).flatMap((s) => s.origins) };

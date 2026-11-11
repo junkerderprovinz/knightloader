@@ -134,7 +134,8 @@ Edge shows it read-only):
 >   subtitles, the thumbnail or the description) and in which quality. The arrow
 >   next to the button lists what that one video offers, and the whole playlist.
 >   Drag the button anywhere on the player, let it appear only when you point at
->   the video, or hide it on single sites. Its switch is in the options.
+>   the video, or hide it on single sites. Alt+Shift+D does the same as a
+>   click, without reaching for the mouse. Its switch is in the options.
 > - Watch the clipboard, if you switch it on: a link you copy anywhere goes to
 >   your default instance. Only the links leave the browser. When another of
 >   your devices already watches, the extension names it and offers to switch
