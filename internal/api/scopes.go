@@ -187,15 +187,17 @@ var routeScopes = map[string]apitoken.Scope{
 
 	"POST /api/links": apitoken.ScopeAdd,
 
-	"GET /api/afterdownload":            apitoken.ScopeAdmin,
-	"GET /api/mediahooks":               apitoken.ScopeAdmin,
-	"POST /api/mediahooks":              apitoken.ScopeAdmin,
-	"DELETE /api/mediahooks/{id}":       apitoken.ScopeAdmin,
-	"POST /api/mediahooks/{id}/test":    apitoken.ScopeAdmin,
-	"GET /api/mediatools":               apitoken.ScopeAdmin,
-	"GET /api/mediatools/ytdlp/latest":  apitoken.ScopeAdmin,
-	"POST /api/mediatools/ytdlp/update": apitoken.ScopeAdmin,
-	"GET /api/metrics":                  apitoken.ScopeRead,
+	"GET /api/afterdownload":                      apitoken.ScopeAdmin,
+	"GET /api/afterdownload/engines/{id}/targets": apitoken.ScopeAdmin,
+	"POST /api/afterdownload/jobs":                apitoken.ScopeAdmin,
+	"GET /api/mediahooks":                         apitoken.ScopeAdmin,
+	"POST /api/mediahooks":                        apitoken.ScopeAdmin,
+	"DELETE /api/mediahooks/{id}":                 apitoken.ScopeAdmin,
+	"POST /api/mediahooks/{id}/test":              apitoken.ScopeAdmin,
+	"GET /api/mediatools":                         apitoken.ScopeAdmin,
+	"GET /api/mediatools/ytdlp/latest":            apitoken.ScopeAdmin,
+	"POST /api/mediatools/ytdlp/update":           apitoken.ScopeAdmin,
+	"GET /api/metrics":                            apitoken.ScopeRead,
 
 	// Setting a client up issues a token, as POST /api/tokens does.
 	"GET /api/mcp":                 apitoken.ScopeAdmin,

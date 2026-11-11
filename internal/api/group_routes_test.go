@@ -157,6 +157,8 @@ var groupRefused = []string{
 	"GET /api/eventtargets/placeholders",
 	"POST /api/eventtargets/test",
 	"GET /api/afterdownload",
+	"GET /api/afterdownload/engines/{id}/targets",
+	"POST /api/afterdownload/jobs",
 	"GET /api/mediahooks",
 	"POST /api/mediahooks",
 	"DELETE /api/mediahooks/{id}",

@@ -3,6 +3,8 @@ package afterdownload
 import (
 	"context"
 	"encoding/json"
+	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -10,11 +12,15 @@ import (
 	"github.com/junkerderprovinz/parleyport/kit/group"
 )
 
-// fakeEngine answers jobs.list and jobs.run the way ArrowLoop does.
+// fakeEngine answers jobs.list, jobs.run, jobs.targets and jobs.create the
+// way ArrowLoop does. mounted is the host folders its container sees.
 type fakeEngine struct {
-	jobs    []fakeJob
-	running map[string]bool
-	runs    []string
+	jobs         []fakeJob
+	running      map[string]bool
+	runs         []string
+	destinations []Destination
+	mounted      []string
+	created      []CreateRequest
 }
 
 type fakeJob struct {
@@ -61,6 +67,32 @@ func (e *fakeEngine) act(action string, body []byte) ([]byte, error) {
 			return json.Marshal(map[string]string{"job": j.Name, "status": status})
 		}
 		return nil, &fortress.Refusal{Status: 404, Code: "no_such_job"}
+	case TargetsAction:
+		out := append([]Destination{}, e.destinations...)
+		return json.Marshal(out)
+	case CreateAction:
+		var req CreateRequest
+		if json.Unmarshal(body, &req) != nil || req.Name == "" || req.Source == "" {
+			return nil, &fortress.Refusal{Status: 400, Code: "bad_request"}
+		}
+		for _, j := range e.jobs {
+			if j.Name == req.Name {
+				return nil, &fortress.Refusal{Status: 409, Code: "name_taken"}
+			}
+		}
+		if !slices.ContainsFunc(e.destinations, func(d Destination) bool { return d.ID == req.Target }) {
+			return nil, &fortress.Refusal{Status: 404, Code: "no_such_target"}
+		}
+		if !slices.ContainsFunc(e.mounted, func(m string) bool { return req.Source == m || strings.HasPrefix(req.Source, m+"/") }) {
+			return nil, &fortress.Refusal{Status: 422, Code: "source_not_mounted"}
+		}
+		direction := "leftToRight"
+		if req.Mode == "sync" {
+			direction = "both"
+		}
+		e.created = append(e.created, req)
+		e.jobs = append(e.jobs, fakeJob{Name: req.Name, Mode: req.Mode, Direction: direction})
+		return json.Marshal(map[string]string{"job": req.Name})
 	}
 	return nil, fortress.ErrNoSuchAction
 }
@@ -86,7 +118,7 @@ func (f *fakeFortress) addEngine(id, device string, jobs ...fakeJob) *fakeEngine
 	f.engines[id] = e
 	f.members = append(f.members, fortress.Member{
 		ID: id, App: fortress.App{ID: EngineApp, Name: "ArrowLoop"}, Device: device,
-		Direct: true, Actions: []string{ListAction, RunAction}, LastSeen: time.Now(),
+		Direct: true, Actions: []string{ListAction, RunAction, TargetsAction, CreateAction}, LastSeen: time.Now(),
 	})
 	return e
 }

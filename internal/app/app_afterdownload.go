@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"errors"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -85,4 +87,37 @@ func (a *App) LastAfterDownload(categoryID string) (afterdownload.Result, bool) 
 // jobs, for the station's picker.
 func (a *App) AfterDownloadEngines(ctx context.Context) []afterdownload.Engine {
 	return afterdownload.Engines(ctx, a.joinedFortress())
+}
+
+// AfterDownloadDestinations lists what ArrowLoop on member can copy to.
+func (a *App) AfterDownloadDestinations(ctx context.Context, member string) ([]afterdownload.Destination, error) {
+	return afterdownload.Destinations(ctx, a.joinedFortress(), member)
+}
+
+// ErrNoFolder is a new job for a category without a folder of its own to
+// start from.
+var ErrNoFolder = errors.New("this category has no folder of its own for a job to start from")
+
+// CreateAfterDownloadJob makes a job in ArrowLoop on member that starts from
+// the folder of category, the part of it before the first placeholder, as the
+// host sees it.
+func (a *App) CreateAfterDownloadJob(ctx context.Context, category, member, name, target, mode string) (string, error) {
+	dir := a.Settings.Get().CategoryFor(category).Dir
+	if i := strings.Index(dir, "<"); i >= 0 {
+		dir = dir[:i]
+	}
+	dir = strings.TrimSpace(dir)
+	if dir == "" || !filepath.IsAbs(dir) {
+		return "", ErrNoFolder
+	}
+	source := filepath.Clean(dir)
+	if a.ToHost != nil {
+		var err error
+		if source, err = a.ToHost(source); err != nil {
+			return "", err
+		}
+	}
+	return afterdownload.Create(ctx, a.joinedFortress(), member, afterdownload.CreateRequest{
+		Name: strings.TrimSpace(name), Source: filepath.ToSlash(source), Target: target, Mode: mode,
+	})
 }

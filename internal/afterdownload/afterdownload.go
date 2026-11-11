@@ -22,10 +22,14 @@ const (
 	EngineApp  = "arrowloop"
 	ListAction = "jobs.list"
 	RunAction  = "jobs.run"
+	// TargetsAction lists the destinations ArrowLoop already knows, and
+	// CreateAction makes a job from this category's folder to one of them.
+	TargetsAction = "jobs.targets"
+	CreateAction  = "jobs.create"
 )
 
 // Uses are the actions KnightLoader calls, for fortress.Config.Uses.
-var Uses = []string{ListAction, RunAction}
+var Uses = []string{ListAction, RunAction, TargetsAction, CreateAction}
 
 // Fortress is what a hand-over needs of *fortress.Fortress.
 type Fortress interface {
@@ -74,19 +78,25 @@ const (
 
 // The codes Code gives an error, for the interface to word.
 const (
-	CodeNoFortress    = "noFortress"
-	CodeGone          = "gone"
-	CodeUnreachable   = "unreachable"
-	CodePermissionOff = "permissionOff"
-	CodeNoSuchAction  = "noSuchAction"
-	CodeNoSuchJob     = "noSuchJob"
-	CodeJobPaused     = "jobPaused"
-	CodeFailed        = "failed"
+	CodeNoFortress       = "noFortress"
+	CodeGone             = "gone"
+	CodeUnreachable      = "unreachable"
+	CodePermissionOff    = "permissionOff"
+	CodeNoSuchAction     = "noSuchAction"
+	CodeNoSuchJob        = "noSuchJob"
+	CodeJobPaused        = "jobPaused"
+	CodeNameTaken        = "nameTaken"
+	CodeNoSuchTarget     = "noSuchTarget"
+	CodeSourceNotMounted = "sourceNotMounted"
+	CodeBadRequest       = "badRequest"
+	CodeFailed           = "failed"
 )
 
 var (
 	// ErrNoFortress is a hand-over on an instance that has not joined one.
 	ErrNoFortress = errors.New("after download: this instance is in no fortress")
+	// ErrBadRequest is a new job this side already knows ArrowLoop refuses.
+	ErrBadRequest = errors.New("after download: a new job needs a name, a folder, a target and one of the three modes")
 	// ErrGone is an instance the fortress no longer lists.
 	ErrGone = errors.New("after download: that ArrowLoop instance has left the fortress")
 )
@@ -111,6 +121,14 @@ func Code(err error) string {
 		return CodeNoSuchJob
 	case errors.As(err, &refusal) && refusal.Code == "job_paused":
 		return CodeJobPaused
+	case errors.As(err, &refusal) && refusal.Code == "name_taken":
+		return CodeNameTaken
+	case errors.As(err, &refusal) && refusal.Code == "no_such_target":
+		return CodeNoSuchTarget
+	case errors.As(err, &refusal) && refusal.Code == "source_not_mounted":
+		return CodeSourceNotMounted
+	case errors.Is(err, ErrBadRequest), errors.As(err, &refusal) && refusal.Code == "bad_request":
+		return CodeBadRequest
 	}
 	return CodeFailed
 }
@@ -159,11 +177,8 @@ func list(ctx context.Context, f Fortress, id string, into *[]Job) error {
 // the job is already running, StatusQueued: ArrowLoop runs it once more
 // afterwards.
 func Run(ctx context.Context, f Fortress, t Target) (string, error) {
-	if f == nil {
-		return "", ErrNoFortress
-	}
-	if !slices.ContainsFunc(f.Members(), func(m fortress.Member) bool { return m.ID == t.Member }) {
-		return "", ErrGone
+	if err := present(f, t.Member); err != nil {
+		return "", err
 	}
 	body, _ := json.Marshal(map[string]string{"job": t.Job})
 	ctx, cancel := context.WithTimeout(ctx, callTimeout)
@@ -179,4 +194,76 @@ func Run(ctx context.Context, f Fortress, t Target) (string, error) {
 		return "", fmt.Errorf("after download: %s answered %s with %q: %w", t.Member, RunAction, raw, err)
 	}
 	return answer.Status, nil
+}
+
+// Destination is a place ArrowLoop already knows and can copy to, without the
+// login it may need.
+type Destination struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Kind is share, disk or remote.
+	Kind string `json:"kind"`
+	// Where is a short place to tell two alike apart.
+	Where string `json:"where"`
+}
+
+// Destinations lists what ArrowLoop on member can copy to.
+func Destinations(ctx context.Context, f Fortress, member string) ([]Destination, error) {
+	if err := present(f, member); err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(ctx, callTimeout)
+	defer cancel()
+	raw, err := f.Act(ctx, member, TargetsAction, nil)
+	if err != nil {
+		return nil, err
+	}
+	out := []Destination{}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, fmt.Errorf("after download: %s answered %s with %q: %w", member, TargetsAction, raw, err)
+	}
+	return out, nil
+}
+
+// CreateRequest is a new job: from Source, a folder as the host sees it, to
+// the destination Target, in Mode mirror, sync or move.
+type CreateRequest struct {
+	Name   string `json:"name"`
+	Source string `json:"source"`
+	Target string `json:"target"`
+	Mode   string `json:"mode"`
+}
+
+// Create makes the job in ArrowLoop on member and returns its name.
+func Create(ctx context.Context, f Fortress, member string, req CreateRequest) (string, error) {
+	if err := present(f, member); err != nil {
+		return "", err
+	}
+	if req.Name == "" || req.Source == "" || req.Target == "" || !slices.Contains([]string{"mirror", "sync", "move"}, req.Mode) {
+		return "", ErrBadRequest
+	}
+	body, _ := json.Marshal(req)
+	ctx, cancel := context.WithTimeout(ctx, callTimeout)
+	defer cancel()
+	raw, err := f.Act(ctx, member, CreateAction, body)
+	if err != nil {
+		return "", err
+	}
+	var answer struct {
+		Job string `json:"job"`
+	}
+	if err := json.Unmarshal(raw, &answer); err != nil {
+		return "", fmt.Errorf("after download: %s answered %s with %q: %w", member, CreateAction, raw, err)
+	}
+	return answer.Job, nil
+}
+
+func present(f Fortress, member string) error {
+	if f == nil {
+		return ErrNoFortress
+	}
+	if !slices.ContainsFunc(f.Members(), func(m fortress.Member) bool { return m.ID == member }) {
+		return ErrGone
+	}
+	return nil
 }
