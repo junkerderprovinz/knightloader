@@ -288,6 +288,62 @@ function videoButtonShows(s) {
   return !s.autoHide || s.pointerOver;
 }
 
+/** A task id as the instance makes them, safe to put in a query. */
+const VIDEO_TASK_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+/** The most rows the button follows. A long playlist is left to the web
+ *  interface, since asking about all of it every few seconds costs more than
+ *  a ring is worth. */
+const VIDEO_WATCH_MAX = 50;
+
+/**
+ * The rows of a send the button follows, from the instance's answer to POST
+ * /api/links with report set: those it created and started. None where it
+ * held every row back, left them in the collector, created nothing because
+ * the video was there already, or created more than the button follows.
+ */
+function videoWatchIds(answer) {
+  const tasks = Array.isArray(answer) ? answer : answer?.tasks;
+  if (!Array.isArray(tasks)) return [];
+  const started = tasks.filter((t) => t && !t.skipped && !t.variantOff && t.status !== 'collected' && videoIs(VIDEO_TASK_ID, t.id));
+  return started.length <= VIDEO_WATCH_MAX ? started.map((t) => t.id) : [];
+}
+
+/**
+ * Where the rows of a send stand, from GET /api/tasks?ids=: the rows named,
+ * and the other rows of their links, which share a link's address and the
+ * moment it was staged. Failed once a row has failed with no try left, done
+ * once every row is, gone once none is left, and otherwise running with the
+ * share downloaded, which is null while a row's size is unknown.
+ */
+function videoProgress(tasks, ids) {
+  const list = Array.isArray(tasks) ? tasks.filter((t) => t && typeof t === 'object') : [];
+  const link = (t) => `${t.url} ${t.createdAt}`;
+  const links = new Set(list.filter((t) => ids.includes(t.id)).map(link));
+  const rows = list.filter((t) => links.has(link(t)) && !t.skipped && !t.variantOff && t.status !== 'collected');
+  if (rows.length === 0) return { state: 'gone' };
+  // A zero nextTry comes as the year 1, before 1970.
+  const failed = rows.find((t) => t.status === 'error' && !(Date.parse(t.nextTry) > 0));
+  if (failed) return { state: 'failed', reason: typeof failed.error === 'string' ? failed.error : '' };
+  if (rows.every((t) => t.status === 'done')) return { state: 'done' };
+  let size = 0;
+  let loaded = 0;
+  let known = true;
+  for (const t of rows) {
+    const total = Number.isFinite(t.size) && t.size > 0 ? t.size : 0;
+    const have = Number.isFinite(t.loaded) && t.loaded > 0 ? t.loaded : 0;
+    if (t.status === 'done') {
+      size += total || have;
+      loaded += total || have;
+    } else {
+      if (!total) known = false;
+      size += total;
+      loaded += Math.min(have, total);
+    }
+  }
+  return { state: 'running', share: known && size > 0 ? loaded / size : null };
+}
+
 /** Each site by the host names of its addresses. */
 const VIDEO_HOSTS = new Map(VIDEO_SITES.flatMap((s) => s.origins.map((o) => [new URL(o.slice(0, -1)).hostname, s])));
 

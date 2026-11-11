@@ -489,6 +489,9 @@ jobs:
       - name: Video button
         run: node extension/check-video.mjs
 
+      - name: Video button progress
+        run: node extension/check-video-progress.mjs
+
       - name: Crypto window keyboard
         run: node extension/check-crypto-tab.mjs
 
