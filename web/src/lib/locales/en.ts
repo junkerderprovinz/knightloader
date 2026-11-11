@@ -2238,8 +2238,7 @@ export const en = {
   'settings.access.identity.namePlaceholder': 'e.g. Home server',
   'settings.access.identity.nameHint': 'Offered first when pairing and in the QR code below, instead of whatever the OS or container runtime happens to call this machine. Optional: leave it empty to keep using that name.',
   'settings.access.identity.addressesLabel': 'Known addresses',
-  'settings.access.identity.addressesHint': 'KnightLoader finds its address on the local network by itself and shows it above the field. It never adds a domain here on its own. The first one is the address it gives its group, so your phone and other instances can open it away from home. Without a password it only answers on its IP address, on local names and on the domains listed here, so add yours before you open it through that domain. One full address per line, e.g. https://kl.example.com.',
-  'settings.access.identity.addressFound': 'Found automatically',
+  'settings.access.identity.addressesHint': 'KnightLoader never adds a domain here on its own. The first one is the address it gives its group, so your phone and other instances can open it away from home. Without a password it only answers on its IP address, on local names and on the domains listed here, so add yours before you open it through that domain. One full address per line, e.g. https://kl.example.com.',
 
   // Every other way to get KnightLoader: the phone app, the desktop app or a
   // server install, the bookmarklet, the MV3 browser extension and the PWA

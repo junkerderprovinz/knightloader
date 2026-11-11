@@ -60,10 +60,6 @@ type ConnectInfo struct {
 	// Address where they open it (groupAddress), "" when there is none.
 	Name    string `json:"name"`
 	Address string `json:"address"`
-	// NetworkAddress is where this instance found itself on its network
-	// (networkAddress), which Address leaves out once a known domain stands
-	// in for it. "" where nothing outside the machine can reach it.
-	NetworkAddress string `json:"networkAddress"`
 	// Members is the other instances of the group reachable now, and Apps
 	// every phone that joined it with the phrase.
 	Members []groupMember `json:"members"`
@@ -631,7 +627,6 @@ func connectInfo(a *app.App) ConnectInfo {
 		ProjectRelayURL:  relay.DefaultURL,
 		Name:             instanceDisplayName(a),
 		Address:          groupAddress(a),
-		NetworkAddress:   networkAddress(),
 		Members:          v.members,
 		Apps:             v.apps,
 		Away:             v.away,

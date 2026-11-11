@@ -138,10 +138,10 @@ func TestConnectStartsInactive(t *testing.T) {
 	}
 }
 
-// TestConnectKeepsTheNetworkAddressBesideAKnownDomain checks that the address
-// this instance found on its network is still answered once a known domain is
-// what the group is told, since the Pairing page lists it above the domains.
-func TestConnectKeepsTheNetworkAddressBesideAKnownDomain(t *testing.T) {
+// TestConnectTellsTheGroupAKnownDomainBeforeTheNetworkAddress checks that the
+// address the group is told is the one this instance found on its network
+// until the owner adds a domain, which then stands in for it.
+func TestConnectTellsTheGroupAKnownDomainBeforeTheNetworkAddress(t *testing.T) {
 	requireContainerDeployment(t)
 	ip := lan.LocalIPv4()
 	if ip == "" {
@@ -153,11 +153,8 @@ func TestConnectKeepsTheNetworkAddressBesideAKnownDomain(t *testing.T) {
 
 	srv, a := testServer(t)
 	defer srv.Close()
-	found := "http://" + ip + ":8749" + buildinfo.BasePath
-
-	info := connectInfoOf(t, "", srv.URL)
-	if info.NetworkAddress != found || info.Address != found {
-		t.Errorf("NetworkAddress = %q, Address = %q, want both %q", info.NetworkAddress, info.Address, found)
+	if got, found := connectInfoOf(t, "", srv.URL).Address, "http://"+ip+":8749"+buildinfo.BasePath; got != found {
+		t.Errorf("Address = %q, want %q", got, found)
 	}
 
 	domains, err := json.Marshal([]string{"https://kl.example.org"})
@@ -167,17 +164,8 @@ func TestConnectKeepsTheNetworkAddressBesideAKnownDomain(t *testing.T) {
 	if _, err := a.Settings.SetPartial(map[string]json.RawMessage{"knownDomains": domains}); err != nil {
 		t.Fatal(err)
 	}
-	info = connectInfoOf(t, "", srv.URL)
-	if info.Address != "https://kl.example.org" {
-		t.Errorf("Address = %q, want the known domain", info.Address)
-	}
-	if info.NetworkAddress != found {
-		t.Errorf("NetworkAddress = %q beside a known domain, want %q", info.NetworkAddress, found)
-	}
-
-	buildinfo.ListensWidely = false
-	if got := connectInfoOf(t, "", srv.URL).NetworkAddress; got != "" {
-		t.Errorf("NetworkAddress = %q for a listener nothing outside the machine reaches, want none", got)
+	if got := connectInfoOf(t, "", srv.URL).Address; got != "https://kl.example.org" {
+		t.Errorf("Address = %q, want the known domain", got)
 	}
 }
 

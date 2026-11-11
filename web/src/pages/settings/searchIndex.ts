@@ -568,8 +568,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.access.identity.nameLabel', hint: 'settings.access.identity.nameHint' },
         { key: 'settings.access.identity.addressesLabel', hint: 'settings.access.identity.addressesHint' },
       ],
-      // What stands beside the address the instance found itself.
-      also: ['settings.access.identity.addressFound'],
     },
     {
       title: 'relay.title',

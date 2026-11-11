@@ -8,15 +8,14 @@ import { PairingSection } from './pairing/PairingSection';
 import { SetRow } from './pairing/parts';
 
 export function Pairing() {
-  return <PairingSection identity={(group) => <IdentityCard found={group?.networkAddress ?? ''} />} />;
+  return <PairingSection identity={<IdentityCard />} />;
 }
 
-// IdentityCard holds an optional name and the addresses this instance is known
-// by. Its address on the network it finds itself, and that one is only shown.
-// The domains are only what the owner typed: the first one is the address the
+// IdentityCard holds an optional name and the domains this instance is known
+// by. They are only what the owner typed: the first one is the address the
 // group is told, and a name taken from a request's Host header could be
 // anybody's.
-export function IdentityCard({ found }: { found: string }) {
+export function IdentityCard() {
   const { t } = useT();
   const { cfg, patch } = useDraft();
 
@@ -42,15 +41,7 @@ export function IdentityCard({ found }: { found: string }) {
         hint={t('settings.access.identity.addressesHint')}
         htmlFor="known-addresses"
       >
-        <div className="flex w-[18rem] max-w-full flex-col gap-2">
-          {found && (
-            <p data-testid="found-address" className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 px-3">
-              <span dir="ltr" className="min-w-0 break-all font-mono text-sm text-carbon-text">
-                {found}
-              </span>
-              <span className="glim-eyebrow">{t('settings.access.identity.addressFound')}</span>
-            </p>
-          )}
+        <div className="w-[18rem] max-w-full">
           <ListArea
             id="known-addresses"
             rows={3}

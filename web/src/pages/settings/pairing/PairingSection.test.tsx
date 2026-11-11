@@ -20,7 +20,6 @@ const alone: ConnectInfo = {
   projectRelayUrl: '',
   name: 'nas',
   address: '',
-  networkAddress: '',
   members: [],
   apps: [],
   away: [],
@@ -79,7 +78,7 @@ it('keeps words just created when a poll sent before them answers late', async (
     root.render(
       <MemoryRouter>
         <I18nProvider>
-          <PairingSection identity={() => null} />
+          <PairingSection identity={null} />
         </I18nProvider>
       </MemoryRouter>,
     ),
@@ -128,7 +127,7 @@ it('says why an instance paired by a relay key typed in by hand stands alone', a
       root.render(
         <MemoryRouter>
           <I18nProvider>
-            <PairingSection key={String(Math.random())} identity={() => null} />
+            <PairingSection key={String(Math.random())} identity={null} />
           </I18nProvider>
         </MemoryRouter>,
       ),

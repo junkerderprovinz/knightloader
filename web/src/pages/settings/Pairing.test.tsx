@@ -24,13 +24,13 @@ afterEach(() => {
   host.remove();
 });
 
-function draw(found: string, knownDomains: string[] = []) {
+function draw(knownDomains: string[] = []) {
   const draft = { cfg: { instanceName: 'nas', knownDomains } as Settings, patch: () => {} } as unknown as SettingsDraft;
   act(() =>
     root.render(
       <I18nProvider>
         <SettingsProvider draft={draft} features={{ features: { modules: [], pages: [] }, toggle: async () => {} }}>
-          <IdentityCard found={found} />
+          <IdentityCard />
         </SettingsProvider>
       </I18nProvider>,
     ),
@@ -40,27 +40,17 @@ function draw(found: string, knownDomains: string[] = []) {
 const row = (label: string) => host.querySelector<HTMLElement>(`[data-glim-label="${label}"]`)!.closest<HTMLElement>('[data-set-row]')!;
 
 describe('IdentityCard', () => {
-  it('lists the address the instance found itself above the field for the ones that are added', () => {
-    draw('http://192.168.20.89:8749', ['https://kl.example.org']);
+  it('offers the domains the owner adds and shows no address of its own', () => {
+    draw(['https://kl.example.org']);
     const addresses = row('Known addresses');
-    const found = addresses.querySelector('[data-testid="found-address"]')!;
-    expect(found.textContent).toContain('http://192.168.20.89:8749');
-    expect(found.textContent).toContain('Found automatically');
-    const field = addresses.querySelector('textarea')!;
-    expect(field.value).toBe('https://kl.example.org');
-    expect(found.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    // Shown, not offered for editing.
-    expect(found.querySelector('input, textarea, button')).toBeNull();
-  });
-
-  it('shows only the field where the instance has no address on a network', () => {
-    draw('');
+    expect(addresses.querySelector('textarea')!.value).toBe('https://kl.example.org');
     expect(host.querySelector('[data-testid="found-address"]')).toBeNull();
-    expect(row('Known addresses').querySelector('textarea')).not.toBeNull();
+    expect(host.textContent).not.toMatch(/https?:\/\/\d/);
+    expect(host.textContent).not.toContain('Found automatically');
   });
 
   it('parts its rows with a line and draws none above the first', () => {
-    draw('');
+    draw();
     const line = (el: HTMLElement) => el.className.split(/\s+/).includes('border-t');
     const between = (el: HTMLElement) => el.className.includes('[[data-set-row]+&]:border-t');
     const rows = [...host.querySelectorAll<HTMLElement>('[data-set-row]')];

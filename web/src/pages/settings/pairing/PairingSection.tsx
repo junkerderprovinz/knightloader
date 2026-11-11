@@ -25,9 +25,8 @@ const REFRESH_MS = 10_000;
 export function PairingSection({
   identity,
 }: {
-  /** The card with this instance's name and addresses, which reads what the
-   *  instance found about itself from the group's answer. */
-  identity: (group: ConnectInfo | null) => ReactNode;
+  /** The card with this instance's name and domains. */
+  identity: ReactNode;
 }) {
   const { t } = useT();
   const [group, setGroup] = useState<ConnectInfo | null>(null);
@@ -80,7 +79,7 @@ export function PairingSection({
       {error && <p className="text-sm text-statusFail">{t('pairing.loadError')}</p>}
       {group && <PairingGroup group={group} fortress={fortress} onGroup={takeGroup} onRefresh={load} hues={[3, 4]} />}
       {/* Between the group and the relay, since both show the name it sets. */}
-      {identity(group)}
+      {identity}
       {group && relay && (
         <RelayCard
           group={group}
