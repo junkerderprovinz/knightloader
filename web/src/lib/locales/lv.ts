@@ -258,6 +258,8 @@ export const lv: Dict = {
   'pairing.pendingTitle': 'Gaida apstiprinājumu',
   'pairing.pendingTip': 'Šīs ierīces ievadīja divpadsmit vārdus, taču grupā neko nevar darīt, kamēr jūs tās neapstiprināt. Apstipriniet tikai ierīces, kuras atpazīstat. Jūsu lēmums ir spēkā katrā grupas instancē.',
   'pairing.pendingInstance': 'Instance',
+  'pairing.behindTitle': 'Nepievienojās',
+  'pairing.behindTip': 'Šīs ierīces bija sapārotas pirms pārcelšanās uz cietoksni, bet 30 dienu laikā tam nesekoja, tāpēc vecā sapārošana ir slēgta. Lai kādu paņemtu līdzi, ievadiet tajā cietokšņa frāzi. Ja to vairs neizmantojat, vienkārši noņemiet.',
   'pairing.fingerprint': 'Atslēga {fingerprint}',
   'pairing.ownKey': 'Šīs instances atslēga: {fingerprint}',
   'pairing.ownKeyTip': 'Kad šī instance gaida apstiprinājumu citā, tā to rāda ar šo atslēgu. Apstipriniet to tikai tad, ja abas atslēgas sakrīt.',

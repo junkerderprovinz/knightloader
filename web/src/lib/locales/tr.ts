@@ -258,6 +258,8 @@ export const tr: Dict = {
   'pairing.pendingTitle': 'Onay bekliyor',
   'pairing.pendingTip': 'Bu cihazlar on iki kelimeyi girdi, ama sen onaylayana kadar grupta hiçbir şey yapamazlar. Yalnızca tanıdığın cihazları onayla. Kararın gruptaki her örnekte geçerli olur.',
   'pairing.pendingInstance': 'Örnek',
+  'pairing.behindTitle': 'Gelmeyenler',
+  'pairing.behindTip': 'Bu cihazlar kaleye taşınmadan önce eşleştirilmişti, ama 30 gün içinde peşinden gelmediler, bu yüzden eski eşleştirme kapandı. Birini getirmek için onda kale ifadesini gir. Artık kullanmıyorsan kaldırman yeterli.',
   'pairing.fingerprint': 'Anahtar {fingerprint}',
   'pairing.ownKey': 'Bu örneğin anahtarı: {fingerprint}',
   'pairing.ownKeyTip': 'Bu örnek başka bir örnekte onay beklerken o örnek onu bu anahtarla gösterir. Yalnızca iki anahtar aynıysa onayla.',

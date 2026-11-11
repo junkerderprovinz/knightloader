@@ -29,6 +29,7 @@ const alone: ConnectInfo = {
   fingerprint: '',
   relayKeyDropped: false,
   droppedInstances: [],
+  behind: [],
 };
 const relay: RelayConfig = { mode: 'project', relayUrl: '', connected: false, serve: false, serveClients: 0 };
 const outside: FortressState = {
@@ -39,6 +40,7 @@ const outside: FortressState = {
   members: [],
   permissions: [],
   pairedWith: [],
+  behind: [],
   left: [],
 };
 const WORDS = 'orbit wagon lemon crisp absent tunnel galaxy harbor pencil ribbon velvet yellow';

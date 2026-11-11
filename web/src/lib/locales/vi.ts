@@ -258,6 +258,8 @@ export const vi: Dict = {
   'pairing.pendingTitle': 'Đang chờ duyệt',
   'pairing.pendingTip': 'Các thiết bị này đã nhập mười hai từ nhưng không thể làm gì trong nhóm cho đến khi bạn duyệt. Chỉ duyệt những thiết bị bạn nhận ra. Quyết định của bạn áp dụng trên mọi phiên bản trong nhóm.',
   'pairing.pendingInstance': 'Phiên bản',
+  'pairing.behindTitle': 'Không đi cùng',
+  'pairing.behindTip': 'Các thiết bị này đã được ghép nối trước khi chuyển vào pháo đài, nhưng không theo sang trong vòng 30 ngày, nên ghép nối cũ đã đóng. Để mang một thiết bị theo, hãy nhập cụm từ của pháo đài trên thiết bị đó. Nếu bạn không dùng nó nữa, chỉ cần xóa đi.',
   'pairing.fingerprint': 'Khóa {fingerprint}',
   'pairing.ownKey': 'Khóa của phiên bản này: {fingerprint}',
   'pairing.ownKeyTip': 'Khi phiên bản này chờ duyệt trên một phiên bản khác, phiên bản đó hiển thị nó với khóa này. Chỉ duyệt khi hai khóa trùng nhau.',

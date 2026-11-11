@@ -44,6 +44,8 @@ export const lv: Dict = {
   'devices.lastSeen': 'Pēdējoreiz redzēts {time}',
   'devices.paired': 'Sapārots',
   'devices.pairedHint': 'Paplašinājums savienojas tikai tad, kad tu to izmanto. Starplaikā tas paliek sapārots, un jauns apstiprinājums nav vajadzīgs.',
+  'devices.behind': 'Nepievienojās',
+  'devices.behindHint': 'Šīs ierīces bija sapārotas pirms pārcelšanās uz cietoksni, bet 30 dienu laikā tam nesekoja, tāpēc vecā sapārošana ir slēgta. Lai kādu paņemtu līdzi, ievadiet tajā cietokšņa frāzi.',
   'devices.pending': 'Gaida apstiprinājumu',
   'devices.thisDevice': 'Šī ierīce',
   'downloads.start': 'Sākt',

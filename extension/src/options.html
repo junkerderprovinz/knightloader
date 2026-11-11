@@ -118,6 +118,14 @@
       #ownKey { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: var(--carbon-text-muted); font-size: var(--text-meta); font-variant-numeric: tabular-nums; }
       #ownKey[hidden] { display: none; }
       #phraseMoved { margin: 8px 0 0; color: var(--carbon-text-muted); font-size: var(--text-meta); }
+      /* The devices left on the old phrase, quieter than the cards above. */
+      .behind { display: flex; flex-direction: column; gap: 8px; }
+      .behind-title { display: flex; align-items: center; gap: 6px; margin: 0; }
+      .behind-list { margin: 0; padding: 4px 12px; list-style: none; }
+      .behind-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; }
+      .behind-list li + li { border-top: 1px solid var(--carbon-border); }
+      .behind-list .glim-instance-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .behind-list .glim-instance-what { flex-shrink: 0; }
       #refreshGroup:disabled { opacity: 0.55; cursor: default; }
       /* The info glyph inside a heading badge takes the badge's ink. */
       .glim-section-badge .glim-info-icon { color: currentColor; }

@@ -258,6 +258,8 @@ export const hu: Dict = {
   'pairing.pendingTitle': 'Jóváhagyásra vár',
   'pairing.pendingTip': 'Ezek az eszközök megadták a tizenkét szót, de amíg jóvá nem hagyod őket, semmit sem tehetnek a csoportban. Csak olyan eszközt hagyj jóvá, amelyet felismersz. A döntésed a csoport minden példányán érvényes.',
   'pairing.pendingInstance': 'Példány',
+  'pairing.behindTitle': 'Nem jöttek át',
+  'pairing.behindTip': 'Ezek az eszközök az erődbe költözés előtt voltak párosítva, de 30 napon belül nem követték, ezért a régi párosítás lezárult. Ha valamelyiket át szeretnéd hozni, add meg rajta az erőd jelmondatát. Ha már nem használod, egyszerűen távolítsd el.',
   'pairing.fingerprint': 'Kulcs {fingerprint}',
   'pairing.ownKey': 'Ennek a példánynak a kulcsa: {fingerprint}',
   'pairing.ownKeyTip': 'Ha ez a példány egy másikon jóváhagyásra vár, a másik ezzel a kulccsal mutatja. Csak akkor hagyd jóvá, ha a két kulcs egyezik.',

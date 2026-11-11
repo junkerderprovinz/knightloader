@@ -258,6 +258,8 @@ export const ja: Dict = {
   'pairing.pendingTitle': '承認待ち',
   'pairing.pendingTip': 'これらのデバイスは 12 個の単語を入力しましたが、承認されるまでグループ内では何もできません。見覚えのあるデバイスだけを承認してください。決定はグループのすべてのインスタンスに適用されます。',
   'pairing.pendingInstance': 'インスタンス',
+  'pairing.behindTitle': '移行しなかったデバイス',
+  'pairing.behindTip': 'これらのデバイスは要塞への移行前にペアリングされていましたが、30日以内に移行しなかったため、以前のペアリングは閉じられました。移行するには、そのデバイスで要塞のフレーズを入力してください。もう使っていない場合は、削除するだけで大丈夫です。',
   'pairing.fingerprint': '鍵 {fingerprint}',
   'pairing.ownKey': 'このインスタンスの鍵: {fingerprint}',
   'pairing.ownKeyTip': 'このインスタンスが別のインスタンスで承認を待っているとき、そちらではこの鍵で表示されます。2 つの鍵が一致する場合にだけ承認してください。',

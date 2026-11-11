@@ -258,6 +258,8 @@ export const hr: Dict = {
   'pairing.pendingTitle': 'Čeka odobrenje',
   'pairing.pendingTip': 'Ovi uređaji unijeli su dvanaest riječi, ali u grupi ne mogu ništa dok ih ne odobrite. Odobrite samo uređaje koje prepoznajete. Vaša odluka vrijedi na svakoj instanci grupe.',
   'pairing.pendingInstance': 'Instanca',
+  'pairing.behindTitle': 'Nisu došli',
+  'pairing.behindTip': 'Ovi su uređaji bili upareni prije prelaska u utvrdu, ali je nisu slijedili unutar 30 dana, pa je staro uparivanje zatvoreno. Da biste neki poveli sa sobom, unesite na njemu frazu utvrde. Ako ga više ne koristite, jednostavno ga uklonite.',
   'pairing.fingerprint': 'Ključ {fingerprint}',
   'pairing.ownKey': 'Ključ ove instance: {fingerprint}',
   'pairing.ownKeyTip': 'Kad ova instanca čeka odobrenje na drugoj, ta je prikazuje s ovim ključem. Odobrite je samo ako se oba ključa podudaraju.',

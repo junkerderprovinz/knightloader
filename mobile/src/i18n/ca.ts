@@ -44,6 +44,8 @@ export const ca: Dict = {
   'devices.lastSeen': 'Vist per última vegada: {time}',
   'devices.paired': 'Aparellada',
   'devices.pairedHint': 'L’extensió només es connecta mentre la fas servir. Mentrestant continua aparellada i no necessita cap aprovació nova.',
+  'devices.behind': 'No han vingut',
+  'devices.behindHint': "Aquests dispositius estaven aparellats abans del trasllat a la fortalesa, però no l'han seguit en 30 dies, així que l'aparellament antic s'ha tancat. Per portar-ne un, introdueix-hi la frase de la fortalesa.",
   'devices.pending': 'Pendent d’aprovació',
   'devices.thisDevice': 'Aquest dispositiu',
   'downloads.start': 'Inicia',

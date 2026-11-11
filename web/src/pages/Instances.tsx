@@ -31,6 +31,7 @@ import { ModuleSwitchBadge } from './settings/ModuleToggle';
 import { Button, Card, EmptyState, PageHeader } from '../components/ui';
 import { GroupNet, SELF_KEY, useNetHover, type NetNode, type NetParcel } from '../components/GroupNet';
 import { AppCard, AwayCard, InstanceCard } from '../components/InstanceCard';
+import { BehindList } from '../components/BehindList';
 import { RemovalWindow, type Removal } from '../components/InstanceRemoval';
 
 /** How often the page asks who is there. The answer is this instance's own
@@ -302,6 +303,11 @@ export function Instances({
             />
           ))}
         </div>
+        {(group?.behind ?? []).length > 0 && (
+          <Card hue={selfHue + 1 + shown.length + away.length + apps.length}>
+            <BehindList devices={group?.behind ?? []} onRemove={setRemoving} />
+          </Card>
+        )}
       </div>
       <PageActions>
         <PageAction primary icon={<IconLink />} label={t('pairing.title')} onClick={() => navigate('/settings/pairing')} />

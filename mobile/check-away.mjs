@@ -2,7 +2,9 @@
 // with when it was last seen as long as the group lists it as away, and only
 // then. The words are the web interface's, which are GlimStone's.
 // The saved list follows the group: an instance that joined later or was away
-// at the join is added, and one taken out of the group goes.
+// at the join is added, and one taken out of the group goes. One left behind
+// on the old phrase after a move into a fortress is neither added nor dropped,
+// so its card can say it did not come along.
 //
 // src/api/away.ts imports nothing at run time, so node strips its types and
 // these checks call the real functions.
@@ -13,7 +15,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const { awayFor, awayList, followGroup, memberList } = await import(pathToFileURL(join(here, 'src', 'api', 'away.ts')).href);
+const { awayFor, awayList, behindList, followGroup, memberList } = await import(pathToFileURL(join(here, 'src', 'api', 'away.ts')).href);
 
 const problems = [];
 const expect = (what, got, want) => {
@@ -36,10 +38,27 @@ expect(
   [{ instanceId: 'lan', name: 'Keller', deployment: 'server' }],
 );
 
+expect('an instance from before the fortress sends no behind list', behindList(undefined), []);
+expect(
+  'devices left behind keep their name and kind, entries without an id or kind are dropped',
+  behindList([
+    { id: 'old', name: 'Keller', kind: 'instance', deployment: 'container' },
+    { id: 'tab', kind: 'extension' },
+    { id: 'x', kind: 'printer' },
+    { name: 'y', kind: 'mobile' },
+    null,
+  ]),
+  [
+    { id: 'old', name: 'Keller', kind: 'instance', deployment: 'container' },
+    { id: 'tab', name: '', kind: 'extension', deployment: '' },
+  ],
+);
+
 const saved = [{ ...relayConn('nas'), name: 'Unraid' }, { ...relayConn('a1b2'), id: 'c3' }];
 const nas = { instanceId: 'nas', name: 'Unraid', deployment: 'container' };
 const laptop = { instanceId: 'lap', name: '', deployment: 'desktop' };
-const round = (more) => followGroup({ saved, live: [nas], away: [desktop], answered: ['nas'], settled: true, dismissed: [], ...more });
+const round = (more) =>
+  followGroup({ saved, live: [nas], away: [desktop], behind: [], answered: ['nas'], settled: true, dismissed: [], ...more });
 
 expect('a group that matches the saved list changes nothing', round({}), { add: [], drop: [], rename: [] });
 expect('an instance that joined later is added', round({ live: [nas, laptop] }).add, [{ instanceId: 'lap', name: 'lap' }]);
@@ -61,6 +80,8 @@ expect('an instance that announces no name keeps its own', round({ live: [{ ...n
 expect('an instance taken out of the group goes', round({ away: [] }).drop, ['c3']);
 expect('nothing goes before the relay announced everybody', round({ away: [], settled: false }).drop, []);
 expect('nothing goes when no instance sent the away list', round({ away: null }).drop, []);
+expect('an instance left behind on the old phrase stays saved', round({ away: [], behind: ['a1b2'] }).drop, []);
+expect('an instance left behind is not added', round({ live: [nas, laptop], behind: ['lap'] }).add, []);
 expect('an instance that answered stays though the relay has not announced it', round({ live: [], away: [] }).drop, ['c3']);
 
 const langs = readdirSync(join(here, 'src', 'i18n')).filter((f) => /^[a-z]{2}\.ts$/.test(f));

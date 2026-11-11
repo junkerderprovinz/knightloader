@@ -252,6 +252,8 @@ export const pl: Dict = {
   'pairing.pendingTitle': 'Czeka na zatwierdzenie',
   'pairing.pendingTip': 'Te urządzenia wpisały dwanaście słów, ale nie mogą nic zrobić w grupie, dopóki ich nie zatwierdzisz. Zatwierdzaj tylko urządzenia, które rozpoznajesz. Twoja decyzja obowiązuje na każdej instancji grupy.',
   'pairing.pendingInstance': 'Instancja',
+  'pairing.behindTitle': 'Nie przeszły',
+  'pairing.behindTip': 'Te urządzenia były sparowane przed przeniesieniem do twierdzy, ale nie przeszły za nią w ciągu 30 dni, więc stare parowanie zostało zamknięte. Aby zabrać któreś ze sobą, wpisz na nim frazę twierdzy. Jeśli już go nie używasz, po prostu je usuń.',
   'pairing.fingerprint': 'Klucz {fingerprint}',
   'pairing.ownKey': 'Klucz tej instancji: {fingerprint}',
   'pairing.ownKeyTip': 'Gdy ta instancja czeka na zatwierdzenie na innej, tamta pokazuje ją z tym kluczem. Zatwierdź ją tylko wtedy, gdy oba klucze się zgadzają.',

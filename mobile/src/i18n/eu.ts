@@ -44,6 +44,8 @@ export const eu: Dict = {
   'devices.lastSeen': 'Azken aldiz ikusia: {time}',
   'devices.paired': 'Parekatuta',
   'devices.pairedHint': 'Hedapena erabiltzen duzun bitartean bakarrik konektatzen da. Bitartean parekatuta jarraitzen du, eta ez du onarpen berririk behar.',
+  'devices.behind': 'Ez dira etorri',
+  'devices.behindHint': 'Gailu hauek gotorlekura joan aurretik zeuden parekatuta, baina ez dute 30 egunean jarraitu, eta beraz parekatze zaharra itxi egin da. Bat ekartzeko, idatzi bertan gotorlekuaren esaldia.',
   'devices.pending': 'Onarpenaren zain',
   'devices.thisDevice': 'Gailu hau',
   'downloads.start': 'Hasi',

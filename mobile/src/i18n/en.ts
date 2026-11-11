@@ -66,6 +66,8 @@ export const en = {
   'devices.lastSeen': 'Last seen {time}',
   'devices.paired': 'Paired',
   'devices.pairedHint': 'The extension only connects while you use it. In between it stays paired and needs no new approval.',
+  'devices.behind': "Didn't come along",
+  'devices.behindHint': "These devices were paired before the move into the fortress, but didn't follow within 30 days, so the old pairing has closed. To bring one along, enter the fortress phrase on it.",
   'devices.pending': 'Waiting for approval',
   'devices.thisDevice': 'This device',
   'downloads.start': 'Start',

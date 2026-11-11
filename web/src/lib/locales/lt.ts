@@ -258,6 +258,8 @@ export const lt: Dict = {
   'pairing.pendingTitle': 'Laukia patvirtinimo',
   'pairing.pendingTip': 'Šie įrenginiai įvedė dvylika žodžių, bet grupėje nieko negali daryti, kol jų nepatvirtinsite. Tvirtinkite tik atpažįstamus įrenginius. Jūsų sprendimas galioja kiekviename grupės egzemplioriuje.',
   'pairing.pendingInstance': 'Egzempliorius',
+  'pairing.behindTitle': 'Neatėjo kartu',
+  'pairing.behindTip': 'Šie įrenginiai buvo susieti prieš persikėlimą į tvirtovę, bet per 30 dienų nesekė paskui, todėl senas susiejimas uždarytas. Norėdami kurį nors atsivesti, įveskite jame tvirtovės frazę. Jei jo nebenaudojate, tiesiog pašalinkite.',
   'pairing.fingerprint': 'Raktas {fingerprint}',
   'pairing.ownKey': 'Šio egzemplioriaus raktas: {fingerprint}',
   'pairing.ownKeyTip': 'Kai šis egzempliorius laukia patvirtinimo kitame, tas jį rodo su šiuo raktu. Patvirtinkite jį tik tada, jei abu raktai sutampa.',

@@ -258,6 +258,8 @@ export const id: Dict = {
   'pairing.pendingTitle': 'Menunggu persetujuan',
   'pairing.pendingTip': 'Perangkat ini sudah memasukkan dua belas kata, tetapi tidak bisa melakukan apa pun di grup sampai Anda menyetujuinya. Setujui hanya perangkat yang Anda kenali. Keputusan Anda berlaku di setiap instance dalam grup.',
   'pairing.pendingInstance': 'Instance',
+  'pairing.behindTitle': 'Tidak ikut',
+  'pairing.behindTip': 'Perangkat ini dipasangkan sebelum pindah ke benteng, tetapi tidak menyusul dalam 30 hari, jadi pemasangan lama sudah ditutup. Untuk membawa salah satunya, masukkan frasa benteng di perangkat itu. Jika Anda tidak memakainya lagi, hapus saja.',
   'pairing.fingerprint': 'Kunci {fingerprint}',
   'pairing.ownKey': 'Kunci instance ini: {fingerprint}',
   'pairing.ownKeyTip': 'Saat instance ini menunggu persetujuan di instance lain, instance itu menampilkannya dengan kunci ini. Setujui hanya jika kedua kunci sama.',

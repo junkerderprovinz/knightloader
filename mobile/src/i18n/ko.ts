@@ -44,6 +44,8 @@ export const ko: Dict = {
   'devices.lastSeen': '마지막 확인 {time}',
   'devices.paired': '페어링됨',
   'devices.pairedHint': '확장 프로그램은 사용하는 동안에만 연결됩니다. 그 사이에도 페어링은 유지되며 다시 승인할 필요가 없습니다.',
+  'devices.behind': '함께 오지 않은 기기',
+  'devices.behindHint': '이 기기들은 요새로 옮기기 전에 페어링되어 있었지만 30일 안에 따라오지 않아서 이전 페어링이 닫혔어요. 기기를 데려오려면 그 기기에서 요새 문구를 입력하세요.',
   'devices.pending': '승인 대기 중',
   'devices.thisDevice': '이 기기',
   'downloads.start': '시작',

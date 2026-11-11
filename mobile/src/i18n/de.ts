@@ -65,6 +65,8 @@ export const de: Dict = {
   'devices.lastSeen': 'Zuletzt gesehen {time}',
   'devices.paired': 'Gekoppelt',
   'devices.pairedHint': 'Die Browsererweiterung verbindet sich nur, während du sie benutzt. Dazwischen bleibt sie gekoppelt und braucht keine neue Freigabe.',
+  'devices.behind': 'Nicht mitgekommen',
+  'devices.behindHint': 'Diese Geräte waren vor dem Umzug in die Festung gekoppelt, sind aber nicht innerhalb von 30 Tagen nachgekommen. Darum ist die alte Kopplung jetzt geschlossen. Um eins mitzunehmen, gib dort die Festungs-Phrase ein.',
   'devices.pending': 'Wartet auf Freigabe',
   'devices.thisDevice': 'Dieses Gerät',
   'downloads.start': 'Starten',

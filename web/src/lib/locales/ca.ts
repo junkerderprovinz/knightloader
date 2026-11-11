@@ -258,6 +258,8 @@ export const ca: Dict = {
   'pairing.pendingTitle': 'Pendent d’aprovació',
   'pairing.pendingTip': 'Aquests dispositius han introduït les dotze paraules, però no poden fer res al grup fins que no els aprovis. Aprova només dispositius que reconeguis. La teva decisió val a totes les instàncies del grup.',
   'pairing.pendingInstance': 'Instància',
+  'pairing.behindTitle': 'No han vingut',
+  'pairing.behindTip': "Aquests dispositius estaven aparellats abans del trasllat a la fortalesa, però no l'han seguit en 30 dies, així que l'aparellament antic s'ha tancat. Per portar-ne un, introdueix-hi la frase de la fortalesa. Si ja no el fas servir, simplement elimina'l.",
   'pairing.fingerprint': 'Clau {fingerprint}',
   'pairing.ownKey': 'Clau d’aquesta instància: {fingerprint}',
   'pairing.ownKeyTip': 'Quan aquesta instància espera aprovació en una altra, l’altra la mostra amb aquesta clau. Aprova-la només si les dues claus coincideixen.',

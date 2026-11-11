@@ -28,6 +28,7 @@ const noGroup = {
   pending: [],
   awaiting: false,
   droppedInstances: [] as string[],
+  behind: [],
 };
 
 /** An instance of the group reached directly, which announced itself as a

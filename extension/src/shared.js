@@ -268,6 +268,42 @@ function awayCard(member, { index }) {
   return card;
 }
 
+/**
+ * behindList draws the devices that stayed on the old phrase when the group
+ * moved into a fortress, as one quiet list under the cards, by name and kind
+ * only. Taking one out is left to an instance's web interface, since the
+ * extension cannot remove members.
+ */
+function behindList(devices) {
+  const section = document.createElement('div');
+  section.className = 'behind';
+  const title = document.createElement('p');
+  title.className = 'behind-title glim-eyebrow';
+  title.append(document.createTextNode(t('options.groupBehind')), glimInfoIcon(t('options.groupBehindTip')));
+  const rows = document.createElement('ul');
+  rows.className = 'behind-list glim-well';
+  for (const device of devices) {
+    const row = document.createElement('li');
+    const name = document.createElement('span');
+    name.className = 'glim-instance-name';
+    name.textContent = device.name?.trim() || device.id.slice(0, 16);
+    const what = document.createElement('span');
+    what.className = 'glim-instance-what';
+    what.textContent = behindKind(device);
+    row.append(name, what);
+    rows.appendChild(row);
+  }
+  section.append(title, rows);
+  return section;
+}
+
+/** The keys are written out for check-locales.mjs. */
+function behindKind(device) {
+  if (device.kind === 'mobile') return t('device.kindMobile');
+  if (device.kind === 'extension') return t('device.kindExtension');
+  return deploymentLabel(device.deployment);
+}
+
 /** The logo along a card's start edge. */
 function cardMark() {
   const mark = document.createElement('span');

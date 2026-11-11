@@ -258,6 +258,8 @@ export const fi: Dict = {
   'pairing.pendingTitle': 'Odottaa hyväksyntää',
   'pairing.pendingTip': 'Nämä laitteet ovat syöttäneet kaksitoista sanaa, mutta ne eivät voi tehdä ryhmässä mitään ennen kuin hyväksyt ne. Hyväksy vain laitteet, jotka tunnistat. Päätöksesi pätee ryhmän jokaisessa instanssissa.',
   'pairing.pendingInstance': 'Instanssi',
+  'pairing.behindTitle': 'Eivät tulleet mukaan',
+  'pairing.behindTip': 'Nämä laitteet oli pariliitetty ennen siirtoa linnoitukseen, mutta ne eivät seuranneet 30 päivän kuluessa, joten vanha pariliitos on suljettu. Tuo laite mukaan syöttämällä siihen linnoituksen lause. Jos et enää käytä sitä, poista se vain.',
   'pairing.fingerprint': 'Avain {fingerprint}',
   'pairing.ownKey': 'Tämän instanssin avain: {fingerprint}',
   'pairing.ownKeyTip': 'Kun tämä instanssi odottaa hyväksyntää toisessa, toinen näyttää sen tällä avaimella. Hyväksy se vain, jos avaimet ovat samat.',

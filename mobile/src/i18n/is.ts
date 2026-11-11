@@ -44,6 +44,8 @@ export const is: Dict = {
   'devices.lastSeen': 'Síðast séð {time}',
   'devices.paired': 'Parað',
   'devices.pairedHint': 'Viðbótin tengist aðeins á meðan þú notar hana. Þess á milli helst hún pöruð og þarf ekki nýtt samþykki.',
+  'devices.behind': 'Komu ekki með',
+  'devices.behindHint': 'Þessi tæki voru pöruð áður en flutt var í vígið, en fylgdu ekki með innan 30 daga, svo gamla pörunin hefur verið lokuð. Til að taka eitt með skaltu slá inn setningu vígisins á því.',
   'devices.pending': 'Bíður samþykkis',
   'devices.thisDevice': 'Þetta tæki',
   'downloads.start': 'Byrja',

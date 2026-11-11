@@ -260,6 +260,8 @@ export const no: Dict = {
   'pairing.pendingTitle': 'Venter på godkjenning',
   'pairing.pendingTip': 'Disse enhetene har skrevet inn de tolv ordene, men kan ikke gjøre noe i gruppen før du godkjenner dem. Godkjenn bare enheter du kjenner igjen. Avgjørelsen din gjelder på hver instans i gruppen.',
   'pairing.pendingInstance': 'Instans',
+  'pairing.behindTitle': 'Ble ikke med',
+  'pairing.behindTip': 'Disse enhetene var paret før flyttingen til festningen, men fulgte ikke etter innen 30 dager, så den gamle paringen er stengt. Skriv inn festningsfrasen på en av dem for å ta den med. Bruker du den ikke lenger, er det bare å fjerne den.',
   'pairing.fingerprint': 'Nøkkel {fingerprint}',
   'pairing.ownKey': 'Nøkkelen til denne instansen: {fingerprint}',
   'pairing.ownKeyTip': 'Når denne instansen venter på godkjenning på en annen, viser den andre den med denne nøkkelen. Godkjenn den bare hvis de to nøklene er like.',

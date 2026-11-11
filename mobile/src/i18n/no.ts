@@ -44,6 +44,8 @@ export const no: Dict = {
   'devices.lastSeen': 'Sist sett {time}',
   'devices.paired': 'Paret',
   'devices.pairedHint': 'Utvidelsen kobler seg bare til mens du bruker den. I mellomtiden forblir den paret og trenger ingen ny godkjenning.',
+  'devices.behind': 'Ble ikke med',
+  'devices.behindHint': 'Disse enhetene var paret før flyttingen til festningen, men fulgte ikke etter innen 30 dager, så den gamle paringen er stengt. Skriv inn festningsfrasen på en av dem for å ta den med.',
   'devices.pending': 'Venter på godkjenning',
   'devices.thisDevice': 'Denne enheten',
   'downloads.start': 'Start',

@@ -258,6 +258,8 @@ export const cs: Dict = {
   'pairing.pendingTitle': 'Čeká na schválení',
   'pairing.pendingTip': 'Tato zařízení zadala dvanáct slov, ale ve skupině nemohou nic dělat, dokud je neschválíte. Schvalujte jen zařízení, která poznáváte. Vaše rozhodnutí platí na každé instanci skupiny.',
   'pairing.pendingInstance': 'Instance',
+  'pairing.behindTitle': 'Nepřešla s vámi',
+  'pairing.behindTip': 'Tato zařízení byla spárovaná před přesunem do pevnosti, ale do 30 dnů za vámi nepřešla, a tak je staré spárování uzavřené. Chcete-li některé vzít s sebou, zadejte na něm frázi pevnosti. Pokud ho už nepoužíváte, jednoduše ho odeberte.',
   'pairing.fingerprint': 'Klíč {fingerprint}',
   'pairing.ownKey': 'Klíč této instance: {fingerprint}',
   'pairing.ownKeyTip': 'Když tato instance čeká na schválení na jiné, ta ji zobrazuje s tímto klíčem. Schvalte ji, jen pokud se oba klíče shodují.',

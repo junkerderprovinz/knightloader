@@ -50,6 +50,7 @@ const group = {
   fingerprint: '',
   relayKeyDropped: false,
   droppedInstances: [],
+  behind: [],
 } satisfies ConnectInfo;
 
 const relay: RelayConfig = { mode: 'project', relayUrl: '', connected: false, serve: false, serveClients: 0 };

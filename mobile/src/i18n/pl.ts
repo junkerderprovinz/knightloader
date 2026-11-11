@@ -44,6 +44,8 @@ export const pl: Dict = {
   'devices.lastSeen': 'Ostatnia aktywność {time}',
   'devices.paired': 'Sparowano',
   'devices.pairedHint': 'Rozszerzenie łączy się tylko wtedy, gdy go używasz. W międzyczasie pozostaje sparowane i nie potrzebuje nowego zatwierdzenia.',
+  'devices.behind': 'Nie przeszły',
+  'devices.behindHint': 'Te urządzenia były sparowane przed przeniesieniem do twierdzy, ale nie przeszły za nią w ciągu 30 dni, więc stare parowanie zostało zamknięte. Aby zabrać któreś ze sobą, wpisz na nim frazę twierdzy.',
   'devices.pending': 'Czeka na zatwierdzenie',
   'devices.thisDevice': 'To urządzenie',
   'downloads.start': 'Uruchom',

@@ -54,6 +54,7 @@ const base: ConnectInfo = {
   fingerprint: '',
   relayKeyDropped: false,
   droppedInstances: [],
+  behind: [],
 };
 
 function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = () => {}, onRefresh: () => void = () => {}) {
@@ -372,6 +373,29 @@ describe('PairingGroup', () => {
     expect(dialog()).toBeNull();
   });
 
+  it('names the devices that did not come along into the fortress by name and kind, and takes one out', async () => {
+    const calls = answer([]);
+    draw({
+      joinedAgo: 500,
+      memberSeen: true,
+      away: [{ id: 'z', name: 'Zathallia', deployment: 'desktop', lastSeen: 1 }],
+      behind: [
+        { id: 'a', name: 'Attic', kind: 'instance', deployment: 'container' },
+        { id: 'p', name: 'Old phone', kind: 'mobile', deployment: '' },
+      ],
+    });
+    const behind = host.querySelector('[data-testid="behind"]')!;
+    expect(behind.textContent).toContain("Didn't come along");
+    const lines = [...behind.querySelectorAll('li')].map((li) => li.textContent);
+    expect(lines).toEqual(['AtticContainerRemove', 'Old phoneAndroid appRemove']);
+    expect(rows().map((r) => r.textContent)).not.toContainEqual(expect.stringContaining('Attic'));
+
+    await act(async () => host.querySelector<HTMLButtonElement>('[aria-label="Remove Attic"]')!.click());
+    const confirm = [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Remove')!;
+    await act(async () => confirm.click());
+    expect(calls).toContain('DELETE /api/connect/members/a');
+  });
+
   it('takes another instance out of the group only after the window says it waits for approval to come back', async () => {
     const calls = answer([]);
     draw({
@@ -475,6 +499,7 @@ describe('PairingGroup in a fortress', () => {
     members: [],
     permissions: [],
     pairedWith: ['attic'],
+    behind: [],
     left,
   });
   const drawMoved = (group: Partial<ConnectInfo>, left: string[]) =>

@@ -4,8 +4,9 @@ package api
 // it with the twelve words, and its own pairing moves along: the instances,
 // phones and browsers it was paired with stay paired, now under the fortress
 // phrase. The group on the old phrase stays open until every member of it
-// followed, handing the fortress phrase to the instances in reach and the
-// keys of the pairing to the phones and browsers that ask.
+// followed or 30 days have passed, handing the fortress phrase to the
+// instances in reach and the keys of the pairing to the phones and browsers
+// that ask. Whoever had not followed by then is listed as left behind.
 
 import (
 	"bytes"
@@ -42,8 +43,8 @@ const appID = "knightloader"
 var fortressLAN = true
 
 // followEvery is how often the members still on the old phrase are offered
-// the fortress.
-var followEvery = 15 * time.Second
+// the fortress, and the kit asked whether the old group closes.
+var followEvery = time.Minute
 
 // movedPath is where a phone or a browser on the old phrase asks for the
 // keys of the pairing in the fortress. Newer ones ask kit/fortress's Moved,
@@ -154,21 +155,23 @@ func (g *fortressGroup) left() []string {
 }
 
 // moveOn hands the fortress phrase to the instances on the old phrase in
-// reach, and ends the old group once every member followed. It reports
-// whether there is nobody left to wait for.
+// reach, and ends the old group once the kit settles it: every member
+// followed, or 30 days have passed. It reports whether there is nobody left
+// to wait for.
 func (g *fortressGroup) moveOn() bool {
 	former := g.formerGroup()
 	if former == nil {
 		return true
 	}
-	if len(g.left()) == 0 {
+	if g.f.Settle(former.Group) {
 		g.mu.Lock()
 		g.former = nil
 		g.mu.Unlock()
 		if err := former.Close(); err != nil {
 			log.Printf("fortress: close the group on the old phrase: %v", err)
 		}
-		endFormerGroup(g.a)
+		endFormerGroup(g.a, len(g.f.Behind()))
+		g.a.Hub.Broadcast("group", nil)
 		return true
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -193,14 +196,18 @@ func (g *fortressGroup) follow() {
 	}
 }
 
-// endFormerGroup forgets the old phrase once every member of its group is in
-// the fortress, so nobody comes in with it any more.
-func endFormerGroup(a *app.App) {
+// endFormerGroup forgets the old phrase and what its group kept, so nobody
+// comes in with it any more. behind is how many members never followed.
+func endFormerGroup(a *app.App, behind int) {
 	for _, account := range []string{federation.SeedAccount, federation.GroupAccount} {
 		if err := a.Accounts.Set(account, ""); err != nil {
 			log.Printf("fortress: forget the old phrase: %v", err)
 			return
 		}
+	}
+	if behind > 0 {
+		log.Printf("fortress: the old group closed with %d members that never followed, the old phrase is gone", behind)
+		return
 	}
 	log.Printf("fortress: every member of the old group is in the fortress, the old phrase is gone")
 }
@@ -474,6 +481,30 @@ type fortressView struct {
 	// Left names the members of the pairing that have not followed it into
 	// the fortress yet.
 	Left []string `json:"left"`
+	// Behind is every device of the pairing that had not followed it into the
+	// fortress when the group on the old phrase closed.
+	Behind []behindDevice `json:"behind"`
+}
+
+// behindDevice carries no address: the owner finds the device by its name.
+type behindDevice struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Kind is "instance", "mobile" or "extension".
+	Kind       string `json:"kind"`
+	Deployment string `json:"deployment"`
+}
+
+// behindOf lists the devices left behind by the move into the fortress, empty
+// outside one.
+func behindOf(a *app.App) []behindDevice {
+	out := []behindDevice{}
+	if g := fortressOf(a); g != nil {
+		for _, m := range g.f.Behind() {
+			out = append(out, behindDevice{ID: m.ID, Name: m.Name, Kind: string(m.Kind), Deployment: m.Deployment})
+		}
+	}
+	return out
 }
 
 func fortressViewOf(a *app.App) fortressView {
@@ -486,10 +517,15 @@ func fortressViewOf(a *app.App) fortressView {
 		Permissions: []fortressPermissionView{},
 		PairedWith:  []string{},
 		Left:        []string{},
+		Behind:      behindOf(a),
+	}
+	behind := map[string]bool{}
+	for _, d := range v.Behind {
+		behind[d.ID] = true
 	}
 	if p := a.Federation.Group(); p != nil {
 		for _, m := range p.Members() {
-			if m.State == group.StateApproved {
+			if m.State == group.StateApproved && !behind[m.ID] {
 				v.PairedWith = append(v.PairedWith, cmp.Or(m.Name, m.ID))
 			}
 		}

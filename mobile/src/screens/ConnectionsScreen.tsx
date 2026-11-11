@@ -4,7 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { errorText, setQueueHalted } from '../api/client';
 import type { GroupApp } from '../api/groupApps';
 import { followGroups } from '../api/groupSync';
-import { awayFor, type AwayInstance } from '../api/away';
+import { awayFor, type AwayInstance, type BehindDevice } from '../api/away';
 import { subscribeAllRelays, wakeRelayClients } from '../api/relayClient';
 import { memberOptions } from '../storage/relayIdentity';
 import { isolate } from '../i18n/bidi';
@@ -121,6 +121,45 @@ function deviceStatus(a: GroupApp): 'online' | 'paired' | 'pending' | 'inactive'
   return a.deployment === 'extension' ? 'paired' : 'inactive';
 }
 
+// What a device left behind is: a phone or an extension by its kind, an
+// instance by its deployment, as the connect screen lists the group's instances.
+function behindKind(t: ReturnType<typeof useT>['t'], d: BehindDevice): string {
+  if (d.kind === 'mobile') return t('devices.kindMobile');
+  if (d.kind === 'extension') return t('devices.kindExtension');
+  return d.deployment;
+}
+
+/** The card of a phone, an extension or a device left behind. */
+function DeviceCard({ name, hue, badges, line }: { name: string; hue?: string; badges: ReactNode; line: string }) {
+  const { c, corners, rainbow } = useAppearance();
+  return (
+    <View
+      style={[
+        styles.row,
+        { backgroundColor: c.surface, ...corners.card },
+        hue && !rainbow.reactive ? { backgroundColor: blend(c.surface, hue, 0.16) } : null,
+      ]}
+    >
+      <View style={styles.rowMark}>
+        <Image source={MARK} style={styles.rowMarkImg} resizeMode="contain" />
+      </View>
+      <View style={styles.rowText}>
+        <View style={styles.rowTop}>
+          <Text style={[styles.rowName, { color: c.text }]} numberOfLines={1}>
+            {name}
+          </Text>
+          <View style={styles.rowBadges}>{badges}</View>
+        </View>
+        {line !== '' && (
+          <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
+            {line}
+          </Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
 function seenAt(lang: string, unix: number): string {
   const when = new Date(unix * 1000).toLocaleString(lang, {
     day: 'numeric',
@@ -167,6 +206,9 @@ export default function ConnectionsScreen({
   // The instances approved in the group that are not there now, such as a
   // desktop app that was closed.
   const [away, setAway] = useState<AwayInstance[]>([]);
+  // The devices that did not follow the group into its fortress before the
+  // old pairing closed.
+  const [behind, setBehind] = useState<BehindDevice[]>([]);
   const [selfId, setSelfId] = useState('');
 
   // The numbers behind every card and behind the summary above them. Polled
@@ -205,6 +247,7 @@ export default function ConnectionsScreen({
     const groups = await followGroups(list, reachable);
     setApps(groups.apps);
     setAway(groups.away);
+    setBehind(groups.behind);
     if (!groups.changed) return;
     // The group gained or lost an instance, so the list is shown as it is now
     // and the new cards get their figures at once rather than in a round.
@@ -320,53 +363,67 @@ export default function ConnectionsScreen({
            takes from hueAt and the rainbow is such state: without them a
            palette change, or disco's walk, leaves the rows in their old
            colours. */
-        extraData={[stats, why, away, hueAt, rainbow.reactive, defaultId]}
+        extraData={[stats, why, away, behind, hueAt, rainbow.reactive, defaultId]}
         // The group's phones and extensions under the instances, in the same
         // cards. They are not pressable: there is nothing to open on a phone,
         // and taking one out of the group is done on an instance.
         ListFooterComponent={
-          apps.length > 0 ? (
-            <View style={styles.devices}>
-              <Text style={[styles.devicesTitle, { color: c.textMuted }]}>{t('devices.title')}</Text>
-              <View style={wide ? styles.deviceGrid : styles.deviceColumn}>
-                {apps.map((a, i) => {
-                  const status = deviceStatus(a);
-                  const hue = hueAt(connections.length + i);
-                  const facts = [a.deployment === 'mobile' ? t('devices.kindMobile') : t('devices.kindExtension')];
-                  if (!a.connected && a.lastSeen > 0) facts.push(t('devices.lastSeen', { time: seenAt(lang, a.lastSeen) }));
-                  return (
-                    <Arrive key={a.id} style={wide ? styles.deviceCellWide : undefined}>
-                      <View
-                        style={[
-                          styles.row,
-                          { backgroundColor: c.surface, ...corners.card },
-                          hue && !rainbow.reactive ? { backgroundColor: blend(c.surface, hue, 0.16) } : null,
-                        ]}
-                      >
-                        <View style={styles.rowMark}>
-                          <Image source={MARK} style={styles.rowMarkImg} resizeMode="contain" />
-                        </View>
-                        <View style={styles.rowText}>
-                          <View style={styles.rowTop}>
-                            <Text style={[styles.rowName, { color: c.text }]} numberOfLines={1}>
-                              {a.name || a.id}
-                            </Text>
-                            <View style={styles.rowBadges}>
-                              {a.id === selfId && <ThisDeviceBadge />}
-                              <StatusBadge status={status} />
-                              {status === 'paired' && <InfoTip text={t('devices.pairedHint')} />}
-                            </View>
-                          </View>
-                          <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
-                            {facts.join(' · ')}
-                          </Text>
-                        </View>
-                      </View>
-                    </Arrive>
-                  );
-                })}
-              </View>
-            </View>
+          apps.length > 0 || behind.length > 0 ? (
+            <>
+              {apps.length > 0 && (
+                <View style={styles.devices}>
+                  <Text style={[styles.devicesTitle, { color: c.textMuted }]}>{t('devices.title')}</Text>
+                  <View style={wide ? styles.deviceGrid : styles.deviceColumn}>
+                    {apps.map((a, i) => {
+                      const status = deviceStatus(a);
+                      const facts = [a.deployment === 'mobile' ? t('devices.kindMobile') : t('devices.kindExtension')];
+                      if (!a.connected && a.lastSeen > 0) facts.push(t('devices.lastSeen', { time: seenAt(lang, a.lastSeen) }));
+                      return (
+                        <Arrive key={a.id} style={wide ? styles.deviceCellWide : undefined}>
+                          <DeviceCard
+                            name={a.name || a.id}
+                            hue={hueAt(connections.length + i)}
+                            line={facts.join(' · ')}
+                            badges={
+                              <>
+                                {a.id === selfId && <ThisDeviceBadge />}
+                                <StatusBadge status={status} />
+                                {status === 'paired' && <InfoTip text={t('devices.pairedHint')} />}
+                              </>
+                            }
+                          />
+                        </Arrive>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+              {/* Instances, phones and extensions alike, once each. Taking one
+                  out of the group is done in the web interface, so the cards
+                  offer nothing to press. */}
+              {behind.length > 0 && (
+                <View style={styles.devices}>
+                  <View style={styles.devicesHead}>
+                    <Text style={[styles.devicesTitle, styles.devicesHeadTitle, { color: c.textMuted }]}>
+                      {t('devices.behind')}
+                    </Text>
+                    <InfoTip text={t('devices.behindHint')} />
+                  </View>
+                  <View style={wide ? styles.deviceGrid : styles.deviceColumn}>
+                    {behind.map((d, i) => (
+                      <Arrive key={d.id} style={wide ? styles.deviceCellWide : undefined}>
+                        <DeviceCard
+                          name={d.name || d.id}
+                          hue={hueAt(connections.length + apps.length + i)}
+                          line={behindKind(t, d)}
+                          badges={<StatusBadge status="inactive" />}
+                        />
+                      </Arrive>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </>
           ) : undefined
         }
         // The summary, the failure line and the graph travel as the list's own
@@ -468,10 +525,12 @@ export default function ConnectionsScreen({
         renderItem={({ item, index }) => {
           const st = stats[item.id];
           const gone = st === null ? awayFor(item, away) : undefined;
+          const left = st === null && behind.some((d) => d.id === item.instanceId);
           // The same poll as the figures beside it, so an instance that comes
           // back reads Connected with its next answer and the badge never
           // contradicts the line under it.
-          const s: ConnStatus = st === undefined ? 'checking' : gone ? 'inactive' : st === null ? 'offline' : 'online';
+          const s: ConnStatus =
+            st === undefined ? 'checking' : gone || left ? 'inactive' : st === null ? 'offline' : 'online';
           /* This list is a set of equal members, so each card owns a position
              in the palette - the thing that turns "rainbow mode" from one
              wired list into a property of the app. It is also the longest list
@@ -544,11 +603,13 @@ export default function ConnectionsScreen({
                         {' · '}
                       </>
                     ) : null}
-                    {gone
-                      ? t('devices.lastSeen', { time: seenAt(lang, gone.lastSeen) })
-                      : st === null && why[item.id]
-                        ? why[item.id]
-                        : statusLine(t, st)}
+                    {left
+                      ? t('devices.behind')
+                      : gone
+                        ? t('devices.lastSeen', { time: seenAt(lang, gone.lastSeen) })
+                        : st === null && why[item.id]
+                          ? why[item.id]
+                          : statusLine(t, st)}
                   </FiguresLine>
                 </View>
                 {/* No delete here. A bin on every row of a list somebody taps to
@@ -667,6 +728,8 @@ const styles = StyleSheet.create({
   columns: { gap: 8 },
   devices: { marginTop: 16 },
   devicesTitle: { fontSize: TYPE.meta, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
+  devicesHead: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  devicesHeadTitle: { marginBottom: 0 },
   deviceColumn: { gap: 8 },
   // Two to a line on a tablet, as the instances above them, with a last odd
   // card taking the line the way the list's own last cell does.

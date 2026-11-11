@@ -65,6 +65,10 @@ type ConnectInfo struct {
 	// Away is every other instance approved in the group that is not
 	// reachable now, as it last announced itself.
 	Away []awayMember `json:"away"`
+	// Behind is every device that had not followed the pairing into the
+	// fortress when the group on the old phrase closed. Away and Apps leave
+	// them out.
+	Behind []behindDevice `json:"behind"`
 	// JoinedAgo is how many seconds ago this instance generated or entered
 	// its phrase, and MemberSeen whether another instance has shown up since.
 	// Together they tell a group waiting for its second instance from one
@@ -135,6 +139,7 @@ type groupView struct {
 	members []groupMember
 	apps    []groupApp
 	away    []awayMember
+	behind  []behindDevice
 	pending []pendingDevice
 	// awaiting is whether another instance said lately that this one waits
 	// for approval there.
@@ -143,7 +148,11 @@ type groupView struct {
 
 // viewOf lists the members of this instance's group.
 func viewOf(a *app.App) groupView {
-	v := groupView{members: []groupMember{}, apps: []groupApp{}, away: []awayMember{}, pending: []pendingDevice{}}
+	v := groupView{members: []groupMember{}, apps: []groupApp{}, away: []awayMember{}, behind: behindOf(a), pending: []pendingDevice{}}
+	behind := map[string]bool{}
+	for _, d := range v.behind {
+		behind[d.ID] = true
+	}
 	for _, p := range a.Federation.List() {
 		name := p.DisplayName
 		if name == "" {
@@ -157,6 +166,7 @@ func viewOf(a *app.App) groupView {
 			v.pending = append(v.pending, pendingDevice{ID: m.ID, Name: m.Name, Kind: string(m.Kind), Fingerprint: member.Fingerprint(m.Key)})
 		}
 		switch {
+		case behind[m.ID]:
 		case m.Kind == member.KindMobile || m.Kind == member.KindExtension:
 			v.apps = append(v.apps, groupApp{ID: m.ID, Name: m.Name, Deployment: string(m.Kind), Connected: m.Online(),
 				Approved: m.State == group.StateApproved, LastSeen: m.LastSeen.Unix()})
@@ -207,14 +217,15 @@ func registerConnect(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodGet, "/api/group/apps",
-		"every phone and browser extension of the group: whether it is connected now, whether its key was approved, and when it was last seen; the other instances of the group this one reaches now; and every other instance of the group that is away, as it last announced itself",
+		"every phone and browser extension of the group: whether it is connected now, whether its key was approved, and when it was last seen; the other instances of the group this one reaches now; every other instance of the group that is away, as it last announced itself; and the devices that did not follow the group into the fortress, by name and kind",
 		func(w http.ResponseWriter, r *http.Request) {
 			v := viewOf(a)
 			writeJSON(w, struct {
-				Apps    []groupApp    `json:"apps"`
-				Members []groupMember `json:"members"`
-				Away    []awayMember  `json:"away"`
-			}{v.apps, v.members, v.away})
+				Apps    []groupApp     `json:"apps"`
+				Members []groupMember  `json:"members"`
+				Away    []awayMember   `json:"away"`
+				Behind  []behindDevice `json:"behind"`
+			}{v.apps, v.members, v.away, v.behind})
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/activate",
@@ -625,6 +636,7 @@ func connectInfo(a *app.App) ConnectInfo {
 		Members:          v.members,
 		Apps:             v.apps,
 		Away:             v.away,
+		Behind:           v.behind,
 		JoinedAgo:        joinedAgo,
 		MemberSeen:       !st.MemberSeenAt.IsZero(),
 		Pending:          v.pending,

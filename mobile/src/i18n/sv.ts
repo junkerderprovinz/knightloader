@@ -44,6 +44,8 @@ export const sv: Dict = {
   'devices.lastSeen': 'Senast sedd {time}',
   'devices.paired': 'Parkopplad',
   'devices.pairedHint': 'Tillägget ansluter bara medan du använder det. Däremellan förblir det parkopplat och behöver inget nytt godkännande.',
+  'devices.behind': 'Följde inte med',
+  'devices.behindHint': 'De här enheterna var parkopplade före flytten till fästningen, men följde inte efter inom 30 dagar, så den gamla parkopplingen är stängd. Ange fästningens fras på en av dem för att ta med den.',
   'devices.pending': 'Väntar på godkännande',
   'devices.thisDevice': 'Den här enheten',
   'downloads.start': 'Starta',

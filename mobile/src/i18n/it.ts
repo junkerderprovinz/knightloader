@@ -44,6 +44,8 @@ export const it: Dict = {
   'devices.lastSeen': 'Ultimo accesso: {time}',
   'devices.paired': 'Associata',
   'devices.pairedHint': 'L’estensione si connette solo mentre la usi. Nel frattempo resta associata e non ha bisogno di una nuova approvazione.',
+  'devices.behind': 'Non sono venuti',
+  'devices.behindHint': "Questi dispositivi erano associati prima del passaggio alla fortezza, ma non l'hanno seguita entro 30 giorni, quindi la vecchia associazione è stata chiusa. Per portarne uno con te, inserisci su di esso la frase della fortezza.",
   'devices.pending': 'In attesa di approvazione',
   'devices.thisDevice': 'Questo dispositivo',
   'downloads.start': 'Avvia',

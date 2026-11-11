@@ -258,6 +258,8 @@ export const eu: Dict = {
   'pairing.pendingTitle': 'Onarpenaren zain',
   'pairing.pendingTip': 'Gailu hauek hamabi hitzak sartu dituzte, baina ezin dute ezer egin taldean zuk onartu arte. Onartu ezagutzen dituzun gailuak bakarrik. Zure erabakia taldeko instantzia guztietan da baliozkoa.',
   'pairing.pendingInstance': 'Instantzia',
+  'pairing.behindTitle': 'Ez dira etorri',
+  'pairing.behindTip': 'Gailu hauek gotorlekura joan aurretik zeuden parekatuta, baina ez dute 30 egunean jarraitu, eta beraz parekatze zaharra itxi egin da. Bat ekartzeko, idatzi bertan gotorlekuaren esaldia. Gehiago erabiltzen ez baduzu, kendu besterik ez.',
   'pairing.fingerprint': 'Gakoa {fingerprint}',
   'pairing.ownKey': 'Instantzia honen gakoa: {fingerprint}',
   'pairing.ownKeyTip': 'Instantzia hau beste batean onarpenaren zain dagoenean, besteak gako honekin erakusten du. Onartu bi gakoak berdinak badira bakarrik.',

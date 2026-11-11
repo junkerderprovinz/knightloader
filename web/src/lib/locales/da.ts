@@ -258,6 +258,8 @@ export const da: Dict = {
   'pairing.pendingTitle': 'Venter på godkendelse',
   'pairing.pendingTip': 'Disse enheder har indtastet de tolv ord, men kan ikke gøre noget i gruppen, før du godkender dem. Godkend kun enheder, du kender. Din beslutning gælder på hver instans i gruppen.',
   'pairing.pendingInstance': 'Instans',
+  'pairing.behindTitle': 'Kom ikke med',
+  'pairing.behindTip': 'Disse enheder var parret før flytningen til fæstningen, men fulgte ikke med inden for 30 dage, så den gamle parring er lukket. Indtast fæstningens sætning på en af dem for at tage den med. Bruger du den ikke længere, så fjern den bare.',
   'pairing.fingerprint': 'Nøgle {fingerprint}',
   'pairing.ownKey': 'Nøgle til denne instans: {fingerprint}',
   'pairing.ownKeyTip': 'Når denne instans venter på godkendelse på en anden, viser den anden den med denne nøgle. Godkend den kun, hvis de to nøgler er ens.',

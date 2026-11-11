@@ -44,6 +44,8 @@ export const zh: Dict = {
   'devices.lastSeen': '最后在线 {time}',
   'devices.paired': '已配对',
   'devices.pairedHint': '扩展只在你使用时连接。其余时间它保持配对，不需要重新批准。',
+  'devices.behind': '没有跟过来',
+  'devices.behindHint': '这些设备在迁入堡垒之前已配对，但没有在 30 天内跟过来，所以旧的配对已关闭。要带上其中一台，请在它上面输入堡垒口令。',
   'devices.pending': '等待批准',
   'devices.thisDevice': '此设备',
   'downloads.start': '开始',

@@ -44,6 +44,8 @@ export const gl: Dict = {
   'devices.lastSeen': 'Visto por última vez: {time}',
   'devices.paired': 'Emparellada',
   'devices.pairedHint': 'A extensión só se conecta mentres a usas. Mentres tanto segue emparellada e non precisa dunha nova aprobación.',
+  'devices.behind': 'Non viñeron',
+  'devices.behindHint': 'Estes dispositivos estaban emparellados antes do traslado á fortaleza, pero non a seguiron en 30 días, así que o emparellamento antigo pechouse. Para levar un contigo, introduce nel a frase da fortaleza.',
   'devices.pending': 'Agardando aprobación',
   'devices.thisDevice': 'Este dispositivo',
   'downloads.start': 'Iniciar',

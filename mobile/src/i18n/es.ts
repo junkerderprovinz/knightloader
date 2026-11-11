@@ -44,6 +44,8 @@ export const es: Dict = {
   'devices.lastSeen': 'Visto por última vez: {time}',
   'devices.paired': 'Emparejada',
   'devices.pairedHint': 'La extensión solo se conecta mientras la usas. Entretanto sigue emparejada y no necesita una nueva aprobación.',
+  'devices.behind': 'No vinieron',
+  'devices.behindHint': 'Estos dispositivos estaban emparejados antes del traslado a la fortaleza, pero no la siguieron en 30 días, así que el emparejamiento antiguo se ha cerrado. Para llevarte uno, introduce en él la frase de la fortaleza.',
   'devices.pending': 'Esperando aprobación',
   'devices.thisDevice': 'Este dispositivo',
   'downloads.start': 'Iniciar',

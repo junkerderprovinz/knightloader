@@ -258,6 +258,8 @@ export const ro: Dict = {
   'pairing.pendingTitle': 'Așteaptă aprobarea',
   'pairing.pendingTip': 'Aceste dispozitive au introdus cele douăsprezece cuvinte, dar nu pot face nimic în grup până nu le aprobi. Aprobă doar dispozitivele pe care le recunoști. Decizia ta se aplică pe fiecare instanță din grup.',
   'pairing.pendingInstance': 'Instanță',
+  'pairing.behindTitle': 'Nu au venit',
+  'pairing.behindTip': 'Aceste dispozitive erau împerecheate înainte de mutarea în fortăreață, dar nu au urmat-o în 30 de zile, așa că vechea împerechere s-a închis. Ca să aduci unul, introdu pe el fraza fortăreței. Dacă nu îl mai folosești, pur și simplu elimină-l.',
   'pairing.fingerprint': 'Cheie {fingerprint}',
   'pairing.ownKey': 'Cheia acestei instanțe: {fingerprint}',
   'pairing.ownKeyTip': 'Când această instanță așteaptă aprobarea pe alta, cealaltă o afișează cu această cheie. Aprob-o doar dacă cele două chei se potrivesc.',

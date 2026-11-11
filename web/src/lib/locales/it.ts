@@ -252,6 +252,8 @@ export const it: Dict = {
   'pairing.pendingTitle': 'In attesa di approvazione',
   'pairing.pendingTip': 'Questi dispositivi hanno inserito le dodici parole, ma non possono fare nulla nel gruppo finché non li approvi. Approva solo i dispositivi che riconosci. La tua decisione vale su ogni istanza del gruppo.',
   'pairing.pendingInstance': 'Istanza',
+  'pairing.behindTitle': 'Non sono venuti',
+  'pairing.behindTip': "Questi dispositivi erano associati prima del passaggio alla fortezza, ma non l'hanno seguita entro 30 giorni, quindi la vecchia associazione è stata chiusa. Per portarne uno con te, inserisci su di esso la frase della fortezza. Se non lo usi più, rimuovilo e basta.",
   'pairing.fingerprint': 'Chiave {fingerprint}',
   'pairing.ownKey': 'Chiave di questa istanza: {fingerprint}',
   'pairing.ownKeyTip': 'Quando questa istanza attende l’approvazione su un’altra, quest’ultima la mostra con questa chiave. Approvala solo se le due chiavi coincidono.',

@@ -44,6 +44,8 @@ export const ms: Dict = {
   'devices.lastSeen': 'Kali terakhir dilihat {time}',
   'devices.paired': 'Digandingkan',
   'devices.pairedHint': 'Sambungan hanya bersambung semasa anda menggunakannya. Di antaranya, ia kekal digandingkan dan tidak memerlukan kelulusan baharu.',
+  'devices.behind': 'Tidak ikut serta',
+  'devices.behindHint': 'Peranti ini digandingkan sebelum berpindah ke kubu, tetapi tidak menyusul dalam masa 30 hari, jadi gandingan lama telah ditutup. Untuk membawa salah satunya, masukkan frasa kubu pada peranti itu.',
   'devices.pending': 'Menunggu kelulusan',
   'devices.thisDevice': 'Peranti ini',
   'downloads.start': 'Mula',

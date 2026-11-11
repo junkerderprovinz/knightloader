@@ -258,6 +258,8 @@ export const gl: Dict = {
   'pairing.pendingTitle': 'Agardando aprobación',
   'pairing.pendingTip': 'Estes dispositivos introduciron as doce palabras, pero non poden facer nada no grupo ata que os aprobes. Aproba só dispositivos que recoñezas. A túa decisión vale en todas as instancias do grupo.',
   'pairing.pendingInstance': 'Instancia',
+  'pairing.behindTitle': 'Non viñeron',
+  'pairing.behindTip': 'Estes dispositivos estaban emparellados antes do traslado á fortaleza, pero non a seguiron en 30 días, así que o emparellamento antigo pechouse. Para levar un contigo, introduce nel a frase da fortaleza. Se xa non o usas, simplemente quítao.',
   'pairing.fingerprint': 'Chave {fingerprint}',
   'pairing.ownKey': 'Chave desta instancia: {fingerprint}',
   'pairing.ownKeyTip': 'Cando esta instancia agarda aprobación noutra, esa outra móstraa con esta chave. Apróbaa só se as dúas chaves coinciden.',

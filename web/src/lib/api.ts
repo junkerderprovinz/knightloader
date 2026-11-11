@@ -4418,6 +4418,9 @@ export interface ConnectInfo {
   /** The other instances approved in the group that are not reachable now,
    *  such as a desktop app that was closed. */
   away: AwayMember[];
+  /** The devices that had not followed the pairing into the fortress when the
+   *  group on the old phrase closed. `away` and `apps` leave them out. */
+  behind: BehindDevice[];
   /** Seconds since this instance generated or entered its phrase, 0 outside
    *  a group. */
   joinedAgo: number;
@@ -4469,6 +4472,17 @@ export interface AwayMember {
   deployment: string;
   /** Unix seconds. */
   lastSeen: number;
+}
+
+/** A device of the pairing that did not follow it into the fortress. It
+ *  carries no address: the owner knows it by its name. */
+export interface BehindDevice {
+  id: string;
+  name: string;
+  /** 'instance', 'mobile' or 'extension'. */
+  kind: string;
+  /** "container", "server" or "desktop" for an instance, '' when it never said. */
+  deployment: string;
 }
 
 /** A phone or browser extension of the group. */
@@ -4649,6 +4663,8 @@ export interface FortressState {
   pairedWith: string[];
   /** The members of the pairing that have not followed it into the fortress yet. */
   left: string[];
+  /** The devices that had not followed it when the group on the old phrase closed. */
+  behind: BehindDevice[];
 }
 
 export async function fetchFortress(): Promise<FortressState> {

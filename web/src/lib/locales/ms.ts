@@ -258,6 +258,8 @@ export const ms: Dict = {
   'pairing.pendingTitle': 'Menunggu kelulusan',
   'pairing.pendingTip': 'Peranti ini telah memasukkan dua belas perkataan, tetapi tidak dapat berbuat apa-apa dalam kumpulan sehingga anda meluluskannya. Luluskan hanya peranti yang anda kenali. Keputusan anda terpakai pada setiap instance dalam kumpulan.',
   'pairing.pendingInstance': 'Instance',
+  'pairing.behindTitle': 'Tidak ikut serta',
+  'pairing.behindTip': 'Peranti ini digandingkan sebelum berpindah ke kubu, tetapi tidak menyusul dalam masa 30 hari, jadi gandingan lama telah ditutup. Untuk membawa salah satunya, masukkan frasa kubu pada peranti itu. Jika anda tidak menggunakannya lagi, alih keluar sahaja.',
   'pairing.fingerprint': 'Kunci {fingerprint}',
   'pairing.ownKey': 'Kunci instance ini: {fingerprint}',
   'pairing.ownKeyTip': 'Apabila instance ini menunggu kelulusan pada instance lain, instance itu memaparkannya dengan kunci ini. Luluskannya hanya jika kedua-dua kunci sepadan.',

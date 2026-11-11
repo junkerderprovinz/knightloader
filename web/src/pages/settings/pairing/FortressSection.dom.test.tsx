@@ -65,6 +65,7 @@ function state(over: Partial<FortressState> = {}): FortressState {
     members: [],
     permissions: [],
     pairedWith: [],
+    behind: [],
     left: [],
     ...over,
   };

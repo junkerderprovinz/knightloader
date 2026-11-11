@@ -258,6 +258,8 @@ export const sk: Dict = {
   'pairing.pendingTitle': 'Čaká na schválenie',
   'pairing.pendingTip': 'Tieto zariadenia zadali dvanásť slov, ale v skupine nemôžu nič robiť, kým ich neschválite. Schvaľujte len zariadenia, ktoré poznáte. Vaše rozhodnutie platí na každej inštancii skupiny.',
   'pairing.pendingInstance': 'Inštancia',
+  'pairing.behindTitle': 'Neprešli s vami',
+  'pairing.behindTip': 'Tieto zariadenia boli spárované pred presunom do pevnosti, ale do 30 dní za ňou neprešli, takže staré spárovanie je uzavreté. Ak chcete niektoré vziať so sebou, zadajte naň frázu pevnosti. Ak ho už nepoužívate, jednoducho ho odstráňte.',
   'pairing.fingerprint': 'Kľúč {fingerprint}',
   'pairing.ownKey': 'Kľúč tejto inštancie: {fingerprint}',
   'pairing.ownKeyTip': 'Keď táto inštancia čaká na schválenie na inej, tá ju zobrazuje s týmto kľúčom. Schváľte ju, len ak sa oba kľúče zhodujú.',

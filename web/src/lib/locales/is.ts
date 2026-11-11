@@ -258,6 +258,8 @@ export const is: Dict = {
   'pairing.pendingTitle': 'Bíður samþykkis',
   'pairing.pendingTip': 'Þessi tæki slógu inn orðin tólf en geta ekkert gert í hópnum fyrr en þú samþykkir þau. Samþykktu aðeins tæki sem þú þekkir. Ákvörðun þín gildir á hverju tilviki í hópnum.',
   'pairing.pendingInstance': 'Tilvik',
+  'pairing.behindTitle': 'Komu ekki með',
+  'pairing.behindTip': 'Þessi tæki voru pöruð áður en flutt var í vígið, en fylgdu ekki með innan 30 daga, svo gamla pörunin hefur verið lokuð. Til að taka eitt með skaltu slá inn setningu vígisins á því. Ef þú notar það ekki lengur skaltu bara fjarlægja það.',
   'pairing.fingerprint': 'Lykill {fingerprint}',
   'pairing.ownKey': 'Lykill þessa tilviks: {fingerprint}',
   'pairing.ownKeyTip': 'Þegar þetta tilvik bíður samþykkis á öðru sýnir hitt það með þessum lykli. Samþykktu það aðeins ef lyklarnir tveir eru eins.',

@@ -44,6 +44,8 @@ export const hu: Dict = {
   'devices.lastSeen': 'Utoljára látva: {time}',
   'devices.paired': 'Párosítva',
   'devices.pairedHint': 'A bővítmény csak akkor csatlakozik, amikor használod. Közben párosítva marad, és nem kell újra jóváhagyni.',
+  'devices.behind': 'Nem jöttek át',
+  'devices.behindHint': 'Ezek az eszközök az erődbe költözés előtt voltak párosítva, de 30 napon belül nem követték, ezért a régi párosítás lezárult. Ha valamelyiket át szeretnéd hozni, add meg rajta az erőd jelmondatát.',
   'devices.pending': 'Jóváhagyásra vár',
   'devices.thisDevice': 'Ez az eszköz',
   'downloads.start': 'Indítás',

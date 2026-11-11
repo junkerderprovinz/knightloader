@@ -44,6 +44,8 @@ export const nl: Dict = {
   'devices.lastSeen': 'Laatst gezien {time}',
   'devices.paired': 'Gekoppeld',
   'devices.pairedHint': 'De extensie maakt alleen verbinding terwijl je hem gebruikt. Daartussen blijft hij gekoppeld en is geen nieuwe goedkeuring nodig.',
+  'devices.behind': 'Niet meegekomen',
+  'devices.behindHint': 'Deze apparaten waren gekoppeld vóór de verhuizing naar de vesting, maar zijn niet binnen 30 dagen gevolgd, dus de oude koppeling is gesloten. Voer de frase van de vesting erop in om er een mee te nemen.',
   'devices.pending': 'Wacht op goedkeuring',
   'devices.thisDevice': 'Dit apparaat',
   'downloads.start': 'Starten',

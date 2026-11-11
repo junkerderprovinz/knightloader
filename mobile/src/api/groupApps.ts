@@ -1,5 +1,5 @@
 import { ApiError, request } from './client';
-import { awayList, memberList, type AwayInstance } from './away';
+import { awayList, behindList, memberList, type AwayInstance, type BehindDevice } from './away';
 import type { RelaySibling } from './relayClient';
 import type { ServerConnection } from './types';
 
@@ -22,6 +22,8 @@ export interface GroupRoster {
   /** The other instances there now as the instance that answered sees them,
    *  on the relay or on its network; null where it does not send them. */
   members: RelaySibling[] | null;
+  /** The devices that did not follow the group into its fortress. */
+  behind: BehindDevice[];
   /** The connection that answered. */
   from?: ServerConnection;
 }
@@ -31,7 +33,7 @@ function isApp(a: unknown): a is GroupApp {
   return !!o && typeof o.id === 'string' && (o.deployment === 'mobile' || o.deployment === 'extension');
 }
 
-const NOBODY: GroupRoster = { apps: [], away: null, members: null };
+const NOBODY: GroupRoster = { apps: [], away: null, members: null, behind: [] };
 
 /**
  * fetchGroupRoster reads the group from the first of conns that answers, so
@@ -43,11 +45,16 @@ const NOBODY: GroupRoster = { apps: [], away: null, members: null };
 export async function fetchGroupRoster(conns: ServerConnection[]): Promise<GroupRoster> {
   for (const conn of conns) {
     try {
-      const r = await request<{ apps?: unknown; away?: unknown; members?: unknown } | undefined>(conn, '/api', '/group/apps');
+      const r = await request<{ apps?: unknown; away?: unknown; members?: unknown; behind?: unknown } | undefined>(
+        conn,
+        '/api',
+        '/group/apps',
+      );
       return {
         apps: Array.isArray(r?.apps) ? r.apps.filter(isApp) : [],
         away: awayList(r?.away),
         members: memberList(r?.members),
+        behind: behindList(r?.behind),
         from: conn,
       };
     } catch (e) {

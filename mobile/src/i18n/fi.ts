@@ -44,6 +44,8 @@ export const fi: Dict = {
   'devices.lastSeen': 'Nähty viimeksi {time}',
   'devices.paired': 'Pariutettu',
   'devices.pairedHint': 'Laajennus muodostaa yhteyden vain, kun käytät sitä. Siinä välissä se pysyy pariutettuna eikä tarvitse uutta hyväksyntää.',
+  'devices.behind': 'Eivät tulleet mukaan',
+  'devices.behindHint': 'Nämä laitteet oli pariliitetty ennen siirtoa linnoitukseen, mutta ne eivät seuranneet 30 päivän kuluessa, joten vanha pariliitos on suljettu. Tuo laite mukaan syöttämällä siihen linnoituksen lause.',
   'devices.pending': 'Odottaa hyväksyntää',
   'devices.thisDevice': 'Tämä laite',
   'downloads.start': 'Aloita',

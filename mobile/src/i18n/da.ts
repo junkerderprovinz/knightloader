@@ -44,6 +44,8 @@ export const da: Dict = {
   'devices.lastSeen': 'Sidst set {time}',
   'devices.paired': 'Parret',
   'devices.pairedHint': 'Udvidelsen forbinder kun, mens du bruger den. Ind imellem forbliver den parret og behøver ingen ny godkendelse.',
+  'devices.behind': 'Kom ikke med',
+  'devices.behindHint': 'Disse enheder var parret før flytningen til fæstningen, men fulgte ikke med inden for 30 dage, så den gamle parring er lukket. Indtast fæstningens sætning på en af dem for at tage den med.',
   'devices.pending': 'Venter på godkendelse',
   'devices.thisDevice': 'Denne enhed',
   'downloads.start': 'Start',

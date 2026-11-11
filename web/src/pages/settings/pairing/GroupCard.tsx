@@ -1,8 +1,11 @@
 // GroupCard lists who is in the group: the devices that wait for approval,
 // this instance with the stage it is in and its key, the other instances and
-// every phone and browser extension, each with the button that takes it out. Beside the list the same group stands as
-// a net, and a row and its node light up together.
+// every phone and browser extension, each with the button that takes it out,
+// and the devices that did not follow the pairing into the fortress. Beside
+// the list the same group stands as a net, and a row and its node light up
+// together.
 import { useEffect, useState, type ReactNode } from 'react';
+import { BehindList } from '../../../components/BehindList';
 import { GroupNet, SELF_KEY, useNetHover, type NetNode } from '../../../components/GroupNet';
 import { RemovalWindow, type Removal } from '../../../components/InstanceRemoval';
 import { OkState, StatePill } from '../../../components/StatePill';
@@ -317,6 +320,7 @@ export function GroupCard({
           />
         ))}
       </ul>
+      <BehindList devices={group.behind} onRemove={setRemoving} />
       {group.fingerprint && (
         <p className="flex items-center gap-1.5 px-3 text-xs text-carbon-textMuted" data-testid="own-key">
           <span className="glim-num">{t('pairing.ownKey', { fingerprint: group.fingerprint })}</span>

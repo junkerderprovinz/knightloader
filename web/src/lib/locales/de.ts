@@ -281,6 +281,8 @@ export const de: Dict = {
   'pairing.pendingTitle': 'Wartet auf Freigabe',
   'pairing.pendingTip': 'Diese Geräte haben die zwölf Wörter eingegeben, können in der Gruppe aber nichts tun, bis du sie freigibst. Gib nur Geräte frei, die du kennst. Deine Entscheidung gilt auf jeder Instanz der Gruppe.',
   'pairing.pendingInstance': 'Instanz',
+  'pairing.behindTitle': 'Nicht mitgekommen',
+  'pairing.behindTip': 'Diese Geräte waren vor dem Umzug in die Festung gekoppelt, sind aber nicht innerhalb von 30 Tagen nachgekommen. Darum ist die alte Kopplung jetzt geschlossen. Um eins mitzunehmen, gib dort die Festungs-Phrase ein. Brauchst du es nicht mehr, entfern es einfach.',
   'pairing.fingerprint': 'Schlüssel {fingerprint}',
   'pairing.ownKey': 'Schlüssel dieser Instanz: {fingerprint}',
   'pairing.ownKeyTip': 'Wartet diese Instanz auf einer anderen auf Freigabe, zeigt die andere sie mit diesem Schlüssel an. Gib sie nur frei, wenn beide Schlüssel gleich sind.',

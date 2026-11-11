@@ -44,6 +44,8 @@ export const sk: Dict = {
   'devices.lastSeen': 'Posledná aktivita {time}',
   'devices.paired': 'Spárované',
   'devices.pairedHint': 'Rozšírenie sa pripája, len keď ho používaš. Medzitým zostáva spárované a nepotrebuje nové schválenie.',
+  'devices.behind': 'Neprešli s vami',
+  'devices.behindHint': 'Tieto zariadenia boli spárované pred presunom do pevnosti, ale do 30 dní za ňou neprešli, takže staré spárovanie je uzavreté. Ak chcete niektoré vziať so sebou, zadajte naň frázu pevnosti.',
   'devices.pending': 'Čaká na schválenie',
   'devices.thisDevice': 'Toto zariadenie',
   'downloads.start': 'Spustiť',

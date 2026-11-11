@@ -252,6 +252,8 @@ export const nl: Dict = {
   'pairing.pendingTitle': 'Wacht op goedkeuring',
   'pairing.pendingTip': 'Deze apparaten hebben de twaalf woorden ingevoerd, maar kunnen niets in de groep doen tot je ze goedkeurt. Keur alleen apparaten goed die je herkent. Je besluit geldt op elke instantie van de groep.',
   'pairing.pendingInstance': 'Instantie',
+  'pairing.behindTitle': 'Niet meegekomen',
+  'pairing.behindTip': 'Deze apparaten waren gekoppeld vóór de verhuizing naar de vesting, maar zijn niet binnen 30 dagen gevolgd, dus de oude koppeling is gesloten. Voer de frase van de vesting erop in om er een mee te nemen. Gebruik je het niet meer, verwijder het dan gewoon.',
   'pairing.fingerprint': 'Sleutel {fingerprint}',
   'pairing.ownKey': 'Sleutel van deze instantie: {fingerprint}',
   'pairing.ownKeyTip': 'Als deze instantie op een andere wacht op goedkeuring, toont die andere haar met deze sleutel. Keur haar alleen goed als beide sleutels gelijk zijn.',

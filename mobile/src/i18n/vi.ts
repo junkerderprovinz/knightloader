@@ -44,6 +44,8 @@ export const vi: Dict = {
   'devices.lastSeen': 'Hoạt động lần cuối {time}',
   'devices.paired': 'Đã ghép nối',
   'devices.pairedHint': 'Tiện ích chỉ kết nối khi bạn đang dùng. Giữa các lần dùng, nó vẫn được ghép nối và không cần duyệt lại.',
+  'devices.behind': 'Không đi cùng',
+  'devices.behindHint': 'Các thiết bị này đã được ghép nối trước khi chuyển vào pháo đài, nhưng không theo sang trong vòng 30 ngày, nên ghép nối cũ đã đóng. Để mang một thiết bị theo, hãy nhập cụm từ của pháo đài trên thiết bị đó.',
   'devices.pending': 'Đang chờ duyệt',
   'devices.thisDevice': 'Thiết bị này',
   'downloads.start': 'Bắt đầu',

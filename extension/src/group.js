@@ -426,17 +426,18 @@ async function groupStatus() {
 }
 
 /**
- * groupView is groupStatus with the group's phones and browsers and the
- * instances that are away, asked in the same session of the default instance,
- * or of the first that answered when the default did not.
+ * groupView is groupStatus with the group's phones and browsers, the
+ * instances that are away and the devices left behind on the old phrase when
+ * the group moved into a fortress, asked in the same session of the default
+ * instance, or of the first that answered when the default did not.
  */
 async function groupView(defaultTarget) {
   return withGroup(async ({ siblings, call }) => {
     const instances = await statusOf(siblings, call);
     const live = instances.filter((s) => s.status !== null);
     const ask = defaultOf(live, defaultTarget);
-    const roster = ask ? await groupRoster(call, ask) : { apps: [], away: [] };
-    return { instances, apps: roster.apps, away: awayFrom(roster.away, siblings) };
+    const roster = ask ? await groupRoster(call, ask) : { apps: [], away: [], behind: [] };
+    return { instances, apps: roster.apps, away: awayFrom(roster.away, siblings, roster.behind), behind: roster.behind };
   });
 }
 
@@ -473,25 +474,26 @@ function statusOf(siblings, call) {
 }
 
 /**
- * groupRoster is the group's phones and browsers, and the instances approved
- * in the group that are not there now, as `instanceId` lists them. An instance
- * from before either list, or one that keeps them from this browser, answers
- * with none.
+ * groupRoster is the group's phones and browsers, the instances approved in
+ * the group that are not there now, and the devices that did not follow it
+ * into a fortress, as `instanceId` lists them. An instance from before a list,
+ * or one that keeps them from this browser, answers with none.
  */
 async function groupRoster(call, instanceId) {
   const r = await readJSON(call, instanceId, '/api/group/apps');
   const listed = (list) => (Array.isArray(list) ? list.filter((a) => a && typeof a.id === 'string') : []);
-  return { apps: listed(r?.apps), away: listed(r?.away) };
+  return { apps: listed(r?.apps), away: listed(r?.away), behind: listed(r?.behind) };
 }
 
 /**
  * awayFrom leaves out of `away` every instance the relay shows now, since the
  * instance asked may not have seen one come back yet, and one that is back
- * has its own card.
+ * has its own card. One left behind on the old phrase is listed only as that,
+ * should an answer have it in both.
  */
-function awayFrom(away, siblings) {
-  const here = new Set(siblings.map((s) => s.instanceId));
-  return away.filter((m) => !here.has(m.id));
+function awayFrom(away, siblings, behind) {
+  const shown = new Set([...siblings.map((s) => s.instanceId), ...behind.map((b) => b.id)]);
+  return away.filter((m) => !shown.has(m.id));
 }
 
 /**

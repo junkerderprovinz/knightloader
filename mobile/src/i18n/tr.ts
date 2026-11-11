@@ -44,6 +44,8 @@ export const tr: Dict = {
   'devices.lastSeen': 'Son görülme {time}',
   'devices.paired': 'Eşleştirildi',
   'devices.pairedHint': 'Uzantı yalnızca sen kullanırken bağlanır. Arada eşleşmiş olarak kalır ve yeni bir onaya ihtiyaç duymaz.',
+  'devices.behind': 'Gelmeyenler',
+  'devices.behindHint': 'Bu cihazlar kaleye taşınmadan önce eşleştirilmişti, ama 30 gün içinde peşinden gelmediler, bu yüzden eski eşleştirme kapandı. Birini getirmek için onda kale ifadesini gir.',
   'devices.pending': 'Onay bekliyor',
   'devices.thisDevice': 'Bu cihaz',
   'downloads.start': 'Başlat',

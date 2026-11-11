@@ -507,10 +507,10 @@ function phraseProblemText(err) {
 
 /**
  * renderGroup shows who is in the group, asked of the relay: the instances
- * that are online, the ones approved in the group that are away, and below
- * them the group's phones and browsers. `quiet` keeps what is on screen until
- * the answer is in, for the checks recheckGroup runs while the page waits for
- * something.
+ * that are online, the ones approved in the group that are away, below them
+ * the group's phones and browsers, and last the devices that did not follow it
+ * into a fortress. `quiet` keeps what is on screen until the answer is in, for
+ * the checks recheckGroup runs while the page waits for something.
  */
 async function renderGroup({ quiet = false } = {}) {
   // A later render, by a click or by the timer, supersedes this one, so two
@@ -600,6 +600,7 @@ async function renderGroup({ quiet = false } = {}) {
   view.apps.forEach((app) => {
     cards.push([app.id, deviceCard(app, { index: cards.length, own: app.id === ownId })]);
   });
+  if (view.behind.length > 0) cards.push(['behind', behindList(view.behind)]);
   staggerRows(rosterArrivals, cards);
   list.append(...cards.map(([, card]) => card));
   // A browser waiting for approval sees every instance as offline, so the

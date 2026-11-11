@@ -252,6 +252,8 @@ export const es: Dict = {
   'pairing.pendingTitle': 'Esperando aprobación',
   'pairing.pendingTip': 'Estos dispositivos introdujeron las doce palabras, pero no pueden hacer nada en el grupo hasta que los apruebes. Aprueba solo los dispositivos que reconozcas. Tu decisión vale en todas las instancias del grupo.',
   'pairing.pendingInstance': 'Instancia',
+  'pairing.behindTitle': 'No vinieron',
+  'pairing.behindTip': 'Estos dispositivos estaban emparejados antes del traslado a la fortaleza, pero no la siguieron en 30 días, así que el emparejamiento antiguo se ha cerrado. Para llevarte uno, introduce en él la frase de la fortaleza. Si ya no lo usas, simplemente quítalo.',
   'pairing.fingerprint': 'Clave {fingerprint}',
   'pairing.ownKey': 'Clave de esta instancia: {fingerprint}',
   'pairing.ownKeyTip': 'Cuando esta instancia espera aprobación en otra, esa otra la muestra con esta clave. Apruébala solo si las dos claves coinciden.',

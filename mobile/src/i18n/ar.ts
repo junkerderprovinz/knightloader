@@ -44,6 +44,8 @@ export const ar: Dict = {
   'devices.lastSeen': 'آخر ظهور {time}',
   'devices.paired': 'مقترن',
   'devices.pairedHint': 'لا تتصل الإضافة إلا أثناء استخدامك لها. وفي ما بين ذلك تبقى مقترنة ولا تحتاج إلى موافقة جديدة.',
+  'devices.behind': 'لم تنتقل معك',
+  'devices.behindHint': 'كانت هذه الأجهزة مقترنة قبل الانتقال إلى الحصن، لكنها لم تلحق به خلال 30 يومًا، لذلك أُغلق الاقتران القديم. لتنقل أحدها، أدخل عليه عبارة الحصن.',
   'devices.pending': 'بانتظار الموافقة',
   'devices.thisDevice': 'هذا الجهاز',
   'downloads.start': 'ابدأ',

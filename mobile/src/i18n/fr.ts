@@ -44,6 +44,8 @@ export const fr: Dict = {
   'devices.lastSeen': 'Vu pour la dernière fois : {time}',
   'devices.paired': 'Appairée',
   'devices.pairedHint': 'L’extension ne se connecte que lorsque vous l’utilisez. Entre-temps, elle reste appairée et n’a pas besoin d’une nouvelle approbation.',
+  'devices.behind': 'Pas venus',
+  'devices.behindHint': "Ces appareils étaient appairés avant le passage à la forteresse, mais ne l'ont pas suivie dans les 30 jours, donc l'ancien appairage est fermé. Pour en faire venir un, saisissez sur cet appareil la phrase de la forteresse.",
   'devices.pending': 'En attente d’approbation',
   'devices.thisDevice': 'Cet appareil',
   'downloads.start': 'Démarrer',

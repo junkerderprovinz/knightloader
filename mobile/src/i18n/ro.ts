@@ -44,6 +44,8 @@ export const ro: Dict = {
   'devices.lastSeen': 'Văzut ultima dată {time}',
   'devices.paired': 'Împerecheată',
   'devices.pairedHint': 'Extensia se conectează doar cât timp o folosești. Între timp rămâne împerecheată și nu are nevoie de o nouă aprobare.',
+  'devices.behind': 'Nu au venit',
+  'devices.behindHint': 'Aceste dispozitive erau împerecheate înainte de mutarea în fortăreață, dar nu au urmat-o în 30 de zile, așa că vechea împerechere s-a închis. Ca să aduci unul, introdu pe el fraza fortăreței.',
   'devices.pending': 'Așteaptă aprobarea',
   'devices.thisDevice': 'Acest dispozitiv',
   'downloads.start': 'Pornește',

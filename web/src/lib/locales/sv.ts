@@ -258,6 +258,8 @@ export const sv: Dict = {
   'pairing.pendingTitle': 'Väntar på godkännande',
   'pairing.pendingTip': 'De här enheterna har angett de tolv orden men kan inte göra något i gruppen förrän du godkänner dem. Godkänn bara enheter du känner igen. Ditt beslut gäller på varje instans i gruppen.',
   'pairing.pendingInstance': 'Instans',
+  'pairing.behindTitle': 'Följde inte med',
+  'pairing.behindTip': 'De här enheterna var parkopplade före flytten till fästningen, men följde inte efter inom 30 dagar, så den gamla parkopplingen är stängd. Ange fästningens fras på en av dem för att ta med den. Använder du den inte längre räcker det att ta bort den.',
   'pairing.fingerprint': 'Nyckel {fingerprint}',
   'pairing.ownKey': 'Den här instansens nyckel: {fingerprint}',
   'pairing.ownKeyTip': 'När den här instansen väntar på godkännande på en annan visar den andra den med den här nyckeln. Godkänn den bara om nycklarna stämmer överens.',

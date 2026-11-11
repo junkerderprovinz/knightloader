@@ -258,6 +258,8 @@ export const zh: Dict = {
   'pairing.pendingTitle': '等待批准',
   'pairing.pendingTip': '这些设备已输入十二个词，但在你批准之前无法在组内做任何事。只批准你认得的设备。你的决定对组内每个实例都有效。',
   'pairing.pendingInstance': '实例',
+  'pairing.behindTitle': '没有跟过来',
+  'pairing.behindTip': '这些设备在迁入堡垒之前已配对，但没有在 30 天内跟过来，所以旧的配对已关闭。要带上其中一台，请在它上面输入堡垒口令。如果你不再使用它，直接移除即可。',
   'pairing.fingerprint': '密钥 {fingerprint}',
   'pairing.ownKey': '此实例的密钥：{fingerprint}',
   'pairing.ownKeyTip': '当此实例在另一个实例上等待批准时，那个实例会用这个密钥显示它。只有两个密钥一致时才批准。',

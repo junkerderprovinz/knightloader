@@ -44,6 +44,8 @@ export const he: Dict = {
   'devices.lastSeen': 'נראה לאחרונה {time}',
   'devices.paired': 'מצומדת',
   'devices.pairedHint': 'ההרחבה מתחברת רק בזמן שמשתמשים בה. בינתיים היא נשארת מצומדת ואינה צריכה אישור חדש.',
+  'devices.behind': 'לא הצטרפו',
+  'devices.behindHint': 'המכשירים האלה היו מצומדים לפני המעבר למבצר, אבל לא הצטרפו בתוך 30 יום, ולכן הצימוד הישן נסגר. כדי להביא אחד מהם, הזן בו את ביטוי המבצר.',
   'devices.pending': 'ממתין לאישור',
   'devices.thisDevice': 'המכשיר הזה',
   'downloads.start': 'התחל',

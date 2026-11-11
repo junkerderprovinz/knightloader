@@ -44,6 +44,8 @@ export const lt: Dict = {
   'devices.lastSeen': 'Paskutinį kartą matytas {time}',
   'devices.paired': 'Susietas',
   'devices.pairedHint': 'Plėtinys prisijungia tik tada, kai juo naudojiesi. Tarp naudojimų jis lieka susietas ir naujo patvirtinimo nereikia.',
+  'devices.behind': 'Neatėjo kartu',
+  'devices.behindHint': 'Šie įrenginiai buvo susieti prieš persikėlimą į tvirtovę, bet per 30 dienų nesekė paskui, todėl senas susiejimas uždarytas. Norėdami kurį nors atsivesti, įveskite jame tvirtovės frazę.',
   'devices.pending': 'Laukia patvirtinimo',
   'devices.thisDevice': 'Šis įrenginys',
   'downloads.start': 'Pradėti',

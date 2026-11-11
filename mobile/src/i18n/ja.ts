@@ -44,6 +44,8 @@ export const ja: Dict = {
   'devices.lastSeen': '最終確認: {time}',
   'devices.paired': 'ペアリング済み',
   'devices.pairedHint': '拡張機能は使っているあいだだけ接続します。それ以外のときもペアリングは保たれ、改めて承認する必要はありません。',
+  'devices.behind': '移行しなかったデバイス',
+  'devices.behindHint': 'これらのデバイスは要塞への移行前にペアリングされていましたが、30日以内に移行しなかったため、以前のペアリングは閉じられました。移行するには、そのデバイスで要塞のフレーズを入力してください。',
   'devices.pending': '承認待ち',
   'devices.thisDevice': 'この端末',
   'downloads.start': '開始',

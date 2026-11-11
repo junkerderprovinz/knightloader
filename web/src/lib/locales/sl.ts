@@ -258,6 +258,8 @@ export const sl: Dict = {
   'pairing.pendingTitle': 'Čaka na odobritev',
   'pairing.pendingTip': 'Te naprave so vnesle dvanajst besed, vendar v skupini ne morejo ničesar, dokler jih ne odobriš. Odobri samo naprave, ki jih prepoznaš. Tvoja odločitev velja na vsaki instanci skupine.',
   'pairing.pendingInstance': 'Instanca',
+  'pairing.behindTitle': 'Niso prišli zraven',
+  'pairing.behindTip': 'Te naprave so bile seznanjene pred selitvijo v trdnjavo, a ji v 30 dneh niso sledile, zato je stara seznanitev zaprta. Če želiš katero vzeti s seboj, nanjo vnesi frazo trdnjave. Če je ne uporabljaš več, jo preprosto odstrani.',
   'pairing.fingerprint': 'Ključ {fingerprint}',
   'pairing.ownKey': 'Ključ te instance: {fingerprint}',
   'pairing.ownKeyTip': 'Ko ta instanca čaka na odobritev na drugi, jo ta prikaže s tem ključem. Odobri jo samo, če se ključa ujemata.',

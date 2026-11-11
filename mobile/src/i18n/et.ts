@@ -44,6 +44,8 @@ export const et: Dict = {
   'devices.lastSeen': 'Viimati nähtud {time}',
   'devices.paired': 'Seotud',
   'devices.pairedHint': 'Laiendus ühendub ainult siis, kui sa seda kasutad. Vahepeal jääb see seotuks ega vaja uut kinnitust.',
+  'devices.behind': 'Ei tulnud kaasa',
+  'devices.behindHint': 'Need seadmed olid enne kindlusesse kolimist seotud, kuid ei järgnenud 30 päeva jooksul, seega vana sidumine on suletud. Ühe kaasa võtmiseks sisesta sellel kindluse fraas.',
   'devices.pending': 'Ootab kinnitust',
   'devices.thisDevice': 'See seade',
   'downloads.start': 'Alusta',

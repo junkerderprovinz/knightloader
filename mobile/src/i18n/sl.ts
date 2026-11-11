@@ -44,6 +44,8 @@ export const sl: Dict = {
   'devices.lastSeen': 'Zadnja aktivnost {time}',
   'devices.paired': 'Seznanjena',
   'devices.pairedHint': 'Razširitev se poveže samo, ko jo uporabljaš. Vmes ostane seznanjena in ne potrebuje nove odobritve.',
+  'devices.behind': 'Niso prišli zraven',
+  'devices.behindHint': 'Te naprave so bile seznanjene pred selitvijo v trdnjavo, a ji v 30 dneh niso sledile, zato je stara seznanitev zaprta. Če želiš katero vzeti s seboj, nanjo vnesi frazo trdnjave.',
   'devices.pending': 'Čaka na odobritev',
   'devices.thisDevice': 'Ta naprava',
   'downloads.start': 'Zaženi',

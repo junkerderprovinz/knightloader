@@ -44,6 +44,8 @@ export const id: Dict = {
   'devices.lastSeen': 'Terakhir terlihat {time}',
   'devices.paired': 'Dipasangkan',
   'devices.pairedHint': 'Ekstensi hanya terhubung saat Anda menggunakannya. Di antara itu, ekstensi tetap dipasangkan dan tidak perlu persetujuan baru.',
+  'devices.behind': 'Tidak ikut',
+  'devices.behindHint': 'Perangkat ini dipasangkan sebelum pindah ke benteng, tetapi tidak menyusul dalam 30 hari, jadi pemasangan lama sudah ditutup. Untuk membawa salah satunya, masukkan frasa benteng di perangkat itu.',
   'devices.pending': 'Menunggu persetujuan',
   'devices.thisDevice': 'Perangkat ini',
   'downloads.start': 'Mulai',

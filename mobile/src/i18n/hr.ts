@@ -44,6 +44,8 @@ export const hr: Dict = {
   'devices.lastSeen': 'Zadnji put viđen {time}',
   'devices.paired': 'Upareno',
   'devices.pairedHint': 'Proširenje se povezuje samo dok ga koristiš. U međuvremenu ostaje upareno i ne treba novo odobrenje.',
+  'devices.behind': 'Nisu došli',
+  'devices.behindHint': 'Ovi su uređaji bili upareni prije prelaska u utvrdu, ali je nisu slijedili unutar 30 dana, pa je staro uparivanje zatvoreno. Da biste neki poveli sa sobom, unesite na njemu frazu utvrde.',
   'devices.pending': 'Čeka odobrenje',
   'devices.thisDevice': 'Ovaj uređaj',
   'downloads.start': 'Pokreni',

@@ -1,6 +1,6 @@
 import { relayClientOf } from './client';
 import { currentConnection } from './moved';
-import { followGroup, type AwayInstance } from './away';
+import { followGroup, type AwayInstance, type BehindDevice } from './away';
 import { fetchGroupRoster, type GroupApp, type GroupRoster } from './groupApps';
 import type { ServerConnection } from './types';
 import { followGroupChange, listDismissed, newConnectionId } from '../storage/connections';
@@ -8,6 +8,7 @@ import { followGroupChange, listDismissed, newConnectionId } from '../storage/co
 export interface GroupsView {
   apps: GroupApp[];
   away: AwayInstance[];
+  behind: BehindDevice[];
   /** Whether the saved list changed. */
   changed: boolean;
 }
@@ -33,6 +34,7 @@ export async function followGroups(read: ServerConnection[], answering: ServerCo
   const answered = reachable.map((c) => c.instanceId);
   const dismissed = await listDismissed();
   const away: AwayInstance[] = [];
+  const behind: BehindDevice[] = [];
   const added: ServerConnection[] = [];
   const dropped: string[] = [];
   const renamed = new Map<string, string>();
@@ -45,11 +47,13 @@ export async function followGroups(read: ServerConnection[], answering: ServerCo
         ? first
         : await fetchGroupRoster(reachable.filter((c) => groupOf(c) === key));
     away.push(...(roster.away ?? []));
+    behind.push(...roster.behind);
     const client = await relayClientOf(keyed, keyed.relayFrameKey);
     const change = followGroup({
       saved: mine,
       live: [...client.siblings(), ...(roster.members ?? [])],
       away: roster.away,
+      behind: roster.behind.map((b) => b.id),
       answered,
       settled: client.settled(),
       dismissed,
@@ -71,5 +75,5 @@ export async function followGroups(read: ServerConnection[], answering: ServerCo
   }
   const changed = added.length > 0 || dropped.length > 0 || renamed.size > 0;
   if (changed) await followGroupChange(added, dropped, renamed);
-  return { apps: first.apps, away, changed };
+  return { apps: first.apps, away, behind, changed };
 }
