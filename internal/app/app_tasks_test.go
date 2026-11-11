@@ -30,3 +30,27 @@ func TestTasksKeepRowsWithTheSameAgeInOneOrder(t *testing.T) {
 		}
 	}
 }
+
+// A send hands back the first row of a yt-dlp link, and the link's other rows
+// download beside it. The same link pasted again later is not one of them.
+func TestTasksOfAnswersTheNamedRowsWithTheRestOfTheirLinks(t *testing.T) {
+	a := newQueueApp(t)
+	at := time.Now()
+	const video = "https://video.example/watch"
+	for _, id := range []string{"v", "s", "t"} {
+		putTask(t, a, core.Task{ID: id, URL: video, Variant: id, CreatedAt: at, Status: core.StatusQueued})
+	}
+	putTask(t, a, core.Task{ID: "again", URL: video, Variant: "v", CreatedAt: at.Add(time.Minute), Status: core.StatusQueued})
+	putTask(t, a, core.Task{ID: "other", URL: "https://host.example/file.bin", CreatedAt: at, Status: core.StatusQueued})
+
+	var got []string
+	for _, task := range a.TasksOf([]string{"v", "gone"}) {
+		got = append(got, task.ID)
+	}
+	if want := []string{"s", "t", "v"}; !slices.Equal(got, want) {
+		t.Fatalf("TasksOf(v) = %v, want %v", got, want)
+	}
+	if got := a.TasksOf([]string{"gone"}); len(got) != 0 {
+		t.Fatalf("TasksOf(gone) = %v, want nothing", got)
+	}
+}

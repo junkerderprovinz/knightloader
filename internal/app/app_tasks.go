@@ -39,11 +39,29 @@ import (
 // share a creation time, and the order has to hold between two calls for the
 // background watch's tag to match.
 func (a *App) Tasks() []*core.Task {
-	now := time.Now()
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	out := make([]*core.Task, 0, len(a.tasks))
+	all := make([]*core.Task, 0, len(a.tasks))
 	for _, t := range a.tasks {
+		all = append(all, t)
+	}
+	return a.listCopiesLocked(all)
+}
+
+// TasksOf is Tasks narrowed to the rows named by ids and the other rows of
+// their links, which a send that staged them only names the first of.
+func (a *App) TasksOf(ids []string) []*core.Task {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.listCopiesLocked(a.sharingLinksLocked(ids))
+}
+
+// listCopiesLocked copies tasks as the list shows them, oldest first. Caller
+// holds a.mu.
+func (a *App) listCopiesLocked(tasks []*core.Task) []*core.Task {
+	now := time.Now()
+	out := make([]*core.Task, 0, len(tasks))
+	for _, t := range tasks {
 		c := *t
 		// The task keeps the last rate it was given, which stands after a
 		// torrent's readings stop.
