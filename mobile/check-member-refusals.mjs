@@ -26,6 +26,8 @@ const UNREACHABLE = {
   memberSignature: 'the signature is checked against the server vector',
   // An instance takes phones and browsers, and the app joins as a phone.
   memberKindRefused: 'the instance takes phones',
+  // Only the fortress closes a phrase to newcomers, and the app joins the pairing.
+  groupClosed: 'the app joins no fortress',
   // A stream is asked for only to play a file, on the local network, and any
   // refusal of it plays the file through the relay instead.
   noStreams: 'a refused stream plays through the relay',

@@ -26,6 +26,8 @@ const UNREACHABLE = {
   memberSignature: 'the signature is checked against the server vector',
   // An instance takes phones and browsers, and the extension joins as a browser.
   memberKindRefused: 'the instance takes browsers',
+  // Only the fortress closes a phrase to newcomers, and the browser joins the pairing.
+  groupClosed: 'the browser joins no fortress',
   // The browser hands links over and reads small answers, far below what a
   // relay frame carries.
   answerTooLarge: 'the browser reads no large answer',

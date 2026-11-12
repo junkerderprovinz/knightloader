@@ -283,6 +283,7 @@ func TestRelayHost(t *testing.T) {
 // the kit's source is not in this repository.
 var kitRefusals = []string{
 	"answerTooLarge",
+	"groupClosed",
 	"groupFull",
 	"groupJoinsBusy",
 	"memberBusy",
