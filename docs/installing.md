@@ -201,7 +201,7 @@ keeps it current.
 
 ffmpeg and ffprobe, which join video with its audio and convert, are not in
 the download. On Windows and Linux the desktop app fetches the LGPL build from
-[BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) into its data
+[FFmpeg-Builds](https://github.com/FFmpeg-Builds/FFmpeg-Builds) into its data
 folder at the first start when there is no ffmpeg on `PATH`, checked against
 that release's checksums, and renews it once a month. On macOS, where that
 project builds nothing, put ffmpeg on `PATH` yourself. An ffmpeg already on

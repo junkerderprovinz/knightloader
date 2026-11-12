@@ -31,7 +31,7 @@ import (
 // carries GPL builds only. Its dated releases are pruned after a couple of
 // weeks, so the rolling "latest" release is the only one an installed app can
 // count on finding again.
-const ffmpegRepo = "BtbN/FFmpeg-Builds"
+const ffmpegRepo = "FFmpeg-Builds/FFmpeg-Builds"
 
 const ffmpegChecksums = "checksums.sha256"
 

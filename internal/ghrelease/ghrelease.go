@@ -89,7 +89,10 @@ func client(timeout time.Duration) *http.Client {
 			if len(via) >= maxRedirects {
 				return fmt.Errorf("ghrelease: stopped after %d redirects", maxRedirects)
 			}
-			if req.URL.Scheme != "https" || !allowedHosts[req.URL.Hostname()] {
+			// A repository that moved answers its old API address with a
+			// redirect that stays on the API, which only a metadata call follows.
+			onAPI := req.URL.Hostname() == apiHost && via[len(via)-1].URL.Hostname() == apiHost
+			if req.URL.Scheme != "https" || !(allowedHosts[req.URL.Hostname()] || onAPI) {
 				return fmt.Errorf("ghrelease: refusing a redirect to %q, which is not a GitHub release host", req.URL.Hostname())
 			}
 			return nil

@@ -41,7 +41,7 @@ func TestRedirectsStayOnGitHubsOwnHosts(t *testing.T) {
 		{"an https downgrade to plain http", "http://github.com/x", 1, false},
 	}
 	for _, c := range cases {
-		via := make([]*http.Request, c.via)
+		via := hops(t, "https://github.com/x", c.via)
 		err := check(&http.Request{URL: mustURL(t, c.to)}, via)
 		if c.ok && err != nil {
 			t.Errorf("%s: refused %s: %v", c.name, c.to, err)
@@ -52,9 +52,33 @@ func TestRedirectsStayOnGitHubsOwnHosts(t *testing.T) {
 	}
 
 	// This CheckRedirect replaces httpx's, so it bounds the chain itself.
-	if err := check(&http.Request{URL: mustURL(t, "https://github.com/x")}, make([]*http.Request, maxRedirects)); err == nil {
+	if err := check(&http.Request{URL: mustURL(t, "https://github.com/x")}, hops(t, "https://github.com/x", maxRedirects)); err == nil {
 		t.Errorf("followed hop %d; the chain is meant to stop at %d", maxRedirects+1, maxRedirects)
 	}
+}
+
+// A repository that moved answers its old API address with a redirect to its
+// new one, which stays on the API. Only a hop from the API may land there, so
+// a download still cannot be steered into it.
+func TestAMovedRepositoryIsFollowedOnTheAPI(t *testing.T) {
+	check := client(MetaTimeout).CheckRedirect
+	moved := mustURL(t, "https://api.github.com/repositories/292087234/releases/latest")
+	if err := check(&http.Request{URL: moved}, hops(t, "https://api.github.com/repos/old/name/releases/latest", 1)); err != nil {
+		t.Errorf("refused the redirect of a moved repository: %v", err)
+	}
+	if err := check(&http.Request{URL: moved}, hops(t, "https://objects.githubusercontent.com/x", 1)); err == nil {
+		t.Error("followed a download's redirect into the API")
+	}
+}
+
+// hops is a redirect chain of n requests to rawurl.
+func hops(t *testing.T, rawurl string, n int) []*http.Request {
+	t.Helper()
+	via := make([]*http.Request, n)
+	for i := range via {
+		via[i] = &http.Request{URL: mustURL(t, rawurl)}
+	}
+	return via
 }
 
 // TestFetchRefusesAnAssetURLOffGitHub: the first hop is checked before any

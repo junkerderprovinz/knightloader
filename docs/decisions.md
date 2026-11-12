@@ -208,7 +208,7 @@ ffmpeg is fetched rather than shipped. It is about 180 MB on Windows, more than
 the program and yt-dlp together, and most of a download that is never needed
 where ffmpeg is already installed. On Windows and Linux a desktop copy that
 finds no ffmpeg on `PATH` fetches the static LGPL build of FFmpeg master from
-BtbN/FFmpeg-Builds, verifies the archive against that release's
+FFmpeg-Builds/FFmpeg-Builds, verifies the archive against that release's
 `checksums.sha256`, unpacks only ffmpeg and ffprobe beside the fetched yt-dlp,
 and runs each with `-version` before putting it in place. yt-dlp's own fork of
 those builds publishes GPL builds only, and macOS gets nothing from either, so

@@ -36,6 +36,16 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Fixed
+
+- **The desktop app fetches ffmpeg again.** The project that publishes the
+  ffmpeg builds moved to a new address on GitHub, and KnightLoader refused
+  GitHub's redirect to it, so a new install had no ffmpeg and said it would
+  come at the first start. It fetches from the new address and follows such
+  a redirect within GitHub's API.
+
 ## [2.8.2] - 2026-11-12
 
 ### Added
