@@ -219,12 +219,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 - **KnightLoader has a redrawn logo,** in the web interface, the browser
   extension, the desktop app and the Android app.
-- **KnightLoader follows GlimStone 4.3.1 everywhere,** and the Version card
+- **KnightLoader follows GlimStone 4.3.7 everywhere,** and the Version card
   names it. Every selector keeps to one row: where its labels do not fit, it
   shows its glyphs alone, or turns into a dropdown if it has no glyphs. Under
   OLED the cards keep the dark theme's shadow, which still lifts a bubble or a
   menu off a card. A switch that refuses dims its track to half, and on a
   touch screen its reason stands under the row.
+- **The second part of the Windows, Linux and Flatpak buttons on the Apps
+  page says only what differs,** such as ARM64 beside Windows x64, and a
+  screen reader still reads out the whole name.
 - **The sign-in page is GlimStone's sign-in card,** the same in every app of
   the family. The logo stands large above the name in one card, and Sign in,
   the passkey and Forgot password? are full width. The code from the

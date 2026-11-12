@@ -7,10 +7,10 @@ import { InfoBubble } from './ui';
 // the About card (GlimStone's "The App tab"), from its reference/react
 // ReadmeButton. The first part carries the mark and the full name; the parts
 // after it are segments that name only what differs, such as ARM64 beside
-// Windows. The unit lights up as one in its brand's colour ("Brand tiles"). A
-// link where a part leads to a file or a listing, a button where it does
-// something on the page, and a quiet unit with "Soon" as its second line where
-// the listing does not exist yet.
+// Windows, in one word with the whole name as their label. The unit lights up
+// as one in its brand's colour ("Brand tiles"). A link where a part leads to a
+// file or a listing, a button where it does something on the page, and a quiet
+// unit with "Soon" as its second line where the listing does not exist yet.
 
 // The brands index.css carries a tile colour for, each with its class:
 // GlimStone's own, this app's logo, its relay's and the browsers it offers its
@@ -19,12 +19,15 @@ const TILES = {
   windows: 'glim-tile-windows',
   apple: 'glim-tile-apple',
   linux: 'glim-tile-linux',
-  flatpak: 'kl-tile-flatpak',
+  flatpak: 'glim-tile-flatpak',
   android: 'glim-tile-android',
   play: 'glim-tile-play',
   fdroid: 'glim-tile-fdroid',
   docker: 'glim-tile-docker',
   unraid: 'glim-tile-unraid',
+  mos: 'glim-tile-mos',
+  zimaos: 'glim-tile-zimaos',
+  umbrel: 'glim-tile-umbrel',
   zip: 'glim-tile-zip',
   github: 'glim-tile-github',
   paypal: 'glim-tile-paypal',
@@ -46,6 +49,9 @@ export interface ReadmePart {
   name: string;
   /** The second line, shown under the pointer. Without one the name stays in the middle. */
   sub?: string;
+  /** The accessible name of a segment whose word reads right only beside the
+   *  first part, such as "Windows ARM64" for ARM64. */
+  label?: string;
   href?: string;
   onClick?: () => void;
   /** A javascript: address for a link that is dragged into a bookmarks bar
@@ -116,7 +122,7 @@ export function ReadmeButton({
     <div ref={ref} data-new={news} className={unit.join(' ')}>
       {parts.map((part, i) => {
         const sub = soon ? soonLabel : part.sub;
-        const label = sub ? `${part.name} ${sub}` : part.name;
+        const label = readmePartLabel(part, sub);
         const className = `glim-readme-btn${i > 0 ? ' glim-readme-btn-seg' : ''}${soon ? '' : ' glim-brand-tile'}`;
         const face =
           i === 0 && art ? (
@@ -188,6 +194,11 @@ export function ReadmeButton({
       )}
     </div>
   );
+}
+
+/** The part's accessible name, with `sub` the second line it shows. */
+export function readmePartLabel(part: ReadmePart, sub: string | undefined): string {
+  return part.label ?? (sub ? `${part.name} ${sub}` : part.name);
 }
 
 /**

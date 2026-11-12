@@ -137,7 +137,10 @@ body {
   --brand-docker:      #2396ed;
   --brand-unraid-from: #e32929;
   --brand-unraid-to:   #ff8d30;
+  --brand-mos:         #26a269;
+  --brand-umbrel:      #7d7bf6;
   --brand-windows:     #2b88d8;
+  --brand-flatpak:     #4a90d9;
 
   /* Text ramp in three steps, the last still legible at 11px. */
   --carbon-text:       #f4f4f4;
@@ -224,7 +227,10 @@ body {
   --brand-docker:      #2396ed;
   --brand-unraid-from: #e32929;
   --brand-unraid-to:   #ff8d30;
+  --brand-mos:         #26a269;
+  --brand-umbrel:      #5351f3;
   --brand-windows:     #0078d4;
+  --brand-flatpak:     #4a90d9;
 
   --carbon-text:       #161616;
   --carbon-text-sub:   #525252;
@@ -320,7 +326,10 @@ body {
     --brand-docker:      #2396ed;
     --brand-unraid-from: #e32929;
     --brand-unraid-to:   #ff8d30;
+    --brand-mos:         #26a269;
+    --brand-umbrel:      #5351f3;
     --brand-windows:     #0078d4;
+    --brand-flatpak:     #4a90d9;
 
     --carbon-text:       #161616;
     --carbon-text-sub:   #525252;
@@ -1362,6 +1371,9 @@ body {
 .glim-android-mark { color: var(--brand-android); }
 .glim-docker-mark { color: var(--brand-docker); }
 .glim-windows-mark { color: var(--brand-windows); }
+.glim-flatpak-mark { color: var(--brand-flatpak); }
+.glim-mos-mark { color: var(--brand-mos); }
+.glim-umbrel-mark { color: var(--brand-umbrel); }
 .glim-paypal-mark { color: var(--brand-paypal); }
 .glim-bitcoin-mark { color: var(--brand-bitcoin); }
 .glim-github-mark { color: var(--brand-github); }
@@ -1386,6 +1398,9 @@ body {
     --brand-android: var(--tile-ink);
     --brand-docker: var(--tile-ink);
     --brand-windows: var(--tile-ink);
+    --brand-flatpak: var(--tile-ink);
+    --brand-mos: var(--tile-ink);
+    --brand-umbrel: var(--tile-ink);
     --brand-unraid-from: var(--tile-ink);
     --brand-unraid-to: var(--tile-ink);
   }
@@ -1410,10 +1425,16 @@ body {
 .glim-tile-windows { --tile: #0078d4; --tile-ink: #ffffff; } /* 4.5:1 */
 .glim-tile-apple   { --tile: #6e6e73; --tile-ink: #ffffff; } /* 5.1:1 */
 .glim-tile-linux   { --tile: #fcc624; --tile-ink: #161616; } /* 11.4:1 */
+.glim-tile-flatpak { --tile: #4a90d9; --tile-ink: #ffffff; } /* 3.3:1 */
 .glim-tile-android { --tile: #32de84; --tile-ink: #161616; } /* 10.3:1 */
 .glim-tile-play    { --tile: #01875f; --tile-ink: #ffffff; } /* 4.5:1 */
 .glim-tile-docker  { --tile: #1d63ed; --tile-ink: #ffffff; } /* 5.2:1 */
 .glim-tile-unraid  { --tile: #f15a2c; --tile-ink: #ffffff; } /* 3.4:1 */
+.glim-tile-mos     { --tile: #26a269; --tile-ink: #ffffff; } /* 3.3:1 */
+/* ZimaOS sets its black mark on a light grey that is the light theme's own
+   ground, so the lit tile carries a ring. 16.5:1. */
+.glim-tile-zimaos  { --tile: #f4f4f4; --tile-ink: #161616; --tile-edge: #a8a8a8; }
+.glim-tile-umbrel  { --tile: #5351f3; --tile-ink: #ffffff; } /* 5.5:1 */
 .glim-tile-zip     { --tile: #4d5562; --tile-ink: #ffffff; } /* 7.5:1 */
 .glim-tile-github  { --tile: #181717; --tile-ink: #ffffff; } /* 17.9:1 */
 .glim-tile-paypal  { --tile: #003087; --tile-ink: #ffffff; } /* 11.8:1 */
