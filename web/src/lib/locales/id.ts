@@ -2930,6 +2930,7 @@ export const id: Dict = {
   'fortress.log.reconnectFailed': 'Sambung ulang gagal',
   'fortress.log.accountExpired': 'Akun {name} sudah kedaluwarsa',
   'fortress.log.captchaPending': 'Ada captcha untuk {host} yang menunggu',
+  'fortress.log.opened': 'Dibuka dari {app} di {device} ({id})',
   'settings.categories.notify': 'Picu pustaka media',
   'settings.categories.notifyHint': 'Alamat tersimpan yang mana yang dipanggil begitu sebuah paket yang ditaruh di laci ini selesai dan berkasnya berada di tempatnya. Paket yang tautannya duduk di dua laci memanggil keduanya, masing-masing sekali. Pada "Jangan panggil apa pun" laci ini tetap diam, dan itulah yang dilakukan setiap laci selama kamu tidak mengubahnya.',
   'settings.categories.notifyNone': 'Jangan panggil apa pun',

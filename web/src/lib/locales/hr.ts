@@ -2944,6 +2944,7 @@ export const hr: Dict = {
   'fortress.log.reconnectFailed': 'Ponovno spajanje nije uspjelo',
   'fortress.log.accountExpired': 'Račun za {name} je istekao',
   'fortress.log.captchaPending': 'Čeka captcha za {host}',
+  'fortress.log.opened': 'Otvoreno iz {app} na {device} ({id})',
   'settings.categories.notify': 'Poziv medijskoj biblioteci',
   'settings.categories.notifyHint': 'Koja se pohranjena adresa poziva čim je paket u ovoj ladici gotov i njegove datoteke leže na svom mjestu. Paket čije poveznice leže u dvije ladice poziva obje, svaku jednom. Na „Ne pozivaj ništa” ova ladica ostaje tiha, a upravo to radi svaka ladica dok to ne promijeniš.',
   'settings.categories.notifyNone': 'Ne pozivaj ništa',

@@ -2938,6 +2938,7 @@ export const ro: Dict = {
   'fortress.log.reconnectFailed': 'Reconectarea a eșuat',
   'fortress.log.accountExpired': 'Contul de la {name} a expirat',
   'fortress.log.captchaPending': 'Un captcha pentru {host} așteaptă',
+  'fortress.log.opened': 'Deschis din {app} pe {device} ({id})',
   'settings.categories.notify': 'Anunță mediateca',
   'settings.categories.notifyHint': 'Ce adresă păstrată este apelată de îndată ce un pachet pus în acest sertar s-a terminat și fișierele lui sunt la locul lor. Un pachet ale cărui linkuri stau în două sertare le apelează pe amândouă, o dată pe fiecare. Pe „Nu anunța nimic” acest sertar rămâne tăcut, și exact asta face fiecare sertar câtă vreme nu schimbi nimic.',
   'settings.categories.notifyNone': 'Nu anunța nimic',

@@ -2929,6 +2929,7 @@ export const tr: Dict = {
   'fortress.log.reconnectFailed': 'Yeniden bağlanma başarısız oldu',
   'fortress.log.accountExpired': '{name} hesabının süresi doldu',
   'fortress.log.captchaPending': '{host} için çözülmeyi bekleyen bir captcha var',
+  'fortress.log.opened': '{device} üzerindeki {app} uygulamasından açıldı ({id})',
   'settings.categories.notify': 'Medya kitaplığını tetikle',
   'settings.categories.notifyHint': 'Bu çekmeceye düşen bir paket bitip dosyaları yerine yerleştiğinde hangi kayıtlı adresin çağrılacağı. Bağlantıları iki çekmecede duran bir paket ikisini de çağırır, her birini bir kez. “Hiçbir şeyi tetikleme” seçiliyken bu çekmece sessiz kalır, sen değiştirene kadar her çekmecenin yaptığı da tam olarak budur.',
   'settings.categories.notifyNone': 'Hiçbir şeyi tetikleme',

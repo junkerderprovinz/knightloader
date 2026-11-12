@@ -2931,6 +2931,7 @@ export const bg: Dict = {
   'fortress.log.reconnectFailed': 'Повторното свързване не успя',
   'fortress.log.accountExpired': 'Акаунтът за {name} изтече',
   'fortress.log.captchaPending': 'Капча за {host} чака',
+  'fortress.log.opened': 'Отворено от {app} на {device} ({id})',
   'settings.categories.notify': 'Подканване на медийната библиотека',
   'settings.categories.notifyHint': 'Кой запазен адрес се извиква, щом пакет, подреден в това чекмедже, е готов и файловете му са на мястото си. Пакет, чиито връзки лежат в две чекмеджета, извиква и двете, всяко по веднъж. На „Не подканвай нищо“ това чекмедже остава тихо, а точно това прави всяко чекмедже, докато не промениш нещо.',
   'settings.categories.notifyNone': 'Не подканвай нищо',

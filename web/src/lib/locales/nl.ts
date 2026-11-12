@@ -2913,6 +2913,7 @@ export const nl: Dict = {
   'fortress.log.reconnectFailed': 'Opnieuw verbinden is mislukt',
   'fortress.log.accountExpired': 'Het account bij {name} is verlopen',
   'fortress.log.captchaPending': 'Een captcha voor {host} wacht',
+  'fortress.log.opened': 'Geopend vanuit {app} op {device} ({id})',
   'settings.categories.notify': 'Mediatheek aanstoten',
   'settings.categories.notifyHint': 'Welk opgeslagen adres wordt aangeroepen zodra een pakket dat in deze la is opgeborgen klaar is en zijn bestanden op hun plek staan. Een pakket met links in twee lades roept ze allebei aan, elk één keer. Op “Niets aanstoten” blijft deze la stil, en dat doet elke la zolang je er niets aan verandert.',
   'settings.categories.notifyNone': 'Niets aanstoten',

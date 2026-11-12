@@ -2929,6 +2929,7 @@ export const ms: Dict = {
   'fortress.log.reconnectFailed': 'Sambung semula gagal',
   'fortress.log.accountExpired': 'Akaun {name} telah tamat tempoh',
   'fortress.log.captchaPending': 'Captcha untuk {host} sedang menunggu',
+  'fortress.log.opened': 'Dibuka daripada {app} pada {device} ({id})',
   'settings.categories.notify': 'Panggilan pustaka media',
   'settings.categories.notifyHint': 'Alamat tersimpan yang mana dipanggil sebaik sahaja pakej yang difailkan dalam laci ini siap dan failnya berada di tempatnya. Pakej yang pautannya terletak dalam dua laci akan memanggil kedua-duanya, sekali setiap satu. Pada “Jangan panggil apa-apa” laci ini kekal senyap, dan itulah yang dilakukan setiap laci sehingga anda mengubahnya.',
   'settings.categories.notifyNone': 'Jangan panggil apa-apa',

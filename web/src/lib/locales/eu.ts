@@ -2925,6 +2925,7 @@ export const eu: Dict = {
   'fortress.log.reconnectFailed': 'Birkonexioak huts egin du',
   'fortress.log.accountExpired': '{name} zerbitzuko kontua iraungi da',
   'fortress.log.captchaPending': '{host} gunearen captcha bat zain dago',
+  'fortress.log.opened': '{app} aplikaziotik ireki da, {device} gailuan ({id})',
   'settings.categories.notify': 'Mediateka abiaraztea',
   'settings.categories.notifyHint': 'Tiradera honetan sailkatutako pakete bat amaitu eta bere fitxategiak beren lekuan daudenean zein helbide gordetari deitzen zaion. Bere estekak bi tiraderatan dituen pakete batek biei deitzen die, bakoitzari behin. «Ez deitu ezeri» aukerarekin tiradera hau isilik geratzen da, eta horixe egiten du tiradera bakoitzak zuk aldatu arte.',
   'settings.categories.notifyNone': 'Ez deitu ezeri',

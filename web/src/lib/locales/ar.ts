@@ -2929,6 +2929,7 @@ export const ar: Dict = {
   'fortress.log.reconnectFailed': 'فشلت إعادة الاتصال',
   'fortress.log.accountExpired': 'انتهت صلاحية حساب {name}',
   'fortress.log.captchaPending': 'كابتشا لـ {host} في الانتظار',
+  'fortress.log.opened': 'فُتح من {app} على {device} ({id})',
   'settings.categories.notify': 'تنبيه مكتبة الوسائط',
   'settings.categories.notifyHint': 'أي عنوان مخزَّن يُستدعى بمجرد أن تنتهي حزمة مودَعة في هذا الدرج وتستقر ملفاتها في مكانها. والحزمة التي تقع روابطها في درجين تستدعي كليهما، كلًّا مرة واحدة. وعلى «لا تنبّه شيئًا» يبقى هذا الدرج صامتًا، وهذا بالضبط ما يفعله كل درج ما لم تغيّره.',
   'settings.categories.notifyNone': 'لا تنبّه شيئًا',

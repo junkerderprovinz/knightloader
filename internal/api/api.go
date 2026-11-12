@@ -35,7 +35,7 @@ func Handler(a *app.App) http.Handler {
 
 	mux := http.NewServeMux()
 	reg.attach(mux, spaHandler())
-	h := withBasePath(reg.proxySeen.note(knownHost(a, sameOrigin(guard(a, reg, mux)))))
+	h := withBasePath(fortressTabs(a, reg.proxySeen.note(knownHost(a, sameOrigin(guard(a, reg, mux))))))
 
 	// A member's call is answered by this same handler, so it cannot drift
 	// from what a browser or an API token gets. Opening the group here means a
@@ -179,6 +179,10 @@ func cookiePath(r *http.Request) string {
 // for requireScope to check against the route.
 func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if reg.shutInTunnel(a, r) {
+			refuseTunnel(w)
+			return
+		}
 		// Before the open routes, which a member reaches only when they are
 		// on its list too.
 		if fromGroup(r) {

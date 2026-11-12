@@ -2931,6 +2931,7 @@ export const uk: Dict = {
   'fortress.log.reconnectFailed': 'Перепідключення не вдалося',
   'fortress.log.accountExpired': 'Термін дії облікового запису {name} минув',
   'fortress.log.captchaPending': 'Капча для {host} чекає на розв’язання',
+  'fortress.log.opened': 'Відкрито з {app} на {device} ({id})',
   'settings.categories.notify': 'Виклик медіатеки',
   'settings.categories.notifyHint': 'Яку зі збережених адрес викликають, щойно пакет, складений у цю шухляду, завершився і його файли на місці. Пакет, чиї посилання лежать у двох шухлядах, викликає обидві, кожну по разу. На «Нічого не викликати» ця шухляда мовчить, і саме так робить кожна шухляда, доки ви цього не зміните.',
   'settings.categories.notifyNone': 'Нічого не викликати',

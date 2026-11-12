@@ -2919,6 +2919,7 @@ export const pt: Dict = {
   'fortress.log.reconnectFailed': 'A reconexão falhou',
   'fortress.log.accountExpired': 'A conta de {name} expirou',
   'fortress.log.captchaPending': 'Um captcha para {host} está à espera',
+  'fortress.log.opened': 'Aberto a partir de {app} em {device} ({id})',
   'settings.categories.notify': 'Chamada à mediateca',
   'settings.categories.notifyHint': 'Que endereço guardado é chamado assim que um pacote arrumado nesta gaveta termina e os ficheiros dele estão no lugar. Um pacote cujos links estão em duas gavetas chama as duas, cada uma uma vez. Em «Não chamar nada» esta gaveta fica calada, e é exatamente isso que cada gaveta faz enquanto não mexeres nela.',
   'settings.categories.notifyNone': 'Não chamar nada',

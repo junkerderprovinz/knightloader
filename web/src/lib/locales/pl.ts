@@ -2915,6 +2915,7 @@ export const pl: Dict = {
   'fortress.log.reconnectFailed': 'Ponowne łączenie się nie powiodło',
   'fortress.log.accountExpired': 'Konto w {name} wygasło',
   'fortress.log.captchaPending': 'Czeka captcha dla {host}',
+  'fortress.log.opened': 'Otwarto z {app} na {device} ({id})',
   'settings.categories.notify': 'Wywołanie biblioteki mediów',
   'settings.categories.notifyHint': 'Który zapisany adres zostaje wywołany, gdy paczka odłożona do tej szuflady jest gotowa, a jej pliki leżą na miejscu. Paczka, której linki leżą w dwóch szufladach, wywołuje obie, każdą raz. Na „Nic nie wywołuj” ta szuflada zostaje cicho, i dokładnie to robi każda szuflada, dopóki tego nie zmienisz.',
   'settings.categories.notifyNone': 'Nic nie wywołuj',

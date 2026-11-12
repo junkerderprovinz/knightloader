@@ -2940,6 +2940,7 @@ export const cs: Dict = {
   'fortress.log.reconnectFailed': 'Znovupřipojení selhalo',
   'fortress.log.accountExpired': 'Platnost účtu u {name} vypršela',
   'fortress.log.captchaPending': 'Čeká captcha pro {host}',
+  'fortress.log.opened': 'Otevřeno z {app} na {device} ({id})',
   'settings.categories.notify': 'Pobídnout knihovnu médií',
   'settings.categories.notifyHint': 'Která uložená adresa se zavolá, jakmile je balíček zařazený do téhle zásuvky hotový a jeho soubory jsou na místě. Balíček, jehož odkazy leží ve dvou zásuvkách, zavolá obě, každou jednou. Na „Nic nepobízet“ zůstává tahle zásuvka tichá, a přesně to dělá každá zásuvka, dokud to nezměníš.',
   'settings.categories.notifyNone': 'Nic nepobízet',

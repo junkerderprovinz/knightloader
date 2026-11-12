@@ -2921,6 +2921,7 @@ export const et: Dict = {
   'fortress.log.reconnectFailed': 'Taasühendus ebaõnnestus',
   'fortress.log.accountExpired': '{name} konto on aegunud',
   'fortress.log.captchaPending': 'Captcha saidile {host} ootab',
+  'fortress.log.opened': 'Avatud rakendusest {app} seadmes {device} ({id})',
   'settings.categories.notify': 'Meediakogu teavitamine',
   'settings.categories.notifyHint': 'Millisele salvestatud aadressile tehakse päring, niipea kui selles sahtlis olev pakk on valmis ja tema failid on oma kohal. Pakk, mille lingid on kahes sahtlis, kutsub mõlemat, kumbagi ühe korra. Valikul „Ära teavita kedagi“ jääb see sahtel vaikseks, ja täpselt seda teeb iga sahtel, kuni sa midagi ei muuda.',
   'settings.categories.notifyNone': 'Ära teavita kedagi',

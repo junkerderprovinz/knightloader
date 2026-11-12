@@ -2930,6 +2930,7 @@ export const ja: Dict = {
   'fortress.log.reconnectFailed': '再接続に失敗しました',
   'fortress.log.accountExpired': '{name} のアカウントの期限が切れました',
   'fortress.log.captchaPending': '{host} のキャプチャが解答待ちです',
+  'fortress.log.opened': '{device} の {app} から開かれました ({id})',
   'settings.categories.notify': 'メディアライブラリーの呼び出し',
   'settings.categories.notifyHint': 'この引き出しに収めたパッケージが完了し、そのファイルが所定の場所に収まったとき、登録済みのどのアドレスを呼び出すかです。リンクが 2 つの引き出しにまたがるパッケージは、両方を 1 回ずつ呼び出します。「呼び出さない」にしておくとこの引き出しは黙ったままで、あなたが変えるまではどの引き出しもそうしています。',
   'settings.categories.notifyNone': '呼び出さない',

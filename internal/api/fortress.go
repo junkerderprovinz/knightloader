@@ -35,7 +35,6 @@ import (
 	"github.com/junkerderprovinz/parleyport/kit/phrase"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
-	"github.com/junkerderprovinz/knightloader/internal/afterdownload"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -244,7 +243,8 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 		Keeper:              fortressKeeper{a},
 		Pairing:             &kitfortress.Pairing{Group: pairing, Serve: memberHandler(a, serve)},
 		Status:              fortress.Source{Events: a.FortressLog, Read: a.FortressSnapshot},
-		Uses:                afterdownload.Uses,
+		Uses:                fortressUses,
+		UI:                  fortressUI(a, serve),
 		Export:              a.FortressExport,
 		Import:              a.FortressImport,
 		MaxAnswerBytes:      maxAnswer,
@@ -520,6 +520,11 @@ type fortressMemberView struct {
 	// Relay means it is reached through the relay alone.
 	Relay    bool  `json:"relay"`
 	LastSeen int64 `json:"lastSeen,omitempty"`
+	// Host is the server it says it runs on, which two members claiming the
+	// same app should not share.
+	Host string `json:"host,omitempty"`
+	// Open means its pages open through the fortress.
+	Open bool `json:"open"`
 }
 
 type fortressPermissionView struct {
@@ -612,7 +617,8 @@ func fortressViewOf(a *app.App) fortressView {
 		mv := fortressMemberView{
 			ID: m.ID, App: m.App.ID, Name: m.App.Name, Version: m.App.Version,
 			Device: m.Device, Deployment: m.Deployment, Kind: string(m.Kind),
-			Online: m.Online(), Relay: m.Relay && !m.Direct,
+			Online: m.Online(), Relay: m.Relay && !m.Direct, Host: m.Host,
+			Open: m.Kind == member.KindInstance && slices.Contains(m.Actions, kitfortress.OpenAction),
 		}
 		if !m.LastSeen.IsZero() {
 			mv.LastSeen = m.LastSeen.Unix()

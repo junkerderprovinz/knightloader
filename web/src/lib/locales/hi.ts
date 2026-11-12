@@ -2931,6 +2931,7 @@ export const hi: Dict = {
   'fortress.log.reconnectFailed': 'फिर से जुड़ना विफल रहा',
   'fortress.log.accountExpired': '{name} का खाता समाप्त हो गया है',
   'fortress.log.captchaPending': '{host} के लिए एक कैप्चा इंतज़ार कर रहा है',
+  'fortress.log.opened': '{app} से {device} पर खोला गया ({id})',
   'settings.categories.notify': 'मीडिया लाइब्रेरी को कॉल',
   'settings.categories.notifyHint': 'इस दराज़ में रखा कोई पैकेज पूरा हो जाने और उसकी फ़ाइलें अपनी जगह पर पहुँच जाने के बाद कौन-सा सहेजा हुआ पता कॉल होता है। जिस पैकेज के लिंक दो दराज़ों में हों वह दोनों को कॉल करता है, हर एक को एक बार। “कुछ भी कॉल न करें” पर यह दराज़ चुप रहती है, और जब तक आप कुछ बदलते नहीं, हर दराज़ यही करती है।',
   'settings.categories.notifyNone': 'कुछ भी कॉल न करें',

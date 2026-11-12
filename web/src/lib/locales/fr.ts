@@ -2918,6 +2918,7 @@ export const fr: Dict = {
   'fortress.log.reconnectFailed': 'La reconnexion a échoué',
   'fortress.log.accountExpired': 'Le compte {name} a expiré',
   'fortress.log.captchaPending': 'Un captcha pour {host} attend',
+  'fortress.log.opened': 'Ouvert depuis {app} sur {device} ({id})',
   'settings.categories.notify': 'Appel de la médiathèque',
   'settings.categories.notifyHint': 'Quelle adresse enregistrée est appelée dès qu’un paquet rangé dans ce tiroir est terminé et que ses fichiers sont en place. Un paquet dont les liens se trouvent dans deux tiroirs les appelle tous les deux, une fois chacun. Sur « Ne rien appeler », ce tiroir reste silencieux, et c’est exactement ce que fait chaque tiroir tant que vous ne changez rien.',
   'settings.categories.notifyNone': 'Ne rien appeler',

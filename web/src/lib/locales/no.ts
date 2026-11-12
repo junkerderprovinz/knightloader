@@ -2933,6 +2933,7 @@ export const no: Dict = {
   'fortress.log.reconnectFailed': 'Gjenoppkoblingen mislyktes',
   'fortress.log.accountExpired': 'Kontoen hos {name} er utløpt',
   'fortress.log.captchaPending': 'En captcha for {host} venter',
+  'fortress.log.opened': 'Åpnet fra {app} på {device} ({id})',
   'settings.categories.notify': 'Kall til mediebiblioteket',
   'settings.categories.notifyHint': 'Hvilken lagret adresse som kalles så snart en pakke som er lagt i denne skuffen, er ferdig og filene ligger på plass. En pakke med lenker i to skuffer kaller begge, én gang hver. På «Ikke kall noe» holder denne skuffen seg stille, og det er nettopp det hver skuff gjør så lenge du ikke endrer noe.',
   'settings.categories.notifyNone': 'Ikke kall noe',

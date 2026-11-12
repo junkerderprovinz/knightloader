@@ -2919,6 +2919,7 @@ export const fa: Dict = {
   'fortress.log.reconnectFailed': 'اتصال دوباره ناموفق بود',
   'fortress.log.accountExpired': 'حساب {name} منقضی شده است',
   'fortress.log.captchaPending': 'یک کپچا برای {host} منتظر است',
+  'fortress.log.opened': 'از {app} روی {device} باز شد ({id})',
   'settings.categories.notify': 'فراخوان کتابخانهٔ رسانه',
   'settings.categories.notifyHint': 'کدام نشانی ذخیره‌شده فرا خوانده می‌شود، وقتی بسته‌ای که در این کشو بایگانی شده تمام شده و فایل‌هایش سر جایشان نشسته‌اند. بسته‌ای که پیوندهایش در دو کشو باشند هر دو را فرا می‌خواند، هر کدام یک بار. روی «هیچ فراخوانی نکن» این کشو ساکت می‌ماند، و تا وقتی چیزی عوض نکنی هر کشوی دیگری هم همین کار را می‌کند.',
   'settings.categories.notifyNone': 'هیچ فراخوانی نکن',

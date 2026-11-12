@@ -2929,6 +2929,7 @@ export const sl: Dict = {
   'fortress.log.reconnectFailed': 'Ponovno povezovanje ni uspelo',
   'fortress.log.accountExpired': 'Račun pri {name} je potekel',
   'fortress.log.captchaPending': 'Čaka captcha za {host}',
+  'fortress.log.opened': 'Odprto iz {app} na {device} ({id})',
   'settings.categories.notify': 'Klic medijske knjižnice',
   'settings.categories.notifyHint': 'Kateri shranjeni naslov se pokliče, brž ko je paket v tem predalu končan in njegove datoteke ležijo na svojem mestu. Paket, čigar povezave ležijo v dveh predalih, pokliče oba, vsakega enkrat. Na »Ne kliči nič« ta predal ostane tih, in prav to dela vsak predal, dokler ne spremeniš ničesar.',
   'settings.categories.notifyNone': 'Ne kliči nič',

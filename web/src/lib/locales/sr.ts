@@ -2944,6 +2944,7 @@ export const sr: Dict = {
   'fortress.log.reconnectFailed': 'Поновно повезивање није успело',
   'fortress.log.accountExpired': 'Налог за {name} је истекао',
   'fortress.log.captchaPending': 'Чека капча за {host}',
+  'fortress.log.opened': 'Отворено из {app} на {device} ({id})',
   'settings.categories.notify': 'Позив медијатеци',
   'settings.categories.notifyHint': 'Која сачувана адреса се позива чим се пакет сложен у ову фиоку заврши и његове датотеке легну на своје место. Пакет чије везе леже у две фиоке позива обе, сваку једном. На „Не зови ништа“ ова фиока остаје тиха, а то ради свака фиока док то не промениш.',
   'settings.categories.notifyNone': 'Не зови ништа',

@@ -2916,6 +2916,7 @@ export const da: Dict = {
   'fortress.log.reconnectFailed': 'Genopkoblingen mislykkedes',
   'fortress.log.accountExpired': 'Kontoen hos {name} er udløbet',
   'fortress.log.captchaPending': 'En captcha til {host} venter',
+  'fortress.log.opened': 'Åbnet fra {app} på {device} ({id})',
   'settings.categories.notify': 'Kald til mediebiblioteket',
   'settings.categories.notifyHint': 'Hvilken gemt adresse der bliver kaldt, så snart en pakke i denne skuffe er færdig, og dens filer ligger på plads. En pakke, hvis links ligger i to skuffer, kalder begge, hver én gang. På „Kald ingenting“ er denne skuffe stille, og det er præcis, hvad hver skuffe gør, så længe du ikke ændrer noget.',
   'settings.categories.notifyNone': 'Kald ingenting',

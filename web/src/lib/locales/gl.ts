@@ -2927,6 +2927,7 @@ export const gl: Dict = {
   'fortress.log.reconnectFailed': 'A reconexión fallou',
   'fortress.log.accountExpired': 'A conta de {name} caducou',
   'fortress.log.captchaPending': 'Un captcha para {host} está á espera',
+  'fortress.log.opened': 'Aberto desde {app} en {device} ({id})',
   'settings.categories.notify': 'Chamada á biblioteca multimedia',
   'settings.categories.notifyHint': 'Que enderezo gardado se chama en canto un paquete arquivado neste caixón remata e os seus ficheiros están no seu sitio. Un paquete coas ligazóns en dous caixóns chama aos dous, unha vez cada un. En «Non chamar a nada» este caixón queda calado, e iso é o que fai cada caixón mentres non o cambies.',
   'settings.categories.notifyNone': 'Non chamar a nada',

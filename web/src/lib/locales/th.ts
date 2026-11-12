@@ -2929,6 +2929,7 @@ export const th: Dict = {
   'fortress.log.reconnectFailed': 'การเชื่อมต่อใหม่ล้มเหลว',
   'fortress.log.accountExpired': 'บัญชี {name} หมดอายุแล้ว',
   'fortress.log.captchaPending': 'มีแคปช่าสำหรับ {host} รออยู่',
+  'fortress.log.opened': 'เปิดจาก {app} บน {device} ({id})',
   'settings.categories.notify': 'กระตุ้นคลังสื่อ',
   'settings.categories.notifyHint': 'ที่อยู่ที่เก็บไว้อันไหนจะถูกเรียก เมื่อแพ็กเกจที่เก็บอยู่ในลิ้นชักนี้เสร็จและไฟล์ของมันเข้าที่แล้ว แพ็กเกจที่ลิงก์ของมันอยู่ในสองลิ้นชักจะเรียกทั้งสองอัน อันละครั้ง ถ้าตั้งไว้ที่ "ไม่ต้องกระตุ้นอะไร" ลิ้นชักนี้จะเงียบ และนั่นคือสิ่งที่ทุกลิ้นชักทำ จนกว่าคุณจะเปลี่ยนมัน',
   'settings.categories.notifyNone': 'ไม่ต้องกระตุ้นอะไร',

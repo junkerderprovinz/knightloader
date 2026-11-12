@@ -2931,6 +2931,7 @@ export const lt: Dict = {
   'fortress.log.reconnectFailed': 'Persijungimas nepavyko',
   'fortress.log.accountExpired': '{name} paskyros galiojimas baigėsi',
   'fortress.log.captchaPending': 'Laukia captcha, skirta {host}',
+  'fortress.log.opened': 'Atidaryta iš {app} įrenginyje {device} ({id})',
   'settings.categories.notify': 'Mediatekos paraginimas',
   'settings.categories.notifyHint': 'Kuris įrašytas adresas iškviečiamas, kai tik šiame stalčiuje gulintis paketas baigiamas ir jo failai nugula į savo vietas. Paketas, kurio nuorodos guli dviejuose stalčiuose, iškviečia abu, kiekvieną po kartą. Ties „Nieko neraginti“ šis stalčius tyli, ir būtent tą daro kiekvienas stalčius, kol nieko nepakeiti.',
   'settings.categories.notifyNone': 'Nieko neraginti',

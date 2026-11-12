@@ -2931,6 +2931,7 @@ export const fi: Dict = {
   'fortress.log.reconnectFailed': 'Uudelleenyhdistäminen epäonnistui',
   'fortress.log.accountExpired': 'Tili palvelussa {name} on vanhentunut',
   'fortress.log.captchaPending': 'Captcha palvelulle {host} odottaa',
+  'fortress.log.opened': 'Avattu sovelluksesta {app} laitteella {device} ({id})',
   'settings.categories.notify': 'Mediakirjaston kutsu',
   'settings.categories.notifyHint': 'Mitä tallennettua osoitetta kutsutaan, kun tähän laatikkoon lajiteltu paketti on valmis ja sen tiedostot ovat paikoillaan. Paketti, jonka linkit ovat kahdessa laatikossa, kutsuu molempia, kumpaakin kerran. Kohdassa ”Älä kutsu mitään” tämä laatikko pysyy hiljaa, ja juuri niin jokainen laatikko tekee, kunnes muutat sitä.',
   'settings.categories.notifyNone': 'Älä kutsu mitään',

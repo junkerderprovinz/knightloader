@@ -2910,6 +2910,7 @@ export const ru: Dict = {
   'fortress.log.reconnectFailed': 'Переподключение не удалось',
   'fortress.log.accountExpired': 'Срок действия аккаунта {name} истёк',
   'fortress.log.captchaPending': 'Капча для {host} ждёт решения',
+  'fortress.log.opened': 'Открыто из {app} на {device} ({id})',
   'settings.categories.notify': 'Обращение к медиатеке',
   'settings.categories.notifyHint': 'Какой сохранённый адрес вызывается, когда пакет, разложенный в этот ящик, готов и его файлы лежат на своих местах. Пакет, ссылки которого лежат в двух ящиках, вызывает оба, каждый по одному разу. На «Ничего не вызывать» этот ящик молчит, и именно так ведёт себя каждый ящик, пока вы этого не измените.',
   'settings.categories.notifyNone': 'Ничего не вызывать',

@@ -2930,6 +2930,7 @@ export const el: Dict = {
   'fortress.log.reconnectFailed': 'Η επανασύνδεση απέτυχε',
   'fortress.log.accountExpired': 'Ο λογαριασμός στο {name} έληξε',
   'fortress.log.captchaPending': 'Ένα captcha για {host} περιμένει',
+  'fortress.log.opened': 'Άνοιξε από {app} στο {device} ({id})',
   'settings.categories.notify': 'Ειδοποίηση της βιβλιοθήκης πολυμέσων',
   'settings.categories.notifyHint': 'Ποια αποθηκευμένη διεύθυνση καλείται, μόλις ένα πακέτο που μπήκε σε αυτό το συρτάρι ολοκληρωθεί και τα αρχεία του βρεθούν στη θέση τους. Ένα πακέτο του οποίου οι σύνδεσμοι βρίσκονται σε δύο συρτάρια καλεί και τα δύο, μία φορά το καθένα. Στο «Καμία ειδοποίηση» αυτό το συρτάρι μένει σιωπηλό, και αυτό ακριβώς κάνει κάθε συρτάρι όσο δεν αλλάζεις κάτι.',
   'settings.categories.notifyNone': 'Καμία ειδοποίηση',

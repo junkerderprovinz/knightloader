@@ -2921,6 +2921,7 @@ export const lv: Dict = {
   'fortress.log.reconnectFailed': 'Atkalsavienošanās neizdevās',
   'fortress.log.accountExpired': '{name} konta derīguma termiņš beidzies',
   'fortress.log.captchaPending': 'Gaida captcha vietnei {host}',
+  'fortress.log.opened': 'Atvērts no {app} ierīcē {device} ({id})',
   'settings.categories.notify': 'Mediju bibliotēkas izsaukums',
   'settings.categories.notifyHint': 'Kura saglabātā adrese tiek izsaukta, tiklīdz šajā atvilktnē ieliktā pakotne ir gatava un tās faili ir savā vietā. Pakotne, kuras saites atrodas divās atvilktnēs, izsauc abas, katru vienu reizi. Ar „Neizsaukt neko“ šī atvilktne paliek klusa, un tieši to dara katra atvilktne, kamēr neko nemaini.',
   'settings.categories.notifyNone': 'Neizsaukt neko',

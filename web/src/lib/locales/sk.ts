@@ -2940,6 +2940,7 @@ export const sk: Dict = {
   'fortress.log.reconnectFailed': 'Opätovné pripojenie zlyhalo',
   'fortress.log.accountExpired': 'Platnosť účtu na {name} vypršala',
   'fortress.log.captchaPending': 'Čaká captcha pre {host}',
+  'fortress.log.opened': 'Otvorené z {app} na {device} ({id})',
   'settings.categories.notify': 'Volanie mediatéky',
   'settings.categories.notifyHint': 'Ktorá uložená adresa sa zavolá, len čo je balík založený v tejto zásuvke hotový a jeho súbory ležia na svojom mieste. Balík, ktorého odkazy ležia v dvoch zásuvkách, zavolá obe, každú raz. Pri „Nevolať nič“ zostáva táto zásuvka ticho, a presne to robí každá zásuvka, kým to nezmeníš.',
   'settings.categories.notifyNone': 'Nevolať nič',

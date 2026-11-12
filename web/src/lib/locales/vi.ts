@@ -2930,6 +2930,7 @@ export const vi: Dict = {
   'fortress.log.reconnectFailed': 'Kết nối lại thất bại',
   'fortress.log.accountExpired': 'Tài khoản {name} đã hết hạn',
   'fortress.log.captchaPending': 'Một captcha cho {host} đang chờ',
+  'fortress.log.opened': 'Được mở từ {app} trên {device} ({id})',
   'settings.categories.notify': 'Gọi thư viện media',
   'settings.categories.notifyHint': 'Địa chỉ đã lưu nào được gọi, ngay khi một gói nằm trong ngăn kéo này đã xong và các tệp của nó đã ở đúng chỗ. Một gói có liên kết nằm ở hai ngăn kéo sẽ gọi cả hai, mỗi bên một lần. Ở “Không gọi gì” thì ngăn kéo này im lặng, và đó đúng là điều mọi ngăn kéo vẫn làm chừng nào bạn chưa đổi.',
   'settings.categories.notifyNone': 'Không gọi gì',

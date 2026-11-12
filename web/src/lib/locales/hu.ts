@@ -2930,6 +2930,7 @@ export const hu: Dict = {
   'fortress.log.reconnectFailed': 'Az újracsatlakozás nem sikerült',
   'fortress.log.accountExpired': 'Lejárt a fiók: {name}',
   'fortress.log.captchaPending': 'Captcha vár ehhez: {host}',
+  'fortress.log.opened': 'Megnyitva innen: {app}, ezen: {device} ({id})',
   'settings.categories.notify': 'Médiatár értesítése',
   'settings.categories.notifyHint': 'Melyik eltárolt címet hívjuk meg, amint egy ebbe a kategóriába sorolt csomag elkészült, és a fájljai a helyükön vannak. Az a csomag, amelynek a linkjei két kategóriában fekszenek, mindkettőt meghívja, egyszer-egyszer. A „Ne értesítsen semmit” állásban ez a kategória csendben marad, és pontosan ezt teszi minden kategória, amíg nem változtatsz rajta.',
   'settings.categories.notifyNone': 'Ne értesítsen semmit',

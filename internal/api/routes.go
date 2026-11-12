@@ -49,6 +49,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerRelay(reg, a)
 	registerConnect(reg, a)
 	registerFortressMembership(reg, a)
+	registerFortressOpen(reg, a)
 	registerClipWatch(reg, a)
 	registerDiscovery(reg, a)
 	registerFeatures(reg, a)

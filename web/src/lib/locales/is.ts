@@ -2926,6 +2926,7 @@ export const is: Dict = {
   'fortress.log.reconnectFailed': 'Endurtengingin mistókst',
   'fortress.log.accountExpired': 'Reikningurinn hjá {name} er útrunninn',
   'fortress.log.captchaPending': 'Captcha fyrir {host} bíður',
+  'fortress.log.opened': 'Opnað úr {app} á {device} ({id})',
   'settings.categories.notify': 'Ýta við miðlasafni',
   'settings.categories.notifyHint': 'Hvaða skráða slóð er kölluð upp um leið og pakki sem raðað var í þessa skúffu er búinn og skrár hans komnar á sinn stað. Pakki sem á tengla í tveimur skúffum kallar á báðar, einu sinni hvora. Á „Ýta ekki við neinu“ heldur þessi skúffa kyrru fyrir, og einmitt það gerir hver skúffa þar til þú breytir því.',
   'settings.categories.notifyNone': 'Ýta ekki við neinu',

@@ -4241,6 +4241,7 @@ export const en = {
   'fortress.log.reconnectFailed': 'The reconnect failed',
   'fortress.log.accountExpired': 'The {name} account has expired',
   'fortress.log.captchaPending': 'A captcha for {host} is waiting',
+  'fortress.log.opened': 'Opened from {app} on {device} ({id})',
   'settings.health.noReason': 'This part gave no reason. The log further down this page may say more.',
   'settings.health.openLog': 'Open the log',
   'whatsnew.change.healthReason': 'A part in "{name}" that has a fault says why, and where it writes to the log a button opens its lines there.',

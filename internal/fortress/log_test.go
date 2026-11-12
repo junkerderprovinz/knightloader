@@ -127,3 +127,15 @@ func TestLogLeavesCredentialsOutOfNames(t *testing.T) {
 		}
 	}
 }
+
+func TestAnOpeningThroughTheFortressIsLogged(t *testing.T) {
+	l := NewLog(10)
+	l.Opened("BombVault", "Tower", "a1b2c3d4")
+	e := l.Page(status.LogQuery{Limit: 1, Lang: "en"}).Entries
+	if len(e) != 1 || e[0].Code != "ui.opened" || e[0].Level != status.SeverityInfo || e[0].Text != "Opened from BombVault on Tower (a1b2c3d4)" {
+		t.Fatalf("entries = %+v", e)
+	}
+	if de := l.Page(status.LogQuery{Limit: 1, Lang: "de"}).Entries[0].Text; de == e[0].Text || !strings.Contains(de, "BombVault") {
+		t.Errorf("in German the entry reads %q", de)
+	}
+}

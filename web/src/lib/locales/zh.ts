@@ -2917,6 +2917,7 @@ export const zh: Dict = {
   'fortress.log.reconnectFailed': '重新连接失败',
   'fortress.log.accountExpired': '{name} 的账户已过期',
   'fortress.log.captchaPending': '{host} 有验证码等待处理',
+  'fortress.log.opened': '从 {device} 上的 {app} 打开 ({id})',
   'settings.categories.notify': '通知媒体库',
   'settings.categories.notifyHint': '归到这个抽屉的包完成、文件到位之后，去调用哪一个已存下的地址。一个包的链接分在两个抽屉里，就两个都调用，各一次。设成“什么都不通知”，这个抽屉就保持安静，而在你改动之前，每个抽屉都是这样。',
   'settings.categories.notifyNone': '什么都不通知',

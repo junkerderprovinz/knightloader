@@ -50,6 +50,20 @@ func (l *Log) On(f script.Firing) {
 		return
 	}
 	e.at = f.At
+	l.add(e)
+}
+
+// Opened notes that a member opened this instance's pages through the
+// fortress: its app and device, and the end of its id, which tells it apart
+// from another member that claims the same app.
+func (l *Log) Opened(app, device, print string) {
+	l.add(logEntry{
+		level: status.SeverityInfo, code: "ui.opened", key: "fortress.log.opened", link: "/settings/pairing",
+		args: map[string]string{"app": app, "device": device, "id": print},
+	})
+}
+
+func (l *Log) add(e logEntry) {
 	if e.at.IsZero() {
 		e.at = time.Now()
 	}

@@ -2921,6 +2921,7 @@ export const ko: Dict = {
   'fortress.log.reconnectFailed': '재연결에 실패했습니다',
   'fortress.log.accountExpired': '{name} 계정이 만료되었습니다',
   'fortress.log.captchaPending': '{host} 캡차가 기다리고 있습니다',
+  'fortress.log.opened': '{device}의 {app}에서 열었습니다 ({id})',
   'settings.categories.notify': '미디어 라이브러리 호출',
   'settings.categories.notifyHint': '이 서랍에 들어간 패키지가 끝나고 그 파일들이 제자리에 놓였을 때 어떤 저장된 주소를 호출할지입니다. 링크가 서랍 두 곳에 걸쳐 있는 패키지는 두 곳을 각각 한 번씩 호출합니다. “아무것도 호출하지 않음”이면 이 서랍은 조용히 있고, 바꾸기 전까지는 모든 서랍이 그렇게 합니다.',
   'settings.categories.notifyNone': '아무것도 호출하지 않음',

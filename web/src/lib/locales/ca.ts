@@ -2916,6 +2916,7 @@ export const ca: Dict = {
   'fortress.log.reconnectFailed': 'La reconnexió ha fallat',
   'fortress.log.accountExpired': 'El compte de {name} ha caducat',
   'fortress.log.captchaPending': 'Un captcha per a {host} està esperant',
+  'fortress.log.opened': 'Obert des de {app} a {device} ({id})',
   'settings.categories.notify': 'Avís a la biblioteca multimèdia',
   'settings.categories.notifyHint': 'Quina adreça desada es crida quan un paquet arxivat en aquest calaix ha acabat i els seus fitxers són al seu lloc. Un paquet amb els enllaços repartits en dos calaixos crida totes dues adreces, una vegada cadascuna. Amb «No cridis res» aquest calaix es queda callat, que és exactament el que fa cada calaix mentre no ho canviïs.',
   'settings.categories.notifyNone': 'No cridis res',

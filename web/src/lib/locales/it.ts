@@ -2914,6 +2914,7 @@ export const it: Dict = {
   'fortress.log.reconnectFailed': 'La riconnessione non è riuscita',
   'fortress.log.accountExpired': 'L’account di {name} è scaduto',
   'fortress.log.captchaPending': 'Un captcha per {host} è in attesa',
+  'fortress.log.opened': 'Aperto da {app} su {device} ({id})',
   'settings.categories.notify': 'Chiamata alla libreria multimediale',
   'settings.categories.notifyHint': 'Quale indirizzo salvato viene chiamato appena un pacchetto archiviato in questo cassetto è finito e i suoi file sono al loro posto. Un pacchetto i cui link stanno in due cassetti li chiama tutti e due, una volta ciascuno. Su «Non chiamare niente» questo cassetto resta zitto, ed è quello che fa ogni cassetto finché non lo cambi.',
   'settings.categories.notifyNone': 'Non chiamare niente',

@@ -2948,6 +2948,7 @@ export const he: Dict = {
   'fortress.log.reconnectFailed': 'ההתחברות מחדש נכשלה',
   'fortress.log.accountExpired': 'תוקף החשבון ב-{name} פג',
   'fortress.log.captchaPending': 'קאפצ׳ה עבור {host} ממתינה',
+  'fortress.log.opened': 'נפתח מ־{app} ב־{device} ({id})',
   'settings.categories.notify': 'הנעת ספריית המדיה',
   'settings.categories.notifyHint': 'איזו כתובת שמורה נקראת ברגע שחבילה שתויקה במגירה הזאת נגמרה והקבצים שלה במקומם. חבילה שהקישורים שלה יושבים בשתי מגירות קוראת לשתיהן, לכל אחת פעם אחת. ב„לא להניע דבר” המגירה הזאת נשארת שקטה, וזה בדיוק מה שכל מגירה עושה כל עוד לא שינית.',
   'settings.categories.notifyNone': 'לא להניע דבר',

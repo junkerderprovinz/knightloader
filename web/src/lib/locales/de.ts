@@ -4003,6 +4003,7 @@ export const de: Dict = {
   'fortress.log.reconnectFailed': 'Der Reconnect ist fehlgeschlagen',
   'fortress.log.accountExpired': 'Das Konto bei {name} ist abgelaufen',
   'fortress.log.captchaPending': 'Ein Captcha für {host} wartet',
+  'fortress.log.opened': 'Geöffnet aus {app} auf {device} ({id})',
   'settings.health.noReason': 'Dieser Teil nennt keinen Grund. Das Log weiter unten auf dieser Seite sagt vielleicht mehr.',
   'settings.health.openLog': 'Log öffnen',
   'whatsnew.change.healthReason': 'Ein Teil in „{name}“, der einen Fehler hat, sagt, warum, und wo er ins Protokoll schreibt, öffnet ein Knopf seine Zeilen dort.',

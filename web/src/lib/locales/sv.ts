@@ -2930,6 +2930,7 @@ export const sv: Dict = {
   'fortress.log.reconnectFailed': 'Återanslutningen misslyckades',
   'fortress.log.accountExpired': 'Kontot hos {name} har gått ut',
   'fortress.log.captchaPending': 'En captcha för {host} väntar',
+  'fortress.log.opened': 'Öppnad från {app} på {device} ({id})',
   'settings.categories.notify': 'Anropa mediebiblioteket',
   'settings.categories.notifyHint': 'Vilken inlagd adress som anropas så snart ett paket i den här lådan är klart och dess filer ligger på plats. Ett paket vars länkar ligger i två lådor anropar båda, en gång var. På ”Anropa ingenting” förblir den här lådan tyst, och det är precis vad varje låda gör tills du ändrar det.',
   'settings.categories.notifyNone': 'Anropa ingenting',
