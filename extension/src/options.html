@@ -216,9 +216,9 @@
       .videoSite select { background: var(--carbon-surface3); }
       .videoParts { flex-wrap: wrap; contain: none; }
       .videoParts button { flex: 1 0 auto; }
-      .videoPicks { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+      .videoPicks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
       .videoPicks label { display: flex; flex-direction: column; gap: 6px; margin: 0; }
-      .videoPicks select { min-width: 140px; }
+      .videoPicks select { width: 100%; }
       .videoLangs { display: flex; flex-direction: column; gap: 6px; font-size: var(--text-subline); color: var(--carbon-text-sub); }
       .videoNone { color: var(--carbon-text-muted); }
       #videoShortcutRow > .glim-row { margin-top: 0; }

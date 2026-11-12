@@ -221,8 +221,14 @@ function videoDefaultsRows(site) {
   }
 
   const best = (name) => (v) => (v === 'best' ? t('video.qualityBest') : name(v));
-  const picks = document.createElement('div');
-  picks.className = 'videoPicks';
+  const rows = [parts];
+  // One row per part, so a part's quality and format sit side by side.
+  const row = (...selects) => {
+    const picks = document.createElement('div');
+    picks.className = 'videoPicks';
+    picks.append(...selects);
+    rows.push(picks);
+  };
   if (pick.parts.includes('video')) {
     const qualities = ['best', ...offered(seen.qualities, pick.quality)];
     // The conversions the instance makes after the download, by the same
@@ -232,7 +238,7 @@ function videoDefaultsRows(site) {
       const [container, codec] = f.split(' ').map(videoFormatName);
       return VIDEO_CONVERSIONS.includes(f) ? `${codec} (${container}, ${t('video.converted')})` : `${container} · ${codec}`;
     };
-    picks.append(
+    row(
       videoSelect(`${site.id}-quality`, t('video.quality'), qualities, pick.quality, best((q) => q), (quality) => save({ quality })),
       videoSelect(`${site.id}-format`, t('video.videoFormat'), formats, pick.videoFormat, best(formatName), (videoFormat) => save({ videoFormat })),
     );
@@ -243,21 +249,19 @@ function videoDefaultsRows(site) {
     // instance converts to, which an option says on its one line.
     const codecs = ['best', ...[...new Set([...offered(seen.audio, pick.audio), ...VIDEO_AUDIO_MENU])].sort(audioCodecOrder)];
     const codecName = (c) => (seen.audio.includes(c) ? videoFormatName(c) : `${videoFormatName(c)} (${t('video.converted')})`);
-    picks.append(
+    row(
       videoSelect(`${site.id}-rate`, t('video.audioQuality'), rates, pick.audioRate, best((r) => r), (audioRate) => save({ audioRate })),
       videoSelect(`${site.id}-audio`, t('video.audioFormat'), codecs, pick.audio, best(codecName), (audio) => save({ audio })),
     );
   }
   if (pick.parts.includes('subtitle')) {
-    picks.append(videoSelect(`${site.id}-subformat`, t('options.videoSubFormat'), VIDEO_SUB_FORMATS, pick.subFormat, videoFormatName, (subFormat) => save({ subFormat })));
+    row(videoSelect(`${site.id}-subformat`, t('options.videoSubFormat'), VIDEO_SUB_FORMATS, pick.subFormat, videoFormatName, (subFormat) => save({ subFormat })));
+    rows.push(videoSubLangs(site, pick, seen, save));
   }
   if (pick.parts.includes('thumbnail') && seen.thumbFormats.length) {
     const thumbFormat = videoThumbFormat(pick.thumbFormat, seen.thumbFormats);
-    picks.append(videoSelect(`${site.id}-thumbformat`, t('options.videoThumbFormat'), seen.thumbFormats, thumbFormat, videoFormatName, (f) => save({ thumbFormat: f })));
+    row(videoSelect(`${site.id}-thumbformat`, t('options.videoThumbFormat'), seen.thumbFormats, thumbFormat, videoFormatName, (f) => save({ thumbFormat: f })));
   }
-  const rows = [parts];
-  if (picks.children.length) rows.push(picks);
-  if (pick.parts.includes('subtitle')) rows.push(videoSubLangs(site, pick, seen, save));
   return rows;
 }
 
