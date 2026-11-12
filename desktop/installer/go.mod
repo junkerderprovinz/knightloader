@@ -8,7 +8,7 @@ toolchain go1.27.4
 
 require (
 	github.com/junkerderprovinz/knightloader v0.0.0
-	github.com/junkerderprovinz/pommelporter v1.2.0
+	github.com/junkerderprovinz/pommelporter v1.2.1
 )
 
 require (
