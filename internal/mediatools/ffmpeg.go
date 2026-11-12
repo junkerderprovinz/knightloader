@@ -22,6 +22,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/checksum"
 	"github.com/junkerderprovinz/knightloader/internal/ghrelease"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
@@ -146,8 +147,10 @@ func CanInstallFFmpeg(dataDir string) error {
 
 // InstallFFmpeg fetches the newest LGPL build, verifies the archive against
 // the release's checksums, unpacks ffmpeg and ffprobe, runs both, and only
-// then puts them where ResolveFFmpeg finds them.
-func InstallFFmpeg(ctx context.Context, dataDir string) (FFmpegRecord, error) {
+// then puts them where ResolveFFmpeg finds them. progress, when not nil,
+// hears how much of the archive has arrived of how much; total is -1 while
+// unknown.
+func InstallFFmpeg(ctx context.Context, dataDir string, progress func(done, total int64)) (FFmpegRecord, error) {
 	if err := CanInstallFFmpeg(dataDir); err != nil {
 		return FFmpegRecord{}, err
 	}
@@ -167,15 +170,23 @@ func InstallFFmpeg(ctx context.Context, dataDir string) (FFmpegRecord, error) {
 	if err != nil {
 		return FFmpegRecord{}, fmt.Errorf("release %s: %s could not be read: %w", rel.Tag, ffmpegChecksums, err)
 	}
-	return installFFmpeg(ctx, dataDir, ffmpegAsset(), rel, sums, downloadFFmpeg)
+	download := func(ctx context.Context, a ghrelease.Asset, dst string) error {
+		return downloadFFmpeg(ctx, a, dst, progress)
+	}
+	return installFFmpeg(ctx, dataDir, ffmpegAsset(), rel, sums, download)
 }
 
-func downloadFFmpeg(ctx context.Context, a ghrelease.Asset, dst string) error {
+func downloadFFmpeg(ctx context.Context, a ghrelease.Asset, dst string, progress func(done, total int64)) error {
 	f, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
-	_, copyErr := ghrelease.FetchWithin(ctx, a, f, maxFFmpegArchiveBytes, ffmpegFetchTimeout)
+	total := a.Size
+	if total <= 0 {
+		total = -1
+	}
+	w := httpx.ProgressWriter(f, total, progress)
+	_, copyErr := ghrelease.FetchWithin(ctx, a, w, maxFFmpegArchiveBytes, ffmpegFetchTimeout)
 	closeErr := f.Close()
 	if copyErr != nil {
 		return copyErr
@@ -215,7 +226,7 @@ func installFFmpeg(ctx context.Context, dataDir, name string, rel ghrelease.Rele
 		return rec, err
 	}
 	if !ok {
-		return rec, fmt.Errorf("%s does not match the SHA-256 in %s, so it was thrown away", name, ffmpegChecksums)
+		return rec, &checksum.MismatchError{Msg: fmt.Sprintf("%s does not match the SHA-256 in %s, so it was thrown away", name, ffmpegChecksums)}
 	}
 
 	bins := []string{exeName("ffmpeg"), exeName("ffprobe")}

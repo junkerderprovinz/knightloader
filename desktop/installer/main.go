@@ -1,16 +1,23 @@
 // Command installer installs KnightLoader on Windows and Linux. The desktop
 // build (scripts/desktop.mjs) copies the program, yt-dlp and UnRAR into
 // payload/ and builds this around it; on macOS the app ships as a disk image
-// instead.
+// instead. ffmpeg, Java and JDownloader are too large or change too often for
+// the payload, so the window fetches them into the data folder at the end.
 package main
 
 import (
+	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 
 	"github.com/junkerderprovinz/pommelporter"
+
+	"github.com/junkerderprovinz/knightloader/internal/checksum"
+	"github.com/junkerderprovinz/knightloader/internal/desktopdata"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 var (
@@ -49,6 +56,7 @@ func main() {
 			Icon:       icon,
 			Categories: []string{"Network", "FileTransfer"},
 			Payload:    executables{files, []string{"yt-dlp", "unrar"}},
+			Components: components(desktopdata.Dir(name)),
 			// The lock a copy on the usual data folder holds, instanceID in
 			// desktop/main.go.
 			InstanceID: id,
@@ -109,4 +117,36 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+// components are fetched with the app's own code, into the data folder of the
+// person installing, so the first start finds them as copies it fetched
+// itself and keeps them current.
+func components(dataDir string) []pommelporter.Component {
+	var out []pommelporter.Component
+	for _, c := range desktopdata.Components(dataDir) {
+		fetch := c.Fetch
+		out = append(out, pommelporter.Component{
+			ID:     c.ID,
+			Name:   map[string]string{"en": c.Name},
+			Target: c.Target,
+			Fetch: func(ctx context.Context, progress func(done, total int64)) error {
+				return marked(fetch(ctx, progress))
+			},
+		})
+	}
+	return out
+}
+
+// marked wraps a refusal of the server or a download that failed its
+// checksum, so the window can name the cause instead of only showing the
+// error.
+func marked(err error) error {
+	switch {
+	case errors.As(err, new(*checksum.MismatchError)):
+		return &pommelporter.ChecksumError{Err: err}
+	case errors.As(err, new(*httpx.StatusError)):
+		return &pommelporter.ServerError{Err: err}
+	}
+	return err
 }

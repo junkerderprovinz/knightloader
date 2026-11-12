@@ -129,9 +129,9 @@ func get(ctx context.Context, rawurl string, first map[string]bool, timeout time
 		resp.Body.Close()
 		msg := trimOneLine(string(body))
 		if msg != "" {
-			return nil, fmt.Errorf("ghrelease: github answered %s: %s", resp.Status, msg)
+			return nil, fmt.Errorf("ghrelease: github answered %w: %s", &httpx.StatusError{Status: resp.Status}, msg)
 		}
-		return nil, fmt.Errorf("ghrelease: github answered %s", resp.Status)
+		return nil, fmt.Errorf("ghrelease: github answered %w", &httpx.StatusError{Status: resp.Status})
 	}
 	return resp, nil
 }

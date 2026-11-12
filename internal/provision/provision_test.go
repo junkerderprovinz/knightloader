@@ -264,10 +264,10 @@ func shrinkCap(t *testing.T, n int64) {
 // provisioned and run it.
 func assertNoJar(t *testing.T, p *Provisioner) {
 	t.Helper()
-	if _, err := os.Stat(p.jarPath()); err == nil {
+	if _, err := os.Stat(p.JarPath()); err == nil {
 		t.Error("a refused download was still moved into place")
 	}
-	if _, err := os.Stat(p.jarPath() + ".part"); err == nil {
+	if _, err := os.Stat(p.JarPath() + ".part"); err == nil {
 		t.Error("the partial download was left on disk")
 	}
 }
@@ -278,10 +278,10 @@ func TestEnsureJarStoresVerifiedJar(t *testing.T) {
 	p := New(t.TempDir())
 	p.jarURL = srv.URL
 
-	if err := p.EnsureJar(context.Background()); err != nil {
+	if err := p.EnsureJar(context.Background(), nil); err != nil {
 		t.Fatalf("EnsureJar: %v", err)
 	}
-	got, err := os.ReadFile(p.jarPath())
+	got, err := os.ReadFile(p.JarPath())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -304,7 +304,7 @@ func TestEnsureJarRefusesWrongMagicBytes(t *testing.T) {
 	p := New(t.TempDir())
 	p.jarURL = srv.URL
 
-	err := p.EnsureJar(context.Background())
+	err := p.EnsureJar(context.Background(), nil)
 	if err == nil {
 		t.Fatal("EnsureJar accepted a body that is not a jar")
 	}
@@ -322,7 +322,7 @@ func TestEnsureJarRefusesTruncatedArchive(t *testing.T) {
 	p := New(t.TempDir())
 	p.jarURL = srv.URL
 
-	if err := p.EnsureJar(context.Background()); err == nil {
+	if err := p.EnsureJar(context.Background(), nil); err == nil {
 		t.Fatal("EnsureJar accepted a truncated archive")
 	}
 	assertNoJar(t, p)
@@ -364,7 +364,7 @@ func TestEnsureJarRefusesOversizedBody(t *testing.T) {
 
 			p := New(t.TempDir())
 			p.jarURL = srv.URL
-			err := p.EnsureJar(context.Background())
+			err := p.EnsureJar(context.Background(), nil)
 			if err == nil {
 				t.Fatal("EnsureJar accepted a body past the size cap")
 			}
@@ -383,11 +383,11 @@ func TestEnsureJarSkipsFetchWhenAlreadyProvisioned(t *testing.T) {
 	if err := os.MkdirAll(p.Dir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(p.jarPath(), fakeJar(t), 0o644); err != nil {
+	if err := os.WriteFile(p.JarPath(), fakeJar(t), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := p.EnsureJar(context.Background()); err != nil {
+	if err := p.EnsureJar(context.Background(), nil); err != nil {
 		t.Fatal(err)
 	}
 	if n := hits.Load(); n != 0 {
@@ -405,14 +405,14 @@ func TestEnsureJarReplacesUnusableJarOnDisk(t *testing.T) {
 	if err := os.MkdirAll(p.Dir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(p.jarPath(), []byte("not a jar at all"), 0o644); err != nil {
+	if err := os.WriteFile(p.JarPath(), []byte("not a jar at all"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := p.EnsureJar(context.Background()); err != nil {
+	if err := p.EnsureJar(context.Background(), nil); err != nil {
 		t.Fatal(err)
 	}
-	got, err := os.ReadFile(p.jarPath())
+	got, err := os.ReadFile(p.JarPath())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -432,7 +432,7 @@ func TestEnsureJarRefusesNonOKStatus(t *testing.T) {
 	p := New(t.TempDir())
 	p.jarURL = srv.URL
 
-	if err := p.EnsureJar(context.Background()); err == nil {
+	if err := p.EnsureJar(context.Background(), nil); err == nil {
 		t.Fatal("EnsureJar accepted an HTTP 404 body")
 	}
 	assertNoJar(t, p)
@@ -535,7 +535,7 @@ func TestStartRunsJDHeadless(t *testing.T) {
 
 func TestEnsureStartsNothingOnceCancelled(t *testing.T) {
 	p := New(t.TempDir())
-	if err := os.WriteFile(p.jarPath(), fakeJar(t), 0o644); err != nil {
+	if err := os.WriteFile(p.JarPath(), fakeJar(t), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	home := t.TempDir()
@@ -641,7 +641,7 @@ func TestEnsureRunsJDOnTheJavaItIsGiven(t *testing.T) {
 	quickGrace(t)
 	p := New(t.TempDir())
 	p.Port = 1
-	if err := os.WriteFile(p.jarPath(), fakeJar(t), 0o644); err != nil {
+	if err := os.WriteFile(p.JarPath(), fakeJar(t), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	p.Java = os.Args[0]
