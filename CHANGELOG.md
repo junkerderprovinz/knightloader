@@ -79,6 +79,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
+- **KnightLoader has a redrawn logo,** in the web interface, the browser
+  extension, the desktop app and the Android app.
 - **The video button's switch is in the extension's settings only.** The
   toolbar popup no longer has one.
 - **The Backend column shows who handles a download by its mark.** A debrid

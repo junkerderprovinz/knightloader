@@ -1031,6 +1031,10 @@ Instances of this version refuse a relay call that is not stamped against being 
 - **A video filmed in HDR offers its HDR tracks apart from the plain ones,** and a plain quality downloads the SDR track, where yt-dlp took the HDR one of the same height.
 - **A video can be converted to H.265 in MKV.** It downloads at the quality you pick and is encoded again once it is there, and the row shows how far the conversion has got.
 
+## 🎨 Design
+
+- **KnightLoader has a redrawn logo,** in the web interface, the browser extension, the desktop app and the Android app.
+
 ## ⚡ Improved
 
 - **The Backend column shows who handles a download by its mark:** a debrid service's logo, a magnet for the built-in torrent client, and an icon each for JDownloader, yt-dlp, Usenet and direct downloads. Right-click the list header to switch it on. Thanks to @Kayn2106 for the idea in [#157](https://github.com/junkerderprovinz/knightloader/issues/157).
@@ -1916,6 +1920,10 @@ Instances of this version refuse a relay call that is not stamped against being 
 - **The thumbnail can come as JPG, PNG or WebP,** whatever format the site serves it in.
 - **A video filmed in HDR offers its HDR tracks apart from the plain ones,** and a plain quality downloads the SDR track, where yt-dlp took the HDR one of the same height.
 - **A video can be converted to H.265 in MKV.** It downloads at the quality you pick and is encoded again once it is there, and the row shows how far the conversion has got.
+
+## 🎨 Design
+
+- **KnightLoader has a redrawn logo,** in the web interface, the browser extension, the desktop app and the Android app.
 
 ## ⚡ Improved
 
