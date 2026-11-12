@@ -74,7 +74,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Remove site`,
     'options.videoRemoveQuestion': `Remove {site}? Its settings will be gone, and the button will download there with the settings for all other sites.`,
     'options.videoRemoveCommit': `Remove`,
-    'options.videoCustomInfo': `The button shows on this site whenever it is on for all other sites, and downloads here with these settings.`,
   },
   de: {
     'video.send': `Herunterladen`,
@@ -147,7 +146,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Seite entfernen`,
     'options.videoRemoveQuestion': `{site} entfernen? Ihre Einstellungen sind dann weg, und der Knopf lädt dort mit den Einstellungen für alle anderen Seiten herunter.`,
     'options.videoRemoveCommit': `Entfernen`,
-    'options.videoCustomInfo': `Der Knopf erscheint auf dieser Seite, solange er für alle anderen Seiten an ist, und lädt hier mit diesen Einstellungen herunter.`,
   },
   fr: {
     'video.send': `Télécharger`,
@@ -220,7 +218,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Retirer le site`,
     'options.videoRemoveQuestion': `Retirer {site} ? Ses réglages seront supprimés, et le bouton y téléchargera avec les réglages de tous les autres sites.`,
     'options.videoRemoveCommit': `Retirer`,
-    'options.videoCustomInfo': `Le bouton apparaît sur ce site tant qu’il est activé pour tous les autres sites, et il y télécharge avec ces réglages.`,
   },
   es: {
     'video.send': `Descargar`,
@@ -293,7 +290,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Quitar sitio`,
     'options.videoRemoveQuestion': `¿Quitar {site}? Sus ajustes desaparecerán y el botón descargará allí con los ajustes de todos los demás sitios.`,
     'options.videoRemoveCommit': `Quitar`,
-    'options.videoCustomInfo': `El botón aparece en este sitio siempre que esté activado para todos los demás sitios, y aquí descarga con estos ajustes.`,
   },
   it: {
     'video.send': `Scarica`,
@@ -366,7 +362,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Rimuovi sito`,
     'options.videoRemoveQuestion': `Rimuovere {site}? Le sue impostazioni andranno perse e il pulsante lì scaricherà con le impostazioni di tutti gli altri siti.`,
     'options.videoRemoveCommit': `Rimuovi`,
-    'options.videoCustomInfo': `Il pulsante compare su questo sito finché è attivo per tutti gli altri siti, e qui scarica con queste impostazioni.`,
   },
   pt: {
     'video.send': `Transferir`,
@@ -439,7 +434,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Remover site`,
     'options.videoRemoveQuestion': `Remover {site}? As suas definições desaparecem e o botão passa a transferir aí com as definições de todos os outros sites.`,
     'options.videoRemoveCommit': `Remover`,
-    'options.videoCustomInfo': `O botão aparece neste site sempre que estiver ligado para todos os outros sites, e aqui transfere com estas definições.`,
   },
   nl: {
     'video.send': `Downloaden`,
@@ -512,7 +506,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Site verwijderen`,
     'options.videoRemoveQuestion': `{site} verwijderen? De instellingen ervan verdwijnen, en de knop downloadt daar dan met de instellingen voor alle andere sites.`,
     'options.videoRemoveCommit': `Verwijderen`,
-    'options.videoCustomInfo': `De knop verschijnt op deze site zolang hij aan staat voor alle andere sites, en downloadt hier met deze instellingen.`,
   },
   pl: {
     'video.send': `Pobierz`,
@@ -585,7 +578,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Usuń stronę`,
     'options.videoRemoveQuestion': `Usunąć {site}? Jej ustawienia znikną, a przycisk będzie tam pobierać z ustawieniami dla wszystkich innych stron.`,
     'options.videoRemoveCommit': `Usuń`,
-    'options.videoCustomInfo': `Przycisk pojawia się na tej stronie, dopóki jest włączony dla wszystkich innych stron, i pobiera tu z tymi ustawieniami.`,
   },
   ru: {
     'video.send': `Скачать`,
@@ -658,7 +650,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Удалить сайт`,
     'options.videoRemoveQuestion': `Удалить {site}? Его настройки пропадут, и кнопка будет загружать там с настройками для всех остальных сайтов.`,
     'options.videoRemoveCommit': `Удалить`,
-    'options.videoCustomInfo': `Кнопка появляется на этом сайте, пока она включена для всех остальных сайтов, и загружает здесь с этими настройками.`,
   },
   uk: {
     'video.send': `Завантажити`,
@@ -731,7 +722,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Вилучити сайт`,
     'options.videoRemoveQuestion': `Вилучити {site}? Його налаштування зникнуть, і кнопка завантажуватиме там із налаштуваннями для всіх інших сайтів.`,
     'options.videoRemoveCommit': `Вилучити`,
-    'options.videoCustomInfo': `Кнопка з’являється на цьому сайті, поки вона ввімкнена для всіх інших сайтів, і завантажує тут із цими налаштуваннями.`,
   },
   cs: {
     'video.send': `Stáhnout`,
@@ -804,7 +794,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Odebrat web`,
     'options.videoRemoveQuestion': `Odebrat {site}? Jeho nastavení zmizí a tlačítko tam bude stahovat s nastavením pro všechny ostatní weby.`,
     'options.videoRemoveCommit': `Odebrat`,
-    'options.videoCustomInfo': `Tlačítko se na tomto webu zobrazuje, dokud je zapnuté pro všechny ostatní weby, a stahuje tu s tímto nastavením.`,
   },
   sv: {
     'video.send': `Ladda ned`,
@@ -877,7 +866,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Ta bort webbplats`,
     'options.videoRemoveQuestion': `Ta bort {site}? Dess inställningar försvinner, och knappen laddar då ned där med inställningarna för alla andra webbplatser.`,
     'options.videoRemoveCommit': `Ta bort`,
-    'options.videoCustomInfo': `Knappen visas på den här webbplatsen så länge den är på för alla andra webbplatser, och laddar ned här med de här inställningarna.`,
   },
   da: {
     'video.send': `Download`,
@@ -950,7 +938,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Fjern websted`,
     'options.videoRemoveQuestion': `Vil du fjerne {site}? Dets indstillinger forsvinder, og knappen downloader så der med indstillingerne for alle andre websteder.`,
     'options.videoRemoveCommit': `Fjern`,
-    'options.videoCustomInfo': `Knappen vises på dette websted, så længe den er slået til for alle andre websteder, og downloader her med disse indstillinger.`,
   },
   fi: {
     'video.send': `Lataa`,
@@ -1023,7 +1010,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Poista sivusto`,
     'options.videoRemoveQuestion': `Poistetaanko {site}? Sen asetukset katoavat, ja painike lataa siellä kaikkien muiden sivustojen asetuksilla.`,
     'options.videoRemoveCommit': `Poista`,
-    'options.videoCustomInfo': `Painike näkyy tällä sivustolla aina, kun se on päällä kaikilla muilla sivustoilla, ja lataa täällä näillä asetuksilla.`,
   },
   no: {
     'video.send': `Last ned`,
@@ -1096,7 +1082,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Fjern nettsted`,
     'options.videoRemoveQuestion': `Vil du fjerne {site}? Innstillingene for det forsvinner, og knappen laster da ned der med innstillingene for alle andre nettsteder.`,
     'options.videoRemoveCommit': `Fjern`,
-    'options.videoCustomInfo': `Knappen vises på dette nettstedet så lenge den er på for alle andre nettsteder, og laster ned her med disse innstillingene.`,
   },
   tr: {
     'video.send': `İndir`,
@@ -1169,7 +1154,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Siteyi kaldır`,
     'options.videoRemoveQuestion': `{site} kaldırılsın mı? Ayarları silinir ve düğme orada diğer tüm sitelerin ayarlarıyla indirir.`,
     'options.videoRemoveCommit': `Kaldır`,
-    'options.videoCustomInfo': `Düğme, diğer tüm siteler için açık olduğu sürece bu sitede görünür ve burada bu ayarlarla indirir.`,
   },
   ar: {
     'video.send': `تنزيل`,
@@ -1242,7 +1226,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `إزالة الموقع`,
     'options.videoRemoveQuestion': `إزالة {site}؟ ستُحذف إعداداته، وسينزّل الزر هناك بإعدادات كل المواقع الأخرى.`,
     'options.videoRemoveCommit': `إزالة`,
-    'options.videoCustomInfo': `يظهر الزر على هذا الموقع ما دام مفعّلًا لكل المواقع الأخرى، وينزّل هنا بهذه الإعدادات.`,
   },
   bg: {
     'video.send': `Изтегли`,
@@ -1315,7 +1298,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Премахване на сайта`,
     'options.videoRemoveQuestion': `Да се премахне ли {site}? Настройките му ще изчезнат и бутонът ще изтегля там с настройките за всички други сайтове.`,
     'options.videoRemoveCommit': `Премахване`,
-    'options.videoCustomInfo': `Бутонът се показва в този сайт, докато е включен за всички други сайтове, и изтегля тук с тези настройки.`,
   },
   ca: {
     'video.send': `Baixa`,
@@ -1388,7 +1370,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Treu el lloc`,
     'options.videoRemoveQuestion': `Vols treure {site}? La seva configuració desapareixerà i el botó hi baixarà amb la configuració de tots els altres llocs.`,
     'options.videoRemoveCommit': `Treu`,
-    'options.videoCustomInfo': `El botó apareix en aquest lloc sempre que estigui activat per a tots els altres llocs, i aquí baixa amb aquesta configuració.`,
   },
   el: {
     'video.send': `Λήψη`,
@@ -1461,7 +1442,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Αφαίρεση ιστότοπου`,
     'options.videoRemoveQuestion': `Αφαίρεση του {site}; Οι ρυθμίσεις του θα χαθούν και το κουμπί θα κάνει λήψη εκεί με τις ρυθμίσεις για όλους τους άλλους ιστότοπους.`,
     'options.videoRemoveCommit': `Αφαίρεση`,
-    'options.videoCustomInfo': `Το κουμπί εμφανίζεται σε αυτόν τον ιστότοπο όσο είναι ενεργό για όλους τους άλλους ιστότοπους, και εδώ κάνει λήψη με αυτές τις ρυθμίσεις.`,
   },
   et: {
     'video.send': `Laadi alla`,
@@ -1534,7 +1514,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Eemalda sait`,
     'options.videoRemoveQuestion': `Kas eemaldada {site}? Selle seaded kaovad ja nupp laadib seal alla kõigi teiste saitide seadetega.`,
     'options.videoRemoveCommit': `Eemalda`,
-    'options.videoCustomInfo': `Nupp on sellel saidil näha seni, kuni see on kõigi teiste saitide jaoks sees, ja laadib siin alla nende seadetega.`,
   },
   eu: {
     'video.send': `Deskargatu`,
@@ -1607,7 +1586,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Kendu gunea`,
     'options.videoRemoveQuestion': `{site} kendu? Bere ezarpenak desagertuko dira, eta botoiak beste gune guztien ezarpenekin deskargatuko du han.`,
     'options.videoRemoveCommit': `Kendu`,
-    'options.videoCustomInfo': `Botoia gune honetan agertzen da beste gune guztietarako aktibatuta dagoen bitartean, eta hemen ezarpen hauekin deskargatzen du.`,
   },
   fa: {
     'video.send': `دانلود`,
@@ -1680,7 +1658,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `حذف سایت`,
     'options.videoRemoveQuestion': `{site} حذف شود؟ تنظیماتش از بین می‌رود و دکمه آنجا با تنظیمات همهٔ سایت‌های دیگر دانلود می‌کند.`,
     'options.videoRemoveCommit': `حذف`,
-    'options.videoCustomInfo': `دکمه تا وقتی برای همهٔ سایت‌های دیگر روشن است روی این سایت نمایش داده می‌شود و اینجا با این تنظیمات دانلود می‌کند.`,
   },
   gl: {
     'video.send': `Descargar`,
@@ -1753,7 +1730,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Quitar sitio`,
     'options.videoRemoveQuestion': `Queres quitar {site}? A súa configuración desaparecerá e o botón descargará alí coa configuración de todos os demais sitios.`,
     'options.videoRemoveCommit': `Quitar`,
-    'options.videoCustomInfo': `O botón aparece neste sitio mentres estea activado para todos os demais sitios, e aquí descarga con esta configuración.`,
   },
   he: {
     'video.send': `הורדה`,
@@ -1826,7 +1802,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `הסרת האתר`,
     'options.videoRemoveQuestion': `להסיר את {site}? ההגדרות שלו יימחקו, והכפתור יוריד שם עם ההגדרות של כל שאר האתרים.`,
     'options.videoRemoveCommit': `הסרה`,
-    'options.videoCustomInfo': `הכפתור מופיע באתר הזה כל עוד הוא מופעל לכל שאר האתרים, ומוריד כאן עם ההגדרות האלה.`,
   },
   hi: {
     'video.send': `डाउनलोड`,
@@ -1899,7 +1874,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `साइट हटाएँ`,
     'options.videoRemoveQuestion': `{site} हटाएँ? इसकी सेटिंग्स मिट जाएँगी, और बटन वहाँ बाकी सभी साइटों की सेटिंग्स से डाउनलोड करेगा।`,
     'options.videoRemoveCommit': `हटाएँ`,
-    'options.videoCustomInfo': `जब तक बटन बाकी सभी साइटों के लिए चालू है, तब तक यह इस साइट पर दिखता है और यहाँ इन सेटिंग्स से डाउनलोड करता है।`,
   },
   hr: {
     'video.send': `Preuzmi`,
@@ -1972,7 +1946,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Ukloni stranicu`,
     'options.videoRemoveQuestion': `Ukloniti {site}? Njezine postavke nestat će, a gumb će ondje preuzimati s postavkama za sve ostale stranice.`,
     'options.videoRemoveCommit': `Ukloni`,
-    'options.videoCustomInfo': `Gumb se na ovoj stranici prikazuje dok je uključen za sve ostale stranice i ovdje preuzima s ovim postavkama.`,
   },
   hu: {
     'video.send': `Letöltés`,
@@ -2045,7 +2018,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Oldal eltávolítása`,
     'options.videoRemoveQuestion': `Eltávolítod ezt: {site}? A beállításai elvesznek, és a gomb ott a többi oldal beállításaival tölt le.`,
     'options.videoRemoveCommit': `Eltávolítás`,
-    'options.videoCustomInfo': `A gomb addig jelenik meg ezen az oldalon, amíg a többi oldalon be van kapcsolva, és itt ezekkel a beállításokkal tölt le.`,
   },
   id: {
     'video.send': `Unduh`,
@@ -2118,7 +2090,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Hapus situs`,
     'options.videoRemoveQuestion': `Hapus {site}? Pengaturannya akan hilang, dan tombol akan mengunduh di sana dengan pengaturan untuk semua situs lain.`,
     'options.videoRemoveCommit': `Hapus`,
-    'options.videoCustomInfo': `Tombol muncul di situs ini selama aktif untuk semua situs lain, dan mengunduh di sini dengan pengaturan ini.`,
   },
   is: {
     'video.send': `Sækja`,
@@ -2191,7 +2162,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Fjarlægja vef`,
     'options.videoRemoveQuestion': `Fjarlægja {site}? Stillingarnar fyrir hann hverfa og hnappurinn sækir þar með stillingunum fyrir alla aðra vefi.`,
     'options.videoRemoveCommit': `Fjarlægja`,
-    'options.videoCustomInfo': `Hnappurinn birtist á þessum vef á meðan kveikt er á honum fyrir alla aðra vefi og sækir hér með þessum stillingum.`,
   },
   ja: {
     'video.send': `ダウンロード`,
@@ -2264,7 +2234,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `サイトを削除`,
     'options.videoRemoveQuestion': `{site} を削除しますか？設定は失われ、そのサイトではその他のすべてのサイトの設定でダウンロードするようになります。`,
     'options.videoRemoveCommit': `削除`,
-    'options.videoCustomInfo': `その他のすべてのサイトでボタンがオンになっている間、このサイトにもボタンが表示され、ここではこの設定でダウンロードします。`,
   },
   ko: {
     'video.send': `다운로드`,
@@ -2337,7 +2306,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `사이트 삭제`,
     'options.videoRemoveQuestion': `{site}을(를) 삭제할까요? 설정이 사라지고, 버튼은 그곳에서 다른 모든 사이트의 설정으로 다운로드합니다.`,
     'options.videoRemoveCommit': `삭제`,
-    'options.videoCustomInfo': `다른 모든 사이트에서 버튼이 켜져 있는 동안 이 사이트에도 버튼이 표시되며, 여기서는 이 설정으로 다운로드합니다.`,
   },
   lt: {
     'video.send': `Atsisiųsti`,
@@ -2410,7 +2378,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Pašalinti svetainę`,
     'options.videoRemoveQuestion': `Pašalinti {site}? Jos nustatymai dings, o mygtukas ten atsisiųs su visų kitų svetainių nustatymais.`,
     'options.videoRemoveCommit': `Pašalinti`,
-    'options.videoCustomInfo': `Mygtukas šioje svetainėje rodomas tol, kol jis įjungtas visoms kitoms svetainėms, ir čia atsisiunčia su šiais nustatymais.`,
   },
   lv: {
     'video.send': `Lejupielādēt`,
@@ -2483,7 +2450,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Noņemt vietni`,
     'options.videoRemoveQuestion': `Vai noņemt {site}? Tās iestatījumi pazudīs, un poga tur lejupielādēs ar visu citu vietņu iestatījumiem.`,
     'options.videoRemoveCommit': `Noņemt`,
-    'options.videoCustomInfo': `Poga šajā vietnē ir redzama, kamēr tā ir ieslēgta visām citām vietnēm, un šeit lejupielādē ar šiem iestatījumiem.`,
   },
   ms: {
     'video.send': `Muat turun`,
@@ -2556,7 +2522,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Buang laman`,
     'options.videoRemoveQuestion': `Buang {site}? Tetapannya akan hilang, dan butang akan memuat turun di sana dengan tetapan untuk semua laman lain.`,
     'options.videoRemoveCommit': `Buang`,
-    'options.videoCustomInfo': `Butang muncul pada laman ini selagi ia dihidupkan untuk semua laman lain, dan memuat turun di sini dengan tetapan ini.`,
   },
   ro: {
     'video.send': `Descarcă`,
@@ -2629,7 +2594,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Elimină site-ul`,
     'options.videoRemoveQuestion': `Elimini {site}? Setările lui vor dispărea, iar butonul va descărca acolo cu setările pentru toate celelalte site-uri.`,
     'options.videoRemoveCommit': `Elimină`,
-    'options.videoCustomInfo': `Butonul apare pe acest site cât timp este pornit pentru toate celelalte site-uri și aici descarcă cu aceste setări.`,
   },
   sk: {
     'video.send': `Stiahnuť`,
@@ -2702,7 +2666,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Odstrániť stránku`,
     'options.videoRemoveQuestion': `Odstrániť {site}? Jej nastavenia zmiznú a tlačidlo tam bude sťahovať s nastaveniami pre všetky ostatné stránky.`,
     'options.videoRemoveCommit': `Odstrániť`,
-    'options.videoCustomInfo': `Tlačidlo sa na tejto stránke zobrazuje, kým je zapnuté pre všetky ostatné stránky, a sťahuje tu s týmito nastaveniami.`,
   },
   sl: {
     'video.send': `Prenesi`,
@@ -2775,7 +2738,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Odstrani stran`,
     'options.videoRemoveQuestion': `Želite odstraniti {site}? Njene nastavitve bodo izginile, gumb pa bo tam prenašal z nastavitvami za vse druge strani.`,
     'options.videoRemoveCommit': `Odstrani`,
-    'options.videoCustomInfo': `Gumb se na tej strani prikazuje, dokler je vklopljen za vse druge strani, in tukaj prenaša s temi nastavitvami.`,
   },
   sr: {
     'video.send': `Преузми`,
@@ -2848,7 +2810,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Уклони сајт`,
     'options.videoRemoveQuestion': `Уклонити {site}? Његова подешавања ће нестати, а дугме ће тамо преузимати са подешавањима за све остале сајтове.`,
     'options.videoRemoveCommit': `Уклони`,
-    'options.videoCustomInfo': `Дугме се на овом сајту приказује док је укључено за све остале сајтове и овде преузима са овим подешавањима.`,
   },
   th: {
     'video.send': `ดาวน์โหลด`,
@@ -2921,7 +2882,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `ลบเว็บไซต์`,
     'options.videoRemoveQuestion': `ลบ {site} ใช่ไหม การตั้งค่าของเว็บไซต์นี้จะหายไป และปุ่มจะดาวน์โหลดที่นั่นด้วยการตั้งค่าของเว็บไซต์อื่นทั้งหมด`,
     'options.videoRemoveCommit': `ลบ`,
-    'options.videoCustomInfo': `ปุ่มจะแสดงบนเว็บไซต์นี้ตราบที่เปิดไว้สำหรับเว็บไซต์อื่นทั้งหมด และจะดาวน์โหลดที่นี่ด้วยการตั้งค่าเหล่านี้`,
   },
   vi: {
     'video.send': `Tải xuống`,
@@ -2994,7 +2954,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `Xóa trang`,
     'options.videoRemoveQuestion': `Xóa {site}? Cài đặt của trang này sẽ mất, và nút sẽ tải xuống ở đó bằng cài đặt cho tất cả các trang khác.`,
     'options.videoRemoveCommit': `Xóa`,
-    'options.videoCustomInfo': `Nút hiện trên trang này khi nút đang bật cho tất cả các trang khác, và ở đây tải xuống bằng các cài đặt này.`,
   },
   zh: {
     'video.send': `下载`,
@@ -3067,7 +3026,6 @@ const VIDEO_MESSAGES = {
     'options.videoRemoveSite': `移除网站`,
     'options.videoRemoveQuestion': `要移除 {site} 吗？它的设置会被删除，按钮在那里将使用所有其他网站的设置下载。`,
     'options.videoRemoveCommit': `移除`,
-    'options.videoCustomInfo': `只要按钮对所有其他网站开启，它就会显示在这个网站上，并在这里使用这些设置下载。`,
   },
 };
 

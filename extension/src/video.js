@@ -850,11 +850,18 @@ function videoButtonWanted(stored, siteId) {
 /** The keyboard shortcut's name in the manifest's commands. */
 const VIDEO_COMMAND = 'send-video';
 
-/** The access a list of sites needs. The access to all websites takes in
- *  every site of the list. */
+/** A site added on the options page, listed under its host, which takes in
+ *  every host under it as videoDefaultsKey does. */
+function videoCustomSite(host) {
+  return { id: host, origins: [`*://${host}/*`, `*://*.${host}/*`] };
+}
+
+/** The access a list of sites needs, a site added on the options page by its
+ *  host. The access to all websites takes in every site of the list. */
 function videoAccess(siteIds) {
   if (siteIds.includes(VIDEO_OTHER.id)) return { origins: VIDEO_OTHER.origins };
-  return { origins: VIDEO_SITES.filter((s) => siteIds.includes(s.id)).flatMap((s) => s.origins) };
+  const named = VIDEO_SITES.filter((s) => siteIds.includes(s.id)).flatMap((s) => s.origins);
+  return { origins: [...named, ...siteIds.filter((id) => id.includes('.')).flatMap((id) => videoCustomSite(id).origins)] };
 }
 
 /**
@@ -864,11 +871,12 @@ function videoAccess(siteIds) {
  * the state the options page asks the browser to fix.
  */
 async function videoButtonState() {
-  const stored = await chrome.storage.local.get(['videoButton', 'videoButtonHidden']);
+  const stored = await chrome.storage.local.get(['videoButton', 'videoButtonHidden', 'videoCustomSites']);
   const wanted = stored.videoButton !== false;
-  const shown = VIDEO_ALL_SITES.filter((s) => videoButtonWanted({ ...stored, videoButton: true }, s.id)).map((s) => s.id);
+  const sites = [...VIDEO_ALL_SITES, ...(Array.isArray(stored.videoCustomSites) ? stored.videoCustomSites : []).map(videoCustomSite)];
+  const shown = sites.filter((s) => videoButtonWanted({ ...stored, videoButton: true }, s.id)).map((s) => s.id);
   const granted = [];
-  for (const s of VIDEO_ALL_SITES) {
+  for (const s of sites) {
     if (await chrome.permissions.contains({ origins: s.origins })) granted.push(s.id);
   }
   const running = wanted ? shown.filter((id) => granted.includes(id)) : [];

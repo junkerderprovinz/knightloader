@@ -44,6 +44,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   video you are watching, once your instance says yt-dlp can download the
   page. Its switch is "All other sites" in the video button's settings, with
   its own defaults for what a click downloads.
+- **Video sites can be added in the extension's settings,** each with its
+  own switch and its own defaults for what a click downloads. The sites have
+  a card of their own, where each row opens a window with that site's
+  settings.
 - **The video button always downloads with yt-dlp,** also on a site whose
   links your instance hands to JDownloader, such as archive.org. Links you
   paste keep their routing. Other clients can pin a link the same way, with

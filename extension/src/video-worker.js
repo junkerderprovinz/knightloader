@@ -331,7 +331,8 @@ const videoChecking = new Map();
 async function videoCheck(frameUrl, msg) {
   const page = videoPage(msg.href);
   if (page?.site !== VIDEO_OTHER.id || !videoOwnPage(frameUrl, page)) return { claims: false };
-  if (!(await videoButtonState()).running.includes(VIDEO_OTHER.id)) return { claims: false };
+  const stored = await chrome.storage.local.get('videoCustomSites');
+  if (!(await videoButtonState()).running.includes(videoDefaultsKey(stored, page))) return { claims: false };
   const key = videoCheckKey(page.url);
   const { videoChecks = {} } = await chrome.storage.session.get('videoChecks');
   const known = videoChecks[key];
@@ -428,7 +429,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 async function sendVideoByShortcut(command, tab) {
   if (command !== VIDEO_COMMAND) return;
   const page = videoPage(tab?.url ?? '');
-  if (!page || !(await videoButtonState()).running.includes(page.site)) return;
+  if (!page) return;
+  const stored = await chrome.storage.local.get('videoCustomSites');
+  if (!(await videoButtonState()).running.includes(videoDefaultsKey(stored, page))) return;
   await chrome.tabs.sendMessage(tab.id, { type: 'knightloader-video-shortcut' }, { frameId: 0 }).catch(() => {});
 }
 

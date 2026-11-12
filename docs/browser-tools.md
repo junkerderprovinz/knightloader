@@ -306,13 +306,16 @@ the script asks the worker nothing, so a page without such a video costs no
 message at all. A click sends the page's own address without its fragment,
 with the defaults the options set for all other sites.
 
-The options show each site as a tile with its icon, its switch and a line on
-what a click downloads, and the tile opens a window with that site's choices.
-Sites can be added there by address. An added site runs on the access to all
-websites like every other site, but keeps defaults of its own under its host
-name (`videoCustomSites`, `videoDefaults`, `videoSeen`), which the button
-and the worker look up for that host and every host under it before falling
-back to all other sites (`videoDefaultsKey`).
+The options show the sites in a card of their own, each as a row with its
+icon, its switch and a line on what a click downloads, and the row opens a
+window with that site's choices. Sites can be added there by address. An
+added site has a switch of its own, listed under its host name in
+`videoButtonHidden`, and runs on the access to that host and every host
+under it, so it keeps the button with all other sites off. It keeps defaults
+of its own under the same name (`videoCustomSites`, `videoDefaults`,
+`videoSeen`), which the button and the worker look up for that host and
+every host under it before falling back to all other sites
+(`videoDefaultsKey`).
 
 It is on by default. On the five sites it needs access to those sites only,
 which the access to all websites for Click'n'Load includes. All other sites run

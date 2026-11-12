@@ -295,8 +295,6 @@ function videoTileButton(key, mark, name, summary) {
   return b;
 }
 
-/** A site added here has no switch of its own: the button shows there
- *  wherever it shows on all other sites. */
 function videoTile(site) {
   const tile = document.createElement('div');
   tile.className = 'videoTile';
@@ -304,12 +302,11 @@ function videoTile(site) {
   open.dataset.videoOpen = site.id;
   open.addEventListener('click', () => openVideoSite(site.id));
   tile.append(open);
-  if (site.custom) return tile;
   const on = videoNow.running.includes(site.id);
   const toggle = videoSwitch(on, site.name);
   toggle.dataset.videoKey = `${site.id}-shown`;
   toggle.addEventListener('click', async () => {
-    const hidden = VIDEO_ALL_SITES.map((s) => s.id).filter((id) => !videoNow.shown.includes(id));
+    const hidden = [...VIDEO_ALL_SITES.map((s) => s.id), ...videoCustomList(videoNow.stored)].filter((id) => !videoNow.shown.includes(id));
     if (on) {
       await chrome.storage.local.set({ videoButtonHidden: [...hidden, site.id] });
       return;
@@ -345,7 +342,6 @@ function drawVideoWindow() {
   const removing = videoOpen.removing;
   videoSiteTitleEl.textContent = removing ? t('options.videoRemoveSite') : site.name;
   videoSiteHeadingEl.querySelector('.glim-info-icon')?.remove();
-  if (site.custom && !removing) glimSetInfo('videoSiteHeading', t('options.videoCustomInfo'));
   if (removing) {
     const question = document.createElement('p');
     question.className = 'glim-modal-message';
@@ -420,13 +416,15 @@ function cancelVideoRemove() {
   videoSiteRemoveEl.focus();
 }
 
-/** A site goes with its defaults and what it offered, so the button
- *  downloads there as on all other sites again. */
+/** A site goes with its switch, its defaults and what it offered, so the
+ *  button downloads there as on all other sites again. */
 async function removeVideoSite() {
   const host = videoOpen.id;
   const { videoDefaults = {}, videoSeen = {} } = videoNow.stored;
+  const { videoButtonHidden = [] } = await chrome.storage.local.get('videoButtonHidden');
   const without = (o) => Object.fromEntries(Object.entries(o).filter(([k]) => k !== host));
   await chrome.storage.local.set({
+    videoButtonHidden: videoButtonHidden.filter((id) => id !== host),
     videoCustomSites: videoCustomList(videoNow.stored).filter((h) => h !== host),
     videoDefaults: without(videoDefaults),
     videoSeen: without(videoSeen),

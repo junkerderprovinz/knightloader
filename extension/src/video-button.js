@@ -555,7 +555,7 @@
       unfollow();
     }
     page = next;
-    const wanted = page && videoButtonWanted(stored, page.site);
+    const wanted = page && videoButtonWanted(stored, videoDefaultsKey(stored, page));
     if (!wanted) unfollow();
     let found = wanted ? largestVideo() : null;
     if (found && page.site === VIDEO_OTHER.id && !claimed(found)) found = null;

@@ -635,6 +635,11 @@ function loadBackground(chrome) {
     const got = run(`videoDefaultsKey(stored, videoPage(${JSON.stringify(href)}))`);
     if (got !== want) fail(`the defaults for ${href} are looked up under ${got}, want ${want}`);
   }
+
+  // Such a site has a switch of its own: it hides the button there alone, and
+  // keeps it there with all other sites off, on the access to its own host.
+  if (!run(`videoButtonWanted({ videoButtonHidden: ['other'] }, 'example.org')`) || run(`videoButtonWanted({ videoButtonHidden: ['example.org'] }, 'example.org')`)) fail('the switch of an added site does not decide alone whether the button shows there');
+  if (!same(run(`videoAccess(['example.org'])`).origins, ['*://example.org/*', '*://*.example.org/*'])) fail(`an added site asks for ${JSON.stringify(run(`videoAccess(['example.org'])`).origins)}, want its host and every host under it`);
 }
 
 // 4. The worker.
@@ -845,6 +850,23 @@ function loadBackground(chrome) {
   ctx.withGroup = async () => { asked++; return null; };
   const check = await vm.runInContext('videoCheck', ctx)('https://clips.example.org/watch/7', { href: 'https://clips.example.org/watch/7' });
   if (check.claims !== false || asked) fail('without the access to all websites a page of another site is checked');
+}
+
+// With all other sites off, the button still runs on a site added in the
+// options, registered on that host alone, and its pages ask the instance.
+{
+  const own = ['*://clips.example.org/*', '*://*.clips.example.org/*'];
+  const store = makeStore({ videoButtonHidden: ['other'], videoCustomSites: ['clips.example.org'] });
+  const { chrome, live } = makeChrome(store, { granted: own });
+  const ctx = loadBackground(chrome);
+  await vm.runInContext('applyVideoButton', ctx)();
+  const state = await vm.runInContext('videoButtonState', ctx)();
+  if (!state.running.includes('clips.example.org') || state.running.includes('other')) fail(`with all other sites off and a site added, the button's state is ${JSON.stringify(state)}, want it running on the added site alone`);
+  if (live.get('video-button')?.matches.join('|') !== own.join('|')) fail(`with all other sites off the button is registered on ${live.get('video-button')?.matches}, want the added site's host`);
+  let asked = 0;
+  ctx.withGroup = async () => { asked++; return null; };
+  await vm.runInContext('videoCheck', ctx)('https://www.clips.example.org/watch/7', { href: 'https://www.clips.example.org/watch/7' });
+  if (!asked) fail('with all other sites off a page of an added site is not checked');
 }
 
 /** A small stand-in for the DOM, enough for the button. */
@@ -1819,18 +1841,28 @@ for (const converts of [true, false]) {
   await tick();
   if (button() || asked.checks.length !== 3) fail(`with no instance answering the button shows or the page is asked ${asked.checks.length - 2} times at once`);
 
-  // Hiding the button on all other sites takes it off a page it shows on.
   location.href = 'https://clips.example.org/watch/7';
   await tick();
   if (!button()) fail('back on a page the instance can download the button does not come back');
+  // Hiding the button on all other sites takes it off a page it shows on.
+  await store.local.set({ videoButtonHidden: ['other'] });
+  await settle();
+  if (button()) fail('hidden on all other sites, the button stays');
+  await store.local.set({ videoButtonHidden: [] });
+  await settle();
   // A site added on the options page sends its own defaults on its hosts.
   await store.local.set({ videoCustomSites: ['example.org'], videoDefaults: { ...store.data.videoDefaults, 'example.org': { parts: ['video'], quality: '720p' } } });
   await settle();
   button()?.shadow?.querySelectorAll('button').find((b) => b.className === 'send').fire('click');
   await settle();
   if (sends.at(-1)?.pick?.parts?.join() !== 'video' || sends.at(-1)?.pick?.quality !== '720p') fail(`a click on a site added on the options page sends ${JSON.stringify(sends.at(-1)?.pick)}, want its own defaults`);
+  // Its own switch keeps it there with all other sites off, and takes it off.
   await store.local.set({ videoButtonHidden: ['other'] });
-  if (button()) fail('hidden on all other sites, the button stays');
+  await settle();
+  if (!button()) fail('hidden on all other sites, the button leaves a site added on the options page');
+  await store.local.set({ videoButtonHidden: ['other', 'example.org'] });
+  await settle();
+  if (button()) fail('hidden on a site added on the options page, the button stays');
 }
 
 // A player that keeps its video in a shadow root of its own, as archive.org's
@@ -2195,7 +2227,13 @@ for (const all of [true, false]) {
   for (const [key, want] of [['youtube-open', 'video.partVideo · 1080p · MP4'], ['vimeo-open', 'video.partAudio · MP3'], ['clips.example.org-open', 'video.partVideo, video.partSubtitle · video.qualityBest']]) {
     if (words(key) !== want) fail(`the tile ${key} says ${words(key)}, want ${want}`);
   }
-  if (!tileButton(doc, 'youtube-shown') || tileButton(doc, 'clips.example.org-shown')) fail('a named site has no switch on its tile, or a site added here has one of its own');
+  if (!tileButton(doc, 'youtube-shown') || !tileButton(doc, 'clips.example.org-shown')) fail('a named site or a site added here has no switch on its tile');
+  tileButton(doc, 'clips.example.org-shown')?.dispatch('click');
+  await settle();
+  if (!store.data.videoButtonHidden?.includes('clips.example.org') || store.data.videoButtonHidden.includes('youtube')) fail(`switching an added site off hides ${JSON.stringify(store.data.videoButtonHidden)}, want that site alone`);
+  tileButton(doc, 'clips.example.org-shown')?.dispatch('click');
+  await settle();
+  if (store.data.videoButtonHidden?.includes('clips.example.org')) fail('switching an added site on again leaves it hidden');
 
   // The mark is the site's favicon, its first letter where none loads.
   const mark = (key) => tileButton(doc, key)?.children[0];
