@@ -1,6 +1,6 @@
 # Privacy policy: KnightLoader browser extension
 
-Last updated: 8 November 2026. Applies to version 1.4.0 and later, until this
+Last updated: 12 November 2026. Applies to version 1.4.0 and later, until this
 date changes.
 
 ## The short version
@@ -9,8 +9,10 @@ The extension sends what you choose to send (a link, an image address, selected
 text, the current page, or links you paste, drop or load into its collector) to
 KnightLoader instances that you run yourself. Two features, off until you switch
 them on, also hand browser downloads over to your instance and list the video
-and audio a page plays so you can send them. On a few video sites a download
-button on the player sends the video you are watching when you press it. It has no analytics, no
+and audio a page plays so you can send them. A download button on video
+players sends the video you are watching when you press it. Outside YouTube,
+Vimeo, Dailymotion, Twitch and Bilibili it first asks your own instance whether
+it can download the page. It has no analytics, no
 advertising, no accounts and no tracking.
 
 It reaches your instances through a relay operated by the party named under "Who
@@ -56,6 +58,10 @@ While finding media is on, the session storage also holds, for each open tab, th
 address of the page and the addresses of the video and audio streams it loaded,
 up to 30 per tab. A new page in the tab starts its list afresh, closing the tab
 deletes it, and switching the feature off deletes all of them.
+
+For the download button on other sites, the session storage holds the origin
+and path of each page your instance was asked about, with its answer and the
+time, for the last 200 pages. The browser clears it when it closes.
 
 In Firefox, while the clipboard watch is on, session storage also holds a short
 checksum of the last text read from the clipboard, so the watch can tell a new
@@ -123,6 +129,10 @@ These travel through the relay, and only your instances can read them:
 - When you press the download button on a video: the video's address, or its
   playlist's when you picked the whole playlist in the button's menu, and the
   format you picked there. Nothing else from the page is sent.
+- While a video plays on a site other than YouTube, Vimeo, Dailymotion, Twitch
+  and Bilibili, with the button on there: the page's address without the part
+  after `#`, once per page, to your default instance, which asks yt-dlp whether
+  it can download it. The button shows only if it can.
 - While the popup or options page is open: requests for your instances' queue
   status and web addresses, and a request for an instance's appearance settings
   if you chose to follow them.
@@ -187,18 +197,25 @@ extension settings.
 
 ## The download button on videos
 
-The button runs only on YouTube, Vimeo, Dailymotion, Twitch and Bilibili, and
-only with your browser's access to those sites. Access to all websites, if you
-gave it for Click'n'Load, includes them. Otherwise your browser asks when you
-switch the button on, and you can say no. It is on until you switch it off in the
-options or in the toolbar popup, and you can hide it on each site.
+The button runs on YouTube, Vimeo, Dailymotion, Twitch and Bilibili with your
+browser's access to those sites. Access to all websites, if you gave it for
+Click'n'Load, includes them. Otherwise your browser asks when you switch the
+button on, and you can say no. On all other sites it runs only with access to
+all websites: if Click'n'Load already has it, the button is on there too, and
+otherwise your browser asks when you switch on "All other sites" in the
+options. It is on until you switch it off in the options or in the toolbar
+popup, and you can hide it on each site and on all other sites.
 
-On those sites a small script reads the page's address and where the largest
-video sits, so it can draw the button on the player, in a part of the page of
-its own that the site cannot read. It reads no other page content, no form
-fields, passwords or cookies, and it sends nothing until you press the button
-or its keyboard shortcut. Switching the button off takes it out of open tabs at
-once and stops the script from being added to pages you open after that.
+A small script reads the page's address and where the largest video sits, so it
+can draw the button on the player, in a part of the page of its own that the
+site cannot read. On other sites it also reads whether that video plays, is
+muted or has controls, to leave backgrounds and adverts alone. It reads no
+other page content, no form fields, passwords or cookies. On the five sites it
+sends nothing until you press the button or its keyboard shortcut. On other
+sites it sends the page's address to your own instance once, while a video
+plays there, to learn whether the button can download it. Switching the button
+off takes it out of open tabs at once and stops the script from being added to
+pages you open after that.
 
 ## Taking over downloads
 
@@ -245,7 +262,7 @@ button in the popup.
 | `cookies` (optional) | Reading the cookies for the one address being handed over, so a download behind a login works on your instance. Asked for with taking over downloads or finding media. |
 | `notifications` (optional) | The short note that names the instance a download went to. Asked for with taking over downloads. |
 | `webRequest` (optional) | Seeing which video and audio streams a page loads. Asked for with finding media, and given back when you switch it off. |
-| Access to all websites (optional) | Also needed for the cookies of any download site and for the media a page loads. Kept while any of Click'n'Load, taking over downloads or finding media is on. |
+| Access to all websites (optional) | Also needed for the cookies of any download site, for the media a page loads and for the download button on all other sites. Kept while any of Click'n'Load, taking over downloads, finding media or the button on all other sites is on. |
 | Access to YouTube, Vimeo, Dailymotion, Twitch and Bilibili (optional) | Drawing the download button on their players. Included in the access to all websites. Otherwise asked for when you switch the button on, and kept when you switch it off, so switching it on again needs no second question. |
 
 ## What the extension does not do

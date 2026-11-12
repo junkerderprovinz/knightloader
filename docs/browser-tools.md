@@ -251,13 +251,14 @@ nothing about this shape blocks it later.
 
 ### The download button on videos
 
-On YouTube, Vimeo, Dailymotion, Twitch and Bilibili a small button sits at the
-top of the player and sends the video being watched to the default instance
-with one click, the way a desktop download manager offers it. `video.js` holds
-the sites, the address each page sends and the switch. `video-worker.js`
-registers `video-button.js` with `scripting.registerContentScripts` on those
-sites only, in every frame so embedded players get it too, and brings it into
-tabs that were already open.
+On YouTube, Vimeo, Dailymotion, Twitch and Bilibili, and on any other site
+whose video yt-dlp can download, a small button sits at the top of the player
+and sends the video being watched to the default instance with one click, the
+way a desktop download manager offers it. `video.js` holds the sites, the
+address each page sends and the switch. `video-worker.js` registers
+`video-button.js` with `scripting.registerContentScripts` on those five sites,
+or on every page while all other sites are on, in every frame so embedded
+players get it too, and brings it into tabs that were already open.
 
 The button sends the one address a video goes by, whatever form the page came
 in: a YouTube Short, live page or embedded player sends
@@ -284,11 +285,27 @@ navigation from video to video, shows while the pointer moves over the video,
 and keeps its clicks and keys from reaching the player. It lives in a closed
 shadow root and wears the extension's own look.
 
-It is on by default and needs access to those five sites only, which the
-access to all websites for Click'n'Load includes. Its switch is in the options
-and in the toolbar popup, both on one stored setting, and the options switch
-it off per site. The button's own menu can hide it on the site it is on.
-Switching off takes it out of open tabs at once.
+On every other site the button waits for a video that somebody is watching:
+at least 200 by 112 pixels, half of it on screen and started. A muted video
+without controls that starts or loops by itself is a background or an advert
+and does not count. The button then asks the instance once with the same
+`GET /api/ytdlp/link` and shows only if yt-dlp found a video track or a
+resolution there. The worker keeps that answer by origin and path in session
+storage, a no for ten minutes and a yes until the browser closes, so a page is
+asked once, and the menu opens on the offer the check brought back. Until then
+the script asks the worker nothing, so a page without such a video costs no
+message at all. A click sends the page's own address without its fragment,
+with the defaults the options set for all other sites.
+
+It is on by default. On the five sites it needs access to those sites only,
+which the access to all websites for Click'n'Load includes. All other sites run
+on the access to all websites itself: where Click'n'Load already has it they
+are on at once, and otherwise their own switch asks for it, so a no there keeps
+the button on the five sites. Turning Click'n'Load off keeps that access while
+the button uses it. The button's switch is in the options and in the toolbar
+popup, both on one stored setting, and the options switch it off per site. The
+button's own menu can hide it on the site it is on. Switching off takes it out
+of open tabs at once.
 
 ## PWA share target
 
