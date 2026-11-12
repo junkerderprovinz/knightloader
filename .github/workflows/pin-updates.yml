@@ -3,10 +3,9 @@ name: Pinned components
 # The Java runtime the desktop app fetches and RARLAB's UnRAR are pinned by hand
 # with their checksums, where Renovate cannot see them. Once a week this looks
 # for a newer release of each (scripts/pins/update-pins.mjs) and opens a pull
-# request that moves the pins, one branch per component and version. A newer
-# GlimStone gets an issue instead, since lifting the UI to it is work for a
-# person. ffmpeg needs nothing here: the app fetches BtbN's rolling build and
-# checks it against that release's own checksums, and the image takes Alpine's.
+# request that moves the pins, one branch per component and version. ffmpeg
+# needs nothing here: the app fetches BtbN's rolling build and checks it
+# against that release's own checksums, and the image takes Alpine's.
 #
 # The branch is pushed with RENOVATE_DIST_TOKEN, as in dependency-fixups.yml,
 # and ci.yml runs on that push. The pull request itself is opened with
@@ -83,39 +82,3 @@ jobs:
           git commit -m "$TITLE"
           git push --force "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${BRANCH}"
           gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$BRANCH" --title "$TITLE" --body "$BODY"
-
-  glimstone:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: main
-          persist-credentials: false
-
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: "24"
-
-      - name: Look for a newer release
-        id: check
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: node scripts/pins/update-pins.mjs glimstone
-
-      # One issue per release, open or closed: closing it is an answer too.
-      - name: Open the issue
-        if: steps.check.outputs.version != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TITLE: ${{ steps.check.outputs.title }}
-          BODY: ${{ steps.check.outputs.body }}
-        run: |
-          if gh issue list --repo "$GITHUB_REPOSITORY" --state all --search "\"$TITLE\" in:title" --json title --jq '.[].title' | grep -Fxq -- "$TITLE"; then
-            echo "There is already an issue titled $TITLE"
-            exit 0
-          fi
-          gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY"
