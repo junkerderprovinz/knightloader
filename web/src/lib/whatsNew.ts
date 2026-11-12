@@ -51,6 +51,14 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.8.2',
+    changes: [
+      { id: 'video-any-site', text: 'whatsnew.change.videoAnySite' },
+      { id: 'video-add-sites', text: 'whatsnew.change.videoAddSites' },
+      { id: 'video-ytdlp', text: 'whatsnew.change.videoYtdlp' },
+    ],
+  },
+  {
     version: '2.8.0',
     changes: [
       {
