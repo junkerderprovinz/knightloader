@@ -326,14 +326,18 @@ describe('FortressSection', () => {
 
   const arrowLoop = { id: 'm1', app: 'arrowloop', name: 'ArrowLoop', version: '3.0.0', device: 'Tower', deployment: 'container', kind: 'instance', online: true, relay: false, open: true };
 
-  it("opens another app's pages in a new tab through the fortress", async () => {
+  it("opens another app's pages in a new tab through the fortress, below the base", async () => {
     const opened = vi.fn();
     vi.stubGlobal('open', opened);
+    const base = document.createElement('base');
+    base.href = '/kl/';
+    document.head.append(base);
     await draw(joined({ members: [arrowLoop] }));
     await press('others');
     await press('open');
+    base.remove();
     expect(server.calls).toEqual(['open m1']);
-    expect(opened).toHaveBeenCalledWith('/fortress/open/0123', '_blank', 'noopener');
+    expect(opened).toHaveBeenCalledWith(`${location.origin}/kl/fortress/open/0123`, '_blank', 'noopener');
   });
 
   it("says in GlimStone's words why an app did not open", async () => {

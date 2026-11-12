@@ -4724,7 +4724,7 @@ export async function leaveFortress(): Promise<FortressState> {
 }
 
 /** openFortressMember asks for a tab on a member's web interface and returns
- *  its path. A refusal throws an ApiError whose code GlimStone's
+ *  its path below the base path. A refusal throws an ApiError whose code GlimStone's
  *  openRefusalText has words for. */
 export async function openFortressMember(id: string): Promise<string> {
   return (await json<{ path: string }>(await fetch(`/api/fortress/open/${encodeURIComponent(id)}`, { method: 'POST' }))).path;

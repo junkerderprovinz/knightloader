@@ -95,13 +95,14 @@ type openAnswer struct {
 }
 
 // tab opens a tab on the member and returns the address its pages live under.
+// The opener names the tab from its base, which the page resolves it against.
 func (p *openingPair) tab(t *testing.T) string {
 	t.Helper()
 	code, out := p.open(t, p.browser)
-	if code != http.StatusOK || !strings.HasPrefix(out.Path, buildinfo.BasePath+"/fortress/open/") {
+	if code != http.StatusOK || !strings.HasPrefix(out.Path, "/fortress/open/") {
 		t.Fatalf("opening answered %d %+v", code, out)
 	}
-	return p.opener.URL + out.Path
+	return p.opener.URL + buildinfo.BasePath + out.Path
 }
 
 // inTab sends a request of the sandboxed page in the tab, as a browser does:
@@ -284,7 +285,7 @@ func TestAnOpenedPageLivesUnderTheTabsPrefixWhateverTheBasePath(t *testing.T) {
 	p := openingTwo(t, true)
 	tab := p.tab(t)
 	code, page := inTab(t, http.MethodGet, tab+"/", "")
-	prefix := strings.TrimPrefix(tab, p.opener.URL+"/kl") + "/"
+	prefix := strings.TrimPrefix(tab, p.opener.URL) + "/"
 	if code != http.StatusOK || !strings.Contains(page, baseElement(prefix)) {
 		t.Errorf("under a base path the member's page answered %d without the base %s: %.300s", code, prefix, page)
 	}

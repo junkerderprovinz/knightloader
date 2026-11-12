@@ -111,10 +111,15 @@ func fortressTabs(a *app.App, next http.Handler) http.Handler {
 			http.NotFound(w, r)
 			return
 		}
-		// The kit names the tab's paths from the root and redirects within
-		// them; putting the base path in front would lead out of the tab.
+		// The kit puts the base it is told in front of the tab's paths and
+		// its redirects, so they must not get it a second time.
 		if under, ok := w.(redirectsUnderBase); ok {
 			w = under.ResponseWriter
+		}
+		r = r.Clone(r.Context())
+		r.Header.Del("X-Forwarded-Prefix")
+		if base := requestBasePath(r); base != "" {
+			r.Header.Set("X-Forwarded-Prefix", base)
 		}
 		g.f.OpenHandler(session, nil).ServeHTTP(w, r)
 	})
@@ -208,7 +213,7 @@ const statusLogLines = 10
 func registerFortressOpen(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/fortress/open/{id}",
 		"open the web interface of a member of the fortress in a new tab, behind that member's own sign-in; "+
-			"only for a browser signed in here with the password; answers the tab's path or a refusal code",
+			"only for a browser signed in here with the password; answers the tab's path below the base path, or a refusal code",
 		func(w http.ResponseWriter, r *http.Request) {
 			token, ok := passwordSession(a, r)
 			if !ok {
@@ -230,7 +235,7 @@ func registerFortressOpen(reg *Registry, a *app.App) {
 				refuseOpen(w, err)
 				return
 			}
-			writeJSON(w, map[string]string{"path": requestBasePath(r) + path})
+			writeJSON(w, map[string]string{"path": path})
 		})
 
 	reg.Add(http.MethodGet, "/api/fortress/members/{id}/status",

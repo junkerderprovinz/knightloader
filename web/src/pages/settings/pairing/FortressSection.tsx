@@ -138,7 +138,7 @@ export function FortressSection({
     }
   };
   // The tab opens right after the answer, which comes quickly, while the
-  // browser still counts it as the click's.
+  // browser still counts it as the click's. Its path lies below the base.
   const onOpen = (app: FortressApp, instance: FortressInstance) => {
     if (!view.members.find((m) => m.id === instance.id)?.open) {
       void showStatus(app, instance);
@@ -149,7 +149,7 @@ export function FortressSection({
       return;
     }
     openFortressMember(instance.id).then(
-      (path) => void window.open(path, '_blank', 'noopener'),
+      (path) => void window.open(new URL(path.slice(1), document.baseURI).href, '_blank', 'noopener'),
       (e: unknown) => toast(openRefusalText(text, refusalCode(e)), 'fail'),
     );
   };
