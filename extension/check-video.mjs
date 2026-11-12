@@ -1989,7 +1989,7 @@ function loadOptions(chrome) {
     n.hidden = new RegExp(`id="${id}"[^>]* hidden[ >]`).test(html);
     return [id, n];
   }));
-  for (const id of ['videoAutoHide', 'videoSpotReset', 'videoShortcut', 'videoShortcutAction', 'videoSites']) doc.byId.videoMore.append(doc.byId[id]);
+  for (const id of ['videoAutoHide', 'videoSpotReset', 'videoShortcut', 'videoShortcutAction']) doc.byId.videoMore.append(doc.byId[id]);
   for (const id of ['videoSiteHeading', 'videoSiteBody', 'videoSiteRemove', 'videoSiteCancel', 'videoSiteCommit', 'videoSiteClose']) doc.byId.videoSiteWindow.append(doc.byId[id]);
   for (const id of ['videoAddHead', 'videoAddField', 'videoAddPreview', 'videoAddError', 'videoAddCancel', 'videoAddCommit']) doc.byId.videoAddWindow.append(doc.byId[id]);
   doc.createTextNode = (text) => Object.assign(new Node('#text', doc), { text });
@@ -2138,10 +2138,10 @@ for (const all of [true, false]) {
   const { doc } = loadOptions(chrome);
   await settle();
   const tiles = () => doc.byId.videoSites.children;
-  const other = () => tiles().at(-1);
+  const other = () => tiles().at(-2);
   const toggle = () => other()?.querySelectorAll('button').find((b) => b.dataset.videoKey === 'other-shown');
   const label = all ? 'with the access to all websites' : 'without the access to all websites';
-  if (tiles().length !== 7 || tileWords(other())?.[0] !== 'options.videoOtherSites') fail(`${label} the tiles are ${tiles().map((w) => tileWords(w)?.[0]).join(', ')}, want the five, Add site and all other sites last`);
+  if (tiles().length !== 7 || tileWords(other())?.[0] !== 'options.videoOtherSites') fail(`${label} the tiles are ${tiles().map((w) => tileWords(w)?.[0]).join(', ')}, want the five, all other sites and Add site last`);
   if (other()?.className !== tiles()[0]?.className || other()?.children[0]?.className !== tiles()[0]?.children[0]?.className || toggle()?.className !== 'glim-switch') fail(`${label} the tile for all other sites is not built like a site's`);
   if (toggle()?.attrs['aria-checked'] !== String(all)) fail(`${label} the switch for all other sites is ${toggle()?.attrs['aria-checked']}, want ${all}`);
   tileButton(doc, 'other-open')?.dispatch('click');
@@ -2190,7 +2190,7 @@ for (const all of [true, false]) {
   await settle();
   const tiles = () => doc.byId.videoSites.children;
   const names = () => tiles().map((tile) => tileWords(tile)?.[0]).join(', ');
-  if (names() !== 'YouTube, Vimeo, Dailymotion, Twitch, Bilibili, clips.example.org, options.videoAddSite, options.videoOtherSites') fail(`the tiles are ${names()}, want the five, the added site, Add site and all other sites last`);
+  if (names() !== 'YouTube, Vimeo, Dailymotion, Twitch, Bilibili, clips.example.org, options.videoOtherSites, options.videoAddSite') fail(`the tiles are ${names()}, want the five, the added site, all other sites and Add site last`);
   const words = (key) => tileWords(tileButton(doc, key)?.parentNode)?.[1];
   for (const [key, want] of [['youtube-open', 'video.partVideo · 1080p · MP4'], ['vimeo-open', 'video.partAudio · MP3'], ['clips.example.org-open', 'video.partVideo, video.partSubtitle · video.qualityBest']]) {
     if (words(key) !== want) fail(`the tile ${key} says ${words(key)}, want ${want}`);

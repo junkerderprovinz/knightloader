@@ -75,7 +75,8 @@ function videoText() {
   rowLabel('videoAutoHideLabel', t('options.videoAutoHide'), t('options.videoAutoHideInfo'), videoAutoHideEl);
   rowLabel('videoSpotLabel', t('options.videoSpot'), t('options.videoSpotInfo'));
   videoSpotResetEl.replaceChildren(glimGlyph('IconRetry', 14), document.createTextNode(t('options.videoSpotReset')));
-  rowLabel('videoSitesLabel', t('options.videoSites'), t('options.videoSitesInfo'));
+  document.getElementById('videoSitesHeading').textContent = t('options.videoSites');
+  glimSetInfo('videoSitesHeading', t('options.videoSitesInfo'));
   rowLabel('videoShortcutLabel', t('options.videoShortcut'), t('options.videoShortcutInfo'), videoShortcutEl);
   if (VIDEO_SHORTCUT_EDITABLE) {
     videoShortcutActionEl.replaceChildren(glimGlyph('IconRetry', 14), document.createTextNode(t('options.videoSpotReset')));
@@ -163,10 +164,10 @@ async function renderVideo() {
   // Every change redraws the sites and the open window, so the keyboard goes
   // back to the control it was on.
   const focusKey = document.activeElement?.dataset?.videoKey;
-  videoSitesEl.replaceChildren(...videoSitesNow().map(videoTile), videoAddTile(), videoTile(videoSiteById(VIDEO_OTHER.id)));
+  videoSitesEl.replaceChildren(...videoSitesNow().map(videoTile), videoTile(videoSiteById(VIDEO_OTHER.id)), videoAddTile());
   // Off, the tiles stay in view and still open, so what the button will do
   // can be read and found, and each control refuses on its own.
-  for (const el of videoMoreEl.querySelectorAll('button, select, input')) el.disabled = !videoNow.on && !el.dataset.videoOpen;
+  for (const el of [...videoMoreEl.querySelectorAll('button, select, input'), ...videoSitesEl.querySelectorAll('button, select, input')]) el.disabled = !videoNow.on && !el.dataset.videoOpen;
   if (videoNow.on) {
     videoSpotResetEl.disabled = Object.keys(videoNow.stored.videoButtonSpot ?? {}).length === 0;
     if (VIDEO_SHORTCUT_EDITABLE) videoShortcutActionEl.disabled = videoNow.shortcut === VIDEO_SHORTCUT_DEFAULT;

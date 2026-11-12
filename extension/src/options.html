@@ -625,15 +625,16 @@
             </div>
             <p class="videoShortcutError" id="videoShortcutError" role="alert" hidden></p>
           </div>
-          <div class="glim-row">
-            <span class="glim-row-label" id="videoSitesLabel"></span>
-          </div>
-          <div class="videoSites" id="videoSites"></div>
         </div>
       </div>
     </section>
 
-    <section class="glim-card glim-stagger-row" style="--row-i: 6">
+    <section class="glim-card glim-stagger-row" id="videoSitesCard" style="--row-i: 6">
+      <h2 class="glim-section-badge" id="videoSitesHeading"></h2>
+      <div class="videoSites" id="videoSites"></div>
+    </section>
+
+    <section class="glim-card glim-stagger-row" style="--row-i: 7">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
       <!-- Only a copy button; the Help card carries the ways to report. -->
@@ -647,12 +648,12 @@
          to report something, then who made the extension and the ways to
          give. The browser updates the extension, so the card has no update
          check. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 7">
+    <section class="glim-card glim-stagger-row" style="--row-i: 8">
       <h2 class="glim-section-badge" id="versionHeading">Version</h2>
       <div class="axes" id="versionRows"></div>
     </section>
 
-    <section class="glim-card glim-stagger-row" style="--row-i: 8">
+    <section class="glim-card glim-stagger-row" style="--row-i: 9">
       <h2 class="glim-section-badge" id="helpHeading">Help</h2>
       <p id="aboutReport" class="aboutText"></p>
       <div class="glim-readme-btn-rows" id="aboutReportRow">
@@ -670,7 +671,7 @@
     </section>
 
     <!-- The About card, the one card whose body is prose (GlimStone 1.7.0). -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 9">
+    <section class="glim-card glim-stagger-row" style="--row-i: 10">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
