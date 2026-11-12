@@ -403,7 +403,14 @@ func TestAVideoSentAgainWithAnotherPickGetsARowOfItsOwn(t *testing.T) {
 			ytdlp.LinkChoice{Variants: both, Quality: ytdlp.QualityBest, AudioFormat: "best", AudioTrack: "opus 160k"},
 			[]string{"audio:opus 160k"}},
 	} {
-		a, base := wiredYtdlpApp(t, func(s *settings.Settings, _ string) { s.AutoConfirm = false })
+		a, base := newRuleApp(t, func(s *settings.Settings, _ string) { s.AutoConfirm = false })
+		fake, _ := newFakeYtdlp()
+		fake.title = "Some Video"
+		// The source has every track the picks name. Without them a probe
+		// landing between two sends turns a cap into best, the same as the
+		// running row, and the second send waits as a copy of it.
+		fake.formats = append(slices.Clone(probeUpTo720), ytdlp.FormatEntry{FormatID: "250", Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 160, Filesize: 3500})
+		wireYtdlp(a, fake)
 		a.SetHalted(true)
 		const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 		send := func(choice ytdlp.LinkChoice) LinkBatch {
