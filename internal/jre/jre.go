@@ -27,6 +27,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/checksum"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
@@ -145,7 +146,7 @@ func Ensure(ctx context.Context, dataDir string, progress func(done, total int64
 	if got, err := sha256File(file); err != nil {
 		return "", err
 	} else if got != want.sha256 {
-		return "", fmt.Errorf("the Java runtime download has SHA-256 %s instead of %s, so it was thrown away", got, want.sha256)
+		return "", &checksum.MismatchError{Msg: fmt.Sprintf("the Java runtime download has SHA-256 %s instead of %s, so it was thrown away", got, want.sha256)}
 	}
 
 	home := filepath.Join(stage, "jre")
@@ -179,7 +180,7 @@ func download(ctx context.Context, url, dst string, progress func(done, total in
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("GET %s: %s", url, resp.Status)
+		return fmt.Errorf("GET %s: %w", url, &httpx.StatusError{Status: resp.Status})
 	}
 	if resp.ContentLength > maxArchiveBytes {
 		return fmt.Errorf("the archive is larger than the %d byte cap", maxArchiveBytes)
@@ -188,11 +189,7 @@ func download(ctx context.Context, url, dst string, progress func(done, total in
 	if err != nil {
 		return err
 	}
-	var w io.Writer = f
-	if progress != nil {
-		w = &counter{w: f, total: resp.ContentLength, report: progress}
-	}
-	n, copyErr := io.Copy(w, io.LimitReader(resp.Body, maxArchiveBytes+1))
+	n, copyErr := io.Copy(httpx.ProgressWriter(f, resp.ContentLength, progress), io.LimitReader(resp.Body, maxArchiveBytes+1))
 	closeErr := f.Close()
 	if copyErr != nil {
 		return copyErr
@@ -201,20 +198,6 @@ func download(ctx context.Context, url, dst string, progress func(done, total in
 		return fmt.Errorf("the archive is larger than the %d byte cap", maxArchiveBytes)
 	}
 	return closeErr
-}
-
-type counter struct {
-	w      io.Writer
-	done   int64
-	total  int64
-	report func(done, total int64)
-}
-
-func (c *counter) Write(p []byte) (int, error) {
-	n, err := c.w.Write(p)
-	c.done += int64(n)
-	c.report(c.done, c.total)
-	return n, err
 }
 
 func sha256File(path string) (string, error) {

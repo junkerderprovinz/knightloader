@@ -86,7 +86,8 @@ func New(dir string) *Provisioner {
 // URL is the KL_JD base for the provisioned instance.
 func (p *Provisioner) URL() string { return fmt.Sprintf("http://127.0.0.1:%d", p.Port) }
 
-func (p *Provisioner) jarPath() string { return filepath.Join(p.Dir, "JDownloader.jar") }
+// JarPath is where the launcher jar lives in Dir.
+func (p *Provisioner) JarPath() string { return filepath.Join(p.Dir, "JDownloader.jar") }
 
 // source is the URL to fetch the jar from, tolerating a Provisioner that was
 // built as a struct literal instead of through New.
@@ -99,7 +100,7 @@ func (p *Provisioner) source() string {
 
 // Provisioned reports whether the jar is already in place.
 func (p *Provisioner) Provisioned() bool {
-	fi, err := os.Stat(p.jarPath())
+	fi, err := os.Stat(p.JarPath())
 	return err == nil && fi.Size() > 0
 }
 
@@ -141,12 +142,14 @@ func verifyJar(path string) error {
 // download is verified before it is moved into place, and a jar already on
 // disk that no longer verifies is thrown away and fetched again, so a file
 // left behind by an older, unchecked build is not executed on every start.
-func (p *Provisioner) EnsureJar(ctx context.Context) error {
+// progress, when not nil, hears how much has arrived of how much; total is -1
+// while unknown.
+func (p *Provisioner) EnsureJar(ctx context.Context, progress func(done, total int64)) error {
 	if p.Provisioned() {
-		if err := verifyJar(p.jarPath()); err == nil {
+		if err := verifyJar(p.JarPath()); err == nil {
 			return nil
 		}
-		if err := os.Remove(p.jarPath()); err != nil {
+		if err := os.Remove(p.JarPath()); err != nil {
 			return fmt.Errorf("provision: discard unusable JD jar: %w", err)
 		}
 	}
@@ -167,7 +170,7 @@ func (p *Provisioner) EnsureJar(ctx context.Context) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("provision: download JD: HTTP %d", resp.StatusCode)
+		return fmt.Errorf("provision: download JD: HTTP %w", &httpx.StatusError{Status: resp.Status})
 	}
 	// The declared length is a hint that can lie or be absent, so the cap that
 	// counts is the one on the bytes written below. Looking at it first only
@@ -176,7 +179,7 @@ func (p *Provisioner) EnsureJar(ctx context.Context) error {
 		return fmt.Errorf("provision: download JD: declared size %d exceeds the %d byte cap", resp.ContentLength, maxJarBytes)
 	}
 
-	tmp := p.jarPath() + ".part"
+	tmp := p.JarPath() + ".part"
 	// Whatever goes wrong from here on, no half-written file is left for the next
 	// run to trip over. After a successful rename there is nothing left to remove
 	// and the error is uninteresting.
@@ -186,9 +189,10 @@ func (p *Provisioner) EnsureJar(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	w := httpx.ProgressWriter(f, resp.ContentLength, progress)
 	// One byte past the cap is enough to tell "exactly at the limit" from "over
 	// it" without reading the rest of an endless body.
-	n, err := io.Copy(f, io.LimitReader(resp.Body, maxJarBytes+1))
+	n, err := io.Copy(w, io.LimitReader(resp.Body, maxJarBytes+1))
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}
@@ -201,7 +205,7 @@ func (p *Provisioner) EnsureJar(ctx context.Context) error {
 	if err := verifyJar(tmp); err != nil {
 		return err
 	}
-	return fsretry.Rename(tmp, p.jarPath())
+	return fsretry.Rename(tmp, p.JarPath())
 }
 
 // WriteAPIConfig enables the Deprecated API (plain-HTTP local JSON) that
@@ -321,7 +325,7 @@ func FindJava() (string, error) {
 // gets it. A desktop has one, so JD would open its own window and its update
 // dialogs there unless told not to.
 func (p *Provisioner) Start(java string) (*exec.Cmd, error) {
-	cmd := exec.Command(java, "-Djava.awt.headless=true", "-jar", p.jarPath())
+	cmd := exec.Command(java, "-Djava.awt.headless=true", "-jar", p.JarPath())
 	cmd.Dir = p.Dir
 	nowindow.Apply(cmd)
 	return p.start(cmd)
@@ -494,7 +498,7 @@ func (p *Provisioner) Ensure(ctx context.Context) (*exec.Cmd, string, error) {
 	if err := os.Chmod(p.Dir, 0o700); err != nil {
 		return nil, "", err
 	}
-	if err := p.EnsureJar(ctx); err != nil {
+	if err := p.EnsureJar(ctx, nil); err != nil {
 		return nil, "", err
 	}
 	if err := p.WriteAPIConfig(); err != nil {

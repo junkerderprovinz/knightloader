@@ -58,6 +58,12 @@ const bufSize = 1 << 20
 // directory being verified.
 var errIllegalPath = errors.New("checksum: illegal path")
 
+// MismatchError is a file whose digest is not the one published for it, so a
+// caller can tell a tampered or broken download from one that never arrived.
+type MismatchError struct{ Msg string }
+
+func (e *MismatchError) Error() string { return e.Msg }
+
 // bom is the UTF-8 byte order mark Windows editors put in front of the first
 // line of a sums file.
 const bom = "\ufeff"

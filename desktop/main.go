@@ -25,6 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
+	"github.com/junkerderprovinz/knightloader/internal/desktopdata"
 	"github.com/junkerderprovinz/knightloader/internal/flatpak"
 	"github.com/junkerderprovinz/knightloader/internal/keepawake"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
@@ -74,7 +75,7 @@ func main() {
 	// Its first run downloads and updates JD for minutes, so it comes up in the
 	// background and joins once it answers, and the window does not wait.
 	jdCtx, stopJD := context.WithCancel(context.Background())
-	jd := &jdSetup{a: a, pv: provision.New(filepath.Join(dataDir, "jd")), dataDir: dataDir, ctx: jdCtx}
+	jd := &jdSetup{a: a, pv: provision.New(desktopdata.JDDir(dataDir)), dataDir: dataDir, ctx: jdCtx}
 	if os.Getenv("KL_JD") == "" {
 		_ = jd.start()
 		a.RetryJDSetup = jd.start
@@ -255,15 +256,7 @@ func main() {
 
 // dataDir follows product, so the test build keeps its downloads, accounts and
 // group apart from a real installation on the same machine.
-func dataDir() string {
-	if v := os.Getenv("KL_DATA"); v != "" {
-		return v
-	}
-	if d, err := os.UserConfigDir(); err == nil {
-		return filepath.Join(d, product)
-	}
-	return "kl-data"
-}
+func dataDir() string { return desktopdata.Dir(product) }
 
 // webviewDataDir is where WebView2 keeps the window's storage. Wails would name
 // it after the executable, which is KnightLoader.exe in the test build as well;

@@ -26,6 +26,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // Repo is where KnightLoader's releases are published.
@@ -198,10 +200,7 @@ func (u *Updater) Fetch(ctx context.Context, rel *Release) (string, error) {
 	}
 	defer resp.Body.Close()
 	h := sha256.New()
-	var w io.Writer = io.MultiWriter(f, h)
-	if u.Progress != nil {
-		w = &counter{w: w, total: resp.ContentLength, report: u.Progress}
-	}
+	w := httpx.ProgressWriter(io.MultiWriter(f, h), resp.ContentLength, u.Progress)
 	if _, err := io.Copy(w, resp.Body); err != nil {
 		return "", fmt.Errorf("downloading %s: %w", rel.asset, err)
 	}
@@ -216,20 +215,6 @@ func (u *Updater) Fetch(ctx context.Context, rel *Release) (string, error) {
 }
 
 // counter passes on what is written and reports the running total.
-type counter struct {
-	w      io.Writer
-	done   int64
-	total  int64
-	report func(done, total int64)
-}
-
-func (c *counter) Write(p []byte) (int, error) {
-	n, err := c.w.Write(p)
-	c.done += int64(n)
-	c.report(c.done, c.total)
-	return n, err
-}
-
 // Progress is how far an update the user asked for has come, for the Updates
 // card to show while it runs.
 type Progress struct {
