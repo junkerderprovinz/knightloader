@@ -63,15 +63,20 @@ func (a *App) unhandledError(url, plain string) (string, core.ErrorCode, map[str
 // pinned task the plain ranking, since the pin outranks the host rule. A file
 // a browser was downloading keeps to the backends that fetch it as it is.
 func (a *App) chainFor(t *core.Task) []resolver.Resolver {
-	cfg := a.Settings.Get()
 	if t.ResolverPin != "" {
-		return rankedChain(a.Registry.All(t.URL), t.URL, cfg.ResolverOrder)
+		return a.pinnedChain(t.URL)
 	}
-	chain := hostChain(a.Registry.All(t.URL), t.URL, cfg)
+	chain := hostChain(a.Registry.All(t.URL), t.URL, a.Settings.Get())
 	if t.BrowserFile {
 		return fileChain(chain)
 	}
 	return chain
+}
+
+// pinnedChain is the chain a pinned link's backend is picked from: the plain
+// ranking of every backend that takes the link pinned (Registry.AllPinned).
+func (a *App) pinnedChain(url string) []resolver.Resolver {
+	return rankedChain(a.Registry.AllPinned(url), url, a.Settings.Get().ResolverOrder)
 }
 
 // preferredLocked returns the first slot of the service t's host rule prefers

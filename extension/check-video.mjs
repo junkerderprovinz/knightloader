@@ -686,6 +686,7 @@ function loadBackground(chrome) {
   if (JSON.stringify(last()?.choice) !== '{"variants":["video","audio"],"quality":"1080p","audioFormat":"mp3","subtitleLangs":[],"subtitleAuto":true,"subtitleFormat":"srt","videoTrack":"1080p60 webm vp9","audioLang":"de"}') fail(`a pick arrives as ${JSON.stringify(last()?.choice)}, want the 1080p60 track and mp3 audio in German`);
   if (last()?.start !== true || last()?.report !== true) fail('the video is not sent to start at once and to report a link already there');
   if ('format' in last()) fail('the send still names a format beside its choice');
+  if (last()?.resolver !== 'ytdlp') fail(`the video is sent pinned to ${last()?.resolver}, want ytdlp, so the instance's routing cannot give it to another backend`);
   if (sent.at(-1)?.path !== '/api/links' || sent.at(-1)?.method !== 'POST') fail('the video is not sent as POST /api/links');
 
   await sendVideo(embed, { href: embed, playlist: true, pick: { parts: ['everything'], quality: '8k' } });
@@ -698,8 +699,8 @@ function loadBackground(chrome) {
   answer = { status: 200, body: '{"qualities":["720p","480p","9999p"],"audio":true}' };
   let menu = await videoFormats(embed, { href: embed });
   const asked = sent.at(-1);
-  if (asked?.method !== 'GET' || asked.path !== `/api/ytdlp/link?url=${encodeURIComponent('https://www.youtube.com/watch?v=aqz-KE-bpKQ')}`) {
-    fail(`the menu asks ${asked?.method} ${asked?.path}, want GET /api/ytdlp/link for the video's address`);
+  if (asked?.method !== 'GET' || asked.path !== `/api/ytdlp/link?url=${encodeURIComponent('https://www.youtube.com/watch?v=aqz-KE-bpKQ')}&pinned=true`) {
+    fail(`the menu asks ${asked?.method} ${asked?.path}, want GET /api/ytdlp/link for the video's address, pinned to yt-dlp`);
   }
   if (menu.qualities?.join() !== '720p,480p' || menu.audio !== true || menu.known) fail(`an older instance's answer offers ${JSON.stringify(menu)}, want its two resolutions and nothing ruled out`);
   if (store.data.videoSeen) fail('an answer that rules nothing out is kept for the site');
@@ -725,7 +726,7 @@ function loadBackground(chrome) {
   answer = clipAnswer;
   let asks = sent.length;
   let check = await videoCheck(clip, { href: `${clip}#t=4` });
-  if (sent.length !== asks + 1 || sent.at(-1).method !== 'GET' || sent.at(-1).path !== `/api/ytdlp/link?url=${encodeURIComponent(clip)}`) fail(`another site's page is checked with ${JSON.stringify(sent.slice(asks))}, want one GET /api/ytdlp/link for its address`);
+  if (sent.length !== asks + 1 || sent.at(-1).method !== 'GET' || sent.at(-1).path !== `/api/ytdlp/link?url=${encodeURIComponent(clip)}&pinned=true`) fail(`another site's page is checked with ${JSON.stringify(sent.slice(asks))}, want one GET /api/ytdlp/link for its address, pinned to yt-dlp`);
   if (check.claims !== true || check.offer?.videoTracks?.join() !== '720p mp4 avc1') fail(`a page yt-dlp downloads answers ${JSON.stringify(check)}, want yes with its offer`);
   if (JSON.stringify(store.data.videoSeen?.other?.qualities) !== '["720p"]') fail(`all other sites are remembered as offering ${JSON.stringify(store.data.videoSeen?.other)}`);
   asks = sent.length;

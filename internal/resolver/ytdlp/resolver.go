@@ -21,14 +21,27 @@ type Resolver struct {
 func (Resolver) Info() resolver.Info { return resolver.Info{ID: "ytdlp", Prio: 30} }
 
 func (r Resolver) Match(raw string) bool {
+	host := hostname(raw)
+	if host == "" || r.Leave != nil && r.Leave(host) {
+		return false
+	}
+	return !hostInSet(host, r.ExcludeHosts)
+}
+
+// TakesPinned takes every web address: a link pinned to yt-dlp, such as the
+// video the browser extension's button sends, was asked of yt-dlp by name,
+// on a file hoster's host too.
+func (Resolver) TakesPinned(raw string) bool {
+	return hostname(raw) != ""
+}
+
+// hostname is the host of an http(s) address, and "" for anything else.
+func hostname(raw string) string {
 	u, err := url.Parse(raw)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
-		return false
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
+		return ""
 	}
-	if r.Leave != nil && r.Leave(u.Hostname()) {
-		return false
-	}
-	return !hostInSet(u.Hostname(), r.ExcludeHosts)
+	return u.Hostname()
 }
 
 func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Result, error) {

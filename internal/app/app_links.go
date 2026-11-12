@@ -118,6 +118,10 @@ type intake struct {
 	// LinkBatchOptions.Choice).
 	choice *ytdlp.LinkChoice
 
+	// pin is the backend every row of the link is pinned to (see
+	// LinkBatchOptions.Resolver).
+	pin string
+
 	// listed gathers the rows already in the list that the link is folded
 	// into (see LinkBatch.Listed), and foldDone folds it into its finished
 	// rows too (see LinkBatchOptions.foldDone).
@@ -259,7 +263,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		var listing ytdlp.Playlist
 		listed := false
 		if !handedOver {
-			listing, listed = a.ytdlpListing(u)
+			listing, listed = a.ytdlpListing(u, batch.Resolver)
 		}
 		if listed && len(listing.Entries) > 0 && a.Settings.Get().Ytdlp.Playlist {
 			b := &bucket{title: listing.Title}
@@ -269,9 +273,10 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			continue
 		}
 		ytdlpKnows := listed && (listing.Video || len(listing.Entries) > 0)
-		// A page that points at files becomes those files.
+		// A page that points at files becomes those files. A link pinned to a
+		// backend goes to it as it is.
 		var crawled []crawler.Result
-		if !handedOver && !ytdlpKnows {
+		if !handedOver && !ytdlpKnows && batch.Resolver == "" {
 			crawled = a.crawl(u, batch.Within, batch.DownloadPassword)
 		}
 		if len(crawled) > 0 {
@@ -313,7 +318,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		if t := a.stage(u, batch.FileName, 0, intake{
 			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers, file: batch.File,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
-			sizeProbes: &probes, choice: batch.Choice, listed: batch.listed, foldDone: batch.foldDone,
+			sizeProbes: &probes, choice: batch.Choice, pin: batch.Resolver, listed: batch.listed, foldDone: batch.foldDone,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
@@ -611,7 +616,7 @@ func (a *App) crawl(u string, within *httpx.Scope, password string) []crawler.Re
 	// link. Put
 	// behind JDownloader on the priority card, the folder goes to
 	// JDownloader's crawler instead.
-	staging := a.stagingResolverFor(u)
+	staging := a.stagingResolverFor(u, "")
 	if lister, ok := staging.(resolver.FolderLister); ok {
 		return a.listFolder(lister, u, password)
 	}
@@ -755,8 +760,18 @@ func (a *App) listFolder(r resolver.FolderLister, u, password string) []crawler.
 // same per-URL ranking dispatch uses, host rule included. Registry.For only
 // knows the static priorities, and the collected choice sticks:
 // resolverForTaskLocked keeps t.Resolver while it is routable, so a hoster link
-// JD can reach would otherwise go out as a plain "direct" GET.
-func (a *App) stagingResolverFor(u string) resolver.Resolver {
+// JD can reach would otherwise go out as a plain "direct" GET. A link pinned
+// to a backend is collected with that backend, as dispatch sends it there,
+// and with nil where it is not there to take the link.
+func (a *App) stagingResolverFor(u, pin string) resolver.Resolver {
+	if pin != "" {
+		for _, res := range a.pinnedChain(u) {
+			if pinMatches(pin, res.Info().ID) {
+				return res
+			}
+		}
+		return nil
+	}
 	chain := hostChain(a.Registry.All(u), u, a.Settings.Get())
 	if len(chain) == 0 {
 		return nil
@@ -929,10 +944,11 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		t.Name = cand.Filename
 	}
 	t.BrowserFile = in.file
+	t.ResolverPin = in.pin
 	if sizeHint > 0 {
 		t.Size = sizeHint
 	}
-	res := a.stagingResolverFor(u)
+	res := a.stagingResolverFor(u, in.pin)
 	if in.file {
 		res = a.fileResolverFor(u, res)
 	}

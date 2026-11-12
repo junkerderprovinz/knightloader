@@ -68,7 +68,7 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 	// card puts first, which may be a debrid service.
 	res := torrent.Resolver{}
 	t.Resolver = res.Info().ID
-	if pick := a.stagingResolverFor(uri); pick != nil {
+	if pick := a.stagingResolverFor(uri, ""); pick != nil {
 		t.Resolver = pick.Info().ID
 	}
 	if md, err := res.Describe(uri); err != nil {

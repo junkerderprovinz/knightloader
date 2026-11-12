@@ -212,7 +212,7 @@ func TestTheChainShownForAHostFollowsItsRule(t *testing.T) {
 	if slices.Contains(ids, "alldebrid") {
 		t.Errorf("chain for %s = %v, want the excluded alldebrid left out", pinHost, ids)
 	}
-	if got := a.stagingResolverFor("https://" + pinHost + "/c.bin"); got == nil || got.Info().ID != "torbox" {
+	if got := a.stagingResolverFor("https://" + pinHost + "/c.bin", ""); got == nil || got.Info().ID != "torbox" {
 		t.Errorf("a link is collected with %v, want the preferred torbox", got)
 	}
 }

@@ -143,7 +143,7 @@ func TestTheExtensionsQuestionAndTheStagedLinkShareOneProbe(t *testing.T) {
 
 	const url = "https://youtube.com/watch?v=shared00001"
 	for range 2 {
-		menus, err := a.LinkQualities(t.Context(), url)
+		menus, err := a.LinkQualities(t.Context(), url, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -172,7 +172,7 @@ func TestAnAudioOnlySourceOffersTheExtensionNoResolution(t *testing.T) {
 	var asked []string
 	wireYtdlp(a, countingYtdlpBackend{formats: probeAudioOnly, mu: &sync.Mutex{}, asked: &asked})
 
-	menus, err := a.LinkQualities(t.Context(), "https://soundcloud.com/artist/other")
+	menus, err := a.LinkQualities(t.Context(), "https://soundcloud.com/artist/other", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -187,7 +187,7 @@ func TestAFailedProbeGivesTheExtensionItsReason(t *testing.T) {
 	fake.err = errors.New("ERROR: [youtube] gone0000002: Private video")
 	wireYtdlp(a, fake)
 
-	if _, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=gone0000002"); err == nil || err.Error() != fake.err.Error() {
+	if _, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=gone0000002", false); err == nil || err.Error() != fake.err.Error() {
 		t.Errorf("LinkQualities error = %v, want %v", err, fake.err)
 	}
 }
@@ -198,7 +198,7 @@ func TestOnlyALinkYtdlpHandlesIsProbedForTheExtension(t *testing.T) {
 	wireYtdlp(a, countingYtdlpBackend{formats: probeUpTo720, mu: &sync.Mutex{}, asked: &asked})
 
 	for _, u := range []string{"file:///etc/passwd", "https://example.org/some.zip", ""} {
-		if _, err := a.LinkQualities(t.Context(), u); !errors.Is(err, ErrNotAMediaLink) {
+		if _, err := a.LinkQualities(t.Context(), u, false); !errors.Is(err, ErrNotAMediaLink) {
 			t.Errorf("LinkQualities(%q) error = %v, want ErrNotAMediaLink", u, err)
 		}
 	}

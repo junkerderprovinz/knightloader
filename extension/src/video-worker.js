@@ -149,14 +149,16 @@ async function videoSend(frameUrl, msg) {
 }
 
 /** Adds the video to one instance, to download at once whatever the instance
- *  does with links added otherwise. A send that started rows says where they
- *  are, for the button to follow. */
+ *  does with links added otherwise, pinned to yt-dlp, since everything the
+ *  menu offers is yt-dlp's, also where the instance gives the host's links to
+ *  JDownloader. A send that started rows says where they are, for the button
+ *  to follow. */
 async function postVideo(call, target, send) {
   const res = await call(
     target,
     'POST',
     '/api/links',
-    JSON.stringify({ links: send.link, package: '', origin: 'cnl', source: send.page.url, choice: send.choice, start: true, report: true }),
+    JSON.stringify({ links: send.link, package: '', origin: 'cnl', source: send.page.url, choice: send.choice, start: true, report: true, resolver: 'ytdlp' }),
   );
   if (res.status < 200 || res.status >= 300) return { result: 'refused', reason: t(refusalKey(res)) };
   let answer;
@@ -284,14 +286,14 @@ async function videoFormats(frameUrl, msg) {
   return offer;
 }
 
-/** What the default instance answers to GET /api/ytdlp/link for a page, an
- *  answer of null where it refused, or null where no instance answered at
- *  all. */
+/** What the default instance answers to GET /api/ytdlp/link for a page, asked
+ *  as for a link pinned to yt-dlp the way postVideo sends it, an answer of
+ *  null where it refused, or null where no instance answered at all. */
 async function askVideoLink(page) {
   try {
     return await withGroup(async ({ siblings, call }) => {
       const target = defaultOf(siblings, await readDefaultTarget());
-      const res = target && (await call(target, 'GET', `/api/ytdlp/link?url=${encodeURIComponent(page.url)}`).catch(() => null));
+      const res = target && (await call(target, 'GET', `/api/ytdlp/link?url=${encodeURIComponent(page.url)}&pinned=true`).catch(() => null));
       if (!res) return null;
       return { answer: res.status >= 200 && res.status < 300 ? JSON.parse(res.body) : null };
     });
