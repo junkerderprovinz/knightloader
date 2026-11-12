@@ -276,7 +276,7 @@ export const ro: Dict = {
   'pairing.fortressOutHint': 'Alătură-te unei fortărețe cu fraza ei. Apoi aici apar celelalte aplicații și ce au voie să facă în {app}.',
   'pairing.fortressDeviceTitle': 'Acest server în fortăreață',
   'pairing.fortressDeviceName': 'Numele serverului',
-  'pairing.fortressDeviceHint': 'Celelalte aplicații găsesc KnightLoader pe acest server după acest nume. Lasă câmpul gol pentru a folosi {name}.',
+  'pairing.fortressDeviceHint': 'Numele sub care celelalte aplicații arată acest KnightLoader. Alege ce nume vrei sau lasă câmpul gol pentru a folosi {name}.',
   'pairing.fortressDeviceTooLong': 'Numele trebuie să încapă pe un rând, cel mult 64 de caractere.',
   'pairing.fortressPhraseWhere': 'Orice aplicație din fortăreață îți poate arăta fraza. Lipește-o în primul câmp și le completează pe celelalte.',
   'pairing.fortressChangePhraseAbout': 'Creează o frază nouă pentru fiecare aplicație din fortăreață, ca un dispozitiv pe care l-ai eliminat să rămână afară.',

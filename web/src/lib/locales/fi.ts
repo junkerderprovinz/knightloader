@@ -276,7 +276,7 @@ export const fi: Dict = {
   'pairing.fortressOutHint': 'Liity linnoitukseen sen lauseella. Sitten muut sovellukset näkyvät täällä, samoin se, mitä ne saavat tehdä {app}-sovelluksessa.',
   'pairing.fortressDeviceTitle': 'Tämä palvelin linnoituksessa',
   'pairing.fortressDeviceName': 'Palvelimen nimi',
-  'pairing.fortressDeviceHint': 'Muut sovellukset löytävät KnightLoaderin tältä palvelimelta tällä nimellä. Jätä kenttä tyhjäksi, niin käytetään nimeä {name}.',
+  'pairing.fortressDeviceHint': 'Nimi, jolla muut sovellukset näyttävät tämän KnightLoaderin. Anna mikä nimi tahansa, tai jätä kenttä tyhjäksi, niin käytetään nimeä {name}.',
   'pairing.fortressDeviceTooLong': 'Nimen täytyy mahtua yhdelle riville, enintään 64 merkkiä.',
   'pairing.fortressPhraseWhere': 'Jokainen linnoituksen sovellus voi näyttää sinulle lauseen. Liitä se ensimmäiseen kenttään, niin se täyttää loputkin.',
   'pairing.fortressChangePhraseAbout': 'Luo uuden lauseen jokaiselle linnoituksen sovellukselle, jotta poistamasi laite pysyy ulkona.',

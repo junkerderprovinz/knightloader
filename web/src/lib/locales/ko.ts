@@ -276,7 +276,7 @@ export const ko: Dict = {
   'pairing.fortressOutHint': '문구로 요새에 참여하세요. 그러면 다른 앱과 그 앱이 {app}에서 할 수 있는 일이 여기에 보여요.',
   'pairing.fortressDeviceTitle': '요새 안의 이 서버',
   'pairing.fortressDeviceName': '서버 이름',
-  'pairing.fortressDeviceHint': '다른 앱은 이 이름으로 이 서버의 KnightLoader를 찾습니다. 비워 두면 {name}을(를) 씁니다.',
+  'pairing.fortressDeviceHint': '다른 앱이 이 KnightLoader를 표시할 때 쓰는 이름입니다. 원하는 이름을 붙이거나, 비워 두면 {name}을(를) 씁니다.',
   'pairing.fortressDeviceTooLong': '이름은 한 줄, 64자 이내여야 합니다.',
   'pairing.fortressPhraseWhere': '요새의 어느 앱에서든 문구를 볼 수 있어요. 첫 칸에 붙여 넣으면 나머지 칸도 채워져요.',
   'pairing.fortressChangePhraseAbout': '요새에 있는 모든 앱에 새 문구를 만들어, 제거한 기기가 다시 들어오지 못하게 해요.',

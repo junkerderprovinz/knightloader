@@ -276,7 +276,7 @@ export const ja: Dict = {
   'pairing.fortressOutHint': 'フレーズで要塞に参加してください。参加すると、ほかのアプリと、それらが {app} で行えることがここに表示されます。',
   'pairing.fortressDeviceTitle': '要塞内のこのサーバー',
   'pairing.fortressDeviceName': 'サーバー名',
-  'pairing.fortressDeviceHint': 'ほかのアプリはこの名前で、このサーバー上の KnightLoader を見つけます。空のままにすると {name} が使われます。',
+  'pairing.fortressDeviceHint': 'ほかのアプリがこの KnightLoader を表示するときの名前です。好きな名前を付けられます。空のままにすると {name} が使われます。',
   'pairing.fortressDeviceTooLong': '名前は 1 行、64 文字以内にしてください。',
   'pairing.fortressPhraseWhere': '要塞内のどのアプリでもフレーズを表示できます。最初の欄に貼り付けると、残りの欄も埋まります。',
   'pairing.fortressChangePhraseAbout': '要塞内のすべてのアプリに新しいフレーズを作るので、削除したデバイスは外れたままになります。',

@@ -270,7 +270,7 @@ export const fr: Dict = {
   'pairing.fortressOutHint': "Rejoignez une forteresse avec sa phrase. Les autres apps apparaissent alors ici, avec ce qu'elles ont le droit de faire chez {app}.",
   'pairing.fortressDeviceTitle': 'Ce serveur dans la forteresse',
   'pairing.fortressDeviceName': 'Nom du serveur',
-  'pairing.fortressDeviceHint': 'Les autres apps trouvent KnightLoader sur ce serveur sous ce nom. Laissez le champ vide pour utiliser {name}.',
+  'pairing.fortressDeviceHint': 'Le nom sous lequel les autres apps affichent ce KnightLoader. Choisissez celui qui vous plaît, ou laissez le champ vide pour utiliser {name}.',
   'pairing.fortressDeviceTooLong': 'Le nom doit tenir sur une ligne, 64 caractères au plus.',
   'pairing.fortressPhraseWhere': 'Chaque app de la forteresse peut vous montrer la phrase. Collez-la dans le premier champ et elle remplit les autres.',
   'pairing.fortressChangePhraseAbout': 'Crée une nouvelle phrase pour toutes les apps de la forteresse, pour qu\'un appareil que vous avez retiré reste dehors.',

@@ -270,7 +270,7 @@ export const es: Dict = {
   'pairing.fortressOutHint': 'Únete a una fortaleza con su frase. Entonces aparecen aquí las demás apps y lo que pueden hacer en {app}.',
   'pairing.fortressDeviceTitle': 'Este servidor en la fortaleza',
   'pairing.fortressDeviceName': 'Nombre del servidor',
-  'pairing.fortressDeviceHint': 'Las demás apps encuentran KnightLoader en este servidor con este nombre. Déjalo vacío para usar {name}.',
+  'pairing.fortressDeviceHint': 'El nombre con el que las demás apps muestran este KnightLoader. Ponle el que quieras, o déjalo vacío para usar {name}.',
   'pairing.fortressDeviceTooLong': 'El nombre tiene que caber en una línea, hasta 64 caracteres.',
   'pairing.fortressPhraseWhere': 'Cualquier app de la fortaleza puede mostrarte la frase. Pégala en el primer campo y rellenará el resto.',
   'pairing.fortressChangePhraseAbout': 'Crea una frase nueva para todas las apps de la fortaleza, para que un dispositivo que quitaste se quede fuera.',

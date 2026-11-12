@@ -322,7 +322,7 @@ export const en = {
   'pairing.fortressOutHint': 'Join a fortress with its phrase. The other apps then show up here, along with what they may do at {app}.',
   'pairing.fortressDeviceTitle': 'This server in the fortress',
   'pairing.fortressDeviceName': 'Server name',
-  'pairing.fortressDeviceHint': 'The other apps find KnightLoader on this server by this name. Leave it empty to use {name}.',
+  'pairing.fortressDeviceHint': 'The name the other apps show for this KnightLoader. Call it whatever you like, or leave it empty to use {name}.',
   'pairing.fortressDeviceTooLong': 'The name has to fit on one line, up to 64 characters.',
   'pairing.fortressPhraseWhere': 'Every app in the fortress can show you the phrase. Paste it into the first field and it fills the rest.',
   'pairing.fortressChangePhraseAbout': 'Makes a new phrase for every app in the fortress, so a device you removed stays out.',

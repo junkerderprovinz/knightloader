@@ -276,7 +276,7 @@ export const sv: Dict = {
   'pairing.fortressOutHint': 'Gå med i en fästning med dess fras. Då visas de andra apparna här, tillsammans med vad de får göra hos {app}.',
   'pairing.fortressDeviceTitle': 'Den här servern i fästningen',
   'pairing.fortressDeviceName': 'Servernamn',
-  'pairing.fortressDeviceHint': 'De andra apparna hittar KnightLoader på den här servern under det här namnet. Lämna tomt för att använda {name}.',
+  'pairing.fortressDeviceHint': 'Namnet som de andra apparna visar den här KnightLoader under. Kalla den vad du vill, eller lämna tomt för att använda {name}.',
   'pairing.fortressDeviceTooLong': 'Namnet måste rymmas på en rad, högst 64 tecken.',
   'pairing.fortressPhraseWhere': 'Alla appar i fästningen kan visa dig frasen. Klistra in den i det första fältet så fyller den resten.',
   'pairing.fortressChangePhraseAbout': 'Skapar en ny fras för alla appar i fästningen, så att en enhet du har tagit bort stannar utanför.',

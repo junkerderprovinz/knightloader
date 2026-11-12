@@ -278,7 +278,7 @@ export const he: Dict = {
   'pairing.fortressOutHint': 'הצטרף למבצר עם הביטוי שלו. אז יופיעו כאן האפליקציות האחרות ומה מותר להן לעשות ב-{app}.',
   'pairing.fortressDeviceTitle': 'השרת הזה במבצר',
   'pairing.fortressDeviceName': 'שם השרת',
-  'pairing.fortressDeviceHint': 'האפליקציות האחרות מוצאות את KnightLoader בשרת הזה לפי השם הזה. השאר את השדה ריק כדי להשתמש ב־{name}.',
+  'pairing.fortressDeviceHint': 'השם שבו האפליקציות האחרות מציגות את KnightLoader הזה. אפשר לבחור כל שם, או להשאיר את השדה ריק כדי להשתמש ב־{name}.',
   'pairing.fortressDeviceTooLong': 'השם צריך להיכנס בשורה אחת, עד 64 תווים.',
   'pairing.fortressPhraseWhere': 'כל אפליקציה במבצר יכולה להציג לך את הביטוי. הדבק אותו בשדה הראשון והוא ימלא את השאר.',
   'pairing.fortressChangePhraseAbout': 'יוצר ביטוי חדש לכל אפליקציה במבצר, כך שמכשיר שהוסר נשאר בחוץ.',

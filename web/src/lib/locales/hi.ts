@@ -276,7 +276,7 @@ export const hi: Dict = {
   'pairing.fortressOutHint': 'किसी किले में उसके वाक्यांश से शामिल हों। फिर दूसरे ऐप यहाँ दिखेंगे, साथ में यह भी कि वे {app} पर क्या कर सकते हैं।',
   'pairing.fortressDeviceTitle': 'किले में यह सर्वर',
   'pairing.fortressDeviceName': 'सर्वर का नाम',
-  'pairing.fortressDeviceHint': 'दूसरे ऐप इस सर्वर पर KnightLoader को इसी नाम से ढूँढते हैं। {name} इस्तेमाल करने के लिए इसे खाली छोड़ दें।',
+  'pairing.fortressDeviceHint': 'वह नाम जिससे दूसरे ऐप इस KnightLoader को दिखाते हैं। जो नाम पसंद हो रखें, या {name} इस्तेमाल करने के लिए इसे खाली छोड़ दें।',
   'pairing.fortressDeviceTooLong': 'नाम एक पंक्ति में आना चाहिए, अधिकतम 64 अक्षर।',
   'pairing.fortressPhraseWhere': 'किले का हर ऐप आपको वाक्यांश दिखा सकता है। इसे पहले फ़ील्ड में चिपकाएँ, बाकी फ़ील्ड अपने आप भर जाएँगे।',
   'pairing.fortressChangePhraseAbout': 'किले के हर ऐप के लिए नया वाक्यांश बनाता है, ताकि आपका हटाया हुआ डिवाइस बाहर ही रहे।',

@@ -276,7 +276,7 @@ export const zh: Dict = {
   'pairing.fortressOutHint': '用口令加入一个堡垒。之后，其他应用及其在 {app} 上可做的事会显示在这里。',
   'pairing.fortressDeviceTitle': '堡垒中的这台服务器',
   'pairing.fortressDeviceName': '服务器名称',
-  'pairing.fortressDeviceHint': '其他应用会按这个名称在这台服务器上找到 KnightLoader。留空则使用 {name}。',
+  'pairing.fortressDeviceHint': '其他应用显示这个 KnightLoader 时用的名称，可以随意取。留空则使用 {name}。',
   'pairing.fortressDeviceTooLong': '名称必须在一行内，最多 64 个字符。',
   'pairing.fortressPhraseWhere': '堡垒中的任何应用都能向你显示口令。把它粘贴到第一个框中，其余的会自动填好。',
   'pairing.fortressChangePhraseAbout': '为堡垒中的每个应用生成新口令，让你移除的设备留在外面。',

@@ -276,7 +276,7 @@ export const hr: Dict = {
   'pairing.fortressOutHint': 'Pridružite se utvrdi njezinom frazom. Tada se ovdje pojavljuju ostale aplikacije i ono što smiju raditi u {app}.',
   'pairing.fortressDeviceTitle': 'Ovaj poslužitelj u utvrdi',
   'pairing.fortressDeviceName': 'Naziv poslužitelja',
-  'pairing.fortressDeviceHint': 'Ostale aplikacije pronalaze KnightLoader na ovom poslužitelju pod ovim nazivom. Ostavite polje prazno da se koristi {name}.',
+  'pairing.fortressDeviceHint': 'Naziv pod kojim ostale aplikacije prikazuju ovaj KnightLoader. Odaberite koji god želite ili ostavite polje prazno da se koristi {name}.',
   'pairing.fortressDeviceTooLong': 'Naziv mora stati u jedan redak, najviše 64 znaka.',
   'pairing.fortressPhraseWhere': 'Svaka aplikacija u utvrdi može vam pokazati frazu. Zalijepite je u prvo polje i ispunit će ostala.',
   'pairing.fortressChangePhraseAbout': 'Stvara novu frazu za svaku aplikaciju u utvrdi, da uklonjeni uređaj ostane vani.',

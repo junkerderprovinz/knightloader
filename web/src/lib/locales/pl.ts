@@ -270,7 +270,7 @@ export const pl: Dict = {
   'pairing.fortressOutHint': 'Dołącz do twierdzy za pomocą jej frazy. Wtedy pojawią się tu inne aplikacje i to, co mogą robić w {app}.',
   'pairing.fortressDeviceTitle': 'Ten serwer w twierdzy',
   'pairing.fortressDeviceName': 'Nazwa serwera',
-  'pairing.fortressDeviceHint': 'Pozostałe aplikacje znajdują KnightLoader na tym serwerze pod tą nazwą. Zostaw puste, aby użyć {name}.',
+  'pairing.fortressDeviceHint': 'Nazwa, pod którą pozostałe aplikacje pokazują ten KnightLoader. Nazwij go, jak chcesz, albo zostaw puste, aby użyć {name}.',
   'pairing.fortressDeviceTooLong': 'Nazwa musi zmieścić się w jednym wierszu, najwyżej 64 znaki.',
   'pairing.fortressPhraseWhere': 'Każda aplikacja w twierdzy może pokazać ci frazę. Wklej ją w pierwsze pole, a wypełni pozostałe.',
   'pairing.fortressChangePhraseAbout': 'Tworzy nową frazę dla każdej aplikacji w twierdzy, żeby usunięte urządzenie zostało na zewnątrz.',

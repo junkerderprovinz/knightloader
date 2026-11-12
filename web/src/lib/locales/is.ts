@@ -276,7 +276,7 @@ export const is: Dict = {
   'pairing.fortressOutHint': 'Gakktu í vígi með setningu þess. Þá birtast hér hin forritin og hvað þau mega gera hjá {app}.',
   'pairing.fortressDeviceTitle': 'Þessi þjónn í víginu',
   'pairing.fortressDeviceName': 'Heiti þjóns',
-  'pairing.fortressDeviceHint': 'Hin forritin finna KnightLoader á þessum þjóni undir þessu heiti. Skildu reitinn eftir auðan til að nota {name}.',
+  'pairing.fortressDeviceHint': 'Heitið sem hin forritin sýna þennan KnightLoader undir. Veldu hvaða heiti sem þú vilt, eða skildu reitinn eftir auðan til að nota {name}.',
   'pairing.fortressDeviceTooLong': 'Heitið þarf að komast fyrir í einni línu, mest 64 stafir.',
   'pairing.fortressPhraseWhere': 'Öll forrit í víginu geta sýnt þér setninguna. Límdu hana í fyrsta reitinn og hún fyllir hina.',
   'pairing.fortressChangePhraseAbout': 'Býr til nýja setningu fyrir öll forrit í víginu, svo tæki sem þú fjarlægðir haldist úti.',

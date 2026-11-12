@@ -276,7 +276,7 @@ export const th: Dict = {
   'pairing.fortressOutHint': 'เข้าร่วมป้อมปราการด้วยวลีของมัน จากนั้นแอปอื่นๆ จะแสดงที่นี่ พร้อมสิ่งที่แอปเหล่านั้นทำได้ใน {app}',
   'pairing.fortressDeviceTitle': 'เซิร์ฟเวอร์นี้ในป้อมปราการ',
   'pairing.fortressDeviceName': 'ชื่อเซิร์ฟเวอร์',
-  'pairing.fortressDeviceHint': 'แอปอื่นๆ จะหา KnightLoader บนเซิร์ฟเวอร์นี้จากชื่อนี้ ปล่อยว่างไว้เพื่อใช้ {name}',
+  'pairing.fortressDeviceHint': 'ชื่อที่แอปอื่นๆ ใช้แสดง KnightLoader ตัวนี้ ตั้งชื่ออะไรก็ได้ตามใจ หรือปล่อยว่างไว้เพื่อใช้ {name}',
   'pairing.fortressDeviceTooLong': 'ชื่อต้องอยู่ในบรรทัดเดียว ไม่เกิน 64 ตัวอักษร',
   'pairing.fortressPhraseWhere': 'ทุกแอปในป้อมปราการแสดงวลีให้คุณดูได้ วางวลีในช่องแรก แล้วช่องที่เหลือจะถูกเติมให้',
   'pairing.fortressChangePhraseAbout': 'สร้างวลีใหม่ให้ทุกแอปในป้อมปราการ อุปกรณ์ที่คุณนำออกไปจึงยังอยู่ข้างนอก',

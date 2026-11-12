@@ -276,7 +276,7 @@ export const vi: Dict = {
   'pairing.fortressOutHint': 'Tham gia một pháo đài bằng cụm từ của nó. Sau đó các ứng dụng khác hiện ở đây, kèm những gì chúng được làm tại {app}.',
   'pairing.fortressDeviceTitle': 'Máy chủ này trong pháo đài',
   'pairing.fortressDeviceName': 'Tên máy chủ',
-  'pairing.fortressDeviceHint': 'Các ứng dụng khác tìm thấy KnightLoader trên máy chủ này theo tên này. Để trống để dùng {name}.',
+  'pairing.fortressDeviceHint': 'Tên mà các ứng dụng khác dùng để hiển thị KnightLoader này. Bạn đặt tên gì cũng được, hoặc để trống để dùng {name}.',
   'pairing.fortressDeviceTooLong': 'Tên phải nằm trên một dòng, tối đa 64 ký tự.',
   'pairing.fortressPhraseWhere': 'Mọi ứng dụng trong pháo đài đều có thể cho bạn xem cụm từ. Dán vào ô đầu tiên, các ô còn lại sẽ tự điền.',
   'pairing.fortressChangePhraseAbout': 'Tạo cụm từ mới cho mọi ứng dụng trong pháo đài, để thiết bị bạn đã xóa vẫn ở bên ngoài.',

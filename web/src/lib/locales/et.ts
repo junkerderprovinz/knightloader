@@ -276,7 +276,7 @@ export const et: Dict = {
   'pairing.fortressOutHint': 'Liitu kindlusega selle fraasiga. Siis ilmuvad siia teised rakendused ja see, mida nad võivad {app}-is teha.',
   'pairing.fortressDeviceTitle': 'See server kindluses',
   'pairing.fortressDeviceName': 'Serveri nimi',
-  'pairing.fortressDeviceHint': 'Teised rakendused leiavad KnightLoaderi selles serveris selle nime järgi. Jäta väli tühjaks, et kasutada nime {name}.',
+  'pairing.fortressDeviceHint': 'Nimi, millega teised rakendused seda KnightLoaderit näitavad. Pane nimi, mis meeldib, või jäta väli tühjaks, et kasutada nime {name}.',
   'pairing.fortressDeviceTooLong': 'Nimi peab mahtuma ühele reale, kuni 64 märki.',
   'pairing.fortressPhraseWhere': 'Iga rakendus kindluses saab sulle fraasi näidata. Kleebi see esimesse välja, siis täidab see ka ülejäänud.',
   'pairing.fortressChangePhraseAbout': 'Loob uue fraasi igale kindluse rakendusele, et eemaldatud seade jääks välja.',

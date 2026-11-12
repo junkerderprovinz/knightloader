@@ -270,7 +270,7 @@ export const nl: Dict = {
   'pairing.fortressOutHint': 'Kom in een vesting met haar frase. Dan verschijnen hier de andere apps en wat ze bij {app} mogen doen.',
   'pairing.fortressDeviceTitle': 'Deze server in de vesting',
   'pairing.fortressDeviceName': 'Servernaam',
-  'pairing.fortressDeviceHint': 'De andere apps vinden KnightLoader op deze server onder deze naam. Laat het leeg om {name} te gebruiken.',
+  'pairing.fortressDeviceHint': 'De naam waaronder de andere apps deze KnightLoader tonen. Kies wat je wilt, of laat het leeg om {name} te gebruiken.',
   'pairing.fortressDeviceTooLong': 'De naam moet op één regel passen, hoogstens 64 tekens.',
   'pairing.fortressPhraseWhere': 'Elke app in de vesting kan je de frase tonen. Plak hem in het eerste veld, dan vult hij de rest.',
   'pairing.fortressChangePhraseAbout': 'Maakt een nieuwe frase voor elke app in de vesting, zodat een apparaat dat je hebt verwijderd buiten blijft.',

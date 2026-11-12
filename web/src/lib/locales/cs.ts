@@ -276,7 +276,7 @@ export const cs: Dict = {
   'pairing.fortressOutHint': 'Připojte se k pevnosti její frází. Pak se tu objeví ostatní aplikace a to, co smějí dělat v {app}.',
   'pairing.fortressDeviceTitle': 'Tento server v pevnosti',
   'pairing.fortressDeviceName': 'Název serveru',
-  'pairing.fortressDeviceHint': 'Ostatní aplikace najdou KnightLoader na tomto serveru pod tímto názvem. Pokud pole necháte prázdné, použije se {name}.',
+  'pairing.fortressDeviceHint': 'Název, pod kterým ostatní aplikace zobrazují tento KnightLoader. Zvolte si, jaký chcete. Pokud pole necháte prázdné, použije se {name}.',
   'pairing.fortressDeviceTooLong': 'Název se musí vejít na jeden řádek, nejvýš 64 znaků.',
   'pairing.fortressPhraseWhere': 'Frázi vám může ukázat každá aplikace v pevnosti. Vložte ji do prvního pole a vyplní i ostatní.',
   'pairing.fortressChangePhraseAbout': 'Vytvoří novou frázi pro každou aplikaci v pevnosti, aby odebrané zařízení zůstalo venku.',

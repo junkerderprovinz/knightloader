@@ -276,7 +276,7 @@ export const lv: Dict = {
   'pairing.fortressOutHint': 'Pievienojieties cietoksnim ar tā frāzi. Tad šeit parādīsies pārējās lietotnes un tas, ko tās drīkst darīt {app}.',
   'pairing.fortressDeviceTitle': 'Šis serveris cietoksnī',
   'pairing.fortressDeviceName': 'Servera nosaukums',
-  'pairing.fortressDeviceHint': 'Citas lietotnes atrod KnightLoader šajā serverī pēc šī nosaukuma. Atstājiet tukšu, lai izmantotu {name}.',
+  'pairing.fortressDeviceHint': 'Nosaukums, ar kādu citas lietotnes rāda šo KnightLoader. Izvēlieties jebkuru vai atstājiet tukšu, lai izmantotu {name}.',
   'pairing.fortressDeviceTooLong': 'Nosaukumam jāietilpst vienā rindā, ne vairāk kā 64 rakstzīmes.',
   'pairing.fortressPhraseWhere': 'Frāzi jums var parādīt jebkura cietokšņa lietotne. Ielīmējiet to pirmajā laukā, un tā aizpildīs pārējos.',
   'pairing.fortressChangePhraseAbout': 'Izveido jaunu frāzi katrai cietokšņa lietotnei, lai noņemta ierīce paliktu ārā.',

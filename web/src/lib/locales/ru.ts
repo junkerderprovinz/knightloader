@@ -270,7 +270,7 @@ export const ru: Dict = {
   'pairing.fortressOutHint': 'Вступите в крепость с её фразой. Тогда здесь появятся другие приложения и то, что им можно делать в {app}.',
   'pairing.fortressDeviceTitle': 'Этот сервер в крепости',
   'pairing.fortressDeviceName': 'Имя сервера',
-  'pairing.fortressDeviceHint': 'Другие приложения находят KnightLoader на этом сервере по этому имени. Оставьте поле пустым, чтобы использовалось {name}.',
+  'pairing.fortressDeviceHint': 'Имя, под которым другие приложения показывают этот KnightLoader. Выберите любое или оставьте поле пустым, чтобы использовалось {name}.',
   'pairing.fortressDeviceTooLong': 'Имя должно уместиться в одну строку, не длиннее 64 символов.',
   'pairing.fortressPhraseWhere': 'Фразу может показать любое приложение в крепости. Вставьте её в первое поле, и она заполнит остальные.',
   'pairing.fortressChangePhraseAbout': 'Создаёт новую фразу для каждого приложения крепости, чтобы удалённое устройство осталось снаружи.',

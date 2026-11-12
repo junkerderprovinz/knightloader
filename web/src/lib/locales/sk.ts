@@ -276,7 +276,7 @@ export const sk: Dict = {
   'pairing.fortressOutHint': 'Pripojte sa k pevnosti jej frázou. Potom sa tu objavia ostatné aplikácie a to, čo smú robiť v {app}.',
   'pairing.fortressDeviceTitle': 'Tento server v pevnosti',
   'pairing.fortressDeviceName': 'Názov servera',
-  'pairing.fortressDeviceHint': 'Ostatné aplikácie nájdu KnightLoader na tomto serveri pod týmto názvom. Ak pole necháte prázdne, použije sa {name}.',
+  'pairing.fortressDeviceHint': 'Názov, pod ktorým ostatné aplikácie zobrazujú tento KnightLoader. Zvoľte si, aký chcete. Ak pole necháte prázdne, použije sa {name}.',
   'pairing.fortressDeviceTooLong': 'Názov sa musí zmestiť do jedného riadka, najviac 64 znakov.',
   'pairing.fortressPhraseWhere': 'Frázu vám môže ukázať každá aplikácia v pevnosti. Vložte ju do prvého poľa a vyplní aj ostatné.',
   'pairing.fortressChangePhraseAbout': 'Vytvorí novú frázu pre každú aplikáciu v pevnosti, aby odstránené zariadenie zostalo vonku.',

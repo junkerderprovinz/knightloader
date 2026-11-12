@@ -276,7 +276,7 @@ export const ms: Dict = {
   'pairing.fortressOutHint': 'Sertai kubu dengan frasanya. Kemudian apl lain muncul di sini, berserta apa yang boleh dilakukan di {app}.',
   'pairing.fortressDeviceTitle': 'Pelayan ini dalam kubu',
   'pairing.fortressDeviceName': 'Nama pelayan',
-  'pairing.fortressDeviceHint': 'Apl lain menemui KnightLoader pada pelayan ini dengan nama ini. Biarkan kosong untuk menggunakan {name}.',
+  'pairing.fortressDeviceHint': 'Nama yang digunakan apl lain untuk memaparkan KnightLoader ini. Namakan apa sahaja yang anda suka, atau biarkan kosong untuk menggunakan {name}.',
   'pairing.fortressDeviceTooLong': 'Nama mesti muat dalam satu baris, paling banyak 64 aksara.',
   'pairing.fortressPhraseWhere': 'Setiap apl dalam kubu boleh menunjukkan frasa itu kepada anda. Tampalkannya dalam medan pertama dan ia mengisi yang lain.',
   'pairing.fortressChangePhraseAbout': 'Menjana frasa baharu untuk setiap apl dalam kubu, supaya peranti yang anda alih keluar kekal di luar.',

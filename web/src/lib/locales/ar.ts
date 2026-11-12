@@ -278,7 +278,7 @@ export const ar: Dict = {
   'pairing.fortressOutHint': 'انضم إلى حصن بعبارته. ستظهر هنا بعد ذلك التطبيقات الأخرى وما يُسمح لها بفعله لدى {app}.',
   'pairing.fortressDeviceTitle': 'هذا الخادم في الحصن',
   'pairing.fortressDeviceName': 'اسم الخادم',
-  'pairing.fortressDeviceHint': 'تجد التطبيقات الأخرى KnightLoader على هذا الخادم بهذا الاسم. اتركه فارغًا لاستخدام {name}.',
+  'pairing.fortressDeviceHint': 'الاسم الذي تعرض به التطبيقات الأخرى KnightLoader هذا. اختر ما يعجبك، أو اتركه فارغًا لاستخدام {name}.',
   'pairing.fortressDeviceTooLong': 'يجب أن يكون الاسم في سطر واحد، بحد أقصى 64 حرفًا.',
   'pairing.fortressPhraseWhere': 'يمكن لكل تطبيق في الحصن أن يعرض لك العبارة. الصقها في الحقل الأول فتملأ بقية الحقول.',
   'pairing.fortressChangePhraseAbout': 'ينشئ عبارة جديدة لكل تطبيق في الحصن، فيبقى الجهاز الذي أزلته خارجًا.',

@@ -276,7 +276,7 @@ export const gl: Dict = {
   'pairing.fortressOutHint': 'Únete a unha fortaleza coa súa frase. Entón aparecen aquí as outras apps e o que poden facer en {app}.',
   'pairing.fortressDeviceTitle': 'Este servidor na fortaleza',
   'pairing.fortressDeviceName': 'Nome do servidor',
-  'pairing.fortressDeviceHint': 'As outras apps atopan KnightLoader neste servidor con este nome. Déixao baleiro para usar {name}.',
+  'pairing.fortressDeviceHint': 'O nome co que as outras apps amosan este KnightLoader. Ponlle o que queiras, ou déixao baleiro para usar {name}.',
   'pairing.fortressDeviceTooLong': 'O nome ten que caber nunha liña, ata 64 caracteres.',
   'pairing.fortressPhraseWhere': 'Calquera app da fortaleza pode amosarche a frase. Pégaa no primeiro campo e encherá o resto.',
   'pairing.fortressChangePhraseAbout': 'Crea unha frase nova para todas as apps da fortaleza, para que un dispositivo que quitaches quede fóra.',

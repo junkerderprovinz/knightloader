@@ -276,7 +276,7 @@ export const ca: Dict = {
   'pairing.fortressOutHint': 'Uneix-te a una fortalesa amb la seva frase. Llavors aquí apareixen les altres apps i el que poden fer a {app}.',
   'pairing.fortressDeviceTitle': 'Aquest servidor a la fortalesa',
   'pairing.fortressDeviceName': 'Nom del servidor',
-  'pairing.fortressDeviceHint': 'Les altres aplicacions troben KnightLoader en aquest servidor amb aquest nom. Deixa-ho buit per fer servir {name}.',
+  'pairing.fortressDeviceHint': 'El nom amb què les altres aplicacions mostren aquest KnightLoader. Posa-li el que vulguis, o deixa-ho buit per fer servir {name}.',
   'pairing.fortressDeviceTooLong': 'El nom ha de cabre en una línia, fins a 64 caràcters.',
   'pairing.fortressPhraseWhere': 'Qualsevol app de la fortalesa et pot mostrar la frase. Enganxa-la al primer camp i omplirà la resta.',
   'pairing.fortressChangePhraseAbout': 'Crea una frase nova per a totes les apps de la fortalesa, perquè un dispositiu que has tret es quedi fora.',

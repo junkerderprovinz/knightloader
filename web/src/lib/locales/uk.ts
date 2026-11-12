@@ -276,7 +276,7 @@ export const uk: Dict = {
   'pairing.fortressOutHint': "Приєднайтеся до фортеці з її фразою. Тоді тут з'являться інші застосунки й те, що їм можна робити в {app}.",
   'pairing.fortressDeviceTitle': 'Цей сервер у фортеці',
   'pairing.fortressDeviceName': 'Назва сервера',
-  'pairing.fortressDeviceHint': 'Інші застосунки знаходять KnightLoader на цьому сервері за цією назвою. Залиште поле порожнім, щоб використовувалася {name}.',
+  'pairing.fortressDeviceHint': 'Назва, під якою інші застосунки показують цей KnightLoader. Виберіть будь-яку або залиште поле порожнім, щоб використовувалася {name}.',
   'pairing.fortressDeviceTooLong': 'Назва має вміщатися в один рядок, не більше 64 символів.',
   'pairing.fortressPhraseWhere': 'Фразу може показати будь-який застосунок у фортеці. Вставте її в перше поле, і вона заповнить решту.',
   'pairing.fortressChangePhraseAbout': 'Створює нову фразу для кожного застосунку фортеці, щоб видалений пристрій залишився назовні.',

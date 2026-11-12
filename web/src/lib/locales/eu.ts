@@ -276,7 +276,7 @@ export const eu: Dict = {
   'pairing.fortressOutHint': 'Sartu gotorleku batean bere esaldiarekin. Orduan beste aplikazioak agertuko dira hemen, eta {app}-n zer egin dezaketen.',
   'pairing.fortressDeviceTitle': 'Zerbitzari hau gotorlekuan',
   'pairing.fortressDeviceName': 'Zerbitzariaren izena',
-  'pairing.fortressDeviceHint': 'Beste aplikazioek izen honekin aurkitzen dute KnightLoader zerbitzari honetan. Utzi hutsik {name} erabiltzeko.',
+  'pairing.fortressDeviceHint': 'Beste aplikazioek KnightLoader hau erakusteko erabiltzen duten izena. Jarri nahi duzuna, edo utzi hutsik {name} erabiltzeko.',
   'pairing.fortressDeviceTooLong': 'Izenak lerro batean sartu behar du, gehienez 64 karaktere.',
   'pairing.fortressPhraseWhere': 'Gotorlekuko edozein aplikaziok erakuts diezazuke esaldia. Itsatsi lehen eremuan eta gainerakoak beteko ditu.',
   'pairing.fortressChangePhraseAbout': 'Esaldi berri bat sortzen du gotorlekuko aplikazio guztientzat, kendu duzun gailua kanpoan gera dadin.',

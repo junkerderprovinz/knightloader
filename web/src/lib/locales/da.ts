@@ -276,7 +276,7 @@ export const da: Dict = {
   'pairing.fortressOutHint': 'Bliv en del af en fæstning med dens sætning. Så dukker de andre apps op her sammen med det, de må gøre hos {app}.',
   'pairing.fortressDeviceTitle': 'Denne server i fæstningen',
   'pairing.fortressDeviceName': 'Servernavn',
-  'pairing.fortressDeviceHint': 'De andre apps finder KnightLoader på denne server under dette navn. Lad feltet stå tomt for at bruge {name}.',
+  'pairing.fortressDeviceHint': 'Navnet, som de andre apps viser denne KnightLoader under. Kald den, hvad du vil, eller lad feltet stå tomt for at bruge {name}.',
   'pairing.fortressDeviceTooLong': 'Navnet skal kunne stå på én linje, højst 64 tegn.',
   'pairing.fortressPhraseWhere': 'Alle apps i fæstningen kan vise dig sætningen. Indsæt den i det første felt, så udfylder den resten.',
   'pairing.fortressChangePhraseAbout': 'Laver en ny sætning til alle apps i fæstningen, så en enhed, du har fjernet, bliver ude.',

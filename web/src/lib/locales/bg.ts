@@ -276,7 +276,7 @@ export const bg: Dict = {
   'pairing.fortressOutHint': 'Присъедини се към крепост с нейната фраза. Тогава тук ще се появят другите приложения и какво могат да правят в {app}.',
   'pairing.fortressDeviceTitle': 'Този сървър в крепостта',
   'pairing.fortressDeviceName': 'Име на сървъра',
-  'pairing.fortressDeviceHint': 'Другите приложения намират KnightLoader на този сървър по това име. Остави полето празно, за да се ползва {name}.',
+  'pairing.fortressDeviceHint': 'Името, под което другите приложения показват този KnightLoader. Избери каквото ти харесва или остави полето празно, за да се ползва {name}.',
   'pairing.fortressDeviceTooLong': 'Името трябва да е на един ред и до 64 знака.',
   'pairing.fortressPhraseWhere': 'Всяко приложение в крепостта може да ти покаже фразата. Постави я в първото поле и тя ще попълни останалите.',
   'pairing.fortressChangePhraseAbout': 'Създава нова фраза за всяко приложение в крепостта, така че устройство, което сте премахнали, остава навън.',

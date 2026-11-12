@@ -276,7 +276,7 @@ export const hu: Dict = {
   'pairing.fortressOutHint': 'Csatlakozz egy erődhöz a jelmondatával. Ekkor itt megjelennek a többi alkalmazások, és az is, mit tehetnek a(z) {app} alkalmazásban.',
   'pairing.fortressDeviceTitle': 'Ez a szerver az erődben',
   'pairing.fortressDeviceName': 'Szerver neve',
-  'pairing.fortressDeviceHint': 'A többi app ezen a néven találja meg a KnightLoadert ezen a szerveren. Hagyd üresen, és a(z) {name} lesz érvényes.',
+  'pairing.fortressDeviceHint': 'A többi app ezen a néven mutatja ezt a KnightLoadert. Bármit választhatsz, vagy hagyd üresen, és a(z) {name} lesz érvényes.',
   'pairing.fortressDeviceTooLong': 'A névnek egy sorba kell férnie, legfeljebb 64 karakter.',
   'pairing.fortressPhraseWhere': 'Az erőd bármelyik alkalmazása megmutathatja a jelmondatot. Illeszd be az első mezőbe, és kitölti a többit.',
   'pairing.fortressChangePhraseAbout': 'Új jelmondatot készít az erőd minden alkalmazásának, így egy eltávolított eszköz kint marad.',

@@ -276,7 +276,7 @@ export const lt: Dict = {
   'pairing.fortressOutHint': 'Prisijunkite prie tvirtovės jos fraze. Tada čia atsiras kitos programos ir tai, ką jos gali daryti {app}.',
   'pairing.fortressDeviceTitle': 'Šis serveris tvirtovėje',
   'pairing.fortressDeviceName': 'Serverio pavadinimas',
-  'pairing.fortressDeviceHint': 'Kitos programėlės randa KnightLoader šiame serveryje pagal šį pavadinimą. Palikite tuščią, kad būtų naudojamas {name}.',
+  'pairing.fortressDeviceHint': 'Pavadinimas, kuriuo kitos programėlės rodo šį KnightLoader. Pasirinkite, kokį norite, arba palikite tuščią, kad būtų naudojamas {name}.',
   'pairing.fortressDeviceTooLong': 'Pavadinimas turi tilpti į vieną eilutę, ne daugiau kaip 64 simboliai.',
   'pairing.fortressPhraseWhere': 'Frazę jums gali parodyti bet kuri tvirtovės programa. Įklijuokite ją į pirmą lauką ir ji užpildys likusius.',
   'pairing.fortressChangePhraseAbout': 'Sukuria naują frazę kiekvienai tvirtovės programėlei, kad pašalintas įrenginys liktų lauke.',

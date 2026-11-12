@@ -276,7 +276,7 @@ export const fa: Dict = {
   'pairing.fortressOutHint': 'با عبارتِ یک دژ به آن بپیوند. آن‌وقت برنامه‌های دیگر اینجا دیده می‌شوند، همراه با کارهایی که اجازه دارند در {app} انجام دهند.',
   'pairing.fortressDeviceTitle': 'این سرور در دژ',
   'pairing.fortressDeviceName': 'نام سرور',
-  'pairing.fortressDeviceHint': 'برنامه‌های دیگر KnightLoader را روی این سرور با این نام پیدا می‌کنند. برای استفاده از {name} آن را خالی بگذار.',
+  'pairing.fortressDeviceHint': 'نامی که برنامه‌های دیگر این KnightLoader را با آن نشان می‌دهند. هر نامی دوست داری بگذار، یا برای استفاده از {name} خالی‌اش بگذار.',
   'pairing.fortressDeviceTooLong': 'نام باید در یک خط جا شود، حداکثر ۶۴ نویسه.',
   'pairing.fortressPhraseWhere': 'هر برنامه‌ای در دژ می‌تواند عبارت را به تو نشان دهد. آن را در نخستین فیلد بچسبان تا بقیه را پر کند.',
   'pairing.fortressChangePhraseAbout': 'برای هر برنامهٔ داخل دژ عبارت تازه‌ای می‌سازد تا دستگاهی که حذف کرده‌اید بیرون بماند.',

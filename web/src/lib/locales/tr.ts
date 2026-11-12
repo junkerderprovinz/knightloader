@@ -276,7 +276,7 @@ export const tr: Dict = {
   'pairing.fortressOutHint': 'Bir kaleye ifadesiyle katıl. Ardından diğer uygulamalar ve {app} içinde ne yapabilecekleri burada görünür.',
   'pairing.fortressDeviceTitle': 'Kaledeki bu sunucu',
   'pairing.fortressDeviceName': 'Sunucu adı',
-  'pairing.fortressDeviceHint': "Diğer uygulamalar bu sunucudaki KnightLoader'ı bu adla bulur. {name} kullanılsın diye boş bırakabilirsin.",
+  'pairing.fortressDeviceHint': "Diğer uygulamaların bu KnightLoader'ı gösterdiği ad. İstediğin adı verebilir ya da {name} kullanılsın diye boş bırakabilirsin.",
   'pairing.fortressDeviceTooLong': 'Ad tek satıra sığmalı, en fazla 64 karakter.',
   'pairing.fortressPhraseWhere': 'Kaledeki her uygulama ifadeyi sana gösterebilir. İlk alana yapıştır, gerisini o doldurur.',
   'pairing.fortressChangePhraseAbout': 'Kaledeki her uygulama için yeni bir ifade oluşturur, böylece kaldırdığın bir cihaz dışarıda kalır.',

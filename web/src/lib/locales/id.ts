@@ -276,7 +276,7 @@ export const id: Dict = {
   'pairing.fortressOutHint': 'Gabung ke benteng dengan frasanya. Lalu aplikasi lain muncul di sini, beserta apa yang boleh mereka lakukan di {app}.',
   'pairing.fortressDeviceTitle': 'Server ini di benteng',
   'pairing.fortressDeviceName': 'Nama server',
-  'pairing.fortressDeviceHint': 'Aplikasi lain menemukan KnightLoader di server ini dengan nama ini. Biarkan kosong untuk memakai {name}.',
+  'pairing.fortressDeviceHint': 'Nama yang dipakai aplikasi lain untuk menampilkan KnightLoader ini. Beri nama apa saja, atau biarkan kosong untuk memakai {name}.',
   'pairing.fortressDeviceTooLong': 'Nama harus muat dalam satu baris, paling banyak 64 karakter.',
   'pairing.fortressPhraseWhere': 'Setiap aplikasi di benteng bisa menunjukkan frasanya. Tempel di kolom pertama, lalu kolom lain ikut terisi.',
   'pairing.fortressChangePhraseAbout': 'Membuat frasa baru untuk semua aplikasi di benteng, jadi perangkat yang sudah kamu hapus tetap di luar.',
