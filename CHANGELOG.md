@@ -38,7 +38,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
-## [2.7.7] - 2026-11-10
+## [2.7.7] - 2026-11-12
 
 ### Added
 
@@ -138,7 +138,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   your group, and the video button said "Could not send". The extension keeps
   the pairing in its own storage in that case as well. Thanks to @sabascos for
   the photos
-  ([#156](https://github.com/junkerderprovinz/knightloader/discussions/156)).
+  ([#169](https://github.com/junkerderprovinz/knightloader/issues/169)).
 - **The Firefox extension loads without a warning.** Its manifest no longer
   asks for the offscreen permission, which only Chromium has and which
   Firefox listed as a long warning on its debugging page.
@@ -333,7 +333,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   access to all websites already includes. For this, `POST /api/links` takes
   a `format` of `video`, `audio` or a resolution, which stands in for the
   host's preset for that link
-  ([#156](https://github.com/junkerderprovinz/knightloader/discussions/156)).
+  ([#169](https://github.com/junkerderprovinz/knightloader/issues/169)).
 - **A Deepbrid premium account fetches torrents and `.nzb` files**, like
   TorBox and Premiumize.me ([#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
 
