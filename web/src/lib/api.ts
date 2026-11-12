@@ -4638,6 +4638,10 @@ export interface FortressMember {
   relay: boolean;
   /** Unix seconds. */
   lastSeen?: number;
+  /** The server it says it runs on. */
+  host?: string;
+  /** Its pages open through the fortress. */
+  open: boolean;
 }
 
 /** Whether one app of the fortress may run an action at another. */
@@ -4717,6 +4721,37 @@ export async function setFortressPermission(p: FortressPermissionState): Promise
 /** leaveFortress takes this instance out of the fortress; its pairing ends with it. */
 export async function leaveFortress(): Promise<FortressState> {
   return json(await fetch('/api/fortress', { method: 'DELETE' }));
+}
+
+/** openFortressMember asks for a tab on a member's web interface and returns
+ *  its path. A refusal throws an ApiError whose code GlimStone's
+ *  openRefusalText has words for. */
+export async function openFortressMember(id: string): Promise<string> {
+  return (await json<{ path: string }>(await fetch(`/api/fortress/open/${encodeURIComponent(id)}`, { method: 'POST' }))).path;
+}
+
+/** A line of a member's log, as the status contract has it. */
+export interface FortressLogEntry {
+  at: string;
+  level: string;
+  text: string;
+}
+
+/** What a member of the fortress reports about itself, its texts in the asked language. */
+export interface FortressMemberStatus {
+  report: {
+    state: string;
+    needsYou: { severity: string; text: string }[] | null;
+    work: { title: string; progress?: number }[] | null;
+    next: { title: string; at: string }[] | null;
+  };
+  /** Newest first. */
+  log: FortressLogEntry[];
+}
+
+/** fetchFortressMemberStatus reads how a member is doing, for a member without pages of its own. */
+export async function fetchFortressMemberStatus(id: string, lang: string): Promise<FortressMemberStatus> {
+  return json(await fetch(`/api/fortress/members/${encodeURIComponent(id)}/status?lang=${encodeURIComponent(lang)}`));
 }
 
 /**

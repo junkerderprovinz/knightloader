@@ -1,16 +1,16 @@
 // What the fortress on the Pairing page shows of the server's view, in
 // GlimStone's shapes: the other apps with a row per place they run, and the
 // permissions that involve KnightLoader in KnightLoader's own words.
-import { type FortressApp, type FortressPermission } from '@glimstone/core';
-import type { ConnectInfo, FortressMember, FortressPermissionState } from '../../../lib/api';
+import { type FortressApp, type FortressLogLine, type FortressPermission, type FortressStatusReport } from '@glimstone/core';
+import type { ConnectInfo, FortressMember, FortressMemberStatus, FortressPermissionState } from '../../../lib/api';
 import type { TranslationKey } from '../../../lib/i18n';
 
 export const SELF = { id: 'knightloader', name: 'KnightLoader' };
 
 type T = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
-/** The actions KnightLoader has words for: the ones it calls at ArrowLoop and
- *  the ones a backup app calls here. */
+/** The actions KnightLoader has words for: the ones it calls at ArrowLoop,
+ *  the ones a backup app calls here, and opening an app's pages. */
 const ACTION_TITLES: Record<string, TranslationKey> = {
   'jobs.list': 'pairing.fortressAction.jobsList',
   'jobs.run': 'pairing.fortressAction.jobsRun',
@@ -18,8 +18,15 @@ const ACTION_TITLES: Record<string, TranslationKey> = {
   'jobs.create': 'pairing.fortressAction.jobsCreate',
   'backup.export': 'pairing.fortressAction.backupExport',
   'backup.import': 'pairing.fortressAction.backupImport',
+  'ui.open': 'pairing.fortressAction.uiOpen',
 };
 
+/** PRINT_LENGTH is how much of a member's id names it, as much as the bar
+ *  above an opened tab shows. */
+const PRINT_LENGTH = 8;
+
+/** Every server instance opens: through the fortress where it offers its
+ *  pages, else as its status window. A phone has nothing to open. */
 export function fortressApps(members: FortressMember[], ago: (unix: number) => string): FortressApp[] {
   const apps = new Map<string, FortressApp>();
   for (const m of members) {
@@ -36,10 +43,25 @@ export function fortressApps(members: FortressMember[], ago: (unix: number) => s
       presence: m.online ? 'connected' : 'away',
       relay: m.relay,
       lastSeen: !m.online && seen > 0 ? ago(seen) : undefined,
+      open: m.kind === 'instance' ? {} : undefined,
+      doubt: doubted(m, members) || undefined,
+      print: m.id.slice(-PRINT_LENGTH),
     });
     apps.set(m.app, app);
   }
   return [...apps.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** doubted reports whether another member claims m's app on m's server or
+ *  device, so that one of the two may be copying the other's sign-in. */
+function doubted(m: FortressMember, members: FortressMember[]): boolean {
+  return members.some(
+    (o) =>
+      o.id !== m.id &&
+      o.app === m.app &&
+      o.kind === m.kind &&
+      ((!!m.host && o.host === m.host) || (!!m.device && o.device === m.device)),
+  );
 }
 
 export function fortressPermissions(
@@ -95,4 +117,21 @@ function dialAddress(raw: string): string | null {
   const path = u.pathname.replace(/\/+$/, '');
   u.pathname = path.endsWith('/connect') ? path : `${path}/relay/connect`;
   return u.toString();
+}
+
+/** memberStatus puts a member's report and log into the shape GlimStone's
+ *  status window takes, every time in the app's own format. */
+export function memberStatus(
+  s: FortressMemberStatus,
+  when: (iso: string) => string,
+): { report: FortressStatusReport; log: FortressLogLine[] } {
+  return {
+    report: {
+      state: s.report.state,
+      needsYou: (s.report.needsYou ?? []).map((n) => ({ severity: n.severity, text: n.text })),
+      work: (s.report.work ?? []).map((w) => ({ title: w.title, progress: w.progress })),
+      next: (s.report.next ?? []).map((n) => ({ title: n.title, at: when(n.at) })),
+    },
+    log: s.log.map((e) => ({ at: when(e.at), level: e.level, text: e.text })),
+  };
 }

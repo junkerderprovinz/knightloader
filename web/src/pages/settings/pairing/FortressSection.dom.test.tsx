@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 // The fortress on the Pairing page: outside one, the twelve words join it;
 // inside, the Fortress card on top shows the phrase behind the password with
-// its QR code, changes it and lets KnightLoader leave.
+// its QR code, changes it and lets KnightLoader leave. Open on another app's
+// card shows its pages in a new tab, or its status where it has no pages.
 import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fortressText } from '@glimstone/core';
 
 import type { ConnectInfo, FortressState } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
@@ -22,6 +24,7 @@ const server = vi.hoisted(() => ({
   join: null as null | (() => never),
   throttled: false,
   calls: [] as string[],
+  openRefusal: '',
 }));
 
 vi.mock('../../../lib/api', async (importOriginal) => {
@@ -50,6 +53,18 @@ vi.mock('../../../lib/api', async (importOriginal) => {
       if (device.length > 64) throw new actual.ApiError('the name must be one line of at most 64 characters', 'fortress.deviceName', undefined, 400);
       server.view = { ...server.view, device: device || server.view.defaultDevice };
       return server.view;
+    },
+    openFortressMember: async (id: string) => {
+      server.calls.push(`open ${id}`);
+      if (server.openRefusal) throw new actual.ApiError('refused', server.openRefusal, undefined, 403);
+      return '/fortress/open/0123';
+    },
+    fetchFortressMemberStatus: async (id: string) => {
+      server.calls.push(`status ${id}`);
+      return {
+        report: { state: 'ok', needsYou: [], work: [], next: [] },
+        log: [{ at: '2026-11-12T19:00:00Z', level: 'info', text: 'The array was checked' }],
+      };
     },
     leaveFortress: async () => {
       server.calls.push('leave');
@@ -111,6 +126,7 @@ beforeEach(() => {
   root = createRoot(host);
   server.join = null;
   server.throttled = false;
+  server.openRefusal = '';
   server.calls.length = 0;
   toasts.length = 0;
 });
@@ -293,7 +309,7 @@ describe('FortressSection', () => {
   });
 
   it('calls a member connected or not reachable', async () => {
-    const member = { app: 'arrowloop', name: 'ArrowLoop', version: '3.0.0', deployment: 'container', kind: 'instance', relay: false };
+    const member = { app: 'arrowloop', name: 'ArrowLoop', version: '3.0.0', deployment: 'container', kind: 'instance', relay: false, open: true };
     await draw(
       joined({
         members: [
@@ -306,6 +322,43 @@ describe('FortressSection', () => {
     expect(page()).toContain('Connected');
     expect(page()).toContain('Not reachable');
     expect(page()).not.toContain('Inactive');
+  });
+
+  const arrowLoop = { id: 'm1', app: 'arrowloop', name: 'ArrowLoop', version: '3.0.0', device: 'Tower', deployment: 'container', kind: 'instance', online: true, relay: false, open: true };
+
+  it("opens another app's pages in a new tab through the fortress", async () => {
+    const opened = vi.fn();
+    vi.stubGlobal('open', opened);
+    await draw(joined({ members: [arrowLoop] }));
+    await press('others');
+    await press('open');
+    expect(server.calls).toEqual(['open m1']);
+    expect(opened).toHaveBeenCalledWith('/fortress/open/0123', '_blank', 'noopener');
+  });
+
+  it("says in GlimStone's words why an app did not open", async () => {
+    vi.stubGlobal('open', vi.fn());
+    server.openRefusal = 'ui_no_login';
+    await draw(joined({ members: [arrowLoop] }));
+    await press('others');
+    await press('open');
+    expect(toasts).toEqual([fortressText('en').openRefused.ui_no_login]);
+  });
+
+  it('asks for a password here before KnightLoader opens another app', async () => {
+    await draw(joined({ passwordSet: false, members: [arrowLoop] }));
+    await press('others');
+    await press('open');
+    expect(server.calls).toEqual([]);
+    expect(toasts).toEqual([en['pairing.fortressOpenNeedsPassword']]);
+  });
+
+  it('shows the status of a plugin, which has no pages to open', async () => {
+    await draw(joined({ members: [{ ...arrowLoop, app: 'tollroll', name: 'TollRoll', deployment: 'plugin', open: false }] }));
+    await press('others');
+    await press('open');
+    expect(server.calls).toEqual(['status m1']);
+    expect(page()).toContain('The array was checked');
   });
 
   it('saves the name of this server a moment after the typing stops', async () => {

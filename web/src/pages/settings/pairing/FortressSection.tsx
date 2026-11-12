@@ -1,10 +1,25 @@
 // FortressSection is KnightLoader's place in the fortress, on the Pairing page:
 // the card where the phrase shows and changes and KnightLoader leaves, the name
 // of this server, then GlimStone's fortress with the other apps and their
-// permissions, or the twelve words to join one.
+// permissions, or the twelve words to join one. Open on another app's card
+// shows its pages in a new tab through the fortress, or the status of an app
+// without pages of its own.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { fill, fortressText, type ChangeAnswer, type FortressAnswer, type FortressText, type PhraseAnswer } from '@glimstone/core';
+import {
+  fill,
+  fortressText,
+  openRefusalText,
+  type ChangeAnswer,
+  type FortressAnswer,
+  type FortressApp,
+  type FortressInstance,
+  type FortressLogLine,
+  type FortressStatusReport,
+  type FortressText,
+  type PhraseAnswer,
+} from '@glimstone/core';
 import { Fortress, FortressPairing } from '@glimstone/react/Fortress';
+import { FortressStatusWindow } from '@glimstone/react/FortressStatusWindow';
 import { PasswordField } from '@glimstone/react/PasswordField';
 import { Window } from '@glimstone/react/Window';
 import { Card, SectionTitle, TextInput } from '../../../components/ui';
@@ -12,8 +27,10 @@ import {
   ApiError,
   changeFortressPhrase,
   type ConnectInfo,
+  fetchFortressMemberStatus,
   joinFortress,
   leaveFortress,
+  openFortressMember,
   setFortressDevice,
   setFortressPermission,
   showFortressPhrase,
@@ -24,11 +41,22 @@ import { useT } from '../../../lib/i18n';
 import { useToast } from '../../../lib/toast';
 import { SetRow } from './parts';
 import { refusalText } from './PhraseCard';
-import { SELF, fortressApps, fortressPermissions, permissionOf, phraseCode } from './fortressModel';
+import { SELF, fortressApps, fortressPermissions, memberStatus, permissionOf, phraseCode } from './fortressModel';
 
 type T = ReturnType<typeof useT>['t'];
 
 const TONE = { success: 'ok', warn: 'info', fail: 'fail' } as const;
+
+/** The status window of an app without pages of its own, while it shows. */
+interface Shown {
+  app: FortressApp;
+  instance: FortressInstance;
+  report?: FortressStatusReport;
+  log?: FortressLogLine[];
+  error?: string;
+}
+
+const refusalCode = (e: unknown) => (e instanceof ApiError && e.code ? e.code : 'failed');
 // The name saves itself after a pause in typing, as the settings do.
 const SAVE_AFTER_MS = 800;
 
@@ -69,6 +97,7 @@ export function FortressSection({
   }, [lang, t]);
   // The step that waits for the password before a new phrase is made.
   const [asking, setAsking] = useState<((answer: ChangeAnswer) => void) | null>(null);
+  const [shown, setShown] = useState<Shown | null>(null);
 
   const apps = fortressApps(view.members, (unix) => fmtDate(new Date(unix * 1000).toISOString()));
 
@@ -106,6 +135,32 @@ export function FortressSection({
       return { ok: true };
     } catch (e) {
       return { error: refusalText(t, e) };
+    }
+  };
+  // The tab opens right after the answer, which comes quickly, while the
+  // browser still counts it as the click's.
+  const onOpen = (app: FortressApp, instance: FortressInstance) => {
+    if (!view.members.find((m) => m.id === instance.id)?.open) {
+      void showStatus(app, instance);
+      return;
+    }
+    if (!view.passwordSet) {
+      toast(t('pairing.fortressOpenNeedsPassword'), 'info');
+      return;
+    }
+    openFortressMember(instance.id).then(
+      (path) => void window.open(path, '_blank', 'noopener'),
+      (e: unknown) => toast(openRefusalText(text, refusalCode(e)), 'fail'),
+    );
+  };
+  const showStatus = async (app: FortressApp, instance: FortressInstance) => {
+    setShown({ app, instance });
+    const mine = (s: Shown | null) => s?.instance.id === instance.id;
+    try {
+      const status = memberStatus(await fetchFortressMemberStatus(instance.id, lang), fmtDate);
+      setShown((s) => (mine(s) ? { app, instance, ...status } : s));
+    } catch (e) {
+      setShown((s) => (mine(s) ? { app, instance, error: openRefusalText(text, refusalCode(e)) } : s));
     }
   };
   const onPermission = async (id: string, on: boolean): Promise<FortressAnswer> => {
@@ -147,9 +202,23 @@ export function FortressSection({
         notify={(message, severity) => toast(message, TONE[severity])}
         onJoin={onJoin}
         onRemove={() => Promise.resolve({ error: text.failed })}
+        onOpen={onOpen}
         pairedWith={view.pairedWith}
         hueStart={hueStart + 2}
       />
+      {shown && (
+        <FortressStatusWindow
+          app={shown.app}
+          instance={shown.instance}
+          report={shown.report}
+          log={shown.log}
+          loading={!shown.report && !shown.error}
+          error={shown.error}
+          text={text}
+          lang={lang}
+          onClose={() => setShown(null)}
+        />
+      )}
       {asking && (
         <ChangePassword
           text={text}
