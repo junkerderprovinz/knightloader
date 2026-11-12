@@ -340,6 +340,27 @@ func TestBuildArgsAsksForTheVideosNameBeforeItIsFetched(t *testing.T) {
 	}
 }
 
+// A video picked as HEVC downloads what its pick names, merged into mkv for
+// the conversion that follows, under a name that carries the codec.
+func TestBuildArgsDownloadsAVideoPickedAsHEVCAsItsPickWould(t *testing.T) {
+	plain := buildArgs("d", Options{Variant: VariantVideo, Quality: Quality1080p})
+	converted := buildArgs("d", Options{Variant: VariantVideo, Quality: Quality1080p, VideoConvert: ConvertHEVC})
+	if a, b := valueAfterOr(plain, "-f"), valueAfterOr(converted, "-f"); a != b {
+		t.Errorf("-f = %q, want the pick's own %q", b, a)
+	}
+	if got, _ := valueAfter(converted, "--merge-output-format"); got != "mkv" {
+		t.Errorf("--merge-output-format = %q, want mkv", got)
+	}
+	if got := fill(outputTemplate(Options{Variant: VariantVideo, VideoConvert: ConvertHEVC}), map[string]string{"title": "Clip", "width": "1920", "height": "960", "ext": "mkv"}); got != "Clip (1920x960p hevc).mkv" {
+		t.Errorf("video name = %q, want the codec beside the frame", got)
+	}
+}
+
+func valueAfterOr(args []string, flag string) string {
+	v, _ := valueAfter(args, flag)
+	return v
+}
+
 func TestBuildArgsConvertsTheThumbnailToTheFormatARowAskedFor(t *testing.T) {
 	for format, want := range map[string]string{"png": "png", "webp": "webp", "jpg": "jpg", "": "jpg"} {
 		args := buildArgs("d", Options{Variant: VariantThumbnail, ThumbnailFormat: format})

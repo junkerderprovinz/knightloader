@@ -199,6 +199,15 @@ func (b *Backend) ffmpegArgs() []string {
 	return []string{"--ffmpeg-location", b.ffmpeg}
 }
 
+func (b *Backend) ffmpegBinary() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.ffmpeg == "" {
+		return "ffmpeg"
+	}
+	return b.ffmpeg
+}
+
 func (b *Backend) ffprobeBinary() string {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -496,6 +505,12 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			}
 			continue
 		}
+		if name, ok := downloadedBefore(line); ok && opts.VideoConvert != "" && b.ownFile(taskID, dir, out, name) {
+			// A conversion stopped halfway left the downloaded file, which
+			// the run converts again.
+			final = name
+			continue
+		}
 		if name, ok := finishedFile(line); ok {
 			if !b.ownFile(taskID, dir, out, name) {
 				continue
@@ -571,6 +586,16 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	if err == nil && scanErr != nil {
 		err = scanErr
 	}
+	if err == nil && opts.VideoConvert != "" && final != "" {
+		converted, err := b.convertVideo(ctx, taskID, final)
+		switch {
+		case ctx.Err() != nil:
+			return core.Update{}, false
+		case err != nil:
+			return core.Update{Status: core.StatusError, Err: err.Error()}, true
+		}
+		final = converted
+	}
 	if err != nil {
 		raw := stderr.String()
 		msg := errorLine(raw)
@@ -592,6 +617,70 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 		return b.placeSubtitles(taskID, out, dir, opts, final, written, subFiles), true
 	}
 	return done(""), true
+}
+
+// convertVideo encodes the video of file again as HEVC into an mkv beside it,
+// copying every other stream, and returns the mkv. The row's note follows
+// ffmpeg's progress, since the download itself is over at that point.
+func (b *Backend) convertVideo(ctx context.Context, taskID, file string) (string, error) {
+	to := strings.TrimSuffix(file, filepath.Ext(file)) + ".mkv"
+	tmp := tempPath(to)
+	duration := 0.0
+	if m, err := probeMedia(ctx, b.ffprobeBinary(), file); err == nil {
+		duration = m.Duration
+	}
+	cmd := nowindow.CommandContext(ctx, b.ffmpegBinary(), "-nostdin", "-y", "-loglevel", "error",
+		"-i", file, "-map", "0", "-c", "copy", "-c:v", "libx265", "-crf", "24", "-preset", "medium",
+		"-progress", "pipe:1", "-nostats", tmp)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return file, fmt.Errorf("ffmpeg: %w", err)
+	}
+	if err := cmd.Start(); err != nil {
+		return file, fmt.Errorf("ffmpeg: %w", err)
+	}
+	const note = "converting to HEVC"
+	b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: note})
+	shown := -1
+	sc := bufio.NewScanner(stdout)
+	for sc.Scan() {
+		us, ok := strings.CutPrefix(sc.Text(), "out_time_us=")
+		n, err := strconv.ParseFloat(us, 64)
+		if !ok || err != nil || duration <= 0 {
+			continue
+		}
+		if pct := min(int(n/1e6/duration*100), 99); pct != shown {
+			shown = pct
+			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Note: fmt.Sprintf("%s, %d%%", note, pct)})
+		}
+	}
+	if err := cmd.Wait(); err != nil {
+		_ = os.Remove(tmp)
+		if msg := errorLine(stderr.String()); msg != "" {
+			return file, fmt.Errorf("ffmpeg: %s", msg)
+		}
+		return file, fmt.Errorf("ffmpeg: %w", err)
+	}
+	if err := os.Rename(tmp, to); err != nil {
+		return file, fmt.Errorf("ffmpeg: %w", err)
+	}
+	if to != file {
+		_ = os.Remove(file)
+	}
+	return to, nil
+}
+
+// downloadedBefore picks the path out of the line yt-dlp prints for a file it
+// finds already downloaded under its own name.
+func downloadedBefore(line string) (string, bool) {
+	rest, ok := strings.CutPrefix(line, "[download] ")
+	if !ok {
+		return "", false
+	}
+	name, ok := strings.CutSuffix(rest, " has already been downloaded")
+	return name, ok && name != ""
 }
 
 // keptApart lists what a video kept apart leaves beside its file, each where
@@ -1345,11 +1434,12 @@ func buildArgs(dir string, o Options) []string {
 		}
 		// mkv takes any codec pairing, unlike mp4, and makes the container
 		// known in advance. A picked track or format, or else the instance's
-		// video format, asks for its own container first.
+		// video format, asks for its own container first, unless the video is
+		// converted afterwards.
 		merge := "mkv"
-		if c, ok := pickedContainer(o.VideoPick); ok {
+		if c, ok := pickedContainer(o.VideoPick); ok && o.VideoConvert == "" {
 			merge = c.mergeFormat(o.Embed.Thumbnail)
-		} else if w, ok := defaultWish(o, o.Quality); ok {
+		} else if w, ok := defaultWish(o, o.Quality); ok && o.VideoConvert == "" {
 			merge = w.mergeFormat(o.Embed.Thumbnail)
 		}
 		args = append(args, "--merge-output-format", merge)
@@ -1387,6 +1477,8 @@ func outputTemplate(o Options) string {
 		return musicOutputTemplate
 	case o.Variant == VariantAudio:
 		return audioOutputTemplate
+	case o.Variant == VariantVideo && !o.Embed.Separate && o.VideoConvert == ConvertHEVC:
+		return "%(title)s (" + frameField + " hevc).%(ext)s"
 	case o.Variant == VariantVideo && !o.Embed.Separate && o.NameTag != "":
 		return "%(title)s (" + frameField + " " + o.NameTag + ").%(ext)s"
 	case o.Variant == VariantVideo && !o.Embed.Separate:

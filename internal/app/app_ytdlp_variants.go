@@ -55,6 +55,7 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 	base.Variant = kind
 	switch kind {
 	case ytdlp.VariantVideo:
+		sub, base.VideoConvert = ytdlp.SplitConversion(sub)
 		switch {
 		case ytdlp.IsVideoPick(sub):
 			base.VideoPick = sub
@@ -199,6 +200,9 @@ func (a *App) familyRows(host string, choice *ytdlp.LinkChoice) []familyRow {
 			if own.VideoTrack != "" {
 				sub = own.VideoTrack
 			}
+			if own.VideoConvert != "" {
+				sub = ytdlp.ConvertedPick(sub, own.VideoConvert)
+			}
 		case v == ytdlp.VariantAudio:
 			sub, r.bitrate, r.lang = preset.AudioFormat, preset.AudioBitrate, own.AudioLang
 			if own.AudioTrack != "" {
@@ -266,6 +270,9 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice, 
 	}
 	live.Variant = video.variant
 	live.PickSent = video.key()
+	if _, sub := variantDecode(video.variant); fixedVariantExt(ytdlp.VariantVideo, sub) != "" {
+		live.Ext = fixedVariantExt(ytdlp.VariantVideo, sub)
+	}
 	if !video.on || have[video.key()] {
 		live.VariantOff = true
 		live.Enabled = false
@@ -376,6 +383,10 @@ func fixedVariantExt(v ytdlp.Variant, sub string) string {
 		return ""
 	case ytdlp.VariantDescription:
 		return "description"
+	case ytdlp.VariantVideo:
+		if _, convert := ytdlp.SplitConversion(sub); convert != "" {
+			return "mkv"
+		}
 	case ytdlp.VariantAudio:
 		if ytdlp.IsAudioTrack(sub) {
 			return ytdlp.AudioTrackExt(sub)

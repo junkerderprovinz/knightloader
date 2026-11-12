@@ -1039,6 +1039,29 @@ func TestAPickOnAnHDRVideoResolvesToTheTrackItMeans(t *testing.T) {
 	}
 }
 
+// A conversion keeps the pick it converts, which resolves as that pick
+// would, and is written as mkv of a size nobody knows in advance.
+func TestAPickConvertedToHEVCResolvesAsItsPickAndIsAnMkv(t *testing.T) {
+	for pick, want := range map[string]string{
+		"1080p to mkv hevc":          "1080p to mkv hevc",
+		"720p to mkv hevc":           "360p to mkv hevc",
+		"1080p webm vp9 to mkv hevc": "1080p webm vp9 to mkv hevc",
+	} {
+		if got := ResolveVideoPick(pick, youtubeLike); got != want {
+			t.Errorf("ResolveVideoPick(%q) = %q, want %q", pick, got, want)
+		}
+		if ext, size := VideoFile(want, youtubeLike, Options{}); ext != "mkv" || size != 0 {
+			t.Errorf("VideoFile(%q) = %q, %d; want mkv of unknown size", want, ext, size)
+		}
+	}
+	if pick, convert := SplitConversion("1080p webm vp9 to mkv hevc"); pick != "1080p webm vp9" || convert != ConvertHEVC {
+		t.Errorf("SplitConversion = %q, %q", pick, convert)
+	}
+	if pick, convert := SplitConversion("1080p webm vp9"); pick != "1080p webm vp9" || convert != "" {
+		t.Errorf("SplitConversion of a plain pick = %q, %q", pick, convert)
+	}
+}
+
 func TestATrackIsNamedByTheQualityYouTubeGivesIt(t *testing.T) {
 	cases := []struct {
 		name          string

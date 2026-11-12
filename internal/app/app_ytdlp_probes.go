@@ -146,10 +146,20 @@ type LinkMenus struct {
 	Subtitles       []string `json:"subtitles"`
 	AutoCaptions    []string `json:"autoCaptions"`
 	SubtitleFormats []string `json:"subtitleFormats"`
+	// VideoConversions are the formats the video row can convert its file
+	// to after the download.
+	VideoConversions []LinkConversion `json:"videoConversions"`
 	// Thumbnail is the picture the thumbnail row fetches, nil for none.
 	Thumbnail *LinkThumbnail `json:"thumbnail"`
 	// Description reports whether there is a description to write.
 	Description bool `json:"description"`
+}
+
+// LinkConversion is a format the video row converts to, Converted since
+// KnightLoader makes it rather than the host serving it.
+type LinkConversion struct {
+	Format    string `json:"format"`
+	Converted bool   `json:"converted"`
 }
 
 // LinkLang is one language of a source's audio, Dubbed for an automatic dub.
@@ -200,6 +210,10 @@ func (a *App) LinkQualities(ctx context.Context, rawurl string) (LinkMenus, erro
 	}
 	for _, q := range ytdlp.SourceQualities(formats) {
 		menus.Qualities = append(menus.Qualities, string(q))
+	}
+	menus.VideoConversions = []LinkConversion{}
+	if len(menus.Qualities) > 0 {
+		menus.VideoConversions = append(menus.VideoConversions, LinkConversion{Format: ytdlp.ConvertHEVC, Converted: true})
 	}
 	yt := a.Settings.Get().Ytdlp
 	menus.VideoSizes = pickSizes(slices.Concat([]string{"best"}, menus.Qualities, menus.VideoTracks), func(pick string) int64 {
