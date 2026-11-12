@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/junkerderprovinz/parleyport/kit/status"
+
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 )
 
@@ -23,5 +25,16 @@ func TestTheStatusNamesTheContainerKnightLoaderRunsIn(t *testing.T) {
 		if snap.Instance.Container != id {
 			t.Errorf("the status names the container %q, want %q", snap.Instance.Container, id)
 		}
+	}
+}
+
+func TestTheStatusCarriesKnightLoadersLogo(t *testing.T) {
+	a, _ := newImportApp(t)
+	snap, err := a.FortressSnapshot(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := status.CheckIcon(snap.App.Icon); err != nil || snap.App.Icon != Icon {
+		t.Errorf("the status carries no logo: %v", err)
 	}
 }

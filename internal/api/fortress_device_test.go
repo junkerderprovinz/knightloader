@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
 // Not parallel: it points unraidFlash, where the template mounts the flash,
@@ -124,4 +126,28 @@ func TestUnraidsHostnameNamesTheServerWhenTheFlashIsUnreadable(t *testing.T) {
 	if code := getJSON(t, srv.URL+"/api/fortress", &v); code != http.StatusOK || v.Device != "Tower" || v.DefaultDevice != "Tower" {
 		t.Errorf("with HOST_HOSTNAME set the fortress reads %d %+v, want Tower", code, v)
 	}
+}
+
+func TestTheOtherMembersSeeKnightLoadersLogoAndServerUnderAnyName(t *testing.T) {
+	t.Setenv("HOST_HOSTNAME", "Tower")
+	srv, a := testServer(t)
+	defer srv.Close()
+	relayURL := ownRelay(t, a, srv.URL)
+	secret, words := newWords(t)
+	keeper, _ := backupKeeperIn(t, relayURL, secret)
+	if code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/fortress/join", map[string]string{"phrase": words}); code != http.StatusOK {
+		t.Fatalf("join answered %d: %s", code, raw)
+	}
+	if code, v := putDevice(t, srv.URL, "Attic"); code != http.StatusOK {
+		t.Fatalf("naming the device answered %d %+v", code, v)
+	}
+	loader := memberKey(a).ID()
+	waitFor(t, "the backup app to see KnightLoader's logo on Tower", func() bool {
+		for _, m := range keeper.Members() {
+			if m.ID == loader && m.Device == "Attic" && m.Host == "Tower" && m.App.Icon == app.Icon {
+				return true
+			}
+		}
+		return false
+	})
 }

@@ -232,7 +232,8 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 	pairing := pairingConfig(a, serve, pairingStore{a.Accounts})
 	pairing.Previous = groupSecret(a)
 	cfg := kitfortress.Config{
-		App:                 kitfortress.App{ID: appID, Name: "KnightLoader", Version: buildinfo.Version},
+		App:                 kitfortress.App{ID: appID, Name: "KnightLoader", Version: buildinfo.Version, Icon: app.Icon},
+		Host:                unraidHost(),
 		Secret:              secret,
 		Previous:            fortressPrevious(a),
 		Identity:            *identity,
@@ -633,9 +634,8 @@ var unraidFlash = "/host/boot"
 // maxDeviceName bounds the name in the fortress, as the kit bounds an app's.
 const maxDeviceName = 64
 
-// fortressDevice is the name the other members know this server by. The other
-// apps find KnightLoader on their own server by it, so it is the server's
-// name unless the owner gives another.
+// fortressDevice is the name the other members know this server by, the
+// server's unless the owner gives another.
 func fortressDevice(a *app.App) string {
 	if name := a.Settings.Get().FortressDevice; name != "" {
 		return name
@@ -648,13 +648,13 @@ func fortressDevice(a *app.App) string {
 // template's 99:100 the name comes from HOST_HOSTNAME, which Unraid sets on
 // every container.
 func defaultFortressDevice(a *app.App) string {
-	if name := unraidServerName(unraidFlash); name != "" {
-		return name
-	}
-	if name := strings.TrimSpace(os.Getenv("HOST_HOSTNAME")); name != "" {
-		return name
-	}
-	return instanceDisplayName(a)
+	return cmp.Or(unraidHost(), instanceDisplayName(a))
+}
+
+// unraidHost is the Unraid server's name, empty off Unraid. The apps of a
+// fortress on one server find each other by it, whatever each calls itself.
+func unraidHost() string {
+	return cmp.Or(unraidServerName(unraidFlash), strings.TrimSpace(os.Getenv("HOST_HOSTNAME")))
 }
 
 // unraidServerName reads the server's name from config/ident.cfg on the

@@ -48,6 +48,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   until everyone has followed, for 30 days at most. A device still missing
   after that shows up on the Pairing page by name, so you can bring it in
   with the fortress phrase or remove it.
+- **KnightLoader shows up with its own logo** in your other apps, and they
+  find it on its server whatever name you give it there.
 - **Every permission between apps has its own switch.** The Pairing page
   shows what the other apps of your fortress may do at KnightLoader and what
   KnightLoader may do at them, each with a switch of its own.
