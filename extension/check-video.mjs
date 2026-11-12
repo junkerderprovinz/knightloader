@@ -264,6 +264,21 @@ function loadBackground(chrome) {
   const wantsDe = `videoPick({ parts: ['subtitle'], subLangs: ['de'] })`;
   if (!same(run(`videoSubtitleChoices(twice, ${wantsDe}).auto`), ['de-orig'])) fail(`with de-orig and de listed the menu offers ${run(`videoSubtitleChoices(twice, ${wantsDe}).auto`)}, want de-orig alone`);
   if (!same(run(`videoResolve(${wantsDe}, twice).subLangs`), ['de-orig'])) fail(`a wish for German picks ${run(`videoResolve(${wantsDe}, twice).subLangs`)}, want de-orig`);
+  // An instance that converts video lists the conversions it makes. A pick
+  // of one keeps its quality and sends the conversion beside it; one the
+  // video's instance does not list falls back to Best and sends none.
+  ctx.converts = run(`videoOffer({ ...answer, videoConversions: [{ format: 'mkv hevc', converted: true }, { format: 'rm;rf' }] })`);
+  if (!same(ctx.converts.videoConversions, ['mkv hevc'])) fail(`the video conversions offered are ${ctx.converts.videoConversions}, want mkv hevc alone`);
+  if (!same(run('offer.videoConversions'), [])) fail('an instance that lists no video conversions is offered some');
+  const convertSent = (offerName) => run(`videoChoice(videoPick(videoExact(videoResolve(videoPick({ parts: ['video'], quality: '720p', videoFormat: 'mkv hevc' }), ${offerName}), ${offerName})))`);
+  const hevc = convertSent('converts');
+  if (hevc.videoConvert !== 'mkv hevc' || hevc.quality !== '720p') fail(`a pick of H.265 at 720p sends ${JSON.stringify(hevc)}, want the 720p cap and videoConvert mkv hevc`);
+  if ('videoConvert' in convertSent('offer')) fail('a pick of H.265 is sent to an instance that converts no video');
+  if ('videoConvert' in run(`videoChoice(videoPick({ parts: ['video'], videoConvert: 'mkv vp8' }))`)) fail('a video conversion the instance does not make is sent');
+  ctx.convertSized = { ...ctx.converts, videoSizes: { best: 900000000, '720p': 90000000 }, audioSizes: { best: 3000000 } };
+  const hevcTotal = run(`videoPickTotal(videoResolve(videoPick({ parts: ['video', 'audio'], quality: '720p', videoFormat: 'mkv hevc' }), convertSized), convertSized)`);
+  if (!same(hevcTotal, { bytes: 3000000, atLeast: true })) fail(`with H.265 picked the download weighs ${JSON.stringify(hevcTotal)}, want at least the audio's 3 MB`);
+
   const sentExact = run(`videoChoice(videoPick({ ...videoExact({ ...videoResolve(videoPick(want), offer), audioRate: '160k' }, offer), videoTrack: 'evil;rm', audioLang: 'de' }))`);
   if ('videoTrack' in sentExact || sentExact.audioTrack !== 'opus 160k' || sentExact.audioLang !== 'de' || sentExact.subtitleAuto !== false) fail(`an exact pick is sent as ${JSON.stringify(sentExact)}`);
   vm.runInContext(`old = videoOffer({ qualities: ['720p'], audio: true })`, ctx);
@@ -877,7 +892,7 @@ const PAGE_LABELS = {
   const checking = 'Video|Audio|Subtitles|Thumbnail|Text|Checking|Download';
   if (entries().join('|').replace(/[[\]]/g, '') !== checking) fail(`while the instance is asked the menu shows ${entries().join(', ')}, want ${checking}`);
   formatsAnswer({
-    known: true, qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p mp4 avc1', '1080p webm vp9', '720p mp4 avc1'],
+    known: true, videoConversions: [], qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p mp4 avc1', '1080p webm vp9', '720p mp4 avc1'],
     audioTracks: ['opus 160k', 'aac 128k'], audioLangs: [], subtitles: ['de'], autoCaptions: ['en-orig'], subtitleFormats: ['vtt'],
     thumbnail: { width: 1280, height: 720, ext: 'webp' }, description: false,
     videoSizes: { best: 404000000, '1080p': 303000000, '720p': 90000000 }, audioSizes: { 'aac 128k': 3000000 },
@@ -1287,7 +1302,7 @@ for (const known of [true, false]) {
     if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
     if (msg.type === 'knightloader-video-formats') {
       return known
-        ? { known: true, qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p webm vp9', '720p mp4 avc1', '720p webm vp9'], audioTracks: ['opus 160k', 'opus 120k', 'aac 128k'], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true }
+        ? { known: true, videoConversions: [], qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p webm vp9', '720p mp4 avc1', '720p webm vp9'], audioTracks: ['opus 160k', 'opus 120k', 'aac 128k'], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true }
         : { known: false, qualities: [], audio: true, videoTracks: [], audioTracks: [], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true };
     }
     if (msg.type === 'knightloader-video-send') {
@@ -1323,7 +1338,7 @@ for (const converts of [true, false]) {
     if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
     if (msg.type === 'knightloader-video-formats') {
       return {
-        known: true, qualities: ['720p'], audio: true, videoTracks: ['720p mp4 avc1'], audioTracks: [], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [],
+        known: true, videoConversions: [], qualities: ['720p'], audio: true, videoTracks: ['720p mp4 avc1'], audioTracks: [], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [],
         thumbnail: { width: 1280, height: 720, ext: 'webp', ...(converts ? { formats: ['jpg', 'png', 'webp'] } : {}) }, description: false,
       };
     }
@@ -1359,6 +1374,59 @@ for (const converts of [true, false]) {
   }
 }
 
+// An instance that converts video offers H.265 as a format of its own, MKV
+// and converted under its name and an info bubble saying it takes a while.
+// Picking it keeps the quality, a quality picked after it keeps it, and the
+// download sends it; the total turns into a lower bound. An older instance
+// offers no such format.
+for (const converts of [true, false]) {
+  const store = makeStore({ videoDefaults: { youtube: { parts: ['video', 'audio'], quality: '1080p' } } });
+  const { chrome } = makeChrome(store);
+  const sends = [];
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') return { ...PAGE_LABELS, convertTip: 'Takes a while' };
+    if (msg.type === 'knightloader-video-formats') {
+      return {
+        known: true, qualities: ['1080p', '720p'], audio: true, videoTracks: ['1080p mp4 avc1', '720p mp4 avc1'], audioTracks: ['opus 160k'], audioLangs: [],
+        subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: false,
+        videoSizes: { '1080p': 9000000, '720p': 4000000 }, audioSizes: { best: 3000000 },
+        videoConversions: converts ? ['mkv hevc'] : [],
+      };
+    }
+    if (msg.type === 'knightloader-video-send') {
+      sends.push(msg.pick);
+      return { result: 'sent' };
+    }
+    return undefined;
+  };
+  const { doc, run } = loadPage(chrome, 'https://www.youtube.com/watch?v=aqz-KE-bpKQ');
+  const player = doc.createElement('div');
+  doc.documentElement.append(player);
+  video(doc, player, { left: 0, top: 56, width: 1280, height: 720 });
+  run();
+  await settle();
+  const shadow = doc.documentElement.querySelectorAll('knightloader-video-button')[0].shadow;
+  shadow.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'dialog').fire('click');
+  await settle();
+  const menu = shadow.querySelectorAll('div').find((d) => d.attrs.role === 'dialog');
+  const shown = () => menu.querySelectorAll('*').filter((n) => n.text).map((n) => (n.attrs['aria-checked'] === 'true' ? `[${n.text}]` : n.text)).join('|');
+  const button = (text) => menu.querySelectorAll('button').find((b) => b.text === text);
+  if (!converts) {
+    if (button('H.265')) fail('an instance that converts no video offers H.265');
+    continue;
+  }
+  if (!shown().includes('Format|[H.264]|MP4|H.265|MKV · converted|[Audio]')) fail(`the video formats read ${shown()}, want H.265 over MKV and converted`);
+  if (button('H.265')?.attrs['aria-description'] !== 'Takes a while' || button('H.265')?.dataset.tip !== 'Takes a while') fail('H.265 carries no info bubble saying the conversion takes a while');
+  button('H.265').fire('click');
+  if (!shown().includes('[1080p]') || !shown().includes('[H.265]')) fail(`after picking H.265 the menu shows ${shown()}, want 1080p kept and H.265 picked`);
+  if (!shown().includes('Download|· ≥ 3 MB')) fail(`with H.265 picked the download reads ${shown()}, want at least the audio's 3 MB`);
+  button('720p').fire('click');
+  if (!shown().includes('[720p]') || !shown().includes('[H.265]')) fail(`a quality picked after H.265 shows ${shown()}, want H.265 kept`);
+  button('Download').fire('click');
+  await settle();
+  if (sends.at(-1)?.videoConvert !== 'mkv hevc' || sends.at(-1)?.quality !== '720p') fail(`the download sends ${JSON.stringify(sends.at(-1))}, want 720p converted to mkv hevc`);
+}
+
 // A quality whose track runs above 30 fps carries its rate as a Plakette
 // beside the resolution, and a screen reader hears it with the size.
 {
@@ -1368,7 +1436,7 @@ for (const converts of [true, false]) {
     if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
     if (msg.type === 'knightloader-video-formats') {
       return {
-        known: true, qualities: ['1080p', '720p'], audio: false, videoTracks: ['1080p60hdr mp4 avc1', '1080p60 mp4 avc1', '1080p mp4 avc1', '720p50 mp4 avc1'], audioTracks: [], audioLangs: [],
+        known: true, videoConversions: [], qualities: ['1080p', '720p'], audio: false, videoTracks: ['1080p60hdr mp4 avc1', '1080p60 mp4 avc1', '1080p mp4 avc1', '720p50 mp4 avc1'], audioTracks: [], audioLangs: [],
         subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: false, videoSizes: { '1080p60 mp4 avc1': 9000000 },
       };
     }
@@ -1580,7 +1648,7 @@ for (const editable of [true, false]) {
   // site has, neither with a Best.
   const options = doc.byId.videoSites.querySelectorAll('option');
   const names = options.map((o) => o.text);
-  for (const name of ['MP4 · H.264', 'WebM · VP9', 'AAC', 'Opus', 'MP3 (video.converted)', 'FLAC (video.converted)', 'SRT', 'WebVTT', 'TTML', 'WebP', 'JPEG']) if (!names.includes(name)) fail(`${browser}: the site's defaults offer ${names.join(', ')}, want ${name} among them`);
+  for (const name of ['MP4 · H.264', 'WebM · VP9', 'H.265 (MKV, video.converted)', 'AAC', 'Opus', 'MP3 (video.converted)', 'FLAC (video.converted)', 'SRT', 'WebVTT', 'TTML', 'WebP', 'JPEG']) if (!names.includes(name)) fail(`${browser}: the site's defaults offer ${names.join(', ')}, want ${name} among them`);
   if (names.some((n) => /srv/i.test(n))) fail(`${browser}: the site's defaults offer YouTube's own subtitle format`);
   const select = (key) => doc.byId.videoSites.querySelectorAll('select').find((s) => s.dataset.videoKey === `youtube-${key}`);
   const choices = (key) => select(key)?.children.map((o) => (o.selected ? `[${o.value}]` : o.value)).join(' ');
