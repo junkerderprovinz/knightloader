@@ -35,7 +35,8 @@
  *      and away from one, asks the instance once per video, sits in the
  *      element shown in fullscreen, picks the video that is on screen, and
  *      moves down past the controls a player keeps along the top of its
- *      video.
+ *      video. A player that keeps its video in a shadow root gets the
+ *      button too, in fullscreen as well.
  *   6. The keyboard shortcut has the button in the active tab send the site's
  *      defaults, only on a video page of a site the button runs on, and its
  *      default opens none of Firefox's menus.
@@ -869,11 +870,16 @@ class Node {
     this.offsetLeft = 0;
     this.offsetTop = 0;
   }
-  get parentElement() { return this.parentNode; }
+  get parentElement() { return this.parentNode?.host ? null : this.parentNode; }
   get isConnected() {
     let n = this;
-    while (n.parentNode) n = n.parentNode;
+    while (n.parentNode || n.host) n = n.parentNode ?? n.host;
     return n === this.doc.documentElement;
+  }
+  getRootNode() {
+    let n = this;
+    while (n.parentNode) n = n.parentNode;
+    return n === this.doc.documentElement ? this.doc : n;
   }
   append(...nodes) {
     for (const n of nodes) {
@@ -933,8 +939,10 @@ class Node {
     (this.doc.animations ??= []).push({ node: this, keyframes, options });
     return { finished: Promise.resolve(), cancel() {} };
   }
-  attachShadow() {
+  attachShadow({ mode } = {}) {
     this.shadow = new Node('#shadow', this.doc);
+    this.shadow.host = this;
+    if (mode === 'open') this.shadowRoot = this.shadow;
     Object.defineProperty(this.shadow, 'activeElement', { get: () => this.doc.activeElement ?? null });
     return this.shadow;
   }
@@ -1822,6 +1830,48 @@ for (const converts of [true, false]) {
   if (sends.at(-1)?.pick?.parts?.join() !== 'video' || sends.at(-1)?.pick?.quality !== '720p') fail(`a click on a site added on the options page sends ${JSON.stringify(sends.at(-1)?.pick)}, want its own defaults`);
   await store.local.set({ videoButtonHidden: ['other'] });
   if (button()) fail('hidden on all other sites, the button stays');
+}
+
+// A player that keeps its video in a shadow root of its own, as archive.org's
+// JW Player does in <play-av>, which the page's hit test and fullscreen name
+// only by that root's host.
+{
+  const store = makeStore({ videoButtonAutoHide: true });
+  const { chrome } = makeChrome(store);
+  const checks = [];
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') return PAGE_LABELS;
+    if (msg.type === 'knightloader-video-check') {
+      checks.push(msg.href);
+      return { claims: true, offer: { known: true, qualities: ['720p', '360p'], audio: false, videoTracks: ['720p avi', '360p mp4'], audioTracks: [], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true, videoConversions: [] } };
+    }
+    return undefined;
+  };
+  const { doc, run } = loadPage(chrome, 'https://archive.org/details/BigBuckBunny_124');
+  const playAv = doc.createElement('play-av');
+  playAv.rect = { left: 0, top: 100, width: 1280, height: 540, right: 1280, bottom: 640 };
+  doc.documentElement.append(playAv);
+  const inside = playAv.attachShadow({ mode: 'open' });
+  const jw = doc.createElement('div');
+  jw.rect = { left: 160, top: 100, width: 960, height: 540, right: 1120, bottom: 640 };
+  inside.append(jw);
+  const main = Object.assign(video(doc, jw, { left: 160, top: 100, width: 960, height: 540 }), { muted: false, controls: false, autoplay: false, loop: false, paused: false, currentTime: 4 });
+  doc.elementsFromPoint = () => [playAv, doc.documentElement];
+  inside.elementsFromPoint = () => [main, jw, playAv, doc.documentElement];
+  run();
+  await settle();
+  doc.dispatch('pointermove', { clientX: 640, clientY: 600 });
+  await settle();
+  const button = () => doc.documentElement.querySelectorAll('knightloader-video-button')[0];
+  const frame = () => button()?.shadow.querySelectorAll('div').find((d) => d.className === 'kl');
+  if (checks.join() !== 'https://archive.org/details/BigBuckBunny_124') fail(`a video playing in a shadow root asks ${JSON.stringify(checks)}, want its page once`);
+  if (!frame()?.classList.contains('shown')) fail('with the pointer on a player in a shadow root the button does not show');
+
+  const shownOn = button();
+  inside.fullscreenElement = jw;
+  doc.fullscreenElement = playAv;
+  doc.dispatch('fullscreenchange');
+  if (!shownOn || shownOn.parentNode !== jw) fail('in fullscreen the button is not inside the element the shadow root shows');
 }
 
 // 6. The keyboard shortcut sends the video in the active tab, through the
