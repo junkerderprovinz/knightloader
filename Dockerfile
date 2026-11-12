@@ -1,7 +1,7 @@
 # KnightLoader: one static Go binary with the UI embedded, plus yt-dlp and
 # ffmpeg for the media path. web/dist is committed, so there is no Node stage.
 
-FROM golang:1.27-alpine@sha256:fa3d596898d9f126af7c01d14ee7597bab3f39cccf392ef36b69fe77cd681f18 AS build
+FROM golang:1.27-alpine@sha256:eb61c3873c97416fff0116553fff65d67a3549f72e11d9758849a689cdd8b523 AS build
 WORKDIR /src
 
 # Warm the module cache first so source edits don't refetch dependencies.

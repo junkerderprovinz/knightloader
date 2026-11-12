@@ -281,17 +281,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/andybalholm/brotli/@v/v1.2.2.mod",
+        "url": "https://proxy.golang.org/github.com/andybalholm/brotli/@v/v1.2.8.mod",
         "sha256": "9836ed7059e6b6be9d42e666c866deea8646d5815216fcf6216966074744cb1f",
         "dest": "gomod/github.com/andybalholm/brotli/@v",
-        "dest-filename": "v1.2.2.mod"
+        "dest-filename": "v1.2.8.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/andybalholm/brotli/@v/v1.2.2.zip",
-        "sha256": "9443ca8c077ea0395906f9f25fd19c23a2fa61636ee43595aa811d7326d34390",
+        "url": "https://proxy.golang.org/github.com/andybalholm/brotli/@v/v1.2.8.zip",
+        "sha256": "9158dea4517a2a90c9023628bb541f858d91fdd3d0869c0b014ef7f35a725904",
         "dest": "gomod/github.com/andybalholm/brotli/@v",
-        "dest-filename": "v1.2.2.zip"
+        "dest-filename": "v1.2.8.zip"
     },
     {
         "type": "file",
