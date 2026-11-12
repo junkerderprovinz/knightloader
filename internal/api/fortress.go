@@ -644,9 +644,14 @@ func fortressDevice(a *app.App) string {
 }
 
 // defaultFortressDevice is the name of the Unraid server, else the name this
-// instance goes by in its group.
+// instance goes by in its group. ident.cfg is root's alone, so under the
+// template's 99:100 the name comes from HOST_HOSTNAME, which Unraid sets on
+// every container.
 func defaultFortressDevice(a *app.App) string {
 	if name := unraidServerName(unraidFlash); name != "" {
+		return name
+	}
+	if name := strings.TrimSpace(os.Getenv("HOST_HOSTNAME")); name != "" {
 		return name
 	}
 	return instanceDisplayName(a)

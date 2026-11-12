@@ -104,3 +104,24 @@ func TestTheOtherMembersSeeTheFortressDevice(t *testing.T) {
 		return false
 	})
 }
+
+// The template runs KnightLoader as 99:100, and the flash keeps ident.cfg for
+// root alone, so the name Unraid hands every container has to do.
+func TestUnraidsHostnameNamesTheServerWhenTheFlashIsUnreadable(t *testing.T) {
+	mounted := unraidFlash
+	t.Cleanup(func() { unraidFlash = mounted })
+	unraidFlash = t.TempDir()
+	t.Setenv("HOST_HOSTNAME", " Tower ")
+	srv, a := testServer(t)
+	defer srv.Close()
+	s := a.Settings.Get()
+	s.InstanceName = "e8fc22d4db7b"
+	if _, err := a.Settings.Set(s); err != nil {
+		t.Fatal(err)
+	}
+
+	var v deviceAnswer
+	if code := getJSON(t, srv.URL+"/api/fortress", &v); code != http.StatusOK || v.Device != "Tower" || v.DefaultDevice != "Tower" {
+		t.Errorf("with HOST_HOSTNAME set the fortress reads %d %+v, want Tower", code, v)
+	}
+}
