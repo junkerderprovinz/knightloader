@@ -62,6 +62,10 @@ const VIDEO_SUB_FORMATS = ['srt', 'vtt', 'ttml'];
 // Those the instance writes from whatever the host serves (--convert-subs).
 const VIDEO_SUB_CONVERTS = ['srt', 'vtt'];
 
+/** The video formats the instance converts to after the download
+ *  (videoConvert), as it lists them for a video it can convert. */
+const VIDEO_CONVERSIONS = ['mkv hevc'];
+
 /** The audio formats the menu offers beside any other the video has: the two
  *  the big sites serve, and MP3 and FLAC, which the instance converts to. */
 const VIDEO_AUDIO_MENU = ['aac', 'opus', 'mp3', 'flac'];
@@ -125,6 +129,7 @@ function videoPick(raw) {
   if (videoIs(VIDEO_TRACK, raw.videoTrack)) pick.videoTrack = raw.videoTrack;
   if (videoIs(AUDIO_TRACK, raw.audioTrack)) pick.audioTrack = raw.audioTrack;
   if (videoIs(VIDEO_LANG, raw.audioLang)) pick.audioLang = raw.audioLang;
+  if (VIDEO_CONVERSIONS.includes(raw.videoConvert)) pick.videoConvert = raw.videoConvert;
   if (typeof raw.subAuto === 'boolean') pick.subAuto = raw.subAuto;
   return pick;
 }
@@ -155,6 +160,7 @@ function videoChoice(pick) {
     ...(pick.audioTrack ? { audioTrack: pick.audioTrack } : {}),
     ...(pick.audioLang ? { audioLang: pick.audioLang } : {}),
     ...(pick.thumbFormat && pick.parts.includes('thumbnail') ? { thumbnailFormat: pick.thumbFormat } : {}),
+    ...(pick.videoConvert ? { videoConvert: pick.videoConvert } : {}),
   };
 }
 
@@ -173,7 +179,7 @@ function videoOffer(answer) {
   if (!Array.isArray(answer?.videoTracks)) {
     return {
       known: false, qualities, audio: answer ? answer.audio === true : true, videoTracks: [], audioTracks: [], audioLangs: [],
-      subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true, videoSizes: {}, audioSizes: {},
+      subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true, videoSizes: {}, audioSizes: {}, videoConversions: [],
     };
   }
   const th = answer.thumbnail;
@@ -190,6 +196,9 @@ function videoOffer(answer) {
     subtitles: list(answer.subtitles, VIDEO_LANG),
     autoCaptions: list(answer.autoCaptions, VIDEO_LANG),
     subtitleFormats: list(answer.subtitleFormats, VIDEO_TOKEN),
+    videoConversions: Array.isArray(answer.videoConversions)
+      ? answer.videoConversions.map((c) => c?.format).filter((f) => VIDEO_CONVERSIONS.includes(f))
+      : [],
     thumbnail: videoIs(VIDEO_TOKEN, th?.ext)
       ? { width: size(th.width), height: size(th.height), ext: th.ext, ...(Array.isArray(th.formats) ? { formats: list(th.formats, VIDEO_TOKEN) } : {}) }
       : null,
@@ -210,6 +219,7 @@ function videoSizes(raw, pick) {
  *  undefined where the instance does not know. */
 function videoPickSize(sel, offer, part) {
   const exact = videoExact(sel, offer);
+  if (part === 'video' && exact.videoConvert) return undefined;
   return part === 'video' ? offer.videoSizes?.[exact.videoTrack ?? exact.quality] : offer.audioSizes?.[exact.audioTrack ?? exact.audio];
 }
 
@@ -423,7 +433,7 @@ function videoResolve(pick, offer) {
       const cap = parseInt(sel.quality, 10);
       sel.quality = qualities.find((q) => parseInt(q, 10) <= cap) ?? qualities.at(-1);
     }
-    if (!videoTrackOffered(offer, sel.quality, sel.videoFormat)) sel.videoFormat = 'best';
+    if (!videoTrackOffered(offer, sel.quality, sel.videoFormat) && !offer.videoConversions.includes(sel.videoFormat)) sel.videoFormat = 'best';
   }
   if (offer.audioTracks.length) {
     const tracks = offer.audioTracks.map(audioTrackOf);
@@ -472,7 +482,12 @@ function videoResolve(pick, offer) {
  * the cap and the codec alone.
  */
 function videoExact(sel, offer) {
-  const { videoFormat, audioRate, ...out } = sel;
+  const { videoFormat: wanted, audioRate, ...out } = sel;
+  // A conversion downloads what Best would at the quality, and names what the
+  // instance turns it into beside that.
+  const converts = offer.known && offer.videoConversions.includes(wanted);
+  const videoFormat = converts ? 'best' : wanted;
+  out.videoConvert = converts ? wanted : undefined;
   out.quality = VIDEO_CAPS.includes(sel.quality) ? sel.quality : 'best';
   if (offer.videoTracks.length && (videoFormat !== 'best' || sel.quality !== 'best')) {
     const height = parseInt(sel.quality, 10);
@@ -505,7 +520,7 @@ function videoExact(sel, offer) {
   }
   // Only an instance that lists the formats it converts to is sent one.
   out.thumbFormat = sel.parts.includes('thumbnail') && offer.thumbnail?.formats ? videoThumbFormat(sel.thumbFormat, offer.thumbnail.formats) : undefined;
-  for (const k of ['videoTrack', 'audioTrack', 'thumbFormat']) if (!out[k]) delete out[k];
+  for (const k of ['videoTrack', 'audioTrack', 'thumbFormat', 'videoConvert']) if (!out[k]) delete out[k];
   return out;
 }
 

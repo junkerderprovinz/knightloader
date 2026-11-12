@@ -225,10 +225,16 @@ function videoDefaultsRows(site) {
   picks.className = 'videoPicks';
   if (pick.parts.includes('video')) {
     const qualities = ['best', ...offered(seen.qualities, pick.quality)];
-    const formats = ['best', ...offered(seen.videoFormats, pick.videoFormat)];
+    // The conversions the instance makes after the download, by the same
+    // words the button's menu uses.
+    const formats = ['best', ...new Set([...offered(seen.videoFormats, pick.videoFormat), ...VIDEO_CONVERSIONS])];
+    const formatName = (f) => {
+      const [container, codec] = f.split(' ').map(videoFormatName);
+      return VIDEO_CONVERSIONS.includes(f) ? `${codec} (${container}, ${t('video.converted')})` : `${container} · ${codec}`;
+    };
     picks.append(
       videoSelect(`${site.id}-quality`, t('video.quality'), qualities, pick.quality, best((q) => q), (quality) => save({ quality })),
-      videoSelect(`${site.id}-format`, t('video.videoFormat'), formats, pick.videoFormat, best((f) => f.split(' ').map(videoFormatName).join(' · ')), (videoFormat) => save({ videoFormat })),
+      videoSelect(`${site.id}-format`, t('video.videoFormat'), formats, pick.videoFormat, best(formatName), (videoFormat) => save({ videoFormat })),
     );
   }
   if (pick.parts.includes('audio')) {

@@ -216,11 +216,22 @@
       padding: 6px; border-radius: min(var(--radius), 5px); font-size: 12.5px; line-height: 1.15;
     }
     .segments button:not([aria-checked="true"]):not(:disabled):hover { background: var(--raised); }
-    .segments .aside { color: var(--sub); font-size: 10.5px; font-weight: 400; }
+    /* The line under a name may wrap inside its own segment, so the
+       segments keep one width. */
+    .segments .aside { color: var(--sub); font-size: 10.5px; font-weight: 400; white-space: normal; text-align: center; }
     .segments button:hover .aside { color: inherit; }
     .menu .segments [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
     .segments [aria-checked="true"] .aside { color: inherit; opacity: .7; }
     .menu .segments button:disabled { opacity: .4; cursor: default; }
+    /* A choice that needs a word more shows it in a bubble above itself while
+       the pointer or the keyboard is on it, ending where the choice ends, since
+       such a choice stands last in its row. */
+    .segments [data-tip]:hover::after, .segments [data-tip]:focus-visible::after {
+      content: attr(data-tip); position: absolute; z-index: 3; bottom: calc(100% + 6px); inset-inline-end: 0;
+      width: max-content; max-width: 220px; padding: 6px 8px; border-radius: min(var(--radius), 6px);
+      background: var(--surface); color: var(--text); box-shadow: var(--elevation);
+      font-size: 12px; font-weight: 400; line-height: 1.35; white-space: normal; text-align: center;
+    }
     /* Download stays in view at the bottom whatever scrolls above. */
     .menu .foot {
       position: sticky; bottom: 0; z-index: 2; flex: 0 0 auto;
@@ -748,9 +759,9 @@
    * rules out stays in the row but takes no click. `aside` is what a choice
    * shows small beside its name: the size in a list, the container under the
    * codec in segments. `plaques` are words right after the name, such as a
-   * frame rate and HDR.
+   * frame rate and HDR, and `tip` an info bubble on the choice.
    */
-  function choices(values, { look, key, name, isOn, onPick, several = false, off = () => false, aside = () => '', plaques = () => [] }) {
+  function choices(values, { look, key, name, isOn, onPick, several = false, off = () => false, aside = () => '', plaques = () => [], tip = () => '' }) {
     const group = document.createElement('div');
     group.className = look;
     group.setAttribute('role', several ? 'group' : 'radiogroup');
@@ -775,6 +786,11 @@
         item.append(small);
       }
       if (tags.length || extra) item.setAttribute('aria-label', [name(v), ...tags, extra].filter(Boolean).join(', '));
+      const bubble = tip(v);
+      if (bubble) {
+        item.dataset.tip = bubble;
+        item.setAttribute('aria-description', bubble);
+      }
       // A radio group is one stop for Tab, its picked radio, and the arrow
       // keys pick within it, as with the browser's own radios.
       if (!several) {
@@ -900,7 +916,7 @@
         const quality = (q) =>
           redraw(() => {
             pick.quality = q;
-            if (!videoTrackOffered(offer, q, pick.videoFormat)) pick.videoFormat = 'best';
+            if (!videoTrackOffered(offer, q, pick.videoFormat) && !offer.videoConversions.includes(pick.videoFormat)) pick.videoFormat = 'best';
           });
         row('quality', labels.quality, ['best', ...qualities], {
           look: 'list',
@@ -913,13 +929,20 @@
         // A format reads as its codec over its container, "H.264" over "MP4".
         // Left to the instance, it shows the one the best track has.
         const format = pick.videoFormat === 'best' ? videoBestFormat(offer, pick.quality) : pick.videoFormat;
-        row('format', labels.format, formats, {
+        // A conversion the instance makes after the download stands beside
+        // the formats the video has, at every quality.
+        const converted = (f) => offer.videoConversions.includes(f);
+        row('format', labels.format, [...formats, ...offer.videoConversions], {
           look: 'segments',
           isOn: (f) => f === format,
           name: (f) => videoFormatName(f.split(' ').at(-1)),
           onPick: (f) => redraw(() => (pick.videoFormat = f)),
-          off: (f) => !videoTrackOffered(offer, pick.quality, f),
-          aside: (f) => (f.includes(' ') ? videoFormatName(f.split(' ')[0]) : ''),
+          off: (f) => !converted(f) && !videoTrackOffered(offer, pick.quality, f),
+          aside: (f) => {
+            const container = f.includes(' ') ? videoFormatName(f.split(' ')[0]) : '';
+            return converted(f) ? `${container} · ${labels.converted}` : container;
+          },
+          tip: (f) => (converted(f) ? labels.convertTip : ''),
         });
         break;
       }
