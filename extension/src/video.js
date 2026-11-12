@@ -24,6 +24,21 @@ const VIDEO_SITES = [
   { id: 'bilibili', name: 'Bilibili', origins: ['https://www.bilibili.com/*'] },
 ];
 
+/**
+ * Every other web page. The button shows there on a video somebody watches,
+ * once the instance says yt-dlp can download the page (videoWatched and
+ * videoCheck in video-worker.js). It runs on the access to all websites,
+ * which Click'n'Load asks for too, and it is on unless hidden.
+ */
+const VIDEO_OTHER = { id: 'other', origins: ['<all_urls>'] };
+
+/** Every place the button can show, each with a switch of its own. */
+const VIDEO_ALL_SITES = [...VIDEO_SITES, VIDEO_OTHER];
+
+/** Smaller videos are previews and ads, not the player. */
+const VIDEO_MIN_WIDTH = 200;
+const VIDEO_MIN_HEIGHT = 112;
+
 /** What each site puts after the video's title in its tab title. */
 const VIDEO_TITLE_ENDS = {
   youtube: / - YouTube$/,
@@ -137,6 +152,17 @@ function videoPick(raw) {
 /** What a click downloads on a site, from the stored defaults per site. */
 function videoDefaultsFor(stored, siteId) {
   return videoPick(stored?.videoDefaults?.[siteId]);
+}
+
+/** What a page's defaults and what its site offered are kept under: on
+ *  another site the host added on the options page (videoCustomSites) that
+ *  is the page's or one it ends in, the longest where several are, else the
+ *  page's switch. */
+function videoDefaultsKey(stored, page) {
+  if (page.site !== VIDEO_OTHER.id) return page.site;
+  const host = new URL(page.url).hostname;
+  const own = (Array.isArray(stored?.videoCustomSites) ? stored.videoCustomSites : []).filter((h) => host === h || host.endsWith(`.${h}`));
+  return own.sort((a, b) => b.length - a.length)[0] ?? VIDEO_OTHER.id;
 }
 
 /**
@@ -672,6 +698,65 @@ function videoSiteOf(href) {
   return u.protocol === 'https:' ? VIDEO_HOSTS.get(u.hostname) : undefined;
 }
 
+/** A web page's address, or null for anything else. */
+function videoWebUrl(href) {
+  try {
+    const u = new URL(href);
+    return u.protocol === 'https:' || u.protocol === 'http:' ? u : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The domains of the sites, whose every host answers to its site's switch. */
+const VIDEO_DOMAINS = [...new Set([...VIDEO_HOSTS.keys()].map((h) => h.split('.').slice(-2).join('.')))];
+
+/** The switch a page answers to: its site's, 'other' for any other web page,
+ *  undefined for what is no web page. A page on one of the sites' domains
+ *  never counts as other, so hiding the button on a site hides it there,
+ *  even where the site's own rules find no video. */
+function videoSiteIdOf(href) {
+  const u = videoWebUrl(href);
+  if (!u) return undefined;
+  const own = VIDEO_DOMAINS.some((d) => u.hostname === d || u.hostname.endsWith(`.${d}`));
+  return own ? videoSiteOf(href)?.id : VIDEO_OTHER.id;
+}
+
+/** The page of another site, without the part after #, which the page itself
+ *  reads and yt-dlp does not. */
+function otherPage(u) {
+  u.hash = '';
+  return { url: u.href, playlist: '' };
+}
+
+/** What the answer whether yt-dlp downloads a page of another site is kept
+ *  under: its origin and path. */
+function videoCheckKey(href) {
+  const u = videoWebUrl(href);
+  return u ? `${u.origin}${u.pathname}` : '';
+}
+
+/** Whether a frame may speak for a page: the button only ever sends or asks
+ *  about the video it sits on, so the frame is on the page's site, and on
+ *  another site on its origin. */
+function videoOwnPage(frameUrl, page) {
+  if (videoSiteIdOf(frameUrl) !== page.site) return false;
+  return page.site !== VIDEO_OTHER.id || videoWebUrl(frameUrl).origin === new URL(page.url).origin;
+}
+
+/**
+ * Whether a video on another site is one somebody watches, and so worth
+ * asking the instance about: as large as a player, at least half of it on
+ * screen, and started, which a poster waiting for a click is not. A muted
+ * video without controls that starts or loops by itself is a page's
+ * background or an advert.
+ */
+function videoWatched(v) {
+  if (!(v.width >= VIDEO_MIN_WIDTH && v.height >= VIDEO_MIN_HEIGHT) || !(v.seen >= 0.5)) return false;
+  if (v.muted && !v.controls && (v.autoplay || v.loop)) return false;
+  return !v.paused || v.time > 0;
+}
+
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
 
 // Watch later and the liked videos are lists only their owner sees signed in,
@@ -721,24 +806,26 @@ function bilibiliPage(u) {
   return { url: `https://www.bilibili.com/video/${id}${Number.isInteger(part) && part > 1 ? `?p=${part}` : ''}`, playlist: '' };
 }
 
-const VIDEO_PAGES = { youtube: youtubePage, vimeo: vimeoPage, dailymotion: dailymotionPage, twitch: twitchPage, bilibili: bilibiliPage };
+const VIDEO_PAGES = { youtube: youtubePage, vimeo: vimeoPage, dailymotion: dailymotionPage, twitch: twitchPage, bilibili: bilibiliPage, other: otherPage };
 
 /**
  * The video an address plays: `url` is the one address the video goes by,
  * whatever form the page was opened in, so the instance sees the same link
  * from a Short, an embedded player and the watch page, and `playlist` the
- * list the page plays it in, or ''. Null for a page that plays no one video.
+ * list the page plays it in, or ''. Another site's page goes as it is. Null
+ * for a page that plays no one video.
  */
 function videoPage(href) {
-  const site = videoSiteOf(href);
+  const site = videoSiteIdOf(href);
   if (!site) return null;
-  const page = VIDEO_PAGES[site.id](new URL(href));
-  return page ? { site: site.id, ...page } : null;
+  const page = VIDEO_PAGES[site](new URL(href));
+  return page ? { site, ...page } : null;
 }
 
 /** A tab title without the site's name after it, so it names the video. */
 function videoTitle(title, siteId) {
-  return title.replace(VIDEO_TITLE_ENDS[siteId], '');
+  const end = VIDEO_TITLE_ENDS[siteId];
+  return end ? title.replace(end, '') : title;
 }
 
 /**
@@ -750,7 +837,7 @@ function videoName(url) {
   const u = new URL(url);
   const path = u.pathname.split('/').filter(Boolean);
   const id = u.searchParams.get('v') ?? (u.hostname === 'vimeo.com' ? path[0] : path.at(-1));
-  return `${u.hostname.replace(/^www\./, '')} · ${id}`;
+  return [u.hostname.replace(/^www\./, ''), id].filter(Boolean).join(' · ');
 }
 
 /** Whether the stored switches show the button on a site. Off means the
@@ -763,9 +850,18 @@ function videoButtonWanted(stored, siteId) {
 /** The keyboard shortcut's name in the manifest's commands. */
 const VIDEO_COMMAND = 'send-video';
 
-/** The access a list of sites needs. */
+/** A site added on the options page, listed under its host, which takes in
+ *  every host under it as videoDefaultsKey does. */
+function videoCustomSite(host) {
+  return { id: host, origins: [`*://${host}/*`, `*://*.${host}/*`] };
+}
+
+/** The access a list of sites needs, a site added on the options page by its
+ *  host. The access to all websites takes in every site of the list. */
 function videoAccess(siteIds) {
-  return { origins: VIDEO_SITES.filter((s) => siteIds.includes(s.id)).flatMap((s) => s.origins) };
+  if (siteIds.includes(VIDEO_OTHER.id)) return { origins: VIDEO_OTHER.origins };
+  const named = VIDEO_SITES.filter((s) => siteIds.includes(s.id)).flatMap((s) => s.origins);
+  return { origins: [...named, ...siteIds.filter((id) => id.includes('.')).flatMap((id) => videoCustomSite(id).origins)] };
 }
 
 /**
@@ -775,11 +871,12 @@ function videoAccess(siteIds) {
  * the state the options page asks the browser to fix.
  */
 async function videoButtonState() {
-  const stored = await chrome.storage.local.get(['videoButton', 'videoButtonHidden']);
+  const stored = await chrome.storage.local.get(['videoButton', 'videoButtonHidden', 'videoCustomSites']);
   const wanted = stored.videoButton !== false;
-  const shown = VIDEO_SITES.filter((s) => videoButtonWanted({ ...stored, videoButton: true }, s.id)).map((s) => s.id);
+  const sites = [...VIDEO_ALL_SITES, ...(Array.isArray(stored.videoCustomSites) ? stored.videoCustomSites : []).map(videoCustomSite)];
+  const shown = sites.filter((s) => videoButtonWanted({ ...stored, videoButton: true }, s.id)).map((s) => s.id);
   const granted = [];
-  for (const s of VIDEO_SITES) {
+  for (const s of sites) {
     if (await chrome.permissions.contains({ origins: s.origins })) granted.push(s.id);
   }
   const running = wanted ? shown.filter((id) => granted.includes(id)) : [];

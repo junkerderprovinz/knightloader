@@ -142,21 +142,23 @@ function videoResult(answer) {
  */
 async function videoSend(frameUrl, msg) {
   const page = videoPage(msg.href);
-  if (!page || page.site !== videoSiteOf(frameUrl)?.id) return null;
+  if (!page || !videoOwnPage(frameUrl, page)) return null;
   if (!(await videoButtonState()).running.includes(page.site)) return null;
   const link = msg.playlist && page.playlist ? page.playlist : page.url;
   return { page, link, choice: videoChoice(videoPick(msg.pick)) };
 }
 
 /** Adds the video to one instance, to download at once whatever the instance
- *  does with links added otherwise. A send that started rows says where they
- *  are, for the button to follow. */
+ *  does with links added otherwise, pinned to yt-dlp, since everything the
+ *  menu offers is yt-dlp's, also where the instance gives the host's links to
+ *  JDownloader. A send that started rows says where they are, for the button
+ *  to follow. */
 async function postVideo(call, target, send) {
   const res = await call(
     target,
     'POST',
     '/api/links',
-    JSON.stringify({ links: send.link, package: '', origin: 'cnl', source: send.page.url, choice: send.choice, start: true, report: true }),
+    JSON.stringify({ links: send.link, package: '', origin: 'cnl', source: send.page.url, choice: send.choice, start: true, report: true, resolver: 'ytdlp' }),
   );
   if (res.status < 200 || res.status >= 300) return { result: 'refused', reason: t(refusalKey(res)) };
   let answer;
@@ -277,22 +279,82 @@ chrome.runtime.onConnect.addListener((port) => {
  */
 async function videoFormats(frameUrl, msg) {
   const page = videoPage(msg.href);
-  if (!page || page.site !== videoSiteOf(frameUrl)?.id) return videoOffer(null);
-  let answer = null;
+  if (!page || !videoOwnPage(frameUrl, page)) return videoOffer(null);
+  const res = await askVideoLink(page);
+  const offer = videoOffer(res?.answer ?? null);
+  await rememberVideoSeen(page, offer);
+  return offer;
+}
+
+/** What the default instance answers to GET /api/ytdlp/link for a page, asked
+ *  as for a link pinned to yt-dlp the way postVideo sends it, an answer of
+ *  null where it refused, or null where no instance answered at all. */
+async function askVideoLink(page) {
   try {
-    answer = await withGroup(async ({ siblings, call }) => {
+    return await withGroup(async ({ siblings, call }) => {
       const target = defaultOf(siblings, await readDefaultTarget());
-      return target ? readJSON(call, target, `/api/ytdlp/link?url=${encodeURIComponent(page.url)}`) : null;
+      const res = target && (await call(target, 'GET', `/api/ytdlp/link?url=${encodeURIComponent(page.url)}&pinned=true`).catch(() => null));
+      if (!res) return null;
+      return { answer: res.status >= 200 && res.status < 300 ? JSON.parse(res.body) : null };
     });
   } catch {
-    return videoOffer(null);
+    return null;
   }
-  const offer = videoOffer(answer);
-  if (offer.known) {
-    const { videoSeen } = await chrome.storage.local.get('videoSeen');
-    await chrome.storage.local.set({ videoSeen: { ...videoSeen, [page.site]: videoSeenWith(videoSeen?.[page.site], offer) } });
+}
+
+async function rememberVideoSeen(page, offer) {
+  if (!offer.known) return;
+  const { videoSeen, videoCustomSites } = await chrome.storage.local.get(['videoSeen', 'videoCustomSites']);
+  const site = videoDefaultsKey({ videoCustomSites }, page);
+  await chrome.storage.local.set({ videoSeen: { ...videoSeen, [site]: videoSeenWith(videoSeen?.[site], offer) } });
+}
+
+/** How long a page of another site that yt-dlp could not download stays
+ *  answered, about as long as the instance keeps a probe, since a site can
+ *  be down for a moment. A page it downloads stays answered for the session. */
+const VIDEO_CHECK_AGAIN_MS = 10 * 60 * 1000;
+// The pages the session remembers, the most recent kept.
+const VIDEO_CHECK_KEEP = 200;
+
+/** The checks running, by videoCheckKey, which a second frame of the page
+ *  waits on rather than asking again. */
+const videoChecking = new Map();
+
+/**
+ * Whether the button shows on a page of another site: whether the default
+ * instance's yt-dlp can download it, from the probe the menu asks for
+ * (videoFormats), which the instance keeps for the video's staging too. The
+ * answer is kept by origin and path for the session, so a page is asked
+ * once, and the menu gets the offer that came with it. No instance online
+ * answers nothing, and is asked again later.
+ */
+async function videoCheck(frameUrl, msg) {
+  const page = videoPage(msg.href);
+  if (page?.site !== VIDEO_OTHER.id || !videoOwnPage(frameUrl, page)) return { claims: false };
+  const stored = await chrome.storage.local.get('videoCustomSites');
+  if (!(await videoButtonState()).running.includes(videoDefaultsKey(stored, page))) return { claims: false };
+  const key = videoCheckKey(page.url);
+  const { videoChecks = {} } = await chrome.storage.session.get('videoChecks');
+  const known = videoChecks[key];
+  if (known && (known.claims || Date.now() - known.at < VIDEO_CHECK_AGAIN_MS)) return { claims: known.claims };
+  if (!videoChecking.has(key)) {
+    videoChecking.set(key, checkVideoLink(page, key).finally(() => videoChecking.delete(key)));
   }
-  return offer;
+  return videoChecking.get(key);
+}
+
+async function checkVideoLink(page, key) {
+  const res = await askVideoLink(page);
+  if (!res) return { claims: null };
+  const offer = videoOffer(res.answer);
+  const claims = offer.videoTracks.length > 0 || offer.qualities.length > 0;
+  await rememberVideoSeen(page, offer);
+  const { videoChecks = {} } = await chrome.storage.session.get('videoChecks');
+  const kept = Object.entries({ ...videoChecks, [key]: { claims, at: Date.now() } })
+    .sort(([, a], [, b]) => b.at - a.at)
+    .slice(0, VIDEO_CHECK_KEEP);
+  await chrome.storage.session.set({ videoChecks: Object.fromEntries(kept) });
+  return claims ? { claims, offer } : { claims };
 }
 
 /**
@@ -331,9 +393,9 @@ async function openVideoInstance(msg) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  // Only from a content script on one of the sites, which is where the button
+  // Only from a content script in a web page, which is where the button
   // runs; the page itself cannot reach this listener.
-  if (!sender?.tab || !videoSiteOf(sender.url ?? '')) return;
+  if (!sender?.tab || !videoSiteIdOf(sender.url ?? '')) return;
   if (msg?.type === 'knightloader-video-labels') {
     void loadLanguage().then(videoLabels).then(sendResponse);
     return true;
@@ -344,6 +406,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg?.type === 'knightloader-video-formats') {
     void videoFormats(sender.url, msg).then(sendResponse);
+    return true;
+  }
+  if (msg?.type === 'knightloader-video-check') {
+    void videoCheck(sender.url, msg).then(sendResponse);
     return true;
   }
   if (msg?.type === 'knightloader-video-progress') {
@@ -363,7 +429,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 async function sendVideoByShortcut(command, tab) {
   if (command !== VIDEO_COMMAND) return;
   const page = videoPage(tab?.url ?? '');
-  if (!page || !(await videoButtonState()).running.includes(page.site)) return;
+  if (!page) return;
+  const stored = await chrome.storage.local.get('videoCustomSites');
+  if (!(await videoButtonState()).running.includes(videoDefaultsKey(stored, page))) return;
   await chrome.tabs.sendMessage(tab.id, { type: 'knightloader-video-shortcut' }, { frameId: 0 }).catch(() => {});
 }
 

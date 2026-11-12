@@ -206,14 +206,92 @@
       .captureField input { width: 100%; }
       .captureRules select { min-width: 140px; }
       .clipNotice { margin-top: 14px; }
-      /* One well per site on the video button's card: its switch, then what a
-         click downloads there while it is shown. */
-      .videoSites { display: flex; flex-direction: column; gap: 10px; }
-      .videoSite { display: flex; flex-direction: column; gap: 12px; padding: 12px 14px; }
-      .videoSite > .glim-row { margin-top: 0; }
-      /* A step up the ramp from the well, so the controls stand out of it. */
-      .videoSite .glim-seg,
-      .videoSite select { background: var(--carbon-surface3); }
+      /* One row per site across the video button's card, its switch at the
+         end. The whole row opens the site's window; the switch sits above
+         that button, as a control inside a button would be invalid. */
+      .videoSites { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+      .videoTile { position: relative; min-width: 0; }
+      .videoTileOpen {
+        width: 100%;
+        height: auto;
+        min-height: 3.75rem;
+        padding: 10px 12px;
+        justify-content: flex-start;
+        gap: 12px;
+        border-radius: var(--radius-control);
+        background: var(--carbon-surface2);
+        color: var(--carbon-text);
+        font-weight: 400;
+        text-align: start;
+        transition: background-color 150ms ease;
+      }
+      .videoTile > .glim-switch {
+        position: absolute;
+        z-index: 1;
+        top: 50%;
+        translate: 0 -50%;
+        inset-inline-end: 12px;
+        width: auto;
+        height: 21px;
+      }
+      .videoTile > .videoTileOpen:not(:last-child) { padding-inline-end: 68px; }
+      .videoTileText { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+      .videoTileName { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .videoTileSum { font-size: var(--text-subline); color: var(--carbon-text-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      /* The mark at the start: a site's own favicon, or its first letter
+         where it has none, standing bare on the row. A glyph or letter takes
+         the accent while the row is reached. */
+      .videoMark {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        width: var(--btn-h);
+        height: var(--btn-h);
+        color: var(--carbon-text-sub);
+        font-size: var(--text-body);
+        font-weight: 600;
+        text-transform: uppercase;
+        transition: color 150ms ease;
+      }
+      .videoMark img { display: block; width: 24px; height: 24px; object-fit: contain; }
+      /* The tile steps up the ramp (rule 21). The switch's off track has the
+         same grey as that step on the dark ramp, so it moves toward the text
+         colour, as a filled tone's hover does. */
+      .videoTileOpen:focus-visible { background: var(--carbon-surface3); }
+      .videoTileOpen:focus-visible .videoMark { color: var(--accent-glyph); }
+      .videoTileOpen:focus-visible ~ .glim-switch[aria-checked='false'] .glim-switch-track {
+        background-color: color-mix(in srgb, var(--toggle-off), var(--carbon-text) 25%);
+      }
+      @media (hover: hover) {
+        .videoTile:hover > .videoTileOpen:not(:disabled) { background: var(--carbon-surface3); }
+        .videoTile:hover > .videoTileOpen:not(:disabled) .videoMark { color: var(--accent-glyph); }
+        .videoTile:hover > .glim-switch[aria-checked='false'] .glim-switch-track {
+          background-color: color-mix(in srgb, var(--toggle-off), var(--carbon-text) 25%);
+        }
+      }
+      .videoTileOpen:disabled { opacity: 0.55; cursor: default; }
+      /* A site's window holds the controls the tiles open. Only its middle
+         scrolls (rule 15); the padding keeps the focus rings inside it. */
+      .videoWindow { max-width: 560px; }
+      .videoWindowBody {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        margin: 4px -4px 0;
+        padding: 4px;
+      }
+      .videoWindowBody > .glim-modal-message { flex: 0 0 auto; overflow: visible; }
+      /* Remove stands apart at the start, the way out at the end. */
+      .videoWindowStart { margin-inline-end: auto; }
+      .videoAddHead { display: flex; align-items: center; gap: 6px; }
+      .videoAddHead label { margin: 0; }
+      #videoAddField { width: 100%; }
+      .videoAddPreview { display: flex; align-items: center; gap: 12px; font-weight: 500; overflow-wrap: anywhere; }
+      .videoAddError { margin: 0; font-size: var(--text-subline); color: var(--status-fail-text); }
       .videoParts { flex-wrap: wrap; contain: none; }
       .videoParts button { flex: 1 0 auto; }
       .videoPicks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
@@ -228,7 +306,8 @@
       #videoSpotReset:disabled,
       #videoShortcut:disabled,
       #videoShortcutAction:disabled,
-      .videoPicks select:disabled { opacity: 0.55; cursor: default; }
+      .videoPicks select:disabled,
+      .videoWindow .glim-modal-actions button:disabled { opacity: 0.55; cursor: default; }
       .clipWatchers { margin: 0 0 10px; padding-left: 18px; color: var(--carbon-text); }
       /* Underlined only on hover, in the accent ink. */
       .versionLink { color: var(--accent-ink); text-decoration: none; }
@@ -506,8 +585,9 @@
     </section>
 
     <!-- The download button on a video's player (options-video.js): its
-         switch, how it shows, where it sits, and under the sites what a click
-         downloads on each. Everything below the switch goes with it. -->
+         switch, how it shows, where it sits, and the sites as tiles, each
+         opening a window with what a click downloads there. Everything below
+         the switch goes with it. -->
     <section class="glim-card glim-stagger-row" id="video" style="--row-i: 5">
       <h2 class="glim-section-badge" id="videoHeading"></h2>
       <div class="axes">
@@ -545,15 +625,16 @@
             </div>
             <p class="videoShortcutError" id="videoShortcutError" role="alert" hidden></p>
           </div>
-          <div class="glim-row">
-            <span class="glim-row-label" id="videoSitesLabel"></span>
-          </div>
-          <div class="videoSites" id="videoSites"></div>
         </div>
       </div>
     </section>
 
-    <section class="glim-card glim-stagger-row" style="--row-i: 6">
+    <section class="glim-card glim-stagger-row" id="videoSitesCard" style="--row-i: 6">
+      <h2 class="glim-section-badge" id="videoSitesHeading"></h2>
+      <div class="videoSites" id="videoSites"></div>
+    </section>
+
+    <section class="glim-card glim-stagger-row" style="--row-i: 7">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
       <!-- Only a copy button; the Help card carries the ways to report. -->
@@ -567,12 +648,12 @@
          to report something, then who made the extension and the ways to
          give. The browser updates the extension, so the card has no update
          check. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 7">
+    <section class="glim-card glim-stagger-row" style="--row-i: 8">
       <h2 class="glim-section-badge" id="versionHeading">Version</h2>
       <div class="axes" id="versionRows"></div>
     </section>
 
-    <section class="glim-card glim-stagger-row" style="--row-i: 8">
+    <section class="glim-card glim-stagger-row" style="--row-i: 9">
       <h2 class="glim-section-badge" id="helpHeading">Help</h2>
       <p id="aboutReport" class="aboutText"></p>
       <div class="glim-readme-btn-rows" id="aboutReportRow">
@@ -590,7 +671,7 @@
     </section>
 
     <!-- The About card, the one card whose body is prose (GlimStone 1.7.0). -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 9">
+    <section class="glim-card glim-stagger-row" style="--row-i: 10">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
@@ -703,6 +784,41 @@
         </div>
         <div class="glim-modal-actions">
           <button id="cryptoClose" class="glim-btn-subtle" type="button"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- A site's window, opened from its tile on the video card and filled by
+         options-video.js: what a click downloads there, saved as it changes.
+         A site somebody added can be removed here, and the window asks first
+         in place of its controls. The way out is the button at the end of the
+         bottom row, with no corner X. -->
+    <div id="videoSiteWindow" class="glim-modal-backdrop" hidden>
+      <div class="glim-card glim-modal-card videoWindow" role="dialog" aria-modal="true" aria-labelledby="videoSiteTitle">
+        <h2 class="glim-section-badge" id="videoSiteHeading"><span id="videoSiteTitle"></span></h2>
+        <div class="videoWindowBody" id="videoSiteBody"></div>
+        <div class="glim-modal-actions">
+          <button id="videoSiteRemove" class="glim-btn-subtle videoWindowStart" type="button" hidden></button>
+          <button id="videoSiteCancel" class="glim-btn-subtle" type="button" hidden></button>
+          <button id="videoSiteCommit" class="glim-btn-subtle" type="button" hidden></button>
+          <button id="videoSiteClose" class="glim-btn-subtle" type="button"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asks for the address of a site to add to the video card. -->
+    <div id="videoAddWindow" class="glim-modal-backdrop" hidden>
+      <div class="glim-card glim-modal-card" role="dialog" aria-modal="true" aria-labelledby="videoAddTitle">
+        <h2 class="glim-section-badge" id="videoAddTitle"></h2>
+        <div class="videoWindowBody">
+          <div class="videoAddHead" id="videoAddHead"><label for="videoAddField" id="videoAddLabel"></label></div>
+          <input id="videoAddField" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com" aria-describedby="videoAddError" />
+          <div class="videoAddPreview" id="videoAddPreview" hidden></div>
+          <p class="videoAddError" id="videoAddError" role="alert" hidden></p>
+        </div>
+        <div class="glim-modal-actions">
+          <button id="videoAddCancel" class="glim-btn-subtle" type="button"></button>
+          <button id="videoAddCommit" class="primary" type="button"></button>
         </div>
       </div>
     </div>

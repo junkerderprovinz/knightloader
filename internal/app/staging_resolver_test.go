@@ -45,7 +45,7 @@ func TestCollectingPicksTheBackendDispatchWouldPick(t *testing.T) {
 		t.Fatal("fixture broken: SetKnownHosts did not take")
 	}
 
-	collecting := a.stagingResolverFor(url)
+	collecting := a.stagingResolverFor(url, "")
 	if collecting == nil {
 		t.Fatal("stagingResolverFor returned nil for a URL two resolvers claim")
 	}
@@ -80,7 +80,7 @@ func TestCollectingLeavesAnUnknownHostWithDirect(t *testing.T) {
 	jd.SetKnownHosts(nil)
 
 	const url = "https://staging-resolver-unknown.example/movie.mp4"
-	got := a.stagingResolverFor(url)
+	got := a.stagingResolverFor(url, "")
 	if got == nil || got.Info().ID != "direct" {
 		id := "<nil>"
 		if got != nil {

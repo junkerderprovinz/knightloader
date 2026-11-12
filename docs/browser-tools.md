@@ -251,13 +251,14 @@ nothing about this shape blocks it later.
 
 ### The download button on videos
 
-On YouTube, Vimeo, Dailymotion, Twitch and Bilibili a small button sits at the
-top of the player and sends the video being watched to the default instance
-with one click, the way a desktop download manager offers it. `video.js` holds
-the sites, the address each page sends and the switch. `video-worker.js`
-registers `video-button.js` with `scripting.registerContentScripts` on those
-sites only, in every frame so embedded players get it too, and brings it into
-tabs that were already open.
+On YouTube, Vimeo, Dailymotion, Twitch and Bilibili, and on any other site
+whose video yt-dlp can download, a small button sits at the top of the player
+and sends the video being watched to the default instance with one click, the
+way a desktop download manager offers it. `video.js` holds the sites, the
+address each page sends and the switch. `video-worker.js` registers
+`video-button.js` with `scripting.registerContentScripts` on those five sites,
+or on every page while all other sites are on, in every frame so embedded
+players get it too, and brings it into tabs that were already open.
 
 The button sends the one address a video goes by, whatever form the page came
 in: a YouTube Short, live page or embedded player sends
@@ -267,15 +268,24 @@ so a button can only send the video it shows. It goes as `POST /api/links`,
 with a `format` when the menu picked one: `video` for the video row alone at
 its best, `audio` for the audio row alone, or a resolution such as `1080p`.
 That stands in for the host's preset for this link (`HosterPreset.ForLink`),
-and the preset itself stays as it was.
+and the preset itself stays as it was. The send also carries
+`"resolver": "ytdlp"`, which pins every row of the link to yt-dlp, as a pin set
+on a task does (`POST /api/tasks/options`). The link skips the crawl and goes
+to yt-dlp even on a host whose links the instance gives to another backend,
+such as archive.org, which JDownloader has a plugin for. Links pasted or sent
+any other way keep their routing. `resolver` takes any backend the instance
+has, and one it lacks refuses the submission.
 
 The menu lists only what the video has. Opened, it asks the instance with
-`GET /api/ytdlp/link?url=<address>`, which answers from one yt-dlp probe that
-the link's staging shares a moment later, and says it is checking until the
-answer comes. It then offers the best video, each resolution yt-dlp found and
-the audio alone where the video has sound, or the best video alone where the
-instance could not say. A resolution sent from a menu that is out of date
-becomes the one the video has that downloads the same track.
+`GET /api/ytdlp/link?url=<address>&pinned=true`, which answers from one yt-dlp
+probe that the link's staging shares a moment later, and says it is checking
+until the answer comes. It then offers the best video, each resolution yt-dlp
+found and the audio alone where the video has sound, or the best video alone
+where the instance could not say. A resolution sent from a menu that is out of
+date becomes the one the video has that downloads the same track.
+`pinned=true` asks as for a link pinned to yt-dlp, the way the button sends it.
+Without it the instance answers only for links it would give to yt-dlp itself,
+and refuses the rest with 400.
 
 The button anchors on the largest video on screen and on the element in
 fullscreen, never on a site's class names, and steps down from the top edge
@@ -284,11 +294,38 @@ navigation from video to video, shows while the pointer moves over the video,
 and keeps its clicks and keys from reaching the player. It lives in a closed
 shadow root and wears the extension's own look.
 
-It is on by default and needs access to those five sites only, which the
-access to all websites for Click'n'Load includes. Its switch is in the options
-and in the toolbar popup, both on one stored setting, and the options switch
-it off per site. The button's own menu can hide it on the site it is on.
-Switching off takes it out of open tabs at once.
+On every other site the button waits for a video that somebody is watching:
+at least 200 by 112 pixels, half of it on screen and started. A muted video
+without controls that starts or loops by itself is a background or an advert
+and does not count. The button then asks the instance once with the same
+`GET /api/ytdlp/link` and shows only if yt-dlp found a video track or a
+resolution there. The worker keeps that answer by origin and path in session
+storage, a no for ten minutes and a yes until the browser closes, so a page is
+asked once, and the menu opens on the offer the check brought back. Until then
+the script asks the worker nothing, so a page without such a video costs no
+message at all. A click sends the page's own address without its fragment,
+with the defaults the options set for all other sites.
+
+The options show the sites in a card of their own, each as a row with its
+icon, its switch and a line on what a click downloads, and the row opens a
+window with that site's choices. Sites can be added there by address. An
+added site has a switch of its own, listed under its host name in
+`videoButtonHidden`, and runs on the access to that host and every host
+under it, so it keeps the button with all other sites off. It keeps defaults
+of its own under the same name (`videoCustomSites`, `videoDefaults`,
+`videoSeen`), which the button and the worker look up for that host and
+every host under it before falling back to all other sites
+(`videoDefaultsKey`).
+
+It is on by default. On the five sites it needs access to those sites only,
+which the access to all websites for Click'n'Load includes. All other sites run
+on the access to all websites itself: where Click'n'Load already has it they
+are on at once, and otherwise their own switch asks for it, so a no there keeps
+the button on the five sites. Turning Click'n'Load off keeps that access while
+the button uses it. The button's switch is in the options and in the toolbar
+popup, both on one stored setting, and the options switch it off per site. The
+button's own menu can hide it on the site it is on. Switching off takes it out
+of open tabs at once.
 
 ## PWA share target
 

@@ -335,12 +335,17 @@ for (const chromium of [true, false]) {
   await vm.runInContext('releaseFeature', ctx)('takeoverEnabled');
   if (calls.removed.includes('cookies') || calls.removed.includes('<all_urls>')) fail(`switching taking over off took away what finding media runs on: ${calls.removed}`);
   if (!calls.removed.includes('downloads') || !calls.removed.includes('notifications')) fail(`switching taking over off kept its own permissions: ${calls.removed}`);
+  // The video button on all other sites runs on the same access.
   await vm.runInContext('releaseFeature', ctx)('mediaEnabled');
-  if (access.origins.size || access.permissions.has('cookies') || access.permissions.has('webRequest')) fail('with everything off the extension kept access');
+  if (!access.origins.has('<all_urls>')) fail('switching finding media off took away the access the video button runs on across all other sites');
+  if (access.permissions.has('cookies') || access.permissions.has('webRequest')) fail('switching finding media off kept its own permissions');
+  store.videoButtonHidden = ['other'];
+  await vm.runInContext('releaseFeature', ctx)('mediaEnabled');
+  if (access.origins.size) fail('with everything off the extension kept access');
 }
 
 if (problems.length) {
   for (const p of problems) console.error(`✗ ${p}`);
   process.exit(1);
 }
-console.log('ok: downloads go over only by the rules and leave the browser only once the instance has them, with the cookies for their own host; short sounds that belong to a page stay off the media list; streams go only from the popup, with their page; switching one feature off keeps what another runs on');
+console.log('ok: downloads go over only by the rules and leave the browser only once the instance has them, with the cookies for their own host; short sounds that belong to a page stay off the media list; streams go only from the popup, with their page; switching one feature off keeps what another runs on, the video button on all other sites included');

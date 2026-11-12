@@ -62,15 +62,16 @@ func (a *App) ytdlpPlaylistProber() (playlistProber, bool) {
 //
 // It returns false when nobody asked or there is no answer: both settings are
 // off, the link is not yt-dlp's, no yt-dlp backend is wired, or the listing
-// failed. The link then goes on to the crawl.
-func (a *App) ytdlpListing(u string) (ytdlp.Playlist, bool) {
+// failed. The link then goes on to the crawl. pin is the backend the link is
+// pinned to, "" for none.
+func (a *App) ytdlpListing(u, pin string) (ytdlp.Playlist, bool) {
 	cfg := a.Settings.Get()
 	if !cfg.Ytdlp.Playlist && !cfg.Crawl {
 		return ytdlp.Playlist{}, false
 	}
 	// Only links staging routes to yt-dlp, in the order the priority card set,
 	// so a link a debrid or JD backend takes never reaches a yt-dlp process.
-	if res := a.stagingResolverFor(u); res == nil || res.Info().ID != "ytdlp" {
+	if res := a.stagingResolverFor(u, pin); res == nil || res.Info().ID != "ytdlp" {
 		return ytdlp.Playlist{}, false
 	}
 	pp, ok := a.ytdlpPlaylistProber()
@@ -139,6 +140,7 @@ func (a *App) stagePlaylistEntries(playlistURL string, pl ytdlp.Playlist, pkg st
 			comment:       batch.Comment,
 			category:      batch.Category,
 			choice:        batch.Choice,
+			pin:           batch.Resolver,
 			listed:        batch.listed,
 			foldDone:      batch.foldDone,
 			playlistEntry: true,

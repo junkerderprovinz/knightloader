@@ -43,6 +43,21 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **A pinned or Start menu KnightLoader shows the new icon after an update on
   Windows.** The updater tells Explorer that the program changed, so Windows
   no longer keeps the old program's icon in its cache.
+### Added
+
+- **The browser extension's video button shows on other sites too,** on a
+  video you are watching, once your instance says yt-dlp can download the
+  page. Its switch is "All other sites" in the video button's settings, with
+  its own defaults for what a click downloads.
+- **Video sites can be added in the extension's settings,** each with its
+  own switch and its own defaults for what a click downloads. The sites have
+  a card of their own, where each row opens a window with that site's
+  settings.
+- **The video button always downloads with yt-dlp,** also on a site whose
+  links your instance hands to JDownloader, such as archive.org. Links you
+  paste keep their routing. Other clients can pin a link the same way, with
+  `resolver` on `POST /api/links` and `pinned=true` on
+  `GET /api/ytdlp/link`.
 
 ## [2.8.1] - 2026-11-12
 

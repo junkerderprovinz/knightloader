@@ -67,14 +67,16 @@ async function requestFeature(key, access) {
 
 /**
  * Switches a feature off and hands back what no other feature still uses.
- * Click'n'Load, taking downloads over and finding media share the access to
- * all websites, and the last two share the cookies.
+ * Click'n'Load, taking downloads over, finding media and the video button on
+ * all other sites share the access to all websites, and taking over and
+ * finding media share the cookies.
  */
 async function releaseFeature(key) {
   await chrome.storage.local.set({ [key]: false });
-  const [cnl, takeover, media] = await Promise.all([cnlState(), takeoverState(), mediaState()]);
+  const [cnl, takeover, media, video] = await Promise.all([cnlState(), takeoverState(), mediaState(), videoButtonState()]);
   const keep = new Set();
   if (cnl.on) CNL_ACCESS.origins.forEach((o) => keep.add(o));
+  if (video.running.includes(VIDEO_OTHER.id)) VIDEO_OTHER.origins.forEach((o) => keep.add(o));
   for (const [state, access] of [
     [takeover, TAKEOVER_ACCESS],
     [media, MEDIA_ACCESS],

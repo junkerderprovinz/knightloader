@@ -79,6 +79,11 @@ type LinkBatchOptions struct {
 	// Start confirms and starts the batch at once, whatever AutoConfirm says,
 	// for a caller that asked for a download rather than a list entry.
 	Start bool
+	// Resolver pins every row of the batch to one backend, as a pin set on a
+	// task does (core.Task.ResolverPin), from staging on: the link skips the
+	// crawl and goes to that backend where its host belongs to another. The
+	// browser extension's video button pins its video to yt-dlp this way.
+	Resolver string
 
 	// listed collects the rows already in the list that links of the batch
 	// were folded into (see LinkBatch.Listed).
@@ -153,6 +158,14 @@ func (a *App) AddLinkBatch(urls []string, pkg string, origin core.Origin, opts L
 		opts.Choice = &c
 	case opts.Choice != nil && !opts.Choice.Valid():
 		return LinkBatch{}, errors.New("the choice names no row, or a row, quality or audio format yt-dlp has not got")
+	}
+
+	opts.Resolver = strings.TrimSpace(opts.Resolver)
+	if err := a.ResolverPinnable(opts.Resolver); err != nil {
+		return LinkBatch{}, err
+	}
+	if opts.Resolver != "" && opts.File {
+		return LinkBatch{}, errors.New("a file the browser was downloading is fetched as it is, by no backend it is pinned to")
 	}
 
 	var listed listedRows

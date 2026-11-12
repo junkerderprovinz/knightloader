@@ -8,7 +8,9 @@
 // It lives in a closed shadow root of its own, so the site's styles and
 // scripts do not reach it, and it reads nothing of the site but the address
 // and where the largest video sits. That anchors it on the video element and
-// on the element shown in fullscreen, never on the site's class names.
+// on the element shown in fullscreen, never on the site's class names. On any
+// other site it also reads whether that video plays, and shows only once the
+// instance says yt-dlp can download the page.
 
 (() => {
   // A tab can get this twice: from its registration, and from
@@ -16,9 +18,6 @@
   if (globalThis.knightloaderVideoButton) return;
   globalThis.knightloaderVideoButton = true;
 
-  // Smaller videos are previews and ads, not the player.
-  const MIN_WIDTH = 200;
-  const MIN_HEIGHT = 112;
   // A video under half the largest one's size is a preview beside a player.
   const PREVIEW_SHARE = 0.5;
   // About as long as the players keep their controls up after the pointer
@@ -32,10 +31,13 @@
   const POLL_MS = 3000;
   const POLL_SLOW_MS = 10000;
   const POLL_SLOW_AFTER = 60000;
+  // How soon a page of another site is asked about again when no instance
+  // could answer.
+  const CHECK_RETRY_MS = 60000;
   // How far the pointer moves on the button before a press is a drag rather
   // than a click.
   const DRAG_PX = 5;
-  const STORED = ['videoButton', 'videoButtonHidden', 'videoButtonAutoHide', 'videoButtonSpot', 'videoDefaults', 'videoSeen', 'theme', 'accent', 'shape'];
+  const STORED = ['videoButton', 'videoButtonHidden', 'videoButtonAutoHide', 'videoButtonSpot', 'videoDefaults', 'videoSeen', 'videoCustomSites', 'theme', 'accent', 'shape'];
   // What sendVideo in video-worker.js answers, each with its label, and the
   // two that went through.
   const RESULTS = ['sent', 'already', 'held', 'refused', 'offline', 'unpaired', 'failed'];
@@ -300,6 +302,13 @@
   let look = null;
   let cheer = [];
   let cheerUntil = 0;
+  // What the instance said about the pages of another site, by
+  // videoCheckKey: true or false, 'asking' while it is asked, and 'later'
+  // where no instance answered.
+  const claims = new Map();
+  // The videos of the page the button has shown on, which keep it while
+  // they are paused or scrolled half away.
+  let cleared = { key: '', videos: new WeakSet() };
 
   const host = document.createElement('knightloader-video-button');
   const root = host.attachShadow({ mode: 'closed' });
@@ -376,6 +385,19 @@
     send.prepend(svg);
   }
 
+  /** The element an element sits in, the host where it tops a shadow root. */
+  function above(el) {
+    return el.parentElement ?? el.parentNode?.host ?? null;
+  }
+
+  /** The page's videos, those in the open shadow roots of its elements too,
+   *  where players such as archive.org's keep theirs. */
+  function pageVideos(root = document) {
+    const found = [...root.querySelectorAll('video')];
+    for (const el of root.querySelectorAll('*')) if (el.shadowRoot) found.push(...pageVideos(el.shadowRoot));
+    return found;
+  }
+
   /**
    * Where a video is drawn. Until it plays, and while an advert plays in it,
    * YouTube parks the video element its own height above the player, which
@@ -384,7 +406,7 @@
    */
   function boxOf(v) {
     const r = v.getBoundingClientRect();
-    for (let el = v.parentElement; el; el = el.parentElement) {
+    for (let el = above(v); el; el = above(el)) {
       if (getComputedStyle(el).overflow === 'visible') continue;
       const b = el.getBoundingClientRect();
       const overlaps = Math.min(r.right, b.right) > Math.max(r.left, b.left) && Math.min(r.bottom, b.bottom) > Math.max(r.top, b.top);
@@ -403,19 +425,19 @@
    */
   function largestVideo() {
     const area = (r) => r.width * r.height;
-    const videos = [...document.querySelectorAll('video')]
+    const videos = pageVideos()
       .filter((v) => {
         const style = getComputedStyle(v);
         return style.visibility === 'visible' && style.opacity !== '0';
       })
       .map((v) => ({ v, r: boxOf(v) }))
-      .filter(({ r }) => r.width >= MIN_WIDTH && r.height >= MIN_HEIGHT);
+      .filter(({ r }) => r.width >= VIDEO_MIN_WIDTH && r.height >= VIDEO_MIN_HEIGHT);
     const largest = Math.max(0, ...videos.map(({ r }) => area(r)));
     let best = null;
     let most = 0;
     for (const { v, r } of videos) {
       if (area(r) < largest * PREVIEW_SHARE) continue;
-      const seen = Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
+      const seen = onScreen(r);
       if (seen > most) {
         best = v;
         most = seen;
@@ -424,15 +446,25 @@
     return best;
   }
 
+  /** How much of a box is on screen, in square pixels. */
+  function onScreen(r) {
+    return Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
+  }
+
   /**
    * Where the button can sit: the page, or in fullscreen the element shown
    * there, since nothing outside it is drawn. A video that is itself in
    * fullscreen has the browser's own controls and no room for the button.
    */
   function placeFor(v) {
-    const full = document.fullscreenElement;
+    let full = document.fullscreenElement;
     if (!full) return document.documentElement;
-    return full !== v && full.contains(v) ? full : null;
+    // The document names a player shown from inside a shadow root by the
+    // root's host.
+    while (full.shadowRoot?.fullscreenElement) full = full.shadowRoot.fullscreenElement;
+    if (full === v) return null;
+    for (let el = above(v); el; el = above(el)) if (el === full) return full;
+    return null;
   }
 
   /**
@@ -443,10 +475,10 @@
    * is far taller.
    */
   function onPlayer(x, y) {
-    const hit = document.elementsFromPoint(x, y).find((el) => el !== host);
+    const hit = video.getRootNode().elementsFromPoint(x, y).find((el) => el !== host);
     if (!hit) return false;
     let common = video;
-    while (common && !common.contains(hit)) common = common.parentElement;
+    while (common && !common.contains(hit)) common = above(common);
     return !!common && common.getBoundingClientRect().height <= boxOf(video).height * 1.5 + 1;
   }
 
@@ -459,11 +491,55 @@
   function dropFor(r) {
     const width = host.getBoundingClientRect().width || 180;
     const xs = [r.left + r.width / 2 - width / 2 + 4, r.left + r.width / 2, r.left + r.width / 2 + width / 2 - 4];
-    const covers = (y) => xs.some((x) => document.elementsFromPoint(x, y).find((el) => el !== host)?.closest?.(CONTROLS));
+    const covers = (y) => xs.some((x) => video.getRootNode().elementsFromPoint(x, y).find((el) => el !== host)?.closest?.(CONTROLS));
     for (let d = 12; d < r.height * 0.4; d += 8) {
       if (!covers(r.top + d + 2) && !covers(r.top + d + 30)) return d;
     }
     return 12;
+  }
+
+  /** What videoWatched needs to know of a video: its size as boxOf has it,
+   *  the share of it on screen, and how it plays. */
+  function watching(v) {
+    const r = boxOf(v);
+    const area = r.width * r.height;
+    return {
+      width: r.width, height: r.height, seen: area ? onScreen(r) / area : 0,
+      muted: v.muted, controls: v.controls, autoplay: v.autoplay, loop: v.loop, paused: v.paused, time: v.currentTime,
+    };
+  }
+
+  /**
+   * Whether the button may sit on a video of another site: one somebody
+   * watches, on a page the instance says yt-dlp can download. The first such
+   * video asks the instance, once per page.
+   */
+  function claimed(v) {
+    const key = videoCheckKey(location.href);
+    if (cleared.key !== key) cleared = { key, videos: new WeakSet() };
+    if (cleared.videos.has(v)) return true;
+    if (!videoWatched(watching(v))) return false;
+    if (!claims.has(key)) void askClaim(key);
+    if (claims.get(key) !== true) return false;
+    cleared.videos.add(v);
+    return true;
+  }
+
+  async function askClaim(key) {
+    claims.set(key, 'asking');
+    const asked = videoPage(location.href);
+    const answer = await chrome.runtime.sendMessage({ type: 'knightloader-video-check', href: asked.url }).catch(() => null);
+    if (typeof answer?.claims !== 'boolean') {
+      claims.set(key, 'later');
+      setTimeout(() => claims.delete(key), CHECK_RETRY_MS);
+      return;
+    }
+    claims.set(key, answer.claims);
+    if (!answer.claims) return;
+    // The probe that answered is what the menu offers, so it asks nothing more.
+    if (typeof answer.offer?.known === 'boolean') offered = { url: asked.url, answer: answer.offer, ready: Promise.resolve(answer.offer) };
+    if (!labels) await loadLabels();
+    update();
   }
 
   /** Brings the button in line with the page, the video and the switch. */
@@ -479,9 +555,11 @@
       unfollow();
     }
     page = next;
-    const wanted = page && labels && videoButtonWanted(stored, page.site);
-    if (labels && !wanted) unfollow();
-    const found = wanted ? largestVideo() : null;
+    const wanted = page && videoButtonWanted(stored, videoDefaultsKey(stored, page));
+    if (!wanted) unfollow();
+    let found = wanted ? largestVideo() : null;
+    if (found && page.site === VIDEO_OTHER.id && !claimed(found)) found = null;
+    if (!labels) found = null;
     // Players let go of their video for a moment, between an advert and the
     // video or while they lay themselves out again. Somebody in the menu or
     // waiting for a send keeps the button where it is until the video is back.
@@ -887,7 +965,7 @@
    *  they name a format or a bitrate, which only one video's tracks have, or
    *  where they take the thumbnail, whose formats depend on the instance. */
   async function clickPick() {
-    const defaults = videoDefaultsFor(stored, page.site);
+    const defaults = videoDefaultsFor(stored, videoDefaultsKey(stored, page));
     if (defaults.videoFormat === 'best' && defaults.audioRate === 'best' && !defaults.parts.includes('thumbnail')) return defaults;
     const offer = await askFormats();
     return videoExact(videoResolve(defaults, offer), offer);
@@ -898,8 +976,8 @@
    *  site's default is among them either way, since a cap the video does not
    *  reach downloads its best. */
   function menuQualities(offer) {
-    const own = offer.qualities.length ? offer.qualities : videoSiteSeen(stored, page.site).qualities;
-    const wanted = videoDefaultsFor(stored, page.site).quality;
+    const own = offer.qualities.length ? offer.qualities : videoSiteSeen(stored, videoDefaultsKey(stored, page)).qualities;
+    const wanted = videoDefaultsFor(stored, videoDefaultsKey(stored, page)).quality;
     return VIDEO_CAPS.filter((q) => own.includes(q) || q === wanted);
   }
 
@@ -1118,7 +1196,7 @@
   }
 
   function openMenu() {
-    pick = videoDefaultsFor(stored, page.site);
+    pick = videoDefaultsFor(stored, videoDefaultsKey(stored, page));
     void askFormats();
     if (offered.answer) pick = videoResolve(pick, offered.answer);
     renderMenu();
@@ -1301,13 +1379,15 @@
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'local') return;
     for (const k of STORED) if (changes[k]) stored = { ...stored, [k]: changes[k].newValue };
-    if (changes.language) await loadLabels();
+    if (changes.language && labels) await loadLabels();
     update();
   });
 
+  // On another site the labels wait for a video the button shows on, so a
+  // page without one never asks the worker anything.
   void (async () => {
     stored = await chrome.storage.local.get(STORED);
-    await loadLabels();
+    if (videoPage(location.href)?.site !== VIDEO_OTHER.id) await loadLabels();
     update();
   })();
 })();

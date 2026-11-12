@@ -379,7 +379,7 @@ func (a *App) RecheckTasks(ids []string) {
 		// The same ranked lookup staging uses, since the answer is written back
 		// onto the task below; plain registry order would move a task back to
 		// "direct" and undo jd.PriorityFor's boost.
-		res := a.stagingResolverFor(t.URL)
+		res := a.stagingResolverFor(t.URL, t.ResolverPin)
 		if t.BrowserFile {
 			res = a.fileResolverFor(t.URL, res)
 		}
