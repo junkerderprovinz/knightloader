@@ -268,15 +268,24 @@ so a button can only send the video it shows. It goes as `POST /api/links`,
 with a `format` when the menu picked one: `video` for the video row alone at
 its best, `audio` for the audio row alone, or a resolution such as `1080p`.
 That stands in for the host's preset for this link (`HosterPreset.ForLink`),
-and the preset itself stays as it was.
+and the preset itself stays as it was. The send also carries
+`"resolver": "ytdlp"`, which pins every row of the link to yt-dlp, as a pin set
+on a task does (`POST /api/tasks/options`). The link skips the crawl and goes
+to yt-dlp even on a host whose links the instance gives to another backend,
+such as archive.org, which JDownloader has a plugin for. Links pasted or sent
+any other way keep their routing. `resolver` takes any backend the instance
+has, and one it lacks refuses the submission.
 
 The menu lists only what the video has. Opened, it asks the instance with
-`GET /api/ytdlp/link?url=<address>`, which answers from one yt-dlp probe that
-the link's staging shares a moment later, and says it is checking until the
-answer comes. It then offers the best video, each resolution yt-dlp found and
-the audio alone where the video has sound, or the best video alone where the
-instance could not say. A resolution sent from a menu that is out of date
-becomes the one the video has that downloads the same track.
+`GET /api/ytdlp/link?url=<address>&pinned=true`, which answers from one yt-dlp
+probe that the link's staging shares a moment later, and says it is checking
+until the answer comes. It then offers the best video, each resolution yt-dlp
+found and the audio alone where the video has sound, or the best video alone
+where the instance could not say. A resolution sent from a menu that is out of
+date becomes the one the video has that downloads the same track.
+`pinned=true` asks as for a link pinned to yt-dlp, the way the button sends it.
+Without it the instance answers only for links it would give to yt-dlp itself,
+and refuses the rest with 400.
 
 The button anchors on the largest video on screen and on the element in
 fullscreen, never on a site's class names, and steps down from the top edge
