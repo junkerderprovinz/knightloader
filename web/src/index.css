@@ -4971,6 +4971,9 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 32rem), 1fr));
     gap: 1rem;
   }
+  .glim-fortress-grid:empty {
+    display: none;
+  }
   .glim-instance {
     --instance-mark: 5.5rem;
     display: flex;
