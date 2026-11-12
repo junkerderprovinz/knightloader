@@ -52,9 +52,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   find it on its server whatever name you give it there.
 - **Open your other apps from anywhere.** Open on an app's card on the
   Pairing page shows that app in a new tab, behind its own password. At home
-  the pages come straight from it, on the road through the relay. A plugin
-  shows how it is doing instead, and the app you opened writes each visit to
-  its log.
+  the pages come straight from it, on the road through the relay, and not a
+  single port has to be forwarded. Each app has its own switch for it. A
+  plugin shows how it is doing instead, and the app you opened writes each
+  visit to its log.
 - **Every permission between apps has its own switch.** The Pairing page
   shows what the other apps of your fortress may do at KnightLoader and what
   KnightLoader may do at them, each with a switch of its own.
