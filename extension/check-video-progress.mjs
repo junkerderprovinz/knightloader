@@ -225,6 +225,11 @@ class Node {
     while (n.parentNode) n = n.parentNode;
     return n === this.doc.documentElement;
   }
+  getRootNode() {
+    let n = this;
+    while (n.parentNode) n = n.parentNode;
+    return n === this.doc.documentElement ? this.doc : n;
+  }
   append(...nodes) {
     for (const n of nodes) {
       n.parentNode?.children.splice(n.parentNode.children.indexOf(n), 1);

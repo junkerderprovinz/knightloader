@@ -385,6 +385,19 @@
     send.prepend(svg);
   }
 
+  /** The element an element sits in, the host where it tops a shadow root. */
+  function above(el) {
+    return el.parentElement ?? el.parentNode?.host ?? null;
+  }
+
+  /** The page's videos, those in the open shadow roots of its elements too,
+   *  where players such as archive.org's keep theirs. */
+  function pageVideos(root = document) {
+    const found = [...root.querySelectorAll('video')];
+    for (const el of root.querySelectorAll('*')) if (el.shadowRoot) found.push(...pageVideos(el.shadowRoot));
+    return found;
+  }
+
   /**
    * Where a video is drawn. Until it plays, and while an advert plays in it,
    * YouTube parks the video element its own height above the player, which
@@ -393,7 +406,7 @@
    */
   function boxOf(v) {
     const r = v.getBoundingClientRect();
-    for (let el = v.parentElement; el; el = el.parentElement) {
+    for (let el = above(v); el; el = above(el)) {
       if (getComputedStyle(el).overflow === 'visible') continue;
       const b = el.getBoundingClientRect();
       const overlaps = Math.min(r.right, b.right) > Math.max(r.left, b.left) && Math.min(r.bottom, b.bottom) > Math.max(r.top, b.top);
@@ -412,7 +425,7 @@
    */
   function largestVideo() {
     const area = (r) => r.width * r.height;
-    const videos = [...document.querySelectorAll('video')]
+    const videos = pageVideos()
       .filter((v) => {
         const style = getComputedStyle(v);
         return style.visibility === 'visible' && style.opacity !== '0';
@@ -444,9 +457,14 @@
    * fullscreen has the browser's own controls and no room for the button.
    */
   function placeFor(v) {
-    const full = document.fullscreenElement;
+    let full = document.fullscreenElement;
     if (!full) return document.documentElement;
-    return full !== v && full.contains(v) ? full : null;
+    // The document names a player shown from inside a shadow root by the
+    // root's host.
+    while (full.shadowRoot?.fullscreenElement) full = full.shadowRoot.fullscreenElement;
+    if (full === v) return null;
+    for (let el = above(v); el; el = above(el)) if (el === full) return full;
+    return null;
   }
 
   /**
@@ -457,10 +475,10 @@
    * is far taller.
    */
   function onPlayer(x, y) {
-    const hit = document.elementsFromPoint(x, y).find((el) => el !== host);
+    const hit = video.getRootNode().elementsFromPoint(x, y).find((el) => el !== host);
     if (!hit) return false;
     let common = video;
-    while (common && !common.contains(hit)) common = common.parentElement;
+    while (common && !common.contains(hit)) common = above(common);
     return !!common && common.getBoundingClientRect().height <= boxOf(video).height * 1.5 + 1;
   }
 
@@ -473,7 +491,7 @@
   function dropFor(r) {
     const width = host.getBoundingClientRect().width || 180;
     const xs = [r.left + r.width / 2 - width / 2 + 4, r.left + r.width / 2, r.left + r.width / 2 + width / 2 - 4];
-    const covers = (y) => xs.some((x) => document.elementsFromPoint(x, y).find((el) => el !== host)?.closest?.(CONTROLS));
+    const covers = (y) => xs.some((x) => video.getRootNode().elementsFromPoint(x, y).find((el) => el !== host)?.closest?.(CONTROLS));
     for (let d = 12; d < r.height * 0.4; d += 8) {
       if (!covers(r.top + d + 2) && !covers(r.top + d + 30)) return d;
     }
