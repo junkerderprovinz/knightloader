@@ -348,6 +348,7 @@ async function loadPage({ reduced = false } = {}) {
     setTimeout: clock.setTimeout, clearTimeout: clock.clearTimeout,
     setInterval: () => 0, requestAnimationFrame: () => 0, performance: { now: clock.now },
     matchMedia: (q) => ({ matches: reduced && q.includes('reduce'), addEventListener() {} }),
+    getComputedStyle: () => ({ overflow: 'visible', visibility: 'visible', opacity: '1' }),
     window: { addEventListener() {} }, innerWidth: 1280, innerHeight: 800,
     navigator: { userAgent: 'test' }, CSS: { supports: () => false },
     DOMParser: class { parseFromString() { return { documentElement: doc.createElementNS('', 'svg') }; } },

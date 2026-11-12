@@ -377,16 +377,38 @@
   }
 
   /**
+   * Where a video is drawn. Until it plays, and while an advert plays in it,
+   * YouTube parks the video element its own height above the player, which
+   * clips it away and shows its own picture there, so the box of whatever
+   * clips a video it lies wholly outside of stands for it.
+   */
+  function boxOf(v) {
+    const r = v.getBoundingClientRect();
+    for (let el = v.parentElement; el; el = el.parentElement) {
+      if (getComputedStyle(el).overflow === 'visible') continue;
+      const b = el.getBoundingClientRect();
+      const overlaps = Math.min(r.right, b.right) > Math.max(r.left, b.left) && Math.min(r.bottom, b.bottom) > Math.max(r.top, b.top);
+      return overlaps ? r : b;
+    }
+    return r;
+  }
+
+  /**
    * The video with the most of itself on screen, which is the player's. Shorts
    * keep the next ones loaded below the one playing, and the small ones are
    * previews and ads. A preview playing in a list beside the player is far
    * smaller than the player, so it never takes the button, not even while
-   * the player is scrolled out of view.
+   * the player is scrolled out of view. A video the page hides counts for
+   * nothing, so a large hidden one does not make the player look small.
    */
   function largestVideo() {
     const area = (r) => r.width * r.height;
     const videos = [...document.querySelectorAll('video')]
-      .map((v) => ({ v, r: v.getBoundingClientRect() }))
+      .filter((v) => {
+        const style = getComputedStyle(v);
+        return style.visibility === 'visible' && style.opacity !== '0';
+      })
+      .map((v) => ({ v, r: boxOf(v) }))
       .filter(({ r }) => r.width >= MIN_WIDTH && r.height >= MIN_HEIGHT);
     const largest = Math.max(0, ...videos.map(({ r }) => area(r)));
     let best = null;
@@ -425,7 +447,7 @@
     if (!hit) return false;
     let common = video;
     while (common && !common.contains(hit)) common = common.parentElement;
-    return !!common && common.getBoundingClientRect().height <= video.getBoundingClientRect().height * 1.5 + 1;
+    return !!common && common.getBoundingClientRect().height <= boxOf(video).height * 1.5 + 1;
   }
 
   /**
@@ -473,7 +495,7 @@
     }
     if (host.parentNode !== place) place.append(host);
     render();
-    drop = dropFor(video.getBoundingClientRect());
+    drop = dropFor(boxOf(video));
     position();
   }
 
@@ -497,7 +519,7 @@
    */
   function position() {
     if (!video || !host.isConnected) return;
-    const r = video.getBoundingClientRect();
+    const r = boxOf(video);
     const at = dragAt ?? placeOnVideo(r);
     host.style.setProperty('left', `${Math.round(at.x)}px`);
     host.style.setProperty('top', `${Math.round(at.y)}px`);
@@ -1158,7 +1180,7 @@
       frame.classList.add('dragging');
       closeMenu();
     }
-    const r = video.getBoundingClientRect();
+    const r = boxOf(video);
     const share = { x: (e.clientX + press.dx - r.left) / r.width, y: (e.clientY + press.dy - r.top) / r.height };
     dragAt = videoSpotPoint(share, r, barSize());
     position();
@@ -1167,7 +1189,7 @@
     if (!press || e.pointerId !== press.id) return;
     if (press.moving) {
       dragged = true;
-      const spot = videoSpotOf(dragAt, video.getBoundingClientRect(), barSize());
+      const spot = videoSpotOf(dragAt, boxOf(video), barSize());
       // Kept here at once, so the button does not jump back while the
       // storage catches up.
       stored = { ...stored, videoButtonSpot: { ...stored.videoButtonSpot, [page.site]: spot } };
@@ -1224,7 +1246,7 @@
     'pointermove',
     (e) => {
       if (!video || !host.isConnected) return;
-      const r = video.getBoundingClientRect();
+      const r = boxOf(video);
       const over = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
       if (!over && pointerAt === 0) return;
       pointerAt = over ? performance.now() : 0;
