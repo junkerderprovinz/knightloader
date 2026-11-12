@@ -262,12 +262,13 @@ describe('FortressSection', () => {
     await draw(joined());
     expect(page()).toContain(en['pairing.fortressTitle']);
     await press('open-change');
+    expect(page()).toContain(en['pairing.fortressChangeAway']);
     await press('change');
     await typeInto(passwordField(), 'hunter2');
     await press('change-unlock');
     expect(server.calls).toEqual(['change hunter2', 'refresh']);
     expect(hook('words')!.textContent).toContain('wrong');
-    expect(page()).toContain('Still on the old phrase: Cellar. Enter the new one there once.');
+    expect(page()).toContain(en['pairing.fortressChangedLeft'].replace('{devices}', 'Cellar'));
     const close = [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.trim() === 'Close')!;
     await act(async () => close.click());
     await settle();
