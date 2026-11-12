@@ -5419,6 +5419,153 @@ body {
   .glim-input:focus-visible {
     outline: none;
   }
+
+  /* The status window of an app without pages of its own: its mark in the
+     notch, the state, a short list per section and where its settings are. */
+  .glim-status-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .glim-status-title img {
+    width: 1rem;
+    height: 1rem;
+    object-fit: contain;
+  }
+  .glim-status-state {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.625rem;
+  }
+  .glim-status-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .glim-status-heading {
+    margin: 0;
+    color: var(--carbon-text-muted);
+    font-size: var(--text-meta);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .glim-status-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-subline);
+  }
+  .glim-status-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .glim-status-line > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+  .glim-status-work {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .glim-status-at {
+    flex: none;
+    color: var(--carbon-text-muted);
+    font-size: var(--text-meta);
+  }
+  .glim-status-line > .glim-status-at:last-child { margin-inline-start: auto; }
+
+  /* GlimStone's ProgressBar in that window: paused takes the waiting tone,
+     a failure the fault colour, and a bar without a value shows stripes. */
+  .glim-progress {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 0.6rem;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    background-color: var(--carbon-surface3);
+  }
+  .glim-progress-fill {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    background-color: var(--accent);
+    transition: width var(--motion-control-dur) linear;
+  }
+  .glim-progress--paused .glim-progress-fill { background-color: var(--status-neutral-solid); }
+  .glim-progress--failed .glim-progress-fill { background-color: var(--status-fail-solid); }
+  .glim-progress--busy > .glim-progress-fill {
+    width: 100%;
+    background: repeating-linear-gradient(-45deg, var(--accent) 0 4px, transparent 4px 8px);
+    opacity: 0.5;
+  }
+
+  /* GlimStone's BusyRing while the report is on its way: two flat arcs that
+     turn against each other, shown only after a short wait. */
+  @keyframes glim-busy-show {
+    from { visibility: hidden; }
+  }
+  @keyframes glim-busy-cw { to { transform: rotate(1turn); } }
+  @keyframes glim-busy-ccw { to { transform: rotate(-1turn); } }
+  .glim-busy-ring {
+    --ring-size: 1.375rem;
+    --ring-th: calc(var(--ring-size) / 10);
+    --ring-arc: 155deg;
+    position: relative;
+    display: inline-block;
+    flex: none;
+    width: var(--ring-size);
+    height: var(--ring-size);
+    vertical-align: -0.15em;
+    color: var(--accent-glyph);
+    animation: glim-busy-show 0s var(--busy-delay, 400ms) both;
+  }
+  .glim-busy-ring--small { --ring-size: 0.875rem; }
+  .glim-busy-ring--large { --ring-size: 2rem; }
+  .glim-busy-ring-arc {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+  }
+  .glim-busy-ring-arc--inner {
+    inset: calc(var(--ring-th) * 2.6);
+    transform: rotate(-0.4turn);
+  }
+  .glim-busy-ring-arc::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(currentColor 0deg var(--ring-arc), transparent var(--ring-arc) 360deg);
+    mask: radial-gradient(farthest-side, #0000 calc(100% - var(--ring-th)), #000 0);
+  }
+  .glim-busy-ring-tail {
+    position: absolute;
+    inset: 0;
+    transform: rotate(var(--ring-arc));
+  }
+  .glim-busy-ring-arc::after,
+  .glim-busy-ring-tail::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--ring-th);
+    height: var(--ring-th);
+    margin-left: calc(var(--ring-th) / -2);
+    border-radius: var(--radius-pill);
+    background: currentColor;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion='off']) .glim-busy-ring-arc { animation: glim-busy-cw var(--motion-spin-dur, 1.2s) linear infinite; }
+    :root:not([data-motion='off']) .glim-busy-ring-arc--inner { animation-name: glim-busy-ccw; }
+  }
 }
 /* KnightLoader's own windows let their body fall into the card's column
    (display: contents, above), but a GlimStone window pads its body itself
