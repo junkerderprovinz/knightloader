@@ -33,10 +33,14 @@ func runHelperMain(mode string) {
 		ffmpegRecorder(os.Args[2])
 	}
 	ytMode, probeMode, _ := strings.Cut(mode, ":")
-	// -print_format appears only in the ffprobe invocation.
+	// -print_format appears only in the ffprobe invocation, libx265 only in
+	// the ffmpeg one that converts.
 	for _, a := range os.Args[1:] {
 		if a == "-print_format" {
 			ffprobeHelper(probeMode, os.Args[len(os.Args)-1])
+		}
+		if a == "libx265" {
+			x265Helper(probeMode)
 		}
 	}
 	ytdlpHelper(ytMode)
@@ -58,6 +62,17 @@ func helperOutDir() string {
 		}
 	}
 	return "."
+}
+
+// helperTemplateTags reports whether the plain -o template puts tag beside
+// the frame, as yt-dlp would write it into the name.
+func helperTemplateTags(tag string) bool {
+	for i, a := range os.Args {
+		if a == "-o" && i+1 < len(os.Args) && strings.Contains(os.Args[i+1], tag+").") {
+			return true
+		}
+	}
+	return false
 }
 
 // helperInfoJSON is the info dict yt-dlp would have written beside the file,
@@ -94,6 +109,9 @@ func ytdlpHelper(mode string) {
 		frame := "1920x960p"
 		if mode == "upright" {
 			frame = "1080x1920p"
+		}
+		if helperTemplateTags(" hevc") {
+			frame += " hevc"
 		}
 		merged := filepath.Join(dir, "A Video ("+frame+").mkv")
 		fmt.Println(plannedPrefix + merged)
@@ -269,6 +287,25 @@ func ytdlpHelper(mode string) {
 	os.Exit(0)
 }
 
+// x265Helper plays ffmpeg converting the file after -i into the last
+// argument, or failing where mode is "nox265".
+func x265Helper(mode string) {
+	if mode == "nox265" {
+		fmt.Fprintln(os.Stderr, "Unknown encoder 'libx265'")
+		os.Exit(1)
+	}
+	args := os.Args[1:]
+	in := args[slices.Index(args, "-i")+1]
+	if _, err := os.Stat(in); err != nil {
+		os.Exit(1)
+	}
+	_ = os.WriteFile(args[len(args)-1], []byte("hevc bytes"), 0o644)
+	fmt.Println("out_time_us=1359020500")
+	fmt.Println("progress=continue")
+	fmt.Println("progress=end")
+	os.Exit(0)
+}
+
 // recordArg makes the helper play ffmpeg recording a stream into the path
 // after it.
 const recordArg = "-record-into"
@@ -346,7 +383,7 @@ func runFake(t *testing.T, mode string, o Options) (string, *recorder) {
 	dir := t.TempDir()
 	rec := &recorder{}
 	b := NewBackend(os.Args[0], dir, rec.add)
-	b.SetFFmpeg("", os.Args[0])
+	b.SetFFmpeg(os.Args[0], os.Args[0])
 	b.Options = func(string) Options { return o }
 	b.run("task-1", "https://example.invalid/watch?v=x")
 	return dir, rec
@@ -426,6 +463,44 @@ func TestRunTakesAVideoAlreadyThereUnderItsQualityAsDownloaded(t *testing.T) {
 	}
 	if body, _ := os.ReadFile(filepath.Join(dir, "A Video (1080p).mkv")); string(body) != "earlier" {
 		t.Errorf("the earlier file holds %q, want it untouched", body)
+	}
+}
+
+// A video picked as HEVC in mkv is converted once yt-dlp is done, and the row
+// says so meanwhile. The file keeps its quality and names the codec.
+func TestRunConvertsAVideoPickedAsHEVC(t *testing.T) {
+	dir, rec := runFake(t, "wide:full", Options{Variant: VariantVideo, VideoConvert: ConvertHEVC, Embed: Embed{NFO: true}})
+	got := rec.last()
+	want := filepath.Join(dir, "A Video (1080p hevc).mkv")
+	if got.Status != core.StatusDone || got.File != want {
+		t.Fatalf("last update = %+v, want Done with %q", got, want)
+	}
+	if body, _ := os.ReadFile(want); string(body) != "hevc bytes" {
+		t.Errorf("the file holds %q, want the converted video", body)
+	}
+	entries, _ := os.ReadDir(dir)
+	var names []string
+	for _, e := range entries {
+		names = append(names, e.Name())
+	}
+	if want := []string{"A Video (1080p hevc).mkv", "A Video (1080p hevc).nfo"}; !slices.Equal(names, want) {
+		t.Errorf("the folder holds %q, want %q", names, want)
+	}
+	if !slices.ContainsFunc(rec.all(), func(u core.Update) bool {
+		return u.Status == core.StatusRunning && u.Note == "converting to HEVC, 50%"
+	}) {
+		t.Errorf("no update said the video is being converted: %+v", rec.all())
+	}
+}
+
+func TestRunFailsAConversionFFmpegCannotDo(t *testing.T) {
+	dir, rec := runFake(t, "wide:nox265", Options{Variant: VariantVideo, VideoConvert: ConvertHEVC})
+	got := rec.last()
+	if got.Status != core.StatusError || !strings.Contains(got.Err, "libx265") {
+		t.Errorf("last update = %+v, want an error naming the encoder", got)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "A Video (1920x960p hevc).mkv")); err != nil {
+		t.Errorf("the downloaded video is gone: %v", err)
 	}
 }
 

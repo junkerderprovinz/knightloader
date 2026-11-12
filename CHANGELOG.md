@@ -73,6 +73,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **A video filmed in HDR offers its HDR tracks apart from the plain ones,**
   and a plain quality downloads the SDR track, where yt-dlp took the HDR one
   of the same height.
+- **A video can be converted to H.265 in MKV.** It downloads at the quality
+  you pick and is encoded again once it is there, and the row shows how far
+  the conversion has got.
 
 ### Changed
 

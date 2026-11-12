@@ -657,6 +657,9 @@ func containerRank(c videoContainer) int {
 // wide track by its height, or be the plain key of a track the source has in
 // HDR alone, and takes that track's key. Any other pick comes back as it is.
 func ResolveVideoPick(pick string, formats []FormatEntry) string {
+	if p, convert := SplitConversion(pick); convert != "" {
+		return ConvertedPick(ResolveVideoPick(p, formats), convert)
+	}
 	if v, ok := parseVideoFormat(pick); ok {
 		if k, ok := v.byHeight(formats); ok {
 			return k
@@ -743,6 +746,10 @@ func (v videoFormat) inHDR(formats []FormatEntry) (string, bool) {
 // since nothing is merged, CustomFormat is what a custom pick asks for, and
 // VideoFormat is the container a quality pick prefers.
 func VideoFile(pick string, formats []FormatEntry, o Options) (ext string, size int64) {
+	// The encoder decides a converted file's size.
+	if _, convert := SplitConversion(pick); convert != "" {
+		return "mkv", 0
+	}
 	if w, ok := defaultWish(o, Quality(pick)); ok && !IsVideoPick(pick) {
 		pick = w.resolve(formats)
 	} else {

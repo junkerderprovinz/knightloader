@@ -232,6 +232,37 @@ func TestAThumbnailSentWithAFormatComesInThatFormat(t *testing.T) {
 	}
 }
 
+// A video sent to be converted to HEVC in mkv downloads its quality and is
+// converted, and the menu offers the conversion.
+func TestAVideoSentAsHEVCIsConvertedToIt(t *testing.T) {
+	a := offersApp(t)
+	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00010")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []LinkConversion{{Format: "mkv hevc", Converted: true}}; !slices.Equal(m.VideoConversions, want) {
+		t.Errorf("video conversions = %+v, want %+v", m.VideoConversions, want)
+	}
+	const url = "https://youtube.com/watch?v=offers00011"
+	if _, err := a.AddLinksWithOptions([]string{url}, "", OriginCnL, LinkBatchOptions{Choice: &ytdlp.LinkChoice{
+		Variants: []ytdlp.Variant{ytdlp.VariantVideo}, Quality: ytdlp.Quality1080p, VideoConvert: "mkv hevc",
+	}}); err != nil {
+		t.Fatal(err)
+	}
+	for _, x := range fiveRows(t, a, url) {
+		if kind, _ := variantDecode(x.Variant); kind != ytdlp.VariantVideo {
+			continue
+		}
+		o := a.ytdlpOptionsForTask(x.ID)
+		if o.Quality != ytdlp.Quality1080p || o.VideoConvert != ytdlp.ConvertHEVC || x.Ext != "mkv" {
+			t.Errorf("the video row asks for %q converted to %q and shows %q", o.Quality, o.VideoConvert, x.Ext)
+		}
+	}
+	if (ytdlp.LinkChoice{Variants: []ytdlp.Variant{ytdlp.VariantVideo}, VideoConvert: "mp4 hevc"}).Valid() {
+		t.Error("a conversion KnightLoader does not make was accepted")
+	}
+}
+
 // A choice of subtitles that names no format takes the host's own, and a
 // paste keeps converting to srt.
 func TestSubtitlesChosenWithoutAFormatKeepTheHostsOwn(t *testing.T) {

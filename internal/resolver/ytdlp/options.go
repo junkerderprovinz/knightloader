@@ -75,6 +75,10 @@ type Options struct {
 	// one of ThumbnailFormats. Empty converts to jpg. A row's own choice,
 	// like VideoPick.
 	ThumbnailFormat string `json:"-"`
+	// VideoConvert is the format a video row's file is converted to once it
+	// is downloaded, ConvertHEVC or empty for none. A row's own choice, like
+	// VideoPick.
+	VideoConvert string `json:"-"`
 	// ThumbnailAsIs keeps the thumbnail in the format the host serves
 	// instead of converting it. A row's own choice, like VideoPick.
 	ThumbnailAsIs bool `json:"-"`
@@ -364,6 +368,32 @@ type LinkChoice struct {
 	SubtitleAuto    bool      `json:"subtitleAuto"`
 	SubtitleFormat  string    `json:"subtitleFormat"`
 	ThumbnailFormat string    `json:"thumbnailFormat"`
+	VideoConvert    string    `json:"videoConvert"`
+}
+
+// ConvertHEVC is the one conversion a video row offers: its video encoded
+// again as HEVC, the audio as it is, in mkv.
+const ConvertHEVC = "mkv hevc"
+
+// conversionWord joins a video row's pick and the format it is converted to
+// in the pick the row stores: "1080p to mkv hevc".
+const conversionWord = " to "
+
+// SplitConversion is a stored video pick's own pick and the format it is
+// converted to, "" for none.
+func SplitConversion(pick string) (string, string) {
+	if p, c, ok := strings.Cut(pick, conversionWord); ok && c == ConvertHEVC {
+		return p, c
+	}
+	return pick, ""
+}
+
+// ConvertedPick is the pick a video row stores for pick converted to convert.
+func ConvertedPick(pick, convert string) string {
+	if pick == "" {
+		pick = string(QualityBest)
+	}
+	return pick + conversionWord + convert
 }
 
 // ThumbnailFormats are the picture formats --convert-thumbnails writes. A
@@ -403,7 +433,8 @@ func (c LinkChoice) Valid() bool {
 		}
 	}
 	return (c.SubtitleFormat == "" || keyToken.MatchString(c.SubtitleFormat)) &&
-		(c.ThumbnailFormat == "" || keyToken.MatchString(c.ThumbnailFormat))
+		(c.ThumbnailFormat == "" || keyToken.MatchString(c.ThumbnailFormat)) &&
+		(c.VideoConvert == "" || c.VideoConvert == ConvertHEVC)
 }
 
 // LinkFormatVideo and LinkFormatAudio are the two formats of a link sent with
