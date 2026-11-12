@@ -144,6 +144,10 @@ These travel through the relay, and only your instances can read them:
   watchers and, if you choose to, a request to switch another device's watch
   off.
 
+While the options page is open, the tiles of the video button's sites load
+each site's icon (`/favicon.ico`) straight from that site, as any browser tab
+does, without the address of the page that asks. Nothing goes to a third party.
+
 The extension makes no other network requests.
 
 ## The clipboard watch

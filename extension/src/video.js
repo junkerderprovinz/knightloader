@@ -154,6 +154,17 @@ function videoDefaultsFor(stored, siteId) {
   return videoPick(stored?.videoDefaults?.[siteId]);
 }
 
+/** What a page's defaults and what its site offered are kept under: on
+ *  another site the host added on the options page (videoCustomSites) that
+ *  is the page's or one it ends in, the longest where several are, else the
+ *  page's switch. */
+function videoDefaultsKey(stored, page) {
+  if (page.site !== VIDEO_OTHER.id) return page.site;
+  const host = new URL(page.url).hostname;
+  const own = (Array.isArray(stored?.videoCustomSites) ? stored.videoCustomSites : []).filter((h) => host === h || host.endsWith(`.${h}`));
+  return own.sort((a, b) => b.length - a.length)[0] ?? VIDEO_OTHER.id;
+}
+
 /**
  * The choice POST /api/links takes for a pick (ytdlp.LinkChoice). A pick
  * without tracks leaves them to the instance, which takes the best under the

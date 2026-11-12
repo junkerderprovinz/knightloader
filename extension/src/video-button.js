@@ -37,7 +37,7 @@
   // How far the pointer moves on the button before a press is a drag rather
   // than a click.
   const DRAG_PX = 5;
-  const STORED = ['videoButton', 'videoButtonHidden', 'videoButtonAutoHide', 'videoButtonSpot', 'videoDefaults', 'videoSeen', 'theme', 'accent', 'shape'];
+  const STORED = ['videoButton', 'videoButtonHidden', 'videoButtonAutoHide', 'videoButtonSpot', 'videoDefaults', 'videoSeen', 'videoCustomSites', 'theme', 'accent', 'shape'];
   // What sendVideo in video-worker.js answers, each with its label, and the
   // two that went through.
   const RESULTS = ['sent', 'already', 'held', 'refused', 'offline', 'unpaired', 'failed'];
@@ -947,7 +947,7 @@
    *  they name a format or a bitrate, which only one video's tracks have, or
    *  where they take the thumbnail, whose formats depend on the instance. */
   async function clickPick() {
-    const defaults = videoDefaultsFor(stored, page.site);
+    const defaults = videoDefaultsFor(stored, videoDefaultsKey(stored, page));
     if (defaults.videoFormat === 'best' && defaults.audioRate === 'best' && !defaults.parts.includes('thumbnail')) return defaults;
     const offer = await askFormats();
     return videoExact(videoResolve(defaults, offer), offer);
@@ -958,8 +958,8 @@
    *  site's default is among them either way, since a cap the video does not
    *  reach downloads its best. */
   function menuQualities(offer) {
-    const own = offer.qualities.length ? offer.qualities : videoSiteSeen(stored, page.site).qualities;
-    const wanted = videoDefaultsFor(stored, page.site).quality;
+    const own = offer.qualities.length ? offer.qualities : videoSiteSeen(stored, videoDefaultsKey(stored, page)).qualities;
+    const wanted = videoDefaultsFor(stored, videoDefaultsKey(stored, page)).quality;
     return VIDEO_CAPS.filter((q) => own.includes(q) || q === wanted);
   }
 
@@ -1178,7 +1178,7 @@
   }
 
   function openMenu() {
-    pick = videoDefaultsFor(stored, page.site);
+    pick = videoDefaultsFor(stored, videoDefaultsKey(stored, page));
     void askFormats();
     if (offered.answer) pick = videoResolve(pick, offered.answer);
     renderMenu();

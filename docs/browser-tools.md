@@ -297,6 +297,14 @@ the script asks the worker nothing, so a page without such a video costs no
 message at all. A click sends the page's own address without its fragment,
 with the defaults the options set for all other sites.
 
+The options show each site as a tile with its icon, its switch and a line on
+what a click downloads, and the tile opens a window with that site's choices.
+Sites can be added there by address. An added site runs on the access to all
+websites like every other site, but keeps defaults of its own under its host
+name (`videoCustomSites`, `videoDefaults`, `videoSeen`), which the button
+and the worker look up for that host and every host under it before falling
+back to all other sites (`videoDefaultsKey`).
+
 It is on by default. On the five sites it needs access to those sites only,
 which the access to all websites for Click'n'Load includes. All other sites run
 on the access to all websites itself: where Click'n'Load already has it they

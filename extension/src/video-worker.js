@@ -280,7 +280,7 @@ async function videoFormats(frameUrl, msg) {
   if (!page || !videoOwnPage(frameUrl, page)) return videoOffer(null);
   const res = await askVideoLink(page);
   const offer = videoOffer(res?.answer ?? null);
-  await rememberVideoSeen(page.site, offer);
+  await rememberVideoSeen(page, offer);
   return offer;
 }
 
@@ -300,9 +300,10 @@ async function askVideoLink(page) {
   }
 }
 
-async function rememberVideoSeen(site, offer) {
+async function rememberVideoSeen(page, offer) {
   if (!offer.known) return;
-  const { videoSeen } = await chrome.storage.local.get('videoSeen');
+  const { videoSeen, videoCustomSites } = await chrome.storage.local.get(['videoSeen', 'videoCustomSites']);
+  const site = videoDefaultsKey({ videoCustomSites }, page);
   await chrome.storage.local.set({ videoSeen: { ...videoSeen, [site]: videoSeenWith(videoSeen?.[site], offer) } });
 }
 
@@ -344,7 +345,7 @@ async function checkVideoLink(page, key) {
   if (!res) return { claims: null };
   const offer = videoOffer(res.answer);
   const claims = offer.videoTracks.length > 0 || offer.qualities.length > 0;
-  await rememberVideoSeen(page.site, offer);
+  await rememberVideoSeen(page, offer);
   const { videoChecks = {} } = await chrome.storage.session.get('videoChecks');
   const kept = Object.entries({ ...videoChecks, [key]: { claims, at: Date.now() } })
     .sort(([, a], [, b]) => b.at - a.at)

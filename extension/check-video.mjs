@@ -41,8 +41,13 @@
  *      default opens none of Firefox's menus.
  *   7. The options card shows the shortcut, changes and resets it in Firefox
  *      within the shortcuts Firefox takes, and in Chromium opens the
- *      browser's shortcuts page. Its well for all other sites is built as a
+ *      browser's shortcuts page. Its tile for all other sites is built as a
  *      site's is and asks for the access to all websites on its own switch.
+ *   8. The sites are tiles that say what a click downloads and open a window
+ *      with the site's controls, which keeps the keyboard and gives it back.
+ *      A site added by its address gets defaults of its own, which the
+ *      button and the worker look up by host before all other sites, and it
+ *      is removed after a question.
  *
  * Run by CI and by hand: `node extension/check-video.mjs`
  */
@@ -615,6 +620,20 @@ function loadBackground(chrome) {
   if (!same(run(`videoChoice(videoDefaultsFor(stored, 'other'))`), best)) fail('all other sites with nothing set do not send the best video');
   if (!run(`videoButtonWanted({}, 'other')`)) fail('the button is not on all other sites with nothing stored');
   if (run(`videoButtonWanted({ videoButtonHidden: ['other'] }, 'other')`) || !run(`videoButtonWanted({ videoButtonHidden: ['other'] }, 'youtube')`)) fail('hiding the button on all other sites does not hide it there alone');
+
+  // A site added on the options page is found by its host and every host
+  // under it, the longest first, and the named sites keep their own.
+  ctx.stored = { videoCustomSites: ['example.org', 'sub.example.org'] };
+  for (const [href, want] of [
+    ['https://example.org/v/1', 'example.org'],
+    ['https://www.example.org/v/1', 'example.org'],
+    ['https://a.sub.example.org/v', 'sub.example.org'],
+    ['https://notexample.org/v', 'other'],
+    ['https://www.youtube.com/watch?v=aqz-KE-bpKQ', 'youtube'],
+  ]) {
+    const got = run(`videoDefaultsKey(stored, videoPage(${JSON.stringify(href)}))`);
+    if (got !== want) fail(`the defaults for ${href} are looked up under ${got}, want ${want}`);
+  }
 }
 
 // 4. The worker.
@@ -711,6 +730,11 @@ function loadBackground(chrome) {
   asks = sent.length;
   check = await videoCheck('https://clips.example.org/watch/7?lang=en', { href: 'https://clips.example.org/watch/7?lang=en' });
   if (sent.length !== asks || check.claims !== true) fail('a page already checked is asked about again');
+  // A site added on the options page keeps what it offered under its host.
+  await store.local.set({ videoCustomSites: ['example.net'] });
+  await videoCheck('https://media.example.net/v/1', { href: 'https://media.example.net/v/1' });
+  if (JSON.stringify(store.data.videoSeen?.['example.net']?.qualities) !== '["720p"]') fail(`a site added on the options page is remembered as offering ${JSON.stringify(store.data.videoSeen?.['example.net'])}`);
+  await store.local.set({ videoCustomSites: [] });
   answer = { status: 502, body: 'ERROR: Unsupported URL: https://blog.example.org/post/1' };
   const plain = 'https://blog.example.org/post/1';
   check = await videoCheck(plain, { href: plain });
@@ -942,6 +966,10 @@ function makeDocument() {
   doc.getElementById = (id) => doc.documentElement.querySelectorAll('*').find((n) => n.attrs.id === id) ?? doc.byId?.[id];
   doc.elementsFromPoint = () => doc.documentElement.querySelectorAll('video');
   doc.addEventListener = (type, f) => (doc.listeners[type] ??= []).push(f);
+  doc.removeEventListener = (type, f) => {
+    const list = doc.listeners[type] ?? [];
+    if (list.includes(f)) list.splice(list.indexOf(f), 1);
+  };
   doc.dispatch = (type, e = {}) => (doc.listeners[type] ?? []).forEach((f) => f({ composedPath: () => [], ...e }));
   return doc;
 }
@@ -1786,6 +1814,12 @@ for (const converts of [true, false]) {
   location.href = 'https://clips.example.org/watch/7';
   await tick();
   if (!button()) fail('back on a page the instance can download the button does not come back');
+  // A site added on the options page sends its own defaults on its hosts.
+  await store.local.set({ videoCustomSites: ['example.org'], videoDefaults: { ...store.data.videoDefaults, 'example.org': { parts: ['video'], quality: '720p' } } });
+  await settle();
+  button()?.shadow?.querySelectorAll('button').find((b) => b.className === 'send').fire('click');
+  await settle();
+  if (sends.at(-1)?.pick?.parts?.join() !== 'video' || sends.at(-1)?.pick?.quality !== '720p') fail(`a click on a site added on the options page sends ${JSON.stringify(sends.at(-1)?.pick)}, want its own defaults`);
   await store.local.set({ videoButtonHidden: ['other'] });
   if (button()) fail('hidden on all other sites, the button stays');
 }
@@ -1891,6 +1925,39 @@ for (const converts of [true, false]) {
   }
 }
 
+/** The options page's video card, with every element options-video.js finds
+ *  by id, hidden where options.html starts it hidden. */
+function loadOptions(chrome) {
+  const doc = makeDocument();
+  const source = read('src', 'options-video.js');
+  const html = read('src', 'options.html');
+  doc.byId = Object.fromEntries([...source.matchAll(/getElementById\('(\w+)'\)/g)].map(([, id]) => {
+    const tag = /Reset|Action|Enabled|AutoHide$|Remove$|Cancel$|Commit$|Close$/.test(id) ? 'button' : /^(videoShortcut|videoAddField)$/.test(id) ? 'input' : 'div';
+    const n = new Node(tag, doc);
+    n.attrs.id = id;
+    n.hidden = new RegExp(`id="${id}"[^>]* hidden[ >]`).test(html);
+    return [id, n];
+  }));
+  for (const id of ['videoAutoHide', 'videoSpotReset', 'videoShortcut', 'videoShortcutAction', 'videoSites']) doc.byId.videoMore.append(doc.byId[id]);
+  for (const id of ['videoSiteHeading', 'videoSiteBody', 'videoSiteRemove', 'videoSiteCancel', 'videoSiteCommit', 'videoSiteClose']) doc.byId.videoSiteWindow.append(doc.byId[id]);
+  for (const id of ['videoAddHead', 'videoAddField', 'videoAddPreview', 'videoAddError', 'videoAddCancel', 'videoAddCommit']) doc.byId.videoAddWindow.append(doc.byId[id]);
+  doc.createTextNode = (text) => Object.assign(new Node('#text', doc), { text });
+  const shaken = [];
+  const ctx = vm.createContext({
+    chrome, document: doc, URL, Intl, console, setTimeout, clearTimeout, navigator: { platform: 'Win32', userAgent: 'test' },
+    t: (key) => key, loadLanguage: async () => {}, rowLabel() {}, glimSetInfo() {}, currentLanguage: () => 'en',
+    glimGlyph: (name) => Object.assign(new Node('svg', doc), { glyph: name }), shake: (el) => shaken.push(el),
+  });
+  vm.runInContext(read('src', 'video.js'), ctx, { filename: 'video.js' });
+  vm.runInContext(source, ctx, { filename: 'options-video.js' });
+  return { doc, ctx, shaken, html };
+}
+
+/** The words on a tile: its name, and what a click downloads there. */
+const tileWords = (tile) => tile.children[0]?.children[1]?.children.map((n) => n.text);
+const tileButton = (doc, key) => doc.byId.videoSites.querySelectorAll('button').find((b) => b.dataset.videoKey === key);
+const press = (doc, key, e = {}) => doc.dispatch('keydown', { key, shiftKey: false, preventDefault() {}, ...e });
+
 // 7. The shortcut's row on the options page: the current shortcut, changed
 // and reset in place where the browser allows it (Firefox), and otherwise a
 // way to the browser's own shortcuts page.
@@ -1918,36 +1985,21 @@ for (const editable of [true, false]) {
       },
     }),
   };
-  const doc = makeDocument();
-  const source = read('src', 'options-video.js');
-  const html = read('src', 'options.html');
-  doc.byId = Object.fromEntries([...source.matchAll(/getElementById\('(\w+)'\)/g)].map(([, id]) => {
-    const n = new Node(/Reset|Action|Enabled|AutoHide$/.test(id) ? 'button' : id === 'videoShortcut' ? 'input' : 'div', doc);
-    n.attrs.id = id;
-    n.hidden = new RegExp(`id="${id}"[^>]* hidden[ >]`).test(html);
-    return [id, n];
-  }));
-  for (const id of ['videoAutoHide', 'videoSpotReset', 'videoShortcut', 'videoShortcutAction', 'videoSites']) if (doc.byId[id]) doc.byId.videoMore.append(doc.byId[id]);
-  doc.createTextNode = (text) => Object.assign(new Node('#text', doc), { text });
-  const shaken = [];
-  const ctx = vm.createContext({
-    chrome, document: doc, URL, console, setTimeout, clearTimeout, navigator: { platform: 'Win32', userAgent: 'test' },
-    t: (key) => key, loadLanguage: async () => {}, rowLabel() {}, glimGlyph: (name) => Object.assign(new Node('svg', doc), { glyph: name }), shake: (el) => shaken.push(el),
-  });
-  vm.runInContext(read('src', 'video.js'), ctx, { filename: 'video.js' });
-  vm.runInContext(source, ctx, { filename: 'options-video.js' });
+  const { doc, ctx, shaken, html } = loadOptions(chrome);
   await settle();
   // The site's defaults name formats and codecs as they are written, and
   // offer subtitles as SRT, WebVTT or TTML and a thumbnail in a format the
   // site has, neither with a Best.
-  const options = doc.byId.videoSites.querySelectorAll('option');
+  tileButton(doc, 'youtube-open')?.dispatch('click');
+  const options = doc.byId.videoSiteBody.querySelectorAll('option');
   const names = options.map((o) => o.text);
   for (const name of ['MP4 · H.264', 'WebM · VP9', 'H.265 (MKV, video.converted)', 'AAC', 'Opus', 'MP3 (video.converted)', 'FLAC (video.converted)', 'SRT', 'WebVTT', 'TTML', 'WebP', 'JPEG']) if (!names.includes(name)) fail(`${browser}: the site's defaults offer ${names.join(', ')}, want ${name} among them`);
   if (names.some((n) => /srv/i.test(n))) fail(`${browser}: the site's defaults offer YouTube's own subtitle format`);
-  const select = (key) => doc.byId.videoSites.querySelectorAll('select').find((s) => s.dataset.videoKey === `youtube-${key}`);
+  const select = (key) => doc.byId.videoSiteBody.querySelectorAll('select').find((s) => s.dataset.videoKey === `youtube-${key}`);
   const choices = (key) => select(key)?.children.map((o) => (o.selected ? `[${o.value}]` : o.value)).join(' ');
   if (choices('subformat') !== '[srt] vtt ttml') fail(`${browser}: with srv3 stored the subtitle formats read ${choices('subformat')}, want SRT picked and no Best`);
   if (choices('thumbformat') !== 'webp [jpg]') fail(`${browser}: with Best stored the thumbnail formats read ${choices('thumbformat')}, want JPEG picked and no Best`);
+  doc.byId.videoSiteClose.dispatch('click');
   const field = doc.byId.videoShortcut;
   const action = doc.byId.videoShortcutAction;
   const problem = doc.byId.videoShortcutError;
@@ -2032,36 +2084,24 @@ for (const all of [true, false]) {
     return true;
   };
   chrome.commands = { getAll: async () => [] };
-  const doc = makeDocument();
-  const source = read('src', 'options-video.js');
-  doc.byId = Object.fromEntries([...source.matchAll(/getElementById\('(\w+)'\)/g)].map(([, id]) => {
-    const n = new Node(/Reset|Action|Enabled|AutoHide$/.test(id) ? 'button' : id === 'videoShortcut' ? 'input' : 'div', doc);
-    n.attrs.id = id;
-    return [id, n];
-  }));
-  doc.byId.videoMore.append(doc.byId.videoSites);
-  doc.createTextNode = (text) => Object.assign(new Node('#text', doc), { text });
-  const ctx = vm.createContext({
-    chrome, document: doc, URL, console, setTimeout, clearTimeout, navigator: { platform: 'Win32', userAgent: 'test' },
-    t: (key) => key, loadLanguage: async () => {}, rowLabel() {}, glimGlyph: () => new Node('svg', doc), shake() {}, currentLanguage: () => 'en',
-  });
-  vm.runInContext(read('src', 'video.js'), ctx, { filename: 'video.js' });
-  vm.runInContext(source, ctx, { filename: 'options-video.js' });
+  const { doc } = loadOptions(chrome);
   await settle();
-  const wells = () => doc.byId.videoSites.children;
-  const other = () => wells().at(-1);
-  const row = () => other()?.children[0];
+  const tiles = () => doc.byId.videoSites.children;
+  const other = () => tiles().at(-1);
   const toggle = () => other()?.querySelectorAll('button').find((b) => b.dataset.videoKey === 'other-shown');
   const label = all ? 'with the access to all websites' : 'without the access to all websites';
-  if (wells().length !== 6 || row()?.children[0]?.text !== 'options.videoOtherSites') fail(`${label} the sites are ${wells().map((w) => w.children[0]?.children[0]?.text).join(', ')}, want the five and all other sites last`);
-  if (other()?.className !== wells()[0]?.className || row()?.className !== wells()[0]?.children[0]?.className || toggle()?.className !== 'glim-switch') fail(`${label} the well for all other sites is not built like a site's`);
+  if (tiles().length !== 7 || tileWords(other())?.[0] !== 'options.videoOtherSites') fail(`${label} the tiles are ${tiles().map((w) => tileWords(w)?.[0]).join(', ')}, want the five, Add site and all other sites last`);
+  if (other()?.className !== tiles()[0]?.className || other()?.children[0]?.className !== tiles()[0]?.children[0]?.className || toggle()?.className !== 'glim-switch') fail(`${label} the tile for all other sites is not built like a site's`);
   if (toggle()?.attrs['aria-checked'] !== String(all)) fail(`${label} the switch for all other sites is ${toggle()?.attrs['aria-checked']}, want ${all}`);
-  const quality = () => other()?.querySelectorAll('select').find((x) => x.dataset.videoKey === 'other-quality');
+  tileButton(doc, 'other-open')?.dispatch('click');
+  const quality = () => doc.byId.videoSiteBody.querySelectorAll('select').find((x) => x.dataset.videoKey === 'other-quality');
   if (quality()?.children.map((o) => o.value).join() !== 'best,720p,480p') fail(`${label} all other sites offer the qualities ${quality()?.children.map((o) => o.value)}, want what they have offered`);
   quality().value = '720p';
   quality().dispatch('change');
   await settle();
   if (store.data.videoDefaults?.other?.quality !== '720p' || store.data.videoDefaults?.youtube) fail(`${label} a quality picked for all other sites is stored as ${JSON.stringify(store.data.videoDefaults)}`);
+  if (tileWords(other())?.[1] !== 'video.partVideo · 720p') fail(`${label} the tile for all other sites says ${tileWords(other())?.[1]}, want the video at 720p`);
+  doc.byId.videoSiteClose.dispatch('click');
   toggle().dispatch('click');
   await settle();
   if (all) {
@@ -2079,6 +2119,114 @@ for (const all of [true, false]) {
     await settle();
     if (requests.some((p) => p.origins.includes('<all_urls>'))) fail(`the card's switch asks for ${JSON.stringify(requests)}, want the five sites alone`);
   }
+}
+
+// 8. The sites on the options card are tiles that keep the card short: the
+// named sites, those added there, Add site and all other sites last, each
+// saying what a click downloads. A tile opens a window with the site's
+// controls, which save as they change, keep the keyboard inside and give it
+// back to the tile. A site is added by its address and removed from its
+// window after a question.
+{
+  const store = makeStore({
+    videoDefaults: { youtube: { parts: ['video'], quality: '1080p', videoFormat: 'mp4 avc1' }, vimeo: { parts: ['audio'], audio: 'mp3' }, 'clips.example.org': { parts: ['video', 'subtitle'] } },
+    videoSeen: { 'clips.example.org': { qualities: ['720p', '480p'] } },
+    videoCustomSites: ['clips.example.org'],
+  });
+  const { chrome } = makeChrome(store);
+  chrome.commands = { getAll: async () => [] };
+  const { doc, shaken, html } = loadOptions(chrome);
+  await settle();
+  const tiles = () => doc.byId.videoSites.children;
+  const names = () => tiles().map((tile) => tileWords(tile)?.[0]).join(', ');
+  if (names() !== 'YouTube, Vimeo, Dailymotion, Twitch, Bilibili, clips.example.org, options.videoAddSite, options.videoOtherSites') fail(`the tiles are ${names()}, want the five, the added site, Add site and all other sites last`);
+  const words = (key) => tileWords(tileButton(doc, key)?.parentNode)?.[1];
+  for (const [key, want] of [['youtube-open', 'video.partVideo · 1080p · MP4'], ['vimeo-open', 'video.partAudio · MP3'], ['clips.example.org-open', 'video.partVideo, video.partSubtitle · video.qualityBest']]) {
+    if (words(key) !== want) fail(`the tile ${key} says ${words(key)}, want ${want}`);
+  }
+  if (!tileButton(doc, 'youtube-shown') || tileButton(doc, 'clips.example.org-shown')) fail('a named site has no switch on its tile, or a site added here has one of its own');
+
+  // The mark is the site's favicon, its first letter where none loads.
+  const mark = (key) => tileButton(doc, key)?.children[0];
+  if (mark('youtube-open')?.children[0]?.src !== 'https://www.youtube.com/favicon.ico') fail(`YouTube's tile shows ${mark('youtube-open')?.children[0]?.src}, want its favicon`);
+  const img = mark('clips.example.org-open')?.children[0];
+  img?.dispatch('error');
+  if (img?.src !== 'https://www.clips.example.org/favicon.ico') fail(`without a favicon at its root the added site tries ${img?.src}, want the one under www`);
+  img?.dispatch('error');
+  if (mark('clips.example.org-open')?.children[0]?.text !== 'c') fail('a site without a favicon shows no letter');
+
+  // The window: the site's controls, the keyboard kept inside, Escape back
+  // to the tile, and no way out but the bottom row.
+  const win = doc.byId.videoSiteWindow;
+  tileButton(doc, 'youtube-open').dispatch('click');
+  if (win.hidden || doc.byId.videoSiteTitle.text !== 'YouTube') fail(`a click on YouTube's tile shows ${win.hidden ? 'no window' : doc.byId.videoSiteTitle.text}`);
+  if (!win.contains(doc.activeElement) || doc.activeElement === doc.byId.videoSiteClose) fail('the window opens without the keyboard on its first control');
+  if (!doc.byId.videoSiteRemove.hidden) fail('a named site can be removed');
+  const markup = html.slice(html.indexOf('id="videoSiteWindow"'), html.indexOf('id="videoAddWindow"'));
+  if ((markup.slice(0, markup.indexOf('glim-modal-actions')).match(/<button/g) ?? []).length) fail('the site window has a button outside its bottom row');
+  doc.byId.videoSiteClose.focus();
+  press(doc, 'Tab');
+  if (doc.activeElement?.dataset.videoKey !== 'youtube-video') fail(`Tab from the window's last button goes to ${doc.activeElement?.dataset.videoKey ?? doc.activeElement?.attrs.id}, want its first control`);
+  press(doc, 'Tab', { shiftKey: true });
+  if (doc.activeElement !== doc.byId.videoSiteClose) fail('Shift+Tab from the first control leaves the window');
+  press(doc, 'Escape');
+  if (!win.hidden || doc.activeElement?.dataset.videoKey !== 'youtube-open') fail('Escape leaves the window open or the keyboard elsewhere than on the tile');
+
+  // An added site saves under its host, live.
+  tileButton(doc, 'clips.example.org-open').dispatch('click');
+  if (doc.byId.videoSiteRemove.hidden) fail('a site added here cannot be removed');
+  const quality = doc.byId.videoSiteBody.querySelectorAll('select').find((x) => x.dataset.videoKey === 'clips.example.org-quality');
+  if (quality?.children.map((o) => o.value).join() !== 'best,720p,480p') fail(`the added site offers ${quality?.children.map((o) => o.value)}, want what it offered`);
+  quality.value = '720p';
+  quality.dispatch('change');
+  await settle();
+  if (store.data.videoDefaults['clips.example.org']?.quality !== '720p' || store.data.videoDefaults.other) fail(`a quality picked for the added site is stored as ${JSON.stringify(store.data.videoDefaults)}`);
+  if (win.hidden) fail('a change closes the window');
+  doc.byId.videoSiteClose.dispatch('click');
+
+  // Add site takes an address, refuses one it cannot use, and opens the new
+  // site's window.
+  const field = doc.byId.videoAddField;
+  const add = doc.byId.videoAddWindow;
+  tileButton(doc, 'add-open').dispatch('click');
+  if (add.hidden || doc.activeElement !== field) fail('Add site opens no window with the keyboard on its field');
+  for (const [typed, why] of [['not an address', 'options.videoAddInvalid'], ['localhost', 'options.videoAddInvalid'], ['m.youtube.com', 'options.videoAddKnown'], ['clips.example.org', 'options.videoAddKnown']]) {
+    field.value = typed;
+    field.dispatch('input');
+    field.dispatch('keydown', { key: 'Enter', preventDefault() {} });
+    await settle();
+    if (doc.byId.videoAddError.hidden || doc.byId.videoAddError.text !== why || !shaken.includes(field)) fail(`${typed} is not refused with ${why}`);
+  }
+  if (store.data.videoCustomSites.length !== 1) fail(`refused addresses are added: ${store.data.videoCustomSites}`);
+  field.value = 'https://WWW.Example.net/watch?v=1';
+  field.dispatch('input');
+  if (doc.byId.videoAddPreview.hidden || doc.byId.videoAddPreview.children[1]?.text !== 'example.net') fail('the field shows no preview of the site it will add');
+  doc.byId.videoAddCommit.dispatch('click');
+  await settle();
+  if (JSON.stringify(store.data.videoCustomSites) !== '["clips.example.org","example.net"]') fail(`adding stores ${JSON.stringify(store.data.videoCustomSites)}`);
+  if (!add.hidden || win.hidden || doc.byId.videoSiteTitle.text !== 'example.net') fail('an added site does not open its own window');
+  if (names().split(', ').indexOf('example.net') !== 6) fail(`the added site's tile is not the last before Add site: ${names()}`);
+
+  // Removing asks first in the window, Escape goes back to the site, and
+  // the site goes with its settings.
+  await store.local.set({ videoDefaults: { ...store.data.videoDefaults, 'example.net': { parts: ['audio'] } } });
+  await settle();
+  doc.byId.videoSiteRemove.dispatch('click');
+  if (doc.byId.videoSiteTitle.text !== 'options.videoRemoveSite' || doc.byId.videoSiteCommit.hidden || !doc.byId.videoSiteClose.hidden || doc.activeElement !== doc.byId.videoSiteCancel) fail('Remove site does not ask first, with the keyboard on Cancel');
+  press(doc, 'Escape');
+  if (win.hidden || doc.byId.videoSiteTitle.text !== 'example.net') fail('Escape on the question does not go back to the site');
+  doc.byId.videoSiteRemove.dispatch('click');
+  doc.byId.videoSiteCommit.dispatch('click');
+  await settle();
+  if (JSON.stringify(store.data.videoCustomSites) !== '["clips.example.org"]' || store.data.videoDefaults['example.net']) fail(`removing leaves ${JSON.stringify(store.data.videoCustomSites)} and ${JSON.stringify(store.data.videoDefaults)}`);
+  if (!win.hidden || doc.activeElement?.dataset.videoKey !== 'add-open') fail('after removing, the window stays or the keyboard is not on Add site');
+
+  // Off, every tile still opens to show its settings, which refuse.
+  await store.local.set({ videoButton: false });
+  await settle();
+  if (tileButton(doc, 'youtube-open').disabled || !tileButton(doc, 'youtube-shown').disabled || !tileButton(doc, 'add-open').disabled) fail('with the button off a tile does not open, or its switch or Add site still works');
+  tileButton(doc, 'youtube-open').dispatch('click');
+  if (doc.byId.videoSiteBody.querySelectorAll('button, select').some((el) => !el.disabled) || doc.byId.videoSiteClose.disabled) fail('with the button off the window takes changes, or cannot be closed');
 }
 
 if (problems.length) {

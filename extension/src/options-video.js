@@ -1,13 +1,15 @@
 // The options page's card for the download button on a video's player
 // (video.js): the switch, whether it hides until the pointer is over the
-// video, the place it was dragged to, and per site whether it shows there and
-// what a click downloads, offering only what the site has offered so far,
-// and the keyboard shortcut that sends as a click does.
+// video, the place it was dragged to, the keyboard shortcut that sends as a
+// click does, and the sites as tiles. A tile carries the site's switch and
+// opens a window with what a click downloads there, offering only what the
+// site has offered so far. Sites added here run on the access to all
+// websites like all other sites, with defaults of their own.
 // Switching on asks the browser for the sites it needs. All other sites run on
 // the access to all websites, which is asked for on their own switch, so a
 // "no" to it keeps the button on the named sites. Switching off keeps what the
 // browser granted, so switching on again needs no question, and leaves every
-// row in view with its controls switched off.
+// tile and window in view with its controls switched off.
 
 const videoEnabledEl = document.getElementById('videoEnabled');
 const videoNoticeEl = document.getElementById('videoNotice');
@@ -19,8 +21,25 @@ const videoShortcutRowEl = document.getElementById('videoShortcutRow');
 const videoShortcutEl = document.getElementById('videoShortcut');
 const videoShortcutActionEl = document.getElementById('videoShortcutAction');
 const videoShortcutErrorEl = document.getElementById('videoShortcutError');
+const videoSiteWindowEl = document.getElementById('videoSiteWindow');
+const videoSiteHeadingEl = document.getElementById('videoSiteHeading');
+const videoSiteTitleEl = document.getElementById('videoSiteTitle');
+const videoSiteBodyEl = document.getElementById('videoSiteBody');
+const videoSiteRemoveEl = document.getElementById('videoSiteRemove');
+const videoSiteCancelEl = document.getElementById('videoSiteCancel');
+const videoSiteCommitEl = document.getElementById('videoSiteCommit');
+const videoSiteCloseEl = document.getElementById('videoSiteClose');
+const videoAddWindowEl = document.getElementById('videoAddWindow');
+const videoAddTitleEl = document.getElementById('videoAddTitle');
+const videoAddHeadEl = document.getElementById('videoAddHead');
+const videoAddLabelEl = document.getElementById('videoAddLabel');
+const videoAddFieldEl = document.getElementById('videoAddField');
+const videoAddPreviewEl = document.getElementById('videoAddPreview');
+const videoAddErrorEl = document.getElementById('videoAddError');
+const videoAddCancelEl = document.getElementById('videoAddCancel');
+const videoAddCommitEl = document.getElementById('videoAddCommit');
 
-const VIDEO_STORED = ['videoButtonAutoHide', 'videoButtonSpot', 'videoDefaults', 'videoSeen'];
+const VIDEO_STORED = ['videoButtonAutoHide', 'videoButtonSpot', 'videoDefaults', 'videoSeen', 'videoCustomSites'];
 
 /** Firefox lets the page change the shortcut. Chromium changes it only on its
  *  own shortcuts page, which the row opens instead. */
@@ -42,6 +61,14 @@ let videoNow = null;
  *  notice can say why the switch fell back. */
 let videoRefused = false;
 
+/** The site whose window is open, by id, and whether it asks about removing
+ *  the site, or null while it is closed. */
+let videoOpen = null;
+
+/** The favicons that did not load, so a redraw goes straight to the
+ *  letter. */
+const videoMarkFailed = new Set();
+
 function videoText() {
   document.getElementById('videoHeading').textContent = t('options.videoHeading');
   rowLabel('videoLabel', t('options.videoToggle'), t('options.videoInfo'), videoEnabledEl);
@@ -57,6 +84,15 @@ function videoText() {
     videoShortcutActionEl.setAttribute('data-tip', VIDEO_SHORTCUT_PAGE);
     videoShortcutEl.tabIndex = -1;
   }
+  videoSiteRemoveEl.replaceChildren(glimGlyph('IconTrash', 14), document.createTextNode(t('options.videoRemoveSite')));
+  videoSiteCancelEl.replaceChildren(glimGlyph('IconClose', 14), document.createTextNode(t('common.cancel')));
+  videoSiteCommitEl.replaceChildren(glimGlyph('IconTrash', 14), document.createTextNode(t('options.videoRemoveCommit')));
+  videoSiteCloseEl.replaceChildren(glimGlyph('IconClose', 14), document.createTextNode(t('common.close')));
+  videoAddTitleEl.textContent = t('options.videoAddSite');
+  videoAddLabelEl.textContent = t('options.videoAddAddress');
+  glimSetInfo('videoAddHead', t('options.videoAddAddressInfo'));
+  videoAddCancelEl.replaceChildren(glimGlyph('IconClose', 14), document.createTextNode(t('common.cancel')));
+  videoAddCommitEl.replaceChildren(glimGlyph('IconAdd', 14), document.createTextNode(t('options.videoAddCommit')));
   if (videoNow) drawVideoShortcut();
 }
 
@@ -124,45 +160,150 @@ async function renderVideo() {
   // Firefox for Android has no keyboard shortcuts.
   videoShortcutRowEl.hidden = !chrome.commands;
   drawVideoShortcut();
-  // Every change redraws the sites, so the keyboard goes back to the control
-  // it was on.
+  // Every change redraws the sites and the open window, so the keyboard goes
+  // back to the control it was on.
   const focusKey = document.activeElement?.dataset?.videoKey;
-  videoSitesEl.replaceChildren(...VIDEO_SITES.map(videoSiteBlock), videoSiteBlock({ ...VIDEO_OTHER, name: t('options.videoOtherSites') }));
-  // Off, the rows stay in view, so what the button will do can be read and
-  // found, and each control refuses on its own.
-  for (const el of videoMoreEl.querySelectorAll('button, select, input')) el.disabled = !videoNow.on;
+  videoSitesEl.replaceChildren(...videoSitesNow().map(videoTile), videoAddTile(), videoTile(videoSiteById(VIDEO_OTHER.id)));
+  // Off, the tiles stay in view and still open, so what the button will do
+  // can be read and found, and each control refuses on its own.
+  for (const el of videoMoreEl.querySelectorAll('button, select, input')) el.disabled = !videoNow.on && !el.dataset.videoOpen;
   if (videoNow.on) {
     videoSpotResetEl.disabled = Object.keys(videoNow.stored.videoButtonSpot ?? {}).length === 0;
     if (VIDEO_SHORTCUT_EDITABLE) videoShortcutActionEl.disabled = videoNow.shortcut === VIDEO_SHORTCUT_DEFAULT;
   }
-  if (focusKey) videoSitesEl.querySelector(`[data-video-key="${focusKey}"]`)?.focus();
+  if (videoOpen) drawVideoWindow();
+  if (focusKey) videoControl(videoOpen ? videoSiteWindowEl : videoSitesEl, focusKey)?.focus();
 }
 
-function videoSwitch(on, name) {
-  const toggle = document.createElement('button');
-  toggle.type = 'button';
-  toggle.className = 'glim-switch';
-  toggle.setAttribute('role', 'switch');
-  toggle.setAttribute('aria-checked', String(on));
-  toggle.setAttribute('aria-label', name);
-  const track = document.createElement('span');
-  track.className = 'glim-switch-track';
-  const knob = document.createElement('span');
-  knob.className = 'glim-switch-knob';
-  track.append(knob);
-  toggle.append(track);
-  return toggle;
+/** The control a redraw gave the key, inside `root`. */
+function videoControl(root, key) {
+  return [...root.querySelectorAll('button, select, input')].find((el) => el.dataset.videoKey === key);
 }
 
-/** One site: whether the button shows there, and what a click downloads. */
-function videoSiteBlock(site) {
-  const block = document.createElement('div');
-  block.className = 'videoSite glim-well';
-  const row = document.createElement('div');
-  row.className = 'glim-row';
-  const label = document.createElement('span');
-  label.className = 'glim-row-label';
-  label.textContent = site.name;
+/** The named sites, then those added here in the order they came. Each has
+ *  the host its favicon comes from. */
+function videoSitesNow() {
+  const named = VIDEO_SITES.map((s) => ({ ...s, host: new URL(s.origins[0].slice(0, -1)).hostname }));
+  return [...named, ...videoCustomList(videoNow.stored).map((host) => ({ id: host, name: host, host, custom: true }))];
+}
+
+function videoCustomList(stored) {
+  return stored.videoCustomSites ?? [];
+}
+
+function videoSiteById(id) {
+  if (id === VIDEO_OTHER.id) return { ...VIDEO_OTHER, name: t('options.videoOtherSites'), glyph: 'IconBrowser' };
+  return videoSitesNow().find((s) => s.id === id);
+}
+
+/**
+ * The host a site is added under for what was typed: "example.com" for
+ * "https://www.example.com/watch?v=1" or "example.com", '' for anything
+ * that is no web address. The button finds the site by it on the host and
+ * every host under it.
+ */
+function videoCustomHost(text) {
+  const typed = text.trim();
+  if (!typed) return '';
+  let u;
+  try {
+    u = new URL(/^[a-z][a-z0-9+.-]*:/i.test(typed) ? typed : `https://${typed}`);
+  } catch {
+    return '';
+  }
+  const host = u.hostname.replace(/^www\./, '');
+  return /^https?:$/.test(u.protocol) && /^[^.]+(\.[^.]+)+$/.test(host) ? host : '';
+}
+
+/** The tile a host already has: a named site's, whose domains it is on, or
+ *  one added before. */
+function videoTileFor(host) {
+  const page = `https://${host}/`;
+  if (videoSiteIdOf(page) !== VIDEO_OTHER.id) {
+    const domain = (s) => s.origins.map((o) => new URL(o.slice(0, -1)).hostname.split('.').slice(-2).join('.'));
+    return VIDEO_SITES.find((s) => domain(s).some((d) => host === d || host.endsWith(`.${d}`)));
+  }
+  return videoSitesNow().find((s) => s.id === host);
+}
+
+/** A site's mark: its favicon, fetched from the site as any page's is, its
+ *  first letter where none loads, or the glyph standing for all other sites
+ *  and for adding one. */
+function videoMark(site) {
+  const mark = document.createElement('span');
+  mark.className = 'videoMark';
+  mark.setAttribute('aria-hidden', 'true');
+  if (!site.host) {
+    mark.append(glimGlyph(site.glyph, 16));
+    return mark;
+  }
+  const letter = () => mark.replaceChildren(document.createTextNode(site.host.replace(/^www\./, '').charAt(0)));
+  // A favicon at the root is the one every browser asks for, so most sites
+  // serve one there, and some only under www.
+  const sources = [`https://${site.host}/favicon.ico`, ...(site.host.startsWith('www.') ? [] : [`https://www.${site.host}/favicon.ico`])].filter((src) => !videoMarkFailed.has(src));
+  if (sources.length === 0) {
+    letter();
+    return mark;
+  }
+  const img = document.createElement('img');
+  img.alt = '';
+  img.width = 20;
+  img.height = 20;
+  img.referrerPolicy = 'no-referrer';
+  img.addEventListener('error', () => {
+    videoMarkFailed.add(sources.shift());
+    if (sources.length) img.src = sources[0];
+    else letter();
+  });
+  img.src = sources[0];
+  mark.append(img);
+  return mark;
+}
+
+/** What a click downloads on a site, in one line: the parts, and for a video
+ *  its quality and container, for audio alone its format. */
+function videoSummary(pick) {
+  const words = [new Intl.ListFormat(currentLanguage(), { style: 'short', type: 'unit' }).format(pick.parts.map((p) => t(VIDEO_PART_LABELS[p])))];
+  if (pick.parts.includes('video')) {
+    words.push(pick.quality === 'best' ? t('video.qualityBest') : pick.quality);
+    if (pick.videoFormat !== 'best') words.push(videoFormatName(pick.videoFormat.split(' ')[0]));
+  } else if (pick.parts.includes('audio') && pick.audio !== 'best') {
+    words.push(videoFormatName(pick.audio));
+  }
+  return words.join(' · ');
+}
+
+function videoTileButton(key, mark, name, summary) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'videoTileOpen';
+  b.dataset.videoKey = key;
+  const text = document.createElement('span');
+  text.className = 'videoTileText';
+  const title = document.createElement('span');
+  title.className = 'videoTileName';
+  title.textContent = name;
+  text.append(title);
+  if (summary) {
+    const line = document.createElement('span');
+    line.className = 'videoTileSum';
+    line.textContent = summary;
+    text.append(line);
+  }
+  b.append(mark, text);
+  return b;
+}
+
+/** A site added here has no switch of its own: the button shows there
+ *  wherever it shows on all other sites. */
+function videoTile(site) {
+  const tile = document.createElement('div');
+  tile.className = 'videoTile';
+  const open = videoTileButton(`${site.id}-open`, videoMark(site), site.name, videoSummary(videoDefaultsFor(videoNow.stored, site.id)));
+  open.dataset.videoOpen = site.id;
+  open.addEventListener('click', () => openVideoSite(site.id));
+  tile.append(open);
+  if (site.custom) return tile;
   const on = videoNow.running.includes(site.id);
   const toggle = videoSwitch(on, site.name);
   toggle.dataset.videoKey = `${site.id}-shown`;
@@ -179,9 +320,182 @@ function videoSiteBlock(site) {
     }
     await chrome.storage.local.set({ videoButtonHidden: hidden.filter((id) => id !== site.id) });
   });
-  row.append(label, toggle);
-  block.append(row, ...videoDefaultsRows(site));
-  return block;
+  tile.append(toggle);
+  return tile;
+}
+
+function videoAddTile() {
+  const tile = document.createElement('div');
+  tile.className = 'videoTile';
+  const add = videoTileButton('add-open', videoMark({ glyph: 'IconAdd' }), t('options.videoAddSite'), '');
+  add.addEventListener('click', openVideoAdd);
+  tile.append(add);
+  return tile;
+}
+
+/** Fills the open window: a site's controls, or the question whether to
+ *  remove it, with the buttons that go with each. */
+function drawVideoWindow() {
+  const site = videoSiteById(videoOpen.id);
+  if (!site) {
+    closeVideoSite();
+    return;
+  }
+  const removing = videoOpen.removing;
+  videoSiteTitleEl.textContent = removing ? t('options.videoRemoveSite') : site.name;
+  videoSiteHeadingEl.querySelector('.glim-info-icon')?.remove();
+  if (site.custom && !removing) glimSetInfo('videoSiteHeading', t('options.videoCustomInfo'));
+  if (removing) {
+    const question = document.createElement('p');
+    question.className = 'glim-modal-message';
+    question.textContent = t('options.videoRemoveQuestion', { site: site.name });
+    videoSiteBodyEl.replaceChildren(question);
+  } else {
+    videoSiteBodyEl.replaceChildren(...videoDefaultsRows(site));
+  }
+  videoSiteRemoveEl.hidden = !site.custom || removing;
+  videoSiteCancelEl.hidden = !removing;
+  videoSiteCommitEl.hidden = !removing;
+  videoSiteCloseEl.hidden = removing;
+  for (const el of [...videoSiteBodyEl.querySelectorAll('button, select, input'), videoSiteRemoveEl]) el.disabled = !videoNow.on;
+}
+
+/** The controls Tab moves between while a window is open: what it shows and
+ *  can be pressed, the (i) on its heading included. */
+function videoWindowStops(win) {
+  if (win === videoAddWindowEl) return [videoAddHeadEl.querySelector('.glim-info-icon'), videoAddFieldEl, videoAddCancelEl, videoAddCommitEl].filter(Boolean);
+  const body = videoSiteBodyEl.querySelectorAll('button, select, input');
+  const foot = [videoSiteRemoveEl, videoSiteCancelEl, videoSiteCommitEl, videoSiteCloseEl];
+  return [videoSiteHeadingEl.querySelector('.glim-info-icon'), ...body, ...foot].filter((el) => el && !el.hidden && !el.disabled);
+}
+
+/** Escape leaves, and Tab stays inside the window, as aria-modal promises. */
+function onVideoWindowKey(event) {
+  const win = videoAddWindowEl.hidden ? videoSiteWindowEl : videoAddWindowEl;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    if (win === videoAddWindowEl) closeVideoAdd();
+    else if (videoOpen?.removing) cancelVideoRemove();
+    else closeVideoSite();
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const stops = videoWindowStops(win);
+  const at = stops.indexOf(document.activeElement);
+  event.preventDefault();
+  // -1 means focus is on the page behind; Tab pulls it back in.
+  const next = event.shiftKey ? (at <= 0 ? stops.length - 1 : at - 1) : at === stops.length - 1 ? 0 : at + 1;
+  stops[next]?.focus();
+}
+
+function openVideoSite(id) {
+  videoOpen = { id, removing: false };
+  drawVideoWindow();
+  videoSiteWindowEl.hidden = false;
+  document.addEventListener('keydown', onVideoWindowKey);
+  // The first control the site has, or the way out where it has none yet.
+  videoWindowStops(videoSiteWindowEl).find((el) => el !== videoSiteHeadingEl.querySelector('.glim-info-icon'))?.focus();
+}
+
+/** Focus goes back to the tile, or to Add site where the tile is gone. */
+function closeVideoSite() {
+  const id = videoOpen?.id;
+  videoOpen = null;
+  videoSiteWindowEl.hidden = true;
+  document.removeEventListener('keydown', onVideoWindowKey);
+  (videoControl(videoSitesEl, `${id}-open`) ?? videoControl(videoSitesEl, 'add-open'))?.focus();
+}
+
+function askVideoRemove() {
+  videoOpen.removing = true;
+  drawVideoWindow();
+  // Focus starts on the answer that changes nothing.
+  videoSiteCancelEl.focus();
+}
+
+function cancelVideoRemove() {
+  videoOpen.removing = false;
+  drawVideoWindow();
+  videoSiteRemoveEl.focus();
+}
+
+/** A site goes with its defaults and what it offered, so the button
+ *  downloads there as on all other sites again. */
+async function removeVideoSite() {
+  const host = videoOpen.id;
+  const { videoDefaults = {}, videoSeen = {} } = videoNow.stored;
+  const without = (o) => Object.fromEntries(Object.entries(o).filter(([k]) => k !== host));
+  await chrome.storage.local.set({
+    videoCustomSites: videoCustomList(videoNow.stored).filter((h) => h !== host),
+    videoDefaults: without(videoDefaults),
+    videoSeen: without(videoSeen),
+  });
+  await renderVideo();
+  closeVideoSite();
+}
+
+function openVideoAdd() {
+  videoAddFieldEl.value = '';
+  drawVideoAdd();
+  videoAddErrorEl.hidden = true;
+  videoAddWindowEl.hidden = false;
+  document.addEventListener('keydown', onVideoWindowKey);
+  videoAddFieldEl.focus();
+}
+
+function closeVideoAdd() {
+  videoAddWindowEl.hidden = true;
+  document.removeEventListener('keydown', onVideoWindowKey);
+  videoControl(videoSitesEl, 'add-open')?.focus();
+}
+
+/** The site as its tile will show it, while what is typed is an address. */
+function drawVideoAdd() {
+  const host = videoCustomHost(videoAddFieldEl.value);
+  videoAddPreviewEl.hidden = !host;
+  if (host) videoAddPreviewEl.replaceChildren(videoMark({ host }), document.createTextNode(host));
+}
+
+function refuseVideoAdd(text) {
+  videoAddErrorEl.textContent = text;
+  videoAddErrorEl.hidden = false;
+  shake(videoAddFieldEl);
+}
+
+/** The new site gets its tile and opens its window, since what it should
+ *  download is the next thing to set. */
+async function addVideoSite() {
+  const host = videoCustomHost(videoAddFieldEl.value);
+  if (!host) {
+    refuseVideoAdd(t('options.videoAddInvalid'));
+    return;
+  }
+  const known = videoTileFor(host);
+  if (known) {
+    refuseVideoAdd(t('options.videoAddKnown', { site: known.name }));
+    return;
+  }
+  videoAddWindowEl.hidden = true;
+  document.removeEventListener('keydown', onVideoWindowKey);
+  await chrome.storage.local.set({ videoCustomSites: [...videoCustomList(videoNow.stored), host] });
+  await renderVideo();
+  openVideoSite(host);
+}
+
+function videoSwitch(on, name) {
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'glim-switch';
+  toggle.setAttribute('role', 'switch');
+  toggle.setAttribute('aria-checked', String(on));
+  toggle.setAttribute('aria-label', name);
+  const track = document.createElement('span');
+  track.className = 'glim-switch-track';
+  const knob = document.createElement('span');
+  knob.className = 'glim-switch-knob';
+  track.append(knob);
+  toggle.append(track);
+  return toggle;
 }
 
 /** The parts a click downloads on a site, and where those parts are on, the
@@ -409,6 +723,33 @@ videoShortcutActionEl.addEventListener('click', async () => {
   await chrome.commands.reset(VIDEO_COMMAND);
   videoShortcutErrorEl.hidden = true;
   await renderVideo();
+});
+
+videoSiteCloseEl.addEventListener('click', closeVideoSite);
+videoSiteRemoveEl.addEventListener('click', askVideoRemove);
+videoSiteCancelEl.addEventListener('click', cancelVideoRemove);
+videoSiteCommitEl.addEventListener('click', () => void removeVideoSite());
+// Only a press on the backdrop itself leaves, and while the window asks
+// about removing a site it goes back to the site.
+videoSiteWindowEl.addEventListener('click', (event) => {
+  if (event.target !== videoSiteWindowEl) return;
+  if (videoOpen?.removing) cancelVideoRemove();
+  else closeVideoSite();
+});
+
+videoAddFieldEl.addEventListener('input', () => {
+  videoAddErrorEl.hidden = true;
+  drawVideoAdd();
+});
+videoAddFieldEl.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter') return;
+  event.preventDefault();
+  void addVideoSite();
+});
+videoAddCommitEl.addEventListener('click', () => void addVideoSite());
+videoAddCancelEl.addEventListener('click', closeVideoAdd);
+videoAddWindowEl.addEventListener('click', (event) => {
+  if (event.target === videoAddWindowEl) closeVideoAdd();
 });
 
 // The shortcut also changes on the browser's own page, in another tab.
