@@ -38,6 +38,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Added
+
+- **The browser extension's video button shows on other sites too,** on a
+  video you are watching, once your instance says yt-dlp can download the
+  page. Its switch is "All other sites" in the video button's settings, with
+  its own defaults for what a click downloads.
+
 ## [2.8.1] - 2026-11-12
 
 ### Changed
