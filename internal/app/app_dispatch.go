@@ -863,6 +863,11 @@ func (a *App) dispatchLocked() {
 			rest = append(rest, id)
 			continue
 		}
+		if _, held := a.awaitingFFmpeg[id]; held {
+			waiting[id] = core.WaitingFFmpeg
+			rest = append(rest, id)
+			continue
+		}
 		h := hostOf(t.URL)
 		// dirFor expands templates, so it is computed once per task.
 		dir := a.dirFor(t)
@@ -1514,6 +1519,14 @@ func (a *App) onUpdate(id string, u core.Update) {
 			u.Retry = time.Until(resets)
 		}
 		t.SetError(u.Err, code, params)
+	}
+	// The ffmpeg being fetched mends this, so the row waits for it.
+	if u.Status == core.StatusError && t.Reason == core.ReasonNoFFmpeg && a.awaitFFmpegLocked(t) {
+		a.dispatchLocked()
+		c := a.copyLocked(t)
+		a.mu.Unlock()
+		a.publish(&c)
+		return
 	}
 	// Account health learns of the outcome before the freed slot is
 	// redispatched, so queued tasks on the same account see the new verdict.

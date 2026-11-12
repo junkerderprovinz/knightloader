@@ -961,6 +961,7 @@ const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> 
   volumeCap: 'task.waiting.volumeCap',
   module: 'task.waiting.module',
   premium: 'task.waiting.premium',
+  ffmpeg: 'task.waiting.ffmpeg',
 };
 
 // A full slot count and a stopped queue hold every waiting row alike, and the
