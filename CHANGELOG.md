@@ -139,6 +139,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the pairing in its own storage in that case as well. Thanks to @sabascos for
   the photos
   ([#156](https://github.com/junkerderprovinz/knightloader/discussions/156)).
+- **The Firefox extension loads without a warning.** Its manifest no longer
+  asks for the offscreen permission, which only Chromium has and which
+  Firefox listed as a long warning on its debugging page.
 - **A page's own short sounds stay off "Media on this page".** On YouTube the
   extension listed the voice-search sounds instead of anything worth sending.
   Audio of a few seconds is left out, and the size shown for a file the browser
