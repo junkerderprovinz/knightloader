@@ -76,6 +76,9 @@ func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	fake, _ := newFakeYtdlp()
 	fake.title = "Some Video"
+	// A source with a 720p track keeps the preset's cap once the probe
+	// resolves it; one without any would turn it into best.
+	fake.formats = probeUpTo720
 	wireYtdlp(a, fake)
 
 	if err := a.SetHosterPreset("youtube.com", ytdlp.HosterPreset{
@@ -92,8 +95,17 @@ func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 		t.Fatalf("AddLinks created %d tasks, want 1", len(created))
 	}
 
-	waitFor(t, "expandYtdlpVariants to add the four sibling rows", func() bool {
-		return len(tasksSharingURL(a, url)) == 5
+	waitFor(t, "expandYtdlpVariants to add the four sibling rows and the probe to reach them", func() bool {
+		rows := tasksSharingURL(a, url)
+		if len(rows) != 5 {
+			return false
+		}
+		for _, x := range rows {
+			if kind, _ := variantDecode(x.Variant); kind == ytdlp.VariantVideo && len(x.AvailableQualities) == 0 {
+				return false
+			}
+		}
+		return true
 	})
 
 	for _, x := range tasksSharingURL(a, url) {
