@@ -808,6 +808,7 @@ function loadPage(chrome, href, { reduced = false } = {}) {
     chrome, document: doc, location, URL, console, setTimeout, clearTimeout,
     setInterval: () => 0, requestAnimationFrame: () => 0, performance,
     matchMedia: (q) => ({ matches: reduced && q.includes('reduce'), addEventListener() {} }),
+    getComputedStyle: (n) => ({ overflow: 'visible', visibility: 'visible', opacity: '1', ...n.computed }),
     window: { addEventListener() {} }, innerWidth: 1280, innerHeight: 800,
     navigator: { userAgent: 'test' }, CSS: { supports: () => false },
     DOMParser: class { parseFromString() { return { documentElement: doc.createElementNS('', 'svg') }; } },
@@ -1151,6 +1152,28 @@ const PAGE_LABELS = {
   if (button() && button().style.left === '280px') fail('on a watch page the button moves onto a preview while the player is scrolled out of view');
   preview.remove();
   watched.rect = { left: 0, top: 56, width: 1280, height: 720, right: 1280, bottom: 776 };
+  doc.dispatch('yt-navigate-finish');
+
+  // Until it plays, and while an advert plays in it, YouTube parks the video
+  // element its own height above the player, which clips it and draws its
+  // own picture. The button stays on the player rather than going up with
+  // the element out of sight.
+  player.computed = { overflow: 'hidden' };
+  player.rect = { left: 0, top: 56, width: 1280, height: 720, right: 1280, bottom: 776 };
+  watched.rect = { left: 0, top: -664, width: 1280, height: 720, right: 1280, bottom: 56 };
+  doc.dispatch('yt-navigate-finish');
+  if (!(parseInt(button()?.style.top, 10) > 56) || button()?.style.left !== '640px') fail(`with the video parked above its player the button sits at ${button()?.style.left}, ${button()?.style.top}, want on the player below 56px`);
+  watched.rect = { left: 0, top: 56, width: 1280, height: 720, right: 1280, bottom: 776 };
+  player.computed = undefined;
+  player.rect = { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0 };
+
+  // A video the page hides is not on the page: a larger one that is hidden
+  // does not make the player a preview beside it.
+  const hidden = video(doc, player, { left: 0, top: 0, width: 2560, height: 1440 });
+  hidden.computed = { visibility: 'hidden' };
+  doc.dispatch('yt-navigate-finish');
+  if (button()?.style.left !== '640px') fail(`with a larger hidden video on the page the button sits at ${button()?.style.left}, want on the player at 640px`);
+  hidden.remove();
   doc.dispatch('yt-navigate-finish');
 
   // The button takes the extension's theme, and its corners are rounded in
