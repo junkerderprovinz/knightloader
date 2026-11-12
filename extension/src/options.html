@@ -206,11 +206,10 @@
       .captureField input { width: 100%; }
       .captureRules select { min-width: 140px; }
       .clipNotice { margin-top: 14px; }
-      /* One tile per site on the video button's card, its switch at the end,
-         so the card keeps its height however many sites there are. The whole
-         tile opens the site's window; the switch sits above that button, as
-         a control inside a button would be invalid. */
-      .videoSites { display: grid; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap: 8px; }
+      /* One row per site across the video button's card, its switch at the
+         end. The whole row opens the site's window; the switch sits above
+         that button, as a control inside a button would be invalid. */
+      .videoSites { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
       .videoTile { position: relative; min-width: 0; }
       .videoTileOpen {
         width: 100%;
@@ -226,23 +225,22 @@
         text-align: start;
         transition: background-color 150ms ease;
       }
-      /* The switch ends the name's line, which leaves it room; the line
-         under it runs the tile's width. */
       .videoTile > .glim-switch {
         position: absolute;
         z-index: 1;
-        top: 10px;
+        top: 50%;
+        translate: 0 -50%;
         inset-inline-end: 12px;
         width: auto;
         height: 21px;
       }
-      .videoTile > .videoTileOpen:not(:last-child) .videoTileName { padding-inline-end: 44px; }
+      .videoTile > .videoTileOpen:not(:last-child) { padding-inline-end: 68px; }
       .videoTileText { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
       .videoTileName { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .videoTileSum { font-size: var(--text-subline); color: var(--carbon-text-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      /* The glyph tile at the start: a site's own favicon, or its first letter
-         where it has none. It fills with the accent while the tile is
-         reached, as a glyph tile does. */
+      /* The mark at the start: a site's own favicon, or its first letter
+         where it has none, standing bare on the row. A glyph or letter takes
+         the accent while the row is reached. */
       .videoMark {
         display: inline-flex;
         flex: 0 0 auto;
@@ -250,26 +248,24 @@
         justify-content: center;
         width: var(--btn-h);
         height: var(--btn-h);
-        border-radius: calc(var(--radius-control) * 0.75);
-        background: var(--carbon-surface3);
         color: var(--carbon-text-sub);
         font-size: var(--text-body);
         font-weight: 600;
         text-transform: uppercase;
-        transition: background-color 150ms ease, color 150ms ease;
+        transition: color 150ms ease;
       }
-      .videoMark img { display: block; width: 20px; height: 20px; object-fit: contain; }
+      .videoMark img { display: block; width: 24px; height: 24px; object-fit: contain; }
       /* The tile steps up the ramp (rule 21). The switch's off track has the
          same grey as that step on the dark ramp, so it moves toward the text
          colour, as a filled tone's hover does. */
       .videoTileOpen:focus-visible { background: var(--carbon-surface3); }
-      .videoTileOpen:focus-visible .videoMark { background: var(--accent); color: var(--accent-contrast); }
+      .videoTileOpen:focus-visible .videoMark { color: var(--accent-glyph); }
       .videoTileOpen:focus-visible ~ .glim-switch[aria-checked='false'] .glim-switch-track {
         background-color: color-mix(in srgb, var(--toggle-off), var(--carbon-text) 25%);
       }
       @media (hover: hover) {
         .videoTile:hover > .videoTileOpen:not(:disabled) { background: var(--carbon-surface3); }
-        .videoTile:hover > .videoTileOpen:not(:disabled) .videoMark { background: var(--accent); color: var(--accent-contrast); }
+        .videoTile:hover > .videoTileOpen:not(:disabled) .videoMark { color: var(--accent-glyph); }
         .videoTile:hover > .glim-switch[aria-checked='false'] .glim-switch-track {
           background-color: color-mix(in srgb, var(--toggle-off), var(--carbon-text) 25%);
         }
