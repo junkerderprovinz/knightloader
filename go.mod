@@ -12,7 +12,7 @@ require (
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707
 	github.com/go-webauthn/webauthn v0.18.2
 	github.com/jlaffaye/ftp v0.2.4
-	github.com/junkerderprovinz/parleyport/kit v0.0.0-20261112174152-edae56511f83
+	github.com/junkerderprovinz/parleyport/kit v0.0.0-20261112191839-9727821c2da3
 	github.com/klauspost/compress v1.20.4
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/nwaples/rardecode/v2 v2.4.6
