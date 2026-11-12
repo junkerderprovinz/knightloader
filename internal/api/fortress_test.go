@@ -55,6 +55,13 @@ func (s *memoryStore) Save(b []byte) error {
 // relayURL, with one job, and returns its member id.
 func arrowLoopIn(t *testing.T, relayURL string, secret []byte) string {
 	t.Helper()
+	id, _ := arrowLoopOpen(t, relayURL, secret)
+	return id
+}
+
+// arrowLoopOpen is arrowLoopIn with the fortress the ArrowLoop opened.
+func arrowLoopOpen(t *testing.T, relayURL string, secret []byte) (string, *fortress.Fortress) {
+	t.Helper()
 	seed := sha256.Sum256([]byte("arrowloop " + hex.EncodeToString(secret)))
 	id, err := member.FromSeed(member.KindInstance, seed[:])
 	if err != nil {
@@ -81,7 +88,7 @@ func arrowLoopIn(t *testing.T, relayURL string, secret []byte) string {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = f.Close() })
-	return id.ID()
+	return id.ID(), f
 }
 
 type fortressAnswer struct {

@@ -46,6 +46,12 @@ const (
 	// keeps of the fortress and of the pairing in it.
 	FortressGroupAccount   = "fortress-group"
 	FortressPairingAccount = "fortress-pairing"
+	// FortressRemovedAccount holds, as JSON, the members this instance took
+	// out of the fortress since the phrase last changed.
+	FortressRemovedAccount = "fortress-removed"
+	// FortressRemovedHereAccount is set once another member took this
+	// instance out, until it joins again.
+	FortressRemovedHereAccount = "fortress-removed-here"
 )
 
 // LAN is where KnightLoader instances announce themselves on their network,

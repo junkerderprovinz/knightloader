@@ -255,6 +255,9 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 				if err := regroup(a, func() error { return forgetFortress(a) }); err != nil {
 					log.Printf("fortress: forget the fortress: %v", err)
 				}
+				if err := a.Accounts.Set(federation.FortressRemovedHereAccount, "1"); err != nil {
+					log.Printf("fortress: keep that another member took this instance out: %v", err)
+				}
 			}()
 		},
 	}
@@ -399,6 +402,10 @@ func (k fortressKeeper) Keep(secret []byte) error {
 	if err := k.a.Accounts.Set(federation.FortressAccount, hex.EncodeToString(secret)); err != nil {
 		return err
 	}
+	// The new phrase locks out the members removed under the old one.
+	if err := k.a.Accounts.Set(federation.FortressRemovedAccount, ""); err != nil {
+		return err
+	}
 	if _, ok := changing.Load(k.a); !ok {
 		// The member that hands it over waits for this answer.
 		go applyRelay(k.a)
@@ -434,6 +441,9 @@ func joinFortress(a *app.App, secret []byte) error {
 		return errInFortress
 	}
 	return regroup(a, func() error {
+		if err := a.Accounts.Set(federation.FortressRemovedHereAccount, ""); err != nil {
+			return err
+		}
 		return a.Accounts.Set(federation.FortressAccount, hex.EncodeToString(secret))
 	})
 }
@@ -443,7 +453,7 @@ func joinFortress(a *app.App, secret []byte) error {
 func forgetFortress(a *app.App) error {
 	for _, account := range []string{
 		federation.FortressAccount, federation.FortressPreviousAccount, federation.FortressPreviousSinceAccount,
-		federation.FortressGroupAccount, federation.FortressPairingAccount,
+		federation.FortressGroupAccount, federation.FortressPairingAccount, federation.FortressRemovedAccount,
 	} {
 		if err := a.Accounts.Set(account, ""); err != nil {
 			return err
@@ -555,6 +565,11 @@ type fortressView struct {
 	// Behind is every device of the pairing that had not followed it into the
 	// fortress when the group on the old phrase closed.
 	Behind []behindDevice `json:"behind"`
+	// Removed are the members taken out here since the phrase last changed,
+	// which the phrase still lets back in.
+	Removed []fortressRemoved `json:"removed"`
+	// RemovedHere says another member took this instance out.
+	RemovedHere bool `json:"removedHere"`
 }
 
 // behindDevice carries no address: the owner finds the device by its name.
@@ -590,6 +605,8 @@ func fortressViewOf(a *app.App) fortressView {
 		PairedWith:    []string{},
 		Left:          []string{},
 		Behind:        behindOf(a),
+		Removed:       removedOf(a),
+		RemovedHere:   takenOut(a),
 	}
 	behind := map[string]bool{}
 	for _, d := range v.Behind {
@@ -697,6 +714,8 @@ func refuseFortress(w http.ResponseWriter, err error) bool {
 		writeRefusal(w, http.StatusConflict, "fortress.inFortress", err.Error(), nil)
 	case errors.Is(err, errNoFortress):
 		writeRefusal(w, http.StatusNotFound, "fortress.noFortress", err.Error(), nil)
+	case errors.Is(err, errNoMember):
+		writeRefusal(w, http.StatusNotFound, "fortress.noMember", err.Error(), nil)
 	case errors.Is(err, auth.ErrStale):
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 	default:
@@ -842,6 +861,20 @@ func registerFortressMembership(reg *Registry, a *app.App) {
 			}
 			if err := g.f.SetPermission(body.From, body.To, body.Action, body.On); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			writeJSON(w, fortressViewOf(a))
+		})
+
+	reg.Add(http.MethodDelete, "/api/fortress/members/{id}",
+		"take another member out of the fortress, here and at every member in reach; until the phrase changes it could come back with it, so the view names it; only the owner signed in here removes, never an API token",
+		func(w http.ResponseWriter, r *http.Request) {
+			if _, ok := tokenOf(r); ok {
+				writeRefusal(w, http.StatusForbidden, "fortress.removeSignIn",
+					"sign in at KnightLoader's web interface to remove a member of the fortress; an API token does not", nil)
+				return
+			}
+			if refuseFortress(w, removeFortressMember(a, r.PathValue("id"))) {
 				return
 			}
 			writeJSON(w, fortressViewOf(a))
