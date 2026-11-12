@@ -79,6 +79,12 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="2.8.1" date="2026-11-12">
+      <description>
+        <p>A security update: KnightLoader is built with Go 1.27.4 and a newer brotli library.</p>
+      </description>
+      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.1</url>
+    </release>
     <release version="2.8.0" date="2026-11-12">
       <description>
         <p>Many hosters download without JDownloader, the browser extension puts a download button on videos, KnightLoader comes as a Flatpak, and you can put links in a category by hand.</p>

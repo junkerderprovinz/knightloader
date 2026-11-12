@@ -1,0 +1,1 @@
+A security update for the server: KnightLoader is built with Go 1.27.4 and a newer brotli library. The app itself is unchanged.

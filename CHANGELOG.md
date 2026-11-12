@@ -38,6 +38,17 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+## [2.8.1] - 2026-11-12
+
+### Security
+
+- **A rare race in Go's HTTP server could crash KnightLoader's web server.**
+  KnightLoader is built with Go 1.27.4, which fixes it (GO-2026-6859), in the
+  container, the relay and the desktop app.
+- **Reading a brotli-compressed answer, such as JDownloader's status, could
+  take far more memory than it should.** The brotli library is at 1.2.8
+  (GO-2026-6888).
+
 ## [2.8.0] - 2026-11-12
 
 ### Added
