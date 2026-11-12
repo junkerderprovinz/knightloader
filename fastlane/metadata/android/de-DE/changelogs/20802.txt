@@ -1,0 +1,1 @@
+Die App bleibt unverändert. Dieses Release bringt den Videoknopf der Browser-Erweiterung auf weitere Seiten und lässt ihn immer mit yt-dlp herunterladen.

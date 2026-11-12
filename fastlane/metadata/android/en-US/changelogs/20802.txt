@@ -1,0 +1,1 @@
+The app is unchanged. This release brings the browser extension's video button to other sites and lets it always download with yt-dlp.
