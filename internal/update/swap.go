@@ -45,6 +45,7 @@ func (u *Updater) Swap(download string, rel *Release) error {
 		return err
 	}
 	u.staged = rel.Version
+	iconChanged(target)
 	if u.UninstallKey != "" {
 		if err := recordVersion(u.UninstallKey, target, rel.Version); err != nil {
 			u.logf("update: recording version %s for the uninstall entry: %v", rel.Version, err)

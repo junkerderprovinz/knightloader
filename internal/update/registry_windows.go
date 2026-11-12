@@ -4,7 +4,9 @@ import (
 	"errors"
 	"path/filepath"
 	"strings"
+	"unsafe"
 
+	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -62,4 +64,24 @@ func recordVersion(keyName, exe, version string) error {
 		return nil
 	}
 	return k.SetStringValue("DisplayVersion", version)
+}
+
+const (
+	shcneUpdateItem   = 0x00002000
+	shcneAssocChanged = 0x08000000
+	shcnfPath         = 0x0005
+)
+
+var shChangeNotify = windows.NewLazySystemDLL("shell32.dll").NewProc("SHChangeNotify")
+
+// iconChanged tells Explorer that the program at path was replaced. Without it
+// Windows keeps the old program's icon in its cache, so a pinned or Start menu
+// shortcut goes on showing it after an update.
+var iconChanged = func(path string) {
+	p, err := windows.UTF16PtrFromString(path)
+	if err != nil {
+		return
+	}
+	shChangeNotify.Call(shcneUpdateItem, shcnfPath, uintptr(unsafe.Pointer(p)), 0)
+	shChangeNotify.Call(shcneAssocChanged, 0, 0, 0)
 }

@@ -458,3 +458,27 @@ func TestTheReleasePublishesTheUnversionedZipsWithTheirChecksums(t *testing.T) {
 		}
 	}
 }
+
+func TestAnUpdateTellsTheShellTheProgramChanged(t *testing.T) {
+	var told []string
+	was := iconChanged
+	iconChanged = func(path string) { told = append(told, path) }
+	t.Cleanup(func() { iconChanged = was })
+
+	u := newUpdater(t, serve(t, release(t, "v1.4.0").withSums(keep)), "v1.3.0")
+	ctx := context.Background()
+	rel, err := u.Check(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	download, err := u.Fetch(ctx, rel)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := u.Swap(download, rel); err != nil {
+		t.Fatal(err)
+	}
+	if len(told) != 1 || told[0] != u.Path {
+		t.Errorf("the shell was told about %q, want the program %q", told, u.Path)
+	}
+}

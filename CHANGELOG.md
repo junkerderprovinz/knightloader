@@ -38,6 +38,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A pinned or Start menu KnightLoader shows the new icon after an update on
+  Windows.** The updater tells Explorer that the program changed, so Windows
+  no longer keeps the old program's icon in its cache.
+
 ## [2.8.1] - 2026-11-12
 
 ### Changed
