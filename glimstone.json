@@ -3,19 +3,19 @@
     {
       "name": "web",
       "mode": "port",
-      "version": "4.3.1",
+      "version": "4.3.7",
       "versionFile": "web/src/lib/glimstoneVersion.ts"
     },
     {
       "name": "phone",
       "mode": "port",
-      "version": "4.3.1",
+      "version": "4.3.7",
       "versionFile": "mobile/src/theme/version.ts"
     },
     {
       "name": "extension",
       "mode": "port",
-      "version": "4.3.1",
+      "version": "4.3.7",
       "versionFile": "extension/src/appearance.js"
     }
   ]

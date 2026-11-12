@@ -327,7 +327,7 @@ function ApkButton() {
         brand="android"
         parts={[
           { name: 'Android', sub: 'APK', href: APP_URLS.apk },
-          { name: label, sub: 'APK', onClick: () => setQr((open) => !open) },
+          { name: label, label: `${label} APK`, onClick: () => setQr((open) => !open) },
         ]}
         mark={<BrandMark svg={ANDROID_SVG} />}
         markClass="glim-android-mark"
@@ -429,11 +429,13 @@ function DesktopCard() {
   const other: Arch = arch === 'x64' ? 'arm64' : 'x64';
   const tag = releaseTag(version);
   const release = RELEASE.test(tag) ? tag : '';
-  // The build for this computer first, the other architecture as its segment.
-  const parts = (os: DesktopOS, name: string): [ReadmePart, ReadmePart] => [
-    { name, sub: ARCH_LABEL[arch], href: desktopZip(desktopSlug(os, arch), release) },
-    { name, sub: ARCH_LABEL[other], href: desktopZip(desktopSlug(os, other), release) },
+  // The build for this computer first, the other architecture as its segment,
+  // which names only the architecture.
+  const pair = (name: string, href: (a: Arch) => string): [ReadmePart, ReadmePart] => [
+    { name, sub: ARCH_LABEL[arch], href: href(arch) },
+    { name: ARCH_LABEL[other], label: `${name} ${ARCH_LABEL[other]}`, href: href(other) },
   ];
+  const parts = (os: DesktopOS, name: string) => pair(name, (a) => desktopZip(desktopSlug(os, a), release));
 
   return (
     <Card hue={0} className="flex flex-col gap-4">
@@ -464,11 +466,9 @@ function DesktopCard() {
         <ReadmeButton
           brand="flatpak"
           data-new="flatpak"
-          parts={[
-            { name: 'Flatpak', sub: ARCH_LABEL[arch], href: flatpak(arch, release) },
-            { name: 'Flatpak', sub: ARCH_LABEL[other], href: flatpak(other, release) },
-          ]}
+          parts={pair('Flatpak', (a) => flatpak(a, release))}
           mark={<BrandMark svg={FLATPAK_SVG} />}
+          markClass="glim-flatpak-mark"
         />
       </div>
     </Card>

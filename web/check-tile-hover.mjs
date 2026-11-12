@@ -358,6 +358,9 @@ const REST = [
   ['android', ['--brand-android']],
   ['docker', ['--brand-docker']],
   ['windows', ['--brand-windows']],
+  ['flatpak', ['--brand-flatpak']],
+  ['mos', ['--brand-mos']],
+  ['umbrel', ['--brand-umbrel']],
   ['unraid', ['--brand-unraid-from', '--brand-unraid-to']],
 ];
 for (const block of BLOCKS) {

@@ -132,6 +132,24 @@ describe('BrowserTools', () => {
       );
     });
 
+    it('names only the other architecture on a segment and gives it the whole name', async () => {
+      await macOS('v1.8.4');
+      for (const name of ['Windows', 'Linux', 'Flatpak']) {
+        const [first, segment] = [...host.querySelectorAll<HTMLAnchorElement>(`a[aria-label^="${name}"]`)];
+        expect(first!.getAttribute('aria-label')).toBe(`${name} x64`);
+        expect(first!.textContent).toBe(`${name}x64`);
+        expect(segment!.getAttribute('aria-label')).toBe(`${name} ARM64`);
+        expect(segment!.textContent).toBe('ARM64');
+      }
+    });
+
+    it('lights the Flatpak unit in its own blue and paints its mark from its token', async () => {
+      await macOS('v1.8.4');
+      const unit = host.querySelector('a[aria-label="Flatpak x64"]')!.closest('.glim-readme-btn-unit')!;
+      expect(unit.classList).toContain('glim-tile-flatpak');
+      expect(unit.querySelector('.glim-readme-btn-mark')!.classList).toContain('glim-flatpak-mark');
+    });
+
     it('gives the newest desktop app where it runs no release, and names no number', async () => {
       expect(await macOS('v1.8.4-12-gabc123')).toContain('/releases/latest/download/knightloader-macos-universal.zip');
       const card = [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('macOS'))!;

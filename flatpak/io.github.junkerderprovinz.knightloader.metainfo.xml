@@ -102,7 +102,7 @@
           <li>A login KnightLoader cannot use goes back to JDownloader</li>
           <li>Captchas always show, and Stop works while downloads run</li>
           <li>Rules can be edited and removed in the Graphic view</li>
-          <li>A redrawn logo, and KnightLoader follows GlimStone 4.3.1</li>
+          <li>A redrawn logo, and KnightLoader follows GlimStone 4.3.7</li>
         </ul>
       </description>
       <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.0</url>
