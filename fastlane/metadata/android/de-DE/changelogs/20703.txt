@@ -1,1 +1,0 @@
-Hältst du einen Eintrag zum Verschieben fest, zittern alle anderen der Liste, so siehst du sofort, dass sie sich verschieben lassen. Ein Download, den JDownloader wegen einer Wartezeit des Hosters zurückhält, wartet weiter, statt zu scheitern.

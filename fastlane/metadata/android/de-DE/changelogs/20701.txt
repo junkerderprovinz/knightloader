@@ -1,1 +1,0 @@
-Die Anmeldung ist eine Karte mit großem Logo über dem Namen, Knöpfen in voller Breite und Code und Zurücksetzen in derselben Karte. Nach einem falschen Passwort wackelt nur der Knopf, und das Eingegebene bleibt markiert. Unter OLED behalten die Karten ihren Schatten, und ein Schalter, der gerade nicht geht, sagt unter seiner Zeile warum.

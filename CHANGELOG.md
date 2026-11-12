@@ -38,214 +38,28 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
-## [2.7.7] - 2026-11-12
+## [2.8.0] - 2026-11-12
 
 ### Added
 
-- **You can put links in a category by hand.** Right-click a package or a
-  selection in the collector or in Downloads and pick one under Category, or
-  None to take them out. When you add links, Options has a Category field too,
-  so a batch lands in its category from the start. A Packagizer rule that
-  names a category still wins. Thanks to @Kayn2106 for asking how
-  ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
-- **The extension's video button has a card of its own in the settings.**
-  For each site you pick whether the button shows there and what a click
-  downloads: the video, the audio, the subtitles, the thumbnail or the
-  description, with the video and audio quality and format and the
-  subtitle languages and format you prefer, from what the site has offered
-  so far. The arrow next to the button opens a card for each of these with
-  every quality and format this one video offers, each with its size and
-  under its proper name, such as H.264, VP9, AAC or Opus, along with its
-  audio languages and its subtitles as SRT, WebVTT or TTML. Audio can also
-  come as MP3 or FLAC, and a format KnightLoader converts to says so. A
-  quality at 60 fps or in HDR carries a small badge saying so. A pick that
-  differs from what is already in your list downloads as a row of its own, named after its
-  codec where another row has the same height. After a send, a ring around
-  the mark follows the download and "Done" opens your downloads. With more
-  than one instance online, the toolbar popup asks where the video goes.
-  Alt+Shift+K sends the video you are watching, and the card lets you
-  change the shortcut. You can drag the button anywhere on the player, and
-  each site keeps its place, or let it show only on hover. It carries the KnightLoader mark, follows the extension's light
-  or dark theme, turns gold under the pointer and lets a few stars fly when a
-  video went through.
-- **The thumbnail can come as JPG, PNG or WebP,** whatever format the site
-  serves it in.
-- **A video filmed in HDR offers its HDR tracks apart from the plain ones,**
-  and a plain quality downloads the SDR track, where yt-dlp took the HDR one
-  of the same height.
-- **A video can be converted to H.265 in MKV.** It downloads at the quality
-  you pick and is encoded again once it is there, and the row shows how far
-  the conversion has got.
-
-### Changed
-
-- **KnightLoader has a redrawn logo,** in the web interface, the browser
-  extension, the desktop app and the Android app.
-- **The video button's switch is in the extension's settings only.** The
-  toolbar popup no longer has one.
-- **The Backend column shows who handles a download by its mark.** A debrid
-  service shows its logo before its name, with the account where it is not the
-  default one. JDownloader, yt-dlp, the built-in torrent client, Usenet, direct
-  downloads and KnightLoader's own hoster clients each get a glyph. Right-click
-  the list header to switch the column on (thanks to @Kayn2106,
-  [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
-- **The speed column shows how fast a debrid service fetches a torrent.**
-  While the service is still downloading the torrent to its own servers, the
-  column shows its speed in muted ink and names the service when you hover it.
-  The time left stays blank until the files come here (thanks to @Kayn2106,
-  [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
-- **The password fields on the sign-in page show their name inside.** It
-  stands there in grey until you start typing, and a password manager that
-  fills the field in takes it away too.
-
-### Fixed
-
-- **The extension's video button starts the download.** With "Start added
-  links immediately" off, the video waited in the link collector although the
-  button said it was sent. A video from the button now starts whatever that
-  setting says.
-- **The video button says when a video is already in your list.** It showed
-  "Sent" although nothing was added. Now it shows "Already there", and the
-  instance's answer tells the two apart. A video that has finished
-  downloading counts as there too, unless duplicates are set to be included.
-  This also holds once KnightLoader has matched the first pick to one of the
-  video's own tracks, which could start the same video a second time.
-- **The video button's menu stays open while it checks the qualities.** It
-  could close by itself after a few seconds when the player let go of its
-  video for a moment.
-- **A YouTube video set to 1080p shows the size of what yt-dlp downloads.**
-  Where YouTube offers a Premium track, 1080p and "Best" both fetch it, but
-  1080p showed the smaller size of another track. Now the two match, in the
-  list and in the video button's menu.
-- **A video wider than 16:9 names its qualities the way YouTube does,** so a
-  2:1 video offers its 1920x960 track as 1080p rather than 960p, and "Up to
-  1080p" on a 21:9 video no longer takes the 2560x1080 track that YouTube
-  calls 1440p.
-- **A video file carries the quality the menu showed,** so the 1080p track of
-  a 2:1 video and a portrait 1080x1920 video both save as "(1080p)" instead of
-  "(960p)" and "(1920p)", and their subtitles and thumbnail take the same name.
-- **Subtitles picked as SRT or VTT come in that format from every site,**
-  converted where the site serves another, and a TTML pick on a site without
-  TTML keeps the site's own format and says so on the row.
-- **"Remove and delete files" takes the unpacked files along.** The archive
-  went, but the folder it had been unpacked into stayed. Now what unpacking
-  the download wrote goes too, also after a restart and where "Move the
-  unpacked files to" took it, and the confirmation counts it in. The folder
-  you unpack into, files that were there before and anything that arrived in
-  the unpacked folder later stay. "Remove" still keeps every file. Thanks to
-  @Kayn2106 for the report
-  ([#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
-- **The browser extension keeps its pairing in a Firefox that lets it read its
-  database but not write to it.** The toolbar popup stopped before it showed
-  your group, and the video button said "Could not send". The extension keeps
-  the pairing in its own storage in that case as well. Thanks to @sabascos for
-  the photos
-  ([#169](https://github.com/junkerderprovinz/knightloader/issues/169)).
-- **The Firefox extension loads without a warning.** Its manifest no longer
-  asks for the offscreen permission, which only Chromium has and which
-  Firefox listed as a long warning on its debugging page.
-- **A page's own short sounds stay off "Media on this page".** On YouTube the
-  extension listed the voice-search sounds instead of anything worth sending.
-  Audio of a few seconds is left out, and the size shown for a file the browser
-  fetched in parts is the whole file's.
-- **A plain file behind a link without an extension downloads under its own
-  name.** Such a link went to yt-dlp, which saved a text file from GitHub as
-  "LICENSE (best).unknown_video" and added four empty variant rows. Once yt-dlp
-  says the link is just a file, KnightLoader fetches it directly as one row.
-- **The Flatpak opens on a PC with an NVIDIA graphics card.** Under Wayland
-  the window could stay away, with "Error 71 (Protocol error) dispatching to
-  Wayland display" at the end of the log. The desktop app switches off the
-  WebKit renderer that NVIDIA's driver trips over, but inside the Flatpak it
-  could not see the driver. It now reads the driver from where Flatpak can see
-  it, as ArrowLoop does since
-  [arrowloop #143](https://github.com/junkerderprovinz/arrowloop/issues/143).
-
-## [2.7.6] - 2026-11-09
-
-### Added
-
-- **The Apps page offers the Flatpak.** Next to Windows, macOS and Linux, a
-  Flatpak button downloads the build for this computer, with the other
-  architecture as its second part.
-- **Well-known Usenet providers come as tiles.** Under Accounts, "Add a
-  server" offers ten of them, Eweka and Newshosting among them. Pick yours and
-  its server and encrypted port are filled in, along with the connection count
-  where the provider states one, so only your login is left. "Other server"
-  opens the empty form for any other provider.
-
-### Changed
-
-- **Stop at the first matching rule is a switch like every other,** with its
-  name at the start of the row and the switch at the end, on the Rule set card
-  under Rules & categories.
-- **KnightLoader follows GlimStone 4.3.1 everywhere,** and the Version card
-  names it. Every selector keeps to one row: where its labels do not fit, it
-  shows its glyphs alone, or turns into a dropdown if it has no glyphs. In the
-  phone app a package with its files open can be moved to either end of the
-  list, and the rows sway gently while one is held.
-
-### Fixed
-
-- **Rules can be edited and removed in the Graphic view.** Point at a rule or
-  reach it with the keyboard, and the pencil and the bin from the list appear
-  beside its name. On a touch screen they stay in view.
-- **The browser extension works in a Firefox that never remembers history.**
-  Firefox refuses the extension its database there, so it could not keep its
-  pairing: the toolbar popup stayed empty and the video button said "Could not
-  send". It keeps the pairing in the extension's storage instead.
-- **The browser extension's video button says why a send failed.** Point at
-  "Could not send" and it tells you whether the relay could not be reached or
-  your instance did not answer in time.
-
-## [2.7.5] - 2026-11-09
-
-### Fixed
-
-- **The browser extension reaches Firefox Add-ons again.** Firefox Add-ons
-  turned 2.7.4 away because its notes for the reviewers were one character
-  over the limit, so Firefox stayed on 2.7.3 without the video button.
-- **Uninstalling the desktop app on Windows leaves nothing behind,** and the
-  installer window shows KnightLoader's icon on Linux. The installer follows
-  PommelPorter 1.1.5.
-
-## [2.7.4] - 2026-11-09
-
-### Added
-
-- **Each category can unpack into its own folder.** A category has an
-  Extraction folder next to its download folder, so all downloads can land in
-  one temporary folder while series unpack in one place and films in another.
-  It may be a template like the download folder. Left empty, the category
-  unpacks where "Unpack to" on the Archives page says
-  ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
-
-- **KnightLoader comes as a Flatpak for Linux.** Every release carries
-  `knightloader-linux-amd64.flatpak` and `knightloader-linux-arm64.flatpak`.
-  Open one in your software center or run `flatpak install` on it, and the
-  GNOME runtime comes along from Flathub. The Flatpak waits in the tray and
-  keeps the machine awake while downloads run, like the other Linux build, and
-  saves downloads anywhere in your home folder and on the drives under
-  `/media`, `/run/media` and `/mnt`. It never replaces itself: install the
-  newer bundle to update it. A `.dlc` file opened in the Flatpak goes to
-  JDownloader.
-- **Free 1fichier links download without JDownloader.** KnightLoader reads
-  the file page itself, so a 1fichier link shows its name, size and whether
-  it is still online in the link collector, and the file comes over one
-  connection, as a free download allows. When 1fichier asks for a pause
-  between free downloads, the task keeps running, shows how long 1fichier
-  wants it to wait and starts the file once the time is up. Pause or remove
-  it to call the wait off. A download password set on the link goes into
-  1fichier's password field. A debrid service that carries 1fichier and a
-  1fichier login in JDownloader still go first, since neither has to wait
+- **Free 1fichier links download without JDownloader.** KnightLoader reads the
+  file page itself, so a 1fichier link shows its name, size and whether it is
+  still online in the link collector, and the file comes over one connection,
+  as a free download allows. When 1fichier asks for a pause between free
+  downloads, the task keeps running, shows how long 1fichier wants it to wait
+  and starts the file once the time is up. Pause or remove it to call the wait
+  off. A download password set on the link goes into 1fichier's password
+  field. A debrid service that carries 1fichier and a 1fichier login in
+  JDownloader still go first, since neither has to wait
   ([#155](https://github.com/junkerderprovinz/knightloader/issues/155)).
-- **Rapidgator downloads on your premium login without JDownloader.** Save
-  the login under Hoster accounts and KnightLoader signs in through
-  Rapidgator's API itself, fetches the file over several connections and shows
-  on the login's row whether the account is premium, when it runs out and how
-  much traffic is left. Every Rapidgator link shows its name, size and whether
-  it is online in the link collector, with or without a login. A refused
-  login, a free account, spent traffic and a deleted file each fail with their
-  own reason.
+- **Rapidgator downloads on your premium login without JDownloader.** Save the
+  login under Hoster accounts and KnightLoader signs in through Rapidgator's
+  API itself, fetches the file over several connections and shows on the
+  login's row whether the account is premium, when it runs out and how much
+  traffic is left. Every Rapidgator link shows its name, size and whether it
+  is online in the link collector, with or without a login. A refused login, a
+  free account, spent traffic and a deleted file each fail with their own
+  reason.
 - **Keep2Share, FileBoom, TezFiles and Nitroflare download on your premium
   login without JDownloader.** Save the login under Hoster accounts and
   KnightLoader signs in through the site's API itself, fetches the file over
@@ -254,14 +68,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   sites shows its name, size and whether it is online in the link collector,
   with or without a login. A refused login, a captcha at sign-in, a free
   account, spent traffic and a deleted file each fail with their own reason.
-- **filer.net downloads on your premium login without JDownloader.** Save
-  the login under Hoster accounts and KnightLoader asks filer.net's own API
-  for the download link, fetches the file over one connection and shows on
-  the login's row whether the account is premium, when it runs out and how
-  much traffic is left. Every filer.net link shows its name, size and whether
-  it is online in the link collector, with or without a login. A refused
-  login, a free account, spent traffic, a folder password and a deleted file
-  each fail with their own reason.
+- **filer.net downloads on your premium login without JDownloader.** Save the
+  login under Hoster accounts and KnightLoader asks filer.net's own API for
+  the download link, fetches the file over one connection and shows on the
+  login's row whether the account is premium, when it runs out and how much
+  traffic is left. Every filer.net link shows its name, size and whether it is
+  online in the link collector, with or without a login. A refused login, a
+  free account, spent traffic, a folder password and a deleted file each fail
+  with their own reason.
 - **Free Rapidgator, Keep2Share, FileBoom, TezFiles and filer.net links
   download without JDownloader.** Without a premium login KnightLoader goes
   through the hoster's free download itself: it sits out the countdown, asks
@@ -277,28 +91,28 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   itself, downloads on your premium and shows the plan, the day it runs out
   and the traffic left on the login's row. The login no longer goes to
   JDownloader. ddownload asks for a Turnstile captcha at sign-in and before
-  each free download, which the phone app or one of your captcha accounts
-  can answer. The session is kept, so a restart needs no new sign-in. Without
+  each free download, which the phone app or one of your captcha accounts can
+  answer. The session is kept, so a restart needs no new sign-in. Without
   premium the file comes for free, and the wait ddownload sets between free
   downloads shows on the task until it is over. A wrong login, a premium that
   ran out, used-up traffic, a deleted file and a file for premium accounts
   only each stop the download with its own message.
 - **KatFile, Clicknupload, FileSpace and Uploadrar links download without
-  JDownloader.** They run on the same client as ddownload, one that fits
-  any hoster built on XFileSharing. The link collector shows each file's
-  name, size and online state. A login for one of them is signed in by
-  KnightLoader and downloads on your premium, and without premium the file
-  comes for free with the hoster's countdown, captcha and wait between
-  downloads. KatFile's sign-in asks for a Turnstile captcha, which the phone
-  app or a captcha account can answer.
-- **Pixeldrain, Gofile and Mediafire links download without JDownloader.**
-  The link collector names and sizes their files as soon as they arrive, and
-  a Pixeldrain list or a Gofile or Mediafire folder becomes one row per file,
+  JDownloader.** They run on the same client as ddownload, one that fits any
+  hoster built on XFileSharing. The link collector shows each file's name,
+  size and online state. A login for one of them is signed in by KnightLoader
+  and downloads on your premium, and without premium the file comes for free
+  with the hoster's countdown, captcha and wait between downloads. KatFile's
+  sign-in asks for a Turnstile captcha, which the phone app or a captcha
+  account can answer.
+- **Pixeldrain, Gofile and Mediafire links download without JDownloader.** The
+  link collector names and sizes their files as soon as they arrive, and a
+  Pixeldrain list or a Gofile or Mediafire folder becomes one row per file,
   subfolders included. A Gofile folder locked with a password opens with the
   link password from the add-links form. When a hoster asks for a pause, the
-  task keeps running and shows why and for how long. A Pixeldrain API key or
-  a Gofile account token stored as a hoster login stays with KnightLoader,
-  goes along with the downloads and ranks where the login's row sits on the
+  task keeps running and shows why and for how long. A Pixeldrain API key or a
+  Gofile account token stored as a hoster login stays with KnightLoader, goes
+  along with the downloads and ranks where the login's row sits on the
   priority card. Without one, a debrid service that carries the hoster goes
   first.
 - **Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer and SwissTransfer
@@ -322,32 +136,136 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Workupload archive and a Send.now folder stay with JDownloader, and so do
   Buzzheavier links, whose pages sit behind a Cloudflare check only a browser
   passes.
+- **KnightLoader comes as a Flatpak for Linux.** Every release carries
+  `knightloader-linux-amd64.flatpak` and `knightloader-linux-arm64.flatpak`.
+  Open one in your software center or run `flatpak install` on it, and the
+  GNOME runtime comes along from Flathub. On the Apps page a Flatpak button
+  next to Windows, macOS and Linux downloads the build for this computer, with
+  the other architecture as its second part. The Flatpak waits in the tray and
+  keeps the machine awake while downloads run, like the other Linux build, and
+  saves downloads anywhere in your home folder and on the drives under
+  `/media`, `/run/media` and `/mnt`. It never replaces itself: install the
+  newer bundle to update it. A `.dlc` file opened in the Flatpak goes to
+  JDownloader.
 - **The browser extension puts a download button on videos.** On YouTube,
-  Vimeo, Dailymotion, Twitch and Bilibili a small button sits at the top of
-  the player and sends the video you are watching to your default instance
-  with one click, and yt-dlp downloads it there. It follows YouTube from one
-  video to the next, stays in fullscreen and shows on embedded YouTube
-  players too. Its menu sends the best video, the audio alone, a resolution
-  from 2160p down to 360p or the whole playlist, and hides the button on a
-  site. The button is on by default, and its switch is in the extension's
-  settings and in the toolbar popup. Switching it off takes it off every open
-  tab at once. It needs access to these sites only, which Click'n'Load's
-  access to all websites already includes. For this, `POST /api/links` takes
-  a `format` of `video`, `audio` or a resolution, which stands in for the
+  Vimeo, Dailymotion, Twitch and Bilibili a small button sits on the player
+  and sends the video you are watching to your default instance with one
+  click, and yt-dlp downloads it there and starts it, whatever "Start added
+  links immediately" says. It follows YouTube from one video to the next,
+  stays in fullscreen and shows on embedded YouTube players too. The arrow
+  next to it picks something else for one video or sends the whole playlist.
+  The button is on by default, and its switch is in the extension's settings.
+  Switching it off takes it off every open tab at once. For a video that is
+  already in your list the button says "Already there", and the instance's
+  answer tells the two apart. A video that has finished downloading counts as
+  there too, unless duplicates are set to be included. When a send fails,
+  pointing at "Could not send" tells you whether the relay could not be
+  reached or your instance did not answer in time. The button needs access to
+  these sites only, which Click'n'Load's access to all websites already
+  includes. For this, `POST /api/links` takes a `format` of `video`, `audio`
+  or a resolution, or a choice of rows and qualities, which stands in for the
   host's preset for that link
   ([#169](https://github.com/junkerderprovinz/knightloader/issues/169)).
+- **The extension's video button has a card of its own in the settings.** For
+  each site you pick whether the button shows there and what a click
+  downloads: the video, the audio, the subtitles, the thumbnail or the
+  description, with the video and audio quality and format and the subtitle
+  languages and format you prefer, from what the site has offered so far. The
+  arrow next to the button opens a card for each of these with every quality
+  and format this one video offers, each with its size and under its proper
+  name, such as H.264, VP9, AAC or Opus, along with its audio languages and
+  its subtitles as SRT, WebVTT or TTML. Audio can also come as MP3 or FLAC,
+  and a format KnightLoader converts to says so. A quality at 60 fps or in HDR
+  carries a small badge saying so. A pick that differs from what is already in
+  your list downloads as a row of its own, named after its codec where another
+  row has the same height. After a send, a ring around the mark follows the
+  download and "Done" opens your downloads. With more than one instance
+  online, the toolbar popup asks where the video goes. Alt+Shift+K sends the
+  video you are watching, and the card lets you change the shortcut. You can
+  drag the button anywhere on the player, and each site keeps its place, or
+  let it show only on hover. It carries the KnightLoader mark, follows the
+  extension's light or dark theme, turns gold under the pointer and lets a few
+  stars fly when a video went through.
+- **The thumbnail can come as JPG, PNG or WebP,** whatever format the site
+  serves it in.
+- **A video filmed in HDR offers its HDR tracks apart from the plain ones,**
+  and a plain quality downloads the SDR track, where yt-dlp took the HDR one
+  of the same height.
+- **A video can be converted to H.265 in MKV.** It downloads at the quality
+  you pick and is encoded again once it is there, and the row shows how far
+  the conversion has got.
+- **You can put links in a category by hand.** Right-click a package or a
+  selection in the collector or in Downloads and pick one under Category, or
+  None to take them out. When you add links, Options has a Category field too,
+  so a batch lands in its category from the start. A Packagizer rule that
+  names a category still wins. Thanks to @Kayn2106 for asking how
+  ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
+- **Each category can unpack into its own folder.** A category has an
+  Extraction folder next to its download folder, so all downloads can land in
+  one temporary folder while series unpack in one place and films in another.
+  It may be a template like the download folder. Left empty, the category
+  unpacks where "Unpack to" on the Archives page says
+  ([#158](https://github.com/junkerderprovinz/knightloader/issues/158)).
 - **A Deepbrid premium account fetches torrents and `.nzb` files**, like
-  TorBox and Premiumize.me ([#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
+  TorBox and Premiumize.me
+  ([#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
+- **Well-known Usenet providers come as tiles.** Under Accounts, "Add a
+  server" offers ten of them, Eweka and Newshosting among them. Pick yours and
+  its server and encrypted port are filled in, along with the connection count
+  where the provider states one, so only your login is left. "Other server"
+  opens the empty form for any other provider.
 
 ### Changed
 
+- **KnightLoader has a redrawn logo,** in the web interface, the browser
+  extension, the desktop app and the Android app.
+- **KnightLoader follows GlimStone 4.3.1 everywhere,** and the Version card
+  names it. Every selector keeps to one row: where its labels do not fit, it
+  shows its glyphs alone, or turns into a dropdown if it has no glyphs. Under
+  OLED the cards keep the dark theme's shadow, which still lifts a bubble or a
+  menu off a card. A switch that refuses dims its track to half, and on a
+  touch screen its reason stands under the row.
+- **The sign-in page is GlimStone's sign-in card,** the same in every app of
+  the family. The logo stands large above the name in one card, and Sign in,
+  the passkey and Forgot password? are full width. The code from the
+  authenticator app and the reset form take their turn in the same card. A
+  refused try selects what was typed, so the next try starts by typing, and
+  only its button shakes: the card keeps its place and grows downward when the
+  error line appears. The language picker over the card is gone: the page
+  speaks the language last chosen in this browser, or the browser's own.
+- **The password fields on the sign-in page show their name inside.** It
+  stands there in grey until you start typing, and a password manager that
+  fills the field in takes it away too.
+- **While you hold an item to move it, every other item of the list trembles
+  clearly,** so it is plain at once that they can be moved: the settings rail,
+  the tabs, the overview's cards, the priority card, the download rows and the
+  column heads, and the phone app's lists. Neighbours tremble out of step, and
+  the download rows sway gently, since a full-width row would swing far at its
+  ends.
+- **Every list you reorder by hand places the moved item the same way.** An
+  item passes a neighbour once its leading edge is past the neighbour's
+  middle, so a wide card in the overview, a long entry in the settings rail
+  and a wide column such as Name reach both ends of their list. In the phone
+  app a package with its files open can be moved to either end of the list as
+  well.
+- **The Backend column shows who handles a download by its mark.** A debrid
+  service shows its logo before its name, with the account where it is not the
+  default one. JDownloader, yt-dlp, the built-in torrent client, Usenet,
+  direct downloads and KnightLoader's own hoster clients each get a glyph.
+  Right-click the list header to switch the column on (thanks to @Kayn2106,
+  [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
+- **The speed column shows how fast a debrid service fetches a torrent.**
+  While the service is still downloading the torrent to its own servers, the
+  column shows its speed in muted ink and names the service when you hover it.
+  The time left stays blank until the files come here (thanks to @Kayn2106,
+  [#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
 - **A login KnightLoader cannot use goes back to JDownloader.** When
   KnightLoader's own client for Rapidgator, Keep2Share, FileBoom, TezFiles,
   Nitroflare, filer.net or one of the XFileSharing hosters cannot use your
-  login, because the hoster answers in a way the client does not understand
-  or keeps failing without saying why, JDownloader gets the login and signs in
-  with it as before. The login's row says that JDownloader has taken over,
-  and a download that was on its way moves on to the next backend instead of
+  login, because the hoster answers in a way the client does not understand or
+  keeps failing without saying why, JDownloader gets the login and signs in
+  with it as before. The login's row says that JDownloader has taken over, and
+  a download that was on its way moves on to the next backend instead of
   failing. A wrong password stays with KnightLoader and shows on the row. Save
   the login again, or switch it off and on, to have KnightLoader try once
   more.
@@ -362,106 +280,109 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Cloudflare's browser check, the download moves on to JDownloader or a debrid
   service that carries the hoster, and its row says why. If nothing else can
   take the link, the download fails with that reason.
+- **Captchas can no longer be switched off.** Captchas from JDownloader and
+  from links KnightLoader downloads without it always show in the web
+  interface and in the phone app.
 - **The test captcha comes as a widget too.** Next to the picture, the test
   captcha under Captcha priority order can be a Cloudflare Turnstile, hCaptcha
   or reCAPTCHA check, on the test key each service publishes, which always
   passes. You see that the check opens in the window or the phone app and that
   its answer comes through. A Turnstile test shows in the phone app only.
-- **Every list you reorder by hand places the moved item the same way.** An
-  item passes a neighbour once its leading edge is past the neighbour's
-  middle, so a wide card in the overview or a long entry in the settings rail
-  reaches both ends of its list, as the columns of the download list already
-  did. KnightLoader follows GlimStone 4.2.8 in the web interface and the
-  browser extension.
-- **Open folder sits at the top of a download's right-click menu.** It
-  follows Play, Open and Open with the default app, or leads the menu on its
-  own when there is no single file to open, in the download list and the link
-  collector alike.
+- **Open folder sits at the top of a download's right-click menu.** It follows
+  Play, Open and Open with the default app, or leads the menu on its own when
+  there is no single file to open, in the download list and the link collector
+  alike.
 - **The Own servers card on the Accounts page is called Seedboxes.** It says
   what a seedbox is and that KnightLoader brings its finished files home. Any
   other FTP, SFTP or WebDAV server still works there the same way.
-- **Captchas can no longer be switched off.** Captchas from JDownloader and
-  from links KnightLoader downloads without it always show in the web
-  interface and in the phone app.
+- **Stop at the first matching rule is a switch like every other,** with its
+  name at the start of the row and the switch at the end, on the Rule set card
+  under Rules & categories.
 
 ### Fixed
 
-- **Stop works while downloads run.** The page only heard how many downloads
-  were in flight when someone pressed Play or Pause, so Stop stayed greyed out
-  for downloads that started on their own.
-- **A yt-dlp that starts slowly is still found.** The one-file build of
-  yt-dlp unpacks itself on its first start, which on a slow disk takes longer
-  than the ten seconds KnightLoader waited, so video sites went without
-  yt-dlp. KnightLoader keeps checking in the background and takes yt-dlp as
-  soon as it answers, and it does not start a yt-dlp that answered once again
-  just to check it.
-- **Open folder in the Windows desktop app shows the download's own folder.**
-  When the file's path held a space or a comma, as a package folder like
-  `My Package` does, Explorer opened Documents instead. The folder opens with
-  the file selected, and a folder or file with an `&` in its name opens too.
-- **A second desktop copy on Linux with its own `KL_DATA` folder starts.**
-  Its single-instance name could begin with a digit, which D-Bus refuses, and
-  the copy stopped before it opened a window. The name starts with a letter.
-- **A video's quality pickers offer only what the video has.** Before yt-dlp
-  had answered, or when it could not, the collector listed every resolution
-  from 4320p down, and after an answer every step below the tallest track.
-  The pickers say they are checking until yt-dlp answers, then list the
-  resolutions and audio tracks the video has, and offer the best quality alone
-  with yt-dlp's reason when it cannot be asked. The extension's video button
-  asks the instance the same before its menu lists a resolution, and a
-  resolution the video lacks becomes the nearest one it has.
-
-## [2.7.3] - 2026-11-07
-
-### Changed
-
-- **While you hold an item to move it, every other item of the list
-  trembles clearly,** so it is plain at once that they can be moved: the
-  settings rail, the tabs, the overview's cards, the priority card, the
-  download rows and the column heads, and the phone app's lists. Neighbours
-  tremble out of step, and the download rows sway gently, since a full-width
-  row would swing far at its ends. KnightLoader follows GlimStone 4.2.6, and
-  the Version card names it.
-
-### Fixed
-
+- **"Remove and delete files" takes the unpacked files along.** The archive
+  went, but the folder it had been unpacked into stayed. Now what unpacking
+  the download wrote goes too, also after a restart and where "Move the
+  unpacked files to" took it, and the confirmation counts it in. The folder
+  you unpack into, files that were there before and anything that arrived in
+  the unpacked folder later stay. "Remove" still keeps every file. Thanks to
+  @Kayn2106 for the report
+  ([#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
 - **A download JDownloader holds back for a hoster's cool-down waits instead
   of failing.** A free 1fichier link can make JDownloader wait several hours
   between files. KnightLoader took that for a stall after 45 minutes and
-  marked the task as failed, while JDownloader finished the file later
-  without anyone watching. The task shows JDownloader's wait and keeps
-  following it, and a task KnightLoader does give up on is switched off in
-  JDownloader, so the two never disagree
+  marked the task as failed, while JDownloader finished the file later without
+  anyone watching. The task shows JDownloader's wait and keeps following it,
+  and a task KnightLoader does give up on is switched off in JDownloader, so
+  the two never disagree
   ([#155](https://github.com/junkerderprovinz/knightloader/issues/155)).
-- **A wide column such as Name can be dragged back to either end of the
-  list.** Held at the table's edge, its middle stayed beyond a narrow
-  neighbour's, so it never passed it. A column passes another once its
-  leading edge is past the other's middle.
-
-## [2.7.2] - 2026-11-07
-
-### Fixed
-
+- **Stop works while downloads run.** The page only heard how many downloads
+  were in flight when someone pressed Play or Pause, so Stop stayed greyed out
+  for downloads that started on their own
+  ([#159](https://github.com/junkerderprovinz/knightloader/issues/159)).
+- **The browser extension keeps its pairing in a Firefox that never remembers
+  history or does not let it write to its database.** Firefox refuses the
+  extension its database in the first case and lets it read but not write in
+  the second, so the toolbar popup stayed empty or stopped before it showed
+  your group. The extension keeps the pairing in its own storage in both
+  cases. Thanks to @sabascos for the photos
+  ([#169](https://github.com/junkerderprovinz/knightloader/issues/169)).
+- **The Firefox extension loads without a warning.** Its manifest no longer
+  asks for the offscreen permission, which only Chromium has and which Firefox
+  listed as a long warning on its debugging page.
+- **A page's own short sounds stay off "Media on this page".** On YouTube the
+  extension listed the voice-search sounds instead of anything worth sending.
+  Audio of a few seconds is left out, and the size shown for a file the
+  browser fetched in parts is the whole file's.
+- **Rules can be edited and removed in the Graphic view.** Point at a rule or
+  reach it with the keyboard, and the pencil and the bin from the list appear
+  beside its name. On a touch screen they stay in view.
 - **The About text in the phone app no longer says the QR scanner sends
   diagnostics to Google.** The scanner reads the camera with ZXing and sends
   nothing anywhere, so the sentence was out of date in all 42 languages.
-
-## [2.7.1] - 2026-11-07
-
-### Changed
-
-- **The sign-in page is GlimStone's sign-in card,** the same in every app of
-  the family. The logo stands large above the name in one card, and Sign in,
-  the passkey and Forgot password? are full width. The code from the
-  authenticator app and the reset form take their turn in the same card. A
-  refused try selects what was typed, so the next try starts by typing, and
-  only its button shakes: the card keeps its place and grows downward when
-  the error line appears. The language picker over the card is gone: the
-  page speaks the language last chosen in this browser, or the browser's own.
-- **KnightLoader follows GlimStone 4.2.4,** and the Version card names it.
-  Under OLED the cards keep the dark theme's shadow, which still lifts a
-  bubble or a menu off a card. A switch that refuses dims its track to half,
-  and on a touch screen its reason stands under the row.
+- **A video's quality pickers offer only what the video has.** Before yt-dlp
+  had answered, or when it could not, the collector listed every resolution
+  from 4320p down, and after an answer every step below the tallest track. The
+  pickers say they are checking until yt-dlp answers, then list the
+  resolutions and audio tracks the video has, and offer the best quality alone
+  with yt-dlp's reason when it cannot be asked.
+- **A YouTube video set to 1080p shows the size of what yt-dlp downloads.**
+  Where YouTube offers a Premium track, 1080p and "Best" both fetch it, but
+  1080p showed the smaller size of another track. Now the two match, in the
+  list and in the video button's menu.
+- **A video wider than 16:9 names its qualities the way YouTube does,** so a
+  2:1 video offers its 1920x960 track as 1080p rather than 960p, and "Up to
+  1080p" on a 21:9 video no longer takes the 2560x1080 track that YouTube
+  calls 1440p.
+- **A video file carries the quality the menu showed,** so the 1080p track of
+  a 2:1 video and a portrait 1080x1920 video both save as "(1080p)" instead of
+  "(960p)" and "(1920p)", and their subtitles and thumbnail take the same
+  name.
+- **Subtitles picked as SRT or VTT come in that format from every site,**
+  converted where the site serves another, and a TTML pick on a site without
+  TTML keeps the site's own format and says so on the row.
+- **A plain file behind a link without an extension downloads under its own
+  name.** Such a link went to yt-dlp, which saved a text file from GitHub as
+  "LICENSE (best).unknown_video" and added four empty variant rows. Once
+  yt-dlp says the link is just a file, KnightLoader fetches it directly as one
+  row.
+- **A yt-dlp that starts slowly is still found.** The one-file build of yt-dlp
+  unpacks itself on its first start, which on a slow disk takes longer than
+  the ten seconds KnightLoader waited, so video sites went without yt-dlp.
+  KnightLoader keeps checking in the background and takes yt-dlp as soon as it
+  answers, and it does not start a yt-dlp that answered once again just to
+  check it.
+- **Open folder in the Windows desktop app shows the download's own folder.**
+  When the file's path held a space or a comma, as a package folder like `My
+  Package` does, Explorer opened Documents instead. The folder opens with the
+  file selected, and a folder or file with an `&` in its name opens too.
+- **A second desktop copy on Linux with its own `KL_DATA` folder starts.** Its
+  single-instance name could begin with a digit, which D-Bus refuses, and the
+  copy stopped before it opened a window. The name starts with a letter.
+- **Uninstalling the desktop app on Windows leaves nothing behind,** and the
+  installer window shows KnightLoader's icon on Linux. The installer follows
+  PommelPorter 1.1.5.
 
 ## [2.7.0] - 2026-11-07
 

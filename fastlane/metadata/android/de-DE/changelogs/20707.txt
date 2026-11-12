@@ -1,1 +1,0 @@
-Kategorie jetzt von Hand wählen, sehen, welcher Debrid-Dienst gerade schuftet, und „Dateien löschen“ nimmt endlich auch das Entpackte mit.

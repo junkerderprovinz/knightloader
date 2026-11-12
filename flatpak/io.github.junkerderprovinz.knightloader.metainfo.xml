@@ -79,40 +79,9 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
-    <release version="2.7.7" date="2026-11-10">
+    <release version="2.8.0" date="2026-11-12">
       <description>
-        <p>Categories by hand, a mark for each backend, and removing with files takes the unpacked files along.</p>
-        <ul>
-          <li>Right-click links to put them in a category, or pick one when adding them</li>
-          <li>The Backend column shows the service or client that handles each download</li>
-          <li>The speed column shows how fast a debrid service fetches a torrent</li>
-          <li>Removing a download with its files also deletes what unpacking wrote</li>
-          <li>The Flatpak opens on NVIDIA graphics under Wayland</li>
-        </ul>
-      </description>
-      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.7.7</url>
-    </release>
-    <release version="2.7.6" date="2026-11-09">
-      <description>
-        <p>Usenet providers come as tiles, and KnightLoader follows GlimStone 4.3.1.</p>
-        <ul>
-          <li>Ten well-known Usenet providers fill in their server and port when you pick one</li>
-          <li>The Apps page offers the Flatpak for x64 and ARM</li>
-          <li>Rules can be edited and removed in the Graphic view</li>
-          <li>Every selector keeps to one row</li>
-        </ul>
-      </description>
-      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.7.6</url>
-    </release>
-    <release version="2.7.5" date="2026-11-09">
-      <description>
-        <p>The browser extension reaches Firefox Add-ons again.</p>
-      </description>
-      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.7.5</url>
-    </release>
-    <release version="2.7.4" date="2026-11-09">
-      <description>
-        <p>Many hosters download without JDownloader, and KnightLoader comes as a Flatpak.</p>
+        <p>Many hosters download without JDownloader, the browser extension puts a download button on videos, KnightLoader comes as a Flatpak, and you can put links in a category by hand.</p>
         <ul>
           <li>Free 1fichier links download on their own, and wait out 1fichier's pause between free files</li>
           <li>Rapidgator, Keep2Share, FileBoom, TezFiles, Nitroflare and filer.net download on your premium login</li>
@@ -121,23 +90,22 @@
           <li>Pixeldrain, Gofile and Mediafire links and folders download one row per file</li>
           <li>Google Drive, Dropbox, OneDrive, SharePoint, WeTransfer and SwissTransfer shares download one row per file</li>
           <li>Krakenfiles, Workupload and Send.now links download for free</li>
-          <li>A login KnightLoader cannot use goes back to JDownloader</li>
-          <li>A Deepbrid premium account fetches torrents and .nzb files</li>
+          <li>KnightLoader comes as a Flatpak, and the Apps page offers it for x64 and ARM</li>
+          <li>The browser extension puts a download button on videos, with every quality and format the video offers</li>
+          <li>Right-click links to put them in a category, or pick one when adding them</li>
           <li>Each category can unpack into its own folder</li>
-          <li>The browser extension puts a download button on videos</li>
-          <li>A video's quality pickers offer only what the video has</li>
+          <li>Ten well-known Usenet providers fill in their server and port when you pick one</li>
+          <li>A Deepbrid premium account fetches torrents and .nzb files</li>
+          <li>The Backend column shows the service or client that handles each download</li>
+          <li>The speed column shows how fast a debrid service fetches a torrent</li>
+          <li>Removing a download with its files also deletes what unpacking wrote</li>
+          <li>A login KnightLoader cannot use goes back to JDownloader</li>
           <li>Captchas always show, and Stop works while downloads run</li>
-          <li>Every list you reorder by hand places the moved item the same way</li>
-          <li>A second Linux desktop copy with its own data folder starts</li>
+          <li>Rules can be edited and removed in the Graphic view</li>
+          <li>A redrawn logo, and KnightLoader follows GlimStone 4.3.1</li>
         </ul>
       </description>
-      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.7.4</url>
-    </release>
-    <release version="2.7.3" date="2026-11-07">
-      <description>
-        <p>Downloads that JDownloader holds back for a hoster's cool-down keep waiting instead of failing, and every list trembles while you move one of its items.</p>
-      </description>
-      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.7.3</url>
+      <url type="details">https://github.com/junkerderprovinz/knightloader/releases/tag/v2.8.0</url>
     </release>
   </releases>
 </component>

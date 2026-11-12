@@ -51,7 +51,7 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
-    version: '2.7.7',
+    version: '2.8.0',
     changes: [
       {
         id: 'category',
@@ -75,11 +75,6 @@ export const RELEASES: Release[] = [
       { id: 'video-button', text: 'whatsnew.change.videoButton' },
       { id: 'signin-label', text: 'whatsnew.change.signInLabel' },
       { id: 'plain-file', text: 'whatsnew.change.plainFile' },
-    ],
-  },
-  {
-    version: '2.7.6',
-    changes: [
       {
         id: 'usenet-tiles',
         to: ACCOUNTS,
@@ -92,11 +87,6 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.flatpak',
         names: { name: 'settings.browsertools.desktopTitle' },
       },
-    ],
-  },
-  {
-    version: '2.7.4',
-    changes: [
       { id: 'fichier-native', text: 'whatsnew.change.fichierNative' },
       { id: 'rapidgator-native', text: 'whatsnew.change.rapidgatorNative' },
       { id: 'k2s-nitroflare-native', text: 'whatsnew.change.k2sNitroflareNative' },
