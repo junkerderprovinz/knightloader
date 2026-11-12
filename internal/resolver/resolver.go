@@ -90,6 +90,13 @@ type Resolver interface {
 	Resolve(ctx context.Context, req Request) (Result, error)
 }
 
+// Yielder is implemented by a backend whose Match leaves links it can fetch
+// to another backend, as yt-dlp leaves JDownloader's file hosters to it.
+// TakesPinned reports whether it fetches url for a link pinned to it.
+type Yielder interface {
+	TakesPinned(url string) bool
+}
+
 // Checker is implemented by a backend that can tell whether links are still
 // online without fetching them.
 //
@@ -230,6 +237,20 @@ func (r *Registry) All(url string) []Resolver {
 	var out []Resolver
 	for _, res := range r.list {
 		if res.Match(url) {
+			out = append(out, res)
+		}
+	}
+	return out
+}
+
+// AllPinned is All for a link pinned to a backend: it also holds the
+// backends that leave the link to another but take it pinned (Yielder).
+func (r *Registry) AllPinned(url string) []Resolver {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	var out []Resolver
+	for _, res := range r.list {
+		if y, ok := res.(Yielder); res.Match(url) || ok && y.TakesPinned(url) {
 			out = append(out, res)
 		}
 	}

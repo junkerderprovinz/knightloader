@@ -179,13 +179,18 @@ type LinkThumbnail struct {
 
 // LinkQualities is what one link offers, from the probe its staging shares
 // (linkProbe), so the extension's menu lists what the video has and nothing
-// else.
-func (a *App) LinkQualities(ctx context.Context, rawurl string) (LinkMenus, error) {
+// else. pinned asks as for a link pinned to yt-dlp, past the chain, the way
+// the extension's button sends its video.
+func (a *App) LinkQualities(ctx context.Context, rawurl string, pinned bool) (LinkMenus, error) {
 	u, err := url.Parse(rawurl)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
 		return LinkMenus{}, ErrNotAMediaLink
 	}
-	if res := a.stagingResolverFor(rawurl); res == nil || res.Info().ID != "ytdlp" {
+	pin := ""
+	if pinned {
+		pin = "ytdlp"
+	}
+	if res := a.stagingResolverFor(rawurl, pin); res == nil || res.Info().ID != "ytdlp" {
 		return LinkMenus{}, ErrNotAMediaLink
 	}
 	tp, ok := a.ytdlpTitleProber()

@@ -500,7 +500,7 @@ func (a *App) pinnedResolverLocked(t *core.Task) resolver.Resolver {
 // unpinned task, which is held quietly, a pinned task fails visibly, and the
 // ordinary retry picks it up if the account recovers. Caller holds a.mu.
 func (a *App) pinFailureLocked(t *core.Task) {
-	for _, res := range a.Registry.All(t.URL) {
+	for _, res := range a.Registry.AllPinned(t.URL) {
 		if pinMatches(t.ResolverPin, res.Info().ID) {
 			t.Reason = core.ReasonAuth
 			t.SetError("pinned to "+t.ResolverPin+", and that backend's account is not usable right now", core.CodePinned, nil)

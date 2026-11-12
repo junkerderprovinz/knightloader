@@ -209,6 +209,39 @@ func TestAddLinksRefusesAChoiceOfNoRow(t *testing.T) {
 	}
 }
 
+// resolver pins the links of a submission to one backend, which the browser
+// extension's video button uses to have yt-dlp fetch the video it sits on.
+func TestAddLinksPinsTheLinksToTheBackendNamed(t *testing.T) {
+	t.Parallel()
+	srv, a := linkServer(t)
+
+	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
+		"links":    "https://host.example/clip",
+		"resolver": "nosuch",
+	})
+	if code != http.StatusBadRequest {
+		t.Fatalf("a backend the instance lacks answered %d: %s, want 400", code, raw)
+	}
+	if n := len(a.Tasks()); n != 0 {
+		t.Fatalf("%d tasks were staged for a refused submission", n)
+	}
+
+	code, raw = postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
+		"links":    "https://host.example/pinned.bin",
+		"resolver": "direct",
+	})
+	if code != http.StatusOK {
+		t.Fatalf("answered %d: %s", code, raw)
+	}
+	var created []core.Task
+	if err := json.Unmarshal(raw, &created); err != nil || len(created) != 1 {
+		t.Fatalf("staged %d tasks: %v", len(created), err)
+	}
+	if created[0].ResolverPin != "direct" {
+		t.Errorf("the staged row is pinned to %q, want direct", created[0].ResolverPin)
+	}
+}
+
 // packagizerServer is linkServer's twin, with one Packagizer rule already in
 // place: everything from rule.example gets the comment "ruled" and priority
 // 3, so a test can tell the rule's answer apart from the form's.

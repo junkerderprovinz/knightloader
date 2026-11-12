@@ -64,6 +64,9 @@ func registerLinks(reg *Registry, a *app.App) {
 				// Start is a download asked for, not a list entry (see
 				// app.LinkBatchOptions.Start).
 				Start bool `json:"start"`
+				// Resolver pins the links to one backend, as POST
+				// /api/tasks/options does (see app.LinkBatchOptions.Resolver).
+				Resolver string `json:"resolver"`
 				// Report answers with the rows a link was folded into as
 				// well, so a client can say the link is already there
 				// rather than that nothing was added.
@@ -135,6 +138,7 @@ func registerLinks(reg *Registry, a *app.App) {
 					Format:           body.Format,
 					Choice:           body.Choice,
 					Start:            body.Start,
+					Resolver:         body.Resolver,
 				})
 				if err != nil {
 					// Usually a destination folder that was just typed and is

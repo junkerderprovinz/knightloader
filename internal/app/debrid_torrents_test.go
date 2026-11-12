@@ -135,7 +135,7 @@ func queueTorrent(a *App, task *core.Task) {
 func TestAMagnetGoesToTheDebridServiceFirst(t *testing.T) {
 	a, events := torrentOrderApp(t, []string{"realdebrid", "torrent"})
 
-	if got := a.stagingResolverFor(debridMagnet).Info().ID; got != "realdebrid" {
+	if got := a.stagingResolverFor(debridMagnet, "").Info().ID; got != "realdebrid" {
 		t.Errorf("a magnet is collected for %q, want the service the card puts first", got)
 	}
 	// Collected while the built-in client came first, so the recorded backend
@@ -152,7 +152,7 @@ func TestAMagnetGoesToTheDebridServiceFirst(t *testing.T) {
 
 func TestWithoutAnOrderTorrentsStayWithTheBuiltInClient(t *testing.T) {
 	a, _ := torrentOrderApp(t, nil)
-	if got := a.stagingResolverFor(debridMagnet).Info().ID; got != "torrent" {
+	if got := a.stagingResolverFor(debridMagnet, "").Info().ID; got != "torrent" {
 		t.Errorf("with the automatic order a magnet goes to %q, want the built-in client as before", got)
 	}
 }
