@@ -43,6 +43,8 @@ const outside: FortressState = {
   pairedWith: [],
   behind: [],
   left: [],
+  removed: [],
+  removedHere: false,
 };
 const WORDS = 'orbit wagon lemon crisp absent tunnel galaxy harbor pencil ribbon velvet yellow';
 

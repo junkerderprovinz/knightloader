@@ -502,6 +502,8 @@ describe('PairingGroup in a fortress', () => {
     pairedWith: ['attic'],
     behind: [],
     left,
+    removed: [],
+    removedHere: false,
   });
   const drawMoved = (group: Partial<ConnectInfo>, left: string[]) =>
     act(() =>

@@ -62,6 +62,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   The words appear once you enter your password. A new phrase reaches every
   app and instance in reach, and any it missed are named, so you know where
   to type the new words.
+- **You can take an app out of the fortress.** Remove on its card on the
+  Pairing page asks first, then offers a new phrase right away, since the
+  old one would still let it back in. Until you change it, a short line
+  names who is out.
 - **An ArrowLoop job can follow a download.** Pick a job per category under
   After download, and KnightLoader starts it once a package has landed and
   left the working folder. You can also set up a new ArrowLoop job for the

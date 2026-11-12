@@ -3,7 +3,8 @@
 // of this server, then GlimStone's fortress with the other apps and their
 // permissions, or the twelve words to join one. Open on another app's card
 // shows its pages in a new tab through the fortress, or the status of an app
-// without pages of its own.
+// without pages of its own. Remove takes another app out, and since the old
+// phrase would let it back in, the fortress offers a new one right after.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   fill,
@@ -31,6 +32,7 @@ import {
   joinFortress,
   leaveFortress,
   openFortressMember,
+  removeFortressMember,
   setFortressDevice,
   setFortressPermission,
   showFortressPhrase,
@@ -163,6 +165,15 @@ export function FortressSection({
       setShown((s) => (mine(s) ? { app, instance, error: openRefusalText(text, refusalCode(e)) } : s));
     }
   };
+  const onRemove = async (id: string): Promise<FortressAnswer> => {
+    try {
+      onView(await removeFortressMember(id));
+      onRefresh();
+      return { ok: true };
+    } catch (e) {
+      return { error: refusalText(t, e) };
+    }
+  };
   const onPermission = async (id: string, on: boolean): Promise<FortressAnswer> => {
     try {
       onView(await setFortressPermission(permissionOf(id, on)));
@@ -201,7 +212,10 @@ export function FortressSection({
         onPermission={onPermission}
         notify={(message, severity) => toast(message, TONE[severity])}
         onJoin={onJoin}
-        onRemove={() => Promise.resolve({ error: text.failed })}
+        onRemove={onRemove}
+        onChangePhrase={view.phrase ? onChangePhrase : undefined}
+        removed={view.removed.map((r) => fill(text.memberOn, { app: r.name, device: r.device }))}
+        removedHere={view.removedHere}
         onOpen={onOpen}
         pairedWith={view.pairedWith}
         hueStart={hueStart + 2}

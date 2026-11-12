@@ -4672,6 +4672,18 @@ export interface FortressState {
   left: string[];
   /** The devices that had not followed it when the group on the old phrase closed. */
   behind: BehindDevice[];
+  /** The members taken out here since the phrase last changed, which the
+   *  phrase still lets back in. */
+  removed: FortressRemoved[];
+  /** Another member took this instance out. */
+  removedHere: boolean;
+}
+
+/** A member taken out of the fortress, by its app and device. */
+export interface FortressRemoved {
+  app: string;
+  name: string;
+  device: string;
 }
 
 export async function fetchFortress(): Promise<FortressState> {
@@ -4716,6 +4728,11 @@ export async function setFortressPermission(p: FortressPermissionState): Promise
       body: JSON.stringify(p),
     }),
   );
+}
+
+/** removeFortressMember takes another member out of the fortress. */
+export async function removeFortressMember(id: string): Promise<FortressState> {
+  return json(await fetch(`/api/fortress/members/${encodeURIComponent(id)}`, { method: 'DELETE' }));
 }
 
 /** leaveFortress takes this instance out of the fortress; its pairing ends with it. */

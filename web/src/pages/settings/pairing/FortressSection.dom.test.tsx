@@ -66,6 +66,11 @@ vi.mock('../../../lib/api', async (importOriginal) => {
         log: [{ at: '2026-11-12T19:00:00Z', level: 'info', text: 'The array was checked' }],
       };
     },
+    removeFortressMember: async (id: string) => {
+      server.calls.push(`remove ${id}`);
+      server.view = { ...server.view, members: [], removed: [{ app: 'arrowloop', name: 'ArrowLoop', device: 'Tower' }] };
+      return server.view;
+    },
     leaveFortress: async () => {
       server.calls.push('leave');
       server.view = { ...server.view, joined: false, phrase: false };
@@ -89,6 +94,8 @@ function state(over: Partial<FortressState> = {}): FortressState {
     pairedWith: [],
     behind: [],
     left: [],
+    removed: [],
+    removedHere: false,
     ...over,
   };
 }
@@ -396,5 +403,32 @@ describe('FortressSection', () => {
     expect(hook('show')).toBeNull();
     expect(hook('open-change')).toBeNull();
     expect(hook('open-leave')).toBeTruthy();
+  });
+
+  it('asks before another app goes, then offers the new phrase behind the password', async () => {
+    await draw(joined({ members: [arrowLoop] }));
+    await press('others');
+    await press('open-remove');
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Remove ArrowLoop on Tower?');
+    expect(server.calls).toEqual([]);
+    await press('remove');
+    expect(server.calls).toEqual(['remove m1', 'refresh']);
+    expect(page()).toContain('Change the phrase now?');
+    await press('change');
+    await typeInto(passwordField(), 'hunter2');
+    await press('change-unlock');
+    expect(server.calls).toEqual(['remove m1', 'refresh', 'change hunter2', 'refresh']);
+    expect(hook('words')!.textContent).toContain('wrong');
+  });
+
+  it('names who was removed until the phrase changes', async () => {
+    await draw(joined({ members: [arrowLoop], removed: [{ app: 'arrowloop', name: 'ArrowLoop', device: 'Tower' }] }));
+    expect(hook('removed')!.textContent).toContain('Removed: ArrowLoop on Tower. Change the phrase to close the way back in.');
+  });
+
+  it('says another app removed KnightLoader until it joins again', async () => {
+    await draw(state({ removedHere: true }));
+    expect(page()).toContain('Removed from the fortress');
+    expect(page()).toContain('Another app in the fortress removed KnightLoader. Enter the current phrase to come back in.');
   });
 });
