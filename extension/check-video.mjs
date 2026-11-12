@@ -510,13 +510,13 @@ function loadBackground(chrome) {
   if (run(`videoDefaultsFor(stored, 'vimeo').videoFormat`) !== 'best' || run(`videoDefaultsFor(stored, 'vimeo').audioRate`) !== 'best') fail('a stored format or bitrate the instance would refuse is kept');
 
   const seen = run('videoSeenWith(undefined, offer)');
-  const seenWant = { qualities: ['1080p', '720p'], audio: ['aac', 'opus'], subLangs: ['de', 'en'], videoFormats: ['mp4 avc1', 'webm vp9'], audioRates: ['160k', '128k'], thumbFormats: ['webp'] };
+  const seenWant = { qualities: ['1080p', '720p'], audio: ['aac', 'opus'], subLangs: ['de', 'en'], videoFormats: ['mp4 avc1', 'webm vp9'], audioRates: ['160k', '128k'], thumbFormats: ['webp'], thumbServed: ['webp'] };
   if (!same(seen, seenWant)) fail(`a site is remembered as offering ${JSON.stringify(seen)}`);
   const seenMore = run('videoSeenWith(videoSeenWith(undefined, offer), yt)');
   if (!same(seenMore.videoFormats, ['mp4 avc1', 'mp4 vp9', 'mp4 av1', 'webm vp9']) || !same(seenMore.audioRates, ['160k', '130k', '128k', '124k', '62k', '49k'])) fail(`two videos of a site are remembered as offering ${JSON.stringify(seenMore)}`);
-  ctx.stored = { videoSeen: { youtube: { qualities: ['480p', '2160p', '9999p'], audio: ['wav', 'opus'], subLangs: ['de', 'x y'], subFormats: ['vtt'], videoFormats: ['webm vp9', 'mp4;rm'], audioRates: ['128k', 'x'], thumbFormats: ['webp', 'x y'] } } };
-  if (!same(run(`videoSiteSeen(stored, 'youtube')`), { qualities: ['2160p', '480p'], audio: ['opus'], subLangs: ['de'], videoFormats: ['webm vp9'], audioRates: ['128k'], thumbFormats: ['webp'] })) fail('the options offer a site something it has not offered');
-  if (!same(run(`videoSiteSeen(stored, 'vimeo')`), { qualities: [], audio: [], subLangs: [], videoFormats: [], audioRates: [], thumbFormats: [] })) fail('the options offer choices for a site that has offered none');
+  ctx.stored = { videoSeen: { youtube: { qualities: ['480p', '2160p', '9999p'], audio: ['wav', 'opus'], subLangs: ['de', 'x y'], subFormats: ['vtt'], videoFormats: ['webm vp9', 'mp4;rm'], audioRates: ['128k', 'x'], thumbFormats: ['webp', 'x y'], thumbServed: ['jpg', 'x y'] } } };
+  if (!same(run(`videoSiteSeen(stored, 'youtube')`), { qualities: ['2160p', '480p'], audio: ['opus'], subLangs: ['de'], videoFormats: ['webm vp9'], audioRates: ['128k'], thumbFormats: ['webp'], thumbServed: ['jpg'] })) fail('the options offer a site something it has not offered');
+  if (!same(run(`videoSiteSeen(stored, 'vimeo')`), { qualities: [], audio: [], subLangs: [], videoFormats: [], audioRates: [], thumbFormats: [], thumbServed: [] })) fail('the options offer choices for a site that has offered none');
 
   const rect = { left: 100, top: 50, width: 800, height: 450 };
   const size = { width: 160, height: 32 };
@@ -611,7 +611,7 @@ function loadBackground(chrome) {
   menu = await videoFormats(embed, { href: embed });
   if (menu.videoSizes?.['1080p mp4 avc1'] !== 5000000) fail(`the menu does not get the sizes the instance reports: ${JSON.stringify(menu.videoSizes)}`);
   if (!menu.known || menu.videoTracks?.join() !== '1080p mp4 avc1' || menu.subtitles?.join() !== 'de') fail(`the menu offers ${JSON.stringify(menu)}, want the video's own tracks and subtitles`);
-  if (JSON.stringify(store.data.videoSeen?.youtube) !== '{"qualities":["1080p","720p"],"audio":["opus"],"subLangs":["de"],"videoFormats":["mp4 avc1"],"audioRates":["160k"],"thumbFormats":[]}') fail(`YouTube is remembered as offering ${JSON.stringify(store.data.videoSeen?.youtube)}`);
+  if (JSON.stringify(store.data.videoSeen?.youtube) !== '{"qualities":["1080p","720p"],"audio":["opus"],"subLangs":["de"],"videoFormats":["mp4 avc1"],"audioRates":["160k"],"thumbFormats":[],"thumbServed":[]}') fail(`YouTube is remembered as offering ${JSON.stringify(store.data.videoSeen?.youtube)}`);
   answer = { status: 502, body: 'ERROR: [youtube] aqz-KE-bpKQ: Private video' };
   menu = await videoFormats(embed, { href: embed });
   if (menu.qualities?.length || menu.known) fail(`a probe that failed offers ${JSON.stringify(menu)}, want nothing known`);

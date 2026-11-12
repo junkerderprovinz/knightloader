@@ -260,7 +260,10 @@ function videoDefaultsRows(site) {
   }
   if (pick.parts.includes('thumbnail') && seen.thumbFormats.length) {
     const thumbFormat = videoThumbFormat(pick.thumbFormat, seen.thumbFormats);
-    row(videoSelect(`${site.id}-thumbformat`, t('options.videoThumbFormat'), seen.thumbFormats, thumbFormat, videoFormatName, (f) => save({ thumbFormat: f })));
+    // Formats seen before the site's own were remembered carry no mark until
+    // the next video shows which one that is.
+    const thumbName = (f) => (seen.thumbServed.length === 0 || seen.thumbServed.includes(f) ? videoFormatName(f) : `${videoFormatName(f)} (${t('video.converted')})`);
+    row(videoSelect(`${site.id}-thumbformat`, t('options.videoThumbFormat'), seen.thumbFormats, thumbFormat, thumbName, (f) => save({ thumbFormat: f })));
   }
   return rows;
 }
@@ -291,14 +294,20 @@ function videoSubLangs(site, pick, seen, save) {
     b.type = 'button';
     b.setAttribute('aria-pressed', String(on));
     b.dataset.videoKey = `${site.id}-sub-${lang}`;
-    const code = document.createElement('span');
-    code.textContent = lang;
-    b.append(code);
+    const name = document.createElement('span');
+    name.textContent = videoLanguageName(lang);
+    b.append(name);
     b.addEventListener('click', () => save({ subLangs: on ? pick.subLangs.filter((l) => l !== lang) : [...pick.subLangs, lang] }));
     chips.append(b);
   }
   box.append(chips);
   return box;
+}
+
+/** A language's name in the page's language, "Deutsch" for "de". */
+function videoLanguageName(code) {
+  const name = new Intl.DisplayNames(currentLanguage(), { type: 'language' }).of(code);
+  return name.charAt(0).toLocaleUpperCase(currentLanguage()) + name.slice(1);
 }
 
 /** Each part's name, spelled out so check-locales.mjs sees every key read. */

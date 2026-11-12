@@ -527,7 +527,7 @@ function videoExact(sel, offer) {
 /** What a video offered, folded into what its site has offered so far
  *  (videoSeen, by site): the resolutions, the audio codecs, the subtitle
  *  languages by hand and generated originals, the video formats, the audio
- *  bitrates and the thumbnail formats. */
+ *  bitrates, the thumbnail formats and the ones the site serves itself. */
 function videoSeenWith(seen, offer) {
   const merge = (old, add, order) => {
     const all = new Set([...(Array.isArray(old) ? old : []), ...add]);
@@ -541,6 +541,7 @@ function videoSeenWith(seen, offer) {
     videoFormats: merge(seen?.videoFormats, offer.videoTracks.map((k) => videoTrackOf(k).format), videoFormatOrder),
     audioRates: merge(seen?.audioRates, offer.audioTracks.map((k) => audioTrackOf(k).rate), audioRateOrder),
     thumbFormats: merge(seen?.thumbFormats, videoThumbFormats(offer)),
+    thumbServed: merge(seen?.thumbServed, offer.thumbnail ? [offer.thumbnail.ext] : []),
   };
 }
 
@@ -556,6 +557,7 @@ function videoSiteSeen(stored, siteId) {
     videoFormats: list(seen?.videoFormats, (f) => f !== 'best' && videoIs(VIDEO_FORMAT, f)),
     audioRates: list(seen?.audioRates, (r) => videoIs(AUDIO_RATE, r)),
     thumbFormats: list(seen?.thumbFormats, (f) => videoIs(VIDEO_TOKEN, f)),
+    thumbServed: list(seen?.thumbServed, (f) => videoIs(VIDEO_TOKEN, f)),
   };
 }
 
