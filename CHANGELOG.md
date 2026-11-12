@@ -38,11 +38,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
-### Fixed
-
-- **A pinned or Start menu KnightLoader shows the new icon after an update on
-  Windows.** The updater tells Explorer that the program changed, so Windows
-  no longer keeps the old program's icon in its cache.
 ### Added
 
 - **The browser extension's video button shows on other sites too,** on a
@@ -58,6 +53,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   paste keep their routing. Other clients can pin a link the same way, with
   `resolver` on `POST /api/links` and `pinned=true` on
   `GET /api/ytdlp/link`.
+
+### Fixed
+
+- **A pinned or Start menu KnightLoader shows the new icon after an update on
+  Windows.** The updater tells Explorer that the program changed, so Windows
+  no longer keeps the old program's icon in its cache.
 
 ## [2.8.1] - 2026-11-12
 
