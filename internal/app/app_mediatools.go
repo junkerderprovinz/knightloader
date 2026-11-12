@@ -6,9 +6,11 @@ package app
 import (
 	"context"
 	"log"
+	"slices"
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 )
 
@@ -28,6 +30,12 @@ type mediaToolsState struct {
 	latestYtdlp   func(ctx context.Context, installed string) mediatools.Latest
 	installYtdlp  func(ctx context.Context, dataDir string) (mediatools.ManagedRecord, error)
 	installFFmpeg func(ctx context.Context, dataDir string) (mediatools.FFmpegRecord, error)
+
+	// fetchingFFmpeg is set while an ffmpeg that was missing is on its way,
+	// and awaitingFFmpeg holds the rows that failed for want of it meanwhile,
+	// each with yt-dlp's sentence. Both are guarded by the App's mu.
+	fetchingFFmpeg bool
+	awaitingFFmpeg map[string]string
 
 	// InstallMissingTools lets the daily update fetch yt-dlp and ffmpeg where
 	// none is found, and makes its first run right at start in that case. The
@@ -91,10 +99,18 @@ const (
 // rather than New, which every test calls. Close stops it and cancels a
 // download in flight.
 func (a *App) StartYtdlpAutoUpdate() {
+	// Known before the first run, which asks about yt-dlp first, so a video
+	// that fails in the meantime waits for the ffmpeg about to come.
+	fetchFFmpeg := a.InstallMissingTools && a.Settings.Get().YtdlpAutoUpdate &&
+		mediatools.CanInstallFFmpeg(a.DataDir) == nil &&
+		mediatools.ResolveFFmpeg(a.DataDir).FFmpegSource == mediatools.SourceNone
+	if fetchFFmpeg {
+		a.beginFFmpegFetch()
+	}
 	a.spawn(func() {
 		first := ytdlpAutoFirstRun
 		st := a.MediaTools()
-		if a.InstallMissingTools && (!st.Ytdlp.Found || !st.FFmpeg.Found) {
+		if fetchFFmpeg || (a.InstallMissingTools && (!st.Ytdlp.Found || !st.FFmpeg.Found)) {
 			first = 0
 		}
 		a.ytdlpAutoLoop(first, ytdlpAutoEvery)
@@ -167,6 +183,8 @@ func (a *App) autoUpdateYtdlp() {
 // A missing one is fetched where InstallMissingTools allows it, and a fetched
 // one is replaced once it is FFmpegRefresh old.
 func (a *App) autoUpdateFFmpeg() {
+	ready := false
+	defer func() { a.endFFmpegFetch(ready) }()
 	if !a.Settings.Get().YtdlpAutoUpdate || !a.InstallMissingTools {
 		return
 	}
@@ -178,8 +196,11 @@ func (a *App) autoUpdateFFmpeg() {
 
 	switch ff := mediatools.ResolveFFmpeg(a.DataDir); ff.FFmpegSource {
 	case mediatools.SourcePath:
+		ready = true
 		return
 	case mediatools.SourceManaged:
+		// A failed refresh leaves the copy in place, so it counts either way.
+		ready = true
 		rec, err := mediatools.LoadFFmpegRecord(a.DataDir)
 		if err == nil && rec != nil && time.Since(rec.FetchedAt) < mediatools.FFmpegRefresh {
 			return
@@ -187,6 +208,7 @@ func (a *App) autoUpdateFFmpeg() {
 		log.Print("ffmpeg: the fetched copy is due, so the daily update fetches the newest build")
 	default:
 		log.Print("ffmpeg: none is installed, so the daily update fetches the newest build")
+		a.beginFFmpegFetch()
 	}
 	rec, err := a.installFFmpeg(a.ctx, a.DataDir)
 	if err != nil {
@@ -198,4 +220,69 @@ func (a *App) autoUpdateFFmpeg() {
 	a.mediaToolsProber().Invalidate()
 	a.rewireBackends()
 	log.Printf("ffmpeg: fetched %s (%s) and put it in force", rec.Version, rec.Asset)
+	ready = true
+}
+
+func (a *App) beginFFmpegFetch() {
+	a.mu.Lock()
+	a.fetchingFFmpeg = true
+	a.mu.Unlock()
+}
+
+// awaitFFmpegLocked puts a row that failed for want of ffmpeg back in the
+// queue while one is being fetched, and reports whether it did. The run left
+// nothing to carry on with, so the next one starts afresh. Caller holds a.mu.
+func (a *App) awaitFFmpegLocked(t *core.Task) bool {
+	if !a.fetchingFFmpeg {
+		return false
+	}
+	if a.awaitingFFmpeg == nil {
+		a.awaitingFFmpeg = map[string]string{}
+	}
+	a.awaitingFFmpeg[t.ID] = t.Error
+	t.Status = core.StatusQueued
+	t.ClearFailure()
+	t.Loaded, t.Speed = 0, 0
+	t.Note = ""
+	t.StalledSince = time.Time{}
+	delete(a.active, t.ID)
+	delete(a.started, t.ID)
+	if !slices.Contains(a.queue, t.ID) {
+		a.queue = append(a.queue, t.ID)
+	}
+	return true
+}
+
+// endFFmpegFetch lets the rows that waited for the fetch go: to the dispatcher
+// when an ffmpeg is in place, to the failure they met when not. On shutdown
+// they stay queued, and the next start fetches again.
+func (a *App) endFFmpegFetch(ready bool) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if !a.fetchingFFmpeg || a.ctx.Err() != nil {
+		return
+	}
+	a.fetchingFFmpeg = false
+	held := a.awaitingFFmpeg
+	a.awaitingFFmpeg = nil
+	var settled []taskCopy
+	for id, sentence := range held {
+		t := a.tasks[id]
+		// A row paused or removed meanwhile is no longer waiting.
+		if ready || t == nil || t.Status != core.StatusQueued {
+			continue
+		}
+		a.dequeueLocked(id)
+		t.Status = core.StatusError
+		t.Reason = core.ReasonNoFFmpeg
+		t.SetError(sentence, core.CodeNoFFmpeg, nil)
+		t.GaveUp = true
+		t.Waiting = core.WaitingNone
+		a.forgetLinkLocked(t)
+		settled = append(settled, a.copyLocked(t))
+	}
+	a.dispatchLocked()
+	if len(settled) > 0 {
+		a.spawn(func() { a.publishTasks(settled) })
+	}
 }

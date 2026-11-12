@@ -175,7 +175,7 @@ export interface Task {
    * server updates whenever an account or the settings change. Callers fall
    * back for values a newer server may add.
    */
-  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'spare' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap' | 'module' | 'premium';
+  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'spare' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap' | 'module' | 'premium' | 'ffmpeg';
   /**
    * When the bytes stopped, so the age of a stall is computed on every render.
    * Not persisted: it describes a connection this process holds open.

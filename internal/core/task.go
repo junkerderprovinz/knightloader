@@ -165,6 +165,10 @@ const (
 	// collected link carries it too, so the collector says what starting it
 	// would do.
 	WaitingPremium Waiting = "premium"
+	// WaitingFFmpeg is a yt-dlp download that failed for want of ffmpeg while
+	// the desktop app was fetching one. It starts again once the fetch is
+	// over, and settles as ReasonNoFFmpeg if the fetch failed.
+	WaitingFFmpeg Waiting = "ffmpeg"
 )
 
 // Origin is the intake path a link arrived by: the paste box, the watch

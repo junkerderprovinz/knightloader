@@ -49,6 +49,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   take far more memory than it should.** The brotli library is at 1.2.8
   (GO-2026-6888).
 
+### Fixed
+
+- **A YouTube video sent right after installing the desktop app no longer
+  fails with "No ffmpeg".** The app fetches ffmpeg when it first starts, and a
+  video that needs it now shows "Waiting for ffmpeg" and starts once ffmpeg is
+  in place ([#169](https://github.com/junkerderprovinz/knightloader/issues/169)).
+
 ## [2.8.0] - 2026-11-12
 
 ### Added
