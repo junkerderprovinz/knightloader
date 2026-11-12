@@ -1,7 +1,7 @@
 // FortressSection is KnightLoader's place in the fortress, on the Pairing page:
-// GlimStone's fortress with the twelve words to join, the phrase behind the
-// password and the other apps with their permissions, then the name of this
-// server and the card where the phrase changes and KnightLoader leaves.
+// the card where the phrase shows and changes and KnightLoader leaves, the name
+// of this server, then GlimStone's fortress with the other apps and their
+// permissions, or the twelve words to join one.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fill, fortressText, type ChangeAnswer, type FortressAnswer, type FortressText, type PhraseAnswer } from '@glimstone/core';
 import { Fortress, FortressPairing } from '@glimstone/react/Fortress';
@@ -11,6 +11,7 @@ import { Card, SectionTitle, TextInput } from '../../../components/ui';
 import {
   ApiError,
   changeFortressPhrase,
+  type ConnectInfo,
   joinFortress,
   leaveFortress,
   setFortressDevice,
@@ -23,7 +24,7 @@ import { useT } from '../../../lib/i18n';
 import { useToast } from '../../../lib/toast';
 import { SetRow } from './parts';
 import { refusalText } from './PhraseCard';
-import { SELF, fortressApps, fortressPermissions, permissionOf } from './fortressModel';
+import { SELF, fortressApps, fortressPermissions, permissionOf, phraseCode } from './fortressModel';
 
 type T = ReturnType<typeof useT>['t'];
 
@@ -35,12 +36,15 @@ export function FortressSection({
   view,
   onView,
   onRefresh,
+  group,
   hueStart,
 }: {
   view: FortressState;
   onView: (v: FortressState) => void;
   /** Asks for the whole page again: joining and leaving move the pairing too. */
   onRefresh: () => void;
+  /** The group, whose relay the QR code beside the phrase names for the Android app. */
+  group: ConnectInfo | null;
   hueStart: number;
 }) {
   const { t, lang } = useT();
@@ -115,6 +119,23 @@ export function FortressSection({
 
   return (
     <section id="fortress" className="flex scroll-mt-6 flex-col gap-10">
+      {view.joined && (
+        <>
+          <FortressPairing
+            text={{ ...text, pairing: t('pairing.fortressTitle') }}
+            lang={lang}
+            app={SELF}
+            onShowPhrase={view.phrase ? onShowPhrase : undefined}
+            phrasePassword={view.passwordSet}
+            phraseQr={group ? (words) => phraseCode(words, group) : undefined}
+            onChangePhrase={view.phrase ? onChangePhrase : undefined}
+            onLeave={onLeave}
+            pairedWith={view.pairedWith}
+            hueIndex={hueStart}
+          />
+          <DeviceCard view={view} onView={onView} hue={hueStart + 1} />
+        </>
+      )}
       <Fortress
         text={text}
         lang={lang}
@@ -126,25 +147,9 @@ export function FortressSection({
         notify={(message, severity) => toast(message, TONE[severity])}
         onJoin={onJoin}
         onRemove={() => Promise.resolve({ error: text.failed })}
-        onShowPhrase={view.phrase ? onShowPhrase : undefined}
-        phrasePassword={view.passwordSet}
         pairedWith={view.pairedWith}
-        hueStart={hueStart}
+        hueStart={hueStart + 2}
       />
-      {view.joined && (
-        <>
-          <DeviceCard view={view} onView={onView} hue={hueStart + apps.length + 2} />
-          <FortressPairing
-            text={{ ...text, pairing: t('pairing.fortressTitle') }}
-            lang={lang}
-            app={SELF}
-            onLeave={onLeave}
-            onChangePhrase={view.phrase ? onChangePhrase : undefined}
-            pairedWith={view.pairedWith}
-            hueIndex={hueStart + apps.length + 3}
-          />
-        </>
-      )}
       {asking && (
         <ChangePassword
           text={text}

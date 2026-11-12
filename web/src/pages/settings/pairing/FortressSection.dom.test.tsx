@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 // The fortress on the Pairing page: outside one, the twelve words join it;
-// inside, the phrase shows behind the password with its QR code, and the
-// phrase changes and KnightLoader leaves from the Fortress card.
+// inside, the Fortress card on top shows the phrase behind the password with
+// its QR code, changes it and lets KnightLoader leave.
 import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { FortressState } from '../../../lib/api';
+import type { ConnectInfo, FortressState } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { interpolate } from '../../../lib/interpolate';
 import { en } from '../../../lib/locales/en';
@@ -78,11 +78,12 @@ function state(over: Partial<FortressState> = {}): FortressState {
   };
 }
 const joined = (over: Partial<FortressState> = {}) => state({ joined: true, phrase: true, ...over });
+const GROUP = { relayMode: 'project', relayUrl: '', projectRelayUrl: 'wss://parleyport.halleluja.design/relay/connect' } as ConnectInfo;
 
 /** The section with the page's state around it, so an answer reaches it. */
 function Host({ start }: { start: FortressState }) {
   const [view, setView] = useState(start);
-  return <FortressSection view={view} onView={setView} onRefresh={() => server.calls.push('refresh')} hueStart={7} />;
+  return <FortressSection view={view} onView={setView} onRefresh={() => server.calls.push('refresh')} group={GROUP} hueStart={7} />;
 }
 
 let root: Root;
@@ -203,6 +204,18 @@ describe('FortressSection', () => {
     expect(hook('moves')?.textContent).toBe(
       'KnightLoader is already paired with attic. Joining moves that pairing into the fortress, so there is nothing to pair again.',
     );
+  });
+
+  it('holds showing, changing and leaving in the Fortress card above the other apps', async () => {
+    await draw(joined());
+    const card = document.querySelector('[data-glim="FortressPairing"]')!;
+    expect(card.textContent).toContain(en['pairing.fortressTitle']);
+    expect(card.contains(hook('show'))).toBe(true);
+    expect(card.contains(hook('open-change'))).toBe(true);
+    expect(card.contains(hook('open-leave'))).toBe(true);
+    const fortress = document.querySelector('[data-glim="Fortress"]')!;
+    expect(card.compareDocumentPosition(fortress) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(fortress.querySelector('[data-fortress="show"]')).toBeNull();
   });
 
   it('shows the phrase with its QR code only after the password', async () => {

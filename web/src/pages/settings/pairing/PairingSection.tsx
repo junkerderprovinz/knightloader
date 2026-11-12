@@ -92,7 +92,7 @@ export function PairingSection({
           hue={6}
         />
       )}
-      {fortress && <FortressSection view={fortress} onView={takeFortress} onRefresh={load} hueStart={7} />}
+      {fortress && <FortressSection view={fortress} onView={takeFortress} onRefresh={load} group={group} hueStart={7} />}
     </section>
   );
 }

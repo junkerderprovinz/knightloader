@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { FortressMember } from '../../../lib/api';
 import { en } from '../../../lib/locales/en';
-import { fortressApps, fortressPermissions, permissionOf } from './fortressModel';
+import { fortressApps, fortressPermissions, permissionOf, phraseCode } from './fortressModel';
 
 const t = (key: keyof typeof en, vars: Record<string, string | number> = {}) =>
   en[key].replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name]));
@@ -88,5 +88,28 @@ describe('fortressPermissions', () => {
       action: 'jobs.list',
       on: false,
     });
+  });
+});
+
+describe('phraseCode', () => {
+  const words = ['abandon', 'about'];
+  const project = 'wss://parleyport.halleluja.design/relay/connect';
+  const code = (relayMode: 'project' | 'own' | 'off', relayUrl: string) => phraseCode(words, { relayMode, relayUrl, projectRelayUrl: project });
+
+  it('carries the words alone on the project relay or none', () => {
+    expect(code('project', project)).toBe('abandon about');
+    expect(code('off', '')).toBe('abandon about');
+  });
+
+  it('names an own relay on a second line as the socket the app dials', () => {
+    expect(code('own', 'https://relay.example.com')).toBe('abandon about\nwss://relay.example.com/relay/connect');
+    expect(code('own', 'http://10.0.0.5:8080/alpha/')).toBe('abandon about\nws://10.0.0.5:8080/alpha/relay/connect');
+    expect(code('own', 'wss://example.com/r/connect')).toBe('abandon about\nwss://example.com/r/connect');
+  });
+
+  it('leaves out an own relay that is the project relay or no address', () => {
+    expect(code('own', 'https://parleyport.halleluja.design')).toBe('abandon about');
+    expect(code('own', 'relay.example.com')).toBe('abandon about');
+    expect(code('own', 'ftp://relay.example.com')).toBe('abandon about');
   });
 });
