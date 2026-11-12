@@ -40,6 +40,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [2.8.1] - 2026-11-12
 
+### Changed
+
+- **The desktop installer downloads ffmpeg, Java and JDownloader while it
+  installs,** each with its own progress, so the app has everything at its
+  first start. Without a connection the app fetches them itself, as before,
+  and the last page of the installer says why.
+
 ### Security
 
 - **A rare race in Go's HTTP server could crash KnightLoader's web server.**

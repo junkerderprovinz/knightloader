@@ -1011,7 +1011,11 @@ Instances of this version refuse a relay call that is not stamped against being 
 - **Open folder in the Windows desktop app shows the download's own folder,** also when the path holds a space, a comma or an \`&\`.
 - **A second Linux desktop copy with its own data folder starts.**
 - **Uninstalling the desktop app on Windows leaves nothing behind,** and the installer window shows KnightLoader's icon on Linux. The installer follows [PommelPorter 1.1.5](https://github.com/junkerderprovinz/pommelporter/releases/tag/v1.1.5).
-`,"2.8.1":`A security update: KnightLoader is built with Go 1.27.4 and a newer brotli library. Questions go to the support thread, bugs and ideas to issues.
+`,"2.8.1":`The desktop installer brings everything along, a video waits for ffmpeg instead of failing, and KnightLoader is built with Go 1.27.4. Questions go to the support thread, bugs and ideas to issues.
+
+## ⚡ Improved
+
+- **The desktop installer downloads ffmpeg, Java and JDownloader while it installs,** each with its own progress, so the app has everything at its first start. Without a connection the app fetches them itself, as before, and the last page of the installer says why.
 
 ## 🔒 Security
 
@@ -1865,7 +1869,11 @@ Instances of this version refuse a relay call that is not stamped against being 
 - **Open folder in the Windows desktop app shows the download's own folder,** also when the path holds a space, a comma or an \`&\`.
 - **A second Linux desktop copy with its own data folder starts.**
 - **Uninstalling the desktop app on Windows leaves nothing behind,** and the installer window shows KnightLoader's icon on Linux. The installer follows [PommelPorter 1.1.5](https://github.com/junkerderprovinz/pommelporter/releases/tag/v1.1.5).
-`,"2.8.1":`A security update: KnightLoader is built with Go 1.27.4 and a newer brotli library. Questions go to the support thread, bugs and ideas to issues.
+`,"2.8.1":`The desktop installer brings everything along, a video waits for ffmpeg instead of failing, and KnightLoader is built with Go 1.27.4. Questions go to the support thread, bugs and ideas to issues.
+
+## ⚡ Improved
+
+- **The desktop installer downloads ffmpeg, Java and JDownloader while it installs,** each with its own progress, so the app has everything at its first start. Without a connection the app fetches them itself, as before, and the last page of the installer says why.
 
 ## 🔒 Security
 
