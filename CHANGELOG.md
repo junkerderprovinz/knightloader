@@ -57,9 +57,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   every quality and format this one video offers, each with its size and
   under its proper name, such as H.264, VP9, AAC or Opus, along with its
   audio languages and its subtitles as SRT, WebVTT or TTML. Audio can also
-  come as MP3 or FLAC, and a format KnightLoader converts to says so. A pick
-  that differs from what is
-  already in your list downloads as a row of its own, named after its
+  come as MP3 or FLAC, and a format KnightLoader converts to says so. A
+  quality at 60 fps or in HDR carries a small badge saying so. A pick that
+  differs from what is already in your list downloads as a row of its own, named after its
   codec where another row has the same height. After a send, a ring around
   the mark follows the download and "Done" opens your downloads. With more
   than one instance online, the toolbar popup asks where the video goes.
