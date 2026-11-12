@@ -212,8 +212,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   tab at once. It needs access to these sites only, which Click'n'Load's
   access to all websites already includes. For this, `POST /api/links` takes
   a `format` of `video`, `audio` or a resolution, which stands in for the
-  host's preset for that link
-  ([#156](https://github.com/junkerderprovinz/knightloader/discussions/156)).
+  host's preset for that link. Thanks to @sabascos for the idea.
 - **A Deepbrid premium account fetches torrents and `.nzb` files**, like
   TorBox and Premiumize.me ([#157](https://github.com/junkerderprovinz/knightloader/issues/157)).
 
