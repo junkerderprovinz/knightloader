@@ -375,7 +375,9 @@ for (const stored of [false, undefined]) {
   }
 }
 
-// 4. The site access decides.
+// 4. The site access decides. The video button on all other sites runs on
+// the same access, so its script comes and goes with Click'n'Load's two.
+const cnlScripts = (live) => [...live.keys()].filter((id) => id !== 'video-button').length;
 {
   // A fresh install wants the feature but has no access yet.
   const { chrome, calls, live, store } = makeChrome({ withMenus: true, granted: false });
@@ -396,7 +398,8 @@ for (const stored of [false, undefined]) {
     access.granted = true;
     for (const f of chrome.permissions.onAdded.listeners) f({ origins: ['<all_urls>'] });
     await settle();
-    if (live.size !== 2 || lastRuleset(calls) !== 'on') fail(`granting the access left ${live.size} script(s) and the ruleset ${lastRuleset(calls)}, want 2 and on`);
+    if (cnlScripts(live) !== 2 || lastRuleset(calls) !== 'on') fail(`granting the access left ${cnlScripts(live)} Click'n'Load script(s) and the ruleset ${lastRuleset(calls)}, want 2 and on`);
+    if (!live.has('video-button')) fail('granting the access to all websites does not bring the video button to all other sites');
     access.granted = false;
     for (const f of chrome.permissions.onRemoved.listeners) f({ origins: ['<all_urls>'] });
     await settle();
@@ -416,8 +419,8 @@ for (const stored of [false, undefined]) {
     for (const f of chrome.permissions.onAdded.listeners) f({ origins: ['<all_urls>'] });
     for (const f of chrome.storage.onChanged.listeners) f({ cnlEnabled: { newValue: true } }, 'local');
     await settle();
-    if (live.size !== 2 || lastRuleset(calls) !== 'on') {
-      fail(`a grant and the stored switch arriving together left ${live.size} script(s) and the ruleset ${lastRuleset(calls)}; overlapping syncs register the same id twice`);
+    if (cnlScripts(live) !== 2 || lastRuleset(calls) !== 'on') {
+      fail(`a grant and the stored switch arriving together left ${cnlScripts(live)} Click'n'Load script(s) and the ruleset ${lastRuleset(calls)}; overlapping syncs register the same id twice`);
     }
   }
 }

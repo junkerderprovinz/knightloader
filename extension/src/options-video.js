@@ -3,9 +3,11 @@
 // video, the place it was dragged to, and per site whether it shows there and
 // what a click downloads, offering only what the site has offered so far,
 // and the keyboard shortcut that sends as a click does.
-// Switching on asks the browser for the sites it needs. Switching off keeps
-// what the browser granted, so switching on again needs no question, and
-// leaves every row in view with its controls switched off.
+// Switching on asks the browser for the sites it needs. All other sites run on
+// the access to all websites, which is asked for on their own switch, so a
+// "no" to it keeps the button on the named sites. Switching off keeps what the
+// browser granted, so switching on again needs no question, and leaves every
+// row in view with its controls switched off.
 
 const videoEnabledEl = document.getElementById('videoEnabled');
 const videoNoticeEl = document.getElementById('videoNotice');
@@ -125,7 +127,7 @@ async function renderVideo() {
   // Every change redraws the sites, so the keyboard goes back to the control
   // it was on.
   const focusKey = document.activeElement?.dataset?.videoKey;
-  videoSitesEl.replaceChildren(...VIDEO_SITES.map(videoSiteBlock));
+  videoSitesEl.replaceChildren(...VIDEO_SITES.map(videoSiteBlock), videoSiteBlock({ ...VIDEO_OTHER, name: t('options.videoOtherSites') }));
   // Off, the rows stay in view, so what the button will do can be read and
   // found, and each control refuses on its own.
   for (const el of videoMoreEl.querySelectorAll('button, select, input')) el.disabled = !videoNow.on;
@@ -165,7 +167,7 @@ function videoSiteBlock(site) {
   const toggle = videoSwitch(on, site.name);
   toggle.dataset.videoKey = `${site.id}-shown`;
   toggle.addEventListener('click', async () => {
-    const hidden = VIDEO_SITES.map((s) => s.id).filter((id) => !videoNow.shown.includes(id));
+    const hidden = VIDEO_ALL_SITES.map((s) => s.id).filter((id) => !videoNow.shown.includes(id));
     if (on) {
       await chrome.storage.local.set({ videoButtonHidden: [...hidden, site.id] });
       return;
@@ -344,9 +346,11 @@ videoEnabledEl.addEventListener('click', async () => {
     await chrome.storage.local.set({ videoButton: false });
     return;
   }
-  // Hidden on every site, switching it on shows it everywhere again.
-  const sites = videoNow.shown.length ? videoNow.shown : VIDEO_SITES.map((s) => s.id);
-  const missing = sites.filter((id) => !videoNow.granted.includes(id));
+  // Hidden on every site, switching it on shows it everywhere again. The
+  // access to all websites is asked for here only when no named site is left.
+  const sites = videoNow.shown.length ? videoNow.shown : VIDEO_ALL_SITES.map((s) => s.id);
+  const named = sites.filter((id) => id !== VIDEO_OTHER.id);
+  const missing = (named.length ? named : sites).filter((id) => !videoNow.granted.includes(id));
   const granted = missing.length === 0 || (await chrome.permissions.request(videoAccess(missing)).catch(() => false));
   videoRefused = !granted;
   await chrome.storage.local.set({ videoButton: granted, ...(videoNow.shown.length ? {} : { videoButtonHidden: [] }) });

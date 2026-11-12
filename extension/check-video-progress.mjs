@@ -178,7 +178,7 @@ function loadBackground(chrome) {
     const got = await ask(msg);
     if (got != null || calls.length) fail(`asked with ${why}, the worker calls ${calls.map((c) => c.path).join(', ')} and answers ${JSON.stringify(got)}`);
   }
-  if ((await ask({ type: 'knightloader-video-progress', instance: 'inst-1', ids: ['a1'] }, 'https://example.org/')) !== undefined) fail('a page without the button is answered');
+  if ((await ask({ type: 'knightloader-video-progress', instance: 'inst-1', ids: ['a1'] }, 'chrome-extension://test/options.html')) !== undefined) fail('a frame that is no web page is answered');
   answers['/api/tasks'] = { status: 502, body: '' };
   if ((await ask({ type: 'knightloader-video-progress', instance: 'inst-1', ids: ['a1'] })) !== null) fail('an instance that does not answer is read as a state');
 

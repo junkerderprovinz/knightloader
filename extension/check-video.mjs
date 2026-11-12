@@ -5,22 +5,25 @@
  *
  *   1. Every form a video's page comes in sends the one address the video
  *      goes by, the playlist only when asked, and a page that plays no one
- *      video sends nothing.
+ *      video sends nothing. Any other web page goes as it is.
  *   2. The sites are a short list of https addresses inside the optional
  *      access, none of them a static content script, and each is a site
- *      yt-dlp on the instance knows.
+ *      yt-dlp on the instance knows. All other sites run on the access to
+ *      all websites that Click'n'Load shares.
  *   3. A site's stored defaults become the choice a click sends, cleaned of
  *      anything the instance would refuse. What the instance says a video
  *      has rules out what it lacks and makes a pick exact for it, and is
  *      kept per site for the options page. A dragged button is stored as
  *      shares of its player, kept inside it, so it keeps its place when the
  *      player changes size. Auto-hide shows the button only with the pointer
- *      over the video or while it is in use.
+ *      over the video or while it is in use. On other sites only a video
+ *      somebody watches counts.
  *   4. The worker registers the button only where it runs, sends only the
  *      video of the page that asked, to start at once with its choice, and
  *      tells the button whether it was sent, was held back or was there
  *      already. The menu lists what the instance says the video has, and
- *      what it offered is kept for the site.
+ *      what it offered is kept for the site. A page of another site is
+ *      checked once per origin and path for the session.
  *   5. On the page, a click sends the site's defaults and the menu a pick of
  *      its own from what the video has, a success cheers with stars (a
  *      colour flash alone with reduced motion) and a refusal does not, the
@@ -38,7 +41,8 @@
  *      default opens none of Firefox's menus.
  *   7. The options card shows the shortcut, changes and resets it in Firefox
  *      within the shortcuts Firefox takes, and in Chromium opens the
- *      browser's shortcuts page.
+ *      browser's shortcuts page. Its well for all other sites is built as a
+ *      site's is and asks for the access to all websites on its own switch.
  *
  * Run by CI and by hand: `node extension/check-video.mjs`
  */
@@ -85,6 +89,7 @@ function makeStore(initial = {}) {
 function makeChrome(store, { granted = ['<all_urls>'] } = {}) {
   const calls = { registered: [], unregistered: [], injected: [], tabs: [] };
   const live = new Map();
+  const session = {};
   const chrome = {
     runtime: {
       onInstalled: event(), onMessage: event(), onStartup: event(), onConnect: event(),
@@ -95,7 +100,11 @@ function makeChrome(store, { granted = ['<all_urls>'] } = {}) {
     storage: {
       onChanged: store.onChanged,
       local: store.local,
-      session: { get: async () => ({}), set: async () => {}, remove: async () => {} },
+      session: {
+        get: async (k) => (k == null ? { ...session } : Object.fromEntries([].concat(k).filter((x) => x in session).map((x) => [x, session[x]]))),
+        set: async (o) => { Object.assign(session, o); },
+        remove: async (k) => { for (const x of [].concat(k)) delete session[x]; },
+      },
     },
     permissions: {
       onAdded: event(), onRemoved: event(),
@@ -127,7 +136,7 @@ function makeChrome(store, { granted = ['<all_urls>'] } = {}) {
       onRemoved: event(),
     },
   };
-  return { chrome, calls, live };
+  return { chrome, calls, live, session };
 }
 
 // 1. The address each form of a page sends.
@@ -165,16 +174,42 @@ function makeChrome(store, { granted = ['<all_urls>'] } = {}) {
     'https://www.youtube.com/watch?v=short',
     'https://www.youtube.com/@BlenderOfficial',
     'http://www.youtube.com/watch?v=aqz-KE-bpKQ',
-    'https://www.youtube.com.example.org/watch?v=aqz-KE-bpKQ',
     'https://music.youtube.com/watch?v=aqz-KE-bpKQ',
+    'https://player.vimeo.com/video/1084537',
     'https://vimeo.com/channels/staffpicks',
     'https://www.twitch.tv/somechannel',
     'https://clips.twitch.tv/embed',
     'https://www.bilibili.com/',
     'not a url',
+    'ftp://files.example.org/clip.mp4',
+    'file:///home/me/clip.mp4',
+    'chrome-extension://test/options.html',
   ]) {
     if (page(href)) fail(`${href} sends ${page(href).url}, want nothing`);
   }
+
+  // Any other web page goes as it is, without the part after #, under the
+  // switch for all other sites. A host that only looks like one of the sites
+  // is another site.
+  for (const [href, url] of [
+    ['https://clips.example.org/watch/7?lang=de#t=42', 'https://clips.example.org/watch/7?lang=de'],
+    ['http://tv.example.net/live', 'http://tv.example.net/live'],
+    ['https://www.youtube.com.example.org/watch?v=aqz-KE-bpKQ', 'https://www.youtube.com.example.org/watch?v=aqz-KE-bpKQ'],
+  ]) {
+    const got = page(href);
+    if (got?.site !== 'other' || got.url !== url || got.playlist !== '') fail(`${href} reads as ${JSON.stringify(got)}, want another site's page at ${url}`);
+  }
+  const key = vm.runInContext('videoCheckKey', ctx);
+  if (key('https://clips.example.org/watch/7?lang=de#t=42') !== 'https://clips.example.org/watch/7' || key('not a url') !== '') fail('the check is not kept by origin and path');
+  const own = vm.runInContext('videoOwnPage', ctx);
+  const other = page('https://clips.example.org/watch/7');
+  if (!own('https://clips.example.org/watch/8', other) || own('https://evil.example.com/watch/7', other) || own('https://www.youtube.com/watch?v=aqz-KE-bpKQ', other)) {
+    fail('a frame may speak for a page of another site outside its own origin, or not for one of its own');
+  }
+  if (!own('https://m.youtube.com/', page(`https://www.youtube.com/watch?v=${ID}`)) || own('https://clips.example.org/', page(`https://www.youtube.com/watch?v=${ID}`))) fail('a frame speaks for a video of another site, or not for one of its own');
+  const title = vm.runInContext('videoTitle', ctx);
+  if (title('Big Buck Bunny - YouTube', 'other') !== 'Big Buck Bunny - YouTube') fail('the tab title of another site loses a part it never added');
+  if (vm.runInContext(`videoName('https://clips.example.org/')`, ctx) !== 'clips.example.org') fail(`a page of another site at its root is called ${vm.runInContext(`videoName('https://clips.example.org/')`, ctx)}`);
 }
 
 // 2. The sites.
@@ -193,6 +228,10 @@ function makeChrome(store, { granted = ['<all_urls>'] } = {}) {
       if (!hostsGo.includes(`"${domain}"`)) fail(`${s.id} (${domain}) is not a site internal/resolver/ytdlp/hosts.go knows`);
     }
   }
+  const all = vm.runInContext('VIDEO_OTHER', ctx);
+  if (all.origins.join() !== '<all_urls>' || !optional.includes('<all_urls>')) fail(`all other sites run on ${all.origins}, want the optional access to all websites`);
+  const cnl = read('src', 'shared.js').match(/const CNL_ACCESS = \{ origins: \[([^\]]*)\] \}/)?.[1];
+  if (cnl !== `'${all.origins[0]}'`) fail(`all other sites ask for ${all.origins}, Click'n'Load for ${cnl}, want the one access both share`);
   const staticScripts = (manifest.content_scripts ?? []).flatMap((c) => c.js ?? []);
   if (staticScripts.some((f) => f.startsWith('video'))) fail('the button is a static content script, which would need its access at install');
   if ((manifest.host_permissions ?? []).length) fail(`the manifest asks for host access at install: ${manifest.host_permissions.join(', ')}`);
@@ -543,24 +582,60 @@ function loadBackground(chrome) {
   for (const k of ['hovering', 'focused', 'menuOpen', 'dragging', 'busy']) {
     if (!shows({ autoHide: true, [k]: true })) fail(`with auto-hide the button hides while ${k}`);
   }
+
+  // On another site only a video somebody watches is asked about: a player's
+  // size, at least half on screen, started, and not a muted loop or a muted
+  // video that started itself without controls.
+  const watched = vm.runInContext('videoWatched', ctx);
+  const playing = { width: 1280, height: 720, seen: 1, muted: false, controls: false, autoplay: false, loop: false, paused: false, time: 3 };
+  for (const [change, want, why] of [
+    [{}, true, 'a player that plays'],
+    [{ paused: true }, true, 'a player paused after it played'],
+    [{ controls: true, muted: true, autoplay: true }, true, 'a muted video that starts itself with its controls showing'],
+    [{ muted: true }, true, 'a video the viewer muted'],
+    [{ width: 199 }, false, 'a video under 200px wide'],
+    [{ height: 111 }, false, 'a video under 112px tall'],
+    [{ width: 160, height: 90 }, false, 'a small preview'],
+    [{ seen: 0.4 }, false, 'a video mostly off screen'],
+    [{ seen: 0 }, false, 'a video off screen'],
+    [{ paused: true, time: 0 }, false, 'a poster waiting for a click'],
+    [{ muted: true, autoplay: true }, false, 'a muted video that starts itself without controls'],
+    [{ muted: true, loop: true }, false, 'a muted loop without controls'],
+  ]) {
+    if (watched({ ...playing, ...change }) !== want) fail(`${why} ${want ? 'is not' : 'is'} taken for a video somebody watches`);
+  }
+
+  // What a click downloads on all other sites follows their own defaults, and
+  // the options offer what those sites have offered so far.
+  ctx.stored = { videoDefaults: { other: { parts: ['audio'], audio: 'mp3' }, youtube: { parts: ['video'], quality: '720p' } }, videoSeen: { other: { qualities: ['720p', '480p'], audio: ['aac'] } } };
+  const otherChoice = run(`videoChoice(videoDefaultsFor(stored, 'other'))`);
+  if (!same(otherChoice, { ...best, variants: ['audio'], audioFormat: 'mp3' })) fail(`all other sites send ${JSON.stringify(otherChoice)}, want their own default, the audio as MP3`);
+  if (!same(run(`videoSiteSeen(stored, 'other')`).qualities, ['720p', '480p'])) fail('the options do not offer what other sites have offered');
+  ctx.stored = {};
+  if (!same(run(`videoChoice(videoDefaultsFor(stored, 'other'))`), best)) fail('all other sites with nothing set do not send the best video');
+  if (!run(`videoButtonWanted({}, 'other')`)) fail('the button is not on all other sites with nothing stored');
+  if (run(`videoButtonWanted({ videoButtonHidden: ['other'] }, 'other')`) || !run(`videoButtonWanted({ videoButtonHidden: ['other'] }, 'youtube')`)) fail('hiding the button on all other sites does not hide it there alone');
 }
 
 // 4. The worker.
 {
   const store = makeStore();
-  const { chrome, calls, live } = makeChrome(store);
+  const { chrome, calls, live, session } = makeChrome(store);
   const ctx = loadBackground(chrome);
   await vm.runInContext('applyVideoButton', ctx)();
   const want = vm.runInContext('VIDEO_SITES', ctx).flatMap((s) => s.origins);
   const reg = live.get('video-button');
   if (!reg) fail('with the access granted and nothing stored, the button is not registered');
   else {
-    if (reg.matches.join('|') !== want.join('|')) fail(`the button is registered on ${reg.matches.join(', ')}, want the sites' own addresses`);
+    if (reg.matches.join('|') !== '<all_urls>') fail(`with the access to all websites the button is registered on ${reg.matches.join(', ')}, want every page, for all other sites`);
     if (!reg.allFrames) fail('the button is not registered in frames, so an embedded player never gets it');
   }
   if (!calls.injected.some((o) => o.files?.includes('video-button.js'))) fail('a tab that was open before the button went on does not get it');
 
-  await store.local.set({ videoButtonHidden: ['vimeo'] });
+  await store.local.set({ videoButtonHidden: ['other'] });
+  await settle();
+  if (live.get('video-button')?.matches.join('|') !== want.join('|')) fail(`hidden on all other sites, the button is registered on ${live.get('video-button')?.matches.join(', ')}, want the sites' own addresses`);
+  await store.local.set({ videoButtonHidden: ['other', 'vimeo'] });
   await settle();
   if (live.get('video-button')?.matches.some((m) => m.includes('vimeo'))) fail('the button stays registered on a site it was hidden on');
   await store.local.set({ videoButton: false });
@@ -576,10 +651,11 @@ function loadBackground(chrome) {
   const sent = [];
   let answer = { status: 200, body: '{"tasks":[{"id":"a"}],"listed":[]}' };
   const withGroup = ctx.withGroup;
-  ctx.withGroup = async (work) => work({
+  const oneInstance = async (work) => work({
     siblings: [{ instanceId: 'inst-1' }],
     call: async (target, method, path, body) => { sent.push({ target, method, path, body: body ? JSON.parse(body) : undefined }); return answer; },
   });
+  ctx.withGroup = oneInstance;
   const sendVideo = vm.runInContext('sendVideo', ctx);
   const embed = 'https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?list=PLbpi6ZahtOH6Ar_3GPy3workIMw9vB9wB';
 
@@ -619,6 +695,65 @@ function loadBackground(chrome) {
   menu = await videoFormats('https://www.youtube.com/watch?v=aqz-KE-bpKQ', { href: 'https://vimeo.com/1084537' });
   if (sent.length !== asking || menu.known) fail('a frame on one site could ask about a video of another');
   answer = { status: 200, body: '{"tasks":[{"id":"a"}],"listed":[]}' };
+
+  // On all other sites the button first asks whether yt-dlp downloads the
+  // page, once per origin and path for the session, and the menu gets the
+  // offer that answered.
+  const videoCheck = vm.runInContext('videoCheck', ctx);
+  const clip = 'https://clips.example.org/watch/7?lang=de';
+  const clipAnswer = { status: 200, body: JSON.stringify({ qualities: ['720p'], audio: true, videoTracks: ['720p mp4 avc1'], audioTracks: ['aac 128k'], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true }) };
+  answer = clipAnswer;
+  let asks = sent.length;
+  let check = await videoCheck(clip, { href: `${clip}#t=4` });
+  if (sent.length !== asks + 1 || sent.at(-1).method !== 'GET' || sent.at(-1).path !== `/api/ytdlp/link?url=${encodeURIComponent(clip)}`) fail(`another site's page is checked with ${JSON.stringify(sent.slice(asks))}, want one GET /api/ytdlp/link for its address`);
+  if (check.claims !== true || check.offer?.videoTracks?.join() !== '720p mp4 avc1') fail(`a page yt-dlp downloads answers ${JSON.stringify(check)}, want yes with its offer`);
+  if (JSON.stringify(store.data.videoSeen?.other?.qualities) !== '["720p"]') fail(`all other sites are remembered as offering ${JSON.stringify(store.data.videoSeen?.other)}`);
+  asks = sent.length;
+  check = await videoCheck('https://clips.example.org/watch/7?lang=en', { href: 'https://clips.example.org/watch/7?lang=en' });
+  if (sent.length !== asks || check.claims !== true) fail('a page already checked is asked about again');
+  answer = { status: 502, body: 'ERROR: Unsupported URL: https://blog.example.org/post/1' };
+  const plain = 'https://blog.example.org/post/1';
+  check = await videoCheck(plain, { href: plain });
+  if (check.claims !== false || 'offer' in check) fail(`a page yt-dlp cannot download answers ${JSON.stringify(check)}, want no`);
+  asks = sent.length;
+  await videoCheck(plain, { href: plain });
+  if (sent.length !== asks) fail('a page yt-dlp could not download is asked about again at once');
+  session.videoChecks[plain].at -= 11 * 60 * 1000;
+  await videoCheck(plain, { href: plain });
+  if (sent.length !== asks + 1) fail('a page yt-dlp could not download is never asked about again');
+  answer = clipAnswer;
+  asks = sent.length;
+  const twin = 'https://twin.example.org/v';
+  await Promise.all([videoCheck(twin, { href: twin }), videoCheck(twin, { href: twin })]);
+  if (sent.length !== asks + 1) fail(`two frames of one page checking at once ask ${sent.length - asks} times, want once`);
+  ctx.withGroup = async () => { const e = new Error('no-phrase'); e.code = 'no-phrase'; throw e; };
+  const later = 'https://later.example.org/v';
+  check = await videoCheck(later, { href: later });
+  if (check.claims !== null) fail(`with no instance to ask the check answers ${JSON.stringify(check)}, want nothing known`);
+  ctx.withGroup = oneInstance;
+  asks = sent.length;
+  await videoCheck(later, { href: later });
+  if (sent.length !== asks + 1) fail('a check no instance answered is kept, so the page is never asked about');
+  asks = sent.length;
+  for (const [frame, href] of [['https://evil.example.com/', 'https://fresh.example.org/v'], ['https://www.youtube.com/watch?v=aqz-KE-bpKQ', 'https://www.youtube.com/watch?v=aqz-KE-bpKQ']]) {
+    check = await videoCheck(frame, { href });
+    if (check.claims !== false) fail(`a frame at ${frame} checking ${href} is answered ${JSON.stringify(check)}, want no`);
+  }
+  await store.local.set({ videoButtonHidden: ['other'] });
+  check = await videoCheck('https://fresh.example.org/v', { href: 'https://fresh.example.org/v' });
+  if (check.claims !== false) fail('with the button hidden on all other sites a page there is still checked');
+  answer = { status: 200, body: '{"tasks":[{"id":"a"}],"listed":[]}' };
+  r = await sendVideo(clip, { href: `${clip}#t=4`, pick: { parts: ['audio'], audio: 'mp3' } });
+  if (r.result !== 'refused') fail('with the button hidden on all other sites a send from there still goes out');
+  if (sent.length !== asks) fail(`checks and sends the button may not make reached the instance: ${JSON.stringify(sent.slice(asks))}`);
+  // A send from another site goes as its page's address with the pick's
+  // choice, and only from that page's own origin.
+  await store.local.set({ videoButtonHidden: [] });
+  r = await sendVideo(clip, { href: `${clip}#t=4`, pick: { parts: ['audio'], audio: 'mp3' } });
+  if (r.result !== 'sent' || last()?.links !== clip || last()?.source !== clip || JSON.stringify(last()?.choice?.variants) !== '["audio"]' || last()?.choice?.audioFormat !== 'mp3') fail(`a send from another site's page arrives as ${JSON.stringify(last())}, want its address and the audio as MP3`);
+  asks = sent.length;
+  r = await sendVideo('https://evil.example.com/', { href: clip });
+  if (r.result !== 'refused' || sent.length !== asks) fail('a frame on one origin could send the page of another');
 
   const before = sent.length;
   r = await sendVideo('https://www.youtube.com/watch?v=aqz-KE-bpKQ', { href: 'https://vimeo.com/1084537' });
@@ -663,9 +798,27 @@ function loadBackground(chrome) {
 
   const listener = chrome.runtime.onMessage.listeners.at(-1);
   let answered = false;
-  listener({ type: 'knightloader-video-send', href: embed }, { tab: { id: 1 }, url: 'https://example.org/' }, () => { answered = true; });
+  listener({ type: 'knightloader-video-send', href: embed }, { tab: { id: 1 }, url: 'chrome-extension://test/options.html' }, () => { answered = true; });
   await settle();
-  if (answered) fail('a content script on a site without the button got an answer to a send');
+  if (answered) fail('a frame that is no web page got an answer to a send');
+}
+
+// Without the access to all websites the button stays on the sites it has
+// access to, though all other sites are on, and the first page of another
+// site that asks is answered no without a word to the instance.
+{
+  const store = makeStore();
+  const sites = ['https://www.youtube.com/*', 'https://m.youtube.com/*', 'https://www.youtube-nocookie.com/*', 'https://vimeo.com/*', 'https://www.dailymotion.com/*', 'https://www.twitch.tv/*', 'https://clips.twitch.tv/*', 'https://www.bilibili.com/*'];
+  const { chrome, live } = makeChrome(store, { granted: sites });
+  const ctx = loadBackground(chrome);
+  await vm.runInContext('applyVideoButton', ctx)();
+  const state = await vm.runInContext('videoButtonState', ctx)();
+  if (!state.shown.includes('other') || state.running.includes('other')) fail(`without the access to all websites the button's state is ${JSON.stringify(state)}, want all other sites on but not running`);
+  if (live.get('video-button')?.matches.join('|') !== sites.join('|')) fail(`without the access to all websites the button is registered on ${live.get('video-button')?.matches}, want the five sites`);
+  let asked = 0;
+  ctx.withGroup = async () => { asked++; return null; };
+  const check = await vm.runInContext('videoCheck', ctx)('https://clips.example.org/watch/7', { href: 'https://clips.example.org/watch/7' });
+  if (check.claims !== false || asked) fail('without the access to all websites a page of another site is checked');
 }
 
 /** A small stand-in for the DOM, enough for the button. */
@@ -1523,6 +1676,120 @@ for (const converts of [true, false]) {
   if (shows() !== 'sent "Sent"') fail(`after the popup's pick went through the button shows ${shows()}, want sent`);
 }
 
+// On another site the button waits for a video somebody watches and for the
+// instance to say yt-dlp can download the page. It asks once per page, says
+// nothing to the worker before that, sends the defaults of all other sites,
+// and its menu offers what the check found without asking again.
+{
+  const store = makeStore({ videoDefaults: { other: { parts: ['audio'], audio: 'mp3' }, youtube: { parts: ['video'] } } });
+  const { chrome } = makeChrome(store);
+  const asked = { labels: 0, checks: [], formats: 0 };
+  let claims = true;
+  const sends = [];
+  const offer = {
+    known: true, videoConversions: [], qualities: ['720p'], audio: true, videoTracks: ['720p mp4 avc1'], audioTracks: ['aac 128k'], audioLangs: [],
+    subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: false,
+  };
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') {
+      asked.labels++;
+      return PAGE_LABELS;
+    }
+    if (msg.type === 'knightloader-video-check') {
+      asked.checks.push(msg.href);
+      return claims === null ? undefined : claims ? { claims: true, offer } : { claims: false };
+    }
+    if (msg.type === 'knightloader-video-formats') {
+      asked.formats++;
+      return offer;
+    }
+    if (msg.type === 'knightloader-video-send') {
+      sends.push(msg);
+      return { result: 'sent' };
+    }
+    return undefined;
+  };
+  const { doc, location, run } = loadPage(chrome, 'https://clips.example.org/watch/7#t=3');
+  const player = doc.createElement('div');
+  doc.documentElement.append(player);
+  run();
+  await settle();
+  const button = () => doc.documentElement.querySelectorAll('knightloader-video-button')[0];
+  const tick = async () => {
+    doc.dispatch('yt-navigate-finish');
+    await settle();
+  };
+  if (asked.labels || asked.checks.length || button()) fail('a page of another site without a video asks the worker something or shows the button');
+
+  const clip = (rect, how = {}) => Object.assign(video(doc, player, rect), { muted: false, controls: false, autoplay: false, loop: false, paused: false, currentTime: 2 }, how);
+  for (const [why, rect, how] of [
+    ['a small preview', { left: 0, top: 0, width: 160, height: 90 }, {}],
+    ['a poster waiting for a click', { left: 0, top: 0, width: 1280, height: 720 }, { paused: true, currentTime: 0 }],
+    ['a muted video that started itself without controls', { left: 0, top: 0, width: 1280, height: 720 }, { muted: true, autoplay: true }],
+    ['a muted loop without controls', { left: 0, top: 0, width: 1280, height: 720 }, { muted: true, loop: true }],
+    ['a video off screen', { left: 0, top: 2000, width: 1280, height: 720 }, {}],
+    ['a video mostly below the screen', { left: 0, top: 512, width: 1280, height: 720 }, {}],
+    ['a hidden video', { left: 0, top: 0, width: 1280, height: 720 }, { computed: { visibility: 'hidden' } }],
+  ]) {
+    const v = clip(rect, how);
+    await tick();
+    if (asked.checks.length || button()) fail(`with ${why} on another site the instance is asked or the button shows`);
+    v.remove();
+  }
+
+  const main = clip({ left: 0, top: 56, width: 1280, height: 720 });
+  await tick();
+  if (asked.checks.join() !== 'https://clips.example.org/watch/7') fail(`a video playing on another site asks ${JSON.stringify(asked.checks)}, want its page without the part after # once`);
+  if (!button()) fail('on a page of another site the instance can download the button does not show');
+  else if (button().style.left !== '640px') fail(`on another site the button sits at ${button().style.left}, want the middle of the video's top edge`);
+  if (asked.labels !== 1) fail(`the labels are asked for ${asked.labels} times, want once the button shows`);
+  await tick();
+  if (asked.checks.length !== 1) fail('a page of another site is asked about again on every look');
+
+  const shadow = button()?.shadow;
+  shadow?.querySelectorAll('button').find((b) => b.className === 'send').fire('click');
+  await settle();
+  if (JSON.stringify(sends.at(-1)?.pick) !== '{"parts":["audio"],"quality":"best","videoFormat":"best","audio":"mp3","audioRate":"best","subLangs":[],"subFormat":"srt"}') fail(`a click on another site sends ${JSON.stringify(sends.at(-1)?.pick)}, want the defaults of all other sites`);
+  shadow?.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'dialog').fire('click');
+  await settle();
+  const menu = shadow?.querySelectorAll('div').find((d) => d.attrs.role === 'dialog');
+  const shown = menu?.querySelectorAll('*').filter((n) => n.text).map((n) => n.text).join('|') ?? '';
+  if (asked.formats || /Checking/.test(shown) || !shown.includes('Audio|Quality|Best|128k')) fail(`the menu on another site asks ${asked.formats} times and shows ${shown}, want the check's offer at once`);
+  shadow?.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'dialog').fire('click');
+
+  // Paused, or scrolled half away, the video keeps the button it has.
+  Object.assign(main, { paused: true, currentTime: 0 });
+  main.rect = { left: 0, top: 500, width: 1280, height: 720, right: 1280, bottom: 1220 };
+  await tick();
+  if (!button()) fail('the button leaves a video on another site that was paused or scrolled half away');
+  Object.assign(main, { paused: false, currentTime: 9 });
+  main.rect = { left: 0, top: 56, width: 1280, height: 720, right: 1280, bottom: 776 };
+
+  // A page yt-dlp cannot download gets no button and is asked once, the same
+  // path with another query not again; one no instance answered is not asked
+  // again at once.
+  claims = false;
+  location.href = 'https://clips.example.org/watch/8';
+  await tick();
+  await tick();
+  if (button() || asked.checks.length !== 2) fail(`on a page yt-dlp cannot download the button shows or the page is asked ${asked.checks.length - 1} times`);
+  location.href = 'https://clips.example.org/watch/8?from=feed';
+  await tick();
+  if (asked.checks.length !== 2) fail('a page with another query is asked about again');
+  claims = null;
+  location.href = 'https://clips.example.org/watch/9';
+  await tick();
+  await tick();
+  if (button() || asked.checks.length !== 3) fail(`with no instance answering the button shows or the page is asked ${asked.checks.length - 2} times at once`);
+
+  // Hiding the button on all other sites takes it off a page it shows on.
+  location.href = 'https://clips.example.org/watch/7';
+  await tick();
+  if (!button()) fail('back on a page the instance can download the button does not come back');
+  await store.local.set({ videoButtonHidden: ['other'] });
+  if (button()) fail('hidden on all other sites, the button stays');
+}
+
 // 6. The keyboard shortcut sends the video in the active tab, through the
 // button on its page, as a click would.
 {
@@ -1553,16 +1820,20 @@ for (const converts of [true, false]) {
     if (asked.length !== 1 || got.tabId !== 3 || got.msg?.type !== 'knightloader-video-shortcut' || got.options?.frameId !== 0) {
       fail(`on a watch page the shortcut asks ${JSON.stringify(asked)}, want the top frame of tab 3 to send once`);
     }
+    // On another site the page's own button decides, since only it knows
+    // whether the instance can download the page.
+    await press({ id: 4, url: 'https://clips.example.org/watch/7' });
+    if (asked.at(-1)?.tabId !== 4) fail('on another site the shortcut does not ask the page');
     const first = asked.length;
     await press(watch, 'something-else');
-    await press({ id: 4, url: 'https://example.org/watch?v=aqz-KE-bpKQ' });
     await press({ id: 5, url: 'https://www.youtube.com/feed/subscriptions' });
     await press({ id: 6 });
-    await store.local.set({ videoButtonHidden: ['youtube'] });
+    await store.local.set({ videoButtonHidden: ['youtube', 'other'] });
     await press(watch);
+    await press({ id: 4, url: 'https://clips.example.org/watch/7' });
     await store.local.set({ videoButtonHidden: [], videoButton: false });
     await press(watch);
-    if (asked.length !== first) fail(`another command, a page without a video or a site the button is off on still sent: ${JSON.stringify(asked.slice(1))}`);
+    if (asked.length !== first) fail(`another command, a page without a video or a site the button is off on still sent: ${JSON.stringify(asked.slice(first))}`);
   }
 
   // On the page the button sends the site's defaults and shows how it went,
@@ -1747,9 +2018,72 @@ for (const editable of [true, false]) {
   if (!field.disabled || !action.disabled) fail(`${browser}: with the button off the shortcut row stays usable`);
 }
 
+// The well for all other sites is built as a site's is: its switch, on by
+// default wherever the access to all websites is there, and the defaults a
+// click there downloads, from what other sites have offered. Without that
+// access its switch is off, and turning it on asks the browser for it.
+for (const all of [true, false]) {
+  const sites = ['https://www.youtube.com/*', 'https://m.youtube.com/*', 'https://www.youtube-nocookie.com/*', 'https://vimeo.com/*', 'https://www.dailymotion.com/*', 'https://www.twitch.tv/*', 'https://clips.twitch.tv/*', 'https://www.bilibili.com/*'];
+  const store = makeStore({ videoSeen: { other: { qualities: ['720p', '480p'] } } });
+  const { chrome } = makeChrome(store, { granted: all ? ['<all_urls>'] : sites });
+  const requests = [];
+  chrome.permissions.request = async (p) => {
+    requests.push(p);
+    return true;
+  };
+  chrome.commands = { getAll: async () => [] };
+  const doc = makeDocument();
+  const source = read('src', 'options-video.js');
+  doc.byId = Object.fromEntries([...source.matchAll(/getElementById\('(\w+)'\)/g)].map(([, id]) => {
+    const n = new Node(/Reset|Action|Enabled|AutoHide$/.test(id) ? 'button' : id === 'videoShortcut' ? 'input' : 'div', doc);
+    n.attrs.id = id;
+    return [id, n];
+  }));
+  doc.byId.videoMore.append(doc.byId.videoSites);
+  doc.createTextNode = (text) => Object.assign(new Node('#text', doc), { text });
+  const ctx = vm.createContext({
+    chrome, document: doc, URL, console, setTimeout, clearTimeout, navigator: { platform: 'Win32', userAgent: 'test' },
+    t: (key) => key, loadLanguage: async () => {}, rowLabel() {}, glimGlyph: () => new Node('svg', doc), shake() {}, currentLanguage: () => 'en',
+  });
+  vm.runInContext(read('src', 'video.js'), ctx, { filename: 'video.js' });
+  vm.runInContext(source, ctx, { filename: 'options-video.js' });
+  await settle();
+  const wells = () => doc.byId.videoSites.children;
+  const other = () => wells().at(-1);
+  const row = () => other()?.children[0];
+  const toggle = () => other()?.querySelectorAll('button').find((b) => b.dataset.videoKey === 'other-shown');
+  const label = all ? 'with the access to all websites' : 'without the access to all websites';
+  if (wells().length !== 6 || row()?.children[0]?.text !== 'options.videoOtherSites') fail(`${label} the sites are ${wells().map((w) => w.children[0]?.children[0]?.text).join(', ')}, want the five and all other sites last`);
+  if (other()?.className !== wells()[0]?.className || row()?.className !== wells()[0]?.children[0]?.className || toggle()?.className !== 'glim-switch') fail(`${label} the well for all other sites is not built like a site's`);
+  if (toggle()?.attrs['aria-checked'] !== String(all)) fail(`${label} the switch for all other sites is ${toggle()?.attrs['aria-checked']}, want ${all}`);
+  const quality = () => other()?.querySelectorAll('select').find((x) => x.dataset.videoKey === 'other-quality');
+  if (quality()?.children.map((o) => o.value).join() !== 'best,720p,480p') fail(`${label} all other sites offer the qualities ${quality()?.children.map((o) => o.value)}, want what they have offered`);
+  quality().value = '720p';
+  quality().dispatch('change');
+  await settle();
+  if (store.data.videoDefaults?.other?.quality !== '720p' || store.data.videoDefaults?.youtube) fail(`${label} a quality picked for all other sites is stored as ${JSON.stringify(store.data.videoDefaults)}`);
+  toggle().dispatch('click');
+  await settle();
+  if (all) {
+    if (requests.length || JSON.stringify(store.data.videoButtonHidden) !== '["other"]') fail(`switched off, all other sites ask ${JSON.stringify(requests)} and hide ${JSON.stringify(store.data.videoButtonHidden)}, want nothing asked and the button hidden there`);
+  } else if (JSON.stringify(requests) !== '[{"origins":["<all_urls>"]}]' || store.data.videoButtonHidden?.includes('other')) {
+    fail(`switched on, all other sites ask ${JSON.stringify(requests)}, want the access to all websites`);
+  }
+  // The card's switch asks for the five sites, so a "no" to all websites
+  // never keeps the button off them.
+  if (!all) {
+    requests.length = 0;
+    await store.local.set({ videoButton: false });
+    await settle();
+    doc.byId.videoEnabled.dispatch('click');
+    await settle();
+    if (requests.some((p) => p.origins.includes('<all_urls>'))) fail(`the card's switch asks for ${JSON.stringify(requests)}, want the five sites alone`);
+  }
+}
+
 if (problems.length) {
   console.error(`${problems.length} problem(s):`);
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log("ok: every form of a video page sends its one address, the sites are a short list yt-dlp knows inside the optional access, a click sends the site's defaults to start at once and says when the video was there already, the menu offers what the video has, a drag keeps its place as shares of the player and sends nothing, auto-hide shows the button only over the video, and the switches take it off an open page at once and back");
+console.log("ok: every form of a video page sends its one address, the sites are a short list yt-dlp knows inside the optional access, a click sends the site's defaults to start at once and says when the video was there already, the menu offers what the video has, a drag keeps its place as shares of the player and sends nothing, auto-hide shows the button only over the video, the switches take it off an open page at once and back, and on all other sites it shows on a video somebody watches once the instance says yt-dlp can download the page");

@@ -8,7 +8,9 @@
 // It lives in a closed shadow root of its own, so the site's styles and
 // scripts do not reach it, and it reads nothing of the site but the address
 // and where the largest video sits. That anchors it on the video element and
-// on the element shown in fullscreen, never on the site's class names.
+// on the element shown in fullscreen, never on the site's class names. On any
+// other site it also reads whether that video plays, and shows only once the
+// instance says yt-dlp can download the page.
 
 (() => {
   // A tab can get this twice: from its registration, and from
@@ -16,9 +18,6 @@
   if (globalThis.knightloaderVideoButton) return;
   globalThis.knightloaderVideoButton = true;
 
-  // Smaller videos are previews and ads, not the player.
-  const MIN_WIDTH = 200;
-  const MIN_HEIGHT = 112;
   // A video under half the largest one's size is a preview beside a player.
   const PREVIEW_SHARE = 0.5;
   // About as long as the players keep their controls up after the pointer
@@ -32,6 +31,9 @@
   const POLL_MS = 3000;
   const POLL_SLOW_MS = 10000;
   const POLL_SLOW_AFTER = 60000;
+  // How soon a page of another site is asked about again when no instance
+  // could answer.
+  const CHECK_RETRY_MS = 60000;
   // How far the pointer moves on the button before a press is a drag rather
   // than a click.
   const DRAG_PX = 5;
@@ -300,6 +302,13 @@
   let look = null;
   let cheer = [];
   let cheerUntil = 0;
+  // What the instance said about the pages of another site, by
+  // videoCheckKey: true or false, 'asking' while it is asked, and 'later'
+  // where no instance answered.
+  const claims = new Map();
+  // The videos of the page the button has shown on, which keep it while
+  // they are paused or scrolled half away.
+  let cleared = { key: '', videos: new WeakSet() };
 
   const host = document.createElement('knightloader-video-button');
   const root = host.attachShadow({ mode: 'closed' });
@@ -409,19 +418,24 @@
         return style.visibility === 'visible' && style.opacity !== '0';
       })
       .map((v) => ({ v, r: boxOf(v) }))
-      .filter(({ r }) => r.width >= MIN_WIDTH && r.height >= MIN_HEIGHT);
+      .filter(({ r }) => r.width >= VIDEO_MIN_WIDTH && r.height >= VIDEO_MIN_HEIGHT);
     const largest = Math.max(0, ...videos.map(({ r }) => area(r)));
     let best = null;
     let most = 0;
     for (const { v, r } of videos) {
       if (area(r) < largest * PREVIEW_SHARE) continue;
-      const seen = Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
+      const seen = onScreen(r);
       if (seen > most) {
         best = v;
         most = seen;
       }
     }
     return best;
+  }
+
+  /** How much of a box is on screen, in square pixels. */
+  function onScreen(r) {
+    return Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
   }
 
   /**
@@ -466,6 +480,50 @@
     return 12;
   }
 
+  /** What videoWatched needs to know of a video: its size as boxOf has it,
+   *  the share of it on screen, and how it plays. */
+  function watching(v) {
+    const r = boxOf(v);
+    const area = r.width * r.height;
+    return {
+      width: r.width, height: r.height, seen: area ? onScreen(r) / area : 0,
+      muted: v.muted, controls: v.controls, autoplay: v.autoplay, loop: v.loop, paused: v.paused, time: v.currentTime,
+    };
+  }
+
+  /**
+   * Whether the button may sit on a video of another site: one somebody
+   * watches, on a page the instance says yt-dlp can download. The first such
+   * video asks the instance, once per page.
+   */
+  function claimed(v) {
+    const key = videoCheckKey(location.href);
+    if (cleared.key !== key) cleared = { key, videos: new WeakSet() };
+    if (cleared.videos.has(v)) return true;
+    if (!videoWatched(watching(v))) return false;
+    if (!claims.has(key)) void askClaim(key);
+    if (claims.get(key) !== true) return false;
+    cleared.videos.add(v);
+    return true;
+  }
+
+  async function askClaim(key) {
+    claims.set(key, 'asking');
+    const asked = videoPage(location.href);
+    const answer = await chrome.runtime.sendMessage({ type: 'knightloader-video-check', href: asked.url }).catch(() => null);
+    if (typeof answer?.claims !== 'boolean') {
+      claims.set(key, 'later');
+      setTimeout(() => claims.delete(key), CHECK_RETRY_MS);
+      return;
+    }
+    claims.set(key, answer.claims);
+    if (!answer.claims) return;
+    // The probe that answered is what the menu offers, so it asks nothing more.
+    if (typeof answer.offer?.known === 'boolean') offered = { url: asked.url, answer: answer.offer, ready: Promise.resolve(answer.offer) };
+    if (!labels) await loadLabels();
+    update();
+  }
+
   /** Brings the button in line with the page, the video and the switch. */
   function update() {
     const next = videoPage(location.href);
@@ -479,9 +537,11 @@
       unfollow();
     }
     page = next;
-    const wanted = page && labels && videoButtonWanted(stored, page.site);
-    if (labels && !wanted) unfollow();
-    const found = wanted ? largestVideo() : null;
+    const wanted = page && videoButtonWanted(stored, page.site);
+    if (!wanted) unfollow();
+    let found = wanted ? largestVideo() : null;
+    if (found && page.site === VIDEO_OTHER.id && !claimed(found)) found = null;
+    if (!labels) found = null;
     // Players let go of their video for a moment, between an advert and the
     // video or while they lay themselves out again. Somebody in the menu or
     // waiting for a send keeps the button where it is until the video is back.
@@ -1301,13 +1361,15 @@
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'local') return;
     for (const k of STORED) if (changes[k]) stored = { ...stored, [k]: changes[k].newValue };
-    if (changes.language) await loadLabels();
+    if (changes.language && labels) await loadLabels();
     update();
   });
 
+  // On another site the labels wait for a video the button shows on, so a
+  // page without one never asks the worker anything.
   void (async () => {
     stored = await chrome.storage.local.get(STORED);
-    await loadLabels();
+    if (videoPage(location.href)?.site !== VIDEO_OTHER.id) await loadLabels();
     update();
   })();
 })();
