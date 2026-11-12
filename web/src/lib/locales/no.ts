@@ -2969,7 +2969,7 @@ export const no: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Ikke tilgjengelig',
   'settings.categories.afterDownloadUnreachableText': '{device} svarer ikke. KnightLoader spør igjen hvert minutt i et kvarter.',
   'settings.categories.afterDownloadPermissionOff': 'Tillatelse av',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop på {device} lar ikke KnightLoader starte jobber akkurat nå. Du kan slå tillatelsen på igjen under Instanser.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop på {device} lar ikke KnightLoader starte jobber, fordi tillatelsen er slått av eller mangler. Du kan slå den på under Instanser.',
   'settings.categories.afterDownloadNoSuchJob': 'Jobb mangler',
   'settings.categories.afterDownloadNoSuchJobText': '«{job}» finnes ikke lenger på {device}. Bare velg en annen.',
   'settings.categories.afterDownloadJobPausedText': '«{job}» er satt på pause i ArrowLoop, så den startet ikke.',

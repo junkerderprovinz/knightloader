@@ -2951,7 +2951,7 @@ export const pl: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Nieosiągalny',
   'settings.categories.afterDownloadUnreachableText': '{device} nie odpowiada. KnightLoader pyta ponownie co minutę przez kwadrans.',
   'settings.categories.afterDownloadPermissionOff': 'Zgoda wyłączona',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop na {device} nie pozwala teraz KnightLoaderowi uruchamiać zadań. Zgodę możesz z powrotem włączyć w Instancjach.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop na {device} nie pozwala KnightLoaderowi uruchamiać zadań, bo zgoda jest wyłączona albo jej brakuje. Możesz ją włączyć w Instancjach.',
   'settings.categories.afterDownloadNoSuchJob': 'Brak zadania',
   'settings.categories.afterDownloadNoSuchJobText': '„{job}” już nie istnieje na {device}. Po prostu wybierz inne.',
   'settings.categories.afterDownloadJobPausedText': '„{job}” jest wstrzymane w ArrowLoop, więc się nie uruchomiło.',

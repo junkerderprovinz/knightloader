@@ -2967,7 +2967,7 @@ export const fi: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Ei tavoitettavissa',
   'settings.categories.afterDownloadUnreachableText': '{device} ei vastaa. KnightLoader kysyy uudelleen minuutin välein vartin ajan.',
   'settings.categories.afterDownloadPermissionOff': 'Lupa pois päältä',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop laitteessa {device} ei juuri nyt anna KnightLoaderin käynnistää tehtäviä. Voit kytkeä luvan takaisin päälle Instanssit-sivulla.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop laitteessa {device} ei anna KnightLoaderin käynnistää tehtäviä, koska lupa on pois päältä tai puuttuu. Voit kytkeä sen päälle Instanssit-sivulla.',
   'settings.categories.afterDownloadNoSuchJob': 'Tehtävä puuttuu',
   'settings.categories.afterDownloadNoSuchJobText': '”{job}” ei ole enää laitteessa {device}. Valitse vain toinen.',
   'settings.categories.afterDownloadJobPausedText': '”{job}” on keskeytetty ArrowLoopissa, joten se ei käynnistynyt.',

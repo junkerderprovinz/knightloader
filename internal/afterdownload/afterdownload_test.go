@@ -109,3 +109,9 @@ func TestRunSaysWhyItCouldNotStartTheJob(t *testing.T) {
 		})
 	}
 }
+
+func TestAPermissionArrowLoopDoesNotListReadsAsOff(t *testing.T) {
+	if got := Code(fortress.ErrNotUsed); got != CodePermissionOff {
+		t.Errorf("Code(ErrNotUsed) = %q, want %q", got, CodePermissionOff)
+	}
+}

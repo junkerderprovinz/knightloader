@@ -3544,7 +3544,7 @@ export const en = {
   'settings.categories.afterDownloadUnreachable': 'Not reachable',
   'settings.categories.afterDownloadUnreachableText': '{device} isn\'t answering. KnightLoader asks again every minute for a quarter of an hour.',
   'settings.categories.afterDownloadPermissionOff': 'Permission off',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop on {device} isn\'t letting KnightLoader start jobs right now. You can switch the permission back on under Instances.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop on {device} isn\'t letting KnightLoader start jobs, since the permission is off or missing. You can switch it on under Instances.',
   'settings.categories.afterDownloadNoSuchJob': 'Job missing',
   'settings.categories.afterDownloadNoSuchJobText': '"{job}" no longer exists on {device}. Just pick another one.',
   'settings.categories.afterDownloadJobPausedText': '"{job}" is paused in ArrowLoop, so it didn\'t start.',

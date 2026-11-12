@@ -2954,7 +2954,7 @@ export const fr: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Injoignable',
   'settings.categories.afterDownloadUnreachableText': '{device} ne répond pas. KnightLoader redemande chaque minute pendant un quart d\'heure.',
   'settings.categories.afterDownloadPermissionOff': 'Autorisation coupée',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop sur {device} ne laisse pas KnightLoader lancer de tâches pour le moment. Vous pouvez réactiver l\'autorisation dans Instances.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop sur {device} ne laisse pas KnightLoader lancer de tâches, car l\'autorisation est désactivée ou absente. Vous pouvez l\'activer dans Instances.',
   'settings.categories.afterDownloadNoSuchJob': 'Tâche introuvable',
   'settings.categories.afterDownloadNoSuchJobText': '« {job} » n\'existe plus sur {device}. Choisissez-en simplement une autre.',
   'settings.categories.afterDownloadJobPausedText': '« {job} » est en pause dans ArrowLoop, elle n\'a donc pas démarré.',

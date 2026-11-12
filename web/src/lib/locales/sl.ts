@@ -2965,7 +2965,7 @@ export const sl: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Ni dosegljiv',
   'settings.categories.afterDownloadUnreachableText': '{device} ne odgovarja. KnightLoader četrt ure vsako minuto vpraša znova.',
   'settings.categories.afterDownloadPermissionOff': 'Dovoljenje izklopljeno',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop na {device} KnightLoaderju trenutno ne pusti zaganjati opravil. Dovoljenje lahko spet vklopiš pod Instance.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop na {device} KnightLoaderju ne pusti zaganjati opravil, ker je dovoljenje izklopljeno ali manjka. Vklopiš ga lahko pod Instance.',
   'settings.categories.afterDownloadNoSuchJob': 'Opravilo manjka',
   'settings.categories.afterDownloadNoSuchJobText': '„{job}“ na {device} ne obstaja več. Kar izberi drugo.',
   'settings.categories.afterDownloadJobPausedText': '„{job}“ je v ArrowLoopu zaustavljeno, zato se ni zagnalo.',

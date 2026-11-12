@@ -2976,7 +2976,7 @@ export const sk: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Nedostupné',
   'settings.categories.afterDownloadUnreachableText': '{device} neodpovedá. KnightLoader sa štvrť hodiny každú minútu pýta znova.',
   'settings.categories.afterDownloadPermissionOff': 'Povolenie vypnuté',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop na {device} teraz KnightLoaderu nedovolí spúšťať úlohy. Povolenie môžete znova zapnúť v časti Inštancie.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop na {device} KnightLoaderu nedovolí spúšťať úlohy, pretože povolenie je vypnuté alebo chýba. Zapnúť ho môžete v časti Inštancie.',
   'settings.categories.afterDownloadNoSuchJob': 'Úloha chýba',
   'settings.categories.afterDownloadNoSuchJobText': '„{job}“ už na {device} neexistuje. Jednoducho vyberte inú.',
   'settings.categories.afterDownloadJobPausedText': '„{job}“ je v ArrowLoope pozastavená, takže sa nespustila.',

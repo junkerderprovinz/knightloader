@@ -2955,7 +2955,7 @@ export const fa: Dict = {
   'settings.categories.afterDownloadUnreachable': 'در دسترس نیست',
   'settings.categories.afterDownloadUnreachableText': '{device} پاسخ نمی‌دهد. KnightLoader تا یک ربع ساعت هر دقیقه دوباره می‌پرسد.',
   'settings.categories.afterDownloadPermissionOff': 'اجازه خاموش است',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop روی {device} فعلاً به KnightLoader اجازهٔ شروع کارها را نمی‌دهد. می‌توانی اجازه را در نمونه‌ها دوباره روشن کنی.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop روی {device} به KnightLoader اجازهٔ شروع کارها را نمی‌دهد، چون اجازه خاموش است یا وجود ندارد. می‌توانی آن را در نمونه‌ها روشن کنی.',
   'settings.categories.afterDownloadNoSuchJob': 'کار پیدا نشد',
   'settings.categories.afterDownloadNoSuchJobText': '«{job}» دیگر روی {device} وجود ندارد. کافی است کار دیگری انتخاب کنی.',
   'settings.categories.afterDownloadJobPausedText': '«{job}» در ArrowLoop مکث شده است، برای همین شروع نشد.',

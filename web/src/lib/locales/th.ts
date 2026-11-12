@@ -2965,7 +2965,7 @@ export const th: Dict = {
   'settings.categories.afterDownloadUnreachable': 'เข้าถึงไม่ได้',
   'settings.categories.afterDownloadUnreachableText': '{device} ไม่ตอบ KnightLoader จะถามใหม่ทุกนาทีเป็นเวลาสิบห้านาที',
   'settings.categories.afterDownloadPermissionOff': 'ปิดสิทธิ์อยู่',
-  'settings.categories.afterDownloadPermissionOffText': 'ตอนนี้ ArrowLoop บน {device} ไม่ให้ KnightLoader เริ่มงาน คุณเปิดสิทธิ์อีกครั้งได้ที่อินสแตนซ์',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop บน {device} ไม่ให้ KnightLoader เริ่มงาน เพราะสิทธิ์ถูกปิดอยู่หรือยังไม่มี คุณเปิดสิทธิ์ได้ที่อินสแตนซ์',
   'settings.categories.afterDownloadNoSuchJob': 'ไม่พบงาน',
   'settings.categories.afterDownloadNoSuchJobText': '“{job}” ไม่มีอยู่บน {device} แล้ว เลือกงานอื่นได้เลย',
   'settings.categories.afterDownloadJobPausedText': '“{job}” หยุดชั่วคราวอยู่ใน ArrowLoop จึงไม่ได้เริ่ม',

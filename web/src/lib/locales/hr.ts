@@ -2980,7 +2980,7 @@ export const hr: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Nije dostupan',
   'settings.categories.afterDownloadUnreachableText': '{device} ne odgovara. KnightLoader četvrt sata svake minute pita ponovno.',
   'settings.categories.afterDownloadPermissionOff': 'Dopuštenje isključeno',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop na {device} trenutačno ne dopušta KnightLoaderu pokretanje zadataka. Dopuštenje možete ponovno uključiti pod Instance.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop na {device} ne dopušta KnightLoaderu pokretanje zadataka jer je dopuštenje isključeno ili ne postoji. Možete ga uključiti pod Instance.',
   'settings.categories.afterDownloadNoSuchJob': 'Zadatak nedostaje',
   'settings.categories.afterDownloadNoSuchJobText': '„{job}” više ne postoji na {device}. Jednostavno odaberite drugi.',
   'settings.categories.afterDownloadJobPausedText': '„{job}” je pauziran u ArrowLoopu pa se nije pokrenuo.',

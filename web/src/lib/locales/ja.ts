@@ -2966,7 +2966,7 @@ export const ja: Dict = {
   'settings.categories.afterDownloadUnreachable': '到達できません',
   'settings.categories.afterDownloadUnreachableText': '{device} が応答しません。KnightLoader は 15 分間、1 分ごとに問い合わせ直します。',
   'settings.categories.afterDownloadPermissionOff': '許可がオフ',
-  'settings.categories.afterDownloadPermissionOffText': '{device} の ArrowLoop は今、KnightLoader によるジョブの開始を許可していません。許可は「インスタンス」でもう一度オンにできます。',
+  'settings.categories.afterDownloadPermissionOffText': '{device} の ArrowLoop では許可がオフになっているか存在しないため、KnightLoader はジョブを開始できません。許可は「インスタンス」でオンにできます。',
   'settings.categories.afterDownloadNoSuchJob': 'ジョブがありません',
   'settings.categories.afterDownloadNoSuchJobText': '「{job}」は {device} にもうありません。別のジョブを選んでください。',
   'settings.categories.afterDownloadJobPausedText': '「{job}」は ArrowLoop で一時停止中のため、開始されませんでした。',

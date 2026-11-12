@@ -2961,7 +2961,7 @@ export const eu: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Ez dago eskuragarri',
   'settings.categories.afterDownloadUnreachableText': '{device} ez da erantzuten ari. KnightLoaderrek minuturo galdetzen du berriro ordu laurden batez.',
   'settings.categories.afterDownloadPermissionOff': 'Baimena itzalita',
-  'settings.categories.afterDownloadPermissionOffText': '{device} gailuko ArrowLoopek ez dio uzten KnightLoaderri lanak abiarazten une honetan. Baimena berriro piztu dezakezu Instantziak atalean.',
+  'settings.categories.afterDownloadPermissionOffText': '{device} gailuko ArrowLoopek ez dio uzten KnightLoaderri lanak abiarazten, baimena itzalita dagoelako edo ez dagoelako. Instantziak atalean piztu dezakezu.',
   'settings.categories.afterDownloadNoSuchJob': 'Lana falta da',
   'settings.categories.afterDownloadNoSuchJobText': '«{job}» ez dago jada {device} gailuan. Aukeratu beste bat, besterik ez.',
   'settings.categories.afterDownloadJobPausedText': '«{job}» pausatuta dago ArrowLoopen, beraz ez da abiarazi.',

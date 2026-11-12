@@ -2966,7 +2966,7 @@ export const vi: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Không truy cập được',
   'settings.categories.afterDownloadUnreachableText': '{device} không phản hồi. KnightLoader hỏi lại mỗi phút trong mười lăm phút.',
   'settings.categories.afterDownloadPermissionOff': 'Quyền đang tắt',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop trên {device} hiện không cho KnightLoader chạy tác vụ. Bạn có thể bật lại quyền này trong Phiên bản.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop trên {device} không cho KnightLoader chạy tác vụ vì quyền này đang tắt hoặc chưa có. Bạn có thể bật quyền trong Phiên bản.',
   'settings.categories.afterDownloadNoSuchJob': 'Không thấy tác vụ',
   'settings.categories.afterDownloadNoSuchJobText': '“{job}” không còn trên {device}. Cứ chọn một tác vụ khác.',
   'settings.categories.afterDownloadJobPausedText': '“{job}” đang tạm dừng trong ArrowLoop nên không chạy.',

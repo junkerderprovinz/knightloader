@@ -2955,7 +2955,7 @@ export const pt: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Não acessível',
   'settings.categories.afterDownloadUnreachableText': '{device} não responde. O KnightLoader volta a perguntar a cada minuto durante um quarto de hora.',
   'settings.categories.afterDownloadPermissionOff': 'Permissão desligada',
-  'settings.categories.afterDownloadPermissionOffText': 'O ArrowLoop em {device} não deixa o KnightLoader iniciar tarefas neste momento. Pode voltar a ligar a permissão em Instâncias.',
+  'settings.categories.afterDownloadPermissionOffText': 'O ArrowLoop em {device} não deixa o KnightLoader iniciar tarefas, porque a permissão está desligada ou não existe. Pode ligá-la em Instâncias.',
   'settings.categories.afterDownloadNoSuchJob': 'Tarefa em falta',
   'settings.categories.afterDownloadNoSuchJobText': '«{job}» já não existe em {device}. Escolha simplesmente outra.',
   'settings.categories.afterDownloadJobPausedText': '«{job}» está em pausa no ArrowLoop, por isso não arrancou.',

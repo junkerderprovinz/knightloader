@@ -2962,7 +2962,7 @@ export const is: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Ekki aðgengilegt',
   'settings.categories.afterDownloadUnreachableText': '{device} svarar ekki. KnightLoader spyr aftur á hverri mínútu í korter.',
   'settings.categories.afterDownloadPermissionOff': 'Heimild óvirk',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop á {device} leyfir KnightLoader ekki að ræsa verk eins og er. Þú getur kveikt aftur á heimildinni undir Tilvik.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop á {device} leyfir KnightLoader ekki að ræsa verk, því heimildin er óvirk eða vantar. Þú getur kveikt á henni undir Tilvik.',
   'settings.categories.afterDownloadNoSuchJob': 'Verk vantar',
   'settings.categories.afterDownloadNoSuchJobText': '„{job}“ er ekki lengur til á {device}. Veldu bara annað.',
   'settings.categories.afterDownloadJobPausedText': '„{job}“ er í hléi í ArrowLoop og ræstist því ekki.',

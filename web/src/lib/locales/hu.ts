@@ -2966,7 +2966,7 @@ export const hu: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Nem érhető el',
   'settings.categories.afterDownloadUnreachableText': 'A(z) {device} nem válaszol. A KnightLoader negyed órán át percenként újra próbálkozik.',
   'settings.categories.afterDownloadPermissionOff': 'Engedély kikapcsolva',
-  'settings.categories.afterDownloadPermissionOffText': 'Az ArrowLoop a(z) {device} eszközön most nem engedi, hogy a KnightLoader feladatokat indítson. Az engedélyt a Példányok alatt kapcsolhatod vissza.',
+  'settings.categories.afterDownloadPermissionOffText': 'Az ArrowLoop a(z) {device} eszközön nem engedi, hogy a KnightLoader feladatokat indítson, mert az engedély ki van kapcsolva vagy hiányzik. A Példányok alatt bekapcsolhatod.',
   'settings.categories.afterDownloadNoSuchJob': 'Hiányzó feladat',
   'settings.categories.afterDownloadNoSuchJobText': 'A(z) „{job}” már nem létezik itt: {device}. Válassz egyszerűen egy másikat.',
   'settings.categories.afterDownloadJobPausedText': 'A(z) „{job}” szüneteltetve van az ArrowLoopban, ezért nem indult el.',

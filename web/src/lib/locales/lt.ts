@@ -2967,7 +2967,7 @@ export const lt: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Nepasiekiamas',
   'settings.categories.afterDownloadUnreachableText': '{device} neatsako. KnightLoader ketvirtį valandos kas minutę klausia iš naujo.',
   'settings.categories.afterDownloadPermissionOff': 'Leidimas išjungtas',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop įrenginyje {device} šiuo metu neleidžia KnightLoader paleisti užduočių. Leidimą vėl įjungti galite skiltyje Egzemplioriai.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop įrenginyje {device} neleidžia KnightLoader paleisti užduočių, nes leidimas išjungtas arba jo nėra. Įjungti jį galite skiltyje Egzemplioriai.',
   'settings.categories.afterDownloadNoSuchJob': 'Užduoties nėra',
   'settings.categories.afterDownloadNoSuchJobText': '„{job}“ įrenginyje {device} nebėra. Tiesiog pasirinkite kitą.',
   'settings.categories.afterDownloadJobPausedText': '„{job}“ ArrowLoop pristabdyta, todėl nepasileido.',

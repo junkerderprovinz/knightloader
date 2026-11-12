@@ -2965,7 +2965,7 @@ export const ms: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Tidak dapat dicapai',
   'settings.categories.afterDownloadUnreachableText': '{device} tidak menjawab. KnightLoader bertanya semula setiap minit selama suku jam.',
   'settings.categories.afterDownloadPermissionOff': 'Kebenaran dimatikan',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop pada {device} tidak membenarkan KnightLoader memulakan tugas buat masa ini. Anda boleh menghidupkan semula kebenaran itu di bawah Instance.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop pada {device} tidak membenarkan KnightLoader memulakan tugas kerana kebenaran itu dimatikan atau tiada. Anda boleh menghidupkannya di bawah Instance.',
   'settings.categories.afterDownloadNoSuchJob': 'Tugas tiada',
   'settings.categories.afterDownloadNoSuchJobText': '"{job}" sudah tiada pada {device}. Pilih sahaja yang lain.',
   'settings.categories.afterDownloadJobPausedText': '"{job}" dijeda dalam ArrowLoop, jadi ia tidak bermula.',

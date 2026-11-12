@@ -2953,7 +2953,7 @@ export const zh: Dict = {
   'settings.categories.afterDownloadUnreachable': '无法连接',
   'settings.categories.afterDownloadUnreachableText': '{device} 没有响应。KnightLoader 会在一刻钟内每分钟再问一次。',
   'settings.categories.afterDownloadPermissionOff': '权限已关闭',
-  'settings.categories.afterDownloadPermissionOffText': '{device} 上的 ArrowLoop 目前不允许 KnightLoader 启动任务。你可以在“实例”中重新打开这项权限。',
+  'settings.categories.afterDownloadPermissionOffText': '{device} 上的 ArrowLoop 不允许 KnightLoader 启动任务，因为这项权限已关闭或不存在。你可以在“实例”中打开它。',
   'settings.categories.afterDownloadNoSuchJob': '任务不见了',
   'settings.categories.afterDownloadNoSuchJobText': '“{job}”在 {device} 上已不存在。换一个就好。',
   'settings.categories.afterDownloadJobPausedText': '“{job}”在 ArrowLoop 中已暂停，所以没有启动。',

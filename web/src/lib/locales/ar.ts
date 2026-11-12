@@ -2965,7 +2965,7 @@ export const ar: Dict = {
   'settings.categories.afterDownloadUnreachable': 'غير قابل للوصول',
   'settings.categories.afterDownloadUnreachableText': '{device} لا يجيب. يسأل KnightLoader من جديد كل دقيقة لمدة ربع ساعة.',
   'settings.categories.afterDownloadPermissionOff': 'الإذن متوقف',
-  'settings.categories.afterDownloadPermissionOffText': 'لا يسمح ArrowLoop على {device} حاليًا لـ KnightLoader ببدء المهام. يمكنك تشغيل الإذن من جديد في النُسخ.',
+  'settings.categories.afterDownloadPermissionOffText': 'لا يسمح ArrowLoop على {device} لـ KnightLoader ببدء المهام، لأن الإذن مُطفأ أو غير موجود. يمكنك تشغيله في النُسخ.',
   'settings.categories.afterDownloadNoSuchJob': 'المهمة مفقودة',
   'settings.categories.afterDownloadNoSuchJobText': '«{job}» لم تعد موجودة على {device}. اختر غيرها فحسب.',
   'settings.categories.afterDownloadJobPausedText': '«{job}» متوقفة مؤقتًا في ArrowLoop، لذا لم تبدأ.',

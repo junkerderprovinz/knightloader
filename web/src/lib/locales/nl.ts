@@ -2949,7 +2949,7 @@ export const nl: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Niet bereikbaar',
   'settings.categories.afterDownloadUnreachableText': '{device} antwoordt niet. KnightLoader vraagt een kwartier lang elke minuut opnieuw.',
   'settings.categories.afterDownloadPermissionOff': 'Toestemming uit',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop op {device} laat KnightLoader nu geen taken starten. Onder Instanties kun je de toestemming weer aanzetten.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop op {device} laat KnightLoader geen taken starten, omdat de toestemming uit staat of ontbreekt. Onder Instanties kun je die aanzetten.',
   'settings.categories.afterDownloadNoSuchJob': 'Taak ontbreekt',
   'settings.categories.afterDownloadNoSuchJobText': '“{job}” bestaat niet meer op {device}. Kies gewoon een andere.',
   'settings.categories.afterDownloadJobPausedText': '“{job}” is gepauzeerd in ArrowLoop en is daarom niet gestart.',

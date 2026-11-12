@@ -2957,7 +2957,7 @@ export const ko: Dict = {
   'settings.categories.afterDownloadUnreachable': '연결할 수 없음',
   'settings.categories.afterDownloadUnreachableText': '{device}이(가) 응답하지 않습니다. KnightLoader가 15분 동안 1분마다 다시 확인합니다.',
   'settings.categories.afterDownloadPermissionOff': '권한 꺼짐',
-  'settings.categories.afterDownloadPermissionOffText': '{device}의 ArrowLoop가 지금은 KnightLoader의 작업 시작을 허용하지 않습니다. 인스턴스에서 권한을 다시 켤 수 있습니다.',
+  'settings.categories.afterDownloadPermissionOffText': '권한이 꺼져 있거나 없어서 {device}의 ArrowLoop가 KnightLoader의 작업 시작을 허용하지 않습니다. 인스턴스에서 권한을 켤 수 있습니다.',
   'settings.categories.afterDownloadNoSuchJob': '작업 없음',
   'settings.categories.afterDownloadNoSuchJobText': '“{job}” 작업이 {device}에 더 이상 없습니다. 다른 작업을 고르세요.',
   'settings.categories.afterDownloadJobPausedText': '“{job}” 작업이 ArrowLoop에서 일시 중지되어 시작되지 않았습니다.',

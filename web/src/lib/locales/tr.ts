@@ -2965,7 +2965,7 @@ export const tr: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Ulaşılamıyor',
   'settings.categories.afterDownloadUnreachableText': '{device} yanıt vermiyor. KnightLoader çeyrek saat boyunca her dakika yeniden soruyor.',
   'settings.categories.afterDownloadPermissionOff': 'İzin kapalı',
-  'settings.categories.afterDownloadPermissionOffText': '{device} üzerindeki ArrowLoop şu anda KnightLoader\'ın görev başlatmasına izin vermiyor. İzni Örnekler altında yeniden açabilirsin.',
+  'settings.categories.afterDownloadPermissionOffText': '{device} üzerindeki ArrowLoop, izin kapalı olduğu ya da hiç olmadığı için KnightLoader\'ın görev başlatmasına izin vermiyor. İzni Örnekler altında açabilirsin.',
   'settings.categories.afterDownloadNoSuchJob': 'Görev yok',
   'settings.categories.afterDownloadNoSuchJobText': '“{job}” artık {device} üzerinde yok. Başka birini seçmen yeterli.',
   'settings.categories.afterDownloadJobPausedText': '“{job}” ArrowLoop\'ta duraklatılmış, bu yüzden başlamadı.',

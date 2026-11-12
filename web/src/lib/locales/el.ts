@@ -2966,7 +2966,7 @@ export const el: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Μη προσβάσιμο',
   'settings.categories.afterDownloadUnreachableText': 'Το {device} δεν απαντά. Το KnightLoader ξαναρωτά κάθε λεπτό για ένα τέταρτο.',
   'settings.categories.afterDownloadPermissionOff': 'Άδεια ανενεργή',
-  'settings.categories.afterDownloadPermissionOffText': 'Το ArrowLoop στο {device} δεν αφήνει αυτή τη στιγμή το KnightLoader να ξεκινά εργασίες. Μπορείτε να ενεργοποιήσετε ξανά την άδεια στα Στιγμιότυπα.',
+  'settings.categories.afterDownloadPermissionOffText': 'Το ArrowLoop στο {device} δεν αφήνει το KnightLoader να ξεκινά εργασίες, επειδή η άδεια είναι απενεργοποιημένη ή λείπει. Μπορείτε να την ενεργοποιήσετε στα Στιγμιότυπα.',
   'settings.categories.afterDownloadNoSuchJob': 'Η εργασία λείπει',
   'settings.categories.afterDownloadNoSuchJobText': 'Η «{job}» δεν υπάρχει πια στο {device}. Απλώς επιλέξτε άλλη.',
   'settings.categories.afterDownloadJobPausedText': 'Η «{job}» είναι σε παύση στο ArrowLoop, γι\' αυτό δεν ξεκίνησε.',

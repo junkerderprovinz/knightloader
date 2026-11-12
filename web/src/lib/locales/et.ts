@@ -2957,7 +2957,7 @@ export const et: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Ei ole kättesaadav',
   'settings.categories.afterDownloadUnreachableText': '{device} ei vasta. KnightLoader küsib veerand tundi iga minut uuesti.',
   'settings.categories.afterDownloadPermissionOff': 'Luba väljas',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop seadmes {device} ei lase KnightLoaderil praegu töid käivitada. Loa saad uuesti sisse lülitada lehel Eksemplarid.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop seadmes {device} ei lase KnightLoaderil töid käivitada, sest luba on välja lülitatud või puudub. Saad selle sisse lülitada lehel Eksemplarid.',
   'settings.categories.afterDownloadNoSuchJob': 'Töö puudub',
   'settings.categories.afterDownloadNoSuchJobText': '„{job}“ ei ole seadmes {device} enam olemas. Vali lihtsalt mõni teine.',
   'settings.categories.afterDownloadJobPausedText': '„{job}“ on ArrowLoopis peatatud, seega see ei käivitunud.',

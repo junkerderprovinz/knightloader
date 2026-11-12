@@ -2966,7 +2966,7 @@ export const sv: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Går inte att nå',
   'settings.categories.afterDownloadUnreachableText': '{device} svarar inte. KnightLoader frågar igen varje minut i en kvart.',
   'settings.categories.afterDownloadPermissionOff': 'Behörighet av',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop på {device} låter inte KnightLoader starta jobb just nu. Du kan slå på behörigheten igen under Instanser.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop på {device} låter inte KnightLoader starta jobb, eftersom behörigheten är avstängd eller saknas. Du kan slå på den under Instanser.',
   'settings.categories.afterDownloadNoSuchJob': 'Jobbet saknas',
   'settings.categories.afterDownloadNoSuchJobText': '”{job}” finns inte längre på {device}. Välj bara ett annat.',
   'settings.categories.afterDownloadJobPausedText': '”{job}” är pausat i ArrowLoop, så det startade inte.',

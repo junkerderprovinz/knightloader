@@ -2974,7 +2974,7 @@ export const ro: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Inaccesibil',
   'settings.categories.afterDownloadUnreachableText': '{device} nu răspunde. KnightLoader întreabă din nou în fiecare minut, timp de un sfert de oră.',
   'settings.categories.afterDownloadPermissionOff': 'Permisiune oprită',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop pe {device} nu îi permite acum lui KnightLoader să pornească sarcini. Poți reactiva permisiunea la Instanțe.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop pe {device} nu îi permite lui KnightLoader să pornească sarcini, pentru că permisiunea e oprită sau lipsește. O poți activa la Instanțe.',
   'settings.categories.afterDownloadNoSuchJob': 'Sarcină lipsă',
   'settings.categories.afterDownloadNoSuchJobText': '„{job}” nu mai există pe {device}. Alege pur și simplu alta.',
   'settings.categories.afterDownloadJobPausedText': '„{job}” e în pauză în ArrowLoop, așa că nu a pornit.',

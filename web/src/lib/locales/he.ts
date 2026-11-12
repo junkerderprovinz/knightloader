@@ -2984,7 +2984,7 @@ export const he: Dict = {
   'settings.categories.afterDownloadUnreachable': 'לא נגיש',
   'settings.categories.afterDownloadUnreachableText': '{device} לא עונה. KnightLoader שואל שוב כל דקה במשך רבע שעה.',
   'settings.categories.afterDownloadPermissionOff': 'ההרשאה כבויה',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop ב־{device} לא מאפשר כרגע ל־KnightLoader להפעיל משימות. אפשר להדליק את ההרשאה שוב תחת מופעים.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop ב־{device} לא מאפשר ל־KnightLoader להפעיל משימות, כי ההרשאה כבויה או חסרה. אפשר להדליק אותה תחת מופעים.',
   'settings.categories.afterDownloadNoSuchJob': 'המשימה חסרה',
   'settings.categories.afterDownloadNoSuchJobText': '“{job}” כבר לא קיימת ב־{device}. פשוט בחר משימה אחרת.',
   'settings.categories.afterDownloadJobPausedText': '“{job}” מושהית ב־ArrowLoop, ולכן לא הופעלה.',

@@ -2967,7 +2967,7 @@ export const hi: Dict = {
   'settings.categories.afterDownloadUnreachable': 'पहुँच से बाहर',
   'settings.categories.afterDownloadUnreachableText': '{device} जवाब नहीं दे रहा। KnightLoader पंद्रह मिनट तक हर मिनट फिर से पूछता है।',
   'settings.categories.afterDownloadPermissionOff': 'अनुमति बंद',
-  'settings.categories.afterDownloadPermissionOffText': '{device} पर ArrowLoop अभी KnightLoader को कार्य शुरू करने नहीं दे रहा। आप इंस्टेंस में अनुमति फिर से चालू कर सकते हैं।',
+  'settings.categories.afterDownloadPermissionOffText': '{device} पर ArrowLoop, KnightLoader को कार्य शुरू करने नहीं दे रहा, क्योंकि अनुमति बंद है या मौजूद नहीं है। आप इसे इंस्टेंस में चालू कर सकते हैं।',
   'settings.categories.afterDownloadNoSuchJob': 'कार्य नहीं मिला',
   'settings.categories.afterDownloadNoSuchJobText': '“{job}” अब {device} पर मौजूद नहीं है। बस कोई दूसरा चुन लें।',
   'settings.categories.afterDownloadJobPausedText': '“{job}” ArrowLoop में रुका हुआ है, इसलिए शुरू नहीं हुआ।',

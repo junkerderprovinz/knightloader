@@ -2967,7 +2967,7 @@ export const bg: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Не е достъпен',
   'settings.categories.afterDownloadUnreachableText': '{device} не отговаря. KnightLoader пита отново всяка минута в продължение на четвърт час.',
   'settings.categories.afterDownloadPermissionOff': 'Разрешението е изключено',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop на {device} в момента не позволява на KnightLoader да стартира задачи. Можеш да включиш разрешението отново в Инстанции.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop на {device} не позволява на KnightLoader да стартира задачи, защото разрешението е изключено или липсва. Можеш да го включиш в Инстанции.',
   'settings.categories.afterDownloadNoSuchJob': 'Липсва задача',
   'settings.categories.afterDownloadNoSuchJobText': '„{job}“ вече не съществува на {device}. Просто избери друга.',
   'settings.categories.afterDownloadJobPausedText': '„{job}“ е на пауза в ArrowLoop, затова не стартира.',

@@ -2957,7 +2957,7 @@ export const lv: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Nav sasniedzams',
   'settings.categories.afterDownloadUnreachableText': '{device} neatbild. KnightLoader ceturtdaļstundu katru minūti jautā vēlreiz.',
   'settings.categories.afterDownloadPermissionOff': 'Atļauja izslēgta',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop ierīcē {device} pašlaik neļauj KnightLoader palaist uzdevumus. Atļauju varat atkal ieslēgt sadaļā Instances.',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop ierīcē {device} neļauj KnightLoader palaist uzdevumus, jo atļauja ir izslēgta vai tās nav. To varat ieslēgt sadaļā Instances.',
   'settings.categories.afterDownloadNoSuchJob': 'Uzdevuma nav',
   'settings.categories.afterDownloadNoSuchJobText': '„{job}“ ierīcē {device} vairs nav. Vienkārši izvēlieties citu.',
   'settings.categories.afterDownloadJobPausedText': '„{job}“ ArrowLoop ir pauzēts, tāpēc tas netika palaists.',

@@ -2967,7 +2967,7 @@ export const uk: Dict = {
   'settings.categories.afterDownloadUnreachable': 'Недоступний',
   'settings.categories.afterDownloadUnreachableText': '{device} не відповідає. KnightLoader питає знову щохвилини протягом чверті години.',
   'settings.categories.afterDownloadPermissionOff': 'Дозвіл вимкнено',
-  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop на {device} зараз не дає KnightLoader запускати завдання. Дозвіл можна знову ввімкнути в розділі «Екземпляри».',
+  'settings.categories.afterDownloadPermissionOffText': 'ArrowLoop на {device} не дає KnightLoader запускати завдання, бо дозвіл вимкнено або його немає. Увімкнути його можна в розділі «Екземпляри».',
   'settings.categories.afterDownloadNoSuchJob': 'Завдання зникло',
   'settings.categories.afterDownloadNoSuchJobText': '«{job}» більше немає на {device}. Просто виберіть інше.',
   'settings.categories.afterDownloadJobPausedText': '«{job}» призупинено в ArrowLoop, тому воно не запустилося.',
