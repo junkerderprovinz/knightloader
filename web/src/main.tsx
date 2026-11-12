@@ -1,3 +1,5 @@
+// Before every other module, any of which may read a store as it loads.
+import './lib/storageShim';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/noto-sans';
@@ -48,13 +50,18 @@ createRoot(document.getElementById('root')!).render(
 );
 
 // Registered after load so it does not compete with first paint. Service
-// workers need a secure context, which a plain-HTTP LAN install is not.
+// workers need a secure context, which a plain-HTTP LAN install is not, and
+// an origin of their own, which a page opened through the fortress lacks:
+// there even reading navigator.serviceWorker throws. Only installability and
+// the share target depend on it.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Its scope is the folder it is served from, so under a base path it
-    // covers the app and nothing else on the host.
-    navigator.serviceWorker.register(withBase('/sw.js')).catch(() => {
-      // Only installability and the share target depend on it.
-    });
+    try {
+      // Its scope is the folder it is served from, so under a base path it
+      // covers the app and nothing else on the host.
+      navigator.serviceWorker.register(withBase('/sw.js')).catch(() => {});
+    } catch {
+      // Left without one.
+    }
   });
 }
