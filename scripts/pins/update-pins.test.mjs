@@ -11,7 +11,6 @@ import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
 
 import {
-  checkGlimstone,
   compareVersions,
   currentTemurin,
   latestTemurin,
@@ -227,25 +226,5 @@ describe('UnRAR', () => {
 
   test('leaves the pins alone when they name the newest release', async () => {
     assert.equal(await updateUnrar(root, offline({ [sources.rarDownloads]: page })), null)
-  })
-})
-
-describe('GlimStone', () => {
-  const pinned = () => /'(\d+\.\d+\.\d+)'/.exec(read(pinFiles.glimstone))[1]
-
-  test('reports a newer release without touching the constant', async () => {
-    const json = { ...JSON.parse(fixture('glimstone-release.json')), tag_name: 'v99.0.0' }
-    const before = read(pinFiles.glimstone)
-    const result = await checkGlimstone(root, offline({ [sources.glimstone]: JSON.stringify(json) }))
-    assert.equal(result.title, 'GlimStone 99.0.0 is out')
-    assert.equal(result.current, pinned())
-    assert.ok(result.body.includes(json.html_url))
-    assert.equal(result.files, undefined)
-    assert.equal(read(pinFiles.glimstone), before)
-  })
-
-  test('stays quiet when the UI follows the newest release', async () => {
-    const json = { ...JSON.parse(fixture('glimstone-release.json')), tag_name: `v${pinned()}` }
-    assert.equal(await checkGlimstone(root, offline({ [sources.glimstone]: JSON.stringify(json) })), null)
   })
 })

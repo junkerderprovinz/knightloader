@@ -28,9 +28,12 @@ jobs:
   pommelporter:
     uses: junkerderprovinz/junkerderprovinz/.github/workflows/pommelporter-current.yml@32ba0f5e3065bece6650d0d30d31342f7bfb7ffc # main
 
-  # Both checks stop a tag here, before the long builds.
+  glimstone:
+    uses: junkerderprovinz/junkerderprovinz/.github/workflows/glimstone-current.yml@main
+
+  # The checks stop a tag here, before the long builds.
   tag:
-    needs: pommelporter
+    needs: [pommelporter, glimstone]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

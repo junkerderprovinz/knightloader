@@ -1,9 +1,9 @@
 // Looks for a newer release of a component KnightLoader pins by hand, out of
 // Renovate's reach, and moves its pins together with their checksums.
 // pin-updates.yml runs it once per component and turns what it writes to
-// GITHUB_OUTPUT into a pull request, or for GlimStone into an issue.
+// GITHUB_OUTPUT into a pull request.
 //
-//     node scripts/pins/update-pins.mjs temurin|unrar|glimstone
+//     node scripts/pins/update-pins.mjs temurin|unrar
 //
 // Nothing is written when there is nothing to move to. A page or file that
 // reads differently from what this expects stops the run with an error.
@@ -18,14 +18,12 @@ export const pinFiles = {
   jre: 'internal/jre/jre.go',
   dockerfile: 'Dockerfile',
   unrar: 'desktop/unrar.json',
-  glimstone: 'web/src/lib/glimstoneVersion.ts',
 }
 
 export const sources = {
   adoptium: 'https://api.adoptium.net/v3/assets/latest/21/hotspot?image_type=jre&vendor=eclipse',
   rarDownloads: 'https://www.rarlab.com/download.htm',
   rarExtras: 'https://www.rarlab.com/rar_add.htm',
-  glimstone: 'https://api.github.com/repos/junkerderprovinz/glimstone/releases/latest',
 }
 
 const greeting = 'Have a look when you have a moment.'
@@ -325,37 +323,8 @@ export async function updateUnrar(root, get) {
   }
 }
 
-export function currentGlimstone(ts) {
-  return find(ts, /GLIMSTONE_VERSION = '(\d+\.\d+\.\d+)'/, 'GLIMSTONE_VERSION')
-}
-
-export function parseRelease(json) {
-  const version = json.tag_name?.replace(/^v/, '') ?? ''
-  numbers(version)
-  return { version, url: json.html_url }
-}
-
-// checkGlimstone only reports a newer GlimStone. Lifting the UI to it is work
-// for a person, and GLIMSTONE_VERSION moves with the change that does it.
-export async function checkGlimstone(root, get) {
-  const current = currentGlimstone(readFileSync(join(root, pinFiles.glimstone), 'utf8'))
-  const latest = parseRelease(JSON.parse(await get(sources.glimstone)))
-  if (compareVersions(numbers(latest.version), numbers(current)) <= 0) return upToDate('GlimStone', current)
-  return {
-    current,
-    version: latest.version,
-    title: `GlimStone ${latest.version} is out`,
-    body: [
-      `[GlimStone ${latest.version}](${latest.url}) is out, and the web UI follows ${current}.`,
-      `Lifting the UI takes a person's eye, so this issue is just a heads-up: bump GLIMSTONE_VERSION in ${pinFiles.glimstone} in the change that does the lift.`,
-      'Have a nice week!',
-    ].join(' '),
-  }
-}
-
 async function download(url) {
   const headers = { 'user-agent': 'knightloader-pin-updates' }
-  if (process.env.GH_TOKEN && new URL(url).host === 'api.github.com') headers.authorization = `Bearer ${process.env.GH_TOKEN}`
   const res = await fetch(url, { headers, signal: AbortSignal.timeout(120_000) })
   if (!res.ok) throw new Error(`${url} answered ${res.status}`)
   return Buffer.from(await res.arrayBuffer())
@@ -374,7 +343,7 @@ function emit(result) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const updaters = { temurin: updateTemurin, unrar: updateUnrar, glimstone: checkGlimstone }
+  const updaters = { temurin: updateTemurin, unrar: updateUnrar }
   const run = updaters[process.argv[2]]
   if (!run) {
     console.error(`usage: node scripts/pins/update-pins.mjs ${Object.keys(updaters).join('|')}`)

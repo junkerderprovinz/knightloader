@@ -158,7 +158,6 @@ jobs:
               - 'internal/jre/jre.go'
               - 'Dockerfile'
               - 'desktop/unrar.json'
-              - 'web/src/lib/glimstoneVersion.ts'
               - '.github/workflows/ci.yml'
             # The Flatpak build installs offline from the two source lists, so
             # a dependency update has to bring them along.
