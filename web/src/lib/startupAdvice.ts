@@ -38,6 +38,7 @@ const startupAdvice: Partial<Record<string, TranslationKey>> = {
   'ytdlp:notFound': 'settings.diagnostics.fix.ytdlpMissing',
   'ffmpeg:notFound': 'settings.diagnostics.fix.ffmpegMissing',
   'ffprobe:notFound': 'settings.diagnostics.fix.ffprobeMissing',
+  'deno:notFound': 'settings.diagnostics.fix.denoMissing',
   // Installed but will not run, such as a yt-dlp with a broken Python.
   notRunnable: 'settings.diagnostics.fix.notRunnable',
   appearedLate: 'settings.diagnostics.fix.appearedLate',
