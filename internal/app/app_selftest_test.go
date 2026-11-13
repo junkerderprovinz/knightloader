@@ -1,8 +1,8 @@
 package app
 
 // Nothing in this file reaches the network: the credential check and the
-// yt-dlp probe are driven through selfTestCheckCredential and
-// ytdlpVersionOutput.
+// yt-dlp probes are driven through selfTestCheckCredential, ytdlpVersionOutput
+// and ytdlpJSRuntimes.
 
 import (
 	"context"
@@ -36,9 +36,12 @@ func newSelfTestApp(t *testing.T) *App {
 	ytdlpVersionOutput = func(context.Context, string) (string, error) {
 		return "", errors.New("exec: \"yt-dlp\": executable file not found in $PATH")
 	}
+	prevRuntimes := ytdlpJSRuntimes
+	ytdlpJSRuntimes = func(context.Context, string, string) (string, bool) { return "deno-2.9.8", true }
 	prevCheck := selfTestCheckCredential
 	t.Cleanup(func() {
 		ytdlpVersionOutput = prevVersion
+		ytdlpJSRuntimes = prevRuntimes
 		selfTestCheckCredential = prevCheck
 	})
 	return a
@@ -231,6 +234,50 @@ func TestTheYtdlpCheckTellsMissingUndatedAndOldApart(t *testing.T) {
 			}
 			if got.Params["version"] == "" {
 				t.Error("no version in the params for the sentence to name")
+			}
+		})
+	}
+}
+
+// A yt-dlp that runs and finds no JavaScript runtime still downloads, and
+// YouTube offers it fewer formats. It is asked with the Deno the backend hands
+// it, and only a yt-dlp that can say so is warned about.
+func TestTheYtdlpCheckWarnsWhenYtdlpHasNoJSRuntime(t *testing.T) {
+	a := newSelfTestApp(t)
+	deno := filepath.Join(t.TempDir(), "deno")
+	t.Setenv("KL_DENO", deno)
+
+	cases := []struct {
+		name       string
+		age        int
+		runtimes   string
+		said       bool
+		wantStatus selftest.Status
+		wantCode   string
+	}{
+		{"none on a current release", 0, "none", true, selftest.StatusWarn, "ytdlp.noJsRuntime"},
+		{"deno on a current release", 0, "deno-2.9.8", true, selftest.StatusPass, "ytdlp.ok"},
+		{"a release that cannot say", 0, "", false, selftest.StatusPass, "ytdlp.ok"},
+		{"none on a release nine months old", 270, "none", true, selftest.StatusFail, "ytdlp.old"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			out := time.Now().UTC().AddDate(0, 0, -c.age).Format("2006.01.02") + "\n"
+			ytdlpVersionOutput = func(context.Context, string) (string, error) { return out, nil }
+			var handed string
+			ytdlpJSRuntimes = func(_ context.Context, _, d string) (string, bool) {
+				handed = d
+				return c.runtimes, c.said
+			}
+			got := resultFor(t, sweep(t, a), selftest.CheckYtdlp)
+			if got.Status != c.wantStatus || got.Code != c.wantCode {
+				t.Fatalf("got (%s, %s), want (%s, %s)", got.Status, got.Code, c.wantStatus, c.wantCode)
+			}
+			if got.Params["version"] == "" {
+				t.Error("no version in the params for the sentence to name")
+			}
+			if c.age == 0 && handed != deno {
+				t.Errorf("yt-dlp was asked with deno %q, want the one it is handed, %q", handed, deno)
 			}
 		})
 	}

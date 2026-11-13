@@ -1,7 +1,7 @@
 package app
 
-// yt-dlp and ffmpeg as far as the App is concerned: what is installed, and the
-// operations that replace it.
+// yt-dlp, ffmpeg and Deno as far as the App is concerned: what is installed,
+// and the operations that replace it.
 
 import (
 	"context"
@@ -22,14 +22,17 @@ type mediaToolsState struct {
 	// ytdlpMu keeps a fetch, a revert and the daily update off the same files
 	// at the same time.
 	ytdlpMu sync.Mutex
-	// ffmpegMu does the same for the fetched ffmpeg.
+	// ffmpegMu does the same for the fetched ffmpeg, and denoMu for the
+	// fetched Deno.
 	ffmpegMu sync.Mutex
+	denoMu   sync.Mutex
 	// latestYtdlp and installYtdlp are mediatools.CheckLatest and
 	// mediatools.Install, which the tests replace so that nothing leaves the
 	// machine.
 	latestYtdlp   func(ctx context.Context, installed string) mediatools.Latest
 	installYtdlp  func(ctx context.Context, dataDir string) (mediatools.ManagedRecord, error)
 	installFFmpeg func(ctx context.Context, dataDir string) (mediatools.FFmpegRecord, error)
+	installDeno   func(ctx context.Context, dataDir string) (mediatools.DenoRecord, error)
 
 	// fetchingFFmpeg is set while an ffmpeg that was missing is on its way,
 	// and awaitingFFmpeg holds the rows that failed for want of it meanwhile,
@@ -37,11 +40,11 @@ type mediaToolsState struct {
 	fetchingFFmpeg bool
 	awaitingFFmpeg map[string]string
 
-	// InstallMissingTools lets the daily update fetch yt-dlp and ffmpeg where
-	// none is found, and makes its first run right at start in that case. The
-	// desktop app sets it: a portable copy, and an installation that updated
-	// itself, carry only the program and not the yt-dlp the installer puts
-	// beside it, and no desktop copy brings ffmpeg.
+	// InstallMissingTools lets the daily update fetch yt-dlp, ffmpeg and Deno
+	// where none is found, and makes its first run right at start in that
+	// case. The desktop app sets it: a portable copy, and an installation that
+	// updated itself, carry only the program and not the yt-dlp the installer
+	// puts beside it, and no desktop copy brings ffmpeg or Deno.
 	InstallMissingTools bool
 }
 
@@ -110,7 +113,7 @@ func (a *App) StartYtdlpAutoUpdate() {
 	a.spawn(func() {
 		first := ytdlpAutoFirstRun
 		st := a.MediaTools()
-		if fetchFFmpeg || (a.InstallMissingTools && (!st.Ytdlp.Found || !st.FFmpeg.Found)) {
+		if fetchFFmpeg || (a.InstallMissingTools && (!st.Ytdlp.Found || !st.FFmpeg.Found || !st.Deno.Found)) {
 			first = 0
 		}
 		a.ytdlpAutoLoop(first, ytdlpAutoEvery)
@@ -130,6 +133,7 @@ func (a *App) ytdlpAutoLoop(first, every time.Duration) {
 		}
 		a.autoUpdateYtdlp()
 		a.autoUpdateFFmpeg()
+		a.autoUpdateDeno()
 		timer.Reset(every)
 	}
 }
@@ -221,6 +225,44 @@ func (a *App) autoUpdateFFmpeg() {
 	a.rewireBackends()
 	log.Printf("ffmpeg: fetched %s (%s) and put it in force", rec.Version, rec.Asset)
 	ready = true
+}
+
+// autoUpdateDeno is the daily run's Deno half, the same as ffmpeg's: a Deno
+// on PATH or in KL_DENO is left to its owner, a missing one is fetched where
+// InstallMissingTools allows it, and a fetched one is replaced once it is
+// DenoRefresh old. Nothing waits for it, since yt-dlp runs without one.
+func (a *App) autoUpdateDeno() {
+	if !a.Settings.Get().YtdlpAutoUpdate || !a.InstallMissingTools {
+		return
+	}
+	if err := mediatools.CanInstallDeno(a.DataDir); err != nil {
+		return
+	}
+	a.denoMu.Lock()
+	defer a.denoMu.Unlock()
+
+	switch _, source := mediatools.ResolveDeno(a.DataDir); source {
+	case mediatools.SourcePath, mediatools.SourceEnv:
+		return
+	case mediatools.SourceManaged:
+		rec, err := mediatools.LoadDenoRecord(a.DataDir)
+		if err == nil && rec != nil && time.Since(rec.FetchedAt) < mediatools.DenoRefresh {
+			return
+		}
+		log.Print("deno: the fetched copy is due, so the daily update fetches the newest release")
+	default:
+		log.Print("deno: none is installed, so the daily update fetches the newest release")
+	}
+	rec, err := a.installDeno(a.ctx, a.DataDir)
+	if err != nil {
+		if a.ctx.Err() == nil {
+			log.Printf("deno: fetching it failed and nothing was replaced, yt-dlp carries on without it: %v", err)
+		}
+		return
+	}
+	a.mediaToolsProber().Invalidate()
+	a.rewireBackends()
+	log.Printf("deno: fetched %s (%s) and handed it to yt-dlp", rec.Version, rec.Asset)
 }
 
 func (a *App) beginFFmpegFetch() {

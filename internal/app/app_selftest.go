@@ -34,6 +34,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
@@ -265,6 +266,9 @@ var ytdlpVersionOutput = func(ctx context.Context, bin string) (string, error) {
 	return string(out), nil
 }
 
+// ytdlpJSRuntimes is mediatools.JSRuntimes, which the tests replace.
+var ytdlpJSRuntimes = mediatools.JSRuntimes
+
 // selfTestYtdlp reports which yt-dlp this is and how far behind it has fallen.
 // The binary is resolved as rewireBackends resolves it (KL_YTDLP, else yt-dlp on
 // PATH), so the check looks at the one downloads use.
@@ -274,10 +278,10 @@ func (a *App) selfTestYtdlp(ctx context.Context, _ settings.Settings) selftest.R
 	if bin == "" {
 		bin = "yt-dlp"
 	}
-	ctx, cancel := context.WithTimeout(ctx, ytdlpVersionTimeout)
+	vctx, cancel := context.WithTimeout(ctx, ytdlpVersionTimeout)
 	defer cancel()
 
-	out, err := ytdlpVersionOutput(ctx, bin)
+	out, err := ytdlpVersionOutput(vctx, bin)
 	if err != nil {
 		r.Status, r.Code = selftest.StatusFail, "ytdlp.missing"
 		r.Detail = err.Error()
@@ -301,6 +305,14 @@ func (a *App) selfTestYtdlp(ctx context.Context, _ settings.Settings) selftest.R
 		code = "ytdlp.aging"
 	case selftest.StatusFail:
 		code = "ytdlp.old"
+	default:
+		// The age matters more, so a missing runtime is only told on a yt-dlp
+		// that is otherwise fine. yt-dlp is asked rather than Deno looked
+		// for, since a Deno it cannot use leaves it just as short.
+		if runtimes, said := ytdlpJSRuntimes(ctx, bin, mediatools.DenoForYtdlp(a.DataDir)); said && runtimes == "none" {
+			status, code = selftest.StatusWarn, "ytdlp.noJsRuntime"
+			r.Detail = "yt-dlp -v: JS runtimes: none"
+		}
 	}
 	r.Status, r.Code = status, code
 	r.Params = map[string]string{"version": shown, "days": strconv.Itoa(days)}

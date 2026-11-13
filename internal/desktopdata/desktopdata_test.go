@@ -35,6 +35,7 @@ func TestEachComponentLandsWhereTheAppLooks(t *testing.T) {
 	data := t.TempDir()
 	want := map[string]string{
 		"ffmpeg":      mediatools.FFmpegPath(data),
+		"deno":        mediatools.DenoPath(data),
 		"java":        jre.Java(data),
 		"jdownloader": filepath.Join(data, "jd", "JDownloader.jar"),
 	}
@@ -49,27 +50,37 @@ func TestEachComponentLandsWhereTheAppLooks(t *testing.T) {
 	}
 }
 
-func TestAnFFmpegOnPathIsLeftToItsOwner(t *testing.T) {
-	bin := t.TempDir()
-	name := "ffmpeg"
-	if runtime.GOOS == "windows" {
-		name = "ffmpeg.exe"
-	}
-	if err := os.WriteFile(filepath.Join(bin, name), []byte("#!/bin/sh\n"), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("PATH", bin)
-	data := t.TempDir()
+func TestAToolOnPathIsLeftToItsOwner(t *testing.T) {
+	for _, id := range []string{"ffmpeg", "deno"} {
+		t.Run(id, func(t *testing.T) {
+			bin := t.TempDir()
+			name := id
+			if runtime.GOOS == "windows" {
+				name += ".exe"
+			}
+			if err := os.WriteFile(filepath.Join(bin, name), []byte("#!/bin/sh\n"), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			t.Setenv("PATH", bin)
+			t.Setenv("KL_DENO", "")
+			data := t.TempDir()
 
-	for _, c := range Components(data) {
-		if c.ID != "ffmpeg" {
-			continue
-		}
-		if err := c.Fetch(context.Background(), nil); err != nil {
-			t.Fatalf("fetch: %v", err)
-		}
-		if _, err := os.Stat(c.Target); !errors.Is(err, os.ErrNotExist) {
-			t.Fatalf("fetched a copy beside the one on PATH: %v", err)
-		}
+			var found bool
+			for _, c := range Components(data) {
+				if c.ID != id {
+					continue
+				}
+				found = true
+				if err := c.Fetch(context.Background(), nil); err != nil {
+					t.Fatalf("fetch: %v", err)
+				}
+				if _, err := os.Stat(c.Target); !errors.Is(err, os.ErrNotExist) {
+					t.Fatalf("fetched a copy beside the one on PATH: %v", err)
+				}
+			}
+			if !found {
+				t.Fatalf("the installer fetches no %s", id)
+			}
+		})
 	}
 }

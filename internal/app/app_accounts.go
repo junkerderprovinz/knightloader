@@ -111,6 +111,7 @@ func (a *App) rewireBackends() {
 		ffprobeAt = ff.FFprobe
 	}
 	yb.SetFFmpeg(ffmpegAt, ffprobeAt)
+	yb.SetDeno(mediatools.DenoForYtdlp(a.DataDir))
 	ytdlpRunning := yb.Available()
 	// Streaming sites a debrid service also lists stay with yt-dlp while it
 	// runs, as for TorBox: a debrid unlock gives a YouTube link no variant rows

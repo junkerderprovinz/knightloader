@@ -1,6 +1,6 @@
 // Package desktopdata is where the desktop app keeps its data, and what its
-// installer fetches into it so the first start finds ffmpeg, the Java runtime
-// and JDownloader in place. The installer is a module of its own, so the
+// installer fetches into it so the first start finds ffmpeg, Deno, the Java
+// runtime and JDownloader in place. The installer is a module of its own, so the
 // folders live here, where it and the app read them from the same code.
 package desktopdata
 
@@ -53,6 +53,20 @@ func Components(dataDir string) []Component {
 					return nil
 				}
 				_, err := mediatools.InstallFFmpeg(ctx, dataDir, progress)
+				return err
+			},
+		},
+		{
+			ID:     "deno",
+			Name:   "Deno",
+			Target: mediatools.DenoPath(dataDir),
+			Fetch: func(ctx context.Context, progress func(done, total int64)) error {
+				// One on PATH or in KL_DENO is the person's own, which the app
+				// hands yt-dlp when it has fetched none.
+				if _, source := mediatools.ResolveDeno(dataDir); source == mediatools.SourcePath || source == mediatools.SourceEnv {
+					return nil
+				}
+				_, err := mediatools.InstallDeno(ctx, dataDir, progress)
 				return err
 			},
 		},

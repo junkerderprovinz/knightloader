@@ -1,8 +1,8 @@
 // Command installer installs KnightLoader on Windows and Linux. The desktop
 // build (scripts/desktop.mjs) copies the program, yt-dlp and UnRAR into
 // payload/ and builds this around it; on macOS the app ships as a disk image
-// instead. ffmpeg, Java and JDownloader are too large or change too often for
-// the payload, so the window fetches them into the data folder at the end.
+// instead. ffmpeg, Deno, Java and JDownloader are too large or change too often
+// for the payload, so the window fetches them into the data folder at the end.
 package main
 
 import (

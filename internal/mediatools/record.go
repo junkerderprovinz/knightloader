@@ -1,11 +1,12 @@
-// Package mediatools is what this build knows about the two external programs
-// a media download actually runs: yt-dlp, which reads the page and picks the
-// streams, and ffmpeg, which joins them. Neither is part of this binary and
-// neither is a Go package. They are separate programs KnightLoader spawns.
-// The container image installs both. The desktop build ships yt-dlp and
-// fetches ffmpeg where there is none.
+// Package mediatools is what this build knows about the external programs a
+// media download actually runs: yt-dlp, which reads the page and picks the
+// streams, ffmpeg, which joins them, and Deno, which yt-dlp runs YouTube's
+// player code in. None is part of this binary and none is a Go package. They
+// are separate programs KnightLoader spawns. The container image installs all
+// three. The desktop build ships yt-dlp and fetches ffmpeg and Deno where
+// there are none.
 //
-// Four things live here, split because the first two must never touch the
+// Five things live here, split because the first two must never touch the
 // network:
 //
 //   - resolve.go: which yt-dlp is going to run, out of the managed copy,
@@ -19,6 +20,7 @@
 //     only then putting it where the resolver will start it.
 //   - ffmpeg.go: the same for ffmpeg and ffprobe, from an LGPL build, for a
 //     desktop that has none on PATH.
+//   - deno.go: the same for Deno, from its own releases.
 //
 // It is not under internal/resolver/ because it is not a resolver: it resolves
 // no links and answers no Match, it is the tooling underneath one.
