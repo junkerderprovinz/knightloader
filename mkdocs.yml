@@ -21,11 +21,12 @@ exclude_docs: |
 theme:
   name: material
   language: en
+  custom_dir: docs-theme/overrides
   logo: assets/logo.svg
   favicon: assets/favicon.png
   font:
-    text: IBM Plex Sans
-    code: IBM Plex Mono
+    text: Noto Sans
+    code: Noto Sans Mono
   palette:
     # Without media queries Material takes the first palette as the default,
     # so the site opens dark whatever the operating system prefers.
@@ -47,6 +48,18 @@ theme:
     - navigation.top
     - content.code.copy
     - toc.follow
+
+extra:
+  docs_theme:
+    accent: "#FCC419"
+    hero:
+      claim: Downloads everything.
+      accent: Yes, everything.
+      text: Hosters, debrid services, torrents, Usenet, videos and streams in one download manager. Run it on your server or your desktop and feed it links from the web, your phone or your browser.
+      buttons:
+        - { text: Get started, link: installing/, primary: true }
+        - { text: What it does, link: features/ }
+        - { text: Source code, link: "https://github.com/junkerderprovinz/knightloader" }
 
 markdown_extensions:
   - admonition
