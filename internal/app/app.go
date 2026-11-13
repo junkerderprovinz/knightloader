@@ -583,6 +583,9 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	a.installFFmpeg = func(ctx context.Context, dataDir string) (mediatools.FFmpegRecord, error) {
 		return mediatools.InstallFFmpeg(ctx, dataDir, nil)
 	}
+	a.installDeno = func(ctx context.Context, dataDir string) (mediatools.DenoRecord, error) {
+		return mediatools.InstallDeno(ctx, dataDir, nil)
+	}
 	a.checkJD, a.restartJD = a.CheckJDUpdate, restartJDForUpdate
 	a.latestJava = func(ctx context.Context) (*jre.Release, error) { return jre.Latest(ctx, jre.AdoptiumAPI) }
 	a.stageJava = func(ctx context.Context, rel *jre.Release) error { return jre.Stage(ctx, a.DataDir, rel) }

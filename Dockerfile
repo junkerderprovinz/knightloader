@@ -1,5 +1,5 @@
-# KnightLoader: one static Go binary with the UI embedded, plus yt-dlp and
-# ffmpeg for the media path. web/dist is committed, so there is no Node stage.
+# KnightLoader: one static Go binary with the UI embedded, plus yt-dlp, ffmpeg
+# and Deno for the media path. web/dist is committed, so there is no Node stage.
 
 FROM golang:1.27-alpine@sha256:eb61c3873c97416fff0116553fff65d67a3549f72e11d9758849a689cdd8b523 AS build
 WORKDIR /src
@@ -60,8 +60,10 @@ RUN apk add --no-cache g++ make \
 FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 # The JRE runs the private headless JDownloader that KL_PROVISION_JD starts by
 # default, which DLC and other container links need. tini is PID 1 so the
-# ffmpeg left behind when a yt-dlp download is stopped gets reaped.
-RUN apk add --no-cache ca-certificates yt-dlp ffmpeg tzdata openjdk21-jre-headless tini libstdc++ \
+# ffmpeg left behind when a yt-dlp download is stopped gets reaped. yt-dlp's
+# YouTube solver (yt-dlp-ejs) takes whichever JavaScript runtime apk picks, so
+# deno is named to make it the one KL_DENO points at.
+RUN apk add --no-cache ca-certificates yt-dlp deno ffmpeg tzdata openjdk21-jre-headless tini libstdc++ \
     && adduser -D -u 1000 knight
 COPY --from=build /out/knightloader /usr/local/bin/knightloader
 COPY --from=unrar /out/unrar /usr/local/bin/unrar
@@ -70,7 +72,8 @@ COPY --from=unrar /out/license.txt /usr/share/licenses/unrar/license.txt
 # Data (SQLite, settings, encrypted accounts) and downloads live on volumes.
 ENV KL_DATA=/data \
     KL_ADDR=:8749 \
-    KL_YTDLP=/usr/bin/yt-dlp
+    KL_YTDLP=/usr/bin/yt-dlp \
+    KL_DENO=/usr/bin/deno
 VOLUME ["/data"]
 EXPOSE 8749
 

@@ -362,6 +362,7 @@ func TestStartupToolsAsksEachBinaryTheWayItAnswers(t *testing.T) {
 		startupcheck.IDYtdlp:   "--version",
 		startupcheck.IDFfmpeg:  "-version",
 		startupcheck.IDFfprobe: "-version",
+		startupcheck.IDDeno:    "--version",
 	}
 	seen := map[string]bool{}
 	for _, tool := range a.startupTools() {
@@ -397,4 +398,27 @@ func TestStartupToolsHonoursKLYTDLP(t *testing.T) {
 		return
 	}
 	t.Error("no yt-dlp row at all")
+}
+
+// A missing Deno costs YouTube formats the way a missing ffmpeg costs the
+// sound, so it is a failure like that one, about the Deno yt-dlp is handed.
+func TestTheDenoRowFailsLikeFFmpegAboutTheDenoYtdlpIsHanded(t *testing.T) {
+	deno := filepath.Join("opt", "bin", "deno-custom")
+	t.Setenv("KL_DENO", deno)
+	a, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Close()
+
+	for _, tool := range a.startupTools() {
+		if tool.ID != startupcheck.IDDeno {
+			continue
+		}
+		if tool.Bin != deno || tool.Optional {
+			t.Errorf("deno is looked for as %q (optional %v), want the KL_DENO value as a row that can fail", tool.Bin, tool.Optional)
+		}
+		return
+	}
+	t.Error("no deno row at all")
 }

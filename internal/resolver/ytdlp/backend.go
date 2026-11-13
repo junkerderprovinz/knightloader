@@ -31,11 +31,12 @@ import (
 )
 
 type Backend struct {
-	// bin, ffmpeg and ffprobe are guarded by mu, since SetBinary and
-	// SetFFmpeg change them while runs start.
+	// bin, ffmpeg, ffprobe and deno are guarded by mu, since SetBinary,
+	// SetFFmpeg and SetDeno change them while runs start.
 	bin     string
 	ffmpeg  string
 	ffprobe string
+	deno    string
 	dir     string
 
 	onUpdate func(taskID string, u core.Update)
@@ -197,6 +198,26 @@ func (b *Backend) ffmpegArgs() []string {
 		return nil
 	}
 	return []string{"--ffmpeg-location", b.ffmpeg}
+}
+
+// SetDeno names the Deno yt-dlp solves YouTube's player challenges with. An
+// empty path adds no flag, so yt-dlp looks for one itself and runs without it
+// when there is none.
+func (b *Backend) SetDeno(path string) {
+	b.mu.Lock()
+	b.deno = path
+	b.mu.Unlock()
+}
+
+// denoArgs relies on yt-dlp splitting RUNTIME:PATH at the first colon, which
+// keeps a Windows drive letter in the path.
+func (b *Backend) denoArgs() []string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.deno == "" {
+		return nil
+	}
+	return []string{"--js-runtimes", "deno:" + b.deno}
 }
 
 func (b *Backend) ffmpegBinary() string {
@@ -391,6 +412,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	args = append(args, browserArgs(sent)...)
 	args = append(args, b.proxyArgs()...)
 	args = append(args, b.ffmpegArgs()...)
+	args = append(args, b.denoArgs()...)
 	if b.RateLimit != nil {
 		if lim := b.RateLimit(); lim > 0 {
 			// --limit-rate applies per fragment connection, so the limit is
@@ -1161,6 +1183,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 	}
 	args = append(args, b.proxyArgs()...)
 	args = append(args, b.ffmpegArgs()...)
+	args = append(args, b.denoArgs()...)
 	cmd := nowindow.CommandContext(ctx, b.binary(), append(args, url)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	out, err := cmd.Output()

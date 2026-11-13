@@ -3612,6 +3612,11 @@ export interface MediaToolsStatus {
   ytdlp: MediaTool;
   ffmpeg: MediaTool;
   ffprobe: MediaTool;
+  /** The JavaScript runtime yt-dlp is handed for YouTube. */
+  deno?: MediaTool;
+  /** What yt-dlp itself names as its JavaScript runtimes with that Deno:
+   *  "none" when it has none, absent when it could not say. */
+  jsRuntimes?: string;
   /** RARLAB's UnRAR, which unpacks RAR sets when it is there. */
   unrar?: MediaTool;
   managed?: YtdlpManagedRecord;
@@ -3670,7 +3675,7 @@ export async function fetchDiagnostics(): Promise<Diagnostics> {
  * `verdict` and `code` are stable ids that the UI translates.
  */
 export interface StartupCheck {
-  /** "data" | "java" | "ytdlp" | "ffmpeg" | "ffprobe" | "folder" | "clock",
+  /** "data" | "java" | "ytdlp" | "ffmpeg" | "ffprobe" | "deno" | "folder" | "clock",
    *  open so an unknown id still draws as a row. */
   id: string;
   /** Folder rows only: "downloads" | "work" | "category" | "extract" | "extractMove" | "watch". */

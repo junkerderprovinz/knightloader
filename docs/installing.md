@@ -207,6 +207,13 @@ that release's checksums, and renews it once a month. On macOS, where that
 project builds nothing, put ffmpeg on `PATH` yourself. An ffmpeg already on
 `PATH` is always the one used.
 
+Deno, the JavaScript runtime yt-dlp needs for YouTube, comes the same way, on
+macOS too. The installer, or the first start of a copy installed before it,
+fetches the official build from
+[Deno's releases](https://github.com/denoland/deno/releases) into the data
+folder, checked against its published checksum, and the app renews it once a
+month. A Deno on `PATH` or in `KL_DENO` is used instead when there is one.
+
 The private JDownloader runs on a Java runtime of KnightLoader's own, whatever
 Java the computer has or lacks. At the first start the desktop app fetches
 [Eclipse Temurin](https://adoptium.net/temurin/) 21 from Adoptium's releases

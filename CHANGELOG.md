@@ -36,6 +36,17 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Fixed
+
+- **YouTube gives yt-dlp all its formats again.** yt-dlp needs a JavaScript
+  runtime to read YouTube's player, and the desktop app had none, so some
+  formats were missing. The desktop app fetches Deno during the install, or at
+  the first start of an older install, keeps it current and hands it to
+  yt-dlp. The container image brings Deno as well, and the self-test warns
+  when yt-dlp finds no JavaScript runtime.
+
 ## [2.8.3] - 2026-11-13
 
 ### Improved

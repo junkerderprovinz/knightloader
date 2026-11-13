@@ -219,6 +219,21 @@ copy is renewed once a month behind the same switch as yt-dlp: master is
 rebuilt daily, and a download of that size every day buys nothing a media
 download notices. An ffmpeg on `PATH` is never replaced and always wins.
 
+Deno is fetched the same way. yt-dlp runs YouTube's player code in a
+JavaScript runtime, and Deno is the one it enables by itself. A desktop copy
+that finds none fetches the newest release from denoland/deno for its
+platform, macOS included, verifies the zip against the `.sha256sum` published
+beside it (sha256sum's line on Linux and macOS, PowerShell's `Get-FileHash`
+list on Windows), runs it with `--version` and puts it beside the fetched
+yt-dlp. Every yt-dlp run gets it as `--js-runtimes deno:<path>`, the fetched
+copy ahead of `KL_DENO` and `PATH` as for yt-dlp itself, and without a Deno
+yt-dlp runs as before with fewer YouTube formats. The copy is renewed once a
+month behind the same switch. The container installs Alpine's deno package
+instead, which is built for musl on both architectures, where the official
+builds need glibc. The self-test does not take a Deno on disk as proof: it
+asks yt-dlp, whose `-v` header names the runtimes it found, and warns on
+`JS runtimes: none`.
+
 ## The desktop update: on the next start, checked by its checksum
 
 **Built:** a desktop app that downloads a newer release in the background once

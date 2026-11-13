@@ -20,8 +20,8 @@ type Source string
 const (
 	// SourceManaged is the copy Install put beside the data directory.
 	SourceManaged Source = "managed"
-	// SourceEnv is KL_YTDLP, which the container image pins to
-	// /usr/bin/yt-dlp on every install (Dockerfile).
+	// SourceEnv is KL_YTDLP or KL_DENO, which the container image pins to
+	// /usr/bin/yt-dlp and /usr/bin/deno on every install (Dockerfile).
 	SourceEnv Source = "env"
 	// SourceBundled is the copy the desktop build puts beside the program
 	// (scripts/desktop.mjs).
