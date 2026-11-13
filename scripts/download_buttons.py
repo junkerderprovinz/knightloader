@@ -12,8 +12,6 @@ CHROME_WEB_STORE = "https://chromewebstore.google.com/detail/knightloader/elofnn
 BUTTONS = {
     "windows": RELEASE + "knightloader-windows-amd64-installer.exe",
     "windows-arm": RELEASE + "knightloader-windows-arm64-installer.exe",
-    "windows-portable": RELEASE + "knightloader-windows-amd64.zip",
-    "windows-portable-arm": RELEASE + "knightloader-windows-arm64.zip",
     "macos": RELEASE + "knightloader-macos-universal.zip",
     # The release carries no Linux installer, so the zipped program is the Linux download.
     "linux": RELEASE + "knightloader-linux-amd64.zip",
