@@ -1,0 +1,1 @@
+Die App bleibt unverändert. Dieses Release lässt die Desktop-App ffmpeg wieder herunterladen, und die Browser-Erweiterung zeigt bis zur Kopplung, wo man sie verbindet.

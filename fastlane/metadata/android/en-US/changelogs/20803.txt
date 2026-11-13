@@ -1,0 +1,1 @@
+The app is unchanged. This release fixes fetching ffmpeg in the desktop app and has the browser extension point to pairing until it is connected.
