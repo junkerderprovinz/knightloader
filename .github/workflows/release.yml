@@ -29,7 +29,7 @@ jobs:
     uses: junkerderprovinz/junkerderprovinz/.github/workflows/pommelporter-current.yml@32ba0f5e3065bece6650d0d30d31342f7bfb7ffc # main
 
   glimstone:
-    uses: junkerderprovinz/junkerderprovinz/.github/workflows/glimstone-current.yml@main
+    uses: junkerderprovinz/junkerderprovinz/.github/workflows/glimstone-current.yml@3537fbabd3876b61093a72ee7c9ebe7f96004754 # main
 
   # The checks stop a tag here, before the long builds.
   tag:
