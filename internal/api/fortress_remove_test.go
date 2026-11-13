@@ -183,3 +183,43 @@ func TestAnInstanceTakenOutSaysSoUntilItJoinsAgain(t *testing.T) {
 		t.Fatalf("joining again answered %d %s", code, raw)
 	}
 }
+
+func TestAPluginThatGaveOnlyItsAppIDGoesByTheAppsOwnSpelling(t *testing.T) {
+	t.Parallel()
+	srv, a := serverAt(t, t.TempDir())
+	relayURL := ownRelay(t, a, srv.URL)
+	secret, words := newWords(t)
+	if code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/fortress/join", map[string]string{"phrase": words}); code != http.StatusOK {
+		t.Fatalf("join answered %d: %s", code, raw)
+	}
+	dir := t.TempDir()
+	if err := fortress.Join(dir, secret, fortress.Membership{App: "firesquire", Device: "tower", Relay: relayURL}); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := fortress.Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plugin, err := fortress.Open(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = plugin.Close() })
+	id := cfg.Identity.ID()
+	waitFor(t, "the plugin among the members", func() bool {
+		for _, m := range removedView(t, srv.URL).Members {
+			if m.ID == id {
+				return m.Name == "FireSquire"
+			}
+		}
+		return false
+	})
+
+	code, raw := postJSON(t, http.MethodDelete, srv.URL+"/api/fortress/members/"+id, nil)
+	var after removedAnswer
+	_ = json.Unmarshal(raw, &after)
+	want := []fortressRemoved{{App: "firesquire", Name: "FireSquire", Device: "tower"}}
+	if code != http.StatusOK || !slices.Equal(after.Removed, want) {
+		t.Fatalf("removing the plugin answered %d %s", code, raw)
+	}
+}

@@ -632,7 +632,7 @@ func fortressViewOf(a *app.App) fortressView {
 			continue
 		}
 		mv := fortressMemberView{
-			ID: m.ID, App: m.App.ID, Name: m.App.Name, Version: m.App.Version,
+			ID: m.ID, App: m.App.ID, Name: appName(m.App), Version: m.App.Version,
 			Device: m.Device, Deployment: m.Deployment, Kind: string(m.Kind),
 			Online: m.Online(), Relay: m.Relay && !m.Direct, Host: m.Host,
 			Open: m.Kind == member.KindInstance && slices.Contains(m.Actions, kitfortress.OpenAction),

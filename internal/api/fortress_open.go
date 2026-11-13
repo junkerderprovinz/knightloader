@@ -56,8 +56,8 @@ func openedBy(a *app.App, from kitfortress.Caller) {
 	name := from.App
 	if g := fortressOf(a); g != nil {
 		for _, m := range g.f.Members() {
-			if m.ID == from.ID && m.App.Name != "" {
-				name = m.App.Name
+			if m.ID == from.ID {
+				name = appName(m.App)
 			}
 		}
 	}
