@@ -61,6 +61,7 @@ func (b *Backend) ProbePlaylist(ctx context.Context, rawurl string) (Playlist, e
 
 	args := append([]string{"--skip-download", "--no-warnings", "--flat-playlist", "-J"}, b.proxyArgs()...)
 	args = append(args, b.ffmpegArgs()...)
+	args = append(args, b.denoArgs()...)
 	cmd := nowindow.CommandContext(ctx, b.binary(), append(args, rawurl)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	stdout, err := cmd.StdoutPipe()
