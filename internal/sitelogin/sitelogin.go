@@ -130,23 +130,19 @@ func JarFromCookies(site Site, cookies []BrowserCookie, now time.Time) string {
 		if !c.HostOnly {
 			domain, sub = "."+strings.TrimPrefix(domain, "."), "TRUE"
 		}
-		path := c.Path
+		path, secure := c.Path, "FALSE"
 		if path == "" {
 			path = "/"
 		}
-		lines = append(lines, strings.Join([]string{domain, sub, path, upper(c.Secure), strconv.FormatInt(expires, 10), c.Name, c.Value}, "\t"))
+		if c.Secure {
+			secure = "TRUE"
+		}
+		lines = append(lines, strings.Join([]string{domain, sub, path, secure, strconv.FormatInt(expires, 10), c.Name, c.Value}, "\t"))
 	}
 	if len(lines) == 0 {
 		return ""
 	}
 	return jarHeader + "\n" + strings.Join(lines, "\n") + "\n"
-}
-
-func upper(b bool) string {
-	if b {
-		return "TRUE"
-	}
-	return "FALSE"
 }
 
 // jarCookie is one line of a cookies.txt. A zero Expires lives as long as the
