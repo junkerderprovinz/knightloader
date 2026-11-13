@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, Card, SectionTitle } from '../../../components/ui';
 import { PathInput } from '../../../components/FolderPicker';
 import { IconImport } from '../../../lib/icons';
@@ -6,6 +6,7 @@ import { useT } from '../../../lib/i18n';
 import {
   ApiError,
   applyJDImport,
+  fetchDeploymentInfo,
   readJDImportFile,
   readJDImportPath,
   type JDImportPreview,
@@ -36,6 +37,21 @@ export function JDImportCard({ hue }: { hue: number }) {
   const [applyError, setApplyError] = useState('');
   const [report, setReport] = useState<{ preview: JDImportPreview; report: JDImportReport; ticked: number } | null>(null);
   const [done, setDone] = useState(0);
+  // In a container, JDownloader's folder on the host stays out of sight until
+  // it is mounted, so a missing folder needs other advice there.
+  const [inContainer, setInContainer] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void fetchDeploymentInfo().then(
+      (d) => {
+        if (alive) setInContainer(d.kind === 'container');
+      },
+      () => {},
+    );
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   async function read(source: Source, load: () => Promise<JDImportPreview>) {
     setBusy(source);
@@ -44,7 +60,7 @@ export function JDImportCard({ hue }: { hue: number }) {
     try {
       setPreview(await load());
     } catch (e) {
-      setFailure(refusalText(t, e));
+      setFailure(refusalText(t, e, inContainer));
       setShake((n) => ({ ...n, [source]: n[source] + 1 }));
     } finally {
       setBusy(null);
@@ -99,7 +115,12 @@ export function JDImportCard({ hue }: { hue: number }) {
       </SubCard>
 
       <SubCard label={t('settings.jdimport.pathLabel')} hint={t('settings.jdimport.pathHint')} className="gap-3">
-        <PathInput value={path} onValue={setPath} title={t('settings.jdimport.pathLabel')} />
+        <PathInput
+          value={path}
+          onValue={setPath}
+          title={t('settings.jdimport.pathLabel')}
+          missingHint={inContainer ? t('settings.jdimport.pathHidden') : t('settings.jdimport.pathAbsent')}
+        />
         <div className="flex flex-wrap items-center gap-3">
           <Button
             icon={<IconImport />}
@@ -179,7 +200,7 @@ function Report({ preview, report, ticked }: { preview: JDImportPreview; report:
 }
 
 /** refusalText words a refused read or apply, translating the codes this card knows. */
-function refusalText(t: ReturnType<typeof useT>['t'], e: unknown): string {
+function refusalText(t: ReturnType<typeof useT>['t'], e: unknown, inContainer = false): string {
   if (e instanceof ApiError) {
     switch (e.code) {
       case 'jdimport.noConfig':
@@ -192,8 +213,12 @@ function refusalText(t: ReturnType<typeof useT>['t'], e: unknown): string {
         return t('settings.jdimport.unknown');
       case 'jdimport.replaced':
         return t('settings.jdimport.replaced');
-      case 'jdimport.pathMissing':
-        return t('settings.jdimport.pathMissing', { path: String(e.params?.path ?? '') });
+      case 'jdimport.pathMissing': {
+        const path = String(e.params?.path ?? '');
+        return inContainer
+          ? t('settings.jdimport.pathHiddenAt', { path })
+          : t('settings.jdimport.pathMissing', { path });
+      }
     }
   }
   return t('settings.jdimport.failed', { error: String(e).replace(/^(Error|ApiError):\s*/, '') });
