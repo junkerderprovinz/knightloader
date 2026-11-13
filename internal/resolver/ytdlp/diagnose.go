@@ -29,6 +29,8 @@ var diagnoses = []struct {
 	// YouTube words memberships two ways, depending on channel levels.
 	{"join this channel to get access to members-only", core.ReasonMembersOnly},
 	{"available to this channel's members", core.ReasonMembersOnly},
+	// Patreon's wording for a post behind a tier the session does not pay for.
+	{"do not have access to this post", core.ReasonMembersOnly},
 
 	// Geo before gone: YouTube's regional block starts with "Video
 	// unavailable.", and filing it as gone would get the link deleted.
