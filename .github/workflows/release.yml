@@ -371,7 +371,7 @@ jobs:
       - name: Checksums
         run: |
           set -eu
-          (cd dist && sha256sum *.zip *.exe *.flatpak *.apk *.aab > checksums.txt)
+          (cd dist && sha256sum *.zip *.exe knightloader-*linux-*-installer *.flatpak *.apk *.aab > checksums.txt)
           cat dist/checksums.txt
 
       # Only from a pushed tag. checksums.txt is named explicitly rather than
@@ -381,7 +381,7 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/*.flatpak dist/*.apk dist/*.aab dist/checksums.txt
+        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/knightloader-*linux-*-installer dist/*.flatpak dist/*.apk dist/*.aab dist/checksums.txt
 
   # The KnightLoader image and the self-hostable relay image, which the
   # settings page's run command for a private relay points at. Only a pushed
