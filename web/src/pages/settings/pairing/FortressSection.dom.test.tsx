@@ -213,6 +213,19 @@ describe('FortressSection', () => {
     expect(alertText()).toBe(en['pairing.fortressInFortress']);
   });
 
+  it('says the fortress takes no new app until the phrase changes when it turns the join away', async () => {
+    const { ApiError } = await vi.importActual<typeof import('../../../lib/api')>('../../../lib/api');
+    server.join = () => {
+      throw new ApiError('403', 'closedUntilNewPhrase', undefined, 403);
+    };
+    await draw(state());
+    await press('open-join');
+    await typeInto(document.querySelector<HTMLInputElement>('[data-word="0"]')!, PHRASE);
+    await press('join');
+    expect(alertText()).toBe(fortressText('en').joinLocked);
+    expect(document.querySelector('[data-word="0"]')).toBeTruthy();
+  });
+
   it('says where the phrase comes from in words that fit this page', async () => {
     await draw(state());
     expect(page()).toContain(interpolate(en['pairing.fortressOutHint'], { app: 'KnightLoader' }));

@@ -64,9 +64,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   app and instance in reach, and any it missed are named, so you know where
   to type the new words.
 - **You can take an app out of the fortress.** Remove on its card on the
-  Pairing page asks first, then offers a new phrase right away, since the
-  old one would still let it back in. Until you change it, a short line
-  names who is out.
+  Pairing page asks first. After that the fortress lets no new app join
+  until you change the phrase, so it offers a new phrase right away. Until
+  then, a short line names who is out, and an app that tries to join is
+  told why.
 - **An ArrowLoop job can follow a download.** Pick a job per category under
   After download, and KnightLoader starts it once a package has landed and
   left the working folder. You can also set up a new ArrowLoop job for the

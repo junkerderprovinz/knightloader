@@ -4672,8 +4672,8 @@ export interface FortressState {
   left: string[];
   /** The devices that had not followed it when the group on the old phrase closed. */
   behind: BehindDevice[];
-  /** The members taken out here since the phrase last changed, which the
-   *  phrase still lets back in. */
+  /** The members taken out here since the phrase last changed. Until it
+   *  changes, the fortress takes no new app. */
   removed: FortressRemoved[];
   /** Another member took this instance out. */
   removedHere: boolean;

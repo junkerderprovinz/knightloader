@@ -3,8 +3,9 @@
 // of this server, then GlimStone's fortress with the other apps and their
 // permissions, or the twelve words to join one. Open on another app's card
 // shows its pages in a new tab through the fortress, or the status of an app
-// without pages of its own. Remove takes another app out, and since the old
-// phrase would let it back in, the fortress offers a new one right after.
+// without pages of its own. Remove takes another app out, and since the
+// fortress then takes no new app until its phrase changes, it offers a new
+// one right after.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   fill,
@@ -110,6 +111,7 @@ export function FortressSection({
       return { ok: true };
     } catch (e) {
       if (e instanceof ApiError && e.code === 'fortress.inFortress') return { error: t('pairing.fortressInFortress') };
+      if (e instanceof ApiError && e.code === 'closedUntilNewPhrase') return { code: e.code };
       return { error: refusalText(t, e) };
     }
   };

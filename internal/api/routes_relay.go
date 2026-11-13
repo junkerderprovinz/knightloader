@@ -324,7 +324,7 @@ func openPhraseGroup(a *app.App, network *lan.Service) (*group.Group, error) {
 		return nil, nil
 	}
 	members := fortress.Moved(fortress.Moving(memberHandler(a, serve), moveKeeper{a}), func() *fortress.Fortress {
-		if g := fortressOf(a); g != nil {
+		if g := fortressOf(a); g != nil && g.taken() {
 			return g.f
 		}
 		return nil

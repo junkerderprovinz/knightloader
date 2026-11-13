@@ -61,6 +61,16 @@ const movedPath = "/api/group/peer/moved"
 var (
 	errInFortress = errors.New("KnightLoader is in a fortress already")
 	errNoFortress = errors.New("KnightLoader is in no fortress")
+	errShutOut    = errors.New("the fortress takes no new app until its phrase changes")
+)
+
+const (
+	// joinWait bounds how long a join waits for the members to take this
+	// instance or turn it away, as long as the kit's own command waits.
+	joinWait = 5 * time.Second
+	// relaySettle is how long the relay gets to list the members once this
+	// instance is on it, before a join counts as the first in its fortress.
+	relaySettle = 1500 * time.Millisecond
 )
 
 // fortressSecret is the secret of the fortress this instance is in, nil
@@ -92,6 +102,11 @@ type fortressGroup struct {
 	// direct answers the direct calls of the fortress, the pairing and the
 	// group on the old phrase, which all arrive at group.DirectPath.
 	direct http.Handler
+
+	// admitted closes once the members took this instance. Until then the
+	// pairing stays where it is: nobody on the old phrase is offered the
+	// fortress or handed its keys.
+	admitted chan struct{}
 
 	mu     sync.Mutex
 	former *formerGroup
@@ -138,6 +153,15 @@ func (g *fortressGroup) Close() error {
 		errs = append(errs, g.lan.Close())
 	}
 	return errors.Join(errs...)
+}
+
+func (g *fortressGroup) taken() bool {
+	select {
+	case <-g.admitted:
+		return true
+	default:
+		return false
+	}
 }
 
 func (g *fortressGroup) formerGroup() *formerGroup {
@@ -189,6 +213,11 @@ func (g *fortressGroup) moveOn() bool {
 
 func (g *fortressGroup) follow() {
 	defer g.wg.Done()
+	select {
+	case <-g.admitted:
+	case <-g.stop:
+		return
+	}
 	t := time.NewTicker(followEvery)
 	defer t.Stop()
 	for {
@@ -274,7 +303,10 @@ func openFortress(a *app.App, secret []byte) (federation.GroupView, error) {
 		}
 		return nil, err
 	}
-	g := &fortressGroup{a: a, f: f, lan: l, secret: bytes.Clone(secret), stop: make(chan struct{})}
+	g := &fortressGroup{a: a, f: f, lan: l, secret: bytes.Clone(secret), admitted: make(chan struct{}), stop: make(chan struct{})}
+	if _, ok := joining.Load(a); !ok {
+		close(g.admitted)
+	}
 	var former *group.Group
 	if groupSecret(a) != nil {
 		g.former = openFormerGroup(a)
@@ -347,6 +379,10 @@ func (p pairingStore) Save(b []byte) error {
 // changing marks the instances changing the phrase themselves, whose keeper
 // then leaves opening the fortress again to the change.
 var changing sync.Map
+
+// joining marks the instances waiting to hear whether the fortress they
+// joined takes them, whose fortress holds the pairing back until it does.
+var joining sync.Map
 
 // previousKept is how long the phrase before a change still opens the
 // fortress, for the members that hold only its keys to follow the change.
@@ -435,17 +471,77 @@ func (k moveKeeper) Keep(secret []byte) error {
 }
 
 // joinFortress joins the fortress of secret. The pairing moves along with
-// the same member key, which the members already know.
+// the same member key, which the members already know, once they take this
+// instance. A fortress that took a member out turns everybody new away until
+// its phrase changes, and then nothing of the join stays.
 func joinFortress(a *app.App, secret []byte) error {
+	if _, busy := joining.LoadOrStore(a, true); busy {
+		return errInFortress
+	}
+	defer joining.Delete(a)
 	if fortressSecret(a) != nil {
 		return errInFortress
 	}
-	return regroup(a, func() error {
+	removedHere, err := a.Accounts.Get(federation.FortressRemovedHereAccount)
+	if err != nil {
+		return err
+	}
+	err = regroup(a, func() error {
 		if err := a.Accounts.Set(federation.FortressRemovedHereAccount, ""); err != nil {
 			return err
 		}
 		return a.Accounts.Set(federation.FortressAccount, hex.EncodeToString(secret))
 	})
+	if err != nil {
+		return err
+	}
+	if !turnedAway(a) {
+		if g := fortressOf(a); g != nil {
+			close(g.admitted)
+		}
+		return nil
+	}
+	log.Printf("fortress: the members take no new app until the phrase changes, so KnightLoader stays out")
+	return errors.Join(errShutOut, regroup(a, func() error {
+		if err := forgetFortress(a); err != nil {
+			return err
+		}
+		return a.Accounts.Set(federation.FortressRemovedHereAccount, removedHere)
+	}))
+}
+
+// turnedAway waits until the members of the fortress just joined turn this
+// instance away, one of them takes it, the relay lists nobody, or joinWait has
+// passed. Without the relay and the network there is nobody to wait for.
+func turnedAway(a *app.App) bool {
+	if mode, _ := relayOf(a); mode == group.RelayOff && !fortressLAN {
+		return false
+	}
+	deadline := time.Now().Add(joinWait)
+	var connected time.Time
+	tick := time.NewTicker(50 * time.Millisecond)
+	defer tick.Stop()
+	for {
+		g := fortressOf(a)
+		if g == nil {
+			return false
+		}
+		if g.f.ShutOut() {
+			return true
+		}
+		members := g.f.Members()
+		if slices.ContainsFunc(members, func(m kitfortress.Member) bool { return m.State == group.StateApproved && m.App.ID != "" }) {
+			return false
+		}
+		if connected.IsZero() && g.f.RelayConnected() {
+			connected = time.Now()
+		}
+		alone := !fortressLAN && len(members) == 0 && !connected.IsZero() && time.Since(connected) >= relaySettle
+		if alone || time.Now().After(deadline) {
+			return false
+		}
+		<-tick.C
+	}
 }
 
 // forgetFortress drops what this instance keeps of its fortress. The pairing
@@ -570,8 +666,8 @@ type fortressView struct {
 	// Behind is every device of the pairing that had not followed it into the
 	// fortress when the group on the old phrase closed.
 	Behind []behindDevice `json:"behind"`
-	// Removed are the members taken out here since the phrase last changed,
-	// which the phrase still lets back in.
+	// Removed are the members taken out here since the phrase last changed.
+	// Until it changes, the fortress takes no new app.
 	Removed []fortressRemoved `json:"removed"`
 	// RemovedHere says another member took this instance out.
 	RemovedHere bool `json:"removedHere"`
@@ -721,6 +817,9 @@ func refuseFortress(w http.ResponseWriter, err error) bool {
 		writeRefusal(w, http.StatusNotFound, "fortress.noFortress", err.Error(), nil)
 	case errors.Is(err, errNoMember):
 		writeRefusal(w, http.StatusNotFound, "fortress.noMember", err.Error(), nil)
+	case errors.Is(err, errShutOut):
+		// GlimStone words the code itself.
+		writeJSONStatus(w, http.StatusForbidden, map[string]any{"ok": false, "code": group.ClosedUntilNewPhrase})
 	case errors.Is(err, auth.ErrStale):
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 	default:
@@ -872,7 +971,7 @@ func registerFortressMembership(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodDelete, "/api/fortress/members/{id}",
-		"take another member out of the fortress, here and at every member in reach; until the phrase changes it could come back with it, so the view names it; only the owner signed in here removes, never an API token",
+		"take another member out of the fortress, here and at every member in reach; until the phrase changes the fortress takes no new app, so the view names it; only the owner signed in here removes, never an API token",
 		func(w http.ResponseWriter, r *http.Request) {
 			if _, ok := tokenOf(r); ok {
 				writeRefusal(w, http.StatusForbidden, "fortress.removeSignIn",
@@ -903,7 +1002,7 @@ func registerFortressMembership(reg *Registry, a *app.App) {
 				return
 			}
 			secret := fortressSecret(a)
-			if secret == nil {
+			if g := fortressOf(a); secret == nil || g != nil && !g.taken() {
 				writeRefusal(w, http.StatusNotFound, "notMoved", "the group has not moved into a fortress", nil)
 				return
 			}
