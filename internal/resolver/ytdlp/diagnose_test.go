@@ -23,6 +23,8 @@ const (
 		"Supporter (or any higher level). Join this channel to get access to members-only content like this video, " +
 		"and other exclusive perks."
 
+	patreonStderr = "ERROR: [patreon] 110207086: You do not have access to this post"
+
 	geoStderr = "ERROR: [youtube] AbC123dEf45: The uploader has not made this video available in your country"
 
 	copyrightBlockStderr = "ERROR: [youtube] AbC123dEf45: Video unavailable. This video contains content from " +
@@ -62,6 +64,7 @@ func TestDiagnoseNamesEachCauseFromTheToolsOwnWords(t *testing.T) {
 		{"a bot check", botCheckStderr, core.ReasonBotCheck},
 		{"a membership", membersOnlyStderr, core.ReasonMembersOnly},
 		{"a membership with levels", membersLevelStderr, core.ReasonMembersOnly},
+		{"a post for paying supporters", patreonStderr, core.ReasonMembersOnly},
 		{"a country the uploader excluded", geoStderr, core.ReasonGeoBlocked},
 		{"a video the uploader deleted", goneStderr, core.ReasonGone},
 		{"an encrypted stream", drmStderr, core.ReasonDRM},
