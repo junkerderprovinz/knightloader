@@ -462,9 +462,14 @@ func forgetFortress(a *app.App) error {
 	return nil
 }
 
+// leaveFortress takes the instance out of its fortress. The members in reach
+// drop it at once, the others when they hear it from them.
 func leaveFortress(a *app.App) error {
 	if fortressSecret(a) == nil {
 		return errNoFortress
+	}
+	if g := fortressOf(a); g != nil {
+		g.f.Leave()
 	}
 	return regroup(a, func() error { return forgetFortress(a) })
 }
