@@ -505,17 +505,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261108153707-d8dfb4d8b999.mod",
+        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261110204830-f493a2b600d6.mod",
         "sha256": "eaeb1cec3b41e983fb874ef0730a898a708df31b4c31c3292fd5eeafba12a83d",
         "dest": "gomod/github.com/dop251/goja/@v",
-        "dest-filename": "v0.0.0-20261108153707-d8dfb4d8b999.mod"
+        "dest-filename": "v0.0.0-20261110204830-f493a2b600d6.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261108153707-d8dfb4d8b999.zip",
-        "sha256": "8cc4d58bd36da63885cb8bec34baedc9f9d1d5925c0e420d2750795755833fc8",
+        "url": "https://proxy.golang.org/github.com/dop251/goja/@v/v0.0.0-20261110204830-f493a2b600d6.zip",
+        "sha256": "096e8a959062f4d8545c6f6dc10373d098ca74252122b824714d3d8587e4eb35",
         "dest": "gomod/github.com/dop251/goja/@v",
-        "dest-filename": "v0.0.0-20261108153707-d8dfb4d8b999.zip"
+        "dest-filename": "v0.0.0-20261110204830-f493a2b600d6.zip"
     },
     {
         "type": "file",
@@ -2017,17 +2017,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/golang.org/x/crypto/@v/v0.58.0.mod",
-        "sha256": "938883ec4a74e7fc05c46269e924dda334c2b7ca7ca219e4d27ca56d1891ccd3",
+        "url": "https://proxy.golang.org/golang.org/x/crypto/@v/v0.59.0.mod",
+        "sha256": "56b5c7e9254d137bc34876aa0d910f78fb0620f7302baa3ca278465a074ca94e",
         "dest": "gomod/golang.org/x/crypto/@v",
-        "dest-filename": "v0.58.0.mod"
+        "dest-filename": "v0.59.0.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/golang.org/x/crypto/@v/v0.58.0.zip",
-        "sha256": "b0a45594cda20ddb4264d84aeff9b588b8570bf6a2833c51a0b821734a298d95",
+        "url": "https://proxy.golang.org/golang.org/x/crypto/@v/v0.59.0.zip",
+        "sha256": "b5cff645013a39d6b3348dce3c53eb452de71309f9a6831c5b12b3f8d6caf1d2",
         "dest": "gomod/golang.org/x/crypto/@v",
-        "dest-filename": "v0.58.0.zip"
+        "dest-filename": "v0.59.0.zip"
     },
     {
         "type": "file",
@@ -2045,31 +2045,31 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/golang.org/x/image/@v/v0.47.0.mod",
-        "sha256": "4283357bab40f12031f2b0c9605b1bdf5afb077319b090a572ee50a843f477dd",
+        "url": "https://proxy.golang.org/golang.org/x/image/@v/v0.48.0.mod",
+        "sha256": "fa3f16aa564f8ee3da433920b98c5f4ef860fe23b852e9d62d891029bba50e62",
         "dest": "gomod/golang.org/x/image/@v",
-        "dest-filename": "v0.47.0.mod"
+        "dest-filename": "v0.48.0.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/golang.org/x/image/@v/v0.47.0.zip",
-        "sha256": "3666e9fe5b8d6110471d649641e680bb117c86495d0aa2c4d8673e87d9ac6c3c",
+        "url": "https://proxy.golang.org/golang.org/x/image/@v/v0.48.0.zip",
+        "sha256": "49489602fe3caf8a606a62422037b70daabaf579a0606359d838c545e3d8121f",
         "dest": "gomod/golang.org/x/image/@v",
-        "dest-filename": "v0.47.0.zip"
+        "dest-filename": "v0.48.0.zip"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/golang.org/x/mod/@v/v0.42.0.mod",
-        "sha256": "92defdc3237bf4f850e9e5c7d7ad6d06b9ef6a10caa12c2c8e54150a4c370270",
+        "url": "https://proxy.golang.org/golang.org/x/mod/@v/v0.43.0.mod",
+        "sha256": "5d7532210906b985f7a3eb81f3f1ee248aa7e7cf1e179fdd8c2b7715671e522c",
         "dest": "gomod/golang.org/x/mod/@v",
-        "dest-filename": "v0.42.0.mod"
+        "dest-filename": "v0.43.0.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/golang.org/x/mod/@v/v0.42.0.zip",
-        "sha256": "2770e372e42c30dd498d63bb094fe257edfad6882c611f8e0d82925feac159f3",
+        "url": "https://proxy.golang.org/golang.org/x/mod/@v/v0.43.0.zip",
+        "sha256": "11b3093d75f4fccd371a6f87f8739eb61671b293ad1e8fa1f33ba5d9206fb717",
         "dest": "gomod/golang.org/x/mod/@v",
-        "dest-filename": "v0.42.0.zip"
+        "dest-filename": "v0.43.0.zip"
     },
     {
         "type": "file",
@@ -2101,17 +2101,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/golang.org/x/sync/@v/v0.24.0.mod",
+        "url": "https://proxy.golang.org/golang.org/x/sync/@v/v0.25.0.mod",
         "sha256": "febf4fed5dc12c0de24528f7065bf071cc74a2424070194aaf24617b91066cda",
         "dest": "gomod/golang.org/x/sync/@v",
-        "dest-filename": "v0.24.0.mod"
+        "dest-filename": "v0.25.0.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/golang.org/x/sync/@v/v0.24.0.zip",
-        "sha256": "ca3fcf3ea8259e75891f7947e1a816a5b89402c542d45d8bbbd9e061b0c58019",
+        "url": "https://proxy.golang.org/golang.org/x/sync/@v/v0.25.0.zip",
+        "sha256": "c27da17d7e217dec0c2f8c715e5ce2b92815fa76fc08da13c41a73dd6a67dfe0",
         "dest": "gomod/golang.org/x/sync/@v",
-        "dest-filename": "v0.24.0.zip"
+        "dest-filename": "v0.25.0.zip"
     },
     {
         "type": "file",
@@ -2129,17 +2129,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/golang.org/x/text/@v/v0.43.0.mod",
-        "sha256": "63270b8ca6290a720212e1d6e58b8d12a8aa315a1cb960411d7ec2998c0aab59",
+        "url": "https://proxy.golang.org/golang.org/x/text/@v/v0.44.0.mod",
+        "sha256": "3ca6d2dce274503d9a474a63448b0afac858be1cac8e6ea5dfdb1d0c38bb64da",
         "dest": "gomod/golang.org/x/text/@v",
-        "dest-filename": "v0.43.0.mod"
+        "dest-filename": "v0.44.0.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/golang.org/x/text/@v/v0.43.0.zip",
-        "sha256": "b75131f628f6e2e4892fd638d33127e952a5027775e0162b94ba069cb4e13863",
+        "url": "https://proxy.golang.org/golang.org/x/text/@v/v0.44.0.zip",
+        "sha256": "e51c60a7d121a493048b1638023983ce183bd5d70df1db495423ce1415663202",
         "dest": "gomod/golang.org/x/text/@v",
-        "dest-filename": "v0.43.0.zip"
+        "dest-filename": "v0.44.0.zip"
     },
     {
         "type": "file",
