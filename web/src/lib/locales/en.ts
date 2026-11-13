@@ -4269,6 +4269,30 @@ export const en = {
   'settings.vpn.error.accountExpired': 'Your {name} account has run out. Renew it, then connect again.',
   'settings.vpn.error.locationUnknown': '{name} has no server at this location. Try another location or leave the field empty.',
   'settings.vpn.error.resumeFailed': '{name} could not reconnect after the restart. Downloads that go through the VPN wait until you connect again or switch the VPN off.',
+  // The sites signed into through the browser (components/SiteLoginsSection.tsx)
+  // and the sign-in again a members-only failure of one offers.
+  'siteLogins.title': 'Sign in through the browser',
+  'siteLogins.hint': 'Some sites only show yt-dlp their posts when you are signed in. Sign in in your browser as usual and the KnightLoader extension hands the session over. After that, links from the site load as you.',
+  'siteLogins.signedInAs': 'Signed in as {account}',
+  'siteLogins.signedIn': 'Signed in',
+  'siteLogins.signedOut': 'Not signed in',
+  'siteLogins.expired': 'Sign-in ran out',
+  'siteLogins.waiting': 'Waiting for your sign-in',
+  'siteLogins.dialogTitle': 'Sign in to {site}',
+  'siteLogins.status': 'Status',
+  'siteLogins.statusHint': 'Read from the stored session. The session itself never leaves this server.',
+  'siteLogins.expires': 'Session runs until',
+  'siteLogins.signIn': 'Sign in',
+  'siteLogins.signInAgain': 'Sign in again',
+  'siteLogins.signOut': 'Sign out',
+  'siteLogins.waitingHint': 'Sign in on the {site} page that just opened. Then click the KnightLoader button in your browser toolbar and hand the session over. This window notices by itself.',
+  'siteLogins.paste': 'Paste cookies.txt',
+  'siteLogins.pasteHint': 'No extension in this browser? Export the {site} cookies.txt while you are signed in and paste it here.',
+  'siteLogins.signedInToast': 'Signed in to {site}.',
+  'siteLogins.signedOutToast': 'Signed out of {site}.',
+  'failure.membersOnly.again.line': 'Members only, and your {site} sign-in did not get in. It has probably run out.',
+  'failure.membersOnly.again.hint': 'Sign in to {site} again in your browser and hand the session over, and the download starts again. If it still says members only, this account does not have the membership.',
+  'failure.membersOnly.again.action': 'Sign in again',
 } as const;
 
 export type TranslationKey = keyof typeof en;

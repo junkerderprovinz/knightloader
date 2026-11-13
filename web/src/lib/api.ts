@@ -2510,6 +2510,53 @@ export async function removeYtdlpCookieJar(host: string, base = '/api'): Promise
   return (await json<YtdlpCookieHosts>(await post(`${base}/ytdlp/cookies/remove`, { host }))) ?? [];
 }
 
+// Sites signed into through the browser (internal/sitelogin). The session
+// comes from the extension or a pasted cookies.txt and never comes back: a
+// site's row says who it signs in as, nothing more.
+
+export type SiteLoginStateName = 'signedOut' | 'signedIn' | 'expired' | 'unchecked';
+
+/** One tile of the accounts page's "Sign in through the browser" card. */
+export interface SiteLogin {
+  id: string;
+  name: string;
+  /** The site's own host, which its logo is drawn for. */
+  host: string;
+  loginUrl: string;
+  /** The cookie domains the extension reads for it. */
+  domains: string[];
+  state: SiteLoginStateName;
+  /** Who the session signs in as, where the site says. */
+  account?: string;
+  /** RFC 3339, where the cookies say when the session runs out. */
+  expires?: string;
+  /** From Sign in until the session arrives. */
+  waiting: boolean;
+}
+
+export async function fetchSiteLogins(): Promise<SiteLogin[]> {
+  return (await json<SiteLogin[]>(await fetch('/api/sitelogins'))) ?? [];
+}
+
+const siteLoginPath = (id: string, action: string) => `/api/sitelogins/${encodeURIComponent(id)}/${action}`;
+
+export async function beginSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'begin'), {}));
+}
+
+export async function checkSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'check'), {}));
+}
+
+/** pasteSiteSession stores a cookies.txt as the site's session and answers who it signs in as. */
+export async function pasteSiteSession(id: string, text: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'cookies'), { text }));
+}
+
+export async function removeSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'remove'), {}));
+}
+
 // Header profiles hold a user's own request headers for one origin: a session
 // cookie, a Referer, Basic auth. Values are sealed in the credential store and
 // never come back, so an editing form re-sends REDACTED_HEADER for every line it
