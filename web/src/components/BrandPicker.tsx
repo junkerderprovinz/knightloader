@@ -20,6 +20,8 @@ export interface Brand {
   host?: string;
   /** Keeps the second line in view at rest, for one that says a state. */
   held?: boolean;
+  /** Says the held second line as a warning, for a state that needs a hand. */
+  warn?: boolean;
   /** A logo of the page's own in place of the one fetched for host. */
   mark?: ReactNode;
   /** The `.glim-tile-*` class the tile lights up in. */
@@ -99,7 +101,7 @@ function BrandTile({ brand: b, onPick }: { brand: Brand; onPick: (id: string) =>
   return (
     <li
       style={colours}
-      className={`glim-readme-btn-unit group ${b.tile ?? ''} ${b.held ? 'glim-readme-btn-unit--note' : ''}`}
+      className={`glim-readme-btn-unit group ${b.tile ?? ''} ${b.held ? 'glim-readme-btn-unit--note' : ''} ${b.warn ? 'glim-readme-btn-unit--warn' : ''}`}
     >
       <button type="button" onClick={() => onPick(b.id)} aria-label={label} className="glim-readme-btn glim-brand-tile">
         {face}

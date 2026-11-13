@@ -179,9 +179,12 @@
       .mediaHost { color: var(--carbon-text-muted); font-size: var(--text-subline); }
       .mediaNone { margin: 0; color: var(--carbon-text-muted); font-size: var(--text-subline); }
       #pairHint,
-      #cnlAccess { margin-bottom: 16px; }
+      #cnlAccess,
+      #signIns { margin-bottom: 16px; }
+      #signIns { display: flex; flex-direction: column; gap: 10px; }
       #pairHint button,
-      #cnlAccess button { margin-top: 10px; }
+      #cnlAccess button,
+      #signIns button { margin-top: 10px; }
     </style>
   </head>
   <body>
@@ -219,6 +222,10 @@
       <span class="glim-unavailable-reason" id="cnlAccessReason"></span>
       <button id="cnlAccessOpen" class="glim-btn-subtle" type="button"></button>
     </div>
+    <!-- A site sign-in an instance waits for (popup-signin.js). The button
+         opens signin.html in a tab, where the browser's prompt for the site's
+         cookies does not close the request with the window. -->
+    <div id="signIns" hidden></div>
 
     <!-- Instances and the link collector as two tabs, like the app. The strip
          appears once there is a group. -->
@@ -270,6 +277,7 @@
     <script src="disco.js"></script>
     <script src="i18n.js"></script>
     <script src="i18n-capture.js"></script>
+    <script src="i18n-signin.js"></script>
     <script src="glyphs.js"></script>
     <script src="shared.js"></script>
     <script src="capture.js"></script>
@@ -282,5 +290,7 @@
     <script src="selectorFit.js"></script>
     <script src="popup.js"></script>
     <script src="popup-media.js"></script>
+    <script src="signin.js"></script>
+    <script src="popup-signin.js"></script>
   </body>
 </html>

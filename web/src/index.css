@@ -3157,6 +3157,13 @@ body {
   translate: 0 0;
 }
 
+/* A held second line that needs a hand, such as a sign-in that ran out, in
+   the warning colour at rest. Lit, the tile's ink carries it like any other. */
+.glim-readme-btn-unit--warn:not(:hover, :focus-within) .glim-readme-btn-sub {
+  color: var(--status-warn-text);
+  opacity: 1;
+}
+
 .glim-readme-btn-soon .glim-readme-btn {
   color: var(--carbon-text-muted);
   cursor: default;

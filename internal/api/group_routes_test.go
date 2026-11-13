@@ -100,6 +100,11 @@ var groupRefused = []string{
 	"GET /api/ytdlp/cookies",
 	"POST /api/ytdlp/cookies",
 	"POST /api/ytdlp/cookies/remove",
+	"GET /api/sitelogins",
+	"POST /api/sitelogins/{id}/begin",
+	"POST /api/sitelogins/{id}/check",
+	"POST /api/sitelogins/{id}/cookies",
+	"POST /api/sitelogins/{id}/remove",
 
 	// Settings and everything configured through them.
 	"GET /api/settings",

@@ -80,6 +80,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerActivity(reg, a)
 	registerHostHeaders(reg, a)
 	registerYtdlpCookies(reg, a)
+	registerSiteLogins(reg, a)
 	registerFeeds(reg, a)
 	registerEventTargets(reg, a)
 	registerEventPrograms(reg, a)
