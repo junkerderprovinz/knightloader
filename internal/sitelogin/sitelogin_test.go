@@ -139,7 +139,7 @@ func TestPatreonSaysWhoTheSessionBelongsTo(t *testing.T) {
 		jarLine(".patreon.com", "session_id", "S1", expires),
 		jarLine(".patreon.com", "old", "GONE", now.Add(-time.Hour)),
 	), now)
-	if got.State != SignedIn || got.Name != "Jane Doe" {
+	if got.State != SignedIn || got.Account != "Jane Doe" {
 		t.Errorf("Check = %+v, want signed in as Jane Doe", got)
 	}
 	if got.Expires != expires.Format(time.RFC3339) {
@@ -163,7 +163,7 @@ func TestPatreonRefusingTheSessionMeansItExpired(t *testing.T) {
 func TestPatreonNotAnsweringLeavesTheSessionUnchecked(t *testing.T) {
 	site := patreonAt(t, func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusForbidden) })
 	got := Check(context.Background(), http.DefaultClient, site, jar(jarLine(".patreon.com", "session_id", "S1", now.Add(time.Hour))), now)
-	if got.State != Unchecked || got.Name != "" {
+	if got.State != Unchecked || got.Account != "" {
 		t.Errorf("Check = %+v, want unchecked", got)
 	}
 }

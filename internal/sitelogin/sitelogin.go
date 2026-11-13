@@ -199,7 +199,7 @@ const (
 // where the cookies do not say.
 type Status struct {
 	State   State  `json:"state"`
-	Name    string `json:"name,omitempty"`
+	Account string `json:"account,omitempty"`
 	Expires string `json:"expires,omitempty"`
 }
 
@@ -232,7 +232,7 @@ func Check(ctx context.Context, client *http.Client, site Site, jar string, now 
 		return st
 	}
 	name, state := ask(ctx, client, site, cookies, now)
-	st.State, st.Name = state, name
+	st.State, st.Account = state, name
 	return st
 }
 
