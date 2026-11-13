@@ -521,6 +521,9 @@ jobs:
       - name: A well keeps to one row
         run: node extension/check-selector-fit.mjs
 
+      - name: A site sign-in reads one site and asks first
+        run: node extension/check-signin.mjs
+
       # --self-hosted checks the package without AMO listing metadata. Two
       # findings are skipped, both from one manifest serving every browser: it
       # declares both background forms, and it uses Chromium's offscreen
