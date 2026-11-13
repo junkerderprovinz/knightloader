@@ -64,6 +64,11 @@ type Backend struct {
 	// task's Options.Cookies is on.
 	Cookies func(rawurl string) string
 
+	// Sessions, when set, returns the session of a site signed into on the
+	// accounts page for rawurl, or "". Signing in was the choice to use it, so
+	// it goes to yt-dlp whatever Options.Cookies says, in place of a jar.
+	Sessions func(rawurl string) string
+
 	// Headers, when set, returns the request headers a browser handed over
 	// with a task for rawurl, or nil: Cookie, Referer and User-Agent (see
 	// browserArgs).
@@ -371,8 +376,8 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	if b.Headers != nil {
 		sent = b.Headers(taskID, url)
 	}
-	jar := ""
-	if opts.Cookies && b.Cookies != nil {
+	jar := b.session(url)
+	if jar == "" && opts.Cookies && b.Cookies != nil {
 		jar = b.Cookies(url)
 	}
 	jar = withBrowserCookies(jar, url, sent["Cookie"], time.Now())
@@ -1128,6 +1133,13 @@ type Thumbnail struct {
 	Ext    string
 }
 
+func (b *Backend) session(rawurl string) string {
+	if b.Sessions == nil {
+		return ""
+	}
+	return b.Sessions(rawurl)
+}
+
 // ProbeTitle asks yt-dlp for a link's title and available formats without
 // downloading anything. It is one process per call, anti-bot checks included,
 // which is why app.probeYtdlpTitle runs it once per staged task and no batched
@@ -1142,7 +1154,7 @@ type Thumbnail struct {
 // yt-dlp as they do for the download (see browserArgs).
 func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]string) (ProbeResult, error) {
 	args := []string{"--skip-download", "--no-warnings", "-j"}
-	if jar := withBrowserCookies("", url, sent["Cookie"], time.Now()); jar != "" {
+	if jar := withBrowserCookies(b.session(url), url, sent["Cookie"], time.Now()); jar != "" {
 		path, cleanup, err := writeCookieFile("", jar)
 		defer cleanup()
 		if err != nil {

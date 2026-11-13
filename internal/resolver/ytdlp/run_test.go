@@ -1449,3 +1449,28 @@ func TestDiscardLeavesWhatIsOutsideTheTasksFolder(t *testing.T) {
 		t.Errorf("Discard left the task's own file (stat err = %v)", err)
 	}
 }
+
+// Signing in to a site is the choice to use its session, so the switch for
+// pasted jars does not stand in the way.
+func TestRunHandsASignedInSitesSessionOverWithTheSwitchOff(t *testing.T) {
+	const session = "# Netscape HTTP Cookie File\n.patreon.com\tTRUE\t/\tTRUE\t0\tsession_id\tsigned-in-session\n"
+	t.Setenv(runHelperEnv, "cookies:full")
+	dir := t.TempDir()
+	b := NewBackend(os.Args[0], dir, func(string, core.Update) {})
+	b.Options = func(string) Options { return Options{} }
+	b.Cookies = func(string) string { return "a pasted jar" }
+	var askedFor string
+	b.Sessions = func(rawurl string) string { askedFor = rawurl; return session }
+	b.run("task-1", "https://www.patreon.com/posts/a-post-1")
+
+	if askedFor != "https://www.patreon.com/posts/a-post-1" {
+		t.Errorf("the session was asked for %q", askedFor)
+	}
+	seen, err := os.ReadFile(filepath.Join(dir, "jar-seen.txt"))
+	if err != nil {
+		t.Fatalf("the child could not read the jar: %v", err)
+	}
+	if string(seen) != session {
+		t.Errorf("the child read %q, want the site's session alone", seen)
+	}
+}
