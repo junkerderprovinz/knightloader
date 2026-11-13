@@ -1,11 +1,9 @@
 // Package sitelogin knows the sites that yt-dlp loads only for a signed-in
 // session and that cannot be signed into with a user name and password: a
 // captcha or a mailed code stands in the way. The session comes from the
-// user's own browser instead, through the extension or a pasted cookies.txt,
-// and is kept as that site's jar in ytdlp.CookieStore.
-//
-// Nothing here stores anything. It builds a jar from what a browser holds,
-// and asks a jar who it signs in.
+// user's own browser instead, through the extension or a pasted cookies.txt.
+// Store keeps it; JarFromCookies builds it from what a browser holds, and
+// Check asks it who it signs in.
 package sitelogin
 
 import (
@@ -25,8 +23,7 @@ import (
 type Site struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
-	// Host is the key its jar is kept under in ytdlp.CookieStore, which also
-	// serves every subdomain of it.
+	// Host is the site's own name, which the page draws its logo for.
 	Host     string `json:"host"`
 	LoginURL string `json:"loginUrl"`
 	// Domains are the cookie domains the extension reads for the site. A
