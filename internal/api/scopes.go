@@ -260,6 +260,14 @@ var routeScopes = map[string]apitoken.Scope{
 	"PUT /api/settings":          apitoken.ScopeAdmin,
 	"GET /api/settings/defaults": apitoken.ScopeAdmin,
 
+	"GET /api/sitelogins":                apitoken.ScopeAdmin,
+	"GET /api/sitelogins/handover":       apitoken.ScopeAdmin,
+	"POST /api/sitelogins/{id}/begin":    apitoken.ScopeAdmin,
+	"POST /api/sitelogins/{id}/check":    apitoken.ScopeAdmin,
+	"POST /api/sitelogins/{id}/cookies":  apitoken.ScopeAdmin,
+	"POST /api/sitelogins/{id}/handover": apitoken.ScopeAdmin,
+	"POST /api/sitelogins/{id}/remove":   apitoken.ScopeAdmin,
+
 	"GET /api/stats/speed":        apitoken.ScopeRead,
 	"GET /api/stats/speed/day":    apitoken.ScopeRead,
 	"GET /api/stats/torrents":     apitoken.ScopeRead,
