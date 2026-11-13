@@ -423,12 +423,12 @@ describe('FortressSection', () => {
 
   it('names who was removed until the phrase changes', async () => {
     await draw(joined({ members: [arrowLoop], removed: [{ app: 'arrowloop', name: 'ArrowLoop', device: 'Tower' }] }));
-    expect(hook('removed')!.textContent).toContain('Removed: ArrowLoop on Tower. Change the phrase to close the way back in.');
+    expect(hook('removed')!.textContent).toContain('Removed: ArrowLoop on Tower. No new app can join until you change the phrase.');
   });
 
   it('says another app removed KnightLoader until it joins again', async () => {
     await draw(state({ removedHere: true }));
     expect(page()).toContain('Removed from the fortress');
-    expect(page()).toContain('Another app in the fortress removed KnightLoader. Enter the current phrase to come back in.');
+    expect(page()).toContain('Another app in the fortress removed KnightLoader. Once the phrase has changed, the new one gets you back in.');
   });
 });
