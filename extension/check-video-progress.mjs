@@ -191,6 +191,7 @@ function loadBackground(chrome) {
   await settle();
   if (tabs.length !== opened) fail('the button can open an instance outside the group');
 
+  ctx.readPhrase = async () => 'words';
   const labels = await vm.runInContext('videoLabels', ctx)();
   for (const k of ['done', 'doneTip', 'loadFailed', 'downloading']) if (!labels[k]) fail(`the button gets no "${k}" label`);
 }

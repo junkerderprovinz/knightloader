@@ -669,8 +669,17 @@ function loadBackground(chrome) {
   await store.local.set({ videoButton: true, videoButtonHidden: [] });
   await settle();
 
+  // The page cannot read whether this browser joined a group, so the labels
+  // say it, with the words the menu shows when it has not.
+  ctx.readPhrase = async () => 'words';
   const labels = await vm.runInContext('videoLabels', ctx)();
   if (!labels.mark?.startsWith('<svg')) fail('the button gets no mark to show');
+  if (labels.paired !== true) fail(`with a phrase stored the button hears paired ${labels.paired}, want true`);
+  ctx.readPhrase = async () => '';
+  const unpairedLabels = await vm.runInContext('videoLabels', ctx)();
+  if (unpairedLabels.paired !== false) fail(`without a phrase the button hears paired ${unpairedLabels.paired}, want false`);
+  for (const k of ['pairTitle', 'pairBody', 'pairOpen']) if (!unpairedLabels[k] || unpairedLabels[k] === k) fail(`the button gets no "${k}" words for a browser without a group`);
+  ctx.readPhrase = async () => 'words';
   if (Object.keys(labels.parts ?? {}).join() !== 'video,audio,subtitle,thumbnail,description') fail('the button gets no name for every part');
 
   const sent = [];
@@ -810,6 +819,8 @@ function loadBackground(chrome) {
   ctx.withGroup = async () => { const e = new Error('no-phrase'); e.code = 'no-phrase'; throw e; };
   r = await sendVideo(embed, { href: embed });
   if (r.result !== 'unpaired') fail(`without a group the button shows ${r.result}, want unpaired`);
+  menu = await videoFormats(embed, { href: embed });
+  if (menu.unpaired !== true || menu.known) fail(`without a group the menu is answered ${JSON.stringify(menu)}, want unpaired with nothing known`);
 
   // A relay that cannot be reached, through the real session.
   const t = vm.runInContext('t', ctx);
@@ -1905,6 +1916,56 @@ for (const converts of [true, false]) {
   doc.fullscreenElement = playAv;
   doc.dispatch('fullscreenchange');
   if (!shownOn || shownOn.parentNode !== jw) fail('in fullscreen the button is not inside the element the shadow root shows');
+}
+
+// Without a group the menu says so and leads to the settings, in place of
+// parts no instance can fill, and so does a click on the button. Once a group
+// is joined the menu offers the video again.
+{
+  const store = makeStore();
+  const { chrome } = makeChrome(store);
+  let joined = false;
+  const setups = [];
+  const sends = [];
+  chrome.runtime.sendMessage = async (msg) => {
+    if (msg.type === 'knightloader-video-labels') return { ...PAGE_LABELS, pairTitle: 'Connect an instance first', pairBody: 'Not connected yet', pairOpen: 'Enter the phrase', unpaired: 'Set up first', paired: false };
+    if (msg.type === 'knightloader-video-formats') return joined ? { known: false, qualities: [], audio: true, videoTracks: [], audioTracks: [], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true } : { ...{ known: false, qualities: [], audio: true, videoTracks: [], audioTracks: [], audioLangs: [], subtitles: [], autoCaptions: [], subtitleFormats: [], thumbnail: null, description: true }, unpaired: true };
+    if (msg.type === 'knightloader-video-send') {
+      sends.push(msg);
+      return { result: joined ? 'sent' : 'unpaired' };
+    }
+    if (msg.type === 'knightloader-video-setup') setups.push(msg);
+    return undefined;
+  };
+  const { doc, run } = loadPage(chrome, 'https://www.youtube.com/watch?v=aqz-KE-bpKQ');
+  const player = doc.createElement('div');
+  doc.documentElement.append(player);
+  video(doc, player, { left: 0, top: 56, width: 1280, height: 720 });
+  run();
+  await settle();
+  const shadow = doc.documentElement.querySelectorAll('knightloader-video-button')[0].shadow;
+  const send = () => shadow.querySelectorAll('button').find((b) => b.className === 'send');
+  const more = () => shadow.querySelectorAll('button').find((b) => b.attrs['aria-haspopup'] === 'dialog');
+  const menuEl = () => shadow.querySelectorAll('div').find((d) => d.attrs.role === 'dialog');
+  const words = () => menuEl().querySelectorAll('*').filter((n) => n.text).map((n) => n.text).join('|');
+  if (send().attrs['aria-label'] !== 'Connect an instance first') fail(`without a group the button's tip says "${send().attrs['aria-label']}", want the way to connect`);
+
+  more().fire('click');
+  await settle();
+  if (words() !== 'Connect an instance first|Not connected yet|Enter the phrase') fail(`without a group the menu shows ${words()}, want the hint and its button alone`);
+  if (menuEl().querySelectorAll('*').some((n) => n.attrs.role === 'switch')) fail('without a group the menu still offers parts');
+  menuEl().querySelectorAll('button').find((b) => b.text === 'Enter the phrase')?.fire('click');
+  await settle();
+  if (setups.length !== 1 || !menuEl().hidden) fail(`the hint's button opens the settings ${setups.length} time(s) and leaves the menu ${menuEl().hidden ? 'closed' : 'open'}, want once and closed`);
+
+  send().fire('click');
+  await settle();
+  if (sends.length !== 1 || setups.length !== 2) fail(`a click without a group asks ${sends.length} time(s) and opens the settings ${setups.length - 1} time(s), want once each`);
+
+  joined = true;
+  more().fire('click');
+  await settle();
+  if (!words().startsWith('Video|') || words().includes('Connect an instance first')) fail(`once a group is joined the menu shows ${words()}, want the video's parts`);
 }
 
 // 6. The keyboard shortcut sends the video in the active tab, through the

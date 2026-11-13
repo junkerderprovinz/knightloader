@@ -26,7 +26,7 @@
          `[hidden] { display: none }`, so the attribute gets the weight to win. */
       [hidden] { display: none !important; }
       /* 40px between stacked cards, the shared number. The first visible card
-         gets none: the two hint cards at the top are usually hidden. */
+         gets none: the hint cards at the top are usually hidden. */
       section.glim-card:not([hidden]) ~ section.glim-card:not([hidden]) { margin-top: 40px; }
       h2 { margin: 0; font-size: var(--text-meta); font-weight: 500; }
       label { display: block; font-size: var(--text-subline); color: var(--carbon-text-sub); margin-bottom: 6px; }
@@ -325,12 +325,24 @@
     </style>
   </head>
   <body>
-    <!-- Shown when Chromium has hidden the new toolbar button behind the puzzle
-         piece, which looks like a failed install (notOnToolbar in
-         background.js). -->
     <!-- The cards come in one after another (.glim-stagger-row), each at its
          place in the page as --row-i. They carry the class from the start, so
          the first paint is already their entrance. -->
+
+    <!-- Shown while this browser has joined no group, as after a fresh
+         install. Nothing else works until the phrase is in, so it comes
+         first, and its button leads to the phrase field. -->
+    <section class="glim-card glim-stagger-row" id="pairNotice" style="--row-i: 0" hidden>
+      <h2 class="glim-section-badge" id="pairNoticeHeading"></h2>
+      <p id="pairNoticeBody" class="aboutText"></p>
+      <div class="fields">
+        <button id="pairNoticeOpen" class="glim-btn-subtle" type="button"></button>
+      </div>
+    </section>
+
+    <!-- Shown when Chromium has hidden the new toolbar button behind the puzzle
+         piece, which looks like a failed install (notOnToolbar in
+         background.js). -->
     <section class="glim-card glim-stagger-row pinHint" id="pinHint" style="--row-i: 0" hidden>
       <h2 class="glim-section-badge" id="pinHeading">Almost there</h2>
       <p id="pinBody" class="aboutText"></p>

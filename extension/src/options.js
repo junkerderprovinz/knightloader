@@ -62,6 +62,8 @@ const aboutHeadingEl = document.getElementById('aboutHeading');
 const phraseEye = document.getElementById('phraseEye');
 const phrasePaste = document.getElementById('phrasePaste');
 const deviceNameEl = document.getElementById('deviceName');
+const pairNoticeEl = document.getElementById('pairNotice');
+const pairNoticeOpenEl = document.getElementById('pairNoticeOpen');
 
 /**
  * Builds a filled glyph with createElementNS, because Mozilla's linter, a
@@ -381,6 +383,10 @@ function applyStaticText() {
   rowLabel('oledLabel', t('options.oled'), t('options.oledHint'), oledEl);
   rowLabel('shapeLabel', t('options.shapeLabel'), t('options.shapeHint'));
 
+  document.getElementById('pairNoticeHeading').textContent = t('common.pairTitle');
+  document.getElementById('pairNoticeBody').textContent = t('options.pairBody');
+  pairNoticeOpenEl.replaceChildren(glimGlyph('IconLink', 14), document.createTextNode(t('common.pairOpen')));
+
   const pinHeading = document.getElementById('pinHeading');
   const pinBody = document.getElementById('pinBody');
   const pinDismiss = document.getElementById('pinDismiss');
@@ -423,6 +429,11 @@ async function renderPinHint() {
     card.hidden = true;
   });
 }
+
+pairNoticeOpenEl.addEventListener('click', () => {
+  phraseInput.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  phraseInput.focus({ preventScroll: true });
+});
 
 /**
  * The phrase is masked because it is a credential for every instance in the
@@ -519,6 +530,7 @@ async function renderGroup({ quiet = false } = {}) {
   const phrase = await readPhrase();
   if (turn !== groupTurn) return;
   const joined = phrase !== '';
+  pairNoticeEl.hidden = joined;
   // The field may hold a phrase being typed.
   if (!quiet) phraseInput.value = phrase;
   leaveBtn.hidden = !joined;

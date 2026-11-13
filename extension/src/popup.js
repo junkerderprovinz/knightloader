@@ -137,11 +137,7 @@ function paintHues() {
   targetEl.hidden = true;
 
   if (!(await readPhrase())) {
-    // The popup stays open and offers the way to the options page rather
-    // than jumping there.
-    label(sendBtn, t('popup.addInstance'), glimGlyph('IconAdd', 14));
-    sendBtn.onclick = () => chrome.runtime.openOptionsPage();
-    statusEl.textContent = t('popup.noInstance');
+    showPairHint();
     return;
   }
 
@@ -166,6 +162,24 @@ function paintHues() {
   watchStatus();
   showCollector();
 })();
+
+const pairHintEl = document.getElementById('pairHint');
+const pairHintOpenEl = document.getElementById('pairHintOpen');
+
+/**
+ * Without a group there is nothing to send to, so the popup shows the way to
+ * the options page instead of a send button that cannot work. It stays open
+ * rather than jumping there, so the reason can be read.
+ */
+function showPairHint() {
+  document.getElementById('pairHintTitle').textContent = t('common.pairTitle');
+  document.getElementById('pairHintReason').textContent = t('popup.pairBody');
+  label(pairHintOpenEl, t('common.pairOpen'), glimGlyph('IconLink', 14));
+  pairHintEl.hidden = false;
+  paneSendEl.hidden = true;
+}
+
+pairHintOpenEl.addEventListener('click', () => chrome.runtime.openOptionsPage());
 
 /** A video from the button on its player, in one line: its name, cut short
  *  where it is long, and the parts it downloads. */
@@ -394,8 +408,8 @@ cnlAccessOpenEl.addEventListener('click', () => chrome.runtime.openOptionsPage()
 
 sendBtn.addEventListener('click', async () => {
   cancelCountdown();
-  // Without a phrase this button only opens the options page, so stop before
-  // the tab is read.
+  // With no instance online nothing is chosen, so stop before the tab is
+  // read.
   if (!chosen) return;
   // The tab is read on the press, not when the popup opens, as the privacy
   // policy says.

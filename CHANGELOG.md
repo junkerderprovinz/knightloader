@@ -38,6 +38,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Improved
+
+- **The browser extension says when it is not connected yet.** Until you
+  enter your instance's connection phrase, the video button's menu, the
+  toolbar popup and the settings page say so at the top, with a button that
+  takes you to the phrase. A click on the video button leads there too,
+  instead of a menu with no qualities in it.
+
 ### Fixed
 
 - **The desktop app fetches ffmpeg again.** The project that publishes the

@@ -245,6 +245,9 @@
     .menu .go:hover { background: color-mix(in srgb, var(--accent) 85%, var(--text)); }
     .go .total { margin-inline-start: .35em; font-weight: 500; font-variant-numeric: tabular-nums; }
     .note { display: flex; flex: 0 0 auto; align-items: center; min-height: 30px; padding: 0 8px; color: var(--sub); font-size: 12px; }
+    .pair { display: flex; flex-direction: column; gap: 6px; padding: 0 8px 10px; }
+    .pair strong { color: var(--text); font-size: 14px; font-weight: 600; }
+    .pair span { color: var(--sub); line-height: 1.45; }
     .choices .note { min-height: 0; padding: 0 6px; }
     .menu[aria-busy="true"] .note.busy { animation: pulse 3.2s ease-in-out infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
@@ -266,6 +269,9 @@
 
   let stored = {};
   let labels = null;
+  // Whether this browser has joined a group, as the worker last said. Without
+  // one there is no instance to ask what a video has or to send it to.
+  let paired = true;
   let page = null;
   let video = null;
   // When the pointer last moved over the video, 0 once it left.
@@ -657,7 +663,7 @@
     else frame.dataset.ring = share === null ? 'unknown' : 'share';
     arc.setAttribute('stroke-dasharray', typeof share === 'number' ? `${Math.round(share * 1000) / 10} 100` : '25 75');
     const going = share === undefined ? '' : share === null ? labels.downloading : `${labels.downloading} ${new Intl.NumberFormat(labels.lang, { style: 'percent' }).format(share)}`;
-    const tip = result?.reason || (result?.result === 'done' ? labels.doneTip : result ? labels[result.result] : going || labels.sendTip);
+    const tip = result?.reason || (result?.result === 'done' ? labels.doneTip : result ? labels[result.result] : going || (paired ? labels.sendTip : labels.pairTitle));
     send.setAttribute('aria-label', tip);
     send.title = tip;
     send.setAttribute('aria-busy', String(sending));
@@ -679,10 +685,6 @@
   async function sendVideo(choose) {
     if (sending || !page) return;
     closeMenu();
-    if (result?.result === 'unpaired') {
-      chrome.runtime.sendMessage({ type: 'knightloader-video-setup' }).catch(() => {});
-      return;
-    }
     clearTimeout(resultTimer);
     result = null;
     sending = true;
@@ -697,7 +699,17 @@
       asking = true;
       return;
     }
+    // Without a group nothing can be sent, so the click leads to where one is
+    // joined.
+    if (answer?.result === 'unpaired') {
+      paired = false;
+      openSetup();
+    }
     showResult(answer);
+  }
+
+  function openSetup() {
+    chrome.runtime.sendMessage({ type: 'knightloader-video-setup' }).catch(() => {});
   }
 
   function showResult(answer) {
@@ -944,7 +956,9 @@
    * is open makes its pick exact for the video.
    */
   function askFormats() {
-    if (offered?.url === page.url) return offered.ready;
+    // Asked again after an answer without a group, so the menu offers the
+    // video once one is joined.
+    if (offered?.url === page.url && !offered.answer?.unpaired) return offered.ready;
     const asked = { url: page.url, answer: null };
     offered = asked;
     asked.ready = chrome.runtime
@@ -952,6 +966,7 @@
       .catch(() => null)
       .then((answer) => {
         asked.answer = typeof answer?.known === 'boolean' ? answer : videoOffer(null);
+        if (typeof answer?.known === 'boolean') paired = !answer.unpaired;
         if (offered === asked && !menu.hidden) {
           pick = videoResolve(pick, asked.answer);
           renderMenu();
@@ -1157,6 +1172,10 @@
   /** Draws the menu for the current pick, with the keyboard back on the
    *  control it was on, or on the first one. */
   function renderMenu(focusKey = root.activeElement?.dataset.key) {
+    if (!paired) {
+      renderPairMenu();
+      return;
+    }
     const redraw = (change) => {
       change();
       renderMenu();
@@ -1193,6 +1212,31 @@
     menu.replaceChildren(...items, foot);
     const controls = menu.querySelectorAll('button');
     ([...controls].find((b) => b.dataset.key === focusKey) ?? controls[0]).focus();
+  }
+
+  /** The menu without a group: what is missing, and the way to the settings
+   *  where the phrase goes, in place of choices no instance can fill. */
+  function renderPairMenu() {
+    const hint = document.createElement('div');
+    hint.className = 'pair';
+    const title = document.createElement('strong');
+    title.textContent = labels.pairTitle;
+    const body = document.createElement('span');
+    body.textContent = labels.pairBody;
+    hint.append(title, body);
+    const open = control(labels.pairOpen, () => {
+      closeMenu();
+      openSetup();
+    });
+    open.className = 'go';
+    open.dataset.key = 'pair';
+    const foot = document.createElement('div');
+    foot.className = 'foot';
+    foot.append(open);
+    menu.setAttribute('aria-label', labels.pairTitle);
+    menu.setAttribute('aria-busy', 'false');
+    menu.replaceChildren(hint, foot);
+    open.focus();
   }
 
   function openMenu() {
@@ -1371,6 +1415,7 @@
 
   async function loadLabels() {
     labels = await chrome.runtime.sendMessage({ type: 'knightloader-video-labels' }).catch(() => null);
+    if (labels) paired = labels.paired !== false;
   }
 
   // Switching the button off, or hiding it on this site, takes it away at once

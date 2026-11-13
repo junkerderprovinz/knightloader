@@ -473,6 +473,9 @@ jobs:
       - name: Send label
         run: node extension/check-popup-send.mjs
 
+      - name: Connect an instance first
+        run: node extension/check-pair-hint.mjs
+
       - name: Background
         run: node extension/check-background.mjs
 

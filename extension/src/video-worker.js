@@ -72,7 +72,8 @@ function applyVideoButton() {
 let videoMarkSvg = null;
 
 /** Everything the button says, in the extension's language, since the page
- *  it sits on has no catalogue, and the mark it shows. */
+ *  it sits on has no catalogue, the mark it shows, and whether this browser
+ *  has joined a group, which the page cannot read itself. */
 async function videoLabels() {
   videoMarkSvg ??= await fetch(chrome.runtime.getURL('logo.svg')).then((r) => r.text());
   return {
@@ -103,6 +104,10 @@ async function videoLabels() {
     done: t('video.done'),
     doneTip: t('video.doneTip'),
     loadFailed: t('video.loadFailed'),
+    pairTitle: t('common.pairTitle'),
+    pairBody: t('video.pairBody'),
+    pairOpen: t('common.pairOpen'),
+    paired: (await readPhrase()) !== '',
     mark: videoMarkSvg,
     dir: LANGUAGES.find((l) => l.code === currentLanguage())?.rtl ? 'rtl' : 'ltr',
     lang: currentLanguage(),
@@ -273,14 +278,16 @@ chrome.runtime.onConnect.addListener((port) => {
 /**
  * What the menu offers for the video of the page a button sits on: what the
  * default instance's yt-dlp says it has (videoOffer), or nothing known where
- * it cannot say. Checked like sendVideo, so a button only asks about the
- * video it is showing. What it offered is kept for the site, for the options
- * page to offer as defaults.
+ * it cannot say, marked unpaired where this browser has no group to ask.
+ * Checked like sendVideo, so a button only asks about the video it is
+ * showing. What it offered is kept for the site, for the options page to
+ * offer as defaults.
  */
 async function videoFormats(frameUrl, msg) {
   const page = videoPage(msg.href);
   if (!page || !videoOwnPage(frameUrl, page)) return videoOffer(null);
   const res = await askVideoLink(page);
+  if (res?.unpaired) return { ...videoOffer(null), unpaired: true };
   const offer = videoOffer(res?.answer ?? null);
   await rememberVideoSeen(page, offer);
   return offer;
@@ -288,7 +295,8 @@ async function videoFormats(frameUrl, msg) {
 
 /** What the default instance answers to GET /api/ytdlp/link for a page, asked
  *  as for a link pinned to yt-dlp the way postVideo sends it, an answer of
- *  null where it refused, or null where no instance answered at all. */
+ *  null where it refused, unpaired where this browser has not joined a group,
+ *  or null where no instance answered at all. */
 async function askVideoLink(page) {
   try {
     return await withGroup(async ({ siblings, call }) => {
@@ -297,8 +305,8 @@ async function askVideoLink(page) {
       if (!res) return null;
       return { answer: res.status >= 200 && res.status < 300 ? JSON.parse(res.body) : null };
     });
-  } catch {
-    return null;
+  } catch (e) {
+    return e?.code === 'no-phrase' ? { unpaired: true } : null;
   }
 }
 
@@ -345,7 +353,7 @@ async function videoCheck(frameUrl, msg) {
 
 async function checkVideoLink(page, key) {
   const res = await askVideoLink(page);
-  if (!res) return { claims: null };
+  if (!res || res.unpaired) return { claims: null };
   const offer = videoOffer(res.answer);
   const claims = offer.videoTracks.length > 0 || offer.qualities.length > 0;
   await rememberVideoSeen(page, offer);

@@ -178,7 +178,9 @@
       .mediaName > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .mediaHost { color: var(--carbon-text-muted); font-size: var(--text-subline); }
       .mediaNone { margin: 0; color: var(--carbon-text-muted); font-size: var(--text-subline); }
+      #pairHint,
       #cnlAccess { margin-bottom: 16px; }
+      #pairHint button,
       #cnlAccess button { margin-top: 10px; }
     </style>
   </head>
@@ -200,6 +202,13 @@
           />
         </svg>
       </button>
+    </div>
+    <!-- This browser has joined no group, so there is nowhere to send to. The
+         button leads to the options page, where the phrase goes. -->
+    <div id="pairHint" class="glim-unavailable" hidden>
+      <span class="glim-unavailable-title" id="pairHintTitle"></span>
+      <span class="glim-unavailable-reason" id="pairHintReason"></span>
+      <button id="pairHintOpen" class="primary" type="button"></button>
     </div>
     <!-- Click'n'Load is wanted but the browser has not granted its access
          (cnlState in shared.js). The button leads to the options page, whose
