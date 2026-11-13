@@ -17,8 +17,9 @@ groups, so the gap between groups is about twice the gap between rows.
 
 A button carries one line, its name, as the apps' buttons do at rest. Only a
 listing still to come adds a second line saying so.
-Windows on ARM and the portable build are segments of the Windows button, and
-the ARM builds of Linux and the Flatpak segments of theirs.
+An ARM build is a segment of the button it belongs to, and so is the macOS
+zip. A portable build gets its own button, like the Flatpak, because its ARM
+build needs a segment too.
 
 Size and corner radius are the Buy Me a Coffee button's (841.9 by 245.3, rx
 38.2), so every button on the page has the same shape.
@@ -117,15 +118,19 @@ KINDS = {
     "docs":             (0, "book", "#fd0", "#0d0c23", "Docs", "online manual", "Read the documentation"),
     "windows":          (1, "windows", *WINDOWS, "Windows", "x64", "Download for Windows"),
     "windows-arm":      (1, None, *WINDOWS, "Windows", "ARM", "Download for Windows on ARM"),
-    "windows-portable": (1, None, *WINDOWS, "Windows", "Portable", "Download the portable Windows app"),
+    "windows-portable": (1, "windows", *WINDOWS, "Portable", "x64", "Download the portable Windows app"),
+    "windows-portable-arm": (1, None, *WINDOWS, "Portable", "ARM", "Download the portable Windows app for ARM"),
     "windows-script":   (1, "windows", *WINDOWS, "Windows", "start script", "Download the Windows start script"),
     # Space grey, since black vanishes against GitHub's dark theme.
     "macos":            (1, "apple", "#6e6e73", "#ffffff", "macOS", "Universal", "Download for macOS"),
+    "macos-zip":        (1, None, "#6e6e73", "#ffffff", "macOS", "Zip", "Download the macOS app as a zip"),
     # For apps that ship Intel and Apple silicon as two files.
     "macos-split":      (1, "apple", "#6e6e73", "#ffffff", "macOS", "Intel, ARM", "Download for macOS on Intel or Apple silicon"),
     # Tux yellow, with dark ink for contrast.
     "linux":            (1, "linux", "#fcc624", "#1b1b1b", "Linux", "x64", "Download for Linux"),
     "linux-arm":        (1, None, "#fcc624", "#1b1b1b", "Linux", "ARM", "Download for Linux on ARM"),
+    "linux-portable":   (1, "linux", "#fcc624", "#1b1b1b", "Portable", "x64", "Download the portable Linux app"),
+    "linux-portable-arm": (1, None, "#fcc624", "#1b1b1b", "Portable", "ARM", "Download the portable Linux app for ARM"),
     # Flatpak's own blue, where white holds 3.3:1, about as much as on Unraid's orange.
     "flatpak":          (1, "flatpak", "#4a90d9", "#ffffff", "Flatpak", "x64", "Download the Flatpak"),
     "flatpak-arm":      (1, None, "#4a90d9", "#ffffff", "Flatpak", "ARM", "Download the Flatpak for ARM"),
@@ -152,7 +157,10 @@ KINDS = {
     "bombvault-widget": (COMPANIONS, "bombvault-widget", "#4e5051", "#ffffff", "Widget", "Unraid plugin", "Get the BombVault Widget for the Unraid dashboard"),
 }
 # Joined to the button they belong to, in this order, rather than standing alone.
-SEGMENTS = {"windows": ("windows-arm", "windows-portable"), "linux": ("linux-arm",), "flatpak": ("flatpak-arm",)}
+SEGMENTS = {
+    "windows": ("windows-arm",), "windows-portable": ("windows-portable-arm",), "macos": ("macos-zip",),
+    "linux": ("linux-arm",), "linux-portable": ("linux-portable-arm",), "flatpak": ("flatpak-arm",),
+}
 # A store listing that does not exist yet is drawn without a link, with "Soon"
 # under its name, or nobody could tell why the button leads nowhere.
 SOON = {

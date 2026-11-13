@@ -12,9 +12,12 @@ CHROME_WEB_STORE = "https://chromewebstore.google.com/detail/knightloader/elofnn
 BUTTONS = {
     "windows": RELEASE + "knightloader-windows-amd64-installer.exe",
     "windows-arm": RELEASE + "knightloader-windows-arm64-installer.exe",
+    "windows-portable": RELEASE + "knightloader-windows-amd64.zip",
+    "windows-portable-arm": RELEASE + "knightloader-windows-arm64.zip",
     "macos": RELEASE + "knightloader-macos-universal.zip",
-    "linux": RELEASE + "knightloader-linux-amd64-installer",
-    "linux-arm": RELEASE + "knightloader-linux-arm64-installer",
+    # The release carries no Linux installer, so the zipped program is the Linux download.
+    "linux": RELEASE + "knightloader-linux-amd64.zip",
+    "linux-arm": RELEASE + "knightloader-linux-arm64.zip",
     "flatpak": RELEASE + "knightloader-linux-amd64.flatpak",
     "flatpak-arm": RELEASE + "knightloader-linux-arm64.flatpak",
     "unraid": "https://unraid.net/community/apps?q=knightloader",
