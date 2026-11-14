@@ -325,3 +325,34 @@ func TestThePastedCookieJarsAreGoneAfterAStart(t *testing.T) {
 		t.Errorf("stored jars survived the start: %q", ids)
 	}
 }
+
+func TestTheListingSaysWhetherThisInstanceReadsBrowsers(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	a := siteApp(t)
+	if s := stateOf(t, a, "patreon"); s.ReadsBrowsers {
+		t.Errorf("an instance that reads no browser says it does: %+v", s)
+	}
+	withBrowsers(t, a)
+	if s := stateOf(t, a, "patreon"); !s.ReadsBrowsers {
+		t.Errorf("an instance that reads the browsers says it does not: %+v", s)
+	}
+}
+
+// The extension hands over an empty set once the browser has signed out.
+func TestAnEmptyHandOverSignsTheExtensionsSessionOut(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn, Account: "Jane"})
+	a := siteApp(t)
+	if _, err := a.storeSiteSession("patreon", patreonJar); err != nil {
+		t.Fatal(err)
+	}
+	got, err := a.HandOverSiteSession("patreon", nil)
+	if err != nil {
+		t.Fatalf("an empty hand-over = %v, want it taken as signing out", err)
+	}
+	if got.State != sitelogin.SignedOut || got.Source != "" {
+		t.Errorf("after an empty hand-over = %+v, want signed out", got)
+	}
+	if s := sitelogin.NewStore(a.Accounts).Session("patreon"); s != "" {
+		t.Errorf("the handed-over session is still stored: %q", s)
+	}
+}

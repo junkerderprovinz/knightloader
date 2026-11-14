@@ -16,7 +16,13 @@ package api
 //	 "waiting": false,                 // from begin until a session turns up
 //	 "source": "browser",              // "extension", or "" without a session
 //	 "browser": "Firefox (default-release)", // with source "browser" only
-//	 "unreadable": ["Chrome"]}         // browsers whose cookies could not be read
+//	 "unreadable": ["Chrome"],         // browsers whose cookies could not be read
+//	 "readsBrowsers": true}            // false in a container, which reads none
+//
+// GET /api/sitelogins/handover lists for the extension each site's id, name,
+// host, loginUrl, domains, waiting and signIn, the names of the cookies only a
+// signed-in session carries. A handover with an empty cookies list signs the
+// extension's session out; a set without the site's cookies is refused (422).
 //
 // A session read from a browser is not stored, so remove forgets only the
 // extension's; one in a browser ends with signing out there.
@@ -40,7 +46,10 @@ type handoverSite struct {
 	Host     string   `json:"host"`
 	LoginURL string   `json:"loginUrl"`
 	Domains  []string `json:"domains"`
-	Waiting  bool     `json:"waiting"`
+	// SignIn are the cookies only a signed-in session carries, which the
+	// extension watches.
+	SignIn  []string `json:"signIn"`
+	Waiting bool     `json:"waiting"`
 }
 
 func registerSiteLogins(reg *Registry, a *app.App) {
@@ -82,13 +91,16 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 			states := a.SiteLogins()
 			out := make([]handoverSite, 0, len(states))
 			for _, s := range states {
-				out = append(out, handoverSite{s.ID, s.Name, s.Host, s.LoginURL, s.Domains, s.Waiting})
+				out = append(out, handoverSite{
+					ID: s.ID, Name: s.Name, Host: s.Host, LoginURL: s.LoginURL,
+					Domains: s.Domains, SignIn: s.SignInCookies(), Waiting: s.Waiting,
+				})
 			}
 			writeJSON(w, out)
 		})
 
 	reg.Add(http.MethodPost, "/api/sitelogins/{id}/handover",
-		"store the session the browser extension read from the browser for one site",
+		"store the session the browser extension read from the browser for one site; no cookies at all is the browser signed out and forgets it",
 		func(w http.ResponseWriter, r *http.Request) {
 			// The group's phones and instances hold the words too, and none of
 			// them signs in anywhere on the user's behalf.
