@@ -465,9 +465,11 @@ Rapidgator asks for the code, and the window shows one more field for the six
 digits from your authenticator app. KnightLoader signs in with the code once
 and never stores it. It keeps the session for as long as Rapidgator accepts
 it, rather than signing in again every 45 minutes as it does for a login
-without a second factor. Once Rapidgator ends the session, and after a restart
-of KnightLoader, the login's row and the overview ask for a new code, and
-Rapidgator links go to the next backend until you enter one. KnightLoader
+without a second factor. The session is sealed in the same encrypted store as
+your passwords, so it survives a restart of KnightLoader, and it is forgotten
+when you remove the login or change its password. Once Rapidgator ends the
+session, the login's row and the overview ask for a new code, and Rapidgator
+links go to the next backend until you enter one. KnightLoader
 never retries the password on its own meanwhile, since Rapidgator locks
 accounts that keep trying.
 
