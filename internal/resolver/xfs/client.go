@@ -20,8 +20,8 @@ const maxPage = 4 << 20
 // maxImage caps the picture of an image captcha.
 const maxImage = 1 << 20
 
-// sessionCookie is the cookie a signed-in session carries.
-const sessionCookie = "xfss"
+// SessionCookie is the cookie a signed-in session carries.
+const SessionCookie = "xfss"
 
 // The reasons a download or a sign-in cannot go ahead, whatever the wait.
 var (
@@ -128,7 +128,7 @@ func (s *Session) Cookies() string {
 
 func (s *Session) signedIn() bool {
 	for _, ck := range s.jar.Cookies(s.c.base) {
-		if ck.Name == sessionCookie && ck.Value != "" {
+		if ck.Name == SessionCookie && ck.Value != "" {
 			return true
 		}
 	}

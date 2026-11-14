@@ -173,3 +173,23 @@ func TestALoginWaitingForATwoFactorCodeAsksForIt(t *testing.T) {
 		t.Errorf("a wrong password asks for a code: %+v", got)
 	}
 }
+
+func TestALoginThatSignsInOnTheSitesOwnPageSaysSoAndOffersIt(t *testing.T) {
+	r, store := newTestReconciler(t, &fakeJD{})
+	client := newOwnDdownload(store)
+	r.Own = client.own
+	if err := store.Set("ddl.to", accounts.Credential{Username: "u", Password: "p"}); err != nil {
+		t.Fatal(err)
+	}
+
+	client.found["u"] = OwnState{Checked: true, Refused: true, SignInHere: true, SignInSite: "ddownload", Detail: "the site wants a code"}
+	got := r.States()[0]
+	if got.Status != StatusRejected || got.Code != codeOwnSignInHere || !got.SignInHere || got.SignInSite != "ddownload" {
+		t.Errorf("a login waiting for a sign-in on the site's page reads %+v", got)
+	}
+
+	client.found["u"] = OwnState{Checked: true, Premium: true, SignInSite: "ddownload"}
+	if got := r.States()[0]; got.Status != StatusActive || got.SignInHere || got.SignInSite != "ddownload" {
+		t.Errorf("a working login reads %+v, want it active and still offering the site's own sign-in", got)
+	}
+}
