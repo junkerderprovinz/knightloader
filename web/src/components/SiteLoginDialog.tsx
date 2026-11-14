@@ -1,8 +1,7 @@
-// The accounts page's card for the sites signed into through the browser
-// (internal/sitelogin): a tile per site with its logo and who it signs in as,
-// and a window per site to sign in, paste a cookies.txt or sign out. Signing
-// in opens the site's own login page in the browser, and the extension hands
-// the session over from there; the page never sees the session itself.
+// The window of one site signed into through the browser (internal/sitelogin),
+// opened from the hoster card's picker and rows and from a failed download.
+// Signing in opens the site's own login page in the browser, and the extension
+// hands the session over from there, so the page never sees the session itself.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   type SiteLogin,
@@ -16,73 +15,34 @@ import { openExternal } from '../lib/external';
 import { fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { message } from '../lib/intake';
-import { tileNote } from '../lib/siteLogins';
+import { stateNote } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { IconBack, IconClose, IconCookies, IconExternalLink, IconSave, IconTrash } from '../lib/icons';
-import { BrandPicker, type Brand } from './BrandPicker';
-import { Button, Field, Modal, SectionTitle, TextArea } from './ui';
+import { Button, Field, Modal, TextArea } from './ui';
 import { SettingRow } from '../pages/settings/controls';
 
-// The tiles follow the account health poll; a window waiting for a sign-in
-// asks more often, since the session arrives the moment the extension sends it.
-const POLL_MS = 30000;
+// A window waiting for a sign-in asks often, since the session arrives the
+// moment the extension sends it.
 const WAITING_POLL_MS = 3000;
 
-/** useSiteLogins polls the sites for the accounts page. */
-export function useSiteLogins(): { sites: SiteLogin[]; load: () => Promise<void>; put: (s: SiteLogin) => void } {
-  const [sites, setSites] = useState<SiteLogin[]>([]);
-  const load = useCallback(async () => {
-    try {
-      setSites(await fetchSiteLogins());
-    } catch {
-      // A missed poll keeps the previous tiles.
-    }
-  }, []);
-  useEffect(() => {
-    void load();
-    const timer = window.setInterval(() => void load(), POLL_MS);
-    return () => window.clearInterval(timer);
-  }, [load]);
-  const put = useCallback((s: SiteLogin) => setSites((cur) => cur.map((x) => (x.id === s.id ? s : x))), []);
-  return { sites, load, put };
-}
-
-export function SiteLoginsSection({ hue }: { hue: number }) {
-  const { t } = useT();
-  const { sites, put } = useSiteLogins();
-  const [open, setOpen] = useState<string | null>(null);
-  const opened = sites.find((s) => s.id === open);
-
-  const brands: Brand[] = sites.map((s) => {
-    const note = tileNote(s);
-    return { id: s.id, name: s.name, host: s.host, sub: t(note.key, note.vars), held: true, warn: note.warn };
-  });
-
-  return (
-    <>
-      <SectionTitle hint={t('siteLogins.hint')}>{t('siteLogins.title')}</SectionTitle>
-      <BrandPicker brands={brands} none="" onPick={setOpen} />
-      {opened && <SiteLoginDialog site={opened} hue={hue} onChanged={put} onClose={() => setOpen(null)} />}
-    </>
-  );
-}
-
 /**
- * SiteLoginDialog is one site's window, from its tile or from a failed
- * download that needs the sign-in again. onSignedIn hears a session that
- * arrived while the window was open.
+ * SiteLoginDialog is one site's window. onSignedIn hears a session that
+ * arrived while the window was open, and onBack, from the picker, leads back
+ * to the hosters in place of Close.
  */
 export function SiteLoginDialog({
   site: initial,
   hue,
   onChanged,
   onSignedIn,
+  onBack,
   onClose,
 }: {
   site: SiteLogin;
   hue?: number;
   onChanged?: (s: SiteLogin) => void;
   onSignedIn?: (s: SiteLogin) => void;
+  onBack?: () => void;
   onClose: () => void;
 }) {
   const { t } = useT();
@@ -105,7 +65,7 @@ export function SiteLoginDialog({
     }
   }, [t, toast]);
 
-  // A fresh answer on opening, since the tile may hold one from minutes ago.
+  // A fresh answer on opening, since the row may hold one from minutes ago.
   useEffect(() => {
     if (initial.state === 'signedOut') return;
     void checkSiteLogin(initial.id).then((s) => show(s, false), () => {});
@@ -148,9 +108,20 @@ export function SiteLoginDialog({
     if (await run(() => removeSiteLogin(site.id))) toast(t('siteLogins.signedOutToast', { site: site.name }), 'info');
   };
 
-  const note = tileNote(site);
+  const note = stateNote(site);
   const stored = site.state !== 'signedOut';
-  const close = <Button kind="secondary" labelled icon={<IconClose />} title={t('failure.close')} disabled={busy} onClick={onClose} />;
+  const close = onBack ? (
+    <Button
+      kind="secondary"
+      labelled
+      icon={<IconBack className="rtl:-scale-x-100" />}
+      title={t('onboarding.back')}
+      disabled={busy}
+      onClick={onBack}
+    />
+  ) : (
+    <Button kind="secondary" labelled icon={<IconClose />} title={t('failure.close')} disabled={busy} onClick={onClose} />
+  );
 
   return (
     <Modal

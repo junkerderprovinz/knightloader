@@ -371,6 +371,35 @@ browser check. If no other backend can take the link, the download fails with
 that message. A stored login stays where it is, since the check says nothing
 about it.
 
+## Patreon and YouTube, signed in through the browser
+
+Some sites only show yt-dlp a post or a video when you are signed in, and
+they do not take a user name and password from a program: Patreon wants a
+captcha and a code it mails you. So KnightLoader borrows the sign-in of your
+own browser instead.
+
+Under **Hoster accounts**, choose **Add an account** and pick Patreon or
+YouTube among the hosters. **Sign in in the browser** opens the site's own
+login page. Sign in there as you always do, then click the KnightLoader button
+in your browser toolbar and hand the session over. The extension asks your
+browser for that one site's cookies, reads them once and sends them encrypted
+to your instance. From then on the site sits in the hoster list like any other
+account, says who it is signed in as, and every link of that site you add
+loads with your session.
+
+No extension in that browser? **Paste cookies.txt** takes a cookies.txt
+exported while you are signed in.
+
+A session runs out after a while. The row then says so, and a members-only
+download that fails on that site offers **Sign in again**, which starts the
+same steps and tries the download again once the new session is there. If it
+still says members only after that, the account itself does not have the
+membership.
+
+The session is kept in the encrypted credential store and used only by yt-dlp
+for that site's links. It never shows up in the settings, a log or the
+diagnostics bundle.
+
 ## Rapidgator
 
 With your Rapidgator premium login saved under **Hoster accounts** on the

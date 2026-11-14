@@ -9,7 +9,7 @@ import { signInAgainFor } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { Button, FieldGroup, Modal } from './ui';
 import { CookieJarDialog } from './CookieJarDialog';
-import { SiteLoginDialog } from './SiteLoginsSection';
+import { SiteLoginDialog } from './SiteLoginDialog';
 
 /**
  * FailureAdvice explains one failed download in a sentence, with at most one

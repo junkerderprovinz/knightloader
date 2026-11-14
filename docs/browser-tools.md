@@ -249,6 +249,28 @@ way MyJDownloader's extension can) is still not built. Choosing per send and
 setting a default are; a rule engine on top of that is real but niche, and
 nothing about this shape blocks it later.
 
+### Handing a site's sign-in over
+
+For the sites signed into through the browser (`internal/sitelogin`,
+Patreon and YouTube so far), **Sign in in the browser** on the accounts page
+opens the site's login page and calls `POST /api/sitelogins/{id}/begin`, so
+the instance waits for that site for a quarter of an hour. The popup asks
+every instance of the group `GET /api/sitelogins/handover`, which lists each
+site with its cookie domains and whether it is waited for (nothing about a
+stored session), and shows a notice for each site that is (`popup-signin.js`).
+
+Its button opens `signin.html` in a tab, because the browser's permission
+prompt would close the popup and the request with it. There the click first
+asks for `cookies` on the site's own domains alone (`https://patreon.com/*`
+and `https://*.patreon.com/*`), then reads that site's cookies from the cookie
+store of the tab the popup was opened over, and hands the access back unless
+taking over downloads, finding media or Click'n'Load still runs on it
+(`signin.js`). The cookies go sealed through the relay as
+`POST /api/sitelogins/{id}/handover`, which the instance takes from the
+extension alone, never from the phone or another instance. It keeps only the
+site's own live cookies, writes them as a cookies.txt into the encrypted
+credential store and answers who the session signs in as.
+
 ### The download button on videos
 
 On YouTube, Vimeo, Dailymotion, Twitch and Bilibili, and on any other site
