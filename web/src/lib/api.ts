@@ -2352,6 +2352,44 @@ export async function fetchComponentUpdate(): Promise<ComponentUpdate> {
   return json(await fetch('/api/components/update'));
 }
 
+/** One qBittorrent version the settings can hold, with what is known about
+ *  which trackers allow it. */
+export interface QBittorrentVersion {
+  version: string;
+  libtorrent: string;
+  /** The trackers whose public client list admits this version. */
+  whitelists: string[];
+  /** English, from the version table that ships with KnightLoader. */
+  note: string;
+}
+
+/** The qBittorrent this instance runs. "fetching" counts the download in
+ *  done and total, "failed" says why in detail; "starting", "running" and
+ *  "stopped" are the process's own states. */
+export interface QBittorrentStatus {
+  state: 'off' | 'fetching' | 'failed' | 'starting' | 'running' | 'stopped';
+  /** The version running, once it answers. */
+  version?: string;
+  /** The version the settings hold, or the default. */
+  chosen: string;
+  default: string;
+  versions: QBittorrentVersion[];
+  done?: number;
+  total?: number;
+  restarts?: number;
+  /** English, because it names paths and program output. */
+  detail?: string;
+}
+
+export async function fetchQBittorrentStatus(): Promise<QBittorrentStatus> {
+  return json(await fetch('/api/components/qbittorrent'));
+}
+
+/** Fetches and starts the qBittorrent again after a try that failed. */
+export async function restartQBittorrent(): Promise<QBittorrentStatus> {
+  return json(await fetch('/api/components/qbittorrent/start', { method: 'POST' }));
+}
+
 /**
  * The instance-wide yt-dlp defaults, mirroring ytdlp.Options without Variant,
  * which is decided per task. Saved through Settings.ytdlp. Values are strings

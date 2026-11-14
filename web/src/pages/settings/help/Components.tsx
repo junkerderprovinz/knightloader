@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Button, Card, ErrorCard, InfoBubble, SectionTitle, ToggleRow, type ButtonVerdict } from '../../../components/ui';
+import { Button, Card, ErrorCard, Field, InfoBubble, SectionTitle, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import {
   fetchComponentUpdate,
   fetchDeploymentInfo,
   fetchHealth,
   fetchJDStatus,
   fetchMediaTools,
+  fetchQBittorrentStatus,
   fetchUpdateCheck,
   fetchUpdateProgress,
   installUpdate,
+  restartQBittorrent,
   retryJDSetup,
   startComponentUpdate,
   type ComponentResult,
@@ -16,6 +18,7 @@ import {
   type JDStatus,
   type MediaTool,
   type MediaToolsStatus,
+  type QBittorrentStatus,
   type UpdateCheck,
   type UpdateProgress,
 } from '../../../lib/api';
@@ -33,6 +36,7 @@ import { useT } from '../../../lib/i18n';
 import { useResource } from '../../../lib/useResource';
 import { openWhatsNew, useWhatsNew } from '../../../lib/useWhatsNew';
 import { NewsGlyph } from '../../../components/whatsnew/WhatsNew';
+import { Dropdown } from '../../../components/Dropdown';
 import { useDraft } from '../context';
 
 // The Components card holds what KnightLoader updates or follows, one line
@@ -371,6 +375,7 @@ export function ComponentsCard({ hue }: { hue: number }) {
           />
           {jd?.runtime && <JavaRow jd={jd} result={results.java} />}
           <JDRow jd={jd} result={results.jdownloader} onRetry={() => void onRetrySetup()} />
+          <QBittorrentRow />
           <ComponentRow
             name="GlimStone"
             version={GLIMSTONE_VERSION}
@@ -754,6 +759,118 @@ function JDRow({ jd, result, onRetry }: { jd: JDStatus | null; result?: Componen
       status={status}
       data-new="jd-tool"
       actions={jd?.setup === 'failed' && <GlyphButton icon={<IconRetry />} title={t('common.retry')} onClick={onRetry} />}
+    />
+  );
+}
+
+/** How often the qBittorrent row asks after it while it is on its way up. */
+const QBIT_POLL = 1_000;
+
+const qbitMoving = (st: QBittorrentStatus | null) => st?.state === 'fetching' || st?.state === 'starting';
+
+/** qbitStatus is what the qBittorrent row says, null once it simply runs. */
+function qbitStatus(t: Translate, st: QBittorrentStatus | null): Status | null {
+  switch (st?.state) {
+    case 'fetching': {
+      const percent = st.total && st.total > 0 ? Math.floor(((st.done ?? 0) * 100) / st.total) : 0;
+      return { text: t('settings.info.qbitDownloading', { percent: String(percent) }) };
+    }
+    case 'starting':
+      return { text: t('settings.info.qbitStarting'), detail: st.detail };
+    case 'failed':
+    case 'stopped':
+    case 'off':
+      return { text: t('health.state.failed'), detail: st.detail, tone: 'fail' };
+  }
+  if (st?.detail) return { text: t('settings.info.statusNote'), detail: st.detail, tone: 'warn' };
+  return null;
+}
+
+/**
+ * QBittorrentRow is the qBittorrent KnightLoader runs for its torrents. It
+ * stays at the version picked under its name, which the automatic update and
+ * Update now leave alone, since private trackers admit only the versions on
+ * their list. Picking another one fetches it and restarts qBittorrent.
+ */
+function QBittorrentRow() {
+  const { t } = useT();
+  const { cfg, patchNow } = useDraft();
+  const [st, setSt] = useState<QBittorrentStatus | null>(null);
+  const mounted = useRef(true);
+
+  const follow = useCallback(async (first: QBittorrentStatus) => {
+    let next = first;
+    setSt(next);
+    while (mounted.current && qbitMoving(next)) {
+      await pause(QBIT_POLL);
+      next = await fetchQBittorrentStatus().catch(() => next);
+      if (mounted.current) setSt(next);
+    }
+  }, []);
+
+  useEffect(() => {
+    mounted.current = true;
+    void fetchQBittorrentStatus().then(follow, () => {});
+    return () => {
+      mounted.current = false;
+    };
+  }, [follow]);
+
+  const torrent = (cfg as { torrent?: Record<string, unknown> }).torrent ?? {};
+  const held = typeof torrent.engineVersion === 'string' && torrent.engineVersion ? torrent.engineVersion : (st?.default ?? '');
+  const chosen = st?.versions.find((v) => v.version === held) ?? st?.versions.find((v) => v.version === st.default);
+
+  // Saved at once rather than with the page's other edits: the server swaps
+  // qBittorrent on the save, and the row follows the swap.
+  const onPick = async (version: string) => {
+    // Partial<Settings> does not name `torrent`, as on the Torrents page.
+    await patchNow({ torrent: { ...torrent, engineVersion: version } } as unknown as Parameters<typeof patchNow>[0]);
+    await follow(await fetchQBittorrentStatus());
+  };
+
+  const onRetry = async () => {
+    try {
+      await follow(await restartQBittorrent());
+    } catch (e) {
+      setSt((prev) => prev && { ...prev, state: 'failed', detail: errorText(e) });
+    }
+  };
+
+  const version = st?.state === 'running' ? st.version : undefined;
+  return (
+    <ComponentRow
+      name="qBittorrent"
+      version={version}
+      href={version ? `https://github.com/qbittorrent/qBittorrent/releases/tag/release-${encodeURIComponent(version)}` : 'https://www.qbittorrent.org/'}
+      status={qbitStatus(t, st)}
+      actions={
+        (st?.state === 'failed' || st?.state === 'off') && (
+          <GlyphButton icon={<IconRetry />} title={t('common.retry')} onClick={() => void onRetry()} />
+        )
+      }
+      settings={
+        st &&
+        st.versions.length > 0 && (
+          <>
+            <Field label={t('settings.info.qbitVersion')} hint={t('settings.info.qbitVersionHint')} layout="row">
+              <Dropdown
+                label={t('settings.info.qbitVersion')}
+                value={chosen?.version ?? null}
+                options={st.versions.map((v) => ({
+                  value: v.version,
+                  label: v.version === st.default ? t('settings.info.qbitRecommended', { version: v.version }) : v.version,
+                }))}
+                onChange={(v) => void onPick(v).catch(() => {})}
+              />
+            </Field>
+            <p className="text-sm text-carbon-textSub">
+              {chosen && chosen.whitelists.length > 0
+                ? t('settings.info.qbitOnList', { trackers: chosen.whitelists.join(', ') })
+                : t('settings.info.qbitOffList')}
+            </p>
+          </>
+        )
+      }
     />
   );
 }

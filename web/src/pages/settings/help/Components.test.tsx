@@ -23,6 +23,18 @@ let refusals: Record<string, { status: number; body: unknown }>;
 let asked: string[];
 
 const UPDATE = '/api/components/update';
+const QBIT = '/api/components/qbittorrent';
+
+/** The qBittorrent row's answer, with the version table the server ships. */
+const qbit = (over: Record<string, unknown>) => ({
+  chosen: '4.5.5',
+  default: '4.5.5',
+  versions: [
+    { version: '4.5.5', libtorrent: '1.2.19', whitelists: ['OPS'], note: '' },
+    { version: '4.6.7', libtorrent: '1.2.19', whitelists: [], note: '' },
+  ],
+  ...over,
+});
 
 beforeEach(() => {
   answers = {
@@ -41,6 +53,7 @@ beforeEach(() => {
       engines: [],
     },
     '/api/resolvers/jd': { configured: true, reachable: true, version: 50123 },
+    [QBIT]: qbit({ state: 'running', version: '4.5.5' }),
     '/api/system/update-check': { checked: true, available: false, current: 'v1.8.4' },
     [UPDATE]: { running: false },
     [`POST ${UPDATE}`]: {
@@ -91,7 +104,7 @@ const BASE = {
 
 async function draw(cfg: Partial<Settings> = {}) {
   const patch = vi.fn();
-  const draft = { cfg: { ...BASE, ...cfg }, patch } as unknown as SettingsDraft;
+  const draft = { cfg: { ...BASE, ...cfg }, patch, patchNow: patch } as unknown as SettingsDraft;
   await act(async () =>
     root.render(
       <I18nProvider>
@@ -136,7 +149,7 @@ const updateNow = () => act(async () => updateButton('Update now').click());
 describe('the Components card', () => {
   it('lists every component, each with its version', async () => {
     await draw();
-    expect(names()).toEqual(['KnightLoader', 'yt-dlp', 'FFmpeg', 'Deno', 'JDownloader backend', 'GlimStone']);
+    expect(names()).toEqual(['KnightLoader', 'yt-dlp', 'FFmpeg', 'Deno', 'JDownloader backend', 'qBittorrent', 'GlimStone']);
     expect(version('KnightLoader').textContent).toBe('1.8.4');
     expect(version('yt-dlp').textContent).toBe('2026.08.19');
     expect(version('FFmpeg').textContent).toBe('8.1.2');
@@ -502,5 +515,53 @@ describe('the JDownloader backend the desktop build sets up', () => {
   it('leaves Java off the card where KnightLoader runs no JDownloader of its own', async () => {
     await draw();
     expect(names()).not.toContain('Java');
+  });
+});
+
+describe('the qBittorrent KnightLoader runs', () => {
+  it('shows the version running, led to its release', async () => {
+    await draw();
+    expect(version('qBittorrent').textContent).toBe('4.5.5');
+    expect(href('qBittorrent')).toBe('https://github.com/qbittorrent/qBittorrent/releases/tag/release-4.5.5');
+  });
+
+  it('offers the versions to hold, the recommended one marked, and says which trackers list it', async () => {
+    await draw();
+    const row = group('qBittorrent');
+    expect(row.textContent).toContain('4.5.5, recommended');
+    expect(row.textContent).toContain('On the public client list of OPS.');
+  });
+
+  it('writes a version picked to the torrent settings', async () => {
+    const patch = await draw({ torrent: { seedRatioTarget: 2 } } as unknown as Partial<Settings>);
+    const row = group('qBittorrent');
+    await act(async () => row.querySelector<HTMLButtonElement>('button[aria-haspopup]')!.click());
+    const option = [...document.querySelectorAll<HTMLElement>('[role="option"], [role="menuitemradio"]')].find(
+      (o) => o.textContent?.trim() === '4.6.7',
+    )!;
+    await act(async () => option.click());
+    expect(patch.mock.calls).toEqual([[{ torrent: { seedRatioTarget: 2, engineVersion: '4.6.7' } }]]);
+  });
+
+  it('warns about a held version no tracker list names', async () => {
+    await draw({ torrent: { engineVersion: '4.6.7' } } as unknown as Partial<Settings>);
+    expect(group('qBittorrent').textContent).toContain('Not on any public client list KnightLoader knows of.');
+  });
+
+  it('says why it is not running and starts it again on request', async () => {
+    answers[QBIT] = qbit({ state: 'failed', detail: 'github answered 503' });
+    answers[`POST ${QBIT}/start`] = qbit({ state: 'running', version: '4.5.5' });
+    await draw();
+    expect(status('qBittorrent')).toContain('Not working');
+    expect(detail('qBittorrent')).toContain('github answered 503');
+    await act(async () => button(group('qBittorrent'), 'Try again').click());
+    expect(asked).toContain(`POST ${QBIT}/start`);
+    expect(version('qBittorrent').textContent).toBe('4.5.5');
+  });
+
+  it('is left out of Update now', async () => {
+    await draw();
+    await updateNow();
+    expect(asked.filter((a) => a.startsWith('POST') && a.includes('qbittorrent'))).toEqual([]);
   });
 });
