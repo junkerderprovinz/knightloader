@@ -4039,5 +4039,6 @@ export const bg: Dict = {
   'failure.signInRequired.next': 'Нужна е влязла сесия, която KnightLoader заема от браузъра ти за сайтовете в Хостър акаунти.',
   'siteLogins.fromKlBrowser': 'от браузъра за вход на KnightLoader',
   'siteLogins.turnedDown': '{site} отхвърли входа от {browser}',
-  'siteLogins.signOutInBrowser': 'За да излезе и KnightLoader, излез от {site} в {browser}.',
+  'siteLogins.disconnected': 'Премахнато от KnightLoader. Браузърът остава с вход.',
+  'siteLogins.reconnect': 'Използвай отново входа от браузъра',
 };

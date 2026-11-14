@@ -4036,5 +4036,6 @@ export const ar: Dict = {
   'failure.signInRequired.next': 'يحتاج إلى جلسة مسجَّلة الدخول، يستعيرها KnightLoader من متصفحك للمواقع المدرجة في حسابات المستضيفين.',
   'siteLogins.fromKlBrowser': 'من متصفح تسجيل الدخول الخاص بـ KnightLoader',
   'siteLogins.turnedDown': 'رفض {site} تسجيل الدخول القادم من {browser}',
-  'siteLogins.signOutInBrowser': 'لتسجيل خروج KnightLoader، سجّل الخروج من {site} في {browser}.',
+  'siteLogins.disconnected': 'أُزيل من KnightLoader. يبقى متصفحك مسجّل الدخول.',
+  'siteLogins.reconnect': 'استخدم تسجيل الدخول من المتصفح من جديد',
 };

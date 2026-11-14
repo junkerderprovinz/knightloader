@@ -4034,5 +4034,6 @@ export const is: Dict = {
   'failure.signInRequired.next': 'Þarf innskráða setu, sem KnightLoader fær lánaða úr vafranum þínum fyrir síðurnar undir Hýsingarreikningar.',
   'siteLogins.fromKlBrowser': 'úr innskráningarvafra KnightLoader',
   'siteLogins.turnedDown': '{site} hafnaði innskráningunni úr {browser}',
-  'siteLogins.signOutInBrowser': 'Til að skrá KnightLoader út skaltu skrá þig út af {site} í {browser}.',
+  'siteLogins.disconnected': 'Fjarlægt úr KnightLoader. Vafrinn er áfram innskráður.',
+  'siteLogins.reconnect': 'Nota innskráningu vafrans aftur',
 };

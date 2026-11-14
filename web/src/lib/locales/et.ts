@@ -4029,5 +4029,6 @@ export const et: Dict = {
   'failure.signInRequired.next': 'Vajab sisse logitud seanssi, mille KnightLoader laenab jaotise Hosterite kontod saitide jaoks sinu brauserist.',
   'siteLogins.fromKlBrowser': 'KnightLoaderi sisselogimisbrauserist',
   'siteLogins.turnedDown': '{site} lükkas brauseri {browser} sisselogimise tagasi',
-  'siteLogins.signOutInBrowser': 'KnightLoaderi väljalogimiseks logi brauseris {browser} saidilt {site} välja.',
+  'siteLogins.disconnected': 'KnightLoaderist eemaldatud. Brauser jääb sisselogituks.',
+  'siteLogins.reconnect': 'Kasuta uuesti brauseri sisselogimist',
 };

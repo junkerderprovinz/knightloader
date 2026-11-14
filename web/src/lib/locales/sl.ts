@@ -4037,5 +4037,6 @@ export const sl: Dict = {
   'failure.signInRequired.next': 'Potrebna je prijavljena seja, ki si jo KnightLoader za strani pod Računi hosterjev izposodi iz tvojega brskalnika.',
   'siteLogins.fromKlBrowser': 'iz brskalnika za prijavo KnightLoader',
   'siteLogins.turnedDown': '{site} je zavrnil prijavo iz {browser}',
-  'siteLogins.signOutInBrowser': 'Če želiš KnightLoader odjaviti, se v {browser} odjavi iz {site}.',
+  'siteLogins.disconnected': 'Odstranjeno iz KnightLoaderja. Brskalnik ostane prijavljen.',
+  'siteLogins.reconnect': 'Znova uporabi prijavo iz brskalnika',
 };

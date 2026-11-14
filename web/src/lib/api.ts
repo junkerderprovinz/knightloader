@@ -2515,6 +2515,8 @@ export interface SiteLogin {
   unreadable: string[];
   /** Whether this instance reads the browsers on its computer; false in a container. */
   readsBrowsers: boolean;
+  /** Removed here: the browsers' sign-in is not used until the site is signed in through KnightLoader again. */
+  disconnected: boolean;
 }
 
 export async function fetchSiteLogins(): Promise<SiteLogin[]> {
@@ -2529,6 +2531,16 @@ export async function checkSiteLogin(id: string): Promise<SiteLogin> {
 
 export async function removeSiteLogin(id: string): Promise<SiteLogin> {
   return json<SiteLogin>(await post(siteLoginPath(id, 'remove'), {}));
+}
+
+/** beginSiteLogin signs a site in through KnightLoader, which uses the browsers' sign-in to a removed site again. */
+export async function beginSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'begin'), {}));
+}
+
+/** reconnectSiteLogin uses the browsers' sign-in to a removed site again, without a new sign-in. */
+export async function reconnectSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'reconnect'), {}));
 }
 
 // Header profiles hold a user's own request headers for one origin: a session

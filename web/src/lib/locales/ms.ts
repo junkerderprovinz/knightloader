@@ -4038,5 +4038,6 @@ export const ms: Dict = {
   'failure.signInRequired.next': 'Memerlukan sesi yang sudah log masuk, yang KnightLoader pinjam daripada pelayar anda untuk laman di bawah Akaun hoster.',
   'siteLogins.fromKlBrowser': 'daripada pelayar log masuk KnightLoader',
   'siteLogins.turnedDown': '{site} menolak log masuk daripada {browser}',
-  'siteLogins.signOutInBrowser': 'Untuk log keluar KnightLoader, log keluar dari {site} dalam {browser}.',
+  'siteLogins.disconnected': 'Dibuang daripada KnightLoader. Pelayar anda kekal log masuk.',
+  'siteLogins.reconnect': 'Guna log masuk pelayar semula',
 };

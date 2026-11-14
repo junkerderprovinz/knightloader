@@ -4026,5 +4026,6 @@ export const ko: Dict = {
   'failure.signInRequired.next': '로그인된 세션이 필요합니다. \'호스터 계정\'에 있는 사이트라면 KnightLoader가 브라우저에서 빌려 옵니다.',
   'siteLogins.fromKlBrowser': 'KnightLoader 로그인 전용 브라우저에서',
   'siteLogins.turnedDown': '{site}에서 {browser}의 로그인을 받아 주지 않았습니다',
-  'siteLogins.signOutInBrowser': 'KnightLoader를 로그아웃하려면 {browser}에서 {site} 로그아웃을 하세요.',
+  'siteLogins.disconnected': 'KnightLoader에서 제거했습니다. 브라우저는 로그인된 채로 있습니다.',
+  'siteLogins.reconnect': '브라우저 로그인 다시 사용',
 };

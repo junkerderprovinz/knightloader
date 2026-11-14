@@ -11,6 +11,7 @@ const site = (over: Partial<SiteLogin>): SiteLogin => ({
   state: 'signedOut',
   unreadable: [],
   readsBrowsers: false,
+  disconnected: false,
   ...over,
 });
 
@@ -97,6 +98,14 @@ describe('nextStep', () => {
   it('has nothing to say while signed in', () => {
     expect(nextStep(site({ state: 'signedIn' }), { readsBrowsers: false, extensionPaired: false })).toBeUndefined();
     expect(nextStep(site({ state: 'unchecked' }), { readsBrowsers: true, extensionPaired: false })).toBeUndefined();
+  });
+});
+
+describe('a site removed here', () => {
+  it('says the browser stays signed in, and names no step that would not sign it in', () => {
+    const removed = site({ disconnected: true });
+    expect(sourceNote(removed)).toEqual({ key: 'siteLogins.disconnected', warn: false });
+    expect(nextStep(removed, { readsBrowsers: true, extensionPaired: false })).toBeUndefined();
   });
 });
 

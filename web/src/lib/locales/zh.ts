@@ -4022,5 +4022,6 @@ export const zh: Dict = {
   'failure.signInRequired.next': '需要一个已登录的会话。对于“网盘账号”下的站点，KnightLoader 会从你的浏览器借用。',
   'siteLogins.fromKlBrowser': '来自 KnightLoader 的登录浏览器',
   'siteLogins.turnedDown': '{site} 拒绝了来自 {browser} 的登录状态',
-  'siteLogins.signOutInBrowser': '要让 KnightLoader 退出登录，请在 {browser} 里退出 {site}。',
+  'siteLogins.disconnected': '已从 KnightLoader 移除。浏览器仍保持登录。',
+  'siteLogins.reconnect': '再次使用浏览器的登录',
 };

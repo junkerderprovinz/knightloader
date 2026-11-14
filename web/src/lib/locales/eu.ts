@@ -4034,5 +4034,6 @@ export const eu: Dict = {
   'failure.signInRequired.next': 'Saioa hasita duen sesio bat behar du, eta KnightLoaderrek zure nabigatzailetik mailegatzen du Ostalarien kontuak ataleko guneetarako.',
   'siteLogins.fromKlBrowser': 'KnightLoaderren saio-hasierako nabigatzailetik',
   'siteLogins.turnedDown': '{site} guneak {browser} nabigatzaileko saioa baztertu du',
-  'siteLogins.signOutInBrowser': 'KnightLoaderren saioa amaitzeko, amaitu {site} guneko saioa {browser} nabigatzailean.',
+  'siteLogins.disconnected': 'KnightLoaderretik kendua. Nabigatzaileak saioa hasita jarraitzen du.',
+  'siteLogins.reconnect': 'Erabili berriro nabigatzaileko saioa',
 };

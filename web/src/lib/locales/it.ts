@@ -4022,5 +4022,6 @@ export const it: Dict = {
   'failure.signInRequired.next': 'Serve una sessione con l’accesso fatto, che per i siti in Account degli hoster KnightLoader prende in prestito dal tuo browser.',
   'siteLogins.fromKlBrowser': 'dal browser di accesso di KnightLoader',
   'siteLogins.turnedDown': '{site} ha rifiutato l’accesso da {browser}',
-  'siteLogins.signOutInBrowser': 'Per far uscire KnightLoader, esci da {site} in {browser}.',
+  'siteLogins.disconnected': 'Rimosso da KnightLoader. Il browser resta connesso.',
+  'siteLogins.reconnect': 'Usa di nuovo l’accesso del browser',
 };

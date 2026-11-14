@@ -4041,5 +4041,6 @@ export const no: Dict = {
   'failure.signInRequired.next': 'Trenger en innlogget økt, som KnightLoader låner fra nettleseren din for sidene under Hosterkontoer.',
   'siteLogins.fromKlBrowser': 'fra innloggingsnettleseren til KnightLoader',
   'siteLogins.turnedDown': '{site} avviste innloggingen fra {browser}',
-  'siteLogins.signOutInBrowser': 'For å logge KnightLoader ut, logg ut av {site} i {browser}.',
+  'siteLogins.disconnected': 'Fjernet fra KnightLoader. Nettleseren er fortsatt logget inn.',
+  'siteLogins.reconnect': 'Bruk innloggingen fra nettleseren igjen',
 };

@@ -30,6 +30,7 @@ const patreon: SiteLogin = {
   browser: 'Firefox (default-release)',
   unreadable: [],
   readsBrowsers: true,
+  disconnected: false,
 };
 const youtube: SiteLogin = {
   id: 'youtube',
@@ -42,6 +43,7 @@ const youtube: SiteLogin = {
   source: 'extension',
   unreadable: [],
   readsBrowsers: true,
+  disconnected: false,
 };
 const signedOut = (s: SiteLogin): SiteLogin => ({ ...s, state: 'signedOut', account: undefined, source: '', browser: '' });
 const browserExtension: GroupApp = { id: 'm1', name: 'Firefox', deployment: 'extension', connected: false, approved: true, lastSeen: 0 };
@@ -86,7 +88,8 @@ beforeEach(() => {
       if (url === '/api/sitelogins') return reply(sites);
       if (url === '/api/connect') return reply({ active: true, apps });
       if (url === '/api/hosterauth/hosts') return reply([{ id: 'rapidgator.net', label: 'rapidgator.net' }]);
-      if (url.endsWith('/remove')) return reply(signedOut(site));
+      if (url.endsWith('/remove')) return reply({ ...signedOut(site), disconnected: true });
+      if (url.endsWith('/reconnect') || url.endsWith('/begin')) return reply(patreon);
       if (url.endsWith('/check')) return reply(site);
       return reply([]);
     }),
@@ -202,13 +205,41 @@ it('forgets a session the extension passed on from the row menu, after asking', 
   expect(calls.some((c) => c.url === '/api/sitelogins/youtube/remove' && c.method === 'POST')).toBe(true);
 });
 
-it('has nothing to remove for a session read from the browser itself, and says where to sign out', async () => {
+it('removes a session read from the browser from the row menu too, after asking, and leaves the browser alone', async () => {
   await renderCard();
   await act(async () => row('Patreon')!.querySelector<HTMLButtonElement>('[aria-label="Account actions"]')!.click());
-  expect(button('Remove')).toBeUndefined();
+  await act(async () => button('Remove')!.click());
+  await act(async () => button('Remove')!.click());
+  expect(calls.some((c) => c.url === '/api/sitelogins/patreon/remove' && c.method === 'POST')).toBe(true);
+  expect(document.body.textContent).not.toContain('sign out of Patreon in');
+});
+
+it('signs a session read from the browser out from its window', async () => {
+  await renderCard();
   await act(async () => row('Patreon')!.click());
-  expect(document.body.textContent).toContain('To sign KnightLoader out, sign out of Patreon in Firefox (default-release).');
-  expect(button('Sign out')).toBeUndefined();
+  expect(document.body.textContent).not.toContain('sign out of Patreon in');
+  await act(async () => button('Sign out')!.click());
+  expect(calls.some((c) => c.url === '/api/sitelogins/patreon/remove' && c.method === 'POST')).toBe(true);
+});
+
+it('says a removed site leaves the browser signed in, and uses its sign-in again on request', async () => {
+  sites = [{ ...signedOut(patreon), disconnected: true }];
+  await renderCard();
+  expect(row('Patreon')?.textContent).toContain('Removed from KnightLoader. Your browser stays signed in.');
+  expect(row('Patreon')?.textContent).not.toContain('picks it up by itself');
+  await act(async () => row('Patreon')!.click());
+  await act(async () => button("Use the browser's sign-in again")!.click());
+  expect(calls.some((c) => c.url === '/api/sitelogins/patreon/reconnect' && c.method === 'POST')).toBe(true);
+  expect(opened).toEqual([]);
+});
+
+it('signs a removed site in through KnightLoader before it opens the site', async () => {
+  sites = [{ ...signedOut(patreon), disconnected: true }];
+  await renderCard();
+  await act(async () => row('Patreon')!.click());
+  await act(async () => button('Open Patreon')!.click());
+  expect(calls.some((c) => c.url === '/api/sitelogins/patreon/begin' && c.method === 'POST')).toBe(true);
+  expect(opened).toEqual(['https://www.patreon.com/login']);
 });
 
 it('names the browser whose session the site turned down', async () => {

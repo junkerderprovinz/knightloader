@@ -4025,5 +4025,6 @@ export const ca: Dict = {
   'failure.signInRequired.next': 'Necessita una sessió iniciada, que KnightLoader manlleva del teu navegador per als llocs de Comptes d’allotjadors.',
   'siteLogins.fromKlBrowser': 'del navegador d’inici de sessió de KnightLoader',
   'siteLogins.turnedDown': '{site} ha rebutjat la sessió de {browser}',
-  'siteLogins.signOutInBrowser': 'Per tancar la sessió de KnightLoader, tanca la sessió de {site} a {browser}.',
+  'siteLogins.disconnected': 'S’ha tret de KnightLoader. El navegador continua amb la sessió iniciada.',
+  'siteLogins.reconnect': 'Torna a fer servir la sessió del navegador',
 };

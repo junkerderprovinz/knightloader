@@ -4023,5 +4023,6 @@ export const pl: Dict = {
   'failure.signInRequired.next': 'Potrzebna jest zalogowana sesja. Dla serwisów z sekcji Konta hosterów KnightLoader pożycza ją z twojej przeglądarki.',
   'siteLogins.fromKlBrowser': 'z przeglądarki logowania KnightLoader',
   'siteLogins.turnedDown': '{site} odrzucił logowanie z przeglądarki {browser}',
-  'siteLogins.signOutInBrowser': 'Aby wylogować KnightLoader, wyloguj się z {site} w przeglądarce {browser}.',
+  'siteLogins.disconnected': 'Usunięto z KnightLoadera. Przeglądarka pozostaje zalogowana.',
+  'siteLogins.reconnect': 'Użyj znowu logowania z przeglądarki',
 };

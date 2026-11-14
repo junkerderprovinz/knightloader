@@ -4029,5 +4029,6 @@ export const lv: Dict = {
   'failure.signInRequired.next': 'Vajag pieteiktu sesiju. Vietnēm sadaļā „Hosteru konti“ KnightLoader to aizņemas no tava pārlūka.',
   'siteLogins.fromKlBrowser': 'no KnightLoader pieteikšanās pārlūka',
   'siteLogins.turnedDown': 'Vietne {site} noraidīja pieteikšanos no {browser}',
-  'siteLogins.signOutInBrowser': 'Lai atteiktu KnightLoader, atsakies no vietnes {site} pārlūkā {browser}.',
+  'siteLogins.disconnected': 'Noņemts no KnightLoader. Pārlūks paliek pieteicies.',
+  'siteLogins.reconnect': 'Atkal izmantot pārlūka pieteikšanos',
 };

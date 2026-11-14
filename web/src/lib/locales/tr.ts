@@ -4037,5 +4037,6 @@ export const tr: Dict = {
   'failure.signInRequired.next': 'Açık bir oturum gerekiyor. KnightLoader, Hoster hesapları altındaki siteler için bunu tarayıcından ödünç alır.',
   'siteLogins.fromKlBrowser': 'KnightLoader’ın oturum açma tarayıcısından',
   'siteLogins.turnedDown': '{site}, {browser} üzerinden gelen oturumu reddetti',
-  'siteLogins.signOutInBrowser': 'KnightLoader’ın oturumunu kapatmak için {browser} içinde {site} oturumunu kapat.',
+  'siteLogins.disconnected': 'KnightLoader’dan kaldırıldı. Tarayıcın oturumu açık kalır.',
+  'siteLogins.reconnect': 'Tarayıcının oturumunu yeniden kullan',
 };

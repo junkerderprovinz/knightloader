@@ -4052,5 +4052,6 @@ export const sr: Dict = {
   'failure.signInRequired.next': 'Треба пријављена сесија, коју KnightLoader за сајтове под Налози хостера позајмљује из твог прегледача.',
   'siteLogins.fromKlBrowser': 'из KnightLoader прегледача за пријаву',
   'siteLogins.turnedDown': '{site} је одбио пријаву из {browser}',
-  'siteLogins.signOutInBrowser': 'Да би одјавио KnightLoader, одјави се са {site} у {browser}.',
+  'siteLogins.disconnected': 'Уклоњено из KnightLoader-а. Прегледач остаје пријављен.',
+  'siteLogins.reconnect': 'Поново користи пријаву из прегледача',
 };

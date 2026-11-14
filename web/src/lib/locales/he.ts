@@ -4055,5 +4055,6 @@ export const he: Dict = {
   'failure.signInRequired.next': 'צריך הפעלה מחוברת, ו-KnightLoader שואל אותה מהדפדפן שלך עבור האתרים שתחת חשבונות מארחים.',
   'siteLogins.fromKlBrowser': 'מדפדפן ההתחברות של KnightLoader',
   'siteLogins.turnedDown': '{site} דחה את ההתחברות מ-{browser}',
-  'siteLogins.signOutInBrowser': 'כדי לנתק את KnightLoader, התנתק מ-{site} ב-{browser}.',
+  'siteLogins.disconnected': 'הוסר מ-KnightLoader. הדפדפן נשאר מחובר.',
+  'siteLogins.reconnect': 'להשתמש שוב בהתחברות מהדפדפן',
 };

@@ -4048,5 +4048,6 @@ export const sk: Dict = {
   'failure.signInRequired.next': 'Potrebuje prihlásenú reláciu. Pre weby v časti Účty hosterov si ju KnightLoader požičia z tvojho prehliadača.',
   'siteLogins.fromKlBrowser': 'z prihlasovacieho prehliadača KnightLoaderu',
   'siteLogins.turnedDown': 'Služba {site} odmietla prihlásenie z {browser}',
-  'siteLogins.signOutInBrowser': 'Ak chceš KnightLoader odhlásiť, odhlás sa v {browser} zo služby {site}.',
+  'siteLogins.disconnected': 'Odstránené z KnightLoadera. Prehliadač zostáva prihlásený.',
+  'siteLogins.reconnect': 'Znova použiť prihlásenie z prehliadača',
 };
