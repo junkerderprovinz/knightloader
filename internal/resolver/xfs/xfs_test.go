@@ -509,3 +509,68 @@ func TestLinksOfTheSitesDomainsAreWrittenTheSameWay(t *testing.T) {
 		}
 	}
 }
+
+func TestASignInThatAsksForASecondFactorWaitsForASignInOnTheSitesOwnPage(t *testing.T) {
+	srv := xfstest.New(t, site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TwoFactor: true})
+	b, _, h := newBackend(srv)
+	h.user, h.pass = "fox", "badger"
+
+	b.CheckLogin(context.Background(), true)
+	b.CheckLogin(context.Background(), true)
+
+	if st, _ := b.LoginStatus(); !st.SignInHere || b.Premium() {
+		t.Errorf("state %+v, want the login waiting for a sign-in on the site's page", st)
+	}
+	if b.Handed() {
+		t.Error("the login went to JDownloader, which cannot enter the code either")
+	}
+	if n := srv.SignIns(); n != 1 {
+		t.Errorf("signed in %d times, want once: the password alone gets no further", n)
+	}
+}
+
+func TestASessionFromTheSitesOwnSignInDownloadsOnThePremiumLogin(t *testing.T) {
+	srv := xfstest.New(t, site.Host, nil)
+	link := srv.Add("k3m9x2p7q1ab", xfstest.File{Name: "a.bin", Body: make([]byte, 1024)})
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TrafficMB: 51200, TwoFactor: true})
+	b, eng, h := newBackend(srv)
+	h.user, h.pass = "fox", "badger"
+	var saved string
+	b.SaveSession = func(cookies string) { saved = cookies }
+
+	cookies := srv.SignedIn("fox")
+	b.UseSession(context.Background(), cookies)
+
+	if st, _ := b.LoginStatus(); st.SignInHere || !b.Premium() {
+		t.Fatalf("state %+v, want the premium login the session belongs to", st)
+	}
+	if saved != cookies {
+		t.Errorf("kept %q, want the session's cookies %q", saved, cookies)
+	}
+	b.Download("t1", link, nil, 1)
+	if got := awaitHandoff(t, eng); got.conns != 4 {
+		t.Errorf("handed on for %d connections, want the premium's four", got.conns)
+	}
+	if n := srv.SignIns(); n != 0 {
+		t.Errorf("signed in %d times with the password, want none", n)
+	}
+}
+
+func TestAnEndedSessionFromTheSitesOwnSignInAsksForANewOneRatherThanThePassword(t *testing.T) {
+	srv := xfstest.New(t, site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TrafficMB: 51200})
+	b, _, h := newBackend(srv)
+	h.user, h.pass = "fox", "badger"
+	b.UseSession(context.Background(), srv.SignedIn("fox"))
+
+	srv.EndSessions()
+	b.CheckLogin(context.Background(), true)
+
+	if st, _ := b.LoginStatus(); !st.SignInHere || b.Premium() {
+		t.Errorf("state %+v, want the login asking for a new sign-in on the site's page", st)
+	}
+	if n := srv.SignIns(); n != 0 {
+		t.Errorf("signed in %d times with the password, want none", n)
+	}
+}

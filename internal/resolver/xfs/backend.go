@@ -44,6 +44,9 @@ type LoginState struct {
 	Checked bool
 	// Refused is a login the site turned down.
 	Refused bool
+	// SignInHere is a login that waits for the user to sign in on the site's
+	// own page, through the sign-in browser.
+	SignInHere bool
 	// Err is why the last look found nothing out, nil when it did. What an
 	// earlier look found is kept beside it.
 	Err error
@@ -85,6 +88,9 @@ type Backend struct {
 	signMu  sync.Mutex
 	session *Session
 	resumed bool
+	// ownPage is a session the user signed in to on the site's own page,
+	// which once it ends wants that again rather than the password.
+	ownPage bool
 
 	stateMu sync.Mutex
 	state   LoginState
@@ -123,13 +129,24 @@ func (b *Backend) LoginStatus() (st LoginState, signingIn bool) {
 // that was changed, switched off or removed.
 func (b *Backend) Forget() {
 	b.signMu.Lock()
-	b.session, b.resumed = nil, true
+	b.session, b.resumed, b.ownPage = nil, true, false
 	b.signMu.Unlock()
 	b.save("")
 	b.stateMu.Lock()
 	b.state, b.known = LoginState{}, false
 	b.stateMu.Unlock()
 	b.Reclaim()
+}
+
+// UseSession takes up the session the user signed in to on the site's own
+// page, cookies as the sign-in browser read them, and reads the account it
+// belongs to.
+func (b *Backend) UseSession(ctx context.Context, cookies string) {
+	b.signMu.Lock()
+	b.session, b.resumed, b.ownPage = b.client.Resume(cookies), true, true
+	b.signMu.Unlock()
+	b.save(cookies)
+	b.CheckLogin(ctx, false)
 }
 
 // CheckLogin reads the account page for the plan and the traffic left. It
@@ -179,6 +196,11 @@ func (b *Backend) signedIn(ctx context.Context, taskID string, signIn bool) (*Se
 			return b.session, nil
 		}
 	}
+	// A password alone would get no further, and some sites mail a code for
+	// every try.
+	if b.ownPage || b.waitsForOwnPage() {
+		return nil, ErrSignInHere
+	}
 	if !signIn {
 		return nil, nil
 	}
@@ -197,6 +219,12 @@ func (b *Backend) signedIn(ctx context.Context, taskID string, signIn bool) (*Se
 	b.session = s
 	b.save(s.Cookies())
 	return s, nil
+}
+
+func (b *Backend) waitsForOwnPage() bool {
+	b.stateMu.Lock()
+	defer b.stateMu.Unlock()
+	return b.state.SignInHere
 }
 
 func (b *Backend) setSigning(on bool) {
@@ -227,6 +255,8 @@ func (b *Backend) learn(err error, acct *Account) {
 		b.state = LoginState{Checked: true, Account: *acct}
 	case errors.Is(err, ErrLoginRefused):
 		b.state = LoginState{Refused: true}
+	case errors.Is(err, ErrSignInHere):
+		b.state = LoginState{SignInHere: true}
 	default:
 		b.state.Err = err
 	}
@@ -499,7 +529,7 @@ func reasonOf(err error) core.Reason {
 		return core.ReasonCaptcha
 	case errors.Is(err, ErrPremiumOnly), errors.Is(err, ErrPassword), errors.Is(err, ErrPasswordRefused),
 		errors.Is(err, ErrPremiumExpired), errors.Is(err, ErrLoginRefused), errors.Is(err, ErrSignInBlocked),
-		errors.Is(err, ErrSignInFailed), errors.Is(err, ErrNoLogin):
+		errors.Is(err, ErrSignInFailed), errors.Is(err, ErrNoLogin), errors.Is(err, ErrSignInHere):
 		return core.ReasonAuth
 	case errors.As(err, &w):
 		return core.ReasonUnavailable

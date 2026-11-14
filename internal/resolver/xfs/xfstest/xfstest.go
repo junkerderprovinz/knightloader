@@ -72,6 +72,10 @@ type Account struct {
 	TrafficMB int
 	// Direct sends a premium download from the file page straight on.
 	Direct bool
+	// TwoFactor answers the right password with the script's form for a
+	// one-time code, as a site with two-factor sign-in does, and signs in
+	// only through SignedIn.
+	TwoFactor bool
 }
 
 // Server answers for the files and accounts it was given. Links name it as
@@ -244,11 +248,34 @@ func (s *Server) signIn(w http.ResponseWriter, r *http.Request) {
 		s.render(w, "login.html", data)
 		return
 	}
+	if a.TwoFactor {
+		fmt.Fprint(w, `<html><body><h2>Enter the code we sent you</h2><form method="POST" action="/">`+
+			`<input type="hidden" name="op" value="login"><input type="text" name="code" maxlength="6">`+
+			`<input type="submit" value="Submit"></form></body></html>`)
+		return
+	}
 	session := rand.Text()
 	s.sessions[session] = user
 	http.SetCookie(w, &http.Cookie{Name: "login", Value: user, Path: "/"})
 	http.SetCookie(w, &http.Cookie{Name: "xfss", Value: session, Path: "/", HttpOnly: true})
 	http.Redirect(w, r, "/?op=my_account", http.StatusFound)
+}
+
+// SignedIn is the cookies a browser holds once user has signed in on the
+// site's own page, second factor and all.
+func (s *Server) SignedIn(user string) string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	session := rand.Text()
+	s.sessions[session] = user
+	return "login=" + user + "; xfss=" + session
+}
+
+// EndSessions ends every session the site has handed out.
+func (s *Server) EndSessions() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	clear(s.sessions)
 }
 
 // user is who the request's session belongs to, "" for nobody.
