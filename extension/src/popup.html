@@ -181,7 +181,8 @@
       #pairHint,
       #cnlAccess,
       #signIns { margin-bottom: 16px; }
-      #signIns { display: flex; flex-direction: column; gap: 10px; }
+      #signIns { display: flex; flex-direction: column; gap: 4px; }
+      .signInLine { margin: 0; color: var(--carbon-text-sub); font-size: var(--text-subline); }
       #pairHint button,
       #cnlAccess button,
       #signIns button { margin-top: 10px; }
@@ -222,9 +223,8 @@
       <span class="glim-unavailable-reason" id="cnlAccessReason"></span>
       <button id="cnlAccessOpen" class="glim-btn-subtle" type="button"></button>
     </div>
-    <!-- A site sign-in an instance waits for (popup-signin.js). The button
-         opens signin.html in a tab, where the browser's prompt for the site's
-         cookies does not close the request with the window. -->
+    <!-- The sign-ins passed on to KnightLoader, or the notice that asks for
+         the access first (popup-signin.js). -->
     <div id="signIns" hidden></div>
 
     <!-- Instances and the link collector as two tabs, like the app. The strip
