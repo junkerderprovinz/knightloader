@@ -40,14 +40,17 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Added
 
-- **Sign in to Patreon and YouTube right in KnightLoader.** In the container,
-  where no browser of yours runs beside it, the site's window has "Sign in
-  here": the login page opens in a browser on your server and shows live in
-  the window, and you click and type in it as anywhere else. Choose "Done"
-  once you are signed in, and KnightLoader keeps the session, never what you
-  typed. The window opens only the site and the pages it signs you in with,
-  never your own network, and closes after five minutes without input. The
-  extension still works the same way beside it.
+- **Sign in to Patreon and YouTube right in KnightLoader.** The site's window
+  has "Sign in here": the login page opens in a browser KnightLoader runs
+  itself and shows live in the window, and you click and type in it as
+  anywhere else. In the container that is a browser on your server, so you
+  need nothing beside it. In the desktop app it is a Chromium-based browser
+  installed on your computer, with a profile of its own, so it works even
+  when you are signed in nowhere. Choose "Done" once you are signed in, and
+  KnightLoader keeps the session, never what you typed. The window opens only
+  the site and the pages it signs you in with, never your own network, and
+  closes after five minutes without input. The extension still works the
+  same way beside it.
 
 ### Changed
 

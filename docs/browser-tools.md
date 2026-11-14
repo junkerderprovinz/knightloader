@@ -273,15 +273,19 @@ credential store and answers who the session signs in as.
 
 ### Signing in without the extension
 
-The container has a browser of its own for the same sign-in
-(`internal/signinbrowser`): a headless Chromium, started on demand from
-`KL_CHROMIUM` (the image sets `/usr/lib/chromium/chromium`) with a profile
-under the data folder, so a sign-in outlives a restart. KnightLoader speaks
-the DevTools protocol to it over `--remote-debugging-pipe`, so no port is
-open. The routes need admin, and none is open to the phrase group:
+KnightLoader can also run the sign-in itself (`internal/signinbrowser`), in a
+headless Chromium-family browser started on demand: `KL_CHROMIUM` where it
+is set, which the image sets to its Chromium, and otherwise an installed one
+(Edge on Windows, found through App Paths or Program Files, and on macOS and
+Linux the first of Chrome, Edge, Brave and Chromium). Each browser gets a
+profile of its own under the data folder, so a sign-in outlives a restart.
+On Linux KnightLoader speaks the DevTools protocol over
+`--remote-debugging-pipe`, so no port is open. Windows cannot hand a child
+that pipe, so there it uses a loopback port Chromium picks. The routes need
+admin, and none is open to the phrase group:
 
-- `GET /api/signinbrowser` says whether this server has the browser, which
-  the desktop app never does, and which site is open in it.
+- `GET /api/signinbrowser` says whether a browser is there to sign in with,
+  which one, and which site is open in it.
 - `POST /api/signinbrowser/{id}/open` with `{"width", "height", "scale"}`
   opens it on the site's login page, sized to the panel that shows it. One
   window runs at a time, and opening another site closes the first and stores
@@ -292,6 +296,12 @@ open. The routes need admin, and none is open to the phrase group:
   replayed with `Input.dispatchMouseEvent`, `dispatchKeyEvent` and
   `insertText`. Nothing else of the protocol is reachable.
 - `POST /api/signinbrowser/close` closes it and answers how the site stands.
+
+The desktop window cannot open a WebSocket, so there the stream travels over
+Wails events instead (`desktop/signin.go`): the page calls
+`SignInBridge.Watch` with a stream id, frames arrive as base64 JPEG events and
+the page's state as JSON events, and its input goes up through
+`SignInBridge.Input`.
 
 Every request the browser makes stops at the guard (`Fetch.requestPaused`).
 A page's top frame may show only https on the site's own domains and the

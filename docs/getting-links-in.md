@@ -390,10 +390,16 @@ loads with your session.
 No extension in that browser? **Paste cookies.txt** takes a cookies.txt
 exported while you are signed in.
 
-On a server, such as KnightLoader in a container on Unraid, there is often no
-browser of yours beside it. There the site's window also has **Sign in here**.
-It opens the login page in a browser that runs on the server itself and shows
-it live in the window. Click and type in it as you would anywhere, Tab, Enter
+The site's window also has **Sign in here**, for a server such as
+KnightLoader in a container on Unraid, where no browser of yours runs beside
+it, and for a computer where you are not signed in to the site in any
+browser. It opens the login page in a browser KnightLoader runs itself and
+shows it live in the window. In the container that is the image's own
+Chromium. The desktop app runs a Chromium-based browser installed on the
+computer with a profile of its own, which never touches the profile you
+browse with: Microsoft Edge on Windows, and on macOS and Linux the first of
+Google Chrome, Microsoft Edge, Brave and Chromium it finds. Without any of
+them the button says so. Click and type in it as you would anywhere, Tab, Enter
 and umlauts included, and choose **Done** once you are signed in. KnightLoader
 keeps the session that browser holds, never what you typed, and signing out of
 the site in that window signs KnightLoader out too. The window opens only the
