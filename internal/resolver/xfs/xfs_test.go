@@ -536,8 +536,8 @@ func TestASessionFromTheSitesOwnSignInDownloadsOnThePremiumLogin(t *testing.T) {
 	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TrafficMB: 51200, TwoFactor: true})
 	b, eng, h := newBackend(srv)
 	h.user, h.pass = "fox", "badger"
-	var saved string
-	b.SaveSession = func(cookies string) { saved = cookies }
+	var saved xfs.Kept
+	b.SaveSession = func(k xfs.Kept) { saved = k }
 
 	cookies := srv.SignedIn("fox")
 	b.UseSession(context.Background(), cookies)
@@ -545,8 +545,8 @@ func TestASessionFromTheSitesOwnSignInDownloadsOnThePremiumLogin(t *testing.T) {
 	if st, _ := b.LoginStatus(); st.SignInHere || !b.Premium() {
 		t.Fatalf("state %+v, want the premium login the session belongs to", st)
 	}
-	if saved != cookies {
-		t.Errorf("kept %q, want the session's cookies %q", saved, cookies)
+	if saved != (xfs.Kept{Cookies: cookies, OwnPage: true}) {
+		t.Errorf("kept %+v, want the session's cookies %q marked as from the site's page", saved, cookies)
 	}
 	b.Download("t1", link, nil, 1)
 	if got := awaitHandoff(t, eng); got.conns != 4 {
@@ -572,5 +572,55 @@ func TestAnEndedSessionFromTheSitesOwnSignInAsksForANewOneRatherThanThePassword(
 	}
 	if n := srv.SignIns(); n != 0 {
 		t.Errorf("signed in %d times with the password, want none", n)
+	}
+}
+
+// keptStore keeps what a backend saves of its session, as the app's sealed
+// store does across a restart.
+type keptStore struct {
+	mu   sync.Mutex
+	kept xfs.Kept
+}
+
+func (k *keptStore) use(b *xfs.Backend) {
+	b.LoadSession = func() xfs.Kept {
+		k.mu.Lock()
+		defer k.mu.Unlock()
+		return k.kept
+	}
+	b.SaveSession = func(kept xfs.Kept) {
+		k.mu.Lock()
+		defer k.mu.Unlock()
+		k.kept = kept
+	}
+}
+
+func TestAfterARestartAnEndedSessionFromTheSitesOwnPageAsksForASignInWithoutThePassword(t *testing.T) {
+	for _, when := range []string{"noticed after the restart", "noticed before the restart"} {
+		t.Run(when, func(t *testing.T) {
+			srv := xfstest.New(t, site.Host, nil)
+			srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(0, 2, 0), TrafficMB: 51200, TwoFactor: true})
+			store := &keptStore{}
+			before, _, h := newBackend(srv)
+			h.user, h.pass = "fox", "badger"
+			store.use(before)
+			before.UseSession(context.Background(), srv.SignedIn("fox"))
+			srv.EndSessions()
+			if when == "noticed before the restart" {
+				before.CheckLogin(context.Background(), false)
+			}
+
+			after, _, h2 := newBackend(srv)
+			h2.user, h2.pass = "fox", "badger"
+			store.use(after)
+			after.CheckLogin(context.Background(), true)
+
+			if st, _ := after.LoginStatus(); !st.SignInHere || after.Premium() {
+				t.Errorf("state after the restart %+v, want the login asking for a sign-in on the site's page", st)
+			}
+			if n := srv.SignIns(); n != 0 {
+				t.Errorf("the password went to the site %d times, want never: some sites mail a code for every try", n)
+			}
+		})
 	}
 }

@@ -653,7 +653,8 @@ sign-in**. Choose **Sign in here** in its row menu or in its window, sign in
 on ddownload's page in the sign-in browser with your password and the code,
 and KnightLoader takes the session from there. It keeps that session like any
 other, and once ddownload ends it the row asks for a new sign-in rather than
-KnightLoader trying the password again. **Sign in here** is there for every
+KnightLoader trying the password again, also after a restart, so ddownload
+mails you no code you did not ask for. **Sign in here** is there for every
 login of these sites, so you can use it whenever a sign-in from here does not
 get through.
 

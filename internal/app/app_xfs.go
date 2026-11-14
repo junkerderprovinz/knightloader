@@ -37,6 +37,10 @@ var xfsSites = []*xfs.Site{ddownload.Site, katfile.Site, clicknupload.Site, file
 // signed-in session is sealed under, with the host as account.
 const hosterSessionService = "hostersession"
 
+// sitePageMark is the Username of a sealed XFS session the user signed in to
+// on the site's own page (see xfs.Kept).
+const sitePageMark = "site-page"
+
 // loginCheckInterval is how often a login is looked at again with the session
 // it has. Those looks never sign in, since a sign-in can ask for a captcha
 // nobody is waiting for.
@@ -85,12 +89,16 @@ func (a *App) newXFSBackend(c *xfs.Client, eng xfs.Downloader) *xfs.Backend {
 		return b
 	}
 	b.Login = func() (string, string, bool) { return a.xfsLogin(site) }
-	b.LoadSession = func() string {
+	b.LoadSession = func() xfs.Kept {
 		cred, _ := a.Accounts.GetCredential(hosterSessionService, site.Host)
-		return cred.APIKey
+		return xfs.Kept{Cookies: cred.APIKey, OwnPage: cred.Username == sitePageMark}
 	}
-	b.SaveSession = func(cookies string) {
-		if err := a.Accounts.SetCredential(hosterSessionService, site.Host, accounts.Credential{APIKey: cookies}); err != nil {
+	b.SaveSession = func(k xfs.Kept) {
+		cred := accounts.Credential{APIKey: k.Cookies}
+		if k.OwnPage {
+			cred.Username = sitePageMark
+		}
+		if err := a.Accounts.SetCredential(hosterSessionService, site.Host, cred); err != nil {
 			log.Printf("%s: keeping the session failed: %v", site.ID, err)
 		}
 	}

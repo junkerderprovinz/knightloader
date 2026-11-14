@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/captcha"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -352,5 +353,29 @@ func TestOnlyASiteKnightLoaderSignsInToItselfOpensInTheSignInBrowser(t *testing.
 	}
 	if _, ok := a.signInSiteFor("patreon"); !ok {
 		t.Error("Patreon no longer opens in the sign-in browser")
+	}
+}
+
+func TestAKatFileSessionFromTheSitesOwnPageThatEndedAcrossARestartAsksForASignInWithoutThePassword(t *testing.T) {
+	srv := xfstest.New(t, katfile.Site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(1, 0, 0), TrafficMB: 51200, TwoFactor: true})
+	a := newCrawlApp(t, false)
+	useXFS(a, katfile.Site, srv.URL, srv.Client())
+	if err := hosterauth.NewStore(a.Accounts).Set("katfile.com", accounts.Credential{Username: "fox", Password: "badger"}); err != nil {
+		t.Fatal(err)
+	}
+	site, _ := a.signInSiteFor(katfile.Site.ID)
+	a.signInBrowserSession(site, browserJar(t, site, "katfile.com", srv.SignedIn("fox")))
+
+	srv.EndSessions()
+	// A fresh client knows only what the sealed store kept, as after a restart.
+	b := useXFS(a, katfile.Site, srv.URL, srv.Client())
+	b.CheckLogin(context.Background(), true)
+
+	if st, _ := b.LoginStatus(); !st.SignInHere {
+		t.Errorf("state after the restart %+v, want the login asking for a sign-in on KatFile's page", st)
+	}
+	if n := srv.SignIns(); n != 0 {
+		t.Errorf("the password went to KatFile %d times, want never", n)
 	}
 }

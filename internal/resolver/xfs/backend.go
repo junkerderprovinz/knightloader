@@ -53,6 +53,16 @@ type LoginState struct {
 	Account
 }
 
+// Kept is a signed-in session as LoadSession and SaveSession keep it.
+type Kept struct {
+	// Cookies are what Session.Cookies wrote, "" for none.
+	Cookies string
+	// OwnPage is a login the user signs in to on the site's own page. It
+	// outlives the session's cookies, so after a restart the login asks for
+	// that page again rather than sending the password.
+	OwnPage bool
+}
+
 // Backend signs in with the user's login, reads a file's page, waits out
 // whatever the site asks for, sends the download forms and hands the link to
 // the engine. A wait keeps the task running with the time left in its note.
@@ -75,9 +85,9 @@ type Backend struct {
 	// sign-in no download waits on.
 	Solve func(ctx context.Context, taskID string, c Captcha) (string, error)
 	// LoadSession and SaveSession keep a signed-in session across restarts,
-	// so a restart needs no sign-in and no captcha. "" is none.
-	LoadSession func() string
-	SaveSession func(cookies string)
+	// so a restart needs no sign-in and no captcha.
+	LoadSession func() Kept
+	SaveSession func(Kept)
 	// OnLogin hears every change to what is known about the login.
 	OnLogin func(LoginState)
 	// Sleep sits out a wait. Tests shorten it.
@@ -131,7 +141,7 @@ func (b *Backend) Forget() {
 	b.signMu.Lock()
 	b.session, b.resumed, b.ownPage = nil, true, false
 	b.signMu.Unlock()
-	b.save("")
+	b.save(Kept{})
 	b.stateMu.Lock()
 	b.state, b.known = LoginState{}, false
 	b.stateMu.Unlock()
@@ -145,7 +155,7 @@ func (b *Backend) UseSession(ctx context.Context, cookies string) {
 	b.signMu.Lock()
 	b.session, b.resumed, b.ownPage = b.client.Resume(cookies), true, true
 	b.signMu.Unlock()
-	b.save(cookies)
+	b.save(Kept{Cookies: cookies, OwnPage: true})
 	b.CheckLogin(ctx, false)
 }
 
@@ -191,8 +201,10 @@ func (b *Backend) signedIn(ctx context.Context, taskID string, signIn bool) (*Se
 	}
 	if !b.resumed {
 		b.resumed = true
-		if saved := b.loadSession(); saved != "" {
-			b.session = b.client.Resume(saved)
+		kept := b.loadSession()
+		b.ownPage = kept.OwnPage
+		if kept.Cookies != "" {
+			b.session = b.client.Resume(kept.Cookies)
 			return b.session, nil
 		}
 	}
@@ -217,7 +229,7 @@ func (b *Backend) signedIn(ctx context.Context, taskID string, signIn bool) (*Se
 		return nil, err
 	}
 	b.session = s
-	b.save(s.Cookies())
+	b.save(Kept{Cookies: s.Cookies()})
 	return s, nil
 }
 
@@ -239,7 +251,7 @@ func (b *Backend) dropSession(s *Session) {
 	defer b.signMu.Unlock()
 	if b.session == s {
 		b.session = nil
-		b.save("")
+		b.save(Kept{OwnPage: b.ownPage})
 	}
 }
 
@@ -493,16 +505,16 @@ func (b *Backend) credentials() (string, string, bool) {
 	return b.Login()
 }
 
-func (b *Backend) loadSession() string {
+func (b *Backend) loadSession() Kept {
 	if b.LoadSession == nil {
-		return ""
+		return Kept{}
 	}
 	return b.LoadSession()
 }
 
-func (b *Backend) save(cookies string) {
+func (b *Backend) save(k Kept) {
 	if b.SaveSession != nil {
-		b.SaveSession(cookies)
+		b.SaveSession(k)
 	}
 }
 
