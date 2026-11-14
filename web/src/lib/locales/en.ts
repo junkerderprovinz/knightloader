@@ -109,6 +109,7 @@ export const en = {
   'overview.needs.doneToast': 'Marked as done',
   'overview.needs.accountFailing': '{name} is not working',
   'overview.needs.loginNeedsCode': '{name} is waiting for a two-factor code',
+  'overview.needs.loginNeedsSignIn': '{name} needs a new sign-in',
   'overview.needs.loginRejected': '{name} rejected the login',
   'overview.needs.accountExpires': '{name} expires on {date}',
   'overview.needs.accountExpiresHint': 'Renew it in time. The downloads that go through it depend on it.',
@@ -1721,6 +1722,7 @@ export const en = {
   'accounts.hoster.status.off': 'Off',
   'accounts.hoster.status.queued': 'Queued',
   'accounts.hoster.status.needsCode': 'Needs a code',
+  'accounts.hoster.status.needsSignIn': 'Needs a sign-in',
   'accounts.hoster.status.rejected': 'Rejected',
   'accounts.hoster.detail.adding': 'Waiting for JDownloader to accept this login.',
   'accounts.hoster.detail.checking': 'JDownloader is still checking this login.',
@@ -1734,6 +1736,7 @@ export const en = {
   'accounts.hoster.detail.ownCodeNeeded': 'The hoster wants the two-factor code from your authenticator app. Open the login and enter it.',
   'accounts.hoster.detail.ownCodeWrong': 'The hoster did not accept the two-factor code. Open the login and enter the current one.',
   'accounts.hoster.detail.ownCodeEnded': 'The hoster ended the session, and signing in again takes a new two-factor code. Open the login and enter one.',
+  'accounts.hoster.detail.ownSignInHere': 'The site asks for a second factor at sign-in, which only its own page takes. Choose “Sign in here” in the login’s menu and sign in there with your password and code.',
   'accounts.hoster.detail.ownOff': 'Switched off, so KnightLoader is not using this login.',
   'accounts.hoster.handedOver': "KnightLoader's own client for {host} could not use this login, so JDownloader takes over and signs in with it. Save the login again to have KnightLoader try once more.",
   'accounts.hoster.enableLogin': 'Use the login for {host}',
@@ -1745,6 +1748,7 @@ export const en = {
   'accounts.hoster.codeNeeded': 'The hoster asks for a two-factor code before it takes this login.',
   'accounts.hoster.codeWrong': 'That code did not work. Enter the one the app shows now.',
   'accounts.hoster.codeEnded': 'The session has ended. Enter a new code to sign in again.',
+  'accounts.hoster.signInHereHint': 'Does the site ask for a code when you sign in? Sign in on its own page here, with your password and the code. KnightLoader keeps the session, never what you type.',
   'accounts.hoster.passwordCustody':
     'The password goes to the JDownloader backend, which stores it and does the actual login. KnightLoader itself does not keep it.',
 

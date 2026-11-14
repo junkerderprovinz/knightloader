@@ -10,6 +10,9 @@ package app
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"log"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -30,6 +33,7 @@ type ownBackend interface {
 	SetLogin(user, password string) bool
 	Check(ctx context.Context) ownlogin.Status
 	SignIn(ctx context.Context, code string) ownlogin.Status
+	RestoreSession(token string)
 	Status() ownlogin.Status
 }
 
@@ -145,24 +149,24 @@ func (a *App) ownHosters(eng ownlogin.Downloader) []*ownHoster {
 	// A login a hoster has just answered for may open or close the way down a
 	// link held for premium only was waiting for.
 	rg := rapidgator.NewBackend(rapidgator.NewClient(rapidgator.DefaultSite, hc), eng, a.onUpdate)
-	rg.Checked, rg.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	rg.Checked, rg.Moved, rg.Saved = a.refreshPremiumHolds, a.ownLoginMoved, a.keepOwnSession(rapidgator.Site)
 	rgFree := rapidgator.NewFreeBackend(rapidgator.NewClient(rapidgator.DefaultSite, hc), eng, a.onUpdate)
 	a.own = append(a.own, &ownHoster{id: rapidgator.ResolverID, site: rapidgator.Site,
 		normalize: rapidgator.Normalize, be: rg, res: rapidgator.Resolver{Backend: rg},
 		free: a.newOwnFree(rapidgator.FreeResolverID, rapidgator.Site, rapidgator.FreeResolver{}, rgFree.Free, rgFree, rg.Handed)})
 	for _, h := range keep2share.Hosts {
 		b := keep2share.NewBackend(h, keep2share.NewClient(h.API, hc), eng, a.onUpdate)
-		b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+		b.Checked, b.Moved, b.Saved = a.refreshPremiumHolds, a.ownLoginMoved, a.keepOwnSession(h.Site)
 		fb := keep2share.NewFreeBackend(h, keep2share.NewClient(h.API, hc), eng, a.onUpdate)
 		a.own = append(a.own, &ownHoster{id: h.ID, site: h.Site, normalize: h.Normalize, be: b, res: keep2share.Resolver{Backend: b},
 			free: a.newOwnFree(h.ID+"-free", h.Site, keep2share.FreeResolver{Host: h}, fb.Free, fb, b.Handed)})
 	}
 	nf := nitroflare.NewBackend(nitroflare.NewClient(nitroflare.DefaultSite, hc), eng, a.onUpdate)
-	nf.Checked, nf.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	nf.Checked, nf.Moved, nf.Saved = a.refreshPremiumHolds, a.ownLoginMoved, a.keepOwnSession(nitroflare.Site)
 	a.own = append(a.own, &ownHoster{id: nitroflare.ResolverID, site: nitroflare.Site,
 		normalize: nitroflare.Normalize, be: nf, res: nitroflare.Resolver{Backend: nf}})
 	fn := filer.NewBackend(filer.NewClient(filer.DefaultSite, hc), eng, a.onUpdate)
-	fn.Checked, fn.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	fn.Checked, fn.Moved, fn.Saved = a.refreshPremiumHolds, a.ownLoginMoved, a.keepOwnSession(filer.Site)
 	fnFree := filer.NewFreeBackend(filer.NewClient(filer.DefaultSite, hc), eng, a.onUpdate)
 	a.own = append(a.own, &ownHoster{id: filer.ResolverID, site: filer.Site,
 		normalize: filer.Normalize, be: fn, res: filer.Resolver{Backend: fn},
@@ -194,7 +198,13 @@ func (a *App) syncOwnLogins(held string) {
 				break
 			}
 		}
-		if !h.be.SetLogin(cred.Username, cred.Password) || h.site == held {
+		if !h.be.SetLogin(cred.Username, cred.Password) {
+			continue
+		}
+		if cred.Username != "" {
+			a.resumeOwnSession(h, cred)
+		}
+		if h.site == held {
 			continue
 		}
 		a.spawn(func() {
@@ -205,6 +215,45 @@ func (a *App) syncOwnLogins(held string) {
 		})
 	}
 }
+
+// loginPrint tells a kept session's login apart without storing the password
+// a second time.
+func loginPrint(user, password string) string {
+	sum := sha256.Sum256([]byte(user + "\x00" + password))
+	return hex.EncodeToString(sum[:])
+}
+
+// keepOwnSession is the Saved hook of the hoster at site, which keeps the
+// session across a restart so the user need not enter a new code. It is
+// sealed with a print of its login, so a changed password leaves it behind.
+func (a *App) keepOwnSession(site string) func(user, password, token string) {
+	return func(user, password, token string) {
+		var cred accounts.Credential
+		if token != "" {
+			cred = accounts.Credential{Username: loginPrint(user, password), APIKey: token}
+		}
+		if err := a.Accounts.SetCredential(hosterSessionService, site, cred); err != nil {
+			log.Printf("ownlogin: keeping the %s session: %v", site, err)
+		}
+	}
+}
+
+// resumeOwnSession hands h the session kept for its login cred, and forgets
+// one kept for a login that has changed since.
+func (a *App) resumeOwnSession(h *ownHoster, cred accounts.Credential) {
+	kept, err := a.Accounts.GetCredential(hosterSessionService, h.site)
+	if err != nil || kept.IsZero() {
+		return
+	}
+	if kept.Username != loginPrint(cred.Username, cred.Password) {
+		a.forgetOwnSession(h.site)
+		return
+	}
+	h.be.RestoreSession(kept.APIKey)
+}
+
+// forgetOwnSession drops the session kept for the hoster at site.
+func (a *App) forgetOwnSession(site string) { a.keepOwnSession(site)("", "", "") }
 
 // ownLoginChanged hands the login stored under host to the client that signs
 // in with it, after the login was saved, switched or removed. A login the

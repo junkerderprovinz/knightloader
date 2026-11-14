@@ -80,9 +80,30 @@ func (a *App) SignInBrowserName() string {
 	return b.Name
 }
 
+// signInSiteFor is the site the sign-in browser opens for id: one signed into
+// for yt-dlp, or a hoster KnightLoader signs in to itself whose sign-in only
+// works on its own page.
+func (a *App) signInSiteFor(id string) (sitelogin.Site, bool) {
+	if site, ok := sitelogin.Lookup(id); ok {
+		return site, true
+	}
+	if site := xfsOwnLoginSite(id); site != nil {
+		return xfsSignInSite(site), true
+	}
+	return sitelogin.Site{}, false
+}
+
+// signInState is how the site the sign-in browser opened for stands.
+func (a *App) signInState(site sitelogin.Site) SiteLoginState {
+	if xs := xfsOwnLoginSite(site.ID); xs != nil {
+		return a.xfsSignInState(xs)
+	}
+	return a.siteLoginState(site, false)
+}
+
 // OpenSignInBrowser opens the sign-in browser on a site's login page.
 func (a *App) OpenSignInBrowser(ctx context.Context, id string, width, height int, scale float64) (SiteLoginState, error) {
-	site, ok := sitelogin.Lookup(id)
+	site, ok := a.signInSiteFor(id)
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
 	}
@@ -92,23 +113,26 @@ func (a *App) OpenSignInBrowser(ctx context.Context, id string, width, height in
 	if err := a.SignInBrowser().Open(ctx, site, width, height, scale); err != nil {
 		return SiteLoginState{}, err
 	}
-	return a.siteLoginState(site, false), nil
+	return a.signInState(site), nil
 }
 
 // CloseSignInBrowser closes the window, storing the session it holds, and
 // says how its site stands. ok is false when no window was open.
 func (a *App) CloseSignInBrowser(ctx context.Context) (SiteLoginState, bool) {
 	id := a.SignInBrowser().Close(ctx)
-	site, found := sitelogin.Lookup(id)
+	site, found := a.signInSiteFor(id)
 	if !found {
 		return SiteLoginState{}, false
 	}
-	return a.siteLoginState(site, false), true
+	return a.signInState(site), true
 }
 
 // signInBrowserSession stores what the sign-in browser holds of a site's
 // session, or forgets a session it stored once the user signed out in it.
 func (a *App) signInBrowserSession(site sitelogin.Site, jar string) any {
+	if xs := xfsOwnLoginSite(site.ID); xs != nil {
+		return a.xfsSignedIn(xs, jar)
+	}
 	if jar == "" {
 		if a.fromSignInBrowser(site.ID, a.siteStore().Session(site.ID)) {
 			if err := a.forgetHandedOver(site.ID); err != nil {

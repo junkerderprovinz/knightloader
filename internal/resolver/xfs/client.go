@@ -20,8 +20,8 @@ const maxPage = 4 << 20
 // maxImage caps the picture of an image captcha.
 const maxImage = 1 << 20
 
-// sessionCookie is the cookie a signed-in session carries.
-const sessionCookie = "xfss"
+// SessionCookie is the cookie a signed-in session carries.
+const SessionCookie = "xfss"
 
 // The reasons a download or a sign-in cannot go ahead, whatever the wait.
 var (
@@ -37,6 +37,11 @@ var (
 	ErrSignInBlocked   = errors.New("the site takes no sign-ins from this address")
 	ErrSignInFailed    = errors.New("the site did not sign the login in")
 	ErrNoLogin         = errors.New("there is no login to sign in with")
+
+	// ErrSignInHere is a site that takes the login only with a second
+	// factor, which the user enters on the site's own page through the
+	// sign-in browser.
+	ErrSignInHere = errors.New("the site asks for a second factor at sign-in, so sign in on its own page")
 
 	// errSignedOut is a session the site has ended, which a new sign-in
 	// mends.
@@ -123,7 +128,7 @@ func (s *Session) Cookies() string {
 
 func (s *Session) signedIn() bool {
 	for _, ck := range s.jar.Cookies(s.c.base) {
-		if ck.Name == sessionCookie && ck.Value != "" {
+		if ck.Name == SessionCookie && ck.Value != "" {
 			return true
 		}
 	}
@@ -508,6 +513,8 @@ func (c *Client) SignIn(ctx context.Context, user, password string, solve func(c
 		return nil, ErrLoginRefused
 	case c.pat.BlockedLogin.MatchString(r.body):
 		return nil, ErrSignInBlocked
+	case readPage(r.body, c.pat).asksForCode():
+		return nil, ErrSignInHere
 	case c.pat.WrongCaptcha.MatchString(r.body):
 		return nil, ErrCaptchaRefused
 	}

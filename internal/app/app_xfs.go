@@ -27,6 +27,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/sendnow"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/uploadrar"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
+	"github.com/junkerderprovinz/knightloader/internal/sitelogin"
 )
 
 // xfsSites are the XFileSharing hosters KnightLoader downloads from itself.
@@ -35,6 +36,10 @@ var xfsSites = []*xfs.Site{ddownload.Site, katfile.Site, clicknupload.Site, file
 // hosterSessionService is the accounts.Store service a hoster client's
 // signed-in session is sealed under, with the host as account.
 const hosterSessionService = "hostersession"
+
+// sitePageMark is the Username of a sealed XFS session the user signed in to
+// on the site's own page (see xfs.Kept).
+const sitePageMark = "site-page"
 
 // loginCheckInterval is how often a login is looked at again with the session
 // it has. Those looks never sign in, since a sign-in can ask for a captcha
@@ -84,12 +89,16 @@ func (a *App) newXFSBackend(c *xfs.Client, eng xfs.Downloader) *xfs.Backend {
 		return b
 	}
 	b.Login = func() (string, string, bool) { return a.xfsLogin(site) }
-	b.LoadSession = func() string {
+	b.LoadSession = func() xfs.Kept {
 		cred, _ := a.Accounts.GetCredential(hosterSessionService, site.Host)
-		return cred.APIKey
+		return xfs.Kept{Cookies: cred.APIKey, OwnPage: cred.Username == sitePageMark}
 	}
-	b.SaveSession = func(cookies string) {
-		if err := a.Accounts.SetCredential(hosterSessionService, site.Host, accounts.Credential{APIKey: cookies}); err != nil {
+	b.SaveSession = func(k xfs.Kept) {
+		cred := accounts.Credential{APIKey: k.Cookies}
+		if k.OwnPage {
+			cred.Username = sitePageMark
+		}
+		if err := a.Accounts.SetCredential(hosterSessionService, site.Host, cred); err != nil {
 			log.Printf("%s: keeping the session failed: %v", site.ID, err)
 		}
 	}
@@ -165,18 +174,68 @@ func (a *App) xfsLoginState(site *xfs.Site) hosterauth.OwnState {
 		return hosterauth.OwnState{Waiting: true}
 	}
 	st, signingIn := b.LoginStatus()
+	own := hosterauth.OwnState{SignInSite: site.ID}
 	switch {
 	case b.Handed():
-		return hosterauth.OwnState{Handed: true}
+		own.Handed = true
 	case signingIn:
-		return hosterauth.OwnState{SigningIn: true}
+		own.SigningIn = true
+	case st.SignInHere:
+		own.Checked, own.Refused, own.SignInHere = true, true, true
+		own.Detail = site.Name + " asks for a second factor at sign-in, so sign in on its own page"
 	case st.Refused:
-		return hosterauth.OwnState{Checked: true, Refused: true, Detail: site.Name + " turned this login down"}
+		own.Checked, own.Refused, own.Detail = true, true, site.Name+" turned this login down"
 	case !st.Checked:
-		return hosterauth.OwnState{Waiting: true}
+		own.Waiting = true
+	default:
+		own.Checked, own.Premium, own.Expiry = true, st.Premium, st.Expires
+		own.TrafficLeft, own.TrafficMax = max(st.TrafficLeft, 0), st.TrafficMax
 	}
-	return hosterauth.OwnState{Checked: true, Premium: st.Premium, Expiry: st.Expires,
-		TrafficLeft: max(st.TrafficLeft, 0), TrafficMax: st.TrafficMax}
+	return own
+}
+
+// xfsOwnLoginSite is the site KnightLoader signs in to itself whose routing
+// id is id, nil for none.
+func xfsOwnLoginSite(id string) *xfs.Site {
+	for _, s := range xfsSites {
+		if s.ID == id && s.OwnLogin {
+			return s
+		}
+	}
+	return nil
+}
+
+// xfsSignInSite is site's sign-in page as the sign-in browser opens it, on
+// all of the hoster's domains.
+func xfsSignInSite(site *xfs.Site) sitelogin.Site {
+	return sitelogin.Hoster(site.ID, site.Name, site.Host, site.SignInPage(), hostalias.Names(site.Host), xfs.SessionCookie)
+}
+
+// xfsSignedIn takes up the session the sign-in browser holds for site, which
+// the user signed in to on the site's own page, second factor and all.
+func (a *App) xfsSignedIn(site *xfs.Site, jar string) SiteLoginState {
+	a.bmu.RLock()
+	b := a.xfsBackends[site.ID]
+	a.bmu.RUnlock()
+	if b != nil && jar != "" {
+		b.UseSession(a.ctx, sitelogin.CookieHeader(jar, time.Now()))
+	}
+	return a.xfsSignInState(site)
+}
+
+// xfsSignInState is how site's login stands, as the sign-in window says it.
+func (a *App) xfsSignInState(site *xfs.Site) SiteLoginState {
+	st := SiteLoginState{Site: xfsSignInSite(site), Status: sitelogin.Status{State: sitelogin.SignedOut}}
+	a.bmu.RLock()
+	b := a.xfsBackends[site.ID]
+	a.bmu.RUnlock()
+	if b == nil {
+		return st
+	}
+	if ls, _ := b.LoginStatus(); ls.Checked && !ls.Refused && !ls.SignInHere {
+		st.State, st.Source = sitelogin.SignedIn, SourceSignInBrowser
+	}
+	return st
 }
 
 // changedXFSLogin drops the session and what is known about the login of the

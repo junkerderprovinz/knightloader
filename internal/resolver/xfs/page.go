@@ -146,6 +146,26 @@ func readForm(tag, inner string) Form {
 	return f
 }
 
+// codeField is the field of the script's form for a second factor's code.
+var codeField = regexp.MustCompile(`^code\d*$`)
+
+// asksForCode reports whether a page after the password holds the form for
+// a second factor's code, as JDownloader's XFileSharingProBasic finds it. The
+// sign-in form's captcha is a code field too, but beside the password.
+func (p page) asksForCode() bool {
+	for _, f := range p.forms {
+		if f.Password != "" {
+			continue
+		}
+		for name := range f.Fields {
+			if codeField.MatchString(name) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // formWith is the page's form whose op field is op, nil when it has none.
 func (p page) formWith(op string) *Form {
 	for i, f := range p.forms {
