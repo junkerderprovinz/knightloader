@@ -960,7 +960,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       also: ['settings.torrents.portMapButton'],
       // The port's further paragraphs, and the (i) inside the mapping button.
       body: [
-        'settings.torrents.clientApplyHint',
         'settings.torrents.portMapNowHint',
         'settings.torrents.portMapHint',
         'settings.torrents.portMapNeedsPort',

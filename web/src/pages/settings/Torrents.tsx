@@ -179,11 +179,7 @@ export function Torrents() {
         <SettingRow
           control="short"
           label={t('settings.torrents.port')}
-          hint={[
-            t('settings.torrents.portHint'),
-            t('settings.torrents.clientApplyHint'),
-            t('settings.torrents.portMapNowHint'),
-          ]}
+          hint={[t('settings.torrents.portHint'), t('settings.torrents.portMapNowHint')]}
         >
           <NumberInput
             value={tr.port}
@@ -202,13 +198,13 @@ export function Torrents() {
           checked={tr.dhtEnabled}
           onChange={(v) => write({ dhtEnabled: v })}
           label={t('settings.torrents.dht')}
-          hint={[t('settings.torrents.dhtHint'), t('settings.torrents.clientApplyHint')]}
+          hint={t('settings.torrents.dhtHint')}
         />
         <ToggleRow
           checked={tr.pexEnabled}
           onChange={(v) => write({ pexEnabled: v })}
           label={t('settings.torrents.pex')}
-          hint={[t('settings.torrents.pexHint'), t('settings.torrents.clientApplyHint')]}
+          hint={t('settings.torrents.pexHint')}
         />
       </Card>
 
