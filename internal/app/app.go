@@ -929,6 +929,10 @@ func (a *App) spawn(f func()) {
 	}()
 }
 
+// Go is spawn for callers outside this package whose background work writes
+// to the instance's data folder, such as leaving the group.
+func (a *App) Go(f func()) { a.spawn(f) }
+
 // track counts the caller in as work Close has to wait for, or reports false
 // once Close has begun, in which case the caller must not touch a.wg. Every
 // a.wg.Add in this package goes through here; the caller keeps the Done.

@@ -777,6 +777,50 @@ func TestOnlyAnApprovedInstanceMakesThisInstanceLeaveTheGroup(t *testing.T) {
 	}
 }
 
+// TestClosingFinishesALeaveAnotherInstanceAskedFor holds the leave back behind
+// a reset while the app shuts down: Close must wait for it, since the leave
+// still writes the phrase, the member key and the group file.
+func TestClosingFinishesALeaveAnotherInstanceAskedFor(t *testing.T) {
+	t.Parallel()
+	a, _, _, _, _ := groupServer(t)
+	if err := a.Accounts.Set(relay.SeedAccountService, "abababababababababababababababab"); err != nil {
+		t.Fatal(err)
+	}
+	instance := signedMember(t, a, "instance-b", relay.KindInstance)
+	self := groupID(a)
+
+	resetting, release := make(chan struct{}), make(chan struct{})
+	reset := make(chan error, 1)
+	go func() {
+		reset <- a.Auth.RevokeAll(func() {
+			close(resetting)
+			<-release
+		})
+	}()
+	<-resetting
+	if status, body := instance(http.MethodDelete, "/api/connect/members/"+self); status != http.StatusNoContent {
+		t.Fatalf("the instance taking this one out = %d (%s), want 204", status, body)
+	}
+	closed := make(chan struct{})
+	go func() {
+		a.Close()
+		close(closed)
+	}()
+	select {
+	case <-closed:
+		t.Error("Close returned while the leave was still waiting for the reset")
+	case <-time.After(200 * time.Millisecond):
+	}
+	close(release)
+	if err := <-reset; err != nil {
+		t.Fatal(err)
+	}
+	<-closed
+	if got, _ := a.Accounts.Get(relay.SeedAccountService); got != "" {
+		t.Error("Close returned before the instance had left the group")
+	}
+}
+
 // TestARemovalThatArrivesDuringAResetDoesNotEndTheNewGroup has another
 // instance take this one out while a reset holds every session change: the
 // reset puts the instance in a group of its own, and the removal, which was
