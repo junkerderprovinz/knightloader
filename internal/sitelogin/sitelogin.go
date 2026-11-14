@@ -29,10 +29,10 @@ type Site struct {
 	// Domains are the cookie domains the extension reads for the site. A
 	// cookie of any other domain is dropped from the jar.
 	Domains []string `json:"domains"`
-
-	// links are further hosts whose links play the site's media, such as a
+	// Links are further hosts whose links play the site's media, such as a
 	// short-link domain no cookie is ever set for.
-	links []string
+	Links []string `json:"links,omitempty"`
+
 	// signIn are the cookies only a signed-in session carries.
 	signIn []string
 	// checkURL, when set, answers who the session belongs to.
@@ -58,7 +58,7 @@ var Sites = []Site{
 		Host:     "youtube.com",
 		LoginURL: "https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2F",
 		Domains:  []string{"youtube.com"},
-		links:    []string{"youtu.be"},
+		Links:    []string{"youtu.be"},
 		signIn:   []string{"SID", "__Secure-1PSID", "__Secure-3PSID", "LOGIN_INFO"},
 	},
 }
@@ -80,7 +80,7 @@ func ForURL(rawurl string) (Site, bool) {
 	}
 	host := strings.ToLower(u.Hostname())
 	for _, s := range Sites {
-		if s.owns(host) || slices.Contains(s.links, host) {
+		if s.owns(host) || slices.Contains(s.Links, host) {
 			return s, true
 		}
 	}

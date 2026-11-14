@@ -2531,6 +2531,8 @@ export interface SiteLogin {
   loginUrl: string;
   /** The cookie domains the extension reads for it. */
   domains: string[];
+  /** Further hosts its links come from, such as a short-link domain. */
+  links?: string[];
   state: SiteLoginStateName;
   /** Who the session signs in as, where the site says. */
   account?: string;

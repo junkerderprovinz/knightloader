@@ -47,6 +47,10 @@ describe('siteForHost', () => {
     expect(siteForHost('www.patreon.com', sites)?.id).toBe('patreon');
     expect(siteForHost('music.youtube.com', sites)?.id).toBe('youtube');
   });
+  it('finds the site of a short-link host its links play from', () => {
+    const youtube = site({ id: 'youtube', host: 'youtube.com', domains: ['youtube.com'], links: ['youtu.be'] });
+    expect(siteForHost('youtu.be', [youtube])?.id).toBe('youtube');
+  });
   it('finds nothing for a look-alike', () => {
     expect(siteForHost('notpatreon.com', sites)).toBeUndefined();
     expect(siteForHost('', sites)).toBeUndefined();

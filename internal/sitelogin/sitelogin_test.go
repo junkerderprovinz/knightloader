@@ -2,6 +2,7 @@ package sitelogin
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -38,6 +39,19 @@ func TestPatreonAndYouTubeAreTheSitesOnOffer(t *testing.T) {
 	}
 	if strings.Join(ids, ",") != "patreon,youtube" {
 		t.Errorf("sites = %v, want patreon then youtube", ids)
+	}
+}
+
+// The page offers signing in again for a failed youtu.be link too, so it
+// learns the hosts a site's links come from.
+func TestTheSiteListingNamesTheHostsItsLinksComeFrom(t *testing.T) {
+	site, _ := Lookup("youtube")
+	raw, err := json.Marshal(site)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), `"links":["youtu.be"]`) {
+		t.Errorf("YouTube is listed as %s, want its youtu.be links named", raw)
 	}
 }
 

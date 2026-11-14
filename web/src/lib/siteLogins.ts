@@ -27,11 +27,11 @@ export function stateNote(site: SiteLogin): StateNote {
   }
 }
 
-/** siteForHost is the site a bare hostname belongs to, by its own domains. */
+/** siteForHost is the site a bare hostname belongs to, by its own domains or the hosts its links come from. */
 export function siteForHost(host: string, sites: SiteLogin[]): SiteLogin | undefined {
   const h = host.toLowerCase();
   if (!h) return undefined;
-  return sites.find((s) => s.domains.some((d) => h === d || h.endsWith(`.${d}`)));
+  return sites.find((s) => s.domains.some((d) => h === d || h.endsWith(`.${d}`)) || (s.links ?? []).includes(h));
 }
 
 /**
