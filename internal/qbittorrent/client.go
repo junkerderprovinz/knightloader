@@ -1,6 +1,6 @@
-// Package qbittorrent hands a torrent whose files are already in place to an
-// external qBittorrent to seed, through three calls of its Web API v2: logging
-// in, reading its version and adding the torrent.
+// Package qbittorrent drives a qBittorrent through its Web API v2: the one
+// KnightLoader runs itself (see nox) and an external one a torrent is handed
+// to for seeding.
 //
 // qBittorrent's versions name some of the add call's fields differently
 // (paused or stopped, skip_checking or seedMode) and each ignores a field it
@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/textproto"
@@ -54,8 +55,13 @@ func Reason(err error) string {
 type Client struct {
 	base       string
 	user, pass string
+	apiKey     string
 	http       *http.Client
 }
+
+// SetAPIKey has every call carry key as a Bearer token, which qBittorrent 5.2
+// and later take instead of a login.
+func (c *Client) SetAPIKey(key string) { c.apiKey = key }
 
 // New makes a client for the Web UI at addr, which may carry a path when a
 // reverse proxy serves it under one.
@@ -70,11 +76,17 @@ func New(addr, user, pass string) (*Client, error) {
 	}
 	// The session is the SID cookie the login sets.
 	jar, _ := cookiejar.New(nil)
+	opts := httpx.Options{Jar: jar}
+	// An operator's HTTP_PROXY would otherwise take the call to the
+	// qBittorrent on this machine somewhere else.
+	if h := u.Hostname(); h == "localhost" || net.ParseIP(h).IsLoopback() {
+		opts.Proxy = httpx.NoProxy
+	}
 	return &Client{
 		base: strings.TrimRight(u.String(), "/") + "/api/v2/",
 		user: user,
 		pass: pass,
-		http: httpx.New(httpx.Options{Jar: jar}),
+		http: httpx.New(opts),
 	}, nil
 }
 
@@ -85,13 +97,34 @@ type answer struct {
 	body   string
 }
 
-func (c *Client) call(ctx context.Context, method, endpoint, contentType string, body io.Reader) (answer, error) {
-	req, err := http.NewRequestWithContext(ctx, method, c.base+endpoint, body)
+// call makes one API call. qBittorrent answers 403 to a call without a
+// session, which is how a session that ended, or one never opened, shows, so
+// the call logs in once and tries again.
+func (c *Client) call(ctx context.Context, method, endpoint, contentType string, body []byte) (answer, error) {
+	a, err := c.send(ctx, method, endpoint, contentType, body)
+	if err != nil || a.status != http.StatusForbidden || c.apiKey != "" || endpoint == "auth/login" {
+		return a, err
+	}
+	if err := c.Login(ctx); err != nil {
+		return answer{}, err
+	}
+	return c.send(ctx, method, endpoint, contentType, body)
+}
+
+func (c *Client) send(ctx context.Context, method, endpoint, contentType string, body []byte) (answer, error) {
+	var r io.Reader
+	if body != nil {
+		r = bytes.NewReader(body)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, c.base+endpoint, r)
 	if err != nil {
 		return answer{}, err
 	}
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
+	}
+	if c.apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+c.apiKey)
 	}
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -110,7 +143,7 @@ func (c *Client) call(ctx context.Context, method, endpoint, contentType string,
 // banned after too many failed logins.
 func (c *Client) Login(ctx context.Context) error {
 	form := url.Values{"username": {c.user}, "password": {c.pass}}
-	a, err := c.call(ctx, http.MethodPost, "auth/login", "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	a, err := c.call(ctx, http.MethodPost, "auth/login", formType, []byte(form.Encode()))
 	switch {
 	case err != nil:
 		return err
@@ -134,6 +167,55 @@ func (c *Client) Version(ctx context.Context) (string, error) {
 		return "", refused("the version request", a)
 	}
 	return a.body, nil
+}
+
+const formType = "application/x-www-form-urlencoded"
+
+// SetPreferences changes the settings named in p, by the keys of
+// app/preferences, and leaves the others as they are.
+func (c *Client) SetPreferences(ctx context.Context, p map[string]any) error {
+	b, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+	form := url.Values{"json": {string(b)}}
+	a, err := c.call(ctx, http.MethodPost, "app/setPreferences", formType, []byte(form.Encode()))
+	if err != nil {
+		return err
+	}
+	if a.status != http.StatusOK {
+		return refused("the settings", a)
+	}
+	return nil
+}
+
+// Preferences is app/preferences, by its JSON keys.
+func (c *Client) Preferences(ctx context.Context) (map[string]any, error) {
+	a, err := c.call(ctx, http.MethodGet, "app/preferences", "", nil)
+	if err != nil {
+		return nil, err
+	}
+	if a.status != http.StatusOK {
+		return nil, refused("the settings request", a)
+	}
+	var p map[string]any
+	if err := json.Unmarshal([]byte(a.body), &p); err != nil {
+		return nil, &Error{Reason: "qBittorrent's settings could not be read", Err: err}
+	}
+	return p, nil
+}
+
+// Shutdown asks qBittorrent to quit, which writes out the resume data of
+// every torrent first.
+func (c *Client) Shutdown(ctx context.Context) error {
+	a, err := c.call(ctx, http.MethodPost, "app/shutdown", "", nil)
+	if err != nil {
+		return err
+	}
+	if a.status != http.StatusOK {
+		return refused("the shutdown", a)
+	}
+	return nil
 }
 
 // Torrent is a torrent to seed from files already in SavePath.
@@ -195,7 +277,7 @@ func (c *Client) Add(ctx context.Context, t Torrent) error {
 	if err := w.Close(); err != nil {
 		return err
 	}
-	a, err := c.call(ctx, http.MethodPost, "torrents/add", w.FormDataContentType(), &body)
+	a, err := c.call(ctx, http.MethodPost, "torrents/add", w.FormDataContentType(), body.Bytes())
 	if err != nil {
 		return err
 	}
