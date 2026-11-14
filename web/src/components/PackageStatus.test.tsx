@@ -170,7 +170,7 @@ it('keeps a package on verifying while one of its files waits for the check', ()
   expect(text).not.toContain(en['status.done']);
 });
 
-/** The bubble over the note that reads `line`, once the pointer has rested on it. */
+/** The bubble over the note with the text `line`, once the pointer has rested on it. */
 function bubbleOver(line: string): string {
   const note = [...host.querySelectorAll('span')].find((el) => el.textContent === line);
   if (!note) return '';
