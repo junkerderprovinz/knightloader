@@ -3,13 +3,12 @@ import { deleteTasks, fetchSiteLogins, restartTasks, undoDelete, type SiteLogin,
 import { adviceFor } from '../lib/failureAdvice';
 import { message } from '../lib/intake';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconClose, IconCookies, IconExternalLink, IconTrash, IconUndo } from '../lib/icons';
+import { IconClose, IconExternalLink, IconTrash, IconUndo } from '../lib/icons';
 import { hostOf } from '../lib/searchQuery';
-import { signInAgainFor } from '../lib/siteLogins';
+import { signInFor } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { Button, FieldGroup, Modal } from './ui';
-import { CookieJarDialog } from './CookieJarDialog';
-import { SiteLoginDialog } from './SiteLoginDialog';
+import { SiteLoginDialog, useSignInWays } from './SiteLoginDialog';
 
 /**
  * FailureAdvice explains one failed download in a sentence, with at most one
@@ -18,9 +17,10 @@ import { SiteLoginDialog } from './SiteLoginDialog';
  * It is a modal rather than a panel inside the row, because the virtual
  * scroller estimates unseen rows from the average height of drawn ones.
  *
- * A members-only answer from a site signed into through the browser means the
- * stored session most likely ran out, so the remedy is signing in again, and
- * the download starts over once the new session is there.
+ * A bot check, a members-only answer or a video for signed-in accounts only,
+ * from a site KnightLoader borrows a browser's sign-in for, is put right by
+ * signing in there, and the download starts over once the session is there.
+ * With a session already there, it most likely ran out.
  */
 export function FailureAdvice({
   task,
@@ -36,27 +36,29 @@ export function FailureAdvice({
 }) {
   const { t } = useT();
   const { toast } = useToast();
-  const [cookies, setCookies] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [sites, setSites] = useState<SiteLogin[]>([]);
   const [busy, setBusy] = useState(false);
 
   const advice = adviceFor(task.reason);
-  // The sign-ins are this instance's, like the cookie store below.
+  // The sign-ins are this instance's, and the peer proxy does not forward
+  // them, so a peer's row gets the advice without the button.
   const local = base === '/api';
-  const asksForSignIn = local && task.reason === 'membersOnly';
+  const asksForSignIn = local && advice?.fix === 'signin';
+  const ways = useSignInWays(sites, asksForSignIn);
   useEffect(() => {
     if (!asksForSignIn) return;
     void fetchSiteLogins().then(setSites, () => {});
   }, [asksForSignIn]);
-  const again = signInAgainFor(task.reason, hostOf(task), local ? sites : []);
+  const signIn = signInFor(task.reason, hostOf(task), local ? sites : []);
+  const again = signIn?.again && task.reason === 'membersOnly';
 
-  // The cookie and sign-in dialogs replace this one instead of stacking over it.
-  if (cookies) return <CookieJarDialog task={task} base={base} onClose={onClose} />;
-  if (signingIn && again) {
+  // The sign-in window replaces this one instead of stacking over it.
+  if (signingIn && signIn) {
     return (
       <SiteLoginDialog
-        site={again}
+        site={signIn.site}
+        ways={ways}
         onSignedIn={() => void restartTasks([task.id], base).catch(() => {})}
         onClose={onClose}
       />
@@ -100,16 +102,10 @@ export function FailureAdvice({
     }
   };
 
-  // The cookie store is per instance and the peer proxy does not forward it, so
-  // a peer's row gets the advice without the button.
-  const action = again
-    ? 'failure.membersOnly.again.action'
-    : advice.action && (advice.fix !== 'cookies' || local)
-      ? advice.action
-      : undefined;
-  const words = again ? { site: again.name } : undefined;
+  const action = again ? 'failure.membersOnly.again.action' : advice.fix === 'signin' ? signIn && advice.action : advice.action;
+  const words = signIn ? { site: signIn.site.name } : undefined;
   const line: TranslationKey = again ? 'failure.membersOnly.again.line' : advice.line;
-  const hint: TranslationKey = again ? 'failure.membersOnly.again.hint' : advice.hint;
+  const hint: TranslationKey = again ? 'failure.membersOnly.again.hint' : signIn ? 'failure.signIn.hint' : advice.hint;
 
   return (
     <Modal
@@ -126,18 +122,13 @@ export function FailureAdvice({
             disabled={busy}
             onClick={onClose}
           />
-          {action && again && (
-            <Button icon={<IconExternalLink />} disabled={busy} onClick={() => setSigningIn(true)}>
-              {t(action)}
-            </Button>
-          )}
-          {action && !again && (
+          {action && (
             <Button
-              icon={advice.fix === 'cookies' ? <IconCookies /> : <IconTrash />}
+              icon={signIn ? <IconExternalLink /> : <IconTrash />}
               disabled={busy}
-              onClick={() => (advice.fix === 'cookies' ? setCookies(true) : void remove())}
+              onClick={() => (signIn ? setSigningIn(true) : void remove())}
             >
-              {t(action)}
+              {t(action, words)}
             </Button>
           )}
         </>

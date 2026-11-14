@@ -1,69 +1,77 @@
 // The window of one site signed into through the browser (internal/sitelogin),
-// opened from the hoster card's picker and rows and from a failed download.
-// Signing in opens the site's own login page in the browser, and the extension
-// hands the session over from there, so the page never sees the session itself.
+// opened from its row on the hoster card and from a failed download. Signing
+// in happens on the site, in the browser: an instance outside a container
+// reads the session from there and the extension passes it on, so the window
+// only says how it stands and notices a sign-in by itself.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  type SiteLogin,
-  beginSiteLogin,
-  checkSiteLogin,
-  fetchSiteLogins,
-  pasteSiteSession,
-  removeSiteLogin,
-} from '../lib/api';
+import { type SiteLogin, checkSiteLogin, fetchConnect, fetchSiteLogins, removeSiteLogin } from '../lib/api';
 import { openExternal } from '../lib/external';
 import { fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { message } from '../lib/intake';
-import { stateNote } from '../lib/siteLogins';
+import { type SignInWays, nextStep, readsBrowsers, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
-import { IconBack, IconClose, IconCookies, IconExternalLink, IconSave, IconTrash } from '../lib/icons';
-import { Button, Field, Modal, TextArea } from './ui';
+import { IconClose, IconExternalLink, IconTrash } from '../lib/icons';
+import { Button, Modal } from './ui';
 import { SettingRow } from '../pages/settings/controls';
 
-// A window waiting for a sign-in asks often, since the session arrives the
-// moment the extension sends it.
-const WAITING_POLL_MS = 3000;
+// While nobody is signed in the window asks often, since a sign-in arrives the
+// moment the browser has it.
+const SIGNED_OUT_POLL_MS = 3000;
 
 /**
- * SiteLoginDialog is one site's window. onSignedIn hears a session that
- * arrived while the window was open, and onBack, from the picker, leads back
- * to the hosters in place of Close.
+ * useSignInWays says where this instance gets a sign-in from: outside a
+ * container it reads the browsers on its computer, and a container needs a
+ * browser of its group that has the extension.
  */
+export function useSignInWays(sites: SiteLogin[], enabled = true): SignInWays {
+  const [extensionPaired, setExtensionPaired] = useState(false);
+  useEffect(() => {
+    if (!enabled) return;
+    void fetchConnect().then(
+      (c) => setExtensionPaired((c.apps ?? []).some((a) => a.deployment === 'extension' && a.approved)),
+      () => {},
+    );
+  }, [enabled]);
+  return { readsBrowsers: readsBrowsers(sites), extensionPaired };
+}
+
+/** SiteLoginDialog is one site's window. onSignedIn hears a sign-in that arrived while it was open. */
 export function SiteLoginDialog({
   site: initial,
+  ways,
   hue,
   onChanged,
   onSignedIn,
-  onBack,
   onClose,
 }: {
   site: SiteLogin;
+  ways: SignInWays;
   hue?: number;
   onChanged?: (s: SiteLogin) => void;
   onSignedIn?: (s: SiteLogin) => void;
-  onBack?: () => void;
   onClose: () => void;
 }) {
   const { t } = useT();
   const { toast } = useToast();
   const [site, setSite] = useState(initial);
-  const [pasting, setPasting] = useState(false);
-  const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const heard = useRef({ onChanged, onSignedIn, onClose });
   heard.current = { onChanged, onSignedIn, onClose };
 
-  const show = useCallback((next: SiteLogin, signedInNow: boolean) => {
-    setSite(next);
-    heard.current.onChanged?.(next);
-    if (signedInNow && next.state !== 'signedOut' && next.state !== 'expired') {
-      toast(t('siteLogins.signedInToast', { site: next.name }), 'ok');
-      heard.current.onSignedIn?.(next);
-      heard.current.onClose();
-    }
-  }, [t, toast]);
+  const show = useCallback(
+    (next: SiteLogin, arrived: boolean) => {
+      setSite(next);
+      heard.current.onChanged?.(next);
+      if (arrived) {
+        toast(t('siteLogins.signedInToast', { site: next.name }), 'ok');
+        heard.current.onSignedIn?.(next);
+        heard.current.onClose();
+      }
+    },
+    [t, toast],
+  );
 
   // A fresh answer on opening, since the row may hold one from minutes ago.
   useEffect(() => {
@@ -71,57 +79,38 @@ export function SiteLoginDialog({
     void checkSiteLogin(initial.id).then((s) => show(s, false), () => {});
   }, [initial.id, initial.state, show]);
 
+  const waiting = !signedIn(site);
   useEffect(() => {
-    if (!site.waiting) return;
+    if (!waiting) return;
     const timer = window.setInterval(() => {
       void fetchSiteLogins().then((all) => {
         const latest = all.find((s) => s.id === site.id);
-        if (latest && !latest.waiting) show(latest, true);
+        if (latest && signedIn(latest)) show(latest, true);
       }, () => {});
-    }, WAITING_POLL_MS);
+    }, SIGNED_OUT_POLL_MS);
     return () => window.clearInterval(timer);
-  }, [site.id, site.waiting, show]);
+  }, [site.id, waiting, show]);
 
-  const run = async (work: () => Promise<SiteLogin>, signedInNow = false): Promise<boolean> => {
+  const signOut = async () => {
     setBusy(true);
     setError('');
     try {
-      show(await work(), signedInNow);
-      return true;
+      show(await removeSiteLogin(site.id), false);
+      toast(t('siteLogins.signedOutToast', { site: site.name }), 'info');
     } catch (e) {
-      // The server's sentence says what to do, such as signing in first.
       setError(message(e).replace(/^(Error|ApiError):\s*/, ''));
-      return false;
     } finally {
       setBusy(false);
     }
   };
 
-  // The login page opens first, inside the click, where no popup blocker
-  // stands in the way; the wait starts after.
-  const signIn = () => {
-    openExternal(site.loginUrl);
-    void run(() => beginSiteLogin(site.id));
-  };
-
-  const signOut = async () => {
-    if (await run(() => removeSiteLogin(site.id))) toast(t('siteLogins.signedOutToast', { site: site.name }), 'info');
-  };
-
   const note = stateNote(site);
-  const stored = site.state !== 'signedOut';
-  const close = onBack ? (
-    <Button
-      kind="secondary"
-      labelled
-      icon={<IconBack className="rtl:-scale-x-100" />}
-      title={t('onboarding.back')}
-      disabled={busy}
-      onClick={onBack}
-    />
-  ) : (
-    <Button kind="secondary" labelled icon={<IconClose />} title={t('failure.close')} disabled={busy} onClick={onClose} />
-  );
+  const from = sourceNote(site);
+  const step = nextStep(site, ways);
+  // A session read from a browser here comes back with the next read, so
+  // only one the extension passed on can be forgotten.
+  const forgettable = site.source === 'extension' && site.state !== 'signedOut';
+  const inBrowser = site.source === 'browser' && signedIn(site) && site.browser;
 
   return (
     <Modal
@@ -130,74 +119,46 @@ export function SiteLoginDialog({
       hue={hue}
       onClose={onClose}
       footer={
-        pasting ? (
-          <>
-            <Button
-              kind="secondary"
-              labelled
-              icon={<IconBack className="rtl:-scale-x-100" />}
-              title={t('onboarding.back')}
-              disabled={busy}
-              onClick={() => setPasting(false)}
-            />
-            <span className="flex-1" />
-            <Button
-              icon={<IconSave />}
-              disabled={busy || text.trim() === ''}
-              onClick={() => void run(() => pasteSiteSession(site.id, text), true)}
-            >
-              {t('accounts.save')}
+        <>
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('failure.close')} disabled={busy} onClick={onClose} />
+          <span className="flex-1" />
+          {forgettable && (
+            <Button kind="secondary" icon={<IconTrash width={16} height={16} />} disabled={busy} onClick={() => void signOut()}>
+              {t('siteLogins.signOut')}
             </Button>
-          </>
-        ) : (
-          <>
-            {close}
-            <span className="flex-1" />
-            {stored && (
-              <Button kind="secondary" icon={<IconTrash width={16} height={16} />} disabled={busy} onClick={() => void signOut()}>
-                {t('siteLogins.signOut')}
-              </Button>
-            )}
-            <Button kind="secondary" icon={<IconCookies />} disabled={busy} onClick={() => setPasting(true)}>
-              {t('siteLogins.paste')}
-            </Button>
-            <Button icon={<IconExternalLink />} disabled={busy} onClick={signIn}>
-              {t(site.state === 'expired' ? 'siteLogins.signInAgain' : 'siteLogins.signIn')}
-            </Button>
-          </>
-        )
+          )}
+          <Button
+            kind={waiting ? 'primary' : 'secondary'}
+            icon={<IconExternalLink />}
+            disabled={busy}
+            onClick={() => openExternal(site.loginUrl)}
+          >
+            {t('siteLogins.open', { site: site.name })}
+          </Button>
+        </>
       }
     >
       <div className="flex flex-col gap-4">
-        {pasting ? (
-          <Field label={t('settings.resolvers.cookieText')} hint={t('siteLogins.pasteHint', { site: site.name })}>
-            <TextArea
-              rows={6}
-              dir="ltr"
-              spellCheck={false}
-              autoFocus
-              value={text}
-              placeholder={t('settings.resolvers.cookieTextPlaceholder')}
-              disabled={busy}
-              onChange={(e) => setText(e.target.value)}
-            />
-          </Field>
-        ) : (
-          <>
-            <SettingRow label={t('siteLogins.status')} hint={t('siteLogins.statusHint')}>
-              <span className={`text-sm font-medium ${note.warn ? 'text-statusWarn' : 'text-carbon-text'}`}>
-                {t(note.key, note.vars)}
-              </span>
-            </SettingRow>
-            {site.expires && (
-              <SettingRow label={t('siteLogins.expires')}>
-                <span className="glim-num text-sm text-carbon-textSub">{fmtDate(site.expires)}</span>
-              </SettingRow>
-            )}
-            {site.waiting && <p className="text-sm text-carbon-textSub">{t('siteLogins.waitingHint', { site: site.name })}</p>}
-          </>
+        <SettingRow label={t('siteLogins.status')} hint={t('siteLogins.statusHint')}>
+          <span className="flex flex-col items-end gap-0.5 text-end">
+            <span className={`text-sm font-medium ${note.warn ? 'text-statusWarn' : 'text-carbon-text'}`}>{t(note.key, note.vars)}</span>
+            {from && <span className="text-meta text-carbon-textMuted">{t(from.key, from.vars)}</span>}
+          </span>
+        </SettingRow>
+        {site.expires && (
+          <SettingRow label={t('siteLogins.expires')}>
+            <span className="glim-num text-sm text-carbon-textSub">{fmtDate(site.expires)}</span>
+          </SettingRow>
         )}
-        {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
+        {step && <p className="text-sm text-carbon-textSub">{t(step.key, step.vars)}</p>}
+        {inBrowser && (
+          <p className="text-sm text-carbon-textSub">{t('siteLogins.signOutInBrowser', { site: site.name, browser: inBrowser })}</p>
+        )}
+        {error && (
+          <p dir="auto" className="text-xs text-statusWarn">
+            {error}
+          </p>
+        )}
       </div>
     </Modal>
   );

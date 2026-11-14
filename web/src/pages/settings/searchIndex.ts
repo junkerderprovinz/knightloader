@@ -935,16 +935,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     {
-      title: 'settings.resolvers.cookiesTitle',
-      rows: [
-        { key: 'settings.resolvers.cookies', hint: 'settings.resolvers.cookiesHint' },
-        { key: 'settings.resolvers.cookieJars', hint: 'settings.resolvers.cookieJarsHint' },
-        // The host and jar boxes live in CookieJarDialog, so only the button
-        // that opens it is a row.
-        { key: 'cookies.add' },
-      ],
-    },
-    {
       title: 'settings.resolvers.variantDefaults',
       hint: 'settings.resolvers.presetsHint',
       rows: [{ key: 'settings.resolvers.presetHost', hint: 'settings.resolvers.presetHostHint' }],
