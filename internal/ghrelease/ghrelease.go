@@ -21,6 +21,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
@@ -57,6 +58,24 @@ type Asset struct {
 	Name string `json:"name"`
 	URL  string `json:"browser_download_url"`
 	Size int64  `json:"size"`
+	// Digest is the "sha256:<hex>" GitHub works out itself when an asset is
+	// uploaded. Assets uploaded before mid-2025 have none.
+	Digest string `json:"digest"`
+}
+
+// SHA256 is the asset's digest as lower-case hex, or "" when GitHub gives none
+// or one of another kind.
+func (a Asset) SHA256() string {
+	kind, hex, ok := strings.Cut(a.Digest, ":")
+	if !ok || !strings.EqualFold(kind, "sha256") || len(hex) != 64 {
+		return ""
+	}
+	for _, c := range strings.ToLower(hex) {
+		if !strings.ContainsRune("0123456789abcdef", c) {
+			return ""
+		}
+	}
+	return strings.ToLower(hex)
 }
 
 // Release is the subset of GitHub's release object this package reads.
@@ -161,12 +180,26 @@ func trimOneLine(s string) string {
 	return string(out)
 }
 
+// Tagged fetches the release of owner/repo with tag, for a program kept at a
+// pinned version rather than at the newest.
+func Tagged(ctx context.Context, repo, tag string) (Release, error) {
+	return release(ctx, repo, tagURL(repo, tag))
+}
+
+func tagURL(repo, tag string) string {
+	return "https://" + apiHost + "/repos/" + repo + "/releases/tags/" + url.PathEscape(tag)
+}
+
 // Latest fetches the latest release of owner/repo from GitHub's own endpoint,
 // which already means the newest non-draft, non-prerelease release.
 func Latest(ctx context.Context, repo string) (Release, error) {
+	return release(ctx, repo, "https://"+apiHost+"/repos/"+repo+"/releases/latest")
+}
+
+func release(ctx context.Context, repo, rawurl string) (Release, error) {
 	var rel Release
 	resp, err := get(ctx,
-		"https://"+apiHost+"/repos/"+repo+"/releases/latest",
+		rawurl,
 		map[string]bool{apiHost: true},
 		MetaTimeout,
 		"application/vnd.github+json")

@@ -165,3 +165,28 @@ func TestFindIsExact(t *testing.T) {
 		t.Error("Find matched an asset this release does not have")
 	}
 }
+
+func TestAnAssetsDigestIsReadOnlyAsSHA256(t *testing.T) {
+	hex := strings.Repeat("ab", 32)
+	cases := map[string]string{
+		"sha256:" + hex:                      hex,
+		"SHA256:" + strings.ToUpper(hex):     hex,
+		"sha512:" + strings.Repeat("a", 128): "",
+		"sha256:abc":                         "",
+		"":                                   "",
+	}
+	for digest, want := range cases {
+		if got := (Asset{Digest: digest}).SHA256(); got != want {
+			t.Errorf("SHA256() of %q = %q, want %q", digest, got, want)
+		}
+	}
+}
+
+func TestATaggedReleaseIsAskedForByItsTag(t *testing.T) {
+	if got := tagURL("userdocs/qbittorrent-nox-static", "release-4.5.5_v1.2.19"); got != "https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/tags/release-4.5.5_v1.2.19" {
+		t.Fatalf("tagURL = %q", got)
+	}
+	if got := tagURL("o/r", "a b/c"); got != "https://api.github.com/repos/o/r/releases/tags/a%20b%2Fc" {
+		t.Fatalf("a tag is not escaped: %q", got)
+	}
+}
