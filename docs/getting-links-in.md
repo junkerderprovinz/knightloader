@@ -378,23 +378,37 @@ they do not take a user name and password from a program: Patreon wants a
 captcha and a code it mails you. So KnightLoader borrows the sign-in of your
 own browser instead.
 
-Under **Hoster accounts**, choose **Add an account** and pick Patreon or
-YouTube among the hosters. **Sign in in the browser** opens the site's own
-login page. Sign in there as you always do, then click the KnightLoader button
-in your browser toolbar and hand the session over. The extension asks your
-browser for that one site's cookies, reads them once and sends them encrypted
-to your instance. From then on the site sits in the hoster list like any other
-account, says who it is signed in as, and every link of that site you add
-loads with your session.
+Patreon and YouTube always have a row under **Hoster accounts**. Sign in to
+the site in your browser as you always do, and KnightLoader picks the sign-in
+up by itself. If you were signed in already, that is picked up too. The row then says who you are signed in as and where the sign-in
+came from, such as "from Firefox (default-release)" or "from the browser
+extension", and every link of that site you add loads with your session.
+Without a sign-in the row says "Not signed in" and what to do.
 
-No extension in that browser? **Paste cookies.txt** takes a cookies.txt
-exported while you are signed in.
+Where it comes from depends on where KnightLoader runs:
 
-A session runs out after a while. The row then says so, and a members-only
-download that fails on that site offers **Sign in again**, which starts the
-same steps and tries the download again once the new session is there. If it
-still says members only after that, the account itself does not have the
-membership.
+- **The desktop app, or KnightLoader outside a container,** reads the
+  sign-in from the browsers on the same computer. To sign KnightLoader out,
+  sign out of the site in that browser. A few browsers keep their cookies
+  where no other program can read them, Chrome on Windows for one. The hoster
+  card names those, and the KnightLoader browser extension in that browser
+  passes the sign-in on instead.
+- **The container** has no browser of its own, so the extension in the
+  browser you use passes the sign-in on. Once the extension has joined your
+  group, its popup and settings page ask once to let it read the cookies of
+  Patreon and YouTube. Click **Allow**. If taking over downloads or finding
+  media is already on, it has that access and asks nothing. From then on the
+  extension hands a new sign-in over whenever you sign in, and tells
+  KnightLoader when you sign out. Private windows are never read. Signed in
+  inside a Firefox container? That works too: the extension reads the
+  container that is signed in. **Pass my sign-ins to KnightLoader** in the
+  extension's settings turns it off again.
+
+A session runs out after a while. The row then says so, and a download that
+fails on that site because it wants a signed-in account, a membership or a
+passed bot check offers **Sign in to Patreon** (or **Sign in again**). Sign in on the site, and the
+download starts again once KnightLoader has the new sign-in. If it still says
+members only after that, the account itself does not have the membership.
 
 The session is kept in the encrypted credential store and used only by yt-dlp
 for that site's links. It never shows up in the settings, a log or the

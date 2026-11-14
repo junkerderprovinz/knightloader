@@ -38,6 +38,22 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Added
+
+- **The browser extension passes your Patreon and YouTube sign-in on by
+  itself,** for KnightLoader in a container, which has no browser to read.
+  It asks once to read those two sites' cookies (or nothing at all while
+  taking over downloads or finding media is on), then hands the sign-in over
+  whenever you sign in or it changes, also one from before, and tells your
+  instance when you sign out. Private windows are never read, Firefox
+  containers are. "Pass my sign-ins to KnightLoader" in the extension's
+  settings turns it off again.
+- **Patreon and YouTube always have a row under Hoster accounts,** which says
+  who you are signed in as and where the sign-in came from, or the one step
+  that signs you in. A download that fails because the site wants a
+  signed-in account offers to sign in to that site and starts again once the
+  sign-in is there.
+
 ### Changed
 
 - **One switch keeps every component current.** yt-dlp, FFmpeg, Deno, the
