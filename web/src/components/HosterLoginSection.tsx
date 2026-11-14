@@ -31,6 +31,7 @@ import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconClose, IconSave, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 import { SiteLoginDialog } from './SiteLoginDialog';
+import { SignInBrowserWindow, useSignInBrowserAvailable } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
 
 // Faster than the 30s account health poll, since a new login moves from queued
@@ -133,6 +134,7 @@ function siteLoginRow(
   site: SiteLogin,
   signInAgain: string,
   actions: { onEdit: () => void; onRemove: () => void },
+  here?: { label: string; onSelect: () => void },
 ): AccountRow {
   return {
     key: `site:${site.id}`,
@@ -141,7 +143,15 @@ function siteLoginRow(
     enabled: true,
     status: <SiteLoginStatusBadge site={site} />,
     expiry: site.expires,
-    menu: [{ id: 'actions', items: [{ id: 'signin', label: signInAgain, onSelect: actions.onEdit }] }],
+    menu: [
+      {
+        id: 'actions',
+        items: [
+          { id: 'signin', label: signInAgain, onSelect: actions.onEdit },
+          ...(here ? [{ id: 'signin-here', ...here }] : []),
+        ],
+      },
+    ],
     ...actions,
   };
 }
@@ -182,6 +192,8 @@ export function HosterLoginSection({
   // The login or site awaiting removal confirmation.
   const [confirming, setConfirming] = useState<HosterLogin | null>(null);
   const [confirmingSite, setConfirmingSite] = useState<SiteLogin | null>(null);
+  const [browsingSite, setBrowsingSite] = useState<SiteLogin | null>(null);
+  const browserHere = useSignInBrowserAvailable();
 
   const rows = data.logins ?? [];
   const siteRows = data.sites.filter(listed);
@@ -201,10 +213,12 @@ export function HosterLoginSection({
               }),
             ),
             ...siteRows.map((site) =>
-              siteLoginRow(site, t('siteLogins.signInAgain'), {
-                onEdit: () => setEditingSite(site),
-                onRemove: () => setConfirmingSite(site),
-              }),
+              siteLoginRow(
+                site,
+                t('siteLogins.signInAgain'),
+                { onEdit: () => setEditingSite(site), onRemove: () => setConfirmingSite(site) },
+                browserHere ? { label: t('signInBrowser.signInHere'), onSelect: () => setBrowsingSite(site) } : undefined,
+              ),
             ),
           ]}
         />
@@ -235,6 +249,10 @@ export function HosterLoginSection({
 
       {editingSite && (
         <SiteLoginDialog site={editingSite} hue={2} onChanged={data.putSite} onClose={() => setEditingSite(null)} />
+      )}
+
+      {browsingSite && (
+        <SignInBrowserWindow site={browsingSite} hue={2} onChanged={data.putSite} onClose={() => setBrowsingSite(null)} />
       )}
 
       {confirming && (

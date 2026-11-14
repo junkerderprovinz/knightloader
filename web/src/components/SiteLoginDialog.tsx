@@ -19,6 +19,7 @@ import { stateNote } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { IconBack, IconClose, IconCookies, IconExternalLink, IconSave, IconTrash } from '../lib/icons';
 import { Button, Field, Modal, TextArea } from './ui';
+import { SignInHereButton } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
 
 // A window waiting for a sign-in asks often, since the session arrives the
@@ -161,6 +162,7 @@ export function SiteLoginDialog({
             <Button kind="secondary" icon={<IconCookies />} disabled={busy} onClick={() => setPasting(true)}>
               {t('siteLogins.paste')}
             </Button>
+            <SignInHereButton site={site} hue={hue} disabled={busy} onChanged={(s) => show(s, false)} />
             <Button icon={<IconExternalLink />} disabled={busy} onClick={signIn}>
               {t(site.state === 'expired' ? 'siteLogins.signInAgain' : 'siteLogins.signIn')}
             </Button>
