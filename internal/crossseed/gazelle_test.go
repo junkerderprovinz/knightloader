@@ -187,3 +187,26 @@ func TestTheLimiterLetsFiveThroughInTenSeconds(t *testing.T) {
 		t.Fatalf("the sixth waited %v, want 5s", slept)
 	}
 }
+
+func TestTheIndexCallTestsTheKey(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ajax.php", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("action") != "index" || r.Header.Get("Authorization") != "key-1" {
+			json.NewEncoder(w).Encode(map[string]any{"status": "failure", "error": "bad credentials"})
+			return
+		}
+		json.NewEncoder(w).Encode(map[string]any{"status": "success", "response": map[string]any{"username": "listener", "id": 3}})
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	site := RED
+	site.API = srv.URL
+	g := NewGazelle(site, "key-1")
+	if who, err := g.Index(context.Background()); err != nil || who != "listener" {
+		t.Fatalf("Index = %q, %v", who, err)
+	}
+	g.SetKey("wrong")
+	if _, err := g.Index(context.Background()); err == nil || !strings.Contains(err.Error(), "bad credentials") {
+		t.Fatalf("a wrong key gave %v", err)
+	}
+}

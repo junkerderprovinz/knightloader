@@ -117,14 +117,15 @@ type Result struct {
 // TorznabMatch is a result whose files are local's, with its .torrent.
 type TorznabMatch struct {
 	Result
-	Indexer string
-	Torrent []byte
+	Indexer  string
+	InfoHash string
+	Torrent  []byte
 }
 
 // Find searches for name and returns the first result with exactly local's
-// files, or nil. Results whose name or size differ are passed over without
-// fetching their .torrent.
-func (t *Torznab) Find(ctx context.Context, name string, local []FileEntry) (*TorznabMatch, error) {
+// files whose info hash skip does not pass over, or nil. Results whose name
+// or size differ are passed over without fetching their .torrent.
+func (t *Torznab) Find(ctx context.Context, name string, local []FileEntry, skip func(hash string) bool) (*TorznabMatch, error) {
 	results, err := t.Search(ctx, name)
 	if err != nil {
 		return nil, err
@@ -141,8 +142,16 @@ func (t *Torznab) Find(ctx context.Context, name string, local []FileEntry) (*To
 		if err != nil {
 			continue
 		}
-		if ok, err := SameFiles(local, b); err == nil && ok {
-			return &TorznabMatch{Result: r, Indexer: t.name, Torrent: b}, nil
+		ok, err := SameFiles(local, b)
+		if err != nil || !ok {
+			continue
+		}
+		raw, err := bencode.Raw(b, "info")
+		if err != nil {
+			continue
+		}
+		if hash := bencode.InfoHash(raw); skip == nil || !skip(hash) {
+			return &TorznabMatch{Result: r, Indexer: t.name, InfoHash: hash, Torrent: b}, nil
 		}
 	}
 	return nil, nil
@@ -150,37 +159,9 @@ func (t *Torznab) Find(ctx context.Context, name string, local []FileEntry) (*To
 
 // Search asks the feed for query.
 func (t *Torznab) Search(ctx context.Context, query string) ([]Result, error) {
-	u, err := url.Parse(t.api)
+	body, err := t.get(ctx, url.Values{"t": {"search"}, "q": {query}}, "search")
 	if err != nil {
 		return nil, err
-	}
-	q := u.Query()
-	q.Set("t", "search")
-	q.Set("q", query)
-	q.Set("apikey", t.key)
-	u.RawQuery = q.Encode()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := t.http.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%s could not be reached: %w", t.name, err)
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 16<<20))
-	if err != nil {
-		return nil, err
-	}
-	var refusal struct {
-		XMLName     xml.Name `xml:"error"`
-		Description string   `xml:"description,attr"`
-	}
-	if xml.Unmarshal(body, &refusal) == nil {
-		return nil, fmt.Errorf("%s refused the search: %s", t.name, refusal.Description)
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%s answered the search with %s", t.name, resp.Status)
 	}
 	var feed struct {
 		Items []struct {
@@ -209,6 +190,61 @@ func (t *Torznab) Search(ctx context.Context, query string) ([]Result, error) {
 		out = append(out, r)
 	}
 	return out, nil
+}
+
+// Caps asks the feed what it can do, which tests the address and the key
+// with one call.
+func (t *Torznab) Caps(ctx context.Context) error {
+	body, err := t.get(ctx, url.Values{"t": {"caps"}}, "question")
+	if err != nil {
+		return err
+	}
+	var caps struct {
+		XMLName xml.Name `xml:"caps"`
+	}
+	if xml.Unmarshal(body, &caps) != nil {
+		return fmt.Errorf("%s answered with something that is not a Torznab feed", t.name)
+	}
+	return nil
+}
+
+// get sends one request with the feed's key and returns the body, or the
+// feed's refusal of what as the error.
+func (t *Torznab) get(ctx context.Context, params url.Values, what string) ([]byte, error) {
+	u, err := url.Parse(t.api)
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	for k, v := range params {
+		q[k] = v
+	}
+	q.Set("apikey", t.key)
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := t.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%s could not be reached: %w", t.name, err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 16<<20))
+	if err != nil {
+		return nil, err
+	}
+	var refusal struct {
+		XMLName     xml.Name `xml:"error"`
+		Description string   `xml:"description,attr"`
+	}
+	if xml.Unmarshal(body, &refusal) == nil {
+		return nil, fmt.Errorf("%s refused the %s: %s", t.name, what, refusal.Description)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%s answered the %s with %s", t.name, what, resp.Status)
+	}
+	return body, nil
 }
 
 func (t *Torznab) fetch(ctx context.Context, link string) ([]byte, error) {

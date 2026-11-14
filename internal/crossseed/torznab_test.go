@@ -98,7 +98,7 @@ func TestAnIndexerResultWithTheSameFilesIsFound(t *testing.T) {
 	}, &fetched)
 	_, local, _ := FilesOf(multiFile("Show.S01", 100, 200))
 	ix := NewTorznab("tracker", srv.URL+"/api", "idx-key")
-	m, err := ix.Find(context.Background(), "Show.S01", local)
+	m, err := ix.Find(context.Background(), "Show.S01", local, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +113,7 @@ func TestAnIndexerResultWithTheSameFilesIsFound(t *testing.T) {
 func TestAnIndexerThatRefusesTheKeySaysSo(t *testing.T) {
 	var fetched atomic.Int32
 	srv := fakeIndexer(t, nil, nil, &fetched)
-	_, err := NewTorznab("tracker", srv.URL+"/api", "wrong").Find(context.Background(), "Show.S01", nil)
+	_, err := NewTorznab("tracker", srv.URL+"/api", "wrong").Find(context.Background(), "Show.S01", nil, nil)
 	if err == nil || !strings.Contains(err.Error(), "Incorrect user credentials") {
 		t.Fatalf("err = %v", err)
 	}
@@ -127,5 +127,26 @@ func TestNamesMatchWhateverTheirSeparators(t *testing.T) {
 	}
 	if sameName("Show.S01", "Show.S02") {
 		t.Error("two seasons match")
+	}
+}
+
+func TestTheCapsCallTestsTheIndexer(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("apikey") != "idx-key" {
+			fmt.Fprint(w, `<error code="100" description="Incorrect user credentials"/>`)
+			return
+		}
+		if r.URL.Query().Get("t") != "caps" {
+			http.NotFound(w, r)
+			return
+		}
+		fmt.Fprint(w, `<?xml version="1.0"?><caps><searching><search available="yes"/></searching></caps>`)
+	}))
+	defer srv.Close()
+	if err := NewTorznab("x", srv.URL+"/api", "idx-key").Caps(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if err := NewTorznab("x", srv.URL+"/api", "wrong").Caps(context.Background()); err == nil || !strings.Contains(err.Error(), "Incorrect user credentials") {
+		t.Fatalf("a wrong key gave %v", err)
 	}
 }

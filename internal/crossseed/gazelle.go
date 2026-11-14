@@ -5,10 +5,12 @@
 // the info dictionary, so the torrent for the other site has the same files
 // and pieces under another info hash, which the other site's API is asked
 // for, the way fertilizer does. Other private trackers are searched by name
-// through Prowlarr or Jackett.
+// through Prowlarr or Jackett. A Runner asks each tracker about each finished
+// torrent once and hands the twins it finds to the torrent client.
 package crossseed
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -132,12 +134,15 @@ func Build(c Candidate, announce string) ([]byte, error) {
 	return bencode.Encode(map[string]any{"announce": announce, "info": info})
 }
 
-// Gazelle asks one site's API with the user's key.
+// Gazelle asks one site's API with the user's key. One client per site
+// keeps every call of the app inside the site's limit.
 type Gazelle struct {
 	site  Site
-	key   string
 	http  *http.Client
 	limit *limiter
+
+	mu  sync.Mutex
+	key string
 }
 
 // NewGazelle is a client for site with the user's API key.
@@ -148,6 +153,22 @@ func NewGazelle(site Site, key string) *Gazelle {
 		http:  httpx.New(httpx.Options{Timeout: 30 * time.Second}),
 		limit: newLimiter(gazelleCalls, gazelleWindow),
 	}
+}
+
+// Site is the site the client asks.
+func (g *Gazelle) Site() Site { return g.site }
+
+// SetKey has the client ask with key from now on.
+func (g *Gazelle) SetKey(key string) {
+	g.mu.Lock()
+	g.key = key
+	g.mu.Unlock()
+}
+
+func (g *Gazelle) apiKey() string {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.key
 }
 
 // Match is the torrent the other site has for a candidate.
@@ -178,45 +199,76 @@ func (g *Gazelle) Find(ctx context.Context, torrent []byte) (*Match, error) {
 }
 
 func (g *Gazelle) lookup(ctx context.Context, hash string) (*Match, error) {
-	if err := g.limit.wait(ctx); err != nil {
-		return nil, err
+	var body struct {
+		Group struct {
+			ID int64 `json:"id"`
+		} `json:"group"`
+		Torrent struct {
+			ID int64 `json:"id"`
+		} `json:"torrent"`
 	}
-	u := strings.TrimRight(g.site.API, "/") + "/ajax.php?" + url.Values{"action": {"torrent"}, "hash": {strings.ToUpper(hash)}}.Encode()
+	refusal, err := g.call(ctx, url.Values{"action": {"torrent"}, "hash": {strings.ToUpper(hash)}}, &body)
+	switch {
+	case err != nil:
+		return nil, err
+	case refusal == "":
+		return &Match{TorrentID: body.Torrent.ID, GroupID: body.Group.ID}, nil
+	case refusal == "bad hash parameter" || refusal == "bad parameters":
+		return nil, nil
+	}
+	return nil, fmt.Errorf("%s refused the request: %s", g.site.Name, refusal)
+}
+
+// Index asks the site whose key it is, which tests the key with one call.
+func (g *Gazelle) Index(ctx context.Context) (string, error) {
+	var body struct {
+		Username string `json:"username"`
+	}
+	refusal, err := g.call(ctx, url.Values{"action": {"index"}}, &body)
+	if err != nil {
+		return "", err
+	}
+	if refusal != "" {
+		return "", fmt.Errorf("%s refused the request: %s", g.site.Name, refusal)
+	}
+	return body.Username, nil
+}
+
+// call sends one ajax.php request inside the site's limit and decodes the
+// response of a success into v, or returns the site's refusal.
+func (g *Gazelle) call(ctx context.Context, q url.Values, v any) (refusal string, err error) {
+	if err := g.limit.wait(ctx); err != nil {
+		return "", err
+	}
+	u := strings.TrimRight(g.site.API, "/") + "/ajax.php?" + q.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	req.Header.Set("Authorization", g.key)
+	req.Header.Set("Authorization", g.apiKey())
 	resp, err := g.http.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("%s could not be reached: %w", g.site.Name, err)
+		return "", fmt.Errorf("%s could not be reached: %w", g.site.Name, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusTooManyRequests {
-		return nil, fmt.Errorf("%s asks for fewer requests", g.site.Name)
+		return "", fmt.Errorf("%s asks for fewer requests", g.site.Name)
 	}
 	var body struct {
-		Status   string `json:"status"`
-		Error    string `json:"error"`
-		Response struct {
-			Group struct {
-				ID int64 `json:"id"`
-			} `json:"group"`
-			Torrent struct {
-				ID int64 `json:"id"`
-			} `json:"torrent"`
-		} `json:"response"`
+		Status   string          `json:"status"`
+		Error    string          `json:"error"`
+		Response json.RawMessage `json:"response"`
 	}
 	if err := json.NewDecoder(io.LimitReader(resp.Body, 4<<20)).Decode(&body); err != nil {
-		return nil, fmt.Errorf("%s answered %s with something that is not its API's JSON", g.site.Name, resp.Status)
+		return "", fmt.Errorf("%s answered %s with something that is not its API's JSON", g.site.Name, resp.Status)
 	}
-	switch {
-	case body.Status == "success":
-		return &Match{TorrentID: body.Response.Torrent.ID, GroupID: body.Response.Group.ID}, nil
-	case body.Error == "bad hash parameter" || body.Error == "bad parameters":
-		return nil, nil
+	if body.Status != "success" {
+		return cmp.Or(body.Error, "no reason given"), nil
 	}
-	return nil, fmt.Errorf("%s refused the request: %s", g.site.Name, body.Error)
+	if err := json.Unmarshal(body.Response, v); err != nil {
+		return "", fmt.Errorf("%s answered with a response its API does not give: %w", g.site.Name, err)
+	}
+	return "", nil
 }
 
 // limiter lets n calls through in any window of length per.
