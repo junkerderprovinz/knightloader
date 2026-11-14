@@ -390,6 +390,19 @@ loads with your session.
 No extension in that browser? **Paste cookies.txt** takes a cookies.txt
 exported while you are signed in.
 
+On a server, such as KnightLoader in a container on Unraid, there is often no
+browser of yours beside it. There the site's window also has **Sign in here**.
+It opens the login page in a browser that runs on the server itself and shows
+it live in the window. Click and type in it as you would anywhere, Tab, Enter
+and umlauts included, and choose **Done** once you are signed in. KnightLoader
+keeps the session that browser holds, never what you typed, and signing out of
+the site in that window signs KnightLoader out too. The window opens only the
+site and the pages it signs you in with, such as Google, Apple or Facebook for
+Patreon, and never an address in your own network. It closes after five
+minutes without input. Google sometimes turns a browser away that it does not
+know. The window then says so, and YouTube's sign-in works through the
+extension.
+
 A session runs out after a while. The row then says so, and a members-only
 download that fails on that site offers **Sign in again**, which starts the
 same steps and tries the download again once the new session is there. If it

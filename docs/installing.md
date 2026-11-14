@@ -4,7 +4,11 @@
 
 Every release tag publishes `ghcr.io/junkerderprovinz/knightloader` for amd64
 and arm64. The image carries yt-dlp, ffmpeg and the Java runtime the headless
-JDownloader needs, so nothing else has to be installed.
+JDownloader needs, so nothing else has to be installed. It also carries
+Chromium for the sign-in browser, which lets you sign in to Patreon and
+YouTube from the web interface ([Getting links in](getting-links-in.md)).
+Chromium and the fonts for it take about 650 MB on disk and add about 260 MB
+to the download. It runs only while somebody signs in.
 
 ```sh
 docker run -d --name knightloader \
