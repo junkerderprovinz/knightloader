@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/testenv"
+	"github.com/junkerderprovinz/knightloader/internal/torrents"
+	"github.com/junkerderprovinz/knightloader/internal/torrents/torrentstest"
 )
 
 // A test whose time goes into waiting out a timer calls t.Parallel, so those
@@ -13,6 +15,7 @@ import (
 // a package variable such as autoConfirmSecond or idleActionPoll, or the
 // other parallel tests would run with the swapped value.
 func TestMain(m *testing.M) {
+	newTorrentClient = func(*App) torrents.Client { return torrentstest.New() }
 	testenv.VolatileSQLite()
 	testenv.NoDNS()
 	testenv.NoYtdlp()

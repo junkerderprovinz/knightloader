@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"net/http/httptest"
 	"slices"
 	"sync"
 	"testing"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent"
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent/nox"
+	"github.com/junkerderprovinz/knightloader/internal/qbittorrent/qbittest"
 )
 
 // fakeQBit stands in for fetching and running qbittorrent-nox: it records
@@ -236,5 +238,46 @@ func TestAVersionThatCannotBeFetchedLeavesTheRunningOneAlone(t *testing.T) {
 	}
 	if _, _, stopped := f.seen(); len(stopped) != 0 {
 		t.Fatalf("stopped %v", stopped)
+	}
+}
+
+func TestTorrentsReachTheQBittorrentThisAppRunsOnceItIsUp(t *testing.T) {
+	a, _ := ownQBitApp(t, "")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	a.StartQBittorrent()
+	if _, err := a.qbitClient(ctx); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestATorrentCallWithoutQBittorrentFailsAtOnce(t *testing.T) {
+	a := newTorrentTestApp(t)
+	if _, err := a.qbitClient(context.Background()); !errors.Is(err, errQBitOff) {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestAQBittorrentThatStartsGetsTheTorrentSettings(t *testing.T) {
+	a := newTorrentTestApp(t)
+	s := a.Settings.Get()
+	s.Torrent.Port, s.Torrent.UploadLimit, s.Torrent.DHTEnabled = 6881, 4096, true
+	if _, err := a.Settings.Set(s); err != nil {
+		t.Fatal(err)
+	}
+	a.afterSettingsChange(a.Settings.Get())
+	q := qbittest.New("knightloader", "x")
+	srv := httptest.NewServer(q)
+	t.Cleanup(srv.Close)
+	c, err := qbittorrent.New(srv.URL, "knightloader", "x")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := a.prepareQBit(context.Background(), c); err != nil {
+		t.Fatal(err)
+	}
+	p := q.Preferences()
+	if p["listen_port"] != 6881.0 || p["up_limit"] != 4096.0 || p["dht"] != true || p["queueing_enabled"] != false {
+		t.Fatalf("preferences %v", p)
 	}
 }

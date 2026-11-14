@@ -101,6 +101,11 @@ func (a *App) vpnProxyURL() *url.URL {
 // withVPN puts the torrent client on the VPN while torrents go through it, on
 // the port it forwards once it does. A provider that is down keeps torrents
 // waiting rather than letting them out over the machine's own connection.
+//
+// The tunnel lives inside this process, where qBittorrent cannot reach it, so
+// its name ties qBittorrent to an interface the system does not have: torrents
+// then wait rather than go out unprotected. A VPN the system runs, such as
+// wg0, is the Torrents page's own interface setting.
 func (a *App) withVPN(c engine.TorrentConfig) engine.TorrentConfig {
 	if a.VPN == nil || !a.VPN.Through(vpnconn.Torrents) {
 		return c

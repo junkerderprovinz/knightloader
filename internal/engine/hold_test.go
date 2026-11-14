@@ -108,10 +108,10 @@ func TestHoldLeavesWhatItCannotCarryOver(t *testing.T) {
 		t.Error("a task the engine never started was held")
 	}
 	e.mu.Lock()
-	e.toGopeed["t1"], e.toKL["g1"], e.torrents["t1"] = "g1", "t1", true
+	e.runs["t1"] = &torrentRun{hash: "aa"}
 	e.mu.Unlock()
 	if e.Hold("t1") {
-		t.Error("a torrent was held, whose files the library keeps open in the old folder")
+		t.Error("a torrent was held, which is taken out of the torrent client for a move instead")
 	}
 }
 

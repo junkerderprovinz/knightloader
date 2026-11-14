@@ -1,5 +1,6 @@
-// Package engine wraps the embedded Gopeed download library and reports task
-// updates back to the app. Gopeed fetches bytes; the app owns state and UI.
+// Package engine wraps the embedded Gopeed download library for HTTP and the
+// torrent client for torrents, and reports task updates back to the app. They
+// fetch bytes; the app owns state and UI.
 package engine
 
 import (
@@ -7,11 +8,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"maps"
 	"net"
 	"net/url"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -19,12 +20,12 @@ import (
 	"github.com/GopeedLab/gopeed/pkg/base"
 	"github.com/GopeedLab/gopeed/pkg/download"
 	fhttp "github.com/GopeedLab/gopeed/pkg/protocol/http"
-	"github.com/GopeedLab/gopeed/pkg/util"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/torrents"
 )
 
 type Engine struct {
@@ -36,7 +37,6 @@ type Engine struct {
 	mu       sync.Mutex
 	toKL     map[string]string // gopeed task id -> KL task id
 	toGopeed map[string]string // KL task id -> gopeed task id
-	torrents map[string]bool   // KL task id -> this one is a torrent
 	// reconnecting is every Reconnect under way, by gopeed task id, and
 	// pausing the number of Pause calls under way.
 	reconnecting map[string]*reconnect
@@ -60,20 +60,23 @@ type Engine struct {
 	// boot, by KL task id, until a Start carries it on or a Remove drops it
 	// (see resume.go).
 	restored map[string]string
-	// seeds is every torrent started only to seed (Job.Seed), by KL task id,
-	// and targets the seeding targets they stop at (see seed.go).
-	seeds   map[string]*seedRun
+	// bt is the torrent client, runs every torrent handed to it by KL task id
+	// (see torrent.go), targets the seeding targets they stop at and prefs
+	// the settings they share. kick asks the stats loop for a reading now.
+	bt      torrents.Client
+	runs    map[string]*torrentRun
 	targets seedTargets
+	prefs   torrents.Prefs
+	prefGen int
+	kick    chan struct{}
 	// roots is where each torrent lands (see torrent_root.go). rootMu is held
 	// across the look at the disk and the note, so two torrents of one name
 	// cannot both find it free.
 	rootMu sync.Mutex
 	roots  map[string]torrentRoot
-	// picks is the file count and selection of every torrent handed to the
-	// library, and pendingPicks a selection made while its torrent was still
-	// resolving, both by KL task id (see torrent_files.go). pickMu keeps two
-	// changes to one selection from crossing inside the library.
-	picks        map[string]torrentPick
+	// pendingPicks is a selection made while its torrent was still being
+	// handed over, by KL task id (see torrent_files.go). pickMu keeps two
+	// changes to one selection from crossing inside the client.
 	pendingPicks map[string][]int
 	pickMu       sync.Mutex
 
@@ -148,7 +151,6 @@ func Open(dir, stateDir string, onUpdate func(taskID string, u core.Update)) (*E
 	layouts := &layoutStore{
 		Storage: download.NewMemStorage(),
 		want:    map[string][]byte{},
-		files:   map[string][]int64{},
 		watched: map[string]*watchedLayout{},
 	}
 	restored := map[string]string{}
@@ -185,7 +187,6 @@ func Open(dir, stateDir string, onUpdate func(taskID string, u core.Update)) (*E
 		dir:          dir,
 		toKL:         map[string]string{},
 		toGopeed:     map[string]string{},
-		torrents:     map[string]bool{},
 		reconnecting: map[string]*reconnect{},
 		pausing:      map[string]int{},
 		holds:        map[string]*hold{},
@@ -197,9 +198,9 @@ func Open(dir, stateDir string, onUpdate func(taskID string, u core.Update)) (*E
 		layouts:      layouts,
 		restored:     restored,
 		roots:        map[string]torrentRoot{},
-		picks:        map[string]torrentPick{},
 		pendingPicks: map[string][]int{},
-		seeds:        map[string]*seedRun{},
+		runs:         map[string]*torrentRun{},
+		kick:         make(chan struct{}, 1),
 		onUpdate:     onUpdate,
 		done:         make(chan struct{}),
 	}
@@ -253,21 +254,6 @@ func badGateway(msg string) bool {
 	return strings.Contains(msg, "code:502") || strings.Contains(msg, "HTTP 502") || strings.Contains(msg, "Bad Gateway")
 }
 
-// btProtocolConfig mirrors the bt config of the gopeed fork (see go.mod) with
-// identical json tags. ProtocolConfig["bt"] round-trips through JSON
-// (util.MapToStruct), so the mirror reads and writes it correctly.
-type btProtocolConfig struct {
-	ListenPort  int      `json:"listenPort"`
-	Trackers    []string `json:"trackers"`
-	SeedKeep    bool     `json:"seedKeep"`
-	SeedRatio   float64  `json:"seedRatio"`
-	SeedTime    int64    `json:"seedTime"`
-	UploadLimit int64    `json:"uploadLimit"`
-	DisableDHT  bool     `json:"disableDht"`
-	DisablePEX  bool     `json:"disablePex"`
-	Interface   string   `json:"interface"`
-}
-
 // TorrentConfig is what the torrent client takes from the settings. The zero
 // value is any port, no seeding target, no upload limit, DHT and PEX on, and
 // any network interface.
@@ -280,50 +266,67 @@ type TorrentConfig struct {
 	DisableDHT  bool
 	DisablePEX  bool
 	// Interface is the network interface every torrent's traffic is tied to,
-	// empty for any. See TorrentNetwork.
+	// empty for any.
 	Interface string
 }
 
-// SetTorrentConfig writes c into gopeed's bt protocol config; Trackers and
-// SeedKeep are passed through unchanged. Call it at boot and on every
-// settings save.
-//
-// The upload limit and the interface apply at once, to torrents already
-// running too. The seeding targets reach every torrent started afterwards,
-// since gopeed reads the config per task, and every torrent started only to
-// seed, which the engine stops itself (see seed.go). The port, DHT and PEX
-// belong to the one torrent client all torrents share: gopeed rebuilds it
-// with the new values when the save finds no torrent in the library, and
-// otherwise once the last one is gone.
+// SetTorrentConfig takes c for every torrent: the seeding targets at the next
+// reading, the rest as soon as the torrent client takes them. Call it at boot
+// and on every settings save. The client gets the settings in the background,
+// since it may still be starting; see TorrentPrefs for its own start.
 func (e *Engine) SetTorrentConfig(c TorrentConfig) error {
 	e.mu.Lock()
 	e.targets = seedTargets{ratio: c.SeedRatio, seconds: int64(c.SeedSeconds)}
+	e.prefs = torrents.Prefs{
+		Port:        c.Port,
+		UploadLimit: c.UploadLimit,
+		DHT:         !c.DisableDHT,
+		PEX:         !c.DisablePEX,
+		Interface:   c.Interface,
+	}
 	e.mu.Unlock()
-	var decodeErr error
-	err := e.updateConfig(func(cfg *base.DownloaderStoreConfig) bool {
-		var bt btProtocolConfig
-		if decodeErr = util.MapToStruct(cfg.ProtocolConfig["bt"], &bt); decodeErr != nil {
-			return false
-		}
-		next := bt
-		next.ListenPort = c.Port
-		next.SeedRatio = c.SeedRatio
-		next.SeedTime = int64(c.SeedSeconds)
-		next.UploadLimit = c.UploadLimit
-		next.DisableDHT = c.DisableDHT
-		next.DisablePEX = c.DisablePEX
-		next.Interface = c.Interface
-		if reflect.DeepEqual(next, bt) {
-			return false
-		}
-		if cfg.ProtocolConfig == nil {
-			cfg.ProtocolConfig = map[string]any{}
-		}
-		cfg.ProtocolConfig["bt"] = next
-		return true
-	})
-	return cmp.Or(decodeErr, err)
+	e.pushPrefs()
+	return nil
 }
+
+// TorrentPrefs is the settings of the last SetTorrentConfig as the torrent
+// client takes them, for a client that has just started.
+func (e *Engine) TorrentPrefs() torrents.Prefs {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.prefs
+}
+
+// pushPrefs hands the client the settings in the background. A later push
+// overtakes one still waiting for the client.
+func (e *Engine) pushPrefs() {
+	e.mu.Lock()
+	if e.bt == nil || e.closed {
+		e.mu.Unlock()
+		return
+	}
+	e.prefGen++
+	gen, bt := e.prefGen, e.bt
+	e.wg.Add(1)
+	e.mu.Unlock()
+	go func() {
+		defer e.wg.Done()
+		ctx, cancel := context.WithTimeout(e.ctx, prefsWait)
+		defer cancel()
+		e.mu.Lock()
+		p, current := e.prefs, gen == e.prefGen
+		e.mu.Unlock()
+		if !current {
+			return
+		}
+		if err := bt.Configure(ctx, p); err != nil && e.ctx.Err() == nil {
+			log.Printf("the torrent settings did not reach the torrent client, which gets them when it starts: %v", err)
+		}
+	}()
+}
+
+// prefsWait bounds how long a push of the settings waits for the client.
+const prefsWait = time.Minute
 
 // Close stops every goroutine this engine started and then shuts the download
 // library down, in that order, so nothing of ours is calling into it while it
@@ -369,10 +372,8 @@ func (e *Engine) keepRunning() {
 	}
 	var gids []string
 	e.mu.Lock()
-	for taskID, gid := range e.toGopeed {
-		if !e.torrents[taskID] {
-			gids = append(gids, gid)
-		}
+	for _, gid := range e.toGopeed {
+		gids = append(gids, gid)
 	}
 	e.mu.Unlock()
 	if len(gids) == 0 {
@@ -464,9 +465,10 @@ type Job struct {
 	SeedFrom core.TorrentStats
 	SeedMark core.SeedMark
 	// Verify checks every piece of a Seed job's files against the torrent
-	// before the library gets it, for files that did not come from the swarm
-	// (see seed.go).
-	Verify bool
+	// before the client gets it, for files that did not come from the swarm
+	// (see seed.go). Recheck checks them as well, and has the client check
+	// them itself rather than end the run when they do not pass.
+	Verify, Recheck bool
 
 	// Collision is what to do when the resolved name is taken. Empty means no
 	// policy at all, unlike collide, where empty means Rename; the older entry
@@ -782,6 +784,10 @@ func (e *Engine) Pause(taskID string) {
 	if e.pauseMend(taskID) || e.markStart(taskID, (*start).pause) {
 		return
 	}
+	if run := e.runOf(taskID); run != nil {
+		e.pauseTorrent(run)
+		return
+	}
 	e.mu.Lock()
 	gid := e.toGopeed[taskID]
 	if gid == "" {
@@ -807,6 +813,10 @@ func (e *Engine) Pause(taskID string) {
 
 func (e *Engine) Resume(taskID string) {
 	if e.resumeMend(taskID) || e.unpark(taskID) || e.markStart(taskID, func(s *start) { s.paused = false }) {
+		return
+	}
+	if run := e.runOf(taskID); run != nil {
+		e.resumeTorrent(run)
 		return
 	}
 	e.filterOp(taskID, e.d.Continue)
@@ -843,7 +853,7 @@ const reconnectWait = 30 * time.Second
 func (e *Engine) Reconnectable(taskID string) bool {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	return e.toGopeed[taskID] != "" && !e.torrents[taskID]
+	return e.toGopeed[taskID] != ""
 }
 
 // Connections reports how many of an HTTP transfer's connections are still
@@ -851,9 +861,8 @@ func (e *Engine) Reconnectable(taskID string) bool {
 func (e *Engine) Connections(taskID string) (open, retries int, ok bool) {
 	e.mu.Lock()
 	gid := e.toGopeed[taskID]
-	torrent := e.torrents[taskID]
 	e.mu.Unlock()
-	if gid == "" || torrent {
+	if gid == "" {
 		return 0, 0, false
 	}
 	sr, err := e.d.Stats(gid)
@@ -889,7 +898,7 @@ func (e *Engine) Reconnect(taskID string) bool {
 func (e *Engine) reconnect(taskID string, between func(gid string) error) bool {
 	e.mu.Lock()
 	gid := e.toGopeed[taskID]
-	if gid == "" || e.torrents[taskID] || e.closed || e.reconnecting[gid] != nil || e.pausing[gid] > 0 || e.holds[taskID] != nil {
+	if gid == "" || e.closed || e.reconnecting[gid] != nil || e.pausing[gid] > 0 || e.holds[taskID] != nil {
 		e.mu.Unlock()
 		return false
 	}
@@ -940,22 +949,18 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	delete(e.parked, taskID)
 	gid := cmp.Or(e.toGopeed[taskID], e.restored[taskID])
 	r := e.reconnecting[gid]
+	run := e.runs[taskID]
 	delete(e.restored, taskID)
 	delete(e.toGopeed, taskID)
 	delete(e.toKL, gid)
-	delete(e.torrents, taskID)
 	delete(e.files, gid)
 	delete(e.jobs, taskID)
-	delete(e.seeds, taskID)
-	pick := e.picks[taskID]
-	delete(e.picks, taskID)
+	delete(e.runs, taskID)
 	delete(e.pendingPicks, taskID)
 	e.mu.Unlock()
-	e.layouts.unwatchFiles(gid)
 	root, isTorrent := e.takeRoot(taskID)
-	// A torrent still resolving has its files open in the library, which keeps
-	// Windows from deleting them, until the start has given it up. Its resolve
-	// ends with the start's context; an HTTP one waits on the server.
+	// A torrent still being handed over is taken out of the client by its
+	// start, which ends with the start's context, before its files go.
 	if pending != nil && pending.torrent && deleteFiles {
 		select {
 		case <-pending.ready:
@@ -971,23 +976,14 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 		case <-e.done:
 		}
 	}
-	finished := false
-	switch {
-	case isTorrent && gid != "":
-		if t := e.d.GetTask(gid); t != nil {
-			finished = t.Status == base.DownloadStatusDone
-		}
-		e.dropTorrent(gid)
-	case gid != "":
+	if run != nil {
+		e.removeTorrent(run)
+	}
+	if gid != "" {
 		_ = e.d.Delete(&download.TaskFilter{IDs: []string{gid}}, deleteFiles)
 	}
-	switch {
-	case isTorrent && deleteFiles:
+	if isTorrent && deleteFiles {
 		root.remove()
-	case finished:
-		// The library has let go of the files, so what a seeding torrent
-		// held open can be deleted (see dropUnpicked).
-		removeUnpicked(root, pick, true)
 	}
 }
 
@@ -1043,24 +1039,12 @@ func (e *Engine) onEvent(ev *download.Event) {
 	}
 	file := e.files[ev.Task.ID]
 	job := e.jobs[taskID]
-	_, seed := e.seeds[taskID]
 	e.mu.Unlock()
 	if !ok || own {
 		return
 	}
-	if seed {
-		e.seedEvent(taskID, ev)
-		return
-	}
 	switch ev.Key {
 	case download.EventKeyProgress:
-		// A finished torrent keeps uploading, and the library's speed loop
-		// sends progress for it twice a second. Treating that as running would
-		// pull the task out of done, and the idle action would never fire. The
-		// stats poller reports the seeding phase instead.
-		if ev.Task.Status == base.DownloadStatusDone {
-			return
-		}
 		if pr := ev.Task.Progress; pr != nil {
 			e.emit(taskID, core.Update{Status: core.StatusRunning, Loaded: pr.Downloaded, Speed: pr.Speed, File: file})
 		}
@@ -1092,17 +1076,6 @@ func (e *Engine) onEvent(ev *download.Event) {
 		}
 		if pr := ev.Task.Progress; pr != nil {
 			u.Loaded = pr.Downloaded
-		}
-		// The seeding flag goes out with done rather than on the next poll;
-		// in between, done-and-not-seeding would read as "nothing owed" to the
-		// idle action.
-		if e.isTorrent(taskID) {
-			// Before done goes out, since done is what moves the files on.
-			e.settleModes(taskID)
-			if s, _, ok := e.readTorrentStats(ev.Task.ID); ok {
-				u.Torrent = &s
-			}
-			e.dropUnpicked(taskID, false)
 		}
 		e.emit(taskID, u)
 	case download.EventKeyError:

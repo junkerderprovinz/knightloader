@@ -9,7 +9,7 @@ import (
 var (
 	// ErrNotStreaming is a task whose bytes the engine does not hand out
 	// while it downloads, because it does not run it or has not yet handed it
-	// to the library.
+	// to the library or the torrent client.
 	ErrNotStreaming = errors.New("the engine is not downloading this task")
 	// ErrMending is a finished transfer whose missing ranges are being
 	// fetched again, which the library already calls complete.
@@ -26,8 +26,15 @@ func (e *Engine) Stream(taskID string, file int) (download.StreamReader, error) 
 	e.mu.Lock()
 	gid := e.toGopeed[taskID]
 	_, mending := e.mends[taskID]
+	run := e.runs[taskID]
 	e.mu.Unlock()
 	switch {
+	case run != nil:
+		r, err := e.streamTorrent(run, file)
+		if err != nil {
+			return nil, err
+		}
+		return r, nil
 	case mending:
 		return nil, ErrMending
 	case gid == "":

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/torrents/torrentstest"
 )
 
 // testApp is an app on a throwaway data directory, closed with the test.
@@ -19,6 +20,7 @@ func testApp(t *testing.T) *app.App {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { a.Close() })
+	a.UseTorrents(torrentstest.New())
 	return a
 }
 

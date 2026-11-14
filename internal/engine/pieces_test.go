@@ -143,7 +143,7 @@ func TestAMendShowsTheRangesItStillFetches(t *testing.T) {
 // Once nobody has asked about a task for layoutWatch, its saves are no longer
 // copied, whether or not another task is asked about meanwhile.
 func TestALayoutNobodyAsksAboutIsNoLongerCopied(t *testing.T) {
-	s := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}, files: map[string][]int64{}, watched: map[string]*watchedLayout{}}
+	s := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}, watched: map[string]*watchedLayout{}}
 	s.watched["gid"] = &watchedLayout{asked: time.Now().Add(-layoutWatch - time.Second)}
 
 	if err := s.Put(savedLayoutBucket, "gid", savedLayout{}); err != nil {

@@ -51,7 +51,7 @@ func (e *Engine) Hold(taskID string) bool {
 	}
 	e.mu.Lock()
 	gid := cmp.Or(e.toGopeed[taskID], e.restored[taskID])
-	if gid == "" || e.torrents[taskID] || e.closed || e.holds[taskID] != nil {
+	if gid == "" || e.closed || e.holds[taskID] != nil {
 		e.mu.Unlock()
 		return false
 	}

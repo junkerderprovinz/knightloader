@@ -12,7 +12,7 @@ import (
 func (e *Engine) Reroute(taskID string, r proxycfg.Route) bool {
 	e.mu.Lock()
 	gid := e.toGopeed[taskID]
-	busy := gid == "" || e.torrents[taskID] || e.closed || e.reconnecting[gid] != nil || e.pausing[gid] > 0
+	busy := gid == "" || e.closed || e.reconnecting[gid] != nil || e.pausing[gid] > 0
 	e.mu.Unlock()
 	if busy {
 		return false

@@ -8,13 +8,16 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent"
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent/nox"
+	"github.com/junkerderprovinz/knightloader/internal/torrents"
 )
 
 const componentQBittorrent = "qbittorrent"
@@ -49,6 +52,11 @@ type qbitState struct {
 	qbitDone   int64
 	qbitTotal  int64
 
+	// recheckSeed is every finished torrent of the built-in client whose
+	// first seed run checks its pieces (see app_torrentmigrate.go). Guarded
+	// by App.mu.
+	recheckSeed map[string]bool
+
 	// fetchQBit and runQBit are nox.Install and nox.Start, which the tests
 	// replace so that nothing is downloaded or started.
 	fetchQBit func(ctx context.Context, v nox.Version, progress func(done, total int64)) error
@@ -65,8 +73,51 @@ func (a *App) initQBit() {
 			Binary:  nox.BinaryPath(a.DataDir, v),
 			Profile: filepath.Join(a.DataDir, "qbittorrent"),
 			Key:     a.AppKey,
+			Prepare: a.prepareQBit,
 			Logf:    log.Printf,
 		})
+	}
+}
+
+// newTorrentClient is the torrent client the engine runs every torrent in,
+// which the tests replace with one in memory.
+var newTorrentClient = func(a *App) torrents.Client { return torrents.QBit(a.qbitClient) }
+
+// UseTorrents has the engine run every torrent in c instead of this app's
+// qBittorrent.
+func (a *App) UseTorrents(c torrents.Client) { a.Engine.UseTorrents(c) }
+
+// prepareQBit gives a qBittorrent that has just started the torrent settings,
+// before any torrent reaches it.
+func (a *App) prepareQBit(ctx context.Context, c *qbittorrent.Client) error {
+	at := func(context.Context) (*qbittorrent.Client, error) { return c, nil }
+	return torrents.QBit(at).Configure(ctx, a.Engine.TorrentPrefs())
+}
+
+var errQBitOff = errors.New("qBittorrent is not running in this KnightLoader")
+
+// qbitClient waits for the qBittorrent this app runs and returns the client
+// for it: while it is fetched, and while it starts or restarts.
+func (a *App) qbitClient(ctx context.Context) (*qbittorrent.Client, error) {
+	tick := time.NewTicker(250 * time.Millisecond)
+	defer tick.Stop()
+	for {
+		a.qbitMu.Lock()
+		r, gen, phase, detail := a.qbitRun, a.qbitGen, a.qbitPhase, a.qbitDetail
+		a.qbitMu.Unlock()
+		switch {
+		case r != nil:
+			return r.Ready(ctx)
+		case gen == 0:
+			return nil, errQBitOff
+		case phase == QBitFailed:
+			return nil, fmt.Errorf("qBittorrent could not be fetched: %s", detail)
+		}
+		select {
+		case <-tick.C:
+		case <-ctx.Done():
+			return nil, fmt.Errorf("qBittorrent is not running yet: %w", ctx.Err())
+		}
 	}
 }
 

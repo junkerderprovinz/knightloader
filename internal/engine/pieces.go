@@ -63,7 +63,7 @@ func (s *layoutStore) forgetUnwatchedLocked(now time.Time) {
 // the first question about a task, until the library has saved it again.
 func (e *Engine) Pieces(taskID string) (core.PieceMap, bool) {
 	e.mu.Lock()
-	gid, torrent := e.toGopeed[taskID], e.torrents[taskID]
+	gid := e.toGopeed[taskID]
 	// A mend fetches its gaps one after the other, from the first.
 	if m := e.mends[taskID]; m != nil {
 		pm := byteMap(m.gaps, m.size)
@@ -74,7 +74,7 @@ func (e *Engine) Pieces(taskID string) (core.PieceMap, bool) {
 		return pm, true
 	}
 	e.mu.Unlock()
-	if gid == "" || torrent {
+	if gid == "" {
 		return core.PieceMap{}, false
 	}
 	t := e.d.GetTask(gid)

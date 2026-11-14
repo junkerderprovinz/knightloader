@@ -309,7 +309,7 @@ func TestAProbeThatFailsForNowKeepsTheBytesForTheNextStart(t *testing.T) {
 func TestAPauseSavedAfterItsDownloadWasRemovedLeavesNoRecord(t *testing.T) {
 	t.Parallel()
 	state := t.TempDir()
-	s := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}, files: map[string][]int64{}, kept: newKeptTransfers(state)}
+	s := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}, kept: newKeptTransfers(state)}
 	if _, err := s.kept.load(s.Storage); err != nil {
 		t.Fatal(err)
 	}

@@ -1,10 +1,10 @@
 package engine
 
-// Where a torrent lands. The library writes a torrent into <folder>/<its
-// name>, fixes that folder while it resolves the link, and would delete all of
-// <folder>/<its name> with the task's files. So the folder is chosen here,
-// before the resolve and from the name the link carries, as one no other
-// download writes into, and a deletion takes only the torrent's own files.
+// Where a torrent lands. The client writes a torrent into <folder>/<its
+// name>, fixed when the torrent is handed over, before a magnet has named its
+// files. So the folder is chosen here, from the name the link carries, as one
+// no other download writes into, and a deletion takes only the torrent's own
+// files.
 
 import (
 	"errors"
@@ -14,19 +14,17 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/GopeedLab/gopeed/pkg/base"
-	"github.com/GopeedLab/gopeed/pkg/download"
 	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
-// torrentRoot is where one torrent lands: dir is the folder it was resolved
-// in, path its own folder or, for a single file, that file, and files every
+// torrentRoot is where one torrent lands: dir is the folder it was handed
+// over in, path its own folder or, for a single file, that file, and files every
 // file it has, relative to dir with "/". nest is the folder made for it when
 // its own name was taken, and empty otherwise. before is what dir held when
 // the torrent was placed in it, by folded name (see settleTorrent).
@@ -36,34 +34,33 @@ type torrentRoot struct {
 	before          map[string]bool
 }
 
-// placeTorrent sets the folder a torrent is resolved in and notes where it is
-// expected to land. The same task starting again in the same folder takes up
-// the place its earlier start had, so its files are found again.
-func (e *Engine) placeTorrent(j Job, opts *base.Options) error {
+// placeTorrent returns the folder a torrent of j is handed over in, dir or
+// one made inside it, and notes where it is expected to land. The same task
+// starting again in the same folder takes up the place its earlier start had,
+// so its files are found again.
+func (e *Engine) placeTorrent(j Job, dir string) (string, error) {
 	e.rootMu.Lock()
 	defer e.rootMu.Unlock()
-	dir := opts.Path
 	if TakesUpAgain(j.TorrentRoot, dir) {
 		r := placeOf(dir, j.TorrentRoot)
-		opts.Path = r.dir
 		e.roots[j.TaskID] = r
-		return nil
+		return r.dir, nil
 	}
 	name := expectedName(j)
 	if name == "" {
-		// Checked once the resolve has named it, against what the folder
+		// Checked once the client has named it, against what the folder
 		// holds now (see settleTorrent).
 		e.roots[j.TaskID] = torrentRoot{dir: dir, before: namesIn(dir)}
-		return nil
+		return dir, nil
 	}
 	target := filepath.Join(dir, name)
 	if !e.takenLocked(j.TaskID, target) {
 		// The torrent can still turn out to have another name.
 		e.roots[j.TaskID] = torrentRoot{dir: dir, path: target, before: namesIn(dir)}
-		return nil
+		return dir, nil
 	}
 	if err := os.MkdirAll(dir, filemode.Dir); err != nil {
-		return err
+		return "", err
 	}
 	for n := 1; ; n++ {
 		nest := filepath.Join(dir, name+"."+strconv.Itoa(n))
@@ -73,11 +70,10 @@ func (e *Engine) placeTorrent(j Job, opts *base.Options) error {
 		switch err := os.Mkdir(nest, filemode.Dir); {
 		case err == nil:
 			log.Printf("%s is taken, so the torrent goes into %s", target, nest)
-			opts.Path = nest
 			e.roots[j.TaskID] = torrentRoot{dir: nest, path: filepath.Join(nest, name), nest: nest}
-			return nil
+			return nest, nil
 		case !errors.Is(err, fs.ErrExist):
-			return err
+			return "", err
 		}
 	}
 }
@@ -180,9 +176,9 @@ func namesIn(dir string) map[string]bool {
 }
 
 // landsOnAnotherLocked reports whether a torrent resolved in r.dir as rel
-// lands on something not its own: what dir held before the resolve, or the
+// lands on something not its own: what dir held before the hand-over, or the
 // place of another torrent. The disk as it is now cannot tell, since the
-// library creates the torrent's empty files while it resolves. Without a
+// client may create the torrent's empty files as it takes it. Without a
 // record of before, anything on disk counts. Caller holds rootMu.
 func (e *Engine) landsOnAnotherLocked(taskID string, r torrentRoot, rel string) bool {
 	root := filepath.Join(r.dir, filepath.FromSlash(rel))
@@ -193,25 +189,25 @@ func (e *Engine) landsOnAnotherLocked(taskID string, r torrentRoot, rel string) 
 	return r.before[top] || r.before[top+".part"] || e.claimedLocked(taskID, root)
 }
 
-// settleTorrent records where a resolved torrent lands and which files are
-// its own, and returns its folder or file. A torrent that turned out to have
-// another name than its link said is refused when that name was taken, since
-// the library has already fixed the folder and would write into another
+// settleTorrent records where a torrent lands and which files are its own,
+// and returns its folder or file. A torrent that turned out to have another
+// name than its link said is refused when that name was taken, since the
+// client has already fixed the folder and would write into another
 // download's files, which removing the torrent with its files would then take.
-func (e *Engine) settleTorrent(taskID string, res *base.Resource) (string, error) {
-	files := landingPaths(res)
+func (e *Engine) settleTorrent(taskID string, c content) (string, error) {
+	files := c.landing()
 	if len(files) == 0 {
 		return "", errors.New("the torrent names no files")
 	}
 	rel := files[0]
-	if res.Name != "" {
-		rel = res.Name
+	if c.name != "" {
+		rel = c.name
 	}
 	e.rootMu.Lock()
 	defer e.rootMu.Unlock()
 	r, ok := e.roots[taskID]
 	if !ok {
-		return "", errors.New("the torrent was removed while it was being resolved")
+		return "", errors.New("the torrent was removed while it was being handed over")
 	}
 	root := filepath.Join(r.dir, filepath.FromSlash(rel))
 	if r.path != root && r.nest == "" && e.landsOnAnotherLocked(taskID, r, rel) {
@@ -222,7 +218,7 @@ func (e *Engine) settleTorrent(taskID string, res *base.Resource) (string, error
 	// torrent runs.
 	r.path, r.files, r.before = root, files, nil
 	e.roots[taskID] = r
-	if res.Name != "" {
+	if c.name != "" {
 		// On disk at once, so a torrent of the same name started later finds
 		// it taken even before the first piece arrives.
 		if err := os.MkdirAll(root, filemode.Dir); err != nil {
@@ -233,10 +229,10 @@ func (e *Engine) settleTorrent(taskID string, res *base.Resource) (string, error
 }
 
 // settleModes gives a finished torrent's files, and the folders between them
-// and its download folder, the modes the umask asks for. The torrent library
-// creates them 0644 and 0755 whatever the umask is and makes each file
-// read-only once it is complete, so with UMASK=000 on an Unraid share the SMB
-// account still could not move or delete the download. A file left out of the
+// and its download folder, the modes the umask asks for. A torrent client
+// that runs with a umask of its own, or makes a finished file read-only,
+// would otherwise leave the SMB account of an Unraid share with UMASK=000
+// unable to move or delete the download. A file left out of the
 // selection may not exist, which is not a failure.
 func (e *Engine) settleModes(taskID string) {
 	e.rootMu.Lock()
@@ -295,25 +291,6 @@ func (e *Engine) takeRoot(taskID string) (torrentRoot, bool) {
 	return r, ok
 }
 
-// dropTorrent takes a torrent out of the library and leaves its files alone.
-//
-// gopeed v1.9.3 closes a torrent's fetcher itself once seeding reaches its
-// target, and sets the torrent client every fetcher shares to nil when none is
-// left; Delete closes the fetcher again, and that second Close dereferences the
-// nil client. The library has already dropped the task from its lists by then,
-// so a nil dereference from that call is the torrent being gone already, and
-// any other panic is passed on.
-func (e *Engine) dropTorrent(gid string) {
-	defer func() {
-		if p := recover(); p != nil {
-			if re, ok := p.(runtime.Error); !ok || !strings.Contains(re.Error(), "nil pointer") {
-				panic(p)
-			}
-		}
-	}()
-	_ = e.d.Delete(&download.TaskFilter{IDs: []string{gid}}, false)
-}
-
 // remove deletes the torrent's own files, finished or still being written,
 // and then the folders they leave empty, its own and the one made for it.
 // Anything else that ended up in them stays.
@@ -322,7 +299,7 @@ func (r torrentRoot) remove() {
 	for _, rel := range r.files {
 		p := filepath.Join(r.dir, filepath.FromSlash(rel))
 		for _, f := range []string{p, p + ".part"} {
-			if err := os.Remove(f); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			if err := removeSoon(f); err != nil {
 				log.Printf("could not delete %s: %v", f, err)
 			}
 		}
@@ -341,4 +318,19 @@ func (r torrentRoot) remove() {
 	if r.nest != "" {
 		_ = os.Remove(r.nest)
 	}
+}
+
+// removeSoon deletes p, trying again for a moment while it fails. The client
+// lets go of a torrent's files a little after it lets go of the torrent, and
+// until then Windows refuses to delete them.
+func removeSoon(p string) error {
+	var err error
+	for range 20 {
+		err = os.Remove(p)
+		if err == nil || errors.Is(err, fs.ErrNotExist) {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return err
 }

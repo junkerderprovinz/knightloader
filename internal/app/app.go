@@ -617,6 +617,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		return nil, err
 	}
 	a.Engine = eng
+	eng.UseTorrents(newTorrentClient(a))
 	// Seeded here so the configured limit applies before the schedule's first
 	// pass takes over.
 	a.limitInForce = -1
@@ -756,6 +757,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 			break
 		}
 	}
+	a.recheckSeed = handOverTorrents(dataDir, existing)
 	resume := settings.ParseResumeOnStart(s.ResumeOnStart)
 	var revived []core.Task
 	var requeue []string

@@ -314,7 +314,7 @@ func TestReconnectLeavesWhatItDoesNotFetch(t *testing.T) {
 		t.Error("a task the engine never started was reconnected")
 	}
 	e.mu.Lock()
-	e.toGopeed["t1"], e.toKL["g1"], e.torrents["t1"] = "g1", "t1", true
+	e.runs["t1"] = &torrentRun{hash: "aa"}
 	e.mu.Unlock()
 	if e.Reconnectable("t1") || e.Reconnect("t1") {
 		t.Error("a torrent was reconnected, which throws its peers away")
