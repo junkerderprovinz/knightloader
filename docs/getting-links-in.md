@@ -420,6 +420,25 @@ Where it comes from depends on where KnightLoader runs:
   container that is signed in. **Pass my sign-ins to KnightLoader** in the
   extension's settings turns it off again.
 
+In both places, **Sign in here** in the site's window or its row menu signs
+you in inside KnightLoader itself, with no extension and no browser of yours
+signed in. It opens the login page in a browser KnightLoader runs and shows
+it live in the window. In the container that is the image's own Chromium. The
+desktop app runs a Chromium-based browser installed on the computer, with a
+profile of its own that never touches the profile you browse with: Microsoft
+Edge on Windows, and on macOS and Linux the first of Google Chrome, Microsoft
+Edge, Brave and Chromium it finds. Without any of them the button says so.
+Click and type in it as you would anywhere, Tab, Enter and umlauts included,
+and choose **Done** once you are signed in. KnightLoader keeps the session
+that browser holds, never what you typed, and the row says "from
+KnightLoader's sign-in browser". A sign-in there also takes back a
+**Remove**, and signing out of the site in that window signs KnightLoader out
+too. The window opens only the site and the pages it signs you in with, such
+as Google, Apple or Facebook for Patreon, and never an address in your own
+network. It closes after five minutes without input. Google sometimes turns a
+browser away that it does not know. The window then says so, and YouTube's
+sign-in works through the extension.
+
 Patreon's session goes along with every Patreon link, because Patreon lists
 and plays posts only for a signed-in account. YouTube's does not. Google
 flags accounts that download a lot while signed in, so a YouTube link loads
