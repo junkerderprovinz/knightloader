@@ -153,10 +153,9 @@ export const RELEASES: Release[] = [
       { id: 'list-heads', to: LISTS, text: 'whatsnew.change.listHeads' },
       { id: 'totals', to: ['/downloads'], text: 'whatsnew.change.totals', names: { name: 'downloads.stats.label' } },
       { id: 'quality-names', text: 'whatsnew.change.qualityNames' },
-      { id: 'check-all', to: ['/settings/help'], text: 'whatsnew.change.checkAll', names: { name: 'settings.info.checkAll' } },
+      { id: 'check-all', text: 'whatsnew.change.checkAll', names: { name: 'settings.info.checkAll' } },
       {
         id: 'jd-check',
-        to: ['/settings/help'],
         text: 'whatsnew.change.jdSwitches',
         names: { name: 'health.part.jd', check: 'settings.look.updatesAuto', update: 'settings.look.updatesAutoUpdate' },
       },
@@ -244,7 +243,6 @@ export const RELEASES: Release[] = [
       { id: 'folder-back', to: ['/settings/downloads'], text: 'whatsnew.change.folderBack' },
       {
         id: 'jd-auto-update',
-        to: ['/settings/help'],
         text: 'whatsnew.change.jdAutoUpdate',
         names: { name: 'health.part.jd', updates: 'settings.info.componentsTitle' },
       },
@@ -622,7 +620,6 @@ export const RELEASES: Release[] = [
       },
       {
         id: 'jd-update',
-        to: ['/settings/help'],
         text: 'whatsnew.change.jdUpdate',
         names: { name: 'health.part.jd', updates: 'settings.info.componentsTitle' },
       },

@@ -703,18 +703,10 @@ export interface Settings {
   /** Holds off sleep while a download runs. Only the desktop build acts on it. */
   keepAwake: boolean;
 
-  /** One request to api.github.com when the Resolvers page loads. It never
-   *  installs anything; ytdlpAutoUpdate does. */
-  ytdlpVersionCheck: boolean;
-  /** Fetches a newer yt-dlp once a day, checked the way the fetch button
-   *  checks it, and keeps the one in use when the check fails. */
-  ytdlpAutoUpdate: boolean;
-  /** Has the JDownloader backend install a waiting update once a day while
-   *  none of its downloads runs. */
-  jdAutoUpdate: boolean;
-  /** Asks the JDownloader backend shortly after start and once a day whether
-   *  an update waits, and only asks. */
-  jdVersionCheck: boolean;
+  /** Keeps yt-dlp, ffmpeg, Deno, Java and the JDownloader backend current:
+   *  yt-dlp is asked after daily, the others weekly, and only a newer
+   *  version is fetched. */
+  componentsAutoUpdate: boolean;
 
   /**
    * The captcha solvers to try before a human is asked, as catalogue ids in
@@ -2330,20 +2322,34 @@ export async function retryJDSetup(): Promise<JDStatus> {
   return json<JDStatus>(await fetch('/api/resolvers/jd/setup', { method: 'POST' }));
 }
 
-export interface JDUpdateCheck {
-  checked: boolean;
-  available: boolean;
+/** What one component's update came to; "waits" is an update JDownloader
+ *  installs once none of its downloads runs, "skipped" a copy that is not
+ *  KnightLoader's to update, such as one on PATH. */
+export type ComponentState = 'checking' | 'updated' | 'current' | 'waits' | 'skipped' | 'failed';
+
+export interface ComponentResult {
+  state: ComponentState;
+  version?: string;
+  /** English, because it names paths and program output. */
+  detail?: string;
 }
 
-/** Asks the JD sidecar whether an update of its own waits. Installs nothing. */
-export async function fetchJDUpdate(): Promise<JDUpdateCheck> {
-  return json(await fetch('/api/jd/update'));
+/** How far Update now has come, by component: "yt-dlp", "ffmpeg", "deno",
+ *  "java" and "jdownloader". */
+export interface ComponentUpdate {
+  running: boolean;
+  results?: Record<string, ComponentResult>;
 }
 
-/** Has the JD sidecar install its update. It restarts to do so, so fetchJDStatus
- *  answers unreachable for a while after this returns. */
-export async function updateJD(): Promise<{ started: boolean }> {
-  return json(await fetch('/api/jd/update', { method: 'POST' }));
+/** Starts Update now, which asks after every component at once and fetches
+ *  what is newer. A run under way is left to finish. */
+export async function startComponentUpdate(): Promise<ComponentUpdate> {
+  return json(await fetch('/api/components/update', { method: 'POST' }));
+}
+
+/** How far Update now has come. */
+export async function fetchComponentUpdate(): Promise<ComponentUpdate> {
+  return json(await fetch('/api/components/update'));
 }
 
 /**
@@ -3675,35 +3681,10 @@ export interface MediaToolsStatus {
   shadowed?: MediaTool;
 }
 
-export interface YtdlpLatest {
-  checked: boolean;
-  tag?: string;
-  url?: string;
-  /** "newer" | "same" | "older" | "unknown". yt-dlp versions are dates and a
-   *  same-day rerelease adds a fourth segment, so some pairs cannot be
-   *  ordered; "unknown" must not render as "current". */
-  compare: string;
-  /** GitHub's refusal verbatim when checked is false, since a rate limit and
-   *  "Not Found" need different fixes. */
-  detail?: string;
-}
-
 /** Which yt-dlp, ffmpeg and ffprobe this instance runs. Makes no outside call,
  *  since every settings load and diagnostics bundle reads it. */
 export async function fetchMediaTools(): Promise<MediaToolsStatus> {
   return json(await fetch('/api/mediatools'));
-}
-
-/** Asks GitHub for yt-dlp's latest release. Downloads and replaces nothing. */
-export async function fetchYtdlpLatest(): Promise<YtdlpLatest> {
-  return json(await fetch('/api/mediatools/ytdlp/latest'));
-}
-
-/** Slow: downloads yt-dlp's newest release, verifies it against the release's
- *  SHA2-256SUMS, runs it once and only then swaps it in. A rejection leaves
- *  the working copy untouched. */
-export async function updateYtdlp(): Promise<{ tag: string; version: string; path: string; asset: string; sha256: string }> {
-  return json(await fetch('/api/mediatools/ytdlp/update', { method: 'POST' }));
 }
 
 /** Deletes the fetched copy and its record and answers the resulting status. */
