@@ -95,18 +95,7 @@ func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 		t.Fatalf("AddLinks created %d tasks, want 1", len(created))
 	}
 
-	waitFor(t, "expandYtdlpVariants to add the four sibling rows and the probe to reach them", func() bool {
-		rows := tasksSharingURL(a, url)
-		if len(rows) != 5 {
-			return false
-		}
-		for _, x := range rows {
-			if kind, _ := variantDecode(x.Variant); kind == ytdlp.VariantVideo && len(x.AvailableQualities) == 0 {
-				return false
-			}
-		}
-		return true
-	})
+	waitForProbedFamily(t, a, url)
 
 	for _, x := range tasksSharingURL(a, url) {
 		kind, sub := variantDecode(x.Variant)
@@ -195,14 +184,19 @@ func TestALinksOwnFormatStandsInForThePreset(t *testing.T) {
 }
 
 func TestALinksOwnChoiceStagesThoseRowsAtThoseQualities(t *testing.T) {
-	a, _ := wiredYtdlpApp(t, func(*settings.Settings, string) {})
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Some Video"
+	// The chosen 720p outlasts the probe only on a source with a 720p track.
+	fake.formats = probeUpTo720
+	wireYtdlp(a, fake)
 	const url = "https://youtube.com/watch?v=ownchoice01"
 	if _, err := a.AddLinksWithOptions([]string{url}, "", OriginCnL, LinkBatchOptions{Choice: &ytdlp.LinkChoice{
 		Variants: []ytdlp.Variant{ytdlp.VariantVideo, ytdlp.VariantAudio, ytdlp.VariantSubtitle}, Quality: ytdlp.Quality720p, AudioFormat: "mp3",
 	}}); err != nil {
 		t.Fatal(err)
 	}
-	waitFor(t, "the family's five rows", func() bool { return len(tasksSharingURL(a, url)) == 5 })
+	waitForProbedFamily(t, a, url)
 	want := map[ytdlp.Variant]string{ytdlp.VariantVideo: "720p", ytdlp.VariantAudio: "mp3", ytdlp.VariantSubtitle: "best"}
 	for _, x := range tasksSharingURL(a, url) {
 		kind, sub := variantDecode(x.Variant)
@@ -683,6 +677,25 @@ func wiredYtdlpApp(t *testing.T, mutate func(s *settings.Settings, base string))
 	fake.title = "Some Video"
 	wireYtdlp(a, fake)
 	return a, base
+}
+
+// waitForProbedFamily waits until url is five rows and its probe has reached
+// the video row. Only then is a pick settled, since the probe resolves it
+// against the source's tracks.
+func waitForProbedFamily(t *testing.T, a *App, url string) {
+	t.Helper()
+	waitFor(t, "the family's five rows and the probe to reach them", func() bool {
+		rows := tasksSharingURL(a, url)
+		if len(rows) != 5 {
+			return false
+		}
+		for _, x := range rows {
+			if kind, _ := variantDecode(x.Variant); kind == ytdlp.VariantVideo && len(x.AvailableQualities) == 0 {
+				return false
+			}
+		}
+		return true
+	})
 }
 
 // fiveRows returns the rows url became, failing unless there are five.
