@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Button, Card, ErrorCard, Field, InfoBubble, SectionTitle, ToggleRow, type ButtonVerdict } from '../../../components/ui';
+import { Button, Card, ErrorCard, InfoBubble, SectionTitle, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import {
   fetchComponentUpdate,
   fetchDeploymentInfo,
@@ -38,6 +38,7 @@ import { openWhatsNew, useWhatsNew } from '../../../lib/useWhatsNew';
 import { NewsGlyph } from '../../../components/whatsnew/WhatsNew';
 import { Dropdown } from '../../../components/Dropdown';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
 
 // The Components card holds what KnightLoader updates or follows, one line
 // each: the name, a short status where there is one, a button where there is
@@ -852,7 +853,7 @@ function QBittorrentRow() {
         st &&
         st.versions.length > 0 && (
           <>
-            <Field label={t('settings.info.qbitVersion')} hint={t('settings.info.qbitVersionHint')} layout="row">
+            <SettingRow control="short" label={t('settings.info.qbitVersion')} hint={t('settings.info.qbitVersionHint')}>
               <Dropdown
                 label={t('settings.info.qbitVersion')}
                 value={chosen?.version ?? null}
@@ -862,7 +863,7 @@ function QBittorrentRow() {
                 }))}
                 onChange={(v) => void onPick(v).catch(() => {})}
               />
-            </Field>
+            </SettingRow>
             <p className="text-sm text-carbon-textSub">
               {chosen && chosen.whitelists.length > 0
                 ? t('settings.info.qbitOnList', { trackers: chosen.whitelists.join(', ') })
