@@ -38,6 +38,20 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Changed
+
+- **One switch keeps every component current.** yt-dlp, FFmpeg, Deno, the
+  desktop app's Java and JDownloader now share "Update components
+  automatically" on the Components card, and it is on from the start.
+  KnightLoader looks for a new yt-dlp every day and for the others once a
+  week, and only downloads what is newer. "Update now" does it all at once.
+  If you had switched off the automatic update of yt-dlp or JDownloader, the
+  new switch stays off for you.
+- **The installer fetches yt-dlp like the other components.** On Windows and
+  Linux it lands in the data folder during the install, checked against
+  yt-dlp's own checksums, so the copy KnightLoader keeps current is there from
+  the first start. The macOS app fetches it when it first starts.
+
 ### Fixed
 
 - **YouTube gives yt-dlp all its formats again.** yt-dlp needs a JavaScript

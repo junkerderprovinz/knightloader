@@ -425,31 +425,14 @@ type Settings struct {
 	// surprise this exists to prevent.
 	KeepAwake bool `json:"keepAwake"`
 
-	// YtdlpVersionCheck has the Components card call GET
-	// /api/mediatools/ytdlp/latest once when it opens, instead of only when
-	// somebody presses Check all. On by default. It never downloads and never
-	// replaces anything; YtdlpAutoUpdate is the switch that does.
-	YtdlpVersionCheck bool `json:"ytdlpVersionCheck"`
-
-	// YtdlpAutoUpdate lets the app fetch a newer yt-dlp once a day, through the
-	// same checksum and smoke test as the button, and keep the one in use when
-	// either fails. On by default: the container's distribution package lags
-	// weeks behind, and a site that changed its page breaks every download
-	// from it until yt-dlp catches up.
-	YtdlpAutoUpdate bool `json:"ytdlpAutoUpdate"`
-
-	// JDAutoUpdate lets the app ask the JDownloader backend once a day whether
-	// an update waits, and have JD install it while none of its downloads
-	// runs, since JD restarts to do so. On by default: the headless JD updates
-	// itself only on its first run, and a stale one loses hosters as they
-	// change.
-	JDAutoUpdate bool `json:"jdAutoUpdate"`
-
-	// JDVersionCheck lets the app ask the JDownloader backend shortly after
-	// start and then once a day whether an update waits, and show the answer
-	// on the Components card. It only asks; JDAutoUpdate is the switch that
-	// installs. On by default.
-	JDVersionCheck bool `json:"jdVersionCheck"`
+	// ComponentsAutoUpdate lets the app keep yt-dlp, ffmpeg, Deno, Java and
+	// JDownloader current on its own: it asks after yt-dlp once a day and
+	// after the others once a week, and fetches only what is newer, through
+	// the same checks as the Components card's button. On by default: the
+	// container's yt-dlp package lags weeks behind, a site that changed its
+	// page breaks every download from it until yt-dlp catches up, and a stale
+	// JDownloader loses hosters as they change.
+	ComponentsAutoUpdate bool `json:"componentsAutoUpdate"`
 
 	// Packagizer names packages, picks folders and sets download options as
 	// links are staged. Stored exactly as the user wrote it: rules.Compile is
@@ -851,18 +834,15 @@ func Defaults() Settings {
 		MaxRetries:    3,
 		Crawl:         true,
 		// One page deep and staying on the host it was pasted from.
-		CrawlDepth:        1,
-		CrawlMaxPages:     crawler.DefaultMaxPages,
-		CrawlSameHost:     true,
-		VerifyChecksums:   true,
-		PreParserEnabled:  true,
-		KeepAwake:         true,
-		AutoUpdate:        true,
-		AutoUpdateCheck:   true,
-		YtdlpVersionCheck: true,
-		YtdlpAutoUpdate:   true,
-		JDVersionCheck:    true,
-		JDAutoUpdate:      true,
+		CrawlDepth:           1,
+		CrawlMaxPages:        crawler.DefaultMaxPages,
+		CrawlSameHost:        true,
+		VerifyChecksums:      true,
+		PreParserEnabled:     true,
+		KeepAwake:            true,
+		AutoUpdate:           true,
+		AutoUpdateCheck:      true,
+		ComponentsAutoUpdate: true,
 		// AutoConfirm and AddAtTop are usable at their zero value: nothing is
 		// auto-confirmed and nothing is reordered. AutoStart is the one of the
 		// three that is not, so that confirming a link still starts it.
@@ -1021,6 +1001,26 @@ func migrate(raw []byte, n Settings) Settings {
 	n = migrateStall(raw, n)
 	n = migrateLabels(raw, n)
 	n = migrateUploadLimit(raw, n)
+	n = migrateComponentsAutoUpdate(raw, n)
+	return n
+}
+
+// migrateComponentsAutoUpdate folds the switches that kept yt-dlp and
+// JDownloader current one by one into the one switch for every component. It
+// stays off for whoever turned either update off; the two switches that only
+// asked never installed anything, so they count for nothing here.
+func migrateComponentsAutoUpdate(raw []byte, n Settings) Settings {
+	var old struct {
+		Components *bool `json:"componentsAutoUpdate"`
+		Ytdlp      *bool `json:"ytdlpAutoUpdate"`
+		JD         *bool `json:"jdAutoUpdate"`
+	}
+	if err := json.Unmarshal(raw, &old); err != nil || old.Components != nil {
+		return n
+	}
+	if old.Ytdlp != nil && !*old.Ytdlp || old.JD != nil && !*old.JD {
+		n.ComponentsAutoUpdate = false
+	}
 	return n
 }
 

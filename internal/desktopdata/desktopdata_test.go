@@ -34,6 +34,7 @@ func TestTheDataFolderIsNamedAfterTheProduct(t *testing.T) {
 func TestEachComponentLandsWhereTheAppLooks(t *testing.T) {
 	data := t.TempDir()
 	want := map[string]string{
+		"yt-dlp":      mediatools.BinaryPath(data),
 		"ffmpeg":      mediatools.FFmpegPath(data),
 		"deno":        mediatools.DenoPath(data),
 		"java":        jre.Java(data),

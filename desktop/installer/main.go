@@ -1,7 +1,7 @@
 // Command installer installs KnightLoader on Windows and Linux. The desktop
-// build (scripts/desktop.mjs) copies the program, yt-dlp and UnRAR into
-// payload/ and builds this around it; on macOS the app ships as a disk image
-// instead. ffmpeg, Deno, Java and JDownloader are too large or change too often
+// build (scripts/desktop.mjs) copies the program and UnRAR into payload/ and
+// builds this around it; on macOS the app ships as a disk image instead.
+// yt-dlp, ffmpeg, Deno, Java and JDownloader are too large or change too often
 // for the payload, so the window fetches them into the data folder at the end.
 package main
 
@@ -55,8 +55,10 @@ func main() {
 			Logo:       logo,
 			Icon:       icon,
 			Categories: []string{"Network", "FileTransfer"},
-			Payload:    executables{files, []string{"yt-dlp", "unrar"}},
+			Payload:    executables{files, []string{"unrar"}},
 			Components: components(desktopdata.Dir(name)),
+			// The yt-dlp earlier installers put beside the program.
+			Removes: []string{"yt-dlp.exe"},
 			// The lock a copy on the usual data folder holds, instanceID in
 			// desktop/main.go.
 			InstanceID: id,

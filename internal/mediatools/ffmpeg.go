@@ -46,11 +46,6 @@ const (
 // each of which is well under half of it.
 const maxUnpackedBytes = 400 << 20
 
-// FFmpegRefresh is how old a fetched ffmpeg may get before the daily update
-// replaces it. Master is rebuilt every day, and a download of this size every
-// day would buy nothing a media download notices.
-const FFmpegRefresh = 30 * 24 * time.Hour
-
 // ffmpegAsset is the release asset for this platform, or "" where there is
 // none: the repository builds nothing for macOS.
 func ffmpegAsset() string {
@@ -82,8 +77,8 @@ func FFprobePath(dataDir string) string { return filepath.Join(ToolsDir(dataDir)
 
 func ffmpegRecordPath(dataDir string) string { return filepath.Join(ToolsDir(dataDir), "ffmpeg.json") }
 
-// FFmpegRecord is what was fetched and when, kept so the daily update knows
-// when the copy is due again.
+// FFmpegRecord is what was fetched and when. SHA256 is what tells the fetched
+// build from a newer one, since the rolling release keeps its tag.
 type FFmpegRecord struct {
 	Tag       string    `json:"tag"`
 	Asset     string    `json:"asset"`
@@ -160,38 +155,56 @@ func CanInstallFFmpeg(dataDir string) error {
 	return toolsWritable(dataDir)
 }
 
-// InstallFFmpeg fetches the newest LGPL build, verifies the archive against
-// the release's checksums, unpacks ffmpeg and ffprobe, runs both, and only
-// then puts them where ResolveFFmpeg finds them. progress, when not nil,
-// hears how much of the archive has arrived of how much; total is -1 while
-// unknown.
-func InstallFFmpeg(ctx context.Context, dataDir string, progress func(done, total int64)) (FFmpegRecord, error) {
+// UpdateFFmpeg asks for the newest LGPL build and, unless the fetched copy is
+// that build already, verifies the archive against the release's checksums,
+// unpacks ffmpeg and ffprobe, runs both, and only then puts them where
+// ResolveFFmpeg finds them. current reports that nothing needed fetching.
+// progress, when not nil, hears how much of the archive has arrived of how
+// much; total is -1 while unknown.
+func UpdateFFmpeg(ctx context.Context, dataDir string, progress func(done, total int64)) (rec FFmpegRecord, current bool, err error) {
 	if err := CanInstallFFmpeg(dataDir); err != nil {
-		return FFmpegRecord{}, err
+		return rec, false, err
 	}
 	rel, err := ghrelease.Latest(ctx, ffmpegRepo)
 	if err != nil {
-		return FFmpegRecord{}, err
+		return rec, false, err
 	}
 	sumsAsset, ok := rel.Find(ffmpegChecksums)
 	if !ok {
-		return FFmpegRecord{}, fmt.Errorf("release %s has no %s, so nothing downloaded from it could be verified", rel.Tag, ffmpegChecksums)
+		return rec, false, fmt.Errorf("release %s has no %s, so nothing downloaded from it could be verified", rel.Tag, ffmpegChecksums)
 	}
 	raw, err := ghrelease.Bytes(ctx, sumsAsset, maxChecksumBytes)
 	if err != nil {
-		return FFmpegRecord{}, err
+		return rec, false, err
 	}
 	sums, err := checksum.ParseHashFile(bytes.NewReader(raw))
 	if err != nil {
-		return FFmpegRecord{}, fmt.Errorf("release %s: %s could not be read: %w", rel.Tag, ffmpegChecksums, err)
+		return rec, false, fmt.Errorf("release %s: %s could not be read: %w", rel.Tag, ffmpegChecksums, err)
 	}
 	download := func(ctx context.Context, a ghrelease.Asset, dst string) error {
-		return downloadArchive(ctx, a, dst, maxFFmpegArchiveBytes, ffmpegFetchTimeout, progress)
+		return downloadAsset(ctx, a, dst, maxFFmpegArchiveBytes, ffmpegFetchTimeout, progress)
 	}
-	return installFFmpeg(ctx, dataDir, ffmpegAsset(), rel, sums, download)
+	return updateFFmpeg(ctx, dataDir, ffmpegAsset(), rel, sums, download)
 }
 
-func downloadArchive(ctx context.Context, a ghrelease.Asset, dst string, limit int64, timeout time.Duration, progress func(done, total int64)) error {
+// updateFFmpeg is UpdateFFmpeg once the release is in hand.
+func updateFFmpeg(ctx context.Context, dataDir, name string, rel ghrelease.Release, sums []checksum.Sum, fetch fetcher) (FFmpegRecord, bool, error) {
+	if want, err := sumFor(ffmpegChecksums, sums, name); err == nil {
+		rec, err := LoadFFmpegRecord(dataDir)
+		if err == nil && rec != nil && strings.EqualFold(rec.SHA256, want.Hex) && isFile(FFmpegPath(dataDir)) && isFile(FFprobePath(dataDir)) {
+			return *rec, true, nil
+		}
+	}
+	rec, err := installFFmpeg(ctx, dataDir, name, rel, sums, fetch)
+	return rec, false, err
+}
+
+func isFile(path string) bool {
+	fi, err := os.Stat(path)
+	return err == nil && fi.Mode().IsRegular()
+}
+
+func downloadAsset(ctx context.Context, a ghrelease.Asset, dst string, limit int64, timeout time.Duration, progress func(done, total int64)) error {
 	f, err := os.Create(dst)
 	if err != nil {
 		return err
@@ -209,8 +222,8 @@ func downloadArchive(ctx context.Context, a ghrelease.Asset, dst string, limit i
 	return closeErr
 }
 
-// installFFmpeg is InstallFFmpeg once the release is in hand. The asset name
-// is a parameter so a test can drive either archive format on any host.
+// installFFmpeg downloads, checks and puts in place the build named. The asset
+// name is a parameter so a test can drive either archive format on any host.
 func installFFmpeg(ctx context.Context, dataDir, name string, rel ghrelease.Release, sums []checksum.Sum, fetch fetcher) (FFmpegRecord, error) {
 	var rec FFmpegRecord
 	asset, ok := rel.Find(name)

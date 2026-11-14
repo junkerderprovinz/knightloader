@@ -38,6 +38,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerHosterIcons(reg, a)
 	registerResolvers(reg, a)
 	registerMediaTools(reg, a)
+	registerComponents(reg, a)
 	registerSchedule(reg, a)
 	registerReconnect(reg, a)
 	registerPortmap(reg, a)

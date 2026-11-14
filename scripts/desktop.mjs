@@ -10,16 +10,17 @@
 // The version is the tag on a tag build and KL_VERSION when it is set. Any
 // other build is "dev", which never updates itself.
 //
-// yt-dlp comes with the program, at the release named in desktop/ytdlp.version,
-// checked against that release's SHA2-256SUMS: in the installer beside the
-// program, and in the macOS bundle in Contents/MacOS. The zips of Windows and
-// Linux stay the program alone, since every installed copy updates itself from
-// them (internal/update) and refuses one that holds anything else.
+// RARLAB's UnRAR comes with the program where RARLAB builds one for the target,
+// pinned with its checksum in desktop/unrar.json: Windows, Linux on x86-64 and
+// macOS on Apple silicon, in the installer beside the program and in the macOS
+// bundle in Contents/MacOS. Elsewhere RAR sets go to the built-in reader. Its
+// licence allows it inside other software and travels with it. The zips of
+// Windows and Linux stay the program alone, since every installed copy updates
+// itself from them (internal/update) and refuses one that holds anything else.
 //
-// RARLAB's UnRAR comes along the same way where RARLAB builds one for the
-// target, pinned with its checksum in desktop/unrar.json: Windows, Linux on
-// x86-64 and macOS on Apple silicon. Elsewhere RAR sets go to the built-in
-// reader. Its licence allows it inside other software and travels with it.
+// yt-dlp, ffmpeg, Deno, Java and JDownloader are fetched into the data folder,
+// by the installer on Windows and Linux and by the first start everywhere else,
+// so that the app keeps each of them current itself.
 //
 // --updatetest builds with the updatetest tag (desktop/updatetest.go). Its
 // installer puts "KnightLoader Test" beside a real installation, so the
@@ -84,17 +85,6 @@ function run(command, commandArgs, { cwd = desktop, env = {} } = {}) {
   }
 }
 
-const ytdlpVersion = readFileSync(join(desktop, 'ytdlp.version'), 'utf8').trim()
-const ytdlpName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp'
-
-// The release asset for the target. yt-dlp_linux is built against glibc, which
-// every distribution with WebKitGTK has.
-function ytdlpAsset() {
-  if (process.platform === 'win32') return arch === 'arm64' ? 'yt-dlp_arm64.exe' : 'yt-dlp.exe'
-  if (process.platform === 'darwin') return 'yt-dlp_macos'
-  return arch === 'arm64' ? 'yt-dlp_linux_aarch64' : 'yt-dlp_linux'
-}
-
 async function download(url) {
   const res = await fetch(url)
   if (!res.ok) {
@@ -105,51 +95,6 @@ async function download(url) {
 }
 
 const sha256 = (data) => createHash('sha256').update(data).digest('hex')
-
-// fetchYtdlp returns the verified asset, kept in desktop/build/ytdlp so a
-// second build of the same version downloads only the checksum file.
-async function fetchYtdlp() {
-  const asset = ytdlpAsset()
-  const release = `https://github.com/yt-dlp/yt-dlp/releases/download/${ytdlpVersion}`
-  const sums = (await download(`${release}/SHA2-256SUMS`)).toString('utf8')
-  // sha256sum output, where a leading asterisk marks binary mode.
-  const want = sums
-    .split('\n')
-    .map((line) => line.trim().split(/\s+/))
-    .find(([, name]) => name?.replace(/^\*/, '') === asset)?.[0]
-  if (!want) {
-    console.error(`SHA2-256SUMS of yt-dlp ${ytdlpVersion} lists no ${asset}`)
-    process.exit(1)
-  }
-  const file = join(desktop, 'build', 'ytdlp', ytdlpVersion, asset)
-  if (existsSync(file) && sha256(readFileSync(file)) === want) return file
-  const data = await download(`${release}/${asset}`)
-  if (sha256(data) !== want) {
-    console.error(`${asset} of yt-dlp ${ytdlpVersion} has checksum ${sha256(data)}, SHA2-256SUMS says ${want}`)
-    process.exit(1)
-  }
-  mkdirSync(dirname(file), { recursive: true })
-  writeFileSync(file, data)
-  return file
-}
-
-function placeYtdlp(source, dest) {
-  cpSync(source, dest)
-  chmodSync(dest, 0o755)
-}
-
-// checkYtdlp starts the yt-dlp at file where this machine can run the target's
-// build, which the ARM64 build for Windows, made on an x64 runner, is not.
-function checkYtdlp(file) {
-  if (process.platform !== 'darwin' && arch !== hostArch) return
-  const res = spawnSync(file, ['--version'], { encoding: 'utf8' })
-  const printed = res.stdout?.trim()
-  if (res.status !== 0 || printed !== ytdlpVersion) {
-    console.error(`${file} --version: exit ${res.status}, printed ${JSON.stringify(printed)}, want ${ytdlpVersion}`)
-    console.error(res.error ?? res.stderr)
-    process.exit(1)
-  }
-}
 
 const unrarPins = JSON.parse(readFileSync(join(desktop, 'unrar.json'), 'utf8'))
 const unrarName = process.platform === 'win32' ? 'UnRAR.exe' : 'unrar'
@@ -210,16 +155,14 @@ function goBuild(out, { goos, goarch, cgo, tags, ldflags = '', env = {} }) {
   ], { env: { GOOS: goos, GOARCH: goarch, CGO_ENABLED: cgo, ...env } })
 }
 
-// buildInstaller builds desktop/installer around the program at exe, yt-dlp
-// and UnRAR, into desktop/build/installer so the zips of desktop/build/bin stay
-// the program alone. An updatetest installer installs as "KnightLoader Test".
-function buildInstaller(exe, ytdlp, unrar, name, { goos, cgo, tags, ldflags = '' }) {
+// buildInstaller builds desktop/installer around the program at exe and
+// UnRAR, into desktop/build/installer so the zips of desktop/build/bin stay the
+// program alone. An updatetest installer installs as "KnightLoader Test".
+function buildInstaller(exe, unrar, name, { goos, cgo, tags, ldflags = '' }) {
   const payload = join(desktop, 'installer', 'payload')
   rmSync(payload, { recursive: true, force: true })
   mkdirSync(payload, { recursive: true })
   cpSync(exe, join(payload, basename(exe)))
-  placeYtdlp(ytdlp, join(payload, ytdlpName))
-  checkYtdlp(join(payload, ytdlpName))
   placeUnrar(unrar, payload)
   checkUnrar(unrar, payload)
   const vars = [`-X main.version=${numbers}`]
@@ -255,8 +198,7 @@ function writeWindowsVersion() {
   writeFileSync(join(desktop, 'build', 'windows', 'info.json'), JSON.stringify(info, null, '\t') + '\n')
 }
 
-console.log(`building KnightLoader ${version}, ${dlcFlags ? 'with' : 'without'} the DLC key, with yt-dlp ${ytdlpVersion}`)
-const ytdlp = await fetchYtdlp()
+console.log(`building KnightLoader ${version}, ${dlcFlags ? 'with' : 'without'} the DLC key`)
 const unrar = await fetchUnrar()
 
 rmSync(bin, { recursive: true, force: true })
@@ -303,7 +245,7 @@ if (process.platform === 'win32') {
       '-manifest', 'installer/installer.manifest', '-info', 'build/windows/info.json', '-out', syso,
     ])
     try {
-      buildInstaller(exe, ytdlp, unrar, `KnightLoader-${arch}-installer.exe`, { goos: 'windows', cgo: '0', tags: '', ldflags: '-H windowsgui' })
+      buildInstaller(exe, unrar, `KnightLoader-${arch}-installer.exe`, { goos: 'windows', cgo: '0', tags: '', ldflags: '-H windowsgui' })
     } finally {
       rmSync(syso, { force: true })
     }
@@ -323,13 +265,11 @@ if (process.platform === 'win32') {
   rmSync(join(bin, 'KnightLoader-arm64'))
   cpSync(join(desktop, 'build', 'darwin', 'icons.icns'), join(app, 'Resources', 'icons.icns'))
   cpSync(join(desktop, 'build', 'darwin', 'Info.plist'), join(app, 'Info.plist'))
-  placeYtdlp(ytdlp, join(app, 'MacOS', ytdlpName))
   placeUnrar(unrar, join(app, 'MacOS'), join(app, 'Resources'))
   // An ad-hoc signature over the whole bundle, as Wails' own template does:
-  // Apple Silicon refuses to start code that carries none. yt-dlp and UnRAR
-  // are signed with it, and run once afterwards to show they still start.
+  // Apple Silicon refuses to start code that carries none. UnRAR is signed
+  // with it, and runs once afterwards to show it still starts.
   run('codesign', ['--force', '--deep', '--sign', '-', join(bin, 'KnightLoader.app')])
-  checkYtdlp(join(app, 'MacOS', ytdlpName))
   checkUnrar(unrar, join(app, 'MacOS'))
 } else {
   // GTK 3 and WebKitGTK 4.1, which every current distribution ships and which
@@ -337,7 +277,7 @@ if (process.platform === 'win32') {
   // so the ARM64 build runs on an ARM64 runner.
   goBuild(join(bin, 'KnightLoader'), { goos: 'linux', goarch: arch, cgo: '1', tags: tags(',gtk3') })
   if (installer) {
-    buildInstaller(join(bin, 'KnightLoader'), ytdlp, unrar, `KnightLoader-${arch}-installer`, { goos: 'linux', cgo: '1', tags: 'gtk3' })
+    buildInstaller(join(bin, 'KnightLoader'), unrar, `KnightLoader-${arch}-installer`, { goos: 'linux', cgo: '1', tags: 'gtk3' })
   }
 }
 

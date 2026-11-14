@@ -12,8 +12,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 )
 
-// denoApp builds a desktop-like App with the daily update on, no Deno
-// anywhere, and a Deno fetch that only counts.
+// denoApp builds a desktop-like App with the automatic update on, no Deno
+// anywhere, and a Deno update that only counts.
 func denoApp(t *testing.T) (*App, *atomic.Int32) {
 	t.Helper()
 	if err := mediatools.CanInstallDeno(t.TempDir()); err != nil {
@@ -24,9 +24,9 @@ func denoApp(t *testing.T) (*App, *atomic.Int32) {
 	t.Setenv("PATH", t.TempDir())
 	t.Setenv("KL_DENO", "")
 	var fetched atomic.Int32
-	a.installDeno = func(context.Context, string) (mediatools.DenoRecord, error) {
+	a.updateDeno = func(context.Context, string) (mediatools.DenoRecord, bool, error) {
 		fetched.Add(1)
-		return mediatools.DenoRecord{Version: "2.9.8", Asset: "deno.zip"}, nil
+		return mediatools.DenoRecord{Version: "2.9.8", Asset: "deno.zip"}, false, nil
 	}
 	return a, &fetched
 }
@@ -88,25 +88,10 @@ func TestADenoOfTheOwnersIsLeftAlone(t *testing.T) {
 	}
 }
 
-func TestAFetchedDenoIsReplacedOnlyOnceItIsDue(t *testing.T) {
-	a, fetched := denoApp(t)
-	fetchedDeno(t, a, time.Now())
-	a.autoUpdateDeno()
-	if fetched.Load() != 0 {
-		t.Fatalf("a fresh copy was fetched again %d times", fetched.Load())
-	}
-
-	fetchedDeno(t, a, time.Now().Add(-mediatools.DenoRefresh-time.Hour))
-	a.autoUpdateDeno()
-	if fetched.Load() != 1 {
-		t.Fatalf("a copy past its refresh was fetched %d times, want once", fetched.Load())
-	}
-}
-
-func TestNoDenoIsFetchedWhileTheDailyUpdateIsOff(t *testing.T) {
+func TestNoDenoIsFetchedWhileTheUpdateIsOff(t *testing.T) {
 	a, fetched := denoApp(t)
 	s := a.Settings.Get()
-	s.YtdlpAutoUpdate = false
+	s.ComponentsAutoUpdate = false
 	if _, err := a.Settings.Set(s); err != nil {
 		t.Fatal(err)
 	}

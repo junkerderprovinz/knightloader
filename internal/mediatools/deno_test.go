@@ -291,3 +291,28 @@ func TestTheProberSaysWhetherYtdlpHasAJSRuntime(t *testing.T) {
 		})
 	}
 }
+
+func TestAFetchedDenoIsKeptUntilANewerReleaseComes(t *testing.T) {
+	isolate(t)
+	t.Setenv(fakeEnv, "denoversion")
+	dir := t.TempDir()
+	const name = "deno-x86_64-unknown-linux-gnu.zip"
+	body := denoArchive(t, exeName("deno"))
+	rel, sum := denoRelease("v2.9.8", name, body)
+	var downloads int
+	if _, current, err := updateDeno(context.Background(), dir, name, rel, sum, counted(body, &downloads)); err != nil || current {
+		t.Fatalf("the first fetch: current %v, %v", current, err)
+	}
+
+	if _, current, err := updateDeno(context.Background(), dir, name, rel, sum, counted(body, &downloads)); err != nil || !current {
+		t.Errorf("the same release again: current %v, %v", current, err)
+	}
+	if downloads != 1 {
+		t.Fatalf("downloaded %d times, want the same release left alone", downloads)
+	}
+
+	next, sum := denoRelease("v2.9.9", name, body)
+	if _, current, _ := updateDeno(context.Background(), dir, name, next, sum, counted(body, &downloads)); current || downloads != 2 {
+		t.Errorf("a newer release: current %v after %d downloads, want it fetched", current, downloads)
+	}
+}

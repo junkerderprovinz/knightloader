@@ -1,24 +1,23 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button, Card, ErrorCard, InfoBubble, SectionTitle, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import {
-  ApiError,
+  fetchComponentUpdate,
   fetchDeploymentInfo,
   fetchHealth,
   fetchJDStatus,
-  fetchJDUpdate,
   fetchMediaTools,
   fetchUpdateCheck,
   fetchUpdateProgress,
-  fetchYtdlpLatest,
   installUpdate,
   retryJDSetup,
-  updateJD,
-  updateYtdlp,
+  startComponentUpdate,
+  type ComponentResult,
+  type ComponentUpdate,
   type JDStatus,
+  type MediaTool,
   type MediaToolsStatus,
   type UpdateCheck,
   type UpdateProgress,
-  type YtdlpLatest,
 } from '../../../lib/api';
 import { followExternal } from '../../../lib/external';
 import { GLIMSTONE_VERSION } from '../../../lib/glimstoneVersion';
@@ -30,21 +29,19 @@ import {
   IconUpdateAvailable,
   IconUpToDate,
 } from '../../../lib/icons';
-import { useT, type TranslationKey } from '../../../lib/i18n';
+import { useT } from '../../../lib/i18n';
 import { useResource } from '../../../lib/useResource';
 import { openWhatsNew, useWhatsNew } from '../../../lib/useWhatsNew';
 import { NewsGlyph } from '../../../components/whatsnew/WhatsNew';
 import { useDraft } from '../context';
 
 // The Components card holds what KnightLoader updates or follows, one line
-// each: the name, a short status where there is one, the buttons as glyphs,
-// and at the end the version linked to its release or project page. Tools
-// that ship inside KnightLoader say so where they are missed, not here.
-// KnightLoader, yt-dlp and the JDownloader backend update on their own, so
-// their lines carry the update when one waits and their switches under the
-// name, and one button at the foot of the card checks them all.
-// yt-dlp moves faster than KnightLoader's releases, which is why it is updated
-// here at all, and JDownloader is a program of its own beside KnightLoader.
+// each: the name, a short status where there is one, a button where there is
+// something to do, and at the end the version linked to its release or project
+// page. KnightLoader updates itself and keeps its switches under its name. The
+// programs it starts, yt-dlp, ffmpeg, Deno, Java and the JDownloader backend,
+// share the one switch below them, and Update now at the foot of the card
+// updates them all at once and asks after a newer KnightLoader too.
 
 type Translate = ReturnType<typeof useT>['t'];
 
@@ -80,33 +77,40 @@ function releasePage(repo: string, version: string): string {
   return RELEASE_TAG.test(tag) ? `${repo}/releases/tag/${encodeURIComponent(tag)}` : '';
 }
 
-/** What one component's check came to. */
+/** What KnightLoader's check came to. */
 type Found = 'current' | 'newer' | 'failed';
 
-/** A component's check, which its row hands the card so one button runs them all. */
+/** KnightLoader's check, which its row hands the card so Update now asks it too. */
 type Check = () => Promise<Found>;
-type Register = (key: string, check: Check | null) => void;
+type Register = (check: Check | null) => void;
 
 type Face = { label: string; icon: ReactNode; verdict?: ButtonVerdict };
 
-/** The Check all button's face for the answers that have come back, or for none yet. */
-function checkFace(t: Translate, found: Found[] | null): Face {
-  if (found === null) return { label: t('settings.info.checkAll'), icon: <IconSync /> };
-  if (found.includes('failed')) return { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' };
-  const newer = found.filter((f) => f === 'newer').length;
-  if (newer > 0) return { label: t('settings.info.updatesFound', { n: newer }), icon: <IconUpdateAvailable />, verdict: 'warn' };
+/** Update now's face for what the last run came to, or for none yet. */
+function updateFace(t: Translate, app: Found | null, run: ComponentUpdate | null): Face {
+  if (app === null && run === null) return { label: t('settings.info.updateNow'), icon: <IconSync /> };
+  const results = Object.values(run?.results ?? {});
+  if (app === 'failed' || results.some((r) => r.state === 'failed')) {
+    return { label: t('settings.info.updateFailed'), icon: <IconClose />, verdict: 'fail' };
+  }
+  const waiting = Number(app === 'newer') + results.filter((r) => r.state === 'waits').length;
+  if (waiting > 0) return { label: t('settings.info.updatesFound', { n: waiting }), icon: <IconUpdateAvailable />, verdict: 'warn' };
   return { label: t('settings.info.upToDate'), icon: <IconUpToDate />, verdict: 'ok' };
 }
 
-/**
- * useCheck hands the card a row's check while the row has one, under `key`.
- * The row's own state still shows what the check found.
- */
-function useCheck(register: Register, key: string, check: Check | null) {
-  useEffect(() => {
-    register(key, check);
-    return () => register(key, null);
-  }, [register, key, check]);
+/** What a row says about its part of the last Update now, null where there is nothing to say. */
+function runStatus(t: Translate, r: ComponentResult | undefined): Status | null {
+  switch (r?.state) {
+    case 'checking':
+      return { text: t('settings.look.updatesChecking') };
+    case 'updated':
+      return { text: t('settings.info.statusDone'), tone: 'ok' };
+    case 'waits':
+      return { text: t('settings.info.statusWaits'), detail: t('settings.info.statusWaitsHint'), tone: 'warn' };
+    case 'failed':
+      return { text: t('settings.info.statusFailed'), detail: t('settings.resolvers.toolsFetchFailed', { error: r.detail ?? '' }), tone: 'fail' };
+  }
+  return null;
 }
 
 /** GlyphButton is one action at the end of a row, its name in its bubble. */
@@ -136,44 +140,6 @@ function GlyphButton({
       disabled={disabled}
       onClick={onClick}
     />
-  );
-}
-
-/**
- * CheckAllButton runs every row's check at once and shows on itself what they
- * came to, and says it once more to a screen reader. Each row says its own.
- */
-function CheckAllButton({ checks }: { checks: RefObject<Map<string, Check>> }) {
-  const { t } = useT();
-  const [checking, setChecking] = useState(false);
-  const [found, setFound] = useState<Found[] | null>(null);
-  // The failure counter, so a repeated failure shakes the button again.
-  const [shake, setShake] = useState(0);
-  const onCheck = async () => {
-    setChecking(true);
-    const all = await Promise.all([...checks.current.values()].map((check) => check()));
-    setFound(all);
-    if (all.includes('failed')) setShake((n) => n + 1);
-    setChecking(false);
-  };
-  const face = checkFace(t, found);
-  return (
-    <>
-      <Button
-        kind="secondary"
-        data-new="check-all"
-        icon={checking ? <IconSync /> : face.icon}
-        verdict={checking ? undefined : face.verdict}
-        shake={shake}
-        disabled={checking}
-        onClick={() => void onCheck()}
-      >
-        {checking ? t('settings.look.updatesChecking') : face.label}
-      </Button>
-      <span role="status" className="sr-only">
-        {face.verdict && !checking ? face.label : ''}
-      </span>
-    </>
   );
 }
 
@@ -248,31 +214,163 @@ function DeploymentError({ retry }: { retry: () => void }) {
   return <ErrorCard nested message={t('common.loadFailed')} retry={retry} retryLabel={t('common.retry')} />;
 }
 
+/** How often the card asks how far Update now has come, and for JDownloader while it restarts. */
+const RUN_POLL = 1_000;
+const JD_POLL = 2_000;
+const JD_BACK_WITHIN = 5 * 60_000;
+const JD_SETUP_POLL = 1_000;
+
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const errorText = (e: unknown) => String(e).replace(/^(Error|ApiError):\s*/, '');
+
 /**
- * ComponentsCard lists every component on `hue`, one line each, then the
- * button for what the updates brought.
+ * ComponentsCard lists every component on `hue`, one line each, then the one
+ * switch for the components and the buttons for updating and for what the
+ * updates brought.
  */
 export function ComponentsCard({ hue }: { hue: number }) {
   const { t } = useT();
+  const { cfg, patch } = useDraft();
   const { data: deployment, failed, reload } = useResource(fetchDeploymentInfo);
-
-  // Each updating row hands in its check, so one button runs them all.
-  const checks = useRef(new Map<string, Check>());
-  const register = useCallback<Register>((key, check) => {
-    if (check) checks.current.set(key, check);
-    else checks.current.delete(key);
+  const [tools, setTools] = useState<MediaToolsStatus | null>(null);
+  const [jd, setJd] = useState<JDStatus | null>(null);
+  const [run, setRun] = useState<ComponentUpdate | null>(null);
+  const [app, setApp] = useState<Found | null>(null);
+  const [running, setRunning] = useState(false);
+  const [shake, setShake] = useState(0);
+  // Ends every poll once the page is left.
+  const mounted = useRef(true);
+  const appCheck = useRef<Check | null>(null);
+  const register = useCallback<Register>((check) => {
+    appCheck.current = check;
   }, []);
+
+  const loadTools = useCallback(async () => {
+    try {
+      const next = await fetchMediaTools();
+      if (mounted.current) setTools(next);
+    } catch {
+      // The server is unreachable, which the page already shows.
+    }
+  }, []);
+
+  // Follows the desktop build's own JDownloader while it is being set up, so
+  // the download of its Java runtime shows.
+  const followJD = useCallback(async (first: JDStatus) => {
+    let st = first;
+    setJd(st);
+    while (mounted.current && !st.configured && st.setup === 'starting') {
+      await pause(JD_SETUP_POLL);
+      st = await fetchJDStatus().catch(() => st);
+      if (mounted.current) setJd(st);
+    }
+  }, []);
+
+  // JDownloader restarts to install its update and shows its new revision
+  // once it answers again.
+  const awaitJD = useCallback(async () => {
+    const until = Date.now() + JD_BACK_WITHIN;
+    while (mounted.current && Date.now() < until) {
+      await pause(JD_POLL);
+      const now = await fetchJDStatus().catch(() => null);
+      if (now?.reachable) {
+        if (mounted.current) setJd(now);
+        return;
+      }
+    }
+  }, []);
+
+  // Follows Update now until every component has come to something, then
+  // reads the versions it left.
+  const followRun = useCallback(
+    async (first: ComponentUpdate) => {
+      let st = first;
+      setRun(st);
+      while (mounted.current && st.running) {
+        await pause(RUN_POLL);
+        st = await fetchComponentUpdate().catch(() => st);
+        if (mounted.current) setRun(st);
+      }
+      if (!mounted.current) return st;
+      await loadTools();
+      if (st.results?.jdownloader?.state === 'updated') await awaitJD();
+      else await fetchJDStatus().then(followJD, () => {});
+      return st;
+    },
+    [loadTools, awaitJD, followJD],
+  );
+
+  useEffect(() => {
+    mounted.current = true;
+    void loadTools();
+    void fetchJDStatus().then(followJD, () => {});
+    // An Update now started before the page opened is still shown.
+    void fetchComponentUpdate()
+      .then((st) => {
+        if (!st.running) return;
+        setRunning(true);
+        return followRun(st).finally(() => mounted.current && setRunning(false));
+      })
+      .catch(() => {});
+    return () => {
+      mounted.current = false;
+    };
+  }, [loadTools, followJD, followRun]);
+
+  const onRetrySetup = useCallback(async () => {
+    try {
+      await followJD(await retryJDSetup());
+    } catch (e) {
+      setJd((prev) => prev && { ...prev, setup: 'failed', detail: errorText(e) });
+    }
+  }, [followJD]);
+
+  const onUpdate = async () => {
+    setRunning(true);
+    setApp(null);
+    setRun(null);
+    const asked = appCheck.current?.();
+    let st: ComponentUpdate;
+    try {
+      st = await followRun(await startComponentUpdate());
+    } catch (e) {
+      st = { running: false, results: { all: { state: 'failed', detail: errorText(e) } } };
+      setRun(st);
+    }
+    const found = asked ? await asked : null;
+    if (!mounted.current) return;
+    setApp(found);
+    if (found === 'failed' || Object.values(st.results ?? {}).some((r) => r.state === 'failed')) setShake((n) => n + 1);
+    setRunning(false);
+  };
+
+  const face = updateFace(t, app, run);
+  const results = run?.results ?? {};
 
   return (
     <Card hue={hue} data-new="updates-card" className="flex flex-col gap-4">
-      <SectionTitle hint={t('settings.info.componentsHint')}>{t('settings.info.componentsTitle')}</SectionTitle>
+      <SectionTitle hint={t('settings.info.componentsIntro')}>{t('settings.info.componentsTitle')}</SectionTitle>
       {/* Wait for the deployment rather than flash the wrong copy. */}
       {failed && <DeploymentError retry={reload} />}
       {deployment && (
         <div data-new="built-in" className="@container flex flex-col divide-y divide-carbon-border/40">
           <AppUpdates deployment={deployment.deployment} fromStore={!!deployment.updatesFromStore} register={register} />
-          <YtdlpUpdates register={register} />
-          <JDUpdates register={register} />
+          <YtdlpRow tools={tools} result={results['yt-dlp']} />
+          <ToolRow
+            name="FFmpeg"
+            tool={tools?.ffmpeg}
+            href="https://ffmpeg.org/"
+            result={results.ffmpeg}
+          />
+          <ToolRow
+            name="Deno"
+            tool={tools?.deno}
+            href={tools?.deno?.version ? `https://github.com/denoland/deno/releases/tag/v${encodeURIComponent(tools.deno.version)}` : undefined}
+            result={results.deno}
+          />
+          {jd?.runtime && <JavaRow jd={jd} result={results.java} />}
+          <JDRow jd={jd} result={results.jdownloader} onRetry={() => void onRetrySetup()} />
           <ComponentRow
             name="GlimStone"
             version={GLIMSTONE_VERSION}
@@ -280,8 +378,32 @@ export function ComponentsCard({ hue }: { hue: number }) {
           />
         </div>
       )}
+      {deployment && (
+        <ToggleRow
+          label={t('settings.info.componentsAuto')}
+          hint={t('settings.info.componentsAutoHint')}
+          checked={cfg.componentsAutoUpdate}
+          onChange={(v) => patch({ componentsAutoUpdate: v })}
+        />
+      )}
       <div className="flex flex-wrap justify-end gap-3">
-        {deployment && <CheckAllButton checks={checks} />}
+        {deployment && (
+          <>
+            <Button
+              kind="secondary"
+              icon={running ? <IconSync /> : face.icon}
+              verdict={running ? undefined : face.verdict}
+              shake={shake}
+              disabled={running}
+              onClick={() => void onUpdate()}
+            >
+              {running ? t('settings.info.updating') : face.label}
+            </Button>
+            <span role="status" className="sr-only">
+              {face.verdict && !running ? face.label : ''}
+            </span>
+          </>
+        )}
         <NewsButton />
       </div>
     </Card>
@@ -450,7 +572,11 @@ function AppUpdates({ deployment, fromStore, register }: { deployment: string; f
 
   const available = !!check?.checked && check.available;
   // Not while an update is being put in place.
-  useCheck(register, 'knightloader', installing(progress) ? null : onCheck);
+  const handed = installing(progress) ? null : onCheck;
+  useEffect(() => {
+    register(handed);
+    return () => register(null);
+  }, [register, handed]);
   // No stamp yet, or 'dev' for an untagged build: the working title stands in.
   const stamped = version !== '' && version !== 'dev';
 
@@ -531,123 +657,41 @@ function compareVersions(a: string, b: string): number | null {
   return 0;
 }
 
-const errorText = (e: unknown) => String(e).replace(/^(Error|ApiError):\s*/, '');
-
 /**
- * YtdlpUpdates fetches a newer yt-dlp than the image carries when a site
- * breaks between image builds, by a button press or once a day while
- * ytdlpAutoUpdate is on. With the daily update off a fetched copy never moves
- * again, so the row warns when it has fallen behind the image's own
- * (Status.shadowed).
+ * YtdlpRow is yt-dlp, which moves faster than KnightLoader's releases. Beside
+ * what Update now came to it warns when the fetched copy has fallen behind
+ * the image's own (Status.shadowed), which happens while the switch is off,
+ * and when the fetched copy does not start and the other yt-dlp took over.
  */
-function YtdlpUpdates({ register }: { register: Register }) {
+function YtdlpRow({ tools, result }: { tools: MediaToolsStatus | null; result?: ComponentResult }) {
   const { t } = useT();
-  const { cfg, patch } = useDraft();
-
-  const [tools, setTools] = useState<MediaToolsStatus | null>(null);
-  const [latest, setLatest] = useState<YtdlpLatest | null>(null);
-  const [checking, setChecking] = useState(false);
-  const [fetching, setFetching] = useState(false);
-  // Separate outcomes, so a later check does not wipe a failed fetch.
-  const [fetched, setFetched] = useState('');
-  const [failed, setFailed] = useState('');
-
-  const load = useCallback(async () => {
-    try {
-      setTools(await fetchMediaTools());
-    } catch {
-      // The server is unreachable, which the page already shows.
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  const onCheck = useCallback(async (): Promise<Found> => {
-    setChecking(true);
-    setFetched('');
-    setFailed('');
-    let found: YtdlpLatest;
-    try {
-      found = await fetchYtdlpLatest();
-    } catch (e) {
-      // A GitHub refusal still answers 200, so this is the request failing.
-      found = { checked: false, compare: 'unknown', detail: errorText(e) };
-    }
-    setLatest(found);
-    setChecking(false);
-    return !found.checked ? 'failed' : found.compare === 'newer' ? 'newer' : 'current';
-  }, []);
-
-  // Once the stored switch has resolved, never before and not on every
-  // settings edit.
-  useEffect(() => {
-    if (cfg.ytdlpVersionCheck) void onCheck();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cfg.ytdlpVersionCheck]);
-
-  const onFetch = useCallback(async () => {
-    setFetching(true);
-    setFetched('');
-    setFailed('');
-    try {
-      const done = await updateYtdlp();
-      setFetched(done.version);
-      await load();
-      // The check result describes the release this just installed.
-      setLatest(null);
-    } catch (e) {
-      // The server's sentence names the asset and the failure.
-      setFailed(errorText(e));
-    } finally {
-      setFetching(false);
-    }
-  }, [load]);
-
   const ytdlp = tools?.ytdlp;
-  const managed = tools?.managed;
   const shadowed = tools?.shadowed;
   const managedRunning = ytdlp?.source === 'managed';
   // A fetched copy on record that is not what runs, for example deleted by a
   // virus scanner. The server has already gone back to the other yt-dlp.
-  const managedBroken = Boolean(managed) && !managedRunning;
-  // The fetched copy has fallen behind the image's own.
+  const managedBroken = Boolean(tools?.managed) && !managedRunning;
   const managedIsOlder =
     managedRunning &&
     Boolean(shadowed?.version) &&
     Boolean(ytdlp?.version) &&
     compareVersions(ytdlp?.version ?? '', shadowed?.version ?? '') === -1;
 
-  const busy = checking || fetching;
-  useCheck(register, 'yt-dlp', fetching ? null : onCheck);
-
-  // What the last action came to wins over a standing warning, and a warning
-  // over what the last check found.
-  let status: Status | null = null;
-  if (fetching) status = { text: t('settings.resolvers.toolsFetching') };
-  else if (checking) status = { text: t('settings.look.updatesChecking') };
-  else if (failed) status = { text: t('settings.info.statusFailed'), detail: t('settings.resolvers.toolsFetchFailed', { error: failed }), tone: 'fail' };
-  else if (fetched) status = { text: t('settings.info.statusDone'), tone: 'ok' };
-  else if (managedIsOlder)
+  // What Update now came to wins over a standing warning.
+  let status = runStatus(t, result);
+  if (!status && managedIsOlder)
     status = {
       text: t('settings.info.statusNote'),
-      detail: t('settings.resolvers.toolsShadowedOlder', {
-        current: ytdlp?.version ?? '',
-        system: shadowed?.version ?? '',
-      }),
+      detail: t('settings.resolvers.toolsShadowedOlder', { current: ytdlp?.version ?? '', system: shadowed?.version ?? '' }),
       tone: 'warn',
     };
-  else if (managedBroken)
+  else if (!status && managedBroken)
     status = {
       text: t('settings.resolvers.toolsFellBack'),
       detail: t('settings.resolvers.toolsManagedBroken', { path: tools?.managedPath ?? '' }),
       tone: 'warn',
     };
-  else if (latest && !latest.checked)
-    status = { text: t('settings.info.checkFailed'), detail: t('settings.resolvers.toolsCheckFailed', { error: latest.detail ?? '' }), tone: 'fail' };
-  else if (latest?.compare === 'newer') status = { text: t('settings.look.updatesAvailable', { version: latest.tag ?? '' }), tone: 'warn' };
-  else if (tools && !ytdlp?.found) status = { text: t('settings.resolvers.toolsNotFound'), tone: 'fail' };
+  else if (!status && tools && !ytdlp?.found) status = { text: t('settings.resolvers.toolsNotFound'), tone: 'fail' };
 
   return (
     <ComponentRow
@@ -655,184 +699,53 @@ function YtdlpUpdates({ register }: { register: Register }) {
       version={ytdlp?.found ? ytdlp.version : undefined}
       href={ytdlp?.version ? `https://github.com/yt-dlp/yt-dlp/releases/tag/${encodeURIComponent(ytdlp.version)}` : undefined}
       status={status}
-      actions={
-        <>
-          {/* Only after a check found a newer tag, or one it cannot order
-              against what is installed, so nobody fetches a version they were
-              not shown. */}
-          {latest?.checked && latest.tag && (latest.compare === 'newer' || latest.compare === 'unknown') && (
-            <GlyphButton icon={<IconInstall />} title={t('settings.resolvers.toolsFetch')} disabled={busy} onClick={() => void onFetch()} />
-          )}
-        </>
-      }
-      settings={
-        <>
-          <ToggleRow
-            checked={cfg.ytdlpVersionCheck}
-            onChange={(v) => patch({ ytdlpVersionCheck: v })}
-            label={t('settings.look.updatesAuto')}
-            hint={t('settings.resolvers.toolsAutoCheckHint')}
-          />
-          <ToggleRow
-            checked={cfg.ytdlpAutoUpdate}
-            onChange={(v) => patch({ ytdlpAutoUpdate: v })}
-            label={t('settings.look.updatesAutoUpdate')}
-            hint={t('settings.resolvers.toolsAutoUpdateHint')}
-          />
-        </>
-      }
     />
   );
 }
 
-/** How often, and how long, the row asks for JDownloader while it restarts for an update. */
-const JD_POLL = 2_000;
-const JD_BACK_WITHIN = 5 * 60_000;
-const JD_SETUP_POLL = 1_000;
-
-const JD_REFUSALS: Record<string, TranslationKey> = {
-  jdUnreachable: 'health.remedy.jd.unreachable',
-  jdUpdateCheckFailed: 'settings.look.jdCheckFailed',
-};
-
-/** jdRefusal says why the server could not ask JDownloader, in the reader's language when it knows the code. */
-function jdRefusal(t: Translate, e: unknown): string {
-  const key = e instanceof ApiError && e.code ? JD_REFUSALS[e.code] : undefined;
-  return key ? t(key) : errorText(e);
+/** ToolRow is ffmpeg or Deno: its version, what Update now came to, and whether there is one at all. */
+function ToolRow({
+  name,
+  tool,
+  href,
+  result,
+}: {
+  name: string;
+  tool?: MediaTool;
+  href?: string;
+  result?: ComponentResult;
+}) {
+  const { t } = useT();
+  let status = runStatus(t, result);
+  if (!status && tool && !tool.found) status = { text: t('settings.resolvers.toolsNotFound'), tone: 'fail' };
+  return <ComponentRow name={name} version={tool?.found ? tool.version : undefined} href={href} status={status} />;
 }
 
-const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * JavaRow is the Java runtime the desktop build fetched for its own
+ * JDownloader, with a newer one the server found and JDownloader does not run
+ * on yet.
+ */
+function JavaRow({ jd, result }: { jd: JDStatus; result?: ComponentResult }) {
+  const { t } = useT();
+  let status = runStatus(t, result);
+  if (!status && jd.runtimeUpdate) status = { text: t('settings.look.updatesAvailable', { version: jd.runtimeUpdate }), tone: 'warn' };
+  return <ComponentRow name="Java" version={jd.runtime?.version} href="https://adoptium.net/temurin/" status={status} />;
+}
 
 /**
- * JDUpdates is the headless JDownloader, which KnightLoader talks to. It also
- * updates itself; here a check asks it whether an update waits, and the update
- * has it install that and restart, after which the row waits until it answers
- * again and shows its new revision. While jdAutoUpdate is on, the server does
- * the same once a day when none of JD's downloads runs.
+ * JDRow is the headless JDownloader, which KnightLoader talks to. Update now
+ * has it install a waiting update, after which the card waits until it answers
+ * again and shows its new revision.
  */
-function JDUpdates({ register }: { register: Register }) {
+function JDRow({ jd, result, onRetry }: { jd: JDStatus | null; result?: ComponentResult; onRetry: () => void }) {
   const { t, lang } = useT();
-  const { cfg, patch } = useDraft();
-  const [jd, setJd] = useState<JDStatus | null>(null);
-  // Null before a check, then whether JDownloader answered it.
-  const [checked, setChecked] = useState<boolean | null>(null);
-  const [available, setAvailable] = useState(false);
-  const [checking, setChecking] = useState(false);
-  const [restarting, setRestarting] = useState(false);
-  const [back, setBack] = useState(false);
-  const [failed, setFailed] = useState('');
-  // Ends the wait for the restart once the page is left.
-  const mounted = useRef(true);
-
-  // Follows the desktop build's own JDownloader while it is being set up, so
-  // the download of its Java runtime shows.
-  const follow = useCallback(async (first: JDStatus) => {
-    let st = first;
-    setJd(st);
-    while (mounted.current && !st.configured && st.setup === 'starting') {
-      await pause(JD_SETUP_POLL);
-      st = await fetchJDStatus().catch(() => st);
-      if (mounted.current) setJd(st);
-    }
-  }, []);
-
-  useEffect(() => {
-    mounted.current = true;
-    void fetchJDStatus()
-      .then(follow)
-      .catch(() => {});
-    return () => {
-      mounted.current = false;
-    };
-  }, [follow]);
-
-  const onRetry = useCallback(async () => {
-    try {
-      await follow(await retryJDSetup());
-    } catch (e) {
-      setJd((prev) => prev && { ...prev, setup: 'failed', detail: errorText(e) });
-    }
-  }, [follow]);
-
-  const onCheck = useCallback(async (): Promise<Found> => {
-    setChecking(true);
-    setFailed('');
-    setBack(false);
-    let result: Found;
-    try {
-      const found = await fetchJDUpdate();
-      setChecked(found.checked);
-      setAvailable(found.available);
-      result = !found.checked ? 'failed' : found.available ? 'newer' : 'current';
-    } catch (e) {
-      setChecked(false);
-      setAvailable(false);
-      setFailed(jdRefusal(t, e));
-      result = 'failed';
-    }
-    setChecking(false);
-    return result;
-  }, [t]);
-
-  const onUpdate = useCallback(async () => {
-    setFailed('');
-    setBack(false);
-    try {
-      await updateJD();
-    } catch (e) {
-      setFailed(jdRefusal(t, e));
-      return;
-    }
-    setRestarting(true);
-    const before = jd?.version;
-    const until = Date.now() + JD_BACK_WITHIN;
-    let wentDown = false;
-    while (mounted.current && Date.now() < until) {
-      await pause(JD_POLL);
-      const now = await fetchJDStatus().catch(() => null);
-      if (!now?.reachable) {
-        wentDown = true;
-        continue;
-      }
-      // JDownloader can still answer for a moment before it goes down, so the
-      // old revision only counts once it has been away.
-      if (wentDown || now.version !== before) {
-        setJd(now);
-        setChecked(null);
-        setAvailable(false);
-        setRestarting(false);
-        setBack(true);
-        return;
-      }
-    }
-    if (!mounted.current) return;
-    setRestarting(false);
-    setFailed(t('settings.look.jdNotBack'));
-  }, [jd, t]);
-
   // While the desktop build sets up its own JDownloader, or after that failed,
   // the row says so.
-  const setupNote = jd && !jd.configured ? jdMissing(t, lang, jd) : null;
-  // What a check on this page found, or else what the server's own question
-  // found shortly after start or on its daily run.
-  const waits = checked === null ? Boolean(jd?.updateWaits) : checked && available;
-  let status: Status | null = null;
-  if (setupNote) status = setupNote;
-  else if (restarting) status = { text: t('settings.look.jdUpdating') };
-  else if (checking) status = { text: t('settings.look.updatesChecking') };
-  else if (failed) status = { text: t('settings.info.statusFailed'), detail: failed, tone: 'fail' };
-  else if (back) status = { text: t('settings.info.statusDone'), tone: 'ok' };
-  else if (jd && !jd.reachable) status = { text: t('health.state.failed'), tone: 'fail' };
-  else if (waits || jd?.runtimeUpdate)
-    status = {
-      text: t('settings.info.updatesFound', { n: Number(waits) + Number(Boolean(jd?.runtimeUpdate)) }),
-      detail: jd?.runtimeUpdate && `Java ${jd.runtimeUpdate}`,
-      tone: 'warn',
-    };
-  const busy = checking || restarting;
-  // Without a JDownloader there is nothing to ask.
-  useCheck(register, 'jdownloader', jd?.configured && !restarting ? onCheck : null);
-
+  let status = jd && !jd.configured ? jdMissing(t, lang, jd) : null;
+  if (!status) status = runStatus(t, result);
+  if (!status && jd && !jd.reachable) status = { text: t('health.state.failed'), tone: 'fail' };
+  else if (!status && jd?.updateWaits) status = { text: t('settings.info.updatesFound', { n: 1 }), tone: 'warn' };
   return (
     <ComponentRow
       name={t('health.part.jd')}
@@ -840,42 +753,7 @@ function JDUpdates({ register }: { register: Register }) {
       href="https://jdownloader.org/"
       status={status}
       data-new="jd-tool"
-      actions={
-        <>
-          {jd?.setup === 'failed' && <GlyphButton icon={<IconRetry />} title={t('common.retry')} onClick={() => void onRetry()} />}
-          {/* Only after a check found an update, as with yt-dlp. */}
-          {jd?.configured && (restarting || waits) && (
-            <span data-new="jd-update" className="flex items-center gap-2">
-              <GlyphButton
-                icon={<IconSync />}
-                title={restarting ? t('settings.look.jdUpdating') : t('settings.look.jdUpdate')}
-                disabled={busy}
-                onClick={() => void onUpdate()}
-              />
-            </span>
-          )}
-        </>
-      }
-      settings={
-        jd?.configured && (
-          <div data-new="jd-auto-update" className="flex flex-col gap-3">
-            <div data-new="jd-check">
-              <ToggleRow
-                checked={cfg.jdVersionCheck}
-                onChange={(v) => patch({ jdVersionCheck: v })}
-                label={t('settings.look.updatesAuto')}
-                hint={t('settings.look.jdAutoCheckHint')}
-              />
-            </div>
-            <ToggleRow
-              checked={cfg.jdAutoUpdate}
-              onChange={(v) => patch({ jdAutoUpdate: v })}
-              label={t('settings.look.updatesAutoUpdate')}
-              hint={t('settings.look.jdAutoUpdateHint')}
-            />
-          </div>
-        )
-      }
+      actions={jd?.setup === 'failed' && <GlyphButton icon={<IconRetry />} title={t('common.retry')} onClick={onRetry} />}
     />
   );
 }
