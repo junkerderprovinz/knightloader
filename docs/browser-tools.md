@@ -369,6 +369,58 @@ page's crawled links take the flag of the link they came from. A probe that
 may sign in is cached apart from one that may not, so its answer never
 reaches a link added below admin.
 
+### Signing in without the extension
+
+KnightLoader can also run the sign-in itself (`internal/signinbrowser`), in a
+headless Chromium-family browser started on demand: `KL_CHROMIUM` where it
+is set, which the image sets to its Chromium, and otherwise an installed one
+(Edge on Windows, found through App Paths or Program Files, and on macOS and
+Linux the first of Chrome, Edge, Brave and Chromium). Each browser gets a
+profile of its own under the data folder, so a sign-in outlives a restart.
+On Linux KnightLoader speaks the DevTools protocol over
+`--remote-debugging-pipe`, so no port is open. Windows cannot hand a child
+that pipe, so there it uses a loopback port Chromium picks. The routes need
+admin, and none is open to the phrase group:
+
+- `GET /api/signinbrowser` says whether a browser is there to sign in with,
+  which one, and which site is open in it.
+- `POST /api/signinbrowser/{id}/open` with `{"width", "height", "scale"}`
+  opens it on the site's login page, sized to the panel that shows it. One
+  window runs at a time, and opening another site closes the first and stores
+  its session.
+- `GET /api/signinbrowser/stream` is a WebSocket. Screencast frames come down
+  as JPEG binary messages, the page's host, a blocked page or a sign-in as
+  JSON. The page's pointer, wheel, keys and composed text go up as JSON and are
+  replayed with `Input.dispatchMouseEvent`, `dispatchKeyEvent` and
+  `insertText`. Nothing else of the protocol is reachable.
+- `POST /api/signinbrowser/close` closes it and answers how the site stands.
+
+The desktop window cannot open a WebSocket, so there the stream travels over
+Wails events instead (`desktop/signin.go`): the page calls
+`SignInBridge.Watch` with a stream id, frames arrive as base64 JPEG events and
+the page's state as JSON events, and its input goes up through
+`SignInBridge.Input`.
+
+Every request the browser makes stops at the guard (`Fetch.requestPaused`).
+A page's top frame may show only https on the site's own domains and the
+providers it signs in with, one host each: `accounts.google.com`,
+`consent.google.com`, `gds.google.com` and `myaccount.google.com` for YouTube,
+and Google's, Apple's and Facebook's sign-in hosts for Patreon. Frames and resources the pages
+load may come from anywhere on the internet but never from loopback, the
+private ranges or link-local addresses, which is also asked of DNS. A blocked
+navigation answers No Content, so the page stays where it was, and a popup it
+was the first page of is closed. A top frame that lands on `file:`, `data:` or a
+browser page is sent back to the login page, and downloads are denied.
+
+While the window is open the site's cookies are read every few seconds with
+`Storage.getCookies`. Once they carry a sign-in they go through the same check
+as the extension's hand-over, and `GET /api/sitelogins` names the session's
+source `kl-browser`. They are read again when the window closes and whenever a
+download needs the session while it is open. A sign-in that disappears while
+the window is open, because the user signed out of the site there, forgets a
+session the browser stored. The window closes after five minutes without input
+or half a minute after its page went away.
+
 ### The download button on videos
 
 On YouTube, Vimeo, Dailymotion, Twitch and Bilibili, and on any other site

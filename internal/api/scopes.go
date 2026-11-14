@@ -271,6 +271,10 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/sitelogins/{id}/reconnect": apitoken.ScopeAdmin,
 	"POST /api/sitelogins/{id}/handover":  apitoken.ScopeAdmin,
 	"POST /api/sitelogins/{id}/remove":    apitoken.ScopeAdmin,
+	"GET /api/signinbrowser":              apitoken.ScopeAdmin,
+	"GET /api/signinbrowser/stream":       apitoken.ScopeAdmin,
+	"POST /api/signinbrowser/close":       apitoken.ScopeAdmin,
+	"POST /api/signinbrowser/{id}/open":   apitoken.ScopeAdmin,
 
 	"GET /api/stats/speed":        apitoken.ScopeRead,
 	"GET /api/stats/speed/day":    apitoken.ScopeRead,

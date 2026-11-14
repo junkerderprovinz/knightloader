@@ -2553,6 +2553,35 @@ export async function reconnectSiteLogin(id: string): Promise<SiteLogin> {
   return json<SiteLogin>(await post(siteLoginPath(id, 'reconnect'), {}));
 }
 
+// The sign-in browser (internal/signinbrowser): a browser KnightLoader runs
+// itself, which the user signs in to a site with from this page.
+
+/** Whether a browser is there to sign in with, and the site open in it. */
+export interface SignInBrowserStatus {
+  available: boolean;
+  site: string;
+}
+
+export async function fetchSignInBrowser(): Promise<SignInBrowserStatus> {
+  return json<SignInBrowserStatus>(await fetch('/api/signinbrowser'));
+}
+
+/** openSignInBrowser opens the sign-in browser on a site's login page, sized in CSS pixels. */
+export async function openSignInBrowser(id: string, width: number, height: number, scale: number): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(`/api/signinbrowser/${encodeURIComponent(id)}/open`, { width, height, scale }));
+}
+
+/** closeSignInBrowser closes it, storing the session it holds, and answers how its site stands. */
+export async function closeSignInBrowser(): Promise<SiteLogin | null> {
+  const r = await post('/api/signinbrowser/close', {});
+  return r.status === 204 ? null : json<SiteLogin>(r);
+}
+
+/** signInBrowserSocket streams the page: JPEG frames and its state down, the user's input up. */
+export function signInBrowserSocket(): WebSocket {
+  return new WebSocket(socketURL('/api/signinbrowser/stream'));
+}
+
 // Header profiles hold a user's own request headers for one origin: a session
 // cookie, a Referer, Basic auth. Values are sealed in the credential store and
 // never come back, so an editing form re-sends REDACTED_HEADER for every line it

@@ -221,9 +221,12 @@ func (a *App) linkAddedByAdmin(rawurl string) bool {
 	return false
 }
 
-// sessionOf is the site's session for yt-dlp: a browser's first, the one the
-// extension handed over otherwise.
+// sessionOf is the site's session for yt-dlp: an open sign-in browser's own
+// first, then a browser's here, the one handed over otherwise.
 func (a *App) sessionOf(site sitelogin.Site) string {
+	if live, ok := a.liveSignInBrowserJar(site, a.siteStore().Session(site.ID)); ok {
+		return live
+	}
 	if scan := a.browserSession(site, browserScanFresh); scan.jar != "" {
 		return scan.jar
 	}

@@ -32,6 +32,7 @@ import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconClose, IconSave, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 import { SiteLoginDialog, useSignInWays } from './SiteLoginDialog';
+import { SignInBrowserWindow, useSignInBrowserAvailable } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
 
 // Faster than the 30s account health poll, since a new login moves from queued
@@ -132,9 +133,14 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
 /**
  * siteLoginRow is one site signed into through the browser as an AccountTable
  * row. Removing it signs KnightLoader out whatever the session came from, and
- * leaves the browser signed in.
+ * leaves the browser signed in. here opens the sign-in browser on the site.
  */
-function siteLoginRow(site: SiteLogin, ways: SignInWays, actions: { onEdit: () => void; onRemove: () => void }): AccountRow {
+function siteLoginRow(
+  site: SiteLogin,
+  ways: SignInWays,
+  actions: { onEdit: () => void; onRemove: () => void },
+  here?: { label: string; onSelect: () => void },
+): AccountRow {
   return {
     key: `site:${site.id}`,
     iconHost: site.host,
@@ -144,6 +150,7 @@ function siteLoginRow(site: SiteLogin, ways: SignInWays, actions: { onEdit: () =
     expiry: site.expires,
     onEdit: actions.onEdit,
     onRemove: site.state !== 'signedOut' ? actions.onRemove : undefined,
+    menu: here ? [{ id: 'actions', items: [{ id: 'signin-here', ...here }] }] : undefined,
   };
 }
 
@@ -183,6 +190,8 @@ export function HosterLoginSection({
   // The login or site awaiting removal confirmation.
   const [confirming, setConfirming] = useState<HosterLogin | null>(null);
   const [confirmingSite, setConfirmingSite] = useState<SiteLogin | null>(null);
+  const [browsingSite, setBrowsingSite] = useState<SiteLogin | null>(null);
+  const browserHere = useSignInBrowserAvailable();
 
   const rows = data.logins ?? [];
   const hasRows = rows.length > 0 || data.sites.length > 0;
@@ -202,10 +211,12 @@ export function HosterLoginSection({
               }),
             ),
             ...data.sites.map((site) =>
-              siteLoginRow(site, data.ways, {
-                onEdit: () => setEditingSite(site),
-                onRemove: () => setConfirmingSite(site),
-              }),
+              siteLoginRow(
+                site,
+                data.ways,
+                { onEdit: () => setEditingSite(site), onRemove: () => setConfirmingSite(site) },
+                browserHere ? { label: t('signInBrowser.signInHere'), onSelect: () => setBrowsingSite(site) } : undefined,
+              ),
             ),
           ]}
         />
@@ -247,6 +258,10 @@ export function HosterLoginSection({
           onChanged={data.putSite}
           onClose={() => setEditingSite(null)}
         />
+      )}
+
+      {browsingSite && (
+        <SignInBrowserWindow site={browsingSite} hue={2} onChanged={data.putSite} onClose={() => setBrowsingSite(null)} />
       )}
 
       {confirming && (
