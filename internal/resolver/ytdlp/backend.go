@@ -70,6 +70,12 @@ type Backend struct {
 	// accounts that download a lot while signed in.
 	SignIn func(rawurl string) string
 
+	// MaySignIn, when set, reports whether a task's runs may carry the
+	// sessions of Sessions and SignIn, which are the owner's. Without it no
+	// run carries one. A probe carries them when its context says so (see
+	// WithSignIn).
+	MaySignIn func(taskID string) bool
+
 	// Headers, when set, returns the request headers a browser handed over
 	// with a task for rawurl, or nil: Cookie, Referer and User-Agent (see
 	// browserArgs).
@@ -333,7 +339,7 @@ func (b *Backend) run(taskID, url string) {
 // Remove that waits for the run would otherwise wait for itself.
 func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 	u, report := b.attempt(ctx, r, taskID, url, "")
-	if report && u.Status == core.StatusError && NeedsSignIn(u.Reason) {
+	if report && u.Status == core.StatusError && NeedsSignIn(u.Reason) && b.maySignIn(taskID) {
 		if jar := b.signInSession(url); jar != "" {
 			u, report = b.attempt(ctx, r, taskID, url, jar)
 		}
@@ -405,7 +411,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn 
 		sent = b.Headers(taskID, url)
 	}
 	jar := signIn
-	if jar == "" {
+	if jar == "" && b.maySignIn(taskID) {
 		jar = b.session(url)
 	}
 	jar = withBrowserCookies(jar, url, sent["Cookie"], time.Now())
@@ -1169,6 +1175,24 @@ func (b *Backend) session(rawurl string) string {
 	return b.Sessions(rawurl)
 }
 
+func (b *Backend) maySignIn(taskID string) bool {
+	return b.MaySignIn != nil && b.MaySignIn(taskID)
+}
+
+type signInKey struct{}
+
+// WithSignIn lets the probes run under ctx carry the owner's sessions, for a
+// link somebody with every right asked about.
+func WithSignIn(ctx context.Context) context.Context {
+	return context.WithValue(ctx, signInKey{}, true)
+}
+
+// SignInAllowed reports whether ctx lets a probe carry the owner's sessions.
+func SignInAllowed(ctx context.Context) bool {
+	v, _ := ctx.Value(signInKey{}).(bool)
+	return v
+}
+
 // signInSession is the session to try once more with, or "" when there is
 // none or the run already had the one that always goes along.
 func (b *Backend) signInSession(rawurl string) string {
@@ -1191,6 +1215,10 @@ func (b *Backend) signInSession(rawurl string) string {
 // sent are the headers a browser handed over with the link, or nil; they go to
 // yt-dlp as they do for the download (see browserArgs).
 func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]string) (ProbeResult, error) {
+	if !SignInAllowed(ctx) {
+		res, _, err := b.probeTitle(ctx, url, sent, "")
+		return res, err
+	}
 	res, reason, err := b.probeTitle(ctx, url, sent, b.session(url))
 	if err != nil && NeedsSignIn(reason) {
 		if jar := b.signInSession(url); jar != "" {

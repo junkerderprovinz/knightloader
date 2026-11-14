@@ -736,6 +736,7 @@ func TestRunHandsTheSessionOverAndTakesItAwayAgain(t *testing.T) {
 	b := NewBackend(os.Args[0], dir, rec.add)
 	b.Options = func(string) Options { return Options{} }
 	b.Sessions = func(string) string { return jar }
+	b.MaySignIn = func(string) bool { return true }
 	b.run("task-1", "https://www.patreon.com/posts/a-post-1")
 
 	argv, err := os.ReadFile(filepath.Join(dir, "argv.txt"))
@@ -774,6 +775,7 @@ func TestRunNeverPutsTheCookieTextInAnUpdate(t *testing.T) {
 	b := NewBackend(os.Args[0], dir, rec.add)
 	b.Options = func(string) Options { return Options{} }
 	b.SignIn = func(string) string { return jar }
+	b.MaySignIn = func(string) bool { return true }
 	b.run("task-1", "https://youtube.com/watch?v=x")
 
 	for _, u := range rec.all() {
@@ -812,6 +814,7 @@ func TestRunPassesNoCookiesWithoutASession(t *testing.T) {
 	b.Options = func(string) Options { return Options{} }
 	b.Sessions = func(string) string { return "" }
 	b.SignIn = func(string) string { t.Error("a download that went through asked for a sign-in"); return "jar" }
+	b.MaySignIn = func(string) bool { return true }
 	b.run("task-1", "https://youtube.com/watch?v=x")
 
 	argv, err := os.ReadFile(filepath.Join(dir, "argv.txt"))
@@ -834,6 +837,7 @@ func signInBackend(t *testing.T, signIn func(string) string) (*Backend, string, 
 	b := NewBackend(os.Args[0], dir, rec.add)
 	b.Options = func(string) Options { return Options{} }
 	b.SignIn = signIn
+	b.MaySignIn = func(string) bool { return true }
 	return b, dir, rec
 }
 
@@ -902,11 +906,35 @@ func TestASessionThatAlwaysGoesAlongIsNotTriedAgain(t *testing.T) {
 	}
 }
 
+// The sessions are the owner's, so a task somebody below admin added gets
+// neither the one that always goes along nor the second try.
+func TestATaskThatMayNotSignInGetsNoSessionAndNoSecondTry(t *testing.T) {
+	b, dir, rec := signInBackend(t, func(string) string { return signedInJar })
+	b.Sessions = func(string) string { return signedInJar }
+	var asked []string
+	b.MaySignIn = func(id string) bool { asked = append(asked, id); return false }
+	b.run("task-1", "https://www.youtube.com/watch?v=members")
+
+	if got := rec.last(); got.Status != core.StatusError || got.Reason != core.ReasonMembersOnly {
+		t.Errorf("last update = %+v, want the members-only failure", got)
+	}
+	if runs := runsOf(t, dir); runs != 1 {
+		t.Errorf("yt-dlp ran %d times, want once", runs)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "jar-seen.txt")); !os.IsNotExist(err) {
+		t.Error("a session went along with a task that may not sign in")
+	}
+	if len(asked) == 0 || asked[0] != "task-1" {
+		t.Errorf("MaySignIn was asked about %q, want the task", asked)
+	}
+}
+
 func TestAFailureNoSignInClearsIsNotTriedAgain(t *testing.T) {
 	t.Setenv(runHelperEnv, "forged:full")
 	b := NewBackend(os.Args[0], t.TempDir(), func(string, core.Update) {})
 	b.Options = func(string) Options { return Options{} }
 	b.SignIn = func(string) string { t.Error("a failure no sign-in clears asked for one"); return signedInJar }
+	b.MaySignIn = func(string) bool { return true }
 	b.run("task-1", "https://example.invalid/watch?v=x")
 }
 
@@ -1561,6 +1589,7 @@ func TestRunHandsAnAlwaysSessionOverOnTheFirstRun(t *testing.T) {
 	b.Options = func(string) Options { return Options{} }
 	var askedFor string
 	b.Sessions = func(rawurl string) string { askedFor = rawurl; return session }
+	b.MaySignIn = func(string) bool { return true }
 	b.run("task-1", "https://www.patreon.com/posts/a-post-1")
 
 	if askedFor != "https://www.patreon.com/posts/a-post-1" {

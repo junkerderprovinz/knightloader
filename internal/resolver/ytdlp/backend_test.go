@@ -208,12 +208,23 @@ func TestProbeTitleReturnsTheParsedTitleOnSuccess(t *testing.T) {
 func TestProbeTitleTriesAgainWithTheSignInSession(t *testing.T) {
 	b := fakeYtdlpBackend(t, "signin")
 	b.SignIn = func(string) string { return signedInJar }
-	got, err := b.ProbeTitle(context.Background(), "https://www.youtube.com/watch?v=members", nil)
+	got, err := b.ProbeTitle(WithSignIn(context.Background()), "https://www.youtube.com/watch?v=members", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
 	if got.Title != "For Members" {
 		t.Errorf("ProbeTitle().Title = %q, want the signed-in answer", got.Title)
+	}
+}
+
+// A probe that was not let sign in asks for no session, so its answer shows
+// what anybody would see.
+func TestProbeTitleWithoutLeaveUsesNoSession(t *testing.T) {
+	b := fakeYtdlpBackend(t, "signin")
+	b.Sessions = func(string) string { t.Error("a probe without leave asked for the session"); return signedInJar }
+	b.SignIn = func(string) string { t.Error("a probe without leave asked for a sign-in"); return signedInJar }
+	if _, err := b.ProbeTitle(context.Background(), "https://www.youtube.com/watch?v=members", nil); err == nil {
+		t.Fatal("a members-only video probed without a session succeeded")
 	}
 }
 

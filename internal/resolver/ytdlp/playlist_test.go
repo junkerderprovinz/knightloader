@@ -137,12 +137,21 @@ func TestTheListingCarriesASignedInSitesSession(t *testing.T) {
 	const session = "# Netscape HTTP Cookie File\n.patreon.com\tTRUE\t/\tTRUE\t0\tsession_id\tsigned-in-session\n"
 	b := fakeYtdlpBackend(t, "browser")
 	b.Sessions = func(string) string { return session }
-	pl, err := b.ProbePlaylist(context.Background(), "https://www.patreon.com/posts/a-post-1")
+	pl, err := b.ProbePlaylist(WithSignIn(context.Background()), "https://www.patreon.com/posts/a-post-1")
 	if err != nil {
 		t.Fatal(err)
 	}
 	args, jar, _ := strings.Cut(pl.Title, "\n")
 	if !strings.Contains(args, "--cookies") || strings.TrimSpace(jar) != strings.TrimSpace(session) {
 		t.Errorf("the listing ran with %s and the jar %q, want the site's session", args, jar)
+	}
+}
+
+// A listing for a link added below admin lists what anybody would see.
+func TestAListingWithoutLeaveCarriesNoSession(t *testing.T) {
+	b := fakeYtdlpBackend(t, "browser")
+	b.Sessions = func(string) string { t.Error("a listing without leave asked for the session"); return "" }
+	if _, err := b.ProbePlaylist(context.Background(), "https://www.patreon.com/posts/a-post-1"); err != nil {
+		t.Fatal(err)
 	}
 }
