@@ -273,6 +273,23 @@ func ytdlpHelper(mode string) {
 		fmt.Fprintln(os.Stderr, botCheckStderr)
 		fmt.Fprintln(os.Stderr, "WARNING: unable to obtain file audio codec with ffprobe")
 		os.Exit(1)
+	case "signin":
+		// Members only, unless a jar with a signed-in SID comes along. Every
+		// run leaves a line in runs.txt.
+		f, _ := os.OpenFile(filepath.Join(dir, "runs.txt"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+		fmt.Fprintln(f, "run")
+		f.Close()
+		for i, a := range os.Args {
+			if a == "--cookies" && i+1 < len(os.Args) {
+				b, _ := os.ReadFile(os.Args[i+1])
+				_ = os.WriteFile(filepath.Join(dir, "jar-seen.txt"), b, 0o644)
+				if strings.Contains(string(b), "\tSID\tsigned-in\n") {
+					os.Exit(0)
+				}
+			}
+		}
+		fmt.Fprintln(os.Stderr, membersOnlyStderr)
+		os.Exit(1)
 	case "cookies":
 		// Records the argv and the jar the child could read.
 		_ = os.WriteFile(filepath.Join(dir, "argv.txt"), []byte(strings.Join(os.Args[1:], "\n")), 0o644)
@@ -709,17 +726,17 @@ func TestRunWithoutTheLiveSwitchReadsThePlainProgressShape(t *testing.T) {
 	}
 }
 
-// The jar is passed as --cookies, readable by the child and gone once it
+// The session is passed as --cookies, readable by the child and gone once it
 // exits.
-func TestRunHandsTheCookieJarOverAndTakesItAwayAgain(t *testing.T) {
-	const jar = "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tSID\ttop-secret-session\n"
+func TestRunHandsTheSessionOverAndTakesItAwayAgain(t *testing.T) {
+	const jar = "# Netscape HTTP Cookie File\n.patreon.com\tTRUE\t/\tTRUE\t0\tsession_id\ttop-secret-session\n"
 	t.Setenv(runHelperEnv, "cookies:full")
 	dir := t.TempDir()
 	rec := &recorder{}
 	b := NewBackend(os.Args[0], dir, rec.add)
-	b.Options = func(string) Options { return Options{Cookies: true} }
-	b.Cookies = func(string) string { return jar }
-	b.run("task-1", "https://youtube.com/watch?v=x")
+	b.Options = func(string) Options { return Options{} }
+	b.Sessions = func(string) string { return jar }
+	b.run("task-1", "https://www.patreon.com/posts/a-post-1")
 
 	argv, err := os.ReadFile(filepath.Join(dir, "argv.txt"))
 	if err != nil {
@@ -740,7 +757,7 @@ func TestRunHandsTheCookieJarOverAndTakesItAwayAgain(t *testing.T) {
 		t.Fatalf("the child could not read the jar: %v", err)
 	}
 	if string(seen) != jar {
-		t.Errorf("the child read %q, want the stored jar verbatim", seen)
+		t.Errorf("the child read %q, want the session verbatim", seen)
 	}
 	if _, err := os.Stat(cookiePath); !os.IsNotExist(err) {
 		t.Errorf("the cookie file outlived the download at %s (stat err = %v)", cookiePath, err)
@@ -751,12 +768,12 @@ func TestRunHandsTheCookieJarOverAndTakesItAwayAgain(t *testing.T) {
 func TestRunNeverPutsTheCookieTextInAnUpdate(t *testing.T) {
 	const secret = "top-secret-session"
 	jar := "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tSID\t" + secret + "\n"
-	t.Setenv(runHelperEnv, "cookies:full")
+	t.Setenv(runHelperEnv, "signin:full")
 	dir := t.TempDir()
 	rec := &recorder{}
 	b := NewBackend(os.Args[0], dir, rec.add)
-	b.Options = func(string) Options { return Options{Cookies: true} }
-	b.Cookies = func(string) string { return jar }
+	b.Options = func(string) Options { return Options{} }
+	b.SignIn = func(string) string { return jar }
 	b.run("task-1", "https://youtube.com/watch?v=x")
 
 	for _, u := range rec.all() {
@@ -788,25 +805,109 @@ func TestRunNamesTheCauseOnTheFailedUpdate(t *testing.T) {
 	}
 }
 
-func TestRunAsksForNoCookiesUntilTheSwitchIsOn(t *testing.T) {
+func TestRunPassesNoCookiesWithoutASession(t *testing.T) {
 	t.Setenv(runHelperEnv, "cookies:full")
 	dir := t.TempDir()
-	asked := false
 	b := NewBackend(os.Args[0], dir, func(string, core.Update) {})
 	b.Options = func(string) Options { return Options{} }
-	b.Cookies = func(string) string { asked = true; return "jar" }
+	b.Sessions = func(string) string { return "" }
+	b.SignIn = func(string) string { t.Error("a download that went through asked for a sign-in"); return "jar" }
 	b.run("task-1", "https://youtube.com/watch?v=x")
 
-	if asked {
-		t.Errorf("the cookie store was read with Options.Cookies off")
-	}
 	argv, err := os.ReadFile(filepath.Join(dir, "argv.txt"))
 	if err != nil {
 		t.Fatalf("the helper recorded no argv: %v", err)
 	}
 	if strings.Contains(string(argv), "--cookies") {
-		t.Errorf("--cookies was passed with the switch off: %s", argv)
+		t.Errorf("--cookies was passed without a session: %s", argv)
 	}
+}
+
+// signedInJar is a session the "signin" helper lets through.
+const signedInJar = "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tSID\tsigned-in\n"
+
+func signInBackend(t *testing.T, signIn func(string) string) (*Backend, string, *recorder) {
+	t.Helper()
+	t.Setenv(runHelperEnv, "signin:full")
+	dir := t.TempDir()
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], dir, rec.add)
+	b.Options = func(string) Options { return Options{} }
+	b.SignIn = signIn
+	return b, dir, rec
+}
+
+func runsOf(t *testing.T, dir string) int {
+	t.Helper()
+	raw, _ := os.ReadFile(filepath.Join(dir, "runs.txt"))
+	return strings.Count(string(raw), "\n")
+}
+
+// A video goes out without a session first, and only a refusal that a
+// sign-in clears brings one along, at once.
+func TestAFailureASignInClearsIsTriedOnceMoreWithTheSession(t *testing.T) {
+	var asked []string
+	b, dir, rec := signInBackend(t, func(rawurl string) string { asked = append(asked, rawurl); return signedInJar })
+	b.run("task-1", "https://www.youtube.com/watch?v=members")
+
+	if got := rec.last(); got.Status != core.StatusDone {
+		t.Fatalf("last update = %+v, want Done after the signed-in try", got)
+	}
+	if runs := runsOf(t, dir); runs != 2 {
+		t.Errorf("yt-dlp ran %d times, want twice", runs)
+	}
+	if !slices.Equal(asked, []string{"https://www.youtube.com/watch?v=members"}) {
+		t.Errorf("the sign-in was asked for %q", asked)
+	}
+	seen, _ := os.ReadFile(filepath.Join(dir, "jar-seen.txt"))
+	if string(seen) != signedInJar {
+		t.Errorf("the second run read %q, want the sign-in session", seen)
+	}
+}
+
+func TestWithoutASessionToTryTheSignInFailureStands(t *testing.T) {
+	b, dir, rec := signInBackend(t, func(string) string { return "" })
+	b.run("task-1", "https://www.youtube.com/watch?v=members")
+
+	if got := rec.last(); got.Status != core.StatusError || got.Reason != core.ReasonMembersOnly {
+		t.Errorf("last update = %+v, want the members-only failure", got)
+	}
+	if runs := runsOf(t, dir); runs != 1 {
+		t.Errorf("yt-dlp ran %d times, want once", runs)
+	}
+}
+
+func TestASessionThatDoesNotHelpIsTriedOnlyOnce(t *testing.T) {
+	const stale = "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tSID\tsigned-out\n"
+	b, dir, rec := signInBackend(t, func(string) string { return stale })
+	b.run("task-1", "https://www.youtube.com/watch?v=members")
+
+	if got := rec.last(); got.Status != core.StatusError || got.Reason != core.ReasonMembersOnly {
+		t.Errorf("last update = %+v, want the members-only failure", got)
+	}
+	if runs := runsOf(t, dir); runs != 2 {
+		t.Errorf("yt-dlp ran %d times, want twice", runs)
+	}
+}
+
+// A session that already went along gets no second try of its own.
+func TestASessionThatAlwaysGoesAlongIsNotTriedAgain(t *testing.T) {
+	const stale = "# Netscape HTTP Cookie File\n.patreon.com\tTRUE\t/\tTRUE\t0\tsession_id\tsigned-out\n"
+	b, dir, _ := signInBackend(t, func(string) string { return stale })
+	b.Sessions = func(string) string { return stale }
+	b.run("task-1", "https://www.patreon.com/posts/a-post-1")
+
+	if runs := runsOf(t, dir); runs != 1 {
+		t.Errorf("yt-dlp ran %d times, want once", runs)
+	}
+}
+
+func TestAFailureNoSignInClearsIsNotTriedAgain(t *testing.T) {
+	t.Setenv(runHelperEnv, "forged:full")
+	b := NewBackend(os.Args[0], t.TempDir(), func(string, core.Update) {})
+	b.Options = func(string) Options { return Options{} }
+	b.SignIn = func(string) string { t.Error("a failure no sign-in clears asked for one"); return signedInJar }
+	b.run("task-1", "https://example.invalid/watch?v=x")
 }
 
 // Halt stops yt-dlp without a word to the app and returns once it has exited,
@@ -1450,15 +1551,14 @@ func TestDiscardLeavesWhatIsOutsideTheTasksFolder(t *testing.T) {
 	}
 }
 
-// Signing in to a site is the choice to use its session, so the switch for
-// pasted jars does not stand in the way.
-func TestRunHandsASignedInSitesSessionOverWithTheSwitchOff(t *testing.T) {
+// A site whose session always goes along, such as Patreon, gets it on the
+// first run.
+func TestRunHandsAnAlwaysSessionOverOnTheFirstRun(t *testing.T) {
 	const session = "# Netscape HTTP Cookie File\n.patreon.com\tTRUE\t/\tTRUE\t0\tsession_id\tsigned-in-session\n"
 	t.Setenv(runHelperEnv, "cookies:full")
 	dir := t.TempDir()
 	b := NewBackend(os.Args[0], dir, func(string, core.Update) {})
 	b.Options = func(string) Options { return Options{} }
-	b.Cookies = func(string) string { return "a pasted jar" }
 	var askedFor string
 	b.Sessions = func(rawurl string) string { askedFor = rawurl; return session }
 	b.run("task-1", "https://www.patreon.com/posts/a-post-1")

@@ -268,7 +268,6 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/sitelogins/handover":       apitoken.ScopeAdmin,
 	"POST /api/sitelogins/{id}/begin":    apitoken.ScopeAdmin,
 	"POST /api/sitelogins/{id}/check":    apitoken.ScopeAdmin,
-	"POST /api/sitelogins/{id}/cookies":  apitoken.ScopeAdmin,
 	"POST /api/sitelogins/{id}/handover": apitoken.ScopeAdmin,
 	"POST /api/sitelogins/{id}/remove":   apitoken.ScopeAdmin,
 
@@ -359,13 +358,10 @@ var routeScopes = map[string]apitoken.Scope{
 	"PUT /api/uistate": apitoken.ScopeAdmin,
 	"GET /api/ws":      apitoken.ScopeRead,
 
-	"GET /api/ytdlp/cookies":         apitoken.ScopeAdmin,
-	"POST /api/ytdlp/cookies":        apitoken.ScopeAdmin,
-	"POST /api/ytdlp/cookies/remove": apitoken.ScopeAdmin,
-	"GET /api/ytdlp/formats":         apitoken.ScopeAdmin,
-	"GET /api/ytdlp/link":            apitoken.ScopeAdd,
-	"GET /api/ytdlp/preset":          apitoken.ScopeAdmin,
-	"POST /api/ytdlp/preset":         apitoken.ScopeAdmin,
+	"GET /api/ytdlp/formats": apitoken.ScopeAdmin,
+	"GET /api/ytdlp/link":    apitoken.ScopeAdd,
+	"GET /api/ytdlp/preset":  apitoken.ScopeAdmin,
+	"POST /api/ytdlp/preset": apitoken.ScopeAdmin,
 }
 
 // sabnzbdScopes is the right each operation of the SABnzbd bridge needs. The

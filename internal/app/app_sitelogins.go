@@ -1,8 +1,9 @@
 package app
 
 // Sites signed into through the user's browser (internal/sitelogin): the
-// accounts page's tiles, the wait between its Sign in and the session the
-// extension hands over, and who each stored session signs in as.
+// accounts page's tiles, the wait between its Sign in and the session that
+// turns up in a browser here or is handed over by the extension, and who each
+// session signs in as. app_browsersessions.go reads the browsers.
 
 import (
 	"context"
@@ -17,8 +18,8 @@ import (
 // ErrNoSuchSite is a site id the catalogue does not have.
 var ErrNoSuchSite = errors.New("there is no such site to sign in to")
 
-// ErrNoSiteSession is a hand-over or paste that holds no cookie of the site,
-// such as one made before signing in.
+// ErrNoSiteSession is a hand-over that holds no cookie of the site, such as
+// one made before signing in.
 var ErrNoSiteSession = errors.New("these cookies hold no session for this site")
 
 // siteLoginWait is how long a Sign in waits for its session: long enough to
@@ -48,6 +49,15 @@ type SiteLoginState struct {
 	sitelogin.Status
 	// Waiting is true from Sign in until a session arrives or the wait ends.
 	Waiting bool `json:"waiting"`
+	// Source is where the session comes from: SourceBrowser, SourceExtension,
+	// or "" without one.
+	Source string `json:"source"`
+	// Browser names the browser and profile a session read from a browser
+	// came from, "Firefox (default-release)".
+	Browser string `json:"browser"`
+	// Unreadable names the browsers here whose cookies of the site could not
+	// be read, such as Chrome on Windows with its app-bound key.
+	Unreadable []string `json:"unreadable"`
 }
 
 type siteCheck struct {
@@ -58,7 +68,18 @@ type siteCheck struct {
 type siteLoginState struct {
 	mu      sync.Mutex
 	waiting map[string]time.Time
+	// checked is the last check of each stored session.
 	checked map[string]siteCheck
+
+	// read is nil until StartBrowserSessions. scans are the last read of the
+	// browsers per site, verdicts the site's answers about the sessions
+	// found, by a hash of site and cookies, and logged the unreadable
+	// browsers already logged.
+	read     browserReader
+	scanning map[string]*sync.Mutex
+	scans    map[string]browserScan
+	verdicts map[[32]byte]siteCheck
+	logged   map[string]bool
 }
 
 var (
@@ -71,7 +92,14 @@ func (a *App) siteLogins() *siteLoginState {
 	defer siteLoginMu.Unlock()
 	st, ok := siteLoginByApp[a]
 	if !ok {
-		st = &siteLoginState{waiting: map[string]time.Time{}, checked: map[string]siteCheck{}}
+		st = &siteLoginState{
+			waiting:  map[string]time.Time{},
+			checked:  map[string]siteCheck{},
+			scanning: scanLocks(),
+			scans:    map[string]browserScan{},
+			verdicts: map[[32]byte]siteCheck{},
+			logged:   map[string]bool{},
+		}
 		siteLoginByApp[a] = st
 	}
 	return st
@@ -88,7 +116,8 @@ func (a *App) SiteLogins() []SiteLoginState {
 	return out
 }
 
-// CheckSiteLogin asks the site again, whatever the last check said.
+// CheckSiteLogin reads the browsers and asks the site again, whatever the
+// last check said.
 func (a *App) CheckSiteLogin(id string) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
@@ -97,8 +126,8 @@ func (a *App) CheckSiteLogin(id string) (SiteLoginState, error) {
 	return a.siteLoginState(site, true), nil
 }
 
-// BeginSiteLogin starts the wait for a site's session, which the extension
-// hands over once the user has signed in in the browser.
+// BeginSiteLogin starts the wait for a site's session, which turns up in a
+// browser here or is handed over by the extension once the user has signed in.
 func (a *App) BeginSiteLogin(id string) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
@@ -118,13 +147,13 @@ func (a *App) HandOverSiteSession(id string, cookies []sitelogin.BrowserCookie) 
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
 	}
-	return a.StoreSiteSession(id, sitelogin.JarFromCookies(site, cookies, time.Now()))
+	return a.storeSiteSession(id, sitelogin.JarFromCookies(site, cookies, time.Now()))
 }
 
-// StoreSiteSession stores a cookies.txt as a site's session and ends its
+// storeSiteSession stores a cookies.txt as a site's session and ends its
 // wait, unless the site signs nobody in with it. The answer says who is
 // signed in.
-func (a *App) StoreSiteSession(id, jar string) (SiteLoginState, error) {
+func (a *App) storeSiteSession(id, jar string) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
@@ -149,7 +178,8 @@ func (a *App) StoreSiteSession(id, jar string) (SiteLoginState, error) {
 	return a.siteLoginState(site, false), nil
 }
 
-// RemoveSiteLogin forgets a site's session.
+// RemoveSiteLogin forgets the session the extension handed over. One read
+// from a browser ends with signing out there.
 func (a *App) RemoveSiteLogin(id string) error {
 	if _, ok := sitelogin.Lookup(id); !ok {
 		return ErrNoSuchSite
@@ -165,12 +195,13 @@ func (a *App) RemoveSiteLogin(id string) error {
 	return nil
 }
 
-// siteLoginState puts together what the page shows of one site, checking the
-// session when the last check is stale or fresh is set.
+// siteLoginState puts together what the page shows of one site: a browser's
+// session first, the stored one otherwise, checking it when the last check is
+// stale or fresh is set.
 func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 	st := a.siteLogins()
 	now := time.Now()
-	out := SiteLoginState{Site: site}
+	out := SiteLoginState{Site: site, Unreadable: []string{}}
 
 	st.mu.Lock()
 	if until, ok := st.waiting[site.ID]; ok && now.After(until) {
@@ -180,11 +211,37 @@ func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 	last, known := st.checked[site.ID]
 	st.mu.Unlock()
 
+	age := browserScanFresh
+	switch {
+	case fresh:
+		age = 0
+	case out.Waiting:
+		age = browserWaitFresh
+	}
+	scan := a.browserSession(site, age)
+	if scan.unreadable != nil {
+		out.Unreadable = scan.unreadable
+	}
+	if scan.jar != "" {
+		out.Status, out.Source, out.Browser = scan.status, SourceBrowser, scan.from
+		if out.Waiting {
+			st.mu.Lock()
+			delete(st.waiting, site.ID)
+			st.mu.Unlock()
+			out.Waiting = false
+		}
+		return out
+	}
+
 	jar := a.siteStore().Session(site.ID)
 	if jar == "" {
 		out.Status = sitelogin.Status{State: sitelogin.SignedOut}
+		if scan.from != "" {
+			out.Status, out.Source, out.Browser = scan.status, SourceBrowser, scan.from
+		}
 		return out
 	}
+	out.Source = SourceExtension
 	keep := siteCheckFresh
 	if last.status.State == sitelogin.Unchecked {
 		keep = siteUncheckedFresh
@@ -207,14 +264,4 @@ func (a *App) askSite(site sitelogin.Site, jar string) sitelogin.Status {
 	ctx, cancel := context.WithTimeout(a.ctx, siteCheckTimeout)
 	defer cancel()
 	return siteLoginCheck(ctx, site, jar)
-}
-
-// siteSession is the stored session of the site a link belongs to, for
-// yt-dlp's Sessions hook.
-func (a *App) siteSession(rawurl string) string {
-	site, ok := sitelogin.ForURL(rawurl)
-	if !ok {
-		return ""
-	}
-	return a.siteStore().Session(site.ID)
 }

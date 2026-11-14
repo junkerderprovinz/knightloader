@@ -31,6 +31,16 @@ func TestMain(m *testing.M) {
 	case "title":
 		fmt.Println(`{"title":"Rick Astley - Never Gonna Give You Up (Official Video)","formats":[]}`)
 		os.Exit(0)
+	case "signin":
+		// Members only, unless a cookie file comes along.
+		for _, a := range os.Args {
+			if a == "--cookies" {
+				fmt.Println(`{"title":"For Members","formats":[]}`)
+				os.Exit(0)
+			}
+		}
+		fmt.Fprintln(os.Stderr, membersOnlyStderr)
+		os.Exit(1)
 	case "formats":
 		// Two video-only tracks, one audio-only and one progressive track
 		// carrying both codecs.
@@ -192,6 +202,25 @@ func TestProbeTitleReturnsTheParsedTitleOnSuccess(t *testing.T) {
 	}
 	if len(got.Formats) != 0 {
 		t.Errorf("ProbeTitle().Formats = %+v, want none for a source with an empty formats array", got.Formats)
+	}
+}
+
+func TestProbeTitleTriesAgainWithTheSignInSession(t *testing.T) {
+	b := fakeYtdlpBackend(t, "signin")
+	b.SignIn = func(string) string { return signedInJar }
+	got, err := b.ProbeTitle(context.Background(), "https://www.youtube.com/watch?v=members", nil)
+	if err != nil {
+		t.Fatalf("ProbeTitle: %v", err)
+	}
+	if got.Title != "For Members" {
+		t.Errorf("ProbeTitle().Title = %q, want the signed-in answer", got.Title)
+	}
+}
+
+func TestProbeTitleWithoutASignInSessionReportsTheFailure(t *testing.T) {
+	b := fakeYtdlpBackend(t, "signin")
+	if _, err := b.ProbeTitle(context.Background(), "https://www.youtube.com/watch?v=members", nil); err == nil {
+		t.Fatal("ProbeTitle of a members-only video without a session succeeded")
 	}
 }
 

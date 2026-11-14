@@ -67,7 +67,7 @@ func TestSigningInWaitsForTheSessionAndAStoredOneEndsTheWait(t *testing.T) {
 	if err != nil || !begun.Waiting || begun.LoginURL == "" {
 		t.Fatalf("BeginSiteLogin = %+v, %v; want it waiting, with the login page", begun, err)
 	}
-	got, err := a.StoreSiteSession("patreon", patreonJar)
+	got, err := a.storeSiteSession("patreon", patreonJar)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +126,7 @@ func TestAnUnknownSiteIsRefused(t *testing.T) {
 	if _, err := a.BeginSiteLogin("example"); !errors.Is(err, ErrNoSuchSite) {
 		t.Errorf("BeginSiteLogin(example) err = %v, want ErrNoSuchSite", err)
 	}
-	if _, err := a.StoreSiteSession("example", patreonJar); !errors.Is(err, ErrNoSuchSite) {
+	if _, err := a.storeSiteSession("example", patreonJar); !errors.Is(err, ErrNoSuchSite) {
 		t.Errorf("StoreSiteSession(example) err = %v, want ErrNoSuchSite", err)
 	}
 }
@@ -134,7 +134,7 @@ func TestAnUnknownSiteIsRefused(t *testing.T) {
 func TestTheListingReusesARecentCheck(t *testing.T) {
 	checks := stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn, Account: "Jane"})
 	a := siteApp(t)
-	if _, err := a.StoreSiteSession("patreon", patreonJar); err != nil {
+	if _, err := a.storeSiteSession("patreon", patreonJar); err != nil {
 		t.Fatal(err)
 	}
 	before := checks.Load()
@@ -155,7 +155,7 @@ func TestTheListingReusesARecentCheck(t *testing.T) {
 func TestSigningOutClearsTheSession(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn, Account: "Jane"})
 	a := siteApp(t)
-	if _, err := a.StoreSiteSession("patreon", patreonJar); err != nil {
+	if _, err := a.storeSiteSession("patreon", patreonJar); err != nil {
 		t.Fatal(err)
 	}
 	if err := a.RemoveSiteLogin("patreon"); err != nil {
@@ -172,7 +172,7 @@ func TestSigningOutClearsTheSession(t *testing.T) {
 func TestYtdlpGetsTheSessionOfTheLinksSite(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
-	if _, err := a.StoreSiteSession("patreon", patreonJar); err != nil {
+	if _, err := a.storeSiteSession("patreon", patreonJar); err != nil {
 		t.Fatal(err)
 	}
 	if got := a.siteSession("https://www.patreon.com/posts/a-post-1"); got != patreonJar {
@@ -191,7 +191,7 @@ func TestYtdlpGetsTheSessionOfTheLinksSite(t *testing.T) {
 func TestTheListingNeverCarriesTheSession(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn, Account: "Jane"})
 	a := siteApp(t)
-	if _, err := a.StoreSiteSession("patreon", patreonJar); err != nil {
+	if _, err := a.storeSiteSession("patreon", patreonJar); err != nil {
 		t.Fatal(err)
 	}
 	for _, s := range a.SiteLogins() {
@@ -218,14 +218,14 @@ func stubSiteCheckByJar(t *testing.T, loggedOut string) {
 func TestCookiesThatSignNobodyInAreRefusedAndKeepTheSessionBefore(t *testing.T) {
 	stubSiteCheckByJar(t, "LOGGED-OUT")
 	a := siteApp(t)
-	if _, err := a.StoreSiteSession("patreon", patreonJar); err != nil {
+	if _, err := a.storeSiteSession("patreon", patreonJar); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := a.BeginSiteLogin("patreon"); err != nil {
 		t.Fatal(err)
 	}
 	loggedOut := strings.Replace(patreonJar, "PATREON-SECRET", "LOGGED-OUT", 1)
-	if _, err := a.StoreSiteSession("patreon", loggedOut); !errors.Is(err, ErrNoSiteSession) {
+	if _, err := a.storeSiteSession("patreon", loggedOut); !errors.Is(err, ErrNoSiteSession) {
 		t.Errorf("err = %v, want ErrNoSiteSession", err)
 	}
 	if got := sitelogin.NewStore(a.Accounts).Session("patreon"); got != patreonJar {
@@ -239,7 +239,7 @@ func TestCookiesThatSignNobodyInAreRefusedAndKeepTheSessionBefore(t *testing.T) 
 func TestTheListingAsksAgainOnceTheSessionHasRunOut(t *testing.T) {
 	checks := stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn, Expires: time.Now().Add(-time.Second).Format(time.RFC3339)})
 	a := siteApp(t)
-	if _, err := a.StoreSiteSession("patreon", patreonJar); err != nil {
+	if _, err := a.storeSiteSession("patreon", patreonJar); err != nil {
 		t.Fatal(err)
 	}
 	before := checks.Load()

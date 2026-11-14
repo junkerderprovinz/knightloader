@@ -80,7 +80,6 @@ func registerAll(reg *Registry, a *app.App) {
 	registerQBittorrent(reg, a)
 	registerActivity(reg, a)
 	registerHostHeaders(reg, a)
-	registerYtdlpCookies(reg, a)
 	registerSiteLogins(reg, a)
 	registerFeeds(reg, a)
 	registerEventTargets(reg, a)
