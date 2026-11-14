@@ -3,6 +3,7 @@ package qbittorrent
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -16,21 +17,28 @@ type Info struct {
 	State    string  `json:"state"`
 	Progress float64 `json:"progress"`
 	// Size counts the files picked, TotalSize every file.
-	Size        int64   `json:"size"`
-	TotalSize   int64   `json:"total_size"`
-	Downloaded  int64   `json:"downloaded"`
-	Uploaded    int64   `json:"uploaded"`
-	Ratio       float64 `json:"ratio"`
-	DLSpeed     int64   `json:"dlspeed"`
-	UPSpeed     int64   `json:"upspeed"`
-	Seeds       int     `json:"num_seeds"`
-	Leechs      int     `json:"num_leechs"`
-	SeedingTime int64   `json:"seeding_time"`
-	AmountLeft  int64   `json:"amount_left"`
-	SavePath    string  `json:"save_path"`
-	Category    string  `json:"category"`
-	Tags        string  `json:"tags"`
+	Size       int64   `json:"size"`
+	TotalSize  int64   `json:"total_size"`
+	Downloaded int64   `json:"downloaded"`
+	Uploaded   int64   `json:"uploaded"`
+	Ratio      float64 `json:"ratio"`
+	// Completed counts the bytes of the picked files that are here.
+	Completed   int64  `json:"completed"`
+	DLSpeed     int64  `json:"dlspeed"`
+	UPSpeed     int64  `json:"upspeed"`
+	Seeds       int    `json:"num_seeds"`
+	Leechs      int    `json:"num_leechs"`
+	SeedingTime int64  `json:"seeding_time"`
+	AmountLeft  int64  `json:"amount_left"`
+	SavePath    string `json:"save_path"`
+	Category    string `json:"category"`
+	Tags        string `json:"tags"`
+	Sequential  bool   `json:"seq_dl"`
+	FirstLast   bool   `json:"f_l_piece_prio"`
 }
+
+// ErrNoTorrent is a call about a torrent qBittorrent does not hold.
+var ErrNoTorrent = errors.New("no such torrent")
 
 // Filter narrows Torrents; the zero Filter lists every torrent.
 type Filter struct {
@@ -101,6 +109,23 @@ func (c *Client) SetFilePriority(ctx context.Context, hash string, ids []int, pr
 		"id":       {strings.Join(parts, "|")},
 		"priority": {strconv.Itoa(priority)},
 	}, hash)
+}
+
+// AddTrackers adds announce addresses to the torrent.
+func (c *Client) AddTrackers(ctx context.Context, hash string, urls []string) error {
+	return c.post(ctx, "torrents/addTrackers", url.Values{"hash": {hash}, "urls": {strings.Join(urls, "\n")}}, hash)
+}
+
+// ToggleSequential switches the torrent between fetching its pieces in order
+// and in the order the swarm offers them.
+func (c *Client) ToggleSequential(ctx context.Context, hash string) error {
+	return c.post(ctx, "torrents/toggleSequentialDownload", url.Values{"hashes": {hash}}, hash)
+}
+
+// ToggleFirstLastPiece switches whether the first and last pieces of each
+// file come before the rest.
+func (c *Client) ToggleFirstLastPiece(ctx context.Context, hash string) error {
+	return c.post(ctx, "torrents/toggleFirstLastPiecePrio", url.Values{"hashes": {hash}}, hash)
 }
 
 // Stop stops the torrents. 5.0 calls this torrents/stop and 4.x
@@ -177,7 +202,7 @@ func answered(what string, a answer, hash string) error {
 	case a.status == http.StatusOK:
 		return nil
 	case a.status == http.StatusNotFound && hash != "":
-		return &Error{Reason: "qBittorrent has no torrent " + hash}
+		return &Error{Reason: "qBittorrent has no torrent " + hash, Err: ErrNoTorrent}
 	}
 	return refused(what, a)
 }

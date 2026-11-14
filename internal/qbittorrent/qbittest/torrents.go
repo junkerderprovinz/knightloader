@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/junkerderprovinz/knightloader/internal/bencode"
 )
 
 // Torrent is one torrent the server holds, by the fields torrents/info
@@ -23,6 +25,7 @@ type Torrent struct {
 	Downloaded  int64   `json:"downloaded"`
 	Uploaded    int64   `json:"uploaded"`
 	Ratio       float64 `json:"ratio"`
+	Completed   int64   `json:"completed"`
 	DLSpeed     int64   `json:"dlspeed"`
 	UPSpeed     int64   `json:"upspeed"`
 	Seeds       int     `json:"num_seeds"`
@@ -32,10 +35,13 @@ type Torrent struct {
 	SavePath    string  `json:"save_path"`
 	Category    string  `json:"category"`
 	Tags        string  `json:"tags"`
+	Sequential  bool    `json:"seq_dl"`
+	FirstLast   bool    `json:"f_l_piece_prio"`
 
-	Files     []File `json:"-"`
-	Pieces    []int  `json:"-"`
-	PieceSize int64  `json:"-"`
+	Files     []File   `json:"-"`
+	Trackers  []string `json:"-"`
+	Pieces    []int    `json:"-"`
+	PieceSize int64    `json:"-"`
 }
 
 // File is one file of a torrent, as torrents/files answers.
@@ -78,6 +84,7 @@ func (s *Server) Get(hash string) *Torrent {
 	}
 	c := *t
 	c.Files = slices.Clone(t.Files)
+	c.Trackers = slices.Clone(t.Trackers)
 	return &c
 }
 
@@ -130,6 +137,14 @@ func (s *Server) serveTorrents(w http.ResponseWriter, r *http.Request) bool {
 		s.change(w, r, func(t *Torrent) { t.State = paused })
 	case resume:
 		s.change(w, r, func(t *Torrent) { t.State = "downloading" })
+	case "addTrackers":
+		s.change(w, r, func(t *Torrent) {
+			t.Trackers = append(t.Trackers, strings.Split(r.FormValue("urls"), "\n")...)
+		})
+	case "toggleSequentialDownload":
+		s.change(w, r, func(t *Torrent) { t.Sequential = !t.Sequential })
+	case "toggleFirstLastPiecePrio":
+		s.change(w, r, func(t *Torrent) { t.FirstLast = !t.FirstLast })
 	case "setLocation":
 		s.change(w, r, func(t *Torrent) { t.SavePath = r.FormValue("location") })
 	case "delete":
@@ -162,12 +177,7 @@ func (s *Server) add(w http.ResponseWriter, r *http.Request) {
 			f.Close()
 		}
 	}
-	src := call.File
-	if src == nil {
-		src = []byte(call.Fields["urls"])
-	}
-	sum := sha1.Sum(src)
-	hash := hex.EncodeToString(sum[:])
+	hash := hashOf(call)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.added = append(s.added, call)
@@ -184,6 +194,26 @@ func (s *Server) add(w http.ResponseWriter, r *http.Request) {
 	}
 	s.torrents[hash] = &Torrent{Hash: hash, State: state, SavePath: call.Fields["savepath"], Category: call.Fields["category"], Tags: call.Fields["tags"]}
 	io.WriteString(w, "Ok.")
+}
+
+// hashOf is the info hash of an added torrent as qBittorrent names it: from
+// the .torrent's info dictionary or the magnet's btih, and for anything else
+// a digest of what came, so that each add still has a name.
+func hashOf(call AddCall) string {
+	if raw, err := bencode.Raw(call.File, "info"); err == nil {
+		return bencode.InfoHash(raw)
+	}
+	src := call.File
+	if src == nil {
+		urls := call.Fields["urls"]
+		if _, rest, ok := strings.Cut(urls, "urn:btih:"); ok {
+			h, _, _ := strings.Cut(rest, "&")
+			return strings.ToLower(h)
+		}
+		src = []byte(urls)
+	}
+	sum := sha1.Sum(src)
+	return hex.EncodeToString(sum[:])
 }
 
 func (s *Server) info(w http.ResponseWriter, r *http.Request) {

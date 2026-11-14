@@ -242,6 +242,9 @@ type Torrent struct {
 	// Stopped adds the torrent without starting it, so its files can be
 	// picked first.
 	Stopped bool
+	// StopAtMetadata lets a magnet run until it has its file list and stops
+	// it there, which qBittorrent 4.5 and later can do.
+	StopAtMetadata bool
 }
 
 // Add hands t to qBittorrent. Unless t says Download, the caller has checked
@@ -259,6 +262,9 @@ func (c *Client) Add(ctx context.Context, t Torrent) error {
 		{"seedMode", skip},
 		{"paused", stopped},
 		{"stopped", stopped},
+	}
+	if t.StopAtMetadata {
+		fields = append(fields, [2]string{"stopCondition", "MetadataReceived"})
 	}
 	if len(t.Tags) > 0 {
 		fields = append(fields, [2]string{"tags", strings.Join(t.Tags, ",")})

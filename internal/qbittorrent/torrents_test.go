@@ -2,6 +2,7 @@ package qbittorrent
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"testing"
 
@@ -146,5 +147,50 @@ func TestATorrentQBittorrentDoesNotHaveSaysSo(t *testing.T) {
 	_, c := fake(t)
 	if _, err := c.Files(context.Background(), "ff"); reason(err) != "qBittorrent has no torrent ff" {
 		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestATorrentQBittorrentDoesNotHaveIsErrNoTorrent(t *testing.T) {
+	_, c := fake(t)
+	if _, err := c.Files(context.Background(), "ff"); !errors.Is(err, ErrNoTorrent) {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestAMagnetCanStopOnceItHasItsMetadata(t *testing.T) {
+	q, c := fake(t)
+	if err := c.Add(context.Background(), Torrent{Magnet: "magnet:?xt=urn:btih:abc", SavePath: "/d", Download: true, StopAtMetadata: true}); err != nil {
+		t.Fatal(err)
+	}
+	f := q.Added()[0].Fields
+	if f["stopCondition"] != "MetadataReceived" || f["paused"] != "false" {
+		t.Fatalf("fields %v", f)
+	}
+}
+
+func TestTrackersAreAddedToATorrent(t *testing.T) {
+	q, c := fake(t)
+	q.Put(qbittest.Torrent{Hash: "aa"})
+	if err := c.AddTrackers(context.Background(), "aa", []string{"udp://a:1/announce", "http://b/announce"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := q.Get("aa").Trackers; !slices.Equal(got, []string{"udp://a:1/announce", "http://b/announce"}) {
+		t.Fatalf("trackers %v", got)
+	}
+}
+
+func TestSequentialDownloadAndFirstAndLastPiecesAreToggled(t *testing.T) {
+	q, c := fake(t)
+	q.Put(qbittest.Torrent{Hash: "aa"})
+	ctx := context.Background()
+	if err := c.ToggleSequential(ctx, "aa"); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.ToggleFirstLastPiece(ctx, "aa"); err != nil {
+		t.Fatal(err)
+	}
+	got, err := c.Torrents(ctx, Filter{Hashes: []string{"aa"}})
+	if err != nil || len(got) != 1 || !got[0].Sequential || !got[0].FirstLast {
+		t.Fatalf("Torrents = %+v, %v", got, err)
 	}
 }
