@@ -93,7 +93,7 @@ func (a *App) browserSession(site sitelogin.Site, maxAge time.Duration) browserS
 	st.mu.Lock()
 	read, lock := st.read, st.scanning[site.ID]
 	st.mu.Unlock()
-	if read == nil {
+	if read == nil || a.siteStore().Disconnected(site.ID) {
 		return browserScan{}
 	}
 	// One read per site at a time: the accounts page and a download asking
@@ -260,7 +260,7 @@ func (a *App) signInSession(rawurl string) string {
 		return ""
 	}
 	domain, err := publicsuffix.EffectiveTLDPlusOne(strings.ToLower(u.Hostname()))
-	if err != nil {
+	if err != nil || a.disconnectedDomain(domain) {
 		return ""
 	}
 	now := time.Now()
@@ -279,6 +279,17 @@ func (a *App) signInSession(rawurl string) string {
 		log.Printf("site sign-in: %s asked for a sign-in, so the link is tried again with the session from %s", domain, best.Profile)
 	}
 	return jar
+}
+
+// disconnectedDomain reports whether a removed site owns the domain, whose
+// cookies are then left alone for any link.
+func (a *App) disconnectedDomain(domain string) bool {
+	for _, site := range sitelogin.Sites {
+		if site.Owns(domain) && a.siteStore().Disconnected(site.ID) {
+			return true
+		}
+	}
+	return false
 }
 
 // sessionWords are parts of the cookie names sites keep a sign-in under. A

@@ -61,6 +61,9 @@ type SiteLoginState struct {
 	// ReadsBrowsers says this instance reads the browsers on its computer,
 	// which one in a container never does.
 	ReadsBrowsers bool `json:"readsBrowsers"`
+	// Disconnected says the site was removed here and the browsers' sign-in
+	// to it is not used until it is signed in through KnightLoader again.
+	Disconnected bool `json:"disconnected"`
 }
 
 type siteCheck struct {
@@ -136,11 +139,40 @@ func (a *App) BeginSiteLogin(id string) (SiteLoginState, error) {
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
 	}
+	if err := a.connect(site); err != nil {
+		return SiteLoginState{}, err
+	}
 	st := a.siteLogins()
 	st.mu.Lock()
 	st.waiting[id] = time.Now().Add(siteLoginWait)
 	st.mu.Unlock()
 	return a.siteLoginState(site, false), nil
+}
+
+// ReconnectSiteLogin uses the browsers' sign-in to a site that was removed
+// here again, without waiting for a new one.
+func (a *App) ReconnectSiteLogin(id string) (SiteLoginState, error) {
+	site, ok := sitelogin.Lookup(id)
+	if !ok {
+		return SiteLoginState{}, ErrNoSuchSite
+	}
+	if err := a.connect(site); err != nil {
+		return SiteLoginState{}, err
+	}
+	return a.siteLoginState(site, false), nil
+}
+
+// connect clears a site's mark not to use the browsers' sign-in, and the last
+// read of them, which a disconnected site never made.
+func (a *App) connect(site sitelogin.Site) error {
+	if err := a.siteStore().SetDisconnected(site.ID, false); err != nil {
+		return err
+	}
+	st := a.siteLogins()
+	st.mu.Lock()
+	delete(st.scans, site.ID)
+	st.mu.Unlock()
+	return nil
 }
 
 // HandOverSiteSession stores the session the extension read from the
@@ -152,7 +184,7 @@ func (a *App) HandOverSiteSession(id string, cookies []sitelogin.BrowserCookie) 
 		return SiteLoginState{}, ErrNoSuchSite
 	}
 	if len(cookies) == 0 {
-		if err := a.RemoveSiteLogin(id); err != nil {
+		if err := a.forgetHandedOver(id); err != nil {
 			return SiteLoginState{}, err
 		}
 		return a.siteLoginState(site, false), nil
@@ -180,6 +212,9 @@ func (a *App) storeSiteSession(id, jar string) (SiteLoginState, error) {
 	if err := a.siteStore().Set(id, jar); err != nil {
 		return SiteLoginState{}, err
 	}
+	if err := a.connect(site); err != nil {
+		return SiteLoginState{}, err
+	}
 	st := a.siteLogins()
 	st.mu.Lock()
 	delete(st.waiting, id)
@@ -188,9 +223,25 @@ func (a *App) storeSiteSession(id, jar string) (SiteLoginState, error) {
 	return a.siteLoginState(site, false), nil
 }
 
-// RemoveSiteLogin forgets the session the extension handed over. One read
-// from a browser ends with signing out there.
+// RemoveSiteLogin signs a site out here: it forgets the session the
+// extension handed over and stops using the browsers' sign-in, which the
+// browser keeps, until the site is signed in through KnightLoader again.
 func (a *App) RemoveSiteLogin(id string) error {
+	if err := a.forgetHandedOver(id); err != nil {
+		return err
+	}
+	if err := a.siteStore().SetDisconnected(id, true); err != nil {
+		return err
+	}
+	st := a.siteLogins()
+	st.mu.Lock()
+	delete(st.scans, id)
+	st.mu.Unlock()
+	return nil
+}
+
+// forgetHandedOver forgets the session the extension handed over.
+func (a *App) forgetHandedOver(id string) error {
 	if _, ok := sitelogin.Lookup(id); !ok {
 		return ErrNoSuchSite
 	}
@@ -221,6 +272,7 @@ func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 	last, known := st.checked[site.ID]
 	out.ReadsBrowsers = st.read != nil
 	st.mu.Unlock()
+	out.Disconnected = a.siteStore().Disconnected(site.ID)
 
 	age := browserScanFresh
 	switch {

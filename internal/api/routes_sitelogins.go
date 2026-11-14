@@ -17,15 +17,17 @@ package api
 //	 "source": "browser",              // "extension", or "" without a session
 //	 "browser": "Firefox (default-release)", // with source "browser" only
 //	 "unreadable": ["Chrome"],         // browsers whose cookies could not be read
-//	 "readsBrowsers": true}            // false in a container, which reads none
+//	 "readsBrowsers": true,            // false in a container, which reads none
+//	 "disconnected": false}            // removed here; the browsers' sign-in is not used
 //
 // GET /api/sitelogins/handover lists for the extension each site's id, name,
 // host, loginUrl, domains, waiting and signIn, the names of the cookies only a
 // signed-in session carries. A handover with an empty cookies list signs the
 // extension's session out; a set without the site's cookies is refused (422).
 //
-// A session read from a browser is not stored, so remove forgets only the
-// extension's; one in a browser ends with signing out there.
+// Remove disconnects a site whatever its session came from: the extension's
+// is forgotten, a browser's is no longer read, and the browser stays signed
+// in. begin, reconnect and a new hand-over connect it again.
 
 import (
 	"errors"
@@ -74,7 +76,7 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/sitelogins/{id}/remove",
-		"forget the session the extension handed over for a site",
+		"sign a site out here: forget the session the extension handed over and stop using the browsers' sign-in, which the browser keeps, until the site is signed in through KnightLoader again",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
 			if err := a.RemoveSiteLogin(id); err != nil {
@@ -82,6 +84,13 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 				return
 			}
 			st, err := a.CheckSiteLogin(id)
+			writeSiteLogin(w, st, err)
+		})
+
+	reg.Add(http.MethodPost, "/api/sitelogins/{id}/reconnect",
+		"use the browsers' sign-in to a site that was removed here again",
+		func(w http.ResponseWriter, r *http.Request) {
+			st, err := a.ReconnectSiteLogin(r.PathValue("id"))
 			writeSiteLogin(w, st, err)
 		})
 
