@@ -2137,6 +2137,8 @@ export const ro: Dict = {
   'settings.feeds.emptyHint': 'Un abonament verifică singur un flux și pune ce este nou în colector.',
   'settings.feeds.duplicate': 'La această adresă există deja un abonament.',
 
+  'settings.feeds.urlInvalid': 'Folosește o adresă completă care începe cu http:// sau https://, de exemplu https://example.org/feed.xml.',
+  'settings.feeds.filterInvalid': 'Aceasta nu este o expresie regulată validă, așa că filtrul nu se salvează.',
   'settings.hostRules.title': 'Excepții per hoster',
   'settings.hostRules.titleHint': 'Câte un rând pentru fiecare hoster care are nevoie de alte numere decât cele de pe pagina Descărcări. Un hoster fără rând păstrează valorile globale, deci un tabel gol nu schimbă nimic. Un rând acoperă gazda pe care o numești și fiecare subdomeniu al ei: rapidgator.net acoperă și rg.rapidgator.net, dar nu acoperă notrapidgator.net. Dacă două rânduri se potrivesc cu același link, câștigă numele de gazdă mai lung.',
   'settings.hostRules.pattern': 'Hoster',
@@ -2929,6 +2931,9 @@ export const ro: Dict = {
   'settings.eventTargets.headersHint': 'Câte un antet pe linie, scris ca Nume: valoare, așa cum se scriu peste tot. Aici intră un token: Authorization: Bearer … pentru Matrix, X-Title sau Priority pentru ntfy. O valoare se păstrează la fel ca parola routerului, în settings.json pe această mașină, și nu se trimite niciodată înapoi la un browser: acolo vezi opt stele. Dacă schimbi adresa, valoarea păstrată este aruncată în loc să fie dusă la adresa nouă.',
   'settings.eventTargets.body': 'Șablon de corp',
   'settings.eventTargets.bodyHint': 'Ce se trimite, cu variabilele completate în clipa în care se întâmplă evenimentul. Lasă-l gol și pleacă doar anteturile. Valorile sunt escapate potrivit tipului de conținut pe care l-ai setat în anteturi, deci într-un corp JSON un nume de fișier cu ghilimele în el este escapat în loc să strice documentul.',
+  'settings.eventTargets.urlInvalid': 'Folosește o adresă completă care începe cu http:// sau https:// și închide fiecare variabilă cu %%.',
+  'settings.eventTargets.headersInvalid': 'Scrie fiecare linie ca nume, două puncte și valoare, de exemplu Content-Type: text/plain.',
+  'settings.eventTargets.placeholderOpen': 'O variabilă nu este închisă. Fiecare începe și se termină cu %%, de exemplu %%task.name%%.',
   'settings.eventTargets.events': 'Evenimente',
   'settings.eventTargets.eventsHint': 'Ce evenimente merg la această destinație. La început nu este nimic bifat. Trei dintre ele se anunță din nou după o repornire, fiindcă ce își amintesc ele stă în memorie și nu pe disc: coada se anunță ca goală, fiecare captcha care încă așteaptă se anunță încă o dată, și fiecare cont deja expirat se anunță încă o dată. Un pachet terminat nu, fiindcă prima trecere după pornire doar ia notă și nu spune nimic.',
   'settings.eventTargets.eventsNone': 'Nu este nimic bifat, deci această destinație nu trimite niciodată nimic.',

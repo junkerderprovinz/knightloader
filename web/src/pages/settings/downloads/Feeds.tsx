@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import {
   Button,
   FieldError,
@@ -323,6 +323,10 @@ function FeedRow({
   // makes the server refuse the whole document.
   const [filter, setFilter] = useState(row.titleFilter ?? '');
   const [filterBad, setFilterBad] = useState(false);
+  const urlReasonId = useId();
+  const filterReasonId = useId();
+  const urlReason =
+    verdict === 'invalid' ? t('settings.feeds.urlInvalid') : verdict === 'duplicate' ? t('settings.feeds.duplicate') : '';
 
   // The save answer replaces the draft and may trim the filter, so follow it.
   useEffect(() => {
@@ -431,7 +435,8 @@ function FeedRow({
                 value={text}
                 placeholder="https://example.org/feed.xml"
                 // Marked, not corrected: the text stays as typed.
-                aria-invalid={verdict === 'invalid' || verdict === 'duplicate'}
+                aria-invalid={urlReason !== ''}
+                aria-describedby={urlReason ? urlReasonId : undefined}
                 onChange={(e) => {
                   setText(e.target.value);
                   setVerdict('blank');
@@ -445,8 +450,8 @@ function FeedRow({
                 }}
               />
             )}
+            {urlReason && <FieldError id={urlReasonId}>{urlReason}</FieldError>}
           </SettingRow>
-          {verdict === 'duplicate' && <FieldError>{t('settings.feeds.duplicate')}</FieldError>}
 
           <div className="flex flex-col gap-4">
             {/* 0 takes the server's quarter of an hour; other values are cut
@@ -468,6 +473,7 @@ function FeedRow({
                 // Marked and not committed, so a broken pattern never reaches
                 // the draft.
                 aria-invalid={filterBad}
+                aria-describedby={filterBad ? filterReasonId : undefined}
                 onChange={(e) => {
                   setFilter(e.target.value);
                   setFilterBad(false);
@@ -480,6 +486,7 @@ function FeedRow({
                   }
                 }}
               />
+              {filterBad && <FieldError id={filterReasonId}>{t('settings.feeds.filterInvalid')}</FieldError>}
             </SettingRow>
           </div>
 
