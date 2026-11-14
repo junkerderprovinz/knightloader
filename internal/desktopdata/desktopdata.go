@@ -1,6 +1,6 @@
 // Package desktopdata is where the desktop app keeps its data, and what its
-// installer fetches into it so the first start finds ffmpeg, Deno, the Java
-// runtime and JDownloader in place. The installer is a module of its own, so the
+// installer fetches into it so the first start finds yt-dlp, ffmpeg, Deno, the
+// Java runtime and JDownloader in place. The installer is a module of its own, so the
 // folders live here, where it and the app read them from the same code.
 package desktopdata
 
@@ -43,6 +43,17 @@ type Component struct {
 func Components(dataDir string) []Component {
 	jd := provision.New(JDDir(dataDir))
 	return []Component{
+		{
+			// Fetched even where a yt-dlp is on PATH: the fetched copy is the
+			// one the app keeps current, and it outranks any other.
+			ID:     "yt-dlp",
+			Name:   "yt-dlp",
+			Target: mediatools.BinaryPath(dataDir),
+			Fetch: func(ctx context.Context, progress func(done, total int64)) error {
+				_, err := mediatools.Install(ctx, dataDir, progress)
+				return err
+			},
+		},
 		{
 			ID:     "ffmpeg",
 			Name:   "FFmpeg",

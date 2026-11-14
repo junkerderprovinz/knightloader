@@ -103,8 +103,10 @@ func CheckLatest(ctx context.Context, installed string) Latest {
 //  8. write the record.
 //
 // Until step 7 the copy that was already working keeps working, and the
-// system's own yt-dlp is never touched at any point.
-func Install(ctx context.Context, dataDir string) (ManagedRecord, error) {
+// system's own yt-dlp is never touched at any point. progress, when not nil,
+// hears how much of the download has arrived of how much; total is -1 while
+// unknown.
+func Install(ctx context.Context, dataDir string, progress func(done, total int64)) (ManagedRecord, error) {
 	var rec ManagedRecord
 	if dataDir == "" {
 		return rec, errors.New("no data directory, so there is nowhere to put a fetched copy")
@@ -130,7 +132,10 @@ func Install(ctx context.Context, dataDir string) (ManagedRecord, error) {
 	if err != nil {
 		return rec, fmt.Errorf("release %s: %s could not be read: %w", rel.Tag, checksumAsset, err)
 	}
-	return install(ctx, dataDir, names, rel, sums, downloadAsset)
+	download := func(ctx context.Context, a ghrelease.Asset, dst string) error {
+		return downloadAsset(ctx, a, dst, maxBinaryBytes, ghrelease.AssetTimeout, progress)
+	}
+	return install(ctx, dataDir, names, rel, sums, download)
 }
 
 // CanInstall reports why Install could not put a copy in place on this
@@ -168,19 +173,6 @@ func toolsWritable(dataDir string) error {
 // file safe, and weakening it for a test would trade the guarantee for the
 // test of it.
 type fetcher func(ctx context.Context, a ghrelease.Asset, dst string) error
-
-func downloadAsset(ctx context.Context, a ghrelease.Asset, dst string) error {
-	f, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	_, copyErr := ghrelease.Fetch(ctx, a, f, maxBinaryBytes)
-	closeErr := f.Close()
-	if copyErr != nil {
-		return copyErr
-	}
-	return closeErr
-}
 
 // install is everything after the release metadata is in hand: the candidate
 // walk, the verification, the smoke test and the swap. names is passed in

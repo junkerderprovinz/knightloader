@@ -579,7 +579,10 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		debrid:     map[string]backend{},
 	}
 	a.usenetDial = &usenetDialer{a}
-	a.latestYtdlp, a.installYtdlp = mediatools.CheckLatest, mediatools.Install
+	a.latestYtdlp = mediatools.CheckLatest
+	a.installYtdlp = func(ctx context.Context, dataDir string) (mediatools.ManagedRecord, error) {
+		return mediatools.Install(ctx, dataDir, nil)
+	}
 	a.installFFmpeg = func(ctx context.Context, dataDir string) (mediatools.FFmpegRecord, error) {
 		return mediatools.InstallFFmpeg(ctx, dataDir, nil)
 	}

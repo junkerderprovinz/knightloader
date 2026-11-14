@@ -127,7 +127,7 @@ func InstallDeno(ctx context.Context, dataDir string, progress func(done, total 
 		return DenoRecord{}, fmt.Errorf("release %s: %w", rel.Tag, err)
 	}
 	download := func(ctx context.Context, a ghrelease.Asset, dst string) error {
-		return downloadArchive(ctx, a, dst, maxDenoArchiveBytes, denoFetchTimeout, progress)
+		return downloadAsset(ctx, a, dst, maxDenoArchiveBytes, denoFetchTimeout, progress)
 	}
 	return installDeno(ctx, dataDir, name, rel, sum, download)
 }

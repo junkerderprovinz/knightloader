@@ -186,12 +186,12 @@ func InstallFFmpeg(ctx context.Context, dataDir string, progress func(done, tota
 		return FFmpegRecord{}, fmt.Errorf("release %s: %s could not be read: %w", rel.Tag, ffmpegChecksums, err)
 	}
 	download := func(ctx context.Context, a ghrelease.Asset, dst string) error {
-		return downloadArchive(ctx, a, dst, maxFFmpegArchiveBytes, ffmpegFetchTimeout, progress)
+		return downloadAsset(ctx, a, dst, maxFFmpegArchiveBytes, ffmpegFetchTimeout, progress)
 	}
 	return installFFmpeg(ctx, dataDir, ffmpegAsset(), rel, sums, download)
 }
 
-func downloadArchive(ctx context.Context, a ghrelease.Asset, dst string, limit int64, timeout time.Duration, progress func(done, total int64)) error {
+func downloadAsset(ctx context.Context, a ghrelease.Asset, dst string, limit int64, timeout time.Duration, progress func(done, total int64)) error {
 	f, err := os.Create(dst)
 	if err != nil {
 		return err

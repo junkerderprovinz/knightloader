@@ -128,9 +128,10 @@ jobs:
           fi
 
       # What a first install on Windows goes through: the installer, a start
-      # that provisions its own JDownloader, and the uninstaller from the Apps
-      # entry. JDownloader has to run without a window of its own or a
-      # console, and the window must not wait for it.
+      # that fetches yt-dlp and provisions its own JDownloader, and the
+      # uninstaller from the Apps entry. A silent install fetches no
+      # components, so the first start does. JDownloader has to run without a
+      # window of its own or a console, and the window must not wait for it.
       - name: Install, start and uninstall
         if: matrix.slug == 'windows-amd64'
         shell: pwsh
@@ -147,10 +148,6 @@ jobs:
           if (-not $entry) { throw "the installer left no uninstall entry" }
           $exe = Join-Path $entry.InstallLocation 'KnightLoader.exe'
           if (-not (Test-Path $exe)) { throw "$exe is missing" }
-          $ytdlp = Join-Path $entry.InstallLocation 'yt-dlp.exe'
-          $printed = & $ytdlp --version
-          if ($LASTEXITCODE -ne 0) { throw "$ytdlp --version exited with code $LASTEXITCODE" }
-          Write-Host "yt-dlp beside the program: $printed"
           $unrar = Join-Path $entry.InstallLocation 'UnRAR.exe'
           $banner = (& $unrar | Select-Object -First 2) -join ' '
           if ($banner -notmatch 'UNRAR \d') { throw "$unrar printed '$banner'" }
@@ -173,6 +170,10 @@ jobs:
           $app.Refresh()
           if ($app.HasExited) { throw "KnightLoader exited with code $($app.ExitCode)" }
           Write-Host "KnightLoader window: '$($app.MainWindowTitle)'"
+          $ytdlp = Join-Path $env:KL_DATA 'tools\yt-dlp.exe'
+          $printed = & $ytdlp --version
+          if ($LASTEXITCODE -ne 0) { throw "$ytdlp --version exited with code $LASTEXITCODE" }
+          Write-Host "yt-dlp in the data folder: $printed"
           $windows = Get-Process -Id ($java.ProcessId) -ErrorAction SilentlyContinue |
             Where-Object { $_.MainWindowHandle -ne 0 }
           if ($windows) { throw "JDownloader opened a window: $($windows.MainWindowTitle)" }
@@ -190,7 +191,6 @@ jobs:
           Start-Process -FilePath cmd.exe -ArgumentList '/c', $entry.QuietUninstallString -Wait
           if (Test-Path $key) { throw "the uninstaller left its entry behind" }
           if (Test-Path $exe) { throw "the uninstaller left $exe behind" }
-          if (Test-Path $ytdlp) { throw "the uninstaller left $ytdlp behind" }
           if (Test-Path $unrar) { throw "the uninstaller left $unrar behind" }
 
       # Zipped on the build runner because artifacts lose file modes, which

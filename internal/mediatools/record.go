@@ -3,8 +3,8 @@
 // streams, ffmpeg, which joins them, and Deno, which yt-dlp runs YouTube's
 // player code in. None is part of this binary and none is a Go package. They
 // are separate programs KnightLoader spawns. The container image installs all
-// three. The desktop build ships yt-dlp and fetches ffmpeg and Deno where
-// there are none.
+// three. The desktop build fetches all three, its installer during the install
+// and the app itself where one is missing.
 //
 // Five things live here, split because the first two must never touch the
 // network:

@@ -23,8 +23,7 @@ const (
 	// SourceEnv is KL_YTDLP or KL_DENO, which the container image pins to
 	// /usr/bin/yt-dlp and /usr/bin/deno on every install (Dockerfile).
 	SourceEnv Source = "env"
-	// SourceBundled is the copy the desktop build puts beside the program
-	// (scripts/desktop.mjs).
+	// SourceBundled is a yt-dlp that sits beside the program.
 	SourceBundled Source = "bundled"
 	// SourcePath is a plain "yt-dlp" found on PATH.
 	SourcePath Source = "path"
@@ -69,9 +68,9 @@ const probeTimeout = 10 * time.Second
 // disk, a version in the record, and nothing changed about what runs. No
 // managed copy exists until the button or the daily update fetches one that
 // is newer than what runs, and from then on it is what runs. It
-// outranks the copy the desktop build ships for the same reason: that one sits
-// in a folder such as Program Files that the program cannot write to, so a
-// newer yt-dlp can only ever arrive as a managed copy.
+// outranks a copy beside the program for the same reason: that one sits in a
+// folder such as Program Files that the program cannot write to, so a newer
+// yt-dlp can only ever arrive as a managed copy.
 //
 // A recorded copy that does not run loses. The managed copy only wins when the
 // record exists, the file exists and it answers --version with exit 0.
@@ -113,9 +112,9 @@ func ResolveYtdlp(dataDir string) (path string, source Source, detail string) {
 // taken out of the running. It is what Status.Shadowed reports and what runs
 // when the fetched copy is gone or does not start.
 //
-// KL_YTDLP is someone's explicit choice and outranks the copy that came with
-// the program, which in turn outranks PATH, so an old yt-dlp a package manager
-// left on PATH does not replace the one this build ships.
+// KL_YTDLP is someone's explicit choice and outranks a copy beside the
+// program, which in turn outranks PATH, so an old yt-dlp a package manager
+// left on PATH does not replace the one put next to the program.
 func resolveSystemYtdlp() (string, Source) {
 	if env := os.Getenv("KL_YTDLP"); env != "" {
 		return env, SourceEnv
@@ -145,9 +144,8 @@ var programDir = func() string {
 	return filepath.Dir(exe)
 }
 
-// bundledPath is where the desktop build puts its yt-dlp: beside the program,
-// which in the macOS bundle is Contents/MacOS. Empty when the program's own
-// path cannot be read.
+// bundledPath is a yt-dlp beside the program, which in the macOS bundle is
+// Contents/MacOS. Empty when the program's own path cannot be read.
 func bundledPath() string {
 	dir := programDir()
 	if dir == "" {
