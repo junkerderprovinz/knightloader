@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   Button,
+  FieldError,
   FieldGroup,
   IconBadge,
   NumberInput,
@@ -429,13 +430,8 @@ function FeedRow({
                 spellCheck={false}
                 value={text}
                 placeholder="https://example.org/feed.xml"
-                // Marked, not corrected; the focus ring covers the halo while typing.
+                // Marked, not corrected: the text stays as typed.
                 aria-invalid={verdict === 'invalid' || verdict === 'duplicate'}
-                className={
-                  verdict === 'invalid' || verdict === 'duplicate'
-                    ? 'shadow-[0_0_0_2px_var(--status-warn-text)]'
-                    : ''
-                }
                 onChange={(e) => {
                   setText(e.target.value);
                   setVerdict('blank');
@@ -450,7 +446,7 @@ function FeedRow({
               />
             )}
           </SettingRow>
-          {verdict === 'duplicate' && <p className="text-xs text-statusWarn">{t('settings.feeds.duplicate')}</p>}
+          {verdict === 'duplicate' && <FieldError>{t('settings.feeds.duplicate')}</FieldError>}
 
           <div className="flex flex-col gap-4">
             {/* 0 takes the server's quarter of an hour; other values are cut
@@ -472,7 +468,6 @@ function FeedRow({
                 // Marked and not committed, so a broken pattern never reaches
                 // the draft.
                 aria-invalid={filterBad}
-                className={filterBad ? 'shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}
                 onChange={(e) => {
                   setFilter(e.target.value);
                   setFilterBad(false);

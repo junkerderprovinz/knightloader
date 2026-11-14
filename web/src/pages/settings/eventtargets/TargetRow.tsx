@@ -225,9 +225,8 @@ export function TargetRow({
               spellCheck={false}
               value={urlText}
               placeholder={discord ? 'https://discord.com/api/webhooks/...' : 'https://ntfy.example/my-topic'}
-              // Marked, not corrected; the focus ring covers the halo while typing.
+              // Marked, not corrected: the text stays as typed.
               aria-invalid={urlBad}
-              className={urlBad ? 'shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}
               onChange={(e) => {
                 setUrlText(e.target.value);
                 setUrlBad(false);
@@ -263,44 +262,38 @@ export function TargetRow({
           </SettingRow>
 
           <Field label={t('settings.eventTargets.headers')} hint={t('settings.eventTargets.headersHint')}>
-            {/* The halo sits on a wrapper because TextArea's className prop
-                would replace its own styling. */}
-            <div className={headersBad ? 'rounded-[var(--radius-control)] shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}>
-              <TextArea
-                dir="ltr"
-                spellCheck={false}
-                rows={3}
-                value={headersText}
-                placeholder={discord ? '' : 'Authorization: Bearer ...\nContent-Type: text/plain'}
-                aria-invalid={headersBad}
-                onChange={(e) => {
-                  setHeadersText(e.target.value);
-                  setHeadersBad(false);
-                }}
-                onBlur={commitHeaders}
-              />
-            </div>
+            <TextArea
+              dir="ltr"
+              spellCheck={false}
+              rows={3}
+              value={headersText}
+              placeholder={discord ? '' : 'Authorization: Bearer ...\nContent-Type: text/plain'}
+              aria-invalid={headersBad}
+              onChange={(e) => {
+                setHeadersText(e.target.value);
+                setHeadersBad(false);
+              }}
+              onBlur={commitHeaders}
+            />
           </Field>
 
           {/* GET sends no body. */}
           {method !== 'GET' && (
             <Field label={t('settings.eventTargets.body')} hint={t('settings.eventTargets.bodyHint')}>
-              <div className={bodyBad ? 'rounded-[var(--radius-control)] shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}>
-                <TextArea
-                  dir="ltr"
-                  spellCheck={false}
-                  rows={4}
-                  value={bodyText}
-                  // Left empty, the body is what gives a Discord row its ready-made message.
-                  placeholder={discord ? '' : '%%task.name%%'}
-                  aria-invalid={bodyBad}
-                  onChange={(e) => {
-                    setBodyText(e.target.value);
-                    setBodyBad(false);
-                  }}
-                  onBlur={commitBody}
-                />
-              </div>
+              <TextArea
+                dir="ltr"
+                spellCheck={false}
+                rows={4}
+                value={bodyText}
+                // Left empty, the body is what gives a Discord row its ready-made message.
+                placeholder={discord ? '' : '%%task.name%%'}
+                aria-invalid={bodyBad}
+                onChange={(e) => {
+                  setBodyText(e.target.value);
+                  setBodyBad(false);
+                }}
+                onBlur={commitBody}
+              />
             </Field>
           )}
 

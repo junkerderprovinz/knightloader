@@ -52,6 +52,8 @@
       }
       input:focus { background: var(--carbon-surface3); }
       input:focus-visible { outline: none; }
+      /* A value the field cannot take wears the fault wash until it is fixed. */
+      input[aria-invalid='true'] { background: var(--status-fail-bg); }
       select:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
       /* Links styled as buttons share the button rules; every pressable thing
          is --btn-h high. */
@@ -302,7 +304,7 @@
       #videoShortcutRow > .glim-row { margin-top: 0; }
       #videoShortcut { width: 9.5rem; text-align: center; font-variant-numeric: tabular-nums; cursor: pointer; }
       #videoShortcut[tabindex="-1"] { cursor: default; }
-      .videoShortcutError { margin: 6px 0 0; font-size: var(--text-subline); color: var(--status-fail-text); text-align: end; }
+      .videoShortcutError { margin: 6px 0 0; font-size: var(--text-subline); color: var(--status-fail-text); justify-content: flex-end; }
       #videoSpotReset:disabled,
       #videoShortcut:disabled,
       #videoShortcutAction:disabled,
@@ -397,7 +399,7 @@
         <span class="glim-row-label" id="deviceNameLabel"></span>
         <input id="deviceName" type="text" autocomplete="off" spellcheck="false" />
       </div>
-      <div id="status"></div>
+      <div id="status" role="status" aria-live="polite" aria-atomic="true"></div>
       <div id="list"></div>
       <p id="ownKey" hidden></p>
       <button id="refreshGroup" class="glim-btn-subtle" type="button" hidden>Refresh</button>
@@ -635,7 +637,7 @@
                 <button type="button" id="videoShortcutAction" class="glim-btn-subtle"></button>
               </span>
             </div>
-            <p class="videoShortcutError" id="videoShortcutError" role="alert" hidden></p>
+            <p class="glim-field-error videoShortcutError" id="videoShortcutError" role="alert" hidden></p>
           </div>
         </div>
       </div>
@@ -826,7 +828,7 @@
           <div class="videoAddHead" id="videoAddHead"><label for="videoAddField" id="videoAddLabel"></label></div>
           <input id="videoAddField" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com" aria-describedby="videoAddError" />
           <div class="videoAddPreview" id="videoAddPreview" hidden></div>
-          <p class="videoAddError" id="videoAddError" role="alert" hidden></p>
+          <p class="glim-field-error videoAddError" id="videoAddError" role="alert" hidden></p>
         </div>
         <div class="glim-modal-actions">
           <button id="videoAddCancel" class="glim-btn-subtle" type="button"></button>

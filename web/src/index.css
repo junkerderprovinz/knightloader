@@ -20,7 +20,8 @@
      · one raised surface level; never a card inside a card
      · one hero per page, everything else quiet
      · gold marks activity only: active nav, primary action, progress, brand
-     · four state hues (gold, green, red, neutral), never more
+     · the state colours of rule 4: gold for running, green for done,
+       orange for partial or a warning, red for an error, neutral for waiting
      · hierarchy comes from type size and colour step, not from borders */
 
 @theme {
@@ -736,10 +737,23 @@ body {
 
 /* A sub-card groups rows inside a card: flat, on the well's colour and at the
    card's radius. Fields and neutral buttons in it move one step up the ramp,
-   as fields do in a well, and their hover moves with them. */
+   as fields do in a well, and their hover moves with them. Its name sits in
+   the notch on its top edge, so it is `relative` for the badge and stands a
+   little further from what comes before it, which the badge's upper half
+   reaches into. */
 .glim-subcard {
+  position: relative;
   background-color: var(--carbon-surface2);
   border-radius: var(--radius-card);
+}
+* + .glim-subcard--titled {
+  margin-top: 0.5rem;
+}
+
+/* A field whose value cannot be taken wears the fault wash until it is fixed,
+   above the step a well or a sub-card gives its fields. */
+:is(input, textarea, .glim-field)[aria-invalid='true'] {
+  background-color: var(--status-fail-bg);
 }
 .glim-subcard input,
 .glim-subcard textarea,

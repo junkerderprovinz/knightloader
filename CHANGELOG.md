@@ -36,6 +36,26 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Changed
+
+- **KnightLoader follows GlimStone 4.4.1,** and the Version card names it. A
+  switch that is on draws its knob in the accent's ink, so it stays easy to
+  see in the light theme. A group inside a card carries its name as a badge
+  on its top edge, like the card itself.
+- **A value a field cannot take is marked the same way in the web interface
+  and the extension's settings.** The field turns red, and a line under it
+  says why.
+- **Screen readers read out the notifications.** In the web interface a
+  failure is read at once and anything else at the next pause. A
+  notification with a button stays until you close it, unless its offer runs
+  out first. The extension's status line and the phone app's captcha banner
+  are read out too.
+- **While a window is open, the page behind it is out of reach** for the
+  pointer and for a screen reader, in the web interface and in the
+  extension's settings.
+
 ## [2.8.3] - 2026-11-13
 
 ### Improved

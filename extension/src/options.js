@@ -2129,6 +2129,44 @@ copyReportBtn.addEventListener('click', async () => {
   }
 });
 
+const madeInert = new Set();
+
+/**
+ * Everything beside the open window is inert, the page and any window under
+ * it, so the pointer and a screen reader's own cursor stay in the window as
+ * Tab does. Every window is a .glim-modal-backdrop on <body>, so watching
+ * their `hidden` covers them all.
+ */
+function inertOutsideWindow() {
+  for (const el of madeInert) el.inert = false;
+  madeInert.clear();
+  const top = [...document.querySelectorAll('body > .glim-modal-backdrop:not([hidden])')].pop();
+  if (!top) return;
+  for (const el of document.body.children) {
+    if (el === top || el.inert || el instanceof HTMLScriptElement) continue;
+    el.inert = true;
+    madeInert.add(el);
+  }
+}
+
+const windowWatch = new MutationObserver(inertOutsideWindow);
+for (const backdrop of document.querySelectorAll('body > .glim-modal-backdrop')) {
+  windowWatch.observe(backdrop, { attributeFilter: ['hidden'] });
+}
+
+// A field is invalid while its error line shows, so the fault wash and a
+// screen reader follow the line wherever the page shows or hides it.
+const errorWatch = new MutationObserver((records) => {
+  for (const { target: line } of records) {
+    const field = document.querySelector(`[aria-describedby~="${line.id}"]`);
+    if (line.hidden) field?.removeAttribute('aria-invalid');
+    else field?.setAttribute('aria-invalid', 'true');
+  }
+});
+for (const line of document.querySelectorAll('.glim-field-error[id]')) {
+  errorWatch.observe(line, { attributeFilter: ['hidden'] });
+}
+
 (async () => {
   await applyAppearance();
   listenForPageHue();
