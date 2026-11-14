@@ -29,7 +29,7 @@ const event = () => ({ addListener() {} });
 
 const patreon = { id: 'patreon', name: 'Patreon', host: 'patreon.com', loginUrl: 'https://www.patreon.com/login', domains: ['patreon.com'], waiting: true };
 
-function makeChrome({ grant = true, takeover = false, cookies = [] } = {}) {
+function makeChrome({ grant = true, takeover = false, allSites = false, cookies = [] } = {}) {
   const order = [];
   const asked = [];
   const removed = [];
@@ -57,7 +57,10 @@ function makeChrome({ grant = true, takeover = false, cookies = [] } = {}) {
         asked.push(p);
         return grant;
       },
-      contains: async (p) => takeover && (p.permissions ?? []).every((x) => ['downloads', 'cookies', 'notifications'].includes(x)),
+      contains: async (p) =>
+        (takeover || allSites) &&
+        (p.permissions ?? []).every((x) => takeover && ['downloads', 'cookies', 'notifications'].includes(x)) &&
+        (p.origins ?? []).every((o) => o === '<all_urls>'),
       remove: async (p) => {
         removed.push(p);
         return true;
@@ -138,14 +141,24 @@ const strayCookie = { domain: '.notpatreon.com', hostOnly: false, path: '/', sec
   if (back.length !== 1 || back[0].permissions?.join() !== 'cookies' || back[0].origins?.length !== 2) fail(`gave back ${JSON.stringify(back)}, want the cookies and the site's origins`);
 }
 
-// 2. Taking downloads over keeps the cookies and all websites.
+// 2. Taking downloads over keeps the cookies, and the site's own domains go
+// back even while Click'n'Load holds all websites, which Firefox lists apart.
 {
   const { chrome, removed } = makeChrome({ takeover: true, cookies: [sessionCookie] });
   const ctx = load(chrome);
   const send = async () => ({ status: 200, body: '{}' });
   await vm.runInContext('signInWith', ctx)(patreon, { send });
   const back = plain(removed).flatMap((p) => [...(p.permissions ?? []), ...(p.origins ?? [])]);
-  if (back.length) fail(`with taking over on, the hand-over gave back ${back}`);
+  if (back.join() !== 'https://patreon.com/*,https://*.patreon.com/*') fail(`with taking over on, the hand-over gave back ${back}, want the site's origins alone`);
+}
+{
+  const { chrome, removed } = makeChrome({ allSites: true, cookies: [sessionCookie] });
+  await chrome.storage.local.set({ cnlEnabled: true });
+  const ctx = load(chrome);
+  const send = async () => ({ status: 200, body: '{}' });
+  await vm.runInContext('signInWith', ctx)(patreon, { send });
+  const back = plain(removed).flatMap((p) => [...(p.permissions ?? []), ...(p.origins ?? [])]);
+  if (back.join() !== 'cookies,https://patreon.com/*,https://*.patreon.com/*') fail(`with Click'n'Load on, the hand-over gave back ${back}, want the cookies and the site's origins`);
 }
 
 // 3. Nothing goes out after a refusal or without a sign-in.

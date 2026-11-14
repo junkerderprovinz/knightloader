@@ -263,9 +263,9 @@ Its button opens `signin.html` in a tab, because the browser's permission
 prompt would close the popup and the request with it. There the click first
 asks for `cookies` on the site's own domains alone (`https://patreon.com/*`
 and `https://*.patreon.com/*`), then reads that site's cookies from the cookie
-store of the tab the popup was opened over, and hands the access back unless
-taking over downloads, finding media or Click'n'Load still runs on it
-(`signin.js`). The cookies go sealed through the relay as
+store of the tab the popup was opened over, and hands the site's domains back
+at once and the cookies too, unless taking over downloads or finding media
+still reads them (`signin.js`). The cookies go sealed through the relay as
 `POST /api/sitelogins/{id}/handover`, which the instance takes from the
 extension alone, never from the phone or another instance. It keeps only the
 site's own live cookies, writes them as a cookies.txt into the encrypted

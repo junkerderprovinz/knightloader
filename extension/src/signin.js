@@ -70,15 +70,16 @@ async function readSiteCookies(site, storeId) {
 }
 
 /**
- * Gives back what reading a site took. Taking downloads over and finding
- * media read cookies on every site, and they and Click'n'Load hold all
- * websites, so whatever one of them still runs on stays.
+ * Gives back what reading a site took. The cookies stay while taking
+ * downloads over or finding media still reads cookies on every site. The
+ * site's own domains always go: Firefox keeps them apart from the
+ * <all_urls> of the features that hold all websites, so they would outlive
+ * that access.
  */
 async function releaseSiteAccess(site) {
-  const [takeover, media, cnl] = await Promise.all([takeoverState(), mediaState(), cnlState()]);
+  const [takeover, media] = await Promise.all([takeoverState(), mediaState()]);
   const permissions = takeover.on || media.on ? [] : ['cookies'];
-  const origins = takeover.on || media.on || cnl.on ? [] : siteAccess(site).origins;
-  if (permissions.length || origins.length) await chrome.permissions.remove({ permissions, origins }).catch(() => false);
+  await chrome.permissions.remove({ permissions, origins: siteAccess(site).origins }).catch(() => false);
 }
 
 /**
