@@ -103,6 +103,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   storing it. The session is kept for as long as Rapidgator accepts it. Once it
   ends, the login's row and the overview ask for a new code rather than trying
   the password again, which could get the account locked.
+- **A Linksnappy account that waits for an emailed confirmation says so.**
+  Linksnappy confirms a sign-in from a new place through a link it emails, and
+  the account's check now tells you to open that link rather than showing
+  Linksnappy's bare "Two-Factor Verification Required".
 - **YouTube gives yt-dlp all its formats again.** yt-dlp needs a JavaScript
   runtime to read YouTube's player, and the desktop app had none, so some
   formats were missing. The desktop app fetches Deno during the install, or at

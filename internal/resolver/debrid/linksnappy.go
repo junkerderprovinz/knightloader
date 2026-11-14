@@ -137,6 +137,12 @@ func (l *Linksnappy) Authenticate(ctx context.Context) error {
 		"username": {l.user},
 		"password": {l.pass},
 	}, nil)
+	// A sign-in from a new place waits for the link Linksnappy emails, and
+	// the API takes no code that could stand in for it.
+	var refused *lsError
+	if errors.As(err, &refused) && strings.Contains(strings.ToLower(refused.msg), "two-factor verification required") {
+		return errors.New("linksnappy: open the link Linksnappy emailed to confirm this sign-in, then test the account again")
+	}
 	if err == nil {
 		l.mu.Lock()
 		l.loggedIn = time.Now()
