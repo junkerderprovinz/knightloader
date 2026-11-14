@@ -249,11 +249,12 @@ export function NeutralSwitch({
       >
         {/* Without start-0 the knob starts from the button's centred text
             position and slides past the pill. Tailwind v4 animates the
-            `translate` property, not `transform`. */}
+            `translate` property, not `transform`. On the accent the knob takes
+            the fill's ink, as on Toggle. */}
         <span
-          className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
-            on ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
-          }`}
+          className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
+            on && hue !== undefined ? 'bg-accentContrast' : 'bg-carbon-background'
+          } ${on ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'}`}
         />
       </span>
     </button>

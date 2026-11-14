@@ -1605,12 +1605,12 @@ export function Toggle({
           {/* start-0 is load-bearing: without it the knob starts from its static
               position, which a button's inherited text-align centres, and slides
               out past the pill. Tailwind v4 animates `translate` here, not
-              `transform`. `bg-carbon-background` rather than a fixed white makes
-              the knob the page's own ground on the accent track, so it reads dark
-              in dark mode and light in light mode. */}
+              `transform`. Off, the knob is the page's own ground. On the accent
+              it takes the fill's ink, or the light ramp's pale ground would
+              vanish into a yellow or a green. */}
           <span
-            className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
-              checked ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
+            className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
+              checked ? 'bg-accentContrast translate-x-4 rtl:-translate-x-4' : 'bg-carbon-background translate-x-0.5 rtl:-translate-x-0.5'
             }`}
           />
         </span>

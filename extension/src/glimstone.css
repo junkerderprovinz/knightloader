@@ -828,9 +828,10 @@ body {
 }
 
 /* The switch, with the geometry of the web UI's Toggle (ui.tsx): 36x20 track,
-   16x16 knob, 2px inset off and 16px on. The knob takes the page background,
-   here --carbon-bg (the web UI calls it --carbon-background), so it reads dark
-   in dark mode. */
+   16x16 knob, 2px inset off and 16px on. Off, the knob takes the page
+   background, here --carbon-bg (the web UI calls it --carbon-background). On
+   the accent it takes the fill's ink, or the light ramp's pale ground would
+   vanish into a yellow or a green. */
 .glim-switch {
   display: flex;
   align-items: center;
@@ -872,7 +873,10 @@ body {
   translate: calc(var(--dir-sign) * 2px) 0;
   transition: translate 150ms ease;
 }
-.glim-switch[aria-checked='true'] .glim-switch-knob { translate: calc(var(--dir-sign) * 16px) 0; }
+.glim-switch[aria-checked='true'] .glim-switch-knob {
+  background-color: var(--accent-contrast);
+  translate: calc(var(--dir-sign) * 16px) 0;
+}
 .glim-switch-label { order: 1; }
 .glim-switch:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 3px; }
 

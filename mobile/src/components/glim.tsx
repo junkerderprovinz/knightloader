@@ -314,7 +314,7 @@ export function GlimToggle({
   /** Answers a press while refused, with the caller's shake. */
   onRefuse?: () => void;
 }) {
-  const { c, accent, corners, hueAt } = useAppearance();
+  const { c, accent, accentContrast, corners, hueAt } = useAppearance();
   const on = (hue !== undefined ? hueAt(hue) : undefined) ?? accent;
   return (
     <TouchableOpacity
@@ -328,12 +328,17 @@ export function GlimToggle({
         { ...corners.pill, backgroundColor: value ? on : c.toggleOff, opacity: refused ? 0.5 : 1 },
       ]}
     >
-      {/* The knob is the page's own ground sitting on the track rather than a
-          fixed white, so it reads dark in dark mode and light in light. */}
+      {/* Off, the knob is the page's own ground. On the fill it takes the
+          fill's ink, or the light ramp's pale ground would vanish into a
+          yellow or a green. */}
       <View
         style={[
           styles.knob,
-          { ...corners.pill, backgroundColor: c.bg, alignSelf: value ? 'flex-end' : 'flex-start' },
+          {
+            ...corners.pill,
+            backgroundColor: value ? contrastFor(on, accentContrast) : c.bg,
+            alignSelf: value ? 'flex-end' : 'flex-start',
+          },
         ]}
       />
     </TouchableOpacity>
