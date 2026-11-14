@@ -643,7 +643,6 @@ export const he: Dict = {
   'remove.count': '{n} הורדות יורדו מהרשימה.',
   'remove.fromList': 'הורד מהרשימה',
   'remove.withFiles': 'הסר ומחק את הקבצים',
-  'remove.filesGone': 'זה גם מוחק {files} קבצים, {bytes} על הדיסק. אי אפשר לבטל.',
   'remove.noFiles': 'עוד לא נכתב שום דבר לדיסק.',
   'remove.done': 'הוסרו {n} הורדות.',
   'remove.keys': 'Del מוריד את השורות המסומנות מהרשימה. Shift+Del מוחק גם את הקבצים שלהן.',

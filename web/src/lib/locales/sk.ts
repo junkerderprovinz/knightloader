@@ -641,7 +641,6 @@ export const sk: Dict = {
   'remove.count': 'Zo zoznamu sa odoberie {n} sťahovaní.',
   'remove.fromList': 'Odobrať zo zoznamu',
   'remove.withFiles': 'Odstrániť aj so súbormi',
-  'remove.filesGone': 'Týmto sa zmaže aj {files} súborov, {bytes} na disku. Nedá sa to vrátiť.',
   'remove.noFiles': 'Na disk sa zatiaľ nič nezapísalo.',
   'remove.done': 'Odstránených {n} sťahovaní.',
   'remove.keys': 'Delete odoberie vybrané riadky zo zoznamu. Shift+Delete zmaže aj ich súbory.',

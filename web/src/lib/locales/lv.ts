@@ -642,7 +642,6 @@ export const lv: Dict = {
   'remove.count': 'No saraksta tiks noņemtas {n} lejupielādes.',
   'remove.fromList': 'Noņemt no saraksta',
   'remove.withFiles': 'Noņemt un dzēst failus',
-  'remove.filesGone': 'Tas izdzēsīs arī {files} failus, {bytes} diskā. To nevar atsaukt.',
   'remove.noFiles': 'Diskā vēl nekas nav ierakstīts.',
   'remove.done': 'Noņemtas {n} lejupielādes.',
   'remove.keys': 'Delete noņem atzīmētās rindas no saraksta. Shift+Delete dzēš arī to failus.',

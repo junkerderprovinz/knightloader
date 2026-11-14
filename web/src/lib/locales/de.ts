@@ -689,7 +689,6 @@ export const de: Dict = {
   'remove.count': '{n} Download(s) werden von der Liste genommen.',
   'remove.fromList': 'Von der Liste nehmen',
   'remove.withFiles': 'Entfernen und Dateien löschen',
-  'remove.filesGone': 'Das löscht auch {files} Datei(en), {bytes} auf der Platte. Das lässt sich nicht rückgängig machen.',
   'remove.noFiles': 'Auf die Platte wurde noch nichts geschrieben.',
   'remove.done': '{n} Download(s) entfernt.',
   'remove.doneHidden': '{n} Download(s) entfernt. {hidden} davon hast du nicht gesehen.',

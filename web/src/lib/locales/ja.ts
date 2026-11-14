@@ -641,7 +641,6 @@ export const ja: Dict = {
   'remove.count': '{n} 件のダウンロードをリストから外します。',
   'remove.fromList': 'リストから外す',
   'remove.withFiles': '削除してファイルも消す',
-  'remove.filesGone': 'これによりディスク上の {files} 件のファイル、{bytes} も消えます。取り消せません。',
   'remove.noFiles': 'ディスクにはまだ何も書き込まれていません。',
   'remove.done': '{n} 件のダウンロードを削除しました。',
   'remove.keys': 'Del は選択した行をリストから外します。Shift+Del はファイルも削除します。',

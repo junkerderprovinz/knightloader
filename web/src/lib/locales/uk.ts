@@ -642,7 +642,6 @@ export const uk: Dict = {
   'remove.count': '{n} завантажень буде знято зі списку.',
   'remove.fromList': 'Зняти зі списку',
   'remove.withFiles': 'Зняти й видалити файли',
-  'remove.filesGone': 'Це також зітре {files} файл(ів), {bytes} на диску. Скасувати не вийде.',
   'remove.noFiles': 'На диск ще нічого не записано.',
   'remove.done': 'Знято завантажень: {n}.',
   'remove.keys': 'Del знімає вибрані рядки зі списку. Shift+Del видаляє й їхні файли.',

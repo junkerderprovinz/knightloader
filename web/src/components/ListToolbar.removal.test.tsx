@@ -76,11 +76,12 @@ describe('the removal dialog', () => {
     expect(dialog.textContent).not.toContain('cannot be undone');
   });
 
-  it('deletes the files once the switch is on, and says how much', async () => {
+  it('deletes the files once the switch is on, without a warning on top', async () => {
     const dialog = await openDialog();
     await act(async () => filesSwitch(dialog).click());
     expect(buttons(dialog)).toContain('Remove and delete the files');
-    expect(dialog.textContent).toContain('This also erases 1 file(s)');
+    expect(dialog.textContent).not.toContain('This also erases');
+    expect(dialog.textContent).not.toContain('cannot be undone');
   });
 
   it('starts with the switch on for Shift+Del', async () => {
@@ -93,26 +94,17 @@ describe('the removal dialog', () => {
     { id: 'p2', name: 'film.part2.rar', loaded: 1000 },
   ] as Task[];
 
-  it('counts what the server says the unpacking wrote into what goes', async () => {
+  it('asks the server what the unpacking wrote for the selected downloads', async () => {
     unpacked = answer({ files: 3, bytes: 3000 });
     const dialog = await openDialog(true, parts, ['p1', 'p2']);
-    expect(dialog.textContent).toContain('This also erases 5 file(s), 5.0 kB');
+    expect(buttons(dialog)).toContain('Remove and delete the files');
     const asked = fetchMock.mock.calls.find(([url]) => url.endsWith('/tasks/unpacked-weight'));
     expect(JSON.parse(String(asked?.[1]?.body))).toEqual({ ids: ['p1', 'p2'] });
   });
 
-  it('counts only the downloads on a peer that does not delete what unpacking wrote', async () => {
+  it('still offers deleting the files on a peer that does not know what unpacking wrote', async () => {
     unpacked = answer({ error: 'not found' }, 404);
     const dialog = await openDialog(true, parts, ['p1']);
-    expect(dialog.textContent).toContain('This also erases 1 file(s), 1.0 kB');
-  });
-
-  it('shows no count before the server has answered', async () => {
-    let reply: (r: Response) => void = () => {};
-    fetchMock.mockImplementationOnce(() => new Promise<Response>((resolve) => (reply = resolve)));
-    const dialog = await openDialog(true, parts, ['p1']);
-    expect(dialog.textContent).not.toContain('This also erases');
-    await act(async () => reply(answer({ files: 2, bytes: 24 })));
-    expect(dialog.textContent).toContain('This also erases 3 file(s)');
+    expect(buttons(dialog)).toContain('Remove and delete the files');
   });
 });

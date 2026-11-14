@@ -633,7 +633,6 @@ export const pt: Dict = {
   'remove.count': '{n} download(s) serão retirados da lista.',
   'remove.fromList': 'Retirar da lista',
   'remove.withFiles': 'Retirar e apagar os ficheiros',
-  'remove.filesGone': 'Isto apaga também {files} ficheiro(s), {bytes} no disco. Não pode ser desfeito.',
   'remove.noFiles': 'Ainda não foi escrito nada no disco.',
   'remove.done': '{n} download(s) removidos.',
   'remove.keys': 'Del retira as linhas selecionadas da lista. Shift+Del apaga também os ficheiros delas.',

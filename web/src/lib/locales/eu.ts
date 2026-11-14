@@ -642,7 +642,6 @@ export const eu: Dict = {
   'remove.count': '{n} deskarga kenduko dira zerrendatik.',
   'remove.fromList': 'Kendu zerrendatik',
   'remove.withFiles': 'Kendu eta ezabatu fitxategiak',
-  'remove.filesGone': 'Honek {files} fitxategi ere ezabatzen ditu, {bytes} diskoan. Ezin da desegin.',
   'remove.noFiles': 'Oraindik ez da ezer idatzi diskoan.',
   'remove.done': '{n} deskarga kendu dira.',
   'remove.keys': 'Ezab teklak hautatutako errenkadak zerrendatik kentzen ditu. Maius+Ezab haien fitxategiak ere ezabatzen ditu.',

@@ -642,7 +642,6 @@ export const hi: Dict = {
   'remove.count': '{n} डाउनलोड सूची से हटा दिए जाएँगे।',
   'remove.fromList': 'सूची से हटाएँ',
   'remove.withFiles': 'हटाएँ और फ़ाइलें मिटाएँ',
-  'remove.filesGone': 'इससे डिस्क पर {files} फ़ाइलें, {bytes} भी मिट जाएँगी। इसे वापस नहीं लिया जा सकता।',
   'remove.noFiles': 'डिस्क पर अभी कुछ नहीं लिखा गया है।',
   'remove.done': '{n} डाउनलोड हटाए गए।',
   'remove.keys': 'Del चुनी हुई पंक्तियाँ सूची से हटाता है। Shift+Del उनकी फ़ाइलें भी मिटा देता है।',

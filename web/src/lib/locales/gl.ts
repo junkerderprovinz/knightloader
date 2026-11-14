@@ -641,7 +641,6 @@ export const gl: Dict = {
   'remove.count': 'Quitaranse {n} descargas da lista.',
   'remove.fromList': 'Quitar da lista',
   'remove.withFiles': 'Quitar e borrar os ficheiros',
-  'remove.filesGone': 'Isto tamén borra {files} ficheiros, {bytes} no disco. Non se pode desfacer.',
   'remove.noFiles': 'Aínda non se escribiu nada no disco.',
   'remove.done': 'Quitáronse {n} descargas.',
   'remove.keys': 'Supr quita as filas seleccionadas da lista. Maiús+Supr borra tamén os seus ficheiros.',

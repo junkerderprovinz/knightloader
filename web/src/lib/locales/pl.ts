@@ -634,7 +634,6 @@ export const pl: Dict = {
   'remove.count': '{n} pobierań zostanie zdjętych z listy.',
   'remove.fromList': 'Zdejmij z listy',
   'remove.withFiles': 'Usuń wraz z plikami',
-  'remove.filesGone': 'To kasuje także {files} plik(ów), {bytes} na dysku. Nie da się tego cofnąć.',
   'remove.noFiles': 'Na dysk nie zapisano jeszcze nic.',
   'remove.done': 'Usunięto {n} pobierań.',
   'remove.keys': 'Delete zdejmuje zaznaczone wiersze z listy. Shift+Delete kasuje też ich pliki.',

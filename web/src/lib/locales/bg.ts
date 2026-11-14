@@ -642,7 +642,6 @@ export const bg: Dict = {
   'remove.count': '{n} изтегляния ще бъдат махнати от списъка.',
   'remove.fromList': 'Махни от списъка',
   'remove.withFiles': 'Премахни и изтрий файловете',
-  'remove.filesGone': 'Това трие и {files} файла, {bytes} на диска. Не може да се върне.',
   'remove.noFiles': 'На диска още нищо не е записано.',
   'remove.done': 'Премахнати са {n} изтегляния.',
   'remove.keys': 'Del маха избраните редове от списъка. Shift+Del трие и файловете им.',

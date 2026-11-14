@@ -633,7 +633,6 @@ export const nl: Dict = {
   'remove.count': '{n} download(s) worden van de lijst gehaald.',
   'remove.fromList': 'Van de lijst halen',
   'remove.withFiles': 'Verwijderen inclusief bestanden',
-  'remove.filesGone': 'Dit wist ook {files} bestand(en), {bytes} op de schijf. Dat is niet terug te draaien.',
   'remove.noFiles': 'Er is nog niets naar de schijf geschreven.',
   'remove.done': '{n} download(s) verwijderd.',
   'remove.keys': 'Del haalt de geselecteerde rijen van de lijst. Shift+Del wist ook hun bestanden.',

@@ -633,7 +633,6 @@ export const it: Dict = {
   'remove.count': "{n} download verranno tolti dall'elenco.",
   'remove.fromList': "Togli dall'elenco",
   'remove.withFiles': 'Togli e cancella i file',
-  'remove.filesGone': 'Questo cancella anche {files} file, {bytes} sul disco. Non si può annullare.',
   'remove.noFiles': 'Sul disco non è ancora stato scritto nulla.',
   'remove.done': 'Rimossi {n} download.',
   'remove.keys': "Canc toglie dall'elenco le righe selezionate. Maiusc+Canc ne cancella anche i file.",

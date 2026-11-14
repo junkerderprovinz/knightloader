@@ -641,7 +641,6 @@ export const sl: Dict = {
   'remove.count': '{n} prenosov bo umaknjenih s seznama.',
   'remove.fromList': 'Umakni s seznama',
   'remove.withFiles': 'Odstrani in izbriši datoteke',
-  'remove.filesGone': 'To izbriše tudi {files} datotek, {bytes} na disku. Tega ni mogoče razveljaviti.',
   'remove.noFiles': 'Na disk še ni bilo nič zapisano.',
   'remove.done': 'Odstranjenih {n} prenosov.',
   'remove.keys': 'Delete umakne izbrane vrstice s seznama. Shift+Delete izbriše tudi njihove datoteke.',

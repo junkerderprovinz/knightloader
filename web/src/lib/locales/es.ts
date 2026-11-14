@@ -633,7 +633,6 @@ export const es: Dict = {
   'remove.count': 'Se quitarán {n} descarga(s) de la lista.',
   'remove.fromList': 'Quitar de la lista',
   'remove.withFiles': 'Quitar y borrar los archivos',
-  'remove.filesGone': 'Esto también borra {files} archivo(s), {bytes} en el disco. No se puede deshacer.',
   'remove.noFiles': 'Todavía no se ha escrito nada en el disco.',
   'remove.done': 'Se quitaron {n} descarga(s).',
   'remove.keys': 'Supr quita las filas seleccionadas de la lista. Mayús+Supr borra además sus archivos.',

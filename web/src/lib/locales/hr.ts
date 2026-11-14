@@ -641,7 +641,6 @@ export const hr: Dict = {
   'remove.count': '{n} preuzimanja bit će skinuto s popisa.',
   'remove.fromList': 'Skini s popisa',
   'remove.withFiles': 'Ukloni i obriši datoteke',
-  'remove.filesGone': 'Ovo briše i {files} datoteka, {bytes} na disku. Ne može se poništiti.',
   'remove.noFiles': 'Na disk još ništa nije zapisano.',
   'remove.done': 'Uklonjeno {n} preuzimanja.',
   'remove.keys': 'Del skida odabrane retke s popisa. Shift+Del briše i njihove datoteke.',

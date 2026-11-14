@@ -641,7 +641,6 @@ export const da: Dict = {
   'remove.count': '{n} download(s) bliver taget af listen.',
   'remove.fromList': 'Tag af listen',
   'remove.withFiles': 'Fjern og slet filerne',
-  'remove.filesGone': 'Dette sletter også {files} fil(er), {bytes} på disken. Det kan ikke fortrydes.',
   'remove.noFiles': 'Der er endnu ikke skrevet noget til disken.',
   'remove.done': 'Fjernede {n} download(s).',
   'remove.keys': 'Delete tager de valgte rækker af listen. Skift+Delete sletter også deres filer.',

@@ -641,7 +641,6 @@ export const ca: Dict = {
   'remove.count': 'Es trauran {n} baixades de la llista.',
   'remove.fromList': 'Treu de la llista',
   'remove.withFiles': 'Treu i esborra els fitxers',
-  'remove.filesGone': 'Això també esborra {files} fitxers, {bytes} al disc. No es pot desfer.',
   'remove.noFiles': "Encara no s'ha escrit res al disc.",
   'remove.done': "S'han tret {n} baixades.",
   'remove.keys': "Supr treu les files seleccionades de la llista. Maj+Supr n'esborra també els fitxers.",

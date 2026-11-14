@@ -641,7 +641,6 @@ export const th: Dict = {
   'remove.count': 'จะเอา {n} รายการออกจากรายการดาวน์โหลด',
   'remove.fromList': 'เอาออกจากรายการ',
   'remove.withFiles': 'เอาออกและลบไฟล์',
-  'remove.filesGone': 'การนี้จะลบ {files} ไฟล์ รวม {bytes} บนดิสก์ด้วย และย้อนกลับไม่ได้',
   'remove.noFiles': 'ยังไม่มีอะไรถูกเขียนลงดิสก์',
   'remove.done': 'เอาออกแล้ว {n} รายการ',
   'remove.keys': 'Del เอาแถวที่เลือกออกจากรายการ Shift+Del ลบไฟล์ของแถวนั้นด้วย',

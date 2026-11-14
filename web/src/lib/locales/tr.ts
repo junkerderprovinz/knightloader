@@ -641,7 +641,6 @@ export const tr: Dict = {
   'remove.count': '{n} indirme listeden alınacak.',
   'remove.fromList': 'Listeden al',
   'remove.withFiles': 'Kaldır ve dosyaları sil',
-  'remove.filesGone': 'Bu ayrıca {files} dosyayı, diskte {bytes}, siler. Geri alınamaz.',
   'remove.noFiles': 'Diske henüz hiçbir şey yazılmadı.',
   'remove.done': '{n} indirme kaldırıldı.',
   'remove.keys': 'Del seçili satırları listeden alır. Shift+Del dosyalarını da siler.',

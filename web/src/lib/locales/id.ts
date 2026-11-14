@@ -641,7 +641,6 @@ export const id: Dict = {
   'remove.count': '{n} unduhan akan diangkat dari daftar.',
   'remove.fromList': 'Angkat dari daftar',
   'remove.withFiles': 'Hapus berikut berkasnya',
-  'remove.filesGone': 'Ini juga menghapus {files} berkas, {bytes} di disk. Tidak bisa dibatalkan.',
   'remove.noFiles': 'Belum ada apa pun yang ditulis ke disk.',
   'remove.done': '{n} unduhan dihapus.',
   'remove.keys': 'Del mengangkat baris terpilih dari daftar. Shift+Del menghapus berkasnya juga.',

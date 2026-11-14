@@ -641,7 +641,6 @@ export const ko: Dict = {
   'remove.count': '다운로드 {n}개를 목록에서 뺍니다.',
   'remove.fromList': '목록에서 빼기',
   'remove.withFiles': '파일까지 삭제',
-  'remove.filesGone': '디스크의 파일 {files}개, {bytes}도 함께 지워집니다. 되돌릴 수 없습니다.',
   'remove.noFiles': '디스크에는 아직 아무것도 쓰이지 않았습니다.',
   'remove.done': '다운로드 {n}개를 지웠습니다.',
   'remove.keys': 'Del은 선택한 행을 목록에서 뺍니다. Shift+Del은 파일까지 지웁니다.',

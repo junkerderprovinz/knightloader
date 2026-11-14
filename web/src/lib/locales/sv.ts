@@ -641,7 +641,6 @@ export const sv: Dict = {
   'remove.count': '{n} nedladdning(ar) tas bort från listan.',
   'remove.fromList': 'Ta bort från listan',
   'remove.withFiles': 'Ta bort och radera filerna',
-  'remove.filesGone': 'Det här raderar även {files} fil(er), {bytes} på disken. Det går inte att ångra.',
   'remove.noFiles': 'Inget har skrivits till disken än.',
   'remove.done': 'Tog bort {n} nedladdning(ar).',
   'remove.keys': 'Del tar bort de markerade raderna från listan. Skift+Del raderar även deras filer.',

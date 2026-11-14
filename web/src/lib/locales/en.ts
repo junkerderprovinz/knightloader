@@ -726,7 +726,6 @@ export const en = {
   'remove.count': '{n} download(s) will be taken off the list.',
   'remove.fromList': 'Remove from the list',
   'remove.withFiles': 'Remove and delete the files',
-  'remove.filesGone': 'This also erases {files} file(s), {bytes} on disk. It cannot be undone.',
   'remove.noFiles': 'Nothing has been written to disk yet.',
   'remove.done': 'Removed {n} download(s).',
   'remove.doneHidden': 'Removed {n} download(s). {hidden} of them were not on screen.',

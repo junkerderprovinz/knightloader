@@ -87,10 +87,12 @@ export function ProgressBar({
           style={{ width: `${clamped}%`, backgroundColor: fill }}
         >
           {/* The front edge tells a moving download from a stalled one at the
-              same percentage. It is drawn wherever there is a fill and pulses
-              on glim-pulse only while `moving`. index.css hides it when the
-              fill is narrower than the edge. */}
-          {clamped > 0 && !level && <span className={`kl-bar-edge${moving ? ' kl-bar-edge-live' : ''}`} />}
+              same percentage. A full bar has no front, so only a fill under way
+              draws it, and it pulses on glim-pulse only while `moving`.
+              index.css hides it when the fill is narrower than the edge. */}
+          {clamped > 0 && clamped < 100 && !level && (
+            <span className={`kl-bar-edge${moving ? ' kl-bar-edge-live' : ''}`} />
+          )}
           {clamped > 0 && level && <SloshPops />}
         </div>
       )}

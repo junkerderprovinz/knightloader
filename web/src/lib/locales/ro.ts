@@ -643,7 +643,6 @@ export const ro: Dict = {
   'remove.count': '{n} descărcări vor fi scoase din listă.',
   'remove.fromList': 'Scoate din listă',
   'remove.withFiles': 'Elimină și șterge fișierele',
-  'remove.filesGone': 'Asta șterge și {files} fișiere, {bytes} pe disc. Nu se poate anula.',
   'remove.noFiles': 'Pe disc nu s-a scris încă nimic.',
   'remove.done': '{n} descărcări eliminate.',
   'remove.keys': 'Del scoate rândurile selectate din listă. Shift+Del le șterge și fișierele.',

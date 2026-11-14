@@ -641,7 +641,6 @@ export const et: Dict = {
   'remove.count': 'Loendist võetakse maha {n} allalaadimist.',
   'remove.fromList': 'Võta loendist maha',
   'remove.withFiles': 'Eemalda ja kustuta failid',
-  'remove.filesGone': 'See kustutab ka {files} faili, {bytes} kettal. Seda ei saa tagasi võtta.',
   'remove.noFiles': 'Kettale pole veel midagi kirjutatud.',
   'remove.done': 'Eemaldati {n} allalaadimist.',
   'remove.keys': 'Delete võtab valitud read loendist maha. Shift+Delete kustutab ka nende failid.',

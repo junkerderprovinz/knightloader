@@ -644,7 +644,6 @@ export const no: Dict = {
   'remove.count': '{n} nedlasting(er) blir tatt av listen.',
   'remove.fromList': 'Ta av listen',
   'remove.withFiles': 'Fjern og slett filene',
-  'remove.filesGone': 'Dette sletter også {files} fil(er), {bytes} på disken. Det kan ikke angres.',
   'remove.noFiles': 'Ingenting er skrevet til disken ennå.',
   'remove.done': 'Fjernet {n} nedlasting(er).',
   'remove.keys': 'Delete tar de valgte radene av listen. Skift+Delete sletter også filene deres.',

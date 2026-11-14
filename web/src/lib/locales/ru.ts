@@ -634,7 +634,6 @@ export const ru: Dict = {
   'remove.count': '{n} загрузок будет убрано из списка.',
   'remove.fromList': 'Убрать из списка',
   'remove.withFiles': 'Убрать и удалить файлы',
-  'remove.filesGone': 'Это также сотрёт {files} файл(ов), {bytes} на диске. Отменить будет нельзя.',
   'remove.noFiles': 'На диск ещё ничего не записано.',
   'remove.done': 'Убрано загрузок: {n}.',
   'remove.keys': 'Del убирает выбранные строки из списка. Shift+Del удаляет и их файлы.',

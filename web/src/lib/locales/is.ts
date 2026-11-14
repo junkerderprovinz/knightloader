@@ -641,7 +641,6 @@ export const is: Dict = {
   'remove.count': '{n} niðurhöl verða tekin af listanum.',
   'remove.fromList': 'Taka af listanum',
   'remove.withFiles': 'Fjarlægja og eyða skránum',
-  'remove.filesGone': 'Þetta eyðir líka {files} skrám, {bytes} á disknum. Því verður ekki snúið við.',
   'remove.noFiles': 'Ekkert hefur enn verið skrifað á diskinn.',
   'remove.done': '{n} niðurhöl fjarlægð.',
   'remove.keys': 'Delete tekur valdar raðir af listanum. Shift+Delete eyðir líka skránum þeirra.',

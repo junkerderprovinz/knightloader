@@ -641,7 +641,6 @@ export const vi: Dict = {
   'remove.count': '{n} tải xuống sẽ bị bỏ khỏi danh sách.',
   'remove.fromList': 'Bỏ khỏi danh sách',
   'remove.withFiles': 'Bỏ và xóa các tệp',
-  'remove.filesGone': 'Việc này còn xóa {files} tệp, {bytes} trên đĩa. Không thể hoàn tác.',
   'remove.noFiles': 'Chưa có gì được ghi xuống đĩa.',
   'remove.done': 'Đã bỏ {n} tải xuống.',
   'remove.keys': 'Del bỏ các dòng đã chọn khỏi danh sách. Shift+Del xóa cả tệp của chúng.',

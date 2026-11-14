@@ -642,7 +642,6 @@ export const lt: Dict = {
   'remove.count': 'Nuo sąrašo bus nuimta {n} atsiuntimų.',
   'remove.fromList': 'Nuimti nuo sąrašo',
   'remove.withFiles': 'Pašalinti kartu su failais',
-  'remove.filesGone': 'Tai taip pat ištrins {files} failų, {bytes} diske. Atšaukti nepavyks.',
   'remove.noFiles': 'Į diską dar nieko neįrašyta.',
   'remove.done': 'Pašalinta {n} atsiuntimų.',
   'remove.keys': 'Delete nuima pažymėtas eilutes nuo sąrašo. Shift+Delete ištrina ir jų failus.',

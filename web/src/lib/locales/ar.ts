@@ -643,7 +643,6 @@ export const ar: Dict = {
   'remove.count': 'سيُرفع {n} تنزيل من القائمة.',
   'remove.fromList': 'رفع من القائمة',
   'remove.withFiles': 'إزالة مع حذف الملفات',
-  'remove.filesGone': 'هذا يمحو أيضًا {files} ملفًا، {bytes} على القرص. ولا يمكن التراجع عنه.',
   'remove.noFiles': 'لم يُكتب شيء على القرص بعد.',
   'remove.done': 'أُزيل {n} تنزيل.',
   'remove.keys': 'زر Del يرفع الصفوف المحدّدة من القائمة. وShift+Del يحذف ملفاتها كذلك.',

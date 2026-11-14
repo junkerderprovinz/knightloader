@@ -641,7 +641,6 @@ export const fi: Dict = {
   'remove.count': '{n} latausta otetaan pois listalta.',
   'remove.fromList': 'Ota pois listalta',
   'remove.withFiles': 'Poista ja tuhoa tiedostot',
-  'remove.filesGone': 'Tämä tuhoaa myös {files} tiedostoa, {bytes} levyllä. Sitä ei voi perua.',
   'remove.noFiles': 'Levylle ei ole vielä kirjoitettu mitään.',
   'remove.done': 'Poistettiin {n} latausta.',
   'remove.keys': 'Delete ottaa valitut rivit pois listalta. Vaihto+Delete poistaa myös niiden tiedostot.',

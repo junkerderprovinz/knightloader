@@ -633,7 +633,6 @@ export const fr: Dict = {
   'remove.count': '{n} téléchargement(s) seront retirés de la liste.',
   'remove.fromList': 'Retirer de la liste',
   'remove.withFiles': 'Retirer et supprimer les fichiers',
-  'remove.filesGone': 'Cela efface aussi {files} fichier(s), {bytes} sur le disque. C’est irréversible.',
   'remove.noFiles': 'Rien n’a encore été écrit sur le disque.',
   'remove.done': '{n} téléchargement(s) retiré(s).',
   'remove.keys': 'Suppr retire les lignes sélectionnées de la liste. Maj+Suppr supprime aussi leurs fichiers.',

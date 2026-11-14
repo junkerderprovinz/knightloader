@@ -642,7 +642,6 @@ export const hu: Dict = {
   'remove.count': '{n} letöltés kerül le a listáról.',
   'remove.fromList': 'Levétel a listáról',
   'remove.withFiles': 'Eltávolítás a fájlokkal együtt',
-  'remove.filesGone': 'Ez {files} fájlt is töröl, {bytes} a lemezen. Nem vonható vissza.',
   'remove.noFiles': 'A lemezre még semmi nem íródott.',
   'remove.done': '{n} letöltés eltávolítva.',
   'remove.keys': 'A Del leveszi a kijelölt sorokat a listáról. A Shift+Del a fájljaikat is törli.',

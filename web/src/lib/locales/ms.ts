@@ -641,7 +641,6 @@ export const ms: Dict = {
   'remove.count': '{n} muat turun akan diangkat dari senarai.',
   'remove.fromList': 'Angkat dari senarai',
   'remove.withFiles': 'Buang berserta failnya',
-  'remove.filesGone': 'Ini turut memadam {files} fail, {bytes} pada cakera. Ia tidak boleh dibatalkan.',
   'remove.noFiles': 'Belum ada apa-apa ditulis ke cakera.',
   'remove.done': '{n} muat turun dibuang.',
   'remove.keys': 'Del mengangkat baris terpilih dari senarai. Shift+Del memadam failnya sekali.',

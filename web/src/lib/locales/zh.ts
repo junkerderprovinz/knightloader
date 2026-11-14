@@ -641,7 +641,6 @@ export const zh: Dict = {
   'remove.count': '将从列表中移除 {n} 个下载。',
   'remove.fromList': '从列表移除',
   'remove.withFiles': '移除并删除文件',
-  'remove.filesGone': '这还会抹掉磁盘上的 {files} 个文件，共 {bytes}。无法撤销。',
   'remove.noFiles': '还没有任何东西写入磁盘。',
   'remove.done': '已移除 {n} 个下载。',
   'remove.keys': 'Del 把选中的行从列表移除。Shift+Del 连它们的文件一起删除。',

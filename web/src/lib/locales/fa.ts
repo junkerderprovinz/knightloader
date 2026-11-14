@@ -641,7 +641,6 @@ export const fa: Dict = {
   'remove.count': '{n} دانلود از فهرست برداشته می‌شود.',
   'remove.fromList': 'برداشتن از فهرست',
   'remove.withFiles': 'حذف همراه با پرونده‌ها',
-  'remove.filesGone': 'این کار {files} پرونده، {bytes} روی دیسک را هم پاک می‌کند و برگشت‌پذیر نیست.',
   'remove.noFiles': 'هنوز چیزی روی دیسک نوشته نشده است.',
   'remove.done': '{n} دانلود حذف شد.',
   'remove.keys': 'کلید Del سطرهای برگزیده را از فهرست برمی‌دارد. Shift+Del پرونده‌هایشان را هم پاک می‌کند.',
