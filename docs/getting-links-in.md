@@ -167,7 +167,7 @@ and while it is missing or down qBittorrent sends and receives nothing and the
 torrents wait. The list offers the interfaces the system has, with their
 addresses, and "Any interface", which is the default. A change applies to
 running torrents at once. On Windows qBittorrent names interfaces its own
-way, so a name from the list may not reach it; there the torrents wait rather
+way, so a name from the list may not reach it. The torrents then wait rather
 than leave by another interface. Torrents a debrid service fetches are not
 affected: they come over HTTP from the service.
 

@@ -95,7 +95,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Every torrent runs in that qBittorrent,** so private trackers that admit
   only listed clients take KnightLoader's torrents. KnightLoader still picks
   the folder and the files, keeps banned trackers out and stops seeding at
-  your targets; qBittorrent's own limits and queue stay off. Torrents you
+  your targets, while qBittorrent's own limits and queue stay off. Torrents you
   already have move over on the first start and carry on with the bytes they
   have. A finished one is checked piece by piece first, so qBittorrent seeds
   it without reading it again. Changing the port, DHT or PEX applies at once.
