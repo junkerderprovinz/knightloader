@@ -229,6 +229,10 @@ func Check(ctx context.Context, client *http.Client, site Site, jar string, now 
 	}
 	name, state := ask(ctx, client, site, cookies, now)
 	st.State, st.Account = state, name
+	// The cookies' end says nothing once the site has turned the session down.
+	if state == Expired {
+		st.Expires = ""
+	}
 	return st
 }
 

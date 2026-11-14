@@ -153,8 +153,8 @@ func TestPatreonSaysWhoTheSessionBelongsTo(t *testing.T) {
 func TestPatreonRefusingTheSessionMeansItExpired(t *testing.T) {
 	site := patreonAt(t, func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusUnauthorized) })
 	got := Check(context.Background(), http.DefaultClient, site, jar(jarLine(".patreon.com", "session_id", "S1", now.Add(time.Hour))), now)
-	if got.State != Expired {
-		t.Errorf("Check = %+v, want expired", got)
+	if got.State != Expired || got.Expires != "" {
+		t.Errorf("Check = %+v, want expired, with no date it holds until", got)
 	}
 }
 
