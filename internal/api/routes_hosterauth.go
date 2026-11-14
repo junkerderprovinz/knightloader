@@ -30,13 +30,18 @@ func registerHosterAuth(reg *Registry, a *app.App) {
 	// The password reaches the JD sidecar and is stored there, which the
 	// dialogue has to say before it calls this
 	// (web/src/components/HosterLoginSection.tsx). That disclosure is why
-	// these logins are not folded into /api/accounts.
+	// these logins are not folded into /api/accounts. The answer is the
+	// login's row, which for a login asking for a two-factor code says so,
+	// and the dialogue sends the code with a second save.
 	reg.Add(http.MethodPost, "/api/hosterauth/logins", "store or update one host's native login and reconcile it into JD",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Host     string `json:"host"`
 				Username string `json:"username"`
 				Password string `json:"password"`
+				// Code is the one-time code of a second factor, used for one
+				// sign-in and never stored.
+				Code string `json:"code"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
@@ -45,11 +50,14 @@ func registerHosterAuth(reg *Registry, a *app.App) {
 				http.Error(w, "which host is this login for?", http.StatusBadRequest)
 				return
 			}
-			if err := a.SetHosterLogin(body.Host, body.Username, body.Password); err != nil {
+			ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+			defer cancel()
+			row, err := a.SaveHosterLogin(ctx, body.Host, body.Username, body.Password, body.Code)
+			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			w.WriteHeader(http.StatusNoContent)
+			writeJSON(w, row)
 		})
 
 	// Its own route rather than a field on the save above, so flipping the

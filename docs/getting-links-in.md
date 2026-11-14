@@ -451,6 +451,17 @@ JDownloader, so Rapidgator sees one sign-in for the account rather than two.
 The login's row shows what Rapidgator says about it: premium or free, when the
 plan runs out and how much traffic is left.
 
+An account with two-factor sign-in works too. When you save the login,
+Rapidgator asks for the code, and the window shows one more field for the six
+digits from your authenticator app. KnightLoader signs in with the code once
+and never stores it. It keeps the session for as long as Rapidgator accepts
+it, rather than signing in again every 45 minutes as it does for a login
+without a second factor. Once Rapidgator ends the session, and after a restart
+of KnightLoader, the login's row and the overview ask for a new code, and
+Rapidgator links go to the next backend until you enter one. KnightLoader
+never retries the password on its own meanwhile, since Rapidgator locks
+accounts that keep trying.
+
 The link collector names every Rapidgator link as soon as it arrives, with its
 size and whether it is still online. With the login it asks the API, which
 knows the size to the byte. Without one it reads the public file page, which
@@ -458,10 +469,9 @@ rounds the size.
 
 A download fails with a clear reason when Rapidgator turns the login down, when
 the account has no premium, when its traffic has run out or does not cover the
-file, and when the file is gone. An account that asks for a two-factor code
-cannot be used, since KnightLoader has no way to enter one. Once the traffic
-has run out, Rapidgator links go to the next backend on the priority card for
-an hour, and then the login is tried again. When Rapidgator asks for a pause
+file, and when the file is gone. Once the traffic has run out, Rapidgator links
+go to the next backend on the priority card for an hour, and then the login is
+tried again. When Rapidgator asks for a pause
 between sign-ins, the task waits five minutes and shows it.
 
 Against a debrid service that carries Rapidgator, the login's row on the

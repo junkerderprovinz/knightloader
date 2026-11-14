@@ -707,3 +707,77 @@ it('orders the connected captcha accounts beside the download backends and saves
   await act(async () => void (await new Promise((done) => setTimeout(done, 700))));
   expect(patched).toEqual([{ captchaSolverOrder: ['2captcha', 'capsolver'] }]);
 });
+
+describe('a hoster login with two-factor sign-in', () => {
+  const field = (caption: string) =>
+    [...document.querySelectorAll('[role="dialog"] label')].find((l) => l.textContent?.startsWith(caption))?.querySelector('input');
+  const type = (input: HTMLInputElement, text: string) => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, text);
+    act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
+  };
+
+  /** The server answers each save with the next of `rows`. */
+  function stubSaves(rows: unknown[]) {
+    const posted: Record<string, unknown>[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url === '/api/hosterauth/logins' && init?.method === 'POST') {
+          posted.push(JSON.parse(String(init.body)));
+          return reply(rows[posted.length - 1]);
+        }
+        if (url === '/api/hosterauth/hosts') return reply([{ id: 'rapidgator.net', label: 'rapidgator.net' }]);
+        if (url === '/api/settings') return reply({ premiumOnly: false });
+        if (url === '/api/features') return reply({ modules: [], pages: [] });
+        return reply([]);
+      }),
+    );
+    return posted;
+  }
+
+  const asking = (code: string) => ({ host: 'rapidgator.net', username: 'john', status: 'rejected', code, enabled: true, askCode: true });
+
+  async function saveLogin() {
+    await act(async () => root.render(page));
+    await addIn('Hoster accounts');
+    const tile = [...document.querySelectorAll<HTMLButtonElement>('[data-new="hoster-logos"] button')].find((b) =>
+      b.textContent?.startsWith('rapidgator.net'),
+    )!;
+    await act(async () => tile.click());
+    expect(field('Two-factor code')).toBeUndefined();
+    type(field('Username')!, 'john');
+    type(field('Password')!, 'hunter2');
+    await act(async () => button('Save').click());
+  }
+
+  it('asks for the code the hoster wants and signs in with it, keeping the window open until then', async () => {
+    const posted = stubSaves([asking('ownCodeNeeded'), { host: 'rapidgator.net', username: 'john', status: 'active', enabled: true }]);
+    await saveLogin();
+
+    const code = field('Two-factor code')!;
+    expect(code.getAttribute('inputmode')).toBe('numeric');
+    expect(code.getAttribute('autocomplete')).toBe('one-time-code');
+    expect(button('Save').disabled).toBe(true);
+    type(code, '48 29-13');
+    expect(code.value).toBe('482913');
+    await act(async () => button('Save').click());
+
+    expect(posted).toEqual([
+      { host: 'rapidgator.net', username: 'john', password: 'hunter2' },
+      { host: 'rapidgator.net', username: 'john', password: 'hunter2', code: '482913' },
+    ]);
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('says so when the hoster turned the code down, and clears it for the next', async () => {
+    stubSaves([asking('ownCodeNeeded'), asking('ownCodeWrong')]);
+    await saveLogin();
+    type(field('Two-factor code')!, '000000');
+    await act(async () => button('Save').click());
+
+    expect(document.querySelector('[role="dialog"] [role="alert"]')?.textContent).toBe(
+      'That code did not work. Enter the one the app shows now.',
+    );
+    expect(field('Two-factor code')!.value).toBe('');
+  });
+});
