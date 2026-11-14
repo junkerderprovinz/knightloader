@@ -40,7 +40,7 @@ afterEach(() => {
 });
 
 const bubbles = () => host.querySelectorAll('.kl-toast').length;
-const region = (live: 'polite' | 'assertive') => host.querySelector(`[aria-live="${live}"]`)!.textContent;
+const region = (live: 'polite' | 'assertive') => document.querySelector(`[aria-live="${live}"]`)!.textContent;
 
 function show(message: string, tone: ToastTone, action?: ToastAction) {
   act(() => toast(message, tone, undefined, action));

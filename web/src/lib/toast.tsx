@@ -12,6 +12,7 @@
 // failure is never expected. Completions and plain saves are already visible
 // where they happened.
 import { createContext, Fragment, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '../components/ui';
 import { recordEvent, type EventSubject } from './eventLog';
 import { IconClose, IconShield } from './icons';
@@ -371,8 +372,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{ toast }}>
       {children}
-      <div ref={polite} className="sr-only" role="status" aria-live="polite" aria-atomic="true" />
-      <div ref={assertive} className="sr-only" role="alert" aria-live="assertive" aria-atomic="true" />
+      {/* On <body>, beside every window, so an open one leaves them reachable. */}
+      {createPortal(
+        <>
+          <div ref={polite} data-live-region className="sr-only" role="status" aria-live="polite" aria-atomic="true" />
+          <div ref={assertive} data-live-region className="sr-only" role="alert" aria-live="assertive" aria-atomic="true" />
+        </>,
+        document.body,
+      )}
       {/* Above a page's floating actions, which stand in the same corner. */}
       <div className="kl-toast-stack fixed bottom-[calc(1.25rem+var(--phone-bar-space)+var(--page-actions-space))] end-5 z-50 flex flex-col gap-2 pointer-events-none">
         {items.map((m) => (
