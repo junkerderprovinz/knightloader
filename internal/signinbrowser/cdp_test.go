@@ -161,3 +161,18 @@ func jsonInt(n int64) string {
 	b, _ := json.Marshal(n)
 	return string(b)
 }
+
+func TestASentCommandGoesOutWithoutWaitingForItsAnswer(t *testing.T) {
+	tr := newChanTransport()
+	c := newClient(tr)
+	defer c.close()
+	if err := c.send("S", "Page.enable", nil); err != nil {
+		t.Fatal(err)
+	}
+	var m message
+	if err := json.Unmarshal(<-tr.out, &m); err != nil || m.Method != "Page.enable" || m.SessionID != "S" || m.ID == 0 {
+		t.Errorf("sent %+v, %v", m, err)
+	}
+	// Its answer, when it comes, is dropped.
+	tr.in <- []byte(`{"id":` + jsonInt(m.ID) + `,"result":{}}`)
+}

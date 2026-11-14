@@ -88,6 +88,24 @@ func TestAPageOffTheListIsBlockedAndTheViewerTold(t *testing.T) {
 	}
 }
 
+func TestAPopupHeldForTheDebuggerIsLetGoWithoutWaitingForIt(t *testing.T) {
+	h := newHarness(t)
+	f := h.open(t, "patreon")
+	f.attach("T2", "T1", "")
+	f.waitFor(t, "the popup let go", method("S-T2", "Runtime.runIfWaitingForDebugger"))
+	// The events behind the popup keep flowing.
+	f.emit("S-T1", "Page.frameNavigated", map[string]any{"frame": map[string]any{"id": "T1", "url": "file:///C:/"}})
+	f.waitFor(t, "the event after the popup handled", func(c sent) bool {
+		n := 0
+		for _, o := range f.sentCalls() {
+			if o.method == "Page.navigate" {
+				n++
+			}
+		}
+		return n == 2
+	})
+}
+
 func TestAPopupOffTheListIsClosed(t *testing.T) {
 	h := newHarness(t)
 	f := h.open(t, "patreon")
@@ -173,6 +191,31 @@ func TestBackAndReloadMoveThePageInFront(t *testing.T) {
 	}
 	h.m.Input(Input{Type: "reload"})
 	f.waitFor(t, "reload", method("S-T1", "Page.reload"))
+}
+
+// A sign-in popup opens with no history of its own, and Back leaves it for
+// the page behind.
+func TestBackFromAFreshPopupClosesIt(t *testing.T) {
+	h := newHarness(t)
+	f := h.open(t, "patreon")
+	v := newViewer()
+	defer h.watch(t, v)()
+	f.attach("T2", "T1", "")
+	f.waitFor(t, "the popup's screencast", method("S-T2", "Page.startScreencast"))
+	for {
+		m := v.next(t, "page")
+		if m["host"] != "accounts.google.com" {
+			continue
+		}
+		if m["canGoBack"] != true {
+			t.Errorf("a popup offers no way back: %v", m)
+		}
+		break
+	}
+	h.m.Input(Input{Type: "back"})
+	f.waitFor(t, "the popup closed", func(c sent) bool {
+		return c.method == "Target.closeTarget" && c.params["targetId"] == "T2"
+	})
 }
 
 func TestResizingFitsThePageToThePanel(t *testing.T) {

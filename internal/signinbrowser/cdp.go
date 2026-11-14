@@ -76,13 +76,6 @@ func (c *client) close() { _ = c.t.close() }
 
 // call sends one command and decodes its result into out, which may be nil.
 func (c *client) call(ctx context.Context, session, method string, params, out any) error {
-	raw, err := json.Marshal(params)
-	if err != nil {
-		return err
-	}
-	if params == nil {
-		raw = []byte("{}")
-	}
 	reply := make(chan message, 1)
 	c.mu.Lock()
 	c.next++
@@ -94,16 +87,8 @@ func (c *client) call(ctx context.Context, session, method string, params, out a
 		delete(c.pending, id)
 		c.mu.Unlock()
 	}()
-
-	b, err := json.Marshal(message{ID: id, Method: method, Params: raw, SessionID: session})
-	if err != nil {
+	if err := c.write(id, session, method, params); err != nil {
 		return err
-	}
-	c.wmu.Lock()
-	err = c.t.write(b)
-	c.wmu.Unlock()
-	if err != nil {
-		return errGone
 	}
 	select {
 	case m := <-reply:
@@ -119,6 +104,36 @@ func (c *client) call(ctx context.Context, session, method string, params, out a
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+// send sends one command and leaves its answer unread, for a target held for
+// the debugger, which answers some commands only once it is let go.
+func (c *client) send(session, method string, params any) error {
+	c.mu.Lock()
+	c.next++
+	id := c.next
+	c.mu.Unlock()
+	return c.write(id, session, method, params)
+}
+
+func (c *client) write(id int64, session, method string, params any) error {
+	raw := []byte("{}")
+	if params != nil {
+		var err error
+		if raw, err = json.Marshal(params); err != nil {
+			return err
+		}
+	}
+	b, err := json.Marshal(message{ID: id, Method: method, Params: raw, SessionID: session})
+	if err != nil {
+		return err
+	}
+	c.wmu.Lock()
+	defer c.wmu.Unlock()
+	if c.t.write(b) != nil {
+		return errGone
+	}
+	return nil
 }
 
 func (c *client) readLoop() {

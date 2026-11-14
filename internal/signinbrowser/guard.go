@@ -48,7 +48,7 @@ func (l allowList) topLevel(rawurl string) bool {
 }
 
 // guard decides each request the browser makes. The top frame stays on the
-// allow list; frames and resources the pages load come from anywhere on the
+// allow list. Frames and resources the pages load come from anywhere on the
 // internet, since captchas and CDNs are not the site's own, but never from
 // this machine or the LAN.
 type guard struct {

@@ -1,7 +1,7 @@
 // Package signinbrowser runs a headless Chromium that a user signs in to a
 // site with from KnightLoader's web interface, for a server where no browser
 // of the user's runs. The page is streamed to the interface as screencast
-// frames and the user's pointer and keys are replayed into it; the site's
+// frames and the user's pointer and keys are replayed into it, and the site's
 // cookies are read back from the browser and handed on as its session.
 //
 // The browser is started on demand and stopped when the window closes or is
@@ -80,7 +80,7 @@ type Manager struct {
 	ctx context.Context
 	cfg Config
 
-	// mu keeps one Open or Close at a time; cmu guards cur, which input reads
+	// mu keeps one Open or Close at a time, and cmu guards cur, which input reads
 	// while a window starts.
 	mu  sync.Mutex
 	cmu sync.Mutex
@@ -131,7 +131,7 @@ func (m *Manager) current() *session {
 
 // Open opens a window on the site's login page, sized width by height CSS
 // pixels at the given pixel ratio. A window already open for the site is
-// kept; one for another site is closed first, so its session is handed on.
+// kept, and one for another site is closed first, so its session is handed on.
 func (m *Manager) Open(ctx context.Context, site sitelogin.Site, width, height int, scale float64) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -509,16 +509,19 @@ func (s *session) attached(raw json.RawMessage) {
 		return
 	}
 	sess := ev.SessionID
+	// The commands go out in order without waiting for their answers: a
+	// target held for the debugger answers some of them only once it runs.
 	switch ev.TargetInfo.Type {
 	case "page":
-		s.setupPage(sess)
 		s.mu.Lock()
 		s.pages = append(s.pages, page{target: ev.TargetInfo.TargetID, session: sess})
 		first := len(s.pages) == 1
+		vp := s.vp
 		s.mu.Unlock()
-		s.call(sess, "Runtime.runIfWaitingForDebugger", nil)
+		s.setupPage(sess, vp)
+		_ = s.c.send(sess, "Runtime.runIfWaitingForDebugger", nil)
 		// The window's own page starts streaming when the login page
-		// commits; before that Chromium has nothing to stream.
+		// commits. Before that Chromium has nothing to stream.
 		if first {
 			close(s.ready)
 			return
@@ -526,29 +529,26 @@ func (s *session) attached(raw json.RawMessage) {
 		go s.showFront()
 	case "worker", "shared_worker", "service_worker":
 		if s.ua != "" {
-			s.call(sess, "Network.setUserAgentOverride", map[string]any{"userAgent": s.ua, "userAgentMetadata": s.meta})
+			_ = s.c.send(sess, "Network.setUserAgentOverride", map[string]any{"userAgent": s.ua, "userAgentMetadata": s.meta})
 		}
 		fallthrough
 	default:
-		s.call(sess, "Runtime.runIfWaitingForDebugger", nil)
+		_ = s.c.send(sess, "Runtime.runIfWaitingForDebugger", nil)
 	}
 }
 
-func (s *session) setupPage(sess string) {
-	s.mu.Lock()
-	vp := s.vp
-	s.mu.Unlock()
-	s.call(sess, "Page.enable", nil)
-	// A file picker would open nowhere; intercepting it keeps the page from
+func (s *session) setupPage(sess string, vp viewport) {
+	_ = s.c.send(sess, "Page.enable", nil)
+	// A file picker would open nowhere, and intercepting it keeps the page from
 	// waiting for one.
-	s.call(sess, "Page.setInterceptFileChooserDialog", map[string]bool{"enabled": true})
+	_ = s.c.send(sess, "Page.setInterceptFileChooserDialog", map[string]bool{"enabled": true})
 	if s.ua != "" {
-		s.call(sess, "Emulation.setUserAgentOverride", map[string]any{"userAgent": s.ua, "userAgentMetadata": s.meta})
+		_ = s.c.send(sess, "Emulation.setUserAgentOverride", map[string]any{"userAgent": s.ua, "userAgentMetadata": s.meta})
 	}
-	s.call(sess, "Emulation.setDeviceMetricsOverride", metrics(vp))
+	_ = s.c.send(sess, "Emulation.setDeviceMetricsOverride", metrics(vp))
 	// A headless page never has the focus, and a sign-in field that waits
 	// for it would never show its caret.
-	s.call(sess, "Emulation.setFocusEmulationEnabled", map[string]bool{"enabled": true})
+	_ = s.c.send(sess, "Emulation.setFocusEmulationEnabled", map[string]bool{"enabled": true})
 }
 
 func metrics(vp viewport) map[string]any {
@@ -660,7 +660,10 @@ func (s *session) sendPage() {
 	if u, err := url.Parse(h.Entries[h.CurrentIndex].URL); err == nil && (u.Scheme == "https" || u.Scheme == "http") {
 		host = u.Hostname()
 	}
-	s.send(map[string]any{"type": "page", "host": host, "canGoBack": h.CurrentIndex > 0})
+	s.mu.Lock()
+	popup := len(s.pages) > 1
+	s.mu.Unlock()
+	s.send(map[string]any{"type": "page", "host": host, "canGoBack": h.CurrentIndex > 0 || popup})
 }
 
 func (s *session) send(msg any) {
@@ -692,7 +695,7 @@ func (s *session) decide(raw json.RawMessage) {
 		return
 	}
 	if top && ev.ResourceType == "Document" {
-		// No Content keeps the page where it was; an error page would put the
+		// No Content keeps the page where it was, where an error page would put the
 		// blocked address in the bar and in the history.
 		_ = s.c.call(ctx, "", "Fetch.fulfillRequest", map[string]any{"requestId": ev.RequestID, "responseCode": 204}, nil)
 		s.refuse(ev.FrameID, ev.Request.URL)
@@ -818,8 +821,19 @@ func (s *session) input(in Input) {
 				ID int `json:"id"`
 			} `json:"entries"`
 		}
-		if s.c.call(ctx, front.session, "Page.getNavigationHistory", nil, &h) == nil && h.CurrentIndex > 0 && h.CurrentIndex <= len(h.Entries) {
+		if s.c.call(ctx, front.session, "Page.getNavigationHistory", nil, &h) != nil {
+			return
+		}
+		if h.CurrentIndex > 0 && h.CurrentIndex <= len(h.Entries) {
 			_ = s.c.call(ctx, front.session, "Page.navigateToHistoryEntry", map[string]int{"entryId": h.Entries[h.CurrentIndex-1].ID}, nil)
+			return
+		}
+		// A popup on its first page goes back to the page that opened it.
+		s.mu.Lock()
+		popup := len(s.pages) > 1
+		s.mu.Unlock()
+		if popup {
+			_ = s.c.call(ctx, "", "Target.closeTarget", map[string]string{"targetId": front.target}, nil)
 		}
 	case "reload":
 		s.call(front.session, "Page.reload", nil)

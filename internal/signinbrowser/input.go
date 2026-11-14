@@ -124,7 +124,7 @@ func (in Input) command(vp viewport) (string, any, bool) {
 		case in.Key == "Enter":
 			text = "\r"
 		case utf8.RuneCountInString(in.Key) == 1 && mods&modMeta == 0 && (mods&modCtrl == 0 || mods&modAlt != 0):
-			// AltGr reaches a browser as Ctrl and Alt together; what it types
+			// AltGr reaches a browser as Ctrl and Alt together, and what it types
 			// is a character, and the modifiers would make it a shortcut.
 			text = in.Key
 			ev.Modifiers &^= modCtrl | modAlt

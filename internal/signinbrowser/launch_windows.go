@@ -14,7 +14,7 @@ import (
 
 // launch starts Chromium with DevTools on a loopback port it picks itself.
 // Go cannot hand a Windows child the pipe Chromium wants, so this serves
-// development on Windows; the container speaks over the pipe. The port's
+// development on Windows, and the container speaks over the pipe. The port's
 // browser endpoint carries a random id that only the profile's
 // DevToolsActivePort file names.
 func launch(ctx context.Context, bin, profile string, args []string) (transport, func(), error) {

@@ -92,6 +92,10 @@ func (f *fakeChromium) serve() {
 			result = map[string]any{"cookies": slices.Clone(f.cookies)}
 			f.mu.Unlock()
 		case "Page.getNavigationHistory":
+			if m.SessionID == "S-T2" {
+				result = map[string]any{"currentIndex": 0, "entries": []map[string]any{{"id": 21, "url": "https://accounts.google.com/"}}}
+				break
+			}
 			result = map[string]any{"currentIndex": 1, "entries": []map[string]any{
 				{"id": 11, "url": "https://www.patreon.com/"}, {"id": 12, "url": "https://www.patreon.com/login"},
 			}}
@@ -102,6 +106,18 @@ func (f *fakeChromium) serve() {
 			}
 		case "Browser.close":
 			after = func() { f.tr.close() }
+		}
+		// A popup held for the debugger answers Page.enable only once it is
+		// let go, as Chromium does.
+		if m.Method == "Page.enable" && m.SessionID == "S-T2" {
+			f.mu.Lock()
+			resumed := slices.ContainsFunc(f.calls, func(c sent) bool {
+				return c.session == "S-T2" && c.method == "Runtime.runIfWaitingForDebugger"
+			})
+			f.mu.Unlock()
+			if !resumed {
+				continue
+			}
 		}
 		raw, _ := json.Marshal(result)
 		reply, _ := json.Marshal(message{ID: m.ID, Result: raw, SessionID: m.SessionID})
