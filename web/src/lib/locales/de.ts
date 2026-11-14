@@ -4066,6 +4066,7 @@ export const de: Dict = {
   'signInBrowser.closedIdle': 'Der Browser hat sich nach fünf Minuten ohne Eingabe geschlossen.',
   'signInBrowser.closedElsewhere': 'Diese Anmeldung ist jetzt in einem anderen Fenster offen.',
   'signInBrowser.closedGone': 'Der Browser hat sich geschlossen.',
+  'signInBrowser.none': 'Dafür braucht es einen Browser auf Chromium-Basis auf diesem Computer.',
   'failure.membersOnly.again.line': 'Nur für Mitglieder, und deine Anmeldung bei {site} kam nicht rein. Sie ist wohl abgelaufen.',
   'failure.membersOnly.again.hint': 'Melde dich im Browser erneut bei {site} an und übergib die Sitzung, dann startet der Download neu. Heißt es dann immer noch nur für Mitglieder, hat dieses Konto die Mitgliedschaft nicht.',
   'failure.membersOnly.again.action': 'Erneut anmelden',

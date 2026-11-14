@@ -4075,6 +4075,7 @@ export const sk: Dict = {
   'signInBrowser.closedIdle': 'Prehliadač sa zavrel po piatich minútach bez vstupu.',
   'signInBrowser.closedElsewhere': 'Toto prihlásenie je teraz otvorené v inom okne.',
   'signInBrowser.closedGone': 'Prehliadač sa zavrel.',
+  'signInBrowser.none': 'Na to je na tomto počítači potrebný prehliadač založený na Chromiu.',
   'failure.membersOnly.again.line': 'Len pre členov, a tvoje prihlásenie do služby {site} nestačilo. Asi vypršalo.',
   'failure.membersOnly.again.hint': 'Prihlás sa v prehliadači znova do služby {site} a odovzdaj reláciu, a sťahovanie sa spustí znova. Ak stále hlási len pre členov, tento účet členstvo nemá.',
   'failure.membersOnly.again.action': 'Prihlásiť sa znova',

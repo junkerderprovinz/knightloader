@@ -4061,6 +4061,7 @@ export const is: Dict = {
   'signInBrowser.closedIdle': 'Vafrinn lokaðist eftir fimm mínútur án innsláttar.',
   'signInBrowser.closedElsewhere': 'Þessi innskráning er nú opin í öðrum glugga.',
   'signInBrowser.closedGone': 'Vafrinn lokaðist.',
+  'signInBrowser.none': 'Til þess þarf vafra sem byggir á Chromium á þessari tölvu.',
   'failure.membersOnly.again.line': 'Aðeins fyrir meðlimi, og innskráningin þín á {site} komst ekki inn. Hún hefur líklega runnið út.',
   'failure.membersOnly.again.hint': 'Skráðu þig aftur inn á {site} í vafranum og afhentu setuna, þá byrjar niðurhalið aftur. Ef enn stendur aðeins fyrir meðlimi, þá er þessi reikningur ekki með aðildina.',
   'failure.membersOnly.again.action': 'Skrá inn aftur',

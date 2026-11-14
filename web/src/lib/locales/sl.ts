@@ -4064,6 +4064,7 @@ export const sl: Dict = {
   'signInBrowser.closedIdle': 'Brskalnik se je zaprl po petih minutah brez vnosa.',
   'signInBrowser.closedElsewhere': 'Ta prijava je zdaj odprta v drugem oknu.',
   'signInBrowser.closedGone': 'Brskalnik se je zaprl.',
+  'signInBrowser.none': 'Za to je na tem računalniku potreben brskalnik na osnovi Chromiuma.',
   'failure.membersOnly.again.line': 'Samo za člane, tvoja prijava v {site} pa ni prišla skozi. Verjetno je potekla.',
   'failure.membersOnly.again.hint': 'V brskalniku se znova prijavi v {site} in predaj sejo, pa se prenos začne znova. Če še vedno piše samo za člane, ta račun nima članstva.',
   'failure.membersOnly.again.action': 'Ponovna prijava',

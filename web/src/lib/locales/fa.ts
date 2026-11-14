@@ -4054,6 +4054,7 @@ export const fa: Dict = {
   'signInBrowser.closedIdle': 'مرورگر پس از پنج دقیقه بدون ورودی بسته شد.',
   'signInBrowser.closedElsewhere': 'این ورود اکنون در پنجرهٔ دیگری باز است.',
   'signInBrowser.closedGone': 'مرورگر بسته شد.',
+  'signInBrowser.none': 'برای این کار یک مرورگر بر پایهٔ Chromium روی این رایانه لازم است.',
   'failure.membersOnly.again.line': 'ویژهٔ اعضاست، و ورودت به {site} راه را باز نکرد. احتمالاً منقضی شده.',
   'failure.membersOnly.again.hint': 'دوباره در مرورگرت به {site} وارد شو و نشست را تحویل بده تا دانلود از نو شروع شود. اگر باز هم گفت ویژهٔ اعضاست، این حساب عضویت ندارد.',
   'failure.membersOnly.again.action': 'ورود دوباره',

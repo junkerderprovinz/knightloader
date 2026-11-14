@@ -4079,6 +4079,7 @@ export const hr: Dict = {
   'signInBrowser.closedIdle': 'Preglednik se zatvorio nakon pet minuta bez unosa.',
   'signInBrowser.closedElsewhere': 'Ova prijava sada je otvorena u drugom prozoru.',
   'signInBrowser.closedGone': 'Preglednik se zatvorio.',
+  'signInBrowser.none': 'Za to je na ovom računalu potreban preglednik temeljen na Chromiumu.',
   'failure.membersOnly.again.line': 'Samo za članove, a tvoja prijava na {site} nije prošla. Vjerojatno je istekla.',
   'failure.membersOnly.again.hint': 'Ponovno se prijavi na {site} u pregledniku i predaj sesiju, pa preuzimanje kreće iznova. Ako i dalje piše samo za članove, ovaj račun nema članstvo.',
   'failure.membersOnly.again.action': 'Ponovna prijava',

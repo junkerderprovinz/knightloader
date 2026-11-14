@@ -4074,6 +4074,7 @@ export const ro: Dict = {
   'signInBrowser.closedIdle': 'Browserul s-a închis după cinci minute fără activitate.',
   'signInBrowser.closedElsewhere': 'Această autentificare e acum deschisă în altă fereastră.',
   'signInBrowser.closedGone': 'Browserul s-a închis.',
+  'signInBrowser.none': 'Pentru asta e nevoie de un browser bazat pe Chromium pe acest computer.',
   'failure.membersOnly.again.line': 'Doar pentru membri, iar autentificarea ta pe {site} nu a trecut. Probabil a expirat.',
   'failure.membersOnly.again.hint': 'Autentifică-te din nou pe {site} în browser și predă sesiunea, iar descărcarea pornește din nou. Dacă tot scrie doar pentru membri, contul acesta nu are abonamentul de membru.',
   'failure.membersOnly.again.action': 'Autentifică-te din nou',

@@ -4066,6 +4066,7 @@ export const hi: Dict = {
   'signInBrowser.closedIdle': 'पाँच मिनट तक कोई इनपुट न होने पर ब्राउज़र बंद हो गया।',
   'signInBrowser.closedElsewhere': 'यह साइन इन अब दूसरी विंडो में खुला है।',
   'signInBrowser.closedGone': 'ब्राउज़र बंद हो गया।',
+  'signInBrowser.none': 'इसके लिए इस कंप्यूटर पर Chromium पर आधारित ब्राउज़र चाहिए।',
   'failure.membersOnly.again.line': 'सिर्फ़ सदस्यों के लिए, और आपका {site} साइन इन अंदर नहीं जा सका। शायद उसकी अवधि खत्म हो गई है।',
   'failure.membersOnly.again.hint': 'अपने ब्राउज़र में {site} में फिर से साइन इन करें और सत्र सौंप दें, डाउनलोड फिर से शुरू हो जाएगा। अगर अब भी सिर्फ़ सदस्यों के लिए लिखा आए, तो इस खाते के पास सदस्यता नहीं है।',
   'failure.membersOnly.again.action': 'फिर से साइन इन करें',

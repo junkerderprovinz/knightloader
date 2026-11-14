@@ -4061,6 +4061,7 @@ export const eu: Dict = {
   'signInBrowser.closedIdle': 'Nabigatzailea itxi egin da bost minutuz sarrerarik gabe egon ondoren.',
   'signInBrowser.closedElsewhere': 'Saio-hasiera hau beste leiho batean dago irekita orain.',
   'signInBrowser.closedGone': 'Nabigatzailea itxi egin da.',
+  'signInBrowser.none': 'Horretarako Chromium-en oinarritutako nabigatzaile bat behar da ordenagailu honetan.',
   'failure.membersOnly.again.line': 'Kideentzat bakarrik, eta zure {site} saioak ez du sartzerik lortu. Seguruenik iraungi egin da.',
   'failure.membersOnly.again.hint': 'Hasi saioa berriro {site} gunean nabigatzailean eta pasatu saioa, eta deskarga berriro hasiko da. Oraindik kideentzat bakarrik esaten badu, kontu honek ez du kidetzarik.',
   'failure.membersOnly.again.action': 'Hasi saioa berriro',

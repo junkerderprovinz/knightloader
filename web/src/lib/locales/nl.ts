@@ -4048,6 +4048,7 @@ export const nl: Dict = {
   'signInBrowser.closedIdle': 'De browser is na vijf minuten zonder invoer gesloten.',
   'signInBrowser.closedElsewhere': 'Deze aanmelding staat nu open in een ander venster.',
   'signInBrowser.closedGone': 'De browser is gesloten.',
+  'signInBrowser.none': 'Hiervoor is een browser op basis van Chromium op deze computer nodig.',
   'failure.membersOnly.again.line': 'Alleen voor leden, en je aanmelding bij {site} kwam er niet in. Die is waarschijnlijk verlopen.',
   'failure.membersOnly.again.hint': 'Meld je in je browser opnieuw aan bij {site} en geef de sessie door, dan start de download opnieuw. Staat er nog steeds alleen voor leden, dan heeft dit account het lidmaatschap niet.',
   'failure.membersOnly.again.action': 'Opnieuw aanmelden',

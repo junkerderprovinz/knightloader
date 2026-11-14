@@ -4065,6 +4065,7 @@ export const sv: Dict = {
   'signInBrowser.closedIdle': 'Webbläsaren stängdes efter fem minuter utan inmatning.',
   'signInBrowser.closedElsewhere': 'Den här inloggningen är nu öppen i ett annat fönster.',
   'signInBrowser.closedGone': 'Webbläsaren stängdes.',
+  'signInBrowser.none': 'Det kräver en Chromium-baserad webbläsare på den här datorn.',
   'failure.membersOnly.again.line': 'Bara för medlemmar, och din inloggning på {site} kom inte in. Den har nog gått ut.',
   'failure.membersOnly.again.hint': 'Logga in på {site} igen i webbläsaren och lämna över sessionen, så startar nedladdningen om. Står det fortfarande bara för medlemmar har det här kontot inte medlemskapet.',
   'failure.membersOnly.again.action': 'Logga in igen',

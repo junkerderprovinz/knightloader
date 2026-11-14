@@ -4066,6 +4066,7 @@ export const hu: Dict = {
   'signInBrowser.closedIdle': 'A böngésző öt perc tétlenség után bezárult.',
   'signInBrowser.closedElsewhere': 'Ez a bejelentkezés most egy másik ablakban van nyitva.',
   'signInBrowser.closedGone': 'A böngésző bezárult.',
+  'signInBrowser.none': 'Ehhez Chromium-alapú böngésző kell ezen a számítógépen.',
   'failure.membersOnly.again.line': 'Csak tagoknak szól, és a(z) {site} bejelentkezésed nem jutott be. Valószínűleg lejárt.',
   'failure.membersOnly.again.hint': 'Jelentkezz be újra a böngésződben ide: {site}, és add át a munkamenetet, a letöltés pedig újraindul. Ha még mindig csak tagoknak szól, ezen a fiókon nincs tagság.',
   'failure.membersOnly.again.action': 'Bejelentkezés újra',

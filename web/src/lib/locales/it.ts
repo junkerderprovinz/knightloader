@@ -4049,6 +4049,7 @@ export const it: Dict = {
   'signInBrowser.closedIdle': 'Il browser si è chiuso dopo cinque minuti senza input.',
   'signInBrowser.closedElsewhere': 'Questo accesso ora è aperto in un’altra finestra.',
   'signInBrowser.closedGone': 'Il browser si è chiuso.',
+  'signInBrowser.none': 'Per questo serve un browser basato su Chromium su questo computer.',
   'failure.membersOnly.again.line': 'Solo per iscritti, e il tuo accesso a {site} non è bastato. Probabilmente è scaduto.',
   'failure.membersOnly.again.hint': 'Accedi di nuovo a {site} nel browser e passa la sessione, e il download riparte. Se dice ancora solo per iscritti, questo account non ha l’iscrizione.',
   'failure.membersOnly.again.action': 'Accedi di nuovo',

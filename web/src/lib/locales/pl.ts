@@ -4050,6 +4050,7 @@ export const pl: Dict = {
   'signInBrowser.closedIdle': 'Przeglądarka zamknęła się po pięciu minutach bez działania.',
   'signInBrowser.closedElsewhere': 'To logowanie jest teraz otwarte w innym oknie.',
   'signInBrowser.closedGone': 'Przeglądarka się zamknęła.',
+  'signInBrowser.none': 'Do tego potrzebna jest na tym komputerze przeglądarka oparta na Chromium.',
   'failure.membersOnly.again.line': 'Tylko dla członków, a twoje logowanie do {site} nie wystarczyło. Pewnie wygasło.',
   'failure.membersOnly.again.hint': 'Zaloguj się ponownie do {site} w przeglądarce i przekaż sesję, a pobieranie ruszy od nowa. Jeśli dalej widać „tylko dla członków”, to konto nie ma członkostwa.',
   'failure.membersOnly.again.action': 'Zaloguj się ponownie',

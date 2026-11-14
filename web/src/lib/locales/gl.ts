@@ -4062,6 +4062,7 @@ export const gl: Dict = {
   'signInBrowser.closedIdle': 'O navegador pechouse despois de cinco minutos sen actividade.',
   'signInBrowser.closedElsewhere': 'Este inicio de sesión está aberto agora noutra xanela.',
   'signInBrowser.closedGone': 'O navegador pechouse.',
+  'signInBrowser.none': 'Para isto fai falta un navegador baseado en Chromium neste ordenador.',
   'failure.membersOnly.again.line': 'Só para membros, e a túa sesión de {site} non abondou para entrar. Seguramente caducou.',
   'failure.membersOnly.again.hint': 'Inicia sesión de novo en {site} no navegador e entrega a sesión, e a descarga comeza outra vez. Se segue dicindo só para membros, esta conta non é membro.',
   'failure.membersOnly.again.action': 'Iniciar sesión de novo',

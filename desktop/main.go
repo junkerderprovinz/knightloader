@@ -161,10 +161,12 @@ func main() {
 		os.Setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1")
 	}
 
-	// The page calls these as main.DesktopFiles, main.HubBridge, main.Tray,
-	// main.LinkPopup and main.Accent; see web/src/lib/desktop.ts.
+	// The page calls these as main.DesktopFiles, main.HubBridge,
+	// main.SignInBridge, main.Tray, main.LinkPopup and main.Accent; see
+	// web/src/lib/desktop.ts.
 	desktopFiles := newDesktopFiles(a)
 	hubBridge := newHubBridge(a, tray.emitTo)
+	signInBridge := newSignInBridge(a, tray.emitTo)
 	popup := newLinkPopup(a, tray)
 
 	wails := application.New(application.Options{
@@ -174,6 +176,7 @@ func main() {
 		Services: []application.Service{
 			application.NewService(desktopFiles),
 			application.NewService(hubBridge),
+			application.NewService(signInBridge),
 			application.NewService(tray),
 			application.NewService(popup),
 			application.NewService(&Accent{}),

@@ -4306,6 +4306,7 @@ export const en = {
   'signInBrowser.closedIdle': 'The browser closed after five minutes without input.',
   'signInBrowser.closedElsewhere': 'This sign-in is open in another window now.',
   'signInBrowser.closedGone': 'The browser closed.',
+  'signInBrowser.none': 'This needs a Chromium-based browser on this computer.',
   'failure.membersOnly.again.line': 'Members only, and your {site} sign-in did not get in. It has probably run out.',
   'failure.membersOnly.again.hint': 'Sign in to {site} again in your browser and hand the session over, and the download starts again. If it still says members only, this account does not have the membership.',
   'failure.membersOnly.again.action': 'Sign in again',

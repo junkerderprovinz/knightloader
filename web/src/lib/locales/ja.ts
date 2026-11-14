@@ -4062,6 +4062,7 @@ export const ja: Dict = {
   'signInBrowser.closedIdle': '5 分間入力がなかったため、ブラウザーを閉じました。',
   'signInBrowser.closedElsewhere': 'このサインインは別のウィンドウで開かれています。',
   'signInBrowser.closedGone': 'ブラウザーが閉じました。',
+  'signInBrowser.none': 'このコンピューターに Chromium ベースのブラウザーが必要です。',
   'failure.membersOnly.again.line': 'メンバー限定で、{site} のサインインでは入れませんでした。期限が切れている可能性があります。',
   'failure.membersOnly.again.hint': 'ブラウザーで {site} にもう一度サインインしてセッションを引き渡すと、ダウンロードがやり直されます。それでもメンバー限定と表示されるなら、このアカウントにはメンバーシップがありません。',
   'failure.membersOnly.again.action': 'もう一度サインイン',

@@ -4064,6 +4064,7 @@ export const tr: Dict = {
   'signInBrowser.closedIdle': 'Tarayıcı beş dakika boyunca giriş olmadığı için kapandı.',
   'signInBrowser.closedElsewhere': 'Bu oturum açma artık başka bir pencerede açık.',
   'signInBrowser.closedGone': 'Tarayıcı kapandı.',
+  'signInBrowser.none': 'Bunun için bu bilgisayarda Chromium tabanlı bir tarayıcı gerekir.',
   'failure.membersOnly.again.line': 'Yalnızca üyelere açık ve {site} oturumun içeri giremedi. Büyük ihtimalle süresi doldu.',
   'failure.membersOnly.again.hint': 'Tarayıcında {site} için yeniden oturum aç ve oturumu devret, indirme de yeniden başlar. Hâlâ yalnızca üyelere açık diyorsa bu hesapta üyelik yok.',
   'failure.membersOnly.again.action': 'Yeniden oturum aç',

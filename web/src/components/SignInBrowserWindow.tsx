@@ -5,16 +5,19 @@
 // ends up holding, never what was typed.
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  type SiteLogin,
-  closeSignInBrowser,
-  fetchSignInBrowser,
-  openSignInBrowser,
-  signInBrowserSocket,
-} from '../lib/api';
+import { type SiteLogin, closeSignInBrowser, fetchSignInBrowser, openSignInBrowser } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { message } from '../lib/intake';
-import { type PageInput, type Viewport, keyMessage, pointerMessage, viewportFor, wheelMessage } from '../lib/signInBrowser';
+import {
+  type PageInput,
+  type PageStream,
+  type Viewport,
+  keyMessage,
+  openPageStream,
+  pointerMessage,
+  viewportFor,
+  wheelMessage,
+} from '../lib/signInBrowser';
 import { useToast } from '../lib/toast';
 import { IconBack, IconBrowser, IconConfirm, IconRetry, IconSignIn } from '../lib/icons';
 import { Button, Modal } from './ui';
@@ -69,15 +72,12 @@ export function SignInBrowserWindow({
   const panel = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const sink = useRef<HTMLTextAreaElement>(null);
-  const socket = useRef<WebSocket | null>(null);
+  const socket = useRef<PageStream | null>(null);
   const vp = useRef<Viewport>({ width: 0, height: 0, scale: 1 });
   const heard = useRef({ onChanged, onClose });
   heard.current = { onChanged, onClose };
 
-  const send = useCallback((input: PageInput) => {
-    const ws = socket.current;
-    if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(input));
-  }, []);
+  const send = useCallback((input: PageInput) => socket.current?.send(input), []);
 
   // The frame is drawn as large as the panel allows without changing its
   // shape, which only differs from the panel where the page has a minimum size.
@@ -91,7 +91,7 @@ export function SignInBrowserWindow({
   useEffect(() => {
     const box = panel.current!;
     let cancelled = false;
-    let ws: WebSocket | null = null;
+    let stream: PageStream | null = null;
     setPhase('starting');
     setError('');
     setNotice(null);
@@ -101,11 +101,9 @@ export function SignInBrowserWindow({
     openSignInBrowser(site.id, vp.current.width, vp.current.height, vp.current.scale)
       .then(() => {
         if (cancelled) return;
-        ws = signInBrowserSocket();
-        socket.current = ws;
-        ws.onmessage = (ev) => {
-          if (ev.data instanceof Blob) {
-            void createImageBitmap(ev.data).then((frame) => {
+        stream = openPageStream({
+          frame: (jpeg) => {
+            void createImageBitmap(jpeg).then((frame) => {
               const c = canvas.current;
               if (!c) return;
               if (c.width !== frame.width || c.height !== frame.height) {
@@ -116,37 +114,39 @@ export function SignInBrowserWindow({
               frame.close();
               setPhase((p) => (p === 'starting' ? 'live' : p));
             });
-            return;
-          }
-          const msg = JSON.parse(String(ev.data)) as { type: string; [k: string]: unknown };
-          switch (msg.type) {
-            case 'page':
-              setHost(String(msg.host ?? ''));
-              setCanGoBack(Boolean(msg.canGoBack));
-              break;
-            case 'blocked':
-              setNotice({ kind: 'blocked', host: String(msg.host ?? '') });
-              break;
-            case 'refused':
-              setNotice({ kind: 'refused' });
-              break;
-            case 'login': {
-              const login = msg.login as SiteLogin;
-              heard.current.onChanged?.(login);
-              setNotice(signedIn(login) ? { kind: 'signedIn', account: login.account } : null);
-              break;
-            }
-            case 'closed':
-              if (msg.reason !== 'done') {
-                setPhase('closed');
-                setNotice({ kind: 'closed', reason: String(msg.reason ?? '') });
+          },
+          message: (raw) => {
+            const msg = JSON.parse(raw) as { type: string; [k: string]: unknown };
+            switch (msg.type) {
+              case 'page':
+                setHost(String(msg.host ?? ''));
+                setCanGoBack(Boolean(msg.canGoBack));
+                break;
+              case 'blocked':
+                setNotice({ kind: 'blocked', host: String(msg.host ?? '') });
+                break;
+              case 'refused':
+                setNotice({ kind: 'refused' });
+                break;
+              case 'login': {
+                const login = msg.login as SiteLogin;
+                heard.current.onChanged?.(login);
+                setNotice(signedIn(login) ? { kind: 'signedIn', account: login.account } : null);
+                break;
               }
-              break;
-          }
-        };
-        ws.onclose = () => {
-          if (!cancelled) setPhase((p) => (p === 'failed' ? p : 'closed'));
-        };
+              case 'closed':
+                if (msg.reason !== 'done') {
+                  setPhase('closed');
+                  setNotice({ kind: 'closed', reason: String(msg.reason ?? '') });
+                }
+                break;
+            }
+          },
+          closed: () => {
+            if (!cancelled) setPhase((p) => (p === 'failed' ? p : 'closed'));
+          },
+        });
+        socket.current = stream;
       })
       .catch((e) => {
         if (cancelled) return;
@@ -156,7 +156,7 @@ export function SignInBrowserWindow({
 
     return () => {
       cancelled = true;
-      ws?.close();
+      stream?.close();
       socket.current = null;
     };
   }, [site.id, attempt, fit]);
@@ -450,9 +450,9 @@ export function SignInBrowserWindow({
 // open, so it is asked once.
 let availability: Promise<boolean> | null = null;
 
-/** useSignInBrowserAvailable is whether this server has a sign-in browser, false until it says. */
-export function useSignInBrowserAvailable(): boolean {
-  const [available, setAvailable] = useState(false);
+/** useSignInBrowserAvailable is whether a browser is there to sign in with, null until the server says. */
+export function useSignInBrowserAvailable(): boolean | null {
+  const [available, setAvailable] = useState<boolean | null>(null);
   useEffect(() => {
     availability ??= fetchSignInBrowser().then(
       (s) => s.available,
@@ -468,8 +468,8 @@ export function useSignInBrowserAvailable(): boolean {
 }
 
 /**
- * SignInHereButton opens the sign-in browser for a site, and is drawn only
- * where the server has one, which is the container.
+ * SignInHereButton opens the sign-in browser for a site. Where no browser is
+ * there to sign in with, it refuses and says what is missing.
  */
 export function SignInHereButton({
   site,
@@ -485,10 +485,16 @@ export function SignInHereButton({
   const { t } = useT();
   const available = useSignInBrowserAvailable();
   const [open, setOpen] = useState(false);
-  if (!available) return null;
+  if (available === null) return null;
   return (
     <>
-      <Button kind="secondary" icon={<IconSignIn />} disabled={disabled} onClick={() => setOpen(true)}>
+      <Button
+        kind="secondary"
+        icon={<IconSignIn />}
+        disabled={disabled || !available}
+        hint={available ? undefined : t('signInBrowser.none')}
+        onClick={() => setOpen(true)}
+      >
         {t('signInBrowser.signInHere')}
       </Button>
       {/* Out to <body>, as the folder chooser goes: a window drawn inside

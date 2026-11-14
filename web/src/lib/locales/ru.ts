@@ -4045,6 +4045,7 @@ export const ru: Dict = {
   'signInBrowser.closedIdle': 'Браузер закрылся после пяти минут без ввода.',
   'signInBrowser.closedElsewhere': 'Этот вход теперь открыт в другом окне.',
   'signInBrowser.closedGone': 'Браузер закрылся.',
+  'signInBrowser.none': 'Для этого на компьютере нужен браузер на основе Chromium.',
   'failure.membersOnly.again.line': 'Только для участников, и ваш вход в {site} не сработал. Вероятно, он истёк.',
   'failure.membersOnly.again.hint': 'Снова войдите в {site} в браузере и передайте сеанс, и загрузка начнётся заново. Если по-прежнему только для участников, у этого аккаунта нет членства.',
   'failure.membersOnly.again.action': 'Войти снова',

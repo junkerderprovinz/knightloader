@@ -4054,6 +4054,7 @@ export const fr: Dict = {
   'signInBrowser.closedIdle': 'Le navigateur s’est fermé après cinq minutes sans saisie.',
   'signInBrowser.closedElsewhere': 'Cette connexion est maintenant ouverte dans une autre fenêtre.',
   'signInBrowser.closedGone': 'Le navigateur s’est fermé.',
+  'signInBrowser.none': 'Il faut pour cela un navigateur basé sur Chromium sur cet ordinateur.',
   'failure.membersOnly.again.line': 'Réservé aux membres, et votre connexion à {site} n’a pas suffi. Elle a sans doute expiré.',
   'failure.membersOnly.again.hint': 'Reconnectez-vous à {site} dans votre navigateur et transmettez la session, et le téléchargement repart. S’il est toujours réservé aux membres, ce compte n’a pas l’adhésion.',
   'failure.membersOnly.again.action': 'Se reconnecter',

@@ -4067,6 +4067,7 @@ export const lt: Dict = {
   'signInBrowser.closedIdle': 'Naršyklė užsidarė po penkių minučių be įvesties.',
   'signInBrowser.closedElsewhere': 'Šis prisijungimas dabar atidarytas kitame lange.',
   'signInBrowser.closedGone': 'Naršyklė užsidarė.',
+  'signInBrowser.none': 'Tam šiame kompiuteryje reikia „Chromium“ pagrindu sukurtos naršyklės.',
   'failure.membersOnly.again.line': 'Tik nariams, o tavo prisijungimas prie „{site}“ neįleido. Greičiausiai jis baigėsi.',
   'failure.membersOnly.again.hint': 'Naršyklėje iš naujo prisijunk prie „{site}“ ir perduok seansą, tada atsisiuntimas prasidės iš naujo. Jei vis dar rašo tik nariams, ši paskyra narystės neturi.',
   'failure.membersOnly.again.action': 'Prisijungti iš naujo',

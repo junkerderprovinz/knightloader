@@ -4063,6 +4063,7 @@ export const ar: Dict = {
   'signInBrowser.closedIdle': 'أُغلق المتصفح بعد خمس دقائق دون أي إدخال.',
   'signInBrowser.closedElsewhere': 'تسجيل الدخول هذا مفتوح الآن في نافذة أخرى.',
   'signInBrowser.closedGone': 'أُغلق المتصفح.',
+  'signInBrowser.none': 'يحتاج هذا إلى متصفح مبني على Chromium على هذا الحاسوب.',
   'failure.membersOnly.again.line': 'للأعضاء فقط، وتسجيل دخولك إلى {site} لم يفتح الباب. على الأرجح انتهت صلاحيته.',
   'failure.membersOnly.again.hint': 'سجّل الدخول إلى {site} مجددًا في متصفحك وسلّم الجلسة، فيبدأ التنزيل من جديد. وإن بقي يقول للأعضاء فقط، فهذا الحساب لا يملك العضوية.',
   'failure.membersOnly.again.action': 'تسجيل الدخول مجددًا',

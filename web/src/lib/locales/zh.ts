@@ -4049,6 +4049,7 @@ export const zh: Dict = {
   'signInBrowser.closedIdle': '五分钟没有输入，浏览器已关闭。',
   'signInBrowser.closedElsewhere': '这次登录现在在另一个窗口中打开。',
   'signInBrowser.closedGone': '浏览器已关闭。',
+  'signInBrowser.none': '这需要这台电脑上装有基于 Chromium 的浏览器。',
   'failure.membersOnly.again.line': '仅限会员，而你的 {site} 登录没能进去。很可能已经过期了。',
   'failure.membersOnly.again.hint': '在浏览器里重新登录 {site} 并移交会话，下载就会重新开始。如果仍然显示仅限会员，说明这个账户没有会员资格。',
   'failure.membersOnly.again.action': '重新登录',

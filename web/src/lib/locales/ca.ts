@@ -4052,6 +4052,7 @@ export const ca: Dict = {
   'signInBrowser.closedIdle': 'El navegador s’ha tancat després de cinc minuts sense activitat.',
   'signInBrowser.closedElsewhere': 'Aquest inici de sessió ara és obert en una altra finestra.',
   'signInBrowser.closedGone': 'El navegador s’ha tancat.',
+  'signInBrowser.none': 'Per a això cal un navegador basat en Chromium en aquest ordinador.',
   'failure.membersOnly.again.line': 'Només per a membres, i la teva sessió de {site} no ha pogut entrar. Segurament ha caducat.',
   'failure.membersOnly.again.hint': 'Torna a iniciar la sessió a {site} al navegador i traspassa la sessió, i la baixada torna a començar. Si encara diu només per a membres, aquest compte no té la subscripció.',
   'failure.membersOnly.again.action': 'Torna a iniciar la sessió',

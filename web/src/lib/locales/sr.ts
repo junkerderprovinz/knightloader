@@ -4079,6 +4079,7 @@ export const sr: Dict = {
   'signInBrowser.closedIdle': 'Прегледач се затворио после пет минута без уноса.',
   'signInBrowser.closedElsewhere': 'Ова пријава је сада отворена у другом прозору.',
   'signInBrowser.closedGone': 'Прегледач се затворио.',
+  'signInBrowser.none': 'За то је на овом рачунару потребан прегледач заснован на Chromium-у.',
   'failure.membersOnly.again.line': 'Само за чланове, а твоја пријава на {site} није прошла. Вероватно је истекла.',
   'failure.membersOnly.again.hint': 'Поново се пријави на {site} у прегледачу и предај сесију, па преузимање креће из почетка. Ако и даље пише само за чланове, овај налог нема чланство.',
   'failure.membersOnly.again.action': 'Пријави се поново',

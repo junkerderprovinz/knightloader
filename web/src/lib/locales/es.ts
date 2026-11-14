@@ -4056,6 +4056,7 @@ export const es: Dict = {
   'signInBrowser.closedIdle': 'El navegador se cerró tras cinco minutos sin actividad.',
   'signInBrowser.closedElsewhere': 'Este inicio de sesión está abierto ahora en otra ventana.',
   'signInBrowser.closedGone': 'El navegador se cerró.',
+  'signInBrowser.none': 'Para esto hace falta un navegador basado en Chromium en este equipo.',
   'failure.membersOnly.again.line': 'Solo para miembros, y tu sesión de {site} no bastó para entrar. Seguramente ha caducado.',
   'failure.membersOnly.again.hint': 'Vuelve a iniciar sesión en {site} en tu navegador y entrega la sesión, y la descarga empieza de nuevo. Si sigue diciendo solo para miembros, esta cuenta no tiene la membresía.',
   'failure.membersOnly.again.action': 'Volver a iniciar sesión',

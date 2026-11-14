@@ -1,6 +1,8 @@
 // What the sign-in browser's window sends up its socket (internal/signinbrowser's
 // Input): the user's keys, pointer and wheel over the page, in the page's own
 // CSS pixels, and the size the panel gives it.
+import { signInBrowserSocket } from './api';
+import { openDesktopSignInStream } from './desktop';
 
 /** The page's size in CSS pixels and the pixel ratio of the screen it is shown on. */
 export interface Viewport {
@@ -26,6 +28,51 @@ export interface PageInput {
   width?: number;
   height?: number;
   scale?: number;
+}
+
+/** PageStream is the window's line to the sign-in browser. */
+export interface PageStream {
+  send(input: PageInput): void;
+  close(): void;
+}
+
+/** PageEvents hear what comes down: frames, the page's state, and the end. */
+export interface PageEvents {
+  frame(jpeg: Blob): void;
+  message(raw: string): void;
+  closed(): void;
+}
+
+function jpegOf(base64: string): Blob {
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  return new Blob([bytes], { type: 'image/jpeg' });
+}
+
+/**
+ * openPageStream opens the stream: over Wails events in the desktop app,
+ * whose window cannot open a WebSocket, and over one everywhere else.
+ */
+export function openPageStream(on: PageEvents): PageStream {
+  const desktop = openDesktopSignInStream({
+    onFrame: (jpeg) => on.frame(jpegOf(jpeg)),
+    onMessage: on.message,
+    onClose: on.closed,
+  });
+  if (desktop) {
+    return { send: (input) => desktop.send(JSON.stringify(input)), close: () => desktop.close() };
+  }
+  const ws = signInBrowserSocket();
+  ws.onmessage = (ev) => (ev.data instanceof Blob ? on.frame(ev.data) : on.message(String(ev.data)));
+  ws.onclose = () => on.closed();
+  return {
+    send: (input) => {
+      if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(input));
+    },
+    close: () => {
+      ws.onclose = null;
+      ws.close();
+    },
+  };
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);

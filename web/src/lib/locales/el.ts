@@ -4066,6 +4066,7 @@ export const el: Dict = {
   'signInBrowser.closedIdle': 'Ο περιηγητής έκλεισε μετά από πέντε λεπτά χωρίς ενέργεια.',
   'signInBrowser.closedElsewhere': 'Αυτή η σύνδεση είναι τώρα ανοιχτή σε άλλο παράθυρο.',
   'signInBrowser.closedGone': 'Ο περιηγητής έκλεισε.',
+  'signInBrowser.none': 'Γι’ αυτό χρειάζεται ένας περιηγητής βασισμένος στο Chromium σε αυτόν τον υπολογιστή.',
   'failure.membersOnly.again.line': 'Μόνο για μέλη, και η σύνδεσή σου στο {site} δεν μπήκε. Μάλλον έχει λήξει.',
   'failure.membersOnly.again.hint': 'Συνδέσου ξανά στο {site} από τον περιηγητή σου και παράδωσε τη συνεδρία, και η λήψη ξεκινά από την αρχή. Αν γράφει ακόμα μόνο για μέλη, αυτός ο λογαριασμός δεν έχει τη συνδρομή μέλους.',
   'failure.membersOnly.again.action': 'Σύνδεση ξανά',

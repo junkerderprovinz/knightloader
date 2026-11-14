@@ -4051,6 +4051,7 @@ export const da: Dict = {
   'signInBrowser.closedIdle': 'Browseren lukkede efter fem minutter uden input.',
   'signInBrowser.closedElsewhere': 'Dette login er nu åbent i et andet vindue.',
   'signInBrowser.closedGone': 'Browseren lukkede.',
+  'signInBrowser.none': 'Det kræver en Chromium-baseret browser på denne computer.',
   'failure.membersOnly.again.line': 'Kun for medlemmer, og dit login på {site} kom ikke ind. Det er nok udløbet.',
   'failure.membersOnly.again.hint': 'Log ind på {site} igen i din browser, og giv sessionen videre, så starter downloaden igen. Står der stadig kun for medlemmer, har denne konto ikke medlemskabet.',
   'failure.membersOnly.again.action': 'Log ind igen',

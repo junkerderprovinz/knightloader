@@ -4065,6 +4065,7 @@ export const ms: Dict = {
   'signInBrowser.closedIdle': 'Pelayar ditutup selepas lima minit tanpa input.',
   'signInBrowser.closedElsewhere': 'Log masuk ini kini terbuka dalam tetingkap lain.',
   'signInBrowser.closedGone': 'Pelayar ditutup.',
+  'signInBrowser.none': 'Ini memerlukan pelayar berasaskan Chromium pada komputer ini.',
   'failure.membersOnly.again.line': 'Untuk ahli sahaja, dan log masuk {site} anda tidak berjaya masuk. Mungkin ia sudah tamat.',
   'failure.membersOnly.again.hint': 'Log masuk semula ke {site} dalam pelayar dan serahkan sesinya, dan muat turun bermula semula. Jika masih tertulis untuk ahli sahaja, akaun ini tiada keahlian itu.',
   'failure.membersOnly.again.action': 'Log masuk semula',

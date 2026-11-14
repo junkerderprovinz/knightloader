@@ -4053,6 +4053,7 @@ export const ko: Dict = {
   'signInBrowser.closedIdle': '5분 동안 입력이 없어 브라우저가 닫혔습니다.',
   'signInBrowser.closedElsewhere': '이 로그인은 지금 다른 창에서 열려 있습니다.',
   'signInBrowser.closedGone': '브라우저가 닫혔습니다.',
+  'signInBrowser.none': '이 컴퓨터에 Chromium 기반 브라우저가 있어야 합니다.',
   'failure.membersOnly.again.line': '회원 전용인데, {site} 로그인으로 들어가지 못했습니다. 아마 만료된 것 같습니다.',
   'failure.membersOnly.again.hint': '브라우저에서 {site}에 다시 로그인하고 세션을 넘겨 주면 다운로드가 다시 시작됩니다. 그래도 회원 전용이라고 나오면 이 계정에는 멤버십이 없습니다.',
   'failure.membersOnly.again.action': '다시 로그인',

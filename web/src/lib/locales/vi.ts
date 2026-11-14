@@ -4065,6 +4065,7 @@ export const vi: Dict = {
   'signInBrowser.closedIdle': 'Trình duyệt đã đóng sau năm phút không có thao tác.',
   'signInBrowser.closedElsewhere': 'Lần đăng nhập này hiện đang mở trong cửa sổ khác.',
   'signInBrowser.closedGone': 'Trình duyệt đã đóng.',
+  'signInBrowser.none': 'Việc này cần một trình duyệt dựa trên Chromium trên máy tính này.',
   'failure.membersOnly.again.line': 'Chỉ cho thành viên, và phiên đăng nhập {site} của bạn không vào được. Có lẽ nó đã hết hạn.',
   'failure.membersOnly.again.hint': 'Hãy đăng nhập lại {site} trong trình duyệt và chuyển giao phiên đăng nhập, lượt tải sẽ bắt đầu lại. Nếu vẫn báo chỉ cho thành viên, tài khoản này không có tư cách thành viên.',
   'failure.membersOnly.again.action': 'Đăng nhập lại',

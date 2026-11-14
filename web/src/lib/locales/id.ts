@@ -4065,6 +4065,7 @@ export const id: Dict = {
   'signInBrowser.closedIdle': 'Peramban tertutup setelah lima menit tanpa masukan.',
   'signInBrowser.closedElsewhere': 'Proses masuk ini sekarang terbuka di jendela lain.',
   'signInBrowser.closedGone': 'Peramban tertutup.',
+  'signInBrowser.none': 'Untuk ini perlu peramban berbasis Chromium di komputer ini.',
   'failure.membersOnly.again.line': 'Khusus anggota, dan sesi masuk {site} milikmu tidak tembus. Kemungkinan sudah habis.',
   'failure.membersOnly.again.hint': 'Masuk lagi ke {site} di peramban dan serahkan sesinya, lalu unduhan dimulai lagi. Kalau masih tertulis khusus anggota, akun ini tidak punya keanggotaannya.',
   'failure.membersOnly.again.action': 'Masuk lagi',

@@ -4068,6 +4068,7 @@ export const no: Dict = {
   'signInBrowser.closedIdle': 'Nettleseren lukket seg etter fem minutter uten inndata.',
   'signInBrowser.closedElsewhere': 'Denne innloggingen er nå åpen i et annet vindu.',
   'signInBrowser.closedGone': 'Nettleseren lukket seg.',
+  'signInBrowser.none': 'Dette krever en Chromium-basert nettleser på denne datamaskinen.',
   'failure.membersOnly.again.line': 'Bare for medlemmer, og innloggingen din på {site} slapp ikke inn. Den har nok utløpt.',
   'failure.membersOnly.again.hint': 'Logg inn på {site} igjen i nettleseren og gi økten videre, så starter nedlastingen på nytt. Står det fortsatt bare for medlemmer, har ikke denne kontoen medlemskapet.',
   'failure.membersOnly.again.action': 'Logg inn igjen',

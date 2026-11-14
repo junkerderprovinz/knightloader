@@ -4064,6 +4064,7 @@ export const th: Dict = {
   'signInBrowser.closedIdle': 'เบราว์เซอร์ปิดไปหลังจากไม่มีการป้อนข้อมูลห้านาที',
   'signInBrowser.closedElsewhere': 'การเข้าสู่ระบบนี้เปิดอยู่ในอีกหน้าต่างหนึ่งแล้ว',
   'signInBrowser.closedGone': 'เบราว์เซอร์ปิดแล้ว',
+  'signInBrowser.none': 'ต้องมีเบราว์เซอร์ที่ใช้ Chromium บนคอมพิวเตอร์เครื่องนี้',
   'failure.membersOnly.again.line': 'เฉพาะสมาชิกเท่านั้น และการเข้าสู่ระบบ {site} ของคุณเข้าไม่ได้ น่าจะหมดอายุแล้ว',
   'failure.membersOnly.again.hint': 'เข้าสู่ระบบ {site} อีกครั้งในเบราว์เซอร์แล้วส่งต่อเซสชัน การดาวน์โหลดจะเริ่มใหม่ ถ้ายังขึ้นว่าเฉพาะสมาชิกอยู่ แปลว่าบัญชีนี้ไม่มีสมาชิกภาพ',
   'failure.membersOnly.again.action': 'เข้าสู่ระบบอีกครั้ง',

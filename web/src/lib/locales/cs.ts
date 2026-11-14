@@ -4075,6 +4075,7 @@ export const cs: Dict = {
   'signInBrowser.closedIdle': 'Prohlížeč se zavřel po pěti minutách bez vstupu.',
   'signInBrowser.closedElsewhere': 'Toto přihlášení je teď otevřené v jiném okně.',
   'signInBrowser.closedGone': 'Prohlížeč se zavřel.',
+  'signInBrowser.none': 'K tomu je na tomto počítači potřeba prohlížeč založený na Chromiu.',
   'failure.membersOnly.again.line': 'Jen pro členy, a tvoje přihlášení ke službě {site} nestačilo. Nejspíš vypršelo.',
   'failure.membersOnly.again.hint': 'Přihlas se v prohlížeči znovu ke službě {site} a předej relaci, a stahování se spustí znovu. Pokud to pořád hlásí jen pro členy, tento účet členství nemá.',
   'failure.membersOnly.again.action': 'Přihlásit se znovu',

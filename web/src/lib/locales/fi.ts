@@ -4066,6 +4066,7 @@ export const fi: Dict = {
   'signInBrowser.closedIdle': 'Selain sulkeutui viiden minuutin toimettomuuden jälkeen.',
   'signInBrowser.closedElsewhere': 'Tämä kirjautuminen on nyt auki toisessa ikkunassa.',
   'signInBrowser.closedGone': 'Selain sulkeutui.',
+  'signInBrowser.none': 'Tähän tarvitaan tälle tietokoneelle Chromium-pohjainen selain.',
   'failure.membersOnly.again.line': 'Vain jäsenille, eikä kirjautumisesi palveluun {site} päässyt sisään. Se on luultavasti vanhentunut.',
   'failure.membersOnly.again.hint': 'Kirjaudu selaimessa uudelleen palveluun {site} ja siirrä istunto, niin lataus alkaa uudelleen. Jos se sanoo yhä vain jäsenille, tällä tilillä ei ole jäsenyyttä.',
   'failure.membersOnly.again.action': 'Kirjaudu uudelleen',

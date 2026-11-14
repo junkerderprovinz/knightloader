@@ -4066,6 +4066,7 @@ export const bg: Dict = {
   'signInBrowser.closedIdle': 'Браузърът се затвори след пет минути без въвеждане.',
   'signInBrowser.closedElsewhere': 'Този вход вече е отворен в друг прозорец.',
   'signInBrowser.closedGone': 'Браузърът се затвори.',
+  'signInBrowser.none': 'За това е нужен браузър на основата на Chromium на този компютър.',
   'failure.membersOnly.again.line': 'Само за членове, а входът ти в {site} не мина. Вероятно е изтекъл.',
   'failure.membersOnly.again.hint': 'Влез отново в {site} в браузъра и предай сесията, и изтеглянето ще започне отново. Ако пак пише само за членове, този акаунт няма членството.',
   'failure.membersOnly.again.action': 'Влез отново',

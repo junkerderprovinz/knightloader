@@ -4056,6 +4056,7 @@ export const lv: Dict = {
   'signInBrowser.closedIdle': 'Pārlūks aizvērās pēc piecām minūtēm bez ievades.',
   'signInBrowser.closedElsewhere': 'Šī pieteikšanās tagad ir atvērta citā logā.',
   'signInBrowser.closedGone': 'Pārlūks aizvērās.',
+  'signInBrowser.none': 'Tam šajā datorā vajag pārlūku, kura pamatā ir Chromium.',
   'failure.membersOnly.again.line': 'Tikai biedriem, un tava {site} pieteikšanās netika iekšā. Droši vien tā ir beigusies.',
   'failure.membersOnly.again.hint': 'Piesakies pārlūkā vietnē {site} vēlreiz un nodod sesiju, tad lejupielāde sāksies no jauna. Ja joprojām rakstīts tikai biedriem, šim kontam nav biedra statusa.',
   'failure.membersOnly.again.action': 'Pieteikties vēlreiz',

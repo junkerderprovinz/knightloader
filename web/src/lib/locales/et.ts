@@ -4056,6 +4056,7 @@ export const et: Dict = {
   'signInBrowser.closedIdle': 'Brauser sulgus pärast viit minutit ilma sisestuseta.',
   'signInBrowser.closedElsewhere': 'See sisselogimine on nüüd avatud teises aknas.',
   'signInBrowser.closedGone': 'Brauser sulgus.',
+  'signInBrowser.none': 'Selleks on vaja selles arvutis Chromiumil põhinevat brauserit.',
   'failure.membersOnly.again.line': 'Ainult liikmetele, ja sinu {site} sisselogimine ei pääsenud sisse. Tõenäoliselt on see aegunud.',
   'failure.membersOnly.again.hint': 'Logi brauseris uuesti saidile {site} sisse ja anna seanss üle, siis algab allalaadimine uuesti. Kui ikka on kirjas ainult liikmetele, pole sellel kontol liikmesust.',
   'failure.membersOnly.again.action': 'Logi uuesti sisse',

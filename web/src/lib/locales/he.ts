@@ -4082,6 +4082,7 @@ export const he: Dict = {
   'signInBrowser.closedIdle': 'הדפדפן נסגר אחרי חמש דקות בלי קלט.',
   'signInBrowser.closedElsewhere': 'ההתחברות הזאת פתוחה עכשיו בחלון אחר.',
   'signInBrowser.closedGone': 'הדפדפן נסגר.',
+  'signInBrowser.none': 'לשם כך צריך במחשב הזה דפדפן מבוסס Chromium.',
   'failure.membersOnly.again.line': 'לחברים בלבד, וההתחברות שלך ל-{site} לא הכניסה אותך. כנראה שהיא פגה.',
   'failure.membersOnly.again.hint': 'התחבר שוב ל-{site} בדפדפן והעבר את ההפעלה, וההורדה תתחיל מחדש. אם עדיין כתוב לחברים בלבד, לחשבון הזה אין את החברות.',
   'failure.membersOnly.again.action': 'התחבר שוב',

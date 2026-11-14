@@ -4066,6 +4066,7 @@ export const uk: Dict = {
   'signInBrowser.closedIdle': 'Браузер закрився після п’яти хвилин без введення.',
   'signInBrowser.closedElsewhere': 'Цей вхід тепер відкрито в іншому вікні.',
   'signInBrowser.closedGone': 'Браузер закрився.',
+  'signInBrowser.none': 'Для цього на комп’ютері потрібен браузер на основі Chromium.',
   'failure.membersOnly.again.line': 'Лише для учасників, і ваш вхід до {site} не спрацював. Схоже, він закінчився.',
   'failure.membersOnly.again.hint': 'Знову увійдіть до {site} у браузері й передайте сеанс, і завантаження почнеться знову. Якщо досі лише для учасників, цей обліковий запис не має членства.',
   'failure.membersOnly.again.action': 'Увійти знову',

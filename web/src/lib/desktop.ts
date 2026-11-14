@@ -312,6 +312,53 @@ export function openDesktopStream(h: StreamHandlers): LiveStream | null {
   };
 }
 
+/** SignInStreamHandlers hear the sign-in browser's stream; desktop/signin.go sends it. */
+export interface SignInStreamHandlers {
+  /** A frame of the page, a base64 JPEG. */
+  onFrame(jpeg: string): void;
+  onMessage(raw: string): void;
+  /** Called when the stream ends without close(). */
+  onClose(): void;
+}
+
+/**
+ * openDesktopSignInStream carries the sign-in browser's stream over Wails
+ * events, as openDesktopStream does the live stream. It returns null outside
+ * the desktop app.
+ */
+export function openDesktopSignInStream(h: SignInStreamHandlers): LiveStream | null {
+  if (!isDesktop()) return null;
+
+  const id = `${pageId}.signin.${++streamCount}`;
+  let closed = false;
+  const offs = [
+    listen(`signin:${id}:frame`, (data) => h.onFrame(String(data))),
+    listen(`signin:${id}:msg`, (data) => h.onMessage(String(data))),
+    listen(`signin:${id}:closed`, () => end()),
+  ];
+  const end = () => {
+    if (closed) return;
+    closed = true;
+    for (const off of offs) off();
+    h.onClose();
+  };
+  let calls: Promise<unknown> = call('main.SignInBridge.Watch', windowName(), id).catch(() => end());
+  const queue = (f: () => Promise<unknown>) => {
+    calls = calls.then(f).catch(() => undefined);
+  };
+  return {
+    send(frame) {
+      if (!closed) queue(() => call('main.SignInBridge.Input', frame));
+    },
+    close() {
+      if (closed) return;
+      closed = true;
+      for (const off of offs) off();
+      queue(() => call('main.SignInBridge.Stop', id));
+    },
+  };
+}
+
 /**
  * onUpdateReady calls back with the version the desktop app has downloaded for
  * its next start; updateReadyEvent in desktop/updates.go. Outside the desktop
