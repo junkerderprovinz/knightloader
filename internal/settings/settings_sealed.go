@@ -25,7 +25,9 @@ const sealPurpose = "settings"
 func LoadWithKey(dir string, key *appkey.Key) (*Store, error) {
 	s := &Store{path: filepath.Join(dir, FileName), cur: Defaults(), appKey: key}
 	b, err := os.ReadFile(s.path)
+	stale := false
 	if err == nil {
+		stale = holdsRetiredKey(b)
 		// Unmarshal over defaults so new fields keep their default value.
 		if err := json.Unmarshal(b, &s.cur); err != nil {
 			s.keepUnreadable(b, err)
@@ -50,16 +52,28 @@ func LoadWithKey(dir string, key *appkey.Key) (*Store, error) {
 	}
 	s.cur = loadInstanceID(dir, plain)
 	s.cur = sanitize(s.cur)
-	if unsealed {
+	if unsealed || stale {
 		b, err := s.encode(s.cur)
 		if err == nil {
 			err = writeFileAtomic(s.path, b)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("sealing the secrets in %s: %w", s.path, err)
+			return nil, fmt.Errorf("writing %s: %w", s.path, err)
 		}
 	}
 	return s, nil
+}
+
+// holdsRetiredKey reports a key this build dropped that the file still holds,
+// so loading writes the file again without it: ytdlp.cookies, the switch for
+// pasted cookie jars.
+func holdsRetiredKey(raw []byte) bool {
+	var doc struct {
+		Ytdlp struct {
+			Cookies json.RawMessage `json:"cookies"`
+		} `json:"ytdlp"`
+	}
+	return json.Unmarshal(raw, &doc) == nil && doc.Ytdlp.Cookies != nil
 }
 
 // encode is settings.json's content for n, with every secret sealed when
