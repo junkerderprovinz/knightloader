@@ -96,7 +96,7 @@ func TestAFetchedFFmpegIsReplacedOnlyOnceItIsDue(t *testing.T) {
 func TestNoFFmpegIsFetchedWhileTheDailyUpdateIsOff(t *testing.T) {
 	a, fetched := ffmpegApp(t)
 	s := a.Settings.Get()
-	s.YtdlpAutoUpdate = false
+	s.ComponentsAutoUpdate = false
 	if _, err := a.Settings.Set(s); err != nil {
 		t.Fatal(err)
 	}

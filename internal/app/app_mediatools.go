@@ -104,7 +104,7 @@ const (
 func (a *App) StartYtdlpAutoUpdate() {
 	// Known before the first run, which asks about yt-dlp first, so a video
 	// that fails in the meantime waits for the ffmpeg about to come.
-	fetchFFmpeg := a.InstallMissingTools && a.Settings.Get().YtdlpAutoUpdate &&
+	fetchFFmpeg := a.InstallMissingTools && a.Settings.Get().ComponentsAutoUpdate &&
 		mediatools.CanInstallFFmpeg(a.DataDir) == nil &&
 		mediatools.ResolveFFmpeg(a.DataDir).FFmpegSource == mediatools.SourceNone
 	if fetchFFmpeg {
@@ -144,7 +144,7 @@ func (a *App) ytdlpAutoLoop(first, every time.Duration) {
 // InstallMissingTools is set: in the container a missing yt-dlp is a broken
 // image or an operator's choice, not something to paper over.
 func (a *App) autoUpdateYtdlp() {
-	if !a.Settings.Get().YtdlpAutoUpdate {
+	if !a.Settings.Get().ComponentsAutoUpdate {
 		return
 	}
 	if err := mediatools.CanInstall(a.DataDir); err != nil {
@@ -189,7 +189,7 @@ func (a *App) autoUpdateYtdlp() {
 func (a *App) autoUpdateFFmpeg() {
 	ready := false
 	defer func() { a.endFFmpegFetch(ready) }()
-	if !a.Settings.Get().YtdlpAutoUpdate || !a.InstallMissingTools {
+	if !a.Settings.Get().ComponentsAutoUpdate || !a.InstallMissingTools {
 		return
 	}
 	if err := mediatools.CanInstallFFmpeg(a.DataDir); err != nil {
@@ -232,7 +232,7 @@ func (a *App) autoUpdateFFmpeg() {
 // InstallMissingTools allows it, and a fetched one is replaced once it is
 // DenoRefresh old. Nothing waits for it, since yt-dlp runs without one.
 func (a *App) autoUpdateDeno() {
-	if !a.Settings.Get().YtdlpAutoUpdate || !a.InstallMissingTools {
+	if !a.Settings.Get().ComponentsAutoUpdate || !a.InstallMissingTools {
 		return
 	}
 	if err := mediatools.CanInstallDeno(a.DataDir); err != nil {

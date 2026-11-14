@@ -73,11 +73,11 @@ func (f *fakeAdoptium) wire(t *testing.T, a *App, version string) {
 	}
 }
 
-// javaUpdateApp is an App with JD's two switches set and the pinned runtime
-// in place.
-func javaUpdateApp(t *testing.T, check, update bool) *App {
+// javaUpdateApp is an App with the component switch set and the pinned
+// runtime in place.
+func javaUpdateApp(t *testing.T, on bool) *App {
 	t.Helper()
-	a := jdSwitchesApp(t, check, update)
+	a := jdAutoUpdateApp(t, on)
 	putRuntime(t, jre.Dir(a.DataDir), jre.Version, "old java")
 	return a
 }
@@ -92,7 +92,7 @@ func javaInUse(t *testing.T, a *App) string {
 }
 
 func TestTheWeeklyJavaUpdateMovesJDOverOnceNoJDDownloadRuns(t *testing.T) {
-	a := javaUpdateApp(t, true, true)
+	a := javaUpdateApp(t, true)
 	f := &fakeAdoptium{}
 	f.wire(t, a, "21.0.99+1")
 	putTask(t, a, core.Task{ID: "jd", Resolver: "jd", Status: core.StatusRunning, Enabled: true})
@@ -125,36 +125,21 @@ func TestTheWeeklyJavaUpdateMovesJDOverOnceNoJDDownloadRuns(t *testing.T) {
 	}
 }
 
-func TestTheWeeklyJavaQuestionAloneOnlyRemembersTheAnswer(t *testing.T) {
-	a := javaUpdateApp(t, true, false)
-	f := &fakeAdoptium{}
-	f.wire(t, a, "21.0.99+1")
-
-	a.autoUpdateJava()
-
-	if f.asked.Load() != 1 || f.fetched.Load() != 0 || f.switched.Load() != 0 {
-		t.Fatalf("asked %d, fetched %d, switched %d times; want one question only", f.asked.Load(), f.fetched.Load(), f.switched.Load())
-	}
-	if got := a.JDStatus().RuntimeUpdate; got != "21.0.99+1" {
-		t.Errorf("RuntimeUpdate = %q, want the newer Java passed on to the Components card", got)
-	}
-}
-
-func TestBothJDSwitchesOffLeaveAdoptiumUnasked(t *testing.T) {
-	a := javaUpdateApp(t, false, false)
+func TestTheComponentSwitchOffLeavesAdoptiumUnasked(t *testing.T) {
+	a := javaUpdateApp(t, false)
 	f := &fakeAdoptium{}
 	f.wire(t, a, "21.0.99+1")
 
 	a.autoUpdateJava()
 
 	if f.asked.Load() != 0 || f.fetched.Load() != 0 || f.switched.Load() != 0 {
-		t.Fatalf("with both switches off: asked %d, fetched %d, switched %d times", f.asked.Load(), f.fetched.Load(), f.switched.Load())
+		t.Fatalf("switched off: asked %d, fetched %d, switched %d times", f.asked.Load(), f.fetched.Load(), f.switched.Load())
 	}
 }
 
 func TestTheWeeklyJavaUpdateIgnoresAnOlderOrEqualRuntime(t *testing.T) {
 	for _, v := range []string{jre.Version, "21.0.1+12"} {
-		a := javaUpdateApp(t, true, true)
+		a := javaUpdateApp(t, true)
 		f := &fakeAdoptium{}
 		f.wire(t, a, v)
 
@@ -170,7 +155,7 @@ func TestTheWeeklyJavaUpdateIgnoresAnOlderOrEqualRuntime(t *testing.T) {
 }
 
 func TestARuntimeJDDoesNotStartOnIsDroppedAndNotFetchedAgain(t *testing.T) {
-	a := javaUpdateApp(t, true, true)
+	a := javaUpdateApp(t, true)
 	f := &fakeAdoptium{refuse: true}
 	f.wire(t, a, "21.0.99+1")
 
@@ -191,7 +176,7 @@ func TestARuntimeJDDoesNotStartOnIsDroppedAndNotFetchedAgain(t *testing.T) {
 }
 
 func TestASwitchThatCouldNotStartIsTriedAgainSoon(t *testing.T) {
-	a := javaUpdateApp(t, true, true)
+	a := javaUpdateApp(t, true)
 	f := &fakeAdoptium{}
 	f.wire(t, a, "21.0.99+1")
 	a.SwitchJava = func(context.Context) error { return errors.New("JDownloader is already being set up") }

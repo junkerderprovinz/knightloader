@@ -31,7 +31,7 @@ func ffmpegWaitApp(t *testing.T, autoUpdate bool) (*App, *ffmpegFetch) {
 	if err := mediatools.CanInstallFFmpeg(t.TempDir()); err != nil {
 		t.Skip(err)
 	}
-	a := retryApp(t, func(s *settings.Settings) { s.YtdlpAutoUpdate = autoUpdate })
+	a := retryApp(t, func(s *settings.Settings) { s.ComponentsAutoUpdate = autoUpdate })
 	a.InstallMissingTools = true
 	t.Setenv("PATH", t.TempDir())
 	f := &ffmpegFetch{started: make(chan struct{}, 1), result: make(chan error, 1)}

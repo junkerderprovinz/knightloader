@@ -43,7 +43,7 @@ func autoUpdateApp(t *testing.T, on bool) *App {
 	}
 	t.Cleanup(func() { a.Close() })
 	s := a.Settings.Get()
-	s.YtdlpAutoUpdate = on
+	s.ComponentsAutoUpdate = on
 	if _, err := a.Settings.Set(s); err != nil {
 		t.Fatal(err)
 	}

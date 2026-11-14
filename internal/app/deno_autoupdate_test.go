@@ -106,7 +106,7 @@ func TestAFetchedDenoIsReplacedOnlyOnceItIsDue(t *testing.T) {
 func TestNoDenoIsFetchedWhileTheDailyUpdateIsOff(t *testing.T) {
 	a, fetched := denoApp(t)
 	s := a.Settings.Get()
-	s.YtdlpAutoUpdate = false
+	s.ComponentsAutoUpdate = false
 	if _, err := a.Settings.Set(s); err != nil {
 		t.Fatal(err)
 	}

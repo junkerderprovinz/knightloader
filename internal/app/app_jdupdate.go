@@ -132,13 +132,12 @@ func (a *App) jdAutoLoop(first, every, retry time.Duration) {
 	}
 }
 
-// autoUpdateJD is one daily run: it asks JD whether an update waits while
-// either switch is on, and installs one only with JDAutoUpdate. It reports
-// true when the update waits because JD is downloading: JD restarts to install
-// it, which would break off every download it carries.
+// autoUpdateJD is one daily run: while the component switch is on it asks JD
+// whether an update waits and has JD install it. It reports true when the
+// update waits because JD is downloading: JD restarts to install it, which
+// would break off every download it carries.
 func (a *App) autoUpdateJD() (held bool) {
-	s := a.Settings.Get()
-	if !s.JDVersionCheck && !s.JDAutoUpdate {
+	if !a.Settings.Get().ComponentsAutoUpdate {
 		return false
 	}
 	available, err := a.checkJD(a.ctx)
@@ -153,7 +152,7 @@ func (a *App) autoUpdateJD() (held bool) {
 	case err != nil:
 		log.Printf("JD: the daily update could not ask JD for an update: %v", err)
 		return false
-	case !available, !s.JDAutoUpdate:
+	case !available:
 		return false
 	case a.jdDownloading():
 		return true

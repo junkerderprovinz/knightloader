@@ -46,7 +46,7 @@ func (a *App) StartJavaAutoUpdate() {
 	a.spawn(func() { a.javaAutoLoop(javaAutoFirstRun, javaAutoEvery, javaAutoRetry) })
 }
 
-// javaAutoLoop reads the switches on every run, as jdAutoLoop does.
+// javaAutoLoop reads the switch on every run, as jdAutoLoop does.
 func (a *App) javaAutoLoop(first, every, retry time.Duration) {
 	timer := time.NewTimer(first)
 	defer timer.Stop()
@@ -64,14 +64,12 @@ func (a *App) javaAutoLoop(first, every, retry time.Duration) {
 	}
 }
 
-// autoUpdateJava is one weekly run. It shares JDownloader's two switches:
-// either one asks Adoptium for a newer Temurin 21, and JDAutoUpdate also
-// fetches it and moves JD onto it. It reports true when the move has to wait,
-// for a JD download, which the restart would break off, or for a JD setup
-// under way.
+// autoUpdateJava is one weekly run. While the component switch is on it asks
+// Adoptium for a newer Temurin 21, fetches it and moves JD onto it. It reports
+// true when the move has to wait, for a JD download, which the restart would
+// break off, or for a JD setup under way.
 func (a *App) autoUpdateJava() (held bool) {
-	s := a.Settings.Get()
-	if !s.JDVersionCheck && !s.JDAutoUpdate || a.SwitchJava == nil {
+	if !a.Settings.Get().ComponentsAutoUpdate || a.SwitchJava == nil {
 		return false
 	}
 	cur, err := jre.Load(a.DataDir)
@@ -97,7 +95,7 @@ func (a *App) autoUpdateJava() (held bool) {
 			return false
 		}
 		a.setJavaWaits(rel.Version)
-		if !s.JDAutoUpdate || rel.Version == a.refusedJava() {
+		if rel.Version == a.refusedJava() {
 			return false
 		}
 		if err := a.stageJava(a.ctx, rel); err != nil {
@@ -110,7 +108,7 @@ func (a *App) autoUpdateJava() (held bool) {
 		next = &jre.Record{Version: rel.Version}
 	}
 	a.setJavaWaits(next.Version)
-	if !s.JDAutoUpdate || next.Version == a.refusedJava() {
+	if next.Version == a.refusedJava() {
 		return false
 	}
 	if a.jdDownloading() {
