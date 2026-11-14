@@ -625,7 +625,7 @@ const FIELD_SHELL_ROW_TEXT = 'flex flex-wrap items-baseline gap-3';
  */
 type Hint = string | string[];
 
-export function HintBubble({ hint }: { hint?: Hint }) {
+export function HintBubble({ hint, onColor = false }: { hint?: Hint; onColor?: boolean }) {
   const paragraphs = (typeof hint === 'string' ? [hint] : (hint ?? [])).filter(Boolean);
   if (paragraphs.length === 0) return null;
   return (
@@ -642,6 +642,7 @@ export function HintBubble({ hint }: { hint?: Hint }) {
         )
       }
       label={paragraphs.join(' ')}
+      onColor={onColor}
     />
   );
 }
@@ -1923,6 +1924,10 @@ export function ErrorCard({
   );
 }
 
+/** The look of a badge in the notch on a card's or a sub-card's top edge. */
+export const NOTCH_BADGE = `inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-accent px-3 py-[3.5px]
+  text-[12px] font-medium uppercase leading-[15px] tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`;
+
 // SectionTitle labels a group of content as a notch badge: a small filled pill
 // sitting half over the card's own top edge. It needs its Card ancestor to be
 // positioned (`.glim-card` is) so the badge anchors to the card's box.
@@ -1973,8 +1978,7 @@ export function SectionTitle({
   const hued = hue !== undefined ? 'glim-hue ' : '';
   const hueStyle = hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined;
   const grouped = beside !== undefined && beside.length > 0;
-  const look = `glim-section-badge inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-accent px-3 py-[3.5px]
-    text-[12px] font-medium uppercase leading-[15px] tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`;
+  const look = `glim-section-badge ${NOTCH_BADGE}`;
   // The position lives on the Card (GlimStone 1.4.0), so a badge carries only
   // its marker class and inherits --item-hue from there. `.glim-hue` is not
   // added unconditionally: a badge wearing the class over a card with no

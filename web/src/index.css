@@ -736,10 +736,17 @@ body {
 
 /* A sub-card groups rows inside a card: flat, on the well's colour and at the
    card's radius. Fields and neutral buttons in it move one step up the ramp,
-   as fields do in a well, and their hover moves with them. */
+   as fields do in a well, and their hover moves with them. Its name sits in
+   the notch on its top edge, so it is `relative` for the badge and stands a
+   little further from what comes before it, which the badge's upper half
+   reaches into. */
 .glim-subcard {
+  position: relative;
   background-color: var(--carbon-surface2);
   border-radius: var(--radius-card);
+}
+* + .glim-subcard--titled {
+  margin-top: 0.5rem;
 }
 .glim-subcard input,
 .glim-subcard textarea,
