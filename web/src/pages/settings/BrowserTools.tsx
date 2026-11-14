@@ -435,7 +435,7 @@ function DesktopCard() {
     { name, sub: ARCH_LABEL[arch], href: href(arch) },
     { name: ARCH_LABEL[other], label: `${name} ${ARCH_LABEL[other]}`, href: href(other) },
   ];
-  const parts = (os: DesktopOS, name: string) => pair(name, (a) => desktopZip(desktopSlug(os, a), release));
+  const parts = (os: DesktopOS, name: string) => pair(name, (a) => desktopDownload(desktopSlug(os, a), release));
 
   return (
     <Card hue={0} className="flex flex-col gap-4">
@@ -459,7 +459,7 @@ function DesktopCard() {
         />
         <ReadmeButton
           brand="apple"
-          parts={[{ name: 'macOS', sub: 'Universal', href: desktopZip('macos-universal', release) }]}
+          parts={[{ name: 'macOS', sub: 'Universal', href: desktopDownload('macos-universal', release) }]}
           mark={<BrandMark svg={APPLE_SVG} />}
         />
         <ReadmeButton brand="linux" parts={parts('linux', 'Linux')} mark={<BrandMark svg={LINUX_SVG} />} />
@@ -610,13 +610,17 @@ const UNRAID_CA_URL = '';
 const RELEASE = /^v\d+\.\d+\.\d+$/;
 
 /**
- * desktopZip is the desktop bundle release.yml attaches to every release under
- * a name without a version: that of the release tagged `release`, or of the
- * newest one where there is no tag to name.
+ * desktopDownload is the file the README's button for slug leads to, which
+ * release.yml attaches to every release under a name without a version: the
+ * installer, or the zipped app for macOS, which has none. It is that of the
+ * release tagged `release`, or of the newest one where there is no tag to name.
+ * The Windows and Linux zips stay in the release for the updater.
  */
-function desktopZip(slug: DesktopSlug, release: string): string {
+function desktopDownload(slug: DesktopSlug, release: string): string {
   const from = release ? `download/${release}` : 'latest/download';
-  return `${REPO_URL}/releases/${from}/knightloader-${slug}.zip`;
+  const file =
+    slug === 'macos-universal' ? `${slug}.zip` : slug.startsWith('windows') ? `${slug}-installer.exe` : `${slug}-installer`;
+  return `${REPO_URL}/releases/${from}/knightloader-${file}`;
 }
 
 function flatpak(arch: Arch, release: string): string {
