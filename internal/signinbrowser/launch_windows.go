@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/coder/websocket"
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 // launch starts Chromium with DevTools on a loopback port it picks itself.
@@ -20,7 +20,9 @@ import (
 func launch(ctx context.Context, bin, profile string, args []string) (transport, func(), error) {
 	portFile := filepath.Join(profile, "DevToolsActivePort")
 	_ = os.Remove(portFile)
-	cmd := exec.CommandContext(ctx, bin, append(args, "--remote-debugging-port=0", "about:blank")...)
+	// The desktop app has no console, and Windows would open one for a child
+	// that asks.
+	cmd := nowindow.CommandContext(ctx, bin, append(args, "--remote-debugging-port=0", "about:blank")...)
 	if err := cmd.Start(); err != nil {
 		return nil, nil, err
 	}
