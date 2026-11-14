@@ -81,6 +81,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
+- **Every torrent runs in that qBittorrent,** so private trackers that admit
+  only listed clients take KnightLoader's torrents. KnightLoader still picks
+  the folder and the files, keeps banned trackers out and stops seeding at
+  your targets; qBittorrent's own limits and queue stay off. Torrents you
+  already have move over on the first start and carry on with the bytes they
+  have. A finished one is checked piece by piece first, so qBittorrent seeds
+  it without reading it again. Changing the port, DHT or PEX applies at once.
+  Torrents through the built-in VPN wait instead of going out without it,
+  since qBittorrent cannot use a tunnel inside KnightLoader. A VPN interface
+  of the system, such as `wg0`, under Settings, Torrents works.
 - **YouTube downloads start without your session.** Google flags accounts
   that download a lot while signed in, so KnightLoader uses your YouTube
   session only for a video that asks for it (members only, age-restricted,
@@ -100,6 +110,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Removed
 
+- **The built-in torrent engine is gone.** qBittorrent does its work.
 - **Pasting a cookies.txt is gone,** on the accounts page and for yt-dlp,
   together with the switch that let yt-dlp use pasted files. Sessions come
   from your browser or the extension. Files pasted before are deleted at the

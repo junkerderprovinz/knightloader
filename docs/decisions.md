@@ -427,6 +427,12 @@ static build from userdocs/qbittorrent-nox-static at run time. Windows and
 macOS fetch a build without a window that `qbittorrent-nox.yml` makes and
 publishes with its sources.
 
+Every torrent runs in it. KnightLoader keeps the decisions it made before,
+where a torrent lands, which files it fetches, which trackers it may use and
+when its seeding ends, and qBittorrent moves the bytes. The engine reaches
+it through `internal/torrents`, which has a client in memory beside the real
+one for the tests.
+
 **Not built:** private trackers with KnightLoader's own torrent engine, or
 qBittorrent from Alpine's packages in the image.
 
@@ -442,4 +448,9 @@ HTTP, it is a separate program next to KnightLoader. 4.5.x does not check TLS
 certificates on its own downloads (CVE-2024-51774), so KnightLoader turns off
 everything that has qBittorrent fetch from the web by itself, RSS and the
 peer country lookup, and hands it only .torrent files and magnet links.
+
+The built-in VPN is a network stack inside KnightLoader, which another
+program cannot use. Torrents set to go through it tie qBittorrent to an
+interface the system does not have, so they wait rather than go out without
+the VPN.
 

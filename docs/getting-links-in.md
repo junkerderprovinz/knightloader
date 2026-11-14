@@ -88,7 +88,20 @@ Linux build and the container take the static build of
 the Windows and macOS apps one built for KnightLoader, and every download is
 checked against the SHA-256 that ships with KnightLoader before it runs.
 qBittorrent keeps its settings and torrents in `qbittorrent` in the data
-folder. `KL_QBITTORRENT=0` leaves it off.
+folder. `KL_QBITTORRENT=0` leaves it off, and torrents then fail with that
+reason.
+
+Every torrent runs in this qBittorrent, which private trackers know. Their
+rows, totals and seeding badges work as before: KnightLoader reads every
+torrent it added, tagged `knightloader`, every three seconds. It still decides
+where a torrent lands, which files it fetches and when its seeding ends, and
+stops it in qBittorrent at your targets. qBittorrent's own ratio limits and
+queue stay off. A torrent qBittorrent kept across a restart is taken up where
+it is, so nothing is checked or fetched twice. Torrents from a version of
+KnightLoader before it ran qBittorrent move over on the first start: a file
+that was still downloading loses the `.part` at the end of its name, so
+qBittorrent finds the bytes, and a finished torrent is checked piece by piece
+first and seeds without being read again.
 
 **Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
 Premiumize.me, Debrid-Link, Linksnappy or Deepbrid ranks above "Built-in
@@ -147,33 +160,21 @@ that caught it, not past one added afterwards. It is refused rather than
 stripped of that tracker: the rest of the torrent would still announce the same
 info hash, and a private torrent without its tracker finds no peers.
 
-**Network interface** under Settings, Torrents ties the built-in torrent client
-to one interface, such as `wg0` or `tun0` from a VPN, the way qBittorrent's
-"Network interface" setting does. Peers, trackers and the DHT then use that
-interface only. Every socket is bound to its address, and on Linux, macOS and
-Windows to the interface itself as well, so the system cannot route it out
-another way. The list offers the interfaces the system has, with their
-addresses, and "Any interface", which is the default.
+**Network interface** under Settings, Torrents ties qBittorrent to one
+interface, such as `wg0` or `tun0` from a VPN, through its own "Network
+interface" setting. Peers, trackers and the DHT then use that interface only,
+and while it is missing or down qBittorrent sends and receives nothing and the
+torrents wait. The list offers the interfaces the system has, with their
+addresses, and "Any interface", which is the default. A change applies to
+running torrents at once. On Windows qBittorrent names interfaces its own
+way, so a name from the list may not reach it; there the torrents wait rather
+than leave by another interface. Torrents a debrid service fetches are not
+affected: they come over HTTP from the service.
 
-KnightLoader looks at the interface every two seconds. While it is missing,
-down or has no address, the client sends and receives nothing: open
-connections are closed, no peer is dialled and no tracker is asked. The
-torrents keep their place and what they have, the Overview's Torrents card
-says they are on hold, and a magnet link that waits for its file list does not
-run out of time meanwhile. Once the interface is back, the peers each torrent
-knew are dialled again, and trackers and the DHT bring the rest within about a
-minute. A change applies to running torrents at once.
-
-With an interface set, trackers and web seeds skip any proxy, because a proxy
-would reach them outside the interface. A client that starts with an interface
-set also leaves out UPnP port mapping and WebRTC peers, which open connections
-of their own, and IPv4 or IPv6 if the interface has no address of that kind. If
-you turn the setting on or pick another interface while torrents run, these
-stay as they are until the client starts again. Host names of trackers and DHT
-nodes are still looked up through the system's resolver. On Linux before 5.7
-the container needs `CAP_NET_RAW` to tie a socket to the interface itself, and
-without it sockets are bound to the interface's address only. Torrents a debrid
-service fetches are not affected: they come over HTTP from the service.
+The VPN that KnightLoader connects itself runs inside KnightLoader, where
+qBittorrent cannot reach it. While torrents are set to go through it, they
+wait. To send torrents through a VPN, connect the VPN on the system and pick
+its interface here.
 
 ## Usenet
 
