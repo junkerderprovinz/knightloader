@@ -372,6 +372,7 @@ export const reasonKey: Record<string, TranslationKey> = {
   // thinks we are a bot" from "the site said 403".
   botCheck: 'task.reason.botCheck',
   membersOnly: 'task.reason.membersOnly',
+  signInRequired: 'task.reason.signInRequired',
   geoBlocked: 'task.reason.geoBlocked',
   drm: 'task.reason.drm',
   extractorBroken: 'task.reason.extractorBroken',

@@ -106,7 +106,8 @@ function loadBackground(chrome, ids) {
   ctx.withGroup = async (work) => work({
     siblings: ids.map((instanceId) => ({ instanceId, name: instanceId })),
     call: async (target, method, path, body) => {
-      posted.push({ target, method, path, body: body ? JSON.parse(body) : undefined });
+      // Reads, such as the sign-in watcher's list of sites, send nothing.
+      if (method !== 'GET') posted.push({ target, method, path, body: body ? JSON.parse(body) : undefined });
       return { status: 200, body: '{"tasks":[{"id":"a"}],"listed":[]}' };
     },
   });

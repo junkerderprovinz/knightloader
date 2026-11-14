@@ -21,6 +21,7 @@ if (typeof importScripts === 'function') {
     'capture.js',
     'takeover.js',
     'media.js',
+    'signin.js',
     'clipwatch.js',
     'video.js',
     'video-worker.js',
@@ -302,6 +303,74 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === 'knightloader-clip-refused' && fromPage) {
     void clipRefused();
   }
+  // From the settings page once the phrase is in, and from either page once
+  // the browser granted the access.
+  if (msg?.type === 'knightloader-signins' && fromPage) {
+    void runSignIns();
+  }
+});
+
+// Passing sign-ins on (signin.js). One sync runs at a time, asks that arrive
+// while one waits share it, and the burst of cookies a sign-in sets becomes
+// one sync once it settles.
+const SIGNIN_ALARM = 'knightloader-signins';
+let signinQueue = Promise.resolve();
+let signinWaiting = null;
+function runSignIns() {
+  if (signinWaiting) return signinWaiting;
+  signinWaiting = signinQueue
+    .catch(() => {})
+    .then(() => {
+      signinWaiting = null;
+      return withGroup(({ siblings, call }) => syncSignIns(siblings, call));
+    })
+    .then(async ({ retry }) => {
+      await chrome.storage.local.set({ signinSyncedAt: Date.now() });
+      if (retry) chrome.alarms?.create(SIGNIN_ALARM, { delayInMinutes: 1 });
+    })
+    .catch(() => {});
+  signinQueue = signinWaiting;
+  return signinWaiting;
+}
+
+const SIGNIN_SETTLE_MS = 2000;
+let signinTimer = 0;
+async function onSignInCookie(change) {
+  if (!signInCookieChanged(await storedSites(), change)) return;
+  noteSignInChange(change);
+  clearTimeout(signinTimer);
+  signinTimer = setTimeout(() => void runSignIns(), SIGNIN_SETTLE_MS);
+}
+
+// chrome.cookies exists only once the optional permission is granted, so the
+// listener is added at start when it is there and again after a grant.
+let signinWired = false;
+function wireSignIns() {
+  if (signinWired || !chrome.cookies?.onChanged) return;
+  signinWired = true;
+  chrome.cookies.onChanged.addListener((change) => void onSignInCookie(change));
+}
+wireSignIns();
+chrome.permissions.onAdded.addListener(() => {
+  wireSignIns();
+  void runSignIns();
+});
+chrome.runtime.onStartup?.addListener(() => void runSignIns());
+chrome.runtime.onInstalled.addListener(() => void runSignIns());
+
+// An extension switched on again starts without either event, and the
+// browser wakes this page for every event, so a start syncs only when the
+// last sync is a while ago.
+const SIGNIN_RESYNC_MS = 10 * 60 * 1000;
+void chrome.storage.local.get('signinSyncedAt').then(({ signinSyncedAt }) => {
+  if (!(Date.now() - (signinSyncedAt ?? 0) < SIGNIN_RESYNC_MS)) void runSignIns();
+});
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.signinEnabled?.newValue === true) void runSignIns();
+});
+// An instance that did not answer gets the session a minute later.
+chrome.alarms?.onAlarm.addListener((alarm) => {
+  if (alarm.name === SIGNIN_ALARM) void runSignIns();
 });
 
 /**

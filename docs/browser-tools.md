@@ -249,29 +249,59 @@ way MyJDownloader's extension can) is still not built. Choosing per send and
 setting a default are; a rule engine on top of that is real but niche, and
 nothing about this shape blocks it later.
 
-### Handing a site's sign-in over
+### Passing sign-ins on
 
 For the sites signed into through the browser (`internal/sitelogin`,
-Patreon and YouTube so far), an instance in a container has no browser to read
-the session from (see the next section), so the extension hands it over.
-**Sign in in the browser** on the accounts page
-opens the site's login page and calls `POST /api/sitelogins/{id}/begin`, so
-the instance waits for that site for a quarter of an hour. The popup asks
-every instance of the group `GET /api/sitelogins/handover`, which lists each
-site with its cookie domains and whether it is waited for (nothing about a
-stored session), and shows a notice for each site that is (`popup-signin.js`).
+Patreon and YouTube so far), the desktop app reads the session from the
+browsers on its own computer. Everywhere else, and for a browser the desktop
+app cannot read (Chrome on Windows, for one), the extension passes it on
+without a click (`signin.js`).
 
-Its button opens `signin.html` in a tab, because the browser's permission
-prompt would close the popup and the request with it. There the click first
-asks for `cookies` on the site's own domains alone (`https://patreon.com/*`
-and `https://*.patreon.com/*`), then reads that site's cookies from the cookie
-store of the tab the popup was opened over, and hands the site's domains back
-at once and the cookies too, unless taking over downloads or finding media
-still reads them (`signin.js`). The cookies go sealed through the relay as
-`POST /api/sitelogins/{id}/handover`, which the instance takes from the
-extension alone, never from the phone or another instance. It keeps only the
-site's own live cookies, writes them as a cookies.txt into the encrypted
-credential store and answers who the session signs in as.
+Each instance of the group lists those sites as
+`GET /api/sitelogins/handover`: the id, the name, the cookie domains and the
+names of the cookies only a signed-in session carries, nothing about a stored
+session. The background asks for that list when the browser starts, when the
+extension is installed or updated, when it starts again more than ten minutes
+after the last sync, right after the phrase is entered on the settings page,
+when the popup or the settings page opens while no site is known yet, and once
+the browser grants the access. It keeps the list, so
+a click can ask for the access before anything else is awaited.
+
+The access is `cookies` on the listed sites' own domains
+(`https://patreon.com/*` and `https://*.patreon.com/*`), kept for good. Both
+stay optional permissions, so an update never disables an existing install.
+When taking over downloads or finding media already holds `cookies` and the
+access to all websites, nothing is asked. Otherwise the settings page shows a
+notice at the top with **Allow** and **Keep it off**, and the popup shows the
+same notice with a button that leads there, since a permission prompt would
+close the popup. The switch **Pass my sign-ins to KnightLoader** in the
+browser card turns it off again and gives the sites' domains back, and the
+cookies too unless taking over downloads or finding media still reads them.
+A site an instance starts to list later waits for its own access while the
+others go on.
+
+With the access there, the background reads each site's cookies from every
+cookie store outside private windows: the default store and each Firefox
+container. Firefox lists a container's store only while one of its tabs is
+open, so the stores a sign-in came from before are read too. A store is signed
+in when one of the site's sign-in cookies is there. Of several, the one whose
+sign-in cookie changed last wins, then the one handed over before, then the
+default store. `cookies.onChanged` wakes the background for a change to a
+listed site's sign-in cookie outside a private store, and the burst a sign-in
+sets becomes one sync two seconds after it settles.
+
+What went to which instance is kept as a SHA-256 digest of the sign-in
+cookies, never the session itself. A session goes out again only when the
+digest changes, so a tracking cookie changing sends nothing. A hand-over is
+`POST /api/sitelogins/{id}/handover` with the site's cookies, sealed through
+the relay. The instance takes it from the extension alone, never from the
+phone or another instance. It keeps only the site's own live cookies, writes
+them as a cookies.txt into the encrypted credential store and answers who the
+session signs in as. A 422 (the site signs nobody in with it) is not sent
+again until the session changes, and an instance that did not answer is asked
+again a minute later (an alarm). Asks that arrive while a sync waits share
+it. Once the browser signs out, every instance that had
+the session gets the same route with an empty `cookies` list, once.
 
 ### Reading the sign-in from the browsers on the machine
 

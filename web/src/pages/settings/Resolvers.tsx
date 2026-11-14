@@ -24,7 +24,6 @@ import {
   type PickerProps,
   type PresetMenus,
 } from '../../components/VariantPicker';
-import { CookieJarsCard } from './resolvers/CookieJars';
 import { fileTracks, mergedExtension } from './resolvers/fileTracks';
 import { ComponentsLink } from './resolvers/ComponentsLink';
 import { IconAdd, IconClose, IconTrash } from '../../lib/icons';
@@ -554,10 +553,7 @@ export function Resolvers() {
         </SubCard>
       </Card>
 
-      {/* Its own file, since the jar form is shared with a failed download. */}
-      <CookieJarsCard hue={7} />
-
-      <Card hue={8} data-new="variant-blocks" className="flex flex-col gap-5">
+      <Card hue={7} data-new="variant-blocks" className="flex flex-col gap-5">
         <SectionTitle
           hint={t('settings.resolvers.presetsHint')}
           right={
@@ -647,7 +643,7 @@ export function Resolvers() {
         {addingPreset && (
           <Modal
             title={t('settings.resolvers.presetAdd')}
-            hue={8}
+            hue={7}
             onClose={closeAddPreset}
             footer={
               <>

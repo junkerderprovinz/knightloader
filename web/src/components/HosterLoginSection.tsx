@@ -6,9 +6,10 @@
 // speaks to each of those itself. The card's Add button on the accounts page
 // opens the picker through `adding`.
 //
-// The sites signed into through the browser (internal/sitelogin) are hosters
-// here too: picked like one, a row like one, but signed in through the
-// browser in SiteLoginDialog rather than with a password JD keeps.
+// The sites signed into through the browser (internal/sitelogin) are rows
+// here too, always, since KnightLoader picks a sign-in up by itself: each says
+// who it signs in as and where from, or how to sign in, and opens
+// SiteLoginDialog rather than a password form.
 import { useCallback, useEffect, useState } from 'react';
 import {
   type HosterHost,
@@ -24,13 +25,13 @@ import {
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
-import { siteForHost, stateNote } from '../lib/siteLogins';
+import { type SignInWays, nextStep, siteForHost, sourceNote, stateNote, unreadableBrowsers } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconClose, IconSave, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
-import { SiteLoginDialog } from './SiteLoginDialog';
+import { SiteLoginDialog, useSignInWays } from './SiteLoginDialog';
 import { SettingRow } from '../pages/settings/controls';
 
 // Faster than the 30s account health poll, since a new login moves from queued
@@ -41,6 +42,8 @@ const POLL_MS = 8000;
 export interface HosterLogins {
   logins: HosterLogin[] | null;
   sites: SiteLogin[];
+  /** Where this instance can get a sign-in from, which the sites' rows tell. */
+  ways: SignInWays;
   hosts: HosterHost[];
   load: () => Promise<void>;
   toggle: (row: HosterLogin, enabled: boolean) => Promise<void>;
@@ -122,27 +125,26 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
     }
   }
 
-  return { logins, sites, hosts, load, toggle, remove, putSite, removeSite };
+  const ways = useSignInWays(sites);
+  return { logins, sites, ways, hosts, load, toggle, remove, putSite, removeSite };
 }
 
-/** listed is whether a site has a row: a session is stored or one is on its way. */
-const listed = (site: SiteLogin) => site.state !== 'signedOut' || site.waiting;
-
-/** siteLoginRow is one site signed into through the browser as an AccountTable row. */
-function siteLoginRow(
-  site: SiteLogin,
-  signInAgain: string,
-  actions: { onEdit: () => void; onRemove: () => void },
-): AccountRow {
+/**
+ * siteLoginRow is one site signed into through the browser as an AccountTable
+ * row. Only a session the extension passed on can be forgotten: one read from
+ * a browser here comes back with the next read, so signing out happens on the
+ * site.
+ */
+function siteLoginRow(site: SiteLogin, ways: SignInWays, actions: { onEdit: () => void; onRemove: () => void }): AccountRow {
   return {
     key: `site:${site.id}`,
     iconHost: site.host,
     label: site.name,
     enabled: true,
-    status: <SiteLoginStatusBadge site={site} />,
+    status: <SiteLoginStatus site={site} ways={ways} />,
     expiry: site.expires,
-    menu: [{ id: 'actions', items: [{ id: 'signin', label: signInAgain, onSelect: actions.onEdit }] }],
-    ...actions,
+    onEdit: actions.onEdit,
+    onRemove: site.source === 'extension' && site.state !== 'signedOut' ? actions.onRemove : undefined,
   };
 }
 
@@ -176,7 +178,7 @@ export function HosterLoginSection({
   adding: boolean;
   onAddClose: () => void;
 }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [editing, setEditing] = useState<HosterLogin | null>(null);
   const [editingSite, setEditingSite] = useState<SiteLogin | null>(null);
   // The login or site awaiting removal confirmation.
@@ -184,8 +186,8 @@ export function HosterLoginSection({
   const [confirmingSite, setConfirmingSite] = useState<SiteLogin | null>(null);
 
   const rows = data.logins ?? [];
-  const siteRows = data.sites.filter(listed);
-  const hasRows = rows.length > 0 || siteRows.length > 0;
+  const hasRows = rows.length > 0 || data.sites.length > 0;
+  const unreadable = unreadableBrowsers(data.sites);
 
   return (
     <div className="flex flex-col gap-3">
@@ -200,14 +202,20 @@ export function HosterLoginSection({
                 onRemove: () => setConfirming(row),
               }),
             ),
-            ...siteRows.map((site) =>
-              siteLoginRow(site, t('siteLogins.signInAgain'), {
+            ...data.sites.map((site) =>
+              siteLoginRow(site, data.ways, {
                 onEdit: () => setEditingSite(site),
                 onRemove: () => setConfirmingSite(site),
               }),
             ),
           ]}
         />
+      )}
+
+      {unreadable.length > 0 && (
+        <p className="text-xs text-carbon-textMuted">
+          {t('siteLogins.unreadable', { browsers: new Intl.ListFormat(lang, { type: 'conjunction' }).format(unreadable) })}
+        </p>
       )}
 
       {!hasRows && (
@@ -224,7 +232,6 @@ export function HosterLoginSection({
           sites={data.sites}
           existing={rows}
           editing={editing ?? undefined}
-          onSiteChanged={data.putSite}
           onClose={() => {
             setEditing(null);
             onAddClose();
@@ -234,7 +241,13 @@ export function HosterLoginSection({
       )}
 
       {editingSite && (
-        <SiteLoginDialog site={editingSite} hue={2} onChanged={data.putSite} onClose={() => setEditingSite(null)} />
+        <SiteLoginDialog
+          site={editingSite}
+          ways={data.ways}
+          hue={2}
+          onChanged={data.putSite}
+          onClose={() => setEditingSite(null)}
+        />
       )}
 
       {confirming && (
@@ -303,19 +316,30 @@ function loginDetail(t: (key: TranslationKey) => string, login: HosterLogin): st
   return login.code && key in en ? t(key) : login.detail;
 }
 
-/** SiteLoginStatusBadge says who a site's session signs in as, or that it ran out. */
-function SiteLoginStatusBadge({ site }: { site: SiteLogin }) {
+/**
+ * SiteLoginStatus says who a site's session signs in as and where it came
+ * from, or, without a working session, the one step that signs it in.
+ */
+function SiteLoginStatus({ site, ways }: { site: SiteLogin; ways: SignInWays }) {
   const { t } = useT();
   const note = stateNote(site);
+  const details = [sourceNote(site), nextStep(site, ways)].filter((n) => n !== undefined);
   const [text, dot] = note.warn
     ? ['text-statusWarn', 'bg-statusWarnSolid']
-    : site.waiting
-      ? ['text-statusNeutral', 'bg-statusNeutralSolid']
+    : site.state === 'signedOut'
+      ? ['text-carbon-textMuted', 'bg-carbon-textMuted']
       : ['text-statusOk', 'bg-statusOkSolid'];
   return (
-    <span className={`inline-flex items-center gap-1.5 text-meta font-medium ${text}`}>
-      <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${dot}`} />
-      {t(note.key, note.vars)}
+    <span className="flex max-w-[24rem] flex-col gap-0.5">
+      <span className={`inline-flex items-center gap-1.5 text-meta font-medium ${text}`}>
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${dot}`} />
+        {t(note.key, note.vars)}
+      </span>
+      {details.map((d) => (
+        <span key={d.key} className="text-meta text-carbon-textMuted">
+          {t(d.key, d.vars)}
+        </span>
+      ))}
     </span>
   );
 }
@@ -369,16 +393,12 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
 // accounts.Redacted: sent back unchanged, it keeps the stored password.
 const REDACTED = '********';
 
-/** The picker's id prefix of a site signed into through the browser, which no host name starts with. */
-const SITE = 'site:';
-
 /** HosterLoginDialog stores one login. */
 function HosterLoginDialog({
   hosts,
   sites,
   existing,
   editing,
-  onSiteChanged,
   onClose,
   onSaved,
 }: {
@@ -386,7 +406,6 @@ function HosterLoginDialog({
   sites: SiteLogin[];
   existing: HosterLogin[];
   editing?: HosterLogin;
-  onSiteChanged: (site: SiteLogin) => void;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -399,37 +418,16 @@ function HosterLoginDialog({
   const [username, setUsername] = useState(editing?.username ?? '');
   const [password, setPassword] = useState(editing ? REDACTED : '');
   const [saving, setSaving] = useState(false);
-  const [pickedSite, setPickedSite] = useState<SiteLogin | null>(null);
 
-  // A site signed into through the browser stands in for JD's entry of the
-  // same host, whose password login the site does not take.
+  // A site signed into through the browser has its own row, and stands in for
+  // JD's entry of the same host, whose password login the site does not take.
   const configured = new Set(existing.map((e) => e.host));
-  const brands: Brand[] = [
-    ...hosts
-      .filter((h) => !configured.has(h.id) && !siteForHost(h.id, sites))
-      .map((h) => ({ id: h.id, name: h.label, host: h.id })),
-    ...sites.filter((s) => !listed(s)).map((s) => ({ id: `${SITE}${s.id}`, name: s.name, host: s.host })),
-  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+  const brands: Brand[] = hosts
+    .filter((h) => !configured.has(h.id) && !siteForHost(h.id, sites))
+    .map((h) => ({ id: h.id, name: h.label, host: h.id }))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
-  const pick = (id: string) => {
-    if (id.startsWith(SITE)) setPickedSite(sites.find((s) => `${SITE}${s.id}` === id) ?? null);
-    else setPicked(hosts.find((h) => h.id === id) ?? null);
-  };
-
-  if (pickedSite) {
-    return (
-      <SiteLoginDialog
-        site={pickedSite}
-        hue={2}
-        onChanged={onSiteChanged}
-        onBack={() => {
-          setPickedSite(null);
-          setQuery('');
-        }}
-        onClose={onClose}
-      />
-    );
-  }
+  const pick = (id: string) => setPicked(hosts.find((h) => h.id === id) ?? null);
 
   async function doSave() {
     if (!picked) return;

@@ -2391,9 +2391,6 @@ export interface YtdlpOptions {
   audioLang: string;
   /** Fail a subtitle row that wrote no file instead of settling it green. */
   subtitleStrict: boolean;
-  /** Allow a stored cookies.txt to be handed to yt-dlp. The jar itself is never
-   *  part of this document. */
-  cookies: boolean;
   /** Tag and sort an audio row as music. */
   music: boolean;
   embed: YtdlpEmbed;
@@ -2480,66 +2477,42 @@ export async function fetchHosterFormats(host: string, base = '/api'): Promise<Y
   return json<YtdlpHostMenus>(await fetch(`${base}/ytdlp/formats?host=${encodeURIComponent(host)}`));
 }
 
-// yt-dlp cookie jars are stored per site in the encrypted credential store and
-// only ever travel into the server: a cookies.txt is a live session, so the
-// list route answers names only.
-
-/** The sites with a stored jar, normalised (lower-cased, "www." stripped), so
- *  render the answer rather than the request. */
-export type YtdlpCookieHosts = string[];
-
-export async function fetchYtdlpCookieHosts(base = '/api'): Promise<YtdlpCookieHosts> {
-  return (await json<YtdlpCookieHosts>(await fetch(`${base}/ytdlp/cookies`))) ?? [];
-}
-
-/**
- * saveYtdlpCookieJar stores or replaces one site's cookies.txt and answers
- * the stored list. `text` is always sent: empty clears, and leaving it out is
- * refused, since the page never gets a jar back and a re-saved form would
- * otherwise delete a working session. `host` takes the export address or the
- * bare site name; anything else throws the server's ApiError.
- */
-export async function saveYtdlpCookieJar(
-  host: string,
-  text: string,
-  base = '/api',
-): Promise<YtdlpCookieHosts> {
-  return (await json<YtdlpCookieHosts>(await post(`${base}/ytdlp/cookies`, { host, text }))) ?? [];
-}
-
-/**
- * removeYtdlpCookieJar deletes one site's jar and answers the remaining list.
- * An unknown host throws with status 404, so a typo does not look like a
- * removed session.
- */
-export async function removeYtdlpCookieJar(host: string, base = '/api'): Promise<YtdlpCookieHosts> {
-  return (await json<YtdlpCookieHosts>(await post(`${base}/ytdlp/cookies/remove`, { host }))) ?? [];
-}
-
-// Sites signed into through the browser (internal/sitelogin). The session
-// comes from the extension or a pasted cookies.txt and never comes back: a
-// site's row says who it signs in as, nothing more.
+// Sites signed into through the browser (internal/sitelogin). An instance
+// outside a container reads the session from the browsers on its computer,
+// and the extension passes it on from any other. It never comes back: a
+// site's row says who it signs in as and where from, nothing more.
 
 export type SiteLoginStateName = 'signedOut' | 'signedIn' | 'expired' | 'unchecked';
 
-/** One tile of the accounts page's "Sign in through the browser" card. */
+/**
+ * Where a session came from: read from a browser on this computer, passed on
+ * by the extension, or from KnightLoader's own sign-in browser.
+ */
+export type SiteLoginSource = 'browser' | 'extension' | 'kl-browser' | '';
+
+/** One site signed into through the browser, a row of the hoster accounts. */
 export interface SiteLogin {
   id: string;
   name: string;
   /** The site's own host, which its logo is drawn for. */
   host: string;
   loginUrl: string;
-  /** The cookie domains the extension reads for it. */
+  /** The cookie domains a session is read from. */
   domains: string[];
   /** Further hosts its links come from, such as a short-link domain. */
   links?: string[];
+  /** "always": the session goes with every link; "onNeed": only with one that asks for a sign-in. */
+  use?: 'always' | 'onNeed';
   state: SiteLoginStateName;
   /** Who the session signs in as, where the site says. */
   account?: string;
   /** RFC 3339, where the cookies say when the session runs out. */
   expires?: string;
-  /** From Sign in until the session arrives. */
-  waiting: boolean;
+  source?: SiteLoginSource;
+  /** The browser and profile a session was read from, or whose session the site turned down, such as "Firefox (default-release)". */
+  browser?: string;
+  /** Browsers on this computer whose sign-ins KnightLoader cannot read, such as Chrome on Windows. */
+  unreadable: string[];
 }
 
 export async function fetchSiteLogins(): Promise<SiteLogin[]> {
@@ -2548,17 +2521,8 @@ export async function fetchSiteLogins(): Promise<SiteLogin[]> {
 
 const siteLoginPath = (id: string, action: string) => `/api/sitelogins/${encodeURIComponent(id)}/${action}`;
 
-export async function beginSiteLogin(id: string): Promise<SiteLogin> {
-  return json<SiteLogin>(await post(siteLoginPath(id, 'begin'), {}));
-}
-
 export async function checkSiteLogin(id: string): Promise<SiteLogin> {
   return json<SiteLogin>(await post(siteLoginPath(id, 'check'), {}));
-}
-
-/** pasteSiteSession stores a cookies.txt as the site's session and answers who it signs in as. */
-export async function pasteSiteSession(id: string, text: string): Promise<SiteLogin> {
-  return json<SiteLogin>(await post(siteLoginPath(id, 'cookies'), { text }));
 }
 
 export async function removeSiteLogin(id: string): Promise<SiteLogin> {
