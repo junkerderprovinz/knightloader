@@ -380,11 +380,10 @@ own browser instead.
 
 Patreon and YouTube always have a row under **Hoster accounts**. Sign in to
 the site in your browser as you always do, and KnightLoader picks the sign-in
-up by itself. If you were signed in already, that is picked up too.
-The row then says who you are signed in as and where the sign-in
-came from, such as "from Firefox (default-release)" or "from the browser
-extension".
-Without a sign-in the row says "Not signed in" and what to do.
+up by itself, a sign-in from before included. The row then says who you are
+signed in as and where the sign-in came from, such as "from Firefox
+(default-release)" or "from the browser extension". Without a sign-in it says
+"Not signed in" and what to do.
 
 Where it comes from depends on where KnightLoader runs:
 
