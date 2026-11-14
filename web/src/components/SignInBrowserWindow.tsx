@@ -491,6 +491,7 @@ export function SignInHereButton({
       <Button
         kind="secondary"
         icon={<IconSignIn />}
+        data-new="sign-in-here"
         disabled={disabled || !available}
         hint={available ? undefined : t('signInBrowser.none')}
         onClick={() => setOpen(true)}

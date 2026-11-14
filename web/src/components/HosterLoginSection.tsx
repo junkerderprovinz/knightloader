@@ -380,7 +380,7 @@ function SiteLoginStatus({ site, ways }: { site: SiteLogin; ways: SignInWays }) 
       ? ['text-carbon-textMuted', 'bg-carbon-textMuted']
       : ['text-statusOk', 'bg-statusOkSolid'];
   return (
-    <span className="flex max-w-[24rem] flex-col gap-0.5">
+    <span data-new="site-logins" className="flex max-w-[24rem] flex-col gap-0.5">
       <span className={`inline-flex items-center gap-1.5 text-meta font-medium ${text}`}>
         <span className={`h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${dot}`} />
         {t(note.key, note.vars)}
@@ -422,7 +422,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
       // login.
       if (login.signInHere) {
         return (
-          <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
+          <span data-new="login-waits" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
             <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
             {t('accounts.hoster.status.needsSignIn')}
             {detail && <InfoBubble tip={detail} />}
@@ -431,7 +431,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
       }
       if (login.askCode) {
         return (
-          <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
+          <span data-new="login-waits" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
             <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
             {t('accounts.hoster.status.needsCode')}
             {detail && <InfoBubble tip={detail} />}
@@ -605,7 +605,7 @@ function HosterLoginDialog({
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </SettingRow>
           {asked && (
-            <div className="flex flex-col gap-1.5">
+            <div data-new="hoster-code" className="flex flex-col gap-1.5">
               <SettingRow control="long" label={t('accounts.hoster.codeField')} hint={t('accounts.hoster.codeHint')}>
                 <TextInput
                   autoFocus

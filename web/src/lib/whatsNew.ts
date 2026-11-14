@@ -51,6 +51,47 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.8.4',
+    changes: [
+      {
+        id: 'site-logins',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.siteLogins',
+        names: { name: 'accounts.hoster.title', remove: 'accounts.remove', again: 'siteLogins.reconnect' },
+      },
+      // Drawn in the windows a site's row and an XFS hoster's login open, where
+      // this computer can start a sign-in browser.
+      { id: 'sign-in-here', to: ACCOUNTS, text: 'whatsnew.change.signInHere', names: { name: 'signInBrowser.signInHere' } },
+      // Drawn only while a hoster waits for a code.
+      { id: 'hoster-code', to: ACCOUNTS, text: 'whatsnew.change.hosterCode', names: { name: 'accounts.hoster.codeField' } },
+      // Drawn only on a login that waits for a code or a sign-in.
+      {
+        id: 'login-waits',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.loginWaits',
+        names: { code: 'accounts.hoster.status.needsCode', signIn: 'accounts.hoster.status.needsSignIn' },
+      },
+      {
+        id: 'components-switch',
+        to: ['/settings/help'],
+        text: 'whatsnew.change.componentsSwitch',
+        names: { name: 'settings.info.componentsTitle', auto: 'settings.info.componentsAuto', now: 'settings.info.updateNow' },
+      },
+      { id: 'debrid-declined', text: 'whatsnew.change.debridDeclined' },
+      {
+        id: 'desktop-installers',
+        to: ['/settings/browsertools'],
+        text: 'whatsnew.change.desktopInstallers',
+        names: { name: 'settings.browsertools.desktopTitle', page: 'settings.nav.browsertools' },
+      },
+      {
+        id: 'refused-reason',
+        text: 'whatsnew.change.refusedReason',
+        names: { feeds: 'settings.module.feeds', targets: 'settings.module.eventtargets' },
+      },
+    ],
+  },
+  {
     version: '2.8.2',
     changes: [
       { id: 'video-any-site', text: 'whatsnew.change.videoAnySite' },

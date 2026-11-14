@@ -453,6 +453,7 @@ function DesktopCard() {
       <div className="glim-readme-btn-rows">
         <ReadmeButton
           brand="windows"
+          data-new="desktop-installers"
           parts={parts('windows', 'Windows')}
           mark={<BrandMark svg={WINDOWS_SVG} />}
           markClass="glim-windows-mark"
