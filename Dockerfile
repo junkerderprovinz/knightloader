@@ -62,8 +62,12 @@ FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5
 # default, which DLC and other container links need. tini is PID 1 so the
 # ffmpeg left behind when a yt-dlp download is stopped gets reaped. yt-dlp's
 # YouTube solver (yt-dlp-ejs) takes whichever JavaScript runtime apk picks, so
-# deno is named to make it the one KL_DENO points at.
+# deno is named to make it the one KL_DENO points at. Chromium is the sign-in
+# browser (internal/signinbrowser), started only while somebody signs in to a
+# site from the web interface; Noto covers the scripts a login page falls back
+# to where its own web fonts do not.
 RUN apk add --no-cache ca-certificates yt-dlp deno ffmpeg tzdata openjdk21-jre-headless tini libstdc++ \
+      chromium font-noto \
     && adduser -D -u 1000 knight
 COPY --from=build /out/knightloader /usr/local/bin/knightloader
 COPY --from=unrar /out/unrar /usr/local/bin/unrar
@@ -73,7 +77,8 @@ COPY --from=unrar /out/license.txt /usr/share/licenses/unrar/license.txt
 ENV KL_DATA=/data \
     KL_ADDR=:8749 \
     KL_YTDLP=/usr/bin/yt-dlp \
-    KL_DENO=/usr/bin/deno
+    KL_DENO=/usr/bin/deno \
+    KL_CHROMIUM=/usr/lib/chromium/chromium
 VOLUME ["/data"]
 EXPOSE 8749
 

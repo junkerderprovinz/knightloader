@@ -21,6 +21,7 @@ import { type SignInWays, nextStep, readsBrowsers, signedIn, sourceNote, stateNo
 import { useToast } from '../lib/toast';
 import { IconClose, IconExternalLink, IconTrash } from '../lib/icons';
 import { Button, Modal } from './ui';
+import { SignInHereButton } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
 
 // While nobody is signed in the window asks often, since a sign-in arrives the
@@ -160,6 +161,7 @@ export function SiteLoginDialog({
               {t('siteLogins.reconnect')}
             </Button>
           )}
+          <SignInHereButton site={site} hue={hue} disabled={busy} onChanged={(s) => show(s, false)} />
           <Button kind={waiting ? 'primary' : 'secondary'} icon={<IconExternalLink />} disabled={busy} onClick={openSite}>
             {t('siteLogins.open', { site: site.name })}
           </Button>
