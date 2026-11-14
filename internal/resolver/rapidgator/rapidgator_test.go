@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/rapidgator/rgtest"
 )
@@ -701,5 +702,97 @@ func TestAWaitResumedAfterAPauseStillCountsAsWaitingWhenThePausedOneWindsDown(t 
 			t.Fatal("the paused run winding down took the resumed run's wait with it")
 		}
 		time.Sleep(5 * time.Millisecond)
+	}
+}
+
+func twoFactor() rgtest.Account {
+	a := premium()
+	a.TwoFactor, a.Code = true, "482913"
+	return a
+}
+
+func TestATwoFactorLoginAsksForTheCodeAndSignsInWithIt(t *testing.T) {
+	srv := newServer(t, twoFactor())
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 4096)})
+	b, eng, _ := newBackend(srv)
+	b.SetLogin(email, password)
+
+	st := b.Check(context.Background())
+	if !st.Refused || st.Code != ownlogin.CodeNeeded {
+		t.Fatalf("a login without its code reads as %+v, want it waiting for a code", st)
+	}
+	if b.Ready() {
+		t.Error("a login waiting for its code still takes downloads")
+	}
+
+	st = b.SignIn(context.Background(), "482913")
+	if st.Refused || st.Code != "" || !st.Premium {
+		t.Fatalf("signing in with the code reads as %+v, want a premium login", st)
+	}
+	b.Download("t1", link, nil, 1)
+	awaitHandoff(t, eng)
+	if n := srv.Logins(); n != 2 {
+		t.Errorf("signed in %d times, want once without the code and once with it", n)
+	}
+	for _, q := range srv.Queries() {
+		if strings.Contains(q, "482913") {
+			t.Errorf("the code went out in a query string: %s", q)
+		}
+	}
+}
+
+func TestAWrongTwoFactorCodeIsToldApartFromAMissingOne(t *testing.T) {
+	srv := newServer(t, twoFactor())
+	b, _, _ := newBackend(srv)
+	b.SetLogin(email, password)
+
+	st := b.SignIn(context.Background(), "000000")
+
+	if !st.Refused || st.Code != ownlogin.CodeWrong || !strings.Contains(st.Err, "code") {
+		t.Errorf("a wrong code reads as %+v, want it turned down as a wrong code", st)
+	}
+}
+
+func TestALoginWaitingForItsCodeIsNotSignedInAgain(t *testing.T) {
+	srv := newServer(t, twoFactor())
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 4096)})
+	b, _, ups := newBackend(srv)
+	b.SetLogin(email, password)
+	b.Check(context.Background())
+
+	b.Download("t1", link, nil, 1)
+	u := awaitSettled(t, ups)
+	b.Check(context.Background())
+
+	if u.Reason != core.ReasonAuth {
+		t.Errorf("the download settled as %+v, want an auth failure", u)
+	}
+	if n := srv.Logins(); n != 1 {
+		t.Errorf("signed in %d times, want once: without a new code the answer stays the same", n)
+	}
+}
+
+func TestAnEndedTwoFactorSessionAsksForANewCodeRatherThanThePassword(t *testing.T) {
+	srv := newServer(t, twoFactor())
+	link := srv.Add(fileID, rgtest.File{Name: "a.bin", Body: make([]byte, 4096)})
+	b, _, ups := newBackend(srv)
+	b.SetLogin(email, password)
+	b.SignIn(context.Background(), "482913")
+
+	srv.Expire()
+	b.Download("t1", link, nil, 1)
+	u := awaitSettled(t, ups)
+
+	if u.Reason != core.ReasonAuth {
+		t.Errorf("the download settled as %+v, want an auth failure", u)
+	}
+	if st := b.Status(); !st.Refused || st.Code != ownlogin.CodeEnded {
+		t.Errorf("the login reads as %+v, want it asking for a new code", st)
+	}
+	if n := srv.Logins(); n != 1 {
+		t.Errorf("signed in %d times, want only the sign-in with the code", n)
+	}
+	if b.Handed() {
+		t.Error("the login went to JDownloader, which cannot enter a code either")
 	}
 }
