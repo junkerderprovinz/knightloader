@@ -19,20 +19,20 @@ import (
 type mediaToolsState struct {
 	mediaToolsOnce sync.Once
 	mediaTools     *mediatools.Prober
-	// ytdlpMu keeps a fetch, a revert and the daily update off the same files
-	// at the same time.
+	// ytdlpMu keeps a fetch and the automatic update off the same files at
+	// the same time.
 	ytdlpMu sync.Mutex
 	// ffmpegMu does the same for the fetched ffmpeg, and denoMu for the
 	// fetched Deno.
 	ffmpegMu sync.Mutex
 	denoMu   sync.Mutex
-	// latestYtdlp and installYtdlp are mediatools.CheckLatest and
-	// mediatools.Install, which the tests replace so that nothing leaves the
-	// machine.
-	latestYtdlp   func(ctx context.Context, installed string) mediatools.Latest
-	installYtdlp  func(ctx context.Context, dataDir string) (mediatools.ManagedRecord, error)
-	installFFmpeg func(ctx context.Context, dataDir string) (mediatools.FFmpegRecord, error)
-	installDeno   func(ctx context.Context, dataDir string) (mediatools.DenoRecord, error)
+	// latestYtdlp, installYtdlp, updateFFmpeg and updateDeno are
+	// mediatools.CheckLatest, Install, UpdateFFmpeg and UpdateDeno, which the
+	// tests replace so that nothing leaves the machine.
+	latestYtdlp  func(ctx context.Context, installed string) mediatools.Latest
+	installYtdlp func(ctx context.Context, dataDir string) (mediatools.ManagedRecord, error)
+	updateFFmpeg func(ctx context.Context, dataDir string) (mediatools.FFmpegRecord, bool, error)
+	updateDeno   func(ctx context.Context, dataDir string) (mediatools.DenoRecord, bool, error)
 
 	// fetchingFFmpeg is set while an ffmpeg that was missing is on its way,
 	// and awaitingFFmpeg holds the rows that failed for want of it meanwhile,
@@ -40,11 +40,10 @@ type mediaToolsState struct {
 	fetchingFFmpeg bool
 	awaitingFFmpeg map[string]string
 
-	// InstallMissingTools lets the daily update fetch yt-dlp, ffmpeg and Deno
-	// where none is found, and makes its first run right at start in that
-	// case. The desktop app sets it: a portable copy, and an installation that
-	// updated itself, carry only the program and not the yt-dlp the installer
-	// puts beside it, and no desktop copy brings ffmpeg or Deno.
+	// InstallMissingTools lets the automatic update fetch yt-dlp, ffmpeg and
+	// Deno where none is found, and makes its first run right at start in that
+	// case. The desktop app sets it: the macOS app, a portable copy and a
+	// Flatpak carry only the program, and a silent install fetches nothing.
 	InstallMissingTools bool
 }
 
@@ -61,8 +60,8 @@ func (a *App) MediaTools() mediatools.Status {
 }
 
 // YtdlpLatest asks GitHub for the newest yt-dlp release and compares it with the
-// installed one. Besides the daily update it is the only call here that leaves
-// the box, made on an explicit press or the opt-in check on page load.
+// installed one. Besides the updates it is the only call here that leaves the
+// box, made on an explicit request.
 func (a *App) YtdlpLatest(ctx context.Context) mediatools.Latest {
 	return a.latestYtdlp(ctx, a.MediaTools().Ytdlp.Version)
 }
@@ -90,17 +89,14 @@ func (a *App) updateYtdlpLocked(ctx context.Context) (mediatools.ManagedRecord, 
 	return rec, nil
 }
 
-// The daily update waits a few minutes after start, so a start is not spent
-// downloading and a container caught in a restart loop does not ask GitHub on
-// every attempt.
-const (
-	ytdlpAutoFirstRun = 5 * time.Minute
-	ytdlpAutoEvery    = 24 * time.Hour
-)
+// The automatic update waits a few minutes after start, so a start is not
+// spent downloading and a container caught in a restart loop does not ask
+// GitHub on every attempt.
+const ytdlpAutoFirstRun = 5 * time.Minute
 
-// StartYtdlpAutoUpdate starts the daily yt-dlp update. The binaries call it
-// rather than New, which every test calls. Close stops it and cancels a
-// download in flight.
+// StartYtdlpAutoUpdate starts the automatic update of yt-dlp, ffmpeg and
+// Deno. The binaries call it rather than New, which every test calls. Close
+// stops it and cancels a download in flight.
 func (a *App) StartYtdlpAutoUpdate() {
 	// Known before the first run, which asks about yt-dlp first, so a video
 	// that fails in the meantime waits for the ffmpeg about to come.
@@ -116,84 +112,99 @@ func (a *App) StartYtdlpAutoUpdate() {
 		if fetchFFmpeg || (a.InstallMissingTools && (!st.Ytdlp.Found || !st.FFmpeg.Found || !st.Deno.Found)) {
 			first = 0
 		}
-		a.ytdlpAutoLoop(first, ytdlpAutoEvery)
+		a.tickLoop(first, componentTick, a.autoUpdateMediaTools)
 	})
 }
 
-// ytdlpAutoLoop reads the switch on every run rather than once, so turning it
-// on or off takes effect without a restart.
-func (a *App) ytdlpAutoLoop(first, every time.Duration) {
-	timer := time.NewTimer(first)
-	defer timer.Stop()
-	for {
-		select {
-		case <-a.ctx.Done():
-			return
-		case <-timer.C:
-		}
-		a.autoUpdateYtdlp()
-		a.autoUpdateFFmpeg()
-		a.autoUpdateDeno()
-		timer.Reset(every)
+func (a *App) autoUpdateMediaTools() {
+	a.autoUpdateYtdlp()
+	a.autoUpdateFFmpeg()
+	a.autoUpdateDeno()
+}
+
+// autoUpdateYtdlp asks after yt-dlp once it is due, or at once where the
+// desktop build has none.
+func (a *App) autoUpdateYtdlp() {
+	missing := a.InstallMissingTools && !a.MediaTools().Ytdlp.Found
+	if a.componentDue(componentYtdlp, missing) {
+		a.asked(componentYtdlp, a.updateYtdlpComponent(a.ctx, false))
 	}
 }
 
-// autoUpdateYtdlp is one daily run. It fetches only when GitHub names a release
-// newer than the yt-dlp in use. A version it cannot put in order, such as a
-// build from git, is left alone. So is a machine with no yt-dlp at all unless
-// InstallMissingTools is set: in the container a missing yt-dlp is a broken
-// image or an operator's choice, not something to paper over.
-func (a *App) autoUpdateYtdlp() {
-	if !a.Settings.Get().ComponentsAutoUpdate {
-		return
-	}
+// updateYtdlpComponent fetches yt-dlp only when GitHub names a release newer
+// than the yt-dlp in use. A version it cannot put in order, such as a build
+// from git, is left alone unless somebody pressed Update now. So is a machine
+// with no yt-dlp at all unless InstallMissingTools is set or somebody pressed
+// it: in the container a missing yt-dlp is a broken image or an operator's
+// choice, not something to paper over.
+func (a *App) updateYtdlpComponent(ctx context.Context, pressed bool) ComponentResult {
 	if err := mediatools.CanInstall(a.DataDir); err != nil {
-		log.Printf("yt-dlp: the daily update is skipped, there is nowhere to put a fetched copy: %v", err)
-		return
+		log.Printf("yt-dlp: the update is skipped, there is nowhere to put a fetched copy: %v", err)
+		return ComponentResult{State: ComponentSkipped, Detail: err.Error()}
 	}
 	a.ytdlpMu.Lock()
 	defer a.ytdlpMu.Unlock()
 
 	current := a.MediaTools().Ytdlp
 	if !current.Found {
-		if !a.InstallMissingTools {
-			log.Print("yt-dlp: none is installed, so the daily update has nothing to keep current")
-			return
+		if !a.InstallMissingTools && !pressed {
+			log.Print("yt-dlp: none is installed, so the update has nothing to keep current")
+			return ComponentResult{State: ComponentSkipped}
 		}
-		log.Print("yt-dlp: none is installed, so the daily update fetches the newest release")
-		if _, err := a.updateYtdlpLocked(a.ctx); err != nil && a.ctx.Err() == nil {
-			log.Printf("yt-dlp: fetching it failed, media links stay with the other backends until the next try: %v", err)
-		}
-		return
+		log.Print("yt-dlp: none is installed, so the update fetches the newest release")
+		return a.fetchYtdlpLocked(ctx, "media links stay with the other backends until the next try")
 	}
-	latest := a.latestYtdlp(a.ctx, current.Version)
+	latest := a.latestYtdlp(ctx, current.Version)
 	switch {
-	case a.ctx.Err() != nil:
+	case ctx.Err() != nil:
+		return ComponentResult{State: ComponentFailed, Detail: ctx.Err().Error()}
 	case !latest.Checked:
-		log.Printf("yt-dlp: the daily update could not ask GitHub for the newest release: %s", latest.Detail)
+		log.Printf("yt-dlp: the update could not ask GitHub for the newest release: %s", latest.Detail)
+		return ComponentResult{State: ComponentFailed, Version: current.Version, Detail: latest.Detail}
 	case latest.Compare == mediatools.CompareSame || latest.Compare == mediatools.CompareOlder:
 		log.Printf("yt-dlp: %s is up to date (newest release %s), nothing fetched", current.Version, latest.Tag)
-	case latest.Compare != mediatools.CompareNewer:
-		log.Printf("yt-dlp: %s and the newest release %s cannot be put in order, so the daily update leaves it alone", current.Version, latest.Tag)
-	default:
-		if _, err := a.updateYtdlpLocked(a.ctx); err != nil && a.ctx.Err() == nil {
-			log.Printf("yt-dlp: the daily update to %s failed and %s stays in use: %v", latest.Tag, current.Version, err)
-		}
+		return ComponentResult{State: ComponentCurrent, Version: current.Version}
+	case latest.Compare != mediatools.CompareNewer && !pressed:
+		log.Printf("yt-dlp: %s and the newest release %s cannot be put in order, so the update leaves it alone", current.Version, latest.Tag)
+		return ComponentResult{State: ComponentCurrent, Version: current.Version}
 	}
+	return a.fetchYtdlpLocked(ctx, current.Version+" stays in use")
 }
 
-// autoUpdateFFmpeg is the daily run's ffmpeg half, which only ever touches a
-// copy it fetched itself: an ffmpeg on PATH is left to whoever installed it.
-// A missing one is fetched where InstallMissingTools allows it, and a fetched
-// one is replaced once it is FFmpegRefresh old.
+// fetchYtdlpLocked fetches the newest yt-dlp, saying what happens instead
+// when that fails. Caller holds ytdlpMu.
+func (a *App) fetchYtdlpLocked(ctx context.Context, otherwise string) ComponentResult {
+	rec, err := a.updateYtdlpLocked(ctx)
+	if err != nil {
+		if ctx.Err() == nil {
+			log.Printf("yt-dlp: fetching the newest release failed, %s: %v", otherwise, err)
+		}
+		return ComponentResult{State: ComponentFailed, Detail: err.Error()}
+	}
+	return ComponentResult{State: ComponentUpdated, Version: rec.Version}
+}
+
+// autoUpdateFFmpeg asks after ffmpeg once it is due, or at once where the
+// desktop build has none.
 func (a *App) autoUpdateFFmpeg() {
-	ready := false
-	defer func() { a.endFFmpegFetch(ready) }()
-	if !a.Settings.Get().ComponentsAutoUpdate || !a.InstallMissingTools {
+	missing := a.InstallMissingTools && mediatools.ResolveFFmpeg(a.DataDir).FFmpegSource == mediatools.SourceNone
+	if !a.componentDue(componentFFmpeg, missing) {
+		// Lets go the rows that wait for an ffmpeg that is not coming.
+		a.endFFmpegFetch(false)
 		return
 	}
+	a.asked(componentFFmpeg, a.updateFFmpegComponent(a.ctx))
+}
+
+// updateFFmpegComponent only ever touches a copy it fetched itself: an ffmpeg
+// on PATH is left to whoever installed it. A missing one is fetched where
+// InstallMissingTools allows it, and a fetched one is replaced when the
+// release holds another build.
+func (a *App) updateFFmpegComponent(ctx context.Context) ComponentResult {
+	ready := false
+	defer func() { a.endFFmpegFetch(ready) }()
 	if err := mediatools.CanInstallFFmpeg(a.DataDir); err != nil {
-		return
+		return ComponentResult{State: ComponentSkipped, Detail: err.Error()}
 	}
 	a.ffmpegMu.Lock()
 	defer a.ffmpegMu.Unlock()
@@ -201,68 +212,78 @@ func (a *App) autoUpdateFFmpeg() {
 	switch ff := mediatools.ResolveFFmpeg(a.DataDir); ff.FFmpegSource {
 	case mediatools.SourcePath:
 		ready = true
-		return
+		return ComponentResult{State: ComponentSkipped, Detail: ff.FFmpeg}
 	case mediatools.SourceManaged:
-		// A failed refresh leaves the copy in place, so it counts either way.
+		// A failed update leaves the copy in place, so it counts either way.
 		ready = true
-		rec, err := mediatools.LoadFFmpegRecord(a.DataDir)
-		if err == nil && rec != nil && time.Since(rec.FetchedAt) < mediatools.FFmpegRefresh {
-			return
-		}
-		log.Print("ffmpeg: the fetched copy is due, so the daily update fetches the newest build")
 	default:
-		log.Print("ffmpeg: none is installed, so the daily update fetches the newest build")
+		if !a.InstallMissingTools {
+			return ComponentResult{State: ComponentSkipped}
+		}
+		log.Print("ffmpeg: none is installed, so the update fetches the newest build")
 		a.beginFFmpegFetch()
 	}
-	rec, err := a.installFFmpeg(a.ctx, a.DataDir)
-	if err != nil {
-		if a.ctx.Err() == nil {
+	rec, current, err := a.updateFFmpeg(ctx, a.DataDir)
+	switch {
+	case err != nil:
+		if ctx.Err() == nil {
 			log.Printf("ffmpeg: fetching it failed and nothing was replaced: %v", err)
 		}
-		return
+		return ComponentResult{State: ComponentFailed, Detail: err.Error()}
+	case current:
+		return ComponentResult{State: ComponentCurrent, Version: rec.Version}
 	}
 	a.mediaToolsProber().Invalidate()
 	a.rewireBackends()
 	log.Printf("ffmpeg: fetched %s (%s) and put it in force", rec.Version, rec.Asset)
 	ready = true
+	return ComponentResult{State: ComponentUpdated, Version: rec.Version}
 }
 
-// autoUpdateDeno is the daily run's Deno half, the same as ffmpeg's: a Deno
-// on PATH or in KL_DENO is left to its owner, a missing one is fetched where
-// InstallMissingTools allows it, and a fetched one is replaced once it is
-// DenoRefresh old. Nothing waits for it, since yt-dlp runs without one.
+// autoUpdateDeno asks after Deno once it is due, or at once where the desktop
+// build has none.
 func (a *App) autoUpdateDeno() {
-	if !a.Settings.Get().ComponentsAutoUpdate || !a.InstallMissingTools {
-		return
+	_, source := mediatools.ResolveDeno(a.DataDir)
+	missing := a.InstallMissingTools && source == mediatools.SourceNone
+	if a.componentDue(componentDeno, missing) {
+		a.asked(componentDeno, a.updateDenoComponent(a.ctx))
 	}
+}
+
+// updateDenoComponent is ffmpeg's update for Deno: a Deno on PATH or in
+// KL_DENO is left to its owner, a missing one is fetched where
+// InstallMissingTools allows it, and a fetched one is replaced by a newer
+// release. Nothing waits for it, since yt-dlp runs without one.
+func (a *App) updateDenoComponent(ctx context.Context) ComponentResult {
 	if err := mediatools.CanInstallDeno(a.DataDir); err != nil {
-		return
+		return ComponentResult{State: ComponentSkipped, Detail: err.Error()}
 	}
 	a.denoMu.Lock()
 	defer a.denoMu.Unlock()
 
-	switch _, source := mediatools.ResolveDeno(a.DataDir); source {
+	switch path, source := mediatools.ResolveDeno(a.DataDir); source {
 	case mediatools.SourcePath, mediatools.SourceEnv:
-		return
-	case mediatools.SourceManaged:
-		rec, err := mediatools.LoadDenoRecord(a.DataDir)
-		if err == nil && rec != nil && time.Since(rec.FetchedAt) < mediatools.DenoRefresh {
-			return
+		return ComponentResult{State: ComponentSkipped, Detail: path}
+	case mediatools.SourceNone:
+		if !a.InstallMissingTools {
+			return ComponentResult{State: ComponentSkipped}
 		}
-		log.Print("deno: the fetched copy is due, so the daily update fetches the newest release")
-	default:
-		log.Print("deno: none is installed, so the daily update fetches the newest release")
+		log.Print("deno: none is installed, so the update fetches the newest release")
 	}
-	rec, err := a.installDeno(a.ctx, a.DataDir)
-	if err != nil {
-		if a.ctx.Err() == nil {
+	rec, current, err := a.updateDeno(ctx, a.DataDir)
+	switch {
+	case err != nil:
+		if ctx.Err() == nil {
 			log.Printf("deno: fetching it failed and nothing was replaced, yt-dlp carries on without it: %v", err)
 		}
-		return
+		return ComponentResult{State: ComponentFailed, Detail: err.Error()}
+	case current:
+		return ComponentResult{State: ComponentCurrent, Version: rec.Version}
 	}
 	a.mediaToolsProber().Invalidate()
 	a.rewireBackends()
 	log.Printf("deno: fetched %s (%s) and handed it to yt-dlp", rec.Version, rec.Asset)
+	return ComponentResult{State: ComponentUpdated, Version: rec.Version}
 }
 
 func (a *App) beginFFmpegFetch() {

@@ -503,12 +503,15 @@ type App struct {
 	// mediaToolsState describes yt-dlp and ffmpeg on this machine
 	// (app_mediatools.go). It is built on first use.
 	mediaToolsState
-	// jdUpdateState is how the daily JDownloader update reaches JD
+	// jdUpdateState is how the automatic JDownloader update reaches JD
 	// (app_jdupdate.go).
 	jdUpdateState
 	// javaUpdateState is the weekly update of the desktop build's Java
 	// runtime (app_jreupdate.go).
 	javaUpdateState
+	// componentsState is when each component was last asked after, and
+	// how far Update now has come (app_components.go).
+	componentsState
 	// jdSetupState is why the desktop build has no JDownloader of its own
 	// yet (app_jdsetup.go).
 	jdSetupState
@@ -583,11 +586,11 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	a.installYtdlp = func(ctx context.Context, dataDir string) (mediatools.ManagedRecord, error) {
 		return mediatools.Install(ctx, dataDir, nil)
 	}
-	a.installFFmpeg = func(ctx context.Context, dataDir string) (mediatools.FFmpegRecord, error) {
-		return mediatools.InstallFFmpeg(ctx, dataDir, nil)
+	a.updateFFmpeg = func(ctx context.Context, dataDir string) (mediatools.FFmpegRecord, bool, error) {
+		return mediatools.UpdateFFmpeg(ctx, dataDir, nil)
 	}
-	a.installDeno = func(ctx context.Context, dataDir string) (mediatools.DenoRecord, error) {
-		return mediatools.InstallDeno(ctx, dataDir, nil)
+	a.updateDeno = func(ctx context.Context, dataDir string) (mediatools.DenoRecord, bool, error) {
+		return mediatools.UpdateDeno(ctx, dataDir, nil)
 	}
 	a.checkJD, a.restartJD = a.CheckJDUpdate, restartJDForUpdate
 	a.latestJava = func(ctx context.Context) (*jre.Release, error) { return jre.Latest(ctx, jre.AdoptiumAPI) }

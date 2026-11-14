@@ -180,6 +180,8 @@ var groupRefused = []string{
 	"GET /api/mediatools",
 	"GET /api/mediatools/ytdlp/latest",
 	"POST /api/mediatools/ytdlp/update",
+	"GET /api/components/update",
+	"POST /api/components/update",
 
 	// The system: backups, restore, restart, maintenance, diagnostics and the
 	// readings of this machine.

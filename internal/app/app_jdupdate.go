@@ -77,8 +77,8 @@ func (a *App) StartJDUpdate() error {
 	return nil
 }
 
-// restartJDForUpdate is StartJDUpdate without the log line, which the daily
-// update writes in words of its own.
+// restartJDForUpdate is StartJDUpdate without the log line, which the
+// automatic update writes in words of its own.
 func restartJDForUpdate() error {
 	c, err := reachableJD()
 	if err != nil {
@@ -98,72 +98,52 @@ type jdUpdateState struct {
 	jdUpdateWaits atomic.Bool
 }
 
-// The daily JD question waits after start for the reason the yt-dlp update
-// does. An update held back by a running JD download is tried again within the
-// hour rather than the next day.
-const (
-	jdAutoFirstRun = 10 * time.Minute
-	jdAutoEvery    = 24 * time.Hour
-	jdAutoRetry    = time.Hour
-)
+// The JD question waits after start for the reason the yt-dlp update does.
+const jdAutoFirstRun = 10 * time.Minute
 
-// StartJDAutoUpdate starts the daily JDownloader question and update. The
+// StartJDAutoUpdate starts the automatic JDownloader question and update. The
 // binaries call it rather than New, which every test calls. Close stops it.
 func (a *App) StartJDAutoUpdate() {
-	a.spawn(func() { a.jdAutoLoop(jdAutoFirstRun, jdAutoEvery, jdAutoRetry) })
+	a.spawn(func() { a.tickLoop(jdAutoFirstRun, componentTick, a.autoUpdateJD) })
 }
 
-// jdAutoLoop reads the switch on every run, so turning it on or off takes
-// effect without a restart.
-func (a *App) jdAutoLoop(first, every, retry time.Duration) {
-	timer := time.NewTimer(first)
-	defer timer.Stop()
-	for {
-		select {
-		case <-a.ctx.Done():
-			return
-		case <-timer.C:
-		}
-		if a.autoUpdateJD() {
-			timer.Reset(retry)
-		} else {
-			timer.Reset(every)
-		}
+// autoUpdateJD asks after JD once it is due.
+func (a *App) autoUpdateJD() {
+	if a.componentDue(componentJD, false) {
+		a.asked(componentJD, a.updateJDComponent(a.ctx))
 	}
 }
 
-// autoUpdateJD is one daily run: while the component switch is on it asks JD
-// whether an update waits and has JD install it. It reports true when the
-// update waits because JD is downloading: JD restarts to install it, which
-// would break off every download it carries.
-func (a *App) autoUpdateJD() (held bool) {
-	if !a.Settings.Get().ComponentsAutoUpdate {
-		return false
-	}
-	available, err := a.checkJD(a.ctx)
+// updateJDComponent asks JD whether an update waits and has JD install it.
+// While one of JD's downloads runs the update waits, since JD restarts to
+// install it, which would break off every download it carries.
+func (a *App) updateJDComponent(ctx context.Context) ComponentResult {
+	available, err := a.checkJD(ctx)
 	if err == nil {
 		a.jdUpdateWaits.Store(available)
 	}
 	switch {
-	case a.ctx.Err() != nil, errors.Is(err, ErrJDUnreachable):
+	case ctx.Err() != nil:
+		return ComponentResult{State: ComponentFailed, Detail: ctx.Err().Error()}
+	case errors.Is(err, ErrJDUnreachable):
 		// Without a JD there is nothing to update, and one that does not
 		// answer is the health page's to report.
-		return false
+		return ComponentResult{State: ComponentSkipped, Detail: err.Error(), again: true}
 	case err != nil:
-		log.Printf("JD: the daily update could not ask JD for an update: %v", err)
-		return false
+		log.Printf("JD: the update could not ask JD for an update: %v", err)
+		return ComponentResult{State: ComponentFailed, Detail: err.Error()}
 	case !available:
-		return false
+		return ComponentResult{State: ComponentCurrent}
 	case a.jdDownloading():
-		return true
+		return ComponentResult{State: ComponentWaits, again: true}
 	}
 	if err := a.restartJD(); err != nil {
-		log.Printf("JD: the daily update found an update, but JD did not take the request to install it: %v", err)
-		return false
+		log.Printf("JD: the update found an update, but JD did not take the request to install it: %v", err)
+		return ComponentResult{State: ComponentFailed, Detail: err.Error()}
 	}
 	a.jdUpdateWaits.Store(false)
-	log.Print("JD: the daily update found an update, and JD restarts to install it")
-	return false
+	log.Print("JD: the update found an update, and JD restarts to install it")
+	return ComponentResult{State: ComponentUpdated}
 }
 
 // jdDownloading reports whether a task JD carries is running.

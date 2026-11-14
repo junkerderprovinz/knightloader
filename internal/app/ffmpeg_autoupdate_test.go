@@ -12,8 +12,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 )
 
-// ffmpegApp builds a desktop-like App with the daily update on, no ffmpeg on
-// PATH, and an ffmpeg fetch that only counts.
+// ffmpegApp builds a desktop-like App with the automatic update on, no ffmpeg
+// on PATH, and an ffmpeg update that only counts.
 func ffmpegApp(t *testing.T) (*App, *atomic.Int32) {
 	t.Helper()
 	if err := mediatools.CanInstallFFmpeg(t.TempDir()); err != nil {
@@ -23,9 +23,9 @@ func ffmpegApp(t *testing.T) (*App, *atomic.Int32) {
 	a.InstallMissingTools = true
 	t.Setenv("PATH", t.TempDir())
 	var fetched atomic.Int32
-	a.installFFmpeg = func(context.Context, string) (mediatools.FFmpegRecord, error) {
+	a.updateFFmpeg = func(context.Context, string) (mediatools.FFmpegRecord, bool, error) {
 		fetched.Add(1)
-		return mediatools.FFmpegRecord{Version: "N-1", Asset: "ffmpeg.zip"}, nil
+		return mediatools.FFmpegRecord{Version: "N-1", Asset: "ffmpeg.zip"}, false, nil
 	}
 	return a, &fetched
 }
@@ -78,22 +78,7 @@ func TestAnFFmpegOnPathIsLeftAlone(t *testing.T) {
 	}
 }
 
-func TestAFetchedFFmpegIsReplacedOnlyOnceItIsDue(t *testing.T) {
-	a, fetched := ffmpegApp(t)
-	fetchedFFmpeg(t, a, time.Now())
-	a.autoUpdateFFmpeg()
-	if fetched.Load() != 0 {
-		t.Fatalf("a fresh copy was fetched again %d times", fetched.Load())
-	}
-
-	fetchedFFmpeg(t, a, time.Now().Add(-mediatools.FFmpegRefresh-time.Hour))
-	a.autoUpdateFFmpeg()
-	if fetched.Load() != 1 {
-		t.Fatalf("a copy past its refresh was fetched %d times, want once", fetched.Load())
-	}
-}
-
-func TestNoFFmpegIsFetchedWhileTheDailyUpdateIsOff(t *testing.T) {
+func TestNoFFmpegIsFetchedWhileTheUpdateIsOff(t *testing.T) {
 	a, fetched := ffmpegApp(t)
 	s := a.Settings.Get()
 	s.ComponentsAutoUpdate = false

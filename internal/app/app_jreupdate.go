@@ -18,7 +18,7 @@ type javaUpdateState struct {
 	stageJava  func(ctx context.Context, rel *jre.Release) error
 
 	javaMu sync.Mutex
-	// javaWaits is the newer Java the weekly question found, until JD runs on
+	// javaWaits is the newer Java the last question found, until JD runs on
 	// it. JDStatus passes it on to the Components card.
 	javaWaits string
 	// javaRefused is a Java that did not bring JD up, which this run of the
@@ -30,107 +30,94 @@ type javaUpdateState struct {
 // runtime and runs on the old one again.
 var ErrJavaRefused = errors.New("JD did not start on the new Java runtime")
 
-// The weekly Java question starts later than the JD one, so the two never
-// restart JD at the same moment, and a switch held back by a running JD
-// download, or by a JD setup under way, is tried again within the hour.
-const (
-	javaAutoFirstRun = 20 * time.Minute
-	javaAutoEvery    = 7 * 24 * time.Hour
-	javaAutoRetry    = time.Hour
-)
+// The Java question starts later than the JD one, so the two never restart
+// JD at the same moment.
+const javaAutoFirstRun = 20 * time.Minute
 
 // StartJavaAutoUpdate starts the weekly question for a newer Java runtime for
 // the desktop build's own JD. The desktop build calls it once it has set
 // SwitchJava. Close stops it.
 func (a *App) StartJavaAutoUpdate() {
-	a.spawn(func() { a.javaAutoLoop(javaAutoFirstRun, javaAutoEvery, javaAutoRetry) })
+	a.spawn(func() { a.tickLoop(javaAutoFirstRun, componentTick, a.autoUpdateJava) })
 }
 
-// javaAutoLoop reads the switch on every run, as jdAutoLoop does.
-func (a *App) javaAutoLoop(first, every, retry time.Duration) {
-	timer := time.NewTimer(first)
-	defer timer.Stop()
-	for {
-		select {
-		case <-a.ctx.Done():
-			return
-		case <-timer.C:
-		}
-		if a.autoUpdateJava() {
-			timer.Reset(retry)
-		} else {
-			timer.Reset(every)
-		}
+// autoUpdateJava asks after Java once it is due.
+func (a *App) autoUpdateJava() {
+	if a.SwitchJava != nil && a.componentDue(componentJava, false) {
+		a.asked(componentJava, a.updateJavaComponent(a.ctx))
 	}
 }
 
-// autoUpdateJava is one weekly run. While the component switch is on it asks
-// Adoptium for a newer Temurin 21, fetches it and moves JD onto it. It reports
-// true when the move has to wait, for a JD download, which the restart would
-// break off, or for a JD setup under way.
-func (a *App) autoUpdateJava() (held bool) {
-	if !a.Settings.Get().ComponentsAutoUpdate || a.SwitchJava == nil {
-		return false
+// updateJavaComponent asks Adoptium for a newer Temurin 21, fetches it and
+// moves JD onto it. The move waits for a JD download, which the restart would
+// break off, and for a JD setup under way.
+func (a *App) updateJavaComponent(ctx context.Context) ComponentResult {
+	if a.SwitchJava == nil {
+		return ComponentResult{State: ComponentSkipped}
 	}
 	cur, err := jre.Load(a.DataDir)
 	if err != nil || cur == nil {
 		// Without a runtime of its own JD is still being set up, which
 		// fetches the pinned one.
-		return false
+		return ComponentResult{State: ComponentSkipped, again: true}
 	}
 	next, err := jre.Pending(a.DataDir)
 	if err != nil {
-		log.Printf("Java: the weekly update could not read the runtime it fetched: %v", err)
+		log.Printf("Java: the update could not read the runtime it fetched: %v", err)
 	}
 	if next == nil {
-		rel, err := a.latestJava(a.ctx)
+		rel, err := a.latestJava(ctx)
 		if err != nil {
-			if a.ctx.Err() == nil {
-				log.Printf("Java: the weekly update could not ask Adoptium for a newer runtime: %v", err)
+			if ctx.Err() == nil {
+				log.Printf("Java: the update could not ask Adoptium for a newer runtime: %v", err)
 			}
-			return false
+			return ComponentResult{State: ComponentFailed, Version: cur.Version, Detail: err.Error()}
 		}
 		if jre.Compare(rel.Version, cur.Version) <= 0 {
 			a.setJavaWaits("")
-			return false
+			return ComponentResult{State: ComponentCurrent, Version: cur.Version}
 		}
 		a.setJavaWaits(rel.Version)
 		if rel.Version == a.refusedJava() {
-			return false
+			return javaRefusedResult(cur.Version, rel.Version)
 		}
-		if err := a.stageJava(a.ctx, rel); err != nil {
-			if a.ctx.Err() == nil {
-				log.Printf("Java: the weekly update could not fetch Java %s: %v", rel.Version, err)
+		if err := a.stageJava(ctx, rel); err != nil {
+			if ctx.Err() == nil {
+				log.Printf("Java: the update could not fetch Java %s: %v", rel.Version, err)
 			}
-			return false
+			return ComponentResult{State: ComponentFailed, Version: cur.Version, Detail: err.Error()}
 		}
-		log.Printf("Java: the weekly update fetched Java %s, and JD moves onto it once none of its downloads runs", rel.Version)
+		log.Printf("Java: the update fetched Java %s, and JD moves onto it once none of its downloads runs", rel.Version)
 		next = &jre.Record{Version: rel.Version}
 	}
 	a.setJavaWaits(next.Version)
 	if next.Version == a.refusedJava() {
-		return false
+		return javaRefusedResult(cur.Version, next.Version)
 	}
 	if a.jdDownloading() {
-		return true
+		return ComponentResult{State: ComponentWaits, Version: cur.Version, again: true}
 	}
-	err = a.SwitchJava(a.ctx)
+	err = a.SwitchJava(ctx)
 	switch {
 	case err == nil:
-	case a.ctx.Err() != nil:
-		return false
+	case ctx.Err() != nil:
+		return ComponentResult{State: ComponentFailed, Version: cur.Version, Detail: ctx.Err().Error()}
 	case errors.Is(err, ErrJavaRefused):
 		log.Printf("Java: JD stays on Java %s: %v", cur.Version, err)
 		a.javaMu.Lock()
 		a.javaRefused = next.Version
 		a.javaMu.Unlock()
-		return false
+		return javaRefusedResult(cur.Version, next.Version)
 	default:
-		log.Printf("Java: the weekly update could not move JD onto Java %s yet: %v", next.Version, err)
-		return true
+		log.Printf("Java: the update could not move JD onto Java %s yet: %v", next.Version, err)
+		return ComponentResult{State: ComponentWaits, Version: cur.Version, Detail: err.Error(), again: true}
 	}
 	a.setJavaWaits("")
-	return false
+	return ComponentResult{State: ComponentUpdated, Version: next.Version}
+}
+
+func javaRefusedResult(cur, refused string) ComponentResult {
+	return ComponentResult{State: ComponentFailed, Version: cur, Detail: "JD did not start on Java " + refused}
 }
 
 func (a *App) setJavaWaits(version string) {

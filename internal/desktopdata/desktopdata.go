@@ -63,7 +63,7 @@ func Components(dataDir string) []Component {
 				if mediatools.ResolveFFmpeg(dataDir).FFmpegSource == mediatools.SourcePath {
 					return nil
 				}
-				_, err := mediatools.InstallFFmpeg(ctx, dataDir, progress)
+				_, _, err := mediatools.UpdateFFmpeg(ctx, dataDir, progress)
 				return err
 			},
 		},
@@ -77,7 +77,7 @@ func Components(dataDir string) []Component {
 				if _, source := mediatools.ResolveDeno(dataDir); source == mediatools.SourcePath || source == mediatools.SourceEnv {
 					return nil
 				}
-				_, err := mediatools.InstallDeno(ctx, dataDir, progress)
+				_, _, err := mediatools.UpdateDeno(ctx, dataDir, progress)
 				return err
 			},
 		},

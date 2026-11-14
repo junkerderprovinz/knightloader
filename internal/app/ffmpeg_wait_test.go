@@ -35,13 +35,13 @@ func ffmpegWaitApp(t *testing.T, autoUpdate bool) (*App, *ffmpegFetch) {
 	a.InstallMissingTools = true
 	t.Setenv("PATH", t.TempDir())
 	f := &ffmpegFetch{started: make(chan struct{}, 1), result: make(chan error, 1)}
-	a.installFFmpeg = func(ctx context.Context, _ string) (mediatools.FFmpegRecord, error) {
+	a.updateFFmpeg = func(ctx context.Context, _ string) (mediatools.FFmpegRecord, bool, error) {
 		f.started <- struct{}{}
 		select {
 		case err := <-f.result:
-			return mediatools.FFmpegRecord{Version: "N-1", Asset: "ffmpeg.zip"}, err
+			return mediatools.FFmpegRecord{Version: "N-1", Asset: "ffmpeg.zip"}, false, err
 		case <-ctx.Done():
-			return mediatools.FFmpegRecord{}, ctx.Err()
+			return mediatools.FFmpegRecord{}, false, ctx.Err()
 		}
 	}
 	a.latestYtdlp = func(ctx context.Context, _ string) mediatools.Latest {
@@ -110,12 +110,11 @@ func TestTheWaitingVideoStartsOnceFFmpegIsInPlace(t *testing.T) {
 
 	f.end(t, over, nil)
 
-	a.mu.Lock()
-	active := a.active["v1"]
-	a.mu.Unlock()
+	// Started, the row may already have met the next failure of a host that
+	// does not exist, so only the queue and the ffmpeg failure tell.
 	got := liveTask(a, "v1")
-	if !active || got.Waiting != core.WaitingNone {
-		t.Fatalf("active %v waiting %q, want the row started once ffmpeg arrived", active, got.Waiting)
+	if got.Waiting != core.WaitingNone || got.Status == core.StatusQueued || got.Reason == core.ReasonNoFFmpeg {
+		t.Fatalf("status %q waiting %q reason %q, want the row started once ffmpeg arrived", got.Status, got.Waiting, got.Reason)
 	}
 }
 

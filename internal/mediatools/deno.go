@@ -26,11 +26,6 @@ const (
 	denoFetchTimeout    = 15 * time.Minute
 )
 
-// DenoRefresh is how old a fetched Deno may get before the daily update
-// replaces it. Deno releases every week or two, and yt-dlp asks for little
-// more than a 2.x, so a monthly download keeps it current enough.
-const DenoRefresh = 30 * 24 * time.Hour
-
 func denoAsset() string { return denoAssetFor(runtime.GOOS, runtime.GOARCH) }
 
 // denoAssetFor names the release zip for one platform, or "" where Deno
@@ -49,8 +44,7 @@ func DenoPath(dataDir string) string { return filepath.Join(ToolsDir(dataDir), e
 
 func denoRecordPath(dataDir string) string { return filepath.Join(ToolsDir(dataDir), "deno.json") }
 
-// DenoRecord is what was fetched and when, so the daily update knows when the
-// copy is due again.
+// DenoRecord is what was fetched and when.
 type DenoRecord struct {
 	Tag       string    `json:"tag"`
 	Asset     string    `json:"asset"`
@@ -101,35 +95,45 @@ func CanInstallDeno(dataDir string) error {
 	return toolsWritable(dataDir)
 }
 
-// InstallDeno fetches the newest Deno release, verifies the zip against the
-// checksum published beside it, runs the program once, and only then puts it
-// where ResolveDeno finds it. progress, when not nil, hears how much of the
-// zip has arrived of how much; total is -1 while unknown.
-func InstallDeno(ctx context.Context, dataDir string, progress func(done, total int64)) (DenoRecord, error) {
+// UpdateDeno asks for the newest Deno release and, unless the fetched copy is
+// that release already, verifies the zip against the checksum published beside
+// it, runs the program once, and only then puts it where ResolveDeno finds it.
+// current reports that nothing needed fetching. progress, when not nil, hears
+// how much of the zip has arrived of how much; total is -1 while unknown.
+func UpdateDeno(ctx context.Context, dataDir string, progress func(done, total int64)) (rec DenoRecord, current bool, err error) {
 	if err := CanInstallDeno(dataDir); err != nil {
-		return DenoRecord{}, err
+		return rec, false, err
 	}
 	name := denoAsset()
 	rel, err := ghrelease.Latest(ctx, denoRepo)
 	if err != nil {
-		return DenoRecord{}, err
+		return rec, false, err
 	}
 	sumsAsset, ok := rel.Find(name + ".sha256sum")
 	if !ok {
-		return DenoRecord{}, fmt.Errorf("release %s has no %s.sha256sum, so nothing downloaded from it could be verified", rel.Tag, name)
+		return rec, false, fmt.Errorf("release %s has no %s.sha256sum, so nothing downloaded from it could be verified", rel.Tag, name)
 	}
 	raw, err := ghrelease.Bytes(ctx, sumsAsset, maxChecksumBytes)
 	if err != nil {
-		return DenoRecord{}, err
+		return rec, false, err
 	}
 	sum, err := denoSum(raw, name)
 	if err != nil {
-		return DenoRecord{}, fmt.Errorf("release %s: %w", rel.Tag, err)
+		return rec, false, fmt.Errorf("release %s: %w", rel.Tag, err)
 	}
 	download := func(ctx context.Context, a ghrelease.Asset, dst string) error {
 		return downloadAsset(ctx, a, dst, maxDenoArchiveBytes, denoFetchTimeout, progress)
 	}
-	return installDeno(ctx, dataDir, name, rel, sum, download)
+	return updateDeno(ctx, dataDir, name, rel, sum, download)
+}
+
+// updateDeno is UpdateDeno once the release and its digest are in hand.
+func updateDeno(ctx context.Context, dataDir, name string, rel ghrelease.Release, want checksum.Sum, fetch fetcher) (DenoRecord, bool, error) {
+	if rec, err := LoadDenoRecord(dataDir); err == nil && rec != nil && rec.Tag == rel.Tag && isFile(DenoPath(dataDir)) {
+		return *rec, true, nil
+	}
+	rec, err := installDeno(ctx, dataDir, name, rel, want, fetch)
+	return rec, false, err
 }
 
 // denoSum reads the digest Deno publishes for one zip. The Linux and macOS
@@ -159,7 +163,7 @@ func denoSum(raw []byte, name string) (checksum.Sum, error) {
 	return checksum.Sum{Name: name, Kind: checksum.SHA256, Hex: digest}, nil
 }
 
-// installDeno is InstallDeno once the release and its digest are in hand.
+// installDeno downloads, checks and puts in place the release named.
 func installDeno(ctx context.Context, dataDir, name string, rel ghrelease.Release, want checksum.Sum, fetch fetcher) (DenoRecord, error) {
 	var rec DenoRecord
 	asset, ok := rel.Find(name)
