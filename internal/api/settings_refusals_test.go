@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
@@ -126,6 +127,36 @@ func TestARefusedSaveNamesItsField(t *testing.T) {
 			field: "torrent.bannedTrackers",
 		},
 		{
+			name:  "a RED announce address on another tracker",
+			patch: `{"torrent":{"crossSeed":{"red":{"apiKey":"k","announce":"https://tracker.example.org/pk/announce"}}}}`,
+			field: "torrent.crossSeed.red.announce",
+		},
+		{
+			name:  "an OPS announce address on RED's tracker",
+			patch: `{"torrent":{"crossSeed":{"ops":{"apiKey":"k","announce":"https://flacsfor.me/pk/announce"}}}}`,
+			field: "torrent.crossSeed.ops.announce",
+		},
+		{
+			name:  "a Torznab indexer that is not on the web",
+			patch: `{"torrent":{"crossSeed":{"indexers":[{"name":"a","url":"http://prowlarr:9696/1/api"},{"name":"b","url":"prowlarr:9696/2/api"}]}}}`,
+			field: "torrent.crossSeed.indexers.1",
+		},
+		{
+			name:  "a link mode without a link folder",
+			patch: `{"torrent":{"crossSeed":{"linkMode":"hardlink","linkDir":""}}}`,
+			field: "torrent.crossSeed.linkDir",
+		},
+		{
+			name:  "a link folder that is not a full path",
+			patch: `{"torrent":{"crossSeed":{"linkMode":"symlink","linkDir":"links"}}}`,
+			field: "torrent.crossSeed.linkDir",
+		},
+		{
+			name:  "a cross-seed daemon that is not on the web",
+			patch: `{"torrent":{"crossSeed":{"daemon":{"url":"ftp://cross-seed:2468","apiKey":"k"}}}}`,
+			field: "torrent.crossSeed.daemon.url",
+		},
+		{
 			name:  "a Usenet server whose host carries a path",
 			patch: `{"usenetServers":[{"id":"main","host":"news.example.com/x@y","connections":4,"enabled":true}]}`,
 			field: "usenetServers.0",
@@ -210,5 +241,34 @@ func TestDeletingACategoryARuleUsesIsRefused(t *testing.T) {
 	}
 	if got := a.Settings.Get().Categories; len(got) != 1 || got[0].ID != "serien" {
 		t.Errorf("stored categories = %+v, want the category kept", got)
+	}
+}
+
+// The page sends the masked announce addresses back as it got them, and a
+// full set of cross-seed settings saves.
+func TestCrossSeedSettingsSaveWithTheirSecretsMasked(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	dir := filepath.Join(t.TempDir(), "links")
+	patch := func(announce string) string {
+		b, _ := json.Marshal(map[string]any{"torrent": map[string]any{"crossSeed": map[string]any{
+			"enabled":  true,
+			"red":      map[string]string{"apiKey": "k", "announce": announce},
+			"indexers": []map[string]string{{"name": "Prowlarr", "url": "http://prowlarr:9696/1/api", "apiKey": "p"}},
+			"linkMode": "hardlink",
+			"linkDir":  dir,
+			"daemon":   map[string]string{"url": "http://cross-seed:2468"},
+		}}})
+		return string(b)
+	}
+	if code, _, raw := patchSettings(t, srv.URL, patch("https://flacsfor.me/pk/announce")); code != http.StatusOK {
+		t.Fatalf("a full set of cross-seed settings answered %d: %s", code, raw)
+	}
+	if code, _, raw := patchSettings(t, srv.URL, patch(reconnect.RedactedPassword)); code != http.StatusOK {
+		t.Fatalf("sending the masked announce address back answered %d: %s", code, raw)
+	}
+	if got := a.Settings.Get().Torrent.CrossSeed.RED.Announce; got != "https://flacsfor.me/pk/announce" {
+		t.Errorf("the announce address is %q after the masked save", got)
 	}
 }

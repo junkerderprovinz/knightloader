@@ -20,12 +20,16 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/crossseed"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent"
+	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -267,6 +271,45 @@ func checkTorrentSettings(t settings.Torrent) error {
 		if u, err := url.Parse(raw); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
 			return refuse("qbittorrent.url", errors.New("the qBittorrent address is not an http or https address"))
 		}
+	}
+	return checkCrossSeed(t.CrossSeed, refuse)
+}
+
+// webAddress reports an http or https address with a host.
+func webAddress(raw string) bool {
+	u, err := url.Parse(raw)
+	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
+}
+
+// checkCrossSeed refuses an announce address that is not on its site's
+// tracker, an indexer or daemon that is not on the web, and a link mode
+// without a full path to link into. An address is left out of a message, in
+// case it carries a key, and a masked announce address is the stored one.
+func checkCrossSeed(c settings.CrossSeed, refuse func(string, error) error) error {
+	for _, g := range []struct {
+		field string
+		site  crossseed.Site
+		acc   settings.GazelleSite
+	}{{"crossSeed.red", crossseed.RED, c.RED}, {"crossSeed.ops", crossseed.OPS, c.OPS}} {
+		a := g.acc.Announce
+		if a == "" || a == reconnect.RedactedPassword {
+			continue
+		}
+		u, err := url.Parse(a)
+		if err != nil || !webAddress(a) || !slices.Contains(g.site.Trackers, strings.ToLower(u.Hostname())) {
+			return refuse(g.field+".announce", fmt.Errorf("the %s announce address is not on %s's tracker, %s: copy it from the upload page", g.site.Name, g.site.Name, g.site.Trackers[0]))
+		}
+	}
+	for i, x := range c.Indexers {
+		if !webAddress(x.URL) {
+			return refuse(fmt.Sprintf("crossSeed.indexers.%d", i), fmt.Errorf("indexer %d (%s): the Torznab address is not an http or https address", i+1, x.Name))
+		}
+	}
+	if c.LinkMode != "" && c.LinkMode != settings.LinkNone && !filepath.IsAbs(c.LinkDir) {
+		return refuse("crossSeed.linkDir", errors.New("linking needs the full path of a folder to link into"))
+	}
+	if c.Daemon.URL != "" && !webAddress(c.Daemon.URL) {
+		return refuse("crossSeed.daemon.url", errors.New("the cross-seed daemon address is not an http or https address"))
 	}
 	return nil
 }

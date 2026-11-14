@@ -71,6 +71,7 @@ func (s Settings) Redacted() Settings {
 	s.Reconnect = s.Reconnect.Redacted()
 	s.IdleAction = s.IdleAction.Redacted()
 	s.Torrent.QBittorrent = s.Torrent.QBittorrent.Redacted()
+	s.Torrent.CrossSeed = s.Torrent.CrossSeed.Redacted()
 	if len(s.Connections) > 0 {
 		out := make([]proxycfg.Entry, len(s.Connections))
 		for i, e := range s.Connections {

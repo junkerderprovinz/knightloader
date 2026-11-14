@@ -98,7 +98,8 @@ func (s *Store) encode(n Settings) ([]byte, error) {
 // password or a token, or a command line, address, header or body that may
 // hold one: the values Redacted hides from clients, the archive passwords, the
 // event targets' addresses and bodies (a Discord or Telegram token sits in the
-// path), the feeds' addresses (an indexer's API key) and the reconnect
+// path), the feeds' addresses (an indexer's API key), the cross-seed keys,
+// announce addresses and indexers, and the reconnect
 // requests and script. Scrubbed reads the same list, so a secret added here
 // is sealed at rest and kept out of the diagnostics bundle at once.
 func (s Settings) mapSecrets(f func(string) (string, error)) (Settings, error) {
@@ -128,6 +129,7 @@ func (s Settings) mapSecrets(f func(string) (string, error)) (Settings, error) {
 		apply(&q.Body)
 	}
 	apply(&s.Torrent.QBittorrent.Password)
+	s.Torrent.CrossSeed.mapSecrets(apply)
 
 	s.Feeds = slices.Clone(s.Feeds)
 	for i := range s.Feeds {

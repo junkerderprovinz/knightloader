@@ -51,6 +51,7 @@ func everySecret() Settings {
 	s.Torrent.QBittorrent.URL = "http://qbittorrent:8080"
 	s.Torrent.QBittorrent.Username = "admin"
 	s.Torrent.QBittorrent.Password = "qbit-secret"
+	s.Torrent.CrossSeed = crossSeedWithSecrets()
 	target := targetWithToken()
 	target.URL = "https://discord.example/api/webhooks/1/hook-token"
 	target.Body = `{"token":"body-token"}`
@@ -72,6 +73,7 @@ var secretsInEverySecret = []string{
 	"router-secret", "proxy-secret", "hunter2", "qbit-secret", "Bearer real-token",
 	"--token=real-token", "after.sh", "idle-secret.sh", "--token=idle-token", "hook-token", "body-token",
 	"feed-key", "request-cookie", "request-body", "script-token",
+	"red-key", "red-passkey", "ops-key", "ops-passkey", "prowlarr-key", "daemon-key",
 }
 
 func appKey(t *testing.T) *appkey.Key {
@@ -149,7 +151,8 @@ func TestSecretsInSettingsNeedTheAppKey(t *testing.T) {
 		!reflect.DeepEqual(got.EventTargets, saved.EventTargets) ||
 		!reflect.DeepEqual(got.EventPrograms, saved.EventPrograms) ||
 		!reflect.DeepEqual(got.IdleAction, saved.IdleAction) ||
-		got.Torrent.QBittorrent != saved.Torrent.QBittorrent {
+		got.Torrent.QBittorrent != saved.Torrent.QBittorrent ||
+		!reflect.DeepEqual(got.Torrent.CrossSeed, saved.Torrent.CrossSeed) {
 		t.Fatal("the secrets read back with the key are not the ones saved")
 	}
 }

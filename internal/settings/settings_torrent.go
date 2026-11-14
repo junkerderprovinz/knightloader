@@ -103,6 +103,8 @@ type Torrent struct {
 	// is and never moved by the automatic component update, since private
 	// trackers admit only the versions on their list.
 	EngineVersion string `json:"engineVersion"`
+	// CrossSeed seeds a finished torrent on more trackers from its files.
+	CrossSeed CrossSeed `json:"crossSeed"`
 }
 
 // The clients a torrent a debrid service fetched can seed in.
@@ -184,6 +186,7 @@ func defaultTorrent() Torrent {
 		PEXEnabled:          true,
 		SeedIn:              SeedInBuiltIn,
 		DebridStallMinutes:  DefaultDebridStallMinutes,
+		CrossSeed:           CrossSeed{LinkMode: LinkNone, Indexers: []TorznabIndexer{}},
 	}
 }
 
@@ -236,6 +239,7 @@ func sanitizeTorrent(n Settings) Settings {
 	q.URL = strings.TrimSpace(q.URL)
 	q.Category = strings.TrimSpace(q.Category)
 	q.DownloadsPath = strings.TrimSpace(q.DownloadsPath)
+	t.CrossSeed = t.CrossSeed.sanitized()
 	return n
 }
 
