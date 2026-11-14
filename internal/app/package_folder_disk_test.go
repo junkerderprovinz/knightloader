@@ -12,8 +12,6 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/anacrolix/torrent/bencode"
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -218,30 +216,14 @@ func seedableTorrent(t *testing.T, dir string) (uri, root, hash string) {
 		_, _ = cryptorand.Read(data)
 		stagedIn(t, root, name, string(data))
 	}
-	info := metainfo.Info{PieceLength: 16 << 10}
-	if err := info.BuildFromFilePath(root); err != nil {
-		t.Fatal(err)
-	}
-	ib, err := bencode.Marshal(info)
-	if err != nil {
-		t.Fatal(err)
-	}
-	mi := metainfo.MetaInfo{InfoBytes: ib}
-	b, err := bencode.Marshal(mi)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return torrent.EncodeBytes(b), root, mi.HashInfoBytes().HexString()
+	b, hash := testenv.TorrentOf(t, root)
+	return torrent.EncodeBytes(b), root, hash
 }
 
 // A torrent that was seeding is taken up again where its folder went and seeds
 // on from there: it stays done, it does not count as having stopped seeding,
 // and what it had uploaded is kept.
 func TestASeedingTorrentGoesOnSeedingFromTheNewFolder(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if raceEnabled {
-		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race under real upload activity")
-	}
 	a, base := newPackageApp(t)
 	uri, root, hash := seedableTorrent(t, filepath.Join(base, "Old"))
 	putTask(t, a, core.Task{ID: "seed", URL: uri, Name: "Pack", Package: "Old", Resolver: "torrent", InfoHash: hash,

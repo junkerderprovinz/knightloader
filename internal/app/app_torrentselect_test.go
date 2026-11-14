@@ -5,12 +5,12 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
-var twoFileTorrent = []metainfo.FileInfo{
+var twoFileTorrent = []testenv.TorrentFile{
 	{Length: 900, Path: []string{"one.mkv"}},
 	{Length: 12, Path: []string{"two.srt"}},
 }

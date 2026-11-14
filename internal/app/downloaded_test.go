@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 // downloadedBefore files a finished download in the history without putting it
@@ -220,7 +220,7 @@ func TestALinkRestoredFromTheHistoryStillMeetsTheFilterAtTheQueue(t *testing.T) 
 
 func TestAnUploadedTorrentFromTheHistoryIsRejected(t *testing.T) {
 	a := historyApp(t, nil)
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{{Length: 900, Path: []string{"one.mkv"}}})
 	downloadedBefore(t, a, "old", uri, "Pack", 900)
 
 	got, err := a.AddTorrent(uri, nil, "", OriginWatch)
@@ -471,7 +471,7 @@ func TestAMirrorIsRejectedInTheAnswerUnderTheSizeOnlyPolicy(t *testing.T) {
 // restore asks it.
 func TestATorrentRestoredFromTheBanStillMeetsTheHistory(t *testing.T) {
 	a := historyApp(t, nil)
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{{Length: 900, Path: []string{"one.mkv"}}})
 	downloadedBefore(t, a, "old", uri, "Pack", 900)
 	setTorrentSettings(t, a, func(tr *settings.Torrent) { tr.BannedTrackers = []string{"example.org"} })
 	held, err := a.AddTorrent(uri, nil, "", OriginWatch)
@@ -492,7 +492,7 @@ func TestATorrentRestoredFromTheBanStillMeetsTheHistory(t *testing.T) {
 // the tracker at the queue.
 func TestATorrentRestoredPastTheBanAndTheHistoryIsPastTheBan(t *testing.T) {
 	a := historyApp(t, nil)
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{{Length: 900, Path: []string{"one.mkv"}}})
 	downloadedBefore(t, a, "old", uri, "Pack", 900)
 	setTorrentSettings(t, a, func(tr *settings.Torrent) { tr.BannedTrackers = []string{"example.org"} })
 	held, err := a.AddTorrent(uri, nil, "", OriginWatch)
@@ -569,7 +569,7 @@ func TestAMirrorIsRejectedWhenItsNameHoldsCharactersTheSavedFileDoesNot(t *testi
 // A torrent added as an uploaded .torrent and later met as a magnet, or the
 // other way round, is one download.
 func TestATorrentFromTheHistoryIsRejectedInItsOtherForm(t *testing.T) {
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{{Length: 900, Path: []string{"one.mkv"}}})
 	md, err := (torrent.Resolver{}).Describe(uri)
 	if err != nil {
 		t.Fatal(err)

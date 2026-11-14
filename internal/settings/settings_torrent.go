@@ -17,80 +17,42 @@ import (
 
 // Torrent is the seed, port, DHT, PEX, file and tracker policy for every
 // BitTorrent download this instance starts: one block per instance rather than
-// one per task.
-//
-// That matches gopeed's bt fetcher, where the listen port, DHT and PEX belong
-// to the one embedded torrent client every task shares, and its upload limit
-// to every torrent at once.
+// one per task, as the qBittorrent KnightLoader runs has one listen port, one
+// upload limit and one pair of DHT and PEX switches for all of its torrents.
 type Torrent struct {
 	// SeedRatioTarget is uploaded over downloaded; 0 means no ratio target, so
-	// only SeedDurationSeconds applies if that is non-zero. 1.0 is gopeed's own
-	// default (bt.FetcherManager.DefaultConfig), mirrored here rather than
-	// picking a number nobody has reason to prefer over the engine's.
+	// only SeedDurationSeconds applies if that is non-zero.
 	SeedRatioTarget float64 `json:"seedRatioTarget"`
 	// SeedDurationSeconds is how long to keep seeding after the download
-	// finishes; 0 means no duration target. 7200 is gopeed's own default.
-	//
-	// Whichever of the two is reached first stops the seeding, which is also
-	// what gopeed does with them: bt/fetcher.go's doUpload checks SeedRatio and
-	// SeedTime in the same loop, each closing the fetcher on its own, with no
-	// ordering between them. Both zero seeds forever, because that loop only
-	// stops on a target above zero being met, which is why gopeed's separate
-	// SeedKeep switch is not exposed here.
-	//
-	// Engine.SetTorrentConfig carries both numbers into ProtocolConfig["bt"],
-	// called from app.afterSettingsChange on every save and once at boot. Each
-	// new torrent's Fetcher.Setup reads that config fresh, so a value saved
-	// here is live for the next torrent rather than after a restart.
+	// finishes; 0 means no duration target. Whichever of the two is reached
+	// first stops the seeding, and both zero seeds forever. KnightLoader
+	// stops a torrent at its target itself, from its own totals, so
+	// qBittorrent's share limits stay off.
 	SeedDurationSeconds int `json:"seedDurationSeconds"`
 
 	// UploadLimit caps upload bandwidth in bytes per second for all torrents
-	// together, like SpeedLimit for downloads; 0 is unlimited. A change applies
-	// at once, to torrents already seeding too, through the upload limiter the
-	// gopeed fork (see go.mod) shares between them.
+	// together, like SpeedLimit for downloads; 0 is unlimited.
 	UploadLimit int64 `json:"uploadLimit"`
 
-	// Port is the TCP port this instance's torrent client listens on; 0 lets
-	// gopeed, and in turn anacrolix/torrent, pick. gopeed's own
-	// DefaultConfig sets ListenPort to 0, which overrides anacrolix's 42069,
-	// because initClient assigns cfg.ListenPort unconditionally.
-	//
-	// It reaches gopeed through the same ProtocolConfig["bt"] the two seed
-	// fields use. The torrent client is built with it, so a new port takes
-	// effect when gopeed builds the client again: at once if no torrent is in
-	// the library, otherwise once the last one is gone.
+	// Port is the port qBittorrent listens on for peers; 0 keeps the one it
+	// picked on its first start.
 	Port int `json:"port"`
 
 	// DHTEnabled and PEXEnabled are this instance's default participation in
 	// the swarm's peer discovery for an ordinary, non-private torrent. A
 	// torrent whose metadata marks it private (BEP 27's info.private) gets
-	// neither, with no toggle able to set either back to true for it. See
-	// EffectiveDHT and EffectivePEX below.
-	//
-	// For an ordinary torrent both reach the gopeed fork's bt config as
-	// DisableDHT and DisablePEX. They are anacrolix/torrent ClientConfig fields,
-	// read once when the shared client is built, so a change takes effect the
-	// way a new Port does.
-	//
-	// The private-torrent half needs no wiring from here. gopeed reads
-	// info.Private only to skip adding extra trackers, but anacrolix/torrent
-	// v1.61.1-0.20260525011549 gates five places on the torrent's own
-	// info.Private: dhtAnnouncer's per-iteration announce loop, PEX connection
-	// init, and both directions of Local Peer Discovery. That is per torrent
-	// rather than per client, one layer below gopeed. For a magnet the privacy
-	// takes effect once metadata arrives, which is what the per-iteration
-	// re-check is for.
+	// neither, whatever these say: libtorrent turns both off per torrent, and
+	// for a magnet as soon as its metadata says so. See EffectiveDHT.
 	DHTEnabled bool `json:"dhtEnabled"`
 	// PEXEnabled is the Peer Exchange half of the pair. See DHTEnabled.
 	PEXEnabled bool `json:"pexEnabled"`
 
-	// Interface is the network interface, by its system name, that the
-	// built-in client's traffic is tied to: peers, trackers and the DHT. Empty
-	// is any. While it is missing, down or has no address, the client sends
-	// and receives nothing and its torrents wait, a kill switch for a VPN
-	// interface such as wg0. Unlike Port it applies to running torrents at
-	// once. Torrents a debrid service fetches come over HTTP from the service
-	// and are not tied to it.
+	// Interface is the network interface, by its system name, that every
+	// torrent's traffic is tied to: peers, trackers and the DHT. Empty is
+	// any. While it is missing or down, qBittorrent sends and receives
+	// nothing and the torrents wait, a kill switch for a VPN interface such
+	// as wg0. Torrents a debrid service fetches come over HTTP from the
+	// service and are not tied to it.
 	Interface string `json:"interface"`
 
 	// TorrentFileRules choose the files of a torrent nobody chose by hand. A
@@ -116,7 +78,8 @@ type Torrent struct {
 	// account's limits.
 	KeepOnService bool `json:"keepOnService"`
 	// DebridCachedOnly hands a torrent to a debrid service only when the
-	// service has it cached already, and to the built-in client otherwise,
+	// service has it cached already, and to KnightLoader's qBittorrent
+	// otherwise,
 	// even where the service would take it. A service without a cache check
 	// is asked by adding the torrent and deleting it again unless it is ready
 	// at once, and a question that goes unanswered counts as not cached.
@@ -130,8 +93,9 @@ type Torrent struct {
 	// against the torrent first, and a torrent whose files are not all there is
 	// not seeded rather than fetched again.
 	SeedAfterDebrid bool `json:"seedAfterDebrid"`
-	// SeedIn is where SeedAfterDebrid seeds: SeedInBuiltIn, under the targets
-	// above, or SeedInQBittorrent. Empty is the built-in client too.
+	// SeedIn is where SeedAfterDebrid seeds: SeedInBuiltIn, the qBittorrent
+	// KnightLoader runs, under the targets above, or SeedInQBittorrent, one
+	// somebody runs themselves. Empty is the first.
 	SeedIn      string      `json:"seedIn"`
 	QBittorrent QBittorrent `json:"qbittorrent"`
 	// EngineVersion is the qBittorrent version KnightLoader runs, one of
@@ -209,10 +173,9 @@ func (s Settings) TorrentFileRulesFor(id string) TorrentFileRules {
 	return s.Torrent.TorrentFileRules
 }
 
-// defaultTorrent is Torrent's starting values for a fresh install. The numbers
-// are gopeed's own rather than invented ones, see the fields' doc comments. DHT
-// and PEX default on, which is what an ordinary BitTorrent client does on a
-// public swarm.
+// defaultTorrent is Torrent's starting values for a fresh install: a ratio of
+// one or two hours of seeding, whichever comes first, and DHT and PEX on,
+// which is what an ordinary BitTorrent client does on a public swarm.
 func defaultTorrent() Torrent {
 	return Torrent{
 		SeedRatioTarget:     1.0,
@@ -225,8 +188,8 @@ func defaultTorrent() Torrent {
 }
 
 // DefaultDebridStallMinutes is long enough for a service to read a magnet
-// link and take a torrent from its queue, and short enough that the built-in
-// client, which starts on the swarm at once, has not been kept waiting long.
+// link and take a torrent from its queue, and short enough that qBittorrent,
+// which starts on the swarm at once, has not been kept waiting long.
 // An install from before the field reads it too, since Load decodes over the
 // defaults.
 const DefaultDebridStallMinutes = 10
@@ -264,7 +227,8 @@ func sanitizeTorrent(n Settings) Settings {
 	t.TrackerListURL = strings.TrimSpace(t.TrackerListURL)
 	t.Interface = strings.TrimSpace(t.Interface)
 	t.EngineVersion = strings.TrimSpace(t.EngineVersion)
-	// A client this build does not know seeds in the built-in one, as empty does.
+	// A client this build does not know seeds in KnightLoader's own, as empty
+	// does.
 	if t.SeedIn != "" && t.SeedIn != SeedInQBittorrent {
 		t.SeedIn = SeedInBuiltIn
 	}
@@ -309,14 +273,13 @@ func trimmedLines(in []string) []string {
 //
 // private is BEP 27's info.private, read wherever a torrent's metadata is first
 // parsed: resolver/torrent.Metadata.Private for an uploaded .torrent, checked
-// before a byte is written, and for a magnet once internal/engine's resolve has
-// the swarm's answer. A bare bool rather than that Metadata type keeps this
+// before a byte is written, and for a magnet once the client has the swarm's
+// answer. A bare bool rather than that Metadata type keeps this
 // package off the resolver for one field.
 //
 // It is a stated policy rather than an enforcement point: internal/engine
 // hands the torrent client DHTEnabled itself, and for a private torrent the
-// answer matches what anacrolix/torrent already enforces inside the library.
-// See DHTEnabled.
+// answer matches what libtorrent already enforces. See DHTEnabled.
 func (t Torrent) EffectiveDHT(private bool) bool {
 	return t.DHTEnabled && !private
 }

@@ -76,10 +76,10 @@ func TestAMagnetWithNoInfoHashIsRefusedWithAReason(t *testing.T) {
 	}
 }
 
-// Both magnets reach anacrolix/torrent's panicif.Zero on a gopeed goroutine
-// and kill the process. Before relaxing these refusals, run the engine's live
-// suite: the failure is a panic there, not a red test here.
-func TestTheTwoMagnetsThatCrashTheTorrentClientAreRefused(t *testing.T) {
+// Neither magnet names a torrent the client can fetch: one has no torrent at
+// all behind it, the other only a v2 hash, which qBittorrent's libtorrent 1.2
+// does not know.
+func TestTheTwoMagnetsTheClientCannotFetchAreRefused(t *testing.T) {
 	cases := []struct {
 		name string
 		uri  string

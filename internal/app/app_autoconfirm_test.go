@@ -4,12 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
@@ -455,7 +455,7 @@ func TestACountdownCalledOffStaysOffAfterARestart(t *testing.T) {
 // Every entrance hands its batch to the countdown once, after its own options,
 // so none of them confirms early and none counts down twice.
 func TestEveryEntranceWaitsForTheCountdown(t *testing.T) {
-	files := []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}}
+	files := []testenv.TorrentFile{{Length: 900, Path: []string{"one.mkv"}}}
 	for name, add := range map[string]func(t *testing.T, a *App){
 		"paste": func(t *testing.T, a *App) {
 			a.AddLinks([]string{"https://host.example/paste.bin"}, "")

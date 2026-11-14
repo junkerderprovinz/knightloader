@@ -1,14 +1,16 @@
 package torrent
 
 import (
-	"bytes"
+	"crypto/sha1"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/url"
 	"path/filepath"
 	"strings"
 
-	"github.com/anacrolix/torrent/metainfo"
+	"github.com/junkerderprovinz/knightloader/internal/bencode"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
@@ -69,16 +71,14 @@ type Metadata struct {
 	// since a multi-file torrent lands in a folder of that name.
 	Name string
 	// Private is BEP 27's info.private flag, which decides DHT and PEX.
-	// gopeed reads it internally but never exposes it.
 	Private bool
 	// TotalSize is every file added up, selected or not.
 	TotalSize int64
 	// PieceLength and Pieces explain a refusal.
 	PieceLength int64
 	Pieces      int
-	// Files is the tree in the order gopeed indexes it: both come from this
-	// info's UpvertedFiles(), and SelectFiles is a list of indices, so the
-	// order must match.
+	// Files is the tree in the order the torrent client indexes it, since a
+	// selection is a list of indices.
 	Files []core.TorrentFile
 	// Trackers are the announce URLs that survived checking, deduplicated.
 	Trackers []string
@@ -87,61 +87,52 @@ type Metadata struct {
 	DroppedTrackers int
 }
 
-// Parse reads a .torrent and refuses it if anything about it is wrong. It uses
-// anacrolix/torrent's metainfo, the parser gopeed uses as well, so the checked
-// file and the file that gets opened cannot differ.
+// Parse reads a .torrent and refuses it if anything about it is wrong. Its
+// file list is the one the torrent client indexes, so a selection by index
+// means the same files to both: padding files, which no client shows, are
+// left out.
 func Parse(b []byte) (Metadata, error) {
 	if len(b) > MaxTorrentBytes {
 		return Metadata{}, fmt.Errorf("%w: %d bytes, the limit is %d", ErrTooLarge, len(b), MaxTorrentBytes)
 	}
-	if len(b) == 0 {
+	if len(b) == 0 || b[0] != 'd' {
 		return Metadata{}, ErrNotTorrent
 	}
-	mi, err := metainfo.Load(bytes.NewReader(b))
-	// gopeed ignores a trailing "expected EOF" (anacrolix/torrent#992), so a
-	// torrent it would fetch is not refused here.
-	if err != nil && !strings.Contains(err.Error(), "expected EOF") {
-		return Metadata{}, fmt.Errorf("%w: %v", ErrNotTorrent, err)
-	}
-	if mi == nil {
-		return Metadata{}, ErrNotTorrent
-	}
-	info, err := mi.UnmarshalInfo()
+	info, raw, err := ReadInfo(b)
 	if err != nil {
 		return Metadata{}, fmt.Errorf("%w: %v", ErrNoInfo, err)
 	}
-	return fromInfo(mi, &info)
-}
-
-func fromInfo(mi *metainfo.MetaInfo, info *metainfo.Info) (Metadata, error) {
 	m := Metadata{
-		Name:        info.BestName(),
+		Name:        info.Name,
+		Private:     info.Private,
 		PieceLength: info.PieceLength,
-		Pieces:      info.NumPieces(),
-		InfoHash:    mi.HashInfoBytes().HexString(),
+		Pieces:      len(info.Pieces) / sha1.Size,
+		InfoHash:    bencode.InfoHash(raw),
 	}
-	if info.Private != nil {
-		m.Private = *info.Private
+	if len(info.Pieces) == 0 && info.V2 {
+		sum := sha256.Sum256(raw)
+		m.InfoHash = hex.EncodeToString(sum[:])
 	}
 	if err := checkGeometry(info); err != nil {
 		return Metadata{}, err
 	}
 	// A multi-file torrent's name is the folder its files land in; one named
 	// ".." would escape with otherwise ordinary paths.
-	if info.IsDir() {
+	if info.Dir {
 		if err := safeComponent(m.Name); err != nil {
 			return Metadata{}, fmt.Errorf("%w: the torrent's own name %q is not a usable folder name", ErrUnsafePath, m.Name)
 		}
 	}
-
-	files := info.UpvertedFiles()
-	if len(files) > MaxFiles {
-		return Metadata{}, fmt.Errorf("%w: %d files, the limit is %d", ErrTooManyFiles, len(files), MaxFiles)
+	if len(info.Files) > MaxFiles {
+		return Metadata{}, fmt.Errorf("%w: %d files, the limit is %d", ErrTooManyFiles, len(info.Files), MaxFiles)
 	}
-	seen := make(map[string]bool, len(files))
-	m.Files = make([]core.TorrentFile, 0, len(files))
-	for i := range files {
-		p, err := relPath(info, &files[i])
+	seen := make(map[string]bool, len(info.Files))
+	m.Files = make([]core.TorrentFile, 0, len(info.Files))
+	for _, f := range info.Files {
+		if f.Pad {
+			continue
+		}
+		p, err := relPath(info, f)
 		if err != nil {
 			return Metadata{}, err
 		}
@@ -152,18 +143,17 @@ func fromInfo(mi *metainfo.MetaInfo, info *metainfo.Info) (Metadata, error) {
 			return Metadata{}, fmt.Errorf("%w: %q", ErrDuplicatePath, p)
 		}
 		seen[key] = true
-		if files[i].Length < 0 {
+		if f.Length < 0 {
 			return Metadata{}, fmt.Errorf("%w: %q claims a negative length", ErrNotTorrent, p)
 		}
-		m.TotalSize += files[i].Length
+		m.TotalSize += f.Length
 		// Selected by default, as in other torrent clients.
-		m.Files = append(m.Files, core.TorrentFile{Path: p, Size: files[i].Length, Selected: true})
+		m.Files = append(m.Files, core.TorrentFile{Path: p, Size: f.Length, Selected: true})
 	}
 	if len(m.Files) == 0 {
 		return Metadata{}, fmt.Errorf("%w: it lists no files", ErrNoInfo)
 	}
-
-	tr, dropped, err := trackers(mi)
+	tr, dropped, err := trackers(b)
 	if err != nil {
 		return Metadata{}, err
 	}
@@ -174,19 +164,19 @@ func fromInfo(mi *metainfo.MetaInfo, info *metainfo.Info) (Metadata, error) {
 // checkGeometry refuses a piece length out of range and a hash list that does
 // not cover exactly the bytes the torrent claims, which every real torrent
 // satisfies by construction.
-func checkGeometry(info *metainfo.Info) error {
+func checkGeometry(info Info) error {
 	if info.PieceLength < MinPieceLength || info.PieceLength > MaxPieceLength {
 		return fmt.Errorf("%w: a piece length of %d is outside %d..%d",
 			ErrPieceGeometry, info.PieceLength, MinPieceLength, MaxPieceLength)
 	}
-	if info.HasV2() && len(info.Pieces) == 0 {
+	if info.V2 && len(info.Pieces) == 0 {
 		// A v2-only torrent keeps its hashes per file in the file tree.
-		if info.FileTree.IsDir() || info.NumPieces() > 0 {
+		if len(info.Files) > 0 {
 			return nil
 		}
 		return fmt.Errorf("%w: a v2 torrent with an empty file tree", ErrPieceGeometry)
 	}
-	if len(info.Pieces)%20 != 0 {
+	if len(info.Pieces)%sha1.Size != 0 {
 		return fmt.Errorf("%w: the piece hash list is %d bytes, which is not a whole number of 20-byte hashes",
 			ErrPieceGeometry, len(info.Pieces))
 	}
@@ -195,7 +185,7 @@ func checkGeometry(info *metainfo.Info) error {
 		return fmt.Errorf("%w: it describes %d bytes of data", ErrPieceGeometry, total)
 	}
 	want := int((total + info.PieceLength - 1) / info.PieceLength)
-	if got := len(info.Pieces) / 20; got != want {
+	if got := len(info.Pieces) / sha1.Size; got != want {
 		return fmt.Errorf("%w: %d piece hashes for %d bytes at %d per piece, which needs %d",
 			ErrPieceGeometry, got, total, info.PieceLength, want)
 	}
@@ -203,21 +193,20 @@ func checkGeometry(info *metainfo.Info) error {
 }
 
 // relPath is one file's path inside the torrent, forward-slashed and checked.
-func relPath(info *metainfo.Info, fi *metainfo.FileInfo) (string, error) {
-	parts := fi.BestPath()
-	if len(parts) == 0 {
+func relPath(info Info, f InfoFile) (string, error) {
+	if len(f.Path) == 0 {
 		// A single-file torrent's name is the file name.
-		if err := safeComponent(info.BestName()); err != nil {
-			return "", fmt.Errorf("%w: %q", ErrUnsafePath, info.BestName())
+		if err := safeComponent(info.Name); err != nil {
+			return "", fmt.Errorf("%w: %q", ErrUnsafePath, info.Name)
 		}
-		return info.BestName(), nil
+		return info.Name, nil
 	}
-	for _, c := range parts {
+	for _, c := range f.Path {
 		if err := safeComponent(c); err != nil {
-			return "", fmt.Errorf("%w: %q in %q", ErrUnsafePath, c, strings.Join(parts, "/"))
+			return "", fmt.Errorf("%w: %q in %q", ErrUnsafePath, c, strings.Join(f.Path, "/"))
 		}
 	}
-	p := strings.Join(parts, "/")
+	p := strings.Join(f.Path, "/")
 	if len(p) > MaxPathBytes {
 		return "", fmt.Errorf("%w: a path of %d bytes", ErrUnsafePath, len(p))
 	}
@@ -269,7 +258,7 @@ func safeComponent(c string) error {
 // It is the second gate after Parse, for a magnet's file list, which arrives
 // from the swarm after the engine has the link; the engine runs it before
 // writing a byte. rels are forward-slashed paths relative to dir, including
-// the torrent's folder name where the library nests files under it.
+// the torrent's folder name where the client nests files under it.
 func Contained(dir string, rels []string) error {
 	if dir == "" {
 		return fmt.Errorf("%w: no download folder to check against", ErrUnsafePath)
@@ -326,23 +315,36 @@ func within(dir, p string) bool {
 	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))
 }
 
-// usableTrackerSchemes are the schemes the embedded download library can
-// announce to.
+// usableTrackerSchemes are the schemes the torrent client can announce to.
 var usableTrackerSchemes = map[string]bool{
 	"http": true, "https": true, "udp": true, "ws": true, "wss": true,
 }
 
-// trackers reduces an announce list to the URLs that can be announced to. An
-// unusable scheme is dropped and counted, since real torrents carry dead
-// entries; a control character refuses the torrent, since it only appears in
-// a string built to be interpreted somewhere.
-func trackers(mi *metainfo.MetaInfo) ([]string, int, error) {
+// trackers reduces a .torrent's announce list to the URLs that can be
+// announced to. An unusable scheme is dropped and counted, since real
+// torrents carry dead entries; a control character refuses the torrent, since
+// it only appears in a string built to be interpreted somewhere.
+func trackers(b []byte) ([]string, int, error) {
 	raw := make([]string, 0, 8)
-	if mi.Announce != "" {
-		raw = append(raw, mi.Announce)
+	if v, err := bencode.Raw(b, "announce"); err == nil {
+		if a, err := bencode.Decode(v); err == nil {
+			if s, ok := a.([]byte); ok && len(s) > 0 {
+				raw = append(raw, string(s))
+			}
+		}
 	}
-	for _, tier := range mi.AnnounceList {
-		raw = append(raw, tier...)
+	if v, err := bencode.Raw(b, "announce-list"); err == nil {
+		if l, err := bencode.Decode(v); err == nil {
+			tiers, _ := l.([]any)
+			for _, tier := range tiers {
+				urls, _ := tier.([]any)
+				for _, u := range urls {
+					if s, ok := u.([]byte); ok {
+						raw = append(raw, string(s))
+					}
+				}
+			}
+		}
 	}
 	if len(raw) > MaxTrackers {
 		return nil, 0, fmt.Errorf("%w: %d announce URLs, the limit is %d", ErrBadTracker, len(raw), MaxTrackers)

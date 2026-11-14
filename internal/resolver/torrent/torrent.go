@@ -1,12 +1,9 @@
 // Package torrent recognises magnet links and uploaded .torrent files,
-// refuses malformed or hostile ones, and hands the rest to the embedded
-// download engine.
+// refuses malformed or hostile ones, and hands the rest to the engine, which
+// runs them in the torrent client.
 //
-// It downloads nothing itself: gopeed's downloader already includes a
-// BitTorrent fetcher (internal/engine.New leaves the default http, bt and
-// ed2k fetchers in place). The target it returns is the magnet URI itself, or
-// the uploaded .torrent as a data: URI (see EncodeBytes), both of which the bt
-// fetcher accepts as they are.
+// It downloads nothing itself. The target it returns is the magnet URI
+// itself, or the uploaded .torrent as a data: URI (see EncodeBytes).
 package torrent
 
 import (

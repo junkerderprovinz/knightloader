@@ -18,11 +18,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/anacrolix/torrent/bencode"
-	"github.com/anacrolix/torrent/metainfo"
-
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 // calls records the requests a fake service saw, as "METHOD /path".
@@ -752,21 +750,21 @@ func TestDebridLinkDecliningATorrentHandsItOn(t *testing.T) {
 func builtTorrent(t *testing.T, private bool) (string, []byte) {
 	t.Helper()
 	const piece = 32 << 10
-	info := metainfo.Info{
+	info := testenv.TorrentInfo{
 		Name:        "Pack",
 		PieceLength: piece,
-		Files:       []metainfo.FileInfo{{Length: 64, Path: []string{"a.mkv"}}, {Length: 64, Path: []string{"b.mkv"}}},
+		Files:       []testenv.TorrentFile{{Length: 64, Path: []string{"a.mkv"}}, {Length: 64, Path: []string{"b.mkv"}}},
 		Pieces:      make([]byte, 20),
 	}
 	if private {
 		p := true
 		info.Private = &p
 	}
-	ib, err := bencode.Marshal(info)
+	ib, err := testenv.Bencode(info)
 	if err != nil {
 		t.Fatal(err)
 	}
-	raw, err := bencode.Marshal(metainfo.MetaInfo{InfoBytes: ib, Announce: "https://tracker.example/announce"})
+	raw, err := testenv.Bencode(testenv.TorrentMeta{InfoBytes: ib, Announce: "https://tracker.example/announce"})
 	if err != nil {
 		t.Fatal(err)
 	}

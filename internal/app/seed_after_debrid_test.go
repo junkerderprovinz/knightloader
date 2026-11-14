@@ -16,8 +16,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/anacrolix/torrent/bencode"
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -43,18 +41,7 @@ func packTorrent(t *testing.T) (string, map[string][]byte) {
 			t.Fatal(err)
 		}
 	}
-	info := metainfo.Info{PieceLength: 16 << 10}
-	if err := info.BuildFromFilePath(src); err != nil {
-		t.Fatal(err)
-	}
-	ib, err := bencode.Marshal(info)
-	if err != nil {
-		t.Fatal(err)
-	}
-	b, err := bencode.Marshal(metainfo.MetaInfo{InfoBytes: ib})
-	if err != nil {
-		t.Fatal(err)
-	}
+	b, _ := testenv.TorrentOf(t, src)
 	return torrent.EncodeBytes(b), files
 }
 
@@ -110,7 +97,6 @@ func seedAfterDebridApp(t *testing.T, seed bool, held map[string][]byte) *App {
 }
 
 func TestATorrentADebridServiceFetchedSeedsFromItsFiles(t *testing.T) {
-	testenv.RequireWideListener(t)
 	if raceEnabled {
 		// See TestAStalledDownloadIsReconnectedAndKeepsItsBytes.
 		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer")
@@ -142,9 +128,6 @@ func TestATorrentADebridServiceFetchedSeedsFromItsFiles(t *testing.T) {
 // from it. Seeding either would fetch from the swarm, so the torrent is not
 // seeded, the row says why, and the files stay as the service delivered them.
 func TestATorrentWhoseFilesAreNotAsTheTorrentHasThemIsNotSeeded(t *testing.T) {
-	if raceEnabled {
-		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer")
-	}
 	for _, c := range []struct {
 		name  string
 		spoil func(held map[string][]byte)

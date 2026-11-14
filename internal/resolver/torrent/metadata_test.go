@@ -6,8 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/anacrolix/torrent/bencode"
-	"github.com/anacrolix/torrent/metainfo"
+	"github.com/junkerderprovinz/knightloader/internal/bencode"
 )
 
 func TestAnOrdinaryTorrentParses(t *testing.T) {
@@ -192,48 +191,48 @@ func TestParseRefusesHostileAndMalformedTorrents(t *testing.T) {
 		{
 			"a zero piece length",
 			func(t *testing.T) []byte {
-				return build(t, metainfo.Info{Name: "x.bin", Length: 1 << 20, PieceLength: 0, Pieces: make([]byte, 20)}, "")
+				return build(t, testInfo{Name: "x.bin", Length: 1 << 20, PieceLength: 0, Pieces: make([]byte, 20)}, "")
 			},
 			ErrPieceGeometry,
 		},
 		{
 			"a piece length of one byte, which is a hash list larger than the data",
 			func(t *testing.T) []byte {
-				return build(t, metainfo.Info{Name: "x.bin", Length: 4096, PieceLength: 1, Pieces: make([]byte, 4096*20)}, "")
+				return build(t, testInfo{Name: "x.bin", Length: 4096, PieceLength: 1, Pieces: make([]byte, 4096*20)}, "")
 			},
 			ErrPieceGeometry,
 		},
 		{
 			"a hash list that is not a whole number of hashes",
 			func(t *testing.T) []byte {
-				return build(t, metainfo.Info{Name: "x.bin", Length: 1 << 20, PieceLength: testPieceLength, Pieces: make([]byte, 641)}, "")
+				return build(t, testInfo{Name: "x.bin", Length: 1 << 20, PieceLength: testPieceLength, Pieces: make([]byte, 641)}, "")
 			},
 			ErrPieceGeometry,
 		},
 		{
 			"far fewer hashes than the data needs",
 			func(t *testing.T) []byte {
-				return build(t, metainfo.Info{Name: "x.bin", Length: 100 << 30, PieceLength: testPieceLength, Pieces: make([]byte, 20)}, "")
+				return build(t, testInfo{Name: "x.bin", Length: 100 << 30, PieceLength: testPieceLength, Pieces: make([]byte, 20)}, "")
 			},
 			ErrPieceGeometry,
 		},
 		{
 			"a torrent that describes no bytes at all",
 			func(t *testing.T) []byte {
-				return build(t, metainfo.Info{Name: "x.bin", Length: 0, PieceLength: testPieceLength, Pieces: nil}, "")
+				return build(t, testInfo{Name: "x.bin", Length: 0, PieceLength: testPieceLength, Pieces: nil}, "")
 			},
 			ErrPieceGeometry,
 		},
 		{
 			"a control character in an announce URL",
 			func(t *testing.T) []byte {
-				info := metainfo.Info{Name: "x.bin", Length: 1 << 20, PieceLength: testPieceLength, Pieces: pieces(1 << 20)}
-				ib, err := bencode.Marshal(info)
+				info := testInfo{Name: "x.bin", Length: 1 << 20, PieceLength: testPieceLength, Pieces: pieces(1 << 20)}
+				ib, err := marshal(info)
 				if err != nil {
 					t.Fatal(err)
 				}
-				mi := metainfo.MetaInfo{InfoBytes: ib, Announce: "http://tracker.example.org/ann\nounce"}
-				b, err := bencode.Marshal(mi)
+				mi := testMeta{InfoBytes: ib, Announce: "http://tracker.example.org/ann\nounce"}
+				b, err := marshal(mi)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -305,12 +304,12 @@ func itoa(i int) string {
 // Real torrents carry dead tracker schemes, so those are dropped and counted
 // rather than refused.
 func TestUnusableTrackersAreDroppedAndCounted(t *testing.T) {
-	info := metainfo.Info{Name: "x.bin", Length: 1 << 20, PieceLength: testPieceLength, Pieces: pieces(1 << 20)}
-	ib, err := bencode.Marshal(info)
+	info := testInfo{Name: "x.bin", Length: 1 << 20, PieceLength: testPieceLength, Pieces: pieces(1 << 20)}
+	ib, err := marshal(info)
 	if err != nil {
 		t.Fatal(err)
 	}
-	mi := metainfo.MetaInfo{
+	mi := testMeta{
 		InfoBytes: ib,
 		Announce:  "udp://tracker.example.org:6969/announce",
 		AnnounceList: [][]string{
@@ -319,7 +318,7 @@ func TestUnusableTrackersAreDroppedAndCounted(t *testing.T) {
 			{"udp://tracker.example.org:6969/announce"},
 		},
 	}
-	b, err := bencode.Marshal(mi)
+	b, err := marshal(mi)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -408,5 +407,48 @@ func TestContainedAcceptsOrdinaryTorrentPaths(t *testing.T) {
 	}
 	if err := Contained(dir, ok); err != nil {
 		t.Fatalf("Contained refused an ordinary torrent: %v", err)
+	}
+}
+
+func TestAMagnetsHashIsReadInHexOrBase32(t *testing.T) {
+	const hex = "a9993e364706816aba3e25717850c26c9cd0d89d"
+	for _, uri := range []string{
+		"magnet:?xt=urn:btih:" + hex + "&dn=x",
+		"magnet:?xt=urn:btih:A9993E364706816ABA3E25717850C26C9CD0D89D",
+		"magnet:?xt=urn:btih:VGMT4NSHA2AWVOR6EVYXQUGCNSONBWE5",
+	} {
+		m, err := checkMagnet(uri)
+		if err != nil || m.InfoHash != hex {
+			t.Errorf("%s: %q, %v", uri, m.InfoHash, err)
+		}
+	}
+	if _, err := checkMagnet("magnet:?xt=urn:btih:nothex"); err == nil {
+		t.Error("a hash of neither form was taken")
+	}
+}
+
+func TestPaddingFilesAreLeftOutOfTheFileList(t *testing.T) {
+	info := map[string]any{
+		"name": "Pack", "piece length": testPieceLength, "pieces": pieces(2 * testPieceLength),
+		"files": []any{
+			map[string]any{"length": 100, "path": []any{"a.bin"}},
+			map[string]any{"length": testPieceLength - 100, "path": []any{".pad", "1"}, "attr": "p"},
+			map[string]any{"length": testPieceLength, "path": []any{"b.bin"}},
+		},
+	}
+	ib, err := bencode.Encode(info)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := marshal(testMeta{InfoBytes: ib})
+	if err != nil {
+		t.Fatal(err)
+	}
+	md, err := Parse(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(md.Files) != 2 || md.Files[1].Path != "b.bin" || md.TotalSize != 100+testPieceLength {
+		t.Fatalf("files %+v, total %d", md.Files, md.TotalSize)
 	}
 }

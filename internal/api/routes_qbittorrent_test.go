@@ -21,13 +21,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
+	"github.com/junkerderprovinz/knightloader/internal/torrents/torrentstest"
 )
 
 const (
@@ -430,7 +431,7 @@ func TestAnUploadedTorrentIsTrackedByItsInfoHash(t *testing.T) {
 	c := sonarrClient(t)
 	qbitLogin(t, c, srv, secret)
 
-	data := testMultiFileTorrent(t, "Show.S01E02", []metainfo.FileInfo{
+	data := testMultiFileTorrent(t, "Show.S01E02", []testenv.TorrentFile{
 		{Length: 900, Path: []string{"show.s01e02.mkv"}},
 		{Length: 12, Path: []string{"show.s01e02.srt"}},
 	})
@@ -485,7 +486,7 @@ func TestALinkIsFetchedForTheTorrentBehindIt(t *testing.T) {
 	c := sonarrClient(t)
 	qbitLogin(t, c, srv, secret)
 
-	data := testMultiFileTorrent(t, "Film.2026", []metainfo.FileInfo{{Length: 900, Path: []string{"film.mkv"}}})
+	data := testMultiFileTorrent(t, "Film.2026", []testenv.TorrentFile{{Length: 900, Path: []string{"film.mkv"}}})
 	md, err := torrent.Parse(data)
 	if err != nil {
 		t.Fatal(err)
@@ -901,6 +902,7 @@ func appWithTasks(t *testing.T, tasks ...core.Task) *app.App {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { a.Close() })
+	a.UseTorrents(torrentstest.New())
 	return a
 }
 

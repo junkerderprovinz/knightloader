@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
@@ -82,7 +82,7 @@ func (j *containerJD) AddContainerFile(_ context.Context, ext string, data []byt
 
 func TestADroppedTorrentIsStagedWithEveryFile(t *testing.T) {
 	a := newCrawlApp(t, false)
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{
 		{Length: 900, Path: []string{"one.mkv"}},
 		{Length: 12, Path: []string{"two.srt"}},
 	})

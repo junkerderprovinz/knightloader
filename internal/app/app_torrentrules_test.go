@@ -10,12 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/anacrolix/torrent/bencode"
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 // testTorrentURI's fixtures announce to tracker.example.org, and so does this
@@ -34,18 +33,18 @@ func setTorrentSettings(t *testing.T, a *App, change func(*settings.Torrent)) {
 func privateTorrentURI(t *testing.T) string {
 	t.Helper()
 	private := true
-	info := metainfo.Info{
+	info := testenv.TorrentInfo{
 		Name:        "Private",
-		Files:       []metainfo.FileInfo{{Length: 1 << 20, Path: []string{"a.mkv"}}},
+		Files:       []testenv.TorrentFile{{Length: 1 << 20, Path: []string{"a.mkv"}}},
 		PieceLength: testPieceLength,
 		Pieces:      testPieces(1 << 20),
 		Private:     &private,
 	}
-	ib, err := bencode.Marshal(info)
+	ib, err := testenv.Bencode(info)
 	if err != nil {
 		t.Fatal(err)
 	}
-	b, err := bencode.Marshal(metainfo.MetaInfo{InfoBytes: ib, Announce: "https://tracker.private.example/announce"})
+	b, err := testenv.Bencode(testenv.TorrentMeta{InfoBytes: ib, Announce: "https://tracker.private.example/announce"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +78,7 @@ func TestAMagnetAnnouncingABannedTrackerIsHeldWithTheReason(t *testing.T) {
 func TestAnUploadAnnouncingABannedTrackerIsHeld(t *testing.T) {
 	a := newTorrentTestApp(t)
 	setTorrentSettings(t, a, func(tr *settings.Torrent) { tr.BannedTrackers = []string{"udp://tracker.example.org:6969/announce"} })
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{{Length: 900, Path: []string{"one.mkv"}}})
 
 	task, err := a.AddTorrent(uri, []core.TorrentFile{{Path: "one.mkv", Size: 900, Selected: true}}, "Pack", OriginPaste)
 	if err != nil {
@@ -181,7 +180,7 @@ func TestADrawersOwnFileSelectionChoosesForItsTorrents(t *testing.T) {
 func TestATorrentWithChosenFilesGetsNoFileRules(t *testing.T) {
 	a := newTorrentTestApp(t)
 	setTorrentSettings(t, a, func(tr *settings.Torrent) { tr.ExcludeFiles = []string{`\.nfo$`} })
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}, {Length: 9, Path: []string{"one.nfo"}}})
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{{Length: 900, Path: []string{"one.mkv"}}, {Length: 9, Path: []string{"one.nfo"}}})
 	task := &core.Task{URL: uri, TorrentFiles: []core.TorrentFile{{Path: "one.mkv", Size: 900, Selected: true}, {Path: "one.nfo", Size: 9, Selected: true}}}
 	if job := torrentJob(a, task); !job.FileRules.Empty() {
 		t.Fatalf("FileRules = %+v, want none over a selection already made", job.FileRules)
@@ -246,7 +245,7 @@ func TestARestoredUploadKeepsTheFilesTickedByHand(t *testing.T) {
 		tr.BannedTrackers = []string{"example.org"}
 		tr.ExcludeFiles = []string{`\.srt$`}
 	})
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{
 		{Length: 900, Path: []string{"one.mkv"}},
 		{Length: 9, Path: []string{"one.nfo"}},
 		{Length: 12, Path: []string{"one.srt"}},

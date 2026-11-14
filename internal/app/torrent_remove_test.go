@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
@@ -37,7 +36,7 @@ func TestATorrentRemovedAfterARestartTakesTheFilesItNames(t *testing.T) {
 	} {
 		write(rel)
 	}
-	upload := testTorrentURI(t, "Show.S01", []metainfo.FileInfo{
+	upload := testTorrentURI(t, "Show.S01", []testenv.TorrentFile{
 		{Length: 10, Path: []string{"Show.S01E01.mkv"}},
 		{Length: 10, Path: []string{"Show.S01E02.mkv"}},
 		{Length: 10, Path: []string{"Subs", "Show.S01E01.srt"}},
@@ -101,8 +100,8 @@ func TestAMagnetRemovedAfterARestartTakesTheFilesTheSwarmListed(t *testing.T) {
 		"Show.S01.1/Show.Season.1/Subs/Show.S01E01.srt": "srt",
 		"Show.S01.1/Show.Season.1/Show.S01E02.mkv.part": "e02",
 		"Show.S01.1/Show.Season.1/Show.Season.1.nfo":    "",
-		"Film/Film.mkv":  "film",
-		"Film/notes.txt": "mine",
+		"Film/Film.mkv":                                 "film",
+		"Film/notes.txt":                                "mine",
 	} {
 		p := filepath.Join(downloads, filepath.FromSlash(rel))
 		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
@@ -172,10 +171,6 @@ func TestAMagnetRemovedAfterARestartTakesTheFilesTheSwarmListed(t *testing.T) {
 // the swarm for its file list. When no peer answers, the place and the list it
 // kept still say where its files are, and removing it takes them.
 func TestAMagnetNoPeerAnswersAfterARestartIsStillRemovedWithItsFiles(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if testing.Short() {
-		t.Skip("this starts a torrent client")
-	}
 	a := newTorrentTestApp(t)
 	a.Engine.SetMetadataTimeout(200 * time.Millisecond)
 	downloads := t.TempDir()
@@ -232,17 +227,10 @@ func TestAMagnetNoPeerAnswersAfterARestartIsStillRemovedWithItsFiles(t *testing.
 // downloaded, and removing it with its files after a restart leaves that
 // folder and what is in it.
 func TestAMagnetOfAnotherNameLeavesAFolderThatIsNotItsOwnAlone(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if testing.Short() {
-		t.Skip("this starts a torrent client")
-	}
-	if raceEnabled {
-		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race once a torrent runs")
-	}
 	_, magnet := testenv.SeedTorrent(t, "Show.S01", map[string]int{
 		"Show.S01E01.mkv": 48 << 10, "Show.S01E02.mkv": 24 << 10, "Show.S01.nfo": 0,
 	})
-	proper := strings.Replace(magnet, "&dn=Show.S01&", "&dn=Show.S01.PROPER&", 1)
+	proper := strings.Replace(magnet, "&dn=Show.S01", "&dn=Show.S01.PROPER", 1)
 	if proper == magnet {
 		t.Fatalf("%s carries no name to change", magnet)
 	}
@@ -297,12 +285,7 @@ func TestAMagnetOfAnotherNameLeavesAFolderThatIsNotItsOwnAlone(t *testing.T) {
 	}
 	defer again.Close()
 	again.RemoveTasks([]string{id}, true)
-	// The library renames a file at one of the torrent's paths to .part as
-	// the file list arrives, when its size is not the torrent's.
 	got, err := os.ReadFile(foreign)
-	if err != nil {
-		got, err = os.ReadFile(foreign + ".part")
-	}
 	if err != nil || string(got) != "mine" {
 		t.Errorf("the file in the folder that is not the magnet's reads %q (%v)", got, err)
 	}
@@ -311,10 +294,6 @@ func TestAMagnetOfAnotherNameLeavesAFolderThatIsNotItsOwnAlone(t *testing.T) {
 // With the collision policy on skip, a torrent that starts again is not
 // refused for its own files, which it carries on with.
 func TestATorrentStartingAgainIsNoCollisionWithItself(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if testing.Short() {
-		t.Skip("this starts a torrent client")
-	}
 	a := newTorrentTestApp(t)
 	a.Engine.SetMetadataTimeout(200 * time.Millisecond)
 	downloads := t.TempDir()
@@ -362,18 +341,9 @@ func TestATorrentStartingAgainIsNoCollisionWithItself(t *testing.T) {
 }
 
 // A torrent that has seeded to its target is what Sonarr removes, with its
-// files, once it has imported it. By then the torrent library has closed the
-// torrent itself, and the removal must still take the row and the files.
+// files, once it has imported it. By then the torrent is out of the client,
+// and the removal must still take the row and the files.
 func TestATorrentThatStoppedSeedingIsRemovedWithItsFiles(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if testing.Short() {
-		t.Skip("this starts a torrent client")
-	}
-	if raceEnabled {
-		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race once a torrent runs")
-	}
-	// Not parallel: the library shares one torrent client in the process and
-	// closes it only when no torrent is left.
 	_, magnet := testenv.SeedTorrent(t, "Season", map[string]int{"Season.E01.mkv": 64 << 10, "Season.E02.mkv": 48 << 10})
 	a := newTorrentTestApp(t)
 	downloads := t.TempDir()
@@ -408,9 +378,6 @@ func TestATorrentThatStoppedSeedingIsRemovedWithItsFiles(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(root, "Season.E01.mkv")); err != nil {
 		t.Fatalf("the torrent is not where it should be: %v", err)
 	}
-	// The library lets go of its client just after the fetcher closes.
-	time.Sleep(500 * time.Millisecond)
-
 	a.RemoveTasks([]string{id}, true)
 	if n := len(a.Tasks()); n != 0 {
 		t.Errorf("%d tasks are left after the removal", n)

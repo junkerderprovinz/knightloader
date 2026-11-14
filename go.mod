@@ -6,7 +6,6 @@ toolchain go1.27.4
 
 require (
 	github.com/GopeedLab/gopeed v1.9.3
-	github.com/anacrolix/torrent v1.61.1-0.20260823090931-70072f1a7460 // BEP 27 private-torrent DHT/PEX fix (upstream PR #1053, see settings_torrent.go's DHTEnabled doc comment) and the fix for a lost peer-writer wakeup that stalls a download at zero bytes (upstream #1070); do not downgrade below this commit
 	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
@@ -54,6 +53,7 @@ require (
 	github.com/anacrolix/multiless v0.4.0 // indirect
 	github.com/anacrolix/stm v0.5.0 // indirect
 	github.com/anacrolix/sync v0.6.0 // indirect
+	github.com/anacrolix/torrent v1.61.1-0.20260823090931-70072f1a7460 // indirect; gopeed's pkg/download links its bt fetcher, so the version stays at least this one
 	github.com/anacrolix/upnp v0.1.4 // indirect
 	github.com/anacrolix/utp v0.2.0 // indirect
 	github.com/andybalholm/brotli v1.2.8 // indirect

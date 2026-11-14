@@ -318,29 +318,16 @@ func (o Options) Scan(r Request) Finding {
 // client lays out the whole file set before it fetches a piece of it, so
 // "name and size match" is true of a torrent that has downloaded nothing.
 // What a torrent means by "is this already here" is a piece hash pass, and
-// the only thing that can run one is the library holding the torrent.
-//
-// That pass is not something this package has to trigger. Starting a torrent
-// against the folder its files are in IS the recheck: the client reads its
-// piece completion record and, for every piece that record calls complete,
-// re-checks the constituent files' lengths before it believes it (anacrolix,
-// storage/file-piece.go's checkCompleteFileSizes).
-//
-// What that cannot survive is losing the record. gopeed v1.9.3 never sets
-// torrent.ClientConfig.DataDir, so the completion record is a bolt file called
-// ".torrent.bolt.db" in the process working directory rather than near the
-// data or the app's own data directory. Carry the downloads folder to a new
-// box without it and every piece reads as missing. The cure is anacrolix's
-// Torrent.VerifyData, which is out of reach, because gopeed keeps the torrent
-// handle on an unexported field of an internal package. So this reports the
-// torrent and says what it cannot answer, rather than guessing from file
-// lengths that would say yes to an empty download.
+// the one to run it is the torrent client: started against the folder its
+// files are in, it checks every piece before it believes any of them. So this
+// reports the torrent and says what it cannot answer, rather than guessing
+// from file lengths that would say yes to an empty download.
 func (o Options) scanTorrent(r Request) Finding {
 	return Finding{
 		TaskID:  r.TaskID,
 		Path:    filepath.Join(r.Dir, r.Name),
 		Verdict: Recheck,
-		Detail:  "a torrent is checked piece by piece by the download library when it is started against its own folder; nothing here can prove it from the file lengths",
+		Detail:  "a torrent is checked piece by piece by the torrent client when it is started against its own folder; nothing here can prove it from the file lengths",
 	}
 }
 

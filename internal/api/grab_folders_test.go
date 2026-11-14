@@ -59,9 +59,6 @@ func sonarrOutputPath(storage, title string) string {
 }
 
 func TestSonarrsCleanupOfAGrabFromSABnzbdLeavesEverythingElse(t *testing.T) {
-	if raceEnabled {
-		t.Skip("gopeed v1.9.3 races on a task's status when a real transfer starts")
-	}
 	t.Parallel()
 	episodes := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.ServeContent(w, r, filepath.Base(r.URL.Path), time.Time{}, bytes.NewReader([]byte("episode at "+r.URL.Path)))
@@ -160,15 +157,6 @@ func TestSonarrsCleanupOfAGrabFromSABnzbdLeavesEverythingElse(t *testing.T) {
 }
 
 func TestSonarrsDeleteOfATorrentLeavesTheOneBesideIt(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if testing.Short() {
-		t.Skip("this starts a torrent client")
-	}
-	if raceEnabled {
-		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race once a torrent runs")
-	}
-	// Not parallel: gopeed keeps one torrent client for the whole process,
-	// and every other app that closes in the meantime shuts it down.
 	a, srv, secret, _ := qbitServer(t, func(s *settings.Settings) { s.SubfolderByPackage = false })
 	a.SetHalted(false)
 	c := sonarrClient(t)

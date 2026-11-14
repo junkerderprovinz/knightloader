@@ -1,17 +1,16 @@
 package torrent
 
 import (
+	"encoding/base32"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
-
-	"github.com/anacrolix/torrent/metainfo"
 )
 
-// dataPrefix is the data-URI prefix gopeed's bt fetcher accepts (its
-// FilterTypeBase64 "APPLICATION/X-BITTORRENT"), so a resolved URI goes to the
-// engine unchanged.
+// dataPrefix is the data-URI prefix an uploaded .torrent is carried under.
 const dataPrefix = "data:application/x-bittorrent;base64,"
 
 // MaxMagnetBytes caps a magnet URI. Fifty trackers and a display name fit in
@@ -95,50 +94,103 @@ type magnetInfo struct {
 }
 
 // checkMagnet refuses a magnet link this app cannot act on, at paste time,
-// with a reason. anacrolix's ParseMagnetV2Uri accepts "magnet:?dn=something"
-// without an info hash, and the client would then wait for metadata forever.
+// with a reason. A link without an info hash would have the client wait for
+// metadata forever.
 func checkMagnet(uri string) (magnetInfo, error) {
 	if len(uri) > MaxMagnetBytes {
 		return magnetInfo{}, fmt.Errorf("%w: %d characters, the limit is %d", ErrBadMagnet, len(uri), MaxMagnetBytes)
 	}
-	m, err := metainfo.ParseMagnetV2Uri(uri)
+	m, err := parseMagnet(uri)
 	if err != nil {
 		return magnetInfo{}, fmt.Errorf("%w: %v", ErrBadMagnet, err)
 	}
-	if !m.InfoHash.Ok && !m.V2InfoHash.Ok {
+	if m.v1 == "" && !m.v2 {
 		return magnetInfo{}, fmt.Errorf("%w: it names no info hash, so there is nothing to look for", ErrBadMagnet)
 	}
-	// The next two refusals prevent a crash: anacrolix/torrent's
-	// Client.AddTorrentOpt panics on a zero v1 info hash, and gopeed calls it
-	// from a fetcher goroutine where the panic kills the process. An all-zero
-	// btih and a v2-only magnet (gopeed fills v1 with UnwrapOrZeroValue())
-	// both reach it.
-	if !m.InfoHash.Ok {
+	// qBittorrent's libtorrent 1.2 has no BitTorrent v2.
+	if m.v1 == "" {
 		return magnetInfo{}, fmt.Errorf(
 			"%w: it is a v2-only magnet link, which this build cannot start; a link that also carries the older urn:btih hash will work", ErrBadMagnet)
 	}
-	if m.InfoHash.Value.IsZero() {
+	if strings.Trim(m.v1, "0") == "" {
 		return magnetInfo{}, fmt.Errorf("%w: its info hash is all zeroes, which is not a torrent", ErrBadMagnet)
 	}
 	out := magnetInfo{
-		DisplayName: strings.TrimSpace(m.DisplayName),
-		InfoHash:    m.InfoHash.Value.HexString(),
+		DisplayName: strings.TrimSpace(m.name),
+		InfoHash:    m.v1,
 	}
-	if len(m.Trackers) > MaxTrackers {
-		return magnetInfo{}, fmt.Errorf("%w: %d trackers, the limit is %d", ErrBadMagnet, len(m.Trackers), MaxTrackers)
+	if len(m.trackers) > MaxTrackers {
+		return magnetInfo{}, fmt.Errorf("%w: %d trackers, the limit is %d", ErrBadMagnet, len(m.trackers), MaxTrackers)
 	}
-	for _, t := range m.Trackers {
+	for _, t := range m.trackers {
 		for _, r := range t {
 			if r < 0x20 || r == 0x7f {
 				return magnetInfo{}, fmt.Errorf("%w: a tracker URL contains a control character", ErrBadMagnet)
 			}
 		}
 	}
-	out.Trackers = m.Trackers
+	out.Trackers = m.trackers
 	// The display name becomes a task name and possibly a file name, so an
 	// unsafe one is dropped.
 	if out.DisplayName != "" && safeComponent(out.DisplayName) != nil {
 		out.DisplayName = ""
 	}
 	return out, nil
+}
+
+// magnet is what a magnet link says: its v1 info hash in lower-case hex,
+// whether it carries a v2 one, its display name and its trackers.
+type magnet struct {
+	v1       string
+	v2       bool
+	name     string
+	trackers []string
+}
+
+func parseMagnet(uri string) (magnet, error) {
+	if !IsMagnet(uri) {
+		return magnet{}, errors.New("it is not a magnet link")
+	}
+	q, err := url.ParseQuery(strings.TrimPrefix(uri[len("magnet:"):], "?"))
+	if err != nil {
+		return magnet{}, err
+	}
+	var m magnet
+	for _, xt := range q["xt"] {
+		switch {
+		case strings.HasPrefix(xt, "urn:btih:"):
+			h, err := btih(xt[len("urn:btih:"):])
+			if err != nil {
+				return magnet{}, err
+			}
+			m.v1 = h
+		case strings.HasPrefix(xt, "urn:btmh:"):
+			mh := xt[len("urn:btmh:"):]
+			if len(mh) != 68 || !strings.HasPrefix(mh, "1220") {
+				return magnet{}, fmt.Errorf("the v2 hash %q is not a sha2-256 multihash", mh)
+			}
+			if _, err := hex.DecodeString(mh); err != nil {
+				return magnet{}, fmt.Errorf("the v2 hash %q is not hex", mh)
+			}
+			m.v2 = true
+		}
+	}
+	m.name = q.Get("dn")
+	m.trackers = q["tr"]
+	return m, nil
+}
+
+// btih reads a v1 info hash in hex or, as older links write it, base32.
+func btih(s string) (string, error) {
+	switch len(s) {
+	case 40:
+		if _, err := hex.DecodeString(s); err == nil {
+			return strings.ToLower(s), nil
+		}
+	case 32:
+		if b, err := base32.StdEncoding.DecodeString(strings.ToUpper(s)); err == nil {
+			return hex.EncodeToString(b), nil
+		}
+	}
+	return "", fmt.Errorf("the info hash %q is neither 40 hex digits nor 32 base32 ones", s)
 }

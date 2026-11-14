@@ -19,7 +19,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
-	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 // fakeQBittorrent is a qBittorrent Web UI that takes admin/secret and records
@@ -243,10 +242,6 @@ func TestATorrentThatFailsTheCheckIsNotHandedToQBittorrent(t *testing.T) {
 // qBittorrent is set up but the built-in client is chosen, which seeds as it
 // always has and never calls qBittorrent.
 func TestWithTheBuiltInClientChosenQBittorrentIsLeftAlone(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if raceEnabled {
-		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer")
-	}
 	qb := newFakeQBittorrent(t)
 	a := qbitApp(t, qb, "secret")
 	s := a.Settings.Get()

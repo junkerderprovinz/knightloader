@@ -13,12 +13,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/anacrolix/torrent/bencode"
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 const testPieceLength = 32 << 10
@@ -30,27 +29,27 @@ func testPieces(total int64) []byte {
 
 // testTorrentBytes bencodes a valid .torrent from an info dict, like the
 // unexported helper in internal/resolver/torrent's tests.
-func testTorrentBytes(t *testing.T, info metainfo.Info) []byte {
+func testTorrentBytes(t *testing.T, info testenv.TorrentInfo) []byte {
 	t.Helper()
-	ib, err := bencode.Marshal(info)
+	ib, err := testenv.Bencode(info)
 	if err != nil {
 		t.Fatalf("bencoding info: %v", err)
 	}
-	mi := metainfo.MetaInfo{InfoBytes: ib, Announce: "udp://tracker.example.org:6969/announce"}
-	b, err := bencode.Marshal(mi)
+	mi := testenv.TorrentMeta{InfoBytes: ib, Announce: "udp://tracker.example.org:6969/announce"}
+	b, err := testenv.Bencode(mi)
 	if err != nil {
 		t.Fatalf("bencoding torrent: %v", err)
 	}
 	return b
 }
 
-func testMultiFileTorrent(t *testing.T, folder string, files []metainfo.FileInfo) []byte {
+func testMultiFileTorrent(t *testing.T, folder string, files []testenv.TorrentFile) []byte {
 	t.Helper()
 	var total int64
 	for _, f := range files {
 		total += f.Length
 	}
-	return testTorrentBytes(t, metainfo.Info{Name: folder, Files: files, PieceLength: testPieceLength, Pieces: testPieces(total)})
+	return testTorrentBytes(t, testenv.TorrentInfo{Name: folder, Files: files, PieceLength: testPieceLength, Pieces: testPieces(total)})
 }
 
 func torrentsServer(t *testing.T) (*app.App, *httptest.Server) {
@@ -71,7 +70,7 @@ func torrentsServer(t *testing.T) (*app.App, *httptest.Server) {
 func TestParseTorrentUploadReturnsTheFileTree(t *testing.T) {
 	t.Parallel()
 	a, srv := torrentsServer(t)
-	data := testMultiFileTorrent(t, "Pack", []metainfo.FileInfo{
+	data := testMultiFileTorrent(t, "Pack", []testenv.TorrentFile{
 		{Length: 900, Path: []string{"one.mkv"}},
 		{Length: 12, Path: []string{"two.srt"}},
 	})
@@ -143,7 +142,7 @@ func TestParseTorrentUploadRejectsGarbage(t *testing.T) {
 func TestParseTorrentUploadRejectsATraversalPath(t *testing.T) {
 	t.Parallel()
 	_, srv := torrentsServer(t)
-	data := testMultiFileTorrent(t, "Evil", []metainfo.FileInfo{
+	data := testMultiFileTorrent(t, "Evil", []testenv.TorrentFile{
 		{Length: 10, Path: []string{"..", "..", "etc", "passwd"}},
 	})
 	code, body := postMultipartFile(t, srv.URL+"/api/torrents/parse", "file", "evil.torrent", data)
@@ -181,7 +180,7 @@ func TestParseTorrentUploadRequiresTheFileField(t *testing.T) {
 func TestStageTorrentAppliesTheSelection(t *testing.T) {
 	t.Parallel()
 	a, srv := torrentsServer(t)
-	data := testMultiFileTorrent(t, "Pack", []metainfo.FileInfo{
+	data := testMultiFileTorrent(t, "Pack", []testenv.TorrentFile{
 		{Length: 900, Path: []string{"one.mkv"}},
 		{Length: 12, Path: []string{"two.srt"}},
 	})
@@ -244,7 +243,7 @@ func TestStageTorrentAppliesTheSelection(t *testing.T) {
 func TestStageTorrentIgnoresAPathThatIsNotReallyInTheTorrent(t *testing.T) {
 	t.Parallel()
 	a, srv := torrentsServer(t)
-	data := testMultiFileTorrent(t, "Pack2", []metainfo.FileInfo{{Length: 10, Path: []string{"real.bin"}}})
+	data := testMultiFileTorrent(t, "Pack2", []testenv.TorrentFile{{Length: 10, Path: []string{"real.bin"}}})
 	code, body := postMultipartFile(t, srv.URL+"/api/torrents/parse", "file", "pack2.torrent", data)
 	if code != http.StatusOK {
 		t.Fatalf("POST parse = %d: %s", code, body)
@@ -357,7 +356,7 @@ func parseAndStage(t *testing.T, a *app.App, srv string, selected []string) (tor
 	if _, err := a.ApplySettings(s); err != nil {
 		t.Fatal(err)
 	}
-	data := testMultiFileTorrent(t, "Movie", []metainfo.FileInfo{
+	data := testMultiFileTorrent(t, "Movie", []testenv.TorrentFile{
 		{Length: 900 << 10, Path: []string{"movie.mkv"}},
 		{Length: 90 << 10, Path: []string{"Sample", "movie.mkv"}},
 		{Length: 200, Path: []string{"movie.nfo"}},

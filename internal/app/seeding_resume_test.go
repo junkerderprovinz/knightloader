@@ -8,16 +8,11 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/store"
-	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 // requireSeeding skips a test that seeds a real torrent where it cannot run.
 func requireSeeding(t *testing.T) {
 	t.Helper()
-	testenv.RequireWideListener(t)
-	if raceEnabled {
-		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race under real upload activity")
-	}
 }
 
 // storeBefore writes tasks into the store in dir, as a process that was killed

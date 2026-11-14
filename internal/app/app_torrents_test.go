@@ -1,21 +1,14 @@
 package app
 
-// The .torrent fixtures are built with the reference library, as
-// internal/resolver/torrent's tests do, since its helpers are unexported.
+// The .torrent fixtures are built with testenv's encoder, since
+// internal/resolver/torrent's helpers are unexported.
 
 import (
 	"errors"
-	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"strings"
-	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/anacrolix/torrent/bencode"
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -42,19 +35,19 @@ func testPieces(total int64) []byte {
 
 // testTorrentURI builds a valid multi-file .torrent and returns it as the data:
 // URI staging carries, the shape torrent.ParseUpload returns.
-func testTorrentURI(t *testing.T, folder string, files []metainfo.FileInfo) string {
+func testTorrentURI(t *testing.T, folder string, files []testenv.TorrentFile) string {
 	t.Helper()
 	var total int64
 	for _, f := range files {
 		total += f.Length
 	}
-	info := metainfo.Info{Name: folder, Files: files, PieceLength: testPieceLength, Pieces: testPieces(total)}
-	ib, err := bencode.Marshal(info)
+	info := testenv.TorrentInfo{Name: folder, Files: files, PieceLength: testPieceLength, Pieces: testPieces(total)}
+	ib, err := testenv.Bencode(info)
 	if err != nil {
 		t.Fatalf("bencoding info: %v", err)
 	}
-	mi := metainfo.MetaInfo{InfoBytes: ib, Announce: "udp://tracker.example.org:6969/announce"}
-	b, err := bencode.Marshal(mi)
+	mi := testenv.TorrentMeta{InfoBytes: ib, Announce: "udp://tracker.example.org:6969/announce"}
+	b, err := testenv.Bencode(mi)
 	if err != nil {
 		t.Fatalf("bencoding torrent: %v", err)
 	}
@@ -65,7 +58,7 @@ func testTorrentURI(t *testing.T, folder string, files []metainfo.FileInfo) stri
 // library would fetch the whole torrent for it.
 func TestAddTorrentRefusesASelectionOfNothing(t *testing.T) {
 	a := newTorrentTestApp(t)
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{
 		{Length: 900, Path: []string{"one.mkv"}},
 		{Length: 12, Path: []string{"two.srt"}},
 	})
@@ -91,7 +84,7 @@ func TestAddTorrentRefusesASelectionOfNothing(t *testing.T) {
 // The selection lands on the task, and Size is the selected subset's total.
 func TestAddTorrentStagesTheRequestedSelection(t *testing.T) {
 	a := newTorrentTestApp(t)
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{
 		{Length: 900, Path: []string{"one.mkv"}},
 		{Length: 12, Path: []string{"two.srt"}},
 	})
@@ -137,7 +130,7 @@ func TestAddTorrentStagesTheRequestedSelection(t *testing.T) {
 // With every file selected, the size is the whole torrent's.
 func TestAddTorrentWithNoSelectionKeepsEveryFileAndTheWholeSize(t *testing.T) {
 	a := newTorrentTestApp(t)
-	uri := testTorrentURI(t, "Solo", []metainfo.FileInfo{{Length: 4096, Path: []string{"solo.bin"}}})
+	uri := testTorrentURI(t, "Solo", []testenv.TorrentFile{{Length: 4096, Path: []string{"solo.bin"}}})
 	files := []core.TorrentFile{{Path: "solo.bin", Size: 4096, Selected: true}}
 
 	task, err := a.AddTorrent(uri, files, "SoloPack", OriginPaste)
@@ -152,7 +145,7 @@ func TestAddTorrentWithNoSelectionKeepsEveryFileAndTheWholeSize(t *testing.T) {
 // An identical URL is never kept, whatever KeepMirrors says.
 func TestAddTorrentFoldsAnExactDuplicateAway(t *testing.T) {
 	a := newTorrentTestApp(t)
-	uri := testTorrentURI(t, "Dup", []metainfo.FileInfo{{Length: 10, Path: []string{"f.bin"}}})
+	uri := testTorrentURI(t, "Dup", []testenv.TorrentFile{{Length: 10, Path: []string{"f.bin"}}})
 	files := []core.TorrentFile{{Path: "f.bin", Size: 10, Selected: true}}
 
 	first, err := a.AddTorrent(uri, files, "DupPack", OriginPaste)
@@ -172,7 +165,7 @@ func TestAddTorrentFoldsAnExactDuplicateAway(t *testing.T) {
 // like a pasted link.
 func TestAddTorrentNeverLeavesAPackageBlank(t *testing.T) {
 	a := newTorrentTestApp(t)
-	uri := testTorrentURI(t, "Named", []metainfo.FileInfo{{Length: 10, Path: []string{"f.bin"}}})
+	uri := testTorrentURI(t, "Named", []testenv.TorrentFile{{Length: 10, Path: []string{"f.bin"}}})
 	files := []core.TorrentFile{{Path: "f.bin", Size: 10, Selected: true}}
 
 	task, err := a.AddTorrent(uri, files, "", OriginPaste)
@@ -203,7 +196,7 @@ func TestTorrentSizeUsesTheSelectionNotTheWholeTorrent(t *testing.T) {
 // hostOf's raw-string fallback would put the encoded file or the magnet query
 // into Task.Host, the Host column and the <jd:hoster> path variable.
 func TestTorrentHostIsNeverTheEncodedFile(t *testing.T) {
-	uri := testTorrentURI(t, "H", []metainfo.FileInfo{{Length: 10, Path: []string{"f.bin"}}})
+	uri := testTorrentURI(t, "H", []testenv.TorrentFile{{Length: 10, Path: []string{"f.bin"}}})
 	if got := torrentHost(uri); got != "torrent-upload" {
 		t.Errorf("torrentHost(uploaded) = %q, want the short fixed bucket", got)
 	}
@@ -230,22 +223,14 @@ func TestPastedMagnetGetsTheShortHostBucket(t *testing.T) {
 }
 
 // A started torrent task reaches the engine's torrent branch, which is where
-// the selection is passed on. The indices
-// themselves are private to the engine; its own tests cover them. A short
-// metadata timeout makes the branch fail fast with resolveTorrent's sentence.
-//
-// The torrent client binds a wildcard peer listener, which on Windows raises a
-// firewall prompt for every fresh test binary, so this runs behind
-// testenv.RequireWideListener.
+// the selection is passed on. The indices themselves are private to the
+// engine; its own tests cover them. A short metadata timeout makes the branch
+// fail fast with its sentence about the file list.
 func TestStartTasksThreadsTheSelectionIntoTheEngineJob(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if testing.Short() {
-		t.Skip("this starts a torrent client, which opens a network-facing listener")
-	}
 	a := newTorrentTestApp(t)
 	a.Engine.SetMetadataTimeout(200 * time.Millisecond)
 
-	// A magnet resolves instantly and its swarm wait is what
+	// Nobody shares this magnet, so its wait for a file list is what
 	// SetMetadataTimeout bounds.
 	magnet := "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"
 	created := a.AddLinksFrom([]string{magnet}, "DispatchTest", OriginPaste)
@@ -284,14 +269,13 @@ func TestStartTasksThreadsTheSelectionIntoTheEngineJob(t *testing.T) {
 	if last.Status != core.StatusError {
 		t.Fatalf("status = %q after 5s, want error (the short metadata timeout should have settled this); task: %+v", last.Status, last)
 	}
-	// resolveTorrent's sentence rather than an HTTP failure.
 	if !strings.Contains(last.Error, "torrent") {
-		t.Errorf("error = %q, want the resolveTorrent metadata-timeout sentence naming the torrent", last.Error)
+		t.Errorf("error = %q, want the metadata timeout's sentence naming the torrent", last.Error)
 	}
 }
 
 // The Torrents page reaches the engine in the engine's units, with the two
-// discovery switches turned into gopeed's opt-outs.
+// discovery switches turned into opt-outs.
 func TestTheTorrentSettingsReachTheEngineInItsOwnTerms(t *testing.T) {
 	got := torrentConfig(settings.Torrent{
 		Port:                51413,
@@ -313,64 +297,6 @@ func TestTheTorrentSettingsReachTheEngineInItsOwnTerms(t *testing.T) {
 		t.Errorf("torrentConfig = %+v, want %+v", got, want)
 	}
 	if got := torrentConfig(settings.Torrent{DHTEnabled: true, PEXEnabled: true}); got != (engine.TorrentConfig{}) {
-		t.Errorf("an unlimited torrent client with DHT and PEX on reads %+v, want gopeed's own defaults", got)
-	}
-}
-
-// The engine reaches HTTP trackers through the loopback proxy, so closing the
-// app must leave the proxy up until the torrent client has said goodbye.
-func TestClosingTheAppSendsTheStoppedAnnounceToHTTPTrackers(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if testing.Short() {
-		t.Skip("this starts a torrent client, which opens a network-facing listener")
-	}
-	// The client sends no stopped for a torrent whose first announce is still
-	// out, so the first answer asks for another announce a second later, and
-	// that one shows the first has landed.
-	events := make(chan string, 64)
-	var announces atomic.Int32
-	tracker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		interval := 1800
-		if announces.Add(1) == 1 {
-			interval = 1
-		}
-		fmt.Fprintf(w, "d8:intervali%de5:peers0:e", interval)
-		events <- r.URL.Query().Get("event")
-	}))
-	defer tracker.Close()
-
-	a, err := newApp(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	a.Engine.SetMetadataTimeout(time.Minute)
-	magnet := "magnet:?xt=urn:btih:89abcdef0123456789abcdef0123456789abcdef&tr=" + url.QueryEscape(tracker.URL+"/announce")
-	created := a.AddLinksFrom([]string{magnet}, "Goodbye", OriginPaste)
-	if len(created) != 1 {
-		a.Close()
-		t.Fatalf("AddLinksFrom staged %d tasks, want 1", len(created))
-	}
-	a.StartTasks([]string{created[0].ID})
-
-	for range 2 {
-		select {
-		case <-events:
-		case <-time.After(20 * time.Second):
-			a.Close()
-			t.Fatal("the tracker heard less than two announces from the running magnet")
-		}
-	}
-	a.Close()
-
-	deadline := time.After(2 * time.Second)
-	for {
-		select {
-		case ev := <-events:
-			if ev == "stopped" {
-				return
-			}
-		case <-deadline:
-			t.Fatal("the tracker got no stopped announce when the app closed")
-		}
+		t.Errorf("an unlimited torrent client with DHT and PEX on reads %+v, want the zero config", got)
 	}
 }

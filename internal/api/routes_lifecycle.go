@@ -39,7 +39,6 @@ type DeploymentInfo struct {
 // engineModules are the libraries Engines names, in the order the card lists them.
 var engineModules = []string{
 	"github.com/GopeedLab/gopeed",
-	"github.com/anacrolix/torrent",
 	"github.com/nwaples/rardecode/v2",
 	"github.com/bodgit/sevenzip",
 	"github.com/dop251/goja",

@@ -4,11 +4,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 // mirrorApp is an app that merges on the file name alone, which is the policy
@@ -471,7 +471,7 @@ func TestAMagnetWithTheSameInfoHashIsRefusedAsTheSameTorrent(t *testing.T) {
 }
 
 func TestAMagnetAndAnUploadedTorrentOfOneTorrentAreListedOnce(t *testing.T) {
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{{Length: 900, Path: []string{"one.mkv"}}})
 	md, err := (torrent.Resolver{}).Describe(uri)
 	if err != nil {
 		t.Fatal(err)
@@ -502,7 +502,7 @@ func TestAMagnetAndAnUploadedTorrentOfOneTorrentAreListedOnce(t *testing.T) {
 }
 
 func TestRemovingAnUploadedTorrentLetsItsMagnetIn(t *testing.T) {
-	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	uri := testTorrentURI(t, "Pack", []testenv.TorrentFile{{Length: 900, Path: []string{"one.mkv"}}})
 	md, err := (torrent.Resolver{}).Describe(uri)
 	if err != nil {
 		t.Fatal(err)
