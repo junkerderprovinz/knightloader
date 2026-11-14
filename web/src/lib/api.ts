@@ -2937,6 +2937,9 @@ export interface HosterLogin {
   /** A login KnightLoader signs in with itself whose client could not use it,
    *  so JDownloader has it and `status` is what JD thinks. */
   handedOver?: boolean;
+  /** The hoster takes the login again only with the one-time code of its
+   *  second factor, which `code` says why. */
+  askCode?: boolean;
 }
 
 /** fetchHosterHosts is the "add a login" picker's host list. */
@@ -2949,9 +2952,18 @@ export async function fetchHosterLogins(): Promise<HosterLogin[]> {
   return (await json<HosterLogin[]>(await fetch('/api/hosterauth/logins'))) ?? [];
 }
 
-/** saveHosterLogin stores (or updates) one host's native login. */
-export async function saveHosterLogin(host: string, username: string, password: string): Promise<void> {
-  await ok(await post('/api/hosterauth/logins', { host, username, password }));
+/**
+ * saveHosterLogin stores (or updates) one host's native login and returns its
+ * row. `code` is a second factor's one-time code, which the server signs in
+ * with once and does not store.
+ */
+export async function saveHosterLogin(
+  host: string,
+  username: string,
+  password: string,
+  code?: string,
+): Promise<HosterLogin> {
+  return json<HosterLogin>(await post('/api/hosterauth/logins', { host, username, password, code }));
 }
 
 /** setHosterLoginEnabled takes a login out of JD's list or puts it back,

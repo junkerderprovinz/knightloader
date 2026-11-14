@@ -105,13 +105,23 @@ func (u user) account() Account {
 	return a
 }
 
-// Login signs in and returns the token the other calls go with.
-func (c *Client) Login(ctx context.Context, email, password string) (string, Account, error) {
+// Login signs in and returns the token the other calls go with. code is the
+// one-time code of an account with two-factor sign-in, "" for none.
+func (c *Client) Login(ctx context.Context, email, password, code string) (string, Account, error) {
 	var out struct {
 		Token string `json:"token"`
 		User  user   `json:"user"`
 	}
-	if err := c.call(ctx, "user/login", url.Values{"login": {email}, "password": {password}}, &out); err != nil {
+	form := url.Values{"login": {email}, "password": {password}}
+	if code != "" {
+		form.Set("code", code)
+	}
+	err := c.call(ctx, "user/login", form, &out)
+	// Rapidgator answers a missing code and a wrong one alike.
+	if code != "" && errors.Is(err, ownlogin.ErrNeedsCode) {
+		return "", Account{}, &LoginError{Msg: "rapidgator: Rapidgator turned the two-factor code down, so enter the current one", Err: ownlogin.ErrWrongCode}
+	}
+	if err != nil {
 		return "", Account{}, err
 	}
 	if out.Token == "" {
@@ -232,7 +242,7 @@ func classify(method string, status int, details string) error {
 	case has("user is not premium", "can be downloaded by premium only", "you can download files up to"):
 		return fmt.Errorf("%w (%s)", ErrNotPremium, strings.TrimPrefix(details, "Error: "))
 	case has("invalid auth code"):
-		return &LoginError{Msg: "rapidgator: the account signs in with a two-factor code, which KnightLoader cannot enter, so switch two-factor sign-in off for it at Rapidgator"}
+		return &LoginError{Msg: "rapidgator: the account signs in with a two-factor code, so enter the one the authenticator app shows", Err: ownlogin.ErrNeedsCode}
 	case has("unusual ip"):
 		return &LoginError{Msg: "rapidgator: Rapidgator wants this address confirmed through the link it emailed to the account"}
 	case has("login or password is wrong", "e-mail or password", "password cannot be blank", "login or password is missing"):

@@ -205,7 +205,7 @@ func (a *App) rewireBackends() {
 			a.Registry.Register(h.free.res)
 		}
 	}
-	a.syncOwnLogins()
+	a.syncOwnLogins("")
 
 	// The XFileSharing hosters, on the user's login while it has premium and
 	// for free otherwise.

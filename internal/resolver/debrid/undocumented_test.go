@@ -262,3 +262,20 @@ func TestLinksnappyAndOffcloudTransportErrorsCarryNoCredential(t *testing.T) {
 		t.Errorf("Offcloud error = %q, which gives the key away", err)
 	}
 }
+
+// The body is the refusal JDownloader's plugin reads.
+func TestLinksnappyAskingForTheEmailedConfirmationSaysSo(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.WriteString(w, `{"status":"ERROR","error":"Two-Factor Verification Required","redirect":"/verify/abc"}`)
+	}))
+	defer srv.Close()
+
+	err := newLinksnappyAt(srv.URL).Authenticate(context.Background())
+
+	if err == nil || !strings.Contains(err.Error(), "link Linksnappy emailed") {
+		t.Errorf("error = %v, want it to send the user to the emailed link", err)
+	}
+	if err != nil && strings.Contains(err.Error(), "/verify/abc") {
+		t.Errorf("error = %q carries the confirmation link, which belongs in the user's mailbox only", err)
+	}
+}

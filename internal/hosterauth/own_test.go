@@ -147,3 +147,29 @@ func TestALoginKnightLoadersClientGaveUpOnGoesToJDAndComesBackWhenTheClientTakes
 		t.Error("routing still sends the host's links to JD's login")
 	}
 }
+
+func TestALoginWaitingForATwoFactorCodeAsksForIt(t *testing.T) {
+	r, store := newTestReconciler(t, &fakeJD{})
+	client := newOwnDdownload(store)
+	r.Own = client.own
+	if err := store.Set("ddl.to", accounts.Credential{Username: "u", Password: "p"}); err != nil {
+		t.Fatal(err)
+	}
+	cases := []struct{ ask, code string }{
+		{"needed", codeOwnCodeNeeded},
+		{"wrong", codeOwnCodeWrong},
+		{"ended", codeOwnCodeEnded},
+	}
+	for _, c := range cases {
+		client.found["u"] = OwnState{Checked: true, Refused: true, Detail: "the hoster wants a code", Code: c.ask}
+		got := r.States()[0]
+		if got.Status != StatusRejected || got.Code != c.code || !got.AskCode {
+			t.Errorf("a login waiting for a code (%s) reads %+v, want it rejected with code %q and asking for one", c.ask, got, c.code)
+		}
+	}
+
+	client.found["u"] = OwnState{Checked: true, Refused: true, Detail: "wrong password"}
+	if got := r.States()[0]; got.AskCode {
+		t.Errorf("a wrong password asks for a code: %+v", got)
+	}
+}
