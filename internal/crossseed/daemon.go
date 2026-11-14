@@ -50,6 +50,12 @@ func (d *Daemon) Ping(ctx context.Context) error {
 func (d *Daemon) do(req *http.Request) error {
 	resp, err := d.http.Do(req)
 	if err != nil {
+		// The address is in the settings already, and the request line only
+		// makes the reason longer.
+		var ue *url.Error
+		if errors.As(err, &ue) {
+			err = ue.Err
+		}
 		return fmt.Errorf("the cross-seed daemon could not be reached: %w", err)
 	}
 	defer resp.Body.Close()
