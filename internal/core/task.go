@@ -97,6 +97,9 @@ const (
 	ReasonBotCheck Reason = "botCheck"
 	// ReasonMembersOnly is a video behind a membership the session lacks.
 	ReasonMembersOnly Reason = "membersOnly"
+	// ReasonSignInRequired is media the site shows a signed-in account only:
+	// a private video, an age gate, a post behind a login.
+	ReasonSignInRequired Reason = "signInRequired"
 	// ReasonGeoBlocked is a site refusing this region. It is keyed to the
 	// address, so no credential fixes it.
 	ReasonGeoBlocked Reason = "geoBlocked"
