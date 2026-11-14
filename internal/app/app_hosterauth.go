@@ -200,6 +200,9 @@ func (a *App) RemoveHosterLogin(host string) error {
 	if err := r.RemoveLogin(host); err != nil {
 		return err
 	}
+	if ownSite(host) {
+		a.forgetOwnSession(hostalias.Canonical(host))
+	}
 	a.ownLoginChanged(host)
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {

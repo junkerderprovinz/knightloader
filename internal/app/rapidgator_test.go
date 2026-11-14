@@ -24,7 +24,7 @@ const rgFile = "0001234422b3e37d648ea406d833c1d6"
 // useRapidgator points the app's Rapidgator client at srv.
 func useRapidgator(a *App, srv *rgtest.Server) {
 	b := rapidgator.NewBackend(rapidgator.NewClient(srv.URL, srv.Client()), engineHandoff{a.Engine, a}, a.onUpdate)
-	b.Checked, b.Moved = a.refreshPremiumHolds, a.ownLoginMoved
+	b.Checked, b.Moved, b.Saved = a.refreshPremiumHolds, a.ownLoginMoved, a.keepOwnSession(rapidgator.Site)
 	useOwnHoster(a, &ownHoster{id: rapidgator.ResolverID, site: rapidgator.Site, normalize: rapidgator.Normalize,
 		be: b, res: rapidgator.Resolver{Backend: b}})
 }
@@ -219,4 +219,91 @@ func TestATwoFactorRapidgatorLoginIsSavedAndThenSignedInWithItsCode(t *testing.T
 	if err != nil || cred.Password != "hunter2" || strings.Contains(fmt.Sprintf("%+v", cred), "482913") {
 		t.Errorf("stored %+v, %v; want the password kept and the code nowhere", cred, err)
 	}
+}
+
+// signInWithCode saves a two-factor Rapidgator login on a and signs it in
+// with its code, as the login window does.
+func signInWithCode(t *testing.T, a *App) *rgtest.Server {
+	t.Helper()
+	srv := rgtest.New(t)
+	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913"})
+	useRapidgator(a, srv)
+	ctx := context.Background()
+	if _, err := a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "hunter2", ""); err != nil {
+		t.Fatal(err)
+	}
+	if row, err := a.SaveHosterLogin(ctx, "rg.to", "john@example.com", accounts.Redacted, "482913"); err != nil || row.Status != hosterauth.StatusActive {
+		t.Fatalf("signing in with the code = %+v, %v", row, err)
+	}
+	return srv
+}
+
+func keptSession(t *testing.T, a *App) accounts.Credential {
+	t.Helper()
+	cred, err := a.Accounts.GetCredential(hosterSessionService, rapidgator.Site)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return cred
+}
+
+func TestARapidgatorSessionOpenedWithACodeOutlivesARestart(t *testing.T) {
+	a := newCrawlApp(t, false)
+	srv := signInWithCode(t, a)
+
+	// A fresh client knows no session, as after a restart.
+	useRapidgator(a, srv)
+
+	waitFor(t, "the kept session to be taken up", func() bool {
+		row, ok := loginRow(a, "rg.to")
+		return ok && row.Status == hosterauth.StatusActive && row.Tier == "premium"
+	})
+	if n := srv.Logins(); n != 2 {
+		t.Errorf("signed in %d times, want only the two before the restart", n)
+	}
+}
+
+func TestAKeptRapidgatorSessionRapidgatorEndedAsksForANewCode(t *testing.T) {
+	a := newCrawlApp(t, false)
+	srv := signInWithCode(t, a)
+
+	srv.Expire()
+	useRapidgator(a, srv)
+
+	waitFor(t, "the row to ask for a new code", func() bool {
+		row, ok := loginRow(a, "rg.to")
+		return ok && row.AskCode && row.Code == "ownCodeEnded"
+	})
+	if n := srv.Logins(); n != 2 {
+		t.Errorf("signed in %d times, want no try with the password alone", n)
+	}
+	if cred := keptSession(t, a); !cred.IsZero() {
+		t.Error("the session Rapidgator ended is still kept")
+	}
+}
+
+func TestAChangedOrRemovedRapidgatorLoginForgetsItsSession(t *testing.T) {
+	t.Run("a new password", func(t *testing.T) {
+		a := newCrawlApp(t, false)
+		signInWithCode(t, a)
+		if keptSession(t, a).IsZero() {
+			t.Fatal("the session opened with the code was not kept")
+		}
+		if _, err := a.SaveHosterLogin(context.Background(), "rg.to", "john@example.com", "changed", ""); err != nil {
+			t.Fatal(err)
+		}
+		if !keptSession(t, a).IsZero() {
+			t.Error("the session outlived a new password")
+		}
+	})
+	t.Run("removed", func(t *testing.T) {
+		a := newCrawlApp(t, false)
+		signInWithCode(t, a)
+		if err := a.RemoveHosterLogin("rg.to"); err != nil {
+			t.Fatal(err)
+		}
+		if !keptSession(t, a).IsZero() {
+			t.Error("the session outlived the removed login")
+		}
+	})
 }

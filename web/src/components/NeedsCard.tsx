@@ -136,9 +136,14 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
         };
       case 'login':
         return {
-          name: t(need.login.askCode ? 'overview.needs.loginNeedsCode' : 'overview.needs.loginRejected', {
-            name: need.login.host,
-          }),
+          name: t(
+            need.login.signInHere
+              ? 'overview.needs.loginNeedsSignIn'
+              : need.login.askCode
+                ? 'overview.needs.loginNeedsCode'
+                : 'overview.needs.loginRejected',
+            { name: need.login.host },
+          ),
           sub: loginDetail(t, need.login),
           open: accounts,
           main: openAccounts,

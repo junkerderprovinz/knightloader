@@ -132,9 +132,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Rapidgator accounts with two-factor sign-in work.** When Rapidgator asks
   for the code, the login's window shows one more field for the six digits
   from your authenticator app, and KnightLoader signs in with it once without
-  storing it. The session is kept for as long as Rapidgator accepts it. Once it
-  ends, the login's row and the overview ask for a new code rather than trying
-  the password again, which could get the account locked.
+  storing it. The session is kept for as long as Rapidgator accepts it, also
+  across a restart, sealed like your passwords. Once it ends, the login's row
+  and the overview ask for a new code rather than trying the password again,
+  which could get the account locked.
+- **ddownload, KatFile, Clicknupload, FileSpace and Uploadrar logins with
+  two-factor sign-in work.** Their code only goes into the site's own page, so
+  the login's row offers **Sign in here**, which opens that page in the
+  sign-in browser. Sign in there with your password and the code, and
+  KnightLoader downloads on the session you signed in to. When the session
+  ends, the row asks for a new sign-in instead of trying the password again.
 - **A Linksnappy account that waits for an emailed confirmation says so.**
   Linksnappy confirms a sign-in from a new place through a link it emails, and
   the account's check now tells you to open that link rather than showing

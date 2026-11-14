@@ -65,6 +65,7 @@ const (
 	codeOwnCodeNeeded = "ownCodeNeeded"
 	codeOwnCodeWrong  = "ownCodeWrong"
 	codeOwnCodeEnded  = "ownCodeEnded"
+	codeOwnSignInHere = "ownSignInHere"
 )
 
 var codeAsks = map[string]string{"needed": codeOwnCodeNeeded, "wrong": codeOwnCodeWrong, "ended": codeOwnCodeEnded}
@@ -88,6 +89,11 @@ type LoginState struct {
 	// AskCode is a login that signs in again only once the user enters the
 	// one-time code of its second factor.
 	AskCode bool `json:"askCode,omitempty"`
+	// SignInSite is the sign-in browser's id for the login's site, for a
+	// login that can be signed in on the site's own page, and SignInHere is
+	// one that waits for that.
+	SignInSite string `json:"signInSite,omitempty"`
+	SignInHere bool   `json:"signInHere,omitempty"`
 
 	// What JD knows about the account itself. Every field is optional: JD
 	// answers -1 or 0 for an account it has nothing to say about, and that has
@@ -600,6 +606,10 @@ type OwnState struct {
 	// Code is a refusal until the user enters the one-time code of a second
 	// factor: "needed", "wrong" or "ended", as ownlogin.CodeAsk words it.
 	Code string
+	// SignInHere is a refusal until the user signs in on the site's own
+	// page, and SignInSite the sign-in browser's id for that page.
+	SignInHere bool
+	SignInSite string
 	// Handed is a login the client could not use and gave to JD, which
 	// then signs in with it and has the row.
 	Handed  bool
@@ -611,7 +621,7 @@ type OwnState struct {
 
 // row is the accounts page's row for an enabled login in state o.
 func (o OwnState) row(host, username string) LoginState {
-	st := LoginState{Host: host, Username: username, Enabled: true}
+	st := LoginState{Host: host, Username: username, Enabled: true, SignInSite: o.SignInSite}
 	switch {
 	case o.Key:
 		st.Status = StatusActive
@@ -621,6 +631,8 @@ func (o OwnState) row(host, username string) LoginState {
 		st.Status, st.Code, st.Detail = StatusQueued, codeWaiting, "waiting for the next check"
 	case !o.Checked:
 		st.Status, st.Code, st.Detail = StatusQueued, codeOwnChecking, "KnightLoader is checking this login"
+	case o.Refused && o.SignInHere:
+		st.Status, st.Code, st.Detail, st.SignInHere = StatusRejected, codeOwnSignInHere, o.Detail, true
 	case o.Refused && codeAsks[o.Code] != "":
 		st.Status, st.Code, st.Detail, st.AskCode = StatusRejected, codeAsks[o.Code], o.Detail, true
 	case o.Refused && o.Captcha:

@@ -244,15 +244,15 @@ func newBackend(srv *ddltest.Server) (*xfs.Backend, *fakeEngine, *harness) {
 	b.Sleep = h.sleep
 	b.Solve = h.solve
 	b.Login = h.login
-	b.LoadSession = func() string {
+	b.LoadSession = func() xfs.Kept {
 		h.mu.Lock()
 		defer h.mu.Unlock()
-		return h.session
+		return xfs.Kept{Cookies: h.session}
 	}
-	b.SaveSession = func(s string) {
+	b.SaveSession = func(k xfs.Kept) {
 		h.mu.Lock()
 		defer h.mu.Unlock()
-		h.session = s
+		h.session = k.Cookies
 	}
 	b.OnLogin = func(st xfs.LoginState) {
 		h.mu.Lock()

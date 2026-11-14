@@ -22,3 +22,23 @@ func TestAJarHoldsASignInOnlyWithALiveSignInCookie(t *testing.T) {
 		}
 	}
 }
+
+func TestAHosterKnowsItsSignInCookieAndHandsItsSessionOnAsACookieHeader(t *testing.T) {
+	site := Hoster("katfile", "KatFile", "katfile.com", "https://katfile.com/login.html", []string{"katfile.com", "katfile.cloud"}, "xfss")
+	now := time.Now()
+	jar := JarFromCookies(site, []BrowserCookie{
+		{Domain: "katfile.com", HostOnly: true, Path: "/", Session: true, Name: "login", Value: "fox"},
+		{Domain: ".katfile.com", Path: "/", Expires: float64(now.Add(time.Hour).Unix()), Name: "xfss", Value: "s3cr3t"},
+		{Domain: "example.net", HostOnly: true, Path: "/", Session: true, Name: "xfss", Value: "other"},
+	}, now)
+
+	if !HoldsSignIn(site, jar, now) {
+		t.Error("a jar with the session cookie does not hold the sign-in")
+	}
+	if got := CookieHeader(jar, now); got != "login=fox; xfss=s3cr3t" {
+		t.Errorf("CookieHeader = %q, want the site's own cookies", got)
+	}
+	if got := CookieHeader(jar, now.Add(2*time.Hour)); got != "login=fox" {
+		t.Errorf("CookieHeader after the session ran out = %q, want the live cookie alone", got)
+	}
+}

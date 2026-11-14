@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/captcha"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -24,6 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/xfs/xfstest"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/sitelogin"
 )
 
 // useDdownload points the app's ddownload client at srv.
@@ -289,5 +291,91 @@ func TestSendNowGoesFreeBetweenDebridAndJDAndLeavesItsLoginToJD(t *testing.T) {
 	t.Cleanup(func() { jd.SetHostActive("send.now", false) })
 	if got := chainIDs(a, link); got[0] != "jd" {
 		t.Errorf("chain = %v, want JD with the login first", got)
+	}
+}
+
+// browserJar is what the sign-in browser reads of site once the cookies
+// were set for its host.
+func browserJar(t *testing.T, site sitelogin.Site, host, cookies string) string {
+	t.Helper()
+	list, err := http.ParseCookie(cookies)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var held []sitelogin.BrowserCookie
+	for _, c := range list {
+		held = append(held, sitelogin.BrowserCookie{Domain: host, HostOnly: true, Path: "/", Secure: true, Session: true, Name: c.Name, Value: c.Value})
+	}
+	return sitelogin.JarFromCookies(site, held, time.Now())
+}
+
+func TestAKatFileLoginThatWantsASecondFactorIsSignedInOnTheSitesOwnPage(t *testing.T) {
+	srv := xfstest.New(t, katfile.Site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(1, 0, 0), TrafficMB: 51200, TwoFactor: true})
+	a := newCrawlApp(t, false)
+	b := useXFS(a, katfile.Site, srv.URL, srv.Client())
+
+	if err := a.SetHosterLogin("katfile.com", "fox", "badger"); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "the row asking for a sign-in on the site's page", func() bool {
+		row, ok := loginRow(a, "katfile.com")
+		return ok && row.Status == hosterauth.StatusRejected && row.SignInHere && row.Code == "ownSignInHere"
+	})
+	if row, _ := loginRow(a, "katfile.com"); row.SignInSite != katfile.Site.ID {
+		t.Errorf("the row offers the sign-in browser for %q, want %q", row.SignInSite, katfile.Site.ID)
+	}
+
+	site, ok := a.signInSiteFor(katfile.Site.ID)
+	if !ok || site.LoginURL != "https://katfile.com/login.html" || !site.Owns("katfile.cloud") {
+		t.Fatalf("the sign-in browser's site = %+v, %v; want KatFile's sign-in page on all its domains", site, ok)
+	}
+	got := a.signInBrowserSession(site, browserJar(t, site, "katfile.com", srv.SignedIn("fox")))
+
+	if st, ok := got.(SiteLoginState); !ok || st.State != sitelogin.SignedIn {
+		t.Errorf("the window was told %+v, want it signed in", got)
+	}
+	if !b.Premium() {
+		t.Error("the session from the site's own page does not read as the premium login")
+	}
+	if row, _ := loginRow(a, "katfile.com"); row.Status != hosterauth.StatusActive || row.Tier != "premium" {
+		t.Errorf("row = %+v, want the active premium login", row)
+	}
+	if n := srv.SignIns(); n != 1 {
+		t.Errorf("signed in %d times with the password, want only the try that met the code form", n)
+	}
+}
+
+func TestOnlyASiteKnightLoaderSignsInToItselfOpensInTheSignInBrowser(t *testing.T) {
+	a := newCrawlApp(t, false)
+	if _, ok := a.signInSiteFor(sendnow.Site.ID); ok {
+		t.Error("Send.now, whose login stays with JDownloader, opens in the sign-in browser")
+	}
+	if _, ok := a.signInSiteFor("patreon"); !ok {
+		t.Error("Patreon no longer opens in the sign-in browser")
+	}
+}
+
+func TestAKatFileSessionFromTheSitesOwnPageThatEndedAcrossARestartAsksForASignInWithoutThePassword(t *testing.T) {
+	srv := xfstest.New(t, katfile.Site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(1, 0, 0), TrafficMB: 51200, TwoFactor: true})
+	a := newCrawlApp(t, false)
+	useXFS(a, katfile.Site, srv.URL, srv.Client())
+	if err := hosterauth.NewStore(a.Accounts).Set("katfile.com", accounts.Credential{Username: "fox", Password: "badger"}); err != nil {
+		t.Fatal(err)
+	}
+	site, _ := a.signInSiteFor(katfile.Site.ID)
+	a.signInBrowserSession(site, browserJar(t, site, "katfile.com", srv.SignedIn("fox")))
+
+	srv.EndSessions()
+	// A fresh client knows only what the sealed store kept, as after a restart.
+	b := useXFS(a, katfile.Site, srv.URL, srv.Client())
+	b.CheckLogin(context.Background(), true)
+
+	if st, _ := b.LoginStatus(); !st.SignInHere {
+		t.Errorf("state after the restart %+v, want the login asking for a sign-in on KatFile's page", st)
+	}
+	if n := srv.SignIns(); n != 0 {
+		t.Errorf("the password went to KatFile %d times, want never", n)
 	}
 }

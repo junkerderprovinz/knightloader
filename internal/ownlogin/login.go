@@ -138,6 +138,11 @@ type Login struct {
 	// can download. Nil calls nothing.
 	Checked func()
 
+	// Saved hears the token of a session opened with a code whenever it
+	// changes, "" once there is none, so it can be kept across a restart and
+	// handed back through RestoreSession. Nil keeps it in memory only.
+	Saved func(user, password, token string)
+
 	s Signer
 
 	// smu serialises signing in, so downloads that start together share one
@@ -292,7 +297,7 @@ func (l *Login) record(user, pass string, s Session, err error, coded bool) {
 		l.mu.Unlock()
 		return
 	}
-	before := l.status
+	before, token := l.status, l.current.Token
 	if refused != nil {
 		ask := codeAsk(err)
 		l.current, l.asked = Session{}, nil
@@ -312,10 +317,28 @@ func (l *Login) record(user, pass string, s Session, err error, coded bool) {
 	}
 	changed := before.Checked != l.status.Checked || before.Refused != l.status.Refused || before.Premium != l.status.Premium ||
 		before.Code != l.status.Code
+	keep := l.coded && l.current.Token != token
+	token = l.current.Token
 	l.mu.Unlock()
+	if keep && l.Saved != nil {
+		l.Saved(user, pass, token)
+	}
 	if changed && l.Checked != nil {
 		l.Checked()
 	}
+}
+
+// RestoreSession takes up a session a code opened for the stored login
+// before, as Saved heard it. The next check asks the hoster whether it still
+// holds, and a session it has ended asks for a new code.
+func (l *Login) RestoreSession(token string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.user == "" {
+		return
+	}
+	l.current = Session{Token: token, User: l.user, Password: l.pass, at: time.Now()}
+	l.coded, l.asked = true, nil
 }
 
 // Bench takes the login out of routing for d, so the next links go another

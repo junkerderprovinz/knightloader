@@ -185,6 +185,9 @@ func (s *Site) Normalize(raw string) (string, bool) {
 	return "https://" + s.Host + "/" + strings.ToLower(m[1]), true
 }
 
+// SignInPage is the site's own page with the sign-in form.
+func (s *Site) SignInPage() string { return "https://" + s.Host + s.loginPath() }
+
 func (s *Site) loginPath() string {
 	if s.LoginPath == "" {
 		return "/login.html"

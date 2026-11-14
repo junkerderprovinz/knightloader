@@ -484,9 +484,11 @@ Rapidgator asks for the code, and the window shows one more field for the six
 digits from your authenticator app. KnightLoader signs in with the code once
 and never stores it. It keeps the session for as long as Rapidgator accepts
 it, rather than signing in again every 45 minutes as it does for a login
-without a second factor. Once Rapidgator ends the session, and after a restart
-of KnightLoader, the login's row and the overview ask for a new code, and
-Rapidgator links go to the next backend until you enter one. KnightLoader
+without a second factor. The session is sealed in the same encrypted store as
+your passwords, so it survives a restart of KnightLoader, and it is forgotten
+when you remove the login or change its password. Once Rapidgator ends the
+session, the login's row and the overview ask for a new code, and Rapidgator
+links go to the next backend until you enter one. KnightLoader
 never retries the password on its own meanwhile, since Rapidgator locks
 accounts that keep trying.
 
@@ -644,6 +646,17 @@ your captcha accounts can answer, since a Turnstile captcha only runs on
 ddownload's own address. KnightLoader keeps the session, so a restart needs
 no new sign-in and no new captcha. The login stays with KnightLoader and does
 not go to JDownloader.
+
+An account with two-factor sign-in cannot be signed in from here, since the
+code only goes into ddownload's own page. The login's row then reads **Needs a
+sign-in**. Choose **Sign in here** in its row menu or in its window, sign in
+on ddownload's page in the sign-in browser with your password and the code,
+and KnightLoader takes the session from there. It keeps that session like any
+other, and once ddownload ends it the row asks for a new sign-in rather than
+KnightLoader trying the password again, also after a restart, so ddownload
+mails you no code you did not ask for. **Sign in here** is there for every
+login of these sites, so you can use it whenever a sign-in from here does not
+get through.
 
 Without premium the download is free, and ddownload shows the same captcha
 before each file and a countdown of about a minute. Between two free

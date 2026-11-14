@@ -2969,6 +2969,10 @@ export interface HosterLogin {
   /** The hoster takes the login again only with the one-time code of its
    *  second factor, which `code` says why. */
   askCode?: boolean;
+  /** The sign-in browser's id for the hoster's own sign-in page, for a login
+   *  that can be signed in there, and whether it waits for that. */
+  signInSite?: string;
+  signInHere?: boolean;
 }
 
 /** fetchHosterHosts is the "add a login" picker's host list. */

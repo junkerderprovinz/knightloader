@@ -3,6 +3,7 @@ package ownlogin
 import (
 	"context"
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
@@ -99,5 +100,55 @@ func TestAChangedLoginForgetsTheCodeItWaitedFor(t *testing.T) {
 
 	if st := l.Status(); st.Code != "" || st.Checked {
 		t.Errorf("a changed login kept %+v", st)
+	}
+}
+
+func TestASessionOpenedWithACodeIsHandedOnToBeKept(t *testing.T) {
+	h := &codeHoster{code: "111222"}
+	l := NewLogin(h.signer(0))
+	var kept []string
+	l.Saved = func(user, pass, token string) { kept = append(kept, user+"/"+pass+"/"+token) }
+	l.SetLogin("user", "pass")
+
+	l.SignIn(context.Background(), "111222")
+	h.ended = true
+	l.Check(context.Background())
+
+	if want := []string{"user/pass/token", "user/pass/"}; !slices.Equal(kept, want) {
+		t.Errorf("Saved heard %q, want the token once opened and nothing once the hoster ended it", kept)
+	}
+}
+
+func TestAResumedSessionIsUsedWithoutSigningIn(t *testing.T) {
+	h := &codeHoster{code: "111222"}
+	l := NewLogin(h.signer(time.Nanosecond))
+	l.SetLogin("user", "pass")
+
+	l.RestoreSession("token")
+	st := l.Check(context.Background())
+
+	if !st.Checked || st.Refused || !st.Premium || !l.Ready() {
+		t.Errorf("a resumed session reads as %+v, want the premium login", st)
+	}
+	if h.logins != 0 {
+		t.Errorf("signed in %d times, want none: the kept session still works", h.logins)
+	}
+}
+
+func TestAResumedSessionTheHosterRejectedAsksForANewCode(t *testing.T) {
+	h := &codeHoster{code: "111222", ended: true}
+	l := NewLogin(h.signer(0))
+	var kept []string
+	l.Saved = func(_, _, token string) { kept = append(kept, token) }
+	l.SetLogin("user", "pass")
+
+	l.RestoreSession("token")
+	st := l.Check(context.Background())
+
+	if st.Code != CodeEnded || h.logins != 0 {
+		t.Errorf("a rejected kept session reads as %+v after %d sign-ins, want a new code asked for and no sign-in", st, h.logins)
+	}
+	if !slices.Equal(kept, []string{""}) {
+		t.Errorf("Saved heard %q, want the rejected token dropped", kept)
 	}
 }
