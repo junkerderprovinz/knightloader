@@ -108,6 +108,10 @@ func ForURL(rawurl string) (Site, bool) {
 // session carries.
 func (s Site) SignInCookie(name string) bool { return slices.Contains(s.signIn, name) }
 
+// SignInCookies lists the cookies only a signed-in session carries, which the
+// extension watches to tell a sign-in or a sign-out from other cookies.
+func (s Site) SignInCookies() []string { return slices.Clone(s.signIn) }
+
 // owns reports whether a cookie or link domain is one of the site's or below.
 func (s Site) owns(domain string) bool {
 	domain = strings.TrimPrefix(strings.ToLower(domain), ".")

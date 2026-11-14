@@ -229,3 +229,15 @@ func TestTheSignInCookiesAreTheOnesASessionCarries(t *testing.T) {
 		t.Errorf("SID and PREF read as %v and %v", yt.SignInCookie("SID"), yt.SignInCookie("PREF"))
 	}
 }
+
+func TestTheSignInCookiesAreListedForTheExtension(t *testing.T) {
+	yt, _ := Lookup("youtube")
+	got := yt.SignInCookies()
+	if strings.Join(got, ",") != "SID,__Secure-1PSID,__Secure-3PSID,LOGIN_INFO" {
+		t.Errorf("YouTube's sign-in cookies = %q", got)
+	}
+	got[0] = "changed"
+	if yt.SignInCookie("changed") {
+		t.Error("changing the list changed the site")
+	}
+}
