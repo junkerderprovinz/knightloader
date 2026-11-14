@@ -37,6 +37,15 @@ website takes; ProLeech and RPNet take the two values their API page shows. The 
 list of services, and where each one issues its key, is
 [`internal/accounts/catalogue.go`](https://github.com/junkerderprovinz/knightloader/blob/main/internal/accounts/catalogue.go).
 
+## Sign-ins read from the browser
+
+No variable switches this. The desktop app, and a server started outside a
+container, read the sign-ins of Patreon and YouTube from the browsers of the
+user KnightLoader runs as, and for any other site when a download there asks
+for one. A container reads no browser and takes the session from the browser
+extension instead. See
+[Getting links in](getting-links-in.md#patreon-and-youtube-signed-in-through-the-browser).
+
 ## Trusted proxies
 
 KnightLoader takes five failed sign-ins a minute from one address and refuses

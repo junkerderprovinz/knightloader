@@ -378,17 +378,40 @@ they do not take a user name and password from a program: Patreon wants a
 captcha and a code it mails you. So KnightLoader borrows the sign-in of your
 own browser instead.
 
-Under **Hoster accounts**, choose **Add an account** and pick Patreon or
-YouTube among the hosters. **Sign in in the browser** opens the site's own
-login page. Sign in there as you always do, then click the KnightLoader button
-in your browser toolbar and hand the session over. The extension asks your
-browser for that one site's cookies, reads them once and sends them encrypted
-to your instance. From then on the site sits in the hoster list like any other
-account, says who it is signed in as, and every link of that site you add
-loads with your session.
+In the desktop app, and wherever KnightLoader runs outside a container, you
+do not have to do anything. KnightLoader reads the session straight from the
+browsers on the same computer: Firefox, LibreWolf, Waterfox, Zen, Edge,
+Brave, Opera, Vivaldi and Chromium. If you are signed in to Patreon or YouTube
+in one of them, the site shows up under **Hoster accounts** as signed in,
+together with the browser and profile it came from. That includes a sign-in
+from long before KnightLoader was installed. Not signed in yet? **Sign in in
+the browser** opens the site's login page, and a few seconds after you are
+through, the row says who you are signed in as. If several browsers are
+signed in, the one you used last wins. KnightLoader keeps no copy of the
+session. It reads the browser again whenever it needs it, so signing out in
+the browser signs KnightLoader out as well.
 
-No extension in that browser? **Paste cookies.txt** takes a cookies.txt
-exported while you are signed in.
+Chrome on Windows locks its cookies with a key that only Chrome itself can
+ask for, so KnightLoader cannot read them, and the row tells you. Sign in with
+one of the other browsers there, or hand the session over with the extension.
+A browser in Firefox's family reads fine while it runs. A Chromium browser on
+Windows may hold its cookie file locked while it is open; closing it lets
+KnightLoader in.
+
+A container has no browser of its own, so there the browser extension hands
+the session over. **Sign in in the browser** opens the login page. Sign in
+there as you always do, then click the KnightLoader button in your browser
+toolbar and hand the session over. The extension asks your browser for that
+one site's cookies, reads them once and sends them encrypted to your
+instance, which keeps them in its encrypted credential store. Where a browser
+on the same computer has a session, that one comes first.
+
+Patreon's session goes along with every Patreon link, because Patreon lists
+and plays posts only for a signed-in account. YouTube's does not. Google
+flags accounts that download a lot while signed in, so a YouTube link loads
+without your session first. Only a video that asks for a sign-in (members
+only, age-restricted, private, or "confirm you're not a bot") is tried once
+more with it, right away.
 
 A session runs out after a while. The row then says so, and a members-only
 download that fails on that site offers **Sign in again**, which starts the
@@ -396,9 +419,19 @@ same steps and tries the download again once the new session is there. If it
 still says members only after that, the account itself does not have the
 membership.
 
-The session is kept in the encrypted credential store and used only by yt-dlp
-for that site's links. It never shows up in the settings, a log or the
-diagnostics bundle.
+The session is used only by yt-dlp for that site's links. It never shows up
+in the settings, a log or the diagnostics bundle.
+
+## Other sites that want you signed in
+
+In the desktop app and outside a container, this works for every site yt-dlp
+downloads from, not only Patreon and YouTube. When a download fails because
+the site wants you signed in (a private or age-restricted video, a members'
+post, a login page), KnightLoader looks for that site's cookies in the
+browsers on the same computer. If one of them looks signed in, the download is
+tried once more with those cookies, right away. Nothing is stored, and the log
+names the browser the session came from. In a container, a link that the
+extension sends from a page brings that page's cookies along instead.
 
 ## Rapidgator
 

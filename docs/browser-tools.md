@@ -252,7 +252,9 @@ nothing about this shape blocks it later.
 ### Handing a site's sign-in over
 
 For the sites signed into through the browser (`internal/sitelogin`,
-Patreon and YouTube so far), **Sign in in the browser** on the accounts page
+Patreon and YouTube so far), an instance in a container has no browser to read
+the session from (see the next section), so the extension hands it over.
+**Sign in in the browser** on the accounts page
 opens the site's login page and calls `POST /api/sitelogins/{id}/begin`, so
 the instance waits for that site for a quarter of an hour. The popup asks
 every instance of the group `GET /api/sitelogins/handover`, which lists each
@@ -270,6 +272,47 @@ still reads them (`signin.js`). The cookies go sealed through the relay as
 extension alone, never from the phone or another instance. It keeps only the
 site's own live cookies, writes them as a cookies.txt into the encrypted
 credential store and answers who the session signs in as.
+
+### Reading the sign-in from the browsers on the machine
+
+Outside a container (`buildinfo.InContainer`), the instance needs no
+extension for a site's sign-in: `app.StartBrowserSessions`, which both
+binaries call, has `internal/browsercookies` read the sites' cookies straight
+from the browsers of the user it runs as. It reads at start, every ten
+minutes, when the accounts page lists the sites (at most once a minute, every
+three seconds while a Sign in waits) and before a download of the site, and
+takes the freshest session the site signs somebody in with: Patreon's is asked
+through `current_user`, YouTube's is known by its sign-in cookies. Nothing of
+it is stored, so signing out in the browser takes effect at the next read. A
+session the extension handed over is used only where no browser here has one.
+
+| Browser | Windows | macOS | Linux |
+| --- | --- | --- | --- |
+| Firefox, LibreWolf, Waterfox, Zen | `cookies.sqlite` in plain text | the same | the same, including the Snap and Flatpak folders |
+| Edge, Brave, Opera, Opera GX (Windows only), Vivaldi, Chromium | AES-GCM, key from `Local State` opened with DPAPI | AES-CBC, key from the Keychain entry `<Browser> Safe Storage` | v10 with the built-in password, v11 with the keyring's through `secret-tool` |
+| Chrome | app-bound (v20), not readable | as above | as above |
+
+The cookie database is copied before it is read, with its write-ahead log,
+and on Windows it is opened with every share flag, since the browser holds it
+open. A copy the browser refuses even so reads as locked. Firefox's container
+tabs and partitioned cookies are left out, so the default cookie store is
+what counts. A value sealed with Chrome's app-bound key (v20), in any
+browser, is not decrypted: the browser is named in the site's `unreadable`
+list instead, and the log says why once.
+
+`GET /api/sitelogins` answers per site, beside `state`, `account`, `expires`
+and `waiting`: `use` (`always` or `onNeed`), `source` (`browser`, `extension`
+or empty), `browser` (the browser and profile, as "Firefox (default-release)",
+when `source` is `browser`) and `unreadable` (the browsers whose cookies of
+the site could not be read).
+
+A site's `use` says when yt-dlp gets the session. Patreon's goes with every
+run. YouTube's is held back, since Google flags accounts that download a lot
+while signed in, and goes only into a second run that follows at once when
+the first failed with `botCheck`, `membersOnly` or `signInRequired`
+(`ytdlp.NeedsSignIn`). Any other site gets the same second run with whatever
+a browser here holds for the link's registrable domain, if a cookie name
+there looks like a sign-in.
 
 ### The download button on videos
 

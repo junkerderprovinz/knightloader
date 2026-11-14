@@ -38,8 +38,28 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
+### Added
+
+- **Patreon and YouTube sign in with your browser's own session.** The
+  desktop app, and a server outside a container, read it straight from
+  Firefox, LibreWolf, Waterfox, Zen, Edge, Brave, Opera, Vivaldi or Chromium
+  on the same computer, also when you signed in there long before. You do not
+  have to do anything, and the accounts page names the browser the session
+  came from. Sign out in the browser and KnightLoader is signed out too.
+  Chrome on Windows locks its cookies away from every other program, and the
+  page tells you when that is the case.
+- **Any site that wants you signed in gets a second try with your browser's
+  session.** When a yt-dlp download fails because the site asks for a
+  sign-in, such as a private or age-restricted video, the desktop app tries it
+  once more right away with that site's cookies from your browser.
+
 ### Changed
 
+- **YouTube downloads start without your session.** Google flags accounts
+  that download a lot while signed in, so KnightLoader uses your YouTube
+  session only for a video that asks for it (members only, age-restricted,
+  private, or the "not a bot" check) and tries that one again at once.
+  Patreon still gets the session with every link.
 - **One switch keeps every component current.** yt-dlp, FFmpeg, Deno, the
   desktop app's Java and JDownloader now share "Update components
   automatically" on the Components card, and it is on from the start.
@@ -51,6 +71,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Linux it lands in the data folder during the install, checked against
   yt-dlp's own checksums, so the copy KnightLoader keeps current is there from
   the first start. The macOS app fetches it when it first starts.
+
+### Removed
+
+- **Pasting a cookies.txt is gone,** on the accounts page and for yt-dlp,
+  together with the switch that let yt-dlp use pasted files. Sessions come
+  from your browser or the extension. Files pasted before are deleted at the
+  next start.
 
 ### Fixed
 
