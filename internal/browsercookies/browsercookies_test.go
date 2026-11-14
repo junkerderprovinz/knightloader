@@ -387,3 +387,36 @@ func TestDomainMatching(t *testing.T) {
 		}
 	}
 }
+
+// A process that ends in the middle of a read leaves its copy behind, and it
+// holds the cookies' values.
+func TestACopyLeftBehindIsSweptAway(t *testing.T) {
+	tmp := t.TempDir()
+	old := filepath.Join(tmp, "kl-browsercookies-1")
+	fresh := filepath.Join(tmp, "kl-browsercookies-2")
+	other := filepath.Join(tmp, "someone-elses")
+	for _, d := range []string{old, fresh, other} {
+		if err := os.MkdirAll(d, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(d, "cookies.db"), []byte("x"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	long := time.Now().Add(-time.Hour)
+	if err := os.Chtimes(old, long, long); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chtimes(other, long, long); err != nil {
+		t.Fatal(err)
+	}
+	sweep(tmp, time.Now())
+	if _, err := os.Stat(old); !os.IsNotExist(err) {
+		t.Errorf("an hour-old copy is still there (stat err = %v)", err)
+	}
+	for _, d := range []string{fresh, other} {
+		if _, err := os.Stat(d); err != nil {
+			t.Errorf("%s went too: %v", d, err)
+		}
+	}
+}

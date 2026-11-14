@@ -22,6 +22,7 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -108,6 +109,28 @@ func read(profiles []Profile, domains []string) (found []Found, unreadable []Unr
 	return found, unreadable
 }
 
+// copyPrefix starts the name of the folder a database is copied into.
+const copyPrefix = "kl-browsercookies-"
+
+// staleCopy is the age from which a copy is one a process left behind when it
+// ended in the middle of a read. A read takes well under a second.
+const staleCopy = 10 * time.Minute
+
+var swept sync.Once
+
+// sweep deletes the copies in dir that a read never got to delete.
+func sweep(dir string, now time.Time) {
+	entries, _ := os.ReadDir(dir)
+	for _, e := range entries {
+		if !e.IsDir() || !strings.HasPrefix(e.Name(), copyPrefix) {
+			continue
+		}
+		if fi, err := e.Info(); err == nil && now.Sub(fi.ModTime()) > staleCopy {
+			os.RemoveAll(filepath.Join(dir, e.Name()))
+		}
+	}
+}
+
 // Cookies reads the profile's cookies of the domains and every host below
 // them. The database is read from a copy, since the browser holds it open.
 func (p Profile) Cookies(domains []string) ([]Cookie, error) {
@@ -115,7 +138,8 @@ func (p Profile) Cookies(domains []string) ([]Cookie, error) {
 	for i, d := range domains {
 		lower[i] = strings.TrimPrefix(strings.ToLower(d), ".")
 	}
-	tmp, err := os.MkdirTemp("", "kl-browsercookies-*")
+	swept.Do(func() { sweep(os.TempDir(), time.Now()) })
+	tmp, err := os.MkdirTemp("", copyPrefix+"*")
 	if err != nil {
 		return nil, err
 	}
