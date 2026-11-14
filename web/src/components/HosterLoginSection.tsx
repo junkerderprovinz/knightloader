@@ -32,7 +32,7 @@ import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconClose, IconSave, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 import { SiteLoginDialog, useSignInWays } from './SiteLoginDialog';
-import { SignInBrowserWindow, useSignInBrowserAvailable } from './SignInBrowserWindow';
+import { SignInBrowserWindow, SignInHereButton, useSignInBrowserAvailable } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
 
 // Faster than the 30s account health poll, since a new login moves from queued
@@ -154,10 +154,29 @@ function siteLoginRow(
   };
 }
 
-/** hosterLoginRow is one login as an AccountTable row. */
+/**
+ * signInPageOf is a hoster login's own sign-in page as the sign-in browser
+ * opens it. Only the window's title and logo read more than the id.
+ */
+function signInPageOf(login: HosterLogin): SiteLogin {
+  return {
+    id: login.signInSite ?? '',
+    name: login.host,
+    host: login.host,
+    loginUrl: '',
+    domains: [],
+    state: login.status === 'active' ? 'signedIn' : 'signedOut',
+    unreadable: [],
+    readsBrowsers: false,
+    disconnected: false,
+  };
+}
+
+/** hosterLoginRow is one login as an AccountTable row. here opens the sign-in browser on the hoster's own page. */
 function hosterLoginRow(
   row: HosterLogin,
   actions: { onToggle: (v: boolean) => void; onEdit: () => void; onRemove: () => void },
+  here?: { label: string; onSelect: () => void },
 ): AccountRow {
   return {
     key: row.host,
@@ -170,6 +189,7 @@ function hosterLoginRow(
     // JD reports bytes left and max; without a max the row shows a dash.
     traffic: { used: Math.max(0, (row.trafficMax ?? 0) - (row.trafficLeft ?? 0)), limit: row.trafficMax ?? 0 },
     ...actions,
+    menu: here ? [{ id: 'actions', items: [{ id: 'signin-here', ...here }] }] : undefined,
   };
 }
 
@@ -191,6 +211,7 @@ export function HosterLoginSection({
   const [confirming, setConfirming] = useState<HosterLogin | null>(null);
   const [confirmingSite, setConfirmingSite] = useState<SiteLogin | null>(null);
   const [browsingSite, setBrowsingSite] = useState<SiteLogin | null>(null);
+  const [browsingLogin, setBrowsingLogin] = useState<HosterLogin | null>(null);
   const browserHere = useSignInBrowserAvailable();
 
   const rows = data.logins ?? [];
@@ -204,11 +225,17 @@ export function HosterLoginSection({
           label={t('accounts.hoster.title')}
           rows={[
             ...rows.map((row) =>
-              hosterLoginRow(row, {
-                onToggle: (v) => void data.toggle(row, v),
-                onEdit: () => setEditing(row),
-                onRemove: () => setConfirming(row),
-              }),
+              hosterLoginRow(
+                row,
+                {
+                  onToggle: (v) => void data.toggle(row, v),
+                  onEdit: () => setEditing(row),
+                  onRemove: () => setConfirming(row),
+                },
+                browserHere && row.signInSite
+                  ? { label: t('signInBrowser.signInHere'), onSelect: () => setBrowsingLogin(row) }
+                  : undefined,
+              ),
             ),
             ...data.sites.map((site) =>
               siteLoginRow(
@@ -262,6 +289,15 @@ export function HosterLoginSection({
 
       {browsingSite && (
         <SignInBrowserWindow site={browsingSite} hue={2} onChanged={data.putSite} onClose={() => setBrowsingSite(null)} />
+      )}
+
+      {browsingLogin && (
+        <SignInBrowserWindow
+          site={signInPageOf(browsingLogin)}
+          hue={2}
+          onChanged={() => void data.load()}
+          onClose={() => setBrowsingLogin(null)}
+        />
       )}
 
       {confirming && (
@@ -382,7 +418,17 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
         </span>
       );
     case 'rejected':
-      // Waiting for a code is the person's next step, not a dead login.
+      // Waiting for a code or a sign-in is the person's next step, not a dead
+      // login.
+      if (login.signInHere) {
+        return (
+          <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
+            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
+            {t('accounts.hoster.status.needsSignIn')}
+            {detail && <InfoBubble tip={detail} />}
+          </span>
+        );
+      }
       if (login.askCode) {
         return (
           <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
@@ -584,6 +630,19 @@ function HosterLoginDialog({
               >
                 {codeNote}
               </p>
+            </div>
+          )}
+          {editing?.signInSite && (
+            <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+              <p className="min-w-0 flex-[1_1_12.5rem] text-sm text-carbon-textMuted">{t('accounts.hoster.signInHereHint')}</p>
+              <SignInHereButton
+                site={signInPageOf(editing)}
+                hue={2}
+                disabled={saving}
+                onChanged={(s) => {
+                  if (s.state === 'signedIn') void onSaved();
+                }}
+              />
             </div>
           )}
         </div>
