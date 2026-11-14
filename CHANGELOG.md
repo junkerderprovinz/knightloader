@@ -103,6 +103,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the first start of an older install, keeps it current and hands it to
   yt-dlp. The container image brings Deno as well, and the self-test warns
   when yt-dlp finds no JavaScript runtime.
+- **A torrent your debrid service passed on says why.** When the service
+  turns a torrent down, such as one from a private tracker, one it has not
+  cached while only cached ones may go there, or one it made no progress on,
+  the built-in torrent client takes it over. Its row now names the service
+  and the reason, so a torrent from Radarr or Sonarr no longer just sits
+  there leeching with nothing to explain it.
+- **Radarr and Sonarr see the debrid service's progress.** While the service
+  still fetches a torrent onto its own servers, the qBittorrent connection
+  reports how far it has got and how fast, instead of a download stuck at
+  nothing.
 
 ## [2.8.3] - 2026-11-13
 
