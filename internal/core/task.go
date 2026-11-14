@@ -671,6 +671,11 @@ type Task struct {
 	ResolverPin string `json:"resolverPin,omitempty"`
 	// Origin is the intake path this link arrived by.
 	Origin Origin `json:"origin,omitempty"`
+	// AddedByAdmin records that somebody with every right added the link: the
+	// signed-in owner, an admin token or the owner's browser extension. Only
+	// such a task's downloads may carry the site sessions of the owner's
+	// browsers, which a token that may only add and read must not reach.
+	AddedByAdmin bool `json:"addedByAdmin,omitempty"`
 	// BrowserFile says the link is a plain file: one a browser was
 	// downloading, or one yt-dlp's probe found nothing in but the file. It
 	// is fetched as a plain file on every start, and under the browser's

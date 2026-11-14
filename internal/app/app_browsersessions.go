@@ -198,6 +198,29 @@ func (a *App) unreadableBrowsers(unreadable []browsercookies.Unreadable) []strin
 	return names
 }
 
+// maySignIn reports whether a task's downloads may carry the sessions of the
+// owner's browsers and the extension's hand-over: only one somebody with
+// every right added, for yt-dlp's MaySignIn hook.
+func (a *App) maySignIn(taskID string) bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	t := a.tasks[taskID]
+	return t != nil && t.AddedByAdmin
+}
+
+// linkAddedByAdmin reports whether a row of the link was added by somebody
+// with every right, for a probe that serves all the link's rows.
+func (a *App) linkAddedByAdmin(rawurl string) bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	for _, t := range a.tasks {
+		if t.URL == rawurl && t.AddedByAdmin {
+			return true
+		}
+	}
+	return false
+}
+
 // sessionOf is the site's session for yt-dlp: a browser's first, the one the
 // extension handed over otherwise.
 func (a *App) sessionOf(site sitelogin.Site) string {

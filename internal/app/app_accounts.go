@@ -353,6 +353,7 @@ func (a *App) ytdlpBackend(bin string) *ytdlp.Backend {
 		}
 		yb.Sessions = a.siteSession
 		yb.SignIn = a.signInSession
+		yb.MaySignIn = a.maySignIn
 		yb.Headers = a.browserHeadersFor
 		yb.InUse = a.usedByOther
 		yb.Placing = func(taskID string) workdir.Options {

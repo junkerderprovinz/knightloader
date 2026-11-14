@@ -138,6 +138,7 @@ func registerLinks(reg *Registry, a *app.App) {
 					Format:           body.Format,
 					Choice:           body.Choice,
 					Start:            body.Start,
+					ByAdmin:          addsAsAdmin(a, r),
 					Resolver:         body.Resolver,
 				})
 				if err != nil {
