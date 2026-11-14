@@ -23,8 +23,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/sitelogin"
 )
 
-// SignInBrowserSource is the Source of a session the sign-in browser stored.
-const SignInBrowserSource = "kl-browser"
+// SourceSignInBrowser is the Source of a session the sign-in browser stored.
+const SourceSignInBrowser = "kl-browser"
 
 // ErrNoSignInBrowser is a sign-in browser asked for where there is none.
 var ErrNoSignInBrowser = errors.New("there is no sign-in browser on this server")
@@ -119,7 +119,7 @@ func (a *App) signInBrowserSession(site sitelogin.Site, jar string) any {
 		return a.siteLoginState(site, false)
 	}
 	a.noteSignInBrowserJar(site.ID, jar)
-	st.Source = SignInBrowserSource
+	st.Source = SourceSignInBrowser
 	return st
 }
 
