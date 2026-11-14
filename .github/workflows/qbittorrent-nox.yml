@@ -1,0 +1,181 @@
+name: qbittorrent-nox
+
+# Builds the qbittorrent-nox the Windows and macOS apps run, without a window
+# (GUI=OFF, as qBittorrent's own macOS CI builds it), at the pinned qBittorrent
+# and libtorrent versions, and publishes it with its sources as a release that
+# internal/qbittorrent/nox/versions.json points at. Linux and the container
+# take userdocs/qbittorrent-nox-static instead.
+#
+# The release goes to the repository in the QBITTORRENT_RELEASES variable, or
+# to this one, as qbittorrent-nox-v<version>, never marked latest so the app's
+# own update check does not see it. Publishing elsewhere needs a token with
+# contents: write there in the QBITTORRENT_RELEASES_TOKEN secret.
+
+on:
+  workflow_dispatch:
+    inputs:
+      qbittorrent:
+        description: qBittorrent version
+        default: "4.5.5"
+        required: true
+      libtorrent:
+        description: libtorrent version
+        default: "1.2.19"
+        required: true
+      publish:
+        description: Publish the release
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  QT_VERSION: "6.5.3"
+  AQT_VERSION: "3.3.0"
+
+jobs:
+  windows:
+    name: windows-amd64
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: qbittorrent/qBittorrent
+          ref: release-${{ inputs.qbittorrent }}
+          path: qbittorrent
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: arvidn/libtorrent
+          ref: v${{ inputs.libtorrent }}
+          path: libtorrent
+          submodules: recursive
+      - name: Developer prompt
+        shell: pwsh
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          & "$vs\Common7\Tools\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+          Get-ChildItem env: | ForEach-Object { "$($_.Name)=$($_.Value)" } | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Dependencies
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install --triplet x64-windows-static-md boost-asio boost-system boost-multi-index boost-optional boost-variant boost-crc boost-config boost-pool boost-logic openssl zlib
+          python -m pip install "aqtinstall==$env:AQT_VERSION"
+          python -m aqt install-qt --outputdir "$env:RUNNER_TEMP\qt" windows desktop $env:QT_VERSION win64_msvc2019_64
+      - name: libtorrent
+        shell: pwsh
+        run: |
+          cmake -S libtorrent -B lt-build -G Ninja -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md `
+            -DBUILD_SHARED_LIBS=OFF -Ddeprecated-functions=OFF -DCMAKE_INSTALL_PREFIX="$env:RUNNER_TEMP\lt"
+          cmake --build lt-build
+          cmake --install lt-build
+      - name: qbittorrent-nox
+        shell: pwsh
+        run: |
+          $qt = "$env:RUNNER_TEMP\qt\$env:QT_VERSION\msvc2019_64"
+          cmake -S qbittorrent -B qbt-build -G Ninja -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md `
+            -DCMAKE_PREFIX_PATH="$qt;$env:RUNNER_TEMP\lt" -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF
+          cmake --build qbt-build
+          New-Item -ItemType Directory -Force out | Out-Null
+          Copy-Item qbt-build\qbittorrent-nox.exe out\
+          & "$qt\bin\windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw out\qbittorrent-nox.exe
+          Copy-Item qbittorrent\COPYING out\COPYING.txt
+          $v = (& out\qbittorrent-nox.exe --version) -join ' '
+          if ($v -notmatch "qBittorrent v${{ inputs.qbittorrent }}") { throw "the build says: $v" }
+          Compress-Archive -Path out\* -DestinationPath "qbittorrent-nox-${{ inputs.qbittorrent }}-windows-amd64.zip"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: windows-amd64
+          path: qbittorrent-nox-*.zip
+
+  macos:
+    name: darwin-${{ matrix.arch }}
+    strategy:
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          - arch: amd64
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: qbittorrent/qBittorrent
+          ref: release-${{ inputs.qbittorrent }}
+          path: qbittorrent
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: arvidn/libtorrent
+          ref: v${{ inputs.libtorrent }}
+          path: libtorrent
+          submodules: recursive
+      - name: Dependencies
+        run: |
+          brew install boost openssl@3 ninja
+          python3 -m pip install --break-system-packages "aqtinstall==$AQT_VERSION"
+          python3 -m aqt install-qt --outputdir "$RUNNER_TEMP/qt" mac desktop "$QT_VERSION" clang_64
+      - name: libtorrent
+        run: |
+          cmake -S libtorrent -B lt-build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)" \
+            -DBUILD_SHARED_LIBS=OFF -Ddeprecated-functions=OFF -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/lt"
+          cmake --build lt-build
+          cmake --install lt-build
+      - name: qbittorrent-nox
+        run: |
+          qt="$RUNNER_TEMP/qt/$QT_VERSION/macos"
+          cmake -S qbittorrent -B qbt-build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$qt;$RUNNER_TEMP/lt;$(brew --prefix boost)" \
+            -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)" \
+            -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF
+          cmake --build qbt-build
+          # macdeployqt only takes an app bundle, so the program goes into one,
+          # which versions.json names as the asset's bin.
+          app=qbittorrent-nox.app
+          mkdir -p "$app/Contents/MacOS"
+          cp qbt-build/qbittorrent-nox "$app/Contents/MacOS/"
+          printf '<?xml version="1.0" encoding="UTF-8"?>\n<plist version="1.0"><dict><key>CFBundleExecutable</key><string>qbittorrent-nox</string><key>CFBundleIdentifier</key><string>org.qbittorrent.nox</string><key>CFBundlePackageType</key><string>APPL</string></dict></plist>\n' > "$app/Contents/Info.plist"
+          "$qt/bin/macdeployqt" "$app" -no-plugins
+          codesign --force --deep --sign - "$app"
+          cp qbittorrent/COPYING "$app/Contents/COPYING"
+          v="$("$app/Contents/MacOS/qbittorrent-nox" --version)"
+          case "$v" in *"qBittorrent v${{ inputs.qbittorrent }}"*) ;; *) echo "the build says: $v"; exit 1 ;; esac
+          ditto -c -k --keepParent "$app" "qbittorrent-nox-${{ inputs.qbittorrent }}-darwin-${{ matrix.arch }}.zip"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: darwin-${{ matrix.arch }}
+          path: qbittorrent-nox-*.zip
+
+  release:
+    if: inputs.publish
+    needs: [windows, macos]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Sources
+        # GPL section 6: the sources go out beside the programs built from them.
+        run: |
+          curl -fsSL -o "dist/qBittorrent-${{ inputs.qbittorrent }}-source.tar.gz" \
+            "https://github.com/qbittorrent/qBittorrent/archive/refs/tags/release-${{ inputs.qbittorrent }}.tar.gz"
+          curl -fsSL -o "dist/libtorrent-${{ inputs.libtorrent }}-source.tar.gz" \
+            "https://github.com/arvidn/libtorrent/releases/download/v${{ inputs.libtorrent }}/libtorrent-rasterbar-${{ inputs.libtorrent }}.tar.gz"
+          cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ secrets.QBITTORRENT_RELEASES_TOKEN || github.token }}
+          REPO: ${{ vars.QBITTORRENT_RELEASES || github.repository }}
+        run: |
+          tag="qbittorrent-nox-v${{ inputs.qbittorrent }}"
+          target=()
+          if [ "$REPO" = "${{ github.repository }}" ]; then target=(--target "${{ github.sha }}"); fi
+          gh release create "$tag" dist/* --repo "$REPO" "${target[@]}" --latest=false \
+            --title "qbittorrent-nox ${{ inputs.qbittorrent }} (libtorrent ${{ inputs.libtorrent }})" \
+            --notes "qbittorrent-nox ${{ inputs.qbittorrent }} built without a window against libtorrent ${{ inputs.libtorrent }} and Qt ${QT_VERSION}, for KnightLoader on Windows and macOS. qBittorrent is free software under the GPL and libtorrent under the BSD licence; both sources are attached."
