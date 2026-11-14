@@ -48,6 +48,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the version you pick there, 4.5.5 to begin with, and the automatic update
   leaves it alone. Linux and the container take the static build from
   userdocs/qbittorrent-nox-static. `KL_QBITTORRENT=0` leaves it off.
+- **Cross-seeding.** A finished torrent is looked for on your other trackers
+  and seeded there too, from the same files. RED and OPS ask each other's API
+  for the twin with your API key, and any other tracker is searched through
+  Prowlarr or Jackett. Each tracker is asked about each torrent once. The
+  twin goes into KnightLoader's qBittorrent without a check, seeding from your
+  files or from hardlinks, symlinks or reflinks in a folder you pick, and
+  leaves with its task. Settings, Torrents has a test for every key and lists
+  the latest twins, and `cross-seed.jsonl` in the data folder keeps them all.
+  Your own cross-seed daemon can take each finished torrent instead.
 - **Sign in to Patreon and YouTube right in KnightLoader.** The site's window
   has "Sign in here": the login page opens in a browser KnightLoader runs
   itself and shows live in the window, and you click and type in it as

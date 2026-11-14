@@ -142,6 +142,38 @@ in and shows qBittorrent's version. Once qBittorrent has a torrent, KnightLoader
 does nothing more with it. A torrent that fails the check, or that qBittorrent
 does not take, is not seeded anywhere, and its row says why.
 
+**Cross-seeding** seeds a finished torrent on your other trackers as well,
+from the files you already have. Switch it on under Settings, Torrents,
+Cross-seeding. For RED and OPS, give your API key and your own announce
+address with the passkey. A torrent from one of the two sites differs from its
+twin on the other only in a tag, so KnightLoader asks the other site's API for
+that twin, at most five times in ten seconds. Other trackers are searched
+through Prowlarr or Jackett: add each Torznab feed with its address and API
+key, and a result counts only when its files have the same names and sizes.
+Each tracker is asked about each torrent once: when the torrent finishes, and
+for the torrents already done when you switch cross-seeding on or change a
+key. `cross-seed-asked.json` in the data folder remembers every answer, and a
+tracker that failed is asked again once its key or address changes. A torrent
+with files left out is skipped, since its twin needs every file.
+
+A twin goes into KnightLoader's qBittorrent with its check skipped, tagged
+`cross-seed` and filed under the category you set. "Files for the twins" picks
+where it seeds from. In place uses your files as they are. Hardlinks and
+reflinks go into a folder of each tracker's name in the link folder and need
+it on the same drive as the downloads, and KnightLoader refuses a twin across
+drives with that reason. Symlinks work across drives. The twins are not tasks.
+They seed as long as their task is in the list, whatever the seeding targets
+say, and leave qBittorrent with it, their linked files too when the task's
+files go. The totals on the overview count only the tasks. "Recent
+cross-seeds" lists the last twins that were added, refused or failed, with the
+reason, and `cross-seed.jsonl` in the data folder keeps them all. "Test key",
+"Test indexer" and "Test daemon" each ask once.
+
+If you run [cross-seed](https://www.cross-seed.org/) yourself, give its address
+and API key instead. KnightLoader then hands it each finished torrent by its
+info hash through its webhook and searches nothing itself. The daemon has to
+reach the torrent on its own, through a client or a torrent folder it watches.
+
 **Extra trackers** help a torrent with few peers. Type addresses in, or give
 the address of a public list such as
 [ngosang/trackerslist](https://github.com/ngosang/trackerslist), which is
