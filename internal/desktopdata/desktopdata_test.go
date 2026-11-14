@@ -10,6 +10,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/jre"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
+	"github.com/junkerderprovinz/knightloader/internal/qbittorrent/nox"
 )
 
 func TestKLDataNamesTheDataFolder(t *testing.T) {
@@ -33,12 +34,17 @@ func TestTheDataFolderIsNamedAfterTheProduct(t *testing.T) {
 
 func TestEachComponentLandsWhereTheAppLooks(t *testing.T) {
 	data := t.TempDir()
+	qbitName := "qbittorrent-nox"
+	if runtime.GOOS == "windows" {
+		qbitName += ".exe"
+	}
 	want := map[string]string{
 		"yt-dlp":      mediatools.BinaryPath(data),
 		"ffmpeg":      mediatools.FFmpegPath(data),
 		"deno":        mediatools.DenoPath(data),
 		"java":        jre.Java(data),
 		"jdownloader": filepath.Join(data, "jd", "JDownloader.jar"),
+		"qbittorrent": filepath.Join(data, "tools", "qbittorrent", nox.Versions().Default, qbitName),
 	}
 	got := map[string]string{}
 	for _, c := range Components(data) {

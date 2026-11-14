@@ -1,7 +1,8 @@
 // Package desktopdata is where the desktop app keeps its data, and what its
 // installer fetches into it so the first start finds yt-dlp, ffmpeg, Deno, the
-// Java runtime and JDownloader in place. The installer is a module of its own, so the
-// folders live here, where it and the app read them from the same code.
+// Java runtime, JDownloader and qBittorrent in place. The installer is a
+// module of its own, so the folders live here, where it and the app read them
+// from the same code.
 package desktopdata
 
 import (
@@ -12,6 +13,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/jre"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
+	"github.com/junkerderprovinz/knightloader/internal/qbittorrent/nox"
 )
 
 // Dir is the data folder of the desktop app named product: KL_DATA when it is
@@ -42,6 +44,7 @@ type Component struct {
 // checks and records, so it takes each copy as its own and keeps it current.
 func Components(dataDir string) []Component {
 	jd := provision.New(JDDir(dataDir))
+	qbit, _ := nox.Versions().Pick("")
 	return []Component{
 		{
 			// Fetched even where a yt-dlp is on PATH: the fetched copy is the
@@ -101,6 +104,17 @@ func Components(dataDir string) []Component {
 			Target: jd.JarPath(),
 			Fetch: func(ctx context.Context, progress func(done, total int64)) error {
 				return jd.EnsureJar(ctx, progress)
+			},
+		},
+		{
+			// The default version: one picked in the settings later is
+			// fetched by the app itself.
+			ID:     "qbittorrent",
+			Name:   "qBittorrent",
+			Target: nox.BinaryPath(dataDir, qbit),
+			Fetch: func(ctx context.Context, progress func(done, total int64)) error {
+				_, _, err := nox.Install(ctx, dataDir, qbit, progress)
+				return err
 			},
 		},
 	}

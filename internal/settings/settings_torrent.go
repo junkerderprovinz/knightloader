@@ -134,6 +134,11 @@ type Torrent struct {
 	// above, or SeedInQBittorrent. Empty is the built-in client too.
 	SeedIn      string      `json:"seedIn"`
 	QBittorrent QBittorrent `json:"qbittorrent"`
+	// EngineVersion is the qBittorrent version KnightLoader runs, one of
+	// nox's version table. Empty is the table's default. It is held where it
+	// is and never moved by the automatic component update, since private
+	// trackers admit only the versions on their list.
+	EngineVersion string `json:"engineVersion"`
 }
 
 // The clients a torrent a debrid service fetched can seed in.
@@ -258,6 +263,7 @@ func sanitizeTorrent(n Settings) Settings {
 	t.BannedTrackers = trimmedLines(t.BannedTrackers)
 	t.TrackerListURL = strings.TrimSpace(t.TrackerListURL)
 	t.Interface = strings.TrimSpace(t.Interface)
+	t.EngineVersion = strings.TrimSpace(t.EngineVersion)
 	// A client this build does not know seeds in the built-in one, as empty does.
 	if t.SeedIn != "" && t.SeedIn != SeedInQBittorrent {
 		t.SeedIn = SeedInBuiltIn

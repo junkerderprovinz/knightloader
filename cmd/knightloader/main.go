@@ -167,6 +167,11 @@ func main() {
 	a.StartAccountHealthNow()
 	a.StartYtdlpAutoUpdate()
 	a.StartJDAutoUpdate()
+	// The qBittorrent that carries the torrents, fetched at its pinned
+	// version into the data folder; KL_QBITTORRENT=0 opts out.
+	if envInt("KL_QBITTORRENT", 1) == 1 {
+		a.StartQBittorrent()
+	}
 	// Signed in to a site in a browser on this machine means signed in here;
 	// in a container this does nothing.
 	a.StartBrowserSessions()

@@ -178,6 +178,8 @@ var groupRefused = []string{
 	"POST /api/mediatools/ytdlp/update",
 	"GET /api/components/update",
 	"POST /api/components/update",
+	"GET /api/components/qbittorrent",
+	"POST /api/components/qbittorrent/start",
 
 	// The system: backups, restore, restart, maintenance, diagnostics and the
 	// readings of this machine.

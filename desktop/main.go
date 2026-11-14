@@ -111,6 +111,11 @@ func main() {
 	if a.SwitchJava != nil {
 		a.StartJavaAutoUpdate()
 	}
+	// The qBittorrent that carries the torrents, which the installer has
+	// usually fetched already.
+	if os.Getenv("KL_QBITTORRENT") != "0" {
+		a.StartQBittorrent()
+	}
 
 	// Window and tray preferences stay out of settings.Settings, which every
 	// connected browser reads and writes; see config.go.

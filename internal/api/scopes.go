@@ -178,8 +178,10 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/jd/update": apitoken.ScopeAdmin,
 	// So does Update now, which updates JDownloader and its Java with the
 	// rest.
-	"GET /api/components/update":  apitoken.ScopeAdmin,
-	"POST /api/components/update": apitoken.ScopeAdmin,
+	"GET /api/components/update":             apitoken.ScopeAdmin,
+	"POST /api/components/update":            apitoken.ScopeAdmin,
+	"GET /api/components/qbittorrent":        apitoken.ScopeAdmin,
+	"POST /api/components/qbittorrent/start": apitoken.ScopeAdmin,
 
 	// A JDownloader import reads a folder on this machine and writes
 	// accounts, rules and settings.

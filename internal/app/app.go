@@ -512,6 +512,8 @@ type App struct {
 	// componentsState is when each component was last asked after, and
 	// how far Update now has come (app_components.go).
 	componentsState
+	// qbitState is the qBittorrent this app runs (app_qbitengine.go).
+	qbitState
 	// jdSetupState is why the desktop build has no JDownloader of its own
 	// yet (app_jdsetup.go).
 	jdSetupState
@@ -593,6 +595,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		return mediatools.UpdateDeno(ctx, dataDir, nil)
 	}
 	a.checkJD, a.restartJD = a.CheckJDUpdate, restartJDForUpdate
+	a.initQBit()
 	a.latestJava = func(ctx context.Context) (*jre.Release, error) { return jre.Latest(ctx, jre.AdoptiumAPI) }
 	a.stageJava = func(ctx context.Context, rel *jre.Release) error { return jre.Stage(ctx, a.DataDir, rel) }
 	// Every outbound client comes from internal/httpx, so proxy, user agent,
@@ -1022,6 +1025,7 @@ func (a *App) Close() error {
 	// Before the engine and the store, since a sweep in flight removes tasks
 	// from both.
 	a.wg.Wait()
+	a.stopQBit()
 	a.wmu.Lock()
 	if w := a.watcher.Swap(nil); w != nil {
 		_ = w.Close()
@@ -1281,6 +1285,7 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyLogFile(applied.LogFile)
 	a.applyConnections(applied)
 	a.applyTorrentConfig(applied.Torrent)
+	a.applyQBitVersion(applied.Torrent.EngineVersion)
 	a.applyQuiet(applied)
 	a.applyModuleSwitches(applied)
 	// The Usenet servers and the priority card that ranks them against the
