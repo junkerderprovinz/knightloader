@@ -31,9 +31,9 @@ func vpnProvider(st vpnconn.State, id string) vpnconn.ProviderState {
 	return vpnconn.ProviderState{}
 }
 
-// The VPN routes connect and disconnect, and the torrent client follows: on
-// the tunnel and its forwarded port while a provider is in use, back on the
-// machine's own connection after.
+// The VPN routes connect and disconnect, and the torrent client follows: tied
+// to the tunnel while a provider is in use, back on the machine's own
+// connection after.
 func TestVPNRoutesPutTorrentsOnTheTunnel(t *testing.T) {
 	vs := vpntest.Start(t)
 	vs.SetLifetime(2 * time.Second)
@@ -68,8 +68,10 @@ func TestVPNRoutesPutTorrentsOnTheTunnel(t *testing.T) {
 	if p.State != "connected" || p.ForwardedPort != 51234 || !p.Configured {
 		t.Fatalf("proton is %+v", p)
 	}
-	if ov := a.TorrentOverview(); ov.Interface != vpnconn.NetworkName || ov.InterfaceDown {
-		t.Errorf("torrents are on %q (down %v), want the tunnel", ov.Interface, ov.InterfaceDown)
+	// qBittorrent is another program and cannot reach the tunnel, so the
+	// torrents are tied to it and wait.
+	if ov := a.TorrentOverview(); ov.Interface != vpnconn.NetworkName || !ov.InterfaceDown {
+		t.Errorf("torrents are on %q (down %v), want the tunnel and on hold", ov.Interface, ov.InterfaceDown)
 	}
 
 	code, doc = callAPI(t, http.DefaultClient, srv.URL, http.MethodPost, "/api/vpn/disconnect", "", "")

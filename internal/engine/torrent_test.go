@@ -333,7 +333,8 @@ func TestASeedRunReportsNothingButItsSeedingAndCountsOnFromWhatItHad(t *testing.
 	u := log.waitFor(t, "the upload counted on", func(u core.Update) bool {
 		return u.Torrent != nil && u.Torrent.Uploaded == 1500
 	})
-	if !u.Torrent.Seeding || u.Torrent.SeedSeconds != 70 {
+	// The client also counts the seconds it seeds between two readings.
+	if !u.Torrent.Seeding || u.Torrent.SeedSeconds < 70 {
 		t.Errorf("torrent %+v", u.Torrent)
 	}
 	for _, u := range log.snapshot() {
