@@ -332,7 +332,7 @@ export const hr: Dict = {
   'failure.cancelled.line': 'Preuzimanje je zaustavljeno prije nego što je završilo.',
   'failure.cancelled.next': 'Pokreni ga ponovno kad ti zatreba.',
   'failure.botCheck.line': 'Stranica traži prijavljenu sesiju prije nego što preda video.',
-  'failure.botCheck.next': 'U web sučelju pohrani kolačiće iz preglednika u kojem si prijavljen na toj stranici.',
+  'failure.botCheck.next': 'Prijavi se na stranicu u pregledniku ili u web sučelju pod Računi hostera. KnightLoader to sam pokupi.',
   'failure.membersOnly.line': 'Samo za članove, a preuzimanje je stiglo bez članstva.',
   'failure.membersOnly.next': 'Prijavi se na stranicu u pregledniku računom koji ima članstvo ili u web sučelju pod Računi hostera. KnightLoader to sam pokupi.',
   'failure.signInRequired.line': 'Stranica ovo pokazuje samo prijavljenom računu, na primjer privatni video ili video s dobnim ograničenjem.',

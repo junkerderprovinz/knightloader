@@ -332,7 +332,7 @@ export const eu: Dict = {
   'failure.cancelled.line': 'Deskarga gelditu egin da amaitu aurretik.',
   'failure.cancelled.next': 'Hasi berriro behar duzunean.',
   'failure.botCheck.line': 'Guneak saioa hasita duen sesio bat nahi du bideoa eman aurretik.',
-  'failure.botCheck.next': 'Web-interfazean, gorde gunean saioa hasita duzun nabigatzaile bateko cookieak.',
+  'failure.botCheck.next': 'Hasi saioa gunean nabigatzailean, edo web-interfazeko Ostalarien kontuak atalean. KnightLoaderrek berak hartuko du.',
   'failure.membersOnly.line': 'Kideentzat bakarrik, eta deskarga kidetzarik gabe iritsi da.',
   'failure.membersOnly.next': 'Hasi saioa gunean nabigatzailean kidetza duen kontuarekin, edo web-interfazeko Ostalarien kontuak atalean. KnightLoaderrek berak hartuko du.',
   'failure.signInRequired.line': 'Guneak saioa hasita duen kontu bati bakarrik erakusten dio hau, adibidez bideo pribatu bat edo adin-murrizketa duen bat.',

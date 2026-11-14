@@ -332,7 +332,7 @@ export const pl: Dict = {
   'failure.cancelled.line': 'Pobieranie zostało zatrzymane przed końcem.',
   'failure.cancelled.next': 'Uruchom je ponownie, kiedy będzie ci potrzebne.',
   'failure.botCheck.line': 'Strona chce zalogowanej sesji, zanim wyda wideo.',
-  'failure.botCheck.next': 'W interfejsie webowym zapisz cookies z przeglądarki, w której jesteś zalogowany na tej stronie.',
+  'failure.botCheck.next': 'Zaloguj się na stronie w przeglądarce albo w sekcji Konta hosterów w interfejsie webowym. KnightLoader sam to przejmie.',
   'failure.membersOnly.line': 'Tylko dla członków, a pobieranie przyszło bez członkostwa.',
   'failure.membersOnly.next': 'Zaloguj się na stronie w przeglądarce na konto, które ma członkostwo, albo w sekcji Konta hosterów w interfejsie webowym. KnightLoader sam to przejmie.',
   'failure.signInRequired.line': 'Strona pokazuje to tylko zalogowanemu kontu, na przykład prywatne wideo albo wideo z ograniczeniem wiekowym.',

@@ -332,7 +332,7 @@ export const es: Dict = {
   'failure.cancelled.line': 'La descarga se detuvo antes de terminar.',
   'failure.cancelled.next': 'Vuelve a iniciarla cuando la necesites.',
   'failure.botCheck.line': 'El sitio quiere una sesión iniciada antes de entregar el vídeo.',
-  'failure.botCheck.next': 'En la interfaz web, guarda cookies de un navegador en el que hayas iniciado sesión en el sitio.',
+  'failure.botCheck.next': 'Inicia sesión en el sitio en tu navegador, o en Cuentas de hosters en la interfaz web. KnightLoader la recoge por sí solo.',
   'failure.membersOnly.line': 'Solo para miembros, y la descarga llegó sin ninguna membresía.',
   'failure.membersOnly.next': 'Inicia sesión en el sitio en tu navegador con la cuenta que tiene la membresía, o en Cuentas de hosters en la interfaz web. KnightLoader la recoge por sí solo.',
   'failure.signInRequired.line': 'El sitio solo muestra esto a una cuenta con sesión iniciada, como un vídeo privado o con restricción de edad.',

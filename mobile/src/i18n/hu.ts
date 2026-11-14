@@ -332,7 +332,7 @@ export const hu: Dict = {
   'failure.cancelled.line': 'A letöltés a befejezés előtt leállt.',
   'failure.cancelled.next': 'Indítsd el újra, amikor szükséged van rá.',
   'failure.botCheck.line': 'Az oldal bejelentkezett munkamenetet kér, mielőtt kiadná a videót.',
-  'failure.botCheck.next': 'A webes felületen tárolj sütiket egy olyan böngészőből, amelyben be vagy jelentkezve az oldalra.',
+  'failure.botCheck.next': 'Jelentkezz be az oldalra a böngésződben, vagy a webes felületen a Tárhelyfiókok alatt. A KnightLoader magától átveszi.',
   'failure.membersOnly.line': 'Csak tagoknak szól, a letöltés pedig tagság nélkül érkezett.',
   'failure.membersOnly.next': 'Jelentkezz be az oldalra a böngésződben azzal a fiókkal, amelyiken a tagság van, vagy a webes felületen a Tárhelyfiókok alatt. A KnightLoader magától átveszi.',
   'failure.signInRequired.line': 'Az oldal ezt csak bejelentkezett fióknak mutatja meg, például egy privát vagy korhatáros videót.',

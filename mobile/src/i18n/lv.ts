@@ -332,7 +332,7 @@ export const lv: Dict = {
   'failure.cancelled.line': 'Lejupielāde tika apturēta, pirms tā beidzās.',
   'failure.cancelled.next': 'Sāc to vēlreiz, kad tev tā vajadzīga.',
   'failure.botCheck.line': 'Vietne grib pieteiktu sesiju, pirms izsniedz video.',
-  'failure.botCheck.next': 'Tīmekļa saskarnē saglabā sīkfailus no pārlūka, kurā esi pieteicies šajā vietnē.',
+  'failure.botCheck.next': 'Piesakies vietnē pārlūkā vai tīmekļa saskarnes sadaļā Hosteru konti. KnightLoader to pārņems pats.',
   'failure.membersOnly.line': 'Tikai biedriem, un lejupielāde atnāca bez biedra statusa.',
   'failure.membersOnly.next': 'Piesakies vietnē pārlūkā ar kontu, kam ir biedra statuss, vai tīmekļa saskarnes sadaļā Hosteru konti. KnightLoader to pārņems pats.',
   'failure.signInRequired.line': 'Vietne to rāda tikai pieteiktam kontam, piemēram, privātu video vai video ar vecuma ierobežojumu.',

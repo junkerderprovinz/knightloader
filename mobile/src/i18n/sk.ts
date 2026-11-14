@@ -332,7 +332,7 @@ export const sk: Dict = {
   'failure.cancelled.line': 'Sťahovanie sa zastavilo skôr, než skončilo.',
   'failure.cancelled.next': 'Spusti ho znova, keď ho budeš potrebovať.',
   'failure.botCheck.line': 'Stránka chce prihlásenú reláciu, kým video vydá.',
-  'failure.botCheck.next': 'Vo webovom rozhraní ulož cookies z prehliadača, v ktorom si na tej stránke prihlásený.',
+  'failure.botCheck.next': 'Prihlás sa na tú stránku v prehliadači alebo vo webovom rozhraní v časti Účty hosterov. KnightLoader si to prevezme sám.',
   'failure.membersOnly.line': 'Len pre členov, a sťahovanie prišlo bez členstva.',
   'failure.membersOnly.next': 'Prihlás sa na tú stránku v prehliadači účtom, ktorý má členstvo, alebo vo webovom rozhraní v časti Účty hosterov. KnightLoader si to prevezme sám.',
   'failure.signInRequired.line': 'Stránka to ukáže len prihlásenému účtu, napríklad súkromné video alebo video s vekovým obmedzením.',

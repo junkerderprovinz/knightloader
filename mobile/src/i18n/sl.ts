@@ -332,7 +332,7 @@ export const sl: Dict = {
   'failure.cancelled.line': 'Prenos je bil ustavljen, preden se je končal.',
   'failure.cancelled.next': 'Zaženi ga znova, ko ga potrebuješ.',
   'failure.botCheck.line': 'Stran hoče prijavljeno sejo, preden izroči video.',
-  'failure.botCheck.next': 'V spletnem vmesniku shrani piškotke iz brskalnika, v katerem si prijavljen na tej strani.',
+  'failure.botCheck.next': 'Prijavi se na stran v brskalniku ali v spletnem vmesniku pod Računi hosterjev. KnightLoader to prevzame sam.',
   'failure.membersOnly.line': 'Samo za člane, prenos pa je prišel brez članstva.',
   'failure.membersOnly.next': 'Prijavi se na stran v brskalniku z računom, ki ima članstvo, ali v spletnem vmesniku pod Računi hosterjev. KnightLoader to prevzame sam.',
   'failure.signInRequired.line': 'Stran to pokaže samo prijavljenemu računu, na primer zasebni ali starostno omejeni video.',

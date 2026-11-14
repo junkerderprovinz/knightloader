@@ -332,7 +332,7 @@ export const tr: Dict = {
   'failure.cancelled.line': 'İndirme bitmeden durduruldu.',
   'failure.cancelled.next': 'İstediğinde yeniden başlat.',
   'failure.botCheck.line': 'Site, videoyu vermeden önce oturum açmış bir oturum istiyor.',
-  'failure.botCheck.next': 'Web arayüzünde, sitede oturum açılmış bir tarayıcıdan çerezleri sakla.',
+  'failure.botCheck.next': 'Tarayıcında siteye oturum aç ya da web arayüzünde Hoster hesapları altından giriş yap. KnightLoader bunu kendiliğinden alır.',
   'failure.membersOnly.line': 'Yalnızca üyelere açık, indirme ise üyelik olmadan geldi.',
   'failure.membersOnly.next': 'Tarayıcında üyeliğin bulunduğu hesapla siteye oturum aç ya da web arayüzünde Hoster hesapları altından giriş yap. KnightLoader bunu kendiliğinden alır.',
   'failure.signInRequired.line': 'Site bunu yalnızca oturum açmış bir hesaba gösteriyor, örneğin gizli ya da yaş sınırlı bir video.',

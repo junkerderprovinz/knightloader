@@ -298,7 +298,7 @@ export const en = {
   'failure.cancelled.line': 'The download was stopped before it finished.',
   'failure.cancelled.next': 'Start it again when you want it.',
   'failure.botCheck.line': 'The site wants a signed-in session before it hands the video over.',
-  'failure.botCheck.next': 'In the web UI, store cookies from a browser that is signed in to the site.',
+  'failure.botCheck.next': 'Sign in to the site in your browser, or under Hoster accounts in the web UI. KnightLoader picks it up by itself.',
   'failure.membersOnly.line': 'Members only, and the download arrived without a membership.',
   'failure.membersOnly.next': 'Sign in to the site in your browser with the account that has the membership, or under Hoster accounts in the web UI. KnightLoader picks it up by itself.',
   'failure.signInRequired.line': 'The site shows this only to a signed-in account, such as a private or age-restricted video.',

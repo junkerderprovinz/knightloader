@@ -332,7 +332,7 @@ export const et: Dict = {
   'failure.cancelled.line': 'Allalaadimine peatati enne, kui see valmis sai.',
   'failure.cancelled.next': 'Käivita see uuesti, kui seda vajad.',
   'failure.botCheck.line': 'Sait tahab sisse logitud seanssi, enne kui ta video välja annab.',
-  'failure.botCheck.next': 'Pane veebiliideses hoiule küpsised brauserist, mis on saidile sisse logitud.',
+  'failure.botCheck.next': 'Logi brauseris saidile sisse või veebiliideses jaotises Hosterite kontod. KnightLoader võtab selle ise üle.',
   'failure.membersOnly.line': 'Ainult liikmetele, ja allalaadimine saabus ilma liikmesuseta.',
   'failure.membersOnly.next': 'Logi brauseris saidile sisse kontoga, millel on liikmesus, või veebiliideses jaotises Hosterite kontod. KnightLoader võtab selle ise üle.',
   'failure.signInRequired.line': 'Sait näitab seda ainult sisse logitud kontole, näiteks privaatset või vanusepiiranguga videot.',

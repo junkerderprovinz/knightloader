@@ -332,7 +332,7 @@ export const pt: Dict = {
   'failure.cancelled.line': 'A transferência foi parada antes de terminar.',
   'failure.cancelled.next': 'Volta a iniciá-la quando precisares.',
   'failure.botCheck.line': 'O site quer uma sessão iniciada antes de entregar o vídeo.',
-  'failure.botCheck.next': 'Na interface web, guarda cookies de um navegador onde tenhas sessão iniciada no site.',
+  'failure.botCheck.next': 'Inicia sessão no site no navegador, ou em Contas de hosters na interface web. O KnightLoader apanha-a sozinho.',
   'failure.membersOnly.line': 'Só para membros, e a transferência chegou sem essa subscrição.',
   'failure.membersOnly.next': 'Inicia sessão no site no navegador com a conta que tem a subscrição, ou em Contas de hosters na interface web. O KnightLoader apanha-a sozinho.',
   'failure.signInRequired.line': 'O site só mostra isto a uma conta com sessão iniciada, como um vídeo privado ou com restrição de idade.',

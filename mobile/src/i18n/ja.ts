@@ -331,7 +331,7 @@ export const ja: Dict = {
   'failure.cancelled.line': 'ダウンロードは終わる前に止められました。',
   'failure.cancelled.next': '必要になったら、もう一度開始してください。',
   'failure.botCheck.line': 'このサイトは、動画を渡す前にログイン済みのセッションを求めています。',
-  'failure.botCheck.next': 'Web UI で、このサイトにログインしているブラウザーの cookie を保存してください。',
+  'failure.botCheck.next': 'ブラウザーでこのサイトにログインするか、Web UI の「ホスターのアカウント」からログインしてください。KnightLoader が自動で引き継ぎます。',
   'failure.membersOnly.line': 'メンバー限定で、このダウンロードはメンバーシップなしで届きました。',
   'failure.membersOnly.next': 'メンバーシップのあるアカウントで、ブラウザーからこのサイトにログインするか、Web UI の「ホスターのアカウント」からログインしてください。KnightLoader が自動で引き継ぎます。',
   'failure.signInRequired.line': 'このサイトは、非公開や年齢制限のある動画など、ログインしたアカウントにしか見せない内容です。',

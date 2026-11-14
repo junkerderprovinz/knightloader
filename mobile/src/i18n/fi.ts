@@ -332,7 +332,7 @@ export const fi: Dict = {
   'failure.cancelled.line': 'Lataus pysäytettiin ennen kuin se valmistui.',
   'failure.cancelled.next': 'Käynnistä se uudelleen, kun haluat sen.',
   'failure.botCheck.line': 'Sivusto haluaa kirjautuneen istunnon, ennen kuin se luovuttaa videon.',
-  'failure.botCheck.next': 'Tallenna verkkokäyttöliittymässä evästeet selaimesta, jossa olet kirjautunut sivustolle.',
+  'failure.botCheck.next': 'Kirjaudu sivustolle selaimessasi tai verkkokäyttöliittymän kohdassa Isännöijätilit. KnightLoader poimii kirjautumisen itse.',
   'failure.membersOnly.line': 'Vain jäsenille, ja lataus saapui ilman jäsenyyttä.',
   'failure.membersOnly.next': 'Kirjaudu sivustolle selaimessasi sillä tilillä, jolla jäsenyys on, tai verkkokäyttöliittymän kohdassa Isännöijätilit. KnightLoader poimii kirjautumisen itse.',
   'failure.signInRequired.line': 'Sivusto näyttää tämän vain kirjautuneelle tilille, esimerkiksi yksityisen tai ikärajoitetun videon.',

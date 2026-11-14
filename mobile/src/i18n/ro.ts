@@ -332,7 +332,7 @@ export const ro: Dict = {
   'failure.cancelled.line': 'Descărcarea a fost oprită înainte să se termine.',
   'failure.cancelled.next': 'Pornește-o din nou când ai nevoie de ea.',
   'failure.botCheck.line': 'Site-ul vrea o sesiune autentificată înainte să dea videoclipul.',
-  'failure.botCheck.next': 'În interfața web, salvează cookie-uri dintr-un browser în care ești autentificat pe site.',
+  'failure.botCheck.next': 'Autentifică-te pe site în browser sau la Conturi de hosteri în interfața web. KnightLoader preia autentificarea singur.',
   'failure.membersOnly.line': 'Doar pentru membri, iar descărcarea a ajuns fără un abonament de membru.',
   'failure.membersOnly.next': 'Autentifică-te pe site în browser cu contul care are abonamentul de membru sau la Conturi de hosteri în interfața web. KnightLoader preia autentificarea singur.',
   'failure.signInRequired.line': 'Site-ul arată asta doar unui cont autentificat, de exemplu un videoclip privat sau cu restricție de vârstă.',

@@ -332,7 +332,7 @@ export const no: Dict = {
   'failure.cancelled.line': 'Nedlastingen ble stoppet før den var ferdig.',
   'failure.cancelled.next': 'Start den igjen når du vil ha den.',
   'failure.botCheck.line': 'Siden vil ha en innlogget økt før den gir fra seg videoen.',
-  'failure.botCheck.next': 'Lagre informasjonskapsler i nettgrensesnittet fra en nettleser som er innlogget på siden.',
+  'failure.botCheck.next': 'Logg inn på siden i nettleseren eller under Hosterkontoer i nettgrensesnittet. KnightLoader plukker det opp av seg selv.',
   'failure.membersOnly.line': 'Bare for medlemmer, og nedlastingen kom uten medlemskap.',
   'failure.membersOnly.next': 'Logg inn på siden i nettleseren med kontoen som har medlemskapet, eller under Hosterkontoer i nettgrensesnittet. KnightLoader plukker det opp av seg selv.',
   'failure.signInRequired.line': 'Siden viser dette bare til en innlogget konto, for eksempel en privat eller aldersbegrenset video.',

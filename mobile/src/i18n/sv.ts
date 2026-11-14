@@ -332,7 +332,7 @@ export const sv: Dict = {
   'failure.cancelled.line': 'Nedladdningen stoppades innan den var klar.',
   'failure.cancelled.next': 'Starta den igen när du vill ha den.',
   'failure.botCheck.line': 'Sajten vill ha en inloggad session innan den lämnar ut videon.',
-  'failure.botCheck.next': 'Spara i webbgränssnittet cookies från en webbläsare där du är inloggad på sajten.',
+  'failure.botCheck.next': 'Logga in på sajten i webbläsaren eller under Hosterkonton i webbgränssnittet. KnightLoader plockar upp det själv.',
   'failure.membersOnly.line': 'Bara för medlemmar, och nedladdningen kom fram utan medlemskap.',
   'failure.membersOnly.next': 'Logga in på sajten i webbläsaren med kontot som har medlemskapet, eller under Hosterkonton i webbgränssnittet. KnightLoader plockar upp det själv.',
   'failure.signInRequired.line': 'Sajten visar det här bara för ett inloggat konto, till exempel en privat eller åldersbegränsad video.',

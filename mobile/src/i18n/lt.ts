@@ -332,7 +332,7 @@ export const lt: Dict = {
   'failure.cancelled.line': 'Atsisiuntimas sustabdytas nepasibaigęs.',
   'failure.cancelled.next': 'Paleisk jį vėl, kai jo prireiks.',
   'failure.botCheck.line': 'Svetainė nori prisijungusios sesijos, prieš atiduodama vaizdo įrašą.',
-  'failure.botCheck.next': 'Žiniatinklio sąsajoje įrašyk slapukus iš naršyklės, kurioje esi prisijungęs prie svetainės.',
+  'failure.botCheck.next': 'Prisijunk prie svetainės naršyklėje arba žiniatinklio sąsajos skiltyje „Hosterių paskyros“. KnightLoader tai perims pats.',
   'failure.membersOnly.line': 'Tik nariams, o atsisiuntimas atėjo be narystės.',
   'failure.membersOnly.next': 'Prisijunk prie svetainės naršyklėje paskyra, turinčia narystę, arba žiniatinklio sąsajos skiltyje „Hosterių paskyros“. KnightLoader tai perims pats.',
   'failure.signInRequired.line': 'Svetainė tai rodo tik prisijungusiai paskyrai, pavyzdžiui, privatų ar amžiaus ribojimą turintį vaizdo įrašą.',

@@ -332,7 +332,7 @@ export const ms: Dict = {
   'failure.cancelled.line': 'Muat turun dihentikan sebelum selesai.',
   'failure.cancelled.next': 'Mulakan semula apabila anda memerlukannya.',
   'failure.botCheck.line': 'Laman itu mahukan sesi yang sudah log masuk sebelum ia menyerahkan video itu.',
-  'failure.botCheck.next': 'Dalam antara muka web, simpan kuki daripada pelayar yang sudah log masuk ke laman itu.',
+  'failure.botCheck.next': 'Log masuk ke laman itu dalam pelayar, atau melalui Akaun hoster dalam antara muka web. KnightLoader akan mengambilnya sendiri.',
   'failure.membersOnly.line': 'Untuk ahli sahaja, dan muat turun ini datang tanpa keahlian.',
   'failure.membersOnly.next': 'Log masuk ke laman itu dalam pelayar dengan akaun yang mempunyai keahlian itu, atau melalui Akaun hoster dalam antara muka web. KnightLoader akan mengambilnya sendiri.',
   'failure.signInRequired.line': 'Laman itu hanya menunjukkan ini kepada akaun yang sudah log masuk, contohnya video peribadi atau video berhad umur.',

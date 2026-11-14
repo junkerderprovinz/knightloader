@@ -332,7 +332,7 @@ export const cs: Dict = {
   'failure.cancelled.line': 'Stahování bylo zastaveno dřív, než skončilo.',
   'failure.cancelled.next': 'Spusť ho znovu, až ho budeš potřebovat.',
   'failure.botCheck.line': 'Stránka chce přihlášenou relaci, než video vydá.',
-  'failure.botCheck.next': 'Ve webovém rozhraní ulož cookies z prohlížeče, ve kterém jsi na té stránce přihlášený.',
+  'failure.botCheck.next': 'Přihlas se k té stránce v prohlížeči, nebo ve webovém rozhraní v části Účty hosterů. KnightLoader si to převezme sám.',
   'failure.membersOnly.line': 'Jen pro členy, a tohle stahování dorazilo bez členství.',
   'failure.membersOnly.next': 'Přihlas se k té stránce v prohlížeči účtem, který má členství, nebo ve webovém rozhraní v části Účty hosterů. KnightLoader si to převezme sám.',
   'failure.signInRequired.line': 'Stránka to ukáže jen přihlášenému účtu, třeba soukromé video nebo video s věkovým omezením.',

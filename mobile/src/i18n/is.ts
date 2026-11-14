@@ -332,7 +332,7 @@ export const is: Dict = {
   'failure.cancelled.line': 'Niðurhalið var stöðvað áður en því lauk.',
   'failure.cancelled.next': 'Byrjaðu það aftur þegar þú vilt fá það.',
   'failure.botCheck.line': 'Síðan vill innskráða setu áður en hún afhendir myndbandið.',
-  'failure.botCheck.next': 'Geymdu í vefviðmótinu kökur úr vafra sem er skráður inn á síðuna.',
+  'failure.botCheck.next': 'Skráðu þig inn á síðuna í vafranum eða undir Hýsingarreikningar í vefviðmótinu. KnightLoader nær í það sjálfkrafa.',
   'failure.membersOnly.line': 'Aðeins fyrir meðlimi, og niðurhalið kom án aðildar.',
   'failure.membersOnly.next': 'Skráðu þig inn á síðuna í vafranum með reikningnum sem hefur aðildina, eða undir Hýsingarreikningar í vefviðmótinu. KnightLoader nær í það sjálfkrafa.',
   'failure.signInRequired.line': 'Síðan sýnir þetta aðeins innskráðum reikningi, til dæmis einkamyndband eða myndband með aldurstakmarki.',

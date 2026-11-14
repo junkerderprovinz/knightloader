@@ -332,7 +332,7 @@ export const it: Dict = {
   'failure.cancelled.line': 'Il download è stato fermato prima di finire.',
   'failure.cancelled.next': 'Riavvialo quando ti serve.',
   'failure.botCheck.line': 'Il sito vuole una sessione con l’accesso fatto, prima di consegnare il video.',
-  'failure.botCheck.next': 'Nell’interfaccia web, salva i cookie di un browser in cui hai fatto l’accesso al sito.',
+  'failure.botCheck.next': 'Accedi al sito nel browser, oppure da Account degli hoster nell’interfaccia web. KnightLoader prende l’accesso da solo.',
   'failure.membersOnly.line': 'Solo per iscritti, e il download è arrivato senza iscrizione.',
   'failure.membersOnly.next': 'Accedi al sito nel browser con l’account che ha l’iscrizione, oppure da Account degli hoster nell’interfaccia web. KnightLoader prende l’accesso da solo.',
   'failure.signInRequired.line': 'Il sito mostra questo solo a un account con l’accesso fatto, per esempio un video privato o con limiti di età.',

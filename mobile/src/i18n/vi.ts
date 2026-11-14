@@ -332,7 +332,7 @@ export const vi: Dict = {
   'failure.cancelled.line': 'Lượt tải đã bị dừng trước khi xong.',
   'failure.cancelled.next': 'Bắt đầu lại khi bạn cần.',
   'failure.botCheck.line': 'Trang này đòi một phiên đã đăng nhập trước khi giao video ra.',
-  'failure.botCheck.next': 'Trong giao diện web, lưu cookie từ một trình duyệt đang đăng nhập vào trang đó.',
+  'failure.botCheck.next': 'Đăng nhập vào trang đó trong trình duyệt, hoặc trong mục Tài khoản nhà lưu trữ ở giao diện web. KnightLoader sẽ tự nhận.',
   'failure.membersOnly.line': 'Chỉ cho thành viên, và lượt tải đến mà không có tư cách thành viên.',
   'failure.membersOnly.next': 'Đăng nhập vào trang đó trong trình duyệt bằng tài khoản có tư cách thành viên, hoặc trong mục Tài khoản nhà lưu trữ ở giao diện web. KnightLoader sẽ tự nhận.',
   'failure.signInRequired.line': 'Trang chỉ hiện nội dung này cho tài khoản đã đăng nhập, chẳng hạn video riêng tư hoặc video giới hạn độ tuổi.',

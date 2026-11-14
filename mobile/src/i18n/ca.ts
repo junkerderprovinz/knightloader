@@ -332,7 +332,7 @@ export const ca: Dict = {
   'failure.cancelled.line': 'La baixada s’ha aturat abans d’acabar.',
   'failure.cancelled.next': 'Torna-la a iniciar quan la necessitis.',
   'failure.botCheck.line': 'El lloc vol una sessió iniciada abans de donar el vídeo.',
-  'failure.botCheck.next': 'A la interfície web, desa galetes d’un navegador on tinguis la sessió iniciada al lloc.',
+  'failure.botCheck.next': 'Inicia la sessió al lloc des del navegador, o a Comptes d’allotjadors a la interfície web. KnightLoader l’agafa tot sol.',
   'failure.membersOnly.line': 'Només per a membres, i la baixada hi ha arribat sense cap subscripció.',
   'failure.membersOnly.next': 'Inicia la sessió al lloc des del navegador amb el compte que té la subscripció, o a Comptes d’allotjadors a la interfície web. KnightLoader l’agafa tot sol.',
   'failure.signInRequired.line': 'El lloc només ho mostra a un compte amb la sessió iniciada, com ara un vídeo privat o amb restricció d’edat.',

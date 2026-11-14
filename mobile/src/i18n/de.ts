@@ -297,7 +297,7 @@ export const de: Dict = {
   'failure.cancelled.line': 'Der Download wurde gestoppt, bevor er fertig war.',
   'failure.cancelled.next': 'Starte ihn wieder, wenn du ihn brauchst.',
   'failure.botCheck.line': 'Die Seite will eine angemeldete Sitzung, bevor sie das Video herausgibt.',
-  'failure.botCheck.next': 'Hinterleg in der Weboberfläche Cookies aus einem Browser, in dem du auf der Seite angemeldet bist.',
+  'failure.botCheck.next': 'Melde dich im Browser auf der Seite an oder in der Weboberfläche unter Hoster-Konten. KnightLoader übernimmt das von selbst.',
   'failure.membersOnly.line': 'Nur für Mitglieder, und der Download kam ohne Mitgliedschaft an.',
   'failure.membersOnly.next': 'Melde dich im Browser mit dem Konto an, das die Mitgliedschaft hat, oder in der Weboberfläche unter Hoster-Konten. KnightLoader übernimmt das von selbst.',
   'failure.signInRequired.line': 'Die Seite zeigt das nur einem angemeldeten Konto, etwa ein privates oder altersbeschränktes Video.',

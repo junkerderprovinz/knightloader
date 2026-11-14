@@ -332,7 +332,7 @@ export const nl: Dict = {
   'failure.cancelled.line': 'De download is gestopt voordat hij klaar was.',
   'failure.cancelled.next': 'Start hem opnieuw wanneer je hem nodig hebt.',
   'failure.botCheck.line': 'De site wil een aangemelde sessie voordat hij de video afgeeft.',
-  'failure.botCheck.next': 'Sla in de webinterface cookies op uit een browser waarin je op de site bent aangemeld.',
+  'failure.botCheck.next': 'Meld je in je browser aan bij de site, of onder Hosteraccounts in de webinterface. KnightLoader neemt het vanzelf over.',
   'failure.membersOnly.line': 'Alleen voor leden, en de download kwam zonder lidmaatschap aan.',
   'failure.membersOnly.next': 'Meld je in je browser aan bij de site met het account dat het lidmaatschap heeft, of onder Hosteraccounts in de webinterface. KnightLoader neemt het vanzelf over.',
   'failure.signInRequired.line': 'De site laat dit alleen aan een aangemeld account zien, zoals een privévideo of een video met leeftijdsgrens.',

@@ -331,7 +331,7 @@ export const zh: Dict = {
   'failure.cancelled.line': '下载在完成之前被停止了。',
   'failure.cancelled.next': '需要的时候再重新开始它。',
   'failure.botCheck.line': '这个站点要先看到一个已登录的会话，才肯把视频交出来。',
-  'failure.botCheck.next': '在网页界面中保存一个已在这个站点登录的浏览器里的 cookie。',
+  'failure.botCheck.next': '在浏览器里登录这个站点，或在网页界面的网盘账号中登录。KnightLoader 会自己接手。',
   'failure.membersOnly.line': '这是仅限会员的内容，而这次下载过去时没有带着会员身份。',
   'failure.membersOnly.next': '在浏览器里用拥有会员的账户登录这个站点，或在网页界面的网盘账号中登录。KnightLoader 会自己接手。',
   'failure.signInRequired.line': '这个站点只把它显示给已登录的账户，比如私密视频或有年龄限制的视频。',

@@ -332,7 +332,7 @@ export const he: Dict = {
   'failure.cancelled.line': 'ההורדה נעצרה לפני שהסתיימה.',
   'failure.cancelled.next': 'התחל אותה שוב כשתצטרך אותה.',
   'failure.botCheck.line': 'האתר רוצה הפעלה מחוברת לפני שהוא מוסר את הווידאו.',
-  'failure.botCheck.next': 'בממשק האינטרנט, שמור עוגיות מדפדפן שמחובר לאתר.',
+  'failure.botCheck.next': 'התחבר לאתר בדפדפן, או דרך חשבונות מארחים בממשק האינטרנט. KnightLoader יקלוט את זה בעצמו.',
   'failure.membersOnly.line': 'לחברים בלבד, וההורדה הגיעה בלי חברות.',
   'failure.membersOnly.next': 'התחבר לאתר בדפדפן עם החשבון שיש לו את החברות, או דרך חשבונות מארחים בממשק האינטרנט. KnightLoader יקלוט את זה בעצמו.',
   'failure.signInRequired.line': 'האתר מציג את זה רק לחשבון מחובר, למשל סרטון פרטי או סרטון עם הגבלת גיל.',

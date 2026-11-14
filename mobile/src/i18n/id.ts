@@ -332,7 +332,7 @@ export const id: Dict = {
   'failure.cancelled.line': 'Unduhan dihentikan sebelum selesai.',
   'failure.cancelled.next': 'Mulai lagi kalau kamu memerlukannya.',
   'failure.botCheck.line': 'Situsnya menuntut sesi yang sudah masuk sebelum ia menyerahkan videonya.',
-  'failure.botCheck.next': 'Di antarmuka web, simpan cookie dari browser yang sudah masuk ke situs itu.',
+  'failure.botCheck.next': 'Masuk ke situs itu di browser, atau lewat Akun hoster di antarmuka web. KnightLoader mengambilnya sendiri.',
   'failure.membersOnly.line': 'Khusus anggota, dan unduhannya datang tanpa keanggotaan.',
   'failure.membersOnly.next': 'Masuk ke situs itu di browser dengan akun yang punya keanggotaannya, atau lewat Akun hoster di antarmuka web. KnightLoader mengambilnya sendiri.',
   'failure.signInRequired.line': 'Situsnya hanya menampilkan ini ke akun yang sudah masuk, misalnya video pribadi atau yang dibatasi usia.',
