@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SiteLogin } from './api';
-import { siteForHost, signInAgainFor, tileNote } from './siteLogins';
+import { siteForHost, signInAgainFor, stateNote } from './siteLogins';
 
 const site = (over: Partial<SiteLogin>): SiteLogin => ({
   id: 'patreon',
@@ -13,9 +13,9 @@ const site = (over: Partial<SiteLogin>): SiteLogin => ({
   ...over,
 });
 
-describe('tileNote', () => {
+describe('stateNote', () => {
   it('names the account a session signs in as', () => {
-    expect(tileNote(site({ state: 'signedIn', account: 'Jane' }))).toEqual({
+    expect(stateNote(site({ state: 'signedIn', account: 'Jane' }))).toEqual({
       key: 'siteLogins.signedInAs',
       vars: { account: 'Jane' },
       warn: false,
@@ -23,20 +23,20 @@ describe('tileNote', () => {
   });
 
   it('says signed in where the site names nobody or did not answer', () => {
-    expect(tileNote(site({ state: 'signedIn' })).key).toBe('siteLogins.signedIn');
-    expect(tileNote(site({ state: 'unchecked' })).key).toBe('siteLogins.signedIn');
+    expect(stateNote(site({ state: 'signedIn' })).key).toBe('siteLogins.signedIn');
+    expect(stateNote(site({ state: 'unchecked' })).key).toBe('siteLogins.signedIn');
   });
 
   it('warns once the sign-in ran out', () => {
-    expect(tileNote(site({ state: 'expired' }))).toMatchObject({ key: 'siteLogins.expired', warn: true });
+    expect(stateNote(site({ state: 'expired' }))).toMatchObject({ key: 'siteLogins.expired', warn: true });
   });
 
   it('says it waits while a sign-in is under way, whatever was stored before', () => {
-    expect(tileNote(site({ state: 'expired', waiting: true }))).toMatchObject({ key: 'siteLogins.waiting', warn: false });
+    expect(stateNote(site({ state: 'expired', waiting: true }))).toMatchObject({ key: 'siteLogins.waiting', warn: false });
   });
 
   it('says not signed in otherwise', () => {
-    expect(tileNote(site({})).key).toBe('siteLogins.signedOut');
+    expect(stateNote(site({})).key).toBe('siteLogins.signedOut');
   });
 });
 

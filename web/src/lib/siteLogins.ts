@@ -1,18 +1,18 @@
 import type { SiteLogin } from './api';
 import type { TranslationKey } from './i18n';
 
-/** What a site's tile says under its name, and whether it says it as a warning. */
-export interface TileNote {
+/** What a site's row and window say of its sign-in, and whether as a warning. */
+export interface StateNote {
   key: TranslationKey;
   vars?: Record<string, string>;
   warn: boolean;
 }
 
 /**
- * tileNote words a site's state. A session the site did not answer about is
+ * stateNote words a site's state. A session the site did not answer about is
  * still used, so it reads as signed in.
  */
-export function tileNote(site: SiteLogin): TileNote {
+export function stateNote(site: SiteLogin): StateNote {
   if (site.waiting) return { key: 'siteLogins.waiting', warn: false };
   switch (site.state) {
     case 'signedIn':

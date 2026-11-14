@@ -5,36 +5,48 @@
 // badge and the host picker. The picker offers no debrid service: KnightLoader
 // speaks to each of those itself. The card's Add button on the accounts page
 // opens the picker through `adding`.
+//
+// The sites signed into through the browser (internal/sitelogin) are hosters
+// here too: picked like one, a row like one, but signed in through the
+// browser in SiteLoginDialog rather than with a password JD keeps.
 import { useCallback, useEffect, useState } from 'react';
 import {
   type HosterHost,
   type HosterLogin,
+  type SiteLogin,
   fetchHosterHosts,
   fetchHosterLogins,
+  fetchSiteLogins,
   removeHosterLogin,
+  removeSiteLogin,
   saveHosterLogin,
   setHosterLoginEnabled,
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
+import { siteForHost, stateNote } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconClose, IconSave, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
+import { SiteLoginDialog } from './SiteLoginDialog';
 import { SettingRow } from '../pages/settings/controls';
 
 // Faster than the 30s account health poll, since a new login moves from queued
 // to active or rejected within seconds to minutes.
 const POLL_MS = 8000;
 
-/** HosterLogins is the logins and the host list. */
+/** HosterLogins is the logins, the sites signed into through the browser and the host list. */
 export interface HosterLogins {
   logins: HosterLogin[] | null;
+  sites: SiteLogin[];
   hosts: HosterHost[];
   load: () => Promise<void>;
   toggle: (row: HosterLogin, enabled: boolean) => Promise<void>;
   remove: (host: string) => Promise<void>;
+  putSite: (site: SiteLogin) => void;
+  removeSite: (site: SiteLogin) => Promise<void>;
 }
 
 /**
@@ -46,9 +58,11 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
   const { t } = useT();
   const { toast } = useToast();
   const [logins, setLogins] = useState<HosterLogin[] | null>(null);
+  const [sites, setSites] = useState<SiteLogin[]>([]);
   const [hosts, setHosts] = useState<HosterHost[]>([]);
 
   const load = useCallback(async () => {
+    void fetchSiteLogins().then(setSites, () => {});
     try {
       const rows = await fetchHosterLogins();
       setLogins(rows);
@@ -97,7 +111,39 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
     }
   }
 
-  return { logins, hosts, load, toggle, remove };
+  const putSite = useCallback((site: SiteLogin) => setSites((cur) => cur.map((x) => (x.id === site.id ? site : x))), []);
+
+  async function removeSite(site: SiteLogin) {
+    try {
+      putSite(await removeSiteLogin(site.id));
+      toast(t('siteLogins.signedOutToast', { site: site.name }), 'info');
+    } catch {
+      toast(t('common.loadFailed'), 'fail');
+    }
+  }
+
+  return { logins, sites, hosts, load, toggle, remove, putSite, removeSite };
+}
+
+/** listed is whether a site has a row: a session is stored or one is on its way. */
+const listed = (site: SiteLogin) => site.state !== 'signedOut' || site.waiting;
+
+/** siteLoginRow is one site signed into through the browser as an AccountTable row. */
+function siteLoginRow(
+  site: SiteLogin,
+  signInAgain: string,
+  actions: { onEdit: () => void; onRemove: () => void },
+): AccountRow {
+  return {
+    key: `site:${site.id}`,
+    iconHost: site.host,
+    label: site.name,
+    enabled: true,
+    status: <SiteLoginStatusBadge site={site} />,
+    expiry: site.expires,
+    menu: [{ id: 'actions', items: [{ id: 'signin', label: signInAgain, onSelect: actions.onEdit }] }],
+    ...actions,
+  };
 }
 
 /** hosterLoginRow is one login as an AccountTable row. */
@@ -132,24 +178,35 @@ export function HosterLoginSection({
 }) {
   const { t } = useT();
   const [editing, setEditing] = useState<HosterLogin | null>(null);
-  // The login awaiting removal confirmation.
+  const [editingSite, setEditingSite] = useState<SiteLogin | null>(null);
+  // The login or site awaiting removal confirmation.
   const [confirming, setConfirming] = useState<HosterLogin | null>(null);
+  const [confirmingSite, setConfirmingSite] = useState<SiteLogin | null>(null);
 
   const rows = data.logins ?? [];
-  const hasRows = rows.length > 0;
+  const siteRows = data.sites.filter(listed);
+  const hasRows = rows.length > 0 || siteRows.length > 0;
 
   return (
     <div className="flex flex-col gap-3">
       {hasRows && (
         <AccountTable
           label={t('accounts.hoster.title')}
-          rows={rows.map((row) =>
-            hosterLoginRow(row, {
-              onToggle: (v) => void data.toggle(row, v),
-              onEdit: () => setEditing(row),
-              onRemove: () => setConfirming(row),
-            }),
-          )}
+          rows={[
+            ...rows.map((row) =>
+              hosterLoginRow(row, {
+                onToggle: (v) => void data.toggle(row, v),
+                onEdit: () => setEditing(row),
+                onRemove: () => setConfirming(row),
+              }),
+            ),
+            ...siteRows.map((site) =>
+              siteLoginRow(site, t('siteLogins.signInAgain'), {
+                onEdit: () => setEditingSite(site),
+                onRemove: () => setConfirmingSite(site),
+              }),
+            ),
+          ]}
         />
       )}
 
@@ -164,8 +221,10 @@ export function HosterLoginSection({
       {(editing || adding) && (
         <HosterLoginDialog
           hosts={data.hosts}
+          sites={data.sites}
           existing={rows}
           editing={editing ?? undefined}
+          onSiteChanged={data.putSite}
           onClose={() => {
             setEditing(null);
             onAddClose();
@@ -174,9 +233,13 @@ export function HosterLoginSection({
         />
       )}
 
+      {editingSite && (
+        <SiteLoginDialog site={editingSite} hue={2} onChanged={data.putSite} onClose={() => setEditingSite(null)} />
+      )}
+
       {confirming && (
         <ConfirmRemoveLogin
-          login={confirming}
+          name={confirming.host}
           onCancel={() => setConfirming(null)}
           onConfirm={() => {
             setConfirming(null);
@@ -184,17 +247,28 @@ export function HosterLoginSection({
           }}
         />
       )}
+
+      {confirmingSite && (
+        <ConfirmRemoveLogin
+          name={confirmingSite.name}
+          onCancel={() => setConfirmingSite(null)}
+          onConfirm={() => {
+            setConfirmingSite(null);
+            void data.removeSite(confirmingSite);
+          }}
+        />
+      )}
     </div>
   );
 }
 
-/** ConfirmRemoveLogin asks first, since the stored password cannot be read back. */
+/** ConfirmRemoveLogin asks first, since a stored password or session cannot be read back. */
 function ConfirmRemoveLogin({
-  login,
+  name,
   onCancel,
   onConfirm,
 }: {
-  login: HosterLogin;
+  name: string;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -215,7 +289,7 @@ function ConfirmRemoveLogin({
         </>
       }
     >
-      <p className="text-sm text-carbon-text">{t('accounts.removeConfirm', { name: login.host })}</p>
+      <p className="text-sm text-carbon-text">{t('accounts.removeConfirm', { name })}</p>
     </Modal>
   );
 }
@@ -227,6 +301,23 @@ function ConfirmRemoveLogin({
 function loginDetail(t: (key: TranslationKey) => string, login: HosterLogin): string | undefined {
   const key = `accounts.hoster.detail.${login.code ?? ''}` as TranslationKey;
   return login.code && key in en ? t(key) : login.detail;
+}
+
+/** SiteLoginStatusBadge says who a site's session signs in as, or that it ran out. */
+function SiteLoginStatusBadge({ site }: { site: SiteLogin }) {
+  const { t } = useT();
+  const note = stateNote(site);
+  const [text, dot] = note.warn
+    ? ['text-statusWarn', 'bg-statusWarnSolid']
+    : site.waiting
+      ? ['text-statusNeutral', 'bg-statusNeutralSolid']
+      : ['text-statusOk', 'bg-statusOkSolid'];
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-meta font-medium ${text}`}>
+      <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${dot}`} />
+      {t(note.key, note.vars)}
+    </span>
+  );
 }
 
 function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
@@ -278,17 +369,24 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
 // accounts.Redacted: sent back unchanged, it keeps the stored password.
 const REDACTED = '********';
 
+/** The picker's id prefix of a site signed into through the browser, which no host name starts with. */
+const SITE = 'site:';
+
 /** HosterLoginDialog stores one login. */
 function HosterLoginDialog({
   hosts,
+  sites,
   existing,
   editing,
+  onSiteChanged,
   onClose,
   onSaved,
 }: {
   hosts: HosterHost[];
+  sites: SiteLogin[];
   existing: HosterLogin[];
   editing?: HosterLogin;
+  onSiteChanged: (site: SiteLogin) => void;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -301,9 +399,37 @@ function HosterLoginDialog({
   const [username, setUsername] = useState(editing?.username ?? '');
   const [password, setPassword] = useState(editing ? REDACTED : '');
   const [saving, setSaving] = useState(false);
+  const [pickedSite, setPickedSite] = useState<SiteLogin | null>(null);
 
+  // A site signed into through the browser stands in for JD's entry of the
+  // same host, whose password login the site does not take.
   const configured = new Set(existing.map((e) => e.host));
-  const brands: Brand[] = hosts.filter((h) => !configured.has(h.id)).map((h) => ({ id: h.id, name: h.label, host: h.id }));
+  const brands: Brand[] = [
+    ...hosts
+      .filter((h) => !configured.has(h.id) && !siteForHost(h.id, sites))
+      .map((h) => ({ id: h.id, name: h.label, host: h.id })),
+    ...sites.filter((s) => !listed(s)).map((s) => ({ id: `${SITE}${s.id}`, name: s.name, host: s.host })),
+  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+
+  const pick = (id: string) => {
+    if (id.startsWith(SITE)) setPickedSite(sites.find((s) => `${SITE}${s.id}` === id) ?? null);
+    else setPicked(hosts.find((h) => h.id === id) ?? null);
+  };
+
+  if (pickedSite) {
+    return (
+      <SiteLoginDialog
+        site={pickedSite}
+        hue={2}
+        onChanged={onSiteChanged}
+        onBack={() => {
+          setPickedSite(null);
+          setQuery('');
+        }}
+        onClose={onClose}
+      />
+    );
+  }
 
   async function doSave() {
     if (!picked) return;
@@ -379,7 +505,7 @@ function HosterLoginDialog({
           <BrandPicker
             brands={brands.filter((b) => brandMatches(b, query))}
             none={t('accounts.noServicesFound')}
-            onPick={(id) => setPicked(hosts.find((h) => h.id === id) ?? null)}
+            onPick={pick}
           />
         </div>
       ) : (

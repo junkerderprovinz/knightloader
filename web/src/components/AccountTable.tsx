@@ -37,7 +37,8 @@ export interface AccountRow {
   /** RFC3339, or empty for an account with nothing to expire. */
   expiry?: string;
   traffic?: AccountTraffic;
-  onToggle: (enabled: boolean) => void;
+  /** Absent for an account that is in use whenever it is stored, such as a site's sign-in. */
+  onToggle?: (enabled: boolean) => void;
   /** Extra entries for this row's own menu, on top of Edit and Remove. */
   menu?: MenuGroup[];
   onEdit: () => void;
@@ -174,12 +175,14 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
               }}
             >
               <td className="px-4 py-3">
-                <Toggle
-                  checked={row.enabled}
-                  onChange={row.onToggle}
-                  label={t('accounts.enableAccount', { account: row.label })}
-                  hideLabel
-                />
+                {row.onToggle && (
+                  <Toggle
+                    checked={row.enabled}
+                    onChange={row.onToggle}
+                    label={t('accounts.enableAccount', { account: row.label })}
+                    hideLabel
+                  />
+                )}
               </td>
               <td className="px-2 py-3 font-medium text-carbon-text">
                 <span className="inline-flex items-center gap-2">

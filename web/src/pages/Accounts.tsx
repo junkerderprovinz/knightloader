@@ -1,13 +1,13 @@
 // The accounts page: one row per configured service and account, as read from
 // internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
-// accounts come first, the own Usenet servers below them, then hoster logins,
-// the sites signed into through the browser, the logins for the user's own
-// servers and the captcha solvers' keys; the section follows the catalogue's
-// Group field, and every card but the sites' tiles draws an AccountTable.
-// Under them comes the Allow free downloads switch, since whether
-// a link may be fetched for free is a question of which accounts there are, and
-// last the two priority cards side by side, one for the download backends and
-// one for the captcha accounts.
+// accounts come first, the own Usenet servers below them, then hoster logins
+// (the sites signed into through the browser among them), the logins for the
+// user's own servers and the captcha solvers' keys; the section follows the
+// catalogue's Group field, and every card draws an AccountTable. Under them
+// comes the Allow free downloads switch, since whether a link may be fetched
+// for free is a question of which accounts there are, and last the two
+// priority cards side by side, one for the download backends and one for the
+// captcha accounts.
 // Every card adds its own kind through the Add button at the end of its
 // heading, as every other list card in the app does.
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
@@ -38,7 +38,6 @@ import { Button, Card, EmptyState, ErrorCard, InfoBubble, LinkBadge, LoadingCard
 import { AccountTable, type AccountRow } from '../components/AccountTable';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
-import { SiteLoginsSection } from '../components/SiteLoginsSection';
 import { UsenetServersSection } from '../components/UsenetServersSection';
 import { CaptchaPriorityCard } from './settings/accounts/CaptchaPriorityCard';
 import { LiveSettings } from './settings/accounts/LiveSettings';
@@ -265,10 +264,6 @@ export function Accounts() {
           {t('accounts.hoster.title')}
         </SectionTitle>
         <HosterLoginSection data={hoster} adding={adding === 'hoster'} onAddClose={() => setAdding(null)} />
-      </Card>
-
-      <Card hue={8} className="flex flex-col gap-3">
-        <SiteLoginsSection hue={8} />
       </Card>
 
       {serverService && (
