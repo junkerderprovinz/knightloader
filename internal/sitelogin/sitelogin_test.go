@@ -211,3 +211,21 @@ func TestYouTubeGoesByItsSignInCookies(t *testing.T) {
 		t.Errorf("Check without any sign-in cookie = %+v, want expired", anonymous)
 	}
 }
+
+// Patreon lists and plays posts only for a session, while YouTube flags
+// accounts that download a lot while signed in.
+func TestPatreonsSessionAlwaysGoesAlongAndYouTubesOnlyWhenAVideoAsks(t *testing.T) {
+	for id, want := range map[string]Use{"patreon": Always, "youtube": OnNeed} {
+		site, _ := Lookup(id)
+		if site.Use != want {
+			t.Errorf("%s uses its session %q, want %q", id, site.Use, want)
+		}
+	}
+}
+
+func TestTheSignInCookiesAreTheOnesASessionCarries(t *testing.T) {
+	yt, _ := Lookup("youtube")
+	if !yt.SignInCookie("SID") || yt.SignInCookie("PREF") {
+		t.Errorf("SID and PREF read as %v and %v", yt.SignInCookie("SID"), yt.SignInCookie("PREF"))
+	}
+}

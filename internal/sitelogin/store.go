@@ -7,12 +7,10 @@ import (
 )
 
 // Service is the pseudo service id sessions are filed under in the shared
-// accounts.Store, with the site id as the account half of the key, as
-// ytdlp.CookieService does for pasted jars. A session is kept apart from
-// those jars because it is used without the instance's cookie switch.
+// accounts.Store, with the site id as the account half of the key.
 const Service = "sitelogins"
 
-// Store keeps one session per site, sealed like a hoster login, so it never
+// Store keeps the session the extension handed over, one per site, sealed like a hoster login, so it never
 // reaches settings.json or the diagnostics bundle. No error here carries its
 // text.
 type Store struct {

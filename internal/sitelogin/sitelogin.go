@@ -1,9 +1,9 @@
 // Package sitelogin knows the sites that yt-dlp loads only for a signed-in
 // session and that cannot be signed into with a user name and password: a
 // captcha or a mailed code stands in the way. The session comes from the
-// user's own browser instead, through the extension or a pasted cookies.txt.
-// Store keeps it; JarFromCookies builds it from what a browser holds, and
-// Check asks it who it signs in.
+// user's own browser instead, read from its cookie store on this machine or
+// handed over by the extension. Store keeps a handed-over one; JarFromCookies
+// builds one from what a browser holds, and Check asks it who it signs in.
 package sitelogin
 
 import (
@@ -32,12 +32,27 @@ type Site struct {
 	// Links are further hosts whose links play the site's media, such as a
 	// short-link domain no cookie is ever set for.
 	Links []string `json:"links,omitempty"`
+	// Use is when the session goes along with a link.
+	Use Use `json:"use"`
 
 	// signIn are the cookies only a signed-in session carries.
 	signIn []string
 	// checkURL, when set, answers who the session belongs to.
 	checkURL string
 }
+
+// Use is when a site's session goes to yt-dlp.
+type Use string
+
+const (
+	// Always sends the session with every link, for a site that lists and
+	// plays nothing without one.
+	Always Use = "always"
+	// OnNeed keeps the session back until a link fails for want of a
+	// sign-in, for a site that flags accounts which download a lot while
+	// signed in.
+	OnNeed Use = "onNeed"
+)
 
 // Sites is every site offered, in the order the page shows them.
 var Sites = []Site{
@@ -47,6 +62,7 @@ var Sites = []Site{
 		Host:     "patreon.com",
 		LoginURL: "https://www.patreon.com/login",
 		Domains:  []string{"patreon.com"},
+		Use:      Always,
 		signIn:   []string{"session_id"},
 		checkURL: "https://www.patreon.com/api/current_user",
 	},
@@ -59,6 +75,7 @@ var Sites = []Site{
 		LoginURL: "https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2F",
 		Domains:  []string{"youtube.com"},
 		Links:    []string{"youtu.be"},
+		Use:      OnNeed,
 		signIn:   []string{"SID", "__Secure-1PSID", "__Secure-3PSID", "LOGIN_INFO"},
 	},
 }
@@ -86,6 +103,10 @@ func ForURL(rawurl string) (Site, bool) {
 	}
 	return Site{}, false
 }
+
+// SignInCookie reports whether a cookie of this name is one only a signed-in
+// session carries.
+func (s Site) SignInCookie(name string) bool { return slices.Contains(s.signIn, name) }
 
 // owns reports whether a cookie or link domain is one of the site's or below.
 func (s Site) owns(domain string) bool {
