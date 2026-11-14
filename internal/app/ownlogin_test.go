@@ -44,7 +44,7 @@ func useOwnHoster(a *App, h *ownHoster) {
 	if h.free != nil {
 		a.Registry.Register(h.free.res)
 	}
-	a.syncOwnLogins()
+	a.syncOwnLogins("")
 }
 
 const k2sFile = "2cfa1607527dc"

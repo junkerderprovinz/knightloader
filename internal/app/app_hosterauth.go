@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
 	jdresolver "github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
@@ -115,6 +116,57 @@ func (a *App) SetHosterLogin(host, username, password string) error {
 		}
 	})
 	return nil
+}
+
+// SaveHosterLogin stores one host's login as SetHosterLogin does and returns
+// its row. A hoster KnightLoader signs in to itself is signed in at once, with
+// code for a second factor, so the window that saved it hears whether the
+// hoster wants one. The code is stored nowhere.
+func (a *App) SaveHosterLogin(ctx context.Context, host, username, password, code string) (hosterauth.LoginState, error) {
+	var own *ownHoster
+	if ownSite(host) {
+		a.bmu.RLock()
+		for _, h := range a.own {
+			if h.site == hostalias.Canonical(host) {
+				own = h
+			}
+		}
+		a.bmu.RUnlock()
+	}
+	if own == nil {
+		if err := a.SetHosterLogin(host, username, password); err != nil {
+			return hosterauth.LoginState{}, err
+		}
+		return a.hosterLoginRow(host), nil
+	}
+	r := a.hosterAuth()
+	if err := r.SetLogin(host, username, password); err != nil {
+		return hosterauth.LoginState{}, err
+	}
+	a.syncOwnLogins(own.site)
+	if code != "" {
+		own.be.SignIn(ctx, code)
+	} else {
+		own.be.Check(ctx)
+	}
+	a.refreshPremiumHolds()
+	a.spawn(func() {
+		if _, err := r.Reconcile(a.ctx); err != nil {
+			log.Printf("hosterauth: reconcile after save failed: %v", err)
+		}
+	})
+	return a.hosterLoginRow(host), nil
+}
+
+// hosterLoginRow is host's row on the accounts page.
+func (a *App) hosterLoginRow(host string) hosterauth.LoginState {
+	site := hostalias.Canonical(host)
+	for _, st := range a.HosterLogins() {
+		if hostalias.Canonical(st.Host) == site {
+			return st
+		}
+	}
+	return hosterauth.LoginState{Host: host}
 }
 
 // SetHosterLoginEnabled switches one host's login on or off and reconciles in

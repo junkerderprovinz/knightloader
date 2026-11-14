@@ -101,6 +101,7 @@ var groupRefused = []string{
 	"POST /api/sitelogins/{id}/begin",
 	"POST /api/sitelogins/{id}/check",
 	"POST /api/sitelogins/{id}/remove",
+	"POST /api/sitelogins/{id}/reconnect",
 
 	// Settings and everything configured through them.
 	"GET /api/settings",

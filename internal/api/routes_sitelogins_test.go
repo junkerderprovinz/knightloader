@@ -257,3 +257,54 @@ func TestEverySiteSaysWhetherThisInstanceReadsBrowsers(t *testing.T) {
 		}
 	}
 }
+
+type disconnectedRow struct {
+	ID           string `json:"id"`
+	State        string `json:"state"`
+	Disconnected bool   `json:"disconnected"`
+}
+
+func disconnectedOf(t *testing.T, owner func(method, path, body string) (int, []byte), id string) disconnectedRow {
+	t.Helper()
+	_, listed := owner(http.MethodGet, "/api/sitelogins", "")
+	var rows []disconnectedRow
+	if err := json.Unmarshal(listed, &rows); err != nil {
+		t.Fatalf("not a list of sites: %v (%s)", err, listed)
+	}
+	for _, r := range rows {
+		if r.ID == id {
+			return r
+		}
+	}
+	t.Fatalf("no %s in %s", id, listed)
+	return disconnectedRow{}
+}
+
+// Remove disconnects a site whatever its session came from, and signing in
+// or using the browser's sign-in again connects it once more.
+func TestRemovingDisconnectsASiteUntilItIsSignedInAgain(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	if r := disconnectedOf(t, owner, "patreon"); r.Disconnected {
+		t.Fatalf("patreon starts out %+v", r)
+	}
+	if status, body := owner(http.MethodPost, "/api/sitelogins/patreon/remove", ""); status != http.StatusOK {
+		t.Fatalf("remove = %d (%s)", status, body)
+	}
+	if r := disconnectedOf(t, owner, "patreon"); !r.Disconnected || r.State != "signedOut" {
+		t.Errorf("after removing patreon is %+v, want disconnected", r)
+	}
+	if status, body := owner(http.MethodPost, "/api/sitelogins/patreon/reconnect", ""); status != http.StatusOK || strings.Contains(string(body), `"disconnected":true`) {
+		t.Fatalf("reconnect = %d (%s), want 200 and connected", status, body)
+	}
+	owner(http.MethodPost, "/api/sitelogins/patreon/remove", "")
+	if status, body := owner(http.MethodPost, "/api/sitelogins/patreon/begin", ""); status != http.StatusOK {
+		t.Fatalf("begin = %d (%s)", status, body)
+	}
+	if r := disconnectedOf(t, owner, "patreon"); r.Disconnected {
+		t.Errorf("after signing in again patreon is %+v, want connected", r)
+	}
+	if status, _ := owner(http.MethodPost, "/api/sitelogins/example/reconnect", ""); status != http.StatusNotFound {
+		t.Errorf("reconnecting an unknown site = %d, want 404", status)
+	}
+}

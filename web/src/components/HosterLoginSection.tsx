@@ -131,9 +131,8 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
 
 /**
  * siteLoginRow is one site signed into through the browser as an AccountTable
- * row. Only a session the extension passed on can be forgotten: one read from
- * a browser here comes back with the next read, so signing out happens on the
- * site.
+ * row. Removing it signs KnightLoader out whatever the session came from, and
+ * leaves the browser signed in.
  */
 function siteLoginRow(site: SiteLogin, ways: SignInWays, actions: { onEdit: () => void; onRemove: () => void }): AccountRow {
   return {
@@ -144,7 +143,7 @@ function siteLoginRow(site: SiteLogin, ways: SignInWays, actions: { onEdit: () =
     status: <SiteLoginStatus site={site} ways={ways} />,
     expiry: site.expires,
     onEdit: actions.onEdit,
-    onRemove: site.source === 'extension' && site.state !== 'signedOut' ? actions.onRemove : undefined,
+    onRemove: site.state !== 'signedOut' ? actions.onRemove : undefined,
   };
 }
 
@@ -368,6 +367,16 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
         </span>
       );
     case 'rejected':
+      // Waiting for a code is the person's next step, not a dead login.
+      if (login.askCode) {
+        return (
+          <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
+            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
+            {t('accounts.hoster.status.needsCode')}
+            {detail && <InfoBubble tip={detail} />}
+          </span>
+        );
+      }
       return (
         <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
@@ -392,6 +401,9 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
 
 // accounts.Redacted: sent back unchanged, it keeps the stored password.
 const REDACTED = '********';
+
+// The six digits an authenticator app shows.
+const CODE = /^\d{6}$/;
 
 /** HosterLoginDialog stores one login. */
 function HosterLoginDialog({
@@ -418,6 +430,10 @@ function HosterLoginDialog({
   const [username, setUsername] = useState(editing?.username ?? '');
   const [password, setPassword] = useState(editing ? REDACTED : '');
   const [saving, setSaving] = useState(false);
+  // The row of a login the hoster takes only with a second factor's code,
+  // whose field the form then shows. The code is sent once and kept nowhere.
+  const [asked, setAsked] = useState<HosterLogin | null>(editing?.askCode ? editing : null);
+  const [code, setCode] = useState('');
 
   // A site signed into through the browser has its own row, and stands in for
   // JD's entry of the same host, whose password login the site does not take.
@@ -433,9 +449,14 @@ function HosterLoginDialog({
     if (!picked) return;
     setSaving(true);
     try {
-      await saveHosterLogin(picked.id, username, password);
-      toast(t('accounts.saved'), 'ok');
+      const row = await saveHosterLogin(picked.id, username, password, asked ? code : undefined);
       await onSaved();
+      if (row.askCode) {
+        setAsked(row);
+        setCode('');
+        return;
+      }
+      toast(t('accounts.saved'), 'ok');
       onClose();
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'fail');
@@ -450,7 +471,15 @@ function HosterLoginDialog({
     : editing
       ? t('accounts.editCredentialTitle', { service: picked.label })
       : t('accounts.addAccountTitle', { service: picked.label });
-  const canSave = username.trim() !== '' && password.trim() !== '';
+  const canSave = username.trim() !== '' && password.trim() !== '' && (!asked || CODE.test(code));
+  // Why the field is there. Only a code the hoster turned down is the
+  // person's to correct, so only that one reads as an error.
+  const codeWrong = asked?.code === 'ownCodeWrong';
+  const codeNote = codeWrong
+    ? t('accounts.hoster.codeWrong')
+    : asked?.code === 'ownCodeEnded'
+      ? t('accounts.hoster.codeEnded')
+      : t('accounts.hoster.codeNeeded');
 
   return (
     <Modal
@@ -514,6 +543,34 @@ function HosterLoginDialog({
           <SettingRow control="long" label={t('accounts.passwordField')} hint={t('accounts.hoster.passwordCustody')}>
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </SettingRow>
+          {asked && (
+            <div className="flex flex-col gap-1.5">
+              <SettingRow control="long" label={t('accounts.hoster.codeField')} hint={t('accounts.hoster.codeHint')}>
+                <TextInput
+                  autoFocus
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  aria-invalid={codeWrong && code === ''}
+                  aria-describedby="hoster-code-note"
+                  className="tabular-nums tracking-[0.2em]"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && canSave && !saving) void doSave();
+                  }}
+                />
+              </SettingRow>
+              <p
+                id="hoster-code-note"
+                role={codeWrong ? 'alert' : undefined}
+                className={`text-meta ${codeWrong ? 'text-statusFail' : 'text-carbon-textMuted'}`}
+              >
+                {codeNote}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </Modal>

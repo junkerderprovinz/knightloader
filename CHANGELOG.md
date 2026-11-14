@@ -53,7 +53,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Firefox, LibreWolf, Waterfox, Zen, Edge, Brave, Opera, Vivaldi or Chromium
   on the same computer, also when you signed in there long before. You do not
   have to do anything, and the accounts page names the browser the session
-  came from. Sign out in the browser and KnightLoader is signed out too.
+  came from. Sign out in the browser and KnightLoader is signed out too, or
+  remove the site in KnightLoader to stop using it while the browser stays
+  signed in. **Use the browser's sign-in again** brings it back.
   Chrome on Windows locks its cookies away from every other program, and the
   page tells you when that is the case. Your sessions only go along with
   links you added yourself, signed in, with an admin token or with the
@@ -105,12 +107,32 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
+- **Rapidgator accounts with two-factor sign-in work.** When Rapidgator asks
+  for the code, the login's window shows one more field for the six digits
+  from your authenticator app, and KnightLoader signs in with it once without
+  storing it. The session is kept for as long as Rapidgator accepts it. Once it
+  ends, the login's row and the overview ask for a new code rather than trying
+  the password again, which could get the account locked.
+- **A Linksnappy account that waits for an emailed confirmation says so.**
+  Linksnappy confirms a sign-in from a new place through a link it emails, and
+  the account's check now tells you to open that link rather than showing
+  Linksnappy's bare "Two-Factor Verification Required".
 - **YouTube gives yt-dlp all its formats again.** yt-dlp needs a JavaScript
   runtime to read YouTube's player, and the desktop app had none, so some
   formats were missing. The desktop app fetches Deno during the install, or at
   the first start of an older install, keeps it current and hands it to
   yt-dlp. The container image brings Deno as well, and the self-test warns
   when yt-dlp finds no JavaScript runtime.
+- **A torrent your debrid service passed on says why.** When the service
+  turns a torrent down, such as one from a private tracker, one it has not
+  cached while only cached ones may go there, or one it made no progress on,
+  the built-in torrent client takes it over. Its row now names the service
+  and the reason, so a torrent from Radarr or Sonarr no longer just sits
+  there leeching with nothing to explain it.
+- **Radarr and Sonarr see the debrid service's progress.** While the service
+  still fetches a torrent onto its own servers, the qBittorrent connection
+  reports how far it has got and how fast, instead of a download stuck at
+  nothing.
 
 ## [2.8.3] - 2026-11-13
 

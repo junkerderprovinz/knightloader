@@ -206,6 +206,9 @@ export interface Task {
   /** A debrid service's progress on a torrent it is still fetching for this
    *  task, before any of it comes here. Absent at every other time. */
   remote?: RemoteFetch;
+  /** The debrid service that passed this torrent on to the backend that has
+   *  it now, and why, until it is done. */
+  declined?: Declined;
   /** Where the par2 check of the release this file belongs to stands, on a
    *  finished file from the own Usenet servers until the release has passed
    *  it. Absent at every other time. */
@@ -242,6 +245,13 @@ export interface RemoteFetch {
   progress: number;
   speed?: number;
   seeds?: number;
+}
+
+/** core.Declined: a code the interface words, or else the service's own words. */
+export interface Declined {
+  service: string;
+  code?: 'private' | 'notCached' | 'stalled';
+  reason?: string;
 }
 
 /**
@@ -2553,6 +2563,8 @@ export interface SiteLogin {
   unreadable: string[];
   /** Whether this instance reads the browsers on its computer; false in a container. */
   readsBrowsers: boolean;
+  /** Removed here: the browsers' sign-in is not used until the site is signed in through KnightLoader again. */
+  disconnected: boolean;
 }
 
 export async function fetchSiteLogins(): Promise<SiteLogin[]> {
@@ -2567,6 +2579,16 @@ export async function checkSiteLogin(id: string): Promise<SiteLogin> {
 
 export async function removeSiteLogin(id: string): Promise<SiteLogin> {
   return json<SiteLogin>(await post(siteLoginPath(id, 'remove'), {}));
+}
+
+/** beginSiteLogin signs a site in through KnightLoader, which uses the browsers' sign-in to a removed site again. */
+export async function beginSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'begin'), {}));
+}
+
+/** reconnectSiteLogin uses the browsers' sign-in to a removed site again, without a new sign-in. */
+export async function reconnectSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'reconnect'), {}));
 }
 
 // Header profiles hold a user's own request headers for one origin: a session
@@ -2953,6 +2975,9 @@ export interface HosterLogin {
   /** A login KnightLoader signs in with itself whose client could not use it,
    *  so JDownloader has it and `status` is what JD thinks. */
   handedOver?: boolean;
+  /** The hoster takes the login again only with the one-time code of its
+   *  second factor, which `code` says why. */
+  askCode?: boolean;
 }
 
 /** fetchHosterHosts is the "add a login" picker's host list. */
@@ -2965,9 +2990,18 @@ export async function fetchHosterLogins(): Promise<HosterLogin[]> {
   return (await json<HosterLogin[]>(await fetch('/api/hosterauth/logins'))) ?? [];
 }
 
-/** saveHosterLogin stores (or updates) one host's native login. */
-export async function saveHosterLogin(host: string, username: string, password: string): Promise<void> {
-  await ok(await post('/api/hosterauth/logins', { host, username, password }));
+/**
+ * saveHosterLogin stores (or updates) one host's native login and returns its
+ * row. `code` is a second factor's one-time code, which the server signs in
+ * with once and does not store.
+ */
+export async function saveHosterLogin(
+  host: string,
+  username: string,
+  password: string,
+  code?: string,
+): Promise<HosterLogin> {
+  return json<HosterLogin>(await post('/api/hosterauth/logins', { host, username, password, code }));
 }
 
 /** setHosterLoginEnabled takes a login out of JD's list or puts it back,

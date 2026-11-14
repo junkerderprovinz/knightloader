@@ -97,7 +97,7 @@ func ForURL(rawurl string) (Site, bool) {
 	}
 	host := strings.ToLower(u.Hostname())
 	for _, s := range Sites {
-		if s.owns(host) || slices.Contains(s.Links, host) {
+		if s.Owns(host) || slices.Contains(s.Links, host) {
 			return s, true
 		}
 	}
@@ -112,8 +112,8 @@ func (s Site) SignInCookie(name string) bool { return slices.Contains(s.signIn, 
 // extension watches to tell a sign-in or a sign-out from other cookies.
 func (s Site) SignInCookies() []string { return slices.Clone(s.signIn) }
 
-// owns reports whether a cookie or link domain is one of the site's or below.
-func (s Site) owns(domain string) bool {
+// Owns reports whether a cookie or link domain is one of the site's or below.
+func (s Site) Owns(domain string) bool {
 	domain = strings.TrimPrefix(strings.ToLower(domain), ".")
 	return slices.ContainsFunc(s.Domains, func(d string) bool { return domain == d || strings.HasSuffix(domain, "."+d) })
 }
@@ -142,7 +142,7 @@ const sessionCookieLife = 30 * 24 * time.Hour
 func JarFromCookies(site Site, cookies []BrowserCookie, now time.Time) string {
 	var lines []string
 	for _, c := range cookies {
-		if !site.owns(c.Domain) || c.Name == "" || strings.ContainsAny(c.Name+c.Value+c.Domain+c.Path, "\t\r\n") {
+		if !site.Owns(c.Domain) || c.Name == "" || strings.ContainsAny(c.Name+c.Value+c.Domain+c.Path, "\t\r\n") {
 			continue
 		}
 		expires := int64(c.Expires)
@@ -308,7 +308,7 @@ func ask(ctx context.Context, client *http.Client, site Site, cookies []jarCooki
 func cookieHeader(site Site, cookies []jarCookie, now time.Time) string {
 	var pairs []string
 	for _, c := range cookies {
-		if site.owns(c.Domain) && c.live(now) {
+		if site.Owns(c.Domain) && c.live(now) {
 			pairs = append(pairs, c.Name+"="+c.Value)
 		}
 	}

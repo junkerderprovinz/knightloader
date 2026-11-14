@@ -33,8 +33,10 @@ type Account struct {
 	TrafficTotal int64
 	TrafficLeft  int64
 	PremiumEnd   time.Time
-	// TwoFactor asks for a code at every login.
+	// TwoFactor asks for Code at every login, as an authenticator app would
+	// give it. Rapidgator answers a missing code and a wrong one alike.
 	TwoFactor bool
+	Code      string
 }
 
 // File is one file the server holds.
@@ -365,7 +367,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case acct == nil || acct.Password != r.Form.Get("password"):
 		answer(w, http.StatusUnauthorized, "Error: Login or password is wrong", nil)
-	case acct.TwoFactor && r.Form.Get("code") == "":
+	case acct.TwoFactor && (r.Form.Get("code") == "" || r.Form.Get("code") != acct.Code):
 		answer(w, http.StatusUnauthorized, "Error: Invalid auth code", nil)
 	default:
 		token := strings.ToLower(rand.Text())[:26]

@@ -27,6 +27,7 @@ export function stateNote(site: SiteLogin): StateNote {
  * browser's session the site turned down.
  */
 export function sourceNote(site: SiteLogin): StateNote | undefined {
+  if (site.disconnected && !signedIn(site)) return { key: 'siteLogins.disconnected', warn: false };
   if (site.state === 'expired' && site.source === 'browser' && site.browser) {
     return { key: 'siteLogins.turnedDown', vars: { site: site.name, browser: site.browser }, warn: false };
   }
@@ -57,7 +58,8 @@ export function readsBrowsers(sites: SiteLogin[]): boolean {
  * to pick a sign-in up from, so the step names the extension.
  */
 export function nextStep(site: SiteLogin, ways: SignInWays): StateNote | undefined {
-  if (signedIn(site)) return undefined;
+  // A removed site is not picked up from the browser, so its window says how.
+  if (signedIn(site) || site.disconnected) return undefined;
   const key = ways.readsBrowsers || ways.extensionPaired ? 'siteLogins.signInHere' : 'siteLogins.signInExtension';
   return { key, vars: { site: site.name }, warn: false };
 }

@@ -341,6 +341,15 @@ site could not be read) and `readsBrowsers`, which is true where this
 instance reads the browsers on its computer and false in a container, so the
 page knows whether a sign-in there or the extension is the way in.
 
+`POST /api/sitelogins/{id}/remove` disconnects a site whatever its session came
+from. It forgets the extension's session and stores a mark (service
+`sitelogins-off` in the credential store, one entry per site). While the mark
+is there, no browser here is read for the site, neither for its own links nor
+for the second try of a link on its domains, and the site reads
+`disconnected: true`. The browser stays signed in. `begin`, `POST
+/api/sitelogins/{id}/reconnect` and a hand-over that signs somebody in clear
+the mark; an empty hand-over only forgets the extension's session.
+
 A site's `use` says when yt-dlp gets the session. Patreon's goes with every
 run. YouTube's is held back, since Google flags accounts that download a lot
 while signed in, and goes only into a second run that follows at once when

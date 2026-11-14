@@ -1139,6 +1139,14 @@ func (qb *qbitClient) view(t qbitTorrent, live map[string]*core.Task) qbitView {
 		v.sent += task.Uploaded
 		v.seeds += task.Seeds
 		v.peers += task.Peers
+		// A debrid service fetching the torrent onto its own servers can take
+		// hours before a byte comes here, so its share stands in for ours, as
+		// on the row's own progress bar.
+		if r := task.Remote; r != nil {
+			v.loaded += int64(r.Progress * float64(task.Size))
+			v.speed += r.Speed
+			v.seeds += r.Seeds
+		}
 		v.forced = v.forced || task.Forced
 		if task.FinishedAt.After(v.finishedAt) {
 			v.finishedAt = task.FinishedAt

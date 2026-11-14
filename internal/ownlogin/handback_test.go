@@ -47,7 +47,7 @@ func (s *signer) set(err error) {
 	s.mu.Unlock()
 }
 
-func (s *signer) login(context.Context, string, string) (string, Account, error) {
+func (s *signer) login(context.Context, string, string, string) (string, Account, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.err != nil {

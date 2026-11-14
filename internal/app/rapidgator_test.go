@@ -2,10 +2,14 @@ package app
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"os"
 	"slices"
+	"strings"
 	"testing"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
@@ -183,5 +187,36 @@ func TestARapidgatorLinkWithoutALoginIsNamedFromItsPage(t *testing.T) {
 	})
 	if slices.ContainsFunc(srv.Requests(), func(r string) bool { return r == "POST /api/v2/user/login" }) {
 		t.Error("the API was asked without a login")
+	}
+}
+
+func TestATwoFactorRapidgatorLoginIsSavedAndThenSignedInWithItsCode(t *testing.T) {
+	a := newCrawlApp(t, false)
+	srv := rgtest.New(t)
+	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913"})
+	useRapidgator(a, srv)
+	ctx := context.Background()
+
+	row, err := a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "hunter2", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !row.AskCode || row.Code != "ownCodeNeeded" {
+		t.Fatalf("saved without the code = %+v, want the row asking for one", row)
+	}
+
+	row, err = a.SaveHosterLogin(ctx, "rg.to", "john@example.com", accounts.Redacted, "482913")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.AskCode || row.Status != hosterauth.StatusActive || row.Tier != "premium" {
+		t.Errorf("saved with the code = %+v, want the active premium row", row)
+	}
+	if n := srv.Logins(); n != 2 {
+		t.Errorf("signed in %d times, want once without the code and once with it", n)
+	}
+	cred, err := a.Accounts.GetCredential(hosterauth.Service, "rg.to")
+	if err != nil || cred.Password != "hunter2" || strings.Contains(fmt.Sprintf("%+v", cred), "482913") {
+		t.Errorf("stored %+v, %v; want the password kept and the code nowhere", cred, err)
 	}
 }
