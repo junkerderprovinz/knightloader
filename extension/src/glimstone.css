@@ -724,6 +724,23 @@ body {
 /* The reveal eye sits inside the masked field, so the field stays one
    object. */
 .glim-secret { position: relative; display: block; }
+/* The line under a field whose value cannot be taken, led by the fault mark
+   GlimStone draws on a failed toast. The mark is a mask, so it takes the
+   line's colour. */
+.glim-field-error:not([hidden]) {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.glim-field-error::before {
+  content: '';
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  background-color: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 1.6a6.4 6.4 0 1 0 0 12.8A6.4 6.4 0 1 0 8 1.6ZM7.3 5.3a.7.7 0 0 1 1.4 0v2.6a.7.7 0 0 1-1.4 0ZM8 10.05a.85.85 0 1 0 0 1.7.85.85 0 1 0 0-1.7Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
 .glim-secret > input { width: 100%; padding-inline-end: 40px; }
 /* A second in-field control widens the padding so text stays clear of it. */
 .glim-secret--two > input { padding-inline-end: 72px; }

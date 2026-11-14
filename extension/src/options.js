@@ -2154,6 +2154,19 @@ for (const backdrop of document.querySelectorAll('body > .glim-modal-backdrop'))
   windowWatch.observe(backdrop, { attributeFilter: ['hidden'] });
 }
 
+// A field is invalid while its error line shows, so the fault wash and a
+// screen reader follow the line wherever the page shows or hides it.
+const errorWatch = new MutationObserver((records) => {
+  for (const { target: line } of records) {
+    const field = document.querySelector(`[aria-describedby~="${line.id}"]`);
+    if (line.hidden) field?.removeAttribute('aria-invalid');
+    else field?.setAttribute('aria-invalid', 'true');
+  }
+});
+for (const line of document.querySelectorAll('.glim-field-error[id]')) {
+  errorWatch.observe(line, { attributeFilter: ['hidden'] });
+}
+
 (async () => {
   await applyAppearance();
   listenForPageHue();

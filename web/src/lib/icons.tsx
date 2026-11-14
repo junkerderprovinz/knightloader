@@ -58,6 +58,17 @@ export const IconDownloadArrow = (p: GlyphProps) => (
   </svg>
 );
 
+/** The fault mark: a disc with an exclamation mark, for a value that cannot
+ *  be taken. GlimStone draws the same mark on a failed toast. */
+export const IconFault = (p: GlyphProps) => (
+  <svg {...glyph([1.6, 1.6, 12.8, 12.8], p)}>
+    <path
+      fillRule="evenodd"
+      d="M8 1.6a6.4 6.4 0 1 0 0 12.8A6.4 6.4 0 1 0 8 1.6ZM7.3 5.3a.7.7 0 0 1 1.4 0v2.6a.7.7 0 0 1-1.4 0ZM8 10.05a.85.85 0 1 0 0 1.7.85.85 0 1 0 0-1.7Z"
+    />
+  </svg>
+);
+
 /** The stop mark: a flag where the queue stops. A pennant, so it is not
  *  mistaken for IconStop's square. */
 export const IconStopMark = (p: SVGProps<SVGSVGElement>) => (

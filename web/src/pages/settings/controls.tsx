@@ -5,7 +5,7 @@ import {
   type TextareaHTMLAttributes,
 } from 'react';
 import { PathInput } from '../../components/FolderPicker';
-import { Button, HintBubble, Modal, NOTCH_BADGE, RowLabel, TextArea } from '../../components/ui';
+import { Button, FieldError, HintBubble, Modal, NOTCH_BADGE, RowLabel, TextArea } from '../../components/ui';
 import { hueVars } from '../../lib/appearance';
 import { IconClose } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
@@ -210,7 +210,7 @@ export function RowRefusal({
 }) {
   const text = useFieldError(field);
   if (!text || explained) return null;
-  return <p className={`pb-2.5 text-xs text-statusWarn ${className}`}>{text}</p>;
+  return <FieldError className={`pb-2.5 ${className}`}>{text}</FieldError>;
 }
 
 /**

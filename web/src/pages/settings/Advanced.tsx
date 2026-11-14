@@ -5,6 +5,7 @@ import { reasonKey } from '../../components/columns';
 import { Dropdown, type DropdownOption } from '../../components/Dropdown';
 import {
   Card,
+  FieldError,
   IconBadge,
   InfoBubble,
   NumberInput,
@@ -278,7 +279,7 @@ function KeyRow({
 
       <div className="flex w-full flex-col gap-1 sm:w-72">
         <ValueEditor row={row} hue={hue} choices={choices} refused={refused} onWrite={onWrite} />
-        {refused && !PATH_KEYS.includes(row.path) && <span className="text-xs text-statusWarn">{refused}</span>}
+        {refused && !PATH_KEYS.includes(row.path) && <FieldError>{refused}</FieldError>}
       </div>
 
       {/* Reset shows only where there is something to undo. */}

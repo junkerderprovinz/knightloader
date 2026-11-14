@@ -748,6 +748,12 @@ body {
 * + .glim-subcard--titled {
   margin-top: 0.5rem;
 }
+
+/* A field whose value cannot be taken wears the fault wash until it is fixed,
+   above the step a well or a sub-card gives its fields. */
+:is(input, textarea, .glim-field)[aria-invalid='true'] {
+  background-color: var(--status-fail-bg);
+}
 .glim-subcard input,
 .glim-subcard textarea,
 .glim-subcard .glim-field,

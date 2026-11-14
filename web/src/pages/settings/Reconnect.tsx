@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Field,
+  FieldError,
   IconBadge,
   InfoBubble,
   Modal,
@@ -374,19 +375,14 @@ function ScriptFields({ rc, write }: FieldProps) {
         </Field>
       </div>
       <Field label={t('settings.reconnect.script')} hint={t('settings.reconnect.scriptHint')}>
-        {/* The ring sits on a wrapper, since a class given to TextArea replaces
-            its own, and on a span, since a label may not hold a div. */}
-        <span className={scriptRefused.text ? `block rounded-[var(--radius-control)] ${REFUSED_RING}` : 'block'}>
-          <TextArea
-            aria-invalid={scriptRefused.text ? true : undefined}
-            aria-describedby={scriptRefused.text ? scriptRefused.id : undefined}
-            dir="ltr"
-            rows={8}
-            spellCheck={false}
-            value={rc.script ?? ''}
-            onChange={(e) => write({ script: e.target.value })}
-          />
-        </span>
+        <TextArea
+          {...scriptRefused.mark}
+          dir="ltr"
+          rows={8}
+          spellCheck={false}
+          value={rc.script ?? ''}
+          onChange={(e) => write({ script: e.target.value })}
+        />
         {scriptRefused.line}
       </Field>
     </>
@@ -991,9 +987,6 @@ interface FieldProps {
   write: (fields: Partial<ReconnectConfig>) => void;
 }
 
-/** The ring PathInput draws round a refused value. */
-const REFUSED_RING = 'shadow-[0_0_0_2px_var(--status-warn-text)]';
-
 /**
  * useRefusal is the server's refusal of one reconnect field, named by its
  * path inside reconnect.Config such as "checkUrl", with the props that mark
@@ -1005,12 +998,8 @@ function useRefusal(field: string) {
   return {
     text,
     id,
-    mark: text ? { 'aria-invalid': true, 'aria-describedby': id, className: REFUSED_RING } : {},
-    line: text ? (
-      <span id={id} className="text-xs text-statusWarn">
-        {text}
-      </span>
-    ) : null,
+    mark: text ? { 'aria-invalid': true, 'aria-describedby': id } : {},
+    line: text ? <FieldError id={id}>{text}</FieldError> : null,
   };
 }
 

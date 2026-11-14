@@ -9,7 +9,7 @@ import { useLabelMode } from '../lib/labelModes';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { followExternal } from '../lib/external';
 import { useT } from '../lib/i18n';
-import { IconExternalLink, IconEye, IconEyeOff, IconRetry } from '../lib/icons';
+import { IconExternalLink, IconEye, IconEyeOff, IconFault, IconRetry } from '../lib/icons';
 import { openColorPickerPopover } from '../lib/colorPicker';
 import { useConfirm, useShake } from '../lib/useShake';
 import { isOnTop, openWindow } from '../lib/windowStack';
@@ -1921,6 +1921,32 @@ export function ErrorCard({
         </Button>
       )}
     </div>
+  );
+}
+
+/**
+ * FieldError is the line under a field whose value cannot be taken, with the
+ * fault mark. It is no toast and nothing shakes, since no action failed. The
+ * field names the line in aria-describedby and carries aria-invalid, which
+ * gives it the fault wash.
+ */
+export function FieldError({
+  id,
+  role,
+  className = '',
+  children,
+}: {
+  id?: string;
+  /** "alert" for a refusal that answers a press, which the field's description would not read out. */
+  role?: 'alert';
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <span id={id} role={role} dir="auto" className={`flex items-center gap-1.5 text-xs text-statusFail ${className}`}>
+      <IconFault width={14} height={14} />
+      <span className="min-w-0">{children}</span>
+    </span>
   );
 }
 
