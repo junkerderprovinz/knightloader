@@ -231,6 +231,14 @@ Windows runs under its emulation, since Adoptium builds no Arm JRE for it.
 Temurin comes under the GPLv2 with the Classpath Exception. Pointing `KL_JD`
 at a JDownloader that runs elsewhere skips all of this.
 
+qBittorrent, which KnightLoader runs for torrents, is fetched the same way: the
+installer puts the version KnightLoader pins into `tools/qbittorrent` in the
+data folder, and an app without an installer fetches it at its first start.
+The container fetches it at its first start too, from
+[userdocs/qbittorrent-nox-static](https://github.com/userdocs/qbittorrent-nox-static),
+since the image carries no qBittorrent of its own. Each build is checked
+against the SHA-256 KnightLoader carries for it before it runs.
+
 On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`.
 
 The desktop app makes its own [app key](#app-key) at the first start and keeps
@@ -359,6 +367,9 @@ published checksum and started once before it replaces the copy in use, and
 when anything fails the old copy keeps running. ffmpeg's builds change every
 night, so the weekly check fetches a new one most weeks. JDownloader restarts
 to install an update, so it waits until none of its downloads is running.
+qBittorrent is left out of both: private trackers let in only the versions
+on their list, so it stays at the version picked on its row until you pick
+another.
 
 **Update now** at the foot of the card does all of this at once, whatever the
 switch says, and asks after a newer KnightLoader too. An ffmpeg or Deno that

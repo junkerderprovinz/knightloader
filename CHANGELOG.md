@@ -40,6 +40,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Added
 
+- **KnightLoader runs its own qBittorrent.** It fetches qBittorrent, checks
+  the download against the SHA-256 it ships with, and runs it in the
+  background on `127.0.0.1` behind a login only KnightLoader knows. If it
+  stops, it is started again. The Components card shows it with its version,
+  and private trackers let in only the versions on their list, so it stays at
+  the version you pick there, 4.5.5 to begin with, and the automatic update
+  leaves it alone. Linux and the container take the static build from
+  userdocs/qbittorrent-nox-static. `KL_QBITTORRENT=0` leaves it off.
 - **Patreon and YouTube sign in with your browser's own session.** The
   desktop app, and a server outside a container, read it straight from
   Firefox, LibreWolf, Waterfox, Zen, Edge, Brave, Opera, Vivaldi or Chromium

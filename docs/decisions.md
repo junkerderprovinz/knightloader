@@ -415,3 +415,31 @@ cost is that a build from source opens no `.dlc` itself and hands every one to
 the JDownloader backend; CI builds and tests without the secrets. The key does
 end up in the shipped binary, and somebody determined can dig it out of there.
 What keeping it out of the source prevents is publishing it next to the code.
+
+## Torrents: qBittorrent, run by KnightLoader
+
+**Built:** a qbittorrent-nox that KnightLoader fetches, starts on `127.0.0.1`
+with a WebUI login it generates, watches and stops with itself, the way it
+runs its JDownloader. The version is pinned in
+`internal/qbittorrent/nox/versions.json`, with the SHA-256 of every build, and
+moves only when somebody picks another one. Linux and the container fetch the
+static build from userdocs/qbittorrent-nox-static at run time. Windows and
+macOS fetch a build without a window that `qbittorrent-nox.yml` makes and
+publishes with its sources.
+
+**Not built:** private trackers with KnightLoader's own torrent engine, or
+qBittorrent from Alpine's packages in the image.
+
+Private trackers admit only the clients on their whitelist, by the client's
+peer id and user agent, and KnightLoader's engine is on none of them.
+qBittorrent is on all of them, but only at the versions each list names: OPS
+lists 2.x to 4.5.x. Following the newest release, as the other components do,
+would take a member off their tracker the day a new version came out, so the
+version is data that a person changes. Alpine ships one qBittorrent, the
+newest, which misses the pin, and a GPL program in the image would oblige us
+to offer its source with every image. Fetched at run time and driven over
+HTTP, it is a separate program next to KnightLoader. 4.5.x does not check TLS
+certificates on its own downloads (CVE-2024-51774), so KnightLoader turns off
+everything that has qBittorrent fetch from the web by itself, RSS and the
+peer country lookup, and hands it only .torrent files and magnet links.
+

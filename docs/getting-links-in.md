@@ -75,6 +75,21 @@ empty. Anything else in its folder stays. Removing works the same after a
 restart, since the download keeps a magnet's file list once the swarm has sent
 it.
 
+**qBittorrent in the background**: KnightLoader fetches qBittorrent and runs
+it out of sight, with no window, on `127.0.0.1` behind a login only
+KnightLoader knows, the way it runs its JDownloader. The Components card under
+Settings, Info shows it with its version. Private trackers let in only the
+clients on their list, so qBittorrent stays at the version you pick there:
+4.5.5 to begin with, the newest on OPS's public list. Neither the automatic
+update nor "Update now" moves it. Picking another version fetches it and
+restarts qBittorrent, and if the fetch fails, the one running carries on. The
+Linux build and the container take the static build of
+[userdocs/qbittorrent-nox-static](https://github.com/userdocs/qbittorrent-nox-static),
+the Windows and macOS apps one built for KnightLoader, and every download is
+checked against the SHA-256 that ships with KnightLoader before it runs.
+qBittorrent keeps its settings and torrents in `qbittorrent` in the data
+folder. `KL_QBITTORRENT=0` leaves it off.
+
 **Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
 Premiumize.me, Debrid-Link, Linksnappy or Deepbrid ranks above "Built-in
 torrent client" on the Accounts page, that service fetches the torrent and the
