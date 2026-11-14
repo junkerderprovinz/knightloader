@@ -40,7 +40,9 @@ export type NotificationKind =
 /**
  * A button a bubble can offer, typically to undo something destructive that
  * has already happened. `holdMs` keeps the bubble up as long as the offer is
- * valid (such as the server's undo window); otherwise it lives DURATION_MS.
+ * valid, such as the server's undo window. Without it the bubble stays until
+ * it is dismissed or its action is pressed, since somebody reading slowly
+ * would otherwise lose the offer.
  */
 export interface ToastAction {
   label: string;
@@ -157,6 +159,10 @@ const CRITICAL: Record<NotificationKind, boolean> = {
 // Long enough to read a short line, short enough not to pile up.
 const DURATION_MS = 4000;
 
+// A live region is emptied first and filled a moment later, so the same words
+// said twice are read twice.
+const ANNOUNCE_SETTLE_MS = 100;
+
 const QUIET_KEY = 'notifications.quiet';
 
 /**
@@ -166,7 +172,8 @@ const QUIET_KEY = 'notifications.quiet';
  */
 function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: number) => void }) {
   const { t } = useT();
-  const remaining = useRef(item.action?.holdMs ?? DURATION_MS);
+  const lasts = item.action ? item.action.holdMs : DURATION_MS;
+  const remaining = useRef(lasts ?? 0);
   const armedAt = useRef(0);
   // React 19's useRef requires an initial value.
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -180,10 +187,10 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
   }, []);
 
   const arm = useCallback(() => {
-    if (timer.current !== undefined || held.current.hover || held.current.focus) return;
+    if (lasts === undefined || timer.current !== undefined || held.current.hover || held.current.focus) return;
     armedAt.current = Date.now();
     timer.current = setTimeout(() => onDismiss(item.id), remaining.current);
-  }, [item.id, onDismiss]);
+  }, [item.id, lasts, onDismiss]);
 
   const hold = useCallback(
     (key: 'hover' | 'focus', value: boolean) => {
@@ -201,7 +208,6 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
 
   return (
     <div
-      role="status"
       data-kind={item.kind}
       onMouseEnter={() => hold('hover', true)}
       onMouseLeave={() => hold('hover', false)}
@@ -276,6 +282,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastMessage[]>([]);
   const seq = useRef(0);
 
+  // Bubbles are read out through these two regions, since some screen readers
+  // skip a live role on an element that has just arrived. A failure
+  // interrupts, the rest waits for a pause.
+  const polite = useRef<HTMLDivElement>(null);
+  const assertive = useRef<HTMLDivElement>(null);
+  const announce = useCallback((message: string, tone: ToastTone) => {
+    const region = (tone === 'fail' ? assertive : polite).current;
+    if (!region) return;
+    region.textContent = '';
+    setTimeout(() => {
+      region.textContent = message;
+    }, ANNOUNCE_SETTLE_MS);
+  }, []);
+
   // Read through a ref so toast() keeps a stable identity; long-lived effects
   // such as useCompletionToasts's websocket listener hold on to it.
   const [quiet] = useUIState(QUIET_KEY, false);
@@ -343,13 +363,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
       const id = ++seq.current;
       setItems((s) => [...s, { id, message, tone, kind: k, action, parade }]);
+      announce(message, tone);
     },
-    [],
+    [announce],
   );
 
   return (
     <Ctx.Provider value={{ toast }}>
       {children}
+      <div ref={polite} className="sr-only" role="status" aria-live="polite" aria-atomic="true" />
+      <div ref={assertive} className="sr-only" role="alert" aria-live="assertive" aria-atomic="true" />
       {/* Above a page's floating actions, which stand in the same corner. */}
       <div className="kl-toast-stack fixed bottom-[calc(1.25rem+var(--phone-bar-space)+var(--page-actions-space))] end-5 z-50 flex flex-col gap-2 pointer-events-none">
         {items.map((m) => (
