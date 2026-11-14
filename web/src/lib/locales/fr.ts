@@ -4026,5 +4026,6 @@ export const fr: Dict = {
   'failure.signInRequired.next': 'Il faut une session connectée, que KnightLoader emprunte à votre navigateur pour les sites sous Comptes d’hébergeurs.',
   'siteLogins.fromKlBrowser': 'depuis le navigateur de connexion de KnightLoader',
   'siteLogins.turnedDown': '{site} a refusé la connexion venant de {browser}',
-  'siteLogins.signOutInBrowser': 'Pour déconnecter KnightLoader, déconnectez-vous de {site} dans {browser}.',
+  'siteLogins.disconnected': 'Retiré de KnightLoader. Votre navigateur reste connecté.',
+  'siteLogins.reconnect': 'Utiliser de nouveau la connexion du navigateur',
 };

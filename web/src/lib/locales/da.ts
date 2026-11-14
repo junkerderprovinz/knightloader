@@ -4023,5 +4023,6 @@ export const da: Dict = {
   'failure.signInRequired.next': 'Kræver en session, hvor du er logget ind, og den låner KnightLoader fra din browser til siderne under Hosterkonti.',
   'siteLogins.fromKlBrowser': 'fra KnightLoaders login-browser',
   'siteLogins.turnedDown': '{site} afviste login fra {browser}',
-  'siteLogins.signOutInBrowser': 'Log ud af {site} i {browser} for at logge KnightLoader ud.',
+  'siteLogins.disconnected': 'Fjernet fra KnightLoader. Din browser er stadig logget ind.',
+  'siteLogins.reconnect': 'Brug browserens login igen',
 };

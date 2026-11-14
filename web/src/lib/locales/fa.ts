@@ -4026,5 +4026,6 @@ export const fa: Dict = {
   'failure.signInRequired.next': 'به یک نشست واردشده نیاز دارد که KnightLoader برای سایت‌های بخش حساب‌های میزبان از مرورگرت قرض می‌گیرد.',
   'siteLogins.fromKlBrowser': 'از مرورگر ورود KnightLoader',
   'siteLogins.turnedDown': '{site} ورود از {browser} را نپذیرفت',
-  'siteLogins.signOutInBrowser': 'برای خارج کردن KnightLoader، در {browser} از {site} خارج شو.',
+  'siteLogins.disconnected': 'از KnightLoader برداشته شد. مرورگرت همچنان وارد شده می‌ماند.',
+  'siteLogins.reconnect': 'دوباره از ورود مرورگر استفاده کن',
 };

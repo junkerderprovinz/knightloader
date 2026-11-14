@@ -4,7 +4,15 @@
 // reads the session from there and the extension passes it on, so the window
 // only says how it stands and notices a sign-in by itself.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { type SiteLogin, checkSiteLogin, fetchConnect, fetchSiteLogins, removeSiteLogin } from '../lib/api';
+import {
+  type SiteLogin,
+  beginSiteLogin,
+  checkSiteLogin,
+  fetchConnect,
+  fetchSiteLogins,
+  reconnectSiteLogin,
+  removeSiteLogin,
+} from '../lib/api';
 import { openExternal } from '../lib/external';
 import { fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
@@ -91,6 +99,8 @@ export function SiteLoginDialog({
     return () => window.clearInterval(timer);
   }, [site.id, waiting, show]);
 
+  const showError = (e: unknown) => setError(message(e).replace(/^(Error|ApiError):\s*/, ''));
+
   const signOut = async () => {
     setBusy(true);
     setError('');
@@ -98,19 +108,37 @@ export function SiteLoginDialog({
       show(await removeSiteLogin(site.id), false);
       toast(t('siteLogins.signedOutToast', { site: site.name }), 'info');
     } catch (e) {
-      setError(message(e).replace(/^(Error|ApiError):\s*/, ''));
+      showError(e);
     } finally {
       setBusy(false);
     }
   };
 
+  const reconnect = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      const next = await reconnectSiteLogin(site.id);
+      show(next, signedIn(next));
+    } catch (e) {
+      showError(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // The site opens first, while the click still lets it. A removed site is
+  // signed in through KnightLoader too, so the browser's sign-in counts again.
+  const openSite = () => {
+    openExternal(site.loginUrl);
+    if (site.disconnected) void beginSiteLogin(site.id).then((next) => show(next, signedIn(next)), showError);
+  };
+
   const note = stateNote(site);
   const from = sourceNote(site);
   const step = nextStep(site, ways);
-  // A session read from a browser here comes back with the next read, so
-  // only one the extension passed on can be forgotten.
-  const forgettable = site.source === 'extension' && site.state !== 'signedOut';
-  const inBrowser = site.source === 'browser' && signedIn(site) && site.browser;
+  // Signing out here leaves the browser signed in, whatever the session came from.
+  const forgettable = site.state !== 'signedOut';
 
   return (
     <Modal
@@ -127,12 +155,12 @@ export function SiteLoginDialog({
               {t('siteLogins.signOut')}
             </Button>
           )}
-          <Button
-            kind={waiting ? 'primary' : 'secondary'}
-            icon={<IconExternalLink />}
-            disabled={busy}
-            onClick={() => openExternal(site.loginUrl)}
-          >
+          {site.disconnected && ways.readsBrowsers && (
+            <Button kind="secondary" disabled={busy} onClick={() => void reconnect()}>
+              {t('siteLogins.reconnect')}
+            </Button>
+          )}
+          <Button kind={waiting ? 'primary' : 'secondary'} icon={<IconExternalLink />} disabled={busy} onClick={openSite}>
             {t('siteLogins.open', { site: site.name })}
           </Button>
         </>
@@ -151,9 +179,6 @@ export function SiteLoginDialog({
           </SettingRow>
         )}
         {step && <p className="text-sm text-carbon-textSub">{t(step.key, step.vars)}</p>}
-        {inBrowser && (
-          <p className="text-sm text-carbon-textSub">{t('siteLogins.signOutInBrowser', { site: site.name, browser: inBrowser })}</p>
-        )}
         {error && (
           <p dir="auto" className="text-xs text-statusWarn">
             {error}

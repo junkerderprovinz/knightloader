@@ -4278,7 +4278,8 @@ export const en = {
   'failure.signInRequired.next': 'Needs a signed-in session, which KnightLoader borrows from your browser for the sites under Hoster accounts.',
   'siteLogins.fromKlBrowser': 'from KnightLoader\'s sign-in browser',
   'siteLogins.turnedDown': '{site} turned down the sign-in from {browser}',
-  'siteLogins.signOutInBrowser': 'To sign KnightLoader out, sign out of {site} in {browser}.',
+  'siteLogins.disconnected': 'Removed from KnightLoader. Your browser stays signed in.',
+  'siteLogins.reconnect': 'Use the browser\'s sign-in again',
 } as const;
 
 export type TranslationKey = keyof typeof en;

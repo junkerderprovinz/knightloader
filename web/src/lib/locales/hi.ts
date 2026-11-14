@@ -4038,5 +4038,6 @@ export const hi: Dict = {
   'failure.signInRequired.next': 'साइन-इन सत्र चाहिए, जिसे होस्टर खाते में दी गई साइटों के लिए KnightLoader आपके ब्राउज़र से उधार लेता है।',
   'siteLogins.fromKlBrowser': 'KnightLoader के साइन-इन ब्राउज़र से',
   'siteLogins.turnedDown': '{site} ने {browser} से आया साइन इन ठुकरा दिया',
-  'siteLogins.signOutInBrowser': 'KnightLoader को साइन आउट करने के लिए {browser} में {site} से साइन आउट करें।',
+  'siteLogins.disconnected': 'KnightLoader से हटा दिया गया। आपका ब्राउज़र साइन इन ही रहता है।',
+  'siteLogins.reconnect': 'ब्राउज़र का साइन इन फिर से इस्तेमाल करें',
 };

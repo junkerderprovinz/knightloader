@@ -388,8 +388,8 @@ signed in as and where the sign-in came from, such as "from Firefox
 Where it comes from depends on where KnightLoader runs:
 
 - **The desktop app, or KnightLoader outside a container,** reads the
-  sign-in from the browsers on the same computer. To sign KnightLoader out,
-  sign out of the site in that browser. A few browsers keep their cookies
+  sign-in from the browsers on the same computer. Signing out of the site in
+  that browser signs KnightLoader out too. A few browsers keep their cookies
   where no other program can read them, Chrome on Windows for one. The hoster
   card names those, and the KnightLoader browser extension in that browser
   passes the sign-in on instead.
@@ -410,6 +410,15 @@ flags accounts that download a lot while signed in, so a YouTube link loads
 without your session first. Only a video that asks for a sign-in (members
 only, age-restricted, private, or "confirm you're not a bot") is tried once
 more with it, right away.
+
+Want KnightLoader off a site but stay signed in in your browser? Choose
+**Remove** in the site's row menu, or **Sign out** in its window. KnightLoader
+forgets the sign-in, leaves your browser alone and no longer picks the
+browser's sign-in up for that site, not even when a download asks for one.
+The row then says "Removed from KnightLoader. Your browser stays signed in."
+To use the site again, open it from its window and sign in, or choose **Use
+the browser's sign-in again**, which takes the browser's sign-in back at
+once. A new sign-in passed on by the extension counts too.
 
 A session runs out after a while. The row then says so, and a download that
 fails on that site because it wants a signed-in account, a membership or a

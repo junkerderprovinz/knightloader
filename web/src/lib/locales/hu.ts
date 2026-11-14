@@ -4038,5 +4038,6 @@ export const hu: Dict = {
   'failure.signInRequired.next': 'Bejelentkezett munkamenet kell, amelyet a Tárhelyfiókok alatti oldalakhoz a KnightLoader a böngésződből vesz kölcsön.',
   'siteLogins.fromKlBrowser': 'a KnightLoader bejelentkezési böngészőjéből',
   'siteLogins.turnedDown': 'A(z) {site} elutasította a bejelentkezést innen: {browser}',
-  'siteLogins.signOutInBrowser': 'A KnightLoader kijelentkeztetéséhez jelentkezz ki a(z) {site} oldalról ebben a böngészőben: {browser}.',
+  'siteLogins.disconnected': 'Eltávolítva a KnightLoaderből. A böngésződ bejelentkezve marad.',
+  'siteLogins.reconnect': 'A böngésző bejelentkezésének újbóli használata',
 };

@@ -131,9 +131,8 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
 
 /**
  * siteLoginRow is one site signed into through the browser as an AccountTable
- * row. Only a session the extension passed on can be forgotten: one read from
- * a browser here comes back with the next read, so signing out happens on the
- * site.
+ * row. Removing it signs KnightLoader out whatever the session came from, and
+ * leaves the browser signed in.
  */
 function siteLoginRow(site: SiteLogin, ways: SignInWays, actions: { onEdit: () => void; onRemove: () => void }): AccountRow {
   return {
@@ -144,7 +143,7 @@ function siteLoginRow(site: SiteLogin, ways: SignInWays, actions: { onEdit: () =
     status: <SiteLoginStatus site={site} ways={ways} />,
     expiry: site.expires,
     onEdit: actions.onEdit,
-    onRemove: site.source === 'extension' && site.state !== 'signedOut' ? actions.onRemove : undefined,
+    onRemove: site.state !== 'signedOut' ? actions.onRemove : undefined,
   };
 }
 

@@ -4038,5 +4038,6 @@ export const el: Dict = {
   'failure.signInRequired.next': 'Χρειάζεται συνδεδεμένη συνεδρία, που το KnightLoader δανείζεται από τον περιηγητή σου για τους ιστότοπους στην ενότητα Λογαριασμοί hoster.',
   'siteLogins.fromKlBrowser': 'από τον περιηγητή σύνδεσης του KnightLoader',
   'siteLogins.turnedDown': 'Το {site} απέρριψε τη σύνδεση από {browser}',
-  'siteLogins.signOutInBrowser': 'Για να αποσυνδέσεις το KnightLoader, αποσυνδέσου από το {site} στον {browser}.',
+  'siteLogins.disconnected': 'Αφαιρέθηκε από το KnightLoader. Ο περιηγητής σου μένει συνδεδεμένος.',
+  'siteLogins.reconnect': 'Χρήση ξανά της σύνδεσης του περιηγητή',
 };

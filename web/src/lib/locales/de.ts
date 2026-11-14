@@ -4038,5 +4038,6 @@ export const de: Dict = {
   'failure.signInRequired.next': 'Braucht eine angemeldete Sitzung. Für die Seiten unter Hoster-Konten holt KnightLoader sie aus deinem Browser.',
   'siteLogins.fromKlBrowser': 'aus dem Anmelde-Browser von KnightLoader',
   'siteLogins.turnedDown': '{site} hat die Anmeldung aus {browser} abgelehnt',
-  'siteLogins.signOutInBrowser': 'Um KnightLoader abzumelden, meld dich in {browser} bei {site} ab.',
+  'siteLogins.disconnected': 'Aus KnightLoader entfernt. Dein Browser bleibt angemeldet.',
+  'siteLogins.reconnect': 'Anmeldung aus dem Browser wieder nutzen',
 };

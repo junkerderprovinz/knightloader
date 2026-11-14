@@ -4017,5 +4017,6 @@ export const ru: Dict = {
   'failure.signInRequired.next': 'Нужен сеанс со входом. Для сайтов из раздела «Аккаунты хостеров» KnightLoader берёт его из вашего браузера.',
   'siteLogins.fromKlBrowser': 'из браузера KnightLoader для входа',
   'siteLogins.turnedDown': '{site} отклонил вход из {browser}',
-  'siteLogins.signOutInBrowser': 'Чтобы KnightLoader вышел из аккаунта, выйдите из {site} в {browser}.',
+  'siteLogins.disconnected': 'Удалено из KnightLoader. Браузер остаётся в аккаунте.',
+  'siteLogins.reconnect': 'Снова использовать вход из браузера',
 };

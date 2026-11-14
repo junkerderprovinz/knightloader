@@ -4037,5 +4037,6 @@ export const vi: Dict = {
   'failure.signInRequired.next': 'Cần một phiên đã đăng nhập. Với các trang trong mục Tài khoản nhà lưu trữ, KnightLoader mượn phiên đó từ trình duyệt của bạn.',
   'siteLogins.fromKlBrowser': 'từ trình duyệt đăng nhập của KnightLoader',
   'siteLogins.turnedDown': '{site} đã từ chối phiên đăng nhập từ {browser}',
-  'siteLogins.signOutInBrowser': 'Để đăng xuất KnightLoader, hãy đăng xuất khỏi {site} trong {browser}.',
+  'siteLogins.disconnected': 'Đã gỡ khỏi KnightLoader. Trình duyệt vẫn đăng nhập.',
+  'siteLogins.reconnect': 'Dùng lại đăng nhập của trình duyệt',
 };

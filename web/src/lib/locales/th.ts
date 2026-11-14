@@ -4036,5 +4036,6 @@ export const th: Dict = {
   'failure.signInRequired.next': 'ต้องใช้เซสชันที่เข้าสู่ระบบแล้ว ซึ่ง KnightLoader จะยืมจากเบราว์เซอร์ของคุณสำหรับเว็บใน “บัญชีโฮสเตอร์”',
   'siteLogins.fromKlBrowser': 'จากเบราว์เซอร์สำหรับเข้าสู่ระบบของ KnightLoader',
   'siteLogins.turnedDown': '{site} ปฏิเสธการเข้าสู่ระบบจาก {browser}',
-  'siteLogins.signOutInBrowser': 'หากต้องการให้ KnightLoader ออกจากระบบ ให้ออกจากระบบ {site} ใน {browser}',
+  'siteLogins.disconnected': 'นำออกจาก KnightLoader แล้ว เบราว์เซอร์ยังเข้าสู่ระบบอยู่',
+  'siteLogins.reconnect': 'ใช้การเข้าสู่ระบบจากเบราว์เซอร์อีกครั้ง',
 };

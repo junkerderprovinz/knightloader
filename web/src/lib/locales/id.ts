@@ -4037,5 +4037,6 @@ export const id: Dict = {
   'failure.signInRequired.next': 'Perlu sesi yang sudah masuk, yang dipinjam KnightLoader dari perambanmu untuk situs di Akun hoster.',
   'siteLogins.fromKlBrowser': 'dari peramban masuk KnightLoader',
   'siteLogins.turnedDown': '{site} menolak sesi masuk dari {browser}',
-  'siteLogins.signOutInBrowser': 'Untuk mengeluarkan KnightLoader, keluarlah dari {site} di {browser}.',
+  'siteLogins.disconnected': 'Dihapus dari KnightLoader. Peramban tetap masuk.',
+  'siteLogins.reconnect': 'Gunakan lagi login dari peramban',
 };

@@ -4034,5 +4034,6 @@ export const gl: Dict = {
   'failure.signInRequired.next': 'Precisa unha sesión iniciada, que KnightLoader toma prestada do teu navegador para os sitios de Contas de hosters.',
   'siteLogins.fromKlBrowser': 'desde o navegador de inicio de sesión de KnightLoader',
   'siteLogins.turnedDown': '{site} rexeitou a sesión de {browser}',
-  'siteLogins.signOutInBrowser': 'Para pechar a sesión de KnightLoader, pecha a sesión de {site} en {browser}.',
+  'siteLogins.disconnected': 'Quitado de KnightLoader. O navegador segue coa sesión iniciada.',
+  'siteLogins.reconnect': 'Volver usar a sesión do navegador',
 };

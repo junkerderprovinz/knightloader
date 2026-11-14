@@ -4038,5 +4038,6 @@ export const uk: Dict = {
   'failure.signInRequired.next': 'Потрібен сеанс із входом. Для сайтів у розділі «Облікові записи хостерів» KnightLoader бере його з вашого браузера.',
   'siteLogins.fromKlBrowser': 'з браузера KnightLoader для входу',
   'siteLogins.turnedDown': '{site} відхилив вхід із {browser}',
-  'siteLogins.signOutInBrowser': 'Щоб KnightLoader вийшов з облікового запису, вийдіть із {site} у {browser}.',
+  'siteLogins.disconnected': 'Вилучено з KnightLoader. Браузер лишається в обліковому записі.',
+  'siteLogins.reconnect': 'Знову використати вхід із браузера',
 };

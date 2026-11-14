@@ -4039,5 +4039,6 @@ export const lt: Dict = {
   'failure.signInRequired.next': 'Reikia prisijungusios sesijos. Svetainėms iš skilties „Hosterių paskyros“ KnightLoader ją pasiskolina iš tavo naršyklės.',
   'siteLogins.fromKlBrowser': 'iš KnightLoader prisijungimo naršyklės',
   'siteLogins.turnedDown': '„{site}“ atmetė prisijungimą iš {browser}',
-  'siteLogins.signOutInBrowser': 'Kad atjungtum KnightLoader, atsijunk nuo „{site}“ naršyklėje {browser}.',
+  'siteLogins.disconnected': 'Pašalinta iš KnightLoader. Naršyklė lieka prisijungusi.',
+  'siteLogins.reconnect': 'Vėl naudoti naršyklės prisijungimą',
 };

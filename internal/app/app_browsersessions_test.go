@@ -356,3 +356,120 @@ func TestAnEmptyHandOverSignsTheExtensionsSessionOut(t *testing.T) {
 		t.Errorf("the handed-over session is still stored: %q", s)
 	}
 }
+
+// Removing a site the browser signs in disconnects it here and leaves the
+// browser as it is.
+func TestRemovingABrowserSessionDisconnectsTheSite(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	a := siteApp(t)
+	b := withBrowsers(t, a)
+	b.set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
+	if s := stateOf(t, a, "patreon"); s.State != sitelogin.SignedIn {
+		t.Fatalf("patreon = %+v", s)
+	}
+	if err := a.RemoveSiteLogin("patreon"); err != nil {
+		t.Fatal(err)
+	}
+	reads := b.reads()
+	s, err := a.CheckSiteLogin("patreon")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.State != sitelogin.SignedOut || !s.Disconnected || s.Source != "" || s.Browser != "" {
+		t.Errorf("after removing = %+v, want signed out and disconnected", s)
+	}
+	if got := a.siteSession(patreonPost); got != "" {
+		t.Errorf("yt-dlp still gets the browser's session: %q", got)
+	}
+	if got := a.signInSession(patreonPost); got != "" {
+		t.Errorf("the second try still gets the browser's session: %q", got)
+	}
+	if b.reads() != reads {
+		t.Errorf("the browsers were read %d more times for a disconnected site", b.reads()-reads)
+	}
+}
+
+func TestADisconnectedSiteStaysDisconnectedAfterARestart(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	dir := t.TempDir()
+	a, err := newApp(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := a.RemoveSiteLogin("youtube"); err != nil {
+		t.Fatal(err)
+	}
+	a.Close()
+	again, err := newApp(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { again.Close() })
+	withBrowsers(t, again).set("youtube.com", youtubeIn(firefoxProfile, "YT-SESSION"))
+	if s := stateOf(t, again, "youtube"); !s.Disconnected || s.State != sitelogin.SignedOut {
+		t.Errorf("after a restart youtube = %+v, want still disconnected", s)
+	}
+}
+
+func TestSigningInThroughKnightLoaderConnectsTheSiteAgain(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	a := siteApp(t)
+	withBrowsers(t, a).set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
+	if err := a.RemoveSiteLogin("patreon"); err != nil {
+		t.Fatal(err)
+	}
+	s, err := a.BeginSiteLogin("patreon")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Disconnected || s.State != sitelogin.SignedIn || s.Source != SourceBrowser {
+		t.Errorf("after signing in again = %+v, want the browser's session back", s)
+	}
+}
+
+func TestUsingTheBrowsersSignInAgainConnectsTheSite(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	a := siteApp(t)
+	withBrowsers(t, a).set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
+	if err := a.RemoveSiteLogin("patreon"); err != nil {
+		t.Fatal(err)
+	}
+	s, err := a.ReconnectSiteLogin("patreon")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Disconnected || s.State != sitelogin.SignedIn || s.Waiting {
+		t.Errorf("after reconnecting = %+v, want signed in from the browser and not waiting", s)
+	}
+}
+
+func TestANewHandOverConnectsTheSiteAgain(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	a := siteApp(t)
+	if err := a.RemoveSiteLogin("patreon"); err != nil {
+		t.Fatal(err)
+	}
+	s, err := a.HandOverSiteSession("patreon", []sitelogin.BrowserCookie{
+		{Domain: ".patreon.com", Path: "/", Secure: true, Expires: 1.9e9, Name: "session_id", Value: "PATREON-SECRET"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Disconnected || s.State != sitelogin.SignedIn {
+		t.Errorf("after a hand-over = %+v, want signed in", s)
+	}
+}
+
+// The extension signing out says nothing about the browsers here.
+func TestAnEmptyHandOverLeavesTheBrowsersSignInInUse(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	a := siteApp(t)
+	withBrowsers(t, a).set("patreon.com", patreonIn(firefoxProfile, "FROM-FIREFOX", anHourAgo))
+	s, err := a.HandOverSiteSession("patreon", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Disconnected || s.Source != SourceBrowser {
+		t.Errorf("after the extension signed out = %+v, want the browser's session still used", s)
+	}
+}

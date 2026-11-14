@@ -4038,5 +4038,6 @@ export const fi: Dict = {
   'failure.signInRequired.next': 'Tarvitsee kirjautuneen istunnon, jonka KnightLoader lainaa selaimestasi kohdan Isännöijätilit sivustoille.',
   'siteLogins.fromKlBrowser': 'KnightLoaderin kirjautumisselaimesta',
   'siteLogins.turnedDown': '{site} hylkäsi kirjautumisen selaimesta {browser}',
-  'siteLogins.signOutInBrowser': 'Kirjaa KnightLoader ulos kirjautumalla ulos palvelusta {site} selaimessa {browser}.',
+  'siteLogins.disconnected': 'Poistettu KnightLoaderista. Selain pysyy kirjautuneena.',
+  'siteLogins.reconnect': 'Käytä selaimen kirjautumista taas',
 };

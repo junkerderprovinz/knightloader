@@ -4046,5 +4046,6 @@ export const ro: Dict = {
   'failure.signInRequired.next': 'Are nevoie de o sesiune autentificată, pe care KnightLoader o împrumută din browserul tău pentru site-urile din Conturi de hosteri.',
   'siteLogins.fromKlBrowser': 'din browserul de autentificare al KnightLoader',
   'siteLogins.turnedDown': '{site} a respins autentificarea din {browser}',
-  'siteLogins.signOutInBrowser': 'Ca să-l deconectezi pe KnightLoader, deconectează-te de pe {site} în {browser}.',
+  'siteLogins.disconnected': 'Eliminat din KnightLoader. Browserul rămâne autentificat.',
+  'siteLogins.reconnect': 'Folosește din nou autentificarea din browser',
 };

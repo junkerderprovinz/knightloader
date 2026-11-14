@@ -4034,5 +4034,6 @@ export const ja: Dict = {
   'failure.signInRequired.next': 'ログイン済みのセッションが必要です。「ホスターのアカウント」にあるサイトなら、KnightLoader がブラウザーから借ります。',
   'siteLogins.fromKlBrowser': 'KnightLoader のサインイン用ブラウザーから',
   'siteLogins.turnedDown': '{site} が {browser} からのサインインを受け付けませんでした',
-  'siteLogins.signOutInBrowser': 'KnightLoader をサインアウトさせるには、{browser} で {site} からサインアウトしてください。',
+  'siteLogins.disconnected': 'KnightLoader から削除しました。ブラウザーはサインインしたままです。',
+  'siteLogins.reconnect': 'ブラウザーのサインインをもう一度使う',
 };

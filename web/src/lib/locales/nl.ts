@@ -4020,5 +4020,6 @@ export const nl: Dict = {
   'failure.signInRequired.next': 'Heeft een aangemelde sessie nodig. Voor de sites onder Hosteraccounts leent KnightLoader die uit je browser.',
   'siteLogins.fromKlBrowser': 'uit de aanmeldbrowser van KnightLoader',
   'siteLogins.turnedDown': '{site} heeft de aanmelding uit {browser} geweigerd',
-  'siteLogins.signOutInBrowser': 'Wil je KnightLoader afmelden, meld je dan in {browser} af bij {site}.',
+  'siteLogins.disconnected': 'Uit KnightLoader verwijderd. Je browser blijft aangemeld.',
+  'siteLogins.reconnect': 'Aanmelding uit de browser weer gebruiken',
 };
