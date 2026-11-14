@@ -514,6 +514,9 @@ type App struct {
 	componentsState
 	// qbitState is the qBittorrent this app runs (app_qbitengine.go).
 	qbitState
+	// crossSeedState seeds finished torrents on more trackers
+	// (app_crossseed.go).
+	crossSeedState
 	// jdSetupState is why the desktop build has no JDownloader of its own
 	// yet (app_jdsetup.go).
 	jdSetupState
@@ -824,6 +827,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	// The finished torrents seed on as they did before the restart. A halt
 	// does not stop seeding, so the schedule has no say in it.
 	a.resumeSeeding()
+	a.startCrossSeed(cfg.Get().Torrent.CrossSeed)
 	a.settleRetiredImport()
 	// idleAction would otherwise see an empty queue and arm its countdown.
 	a.idleAction.Start()
@@ -1027,6 +1031,8 @@ func (a *App) Close() error {
 	// Before the engine and the store, since a sweep in flight removes tasks
 	// from both.
 	a.wg.Wait()
+	// Before qBittorrent, which an injection under way talks to.
+	a.stopCrossSeed()
 	a.stopQBit()
 	a.wmu.Lock()
 	if w := a.watcher.Swap(nil); w != nil {
@@ -1288,6 +1294,7 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyConnections(applied)
 	a.applyTorrentConfig(applied.Torrent)
 	a.applyQBitVersion(applied.Torrent.EngineVersion)
+	a.applyCrossSeed(applied.Torrent.CrossSeed, false)
 	a.applyQuiet(applied)
 	a.applyModuleSwitches(applied)
 	// The Usenet servers and the priority card that ranks them against the

@@ -56,6 +56,18 @@ func TestAMagnetCarriesItsTrackersAndStopsAtItsMetadata(t *testing.T) {
 	}
 }
 
+func TestMoreTagsAndACategoryGoAlongWithTheTag(t *testing.T) {
+	q, c := serve(t)
+	hash := bencode.InfoHash([]byte("d4:name1:ae"))
+	err := c.Add(context.Background(), Add{Hash: hash, File: []byte("d4:infod4:name1:aee"), Dir: "/d", Tags: []string{"cross-seed"}, Category: "music"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f := q.Added()[0].Fields; f["tags"] != Tag+",cross-seed" || f["category"] != "music" {
+		t.Fatalf("fields %v", f)
+	}
+}
+
 func TestACompleteTorrentSkipsTheCheck(t *testing.T) {
 	q, c := serve(t)
 	if err := c.Add(context.Background(), Add{Hash: "aa", File: []byte("d4:infod4:name1:aee"), Dir: "/d", Complete: true}); err != nil {

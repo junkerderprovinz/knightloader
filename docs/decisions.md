@@ -454,3 +454,29 @@ program cannot use. Torrents set to go through it tie qBittorrent to an
 interface the system does not have, so they wait rather than go out without
 the VPN.
 
+
+## Cross-seeding: the twins stay in qBittorrent
+
+**Built:** a twin found on another tracker is added to KnightLoader's
+qBittorrent with the tags `knightloader` and `cross-seed`, its check skipped,
+seeding from the task's own files or from links to them. It is not a task.
+It leaves qBittorrent when its task leaves the list, and takes its linked
+files along when the task's files go. While the task stays, the twin seeds
+on, whatever the seeding targets say.
+
+**Not built:** a task for each twin.
+
+A twin holds no byte the task did not fetch. As a task it would stand in the
+list twice over the same files, a removal with files could delete what the
+task still seeds from, and the torrent totals would count its upload beside
+the task's as if it were another download. The seeding targets are left out
+too: they exist so a download gives back what it took, and a twin took
+nothing, while the reason to seed it at all is to keep seeding on the other
+tracker. The totals on the overview therefore count what the tasks move, not
+the twins.
+
+The search asks each tracker about each torrent once and remembers the
+answer in `cross-seed-asked.json`, a match, no match and an error alike, so a
+restart or a second look never asks a private tracker again. An error is
+asked again only once that tracker's settings change, since a wrong key
+fails the same way every time.

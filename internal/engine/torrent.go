@@ -85,6 +85,9 @@ func (e *Engine) UseTorrents(c torrents.Client) {
 	e.pushPrefs()
 }
 
+// Torrents is the client every torrent runs in.
+func (e *Engine) Torrents() torrents.Client { return e.client() }
+
 func (e *Engine) client() torrents.Client {
 	e.mu.Lock()
 	defer e.mu.Unlock()

@@ -62,6 +62,10 @@ type Add struct {
 	// Complete takes the files already in Dir as the torrent's, unread. The
 	// caller has checked them; otherwise the client checks what it finds.
 	Complete bool
+	// Tags are the client's tags for the torrent besides Tag, and Category
+	// files it in the client.
+	Tags     []string
+	Category string
 }
 
 // File is one file of a torrent. Path is where it lands below Add.Dir, with

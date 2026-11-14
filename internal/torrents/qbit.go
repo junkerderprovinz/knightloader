@@ -40,7 +40,8 @@ func (q qbit) Add(ctx context.Context, t Add) error {
 		File:     t.File,
 		Magnet:   t.Magnet,
 		SavePath: t.Dir,
-		Tags:     []string{Tag},
+		Category: t.Category,
+		Tags:     append([]string{Tag}, t.Tags...),
 		Download: !t.Complete,
 		Folder:   true,
 	}

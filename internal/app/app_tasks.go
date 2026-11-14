@@ -1513,6 +1513,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	}
 	if t != nil {
 		a.backendFor(t.Resolver).Remove(id, backendFiles)
+		a.dropCrossSeeds(t, deleteFiles)
 		// The engine only deletes files of transfers it still knows, and it
 		// forgets them all on a restart. So does yt-dlp.
 		own.drop(id)

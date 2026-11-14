@@ -92,3 +92,16 @@ func TestTheSamePathLinksNothing(t *testing.T) {
 		t.Fatal("something was made")
 	}
 }
+
+func TestCheckFilesFindsAFileMissingOrCutShort(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "a"), "12345")
+	if err := CheckFiles(dir, []FileEntry{{"a", 5}}); err != nil {
+		t.Fatal(err)
+	}
+	for _, files := range [][]FileEntry{{{"a", 6}}, {{"b", 1}}, {{"../a", 5}}} {
+		if err := CheckFiles(dir, files); err == nil {
+			t.Errorf("%+v passed the check", files)
+		}
+	}
+}

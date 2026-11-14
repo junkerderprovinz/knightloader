@@ -12,6 +12,10 @@ import (
 // DaemonKey is the cross-seed daemon's name in the history.
 const DaemonKey = "daemon"
 
+// ErrNotNow is an injection the torrent client cannot take now, such as one
+// while it does not run. It is not remembered, so the next look asks again.
+var ErrNotNow = errors.New("the torrent client cannot take a torrent now")
+
 // IndexerKey is a Torznab indexer's name in the history, apart from the
 // sites' names.
 func IndexerKey(name string) string { return "torznab:" + name }
@@ -241,7 +245,7 @@ func (r *Runner) ask(tracker, key string, src Source, find func(ctx context.Cont
 		return
 	}
 	if err := r.o.Inject(r.ctx, src, *f); err != nil {
-		if r.ctx.Err() != nil {
+		if r.ctx.Err() != nil || errors.Is(err, ErrNotNow) {
 			return
 		}
 		r.o.History.Note(key, src.Hash, Answer{Result: ResultRefused, InfoHash: f.Hash, Reason: err.Error()})

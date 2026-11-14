@@ -134,15 +134,14 @@ func Build(c Candidate, announce string) ([]byte, error) {
 	return bencode.Encode(map[string]any{"announce": announce, "info": info})
 }
 
-// Gazelle asks one site's API with the user's key. One client per site
-// keeps every call of the app inside the site's limit.
+// Gazelle asks one site's API with the user's key. The clients WithKey
+// makes share the limit, so one client per site and the ones made from it
+// keep every call of the app inside the site's limit.
 type Gazelle struct {
 	site  Site
+	key   string
 	http  *http.Client
 	limit *limiter
-
-	mu  sync.Mutex
-	key string
 }
 
 // NewGazelle is a client for site with the user's API key.
@@ -158,17 +157,12 @@ func NewGazelle(site Site, key string) *Gazelle {
 // Site is the site the client asks.
 func (g *Gazelle) Site() Site { return g.site }
 
-// SetKey has the client ask with key from now on.
-func (g *Gazelle) SetKey(key string) {
-	g.mu.Lock()
-	g.key = key
-	g.mu.Unlock()
-}
-
-func (g *Gazelle) apiKey() string {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	return g.key
+// WithKey is a client for the same site that asks with key, inside the
+// same limit.
+func (g *Gazelle) WithKey(key string) *Gazelle {
+	c := *g
+	c.key = key
+	return &c
 }
 
 // Match is the torrent the other site has for a candidate.
@@ -245,7 +239,7 @@ func (g *Gazelle) call(ctx context.Context, q url.Values, v any) (refusal string
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("Authorization", g.apiKey())
+	req.Header.Set("Authorization", g.key)
 	resp, err := g.http.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("%s could not be reached: %w", g.site.Name, err)

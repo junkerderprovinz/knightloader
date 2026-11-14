@@ -205,8 +205,7 @@ func TestTheIndexCallTestsTheKey(t *testing.T) {
 	if who, err := g.Index(context.Background()); err != nil || who != "listener" {
 		t.Fatalf("Index = %q, %v", who, err)
 	}
-	g.SetKey("wrong")
-	if _, err := g.Index(context.Background()); err == nil || !strings.Contains(err.Error(), "bad credentials") {
+	if _, err := g.WithKey("wrong").Index(context.Background()); err == nil || !strings.Contains(err.Error(), "bad credentials") {
 		t.Fatalf("a wrong key gave %v", err)
 	}
 }

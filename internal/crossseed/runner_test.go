@@ -140,7 +140,7 @@ func TestATorrentIsNeverAskedForTwiceOnOneSite(t *testing.T) {
 func TestASiteThatRefusesIsLoggedAndRemembered(t *testing.T) {
 	g := &fakeGazelle{}
 	acc := opsAt(t, g)
-	acc.Client.SetKey("wrong")
+	acc.Client = acc.Client.WithKey("wrong")
 	r := startRig(t, Config{Gazelle: []Account{acc}})
 	r.runner.Offer(redSource(t))
 	r.settle(t)
@@ -249,4 +249,22 @@ func TestCloseCutsASearchShortWithoutRememberingIt(t *testing.T) {
 		t.Errorf("the search cut short was logged: %+v", e)
 	}
 	r.runner.Offer(src)
+}
+
+func TestAnInjectionTheClientCannotTakeNowIsAskedForAgain(t *testing.T) {
+	g := &fakeGazelle{known: map[string]int{strings.ToUpper(hashWithSource(t, "OPS")): 11}}
+	r := startRig(t, Config{Gazelle: []Account{opsAt(t, g)}})
+	r.in.refuse = ErrNotNow
+	src := redSource(t)
+	r.runner.Offer(src)
+	r.settle(t)
+	if r.hist.Asked("OPS", src.Hash) || len(r.entries(t)) != 0 {
+		t.Fatal("an injection put off was remembered or logged")
+	}
+	r.in.refuse = nil
+	r.runner.Offer(src)
+	r.settle(t)
+	if len(r.in.all()) != 1 {
+		t.Fatal("the twin was not injected on the next look")
+	}
 }

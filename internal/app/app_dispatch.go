@@ -1818,6 +1818,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if extractCopy != nil {
 		a.publish(extractCopy)
 	}
+	if u.Status == core.StatusDone {
+		a.offerCrossSeed(&c.Task)
+	}
 	if checkUsenet != "" {
 		a.spawn(func() { a.checkUsenetJob(checkUsenet) })
 	}

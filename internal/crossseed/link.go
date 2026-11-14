@@ -79,3 +79,21 @@ func Link(mode LinkMode, src, dst string, files []FileEntry) error {
 	}
 	return nil
 }
+
+// CheckFiles reports the first of files that is not under dir at its size.
+func CheckFiles(dir string, files []FileEntry) error {
+	for _, f := range files {
+		if !filepath.IsLocal(filepath.FromSlash(f.Path)) {
+			return fmt.Errorf("the path %q points outside its folder", f.Path)
+		}
+		p := filepath.Join(dir, filepath.FromSlash(f.Path))
+		fi, err := os.Stat(p)
+		if err != nil {
+			return fmt.Errorf("%s is not there to seed from", p)
+		}
+		if fi.Size() != f.Size {
+			return fmt.Errorf("%s is not whole", p)
+		}
+	}
+	return nil
+}
