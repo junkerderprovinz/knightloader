@@ -48,6 +48,9 @@ type SiteLoginState struct {
 	sitelogin.Status
 	// Waiting is true from Sign in until a session arrives or the wait ends.
 	Waiting bool `json:"waiting"`
+	// Source says where the stored session came from: SignInBrowserSource,
+	// or empty.
+	Source string `json:"source,omitempty"`
 }
 
 type siteCheck struct {
@@ -185,6 +188,9 @@ func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 		out.Status = sitelogin.Status{State: sitelogin.SignedOut}
 		return out
 	}
+	if a.fromSignInBrowser(site.ID, jar) {
+		out.Source = SignInBrowserSource
+	}
 	keep := siteCheckFresh
 	if last.status.State == sitelogin.Unchecked {
 		keep = siteUncheckedFresh
@@ -216,5 +222,9 @@ func (a *App) siteSession(rawurl string) string {
 	if !ok {
 		return ""
 	}
-	return a.siteStore().Session(site.ID)
+	stored := a.siteStore().Session(site.ID)
+	if live, ok := a.liveSignInBrowserJar(site, stored); ok {
+		return live
+	}
+	return stored
 }

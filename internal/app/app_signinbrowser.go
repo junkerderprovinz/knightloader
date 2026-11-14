@@ -1,0 +1,182 @@
+package app
+
+// The sign-in browser (internal/signinbrowser): a headless Chromium on the
+// server that the user signs in to a site with from the web interface, for a
+// container where no browser of the user's runs. What it reads of the site's
+// cookies is stored like the extension's handover, through StoreSiteSession.
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/signinbrowser"
+	"github.com/junkerderprovinz/knightloader/internal/sitelogin"
+)
+
+// SignInBrowserSource is the Source of a session the sign-in browser stored.
+const SignInBrowserSource = "kl-browser"
+
+// ErrNoSignInBrowser is a sign-in browser asked for where there is none.
+var ErrNoSignInBrowser = errors.New("there is no sign-in browser on this server")
+
+// chromiumPaths are where Alpine's chromium package puts the browser, the
+// binary first: the launcher script in front of it adds switches of its own.
+var chromiumPaths = []string{"/usr/lib/chromium/chromium", "/usr/bin/chromium-browser", "/usr/bin/chromium"}
+
+func chromiumBinary() string {
+	if bin := strings.TrimSpace(os.Getenv("KL_CHROMIUM")); bin != "" {
+		return bin
+	}
+	for _, p := range chromiumPaths {
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+	return ""
+}
+
+var (
+	signInBrowserMu    sync.Mutex
+	signInBrowserByApp = map[*App]*signinbrowser.Manager{}
+)
+
+func (a *App) signInBrowserDir() string { return filepath.Join(a.DataDir, "signinbrowser") }
+
+// SignInBrowser is the app's sign-in browser, made on first use.
+func (a *App) SignInBrowser() *signinbrowser.Manager {
+	signInBrowserMu.Lock()
+	defer signInBrowserMu.Unlock()
+	m, ok := signInBrowserByApp[a]
+	if !ok {
+		m = signinbrowser.NewManager(a.ctx, signinbrowser.Config{
+			Binary:    chromiumBinary(),
+			Profile:   filepath.Join(a.signInBrowserDir(), "profile"),
+			NoSandbox: buildinfo.InContainer(),
+			Session:   a.signInBrowserSession,
+		})
+		signInBrowserByApp[a] = m
+	}
+	return m
+}
+
+// SignInBrowserAvailable reports whether this server can open a sign-in
+// browser. The desktop app reads the sessions from the user's own browsers
+// instead.
+func (a *App) SignInBrowserAvailable() bool {
+	return buildinfo.Deployment == "container" && a.SignInBrowser().Available()
+}
+
+// OpenSignInBrowser opens the sign-in browser on a site's login page.
+func (a *App) OpenSignInBrowser(ctx context.Context, id string, width, height int, scale float64) (SiteLoginState, error) {
+	site, ok := sitelogin.Lookup(id)
+	if !ok {
+		return SiteLoginState{}, ErrNoSuchSite
+	}
+	if !a.SignInBrowserAvailable() {
+		return SiteLoginState{}, ErrNoSignInBrowser
+	}
+	if err := a.SignInBrowser().Open(ctx, site, width, height, scale); err != nil {
+		return SiteLoginState{}, err
+	}
+	return a.siteLoginState(site, false), nil
+}
+
+// CloseSignInBrowser closes the window, storing the session it holds, and
+// says how its site stands. ok is false when no window was open.
+func (a *App) CloseSignInBrowser(ctx context.Context) (SiteLoginState, bool) {
+	id := a.SignInBrowser().Close(ctx)
+	site, found := sitelogin.Lookup(id)
+	if !found {
+		return SiteLoginState{}, false
+	}
+	return a.siteLoginState(site, false), true
+}
+
+// signInBrowserSession stores what the sign-in browser holds of a site's
+// session, or forgets a session it stored once the user signed out in it.
+func (a *App) signInBrowserSession(site sitelogin.Site, jar string) any {
+	if jar == "" {
+		if a.fromSignInBrowser(site.ID, a.siteStore().Session(site.ID)) {
+			if err := a.RemoveSiteLogin(site.ID); err != nil {
+				log.Printf("sign-in browser: could not forget the %s session: %v", site.Name, err)
+			}
+		}
+		return a.siteLoginState(site, false)
+	}
+	st, err := a.StoreSiteSession(site.ID, jar)
+	if err != nil {
+		log.Printf("sign-in browser: %s did not take the session: %v", site.Name, err)
+		return a.siteLoginState(site, false)
+	}
+	a.noteSignInBrowserJar(site.ID, jar)
+	st.Source = SignInBrowserSource
+	return st
+}
+
+// The sessions the sign-in browser stored are known by the hash of their
+// jar, so a session stored any other way since reads as not its own.
+func (a *App) signInBrowserJars() map[string]string {
+	out := map[string]string{}
+	b, err := os.ReadFile(filepath.Join(a.signInBrowserDir(), "sessions.json"))
+	if err == nil {
+		_ = json.Unmarshal(b, &out)
+	}
+	return out
+}
+
+func jarHash(jar string) string {
+	sum := sha256.Sum256([]byte(jar))
+	return hex.EncodeToString(sum[:])
+}
+
+func (a *App) noteSignInBrowserJar(id, jar string) {
+	signInBrowserMu.Lock()
+	defer signInBrowserMu.Unlock()
+	jars := a.signInBrowserJars()
+	jars[id] = jarHash(jar)
+	b, _ := json.Marshal(jars)
+	err := os.MkdirAll(a.signInBrowserDir(), 0o700)
+	if err == nil {
+		err = os.WriteFile(filepath.Join(a.signInBrowserDir(), "sessions.json"), b, 0o600)
+	}
+	if err != nil {
+		log.Printf("sign-in browser: could not note where the %s session came from: %v", id, err)
+	}
+}
+
+// fromSignInBrowser reports whether jar is the session the sign-in browser
+// stored for a site.
+func (a *App) fromSignInBrowser(id, jar string) bool {
+	if jar == "" {
+		return false
+	}
+	signInBrowserMu.Lock()
+	defer signInBrowserMu.Unlock()
+	return a.signInBrowserJars()[id] == jarHash(jar)
+}
+
+// liveSignInBrowserJar is the session an open sign-in browser holds for a
+// site whose stored session it made, which is fresher while the site keeps
+// renewing its cookies in the window.
+func (a *App) liveSignInBrowserJar(site sitelogin.Site, stored string) (string, bool) {
+	signInBrowserMu.Lock()
+	m, ok := signInBrowserByApp[a]
+	signInBrowserMu.Unlock()
+	if !ok || m.OpenSite() != site.ID || !a.fromSignInBrowser(site.ID, stored) {
+		return "", false
+	}
+	ctx, cancel := context.WithTimeout(a.ctx, siteCheckTimeout)
+	defer cancel()
+	jar, ok := m.Jar(ctx, site.ID)
+	return jar, ok && sitelogin.HoldsSignIn(site, jar, time.Now())
+}
