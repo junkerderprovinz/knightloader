@@ -206,6 +206,9 @@ export interface Task {
   /** A debrid service's progress on a torrent it is still fetching for this
    *  task, before any of it comes here. Absent at every other time. */
   remote?: RemoteFetch;
+  /** The debrid service that passed this torrent on to the backend that has
+   *  it now, and why, until it is done. */
+  declined?: Declined;
   /** Where the par2 check of the release this file belongs to stands, on a
    *  finished file from the own Usenet servers until the release has passed
    *  it. Absent at every other time. */
@@ -242,6 +245,13 @@ export interface RemoteFetch {
   progress: number;
   speed?: number;
   seeds?: number;
+}
+
+/** core.Declined: a code the interface words, or else the service's own words. */
+export interface Declined {
+  service: string;
+  code?: 'private' | 'notCached' | 'stalled';
+  reason?: string;
 }
 
 /**

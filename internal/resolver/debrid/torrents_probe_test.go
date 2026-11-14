@@ -228,6 +228,9 @@ func TestAnUncachedTorrentMovesOnAndIsDeletedThere(t *testing.T) {
 			if !u.Unsupported || !strings.Contains(u.Err, "did not have it ready") {
 				t.Errorf("the task came back as %+v; it goes on to the next backend with the reason", u)
 			}
+			if d := u.Declined; d == nil || d.Code != core.DeclinedNotCached {
+				t.Errorf("the task was passed on as %+v, want it to say the torrent is not cached", d)
+			}
 			waitFor(t, func() bool { _, deletes := s.counts(); return deletes == 1 }, "the torrent deleted on the service")
 			if len(parts.parts()) != 0 {
 				t.Error("files of the uncached torrent went to the engine")
@@ -294,6 +297,9 @@ func TestATorrentTheServiceMakesNoProgressOnMovesOnAndIsDeletedThere(t *testing.
 
 			if !u.Unsupported || !strings.HasSuffix(u.Err, "the service made no progress on this torrent for 2 minutes") {
 				t.Errorf("the task came back as %+v; it goes on to the next backend with the reason", u)
+			}
+			if d := u.Declined; d == nil || d.Code != core.DeclinedStalled {
+				t.Errorf("the task was passed on as %+v, want it to say the service stood still", d)
 			}
 			waitFor(t, func() bool { _, deletes := s.counts(); return deletes == 1 }, "the torrent deleted on the service")
 		})

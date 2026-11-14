@@ -1570,6 +1570,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.Online = core.AvailOnline
 		t.Takeover = ""
 		t.BrowserCheck = ""
+		t.Declined = nil
 		// A link check that answered while the download ran can have left a
 		// reason the finished file disproves.
 		t.ClearFailure()
@@ -1626,6 +1627,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 			t.BrowserCheck = u.BrowserCheck
 		}
 		if next := a.nextPastOwnFreeLocked(t); next != "" {
+			if u.Declined != nil {
+				t.Declined = u.Declined
+			}
 			fallbackTo = a.backendFor(t.Resolver)
 			log.Printf("task %s: %s could not fetch the link, trying %s", id, t.Resolver, next)
 			t.Resolver = next
