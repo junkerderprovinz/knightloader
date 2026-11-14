@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"crypto/sha1"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -18,6 +19,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/crossseed"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 	"github.com/junkerderprovinz/knightloader/internal/torrents"
 	"github.com/junkerderprovinz/knightloader/internal/torrents/torrentstest"
 )
@@ -32,14 +34,21 @@ func redAlbum(t *testing.T, downloads string) (*core.Task, string) {
 	}
 	var list []any
 	var picked []core.TorrentFile
-	for name, size := range map[string]int{"01.flac": 3000, "02.flac": 2000} {
-		if err := os.WriteFile(filepath.Join(root, name), make([]byte, size), 0o644); err != nil {
+	var all []byte
+	for _, f := range []struct {
+		name string
+		size int
+	}{{"01.flac", 3000}, {"02.flac", 2000}} {
+		body := testenv.Content(f.name, f.size)
+		if err := os.WriteFile(filepath.Join(root, f.name), body, 0o644); err != nil {
 			t.Fatal(err)
 		}
-		list = append(list, map[string]any{"length": size, "path": []any{name}})
-		picked = append(picked, core.TorrentFile{Path: name, Size: int64(size), Selected: true})
+		all = append(all, body...)
+		list = append(list, map[string]any{"length": f.size, "path": []any{f.name}})
+		picked = append(picked, core.TorrentFile{Path: f.name, Size: int64(f.size), Selected: true})
 	}
-	info := map[string]any{"name": "Album", "piece length": 16384, "pieces": strings.Repeat("x", 20), "private": 1, "source": "RED", "files": list}
+	sum := sha1.Sum(all)
+	info := map[string]any{"name": "Album", "piece length": 16384, "pieces": sum[:], "private": 1, "source": "RED", "files": list}
 	raw, err := bencode.Encode(info)
 	if err != nil {
 		t.Fatal(err)
