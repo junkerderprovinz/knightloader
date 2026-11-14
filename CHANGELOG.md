@@ -47,7 +47,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   have to do anything, and the accounts page names the browser the session
   came from. Sign out in the browser and KnightLoader is signed out too.
   Chrome on Windows locks its cookies away from every other program, and the
-  page tells you when that is the case.
+  page tells you when that is the case. Your sessions only go along with
+  links you added yourself, signed in, with an admin token or with the
+  extension. Links from a token that may only add, the phone app, a feed or
+  the watch folder are fetched without them.
 - **Any site that wants you signed in gets a second try with your browser's
   session.** When a yt-dlp download fails because the site asks for a
   sign-in, such as a private or age-restricted video, the desktop app tries it

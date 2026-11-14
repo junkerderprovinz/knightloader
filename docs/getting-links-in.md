@@ -422,6 +422,13 @@ membership.
 The session is used only by yt-dlp for that site's links. It never shows up
 in the settings, a log or the diagnostics bundle.
 
+Your sessions are yours, so they only go along with links that you added
+yourself: signed in to KnightLoader, through an API token with the admin
+right, or with the browser extension. A link from a token that may only add
+and read (a friend's, an automation's), from the phone app, from a feed or
+from the watch folder is fetched as anybody would see it. That way nobody who
+can only add links gets at what your accounts open.
+
 ## Other sites that want you signed in
 
 In the desktop app and outside a container, this works for every site yt-dlp
@@ -429,8 +436,9 @@ downloads from, not only Patreon and YouTube. When a download fails because
 the site wants you signed in (a private or age-restricted video, a members'
 post, a login page), KnightLoader looks for that site's cookies in the
 browsers on the same computer. If one of them looks signed in, the download is
-tried once more with those cookies, right away. Nothing is stored, and the log
-names the browser the session came from. In a container, a link that the
+tried once more with those cookies, right away, as long as you added the link
+yourself (see above). Nothing is stored, and the log names the browser the
+session came from. In a container, a link that the
 extension sends from a page brings that page's cookies along instead.
 
 ## Rapidgator

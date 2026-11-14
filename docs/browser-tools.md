@@ -314,6 +314,17 @@ the first failed with `botCheck`, `membersOnly` or `signInRequired`
 a browser here holds for the link's registrable domain, if a cookie name
 there looks like a sign-in.
 
+Either session goes only to a task somebody with every right added
+(`core.Task.AddedByAdmin`, set by `POST /api/links` from `addsAsAdmin`): the
+signed-in owner, an admin token, the owner's extension over the relay, or
+anybody on an instance without a password. A token with add and read but no
+admin, a phone or instance of the group, the Click'n'Load listener, feeds and
+the watch folder stage links without it, and yt-dlp's `MaySignIn` hook then
+keeps every session off their runs and probes. Variant rows, playlist entries and a
+page's crawled links take the flag of the link they came from. A probe that
+may sign in is cached apart from one that may not, so its answer never
+reaches a link added below admin.
+
 ### The download button on videos
 
 On YouTube, Vimeo, Dailymotion, Twitch and Bilibili, and on any other site
