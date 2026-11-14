@@ -38,23 +38,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
-### Changed
-
-- **KnightLoader follows GlimStone 4.4.1,** and the Version card names it. A
-  switch that is on draws its knob in the accent's ink, so it stays easy to
-  see in the light theme. A group inside a card carries its name as a badge
-  on its top edge, like the card itself.
-- **A value a field cannot take is marked the same way in the web interface
-  and the extension's settings.** The field turns red, and a line under it
-  says why.
-- **Screen readers read out the notifications.** In the web interface a
-  failure is read at once and anything else at the next pause. A
-  notification with a button stays until you close it, unless its offer runs
-  out first. The extension's status line and the phone app's captcha banner
-  are read out too.
-- **While a window is open, the page behind it is out of reach** for the
-  pointer and for a screen reader, in the web interface and in the
-  extension's settings.
 ### Added
 
 - **Sign in to Patreon and YouTube right in KnightLoader.** The site's window
@@ -101,6 +84,25 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
+- **KnightLoader follows GlimStone 4.4.1,** and the Version card names it. A
+  switch that is on draws its knob in the accent's ink, so it stays easy to
+  see in the light theme. A group inside a card carries its name as a badge
+  on its top edge, like the card itself.
+- **A value a field cannot take is marked the same way in the web interface
+  and the extension's settings.** The field turns red, and a line under it
+  says why.
+- **Screen readers read out the notifications.** In the web interface a
+  failure is read at once and anything else at the next pause. A
+  notification with a button stays until you close it, unless its offer runs
+  out first. The extension's status line and the phone app's captcha banner
+  are read out too.
+- **While a window is open, the page behind it is out of reach** for the
+  pointer and for a screen reader, in the web interface and in the
+  extension's settings.
+- **The Settings page offers the installers.** Under Settings, Apps, the
+  Windows and Linux buttons lead to the installers instead of the zipped
+  program, like the buttons in the README. macOS keeps its zip, because there
+  is no macOS installer.
 - **YouTube downloads start without your session.** Google flags accounts
   that download a lot while signed in, so KnightLoader uses your YouTube
   session only for a video that asks for it (members only, age-restricted,
@@ -153,6 +155,22 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   still fetches a torrent onto its own servers, the qBittorrent connection
   reports how far it has got and how fast, instead of a download stuck at
   nothing.
+- **A paid Patreon post says that it needs a sign-in.** It fails at once
+  instead of being retried, and the download row offers signing in to
+  Patreon.
+- **The JDownloader import explains a folder the container cannot see.** The
+  folder picker says when a path is not mapped into the container and points
+  to the Unraid shares path in the template
+  ([#174](https://github.com/junkerderprovinz/knightloader/issues/174)).
+- **The Linux installer comes with the release.** Every release built it, but
+  the upload skipped it, so the Linux buttons offered the zipped program
+  instead. They lead to the installer now, which puts KnightLoader in your
+  application menu and asks for no password. Make it executable before the
+  first start (`chmod +x knightloader-linux-amd64-installer`).
+- **A new target keeps the mark on an address it refuses.** The red mark
+  vanished as soon as it appeared, so nothing showed what was wrong.
+- **Stopping KnightLoader waits for a group leave to finish,** so a stop
+  right then no longer leaves the group half left.
 
 ## [2.8.3] - 2026-11-13
 
