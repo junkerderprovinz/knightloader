@@ -1,6 +1,6 @@
 // Package qbittest is a qBittorrent WebUI that lives in memory, for the tests
 // of everything that drives one: the login with its session cookie or an API
-// key, the version calls, the preferences and the shutdown.
+// key, the version calls, the preferences, the shutdown and the torrents.
 package qbittest
 
 import (
@@ -24,8 +24,14 @@ type Server struct {
 	Version    string
 	WebAPI     string
 	OnShutdown func()
+	// Modern answers torrents/stop and torrents/start, as 5.0 and later do,
+	// instead of torrents/pause and torrents/resume.
+	Modern bool
 
 	mu       sync.Mutex
+	torrents map[string]*Torrent
+	added    []AddCall
+	deleted  []string
 	sessions map[string]bool
 	prefs    map[string]any
 	logins   int
@@ -123,7 +129,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			defer s.OnShutdown()
 		}
 	default:
-		http.NotFound(w, r)
+		if !s.serveTorrents(w, r) {
+			http.NotFound(w, r)
+		}
 	}
 }
 

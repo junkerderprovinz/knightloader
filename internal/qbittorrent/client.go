@@ -21,6 +21,7 @@ import (
 	"net/textproto"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
@@ -90,8 +91,11 @@ func New(addr, user, pass string) (*Client, error) {
 	}, nil
 }
 
-// answer is a response read whole; qBittorrent answers these calls in a few
-// bytes.
+// maxAnswer caps a response. The list of every torrent is the longest, at
+// about a kilobyte a torrent.
+const maxAnswer = 32 << 20
+
+// answer is a response read whole.
 type answer struct {
 	status int
 	body   string
@@ -131,7 +135,7 @@ func (c *Client) send(ctx context.Context, method, endpoint, contentType string,
 		return answer{}, &Error{Reason: "qBittorrent could not be reached", Err: err}
 	}
 	defer resp.Body.Close()
-	b, err := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
+	b, err := io.ReadAll(io.LimitReader(resp.Body, maxAnswer))
 	if err != nil {
 		return answer{}, &Error{Reason: "qBittorrent broke off its answer", Err: err}
 	}
@@ -230,21 +234,34 @@ type Torrent struct {
 	Category string
 	// Folder says the torrent has several files, in a folder of its name.
 	Folder bool
+	// Tags are qBittorrent's tags for the torrent, made on first use.
+	Tags []string
+	// Download has qBittorrent check what it finds and fetch the rest, rather
+	// than take the files as complete.
+	Download bool
+	// Stopped adds the torrent without starting it, so its files can be
+	// picked first.
+	Stopped bool
 }
 
-// Add hands t to qBittorrent to seed. It skips the hash check, since the
-// caller has checked the files, and starts the torrent at once.
+// Add hands t to qBittorrent. Unless t says Download, the caller has checked
+// the files, so qBittorrent skips its own check and seeds.
 func (c *Client) Add(ctx context.Context, t Torrent) error {
 	var body bytes.Buffer
 	w := multipart.NewWriter(&body)
+	stopped := strconv.FormatBool(t.Stopped)
+	skip := strconv.FormatBool(!t.Download)
 	fields := [][2]string{
 		{"savepath", t.SavePath},
 		{"autoTMM", "false"},
 		{"contentLayout", "Original"},
-		{"skip_checking", "true"},
-		{"seedMode", "true"},
-		{"paused", "false"},
-		{"stopped", "false"},
+		{"skip_checking", skip},
+		{"seedMode", skip},
+		{"paused", stopped},
+		{"stopped", stopped},
+	}
+	if len(t.Tags) > 0 {
+		fields = append(fields, [2]string{"tags", strings.Join(t.Tags, ",")})
 	}
 	// Before 4.3.2 a torrent of several files lands in a folder of its name
 	// only when asked.
