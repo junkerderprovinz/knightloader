@@ -1,10 +1,11 @@
 package api
 
-// The sign-in browser (internal/signinbrowser), which the container offers
-// for signing in to a site without the extension. Every route needs admin and
-// none is open to the phrase group.
+// The sign-in browser (internal/signinbrowser), for signing in to a site
+// without the extension: the image's Chromium in the container, an installed
+// browser on the desktop. Every route needs admin and none is open to the
+// phrase group.
 //
-//	GET  /api/signinbrowser            whether this server has one, and the site open in it
+//	GET  /api/signinbrowser            whether a browser is there to sign in with, its name, and the site open in it
 //	POST /api/signinbrowser/{id}/open  open it on a site's login page: {"width", "height", "scale"}
 //	GET  /api/signinbrowser/stream     WebSocket: JPEG frames down as binary messages, the
 //	                                   page's state down and the user's input up as JSON
@@ -31,9 +32,13 @@ const signInBrowserRecheck = 5 * time.Second
 
 func registerSignInBrowser(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/signinbrowser",
-		"whether this server has a sign-in browser, and the site open in it",
+		"whether a browser is there to sign in with, which one, and the site open in it",
 		func(w http.ResponseWriter, r *http.Request) {
-			writeJSON(w, map[string]any{"available": a.SignInBrowserAvailable(), "site": a.SignInBrowser().OpenSite()})
+			out := map[string]any{"available": a.SignInBrowserAvailable(), "browser": "", "site": a.SignInBrowser().OpenSite()}
+			if out["available"] == true {
+				out["browser"] = a.SignInBrowserName()
+			}
+			writeJSON(w, out)
 		})
 
 	reg.Add(http.MethodPost, "/api/signinbrowser/{id}/open",

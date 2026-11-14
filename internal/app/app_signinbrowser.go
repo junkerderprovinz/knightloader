@@ -1,9 +1,10 @@
 package app
 
-// The sign-in browser (internal/signinbrowser): a headless Chromium on the
-// server that the user signs in to a site with from the web interface, for a
-// container where no browser of the user's runs. What it reads of the site's
-// cookies is stored like the extension's handover, through StoreSiteSession.
+// The sign-in browser (internal/signinbrowser): a headless Chromium-family
+// browser that the user signs in to a site with from KnightLoader's own window,
+// the image's Chromium in the container and an installed browser on the
+// desktop. What it reads of the site's cookies is stored like the extension's
+// hand-over, through StoreSiteSession.
 
 import (
 	"context"
@@ -27,22 +28,16 @@ import (
 const SourceSignInBrowser = "kl-browser"
 
 // ErrNoSignInBrowser is a sign-in browser asked for where there is none.
-var ErrNoSignInBrowser = errors.New("there is no sign-in browser on this server")
+var ErrNoSignInBrowser = errors.New("there is no Chromium-family browser here to sign in with")
 
-// chromiumPaths are where Alpine's chromium package puts the browser, the
-// binary first: the launcher script in front of it adds switches of its own.
-var chromiumPaths = []string{"/usr/lib/chromium/chromium", "/usr/bin/chromium-browser", "/usr/bin/chromium"}
-
-func chromiumBinary() string {
+// signInBrowserBinary is the browser the sign-in window runs: KL_CHROMIUM
+// where it is set, as the image does, and otherwise a Chromium-family browser
+// installed on this computer.
+func signInBrowserBinary() (signinbrowser.Browser, bool) {
 	if bin := strings.TrimSpace(os.Getenv("KL_CHROMIUM")); bin != "" {
-		return bin
+		return signinbrowser.Browser{Name: "Chromium", Path: bin}, true
 	}
-	for _, p := range chromiumPaths {
-		if _, err := os.Stat(p); err == nil {
-			return p
-		}
-	}
-	return ""
+	return signinbrowser.Installed()
 }
 
 var (
@@ -52,15 +47,22 @@ var (
 
 func (a *App) signInBrowserDir() string { return filepath.Join(a.DataDir, "signinbrowser") }
 
+// signInBrowserProfile is the profile folder for one browser: a profile one
+// browser wrote may not open in another, or in an older one.
+func (a *App) signInBrowserProfile(b signinbrowser.Browser) string {
+	return filepath.Join(a.signInBrowserDir(), "profile-"+strings.ReplaceAll(strings.ToLower(b.Name), " ", "-"))
+}
+
 // SignInBrowser is the app's sign-in browser, made on first use.
 func (a *App) SignInBrowser() *signinbrowser.Manager {
 	signInBrowserMu.Lock()
 	defer signInBrowserMu.Unlock()
 	m, ok := signInBrowserByApp[a]
 	if !ok {
+		b, _ := signInBrowserBinary()
 		m = signinbrowser.NewManager(a.ctx, signinbrowser.Config{
-			Binary:    chromiumBinary(),
-			Profile:   filepath.Join(a.signInBrowserDir(), "profile"),
+			Binary:    b.Path,
+			Profile:   a.signInBrowserProfile(b),
 			NoSandbox: buildinfo.InContainer(),
 			Session:   a.signInBrowserSession,
 		})
@@ -69,11 +71,13 @@ func (a *App) SignInBrowser() *signinbrowser.Manager {
 	return m
 }
 
-// SignInBrowserAvailable reports whether this server can open a sign-in
-// browser. The desktop app reads the sessions from the user's own browsers
-// instead.
-func (a *App) SignInBrowserAvailable() bool {
-	return buildinfo.Deployment == "container" && a.SignInBrowser().Available()
+// SignInBrowserAvailable reports whether a browser is there to sign in with.
+func (a *App) SignInBrowserAvailable() bool { return a.SignInBrowser().Available() }
+
+// SignInBrowserName names the browser the sign-in window runs.
+func (a *App) SignInBrowserName() string {
+	b, _ := signInBrowserBinary()
+	return b.Name
 }
 
 // OpenSignInBrowser opens the sign-in browser on a site's login page.

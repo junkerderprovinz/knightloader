@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/signinbrowser"
 	"github.com/junkerderprovinz/knightloader/internal/sitelogin"
 )
 
@@ -84,7 +85,7 @@ func TestWhereASessionCameFromOutlivesARestart(t *testing.T) {
 	}
 }
 
-func TestTheSignInBrowserIsOfferedOnlyByTheServerWithAChromium(t *testing.T) {
+func TestTheSignInBrowserIsOfferedWhereverABrowserIsThere(t *testing.T) {
 	self, err := os.Executable()
 	if err != nil {
 		t.Fatal(err)
@@ -96,13 +97,22 @@ func TestTheSignInBrowserIsOfferedOnlyByTheServerWithAChromium(t *testing.T) {
 		want                       bool
 	}{
 		{"the container with Chromium", "container", self, true},
-		{"the container without", "container", filepath.Join(t.TempDir(), "no-chromium"), false},
-		{"the desktop app, which reads the user's browsers", "desktop", self, false},
+		{"the desktop app with a browser", "desktop", self, true},
+		{"a Chromium named that is not there", "container", filepath.Join(t.TempDir(), "no-chromium"), false},
 	} {
 		buildinfo.Deployment = c.deployment
 		t.Setenv("KL_CHROMIUM", c.chromium)
 		if got := siteApp(t).SignInBrowserAvailable(); got != c.want {
 			t.Errorf("%s: available %v, want %v", c.name, got, c.want)
 		}
+	}
+}
+
+func TestEachBrowserSignsInWithAProfileOfItsOwn(t *testing.T) {
+	a := siteApp(t)
+	edge := a.signInBrowserProfile(signinbrowser.Browser{Name: "Microsoft Edge"})
+	chrome := a.signInBrowserProfile(signinbrowser.Browser{Name: "Google Chrome"})
+	if edge == chrome || filepath.Dir(edge) != a.signInBrowserDir() {
+		t.Errorf("profiles %q and %q, want two folders under %q", edge, chrome, a.signInBrowserDir())
 	}
 }

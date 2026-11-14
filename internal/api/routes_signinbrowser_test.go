@@ -26,9 +26,10 @@ func TestTheServerSaysWhetherItHasASignInBrowser(t *testing.T) {
 	status, body := owner(http.MethodGet, "/api/signinbrowser", "")
 	var got struct {
 		Available *bool   `json:"available"`
+		Browser   *string `json:"browser"`
 		Site      *string `json:"site"`
 	}
-	if status != http.StatusOK || json.Unmarshal(body, &got) != nil || got.Available == nil || *got.Available || got.Site == nil {
+	if status != http.StatusOK || json.Unmarshal(body, &got) != nil || got.Available == nil || *got.Available || got.Site == nil || got.Browser == nil {
 		t.Errorf("GET /api/signinbrowser = %d %s, want it unavailable and no site open", status, body)
 	}
 }
