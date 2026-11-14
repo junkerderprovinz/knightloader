@@ -673,17 +673,17 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/go-logr/logr/@v/v1.4.3.mod",
+        "url": "https://proxy.golang.org/github.com/go-logr/logr/@v/v1.4.4.mod",
         "sha256": "c496f30d700f02b49a1b50bc2486a27c2f74df3dce75d9db6d2d43975b381727",
         "dest": "gomod/github.com/go-logr/logr/@v",
-        "dest-filename": "v1.4.3.mod"
+        "dest-filename": "v1.4.4.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/github.com/go-logr/logr/@v/v1.4.3.zip",
-        "sha256": "523d7a3587fe73f61ef41c8bc627f7d7f38de8104d46278154b307e60770ad70",
+        "url": "https://proxy.golang.org/github.com/go-logr/logr/@v/v1.4.4.zip",
+        "sha256": "3ab107c1d280ce798eaa744efd595982fa709d4023f3f38d24189827483c1710",
         "dest": "gomod/github.com/go-logr/logr/@v",
-        "dest-filename": "v1.4.3.zip"
+        "dest-filename": "v1.4.4.zip"
     },
     {
         "type": "file",
@@ -1961,45 +1961,59 @@
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/@v/v1.43.0.mod",
-        "sha256": "84c9cb2ac7f3983f465b4335ac4a9a037b2d9b4f2253cbb74ac4548d405a01ed",
+        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/@v/v1.47.0.mod",
+        "sha256": "11a2e49dee71689b665e29148de1ad870d35a9c5e39c490f61ff98e9988ed616",
         "dest": "gomod/go.opentelemetry.io/otel/@v",
-        "dest-filename": "v1.43.0.mod"
+        "dest-filename": "v1.47.0.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/@v/v1.43.0.zip",
-        "sha256": "177d24c79e756950c431aa87c1c613bb807cc7fe435260b72c5f675b01651921",
+        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/@v/v1.47.0.zip",
+        "sha256": "275ce19c11b3f26830a4b3d884e6a59f3e4ef51e519ef3fc3bcbcc5e71f9b37d",
         "dest": "gomod/go.opentelemetry.io/otel/@v",
-        "dest-filename": "v1.43.0.zip"
+        "dest-filename": "v1.47.0.zip"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/metric/@v/v1.43.0.mod",
-        "sha256": "d18e909369700a606926eb98566ff1bc6550cff697b32cb455e53ae779532291",
+        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/log/@v/v1.47.0.mod",
+        "sha256": "5b5184d8361c106394eff6abc967f4933721f040867a2a07c406788ca391d724",
+        "dest": "gomod/go.opentelemetry.io/otel/log/@v",
+        "dest-filename": "v1.47.0.mod"
+    },
+    {
+        "type": "file",
+        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/log/@v/v1.47.0.zip",
+        "sha256": "6f99ff1e779241c778d62872f651ea7bafce80246b5cfac321aa133f196ad811",
+        "dest": "gomod/go.opentelemetry.io/otel/log/@v",
+        "dest-filename": "v1.47.0.zip"
+    },
+    {
+        "type": "file",
+        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/metric/@v/v1.47.0.mod",
+        "sha256": "95052b27898fbc50440e3fdf2a60a822063b396ddf65f6c12af4e8c3979d7280",
         "dest": "gomod/go.opentelemetry.io/otel/metric/@v",
-        "dest-filename": "v1.43.0.mod"
+        "dest-filename": "v1.47.0.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/metric/@v/v1.43.0.zip",
-        "sha256": "3efb5ad706fab815f4b2e8fc89c1656ec8d2403f07edd406c17c2310dd8a08a6",
+        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/metric/@v/v1.47.0.zip",
+        "sha256": "cfa35ad1f540114d39a381cf8773ba7d2aab47f0fa42040d409e86dee9ab27f6",
         "dest": "gomod/go.opentelemetry.io/otel/metric/@v",
-        "dest-filename": "v1.43.0.zip"
+        "dest-filename": "v1.47.0.zip"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/trace/@v/v1.43.0.mod",
-        "sha256": "e0b407a91f01ffd29f355b516c7900ba4fd842de1f2733a04c47e82496c649b9",
+        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/trace/@v/v1.47.0.mod",
+        "sha256": "ca9d8fff9fcde94b0a83aed11ddc87632ab4fcc75d2d5faca0178c286933d6cd",
         "dest": "gomod/go.opentelemetry.io/otel/trace/@v",
-        "dest-filename": "v1.43.0.mod"
+        "dest-filename": "v1.47.0.mod"
     },
     {
         "type": "file",
-        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/trace/@v/v1.43.0.zip",
-        "sha256": "34fdc70a75e90d68e36caa59b9e800a5de5266118393eaee4489dd0abe3cb62d",
+        "url": "https://proxy.golang.org/go.opentelemetry.io/otel/trace/@v/v1.47.0.zip",
+        "sha256": "dfffa6cb848954b5d3413007b6553ad3e508a9fc992a81ab4bd9026c236229be",
         "dest": "gomod/go.opentelemetry.io/otel/trace/@v",
-        "dest-filename": "v1.43.0.zip"
+        "dest-filename": "v1.47.0.zip"
     },
     {
         "type": "file",
