@@ -45,6 +45,7 @@ const outside: FortressState = {
   left: [],
   removed: [],
   removedHere: false,
+  phraseChanged: false,
 };
 const WORDS = 'orbit wagon lemon crisp absent tunnel galaxy harbor pencil ribbon velvet yellow';
 

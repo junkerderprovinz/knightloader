@@ -25,6 +25,7 @@ const server = vi.hoisted(() => ({
   throttled: false,
   calls: [] as string[],
   openRefusal: '',
+  left: [{ app: '', device: 'Cellar' }] as { app: string; device: string }[],
 }));
 
 vi.mock('../../../lib/api', async (importOriginal) => {
@@ -35,7 +36,7 @@ vi.mock('../../../lib/api', async (importOriginal) => {
     joinFortress: async (phrase: string) => {
       server.calls.push(`join ${phrase}`);
       server.join?.();
-      server.view = { ...server.view, joined: true, phrase: true };
+      server.view = { ...server.view, joined: true, phrase: true, phraseChanged: false };
       return server.view;
     },
     showFortressPhrase: async (password: string) => {
@@ -46,7 +47,7 @@ vi.mock('../../../lib/api', async (importOriginal) => {
     changeFortressPhrase: async (password: string) => {
       server.calls.push(`change ${password}`);
       if (server.view.passwordSet && password !== 'hunter2') throw wrong();
-      return { phrase: NEW_PHRASE, left: ['Cellar'] };
+      return { phrase: NEW_PHRASE, left: server.left };
     },
     setFortressDevice: async (device: string) => {
       server.calls.push(`device ${device}`);
@@ -96,6 +97,7 @@ function state(over: Partial<FortressState> = {}): FortressState {
     left: [],
     removed: [],
     removedHere: false,
+    phraseChanged: false,
     ...over,
   };
 }
@@ -134,6 +136,7 @@ beforeEach(() => {
   server.join = null;
   server.throttled = false;
   server.openRefusal = '';
+  server.left = [{ app: '', device: 'Cellar' }];
   server.calls.length = 0;
   toasts.length = 0;
 });
@@ -326,6 +329,37 @@ describe('FortressSection', () => {
     await press('leave');
     expect(server.calls).toEqual(['change hunter2', 'refresh', 'leave', 'refresh']);
     expect(page()).toContain('Not in a fortress yet');
+  });
+
+  it('names the app beside every device still on the old phrase, once per member', async () => {
+    server.left = [
+      { app: 'ArrowLoop', device: 'Tower' },
+      { app: 'BombVault', device: 'Tower' },
+    ];
+    await draw(joined({ passwordSet: false }));
+    await press('open-change');
+    await press('change');
+    expect(page()).toContain(en['pairing.fortressChangedLeft'].replace('{devices}', 'ArrowLoop on Tower and BombVault on Tower'));
+  });
+
+  it('says on the Fortress card that the fortress has a new phrase and takes the new words', async () => {
+    await draw(joined({ phraseChanged: true }));
+    const card = document.querySelector('[data-glim="FortressPairing"]')!;
+    const note = card.querySelector('[data-fortress="moved"]');
+    const glim = fortressText('en');
+    expect(note?.textContent).toContain(glim.changedTitle);
+    expect(note?.textContent).toContain(interpolate(glim.phraseMoved, { app: 'KnightLoader' }));
+    await press('open-new-words');
+    await typeInto(document.querySelector<HTMLInputElement>('[data-word="0"]')!, NEW_PHRASE);
+    await press('join');
+    expect(server.calls).toEqual([`join ${NEW_PHRASE}`, 'refresh']);
+    expect(hook('moved')).toBeNull();
+  });
+
+  it('says nothing about a new phrase while the fortress has none', async () => {
+    await draw(joined());
+    expect(hook('moved')).toBeNull();
+    expect(hook('open-new-words')).toBeNull();
   });
 
   it('calls a member connected or not reachable', async () => {

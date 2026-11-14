@@ -39,6 +39,20 @@ describe('fortressApps', () => {
     expect(apps[1].instances[0]).toMatchObject({ deviceKind: 'phone', relay: true, open: undefined });
   });
 
+  it('shows a member that never said its app by its device, away and with nothing to open', () => {
+    const apps = fortressApps(
+      [
+        member({ id: 'cellar-member', app: '', name: '', version: '', device: 'Cellar', deployment: 'plugin', online: false, open: false, lastSeen: 1000 }),
+        member({ id: 'attic-member', app: '', name: '', version: '', device: 'Attic', deployment: '', online: false, open: false }),
+      ],
+      (unix) => `at ${unix}`,
+    );
+    expect(apps.map((a) => a.name)).toEqual(['Attic', 'Cellar']);
+    expect(apps[1].instances).toEqual([
+      { id: 'cellar-member', device: 'Cellar', deviceKind: 'server', form: 'plugin', version: undefined, presence: 'away', relay: false, lastSeen: 'at 1000', open: undefined, doubt: undefined, print: 'r-member' },
+    ]);
+  });
+
   it('opens a plugin too, which shows its status instead of pages', () => {
     const [app] = fortressApps([member({ app: 'tollroll', name: 'TollRoll', deployment: 'plugin', open: false })], String);
     expect(app.instances[0]).toMatchObject({ form: 'plugin', open: {} });

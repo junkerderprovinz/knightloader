@@ -4626,6 +4626,7 @@ export async function leaveConnect(): Promise<void> {
 /** Another instance of the fortress that said which app it runs. */
 export interface FortressMember {
   id: string;
+  /** Empty, as name is, for a member that never said which app it runs. */
   app: string;
   name: string;
   version: string;
@@ -4677,6 +4678,9 @@ export interface FortressState {
   removed: FortressRemoved[];
   /** Another member took this instance out. */
   removedHere: boolean;
+  /** A member said the fortress has a new phrase, which nobody in reach
+   *  hands over, so the owner enters it here. */
+  phraseChanged: boolean;
 }
 
 /** A member taken out of the fortress, by its app and device. */
@@ -4703,9 +4707,16 @@ export async function showFortressPhrase(password: string): Promise<{ phrase: st
   return json(await post('/api/fortress/phrase/show', { password }));
 }
 
+/** A member the phrase change did not reach. `app` is empty for one that
+ *  never said which app it runs. */
+export interface FortressLeft {
+  app: string;
+  device: string;
+}
+
 /** changeFortressPhrase gives the fortress a new phrase. `left` names the
- *  devices out of reach, which still hold the old one. */
-export async function changeFortressPhrase(password: string): Promise<{ phrase: string; qr?: QRMatrix; left: string[] }> {
+ *  members out of reach, which still hold the old one. */
+export async function changeFortressPhrase(password: string): Promise<{ phrase: string; qr?: QRMatrix; left: FortressLeft[] }> {
   return json(await post('/api/fortress/phrase', { password }));
 }
 

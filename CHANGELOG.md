@@ -63,6 +63,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   The words appear once you enter your password. A new phrase reaches every
   app and instance in reach, and any it missed are named, so you know where
   to type the new words.
+- **A phrase change KnightLoader missed asks for the new words.** If every
+  app it still reaches has moved on and none can hand the new phrase over,
+  the Pairing page says so. Enter the new words there and KnightLoader stays
+  the member it was. An app that never said what it is shows up under its
+  device's name, and after a change every app still on the old phrase is
+  named with the device it runs on.
 - **You can take an app out of the fortress.** Remove on its card on the
   Pairing page asks first. After that the fortress lets no new app join
   until you change the phrase, so it offers a new phrase right away. Until

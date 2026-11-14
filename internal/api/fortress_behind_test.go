@@ -83,11 +83,11 @@ func TestAPhraseChangeNamesAnInstanceStillOnItsWayIn(t *testing.T) {
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/fortress/phrase", map[string]string{})
 	var changed struct {
-		Left []string `json:"left"`
+		Left []leftEntry `json:"left"`
 	}
 	_ = json.Unmarshal(raw, &changed)
-	if code != http.StatusOK || !slices.Contains(changed.Left, "Attic") {
-		t.Errorf("the change answered %d and left %v on the old phrase, want Attic among them", code, changed.Left)
+	if code != http.StatusOK || !slices.Contains(changed.Left, leftEntry{App: "KnightLoader", Device: "Attic"}) {
+		t.Errorf("the change answered %d and left %v on the old phrase, want KnightLoader on Attic among them", code, changed.Left)
 	}
 }
 

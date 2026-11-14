@@ -480,7 +480,7 @@ func joinFortress(a *app.App, secret []byte) error {
 	}
 	defer joining.Delete(a)
 	if fortressSecret(a) != nil {
-		return errInFortress
+		return followPhrase(a, secret)
 	}
 	removedHere, err := a.Accounts.Get(federation.FortressRemovedHereAccount)
 	if err != nil {
@@ -508,6 +508,18 @@ func joinFortress(a *app.App, secret []byte) error {
 		}
 		return a.Accounts.Set(federation.FortressRemovedHereAccount, removedHere)
 	}))
+}
+
+// followPhrase takes the new words of the fortress this instance is in, once
+// a member said the phrase changed and nobody in reach hands it over. The
+// members know the member key, so it comes back as the member it was.
+func followPhrase(a *app.App, secret []byte) error {
+	if g := fortressOf(a); g == nil || !g.f.PhraseChanged() {
+		return errInFortress
+	}
+	changing.Store(a, true)
+	defer changing.Delete(a)
+	return regroup(a, func() error { return fortressKeeper{a}.Keep(secret) })
 }
 
 // turnedAway waits until the members of the fortress just joined turn this
@@ -571,9 +583,9 @@ func leaveFortress(a *app.App) error {
 }
 
 // changeFortressPhrase gives the fortress a new phrase and opens it on that.
-// It returns the new words and the devices out of reach, which keep the old
+// It returns the new words and the members out of reach, which keep the old
 // ones.
-func changeFortressPhrase(ctx context.Context, a *app.App) (string, []string, error) {
+func changeFortressPhrase(ctx context.Context, a *app.App) (string, []leftMember, error) {
 	g := fortressOf(a)
 	if g == nil {
 		return "", nil, errNoFortress
@@ -584,17 +596,21 @@ func changeFortressPhrase(ctx context.Context, a *app.App) (string, []string, er
 	if err != nil {
 		return "", nil, err
 	}
-	left := []string{}
+	left := []leftMember{}
 	noted := map[string]bool{}
-	note := func(id, name string) {
-		if !slices.Contains(took, id) && !noted[id] && !slices.Contains(left, name) {
+	note := func(id, app, device string) {
+		if !slices.Contains(took, id) && !noted[id] {
 			noted[id] = true
-			left = append(left, name)
+			left = append(left, leftMember{App: app, Device: device})
 		}
 	}
 	for _, m := range g.f.Members() {
 		if m.Kind == member.KindInstance {
-			note(m.ID, m.Device)
+			name := ""
+			if m.App.ID != "" {
+				name = appName(m.App)
+			}
+			note(m.ID, name, m.Device)
 		}
 	}
 	// Every instance the pairing approved counts, whether or not it has met
@@ -606,10 +622,12 @@ func changeFortressPhrase(ctx context.Context, a *app.App) (string, []string, er
 	}
 	for _, m := range g.f.Pairing().Members() {
 		if m.Kind == member.KindInstance && m.State == group.StateApproved && !behind[m.ID] {
-			note(m.ID, cmp.Or(m.Name, m.ID))
+			note(m.ID, "KnightLoader", cmp.Or(m.Name, m.ID))
 		}
 	}
-	slices.Sort(left)
+	slices.SortFunc(left, func(x, y leftMember) int {
+		return cmp.Or(cmp.Compare(x.Device, y.Device), cmp.Compare(x.App, y.App))
+	})
 	if err := regroup(a, nil); err != nil {
 		return "", nil, err
 	}
@@ -617,8 +635,16 @@ func changeFortressPhrase(ctx context.Context, a *app.App) (string, []string, er
 	return words, left, err
 }
 
-// fortressMemberView is another instance of the fortress that said which app
-// it runs.
+// leftMember is a member the phrase change did not reach. App is empty for
+// one that never said which app it runs.
+type leftMember struct {
+	App    string `json:"app"`
+	Device string `json:"device"`
+}
+
+// fortressMemberView is another instance of the fortress. App and Name are
+// empty for one known by its device alone, which never said which app it
+// runs.
 type fortressMemberView struct {
 	ID         string `json:"id"`
 	App        string `json:"app"`
@@ -671,6 +697,9 @@ type fortressView struct {
 	Removed []fortressRemoved `json:"removed"`
 	// RemovedHere says another member took this instance out.
 	RemovedHere bool `json:"removedHere"`
+	// PhraseChanged says a member told this instance that the fortress has a
+	// new phrase, which nobody in reach hands over, so the owner enters it.
+	PhraseChanged bool `json:"phraseChanged"`
 }
 
 // behindDevice carries no address: the owner finds the device by its name.
@@ -728,27 +757,36 @@ func fortressViewOf(a *app.App) fortressView {
 	if left := g.left(); left != nil {
 		v.Left = left
 	}
-	for _, m := range g.f.Members() {
-		if m.State != group.StateApproved || m.App.ID == "" {
-			continue
-		}
-		mv := fortressMemberView{
-			ID: m.ID, App: m.App.ID, Name: appName(m.App), Version: m.App.Version,
-			Device: m.Device, Deployment: m.Deployment, Kind: string(m.Kind),
-			Online: m.Online(), Relay: m.Relay && !m.Direct, Host: m.Host,
-			Open: m.Kind == member.KindInstance && slices.Contains(m.Actions, kitfortress.OpenAction),
-		}
-		if !m.LastSeen.IsZero() {
-			mv.LastSeen = m.LastSeen.Unix()
-		}
-		v.Members = append(v.Members, mv)
-	}
+	v.PhraseChanged = g.f.PhraseChanged()
+	v.Members = memberViews(g.f.Members())
 	for _, p := range g.f.Permissions() {
 		if p.From == appID || p.To == appID {
 			v.Permissions = append(v.Permissions, fortressPermissionView{From: p.From, To: p.To, Action: p.Action, On: p.On})
 		}
 	}
 	return v
+}
+
+func memberViews(members []kitfortress.Member) []fortressMemberView {
+	out := []fortressMemberView{}
+	for _, m := range members {
+		if m.State != group.StateApproved {
+			continue
+		}
+		mv := fortressMemberView{
+			ID: m.ID, Device: m.Device, Deployment: m.Deployment, Kind: string(m.Kind),
+			Online: m.Online(), Relay: m.Relay && !m.Direct, Host: m.Host,
+		}
+		if m.App.ID != "" {
+			mv.App, mv.Name, mv.Version = m.App.ID, appName(m.App), m.App.Version
+			mv.Open = m.Kind == member.KindInstance && slices.Contains(m.Actions, kitfortress.OpenAction)
+		}
+		if !m.LastSeen.IsZero() {
+			mv.LastSeen = m.LastSeen.Unix()
+		}
+		out = append(out, mv)
+	}
+	return out
 }
 
 // unraidFlash is where the Unraid template mounts the flash, read-only and at

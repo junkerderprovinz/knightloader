@@ -5,12 +5,16 @@
 // shows its pages in a new tab through the fortress, or the status of an app
 // without pages of its own. Remove takes another app out, and since the
 // fortress then takes no new app until its phrase changes, it offers a new
-// one right after.
-import { useEffect, useMemo, useRef, useState } from 'react';
+// one right after. Once a member says the phrase changed and nobody in reach
+// hands the new one over, the Fortress card asks for the new words.
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
+  createFortressFlow,
   fill,
   fortressText,
+  joinRefusalText,
   openRefusalText,
+  phraseReady,
   type ChangeAnswer,
   type FortressAnswer,
   type FortressApp,
@@ -20,8 +24,10 @@ import {
   type FortressText,
   type PhraseAnswer,
 } from '@glimstone/core';
+import { Button } from '@glimstone/react/Button';
 import { Fortress, FortressPairing } from '@glimstone/react/Fortress';
 import { FortressStatusWindow } from '@glimstone/react/FortressStatusWindow';
+import { glyphFor } from '@glimstone/react/glyphs';
 import { PasswordField } from '@glimstone/react/PasswordField';
 import { Window } from '@glimstone/react/Window';
 import { Card, SectionTitle, TextInput } from '../../../components/ui';
@@ -200,7 +206,9 @@ export function FortressSection({
             onLeave={onLeave}
             pairedWith={view.pairedWith}
             hueIndex={hueStart}
-          />
+          >
+            {view.phraseChanged && <NewWords text={text} onJoin={onJoin} />}
+          </FortressPairing>
           <DeviceCard view={view} onView={onView} hue={hueStart + 1} />
         </>
       )}
@@ -308,10 +316,98 @@ function passwordRefusal(t: T, text: FortressText, e: unknown): string {
 async function changePhrase(t: T, text: FortressText, password: string): Promise<ChangeAnswer & { wrong?: boolean }> {
   try {
     const r = await changeFortressPhrase(password);
-    return { words: r.phrase.split(' '), left: r.left ?? [] };
+    const left = (r.left ?? []).map((l) => (l.app ? fill(text.memberOn, { app: l.app, device: l.device }) : l.device));
+    return { words: r.phrase.split(' '), left };
   } catch (e) {
     return { wrong: e instanceof ApiError && e.code === 'passwordWrong', error: passwordRefusal(t, text, e) };
   }
+}
+
+/** NewWords says on the Fortress card that the fortress has a new phrase
+ *  KnightLoader could not follow on its own, and takes its words. With them
+ *  KnightLoader stays the member it was. */
+function NewWords({ text, onJoin }: { text: FortressText; onJoin: (words: string[]) => Promise<FortressAnswer> }) {
+  const latest = useRef({ text, onJoin });
+  latest.current = { text, onJoin };
+  const flow = useMemo(
+    () =>
+      createFortressFlow(() => ({
+        onJoin: latest.current.onJoin,
+        failed: latest.current.text.failed,
+        joinRefusal: (code) => joinRefusalText(latest.current.text, code),
+      })),
+    [],
+  );
+  const s = useSyncExternalStore(flow.subscribe, flow.state, flow.state);
+  const w = s.window?.kind === 'join' ? s.window : null;
+
+  return (
+    <>
+      <div className="glim-fortress-removed" data-fortress="moved" role="status">
+        {glyphFor('info')}
+        <span>
+          <strong>{text.changedTitle}</strong> {fill(text.phraseMoved, { app: SELF.name })}
+        </span>
+        <Button label={text.enterPhrase} labelKey="fortressJoin" tone="subtle" onClick={flow.openJoin} data-fortress="open-new-words" />
+      </div>
+      {w && (
+        <Window
+          title={text.changedTitle}
+          size="wide"
+          text={{ cancel: text.cancel, close: text.close }}
+          onClose={flow.close}
+          actions={[
+            {
+              label: text.join,
+              labelKey: 'fortressJoin',
+              primary: true,
+              disabled: s.busy === 'join' || !phraseReady(w.words),
+              attrs: { 'data-fortress': 'join' },
+              onClick: () => {
+                void flow.join();
+                return false;
+              },
+            },
+          ]}
+        >
+          <form
+            className="glim-fortress-text"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void flow.join();
+            }}
+          >
+            <p>{fill(text.phraseMoved, { app: SELF.name })}</p>
+            <div className="glim-phrase-fields">
+              {w.words.map((word, i) => (
+                <label key={i} className="glim-phrase-field">
+                  <span className="glim-phrase-number glim-num">{i + 1}</span>
+                  <input
+                    className="glim-input"
+                    data-word={i}
+                    value={word}
+                    aria-label={fill(text.word, { n: i + 1 })}
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    onChange={(e) => flow.enter(i, e.target.value)}
+                  />
+                </label>
+              ))}
+            </div>
+            <button type="submit" hidden />
+            <p className="glim-fortress-sub">{text.phraseWhere}</p>
+            {s.error && (
+              <p className="glim-fortress-error" role="alert">
+                {s.error}
+              </p>
+            )}
+          </form>
+        </Window>
+      )}
+    </>
+  );
 }
 
 /** ChangePassword asks for the login password in front of a phrase change.

@@ -26,12 +26,15 @@ const ACTION_TITLES: Record<string, TranslationKey> = {
 const PRINT_LENGTH = 8;
 
 /** Every server instance opens: through the fortress where it offers its
- *  pages, else as its status window. A phone has nothing to open. */
+ *  pages, else as its status window. A phone has nothing to open, and
+ *  neither has a member that never said its app, which gets a card of its
+ *  own under its device's name. */
 export function fortressApps(members: FortressMember[], ago: (unix: number) => string): FortressApp[] {
   const apps = new Map<string, FortressApp>();
   for (const m of members) {
     if (m.app === SELF.id) continue;
-    const app = apps.get(m.app) ?? { id: m.app, name: m.name || m.app, instances: [] };
+    const key = m.app || m.id;
+    const app = apps.get(key) ?? { id: key, name: m.app ? m.name || m.app : m.device || m.id.slice(-PRINT_LENGTH), instances: [] };
     // Unix seconds, left out until the member was seen once.
     const seen = m.lastSeen ?? 0;
     app.instances.push({
@@ -43,11 +46,11 @@ export function fortressApps(members: FortressMember[], ago: (unix: number) => s
       presence: m.online ? 'connected' : 'away',
       relay: m.relay,
       lastSeen: !m.online && seen > 0 ? ago(seen) : undefined,
-      open: m.kind === 'instance' ? {} : undefined,
+      open: m.app && m.kind === 'instance' ? {} : undefined,
       doubt: doubted(m, members) || undefined,
       print: m.id.slice(-PRINT_LENGTH),
     });
-    apps.set(m.app, app);
+    apps.set(key, app);
   }
   return [...apps.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -58,6 +61,7 @@ function doubted(m: FortressMember, members: FortressMember[]): boolean {
   return members.some(
     (o) =>
       o.id !== m.id &&
+      !!m.app &&
       o.app === m.app &&
       o.kind === m.kind &&
       ((!!m.host && o.host === m.host) || (!!m.device && o.device === m.device)),
