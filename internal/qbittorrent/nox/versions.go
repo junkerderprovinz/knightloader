@@ -26,9 +26,11 @@ type Table struct {
 }
 
 // Version is one qBittorrent release and its builds, by "goos-goarch".
+// Whitelists names the trackers whose public client list admits it.
 type Version struct {
 	Version    string           `json:"version"`
 	Libtorrent string           `json:"libtorrent"`
+	Whitelists []string         `json:"whitelists"`
 	Note       string           `json:"note"`
 	Assets     map[string]Asset `json:"assets"`
 }
@@ -36,9 +38,12 @@ type Version struct {
 // Asset is one build of a version. A build without Repo comes from the release
 // location (ReleaseLocation), where this project's own builds are published.
 type Asset struct {
-	Repo   string `json:"repo,omitempty"`
-	Tag    string `json:"tag"`
-	Name   string `json:"name"`
+	Repo string `json:"repo,omitempty"`
+	Tag  string `json:"tag"`
+	Name string `json:"name"`
+	// Bin is the program's path inside a zipped build, when it is not
+	// qbittorrent-nox at the top, such as inside a macOS app bundle.
+	Bin    string `json:"bin,omitempty"`
 	Size   int64  `json:"size,omitempty"`
 	SHA256 string `json:"sha256,omitempty"`
 }

@@ -4,6 +4,9 @@
     {
       "version": "4.5.5",
       "libtorrent": "1.2.19",
+      "whitelists": [
+        "OPS"
+      ],
       "note": "The newest qBittorrent on OPS's public client whitelist, which lists 2.x to 4.5.x. RED's public list is out of date, so check its rules before seeding there.",
       "assets": {
         "linux-amd64": {
@@ -30,17 +33,20 @@
         },
         "darwin-arm64": {
           "tag": "qbittorrent-nox-v4.5.5",
-          "name": "qbittorrent-nox-4.5.5-darwin-arm64.zip"
+          "name": "qbittorrent-nox-4.5.5-darwin-arm64.zip",
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
         },
         "darwin-amd64": {
           "tag": "qbittorrent-nox-v4.5.5",
-          "name": "qbittorrent-nox-4.5.5-darwin-amd64.zip"
+          "name": "qbittorrent-nox-4.5.5-darwin-amd64.zip",
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
         }
       }
     },
     {
       "version": "4.6.7",
       "libtorrent": "1.2.19",
+      "whitelists": [],
       "note": "Not on OPS's public whitelist. Pick it only for trackers that name 4.6 as allowed.",
       "assets": {
         "linux-amd64": {
@@ -67,17 +73,20 @@
         },
         "darwin-arm64": {
           "tag": "qbittorrent-nox-v4.6.7",
-          "name": "qbittorrent-nox-4.6.7-darwin-arm64.zip"
+          "name": "qbittorrent-nox-4.6.7-darwin-arm64.zip",
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
         },
         "darwin-amd64": {
           "tag": "qbittorrent-nox-v4.6.7",
-          "name": "qbittorrent-nox-4.6.7-darwin-amd64.zip"
+          "name": "qbittorrent-nox-4.6.7-darwin-amd64.zip",
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
         }
       }
     },
     {
       "version": "5.0.5",
       "libtorrent": "2.0.11",
+      "whitelists": [],
       "note": "Not on OPS's public whitelist. Fixes the missing TLS certificate check of earlier versions (CVE-2024-51774); for public torrents and trackers that allow 5.0.",
       "assets": {
         "linux-amd64": {
@@ -104,11 +113,13 @@
         },
         "darwin-arm64": {
           "tag": "qbittorrent-nox-v5.0.5",
-          "name": "qbittorrent-nox-5.0.5-darwin-arm64.zip"
+          "name": "qbittorrent-nox-5.0.5-darwin-arm64.zip",
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
         },
         "darwin-amd64": {
           "tag": "qbittorrent-nox-v5.0.5",
-          "name": "qbittorrent-nox-5.0.5-darwin-amd64.zip"
+          "name": "qbittorrent-nox-5.0.5-darwin-amd64.zip",
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
         }
       }
     }

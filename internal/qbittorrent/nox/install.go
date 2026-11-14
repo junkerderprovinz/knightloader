@@ -49,30 +49,22 @@ func toolsDir(dataDir string) string { return filepath.Join(dataDir, "tools", "q
 // needs no download, and a running build is never written over.
 func dirFor(dataDir, version string) string { return filepath.Join(toolsDir(dataDir), version) }
 
-func binaryIn(dir, goos string) string {
+// binaryIn is the program of a build unpacked in dir: where the asset says,
+// for an archive that keeps it in a folder, else qbittorrent-nox at the top.
+func binaryIn(dir, goos string, a Asset) string {
+	if a.Bin != "" {
+		return filepath.Join(dir, filepath.FromSlash(a.Bin))
+	}
 	if goos == "windows" {
 		return filepath.Join(dir, "qbittorrent-nox.exe")
 	}
 	return filepath.Join(dir, "qbittorrent-nox")
 }
 
-// BinaryPath is where the build of version is put on this machine.
-func BinaryPath(dataDir, version string) string {
-	return binaryIn(dirFor(dataDir, version), runtime.GOOS)
-}
-
-// Installed is the record of version, or nil when it was never fetched or
-// its program is gone.
-func Installed(dataDir, version string) (*Record, error) {
-	dir := dirFor(dataDir, version)
-	rec, err := loadRecord(dir)
-	if err != nil || rec == nil {
-		return rec, err
-	}
-	if fi, err := os.Stat(binaryIn(dir, runtime.GOOS)); err != nil || !fi.Mode().IsRegular() {
-		return nil, nil
-	}
-	return rec, nil
+// BinaryPath is where the build of v is put on this machine.
+func BinaryPath(dataDir string, v Version) string {
+	a, _ := v.AssetFor(runtime.GOOS, runtime.GOARCH)
+	return binaryIn(dirFor(dataDir, v.Version), runtime.GOOS, a)
 }
 
 func loadRecord(dir string) (*Record, error) {
@@ -123,7 +115,7 @@ func (in installer) install(ctx context.Context, dataDir string, v Version, prog
 	}
 	dir := dirFor(dataDir, v.Version)
 	if rec, err := loadRecord(dir); err == nil && rec != nil && rec.Asset == pin.Name && (pin.SHA256 == "" || rec.SHA256 == pin.SHA256) {
-		if fi, err := os.Stat(binaryIn(dir, in.goos)); err == nil && fi.Mode().IsRegular() {
+		if fi, err := os.Stat(binaryIn(dir, in.goos, pin)); err == nil && fi.Mode().IsRegular() {
 			return *rec, true, nil
 		}
 	}
@@ -153,7 +145,7 @@ func (in installer) install(ctx context.Context, dataDir string, v Version, prog
 	if !ok {
 		return Record{}, false, &checksum.MismatchError{Msg: fmt.Sprintf("%s from %s does not match its SHA-256, so it was thrown away", pin.Name, repo)}
 	}
-	bin := binaryIn(stage, in.goos)
+	bin := binaryIn(stage, in.goos, pin)
 	if strings.HasSuffix(pin.Name, ".zip") {
 		err = unzipInto(file, stage)
 		_ = os.Remove(file)
@@ -201,7 +193,7 @@ func (in installer) vouch(ctx context.Context, repo string, pin Asset) (ghreleas
 	}
 	rel, err := in.lookup(ctx, repo, pin.Tag)
 	if err != nil {
-		return ghrelease.Asset{}, "", err
+		return ghrelease.Asset{}, "", fmt.Errorf("the release %s of %s could not be read: %w", pin.Tag, repo, err)
 	}
 	asset, ok := rel.Find(pin.Name)
 	if !ok {

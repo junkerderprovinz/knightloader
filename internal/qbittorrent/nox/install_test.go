@@ -73,7 +73,7 @@ func TestAPinnedBuildIsFetchedVerifiedAndPutInPlace(t *testing.T) {
 	if f.lookups != 0 {
 		t.Error("a pinned build asked GitHub for its release")
 	}
-	bin := binaryIn(dirFor(data, "4.5.5"), "linux")
+	bin := binaryIn(dirFor(data, "4.5.5"), "linux", Asset{})
 	got, err := os.ReadFile(bin)
 	if err != nil || !bytes.Equal(got, body) {
 		t.Fatalf("installed %q, %v", got, err)
@@ -246,5 +246,45 @@ func TestTheVersionLineIsRead(t *testing.T) {
 		if got := versionLine(out); got != want {
 			t.Errorf("versionLine(%q) = %q, want %q", out, got, want)
 		}
+	}
+}
+
+func TestAReleaseThatCannotBeFoundNamesWhereItWasLookedFor(t *testing.T) {
+	pin := Version{Version: "4.6.7", Assets: map[string]Asset{"windows-amd64": {Repo: "someone/builds", Tag: "qbittorrent-nox-v4.6.7", Name: "b.zip"}}}
+	in := installer{
+		goos: "windows", goarch: "amd64",
+		lookup: func(context.Context, string, string) (ghrelease.Release, error) {
+			return ghrelease.Release{}, errors.New("github answered 404 Not Found")
+		},
+	}
+	_, _, err := in.install(context.Background(), t.TempDir(), pin, nil)
+	if err == nil || !strings.Contains(err.Error(), "someone/builds") || !strings.Contains(err.Error(), "qbittorrent-nox-v4.6.7") {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestAZippedBuildNamesWhereItsProgramLies(t *testing.T) {
+	data := t.TempDir()
+	inner := "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
+	body := zipOf(t, map[string]string{
+		inner: "nox",
+		"qbittorrent-nox.app/Contents/Frameworks/QtCore.framework/QtCore": "lib",
+	})
+	pin := Version{Version: "4.5.5", Assets: map[string]Asset{"darwin-arm64": {Tag: "t", Name: "b.zip", Bin: inner, SHA256: digest(body)}}}
+	f := &fakeRelease{files: map[string][]byte{"b.zip": body}, version: "4.5.5"}
+	var ran string
+	in := f.installer("darwin", "arm64")
+	in.smoke = func(ctx context.Context, bin string) (string, error) {
+		ran = bin
+		return "4.5.5", nil
+	}
+	if _, _, err := in.install(context.Background(), data, pin, nil); err != nil {
+		t.Fatal(err)
+	}
+	if want := filepath.Join(dirFor(data, "4.5.5"), filepath.FromSlash(inner)); binaryIn(dirFor(data, "4.5.5"), "darwin", pin.Assets["darwin-arm64"]) != want {
+		t.Fatalf("binaryIn = %q, want %q", binaryIn(dirFor(data, "4.5.5"), "darwin", pin.Assets["darwin-arm64"]), want)
+	}
+	if filepath.Base(filepath.Dir(ran)) != "MacOS" {
+		t.Fatalf("the smoke test ran %q", ran)
 	}
 }
