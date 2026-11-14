@@ -296,6 +296,7 @@ func (a *App) expandYtdlpVariants(primary *core.Task, choice *ytdlp.LinkChoice, 
 			VariantOff:   !on,
 			Source:       pc.Source,
 			Origin:       pc.Origin,
+			AddedByAdmin: pc.AddedByAdmin,
 			Host:         pc.Host,
 			Resolver:     pc.Resolver,
 			ResolverPin:  pc.ResolverPin,
@@ -638,7 +639,7 @@ func (a *App) probeOnce(tp titleProber, rawurl string) {
 		delete(a.reprobing, rawurl)
 		a.mu.Unlock()
 	}()
-	res, err := a.linkProbe(a.ctx, tp, rawurl, a.browserHeadersForLink(rawurl))
+	res, err := a.linkProbe(a.ctx, tp, rawurl, a.browserHeadersForLink(rawurl), a.linkAddedByAdmin(rawurl))
 	if err != nil {
 		a.failProbe(rawurl, err.Error())
 		return

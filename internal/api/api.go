@@ -23,7 +23,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/web"
 )
 
@@ -92,6 +94,20 @@ func caller(a *app.App, r *http.Request) (tok *apitoken.Token, ok bool) {
 		}
 	}
 	return nil, false
+}
+
+// addsAsAdmin reports whether r comes from somebody with every right, whose
+// links may go out with the site sessions of the owner's browsers: the
+// signed-in owner, an admin token, the owner's browser extension, or anybody
+// on an instance without a password. A phone or an instance of the group
+// holds the group's phrase, which is no admin right.
+func addsAsAdmin(a *app.App, r *http.Request) bool {
+	if fromRelayGroup(r) {
+		c, ok := federation.CallerOf(r.Context())
+		return ok && c.Kind == relay.KindExtension
+	}
+	tok, ok := caller(a, r)
+	return ok && (tok == nil || tok.Has(apitoken.ScopeAdmin))
 }
 
 // stillAdmitted is what auth.Guard.Mint asks before r creates a credential:

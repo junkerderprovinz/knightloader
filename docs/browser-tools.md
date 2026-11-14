@@ -249,27 +249,125 @@ way MyJDownloader's extension can) is still not built. Choosing per send and
 setting a default are; a rule engine on top of that is real but niche, and
 nothing about this shape blocks it later.
 
-### Handing a site's sign-in over
+### Passing sign-ins on
 
 For the sites signed into through the browser (`internal/sitelogin`,
-Patreon and YouTube so far), **Sign in in the browser** on the accounts page
-opens the site's login page and calls `POST /api/sitelogins/{id}/begin`, so
-the instance waits for that site for a quarter of an hour. The popup asks
-every instance of the group `GET /api/sitelogins/handover`, which lists each
-site with its cookie domains and whether it is waited for (nothing about a
-stored session), and shows a notice for each site that is (`popup-signin.js`).
+Patreon and YouTube so far), the desktop app reads the session from the
+browsers on its own computer. Everywhere else, and for a browser the desktop
+app cannot read (Chrome on Windows, for one), the extension passes it on
+without a click (`signin.js`).
 
-Its button opens `signin.html` in a tab, because the browser's permission
-prompt would close the popup and the request with it. There the click first
-asks for `cookies` on the site's own domains alone (`https://patreon.com/*`
-and `https://*.patreon.com/*`), then reads that site's cookies from the cookie
-store of the tab the popup was opened over, and hands the site's domains back
-at once and the cookies too, unless taking over downloads or finding media
-still reads them (`signin.js`). The cookies go sealed through the relay as
-`POST /api/sitelogins/{id}/handover`, which the instance takes from the
-extension alone, never from the phone or another instance. It keeps only the
-site's own live cookies, writes them as a cookies.txt into the encrypted
-credential store and answers who the session signs in as.
+Each instance of the group lists those sites as
+`GET /api/sitelogins/handover`: the id, the name, the cookie domains and, as
+`signIn`, the names of the cookies only a signed-in session carries, nothing
+about a stored session. The background asks for that list when the browser starts, when the
+extension is installed or updated, when it starts again more than ten minutes
+after the last sync, right after the phrase is entered on the settings page,
+when the popup or the settings page opens while no site is known yet, and once
+the browser grants the access. It keeps the list, so
+a click can ask for the access before anything else is awaited.
+
+The access is `cookies` on the listed sites' own domains
+(`https://patreon.com/*` and `https://*.patreon.com/*`), kept for good. Both
+stay optional permissions, so an update never disables an existing install.
+When taking over downloads or finding media already holds `cookies` and the
+access to all websites, nothing is asked. Otherwise the settings page shows a
+notice at the top with **Allow** and **Keep it off**, and the popup shows the
+same notice with a button that leads there, since a permission prompt would
+close the popup. The switch **Pass my sign-ins to KnightLoader** in the
+browser card turns it off again and gives the sites' domains back, and the
+cookies too unless taking over downloads or finding media still reads them.
+A site an instance starts to list later waits for its own access while the
+others go on.
+
+With the access there, the background reads each site's cookies from every
+cookie store outside private windows: the default store and each Firefox
+container. Firefox lists a container's store only while one of its tabs is
+open, so the stores a sign-in came from before are read too. A store is signed
+in when one of the site's sign-in cookies is there. Of several, the one whose
+sign-in cookie changed last wins, then the one handed over before, then the
+default store. `cookies.onChanged` wakes the background for a change to a
+listed site's sign-in cookie outside a private store, and the burst a sign-in
+sets becomes one sync two seconds after it settles.
+
+What went to which instance is kept as a SHA-256 digest of the sign-in
+cookies, never the session itself. A session goes out again only when the
+digest changes, so a tracking cookie changing sends nothing. A hand-over is
+`POST /api/sitelogins/{id}/handover` with the site's cookies, sealed through
+the relay. The instance takes it from the extension alone, never from the
+phone or another instance. It keeps only the site's own live cookies, writes
+them as a cookies.txt into the encrypted credential store and answers who the
+session signs in as. A 422 (the site signs nobody in with it) is not sent
+again until the session changes, and an instance that did not answer is asked
+again a minute later (an alarm). Asks that arrive while a sync waits share
+it. Once the browser signs out, every instance that had
+the session gets the same route with an empty `cookies` list, once. The
+instance takes that as signing out: it forgets the session handed over before
+and answers 200 with the site signed out, unless a browser on its own
+computer still has one.
+
+### Reading the sign-in from the browsers on the machine
+
+Outside a container (`buildinfo.InContainer`), the instance needs no
+extension for a site's sign-in: `app.StartBrowserSessions`, which both
+binaries call, has `internal/browsercookies` read the sites' cookies straight
+from the browsers of the user it runs as. It reads at start, every ten
+minutes, when the accounts page lists the sites (at most once a minute, every
+three seconds while a Sign in waits) and before a download of the site, and
+takes the freshest session the site signs somebody in with: Patreon's is asked
+through `current_user`, YouTube's is known by its sign-in cookies. Nothing of
+it is stored, so signing out in the browser takes effect at the next read. A
+session the extension handed over is used only where no browser here has one.
+
+| Browser | Windows | macOS | Linux |
+| --- | --- | --- | --- |
+| Firefox, LibreWolf, Waterfox, Zen | `cookies.sqlite` in plain text | the same | the same, including the Snap and Flatpak folders |
+| Edge, Brave, Opera, Opera GX (Windows only), Vivaldi, Chromium | AES-GCM, key from `Local State` opened with DPAPI | AES-CBC, key from the Keychain entry `<Browser> Safe Storage` | v10 with the built-in password, v11 with the keyring's through `secret-tool` |
+| Chrome | app-bound (v20), not readable | as above | as above |
+
+The cookie database is copied before it is read, with its write-ahead log,
+and on Windows it is opened with every share flag, since the browser holds it
+open. A copy the browser refuses even so reads as locked. Firefox's container
+tabs and partitioned cookies are left out, so the default cookie store is
+what counts. A value sealed with Chrome's app-bound key (v20), in any
+browser, is not decrypted: the browser is named in the site's `unreadable`
+list instead, and the log says why once.
+
+`GET /api/sitelogins` answers per site, beside `state`, `account`, `expires`
+and `waiting`: `use` (`always` or `onNeed`), `source` (`browser`, `extension`
+or empty), `browser` (the browser and profile, as "Firefox (default-release)",
+when `source` is `browser`), `unreadable` (the browsers whose cookies of the
+site could not be read) and `readsBrowsers`, which is true where this
+instance reads the browsers on its computer and false in a container, so the
+page knows whether a sign-in there or the extension is the way in.
+
+`POST /api/sitelogins/{id}/remove` disconnects a site whatever its session came
+from. It forgets the extension's session and stores a mark (service
+`sitelogins-off` in the credential store, one entry per site). While the mark
+is there, no browser here is read for the site, neither for its own links nor
+for the second try of a link on its domains, and the site reads
+`disconnected: true`. The browser stays signed in. `begin`, `POST
+/api/sitelogins/{id}/reconnect` and a hand-over that signs somebody in clear
+the mark; an empty hand-over only forgets the extension's session.
+
+A site's `use` says when yt-dlp gets the session. Patreon's goes with every
+run. YouTube's is held back, since Google flags accounts that download a lot
+while signed in, and goes only into a second run that follows at once when
+the first failed with `botCheck`, `membersOnly` or `signInRequired`
+(`ytdlp.NeedsSignIn`). Any other site gets the same second run with whatever
+a browser here holds for the link's registrable domain, if a cookie name
+there looks like a sign-in.
+
+Either session goes only to a task somebody with every right added
+(`core.Task.AddedByAdmin`, set by `POST /api/links` from `addsAsAdmin`): the
+signed-in owner, an admin token, the owner's extension over the relay, or
+anybody on an instance without a password. A token with add and read but no
+admin, a phone or instance of the group, the Click'n'Load listener, feeds and
+the watch folder stage links without it, and yt-dlp's `MaySignIn` hook then
+keeps every session off their runs and probes. Variant rows, playlist entries and a
+page's crawled links take the flag of the link they came from. A probe that
+may sign in is cached apart from one that may not, so its answer never
+reaches a link added below admin.
 
 ### Signing in without the extension
 

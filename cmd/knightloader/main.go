@@ -167,6 +167,9 @@ func main() {
 	a.StartAccountHealthNow()
 	a.StartYtdlpAutoUpdate()
 	a.StartJDAutoUpdate()
+	// Signed in to a site in a browser on this machine means signed in here;
+	// in a container this does nothing.
+	a.StartBrowserSessions()
 
 	// A port inside a container is not the 127.0.0.1:9666 a browser posts to,
 	// so the container opens none unless KL_CNL asks for it, as with host

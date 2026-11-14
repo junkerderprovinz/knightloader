@@ -36,11 +36,11 @@ func TestASessionStoredSinceSaysNothingOfTheSignInBrowser(t *testing.T) {
 	a := siteApp(t)
 	a.signInBrowserSession(patreon(t), patreonJar)
 	other := "# Netscape HTTP Cookie File\n.patreon.com\tTRUE\t/\tTRUE\t1900000000\tsession_id\tFROM-THE-EXTENSION\n"
-	if _, err := a.StoreSiteSession("patreon", other); err != nil {
+	if _, err := a.storeSiteSession("patreon", other); err != nil {
 		t.Fatal(err)
 	}
-	if listed := stateOf(t, a, "patreon"); listed.Source != "" {
-		t.Errorf("source = %q, want none for a session the sign-in browser did not store", listed.Source)
+	if listed := stateOf(t, a, "patreon"); listed.Source != SourceExtension {
+		t.Errorf("source = %q, want the extension's for a session the sign-in browser did not store", listed.Source)
 	}
 }
 
@@ -57,7 +57,7 @@ func TestSigningOutInTheSignInBrowserForgetsItsSession(t *testing.T) {
 func TestSigningOutInTheSignInBrowserKeepsASessionFromElsewhere(t *testing.T) {
 	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
 	a := siteApp(t)
-	if _, err := a.StoreSiteSession("patreon", patreonJar); err != nil {
+	if _, err := a.storeSiteSession("patreon", patreonJar); err != nil {
 		t.Fatal(err)
 	}
 	a.signInBrowserSession(patreon(t), "")
@@ -114,5 +114,20 @@ func TestEachBrowserSignsInWithAProfileOfItsOwn(t *testing.T) {
 	chrome := a.signInBrowserProfile(signinbrowser.Browser{Name: "Google Chrome"})
 	if edge == chrome || filepath.Dir(edge) != a.signInBrowserDir() {
 		t.Errorf("profiles %q and %q, want two folders under %q", edge, chrome, a.signInBrowserDir())
+	}
+}
+
+func TestASignInFromTheSignInBrowserTakesBackARemove(t *testing.T) {
+	stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn})
+	a := siteApp(t)
+	if err := a.RemoveSiteLogin("patreon"); err != nil {
+		t.Fatal(err)
+	}
+	if !stateOf(t, a, "patreon").Disconnected {
+		t.Fatal("Remove did not disconnect the site")
+	}
+	a.signInBrowserSession(patreon(t), patreonJar)
+	if got := stateOf(t, a, "patreon"); got.Disconnected || got.Source != SourceSignInBrowser {
+		t.Errorf("after signing in in the window: %+v, want connected with the sign-in browser's session", got)
 	}
 }

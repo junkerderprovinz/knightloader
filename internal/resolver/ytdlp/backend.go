@@ -58,17 +58,23 @@ type Backend struct {
 	// return, means Options{}.
 	Options func(taskID string) Options
 
-	// Cookies, when set, returns the stored cookies.txt text for a URL's host,
-	// or "" (see CookieStore.Text). It is a hook rather than an Options field
-	// because Options is a settings struct that ends up in settings.json, the
-	// settings API and the diagnostics bundle. It is consulted only when the
-	// task's Options.Cookies is on.
-	Cookies func(rawurl string) string
-
-	// Sessions, when set, returns the session of a site signed into on the
-	// accounts page for rawurl, or "". Signing in was the choice to use it, so
-	// it goes to yt-dlp whatever Options.Cookies says, in place of a jar.
+	// Sessions, when set, returns the cookies.txt that goes along with every
+	// run for rawurl, or "": the session of a site that plays nothing without
+	// one, such as Patreon. A hook rather than an Options field, since Options
+	// ends up in settings.json and the diagnostics bundle.
 	Sessions func(rawurl string) string
+
+	// SignIn, when set, returns the cookies.txt to try once more with after a
+	// run for rawurl failed for want of a sign-in (NeedsSignIn), or "". A
+	// session is kept back until then because a site such as YouTube flags
+	// accounts that download a lot while signed in.
+	SignIn func(rawurl string) string
+
+	// MaySignIn, when set, reports whether a task's runs may carry the
+	// sessions of Sessions and SignIn, which are the owner's. Without it no
+	// run carries one. A probe carries them when its context says so (see
+	// WithSignIn).
+	MaySignIn func(taskID string) bool
 
 	// Headers, when set, returns the request headers a browser handed over
 	// with a task for rawurl, or nil: Cookie, Referer and User-Agent (see
@@ -332,7 +338,12 @@ func (b *Backend) run(taskID, url string) {
 // a task off a backend that gave up on its link from inside that update, and a
 // Remove that waits for the run would otherwise wait for itself.
 func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
-	u, report := b.attempt(ctx, r, taskID, url)
+	u, report := b.attempt(ctx, r, taskID, url, "")
+	if report && u.Status == core.StatusError && NeedsSignIn(u.Reason) && b.maySignIn(taskID) {
+		if jar := b.signInSession(url); jar != "" {
+			u, report = b.attempt(ctx, r, taskID, url, jar)
+		}
+	}
 	r.cancel()
 	b.mu.Lock()
 	if b.runs[taskID] == r {
@@ -351,8 +362,10 @@ func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 }
 
 // attempt runs yt-dlp once and returns the update it ended with, or false when
-// a Pause or Remove stopped it and there is nothing to report.
-func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) (core.Update, bool) {
+// a Pause or Remove stopped it and there is nothing to report. signIn, when
+// set, is the session it runs with in place of the one that always goes
+// along.
+func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url, signIn string) (core.Update, bool) {
 	cancel := r.cancel
 	dir := b.dir
 	if b.Dir != nil {
@@ -397,9 +410,9 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	if b.Headers != nil {
 		sent = b.Headers(taskID, url)
 	}
-	jar := b.session(url)
-	if jar == "" && opts.Cookies && b.Cookies != nil {
-		jar = b.Cookies(url)
+	jar := signIn
+	if jar == "" && b.maySignIn(taskID) {
+		jar = b.session(url)
 	}
 	jar = withBrowserCookies(jar, url, sent["Cookie"], time.Now())
 	// The cookie file lives exactly as long as yt-dlp: written before the
@@ -1162,6 +1175,33 @@ func (b *Backend) session(rawurl string) string {
 	return b.Sessions(rawurl)
 }
 
+func (b *Backend) maySignIn(taskID string) bool {
+	return b.MaySignIn != nil && b.MaySignIn(taskID)
+}
+
+type signInKey struct{}
+
+// WithSignIn lets the probes run under ctx carry the owner's sessions, for a
+// link somebody with every right asked about.
+func WithSignIn(ctx context.Context) context.Context {
+	return context.WithValue(ctx, signInKey{}, true)
+}
+
+// SignInAllowed reports whether ctx lets a probe carry the owner's sessions.
+func SignInAllowed(ctx context.Context) bool {
+	v, _ := ctx.Value(signInKey{}).(bool)
+	return v
+}
+
+// signInSession is the session to try once more with, or "" when there is
+// none or the run already had the one that always goes along.
+func (b *Backend) signInSession(rawurl string) string {
+	if b.SignIn == nil || b.session(rawurl) != "" {
+		return ""
+	}
+	return b.SignIn(rawurl)
+}
+
 // ProbeTitle asks yt-dlp for a link's title and available formats without
 // downloading anything. It is one process per call, anti-bot checks included,
 // which is why app.probeYtdlpTitle runs it once per staged task and no batched
@@ -1175,19 +1215,35 @@ func (b *Backend) session(rawurl string) string {
 // sent are the headers a browser handed over with the link, or nil; they go to
 // yt-dlp as they do for the download (see browserArgs).
 func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]string) (ProbeResult, error) {
+	if !SignInAllowed(ctx) {
+		res, _, err := b.probeTitle(ctx, url, sent, "")
+		return res, err
+	}
+	res, reason, err := b.probeTitle(ctx, url, sent, b.session(url))
+	if err != nil && NeedsSignIn(reason) {
+		if jar := b.signInSession(url); jar != "" {
+			res, _, err = b.probeTitle(ctx, url, sent, jar)
+		}
+	}
+	return res, err
+}
+
+// probeTitle is one ProbeTitle run with the session jar, which may be empty.
+// A failure comes with its reason (see Diagnose).
+func (b *Backend) probeTitle(ctx context.Context, url string, sent map[string]string, jar string) (ProbeResult, core.Reason, error) {
 	args := []string{"--skip-download", "--no-warnings", "-j"}
-	if jar := withBrowserCookies(b.session(url), url, sent["Cookie"], time.Now()); jar != "" {
+	if jar := withBrowserCookies(jar, url, sent["Cookie"], time.Now()); jar != "" {
 		path, cleanup, err := writeCookieFile("", jar)
 		defer cleanup()
 		if err != nil {
-			return ProbeResult{}, err
+			return ProbeResult{}, core.ReasonUnknown, err
 		}
 		args = append(args, "--cookies", path)
 	}
 	args = append(args, browserArgs(sent)...)
 	stream, unwrapped, err := unwrap(ctx, b.client(), url)
 	if err != nil {
-		return ProbeResult{}, err
+		return ProbeResult{}, core.ReasonUnknown, err
 	}
 	if unwrapped {
 		args = append(args, stream.args()...)
@@ -1203,14 +1259,14 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 		var exit *exec.ExitError
 		if errors.As(err, &exit) && ctx.Err() == nil {
 			if line := errorLine(string(exit.Stderr)); line != "" {
-				return ProbeResult{}, errors.New(line)
+				return ProbeResult{}, Diagnose(string(exit.Stderr)), errors.New(line)
 			}
 		}
-		return ProbeResult{}, err
+		return ProbeResult{}, core.ReasonUnknown, err
 	}
 	line := firstLine(string(out))
 	if line == "" {
-		return ProbeResult{}, errors.New("ytdlp: probe returned no data")
+		return ProbeResult{}, core.ReasonUnknown, errors.New("ytdlp: probe returned no data")
 	}
 	var raw struct {
 		Title string `json:"title"`
@@ -1252,11 +1308,11 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 		Direct       bool    `json:"direct"`
 	}
 	if err := json.Unmarshal([]byte(line), &raw); err != nil {
-		return ProbeResult{}, fmt.Errorf("ytdlp: probe returned unparseable data: %w", err)
+		return ProbeResult{}, core.ReasonUnknown, fmt.Errorf("ytdlp: probe returned unparseable data: %w", err)
 	}
 	title := strings.TrimSpace(raw.Title)
 	if title == "" {
-		return ProbeResult{}, errors.New("ytdlp: probe returned no title")
+		return ProbeResult{}, core.ReasonUnknown, errors.New("ytdlp: probe returned no title")
 	}
 	res := ProbeResult{
 		Title:    title,
@@ -1293,7 +1349,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 			Protocol: f.Protocol, Default: picked[f.FormatID],
 		})
 	}
-	return res, nil
+	return res, core.ReasonUnknown, nil
 }
 
 // sizeFromBitrate estimates a format's bytes from its total bitrate in kbit/s,

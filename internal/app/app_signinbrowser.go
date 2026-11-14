@@ -4,7 +4,7 @@ package app
 // browser that the user signs in to a site with from KnightLoader's own window,
 // the image's Chromium in the container and an installed browser on the
 // desktop. What it reads of the site's cookies is stored like the extension's
-// hand-over, through StoreSiteSession.
+// hand-over, through storeSiteSession, which also takes back a Remove.
 
 import (
 	"context"
@@ -111,13 +111,13 @@ func (a *App) CloseSignInBrowser(ctx context.Context) (SiteLoginState, bool) {
 func (a *App) signInBrowserSession(site sitelogin.Site, jar string) any {
 	if jar == "" {
 		if a.fromSignInBrowser(site.ID, a.siteStore().Session(site.ID)) {
-			if err := a.RemoveSiteLogin(site.ID); err != nil {
+			if err := a.forgetHandedOver(site.ID); err != nil {
 				log.Printf("sign-in browser: could not forget the %s session: %v", site.Name, err)
 			}
 		}
 		return a.siteLoginState(site, false)
 	}
-	st, err := a.StoreSiteSession(site.ID, jar)
+	st, err := a.storeSiteSession(site.ID, jar)
 	if err != nil {
 		log.Printf("sign-in browser: %s did not take the session: %v", site.Name, err)
 		return a.siteLoginState(site, false)

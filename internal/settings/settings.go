@@ -709,13 +709,9 @@ type Settings struct {
 	// internal/resolver/ytdlp.Options for why every field's zero value
 	// reproduces the backend's behaviour from before any of them existed.
 	//
-	// The per-site cookies.txt that answers "Sign in to confirm you are not a
-	// bot" is not here. A jar is a live session, and this struct is marshalled
-	// into settings.json, returned by GET /api/settings and serialised whole
-	// into the diagnostics bundle people attach to public bug reports, so the
-	// jar lives in the encrypted credential store under ytdlp.CookieService the
-	// way native hoster logins do (internal/hosterauth). The only field here is
-	// the switch that says whether a stored jar may be used.
+	// The session a site is signed in with is not here: this struct ends up
+	// in settings.json, GET /api/settings and the diagnostics bundle people
+	// attach to public bug reports (see internal/sitelogin).
 	Ytdlp ytdlp.Options `json:"ytdlp"`
 
 	// YtdlpPresets is per-host (say "youtube.com") config for the "Variante"

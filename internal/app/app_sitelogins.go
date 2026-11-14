@@ -1,8 +1,9 @@
 package app
 
 // Sites signed into through the user's browser (internal/sitelogin): the
-// accounts page's tiles, the wait between its Sign in and the session the
-// extension hands over, and who each stored session signs in as.
+// accounts page's tiles, the wait between its Sign in and the session that
+// turns up in a browser here or is handed over by the extension, and who each
+// session signs in as. app_browsersessions.go reads the browsers.
 
 import (
 	"context"
@@ -17,8 +18,8 @@ import (
 // ErrNoSuchSite is a site id the catalogue does not have.
 var ErrNoSuchSite = errors.New("there is no such site to sign in to")
 
-// ErrNoSiteSession is a hand-over or paste that holds no cookie of the site,
-// such as one made before signing in.
+// ErrNoSiteSession is a hand-over that holds no cookie of the site, such as
+// one made before signing in.
 var ErrNoSiteSession = errors.New("these cookies hold no session for this site")
 
 // siteLoginWait is how long a Sign in waits for its session: long enough to
@@ -48,9 +49,21 @@ type SiteLoginState struct {
 	sitelogin.Status
 	// Waiting is true from Sign in until a session arrives or the wait ends.
 	Waiting bool `json:"waiting"`
-	// Source says where the stored session came from: SourceSignInBrowser,
-	// or empty.
-	Source string `json:"source,omitempty"`
+	// Source is where the session comes from: SourceBrowser, SourceExtension,
+	// SourceSignInBrowser, or "" without one.
+	Source string `json:"source"`
+	// Browser names the browser and profile a session read from a browser
+	// came from, "Firefox (default-release)".
+	Browser string `json:"browser"`
+	// Unreadable names the browsers here whose cookies of the site could not
+	// be read, such as Chrome on Windows with its app-bound key.
+	Unreadable []string `json:"unreadable"`
+	// ReadsBrowsers says this instance reads the browsers on its computer,
+	// which one in a container never does.
+	ReadsBrowsers bool `json:"readsBrowsers"`
+	// Disconnected says the site was removed here and the browsers' sign-in
+	// to it is not used until it is signed in through KnightLoader again.
+	Disconnected bool `json:"disconnected"`
 }
 
 type siteCheck struct {
@@ -61,7 +74,18 @@ type siteCheck struct {
 type siteLoginState struct {
 	mu      sync.Mutex
 	waiting map[string]time.Time
+	// checked is the last check of each stored session.
 	checked map[string]siteCheck
+
+	// read is nil until StartBrowserSessions. scans are the last read of the
+	// browsers per site, verdicts the site's answers about the sessions
+	// found, by a hash of site and cookies, and logged the unreadable
+	// browsers already logged.
+	read     browserReader
+	scanning map[string]*sync.Mutex
+	scans    map[string]browserScan
+	verdicts map[[32]byte]siteCheck
+	logged   map[string]bool
 }
 
 var (
@@ -74,7 +98,14 @@ func (a *App) siteLogins() *siteLoginState {
 	defer siteLoginMu.Unlock()
 	st, ok := siteLoginByApp[a]
 	if !ok {
-		st = &siteLoginState{waiting: map[string]time.Time{}, checked: map[string]siteCheck{}}
+		st = &siteLoginState{
+			waiting:  map[string]time.Time{},
+			checked:  map[string]siteCheck{},
+			scanning: scanLocks(),
+			scans:    map[string]browserScan{},
+			verdicts: map[[32]byte]siteCheck{},
+			logged:   map[string]bool{},
+		}
 		siteLoginByApp[a] = st
 	}
 	return st
@@ -91,7 +122,8 @@ func (a *App) SiteLogins() []SiteLoginState {
 	return out
 }
 
-// CheckSiteLogin asks the site again, whatever the last check said.
+// CheckSiteLogin reads the browsers and asks the site again, whatever the
+// last check said.
 func (a *App) CheckSiteLogin(id string) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
@@ -100,12 +132,15 @@ func (a *App) CheckSiteLogin(id string) (SiteLoginState, error) {
 	return a.siteLoginState(site, true), nil
 }
 
-// BeginSiteLogin starts the wait for a site's session, which the extension
-// hands over once the user has signed in in the browser.
+// BeginSiteLogin starts the wait for a site's session, which turns up in a
+// browser here or is handed over by the extension once the user has signed in.
 func (a *App) BeginSiteLogin(id string) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
+	}
+	if err := a.connect(site); err != nil {
+		return SiteLoginState{}, err
 	}
 	st := a.siteLogins()
 	st.mu.Lock()
@@ -114,20 +149,53 @@ func (a *App) BeginSiteLogin(id string) (SiteLoginState, error) {
 	return a.siteLoginState(site, false), nil
 }
 
+// ReconnectSiteLogin uses the browsers' sign-in to a site that was removed
+// here again, without waiting for a new one.
+func (a *App) ReconnectSiteLogin(id string) (SiteLoginState, error) {
+	site, ok := sitelogin.Lookup(id)
+	if !ok {
+		return SiteLoginState{}, ErrNoSuchSite
+	}
+	if err := a.connect(site); err != nil {
+		return SiteLoginState{}, err
+	}
+	return a.siteLoginState(site, false), nil
+}
+
+// connect clears a site's mark not to use the browsers' sign-in, and the last
+// read of them, which a disconnected site never made.
+func (a *App) connect(site sitelogin.Site) error {
+	if err := a.siteStore().SetDisconnected(site.ID, false); err != nil {
+		return err
+	}
+	st := a.siteLogins()
+	st.mu.Lock()
+	delete(st.scans, site.ID)
+	st.mu.Unlock()
+	return nil
+}
+
 // HandOverSiteSession stores the session the extension read from the
-// browser, keeping only the site's own live cookies.
+// browser, keeping only the site's own live cookies. No cookies at all is the
+// browser signed out, which forgets the session handed over before.
 func (a *App) HandOverSiteSession(id string, cookies []sitelogin.BrowserCookie) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
 	}
-	return a.StoreSiteSession(id, sitelogin.JarFromCookies(site, cookies, time.Now()))
+	if len(cookies) == 0 {
+		if err := a.forgetHandedOver(id); err != nil {
+			return SiteLoginState{}, err
+		}
+		return a.siteLoginState(site, false), nil
+	}
+	return a.storeSiteSession(id, sitelogin.JarFromCookies(site, cookies, time.Now()))
 }
 
-// StoreSiteSession stores a cookies.txt as a site's session and ends its
+// storeSiteSession stores a cookies.txt as a site's session and ends its
 // wait, unless the site signs nobody in with it. The answer says who is
 // signed in.
-func (a *App) StoreSiteSession(id, jar string) (SiteLoginState, error) {
+func (a *App) storeSiteSession(id, jar string) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
@@ -144,6 +212,9 @@ func (a *App) StoreSiteSession(id, jar string) (SiteLoginState, error) {
 	if err := a.siteStore().Set(id, jar); err != nil {
 		return SiteLoginState{}, err
 	}
+	if err := a.connect(site); err != nil {
+		return SiteLoginState{}, err
+	}
 	st := a.siteLogins()
 	st.mu.Lock()
 	delete(st.waiting, id)
@@ -152,8 +223,25 @@ func (a *App) StoreSiteSession(id, jar string) (SiteLoginState, error) {
 	return a.siteLoginState(site, false), nil
 }
 
-// RemoveSiteLogin forgets a site's session.
+// RemoveSiteLogin signs a site out here: it forgets the session the
+// extension handed over and stops using the browsers' sign-in, which the
+// browser keeps, until the site is signed in through KnightLoader again.
 func (a *App) RemoveSiteLogin(id string) error {
+	if err := a.forgetHandedOver(id); err != nil {
+		return err
+	}
+	if err := a.siteStore().SetDisconnected(id, true); err != nil {
+		return err
+	}
+	st := a.siteLogins()
+	st.mu.Lock()
+	delete(st.scans, id)
+	st.mu.Unlock()
+	return nil
+}
+
+// forgetHandedOver forgets the session the extension handed over.
+func (a *App) forgetHandedOver(id string) error {
 	if _, ok := sitelogin.Lookup(id); !ok {
 		return ErrNoSuchSite
 	}
@@ -168,12 +256,13 @@ func (a *App) RemoveSiteLogin(id string) error {
 	return nil
 }
 
-// siteLoginState puts together what the page shows of one site, checking the
-// session when the last check is stale or fresh is set.
+// siteLoginState puts together what the page shows of one site: a browser's
+// session first, the stored one otherwise, checking it when the last check is
+// stale or fresh is set.
 func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 	st := a.siteLogins()
 	now := time.Now()
-	out := SiteLoginState{Site: site}
+	out := SiteLoginState{Site: site, Unreadable: []string{}}
 
 	st.mu.Lock()
 	if until, ok := st.waiting[site.ID]; ok && now.After(until) {
@@ -181,13 +270,41 @@ func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 	}
 	_, out.Waiting = st.waiting[site.ID]
 	last, known := st.checked[site.ID]
+	out.ReadsBrowsers = st.read != nil
 	st.mu.Unlock()
+	out.Disconnected = a.siteStore().Disconnected(site.ID)
+
+	age := browserScanFresh
+	switch {
+	case fresh:
+		age = 0
+	case out.Waiting:
+		age = browserWaitFresh
+	}
+	scan := a.browserSession(site, age)
+	if scan.unreadable != nil {
+		out.Unreadable = scan.unreadable
+	}
+	if scan.jar != "" {
+		out.Status, out.Source, out.Browser = scan.status, SourceBrowser, scan.from
+		if out.Waiting {
+			st.mu.Lock()
+			delete(st.waiting, site.ID)
+			st.mu.Unlock()
+			out.Waiting = false
+		}
+		return out
+	}
 
 	jar := a.siteStore().Session(site.ID)
 	if jar == "" {
 		out.Status = sitelogin.Status{State: sitelogin.SignedOut}
+		if scan.from != "" {
+			out.Status, out.Source, out.Browser = scan.status, SourceBrowser, scan.from
+		}
 		return out
 	}
+	out.Source = SourceExtension
 	if a.fromSignInBrowser(site.ID, jar) {
 		out.Source = SourceSignInBrowser
 	}
@@ -213,18 +330,4 @@ func (a *App) askSite(site sitelogin.Site, jar string) sitelogin.Status {
 	ctx, cancel := context.WithTimeout(a.ctx, siteCheckTimeout)
 	defer cancel()
 	return siteLoginCheck(ctx, site, jar)
-}
-
-// siteSession is the stored session of the site a link belongs to, for
-// yt-dlp's Sessions hook.
-func (a *App) siteSession(rawurl string) string {
-	site, ok := sitelogin.ForURL(rawurl)
-	if !ok {
-		return ""
-	}
-	stored := a.siteStore().Session(site.ID)
-	if live, ok := a.liveSignInBrowserJar(site, stored); ok {
-		return live
-	}
-	return stored
 }

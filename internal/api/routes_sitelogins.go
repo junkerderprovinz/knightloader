@@ -1,14 +1,37 @@
 package api
 
 // Sites signed into through the browser (internal/sitelogin): the accounts
-// page's tiles, its Sign in, a pasted cookies.txt, and the session the
-// extension hands over. What travels back says who is signed in, never the
-// session.
+// page's tiles, its Sign in, and the session the extension hands over. What
+// travels back says who is signed in, never the session.
+//
+// GET /api/sitelogins lists every site, and begin, check, remove and the
+// extension's handover answer with one, in this shape:
+//
+//	{"id": "patreon", "name": "Patreon", "host": "patreon.com",
+//	 "loginUrl": "https://www.patreon.com/login", "domains": ["patreon.com"],
+//	 "use": "always",                  // or "onNeed": only after a sign-in failure
+//	 "state": "signedIn",              // signedOut, expired or unchecked
+//	 "account": "Jane Doe",            // where the site names it
+//	 "expires": "2027-01-01T00:00:00Z", // where the cookies say
+//	 "waiting": false,                 // from begin until a session turns up
+//	 "source": "browser",              // "extension", or "" without a session
+//	 "browser": "Firefox (default-release)", // with source "browser" only
+//	 "unreadable": ["Chrome"],         // browsers whose cookies could not be read
+//	 "readsBrowsers": true,            // false in a container, which reads none
+//	 "disconnected": false}            // removed here; the browsers' sign-in is not used
+//
+// GET /api/sitelogins/handover lists for the extension each site's id, name,
+// host, loginUrl, domains, waiting and signIn, the names of the cookies only a
+// signed-in session carries. A handover with an empty cookies list signs the
+// extension's session out; a set without the site's cookies is refused (422).
+//
+// Remove disconnects a site whatever its session came from: the extension's
+// is forgotten, a browser's is no longer read, and the browser stays signed
+// in. begin, reconnect and a new hand-over connect it again.
 
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
@@ -25,7 +48,10 @@ type handoverSite struct {
 	Host     string   `json:"host"`
 	LoginURL string   `json:"loginUrl"`
 	Domains  []string `json:"domains"`
-	Waiting  bool     `json:"waiting"`
+	// SignIn are the cookies only a signed-in session carries, which the
+	// extension watches.
+	SignIn  []string `json:"signIn"`
+	Waiting bool     `json:"waiting"`
 }
 
 func registerSiteLogins(reg *Registry, a *app.App) {
@@ -43,34 +69,14 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/sitelogins/{id}/check",
-		"ask the site again who the stored session signs in as",
+		"read the browsers and ask the site again who the session signs in as",
 		func(w http.ResponseWriter, r *http.Request) {
 			st, err := a.CheckSiteLogin(r.PathValue("id"))
 			writeSiteLogin(w, st, err)
 		})
 
-	reg.Add(http.MethodPost, "/api/sitelogins/{id}/cookies",
-		"store a pasted cookies.txt as the site's session",
-		func(w http.ResponseWriter, r *http.Request) {
-			var body struct {
-				Text *string `json:"text"`
-			}
-			if !decodeJSON(w, r, &body) {
-				return
-			}
-			// Signing out is its own route, so a form sent without its text
-			// never ends a working session.
-			if body.Text == nil || strings.TrimSpace(*body.Text) == "" {
-				http.Error(w, "text: there is no cookies.txt in this request. Paste the file exported from a "+
-					"browser signed in to the site; to sign out, use the remove route.", http.StatusBadRequest)
-				return
-			}
-			st, err := a.StoreSiteSession(r.PathValue("id"), *body.Text)
-			writeSiteLogin(w, st, err)
-		})
-
 	reg.Add(http.MethodPost, "/api/sitelogins/{id}/remove",
-		"sign out of a site by forgetting its stored session",
+		"sign a site out here: forget the session the extension handed over and stop using the browsers' sign-in, which the browser keeps, until the site is signed in through KnightLoader again",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
 			if err := a.RemoveSiteLogin(id); err != nil {
@@ -81,19 +87,29 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 			writeSiteLogin(w, st, err)
 		})
 
+	reg.Add(http.MethodPost, "/api/sitelogins/{id}/reconnect",
+		"use the browsers' sign-in to a site that was removed here again",
+		func(w http.ResponseWriter, r *http.Request) {
+			st, err := a.ReconnectSiteLogin(r.PathValue("id"))
+			writeSiteLogin(w, st, err)
+		})
+
 	reg.Add(http.MethodGet, "/api/sitelogins/handover",
 		"the sites the browser extension can hand a session over for, and which this instance waits for",
 		func(w http.ResponseWriter, r *http.Request) {
 			states := a.SiteLogins()
 			out := make([]handoverSite, 0, len(states))
 			for _, s := range states {
-				out = append(out, handoverSite{s.ID, s.Name, s.Host, s.LoginURL, s.Domains, s.Waiting})
+				out = append(out, handoverSite{
+					ID: s.ID, Name: s.Name, Host: s.Host, LoginURL: s.LoginURL,
+					Domains: s.Domains, SignIn: s.SignInCookies(), Waiting: s.Waiting,
+				})
 			}
 			writeJSON(w, out)
 		})
 
 	reg.Add(http.MethodPost, "/api/sitelogins/{id}/handover",
-		"store the session the browser extension read from the browser for one site",
+		"store the session the browser extension read from the browser for one site; no cookies at all is the browser signed out and forgets it",
 		func(w http.ResponseWriter, r *http.Request) {
 			// The group's phones and instances hold the words too, and none of
 			// them signs in anywhere on the user's behalf.

@@ -130,7 +130,7 @@ func registerResolvers(reg *Registry, a *app.App) {
 		"what one yt-dlp link (?url=) offers for each row: resolutions and video tracks, audio tracks and languages, subtitles and their formats, the thumbnail and whether it has a description, from one yt-dlp probe shared with the link's staging; pinned=true asks as for a link pinned to yt-dlp, whichever backend its host belongs to",
 		func(w http.ResponseWriter, r *http.Request) {
 			q := r.URL.Query()
-			menus, err := a.LinkQualities(r.Context(), strings.TrimSpace(q.Get("url")), q.Get("pinned") == "true")
+			menus, err := a.LinkQualities(r.Context(), strings.TrimSpace(q.Get("url")), q.Get("pinned") == "true", addsAsAdmin(a, r))
 			switch {
 			case errors.Is(err, app.ErrNotAMediaLink):
 				http.Error(w, err.Error(), http.StatusBadRequest)

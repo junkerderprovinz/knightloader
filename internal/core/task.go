@@ -97,6 +97,9 @@ const (
 	ReasonBotCheck Reason = "botCheck"
 	// ReasonMembersOnly is a video behind a membership the session lacks.
 	ReasonMembersOnly Reason = "membersOnly"
+	// ReasonSignInRequired is media the site shows a signed-in account only:
+	// a private video, an age gate, a post behind a login.
+	ReasonSignInRequired Reason = "signInRequired"
 	// ReasonGeoBlocked is a site refusing this region. It is keyed to the
 	// address, so no credential fixes it.
 	ReasonGeoBlocked Reason = "geoBlocked"
@@ -668,6 +671,11 @@ type Task struct {
 	ResolverPin string `json:"resolverPin,omitempty"`
 	// Origin is the intake path this link arrived by.
 	Origin Origin `json:"origin,omitempty"`
+	// AddedByAdmin records that somebody with every right added the link: the
+	// signed-in owner, an admin token or the owner's browser extension. Only
+	// such a task's downloads may carry the site sessions of the owner's
+	// browsers, which a token that may only add and read must not reach.
+	AddedByAdmin bool `json:"addedByAdmin,omitempty"`
 	// BrowserFile says the link is a plain file: one a browser was
 	// downloading, or one yt-dlp's probe found nothing in but the file. It
 	// is fetched as a plain file on every start, and under the browser's

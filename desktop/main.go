@@ -102,6 +102,8 @@ func main() {
 	// picture and sound.
 	a.InstallMissingTools = true
 	a.StartYtdlpAutoUpdate()
+	// A site signed in to in a browser here is signed in to in the app.
+	a.StartBrowserSessions()
 	// A JD named in KL_JD is kept current here too; without one the daily run
 	// has nothing to ask.
 	a.StartJDAutoUpdate()

@@ -60,7 +60,11 @@ func (b *Backend) ProbePlaylist(ctx context.Context, rawurl string) (Playlist, e
 	defer cancel()
 
 	args := []string{"--skip-download", "--no-warnings", "--flat-playlist", "-J"}
-	if jar := b.session(rawurl); jar != "" {
+	jar := ""
+	if SignInAllowed(ctx) {
+		jar = b.session(rawurl)
+	}
+	if jar != "" {
 		path, cleanup, err := writeCookieFile("", jar)
 		defer cleanup()
 		if err != nil {

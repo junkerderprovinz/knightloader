@@ -43,6 +43,20 @@ const (
 
 	noFFmpegPostStderr = "ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the " +
 		"path using --ffmpeg-location"
+
+	ageGateStderr = "ERROR: [youtube] AbC123dEf45: Sign in to confirm your age. This video may be inappropriate for some users."
+
+	privateStderr = "ERROR: [youtube] AbC123dEf45: Private video. Sign in if you've been granted access to this video"
+
+	privateUnavailableStderr = "ERROR: [youtube] AbC123dEf45: Video unavailable. This video is private"
+
+	registeredStderr = "ERROR: [vimeo] 123456: This video is only available for registered users. Use --cookies-from-browser " +
+		"or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  " +
+		"for how to manually pass cookies"
+
+	instagramStderr = "ERROR: [Instagram] C0ffee: Requested content is not available, rate-limit reached or login required. " +
+		"Use --cookies, --cookies-from-browser, --username and --password, --netrc-cmd, or --netrc (instagram) to provide " +
+		"account credentials"
 )
 
 // A trimmed fixture would let the tests below pass without testing a cut.
@@ -72,6 +86,11 @@ func TestDiagnoseNamesEachCauseFromTheToolsOwnWords(t *testing.T) {
 		{"a merge without ffmpeg", noFFmpegMergeStderr, core.ReasonNoFFmpeg},
 		{"a post-processor without ffmpeg", noFFmpegPostStderr, core.ReasonNoFFmpeg},
 		{"a conversion without ffmpeg", "ERROR: Postprocessing: ffmpeg not found. Please install or provide the path using --ffmpeg-location", core.ReasonNoFFmpeg},
+		{"an age gate", ageGateStderr, core.ReasonSignInRequired},
+		{"a private video", privateStderr, core.ReasonSignInRequired},
+		{"a private video YouTube calls unavailable", privateUnavailableStderr, core.ReasonSignInRequired},
+		{"a video for registered users", registeredStderr, core.ReasonSignInRequired},
+		{"a post behind a login", instagramStderr, core.ReasonSignInRequired},
 		{"a probe without ffprobe", "ERROR: Postprocessing: ffprobe not found. Please install or provide the path using --ffmpeg-location", core.ReasonNoFFmpeg},
 		{"a section without ffmpeg", "ERROR: You have requested downloading the video partially, but ffmpeg is not installed. Aborting", core.ReasonNoFFmpeg},
 	}
@@ -93,9 +112,21 @@ func TestDiagnoseReadsACopyrightBlockAsARegionBlock(t *testing.T) {
 
 // Both messages start with "Sign in to confirm".
 func TestDiagnoseDoesNotCallAnAgeGateABotCheck(t *testing.T) {
-	const ageGate = "ERROR: [youtube] AbC123dEf45: Sign in to confirm your age. This video may be inappropriate for some users."
-	if got := Diagnose(ageGate); got == core.ReasonBotCheck {
+	if got := Diagnose(ageGateStderr); got == core.ReasonBotCheck {
 		t.Errorf("Diagnose(an age gate) = %q, want anything but the bot check", got)
+	}
+}
+
+func TestOnlyTheCausesASignInCanClearAskForOne(t *testing.T) {
+	for _, r := range []core.Reason{core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonSignInRequired} {
+		if !NeedsSignIn(r) {
+			t.Errorf("NeedsSignIn(%q) = false", r)
+		}
+	}
+	for _, r := range []core.Reason{core.ReasonUnknown, core.ReasonGeoBlocked, core.ReasonGone, core.ReasonDRM, core.ReasonAuth, core.ReasonExtractorBroken} {
+		if NeedsSignIn(r) {
+			t.Errorf("NeedsSignIn(%q) = true", r)
+		}
 	}
 }
 

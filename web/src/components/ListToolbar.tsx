@@ -46,7 +46,6 @@ import {
   unpackedWeight,
 } from '../lib/api';
 import { seedingOff, seedingOn } from '../lib/listCards';
-import { fmtBytes } from '../lib/format';
 import { happened } from '../lib/countdown';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
@@ -278,24 +277,19 @@ export function narrowedTitle(active: ReadonlySet<QuickFilterId>, t: (key: Trans
 interface Weight {
   count: number;
   files: number;
-  bytes: number;
 }
 
 /**
- * weigh counts what a removal would erase, in bytes already on disk rather
- * than announced sizes, and what the server says it would take of what
- * unpacking wrote.
+ * weigh counts the files a removal could erase: the downloads with bytes
+ * already on disk, and what the server says unpacking wrote for them.
  */
 function weigh(all: Task[], ids: string[], unpacked: UnpackedWeight | null): Weight {
   const want = new Set(ids);
   let files = unpacked?.files ?? 0;
-  let bytes = unpacked?.bytes ?? 0;
   for (const t of all) {
-    if (!want.has(t.id) || t.loaded <= 0) continue;
-    files++;
-    bytes += t.loaded;
+    if (want.has(t.id) && t.loaded > 0) files++;
   }
-  return { count: ids.length, files, bytes };
+  return { count: ids.length, files };
 }
 
 /**
@@ -396,10 +390,6 @@ function ConfirmRemove({
         <p className="glim-num text-carbon-text">{t('remove.count', { n: weight.count })}</p>
         {weight.files === 0 && <p>{t('remove.noFiles')}</p>}
         {files && <ToggleRow hue={1} label={t('remove.alsoFiles')} checked={withFiles} onChange={setWithFiles} />}
-        {/* Only the full count, so the number does not change under the reader. */}
-        {erase && unpacked && (
-          <p className="glim-num">{t('remove.filesGone', { files: weight.files, bytes: fmtBytes(weight.bytes) })}</p>
-        )}
         {note && <p className="text-carbon-textMuted">{note}</p>}
       </div>
     </Modal>

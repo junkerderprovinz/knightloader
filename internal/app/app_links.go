@@ -127,6 +127,9 @@ type intake struct {
 	// rows too (see LinkBatchOptions.foldDone).
 	listed   *listedRows
 	foldDone bool
+
+	// byAdmin is LinkBatchOptions.ByAdmin.
+	byAdmin bool
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -248,7 +251,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		// otherwise contact a host a rule told us to avoid.
 		cand := rules.Candidate{URL: u, Package: pkg, Filename: batch.FileName, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.hold(cand, v, intake{origin: origin, file: batch.File, listed: batch.listed}, cand.Added, nil); t != nil {
+			if t := a.hold(cand, v, intake{origin: origin, file: batch.File, listed: batch.listed, byAdmin: batch.ByAdmin}, cand.Added, nil); t != nil {
 				created = append(created, t)
 			}
 			continue
@@ -263,7 +266,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		var listing ytdlp.Playlist
 		listed := false
 		if !handedOver {
-			listing, listed = a.ytdlpListing(u, batch.Resolver)
+			listing, listed = a.ytdlpListing(u, batch.Resolver, batch.ByAdmin)
 		}
 		if listed && len(listing.Entries) > 0 && a.Settings.Get().Ytdlp.Playlist {
 			b := &bucket{title: listing.Title}
@@ -297,7 +300,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 				t := a.stage(c.URL, c.Name, c.Size, intake{
 					pkg: pkg, origin: OriginCrawl, source: u,
 					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
-					sizeProbes: &probes, listed: batch.listed, foldDone: batch.foldDone,
+					sizeProbes: &probes, listed: batch.listed, foldDone: batch.foldDone, byAdmin: batch.ByAdmin,
 				})
 				if t == nil {
 					continue
@@ -319,6 +322,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers, file: batch.File,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
 			sizeProbes: &probes, choice: batch.Choice, pin: batch.Resolver, listed: batch.listed, foldDone: batch.foldDone,
+			byAdmin: batch.ByAdmin,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
@@ -912,8 +916,9 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		// filterWaived).
 		SkipReason: in.waived,
 		// torrentHost, since a magnet names no single host.
-		Host:      torrentHost(u),
-		CreatedAt: now,
+		Host:         torrentHost(u),
+		CreatedAt:    now,
+		AddedByAdmin: in.byAdmin,
 	}
 	// Batch options go on before finishStaging runs the Packagizer, so a
 	// matching rule overwrites them.
@@ -1266,11 +1271,12 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Ti
 		SkipCode:   shown.Code,
 		SkipParams: shown.Params,
 		// Still enabled: once the rule is fixed, the link can be started.
-		Enabled:   true,
-		Source:    cand.Source,
-		Origin:    in.origin,
-		Host:      torrentHost(cand.URL),
-		CreatedAt: now,
+		Enabled:      true,
+		Source:       cand.Source,
+		Origin:       in.origin,
+		Host:         torrentHost(cand.URL),
+		CreatedAt:    now,
+		AddedByAdmin: in.byAdmin,
 		// Online stays unset; nobody checked whether the link is alive.
 	}
 	if cand.Filename != "" {

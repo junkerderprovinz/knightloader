@@ -46,9 +46,16 @@ const ytdlpMissing = "yt-dlp is not available on this instance"
 // within probeKeep: the staging, a pick measured again, the boot's backfill
 // and the extension's menu. ctx bounds the wait and not the probe, which
 // others may be waiting on too.
-func (a *App) linkProbe(ctx context.Context, tp titleProber, rawurl string, sent map[string]string) (ytdlp.ProbeResult, error) {
+//
+// signIn lets the probe carry the owner's sessions, and such an answer is kept
+// apart, so a link added below admin never learns what the sessions show.
+func (a *App) linkProbe(ctx context.Context, tp titleProber, rawurl string, sent map[string]string, signIn bool) (ytdlp.ProbeResult, error) {
+	key := rawurl
+	if signIn {
+		key = "signed-in\x00" + rawurl
+	}
 	a.mu.Lock()
-	c := a.linkProbes[rawurl]
+	c := a.linkProbes[key]
 	if c == nil || c.stale() {
 		c = &probeCall{done: make(chan struct{})}
 		if a.linkProbes == nil {
@@ -59,9 +66,9 @@ func (a *App) linkProbe(ctx context.Context, tp titleProber, rawurl string, sent
 				delete(a.linkProbes, u)
 			}
 		}
-		a.linkProbes[rawurl] = c
+		a.linkProbes[key] = c
 		a.mu.Unlock()
-		a.runProbe(c, tp, rawurl, sent)
+		a.runProbe(c, tp, rawurl, sent, signIn)
 	} else {
 		a.mu.Unlock()
 	}
@@ -73,7 +80,7 @@ func (a *App) linkProbe(ctx context.Context, tp titleProber, rawurl string, sent
 	}
 }
 
-func (a *App) runProbe(c *probeCall, tp titleProber, rawurl string, sent map[string]string) {
+func (a *App) runProbe(c *probeCall, tp titleProber, rawurl string, sent map[string]string, signIn bool) {
 	if !a.track() {
 		c.err = errors.New("the instance is shutting down")
 		close(c.done)
@@ -83,6 +90,9 @@ func (a *App) runProbe(c *probeCall, tp titleProber, rawurl string, sent map[str
 		defer a.wg.Done()
 		ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
 		defer cancel()
+		if signIn {
+			ctx = ytdlp.WithSignIn(ctx)
+		}
 		c.res, c.err = tp.ProbeTitle(ctx, rawurl, sent)
 		if c.err != nil && errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			c.err = fmt.Errorf("yt-dlp did not answer within %s", ytdlpProbeTimeout)
@@ -180,8 +190,9 @@ type LinkThumbnail struct {
 // LinkQualities is what one link offers, from the probe its staging shares
 // (linkProbe), so the extension's menu lists what the video has and nothing
 // else. pinned asks as for a link pinned to yt-dlp, past the chain, the way
-// the extension's button sends its video.
-func (a *App) LinkQualities(ctx context.Context, rawurl string, pinned bool) (LinkMenus, error) {
+// the extension's button sends its video. signIn lets the probe carry the
+// owner's sessions, for a caller with every right.
+func (a *App) LinkQualities(ctx context.Context, rawurl string, pinned, signIn bool) (LinkMenus, error) {
 	u, err := url.Parse(rawurl)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
 		return LinkMenus{}, ErrNotAMediaLink
@@ -197,7 +208,7 @@ func (a *App) LinkQualities(ctx context.Context, rawurl string, pinned bool) (Li
 	if !ok {
 		return LinkMenus{}, errors.New(ytdlpMissing)
 	}
-	res, err := a.linkProbe(ctx, tp, rawurl, nil)
+	res, err := a.linkProbe(ctx, tp, rawurl, nil, signIn)
 	if err != nil {
 		return LinkMenus{}, err
 	}

@@ -32,6 +32,17 @@ var diagnoses = []struct {
 	// Patreon's wording for a post behind a tier the session does not pay for.
 	{"do not have access to this post", core.ReasonMembersOnly},
 
+	// Before gone: YouTube words a private video "Video unavailable. This
+	// video is private". "for the authentication" ends yt-dlp's own hint to
+	// pass cookies, which its extractors add to every login they hit.
+	{"confirm your age", core.ReasonSignInRequired},
+	{"inappropriate for some users", core.ReasonSignInRequired},
+	{"private video", core.ReasonSignInRequired},
+	{"video is private", core.ReasonSignInRequired},
+	{"only available for registered users", core.ReasonSignInRequired},
+	{"login required", core.ReasonSignInRequired},
+	{"for the authentication", core.ReasonSignInRequired},
+
 	// Geo before gone: YouTube's regional block starts with "Video
 	// unavailable.", and filing it as gone would get the link deleted.
 	{"not available from your location", core.ReasonGeoBlocked},
@@ -63,6 +74,12 @@ var diagnoses = []struct {
 	// has nothing playable.
 	{"please report this issue on", core.ReasonExtractorBroken},
 	{"unable to extract", core.ReasonExtractorBroken},
+}
+
+// NeedsSignIn reports whether a signed-in session may clear a failure of the
+// reason.
+func NeedsSignIn(r core.Reason) bool {
+	return r == core.ReasonBotCheck || r == core.ReasonMembersOnly || r == core.ReasonSignInRequired
 }
 
 // Diagnose names the cause of a failed yt-dlp run from its whole stderr, or

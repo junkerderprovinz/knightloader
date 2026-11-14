@@ -12,10 +12,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/sitelogin"
 )
 
-const (
-	siteSecret = "YT-SESSION-4c1e-never-leaves-the-store"
-	ytSession  = "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t1900000000\tSID\t" + siteSecret + "\n"
-)
+const siteSecret = "YT-SESSION-4c1e-never-leaves-the-store"
 
 type siteRow struct {
 	ID      string   `json:"id"`
@@ -23,6 +20,7 @@ type siteRow struct {
 	Account string   `json:"account"`
 	Waiting bool     `json:"waiting"`
 	Domains []string `json:"domains"`
+	Source  string   `json:"source"`
 }
 
 func siteRows(t *testing.T, body []byte) []siteRow {
@@ -45,23 +43,24 @@ func rowOf(t *testing.T, rows []siteRow, id string) siteRow {
 	return siteRow{}
 }
 
-func TestAPastedSessionSignsTheSiteInAndNoAnswerCarriesIt(t *testing.T) {
+// ytHandover is the extension handing over a YouTube session.
+const ytHandover = `{"cookies":[{"domain":".youtube.com","path":"/","secure":true,"expirationDate":1900000000,"name":"SID","value":"` + siteSecret + `"}]}`
+
+func TestAHandedOverSessionSignsTheSiteInAndNoAnswerCarriesIt(t *testing.T) {
 	t.Parallel()
 	_, _, _, _, owner := groupServer(t)
-	text := ytSession
-	raw, _ := json.Marshal(map[string]*string{"text": &text})
-	status, body := owner(http.MethodPost, "/api/sitelogins/youtube/cookies", string(raw))
+	status, body := owner(http.MethodPost, "/api/sitelogins/youtube/handover", ytHandover)
 	if status != http.StatusOK {
-		t.Fatalf("pasting = %d (%s)", status, body)
+		t.Fatalf("handing over = %d (%s)", status, body)
 	}
-	var pasted siteRow
-	if err := json.Unmarshal(body, &pasted); err != nil || pasted.State != string(sitelogin.SignedIn) {
-		t.Errorf("pasting answered %s, want youtube signed in", body)
+	var handed siteRow
+	if err := json.Unmarshal(body, &handed); err != nil || handed.State != string(sitelogin.SignedIn) || handed.Source != "extension" {
+		t.Errorf("handing over answered %s, want youtube signed in through the extension", body)
 	}
 	for _, path := range []string{"/api/sitelogins", "/api/sitelogins/handover"} {
 		_, listed := owner(http.MethodGet, path, "")
 		if strings.Contains(string(body)+string(listed), siteSecret) {
-			t.Fatalf("%s or the paste answered with the session", path)
+			t.Fatalf("%s or the hand-over answered with the session", path)
 		}
 	}
 	_, listed := owner(http.MethodGet, "/api/sitelogins", "")
@@ -70,12 +69,34 @@ func TestAPastedSessionSignsTheSiteInAndNoAnswerCarriesIt(t *testing.T) {
 	}
 }
 
-func TestAnEmptyPasteIsRefusedRatherThanSigningOut(t *testing.T) {
+// The page tells a session from a browser apart from the extension's, and
+// names the browsers it could not read, so every row carries the three.
+func TestEverySiteSaysWhereItsSessionComesFrom(t *testing.T) {
 	t.Parallel()
 	_, _, _, _, owner := groupServer(t)
-	for _, body := range []string{`{}`, `{"text":"  "}`} {
-		if status, answer := owner(http.MethodPost, "/api/sitelogins/youtube/cookies", body); status != http.StatusBadRequest {
-			t.Errorf("pasting %s = %d (%s), want 400", body, status, answer)
+	_, listed := owner(http.MethodGet, "/api/sitelogins", "")
+	var rows []map[string]json.RawMessage
+	if err := json.Unmarshal(listed, &rows); err != nil || len(rows) == 0 {
+		t.Fatalf("not a list of sites: %v (%s)", err, listed)
+	}
+	for _, r := range rows {
+		if string(r["source"]) != `""` || string(r["browser"]) != `""` || string(r["unreadable"]) != `[]` {
+			t.Errorf("a signed-out site reads source %s, browser %s, unreadable %s", r["source"], r["browser"], r["unreadable"])
+		}
+	}
+}
+
+func TestCookiesCannotBePastedAnyWhere(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	for _, call := range [][2]string{
+		{http.MethodPost, "/api/sitelogins/youtube/cookies"},
+		{http.MethodGet, "/api/ytdlp/cookies"},
+		{http.MethodPost, "/api/ytdlp/cookies"},
+		{http.MethodPost, "/api/ytdlp/cookies/remove"},
+	} {
+		if status, body := owner(call[0], call[1], `{"text":"x","host":"youtube.com"}`); status != http.StatusNotFound && status != http.StatusMethodNotAllowed {
+			t.Errorf("%s %s = %d (%s), want no such route", call[0], call[1], status, body)
 		}
 	}
 }
@@ -88,9 +109,7 @@ func TestSignInWaitsAndSignOutForgets(t *testing.T) {
 	if status != http.StatusOK || json.Unmarshal(body, &begun) != nil || !begun.Waiting {
 		t.Fatalf("begin = %d (%s), want youtube waiting", status, body)
 	}
-	text := ytSession
-	raw, _ := json.Marshal(map[string]*string{"text": &text})
-	owner(http.MethodPost, "/api/sitelogins/youtube/cookies", string(raw))
+	owner(http.MethodPost, "/api/sitelogins/youtube/handover", ytHandover)
 	if status, body := owner(http.MethodPost, "/api/sitelogins/youtube/remove", ""); status != http.StatusOK {
 		t.Fatalf("remove = %d (%s)", status, body)
 	}
@@ -168,5 +187,124 @@ func TestTheExtensionHandsASessionOverAndNoOtherMemberMay(t *testing.T) {
 	empty := `{"cookies":[{"domain":".google.com","path":"/","expirationDate":1900000000,"name":"SID","value":"x"}]}`
 	if status, body := browser(http.MethodPost, "/api/sitelogins/youtube/handover", empty); status != http.StatusUnprocessableEntity {
 		t.Errorf("handing over no cookie of the site = %d (%s), want 422", status, body)
+	}
+}
+
+// The extension watches only the cookies a signed-in session carries.
+func TestTheHandOverListNamesEachSitesSignInCookies(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	_, body := owner(http.MethodGet, "/api/sitelogins/handover", "")
+	var rows []struct {
+		ID     string   `json:"id"`
+		SignIn []string `json:"signIn"`
+	}
+	if err := json.Unmarshal(body, &rows); err != nil {
+		t.Fatalf("not a list of sites: %v (%s)", err, body)
+	}
+	want := map[string]string{"patreon": "session_id", "youtube": "SID,__Secure-1PSID,__Secure-3PSID,LOGIN_INFO"}
+	for _, r := range rows {
+		if got := strings.Join(r.SignIn, ","); got != want[r.ID] {
+			t.Errorf("%s lists the sign-in cookies %q, want %q", r.ID, got, want[r.ID])
+		}
+	}
+	if strings.Contains(string(body), siteSecret) {
+		t.Fatal("the hand-over list carries a session")
+	}
+}
+
+// A browser that signed out hands over nothing, and the session it handed
+// over before is forgotten.
+func TestAnEmptyHandOverSignsOut(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	if status, body := owner(http.MethodPost, "/api/sitelogins/youtube/handover", ytHandover); status != http.StatusOK {
+		t.Fatalf("handing over = %d (%s)", status, body)
+	}
+	status, body := owner(http.MethodPost, "/api/sitelogins/youtube/handover", `{"cookies":[]}`)
+	var row siteRow
+	if status != http.StatusOK || json.Unmarshal(body, &row) != nil || row.State != string(sitelogin.SignedOut) {
+		t.Fatalf("an empty hand-over = %d (%s), want 200 and signed out", status, body)
+	}
+	_, listed := owner(http.MethodGet, "/api/sitelogins", "")
+	if r := rowOf(t, siteRows(t, listed), "youtube"); r.State != string(sitelogin.SignedOut) {
+		t.Errorf("after an empty hand-over youtube is %+v", r)
+	}
+}
+
+func TestAHandOverThatSignsNobodyInIsStillRefused(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	other := `{"cookies":[{"domain":".google.com","path":"/","expirationDate":1900000000,"name":"SID","value":"x"}]}`
+	if status, body := owner(http.MethodPost, "/api/sitelogins/youtube/handover", other); status != http.StatusUnprocessableEntity {
+		t.Errorf("a hand-over without the site's cookies = %d (%s), want 422", status, body)
+	}
+}
+
+// An instance in a container reads no browser, and the page says how to sign
+// in there instead.
+func TestEverySiteSaysWhetherThisInstanceReadsBrowsers(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	_, listed := owner(http.MethodGet, "/api/sitelogins", "")
+	var rows []map[string]json.RawMessage
+	if err := json.Unmarshal(listed, &rows); err != nil || len(rows) == 0 {
+		t.Fatalf("not a list of sites: %v (%s)", err, listed)
+	}
+	for _, r := range rows {
+		if string(r["readsBrowsers"]) != "false" {
+			t.Errorf("an instance that reads no browser lists readsBrowsers %s", r["readsBrowsers"])
+		}
+	}
+}
+
+type disconnectedRow struct {
+	ID           string `json:"id"`
+	State        string `json:"state"`
+	Disconnected bool   `json:"disconnected"`
+}
+
+func disconnectedOf(t *testing.T, owner func(method, path, body string) (int, []byte), id string) disconnectedRow {
+	t.Helper()
+	_, listed := owner(http.MethodGet, "/api/sitelogins", "")
+	var rows []disconnectedRow
+	if err := json.Unmarshal(listed, &rows); err != nil {
+		t.Fatalf("not a list of sites: %v (%s)", err, listed)
+	}
+	for _, r := range rows {
+		if r.ID == id {
+			return r
+		}
+	}
+	t.Fatalf("no %s in %s", id, listed)
+	return disconnectedRow{}
+}
+
+// Remove disconnects a site whatever its session came from, and signing in
+// or using the browser's sign-in again connects it once more.
+func TestRemovingDisconnectsASiteUntilItIsSignedInAgain(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	if r := disconnectedOf(t, owner, "patreon"); r.Disconnected {
+		t.Fatalf("patreon starts out %+v", r)
+	}
+	if status, body := owner(http.MethodPost, "/api/sitelogins/patreon/remove", ""); status != http.StatusOK {
+		t.Fatalf("remove = %d (%s)", status, body)
+	}
+	if r := disconnectedOf(t, owner, "patreon"); !r.Disconnected || r.State != "signedOut" {
+		t.Errorf("after removing patreon is %+v, want disconnected", r)
+	}
+	if status, body := owner(http.MethodPost, "/api/sitelogins/patreon/reconnect", ""); status != http.StatusOK || strings.Contains(string(body), `"disconnected":true`) {
+		t.Fatalf("reconnect = %d (%s), want 200 and connected", status, body)
+	}
+	owner(http.MethodPost, "/api/sitelogins/patreon/remove", "")
+	if status, body := owner(http.MethodPost, "/api/sitelogins/patreon/begin", ""); status != http.StatusOK {
+		t.Fatalf("begin = %d (%s)", status, body)
+	}
+	if r := disconnectedOf(t, owner, "patreon"); r.Disconnected {
+		t.Errorf("after signing in again patreon is %+v, want connected", r)
+	}
+	if status, _ := owner(http.MethodPost, "/api/sitelogins/example/reconnect", ""); status != http.StatusNotFound {
+		t.Errorf("reconnecting an unknown site = %d, want 404", status)
 	}
 }

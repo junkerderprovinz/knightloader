@@ -98,6 +98,7 @@ var codeReasons = map[core.ErrorCode][]core.Reason{
 	core.CodeCancelled:        {core.ReasonCancelled},
 	core.CodeBotCheck:         {core.ReasonBotCheck},
 	core.CodeMembersOnly:      {core.ReasonMembersOnly},
+	core.CodeSignInRequired:   {core.ReasonSignInRequired},
 	core.CodeGeoBlocked:       {core.ReasonGeoBlocked},
 	core.CodeDRM:              {core.ReasonDRM},
 	core.CodeExtractorBroken:  {core.ReasonExtractorBroken},

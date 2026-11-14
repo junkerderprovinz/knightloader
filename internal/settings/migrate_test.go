@@ -185,3 +185,33 @@ func TestNavLabelsIsNotWrittenBack(t *testing.T) {
 		}
 	}
 }
+
+// The switch for pasted cookie jars is gone with the jars, and the file
+// forgets it at the first start rather than at the next save.
+func TestTheCookieJarSwitchLeavesTheFileAtLoad(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "settings.json")
+	if err := os.WriteFile(path, []byte(`{"ytdlp":{"cookies":true,"playlist":true}}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	s, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !s.Get().Ytdlp.Playlist {
+		t.Error("the rest of the yt-dlp settings did not survive")
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc struct {
+		Ytdlp map[string]json.RawMessage `json:"ytdlp"`
+	}
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := doc.Ytdlp["cookies"]; ok {
+		t.Errorf("settings.json still holds ytdlp.cookies: %s", raw)
+	}
+}

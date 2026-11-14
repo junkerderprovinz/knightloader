@@ -92,10 +92,6 @@ type Options struct {
 	// OutputTemplate is yt-dlp's -o template, joined onto the task's
 	// destination directory. Empty uses defaultOutputTemplate.
 	OutputTemplate string `json:"outputTemplate"`
-	// Cookies hands yt-dlp the cookies.txt stored for the download's host
-	// (see cookies.go) as a 0600 temp file removed when the process exits. It
-	// is a switch because rate limits and bans then land on the account.
-	Cookies bool `json:"cookies"`
 	// Music turns the audio row into a tagger: artist, album, title and track
 	// metadata, an Artist/Album/NN-Title template and a cover.jpg (see
 	// musicArgs). Libraries like Navidrome and Plex group by tags, not file

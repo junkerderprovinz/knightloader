@@ -51,9 +51,44 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the site and the pages it signs you in with, never your own network, and
   closes after five minutes without input. The extension still works the
   same way beside it.
+- **Patreon and YouTube sign in with your browser's own session.** The
+  desktop app, and a server outside a container, read it straight from
+  Firefox, LibreWolf, Waterfox, Zen, Edge, Brave, Opera, Vivaldi or Chromium
+  on the same computer, also when you signed in there long before. You do not
+  have to do anything, and the accounts page names the browser the session
+  came from. Sign out in the browser and KnightLoader is signed out too, or
+  remove the site in KnightLoader to stop using it while the browser stays
+  signed in. **Use the browser's sign-in again** brings it back.
+  Chrome on Windows locks its cookies away from every other program, and the
+  page tells you when that is the case. Your sessions only go along with
+  links you added yourself, signed in, with an admin token or with the
+  extension. Links from a token that may only add, the phone app, a feed or
+  the watch folder are fetched without them.
+- **Any site that wants you signed in gets a second try with your browser's
+  session.** When a yt-dlp download fails because the site asks for a
+  sign-in, such as a private or age-restricted video, the desktop app tries it
+  once more right away with that site's cookies from your browser.
+- **The browser extension passes your Patreon and YouTube sign-in on by
+  itself,** for KnightLoader in a container, which has no browser to read.
+  It asks once to read those two sites' cookies (or nothing at all while
+  taking over downloads or finding media is on), then hands the sign-in over
+  whenever you sign in or it changes, also one from before, and tells your
+  instance when you sign out. Private windows are never read, Firefox
+  containers are. "Pass my sign-ins to KnightLoader" in the extension's
+  settings turns it off again.
+- **Patreon and YouTube always have a row under Hoster accounts,** which says
+  who you are signed in as and where the sign-in came from, or the one step
+  that signs you in. A download that fails because the site wants a
+  signed-in account offers to sign in to that site and starts again once the
+  sign-in is there.
 
 ### Changed
 
+- **YouTube downloads start without your session.** Google flags accounts
+  that download a lot while signed in, so KnightLoader uses your YouTube
+  session only for a video that asks for it (members only, age-restricted,
+  private, or the "not a bot" check) and tries that one again at once.
+  Patreon still gets the session with every link.
 - **One switch keeps every component current.** yt-dlp, FFmpeg, Deno, the
   desktop app's Java and JDownloader now share "Update components
   automatically" on the Components card, and it is on from the start.
@@ -65,6 +100,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Linux it lands in the data folder during the install, checked against
   yt-dlp's own checksums, so the copy KnightLoader keeps current is there from
   the first start. The macOS app fetches it when it first starts.
+
+### Removed
+
+- **Pasting a cookies.txt is gone,** on the accounts page and for yt-dlp,
+  together with the switch that let yt-dlp use pasted files. Sessions come
+  from your browser or the extension. Files pasted before are deleted at the
+  next start.
 
 ### Fixed
 
