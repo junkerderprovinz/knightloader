@@ -45,7 +45,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Firefox, LibreWolf, Waterfox, Zen, Edge, Brave, Opera, Vivaldi or Chromium
   on the same computer, also when you signed in there long before. You do not
   have to do anything, and the accounts page names the browser the session
-  came from. Sign out in the browser and KnightLoader is signed out too.
+  came from. Sign out in the browser and KnightLoader is signed out too, or
+  remove the site in KnightLoader to stop using it while the browser stays
+  signed in. **Use the browser's sign-in again** brings it back.
   Chrome on Windows locks its cookies away from every other program, and the
   page tells you when that is the case. Your sessions only go along with
   links you added yourself, signed in, with an admin token or with the
