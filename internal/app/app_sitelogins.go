@@ -121,8 +121,9 @@ func (a *App) HandOverSiteSession(id string, cookies []sitelogin.BrowserCookie) 
 	return a.StoreSiteSession(id, sitelogin.JarFromCookies(site, cookies, time.Now()))
 }
 
-// StoreSiteSession stores a cookies.txt as a site's session, ends its wait
-// and checks it right away, so the answer says who is signed in.
+// StoreSiteSession stores a cookies.txt as a site's session and ends its
+// wait, unless the site signs nobody in with it. The answer says who is
+// signed in.
 func (a *App) StoreSiteSession(id, jar string) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
@@ -131,14 +132,21 @@ func (a *App) StoreSiteSession(id, jar string) (SiteLoginState, error) {
 	if jar == "" {
 		return SiteLoginState{}, ErrNoSiteSession
 	}
+	// Asked before it is stored, so cookies from a browser that is not signed
+	// in never replace a session that works.
+	status := a.askSite(site, jar)
+	if status.State != sitelogin.SignedIn && status.State != sitelogin.Unchecked {
+		return SiteLoginState{}, ErrNoSiteSession
+	}
 	if err := a.siteStore().Set(id, jar); err != nil {
 		return SiteLoginState{}, err
 	}
 	st := a.siteLogins()
 	st.mu.Lock()
 	delete(st.waiting, id)
+	st.checked[id] = siteCheck{status: status, at: time.Now()}
 	st.mu.Unlock()
-	return a.siteLoginState(site, true), nil
+	return a.siteLoginState(site, false), nil
 }
 
 // RemoveSiteLogin forgets a site's session.
@@ -181,17 +189,24 @@ func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 	if last.status.State == sitelogin.Unchecked {
 		keep = siteUncheckedFresh
 	}
-	if known && !fresh && now.Sub(last.at) < keep {
+	end, err := time.Parse(time.RFC3339, last.status.Expires)
+	ranOut := err == nil && !end.After(now)
+	if known && !fresh && !ranOut && now.Sub(last.at) < keep {
 		out.Status = last.status
 		return out
 	}
-	ctx, cancel := context.WithTimeout(a.ctx, siteCheckTimeout)
-	defer cancel()
-	out.Status = siteLoginCheck(ctx, site, jar)
+	out.Status = a.askSite(site, jar)
 	st.mu.Lock()
 	st.checked[site.ID] = siteCheck{status: out.Status, at: now}
 	st.mu.Unlock()
 	return out
+}
+
+// askSite is siteLoginCheck within the time a check may take.
+func (a *App) askSite(site sitelogin.Site, jar string) sitelogin.Status {
+	ctx, cancel := context.WithTimeout(a.ctx, siteCheckTimeout)
+	defer cancel()
+	return siteLoginCheck(ctx, site, jar)
 }
 
 // siteSession is the stored session of the site a link belongs to, for

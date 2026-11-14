@@ -200,3 +200,51 @@ func TestTheListingNeverCarriesTheSession(t *testing.T) {
 		}
 	}
 }
+
+// stubSiteCheckByJar answers a jar holding loggedOut as a session the site
+// does not sign anybody in with.
+func stubSiteCheckByJar(t *testing.T, loggedOut string) {
+	t.Helper()
+	prev := siteLoginCheck
+	siteLoginCheck = func(_ context.Context, _ sitelogin.Site, jar string) sitelogin.Status {
+		if strings.Contains(jar, loggedOut) {
+			return sitelogin.Status{State: sitelogin.Expired}
+		}
+		return sitelogin.Status{State: sitelogin.SignedIn, Account: "Jane"}
+	}
+	t.Cleanup(func() { siteLoginCheck = prev })
+}
+
+func TestCookiesThatSignNobodyInAreRefusedAndKeepTheSessionBefore(t *testing.T) {
+	stubSiteCheckByJar(t, "LOGGED-OUT")
+	a := siteApp(t)
+	if _, err := a.StoreSiteSession("patreon", patreonJar); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.BeginSiteLogin("patreon"); err != nil {
+		t.Fatal(err)
+	}
+	loggedOut := strings.Replace(patreonJar, "PATREON-SECRET", "LOGGED-OUT", 1)
+	if _, err := a.StoreSiteSession("patreon", loggedOut); !errors.Is(err, ErrNoSiteSession) {
+		t.Errorf("err = %v, want ErrNoSiteSession", err)
+	}
+	if got := sitelogin.NewStore(a.Accounts).Session("patreon"); got != patreonJar {
+		t.Errorf("the stored session is %q, want the one that signed in", got)
+	}
+	if s := stateOf(t, a, "patreon"); !s.Waiting || s.Account != "Jane" {
+		t.Errorf("patreon = %+v, want still signed in as Jane and waiting for a session", s)
+	}
+}
+
+func TestTheListingAsksAgainOnceTheSessionHasRunOut(t *testing.T) {
+	checks := stubSiteCheck(t, sitelogin.Status{State: sitelogin.SignedIn, Expires: time.Now().Add(-time.Second).Format(time.RFC3339)})
+	a := siteApp(t)
+	if _, err := a.StoreSiteSession("patreon", patreonJar); err != nil {
+		t.Fatal(err)
+	}
+	before := checks.Load()
+	a.SiteLogins()
+	if checks.Load() != before+1 {
+		t.Errorf("a session past its end was taken from the last check, want it asked again")
+	}
+}
