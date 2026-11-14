@@ -2147,7 +2147,9 @@ export function Modal({
       // glim-modal-backdrop, not a number typed here: the darkening and the
       // blur behind a window are tokens (index.css), so every window in the
       // app changes with them.
-      className="glim-modal-backdrop glim-sheet fixed inset-0 z-50 grid place-items-center p-6"
+      // A list row opens its windows in place, so the row's truncation and its
+      // unselectable text stop here.
+      className="glim-modal-backdrop glim-sheet fixed inset-0 z-50 grid place-items-center p-6 whitespace-normal select-text"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
