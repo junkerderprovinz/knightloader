@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act } from 'react';
+import { act, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { expect, it } from 'vitest';
 
@@ -54,6 +54,25 @@ it('names the host of the address as it stands, not the one the server last repo
   host.remove();
 });
 
+/** An unsaved row that takes its own edits, as the list holds a row not saved yet. */
+function UnsavedRow() {
+  const [row, setRow] = useState({ id: '1', name: 'ntfy', enabled: true, url: '', attempts: 0, timeoutSeconds: 0 });
+  return (
+    <TargetRow
+      row={row}
+      index={0}
+      last
+      stored={false}
+      open
+      triggers={[]}
+      placeholders={[]}
+      onToggle={() => {}}
+      onChange={setRow}
+      onRemove={() => {}}
+    />
+  );
+}
+
 /** An unsaved row with its window open, and the box whose caption reads `caption`. */
 function openRow(caption: string) {
   const host = document.createElement('div');
@@ -65,18 +84,7 @@ function openRow(caption: string) {
       <I18nProvider>
         <SettingsProvider draft={draft} features={{ features: { modules: [], pages: [] }, toggle: async () => {} }}>
           <ul>
-            <TargetRow
-              row={{ id: '1', name: 'ntfy', enabled: true, url: '', attempts: 0, timeoutSeconds: 0 }}
-              index={0}
-              last
-              stored={false}
-              open
-              triggers={[]}
-              placeholders={[]}
-              onToggle={() => {}}
-              onChange={() => {}}
-              onRemove={() => {}}
-            />
+            <UnsavedRow />
           </ul>
         </SettingsProvider>
       </I18nProvider>,

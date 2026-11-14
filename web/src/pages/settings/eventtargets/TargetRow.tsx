@@ -79,7 +79,10 @@ export function TargetRow({
   const { t } = useT();
 
   const [urlText, setUrlText] = useState(row.url);
-  const [urlBad, setUrlBad] = useState(false);
+  // The address last refused. An unsaved row keeps it as its url, so the mark
+  // has to survive the effect below that follows row.url.
+  const [urlRefused, setUrlRefused] = useState<string | null>(null);
+  const urlBad = urlRefused !== null;
   const [headersText, setHeadersText] = useState(() => formatHeaders(row.headers));
   // Why the block was refused, since a line without a colon and an open
   // placeholder need different fixes.
@@ -94,7 +97,7 @@ export function TargetRow({
   // value or dropped a header because the address moved, so follow it.
   useEffect(() => {
     setUrlText(row.url);
-    setUrlBad(false);
+    setUrlRefused((refused) => (refused === row.url ? refused : null));
   }, [row.url]);
   useEffect(() => {
     setHeadersText(formatHeaders(row.headers));
@@ -107,18 +110,15 @@ export function TargetRow({
 
   const commitUrl = () => {
     const url = urlText.trim();
-    if (url === row.url) {
-      setUrlBad(false);
-      return;
-    }
+    if (url === row.url && url !== urlRefused) return;
     if (!usableAddress(url)) {
-      setUrlBad(true);
+      setUrlRefused(url);
       // An unsaved row keeps the half-typed address; a stored row's draft is
       // left alone so the save is not refused.
       if (!stored) onChange({ ...row, url });
       return;
     }
-    setUrlBad(false);
+    setUrlRefused(null);
     if (stored) onChange({ ...row, url });
     else if (onCommit) onCommit({ ...row, url });
   };
@@ -240,7 +240,7 @@ export function TargetRow({
               aria-describedby={urlBad ? urlReasonId : undefined}
               onChange={(e) => {
                 setUrlText(e.target.value);
-                setUrlBad(false);
+                setUrlRefused(null);
               }}
               onBlur={commitUrl}
               onKeyDown={(e) => {
