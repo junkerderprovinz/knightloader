@@ -610,7 +610,7 @@ func (b *TorrentBackend) run(ctx context.Context, taskID string, r *torrentRun) 
 		}
 	}
 	if err != nil {
-		b.refuse(ctx, taskID, r, err.Error())
+		b.refuse(ctx, taskID, r, "", err.Error())
 		return
 	}
 	var total, loaded int64
@@ -657,7 +657,7 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 	if private {
 		// A private tracker's passkey would go to the service with the
 		// torrent, and most private trackers ban an account for that.
-		b.refuse(ctx, taskID, r, "a torrent from a private tracker stays with the built-in torrent client")
+		b.refuse(ctx, taskID, r, core.DeclinedPrivate, "a torrent from a private tracker stays with the built-in torrent client")
 		return "", false
 	}
 	var probe bool
@@ -666,7 +666,7 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 		if !asks {
 			probe = true
 		} else if why := b.notCached(ctx, cc, src.InfoHash); why != "" {
-			b.refuse(ctx, taskID, r, why)
+			b.refuse(ctx, taskID, r, core.DeclinedNotCached, why)
 			return "", false
 		}
 	}
@@ -678,7 +678,7 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 	if err != nil {
 		var no *Refusal
 		if errors.As(err, &no) {
-			b.refuse(ctx, taskID, r, no.Reason)
+			b.refuse(ctx, taskID, r, "", no.Reason)
 		} else {
 			b.fail(ctx, taskID, err)
 		}
@@ -722,7 +722,7 @@ func (b *TorrentBackend) addAgain(ctx context.Context, taskID string, r *torrent
 	r.job, r.chosen, r.readded = "", false, true
 	b.runs.mu.Unlock()
 	if !again {
-		b.refuse(ctx, taskID, r, "the service no longer had this torrent, not even after it was added there again")
+		b.refuse(ctx, taskID, r, "", "the service no longer had this torrent, not even after it was added there again")
 		return "", false
 	}
 	log.Printf("task %s: %s no longer has the torrent, so it goes there again", taskID, b.svc.Label())
@@ -831,7 +831,7 @@ func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun
 			}
 			return TorrentJob{}, false
 		case errors.As(err, &no):
-			b.refuse(ctx, taskID, r, no.Reason)
+			b.refuse(ctx, taskID, r, "", no.Reason)
 			return TorrentJob{}, false
 		case err != nil:
 			misses++
@@ -843,7 +843,7 @@ func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun
 		case tj.State == TorrentReady:
 			return tj, true
 		case tj.State == TorrentFailed:
-			b.refuse(ctx, taskID, r, cmp.Or(tj.Reason, "the service gave up on this torrent"))
+			b.refuse(ctx, taskID, r, "", cmp.Or(tj.Reason, "the service gave up on this torrent"))
 			return TorrentJob{}, false
 		case tj.State == TorrentChoosing:
 			misses = 0
@@ -861,7 +861,7 @@ func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun
 		}
 		now := time.Now()
 		if probe && now.Sub(start) >= b.cacheWait {
-			b.refuse(ctx, taskID, r, "only a cached torrent may go to a debrid service, and this one did not have it ready when it was added")
+			b.refuse(ctx, taskID, r, core.DeclinedNotCached, "only a cached torrent may go to a debrid service, and this one did not have it ready when it was added")
 			return TorrentJob{}, false
 		}
 		minutes := b.stallMinutes(taskID)
@@ -871,7 +871,7 @@ func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun
 		if progress > best || progress >= 1 {
 			best, grew = progress, now
 		} else if stall > 0 && now.Sub(grew) >= stall {
-			b.refuse(ctx, taskID, r, "the service made no progress on this torrent for "+minutesText(minutes))
+			b.refuse(ctx, taskID, r, core.DeclinedStalled, "the service made no progress on this torrent for "+minutesText(minutes))
 			return TorrentJob{}, false
 		}
 		wait := pace.next(now, progress)
@@ -950,13 +950,13 @@ func (b *TorrentBackend) choose(ctx context.Context, taskID string, r *torrentRu
 	}
 	want, err := b.wanted(taskID, name, tj.Files)
 	if err != nil {
-		b.refuse(ctx, taskID, r, err.Error())
+		b.refuse(ctx, taskID, r, "", err.Error())
 		return false
 	}
 	if err := fs.SelectFiles(ctx, job, want); err != nil {
 		var no *Refusal
 		if errors.As(err, &no) {
-			b.refuse(ctx, taskID, r, no.Reason)
+			b.refuse(ctx, taskID, r, "", no.Reason)
 		} else {
 			b.fail(ctx, taskID, err)
 		}
@@ -1056,7 +1056,7 @@ func (b *TorrentBackend) finish(ctx context.Context, taskID string, r *torrentRu
 // refuse hands the task to the next backend: the service will not fetch this
 // torrent, so waiting and asking again would not help. The job, if there is
 // one, is of no further use.
-func (b *TorrentBackend) refuse(ctx context.Context, taskID string, r *torrentRun, reason string) {
+func (b *TorrentBackend) refuse(ctx context.Context, taskID string, r *torrentRun, code core.DeclineCode, reason string) {
 	b.runs.mu.Lock()
 	if !b.live(ctx, taskID, r) {
 		b.runs.mu.Unlock()
@@ -1076,6 +1076,7 @@ func (b *TorrentBackend) refuse(ctx context.Context, taskID string, r *torrentRu
 		Reason:      core.ReasonUnsupported,
 		Unsupported: true,
 		Job:         &core.ServiceJob{},
+		Declined:    &core.Declined{Service: b.svc.ID(), Code: code, Reason: reason},
 	})
 }
 

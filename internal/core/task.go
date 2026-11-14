@@ -257,6 +257,9 @@ type Update struct {
 	// for this task. Like Note it describes the moment, so every update that
 	// leaves it nil clears it.
 	Remote *RemoteFetch
+	// Declined says why a debrid service passed the torrent on, on an
+	// Unsupported that takes the task along.
+	Declined *Declined
 	// Job is the job a debrid service holds for the task, sent whenever it
 	// changes. A zero ServiceJob says the task holds none any more.
 	Job *ServiceJob
@@ -308,6 +311,32 @@ type RemoteFetch struct {
 	Speed    int64   `json:"speed,omitempty"`
 	Seeds    int     `json:"seeds,omitempty"`
 }
+
+// Declined is a debrid service passing a torrent on to the next backend
+// instead of fetching it, and why.
+type Declined struct {
+	// Service is the service's id, such as "realdebrid".
+	Service string `json:"service"`
+	// Code is why, for an interface to word in the reader's language. Empty
+	// leaves it to Reason, which is in the service's own words then.
+	Code   DeclineCode `json:"code,omitempty"`
+	Reason string      `json:"reason,omitempty"`
+}
+
+// DeclineCode is why a debrid service passed a torrent on.
+type DeclineCode string
+
+const (
+	// DeclinedPrivate is a torrent from a private tracker, whose passkey
+	// must not reach the service.
+	DeclinedPrivate DeclineCode = "private"
+	// DeclinedNotCached is a torrent the service had not cached while only
+	// cached ones may go there.
+	DeclinedNotCached DeclineCode = "notCached"
+	// DeclinedStalled is a service that made no progress on the torrent for
+	// as long as the Torrents page allows.
+	DeclinedStalled DeclineCode = "stalled"
+)
 
 // RepairStage is where the par2 check of a release stands.
 type RepairStage string
@@ -752,6 +781,9 @@ type Task struct {
 	// A service can take hours over a torrent it has not cached, and nothing
 	// arrives here meanwhile. Not persisted.
 	Remote *RemoteFetch `json:"remote,omitempty"`
+	// Declined is the debrid service that passed this torrent on to the
+	// backend that has it now, and why, until it is done.
+	Declined *Declined `json:"declined,omitempty"`
 	// Repair is set on the files of a release from the own Usenet servers
 	// while its par2 check is not over, and nothing of the release is
 	// unpacked or moved meanwhile. Not persisted: the Usenet job keeps how the

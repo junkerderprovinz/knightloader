@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { afterEach, beforeEach, expect, it } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 import type { ExtractJob, Task } from '../lib/api';
 import { I18nProvider } from '../lib/i18n';
@@ -168,6 +168,37 @@ it('keeps a package on verifying while one of its files waits for the check', ()
   const text = header([row('a'), row('b', { repair: { stage: 'waiting' } })]);
   expect(text).toContain(en['status.verifying']);
   expect(text).not.toContain(en['status.done']);
+});
+
+/** The bubble over the note that reads `line`, once the pointer has rested on it. */
+function bubbleOver(line: string): string {
+  const note = [...host.querySelectorAll('span')].find((el) => el.textContent === line);
+  if (!note) return '';
+  vi.useFakeTimers();
+  try {
+    act(() => {
+      note.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+      vi.advanceTimersByTime(1000);
+    });
+  } finally {
+    vi.useRealTimers();
+  }
+  return document.querySelector('[role="tooltip"]')?.textContent ?? '';
+}
+
+it('says which debrid service passed a torrent on, and why, while the built-in client fetches it', () => {
+  const passed = { resolver: 'torrent', loaded: 0, declined: { service: 'realdebrid', code: 'stalled' as const } };
+  expect(cell(row('a', { ...passed, status: 'running' }))).toContain('Real-Debrid passed this torrent on');
+  expect(bubbleOver('Real-Debrid passed this torrent on')).toContain(
+    'Real-Debrid made no progress on it for longer than the time set under Torrents',
+  );
+  expect(cell(row('a', { ...passed, status: 'done' }))).not.toContain('passed this torrent on');
+});
+
+it("words a refusal in the service's own words when it gave no code", () => {
+  const passed = { resolver: 'torrent', loaded: 0, declined: { service: 'alldebrid', reason: 'too many active magnets' } };
+  cell(row('a', { ...passed, status: 'running' }));
+  expect(bubbleOver('AllDebrid passed this torrent on')).toContain('AllDebrid said: too many active magnets');
 });
 
 it('says which backend took a link over from a hoster that asked for a browser check', () => {

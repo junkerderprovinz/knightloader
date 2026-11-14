@@ -191,6 +191,35 @@ func TestATorrentTheServiceRefusesFallsBackToTheBuiltInClient(t *testing.T) {
 	}
 }
 
+// The row of a torrent the service passed on says why the built-in client has
+// it, while the client fetches it, and no longer once it is here.
+func TestATorrentTheServicePassedOnSaysWhyUntilItIsDone(t *testing.T) {
+	a, events := torrentOrderApp(t, []string{"realdebrid", "torrent"})
+	queueTorrent(a, &core.Task{ID: "m1", URL: debridMagnet, Status: core.StatusQueued, Enabled: true})
+	if got := settle(events); !got["realdebrid download m1"] {
+		t.Fatalf("the magnet did not go to Real-Debrid first: %v", got)
+	}
+	a.SetHalted(true)
+
+	why := core.Declined{Service: "realdebrid", Code: core.DeclinedStalled, Reason: "the service made no progress on this torrent for 10 minutes"}
+	a.onUpdate("m1", core.Update{
+		Status: core.StatusError, Err: "realdebrid: " + why.Reason,
+		Reason: core.ReasonUnsupported, Unsupported: true, Declined: &why,
+	})
+	if got := liveTask(a, "m1"); got.Resolver != "torrent" || got.Declined == nil || *got.Declined != why {
+		t.Fatalf("handed to %q with %+v, want the built-in client and the service's refusal", got.Resolver, got.Declined)
+	}
+
+	a.onUpdate("m1", core.Update{Status: core.StatusRunning, Size: 100, Loaded: 10})
+	if got := liveTask(a, "m1").Declined; got == nil {
+		t.Error("the built-in client's progress wiped out why it has the torrent")
+	}
+	a.onUpdate("m1", core.Update{Status: core.StatusDone, Size: 100, Loaded: 100})
+	if got := liveTask(a, "m1").Declined; got != nil {
+		t.Errorf("a finished torrent still says %+v", got)
+	}
+}
+
 func TestTheServiceFetchingATorrentIsNoStall(t *testing.T) {
 	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 60 })
 	task := runningTask(a, "t1", 0)
