@@ -189,3 +189,71 @@ func TestTheExtensionHandsASessionOverAndNoOtherMemberMay(t *testing.T) {
 		t.Errorf("handing over no cookie of the site = %d (%s), want 422", status, body)
 	}
 }
+
+// The extension watches only the cookies a signed-in session carries.
+func TestTheHandOverListNamesEachSitesSignInCookies(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	_, body := owner(http.MethodGet, "/api/sitelogins/handover", "")
+	var rows []struct {
+		ID     string   `json:"id"`
+		SignIn []string `json:"signIn"`
+	}
+	if err := json.Unmarshal(body, &rows); err != nil {
+		t.Fatalf("not a list of sites: %v (%s)", err, body)
+	}
+	want := map[string]string{"patreon": "session_id", "youtube": "SID,__Secure-1PSID,__Secure-3PSID,LOGIN_INFO"}
+	for _, r := range rows {
+		if got := strings.Join(r.SignIn, ","); got != want[r.ID] {
+			t.Errorf("%s lists the sign-in cookies %q, want %q", r.ID, got, want[r.ID])
+		}
+	}
+	if strings.Contains(string(body), siteSecret) {
+		t.Fatal("the hand-over list carries a session")
+	}
+}
+
+// A browser that signed out hands over nothing, and the session it handed
+// over before is forgotten.
+func TestAnEmptyHandOverSignsOut(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	if status, body := owner(http.MethodPost, "/api/sitelogins/youtube/handover", ytHandover); status != http.StatusOK {
+		t.Fatalf("handing over = %d (%s)", status, body)
+	}
+	status, body := owner(http.MethodPost, "/api/sitelogins/youtube/handover", `{"cookies":[]}`)
+	var row siteRow
+	if status != http.StatusOK || json.Unmarshal(body, &row) != nil || row.State != string(sitelogin.SignedOut) {
+		t.Fatalf("an empty hand-over = %d (%s), want 200 and signed out", status, body)
+	}
+	_, listed := owner(http.MethodGet, "/api/sitelogins", "")
+	if r := rowOf(t, siteRows(t, listed), "youtube"); r.State != string(sitelogin.SignedOut) {
+		t.Errorf("after an empty hand-over youtube is %+v", r)
+	}
+}
+
+func TestAHandOverThatSignsNobodyInIsStillRefused(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	other := `{"cookies":[{"domain":".google.com","path":"/","expirationDate":1900000000,"name":"SID","value":"x"}]}`
+	if status, body := owner(http.MethodPost, "/api/sitelogins/youtube/handover", other); status != http.StatusUnprocessableEntity {
+		t.Errorf("a hand-over without the site's cookies = %d (%s), want 422", status, body)
+	}
+}
+
+// An instance in a container reads no browser, and the page says how to sign
+// in there instead.
+func TestEverySiteSaysWhetherThisInstanceReadsBrowsers(t *testing.T) {
+	t.Parallel()
+	_, _, _, _, owner := groupServer(t)
+	_, listed := owner(http.MethodGet, "/api/sitelogins", "")
+	var rows []map[string]json.RawMessage
+	if err := json.Unmarshal(listed, &rows); err != nil || len(rows) == 0 {
+		t.Fatalf("not a list of sites: %v (%s)", err, listed)
+	}
+	for _, r := range rows {
+		if string(r["readsBrowsers"]) != "false" {
+			t.Errorf("an instance that reads no browser lists readsBrowsers %s", r["readsBrowsers"])
+		}
+	}
+}

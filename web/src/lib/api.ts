@@ -2513,6 +2513,8 @@ export interface SiteLogin {
   browser?: string;
   /** Browsers on this computer whose sign-ins KnightLoader cannot read, such as Chrome on Windows. */
   unreadable: string[];
+  /** Whether this instance reads the browsers on its computer; false in a container. */
+  readsBrowsers: boolean;
 }
 
 export async function fetchSiteLogins(): Promise<SiteLogin[]> {

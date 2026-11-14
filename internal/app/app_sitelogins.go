@@ -58,6 +58,9 @@ type SiteLoginState struct {
 	// Unreadable names the browsers here whose cookies of the site could not
 	// be read, such as Chrome on Windows with its app-bound key.
 	Unreadable []string `json:"unreadable"`
+	// ReadsBrowsers says this instance reads the browsers on its computer,
+	// which one in a container never does.
+	ReadsBrowsers bool `json:"readsBrowsers"`
 }
 
 type siteCheck struct {
@@ -141,11 +144,18 @@ func (a *App) BeginSiteLogin(id string) (SiteLoginState, error) {
 }
 
 // HandOverSiteSession stores the session the extension read from the
-// browser, keeping only the site's own live cookies.
+// browser, keeping only the site's own live cookies. No cookies at all is the
+// browser signed out, which forgets the session handed over before.
 func (a *App) HandOverSiteSession(id string, cookies []sitelogin.BrowserCookie) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
+	}
+	if len(cookies) == 0 {
+		if err := a.RemoveSiteLogin(id); err != nil {
+			return SiteLoginState{}, err
+		}
+		return a.siteLoginState(site, false), nil
 	}
 	return a.storeSiteSession(id, sitelogin.JarFromCookies(site, cookies, time.Now()))
 }
@@ -209,6 +219,7 @@ func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 	}
 	_, out.Waiting = st.waiting[site.ID]
 	last, known := st.checked[site.ID]
+	out.ReadsBrowsers = st.read != nil
 	st.mu.Unlock()
 
 	age := browserScanFresh
