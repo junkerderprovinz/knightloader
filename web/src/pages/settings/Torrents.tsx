@@ -20,14 +20,16 @@ import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ListArea, RowRefusal, SettingRow, SubCard } from './controls';
 import { ModuleCard } from './ModuleToggle';
+import { CROSS_SEED_DEFAULTS, CrossSeedCard, type CrossSeedSettings } from './torrents/CrossSeed';
 import { InterfaceField } from './torrents/Interface';
 import { UploadLimitField } from './torrents/UploadLimit';
 import { IconCheck } from '../../lib/icons';
 
 /**
  * Torrents sets the seed target, transfer limit, port with its UPnP mapping,
- * network interface, DHT/PEX, the file selection, the trackers, and how
- * torrents go through a debrid service and where what it fetched seeds.
+ * network interface, DHT/PEX, the file selection, the trackers, how torrents
+ * go through a debrid service and where what it fetched seeds, and
+ * cross-seeding.
  * settings.Torrent is a flat group of fields but for its qBittorrent, so the
  * page uses the shared draft like Reconnect.tsx. lib/api.ts's Settings does
  * not name `torrent`, so readTorrent casts the way readReconnect does.
@@ -56,6 +58,7 @@ interface TorrentSettings {
   /** Empty is the built-in client too, as settings.Torrent.SeedIn has it. */
   seedIn: 'builtin' | 'qbittorrent' | '';
   qbittorrent: QBittorrentSettings;
+  crossSeed: CrossSeedSettings;
 }
 
 /** Mirrors settings.QBittorrent. */
@@ -91,6 +94,7 @@ const DEFAULTS: TorrentSettings = {
   seedAfterDebrid: false,
   seedIn: 'builtin',
   qbittorrent: { url: '', username: '', password: '', category: '', downloadsPath: '' },
+  crossSeed: CROSS_SEED_DEFAULTS,
 };
 
 // A day, as settings.maxDebridStallMinutes caps it.
@@ -98,7 +102,12 @@ const DEBRID_STALL_MAX = 24 * 60;
 
 function readTorrent(cfg: unknown): TorrentSettings {
   const tr = (cfg as { torrent?: Partial<TorrentSettings> }).torrent ?? {};
-  return { ...DEFAULTS, ...tr, qbittorrent: { ...DEFAULTS.qbittorrent, ...(tr.qbittorrent ?? {}) } };
+  return {
+    ...DEFAULTS,
+    ...tr,
+    qbittorrent: { ...DEFAULTS.qbittorrent, ...(tr.qbittorrent ?? {}) },
+    crossSeed: { ...CROSS_SEED_DEFAULTS, ...(tr.crossSeed ?? {}) },
+  };
 }
 
 export function Torrents() {
@@ -315,6 +324,12 @@ export function Torrents() {
           />
         )}
       </Card>
+
+      <CrossSeedCard
+        hue={6}
+        c={tr.crossSeed}
+        onChange={(fields) => write({ crossSeed: { ...tr.crossSeed, ...fields } })}
+      />
     </div>
   );
 }

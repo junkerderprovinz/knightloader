@@ -1009,6 +1009,41 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // The (i) inside the test button.
       body: ['settings.torrents.qbitTestHint'],
     },
+    {
+      title: 'settings.torrents.crossSeedTitle',
+      hint: 'settings.torrents.crossSeedHint',
+      rows: [
+        { key: 'settings.torrents.crossSeedOn', hint: 'settings.torrents.crossSeedOnHint' },
+        { key: 'settings.torrents.crossSeedApiKey', hint: 'settings.torrents.crossSeedApiKeyHint' },
+        { key: 'settings.torrents.crossSeedAnnounce', hint: 'settings.torrents.crossSeedAnnounceHint' },
+        { key: 'settings.torrents.crossSeedIndexers', hint: 'settings.torrents.crossSeedIndexersHint' },
+        { key: 'settings.torrents.crossSeedIndexerName', hint: 'settings.torrents.crossSeedIndexerNameHint' },
+        { key: 'settings.torrents.crossSeedIndexerUrl', hint: 'settings.torrents.crossSeedIndexerUrlHint' },
+        { key: 'settings.torrents.crossSeedLinkMode', hint: 'settings.torrents.crossSeedLinkModeHint' },
+        { key: 'settings.torrents.crossSeedLinkDir', hint: 'settings.torrents.crossSeedLinkDirHint' },
+        { key: 'settings.torrents.crossSeedCategory', hint: 'settings.torrents.crossSeedCategoryHint' },
+        { key: 'settings.torrents.crossSeedDaemon', hint: 'settings.torrents.crossSeedDaemonHint' },
+        { key: 'settings.torrents.crossSeedDaemonUrl', hint: 'settings.torrents.crossSeedDaemonUrlHint' },
+        { key: 'settings.torrents.crossSeedLog', hint: 'settings.torrents.crossSeedLogHint' },
+      ],
+      also: [
+        'settings.torrents.crossSeedIndexerAdd',
+        'settings.torrents.crossSeedIndexer',
+        'settings.torrents.crossSeedTestKey',
+        'settings.torrents.crossSeedTestIndexer',
+        'settings.torrents.crossSeedTestDaemon',
+      ],
+      // The sites' (i), the keys' hints beside the fields and the (i) inside
+      // each test button.
+      body: [
+        'settings.torrents.crossSeedGazelleHint',
+        'settings.torrents.crossSeedIndexerKeyHint',
+        'settings.torrents.crossSeedDaemonKeyHint',
+        'settings.torrents.crossSeedTestKeyHint',
+        'settings.torrents.crossSeedTestIndexerHint',
+        'settings.torrents.crossSeedTestDaemonHint',
+      ],
+    },
   ],
 
   automation: [
@@ -1318,6 +1353,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
         { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoCheckHint' },
         { key: 'settings.info.componentsAuto', hint: 'settings.info.componentsAutoHint' },
+        { key: 'settings.info.qbitVersion', hint: 'settings.info.qbitVersionHint' },
       ],
       // The container build and the Flatpak use their own sentences for
       // KnightLoader's update hint. A status's (i) says what went wrong where
