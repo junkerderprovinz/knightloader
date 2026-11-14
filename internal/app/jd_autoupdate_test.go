@@ -28,7 +28,7 @@ func (f *fakeJD) wire(a *App) {
 	}
 }
 
-// jdAutoUpdateApp builds an App with the daily JD update switched on or off.
+// jdAutoUpdateApp builds an App with the automatic update switched on or off.
 func jdAutoUpdateApp(t *testing.T, on bool) *App {
 	t.Helper()
 	a, err := newApp(t.TempDir())
@@ -37,7 +37,7 @@ func jdAutoUpdateApp(t *testing.T, on bool) *App {
 	}
 	t.Cleanup(func() { a.Close() })
 	s := a.Settings.Get()
-	s.JDAutoUpdate = on
+	s.ComponentsAutoUpdate = on
 	if _, err := a.Settings.Set(s); err != nil {
 		t.Fatal(err)
 	}
@@ -50,14 +50,14 @@ func setStatus(a *App, id string, s core.Status) {
 	a.tasks[id].Status = s
 }
 
-func TestTheDailyJDUpdateInstallsWhenNoJDDownloadRuns(t *testing.T) {
+func TestTheJDUpdateInstallsWhenNoJDDownloadRuns(t *testing.T) {
 	a := jdAutoUpdateApp(t, true)
 	f := &fakeJD{available: true}
 	f.wire(a)
 	putTask(t, a, core.Task{ID: "done", Resolver: "jd", Status: core.StatusDone, Enabled: true})
 	putTask(t, a, core.Task{ID: "engine", Resolver: "http", Status: core.StatusRunning, Enabled: true})
 
-	if held := a.autoUpdateJD(); held {
+	if r := a.updateJDComponent(a.ctx); r.State == ComponentWaits {
 		t.Error("the update was held back although no JD download runs")
 	}
 	if f.restarts.Load() != 1 {
@@ -65,13 +65,13 @@ func TestTheDailyJDUpdateInstallsWhenNoJDDownloadRuns(t *testing.T) {
 	}
 }
 
-func TestTheDailyJDUpdateWaitsWhileAJDDownloadRuns(t *testing.T) {
+func TestTheJDUpdateWaitsWhileAJDDownloadRuns(t *testing.T) {
 	a := jdAutoUpdateApp(t, true)
 	f := &fakeJD{available: true}
 	f.wire(a)
 	putTask(t, a, core.Task{ID: "jd", Resolver: "jd", Status: core.StatusRunning, Enabled: true})
 
-	if held := a.autoUpdateJD(); !held {
+	if r := a.updateJDComponent(a.ctx); r.State != ComponentWaits {
 		t.Error("the update was not held back while a JD download runs")
 	}
 	if f.restarts.Load() != 0 {
@@ -79,18 +79,18 @@ func TestTheDailyJDUpdateWaitsWhileAJDDownloadRuns(t *testing.T) {
 	}
 
 	setStatus(a, "jd", core.StatusDone)
-	a.autoUpdateJD()
+	a.updateJDComponent(a.ctx)
 	if f.restarts.Load() != 1 {
 		t.Fatalf("after the download JD was asked to install %d times, want once", f.restarts.Load())
 	}
 }
 
-func TestTheDailyJDUpdateLeavesJDAloneWithoutAnUpdate(t *testing.T) {
+func TestTheJDUpdateLeavesJDAloneWithoutAnUpdate(t *testing.T) {
 	a := jdAutoUpdateApp(t, true)
 	f := &fakeJD{}
 	f.wire(a)
 
-	if held := a.autoUpdateJD(); held {
+	if r := a.updateJDComponent(a.ctx); r.State == ComponentWaits {
 		t.Error("with nothing to install the run asked to come back early")
 	}
 	if f.checks.Load() != 1 || f.restarts.Load() != 0 {
@@ -104,7 +104,7 @@ func TestAHeldJDUpdateIsTriedAgainSoonAndTheLoopStopsOnClose(t *testing.T) {
 	f.wire(a)
 	putTask(t, a, core.Task{ID: "jd", Resolver: "jd", Status: core.StatusRunning, Enabled: true})
 
-	a.spawn(func() { a.jdAutoLoop(time.Millisecond, time.Hour, time.Millisecond) })
+	a.spawn(func() { a.tickLoop(time.Millisecond, time.Millisecond, a.autoUpdateJD) })
 	waitFor(t, "a second question while the download runs", func() bool { return f.checks.Load() >= 2 })
 	if f.restarts.Load() != 0 {
 		t.Fatal("JD was restarted in the middle of a download")
@@ -120,61 +120,17 @@ func TestAHeldJDUpdateIsTriedAgainSoonAndTheLoopStopsOnClose(t *testing.T) {
 	select {
 	case <-closed:
 	case <-time.After(10 * time.Second):
-		t.Fatal("Close did not return while the daily JD update was waiting")
-	}
-}
-
-// jdSwitchesApp builds an App with the daily question and the daily install
-// each on or off.
-func jdSwitchesApp(t *testing.T, check, update bool) *App {
-	t.Helper()
-	a := jdAutoUpdateApp(t, update)
-	s := a.Settings.Get()
-	s.JDVersionCheck = check
-	if _, err := a.Settings.Set(s); err != nil {
-		t.Fatal(err)
-	}
-	return a
-}
-
-func TestTheDailyJDQuestionAloneOnlyAsksAndRemembersTheAnswer(t *testing.T) {
-	a := jdSwitchesApp(t, true, false)
-	f := &fakeJD{available: true}
-	f.wire(a)
-
-	if held := a.autoUpdateJD(); held {
-		t.Error("with installing off nothing should wait to be installed")
-	}
-	if f.checks.Load() != 1 || f.restarts.Load() != 0 {
-		t.Fatalf("asked JD %d times and restarted it %d times, want one question and no restart", f.checks.Load(), f.restarts.Load())
-	}
-	if !a.jdUpdateWaits.Load() {
-		t.Error("the update JD found is not passed on to the Components card")
-	}
-}
-
-func TestTheDailyJDUpdateAsksEvenWithTheQuestionSwitchedOff(t *testing.T) {
-	a := jdSwitchesApp(t, false, true)
-	f := &fakeJD{available: true}
-	f.wire(a)
-
-	a.autoUpdateJD()
-
-	if f.checks.Load() != 1 || f.restarts.Load() != 1 {
-		t.Fatalf("asked JD %d times and restarted it %d times, want the install to ask first", f.checks.Load(), f.restarts.Load())
-	}
-	if a.jdUpdateWaits.Load() {
-		t.Error("an update JD restarted to install still shows as waiting")
+		t.Fatal("Close did not return while the JD update was waiting")
 	}
 }
 
 func TestAnUpdateHeldBackByADownloadStillShowsAsWaiting(t *testing.T) {
-	a := jdSwitchesApp(t, true, true)
+	a := jdAutoUpdateApp(t, true)
 	f := &fakeJD{available: true}
 	f.wire(a)
 	putTask(t, a, core.Task{ID: "jd", Resolver: "jd", Status: core.StatusRunning, Enabled: true})
 
-	if held := a.autoUpdateJD(); !held {
+	if r := a.updateJDComponent(a.ctx); r.State != ComponentWaits {
 		t.Error("the update was not held back while a JD download runs")
 	}
 	if !a.jdUpdateWaits.Load() {
@@ -182,14 +138,14 @@ func TestAnUpdateHeldBackByADownloadStillShowsAsWaiting(t *testing.T) {
 	}
 }
 
-func TestBothJDSwitchesOffLeaveJDUnasked(t *testing.T) {
-	a := jdSwitchesApp(t, false, false)
+func TestTheComponentSwitchOffLeavesJDUnasked(t *testing.T) {
+	a := jdAutoUpdateApp(t, false)
 	f := &fakeJD{available: true}
 	f.wire(a)
 
 	a.autoUpdateJD()
 
 	if f.checks.Load() != 0 || f.restarts.Load() != 0 {
-		t.Fatalf("with both switches off JD was asked %d times and restarted %d times", f.checks.Load(), f.restarts.Load())
+		t.Fatalf("switched off, JD was asked %d times and restarted %d times", f.checks.Load(), f.restarts.Load())
 	}
 }

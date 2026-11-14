@@ -46,7 +46,8 @@ type Backend struct {
 func NewBackend(h Host, c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
 	b := &Backend{host: h, client: c, onUpdate: onUpdate, inspectPause: 2 * time.Second}
 	b.Login = ownlogin.NewLogin(ownlogin.Signer{
-		Login: func(ctx context.Context, user, password string) (string, Account, error) {
+		// The API has no second factor to send a code with.
+		Login: func(ctx context.Context, user, password, _ string) (string, Account, error) {
 			token, acct, err := c.Login(ctx, user, password)
 			return token, acct, b.named(err)
 		},

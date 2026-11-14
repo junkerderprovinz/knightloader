@@ -36,10 +36,10 @@ func ytdlpLeavingToJD(t *testing.T, host string) *App {
 
 func TestAPinnedProbeAsksYtdlpAboutAHostItLeavesToJD(t *testing.T) {
 	a := ytdlpLeavingToJD(t, "archive.org")
-	if _, err := a.LinkQualities(context.Background(), archiveItem, false); !errors.Is(err, ErrNotAMediaLink) {
+	if _, err := a.LinkQualities(context.Background(), archiveItem, false, false); !errors.Is(err, ErrNotAMediaLink) {
 		t.Errorf("unpinned, the probe answers %v, want ErrNotAMediaLink", err)
 	}
-	menus, err := a.LinkQualities(context.Background(), archiveItem, true)
+	menus, err := a.LinkQualities(context.Background(), archiveItem, true, false)
 	if err != nil {
 		t.Fatalf("pinned, the probe answers %v", err)
 	}

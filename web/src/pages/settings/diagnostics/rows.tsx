@@ -48,6 +48,7 @@ const ADVICE: Record<string, TranslationKey> = {
   'ytdlp.missing': 'settings.selftest.ytdlp.missingAdvice',
   'ytdlp.aging': 'settings.selftest.ytdlp.oldAdvice',
   'ytdlp.old': 'settings.selftest.ytdlp.oldAdvice',
+  'ytdlp.noJsRuntime': 'settings.selftest.ytdlp.noJsRuntimeAdvice',
   'folders.notWritable': 'settings.selftest.folders.notWritableAdvice',
   'folders.missing': 'settings.selftest.folders.missingAdvice',
   'accounts.allOk': 'settings.selftest.accounts.readOnlyHint',

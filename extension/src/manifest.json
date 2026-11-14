@@ -35,6 +35,7 @@
       "capture.js",
       "takeover.js",
       "media.js",
+      "signin.js",
       "clipwatch.js",
       "video.js",
       "video-worker.js",

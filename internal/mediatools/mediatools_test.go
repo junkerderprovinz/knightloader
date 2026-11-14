@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
@@ -44,6 +45,26 @@ func TestMain(m *testing.M) {
 			name := strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
 			fmt.Println(name + " version N-128142-g28fda48e0b-20261028 Copyright (c) 2000-2026 the FFmpeg developers")
 			os.Exit(0)
+		case spec == "jsruntimes":
+			// yt-dlp's -v without a URL: the debug header, naming a runtime
+			// only when it was handed one, and exit 2.
+			if len(os.Args) > 1 && os.Args[1] == "--version" {
+				fmt.Println("2026.10.26")
+				os.Exit(0)
+			}
+			runtimes := "none"
+			if slices.Contains(os.Args, "--js-runtimes") {
+				runtimes = "deno-2.9.8"
+			}
+			fmt.Fprintln(os.Stderr, "[debug] Command-line config: "+strings.Join(os.Args[1:], " "))
+			fmt.Fprintln(os.Stderr, "[debug] JS runtimes: "+runtimes)
+			fmt.Fprintln(os.Stderr, "yt-dlp: error: You must provide at least one URL.")
+			os.Exit(2)
+		case spec == "denoversion":
+			fmt.Println("deno 2.9.8 (stable, release, x86_64-unknown-linux-gnu)")
+			fmt.Println("v8 14.2.231.17-rusty")
+			fmt.Println("typescript 5.9.2")
+			os.Exit(0)
 		}
 		os.Exit(2)
 	}
@@ -69,13 +90,15 @@ func fakeYtdlp(t *testing.T, path string) {
 	}
 }
 
-// isolate takes the machine's own yt-dlp out of the picture, so a developer
-// who happens to have one installed does not get different results from CI.
+// isolate takes the machine's own yt-dlp and Deno out of the picture, so a
+// developer who happens to have one installed does not get different results
+// from CI.
 // It returns the folder that stands in for the program's own, empty until a
 // test puts a yt-dlp there.
 func isolate(t *testing.T) (program string) {
 	t.Helper()
 	t.Setenv("KL_YTDLP", "")
+	t.Setenv("KL_DENO", "")
 	t.Setenv("PATH", t.TempDir())
 	program = t.TempDir()
 	was := programDir
@@ -147,6 +170,12 @@ func TestVersionLinesAreRead(t *testing.T) {
 	// yt-dlp prints the bare version and nothing else.
 	if got := ytdlpVersion("2026.08.11"); got != "2026.08.11" {
 		t.Errorf("yt-dlp's own line read as %q", got)
+	}
+	if got := denoVersion("deno 2.9.8 (stable, release, x86_64-pc-windows-msvc)"); got != "2.9.8" {
+		t.Errorf("deno's first line read as %q", got)
+	}
+	if got := denoVersion("something else"); got != "something else" {
+		t.Errorf("an unexpected deno line was thrown away: %q", got)
 	}
 }
 

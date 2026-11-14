@@ -11,7 +11,8 @@ the Accounts page. None of them is required.
 | `KL_BASE_PATH` | | path the interface and the API are served under behind a reverse proxy, e.g. `/kl` for `https://example.com/kl/`. Unset means the root, or the prefix a proxy sends in `X-Forwarded-Prefix`; see [Behind a reverse proxy](installing.md#behind-a-reverse-proxy) |
 | `KL_DATA` | user config dir | data directory (database, settings, accounts, session key) |
 | `KL_APP_KEY` | | 64 hexadecimal characters, made once with `openssl rand -hex 32`. The password is then hashed with Argon2id peppered with it, and the secrets in the data directory and the backup archive are sealed with it, so a copy of the data directory alone opens nothing. Without it everything is stored as before. Keep it: KnightLoader does not start on a sealed data directory without the same key. See [App key](installing.md#app-key) |
-| `KL_YTDLP` | the desktop app's own copy, else `yt-dlp` (PATH) | path to the yt-dlp binary; media links route through it when present. It is started ahead of the copy the desktop app ships. A copy fetched by the Updates card under Settings, General or by its daily update is started ahead of this one, and that card says so and offers to remove it again |
+| `KL_YTDLP` | the desktop app's fetched copy, else `yt-dlp` (PATH) | path to the yt-dlp binary; media links route through it when present. A copy fetched by the installer, by **Update now** on the Components card or by the automatic update is started ahead of this one, and that card says so |
+| `KL_DENO` | the desktop app's fetched copy, else `deno` (PATH) | path to the Deno binary yt-dlp runs YouTube's player code in; without one yt-dlp still works and YouTube offers fewer formats. The container image brings Deno and sets this. The desktop app fetches its own and keeps it current, and that copy is handed to yt-dlp ahead of this one |
 | `KL_UNRAR` | the copy beside the program, else `unrar` (PATH) | RARLAB's UnRAR, which unpacks RAR sets; without one the built-in reader does. The container image and the desktop app for Windows, Linux on x86-64 and macOS on Apple silicon bring it |
 | `KL_TORBOX` | | TorBox API key. The Accounts page is the better place: it stores the key encrypted and applies it without a restart |
 | `KL_ALLDEBRID` | | AllDebrid API key, as above |
@@ -35,6 +36,15 @@ DebridItalia, Mega-Debrid, MultiUp, MyDebrid and NeoDebrid take the login the
 website takes; ProLeech and RPNet take the two values their API page shows. The full
 list of services, and where each one issues its key, is
 [`internal/accounts/catalogue.go`](https://github.com/junkerderprovinz/knightloader/blob/main/internal/accounts/catalogue.go).
+
+## Sign-ins read from the browser
+
+No variable switches this. The desktop app, and a server started outside a
+container, read the sign-ins of Patreon and YouTube from the browsers of the
+user KnightLoader runs as, and for any other site when a download there asks
+for one. A container reads no browser and takes the session from the browser
+extension instead. See
+[Getting links in](getting-links-in.md#patreon-and-youtube-signed-in-through-the-browser).
 
 ## Trusted proxies
 

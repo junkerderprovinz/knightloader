@@ -75,6 +75,7 @@ const (
 	IDYtdlp   = "ytdlp"
 	IDFfmpeg  = "ffmpeg"
 	IDFfprobe = "ffprobe"
+	IDDeno    = "deno"
 	IDFolder  = "folder"
 	IDClock   = "clock"
 	// IDSettings is the settings file the app could not read at load. The

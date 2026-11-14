@@ -194,7 +194,7 @@ func (a *App) startupFolders() []startupcheck.FolderTarget {
 	return out
 }
 
-// startupTools is the four binaries this app shells out to, each with the reason
+// startupTools is the five binaries this app shells out to, each with the reason
 // it might not be needed here.
 func (a *App) startupTools() []startupcheck.ToolTarget {
 	java := startupcheck.ToolTarget{
@@ -213,6 +213,7 @@ func (a *App) startupTools() []startupcheck.ToolTarget {
 	// yt-dlp that media links actually go to.
 	ytbin, _, _ := mediatools.ResolveYtdlp(a.DataDir)
 	ff := mediatools.ResolveFFmpeg(a.DataDir)
+	deno, _ := mediatools.ResolveDeno(a.DataDir)
 	// rewireBackends registers the yt-dlp resolver only once the binary has run,
 	// so a binary that runs now while the id is absent appeared after startup
 	// and nothing is routed to it.
@@ -235,6 +236,7 @@ func (a *App) startupTools() []startupcheck.ToolTarget {
 		// ffprobe only feeds the length check on a finished video, and a failed
 		// probe is already treated as no answer.
 		{ID: startupcheck.IDFfprobe, Bin: ff.FFprobe, Args: []string{"-version"}, Optional: true},
+		{ID: startupcheck.IDDeno, Bin: deno, Args: []string{"--version"}},
 	}
 }
 

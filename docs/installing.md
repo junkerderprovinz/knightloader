@@ -4,7 +4,11 @@
 
 Every release tag publishes `ghcr.io/junkerderprovinz/knightloader` for amd64
 and arm64. The image carries yt-dlp, ffmpeg and the Java runtime the headless
-JDownloader needs, so nothing else has to be installed.
+JDownloader needs, so nothing else has to be installed. It also carries
+Chromium for the sign-in browser, which lets you sign in to Patreon and
+YouTube from the web interface ([Getting links in](getting-links-in.md)).
+Chromium and the fonts for it take about 650 MB on disk and add about 260 MB
+to the download. It runs only while somebody signs in.
 
 ```sh
 docker run -d --name knightloader \
@@ -193,19 +197,26 @@ the menu entry offers to uninstall it. That copy updates itself like the one
 from the zip. Make the downloaded file executable first
 (`chmod +x knightloader-linux-amd64-installer`).
 
-The desktop app brings yt-dlp for video sites: the installer puts it beside
-the program and the macOS app carries it inside. The Windows and Linux zips
-hold the program alone, so a copy started from one fetches yt-dlp into its data
-folder when it starts. Either way the Updates card under Settings, General
-keeps it current.
+The desktop app fetches yt-dlp for video sites into its data folder, checked
+against the release's `SHA2-256SUMS`: the installer does it on Windows and
+Linux, and the macOS app, a copy from the zip and the Flatpak do it at their
+first start. From then on KnightLoader keeps it current, see
+[Keeping the components current](#keeping-the-components-current).
 
 ffmpeg and ffprobe, which join video with its audio and convert, are not in
 the download. On Windows and Linux the desktop app fetches the LGPL build from
 [FFmpeg-Builds](https://github.com/FFmpeg-Builds/FFmpeg-Builds) into its data
-folder at the first start when there is no ffmpeg on `PATH`, checked against
-that release's checksums, and renews it once a month. On macOS, where that
+folder during the install, or at the first start, when there is no ffmpeg on
+`PATH`, checked against that release's checksums. On macOS, where that
 project builds nothing, put ffmpeg on `PATH` yourself. An ffmpeg already on
 `PATH` is always the one used.
+
+Deno, the JavaScript runtime yt-dlp needs for YouTube, comes the same way, on
+macOS too. The installer, or the first start of a copy installed before it,
+fetches the official build from
+[Deno's releases](https://github.com/denoland/deno/releases) into the data
+folder, checked against its published checksum. A Deno on `PATH` or in
+`KL_DENO` is used instead when there is one.
 
 The private JDownloader runs on a Java runtime of KnightLoader's own, whatever
 Java the computer has or lacks. At the first start the desktop app fetches
@@ -217,10 +228,8 @@ version and unpacks it into the `jre` folder of its data folder
 JDownloader row on the Updates card shows; a failed download says why there
 and offers to try again. A KnightLoader update that pins a newer runtime
 replaces it at its next start. In between, the app asks Adoptium once a week
-for a newer Temurin 21 while either of JDownloader's update switches is on.
-With **Update automatically** it fetches the new runtime, checks it against
-Adoptium's SHA-256 and moves JDownloader onto it at a moment when none of its
-downloads runs. The old runtime stays until JDownloader has started on the new
+for a newer Temurin 21, fetches it, checks it against Adoptium's SHA-256 and
+moves JDownloader onto it at a moment when none of its downloads runs. The old runtime stays until JDownloader has started on the new
 one, and comes back if it does not. Windows on Arm gets the x64 runtime, which
 Windows runs under its emulation, since Adoptium builds no Arm JRE for it.
 Temurin comes under the GPLv2 with the Classpath Exception. Pointing `KL_JD`
@@ -342,13 +351,24 @@ files you downloaded.
 A container does not update itself. The same page tells you when a newer
 release exists; pull the new image the way you deployed this one.
 
-KnightLoader itself updates through the update card on the desktop, and
-through a new image in a container. yt-dlp, JDownloader and the desktop app's
-Java keep themselves current between releases; their switches sit on the
-Components card. UnRAR ships inside KnightLoader: a weekly check in the
-repository looks for a newer one, and each release brings it along. ffmpeg
-comes with the container image, and the desktop app renews its own copy once a
-month.
+### Keeping the components current
+
+KnightLoader itself updates as described above, and through a new image in a
+container. The programs it starts, yt-dlp, ffmpeg, Deno, the desktop app's Java
+and JDownloader, share one switch on the Components card under Settings, Info:
+**Update components automatically**, on from the start. While it is on,
+KnightLoader asks after a newer yt-dlp every day and after the others once a
+week, and downloads only what is newer. Each download is checked against its
+published checksum and started once before it replaces the copy in use, and
+when anything fails the old copy keeps running. ffmpeg's builds change every
+night, so the weekly check fetches a new one most weeks. JDownloader restarts
+to install an update, so it waits until none of its downloads is running.
+
+**Update now** at the foot of the card does all of this at once, whatever the
+switch says, and asks after a newer KnightLoader too. An ffmpeg or Deno that
+was on the computer already, or that came with the container image, is never
+replaced. UnRAR ships inside KnightLoader: a weekly check in the repository
+looks for a newer one, and each release brings it along.
 
 ### Building it from source
 

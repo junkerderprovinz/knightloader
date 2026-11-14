@@ -84,6 +84,7 @@ const (
 	// The causes a backend names itself, one code each, as their Reasons.
 	CodeBotCheck          ErrorCode = "botCheck"
 	CodeMembersOnly       ErrorCode = "membersOnly"
+	CodeSignInRequired    ErrorCode = "signInRequired"
 	CodeGeoBlocked        ErrorCode = "geoBlocked"
 	CodeDRM               ErrorCode = "drm"
 	CodeExtractorBroken   ErrorCode = "extractorBroken"
@@ -140,6 +141,8 @@ func (r Reason) Code() ErrorCode {
 		return CodeBotCheck
 	case ReasonMembersOnly:
 		return CodeMembersOnly
+	case ReasonSignInRequired:
+		return CodeSignInRequired
 	case ReasonGeoBlocked:
 		return CodeGeoBlocked
 	case ReasonDRM:

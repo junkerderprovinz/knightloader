@@ -190,3 +190,58 @@ func TestResolveFFmpegPrecedence(t *testing.T) {
 		}
 	})
 }
+
+// counted is writes(body) that also counts its downloads.
+func counted(body []byte, n *int) fetcher {
+	return func(ctx context.Context, a ghrelease.Asset, dst string) error {
+		*n++
+		return writes(body)(ctx, a, dst)
+	}
+}
+
+func TestAFetchedFFmpegIsKeptUntilTheBuildChanges(t *testing.T) {
+	const name = "ffmpeg-master-latest-linux64-lgpl.tar.xz"
+	isolate(t)
+	t.Setenv(fakeEnv, "ffversion")
+	dir := t.TempDir()
+	body := ffmpegArchive(t, name, "ffmpeg", "ffprobe")
+	rel, sums := ffmpegRelease(name, body)
+	var downloads int
+	if _, current, err := updateFFmpeg(context.Background(), dir, name, rel, sums, counted(body, &downloads)); err != nil || current {
+		t.Fatalf("the first fetch: current %v, %v", current, err)
+	}
+
+	if _, current, err := updateFFmpeg(context.Background(), dir, name, rel, sums, counted(body, &downloads)); err != nil || !current {
+		t.Errorf("the same build again: current %v, %v", current, err)
+	}
+	if downloads != 1 {
+		t.Fatalf("downloaded %d times, want the same build left alone", downloads)
+	}
+
+	rebuilt := []checksum.Sum{{Name: name, Kind: checksum.SHA256, Hex: strings.Repeat("0", 64)}}
+	if _, current, _ := updateFFmpeg(context.Background(), dir, name, rel, rebuilt, counted(body, &downloads)); current || downloads != 2 {
+		t.Errorf("a build whose digest changed: current %v after %d downloads, want it fetched", current, downloads)
+	}
+}
+
+func TestAMissingFFmpegIsFetchedEvenWithARecordOfIt(t *testing.T) {
+	const name = "ffmpeg-master-latest-linux64-lgpl.tar.xz"
+	isolate(t)
+	t.Setenv(fakeEnv, "ffversion")
+	dir := t.TempDir()
+	body := ffmpegArchive(t, name, "ffmpeg", "ffprobe")
+	rel, sums := ffmpegRelease(name, body)
+	if _, _, err := updateFFmpeg(context.Background(), dir, name, rel, sums, writes(body)); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(FFmpegPath(dir)); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, current, err := updateFFmpeg(context.Background(), dir, name, rel, sums, writes(body)); err != nil || current {
+		t.Fatalf("current %v, %v; want the deleted copy fetched again", current, err)
+	}
+	if _, err := os.Stat(FFmpegPath(dir)); err != nil {
+		t.Fatal(err)
+	}
+}

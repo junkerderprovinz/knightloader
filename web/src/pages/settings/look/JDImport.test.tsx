@@ -3,7 +3,15 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
-import { ApiError, applyJDImport, readJDImportFile, type JDImportPreview } from '../../../lib/api';
+import {
+  ApiError,
+  applyJDImport,
+  fetchDeploymentInfo,
+  readJDImportFile,
+  readJDImportPath,
+  type DeploymentInfo,
+  type JDImportPreview,
+} from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { en } from '../../../lib/locales/en';
 import { JDImportCard } from './JDImport';
@@ -11,7 +19,9 @@ import { JDImportCard } from './JDImport';
 vi.mock('../../../lib/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../../lib/api')>()),
   readJDImportFile: vi.fn(),
+  readJDImportPath: vi.fn(),
   applyJDImport: vi.fn(),
+  fetchDeploymentInfo: vi.fn(),
 }));
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -20,6 +30,7 @@ let root: Root;
 let host: HTMLDivElement;
 
 beforeEach(() => {
+  vi.mocked(fetchDeploymentInfo).mockRejectedValue(new Error('offline'));
   host = document.createElement('div');
   document.body.append(host);
   root = createRoot(host);
@@ -29,6 +40,7 @@ afterEach(() => {
   act(() => root.unmount());
   host.remove();
   vi.clearAllMocks();
+  vi.unstubAllGlobals();
 });
 
 const preview: JDImportPreview = {
@@ -122,4 +134,73 @@ it('shakes the upload button, not the path button, when an uploaded zip is refus
   expect(text()).toContain(en['settings.jdimport.notZip']);
   expect(shaking(en['settings.jdimport.uploadButton'])).toBe(true);
   expect(shaking(en['settings.jdimport.readButton'])).toBe(false);
+});
+
+function runsIn(kind: string) {
+  vi.mocked(fetchDeploymentInfo).mockResolvedValue({ deployment: 'container', kind } as DeploymentInfo);
+}
+
+async function mountCard() {
+  await act(async () =>
+    root.render(
+      <I18nProvider>
+        <JDImportCard hue={0} />
+      </I18nProvider>,
+    ),
+  );
+}
+
+async function browseToMissingFolder() {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            path: '/mnt/user/appdata',
+            tail: '',
+            exists: false,
+            listed: '/',
+            parent: '',
+            roots: ['/'],
+            entries: [{ name: 'data', path: '/data' }],
+            truncated: false,
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ),
+    ),
+  );
+  await mountCard();
+  const browse = host.querySelector<HTMLButtonElement>(`button[aria-label="${en['folders.browse']}"]`)!;
+  await act(async () => browse.click());
+}
+
+it('tells a container user to mount the JDownloader folder instead of promising a download will create it', async () => {
+  runsIn('container');
+  await browseToMissingFolder();
+  expect(text()).toContain(en['settings.jdimport.pathHidden']);
+  expect(text()).not.toContain(en['folders.new']);
+});
+
+it('asks for an existing JDownloader folder outside a container', async () => {
+  runsIn('desktop');
+  await browseToMissingFolder();
+  expect(text()).toContain(en['settings.jdimport.pathAbsent']);
+  expect(text()).not.toContain(en['folders.new']);
+});
+
+it('explains the container mount when a typed path is not there', async () => {
+  runsIn('container');
+  vi.mocked(readJDImportPath).mockRejectedValue(
+    new ApiError('missing', 'jdimport.pathMissing', { path: '/mnt/user/appdata/jd' }, 400),
+  );
+  await mountCard();
+  const field = host.querySelector<HTMLInputElement>('input:not([type=file])')!;
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(field, '/mnt/user/appdata/jd');
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  const read = [...host.querySelectorAll('button')].find((b) => b.textContent === en['settings.jdimport.readButton'])!;
+  await act(async () => read.click());
+  expect(text()).toContain(en['settings.jdimport.pathHiddenAt'].replace('{path}', '/mnt/user/appdata/jd'));
 });

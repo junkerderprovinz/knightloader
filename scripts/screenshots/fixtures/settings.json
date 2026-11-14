@@ -71,7 +71,6 @@
   "finishedCard": true,
   "autoUpdateCheck": false,
   "autoUpdate": true,
-  "ytdlpVersionCheck": false,
   "packagizer": {
     "rules": [
       {

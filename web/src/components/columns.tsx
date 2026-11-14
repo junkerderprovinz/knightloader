@@ -16,6 +16,7 @@ import {
   priorityChoices,
   setTaskOptions,
   type Availability,
+  type Declined,
   type ExtractJob,
   type RemoteFetch,
   type Task,
@@ -372,6 +373,7 @@ export const reasonKey: Record<string, TranslationKey> = {
   // thinks we are a bot" from "the site said 403".
   botCheck: 'task.reason.botCheck',
   membersOnly: 'task.reason.membersOnly',
+  signInRequired: 'task.reason.signInRequired',
   geoBlocked: 'task.reason.geoBlocked',
   drm: 'task.reason.drm',
   extractorBroken: 'task.reason.extractorBroken',
@@ -1024,6 +1026,13 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
           {browserCheckNote(task, t)}
         </Tip>
       )}
+      {/* Why a torrent a debrid service was given first is with another
+          backend now, which otherwise only the log says. */}
+      {!task.note && !task.remote && !task.takeover && !task.browserCheck && task.declined && task.status === 'running' && (
+        <Tip tip={declinedHint(task.declined, t)} className="min-w-0 truncate text-meta text-carbon-textMuted">
+          {t('task.declined', { service: resolverLabel(task.declined.service, t) })}
+        </Tip>
+      )}
       {/* Why a queued row is not running: the slot count is full, this host is
           at its ceiling, the account behind the only backend that claims the
           link is benched. Without it ten queued rows all say "waiting" and
@@ -1074,6 +1083,19 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
 /** The note of a download a hoster's browser check moved on, naming the backend that has it. */
 function browserCheckNote(task: Task, t: Translate): string {
   return t('task.browserCheck', { host: task.browserCheck ?? '', backend: resolverLabel(task.resolver.split('#')[0], t) });
+}
+
+const declinedKey = {
+  private: 'task.declinedPrivate',
+  notCached: 'task.declinedNotCached',
+  stalled: 'task.declinedStalled',
+} as const;
+
+/** Why a debrid service passed a torrent on, in the reader's language where KnightLoader knows the reason. */
+function declinedHint(d: Declined, t: Translate): string {
+  const service = resolverLabel(d.service, t);
+  const why = d.code ? t(declinedKey[d.code], { service }) : t('task.declinedService', { service, reason: d.reason ?? '' });
+  return `${t('task.declined', { service })}. ${why}`;
 }
 
 function RemoteNote({ task, remote, t }: { task: Task; remote: RemoteFetch; t: Translate }) {

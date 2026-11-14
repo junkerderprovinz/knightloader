@@ -164,45 +164,51 @@ initiative (`internal/proxycfg/probe.go`, `internal/reconnect/config.go`). The
 row reports that it is declining, names which question it is declining, and
 points at the UPnP button, which is the thing that CAN be pressed.
 
-## yt-dlp: fetch and verify, once a day unless switched off
+## The components: fetched, verified and kept current behind one switch
 
-**Built:** a button that fetches a newer yt-dlp, verifies its checksum, proves it
-RUNS on this machine, and only then swaps it in. The same path runs once a day
-on its own, a few minutes after start and every 24 hours, behind a switch that
-ships on. Plus an opt-in "Check automatically" toggle that ships off, asks GitHub when
-Settings, General opens and only ever checks.
+**Built:** yt-dlp, ffmpeg, Deno, the desktop app's Java and JDownloader are kept
+current by one switch, **Update components automatically**, which ships on.
+While it is on, the app asks after yt-dlp once a day and after the others once
+a week, and downloads only a version newer than the one in use. Every fetch
+verifies its checksum, proves the program RUNS on this machine, and only then
+swaps it in. **Update now** on the Components card runs the same updates at
+once, whatever the switch says. When each component was last asked after is
+kept in `tools/checks.json` in the data folder, so a restart does not ask again
+before one is due.
 
-**Not built:** a daily run that replaces a version it cannot put in order
-against the release, such as a build from git, and in the container a daily run
-that installs yt-dlp where there is none.
+**Not built:** a switch per component, and a switch that only checks. One
+switch is what somebody looking for "keep this current" expects to find, and a
+check that downloads nothing changes nothing either. An automatic run also
+leaves alone a yt-dlp version it cannot put in order against the release, such
+as a build from git, and in the container installs no yt-dlp where there is
+none.
 
 yt-dlp does ship regressions, and a new one changes what downloads produce.
-The daily run is on anyway because the other failure is the common one: the
+The switch is on anyway because the other failure is the common one: the
 container carries Alpine's yt-dlp package, which lags weeks behind, and a site
 that changed its page breaks every download from it until yt-dlp catches up. A
-new release that fails its checksum or does not start here replaces nothing,
-and the switch and "back to the system copy" stay on the Resolvers page for the
-regression case.
+new release that fails its checksum or does not start here replaces nothing.
+yt-dlp is asked after daily for the same reason, and the others weekly because
+they move slower. ffmpeg's rolling build changes every night, so its weekly
+check fetches a new one most weeks and no more often.
 
 A fetched copy DOES outrank an explicitly set `KL_YTDLP`, which is the one place
 this feature overrides an operator's own setting. The reason is that the
 Dockerfile pins `KL_YTDLP=/usr/bin/yt-dlp` on every container, so the other
-answer would make the whole button a silent no-op in exactly the situation the
-button exists for. It is visible and reversible: the card states plainly that
-`KL_YTDLP` is not being started and offers "back to the system copy".
+answer would make updating yt-dlp a silent no-op in exactly the situation it
+exists for. The card says plainly which yt-dlp runs.
 
-The desktop app ships yt-dlp, because a video link that no yt-dlp reads falls
-through to JDownloader and lands as one plain row, and a desktop app that waits
-for its user to install yt-dlp by hand does that out of the box. The installer
-puts the release named in `desktop/ytdlp.version` beside the program and the
-macOS app carries it inside, checked against yt-dlp's own SHA2-256SUMS when
-the app is built. The version is pinned so that two builds of one tag carry the
-same yt-dlp; Renovate moves it. The Windows and Linux zips stay the program
+The desktop app fetches yt-dlp rather than shipping it, like every other
+component, because a video link that no yt-dlp reads falls through to
+JDownloader and lands as one plain row, and the copy the app keeps current is
+the fetched one anyway: the program's folder is read-only to the app. The
+installer on Windows and Linux fetches it into the data folder, checked against
+the release's `SHA2-256SUMS`, as the last step of the install. The macOS app, a
+copy from the zip, the Flatpak and a silent install fetch it at the first
+start, where the app finds none. The Windows and Linux zips stay the program
 alone, because every installed copy updates itself from them and refuses a zip
-that holds more. A desktop copy that finds no yt-dlp anywhere therefore fetches
-one into its data folder at start, while the switch is on. The shipped copy
-ranks below a fetched one and below `KL_YTDLP`: the program's folder is
-read-only to the app, so a newer yt-dlp can only ever arrive as a fetched copy.
+that holds more. A yt-dlp beside the program, which older installs carry, ranks
+below a fetched one and below `KL_YTDLP`.
 
 ffmpeg is fetched rather than shipped. It is about 180 MB on Windows, more than
 the program and yt-dlp together, and most of a download that is never needed
@@ -215,9 +221,23 @@ those builds publishes GPL builds only, and macOS gets nothing from either, so
 it stays with an ffmpeg on `PATH`. The rolling `latest` release is used and
 not a pinned one, because the project prunes its dated releases after about
 two weeks and an installed app has to find its build again months later. The
-copy is renewed once a month behind the same switch as yt-dlp: master is
-rebuilt daily, and a download of that size every day buys nothing a media
-download notices. An ffmpeg on `PATH` is never replaced and always wins.
+release keeps its tag, so the digest it publishes for the archive is what
+tells a new build from the fetched one. An ffmpeg on `PATH` is never replaced
+and always wins.
+
+Deno is fetched the same way. yt-dlp runs YouTube's player code in a
+JavaScript runtime, and Deno is the one it enables by itself. A desktop copy
+that finds none fetches the newest release from denoland/deno for its
+platform, macOS included, verifies the zip against the `.sha256sum` published
+beside it (sha256sum's line on Linux and macOS, PowerShell's `Get-FileHash`
+list on Windows), runs it with `--version` and puts it beside the fetched
+yt-dlp. Every yt-dlp run gets it as `--js-runtimes deno:<path>`, the fetched
+copy ahead of `KL_DENO` and `PATH` as for yt-dlp itself, and without a Deno
+yt-dlp runs as before with fewer YouTube formats. A newer release replaces the
+fetched copy. The container installs Alpine's deno package instead, which is
+built for musl on both architectures, where the official builds need glibc.
+The self-test does not take a Deno on disk as proof: it asks yt-dlp, whose
+`-v` header names the runtimes it found, and warns on `JS runtimes: none`.
 
 ## The desktop update: on the next start, checked by its checksum
 

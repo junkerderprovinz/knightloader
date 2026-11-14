@@ -206,6 +206,9 @@ export interface Task {
   /** A debrid service's progress on a torrent it is still fetching for this
    *  task, before any of it comes here. Absent at every other time. */
   remote?: RemoteFetch;
+  /** The debrid service that passed this torrent on to the backend that has
+   *  it now, and why, until it is done. */
+  declined?: Declined;
   /** Where the par2 check of the release this file belongs to stands, on a
    *  finished file from the own Usenet servers until the release has passed
    *  it. Absent at every other time. */
@@ -242,6 +245,13 @@ export interface RemoteFetch {
   progress: number;
   speed?: number;
   seeds?: number;
+}
+
+/** core.Declined: a code the interface words, or else the service's own words. */
+export interface Declined {
+  service: string;
+  code?: 'private' | 'notCached' | 'stalled';
+  reason?: string;
 }
 
 /**
@@ -703,18 +713,10 @@ export interface Settings {
   /** Holds off sleep while a download runs. Only the desktop build acts on it. */
   keepAwake: boolean;
 
-  /** One request to api.github.com when the Resolvers page loads. It never
-   *  installs anything; ytdlpAutoUpdate does. */
-  ytdlpVersionCheck: boolean;
-  /** Fetches a newer yt-dlp once a day, checked the way the fetch button
-   *  checks it, and keeps the one in use when the check fails. */
-  ytdlpAutoUpdate: boolean;
-  /** Has the JDownloader backend install a waiting update once a day while
-   *  none of its downloads runs. */
-  jdAutoUpdate: boolean;
-  /** Asks the JDownloader backend shortly after start and once a day whether
-   *  an update waits, and only asks. */
-  jdVersionCheck: boolean;
+  /** Keeps yt-dlp, ffmpeg, Deno, Java and the JDownloader backend current:
+   *  yt-dlp is asked after daily, the others weekly, and only a newer
+   *  version is fetched. */
+  componentsAutoUpdate: boolean;
 
   /**
    * The captcha solvers to try before a human is asked, as catalogue ids in
@@ -2330,20 +2332,34 @@ export async function retryJDSetup(): Promise<JDStatus> {
   return json<JDStatus>(await fetch('/api/resolvers/jd/setup', { method: 'POST' }));
 }
 
-export interface JDUpdateCheck {
-  checked: boolean;
-  available: boolean;
+/** What one component's update came to; "waits" is an update JDownloader
+ *  installs once none of its downloads runs, "skipped" a copy that is not
+ *  KnightLoader's to update, such as one on PATH. */
+export type ComponentState = 'checking' | 'updated' | 'current' | 'waits' | 'skipped' | 'failed';
+
+export interface ComponentResult {
+  state: ComponentState;
+  version?: string;
+  /** English, because it names paths and program output. */
+  detail?: string;
 }
 
-/** Asks the JD sidecar whether an update of its own waits. Installs nothing. */
-export async function fetchJDUpdate(): Promise<JDUpdateCheck> {
-  return json(await fetch('/api/jd/update'));
+/** How far Update now has come, by component: "yt-dlp", "ffmpeg", "deno",
+ *  "java" and "jdownloader". */
+export interface ComponentUpdate {
+  running: boolean;
+  results?: Record<string, ComponentResult>;
 }
 
-/** Has the JD sidecar install its update. It restarts to do so, so fetchJDStatus
- *  answers unreachable for a while after this returns. */
-export async function updateJD(): Promise<{ started: boolean }> {
-  return json(await fetch('/api/jd/update', { method: 'POST' }));
+/** Starts Update now, which asks after every component at once and fetches
+ *  what is newer. A run under way is left to finish. */
+export async function startComponentUpdate(): Promise<ComponentUpdate> {
+  return json(await fetch('/api/components/update', { method: 'POST' }));
+}
+
+/** How far Update now has come. */
+export async function fetchComponentUpdate(): Promise<ComponentUpdate> {
+  return json(await fetch('/api/components/update'));
 }
 
 /**
@@ -2385,9 +2401,6 @@ export interface YtdlpOptions {
   audioLang: string;
   /** Fail a subtitle row that wrote no file instead of settling it green. */
   subtitleStrict: boolean;
-  /** Allow a stored cookies.txt to be handed to yt-dlp. The jar itself is never
-   *  part of this document. */
-  cookies: boolean;
   /** Tag and sort an audio row as music. */
   music: boolean;
   embed: YtdlpEmbed;
@@ -2474,40 +2487,99 @@ export async function fetchHosterFormats(host: string, base = '/api'): Promise<Y
   return json<YtdlpHostMenus>(await fetch(`${base}/ytdlp/formats?host=${encodeURIComponent(host)}`));
 }
 
-// yt-dlp cookie jars are stored per site in the encrypted credential store and
-// only ever travel into the server: a cookies.txt is a live session, so the
-// list route answers names only.
+// Sites signed into through the browser (internal/sitelogin). An instance
+// outside a container reads the session from the browsers on its computer,
+// and the extension passes it on from any other. It never comes back: a
+// site's row says who it signs in as and where from, nothing more.
 
-/** The sites with a stored jar, normalised (lower-cased, "www." stripped), so
- *  render the answer rather than the request. */
-export type YtdlpCookieHosts = string[];
-
-export async function fetchYtdlpCookieHosts(base = '/api'): Promise<YtdlpCookieHosts> {
-  return (await json<YtdlpCookieHosts>(await fetch(`${base}/ytdlp/cookies`))) ?? [];
-}
+export type SiteLoginStateName = 'signedOut' | 'signedIn' | 'expired' | 'unchecked';
 
 /**
- * saveYtdlpCookieJar stores or replaces one site's cookies.txt and answers
- * the stored list. `text` is always sent: empty clears, and leaving it out is
- * refused, since the page never gets a jar back and a re-saved form would
- * otherwise delete a working session. `host` takes the export address or the
- * bare site name; anything else throws the server's ApiError.
+ * Where a session came from: read from a browser on this computer, passed on
+ * by the extension, or from KnightLoader's own sign-in browser.
  */
-export async function saveYtdlpCookieJar(
-  host: string,
-  text: string,
-  base = '/api',
-): Promise<YtdlpCookieHosts> {
-  return (await json<YtdlpCookieHosts>(await post(`${base}/ytdlp/cookies`, { host, text }))) ?? [];
+export type SiteLoginSource = 'browser' | 'extension' | 'kl-browser' | '';
+
+/** One site signed into through the browser, a row of the hoster accounts. */
+export interface SiteLogin {
+  id: string;
+  name: string;
+  /** The site's own host, which its logo is drawn for. */
+  host: string;
+  loginUrl: string;
+  /** The cookie domains a session is read from. */
+  domains: string[];
+  /** Further hosts its links come from, such as a short-link domain. */
+  links?: string[];
+  /** "always": the session goes with every link; "onNeed": only with one that asks for a sign-in. */
+  use?: 'always' | 'onNeed';
+  state: SiteLoginStateName;
+  /** Who the session signs in as, where the site says. */
+  account?: string;
+  /** RFC 3339, where the cookies say when the session runs out. */
+  expires?: string;
+  source?: SiteLoginSource;
+  /** The browser and profile a session was read from, or whose session the site turned down, such as "Firefox (default-release)". */
+  browser?: string;
+  /** Browsers on this computer whose sign-ins KnightLoader cannot read, such as Chrome on Windows. */
+  unreadable: string[];
+  /** Whether this instance reads the browsers on its computer; false in a container. */
+  readsBrowsers: boolean;
+  /** Removed here: the browsers' sign-in is not used until the site is signed in through KnightLoader again. */
+  disconnected: boolean;
 }
 
-/**
- * removeYtdlpCookieJar deletes one site's jar and answers the remaining list.
- * An unknown host throws with status 404, so a typo does not look like a
- * removed session.
- */
-export async function removeYtdlpCookieJar(host: string, base = '/api'): Promise<YtdlpCookieHosts> {
-  return (await json<YtdlpCookieHosts>(await post(`${base}/ytdlp/cookies/remove`, { host }))) ?? [];
+export async function fetchSiteLogins(): Promise<SiteLogin[]> {
+  return (await json<SiteLogin[]>(await fetch('/api/sitelogins'))) ?? [];
+}
+
+const siteLoginPath = (id: string, action: string) => `/api/sitelogins/${encodeURIComponent(id)}/${action}`;
+
+export async function checkSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'check'), {}));
+}
+
+export async function removeSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'remove'), {}));
+}
+
+/** beginSiteLogin signs a site in through KnightLoader, which uses the browsers' sign-in to a removed site again. */
+export async function beginSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'begin'), {}));
+}
+
+/** reconnectSiteLogin uses the browsers' sign-in to a removed site again, without a new sign-in. */
+export async function reconnectSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, 'reconnect'), {}));
+}
+
+// The sign-in browser (internal/signinbrowser): a browser KnightLoader runs
+// itself, which the user signs in to a site with from this page.
+
+/** Whether a browser is there to sign in with, and the site open in it. */
+export interface SignInBrowserStatus {
+  available: boolean;
+  site: string;
+}
+
+export async function fetchSignInBrowser(): Promise<SignInBrowserStatus> {
+  return json<SignInBrowserStatus>(await fetch('/api/signinbrowser'));
+}
+
+/** openSignInBrowser opens the sign-in browser on a site's login page, sized in CSS pixels. */
+export async function openSignInBrowser(id: string, width: number, height: number, scale: number): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(`/api/signinbrowser/${encodeURIComponent(id)}/open`, { width, height, scale }));
+}
+
+/** closeSignInBrowser closes it, storing the session it holds, and answers how its site stands. */
+export async function closeSignInBrowser(): Promise<SiteLogin | null> {
+  const r = await post('/api/signinbrowser/close', {});
+  return r.status === 204 ? null : json<SiteLogin>(r);
+}
+
+/** signInBrowserSocket streams the page: JPEG frames and its state down, the user's input up. */
+export function signInBrowserSocket(): WebSocket {
+  return new WebSocket(socketURL('/api/signinbrowser/stream'));
 }
 
 // Header profiles hold a user's own request headers for one origin: a session
@@ -2894,6 +2966,9 @@ export interface HosterLogin {
   /** A login KnightLoader signs in with itself whose client could not use it,
    *  so JDownloader has it and `status` is what JD thinks. */
   handedOver?: boolean;
+  /** The hoster takes the login again only with the one-time code of its
+   *  second factor, which `code` says why. */
+  askCode?: boolean;
 }
 
 /** fetchHosterHosts is the "add a login" picker's host list. */
@@ -2906,9 +2981,18 @@ export async function fetchHosterLogins(): Promise<HosterLogin[]> {
   return (await json<HosterLogin[]>(await fetch('/api/hosterauth/logins'))) ?? [];
 }
 
-/** saveHosterLogin stores (or updates) one host's native login. */
-export async function saveHosterLogin(host: string, username: string, password: string): Promise<void> {
-  await ok(await post('/api/hosterauth/logins', { host, username, password }));
+/**
+ * saveHosterLogin stores (or updates) one host's native login and returns its
+ * row. `code` is a second factor's one-time code, which the server signs in
+ * with once and does not store.
+ */
+export async function saveHosterLogin(
+  host: string,
+  username: string,
+  password: string,
+  code?: string,
+): Promise<HosterLogin> {
+  return json<HosterLogin>(await post('/api/hosterauth/logins', { host, username, password, code }));
 }
 
 /** setHosterLoginEnabled takes a login out of JD's list or puts it back,
@@ -3612,6 +3696,11 @@ export interface MediaToolsStatus {
   ytdlp: MediaTool;
   ffmpeg: MediaTool;
   ffprobe: MediaTool;
+  /** The JavaScript runtime yt-dlp is handed for YouTube. */
+  deno?: MediaTool;
+  /** What yt-dlp itself names as its JavaScript runtimes with that Deno:
+   *  "none" when it has none, absent when it could not say. */
+  jsRuntimes?: string;
   /** RARLAB's UnRAR, which unpacks RAR sets when it is there. */
   unrar?: MediaTool;
   managed?: YtdlpManagedRecord;
@@ -3623,35 +3712,10 @@ export interface MediaToolsStatus {
   shadowed?: MediaTool;
 }
 
-export interface YtdlpLatest {
-  checked: boolean;
-  tag?: string;
-  url?: string;
-  /** "newer" | "same" | "older" | "unknown". yt-dlp versions are dates and a
-   *  same-day rerelease adds a fourth segment, so some pairs cannot be
-   *  ordered; "unknown" must not render as "current". */
-  compare: string;
-  /** GitHub's refusal verbatim when checked is false, since a rate limit and
-   *  "Not Found" need different fixes. */
-  detail?: string;
-}
-
 /** Which yt-dlp, ffmpeg and ffprobe this instance runs. Makes no outside call,
  *  since every settings load and diagnostics bundle reads it. */
 export async function fetchMediaTools(): Promise<MediaToolsStatus> {
   return json(await fetch('/api/mediatools'));
-}
-
-/** Asks GitHub for yt-dlp's latest release. Downloads and replaces nothing. */
-export async function fetchYtdlpLatest(): Promise<YtdlpLatest> {
-  return json(await fetch('/api/mediatools/ytdlp/latest'));
-}
-
-/** Slow: downloads yt-dlp's newest release, verifies it against the release's
- *  SHA2-256SUMS, runs it once and only then swaps it in. A rejection leaves
- *  the working copy untouched. */
-export async function updateYtdlp(): Promise<{ tag: string; version: string; path: string; asset: string; sha256: string }> {
-  return json(await fetch('/api/mediatools/ytdlp/update', { method: 'POST' }));
 }
 
 /** Deletes the fetched copy and its record and answers the resulting status. */
@@ -3670,7 +3734,7 @@ export async function fetchDiagnostics(): Promise<Diagnostics> {
  * `verdict` and `code` are stable ids that the UI translates.
  */
 export interface StartupCheck {
-  /** "data" | "java" | "ytdlp" | "ffmpeg" | "ffprobe" | "folder" | "clock",
+  /** "data" | "java" | "ytdlp" | "ffmpeg" | "ffprobe" | "deno" | "folder" | "clock",
    *  open so an unknown id still draws as a row. */
   id: string;
   /** Folder rows only: "downloads" | "work" | "category" | "extract" | "extractMove" | "watch". */

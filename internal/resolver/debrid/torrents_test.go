@@ -280,6 +280,9 @@ func TestATorrentTheServiceRefusesMovesToTheNextBackend(t *testing.T) {
 	if u.Err != "fake: torrent too big" {
 		t.Errorf("Err = %q, want the service's reason", u.Err)
 	}
+	if d := u.Declined; d == nil || *d != (core.Declined{Service: "fake", Reason: "torrent too big"}) {
+		t.Errorf("the task was passed on as %+v, want the service and its own words", d)
+	}
 }
 
 func TestATorrentTheServiceGivesUpOnIsDeletedAndHandedOn(t *testing.T) {
@@ -505,6 +508,9 @@ func TestAPrivateTorrentIsNeverSentToTheService(t *testing.T) {
 			}
 			if svc.addCount() != 0 {
 				t.Error("a private torrent's passkey went to the service")
+			}
+			if d := u.Declined; d == nil || d.Code != core.DeclinedPrivate {
+				t.Errorf("the task was passed on as %+v, want it to say the tracker is private", d)
 			}
 		})
 	}
@@ -1154,6 +1160,9 @@ func TestATorrentThatIsNotSurelyCachedMovesOnWhenOnlyCachedOnesMay(t *testing.T)
 			}
 			if c.svc.addCount() != 0 {
 				t.Error("the torrent was added to the account anyway")
+			}
+			if d := u.Declined; d == nil || d.Code != core.DeclinedNotCached {
+				t.Errorf("the task was passed on as %+v, want it to say the torrent is not cached", d)
 			}
 		})
 	}

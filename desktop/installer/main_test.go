@@ -30,7 +30,7 @@ func TestTheCauseOfAFailedFetchReachesTheWindow(t *testing.T) {
 	}
 }
 
-func TestTheInstallerFetchesFFmpegJavaAndJDownloader(t *testing.T) {
+func TestTheInstallerFetchesEveryComponent(t *testing.T) {
 	var ids []string
 	for _, c := range components(t.TempDir()) {
 		if c.Target == "" || c.Fetch == nil || c.Name["en"] == "" {
@@ -38,7 +38,7 @@ func TestTheInstallerFetchesFFmpegJavaAndJDownloader(t *testing.T) {
 		}
 		ids = append(ids, c.ID)
 	}
-	if fmt.Sprint(ids) != "[ffmpeg java jdownloader]" {
+	if fmt.Sprint(ids) != "[yt-dlp ffmpeg deno java jdownloader]" {
 		t.Fatalf("components %v", ids)
 	}
 }

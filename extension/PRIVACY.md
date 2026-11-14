@@ -1,6 +1,6 @@
 # Privacy policy: KnightLoader browser extension
 
-Last updated: 12 November 2026. Applies to version 1.4.0 and later, until this
+Last updated: 14 November 2026. Applies to version 1.4.0 and later, until this
 date changes.
 
 ## The short version
@@ -12,7 +12,9 @@ them on, also hand browser downloads over to your instance and list the video
 and audio a page plays so you can send them. A download button on video
 players sends the video you are watching when you press it. Outside YouTube,
 Vimeo, Dailymotion, Twitch and Bilibili it first asks your own instance whether
-it can download the page. It has no analytics, no
+it can download the page. Once you allow it, it also passes your sign-in to
+Patreon and YouTube on to your instances, so they can download what only a
+signed-in visitor sees. It has no analytics, no
 advertising, no accounts and no tracking.
 
 It reaches your instances through a relay operated by the party named under "Who
@@ -42,6 +44,13 @@ profile. We back none of it up, and removing the extension removes all of it.
   alone and the key that keeps a download in the browser.
 - A random ID for this browser on your group's list of clipboard watchers,
   created the first time you switch the watch on.
+- For passing sign-ins on: whether it is on, the sites your instances listed
+  (name, address and the names of their sign-in cookies), which instance has a
+  sign-in from which cookie store with the account name the instance reported,
+  and when each store's sign-in cookie last changed. Instead of the session it
+  keeps a SHA-256 checksum of the sign-in cookies, so it can tell a new
+  sign-in from one it already passed on. The cookies themselves are not
+  stored.
 - Appearance: theme, corner shape, accent colour and rainbow palette, whether to
   follow an instance's appearance, and, while you follow one, a copy of your own
   appearance settings so they can be restored.
@@ -126,6 +135,13 @@ These travel through the relay, and only your instances can read them:
   page it played on and that page's title, the cookies your browser holds for the
   stream's address, and your browser's user agent, under the same rules. Cookies
   from a private window are never sent.
+- While passing sign-ins on is allowed (see below): the cookies your browser
+  holds for each site your instances list, today Patreon and YouTube, whenever
+  you sign in there or the sign-in changes, and an empty list once you sign
+  out. Only that site's own cookies are sent, never those of a private window
+  or of any other site. Your instance uses them to download that site's links
+  as you, keeps them sealed in its encrypted credential store and never shows
+  them in its settings, its log or a diagnostics bundle.
 - When you press the download button on a video: the video's address, or its
   playlist's when you picked the whole playlist in the button's menu, and the
   format you picked there. Nothing else from the page is sent.
@@ -249,6 +265,24 @@ playlists. It keeps those in session storage as described above and ignores
 everything else. Nothing leaves the browser until you press a stream's send
 button in the popup.
 
+## Passing sign-ins on
+
+Some sites, such as Patreon and YouTube, let a download through only for a
+signed-in visitor, and do not let a program sign in with a password. Your
+instances list those sites, and the extension can pass your browser's sign-in
+on to them, so you only sign in on the site as you always do.
+
+This needs access to cookies on those sites, which your browser asks you for
+once when you click Allow in the popup or the settings. If taking over
+downloads or finding media already has access to cookies and all websites,
+nothing is asked. From then on, the extension reads the cookies of the listed
+sites continuously: when the browser starts, when you join a group, and every
+time one of their sign-in cookies changes. It reads the normal windows and
+each Firefox container, never a private window, and never the cookies of any
+other site. It sends a sign-in only when it differs from the one it last sent.
+The switch "Pass my sign-ins to KnightLoader" in the settings turns this off
+and gives the access back.
+
 ## Permissions
 
 | Permission | Used for |
@@ -263,7 +297,8 @@ button in the popup.
 | `offscreen` | In Chrome and Edge, a hidden extension page that reads the clipboard while the watch is on, since the background script cannot. |
 | `alarms` | Renewing this browser's place on the list of clipboard watchers once a minute, and in Firefox waking the watch after the browser paused it. |
 | `downloads` (optional) | Seeing a download start, holding it while your instance is asked, and cancelling it once the instance has it. Asked for when you switch taking over downloads on, and given back when you switch it off. |
-| `cookies` (optional) | Reading the cookies for the one address being handed over, so a download behind a login works on your instance. Asked for with taking over downloads or finding media. |
+| `cookies` (optional) | Reading the cookies for the one address being handed over, so a download behind a login works on your instance. Asked for with taking over downloads or finding media. Also reading the sign-in of the sites your instances list, kept while passing sign-ins on is allowed. |
+| Access to the sites your instances list for sign-ins, today Patreon and YouTube (optional) | Reading their cookies to pass your sign-in on. Asked for once with Allow, included in the access to all websites, and given back when you switch passing sign-ins on off. |
 | `notifications` (optional) | The short note that names the instance a download went to. Asked for with taking over downloads. |
 | `webRequest` (optional) | Seeing which video and audio streams a page loads. Asked for with finding media, and given back when you switch it off. |
 | Access to all websites (optional) | Also needed for the cookies of any download site, for the media a page loads and for the download button on all other sites. Kept while any of Click'n'Load, taking over downloads, finding media or the button on all other sites is on. |
@@ -285,6 +320,10 @@ button in the popup.
 - **Switch Click'n'Load off** in the options, as described above.
 - **Switch taking over downloads or finding media off** in the options. Each gives
   back the permissions no other feature still uses.
+- **Switch passing sign-ins on off** in the options. It gives back the access to
+  the sites, and the cookies unless taking over downloads or finding media
+  still uses them. A sign-in already passed on stays with your instance until
+  you sign out on the site.
 - **Switch the clipboard watch off** in the options, or from another device
   when it asks whether to keep both.
 - **Leave the group** with the bin button next to the phrase: the phrase, the

@@ -366,6 +366,18 @@
       </div>
     </section>
 
+    <!-- Shown while the group lists sites whose sign-in the browser could pass
+         on but has not allowed the extension to read (options-signin.js). The
+         popup's notice leads here, since a prompt would close the popup. -->
+    <section class="glim-card glim-stagger-row" id="signinAccess" style="--row-i: 0" hidden>
+      <h2 class="glim-section-badge" id="signinAccessHeading"></h2>
+      <p id="signinAccessBody" class="aboutText"></p>
+      <div class="fields">
+        <button id="signinAccessKeepOff" class="glim-btn-subtle" type="button"></button>
+        <button id="signinAccessAllow" class="primary" type="button"></button>
+      </div>
+    </section>
+
     <!-- Explanations are info bubbles on the heading badges, set by options.js
          in the chosen language. -->
 
@@ -577,6 +589,21 @@
           <div class="glim-unavailable captureRefused" id="mediaRefused" hidden>
             <span class="glim-unavailable-title" id="mediaRefusedTitle"></span>
             <span class="glim-unavailable-reason" id="mediaRefusedReason"></span>
+          </div>
+        </div>
+
+        <!-- Passing sign-ins on (options-signin.js), shown once the group
+             has listed the sites. -->
+        <div id="signinRow" hidden>
+          <div class="glim-row">
+            <span class="glim-row-label" id="signinLabel"></span>
+            <button type="button" role="switch" aria-checked="false" id="signinEnabled" class="glim-switch">
+              <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+            </button>
+          </div>
+          <div class="glim-unavailable captureRefused" id="signinRefused" hidden>
+            <span class="glim-unavailable-title" id="signinRefusedTitle"></span>
+            <span class="glim-unavailable-reason" id="signinRefusedReason"></span>
           </div>
         </div>
 
@@ -844,6 +871,7 @@
     <script src="i18n.js"></script>
     <script src="i18n-capture.js"></script>
     <script src="i18n-video.js"></script>
+    <script src="i18n-signin.js"></script>
     <script src="glyphs.js"></script>
     <script src="shared.js"></script>
     <script src="capture.js"></script>
@@ -859,6 +887,8 @@
     <script src="vendor/qrcode.js"></script>
     <script src="options.js"></script>
     <script src="options-capture.js"></script>
+    <script src="signin.js"></script>
+    <script src="options-signin.js"></script>
     <script src="video.js"></script>
     <script src="options-video.js"></script>
   </body>

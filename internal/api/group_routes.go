@@ -111,6 +111,11 @@ var groupRoutes = map[string]bool{
 	// (routes_cnl.go).
 	"POST /api/cnl/release": true,
 
+	// The extension hands over the session of a site the owner signs in to
+	// in the browser. The handler takes it from the extension alone.
+	"GET /api/sitelogins/handover":       true,
+	"POST /api/sitelogins/{id}/handover": true,
+
 	// An approval, a refusal or a removal, passed on by the instance whose
 	// owner made it. The handlers take it only from an instance that signs
 	// with an approved key, never from a phone or an unsigned caller.

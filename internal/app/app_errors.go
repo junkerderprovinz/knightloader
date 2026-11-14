@@ -186,9 +186,9 @@ func addressMayHelp(r core.Reason) bool {
 	switch r {
 	case core.ReasonGone, core.ReasonAuth, core.ReasonDiskFull,
 		core.ReasonUnsupported, core.ReasonCaptcha, core.ReasonCancelled,
-		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
-		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer,
-		core.ReasonNoFFmpeg:
+		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonSignInRequired,
+		core.ReasonGeoBlocked, core.ReasonDRM, core.ReasonExtractorBroken,
+		core.ReasonUnsupportedPlayer, core.ReasonNoFFmpeg:
 		return false
 	}
 	return true
@@ -199,9 +199,9 @@ func addressMayHelp(r core.Reason) bool {
 // that a new reason keeps its retries by default.
 func retryCannotHelp(r core.Reason) bool {
 	switch r {
-	case core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
-		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer,
-		core.ReasonNoFFmpeg:
+	case core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonSignInRequired,
+		core.ReasonGeoBlocked, core.ReasonDRM, core.ReasonExtractorBroken,
+		core.ReasonUnsupportedPlayer, core.ReasonNoFFmpeg:
 		return true
 	}
 	return false

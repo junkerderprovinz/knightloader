@@ -935,16 +935,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     {
-      title: 'settings.resolvers.cookiesTitle',
-      rows: [
-        { key: 'settings.resolvers.cookies', hint: 'settings.resolvers.cookiesHint' },
-        { key: 'settings.resolvers.cookieJars', hint: 'settings.resolvers.cookieJarsHint' },
-        // The host and jar boxes live in CookieJarDialog, so only the button
-        // that opens it is a row.
-        { key: 'cookies.add' },
-      ],
-    },
-    {
       title: 'settings.resolvers.variantDefaults',
       hint: 'settings.resolvers.presetsHint',
       rows: [{ key: 'settings.resolvers.presetHost', hint: 'settings.resolvers.presetHostHint' }],
@@ -1324,31 +1314,23 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     // to, so they are `also` entries.
     {
       title: 'settings.info.componentsTitle',
-      hint: 'settings.info.componentsHint',
-      // KnightLoader, yt-dlp and JDownloader share the switch labels.
+      hint: 'settings.info.componentsIntro',
       rows: [
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
         { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoCheckHint' },
+        { key: 'settings.info.componentsAuto', hint: 'settings.info.componentsAutoHint' },
       ],
-      // The container build and the Flatpak use their own sentences for the
-      // update hint, and yt-dlp's and JDownloader's switches carry their own
-      // hints. A status's (i) says what went wrong where something needs doing.
+      // The container build and the Flatpak use their own sentences for
+      // KnightLoader's update hint. A status's (i) says what went wrong where
+      // something needs doing.
       body: [
         'settings.look.updatesAutoUpdateContainerHint',
         'settings.look.updatesAutoUpdateStoreHint',
-        'settings.look.jdAutoUpdateHint',
-        'settings.look.jdAutoCheckHint',
-        'settings.resolvers.toolsAutoCheckHint',
-        'settings.resolvers.toolsAutoUpdateHint',
         'settings.resolvers.toolsShadowedOlder',
         'settings.resolvers.toolsManagedBroken',
+        'settings.info.statusWaitsHint',
       ],
-      also: [
-        'settings.info.checkAll',
-        'settings.resolvers.toolsFetch',
-        'settings.look.jdUpdate',
-        'settings.look.updatesReleaseNotes',
-      ],
+      also: ['settings.info.updateNow', 'settings.look.updatesReleaseNotes'],
     },
     {
       title: 'settings.info.helpTitle',

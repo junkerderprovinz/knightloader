@@ -64,7 +64,7 @@ func (s *Store) SetValue(id, value string) error {
 // none.
 //
 // A decryption failure answers "" and no error, the way hostheaders.Get and
-// ytdlp.CookieStore.Text do: this is reached on the path that calls the media
+// sitelogin.Store.Session do: this is reached on the path that calls the media
 // server after a download, an error would travel into a log line and from
 // there into the diagnostics bundle, and the failures that are possible (a
 // truncated accounts.json, a .keyring replaced under a running install) are

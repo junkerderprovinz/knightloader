@@ -41,7 +41,7 @@ import (
 // account) key that store already indexes by.
 //
 // The arrangement hostheaders.Service, hosterauth.Service and
-// ytdlp.CookieService use: accounts.Catalogue is a short, hand-maintained list
+// sitelogin.Service use: accounts.Catalogue is a short, hand-maintained list
 // of real services a picker searches, while this is one row per address from a
 // list only the user's typing decides.
 const Service = "mediahook"

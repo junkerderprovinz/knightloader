@@ -693,6 +693,9 @@ joinForm.addEventListener('submit', async (e) => {
     say(siblings.length ? '' : t('options.joinedEmpty'), true);
     joinBtn.removeAttribute('data-tip');
     confirmPulse(joinBtn);
+    // The background learns the group's sites and passes on what this
+    // browser is already signed in to.
+    chrome.runtime.sendMessage({ type: 'knightloader-signins' }).catch(() => {});
   } catch {
     joinBtn.setAttribute('data-tip', t('options.groupUnreachable'));
     say('', false);

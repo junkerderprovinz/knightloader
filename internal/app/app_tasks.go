@@ -628,6 +628,7 @@ func (a *App) expandHosterLink(ex linkExpander, id string) {
 	in := intake{
 		pkg: t.Package, origin: OriginCrawl, source: u,
 		priority: &priority, autoExtract: copyBool(t.AutoExtract), comment: t.Comment, category: t.Category,
+		byAdmin: t.AddedByAdmin,
 	}
 	// A package read off the folder's address names nothing; the files name
 	// their own.
@@ -850,7 +851,7 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 		a.failProbe(rawurl, ytdlpMissing)
 		return
 	}
-	res, err := a.linkProbe(a.ctx, tp, rawurl, a.browserHeadersFor(id, rawurl))
+	res, err := a.linkProbe(a.ctx, tp, rawurl, a.browserHeadersFor(id, rawurl), a.maySignIn(id))
 	if err != nil {
 		a.fileUnprobedMedia(id)
 		a.failProbe(rawurl, err.Error())

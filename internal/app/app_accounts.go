@@ -111,6 +111,7 @@ func (a *App) rewireBackends() {
 		ffprobeAt = ff.FFprobe
 	}
 	yb.SetFFmpeg(ffmpegAt, ffprobeAt)
+	yb.SetDeno(mediatools.DenoForYtdlp(a.DataDir))
 	ytdlpRunning := yb.Available()
 	// Streaming sites a debrid service also lists stay with yt-dlp while it
 	// runs, as for TorBox: a debrid unlock gives a YouTube link no variant rows
@@ -204,7 +205,7 @@ func (a *App) rewireBackends() {
 			a.Registry.Register(h.free.res)
 		}
 	}
-	a.syncOwnLogins()
+	a.syncOwnLogins("")
 
 	// The XFileSharing hosters, on the user's login while it has premium and
 	// for free otherwise.
@@ -350,9 +351,9 @@ func (a *App) ytdlpBackend(bin string) *ytdlp.Backend {
 		yb.Options = func(taskID string) ytdlp.Options {
 			return a.ytdlpOptionsForTask(taskID)
 		}
-		// Stored cookie jars, read on every spawn. Without this hook the
-		// backend would ignore saved jars.
-		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
+		yb.Sessions = a.siteSession
+		yb.SignIn = a.signInSession
+		yb.MaySignIn = a.maySignIn
 		yb.Headers = a.browserHeadersFor
 		yb.InUse = a.usedByOther
 		yb.Placing = func(taskID string) workdir.Options {

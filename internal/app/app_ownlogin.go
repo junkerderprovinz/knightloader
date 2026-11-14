@@ -29,6 +29,7 @@ type ownBackend interface {
 	backend
 	SetLogin(user, password string) bool
 	Check(ctx context.Context) ownlogin.Status
+	SignIn(ctx context.Context, code string) ownlogin.Status
 	Status() ownlogin.Status
 }
 
@@ -183,8 +184,8 @@ func (a *App) ownHosterFor(id string) *ownHoster {
 
 // syncOwnLogins hands each hoster KnightLoader signs in to itself the
 // switched-on login stored for it, or none, and has the hoster check one it
-// has not seen yet.
-func (a *App) syncOwnLogins() {
+// has not seen yet. The check of the hoster at site held is the caller's.
+func (a *App) syncOwnLogins(held string) {
 	for _, h := range a.ownHosters(engineHandoff{a.Engine, a}) {
 		var cred accounts.Credential
 		for _, host := range a.Accounts.AccountIDs(hosterauth.Service) {
@@ -193,7 +194,7 @@ func (a *App) syncOwnLogins() {
 				break
 			}
 		}
-		if !h.be.SetLogin(cred.Username, cred.Password) {
+		if !h.be.SetLogin(cred.Username, cred.Password) || h.site == held {
 			continue
 		}
 		a.spawn(func() {
@@ -210,7 +211,7 @@ func (a *App) syncOwnLogins() {
 // client gave to JD is checked again, which takes it back once the client
 // can use it.
 func (a *App) ownLoginChanged(host string) {
-	a.syncOwnLogins()
+	a.syncOwnLogins("")
 	a.bmu.RLock()
 	own := a.own
 	a.bmu.RUnlock()
@@ -251,7 +252,7 @@ func (a *App) ownLoginState(host string) (hosterauth.OwnState, bool) {
 		if h.site == hostalias.Canonical(host) {
 			st := h.be.Status()
 			return hosterauth.OwnState{
-				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Handed: st.Handed, Premium: st.Premium,
+				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Code: string(st.Code), Handed: st.Handed, Premium: st.Premium,
 				Expiry: st.Expiry, TrafficLeft: st.TrafficLeft, TrafficMax: st.TrafficMax,
 			}, true
 		}

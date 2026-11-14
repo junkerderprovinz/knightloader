@@ -94,13 +94,16 @@ func main() {
 	} else {
 		a.MarkStartupCheckOff()
 	}
-	// The installer and the macOS bundle put a yt-dlp beside the program, which
-	// the daily update keeps current with copies fetched into the data folder.
-	// A copy without one fetches it there, since a video link that falls
-	// through to JDownloader lands as one plain row, and so does one without
-	// ffmpeg, which yt-dlp needs to join picture and sound.
+	// The installer fetches yt-dlp, ffmpeg and Deno into the data folder, and
+	// the automatic update keeps them current. A copy without them, such as
+	// the macOS app, a portable one or a Flatpak, fetches them at its first
+	// start, since a video link that falls through to JDownloader lands as one
+	// plain row, and so does one without ffmpeg, which yt-dlp needs to join
+	// picture and sound.
 	a.InstallMissingTools = true
 	a.StartYtdlpAutoUpdate()
+	// A site signed in to in a browser here is signed in to in the app.
+	a.StartBrowserSessions()
 	// A JD named in KL_JD is kept current here too; without one the daily run
 	// has nothing to ask.
 	a.StartJDAutoUpdate()
@@ -160,10 +163,12 @@ func main() {
 		os.Setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1")
 	}
 
-	// The page calls these as main.DesktopFiles, main.HubBridge, main.Tray,
-	// main.LinkPopup and main.Accent; see web/src/lib/desktop.ts.
+	// The page calls these as main.DesktopFiles, main.HubBridge,
+	// main.SignInBridge, main.Tray, main.LinkPopup and main.Accent; see
+	// web/src/lib/desktop.ts.
 	desktopFiles := newDesktopFiles(a)
 	hubBridge := newHubBridge(a, tray.emitTo)
+	signInBridge := newSignInBridge(a, tray.emitTo)
 	popup := newLinkPopup(a, tray)
 
 	wails := application.New(application.Options{
@@ -173,6 +178,7 @@ func main() {
 		Services: []application.Service{
 			application.NewService(desktopFiles),
 			application.NewService(hubBridge),
+			application.NewService(signInBridge),
 			application.NewService(tray),
 			application.NewService(popup),
 			application.NewService(&Accent{}),

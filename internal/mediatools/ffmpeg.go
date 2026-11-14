@@ -39,14 +39,12 @@ const ffmpegChecksums = "checksums.sha256"
 // lets it arrive over a line of a few megabits.
 const (
 	maxFFmpegArchiveBytes = 600 << 20
-	maxFFmpegBinaryBytes  = 400 << 20
 	ffmpegFetchTimeout    = 45 * time.Minute
 )
 
-// FFmpegRefresh is how old a fetched ffmpeg may get before the daily update
-// replaces it. Master is rebuilt every day, and a download of this size every
-// day would buy nothing a media download notices.
-const FFmpegRefresh = 30 * 24 * time.Hour
+// maxUnpackedBytes caps one program taken out of an archive, ffmpeg or Deno,
+// each of which is well under half of it.
+const maxUnpackedBytes = 400 << 20
 
 // ffmpegAsset is the release asset for this platform, or "" where there is
 // none: the repository builds nothing for macOS.
@@ -79,8 +77,8 @@ func FFprobePath(dataDir string) string { return filepath.Join(ToolsDir(dataDir)
 
 func ffmpegRecordPath(dataDir string) string { return filepath.Join(ToolsDir(dataDir), "ffmpeg.json") }
 
-// FFmpegRecord is what was fetched and when, kept so the daily update knows
-// when the copy is due again.
+// FFmpegRecord is what was fetched and when. SHA256 is what tells the fetched
+// build from a newer one, since the rolling release keeps its tag.
 type FFmpegRecord struct {
 	Tag       string    `json:"tag"`
 	Asset     string    `json:"asset"`
@@ -91,18 +89,30 @@ type FFmpegRecord struct {
 
 // LoadFFmpegRecord reads the record, or returns nil when nothing was fetched.
 func LoadFFmpegRecord(dataDir string) (*FFmpegRecord, error) {
-	b, err := os.ReadFile(ffmpegRecordPath(dataDir))
+	return readRecord[FFmpegRecord](ffmpegRecordPath(dataDir))
+}
+
+func readRecord[T any](path string) (*T, error) {
+	b, err := os.ReadFile(path)
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	var rec FFmpegRecord
+	var rec T
 	if err := json.Unmarshal(b, &rec); err != nil {
 		return nil, err
 	}
 	return &rec, nil
+}
+
+func writeRecord(path string, rec any) error {
+	b, err := json.MarshalIndent(rec, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, append(b, '\n'), 0o644)
 }
 
 // FFmpegTools is which ffmpeg and ffprobe run, and where each came from.
@@ -145,38 +155,56 @@ func CanInstallFFmpeg(dataDir string) error {
 	return toolsWritable(dataDir)
 }
 
-// InstallFFmpeg fetches the newest LGPL build, verifies the archive against
-// the release's checksums, unpacks ffmpeg and ffprobe, runs both, and only
-// then puts them where ResolveFFmpeg finds them. progress, when not nil,
-// hears how much of the archive has arrived of how much; total is -1 while
-// unknown.
-func InstallFFmpeg(ctx context.Context, dataDir string, progress func(done, total int64)) (FFmpegRecord, error) {
+// UpdateFFmpeg asks for the newest LGPL build and, unless the fetched copy is
+// that build already, verifies the archive against the release's checksums,
+// unpacks ffmpeg and ffprobe, runs both, and only then puts them where
+// ResolveFFmpeg finds them. current reports that nothing needed fetching.
+// progress, when not nil, hears how much of the archive has arrived of how
+// much; total is -1 while unknown.
+func UpdateFFmpeg(ctx context.Context, dataDir string, progress func(done, total int64)) (rec FFmpegRecord, current bool, err error) {
 	if err := CanInstallFFmpeg(dataDir); err != nil {
-		return FFmpegRecord{}, err
+		return rec, false, err
 	}
 	rel, err := ghrelease.Latest(ctx, ffmpegRepo)
 	if err != nil {
-		return FFmpegRecord{}, err
+		return rec, false, err
 	}
 	sumsAsset, ok := rel.Find(ffmpegChecksums)
 	if !ok {
-		return FFmpegRecord{}, fmt.Errorf("release %s has no %s, so nothing downloaded from it could be verified", rel.Tag, ffmpegChecksums)
+		return rec, false, fmt.Errorf("release %s has no %s, so nothing downloaded from it could be verified", rel.Tag, ffmpegChecksums)
 	}
 	raw, err := ghrelease.Bytes(ctx, sumsAsset, maxChecksumBytes)
 	if err != nil {
-		return FFmpegRecord{}, err
+		return rec, false, err
 	}
 	sums, err := checksum.ParseHashFile(bytes.NewReader(raw))
 	if err != nil {
-		return FFmpegRecord{}, fmt.Errorf("release %s: %s could not be read: %w", rel.Tag, ffmpegChecksums, err)
+		return rec, false, fmt.Errorf("release %s: %s could not be read: %w", rel.Tag, ffmpegChecksums, err)
 	}
 	download := func(ctx context.Context, a ghrelease.Asset, dst string) error {
-		return downloadFFmpeg(ctx, a, dst, progress)
+		return downloadAsset(ctx, a, dst, maxFFmpegArchiveBytes, ffmpegFetchTimeout, progress)
 	}
-	return installFFmpeg(ctx, dataDir, ffmpegAsset(), rel, sums, download)
+	return updateFFmpeg(ctx, dataDir, ffmpegAsset(), rel, sums, download)
 }
 
-func downloadFFmpeg(ctx context.Context, a ghrelease.Asset, dst string, progress func(done, total int64)) error {
+// updateFFmpeg is UpdateFFmpeg once the release is in hand.
+func updateFFmpeg(ctx context.Context, dataDir, name string, rel ghrelease.Release, sums []checksum.Sum, fetch fetcher) (FFmpegRecord, bool, error) {
+	if want, err := sumFor(ffmpegChecksums, sums, name); err == nil {
+		rec, err := LoadFFmpegRecord(dataDir)
+		if err == nil && rec != nil && strings.EqualFold(rec.SHA256, want.Hex) && isFile(FFmpegPath(dataDir)) && isFile(FFprobePath(dataDir)) {
+			return *rec, true, nil
+		}
+	}
+	rec, err := installFFmpeg(ctx, dataDir, name, rel, sums, fetch)
+	return rec, false, err
+}
+
+func isFile(path string) bool {
+	fi, err := os.Stat(path)
+	return err == nil && fi.Mode().IsRegular()
+}
+
+func downloadAsset(ctx context.Context, a ghrelease.Asset, dst string, limit int64, timeout time.Duration, progress func(done, total int64)) error {
 	f, err := os.Create(dst)
 	if err != nil {
 		return err
@@ -186,7 +214,7 @@ func downloadFFmpeg(ctx context.Context, a ghrelease.Asset, dst string, progress
 		total = -1
 	}
 	w := httpx.ProgressWriter(f, total, progress)
-	_, copyErr := ghrelease.FetchWithin(ctx, a, w, maxFFmpegArchiveBytes, ffmpegFetchTimeout)
+	_, copyErr := ghrelease.FetchWithin(ctx, a, w, limit, timeout)
 	closeErr := f.Close()
 	if copyErr != nil {
 		return copyErr
@@ -194,8 +222,8 @@ func downloadFFmpeg(ctx context.Context, a ghrelease.Asset, dst string, progress
 	return closeErr
 }
 
-// installFFmpeg is InstallFFmpeg once the release is in hand. The asset name
-// is a parameter so a test can drive either archive format on any host.
+// installFFmpeg downloads, checks and puts in place the build named. The asset
+// name is a parameter so a test can drive either archive format on any host.
 func installFFmpeg(ctx context.Context, dataDir, name string, rel ghrelease.Release, sums []checksum.Sum, fetch fetcher) (FFmpegRecord, error) {
 	var rec FFmpegRecord
 	asset, ok := rel.Find(name)
@@ -230,7 +258,7 @@ func installFFmpeg(ctx context.Context, dataDir, name string, rel ghrelease.Rele
 	}
 
 	bins := []string{exeName("ffmpeg"), exeName("ffprobe")}
-	if err := unpack(archive, stage, bins); err != nil {
+	if err := unpack(archive, stage, bins, "bin"); err != nil {
 		return rec, fmt.Errorf("%s: %w", name, err)
 	}
 	var version string
@@ -255,20 +283,16 @@ func installFFmpeg(ctx context.Context, dataDir, name string, rel ghrelease.Rele
 	}
 
 	rec = FFmpegRecord{Tag: rel.Tag, Asset: name, SHA256: want.Hex, Version: version, FetchedAt: time.Now().UTC()}
-	b, err := json.MarshalIndent(rec, "", "  ")
-	if err != nil {
-		return rec, err
-	}
-	if err := os.WriteFile(ffmpegRecordPath(dataDir), append(b, '\n'), 0o644); err != nil {
+	if err := writeRecord(ffmpegRecordPath(dataDir), rec); err != nil {
 		return rec, fmt.Errorf("ffmpeg is in place but its record could not be written: %w", err)
 	}
 	return rec, nil
 }
 
-// unpack writes the archive's bin/<name> files into dir under their bare
+// unpack writes the archive's <parent>/<name> files into dir under their bare
 // names and nothing else, so no path inside the archive decides where a file
-// lands.
-func unpack(archive, dir string, names []string) error {
+// lands. A parent of "." is the archive's root.
+func unpack(archive, dir string, names []string, parent string) error {
 	want := map[string]bool{}
 	for _, n := range names {
 		want[n] = true
@@ -276,7 +300,7 @@ func unpack(archive, dir string, names []string) error {
 	found := map[string]bool{}
 	take := func(entry string, r io.Reader) error {
 		base := path.Base(entry)
-		if !want[base] || path.Base(path.Dir(entry)) != "bin" || found[base] {
+		if !want[base] || path.Base(path.Dir(entry)) != parent || found[base] {
 			return nil
 		}
 		found[base] = true
@@ -297,7 +321,7 @@ func unpack(archive, dir string, names []string) error {
 	}
 	for _, n := range names {
 		if !found[n] {
-			return fmt.Errorf("the archive holds no bin/%s", n)
+			return fmt.Errorf("the archive holds no %s", path.Join(parent, n))
 		}
 	}
 	return nil
@@ -359,13 +383,13 @@ func writeBounded(dst string, r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	n, copyErr := io.Copy(out, io.LimitReader(r, maxFFmpegBinaryBytes+1))
+	n, copyErr := io.Copy(out, io.LimitReader(r, maxUnpackedBytes+1))
 	closeErr := out.Close()
 	if copyErr != nil {
 		return copyErr
 	}
-	if n > maxFFmpegBinaryBytes {
-		return fmt.Errorf("%s is larger than the %d byte cap", filepath.Base(dst), maxFFmpegBinaryBytes)
+	if n > maxUnpackedBytes {
+		return fmt.Errorf("%s is larger than the %d byte cap", filepath.Base(dst), maxUnpackedBytes)
 	}
 	return closeErr
 }

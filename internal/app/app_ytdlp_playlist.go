@@ -64,7 +64,10 @@ func (a *App) ytdlpPlaylistProber() (playlistProber, bool) {
 // off, the link is not yt-dlp's, no yt-dlp backend is wired, or the listing
 // failed. The link then goes on to the crawl. pin is the backend the link is
 // pinned to, "" for none.
-func (a *App) ytdlpListing(u, pin string) (ytdlp.Playlist, bool) {
+//
+// signIn lets the listing carry the owner's sessions (see
+// LinkBatchOptions.ByAdmin).
+func (a *App) ytdlpListing(u, pin string, signIn bool) (ytdlp.Playlist, bool) {
 	cfg := a.Settings.Get()
 	if !cfg.Ytdlp.Playlist && !cfg.Crawl {
 		return ytdlp.Playlist{}, false
@@ -84,6 +87,9 @@ func (a *App) ytdlpListing(u, pin string) (ytdlp.Playlist, bool) {
 	defer a.endActivity(ActivityCrawl, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), ytdlpPlaylistTimeout)
 	defer cancel()
+	if signIn {
+		ctx = ytdlp.WithSignIn(ctx)
+	}
 	pl, err := pp.ProbePlaylist(ctx, u)
 	if err != nil {
 		log.Printf("playlist listing %s: %v", u, err)
@@ -143,6 +149,7 @@ func (a *App) stagePlaylistEntries(playlistURL string, pl ytdlp.Playlist, pkg st
 			pin:           batch.Resolver,
 			listed:        batch.listed,
 			foldDone:      batch.foldDone,
+			byAdmin:       batch.ByAdmin,
 			playlistEntry: true,
 		})
 		if t == nil {

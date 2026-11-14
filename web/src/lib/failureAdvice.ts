@@ -16,32 +16,40 @@ import type { TranslationKey } from './i18n';
  * unsupportedPlayer offers nothing, since no setting teaches a backend a new
  * player, and noFFmpeg nothing, since no button here installs ffmpeg.
  */
-export type FailureFix = 'cookies' | 'remove' | 'none';
+export type FailureFix = 'signin' | 'remove' | 'none';
 
 export interface Advice {
   /** The plain sentence that replaces the backend's line on the row. */
   line: TranslationKey;
   /** The details, shown in an InfoBubble. */
   hint: TranslationKey;
-  /** The single button. Present exactly when `fix` is not 'none'. */
+  /** The single button. Present exactly when `fix` is not 'none'; a sign-in's
+   *  shows only for a site KnightLoader borrows a browser's sign-in for. */
   action?: TranslationKey;
   fix: FailureFix;
 }
 
 export const failureAdvice: Partial<Record<string, Advice>> = {
-  // Two cookie causes: a bot check needs any signed-in session, members-only
-  // needs an account that holds the membership.
+  // The sign-in causes: a bot check needs any signed-in session, members-only
+  // an account that holds the membership.
   botCheck: {
     line: 'failure.botCheck.line',
     hint: 'failure.botCheck.hint',
-    action: 'failure.botCheck.action',
-    fix: 'cookies',
+    action: 'failure.signIn.action',
+    fix: 'signin',
   },
   membersOnly: {
     line: 'failure.membersOnly.line',
     hint: 'failure.membersOnly.hint',
-    action: 'failure.membersOnly.action',
-    fix: 'cookies',
+    action: 'failure.signIn.action',
+    fix: 'signin',
+  },
+  // A private or age-restricted video, which any signed-in account may see.
+  signInRequired: {
+    line: 'failure.signInRequired.line',
+    hint: 'failure.signInRequired.hint',
+    action: 'failure.signIn.action',
+    fix: 'signin',
   },
   geoBlocked: {
     line: 'failure.geoBlocked.line',

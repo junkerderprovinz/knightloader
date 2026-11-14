@@ -40,7 +40,7 @@ func offersApp(t *testing.T) *App {
 // nothing else.
 func TestTheExtensionsMenuListsWhatTheHostOffersForEveryPart(t *testing.T) {
 	a := offersApp(t)
-	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00001", false)
+	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00001", false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +85,7 @@ func TestTheExtensionsMenuSaysHowLargeEachPickIs(t *testing.T) {
 	fake.offers = sized
 	wireYtdlp(a, fake)
 
-	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00004", false)
+	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00004", false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestTheExtensionsMenuOffersAnHDRTrackApart(t *testing.T) {
 	fake.offers = hdr
 	wireYtdlp(a, fake)
 
-	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offershdr01", false)
+	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offershdr01", false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +143,7 @@ func TestTheBestQualityAndTheHighestResolutionWeighTheSame(t *testing.T) {
 	fake.title = "Offers"
 	fake.offers = ytdlp.ProbeResult{Formats: youtubeProbe}
 	wireYtdlp(a, fake)
-	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00005", false)
+	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00005", false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -236,7 +236,7 @@ func TestAThumbnailSentWithAFormatComesInThatFormat(t *testing.T) {
 // converted, and the menu offers the conversion.
 func TestAVideoSentAsHEVCIsConvertedToIt(t *testing.T) {
 	a := offersApp(t)
-	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00010", false)
+	m, err := a.LinkQualities(t.Context(), "https://youtube.com/watch?v=offers00010", false, false)
 	if err != nil {
 		t.Fatal(err)
 	}

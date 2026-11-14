@@ -47,6 +47,7 @@ const checkNames: Record<string, TranslationKey> = {
   ytdlp: 'settings.diagnostics.check.ytdlp',
   ffmpeg: 'settings.diagnostics.check.ffmpeg',
   ffprobe: 'settings.diagnostics.check.ffprobe',
+  deno: 'settings.diagnostics.check.deno',
   clock: 'settings.diagnostics.check.clock',
   settings: 'settings.diagnostics.check.settings',
 };

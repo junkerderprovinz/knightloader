@@ -46,6 +46,7 @@ const WORDS: Record<string, Words> = {
   cancelled: { line: 'failure.cancelled.line', next: 'failure.cancelled.next' },
   botCheck: { line: 'failure.botCheck.line', next: 'failure.botCheck.next' },
   membersOnly: { line: 'failure.membersOnly.line', next: 'failure.membersOnly.next' },
+  signInRequired: { line: 'failure.signInRequired.line', next: 'failure.signInRequired.next' },
   geoBlocked: { line: 'failure.geoBlocked.line', next: 'failure.geoBlocked.next' },
   drm: { line: 'failure.drm.line', next: 'failure.drm.next' },
   extractorBroken: { line: 'failure.extractorBroken.line', next: 'failure.extractorBroken.next' },

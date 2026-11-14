@@ -79,6 +79,10 @@ type LinkBatchOptions struct {
 	// Start confirms and starts the batch at once, whatever AutoConfirm says,
 	// for a caller that asked for a download rather than a list entry.
 	Start bool
+	// ByAdmin says somebody with every right sent the batch (see
+	// core.Task.AddedByAdmin). The entrances that answer to nobody, feeds and
+	// the watch folder among them, leave it off.
+	ByAdmin bool
 	// Resolver pins every row of the batch to one backend, as a pin set on a
 	// task does (core.Task.ResolverPin), from staging on: the link skips the
 	// crawl and goes to that backend where its host belongs to another. The

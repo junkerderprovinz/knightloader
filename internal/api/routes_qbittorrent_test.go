@@ -603,6 +603,22 @@ func TestTaskStatesMapOntoQbittorrentStates(t *testing.T) {
 	}
 }
 
+// A torrent a debrid service is still fetching onto its own servers has
+// nothing here yet, and Radarr would otherwise see it stuck at nothing.
+func TestATorrentOnADebridServiceReportsTheServicesProgress(t *testing.T) {
+	t.Parallel()
+	_, _, _, qb := qbitServer(t, nil)
+	live := map[string]*core.Task{"m1": {
+		ID: "m1", Status: core.StatusRunning, Size: 1000, Enabled: true,
+		Remote: &core.RemoteFetch{Progress: 0.4, Speed: 50, Seeds: 7},
+	}}
+	i := qb.view(qbitTorrent{Hash: qbitTestHash, TaskIDs: []string{"m1"}, Folder: t.TempDir()}, live).info()
+	if i.State != "downloading" || i.Progress != 0.4 || i.DLSpeed != 50 || i.NumSeeds != 7 || i.ETA != 12 {
+		t.Errorf("reads %s at %v, %d B/s, %d seeds, ETA %d; want downloading at 0.4, 50 B/s, 7 seeds, ETA 12",
+			i.State, i.Progress, i.DLSpeed, i.NumSeeds, i.ETA)
+	}
+}
+
 // TestATorrentOfSeveralTasksIsAsFarAsItsSlowestPart checks that a torrent is
 // only completed once every task behind it is, and that a finished one whose
 // folder has gone reads as missing rather than completed.

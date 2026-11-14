@@ -97,9 +97,17 @@ var groupRefused = []string{
 	"POST /api/vpn/disconnect",
 	"PUT /api/vpn/routes",
 	"DELETE /api/vpn/{id}",
-	"GET /api/ytdlp/cookies",
-	"POST /api/ytdlp/cookies",
-	"POST /api/ytdlp/cookies/remove",
+	"GET /api/sitelogins",
+	"POST /api/sitelogins/{id}/begin",
+	"POST /api/sitelogins/{id}/check",
+	"POST /api/sitelogins/{id}/remove",
+	"POST /api/sitelogins/{id}/reconnect",
+	// The sign-in browser signs in on the owner's behalf and streams what
+	// the owner types.
+	"GET /api/signinbrowser",
+	"POST /api/signinbrowser/{id}/open",
+	"GET /api/signinbrowser/stream",
+	"POST /api/signinbrowser/close",
 
 	// Settings and everything configured through them.
 	"GET /api/settings",
@@ -175,6 +183,8 @@ var groupRefused = []string{
 	"GET /api/mediatools",
 	"GET /api/mediatools/ytdlp/latest",
 	"POST /api/mediatools/ytdlp/update",
+	"GET /api/components/update",
+	"POST /api/components/update",
 
 	// The system: backups, restore, restart, maintenance, diagnostics and the
 	// readings of this machine.

@@ -59,7 +59,15 @@ const (
 	codeOwnCaptcha  = "ownCaptcha"
 	codeOwnOff      = "ownOff"
 	codeSigningIn   = "signingIn"
+
+	// The codes of such a login waiting for the one-time code of a second
+	// factor, by OwnState.Code.
+	codeOwnCodeNeeded = "ownCodeNeeded"
+	codeOwnCodeWrong  = "ownCodeWrong"
+	codeOwnCodeEnded  = "ownCodeEnded"
 )
+
+var codeAsks = map[string]string{"needed": codeOwnCodeNeeded, "wrong": codeOwnCodeWrong, "ended": codeOwnCodeEnded}
 
 // LoginState is one row the accounts page shows. It has no field that could
 // carry a password, so a snapshot cannot leak one even where a redaction step
@@ -77,6 +85,9 @@ type LoginState struct {
 	// HandedOver is a login KnightLoader signs in with itself whose client
 	// could not use it, so JD has it and the row says what JD thinks.
 	HandedOver bool `json:"handedOver,omitempty"`
+	// AskCode is a login that signs in again only once the user enters the
+	// one-time code of its second factor.
+	AskCode bool `json:"askCode,omitempty"`
 
 	// What JD knows about the account itself. Every field is optional: JD
 	// answers -1 or 0 for an account it has nothing to say about, and that has
@@ -586,6 +597,9 @@ type OwnState struct {
 	Detail  string
 	// Captcha is a refusal until the user solves a captcha at the hoster.
 	Captcha bool
+	// Code is a refusal until the user enters the one-time code of a second
+	// factor: "needed", "wrong" or "ended", as ownlogin.CodeAsk words it.
+	Code string
 	// Handed is a login the client could not use and gave to JD, which
 	// then signs in with it and has the row.
 	Handed  bool
@@ -607,6 +621,8 @@ func (o OwnState) row(host, username string) LoginState {
 		st.Status, st.Code, st.Detail = StatusQueued, codeWaiting, "waiting for the next check"
 	case !o.Checked:
 		st.Status, st.Code, st.Detail = StatusQueued, codeOwnChecking, "KnightLoader is checking this login"
+	case o.Refused && codeAsks[o.Code] != "":
+		st.Status, st.Code, st.Detail, st.AskCode = StatusRejected, codeAsks[o.Code], o.Detail, true
 	case o.Refused && o.Captcha:
 		st.Status, st.Code, st.Detail = StatusRejected, codeOwnCaptcha, o.Detail
 	case o.Refused:

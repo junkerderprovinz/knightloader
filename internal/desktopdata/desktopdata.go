@@ -1,6 +1,6 @@
 // Package desktopdata is where the desktop app keeps its data, and what its
-// installer fetches into it so the first start finds ffmpeg, the Java runtime
-// and JDownloader in place. The installer is a module of its own, so the
+// installer fetches into it so the first start finds yt-dlp, ffmpeg, Deno, the
+// Java runtime and JDownloader in place. The installer is a module of its own, so the
 // folders live here, where it and the app read them from the same code.
 package desktopdata
 
@@ -44,6 +44,17 @@ func Components(dataDir string) []Component {
 	jd := provision.New(JDDir(dataDir))
 	return []Component{
 		{
+			// Fetched even where a yt-dlp is on PATH: the fetched copy is the
+			// one the app keeps current, and it outranks any other.
+			ID:     "yt-dlp",
+			Name:   "yt-dlp",
+			Target: mediatools.BinaryPath(dataDir),
+			Fetch: func(ctx context.Context, progress func(done, total int64)) error {
+				_, err := mediatools.Install(ctx, dataDir, progress)
+				return err
+			},
+		},
+		{
 			ID:     "ffmpeg",
 			Name:   "FFmpeg",
 			Target: mediatools.FFmpegPath(dataDir),
@@ -52,7 +63,21 @@ func Components(dataDir string) []Component {
 				if mediatools.ResolveFFmpeg(dataDir).FFmpegSource == mediatools.SourcePath {
 					return nil
 				}
-				_, err := mediatools.InstallFFmpeg(ctx, dataDir, progress)
+				_, _, err := mediatools.UpdateFFmpeg(ctx, dataDir, progress)
+				return err
+			},
+		},
+		{
+			ID:     "deno",
+			Name:   "Deno",
+			Target: mediatools.DenoPath(dataDir),
+			Fetch: func(ctx context.Context, progress func(done, total int64)) error {
+				// One on PATH or in KL_DENO is the person's own, which the app
+				// hands yt-dlp when it has fetched none.
+				if _, source := mediatools.ResolveDeno(dataDir); source == mediatools.SourcePath || source == mediatools.SourceEnv {
+					return nil
+				}
+				_, _, err := mediatools.UpdateDeno(ctx, dataDir, progress)
 				return err
 			},
 		},

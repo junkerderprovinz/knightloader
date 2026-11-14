@@ -59,8 +59,22 @@ func (b *Backend) ProbePlaylist(ctx context.Context, rawurl string) (Playlist, e
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	args := append([]string{"--skip-download", "--no-warnings", "--flat-playlist", "-J"}, b.proxyArgs()...)
+	args := []string{"--skip-download", "--no-warnings", "--flat-playlist", "-J"}
+	jar := ""
+	if SignInAllowed(ctx) {
+		jar = b.session(rawurl)
+	}
+	if jar != "" {
+		path, cleanup, err := writeCookieFile("", jar)
+		defer cleanup()
+		if err != nil {
+			return Playlist{}, err
+		}
+		args = append(args, "--cookies", path)
+	}
+	args = append(args, b.proxyArgs()...)
 	args = append(args, b.ffmpegArgs()...)
+	args = append(args, b.denoArgs()...)
 	cmd := nowindow.CommandContext(ctx, b.binary(), append(args, rawurl)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	stdout, err := cmd.StdoutPipe()

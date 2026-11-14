@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -188,34 +189,74 @@ func TestAutoUpdateIsOnForAnInstallThatNeverSawIt(t *testing.T) {
 	}
 }
 
-// A file that turned the page-load check off says nothing about the daily
-// update.
-func TestYtdlpAutoUpdateIsOnForAnInstallThatNeverSawIt(t *testing.T) {
-	dir := t.TempDir()
-	old := `{"maxConcurrent": 2, "ytdlpVersionCheck": false}`
-	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(old), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	st, err := Load(dir)
+func TestComponentsUpdateOnTheirOwnOnAFreshInstall(t *testing.T) {
+	st, err := Load(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !st.Get().YtdlpAutoUpdate {
-		t.Error("YtdlpAutoUpdate is off after an upgrade; the default is on")
+	if !st.Get().ComponentsAutoUpdate {
+		t.Error("a fresh install leaves its components to be updated by hand")
 	}
 }
 
-func TestJDAutoUpdateIsOnForAnInstallThatNeverSawIt(t *testing.T) {
+// The four switches the one replaced each kept a component from updating, or
+// only asked. Whoever stopped yt-dlp or JDownloader from updating keeps that,
+// and a check that was only switched off says nothing about installing.
+func TestTheComponentSwitchKeepsWhatTheOldSwitchesSaid(t *testing.T) {
+	for _, tc := range []struct {
+		file string
+		want bool
+	}{
+		{`{"maxConcurrent": 2}`, true},
+		{`{"ytdlpAutoUpdate": true, "jdAutoUpdate": true}`, true},
+		{`{"ytdlpVersionCheck": false, "jdVersionCheck": false}`, true},
+		{`{"ytdlpAutoUpdate": false}`, false},
+		{`{"jdAutoUpdate": false}`, false},
+		{`{"ytdlpAutoUpdate": true, "jdAutoUpdate": false}`, false},
+		{`{"componentsAutoUpdate": true, "ytdlpAutoUpdate": false}`, true},
+		{`{"componentsAutoUpdate": false}`, false},
+	} {
+		dir := t.TempDir()
+		if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(tc.file), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		st, err := Load(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := st.Get().ComponentsAutoUpdate; got != tc.want {
+			t.Errorf("%s: componentsAutoUpdate is %v, want %v", tc.file, got, tc.want)
+		}
+	}
+}
+
+func TestTheOldComponentSwitchesAreNotWrittenBack(t *testing.T) {
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"maxConcurrent": 2, "ytdlpAutoUpdate": false}`), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"ytdlpAutoUpdate": false, "jdVersionCheck": true}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	st, err := Load(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !st.Get().JDAutoUpdate {
-		t.Error("JDAutoUpdate is off after an upgrade; the default is on")
+	if _, err := st.Set(st.Get()); err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(filepath.Join(dir, "settings.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var saved map[string]any
+	if err := json.Unmarshal(b, &saved); err != nil {
+		t.Fatal(err)
+	}
+	for _, old := range []string{"ytdlpAutoUpdate", "ytdlpVersionCheck", "jdAutoUpdate", "jdVersionCheck"} {
+		if _, ok := saved[old]; ok {
+			t.Errorf("the saved file still carries %s", old)
+		}
+	}
+	if saved["componentsAutoUpdate"] != false {
+		t.Errorf("the saved file says componentsAutoUpdate %v, want the false the old switch said", saved["componentsAutoUpdate"])
 	}
 }
 

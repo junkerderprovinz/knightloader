@@ -371,6 +371,102 @@ browser check. If no other backend can take the link, the download fails with
 that message. A stored login stays where it is, since the check says nothing
 about it.
 
+## Patreon and YouTube, signed in through the browser
+
+Some sites only show yt-dlp a post or a video when you are signed in, and
+they do not take a user name and password from a program: Patreon wants a
+captcha and a code it mails you. So KnightLoader borrows the sign-in of your
+own browser instead.
+
+Patreon and YouTube always have a row under **Hoster accounts**. Sign in to
+the site in your browser as you always do, and KnightLoader picks the sign-in
+up by itself, a sign-in from before included. The row then says who you are
+signed in as and where the sign-in came from, such as "from Firefox
+(default-release)" or "from the browser extension". Without a sign-in it says
+"Not signed in" and what to do.
+
+Where it comes from depends on where KnightLoader runs:
+
+- **The desktop app, or KnightLoader outside a container,** reads the
+  sign-in from the browsers on the same computer. Signing out of the site in
+  that browser signs KnightLoader out too. A few browsers keep their cookies
+  where no other program can read them, Chrome on Windows for one. The hoster
+  card names those, and the KnightLoader browser extension in that browser
+  passes the sign-in on instead.
+- **The container** has no browser of its own, so the extension in the
+  browser you use passes the sign-in on. Once the extension has joined your
+  group, its popup and settings page ask once to let it read the cookies of
+  Patreon and YouTube. Click **Allow**. If taking over downloads or finding
+  media is already on, it has that access and asks nothing. From then on the
+  extension hands a new sign-in over whenever you sign in, and tells
+  KnightLoader when you sign out. Private windows are never read. Signed in
+  inside a Firefox container? That works too: the extension reads the
+  container that is signed in. **Pass my sign-ins to KnightLoader** in the
+  extension's settings turns it off again.
+
+In both places, **Sign in here** in the site's window or its row menu signs
+you in inside KnightLoader itself, with no extension and no browser of yours
+signed in. It opens the login page in a browser KnightLoader runs and shows
+it live in the window. In the container that is the image's own Chromium. The
+desktop app runs a Chromium-based browser installed on the computer, with a
+profile of its own that never touches the profile you browse with: Microsoft
+Edge on Windows, and on macOS and Linux the first of Google Chrome, Microsoft
+Edge, Brave and Chromium it finds. Without any of them the button says so.
+Click and type in it as you would anywhere, Tab, Enter and umlauts included,
+and choose **Done** once you are signed in. KnightLoader keeps the session
+that browser holds, never what you typed, and the row says "from
+KnightLoader's sign-in browser". A sign-in there also takes back a
+**Remove**, and signing out of the site in that window signs KnightLoader out
+too. The window opens only the site and the pages it signs you in with, such
+as Google, Apple or Facebook for Patreon, and never an address in your own
+network. It closes after five minutes without input. Google sometimes turns a
+browser away that it does not know. The window then says so, and YouTube's
+sign-in works through the extension.
+
+Patreon's session goes along with every Patreon link, because Patreon lists
+and plays posts only for a signed-in account. YouTube's does not. Google
+flags accounts that download a lot while signed in, so a YouTube link loads
+without your session first. Only a video that asks for a sign-in (members
+only, age-restricted, private, or "confirm you're not a bot") is tried once
+more with it, right away.
+
+Want KnightLoader off a site but stay signed in in your browser? Choose
+**Remove** in the site's row menu, or **Sign out** in its window. KnightLoader
+forgets the sign-in, leaves your browser alone and no longer picks the
+browser's sign-in up for that site, not even when a download asks for one.
+The row then says "Removed from KnightLoader. Your browser stays signed in."
+To use the site again, open it from its window and sign in, or choose **Use
+the browser's sign-in again**, which takes the browser's sign-in back at
+once. A new sign-in passed on by the extension counts too.
+
+A session runs out after a while. The row then says so, and a download that
+fails on that site because it wants a signed-in account, a membership or a
+passed bot check offers **Sign in to Patreon** (or **Sign in again**). Sign in on the site, and the
+download starts again once KnightLoader has the new sign-in. If it still says
+members only after that, the account itself does not have the membership.
+
+The session is used only by yt-dlp for that site's links. It never shows up
+in the settings, a log or the diagnostics bundle.
+
+Your sessions are yours, so they only go along with links that you added
+yourself: signed in to KnightLoader, through an API token with the admin
+right, or with the browser extension. A link from a token that may only add
+and read (a friend's, an automation's), from the phone app, from a feed or
+from the watch folder is fetched as anybody would see it. That way nobody who
+can only add links gets at what your accounts open.
+
+## Other sites that want you signed in
+
+In the desktop app and outside a container, this works for every site yt-dlp
+downloads from, not only Patreon and YouTube. When a download fails because
+the site wants you signed in (a private or age-restricted video, a members'
+post, a login page), KnightLoader looks for that site's cookies in the
+browsers on the same computer. If one of them looks signed in, the download is
+tried once more with those cookies, right away, as long as you added the link
+yourself (see above). Nothing is stored, and the log names the browser the
+session came from. In a container, a link that the
+extension sends from a page brings that page's cookies along instead.
+
 ## Rapidgator
 
 With your Rapidgator premium login saved under **Hoster accounts** on the
@@ -383,6 +479,17 @@ JDownloader, so Rapidgator sees one sign-in for the account rather than two.
 The login's row shows what Rapidgator says about it: premium or free, when the
 plan runs out and how much traffic is left.
 
+An account with two-factor sign-in works too. When you save the login,
+Rapidgator asks for the code, and the window shows one more field for the six
+digits from your authenticator app. KnightLoader signs in with the code once
+and never stores it. It keeps the session for as long as Rapidgator accepts
+it, rather than signing in again every 45 minutes as it does for a login
+without a second factor. Once Rapidgator ends the session, and after a restart
+of KnightLoader, the login's row and the overview ask for a new code, and
+Rapidgator links go to the next backend until you enter one. KnightLoader
+never retries the password on its own meanwhile, since Rapidgator locks
+accounts that keep trying.
+
 The link collector names every Rapidgator link as soon as it arrives, with its
 size and whether it is still online. With the login it asks the API, which
 knows the size to the byte. Without one it reads the public file page, which
@@ -390,10 +497,9 @@ rounds the size.
 
 A download fails with a clear reason when Rapidgator turns the login down, when
 the account has no premium, when its traffic has run out or does not cover the
-file, and when the file is gone. An account that asks for a two-factor code
-cannot be used, since KnightLoader has no way to enter one. Once the traffic
-has run out, Rapidgator links go to the next backend on the priority card for
-an hour, and then the login is tried again. When Rapidgator asks for a pause
+file, and when the file is gone. Once the traffic has run out, Rapidgator links
+go to the next backend on the priority card for an hour, and then the login is
+tried again. When Rapidgator asks for a pause
 between sign-ins, the task waits five minutes and shows it.
 
 Against a debrid service that carries Rapidgator, the login's row on the

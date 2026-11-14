@@ -19,6 +19,12 @@ type Status struct {
 	Ytdlp   Tool `json:"ytdlp"`
 	FFmpeg  Tool `json:"ffmpeg"`
 	FFprobe Tool `json:"ffprobe"`
+	// Deno is the JavaScript runtime yt-dlp is handed for YouTube.
+	Deno Tool `json:"deno"`
+	// JSRuntimes is what yt-dlp itself names as its JavaScript runtimes with
+	// that Deno, "none" when it has none and empty when it could not say. It
+	// is what tells a Deno yt-dlp cannot use from one it runs.
+	JSRuntimes string `json:"jsRuntimes,omitempty"`
 	// Unrar is RARLAB's UnRAR, which unpacks RAR sets when it is there.
 	Unrar Tool `json:"unrar"`
 	// Managed is the record of a fetched copy, present whenever one has been
@@ -152,6 +158,16 @@ func (p *Prober) probe() Status {
 	st.FFmpeg.Source = ff.FFmpegSource
 	st.FFprobe = probeTool(ff.FFprobe, "-version", ffmpegVersion)
 	st.FFprobe.Source = ff.FFprobeSource
+
+	deno, denoSource := ResolveDeno(p.dataDir)
+	st.Deno = probeTool(deno, "--version", denoVersion)
+	st.Deno.Source = denoSource
+	if st.Ytdlp.Found {
+		st.JSRuntimes, _ = JSRuntimes(context.Background(), path, DenoForYtdlp(p.dataDir))
+	}
+	if denoSource == SourceNone {
+		st.Deno.Detail = "no Deno found: neither a fetched copy, nor KL_DENO, nor \"deno\" on PATH, so yt-dlp runs without a JavaScript runtime and YouTube offers it fewer formats"
+	}
 
 	st.Unrar = Tool{Path: extract.UnrarPath(), Version: extract.UnrarVersion(), Source: Source(extract.UnrarSource())}
 	st.Unrar.Found = st.Unrar.Version != ""

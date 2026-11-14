@@ -33,7 +33,7 @@ func (f *fakeYtdlpRelease) wire(a *App) {
 }
 
 // autoUpdateApp builds an App whose yt-dlp is the stub printing 2026.01.01, with
-// the daily update switched on or off.
+// the automatic update switched on or off.
 func autoUpdateApp(t *testing.T, on bool) *App {
 	t.Helper()
 	t.Setenv("KL_YTDLP", ytdlpStub(t))
@@ -43,7 +43,7 @@ func autoUpdateApp(t *testing.T, on bool) *App {
 	}
 	t.Cleanup(func() { a.Close() })
 	s := a.Settings.Get()
-	s.YtdlpAutoUpdate = on
+	s.ComponentsAutoUpdate = on
 	if _, err := a.Settings.Set(s); err != nil {
 		t.Fatal(err)
 	}
@@ -169,9 +169,10 @@ func TestAFailedDailyUpdateKeepsTheYtdlpInUse(t *testing.T) {
 		t.Fatal("a failed update left a fetched copy behind")
 	}
 
+	askedAgo(a, "yt-dlp", 25*time.Hour)
 	a.autoUpdateYtdlp()
 	if f.installs.Load() != 2 {
-		t.Fatalf("the next run fetched %d times in all, want the failed release tried again", f.installs.Load())
+		t.Fatalf("the next day's run fetched %d times in all, want the failed release tried again", f.installs.Load())
 	}
 }
 
@@ -187,7 +188,7 @@ func TestTheDailyUpdateLoopRunsAndStopsOnClose(t *testing.T) {
 	}}
 	f.wire(a)
 
-	a.spawn(func() { a.ytdlpAutoLoop(time.Millisecond, time.Hour) })
+	a.spawn(func() { a.tickLoop(time.Millisecond, time.Hour, a.autoUpdateMediaTools) })
 	select {
 	case <-started:
 	case <-time.After(10 * time.Second):
@@ -202,7 +203,7 @@ func TestTheDailyUpdateLoopRunsAndStopsOnClose(t *testing.T) {
 	select {
 	case <-closed:
 	case <-time.After(10 * time.Second):
-		t.Fatal("Close did not return while a daily update was downloading")
+		t.Fatal("Close did not return while an update was downloading")
 	}
 	select {
 	case <-cancelled:
