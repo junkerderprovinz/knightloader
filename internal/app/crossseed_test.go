@@ -67,6 +67,14 @@ type opsKnowing struct {
 }
 
 func (o *opsKnowing) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Query().Get("action") == "index" {
+		if r.Header.Get("Authorization") != "ops-key" {
+			json.NewEncoder(w).Encode(map[string]any{"status": "failure", "error": "bad credentials"})
+			return
+		}
+		json.NewEncoder(w).Encode(map[string]any{"status": "success", "response": map[string]any{"username": "listener"}})
+		return
+	}
 	o.mu.Lock()
 	o.asked++
 	ok := o.known[strings.ToLower(r.URL.Query().Get("hash"))]
@@ -284,5 +292,25 @@ func TestATorrentWithFilesLeftOutIsNotCrossSeeded(t *testing.T) {
 	r.switchOn(t, nil)
 	if n := r.ops.questions(); n != 0 {
 		t.Errorf("OPS was asked %d times about a torrent with a file left out", n)
+	}
+}
+
+// A key test sends the masked key and the server asks with the one it
+// stores, through the same client the search uses.
+func TestAKeyTestAsksTheSiteWithTheStoredKey(t *testing.T) {
+	t.Parallel()
+	r := crossSeedApp(t)
+	r.switchOn(t, nil)
+	shown := r.a.Settings.Get().Redacted().Torrent.CrossSeed
+	who, err := r.a.TestCrossSeed(context.Background(), shown, "ops", 0)
+	if err != nil || who != "listener" {
+		t.Fatalf("the test of the stored key = %q, %v", who, err)
+	}
+	shown.OPS.APIKey = "typed-but-wrong"
+	if _, err := r.a.TestCrossSeed(context.Background(), shown, "ops", 0); err == nil || !strings.Contains(err.Error(), "bad credentials") {
+		t.Fatalf("the test of a wrong key gave %v", err)
+	}
+	if _, err := r.a.TestCrossSeed(context.Background(), shown, "red", 0); err == nil {
+		t.Fatal("a test of RED without a key passed")
 	}
 }

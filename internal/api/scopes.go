@@ -342,6 +342,9 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/torrents/parse":            apitoken.ScopeAdd,
 	"POST /api/torrents/portmap":          apitoken.ScopeAdmin,
 	"POST /api/torrents/qbittorrent/test": apitoken.ScopeAdmin,
+	// The log names the trackers somebody is a member of.
+	"POST /api/torrents/crossseed/test": apitoken.ScopeAdmin,
+	"GET /api/torrents/crossseed/log":   apitoken.ScopeAdmin,
 	// The interfaces to tie torrents to and how the tracker list named in the
 	// settings was fetched, both part of the Torrents settings page.
 	"GET /api/torrents/interfaces": apitoken.ScopeAdmin,

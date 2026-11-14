@@ -10,6 +10,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"path/filepath"
 	"slices"
@@ -288,4 +289,31 @@ func (a *App) CrossSeedLog(n int) ([]crossseed.Entry, error) {
 		return nil, nil
 	}
 	return a.xsLog.Last(n)
+}
+
+// TestCrossSeed asks one part of c with a single call: "red" or "ops" whose
+// key it is, "indexer" the Torznab feed at index what it can do, and
+// "daemon" whether the daemon answers. The stored secrets are put back as a
+// save would, so the test covers what a save would write. It returns what
+// answered, such as the account's name.
+func (a *App) TestCrossSeed(ctx context.Context, c settings.CrossSeed, what string, index int) (string, error) {
+	c = c.WithSecretsFrom(a.Settings.Get().Torrent.CrossSeed)
+	switch what {
+	case "red", "ops":
+		site := strings.ToUpper(what)
+		acc := accountOn(c, site)
+		if acc.APIKey == "" {
+			return "", fmt.Errorf("there is no %s API key to test", site)
+		}
+		return a.gazelleSite(site).WithKey(acc.APIKey).Index(ctx)
+	case "indexer":
+		if index < 0 || index >= len(c.Indexers) {
+			return "", errors.New("there is no such indexer")
+		}
+		x := c.Indexers[index]
+		return "", crossseed.NewTorznab(x.Name, x.URL, x.APIKey).Caps(ctx)
+	case "daemon":
+		return "", crossseed.NewDaemon(c.Daemon.URL, c.Daemon.APIKey).Ping(ctx)
+	}
+	return "", fmt.Errorf("%q is not a part of cross-seeding to test", what)
 }

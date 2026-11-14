@@ -144,6 +144,8 @@ var groupRefused = []string{
 	"PUT /api/schedule",
 	"DELETE /api/schedule/suspend",
 	"PUT /api/schedule/suspend",
+	"GET /api/torrents/crossseed/log",
+	"POST /api/torrents/crossseed/test",
 	"GET /api/torrents/interfaces",
 	"POST /api/torrents/portmap",
 	"POST /api/torrents/qbittorrent/test",

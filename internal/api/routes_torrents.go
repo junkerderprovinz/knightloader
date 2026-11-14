@@ -22,7 +22,9 @@ import (
 	"net/url"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -80,7 +82,57 @@ func registerTorrents(reg *Registry, a *app.App) {
 			// back as a save would, and tests what a save would write.
 			writeJSON(w, testQBittorrent(r.Context(), q.WithSecretsFrom(a.Settings.Get().Torrent.QBittorrent)))
 		})
+
+	reg.Add(http.MethodPost, "/api/torrents/crossseed/test",
+		"test one part of the cross-seed settings as edited with one call: the RED or OPS key, a Torznab indexer or the cross-seed daemon, taking the keys from the stored settings when the client has none",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				What      string             `json:"what"`
+				Index     int                `json:"index"`
+				CrossSeed settings.CrossSeed `json:"crossSeed"`
+			}
+			if !decodeJSON(w, r, &body) {
+				return
+			}
+			ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
+			defer cancel()
+			who, err := a.TestCrossSeed(ctx, body.CrossSeed, body.What, body.Index)
+			if err != nil {
+				writeJSON(w, crossSeedTest{Error: err.Error()})
+				return
+			}
+			writeJSON(w, crossSeedTest{OK: true, Account: who})
+		})
+
+	reg.Add(http.MethodGet, "/api/torrents/crossseed/log",
+		"the newest lines of the cross-seed log, newest first: each twin injected, refused or failed, with the tracker, the torrent's name, its info hash and the reason",
+		func(w http.ResponseWriter, r *http.Request) {
+			limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+			if err != nil || limit <= 0 || limit > crossSeedLogMax {
+				limit = crossSeedLogMax
+			}
+			entries, err := a.CrossSeedLog(limit)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			if entries == nil {
+				entries = []crossseed.Entry{}
+			}
+			writeJSON(w, map[string]any{"entries": entries})
+		})
 }
+
+// crossSeedTest is what a test of a cross-seed key found: the account the
+// key is for, where the tracker names one, or why it failed.
+type crossSeedTest struct {
+	OK      bool   `json:"ok,omitempty"`
+	Account string `json:"account,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+
+// crossSeedLogMax is the most lines of the cross-seed log one read returns.
+const crossSeedLogMax = 200
 
 // qbitTest is what a connection test found: the version, or why there is
 // none.
