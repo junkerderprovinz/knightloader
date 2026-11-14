@@ -258,9 +258,9 @@ app cannot read (Chrome on Windows, for one), the extension passes it on
 without a click (`signin.js`).
 
 Each instance of the group lists those sites as
-`GET /api/sitelogins/handover`: the id, the name, the cookie domains and the
-names of the cookies only a signed-in session carries, nothing about a stored
-session. The background asks for that list when the browser starts, when the
+`GET /api/sitelogins/handover`: the id, the name, the cookie domains and, as
+`signIn`, the names of the cookies only a signed-in session carries, nothing
+about a stored session. The background asks for that list when the browser starts, when the
 extension is installed or updated, when it starts again more than ten minutes
 after the last sync, right after the phrase is entered on the settings page,
 when the popup or the settings page opens while no site is known yet, and once
@@ -301,7 +301,10 @@ session signs in as. A 422 (the site signs nobody in with it) is not sent
 again until the session changes, and an instance that did not answer is asked
 again a minute later (an alarm). Asks that arrive while a sync waits share
 it. Once the browser signs out, every instance that had
-the session gets the same route with an empty `cookies` list, once.
+the session gets the same route with an empty `cookies` list, once. The
+instance takes that as signing out: it forgets the session handed over before
+and answers 200 with the site signed out, unless a browser on its own
+computer still has one.
 
 ### Reading the sign-in from the browsers on the machine
 
@@ -333,8 +336,10 @@ list instead, and the log says why once.
 `GET /api/sitelogins` answers per site, beside `state`, `account`, `expires`
 and `waiting`: `use` (`always` or `onNeed`), `source` (`browser`, `extension`
 or empty), `browser` (the browser and profile, as "Firefox (default-release)",
-when `source` is `browser`) and `unreadable` (the browsers whose cookies of
-the site could not be read).
+when `source` is `browser`), `unreadable` (the browsers whose cookies of the
+site could not be read) and `readsBrowsers`, which is true where this
+instance reads the browsers on its computer and false in a container, so the
+page knows whether a sign-in there or the extension is the way in.
 
 A site's `use` says when yt-dlp gets the session. Patreon's goes with every
 run. YouTube's is held back, since Google flags accounts that download a lot
