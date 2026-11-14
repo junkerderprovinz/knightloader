@@ -20,7 +20,8 @@
      · one raised surface level; never a card inside a card
      · one hero per page, everything else quiet
      · gold marks activity only: active nav, primary action, progress, brand
-     · four state hues (gold, green, red, neutral), never more
+     · the state colours of rule 4: gold for running, green for done,
+       orange for partial or a warning, red for an error, neutral for waiting
      · hierarchy comes from type size and colour step, not from borders */
 
 @theme {

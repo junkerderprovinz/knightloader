@@ -164,8 +164,10 @@ body {
      --accent-ink on the single accent. */
   --accent-glyph:      var(--accent-ink-dark, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
-  /* Four state hues, Carbon's dark support tones. Paused uses neutral; its
-     label and resume control tell it apart. */
+  /* The state colours of rule 4, Carbon's dark support tones: the accent for
+     running, green for done, orange (below) for partial or a warning, red for
+     an error. Paused uses neutral; its label and resume control tell it
+     apart. */
   --status-info-text:    #FCC419;
   --status-info-bg:      rgba(252, 196, 25, 0.13);
   --status-info-solid:   #FCC419;
