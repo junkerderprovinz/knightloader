@@ -26,7 +26,7 @@ type qbit struct {
 // unknown is err as ErrUnknown when qBittorrent does not hold the torrent.
 func unknown(err error) error {
 	if errors.Is(err, qbittorrent.ErrNoTorrent) {
-		return errors.Join(ErrUnknown, err)
+		return ErrUnknown
 	}
 	return err
 }

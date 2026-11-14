@@ -354,8 +354,10 @@ func (e *Engine) awaitFiles(s *start, bt torrents.Client, hash string) ([]torren
 	tick := time.NewTicker(filesPoll)
 	defer tick.Stop()
 	for {
+		// qBittorrent takes an add in the background, and has no file list,
+		// nor the torrent at all, for a moment after it.
 		files, err := bt.Files(s.ctx, hash)
-		if err != nil {
+		if err != nil && !errors.Is(err, torrents.ErrUnknown) {
 			return nil, e.startErr(s, err)
 		}
 		if len(files) > 0 {

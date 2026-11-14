@@ -319,7 +319,8 @@ func (e *Engine) pushPrefs() {
 		if !current {
 			return
 		}
-		if err := bt.Configure(ctx, p); err != nil && e.ctx.Err() == nil {
+		// A client that is off gets the settings when it starts.
+		if err := bt.Configure(ctx, p); err != nil && e.ctx.Err() == nil && !errors.Is(err, torrents.ErrOff) {
 			log.Printf("the torrent settings did not reach the torrent client, which gets them when it starts: %v", err)
 		}
 	}()

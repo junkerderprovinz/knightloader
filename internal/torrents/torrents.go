@@ -41,8 +41,13 @@ type Client interface {
 	Configure(ctx context.Context, p Prefs) error
 }
 
-// ErrUnknown is a call about a torrent the client does not have.
-var ErrUnknown = errors.New("the torrent client does not have this torrent")
+var (
+	// ErrUnknown is a call about a torrent the client does not have.
+	ErrUnknown = errors.New("the torrent client does not have this torrent")
+	// ErrOff is a client that does not run at all, rather than one still
+	// starting.
+	ErrOff = errors.New("the torrent client is off")
+)
 
 // Add is a torrent to hand over: the .torrent's bytes in File, or Magnet.
 type Add struct {

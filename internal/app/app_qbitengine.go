@@ -8,7 +8,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -94,7 +93,7 @@ func (a *App) prepareQBit(ctx context.Context, c *qbittorrent.Client) error {
 	return torrents.QBit(at).Configure(ctx, a.Engine.TorrentPrefs())
 }
 
-var errQBitOff = errors.New("qBittorrent is not running in this KnightLoader")
+var errQBitOff = fmt.Errorf("qBittorrent is not running in this KnightLoader: %w", torrents.ErrOff)
 
 // qbitClient waits for the qBittorrent this app runs and returns the client
 // for it: while it is fetched, and while it starts or restarts.

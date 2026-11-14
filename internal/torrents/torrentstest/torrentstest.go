@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/torrents"
@@ -63,16 +64,23 @@ type Client struct {
 	stalled  bool
 	adds     []torrents.Add
 	failNext error
+	lag      int
 }
 
 type held struct {
-	add       torrents.Add
-	files     []torrents.File
-	state     torrents.State
-	err       string
-	uploaded  int64
-	seconds   int64
+	add      torrents.Add
+	files    []torrents.File
+	state    torrents.State
+	err      string
+	uploaded int64
+	// seeded is how long the torrent has seeded, counted at each reading
+	// from the one before.
+	seeded    time.Duration
+	read      time.Time
 	streaming bool
+	// hidden counts the calls for which the client still lacks the torrent
+	// after taking it, as qBittorrent does while it adds in the background.
+	hidden int
 }
 
 // New is an empty client.
@@ -132,13 +140,14 @@ func (c *Client) Streaming(hash string) bool {
 	return h != nil && h.streaming
 }
 
-// Upload counts bytes the torrent gave the swarm and seconds it seeded.
+// Upload counts bytes the torrent gave the swarm and seconds it seeded, on top
+// of the time it seeds between two readings.
 func (c *Client) Upload(hash string, bytes, seconds int64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if h := c.held[hash]; h != nil {
 		h.uploaded += bytes
-		h.seconds += seconds
+		h.seeded += time.Duration(seconds) * time.Second
 	}
 }
 
@@ -149,6 +158,14 @@ func (c *Client) Fail(hash, why string) {
 	if h := c.held[hash]; h != nil {
 		h.state, h.err = torrents.Failed, why
 	}
+}
+
+// Lag has the client take every later add in the background, lacking the
+// torrent for the next n calls about it.
+func (c *Client) Lag(n int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.lag = n
 }
 
 // FailNext has the next call fail with err.
@@ -175,7 +192,7 @@ func (c *Client) Add(_ context.Context, a torrents.Add) error {
 		return fmt.Errorf("the client has %s already", a.Hash)
 	}
 	c.adds = append(c.adds, a)
-	h := &held{add: a, state: torrents.Stopped}
+	h := &held{add: a, state: torrents.Stopped, hidden: c.lag}
 	if a.File != nil {
 		files, err := filesOf(a.File)
 		if err != nil {
@@ -224,6 +241,10 @@ func (c *Client) torrent(hash string) (*held, error) {
 	}
 	h := c.held[hash]
 	if h == nil {
+		return nil, torrents.ErrUnknown
+	}
+	if h.hidden > 0 {
+		h.hidden--
 		return nil, torrents.ErrUnknown
 	}
 	return h, nil
@@ -317,11 +338,16 @@ func (c *Client) Readings(_ context.Context) (map[string]torrents.Reading, error
 		return nil, err
 	}
 	out := make(map[string]torrents.Reading, len(c.held))
+	now := time.Now()
 	for hash, h := range c.held {
 		if h.state == torrents.Fetching && !c.stalled {
 			h.fetch(hash)
 		}
-		r := torrents.Reading{State: h.state, Err: h.err, Dir: h.add.Dir, Uploaded: h.uploaded, SeedSeconds: h.seconds}
+		if h.state == torrents.Seeding && !h.read.IsZero() {
+			h.seeded += now.Sub(h.read)
+		}
+		h.read = now
+		r := torrents.Reading{State: h.state, Err: h.err, Dir: h.add.Dir, Uploaded: h.uploaded, SeedSeconds: int64(h.seeded / time.Second)}
 		for _, f := range h.files {
 			if f.Picked {
 				r.Done += f.Done

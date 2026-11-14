@@ -548,3 +548,29 @@ func TestARecheckedSeedRunIsTakenAsCompleteOnlyWhenItsPiecesMatch(t *testing.T) 
 		}
 	}
 }
+
+func TestOnlyTheSystemsOwnInterfacesAreOffered(t *testing.T) {
+	ifs, err := NetInterfaces()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if slices.ContainsFunc(ifs, func(ni NetInterface) bool { return ni.Name == "knightloader-vpn" }) {
+		t.Error("a network inside this process is offered to the torrent client")
+	}
+	if InterfaceUp("knightloader-vpn") || !InterfaceUp("") {
+		t.Error("the built-in VPN counts as up, or any interface as down")
+	}
+}
+
+func TestATorrentTheClientTakesInTheBackgroundIsWaitedFor(t *testing.T) {
+	e, c, log := torrentEngine(t)
+	c.Lag(3)
+	uri, _ := sharedUpload(t, "Pack", map[string]int{"a.bin": 100})
+	e.Start(Job{TaskID: "t", URL: uri, Dir: t.TempDir()})
+	u := log.waitFor(t, "done or an error", func(u core.Update) bool {
+		return u.Status == core.StatusDone || u.Status == core.StatusError
+	})
+	if u.Status != core.StatusDone {
+		t.Fatalf("update %+v", u)
+	}
+}

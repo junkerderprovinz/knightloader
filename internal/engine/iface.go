@@ -1,10 +1,10 @@
 package engine
 
 import (
+	"net"
+	"net/netip"
 	"slices"
 	"strings"
-
-	"github.com/GopeedLab/gopeed/pkg/netbind"
 )
 
 // NetInterface is a network interface the torrent client can be tied to, with
@@ -17,18 +17,29 @@ type NetInterface struct {
 
 // NetInterfaces lists the system's network interfaces by name. Up means the
 // torrent client can use one: the system has it up and it has an address
-// beyond its own link.
+// beyond its own link. A network inside this process, such as the built-in
+// VPN's, is not one of them, since the client is another program.
 func NetInterfaces() ([]NetInterface, error) {
-	ifs, err := netbind.Interfaces()
+	ifs, err := net.Interfaces()
 	if err != nil {
 		return nil, err
 	}
 	out := make([]NetInterface, 0, len(ifs))
 	for _, ifc := range ifs {
-		ni := NetInterface{Name: ifc.Name, Up: ifc.Up, Addrs: []string{}}
-		for _, a := range ifc.Addrs {
-			ni.Addrs = append(ni.Addrs, a.String())
+		ni := NetInterface{Name: ifc.Name, Addrs: []string{}}
+		addrs, _ := ifc.Addrs()
+		for _, a := range addrs {
+			p, err := netip.ParsePrefix(a.String())
+			if err != nil {
+				continue
+			}
+			ip := p.Addr()
+			if ip.IsLinkLocalUnicast() {
+				continue
+			}
+			ni.Addrs = append(ni.Addrs, ip.String())
 		}
+		ni.Up = ifc.Flags&net.FlagUp != 0 && len(ni.Addrs) > 0
 		out = append(out, ni)
 	}
 	slices.SortFunc(out, func(a, b NetInterface) int { return strings.Compare(a.Name, b.Name) })
