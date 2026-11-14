@@ -105,6 +105,12 @@ var groupRefused = []string{
 	"POST /api/sitelogins/{id}/check",
 	"POST /api/sitelogins/{id}/cookies",
 	"POST /api/sitelogins/{id}/remove",
+	// The sign-in browser signs in on the owner's behalf and streams what
+	// the owner types.
+	"GET /api/signinbrowser",
+	"POST /api/signinbrowser/{id}/open",
+	"GET /api/signinbrowser/stream",
+	"POST /api/signinbrowser/close",
 
 	// Settings and everything configured through them.
 	"GET /api/settings",
