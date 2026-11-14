@@ -29,6 +29,7 @@ const patreon: SiteLogin = {
   source: 'browser',
   browser: 'Firefox (default-release)',
   unreadable: [],
+  readsBrowsers: true,
 };
 const youtube: SiteLogin = {
   id: 'youtube',
@@ -40,6 +41,7 @@ const youtube: SiteLogin = {
   state: 'expired',
   source: 'extension',
   unreadable: [],
+  readsBrowsers: true,
 };
 const signedOut = (s: SiteLogin): SiteLogin => ({ ...s, state: 'signedOut', account: undefined, source: '', browser: '' });
 const browserExtension: GroupApp = { id: 'm1', name: 'Firefox', deployment: 'extension', connected: false, approved: true, lastSeen: 0 };
@@ -154,8 +156,8 @@ it('lists a site nobody signed in to with the one step that signs it in', async 
   expect(row('Patreon')?.textContent).toContain('Sign in to Patreon in your browser. KnightLoader picks it up by itself.');
 });
 
-it('points at the browser extension while no browser of the group has it', async () => {
-  sites = [signedOut(patreon)];
+it('points at the browser extension on an instance that reads no browser while none of the group has the extension', async () => {
+  sites = [{ ...signedOut(patreon), readsBrowsers: false }];
   apps = [{ ...browserExtension, deployment: 'mobile' }];
   await renderCard();
   expect(row('Patreon')?.textContent).toContain('KnightLoader extension');

@@ -10,6 +10,7 @@ const site = (over: Partial<SiteLogin>): SiteLogin => ({
   domains: ['patreon.com'],
   state: 'signedOut',
   unreadable: [],
+  readsBrowsers: false,
   ...over,
 });
 
@@ -100,10 +101,10 @@ describe('nextStep', () => {
 });
 
 describe('readsBrowsers', () => {
-  it('tells an instance that reads its browsers by a session or a browser it could not read', () => {
-    expect(readsBrowsers([site({ state: 'signedIn', source: 'browser', browser: 'Firefox' })])).toBe(true);
-    expect(readsBrowsers([site({ unreadable: ['Chrome'] })])).toBe(true);
+  it('takes what the instance says, also before any browser held a session', () => {
+    expect(readsBrowsers([site({ readsBrowsers: true })])).toBe(true);
     expect(readsBrowsers([site({}), site({ id: 'youtube', state: 'signedIn', source: 'extension' })])).toBe(false);
+    expect(readsBrowsers([])).toBe(false);
   });
 });
 

@@ -46,13 +46,9 @@ export interface SignInWays {
   extensionPaired: boolean;
 }
 
-/**
- * readsBrowsers tells an instance that reads the browsers on its computer by
- * what that left behind: a session read from one, or a browser it could not
- * read. One that found neither is taken for a container.
- */
+/** readsBrowsers is whether the instance reads the browsers on its computer, as its sites say. */
 export function readsBrowsers(sites: SiteLogin[]): boolean {
-  return sites.some((s) => s.source === 'browser' || s.unreadable.length > 0);
+  return sites.some((s) => s.readsBrowsers);
 }
 
 /**
