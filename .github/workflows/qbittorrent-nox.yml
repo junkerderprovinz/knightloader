@@ -114,9 +114,13 @@ jobs:
         shell: pwsh
         run: |
           $qt = "$env:RUNNER_TEMP\qt\$env:QT_VERSION\msvc2019_64"
+          # vcpkg's zlib brings a CMake package that names its static library
+          # ZLIB::ZLIBSTATIC, while qBittorrent links ZLIB::ZLIB.
+          Set-Content zlib-alias.cmake 'find_package(ZLIB REQUIRED)', 'if(NOT TARGET ZLIB::ZLIB AND TARGET ZLIB::ZLIBSTATIC)', '  add_library(ZLIB::ZLIB ALIAS ZLIB::ZLIBSTATIC)', 'endif()'
+          $alias = (Join-Path (Get-Location) zlib-alias.cmake) -replace '\\', '/'
           cmake -S qbittorrent -B qbt-build -G Ninja -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md `
-            -DCMAKE_PREFIX_PATH="$qt;$env:RUNNER_TEMP\lt;$env:RUNNER_TEMP\boost" -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF --debug-find-pkg=ZLIB
+            -DCMAKE_PREFIX_PATH="$qt;$env:RUNNER_TEMP\lt;$env:RUNNER_TEMP\boost" -DCMAKE_PROJECT_INCLUDE="$alias" -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF
           cmake --build qbt-build
           New-Item -ItemType Directory -Force out | Out-Null
           Copy-Item qbt-build\qbittorrent-nox.exe out\
