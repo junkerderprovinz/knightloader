@@ -122,7 +122,7 @@ jobs:
           # GUI only.
           cmake -S qbittorrent -B qbt-build -G Ninja -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md `
-            -DCMAKE_PREFIX_PATH="$qt;$env:RUNNER_TEMP\lt;$env:RUNNER_TEMP\boost" -DCMAKE_PROJECT_INCLUDE="$alias" -DCMAKE_EXE_LINKER_FLAGS=PowrProf.lib -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF
+            -DCMAKE_PREFIX_PATH="$qt;$env:RUNNER_TEMP\lt;$env:RUNNER_TEMP\boost" -DCMAKE_PROJECT_INCLUDE="$alias" "-DCMAKE_EXE_LINKER_FLAGS=PowrProf.lib" -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF
           cmake --build qbt-build
           New-Item -ItemType Directory -Force out | Out-Null
           Copy-Item qbt-build\qbittorrent-nox.exe out\
