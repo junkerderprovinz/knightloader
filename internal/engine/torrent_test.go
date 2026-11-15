@@ -626,3 +626,17 @@ func TestTheSecondFileOfAPaddedTorrentIsReadFromItsOwnPiece(t *testing.T) {
 		t.Errorf("the second file starts at %d of the torrent's bytes, want 114688", start)
 	}
 }
+
+func TestTheTorrentsTheEngineRunsAreTheOnesNotPaused(t *testing.T) {
+	e, _, _ := torrentEngine(t)
+	hashA, magnetA := testenv.SeedTorrent(t, "A", map[string]int{"a.bin": 10})
+	hashB, magnetB := testenv.SeedTorrent(t, "B", map[string]int{"b.bin": 10})
+	e.Start(Job{TaskID: "a", URL: magnetA, Dir: t.TempDir()})
+	e.Start(Job{TaskID: "b", URL: magnetB, Dir: t.TempDir()})
+	waitUntil(t, "both running", func() bool { return e.runOf("a") != nil && e.runOf("b") != nil })
+	e.Pause("b")
+	waitUntil(t, "b paused", func() bool { return slices.Equal(e.RunningTorrents(), []string{hashA}) })
+	if got := e.RunningTorrents(); slices.Contains(got, hashB) {
+		t.Errorf("running %v", got)
+	}
+}

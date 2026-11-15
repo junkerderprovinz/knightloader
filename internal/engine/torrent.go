@@ -103,16 +103,6 @@ func (e *Engine) DownloadTorrent(taskID, uri, dir string, sel []int) {
 	e.Start(Job{TaskID: taskID, URL: uri, Dir: dir, TorrentSelect: sel})
 }
 
-// clientHash is a torrent's hash as the client names it: v1, or the start of
-// v2 for a torrent without v1.
-func clientHash(infoHash string) string {
-	h := strings.ToLower(infoHash)
-	if len(h) > 40 {
-		h = h[:40]
-	}
-	return h
-}
-
 // startTorrent is Start's torrent branch: settle where the torrent lands,
 // hand it to the client stopped, wait for its file list, check where every
 // file would land, pick the files and start it. Start has already called
@@ -138,7 +128,7 @@ func (e *Engine) bringUp(j Job, s *start) {
 		e.failStart(j, err)
 		return
 	}
-	hash := clientHash(md.InfoHash)
+	hash := torrents.HashOf(md.InfoHash)
 	magnet := torrent.IsMagnet(j.URL)
 	sel := j.TorrentSelect
 	if sel == nil && !magnet {
@@ -638,6 +628,22 @@ func (e *Engine) endRun(run *torrentRun, err error) {
 		st.NotSeeded = nip.why
 	}
 	e.emit(taskID, core.Update{Torrent: st})
+}
+
+// RunningTorrents is the hash of every torrent the engine keeps running in
+// the client, so one the client starts again after a restart of its own can
+// be told from one nobody wants running.
+func (e *Engine) RunningTorrents() []string {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	var out []string
+	for _, run := range e.runs {
+		if !run.paused && !run.closed {
+			out = append(out, run.hash)
+		}
+	}
+	slices.Sort(out)
+	return out
 }
 
 // runOf is the run of a task's torrent, or nil.

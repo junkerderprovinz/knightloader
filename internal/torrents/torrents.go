@@ -8,6 +8,7 @@ package torrents
 import (
 	"context"
 	"errors"
+	"strings"
 )
 
 // Client is a torrent client as the engine drives it. Every torrent is known
@@ -42,6 +43,16 @@ type Client interface {
 	Stream(ctx context.Context, hash string, on bool) error
 	// Configure applies the settings every torrent shares.
 	Configure(ctx context.Context, p Prefs) error
+}
+
+// HashOf is an info hash as the client names a torrent: in lower case, and
+// for one with a v2 hash alone its first 40 digits.
+func HashOf(infoHash string) string {
+	h := strings.ToLower(infoHash)
+	if len(h) > 40 {
+		h = h[:40]
+	}
+	return h
 }
 
 var (
