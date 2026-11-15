@@ -50,6 +50,7 @@ import {
 import { useT, type TranslationKey } from '../lib/i18n';
 import { resolverLabel } from '../lib/resolverLabels';
 import { ROW_ESTIMATES, ROW_METRICS, useRowHeight } from '../lib/rowHeight';
+import { useListShade } from '../lib/listShade';
 import { useToast } from '../lib/toast';
 import { taskRefusal } from '../lib/taskRefusal';
 import { useStartTasks } from '../lib/useStartTasks';
@@ -127,7 +128,7 @@ import { RetrySkipBadge } from './RetryCountdown';
 import { rowState } from './StatusPill';
 import { TaskDetailPanel } from './taskdetail/TaskDetailPanel';
 import { useListKeyboard } from './listKeyboard';
-import { fileRowKey, rowKey, useRowWindow, type ListRow, type RowDragKey } from './listRows';
+import { fileRowKey, rowBands, rowKey, useRowWindow, type ListRow, type RowBand, type RowDragKey } from './listRows';
 import { TorrentFileRow, hasTorrentFiles, loneTorrent, useTorrentFiles } from './TorrentFileRow';
 import {
   aimAt,
@@ -449,6 +450,7 @@ function TaskRow({
   posinset,
   setsize,
   files,
+  band,
 }: {
   task: Task;
   base: string;
@@ -478,6 +480,7 @@ function TaskRow({
   /** A torrent with files to show under it: whether they are shown, and the
    *  twisty that shows and hides them. Absent for every other row. */
   files?: { open: boolean; onToggle: () => void };
+  band: RowBand;
 }) {
   const parked = isParked([task]);
   const unit: RowDragKey = { kind: 'task', id: task.id };
@@ -502,6 +505,7 @@ function TaskRow({
       // see useRowWindow's measureRows.
       data-row-key={rowKey({ kind: 'task', id: task.id })}
       data-row-kind="task"
+      data-band={band}
       role="treeitem"
       // Roving tabindex: one row is the tab stop, not five thousand.
       tabIndex={current ? 0 : -1}
@@ -1047,6 +1051,7 @@ function PackageRow({
   setsize,
   torrent,
   index,
+  band,
 }: {
   name: string;
   items: Task[];
@@ -1078,6 +1083,7 @@ function PackageRow({
   torrent?: Task;
   /** The torrent's rainbow position, as a link row's `index`. */
   index?: number;
+  band: RowBand;
 }) {
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
   const parked = isParked(items);
@@ -1094,6 +1100,7 @@ function PackageRow({
       // See TaskRow's own pair: what useRowWindow measures this row by.
       data-row-key={rowKey({ kind: 'package', name })}
       data-row-kind="package"
+      data-band={band}
       role="treeitem"
       tabIndex={current ? 0 : -1}
       aria-selected={selection ? !!allSelected : undefined}
@@ -1122,14 +1129,15 @@ function PackageRow({
         if (e.target instanceof Element && e.target.closest(CONTROL)) return;
         onOpenProperties?.();
       }}
-      // The header wears the links' own ground, as in JDownloader: the folder
-      // glyph and the bold name set it apart, and a tinted band on every
-      // package would make a long list striped. The selected state paints over
-      // it with .glim-row-selected.
+      // Unshaded, the header wears the links' own ground, as in JDownloader:
+      // the folder glyph and the bold name set it apart. The shaded list
+      // (lib/listShade.ts) gives it its band's head instead, and the seam
+      // becomes a gap before it. The selected state paints over either with
+      // .glim-row-selected.
       className={`glim-row relative grid cursor-pointer select-none items-center ${
         hued ? `glim-hue glim-tint ${torrent.status === 'running' ? 'glim-active' : ''}` : ''
       } ${allSelected ? 'glim-row-selected' : ''} ${
-        divider ? 'border-t border-carbon-border/60' : ''
+        divider ? 'kl-band-seam border-t border-carbon-border/60' : ''
       } ${ROW_EDGES} py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
     >
       {columns.map((col) => (
@@ -3548,6 +3556,8 @@ export function TaskListCard({
   const rowHeight = useRowHeight();
   const metrics = ROW_METRICS[rowHeight];
   const win = useRowWindow(rows, stripRef, ROW_ESTIMATES[rowHeight]);
+  const shaded = useListShade();
+  const bands = useMemo(() => rowBands(rows), [rows]);
 
   // The list from the keyboard; see listKeyboard.ts for why a windowed list
   // needs a file of its own for it. selectUnit goes in whole rather than being
@@ -3812,6 +3822,7 @@ export function TaskListCard({
                 data-new="row-pick"
                 aria-multiselectable="true"
                 aria-label={title}
+                data-shade={shaded ? '' : undefined}
                 tabIndex={keys.stripTabIndex}
                 onFocus={keys.onStripFocus}
                 // The whole gesture hangs here and not on the rows: a press
@@ -3852,7 +3863,7 @@ export function TaskListCard({
                   />
                 )}
                 {win.padTop > 0 && <div aria-hidden style={{ height: win.padTop }} />}
-                {rows.slice(win.start, win.end).map((row) =>
+                {rows.slice(win.start, win.end).map((row, i) =>
                   row.kind === 'file' ? (
                     <TorrentFileRow
                       key={row.key}
@@ -3866,6 +3877,7 @@ export function TaskListCard({
                       onChanged={(files) => putFiles(row.task.id, files)}
                       look={dnd.look(fileUnit(row))}
                       slide={dnd.slide(fileUnit(row))}
+                      band={bands[win.start + i]}
                     />
                   ) : row.kind === 'package' ? (
                     <PackageRow
@@ -3880,6 +3892,7 @@ export function TaskListCard({
                       divider={row.divider}
                       torrent={row.torrent}
                       index={row.index}
+                      band={bands[win.start + i]}
                       onToggleCollapsed={() =>
                         row.torrent ? showFiles(row.torrent.id, row.collapsed) : toggle(row.name)
                       }
@@ -3899,6 +3912,7 @@ export function TaskListCard({
                       key={row.key}
                       task={row.task}
                       index={row.index}
+                      band={bands[win.start + i]}
                       base={base}
                       ctx={ctx}
                       columns={shown.visible}

@@ -15,7 +15,7 @@ import {
   type CellContext,
   type ColumnDef,
 } from './columns';
-import type { ListRow } from './listRows';
+import type { ListRow, RowBand } from './listRows';
 
 // A torrent's files under its row. The task carries only how many there are
 // (torrentFileCount), because a torrent can list thousands and the task goes
@@ -119,6 +119,7 @@ export function TorrentFileRow({
   onChanged,
   look,
   slide,
+  band,
 }: {
   row: Extract<ListRow, { kind: 'file' }>;
   /** Every file of the torrent, which the switch sends as the new choice. */
@@ -131,6 +132,7 @@ export function TorrentFileRow({
   onChanged: (files: TorrentFileView[]) => void;
   look: string;
   slide: CSSProperties;
+  band: RowBand;
 }) {
   const { t } = ctx;
   const { toast } = useToast();
@@ -206,6 +208,7 @@ export function TorrentFileRow({
       // drag reads data-file-of to count this row into its torrent's box.
       data-row-key={row.key}
       data-row-kind="file"
+      data-band={band}
       data-file-of={task.id}
       data-file-under={row.under}
       role="treeitem"
