@@ -63,6 +63,9 @@ type torrentRun struct {
 	// closed is the torrent taken out of the client at a seeding target.
 	closed  bool
 	streams int
+	// starts is where each file begins in the torrent's bytes, read when
+	// the first reader opens one.
+	starts []int64
 }
 
 // totals is a reading of the client's as the task counts it.

@@ -1,7 +1,10 @@
 package engine
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha1"
+	"io"
 	"net"
 	"os"
 	"path/filepath"
@@ -10,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/bencode"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent"
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent/nox"
@@ -57,6 +61,8 @@ func liveQBit(t *testing.T) (*qbittorrent.Client, int) {
 	err = c.SetPreferences(ctx, map[string]any{
 		"listen_port": port, "dht": false, "pex": false, "lsd": false, "upnp": false,
 		"current_network_interface": "", "announce_ip": "",
+		// Both ends of a test run on 127.0.0.1.
+		"enable_multi_connections_from_same_ip": true,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -141,5 +147,107 @@ func TestARealQBittorrentSeedsAnUploadWhoseFilesAreInPlace(t *testing.T) {
 	u := log.waitFor(t, "seeding", func(u core.Update) bool { return u.Torrent != nil && u.Torrent.Seeding })
 	if u.Torrent.Uploaded != 5 {
 		t.Errorf("torrent %+v", u.Torrent)
+	}
+}
+
+// paddedTorrent writes a torrent of two files under root/name with a BEP 47
+// padding file between them, so the second starts on a piece of its own, and
+// returns its .torrent and info hash. The padding is never written to disk.
+func paddedTorrent(t *testing.T, root, name string, first, second int) ([]byte, string) {
+	t.Helper()
+	const piece = testenv.TorrentPieceLength
+	pad := (piece - first%piece) % piece
+	var data []byte
+	files := []any{}
+	for _, f := range []struct {
+		name string
+		size int
+	}{{"a.mkv", first}, {"b.mkv", second}} {
+		body := testenv.Content(f.name, f.size)
+		if err := os.MkdirAll(filepath.Join(root, name), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, name, f.name), body, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		data = append(data, body...)
+		files = append(files, map[string]any{"length": f.size, "path": []any{f.name}})
+		if f.name == "a.mkv" && pad > 0 {
+			data = append(data, make([]byte, pad)...)
+			files = append(files, map[string]any{"length": pad, "path": []any{".pad", strconv.Itoa(pad)}, "attr": "p"})
+		}
+	}
+	var hashes []byte
+	for at := 0; at < len(data); at += piece {
+		sum := sha1.Sum(data[at:min(at+piece, len(data))])
+		hashes = append(hashes, sum[:]...)
+	}
+	info, err := bencode.Encode(map[string]any{"name": name, "piece length": piece, "pieces": hashes, "files": files})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := testenv.Bencode(testenv.TorrentMeta{InfoBytes: info})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return raw, bencode.InfoHash(info)
+}
+
+// The second file of a torrent with a padding file before it plays while it
+// downloads from a seeder that sends slowly: the bytes read are the file's
+// own, from its first to its last.
+func TestARealQBittorrentPlaysTheSecondFileOfAPaddedTorrentWhileItArrives(t *testing.T) {
+	seeder, port := liveQBit(t)
+	leecher, _ := liveQBit(t)
+	ctx := context.Background()
+	src := t.TempDir()
+	const first, second = 100000, 2<<20 + 1234
+	raw, hash := paddedTorrent(t, src, "Film", first, second)
+	if err := seeder.Add(ctx, qbittorrent.Torrent{File: raw, SavePath: src, Folder: true}); err != nil {
+		t.Fatal(err)
+	}
+	if err := seeder.SetPreferences(ctx, map[string]any{"up_limit": 200 << 10}); err != nil {
+		t.Fatal(err)
+	}
+
+	log := &updateLog{}
+	e, err := New(t.TempDir(), log.add)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = e.Close() })
+	e.UseTorrents(torrents.QBit(func(context.Context) (*qbittorrent.Client, error) { return leecher, nil }))
+	magnet := "magnet:?xt=urn:btih:" + hash + "&dn=Film&x.pe=127.0.0.1:" + strconv.Itoa(port)
+	e.Start(Job{TaskID: "t", URL: magnet, Dir: t.TempDir()})
+	// A magnet from a peer on loopback takes about a minute for its
+	// metadata.
+	deadline := time.Now().Add(3 * time.Minute)
+	for e.runOf("t") == nil {
+		if time.Now().After(deadline) {
+			t.Fatalf("no run: %+v", log.snapshot())
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	r, err := e.Stream("t", 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Close()
+	for _, u := range log.snapshot() {
+		if u.Status == core.StatusDone {
+			t.Fatal("the torrent was done before the stream opened")
+		}
+	}
+	got, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := testenv.Content("b.mkv", second); !bytes.Equal(got, want) {
+		at := 0
+		for at < min(len(got), len(want)) && got[at] == want[at] {
+			at++
+		}
+		t.Fatalf("read %d bytes of %d, the first wrong at %d", len(got), len(want), at)
 	}
 }

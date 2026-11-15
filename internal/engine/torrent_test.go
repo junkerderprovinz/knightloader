@@ -609,3 +609,20 @@ func TestAProxyReachesTheClientWithTheOtherSettings(t *testing.T) {
 	}
 	waitUntil(t, "the client's settings", func() bool { p := c.Prefs(); return len(p) > 0 && p[len(p)-1].Proxy == px })
 }
+
+func TestTheSecondFileOfAPaddedTorrentIsReadFromItsOwnPiece(t *testing.T) {
+	e, c, _ := torrentEngine(t)
+	c.Stall()
+	dir := t.TempDir()
+	raw, _ := paddedTorrent(t, t.TempDir(), "Film", 100000, 5000)
+	e.Start(Job{TaskID: "t", URL: torrent.EncodeBytes(raw), Dir: dir})
+	waitUntil(t, "the torrent running", func() bool { return e.runOf("t") != nil })
+	r, err := e.Stream("t", 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Close()
+	if start := r.(*torrentReader).start; start != 114688 {
+		t.Errorf("the second file starts at %d of the torrent's bytes, want 114688", start)
+	}
+}

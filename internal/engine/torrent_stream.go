@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/torrents"
 )
 
@@ -24,14 +25,13 @@ import (
 func (e *Engine) streamTorrent(run *torrentRun, file int) (*torrentReader, error) {
 	bt := e.client()
 	e.mu.Lock()
-	if bt == nil || file < 0 || file >= len(run.c.files) {
-		e.mu.Unlock()
+	count := len(run.c.files)
+	e.mu.Unlock()
+	if bt == nil || file < 0 || file >= count {
 		return nil, ErrNotStreaming
 	}
-	var start int64
-	for _, f := range run.c.files[:file] {
-		start += f.Size
-	}
+	start := e.fileStart(bt, run, file)
+	e.mu.Lock()
 	f := run.c.files[file]
 	r := &torrentReader{
 		e: e, run: run, bt: bt,
@@ -49,6 +49,55 @@ func (e *Engine) streamTorrent(run *torrentRun, file int) (*torrentReader, error
 		}
 	}
 	return r, nil
+}
+
+// fileStart is where file begins in the torrent's bytes, which is where the
+// client's pieces place it. Padding files take room there but are left out of
+// the client's file list, so the .torrent says where each file starts; a
+// torrent whose .torrent cannot be had is taken to have no padding.
+func (e *Engine) fileStart(bt torrents.Client, run *torrentRun, file int) int64 {
+	e.mu.Lock()
+	starts, files := run.starts, run.c.files
+	e.mu.Unlock()
+	if starts == nil {
+		starts = e.readStarts(bt, run, len(files))
+		if starts == nil {
+			starts = make([]int64, len(files))
+			for i := 1; i < len(files); i++ {
+				starts[i] = starts[i-1] + files[i-1].Size
+			}
+		}
+		e.mu.Lock()
+		run.starts = starts
+		e.mu.Unlock()
+	}
+	return starts[file]
+}
+
+// readStarts is where each of the count files of a run's torrent begins, by
+// its .torrent: the upload's own, or the client's for a magnet. It is nil
+// when there is no .torrent or it names other files.
+func (e *Engine) readStarts(bt torrents.Client, run *torrentRun, count int) []int64 {
+	var raw []byte
+	var err error
+	if torrent.IsMagnet(run.job.URL) {
+		ctx, cancel := context.WithTimeout(e.ctx, clientWait)
+		raw, err = bt.Metainfo(ctx, run.hash)
+		cancel()
+	} else {
+		raw, err = torrent.DecodeBytes(run.job.URL)
+	}
+	if err != nil {
+		return nil
+	}
+	info, _, err := torrent.ReadInfo(raw)
+	if err != nil {
+		return nil
+	}
+	if starts := info.Offsets(); len(starts) == count {
+		return starts
+	}
+	return nil
 }
 
 // torrentReader is one file of a torrent, read as its pieces arrive.
