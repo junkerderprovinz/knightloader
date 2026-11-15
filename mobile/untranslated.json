@@ -248,12 +248,14 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "settings.oled"
     ],
     "bg": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -265,6 +267,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "notify.watchSpeed",
@@ -276,6 +279,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -291,6 +295,7 @@
       "settings.aboutPaypal",
       "settings.aboutVersion",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "settings.motion.storm",
       "downloads.torrentsTitle",
       "settings.motion",
@@ -307,7 +312,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.aboutMail",
+      "settings.aboutDiscord",
       "downloads.torrentsTitle",
       "speed.legend.seeding",
       "notify.watchSpeed",
@@ -320,6 +325,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "notify.watchSpeed",
@@ -331,6 +337,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -339,6 +346,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -346,6 +354,7 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "settings.oled"
     ],
     "fi": [
@@ -353,6 +362,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -367,6 +377,7 @@
       "settings.aboutCrypto",
       "settings.aboutVersion",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "settings.notifications",
@@ -382,6 +393,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "notify.watchSpeed",
@@ -391,6 +403,7 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -398,6 +411,7 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -406,6 +420,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -413,6 +428,7 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -422,6 +438,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "speed.legend.seeding",
       "notify.watchSpeed",
       "settings.oled"
@@ -431,6 +448,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -441,7 +459,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.aboutMail",
+      "settings.aboutDiscord",
       "instance.filesOne",
       "speed.legend.download",
       "notify.watchOne",
@@ -452,12 +470,14 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "settings.oled"
     ],
     "ko": [
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -466,6 +486,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -474,6 +495,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -482,6 +504,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "speed.legend.seeding",
       "notify.watchSpeed",
       "settings.oled"
@@ -496,7 +519,7 @@
       "settings.aboutPaypal",
       "settings.aboutCrypto",
       "settings.aboutGithub",
-      "settings.aboutMailSubject",
+      "settings.aboutDiscord",
       "settings.motion.wild",
       "settings.motion.storm",
       "downloads.torrentsTitle",
@@ -513,6 +536,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "settings.motion.storm",
       "downloads.torrentsTitle",
       "settings.theme.system",
@@ -526,6 +550,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -536,6 +561,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "notify.watchSpeed",
@@ -550,7 +576,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.aboutMailSubject",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -558,6 +584,7 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -567,6 +594,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -575,6 +603,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -582,6 +611,7 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -595,6 +625,7 @@
       "settings.aboutPaypal",
       "settings.aboutVersion",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "settings.motion.storm",
       "downloads.torrentsTitle",
       "settings.motion",
@@ -606,6 +637,7 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "settings.oled"
     ],
     "tr": [
@@ -613,6 +645,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -620,6 +653,7 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -629,7 +663,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.aboutMail",
+      "settings.aboutDiscord",
       "notify.watchSpeed",
       "settings.oled"
     ],
@@ -637,6 +671,7 @@
       "addDownload.placeholder",
       "settings.aboutPaypal",
       "settings.aboutGithub",
+      "settings.aboutDiscord",
       "settings.oled"
     ]
   }

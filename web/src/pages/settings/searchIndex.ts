@@ -1337,7 +1337,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.info.helpTitle',
       hint: 'settings.info.helpHint',
       rows: [],
-      also: ['settings.about.github', 'settings.about.mail', 'settings.info.manual', 'settings.info.bugReport'],
+      also: ['settings.about.github', 'settings.about.discord', 'settings.info.manual', 'settings.info.bugReport'],
       body: ['settings.about.report'],
     },
     {

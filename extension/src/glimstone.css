@@ -127,12 +127,13 @@ body {
   /* The About card's marks at rest. The published colours fail 3:1 on one of
      the two button grounds, so the warm ones are deepened for light and the
      dark ones lightened for dark; the true colour is the lit button's fill
-     (.glim-tile-<brand>). On #393939 they measure 8.6, 5.0, 5.1 and 11.6 to 1.
+     (.glim-tile-<brand>). On #393939 they measure 8.6, 5.0, 5.1, 11.6 and 4.6 to 1.
      The App tab's marks ship too, not only the ones these pages draw. */
   --brand-coffee:  #ffdd00;
   --brand-bitcoin: #f7931a;
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
+  --brand-discord: #949cf7;
   --brand-android:     #32de84;
   --brand-docker:      #2396ed;
   --brand-unraid-from: #e32929;
@@ -211,11 +212,12 @@ body {
      goes down to 3:1 against both (GlimStone 4.2.0). */
   --toggle-off:        #8d8d8d;
 
-  /* On #e8e8e8 these measure 4.0, 4.1, 9.7 and 14.6 to 1. */
+  /* On #e8e8e8 these measure 4.0, 4.1, 9.7, 14.6 and 3.8 to 1. */
   --brand-coffee:  #8a6d00;
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
   --brand-github:  #181717;
+  --brand-discord: #5865f2;
   --brand-android:     #32de84;
   --brand-docker:      #2396ed;
   --brand-unraid-from: #e32929;
@@ -319,6 +321,7 @@ body {
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
     --brand-github:  #181717;
+    --brand-discord: #5865f2;
     --brand-android:     #32de84;
     --brand-docker:      #2396ed;
     --brand-unraid-from: #e32929;
@@ -1484,6 +1487,7 @@ body {
 .glim-paypal-mark { color: var(--brand-paypal); }
 .glim-bitcoin-mark { color: var(--brand-bitcoin); }
 .glim-github-mark { color: var(--brand-github); }
+.glim-discord-mark { color: var(--brand-discord); }
 .glim-house-mark { color: var(--accent-glyph); }
 
 /* A tile carrying a brand mark ("Brand tiles"): under the pointer it fills with
@@ -1544,6 +1548,7 @@ body {
 .glim-tile-umbrel  { --tile: #5351f3; --tile-ink: #ffffff; } /* 5.5:1 */
 .glim-tile-zip     { --tile: #4d5562; --tile-ink: #ffffff; } /* 7.5:1 */
 .glim-tile-github  { --tile: #181717; --tile-ink: #ffffff; } /* 17.9:1 */
+.glim-tile-discord { --tile: #5865f2; --tile-ink: #ffffff; } /* 4.6:1 */
 .glim-tile-paypal  { --tile: #003087; --tile-ink: #ffffff; } /* 11.8:1 */
 .glim-tile-bitcoin { --tile: #f7931a; --tile-ink: #161616; } /* 7.9:1 */
 /* Buy Me a Coffee's own near-black, the ink of their button. 14.3:1. */

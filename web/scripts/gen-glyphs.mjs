@@ -41,7 +41,7 @@ const USED = [
   'IconFileSlides', 'IconBook', 'IconDisc', 'IconFileProgram', 'IconFont', 'IconHash', 'IconMagnet', 'IconCube',
   'IconFleet',
   'IconAccounts', 'IconNetwork', 'IconPhone', 'IconBrowser', 'IconApp',
-  'IconModules', 'IconCaptcha', 'IconRestore', 'IconSync', 'IconGithub', 'IconTabGeneral',
+  'IconModules', 'IconCaptcha', 'IconRestore', 'IconSync', 'IconGithub', 'IconDiscord', 'IconTabGeneral',
   'IconTabLook', 'IconTabSecurity', 'IconTabAdvanced', 'IconTabApp', 'IconSchedules',
   'IconNotifications', 'IconSliders', 'IconDiagnostics', 'IconKeyboard', 'IconPaste',
   'IconSort', 'IconFolderUp', 'IconHealth', 'IconQueued', 'IconCaptchaTimer',

@@ -169,15 +169,31 @@ describe('the Info tile', () => {
     expect(manual.textContent).toContain('Open');
   });
 
-  it('shows the manual as a closed book with an open one for the pointer, as the envelope has', async () => {
+  it('asks for reports on GitHub and Discord, with a button for each and none for mail', async () => {
     await draw();
-    const pair = (name: string) =>
-      [...card('Help').querySelectorAll('.glim-readme-btn')]
-        .find((b) => b.textContent?.includes(name))!
-        .querySelectorAll('.glim-readme-btn-mark svg');
-    for (const name of ['Manual', 'Email']) {
-      expect([...pair(name)].map((svg) => svg.getAttribute('class'))).toEqual(['glim-mark-rest', 'glim-mark-hover']);
-    }
+    const help = card('Help');
+    expect(help.querySelector('p')!.textContent).toBe(
+      "Problems, wishes or suggestions? You're welcome to open an issue on GitHub, or come say hi on Discord.",
+    );
+    const names = [...help.querySelectorAll('.glim-readme-btn-name')].map((n) => n.textContent);
+    expect(names).toEqual(['GitHub', 'Discord', 'Manual', 'Bug report']);
+    expect(help.querySelector('a[href^="mailto:"]')).toBeNull();
+  });
+
+  it("opens the Discord server in Discord's colours", async () => {
+    await draw();
+    const discord = [...card('Help').querySelectorAll('a')].find((a) => a.textContent === 'Discord')!;
+    expect(discord.getAttribute('href')).toBe('https://discord.gg/2CTZyKaFb6');
+    expect(discord.closest('.glim-tile-discord')).not.toBeNull();
+    expect(discord.querySelector('.glim-readme-btn-mark')!.classList.contains('glim-discord-mark')).toBe(true);
+  });
+
+  it('shows the manual as a closed book with an open one for the pointer', async () => {
+    await draw();
+    const book = [...card('Help').querySelectorAll('.glim-readme-btn')]
+      .find((b) => b.textContent?.includes('Manual'))!
+      .querySelectorAll('.glim-readme-btn-mark svg');
+    expect([...book].map((svg) => svg.getAttribute('class'))).toEqual(['glim-mark-rest', 'glim-mark-hover']);
   });
 
   it("wears the README's docs button on the manual: its yellow and its closed book", async () => {
@@ -197,10 +213,10 @@ describe('the Info tile', () => {
       expect(height).toBe(width);
       return width;
     });
-    // GitHub, the envelope shut and open, the book shut and open, the bug: each
-    // box is the longer side of its ink. An ordinary glyph keeps a quarter of
-    // its box as air, so GitHub's 24 would stand in a box of 32.
-    expect(sides).toEqual([24, 14, 20, 512, 14, 13.9]);
+    // GitHub, Discord, the book shut and open, the bug: each box is the longer
+    // side of its ink. An ordinary glyph keeps a quarter of its box as air, so
+    // GitHub's 24 would stand in a box of 32.
+    expect(sides).toEqual([24, 24, 512, 14, 13.9]);
   });
 
   it('downloads the diagnostics bundle as the bug report', async () => {

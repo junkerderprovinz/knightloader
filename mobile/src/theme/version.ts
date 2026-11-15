@@ -4,7 +4,7 @@
  * describes so the About card cannot drift from them; bump it in the change
  * that lifts them.
  */
-export const GLIMSTONE_VERSION = '4.5.1';
+export const GLIMSTONE_VERSION = '4.5.2';
 
 export const GLIMSTONE_REPO = 'https://github.com/junkerderprovinz/glimstone';
 

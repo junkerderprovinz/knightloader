@@ -102,6 +102,7 @@ export interface Palette {
   brandBitcoin: string;
   brandPaypal: string;
   brandGithub: string;
+  brandDiscord: string;
   brandWindows: string;
   brandDocker: string;
 
@@ -152,12 +153,13 @@ export const DARK: Palette = {
   // any lighter the eye keeps reading the page behind the panel.
   scrim: 'rgba(0, 0, 0, 0.72)',
 
-  // On #393939 these measure 8.6, 5.0, 5.1 and 11.6 to 1, the extension's
-  // values.
+  // On #393939 these measure 8.6, 5.0, 5.1, 11.6 and 4.6 to 1, the
+  // extension's values.
   brandCoffee: '#ffdd00',
   brandBitcoin: '#f7931a',
   brandPaypal: '#4fb5f0',
   brandGithub: '#ffffff',
+  brandDiscord: '#949cf7',
   // 3.1 and 3.7 to 1, the web interface's values.
   brandWindows: '#2b88d8',
   brandDocker: '#2396ed',
@@ -221,11 +223,12 @@ export const LIGHT: Palette = {
   // mode looks like a power cut.
   scrim: 'rgba(0, 0, 0, 0.62)',
 
-  // On #e8e8e8 these measure 4.0, 4.1, 9.7 and 14.6 to 1.
+  // On #e8e8e8 these measure 4.0, 4.1, 9.7, 14.6 and 3.8 to 1.
   brandCoffee: '#8a6d00',
   brandBitcoin: '#a85d00',
   brandPaypal: '#003087',
   brandGithub: '#181717',
+  brandDiscord: '#5865f2',
   // 3.7 and 4.2 to 1. Docker's lighter blue, which the dark theme takes,
   // measures 2.6 here, so this is the deeper one from its own tile.
   brandWindows: '#0078d4',
@@ -237,6 +240,7 @@ export type Brand =
   | 'bitcoin'
   | 'paypal'
   | 'github'
+  | 'discord'
   | 'windows'
   | 'apple'
   | 'linux'
@@ -261,6 +265,7 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
   bitcoin: { fill: '#f7931a', ink: '#161616' },
   paypal: { fill: '#003087', ink: '#ffffff' },
   github: { fill: '#181717', ink: '#ffffff' },
+  discord: { fill: '#5865f2', ink: '#ffffff' },
   // The Apps cards' platforms, in the web interface's tile colours.
   windows: { fill: '#0078d4', ink: '#ffffff' },
   apple: { fill: '#6e6e73', ink: '#ffffff' },

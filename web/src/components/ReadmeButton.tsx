@@ -30,6 +30,7 @@ const TILES = {
   umbrel: 'glim-tile-umbrel',
   zip: 'glim-tile-zip',
   github: 'glim-tile-github',
+  discord: 'glim-tile-discord',
   paypal: 'glim-tile-paypal',
   bitcoin: 'glim-tile-bitcoin',
   coffee: 'glim-tile-coffee',

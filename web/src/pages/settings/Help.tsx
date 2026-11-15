@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { useT } from '../../lib/i18n';
 import { Button, Card, SectionTitle } from '../../components/ui';
-import { IconDiagnostics, IconGithub } from '../../lib/icons';
-import { COFFEE_BUTTON_SVG, MAIL_SVG, MANUAL_SVG } from '../../lib/appMarks';
+import { IconDiagnostics, IconDiscord, IconGithub } from '../../lib/icons';
+import { COFFEE_BUTTON_SVG, MANUAL_SVG } from '../../lib/appMarks';
 import { IconBitcoin, IconPayPal } from '../../components/donateMarks';
 import { BrandMark, ReadmeButton } from '../../components/ReadmeButton';
 import { CoffeeDialog } from '../../components/CoffeeDialog';
 import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
 import { PaypalDialog } from '../../components/PaypalDialog';
 import { PAYPAL_PAGE } from '../../lib/donate';
-import { followExternal, openExternal, openMail, popupsWork } from '../../lib/external';
+import { followExternal, openExternal, popupsWork } from '../../lib/external';
 import { useToast } from '../../lib/toast';
 import { saveDiagnostics } from './diagnostics/bundle';
 import { ComponentsCard } from './help/Components';
@@ -32,7 +32,7 @@ export function Help() {
 }
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
-const CONTACT_MAIL = 'hello@halleluja.design';
+const DISCORD_URL = 'https://discord.gg/2CTZyKaFb6';
 const MANUAL_URL = 'https://junkerderprovinz.github.io/knightloader/';
 
 /**
@@ -90,16 +90,15 @@ export function About({ hue }: { hue: number }) {
 }
 
 /**
- * Report holds the ways to report something: the repository, a mail, the
- * manual and the diagnostics bundle as a file to attach to an issue. The
- * sentence sits directly above the buttons it asks for. The two glyphs are
- * drawn tight, so they fill the mark's box as the envelope and the book do,
- * which come cropped to their ink.
+ * Report holds the ways to report something: the repository, the Discord
+ * server, the manual and the diagnostics bundle as a file to attach to an
+ * issue. The sentence sits directly above the buttons it asks for. The glyphs
+ * are drawn tight, so they fill the mark's box as the book does, which comes
+ * cropped to its ink.
  */
 function Report({ hue }: { hue: number }) {
   const { t } = useT();
   const { toast } = useToast();
-  const mailto = `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.about.mailSubject')}`)}`;
 
   async function onBugReport() {
     try {
@@ -114,25 +113,21 @@ function Report({ hue }: { hue: number }) {
       <SectionTitle hint={t('settings.info.helpHint')}>{t('settings.info.helpTitle')}</SectionTitle>
       <p className="text-sm text-carbon-textSub">{t('settings.about.report')}</p>
       <div className="glim-readme-btn-rows">
-        {/* A link, so middle-click and copy-link work. */}
+        {/* Links, so middle-click and copy-link work. */}
         <ReadmeButton
           brand="github"
           parts={[{ name: t('settings.about.github'), href: REPO_URL }]}
           mark={<IconGithub tight />}
           markClass="glim-github-mark"
         />
-        {/* Without a vendor's mark: it reaches this app's authors, so it
-            follows the user's accent, and its envelope opens under the
-            pointer. A mail address opened in a new tab would leave an empty
-            one behind, so it goes through openMail. */}
         <ReadmeButton
-          brand="house"
-          parts={[{ name: t('settings.about.mail'), onClick: () => openMail(mailto) }]}
-          mark={<BrandMark svg={MAIL_SVG} />}
-          markClass="glim-house-mark"
+          brand="discord"
+          parts={[{ name: t('settings.about.discord'), href: DISCORD_URL }]}
+          mark={<IconDiscord tight />}
+          markClass="glim-discord-mark"
         />
         {/* The manual wears the README's docs button, its book and its
-            yellow, and the book opens as the envelope does. */}
+            yellow, and the book opens under the pointer. */}
         <ReadmeButton
           brand="docs"
           data-new="manual-button"

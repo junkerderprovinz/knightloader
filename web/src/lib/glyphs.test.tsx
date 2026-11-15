@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import list from '../../scripts/glyphs.json';
 import readmeBook from '../../../scripts/brand-paths/book.txt?raw';
-import { MAIL_SVG, MANUAL_SVG } from './appMarks';
+import { MANUAL_SVG } from './appMarks';
 import * as glyphs from './glyphs';
 
 type Glyph = ComponentType<SVGProps<SVGSVGElement>>;
@@ -54,10 +54,6 @@ describe('the generated glyphs', () => {
 
   const paths = (s: string) => [...s.matchAll(/ d="([^"]+)"/g)].map((m) => m[1]);
   const listed = (name: string) => paths(list.find((entry) => entry.name === name)!.svg);
-
-  it('the envelope on its button is the pair the list has, shut and open', () => {
-    expect(paths(MAIL_SVG)).toEqual([...listed('IconMail'), ...listed('IconMailOpen')]);
-  });
 
   it("the book on its button is the README's book, shut, and the list's open one", () => {
     expect(paths(MANUAL_SVG)).toEqual([readmeBook.trim(), ...listed('IconManualOpen')]);

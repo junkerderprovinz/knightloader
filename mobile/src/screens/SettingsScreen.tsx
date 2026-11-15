@@ -40,12 +40,12 @@ import IconBadge, {
   CornerRound,
   CornerSoft,
   CornerSquare,
+  Discord,
   DockerMark,
   EdgeMark,
   FirefoxMark,
   Github,
   LinuxMark,
-  MailMark,
   Moon,
   MotionOff,
   MotionStorm,
@@ -72,7 +72,7 @@ import { NotificationsCard } from '../components/NotificationsCard';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
 const REPO_URL = GITHUB_URL;
-const CONTACT_MAIL = 'hello@halleluja.design';
+const DISCORD_URL = 'https://discord.gg/2CTZyKaFb6';
 // PayPal's hosted donation button, the address the web UI's About card and the
 // README's donate row use.
 const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
@@ -1040,22 +1040,11 @@ export default function SettingsScreen({
             mark={({ mark }) => <Github color={mark} />}
             onPress={() => Linking.openURL(GITHUB_URL)}
           />
-          {/* The one button here that reaches the app's own authors, so it
-              takes the accent and this card's rainbow position instead of a
-              vendor's colour. Its envelope opens while it is pressed. */}
           <ReadmeButton
-            brand="house"
-            hue={3}
-            label={t('settings.aboutMail')}
-            mark={({ mark, lit }) => <MailMark open={lit} color={mark} />}
-            // A plain mailto with the subject prefilled, so a mail arrives
-            // saying which product it is about. No body, which would read as a
-            // form to fill in rather than a message somebody writes.
-            onPress={() =>
-              Linking.openURL(
-                `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.aboutMailSubject')}`)}`,
-              )
-            }
+            brand="discord"
+            label={t('settings.aboutDiscord')}
+            mark={({ mark }) => <Discord color={mark} />}
+            onPress={() => Linking.openURL(DISCORD_URL)}
           />
         </View>
         {/* Last line in the card, under the buttons, as in the web interface
