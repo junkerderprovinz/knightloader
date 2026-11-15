@@ -178,10 +178,8 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
               // The whole row opens its account, and a right click its menu
               // (GlimStone, "Lists"). A press on one of the row's own controls
               // is that control's alone.
-              // The row sets its own height and the cells add none, so a
-              // status with a bubble beside it stands as tall as a bare word
-              // and every card's rows are level. 44px holds the gear's 32px,
-              // about as tall as a row of the priority cards below.
+              // The row sets its own height and the cells add none, so a status
+              // with a bubble beside it keeps every card's rows level.
               <tr
                 key={row.key}
                 className="glim-row h-11 cursor-pointer transition-colors hover:bg-carbon-surface3"
