@@ -1,6 +1,7 @@
 package engine
 
-// Which bytes of an HTTP transfer are here while it runs.
+// Which bytes of an HTTP transfer, or pieces of a torrent, are here while it
+// runs. A torrent client says so when asked.
 //
 // The library saves a running task's connections whenever bytes have arrived,
 // a few times a second: the range each was given and how much of it has come.
@@ -10,11 +11,13 @@ package engine
 // layout is copied as it passes and only for a task somebody asked about.
 
 import (
+	"context"
 	"encoding/json"
 	"slices"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/torrents"
 )
 
 // layoutWatch is how long after the last question a task's layout is still
@@ -58,11 +61,23 @@ func (s *layoutStore) forgetUnwatchedLocked(now time.Time) {
 }
 
 // Pieces is which bytes of HTTP task taskID are written and where its
-// connections are writing. It reports false for a torrent, for a transfer of
-// unknown size and for one the engine is not running, and for a moment after
-// the first question about a task, until the library has saved it again.
+// connections are writing, or for a torrent which of its pieces are here and
+// which are on their way. It reports false for a transfer of unknown size and
+// for one the engine is not running, and for a moment after the first
+// question about an HTTP task, until the library has saved it again.
 func (e *Engine) Pieces(taskID string) (core.PieceMap, bool) {
 	e.mu.Lock()
+	if run := e.runs[taskID]; run != nil && e.bt != nil {
+		bt, hash := e.bt, run.hash
+		e.mu.Unlock()
+		ctx, cancel := context.WithTimeout(e.ctx, clientWait)
+		defer cancel()
+		pc, err := bt.Pieces(ctx, hash)
+		if err != nil {
+			return core.PieceMap{}, false
+		}
+		return torrentPieces(pc)
+	}
 	gid := e.toGopeed[taskID]
 	// A mend fetches its gaps one after the other, from the first.
 	if m := e.mends[taskID]; m != nil {
@@ -86,6 +101,31 @@ func (e *Engine) Pieces(taskID string) (core.PieceMap, bool) {
 		return core.PieceMap{}, false
 	}
 	return layoutPieces(raw, t.Meta.Res.Size, t.Meta.Res.Range)
+}
+
+// maxPieceHeads is how many of a torrent's pieces on their way the map marks.
+// A torrent asks for many at once, and the band has room for a few.
+const maxPieceHeads = 64
+
+// torrentPieces is a torrent client's pieces as a map: here is done, the
+// rest missing, and each piece on its way a head, the first maxPieceHeads.
+func torrentPieces(pc torrents.Pieces) (core.PieceMap, bool) {
+	if len(pc.States) == 0 {
+		return core.PieceMap{}, false
+	}
+	pm := core.PieceMap{Unit: core.UnitPieces, Total: int64(len(pc.States))}
+	pm.Runs = core.PieceRuns(len(pc.States), func(i int) core.PieceState {
+		if pc.States[i] == torrents.PieceHere {
+			return core.PieceDone
+		}
+		return core.PieceMissing
+	})
+	for i, s := range pc.States {
+		if s == torrents.PieceComing && len(pm.Heads) < maxPieceHeads {
+			pm.Heads = append(pm.Heads, int64(i))
+		}
+	}
+	return pm, true
 }
 
 // layoutPieces reads a saved layout of a file of size bytes as a piece map.

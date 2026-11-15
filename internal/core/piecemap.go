@@ -10,6 +10,8 @@ const (
 	UnitArticles PieceUnit = "articles"
 	// UnitBlocks is a file under a par2 check, in the blocks of its set.
 	UnitBlocks PieceUnit = "blocks"
+	// UnitPieces is a torrent, in its pieces, the files of all of it.
+	UnitPieces PieceUnit = "pieces"
 )
 
 // PieceState is what one stretch of a file is.

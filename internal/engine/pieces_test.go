@@ -7,6 +7,8 @@ import (
 
 	"github.com/GopeedLab/gopeed/pkg/download"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
+	"github.com/junkerderprovinz/knightloader/internal/torrents"
 )
 
 func covered(pm core.PieceMap) int64 {
@@ -151,5 +153,36 @@ func TestALayoutNobodyAsksAboutIsNoLongerCopied(t *testing.T) {
 	}
 	if w, ok := s.watched["gid"]; ok {
 		t.Fatalf("a save copied the layout of a task nobody asked about for %s: %q", layoutWatch, w.raw)
+	}
+}
+
+func TestATorrentShowsItsPiecesAsTheClientHasThem(t *testing.T) {
+	m, ok := torrentPieces(torrents.Pieces{Length: 16384, States: []int{2, 2, 1, 0, 1, 2}})
+	if !ok {
+		t.Fatal("no map")
+	}
+	want := core.PieceMap{
+		Unit:  core.UnitPieces,
+		Total: 6,
+		Runs:  []core.PieceRun{{State: core.PieceDone, Len: 2}, {State: core.PieceMissing, Len: 3}, {State: core.PieceDone, Len: 1}},
+		Heads: []int64{2, 4},
+	}
+	if !reflect.DeepEqual(m, want) {
+		t.Errorf("map %+v, want %+v", m, want)
+	}
+	if _, ok := torrentPieces(torrents.Pieces{Length: 16384}); ok {
+		t.Error("a torrent without pieces yet has a map")
+	}
+}
+
+func TestARunningTorrentsPiecesComeFromTheClient(t *testing.T) {
+	e, c, _ := torrentEngine(t)
+	c.Stall()
+	_, magnet := testenv.SeedTorrent(t, "Pack", map[string]int{"a.bin": 40000})
+	e.Start(Job{TaskID: "t", URL: magnet, Dir: t.TempDir()})
+	waitUntil(t, "the torrent running", func() bool { return e.runOf("t") != nil })
+	m, ok := e.Pieces("t")
+	if !ok || m.Unit != core.UnitPieces || m.Total != 3 || m.Runs[0].State != core.PieceMissing {
+		t.Errorf("pieces %+v, %v", m, ok)
 	}
 }
