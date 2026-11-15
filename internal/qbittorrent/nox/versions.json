@@ -25,17 +25,23 @@
         },
         "windows-amd64": {
           "tag": "qbittorrent-nox-v4.5.5",
-          "name": "qbittorrent-nox-4.5.5-windows-amd64.zip"
+          "name": "qbittorrent-nox-4.5.5-windows-amd64.zip",
+          "size": 15906141,
+          "sha256": "22fe849faf639f8c58ed33fb5a7b95b0be6349b447991494603b2aea25ed68aa"
         },
         "darwin-arm64": {
           "tag": "qbittorrent-nox-v4.5.5",
           "name": "qbittorrent-nox-4.5.5-darwin-arm64.zip",
-          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
+          "size": 37641289,
+          "sha256": "d7996195b443030b1743e00806f296ec71589cf14fd8bdb718ca67ca312d58e5"
         },
         "darwin-amd64": {
           "tag": "qbittorrent-nox-v4.5.5",
           "name": "qbittorrent-nox-4.5.5-darwin-amd64.zip",
-          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
+          "size": 37529413,
+          "sha256": "6f9200fb3a0d8b71471e88e0efb0e7328357b7092c8988e991e5e32074d8eb5d"
         }
       }
     },
@@ -61,17 +67,23 @@
         },
         "windows-amd64": {
           "tag": "qbittorrent-nox-v4.6.7",
-          "name": "qbittorrent-nox-4.6.7-windows-amd64.zip"
+          "name": "qbittorrent-nox-4.6.7-windows-amd64.zip",
+          "size": 16308328,
+          "sha256": "ece0b131910302cd20b9f7b8f5afa464d5d799db0b7a90a0af0cb947f9bbfcbf"
         },
         "darwin-arm64": {
           "tag": "qbittorrent-nox-v4.6.7",
           "name": "qbittorrent-nox-4.6.7-darwin-arm64.zip",
-          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
+          "size": 38020133,
+          "sha256": "d58049f6e951e3343182ae872bfad0048a89936931ad2f574e362197709bdb58"
         },
         "darwin-amd64": {
           "tag": "qbittorrent-nox-v4.6.7",
           "name": "qbittorrent-nox-4.6.7-darwin-amd64.zip",
-          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
+          "size": 37916885,
+          "sha256": "87d445693e837d96253541db29794832a2f1975571458ca5d753b3b53c7e5d90"
         }
       }
     },
@@ -97,17 +109,23 @@
         },
         "windows-amd64": {
           "tag": "qbittorrent-nox-v5.0.5",
-          "name": "qbittorrent-nox-5.0.5-windows-amd64.zip"
+          "name": "qbittorrent-nox-5.0.5-windows-amd64.zip",
+          "size": 16500775,
+          "sha256": "a1d145ea4494519d7febef4efbd34cbe0846580cc4acd02b316f07bdd54f401f"
         },
         "darwin-arm64": {
           "tag": "qbittorrent-nox-v5.0.5",
           "name": "qbittorrent-nox-5.0.5-darwin-arm64.zip",
-          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
+          "size": 38275845,
+          "sha256": "3caef7137afdaaf2a8b543783ad3f8de969e335df90ff2e7772f0530345fc399"
         },
         "darwin-amd64": {
           "tag": "qbittorrent-nox-v5.0.5",
           "name": "qbittorrent-nox-5.0.5-darwin-amd64.zip",
-          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox"
+          "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
+          "size": 38203022,
+          "sha256": "a709b0bbff0bbf7bfc89818b7973df38b5de86fabd7c6289bc58d75948281b99"
         }
       }
     }
