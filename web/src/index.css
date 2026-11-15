@@ -1610,6 +1610,14 @@ body {
   0%   { inset-inline-start: -35%; }
   100% { inset-inline-start: 100%; }
 }
+/* A loader stays out of sight for --busy-delay, so an answer that comes quickly
+   never flashes it. The wait is an animation delay and costs no timer. */
+@keyframes glim-busy-show {
+  from { visibility: hidden; }
+}
+.glim-busy-wait {
+  animation: glim-busy-show 0s var(--busy-delay, 400ms) both;
+}
 /* Translation only. The route wrapper plays this while the cards inside it
    animate their own transforms, and a scale on an ancestor makes the engine
    resample the whole subtree, so the page trembles before it settles. The

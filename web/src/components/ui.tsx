@@ -1887,11 +1887,15 @@ export function UnavailableNotice({
   );
 }
 
-// A quiet placeholder while a page's data is still on the wire. `nested`: see
-// EmptyState above, where the same whole-page or inside-a-card split applies.
+// A quiet placeholder while a page's data is still on the wire. It waits a
+// moment before it shows (.glim-busy-wait), so a quick answer never flashes it.
+// `nested`: see EmptyState above, where the same whole-page or inside-a-card
+// split applies.
 export function LoadingCard({ label, nested }: { label: string; nested?: boolean }) {
   return (
-    <div className={`${nested ? 'glim-well' : 'glim-card'} p-10 text-center text-sm text-carbon-textMuted`}>{label}</div>
+    <div className={`${nested ? 'glim-well' : 'glim-card'} glim-busy-wait p-10 text-center text-sm text-carbon-textMuted`}>
+      {label}
+    </div>
   );
 }
 
