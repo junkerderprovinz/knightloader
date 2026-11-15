@@ -3764,6 +3764,7 @@ export const fi: Dict = {
   'picture.pieces.bytes': 'Kirjoitettu {done} / {total}. Kirjoittavia yhteyksiä: {n}',
   'picture.pieces.articles': 'Kirjoitettuja artikkeleita: {done} / {total}. Ei millään palvelimella: {lost}. Haettavana: {n}',
   'picture.pieces.blocks': 'Ehjiä lohkoja: {done} / {total}. Vioittuneita tai puuttuvia: {lost}',
+  'picture.pieces.pieces': 'Paloja perillä: {done}/{total}. Tulossa: {n}',
   'whatsnew.title': 'Uutta versiossa {version}',
   'whatsnew.newCount': 'Uutta · {n}',
   'whatsnew.notesMissing': 'KnightLoader ei voinut ladata julkaisutietoja tässä. Löydät ne GitHubista.',

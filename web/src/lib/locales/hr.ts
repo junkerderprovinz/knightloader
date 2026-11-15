@@ -3777,6 +3777,7 @@ export const hr: Dict = {
   'picture.pieces.bytes': 'Zapisano {done} od {total}. Veze koje pišu: {n}',
   'picture.pieces.articles': 'Zapisani članci: {done} od {total}. Ni na jednom poslužitelju: {lost}. Dohvaća se: {n}',
   'picture.pieces.blocks': 'Neoštećeni blokovi: {done} od {total}. Oštećeni ili nedostaju: {lost}',
+  'picture.pieces.pieces': 'Dijelova ovdje: {done} od {total}. Stiže: {n}',
   'whatsnew.title': 'Novo u {version}',
   'whatsnew.newCount': 'Novo · {n}',
   'whatsnew.notesMissing': 'KnightLoader ovdje nije mogao učitati napomene uz izdanje. Naći ćeš ih na GitHubu.',

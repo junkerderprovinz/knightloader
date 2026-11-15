@@ -150,7 +150,7 @@ describe('the words for a band', () => {
   });
 
   it('say nothing about a unit this build does not know', () => {
-    expect(words({ ...bytes, unit: 'pieces' })).toBe('');
+    expect(words({ ...bytes, unit: 'sectors' })).toBe('');
   });
 
   it('take a state this build does not know for not written', () => {

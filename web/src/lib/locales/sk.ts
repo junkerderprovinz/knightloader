@@ -3773,6 +3773,7 @@ export const sk: Dict = {
   'picture.pieces.bytes': 'Zapísané {done} z {total}. Zapisujúce pripojenia: {n}',
   'picture.pieces.articles': 'Zapísané články: {done} z {total}. Na žiadnom serveri: {lost}. Práve sa sťahuje: {n}',
   'picture.pieces.blocks': 'Neporušené bloky: {done} z {total}. Poškodené alebo chýbajúce: {lost}',
+  'picture.pieces.pieces': 'Kúsky na mieste: {done} z {total}. Sťahuje sa: {n}',
   'whatsnew.title': 'Novinky vo verzii {version}',
   'whatsnew.newCount': 'Nové · {n}',
   'whatsnew.notesMissing': 'KnightLoader tu nedokázal načítať poznámky k vydaniu. Nájdeš ich na GitHube.',

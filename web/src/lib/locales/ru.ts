@@ -3743,6 +3743,7 @@ export const ru: Dict = {
   'picture.pieces.bytes': 'Записано {done} из {total}. Пишущие подключения: {n}',
   'picture.pieces.articles': 'Записано статей: {done} из {total}. Нет ни на одном сервере: {lost}. Загружаются: {n}',
   'picture.pieces.blocks': 'Целые блоки: {done} из {total}. Повреждены или отсутствуют: {lost}',
+  'picture.pieces.pieces': 'Частей получено: {done} из {total}. Загружается: {n}',
   'whatsnew.title': 'Новое в версии {version}',
   'whatsnew.newCount': 'Новое · {n}',
   'whatsnew.notesMissing': 'KnightLoader не смог загрузить здесь примечания к выпуску. Вы найдёте их на GitHub.',

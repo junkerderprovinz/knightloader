@@ -3759,6 +3759,7 @@ export const is: Dict = {
   'picture.pieces.bytes': '{done} af {total} skrifað. Tengingar sem skrifa: {n}',
   'picture.pieces.articles': 'Skrifaðar greinar: {done} af {total}. Á engum þjóni: {lost}. Verið að sækja: {n}',
   'picture.pieces.blocks': 'Heilar blokkir: {done} af {total}. Skemmdar eða vantar: {lost}',
+  'picture.pieces.pieces': 'Bútar komnir: {done} af {total}. Á leiðinni: {n}',
   'whatsnew.title': 'Nýtt í {version}',
   'whatsnew.newCount': 'Nýtt · {n}',
   'whatsnew.notesMissing': 'KnightLoader gat ekki hlaðið útgáfuupplýsingunum hér. Þú finnur þær á GitHub.',

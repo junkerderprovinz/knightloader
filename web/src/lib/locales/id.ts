@@ -3763,6 +3763,7 @@ export const id: Dict = {
   'picture.pieces.bytes': '{done} dari {total} ditulis. Koneksi yang menulis: {n}',
   'picture.pieces.articles': 'Artikel ditulis: {done} dari {total}. Tidak ada di server mana pun: {lost}. Sedang diambil: {n}',
   'picture.pieces.blocks': 'Blok utuh: {done} dari {total}. Rusak atau hilang: {lost}',
+  'picture.pieces.pieces': 'Potongan yang sudah ada: {done} dari {total}. Sedang diambil: {n}',
   'whatsnew.title': 'Yang baru di {version}',
   'whatsnew.newCount': 'Baru · {n}',
   'whatsnew.notesMissing': 'KnightLoader tidak dapat memuat catatan rilis di sini. Kamu bisa menemukannya di GitHub.',

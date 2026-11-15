@@ -3752,6 +3752,7 @@ export const ko: Dict = {
   'picture.pieces.bytes': '{total} 중 {done} 기록됨. 쓰고 있는 연결: {n}',
   'picture.pieces.articles': '기록된 기사: {total}개 중 {done}개. 어느 서버에도 없음: {lost}. 가져오는 중: {n}',
   'picture.pieces.blocks': '온전한 블록: {total}개 중 {done}개. 손상 또는 누락: {lost}',
+  'picture.pieces.pieces': '받은 조각: {total}개 중 {done}개. 받는 중: {n}',
   'whatsnew.title': '{version}의 새로운 점',
   'whatsnew.newCount': '새 소식 · {n}',
   'whatsnew.notesMissing': 'KnightLoader가 여기에서 릴리스 노트를 불러오지 못했습니다. GitHub에서 볼 수 있습니다.',

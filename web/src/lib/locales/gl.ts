@@ -3760,6 +3760,7 @@ export const gl: Dict = {
   'picture.pieces.bytes': '{done} de {total} escritos. Conexións que escriben: {n}',
   'picture.pieces.articles': 'Artigos escritos: {done} de {total}. En ningún servidor: {lost}. Obténdose: {n}',
   'picture.pieces.blocks': 'Bloques intactos: {done} de {total}. Danados ou ausentes: {lost}',
+  'picture.pieces.pieces': 'Pezas aquí: {done} de {total}. En camiño: {n}',
   'whatsnew.title': 'Novidades de {version}',
   'whatsnew.newCount': 'Novidades · {n}',
   'whatsnew.notesMissing': 'KnightLoader non puido cargar aquí as notas da versión. Atoparalas en GitHub.',

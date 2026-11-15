@@ -3746,6 +3746,7 @@ export const nl: Dict = {
   'picture.pieces.bytes': '{done} van {total} geschreven. Schrijvende verbindingen: {n}',
   'picture.pieces.articles': 'Geschreven artikelen: {done} van {total}. Op geen enkele server: {lost}. Wordt opgehaald: {n}',
   'picture.pieces.blocks': 'Intacte blokken: {done} van {total}. Beschadigd of ontbrekend: {lost}',
+  'picture.pieces.pieces': 'Stukken binnen: {done} van {total}. Onderweg: {n}',
   'whatsnew.title': 'Nieuw in {version}',
   'whatsnew.newCount': 'Nieuw · {n}',
   'whatsnew.notesMissing': 'KnightLoader kon de releasenotes hier niet laden. Je vindt ze op GitHub.',

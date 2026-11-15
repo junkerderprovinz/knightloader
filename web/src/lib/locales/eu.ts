@@ -3758,6 +3758,7 @@ export const eu: Dict = {
   'picture.pieces.bytes': '{total} guztitik {done} idatzita. Idazten ari diren konexioak: {n}',
   'picture.pieces.articles': 'Idatzitako artikuluak: {done} / {total}. Zerbitzari batean ere ez: {lost}. Eskuratzen: {n}',
   'picture.pieces.blocks': 'Bloke osoak: {done} / {total}. Hondatuak edo falta direnak: {lost}',
+  'picture.pieces.pieces': 'Hemen dauden zatiak: {done}/{total}. Bidean: {n}',
   'whatsnew.title': '{version} bertsioko berritasunak',
   'whatsnew.newCount': 'Berria · {n}',
   'whatsnew.notesMissing': 'KnightLoaderrek ezin izan ditu bertsio-oharrak hemen kargatu. GitHuben aurkituko dituzu.',

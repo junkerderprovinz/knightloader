@@ -3754,6 +3754,7 @@ export const lv: Dict = {
   'picture.pieces.bytes': 'Ierakstīts {done} no {total}. Rakstošie savienojumi: {n}',
   'picture.pieces.articles': 'Ierakstītie raksti: {done} no {total}. Nav nevienā serverī: {lost}. Tiek iegūti: {n}',
   'picture.pieces.blocks': 'Veseli bloki: {done} no {total}. Bojāti vai trūkst: {lost}',
+  'picture.pieces.pieces': 'Saņemtie gabali: {done} no {total}. Tiek ielādēti: {n}',
   'whatsnew.title': 'Jaunumi versijā {version}',
   'whatsnew.newCount': 'Jaunums · {n}',
   'whatsnew.notesMissing': 'KnightLoader nevarēja šeit ielādēt laidiena piezīmes. Tās atradīsi GitHub.',

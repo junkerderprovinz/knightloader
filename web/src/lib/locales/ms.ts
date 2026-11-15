@@ -3762,6 +3762,7 @@ export const ms: Dict = {
   'picture.pieces.bytes': '{done} daripada {total} ditulis. Sambungan yang menulis: {n}',
   'picture.pieces.articles': 'Artikel ditulis: {done} daripada {total}. Tiada pada mana-mana pelayan: {lost}. Sedang diambil: {n}',
   'picture.pieces.blocks': 'Blok utuh: {done} daripada {total}. Rosak atau hilang: {lost}',
+  'picture.pieces.pieces': 'Kepingan yang ada: {done} daripada {total}. Sedang diambil: {n}',
   'whatsnew.title': 'Baharu dalam {version}',
   'whatsnew.newCount': 'Baharu · {n}',
   'whatsnew.notesMissing': 'KnightLoader tidak dapat memuatkan nota keluaran di sini. Anda boleh menemuinya di GitHub.',

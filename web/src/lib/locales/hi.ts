@@ -3764,6 +3764,7 @@ export const hi: Dict = {
   'picture.pieces.bytes': '{total} में से {done} लिखा गया। लिख रहे कनेक्शन: {n}',
   'picture.pieces.articles': 'लिखे गए लेख: {total} में से {done}। किसी सर्वर पर नहीं: {lost}। लाए जा रहे: {n}',
   'picture.pieces.blocks': 'सही ब्लॉक: {total} में से {done}। ख़राब या गायब: {lost}',
+  'picture.pieces.pieces': 'आ चुके टुकड़े: {total} में से {done}। आ रहे हैं: {n}',
   'whatsnew.title': '{version} में नया',
   'whatsnew.newCount': 'नया · {n}',
   'whatsnew.notesMissing': 'KnightLoader यहाँ रिलीज़ नोट्स लोड नहीं कर सका। आपको वे GitHub पर मिलेंगे।',

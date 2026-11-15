@@ -3763,6 +3763,7 @@ export const sv: Dict = {
   'picture.pieces.bytes': '{done} av {total} skrivet. Anslutningar som skriver: {n}',
   'picture.pieces.articles': 'Skrivna artiklar: {done} av {total}. På ingen server: {lost}. Hämtas nu: {n}',
   'picture.pieces.blocks': 'Hela block: {done} av {total}. Skadade eller saknas: {lost}',
+  'picture.pieces.pieces': 'Bitar här: {done} av {total}. Hämtas: {n}',
   'whatsnew.title': 'Nytt i {version}',
   'whatsnew.newCount': 'Nytt · {n}',
   'whatsnew.notesMissing': 'KnightLoader kunde inte läsa in versionsinformationen här. Du hittar den på GitHub.',

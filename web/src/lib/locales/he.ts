@@ -3781,6 +3781,7 @@ export const he: Dict = {
   'picture.pieces.bytes': 'נכתבו {done} מתוך {total}. חיבורים כותבים: {n}',
   'picture.pieces.articles': 'מאמרים שנכתבו: {done} מתוך {total}. לא נמצאים באף שרת: {lost}. בהבאה: {n}',
   'picture.pieces.blocks': 'בלוקים תקינים: {done} מתוך {total}. פגומים או חסרים: {lost}',
+  'picture.pieces.pieces': 'חלקים שהגיעו: {done} מתוך {total}. בדרך: {n}',
   'whatsnew.title': 'חדש בגרסה {version}',
   'whatsnew.newCount': 'חדש · {n}',
   'whatsnew.notesMissing': 'KnightLoader לא הצליח לטעון כאן את הערות הגרסה. תמצא אותן ב-GitHub.',

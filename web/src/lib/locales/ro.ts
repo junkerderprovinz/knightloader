@@ -3771,6 +3771,7 @@ export const ro: Dict = {
   'picture.pieces.bytes': '{done} din {total} scriși. Conexiuni care scriu: {n}',
   'picture.pieces.articles': 'Articole scrise: {done} din {total}. Pe niciun server: {lost}. În curs de preluare: {n}',
   'picture.pieces.blocks': 'Blocuri intacte: {done} din {total}. Deteriorate sau lipsă: {lost}',
+  'picture.pieces.pieces': 'Bucăți sosite: {done} din {total}. În curs: {n}',
   'whatsnew.title': 'Noutăți în {version}',
   'whatsnew.newCount': 'Nou · {n}',
   'whatsnew.notesMissing': 'KnightLoader nu a putut încărca aici notele de lansare. Le găsești pe GitHub.',

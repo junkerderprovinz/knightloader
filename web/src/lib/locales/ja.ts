@@ -3761,6 +3761,7 @@ export const ja: Dict = {
   'picture.pieces.bytes': '{total} のうち {done} を書き込み済み。書き込み中の接続: {n}',
   'picture.pieces.articles': '書き込み済みの記事: {total} 件中 {done} 件。どのサーバーにもない: {lost}。取得中: {n}',
   'picture.pieces.blocks': '無傷のブロック: {total} 個中 {done} 個。破損または欠落: {lost}',
+  'picture.pieces.pieces': '届いたピース: {total} 個中 {done} 個。取得中: {n}',
   'whatsnew.title': '{version} の新機能',
   'whatsnew.newCount': '新着 · {n}',
   'whatsnew.notesMissing': 'KnightLoader はここでリリースノートを読み込めませんでした。GitHub でご覧いただけます。',

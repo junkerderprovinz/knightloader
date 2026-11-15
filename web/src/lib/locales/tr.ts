@@ -3762,6 +3762,7 @@ export const tr: Dict = {
   'picture.pieces.bytes': '{total} içinden {done} yazıldı. Yazan bağlantılar: {n}',
   'picture.pieces.articles': 'Yazılan makaleler: {total} içinden {done}. Hiçbir sunucuda yok: {lost}. Getiriliyor: {n}',
   'picture.pieces.blocks': 'Sağlam bloklar: {total} içinden {done}. Hasarlı ya da eksik: {lost}',
+  'picture.pieces.pieces': 'Gelen parçalar: {total} içinde {done}. Yolda: {n}',
   'whatsnew.title': '{version} sürümündeki yenilikler',
   'whatsnew.newCount': 'Yeni · {n}',
   'whatsnew.notesMissing': 'KnightLoader sürüm notlarını burada yükleyemedi. Onları GitHub’da bulabilirsin.',

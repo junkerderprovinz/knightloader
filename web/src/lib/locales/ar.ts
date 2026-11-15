@@ -3762,6 +3762,7 @@ export const ar: Dict = {
   'picture.pieces.bytes': 'كُتب {done} من {total}. الاتصالات التي تكتب: {n}',
   'picture.pieces.articles': 'المقالات المكتوبة: {done} من {total}. غير موجودة على أي خادم: {lost}. قيد الجلب: {n}',
   'picture.pieces.blocks': 'الكتل السليمة: {done} من {total}. تالفة أو مفقودة: {lost}',
+  'picture.pieces.pieces': 'القطع الموجودة: {done} من {total}. قيد الجلب: {n}',
   'whatsnew.title': 'الجديد في {version}',
   'whatsnew.newCount': 'جديد · {n}',
   'whatsnew.notesMissing': 'لم يتمكن KnightLoader من تحميل ملاحظات الإصدار هنا. ستجدها على GitHub.',

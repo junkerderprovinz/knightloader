@@ -48,6 +48,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the version you pick there, 4.5.5 to begin with, and the automatic update
   leaves it alone. Linux and the container take the static build from
   userdocs/qbittorrent-nox-static. `KL_QBITTORRENT=0` leaves it off.
+- **A torrent's details show its piece map,** with the pieces that are here
+  and a marker on each one on its way, as an HTTP download's do.
 - **Cross-seeding.** A finished torrent is looked for on your other trackers
   and seeded there too, from the same files. RED and OPS ask each other's API
   for the twin with your API key, and any other tracker is searched through

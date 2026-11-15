@@ -3764,6 +3764,7 @@ export const bg: Dict = {
   'picture.pieces.bytes': 'Записани са {done} от {total}. Пишещи връзки: {n}',
   'picture.pieces.articles': 'Записани статии: {done} от {total}. На нито един сървър: {lost}. Изтеглят се: {n}',
   'picture.pieces.blocks': 'Здрави блокове: {done} от {total}. Повредени или липсващи: {lost}',
+  'picture.pieces.pieces': 'Налични парчета: {done} от {total}. Изтеглят се: {n}',
   'whatsnew.title': 'Ново във версия {version}',
   'whatsnew.newCount': 'Ново · {n}',
   'whatsnew.notesMissing': 'KnightLoader не успя да зареди бележките към версията тук. Ще ги намериш в GitHub.',

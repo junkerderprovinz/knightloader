@@ -63,6 +63,8 @@ export function pieceWords(map: PieceMap, t: ReturnType<typeof useT>['t']): stri
       return t('picture.pieces.articles', { done, total: map.total, lost, n });
     case 'blocks':
       return t('picture.pieces.blocks', { done, total: map.total, lost });
+    case 'pieces':
+      return t('picture.pieces.pieces', { done, total: map.total, n });
     default:
       return '';
   }

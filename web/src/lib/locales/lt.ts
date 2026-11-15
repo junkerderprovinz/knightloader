@@ -3764,6 +3764,7 @@ export const lt: Dict = {
   'picture.pieces.bytes': 'Įrašyta {done} iš {total}. Rašančios jungtys: {n}',
   'picture.pieces.articles': 'Įrašyti straipsniai: {done} iš {total}. Nėra jokiame serveryje: {lost}. Gaunama: {n}',
   'picture.pieces.blocks': 'Sveiki blokai: {done} iš {total}. Sugadinti arba trūkstami: {lost}',
+  'picture.pieces.pieces': 'Gauta dalių: {done} iš {total}. Gaunama: {n}',
   'whatsnew.title': 'Kas nauja versijoje {version}',
   'whatsnew.newCount': 'Nauja · {n}',
   'whatsnew.notesMissing': 'KnightLoader negalėjo čia įkelti versijos pastabų. Jas rasi GitHub.',

@@ -3763,6 +3763,7 @@ export const hu: Dict = {
   'picture.pieces.bytes': 'Kiírva: {done} / {total}. Író kapcsolatok: {n}',
   'picture.pieces.articles': 'Kiírt cikkek: {done} / {total}. Egyik szerveren sincs: {lost}. Lekérés alatt: {n}',
   'picture.pieces.blocks': 'Ép blokkok: {done} / {total}. Sérült vagy hiányzó: {lost}',
+  'picture.pieces.pieces': 'Megérkezett darabok: {done} / {total}. Úton: {n}',
   'whatsnew.title': 'Újdonságok ebben: {version}',
   'whatsnew.newCount': 'Új · {n}',
   'whatsnew.notesMissing': 'A KnightLoader itt nem tudta betölteni a kiadási megjegyzéseket. A GitHubon megtalálod őket.',

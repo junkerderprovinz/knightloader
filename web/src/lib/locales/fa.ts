@@ -3752,6 +3752,7 @@ export const fa: Dict = {
   'picture.pieces.bytes': '{done} از {total} نوشته شد. اتصال‌های در حال نوشتن: {n}',
   'picture.pieces.articles': 'مقاله‌های نوشته‌شده: {done} از {total}. روی هیچ سروری نیست: {lost}. در حال دریافت: {n}',
   'picture.pieces.blocks': 'بلوک‌های سالم: {done} از {total}. خراب یا گم‌شده: {lost}',
+  'picture.pieces.pieces': 'قطعه‌های رسیده: {done} از {total}. در حال دریافت: {n}',
   'whatsnew.title': 'تازه‌های {version}',
   'whatsnew.newCount': 'جدید · {n}',
   'whatsnew.notesMissing': 'KnightLoader نتوانست یادداشت‌های انتشار را اینجا بار کند. آن‌ها را در GitHub پیدا می‌کنی.',

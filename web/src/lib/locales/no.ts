@@ -3766,6 +3766,7 @@ export const no: Dict = {
   'picture.pieces.bytes': '{done} av {total} skrevet. Tilkoblinger som skriver: {n}',
   'picture.pieces.articles': 'Skrevne artikler: {done} av {total}. På ingen tjener: {lost}. Hentes nå: {n}',
   'picture.pieces.blocks': 'Hele blokker: {done} av {total}. Skadet eller mangler: {lost}',
+  'picture.pieces.pieces': 'Biter her: {done} av {total}. Hentes: {n}',
   'whatsnew.title': 'Nytt i {version}',
   'whatsnew.newCount': 'Nytt · {n}',
   'whatsnew.notesMissing': 'KnightLoader kunne ikke laste inn utgivelsesnotatene her. Du finner dem på GitHub.',

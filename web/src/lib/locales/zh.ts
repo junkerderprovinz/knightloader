@@ -3748,6 +3748,7 @@ export const zh: Dict = {
   'picture.pieces.bytes': '已写入 {done}，共 {total}。正在写入的连接：{n}',
   'picture.pieces.articles': '已写入的文章：{done} / {total}。任何服务器上都没有：{lost}。正在获取：{n}',
   'picture.pieces.blocks': '完好的块：{done} / {total}。损坏或缺失：{lost}',
+  'picture.pieces.pieces': '已到的分块：{done}/{total}。正在获取：{n}',
   'whatsnew.title': '{version} 的新内容',
   'whatsnew.newCount': '新内容 · {n}',
   'whatsnew.notesMissing': 'KnightLoader 无法在这里加载发行说明。你可以在 GitHub 上找到它们。',

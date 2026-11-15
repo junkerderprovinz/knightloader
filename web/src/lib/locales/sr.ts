@@ -3777,6 +3777,7 @@ export const sr: Dict = {
   'picture.pieces.bytes': 'Уписано {done} од {total}. Везе које пишу: {n}',
   'picture.pieces.articles': 'Уписани чланци: {done} од {total}. Ни на једном серверу: {lost}. Преузима се: {n}',
   'picture.pieces.blocks': 'Неоштећени блокови: {done} од {total}. Оштећени или недостају: {lost}',
+  'picture.pieces.pieces': 'Делова стигло: {done} од {total}. Стиже: {n}',
   'whatsnew.title': 'Ново у {version}',
   'whatsnew.newCount': 'Ново · {n}',
   'whatsnew.notesMissing': 'KnightLoader овде није могао да учита белешке о издању. Наћи ћеш их на GitHub-у.',

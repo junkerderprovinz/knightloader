@@ -307,12 +307,12 @@ export interface PieceRun {
 
 /**
  * core.PieceMap: which parts of one file are here, counted in bytes for an
- * HTTP download, in articles for a file from the own Usenet servers and in
- * par2 blocks for a file its check found damaged. The runs cover `total` in
+ * HTTP download, in pieces for a torrent, in articles for a file from the own
+ * Usenet servers and in par2 blocks for a file its check found damaged. The runs cover `total` in
  * file order, and each head is the unit an open connection is writing at.
  */
 export interface PieceMap {
-  unit: 'bytes' | 'articles' | 'blocks' | (string & {});
+  unit: 'bytes' | 'pieces' | 'articles' | 'blocks' | (string & {});
   total: number;
   runs: PieceRun[];
   heads?: number[];

@@ -3773,6 +3773,7 @@ export const cs: Dict = {
   'picture.pieces.bytes': 'Zapsáno {done} z {total}. Zapisující spojení: {n}',
   'picture.pieces.articles': 'Zapsané články: {done} z {total}. Na žádném serveru: {lost}. Právě se stahuje: {n}',
   'picture.pieces.blocks': 'Neporušené bloky: {done} z {total}. Poškozené nebo chybějící: {lost}',
+  'picture.pieces.pieces': 'Kusy na místě: {done} z {total}. Stahuje se: {n}',
   'whatsnew.title': 'Novinky ve verzi {version}',
   'whatsnew.newCount': 'Nové · {n}',
   'whatsnew.notesMissing': 'KnightLoader tady nedokázal načíst poznámky k vydání. Najdeš je na GitHubu.',

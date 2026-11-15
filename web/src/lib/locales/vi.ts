@@ -3763,6 +3763,7 @@ export const vi: Dict = {
   'picture.pieces.bytes': 'Đã ghi {done} trên {total}. Kết nối đang ghi: {n}',
   'picture.pieces.articles': 'Bài đã ghi: {done} trên {total}. Không có trên máy chủ nào: {lost}. Đang lấy: {n}',
   'picture.pieces.blocks': 'Khối nguyên vẹn: {done} trên {total}. Hỏng hoặc thiếu: {lost}',
+  'picture.pieces.pieces': 'Mảnh đã có: {done} trên {total}. Đang tải: {n}',
   'whatsnew.title': 'Có gì mới trong {version}',
   'whatsnew.newCount': 'Mới · {n}',
   'whatsnew.notesMissing': 'KnightLoader không tải được ghi chú phát hành tại đây. Bạn sẽ tìm thấy chúng trên GitHub.',

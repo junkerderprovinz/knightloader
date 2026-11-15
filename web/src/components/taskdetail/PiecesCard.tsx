@@ -9,12 +9,12 @@ const POLL_MS = 1000;
 /**
  * usePieces asks which parts of the task's file are here, every second while
  * they change and once when the transfer pauses, so the band keeps its last
- * state. A torrent is not asked about: its pieces stay inside its client.
+ * state.
  */
 function usePieces(task: Task, base: string): PieceMap | null {
   const [held, setHeld] = useState<{ id: string; map: PieceMap | null } | null>(null);
   const live = task.status === 'running' || !!task.repair;
-  const mode = task.resolver === 'torrent' ? 'none' : live ? 'live' : task.status === 'paused' ? 'once' : 'none';
+  const mode = live ? 'live' : task.status === 'paused' ? 'once' : 'none';
   const id = task.id;
 
   useEffect(() => {

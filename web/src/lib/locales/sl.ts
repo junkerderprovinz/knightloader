@@ -3762,6 +3762,7 @@ export const sl: Dict = {
   'picture.pieces.bytes': 'Zapisano {done} od {total}. Povezave, ki pišejo: {n}',
   'picture.pieces.articles': 'Zapisani članki: {done} od {total}. Na nobenem strežniku: {lost}. Se pridobiva: {n}',
   'picture.pieces.blocks': 'Nepoškodovani bloki: {done} od {total}. Poškodovani ali manjkajo: {lost}',
+  'picture.pieces.pieces': 'Kosov tukaj: {done} od {total}. Na poti: {n}',
   'whatsnew.title': 'Novo v {version}',
   'whatsnew.newCount': 'Novo · {n}',
   'whatsnew.notesMissing': 'KnightLoader tukaj ni mogel naložiti opomb ob izdaji. Najdeš jih na GitHubu.',

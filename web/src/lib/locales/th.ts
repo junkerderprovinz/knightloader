@@ -3762,6 +3762,7 @@ export const th: Dict = {
   'picture.pieces.bytes': 'เขียนแล้ว {done} จาก {total} การเชื่อมต่อที่กำลังเขียน: {n}',
   'picture.pieces.articles': 'บทความที่เขียนแล้ว: {done} จาก {total} ไม่มีบนเซิร์ฟเวอร์ใดเลย: {lost} กำลังดึง: {n}',
   'picture.pieces.blocks': 'บล็อกที่สมบูรณ์: {done} จาก {total} เสียหายหรือขาดหาย: {lost}',
+  'picture.pieces.pieces': 'ชิ้นส่วนที่มาแล้ว: {done} จาก {total} กำลังดึง: {n}',
   'whatsnew.title': 'มีอะไรใหม่ใน {version}',
   'whatsnew.newCount': 'ใหม่ · {n}',
   'whatsnew.notesMissing': 'KnightLoader โหลดบันทึกประจำรุ่นที่นี่ไม่ได้ คุณดูได้ที่ GitHub',

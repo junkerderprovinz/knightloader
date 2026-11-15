@@ -3763,6 +3763,7 @@ export const el: Dict = {
   'picture.pieces.bytes': 'Γράφτηκαν {done} από {total}. Συνδέσεις που γράφουν: {n}',
   'picture.pieces.articles': 'Γραμμένα άρθρα: {done} από {total}. Σε κανέναν διακομιστή: {lost}. Σε λήψη: {n}',
   'picture.pieces.blocks': 'Ακέραια μπλοκ: {done} από {total}. Κατεστραμμένα ή ελλιπή: {lost}',
+  'picture.pieces.pieces': 'Κομμάτια εδώ: {done} από {total}. Σε λήψη: {n}',
   'whatsnew.title': 'Τι νέο υπάρχει στην έκδοση {version}',
   'whatsnew.newCount': 'Νέα · {n}',
   'whatsnew.notesMissing': 'Το KnightLoader δεν μπόρεσε να φορτώσει εδώ τις σημειώσεις έκδοσης. Θα τις βρεις στο GitHub.',

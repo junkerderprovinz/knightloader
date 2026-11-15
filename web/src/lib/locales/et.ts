@@ -3754,6 +3754,7 @@ export const et: Dict = {
   'picture.pieces.bytes': 'Kirjutatud {done} / {total}. Kirjutavaid ühendusi: {n}',
   'picture.pieces.articles': 'Kirjutatud artikleid: {done} / {total}. Üheski serveris pole: {lost}. Toomisel: {n}',
   'picture.pieces.blocks': 'Terveid plokke: {done} / {total}. Rikutud või puudu: {lost}',
+  'picture.pieces.pieces': 'Tükke olemas: {done} / {total}. Tulemas: {n}',
   'whatsnew.title': 'Uut versioonis {version}',
   'whatsnew.newCount': 'Uut · {n}',
   'whatsnew.notesMissing': 'KnightLoader ei saanud väljalaskemärkmeid siin laadida. Leiad need GitHubist.',

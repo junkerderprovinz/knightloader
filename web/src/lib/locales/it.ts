@@ -3747,6 +3747,7 @@ export const it: Dict = {
   'picture.pieces.bytes': '{done} di {total} scritti. Connessioni che scrivono: {n}',
   'picture.pieces.articles': 'Articoli scritti: {done} di {total}. Su nessun server: {lost}. In recupero: {n}',
   'picture.pieces.blocks': 'Blocchi integri: {done} di {total}. Danneggiati o mancanti: {lost}',
+  'picture.pieces.pieces': 'Pezzi arrivati: {done} di {total}. In arrivo: {n}',
   'whatsnew.title': 'Novità di {version}',
   'whatsnew.newCount': 'Novità · {n}',
   'whatsnew.notesMissing': 'KnightLoader non è riuscito a caricare qui le note di rilascio. Le trovi su GitHub.',

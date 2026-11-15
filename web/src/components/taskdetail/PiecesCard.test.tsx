@@ -103,11 +103,20 @@ it('draws nothing where the server knows no pieces', async () => {
   expect(card()).toBeNull();
 });
 
-it('does not ask about a torrent, whose pieces stay inside its client', async () => {
-  serverKnows(twoConnections);
+it('draws the pieces of a torrent with a head for each piece on its way', async () => {
+  serverKnows({
+    unit: 'pieces',
+    total: 6,
+    runs: [
+      { state: 'done', len: 2 },
+      { state: 'missing', len: 4 },
+    ],
+    heads: [2, 3],
+  });
   await show(task({ resolver: 'torrent' }));
-  expect(asked).toEqual([]);
-  expect(card()).toBeNull();
+  expect(asked).toEqual(['/api/tasks/t1/pieces']);
+  expect(heads()).toBe(2);
+  expect(host.textContent).toContain('Pieces here: 2 of 6. Being fetched: 2');
 });
 
 it('does not ask about a download that is neither loading nor paused', async () => {

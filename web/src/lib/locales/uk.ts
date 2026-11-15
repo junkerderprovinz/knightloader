@@ -3764,6 +3764,7 @@ export const uk: Dict = {
   'picture.pieces.bytes': "Записано {done} із {total}. З'єднання, що пишуть: {n}",
   'picture.pieces.articles': 'Записано статей: {done} із {total}. Немає на жодному сервері: {lost}. Завантажуються: {n}',
   'picture.pieces.blocks': 'Цілі блоки: {done} із {total}. Пошкоджені або відсутні: {lost}',
+  'picture.pieces.pieces': 'Частин отримано: {done} з {total}. Завантажується: {n}',
   'whatsnew.title': 'Нове у версії {version}',
   'whatsnew.newCount': 'Нове · {n}',
   'whatsnew.notesMissing': 'KnightLoader не зміг завантажити тут примітки до випуску. Ви знайдете їх на GitHub.',

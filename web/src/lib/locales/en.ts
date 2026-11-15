@@ -4032,6 +4032,7 @@ export const en = {
   'picture.pieces.bytes': '{done} of {total} written. Connections writing: {n}',
   'picture.pieces.articles': 'Articles written: {done} of {total}. On no server: {lost}. Being fetched: {n}',
   'picture.pieces.blocks': 'Blocks intact: {done} of {total}. Damaged or missing: {lost}',
+  'picture.pieces.pieces': 'Pieces here: {done} of {total}. Being fetched: {n}',
   'whatsnew.title': 'New in {version}',
   'whatsnew.newCount': 'New · {n}',
   'whatsnew.notesMissing': 'KnightLoader could not load the release notes here. You will find them on GitHub.',
