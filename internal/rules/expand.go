@@ -40,8 +40,12 @@ func (m *Matcher) expand(template, target string, c Candidate, g groups) string 
 
 	// pathvars runs first and leaves unknown placeholders alone, and a value it
 	// substitutes is never re-read as a placeholder by the pass below.
+	pkg := c.Package
+	if pkg == "" {
+		pkg = c.PackageGuess
+	}
 	out := pathvars.Expand(template, pathvars.Vars{
-		Package: c.Package,
+		Package: pkg,
 		Host:    c.Hoster,
 		Name:    c.Filename,
 		Date:    c.Added,

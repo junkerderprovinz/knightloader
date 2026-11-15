@@ -523,3 +523,69 @@ func TestARuleWhoseFolderCannotBeUsedHereComesUnticked(t *testing.T) {
 		t.Errorf("rule with a folder here = %+v, want it ticked", it)
 	}
 }
+
+// JDownloader's default rules come over: the folder per package as the
+// switch, the recovery file rules as rules that add those files switched off.
+func TestJDownloadersDefaultRulesComeOver(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	dir := t.TempDir()
+	shipped := func(name, id string) map[string]any {
+		return jdimporttest.Rule(name, map[string]any{"staticRule": true, "id": id})
+	}
+	jdimporttest.Write(t, dir, jdimporttest.Config{Packagizer: []map[string]any{
+		shipped("Disable Archive *.rev Files", "DisableRevFilesPackageRule"),
+		shipped("Disable Parity Archive *.par(2) Files", "DisableParFilesPackageRule"),
+		shipped("Create Subfolder by Packagename", "SubFolderByPackageRule"),
+		shipped("Adopt folder structure", "SubFolderByPluginRule"),
+	}})
+	p, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var ids []string
+	for _, name := range []string{"Disable Archive *.rev Files", "Disable Parity Archive *.par(2) Files", "Create Subfolder by Packagename"} {
+		it := itemByName(t, p, JDGroupPackagizer, name)
+		if it.Blocked != nil || !it.Ticked {
+			t.Errorf("%s = %+v, want it offered and ticked", name, it)
+		}
+		ids = append(ids, it.ID)
+	}
+	if it := itemByName(t, p, JDGroupPackagizer, "Adopt folder structure"); it.Blocked == nil {
+		t.Errorf("adopt folder structure = %+v, want it blocked with its reason", it)
+	}
+
+	rep, err := a.ApplyJDImport(p.Token, ids, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rep.Failed) > 0 || len(rep.Imported) != len(ids) {
+		t.Fatalf("imported %v, failed %+v", rep.Imported, rep.Failed)
+	}
+	s := a.Settings.Get()
+	if !s.SubfolderByPackage {
+		t.Error("the folder per package rule did not switch on the subfolder setting")
+	}
+	if n := len(s.Packagizer.Rules); n != 2 {
+		t.Fatalf("packagizer holds %d rules, want the two recovery file rules", n)
+	}
+
+	created := a.AddLinks([]string{
+		"https://host.example/Show.part1.rar",
+		"https://host.example/Show.vol00+01.par2",
+		"https://host.example/Show.part1.rev",
+	}, "")
+	for _, task := range created {
+		want := strings.HasSuffix(task.URL, ".rar")
+		if task.Enabled != want {
+			t.Errorf("%s enabled = %v, want %v", task.URL, task.Enabled, want)
+		}
+	}
+
+	again, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if it := itemByName(t, again, JDGroupPackagizer, "Create Subfolder by Packagename"); !it.Same {
+		t.Errorf("with the switch already on the rule = %+v, want it marked as already here", it)
+	}
+}

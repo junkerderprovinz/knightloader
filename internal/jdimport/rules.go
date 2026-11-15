@@ -105,8 +105,12 @@ type MappedRule struct {
 	Enabled bool   `json:"enabled"`
 	// Accept is set on a link filter exception.
 	Accept bool `json:"accept,omitempty"`
-	// Rule is the KnightLoader rule, valid when Blocked is nil.
+	// Rule is the KnightLoader rule, valid when Blocked is nil and Setting
+	// is empty.
 	Rule rules.Rule `json:"rule"`
+	// Setting is the settings switch the rule turns on, for a rule that is a
+	// setting here rather than a rule.
+	Setting string `json:"setting,omitempty"`
 	// Blocked says why the rule cannot come over at all.
 	Blocked *Reason `json:"blocked,omitempty"`
 	// Notes name what the rule did in JDownloader that it does not do here,
@@ -158,9 +162,42 @@ func MapLinkFilter(in []JDRule) []MappedRule {
 	return out
 }
 
-// builtinPackageFolder is the id of JDownloader's own "a folder per package"
-// rule, which KnightLoader has as a setting.
-const builtinPackageFolder = "SubFolderByPackageRule"
+// SettingSubfolderByPackage is the settings key JDownloader's own rule for a
+// folder per package turns on.
+const SettingSubfolderByPackage = "subfolderByPackage"
+
+// shippedRules are the rules JDownloader ships that come over as rules, as
+// JDownloader defines them. A shipped rule cannot be edited there, so only its
+// name and switch are read from the file.
+var shippedRules = map[string]JDRule{
+	"DisableRevFilesPackageRule": {
+		Filetype:          &typeFilter{Enabled: true, MatchType: "IS", Customs: "rev"},
+		LinkEnabledAction: new(false),
+	},
+	"DisableParFilesPackageRule": {
+		Filetype:          &typeFilter{Enabled: true, MatchType: "IS", Customs: "par,par2"},
+		LinkEnabledAction: new(false),
+	},
+}
+
+// shippedBlocked says why a shipped rule that cannot come over stays behind.
+func shippedBlocked(id string) *Reason {
+	switch id {
+	case "SubFolderByPluginRule":
+		return reason("ruleBuiltinFolderStructure",
+			"KnightLoader does this on its own. Every subfolder of a shared folder becomes a package of its own.", nil)
+	case "OfflineView":
+		return reason("ruleBuiltinOffline",
+			"KnightLoader filters a link before checking whether it is online, so the filter cannot make an exception for offline links. Offline links that no rule turns down stay in the link collector, marked offline.", nil)
+	case "DupesView":
+		return reason("ruleBuiltinDupes",
+			"KnightLoader spots links that are already in the list on its own and reports them instead of adding them twice.", nil)
+	case "DirectHTTPView":
+		return reason("ruleBuiltinDirectHTTP", "KnightLoader rules cannot test which backend fetches a link.", nil)
+	}
+	return reason("ruleBuiltin",
+		"A rule JDownloader ships itself. KnightLoader either has no use for it or does the same on its own.", nil)
+}
 
 func mapRule(r JDRule, filter bool) MappedRule {
 	m := MappedRule{Name: strings.TrimSpace(r.Name), Enabled: r.Enabled, Accept: filter && r.Accept}
@@ -168,14 +205,20 @@ func mapRule(r JDRule, filter bool) MappedRule {
 		m.Name = r.ID
 	}
 	if r.Static {
-		if r.ID == builtinPackageFolder {
-			m.Blocked = reason("ruleBuiltinPackageFolder",
-				"JDownloader's own rule for a folder per package. In KnightLoader this is the switch Subfolder per package under Settings, Downloads.", nil)
-		} else {
-			m.Blocked = reason("ruleBuiltin",
-				"A rule JDownloader ships itself. KnightLoader either has no use for it or does the same on its own.", nil)
+		def, shipped := shippedRules[r.ID]
+		switch {
+		case shipped && !filter:
+			def.ID, def.Name, def.Enabled = r.ID, r.Name, r.Enabled
+			r = def
+		case r.ID == "SubFolderByPackageRule" && !filter:
+			m.Setting = SettingSubfolderByPackage
+			m.Notes = []Reason{*reason("ruleBuiltinPackageFolder",
+				"JDownloader's own rule for a folder per package. It comes over as the switch Subfolder per package under Settings, Downloads.", nil)}
+			return m
+		default:
+			m.Blocked = shippedBlocked(r.ID)
+			return m
 		}
-		return m
 	}
 	conds, blocked := mapConditions(r)
 	if blocked != nil {
