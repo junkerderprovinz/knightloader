@@ -634,11 +634,8 @@ func (a *App) selfTestClock(_ context.Context, cfg settings.Settings) selftest.R
 }
 
 // selfTestTorrentPort reports the torrent listen port as unknown, and says why.
-//
-// With port 0 gopeed picks one and there is no read-back of what was bound. A
-// configured port may not be live either: gopeed's bt client is built on the
-// first torrent, so a later change waits for a restart. Whether the port is
-// reachable from outside needs a third party, which this app does not contact.
+// Whether a port is reachable from outside needs a third party, which this app
+// does not contact.
 func (a *App) selfTestTorrentPort(_ context.Context, cfg settings.Settings) selftest.Result {
 	r := selftest.Result{ID: selftest.CheckTorrentPort, At: time.Now(), Status: selftest.StatusUnknown}
 	if cfg.Torrent.Port == 0 {

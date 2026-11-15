@@ -61,7 +61,7 @@ func registerTorrents(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodGet, "/api/torrents/interfaces",
-		"the network interfaces the built-in torrent client can be tied to, with their addresses and whether torrents could use each now",
+		"the network interfaces the torrent engine can be tied to, with their addresses and whether torrents could use each now",
 		func(w http.ResponseWriter, r *http.Request) {
 			ifs, err := engine.NetInterfaces()
 			if err != nil {

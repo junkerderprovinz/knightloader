@@ -657,7 +657,7 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 	if private {
 		// A private tracker's passkey would go to the service with the
 		// torrent, and most private trackers ban an account for that.
-		b.refuse(ctx, taskID, r, core.DeclinedPrivate, "a torrent from a private tracker stays with the built-in torrent client")
+		b.refuse(ctx, taskID, r, core.DeclinedPrivate, "a torrent from a private tracker stays with the torrent engine")
 		return "", false
 	}
 	var probe bool

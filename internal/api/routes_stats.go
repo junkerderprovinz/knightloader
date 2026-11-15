@@ -117,7 +117,7 @@ func registerStats(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodGet, "/api/stats/torrents",
-		"the built-in torrent client at a glance: how many torrents leech and seed, both speeds, what came in and went out today and in all, the ratio of the two, and the three torrents sending most",
+		"the torrent engine (KnightLoader's qBittorrent) at a glance: how many torrents leech and seed, both speeds, what came in and went out today and in all, the ratio of the two, and the three torrents sending most",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, a.TorrentOverview())
 		})
