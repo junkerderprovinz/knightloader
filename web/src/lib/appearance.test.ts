@@ -96,6 +96,13 @@ describe('takePageHue', () => {
     expect(tint(b!)).toContain('--rb-1');
   });
 
+  it("puts the tint on the theme's ink step, so it reads as text in both themes", () => {
+    applyRainbow({ on: true });
+    const [a] = buttons(1);
+    takePageHue(a!);
+    expect(tint(a!)).toMatch(/^light-dark\(oklab\(from var\(--rb-0\) min\(l, var\(--ink-l-light\)\)/);
+  });
+
   it('starts the palette over after its last colour', () => {
     applyRainbow({ on: true });
     const all = buttons(RAINBOW.length + 1);
@@ -116,20 +123,27 @@ describe('takePageHue', () => {
 describe('the accent on the root', () => {
   const root = () => document.documentElement.style;
 
-  it('gives a pale accent its own light ink and leaves the dark one to the stylesheet', () => {
-    applyAccent('#FFFF00');
-    expect(root().getPropertyValue('--accent-ink-light')).toMatch(/^#[0-9A-F]{6}$/);
-    expect(root().getPropertyValue('--accent-ink-dark')).toBe('');
+  it('leaves the inks to the stylesheet, whose step reads for a pale and a deep accent alike', () => {
+    for (const hex of ['#FFFF00', '#0000FF', '#1D99F3']) {
+      applyAccent(hex);
+      expect(root().getPropertyValue('--accent-ink-light'), hex).toBe('');
+      expect(root().getPropertyValue('--accent-ink-dark'), hex).toBe('');
+    }
   });
 
-  it('takes the inks away again for a preset and for the default', () => {
-    applyAccent('#0000FF');
-    expect(root().getPropertyValue('--accent-ink-dark')).not.toBe('');
+  it('gives a mid-tone grey its own light hover, since the step toward the text would swallow its ink', () => {
+    applyAccent('#777777');
+    expect(root().getPropertyValue('--accent-hover-light')).toMatch(/^#[0-9A-F]{6}$/);
+    expect(root().getPropertyValue('--accent-hover-dark')).toBe('');
+  });
+
+  it('takes the hover away again for a preset and for the default', () => {
+    applyAccent('#777777');
     applyAccent('#1D99F3');
-    expect(root().getPropertyValue('--accent-ink-dark')).toBe('');
-    applyAccent('#FFFF00');
+    expect(root().getPropertyValue('--accent-hover-light')).toBe('');
+    applyAccent('#777777');
     applyAccent(undefined);
-    expect(root().getPropertyValue('--accent-ink-light')).toBe('');
+    expect(root().getPropertyValue('--accent-hover-light')).toBe('');
     expect(root().getPropertyValue('--accent')).toBe('');
   });
 

@@ -161,7 +161,7 @@ export function CaptchaCard({
             value={answer}
             onChangeText={setAnswer}
             placeholder={t('captcha.answerPlaceholder')}
-            placeholderTextColor={c.textMuted}
+            placeholderTextColor={c.fieldPlaceholder}
             accessibilityLabel={t('captcha.answerLabel')}
             autoCapitalize="none"
             autoCorrect={false}

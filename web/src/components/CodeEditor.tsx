@@ -35,7 +35,7 @@ const chrome = EditorView.theme({
   },
   '&.cm-focused': {
     outline: 'none',
-    boxShadow: '0 0 0 2px var(--focus-ring)',
+    boxShadow: '0 0 0 var(--focus-ring-width) var(--focus-ring)',
   },
   '.cm-content': {
     fontFamily:

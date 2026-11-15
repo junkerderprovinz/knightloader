@@ -427,7 +427,7 @@ export default function SettingsScreen({
           onChangeText={setNameDraft}
           onBlur={() => void setDeviceName(nameDraft)}
           placeholder={modelName()}
-          placeholderTextColor={c.textMuted}
+          placeholderTextColor={c.fieldPlaceholder}
           accessibilityLabel={t('settings.deviceName')}
           autoCorrect={false}
           returnKeyType="done"

@@ -194,20 +194,113 @@ function contrastOn(hex) {
 }
 
 /**
- * accentInks is the accent as text on each theme where glimstone.css's own mix
- * falls short of 4.5:1 on that theme's card (#ffffff light, #262626 dark), and
- * undefined where it holds, which it does for every preset.
+ * The lightness steps of the accent as ink, glimstone.css's --ink-l-light and
+ * --ink-l-dark: on the light theme the ink sits at this OKLab lightness or
+ * below, on the dark ones at this one or above.
+ */
+const INK_LIGHTNESS = { light: 0.52, dark: 0.74 };
+
+const inkLinear = (v) => {
+  const s = v / 255;
+  return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+};
+const inkGamma = (v) => (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055);
+
+// OKLab's lightness follows what the eye sees, so one step gives every hue
+// nearly the same contrast.
+function inkOklab(hex) {
+  const [r, g, b] = inkRgb(hex).map(inkLinear);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+  ];
+}
+
+// Each channel is clipped into sRGB, as the browser does.
+function inkSrgb([L, a, b]) {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  const c = [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+  return inkHex(c.map((v) => Math.round(Math.min(1, Math.max(0, inkGamma(v))) * 255)));
+}
+
+/** darkenTo is `hex` moved toward black in OKLab until its lightness is at most `lightness`. */
+function darkenTo(hex, lightness) {
+  const [l, a, b] = inkOklab(hex);
+  if (l <= lightness) return hex.toUpperCase();
+  const k = lightness / l;
+  return inkSrgb([lightness, a * k, b * k]);
+}
+
+/** lightenTo is `hex` moved toward white in OKLab until its lightness is at least `lightness`. */
+function lightenTo(hex, lightness) {
+  const [l, a, b] = inkOklab(hex);
+  if (l >= lightness) return hex.toUpperCase();
+  const k = (1 - lightness) / (1 - l);
+  return inkSrgb([lightness, a * k, b * k]);
+}
+
+/**
+ * inkCss is the CSS that moves `colour` onto each theme's step the way
+ * darkenTo and lightenTo do, for an ink the stylesheet derives from a colour it
+ * only knows at run time, such as a rainbow position.
+ */
+function inkCss(colour) {
+  const down = 'var(--ink-l-light)';
+  const up = 'var(--ink-l-dark)';
+  const light = `oklab(from ${colour} min(l, ${down}) calc(a * min(1, ${down} / l)) calc(b * min(1, ${down} / l)))`;
+  const dark = `oklab(from ${colour} max(l, ${up}) calc(a * min(1, (1 - ${up}) / (1 - l))) calc(b * min(1, (1 - ${up}) / (1 - l))))`;
+  return `light-dark(${light}, ${dark})`;
+}
+
+/**
+ * accentInks is the accent as text on each theme where glimstone.css's own
+ * step falls short of 4.5:1 on that theme's card (#ffffff light, #262626 dark)
+ * or on the accent's own wash there, and undefined where it holds, which it
+ * does for every preset.
  */
 function accentInks(hex) {
   if (!validHex(hex)) return { light: undefined, dark: undefined };
   const accent = inkRgb(hex);
   const white = [255, 255, 255];
   const darkCard = inkRgb('#262626');
-  const light = inkMix(accent, [0, 0, 0], 0.45);
+  const light = inkRgb(darkenTo(hex, INK_LIGHTNESS.light));
+  const dark = inkRgb(lightenTo(hex, INK_LIGHTNESS.dark));
+  const lightWash = inkMix(white, accent, 0.14).map(Math.round);
+  const darkWash = inkMix(darkCard, accent, 0.14).map(Math.round);
+  const reads = (ink, card, wash) => Math.min(inkRatio(ink, card), inkRatio(ink, wash)) >= MIN_TEXT_CONTRAST;
   return {
-    light: inkRatio(light, white) >= MIN_TEXT_CONTRAST ? undefined : inkPushed(light, [0, 0, 0], white),
-    dark: inkRatio(accent, darkCard) >= MIN_TEXT_CONTRAST ? undefined : inkPushed(accent, white, darkCard),
+    light: reads(light, white, lightWash) ? undefined : inkPushed(light, [0, 0, 0], lightWash),
+    dark: reads(dark, darkCard, darkWash) ? undefined : inkPushed(dark, white, darkWash),
   };
+}
+
+/**
+ * accentHovers is the hover of an accent fill on each theme where
+ * glimstone.css's step toward the text colour would take the fill's ink under
+ * 4.5:1, as on a mid-tone grey. The hover then takes the same step away from
+ * the ink. Undefined means the stylesheet's step holds, as it does for every
+ * preset.
+ */
+function accentHovers(hex) {
+  if (!validHex(hex)) return { light: undefined, dark: undefined };
+  const fill = inkRgb(hex);
+  const ink = inkRgb(contrastOn(hex));
+  const away = inkLuminance(ink) > inkLuminance(fill) ? [0, 0, 0] : [255, 255, 255];
+  const hover = (text) => {
+    const toward = inkMix(fill, inkRgb(text), 0.15).map(Math.round);
+    return inkRatio(ink, toward) >= MIN_TEXT_CONTRAST ? undefined : inkHex(inkMix(fill, away, 0.15));
+  };
+  return { light: hover('#161616'), dark: hover('#F4F4F4') };
 }
 
 /**
@@ -287,9 +380,10 @@ function applyShape(shape) {
 /**
  * applyAccent overrides the accent tokens with a colour or the system's, or
  * removes the override so the theme's own gold returns, as it does for the
- * system's colour in a browser that has none. Where glimstone.css's mix would
+ * system's colour in a browser that has none. Where glimstone.css's step would
  * leave the accent as text under 4.5:1, a theme's own ink is set as
- * --accent-ink-light or --accent-ink-dark.
+ * --accent-ink-light or --accent-ink-dark, and the same goes for a hover the
+ * ink would not read on (--accent-hover-light, -dark).
  */
 function applyAccent(accent) {
   const hex = accent === SYSTEM_ACCENT ? browserAccent() : accent;
@@ -298,6 +392,10 @@ function applyAccent(accent) {
   for (const [theme, ink] of Object.entries(inks)) {
     if (ink) root.setProperty(`--accent-ink-${theme}`, ink);
     else root.removeProperty(`--accent-ink-${theme}`);
+  }
+  for (const [theme, hover] of Object.entries(accentHovers(hex))) {
+    if (hover) root.setProperty(`--accent-hover-${theme}`, hover);
+    else root.removeProperty(`--accent-hover-${theme}`);
   }
   if (!validHex(hex)) {
     root.removeProperty('--accent');
@@ -489,7 +587,10 @@ function hueVars(i) {
     '--item-hue-soft': `color-mix(in srgb, ${hue} 22%, transparent)`,
     '--item-hue-wash': `color-mix(in srgb, ${hue} 16%, transparent)`,
     '--item-hue-badge': `color-mix(in srgb, ${hue} 50%, transparent)`,
-    '--item-hue-ring': `color-mix(in srgb, ${hue} 55%, transparent)`,
+    // The hue on the accent's ink steps, for a line-drawn glyph and for the
+    // focus ring, so a gold ring never sits around a teal tab.
+    '--item-hue-glyph': inkCss(hue),
+    '--item-hue-ring': 'var(--item-hue-glyph)',
   };
 }
 
@@ -526,7 +627,7 @@ function takePageHue(el) {
   }
   const i = Array.prototype.indexOf.call(document.querySelectorAll(TINTED_BUTTONS), el);
   const n = ((i % RAINBOW.length) + RAINBOW.length) % RAINBOW.length;
-  el.style.setProperty('--btn-tint', `color-mix(in srgb, var(--rb-${n}) var(--ink-mix), black)`);
+  el.style.setProperty('--btn-tint', inkCss(`var(--rb-${n})`));
 }
 
 /**

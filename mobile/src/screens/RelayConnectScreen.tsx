@@ -245,7 +245,7 @@ export default function RelayConnectScreen({
       <TextInput
         style={[styles.input, styles.phraseInput, inputStyle]}
         placeholder={t('relay.phrasePlaceholder')}
-        placeholderTextColor={c.textMuted}
+        placeholderTextColor={c.fieldPlaceholder}
         value={phrase}
         onChangeText={(text) => {
           setPhrase(text);

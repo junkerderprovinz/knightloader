@@ -1126,7 +1126,7 @@ const TYPED = 'glim-focus-drawn focus:bg-carbon-surface3';
 /** FIELD_INPUT is a one-line text field for an input that draws itself. */
 export const FIELD_INPUT = `${FIELD_BOX} ${TYPED}`;
 
-const inputClass = `${FIELD_LOOK} ${TYPED} w-full px-3 py-1.5 text-sm placeholder:text-carbon-textMuted`;
+const inputClass = `${FIELD_LOOK} ${TYPED} w-full px-3 py-1.5 text-sm`;
 
 // className is pulled out and merged rather than left in `props`: a JSX spread
 // applies later props last, so a caller's own className would replace the base
