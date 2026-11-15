@@ -36,6 +36,10 @@ permissions:
 env:
   QT_VERSION: "6.5.3"
   AQT_VERSION: "3.3.0"
+  # libtorrent 1.2 calls asio functions Boost 1.87 removed, and Homebrew and
+  # vcpkg carry only newer releases.
+  BOOST_VERSION: "1.86.0"
+  BOOST_SHA256: "2575e74ffc3ef1cd0babac2c1ee8bdb5782a0ee672b1912da40e5b4b591ca01f"
 
 jobs:
   # A dispatch builds the version it names, a push every pin of versions.json.
@@ -84,15 +88,26 @@ jobs:
       - name: Dependencies
         shell: pwsh
         run: |
-          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install --triplet x64-windows-static-md boost-asio boost-system boost-multi-index boost-optional boost-variant boost-crc boost-config boost-pool boost-logic openssl zlib
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install --triplet x64-windows-static-md openssl zlib
           python -m pip install "aqtinstall==$env:AQT_VERSION"
           python -m aqt install-qt --outputdir "$env:RUNNER_TEMP\qt" windows desktop $env:QT_VERSION win64_msvc2019_64
+      - name: Boost
+        shell: pwsh
+        run: |
+          $dir = "boost_$($env:BOOST_VERSION -replace '\.', '_')"
+          curl.exe -fsSL -o boost.tar.gz "https://archives.boost.io/release/$env:BOOST_VERSION/source/$dir.tar.gz"
+          if ((Get-FileHash boost.tar.gz -Algorithm SHA256).Hash -ne $env:BOOST_SHA256) { throw "boost.tar.gz does not match its checksum" }
+          tar -xzf boost.tar.gz
+          Push-Location $dir
+          .\bootstrap.bat
+          .\b2 --with-system toolset=msvc address-model=64 link=static runtime-link=shared variant=release install --prefix="$env:RUNNER_TEMP\boost"
+          Pop-Location
       - name: libtorrent
         shell: pwsh
         run: |
           cmake -S libtorrent -B lt-build -G Ninja -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md `
-            -DBUILD_SHARED_LIBS=OFF -Ddeprecated-functions=OFF -DCMAKE_INSTALL_PREFIX="$env:RUNNER_TEMP\lt"
+            -DCMAKE_PREFIX_PATH="$env:RUNNER_TEMP\boost" -DBUILD_SHARED_LIBS=OFF -Ddeprecated-functions=OFF -DCMAKE_INSTALL_PREFIX="$env:RUNNER_TEMP\lt"
           cmake --build lt-build
           cmake --install lt-build
       - name: qbittorrent-nox
@@ -101,7 +116,7 @@ jobs:
           $qt = "$env:RUNNER_TEMP\qt\$env:QT_VERSION\msvc2019_64"
           cmake -S qbittorrent -B qbt-build -G Ninja -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md `
-            -DCMAKE_PREFIX_PATH="$qt;$env:RUNNER_TEMP\lt" -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF
+            -DCMAKE_PREFIX_PATH="$qt;$env:RUNNER_TEMP\lt;$env:RUNNER_TEMP\boost" -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF
           cmake --build qbt-build
           New-Item -ItemType Directory -Force out | Out-Null
           Copy-Item qbt-build\qbittorrent-nox.exe out\
@@ -142,13 +157,22 @@ jobs:
           submodules: recursive
       - name: Dependencies
         run: |
-          brew install boost openssl@3 ninja
+          brew install openssl@3 ninja
           python3 -m pip install --break-system-packages "aqtinstall==$AQT_VERSION"
           python3 -m aqt install-qt --outputdir "$RUNNER_TEMP/qt" mac desktop "$QT_VERSION" clang_64
+      - name: Boost
+        run: |
+          dir="boost_${BOOST_VERSION//./_}"
+          curl -fsSL -o boost.tar.gz "https://archives.boost.io/release/$BOOST_VERSION/source/$dir.tar.gz"
+          echo "$BOOST_SHA256  boost.tar.gz" | shasum -a 256 -c
+          tar xzf boost.tar.gz
+          cd "$dir"
+          ./bootstrap.sh
+          ./b2 --with-system link=static variant=release install --prefix="$RUNNER_TEMP/boost"
       - name: libtorrent
         run: |
           cmake -S libtorrent -B lt-build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)" \
+            -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)" -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/boost" \
             -DBUILD_SHARED_LIBS=OFF -Ddeprecated-functions=OFF -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/lt"
           cmake --build lt-build
           cmake --install lt-build
@@ -156,7 +180,7 @@ jobs:
         run: |
           qt="$RUNNER_TEMP/qt/$QT_VERSION/macos"
           cmake -S qbittorrent -B qbt-build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="$qt;$RUNNER_TEMP/lt;$(brew --prefix boost)" \
+            -DCMAKE_PREFIX_PATH="$qt;$RUNNER_TEMP/lt;$RUNNER_TEMP/boost" \
             -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)" \
             -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF
           cmake --build qbt-build
