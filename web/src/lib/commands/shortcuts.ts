@@ -33,6 +33,8 @@ const TEXT_KEY: Record<string, { fallback: string; i18nKey: string }> = {
   // Keycaps whose words differ by locale (Pos1, Ende, Entf on a German keyboard).
   home: { fallback: 'Home', i18nKey: 'settings.shortcuts.key.home' },
   end: { fallback: 'End', i18nKey: 'settings.shortcuts.key.end' },
+  pageup: { fallback: 'PgUp', i18nKey: 'settings.shortcuts.key.pageUp' },
+  pagedown: { fallback: 'PgDn', i18nKey: 'settings.shortcuts.key.pageDown' },
   delete: { fallback: 'Del', i18nKey: 'settings.shortcuts.key.delete' },
 };
 

@@ -14,6 +14,8 @@ globalThis.ResizeObserver ??= class {
 };
 // jsdom has no pointer capture, and a press that never travels holds none.
 Element.prototype.hasPointerCapture ??= () => false;
+// Nor does it lay anything out to scroll to.
+Element.prototype.scrollIntoView ??= () => {};
 
 let root: Root;
 let host: HTMLDivElement;
@@ -158,6 +160,15 @@ describe('picking rows in the list', () => {
     expect(picked()).toEqual(['b', 'd']);
     await key(link('b'), ' ');
     expect(picked()).toEqual(['d']);
+  });
+
+  it('jumps ten rows with the page keys and stops at either end', async () => {
+    await show();
+    await key(link('a'), 'PageDown');
+    expect(picked()).toEqual(['d']);
+    await key(link('d'), 'PageUp');
+    expect(picked()).toEqual(['a', 'b', 'c']);
+    expect(folder('Films').getAttribute('aria-selected')).toBe('true');
   });
 });
 
