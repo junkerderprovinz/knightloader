@@ -56,6 +56,9 @@ export interface MenuGroup {
   items: MenuItem[];
 }
 
+/** The first or the last row a menu can choose, for Home and End on a closed dropdown. */
+export type MenuStart = 'first' | 'last';
+
 const MARGIN = 8;
 
 // How long, in ms, an open submenu and its lit parent row survive the pointer
@@ -170,6 +173,7 @@ function Panel({
   label,
   minWidth,
   holdFocus = false,
+  start,
   onClose,
   onDismiss,
   onPointerIn,
@@ -180,6 +184,7 @@ function Panel({
   label: string;
   minWidth?: number;
   holdFocus?: boolean;
+  start?: MenuStart;
   /** Closes the whole menu. */
   onClose: () => void;
   /** Closes only this submenu and hands focus back. */
@@ -205,7 +210,10 @@ function Panel({
   // A list of choices opens on the one in force, as a native select does, so
   // the arrow keys start from where the value is.
   const checked = flat.findIndex((i) => i.checked && !i.disabled);
-  const firstEnabled = checked >= 0 ? checked : Math.max(0, flat.findIndex((i) => !i.disabled));
+  const first = Math.max(0, flat.findIndex((i) => !i.disabled));
+  let last = flat.length - 1;
+  while (last > 0 && flat[last].disabled) last--;
+  const firstEnabled = start === 'first' ? first : start === 'last' ? last : checked >= 0 ? checked : first;
   const [active, setActive] = useState(firstEnabled);
 
   // Held by the parent panel, since dropping `sub` releases both the submenu
@@ -329,6 +337,26 @@ function Panel({
     } else if (e.key === 'Tab') {
       // Tab leaves the menu, so the menu closes.
       onClose();
+    } else if (e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      // A typed letter jumps to the next row whose name starts with it, as in
+      // a native menu, and is not also a command bound to a bare key. Space
+      // stays the row's own.
+      e.preventDefault();
+      e.stopPropagation();
+      jumpTo(e.key);
+    }
+  }
+
+  function jumpTo(letter: string): void {
+    const wanted = letter.toLocaleLowerCase();
+    for (let n = 1; n <= flat.length; n++) {
+      const i = (active + n) % flat.length;
+      const item = flat[i];
+      if (!item.disabled && item.label.trim().toLocaleLowerCase().startsWith(wanted)) {
+        setActive(i);
+        itemRefs.current[i]?.focus();
+        return;
+      }
     }
   }
 
@@ -464,6 +492,7 @@ export function ContextMenu({
   label,
   minWidth,
   holdFocus,
+  start,
   onClose,
 }: {
   anchor: MenuAnchor;
@@ -478,6 +507,8 @@ export function ContextMenu({
    * again without this.
    */
   holdFocus?: boolean;
+  /** The row the focus opens on, where it is not the value in force. */
+  start?: MenuStart;
   onClose: () => void;
 }) {
   const panels = useRef(new Set<HTMLElement>());
@@ -533,6 +564,7 @@ export function ContextMenu({
         label={label}
         minWidth={minWidth}
         holdFocus={holdFocus}
+        start={start}
         onClose={onClose}
       />
     </PanelsCtx.Provider>

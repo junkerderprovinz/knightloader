@@ -2,8 +2,8 @@
 // with a check mark on the value in force. Never a native <select>, whose open
 // list is the operating system's widget, a white panel with its own highlight
 // that no theme here reaches (GlimStone rule 18).
-import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
-import { ContextMenu, anchorBelow, useContextMenu, type MenuItem } from './ContextMenu';
+import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { ContextMenu, anchorBelow, useContextMenu, type MenuItem, type MenuStart } from './ContextMenu';
 import { FIELD_TRIGGER, useTooltip } from './ui';
 import { IconExpand } from '../lib/icons';
 import { useShake } from '../lib/useShake';
@@ -159,15 +159,23 @@ export function Dropdown<T extends string>({
     return () => el.removeEventListener('wheel', onWheel);
   }, []);
 
-  function open(el: HTMLElement) {
+  const [start, setStart] = useState<MenuStart>();
+
+  function open(el: HTMLElement, from?: MenuStart) {
+    setStart(from);
     menu.openAt(anchorBelow(el));
   }
 
+  // Home and End open the list on its first or last option rather than
+  // choosing it unseen, as the select-only combobox pattern asks.
   function onKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
     if (busy) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       open(e.currentTarget);
+    } else if (e.key === 'Home' || e.key === 'End') {
+      e.preventDefault();
+      open(e.currentTarget, e.key === 'Home' ? 'first' : 'last');
     }
   }
 
@@ -237,6 +245,7 @@ export function Dropdown<T extends string>({
           anchor={menu.anchor}
           label={label}
           minWidth={trigger.current?.offsetWidth}
+          start={start}
           onClose={menu.close}
           groups={menuGroups.map((group, g) => ({
             id: `g-${g}`,
