@@ -108,9 +108,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   already have move over on the first start and carry on with the bytes they
   have. A finished one is checked piece by piece first, so qBittorrent seeds
   it without reading it again. Changing the port, DHT or PEX applies at once.
-  Torrents through the built-in VPN wait instead of going out without it,
-  since qBittorrent cannot use a tunnel inside KnightLoader. A VPN interface
-  of the system, such as `wg0`, under Settings, Torrents works.
+  Torrents through the built-in VPN go through a proxy inside KnightLoader,
+  and only through it: qBittorrent is tied to loopback, with the DHT, uTP,
+  local peer discovery and port mapping off, and torrents wait while the
+  tunnel is down. Other peers cannot connect to you that way, so a forwarded
+  port does not reach torrents. On Windows the interface you pick under
+  Settings, Torrents reaches qBittorrent by the name qBittorrent knows it by.
 - **YouTube downloads start without your session.** Google flags accounts
   that download a lot while signed in, so KnightLoader uses your YouTube
   session only for a video that asks for it (members only, age-restricted,

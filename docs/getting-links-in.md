@@ -198,15 +198,24 @@ interface" setting. Peers, trackers and the DHT then use that interface only,
 and while it is missing or down qBittorrent sends and receives nothing and the
 torrents wait. The list offers the interfaces the system has, with their
 addresses, and "Any interface", which is the default. A change applies to
-running torrents at once. On Windows qBittorrent names interfaces its own
-way, so a name from the list may not reach it. The torrents then wait rather
-than leave by another interface. Torrents a debrid service fetches are not
-affected: they come over HTTP from the service.
+running torrents at once. On Windows qBittorrent knows an interface by its
+adapter's internal name, such as `ethernet_32769`, so KnightLoader looks the
+name from the list up in qBittorrent's own list. An interface qBittorrent
+does not list keeps the torrents waiting rather than leaving by another one.
+Torrents a debrid service fetches are not affected: they come over HTTP from
+the service.
 
 The VPN that KnightLoader connects itself runs inside KnightLoader, where
-qBittorrent cannot reach it. While torrents are set to go through it, they
-wait. To send torrents through a VPN, connect the VPN on the system and pick
-its interface here.
+qBittorrent cannot reach it on its own. While torrents go through it,
+qBittorrent connects through a SOCKS5 proxy that KnightLoader runs on
+`127.0.0.1` with a login of its own, and the proxy sends everything into the
+tunnel. Trackers, peers, web seeds and UDP trackers all go that way, host
+names included. qBittorrent is tied to loopback, so nothing can leave by
+another way, and the DHT, uTP, local peer discovery and port mapping are off.
+The DHT would look up its first nodes with the system's name servers, outside
+the tunnel. While the tunnel is down the proxy refuses and the torrents wait.
+Peers cannot connect to you through the proxy, so a port the provider
+forwards does not reach torrents.
 
 ## Usenet
 

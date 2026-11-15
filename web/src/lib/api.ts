@@ -1919,6 +1919,10 @@ export interface TorrentOverview {
   interface?: string;
   /** That interface is missing or down, so every torrent of the built-in client waits. */
   interfaceDown?: boolean;
+  /** Torrents go through the built-in VPN. */
+  vpn?: boolean;
+  /** Its tunnel is down, so every torrent waits until it is back. */
+  vpnDown?: boolean;
 }
 
 export async function fetchTorrentOverview(): Promise<TorrentOverview> {

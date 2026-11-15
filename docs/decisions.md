@@ -450,9 +450,15 @@ everything that has qBittorrent fetch from the web by itself, RSS and the
 peer country lookup, and hands it only .torrent files and magnet links.
 
 The built-in VPN is a network stack inside KnightLoader, which another
-program cannot use. Torrents set to go through it tie qBittorrent to an
-interface the system does not have, so they wait rather than go out without
-the VPN.
+program cannot use. qBittorrent reaches it through a SOCKS5 proxy that
+KnightLoader runs on loopback, which dials into the tunnel only and refuses
+while the tunnel is down. qBittorrent is tied to the loopback interface and
+has the DHT, uTP, local peer discovery and port mapping off, since each of
+those can go around a proxy: 4.5 resolves the DHT's first nodes with the
+system's name servers. The proxy is in qBittorrent's settings file before it
+starts, so the torrents it restores never go out directly. A SOCKS5 proxy
+takes no incoming connections, so torrents through the VPN cannot be reached
+by other peers, forwarded port or not.
 
 
 ## Cross-seeding: the twins stay in qBittorrent

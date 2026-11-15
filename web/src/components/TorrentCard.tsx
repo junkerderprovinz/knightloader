@@ -66,6 +66,7 @@ export function TorrentCard({ settings, hue }: { settings: Settings | null; hue?
       {data.interfaceDown && data.interface && (
         <p className="text-sm text-statusWarn">{t('overview.torrents.interfaceDown', { name: data.interface })}</p>
       )}
+      {data.vpnDown && <p className="text-sm text-statusWarn">{t('overview.torrents.vpnDown')}</p>}
       <button
         type="button"
         onClick={() => navigate('/downloads?card=torrents')}
