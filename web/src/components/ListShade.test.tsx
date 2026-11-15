@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-import { readFileSync } from 'node:fs';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -115,9 +114,18 @@ describe('the shaded list', () => {
   });
 });
 
+/** The one call of node:fs used here; the web build carries no Node types. */
+interface NodeFs {
+  readFileSync(path: string, encoding: 'utf8'): string;
+}
+
 describe('the shades', () => {
-  // Vitest runs from web/.
-  const css = readFileSync('src/index.css', 'utf8');
+  // Vitest hands a test every stylesheet empty, even as ?raw, so the tokens
+  // are read off the disk, from web/ where it runs.
+  const fs = (globalThis as unknown as { process: { getBuiltinModule(id: 'node:fs'): NodeFs } }).process.getBuiltinModule(
+    'node:fs',
+  );
+  const css = fs.readFileSync('src/index.css', 'utf8');
   /** How much of the text colour a band mixes in, in percent. A clear band mixes none. */
   const share = (band: string) => {
     const value = new RegExp(`--list-band-${band}:\\s*([^;]+);`).exec(css)?.[1].trim();
