@@ -674,6 +674,81 @@ body {
   --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
 }
 
+/* The contrast step, for anyone whose system asks for more contrast. The
+   palette stays and only moves: the accent's ink takes a second lightness
+   step, so every preset reads at 8.8 to 9.8:1 as text on white, the sub and
+   muted text each move a step toward the text colour, borders darken to where
+   they read as lines, a card's hairline becomes a ring in the border colour,
+   and the focus ring thickens. The selectors are those of every theme block
+   above, so the step wins over each by coming later. */
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme],
+  :root:not([data-theme="dark"]),
+  [data-theme="dark"][data-oled],
+  :root[data-oled]:not([data-theme="light"]) {
+    --focus-ring-width: 3px;
+    --carbon-border: light-dark(#6f6f6f, #8d8d8d);
+    --carbon-text-sub: light-dark(#393939, #e0e0e0);
+    --carbon-text-muted: light-dark(#525252, #c6c6c6);
+    --sidebar-text: light-dark(#161616, #f4f4f4);
+    --field-placeholder: light-dark(#393939, #e0e0e0);
+    --ink-l-light: 0.40;
+    --ink-l-dark: 0.84;
+    --status-neutral-text: light-dark(#525252, #c6c6c6);
+    --hairline: inset 0 0 0 1px var(--carbon-border);
+  }
+
+  /* Every field and pressable control draws its edge, which the calm look
+     leaves to the fill alone. The ring takes the edge's place while a control
+     has keyboard focus. */
+  :is(.glim-field, .glim-btn, .glim-toggle-track):not(:focus-visible) {
+    outline: 1px solid var(--carbon-border);
+    outline-offset: -1px;
+  }
+}
+
+/* Windows' contrast themes swap every colour for a system one and drop every
+   shadow, and the house draws its edges with fills and shadows, so a card, a
+   field or a switch would melt into the page. Each gets an edge in the system's
+   text colour instead, and a chosen or switched-on state takes the system's
+   selection colours, which the theme guarantees to read against each other. */
+@media (forced-colors: active) {
+  :is(.glim-card, .glim-well, .glim-subcard, .glim-modal-card, .glim-window, .glim-bubble, .glim-tile) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+  :is(.glim-field, .glim-btn):not(:focus-visible) {
+    outline: 1px solid ButtonText;
+    outline-offset: -1px;
+  }
+  .glim-btn:disabled {
+    outline-color: GrayText;
+    color: GrayText;
+  }
+  :is(.glim-active, .glim-btn[aria-pressed="true"]) {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  .glim-toggle-track {
+    forced-color-adjust: none;
+    border: 1px solid ButtonText;
+    background-color: ButtonFace;
+  }
+  .glim-toggle-thumb {
+    forced-color-adjust: none;
+    background-color: ButtonText;
+  }
+  [aria-checked="true"] > .glim-toggle-track {
+    border-color: Highlight;
+    background-color: Highlight;
+  }
+  [aria-checked="true"] > .glim-toggle-track > .glim-toggle-thumb {
+    background-color: HighlightText;
+  }
+}
+
 /* The shaded list's grounds (lib/listShade.ts), see-through so they sit on
    whatever card holds the list, and mixed toward the text colour like the
    hover steps above, so one set serves light, dark and OLED. A package's links

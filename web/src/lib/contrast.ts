@@ -94,8 +94,8 @@ export function contrastOn(hex: string): string {
 /**
  * The lightness steps of the accent as ink, index.css's --ink-l-light and
  * --ink-l-dark: on the light theme the ink sits at this OKLab lightness or
- * below, on the dark ones at this one or above. The contrast step takes the
- * second pair.
+ * below, on the dark ones at this one or above. index.css's contrast step
+ * (prefers-contrast: more) takes the second pair.
  */
 export const INK_LIGHTNESS = { light: 0.52, dark: 0.74, lightMore: 0.4, darkMore: 0.84 } as const;
 

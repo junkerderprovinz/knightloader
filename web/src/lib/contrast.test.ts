@@ -103,6 +103,14 @@ describe('the OKLab steps', () => {
     }
   });
 
+  it('give every preset at least 8.8:1 on white under the contrast step', () => {
+    for (const a of ACCENTS) {
+      const r = contrastRatio(darkenTo(a.hex, INK_LIGHTNESS.lightMore), '#FFFFFF');
+      expect(r, a.name).toBeGreaterThanOrEqual(8.8);
+      expect(r, a.name).toBeLessThanOrEqual(9.8);
+    }
+  });
+
   it('leave a colour already past the step as it is', () => {
     expect(darkenTo('#0E6027', INK_LIGHTNESS.light)).toBe('#0E6027');
     expect(lightenTo('#FCC419', INK_LIGHTNESS.dark)).toBe('#FCC419');

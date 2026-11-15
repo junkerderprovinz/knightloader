@@ -436,6 +436,74 @@ body {
   --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
 }
 
+/* The contrast step, for anyone whose system asks for more contrast, the web
+   UI's values. The palette stays and only moves: the accent's ink takes a
+   second lightness step, the sub and muted text each move a step toward the
+   text colour, borders darken to where they read as lines, a card's hairline
+   becomes a ring and the focus ring thickens. The selectors are those of every
+   theme block above, so the step wins over each by coming later. */
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme],
+  :root:not([data-theme="dark"]),
+  [data-theme="dark"][data-oled],
+  :root[data-oled]:not([data-theme="light"]) {
+    --focus-ring-width: 3px;
+    --carbon-border: light-dark(#6f6f6f, #8d8d8d);
+    --carbon-text-sub: light-dark(#393939, #e0e0e0);
+    --carbon-text-muted: light-dark(#525252, #c6c6c6);
+    --sidebar-text: light-dark(#161616, #f4f4f4);
+    --field-placeholder: light-dark(#393939, #e0e0e0);
+    --ink-l-light: 0.40;
+    --ink-l-dark: 0.84;
+    --status-neutral-text: light-dark(#525252, #c6c6c6);
+    --hairline: inset 0 0 0 1px var(--carbon-border);
+  }
+
+  /* Every field and pressable control draws its edge, which the calm look
+     leaves to the fill alone. The ring takes its place under keyboard focus. */
+  :is(input:not([type="checkbox"], [type="radio"], [type="range"]), select, textarea,
+    .glim-btn-subtle, .glim-btn-neutral, .glim-listbox-trigger, .glim-switch-track):not(:focus-visible) {
+    outline: 1px solid var(--carbon-border);
+    outline-offset: -1px;
+  }
+}
+
+/* Windows' contrast themes swap every colour for a system one and drop every
+   shadow, so a card, a field or a switch would melt into the page. Each gets
+   an edge in the system's text colour, and a chosen or switched-on state takes
+   the system's selection colours. */
+@media (forced-colors: active) {
+  :is(.glim-card, .glim-well, .glim-modal-card, .glim-bubble, .glim-menu, .glim-listbox) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+  :is(input:not([type="checkbox"], [type="radio"], [type="range"]), select, textarea,
+    .glim-btn-subtle, .glim-btn-neutral, .glim-listbox-trigger):not(:focus-visible) {
+    outline: 1px solid ButtonText;
+    outline-offset: -1px;
+  }
+  .glim-seg button[aria-pressed="true"] {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  .glim-switch-track {
+    forced-color-adjust: none;
+    border: 1px solid ButtonText;
+    background-color: ButtonFace;
+  }
+  .glim-switch-knob {
+    forced-color-adjust: none;
+    background-color: ButtonText;
+  }
+  .glim-switch[aria-checked='true'] .glim-switch-track {
+    border-color: Highlight;
+    background-color: Highlight;
+  }
+  .glim-switch[aria-checked='true'] .glim-switch-knob { background-color: HighlightText; }
+}
+
 /* Card, section badge, well selector and swatches, ported from the web UI's
  * Tailwind utilities as plain classes, since the extension has no build step.
  */

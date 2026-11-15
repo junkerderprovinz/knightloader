@@ -206,7 +206,7 @@ export function Button({
   const hover = bubble && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
+      className={`glim-btn inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
         motion-safe:active:scale-[.97] ${
           transport
@@ -1599,7 +1599,7 @@ export function Toggle({
         style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
       >
         <span
-          className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
+          className={`glim-toggle-track relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
             checked ? 'bg-accent' : 'bg-toggleOff'
           } ${refused ? 'opacity-50' : ''}`}
         >
@@ -1610,7 +1610,7 @@ export function Toggle({
               it takes the fill's ink, or the light ramp's pale ground would
               vanish into a yellow or a green. */}
           <span
-            className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
+            className={`glim-toggle-thumb absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
               checked ? 'bg-accentContrast translate-x-4 rtl:-translate-x-4' : 'bg-carbon-background translate-x-0.5 rtl:-translate-x-0.5'
             }`}
           />
