@@ -147,7 +147,7 @@ describe('the Components card', () => {
   it('leads each version to its release or project page', async () => {
     await draw();
     expect(href('KnightLoader')).toBe('https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4');
-    expect(href('GlimStone')).toMatch(/^https:\/\/github\.com\/junkerderprovinz\/glimstone\/releases\/tag\/v\d+\.\d+\.\d+$/);
+    expect(href('GlimStone')).toBe('https://github.com/junkerderprovinz/glimstone/releases/latest');
     expect(href('yt-dlp')).toBe('https://github.com/yt-dlp/yt-dlp/releases/tag/2026.08.19');
     expect(href('FFmpeg')).toBe('https://ffmpeg.org/');
     expect(href('Deno')).toBe('https://github.com/denoland/deno/releases/tag/v2.9.8');

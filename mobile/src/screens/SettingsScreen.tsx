@@ -14,7 +14,7 @@ import { useConfirm, useMotion, useShake } from '../theme/MotionContext';
 import { MOTION_LEVELS, stormTap, type Motion } from '../theme/motion';
 import { ACCENTS, SHAPES, SHAPES_STORED, accentSlot, discoTap, leafTap, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
-import { GLIMSTONE_VERSION } from '../theme/version';
+import { GLIMSTONE_RELEASE_URL, GLIMSTONE_VERSION } from '../theme/version';
 import {
   CardButton,
   GlimButton,
@@ -72,7 +72,6 @@ import { NotificationsCard } from '../components/NotificationsCard';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
 const REPO_URL = GITHUB_URL;
-const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@halleluja.design';
 // PayPal's hosted donation button, the address the web UI's About card and the
 // README's donate row use.
@@ -1082,7 +1081,7 @@ export default function SettingsScreen({
           {' · GlimStone '}
           <Text
             style={{ color: accentInk }}
-            onPress={() => Linking.openURL(`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`)}
+            onPress={() => Linking.openURL(GLIMSTONE_RELEASE_URL)}
           >
             {GLIMSTONE_VERSION}
           </Text>

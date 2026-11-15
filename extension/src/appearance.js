@@ -9,10 +9,16 @@
 /**
  * The GlimStone release these ports follow, packages/core/src/version.ts's
  * number. It lives beside the copies it describes so the Version card cannot
- * claim a release the files are not from, and it is a link, so it has to name
- * a published release. Bump it in the change that lifts the ports.
+ * claim a release the files are not from. Bump it in the change that lifts the
+ * ports.
  */
 const GLIMSTONE_VERSION = '4.4.1';
+
+const GLIMSTONE_REPO = 'https://github.com/junkerderprovinz/glimstone';
+
+// GlimStone's patch tags fold into the next minor and vanish, the newest
+// release stays.
+const GLIMSTONE_RELEASE_URL = `${GLIMSTONE_REPO}/releases/latest`;
 
 /** The shapes the picker shows. `leaf` is a real shape (see
  *  `data-shape="leaf"` in glimstone.css) that no picker offers; leafTap
