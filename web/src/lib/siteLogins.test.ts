@@ -20,7 +20,6 @@ describe('stateNote', () => {
     expect(stateNote(site({ state: 'signedIn', account: 'Jane' }))).toEqual({
       key: 'siteLogins.signedInAs',
       vars: { account: 'Jane' },
-      warn: false,
     });
   });
 
@@ -29,8 +28,8 @@ describe('stateNote', () => {
     expect(stateNote(site({ state: 'unchecked' })).key).toBe('siteLogins.signedIn');
   });
 
-  it('warns once the sign-in ran out', () => {
-    expect(stateNote(site({ state: 'expired' }))).toMatchObject({ key: 'siteLogins.expired', warn: true });
+  it('says when the sign-in ran out', () => {
+    expect(stateNote(site({ state: 'expired' }))).toMatchObject({ key: 'siteLogins.expired' });
   });
 
   it('says not signed in otherwise', () => {
@@ -60,7 +59,6 @@ describe('sourceNote', () => {
     expect(sourceNote(site({ state: 'signedIn', source: 'browser', browser: 'Firefox (default-release)' }))).toEqual({
       key: 'siteLogins.fromBrowser',
       vars: { browser: 'Firefox (default-release)' },
-      warn: false,
     });
   });
   it('says the extension passed it on', () => {
@@ -73,7 +71,6 @@ describe('sourceNote', () => {
     expect(sourceNote(site({ state: 'expired', source: 'browser', browser: 'Firefox (default-release)' }))).toEqual({
       key: 'siteLogins.turnedDown',
       vars: { site: 'Patreon', browser: 'Firefox (default-release)' },
-      warn: false,
     });
   });
   it('says nothing without a session or a known source', () => {
@@ -88,7 +85,6 @@ describe('nextStep', () => {
     expect(nextStep(site({}), { readsBrowsers: true, extensionPaired: false })).toEqual({
       key: 'siteLogins.signInHere',
       vars: { site: 'Patreon' },
-      warn: false,
     });
     expect(nextStep(site({ state: 'expired' }), { readsBrowsers: false, extensionPaired: true })?.key).toBe('siteLogins.signInHere');
   });
@@ -104,7 +100,7 @@ describe('nextStep', () => {
 describe('a site removed here', () => {
   it('says the browser stays signed in, and names no step that would not sign it in', () => {
     const removed = site({ disconnected: true });
-    expect(sourceNote(removed)).toEqual({ key: 'siteLogins.disconnected', warn: false });
+    expect(sourceNote(removed)).toEqual({ key: 'siteLogins.disconnected' });
     expect(nextStep(removed, { readsBrowsers: true, extensionPaired: false })).toBeUndefined();
   });
 });

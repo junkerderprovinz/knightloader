@@ -139,7 +139,7 @@ it('lists a signed-in site among the hoster accounts, saying who it signs in as 
   expect(row('Patreon')?.textContent).toContain('Signed in as Jane Doe');
   expect(hint('Patreon')).toContain('from Firefox (default-release)');
   expect(row('Patreon')?.textContent).not.toContain('from Firefox');
-  expect(row('Patreon')?.querySelector('.text-statusWarn')).toBeNull();
+  expect(row('Patreon')?.querySelector('.text-statusOk')).not.toBeNull();
 });
 
 it('says when the browser extension passed a session on', async () => {
@@ -148,12 +148,12 @@ it('says when the browser extension passed a session on', async () => {
   expect(hint('YouTube')).toContain('from the browser extension');
 });
 
-it('warns on the row of a site whose sign-in ran out and says how to sign in again', async () => {
+it('marks the row of a site whose sign-in ran out in red and says how to sign in again', async () => {
   await renderCard();
   const expired = row('YouTube')!;
   expect(expired.textContent).toContain('Sign-in ran out');
   expect(hint('YouTube')).toContain('KnightLoader picks it up by itself.');
-  expect(expired.querySelector('.text-statusWarn')).not.toBeNull();
+  expect(expired.querySelector('.text-statusFail')).not.toBeNull();
 });
 
 it('lists a site nobody signed in to with the one step that signs it in', async () => {

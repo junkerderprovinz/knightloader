@@ -423,12 +423,12 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
         </span>
       );
     case 'rejected':
-      // Waiting for a code or a sign-in is the person's next step, not a dead
-      // login.
+      // Waiting for a code or a sign-in has its own word, since it names the
+      // person's next step, and the colour of every login that is not signed in.
       if (login.signInHere) {
         return (
-          <span data-new="login-waits" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
-            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
+          <span data-new="login-waits" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
+            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
             {t('accounts.hoster.status.needsSignIn')}
             {detail && <InfoBubble tip={detail} />}
           </span>
@@ -436,8 +436,8 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
       }
       if (login.askCode) {
         return (
-          <span data-new="login-waits" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
-            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
+          <span data-new="login-waits" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
+            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
             {t('accounts.hoster.status.needsCode')}
             {detail && <InfoBubble tip={detail} />}
           </span>

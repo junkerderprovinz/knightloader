@@ -45,15 +45,14 @@ export function useSignInWays(sites: SiteLogin[], enabled = true): SignInWays {
   return { readsBrowsers: readsBrowsers(sites), extensionPaired };
 }
 
-/** SiteState is a site's state as a word behind a dot, in the colour of how it stands. */
+/**
+ * SiteState is a site's state as a word behind a dot, green with a session in
+ * use and red without one, as every status on the accounts page reads.
+ */
 export function SiteState({ site }: { site: SiteLogin }) {
   const { t } = useT();
   const note = stateNote(site);
-  const [text, dot] = note.warn
-    ? ['text-statusWarn', 'bg-statusWarnSolid']
-    : signedIn(site)
-      ? ['text-statusOk', 'bg-statusOkSolid']
-      : ['text-carbon-textMuted', 'bg-carbon-textMuted'];
+  const [text, dot] = signedIn(site) ? ['text-statusOk', 'bg-statusOkSolid'] : ['text-statusFail', 'bg-statusFailSolid'];
   return (
     <span className={`inline-flex items-center gap-1.5 text-meta font-medium ${text}`}>
       <span className={`h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${dot}`} />
