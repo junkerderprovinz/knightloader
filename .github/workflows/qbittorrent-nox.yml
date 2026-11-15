@@ -128,8 +128,10 @@ jobs:
           Copy-Item qbt-build\qbittorrent-nox.exe out\
           & "$qt\bin\windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw out\qbittorrent-nox.exe
           Copy-Item qbittorrent\COPYING out\COPYING.txt
-          $v = (& out\qbittorrent-nox.exe --version) -join ' '
-          if ($v -notmatch "qBittorrent v${{ matrix.pin.qbittorrent }}") { throw "the build says: $v" }
+          # It is a program without a console on Windows, so --version prints
+          # nowhere, and the version comes from its resources instead.
+          $v = (Get-Item out\qbittorrent-nox.exe).VersionInfo.ProductVersion
+          if ($v -ne "v${{ matrix.pin.qbittorrent }}") { throw "the build says: $v" }
           Compress-Archive -Path out\* -DestinationPath "qbittorrent-nox-${{ matrix.pin.qbittorrent }}-windows-amd64.zip"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
