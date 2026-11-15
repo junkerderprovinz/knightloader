@@ -573,3 +573,47 @@ func TestADatagramToAClosedPortDoesNotEndTheAssociation(t *testing.T) {
 		t.Errorf("answer %q", data)
 	}
 }
+
+// slowSocketTunnel hands out its UDP sockets only once release is closed, and
+// says on opening when one is asked for.
+type slowSocketTunnel struct {
+	*fakeTunnel
+	opening chan struct{}
+	release chan struct{}
+}
+
+func (s *slowSocketTunnel) ListenPacket(ctx context.Context, network string) (net.PacketConn, error) {
+	s.opening <- struct{}{}
+	<-s.release
+	return s.fakeTunnel.ListenPacket(ctx, network)
+}
+
+func TestASocketThatOpensAsTheAssociationEndsIsClosedWithIt(t *testing.T) {
+	tun := &slowSocketTunnel{fakeTunnel: &fakeTunnel{}, opening: make(chan struct{}, 1), release: make(chan struct{})}
+	s, err := Start(tun, t.Logf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	echo := echoUDP(t)
+	cl, uc, relay := associate(t, s)
+	if _, err := uc.WriteToUDPAddrPort(datagram(echo.LocalAddr().String(), []byte("first")), relay); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-tun.opening:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the datagram asked for no socket")
+	}
+	cl.c.Close()
+	// The association has to be on its way out before the socket arrives.
+	time.Sleep(200 * time.Millisecond)
+	close(tun.release)
+
+	closed := make(chan error, 1)
+	go func() { closed <- s.Close() }()
+	select {
+	case <-closed:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Close still waits on the socket that opened as the association ended")
+	}
+}

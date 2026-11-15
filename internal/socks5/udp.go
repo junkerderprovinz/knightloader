@@ -28,6 +28,7 @@ type association struct {
 	client netip.AddrPort
 	out    map[string]net.PacketConn
 	names  map[string]resolved
+	closed bool
 	wg     sync.WaitGroup
 }
 
@@ -78,6 +79,7 @@ func (s *Server) associate(c net.Conn, host string, port uint16) {
 func (a *association) close() {
 	_ = a.relay.Close()
 	a.mu.Lock()
+	a.closed = true
 	for _, pc := range a.out {
 		_ = pc.Close()
 	}
@@ -194,6 +196,13 @@ func (a *association) send(dst netip.AddrPort, payload []byte) {
 		}
 		pc = opened
 		a.mu.Lock()
+		// A socket that opened while the association ended would keep its
+		// reader, and so close, waiting for good.
+		if a.closed {
+			a.mu.Unlock()
+			_ = pc.Close()
+			return
+		}
 		a.out[network] = pc
 		a.wg.Add(1)
 		a.mu.Unlock()
