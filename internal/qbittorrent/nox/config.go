@@ -18,7 +18,25 @@ type Config struct {
 	Port     int
 	Username string
 	Password string
+	// Version is the qBittorrent about to start, which decides how its
+	// proxy is written down.
+	Version string
+	// Proxy is the SOCKS5 proxy every connection goes through from the
+	// start on, nil for none.
+	Proxy *Proxy
 }
+
+// Proxy is a SOCKS5 proxy with a login.
+type Proxy struct {
+	Host       string
+	Port       int
+	User, Pass string
+}
+
+// startBound is the interface qBittorrent is tied to when it starts with a
+// proxy: none of that name exists, so nothing goes out until KnightLoader
+// ties it to loopback, past the torrents it restores and starts on its own.
+const startBound = "knightloader-vpn"
 
 // ConfigPath is qBittorrent's settings file for a qBittorrent started with
 // --profile=profile. Qt names an INI file .ini on Windows and .conf elsewhere.
@@ -76,8 +94,12 @@ func WriteConfig(profile string, c Config) error {
 			{`WebUI\UseUPnP`, "false"},
 			{`WebUI\HTTPS\Enabled`, "false"},
 			{`WebUI\AlternativeUIEnabled`, "false"},
+			// It would fetch its country database on the first start,
+			// before any setting KnightLoader makes over the WebUI.
+			{`Connection\ResolvePeerCountries`, "false"},
 		}},
 	}
+	set = append(set, proxySections(c)...)
 	path := ConfigPath(profile)
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
@@ -91,6 +113,57 @@ func WriteConfig(profile string, c Config) error {
 		return err
 	}
 	return os.Rename(tmp, path)
+}
+
+// proxySections are the settings that send qBittorrent through c.Proxy, or
+// none of a proxy left from a run before. Up to 4.5 the type carries the
+// login; later versions keep it apart.
+func proxySections(c Config) []iniSection {
+	px := c.Proxy
+	if px == nil {
+		return []iniSection{{"Network", [][2]string{{`Proxy\Type`, "None"}}}}
+	}
+	network := [][2]string{
+		{`Proxy\Type`, "SOCKS5_PW"},
+		{`Proxy\IP`, px.Host},
+		{`Proxy\Port`, strconv.Itoa(px.Port)},
+		{`Proxy\Username`, px.User},
+		{`Proxy\Password`, px.Pass},
+		{`Proxy\OnlyForTorrents`, "false"},
+		{`PortForwardingEnabled`, "false"},
+	}
+	if namedProxyType(c.Version) {
+		network[0][1] = "SOCKS5"
+		network = append(network,
+			[2]string{`Proxy\AuthEnabled`, "true"},
+			[2]string{`Proxy\HostnameLookupEnabled`, "true"},
+			[2]string{`Proxy\Profiles\BitTorrent`, "true"},
+			[2]string{`Proxy\Profiles\Misc`, "true"},
+			[2]string{`Proxy\Profiles\RSS`, "true"},
+		)
+	}
+	return []iniSection{
+		{"Network", network},
+		{"BitTorrent", [][2]string{
+			{`Session\ProxyPeerConnections`, "true"},
+			{`Session\DHTEnabled`, "false"},
+			{`Session\LSDEnabled`, "false"},
+			{`Session\BTProtocol`, "TCP"},
+			{`Session\AnonymousModeEnabled`, "true"},
+			{`Session\Interface`, startBound},
+			{`Session\InterfaceName`, startBound},
+		}},
+	}
+}
+
+// namedProxyType reports whether qBittorrent version v names its proxy type
+// without the login, as 4.6 and later do.
+func namedProxyType(v string) bool {
+	major, rest, _ := strings.Cut(v, ".")
+	minor, _, _ := strings.Cut(rest, ".")
+	ma, _ := strconv.Atoi(major)
+	mi, _ := strconv.Atoi(minor)
+	return ma > 4 || ma == 4 && mi >= 6
 }
 
 type iniSection struct {

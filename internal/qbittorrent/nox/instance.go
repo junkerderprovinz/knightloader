@@ -55,6 +55,11 @@ var hardening = map[string]any{
 type Options struct {
 	Binary  string
 	Profile string
+	// Version is the version of Binary.
+	Version string
+	// Proxy is the proxy qBittorrent starts behind, asked before each start;
+	// nil, or a nil answer, for none.
+	Proxy func() *Proxy
 	// Key seals the WebUI password at rest; nil keeps it in a file only this
 	// account can read.
 	Key *appkey.Key
@@ -66,9 +71,11 @@ type Options struct {
 
 // Status is how the instance stands, for the Components card.
 type Status struct {
-	State    string `json:"state"`
-	Version  string `json:"version,omitempty"`
-	Port     int    `json:"port,omitempty"`
+	State   string `json:"state"`
+	Version string `json:"version,omitempty"`
+	Port    int    `json:"port,omitempty"`
+	// PID is the process while it runs.
+	PID      int    `json:"pid,omitempty"`
 	Restarts int    `json:"restarts,omitempty"`
 	Detail   string `json:"detail,omitempty"`
 }
@@ -159,22 +166,22 @@ func (in *Instance) supervise(ctx context.Context) {
 	backoff := time.Second
 	for first := true; ; first = false {
 		if !first {
-			in.update(func(s *Status) { s.Restarts++; s.State = StateStarting }, nil)
+			in.update(func(s *Status) { s.Restarts++; s.State, s.PID = StateStarting, 0 }, nil)
 		}
 		began := time.Now()
 		err := in.run(ctx)
 		if ctx.Err() != nil {
-			in.update(func(s *Status) { s.State = StateStopped; s.Detail = "" }, nil)
+			in.update(func(s *Status) { s.State, s.PID, s.Detail = StateStopped, 0, "" }, nil)
 			return
 		}
 		in.logf("qBittorrent: %v", err)
-		in.update(func(s *Status) { s.State = StateFailed; s.Detail = err.Error() }, nil)
+		in.update(func(s *Status) { s.State, s.PID, s.Detail = StateFailed, 0, err.Error() }, nil)
 		if time.Since(began) > healthyRun {
 			backoff = time.Second
 		}
 		select {
 		case <-ctx.Done():
-			in.update(func(s *Status) { s.State = StateStopped }, nil)
+			in.update(func(s *Status) { s.State, s.PID = StateStopped, 0 }, nil)
 			return
 		case <-time.After(backoff):
 		}
@@ -202,7 +209,11 @@ func (in *Instance) run(ctx context.Context) error {
 			return err
 		}
 	}
-	if err := WriteConfig(profile, Config{Port: login.Port, Username: login.Username, Password: login.Password}); err != nil {
+	conf := Config{Port: login.Port, Username: login.Username, Password: login.Password, Version: in.opts.Version}
+	if in.opts.Proxy != nil {
+		conf.Proxy = in.opts.Proxy()
+	}
+	if err := WriteConfig(profile, conf); err != nil {
 		return err
 	}
 
@@ -259,7 +270,7 @@ func (in *Instance) run(ctx context.Context) error {
 		}
 	}
 	in.update(func(s *Status) {
-		s.State, s.Version, s.Port, s.Detail = StateRunning, version, login.Port, ""
+		s.State, s.Version, s.Port, s.PID, s.Detail = StateRunning, version, login.Port, cmd.Process.Pid, ""
 	}, c)
 
 	select {

@@ -3,6 +3,7 @@ package nox
 import (
 	"context"
 	"net"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -162,5 +163,26 @@ func TestAProgramThatIsNotThereFailsWithItsReason(t *testing.T) {
 	}
 	if st := in.Status(); st.Detail == "" || st.State != StateFailed {
 		t.Fatalf("status %+v", st)
+	}
+}
+
+func TestTheProxyOfTheMomentIsInTheSettingsBeforeItStarts(t *testing.T) {
+	profile := t.TempDir()
+	in := Start(Options{
+		Binary:  fakeBinary(t, fakeGood),
+		Profile: profile,
+		Version: "4.5.5",
+		Proxy:   func() *Proxy { return socks },
+	})
+	t.Cleanup(func() { _ = in.Stop() })
+	ready(t, in)
+	wantLines(t, readConfig(t, profile), "Network", `Proxy\Type=SOCKS5_PW`, `Proxy\Port=41080`)
+}
+
+func TestTheStatusNamesTheProcessThatRuns(t *testing.T) {
+	in := startFake(t, fakeGood, t.TempDir())
+	ready(t, in)
+	if pid := in.Status().PID; pid <= 0 || pid == os.Getpid() {
+		t.Errorf("PID = %d", pid)
 	}
 }

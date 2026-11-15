@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -116,4 +117,79 @@ func TestTheConfigIsReadableOnlyByItsOwner(t *testing.T) {
 	if fi.Mode().Perm()&0o077 != 0 {
 		t.Fatalf("mode %v", fi.Mode().Perm())
 	}
+}
+
+// sectionLines is every key=value line of the section named name.
+func sectionLines(conf, name string) []string {
+	var out []string
+	in := false
+	for _, line := range strings.Split(strings.ReplaceAll(conf, "\r\n", "\n"), "\n") {
+		if strings.HasPrefix(line, "[") {
+			in = line == "["+name+"]"
+			continue
+		}
+		if in && line != "" {
+			out = append(out, line)
+		}
+	}
+	return out
+}
+
+func wantLines(t *testing.T, conf, section string, lines ...string) {
+	t.Helper()
+	have := sectionLines(conf, section)
+	for _, l := range lines {
+		if !slices.Contains(have, l) {
+			t.Errorf("[%s] lacks %q:\n%s", section, l, conf)
+		}
+	}
+}
+
+func TestTheFirstStartLooksUpNoPeerCountries(t *testing.T) {
+	profile := t.TempDir()
+	if err := WriteConfig(profile, Config{Port: 18080, Username: "knightloader", Password: "x"}); err != nil {
+		t.Fatal(err)
+	}
+	wantLines(t, readConfig(t, profile), "Preferences", `Connection\ResolvePeerCountries=false`)
+}
+
+var socks = &Proxy{Host: "127.0.0.1", Port: 41080, User: "knightloader", Pass: "pw"}
+
+func TestAProxyIsInPlaceBeforeQBittorrent45Starts(t *testing.T) {
+	profile := t.TempDir()
+	if err := WriteConfig(profile, Config{Port: 18080, Username: "knightloader", Password: "x", Version: "4.5.5", Proxy: socks}); err != nil {
+		t.Fatal(err)
+	}
+	conf := readConfig(t, profile)
+	wantLines(t, conf, "Network",
+		`Proxy\Type=SOCKS5_PW`, `Proxy\IP=127.0.0.1`, `Proxy\Port=41080`,
+		`Proxy\Username=knightloader`, `Proxy\Password=pw`, `Proxy\OnlyForTorrents=false`,
+		`PortForwardingEnabled=false`)
+	wantLines(t, conf, "BitTorrent",
+		`Session\ProxyPeerConnections=true`, `Session\DHTEnabled=false`, `Session\LSDEnabled=false`,
+		`Session\BTProtocol=TCP`, `Session\AnonymousModeEnabled=true`,
+		`Session\Interface=knightloader-vpn`, `Session\InterfaceName=knightloader-vpn`)
+}
+
+func TestFromQBittorrent46OnTheProxyKeepsItsLoginApart(t *testing.T) {
+	for _, v := range []string{"4.6.7", "5.0.5"} {
+		profile := t.TempDir()
+		if err := WriteConfig(profile, Config{Port: 18080, Username: "knightloader", Password: "x", Version: v, Proxy: socks}); err != nil {
+			t.Fatal(err)
+		}
+		wantLines(t, readConfig(t, profile), "Network",
+			`Proxy\Type=SOCKS5`, `Proxy\AuthEnabled=true`, `Proxy\HostnameLookupEnabled=true`,
+			`Proxy\Profiles\BitTorrent=true`, `Proxy\Profiles\Misc=true`, `Proxy\Profiles\RSS=true`)
+	}
+}
+
+func TestWithoutAProxyNoneIsLeftFromALastRun(t *testing.T) {
+	profile := t.TempDir()
+	if err := WriteConfig(profile, Config{Port: 18080, Username: "knightloader", Password: "x", Version: "4.5.5", Proxy: socks}); err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteConfig(profile, Config{Port: 18080, Username: "knightloader", Password: "x", Version: "4.5.5"}); err != nil {
+		t.Fatal(err)
+	}
+	wantLines(t, readConfig(t, profile), "Network", `Proxy\Type=None`)
 }
