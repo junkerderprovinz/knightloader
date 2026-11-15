@@ -843,6 +843,7 @@ function QBittorrentRow() {
   return (
     <ComponentRow
       name="qBittorrent"
+      data-new="qbittorrent"
       version={version}
       href={version ? `https://github.com/qbittorrent/qBittorrent/releases/tag/release-${encodeURIComponent(version)}` : 'https://www.qbittorrent.org/'}
       status={qbitStatus(t, st)}

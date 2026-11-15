@@ -106,7 +106,7 @@ export function CrossSeedCard({
   const indexers = c.indexers ?? [];
   const linked = c.linkMode !== '' && c.linkMode !== 'none';
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
+    <Card hue={hue} data-new="cross-seed" className="flex flex-col gap-5">
       <SectionTitle hint={t('settings.torrents.crossSeedHint')}>{t('settings.torrents.crossSeedTitle')}</SectionTitle>
       <ToggleRow
         checked={c.enabled}

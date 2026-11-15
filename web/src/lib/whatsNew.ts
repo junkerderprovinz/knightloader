@@ -51,6 +51,25 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '3.0.0',
+    changes: [
+      {
+        id: 'qbittorrent',
+        to: ['/settings/help'],
+        text: 'whatsnew.change.qbittorrent',
+        names: { version: 'settings.info.qbitVersion' },
+      },
+      {
+        id: 'cross-seed',
+        to: ['/settings/torrents'],
+        text: 'whatsnew.change.crossSeed',
+        names: { name: 'settings.torrents.crossSeedTitle' },
+      },
+      { id: 'torrent-pieces', text: 'whatsnew.change.torrentPieces' },
+      { id: 'torrent-vpn', text: 'whatsnew.change.torrentVpn' },
+    ],
+  },
+  {
     version: '2.8.4',
     changes: [
       {
