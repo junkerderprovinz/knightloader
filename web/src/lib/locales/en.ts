@@ -1752,6 +1752,7 @@ export const en = {
   'accounts.hoster.searchHosts': 'Search hosters…',
   'accounts.hoster.codeField': 'Two-factor code',
   'accounts.hoster.codeHint': 'The six-digit code your authenticator app shows. KnightLoader signs in with it once and does not keep it.',
+  'accounts.hoster.codeOptionalHint': 'Leave it empty unless the account signs in with a two-factor code. KnightLoader uses it once and does not keep it.',
   'accounts.hoster.codeNeeded': 'The hoster asks for a two-factor code before it takes this login.',
   'accounts.hoster.codeWrong': 'That code did not work. Enter the one the app shows now.',
   'accounts.hoster.codeEnded': 'The session has ended. Enter a new code to sign in again.',

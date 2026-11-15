@@ -89,6 +89,9 @@ type LoginState struct {
 	// AskCode is a login that signs in again only once the user enters the
 	// one-time code of its second factor.
 	AskCode bool `json:"askCode,omitempty"`
+	// TwoFactor is a login whose sign-in takes a two-factor code, which the
+	// user may enter at any time.
+	TwoFactor bool `json:"twoFactor,omitempty"`
 	// SignInSite is the sign-in browser's id for the login's site, for a
 	// login that can be signed in on the site's own page, and SignInHere is
 	// one that waits for that.
@@ -174,6 +177,8 @@ func Curated(host string) bool {
 type Host struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
+	// TwoFactor is a host whose sign-in takes a two-factor code.
+	TwoFactor bool `json:"twoFactor,omitempty"`
 }
 
 // Reconciler owns one App's hoster-login state: the desired side (Store) and
@@ -562,7 +567,7 @@ func (r *Reconciler) States() []LoginState {
 		switch {
 		case isOwn && !r.enabled(h):
 			out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusOff,
-				Detail: "switched off, so KnightLoader is not using this login", Code: codeOwnOff})
+				Detail: "switched off, so KnightLoader is not using this login", Code: codeOwnOff, TwoFactor: own.TwoFactor})
 			continue
 		case isOwn && !own.Handed:
 			out = append(out, own.row(h, cred.Username))
@@ -578,7 +583,7 @@ func (r *Reconciler) States() []LoginState {
 			st = LoginState{Host: h, Username: cred.Username, Status: StatusQueued,
 				Detail: "waiting for the next check", Code: codeWaiting}
 		}
-		st.Enabled, st.HandedOver = true, isOwn
+		st.Enabled, st.HandedOver, st.TwoFactor = true, isOwn, own.TwoFactor
 		out = append(out, st)
 	}
 	return out
@@ -606,6 +611,8 @@ type OwnState struct {
 	// Code is a refusal until the user enters the one-time code of a second
 	// factor: "needed", "wrong" or "ended", as ownlogin.CodeAsk words it.
 	Code string
+	// TwoFactor is a login whose sign-in takes a two-factor code.
+	TwoFactor bool
 	// SignInHere is a refusal until the user signs in on the site's own
 	// page, and SignInSite the sign-in browser's id for that page.
 	SignInHere bool
@@ -621,7 +628,7 @@ type OwnState struct {
 
 // row is the accounts page's row for an enabled login in state o.
 func (o OwnState) row(host, username string) LoginState {
-	st := LoginState{Host: host, Username: username, Enabled: true, SignInSite: o.SignInSite}
+	st := LoginState{Host: host, Username: username, Enabled: true, SignInSite: o.SignInSite, TwoFactor: o.TwoFactor}
 	switch {
 	case o.Key:
 		st.Status = StatusActive

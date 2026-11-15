@@ -1407,6 +1407,7 @@ export const ro: Dict = {
 
   'accounts.hoster.codeField': 'Cod de autentificare în doi pași',
   'accounts.hoster.codeHint': 'Codul de șase cifre pe care îl arată aplicația ta de autentificare. KnightLoader se autentifică o singură dată cu el și nu îl păstrează.',
+  'accounts.hoster.codeOptionalHint': 'Lasă gol, dacă contul nu se autentifică cu un cod în doi pași. KnightLoader îl folosește o singură dată și nu îl păstrează.',
   'accounts.hoster.codeNeeded': 'Hosterul cere un cod de autentificare în doi pași înainte să accepte această autentificare.',
   'accounts.hoster.codeWrong': 'Codul acesta n-a mers. Introdu-l pe cel pe care aplicația îl arată acum.',
   'accounts.hoster.codeEnded': 'Sesiunea s-a încheiat. Introdu un cod nou ca să te autentifici din nou.',

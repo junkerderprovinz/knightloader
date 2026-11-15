@@ -1407,6 +1407,7 @@ export const he: Dict = {
 
   'accounts.hoster.codeField': 'קוד אימות דו־שלבי',
   'accounts.hoster.codeHint': 'הקוד בן שש הספרות שאפליקציית האימות שלך מציגה. KnightLoader מתחבר איתו פעם אחת ולא שומר אותו.',
+  'accounts.hoster.codeOptionalHint': 'השאר ריק, אלא אם החשבון מתחבר עם קוד אימות דו־שלבי. KnightLoader משתמש בו פעם אחת ולא שומר אותו.',
   'accounts.hoster.codeNeeded': 'המארח מבקש קוד אימות דו־שלבי לפני שהוא מקבל את ההתחברות הזו.',
   'accounts.hoster.codeWrong': 'הקוד הזה לא עבד. הזן את הקוד שהאפליקציה מציגה עכשיו.',
   'accounts.hoster.codeEnded': 'ההפעלה הסתיימה. הזן קוד חדש כדי להתחבר שוב.',

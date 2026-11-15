@@ -1405,6 +1405,7 @@ export const tr: Dict = {
 
   'accounts.hoster.codeField': 'İki adımlı doğrulama kodu',
   'accounts.hoster.codeHint': 'Kimlik doğrulama uygulamanın gösterdiği altı haneli kod. KnightLoader bununla bir kez giriş yapar ve kodu saklamaz.',
+  'accounts.hoster.codeOptionalHint': 'Hesap iki aşamalı bir kodla giriş yapmıyorsa boş bırak. KnightLoader kodu bir kez kullanır ve saklamaz.',
   'accounts.hoster.codeNeeded': 'Hoster bu girişi kabul etmeden önce iki adımlı doğrulama kodu istiyor.',
   'accounts.hoster.codeWrong': 'Bu kod işe yaramadı. Uygulamanın şu an gösterdiği kodu gir.',
   'accounts.hoster.codeEnded': 'Oturum sona erdi. Yeniden giriş yapmak için yeni bir kod gir.',

@@ -1405,6 +1405,7 @@ export const zh: Dict = {
 
   'accounts.hoster.codeField': '双重验证码',
   'accounts.hoster.codeHint': '认证应用显示的六位验证码。KnightLoader 只用它登录一次，不会保存。',
+  'accounts.hoster.codeOptionalHint': '仅当账户使用两步验证码登录时填写。KnightLoader 只用它一次，不会保存。',
   'accounts.hoster.codeNeeded': '网盘要先输入双重验证码，才会接受这个登录。',
   'accounts.hoster.codeWrong': '这个验证码不对。输入应用现在显示的那个。',
   'accounts.hoster.codeEnded': '会话已结束。输入新的验证码重新登录。',

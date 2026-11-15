@@ -1405,6 +1405,7 @@ export const is: Dict = {
 
   'accounts.hoster.codeField': 'Tveggja þrepa kóði',
   'accounts.hoster.codeHint': 'Sex stafa kóðinn sem auðkenningarforritið þitt sýnir. KnightLoader skráir sig inn með honum einu sinni og geymir hann ekki.',
+  'accounts.hoster.codeOptionalHint': 'Hafðu þetta autt nema reikningurinn skrái sig inn með tveggja þátta kóða. KnightLoader notar hann einu sinni og geymir hann ekki.',
   'accounts.hoster.codeNeeded': 'Hýsingaraðilinn biður um tveggja þrepa kóða áður en hann tekur við þessari innskráningu.',
   'accounts.hoster.codeWrong': 'Þessi kóði virkaði ekki. Sláðu inn þann sem forritið sýnir núna.',
   'accounts.hoster.codeEnded': 'Lotunni er lokið. Sláðu inn nýjan kóða til að skrá þig inn aftur.',

@@ -1397,6 +1397,7 @@ export const nl: Dict = {
 
   'accounts.hoster.codeField': 'Tweestapscode',
   'accounts.hoster.codeHint': 'De zescijferige code die je authenticator-app toont. KnightLoader logt er één keer mee in en bewaart hem niet.',
+  'accounts.hoster.codeOptionalHint': 'Laat leeg, tenzij het account inlogt met een tweestapscode. KnightLoader gebruikt hem één keer en bewaart hem niet.',
   'accounts.hoster.codeNeeded': 'De hoster vraagt een tweestapscode voordat hij deze login accepteert.',
   'accounts.hoster.codeWrong': 'Die code werkte niet. Vul de code in die de app nu toont.',
   'accounts.hoster.codeEnded': 'De sessie is afgelopen. Vul een nieuwe code in om opnieuw in te loggen.',

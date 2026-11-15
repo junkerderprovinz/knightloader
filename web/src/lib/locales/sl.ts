@@ -1405,6 +1405,7 @@ export const sl: Dict = {
 
   'accounts.hoster.codeField': 'Dvostopenjska koda',
   'accounts.hoster.codeHint': 'Šestmestna koda, ki jo pokaže tvoja aplikacija za preverjanje pristnosti. KnightLoader se z njo prijavi enkrat in je ne shrani.',
+  'accounts.hoster.codeOptionalHint': 'Pusti prazno, razen če se račun prijavlja z dvofaktorsko kodo. KnightLoader jo uporabi enkrat in je ne shrani.',
   'accounts.hoster.codeNeeded': 'Gostitelj zahteva dvostopenjsko kodo, preden sprejme to prijavo.',
   'accounts.hoster.codeWrong': 'Ta koda ni delovala. Vnesi tisto, ki jo aplikacija kaže zdaj.',
   'accounts.hoster.codeEnded': 'Seja je potekla. Vnesi novo kodo, da se znova prijaviš.',

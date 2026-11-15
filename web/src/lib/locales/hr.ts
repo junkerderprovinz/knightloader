@@ -1405,6 +1405,7 @@ export const hr: Dict = {
 
   'accounts.hoster.codeField': 'Dvofaktorski kôd',
   'accounts.hoster.codeHint': 'Šesteroznamenkasti kôd koji prikazuje tvoja aplikacija za autentifikaciju. KnightLoader se njime prijavi jednom i ne čuva ga.',
+  'accounts.hoster.codeOptionalHint': 'Ostavi prazno, osim ako se račun prijavljuje dvofaktorskim kôdom. KnightLoader ga koristi jednom i ne čuva ga.',
   'accounts.hoster.codeNeeded': 'Hoster traži dvofaktorski kôd prije nego što prihvati ovu prijavu.',
   'accounts.hoster.codeWrong': 'Taj kôd nije prošao. Upiši onaj koji aplikacija sada prikazuje.',
   'accounts.hoster.codeEnded': 'Sesija je završila. Upiši novi kôd da se ponovno prijaviš.',

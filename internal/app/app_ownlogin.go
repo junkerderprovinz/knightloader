@@ -34,6 +34,7 @@ type ownBackend interface {
 	Check(ctx context.Context) ownlogin.Status
 	SignIn(ctx context.Context, code string) ownlogin.Status
 	RestoreSession(token string)
+	TakesCode() bool
 	Status() ownlogin.Status
 }
 
@@ -186,6 +187,19 @@ func (a *App) ownHosterFor(id string) *ownHoster {
 	return nil
 }
 
+// ownHosterAt is the hoster whose login is stored under host, nil for none.
+func (a *App) ownHosterAt(host string) *ownHoster {
+	site := hostalias.Canonical(host)
+	a.bmu.RLock()
+	defer a.bmu.RUnlock()
+	for _, h := range a.own {
+		if h.site == site {
+			return h
+		}
+	}
+	return nil
+}
+
 // syncOwnLogins hands each hoster KnightLoader signs in to itself the
 // switched-on login stored for it, or none, and has the hoster check one it
 // has not seen yet. The check of the hoster at site held is the caller's.
@@ -301,7 +315,8 @@ func (a *App) ownLoginState(host string) (hosterauth.OwnState, bool) {
 		if h.site == hostalias.Canonical(host) {
 			st := h.be.Status()
 			return hosterauth.OwnState{
-				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Code: string(st.Code), Handed: st.Handed, Premium: st.Premium,
+				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Code: string(st.Code), TwoFactor: h.be.TakesCode(),
+				Handed: st.Handed, Premium: st.Premium,
 				Expiry: st.Expiry, TrafficLeft: st.TrafficLeft, TrafficMax: st.TrafficMax,
 			}, true
 		}

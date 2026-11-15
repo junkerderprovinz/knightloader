@@ -1408,6 +1408,7 @@ export const no: Dict = {
 
   'accounts.hoster.codeField': 'Tofaktorkode',
   'accounts.hoster.codeHint': 'Den sekssifrede koden autentiseringsappen din viser. KnightLoader logger inn med den én gang og tar ikke vare på den.',
+  'accounts.hoster.codeOptionalHint': 'La feltet stå tomt med mindre kontoen logger inn med en tofaktorkode. KnightLoader bruker den én gang og tar ikke vare på den.',
   'accounts.hoster.codeNeeded': 'Hosteren ber om en tofaktorkode før den godtar denne innloggingen.',
   'accounts.hoster.codeWrong': 'Koden virket ikke. Skriv inn den appen viser nå.',
   'accounts.hoster.codeEnded': 'Økten er over. Skriv inn en ny kode for å logge inn igjen.',

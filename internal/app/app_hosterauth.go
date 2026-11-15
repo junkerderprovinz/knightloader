@@ -66,6 +66,9 @@ func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
 		if skip[serviceKey(h.ID)] || multihostersLeftOut[serviceKey(h.ID)] {
 			continue
 		}
+		if own := a.ownHosterAt(h.ID); own != nil {
+			h.TwoFactor = own.be.TakesCode()
+		}
 		out = append(out, h)
 	}
 	return out
@@ -123,16 +126,7 @@ func (a *App) SetHosterLogin(host, username, password string) error {
 // code for a second factor, so the window that saved it hears whether the
 // hoster wants one. The code is stored nowhere.
 func (a *App) SaveHosterLogin(ctx context.Context, host, username, password, code string) (hosterauth.LoginState, error) {
-	var own *ownHoster
-	if ownSite(host) {
-		a.bmu.RLock()
-		for _, h := range a.own {
-			if h.site == hostalias.Canonical(host) {
-				own = h
-			}
-		}
-		a.bmu.RUnlock()
-	}
+	own := a.ownHosterAt(host)
 	if own == nil {
 		if err := a.SetHosterLogin(host, username, password); err != nil {
 			return hosterauth.LoginState{}, err

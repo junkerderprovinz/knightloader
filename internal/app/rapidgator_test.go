@@ -221,6 +221,52 @@ func TestATwoFactorRapidgatorLoginIsSavedAndThenSignedInWithItsCode(t *testing.T
 	}
 }
 
+func TestARapidgatorLoginTakesItsTwoFactorCodeUpFront(t *testing.T) {
+	a := newCrawlApp(t, false)
+	srv := rgtest.New(t)
+	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913"})
+	useRapidgator(a, srv)
+	ctx := context.Background()
+
+	i := slices.IndexFunc(a.HosterHosts(ctx), func(h hosterauth.Host) bool { return h.ID == "rapidgator.net" })
+	if i < 0 || !a.HosterHosts(ctx)[i].TwoFactor {
+		t.Error("the picker does not offer Rapidgator's login a two-factor code")
+	}
+	row, err := a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "hunter2", "482913")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Status != hosterauth.StatusActive || row.Tier != "premium" || !row.TwoFactor {
+		t.Errorf("saved with the code up front = %+v, want the active premium row that takes a code", row)
+	}
+	if n := srv.Logins(); n != 1 {
+		t.Errorf("signed in %d times, want once, with the code", n)
+	}
+}
+
+func TestARefusedRapidgatorLoginStillTakesACode(t *testing.T) {
+	a := newCrawlApp(t, false)
+	srv := rgtest.New(t)
+	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913"})
+	useRapidgator(a, srv)
+	ctx := context.Background()
+
+	row, err := a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "letmein", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Code != "ownInvalid" || !row.TwoFactor {
+		t.Fatalf("a refused login = %+v, want it refused and still taking a code", row)
+	}
+	row, err = a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "hunter2", "482913")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Status != hosterauth.StatusActive {
+		t.Errorf("saved again with the code = %+v, want the active row", row)
+	}
+}
+
 // signInWithCode saves a two-factor Rapidgator login on a and signs it in
 // with its code, as the login window does.
 func signInWithCode(t *testing.T, a *App) *rgtest.Server {

@@ -1405,6 +1405,7 @@ export const th: Dict = {
 
   'accounts.hoster.codeField': 'รหัสยืนยันสองขั้นตอน',
   'accounts.hoster.codeHint': 'รหัสหกหลักที่แอปยืนยันตัวตนของคุณแสดง KnightLoader ใช้รหัสนี้เข้าสู่ระบบครั้งเดียวและไม่เก็บไว้',
+  'accounts.hoster.codeOptionalHint': 'เว้นว่างไว้ เว้นแต่บัญชีเข้าสู่ระบบด้วยรหัสยืนยันสองขั้นตอน KnightLoader ใช้รหัสนี้ครั้งเดียวและไม่เก็บไว้',
   'accounts.hoster.codeNeeded': 'โฮสเตอร์ขอรหัสยืนยันสองขั้นตอนก่อนรับการเข้าสู่ระบบนี้',
   'accounts.hoster.codeWrong': 'รหัสนี้ใช้ไม่ได้ ใส่รหัสที่แอปแสดงอยู่ตอนนี้',
   'accounts.hoster.codeEnded': 'เซสชันหมดแล้ว ใส่รหัสใหม่เพื่อเข้าสู่ระบบอีกครั้ง',

@@ -1405,6 +1405,7 @@ export const sv: Dict = {
 
   'accounts.hoster.codeField': 'Tvåfaktorskod',
   'accounts.hoster.codeHint': 'Den sexsiffriga kod som din autentiseringsapp visar. KnightLoader loggar in med den en gång och sparar den inte.',
+  'accounts.hoster.codeOptionalHint': 'Lämna tomt om inte kontot loggar in med en tvåfaktorskod. KnightLoader använder den en gång och sparar den inte.',
   'accounts.hoster.codeNeeded': 'Värden ber om en tvåfaktorskod innan den godtar den här inloggningen.',
   'accounts.hoster.codeWrong': 'Koden fungerade inte. Skriv in den som appen visar nu.',
   'accounts.hoster.codeEnded': 'Sessionen är slut. Skriv in en ny kod för att logga in igen.',

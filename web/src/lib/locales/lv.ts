@@ -1406,6 +1406,7 @@ export const lv: Dict = {
 
   'accounts.hoster.codeField': 'Divpakāpju kods',
   'accounts.hoster.codeHint': 'Sešciparu kods, ko rāda tava autentifikācijas lietotne. KnightLoader ar to piesakās vienreiz un to nesaglabā.',
+  'accounts.hoster.codeOptionalHint': 'Atstāj tukšu, ja vien konts nepiesakās ar divpakāpju kodu. KnightLoader to izmanto vienreiz un nesaglabā.',
   'accounts.hoster.codeNeeded': 'Hosteris prasa divpakāpju kodu, pirms pieņem šo pieteikšanos.',
   'accounts.hoster.codeWrong': 'Šis kods nederēja. Ievadi to, ko lietotne rāda tagad.',
   'accounts.hoster.codeEnded': 'Sesija ir beigusies. Ievadi jaunu kodu, lai pieteiktos vēlreiz.',

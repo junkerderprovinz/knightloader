@@ -515,11 +515,10 @@ function HosterLoginDialog({
     if (!picked) return;
     setSaving(true);
     try {
-      const row = await saveHosterLogin(picked.id, username, password, asked ? code : undefined);
+      const row = await saveHosterLogin(picked.id, username, password, code || undefined);
       await onSaved();
       if (row.askCode) {
         setAsked(row);
-        setCode('');
         return;
       }
       toast(t('accounts.saved'), 'ok');
@@ -527,6 +526,7 @@ function HosterLoginDialog({
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'fail');
     } finally {
+      setCode('');
       setSaving(false);
     }
   }
@@ -537,7 +537,11 @@ function HosterLoginDialog({
     : editing
       ? t('accounts.editCredentialTitle', { service: picked.label })
       : t('accounts.addAccountTitle', { service: picked.label });
-  const canSave = username.trim() !== '' && password.trim() !== '' && (!asked || CODE.test(code));
+  // A hoster whose sign-in takes a code offers the field before it asks for
+  // one, so a login it turned down can still get there.
+  const takesCode = !!editing?.twoFactor || !!(picked && hosts.find((h) => h.id === picked.id)?.twoFactor);
+  const canSave =
+    username.trim() !== '' && password.trim() !== '' && (asked ? CODE.test(code) : code === '' || CODE.test(code));
   // Why the field is there. Only a code the hoster turned down is the
   // person's to correct, so only that one reads as an error.
   const codeWrong = asked?.code === 'ownCodeWrong';
@@ -609,17 +613,21 @@ function HosterLoginDialog({
           <SettingRow control="long" label={t('accounts.passwordField')} hint={t('accounts.hoster.passwordCustody')}>
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </SettingRow>
-          {asked && (
+          {(asked || takesCode) && (
             <div data-new="hoster-code" className="flex flex-col gap-1.5">
-              <SettingRow control="long" label={t('accounts.hoster.codeField')} hint={t('accounts.hoster.codeHint')}>
+              <SettingRow
+                control="long"
+                label={t('accounts.hoster.codeField')}
+                hint={t(asked ? 'accounts.hoster.codeHint' : 'accounts.hoster.codeOptionalHint')}
+              >
                 <TextInput
-                  autoFocus
+                  autoFocus={asked !== null}
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   pattern="[0-9]{6}"
                   maxLength={6}
                   aria-invalid={codeWrong && code === ''}
-                  aria-describedby="hoster-code-note"
+                  aria-describedby={asked ? 'hoster-code-note' : undefined}
                   className="tabular-nums tracking-[0.2em]"
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -628,13 +636,15 @@ function HosterLoginDialog({
                   }}
                 />
               </SettingRow>
-              <p
-                id="hoster-code-note"
-                role={codeWrong ? 'alert' : undefined}
-                className={`text-meta ${codeWrong ? 'text-statusFail' : 'text-carbon-textMuted'}`}
-              >
-                {codeNote}
-              </p>
+              {asked && (
+                <p
+                  id="hoster-code-note"
+                  role={codeWrong ? 'alert' : undefined}
+                  className={`text-meta ${codeWrong ? 'text-statusFail' : 'text-carbon-textMuted'}`}
+                >
+                  {codeNote}
+                </p>
+              )}
             </div>
           )}
           {editing?.signInSite && (

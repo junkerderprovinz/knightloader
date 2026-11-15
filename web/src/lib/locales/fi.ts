@@ -1405,6 +1405,7 @@ export const fi: Dict = {
 
   'accounts.hoster.codeField': 'Kaksivaiheisen tunnistuksen koodi',
   'accounts.hoster.codeHint': 'Kuusinumeroinen koodi, jonka todennussovelluksesi näyttää. KnightLoader kirjautuu sillä kerran eikä säilytä sitä.',
+  'accounts.hoster.codeOptionalHint': 'Jätä tyhjäksi, ellei tili kirjaudu kaksivaiheisella koodilla. KnightLoader käyttää sitä kerran eikä säilytä sitä.',
   'accounts.hoster.codeNeeded': 'Hosteri pyytää kaksivaiheisen tunnistuksen koodia ennen kuin se hyväksyy tämän kirjautumisen.',
   'accounts.hoster.codeWrong': 'Koodi ei kelvannut. Syötä se, jonka sovellus näyttää nyt.',
   'accounts.hoster.codeEnded': 'Istunto on päättynyt. Syötä uusi koodi kirjautuaksesi uudelleen.',

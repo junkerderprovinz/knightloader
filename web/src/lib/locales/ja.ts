@@ -1405,6 +1405,7 @@ export const ja: Dict = {
 
   'accounts.hoster.codeField': '二段階認証コード',
   'accounts.hoster.codeHint': '認証アプリに表示される6桁のコードです。KnightLoader はこのコードで一度だけログインし、保存しません。',
+  'accounts.hoster.codeOptionalHint': 'アカウントが二段階認証コードでログインする場合だけ入力してください。KnightLoader はコードを一度だけ使い、保存しません。',
   'accounts.hoster.codeNeeded': 'ホスターはこのログインを受け付ける前に二段階認証コードを求めています。',
   'accounts.hoster.codeWrong': 'このコードは使えませんでした。アプリに今表示されているコードを入力してください。',
   'accounts.hoster.codeEnded': 'セッションが終了しました。もう一度ログインするには新しいコードを入力してください。',

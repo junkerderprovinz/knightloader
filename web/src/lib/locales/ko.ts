@@ -1405,6 +1405,7 @@ export const ko: Dict = {
 
   'accounts.hoster.codeField': '2단계 인증 코드',
   'accounts.hoster.codeHint': '인증 앱에 표시되는 6자리 코드입니다. KnightLoader는 이 코드로 한 번만 로그인하고 저장하지 않습니다.',
+  'accounts.hoster.codeOptionalHint': '계정이 2단계 인증 코드로 로그인할 때만 입력하세요. KnightLoader는 코드를 한 번만 사용하고 저장하지 않습니다.',
   'accounts.hoster.codeNeeded': '호스터가 이 로그인을 받아들이기 전에 2단계 인증 코드를 요구합니다.',
   'accounts.hoster.codeWrong': '이 코드는 맞지 않습니다. 앱에 지금 표시된 코드를 입력하세요.',
   'accounts.hoster.codeEnded': '세션이 끝났습니다. 다시 로그인하려면 새 코드를 입력하세요.',

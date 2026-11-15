@@ -1406,6 +1406,7 @@ export const hu: Dict = {
 
   'accounts.hoster.codeField': 'Kétlépcsős kód',
   'accounts.hoster.codeHint': 'A hat számjegyű kód, amelyet a hitelesítő alkalmazásod mutat. A KnightLoader egyszer jelentkezik be vele, és nem tárolja.',
+  'accounts.hoster.codeOptionalHint': 'Hagyd üresen, hacsak a fiók nem kétlépcsős kóddal jelentkezik be. A KnightLoader egyszer használja, és nem tárolja.',
   'accounts.hoster.codeNeeded': 'A tárhely kétlépcsős kódot kér, mielőtt elfogadja ezt a bejelentkezést.',
   'accounts.hoster.codeWrong': 'Ez a kód nem működött. Írd be azt, amelyet az alkalmazás most mutat.',
   'accounts.hoster.codeEnded': 'A munkamenet lejárt. Az újabb bejelentkezéshez írj be egy új kódot.',
