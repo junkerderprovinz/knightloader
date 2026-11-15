@@ -482,13 +482,13 @@ on, whatever the seeding targets say.
 **Not built:** a task for each twin.
 
 A twin holds no byte the task did not fetch. As a task it would stand in the
-list twice over the same files, a removal with files could delete what the
-task still seeds from, and the torrent totals would count its upload beside
-the task's as if it were another download. The seeding targets are left out
-too: they exist so a download gives back what it took, and a twin took
-nothing, while the reason to seed it at all is to keep seeding on the other
-tracker. The totals on the overview therefore count what the tasks move, not
-the twins.
+list twice over the same files, and a removal with files could delete what
+the task still seeds from. The seeding targets are left out too: they exist
+so a download gives back what it took, and a twin took nothing, while the
+reason to seed it at all is to keep seeding on the other tracker. The totals
+on the overview count what a twin sends, read from qBittorrent every few
+seconds from its second reading on, so nothing it sent before is counted
+twice; it downloads nothing.
 
 The search asks each tracker about each torrent once and remembers the
 answer in `cross-seed-asked.json`, a match, no match and an error alike, so a

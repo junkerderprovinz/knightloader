@@ -628,6 +628,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	}
 	a.Engine = eng
 	eng.UseTorrents(newTorrentClient(a))
+	eng.WatchReadings(a.tallyTwins)
 	// Seeded here so the configured limit applies before the schedule's first
 	// pass takes over.
 	a.limitInForce = -1

@@ -60,6 +60,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the latest twins, and `cross-seed.jsonl` in the data folder keeps them all.
   Your own cross-seed daemon can take each finished torrent instead, with the
   path of its files, so it does not need to reach KnightLoader's qBittorrent.
+  What the twins send counts in the overview's torrent totals.
 - **Sign in to Patreon and YouTube right in KnightLoader.** The site's window
   has "Sign in here": the login page opens in a browser KnightLoader runs
   itself and shows live in the window, and you click and type in it as

@@ -26,6 +26,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/torrents"
 	"github.com/junkerderprovinz/knightloader/internal/vpnconn"
 )
 
@@ -69,13 +70,16 @@ type torrentTally struct {
 	dirty   bool
 	savedAt time.Time
 	uploads map[string]uploadReading
+	// twins are the cross-seed twins' upload totals, by hash. A twin is no
+	// task, so the tally reads it from the torrent client itself.
+	twins map[string]uploadReading
 }
 
 // openTorrentTally reads the totals at path. Without a file the count starts
 // from what the torrents on the list already hold, so an existing install does
 // not show zero for a year of seeding.
 func openTorrentTally(path string, held func() (down, up int64), now time.Time) *torrentTally {
-	t := &torrentTally{path: path, uploads: map[string]uploadReading{}}
+	t := &torrentTally{path: path, uploads: map[string]uploadReading{}, twins: map[string]uploadReading{}}
 	b, err := os.ReadFile(path)
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
@@ -132,6 +136,41 @@ func (t *torrentTally) readUpload(id string, bytes int64, now time.Time) {
 	t.uploads[id] = next
 }
 
+// readTwin counts what a twin sent since its last reading. Its first reading
+// only starts the count, since what it sent before was counted then or
+// belongs to a time before the count, and a total below the last starts it
+// again.
+func (t *torrentTally) readTwin(hash string, bytes int64, now time.Time) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	next := uploadReading{bytes: bytes, at: now}
+	if last, ok := t.twins[hash]; ok && bytes >= last.bytes {
+		if secs := now.Sub(last.at).Seconds(); secs > 0 {
+			next.rate = int64(float64(bytes-last.bytes) / secs)
+		}
+		if up := bytes - last.bytes; up > 0 {
+			t.rollLocked(now)
+			t.totals.Uploaded += up
+			t.totals.UploadedToday += up
+			t.dirty = true
+		}
+	}
+	t.twins[hash] = next
+}
+
+// twinsRate is what the twins send a second right now.
+func (t *torrentTally) twinsRate(now time.Time) int64 {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	var sum int64
+	for _, r := range t.twins {
+		if now.Sub(r.at) <= uploadRateFresh {
+			sum += r.rate
+		}
+	}
+	return sum
+}
+
 // uploadRate is a torrent's current upload rate, 0 once its readings stop.
 func (t *torrentTally) uploadRate(id string, now time.Time) int64 {
 	t.mu.Lock()
@@ -181,6 +220,19 @@ func (t *torrentTally) save(now time.Time, force bool) {
 	if err := fsretry.Rename(tmp, t.path); err != nil {
 		log.Printf("could not put the torrent totals in place: %v", err)
 		_ = os.Remove(tmp)
+	}
+}
+
+// tallyTwins counts what the cross-seed twins of the tasks on the list sent,
+// from a reading of every torrent in the client. The tasks' own torrents are
+// counted from their updates.
+func (a *App) tallyTwins(readings map[string]torrents.Reading) {
+	_, twins := a.torrentOwners()
+	now := time.Now()
+	for h, r := range readings {
+		if twins[h] {
+			a.tally.readTwin(h, r.Uploaded, now)
+		}
 	}
 }
 
@@ -322,6 +374,7 @@ func (a *App) TorrentOverview() TorrentOverview {
 	}
 	a.mu.Unlock()
 
+	out.UploadSpeed += a.tally.twinsRate(now)
 	slices.SortFunc(out.Top, func(x, y TorrentUploader) int { return cmp.Compare(y.UploadSpeed, x.UploadSpeed) })
 	if len(out.Top) > topUploaders {
 		out.Top = out.Top[:topUploaders]

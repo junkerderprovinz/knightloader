@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/torrents"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -185,5 +186,29 @@ func TestAnUploadRateWhoseReadingsStoppedReadsAsNothing(t *testing.T) {
 		if c.ID == "seed" && c.UploadSpeed != 0 {
 			t.Errorf("the task list shows a torrent last read a minute ago uploading at %d B/s", c.UploadSpeed)
 		}
+	}
+}
+
+func TestATwinsUploadCountsInTheTotalsOnceFromItsSecondReading(t *testing.T) {
+	r := takeOverApp(t)
+	a := r.a
+	before := a.TorrentOverview().Uploaded
+	a.tallyTwins(map[string]torrents.Reading{hashTwin: {Uploaded: 1000}, hashTask: {Uploaded: 50000}})
+	if got := a.TorrentOverview().Uploaded; got != before {
+		t.Fatalf("the first reading counted %d bytes", got-before)
+	}
+	time.Sleep(20 * time.Millisecond)
+	a.tallyTwins(map[string]torrents.Reading{hashTwin: {Uploaded: 1500}, hashTask: {Uploaded: 90000}})
+	got := a.TorrentOverview()
+	if got.Uploaded != before+500 || got.UploadedToday < 500 {
+		t.Errorf("after two readings the overview reads %+v, want 500 more sent", got)
+	}
+	if got.UploadSpeed <= 0 {
+		t.Error("the twin's upload rate is not in the overview")
+	}
+	a.tallyTwins(map[string]torrents.Reading{hashTwin: {Uploaded: 200}})
+	a.tallyTwins(map[string]torrents.Reading{hashTwin: {Uploaded: 300}})
+	if got := a.TorrentOverview().Uploaded; got != before+600 {
+		t.Errorf("a twin counted again from nothing adds %d, want 100 more", got-before-500)
 	}
 }
