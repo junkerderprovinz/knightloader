@@ -298,7 +298,7 @@ function KindButton({ label, onOpen, children }: { label: string; onOpen: () => 
         aria-label={label}
         onClick={onOpen}
         className={`${KIND_BADGE} outline-none transition-colors hover:bg-carbon-hover hover:text-carbon-text
-          focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]`}
+          focus-visible:shadow-[0_0_0_var(--focus-ring-width)_var(--focus-ring)]`}
       >
         {children}
       </button>

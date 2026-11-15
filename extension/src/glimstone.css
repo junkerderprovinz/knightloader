@@ -152,17 +152,6 @@ body {
   --accent:            #FCC419;
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
-  /* The accent used as ink, such as text on the page ground (GlimStone
-     1.5.0). The theme sets only --ink-mix; at 100% it is the accent itself.
-     An accent the mix leaves under 4.5:1 on a theme's card gets that theme's
-     ink from applyAccent instead, as --accent-ink-dark or --accent-ink-light.
-     No preset needs one. */
-  --ink-mix:           100%;
-  --accent-ink:        var(--accent-ink-dark, color-mix(in srgb, var(--accent) var(--ink-mix), black));
-  /* The same ink for a line-drawn glyph (GlimStone 3.3.0). Rainbow never
-     colours text, so a hued subtree redefines this one and leaves
-     --accent-ink on the single accent. */
-  --accent-glyph:      var(--accent-ink-dark, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
   /* The state colours of rule 4, Carbon's dark support tones: the accent for
      running, green for done, orange (below) for partial or a warning, red for
@@ -200,7 +189,9 @@ body {
   --glim-scrim: rgba(0, 0, 0, .72);
   --glim-scrim-blur: 6px;
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
-  --focus-ring: rgba(252, 196, 25, .55);
+  /* A field's placeholder, the dimmest step that reads at 4.5:1 on every
+     field fill. */
+  --field-placeholder: #c6c6c6;
 }
 
 [data-theme="light"] {
@@ -239,17 +230,14 @@ body {
   --carbon-text-muted: #6f6f6f;
   --sidebar-text:      #393939;
 
-  /* The fill keeps the accent in both themes (GlimStone 1.5.0); only its use
-     as text is darkened, through --ink-mix. */
+  /* The fill keeps the accent in both themes; only its use as text is
+     darkened, by the ink step below the theme blocks. */
   --accent:            #FCC419;
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
-  --ink-mix:           55%;
-  --accent-ink:        var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
-  --accent-glyph:      var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
-  --status-info-text:    #8E6A00;
-  --status-info-bg:      rgba(142, 106, 0, 0.12);
+  --status-info-text:    #836407;
+  --status-info-bg:      rgba(131, 100, 7, 0.12);
   --status-info-solid:   #A87D00;
 
   --status-ok-text:      #0e6027;
@@ -273,7 +261,7 @@ body {
   /* A light page separates with less. */
   --glim-scrim: rgba(0, 0, 0, .62);
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
-  --focus-ring: rgba(142, 106, 0, .5);
+  --field-placeholder: #525252;
 }
 
 .glim-card {
@@ -301,8 +289,15 @@ body {
 
 :focus-visible {
   opacity: 1;
-  outline: 2px solid var(--focus-ring);
+  outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: 2px;
+}
+
+/* Placeholders take the theme's own step, which reads at 4.5:1 on every field
+   fill. Firefox would dim it once more on its own. */
+::placeholder {
+  color: var(--field-placeholder);
+  opacity: 1;
 }
 
 @media (prefers-color-scheme: light) {
@@ -342,12 +337,9 @@ body {
     --accent:            #FCC419;
     --accent-contrast:   #161616;
     --accent-soft:       rgba(252, 196, 25, 0.14);
-    --ink-mix:           55%;
-    --accent-ink:        var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
-    --accent-glyph:      var(--accent-ink-light, color-mix(in srgb, var(--accent) var(--ink-mix), black));
 
-    --status-info-text:    #8E6A00;
-    --status-info-bg:      rgba(142, 106, 0, 0.12);
+    --status-info-text:    #836407;
+    --status-info-bg:      rgba(131, 100, 7, 0.12);
     --status-info-solid:   #A87D00;
 
     --status-ok-text:      #0e6027;
@@ -370,7 +362,7 @@ body {
     --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
     --glim-scrim: rgba(0, 0, 0, .62);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
-    --focus-ring: rgba(142, 106, 0, .5);
+    --field-placeholder: #525252;
   }
 }
 
@@ -408,16 +400,108 @@ body {
   }
 }
 
+/* The accent used as ink: text or a line-drawn glyph on the page's own ground.
+   It is the accent moved in OKLab onto a lightness step, keeping its hue: down
+   to --ink-l-light on the light theme, up to --ink-l-dark on the dark ones, so
+   every preset reads at nearly the same contrast. applyAccent sets
+   --accent-ink-light or --accent-ink-dark only where a picked colour would
+   still miss 4.5:1 on a theme's card. light-dark() picks the side by the
+   color-scheme the theme blocks set. */
+:root,
+[data-theme] {
+  --ink-l-light: 0.52;
+  --ink-l-dark: 0.74;
+  --accent-ink: light-dark(var(--accent-ink-light, oklab(from var(--accent) min(l, var(--ink-l-light)) calc(a * min(1, var(--ink-l-light) / l)) calc(b * min(1, var(--ink-l-light) / l)))), var(--accent-ink-dark, oklab(from var(--accent) max(l, var(--ink-l-dark)) calc(a * min(1, (1 - var(--ink-l-dark)) / (1 - l))) calc(b * min(1, (1 - var(--ink-l-dark)) / (1 - l))))));
+  /* The same ink for a line-drawn glyph. Rainbow never colours text, so a hued
+     subtree redefines this one and leaves --accent-ink on the single accent. */
+  --accent-glyph: var(--accent-ink);
+  /* The ring is the accent ink, opaque, which leaves at least 3:1 on every
+     ground a ring stands on. */
+  --focus-ring: var(--accent-ink);
+  --focus-ring-width: 2px;
+}
+
 /* The hover step of a filled tone that has no surface ramp of its own
    (GlimStone 3.3.0, rule 21): the fill mixed 15% toward the theme's text
    colour, lighter on dark and darker on light, the way the ramp moves.
-   Declared wherever a theme is set, so --carbon-text is that theme's. */
+   Declared wherever a theme is set, so --carbon-text is that theme's. On a
+   mid-tone picked accent that step would take the ink under 4.5:1, and
+   applyAccent sets the theme's hover as --accent-hover-light or
+   --accent-hover-dark, a step away from the ink instead. */
 :root,
 [data-theme] {
-  --accent-hover:      color-mix(in srgb, var(--accent) 85%, var(--carbon-text));
+  --accent-hover:      light-dark(var(--accent-hover-light, color-mix(in srgb, var(--accent) 85%, var(--carbon-text))), var(--accent-hover-dark, color-mix(in srgb, var(--accent) 85%, var(--carbon-text))));
   --status-ok-hover:   color-mix(in srgb, var(--status-ok-solid) 85%, var(--carbon-text));
   --status-fail-hover: color-mix(in srgb, var(--status-fail-solid) 85%, var(--carbon-text));
   --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
+}
+
+/* The contrast step, for anyone whose system asks for more contrast, the web
+   UI's values. The palette stays and only moves: the accent's ink takes a
+   second lightness step, the sub and muted text each move a step toward the
+   text colour, borders darken to where they read as lines, a card's hairline
+   becomes a ring and the focus ring thickens. The selectors are those of every
+   theme block above, so the step wins over each by coming later. */
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme],
+  :root:not([data-theme="dark"]),
+  [data-theme="dark"][data-oled],
+  :root[data-oled]:not([data-theme="light"]) {
+    --focus-ring-width: 3px;
+    --carbon-border: light-dark(#6f6f6f, #8d8d8d);
+    --carbon-text-sub: light-dark(#393939, #e0e0e0);
+    --carbon-text-muted: light-dark(#525252, #c6c6c6);
+    --sidebar-text: light-dark(#161616, #f4f4f4);
+    --field-placeholder: light-dark(#393939, #e0e0e0);
+    --ink-l-light: 0.40;
+    --ink-l-dark: 0.84;
+    --status-neutral-text: light-dark(#525252, #c6c6c6);
+    --hairline: inset 0 0 0 1px var(--carbon-border);
+  }
+
+  /* Every field and pressable control draws its edge, which the calm look
+     leaves to the fill alone. The ring takes its place under keyboard focus. */
+  :is(input:not([type="checkbox"], [type="radio"], [type="range"]), select, textarea,
+    .glim-btn-subtle, .glim-btn-neutral, .glim-listbox-trigger, .glim-switch-track):not(:focus-visible) {
+    outline: 1px solid var(--carbon-border);
+    outline-offset: -1px;
+  }
+}
+
+/* Windows' contrast themes swap every colour for a system one and drop every
+   shadow, so a card, a field or a switch would melt into the page. Each gets
+   an edge in the system's text colour, and a chosen or switched-on state takes
+   the system's selection colours. */
+@media (forced-colors: active) {
+  :is(.glim-card, .glim-well, .glim-modal-card, .glim-bubble, .glim-menu, .glim-listbox) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+  :is(input:not([type="checkbox"], [type="radio"], [type="range"]), select, textarea,
+    .glim-btn-subtle, .glim-btn-neutral, .glim-listbox-trigger):not(:focus-visible) {
+    outline: 1px solid ButtonText;
+    outline-offset: -1px;
+  }
+  .glim-seg button[aria-pressed="true"] {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  .glim-switch-track {
+    forced-color-adjust: none;
+    border: 1px solid ButtonText;
+    background-color: ButtonFace;
+  }
+  .glim-switch-knob {
+    forced-color-adjust: none;
+    background-color: ButtonText;
+  }
+  .glim-switch[aria-checked='true'] .glim-switch-track {
+    border-color: Highlight;
+    background-color: Highlight;
+  }
+  .glim-switch[aria-checked='true'] .glim-switch-knob { background-color: HighlightText; }
 }
 
 /* Card, section badge, well selector and swatches, ported from the web UI's
@@ -842,7 +926,7 @@ body {
 .glim-info-icon:hover { opacity: 1; }
 .glim-info-icon:focus-visible {
   opacity: 1;
-  outline: 2px solid var(--focus-ring, var(--accent));
+  outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -897,7 +981,7 @@ body {
   translate: calc(var(--dir-sign) * 16px) 0;
 }
 .glim-switch-label { order: 1; }
-.glim-switch:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 3px; }
+.glim-switch:focus-visible { outline: var(--focus-ring-width) solid var(--focus-ring); outline-offset: 3px; }
 
 /* A switch with its caption outside it, the web UI's ToggleRow, for captions
  * with an "(i)": a focusable icon inside a button is invalid, and clicking it
@@ -926,8 +1010,8 @@ body {
      property resolves where it is declared, so the --accent-ink from :root
      arrives here on the single accent and stays there, while a line-drawn
      glyph reads --accent-glyph, which is restated. So is --accent-hover, so a
-     filled button steps from its own hue. --ink-mix comes from <html>. */
-  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+     filled button steps from its own hue. */
+  --accent-glyph: var(--item-hue-glyph);
   --accent-hover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
   /* The focus ring takes the position's colour too. */
   --focus-ring: var(--item-hue-ring);
@@ -952,7 +1036,7 @@ body {
   --accent-soft: var(--item-hue-soft);
   /* Restated because the resting rule above muted the glyph and comes later
      at the same specificity. */
-  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-glyph: var(--item-hue-glyph);
 }
 [data-rainbow='reactive'] .glim-hue-icon:not(.glim-active) svg { color: inherit; }
 [data-rainbow='reactive'] .glim-hue-icon:hover svg,
@@ -1130,7 +1214,7 @@ body {
    pointer one step up the ramp (rule 21) and keeps its ring on focus, since
    it has no caret to show where the keys go (rule 14). */
 .glim-listbox-trigger:hover { background: var(--carbon-surface3); }
-.glim-listbox-trigger:focus-visible { outline: 0; box-shadow: 0 0 0 2px var(--focus-ring); }
+.glim-listbox-trigger:focus-visible { outline: 0; box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring); }
 .glim-listbox-caret { margin-inline-start: auto; opacity: .7; }
 /* The open list starts where the trigger's text starts, ends with the trigger
    or past it, and stays between 13rem and 22rem wide, scrolling from 24rem

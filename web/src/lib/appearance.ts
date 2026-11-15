@@ -7,7 +7,7 @@
 // useRainbow.ts. The reference copy lives at
 // https://github.com/junkerderprovinz/glimstone/blob/main/reference/appearance.ts
 
-import { accentInks, contrastOn, validHex as valid } from './contrast';
+import { accentHovers, accentInks, contrastOn, inkCss, validHex as valid } from './contrast';
 
 export { contrastOn };
 
@@ -213,9 +213,10 @@ function store(key: string, value: string | undefined): void {
  * paintAccent overrides the accent tokens, or clears the override so the
  * theme's gold comes back. The ink on the fill is computed, so a light accent
  * never ends up with white text on it. index.css derives the accent as text
- * with color-mix, and where that mix would fall short of 4.5:1 on a theme's
- * card, the theme's own ink is set here as --accent-ink-light or
- * --accent-ink-dark.
+ * with an OKLab step, and where that step would fall short of 4.5:1 on a
+ * theme's card, the theme's own ink is set here as --accent-ink-light or
+ * --accent-ink-dark. The same goes for a hover the ink would not read on
+ * (--accent-hover-light, -dark).
  */
 function paintAccent(hex: string | undefined): void {
   const root = document.documentElement.style;
@@ -223,6 +224,11 @@ function paintAccent(hex: string | undefined): void {
   for (const [theme, ink] of Object.entries(inks)) {
     if (ink) root.setProperty(`--accent-ink-${theme}`, ink);
     else root.removeProperty(`--accent-ink-${theme}`);
+  }
+  const hovers = valid(hex) ? accentHovers(hex) : { light: undefined, dark: undefined };
+  for (const [theme, hover] of Object.entries(hovers)) {
+    if (hover) root.setProperty(`--accent-hover-${theme}`, hover);
+    else root.removeProperty(`--accent-hover-${theme}`);
   }
   if (!valid(hex)) {
     root.removeProperty('--accent');
@@ -335,7 +341,7 @@ export function takePageHue(el: HTMLElement): void {
   }
   const i = Array.prototype.indexOf.call(document.querySelectorAll(TINTED), el);
   const n = ((i % RAINBOW.length) + RAINBOW.length) % RAINBOW.length;
-  el.style.setProperty('--btn-tint', `color-mix(in srgb, var(--rb-${n}) var(--ink-mix), black)`);
+  el.style.setProperty('--btn-tint', inkCss(`var(--rb-${n})`));
 }
 
 /**
@@ -368,9 +374,10 @@ export function hueVars(i: number): Record<string, string> {
     // A small badge has no neighbouring rows to repeat its colour and reads as
     // grey at the row wash's strength.
     '--item-hue-badge': `color-mix(in srgb, ${hue} 50%, transparent)`,
-    // The focus ring follows the position too, so no gold ring appears around
-    // a teal tab.
-    '--item-hue-ring': `color-mix(in srgb, ${hue} 55%, transparent)`,
+    // The hue on the accent's ink steps, for a line-drawn glyph and for the
+    // focus ring, so no gold ring appears around a teal tab.
+    '--item-hue-glyph': inkCss(hue),
+    '--item-hue-ring': 'var(--item-hue-glyph)',
   };
 }
 

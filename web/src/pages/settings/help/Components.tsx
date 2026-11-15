@@ -20,7 +20,7 @@ import {
   type UpdateProgress,
 } from '../../../lib/api';
 import { followExternal } from '../../../lib/external';
-import { GLIMSTONE_VERSION } from '../../../lib/glimstoneVersion';
+import { GLIMSTONE_RELEASE_URL, GLIMSTONE_VERSION } from '../../../lib/glimstoneVersion';
 import {
   IconClose,
   IconInstall,
@@ -55,7 +55,6 @@ const TONE: Record<NonNullable<Status['tone']>, string> = {
 };
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
-const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 
 /**
  * releaseTag derives the release tag from a version string the way GlimStone's
@@ -374,7 +373,7 @@ export function ComponentsCard({ hue }: { hue: number }) {
           <ComponentRow
             name="GlimStone"
             version={GLIMSTONE_VERSION}
-            href={releasePage(GLIMSTONE_URL, GLIMSTONE_VERSION) || GLIMSTONE_URL}
+            href={GLIMSTONE_RELEASE_URL}
           />
         </div>
       )}

@@ -359,7 +359,7 @@ function TemplateInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className={`${FIELD_INPUT} w-full px-3 text-sm placeholder:text-carbon-textMuted`}
+        className={`${FIELD_INPUT} w-full px-3 text-sm`}
       />
       {folder && (
         <Button

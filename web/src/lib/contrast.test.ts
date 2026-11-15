@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { ACCENTS, RAINBOW } from './appearance';
-import { MIN_TEXT_CONTRAST, accentInks, contrastOn, contrastRatio } from './contrast';
+import { INK_LIGHTNESS, MIN_TEXT_CONTRAST, accentHovers, accentInks, contrastOn, contrastRatio, darkenTo, lightenTo } from './contrast';
 
 const EXTREMES = {
   'near white': '#FAFAFA',
@@ -17,14 +17,9 @@ const LIGHT_GROUNDS = ['#FFFFFF'];
 const DARK_GROUNDS = ['#161616', '#262626'];
 const OLED_GROUNDS = ['#000000', '#161616'];
 
-// index.css's light ink, color-mix(in srgb, accent 55%, black).
-function lightMix(hex: string): string {
-  const n = parseInt(hex.slice(1), 16);
-  return '#' + [16, 8, 0].map((s) => Math.round(((n >> s) & 255) * 0.55).toString(16).padStart(2, '0')).join('');
-}
-
-const lightInk = (hex: string) => accentInks(hex).light ?? lightMix(hex);
-const darkInk = (hex: string) => accentInks(hex).dark ?? hex;
+// index.css's own steps, where applyAccent sets nothing.
+const lightInk = (hex: string) => accentInks(hex).light ?? darkenTo(hex, INK_LIGHTNESS.light);
+const darkInk = (hex: string) => accentInks(hex).dark ?? lightenTo(hex, INK_LIGHTNESS.dark);
 
 describe('the contrast ratio', () => {
   it('is 21:1 for black on white and 1:1 for a colour on itself', () => {
@@ -89,19 +84,70 @@ describe('the accent as text', () => {
     for (const a of ACCENTS) expect(accentInks(a.hex), a.name).toEqual({ light: undefined, dark: undefined });
   });
 
-  it('pushes a pale accent toward black in the light theme only as far as it needs', () => {
-    const { light, dark } = accentInks('#FFFF00');
-    expect(dark).toBeUndefined();
-    expect(contrastRatio(light!, '#FFFFFF')).toBeLessThan(4.6);
-  });
-
-  it('pushes a dark accent toward white in the dark theme', () => {
-    const { light, dark } = accentInks('#0000FF');
-    expect(light).toBeUndefined();
-    expect(contrastRatio(dark!, '#262626')).toBeLessThan(4.6);
+  it('leaves a pale and a deep accent to the stylesheet, whose step already reads', () => {
+    expect(accentInks('#FFFF00')).toEqual({ light: undefined, dark: undefined });
+    expect(accentInks('#0000FF')).toEqual({ light: undefined, dark: undefined });
   });
 
   it('sets nothing for a colour that is not a six-digit hex', () => {
     expect(accentInks('#FFF')).toEqual({ light: undefined, dark: undefined });
+  });
+});
+
+describe('the OKLab steps', () => {
+  it('give every preset nearly the same contrast as text on white', () => {
+    for (const a of ACCENTS) {
+      const r = contrastRatio(darkenTo(a.hex, INK_LIGHTNESS.light), '#FFFFFF');
+      expect(r, a.name).toBeGreaterThanOrEqual(5.2);
+      expect(r, a.name).toBeLessThanOrEqual(5.9);
+    }
+  });
+
+  it('give every preset at least 8.8:1 on white under the contrast step', () => {
+    for (const a of ACCENTS) {
+      const r = contrastRatio(darkenTo(a.hex, INK_LIGHTNESS.lightMore), '#FFFFFF');
+      expect(r, a.name).toBeGreaterThanOrEqual(8.8);
+      expect(r, a.name).toBeLessThanOrEqual(9.8);
+    }
+  });
+
+  it('leave a colour already past the step as it is', () => {
+    expect(darkenTo('#0E6027', INK_LIGHTNESS.light)).toBe('#0E6027');
+    expect(lightenTo('#FCC419', INK_LIGHTNESS.dark)).toBe('#FCC419');
+  });
+
+  it('give every colour an ink that reads at 4.5:1 on the card and on its own wash', () => {
+    const misses: string[] = [];
+    for (let r = 0; r < 256; r += 15) {
+      for (let g = 0; g < 256; g += 15) {
+        for (let b = 0; b < 256; b += 15) {
+          const hex = '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
+          const wash = (card: number) => '#' + [r, g, b].map((v) => Math.round(card + (v - card) * 0.14).toString(16).padStart(2, '0')).join('');
+          for (const [ink, grounds] of [
+            [lightInk(hex), ['#FFFFFF', wash(255)]],
+            [darkInk(hex), ['#262626', wash(38)]],
+          ] as const) {
+            for (const ground of grounds) if (contrastRatio(ink, ground) < MIN_TEXT_CONTRAST) misses.push(`${hex} on ${ground}`);
+          }
+        }
+      }
+    }
+    expect(misses).toEqual([]);
+  });
+});
+
+describe('the hover of an accent fill', () => {
+  it('steps away from the ink where the step toward the text colour would not read', () => {
+    const { light, dark } = accentHovers('#777777');
+    expect(contrastRatio(contrastOn('#777777'), light!)).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST);
+    expect(dark).toBeUndefined();
+  });
+
+  it('keeps the stylesheet hover on every preset', () => {
+    for (const a of ACCENTS) expect(accentHovers(a.hex), a.name).toEqual({ light: undefined, dark: undefined });
+  });
+
+  it('sets nothing for a colour that is not a six-digit hex', () => {
+    expect(accentHovers('red')).toEqual({ light: undefined, dark: undefined });
   });
 });

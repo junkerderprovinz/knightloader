@@ -75,7 +75,7 @@ export function SearchBox({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={keyDown}
         className="glim-focus-drawn h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text caret-accentGlyph
-          placeholder:text-carbon-textMuted outline-none [&::-webkit-search-cancel-button]:hidden"
+          outline-none [&::-webkit-search-cancel-button]:hidden"
       />
       {value && (
         <button

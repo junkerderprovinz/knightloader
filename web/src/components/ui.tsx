@@ -206,7 +206,7 @@ export function Button({
   const hover = bubble && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
+      className={`glim-btn inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
         motion-safe:active:scale-[.97] ${
           transport
@@ -1126,7 +1126,7 @@ const TYPED = 'glim-focus-drawn focus:bg-carbon-surface3';
 /** FIELD_INPUT is a one-line text field for an input that draws itself. */
 export const FIELD_INPUT = `${FIELD_BOX} ${TYPED}`;
 
-const inputClass = `${FIELD_LOOK} ${TYPED} w-full px-3 py-1.5 text-sm placeholder:text-carbon-textMuted`;
+const inputClass = `${FIELD_LOOK} ${TYPED} w-full px-3 py-1.5 text-sm`;
 
 // className is pulled out and merged rather than left in `props`: a JSX spread
 // applies later props last, so a caller's own className would replace the base
@@ -1599,7 +1599,7 @@ export function Toggle({
         style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
       >
         <span
-          className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
+          className={`glim-toggle-track relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
             checked ? 'bg-accent' : 'bg-toggleOff'
           } ${refused ? 'opacity-50' : ''}`}
         >
@@ -1610,7 +1610,7 @@ export function Toggle({
               it takes the fill's ink, or the light ramp's pale ground would
               vanish into a yellow or a green. */}
           <span
-            className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
+            className={`glim-toggle-thumb absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
               checked ? 'bg-accentContrast translate-x-4 rtl:-translate-x-4' : 'bg-carbon-background translate-x-0.5 rtl:-translate-x-0.5'
             }`}
           />
@@ -1887,11 +1887,15 @@ export function UnavailableNotice({
   );
 }
 
-// A quiet placeholder while a page's data is still on the wire. `nested`: see
-// EmptyState above, where the same whole-page or inside-a-card split applies.
+// A quiet placeholder while a page's data is still on the wire. It waits a
+// moment before it shows (.glim-busy-wait), so a quick answer never flashes it.
+// `nested`: see EmptyState above, where the same whole-page or inside-a-card
+// split applies.
 export function LoadingCard({ label, nested }: { label: string; nested?: boolean }) {
   return (
-    <div className={`${nested ? 'glim-well' : 'glim-card'} p-10 text-center text-sm text-carbon-textMuted`}>{label}</div>
+    <div className={`${nested ? 'glim-well' : 'glim-card'} glim-busy-wait p-10 text-center text-sm text-carbon-textMuted`}>
+      {label}
+    </div>
   );
 }
 

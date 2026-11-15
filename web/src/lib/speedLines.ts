@@ -2,6 +2,7 @@
 // kept in the settings beside the accent. They reach the graphs as the two
 // custom properties on the document root that every graph draws with.
 import { ACCENTS, DEFAULT_ACCENT } from './appearance';
+import { inkCss } from './contrast';
 
 /** The two lines as the settings keep them: #rrggbb, or empty for the default. */
 export interface SpeedLines {
@@ -69,13 +70,13 @@ export function linesFromSettings(s: { downloadLine?: string; seedingLine?: stri
 const CACHE = 'kl-speed-lines';
 
 /**
- * setInks puts the two colours on the document root, mixed by the theme's
- * --ink-mix as --accent-ink is, so a pale one still reads on the light theme.
+ * setInks puts the two colours on the document root, on the theme's ink step
+ * as --accent-ink is, so a pale one still reads on the light theme.
  */
 function setInks(download: string, seeding: string): void {
   const root = document.documentElement.style;
-  root.setProperty('--line-download', `color-mix(in srgb, ${download} var(--ink-mix), black)`);
-  root.setProperty('--line-seeding', `color-mix(in srgb, ${seeding} var(--ink-mix), black)`);
+  root.setProperty('--line-download', inkCss(download));
+  root.setProperty('--line-seeding', inkCss(seeding));
 }
 
 /** applySpeedLines draws both lines in the colours chosen, or in the defaults that follow `accent`. */

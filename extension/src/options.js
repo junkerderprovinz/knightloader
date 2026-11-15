@@ -1729,7 +1729,6 @@ async function renderAppearance() {
 // The GlimStone version comes from appearance.js, beside the ports it
 // describes, rather than from a number kept next to this card.
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
-const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@halleluja.design';
 // The widget page for the coffee handle in the README's donate row.
 const COFFEE_WIDGET_URL = 'https://buymeacoffee.com/widget/page/junkerderprovinz?color=%23FFDD00';
@@ -1776,7 +1775,7 @@ function renderAbout() {
   const own = chrome.runtime.getManifest().version;
   versions.replaceChildren(
     versionRow('KnightLoader', `${REPO_URL}/releases/tag/v${own}`, own),
-    versionRow('GlimStone', `${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`, GLIMSTONE_VERSION),
+    versionRow('GlimStone', GLIMSTONE_RELEASE_URL, GLIMSTONE_VERSION),
   );
   text.textContent = t('options.aboutText');
   const coffeeText = document.getElementById('aboutCoffee');
