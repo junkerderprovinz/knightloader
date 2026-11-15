@@ -18,13 +18,31 @@ func TestTheTableNamesADefaultItHolds(t *testing.T) {
 
 func TestEveryVersionHasABuildForEachPlatformKnightLoaderShipsOn(t *testing.T) {
 	for _, v := range Versions().Versions {
-		for _, p := range []string{"linux-amd64", "linux-arm64", "windows-amd64", "darwin-arm64", "darwin-amd64"} {
+		for _, p := range []string{"linux-amd64", "linux-arm64", "windows-amd64", "windows-arm64", "darwin-arm64", "darwin-amd64"} {
 			goos, goarch, _ := strings.Cut(p, "-")
 			a, ok := v.AssetFor(goos, goarch)
 			if !ok || a.Tag == "" || a.Name == "" {
 				t.Errorf("%s has no build for %s", v.Version, p)
 			}
 		}
+	}
+}
+
+// Windows on ARM runs the amd64 build under its x64 emulation, so it fetches
+// the same zip, checked against the same digest.
+func TestWindowsOnArmGetsTheAmd64Build(t *testing.T) {
+	for _, v := range Versions().Versions {
+		arm, ok := v.AssetFor("windows", "arm64")
+		amd, _ := v.AssetFor("windows", "amd64")
+		if !ok || arm != amd {
+			t.Errorf("%s windows/arm64 gets %+v, want the windows/amd64 build %+v", v.Version, arm, amd)
+		}
+	}
+}
+
+func TestAPlatformWithoutABuildHasNone(t *testing.T) {
+	if a, ok := Versions().Versions[0].AssetFor("linux", "riscv64"); ok {
+		t.Errorf("linux/riscv64 gets %+v", a)
 	}
 }
 

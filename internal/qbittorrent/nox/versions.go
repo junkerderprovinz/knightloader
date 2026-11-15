@@ -93,8 +93,12 @@ func (t Table) Pick(version string) (Version, error) {
 	return Version{}, fmt.Errorf("qBittorrent %s is not a version this KnightLoader knows", version)
 }
 
-// AssetFor is the build for one platform.
+// AssetFor is the build for one platform. Windows on ARM takes the amd64
+// build, which runs there under the x64 emulation.
 func (v Version) AssetFor(goos, goarch string) (Asset, bool) {
+	if goos == "windows" && goarch == "arm64" {
+		goarch = "amd64"
+	}
 	a, ok := v.Assets[goos+"-"+goarch]
 	return a, ok
 }
