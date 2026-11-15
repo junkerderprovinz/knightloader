@@ -81,6 +81,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   that signs you in. A download that fails because the site wants a
   signed-in account offers to sign in to that site and starts again once the
   sign-in is there.
+- **Packagizer rules can add a link disabled.** The new "Link enabled" action
+  adds a matching link switched off, so it stays in its package and nothing
+  starts it until you enable it.
+- **The Host filter in the link collector selects all links of a host in one
+  click,** so you can delete the mirror hosts you do not need in one go
+  ([#288](https://github.com/junkerderprovinz/knightloader/issues/288)).
 
 ### Changed
 
@@ -134,6 +140,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   from, or how to sign in, sits in the (i) beside the state. The site's
   window keeps its buttons in the footer, with Close first and, until you are
   signed in, opening the site last as the one step forward.
+- **KnightLoader follows GlimStone 4.5.1.** Accent text reads equally well in
+  every colour, and the contrast goes up when the system asks for more,
+  Windows contrast themes included. Lists and menus take PageUp and PageDown,
+  Home and End and jumps by letter, and screen readers hear how many rows are
+  picked.
+- **The JDownloader import brings the default rules along.** The .rev and
+  .par2 rules arrive as rules that add those files disabled, and "Create
+  Subfolder by Packagename" turns on "Put each package in its own subfolder".
+  The rules that still cannot come over each say why
+  ([#289](https://github.com/junkerderprovinz/knightloader/issues/289)).
 
 ### Removed
 
@@ -193,6 +209,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   vanished as soon as it appeared, so nothing showed what was wrong.
 - **Stopping KnightLoader waits for a group leave to finish,** so a stop
   right then no longer leaves the group half left.
+- **`<jd:packagename>` in a Packagizer rule uses the name the link collector
+  would give the package.** Every pasted link's package and a rule's download
+  folder were called "package" instead
+  ([#288](https://github.com/junkerderprovinz/knightloader/issues/288)).
 
 ## [2.8.3] - 2026-11-13
 
