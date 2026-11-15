@@ -116,7 +116,7 @@ jobs:
           $qt = "$env:RUNNER_TEMP\qt\$env:QT_VERSION\msvc2019_64"
           cmake -S qbittorrent -B qbt-build -G Ninja -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md `
-            -DCMAKE_PREFIX_PATH="$qt;$env:RUNNER_TEMP\lt;$env:RUNNER_TEMP\boost" -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF
+            -DCMAKE_PREFIX_PATH="$qt;$env:RUNNER_TEMP\lt;$env:RUNNER_TEMP\boost" -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF --debug-find-pkg=ZLIB
           cmake --build qbt-build
           New-Item -ItemType Directory -Force out | Out-Null
           Copy-Item qbt-build\qbittorrent-nox.exe out\
@@ -184,13 +184,12 @@ jobs:
             -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)" \
             -DQT6=ON -DGUI=OFF -DWEBUI=ON -DSTACKTRACE=OFF -DTESTING=OFF
           cmake --build qbt-build
-          # macdeployqt only takes an app bundle, so the program goes into one,
-          # which versions.json names as the asset's bin.
+          # qBittorrent builds even the nox as an app bundle on macOS, which
+          # versions.json names as the asset's bin. The plugins stay in, since
+          # Qt 6 brings TLS as one.
           app=qbittorrent-nox.app
-          mkdir -p "$app/Contents/MacOS"
-          cp qbt-build/qbittorrent-nox "$app/Contents/MacOS/"
-          printf '<?xml version="1.0" encoding="UTF-8"?>\n<plist version="1.0"><dict><key>CFBundleExecutable</key><string>qbittorrent-nox</string><key>CFBundleIdentifier</key><string>org.qbittorrent.nox</string><key>CFBundlePackageType</key><string>APPL</string></dict></plist>\n' > "$app/Contents/Info.plist"
-          "$qt/bin/macdeployqt" "$app" -no-plugins
+          cp -R "qbt-build/$app" "$app"
+          "$qt/bin/macdeployqt" "$app"
           codesign --force --deep --sign - "$app"
           cp qbittorrent/COPYING "$app/Contents/COPYING"
           v="$("$app/Contents/MacOS/qbittorrent-nox" --version)"
