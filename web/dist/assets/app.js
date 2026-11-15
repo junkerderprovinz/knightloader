@@ -1051,6 +1051,7 @@ Instances of this version refuse a relay call that is not stamped against being 
 
 ## ⚡ Improved
 
+- **The download list shades its rows by package.** Each package and its files read as one band with a lighter header row, the files alternate faintly, and "Shade the lists" under Appearance turns it off. Suggested by @MueChris82 ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
 - **The Settings page offers the installers.** Under Settings, Apps, the Windows and Linux buttons lead to the installers instead of the zipped program, like the buttons in the README. macOS keeps its zip, because there is no macOS installer.
 - **A field that cannot take a value says why.** It turns red and a line under it gives the reason, now also for a feed's address and title filter and for a target's address, headers and body.
 - **KnightLoader follows GlimStone 4.4.1.** A switch that is on draws its knob in the accent's ink, so it stays easy to see in the light theme, and a group inside a card carries its name as a badge on its top edge.
@@ -1962,6 +1963,7 @@ Instances of this version refuse a relay call that is not stamped against being 
 
 ## ⚡ Improved
 
+- **The download list shades its rows by package.** Each package and its files read as one band with a lighter header row, the files alternate faintly, and "Shade the lists" under Appearance turns it off. Suggested by @MueChris82 ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
 - **The Settings page offers the installers.** Under Settings, Apps, the Windows and Linux buttons lead to the installers instead of the zipped program, like the buttons in the README. macOS keeps its zip, because there is no macOS installer.
 - **A field that cannot take a value says why.** It turns red and a line under it gives the reason, now also for a feed's address and title filter and for a target's address, headers and body.
 - **KnightLoader follows GlimStone 4.4.1.** A switch that is on draws its knob in the accent's ink, so it stays easy to see in the light theme, and a group inside a card carries its name as a badge on its top edge.
