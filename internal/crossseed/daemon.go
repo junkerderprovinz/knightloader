@@ -26,9 +26,14 @@ func NewDaemon(base, key string) *Daemon {
 	return &Daemon{base: strings.TrimRight(base, "/"), key: key, http: httpx.New(httpx.Options{Timeout: 30 * time.Second})}
 }
 
-// Announce hands the daemon the torrent with infoHash through its webhook.
-func (d *Daemon) Announce(ctx context.Context, infoHash string) error {
+// Announce hands the daemon the torrent with infoHash through its webhook,
+// with path, its file or folder on disk, for a daemon that cannot reach the
+// torrent client and searches by the files themselves.
+func (d *Daemon) Announce(ctx context.Context, infoHash, path string) error {
 	form := url.Values{"infoHash": {infoHash}}
+	if path != "" {
+		form.Set("path", path)
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, d.base+"/api/webhook", strings.NewReader(form.Encode()))
 	if err != nil {
 		return err

@@ -170,9 +170,10 @@ reason, and `cross-seed.jsonl` in the data folder keeps them all. "Test key",
 "Test indexer" and "Test daemon" each ask once.
 
 If you run [cross-seed](https://www.cross-seed.org/) yourself, give its address
-and API key instead. KnightLoader then hands it each finished torrent by its
-info hash through its webhook and searches nothing itself. The daemon has to
-reach the torrent on its own, through a client or a torrent folder it watches.
+and API key instead. KnightLoader then hands it each finished torrent through
+its webhook, by its info hash and the path of its files, and searches nothing
+itself. A daemon that cannot reach KnightLoader's qBittorrent searches by the
+files at that path, so it needs to see them under the same path.
 
 **Extra trackers** help a torrent with few peers. Type addresses in, or give
 the address of a public list such as

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -262,7 +263,7 @@ func (r *Runner) handToDaemon(d *Daemon, src Source) {
 	if r.o.History.Asked(DaemonKey, src.Hash) {
 		return
 	}
-	err := d.Announce(r.ctx, src.Hash)
+	err := d.Announce(r.ctx, src.Hash, filepath.Join(src.Dir, src.Name))
 	switch {
 	case r.ctx.Err() != nil:
 		return

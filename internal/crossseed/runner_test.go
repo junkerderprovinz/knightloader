@@ -209,6 +209,9 @@ func TestADaemonTakesTheTorrentInsteadOfASearch(t *testing.T) {
 	if got := d.handed(); len(got) != 1 || got[0] != src.Hash {
 		t.Fatalf("the daemon was handed %v, want the torrent once", got)
 	}
+	if want := filepath.Join(src.Dir, src.Name); d.paths[0] != want {
+		t.Errorf("the daemon was handed the path %q, want %q", d.paths[0], want)
+	}
 	if len(g.keys) != 0 {
 		t.Error("OPS was asked although the daemon searches")
 	}
