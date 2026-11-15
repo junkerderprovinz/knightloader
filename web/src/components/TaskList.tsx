@@ -28,6 +28,7 @@ import {
   fetchOptions,
   saveHosterPreset,
 } from '../lib/api';
+import { announce } from '../lib/announce';
 import { hueVars } from '../lib/appearance';
 import {
   pause,
@@ -2190,6 +2191,16 @@ export function TaskListCard({
   // beginGesture): the queue refuses a reorder with a sentence, and a move that
   // is refused in silence reads as a move the app never received.
   const { toast } = useToast();
+
+  // A focused row says it is selected, but nothing says how many a Shift+arrow
+  // or a click on a package has picked.
+  const picked = selection?.ids.size ?? 0;
+  const announced = useRef(picked);
+  useEffect(() => {
+    if (announced.current === picked) return;
+    announced.current = picked;
+    announce(`${picked} ${t('select.count')}`);
+  }, [picked, t]);
 
   const [stored, setStored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, defaultSort(profile));

@@ -162,6 +162,14 @@ describe('picking rows in the list', () => {
     expect(picked()).toEqual(['d']);
   });
 
+  it('tells a screen reader how many rows are picked', async () => {
+    await show();
+    await press(folder('Films'));
+    await act(() => new Promise((done) => setTimeout(done, 150)));
+    const region = document.querySelector('[data-live-region][aria-live="polite"]');
+    expect(region?.textContent).toBe('3 selected');
+  });
+
   it('jumps ten rows with the page keys and stops at either end', async () => {
     await show();
     await key(link('a'), 'PageDown');

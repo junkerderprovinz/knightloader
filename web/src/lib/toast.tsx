@@ -14,6 +14,7 @@
 import { createContext, Fragment, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../components/ui';
+import { announce } from './announce';
 import { recordEvent, type EventSubject } from './eventLog';
 import { IconClose, IconShield } from './icons';
 import { useT } from './i18n';
@@ -160,10 +161,6 @@ const CRITICAL: Record<NotificationKind, boolean> = {
 // Long enough to read a short line, short enough not to pile up.
 const DURATION_MS = 4000;
 
-// A live region is emptied first and filled a moment later, so the same words
-// said twice are read twice.
-const ANNOUNCE_SETTLE_MS = 100;
-
 const QUIET_KEY = 'notifications.quiet';
 
 /**
@@ -283,19 +280,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastMessage[]>([]);
   const seq = useRef(0);
 
-  // Bubbles are read out through these two regions, since some screen readers
-  // skip a live role on an element that has just arrived. A failure
-  // interrupts, the rest waits for a pause.
-  const polite = useRef<HTMLDivElement>(null);
-  const assertive = useRef<HTMLDivElement>(null);
-  const announce = useCallback((message: string, tone: ToastTone) => {
-    const region = (tone === 'fail' ? assertive : polite).current;
-    if (!region) return;
-    region.textContent = '';
-    setTimeout(() => {
-      region.textContent = message;
-    }, ANNOUNCE_SETTLE_MS);
-  }, []);
 
   // Read through a ref so toast() keeps a stable identity; long-lived effects
   // such as useCompletionToasts's websocket listener hold on to it.
@@ -364,9 +348,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
       const id = ++seq.current;
       setItems((s) => [...s, { id, message, tone, kind: k, action, parade }]);
-      announce(message, tone);
+      // Read out through the two regions below rather than the bubble, since
+      // some screen readers skip a live role on an element that has just
+      // arrived. A failure interrupts, the rest waits for a pause.
+      announce(message, tone === 'fail' ? 'assertive' : 'polite');
     },
-    [announce],
+    [],
   );
 
   return (
@@ -375,8 +362,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {/* On <body>, beside every window, so an open one leaves them reachable. */}
       {createPortal(
         <>
-          <div ref={polite} data-live-region className="sr-only" role="status" aria-live="polite" aria-atomic="true" />
-          <div ref={assertive} data-live-region className="sr-only" role="alert" aria-live="assertive" aria-atomic="true" />
+          <div data-live-region className="sr-only" role="status" aria-live="polite" aria-atomic="true" />
+          <div data-live-region className="sr-only" role="alert" aria-live="assertive" aria-atomic="true" />
         </>,
         document.body,
       )}
