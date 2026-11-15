@@ -170,7 +170,7 @@ describe('the head of the overview', () => {
     await render();
     expect(main().querySelectorAll('.kl-ring-seg')).toHaveLength(2);
     expect(main().querySelector('.kl-ring')!.getAttribute('aria-label')).toBe(
-      'JDownloader: Done, Built-in torrent client: Queued',
+      'JDownloader: Done, Torrent engine (qBittorrent): Queued',
     );
   });
 });

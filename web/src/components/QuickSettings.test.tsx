@@ -128,7 +128,7 @@ describe('the upload limit in the quick settings', () => {
     expect(patches).toEqual([{ torrent: { ...torrent, uploadLimit: 30_000_000 } }]);
   });
 
-  it('is left out while the built-in torrent client is switched off', async () => {
+  it('is left out while the torrent engine is switched off', async () => {
     torrentsParked = true;
     await openPanel();
     expect(captions()).toContain('Speed limit (0 = ∞)');

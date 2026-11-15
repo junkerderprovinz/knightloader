@@ -68,11 +68,11 @@ it('shows the service that fetched the files of a Usenet job', () => {
   expect(out.textContent).toBe('TorBox');
 });
 
-it('shows the built-in torrent client by the magnet glyph', () => {
+it('shows the torrent engine by the magnet glyph', () => {
   const out = cell(row({ resolver: 'torrent', url: 'magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c' }));
   expect(out.querySelector('img')).toBeNull();
   expect(out.querySelector('path')?.getAttribute('d')).toBe(pathOf(renderToStaticMarkup(<IconMagnet />)));
-  expect(out.textContent).toBe('Built-in torrent client');
+  expect(out.textContent).toBe('Torrent engine (qBittorrent)');
 });
 
 it('gives every built-in backend a glyph', () => {

@@ -2,10 +2,14 @@
 // a second thing, and a name that already belongs to something else makes two
 // things look like one. The names held here:
 //
-//   the built-in torrent client   the module switch, its priority row and the
-//                                 debrid texts; the switch does not stop a
-//                                 torrent going to a debrid service, so
-//                                 "Torrents" would claim more than it switches
+//   the torrent engine            KnightLoader's qBittorrent (Torrent-Engine):
+//                                 the module switch, its priority row, the
+//                                 debrid texts and the seeding choice; the
+//                                 switch does not stop a torrent going to a
+//                                 debrid service, so "Torrents" would claim
+//                                 more than it switches, and "qBittorrent"
+//                                 alone is the user's own one. A What's new
+//                                 line keeps the name its release used.
 //   rejected links                the link filter's and the tracker ban's area
 //                                 takes the filter's own verdict, not "held"
 //   the link switch               Disable and Enable (Deaktivieren, Aktivieren)
@@ -74,10 +78,21 @@ const LINK_SWITCH = [
 ];
 
 const METRICS = [/^settings\.health\.scrapeHint$/];
+const RELEASE_NOTES = [/^whatsnew\.change\./];
 
 const rules = [
-  { book: /en$/, words: /Torrent and magnet|\bbuilt-in client\b|\btorrent engine\b/i, why: 'the built-in torrent client has one name' },
-  { book: /de$/, words: /Torrent & Magnet|\beingebaute[nmrs]? Client|Torrent-Engine/, why: 'der eingebaute Torrent-Client hat einen Namen' },
+  {
+    book: /en$/,
+    except: RELEASE_NOTES,
+    words: /Torrent and magnet|\bbuilt-in (torrent )?client\b|\btorrent client\b/i,
+    why: 'the torrent engine has one name',
+  },
+  {
+    book: /de$/,
+    except: RELEASE_NOTES,
+    words: /Torrent & Magnet|\beingebaute[nmrs]? (Torrent-)?Client|\bTorrent-Client/,
+    why: 'die Torrent-Engine hat einen Namen',
+  },
   { book: /en$/, keys: REJECTED, words: /\bheld\b|\bhold(s|ing)?\b/i, why: 'this area is Rejected' },
   { book: /de$/, keys: REJECTED, words: /zurück(ge)?halt|zurückhält|zurückzuhalten|\bhält\b[^.]*\bzurück\b/, why: 'hier heißt es Abgelehnt' },
   {
@@ -122,11 +137,13 @@ for (const [book, values] of Object.entries(books)) {
   }
 }
 
-// The module switch and its priority row are the same client.
+// The module switch, its priority row and the seeding choice are the same engine.
 for (const book of ['web en', 'web de']) {
   const module = books[book].get('settings.module.torrents');
-  const row = books[book].get('resolver.torrent');
-  if (module !== row) problems.push(`${book}: the module is "${module}" but its priority row is "${row}"`);
+  for (const key of ['resolver.torrent', 'settings.torrents.seedIn.builtin']) {
+    const other = books[book].get(key);
+    if (module !== other) problems.push(`${book}: the module is "${module}" but ${key} is "${other}"`);
+  }
 }
 
 if (problems.length > 0) {
