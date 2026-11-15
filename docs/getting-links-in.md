@@ -215,8 +215,11 @@ names included. qBittorrent is tied to loopback, so nothing can leave by
 another way, and the DHT, uTP, local peer discovery and port mapping are off.
 The DHT would look up its first nodes with the system's name servers, outside
 the tunnel. While the tunnel is down the proxy refuses and the torrents wait.
-Peers cannot connect to you through the proxy, so a port the provider
-forwards does not reach torrents.
+Torrents only connect outwards that way, so peers cannot connect to you and a
+port the provider forwards does not reach torrents
+([#112](https://github.com/junkerderprovinz/knightloader/issues/112) brought
+forwarded ports to the torrents of earlier versions). For ratio on private
+trackers, a VPN container of your own or your own qBittorrent works better.
 
 ## Usenet
 

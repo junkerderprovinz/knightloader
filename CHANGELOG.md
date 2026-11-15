@@ -77,8 +77,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Torrents through the built-in VPN go through a proxy inside KnightLoader,
   and only through it: qBittorrent is tied to loopback, with the DHT, uTP,
   local peer discovery and port mapping off, and torrents wait while the
-  tunnel is down. Other peers cannot connect to you that way, so a forwarded
-  port does not reach torrents. On Windows the interface you pick under
+  tunnel is down. Torrents only connect outwards that way, so other peers
+  cannot connect to you and a forwarded port no longer reaches torrents
+  ([#112](https://github.com/junkerderprovinz/knightloader/issues/112)). For
+  ratio on private trackers, a VPN container of your own or your own
+  qBittorrent works better. On Windows the interface you pick under
   Settings, Torrents reaches qBittorrent by the name qBittorrent knows it by.
 
 ### Removed
