@@ -206,3 +206,23 @@ func answered(what string, a answer, hash string) error {
 	}
 	return refused(what, a)
 }
+
+// Interface is a network interface as qBittorrent names it: Value is what
+// current_network_interface takes, Name is how the system shows it.
+type Interface struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+// NetworkInterfaces lists the network interfaces qBittorrent can be tied to.
+func (c *Client) NetworkInterfaces(ctx context.Context) ([]Interface, error) {
+	var out []Interface
+	return out, c.getJSON(ctx, "app/networkInterfaceList", nil, "", &out)
+}
+
+// InterfaceAddresses lists the addresses of the interface named value, every
+// interface's for an empty value.
+func (c *Client) InterfaceAddresses(ctx context.Context, value string) ([]string, error) {
+	var out []string
+	return out, c.getJSON(ctx, "app/networkInterfaceAddressList", url.Values{"iface": {value}}, "", &out)
+}

@@ -134,8 +134,10 @@ func (s *Server) serveTorrents(w http.ResponseWriter, r *http.Request) bool {
 			}
 		})
 	case pause:
+		s.noteSwitch(call, r)
 		s.change(w, r, func(t *Torrent) { t.State = paused })
 	case resume:
+		s.noteSwitch(call, r)
 		s.change(w, r, func(t *Torrent) { t.State = "downloading" })
 	case "addTrackers":
 		s.change(w, r, func(t *Torrent) {
@@ -279,6 +281,12 @@ func (s *Server) change(w http.ResponseWriter, r *http.Request, f func(t *Torren
 	if !found && r.FormValue("hash") != "" {
 		http.NotFound(w, r)
 	}
+}
+
+func (s *Server) noteSwitch(call string, r *http.Request) {
+	s.mu.Lock()
+	s.switches = append(s.switches, call+" "+r.FormValue("hashes"))
+	s.mu.Unlock()
 }
 
 func writeJSON(w http.ResponseWriter, v any) {

@@ -194,3 +194,24 @@ func TestSequentialDownloadAndFirstAndLastPiecesAreToggled(t *testing.T) {
 		t.Fatalf("Torrents = %+v, %v", got, err)
 	}
 }
+
+func TestTheNetworkInterfacesAreListedAsQBittorrentNamesThem(t *testing.T) {
+	q, c := fake(t)
+	q.Interfaces = []qbittest.Interface{
+		{Name: "Ethernet", Value: "ethernet_32769", Addrs: []string{"192.168.1.5"}},
+		{Name: "Loopback Pseudo-Interface 1", Value: "loopback_0", Addrs: []string{"::1", "127.0.0.1"}},
+	}
+	ctx := context.Background()
+	got, err := c.NetworkInterfaces(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []Interface{{Name: "Ethernet", Value: "ethernet_32769"}, {Name: "Loopback Pseudo-Interface 1", Value: "loopback_0"}}
+	if !slices.Equal(got, want) {
+		t.Fatalf("interfaces %+v", got)
+	}
+	addrs, err := c.InterfaceAddresses(ctx, "loopback_0")
+	if err != nil || !slices.Equal(addrs, []string{"::1", "127.0.0.1"}) {
+		t.Fatalf("addresses %v, %v", addrs, err)
+	}
+}
