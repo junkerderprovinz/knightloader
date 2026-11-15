@@ -5,10 +5,10 @@ import { message } from '../lib/intake';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { IconClose, IconExternalLink, IconTrash, IconUndo } from '../lib/icons';
 import { hostOf } from '../lib/searchQuery';
-import { signInFor } from '../lib/siteLogins';
+import { signInFor, useSignInWays } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { Button, FieldGroup, Modal } from './ui';
-import { SiteLoginDialog, useSignInWays } from './SiteLoginDialog';
+import { SiteLoginDialog } from './SiteLoginDialog';
 
 /**
  * FailureAdvice explains one failed download in a sentence, with at most one

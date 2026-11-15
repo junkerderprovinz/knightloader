@@ -1,4 +1,5 @@
-import type { SiteLogin } from './api';
+import { useEffect, useState } from 'react';
+import { type SiteLogin, fetchConnect } from './api';
 import type { TranslationKey } from './i18n';
 
 /** What a site's row and window say of its sign-in. */
@@ -49,6 +50,23 @@ export interface SignInWays {
 /** readsBrowsers is whether the instance reads the browsers on its computer, as its sites say. */
 export function readsBrowsers(sites: SiteLogin[]): boolean {
   return sites.some((s) => s.readsBrowsers);
+}
+
+/**
+ * useSignInWays says where this instance gets a sign-in from: outside a
+ * container it reads the browsers on its computer, and a container needs a
+ * browser of its group that has the extension.
+ */
+export function useSignInWays(sites: SiteLogin[], enabled = true): SignInWays {
+  const [extensionPaired, setExtensionPaired] = useState(false);
+  useEffect(() => {
+    if (!enabled) return;
+    void fetchConnect().then(
+      (c) => setExtensionPaired((c.apps ?? []).some((a) => a.deployment === 'extension' && a.approved)),
+      () => {},
+    );
+  }, [enabled]);
+  return { readsBrowsers: readsBrowsers(sites), extensionPaired };
 }
 
 /**

@@ -62,6 +62,14 @@ export const RELEASES: Release[] = [
       // Drawn in the windows a site's row and an XFS hoster's login open, where
       // this computer can start a sign-in browser.
       { id: 'sign-in-here', to: ACCOUNTS, text: 'whatsnew.change.signInHere', names: { name: 'signInBrowser.signInHere' } },
+      // Drawn in a site's sign-in window, where a sign-in made in the user's
+      // own browser can be read back.
+      {
+        id: 'open-in-browser',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.openInBrowser',
+        names: { name: 'signInBrowser.openInBrowser' },
+      },
       // Drawn only while a hoster waits for a code.
       { id: 'hoster-code', to: ACCOUNTS, text: 'whatsnew.change.hosterCode', names: { name: 'accounts.hoster.codeField' } },
       // Drawn only on a login that waits for a code or a sign-in.

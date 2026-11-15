@@ -25,13 +25,13 @@ import {
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
-import { type SignInWays, nextStep, siteForHost, sourceNote, unreadableBrowsers } from '../lib/siteLogins';
+import { type SignInWays, nextStep, siteForHost, sourceNote, unreadableBrowsers, useSignInWays } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconClose, IconSave, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
-import { SiteLoginDialog, SiteState, useSignInWays } from './SiteLoginDialog';
+import { SiteLoginDialog, SiteState } from './SiteLoginDialog';
 import { SignInBrowserWindow, SignInHereButton, useSignInBrowserAvailable } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
 

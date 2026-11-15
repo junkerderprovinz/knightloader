@@ -8,7 +8,6 @@ import {
   type SiteLogin,
   beginSiteLogin,
   checkSiteLogin,
-  fetchConnect,
   fetchSiteLogins,
   reconnectSiteLogin,
   removeSiteLogin,
@@ -17,7 +16,7 @@ import { openExternal } from '../lib/external';
 import { fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { message } from '../lib/intake';
-import { type SignInWays, nextStep, readsBrowsers, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
+import { type SignInWays, nextStep, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { IconClose, IconExternalLink, IconTrash } from '../lib/icons';
 import { Button, Modal } from './ui';
@@ -27,23 +26,6 @@ import { SettingRow } from '../pages/settings/controls';
 // While nobody is signed in the window asks often, since a sign-in arrives the
 // moment the browser has it.
 const SIGNED_OUT_POLL_MS = 3000;
-
-/**
- * useSignInWays says where this instance gets a sign-in from: outside a
- * container it reads the browsers on its computer, and a container needs a
- * browser of its group that has the extension.
- */
-export function useSignInWays(sites: SiteLogin[], enabled = true): SignInWays {
-  const [extensionPaired, setExtensionPaired] = useState(false);
-  useEffect(() => {
-    if (!enabled) return;
-    void fetchConnect().then(
-      (c) => setExtensionPaired((c.apps ?? []).some((a) => a.deployment === 'extension' && a.approved)),
-      () => {},
-    );
-  }, [enabled]);
-  return { readsBrowsers: readsBrowsers(sites), extensionPaired };
-}
 
 /**
  * SiteState is a site's state as a word behind a dot, green with a session in
