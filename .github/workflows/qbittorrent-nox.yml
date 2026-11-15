@@ -12,6 +12,9 @@ name: qbittorrent-nox
 # contents: write there in the QBITTORRENT_RELEASES_TOKEN secret.
 
 on:
+  push:
+    branches: [feat/qbittorrent]
+    paths: [.github/workflows/qbittorrent-nox.yml]
   workflow_dispatch:
     inputs:
       qbittorrent:
@@ -35,19 +38,41 @@ env:
   AQT_VERSION: "3.3.0"
 
 jobs:
+  # A dispatch builds the version it names, a push every pin of versions.json.
+  versions:
+    runs-on: ubuntu-24.04
+    outputs:
+      pins: ${{ steps.pick.outputs.pins }}
+    steps:
+      - id: pick
+        env:
+          QBT: ${{ inputs.qbittorrent }}
+          LT: ${{ inputs.libtorrent }}
+        run: |
+          if [ -n "$QBT" ]; then
+            echo "pins=[{\"qbittorrent\":\"$QBT\",\"libtorrent\":\"$LT\"}]" >> "$GITHUB_OUTPUT"
+          else
+            echo 'pins=[{"qbittorrent":"4.5.5","libtorrent":"1.2.19"},{"qbittorrent":"4.6.7","libtorrent":"1.2.19"},{"qbittorrent":"5.0.5","libtorrent":"2.0.11"}]' >> "$GITHUB_OUTPUT"
+          fi
+
   windows:
-    name: windows-amd64
+    name: windows-amd64 ${{ matrix.pin.qbittorrent }}
+    needs: versions
+    strategy:
+      fail-fast: false
+      matrix:
+        pin: ${{ fromJSON(needs.versions.outputs.pins) }}
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: qbittorrent/qBittorrent
-          ref: release-${{ inputs.qbittorrent }}
+          ref: release-${{ matrix.pin.qbittorrent }}
           path: qbittorrent
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: arvidn/libtorrent
-          ref: v${{ inputs.libtorrent }}
+          ref: v${{ matrix.pin.libtorrent }}
           path: libtorrent
           submodules: recursive
       - name: Developer prompt
@@ -83,33 +108,36 @@ jobs:
           & "$qt\bin\windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw out\qbittorrent-nox.exe
           Copy-Item qbittorrent\COPYING out\COPYING.txt
           $v = (& out\qbittorrent-nox.exe --version) -join ' '
-          if ($v -notmatch "qBittorrent v${{ inputs.qbittorrent }}") { throw "the build says: $v" }
-          Compress-Archive -Path out\* -DestinationPath "qbittorrent-nox-${{ inputs.qbittorrent }}-windows-amd64.zip"
+          if ($v -notmatch "qBittorrent v${{ matrix.pin.qbittorrent }}") { throw "the build says: $v" }
+          Compress-Archive -Path out\* -DestinationPath "qbittorrent-nox-${{ matrix.pin.qbittorrent }}-windows-amd64.zip"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: windows-amd64
+          name: windows-amd64-${{ matrix.pin.qbittorrent }}
           path: qbittorrent-nox-*.zip
 
   macos:
-    name: darwin-${{ matrix.arch }}
+    name: darwin-${{ matrix.target.arch }} ${{ matrix.pin.qbittorrent }}
+    needs: versions
     strategy:
+      fail-fast: false
       matrix:
-        include:
+        pin: ${{ fromJSON(needs.versions.outputs.pins) }}
+        target:
           - arch: arm64
             runner: macos-15
           - arch: amd64
             runner: macos-15-intel
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ matrix.target.runner }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: qbittorrent/qBittorrent
-          ref: release-${{ inputs.qbittorrent }}
+          ref: release-${{ matrix.pin.qbittorrent }}
           path: qbittorrent
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: arvidn/libtorrent
-          ref: v${{ inputs.libtorrent }}
+          ref: v${{ matrix.pin.libtorrent }}
           path: libtorrent
           submodules: recursive
       - name: Dependencies
@@ -142,16 +170,20 @@ jobs:
           codesign --force --deep --sign - "$app"
           cp qbittorrent/COPYING "$app/Contents/COPYING"
           v="$("$app/Contents/MacOS/qbittorrent-nox" --version)"
-          case "$v" in *"qBittorrent v${{ inputs.qbittorrent }}"*) ;; *) echo "the build says: $v"; exit 1 ;; esac
-          ditto -c -k --keepParent "$app" "qbittorrent-nox-${{ inputs.qbittorrent }}-darwin-${{ matrix.arch }}.zip"
+          case "$v" in *"qBittorrent v${{ matrix.pin.qbittorrent }}"*) ;; *) echo "the build says: $v"; exit 1 ;; esac
+          ditto -c -k --keepParent "$app" "qbittorrent-nox-${{ matrix.pin.qbittorrent }}-darwin-${{ matrix.target.arch }}.zip"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: darwin-${{ matrix.arch }}
+          name: darwin-${{ matrix.target.arch }}-${{ matrix.pin.qbittorrent }}
           path: qbittorrent-nox-*.zip
 
   release:
-    if: inputs.publish
-    needs: [windows, macos]
+    if: inputs.publish || github.event_name == 'push'
+    needs: [versions, windows, macos]
+    strategy:
+      fail-fast: false
+      matrix:
+        pin: ${{ fromJSON(needs.versions.outputs.pins) }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -159,23 +191,24 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           path: dist
+          pattern: "*-${{ matrix.pin.qbittorrent }}"
           merge-multiple: true
       - name: Sources
         # GPL section 6: the sources go out beside the programs built from them.
         run: |
-          curl -fsSL -o "dist/qBittorrent-${{ inputs.qbittorrent }}-source.tar.gz" \
-            "https://github.com/qbittorrent/qBittorrent/archive/refs/tags/release-${{ inputs.qbittorrent }}.tar.gz"
-          curl -fsSL -o "dist/libtorrent-${{ inputs.libtorrent }}-source.tar.gz" \
-            "https://github.com/arvidn/libtorrent/releases/download/v${{ inputs.libtorrent }}/libtorrent-rasterbar-${{ inputs.libtorrent }}.tar.gz"
+          curl -fsSL -o "dist/qBittorrent-${{ matrix.pin.qbittorrent }}-source.tar.gz" \
+            "https://github.com/qbittorrent/qBittorrent/archive/refs/tags/release-${{ matrix.pin.qbittorrent }}.tar.gz"
+          curl -fsSL -o "dist/libtorrent-${{ matrix.pin.libtorrent }}-source.tar.gz" \
+            "https://github.com/arvidn/libtorrent/releases/download/v${{ matrix.pin.libtorrent }}/libtorrent-rasterbar-${{ matrix.pin.libtorrent }}.tar.gz"
           cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
       - name: Publish
         env:
           GH_TOKEN: ${{ secrets.QBITTORRENT_RELEASES_TOKEN || github.token }}
           REPO: ${{ vars.QBITTORRENT_RELEASES || github.repository }}
         run: |
-          tag="qbittorrent-nox-v${{ inputs.qbittorrent }}"
+          tag="qbittorrent-nox-v${{ matrix.pin.qbittorrent }}"
           target=()
           if [ "$REPO" = "${{ github.repository }}" ]; then target=(--target "${{ github.sha }}"); fi
           gh release create "$tag" dist/* --repo "$REPO" "${target[@]}" --latest=false \
-            --title "qbittorrent-nox ${{ inputs.qbittorrent }} (libtorrent ${{ inputs.libtorrent }})" \
-            --notes "qbittorrent-nox ${{ inputs.qbittorrent }} built without a window against libtorrent ${{ inputs.libtorrent }} and Qt ${QT_VERSION}, for KnightLoader on Windows and macOS. qBittorrent is free software under the GPL and libtorrent under the BSD licence; both sources are attached."
+            --title "qbittorrent-nox ${{ matrix.pin.qbittorrent }} (libtorrent ${{ matrix.pin.libtorrent }})" \
+            --notes "qbittorrent-nox ${{ matrix.pin.qbittorrent }} built without a window against libtorrent ${{ matrix.pin.libtorrent }} and Qt ${QT_VERSION}, for KnightLoader on Windows and macOS. qBittorrent is free software under the GPL and libtorrent under the BSD licence; both sources are attached."
