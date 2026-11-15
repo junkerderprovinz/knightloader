@@ -276,8 +276,8 @@ func (a *App) planJDImport(cfg *jdimport.Config) *jdPlan {
 		items = append(items, item)
 	}
 
-	items = append(items, planJDRules(p, "packagizer", JDGroupPackagizer, jdimport.MapPackagizer(cfg.Packagizer), stored.Packagizer)...)
-	items = append(items, planJDRules(p, "filter", JDGroupFilter, jdimport.MapLinkFilter(cfg.LinkFilter), stored.LinkFilter)...)
+	items = append(items, planJDRules(p, "packagizer", JDGroupPackagizer, jdimport.MapPackagizer(cfg.Packagizer), stored.Packagizer, stored)...)
+	items = append(items, planJDRules(p, "filter", JDGroupFilter, jdimport.MapLinkFilter(cfg.LinkFilter), stored.LinkFilter, stored)...)
 
 	for i, pkg := range cfg.Packages {
 		links := jdimport.PackageLinks(pkg)
@@ -454,7 +454,7 @@ func planJDPasswords(p *jdPlan, jd, stored []string) (JDImportItem, bool) {
 	return item, true
 }
 
-func planJDRules(p *jdPlan, prefix, group string, mapped []jdimport.MappedRule, stored rules.Set) []JDImportItem {
+func planJDRules(p *jdPlan, prefix, group string, mapped []jdimport.MappedRule, stored rules.Set, current settings.Settings) []JDImportItem {
 	have := map[string]bool{}
 	for _, r := range stored.Rules {
 		if b, err := json.Marshal(r); err == nil {
@@ -470,7 +470,13 @@ func planJDRules(p *jdPlan, prefix, group string, mapped []jdimport.MappedRule, 
 		}
 		name := m.Name
 		item := JDImportItem{ID: id, Group: group, Kind: kind, Name: name, Off: !m.Enabled, Blocked: m.Blocked, Notes: m.Notes}
-		if m.Blocked == nil {
+		if m.Setting != "" {
+			item.Same = switchedOn(current, m.Setting)
+			if !item.Same {
+				p.rules[id] = m
+				item.Ticked = m.Enabled
+			}
+		} else if m.Blocked == nil {
 			if b, err := json.Marshal(m.Rule); err == nil && have[string(b)] {
 				item.Same = true
 			} else {
@@ -491,6 +497,16 @@ func planJDRules(p *jdPlan, prefix, group string, mapped []jdimport.MappedRule, 
 		items = append(items, item)
 	}
 	return items
+}
+
+// switchedOn reports whether the settings switch a JDownloader rule turns on
+// is on here already.
+func switchedOn(s settings.Settings, key string) bool {
+	switch key {
+	case jdimport.SettingSubfolderByPackage:
+		return s.SubfolderByPackage
+	}
+	return false
 }
 
 // JDSettingsCheck validates a settings patch before it is applied, the same
@@ -640,6 +656,10 @@ func (a *App) jdSettingsPatch(plan *jdPlan, want map[string]bool) (map[string]js
 			continue
 		}
 		switch {
+		case m.Setting != "":
+			if err := put(m.Setting, true); err != nil {
+				return nil, nil, false, err
+			}
 		case item.Group == JDGroupPackagizer:
 			pkgRules = append(pkgRules, m.Rule)
 		case m.Accept:
