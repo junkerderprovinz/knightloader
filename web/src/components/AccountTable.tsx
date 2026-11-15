@@ -178,9 +178,13 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
               // The whole row opens its account, and a right click its menu
               // (GlimStone, "Lists"). A press on one of the row's own controls
               // is that control's alone.
+              // The row sets its own height and the cells add none, so a
+              // status with a bubble beside it stands as tall as a bare word
+              // and every card's rows are level. 44px holds the gear's 32px,
+              // about as tall as a row of the priority cards below.
               <tr
                 key={row.key}
-                className="glim-row cursor-pointer transition-colors hover:bg-carbon-surface3"
+                className="glim-row h-11 cursor-pointer transition-colors hover:bg-carbon-surface3"
                 onClick={(e) => {
                   if (!(e.target as Element).closest('button, a, [role="note"]')) row.onEdit();
                 }}
@@ -190,7 +194,7 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
                   menu.openAt(anchorFromEvent(e));
                 }}
               >
-                <td className={`px-4 py-3 font-medium ${off ? 'text-carbon-textMuted' : 'text-carbon-text'}`}>
+                <td className={`px-4 py-0 font-medium ${off ? 'text-carbon-textMuted' : 'text-carbon-text'}`}>
                   <span className="inline-flex items-center gap-2">
                     {/* Faded with the name, so a disabled account reads as resting at a glance. */}
                     <span className={off ? 'opacity-50 grayscale' : undefined}>
@@ -199,15 +203,15 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
                     {row.label}
                   </span>
                 </td>
-                <td className="px-2 py-3">{off ? <DisabledStatus /> : row.status}</td>
-                <td className="px-2 py-3">
+                <td className="px-2 py-0">{off ? <DisabledStatus /> : row.status}</td>
+                <td className="px-2 py-0">
                   <TierCell tier={row.tier} />
                 </td>
-                <td className="glim-num whitespace-nowrap px-2 py-3 text-carbon-textSub">{fmtDate(row.expiry) || '-'}</td>
-                <td className="px-2 py-3 text-carbon-textSub">
+                <td className="glim-num whitespace-nowrap px-2 py-0 text-carbon-textSub">{fmtDate(row.expiry) || '-'}</td>
+                <td className="px-2 py-0 text-carbon-textSub">
                   <TrafficCell traffic={row.traffic} />
                 </td>
-                <td className="px-2 py-3 text-end">
+                <td className="px-2 py-0 text-end">
                   <span className="glim-row-actions inline-flex">
                     <IconBadge
                       hue={i}
