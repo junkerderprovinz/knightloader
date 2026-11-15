@@ -45,6 +45,23 @@ export function useSignInWays(sites: SiteLogin[], enabled = true): SignInWays {
   return { readsBrowsers: readsBrowsers(sites), extensionPaired };
 }
 
+/** SiteState is a site's state as a word behind a dot, in the colour of how it stands. */
+export function SiteState({ site }: { site: SiteLogin }) {
+  const { t } = useT();
+  const note = stateNote(site);
+  const [text, dot] = note.warn
+    ? ['text-statusWarn', 'bg-statusWarnSolid']
+    : signedIn(site)
+      ? ['text-statusOk', 'bg-statusOkSolid']
+      : ['text-carbon-textMuted', 'bg-carbon-textMuted'];
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-meta font-medium ${text}`}>
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${dot}`} />
+      {t(note.key, note.vars)}
+    </span>
+  );
+}
+
 /** SiteLoginDialog is one site's window. onSignedIn hears a sign-in that arrived while it was open. */
 export function SiteLoginDialog({
   site: initial,
@@ -135,7 +152,6 @@ export function SiteLoginDialog({
     if (site.disconnected) void beginSiteLogin(site.id).then((next) => show(next, signedIn(next)), showError);
   };
 
-  const note = stateNote(site);
   const from = sourceNote(site);
   const step = nextStep(site, ways);
   // Signing out here leaves the browser signed in, whatever the session came from.
@@ -171,7 +187,7 @@ export function SiteLoginDialog({
       <div className="flex flex-col gap-4">
         <SettingRow label={t('siteLogins.status')} hint={t('siteLogins.statusHint')}>
           <span className="flex flex-col items-end gap-0.5 text-end">
-            <span className={`text-sm font-medium ${note.warn ? 'text-statusWarn' : 'text-carbon-text'}`}>{t(note.key, note.vars)}</span>
+            <SiteState site={site} />
             {from && <span className="text-meta text-carbon-textMuted">{t(from.key, from.vars)}</span>}
           </span>
         </SettingRow>

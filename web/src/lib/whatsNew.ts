@@ -95,6 +95,13 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.listShade',
         names: { name: 'settings.listShade.title' },
       },
+      // Drawn on every account card that has an account to switch.
+      {
+        id: 'account-switches',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.accountSwitches',
+        names: { name: 'accounts.enableTitle' },
+      },
     ],
   },
   {

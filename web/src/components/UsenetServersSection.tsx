@@ -23,6 +23,7 @@ import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPick
 import { TestButton } from './TestButton';
 import { Button, EmptyState, InfoBubble, Modal, NumberInput, PasswordInput, SectionTitle, TextInput, ToggleRow, type ButtonVerdict } from './ui';
 import { SettingRow } from '../pages/settings/controls';
+import { AccountSwitches } from './AccountSwitches';
 
 /** A server's last test on this page, kept until the page is left. */
 type Checked = { ok: boolean; detail: string };
@@ -91,6 +92,11 @@ export function UsenetServersSection({
     }
   }
 
+  // One after another, since every save answers with the whole list.
+  async function onAll(enabled: boolean) {
+    for (const r of rows ?? []) if (r.enabled !== enabled) await onToggle(r, enabled);
+  }
+
   async function onTest(r: UsenetServerRow) {
     setTesting((s) => new Set(s).add(r.id));
     try {
@@ -120,10 +126,30 @@ export function UsenetServersSection({
   }
 
   const form = editing ?? (adding ? BLANK : null);
+  const rowLabel = (r: UsenetServerRow) =>
+    r.level > 0 ? `${r.host} · ${t('accounts.usenet.levelShort', { n: r.level })}` : r.host;
 
   return (
     <>
-      <SectionTitle hint={t('accounts.usenet.hint')} right={add}>
+      <SectionTitle
+        hint={t('accounts.usenet.hint')}
+        right={
+          <span className="flex items-center gap-2">
+            <AccountSwitches
+              hue={hue}
+              accounts={(rows ?? []).map((r) => ({
+                key: r.id,
+                label: rowLabel(r),
+                iconHost: r.host,
+                enabled: r.enabled,
+                onToggle: (v) => void onToggle(r, v),
+              }))}
+              onAll={(v) => void onAll(v)}
+            />
+            {add}
+          </span>
+        }
+      >
         {t('accounts.usenet.title')}
       </SectionTitle>
       {rows === null ? (
@@ -141,7 +167,7 @@ export function UsenetServersSection({
           rows={rows.map((r) => ({
             key: r.id,
             iconHost: r.host,
-            label: r.level > 0 ? `${r.host} · ${t('accounts.usenet.levelShort', { n: r.level })}` : r.host,
+            label: rowLabel(r),
             enabled: r.enabled,
             status: <ServerStatus checked={checked[r.id]} busy={testing.has(r.id)} />,
             onToggle: (v) => void onToggle(r, v),

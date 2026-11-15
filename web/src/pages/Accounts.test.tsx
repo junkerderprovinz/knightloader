@@ -42,6 +42,23 @@ const card = (title: string) =>
 const adder = (title: string) =>
   [...card(title).querySelectorAll<HTMLButtonElement>('button')].find((b) => /^Add /.test(b.textContent ?? ''));
 
+/** The gear at the end of a card's heading, beside its Add button. */
+const gear = (title: string) => card(title).querySelector<HTMLButtonElement>('button[aria-label="Card actions"]');
+
+/** The entry of the open menu reading `text`. */
+const entry = (text: string) =>
+  [...document.querySelectorAll<HTMLButtonElement>('[role="menu"] button')].find((b) => b.textContent === text)!;
+
+/** openSwitches opens the list of a card's accounts from the gear on its heading. */
+async function openSwitches(title: string) {
+  await act(async () => gear(title)!.click());
+  await act(async () => entry('Enable or disable accounts').click());
+}
+
+/** The switch of one account in the open list. */
+const accountSwitch = (name: string) =>
+  document.querySelector<HTMLButtonElement>(`[role="dialog"] [role="switch"][aria-label="Enable ${name}"]`)!;
+
 /** addIn presses the Add button of the card headed `title`. */
 async function addIn(title: string) {
   await act(async () => adder(title)!.click());
@@ -347,8 +364,8 @@ it('lists the own Usenet servers in their own section and saves a switch without
   );
   const table = host.querySelector('[aria-label="Usenet servers"]');
   expect(table?.textContent).toContain('news.example.com · Level 1');
-  const toggle = table!.querySelector<HTMLButtonElement>('[role="switch"]');
-  await act(async () => toggle!.click());
+  await openSwitches('Usenet servers');
+  await act(async () => accountSwitch('news.example.com · Level 1').click());
   expect(posted).toEqual([
     expect.objectContaining({ id: 'news.example.com', enabled: false, username: 'reader', password: '********' }),
   ]);
@@ -550,18 +567,99 @@ it('opens an account from anywhere on its row, and its menu on a right click', a
   await act(async () => root.render(page));
   const row = host.querySelector('[aria-label="Debrid accounts"] tbody tr')!;
 
-  // The row's switch is its own control and opens nothing.
-  await act(async () => row.querySelector<HTMLElement>('[role="switch"]')!.click());
-  expect(document.querySelector('[role="dialog"]')).toBeNull();
-
   await act(async () => row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 40, clientY: 40 })));
   const entries = [...document.querySelectorAll('[role="menu"] [role="menuitem"]')].map((i) => i.textContent);
+  expect(entries).toContain('Disable');
   expect(entries).toContain('Edit credential');
   expect(entries).toContain('Remove');
   await act(async () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
 
   await act(async () => row.querySelector('td:nth-child(3)')!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
   expect(windowTitle()).toContain('TorBox');
+});
+
+describe('enabling and disabling accounts', () => {
+  const debrid = (id: string, label: string) => ({ id, label, kind: 'apiKey', group: 'debrid', whereUrl: '' });
+  const key = (service: string, enabled: boolean) => ({
+    id: service,
+    service,
+    account: '',
+    label: '',
+    enabled,
+    configured: true,
+    fromEnv: false,
+    ok: true,
+    detail: 'ok',
+    hosts: 0,
+    tier: 'premium',
+  });
+  let switched: unknown[];
+
+  beforeEach(() => {
+    switched = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url === '/api/accounts/enabled') {
+          switched.push(JSON.parse(String(init?.body)));
+          return reply({});
+        }
+        if (url === '/api/accounts/catalogue') return reply([debrid('torbox', 'TorBox'), debrid('realdebrid', 'Real-Debrid')]);
+        if (url === '/api/accounts') return reply([key('torbox', true), key('realdebrid', false)]);
+        if (url === '/api/settings') return reply({ premiumOnly: false });
+        if (url === '/api/features') return reply({ modules: [], pages: [] });
+        return reply([]);
+      }),
+    );
+  });
+
+  const row = (name: string) =>
+    [...host.querySelectorAll('[aria-label="Debrid accounts"] tbody tr')].find((tr) => tr.textContent?.includes(name))!;
+
+  it('leaves the switch out of the rows and says in its row that an account is disabled', async () => {
+    await act(async () => root.render(page));
+    expect(card('Debrid accounts').querySelector('[role="switch"]')).toBeNull();
+    expect(row('Real-Debrid').textContent).toContain('Disabled');
+    expect(row('TorBox').textContent).not.toContain('Disabled');
+  });
+
+  it('switches one account at a time in the list behind the gear on its card', async () => {
+    await act(async () => root.render(page));
+    await openSwitches('Debrid accounts');
+    expect(accountSwitch('TorBox').getAttribute('aria-checked')).toBe('true');
+    expect(accountSwitch('Real-Debrid').getAttribute('aria-checked')).toBe('false');
+    await act(async () => accountSwitch('Real-Debrid').click());
+    expect(switched).toEqual([{ service: 'realdebrid', account: '', enabled: true }]);
+    expect(accountSwitch('Real-Debrid').getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('enables every account of a card at once from its gear, and leaves the ones already on alone', async () => {
+    await act(async () => root.render(page));
+    await act(async () => gear('Debrid accounts')!.click());
+    expect(entry('Disable all').disabled).toBe(false);
+    await act(async () => entry('Enable all').click());
+    expect(switched).toEqual([{ service: 'realdebrid', account: '', enabled: true }]);
+    expect(row('Real-Debrid').textContent).not.toContain('Disabled');
+  });
+
+  it('offers to enable all only while one is disabled', async () => {
+    await act(async () => root.render(page));
+    await act(async () => gear('Debrid accounts')!.click());
+    await act(async () => entry('Disable all').click());
+    await act(async () => gear('Debrid accounts')!.click());
+    expect(entry('Disable all').disabled).toBe(true);
+    expect(entry('Enable all').disabled).toBe(false);
+  });
+
+  it('disables one account from its own row menu', async () => {
+    await act(async () => root.render(page));
+    await act(async () =>
+      row('TorBox').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 40, clientY: 40 })),
+    );
+    await act(async () => entry('Disable').click());
+    expect(switched).toEqual([{ service: 'torbox', account: '', enabled: false }]);
+    expect(row('TorBox').textContent).toContain('Disabled');
+  });
 });
 
 it('keeps every connected debrid account in the download order, and says why one does not work', async () => {
