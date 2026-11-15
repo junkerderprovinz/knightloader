@@ -1,8 +1,8 @@
 // The accounts page: one row per configured service and account, as read from
 // internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
-// accounts come first, the own Usenet servers below them, then hoster logins
-// (the sites signed into through the browser among them), the logins for the
-// user's own servers and the captcha solvers' keys; the section follows the
+// accounts come first, the hoster logins below them (the sites signed into
+// through the browser among them), then the own Usenet servers, the logins for
+// the user's own servers and the captcha solvers' keys; the section follows the
 // catalogue's Group field, and every card draws an AccountTable. Under them
 // comes the Allow free downloads switch, since whether a link may be fetched
 // for free is a question of which accounts there are, and last the two
@@ -242,7 +242,7 @@ export function Accounts() {
   );
   const hosterSwitches = (
     <AccountSwitches
-      hue={2}
+      hue={1}
       accounts={(hoster.logins ?? []).map((l) => ({
         key: l.host,
         label: l.host,
@@ -294,17 +294,7 @@ export function Accounts() {
         )}
       </Card>
 
-      <Card hue={1} data-new="usenet-tiles" className="flex flex-col gap-3">
-        <UsenetServersSection
-          hue={1}
-          onChanged={() => setUsenetSaves((n) => n + 1)}
-          add={add(t('accounts.usenet.add'), () => setAdding('usenet'))}
-          adding={adding === 'usenet'}
-          onAddClose={() => setAdding(null)}
-        />
-      </Card>
-
-      <Card hue={2} className="flex flex-col gap-3">
+      <Card hue={1} className="flex flex-col gap-3">
         <SectionTitle
           hint={t('accounts.hoster.hint')}
           right={heading(hosterSwitches, add(t('accounts.newAccount'), () => setAdding('hoster')))}
@@ -312,6 +302,16 @@ export function Accounts() {
           {t('accounts.hoster.title')}
         </SectionTitle>
         <HosterLoginSection data={hoster} adding={adding === 'hoster'} onAddClose={() => setAdding(null)} />
+      </Card>
+
+      <Card hue={2} data-new="usenet-tiles" className="flex flex-col gap-3">
+        <UsenetServersSection
+          hue={2}
+          onChanged={() => setUsenetSaves((n) => n + 1)}
+          add={add(t('accounts.usenet.add'), () => setAdding('usenet'))}
+          adding={adding === 'usenet'}
+          onAddClose={() => setAdding(null)}
+        />
       </Card>
 
       {serverService && (

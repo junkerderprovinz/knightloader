@@ -287,20 +287,20 @@ export function HosterLoginSection({
         <SiteLoginDialog
           site={editingSite}
           ways={data.ways}
-          hue={2}
+          hue={1}
           onChanged={data.putSite}
           onClose={() => setEditingSite(null)}
         />
       )}
 
       {browsingSite && (
-        <SignInBrowserWindow site={browsingSite} hue={2} onChanged={data.putSite} onClose={() => setBrowsingSite(null)} />
+        <SignInBrowserWindow site={browsingSite} hue={1} onChanged={data.putSite} onClose={() => setBrowsingSite(null)} />
       )}
 
       {browsingLogin && (
         <SignInBrowserWindow
           site={signInPageOf(browsingLogin)}
-          hue={2}
+          hue={1}
           onChanged={() => void data.load()}
           onClose={() => setBrowsingLogin(null)}
         />
@@ -345,7 +345,7 @@ function ConfirmRemoveLogin({
   return (
     <Modal
       title={t('accounts.remove')}
-      hue={2}
+      hue={1}
       onClose={onCancel}
       footer={
         <>
@@ -552,7 +552,7 @@ function HosterLoginDialog({
       title={title}
       // While adding, the window says what the card it fills is for.
       hint={editing ? undefined : t('accounts.hoster.hint')}
-      hue={2}
+      hue={1}
       // The picker's window, which the form of the picked hoster stays in, and
       // an edit opens the same form in the same window.
       wide
@@ -642,7 +642,7 @@ function HosterLoginDialog({
               <p className="min-w-0 flex-[1_1_12.5rem] text-sm text-carbon-textMuted">{t('accounts.hoster.signInHereHint')}</p>
               <SignInHereButton
                 site={signInPageOf(editing)}
-                hue={2}
+                hue={1}
                 disabled={saving}
                 onChanged={(s) => {
                   if (s.state === 'signedIn') void onSaved();

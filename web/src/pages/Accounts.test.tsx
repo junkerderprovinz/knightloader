@@ -408,11 +408,11 @@ it('gives every card its own Add button at the end of its heading', async () => 
   stubCatalogue(services);
   await act(async () => root.render(page));
 
-  const titles = ['Debrid accounts', 'Usenet servers', 'Hoster accounts', 'Seedboxes', 'Captcha accounts'];
+  const titles = ['Debrid accounts', 'Hoster accounts', 'Usenet servers', 'Seedboxes', 'Captcha accounts'];
   expect(titles.map((t) => adder(t)?.textContent)).toEqual([
     'Add an account',
-    'Add a server',
     'Add an account',
+    'Add a server',
     'Add a seedbox',
     'Add an account',
   ]);
@@ -420,6 +420,21 @@ it('gives every card its own Add button at the end of its heading', async () => 
     (b) => /^Add /.test(b.textContent ?? '') && !b.closest('.glim-card'),
   );
   expect(loose).toEqual([]);
+});
+
+it('puts the hoster accounts right under the debrid ones, each card at the next palette place', async () => {
+  stubCatalogue(services);
+  await act(async () => root.render(page));
+
+  const cards = [...host.querySelectorAll<HTMLElement>('.glim-card')].slice(0, 5);
+  expect(cards.map((c) => c.querySelector('h2')?.textContent)).toEqual([
+    expect.stringMatching(/^Debrid accounts/),
+    expect.stringMatching(/^Hoster accounts/),
+    expect.stringMatching(/^Usenet servers/),
+    expect.stringMatching(/^Seedboxes/),
+    expect.stringMatching(/^Captcha accounts/),
+  ]);
+  expect(cards.map((c) => c.style.getPropertyValue('--item-hue'))).toEqual([0, 1, 2, 3, 4].map((n) => `var(--rb-${n})`));
 });
 
 it('offers no seedbox card where the instance has no such service', async () => {
