@@ -1200,6 +1200,13 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 	if pkg == nil || pkg.Empty() {
 		return
 	}
+	// The batch is named only after every link is staged, so a pasted link
+	// has no package yet and a rule's <jd:packagename> takes the name the link
+	// would get on its own. A media link still waiting for its title has no
+	// name worth guessing from.
+	if cand.Package == "" && !awaitingMediaProbe.has(t) {
+		cand.PackageGuess = derivePackage([]*core.Task{t}, "")
+	}
 	e := pkg.Apply(cand)
 	// JD's own rules or the user already named a package from JDownloader, and
 	// the imported rules would rename it a second time.

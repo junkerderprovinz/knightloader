@@ -182,7 +182,11 @@ type Candidate struct {
 	Filetype string
 	Filesize int64
 	Package  string
-	Added    time.Time
+	// PackageGuess is the name the collector would file the link under, which
+	// <jd:packagename> stands for while Package is empty. Conditions on the
+	// package do not see it.
+	PackageGuess string
+	Added        time.Time
 }
 
 // filled derives what the caller did not supply.
