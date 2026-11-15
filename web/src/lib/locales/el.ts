@@ -1459,6 +1459,7 @@ export const el: Dict = {
   'collector.facets.fileType': 'Τύπος αρχείου',
   'collector.facets.clearAll': 'Καθαρισμός',
   'collector.facets.unknownHost': 'Άγνωστος πάροχος',
+  'collector.facets.selectHost': 'Επιλογή των συνδέσμων από {host}',
   'collector.facets.type.archive': 'Συμπιεσμένα',
   'collector.facets.type.video': 'Βίντεο',
   'collector.facets.type.audio': 'Ήχος',

@@ -1459,6 +1459,7 @@ export const hu: Dict = {
   'collector.facets.fileType': 'Fájltípus',
   'collector.facets.clearAll': 'Törlés',
   'collector.facets.unknownHost': 'Ismeretlen tárhely',
+  'collector.facets.selectHost': 'A(z) {host} linkjeinek kijelölése',
   'collector.facets.type.archive': 'Archívumok',
   'collector.facets.type.video': 'Videó',
   'collector.facets.type.audio': 'Hang',

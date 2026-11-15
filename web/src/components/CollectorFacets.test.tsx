@@ -75,3 +75,60 @@ it('narrows to what is switched on, either of two in one group and both across g
   expect(left()).toBe('a b c');
   expect(facet('one.example').getAttribute('aria-checked')).toBe('false');
 });
+
+/** The host facet with its select buttons, over the links the list shows. */
+function Selecting({ visible }: { visible: Task[] }) {
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  return (
+    <>
+      <CollectorFacets
+        tasks={TASKS}
+        selection={EMPTY_FACETS}
+        onChange={() => {}}
+        kinds={['host']}
+        selecting={{
+          visible,
+          selected: picked,
+          onSelect: (ids, on) =>
+            setPicked((prev) => {
+              const next = new Set(prev);
+              for (const id of ids) {
+                if (on) next.add(id);
+                else next.delete(id);
+              }
+              return next;
+            }),
+        }}
+      />
+      <output>{[...picked].sort().join(' ')}</output>
+    </>
+  );
+}
+
+// The button beside a host's row, outside the label that flips its switch.
+const selectHost = (name: string) =>
+  [...host.querySelectorAll('label')]
+    .find((l) => l.textContent?.startsWith(name))!
+    .parentElement!.querySelector<HTMLButtonElement>(':scope > button')!;
+
+it('selects every shown link of a host in one click and lets go of them in the next', async () => {
+  await act(async () => root.render(<Selecting visible={TASKS} />));
+  expect(selectHost('one.example').getAttribute('aria-pressed')).toBe('false');
+
+  await act(async () => selectHost('one.example').click());
+  expect(left()).toBe('a b');
+  expect(selectHost('one.example').getAttribute('aria-pressed')).toBe('true');
+
+  await act(async () => selectHost('two.example').click());
+  expect(left()).toBe('a b c');
+
+  await act(async () => selectHost('one.example').click());
+  expect(left()).toBe('c');
+});
+
+it('leaves out the links of a host the list does not show', async () => {
+  await act(async () => root.render(<Selecting visible={[TASKS[0]]} />));
+  await act(async () => selectHost('one.example').click());
+  expect(left()).toBe('a');
+  expect(selectHost('two.example').disabled).toBe(true);
+});

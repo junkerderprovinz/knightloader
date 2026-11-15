@@ -1458,6 +1458,7 @@ export const th: Dict = {
   'collector.facets.fileType': 'ประเภทไฟล์',
   'collector.facets.clearAll': 'ล้าง',
   'collector.facets.unknownHost': 'โฮสต์ที่ไม่รู้จัก',
+  'collector.facets.selectHost': 'เลือกลิงก์จาก {host}',
   'collector.facets.type.archive': 'ไฟล์บีบอัด',
   'collector.facets.type.video': 'วิดีโอ',
   'collector.facets.type.audio': 'เสียง',

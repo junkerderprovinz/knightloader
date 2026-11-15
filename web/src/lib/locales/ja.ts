@@ -1458,6 +1458,7 @@ export const ja: Dict = {
   'collector.facets.fileType': 'ファイルの種類',
   'collector.facets.clearAll': 'クリア',
   'collector.facets.unknownHost': '不明なホスト',
+  'collector.facets.selectHost': '{host} のリンクを選択',
   'collector.facets.type.archive': '書庫',
   'collector.facets.type.video': '動画',
   'collector.facets.type.audio': '音声',

@@ -1460,6 +1460,7 @@ export const he: Dict = {
   'collector.facets.fileType': 'סוג קובץ',
   'collector.facets.clearAll': 'ניקוי',
   'collector.facets.unknownHost': 'מארח לא ידוע',
+  'collector.facets.selectHost': 'בחירת הקישורים מ־{host}',
   'collector.facets.type.archive': 'ארכיונים',
   'collector.facets.type.video': 'וידאו',
   'collector.facets.type.audio': 'שמע',

@@ -1451,6 +1451,7 @@ export const pl: Dict = {
   'collector.facets.fileType': 'Typ pliku',
   'collector.facets.clearAll': 'Wyczyść',
   'collector.facets.unknownHost': 'Nieznany hoster',
+  'collector.facets.selectHost': 'Zaznacz linki z {host}',
   'collector.facets.type.archive': 'Archiwa',
   'collector.facets.type.video': 'Wideo',
   'collector.facets.type.audio': 'Dźwięk',

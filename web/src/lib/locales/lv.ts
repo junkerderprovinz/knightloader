@@ -1459,6 +1459,7 @@ export const lv: Dict = {
   'collector.facets.fileType': 'Faila tips',
   'collector.facets.clearAll': 'Notīrīt',
   'collector.facets.unknownHost': 'Nezināms resursdators',
+  'collector.facets.selectHost': 'Atlasīt saites no {host}',
   'collector.facets.type.archive': 'Arhīvi',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Audio',

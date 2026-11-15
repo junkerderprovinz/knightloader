@@ -1458,6 +1458,7 @@ export const tr: Dict = {
   'collector.facets.fileType': 'Dosya türü',
   'collector.facets.clearAll': 'Temizle',
   'collector.facets.unknownHost': 'Bilinmeyen sunucu',
+  'collector.facets.selectHost': '{host} bağlantılarını seç',
   'collector.facets.type.archive': 'Arşivler',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Ses',

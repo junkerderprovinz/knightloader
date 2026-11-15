@@ -1458,6 +1458,7 @@ export const fi: Dict = {
   'collector.facets.fileType': 'Tiedostotyyppi',
   'collector.facets.clearAll': 'Tyhjennä',
   'collector.facets.unknownHost': 'Tuntematon palvelu',
+  'collector.facets.selectHost': 'Valitse palvelun {host} linkit',
   'collector.facets.type.archive': 'Arkistot',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Ääni',

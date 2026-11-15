@@ -1450,6 +1450,7 @@ export const fr: Dict = {
   'collector.facets.fileType': 'Type de fichier',
   'collector.facets.clearAll': 'Effacer',
   'collector.facets.unknownHost': 'Hébergeur inconnu',
+  'collector.facets.selectHost': 'Sélectionner les liens de {host}',
   'collector.facets.type.archive': 'Archives',
   'collector.facets.type.video': 'Vidéo',
   'collector.facets.type.audio': 'Audio',

@@ -1459,6 +1459,7 @@ export const bg: Dict = {
   'collector.facets.fileType': 'Тип файл',
   'collector.facets.clearAll': 'Изчисти',
   'collector.facets.unknownHost': 'Непознат хостър',
+  'collector.facets.selectHost': 'Избери връзките от {host}',
   'collector.facets.type.archive': 'Архиви',
   'collector.facets.type.video': 'Видео',
   'collector.facets.type.audio': 'Звук',

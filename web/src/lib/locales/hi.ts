@@ -1459,6 +1459,7 @@ export const hi: Dict = {
   'collector.facets.fileType': 'फ़ाइल प्रकार',
   'collector.facets.clearAll': 'साफ़ करें',
   'collector.facets.unknownHost': 'अज्ञात होस्ट',
+  'collector.facets.selectHost': '{host} के लिंक चुनें',
   'collector.facets.type.archive': 'आर्काइव',
   'collector.facets.type.video': 'वीडियो',
   'collector.facets.type.audio': 'ऑडियो',

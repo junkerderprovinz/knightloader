@@ -1458,6 +1458,7 @@ export const fa: Dict = {
   'collector.facets.fileType': 'نوع فایل',
   'collector.facets.clearAll': 'پاک‌کردن',
   'collector.facets.unknownHost': 'میزبان ناشناخته',
+  'collector.facets.selectHost': 'انتخاب پیوندهای {host}',
   'collector.facets.type.archive': 'بایگانی‌ها',
   'collector.facets.type.video': 'ویدیو',
   'collector.facets.type.audio': 'صوت',

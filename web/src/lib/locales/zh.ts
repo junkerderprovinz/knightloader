@@ -1458,6 +1458,7 @@ export const zh: Dict = {
   'collector.facets.fileType': '文件类型',
   'collector.facets.clearAll': '清除',
   'collector.facets.unknownHost': '未知主机',
+  'collector.facets.selectHost': '选择来自 {host} 的链接',
   'collector.facets.type.archive': '压缩包',
   'collector.facets.type.video': '视频',
   'collector.facets.type.audio': '音频',

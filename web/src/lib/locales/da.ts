@@ -1458,6 +1458,7 @@ export const da: Dict = {
   'collector.facets.fileType': 'Filtype',
   'collector.facets.clearAll': 'Ryd',
   'collector.facets.unknownHost': 'Ukendt vært',
+  'collector.facets.selectHost': 'Vælg linkene fra {host}',
   'collector.facets.type.archive': 'Arkiver',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Lyd',

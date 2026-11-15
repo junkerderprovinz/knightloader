@@ -1459,6 +1459,7 @@ export const lt: Dict = {
   'collector.facets.fileType': 'Failo tipas',
   'collector.facets.clearAll': 'Išvalyti',
   'collector.facets.unknownHost': 'Nežinoma talpykla',
+  'collector.facets.selectHost': 'Pasirinkti nuorodas iš {host}',
   'collector.facets.type.archive': 'Archyvai',
   'collector.facets.type.video': 'Vaizdas',
   'collector.facets.type.audio': 'Garsas',

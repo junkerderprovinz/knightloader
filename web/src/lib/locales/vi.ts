@@ -1458,6 +1458,7 @@ export const vi: Dict = {
   'collector.facets.fileType': 'Loại tệp',
   'collector.facets.clearAll': 'Xóa',
   'collector.facets.unknownHost': 'Máy chủ không xác định',
+  'collector.facets.selectHost': 'Chọn các liên kết từ {host}',
   'collector.facets.type.archive': 'Tệp nén',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Âm thanh',

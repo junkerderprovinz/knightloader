@@ -1866,6 +1866,7 @@ export const en = {
   'collector.facets.fileType': 'File type',
   'collector.facets.clearAll': 'Clear',
   'collector.facets.unknownHost': 'Unknown host',
+  'collector.facets.selectHost': 'Select the links from {host}',
   'collector.facets.type.archive': 'Archives',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Audio',

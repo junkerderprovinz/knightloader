@@ -1458,6 +1458,7 @@ export const is: Dict = {
   'collector.facets.fileType': 'Skráartegund',
   'collector.facets.clearAll': 'Hreinsa',
   'collector.facets.unknownHost': 'Óþekktur hýsill',
+  'collector.facets.selectHost': 'Velja tenglana frá {host}',
   'collector.facets.type.archive': 'Safnskrár',
   'collector.facets.type.video': 'Myndefni',
   'collector.facets.type.audio': 'Hljóð',

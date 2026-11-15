@@ -1458,6 +1458,7 @@ export const ko: Dict = {
   'collector.facets.fileType': '파일 종류',
   'collector.facets.clearAll': '지우기',
   'collector.facets.unknownHost': '알 수 없는 호스트',
+  'collector.facets.selectHost': '{host}의 링크 선택',
   'collector.facets.type.archive': '압축 파일',
   'collector.facets.type.video': '동영상',
   'collector.facets.type.audio': '오디오',

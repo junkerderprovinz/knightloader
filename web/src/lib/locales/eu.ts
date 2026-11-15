@@ -1459,6 +1459,7 @@ export const eu: Dict = {
   'collector.facets.fileType': 'Fitxategi mota',
   'collector.facets.clearAll': 'Garbitu',
   'collector.facets.unknownHost': 'Ostalari ezezaguna',
+  'collector.facets.selectHost': 'Hautatu {host} ostalariaren estekak',
   'collector.facets.type.archive': 'Artxiboak',
   'collector.facets.type.video': 'Bideoa',
   'collector.facets.type.audio': 'Audioa',

@@ -1458,6 +1458,7 @@ export const sv: Dict = {
   'collector.facets.fileType': 'Filtyp',
   'collector.facets.clearAll': 'Rensa',
   'collector.facets.unknownHost': 'Okänd värd',
+  'collector.facets.selectHost': 'Markera länkarna från {host}',
   'collector.facets.type.archive': 'Arkiv',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Ljud',

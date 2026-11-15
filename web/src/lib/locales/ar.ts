@@ -1460,6 +1460,7 @@ export const ar: Dict = {
   'collector.facets.fileType': 'نوع الملف',
   'collector.facets.clearAll': 'مسح',
   'collector.facets.unknownHost': 'مضيف غير معروف',
+  'collector.facets.selectHost': 'تحديد روابط {host}',
   'collector.facets.type.archive': 'أرشيفات',
   'collector.facets.type.video': 'فيديو',
   'collector.facets.type.audio': 'صوت',

@@ -1458,6 +1458,7 @@ export const ms: Dict = {
   'collector.facets.fileType': 'Jenis fail',
   'collector.facets.clearAll': 'Kosongkan',
   'collector.facets.unknownHost': 'Hos tidak diketahui',
+  'collector.facets.selectHost': 'Pilih pautan dari {host}',
   'collector.facets.type.archive': 'Arkib',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Audio',

@@ -1458,6 +1458,7 @@ export const gl: Dict = {
   'collector.facets.fileType': 'Tipo de ficheiro',
   'collector.facets.clearAll': 'Limpar',
   'collector.facets.unknownHost': 'Servidor descoñecido',
+  'collector.facets.selectHost': 'Seleccionar as ligazóns de {host}',
   'collector.facets.type.archive': 'Arquivos comprimidos',
   'collector.facets.type.video': 'Vídeo',
   'collector.facets.type.audio': 'Son',

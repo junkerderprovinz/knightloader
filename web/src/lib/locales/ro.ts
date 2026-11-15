@@ -1460,6 +1460,7 @@ export const ro: Dict = {
   'collector.facets.fileType': 'Tip de fișier',
   'collector.facets.clearAll': 'Golește',
   'collector.facets.unknownHost': 'Hoster necunoscut',
+  'collector.facets.selectHost': 'Selectează linkurile de la {host}',
   'collector.facets.type.archive': 'Arhive',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Audio',

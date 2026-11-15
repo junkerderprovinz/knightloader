@@ -1458,6 +1458,7 @@ export const ca: Dict = {
   'collector.facets.fileType': 'Tipus de fitxer',
   'collector.facets.clearAll': 'Neteja',
   'collector.facets.unknownHost': 'Amfitrió desconegut',
+  'collector.facets.selectHost': 'Selecciona els enllaços de {host}',
   'collector.facets.type.archive': 'Arxius comprimits',
   'collector.facets.type.video': 'Vídeo',
   'collector.facets.type.audio': 'Àudio',

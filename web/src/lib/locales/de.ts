@@ -1641,6 +1641,7 @@ export const de: Dict = {
   'collector.facets.fileType': 'Dateityp',
   'collector.facets.clearAll': 'Zurücksetzen',
   'collector.facets.unknownHost': 'Unbekannter Hoster',
+  'collector.facets.selectHost': 'Die Links von {host} auswählen',
   'collector.facets.type.archive': 'Archive',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Audio',

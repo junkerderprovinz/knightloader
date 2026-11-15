@@ -276,6 +276,17 @@ export function Collector() {
     },
   ];
 
+  const selectSome = useCallback((ids: string[], on: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) {
+        if (on) next.add(id);
+        else next.delete(id);
+      }
+      return next;
+    });
+  }, []);
+
   // The Status head narrows by what a check said, the Hoster head by host, and
   // the Name head by file type and package.
   const columnFilters: ColumnFilters =
@@ -294,7 +305,15 @@ export function Collector() {
           },
           host: {
             active: facets.host.size > 0,
-            panel: <CollectorFacets tasks={collected} selection={facets} onChange={narrowing.setFacets} kinds={['host']} />,
+            panel: (
+              <CollectorFacets
+                tasks={collected}
+                selection={facets}
+                onChange={narrowing.setFacets}
+                kinds={['host']}
+                selecting={{ visible: filtered, selected, onSelect: selectSome }}
+              />
+            ),
           },
           name: {
             active: facets.fileType.size > 0 || facets.package.size > 0,

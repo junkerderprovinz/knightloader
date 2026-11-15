@@ -1459,6 +1459,7 @@ export const uk: Dict = {
   'collector.facets.fileType': 'Тип файлу',
   'collector.facets.clearAll': 'Очистити',
   'collector.facets.unknownHost': 'Невідомий хостер',
+  'collector.facets.selectHost': 'Вибрати посилання з {host}',
   'collector.facets.type.archive': 'Архіви',
   'collector.facets.type.video': 'Відео',
   'collector.facets.type.audio': 'Аудіо',

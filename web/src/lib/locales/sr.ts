@@ -1458,6 +1458,7 @@ export const sr: Dict = {
   'collector.facets.fileType': 'Врста фајла',
   'collector.facets.clearAll': 'Очисти',
   'collector.facets.unknownHost': 'Непознат хостер',
+  'collector.facets.selectHost': 'Изабери линкове са {host}',
   'collector.facets.type.archive': 'Архиве',
   'collector.facets.type.video': 'Видео',
   'collector.facets.type.audio': 'Звук',

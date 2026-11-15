@@ -1458,6 +1458,7 @@ export const id: Dict = {
   'collector.facets.fileType': 'Jenis berkas',
   'collector.facets.clearAll': 'Bersihkan',
   'collector.facets.unknownHost': 'Host tidak dikenal',
+  'collector.facets.selectHost': 'Pilih tautan dari {host}',
   'collector.facets.type.archive': 'Arsip',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Audio',

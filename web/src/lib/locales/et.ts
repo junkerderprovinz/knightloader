@@ -1458,6 +1458,7 @@ export const et: Dict = {
   'collector.facets.fileType': 'Failitüüp',
   'collector.facets.clearAll': 'Tühjenda',
   'collector.facets.unknownHost': 'Tundmatu host',
+  'collector.facets.selectHost': 'Vali lingid majutajalt {host}',
   'collector.facets.type.archive': 'Arhiivid',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Heli',

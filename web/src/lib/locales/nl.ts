@@ -1450,6 +1450,7 @@ export const nl: Dict = {
   'collector.facets.fileType': 'Bestandstype',
   'collector.facets.clearAll': 'Wissen',
   'collector.facets.unknownHost': 'Onbekende host',
+  'collector.facets.selectHost': 'De links van {host} selecteren',
   'collector.facets.type.archive': 'Archieven',
   'collector.facets.type.video': 'Video',
   'collector.facets.type.audio': 'Audio',
