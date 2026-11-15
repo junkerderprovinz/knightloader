@@ -12,9 +12,6 @@ name: qbittorrent-nox
 # contents: write there in the QBITTORRENT_RELEASES_TOKEN secret.
 
 on:
-  push:
-    branches: [feat/qbittorrent]
-    paths: [.github/workflows/qbittorrent-nox.yml]
   workflow_dispatch:
     inputs:
       qbittorrent:
@@ -42,7 +39,6 @@ env:
   BOOST_SHA256: "2575e74ffc3ef1cd0babac2c1ee8bdb5782a0ee672b1912da40e5b4b591ca01f"
 
 jobs:
-  # A dispatch builds the version it names, a push every pin of versions.json.
   versions:
     runs-on: ubuntu-24.04
     outputs:
@@ -52,12 +48,7 @@ jobs:
         env:
           QBT: ${{ inputs.qbittorrent }}
           LT: ${{ inputs.libtorrent }}
-        run: |
-          if [ -n "$QBT" ]; then
-            echo "pins=[{\"qbittorrent\":\"$QBT\",\"libtorrent\":\"$LT\"}]" >> "$GITHUB_OUTPUT"
-          else
-            echo 'pins=[{"qbittorrent":"4.5.5","libtorrent":"1.2.19"},{"qbittorrent":"4.6.7","libtorrent":"1.2.19"},{"qbittorrent":"5.0.5","libtorrent":"2.0.11"}]' >> "$GITHUB_OUTPUT"
-          fi
+        run: echo "pins=[{\"qbittorrent\":\"$QBT\",\"libtorrent\":\"$LT\"}]" >> "$GITHUB_OUTPUT"
 
   windows:
     name: windows-amd64 ${{ matrix.pin.qbittorrent }}
@@ -209,7 +200,7 @@ jobs:
           path: qbittorrent-nox-*.zip
 
   release:
-    if: inputs.publish || github.event_name == 'push'
+    if: inputs.publish
     needs: [versions, windows, macos]
     strategy:
       fail-fast: false
