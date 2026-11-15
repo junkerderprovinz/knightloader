@@ -516,6 +516,9 @@ export const eu: Dict = {
   'settings.rowHeight.compact': 'Trinkoa',
   'settings.rowHeight.medium': 'Ertaina',
   'settings.rowHeight.comfortable': 'Zabala',
+  'settings.listShade.title': 'Itzaldu zerrendak',
+  'settings.listShade.hint':
+    'Pakete bakoitzaren goiburua apur bat nabarmentzen du Deskargak eta Esteka biltzailea ataletan, eta bere fitxategiei marra leun bat ematen die, begirada batean ikus dezazun zein fitxategi den zein paketerena. Aukera nabigatzaile honetan bakarrik gordetzen da.',
   'settings.labels': 'Etiketak',
   'settings.labelsHint': 'Kontrol batetik zenbat erakusten den: bere hitzak, bere ikurra edo biak. Erreaktiboak ikurra bakarrik erakusten du, eta hitzak sagua gainean jartzean agertzen dira. Botoiek eta iragazkiek beren izena burbuila batean erakusten dute horren ordez. Ikurrak alboko barra eta ezarpenen zutabea estutzen ditu, eta Ikurra eta Erreaktiboa moduetan botoia bere ikurrera txikitzen da.',
   'settings.labels.buttons': 'Botoiak',
@@ -3860,6 +3863,7 @@ export const eu: Dict = {
   'whatsnew.change.debridDeclined': 'Debrid zerbitzu batek torrent bat hurrengoari pasatzen dionean, haren errenkadak zerbitzua izendatzen du eta zergatik esaten du, adibidez tracker pribatu bat edo cachean ez zeukan torrent bat.',
   'whatsnew.change.desktopInstallers': '«{page}» ataleko «{name}» txartelean, Windows eta Linux botoiek instalatzaileetara eramaten dute.',
   'whatsnew.change.refusedReason': 'Balio bat onartzen ez duen eremu batek zergatik esaten du azpiko lerro batean, baita «{feeds}» eta «{targets}» ataletan ere.',
+  'whatsnew.change.listShade': 'Deskargak eta Esteka biltzailea atalek errenkadak itzaltzen dituzte: pakete bakoitza hurrengotik bereizten da, eta bere fitxategiak leunki txandakatzen dira. «{name}» aukerak desaktibatzen du.',
   'whatsnew.change.oled': '{theme} azpiko {oled} aukerak itxura iluna benetako beltz bihurtzen du OLED eta AMOLED pantailetan. Itxura iluna ikusten den bakoitzean balio du, sistemari jarraitzen dionean ere, eta gailu bakoitzak bere aukera gogoratzen du.',
   'whatsnew.change.systemAccent': '{accent} hasierako makila magikodun laginak sistemaren kolorea hartzen du: Material You Android 12tik aurrera, Windows, macOS edo Linuxen azentu-kolorea mahaigaineko aplikazioan, eta sistemaren kolorea Firefox eta Safarin. Sistemak koloririk ez duenean, lagina ez da agertzen. Aukerak gailu honetan bakarrik balio du, eta besteek instantziaren kolorea gordetzen dute.',
   'whatsnew.change.fileKindsMore': 'Estekek fitxategi mota gehiago erakusten dituzte beren ikurrarekin: PDFak, bulegoko dokumentuak, kalkulu-orriak, aurkezpenak, liburu elektronikoak, erreprodukzio-zerrendak, disko-irudiak, programak, letra-tipoak, 3D ereduak, egiaztapen-baturak, torrentak, RAW argazkiak eta diseinu-fitxategiak.',

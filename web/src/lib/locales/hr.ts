@@ -515,6 +515,9 @@ export const hr: Dict = {
   'settings.rowHeight.compact': 'Kompaktno',
   'settings.rowHeight.medium': 'Srednje',
   'settings.rowHeight.comfortable': 'Prozračno',
+  'settings.listShade.title': 'Zasjenjivanje popisa',
+  'settings.listShade.hint':
+    'Blago ističe zaglavlje svakog paketa u Preuzimanjima i Sakupljaču poveznica i daje njegovim datotekama nježne pruge, pa na prvi pogled vidiš koje datoteke pripadaju kojem paketu. Izbor vrijedi samo u ovom pregledniku.',
   'settings.labels': 'Oznake',
   'settings.labelsHint': 'Koliko se kontrole prikazuje: njezine riječi, njezin simbol ili oboje. Reaktivno prikazuje samo simbol i uvlači riječi kad pokažeš na njega. Gumbi i filtri umjesto toga prikazuju naziv u oblačiću. Simbol sužava bočnu traku i stupac postavki, a u načinima Simbol i Reaktivno gumb se smanjuje na svoj simbol.',
   'settings.labels.buttons': 'Gumbi',
@@ -3878,6 +3881,7 @@ export const hr: Dict = {
   'whatsnew.change.debridDeclined': 'Kad debrid usluga proslijedi torrent dalje, njegov redak navodi uslugu i razlog, primjerice privatni tracker ili torrent koji usluga nije imala u predmemoriji.',
   'whatsnew.change.desktopInstallers': 'Na kartici „{name}” pod „{page}” gumbi za Windows i Linux vode do instalacijskih programa.',
   'whatsnew.change.refusedReason': 'Polje koje odbije vrijednost u retku ispod sebe kaže zašto, sada i u „{feeds}” i „{targets}”.',
+  'whatsnew.change.listShade': 'Preuzimanja i Sakupljač poveznica zasjenjuju svoje retke: svaki se paket odvaja od sljedećeg, a njegove se datoteke nježno izmjenjuju. „{name}” to isključuje.',
   'whatsnew.change.oled': '{oled} ispod {theme} prebacuje tamni izgled na pravu crnu za OLED i AMOLED zaslone. Vrijedi kad god se vidi tamni izgled, i kad prati sustav, a svaki uređaj pamti svoj izbor.',
   'whatsnew.change.systemAccent': 'Uzorak sa štapićem na početku {accent} preuzima boju tvog sustava: Material You od Androida 12, naglasnu boju sustava Windows, macOS ili Linux u aplikaciji za računalo te boju sustava u Firefoxu i Safariju. Gdje sustav nema boju, uzorka nema. Izbor vrijedi samo za ovaj uređaj, a ostali zadržavaju boju instance.',
   'whatsnew.change.fileKindsMore': 'Poveznice pokazuju više vrsta datoteka svojim simbolom: PDF-ove, uredske dokumente, proračunske tablice, prezentacije, e-knjige, popise za reprodukciju, slike diskova, programe, fontove, 3D modele, kontrolne zbrojeve, torrente, RAW fotografije i dizajnerske datoteke.',

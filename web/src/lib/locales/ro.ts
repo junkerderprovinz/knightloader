@@ -516,6 +516,9 @@ export const ro: Dict = {
   'settings.rowHeight.compact': 'Compact',
   'settings.rowHeight.medium': 'Mediu',
   'settings.rowHeight.comfortable': 'Aerisit',
+  'settings.listShade.title': 'Umbrește listele',
+  'settings.listShade.hint':
+    'Evidențiază ușor rândul de antet al fiecărui pachet în Descărcări și în colectorul de linkuri și dă fișierelor lui o dungă discretă, ca să vezi dintr-o privire ce fișiere țin de ce pachet. Alegerea e păstrată doar în acest browser.',
   'settings.labels': 'Etichete',
   'settings.labelsHint': 'Cât se afișează dintr-un control: cuvintele, simbolul sau ambele. Reactiv afișează doar simbolul și aduce cuvintele când treci cu cursorul peste el. Butoanele și filtrele își arată în schimb numele într-un balon. Simbol îngustează bara laterală și coloana setărilor, iar în Simbol și Reactiv un buton se micșorează la simbolul său.',
   'settings.labels.buttons': 'Butoane',
@@ -3873,6 +3876,7 @@ export const ro: Dict = {
   'whatsnew.change.debridDeclined': 'Când un serviciu debrid dă un torrent mai departe, rândul lui numește serviciul și motivul, de exemplu un tracker privat sau un torrent pe care serviciul nu îl avea în cache.',
   'whatsnew.change.desktopInstallers': 'Pe cardul „{name}” din „{page}”, butoanele pentru Windows și Linux duc la programele de instalare.',
   'whatsnew.change.refusedReason': 'Un câmp care refuză o valoare spune de ce pe un rând dedesubt, acum și în „{feeds}” și „{targets}”.',
+  'whatsnew.change.listShade': 'Descărcări și colectorul de linkuri își umbresc rândurile: fiecare pachet se deosebește de următorul, iar fișierele lui alternează discret. „{name}” oprește asta.',
   'whatsnew.change.oled': '{oled}, sub {theme}, trece aspectul întunecat pe negru adevărat pentru ecranele OLED și AMOLED. Se aplică oricând se vede aspectul întunecat, și când urmează sistemul, iar fiecare dispozitiv își ține minte alegerea.',
   'whatsnew.change.systemAccent': 'Mostra cu bagheta de la începutul {accent} preia culoarea sistemului tău: Material You de la Android 12, culoarea de accent din Windows, macOS sau Linux în aplicația desktop și culoarea sistemului în Firefox și Safari. Unde sistemul nu are una, mostra lipsește. Alegerea se aplică doar acestui dispozitiv, iar celelalte păstrează culoarea instanței.',
   'whatsnew.change.fileKindsMore': 'Linkurile arată mai multe tipuri de fișiere prin simbolul lor: PDF-uri, documente de birou, foi de calcul, prezentări, cărți electronice, liste de redare, imagini de disc, programe, fonturi, modele 3D, sume de control, torrente, fotografii RAW și fișiere de design.',

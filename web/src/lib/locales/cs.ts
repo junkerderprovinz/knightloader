@@ -515,6 +515,9 @@ export const cs: Dict = {
   'settings.rowHeight.compact': 'Kompaktní',
   'settings.rowHeight.medium': 'Střední',
   'settings.rowHeight.comfortable': 'Vzdušná',
+  'settings.listShade.title': 'Stínovat seznamy',
+  'settings.listShade.hint':
+    'Jemně odliší záhlaví každého balíčku ve Stahování a ve Sběrači odkazů a jeho soubory střídavě podbarví, takže na první pohled vidíš, které soubory patří ke kterému balíčku. Volba platí jen v tomto prohlížeči.',
   'settings.labels': 'Popisky',
   'settings.labelsHint': 'Kolik z ovládacího prvku se zobrazí: jeho text, jeho symbol nebo obojí. Reaktivní ukazuje jen symbol a text vysune, když na něj najedeš myší. Tlačítka a filtry místo toho ukážou svůj název v bublině. Symbol zúží postranní panel i sloupec nastavení a v režimech Symbol a Reaktivní se tlačítko zmenší na svůj symbol.',
   'settings.labels.buttons': 'Tlačítka',
@@ -3874,6 +3877,7 @@ export const cs: Dict = {
   'whatsnew.change.debridDeclined': 'Když debrid služba pošle torrent dál, jeho řádek uvede službu a důvod, například soukromý tracker nebo torrent, který služba neměla v mezipaměti.',
   'whatsnew.change.desktopInstallers': 'Na kartě „{name}“ v části „{page}“ vedou tlačítka pro Windows a Linux k instalátorům.',
   'whatsnew.change.refusedReason': 'Pole, které hodnotu odmítne, řekne na řádku pod sebou proč, nově i v částech „{feeds}“ a „{targets}“.',
+  'whatsnew.change.listShade': 'Stahování a Sběrač odkazů stínují své řádky: každý balíček se odliší od dalšího a jeho soubory se jemně střídají. „{name}“ to vypne.',
   'whatsnew.change.oled': '{oled} pod {theme} přepne tmavý vzhled na skutečnou černou pro displeje OLED a AMOLED. Platí vždy, když je tmavý vzhled vidět, i když se řídí systémem, a každé zařízení si pamatuje vlastní volbu.',
   'whatsnew.change.systemAccent': 'Vzorek s kouzelnou hůlkou na začátku {accent} převezme barvu systému: Material You od Androidu 12, barvu zvýraznění Windows, macOS nebo Linuxu v desktopové aplikaci a systémovou barvu ve Firefoxu a Safari. Kde systém žádnou nemá, vzorek chybí. Volba platí jen pro toto zařízení a ostatní si ponechají barvu instance.',
   'whatsnew.change.fileKindsMore': 'Odkazy ukazují více druhů souborů jejich symbolem: PDF, kancelářské dokumenty, tabulky, prezentace, e-knihy, playlisty, obrazy disků, programy, písma, 3D modely, kontrolní součty, torrenty, RAW fotky a grafické soubory.',

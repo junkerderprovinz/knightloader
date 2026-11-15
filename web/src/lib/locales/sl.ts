@@ -515,6 +515,9 @@ export const sl: Dict = {
   'settings.rowHeight.compact': 'Strnjeno',
   'settings.rowHeight.medium': 'Srednje',
   'settings.rowHeight.comfortable': 'Zračno',
+  'settings.listShade.title': 'Senči sezname',
+  'settings.listShade.hint':
+    'V Prenosih in Zbiralniku povezav rahlo poudari glavo vsakega paketa in njegovim datotekam doda nežne proge, da na prvi pogled vidiš, katere datoteke spadajo h kateremu paketu. Izbira velja samo v tem brskalniku.',
   'settings.labels': 'Oznake',
   'settings.labelsHint': 'Koliko se prikaže od kontrolnika: njegove besede, njegov simbol ali oboje. Odziven prikaže samo simbol, besede pa se pojavijo ob prehodu s kazalcem. Gumbi in filtri namesto tega prikažejo ime v oblačku. Simbol zoži stransko vrstico in stolpec nastavitev, pri načinih Simbol in Odziven pa se gumb skrči na svoj simbol.',
   'settings.labels.buttons': 'Gumbi',
@@ -3863,6 +3866,7 @@ export const sl: Dict = {
   'whatsnew.change.debridDeclined': 'Ko storitev debrid preda torrent naprej, njegova vrstica navede storitev in razlog, na primer zasebni sledilnik ali torrent, ki ga storitev ni imela v predpomnilniku.',
   'whatsnew.change.desktopInstallers': 'Na kartici »{name}« pod »{page}« gumba za Windows in Linux vodita do namestitvenih programov.',
   'whatsnew.change.refusedReason': 'Polje, ki zavrne vrednost, v vrstici pod sabo pove, zakaj, zdaj tudi pri »{feeds}« in »{targets}«.',
+  'whatsnew.change.listShade': 'Prenosi in Zbiralnik povezav senčijo svoje vrstice: vsak paket se loči od naslednjega, njegove datoteke pa se nežno izmenjujejo. »{name}« to izklopi.',
   'whatsnew.change.oled': '{oled} pod {theme} preklopi temni videz na pravo črno za zaslone OLED in AMOLED. Velja vedno, ko je temni videz viden, tudi ko sledi sistemu, in vsaka naprava si zapomni svojo izbiro.',
   'whatsnew.change.systemAccent': 'Vzorec s čarobno paličico na začetku {accent} prevzame barvo tvojega sistema: Material You od Androida 12, poudarjeno barvo sistemov Windows, macOS ali Linux v namizni aplikaciji in sistemsko barvo v Firefoxu in Safariju. Kjer sistem barve nima, vzorca ni. Izbira velja samo za to napravo, druge pa obdržijo barvo instance.',
   'whatsnew.change.fileKindsMore': 'Povezave s svojim simbolom kažejo več vrst datotek: PDF-je, pisarniške dokumente, preglednice, predstavitve, e-knjige, sezname predvajanja, slike diskov, programe, pisave, 3D-modele, kontrolne vsote, torrente, fotografije RAW in oblikovalske datoteke.',

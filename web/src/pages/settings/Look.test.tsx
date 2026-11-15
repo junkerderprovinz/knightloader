@@ -96,6 +96,19 @@ it('keeps OLED in this browser and out of the instance settings', () => {
   expect(patch).not.toHaveBeenCalledWith(expect.objectContaining({ oled: expect.anything() }));
 });
 
+it('shades the lists from the start and keeps turning it off in this browser', () => {
+  const patch = renderLook();
+  const shade = () =>
+    [...host.querySelectorAll<HTMLButtonElement>('[role="switch"]')].find(
+      (s) => s.getAttribute('aria-label') === 'Shade the lists',
+    )!;
+  expect(shade().getAttribute('aria-checked')).toBe('true');
+  act(() => shade().click());
+  expect(shade().getAttribute('aria-checked')).toBe('false');
+  expect(localStorage.getItem('kl-list-shade')).toBe('off');
+  expect(patch).not.toHaveBeenCalled();
+});
+
 it('refuses OLED while Light is chosen and keeps it switchable under System', () => {
   localStorage.setItem('kl-theme', 'light');
   renderLook();

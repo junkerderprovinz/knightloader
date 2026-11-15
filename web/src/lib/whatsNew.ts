@@ -89,6 +89,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.refusedReason',
         names: { feeds: 'settings.module.feeds', targets: 'settings.module.eventtargets' },
       },
+      {
+        id: 'list-shade',
+        to: ['/settings/appearance'],
+        text: 'whatsnew.change.listShade',
+        names: { name: 'settings.listShade.title' },
+      },
     ],
   },
   {

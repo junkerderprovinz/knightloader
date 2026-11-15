@@ -515,6 +515,9 @@ export const sk: Dict = {
   'settings.rowHeight.compact': 'Kompaktná',
   'settings.rowHeight.medium': 'Stredná',
   'settings.rowHeight.comfortable': 'Vzdušná',
+  'settings.listShade.title': 'Tieňovať zoznamy',
+  'settings.listShade.hint':
+    'Jemne odlíši záhlavie každého balíka v Sťahovaní a v Zberači odkazov a jeho súbory striedavo podfarbí, takže na prvý pohľad vidíš, ktoré súbory patria ku ktorému balíku. Voľba platí len v tomto prehliadači.',
   'settings.labels': 'Označenia',
   'settings.labelsHint': 'Koľko z ovládacieho prvku sa zobrazí: jeho slová, jeho symbol alebo oboje. Reaktívne ukazuje iba symbol a slová vysunie, keď naň ukážeš. Tlačidlá a filtre namiesto toho ukážu svoj názov v bubline. Symbol zúži bočný panel aj stĺpec nastavení a v režimoch Symbol a Reaktívne sa tlačidlo zmenší na svoj symbol.',
   'settings.labels.buttons': 'Tlačidlá',
@@ -3874,6 +3877,7 @@ export const sk: Dict = {
   'whatsnew.change.debridDeclined': 'Keď debrid služba pošle torrent ďalej, jeho riadok uvedie službu a dôvod, napríklad súkromný tracker alebo torrent, ktorý služba nemala vo vyrovnávacej pamäti.',
   'whatsnew.change.desktopInstallers': 'Na karte „{name}“ v časti „{page}“ vedú tlačidlá pre Windows a Linux k inštalátorom.',
   'whatsnew.change.refusedReason': 'Pole, ktoré hodnotu odmietne, povie v riadku pod sebou prečo, teraz aj v častiach „{feeds}“ a „{targets}“.',
+  'whatsnew.change.listShade': 'Sťahovanie a Zberač odkazov tieňujú svoje riadky: každý balík sa odlíši od ďalšieho a jeho súbory sa jemne striedajú. „{name}“ to vypne.',
   'whatsnew.change.oled': '{oled} pod {theme} prepne tmavý vzhľad na skutočnú čiernu pre displeje OLED a AMOLED. Platí vždy, keď je tmavý vzhľad vidieť, aj keď sa riadi systémom, a každé zariadenie si pamätá vlastnú voľbu.',
   'whatsnew.change.systemAccent': 'Vzorka s čarovným prútikom na začiatku {accent} prevezme farbu systému: Material You od Androidu 12, zvýrazňujúcu farbu Windows, macOS alebo Linuxu v desktopovej aplikácii a systémovú farbu vo Firefoxe a Safari. Kde systém žiadnu nemá, vzorka chýba. Voľba platí len pre toto zariadenie a ostatné si ponechajú farbu inštancie.',
   'whatsnew.change.fileKindsMore': 'Odkazy ukazujú svojím symbolom viac druhov súborov: PDF, kancelárske dokumenty, tabuľky, prezentácie, e-knihy, playlisty, obrazy diskov, programy, písma, 3D modely, kontrolné súčty, torrenty, RAW fotky a grafické súbory.',

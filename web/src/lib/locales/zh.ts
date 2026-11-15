@@ -515,6 +515,9 @@ export const zh: Dict = {
   'settings.rowHeight.compact': '紧凑',
   'settings.rowHeight.medium': '中等',
   'settings.rowHeight.comfortable': '宽松',
+  'settings.listShade.title': '列表加底纹',
+  'settings.listShade.hint':
+    '在下载和链接收集器中让每个包的标题行稍微突出，并给其中的文件加上浅浅的条纹，一眼就能看出哪些文件属于哪个包。此选择只保存在此浏览器中。',
   'settings.labels': '标签',
   'settings.labelsHint': '控件显示多少内容：文字、符号或两者。响应式只显示符号，指针移上去时文字才滑出。按钮和筛选器则在气泡中显示名称。选择符号时，侧边栏和设置栏会变窄，在符号和响应式下，按钮会缩成只剩符号。',
   'settings.labels.buttons': '按钮',
@@ -3848,6 +3851,7 @@ export const zh: Dict = {
   'whatsnew.change.debridDeclined': 'debrid 服务把种子转交出去时，种子所在的行会写明是哪个服务以及原因，例如私有 tracker，或者服务缓存里没有的种子。',
   'whatsnew.change.desktopInstallers': '在“{page}”的“{name}”卡片上，Windows 和 Linux 按钮会指向安装程序。',
   'whatsnew.change.refusedReason': '拒绝某个值的输入框会在下面一行说明原因，现在“{feeds}”和“{targets}”里也是如此。',
+  'whatsnew.change.listShade': '下载和链接收集器的行加上了底纹：每个包与下一个包分开，包里的文件以浅色交替显示。“{name}”可以关闭它。',
   'whatsnew.change.oled': '{theme} 下的 {oled} 让深色外观使用纯黑，适合 OLED 和 AMOLED 屏幕。只要显示深色外观就会生效，跟随系统时也一样，每台设备各自记住自己的选择。',
   'whatsnew.change.systemAccent': '{accent} 开头带魔杖的色块会使用系统的颜色：Android 12 及以上用 Material You，桌面应用用 Windows、macOS 或 Linux 的强调色，Firefox 和 Safari 用系统颜色。系统没有这种颜色时，就没有这个色块。这个选择只作用于此设备，其他设备仍使用实例的颜色。',
   'whatsnew.change.fileKindsMore': '链接用符号显示更多文件类型：PDF、办公文档、电子表格、演示文稿、电子书、播放列表、磁盘映像、程序、字体、3D 模型、校验和、种子、RAW 照片和设计文件。',

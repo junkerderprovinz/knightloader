@@ -507,6 +507,9 @@ export const it: Dict = {
   'settings.rowHeight.compact': 'Compatta',
   'settings.rowHeight.medium': 'Media',
   'settings.rowHeight.comfortable': 'Ariosa',
+  'settings.listShade.title': 'Ombreggia le liste',
+  'settings.listShade.hint':
+    'Distingue un po\' l\'intestazione di ogni pacchetto in Download e nel raccoglitore di link e dà ai suoi file una leggera striatura, così vedi a colpo d\'occhio quali file appartengono a quale pacchetto. La scelta vale solo in questo browser.',
   'settings.labels': 'Etichette',
   'settings.labelsHint': 'Quanto di un controllo viene mostrato: le parole, il simbolo o entrambi. Reattivo mostra solo il simbolo e fa comparire le parole al passaggio del puntatore. I pulsanti e i filtri mostrano invece il loro nome in un fumetto. Simbolo restringe la barra laterale e la colonna delle impostazioni, e con Simbolo e Reattivo un pulsante si riduce al suo simbolo.',
   'settings.labels.buttons': 'Pulsanti',
@@ -3848,6 +3851,7 @@ export const it: Dict = {
   'whatsnew.change.debridDeclined': 'Quando un servizio debrid passa oltre un torrent, la sua riga nomina il servizio e dice perché, per esempio un tracker privato o un torrent che non aveva in cache.',
   'whatsnew.change.desktopInstallers': 'Sulla scheda «{name}» in «{page}», i pulsanti Windows e Linux portano agli installer.',
   'whatsnew.change.refusedReason': 'Un campo che rifiuta un valore dice perché in una riga sotto, anche in «{feeds}» e «{targets}».',
+  'whatsnew.change.listShade': 'Download e il raccoglitore di link ombreggiano le righe: ogni pacchetto si stacca dal successivo e i suoi file si alternano con discrezione. «{name}» la disattiva.',
   'whatsnew.change.oled': '{oled}, sotto {theme}, porta l\'aspetto scuro al nero puro per gli schermi OLED e AMOLED. Vale ogni volta che si vede l\'aspetto scuro, anche quando segue il sistema, e ogni dispositivo ricorda la propria scelta.',
   'whatsnew.change.systemAccent': 'Il campione con la bacchetta all\'inizio di {accent} prende il colore del tuo sistema: Material You da Android 12, il colore di accento di Windows, macOS o Linux nell\'app desktop e il colore di sistema in Firefox e Safari. Dove il sistema non ne ha uno, il campione non c\'è. La scelta vale solo per questo dispositivo, e gli altri mantengono il colore dell\'istanza.',
   'whatsnew.change.fileKindsMore': 'I link mostrano più tipi di file con il loro simbolo: PDF, documenti d\'ufficio, fogli di calcolo, presentazioni, e-book, playlist, immagini disco, programmi, font, modelli 3D, checksum, torrent, foto RAW e file di grafica.',

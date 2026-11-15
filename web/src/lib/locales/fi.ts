@@ -515,6 +515,9 @@ export const fi: Dict = {
   'settings.rowHeight.compact': 'Tiivis',
   'settings.rowHeight.medium': 'Keskikokoinen',
   'settings.rowHeight.comfortable': 'Väljä',
+  'settings.listShade.title': 'Varjosta luettelot',
+  'settings.listShade.hint':
+    'Erottaa jokaisen paketin otsikkorivin hieman Latauksissa ja Linkkikerääjässä ja raidoittaa sen tiedostot hienovaraisesti, joten näet yhdellä silmäyksellä, mitkä tiedostot kuuluvat mihinkin pakettiin. Valinta pätee vain tässä selaimessa.',
   'settings.labels': 'Nimikkeet',
   'settings.labelsHint': 'Kuinka paljon säätimestä näytetään: sen sanat, sen symboli vai molemmat. Reagoiva näyttää vain symbolin ja liu’uttaa sanat esiin, kun osoitin on sen päällä. Painikkeet ja suodattimet näyttävät sen sijaan nimensä kuplassa. Symboli kaventaa sivupalkkia ja asetusten saraketta, ja tiloissa Symboli ja Reagoiva painike kutistuu symbolikseen.',
   'settings.labels.buttons': 'Painikkeet',
@@ -3865,6 +3868,7 @@ export const fi: Dict = {
   'whatsnew.change.debridDeclined': 'Kun debrid-palvelu antaa torrentin eteenpäin, rivi nimeää palvelun ja kertoo syyn, esimerkiksi yksityisen trackerin tai torrentin, jota palvelulla ei ollut välimuistissa.',
   'whatsnew.change.desktopInstallers': 'Kortilla ”{name}” kohdassa ”{page}” Windowsin ja Linuxin painikkeet vievät asennusohjelmiin.',
   'whatsnew.change.refusedReason': 'Kenttä, joka hylkää arvon, kertoo syyn rivillä sen alla, myös kohdissa ”{feeds}” ja ”{targets}”.',
+  'whatsnew.change.listShade': 'Lataukset ja Linkkikerääjä varjostavat rivinsä: jokainen paketti erottuu seuraavasta, ja sen tiedostot vuorottelevat hienovaraisesti. ”{name}” poistaa sen käytöstä.',
   'whatsnew.change.oled': '{theme}-kohdan alla oleva {oled} vaihtaa tumman ulkoasun aidoksi mustaksi OLED- ja AMOLED-näytöillä. Se on käytössä aina, kun tumma ulkoasu näkyy, myös kun se seuraa järjestelmää, ja jokainen laite muistaa oman valintansa.',
   'whatsnew.change.systemAccent': 'Taikasauvalla merkitty värinäyte kohdan {accent} alussa käyttää järjestelmän väriä: Material You Android 12:sta alkaen, Windowsin, macOSin tai Linuxin korostusväri työpöytäsovelluksessa ja järjestelmän väri Firefoxissa ja Safarissa. Jos järjestelmällä ei ole väriä, näytettä ei ole. Valinta koskee vain tätä laitetta, ja muut pitävät instanssin värin.',
   'whatsnew.change.fileKindsMore': 'Linkit näyttävät symbolillaan useampia tiedostolajeja: PDF:t, toimistoasiakirjat, laskentataulukot, esitykset, e-kirjat, soittolistat, levykuvat, ohjelmat, fontit, 3D-mallit, tarkistussummat, torrentit, RAW-kuvat ja suunnittelutiedostot.',

@@ -515,6 +515,9 @@ export const ms: Dict = {
   'settings.rowHeight.compact': 'Padat',
   'settings.rowHeight.medium': 'Sederhana',
   'settings.rowHeight.comfortable': 'Selesa',
+  'settings.listShade.title': 'Lorek bayang pada senarai',
+  'settings.listShade.hint':
+    'Membezakan sedikit baris tajuk setiap pakej dalam Muat turun dan Pengumpul pautan dan memberi failnya jalur samar, jadi anda nampak sepintas lalu fail mana milik pakej mana. Pilihan ini hanya disimpan dalam pelayar ini.',
   'settings.labels': 'Label',
   'settings.labelsHint': 'Berapa banyak kawalan dipaparkan: perkataannya, simbolnya, atau kedua-duanya. Reaktif hanya memaparkan simbol dan meluncurkan perkataannya apabila anda menudingnya. Butang dan penapis pula memaparkan namanya dalam gelembung. Simbol menjadikan bar sisi dan lajur tetapan lebih sempit, dan dalam Simbol dan Reaktif butang mengecil kepada simbolnya.',
   'settings.labels.buttons': 'Butang',
@@ -3864,6 +3867,7 @@ export const ms: Dict = {
   'whatsnew.change.debridDeclined': 'Apabila perkhidmatan debrid menyerahkan torrent kepada yang seterusnya, barisnya menamakan perkhidmatan itu dan sebabnya, contohnya penjejak peribadi atau torrent yang tiada dalam cache perkhidmatan.',
   'whatsnew.change.desktopInstallers': 'Pada kad “{name}” di bawah “{page}”, butang Windows dan Linux membawa ke pemasang.',
   'whatsnew.change.refusedReason': 'Medan yang menolak sesuatu nilai menyatakan sebabnya dalam baris di bawahnya, kini juga dalam “{feeds}” dan “{targets}”.',
+  'whatsnew.change.listShade': 'Muat turun dan Pengumpul pautan melorek bayang pada barisnya: setiap pakej terpisah daripada pakej seterusnya, dan failnya berselang-seli samar. “{name}” mematikannya.',
   'whatsnew.change.oled': '{oled} di bawah {theme} menjadikan rupa gelap hitam sebenar untuk skrin OLED dan AMOLED. Ia terpakai setiap kali rupa gelap kelihatan, juga apabila ia mengikut sistem, dan setiap peranti mengingati pilihannya sendiri.',
   'whatsnew.change.systemAccent': 'Sampel bertongkat sakti di awal {accent} mengikut warna sistem anda: Material You pada Android 12 dan lebih baharu, warna aksen Windows, macOS atau Linux dalam apl desktop, dan warna sistem dalam Firefox dan Safari. Jika sistem tiada warna, sampel itu tidak muncul. Pilihan ini hanya untuk peranti ini, dan peranti lain kekal dengan warna instance.',
   'whatsnew.change.fileKindsMore': 'Pautan menunjukkan lebih banyak jenis fail dengan simbolnya: PDF, dokumen pejabat, hamparan, persembahan, e-buku, senarai main, imej cakera, program, fon, model 3D, checksum, torrent, foto RAW dan fail reka bentuk.',

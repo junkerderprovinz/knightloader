@@ -515,6 +515,9 @@ export const tr: Dict = {
   'settings.rowHeight.compact': 'Kompakt',
   'settings.rowHeight.medium': 'Orta',
   'settings.rowHeight.comfortable': 'Rahat',
+  'settings.listShade.title': 'Listeleri gölgelendir',
+  'settings.listShade.hint':
+    'İndirmeler ve Bağlantı toplayıcıda her paketin başlık satırını biraz öne çıkarır ve dosyalarına hafif çizgiler verir, böylece hangi dosyanın hangi pakete ait olduğunu bir bakışta görürsün. Seçim yalnızca bu tarayıcıda saklanır.',
   'settings.labels': 'Etiketler',
   'settings.labelsHint': 'Bir denetimin ne kadarının gösterileceği: sözcükleri, simgesi ya da her ikisi. Tepkisel yalnızca simgeyi gösterir ve üzerine gelindiğinde sözcükleri kaydırarak getirir. Düğmeler ve filtreler ise adlarını bir baloncukta gösterir. Simge kenar çubuğunu ve ayarlar sütununu daraltır, Simge ve Tepkisel modlarında da düğme simgesine küçülür.',
   'settings.labels.buttons': 'Düğmeler',
@@ -3863,6 +3866,7 @@ export const tr: Dict = {
   'whatsnew.change.debridDeclined': 'Bir debrid hizmeti bir torrenti bir sonrakine bıraktığında, satırı hizmeti ve nedenini söyler, örneğin özel bir izleyici ya da hizmetin önbelleğinde olmayan bir torrent.',
   'whatsnew.change.desktopInstallers': '“{page}” altındaki “{name}” kartında Windows ve Linux düğmeleri yükleyicilere götürür.',
   'whatsnew.change.refusedReason': 'Bir değeri reddeden alan, nedenini altındaki bir satırda söyler, artık “{feeds}” ve “{targets}” içinde de.',
+  'whatsnew.change.listShade': 'İndirmeler ve Bağlantı toplayıcı satırlarını gölgelendirir: her paket bir sonrakinden ayrılır, dosyaları da hafifçe dönüşümlü renklenir. “{name}” bunu kapatır.',
   'whatsnew.change.oled': '{theme} altındaki {oled}, OLED ve AMOLED ekranlar için koyu görünümü gerçek siyaha çevirir. Koyu görünüm göründüğü her an geçerlidir, sistemi izlediğinde de, ve her cihaz kendi seçimini hatırlar.',
   'whatsnew.change.systemAccent': '{accent} satırının başındaki sihirli değnekli örnek, sisteminin rengini alır: Android 12 ve sonrasında Material You, masaüstü uygulamasında Windows, macOS veya Linux vurgu rengi, Firefox ve Safari\'de sistem rengi. Sistemin böyle bir rengi yoksa örnek görünmez. Seçim yalnızca bu cihazı etkiler, diğer cihazlar değişmez.',
   'whatsnew.change.fileKindsMore': 'Bağlantılar daha fazla dosya türünü simgesiyle gösteriyor: PDF\'ler, ofis belgeleri, elektronik tablolar, sunumlar, e-kitaplar, çalma listeleri, disk görüntüleri, programlar, yazı tipleri, 3D modeller, sağlama toplamları, torrentler, RAW fotoğraflar ve tasarım dosyaları.',

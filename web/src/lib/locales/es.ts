@@ -507,6 +507,9 @@ export const es: Dict = {
   'settings.rowHeight.compact': 'Compacta',
   'settings.rowHeight.medium': 'Media',
   'settings.rowHeight.comfortable': 'Holgada',
+  'settings.listShade.title': 'Sombrear las listas',
+  'settings.listShade.hint':
+    'Destaca un poco la cabecera de cada paquete en Descargas y en el colector de enlaces y da a sus archivos una franja suave, para que veas de un vistazo qué archivos son de cada paquete. La elección solo vale en este navegador.',
   'settings.labels': 'Etiquetas',
   'settings.labelsHint': 'Cuánto se muestra de un control: sus palabras, su símbolo o ambos. Reactivo muestra solo el símbolo y hace aparecer las palabras al pasar el puntero por encima. Los botones y los filtros muestran su nombre en una burbuja. Símbolo estrecha la barra lateral y la columna de ajustes, y con Símbolo y Reactivo un botón se reduce a su símbolo.',
   'settings.labels.buttons': 'Botones',
@@ -3855,6 +3858,7 @@ export const es: Dict = {
   'whatsnew.change.debridDeclined': 'Cuando un servicio debrid pasa un torrent al siguiente, su fila nombra el servicio y dice por qué, por ejemplo un tracker privado o un torrent que no tenía en caché.',
   'whatsnew.change.desktopInstallers': 'En la tarjeta «{name}» de «{page}», los botones de Windows y Linux llevan a los instaladores.',
   'whatsnew.change.refusedReason': 'Un campo que rechaza un valor dice por qué en una línea debajo, también en «{feeds}» y «{targets}».',
+  'whatsnew.change.listShade': 'Descargas y el colector de enlaces sombrean sus filas: cada paquete se distingue del siguiente y sus archivos alternan con suavidad. «{name}» lo desactiva.',
   'whatsnew.change.oled': '{oled}, bajo {theme}, pone el aspecto oscuro en negro puro para pantallas OLED y AMOLED. Vale siempre que se ve el aspecto oscuro, también cuando sigue al sistema, y cada dispositivo recuerda su propia elección.',
   'whatsnew.change.systemAccent': 'La muestra con la varita al principio de {accent} toma el color de tu sistema: Material You desde Android 12, el color de acento de Windows, macOS o Linux en la aplicación de escritorio y el color del sistema en Firefox y Safari. Donde el sistema no tiene uno, la muestra no aparece. La elección vale solo para este dispositivo, y los demás conservan el color de la instancia.',
   'whatsnew.change.fileKindsMore': 'Los enlaces muestran más tipos de archivo con su símbolo: PDF, documentos de oficina, hojas de cálculo, presentaciones, libros electrónicos, listas de reproducción, imágenes de disco, programas, fuentes, modelos 3D, sumas de verificación, torrents, fotos RAW y archivos de diseño.',

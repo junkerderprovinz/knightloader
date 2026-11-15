@@ -515,6 +515,9 @@ export const ja: Dict = {
   'settings.rowHeight.compact': 'コンパクト',
   'settings.rowHeight.medium': '中',
   'settings.rowHeight.comfortable': 'ゆったり',
+  'settings.listShade.title': 'リストに陰影をつける',
+  'settings.listShade.hint':
+    'ダウンロードとリンクコレクターで、各パッケージの見出し行を少し目立たせ、そのファイルに淡い縞模様をつけます。どのファイルがどのパッケージのものか、ひと目でわかります。この選択はこのブラウザーにだけ保存されます。',
   'settings.labels': 'ラベル',
   'settings.labelsHint': 'コントロールをどこまで表示するか、文字、記号、またはその両方から選べます。反応型は記号だけを表示し、ポインターを重ねると文字がスライドして現れます。ボタンとフィルターは代わりに名前を吹き出しで表示します。記号にするとサイドバーと設定の列が細くなり、記号と反応型ではボタンが記号だけの大きさに縮みます。',
   'settings.labels.buttons': 'ボタン',
@@ -3861,6 +3864,7 @@ export const ja: Dict = {
   'whatsnew.change.debridDeclined': 'debrid サービスがトレントを次に回したとき、その行にサービス名と理由が表示されます。たとえばプライベートトラッカーや、サービスのキャッシュになかったトレントです。',
   'whatsnew.change.desktopInstallers': '「{page}」の「{name}」カードでは、Windows と Linux のボタンがインストーラーにつながります。',
   'whatsnew.change.refusedReason': '値を受け付けない欄は、その下の行で理由を伝えます。「{feeds}」と「{targets}」でも同じです。',
+  'whatsnew.change.listShade': 'ダウンロードとリンクコレクターの行に陰影がつきました。パッケージごとに区切りが見え、ファイルは淡く交互に色分けされます。「{name}」でオフにできます。',
   'whatsnew.change.oled': '{theme} の下にある {oled} は、OLED と AMOLED の画面向けに暗いデザインを真っ黒にします。システムに合わせているときも含め、暗いデザインが表示されているあいだ有効で、選択はデバイスごとに覚えます。',
   'whatsnew.change.systemAccent': '{accent} の先頭にある魔法の杖の見本は、システムの色を使います。Android 12 以降では Material You、デスクトップ版では Windows、macOS、Linux のアクセントカラー、Firefox と Safari ではシステムの色です。システムに色がない場合、この見本は表示されません。選択はこのデバイスだけに適用され、ほかのデバイスはインスタンスの色のままです。',
   'whatsnew.change.fileKindsMore': 'リンクがより多くの種類のファイルを記号で示します。PDF、オフィス文書、表計算、プレゼンテーション、電子書籍、プレイリスト、ディスクイメージ、プログラム、フォント、3D モデル、チェックサム、トレント、RAW 写真、デザインファイルです。',

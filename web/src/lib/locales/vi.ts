@@ -515,6 +515,9 @@ export const vi: Dict = {
   'settings.rowHeight.compact': 'Gọn',
   'settings.rowHeight.medium': 'Vừa',
   'settings.rowHeight.comfortable': 'Thoáng',
+  'settings.listShade.title': 'Tô bóng danh sách',
+  'settings.listShade.hint':
+    'Làm nổi nhẹ hàng tiêu đề của mỗi gói trong Tải xuống và Bộ thu liên kết, đồng thời tô sọc mờ cho các tệp của gói, để bạn nhìn qua là biết tệp nào thuộc gói nào. Lựa chọn chỉ được giữ trong trình duyệt này.',
   'settings.labels': 'Nhãn',
   'settings.labelsHint': 'Hiển thị bao nhiêu của một điều khiển: chữ, biểu tượng, hay cả hai. Phản hồi chỉ hiện biểu tượng và trượt chữ ra khi bạn trỏ vào. Nút và bộ lọc thì hiện tên trong bong bóng. Biểu tượng làm thanh bên và cột cài đặt hẹp lại, và ở chế độ Biểu tượng và Phản hồi, nút thu nhỏ còn biểu tượng.',
   'settings.labels.buttons': 'Nút',
@@ -3864,6 +3867,7 @@ export const vi: Dict = {
   'whatsnew.change.debridDeclined': 'Khi một dịch vụ debrid chuyển một torrent đi tiếp, hàng của nó nêu tên dịch vụ và lý do, chẳng hạn một tracker riêng tư hoặc một torrent dịch vụ chưa có trong bộ nhớ đệm.',
   'whatsnew.change.desktopInstallers': 'Trên thẻ “{name}” trong “{page}”, nút Windows và Linux dẫn đến trình cài đặt.',
   'whatsnew.change.refusedReason': 'Ô nhập từ chối một giá trị sẽ nói lý do trong một dòng bên dưới, giờ cả trong “{feeds}” và “{targets}”.',
+  'whatsnew.change.listShade': 'Tải xuống và Bộ thu liên kết tô bóng các hàng: mỗi gói tách khỏi gói tiếp theo, và các tệp của gói xen kẽ màu nhạt. “{name}” tắt tính năng này.',
   'whatsnew.change.oled': '{oled} dưới {theme} chuyển giao diện tối sang màu đen tuyệt đối cho màn hình OLED và AMOLED. Tùy chọn áp dụng mỗi khi giao diện tối hiển thị, cả khi theo hệ thống, và mỗi thiết bị nhớ lựa chọn của riêng mình.',
   'whatsnew.change.systemAccent': 'Mẫu màu có cây đũa phép ở đầu {accent} lấy màu của hệ thống bạn: Material You từ Android 12, màu nhấn của Windows, macOS hoặc Linux trong ứng dụng máy tính, và màu hệ thống trong Firefox và Safari. Nếu hệ thống không có màu này, mẫu sẽ không xuất hiện. Lựa chọn chỉ áp dụng cho thiết bị này, còn các thiết bị khác vẫn giữ màu của phiên bản.',
   'whatsnew.change.fileKindsMore': 'Liên kết hiển thị thêm nhiều loại tệp bằng biểu tượng của chúng: PDF, tài liệu văn phòng, bảng tính, bản trình chiếu, sách điện tử, danh sách phát, ảnh đĩa, chương trình, phông chữ, mô hình 3D, mã kiểm tra, torrent, ảnh RAW và tệp thiết kế.',

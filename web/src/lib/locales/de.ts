@@ -559,6 +559,9 @@ export const de: Dict = {
   'settings.rowHeight.compact': 'Kompakt',
   'settings.rowHeight.medium': 'Mittel',
   'settings.rowHeight.comfortable': 'Bequem',
+  'settings.listShade.title': 'Listen schattieren',
+  'settings.listShade.hint':
+    'Hebt unter Downloads und im Linksammler die Kopfzeile jedes Pakets leicht ab und gibt seinen Dateien einen feinen Streifen. So siehst du auf einen Blick, welche Dateien zu welchem Paket gehören. Die Wahl gilt nur in diesem Browser.',
   'settings.labels': 'Beschriftungen',
   'settings.labelsHint': 'Wie viel von einem Bedienelement zu sehen ist: seine Wörter, sein Symbol oder beides. Reaktiv zeigt nur das Symbol und blendet die Wörter ein, sobald du darauf zeigst. Buttons und Filter zeigen ihren Namen dafür in einer Blase. Mit Symbol werden die Seitenleiste und die Einstellungsspalte schmaler, und bei Symbol und Reaktiv schrumpft ein Button auf sein Symbol.',
   'settings.labels.buttons': 'Buttons',
@@ -3930,6 +3933,7 @@ export const de: Dict = {
   'whatsnew.change.debridDeclined': 'Gibt ein Debrid-Dienst einen Torrent weiter, nennt seine Zeile den Dienst und den Grund, etwa einen privaten Tracker oder einen Torrent, den er nicht im Cache hatte.',
   'whatsnew.change.desktopInstallers': 'Auf der Karte „{name}“ unter „{page}“ führen die Knöpfe für Windows und Linux zu den Installern.',
   'whatsnew.change.refusedReason': 'Ein Feld, das einen Wert ablehnt, sagt in einer Zeile darunter, warum. Das gilt jetzt auch für „{feeds}“ und „{targets}“.',
+  'whatsnew.change.listShade': 'Downloads und der Linksammler schattieren ihre Zeilen. So setzt sich jedes Paket vom nächsten ab, und seine Dateien sind abwechselnd leicht getönt. „{name}“ schaltet das aus.',
   'whatsnew.change.oled': '{oled} unter {theme} setzt das dunkle Design auf echtes Schwarz, für OLED- und AMOLED-Bildschirme. Es gilt, sobald das dunkle Design zu sehen ist, auch wenn es dem System folgt, und jedes Gerät merkt sich seine eigene Wahl.',
   'whatsnew.change.systemAccent': 'Das Farbfeld mit dem Zauberstab am Anfang von {accent} übernimmt die Farbe deines Systems: Material You ab Android 12, die Akzentfarbe von Windows, macOS oder Linux in der Desktop-App und die Systemfarbe in Firefox und Safari. Wo das System keine hat, gibt es das Feld nicht. Die Wahl gilt nur für dieses Gerät, und die anderen behalten die Farbe der Instanz.',
   'whatsnew.change.fileKindsMore': 'Links zeigen mehr Dateiarten mit ihrem Symbol: PDFs, Office-Dokumente, Tabellen, Präsentationen, E-Books, Playlists, Disk-Images, Programme, Schriften, 3D-Modelle, Prüfsummen, Torrents, RAW-Fotos und Designdateien.',

@@ -584,6 +584,9 @@ export const en = {
   'settings.rowHeight.compact': 'Compact',
   'settings.rowHeight.medium': 'Medium',
   'settings.rowHeight.comfortable': 'Comfortable',
+  'settings.listShade.title': 'Shade the lists',
+  'settings.listShade.hint':
+    'Sets each package\'s header a shade apart in Downloads and the link collector and stripes its files faintly, so you can tell at a glance which files belong to which package. The choice is kept in this browser only.',
   'settings.labels': 'Labels',
   'settings.labelsHint': 'How much of a control is shown: its words, its symbol, or both. Reactive shows the symbol alone and slides the words in when you point at it. Buttons and filters show their name in a bubble instead. Symbol makes the sidebar and the settings column narrower, and in Symbol and Reactive a button shrinks to its symbol.',
   'settings.labels.buttons': 'Buttons',
@@ -4168,6 +4171,7 @@ export const en = {
   'whatsnew.change.debridDeclined': 'When a debrid service passes a torrent on, its row names the service and says why, such as a private tracker or a torrent it had not cached.',
   'whatsnew.change.desktopInstallers': 'On the "{name}" card under "{page}", the Windows and Linux buttons lead to the installers.',
   'whatsnew.change.refusedReason': 'A field that refuses a value says why in a line under it, in "{feeds}" and "{targets}" too.',
+  'whatsnew.change.listShade': 'Downloads and the link collector shade their rows: each package stands apart from the next, and its files alternate faintly. "{name}" turns it off.',
   'whatsnew.change.oled': '{oled} under {theme} puts the dark look on true black for OLED and AMOLED screens. It counts whenever the dark look shows, also when it follows the system, and each device keeps its own choice.',
   'whatsnew.change.systemAccent': 'The wand swatch at the start of {accent} takes the system\'s colour: Material You on Android 12 and newer, the accent colour of Windows, macOS or Linux in the desktop app, and the system colour in Firefox and Safari. Where the system has none, the swatch isn\'t there. Choosing it changes only this device, and the others keep the instance\'s colour.',
   'whatsnew.change.fileKindsMore': 'Links show more kinds of file by their symbol: PDFs, office documents, spreadsheets, presentations, e-books, playlists, disk images, programs, fonts, 3D models, checksums, torrents, RAW photos and design files.',

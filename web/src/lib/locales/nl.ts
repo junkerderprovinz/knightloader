@@ -507,6 +507,9 @@ export const nl: Dict = {
   'settings.rowHeight.compact': 'Compact',
   'settings.rowHeight.medium': 'Middel',
   'settings.rowHeight.comfortable': 'Ruim',
+  'settings.listShade.title': 'Lijsten arceren',
+  'settings.listShade.hint':
+    'Laat de kopregel van elk pakket in Downloads en de Linkverzamelaar iets afsteken en geeft de bestanden ervan zachte strepen, zodat je in één oogopslag ziet welke bestanden bij welk pakket horen. De keuze geldt alleen in deze browser.',
   'settings.labels': 'Labels',
   'settings.labelsHint': 'Hoeveel van een besturingselement wordt getoond: de woorden, het symbool of beide. Reactief toont alleen het symbool en schuift de woorden erbij zodra je ernaar wijst. Knoppen en filters tonen hun naam in plaats daarvan in een ballon. Symbool maakt de zijbalk en de instellingenkolom smaller, en bij Symbool en Reactief krimpt een knop tot zijn symbool.',
   'settings.labels.buttons': 'Knoppen',
@@ -3847,6 +3850,7 @@ export const nl: Dict = {
   'whatsnew.change.debridDeclined': 'Geeft een debrid-dienst een torrent door, dan noemt de rij de dienst en de reden, zoals een private tracker of een torrent die de dienst niet in de cache had.',
   'whatsnew.change.desktopInstallers': 'Op de kaart “{name}” onder “{page}” leiden de knoppen voor Windows en Linux naar de installatieprogramma’s.',
   'whatsnew.change.refusedReason': 'Een veld dat een waarde weigert, zegt in een regel eronder waarom, ook bij “{feeds}” en “{targets}”.',
+  'whatsnew.change.listShade': 'Downloads en de Linkverzamelaar arceren hun rijen: elk pakket steekt af tegen het volgende en de bestanden ervan wisselen zacht af. “{name}” zet het uit.',
   'whatsnew.change.oled': '{oled} onder {theme} zet het donkere uiterlijk op echt zwart voor OLED- en AMOLED-schermen. Het geldt zodra het donkere uiterlijk te zien is, ook als dat het systeem volgt, en elk apparaat onthoudt zijn eigen keuze.',
   'whatsnew.change.systemAccent': 'Het staal met de toverstaf vooraan bij {accent} neemt de kleur van je systeem over: Material You vanaf Android 12, de accentkleur van Windows, macOS of Linux in de desktop-app en de systeemkleur in Firefox en Safari. Waar het systeem er geen heeft, is het staal er niet. De keuze geldt alleen voor dit apparaat, en de andere houden de kleur van de instantie.',
   'whatsnew.change.fileKindsMore': 'Links tonen meer soorten bestanden met hun symbool: pdf\'s, kantoordocumenten, spreadsheets, presentaties, e-books, afspeellijsten, schijfkopieën, programma\'s, lettertypen, 3D-modellen, controlesommen, torrents, RAW-foto\'s en ontwerpbestanden.',

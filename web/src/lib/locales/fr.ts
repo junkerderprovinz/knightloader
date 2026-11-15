@@ -507,6 +507,9 @@ export const fr: Dict = {
   'settings.rowHeight.compact': 'Compacte',
   'settings.rowHeight.medium': 'Moyenne',
   'settings.rowHeight.comfortable': 'Aérée',
+  'settings.listShade.title': 'Ombrer les listes',
+  'settings.listShade.hint':
+    'Démarque légèrement l\'en-tête de chaque paquet dans Téléchargements et le collecteur de liens et raye discrètement ses fichiers, pour voir d\'un coup d\'œil quels fichiers appartiennent à quel paquet. Ce choix ne vaut que dans ce navigateur.',
   'settings.labels': 'Libellés',
   'settings.labelsHint': 'Ce qui est affiché d’un contrôle : ses mots, son symbole ou les deux. Réactif n’affiche que le symbole et fait apparaître les mots au survol. Les boutons et les filtres affichent plutôt leur nom dans une bulle. Symbole rétrécit la barre latérale et la colonne des paramètres, et en Symbole comme en Réactif un bouton se réduit à son symbole.',
   'settings.labels.buttons': 'Boutons',
@@ -3853,6 +3856,7 @@ export const fr: Dict = {
   'whatsnew.change.debridDeclined': 'Quand un service debrid passe un torrent à la suite, sa ligne nomme le service et dit pourquoi, par exemple un tracker privé ou un torrent qu’il n’avait pas en cache.',
   'whatsnew.change.desktopInstallers': 'Sur la carte « {name} » sous « {page} », les boutons Windows et Linux mènent aux installateurs.',
   'whatsnew.change.refusedReason': 'Un champ qui refuse une valeur dit pourquoi sur une ligne en dessous, aussi dans « {feeds} » et « {targets} ».',
+  'whatsnew.change.listShade': 'Téléchargements et le collecteur de liens ombrent leurs lignes : chaque paquet se détache du suivant et ses fichiers alternent discrètement. « {name} » le désactive.',
   'whatsnew.change.oled': '{oled}, sous {theme}, passe l\'apparence sombre au noir pur pour les écrans OLED et AMOLED. Il compte dès que l\'apparence sombre s\'affiche, même quand elle suit le système, et chaque appareil retient son propre choix.',
   'whatsnew.change.systemAccent': 'La pastille à la baguette magique au début de {accent} reprend la couleur du système : Material You à partir d\'Android 12, la couleur d\'accentuation de Windows, macOS ou Linux dans l\'application de bureau, et la couleur du système dans Firefox et Safari. Là où le système n\'en a pas, la pastille n\'apparaît pas. Ce choix ne vaut que pour cet appareil, et les autres gardent la couleur de l\'instance.',
   'whatsnew.change.fileKindsMore': 'Les liens montrent plus de types de fichiers par leur symbole : PDF, documents bureautiques, tableurs, présentations, livres numériques, listes de lecture, images disque, programmes, polices, modèles 3D, sommes de contrôle, torrents, photos RAW et fichiers de conception.',

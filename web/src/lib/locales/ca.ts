@@ -515,6 +515,9 @@ export const ca: Dict = {
   'settings.rowHeight.compact': 'Compacta',
   'settings.rowHeight.medium': 'Mitjana',
   'settings.rowHeight.comfortable': 'Àmplia',
+  'settings.listShade.title': 'Ombreja les llistes',
+  'settings.listShade.hint':
+    'Destaca lleugerament la capçalera de cada paquet a Baixades i al recol·lector d\'enllaços i dona als seus fitxers una ratlla suau, perquè vegis d\'un cop d\'ull quins fitxers són de cada paquet. L\'elecció només val en aquest navegador.',
   'settings.labels': 'Etiquetes',
   'settings.labelsHint': 'Quant es mostra d’un control: les paraules, el símbol o tots dos. Reactiu mostra només el símbol i fa aparèixer les paraules en passar-hi el punter. Els botons i els filtres mostren el nom en una bombolla. Símbol fa més estretes la barra lateral i la columna de la configuració, i amb Símbol i Reactiu un botó es redueix al seu símbol.',
   'settings.labels.buttons': 'Botons',
@@ -3851,6 +3854,7 @@ export const ca: Dict = {
   'whatsnew.change.debridDeclined': 'Quan un servei debrid passa un torrent al següent, la seva fila anomena el servei i diu per què, per exemple un tracker privat o un torrent que no tenia a la memòria cau.',
   'whatsnew.change.desktopInstallers': 'A la targeta «{name}» de «{page}», els botons de Windows i Linux porten als instal·ladors.',
   'whatsnew.change.refusedReason': 'Un camp que rebutja un valor diu per què en una línia a sota, també a «{feeds}» i «{targets}».',
+  'whatsnew.change.listShade': 'Baixades i el recol·lector d\'enllaços ombregen les files: cada paquet es distingeix del següent i els seus fitxers alternen suaument. «{name}» ho desactiva.',
   'whatsnew.change.oled': '{oled}, sota {theme}, posa l\'aspecte fosc en negre pur per a pantalles OLED i AMOLED. Val sempre que es veu l\'aspecte fosc, també quan segueix el sistema, i cada dispositiu recorda la seva tria.',
   'whatsnew.change.systemAccent': 'La mostra amb la vareta al començament de {accent} agafa el color del sistema: Material You a partir d\'Android 12, el color d\'accent de Windows, macOS o Linux a l\'aplicació d\'escriptori i el color del sistema a Firefox i Safari. On el sistema no en té, la mostra no hi és. L\'elecció val només per a aquest dispositiu, i els altres mantenen el color de la instància.',
   'whatsnew.change.fileKindsMore': 'Els enllaços mostren més tipus de fitxer amb el seu símbol: PDF, documents d\'oficina, fulls de càlcul, presentacions, llibres electrònics, llistes de reproducció, imatges de disc, programes, tipus de lletra, models 3D, sumes de verificació, torrents, fotos RAW i fitxers de disseny.',

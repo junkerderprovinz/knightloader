@@ -515,6 +515,9 @@ export const da: Dict = {
   'settings.rowHeight.compact': 'Kompakt',
   'settings.rowHeight.medium': 'Mellem',
   'settings.rowHeight.comfortable': 'Luftig',
+  'settings.listShade.title': 'Skraver listerne',
+  'settings.listShade.hint':
+    'Fremhæver hver pakkes overskrift en anelse i Downloads og Linksamleren og giver dens filer svage striber, så du med et blik kan se, hvilke filer der hører til hvilken pakke. Valget gælder kun i denne browser.',
   'settings.labels': 'Etiketter',
   'settings.labelsHint': 'Hvor meget af en kontrol der vises: dens ord, dens symbol eller begge dele. Reaktiv viser kun symbolet og glider ordene ind, når du peger på det. Knapper og filtre viser i stedet deres navn i en boble. Symbol gør sidepanelet og indstillingskolonnen smallere, og med Symbol og Reaktiv skrumper en knap til sit symbol.',
   'settings.labels.buttons': 'Knapper',
@@ -3850,6 +3853,7 @@ export const da: Dict = {
   'whatsnew.change.debridDeclined': 'Når en debrid-tjeneste sender en torrent videre, nævner rækken tjenesten og årsagen, for eksempel en privat tracker eller en torrent, den ikke havde i cachen.',
   'whatsnew.change.desktopInstallers': 'På kortet „{name}“ under „{page}“ fører knapperne til Windows og Linux til installationsprogrammerne.',
   'whatsnew.change.refusedReason': 'Et felt, der afviser en værdi, siger hvorfor i en linje under det, også i „{feeds}“ og „{targets}“.',
+  'whatsnew.change.listShade': 'Downloads og Linksamleren skraverer deres rækker: hver pakke skiller sig ud fra den næste, og dens filer skifter svagt. „{name}“ slår det fra.',
   'whatsnew.change.oled': '{oled} under {theme} giver det mørke udseende ægte sort til OLED- og AMOLED-skærme. Det gælder, når det mørke udseende vises, også når det følger systemet, og hver enhed husker sit eget valg.',
   'whatsnew.change.systemAccent': 'Farvefeltet med tryllestaven først i {accent} bruger systemets farve: Material You fra Android 12, accentfarven i Windows, macOS eller Linux i skrivebordsappen og systemfarven i Firefox og Safari. Hvor systemet ikke har nogen, er feltet der ikke. Valget gælder kun denne enhed, og de andre beholder instansens farve.',
   'whatsnew.change.fileKindsMore': 'Links viser flere slags filer med deres symbol: PDF\'er, kontordokumenter, regneark, præsentationer, e-bøger, playlister, diskaftryk, programmer, skrifttyper, 3D-modeller, tjeksummer, torrents, RAW-fotos og designfiler.',

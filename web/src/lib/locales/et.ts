@@ -515,6 +515,9 @@ export const et: Dict = {
   'settings.rowHeight.compact': 'Kompaktne',
   'settings.rowHeight.medium': 'Keskmine',
   'settings.rowHeight.comfortable': 'Avar',
+  'settings.listShade.title': 'Varjuta loendeid',
+  'settings.listShade.hint':
+    'Tõstab jaotistes Allalaadimised ja Linkide koguja iga paki päiserea veidi esile ja annab selle failidele õrnad triibud, nii näed ühe pilguga, millised failid millisesse pakki kuuluvad. Valik kehtib ainult selles brauseris.',
   'settings.labels': 'Sildid',
   'settings.labelsHint': 'Kui palju juhtelemendist näidatakse: selle sõnad, sümbol või mõlemad. Reageeriv näitab ainult sümbolit ja libistab sõnad nähtavale, kui hiir on peal. Nupud ja filtrid näitavad selle asemel oma nime mullis. Sümbol teeb külgriba ja seadete veeru kitsamaks ning režiimides Sümbol ja Reageeriv kahaneb nupp oma sümboliks.',
   'settings.labels.buttons': 'Nupud',
@@ -3855,6 +3858,7 @@ export const et: Dict = {
   'whatsnew.change.debridDeclined': 'Kui debrid-teenus annab torrenti edasi, nimetab rida teenuse ja põhjuse, näiteks privaatse trackeri või torrenti, mida teenusel vahemälus polnud.',
   'whatsnew.change.desktopInstallers': 'Jaotise „{page}“ kaardil „{name}“ viivad Windowsi ja Linuxi nupud paigaldusprogrammideni.',
   'whatsnew.change.refusedReason': 'Väli, mis väärtust ei võta, ütleb selle all oleval real, miks, nüüd ka jaotistes „{feeds}“ ja „{targets}“.',
+  'whatsnew.change.listShade': 'Allalaadimised ja Linkide koguja varjutavad oma ridu: iga pakk eristub järgmisest ja selle failid vahelduvad õrnalt. „{name}“ lülitab selle välja.',
   'whatsnew.change.oled': '{oled} jaotise {theme} all muudab tumeda välimuse OLED- ja AMOLED-ekraanidel päris mustaks. See kehtib alati, kui tume välimus on nähtaval, ka siis, kui see järgib süsteemi, ja iga seade jätab oma valiku meelde.',
   'whatsnew.change.systemAccent': 'Võlukepiga värvinäidis rea {accent} alguses võtab süsteemi värvi: Material You alates Android 12-st, Windowsi, macOS-i või Linuxi rõhuvärvi töölauarakenduses ja süsteemi värvi Firefoxis ja Safaris. Kus süsteemil seda pole, näidist ei ole. Valik kehtib ainult selles seadmes, ja teised jäävad eksemplari värvi juurde.',
   'whatsnew.change.fileKindsMore': 'Lingid näitavad sümboliga rohkem failitüüpe: PDF-id, kontoridokumendid, tabelid, esitlused, e-raamatud, esitusloendid, kettatõmmised, programmid, fondid, 3D-mudelid, kontrollsummad, torrentid, RAW-fotod ja disainifailid.',

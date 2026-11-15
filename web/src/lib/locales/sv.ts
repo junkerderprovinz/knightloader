@@ -515,6 +515,9 @@ export const sv: Dict = {
   'settings.rowHeight.compact': 'Kompakt',
   'settings.rowHeight.medium': 'Mellan',
   'settings.rowHeight.comfortable': 'Luftig',
+  'settings.listShade.title': 'Skugga listorna',
+  'settings.listShade.hint':
+    'Framhäver varje pakets rubrikrad en aning i Nedladdningar och Länksamlaren och ger dess filer svaga ränder, så att du med en blick ser vilka filer som hör till vilket paket. Valet gäller bara i den här webbläsaren.',
   'settings.labels': 'Etiketter',
   'settings.labelsHint': 'Hur mycket av en kontroll som visas: dess ord, dess symbol eller båda. Reaktiv visar bara symbolen och låter orden glida in när du pekar på den. Knappar och filter visar i stället sitt namn i en bubbla. Symbol gör sidopanelen och inställningskolumnen smalare, och med Symbol och Reaktiv krymper en knapp till sin symbol.',
   'settings.labels.buttons': 'Knappar',
@@ -3864,6 +3867,7 @@ export const sv: Dict = {
   'whatsnew.change.debridDeclined': 'När en debrid-tjänst skickar vidare en torrent nämner raden tjänsten och orsaken, till exempel en privat tracker eller en torrent som tjänsten inte hade i cachen.',
   'whatsnew.change.desktopInstallers': 'På kortet ”{name}” under ”{page}” leder knapparna för Windows och Linux till installationsprogrammen.',
   'whatsnew.change.refusedReason': 'Ett fält som avvisar ett värde säger varför på en rad under det, också i ”{feeds}” och ”{targets}”.',
+  'whatsnew.change.listShade': 'Nedladdningar och Länksamlaren skuggar sina rader: varje paket skiljer sig från nästa, och dess filer växlar svagt. ”{name}” stänger av det.',
   'whatsnew.change.oled': '{oled} under {theme} ger det mörka utseendet äkta svart för OLED- och AMOLED-skärmar. Det gäller när det mörka utseendet syns, även när det följer systemet, och varje enhet minns sitt eget val.',
   'whatsnew.change.systemAccent': 'Färgprovet med trollstaven först i {accent} tar ditt systems färg: Material You från Android 12, accentfärgen i Windows, macOS eller Linux i skrivbordsappen och systemfärgen i Firefox och Safari. Där systemet saknar en finns provet inte. Valet gäller bara den här enheten, och de andra behåller instansens färg.',
   'whatsnew.change.fileKindsMore': 'Länkar visar fler sorters filer med sin symbol: PDF:er, kontorsdokument, kalkylblad, presentationer, e-böcker, spellistor, skivavbilder, program, typsnitt, 3D-modeller, kontrollsummor, torrenter, RAW-foton och designfiler.',

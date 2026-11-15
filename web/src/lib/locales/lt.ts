@@ -516,6 +516,9 @@ export const lt: Dict = {
   'settings.rowHeight.compact': 'Kompaktiškas',
   'settings.rowHeight.medium': 'Vidutinis',
   'settings.rowHeight.comfortable': 'Erdvus',
+  'settings.listShade.title': 'Šešėliuoti sąrašus',
+  'settings.listShade.hint':
+    'Atsisiuntimuose ir Nuorodų rinkiklyje šiek tiek išskiria kiekvieno paketo antraštės eilutę ir jo failams suteikia švelnias juostas, kad iš pirmo žvilgsnio matytum, kurie failai kuriam paketui priklauso. Pasirinkimas galioja tik šioje naršyklėje.',
   'settings.labels': 'Etiketės',
   'settings.labelsHint': 'Kiek valdiklio rodoma: jo žodžiai, jo simbolis ar abu. Reaguojantis rodo tik simbolį, o žodžiai išslenka užvedus pelę. Mygtukai ir filtrai vietoj to rodo savo pavadinimą debesėlyje. Simbolis susiaurina šoninę juostą ir nustatymų stulpelį, o režimuose Simbolis ir Reaguojantis mygtukas susitraukia iki savo simbolio.',
   'settings.labels.buttons': 'Mygtukai',
@@ -3866,6 +3869,7 @@ export const lt: Dict = {
   'whatsnew.change.debridDeclined': 'Kai debrid paslauga perduoda torrentą toliau, jo eilutė nurodo paslaugą ir priežastį, pavyzdžiui, privatų trackerį ar torrentą, kurio paslauga neturėjo podėlyje.',
   'whatsnew.change.desktopInstallers': 'Skilties „{page}“ kortelėje „{name}“ Windows ir Linux mygtukai veda į diegimo programas.',
   'whatsnew.change.refusedReason': 'Laukas, kuris atmeta reikšmę, eilutėje po juo pasako kodėl, taip pat skiltyse „{feeds}“ ir „{targets}“.',
+  'whatsnew.change.listShade': 'Atsisiuntimai ir Nuorodų rinkiklis šešėliuoja savo eilutes: kiekvienas paketas atsiskiria nuo kito, o jo failai švelniai kaitaliojasi. „{name}“ tai išjungia.',
   'whatsnew.change.oled': '{oled} po {theme} paverčia tamsią išvaizdą tikra juoda OLED ir AMOLED ekranams. Tai galioja visada, kai rodoma tamsi išvaizda, ir kai ji seka sistemą, o kiekvienas įrenginys įsimena savo pasirinkimą.',
   'whatsnew.change.systemAccent': 'Pavyzdys su burtų lazdele {accent} pradžioje naudoja tavo sistemos spalvą: Material You nuo Android 12, Windows, macOS arba Linux akcentinę spalvą darbalaukio programėlėje ir sistemos spalvą Firefox ir Safari naršyklėse. Kur sistema jos neturi, pavyzdžio nėra. Pasirinkimas galioja tik šiam įrenginiui, o kiti išlaiko egzemplioriaus spalvą.',
   'whatsnew.change.fileKindsMore': 'Nuorodos savo simboliu rodo daugiau failų rūšių: PDF, biuro dokumentus, skaičiuokles, pristatymus, e. knygas, grojaraščius, disko atvaizdus, programas, šriftus, 3D modelius, kontrolines sumas, torrentus, RAW nuotraukas ir dizaino failus.',

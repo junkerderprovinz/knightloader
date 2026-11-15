@@ -508,6 +508,9 @@ export const pl: Dict = {
   'settings.rowHeight.compact': 'Kompaktowa',
   'settings.rowHeight.medium': 'Średnia',
   'settings.rowHeight.comfortable': 'Przestronna',
+  'settings.listShade.title': 'Cieniuj listy',
+  'settings.listShade.hint':
+    'Lekko wyróżnia wiersz nagłówka każdego pakietu w Pobieraniach i Kolektorze linków, a jego pliki subtelnie przeplata paskami, więc od razu widzisz, które pliki należą do którego pakietu. Wybór obowiązuje tylko w tej przeglądarce.',
   'settings.labels': 'Etykiety',
   'settings.labelsHint': 'Ile z elementu sterującego jest pokazywane: jego słowa, symbol albo oba. Reaktywny pokazuje sam symbol i wysuwa słowa, gdy na niego wskażesz. Przyciski i filtry pokazują za to swoją nazwę w dymku. Symbol zwęża panel boczny i kolumnę ustawień, a w trybach Symbol i Reaktywny przycisk kurczy się do swojego symbolu.',
   'settings.labels.buttons': 'Przyciski',
@@ -3849,6 +3852,7 @@ export const pl: Dict = {
   'whatsnew.change.debridDeclined': 'Gdy usługa debrid przekazuje torrent dalej, jego wiersz podaje usługę i powód, na przykład prywatny tracker albo torrent, którego nie miała w pamięci podręcznej.',
   'whatsnew.change.desktopInstallers': 'Na karcie „{name}” w „{page}” przyciski Windows i Linux prowadzą do instalatorów.',
   'whatsnew.change.refusedReason': 'Pole, które odrzuca wartość, mówi dlaczego w wierszu pod nim, także w „{feeds}” i „{targets}”.',
+  'whatsnew.change.listShade': 'Pobierania i Kolektor linków cieniują swoje wiersze: każdy pakiet odcina się od następnego, a jego pliki subtelnie się przeplatają. „{name}” to wyłącza.',
   'whatsnew.change.oled': '{oled} pod {theme} zmienia ciemny wygląd na prawdziwą czerń dla ekranów OLED i AMOLED. Działa zawsze, gdy widać ciemny wygląd, także gdy podąża za systemem, a każde urządzenie pamięta własny wybór.',
   'whatsnew.change.systemAccent': 'Próbka z różdżką na początku {accent} przejmuje kolor systemu: Material You od Androida 12, kolor akcentu Windows, macOS lub Linuksa w aplikacji na komputer i kolor systemu w Firefoksie i Safari. Gdzie system go nie ma, próbki nie ma. Wybór dotyczy tylko tego urządzenia, a pozostałe zachowują kolor instancji.',
   'whatsnew.change.fileKindsMore': 'Linki pokazują swoim symbolem więcej rodzajów plików: PDF-y, dokumenty biurowe, arkusze kalkulacyjne, prezentacje, e-booki, playlisty, obrazy dysków, programy, czcionki, modele 3D, sumy kontrolne, torrenty, zdjęcia RAW i pliki projektowe.',

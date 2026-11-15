@@ -516,6 +516,9 @@ export const hu: Dict = {
   'settings.rowHeight.compact': 'Tömör',
   'settings.rowHeight.medium': 'Közepes',
   'settings.rowHeight.comfortable': 'Tágas',
+  'settings.listShade.title': 'Listák árnyékolása',
+  'settings.listShade.hint':
+    'A Letöltésekben és a Linkgyűjtőben kissé kiemeli minden csomag fejlécsorát, a fájljait pedig halványan csíkozza, így egy pillantással látod, melyik fájl melyik csomaghoz tartozik. A választás csak ebben a böngészőben érvényes.',
   'settings.labels': 'Feliratok',
   'settings.labelsHint': 'Mennyi látszik egy vezérlőből: a szavai, a szimbóluma vagy mindkettő. A Reaktív csak a szimbólumot mutatja, a szavak rámutatáskor csúsznak be. A gombok és a szűrők ehelyett buborékban mutatják a nevüket. A Szimbólum keskenyebbé teszi az oldalsávot és a beállítások oszlopát, a Szimbólum és a Reaktív módban pedig a gomb a szimbólumára zsugorodik.',
   'settings.labels.buttons': 'Gombok',
@@ -3865,6 +3868,7 @@ export const hu: Dict = {
   'whatsnew.change.debridDeclined': 'Ha egy debrid szolgáltatás továbbad egy torrentet, a sora megnevezi a szolgáltatást és az okot, például egy privát trackert vagy egy torrentet, amely nem volt a gyorsítótárában.',
   'whatsnew.change.desktopInstallers': 'A(z) „{page}” alatti „{name}” kártyán a Windows és a Linux gombja a telepítőkhöz vezet.',
   'whatsnew.change.refusedReason': 'Az a mező, amely nem fogad el egy értéket, egy alatta lévő sorban megmondja, miért, mostantól a(z) „{feeds}” és a(z) „{targets}” részen is.',
+  'whatsnew.change.listShade': 'A Letöltések és a Linkgyűjtő árnyékolja a sorait: minden csomag elválik a következőtől, a fájljai pedig halványan váltakoznak. A(z) „{name}” kikapcsolja.',
   'whatsnew.change.oled': 'A {theme} alatti {oled} valódi feketére állítja a sötét megjelenést OLED és AMOLED kijelzőkön. Mindig érvényes, amikor a sötét megjelenés látszik, akkor is, ha a rendszert követi, és minden eszköz a saját választását jegyzi meg.',
   'whatsnew.change.systemAccent': 'A {accent} elején álló varázspálcás színminta a rendszer színét veszi át: Android 12-től a Material You, az asztali alkalmazásban a Windows, a macOS vagy a Linux kiemelőszíne, Firefoxban és Safariban pedig a rendszerszín. Ahol a rendszernek nincs ilyen, a minta nem jelenik meg. A választás csak erre az eszközre érvényes, a többi megtartja a példány színét.',
   'whatsnew.change.fileKindsMore': 'A linkek több fájlfajtát mutatnak a jelükkel: PDF-eket, irodai dokumentumokat, táblázatokat, bemutatókat, e-könyveket, lejátszási listákat, lemezképeket, programokat, betűtípusokat, 3D modelleket, ellenőrzőösszegeket, torrenteket, RAW fotókat és tervezőfájlokat.',

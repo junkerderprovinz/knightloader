@@ -515,6 +515,9 @@ export const gl: Dict = {
   'settings.rowHeight.compact': 'Compacta',
   'settings.rowHeight.medium': 'Media',
   'settings.rowHeight.comfortable': 'Folgada',
+  'settings.listShade.title': 'Sombrear as listas',
+  'settings.listShade.hint':
+    'Destaca un pouco a cabeceira de cada paquete en Descargas e no colector de ligazóns e dálles aos seus ficheiros unha franxa suave, para que vexas dunha ollada que ficheiros son de cada paquete. A elección só vale neste navegador.',
   'settings.labels': 'Etiquetas',
   'settings.labelsHint': 'Canto se mostra dun control: as súas palabras, o seu símbolo ou ambos. Reactivo mostra só o símbolo e fai aparecer as palabras ao pasar o punteiro por riba. Os botóns e os filtros mostran o seu nome nunha burbulla. Símbolo estreita a barra lateral e a columna dos axustes, e con Símbolo e Reactivo un botón redúcese ao seu símbolo.',
   'settings.labels.buttons': 'Botóns',
@@ -3861,6 +3864,7 @@ export const gl: Dict = {
   'whatsnew.change.debridDeclined': 'Cando un servizo debrid pasa un torrent ao seguinte, a súa fila nomea o servizo e di por que, por exemplo un tracker privado ou un torrent que non tiña na caché.',
   'whatsnew.change.desktopInstallers': 'Na tarxeta «{name}» de «{page}», os botóns de Windows e Linux levan aos instaladores.',
   'whatsnew.change.refusedReason': 'Un campo que rexeita un valor di por que nunha liña debaixo, tamén en «{feeds}» e «{targets}».',
+  'whatsnew.change.listShade': 'Descargas e o colector de ligazóns sombrean as súas filas: cada paquete distínguese do seguinte e os seus ficheiros alternan con suavidade. «{name}» desactívao.',
   'whatsnew.change.oled': '{oled}, baixo {theme}, pon o aspecto escuro en negro puro para pantallas OLED e AMOLED. Vale sempre que se ve o aspecto escuro, tamén cando segue o sistema, e cada dispositivo lembra a súa escolla.',
   'whatsnew.change.systemAccent': 'A mostra coa variña ao comezo de {accent} colle a cor do teu sistema: Material You desde Android 12, a cor de acento de Windows, macOS ou Linux na aplicación de escritorio e a cor do sistema en Firefox e Safari. Onde o sistema non ten ningunha, a mostra non aparece. A escolla vale só para este dispositivo, e os demais manteñen a cor da instancia.',
   'whatsnew.change.fileKindsMore': 'As ligazóns amosan máis tipos de ficheiro co seu símbolo: PDF, documentos de oficina, follas de cálculo, presentacións, libros electrónicos, listas de reprodución, imaxes de disco, programas, fontes, modelos 3D, sumas de verificación, torrents, fotos RAW e ficheiros de deseño.',

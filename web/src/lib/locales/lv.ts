@@ -516,6 +516,9 @@ export const lv: Dict = {
   'settings.rowHeight.compact': 'Kompakts',
   'settings.rowHeight.medium': 'Vidējs',
   'settings.rowHeight.comfortable': 'Plašs',
+  'settings.listShade.title': 'Ēnot sarakstus',
+  'settings.listShade.hint':
+    'Lejupielādēs un Saišu savācējā nedaudz izceļ katras pakas virsrindu un tās failiem piešķir smalkas svītras, lai vienā skatienā redzētu, kuri faili pieder kurai pakai. Izvēle ir spēkā tikai šajā pārlūkā.',
   'settings.labels': 'Uzraksti',
   'settings.labelsHint': 'Cik daudz no vadīklas tiek rādīts: tās vārdi, simbols vai abi. Reaģējošs rāda tikai simbolu un ieslidina vārdus, uzvedot peli. Pogas un filtri tā vietā rāda savu nosaukumu burbulī. Simbols padara sānjoslu un iestatījumu kolonnu šaurāku, un režīmos Simbols un Reaģējošs poga saraujas līdz savam simbolam.',
   'settings.labels.buttons': 'Pogas',
@@ -3855,6 +3858,7 @@ export const lv: Dict = {
   'whatsnew.change.debridDeclined': 'Kad debrid pakalpojums nodod torrentu tālāk, tā rinda nosauc pakalpojumu un iemeslu, piemēram, privātu trackeri vai torrentu, kura pakalpojumam nebija kešatmiņā.',
   'whatsnew.change.desktopInstallers': 'Sadaļas „{page}“ kartītē „{name}“ Windows un Linux pogas ved uz instalētājiem.',
   'whatsnew.change.refusedReason': 'Lauks, kas noraida vērtību, rindā zem tā pasaka, kāpēc, arī sadaļās „{feeds}“ un „{targets}“.',
+  'whatsnew.change.listShade': 'Lejupielādes un Saišu savācējs ēno savas rindas: katra paka atdalās no nākamās, un tās faili smalki mijas. „{name}“ to izslēdz.',
   'whatsnew.change.oled': '{oled} zem {theme} pārslēdz tumšo izskatu uz īstu melnu OLED un AMOLED ekrāniem. Tas darbojas vienmēr, kad redzams tumšais izskats, arī tad, ja tas seko sistēmai, un katra ierīce atceras savu izvēli.',
   'whatsnew.change.systemAccent': 'Paraugs ar burvju nūjiņu {accent} sākumā izmanto tavas sistēmas krāsu: Material You no Android 12, Windows, macOS vai Linux akcenta krāsu darbvirsmas lietotnē un sistēmas krāsu Firefox un Safari. Kur sistēmai tādas nav, parauga nav. Izvēle attiecas tikai uz šo ierīci, un citas saglabā instances krāsu.',
   'whatsnew.change.fileKindsMore': 'Saites ar savu simbolu rāda vairāk failu veidu: PDF, biroja dokumentus, izklājlapas, prezentācijas, e-grāmatas, atskaņošanas sarakstus, disku attēlus, programmas, fontus, 3D modeļus, kontrolsummas, torrentus, RAW fotoattēlus un dizaina failus.',

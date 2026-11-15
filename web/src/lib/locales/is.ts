@@ -515,6 +515,9 @@ export const is: Dict = {
   'settings.rowHeight.compact': 'Þétt',
   'settings.rowHeight.medium': 'Miðlungs',
   'settings.rowHeight.comfortable': 'Rúmt',
+  'settings.listShade.title': 'Skyggja listana',
+  'settings.listShade.hint':
+    'Aðgreinir hauslínu hvers pakka örlítið í Niðurhali og Tenglasafnaranum og gefur skrám hans daufar rendur, svo þú sérð í sjónhendingu hvaða skrár tilheyra hvaða pakka. Valið gildir aðeins í þessum vafra.',
   'settings.labels': 'Merkingar',
   'settings.labelsHint': 'Hversu mikið af stýringu sést: orðin, táknið eða hvort tveggja. Gagnvirkt sýnir aðeins táknið og rennir orðunum inn þegar þú bendir á það. Hnappar og síur sýna nafnið sitt í staðinn í blöðru. Tákn gerir hliðarstikuna og stillingadálkinn mjórri, og í Tákn og Gagnvirkt skreppur hnappur saman í táknið sitt.',
   'settings.labels.buttons': 'Hnappar',
@@ -3860,6 +3863,7 @@ export const is: Dict = {
   'whatsnew.change.debridDeclined': 'Þegar debrid-þjónusta sendir torrent áfram nefnir línan þjónustuna og ástæðuna, til dæmis lokaðan tracker eða torrent sem þjónustan hafði ekki í skyndiminni.',
   'whatsnew.change.desktopInstallers': 'Á spjaldinu „{name}“ undir „{page}“ leiða hnapparnir fyrir Windows og Linux að uppsetningarforritunum.',
   'whatsnew.change.refusedReason': 'Reitur sem hafnar gildi segir hvers vegna í línu fyrir neðan, líka í „{feeds}“ og „{targets}“.',
+  'whatsnew.change.listShade': 'Niðurhal og Tenglasafnarinn skyggja línurnar sínar: hver pakki sker sig frá þeim næsta og skrár hans skiptast dauft á. „{name}“ slekkur á því.',
   'whatsnew.change.oled': '{oled} undir {theme} setur dökka útlitið á hreinan svartan lit fyrir OLED- og AMOLED-skjái. Það gildir alltaf þegar dökka útlitið sést, líka þegar það fylgir kerfinu, og hvert tæki man sitt eigið val.',
   'whatsnew.change.systemAccent': 'Litaprufan með töfrasprotanum fremst í {accent} notar lit kerfisins: Material You frá Android 12, áherslulit Windows, macOS eða Linux í skjáborðsforritinu og kerfislitinn í Firefox og Safari. Þar sem kerfið hefur engan er prufan ekki til staðar. Valið gildir aðeins um þetta tæki, og hin halda lit tilviksins.',
   'whatsnew.change.fileKindsMore': 'Tenglar sýna fleiri skráartegundir með tákni sínu: PDF-skjöl, skrifstofuskjöl, töflureikna, kynningar, rafbækur, spilunarlista, diskmyndir, forrit, letur, þrívíddarlíkön, gátsummur, torrent, RAW-myndir og hönnunarskrár.',

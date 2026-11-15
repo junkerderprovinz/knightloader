@@ -515,6 +515,9 @@ export const ko: Dict = {
   'settings.rowHeight.compact': '촘촘하게',
   'settings.rowHeight.medium': '보통',
   'settings.rowHeight.comfortable': '넉넉하게',
+  'settings.listShade.title': '목록에 음영 넣기',
+  'settings.listShade.hint':
+    '다운로드와 링크 수집기에서 각 패키지의 머리 행을 조금 돋보이게 하고 그 파일에 옅은 줄무늬를 넣어, 어떤 파일이 어느 패키지에 속하는지 한눈에 보이게 합니다. 이 선택은 이 브라우저에만 저장됩니다.',
   'settings.labels': '레이블',
   'settings.labelsHint': '컨트롤을 얼마나 표시할지 정합니다. 글자, 기호 또는 둘 다를 고를 수 있습니다. 반응형은 기호만 보여 주고, 포인터를 올리면 글자가 밀려 나옵니다. 버튼과 필터는 대신 이름을 말풍선에 보여 줍니다. 기호를 고르면 사이드바와 설정 열이 좁아지고, 기호와 반응형에서는 버튼이 기호 크기로 줄어듭니다.',
   'settings.labels.buttons': '버튼',
@@ -3852,6 +3855,7 @@ export const ko: Dict = {
   'whatsnew.change.debridDeclined': 'debrid 서비스가 토렌트를 다음으로 넘기면 그 행에 서비스 이름과 이유가 표시됩니다. 예를 들어 비공개 트래커이거나 서비스 캐시에 없던 토렌트입니다.',
   'whatsnew.change.desktopInstallers': '“{page}”의 “{name}” 카드에서 Windows와 Linux 버튼은 설치 프로그램으로 연결됩니다.',
   'whatsnew.change.refusedReason': '값을 받지 않는 칸은 아래 줄에 그 이유를 알려 줍니다. 이제 “{feeds}”와 “{targets}”에서도 마찬가지입니다.',
+  'whatsnew.change.listShade': '다운로드와 링크 수집기의 행에 음영이 들어갑니다. 패키지마다 다음 패키지와 구분되고, 그 파일은 옅게 번갈아 칠해집니다. “{name}”으로 끌 수 있습니다.',
   'whatsnew.change.oled': '{theme} 아래의 {oled}은 OLED와 AMOLED 화면을 위해 어두운 모양을 완전한 검정으로 바꿉니다. 시스템을 따를 때를 포함해 어두운 모양이 보일 때마다 적용되며, 기기마다 자신의 선택을 기억합니다.',
   'whatsnew.change.systemAccent': '{accent} 맨 앞의 마법 지팡이 견본은 시스템 색상을 따릅니다. Android 12 이상에서는 Material You, 데스크톱 앱에서는 Windows, macOS, Linux의 강조 색상, Firefox와 Safari에서는 시스템 색상입니다. 시스템에 색상이 없으면 이 견본은 나타나지 않습니다. 이 선택은 이 기기에만 적용되며, 다른 기기는 인스턴스의 색상을 유지합니다.',
   'whatsnew.change.fileKindsMore': '링크가 기호로 더 많은 종류의 파일을 보여 줍니다. PDF, 오피스 문서, 스프레드시트, 프레젠테이션, 전자책, 재생 목록, 디스크 이미지, 프로그램, 글꼴, 3D 모델, 체크섬, 토렌트, RAW 사진, 디자인 파일입니다.',

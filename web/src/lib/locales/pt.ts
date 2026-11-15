@@ -507,6 +507,9 @@ export const pt: Dict = {
   'settings.rowHeight.compact': 'Compacta',
   'settings.rowHeight.medium': 'Média',
   'settings.rowHeight.comfortable': 'Folgada',
+  'settings.listShade.title': 'Sombrear as listas',
+  'settings.listShade.hint':
+    'Destaca um pouco o cabeçalho de cada pacote em Transferências e no coletor de links e dá aos seus ficheiros uma risca suave, para veres num relance que ficheiros pertencem a que pacote. A escolha só vale neste navegador.',
   'settings.labels': 'Rótulos',
   'settings.labelsHint': 'Quanto de um controlo é mostrado: as suas palavras, o seu símbolo ou ambos. Reativo mostra só o símbolo e faz surgir as palavras ao passar o ponteiro. Os botões e os filtros mostram antes o nome num balão. Símbolo estreita a barra lateral e a coluna das definições, e em Símbolo e Reativo um botão reduz-se ao seu símbolo.',
   'settings.labels.buttons': 'Botões',
@@ -3854,6 +3857,7 @@ export const pt: Dict = {
   'whatsnew.change.debridDeclined': 'Quando um serviço debrid passa um torrent adiante, a sua linha nomeia o serviço e diz porquê, por exemplo um tracker privado ou um torrent que não tinha em cache.',
   'whatsnew.change.desktopInstallers': 'No cartão «{name}» em «{page}», os botões de Windows e Linux levam aos instaladores.',
   'whatsnew.change.refusedReason': 'Um campo que recusa um valor diz porquê numa linha por baixo, também em «{feeds}» e «{targets}».',
+  'whatsnew.change.listShade': 'Transferências e o coletor de links sombreiam as suas linhas: cada pacote destaca-se do seguinte e os seus ficheiros alternam com suavidade. «{name}» desativa-o.',
   'whatsnew.change.oled': '{oled}, em {theme}, leva o aspeto escuro ao preto puro para ecrãs OLED e AMOLED. Vale sempre que o aspeto escuro está à vista, também quando segue o sistema, e cada dispositivo guarda a sua escolha.',
   'whatsnew.change.systemAccent': 'A amostra com a varinha no início de {accent} usa a cor do teu sistema: Material You a partir do Android 12, a cor de destaque do Windows, macOS ou Linux na aplicação de computador e a cor do sistema no Firefox e no Safari. Onde o sistema não tem uma, a amostra não aparece. A escolha vale só para este dispositivo, e os outros mantêm a cor da instância.',
   'whatsnew.change.fileKindsMore': 'Os links mostram mais tipos de ficheiro com o seu símbolo: PDF, documentos de escritório, folhas de cálculo, apresentações, e-books, listas de reprodução, imagens de disco, programas, tipos de letra, modelos 3D, somas de verificação, torrents, fotos RAW e ficheiros de design.',

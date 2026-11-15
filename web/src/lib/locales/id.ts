@@ -515,6 +515,9 @@ export const id: Dict = {
   'settings.rowHeight.compact': 'Ringkas',
   'settings.rowHeight.medium': 'Sedang',
   'settings.rowHeight.comfortable': 'Lega',
+  'settings.listShade.title': 'Beri bayangan pada daftar',
+  'settings.listShade.hint':
+    'Membedakan sedikit baris judul setiap paket di Unduhan dan Pengumpul tautan dan memberi file-filenya belang samar, sehingga sekilas terlihat file mana milik paket mana. Pilihan ini hanya disimpan di browser ini.',
   'settings.labels': 'Label',
   'settings.labelsHint': 'Seberapa banyak kontrol yang ditampilkan: kata-katanya, simbolnya, atau keduanya. Reaktif hanya menampilkan simbol dan memunculkan kata-katanya saat kamu menunjuknya. Tombol dan filter menampilkan namanya di gelembung sebagai gantinya. Simbol membuat bilah sisi dan kolom pengaturan lebih sempit, dan pada Simbol dan Reaktif tombol menyusut menjadi simbolnya.',
   'settings.labels.buttons': 'Tombol',
@@ -3864,6 +3867,7 @@ export const id: Dict = {
   'whatsnew.change.debridDeclined': 'Saat layanan debrid meneruskan sebuah torrent, barisnya menyebut layanan itu dan alasannya, misalnya pelacak privat atau torrent yang tidak ada di cache layanan.',
   'whatsnew.change.desktopInstallers': 'Di kartu “{name}” pada “{page}”, tombol Windows dan Linux mengarah ke penginstal.',
   'whatsnew.change.refusedReason': 'Kolom yang menolak sebuah nilai menyebut alasannya di baris di bawahnya, kini juga di “{feeds}” dan “{targets}”.',
+  'whatsnew.change.listShade': 'Unduhan dan Pengumpul tautan memberi bayangan pada barisnya: setiap paket terpisah dari paket berikutnya, dan file-filenya berselang-seling samar. “{name}” mematikannya.',
   'whatsnew.change.oled': '{oled} di bawah {theme} membuat tampilan gelap menjadi hitam pekat untuk layar OLED dan AMOLED. Ini berlaku setiap kali tampilan gelap muncul, juga saat mengikuti sistem, dan setiap perangkat mengingat pilihannya sendiri.',
   'whatsnew.change.systemAccent': 'Contoh warna bertongkat sihir di awal {accent} mengikuti warna sistemmu: Material You di Android 12 ke atas, warna aksen Windows, macOS, atau Linux di aplikasi desktop, dan warna sistem di Firefox dan Safari. Jika sistem tidak punya warna, contoh itu tidak muncul. Pilihan ini hanya berlaku di perangkat ini, dan perangkat lain tetap memakai warna instance.',
   'whatsnew.change.fileKindsMore': 'Tautan menampilkan lebih banyak jenis file dengan simbolnya: PDF, dokumen kantor, lembar kerja, presentasi, e-book, daftar putar, image disk, program, font, model 3D, checksum, torrent, foto RAW, dan file desain.',
