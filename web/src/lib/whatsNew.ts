@@ -110,6 +110,19 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.accountSwitches',
         names: { name: 'accounts.enableTitle' },
       },
+      // Drawn in the window the Host head's filter opens.
+      {
+        id: 'collector-host-select',
+        to: ['/collector'],
+        text: 'whatsnew.change.hostSelect',
+        names: { name: 'columns.host' },
+      },
+      {
+        id: 'jd-default-rules',
+        text: 'whatsnew.change.jdDefaultRules',
+        names: { name: 'settings.rules.action.linkEnabled', switch: 'settings.subfolderByPackage' },
+      },
+      { id: 'package-name-guess', text: 'whatsnew.change.packageNameGuess' },
     ],
   },
   {
