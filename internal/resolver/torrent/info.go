@@ -43,6 +43,27 @@ func (in Info) TotalLength() int64 {
 	return n
 }
 
+// Offsets is where each file but the padding begins in the torrent's bytes,
+// in the torrent's order, which is where a client's pieces place it. A
+// torrent of BitTorrent v2 alone has no padding listed, yet starts each file
+// on a piece of its own.
+func (in Info) Offsets() []int64 {
+	out := make([]int64, 0, len(in.Files))
+	var at int64
+	for _, f := range in.Files {
+		if f.Pad {
+			at += f.Length
+			continue
+		}
+		out = append(out, at)
+		at += f.Length
+		if in.V2 && len(in.Pieces) == 0 && in.PieceLength > 0 {
+			at = (at + in.PieceLength - 1) / in.PieceLength * in.PieceLength
+		}
+	}
+	return out
+}
+
 // ReadInfo reads the info dictionary of the .torrent b, and returns it with
 // the dictionary as it stands in b, which the info hash is taken over.
 func ReadInfo(b []byte) (Info, []byte, error) {
