@@ -5,7 +5,7 @@ import {
   type TextareaHTMLAttributes,
 } from 'react';
 import { PathInput } from '../../components/FolderPicker';
-import { Button, HintBubble, Modal, RowLabel, TextArea } from '../../components/ui';
+import { Button, FieldError, HintBubble, Modal, NOTCH_BADGE, RowLabel, TextArea } from '../../components/ui';
 import { hueVars } from '../../lib/appearance';
 import { IconClose } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
@@ -64,9 +64,9 @@ export function SettingRow({
 }
 
 /**
- * SubHead is the small heading of a group inside a card, with its explanation
- * behind an (i) and room for an action at its end. A card has one notch badge,
- * so a second group in it is named by this instead.
+ * SubHead is the small heading of a group of rows that stands in a card
+ * without a sub-card of its own, with its explanation behind an (i) and room
+ * for an action at its end.
  */
 export function SubHead({ label, hint, right }: { label: string; hint?: Hint; right?: ReactNode }) {
   return (
@@ -82,9 +82,10 @@ export function SubHead({ label, hint, right }: { label: string; hint?: Hint; ri
 }
 
 /**
- * SubCard groups rows inside a card under a small heading: flat, one step up
- * the surface ramp, at the card radius (`.glim-subcard` in index.css). It sets
- * a group apart without hiding it behind a fold.
+ * SubCard groups rows inside a card: flat, one step up the surface ramp, at
+ * the card radius (`.glim-subcard` in index.css). Its name is a badge in the
+ * notch on its top edge, as a card's is, and what belongs to the whole group
+ * stands at the end of the first row.
  */
 export function SubCard({
   label,
@@ -95,14 +96,22 @@ export function SubCard({
 }: {
   label: string;
   hint?: Hint;
-  /** An action at the heading's end, such as the button that adds a row. */
+  /** What belongs to the whole group, such as the button that adds a row. */
   right?: ReactNode;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <section className={`glim-subcard flex flex-col px-4 pb-4 pt-3 ${className}`}>
-      <SubHead label={label} hint={hint} right={right} />
+    <section className={`glim-subcard glim-subcard--titled flex flex-col px-4 pb-4 pt-5 ${className}`}>
+      {/* A long name, such as a file name, wraps inside the badge rather than
+          running past the sub-card's end. */}
+      <h3 className="absolute top-0 z-10 flex max-w-[calc(100%-2rem)] -translate-y-1/2">
+        <span data-glim-label={label} className={`${NOTCH_BADGE} [overflow-wrap:anywhere]`}>
+          {label}
+          <HintBubble hint={hint} onColor />
+        </span>
+      </h3>
+      {right && <div className="flex flex-wrap items-center justify-end gap-3">{right}</div>}
       {children}
     </section>
   );
@@ -201,7 +210,7 @@ export function RowRefusal({
 }) {
   const text = useFieldError(field);
   if (!text || explained) return null;
-  return <p className={`pb-2.5 text-xs text-statusWarn ${className}`}>{text}</p>;
+  return <FieldError className={`pb-2.5 ${className}`}>{text}</FieldError>;
 }
 
 /**
@@ -249,11 +258,12 @@ export function NeutralSwitch({
       >
         {/* Without start-0 the knob starts from the button's centred text
             position and slides past the pill. Tailwind v4 animates the
-            `translate` property, not `transform`. */}
+            `translate` property, not `transform`. On the accent the knob takes
+            the fill's ink, as on Toggle. */}
         <span
-          className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
-            on ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
-          }`}
+          className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
+            on && hue !== undefined ? 'bg-accentContrast' : 'bg-carbon-background'
+          } ${on ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'}`}
         />
       </span>
     </button>

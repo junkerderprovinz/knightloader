@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
   Field,
+  FieldError,
   FieldGroup,
   IconBadge,
   NumberInput,
@@ -11,7 +12,7 @@ import {
 } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { IconTrash } from '../../../lib/icons';
-import { useT } from '../../../lib/i18n';
+import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   DEFAULT_TIMEOUT_SECONDS,
   MAX_ATTEMPTS,
@@ -39,7 +40,7 @@ import { TargetProbe } from './TargetProbe';
  * the window the row opens. The address, headers and body are committed on
  * blur, because the server refuses the whole settings document when one row is
  * invalid and the autosave would fire mid-typing. A refused value stays in its
- * box, marked, while the row shows what is stored.
+ * box, marked and with the reason under it, while the row shows what is stored.
  */
 export function TargetRow({
   row,
@@ -78,21 +79,29 @@ export function TargetRow({
   const { t } = useT();
 
   const [urlText, setUrlText] = useState(row.url);
-  const [urlBad, setUrlBad] = useState(false);
+  // The address last refused. An unsaved row keeps it as its url, so the mark
+  // has to survive the effect below that follows row.url.
+  const [urlRefused, setUrlRefused] = useState<string | null>(null);
+  const urlBad = urlRefused !== null;
   const [headersText, setHeadersText] = useState(() => formatHeaders(row.headers));
-  const [headersBad, setHeadersBad] = useState(false);
+  // Why the block was refused, since a line without a colon and an open
+  // placeholder need different fixes.
+  const [headersReason, setHeadersReason] = useState<TranslationKey | null>(null);
   const [bodyText, setBodyText] = useState(row.body ?? '');
   const [bodyBad, setBodyBad] = useState(false);
+  const urlReasonId = useId();
+  const headersReasonId = useId();
+  const bodyReasonId = useId();
 
   // The save answer replaces the draft, and the server may have trimmed a
   // value or dropped a header because the address moved, so follow it.
   useEffect(() => {
     setUrlText(row.url);
-    setUrlBad(false);
+    setUrlRefused((refused) => (refused === row.url ? refused : null));
   }, [row.url]);
   useEffect(() => {
     setHeadersText(formatHeaders(row.headers));
-    setHeadersBad(false);
+    setHeadersReason(null);
   }, [row.headers]);
   useEffect(() => {
     setBodyText(row.body ?? '');
@@ -101,18 +110,15 @@ export function TargetRow({
 
   const commitUrl = () => {
     const url = urlText.trim();
-    if (url === row.url) {
-      setUrlBad(false);
-      return;
-    }
+    if (url === row.url && url !== urlRefused) return;
     if (!usableAddress(url)) {
-      setUrlBad(true);
+      setUrlRefused(url);
       // An unsaved row keeps the half-typed address; a stored row's draft is
       // left alone so the save is not refused.
       if (!stored) onChange({ ...row, url });
       return;
     }
-    setUrlBad(false);
+    setUrlRefused(null);
     if (stored) onChange({ ...row, url });
     else if (onCommit) onCommit({ ...row, url });
   };
@@ -121,11 +127,15 @@ export function TargetRow({
     const parsed = parseHeaders(headersText);
     // A bad line refuses the whole block, since a dropped header is a token
     // that silently stops being sent.
-    if (parsed === null || Object.values(parsed).some((v) => !balancedTemplate(v))) {
-      setHeadersBad(true);
+    if (parsed === null) {
+      setHeadersReason('settings.eventTargets.headersInvalid');
       return;
     }
-    setHeadersBad(false);
+    if (Object.values(parsed).some((v) => !balancedTemplate(v))) {
+      setHeadersReason('settings.eventTargets.placeholderOpen');
+      return;
+    }
+    setHeadersReason(null);
     const next = { ...row };
     if (Object.keys(parsed).length === 0) delete next.headers;
     else next.headers = parsed;
@@ -225,12 +235,12 @@ export function TargetRow({
               spellCheck={false}
               value={urlText}
               placeholder={discord ? 'https://discord.com/api/webhooks/...' : 'https://ntfy.example/my-topic'}
-              // Marked, not corrected; the focus ring covers the halo while typing.
+              // Marked, not corrected: the text stays as typed.
               aria-invalid={urlBad}
-              className={urlBad ? 'shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}
+              aria-describedby={urlBad ? urlReasonId : undefined}
               onChange={(e) => {
                 setUrlText(e.target.value);
-                setUrlBad(false);
+                setUrlRefused(null);
               }}
               onBlur={commitUrl}
               onKeyDown={(e) => {
@@ -240,6 +250,7 @@ export function TargetRow({
                 }
               }}
             />
+            {urlBad && <FieldError id={urlReasonId}>{t('settings.eventTargets.urlInvalid')}</FieldError>}
           </SettingRow>
           {host !== '' && (
             <p className="text-xs text-carbon-textMuted">{t('settings.eventTargets.leavesTheBox', { host })}</p>
@@ -263,44 +274,42 @@ export function TargetRow({
           </SettingRow>
 
           <Field label={t('settings.eventTargets.headers')} hint={t('settings.eventTargets.headersHint')}>
-            {/* The halo sits on a wrapper because TextArea's className prop
-                would replace its own styling. */}
-            <div className={headersBad ? 'rounded-[var(--radius-control)] shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}>
-              <TextArea
-                dir="ltr"
-                spellCheck={false}
-                rows={3}
-                value={headersText}
-                placeholder={discord ? '' : 'Authorization: Bearer ...\nContent-Type: text/plain'}
-                aria-invalid={headersBad}
-                onChange={(e) => {
-                  setHeadersText(e.target.value);
-                  setHeadersBad(false);
-                }}
-                onBlur={commitHeaders}
-              />
-            </div>
+            <TextArea
+              dir="ltr"
+              spellCheck={false}
+              rows={3}
+              value={headersText}
+              placeholder={discord ? '' : 'Authorization: Bearer ...\nContent-Type: text/plain'}
+              aria-invalid={headersReason !== null}
+              aria-describedby={headersReason ? headersReasonId : undefined}
+              onChange={(e) => {
+                setHeadersText(e.target.value);
+                setHeadersReason(null);
+              }}
+              onBlur={commitHeaders}
+            />
+            {headersReason && <FieldError id={headersReasonId}>{t(headersReason)}</FieldError>}
           </Field>
 
           {/* GET sends no body. */}
           {method !== 'GET' && (
             <Field label={t('settings.eventTargets.body')} hint={t('settings.eventTargets.bodyHint')}>
-              <div className={bodyBad ? 'rounded-[var(--radius-control)] shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}>
-                <TextArea
-                  dir="ltr"
-                  spellCheck={false}
-                  rows={4}
-                  value={bodyText}
-                  // Left empty, the body is what gives a Discord row its ready-made message.
-                  placeholder={discord ? '' : '%%task.name%%'}
-                  aria-invalid={bodyBad}
-                  onChange={(e) => {
-                    setBodyText(e.target.value);
-                    setBodyBad(false);
-                  }}
-                  onBlur={commitBody}
-                />
-              </div>
+              <TextArea
+                dir="ltr"
+                spellCheck={false}
+                rows={4}
+                value={bodyText}
+                // Left empty, the body is what gives a Discord row its ready-made message.
+                placeholder={discord ? '' : '%%task.name%%'}
+                aria-invalid={bodyBad}
+                aria-describedby={bodyBad ? bodyReasonId : undefined}
+                onChange={(e) => {
+                  setBodyText(e.target.value);
+                  setBodyBad(false);
+                }}
+                onBlur={commitBody}
+              />
+              {bodyBad && <FieldError id={bodyReasonId}>{t('settings.eventTargets.placeholderOpen')}</FieldError>}
             </Field>
           )}
 

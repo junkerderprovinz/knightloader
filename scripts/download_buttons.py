@@ -13,9 +13,8 @@ BUTTONS = {
     "windows": RELEASE + "knightloader-windows-amd64-installer.exe",
     "windows-arm": RELEASE + "knightloader-windows-arm64-installer.exe",
     "macos": RELEASE + "knightloader-macos-universal.zip",
-    # The release carries no Linux installer, so the zipped program is the Linux download.
-    "linux": RELEASE + "knightloader-linux-amd64.zip",
-    "linux-arm": RELEASE + "knightloader-linux-arm64.zip",
+    "linux": RELEASE + "knightloader-linux-amd64-installer",
+    "linux-arm": RELEASE + "knightloader-linux-arm64-installer",
     "flatpak": RELEASE + "knightloader-linux-amd64.flatpak",
     "flatpak-arm": RELEASE + "knightloader-linux-arm64.flatpak",
     "unraid": "https://unraid.net/community/apps?q=knightloader",

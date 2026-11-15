@@ -326,6 +326,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.shape', hint: 'settings.shapeHint' },
         { key: 'settings.motion.title', hint: 'settings.motion.hint' },
         { key: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint' },
+        { key: 'settings.listShade.title', hint: 'settings.listShade.hint' },
       ],
       // The choice the theme's hint is filled with.
       body: ['theme.system'],

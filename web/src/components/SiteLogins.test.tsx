@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { GroupApp, SiteLogin, Task } from '../lib/api';
 import { I18nProvider } from '../lib/i18n';
@@ -61,6 +61,9 @@ const button = (text: string) =>
 
 const row = (label: string) =>
   [...host.querySelectorAll<HTMLTableRowElement>('tbody tr')].find((tr) => tr.textContent?.includes(label));
+
+/** What the (i) beside a row's state says. */
+const hint = (label: string) => row(label)?.querySelector('[role="note"]')?.getAttribute('aria-label') ?? '';
 
 /** The picker's tile for a brand. */
 const tile = (name: string) =>
@@ -134,37 +137,39 @@ async function renderCard() {
 it('lists a signed-in site among the hoster accounts, saying who it signs in as and where from', async () => {
   await renderCard();
   expect(row('Patreon')?.textContent).toContain('Signed in as Jane Doe');
-  expect(row('Patreon')?.textContent).toContain('from Firefox (default-release)');
-  expect(row('Patreon')?.querySelector('.text-statusWarn')).toBeNull();
+  expect(hint('Patreon')).toContain('from Firefox (default-release)');
+  expect(row('Patreon')?.textContent).not.toContain('from Firefox');
+  expect(row('Patreon')?.querySelector('.text-statusOk')).not.toBeNull();
 });
 
 it('says when the browser extension passed a session on', async () => {
   sites = [{ ...youtube, state: 'signedIn' }];
   await renderCard();
-  expect(row('YouTube')?.textContent).toContain('from the browser extension');
+  expect(hint('YouTube')).toContain('from the browser extension');
 });
 
-it('warns on the row of a site whose sign-in ran out and says how to sign in again', async () => {
+it('marks the row of a site whose sign-in ran out in red and says how to sign in again', async () => {
   await renderCard();
   const expired = row('YouTube')!;
   expect(expired.textContent).toContain('Sign-in ran out');
-  expect(expired.textContent).toContain('KnightLoader picks it up by itself.');
-  expect(expired.querySelector('.text-statusWarn')).not.toBeNull();
+  expect(hint('YouTube')).toContain('KnightLoader picks it up by itself.');
+  expect(expired.querySelector('.text-statusFail')).not.toBeNull();
 });
 
 it('lists a site nobody signed in to with the one step that signs it in', async () => {
   sites = [signedOut(patreon)];
   await renderCard();
   expect(row('Patreon')?.textContent).toContain('Not signed in');
-  expect(row('Patreon')?.textContent).toContain('Sign in to Patreon in your browser. KnightLoader picks it up by itself.');
+  expect(hint('Patreon')).toContain('Sign in to Patreon in your browser. KnightLoader picks it up by itself.');
+  expect(row('Patreon')?.textContent).not.toContain('Sign in to Patreon');
 });
 
 it('points at the browser extension on an instance that reads no browser while none of the group has the extension', async () => {
   sites = [{ ...signedOut(patreon), readsBrowsers: false }];
   apps = [{ ...browserExtension, deployment: 'mobile' }];
   await renderCard();
-  expect(row('Patreon')?.textContent).toContain('KnightLoader extension');
-  expect(row('Patreon')?.textContent).not.toContain('picks it up by itself');
+  expect(hint('Patreon')).toContain('KnightLoader extension');
+  expect(hint('Patreon')).not.toContain('picks it up by itself');
 });
 
 it('names the browsers KnightLoader cannot read once, under the list', async () => {
@@ -222,11 +227,62 @@ it('signs a session read from the browser out from its window', async () => {
   expect(calls.some((c) => c.url === '/api/sitelogins/patreon/remove' && c.method === 'POST')).toBe(true);
 });
 
+describe("a site's window", () => {
+  const dialog = () => document.querySelector('[role="dialog"]')!;
+  const foot = () => [...dialog().querySelectorAll<HTMLButtonElement>('.glim-modal-foot button')];
+  const primary = () => foot().filter((b) => b.className.split(' ').includes('bg-accent'));
+
+  it('ends its footer on the one primary action while nobody is signed in', async () => {
+    sites = [signedOut(patreon)];
+    await renderCard();
+    await act(async () => row('Patreon')!.click());
+    expect(primary().map((b) => b.textContent)).toEqual(['Open Patreon']);
+    expect(foot()[foot().length - 1]?.textContent).toBe('Open Patreon');
+  });
+
+  it('offers signing out alone once a sign-in is there, with nothing left to press ahead', async () => {
+    await renderCard();
+    await act(async () => row('Patreon')!.click());
+    const words = foot().map((b) => b.textContent);
+    expect(words).toContain('Sign out');
+    expect(words).not.toContain('Open Patreon');
+    expect(words).not.toContain('Sign in here');
+    expect(primary()).toEqual([]);
+  });
+
+  it('offers a new sign-in alone for a session that ran out, which its row menu forgets', async () => {
+    sites = [youtube];
+    await renderCard();
+    await act(async () => row('YouTube')!.click());
+    expect(foot().map((b) => b.textContent)).not.toContain('Sign out');
+    expect(primary().map((b) => b.textContent)).toEqual(['Open YouTube']);
+  });
+
+  it("brings a removed site back with the browser's sign-in, with no sign-in browser beside it", async () => {
+    sites = [{ ...signedOut(patreon), disconnected: true }];
+    await renderCard();
+    await act(async () => row('Patreon')!.click());
+    const words = foot().map((b) => b.textContent);
+    expect(words).toContain("Use the browser's sign-in again");
+    expect(words).not.toContain('Sign in here');
+    expect(words[words.length - 1]).toBe('Open Patreon');
+  });
+
+  it('says how the sign-in stands and what to do at the top, and keeps every button in the footer', async () => {
+    sites = [signedOut(patreon)];
+    await renderCard();
+    await act(async () => row('Patreon')!.click());
+    expect(dialog().textContent).toContain('Not signed in');
+    expect(dialog().textContent).toContain('Sign in to Patreon in your browser.');
+    expect([...dialog().querySelectorAll('button')].filter((b) => !b.closest('.glim-modal-foot'))).toEqual([]);
+  });
+});
+
 it('says a removed site leaves the browser signed in, and uses its sign-in again on request', async () => {
   sites = [{ ...signedOut(patreon), disconnected: true }];
   await renderCard();
-  expect(row('Patreon')?.textContent).toContain('Removed from KnightLoader. Your browser stays signed in.');
-  expect(row('Patreon')?.textContent).not.toContain('picks it up by itself');
+  expect(hint('Patreon')).toContain('Removed from KnightLoader. Your browser stays signed in.');
+  expect(hint('Patreon')).not.toContain('picks it up by itself');
   await act(async () => row('Patreon')!.click());
   await act(async () => button("Use the browser's sign-in again")!.click());
   expect(calls.some((c) => c.url === '/api/sitelogins/patreon/reconnect' && c.method === 'POST')).toBe(true);
@@ -245,14 +301,14 @@ it('signs a removed site in through KnightLoader before it opens the site', asyn
 it('names the browser whose session the site turned down', async () => {
   sites = [{ ...patreon, state: 'expired', account: undefined }];
   await renderCard();
-  expect(row('Patreon')?.textContent).toContain('Patreon turned down the sign-in from Firefox (default-release)');
-  expect(row('Patreon')?.textContent).toContain('KnightLoader picks it up by itself.');
+  expect(hint('Patreon')).toContain('Patreon turned down the sign-in from Firefox (default-release)');
+  expect(hint('Patreon')).toContain('KnightLoader picks it up by itself.');
 });
 
 it("says when KnightLoader's own sign-in browser passed a session on", async () => {
   sites = [{ ...youtube, state: 'signedIn', source: 'kl-browser' }];
   await renderCard();
-  expect(row('YouTube')?.textContent).toContain("from KnightLoader's sign-in browser");
+  expect(hint('YouTube')).toContain("from KnightLoader's sign-in browser");
 });
 
 const failed: Task = {

@@ -9,7 +9,7 @@ import { useLabelMode } from '../lib/labelModes';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { followExternal } from '../lib/external';
 import { useT } from '../lib/i18n';
-import { IconExternalLink, IconEye, IconEyeOff, IconRetry } from '../lib/icons';
+import { IconExternalLink, IconEye, IconEyeOff, IconFault, IconRetry } from '../lib/icons';
 import { openColorPickerPopover } from '../lib/colorPicker';
 import { useConfirm, useShake } from '../lib/useShake';
 import { isOnTop, openWindow } from '../lib/windowStack';
@@ -625,7 +625,7 @@ const FIELD_SHELL_ROW_TEXT = 'flex flex-wrap items-baseline gap-3';
  */
 type Hint = string | string[];
 
-export function HintBubble({ hint }: { hint?: Hint }) {
+export function HintBubble({ hint, onColor = false }: { hint?: Hint; onColor?: boolean }) {
   const paragraphs = (typeof hint === 'string' ? [hint] : (hint ?? [])).filter(Boolean);
   if (paragraphs.length === 0) return null;
   return (
@@ -642,6 +642,7 @@ export function HintBubble({ hint }: { hint?: Hint }) {
         )
       }
       label={paragraphs.join(' ')}
+      onColor={onColor}
     />
   );
 }
@@ -1605,12 +1606,12 @@ export function Toggle({
           {/* start-0 is load-bearing: without it the knob starts from its static
               position, which a button's inherited text-align centres, and slides
               out past the pill. Tailwind v4 animates `translate` here, not
-              `transform`. `bg-carbon-background` rather than a fixed white makes
-              the knob the page's own ground on the accent track, so it reads dark
-              in dark mode and light in light mode. */}
+              `transform`. Off, the knob is the page's own ground. On the accent
+              it takes the fill's ink, or the light ramp's pale ground would
+              vanish into a yellow or a green. */}
           <span
-            className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
-              checked ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
+            className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
+              checked ? 'bg-accentContrast translate-x-4 rtl:-translate-x-4' : 'bg-carbon-background translate-x-0.5 rtl:-translate-x-0.5'
             }`}
           />
         </span>
@@ -1923,6 +1924,36 @@ export function ErrorCard({
   );
 }
 
+/**
+ * FieldError is the line under a field whose value cannot be taken, with the
+ * fault mark. It is no toast and nothing shakes, since no action failed. The
+ * field names the line in aria-describedby and carries aria-invalid, which
+ * gives it the fault wash.
+ */
+export function FieldError({
+  id,
+  role,
+  className = '',
+  children,
+}: {
+  id?: string;
+  /** "alert" for a refusal that answers a press, which the field's description would not read out. */
+  role?: 'alert';
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <span id={id} role={role} dir="auto" className={`flex items-center gap-1.5 text-xs text-statusFail ${className}`}>
+      <IconFault width={14} height={14} />
+      <span className="min-w-0">{children}</span>
+    </span>
+  );
+}
+
+/** The look of a badge in the notch on a card's or a sub-card's top edge. */
+export const NOTCH_BADGE = `inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-accent px-3 py-[3.5px]
+  text-[12px] font-medium uppercase leading-[15px] tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`;
+
 // SectionTitle labels a group of content as a notch badge: a small filled pill
 // sitting half over the card's own top edge. It needs its Card ancestor to be
 // positioned (`.glim-card` is) so the badge anchors to the card's box.
@@ -1973,8 +2004,7 @@ export function SectionTitle({
   const hued = hue !== undefined ? 'glim-hue ' : '';
   const hueStyle = hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined;
   const grouped = beside !== undefined && beside.length > 0;
-  const look = `glim-section-badge inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-accent px-3 py-[3.5px]
-    text-[12px] font-medium uppercase leading-[15px] tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`;
+  const look = `glim-section-badge ${NOTCH_BADGE}`;
   // The position lives on the Card (GlimStone 1.4.0), so a badge carries only
   // its marker class and inherits --item-hue from there. `.glim-hue` is not
   // added unconditionally: a badge wearing the class over a card with no

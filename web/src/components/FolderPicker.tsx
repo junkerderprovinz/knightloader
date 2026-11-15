@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom';
 import { ApiError, json } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { IconApply, IconBack, IconClose, IconFolder, IconFolderAdd } from '../lib/icons';
-import { Button, InfoBubble, Modal, TextInput } from './ui';
+import { Button, FieldError, InfoBubble, Modal, TextInput } from './ui';
 import { Tabs } from './Tabs';
 
 interface FolderEntry {
@@ -155,8 +155,6 @@ export function PathInput({
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           autoFocus={autoFocus}
-          // Marked, not corrected: the text stays as typed.
-          className={error ? 'shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}
           dir="ltr"
           value={value}
           placeholder={placeholder}
@@ -191,11 +189,7 @@ export function PathInput({
             document.body,
           )}
       </span>
-      {error && (
-        <span id={errorId} dir="auto" className="text-xs text-statusWarn">
-          {error}
-        </span>
-      )}
+      {error && <FieldError id={errorId}>{error}</FieldError>}
     </span>
   );
 }
@@ -412,7 +406,7 @@ export function FolderPicker({
             spellCheck={false}
             aria-label={t('folders.newName')}
             placeholder={t('folders.newName')}
-            aria-invalid={nameError !== ''}
+            aria-invalid={nameError ? true : undefined}
             aria-describedby={nameError ? errorId : undefined}
             onChange={(e) => {
               setName(e.target.value);
@@ -461,10 +455,9 @@ export function FolderPicker({
         </div>
       )}
       {nameError && (
-        // Auto, because the server's own sentence is English in every locale.
-        <p id={errorId} role="alert" dir="auto" className="text-xs text-statusFail">
+        <FieldError id={errorId} role="alert">
           {nameError}
-        </p>
+        </FieldError>
       )}
 
       {error !== null && (

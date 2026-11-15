@@ -61,6 +61,34 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Your own cross-seed daemon can take each finished torrent instead, with the
   path of its files, so it does not need to reach KnightLoader's qBittorrent.
   What the twins send counts in the overview's torrent totals.
+
+### Changed
+
+- **Every torrent runs in that qBittorrent,** so private trackers that admit
+  only listed clients take KnightLoader's torrents. KnightLoader still picks
+  the folder and the files, keeps banned trackers out and stops seeding at
+  your targets, while qBittorrent's own limits and queue stay off. Torrents you
+  already have move over on the first start and carry on with the bytes they
+  have. A finished one is checked piece by piece first, so qBittorrent seeds
+  it without reading it again. Changing the port, DHT or PEX applies at once.
+  When qBittorrent starts, it runs nothing of its own: KnightLoader starts the
+  torrents its tasks want and takes out those whose task is gone, keeping
+  their files.
+  Torrents through the built-in VPN go through a proxy inside KnightLoader,
+  and only through it: qBittorrent is tied to loopback, with the DHT, uTP,
+  local peer discovery and port mapping off, and torrents wait while the
+  tunnel is down. Other peers cannot connect to you that way, so a forwarded
+  port does not reach torrents. On Windows the interface you pick under
+  Settings, Torrents reaches qBittorrent by the name qBittorrent knows it by.
+
+### Removed
+
+- **The built-in torrent engine is gone.** qBittorrent does its work.
+
+## [2.8.4] - 2026-11-14
+
+### Added
+
 - **Sign in to Patreon and YouTube right in KnightLoader.** The site's window
   has "Sign in here": the login page opens in a browser KnightLoader runs
   itself and shows live in the window, and you click and type in it as
@@ -105,22 +133,25 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
-- **Every torrent runs in that qBittorrent,** so private trackers that admit
-  only listed clients take KnightLoader's torrents. KnightLoader still picks
-  the folder and the files, keeps banned trackers out and stops seeding at
-  your targets, while qBittorrent's own limits and queue stay off. Torrents you
-  already have move over on the first start and carry on with the bytes they
-  have. A finished one is checked piece by piece first, so qBittorrent seeds
-  it without reading it again. Changing the port, DHT or PEX applies at once.
-  When qBittorrent starts, it runs nothing of its own: KnightLoader starts the
-  torrents its tasks want and takes out those whose task is gone, keeping
-  their files.
-  Torrents through the built-in VPN go through a proxy inside KnightLoader,
-  and only through it: qBittorrent is tied to loopback, with the DHT, uTP,
-  local peer discovery and port mapping off, and torrents wait while the
-  tunnel is down. Other peers cannot connect to you that way, so a forwarded
-  port does not reach torrents. On Windows the interface you pick under
-  Settings, Torrents reaches qBittorrent by the name qBittorrent knows it by.
+- **KnightLoader follows GlimStone 4.4.1,** and the Version card names it. A
+  switch that is on draws its knob in the accent's ink, so it stays easy to
+  see in the light theme. A group inside a card carries its name as a badge
+  on its top edge, like the card itself.
+- **A value a field cannot take is marked the same way in the web interface
+  and the extension's settings.** The field turns red, and a line under it
+  says why.
+- **Screen readers read out the notifications.** In the web interface a
+  failure is read at once and anything else at the next pause. A
+  notification with a button stays until you close it, unless its offer runs
+  out first. The extension's status line and the phone app's captcha banner
+  are read out too.
+- **While a window is open, the page behind it is out of reach** for the
+  pointer and for a screen reader, in the web interface and in the
+  extension's settings.
+- **The Settings page offers the installers.** Under Settings, Apps, the
+  Windows and Linux buttons lead to the installers instead of the zipped
+  program, like the buttons in the README. macOS keeps its zip, because there
+  is no macOS installer.
 - **YouTube downloads start without your session.** Google flags accounts
   that download a lot while signed in, so KnightLoader uses your YouTube
   session only for a video that asks for it (members only, age-restricted,
@@ -137,10 +168,24 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Linux it lands in the data folder during the install, checked against
   yt-dlp's own checksums, so the copy KnightLoader keeps current is there from
   the first start. The macOS app fetches it when it first starts.
+- **Downloads and the link collector shade their rows,** so you can see at a
+  glance which files belong to which package, also in the dark themes and on
+  a wide screen. The files alternate faintly, like a quiet zebra, and a
+  package's header stands a hair above them. "Shade the lists" under
+  Settings, Appearance turns it off in this browser
+  ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
+- **You enable and disable accounts in the gear menu on their card.** The
+  rows have no switch any more. "Enable or disable accounts" lists the card's
+  accounts with a switch each, and "Enable all" and "Disable all" do it at
+  once. An account's own menu has it too, and a disabled account says so in
+  its row.
+- **The Patreon and YouTube rows stay on one line.** Where the sign-in came
+  from, or how to sign in, sits in the (i) beside the state. The site's
+  window keeps its buttons in the footer, with Close first and, until you are
+  signed in, opening the site last as the one step forward.
 
 ### Removed
 
-- **The built-in torrent engine is gone.** qBittorrent does its work.
 - **Pasting a cookies.txt is gone,** on the accounts page and for yt-dlp,
   together with the switch that let yt-dlp use pasted files. Sessions come
   from your browser or the extension. Files pasted before are deleted at the
@@ -181,6 +226,22 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   still fetches a torrent onto its own servers, the qBittorrent connection
   reports how far it has got and how fast, instead of a download stuck at
   nothing.
+- **A paid Patreon post says that it needs a sign-in.** It fails at once
+  instead of being retried, and the download row offers signing in to
+  Patreon.
+- **The JDownloader import explains a folder the container cannot see.** The
+  folder picker says when a path is not mapped into the container and points
+  to the Unraid shares path in the template
+  ([#174](https://github.com/junkerderprovinz/knightloader/issues/174)).
+- **The Linux installer comes with the release.** Every release built it, but
+  the upload skipped it, so the Linux buttons offered the zipped program
+  instead. They lead to the installer now, which puts KnightLoader in your
+  application menu and asks for no password. Make it executable before the
+  first start (`chmod +x knightloader-linux-amd64-installer`).
+- **A new target keeps the mark on an address it refuses.** The red mark
+  vanished as soon as it appeared, so nothing showed what was wrong.
+- **Stopping KnightLoader waits for a group leave to finish,** so a stop
+  right then no longer leaves the group half left.
 
 ## [2.8.3] - 2026-11-13
 

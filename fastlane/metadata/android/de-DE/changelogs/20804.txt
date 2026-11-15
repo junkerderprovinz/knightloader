@@ -1,0 +1,1 @@
+Screenreader lesen das Captcha-Banner vor. Der Rest dieses Releases gilt dem Server und der Desktop-App: Anmeldung bei Patreon und YouTube über deinen Browser, Zwei-Faktor-Codes für Rapidgator und ein Schalter, der alle Komponenten aktuell hält.

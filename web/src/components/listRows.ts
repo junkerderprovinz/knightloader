@@ -59,6 +59,27 @@ export type ListRow =
       setsize: number;
     };
 
+/** The ground a row takes in the shaded list (lib/listShade.ts). */
+export type RowBand = 'head' | 'odd' | 'even';
+
+/**
+ * rowBands gives each row its shade: a package header heads its band, and the
+ * rows under it alternate by their place among the drawn rows of that
+ * package. Counted off the drawn rows rather than off posinset, so a torrent's
+ * open files and a filter that hides a link never leave two neighbours alike.
+ */
+export function rowBands(rows: ListRow[]): RowBand[] {
+  let at = 0;
+  return rows.map((row) => {
+    if (row.kind === 'package') {
+      at = 0;
+      return 'head';
+    }
+    at++;
+    return at % 2 === 1 ? 'odd' : 'even';
+  });
+}
+
 // Below this many rows the table is drawn whole. Measured on a production
 // build: 500 rows redraw in 26ms, while 1000 rows cost 62ms and 5000 cost
 // 357ms per websocket tick, almost all of it React re-rendering rows.

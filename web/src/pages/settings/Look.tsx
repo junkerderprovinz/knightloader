@@ -63,6 +63,7 @@ import { isDesktop } from '../../lib/desktop';
 import { LABEL_AXES, LABEL_MODES, LABEL_SETTING, asLabelMode, setLabelMode, useLabelMode, type LabelAxis, type LabelMode } from '../../lib/labelModes';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { ROW_HEIGHTS, setRowHeight, useRowHeight, type RowHeight } from '../../lib/rowHeight';
+import { setListShade, useListShade } from '../../lib/listShade';
 import { useResource } from '../../lib/useResource';
 import {
   ACCENTS,
@@ -470,6 +471,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   // Motion intensity is per-browser too, and so is the list's row height.
   const [motion, setMotion] = useState<Motion>(readCachedMotionIntensity);
   const rowHeight = useRowHeight();
+  const listShade = useListShade();
 
   // The hidden fourth level (lib/appearance.ts's stormTap). Finding it is state
   // of this screen and never stored, so leaving with another level selected
@@ -766,6 +768,14 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             })}
           />
         </SettingRow>
+        <div data-new="list-shade">
+          <ToggleRow
+            label={t('settings.listShade.title')}
+            hint={t('settings.listShade.hint')}
+            checked={listShade}
+            onChange={setListShade}
+          />
+        </div>
       </Card>
       )}
 

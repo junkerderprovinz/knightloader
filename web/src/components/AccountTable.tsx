@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
 import { fmtDate, fmtGB } from '../lib/format';
-import { IconBadge, Toggle, useTooltip } from './ui';
+import { IconBadge, useTooltip } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { HosterIcon } from './HosterIcon';
 import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu, type MenuGroup } from './ContextMenu';
@@ -37,7 +37,11 @@ export interface AccountRow {
   /** RFC3339, or empty for an account with nothing to expire. */
   expiry?: string;
   traffic?: AccountTraffic;
-  /** Absent for an account that is in use whenever it is stored, such as a site's sign-in. */
+  /**
+   * Absent for an account that is in use whenever it is stored, such as a
+   * site's sign-in. The card's gear (AccountSwitches) and the row's menu
+   * switch it; the row only says when it is disabled.
+   */
   onToggle?: (enabled: boolean) => void;
   /** Extra entries for this row's own menu, on top of Edit and Remove. */
   menu?: MenuGroup[];
@@ -130,6 +134,17 @@ function UnknownTraffic() {
   );
 }
 
+/** DisabledStatus stands in for the status of an account that is switched off. */
+function DisabledStatus() {
+  const { t } = useT();
+  return (
+    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-carbon-textMuted">
+      <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-carbon-textMuted" />
+      {t('accounts.disabled')}
+    </span>
+  );
+}
+
 /** AccountTable draws one card's accounts. */
 export function AccountTable({ rows, label }: { rows: AccountRow[]; label: string }) {
   const { t } = useT();
@@ -146,8 +161,7 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
       <table className="w-full min-w-[46rem] border-collapse text-sm" aria-label={label}>
         <thead>
           <tr className="text-start text-xs text-carbon-textMuted">
-            <th className="w-12 px-4 py-3 text-start font-medium">{t('accounts.col.enabled')}</th>
-            <th className="px-2 py-3 text-start font-medium">{t('accounts.col.service')}</th>
+            <th className="px-4 py-3 text-start font-medium">{t('accounts.col.service')}</th>
             <th className="px-2 py-3 text-start font-medium">{t('accounts.col.status')}</th>
             <th className="px-2 py-3 text-start font-medium">{t('accounts.col.tier')}</th>
             <th className="px-2 py-3 text-start font-medium">{t('accounts.col.expiry')}</th>
@@ -158,64 +172,62 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
           </tr>
         </thead>
         <tbody className="divide-y divide-carbon-border/40">
-          {rows.map((row, i) => (
-            // The whole row opens its account, and a right click its menu
-            // (GlimStone, "Lists"). A press on one of the row's own controls
-            // is that control's alone.
-            <tr
-              key={row.key}
-              className="glim-row cursor-pointer transition-colors hover:bg-carbon-surface3"
-              onClick={(e) => {
-                if (!(e.target as Element).closest('button, a, [role="switch"], [role="note"]')) row.onEdit();
-              }}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                setMenuKey(row.key);
-                menu.openAt(anchorFromEvent(e));
-              }}
-            >
-              <td className="px-4 py-3">
-                {row.onToggle && (
-                  <Toggle
-                    checked={row.enabled}
-                    onChange={row.onToggle}
-                    label={t('accounts.enableAccount', { account: row.label })}
-                    hideLabel
-                  />
-                )}
-              </td>
-              <td className="px-2 py-3 font-medium text-carbon-text">
-                <span className="inline-flex items-center gap-2">
-                  <HosterIcon host={row.iconHost} />
-                  {row.label}
-                </span>
-              </td>
-              <td className="px-2 py-3">{row.status}</td>
-              <td className="px-2 py-3">
-                <TierCell tier={row.tier} />
-              </td>
-              <td className="glim-num px-2 py-3 text-carbon-textSub">{fmtDate(row.expiry) || '-'}</td>
-              <td className="px-2 py-3 text-carbon-textSub">
-                <TrafficCell traffic={row.traffic} />
-              </td>
-              <td className="px-2 py-3 text-end">
-                <span className="glim-row-actions inline-flex">
-                  <IconBadge
-                    hue={i}
-                    icon={<IconGear width={16} height={16} />}
-                    title={t('accounts.rowActions')}
-                    aria-label={t('accounts.rowActions')}
-                    aria-haspopup="menu"
-                    aria-expanded={menuKey === row.key}
-                    onClick={(e) => {
-                      setMenuKey(row.key);
-                      menu.openAt(anchorBelow(e.currentTarget));
-                    }}
-                  />
-                </span>
-              </td>
-            </tr>
-          ))}
+          {rows.map((row, i) => {
+            const off = !!row.onToggle && !row.enabled;
+            return (
+              // The whole row opens its account, and a right click its menu
+              // (GlimStone, "Lists"). A press on one of the row's own controls
+              // is that control's alone.
+              // The row sets its own height and the cells add none, so a status
+              // with a bubble beside it keeps every card's rows level.
+              <tr
+                key={row.key}
+                className="glim-row h-11 cursor-pointer transition-colors hover:bg-carbon-surface3"
+                onClick={(e) => {
+                  if (!(e.target as Element).closest('button, a, [role="note"]')) row.onEdit();
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setMenuKey(row.key);
+                  menu.openAt(anchorFromEvent(e));
+                }}
+              >
+                <td className={`px-4 py-0 font-medium ${off ? 'text-carbon-textMuted' : 'text-carbon-text'}`}>
+                  <span className="inline-flex items-center gap-2">
+                    {/* Faded with the name, so a disabled account reads as resting at a glance. */}
+                    <span className={off ? 'opacity-50 grayscale' : undefined}>
+                      <HosterIcon host={row.iconHost} />
+                    </span>
+                    {row.label}
+                  </span>
+                </td>
+                <td className="px-2 py-0">{off ? <DisabledStatus /> : row.status}</td>
+                <td className="px-2 py-0">
+                  <TierCell tier={row.tier} />
+                </td>
+                <td className="glim-num whitespace-nowrap px-2 py-0 text-carbon-textSub">{fmtDate(row.expiry) || '-'}</td>
+                <td className="px-2 py-0 text-carbon-textSub">
+                  <TrafficCell traffic={row.traffic} />
+                </td>
+                <td className="px-2 py-0 text-end">
+                  <span className="glim-row-actions inline-flex">
+                    <IconBadge
+                      hue={i}
+                      icon={<IconGear width={16} height={16} />}
+                      title={t('accounts.rowActions')}
+                      aria-label={t('accounts.rowActions')}
+                      aria-haspopup="menu"
+                      aria-expanded={menuKey === row.key}
+                      onClick={(e) => {
+                        setMenuKey(row.key);
+                        menu.openAt(anchorBelow(e.currentTarget));
+                      }}
+                    />
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
@@ -229,6 +241,18 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
           }}
           groups={[
             ...(open.menu ?? []),
+            {
+              id: 'switch',
+              items: open.onToggle
+                ? [
+                    {
+                      id: 'switch',
+                      label: open.enabled ? t('menu.disable') : t('menu.enable'),
+                      onSelect: () => open.onToggle?.(!open.enabled),
+                    },
+                  ]
+                : [],
+            },
             {
               id: 'edit',
               items: [

@@ -385,12 +385,14 @@ export function ComponentsCard({ hue }: { hue: number }) {
         </div>
       )}
       {deployment && (
-        <ToggleRow
-          label={t('settings.info.componentsAuto')}
-          hint={t('settings.info.componentsAutoHint')}
-          checked={cfg.componentsAutoUpdate}
-          onChange={(v) => patch({ componentsAutoUpdate: v })}
-        />
+        <div data-new="components-switch">
+          <ToggleRow
+            label={t('settings.info.componentsAuto')}
+            hint={t('settings.info.componentsAutoHint')}
+            checked={cfg.componentsAutoUpdate}
+            onChange={(v) => patch({ componentsAutoUpdate: v })}
+          />
+        </div>
       )}
       <div className="flex flex-wrap justify-end gap-3">
         {deployment && (

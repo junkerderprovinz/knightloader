@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, IconBadge, SectionTitle, TextInput, UnitNumberInput } from '../../components/ui';
+import { Button, Card, FieldError, IconBadge, SectionTitle, TextInput, UnitNumberInput } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
@@ -281,7 +281,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
 
       {/* Shown at the ceiling, where the disabled Add would read as a fault. */}
       {full && <p className="text-xs text-carbon-textMuted">{t('settings.categories.full', { max })}</p>}
-      {listRefused && <p className="text-xs text-statusWarn">{listRefused}</p>}
+      {listRefused && <FieldError>{listRefused}</FieldError>}
 
       {cats.length === 0 && !pending ? (
         // Inside the card rather than an EmptyState, which would hide Add.

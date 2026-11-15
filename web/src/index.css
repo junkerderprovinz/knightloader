@@ -20,7 +20,8 @@
      · one raised surface level; never a card inside a card
      · one hero per page, everything else quiet
      · gold marks activity only: active nav, primary action, progress, brand
-     · four state hues (gold, green, red, neutral), never more
+     · the state colours of rule 4: gold for running, green for done,
+       orange for partial or a warning, red for an error, neutral for waiting
      · hierarchy comes from type size and colour step, not from borders */
 
 @theme {
@@ -662,6 +663,19 @@ body {
   --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
 }
 
+/* The shaded list's grounds (lib/listShade.ts), see-through so they sit on
+   whatever card holds the list, and mixed toward the text colour like the
+   hover steps above, so one set serves light, dark and OLED. A package's links
+   alternate between the card's own ground and a faint step, a quiet zebra, its
+   header stands a hair above that, and the hover above all three. */
+:root,
+[data-theme] {
+  --list-band-odd:   transparent;
+  --list-band-even:  color-mix(in srgb, var(--carbon-text) 2%, transparent);
+  --list-band-head:  color-mix(in srgb, var(--carbon-text) 4%, transparent);
+  --list-band-hover: color-mix(in srgb, var(--carbon-text) 7%, transparent);
+}
+
 /* The house font is Noto Sans, shipped with the app (the imports in main.tsx)
    for Latin, Cyrillic, Greek, Vietnamese and Devanagari, with Noto's own cuts
    for Arabic, Hebrew and Thai. The "Variable" names are the shipped files, the
@@ -736,10 +750,23 @@ body {
 
 /* A sub-card groups rows inside a card: flat, on the well's colour and at the
    card's radius. Fields and neutral buttons in it move one step up the ramp,
-   as fields do in a well, and their hover moves with them. */
+   as fields do in a well, and their hover moves with them. Its name sits in
+   the notch on its top edge, so it is `relative` for the badge and stands a
+   little further from what comes before it, which the badge's upper half
+   reaches into. */
 .glim-subcard {
+  position: relative;
   background-color: var(--carbon-surface2);
   border-radius: var(--radius-card);
+}
+* + .glim-subcard--titled {
+  margin-top: 0.5rem;
+}
+
+/* A field whose value cannot be taken wears the fault wash until it is fixed,
+   above the step a well or a sub-card gives its fields. */
+:is(input, textarea, .glim-field)[aria-invalid='true'] {
+  background-color: var(--status-fail-bg);
 }
 .glim-subcard input,
 .glim-subcard textarea,
@@ -1023,6 +1050,22 @@ body {
    beat the plain wash above. */
 [data-rainbow] .glim-tint.glim-active {
   box-shadow: inset 0 0 0 999px var(--item-hue-soft);
+}
+
+/* The shaded list's bands. Ahead of the selected row's rules and no more
+   specific, so a selection still fills the row. The hover is written here
+   because a Tailwind hover utility cannot reach past an unlayered background. */
+:where([data-shade]) > [data-band='odd'] {
+  background-color: var(--list-band-odd);
+}
+:where([data-shade]) > [data-band='even'] {
+  background-color: var(--list-band-even);
+}
+:where([data-shade]) > [data-band='head'] {
+  background-color: var(--list-band-head);
+}
+:where([data-shade]) > [data-band]:is(:hover, :has(:focus-visible)) {
+  background-color: var(--list-band-hover);
 }
 
 /* The wash on a selected list row. A class rather than a `bg-accent/20`

@@ -5,9 +5,18 @@
 // ends up holding, never what was typed.
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { type SiteLogin, closeSignInBrowser, fetchSignInBrowser, openSignInBrowser } from '../lib/api';
+import {
+  type SiteLogin,
+  beginSiteLogin,
+  closeSignInBrowser,
+  fetchSignInBrowser,
+  fetchSiteLogins,
+  openSignInBrowser,
+} from '../lib/api';
+import { openExternal } from '../lib/external';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { message } from '../lib/intake';
+import { useSignInWays } from '../lib/siteLogins';
 import {
   type PageInput,
   type PageStream,
@@ -19,11 +28,12 @@ import {
   wheelMessage,
 } from '../lib/signInBrowser';
 import { useToast } from '../lib/toast';
-import { IconBack, IconBrowser, IconConfirm, IconRetry, IconSignIn } from '../lib/icons';
+import { IconBack, IconBrowser, IconConfirm, IconExternalLink, IconRetry, IconSignIn } from '../lib/icons';
 import { Button, Modal } from './ui';
 
 type Notice =
   | { kind: 'blocked'; host: string }
+  | { kind: 'elsewhere' }
   | { kind: 'signedIn'; account?: string }
   | { kind: 'refused' }
   | { kind: 'closed'; reason: string };
@@ -41,6 +51,10 @@ const mac = typeof navigator !== 'undefined' && /Mac/.test(navigator.platform);
 // counts them, since a pointerdown carries no count of its own.
 const CLICK_MS = 500;
 const CLICK_PX = 4;
+
+// How often the window asks whether a sign-in made in the user's own browser
+// has turned up, as the site's own window does.
+const ELSEWHERE_POLL_MS = 3000;
 
 /**
  * SignInBrowserWindow shows a site's login page from the server's browser.
@@ -68,6 +82,12 @@ export function SignInBrowserWindow({
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [shown, setShown] = useState({ width: 0, height: 0 });
+  const [elsewhere, setElsewhere] = useState(false);
+  // The user's own browser helps only where something reads the sign-in back
+  // from it: the browsers on this computer, or the extension in the group. A
+  // hoster's own page has no login address and is signed in to here only.
+  const ways = useSignInWays([site], !!site.loginUrl);
+  const ownBrowser = !!site.loginUrl && (ways.readsBrowsers || ways.extensionPaired);
 
   const panel = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -205,6 +225,32 @@ export function SignInBrowserWindow({
     heard.current.onClose();
   };
 
+  // The site opens first, while the click still lets it. The wait that
+  // begins makes the browsers here be read every few seconds and tells the
+  // extension to hand the session over.
+  const openElsewhere = () => {
+    openExternal(site.loginUrl);
+    setElsewhere(true);
+    setNotice({ kind: 'elsewhere' });
+    void beginSiteLogin(site.id).catch(() => {});
+  };
+
+  const finishing = useRef(finish);
+  finishing.current = finish;
+  useEffect(() => {
+    if (!elsewhere) return;
+    const timer = window.setInterval(() => {
+      void fetchSiteLogins().then((all) => {
+        const latest = all.find((s) => s.id === site.id);
+        if (latest && signedIn(latest) && (latest.source === 'browser' || latest.source === 'extension')) {
+          window.clearInterval(timer);
+          void finishing.current();
+        }
+      }, () => {});
+    }, ELSEWHERE_POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [elsewhere, site.id]);
+
   const focusPage = () => sink.current?.focus({ preventScroll: true });
 
   const last = useRef({ at: 0, x: 0, y: 0, count: 0 });
@@ -298,13 +344,21 @@ export function SignInBrowserWindow({
         ? notice.account
           ? t('siteLogins.signedInAs', { account: notice.account })
           : t('siteLogins.signedIn')
-        : notice?.kind === 'refused'
-          ? t('signInBrowser.refused')
-          : notice?.kind === 'closed'
-            ? t(CLOSED[notice.reason] ?? 'signInBrowser.closedGone')
-            : '';
+        : notice?.kind === 'elsewhere'
+          ? t('siteLogins.signInHere', { site: site.name })
+          : notice?.kind === 'refused'
+            ? t('signInBrowser.refused')
+            : notice?.kind === 'closed'
+              ? t(CLOSED[notice.reason] ?? 'signInBrowser.closedGone')
+              : '';
   const noticeTone =
-    notice?.kind === 'signedIn' ? 'bg-statusOkBg text-statusOk' : notice ? 'bg-statusWarnBg text-statusWarn' : '';
+    notice?.kind === 'signedIn'
+      ? 'bg-statusOkBg text-statusOk'
+      : notice?.kind === 'elsewhere'
+        ? 'bg-statusNeutralBg text-statusNeutral'
+        : notice
+          ? 'bg-statusWarnBg text-statusWarn'
+          : '';
 
   return (
     <Modal
@@ -339,6 +393,11 @@ export function SignInBrowserWindow({
             <span className="truncate">{host || site.host}</span>
           </span>
           <span className="flex-1" />
+          {ownBrowser && (
+            <Button kind="secondary" icon={<IconExternalLink />} data-new="open-in-browser" disabled={busy} onClick={openElsewhere}>
+              {t('signInBrowser.openInBrowser')}
+            </Button>
+          )}
           {(phase === 'closed' || phase === 'failed') && (
             <Button kind="secondary" icon={<IconRetry />} onClick={() => setAttempt((n) => n + 1)} disabled={busy}>
               {t('signInBrowser.openAgain')}
@@ -491,6 +550,7 @@ export function SignInHereButton({
       <Button
         kind="secondary"
         icon={<IconSignIn />}
+        data-new="sign-in-here"
         disabled={disabled || !available}
         hint={available ? undefined : t('signInBrowser.none')}
         onClick={() => setOpen(true)}

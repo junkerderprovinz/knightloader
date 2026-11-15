@@ -120,6 +120,24 @@ describe('BrowserTools', () => {
       expect(card.querySelector('a[href$="/releases/tag/v1.8.4"]')?.textContent).toBe('1.8.4');
     });
 
+    it('offers the installers of the release it runs for Windows and Linux', async () => {
+      await macOS('v1.8.4');
+      const href = (label: string) => host.querySelector<HTMLAnchorElement>(`a[aria-label="${label}"]`)!.href;
+      const from = 'https://github.com/junkerderprovinz/knightloader/releases/download/v1.8.4/';
+      expect(href('Windows x64')).toBe(`${from}knightloader-windows-amd64-installer.exe`);
+      expect(href('Windows ARM64')).toBe(`${from}knightloader-windows-arm64-installer.exe`);
+      expect(href('Linux x64')).toBe(`${from}knightloader-linux-amd64-installer`);
+      expect(href('Linux ARM64')).toBe(`${from}knightloader-linux-arm64-installer`);
+    });
+
+    it('offers the newest installers where it runs no release', async () => {
+      await macOS('v1.8.4-12-gabc123');
+      const href = host.querySelector<HTMLAnchorElement>('a[aria-label="Windows x64"]')!.href;
+      expect(href).toBe(
+        'https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-windows-amd64-installer.exe',
+      );
+    });
+
     it('offers the Flatpak of the release it runs for x64 and for ARM', async () => {
       await macOS('v1.8.4');
       const flatpaks = [...host.querySelectorAll<HTMLAnchorElement>('a[aria-label^="Flatpak"]')].map((a) => a.href);

@@ -36,6 +36,7 @@ import { fmtDate } from '../lib/format';
 import { resolverLabel } from '../lib/resolverLabels';
 import { Button, Card, EmptyState, ErrorCard, InfoBubble, LinkBadge, LoadingCard, Modal, PageHeader, PasswordInput, SectionTitle, TextInput, Toggle } from '../components/ui';
 import { AccountTable, type AccountRow } from '../components/AccountTable';
+import { AccountSwitches, type SwitchableAccount } from '../components/AccountSwitches';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
 import { UsenetServersSection } from '../components/UsenetServersSection';
@@ -158,11 +159,14 @@ export function Accounts() {
     }
   }
 
-  async function onToggle(a: Account, enabled: boolean) {
-  // Optimistic: a spinner over a toggle reads as broken.
-    setAccounts((cur) => cur?.map((x) => (x.id === a.id ? { ...x, enabled } : x)) ?? cur);
+  // Optimistic: a spinner over a switch reads as broken. Only the accounts
+  // not already in that state are sent.
+  async function onToggle(rows: Account[], enabled: boolean) {
+    const changing = rows.filter((a) => a.enabled !== enabled);
+    const ids = new Set(changing.map((a) => a.id));
+    setAccounts((cur) => cur?.map((x) => (ids.has(x.id) ? { ...x, enabled } : x)) ?? cur);
     try {
-      await setAccountEnabled(a.service, a.account, enabled);
+      await Promise.all(changing.map((a) => setAccountEnabled(a.service, a.account, enabled)));
     } catch {
       toast(t('common.loadFailed'), 'fail');
       await load();
@@ -214,16 +218,54 @@ export function Accounts() {
     catalogue: byId,
     refreshing,
     onRefresh,
-    onToggle,
+    onToggle: (a: Account, enabled: boolean) => void onToggle([a], enabled),
     onRemove: (a: Account) => setConfirming(a),
     onEdit,
   };
+
+  // An own server is named by its hostname; two accounts of one service by
+  // their ids, as the removal question names them.
+  const switchable = (rows: Account[]): SwitchableAccount[] =>
+    rows.map((a) => {
+      const svc = byId.get(a.service);
+      const server = svc?.group === 'remoteServer';
+      return {
+        key: a.id,
+        label: server ? a.account : a.account ? `${labelOf(a)} · ${a.account}` : labelOf(a),
+        iconHost: server ? a.account : (svc?.whereUrl ?? ''),
+        enabled: a.enabled,
+        onToggle: (enabled) => void onToggle([a], enabled),
+      };
+    });
+  const switches = (hue: number, rows: Account[]) => (
+    <AccountSwitches hue={hue} accounts={switchable(rows)} onAll={(enabled) => void onToggle(rows, enabled)} />
+  );
+  const hosterSwitches = (
+    <AccountSwitches
+      hue={2}
+      accounts={(hoster.logins ?? []).map((l) => ({
+        key: l.host,
+        label: l.host,
+        iconHost: l.host,
+        enabled: l.enabled,
+        onToggle: (enabled) => void hoster.toggle(l, enabled),
+      }))}
+      onAll={(enabled) => void hoster.toggleAll(enabled)}
+    />
+  );
 
   const captchaOrder = t('settings.captcha.orderTitle');
   const add = (label: string, open: () => void) => (
     <Button kind="secondary" icon={<IconAdd width={16} height={16} />} data-new="accounts-card-add" onClick={open}>
       {label}
     </Button>
+  );
+  // The gear comes first and the Add button ends the heading, as on every list card.
+  const heading = (gear: ReactNode, adder: ReactNode) => (
+    <span className="flex items-center gap-2">
+      {gear}
+      {adder}
+    </span>
   );
 
   return (
@@ -233,7 +275,10 @@ export function Accounts() {
       <Card hue={0} data-new="import-gone" className="flex flex-col gap-3">
         <SectionTitle
           hint={t('accounts.debrid.hint')}
-          right={add(t('accounts.newAccount'), () => setDialog({ mode: 'new', group: 'debrid' }))}
+          right={heading(
+            switches(0, debridRows),
+            add(t('accounts.newAccount'), () => setDialog({ mode: 'new', group: 'debrid' })),
+          )}
         >
           {t('accounts.debrid.title')}
         </SectionTitle>
@@ -260,7 +305,10 @@ export function Accounts() {
       </Card>
 
       <Card hue={2} className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.hoster.hint')} right={add(t('accounts.newAccount'), () => setAdding('hoster'))}>
+        <SectionTitle
+          hint={t('accounts.hoster.hint')}
+          right={heading(hosterSwitches, add(t('accounts.newAccount'), () => setAdding('hoster')))}
+        >
           {t('accounts.hoster.title')}
         </SectionTitle>
         <HosterLoginSection data={hoster} adding={adding === 'hoster'} onAddClose={() => setAdding(null)} />
@@ -270,7 +318,10 @@ export function Accounts() {
         <Card hue={3} className="flex flex-col gap-3">
           <SectionTitle
             hint={t('accounts.server.hint')}
-            right={add(t('accounts.server.add'), () => setDialog({ mode: 'server', service: serverService, host: null }))}
+            right={heading(
+              switches(3, serverRows),
+              add(t('accounts.server.add'), () => setDialog({ mode: 'server', service: serverService, host: null })),
+            )}
           >
             {t('accounts.server.title')}
           </SectionTitle>
@@ -293,7 +344,10 @@ export function Accounts() {
       <Card hue={4} className="flex flex-col gap-3">
         <SectionTitle
           hint={t('accounts.captcha.hint', { order: captchaOrder })}
-          right={add(t('accounts.newAccount'), () => setDialog({ mode: 'new', group: 'captchaSolver' }))}
+          right={heading(
+            switches(4, solverRows),
+            add(t('accounts.newAccount'), () => setDialog({ mode: 'new', group: 'captchaSolver' })),
+          )}
         >
           {t('accounts.captcha.title')}
         </SectionTitle>

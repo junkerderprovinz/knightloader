@@ -25,13 +25,13 @@ import {
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
-import { type SignInWays, nextStep, siteForHost, sourceNote, stateNote, unreadableBrowsers } from '../lib/siteLogins';
+import { type SignInWays, nextStep, siteForHost, sourceNote, unreadableBrowsers, useSignInWays } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconClose, IconSave, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
-import { SiteLoginDialog, useSignInWays } from './SiteLoginDialog';
+import { SiteLoginDialog, SiteState } from './SiteLoginDialog';
 import { SignInBrowserWindow, SignInHereButton, useSignInBrowserAvailable } from './SignInBrowserWindow';
 import { SettingRow } from '../pages/settings/controls';
 
@@ -48,6 +48,7 @@ export interface HosterLogins {
   hosts: HosterHost[];
   load: () => Promise<void>;
   toggle: (row: HosterLogin, enabled: boolean) => Promise<void>;
+  toggleAll: (enabled: boolean) => Promise<void>;
   remove: (host: string) => Promise<void>;
   putSite: (site: SiteLogin) => void;
   removeSite: (site: SiteLogin) => Promise<void>;
@@ -94,16 +95,21 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
       .catch(() => {});
   }, []);
 
-  async function toggle(row: HosterLogin, enabled: boolean) {
-    // Optimistic; the reload corrects the row once JD has reconciled.
-    setLogins((cur) => cur?.map((x) => (x.host === row.host ? { ...x, enabled } : x)) ?? cur);
+  // Optimistic; the reload corrects the rows once JD has reconciled.
+  async function switchHosts(hosts: string[], enabled: boolean) {
+    const changing = new Set(hosts);
+    setLogins((cur) => cur?.map((x) => (changing.has(x.host) ? { ...x, enabled } : x)) ?? cur);
     try {
-      await setHosterLoginEnabled(row.host, enabled);
+      await Promise.all(hosts.map((host) => setHosterLoginEnabled(host, enabled)));
     } catch {
       toast(t('common.loadFailed'), 'fail');
     }
     await load();
   }
+
+  const toggle = (row: HosterLogin, enabled: boolean) => switchHosts([row.host], enabled);
+  const toggleAll = (enabled: boolean) =>
+    switchHosts((logins ?? []).filter((l) => l.enabled !== enabled).map((l) => l.host), enabled);
 
   async function remove(host: string) {
     try {
@@ -127,7 +133,7 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
   }
 
   const ways = useSignInWays(sites);
-  return { logins, sites, ways, hosts, load, toggle, remove, putSite, removeSite };
+  return { logins, sites, ways, hosts, load, toggle, toggleAll, remove, putSite, removeSite };
 }
 
 /**
@@ -367,29 +373,28 @@ function loginDetail(t: (key: TranslationKey) => string, login: HosterLogin): st
 }
 
 /**
- * SiteLoginStatus says who a site's session signs in as and where it came
- * from, or, without a working session, the one step that signs it in.
+ * SiteLoginStatus says who a site's session signs in as, and its (i) where the
+ * session came from or, without a working one, the one step that signs it in,
+ * so the row keeps to one line.
  */
 function SiteLoginStatus({ site, ways }: { site: SiteLogin; ways: SignInWays }) {
   const { t } = useT();
-  const note = stateNote(site);
-  const details = [sourceNote(site), nextStep(site, ways)].filter((n) => n !== undefined);
-  const [text, dot] = note.warn
-    ? ['text-statusWarn', 'bg-statusWarnSolid']
-    : site.state === 'signedOut'
-      ? ['text-carbon-textMuted', 'bg-carbon-textMuted']
-      : ['text-statusOk', 'bg-statusOkSolid'];
+  const details = [sourceNote(site), nextStep(site, ways)]
+    .filter((n) => n !== undefined)
+    .map((n) => t(n.key, n.vars));
   return (
-    <span className="flex max-w-[24rem] flex-col gap-0.5">
-      <span className={`inline-flex items-center gap-1.5 text-meta font-medium ${text}`}>
-        <span className={`h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${dot}`} />
-        {t(note.key, note.vars)}
-      </span>
-      {details.map((d) => (
-        <span key={d.key} className="text-meta text-carbon-textMuted">
-          {t(d.key, d.vars)}
-        </span>
-      ))}
+    <span data-new="site-logins" className="inline-flex items-center whitespace-nowrap">
+      <SiteState site={site} />
+      {details.length > 0 && (
+        <InfoBubble
+          label={details.join('\n')}
+          tip={details.map((line) => (
+            <span key={line} className="block">
+              {line}
+            </span>
+          ))}
+        />
+      )}
     </span>
   );
 }
@@ -418,12 +423,12 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
         </span>
       );
     case 'rejected':
-      // Waiting for a code or a sign-in is the person's next step, not a dead
-      // login.
+      // Waiting for a code or a sign-in has its own word, since it names the
+      // person's next step, and the colour of every login that is not signed in.
       if (login.signInHere) {
         return (
-          <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
-            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
+          <span data-new="login-waits" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
+            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
             {t('accounts.hoster.status.needsSignIn')}
             {detail && <InfoBubble tip={detail} />}
           </span>
@@ -431,8 +436,8 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
       }
       if (login.askCode) {
         return (
-          <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusWarn">
-            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusWarnSolid" />
+          <span data-new="login-waits" className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
+            <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
             {t('accounts.hoster.status.needsCode')}
             {detail && <InfoBubble tip={detail} />}
           </span>
@@ -605,7 +610,7 @@ function HosterLoginDialog({
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </SettingRow>
           {asked && (
-            <div className="flex flex-col gap-1.5">
+            <div data-new="hoster-code" className="flex flex-col gap-1.5">
               <SettingRow control="long" label={t('accounts.hoster.codeField')} hint={t('accounts.hoster.codeHint')}>
                 <TextInput
                   autoFocus

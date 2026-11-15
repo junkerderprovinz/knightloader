@@ -8,7 +8,6 @@ import {
   type SiteLogin,
   beginSiteLogin,
   checkSiteLogin,
-  fetchConnect,
   fetchSiteLogins,
   reconnectSiteLogin,
   removeSiteLogin,
@@ -17,7 +16,7 @@ import { openExternal } from '../lib/external';
 import { fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { message } from '../lib/intake';
-import { type SignInWays, nextStep, readsBrowsers, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
+import { type SignInWays, nextStep, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { IconClose, IconExternalLink, IconTrash } from '../lib/icons';
 import { Button, Modal } from './ui';
@@ -29,27 +28,31 @@ import { SettingRow } from '../pages/settings/controls';
 const SIGNED_OUT_POLL_MS = 3000;
 
 /**
- * useSignInWays says where this instance gets a sign-in from: outside a
- * container it reads the browsers on its computer, and a container needs a
- * browser of its group that has the extension.
+ * SiteState is a site's state as a word behind a dot, green with a session in
+ * use and red without one, as every status on the accounts page reads.
  */
-export function useSignInWays(sites: SiteLogin[], enabled = true): SignInWays {
-  const [extensionPaired, setExtensionPaired] = useState(false);
-  useEffect(() => {
-    if (!enabled) return;
-    void fetchConnect().then(
-      (c) => setExtensionPaired((c.apps ?? []).some((a) => a.deployment === 'extension' && a.approved)),
-      () => {},
-    );
-  }, [enabled]);
-  return { readsBrowsers: readsBrowsers(sites), extensionPaired };
+export function SiteState({ site }: { site: SiteLogin }) {
+  const { t } = useT();
+  const note = stateNote(site);
+  const [text, dot] = signedIn(site) ? ['text-statusOk', 'bg-statusOkSolid'] : ['text-statusFail', 'bg-statusFailSolid'];
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-meta font-medium ${text}`}>
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${dot}`} />
+      {t(note.key, note.vars)}
+    </span>
+  );
 }
 
-/** SiteLoginDialog is one site's window. onSignedIn hears a sign-in that arrived while it was open. */
+/**
+ * SiteLoginDialog is one site's window. onSignedIn hears a sign-in that
+ * arrived while it was open. toSignIn opens it to sign in again over a
+ * session the site no longer takes, as a failed download does.
+ */
 export function SiteLoginDialog({
   site: initial,
   ways,
   hue,
+  toSignIn = false,
   onChanged,
   onSignedIn,
   onClose,
@@ -57,6 +60,7 @@ export function SiteLoginDialog({
   site: SiteLogin;
   ways: SignInWays;
   hue?: number;
+  toSignIn?: boolean;
   onChanged?: (s: SiteLogin) => void;
   onSignedIn?: (s: SiteLogin) => void;
   onClose: () => void;
@@ -135,11 +139,12 @@ export function SiteLoginDialog({
     if (site.disconnected) void beginSiteLogin(site.id).then((next) => show(next, signedIn(next)), showError);
   };
 
-  const note = stateNote(site);
   const from = sourceNote(site);
   const step = nextStep(site, ways);
-  // Signing out here leaves the browser signed in, whatever the session came from.
-  const forgettable = site.state !== 'signedOut';
+  const signingIn = waiting || toSignIn;
+  // A browser that still holds the sign-in of a removed site brings it back
+  // in one step, which leaves the sign-in browser nothing to add.
+  const reconnectable = waiting && site.disconnected && ways.readsBrowsers;
 
   return (
     <Modal
@@ -147,40 +152,48 @@ export function SiteLoginDialog({
       hint={t('siteLogins.hint')}
       hue={hue}
       onClose={onClose}
+      // The way out opens the row and opening the site, the one step forward,
+      // ends it. Signing out, which leaves the browser signed in, is offered
+      // only once there is nothing to sign in to; an expired session is
+      // forgotten from its row's menu.
       footer={
         <>
           <Button kind="secondary" labelled icon={<IconClose />} title={t('failure.close')} disabled={busy} onClick={onClose} />
           <span className="flex-1" />
-          {forgettable && (
+          {!signingIn && (
             <Button kind="secondary" icon={<IconTrash width={16} height={16} />} disabled={busy} onClick={() => void signOut()}>
               {t('siteLogins.signOut')}
             </Button>
           )}
-          {site.disconnected && ways.readsBrowsers && (
+          {reconnectable && (
             <Button kind="secondary" disabled={busy} onClick={() => void reconnect()}>
               {t('siteLogins.reconnect')}
             </Button>
           )}
-          <SignInHereButton site={site} hue={hue} disabled={busy} onChanged={(s) => show(s, false)} />
-          <Button kind={waiting ? 'primary' : 'secondary'} icon={<IconExternalLink />} disabled={busy} onClick={openSite}>
-            {t('siteLogins.open', { site: site.name })}
-          </Button>
+          {signingIn && !reconnectable && (
+            <SignInHereButton site={site} hue={hue} disabled={busy} onChanged={(s) => show(s, false)} />
+          )}
+          {signingIn && (
+            <Button icon={<IconExternalLink />} disabled={busy} onClick={openSite}>
+              {t('siteLogins.open', { site: site.name })}
+            </Button>
+          )}
         </>
       }
     >
       <div className="flex flex-col gap-4">
         <SettingRow label={t('siteLogins.status')} hint={t('siteLogins.statusHint')}>
           <span className="flex flex-col items-end gap-0.5 text-end">
-            <span className={`text-sm font-medium ${note.warn ? 'text-statusWarn' : 'text-carbon-text'}`}>{t(note.key, note.vars)}</span>
+            <SiteState site={site} />
             {from && <span className="text-meta text-carbon-textMuted">{t(from.key, from.vars)}</span>}
           </span>
         </SettingRow>
+        {step && <p className="text-sm text-carbon-textSub">{t(step.key, step.vars)}</p>}
         {site.expires && (
           <SettingRow label={t('siteLogins.expires')}>
             <span className="glim-num text-sm text-carbon-textSub">{fmtDate(site.expires)}</span>
           </SettingRow>
         )}
-        {step && <p className="text-sm text-carbon-textSub">{t(step.key, step.vars)}</p>}
         {error && (
           <p dir="auto" className="text-xs text-statusWarn">
             {error}

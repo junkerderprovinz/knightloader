@@ -371,14 +371,15 @@ func registerConnect(reg *Registry, a *app.App) {
 				// The leaving runs under Mint, and only while the instance
 				// that asked is still approved here: a reset in between puts
 				// this instance in a group of its own, which nobody else may
-				// make it leave.
+				// make it leave. Close waits for it, since it writes the
+				// phrase, the member key and the group file.
 				w.WriteHeader(http.StatusNoContent)
-				go func() {
+				a.Go(func() {
 					err := a.Auth.Mint(func() bool { return fromApprovedInstance(a, r) }, func() error { return enterGroup(a, nil) })
 					if err != nil {
 						log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
 					}
-				}()
+				})
 				return
 			}
 			if err := a.Federation.RemoveMember(id, time.Now()); err != nil {

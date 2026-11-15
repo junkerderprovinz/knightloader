@@ -110,8 +110,10 @@ func TestTheWaitingVideoStartsOnceFFmpegIsInPlace(t *testing.T) {
 
 	f.end(t, over, nil)
 
-	// Started, the row may already have met the next failure of a host that
-	// does not exist, so only the queue and the ffmpeg failure tell.
+	// The row starts on its own goroutine, and once started it may already
+	// have met the next failure of a host that does not exist, so only the
+	// queue and the ffmpeg failure tell.
+	waitFor(t, "the row to leave the queue", func() bool { return liveTask(a, "v1").Status != core.StatusQueued })
 	got := liveTask(a, "v1")
 	if got.Waiting != core.WaitingNone || got.Status == core.StatusQueued || got.Reason == core.ReasonNoFFmpeg {
 		t.Fatalf("status %q waiting %q reason %q, want the row started once ffmpeg arrived", got.Status, got.Waiting, got.Reason)

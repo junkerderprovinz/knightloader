@@ -1,11 +1,11 @@
-import type { SiteLogin } from './api';
+import { useEffect, useState } from 'react';
+import { type SiteLogin, fetchConnect } from './api';
 import type { TranslationKey } from './i18n';
 
-/** What a site's row and window say of its sign-in, and whether as a warning. */
+/** What a site's row and window say of its sign-in. */
 export interface StateNote {
   key: TranslationKey;
   vars?: Record<string, string>;
-  warn: boolean;
 }
 
 /** Whether a session is there and used. One the site did not answer about is still used. */
@@ -15,11 +15,11 @@ export const signedIn = (site: SiteLogin) => site.state === 'signedIn' || site.s
 export function stateNote(site: SiteLogin): StateNote {
   if (signedIn(site)) {
     return site.account
-      ? { key: 'siteLogins.signedInAs', vars: { account: site.account }, warn: false }
-      : { key: 'siteLogins.signedIn', warn: false };
+      ? { key: 'siteLogins.signedInAs', vars: { account: site.account } }
+      : { key: 'siteLogins.signedIn' };
   }
-  if (site.state === 'expired') return { key: 'siteLogins.expired', warn: true };
-  return { key: 'siteLogins.signedOut', warn: false };
+  if (site.state === 'expired') return { key: 'siteLogins.expired' };
+  return { key: 'siteLogins.signedOut' };
 }
 
 /**
@@ -27,14 +27,14 @@ export function stateNote(site: SiteLogin): StateNote {
  * browser's session the site turned down.
  */
 export function sourceNote(site: SiteLogin): StateNote | undefined {
-  if (site.disconnected && !signedIn(site)) return { key: 'siteLogins.disconnected', warn: false };
+  if (site.disconnected && !signedIn(site)) return { key: 'siteLogins.disconnected' };
   if (site.state === 'expired' && site.source === 'browser' && site.browser) {
-    return { key: 'siteLogins.turnedDown', vars: { site: site.name, browser: site.browser }, warn: false };
+    return { key: 'siteLogins.turnedDown', vars: { site: site.name, browser: site.browser } };
   }
   if (!signedIn(site)) return undefined;
-  if (site.source === 'browser' && site.browser) return { key: 'siteLogins.fromBrowser', vars: { browser: site.browser }, warn: false };
-  if (site.source === 'extension') return { key: 'siteLogins.fromExtension', warn: false };
-  if (site.source === 'kl-browser') return { key: 'siteLogins.fromKlBrowser', warn: false };
+  if (site.source === 'browser' && site.browser) return { key: 'siteLogins.fromBrowser', vars: { browser: site.browser } };
+  if (site.source === 'extension') return { key: 'siteLogins.fromExtension' };
+  if (site.source === 'kl-browser') return { key: 'siteLogins.fromKlBrowser' };
   return undefined;
 }
 
@@ -53,6 +53,23 @@ export function readsBrowsers(sites: SiteLogin[]): boolean {
 }
 
 /**
+ * useSignInWays says where this instance gets a sign-in from: outside a
+ * container it reads the browsers on its computer, and a container needs a
+ * browser of its group that has the extension.
+ */
+export function useSignInWays(sites: SiteLogin[], enabled = true): SignInWays {
+  const [extensionPaired, setExtensionPaired] = useState(false);
+  useEffect(() => {
+    if (!enabled) return;
+    void fetchConnect().then(
+      (c) => setExtensionPaired((c.apps ?? []).some((a) => a.deployment === 'extension' && a.approved)),
+      () => {},
+    );
+  }, [enabled]);
+  return { readsBrowsers: readsBrowsers(sites), extensionPaired };
+}
+
+/**
  * nextStep is the one thing that signs a site in, for a site without a
  * working session. A container with no extension in its group has no browser
  * to pick a sign-in up from, so the step names the extension.
@@ -61,7 +78,7 @@ export function nextStep(site: SiteLogin, ways: SignInWays): StateNote | undefin
   // A removed site is not picked up from the browser, so its window says how.
   if (signedIn(site) || site.disconnected) return undefined;
   const key = ways.readsBrowsers || ways.extensionPaired ? 'siteLogins.signInHere' : 'siteLogins.signInExtension';
-  return { key, vars: { site: site.name }, warn: false };
+  return { key, vars: { site: site.name } };
 }
 
 /** unreadableBrowsers is every browser any site could not be read from, once each. */

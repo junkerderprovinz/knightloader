@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Animated, AppState, Easing, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Animated, AppState, Easing, StyleSheet, View } from 'react-native';
 import {
   pollCaptchas,
   refreshCaptchas,
@@ -259,6 +259,9 @@ function Banner({
     if (n.toast > 0) {
       Animated.timing(v, { toValue: 1, duration: n.toast, easing: Easing.out(Easing.ease), useNativeDriver: true }).start();
     }
+    // TalkBack does not read a view that slides in on its own, so the banner
+    // says its line once it arrives, as the web UI's live regions do.
+    AccessibilityInfo.announceForAccessibility(line);
     const timer = setTimeout(() => close.current(), BANNER_MS);
     return () => clearTimeout(timer);
     // Once per mount: the banner is keyed by its challenge, and a level picked
