@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { GroupApp, SiteLogin, Task } from '../lib/api';
 import { I18nProvider } from '../lib/i18n';
@@ -225,6 +225,57 @@ it('signs a session read from the browser out from its window', async () => {
   expect(document.body.textContent).not.toContain('sign out of Patreon in');
   await act(async () => button('Sign out')!.click());
   expect(calls.some((c) => c.url === '/api/sitelogins/patreon/remove' && c.method === 'POST')).toBe(true);
+});
+
+describe("a site's window", () => {
+  const dialog = () => document.querySelector('[role="dialog"]')!;
+  const foot = () => [...dialog().querySelectorAll<HTMLButtonElement>('.glim-modal-foot button')];
+  const primary = () => foot().filter((b) => b.className.split(' ').includes('bg-accent'));
+
+  it('ends its footer on the one primary action while nobody is signed in', async () => {
+    sites = [signedOut(patreon)];
+    await renderCard();
+    await act(async () => row('Patreon')!.click());
+    expect(primary().map((b) => b.textContent)).toEqual(['Open Patreon']);
+    expect(foot()[foot().length - 1]?.textContent).toBe('Open Patreon');
+  });
+
+  it('offers signing out alone once a sign-in is there, with nothing left to press ahead', async () => {
+    await renderCard();
+    await act(async () => row('Patreon')!.click());
+    const words = foot().map((b) => b.textContent);
+    expect(words).toContain('Sign out');
+    expect(words).not.toContain('Open Patreon');
+    expect(words).not.toContain('Sign in here');
+    expect(primary()).toEqual([]);
+  });
+
+  it('offers a new sign-in alone for a session that ran out, which its row menu forgets', async () => {
+    sites = [youtube];
+    await renderCard();
+    await act(async () => row('YouTube')!.click());
+    expect(foot().map((b) => b.textContent)).not.toContain('Sign out');
+    expect(primary().map((b) => b.textContent)).toEqual(['Open YouTube']);
+  });
+
+  it("brings a removed site back with the browser's sign-in, with no sign-in browser beside it", async () => {
+    sites = [{ ...signedOut(patreon), disconnected: true }];
+    await renderCard();
+    await act(async () => row('Patreon')!.click());
+    const words = foot().map((b) => b.textContent);
+    expect(words).toContain("Use the browser's sign-in again");
+    expect(words).not.toContain('Sign in here');
+    expect(words[words.length - 1]).toBe('Open Patreon');
+  });
+
+  it('says how the sign-in stands and what to do at the top, and keeps every button in the footer', async () => {
+    sites = [signedOut(patreon)];
+    await renderCard();
+    await act(async () => row('Patreon')!.click());
+    expect(dialog().textContent).toContain('Not signed in');
+    expect(dialog().textContent).toContain('Sign in to Patreon in your browser.');
+    expect([...dialog().querySelectorAll('button')].filter((b) => !b.closest('.glim-modal-foot'))).toEqual([]);
+  });
 });
 
 it('says a removed site leaves the browser signed in, and uses its sign-in again on request', async () => {

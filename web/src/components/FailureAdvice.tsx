@@ -59,6 +59,7 @@ export function FailureAdvice({
       <SiteLoginDialog
         site={signIn.site}
         ways={ways}
+        toSignIn
         onSignedIn={() => void restartTasks([task.id], base).catch(() => {})}
         onClose={onClose}
       />

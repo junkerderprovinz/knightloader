@@ -62,11 +62,16 @@ export function SiteState({ site }: { site: SiteLogin }) {
   );
 }
 
-/** SiteLoginDialog is one site's window. onSignedIn hears a sign-in that arrived while it was open. */
+/**
+ * SiteLoginDialog is one site's window. onSignedIn hears a sign-in that
+ * arrived while it was open. toSignIn opens it to sign in again over a
+ * session the site no longer takes, as a failed download does.
+ */
 export function SiteLoginDialog({
   site: initial,
   ways,
   hue,
+  toSignIn = false,
   onChanged,
   onSignedIn,
   onClose,
@@ -74,6 +79,7 @@ export function SiteLoginDialog({
   site: SiteLogin;
   ways: SignInWays;
   hue?: number;
+  toSignIn?: boolean;
   onChanged?: (s: SiteLogin) => void;
   onSignedIn?: (s: SiteLogin) => void;
   onClose: () => void;
@@ -154,8 +160,10 @@ export function SiteLoginDialog({
 
   const from = sourceNote(site);
   const step = nextStep(site, ways);
-  // Signing out here leaves the browser signed in, whatever the session came from.
-  const forgettable = site.state !== 'signedOut';
+  const signingIn = waiting || toSignIn;
+  // A browser that still holds the sign-in of a removed site brings it back
+  // in one step, which leaves the sign-in browser nothing to add.
+  const reconnectable = waiting && site.disconnected && ways.readsBrowsers;
 
   return (
     <Modal
@@ -163,24 +171,32 @@ export function SiteLoginDialog({
       hint={t('siteLogins.hint')}
       hue={hue}
       onClose={onClose}
+      // The way out opens the row and opening the site, the one step forward,
+      // ends it. Signing out, which leaves the browser signed in, is offered
+      // only once there is nothing to sign in to; an expired session is
+      // forgotten from its row's menu.
       footer={
         <>
           <Button kind="secondary" labelled icon={<IconClose />} title={t('failure.close')} disabled={busy} onClick={onClose} />
           <span className="flex-1" />
-          {forgettable && (
+          {!signingIn && (
             <Button kind="secondary" icon={<IconTrash width={16} height={16} />} disabled={busy} onClick={() => void signOut()}>
               {t('siteLogins.signOut')}
             </Button>
           )}
-          {site.disconnected && ways.readsBrowsers && (
+          {reconnectable && (
             <Button kind="secondary" disabled={busy} onClick={() => void reconnect()}>
               {t('siteLogins.reconnect')}
             </Button>
           )}
-          <SignInHereButton site={site} hue={hue} disabled={busy} onChanged={(s) => show(s, false)} />
-          <Button kind={waiting ? 'primary' : 'secondary'} icon={<IconExternalLink />} disabled={busy} onClick={openSite}>
-            {t('siteLogins.open', { site: site.name })}
-          </Button>
+          {signingIn && !reconnectable && (
+            <SignInHereButton site={site} hue={hue} disabled={busy} onChanged={(s) => show(s, false)} />
+          )}
+          {signingIn && (
+            <Button icon={<IconExternalLink />} disabled={busy} onClick={openSite}>
+              {t('siteLogins.open', { site: site.name })}
+            </Button>
+          )}
         </>
       }
     >
@@ -191,12 +207,12 @@ export function SiteLoginDialog({
             {from && <span className="text-meta text-carbon-textMuted">{t(from.key, from.vars)}</span>}
           </span>
         </SettingRow>
+        {step && <p className="text-sm text-carbon-textSub">{t(step.key, step.vars)}</p>}
         {site.expires && (
           <SettingRow label={t('siteLogins.expires')}>
             <span className="glim-num text-sm text-carbon-textSub">{fmtDate(site.expires)}</span>
           </SettingRow>
         )}
-        {step && <p className="text-sm text-carbon-textSub">{t(step.key, step.vars)}</p>}
         {error && (
           <p dir="auto" className="text-xs text-statusWarn">
             {error}

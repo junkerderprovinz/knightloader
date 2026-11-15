@@ -125,6 +125,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   package's header stands a hair above them. "Shade the lists" under
   Settings, Appearance turns it off in this browser
   ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
+- **You enable and disable accounts in the gear menu on their card.** The
+  rows have no switch any more. "Enable or disable accounts" lists the card's
+  accounts with a switch each, and "Enable all" and "Disable all" do it at
+  once. An account's own menu has it too, and a disabled account says so in
+  its row.
+- **The Patreon and YouTube rows stay on one line.** Where the sign-in came
+  from, or how to sign in, sits in the (i) beside the state. The site's
+  window keeps its buttons in the footer, with Close first and, until you are
+  signed in, opening the site last as the one step forward.
 
 ### Removed
 
