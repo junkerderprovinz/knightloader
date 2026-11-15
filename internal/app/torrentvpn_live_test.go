@@ -31,6 +31,18 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/vpnconn"
 )
 
+// liveOptions runs bin the way this app runs version v.
+// KL_QBITTORRENT_NOX_VERSION names bin's version when it is not v, since the
+// version decides how the proxy is written down.
+func liveOptions(a *App, v nox.Version, bin string) nox.Options {
+	o := a.qbitOptions(v)
+	o.Binary = bin
+	if lv := os.Getenv("KL_QBITTORRENT_NOX_VERSION"); lv != "" {
+		o.Version = lv
+	}
+	return o
+}
+
 // quietProfile is a qBittorrent profile whose first start reaches nothing past
 // this machine: no peer discovery, no port mapping, no country database, and
 // on Windows none of the window's questions before the WebUI comes up.
@@ -155,7 +167,10 @@ func localTracker(t *testing.T, ports ...int) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	srv := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write(answer) })}
+	srv := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Logf("announce with port %s", r.URL.Query().Get("port"))
+		w.Write(answer)
+	})}
 	go srv.Serve(ln)
 	t.Cleanup(func() { srv.Close() })
 	return "http://" + ln.Addr().String() + "/announce"
@@ -258,9 +273,7 @@ func TestATorrentThroughTheBuiltInVPNReachesNothingButTheTunnel(t *testing.T) {
 
 	a.fetchQBit = func(context.Context, nox.Version, func(done, total int64)) error { return nil }
 	a.runQBit = func(v nox.Version) qbitRunner {
-		o := a.qbitOptions(v)
-		o.Binary = bin
-		return nox.Start(o)
+		return nox.Start(liveOptions(a, v, bin))
 	}
 	a.StartQBittorrent()
 	a.UseTorrents(torrents.QBit(a.qbitClient))
@@ -360,9 +373,7 @@ func liveApp(t *testing.T) (*App, *qbittorrent.Client) {
 	t.Cleanup(func() { a.Close() })
 	a.fetchQBit = func(context.Context, nox.Version, func(done, total int64)) error { return nil }
 	a.runQBit = func(v nox.Version) qbitRunner {
-		o := a.qbitOptions(v)
-		o.Binary = bin
-		return nox.Start(o)
+		return nox.Start(liveOptions(a, v, bin))
 	}
 	a.StartQBittorrent()
 	a.UseTorrents(torrents.QBit(a.qbitClient))
