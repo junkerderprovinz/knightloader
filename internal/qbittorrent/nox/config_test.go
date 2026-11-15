@@ -183,6 +183,19 @@ func TestFromQBittorrent46OnTheProxyKeepsItsLoginApart(t *testing.T) {
 	}
 }
 
+// qBittorrent 4.6 and later move the proxy's hostname lookup over from the
+// session's key the first time they open a profile, so a profile without that
+// key comes up resolving names outside the proxy. 4.5 reads the session's key.
+func TestTheProxyResolvesNamesFromTheFirstStartOfEveryVersion(t *testing.T) {
+	for _, v := range []string{"4.5.5", "4.6.7", "5.0.5"} {
+		profile := t.TempDir()
+		if err := WriteConfig(profile, Config{Port: 18080, Username: "knightloader", Password: "x", Version: v, Proxy: socks}); err != nil {
+			t.Fatal(err)
+		}
+		wantLines(t, readConfig(t, profile), "BitTorrent", `Session\ProxyHostnameLookup=true`)
+	}
+}
+
 func TestWithoutAProxyNoneIsLeftFromALastRun(t *testing.T) {
 	profile := t.TempDir()
 	if err := WriteConfig(profile, Config{Port: 18080, Username: "knightloader", Password: "x", Version: "4.5.5", Proxy: socks}); err != nil {

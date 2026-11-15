@@ -146,6 +146,9 @@ func proxySections(c Config) []iniSection {
 		{"Network", network},
 		{"BitTorrent", [][2]string{
 			{`Session\ProxyPeerConnections`, "true"},
+			// 4.5's key for the lookup, which 4.6 and later carry over into
+			// the proxy's own on the first start of a profile.
+			{`Session\ProxyHostnameLookup`, "true"},
 			{`Session\DHTEnabled`, "false"},
 			{`Session\LSDEnabled`, "false"},
 			{`Session\BTProtocol`, "TCP"},
