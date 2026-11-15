@@ -39,8 +39,6 @@ require (
 // from the parent checkout.
 replace github.com/junkerderprovinz/knightloader => ../../
 
-// The same forks as the server module, since a dependency's replace does not
-// reach this one.
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261108080126-7ccce87b55a4
-
-replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261014215729-7f7e9bdefc17
+// The same gopeed fork as the server module, since a dependency's replace
+// does not reach this one.
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261114165838-d7e4c5d8e23c

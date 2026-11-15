@@ -51,8 +51,8 @@ func TestRemoteServerResolverIsRegisteredWithoutAnyCredential(t *testing.T) {
 }
 
 func TestRemoteServerLinksGoToTheirOwnBackendAndNotTheEngine(t *testing.T) {
-	// The engine speaks http, bittorrent and ed2k. Handing it an sftp:// link
-	// would fail on the scheme, at start time, with nothing pointing back here.
+	// The engine speaks http. Handing it an sftp:// link would fail on the
+	// scheme, at start time, with nothing pointing back here.
 	a := newCrawlApp(t, true)
 	if be := a.backendFor(remotefs.ResolverID); be == a.Engine {
 		t.Fatal("remote-server tasks were routed to the embedded engine")
