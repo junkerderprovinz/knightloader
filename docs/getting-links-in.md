@@ -104,13 +104,13 @@ qBittorrent finds the bytes, and a finished torrent is checked piece by piece
 first and seeds without being read again.
 
 **Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
-Premiumize.me, Debrid-Link, Linksnappy or Deepbrid ranks above "Built-in
-torrent client" on the Accounts page, that service fetches the torrent and the
+Premiumize.me, Debrid-Link, Linksnappy or Deepbrid ranks above "Torrent engine
+(qBittorrent)" on the Accounts page, that service fetches the torrent and the
 files come here over HTTP. The file selection counts there as well: Real-Debrid
 and Debrid-Link are told which files to fetch, and from the other services only
 those files come here. Deepbrid does not list a torrent's files, so it always
 sends the whole torrent, and it takes torrents only from a premium account. A
-torrent from a private tracker stays with the built-in torrent client, because its
+torrent from a private tracker stays with the torrent engine, because its
 passkey would go to the service with it. A `.torrent` says whether it is
 private. A magnet link counts as private when its own tracker address carries
 a passkey, the same test the extra trackers below use.
@@ -118,7 +118,7 @@ a passkey, the same test the extra trackers below use.
 A service that makes no progress on a torrent for 10 minutes, whether the
 torrent waits in its queue or the service is still reading the magnet link,
 has the torrent deleted there, and it goes to the next service or the
-built-in torrent client. "Give up on a debrid service after" under Settings,
+torrent engine. "Give up on a debrid service after" under Settings,
 Torrents sets the minutes, and 0 turns it off. A torrent pinned to the
 service is left alone.
 
@@ -128,8 +128,8 @@ once all its files are here, which helps with cross-seeding. Nothing is
 downloaded for it. KnightLoader first checks that every file is there at the
 size the torrent gives, and for a `.torrent` file every piece as well. A magnet
 link carries no pieces, so for a magnet only the sizes are checked. "Seed in"
-picks the client. The built-in torrent client seeds under the seeding targets.
-qBittorrent is handed the torrent through its Web UI with the files where they
+picks the client. The torrent engine seeds under the seeding targets.
+Your own qBittorrent is handed the torrent through its Web UI with the files where they
 are, so tools that watch it, such as cross-seed or qui, find it there. It needs
 its address, the login and, if you like, a category. qBittorrent is told not to
 check the files again, because KnightLoader already has, so it has to reach

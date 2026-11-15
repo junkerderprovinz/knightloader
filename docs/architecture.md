@@ -26,11 +26,11 @@
 ```
 
 Every link goes to a resolver, which decides how it is fetched: a debrid
-service such as TorBox, a hoster account, the torrent client, yt-dlp, your own
+service such as TorBox, a hoster account, the torrent engine, yt-dlp, your own
 FTP, SFTP or WebDAV server, MEGA, 1fichier, ddownload, KatFile, Clicknupload, FileSpace, Uploadrar, Send.now (the last six on one XFileSharing client), Pixeldrain, Gofile, Mediafire, Krakenfiles, Workupload, Google Drive, Dropbox, OneDrive and SharePoint, WeTransfer, SwissTransfer, Rapidgator, Keep2Share, FileBoom, TezFiles, Nitroflare and filer.net on your premium login, the direct path, or the headless JDownloader as the
 catch-all. When more than one service can take the same link, the order on the
 Accounts page decides; that includes a magnet link, which a debrid service that
-takes torrents can fetch in place of the torrent client. JDownloader, yt-dlp and the direct download always come
+takes torrents can fetch in place of the torrent engine. JDownloader, yt-dlp and the direct download always come
 last, because which of them fits depends on the link.
 
 A login KnightLoader signs in with itself is kept from JDownloader, so the
