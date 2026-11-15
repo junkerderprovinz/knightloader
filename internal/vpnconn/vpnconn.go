@@ -487,6 +487,35 @@ func (m *Manager) DialContext(ctx context.Context, network, address string) (net
 	}
 }
 
+// Up reports whether a provider is in use and its tunnel carries traffic.
+func (m *Manager) Up() bool {
+	return m.Active() != "" && m.tun.State().Status == vpn.Connected
+}
+
+// ListenPacket opens an unconnected UDP socket inside the tunnel, at its
+// address of network's family. Unlike a dial it does not wait for a tunnel
+// that is down: a datagram may be lost, and the next one opens another.
+func (m *Manager) ListenPacket(ctx context.Context, network string) (net.PacketConn, error) {
+	if m.Active() == "" {
+		return nil, ErrNoVPN
+	}
+	want4 := network == "udp4"
+	for _, a := range m.tun.State().Addrs {
+		if a.Is4() == want4 {
+			return m.tun.ListenPacket(network, netip.AddrPortFrom(a, 0))
+		}
+	}
+	return nil, &net.OpError{Op: "listen", Net: network, Err: errors.New("the tunnel has no address of this family")}
+}
+
+// LookupNetIP resolves host with the tunnel's name servers.
+func (m *Manager) LookupNetIP(ctx context.Context, network, host string) ([]netip.Addr, error) {
+	if m.Active() == "" {
+		return nil, ErrNoVPN
+	}
+	return m.tun.LookupNetIP(ctx, network, host)
+}
+
 // Close ends the connection and keeps which provider was in use, for Resume.
 func (m *Manager) Close() {
 	m.op.Lock()

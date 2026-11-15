@@ -668,3 +668,44 @@ func TestTorGuardLocations(t *testing.T) {
 		}
 	}
 }
+
+func TestTheTunnelCarriesDatagramsWhileItIsUp(t *testing.T) {
+	h := newHarness(t, &memStore{}, "")
+	ctx := context.Background()
+	if _, err := h.m.ListenPacket(ctx, "udp4"); !errors.Is(err, ErrNoVPN) {
+		t.Errorf("a socket with no provider = %v, want ErrNoVPN", err)
+	}
+	if _, err := h.m.LookupNetIP(ctx, "ip", "tracker.example"); !errors.Is(err, ErrNoVPN) {
+		t.Errorf("a lookup with no provider = %v, want ErrNoVPN", err)
+	}
+	if h.m.Up() {
+		t.Error("up with no provider")
+	}
+	srv := vpntest.Start(t)
+	if _, err := h.m.Connect("protonvpn", map[string]string{"config": srv.Config()}); err != nil {
+		t.Fatal(err)
+	}
+	h.waitFor(t, "protonvpn", "connected")
+	if !h.m.Up() {
+		t.Error("not up while connected")
+	}
+	pc, err := h.m.ListenPacket(ctx, "udp4")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pc.Close()
+	to := net.UDPAddrFromAddrPort(netip.AddrPortFrom(vpntest.ServerAddr, 7))
+	if _, err := pc.WriteTo([]byte("ping"), to); err != nil {
+		t.Fatal(err)
+	}
+	_ = pc.SetReadDeadline(time.Now().Add(5 * time.Second))
+	buf := make([]byte, 16)
+	n, from, err := pc.ReadFrom(buf)
+	if err != nil || string(buf[:n]) != "ping" || from.String() != to.String() {
+		t.Fatalf("echo %q from %v, %v", buf[:n], from, err)
+	}
+	h.m.Disconnect()
+	if h.m.Up() {
+		t.Error("up after disconnect")
+	}
+}

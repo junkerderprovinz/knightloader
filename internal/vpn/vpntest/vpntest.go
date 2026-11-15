@@ -1,6 +1,6 @@
 // Package vpntest runs a WireGuard server in the test process, on a userspace
-// stack of its own, for tests of what connects to one. It answers TCP echo on
-// port 7 and NAT-PMP at its tunnel address, the way a provider's gateway
+// stack of its own, for tests of what connects to one. It answers TCP and UDP
+// echo on port 7 and NAT-PMP at its tunnel address, the way a provider's gateway
 // sits at the first address of the tunnel's network. On port 80 it answers
 // with ExitAddr, the way an address lookup through a VPN does, and takes
 // cryptostorm's POST /fwd.
@@ -92,6 +92,11 @@ func Start(t testing.TB) *Server {
 		t.Fatal(err)
 	}
 	go echo(ln)
+	ue, err := tnet.ListenUDPAddrPort(netip.AddrPortFrom(ServerAddr, 7))
+	if err != nil {
+		t.Fatal(err)
+	}
+	go echoUDP(ue)
 	gw, err := tnet.ListenUDPAddrPort(netip.AddrPortFrom(ServerAddr, vpn.NATPMPPort))
 	if err != nil {
 		t.Fatal(err)
@@ -161,6 +166,17 @@ func echo(ln net.Listener) {
 			defer c.Close()
 			io.Copy(c, c)
 		}()
+	}
+}
+
+func echoUDP(pc net.PacketConn) {
+	buf := make([]byte, 2048)
+	for {
+		n, from, err := pc.ReadFrom(buf)
+		if err != nil {
+			return
+		}
+		pc.WriteTo(buf[:n], from)
 	}
 }
 
