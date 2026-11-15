@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
-	"github.com/junkerderprovinz/knightloader/internal/torrents"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/torrents"
 )
 
 func TestTorrentTally_StartsFromTheTorrentsAlreadyHeldAndKeepsItsTotalsOnDisk(t *testing.T) {
