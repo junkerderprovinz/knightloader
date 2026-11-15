@@ -1053,14 +1053,13 @@ Instances of this version refuse a relay call that is not stamped against being 
 
 ## 🎨 Design
 
-- **KnightLoader follows GlimStone 4.5.2.** Accent text reads equally well in every colour, and the contrast goes up when the system asks for more, Windows contrast themes included. Lists and menus take PageUp and PageDown, Home and End and jumps by letter, and screen readers hear how many rows are picked.
+- **KnightLoader follows GlimStone 4.5.2.** Accent text reads equally well in every colour, and the contrast goes up when the system asks for more, Windows contrast themes included. Lists and menus take PageUp and PageDown, Home and End and jumps by letter, and screen readers hear how many rows are picked. A switch that is on draws its knob in the accent's ink, so it stays easy to see in the light theme, and a group inside a card carries its name as a badge on its top edge.
 
 ## ⚡ Improved
 
 - **The download list shades its rows by package.** Each package and its files read as one band with a lighter header row, the files alternate faintly, and "Shade the lists" under Appearance turns it off. Suggested by @MueChris82 ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
 - **The Settings page offers the installers.** Under Settings, Apps, the Windows and Linux buttons lead to the installers instead of the zipped program, like the buttons in the README. macOS keeps its zip, because there is no macOS installer.
 - **A field that cannot take a value says why.** It turns red and a line under it gives the reason, now also for a feed's address and title filter and for a target's address, headers and body.
-- **KnightLoader follows GlimStone 4.4.1.** A switch that is on draws its knob in the accent's ink, so it stays easy to see in the light theme, and a group inside a card carries its name as a badge on its top edge.
 - **Screen readers read out the notifications,** a failure at once and anything else at the next pause. While a window is open, the page behind it is out of reach for the pointer and for a screen reader.
 - **One switch keeps every component current.** yt-dlp, FFmpeg, Deno, Java and JDownloader share "Update components automatically", on from the start. KnightLoader looks for a new yt-dlp every day and for the others once a week. If you had switched off the update of yt-dlp or JDownloader, the new switch stays off for you.
 - **The installer fetches yt-dlp like the other components,** checked against yt-dlp's own checksums, so the copy KnightLoader keeps current is there from the first start.
@@ -1975,14 +1974,13 @@ Instances of this version refuse a relay call that is not stamped against being 
 
 ## 🎨 Design
 
-- **KnightLoader follows GlimStone 4.5.2.** Accent text reads equally well in every colour, and the contrast goes up when the system asks for more, Windows contrast themes included. Lists and menus take PageUp and PageDown, Home and End and jumps by letter, and screen readers hear how many rows are picked.
+- **KnightLoader follows GlimStone 4.5.2.** Accent text reads equally well in every colour, and the contrast goes up when the system asks for more, Windows contrast themes included. Lists and menus take PageUp and PageDown, Home and End and jumps by letter, and screen readers hear how many rows are picked. A switch that is on draws its knob in the accent's ink, so it stays easy to see in the light theme, and a group inside a card carries its name as a badge on its top edge.
 
 ## ⚡ Improved
 
 - **The download list shades its rows by package.** Each package and its files read as one band with a lighter header row, the files alternate faintly, and "Shade the lists" under Appearance turns it off. Suggested by @MueChris82 ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
 - **The Settings page offers the installers.** Under Settings, Apps, the Windows and Linux buttons lead to the installers instead of the zipped program, like the buttons in the README. macOS keeps its zip, because there is no macOS installer.
 - **A field that cannot take a value says why.** It turns red and a line under it gives the reason, now also for a feed's address and title filter and for a target's address, headers and body.
-- **KnightLoader follows GlimStone 4.4.1.** A switch that is on draws its knob in the accent's ink, so it stays easy to see in the light theme, and a group inside a card carries its name as a badge on its top edge.
 - **Screen readers read out the notifications,** a failure at once and anything else at the next pause. While a window is open, the page behind it is out of reach for the pointer and for a screen reader.
 - **One switch keeps every component current.** yt-dlp, FFmpeg, Deno, Java and JDownloader share "Update components automatically", on from the start. KnightLoader looks for a new yt-dlp every day and for the others once a week. If you had switched off the update of yt-dlp or JDownloader, the new switch stays off for you.
 - **The installer fetches yt-dlp like the other components,** checked against yt-dlp's own checksums, so the copy KnightLoader keeps current is there from the first start.

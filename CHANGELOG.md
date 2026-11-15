@@ -90,10 +90,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
-- **KnightLoader follows GlimStone 4.4.1,** and the Version card names it. A
-  switch that is on draws its knob in the accent's ink, so it stays easy to
-  see in the light theme. A group inside a card carries its name as a badge
-  on its top edge, like the card itself.
 - **A value a field cannot take is marked the same way in the web interface
   and the extension's settings.** The field turns red, and a line under it
   says why.
@@ -140,11 +136,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   from, or how to sign in, sits in the (i) beside the state. The site's
   window keeps its buttons in the footer, with Close first and, until you are
   signed in, opening the site last as the one step forward.
-- **KnightLoader follows GlimStone 4.5.2.** Accent text reads equally well in
-  every colour, and the contrast goes up when the system asks for more,
-  Windows contrast themes included. Lists and menus take PageUp and PageDown,
-  Home and End and jumps by letter, and screen readers hear how many rows are
-  picked.
+- **KnightLoader follows GlimStone 4.5.2,** and the Version card names it.
+  Accent text reads equally well in every colour, and the contrast goes up
+  when the system asks for more, Windows contrast themes included. Lists and
+  menus take PageUp and PageDown, Home and End and jumps by letter, and screen
+  readers hear how many rows are picked. A switch that is on draws its knob in
+  the accent's ink, so it stays easy to see in the light theme, and a group
+  inside a card carries its name as a badge on its top edge.
 - **The JDownloader import brings the default rules along.** The .rev and
   .par2 rules arrive as rules that add those files disabled, and "Create
   Subfolder by Packagename" turns on "Put each package in its own subfolder".
