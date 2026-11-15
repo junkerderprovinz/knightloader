@@ -267,6 +267,7 @@ export const HOSTER_LOGOS: ReadonlyMap<string, LogoTile> = new Map<string, LogoT
   ['otr.datenkeller.net', { tile: '#40c1d4', ink: '#ffffff', lit: true }],
   ['pan.baidu.com', { tile: '#2932e4', ink: '#ffffff', rest: 'lift' }],
   ['parteeey.de', { tile: '#49170d', ink: '#ffffff', lit: true }],
+  ['patreon.com', { tile: '#000000', ink: '#ffffff', rest: 'ink' }],
   ['pcloud.com', { tile: '#16bbcd', ink: '#ffffff' }],
   ['pinterest.com', { tile: '#e70123', ink: '#ffffff', lit: true }],
   ['pixeldrain.com', { tile: '#000000', ink: '#ffffff', lit: true }],

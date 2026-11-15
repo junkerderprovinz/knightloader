@@ -156,6 +156,16 @@ it('knows a debrid service whose site offers no sharp icon by the host of its ca
   }
 });
 
+it('draws every site KnightLoader signs in to from its bundled mark without asking the instance', () => {
+  const fetch = answers(200);
+  for (const site of ['patreon.com', 'youtube.com']) {
+    act(() => root.render(<HosterIcon host={site} />));
+    expect(serviceMark(site), site).toBeDefined();
+    expect(host.innerHTML, site).toContain(`/hosters/${site}`);
+  }
+  expect(fetch).not.toHaveBeenCalled();
+});
+
 it('draws a hoster from its bundled logo without asking the instance', () => {
   const fetch = answers(200);
   act(() => root.render(<HosterIcon host="https://rapidgator.net/file/1" />));
