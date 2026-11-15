@@ -140,7 +140,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   from, or how to sign in, sits in the (i) beside the state. The site's
   window keeps its buttons in the footer, with Close first and, until you are
   signed in, opening the site last as the one step forward.
-- **KnightLoader follows GlimStone 4.5.1.** Accent text reads equally well in
+- **KnightLoader follows GlimStone 4.5.2.** Accent text reads equally well in
   every colour, and the contrast goes up when the system asks for more,
   Windows contrast themes included. Lists and menus take PageUp and PageDown,
   Home and End and jumps by letter, and screen readers hear how many rows are
@@ -150,6 +150,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Subfolder by Packagename" turns on "Put each package in its own subfolder".
   The rules that still cannot come over each say why
   ([#289](https://github.com/junkerderprovinz/knightloader/issues/289)).
+- **The Help card points to Discord instead of email.** Next to GitHub, a
+  Discord button opens KnightLoader's server, and the sentence above it names
+  GitHub and Discord. The extension's settings and the phone app's About card
+  do the same.
 
 ### Removed
 
