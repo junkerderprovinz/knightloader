@@ -67,14 +67,19 @@ func (a *App) initQBit() {
 		_, _, err := nox.Install(ctx, a.DataDir, v, progress)
 		return err
 	}
-	a.runQBit = func(v nox.Version) qbitRunner {
-		return nox.Start(nox.Options{
-			Binary:  nox.BinaryPath(a.DataDir, v),
-			Profile: filepath.Join(a.DataDir, "qbittorrent"),
-			Key:     a.AppKey,
-			Prepare: a.prepareQBit,
-			Logf:    log.Printf,
-		})
+	a.runQBit = func(v nox.Version) qbitRunner { return nox.Start(a.qbitOptions(v)) }
+}
+
+// qbitOptions are how this app runs version v of qBittorrent.
+func (a *App) qbitOptions(v nox.Version) nox.Options {
+	return nox.Options{
+		Binary:  nox.BinaryPath(a.DataDir, v),
+		Profile: filepath.Join(a.DataDir, "qbittorrent"),
+		Version: v.Version,
+		Proxy:   a.qbitProxy,
+		Key:     a.AppKey,
+		Prepare: a.prepareQBit,
+		Logf:    log.Printf,
 	}
 }
 

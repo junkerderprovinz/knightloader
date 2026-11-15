@@ -119,3 +119,22 @@ func TestADownloadThroughADownVPNWaits(t *testing.T) {
 		t.Errorf("a dial with the tunnel down ended after %s with %v; want it held until the caller gives up", time.Since(start), err)
 	}
 }
+
+func TestTorrentsStayOnTheProxyAndWaitWhileTheTunnelIsDown(t *testing.T) {
+	a := newAccountsTestApp(t)
+	srv := connectedVPN(t, a)
+	a.VPN.SetRoutes(vpnconn.Routes{Torrents: true})
+	if ov := a.TorrentOverview(); !ov.VPN || ov.VPNDown || a.torrentsHeld() {
+		t.Fatalf("with the tunnel up: %+v, held %v", ov, a.torrentsHeld())
+	}
+	srv.Close()
+	a.VPN.Disconnect()
+	a.VPN.Connect("custom", map[string]string{"config": srv.Config()})
+	if ov := a.TorrentOverview(); !ov.VPN || !ov.VPNDown || !a.torrentsHeld() {
+		t.Errorf("with the tunnel down: %+v, held %v", ov, a.torrentsHeld())
+	}
+	px := a.Engine.TorrentPrefs().Proxy
+	if px == nil || px.Port != a.torrentProxy.Port() {
+		t.Errorf("torrents left the proxy while the tunnel was down: %+v", px)
+	}
+}

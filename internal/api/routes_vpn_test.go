@@ -31,8 +31,8 @@ func vpnProvider(st vpnconn.State, id string) vpnconn.ProviderState {
 	return vpnconn.ProviderState{}
 }
 
-// The VPN routes connect and disconnect, and the torrent client follows: tied
-// to the tunnel while a provider is in use, back on the machine's own
+// The VPN routes connect and disconnect, and the torrent client follows:
+// through the tunnel while a provider is in use, back on the machine's own
 // connection after.
 func TestVPNRoutesPutTorrentsOnTheTunnel(t *testing.T) {
 	vs := vpntest.Start(t)
@@ -68,18 +68,21 @@ func TestVPNRoutesPutTorrentsOnTheTunnel(t *testing.T) {
 	if p.State != "connected" || p.ForwardedPort != 51234 || !p.Configured {
 		t.Fatalf("proton is %+v", p)
 	}
-	// qBittorrent is another program and cannot reach the tunnel, so the
-	// torrents are tied to it and wait.
-	if ov := a.TorrentOverview(); ov.Interface != vpnconn.NetworkName || !ov.InterfaceDown {
-		t.Errorf("torrents are on %q (down %v), want the tunnel and on hold", ov.Interface, ov.InterfaceDown)
+	// qBittorrent is another program and reaches the tunnel through the
+	// proxy KnightLoader runs for it.
+	if ov := a.TorrentOverview(); !ov.VPN || ov.VPNDown || ov.Interface != "" {
+		t.Errorf("torrents: vpn %v, down %v, interface %q; want them through the tunnel", ov.VPN, ov.VPNDown, ov.Interface)
+	}
+	if px := a.Engine.TorrentPrefs().Proxy; px == nil || px.Host != "127.0.0.1" || px.Port == 0 || px.Pass == "" {
+		t.Errorf("torrent proxy %+v", px)
 	}
 
 	code, doc = callAPI(t, http.DefaultClient, srv.URL, http.MethodPost, "/api/vpn/disconnect", "", "")
 	if code != http.StatusOK || vpnState(t, doc).Active != "" {
 		t.Fatalf("disconnect answered %d: %v", code, doc)
 	}
-	if ov := a.TorrentOverview(); ov.Interface != "" {
-		t.Errorf("torrents stay on %q after disconnect", ov.Interface)
+	if ov := a.TorrentOverview(); ov.VPN || ov.Interface != "" || a.Engine.TorrentPrefs().Proxy != nil {
+		t.Errorf("torrents stay on the tunnel after disconnect: %+v", ov)
 	}
 
 	code, doc = callAPI(t, http.DefaultClient, srv.URL, http.MethodDelete, "/api/vpn/protonvpn", "", "")

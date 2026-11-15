@@ -15,7 +15,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/netproxy"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
+	"github.com/junkerderprovinz/knightloader/internal/qbittorrent/nox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/socks5"
+	"github.com/junkerderprovinz/knightloader/internal/torrents"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
 	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 	"github.com/junkerderprovinz/knightloader/internal/vpnconn"
@@ -54,6 +57,15 @@ func (a *App) openVPN() error {
 		return err
 	}
 	a.VPN, a.vpnProxy = m, px
+	// qBittorrent is another program and cannot reach a tunnel that lives in
+	// this one, so it goes through a SOCKS5 proxy of its own into it.
+	tp, err := socks5.Start(torrentTunnel(a), log.Printf)
+	if err != nil {
+		_ = px.Close()
+		return err
+	}
+	a.torrentProxy = tp
+	a.Engine.HoldTorrentsWhile(a.torrentsHeld)
 	m.Resume()
 	a.applyVPN()
 	return nil
@@ -69,6 +81,19 @@ func (a *App) closeVPN() {
 	if a.vpnProxy != nil {
 		_ = a.vpnProxy.Close()
 	}
+	if a.torrentProxy != nil {
+		_ = a.torrentProxy.Close()
+	}
+}
+
+// torrentTunnel is where the torrent proxy sends what qBittorrent asks for:
+// the VPN's tunnel, which the tests replace with one that records.
+var torrentTunnel = func(a *App) socks5.Tunnel { return a.VPN }
+
+// torrentsHeld reports whether torrents go through the VPN while its tunnel
+// is down, so none of them can reach anybody.
+func (a *App) torrentsHeld() bool {
+	return a.through(vpnconn.Torrents) && !a.VPN.Up()
 }
 
 // applyVPN moves every kind of traffic to where the VPN switches put it. The
@@ -76,6 +101,10 @@ func (a *App) closeVPN() {
 func (a *App) applyVPN() {
 	if err := a.pushTorrentConfig(); err != nil {
 		log.Printf("torrent network not applied: %v", err)
+	}
+	// What the torrent proxy carried into the tunnel ends with the switch.
+	if on := a.through(vpnconn.Torrents); a.torrentsVPN.Swap(on) && !on {
+		a.torrentProxy.Drop()
 	}
 	for tr, c := range vpnClasses {
 		var proxy *url.URL
@@ -91,30 +120,35 @@ func (a *App) applyVPN() {
 }
 
 func (a *App) through(t vpnconn.Traffic) bool {
-	return a.VPN != nil && a.vpnProxy != nil && a.VPN.Through(t)
+	return a.VPN != nil && a.vpnProxy != nil && a.torrentProxy != nil && a.VPN.Through(t)
 }
 
 func (a *App) vpnProxyURL() *url.URL {
 	return &url.URL{Scheme: "http", Host: a.vpnProxy.Addr()}
 }
 
-// withVPN puts the torrent client on the VPN while torrents go through it, on
-// the port it forwards once it does. A provider that is down keeps torrents
-// waiting rather than letting them out over the machine's own connection.
-//
-// The tunnel lives inside this process, where qBittorrent cannot reach it, so
-// its name ties qBittorrent to an interface the system does not have: torrents
-// then wait rather than go out unprotected. A VPN the system runs, such as
-// wg0, is the Torrents page's own interface setting.
+// withVPN sends the torrent client through the VPN while torrents go through
+// it: by the torrent proxy, with the client tied to loopback so nothing goes
+// around the proxy. A tunnel that is down makes the proxy refuse, so torrents
+// wait rather than go out over the machine's own connection. Peers cannot
+// connect through a SOCKS5 proxy, so a port the provider forwards is no use
+// to torrents.
 func (a *App) withVPN(c engine.TorrentConfig) engine.TorrentConfig {
-	if a.VPN == nil || !a.VPN.Through(vpnconn.Torrents) {
-		return c
-	}
-	c.Interface = vpnconn.NetworkName
-	if p := a.VPN.ForwardedPort(); p > 0 {
-		c.Port = p
+	if px := a.qbitProxy(); px != nil {
+		c.Interface = ""
+		c.Proxy = &torrents.Proxy{Host: px.Host, Port: px.Port, User: px.User, Pass: px.Pass}
 	}
 	return c
+}
+
+// qbitProxy is the torrent proxy while torrents go through the VPN, nil
+// otherwise.
+func (a *App) qbitProxy() *nox.Proxy {
+	if !a.through(vpnconn.Torrents) {
+		return nil
+	}
+	user, pass := a.torrentProxy.Credentials()
+	return &nox.Proxy{Host: "127.0.0.1", Port: a.torrentProxy.Port(), User: user, Pass: pass}
 }
 
 // trafficOf is the VPN switch a task's download falls under, by the backend

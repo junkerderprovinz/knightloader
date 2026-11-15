@@ -26,6 +26,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/fsretry"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/vpnconn"
 )
 
 const torrentTotalsFile = "torrent-totals.json"
@@ -255,6 +256,10 @@ type TorrentOverview struct {
 	// torrent of the built-in client until it is back.
 	Interface     string `json:"interface,omitempty"`
 	InterfaceDown bool   `json:"interfaceDown"`
+	// VPN says torrents go through the built-in VPN, and VPNDown that its
+	// tunnel is down, which holds every torrent until it is back.
+	VPN     bool `json:"vpn,omitempty"`
+	VPNDown bool `json:"vpnDown,omitempty"`
 }
 
 // TorrentUploader is one torrent among the overview's busiest.
@@ -283,9 +288,11 @@ func (a *App) TorrentOverview() TorrentOverview {
 		out.Ratio = float64(out.Uploaded) / float64(out.Downloaded)
 	}
 	out.Any = out.Downloaded > 0 || out.Uploaded > 0
-	if iface := a.withVPN(engine.TorrentConfig{Interface: tc.Interface}).Interface; iface != "" {
-		out.Interface = iface
-		out.InterfaceDown = !engine.InterfaceUp(iface)
+	if a.through(vpnconn.Torrents) {
+		out.VPN, out.VPNDown = true, !a.VPN.Up()
+	} else if tc.Interface != "" {
+		out.Interface = tc.Interface
+		out.InterfaceDown = !engine.InterfaceUp(tc.Interface)
 	}
 
 	a.mu.Lock()

@@ -69,6 +69,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/socks5"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"github.com/junkerderprovinz/knightloader/internal/throttle"
 	"github.com/junkerderprovinz/knightloader/internal/update"
@@ -301,8 +302,14 @@ type App struct {
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through
 	// vpnProxy is the loopback proxy into the VPN tunnel (app_vpn.go).
-	vpnProxy   *netproxy.Server
-	usenetDial *usenetDialer
+	vpnProxy *netproxy.Server
+	// torrentProxy is the SOCKS5 proxy into the VPN tunnel that qBittorrent
+	// goes through while torrents go through the VPN (app_vpn.go).
+	torrentProxy *socks5.Server
+	// torrentsVPN is whether torrents went through the VPN when applyVPN
+	// last ran.
+	torrentsVPN atomic.Bool
+	usenetDial  *usenetDialer
 	// usenetVPN is whether Usenet went through the VPN when applyVPN last ran.
 	usenetVPN atomic.Bool
 
