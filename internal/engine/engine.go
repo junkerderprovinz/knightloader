@@ -102,6 +102,9 @@ type Engine struct {
 	// metadataTimeout overrides how long a magnet may wait for its file list.
 	// Zero means defaultMetadataTimeout.
 	metadataTimeout time.Duration
+	// held reports whether torrents cannot reach anybody for now, such as
+	// while the VPN that carries them is down; nil for never.
+	held func() bool
 
 	// cfgMu serialises updateConfig, so two setters cannot lose each other's
 	// change.
@@ -133,6 +136,14 @@ func (e *Engine) SetMetadataTimeout(d time.Duration) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.metadataTimeout = d
+}
+
+// HoldTorrentsWhile has a magnet wait for its file list beyond its timeout
+// for as long as held reports true, since no peer can answer then.
+func (e *Engine) HoldTorrentsWhile(held func() bool) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.held = held
 }
 
 // newDownloaderMu is held around download.NewDownloader, which sets a zerolog
@@ -268,6 +279,8 @@ type TorrentConfig struct {
 	// Interface is the network interface every torrent's traffic is tied to,
 	// empty for any.
 	Interface string
+	// Proxy carries every torrent's traffic, nil for none.
+	Proxy *torrents.Proxy
 }
 
 // SetTorrentConfig takes c for every torrent: the seeding targets at the next
@@ -283,6 +296,7 @@ func (e *Engine) SetTorrentConfig(c TorrentConfig) error {
 		DHT:         !c.DisableDHT,
 		PEX:         !c.DisablePEX,
 		Interface:   c.Interface,
+		Proxy:       c.Proxy,
 	}
 	e.mu.Unlock()
 	e.pushPrefs()

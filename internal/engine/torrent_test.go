@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -574,4 +575,37 @@ func TestATorrentTheClientTakesInTheBackgroundIsWaitedFor(t *testing.T) {
 	if u.Status != core.StatusDone {
 		t.Fatalf("update %+v", u)
 	}
+}
+
+func TestAMagnetWaitsForItsFileListWhileTorrentsAreHeld(t *testing.T) {
+	e, c, log := torrentEngine(t)
+	e.SetMetadataTimeout(200 * time.Millisecond)
+	var held atomic.Bool
+	held.Store(true)
+	e.HoldTorrentsWhile(held.Load)
+	const hash = "0123456789abcdef0123456789abcdef01234567"
+	e.Start(Job{TaskID: "t", URL: "magnet:?xt=urn:btih:" + hash + "&dn=Later", Dir: t.TempDir()})
+	time.Sleep(700 * time.Millisecond)
+	for _, u := range log.snapshot() {
+		if u.Status == core.StatusError {
+			t.Fatalf("the magnet failed while torrents were held: %s", u.Err)
+		}
+	}
+	if !c.Has(hash) {
+		t.Fatal("the client lost the magnet")
+	}
+	held.Store(false)
+	log.waitFor(t, "an error once torrents may run", isStatus(core.StatusError))
+}
+
+func TestAProxyReachesTheClientWithTheOtherSettings(t *testing.T) {
+	e, c, _ := torrentEngine(t)
+	px := &torrents.Proxy{Host: "127.0.0.1", Port: 41080, User: "knightloader", Pass: "pw"}
+	if err := e.SetTorrentConfig(TorrentConfig{Port: 6881, Proxy: px}); err != nil {
+		t.Fatal(err)
+	}
+	if got := e.TorrentPrefs(); got.Proxy != px || got.Port != 6881 {
+		t.Errorf("prefs %+v", got)
+	}
+	waitUntil(t, "the client's settings", func() bool { p := c.Prefs(); return len(p) > 0 && p[len(p)-1].Proxy == px })
 }

@@ -343,11 +343,11 @@ func (e *Engine) letGo(bt torrents.Client, hash string) {
 
 // awaitFiles waits for the client to have a torrent's file list, which for a
 // magnet comes from the swarm. No peer can answer while the interface the
-// client is tied to is down, so a magnet waits however long that lasts and
-// then gets its whole timeout again.
+// client is tied to is down, or while torrents are held, so a magnet waits
+// however long that lasts and then gets its whole timeout again.
 func (e *Engine) awaitFiles(s *start, bt torrents.Client, hash string) ([]torrents.File, error) {
 	e.mu.Lock()
-	timeout, iface := e.metadataTimeout, e.prefs.Interface
+	timeout, iface, held := e.metadataTimeout, e.prefs.Interface, e.held
 	e.mu.Unlock()
 	if timeout <= 0 {
 		timeout = defaultMetadataTimeout
@@ -369,7 +369,7 @@ func (e *Engine) awaitFiles(s *start, bt torrents.Client, hash string) ([]torren
 		select {
 		case <-tick.C:
 		case <-timer.C:
-			if !InterfaceUp(iface) {
+			if !InterfaceUp(iface) || held != nil && held() {
 				timer.Reset(timeout)
 				continue
 			}
