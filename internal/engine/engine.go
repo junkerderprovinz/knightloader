@@ -105,6 +105,8 @@ type Engine struct {
 	// held reports whether torrents cannot reach anybody for now, such as
 	// while the VPN that carries them is down; nil for never.
 	held func() bool
+	// watch gets every reading of the torrent client; nil for nobody.
+	watch func(map[string]torrents.Reading)
 
 	// cfgMu serialises updateConfig, so two setters cannot lose each other's
 	// change.
@@ -144,6 +146,14 @@ func (e *Engine) HoldTorrentsWhile(held func() bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.held = held
+}
+
+// WatchReadings hands f every reading of the torrent client, the torrents the
+// engine runs and those it does not alike, as it is taken.
+func (e *Engine) WatchReadings(f func(map[string]torrents.Reading)) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.watch = f
 }
 
 // newDownloaderMu is held around download.NewDownloader, which sets a zerolog

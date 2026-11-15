@@ -542,7 +542,11 @@ func (e *Engine) readTorrents() {
 	for id := range e.runs {
 		ids = append(ids, id)
 	}
+	watch := e.watch
 	e.mu.Unlock()
+	if watch != nil {
+		watch(readings)
+	}
 	for _, id := range ids {
 		e.report(bt, id, readings)
 	}

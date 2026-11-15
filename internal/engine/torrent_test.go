@@ -640,3 +640,26 @@ func TestTheTorrentsTheEngineRunsAreTheOnesNotPaused(t *testing.T) {
 		t.Errorf("running %v", got)
 	}
 }
+
+func TestEveryReadingOfTheClientIsHandedOn(t *testing.T) {
+	e, c, _ := torrentEngine(t)
+	if err := c.Add(context.Background(), torrents.Add{Hash: "aa", File: nil, Magnet: "magnet:?xt=urn:btih:aa", Dir: t.TempDir()}); err != nil {
+		t.Fatal(err)
+	}
+	var mu sync.Mutex
+	var seen []string
+	e.WatchReadings(func(r map[string]torrents.Reading) {
+		mu.Lock()
+		defer mu.Unlock()
+		for h := range r {
+			seen = append(seen, h)
+		}
+	})
+	_, magnet := testenv.SeedTorrent(t, "Pack", map[string]int{"a.bin": 10})
+	e.Start(Job{TaskID: "t", URL: magnet, Dir: t.TempDir()})
+	waitUntil(t, "a reading with the torrent nobody runs", func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		return slices.Contains(seen, "aa")
+	})
+}
