@@ -194,3 +194,132 @@ func TestAnyPortLeavesQBittorrentsOwnPort(t *testing.T) {
 		t.Fatal("listen_port was set")
 	}
 }
+
+// interfaces is how qBittorrent on Windows lists the interfaces: by the
+// adapter's internal name, with the name the system shows beside it.
+var interfaces = []qbittest.Interface{
+	{Name: "Ethernet", Value: "ethernet_32769", Addrs: []string{"fe80::1%4", "192.168.1.5"}},
+	{Name: "Loopback Pseudo-Interface 1", Value: "loopback_0", Addrs: []string{"::1", "127.0.0.1"}},
+}
+
+var socks = &Proxy{Host: "127.0.0.1", Port: 41080, User: "knightloader", Pass: "secret"}
+
+func TestAProxyCarriesEveryConnectionAndWhatWouldGoAroundItIsOff(t *testing.T) {
+	q, c := serve(t)
+	q.Interfaces = interfaces
+	if err := c.Configure(context.Background(), Prefs{Proxy: socks, DHT: true, PEX: true, Interface: "Ethernet"}); err != nil {
+		t.Fatal(err)
+	}
+	p := q.Preferences()
+	for k, want := range map[string]any{
+		"proxy_type": 4.0, "proxy_ip": "127.0.0.1", "proxy_port": 41080.0, "proxy_auth_enabled": true,
+		"proxy_username": "knightloader", "proxy_password": "secret",
+		"proxy_peer_connections": true, "proxy_torrents_only": false, "proxy_hostname_lookup": true,
+		"upnp": false, "lsd": false, "dht": false, "pex": true, "anonymous_mode": true,
+		"bittorrent_protocol":       1.0,
+		"current_network_interface": "loopback_0", "current_interface_address": "",
+	} {
+		if p[k] != want {
+			t.Errorf("%s = %v, want %v", k, p[k], want)
+		}
+	}
+}
+
+func TestFromQBittorrent46OnTheProxyTypeGoesByItsName(t *testing.T) {
+	q, c := serve(t)
+	q.Version = "v4.6.7"
+	if err := c.Configure(context.Background(), Prefs{Proxy: socks}); err != nil {
+		t.Fatal(err)
+	}
+	p := q.Preferences()
+	if p["proxy_type"] != "SOCKS5" || p["proxy_auth_enabled"] != true {
+		t.Errorf("proxy_type %v, auth %v", p["proxy_type"], p["proxy_auth_enabled"])
+	}
+}
+
+func TestAProxyQBittorrentDoesNotTakeTiesItToNoInterfaceAtAll(t *testing.T) {
+	q, c := serve(t)
+	q.Interfaces = interfaces
+	q.IgnoreProxy = true
+	if err := c.Configure(context.Background(), Prefs{Proxy: socks}); err == nil {
+		t.Fatal("a proxy qBittorrent left off was taken as set")
+	}
+	if got := q.Preferences()["current_network_interface"]; got != NoInterface {
+		t.Errorf("current_network_interface = %v, want %q", got, NoInterface)
+	}
+}
+
+func TestWithoutALoopbackInterfaceTheProxyAloneCarriesTheTorrents(t *testing.T) {
+	q, c := serve(t)
+	q.Interfaces = interfaces[:1]
+	if err := c.Configure(context.Background(), Prefs{Proxy: socks}); err != nil {
+		t.Fatal(err)
+	}
+	if got := q.Preferences()["current_network_interface"]; got != "" {
+		t.Errorf("current_network_interface = %v", got)
+	}
+}
+
+func TestTurningTheProxyOnRestartsEveryRunningTorrentOnce(t *testing.T) {
+	q, c := serve(t)
+	q.Interfaces = interfaces
+	q.Put(qbittest.Torrent{Hash: "aa", Tags: Tag, State: "downloading"})
+	q.Put(qbittest.Torrent{Hash: "bb", Tags: Tag, State: "pausedDL"})
+	q.Put(qbittest.Torrent{Hash: "cc", Tags: Tag + ",cross-seed", State: "stalledUP"})
+	ctx := context.Background()
+	for range 2 {
+		if err := c.Configure(ctx, Prefs{Proxy: socks}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	want := []string{"pause aa|cc", "resume aa|cc"}
+	if got := q.Switches(); !slices.Equal(got, want) {
+		t.Errorf("switches %v, want %v", got, want)
+	}
+}
+
+func TestWithoutTheProxyTorrentsGoOutDirectlyAgain(t *testing.T) {
+	q, c := serve(t)
+	q.Interfaces = interfaces
+	ctx := context.Background()
+	if err := c.Configure(ctx, Prefs{Proxy: socks}); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.Configure(ctx, Prefs{DHT: true}); err != nil {
+		t.Fatal(err)
+	}
+	p := q.Preferences()
+	for k, want := range map[string]any{
+		"proxy_type": 0.0, "proxy_auth_enabled": false, "upnp": true, "lsd": true, "dht": true,
+		"anonymous_mode": false, "bittorrent_protocol": 0.0, "current_network_interface": "",
+	} {
+		if p[k] != want {
+			t.Errorf("%s = %v, want %v", k, p[k], want)
+		}
+	}
+}
+
+func TestTheInterfaceIsNamedTheWayQBittorrentNamesIt(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		list  []qbittest.Interface
+		asked string
+		want  string
+	}{
+		{"windows", interfaces, "Ethernet", "ethernet_32769"},
+		{"linux", []qbittest.Interface{{Name: "eth0", Value: "eth0"}, {Name: "wg0", Value: "wg0"}}, "wg0", "wg0"},
+		{"macos", []qbittest.Interface{{Name: "en0", Value: "en0"}, {Name: "utun3", Value: "utun3"}}, "utun3", "utun3"},
+		{"missing", interfaces, "wg0", "wg0"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			q, c := serve(t)
+			q.Interfaces = tc.list
+			if err := c.Configure(context.Background(), Prefs{Interface: tc.asked}); err != nil {
+				t.Fatal(err)
+			}
+			if got := q.Preferences()["current_network_interface"]; got != tc.want {
+				t.Errorf("current_network_interface = %v, want %q", got, tc.want)
+			}
+		})
+	}
+}

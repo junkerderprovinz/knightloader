@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math"
 	"net/url"
+	"slices"
 
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent"
 )
@@ -229,19 +230,50 @@ func (q qbit) Configure(ctx context.Context, p Prefs) error {
 	if err != nil {
 		return err
 	}
-	return c.SetPreferences(ctx, prefsOf(p))
+	before, err := c.Preferences(ctx)
+	if err != nil {
+		return err
+	}
+	// Up to 4.5 the proxy's type is a number, with a type of its own for a
+	// proxy that takes a login; later versions name it.
+	_, legacy := before["proxy_type"].(float64)
+	m := prefsOf(p, legacy)
+	if p.Proxy != nil {
+		m["current_network_interface"] = loopback(ctx, c)
+	} else {
+		m["current_network_interface"] = interfaceValue(ctx, c, p.Interface)
+	}
+	if err := c.SetPreferences(ctx, m); err != nil {
+		return err
+	}
+	if p.Proxy == nil {
+		return nil
+	}
+	after, err := c.Preferences(ctx)
+	if err != nil || !proxyHolds(after, p.Proxy) {
+		if err := c.SetPreferences(ctx, map[string]any{"current_network_interface": NoInterface}); err != nil {
+			return err
+		}
+		return errors.New("qBittorrent did not take the proxy, so its torrents are tied to no interface and wait")
+	}
+	if proxyHolds(before, p.Proxy) {
+		return nil
+	}
+	// A connection opened before stays where it was, so every torrent that
+	// runs drops its own and connects again through the proxy.
+	return restart(ctx, c)
 }
 
 // prefsOf is p in qBittorrent's keys, with the rules qBittorrent would apply
 // on its own switched off: KnightLoader queues the torrents, decides when
 // their seeding ends, adds extra trackers only where a torrent is not private,
 // and reads a file at its final name while it arrives.
-func prefsOf(p Prefs) map[string]any {
+func prefsOf(p Prefs, legacy bool) map[string]any {
 	m := map[string]any{
 		"up_limit":                  p.UploadLimit,
 		"dht":                       p.DHT,
 		"pex":                       p.PEX,
-		"current_network_interface": p.Interface,
+		"current_interface_address": "",
 		"queueing_enabled":          false,
 		"max_ratio_enabled":         false,
 		"max_seeding_time_enabled":  false,
@@ -252,10 +284,125 @@ func prefsOf(p Prefs) map[string]any {
 		"incomplete_files_ext":      false,
 		"temp_path_enabled":         false,
 		"add_trackers_enabled":      false,
+		"upnp":                      true,
+		"lsd":                       true,
+		"anonymous_mode":            false,
+		"bittorrent_protocol":       protocolBoth,
+		"proxy_type":                "None",
+		"proxy_auth_enabled":        false,
+	}
+	if legacy {
+		m["proxy_type"] = 0
 	}
 	// qBittorrent picked a port of its own on its first start, and keeps it.
 	if p.Port > 0 {
 		m["listen_port"] = p.Port
 	}
+	if px := p.Proxy; px != nil {
+		m["proxy_type"] = "SOCKS5"
+		m["proxy_auth_enabled"] = true
+		if legacy {
+			m["proxy_type"] = legacySOCKS5Login
+		}
+		m["proxy_ip"] = px.Host
+		m["proxy_port"] = px.Port
+		m["proxy_username"] = px.User
+		m["proxy_password"] = px.Pass
+		m["proxy_peer_connections"] = true
+		m["proxy_torrents_only"] = false
+		m["proxy_hostname_lookup"] = true
+		// Anonymous mode keeps the machine's own addresses out of what goes
+		// to trackers and peers.
+		m["anonymous_mode"] = true
+		m["dht"] = false
+		m["lsd"] = false
+		m["upnp"] = false
+		m["bittorrent_protocol"] = protocolTCP
+	}
 	return m
+}
+
+// qBittorrent's numbers for the proxy type and the peer protocols.
+const (
+	legacySOCKS5Login = 4
+	protocolBoth      = 0
+	protocolTCP       = 1
+)
+
+// proxyHolds reports whether the settings m have qBittorrent connect through
+// px.
+func proxyHolds(m map[string]any, px *Proxy) bool {
+	typ := m["proxy_type"]
+	return (typ == float64(legacySOCKS5Login) || typ == "SOCKS5") &&
+		m["proxy_auth_enabled"] == true &&
+		m["proxy_peer_connections"] == true &&
+		m["proxy_ip"] == px.Host &&
+		m["proxy_port"] == float64(px.Port) &&
+		m["proxy_username"] == px.User
+}
+
+// interfaceValue is the name qBittorrent takes for the interface the system
+// calls name. On Windows qBittorrent names an adapter by its internal name,
+// such as ethernet_32769, and shows the system's beside it; elsewhere the
+// two are one. A name qBittorrent does not list is passed on as it is, so
+// torrents wait for that interface rather than go out on another.
+func interfaceValue(ctx context.Context, c *qbittorrent.Client, name string) string {
+	if name == "" {
+		return ""
+	}
+	list, err := c.NetworkInterfaces(ctx)
+	if err != nil {
+		return name
+	}
+	for _, i := range list {
+		if i.Value == name {
+			return i.Value
+		}
+	}
+	for _, i := range list {
+		if i.Name == name {
+			return i.Value
+		}
+	}
+	return name
+}
+
+// loopback is qBittorrent's name for the interface of 127.0.0.1, so that with
+// a proxy on loopback nothing can leave the machine but through it. Without
+// one the proxy alone carries the torrents.
+func loopback(ctx context.Context, c *qbittorrent.Client) string {
+	list, err := c.NetworkInterfaces(ctx)
+	if err != nil {
+		return ""
+	}
+	for _, i := range list {
+		addrs, err := c.InterfaceAddresses(ctx, i.Value)
+		if err == nil && slices.Contains(addrs, "127.0.0.1") {
+			return i.Value
+		}
+	}
+	return ""
+}
+
+// restart stops and starts every torrent that runs.
+func restart(ctx context.Context, c *qbittorrent.Client) error {
+	list, err := c.Torrents(ctx, qbittorrent.Filter{})
+	if err != nil {
+		return err
+	}
+	var running []string
+	for _, t := range list {
+		switch st, _ := stateOf(t.State); st {
+		case Stopped, Finished, Failed:
+		default:
+			running = append(running, t.Hash)
+		}
+	}
+	if len(running) == 0 {
+		return nil
+	}
+	if err := c.Stop(ctx, running...); err != nil {
+		return err
+	}
+	return c.Start(ctx, running...)
 }

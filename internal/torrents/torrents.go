@@ -138,6 +138,22 @@ type Prefs struct {
 	UploadLimit int64
 	DHT, PEX    bool
 	// Interface is the network interface every torrent's traffic is tied
-	// to, empty for any.
+	// to, by the name the system gives it, empty for any.
 	Interface string
+	// Proxy carries every connection of the client, nil for none. While it
+	// is set the client is tied to loopback, and whatever would go around a
+	// proxy is off: the DHT, which looks up its first nodes on the machine's
+	// own name servers, local peer discovery, port mapping and uTP.
+	Proxy *Proxy
 }
+
+// Proxy is a SOCKS5 proxy with a login.
+type Proxy struct {
+	Host       string
+	Port       int
+	User, Pass string
+}
+
+// NoInterface is the interface the client is tied to when a proxy could not
+// be set: there is none of that name, so nothing goes out at all.
+const NoInterface = "knightloader-vpn"
