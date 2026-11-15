@@ -5,17 +5,8 @@
 /dist/
 # go
 /vendor/
-# anacrolix/torrent's default piece-completion cache: created wherever a test
-# builds a real torrent.Client without an explicit storage dir (11.5's
-# internal/engine/torrent_live_test.go does, deliberately, to exercise gopeed's
-# bt.Fetcher against a real swarm) - not something this repo's own code names
-# or controls, so ignoring it here is the fix rather than a code change.
-# Both names, because the library renamed it: a run of the current pin leaves
-# .torrent.db behind, and the older .torrent.bolt.db is kept so an older
-# checkout does not start showing one either.
-# The -shm/-wal suffixes are SQLite's own side files: the same run that leaves
-# the database leaves those two next to it, and ignoring only the database is a
-# rule that catches one of the three files it was written for.
+# anacrolix/torrent's piece-completion cache and its SQLite side files, which
+# the tests of a checkout from before qBittorrent leave behind.
 *.torrent.bolt.db*
 .torrent.db*
 # local/tmp
