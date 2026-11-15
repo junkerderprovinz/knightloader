@@ -24,7 +24,7 @@ import (
 // how much of them a crash can lose.
 const seedSaveEvery = time.Minute
 
-// SeedPending reports whether a finished torrent of the built-in client is not
+// SeedPending reports whether a finished torrent of the torrent engine is not
 // seeding but owes more: it stopped at a shutdown or a crash, not at its
 // targets. A disabled one, and one held back by the torrent module being off,
 // owe it as well and seed once they may.

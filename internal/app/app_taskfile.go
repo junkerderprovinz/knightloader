@@ -181,7 +181,7 @@ func (l leftover) drop(taskID string) {
 	}
 }
 
-// torrentLeftover is where a torrent of the built-in client landed, for
+// torrentLeftover is where a torrent of the torrent engine landed, for
 // deleting its files when the engine does not know it, as after a restart.
 // paths is a magnet's file list, which the task keeps once the swarm has sent
 // it.

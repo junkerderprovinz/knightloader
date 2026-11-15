@@ -37,7 +37,7 @@ func startedHere(a *App, id string) bool {
 	return a.started[id]
 }
 
-// finishedSeed is a finished torrent of the built-in client that landed at
+// finishedSeed is a finished torrent of the torrent engine that landed at
 // root in dir.
 func finishedSeed(id, uri, root, hash string) core.Task {
 	return core.Task{

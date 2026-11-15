@@ -1,7 +1,7 @@
 package app
 
 // Torrents through a debrid service: the priority card decides between the
-// service and the built-in client, a refusal falls back to the next of them,
+// service and the torrent engine, a refusal falls back to the next of them,
 // the wait while the service fetches is no stall, and the files arrive through
 // the engine under the task.
 
@@ -104,7 +104,7 @@ func openAccountApp(t *testing.T, dir string, site *fakeAccount, keep bool) *App
 	return a
 }
 
-// torrentOrderApp has Real-Debrid take torrents beside the built-in client,
+// torrentOrderApp has Real-Debrid take torrents beside the torrent engine,
 // with the queue halted so nothing reaches the swarm, and the order given.
 func torrentOrderApp(t *testing.T, order []string) (*App, chan string) {
 	t.Helper()
@@ -138,7 +138,7 @@ func TestAMagnetGoesToTheDebridServiceFirst(t *testing.T) {
 	if got := a.stagingResolverFor(debridMagnet, "").Info().ID; got != "realdebrid" {
 		t.Errorf("a magnet is collected for %q, want the service the card puts first", got)
 	}
-	// Collected while the built-in client came first, so the recorded backend
+	// Collected while the torrent engine came first, so the recorded backend
 	// is only the pick of that moment.
 	queueTorrent(a, &core.Task{ID: "m1", URL: debridMagnet, Resolver: "torrent", Status: core.StatusQueued, Enabled: true})
 
@@ -153,7 +153,7 @@ func TestAMagnetGoesToTheDebridServiceFirst(t *testing.T) {
 func TestWithoutAnOrderTorrentsStayWithTheBuiltInClient(t *testing.T) {
 	a, _ := torrentOrderApp(t, nil)
 	if got := a.stagingResolverFor(debridMagnet, "").Info().ID; got != "torrent" {
-		t.Errorf("with the automatic order a magnet goes to %q, want the built-in client as before", got)
+		t.Errorf("with the automatic order a magnet goes to %q, want the torrent engine as before", got)
 	}
 }
 
@@ -181,7 +181,7 @@ func TestATorrentTheServiceRefusesFallsBackToTheBuiltInClient(t *testing.T) {
 
 	got := liveTask(a, "m1")
 	if got.Resolver != "torrent" || got.Status != core.StatusQueued {
-		t.Errorf("after the refusal the task is %s on %q, want queued for the built-in client", got.Status, got.Resolver)
+		t.Errorf("after the refusal the task is %s on %q, want queued for the torrent engine", got.Status, got.Resolver)
 	}
 	if !settle(events)["realdebrid remove m1"] {
 		t.Error("Real-Debrid was not told to let go of the task")
@@ -191,7 +191,7 @@ func TestATorrentTheServiceRefusesFallsBackToTheBuiltInClient(t *testing.T) {
 	}
 }
 
-// The row of a torrent the service passed on says why the built-in client has
+// The row of a torrent the service passed on says why the torrent engine has
 // it, while the client fetches it, and no longer once it is here.
 func TestATorrentTheServicePassedOnSaysWhyUntilItIsDone(t *testing.T) {
 	a, events := torrentOrderApp(t, []string{"realdebrid", "torrent"})
@@ -207,12 +207,12 @@ func TestATorrentTheServicePassedOnSaysWhyUntilItIsDone(t *testing.T) {
 		Reason: core.ReasonUnsupported, Unsupported: true, Declined: &why,
 	})
 	if got := liveTask(a, "m1"); got.Resolver != "torrent" || got.Declined == nil || *got.Declined != why {
-		t.Fatalf("handed to %q with %+v, want the built-in client and the service's refusal", got.Resolver, got.Declined)
+		t.Fatalf("handed to %q with %+v, want the torrent engine and the service's refusal", got.Resolver, got.Declined)
 	}
 
 	a.onUpdate("m1", core.Update{Status: core.StatusRunning, Size: 100, Loaded: 10})
 	if got := liveTask(a, "m1").Declined; got == nil {
-		t.Error("the built-in client's progress wiped out why it has the torrent")
+		t.Error("the torrent engine's progress wiped out why it has the torrent")
 	}
 	a.onUpdate("m1", core.Update{Status: core.StatusDone, Size: 100, Loaded: 100})
 	if got := liveTask(a, "m1").Declined; got != nil {
@@ -565,7 +565,7 @@ func TestADebridTorrentArrivesThroughTheEngineUnderOneTask(t *testing.T) {
 }
 
 // A debrid torrent's files are chosen by the file rules of its category, as
-// the built-in client's are.
+// the torrent engine's are.
 func TestADebridTorrentGoesByItsCategorysFileRules(t *testing.T) {
 	a := newQueueApp(t)
 	s := a.Settings.Get()

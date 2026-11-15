@@ -186,7 +186,7 @@ function bubbleOver(line: string): string {
   return document.querySelector('[role="tooltip"]')?.textContent ?? '';
 }
 
-it('says which debrid service passed a torrent on, and why, while the built-in client fetches it', () => {
+it('says which debrid service passed a torrent on, and why, while the torrent engine fetches it', () => {
   const passed = { resolver: 'torrent', loaded: 0, declined: { service: 'realdebrid', code: 'stalled' as const } };
   expect(cell(row('a', { ...passed, status: 'running' }))).toContain('Real-Debrid passed this torrent on');
   expect(bubbleOver('Real-Debrid passed this torrent on')).toContain(

@@ -96,7 +96,7 @@ func (f *fakeQBittorrent) seen() (int, []qbitAdd) {
 
 // qbitApp seeds what the debrid service fetched in qb, which mounts the
 // download folder as /data/downloads, with password as the one stored. The
-// built-in client is switched off, which leaves qBittorrent's way open.
+// torrent engine is switched off, which leaves qBittorrent's way open.
 func qbitApp(t *testing.T, qb *fakeQBittorrent, password string) *App {
 	t.Helper()
 	a := seedAfterDebridApp(t, true, nil)
@@ -239,7 +239,7 @@ func TestATorrentThatFailsTheCheckIsNotHandedToQBittorrent(t *testing.T) {
 	}
 }
 
-// qBittorrent is set up but the built-in client is chosen, which seeds as it
+// qBittorrent is set up but the torrent engine is chosen, which seeds as it
 // always has and never calls qBittorrent.
 func TestWithTheBuiltInClientChosenQBittorrentIsLeftAlone(t *testing.T) {
 	qb := newFakeQBittorrent(t)
@@ -254,15 +254,15 @@ func TestWithTheBuiltInClientChosenQBittorrentIsLeftAlone(t *testing.T) {
 	dir := fetchedPack(t, a, link, files)
 
 	a.seedFromService("p1")
-	waitFor(t, "the torrent to seed in the built-in client", func() bool {
+	waitFor(t, "the torrent to seed in the torrent engine", func() bool {
 		return liveTask(a, "p1").Seeding
 	})
 
 	got := liveTask(a, "p1")
 	if got.Resolver != "torrent" || !samePath(got.File, filepath.Join(dir, "Pack")) {
-		t.Errorf("seeding on %q from %s, want the built-in client on the torrent's folder", got.Resolver, got.File)
+		t.Errorf("seeding on %q from %s, want the torrent engine on the torrent's folder", got.Resolver, got.File)
 	}
 	if logins, adds := qb.seen(); logins != 0 || len(adds) != 0 {
-		t.Errorf("qBittorrent saw %d logins and %d adds with the built-in client chosen", logins, len(adds))
+		t.Errorf("qBittorrent saw %d logins and %d adds with the torrent engine chosen", logins, len(adds))
 	}
 }

@@ -49,7 +49,7 @@ export function routesOf({
   rows: Connection[];
   /** The connections module's switch; off, everything goes out directly. */
   enabled: boolean;
-  /** The interface the built-in torrent client is tied to, empty for none. */
+  /** The interface the torrent engine is tied to, empty for none. */
   torrentInterface: string;
   interfaceUp: boolean;
   tasks: Task[];

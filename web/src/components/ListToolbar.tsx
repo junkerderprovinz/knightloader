@@ -186,7 +186,7 @@ export interface QuickFilter {
 
 export const QUICK_FILTERS: QuickFilter[] = [
   // Extracting counts as running, since the download is not over yet, and so
-  // do a par2 check's verifying and repairing. A torrent the built-in client
+  // do a par2 check's verifying and repairing. A torrent the torrent engine
   // downloads reads Leeching in its row (rowState), so it has that filter and
   // not this one.
   {

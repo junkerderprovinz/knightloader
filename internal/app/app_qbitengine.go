@@ -51,7 +51,7 @@ type qbitState struct {
 	qbitDone   int64
 	qbitTotal  int64
 
-	// recheckSeed is every finished torrent of the built-in client whose
+	// recheckSeed is every finished torrent of the torrent engine whose
 	// first seed run checks its pieces (see app_torrentmigrate.go). Guarded
 	// by App.mu.
 	recheckSeed map[string]bool

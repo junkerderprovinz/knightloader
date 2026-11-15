@@ -41,7 +41,7 @@ func (r Resolver) Match(raw string) bool {
 	return hostInSet(u.Hostname(), r.Hosts)
 }
 
-// Resolve checks a torrent the way the built-in client does and passes a
+// Resolve checks a torrent the way the torrent engine does and passes a
 // hoster link on as it is.
 func (r Resolver) Resolve(ctx context.Context, req resolver.Request) (resolver.Result, error) {
 	if r.Torrents && torrent.IsURI(req.URL) {

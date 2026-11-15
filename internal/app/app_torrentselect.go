@@ -170,7 +170,7 @@ func (a *App) TorrentFiles(id string) ([]TorrentFileView, error) {
 // fetches and returns its files as TorrentFiles does. Paths are matched
 // against the torrent's own list, so one it does not have selects nothing.
 //
-// A running torrent on the built-in client carries on with the new selection
+// A running torrent on the torrent engine carries on with the new selection
 // without starting over (see engine.SelectTorrentFiles). Any other client
 // takes it at its next start. A finished torrent keeps what it has.
 func (a *App) SelectTorrentFiles(id string, paths []string) ([]TorrentFileView, error) {

@@ -1,7 +1,7 @@
 package app
 
 // A torrent a debrid service fetched, handed to an external qBittorrent to
-// seed rather than to the built-in client, so cross-seeding tools that watch
+// seed rather than to the torrent engine, so cross-seeding tools that watch
 // qBittorrent find it. KnightLoader checks the files as it does before seeding
 // them itself, and qBittorrent is told to skip its own check.
 

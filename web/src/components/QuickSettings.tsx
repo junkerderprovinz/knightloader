@@ -80,7 +80,7 @@ const ROWS: QuickRow[] = [
   },
   {
     id: 'uploadLimit',
-    // Only torrents upload, so the row goes with the built-in torrent client.
+    // Only torrents upload, so the row goes with the torrent engine.
     // The whole block is sent, as the Torrents page sends it.
     render: ({ cfg, patch, extras }) => {
       if (extras.torrentsModule?.parked) return null;

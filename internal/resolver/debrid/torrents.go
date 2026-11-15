@@ -1135,7 +1135,7 @@ func (b *TorrentBackend) wanted(taskID, root string, files []TorrentFile) ([]Tor
 }
 
 // byRules is the files the task's file rules keep, or every file when it has
-// none or they would keep none, as the built-in client picks (see
+// none or they would keep none, as the torrent engine picks (see
 // torrent.Picker.Pick). The rules read a path inside the torrent, so the
 // torrent's own folder comes off where the service puts it in front.
 func (b *TorrentBackend) byRules(taskID, root string, files []TorrentFile) ([]TorrentFile, error) {
@@ -1210,7 +1210,7 @@ func (b *TorrentBackend) remoteSize(taskID string, tj TorrentJob) int64 {
 }
 
 // localPath is where one file goes inside the task's folder: a multi-file
-// torrent in a folder of its own name, as the built-in client writes it, and a
+// torrent in a folder of its own name, as the torrent engine writes it, and a
 // single file as it is. The service's path comes from the torrent's author, so
 // the caller still checks it stays inside the folder.
 func localPath(name string, multi bool, p, fallback string) (string, error) {

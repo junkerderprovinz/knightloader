@@ -55,7 +55,7 @@ interface TorrentSettings {
   debridCachedOnly: boolean;
   debridStallMinutes: number;
   seedAfterDebrid: boolean;
-  /** Empty is the built-in client too, as settings.Torrent.SeedIn has it. */
+  /** Empty is the torrent engine too, as settings.Torrent.SeedIn has it. */
   seedIn: 'builtin' | 'qbittorrent' | '';
   qbittorrent: QBittorrentSettings;
   crossSeed: CrossSeedSettings;

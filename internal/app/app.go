@@ -109,7 +109,7 @@ type App struct {
 	Hub      *hub.Hub
 	Registry *resolver.Registry
 	Accounts *accounts.Store
-	// VPN is the connection the built-in torrent client goes through.
+	// VPN is the connection the torrent engine goes through.
 	VPN        *vpnconn.Manager
 	Settings   *settings.Store
 	Federation *federation.Manager
@@ -477,7 +477,7 @@ type App struct {
 	// the store, which a poll does only once in seedSaveEvery. Built on first
 	// use.
 	seedSaved map[string]time.Time
-	// tally counts what the built-in torrent client moves, for the overview.
+	// tally counts what the torrent engine moves, for the overview.
 	tally *torrentTally
 	// siteBench is when a service may be asked about a site again after it
 	// said it has switched that site off or used up its volume for it (see

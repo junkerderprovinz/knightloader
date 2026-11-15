@@ -1035,7 +1035,7 @@ func TestATorrentThatStoppedSeedingReportsTheTimeItSeeded(t *testing.T) {
 }
 
 // TestATorrentAShutdownStoppedIsNotDoneSeedingForSonarr reads two finished
-// torrents of the built-in client that seeded ten minutes, one stopped by a
+// torrents of the torrent engine that seeded ten minutes, one stopped by a
 // shutdown and waiting to seed again, one stopped at a target. Only the second
 // may be removed, and both report the time they seeded rather than the time
 // since they finished.

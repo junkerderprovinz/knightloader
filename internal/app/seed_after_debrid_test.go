@@ -1,6 +1,6 @@
 package app
 
-// A torrent a debrid service fetched, handed to the built-in client to seed:
+// A torrent a debrid service fetched, handed to the torrent engine to seed:
 // it seeds from the files the service delivered, and one whose files are not
 // all there is left alone with the reason on its row.
 
@@ -73,7 +73,7 @@ func (s *packService) FileURL(_ context.Context, _ string, f debrid.TorrentFile)
 func (s *packService) DeleteTorrent(context.Context, string) error { return nil }
 
 // seedAfterDebridApp has a debrid service that takes torrents first, with the
-// switch that hands what it fetched to the built-in client set to seed.
+// switch that hands what it fetched to the torrent engine set to seed.
 func seedAfterDebridApp(t *testing.T, seed bool, held map[string][]byte) *App {
 	t.Helper()
 	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +112,7 @@ func TestATorrentADebridServiceFetchedSeedsFromItsFiles(t *testing.T) {
 
 	got := liveTask(a, "p1")
 	if got.Resolver != "torrent" || !samePath(got.File, filepath.Join(dir, "Pack")) {
-		t.Errorf("seeding on %q from %s, want the built-in client on the torrent's folder", got.Resolver, got.File)
+		t.Errorf("seeding on %q from %s, want the torrent engine on the torrent's folder", got.Resolver, got.File)
 	}
 	if got.Status != core.StatusDone || got.SeedingOver {
 		t.Errorf("the task is %s, seeding over %v; a seeding torrent is done and owes more", got.Status, got.SeedingOver)
@@ -194,7 +194,7 @@ func TestWithoutTheSwitchADebridTorrentStaysWhereItWasFetched(t *testing.T) {
 }
 
 // Only some of the torrent's files were chosen, so the service fetched only
-// those, and the built-in client would fetch the pieces they share with the
+// those, and the torrent engine would fetch the pieces they share with the
 // others.
 func TestADebridTorrentFetchedInPartIsNotSeeded(t *testing.T) {
 	a := seedAfterDebridApp(t, true, nil)

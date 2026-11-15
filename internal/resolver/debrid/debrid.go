@@ -315,7 +315,7 @@ func (r Resolver) Match(raw string) bool {
 	return HostInSet(u.Hostname(), r.Hosts)
 }
 
-// Resolve checks a torrent the way the built-in client does, so a malformed
+// Resolve checks a torrent the way the torrent engine does, so a malformed
 // one is refused before it reaches the service, and passes a hoster link on
 // as it is.
 func (r Resolver) Resolve(ctx context.Context, req resolver.Request) (resolver.Result, error) {
@@ -334,7 +334,7 @@ func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability
 		return resolver.Answers(nil, len(urls)), nil
 	}
 	// A torrent is no hoster link, and one in the batch can make a service
-	// refuse all of it, so it stays uncheckable as with the built-in client.
+	// refuse all of it, so it stays uncheckable as with the torrent engine.
 	var links []string
 	var at []int
 	for i, u := range urls {

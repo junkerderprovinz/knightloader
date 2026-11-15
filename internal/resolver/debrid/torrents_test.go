@@ -558,7 +558,7 @@ func TestTheResolverClaimsTorrentsOnlyForAServiceThatTakesThem(t *testing.T) {
 	}
 	res, err := with.Resolve(context.Background(), resolver.Request{URL: testMagnet})
 	if err != nil || res.Name != "Show" {
-		t.Errorf("Resolve = %+v, %v; want the magnet checked and named like the built-in client does", res, err)
+		t.Errorf("Resolve = %+v, %v; want the magnet checked and named like the torrent engine does", res, err)
 	}
 	if _, err := with.Resolve(context.Background(), resolver.Request{URL: "magnet:?dn=nothing"}); err == nil {
 		t.Error("a magnet without an info hash went through")
@@ -1080,7 +1080,7 @@ func TestFileRulesThatKeepNothingFetchEveryFile(t *testing.T) {
 	up.until(t, core.StatusDone)
 
 	if got := partIDs(parts.parts()); len(got) != 2 {
-		t.Errorf("the engine got %v, want every file, as the built-in client does", got)
+		t.Errorf("the engine got %v, want every file, as the torrent engine does", got)
 	}
 }
 

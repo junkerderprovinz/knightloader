@@ -454,7 +454,7 @@ func (a *App) rerankLocked(t *core.Task) bool {
 // torrentOpenLocked reports whether a torrent goes wherever the ranked chain
 // puts it rather than to the backend it was collected for: nothing of it has
 // come in, no debrid service holds a job for it, and it was not handed down
-// the chain. The built-in client and every debrid service that takes torrents
+// the chain. The torrent engine and every debrid service that takes torrents
 // compete for it on the priority card, and the order may have changed since it
 // was collected. Caller holds a.mu.
 func (a *App) torrentOpenLocked(t *core.Task) bool {
@@ -1091,7 +1091,7 @@ func (a *App) dispatchLocked() {
 		}
 		t.Connection = chosen
 		// The new attempt reports the file it writes itself. A torrent the
-		// built-in client takes up again lands where it was, and a magnet's
+		// torrent engine takes up again lands where it was, and a magnet's
 		// attempt may never hear from the swarm, so that place stays on the
 		// task for removing it with its files.
 		landed := t.File

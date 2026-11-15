@@ -172,7 +172,7 @@ func TestTheWatchRowSaysWhetherTheFolderIsThere(t *testing.T) {
 	}
 }
 
-// The switch holds back only the built-in client, so with a debrid service
+// The switch holds back only the torrent engine, so with a debrid service
 // that takes torrents the row cannot say that new ones wait.
 func TestTheTorrentsRowSaysWhereNewTorrentsGoWhileItIsOff(t *testing.T) {
 	t.Parallel()
@@ -183,7 +183,7 @@ func TestTheTorrentsRowSaysWhereNewTorrentsGoWhileItIsOff(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got := featureRow(t, a, "torrents").DetailCode; got != "torrentsOff" {
-		t.Errorf("with only the built-in client the row says %q, want torrentsOff", got)
+		t.Errorf("with only the torrent engine the row says %q, want torrentsOff", got)
 	}
 	a.Registry.Register(debrid.Resolver{ServiceID: "realdebrid", Prio: 48, Torrents: true})
 	if got := featureRow(t, a, "torrents").DetailCode; got != "torrentsOffDebrid" {

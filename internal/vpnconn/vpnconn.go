@@ -1,4 +1,4 @@
-// Package vpnconn runs the one VPN connection the built-in torrent client goes
+// Package vpnconn runs the one VPN connection the torrent engine goes
 // through: the providers of the VPN page, their sealed logins, the tunnel and
 // the port the provider forwards. Everything else of KnightLoader stays on the
 // machine's own connection.

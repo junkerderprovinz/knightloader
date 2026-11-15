@@ -302,7 +302,7 @@ func (a *App) stallMinutes(taskID string) int {
 }
 
 // torrentRules is the file rules of a torrent's category, which choose its
-// files on a debrid service as they do in the built-in client (see
+// files on a debrid service as they do in the torrent engine (see
 // torrentJobLocked).
 func (a *App) torrentRules(taskID string) (func(string, int64) bool, error) {
 	a.mu.Lock()

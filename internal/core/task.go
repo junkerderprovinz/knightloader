@@ -276,7 +276,7 @@ type Update struct {
 	// OtherFiles are what a finished row wrote besides File, the further
 	// languages of a subtitle row. They stay on the task as its WorkFiles.
 	OtherFiles []string
-	// TorrentFiles is every file of a torrent the built-in client has
+	// TorrentFiles is every file of a torrent the torrent engine has
 	// resolved, with the selection it runs with. It comes once, with the
 	// resolve, so a torrent whose files nobody chose by hand keeps the choice
 	// the file rules made.

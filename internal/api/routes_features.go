@@ -991,7 +991,7 @@ func torrentsDetail(a *app.App) line {
 	}
 }
 
-// torrentsOffDetail says where a new torrent goes while the built-in client is
+// torrentsOffDetail says where a new torrent goes while the torrent engine is
 // switched off. The switch holds back only the client, so a debrid service
 // that takes torrents fetches them meanwhile.
 func torrentsOffDetail(a *app.App) line {

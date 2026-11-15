@@ -1,6 +1,6 @@
 package app
 
-// What the built-in torrent client has moved: the bytes it received and sent,
+// What the torrent engine has moved: the bytes it received and sent,
 // today and since the count began, and how fast each torrent sends right now.
 // The download library reports a torrent's upload only as a running total
 // (core.TorrentStats.Uploaded), so the totals grow by how much each reading
@@ -285,7 +285,7 @@ func (a *App) heldTorrentBytes() (down, up int64) {
 	return down, up
 }
 
-// TorrentOverview is the overview's torrent card: what the built-in client is
+// TorrentOverview is the overview's torrent card: what the torrent engine is
 // doing now and what it has moved.
 type TorrentOverview struct {
 	// Any says this instance has a torrent on its list or has ever moved a
@@ -305,7 +305,7 @@ type TorrentOverview struct {
 	Top []TorrentUploader `json:"top"`
 	// Interface is the network interface the torrent settings tie torrents
 	// to, and InterfaceDown says it is missing or down, which holds every
-	// torrent of the built-in client until it is back.
+	// torrent of the torrent engine until it is back.
 	Interface     string `json:"interface,omitempty"`
 	InterfaceDown bool   `json:"interfaceDown"`
 	// VPN says torrents go through the built-in VPN, and VPNDown that its

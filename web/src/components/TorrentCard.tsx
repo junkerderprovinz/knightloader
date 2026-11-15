@@ -25,7 +25,7 @@ function Figure({ label, value, sub }: { label: string; value: string; sub?: str
 }
 
 /**
- * TorrentCard is the overview's card for the built-in torrent client: how many
+ * TorrentCard is the overview's card for the torrent engine: how many
  * torrents leech and seed, both speeds, what came in and went out today and in
  * all, the ratio of the two and the three torrents sending most. While the
  * network interface torrents are tied to is missing, it says so first. Like the

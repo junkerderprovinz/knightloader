@@ -80,7 +80,7 @@ function readConnections(cfg: unknown): Connection[] {
   return (cfg as { connections?: Connection[] }).connections ?? [];
 }
 
-/** The interface the built-in torrent client is tied to, which the Torrents page sets; empty for none. */
+/** The interface the torrent engine is tied to, which the Torrents page sets; empty for none. */
 function torrentInterface(cfg: unknown): string {
   return (cfg as { torrent?: { interface?: string } }).torrent?.interface ?? '';
 }

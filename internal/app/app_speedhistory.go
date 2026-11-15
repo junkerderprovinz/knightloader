@@ -6,7 +6,7 @@ package app
 // tab; the process is the one observer that was watching all along, and the
 // shell's meter and the page's graph can seed from the same numbers.
 //
-// Upload is what the built-in torrent client sends while it downloads or
+// Upload is what the torrent engine sends while it downloads or
 // seeds. It rides in the same slots as the download, so both lines share one
 // clock and one gap fill.
 //
@@ -211,7 +211,7 @@ func (a *App) SpeedNow() int64 {
 	return total
 }
 
-// UploadNow is what the built-in torrent client sends right now: the sum of
+// UploadNow is what the torrent engine sends right now: the sum of
 // UploadSpeed over the torrents that download or seed, the rule the browser
 // sums by. The rate is read from the tally rather than the task, since a
 // torrent whose readings stopped keeps its last one on the task.

@@ -15,7 +15,7 @@ interface NetInterface {
 const POLL_MS = 5000;
 
 /**
- * InterfaceField ties the built-in torrent client to one network interface.
+ * InterfaceField ties the torrent engine to one network interface.
  * The choices are the system's interfaces as the server sees them, and a saved
  * one the system does not have stays a choice, so the field never shows a
  * value it cannot name. Under it a line says where torrents go out, or that

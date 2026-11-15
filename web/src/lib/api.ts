@@ -1900,7 +1900,7 @@ export interface TorrentUploader {
   secondsLeft: number;
 }
 
-/** What the built-in torrent client is doing and has moved (app.TorrentOverview). */
+/** What the torrent engine is doing and has moved (app.TorrentOverview). */
 export interface TorrentOverview {
   /** Whether there is or ever was a torrent here; without one the card is left out. */
   any: boolean;
@@ -1917,7 +1917,7 @@ export interface TorrentOverview {
   top: TorrentUploader[] | null;
   /** The network interface the torrent settings tie torrents to, absent for any. */
   interface?: string;
-  /** That interface is missing or down, so every torrent of the built-in client waits. */
+  /** That interface is missing or down, so every torrent of the torrent engine waits. */
   interfaceDown?: boolean;
   /** Torrents go through the built-in VPN. */
   vpn?: boolean;

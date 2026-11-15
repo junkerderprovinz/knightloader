@@ -267,14 +267,14 @@ func TestEffectiveDHTPEXPrivateAlwaysWins(t *testing.T) {
 }
 
 // A settings file that names no client for what a debrid service fetched, or
-// one this build does not know, seeds it in the built-in client.
+// one this build does not know, seeds it in the torrent engine.
 func TestSeedingAfterADebridServiceStaysInTheBuiltInClient(t *testing.T) {
 	for _, doc := range []string{
 		`{"torrent":{"seedAfterDebrid":true}}`,
 		`{"torrent":{"seedAfterDebrid":true,"seedIn":"transmission"}}`,
 	} {
 		if got := loadFrom(t, doc).Torrent.SeedIn; got != SeedInBuiltIn {
-			t.Errorf("%s seeds in %q, want the built-in client", doc, got)
+			t.Errorf("%s seeds in %q, want the torrent engine", doc, got)
 		}
 	}
 }
