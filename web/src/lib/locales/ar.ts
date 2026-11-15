@@ -1007,6 +1007,8 @@ export const ar: Dict = {
   'settings.rules.action.priority': 'الأولوية',
   'settings.rules.action.autoExtract': 'فك الضغط تلقائيًا',
   'settings.rules.action.chunks': 'الاتصالات',
+  'settings.rules.action.linkEnabled': 'الرابط مفعّل',
+  'settings.rules.action.linkEnabledHint': 'مطفأ يضيف الرابط معطّلًا. يبقى في حزمته ولا يبدؤه شيء حتى تفعّله، وهذا يناسب ملفات .par2 التي لا تلزم إلا حين يتلف أرشيف.',
   'settings.rules.action.reject': 'الحكم',
   'settings.rules.action.reason': 'السبب',
   'settings.rules.action.reasonHint': 'يظهر بجوار الرابط المرفوض. إن تركته فارغًا كُتب لك سبب، لأن رفضًا لا يستطيع أحد تفسيره هو بالضبط ما وُجدت هذه القائمة لتجنّبه.',

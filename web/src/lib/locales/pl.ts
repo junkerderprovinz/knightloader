@@ -998,6 +998,8 @@ export const pl: Dict = {
   'settings.rules.action.priority': 'Priorytet',
   'settings.rules.action.autoExtract': 'Rozpakuj automatycznie',
   'settings.rules.action.chunks': 'Połączenia',
+  'settings.rules.action.linkEnabled': 'Link włączony',
+  'settings.rules.action.linkEnabledHint': 'Wyłączone dodaje link wyłączony. Zostaje w swojej paczce i nic go nie uruchamia, dopóki go nie włączysz. Przydaje się to przy plikach .par2, potrzebnych tylko przy uszkodzonym archiwum.',
   'settings.rules.action.reject': 'Werdykt',
   'settings.rules.action.reason': 'Powód',
   'settings.rules.action.reasonHint': 'Wyświetlany obok odrzuconego linku. Jeśli zostawisz to pole puste, powód zostanie napisany za ciebie, bo odrzucenie, którego nikt nie potrafi wyjaśnić, to dokładnie to, czemu ta lista ma zapobiegać.',

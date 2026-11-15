@@ -1005,6 +1005,8 @@ export const ca: Dict = {
   'settings.rules.action.priority': 'Prioritat',
   'settings.rules.action.autoExtract': 'Extreu automàticament',
   'settings.rules.action.chunks': 'Connexions',
+  'settings.rules.action.linkEnabled': 'Enllaç activat',
+  'settings.rules.action.linkEnabledHint': 'Apagat afegeix l\'enllaç desactivat. Es queda al seu paquet i res no l\'inicia fins que l\'activis, cosa que va bé per als fitxers .par2, que només calen si un arxiu està malmès.',
   'settings.rules.action.reject': 'Veredicte',
   'settings.rules.action.reason': 'Motiu',
   'settings.rules.action.reasonHint': 'Es mostra al costat de l’enllaç rebutjat. Si el deixes buit, se n’escriu un per tu, perquè un rebuig que ningú no sap explicar és justament el que aquesta llista vol evitar.',

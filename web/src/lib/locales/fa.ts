@@ -1005,6 +1005,8 @@ export const fa: Dict = {
   'settings.rules.action.priority': 'اولویت',
   'settings.rules.action.autoExtract': 'استخراج خودکار',
   'settings.rules.action.chunks': 'اتصال‌ها',
+  'settings.rules.action.linkEnabled': 'پیوند فعال',
+  'settings.rules.action.linkEnabledHint': 'خاموش پیوند را غیرفعال اضافه می‌کند. پیوند در بسته‌اش می‌ماند و تا وقتی فعالش نکنی هیچ چیز آن را شروع نمی‌کند. این برای فایل‌های .par2 مناسب است که فقط وقتی بایگانی آسیب دیده باشد لازم می‌شوند.',
   'settings.rules.action.reject': 'حکم',
   'settings.rules.action.reason': 'دلیل',
   'settings.rules.action.reasonHint': 'کنار پیوند ردشده نشان داده می‌شود. اگر خالی بگذاری، یکی برایت نوشته می‌شود، چون ردی که هیچ‌کس نتواند توضیحش بدهد دقیقاً همان چیزی است که این فهرست برای جلوگیری از آن وجود دارد.',

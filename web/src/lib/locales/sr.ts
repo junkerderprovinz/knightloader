@@ -1005,6 +1005,8 @@ export const sr: Dict = {
   'settings.rules.action.priority': 'Приоритет',
   'settings.rules.action.autoExtract': 'Распакуј аутоматски',
   'settings.rules.action.chunks': 'Везе',
+  'settings.rules.action.linkEnabled': 'Линк укључен',
+  'settings.rules.action.linkEnabledHint': 'Искључено додаје линк искључен. Остаје у свом пакету и ништа га не покреће док га не укључиш. То одговара датотекама .par2, које требају само кад је архива оштећена.',
   'settings.rules.action.reject': 'Пресуда',
   'settings.rules.action.reason': 'Разлог',
   'settings.rules.action.reasonHint': 'Приказује се поред одбијене везе. Ако га оставиш празним, биће написан уместо тебе, јер је одбијање које нико не уме да објасни управо оно што овај списак треба да спречи.',

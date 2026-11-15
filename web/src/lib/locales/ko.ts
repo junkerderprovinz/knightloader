@@ -1005,6 +1005,8 @@ export const ko: Dict = {
   'settings.rules.action.priority': '우선순위',
   'settings.rules.action.autoExtract': '자동으로 압축 풀기',
   'settings.rules.action.chunks': '연결 수',
+  'settings.rules.action.linkEnabled': '링크 켜기',
+  'settings.rules.action.linkEnabledHint': '끔으로 두면 링크가 꺼진 채로 추가됩니다. 패키지에는 남지만 직접 켤 때까지 아무것도 시작하지 않습니다. 압축 파일이 손상됐을 때만 필요한 .par2 파일에 잘 맞습니다.',
   'settings.rules.action.reject': '판정',
   'settings.rules.action.reason': '이유',
   'settings.rules.action.reasonHint': '거부된 링크 옆에 표시됩니다. 비워 두면 이유가 대신 작성됩니다. 아무도 설명할 수 없는 거부야말로 이 목록이 막으려는 것이기 때문입니다.',

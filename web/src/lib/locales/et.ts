@@ -1005,6 +1005,8 @@ export const et: Dict = {
   'settings.rules.action.priority': 'Tähtsus',
   'settings.rules.action.autoExtract': 'Paki automaatselt lahti',
   'settings.rules.action.chunks': 'Ühendused',
+  'settings.rules.action.linkEnabled': 'Link sees',
+  'settings.rules.action.linkEnabledHint': 'Väljas lisab lingi väljalülitatuna. See jääb oma paketti ja miski ei käivita seda enne, kui selle sisse lülitad. See sobib .par2-failidele, mida on vaja ainult siis, kui arhiiv on vigane.',
   'settings.rules.action.reject': 'Otsus',
   'settings.rules.action.reason': 'Põhjus',
   'settings.rules.action.reasonHint': 'Näidatakse tagasi lükatud lingi kõrval. Kui jätad selle tühjaks, kirjutatakse põhjus sinu eest, sest tagasilükkamine, mida keegi seletada ei oska, on täpselt see, mille vältimiseks see loend olemas on.',

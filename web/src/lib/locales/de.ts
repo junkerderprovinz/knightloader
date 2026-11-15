@@ -1108,6 +1108,8 @@ export const de: Dict = {
   'settings.rules.action.priority': 'Priorität',
   'settings.rules.action.autoExtract': 'Automatisch entpacken',
   'settings.rules.action.chunks': 'Verbindungen',
+  'settings.rules.action.linkEnabled': 'Link aktiviert',
+  'settings.rules.action.linkEnabledHint': 'Aus fügt den Link deaktiviert hinzu. Er bleibt in seinem Paket, und nichts startet ihn, bis du ihn aktivierst. Das passt zu .par2-Dateien, die man nur braucht, wenn ein Archiv beschädigt ist.',
   'settings.rules.action.reject': 'Urteil',
   'settings.rules.action.reason': 'Grund',
   'settings.rules.action.reasonHint': 'Wird neben dem abgelehnten Link gezeigt. Leer gelassen wird einer für dich geschrieben, denn eine Ablehnung, die niemand erklären kann, ist genau das, was diese Liste verhindern soll.',

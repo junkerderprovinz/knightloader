@@ -1005,6 +1005,8 @@ export const ja: Dict = {
   'settings.rules.action.priority': '優先度',
   'settings.rules.action.autoExtract': '自動で展開する',
   'settings.rules.action.chunks': '接続数',
+  'settings.rules.action.linkEnabled': 'リンクを有効にする',
+  'settings.rules.action.linkEnabledHint': 'オフにすると、リンクは無効のまま追加されます。パッケージには残りますが、有効にするまで何も開始しません。アーカイブが壊れたときにだけ必要な .par2 ファイルに向いています。',
   'settings.rules.action.reject': '判定',
   'settings.rules.action.reason': '理由',
   'settings.rules.action.reasonHint': '拒否されたリンクの横に表示されます。空欄のままにすると、代わりに理由が書き込まれます。誰にも説明できない拒否こそ、この一覧がなくそうとしているものだからです。',

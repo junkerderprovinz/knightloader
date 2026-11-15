@@ -1006,6 +1006,8 @@ export const hi: Dict = {
   'settings.rules.action.priority': 'प्राथमिकता',
   'settings.rules.action.autoExtract': 'स्वतः निकालें',
   'settings.rules.action.chunks': 'कनेक्शन',
+  'settings.rules.action.linkEnabled': 'लिंक चालू',
+  'settings.rules.action.linkEnabledHint': 'बंद लिंक को अक्षम करके जोड़ता है। वह अपने पैकेज में रहता है और जब तक आप उसे चालू न करें, उसे कुछ भी शुरू नहीं करता। यह .par2 फ़ाइलों के लिए ठीक है, जिनकी ज़रूरत तभी पड़ती है जब कोई आर्काइव खराब हो।',
   'settings.rules.action.reject': 'निर्णय',
   'settings.rules.action.reason': 'कारण',
   'settings.rules.action.reasonHint': 'अस्वीकृत लिंक के बगल में दिखता है। खाली छोड़ने पर आपके लिए एक लिख दिया जाता है, क्योंकि ऐसा अस्वीकार जिसे कोई समझा न सके, ठीक वही है जिससे बचने के लिए यह सूची है।',

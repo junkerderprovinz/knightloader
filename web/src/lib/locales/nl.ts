@@ -997,6 +997,8 @@ export const nl: Dict = {
   'settings.rules.action.priority': 'Prioriteit',
   'settings.rules.action.autoExtract': 'Automatisch uitpakken',
   'settings.rules.action.chunks': 'Verbindingen',
+  'settings.rules.action.linkEnabled': 'Link aan',
+  'settings.rules.action.linkEnabledHint': 'Uit voegt de link uitgeschakeld toe. Hij blijft in zijn pakket en niets start hem tot je hem aanzet. Handig voor .par2-bestanden, die je alleen nodig hebt als een archief beschadigd is.',
   'settings.rules.action.reject': 'Oordeel',
   'settings.rules.action.reason': 'Reden',
   'settings.rules.action.reasonHint': 'Staat naast de geweigerde link. Laat je het leeg, dan wordt er een voor je geschreven, want een weigering die niemand kan uitleggen is precies wat deze lijst moet voorkomen.',

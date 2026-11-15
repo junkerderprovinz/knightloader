@@ -1006,6 +1006,8 @@ export const uk: Dict = {
   'settings.rules.action.priority': 'Пріоритет',
   'settings.rules.action.autoExtract': 'Розпаковувати автоматично',
   'settings.rules.action.chunks': 'З’єднання',
+  'settings.rules.action.linkEnabled': 'Посилання увімкнене',
+  'settings.rules.action.linkEnabledHint': 'Вимк додає посилання вимкненим. Воно лишається у своєму пакеті, і ніщо його не запустить, доки ти його не ввімкнеш. Це зручно для файлів .par2, які потрібні лише тоді, коли архів пошкоджено.',
   'settings.rules.action.reject': 'Рішення',
   'settings.rules.action.reason': 'Причина',
   'settings.rules.action.reasonHint': 'Показується поруч із відхиленим посиланням. Якщо залишите поле порожнім, причину буде написано за вас, бо відхилення, якого ніхто не може пояснити, це саме те, чого цей список має уникати.',

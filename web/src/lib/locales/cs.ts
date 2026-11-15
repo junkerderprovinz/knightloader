@@ -1005,6 +1005,8 @@ export const cs: Dict = {
   'settings.rules.action.priority': 'Priorita',
   'settings.rules.action.autoExtract': 'Rozbalit automaticky',
   'settings.rules.action.chunks': 'Spojení',
+  'settings.rules.action.linkEnabled': 'Odkaz zapnutý',
+  'settings.rules.action.linkEnabledHint': 'Vypnuto přidá odkaz vypnutý. Zůstane ve svém balíčku a nic ho nespustí, dokud ho nezapneš. Hodí se to pro soubory .par2, které jsou potřeba jen u poškozeného archivu.',
   'settings.rules.action.reject': 'Verdikt',
   'settings.rules.action.reason': 'Důvod',
   'settings.rules.action.reasonHint': 'Zobrazí se vedle odmítnutého odkazu. Když ho necháš prázdný, napíše se za tebe, protože odmítnutí, které nikdo nedokáže vysvětlit, je přesně to, čemu má tenhle seznam zabránit.',

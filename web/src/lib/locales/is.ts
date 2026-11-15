@@ -1005,6 +1005,8 @@ export const is: Dict = {
   'settings.rules.action.priority': 'Forgangur',
   'settings.rules.action.autoExtract': 'Afþjappa sjálfkrafa',
   'settings.rules.action.chunks': 'Tengingar',
+  'settings.rules.action.linkEnabled': 'Tengill virkur',
+  'settings.rules.action.linkEnabledHint': 'Slökkt bætir tenglinum við óvirkum. Hann situr áfram í pakkanum sínum og ekkert ræsir hann fyrr en þú virkjar hann. Það hentar .par2-skrám, sem þarf aðeins þegar safnskrá er skemmd.',
   'settings.rules.action.reject': 'Niðurstaða',
   'settings.rules.action.reason': 'Ástæða',
   'settings.rules.action.reasonHint': 'Sýnt við hliðina á tenglinum sem var hafnað. Ef þú skilur reitinn eftir auðan er ástæða skrifuð fyrir þig, því höfnun sem enginn getur útskýrt er einmitt það sem þessi listi er til að koma í veg fyrir.',

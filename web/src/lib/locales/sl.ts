@@ -1005,6 +1005,8 @@ export const sl: Dict = {
   'settings.rules.action.priority': 'Prednost',
   'settings.rules.action.autoExtract': 'Samodejno razpakiraj',
   'settings.rules.action.chunks': 'Povezave',
+  'settings.rules.action.linkEnabled': 'Povezava vklopljena',
+  'settings.rules.action.linkEnabledHint': 'Izklopljeno doda povezavo izklopljeno. Ostane v svojem paketu in nič je ne zažene, dokler je ne vklopiš. To ustreza datotekam .par2, ki so potrebne le, ko je arhiv poškodovan.',
   'settings.rules.action.reject': 'Razsodba',
   'settings.rules.action.reason': 'Razlog',
   'settings.rules.action.reasonHint': 'Prikaže se poleg zavrnjene povezave. Če polje pustiš prazno, se razlog napiše namesto tebe, ker je zavrnitev, ki je nihče ne zna pojasniti, prav tisto, čemur se ta seznam želi izogniti.',

@@ -685,3 +685,42 @@ func TestAnEmptyUnpackFolderLeavesAnEarlierOneStanding(t *testing.T) {
 		t.Errorf("ExtractDir = %q; a later rule with nothing to say cleared it", got)
 	}
 }
+
+// A rule can add a link switched off, which is how JDownloader's rules for
+// recovery files keep them in the list without fetching them.
+func TestApplySwitchesTheLinkOff(t *testing.T) {
+	off := false
+	m, problems := Compile(Set{Rules: []Rule{{
+		Name:       "no par2",
+		Conditions: []Condition{{Field: FieldFiletype, Op: OpMatches, Value: "(?i)^(?:par|par2)$"}},
+		Action:     Action{LinkEnabled: &off},
+	}}})
+	if len(problems) != 0 {
+		t.Fatalf("Compile: %v", problems)
+	}
+	c := testCandidate()
+	c.Filename = "Show.vol03+04.par2"
+	e := m.Apply(c)
+	if e.LinkEnabled == nil || *e.LinkEnabled {
+		t.Fatalf("link enabled = %v, want the rule to switch the link off", e.LinkEnabled)
+	}
+	*e.LinkEnabled = true
+	if again := m.Apply(c); again.LinkEnabled == nil || *again.LinkEnabled {
+		t.Error("writing through the effect changed the compiled rule")
+	}
+	if e := m.Apply(testCandidate()); e.LinkEnabled != nil {
+		t.Errorf("a link the rule does not match got link enabled %v", *e.LinkEnabled)
+	}
+}
+
+func TestGrammarOffersTheLinkSwitch(t *testing.T) {
+	for _, a := range Describe().Actions {
+		if a.ID == "linkEnabled" {
+			if a.Kind != "bool" || a.Flavour != "packagizer" {
+				t.Errorf("the linkEnabled action is %+v, want a packagizer bool", a)
+			}
+			return
+		}
+	}
+	t.Error("the grammar has no linkEnabled action, so the rule editor cannot offer it")
+}

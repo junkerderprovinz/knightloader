@@ -997,6 +997,8 @@ export const es: Dict = {
   'settings.rules.action.priority': 'Prioridad',
   'settings.rules.action.autoExtract': 'Extraer automáticamente',
   'settings.rules.action.chunks': 'Conexiones',
+  'settings.rules.action.linkEnabled': 'Enlace activado',
+  'settings.rules.action.linkEnabledHint': 'Apagado añade el enlace desactivado. Se queda en su paquete y nada lo inicia hasta que lo actives, algo útil para los archivos .par2, que solo hacen falta cuando un archivo comprimido está dañado.',
   'settings.rules.action.reject': 'Veredicto',
   'settings.rules.action.reason': 'Motivo',
   'settings.rules.action.reasonHint': 'Se muestra junto al enlace rechazado. Si lo dejas vacío, se escribe uno por ti, porque un rechazo que nadie puede explicar es justo lo que esta lista quiere evitar.',

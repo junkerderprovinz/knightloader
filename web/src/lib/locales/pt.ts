@@ -997,6 +997,8 @@ export const pt: Dict = {
   'settings.rules.action.priority': 'Prioridade',
   'settings.rules.action.autoExtract': 'Extrair automaticamente',
   'settings.rules.action.chunks': 'Ligações',
+  'settings.rules.action.linkEnabled': 'Link ativado',
+  'settings.rules.action.linkEnabledHint': 'Desligado adiciona o link desativado. Ele fica no pacote e nada o inicia até você ativá-lo, o que serve bem para arquivos .par2, necessários apenas quando um arquivo compactado está danificado.',
   'settings.rules.action.reject': 'Veredicto',
   'settings.rules.action.reason': 'Motivo',
   'settings.rules.action.reasonHint': 'Mostrado ao lado do link recusado. Se o deixares vazio, é escrito um por ti, porque uma recusa que ninguém consegue explicar é exatamente o que esta lista serve para evitar.',

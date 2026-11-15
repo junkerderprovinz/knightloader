@@ -998,6 +998,8 @@ export const ru: Dict = {
   'settings.rules.action.priority': 'Приоритет',
   'settings.rules.action.autoExtract': 'Распаковывать автоматически',
   'settings.rules.action.chunks': 'Соединения',
+  'settings.rules.action.linkEnabled': 'Ссылка включена',
+  'settings.rules.action.linkEnabledHint': 'Выкл добавляет ссылку выключенной. Она остаётся в своём пакете, и ничто её не запустит, пока ты её не включишь. Это удобно для файлов .par2, которые нужны, только когда архив повреждён.',
   'settings.rules.action.reject': 'Решение',
   'settings.rules.action.reason': 'Причина',
   'settings.rules.action.reasonHint': 'Показывается рядом с отклонённой ссылкой. Если оставить поле пустым, причина будет написана за вас, ведь именно необъяснимых отклонений этот список и должен избегать.',

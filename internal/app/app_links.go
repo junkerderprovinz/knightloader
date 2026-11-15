@@ -1247,6 +1247,9 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 		v := *e.AutoExtract
 		t.AutoExtract = &v
 	}
+	if e.LinkEnabled != nil {
+		t.Enabled = *e.LinkEnabled
+	}
 	t.MatchedRules = e.Matched
 }
 

@@ -1006,6 +1006,8 @@ export const eu: Dict = {
   'settings.rules.action.priority': 'Lehentasuna',
   'settings.rules.action.autoExtract': 'Erauzi automatikoki',
   'settings.rules.action.chunks': 'Konexioak',
+  'settings.rules.action.linkEnabled': 'Esteka aktibatuta',
+  'settings.rules.action.linkEnabledHint': 'Itzalita aukerak esteka desaktibatuta gehitzen du. Bere paketean geratzen da, eta ezerk ez du abiarazten zuk aktibatu arte. Egokia da .par2 fitxategietarako, artxibo bat hondatuta dagoenean bakarrik behar baitira.',
   'settings.rules.action.reject': 'Epaia',
   'settings.rules.action.reason': 'Arrazoia',
   'settings.rules.action.reasonHint': 'Baztertutako estekaren ondoan erakusten da. Hutsik uzten baduzu, zuretzat idazten da bat, inork azaldu ezin duen baztertze bat baita, hain zuzen, zerrenda honek saihestu nahi duena.',

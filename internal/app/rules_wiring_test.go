@@ -599,6 +599,33 @@ func TestPackagizerPackageNameStandsForTheGuessedName(t *testing.T) {
 	}
 }
 
+// A rule that switches a link off adds it disabled, so a recovery file stays
+// in the package without being fetched.
+func TestPackagizerAddsALinkSwitchedOff(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+		off := false
+		s.Packagizer = rules.Set{Rules: []rules.Rule{{
+			Name:       "no par2",
+			Conditions: []rules.Condition{{Field: rules.FieldFiletype, Op: rules.OpMatches, Value: "(?i)^(?:par|par2)$"}},
+			Action:     rules.Action{LinkEnabled: &off},
+		}}}
+	})
+
+	created := a.AddLinks([]string{
+		"https://films.example/Great.Film.2026.part01.rar",
+		"https://films.example/Great.Film.2026.vol00+01.par2",
+	}, "")
+	if len(created) != 2 {
+		t.Fatalf("staged %d tasks", len(created))
+	}
+	for _, task := range created {
+		par2 := strings.HasSuffix(task.URL, ".par2")
+		if task.Enabled == par2 {
+			t.Errorf("%s enabled = %v, want %v", task.URL, task.Enabled, !par2)
+		}
+	}
+}
+
 // A package the link arrived with is what <jd:packagename> stands for, guess
 // or not.
 func TestPackagizerPackageNameKeepsAGivenPackage(t *testing.T) {

@@ -1007,6 +1007,8 @@ export const he: Dict = {
   'settings.rules.action.priority': 'עדיפות',
   'settings.rules.action.autoExtract': 'חלץ אוטומטית',
   'settings.rules.action.chunks': 'חיבורים',
+  'settings.rules.action.linkEnabled': 'קישור מופעל',
+  'settings.rules.action.linkEnabledHint': 'כבוי מוסיף את הקישור מושבת. הוא נשאר בחבילה שלו ושום דבר לא מתחיל אותו עד שתפעיל אותו. זה מתאים לקובצי .par2, שנחוצים רק כשארכיון פגום.',
   'settings.rules.action.reject': 'הכרעה',
   'settings.rules.action.reason': 'סיבה',
   'settings.rules.action.reasonHint': 'מוצג ליד הקישור שנדחה. אם תשאיר את זה ריק, תיכתב סיבה בשבילך, כי דחייה שאיש לא יכול להסביר היא בדיוק מה שהרשימה הזו נועדה למנוע.',

@@ -1005,6 +1005,8 @@ export const zh: Dict = {
   'settings.rules.action.priority': '优先级',
   'settings.rules.action.autoExtract': '自动解压',
   'settings.rules.action.chunks': '连接数',
+  'settings.rules.action.linkEnabled': '启用链接',
+  'settings.rules.action.linkEnabledHint': '关会把链接以停用状态加入。它留在自己的包里，在你启用之前什么都不会启动它。这适合 .par2 文件，它们只在压缩包损坏时才用得上。',
   'settings.rules.action.reject': '裁定',
   'settings.rules.action.reason': '理由',
   'settings.rules.action.reasonHint': '显示在被拒绝的链接旁边。如果你留空，会自动替你写一条，因为一个谁都说不清原因的拒绝，正是这份列表要避免的。',

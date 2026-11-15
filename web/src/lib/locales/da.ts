@@ -1005,6 +1005,8 @@ export const da: Dict = {
   'settings.rules.action.priority': 'Prioritet',
   'settings.rules.action.autoExtract': 'Pak ud automatisk',
   'settings.rules.action.chunks': 'Forbindelser',
+  'settings.rules.action.linkEnabled': 'Link slået til',
+  'settings.rules.action.linkEnabledHint': 'Fra tilføjer linket slået fra. Det bliver i sin pakke, og intet starter det, før du slår det til. Det passer til .par2-filer, som kun skal bruges, når et arkiv er beskadiget.',
   'settings.rules.action.reject': 'Afgørelse',
   'settings.rules.action.reason': 'Grund',
   'settings.rules.action.reasonHint': 'Vises ved siden af det afviste link. Lader du feltet stå tomt, skrives en grund for dig, for en afvisning, som ingen kan forklare, er præcis det, denne liste findes for at undgå.',

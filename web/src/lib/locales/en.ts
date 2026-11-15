@@ -1215,6 +1215,8 @@ export const en = {
   'settings.rules.action.priority': 'Priority',
   'settings.rules.action.autoExtract': 'Extract automatically',
   'settings.rules.action.chunks': 'Connections',
+  'settings.rules.action.linkEnabled': 'Link enabled',
+  'settings.rules.action.linkEnabledHint': 'Off adds the link disabled. It stays in its package and nothing starts it until you enable it, which suits .par2 files that are only needed when an archive is damaged.',
   'settings.rules.action.reject': 'Verdict',
   'settings.rules.action.reason': 'Reason',
   'settings.rules.action.reasonHint': 'Shown next to the rejected link. If you leave it empty, one is written for you, because a rejection nobody can explain is exactly what this list exists to avoid.',

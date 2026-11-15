@@ -1005,6 +1005,8 @@ export const vi: Dict = {
   'settings.rules.action.priority': 'Độ ưu tiên',
   'settings.rules.action.autoExtract': 'Giải nén tự động',
   'settings.rules.action.chunks': 'Số kết nối',
+  'settings.rules.action.linkEnabled': 'Liên kết được bật',
+  'settings.rules.action.linkEnabledHint': 'Tắt sẽ thêm liên kết ở trạng thái tắt. Liên kết vẫn nằm trong gói của nó và không gì khởi động nó cho đến khi bạn bật lên. Điều này hợp với tệp .par2, vốn chỉ cần khi một tệp nén bị hỏng.',
   'settings.rules.action.reject': 'Phán quyết',
   'settings.rules.action.reason': 'Lý do',
   'settings.rules.action.reasonHint': 'Hiện cạnh liên kết bị từ chối. Nếu bạn để trống, một lý do sẽ được viết hộ bạn, vì một lần từ chối mà không ai giải thích được chính là điều danh sách này tồn tại để tránh.',

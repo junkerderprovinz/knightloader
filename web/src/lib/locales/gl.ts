@@ -1005,6 +1005,8 @@ export const gl: Dict = {
   'settings.rules.action.priority': 'Prioridade',
   'settings.rules.action.autoExtract': 'Extraer automaticamente',
   'settings.rules.action.chunks': 'Conexións',
+  'settings.rules.action.linkEnabled': 'Ligazón activada',
+  'settings.rules.action.linkEnabledHint': 'Apagado engade a ligazón desactivada. Queda no seu paquete e nada a inicia ata que a actives, algo útil para os ficheiros .par2, que só fan falta cando un arquivo está danado.',
   'settings.rules.action.reject': 'Veredicto',
   'settings.rules.action.reason': 'Motivo',
   'settings.rules.action.reasonHint': 'Amósase ao lado da ligazón rexeitada. Se o deixas baleiro, escríbese un por ti, porque un rexeitamento que ninguén sabe explicar é xusto o que esta lista quere evitar.',

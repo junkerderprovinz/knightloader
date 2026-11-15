@@ -997,6 +997,8 @@ export const it: Dict = {
   'settings.rules.action.priority': 'Priorità',
   'settings.rules.action.autoExtract': 'Estrai automaticamente',
   'settings.rules.action.chunks': 'Connessioni',
+  'settings.rules.action.linkEnabled': 'Link attivo',
+  'settings.rules.action.linkEnabledHint': 'Spento aggiunge il link disattivato. Resta nel suo pacchetto e niente lo avvia finché non lo attivi, il che va bene per i file .par2, che servono solo quando un archivio è danneggiato.',
   'settings.rules.action.reject': 'Verdetto',
   'settings.rules.action.reason': 'Motivo',
   'settings.rules.action.reasonHint': 'Mostrato accanto al link rifiutato. Se lo lasci vuoto, ne viene scritto uno per te, perché un rifiuto che nessuno sa spiegare è proprio ciò che questo elenco serve a evitare.',

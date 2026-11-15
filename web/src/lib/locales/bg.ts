@@ -1006,6 +1006,8 @@ export const bg: Dict = {
   'settings.rules.action.priority': 'Приоритет',
   'settings.rules.action.autoExtract': 'Разархивирай автоматично',
   'settings.rules.action.chunks': 'Връзки',
+  'settings.rules.action.linkEnabled': 'Връзката е включена',
+  'settings.rules.action.linkEnabledHint': 'Изключено добавя връзката изключена. Тя остава в пакета си и нищо не я стартира, докато не я включиш. Удобно за файлове .par2, които трябват само при повреден архив.',
   'settings.rules.action.reject': 'Присъда',
   'settings.rules.action.reason': 'Причина',
   'settings.rules.action.reasonHint': 'Показва се до отхвърлената връзка. Ако я оставиш празна, ще бъде написана вместо теб, защото отхвърляне, което никой не може да обясни, е точно това, което този списък трябва да избягва.',

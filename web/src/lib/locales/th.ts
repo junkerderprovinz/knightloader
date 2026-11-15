@@ -1005,6 +1005,8 @@ export const th: Dict = {
   'settings.rules.action.priority': 'ลำดับความสำคัญ',
   'settings.rules.action.autoExtract': 'แตกไฟล์อัตโนมัติ',
   'settings.rules.action.chunks': 'จำนวนการเชื่อมต่อ',
+  'settings.rules.action.linkEnabled': 'เปิดใช้ลิงก์',
+  'settings.rules.action.linkEnabledHint': 'ปิด จะเพิ่มลิงก์แบบปิดใช้ไว้ ลิงก์ยังอยู่ในแพ็กเกจของมัน และจะไม่มีอะไรเริ่มมันจนกว่าคุณจะเปิดใช้ เหมาะกับไฟล์ .par2 ที่ต้องใช้เฉพาะตอนที่ไฟล์บีบอัดเสียหาย',
   'settings.rules.action.reject': 'คำตัดสิน',
   'settings.rules.action.reason': 'เหตุผล',
   'settings.rules.action.reasonHint': 'แสดงข้างลิงก์ที่ถูกปฏิเสธ หากเว้นว่าง ระบบจะเขียนให้ เพราะการปฏิเสธที่ไม่มีใครอธิบายได้คือสิ่งที่รายการนี้มีไว้เพื่อหลีกเลี่ยง',

@@ -1007,6 +1007,8 @@ export const ro: Dict = {
   'settings.rules.action.priority': 'Prioritate',
   'settings.rules.action.autoExtract': 'Dezarhivează automat',
   'settings.rules.action.chunks': 'Conexiuni',
+  'settings.rules.action.linkEnabled': 'Link activat',
+  'settings.rules.action.linkEnabledHint': 'Oprit adaugă linkul dezactivat. Rămâne în pachetul lui și nimic nu îl pornește până nu îl activezi. Se potrivește pentru fișierele .par2, de care e nevoie doar când o arhivă e deteriorată.',
   'settings.rules.action.reject': 'Verdict',
   'settings.rules.action.reason': 'Motiv',
   'settings.rules.action.reasonHint': 'Apare lângă linkul refuzat. Dacă îl lași gol, se scrie unul în locul tău, fiindcă un refuz pe care nimeni nu îl poate explica este exact ce vrea să evite această listă.',

@@ -1008,6 +1008,8 @@ export const no: Dict = {
   'settings.rules.action.priority': 'Prioritet',
   'settings.rules.action.autoExtract': 'Pakk ut automatisk',
   'settings.rules.action.chunks': 'Tilkoblinger',
+  'settings.rules.action.linkEnabled': 'Lenke slått på',
+  'settings.rules.action.linkEnabledHint': 'Av legger til lenken slått av. Den blir i pakken sin, og ingenting starter den før du slår den på. Det passer for .par2-filer, som bare trengs når et arkiv er skadet.',
   'settings.rules.action.reject': 'Avgjørelse',
   'settings.rules.action.reason': 'Grunn',
   'settings.rules.action.reasonHint': 'Vises ved siden av den avviste lenka. Lar du feltet stå tomt, skrives en grunn for deg, for en avvisning ingen kan forklare, er akkurat det denne lista finnes for å unngå.',

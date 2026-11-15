@@ -1005,6 +1005,8 @@ export const ms: Dict = {
   'settings.rules.action.priority': 'Keutamaan',
   'settings.rules.action.autoExtract': 'Ekstrak automatik',
   'settings.rules.action.chunks': 'Sambungan',
+  'settings.rules.action.linkEnabled': 'Pautan didayakan',
+  'settings.rules.action.linkEnabledHint': 'Mati menambah pautan dalam keadaan dilumpuhkan. Pautan kekal dalam pakejnya dan tiada apa yang memulakannya sehingga kamu mendayakannya. Ini sesuai untuk fail .par2, yang hanya diperlukan apabila arkib rosak.',
   'settings.rules.action.reject': 'Keputusan',
   'settings.rules.action.reason': 'Sebab',
   'settings.rules.action.reasonHint': 'Ditunjukkan di sebelah pautan yang ditolak. Jika anda membiarkannya kosong, satu sebab ditulis untuk anda, kerana penolakan yang tidak dapat dijelaskan oleh sesiapa ialah tepat apa yang ingin dielakkan oleh senarai ini.',

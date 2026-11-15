@@ -1005,6 +1005,8 @@ export const sv: Dict = {
   'settings.rules.action.priority': 'Prioritet',
   'settings.rules.action.autoExtract': 'Packa upp automatiskt',
   'settings.rules.action.chunks': 'Anslutningar',
+  'settings.rules.action.linkEnabled': 'Länk påslagen',
+  'settings.rules.action.linkEnabledHint': 'Av lägger till länken avstängd. Den stannar i sitt paket och ingenting startar den förrän du slår på den. Det passar .par2-filer, som bara behövs när ett arkiv är skadat.',
   'settings.rules.action.reject': 'Utfall',
   'settings.rules.action.reason': 'Skäl',
   'settings.rules.action.reasonHint': 'Visas bredvid den nekade länken. Lämnar du det tomt skrivs ett åt dig, för ett nekande som ingen kan förklara är precis vad den här listan finns för att undvika.',

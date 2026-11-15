@@ -1005,6 +1005,8 @@ export const tr: Dict = {
   'settings.rules.action.priority': 'Öncelik',
   'settings.rules.action.autoExtract': 'Kendiliğinden ayıkla',
   'settings.rules.action.chunks': 'Bağlantı sayısı',
+  'settings.rules.action.linkEnabled': 'Bağlantı açık',
+  'settings.rules.action.linkEnabledHint': 'Kapalı, bağlantıyı devre dışı olarak ekler. Bağlantı paketinde kalır ve sen açana kadar hiçbir şey onu başlatmaz. Bu, yalnızca bir arşiv bozulduğunda gereken .par2 dosyalarına uygundur.',
   'settings.rules.action.reject': 'Karar',
   'settings.rules.action.reason': 'Gerekçe',
   'settings.rules.action.reasonHint': 'Reddedilen bağlantının yanında gösterilir. Boş bırakırsan senin için bir tane yazılır, çünkü kimsenin açıklayamadığı bir ret, tam da bu listenin önlemek için var olduğu şeydir.',

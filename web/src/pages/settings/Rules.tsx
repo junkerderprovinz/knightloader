@@ -739,12 +739,9 @@ function Outcomes({
           extras.push(`${actionLabel(t, 'priority')} ${l.effect.priority}`);
         }
         if (l.effect.chunks !== undefined) extras.push(`${actionLabel(t, 'chunks')} ${l.effect.chunks}`);
-        if (l.effect.autoExtract !== undefined) {
-          extras.push(
-            `${actionLabel(t, 'autoExtract')} ${
-              l.effect.autoExtract ? t('settings.rules.yes') : t('settings.rules.no')
-            }`,
-          );
+        for (const key of ['autoExtract', 'linkEnabled'] as const) {
+          const v = l.effect[key];
+          if (v !== undefined) extras.push(`${actionLabel(t, key)} ${v ? t('settings.rules.yes') : t('settings.rules.no')}`);
         }
 
         return (

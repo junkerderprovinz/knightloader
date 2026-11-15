@@ -1006,6 +1006,8 @@ export const hu: Dict = {
   'settings.rules.action.priority': 'Prioritás',
   'settings.rules.action.autoExtract': 'Automatikus kibontás',
   'settings.rules.action.chunks': 'Kapcsolatok',
+  'settings.rules.action.linkEnabled': 'Link bekapcsolva',
+  'settings.rules.action.linkEnabledHint': 'A Ki kikapcsolva adja hozzá a linket. A csomagjában marad, és semmi sem indítja el, amíg be nem kapcsolod. Ez a .par2 fájlokhoz illik, amelyekre csak sérült archívumnál van szükség.',
   'settings.rules.action.reject': 'Ítélet',
   'settings.rules.action.reason': 'Indok',
   'settings.rules.action.reasonHint': 'Az elutasított link mellett jelenik meg. Ha üresen hagyod, írunk helyetted egyet, mert ez a lista éppen azért van, hogy ne legyen olyan elutasítás, amelyet senki sem tud megmagyarázni.',

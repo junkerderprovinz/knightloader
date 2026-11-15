@@ -1006,6 +1006,8 @@ export const lt: Dict = {
   'settings.rules.action.priority': 'Pirmenybė',
   'settings.rules.action.autoExtract': 'Išpakuoti automatiškai',
   'settings.rules.action.chunks': 'Ryšiai',
+  'settings.rules.action.linkEnabled': 'Nuoroda įjungta',
+  'settings.rules.action.linkEnabledHint': 'Išjungta prideda nuorodą išjungtą. Ji lieka savo pakete ir niekas jos nepaleidžia, kol jos neįjungsi. Tai tinka .par2 failams, kurių reikia tik tada, kai archyvas sugadintas.',
   'settings.rules.action.reject': 'Sprendimas',
   'settings.rules.action.reason': 'Priežastis',
   'settings.rules.action.reasonHint': 'Rodoma šalia atmestos nuorodos. Jei paliksi tuščią, priežastis bus parašyta už tave, nes atmetimas, kurio niekas negali paaiškinti, yra būtent tai, ko šis sąrašas turi išvengti.',

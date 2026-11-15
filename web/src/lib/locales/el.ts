@@ -1006,6 +1006,8 @@ export const el: Dict = {
   'settings.rules.action.priority': 'Προτεραιότητα',
   'settings.rules.action.autoExtract': 'Αυτόματη αποσυμπίεση',
   'settings.rules.action.chunks': 'Συνδέσεις',
+  'settings.rules.action.linkEnabled': 'Σύνδεσμος ενεργός',
+  'settings.rules.action.linkEnabledHint': 'Το Ανενεργό προσθέτει τον σύνδεσμο απενεργοποιημένο. Μένει στο πακέτο του και τίποτα δεν τον ξεκινά μέχρι να τον ενεργοποιήσεις. Ταιριάζει σε αρχεία .par2, που χρειάζονται μόνο όταν ένα αρχείο συμπίεσης έχει χαλάσει.',
   'settings.rules.action.reject': 'Ετυμηγορία',
   'settings.rules.action.reason': 'Λόγος',
   'settings.rules.action.reasonHint': 'Εμφανίζεται δίπλα στον σύνδεσμο που απορρίφθηκε. Αν το αφήσεις κενό, γράφεται ένας για σένα, γιατί μια απόρριψη που κανείς δεν μπορεί να εξηγήσει είναι ακριβώς αυτό που υπάρχει αυτή η λίστα για να αποτρέπει.',

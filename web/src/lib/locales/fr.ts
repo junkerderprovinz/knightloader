@@ -997,6 +997,8 @@ export const fr: Dict = {
   'settings.rules.action.priority': 'Priorité',
   'settings.rules.action.autoExtract': 'Extraire automatiquement',
   'settings.rules.action.chunks': 'Connexions',
+  'settings.rules.action.linkEnabled': 'Lien activé',
+  'settings.rules.action.linkEnabledHint': 'Désactivé ajoute le lien désactivé. Il reste dans son paquet et rien ne le lance tant que tu ne l\'actives pas, ce qui convient aux fichiers .par2, utiles seulement quand une archive est abîmée.',
   'settings.rules.action.reject': 'Verdict',
   'settings.rules.action.reason': 'Raison',
   'settings.rules.action.reasonHint': 'Affichée à côté du lien refusé. Si vous la laissez vide, une raison est écrite pour vous, car un refus que personne ne peut expliquer est exactement ce que cette liste veut éviter.',

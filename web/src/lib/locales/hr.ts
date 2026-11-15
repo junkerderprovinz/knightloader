@@ -1005,6 +1005,8 @@ export const hr: Dict = {
   'settings.rules.action.priority': 'Prioritet',
   'settings.rules.action.autoExtract': 'Raspakiraj automatski',
   'settings.rules.action.chunks': 'Veze',
+  'settings.rules.action.linkEnabled': 'Poveznica uključena',
+  'settings.rules.action.linkEnabledHint': 'Isključeno dodaje poveznicu isključenu. Ostaje u svom paketu i ništa je ne pokreće dok je ne uključiš. To odgovara datotekama .par2, koje trebaju samo kad je arhiva oštećena.',
   'settings.rules.action.reject': 'Presuda',
   'settings.rules.action.reason': 'Razlog',
   'settings.rules.action.reasonHint': 'Prikazuje se pokraj odbijene poveznice. Ako ga ostaviš praznim, napisat će se umjesto tebe, jer je odbijanje koje nitko ne može objasniti upravo ono što ovaj popis treba spriječiti.',

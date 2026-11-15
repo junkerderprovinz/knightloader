@@ -1006,6 +1006,8 @@ export const lv: Dict = {
   'settings.rules.action.priority': 'Prioritāte',
   'settings.rules.action.autoExtract': 'Atarhivēt automātiski',
   'settings.rules.action.chunks': 'Savienojumi',
+  'settings.rules.action.linkEnabled': 'Saite ieslēgta',
+  'settings.rules.action.linkEnabledHint': 'Izslēgts pievieno saiti izslēgtu. Tā paliek savā pakotnē, un nekas to nepalaiž, kamēr tu to neieslēdz. Tas der .par2 failiem, kas vajadzīgi tikai tad, ja arhīvs ir bojāts.',
   'settings.rules.action.reject': 'Spriedums',
   'settings.rules.action.reason': 'Iemesls',
   'settings.rules.action.reasonHint': 'Tiek rādīts blakus noraidītajai saitei. Ja atstāsi to tukšu, iemesls tiks uzrakstīts tavā vietā, jo noraidījums, ko neviens nevar izskaidrot, ir tieši tas, no kā šim sarakstam jāpasargā.',

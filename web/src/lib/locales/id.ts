@@ -1005,6 +1005,8 @@ export const id: Dict = {
   'settings.rules.action.priority': 'Prioritas',
   'settings.rules.action.autoExtract': 'Ekstrak otomatis',
   'settings.rules.action.chunks': 'Koneksi',
+  'settings.rules.action.linkEnabled': 'Tautan aktif',
+  'settings.rules.action.linkEnabledHint': 'Mati menambahkan tautan dalam keadaan nonaktif. Tautan tetap di paketnya dan tidak ada yang memulainya sampai kamu mengaktifkannya. Cocok untuk berkas .par2, yang hanya diperlukan saat arsip rusak.',
   'settings.rules.action.reject': 'Putusan',
   'settings.rules.action.reason': 'Alasan',
   'settings.rules.action.reasonHint': 'Ditampilkan di samping tautan yang ditolak. Kalau kamu membiarkannya kosong, alasannya ditulis untukmu, karena penolakan yang tidak bisa dijelaskan siapa pun justru hal yang ingin dicegah daftar ini.',

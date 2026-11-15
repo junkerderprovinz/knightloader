@@ -1005,6 +1005,8 @@ export const fi: Dict = {
   'settings.rules.action.priority': 'Prioriteetti',
   'settings.rules.action.autoExtract': 'Pura automaattisesti',
   'settings.rules.action.chunks': 'Yhteydet',
+  'settings.rules.action.linkEnabled': 'Linkki käytössä',
+  'settings.rules.action.linkEnabledHint': 'Pois lisää linkin pois käytöstä. Se jää pakettiinsa, eikä mikään käynnistä sitä ennen kuin otat sen käyttöön. Tämä sopii .par2-tiedostoille, joita tarvitaan vain, kun arkisto on vioittunut.',
   'settings.rules.action.reject': 'Ratkaisu',
   'settings.rules.action.reason': 'Syy',
   'settings.rules.action.reasonHint': 'Näytetään hylätyn linkin vieressä. Jos jätät kentän tyhjäksi, syy kirjoitetaan puolestasi, sillä hylkäys, jota kukaan ei osaa selittää, on juuri se, mitä tämän listan on tarkoitus estää.',
