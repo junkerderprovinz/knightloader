@@ -42,6 +42,8 @@ type Torrent struct {
 	Trackers  []string `json:"-"`
 	Pieces    []int    `json:"-"`
 	PieceSize int64    `json:"-"`
+	// Metainfo is the .torrent it was added with.
+	Metainfo []byte `json:"-"`
 }
 
 // File is one file of a torrent, as torrents/files answers.
@@ -118,6 +120,20 @@ func (s *Server) serveTorrents(w http.ResponseWriter, r *http.Request) bool {
 		s.info(w, r)
 	case "files":
 		s.withTorrent(w, r, func(t *Torrent) any { return t.Files })
+	case "export":
+		s.mu.Lock()
+		t, ok := s.torrents[r.FormValue("hash")]
+		var b []byte
+		if ok {
+			b = t.Metainfo
+		}
+		s.mu.Unlock()
+		if !ok {
+			http.NotFound(w, r)
+			return true
+		}
+		w.Header().Set("Content-Type", "application/x-bittorrent")
+		w.Write(b)
 	case "pieceStates":
 		s.withTorrent(w, r, func(t *Torrent) any { return t.Pieces })
 	case "properties":
@@ -194,7 +210,7 @@ func (s *Server) add(w http.ResponseWriter, r *http.Request) {
 	if call.Fields["paused"] == "true" || call.Fields["stopped"] == "true" {
 		state = "pausedDL"
 	}
-	s.torrents[hash] = &Torrent{Hash: hash, State: state, SavePath: call.Fields["savepath"], Category: call.Fields["category"], Tags: call.Fields["tags"]}
+	s.torrents[hash] = &Torrent{Hash: hash, State: state, SavePath: call.Fields["savepath"], Category: call.Fields["category"], Tags: call.Fields["tags"], Metainfo: call.File}
 	io.WriteString(w, "Ok.")
 }
 

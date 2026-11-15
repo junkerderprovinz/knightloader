@@ -33,6 +33,9 @@ type Client interface {
 	Readings(ctx context.Context) (map[string]Reading, error)
 	// Pieces is where each piece of the torrent stands.
 	Pieces(ctx context.Context, hash string) (Pieces, error)
+	// Metainfo is the torrent's .torrent as the client holds it, which for
+	// a magnet is what the swarm sent.
+	Metainfo(ctx context.Context, hash string) ([]byte, error)
 	// Stream has the torrent fetch its pieces in order, its files' first and
 	// last pieces before the rest, for a player reading it as it arrives; off
 	// lets it fetch in its own order again.

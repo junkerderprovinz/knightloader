@@ -226,3 +226,18 @@ func (c *Client) InterfaceAddresses(ctx context.Context, value string) ([]string
 	var out []string
 	return out, c.getJSON(ctx, "app/networkInterfaceAddressList", url.Values{"iface": {value}}, "", &out)
 }
+
+// Export is the .torrent of the torrent with hash, as qBittorrent holds it,
+// which for a magnet is what the swarm sent. qBittorrent 4.5 and later
+// answer it.
+func (c *Client) Export(ctx context.Context, hash string) ([]byte, error) {
+	endpoint := "torrents/export?" + url.Values{"hash": {hash}}.Encode()
+	a, err := c.call(ctx, http.MethodGet, endpoint, "", nil)
+	if err != nil {
+		return nil, err
+	}
+	if err := answered("the export", a, hash); err != nil {
+		return nil, err
+	}
+	return []byte(a.body), nil
+}

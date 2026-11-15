@@ -215,3 +215,20 @@ func TestTheNetworkInterfacesAreListedAsQBittorrentNamesThem(t *testing.T) {
 		t.Fatalf("addresses %v, %v", addrs, err)
 	}
 }
+
+func TestATorrentIsHandedBackAsItsDotTorrent(t *testing.T) {
+	_, c := fake(t)
+	ctx := context.Background()
+	raw := []byte("d4:infod4:name1:aee")
+	if err := c.Add(ctx, Torrent{File: raw, SavePath: "/d"}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := c.Export(ctx, "0b5aeea4cc4c4c56e2e28e1fe3d7d23cd76e1e9e")
+	if !errors.Is(err, ErrNoTorrent) {
+		t.Errorf("a torrent it does not hold: %v", err)
+	}
+	list, _ := c.Torrents(ctx, Filter{})
+	if got, err = c.Export(ctx, list[0].Hash); err != nil || string(got) != string(raw) {
+		t.Fatalf("export %q, %v", got, err)
+	}
+}

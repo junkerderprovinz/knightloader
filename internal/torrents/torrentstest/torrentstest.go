@@ -450,6 +450,21 @@ func (c *Client) Pieces(_ context.Context, hash string) (torrents.Pieces, error)
 	return torrents.Pieces{Length: PieceLength, States: states}, nil
 }
 
+// Metainfo is the .torrent a torrent was added with. One added as a magnet
+// has none here.
+func (c *Client) Metainfo(_ context.Context, hash string) ([]byte, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	h, err := c.torrent(hash)
+	if err != nil {
+		return nil, err
+	}
+	if h.add.File == nil {
+		return nil, torrents.ErrUnknown
+	}
+	return h.add.File, nil
+}
+
 func (c *Client) Stream(_ context.Context, hash string, on bool) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()

@@ -201,6 +201,15 @@ func (q qbit) Pieces(ctx context.Context, hash string) (Pieces, error) {
 	return Pieces{Length: p.PieceSize, States: states}, nil
 }
 
+func (q qbit) Metainfo(ctx context.Context, hash string) ([]byte, error) {
+	c, err := q.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	b, err := c.Export(ctx, hash)
+	return b, unknown(err)
+}
+
 func (q qbit) Stream(ctx context.Context, hash string, on bool) error {
 	c, err := q.client(ctx)
 	if err != nil {
