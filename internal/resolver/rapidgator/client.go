@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -210,6 +211,13 @@ func (c *Client) call(ctx context.Context, method string, form url.Values, out a
 	}
 	details := cmp.Or(env.Details, env.ResponseDetails, env.Error)
 	if status != http.StatusOK || env.Error != "" {
+		if method == "user/login" {
+			with := "without"
+			if form.Has("code") {
+				with = "with"
+			}
+			log.Printf("rapidgator: Rapidgator refused the sign-in %s a two-factor code (status %d): %s", with, status, details)
+		}
 		return classify(method, status, details)
 	}
 	if err := json.Unmarshal(env.Response, out); err != nil {

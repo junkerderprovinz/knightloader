@@ -1,8 +1,11 @@
 package rapidgator
 
 import (
+	"bytes"
 	"context"
+	"log"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"sync"
@@ -794,5 +797,28 @@ func TestAnEndedTwoFactorSessionAsksForANewCodeRatherThanThePassword(t *testing.
 	}
 	if b.Handed() {
 		t.Error("the login went to JDownloader, which cannot enter a code either")
+	}
+}
+
+func TestARefusedSignInIsLoggedInRapidgatorsWordsWithoutTheLogin(t *testing.T) {
+	var out bytes.Buffer
+	log.SetOutput(&out)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+	srv := newServer(t, twoFactor())
+	c := NewClient(srv.URL, srv.Client())
+
+	c.Login(context.Background(), email, "letmein", "")
+	c.Login(context.Background(), email, password, "000000")
+
+	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	if len(lines) != 2 ||
+		!strings.Contains(lines[0], "Login or password is wrong") || !strings.Contains(lines[0], "without a two-factor code") ||
+		!strings.Contains(lines[1], "Invalid auth code") || !strings.Contains(lines[1], "with a two-factor code") {
+		t.Fatalf("logged %q, want each refusal in Rapidgator's words and whether a code went along", lines)
+	}
+	for _, secret := range []string{email, password, "letmein", "000000"} {
+		if strings.Contains(out.String(), secret) {
+			t.Errorf("the log carries %q", secret)
+		}
 	}
 }
