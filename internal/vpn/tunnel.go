@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GopeedLab/gopeed/pkg/netbind"
 	"golang.zx2c4.com/wireguard/conn"
 	"golang.zx2c4.com/wireguard/device"
 )
@@ -97,17 +96,15 @@ func (o Options) withDefaults() Options {
 }
 
 // ErrDown is the error of a socket asked of a Tunnel that does not carry
-// traffic. It is netbind's, so a torrent client bound to the tunnel treats it
-// as it treats a missing interface.
-var ErrDown = netbind.ErrDown
+// traffic.
+var ErrDown = errors.New("vpn: tunnel down")
 
 // ErrResolve is an endpoint whose name did not resolve, which a name server
 // that is not reachable yet causes as often as a wrong name.
 var ErrResolve = errors.New("vpn: resolve")
 
-// Tunnel is one WireGuard connection inside the process. It is a
-// netbind.Network: registered with netbind and named as the torrent client's
-// interface, it carries every torrent socket and nothing else.
+// Tunnel is one WireGuard connection inside the process. It carries the
+// sockets asked of it and nothing else.
 type Tunnel struct {
 	opts Options
 
@@ -115,7 +112,6 @@ type Tunnel struct {
 	cfg      Config
 	dev      *device.Device
 	ns       *netStack
-	stack    uint64
 	state    State
 	attempt  time.Time
 	backoff  time.Duration
@@ -186,7 +182,6 @@ func (t *Tunnel) build(cfg Config, endpoint netip.AddrPort) error {
 		t.dev.Close()
 	}
 	t.cfg, t.dev, t.ns = cfg, dev, ns
-	t.stack++
 	t.state.Endpoint = endpoint
 	t.state.Addrs = cfg.addrs()
 	t.state.LastHandshake = time.Time{}
@@ -212,14 +207,13 @@ func (t *Tunnel) Disconnect() {
 		return
 	}
 	t.dev, t.ns = nil, nil
-	t.stack++
 	t.state.Addrs = nil
 	t.state.Reconnects = 0
 	t.backoff = 0
 	st := t.setStatusLocked(Disconnected, "")
 	t.mu.Unlock()
-	// Watchers such as a Binder close their sockets while the stack still
-	// stands, so none of them sees it fail.
+	// Watchers close their sockets while the stack still stands, so none of
+	// them sees it fail.
 	t.notify(st)
 	if dev != nil {
 		dev.Close()
@@ -487,17 +481,6 @@ func (t *Tunnel) current() (*netStack, error) {
 		return nil, ErrDown
 	}
 	return t.ns, nil
-}
-
-// Status implements netbind.Network.
-func (t *Tunnel) Status() netbind.NetworkStatus {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	return netbind.NetworkStatus{
-		Up:    t.ns != nil && t.state.Status == Connected,
-		Addrs: slices.Clone(t.state.Addrs),
-		Stack: t.stack,
-	}
 }
 
 // DialContext dials through the tunnel, resolving a name with the tunnel's

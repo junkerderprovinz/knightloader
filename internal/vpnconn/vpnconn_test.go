@@ -18,7 +18,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GopeedLab/gopeed/pkg/netbind"
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/vpn"
 	"github.com/junkerderprovinz/knightloader/internal/vpn/nordvpn"
@@ -189,10 +188,7 @@ func TestProtonCarriesTorrentsAndFollowsItsForwardedPort(t *testing.T) {
 		t.Error("the login is not stored")
 	}
 
-	b := netbind.New()
-	b.SetInterface(NetworkName)
-	defer b.SetInterface("")
-	c, err := b.DialContext(context.Background(), "tcp4", "10.2.0.1:7")
+	c, err := h.m.DialContext(context.Background(), "tcp4", "10.2.0.1:7")
 	if err != nil {
 		t.Fatalf("a torrent socket cannot reach through the tunnel: %v", err)
 	}
@@ -212,8 +208,8 @@ func TestProtonCarriesTorrentsAndFollowsItsForwardedPort(t *testing.T) {
 	if st.Active != "" || h.changes.Load() == before {
 		t.Errorf("active %q after disconnect, changes heard %d", st.Active, h.changes.Load()-before)
 	}
-	if _, err := b.DialContext(context.Background(), "tcp4", "10.2.0.1:7"); !errors.Is(err, netbind.ErrDown) {
-		t.Errorf("dial after disconnect = %v, want ErrDown", err)
+	if _, err := h.m.DialContext(context.Background(), "tcp4", "10.2.0.1:7"); !errors.Is(err, ErrNoVPN) {
+		t.Errorf("dial after disconnect = %v, want ErrNoVPN", err)
 	}
 }
 

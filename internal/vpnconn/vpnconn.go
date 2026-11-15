@@ -20,14 +20,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GopeedLab/gopeed/pkg/netbind"
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/vpn"
 )
-
-// NetworkName is the name the tunnel is registered under with netbind, and so
-// the torrent client's interface while a provider is in use.
-const NetworkName = "knightloader-vpn"
 
 // Service is the credential store's service the logins are sealed under, one
 // account per provider.
@@ -212,10 +207,7 @@ func New(opts Options) (*Manager, error) {
 			}
 		}
 	}
-	m.tun.Watch(func(vpn.State) {
-		netbind.Default.Refresh()
-		m.opts.OnChange()
-	})
+	m.tun.Watch(func(vpn.State) { m.opts.OnChange() })
 	return m, nil
 }
 
@@ -353,11 +345,6 @@ func (m *Manager) connect(id string, fields map[string]string) (State, error) {
 			return State{}, err
 		}
 	}
-	// Registered while a provider is in use, so the torrent client's binder
-	// finds the tunnel under the name its interface is set to.
-	if err := netbind.Register(NetworkName, m.tun); err != nil {
-		return State{}, err
-	}
 	m.stop()
 	m.mu.Lock()
 	m.active, m.fail, m.exitIP, m.port, m.portAddr = id, nil, "", 0, netip.Addr{}
@@ -381,7 +368,6 @@ func (m *Manager) Disconnect() State {
 func (m *Manager) disconnect() State {
 	m.stop()
 	m.tun.Disconnect()
-	netbind.Register(NetworkName, nil)
 	m.mu.Lock()
 	m.active, m.fail, m.exitIP, m.port, m.portAddr = "", nil, "", 0, netip.Addr{}
 	m.mu.Unlock()
@@ -433,7 +419,6 @@ func (m *Manager) Resume() {
 	if p == nil {
 		return
 	}
-	netbind.Register(NetworkName, m.tun)
 	m.mu.Lock()
 	m.active = p.ID
 	m.fail = &failure{CodeResumeFailed, fmt.Errorf("%s could not be taken up again after the restart: %w", p.Name, err)}
@@ -522,9 +507,6 @@ func (m *Manager) Close() {
 	defer m.op.Unlock()
 	m.stop()
 	m.tun.Disconnect()
-	if m.Active() != "" {
-		netbind.Register(NetworkName, nil)
-	}
 }
 
 // stop ends the run and the session of the provider in use.

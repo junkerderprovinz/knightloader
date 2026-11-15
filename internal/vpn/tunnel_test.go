@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/GopeedLab/gopeed/pkg/netbind"
 )
 
 type pair struct {
@@ -191,22 +189,6 @@ func TestPortForwardingRunsThroughTheTunnel(t *testing.T) {
 	<-done
 }
 
-// bindTorrents binds a Binder to the tunnel the way the torrent client's is.
-func bindTorrents(t *testing.T, tun *Tunnel, name string) *netbind.Binder {
-	t.Helper()
-	if err := netbind.Register(name, tun); err != nil {
-		t.Fatal(err)
-	}
-	b := netbind.New()
-	b.SetInterface(name)
-	tun.Watch(func(State) { b.Refresh() })
-	t.Cleanup(func() {
-		b.SetInterface("")
-		netbind.Register(name, nil)
-	})
-	return b
-}
-
 func udpEcho(t *testing.T, pc net.PacketConn) error {
 	t.Helper()
 	pc.SetDeadline(time.Now().Add(5 * time.Second))
@@ -222,25 +204,20 @@ func udpEcho(t *testing.T, pc net.PacketConn) error {
 	return err
 }
 
-func TestTheTorrentBinderSendsNothingOnceTheTunnelIsDown(t *testing.T) {
+func TestATunnelSendsNothingOnceItIsDown(t *testing.T) {
 	p := connectedPair(t, Options{})
-	b := bindTorrents(t, p.tun, "kl-vpn-killswitch")
-	if st := b.State(); !st.Up || len(st.Addrs) != 1 || st.Addrs[0] != clientAddr {
-		t.Fatalf("binder state %+v, want the tunnel's address", st)
-	}
-
-	open, err := b.DialContext(dialCtx(t), "tcp4", "10.2.0.1:7")
+	open, err := p.tun.DialContext(dialCtx(t), "tcp4", "10.2.0.1:7")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer open.Close()
-	pc, err := b.PacketConn("udp4", 0)
+	pc, err := p.tun.ListenPacket("udp4", netip.AddrPortFrom(clientAddr, 0))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer pc.Close()
 	if err := udpEcho(t, pc); err != nil {
-		t.Fatalf("udp through the binder: %v", err)
+		t.Fatalf("udp through the tunnel: %v", err)
 	}
 
 	// Loopback is one hop away on the system's network; through the tunnel
@@ -252,20 +229,23 @@ func TestTheTorrentBinderSendsNothingOnceTheTunnelIsDown(t *testing.T) {
 	defer local.Close()
 	short, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if c, err := b.DialContext(short, "tcp4", local.Addr().String()); err == nil {
+	if c, err := p.tun.DialContext(short, "tcp4", local.Addr().String()); err == nil {
 		c.Close()
-		t.Error("the binder reached a system socket past the tunnel")
+		t.Error("the tunnel reached a system socket")
 	}
 
 	p.tun.Disconnect()
 
-	if _, err := b.DialContext(dialCtx(t), "tcp4", "10.2.0.1:7"); !errors.Is(err, netbind.ErrDown) {
+	if _, err := p.tun.DialContext(dialCtx(t), "tcp4", "10.2.0.1:7"); !errors.Is(err, ErrDown) {
 		t.Errorf("dial with the tunnel down = %v, want ErrDown", err)
 	}
-	if _, err := pc.WriteTo([]byte("x"), net.UDPAddrFromAddrPort(netip.AddrPortFrom(serverAddr, 7))); !errors.Is(err, netbind.ErrDown) {
-		t.Errorf("send with the tunnel down = %v, want ErrDown", err)
+	if _, err := p.tun.ListenPacket("udp4", netip.AddrPortFrom(clientAddr, 0)); !errors.Is(err, ErrDown) {
+		t.Errorf("a socket with the tunnel down = %v, want ErrDown", err)
 	}
-	if _, err := b.LookupHost(dialCtx(t), "gateway.tunnel.test"); !errors.Is(err, netbind.ErrDown) {
+	if _, err := pc.WriteTo([]byte("x"), net.UDPAddrFromAddrPort(netip.AddrPortFrom(serverAddr, 7))); err == nil {
+		t.Error("a socket from before still sends with the tunnel down")
+	}
+	if _, err := p.tun.LookupNetIP(dialCtx(t), "ip", "gateway.tunnel.test"); !errors.Is(err, ErrDown) {
 		t.Errorf("lookup with the tunnel down = %v, want ErrDown", err)
 	}
 	open.SetReadDeadline(time.Now().Add(5 * time.Second))
@@ -286,18 +266,12 @@ func TestATunnelReconnectsOnceItsServerIsBack(t *testing.T) {
 	if err := tun.Connect(dialCtx(t), cfg); err != nil {
 		t.Fatal(err)
 	}
-	b := bindTorrents(t, tun, "kl-vpn-reconnect")
-	pc, err := b.PacketConn("udp4", 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer pc.Close()
 	waitUntil(t, "a reconnect attempt", 5*time.Second, func() bool { return tun.State().Reconnects > 0 })
 	if st := tun.State(); st.Status != Connecting {
 		t.Fatalf("status %s without a server, want connecting", st.Status)
 	}
-	if _, err := pc.WriteTo([]byte("x"), net.UDPAddrFromAddrPort(netip.AddrPortFrom(serverAddr, 7))); !errors.Is(err, netbind.ErrDown) {
-		t.Errorf("send before the first handshake = %v, want ErrDown", err)
+	if _, err := tun.ListenPacket("udp4", netip.AddrPortFrom(clientAddr, 0)); !errors.Is(err, ErrDown) {
+		t.Errorf("a socket before the first handshake = %v, want ErrDown", err)
 	}
 
 	startTestServer(t, sk, cfg.PrivateKey.PublicKey(), port)
@@ -306,9 +280,13 @@ func TestATunnelReconnectsOnceItsServerIsBack(t *testing.T) {
 	if err := tun.WaitConnected(ctx); err != nil {
 		t.Fatal(err)
 	}
-	waitUntil(t, "the binder to come up", 5*time.Second, func() bool { return b.State().Up })
+	pc, err := tun.ListenPacket("udp4", netip.AddrPortFrom(clientAddr, 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pc.Close()
 	if err := udpEcho(t, pc); err != nil {
-		t.Errorf("the socket from before did not come back: %v", err)
+		t.Errorf("udp once the server is back: %v", err)
 	}
 }
 
