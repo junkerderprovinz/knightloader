@@ -253,34 +253,48 @@ func folderName(tracker string) string {
 // twin seeding from linked files takes them along when the task's files go;
 // one seeding from the task's own files leaves them to the removal.
 func (a *App) dropCrossSeeds(t *core.Task, files bool) {
-	if a.xsAsked == nil || t.InfoHash == "" {
+	if a.xsAsked == nil || t.InfoHash == "" || len(a.xsAsked.Injected(t.InfoHash)) == 0 {
 		return
 	}
-	twins := a.xsAsked.Injected(t.InfoHash)
-	if len(twins) == 0 {
-		return
-	}
-	own := filepath.Dir(t.File)
 	a.spawn(func() {
 		ctx, cancel := context.WithTimeout(a.ctx, time.Minute)
 		defer cancel()
-		bt := a.Engine.Torrents()
-		readings, err := bt.Readings(ctx)
-		if err != nil {
-			log.Printf("the cross-seeds of %s could not be taken out of qBittorrent: %v", t.Name, err)
-			return
-		}
-		for _, h := range twins {
-			r, ok := readings[h]
-			if !ok {
-				continue
-			}
-			linked := files && t.File != "" && !mayBeOneFile(filepath.Clean(filepath.FromSlash(r.Dir)), own)
-			if err := bt.Delete(ctx, h, linked); err != nil && !errors.Is(err, torrents.ErrUnknown) {
-				log.Printf("the cross-seed %s of %s could not be taken out of qBittorrent: %v", h, t.Name, err)
-			}
-		}
+		a.dropCrossSeedsNow(ctx, t, files)
 	})
+}
+
+// dropCrossSeedsNow is dropCrossSeeds while the caller waits. Twins that
+// qBittorrent could not be asked to let go are kept for its next start.
+func (a *App) dropCrossSeedsNow(ctx context.Context, t *core.Task, files bool) {
+	twins := a.xsAsked.Injected(t.InfoHash)
+	own := filepath.Dir(t.File)
+	left := map[string]leftTorrent{}
+	keep := func(h string) { left[strings.ToLower(h)] = leftTorrent{Files: files && t.File != "", Keep: own} }
+	bt := a.Engine.Torrents()
+	readings, err := bt.Readings(ctx)
+	if err != nil {
+		log.Printf("the cross-seeds of %s are taken out of qBittorrent at its next start: %v", t.Name, err)
+		for _, h := range twins {
+			keep(h)
+		}
+	}
+	for _, h := range twins {
+		r, ok := readings[h]
+		if !ok {
+			continue
+		}
+		linked := files && t.File != "" && !mayBeOneFile(filepath.Clean(filepath.FromSlash(r.Dir)), own)
+		if err := bt.Delete(ctx, h, linked); err != nil && !errors.Is(err, torrents.ErrUnknown) {
+			log.Printf("the cross-seed %s of %s is taken out of qBittorrent at its next start: %v", h, t.Name, err)
+			keep(h)
+		}
+	}
+	if len(left) == 0 {
+		return
+	}
+	if err := a.leftTorrents.add(left); err != nil {
+		log.Printf("the cross-seeds of %s could not be kept to take out of qBittorrent later: %v", t.Name, err)
+	}
 }
 
 // CrossSeedLog is the newest n lines of the cross-seed log, newest first.

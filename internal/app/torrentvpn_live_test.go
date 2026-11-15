@@ -342,3 +342,85 @@ func TestATorrentThroughTheBuiltInVPNReachesNothingButTheTunnel(t *testing.T) {
 		}
 	}
 }
+
+// liveApp is an app that runs the qBittorrent named in KL_QBITTORRENT_NOX as
+// its own, the way it runs the one it fetches.
+func liveApp(t *testing.T) (*App, *qbittorrent.Client) {
+	t.Helper()
+	bin := os.Getenv("KL_QBITTORRENT_NOX")
+	if bin == "" {
+		t.Skip("KL_QBITTORRENT_NOX names no qBittorrent to run")
+	}
+	dataDir := t.TempDir()
+	quietProfile(t, filepath.Join(dataDir, "qbittorrent"))
+	a, err := newApp(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+	a.fetchQBit = func(context.Context, nox.Version, func(done, total int64)) error { return nil }
+	a.runQBit = func(v nox.Version) qbitRunner {
+		o := a.qbitOptions(v)
+		o.Binary = bin
+		return nox.Start(o)
+	}
+	a.StartQBittorrent()
+	a.UseTorrents(torrents.QBit(a.qbitClient))
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	qb, err := a.qbitClient(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return a, qb
+}
+
+// After a restart qBittorrent runs nothing KnightLoader has not taken over: a
+// torrent whose task is on the list waits, stopped, for its task to start it,
+// and one whose task is gone is taken out without its files.
+func TestARealQBittorrentRunsNothingOfItsOwnAfterARestart(t *testing.T) {
+	a, qb := liveApp(t)
+	ctx := context.Background()
+	src := t.TempDir()
+	rawKept, kept := testenv.MakeTorrent(t, src, "Kept", map[string]int{"a.bin": 40000})
+	rawGone, gone := testenv.MakeTorrent(t, src, "Gone", map[string]int{"b.bin": 40000})
+	for _, raw := range [][]byte{rawKept, rawGone} {
+		if err := qb.Add(ctx, qbittorrent.Torrent{File: raw, SavePath: src, Folder: true, Tags: []string{torrents.Tag}}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	a.mu.Lock()
+	a.tasks["kept"] = &core.Task{ID: "kept", Name: "Kept", Resolver: "torrent", Status: core.StatusDone, InfoHash: kept, File: filepath.Join(src, "Kept")}
+	a.mu.Unlock()
+	waitFor(t, "both seeding", func() bool {
+		list, _ := qb.Torrents(ctx, qbittorrent.Filter{Tag: torrents.Tag})
+		return len(list) == 2 && strings.HasSuffix(list[0].State, "UP") && strings.HasSuffix(list[1].State, "UP") &&
+			!strings.HasPrefix(list[0].State, "paused") && !strings.HasPrefix(list[1].State, "paused")
+	})
+
+	a.stopQBit()
+	a.StartQBittorrent()
+	ctx2, cancel := context.WithTimeout(ctx, 90*time.Second)
+	defer cancel()
+	qb, err := a.qbitClient(ctx2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// It reads what it kept in the background, and says only then how a
+	// torrent stands.
+	var list []qbittorrent.Info
+	waitFor(t, "qBittorrent's own check", func() bool {
+		list, err = qb.Torrents(ctx, qbittorrent.Filter{})
+		return err == nil && !slices.ContainsFunc(list, func(i qbittorrent.Info) bool { return strings.HasPrefix(i.State, "checking") })
+	})
+	if len(list) != 1 || list[0].Hash != kept {
+		t.Fatalf("after the restart qBittorrent holds %+v, want the kept one alone", list)
+	}
+	if st := list[0].State; !strings.HasPrefix(st, "paused") && !strings.HasPrefix(st, "stopped") {
+		t.Errorf("the kept torrent is %s before its task started it", st)
+	}
+	t.Logf("after the restart: %s is %s, %s is gone", list[0].Name, list[0].State, gone)
+	if _, err := os.Stat(filepath.Join(src, "Gone", "b.bin")); err != nil {
+		t.Errorf("the files of the one taken out went too: %v", err)
+	}
+}

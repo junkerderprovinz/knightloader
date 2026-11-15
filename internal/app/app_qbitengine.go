@@ -56,6 +56,11 @@ type qbitState struct {
 	// by App.mu.
 	recheckSeed map[string]bool
 
+	// runningTorrents is Engine.RunningTorrents, and leftTorrents the twins
+	// to take out of qBittorrent at its next start (app_qbittakeover.go).
+	runningTorrents func() []string
+	leftTorrents    *leftStore
+
 	// fetchQBit and runQBit are nox.Install and nox.Start, which the tests
 	// replace so that nothing is downloaded or started.
 	fetchQBit func(ctx context.Context, v nox.Version, progress func(done, total int64)) error
@@ -63,6 +68,8 @@ type qbitState struct {
 }
 
 func (a *App) initQBit() {
+	a.runningTorrents = func() []string { return a.Engine.RunningTorrents() }
+	a.leftTorrents = &leftStore{path: filepath.Join(a.DataDir, leftTorrentsFile)}
 	a.fetchQBit = func(ctx context.Context, v nox.Version, progress func(done, total int64)) error {
 		_, _, err := nox.Install(ctx, a.DataDir, v, progress)
 		return err
@@ -92,10 +99,16 @@ var newTorrentClient = func(a *App) torrents.Client { return torrents.QBit(a.qbi
 func (a *App) UseTorrents(c torrents.Client) { a.Engine.UseTorrents(c) }
 
 // prepareQBit gives a qBittorrent that has just started the torrent settings,
-// before any torrent reaches it.
+// before any torrent reaches it, and takes over the torrents it kept.
 func (a *App) prepareQBit(ctx context.Context, c *qbittorrent.Client) error {
 	at := func(context.Context) (*qbittorrent.Client, error) { return c, nil }
-	return torrents.QBit(at).Configure(ctx, a.Engine.TorrentPrefs())
+	if err := torrents.QBit(at).Configure(ctx, a.Engine.TorrentPrefs()); err != nil {
+		return err
+	}
+	if err := a.takeOverTorrents(ctx, c); err != nil {
+		log.Printf("qBittorrent's torrents could not all be taken over, and those KnightLoader does not start run on: %v", err)
+	}
+	return nil
 }
 
 var errQBitOff = fmt.Errorf("qBittorrent is not running in this KnightLoader: %w", torrents.ErrOff)

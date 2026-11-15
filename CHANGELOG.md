@@ -108,6 +108,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   already have move over on the first start and carry on with the bytes they
   have. A finished one is checked piece by piece first, so qBittorrent seeds
   it without reading it again. Changing the port, DHT or PEX applies at once.
+  When qBittorrent starts, it runs nothing of its own: KnightLoader starts the
+  torrents its tasks want and takes out those whose task is gone, keeping
+  their files.
   Torrents through the built-in VPN go through a proxy inside KnightLoader,
   and only through it: qBittorrent is tied to loopback, with the DHT, uTP,
   local peer discovery and port mapping off, and torrents wait while the
