@@ -359,7 +359,9 @@ export function RowSwitch({
 // the row beside them uses. A second copy is how a chip ends up saying "Hoster
 // limit" over rows labelled something else.
 export const reasonKey: Record<string, TranslationKey> = {
-  gone: 'task.reason.gone',
+  // The word the collector's dot says for the same verdict, so the tag and the
+  // dot beside it agree.
+  gone: 'task.offline',
   auth: 'task.reason.auth',
   limit: 'task.reason.limit',
   unavailable: 'task.reason.unavailable',
@@ -749,6 +751,44 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   const { role: _openRole, tabIndex: _openTabIndex, ...openHover } = openTip.triggerProps;
   const priorityNames = usePriorityNames();
   const parked = isParked([task]) ? PARKED : '';
+  // The collector is a list of links somebody is still sorting, and its rows
+  // stay one line tall: the cause rides on the name's line and its sentence
+  // waits in the tag's bubble. The status dot already says the link is dead.
+  const slim = ctx.profile === 'collector' && !!failure && !!reason;
+  // The typed cause is a tag rather than a second sentence: a column reading
+  // "disk full" four times is one fact about this box, where four hoster
+  // sentences that each mean it are four things to read. Quiet eyebrow type
+  // and never the accent, since a settled failure is not activity.
+  //
+  // Capped at 45% rather than left to size itself: a tag free to run the width
+  // of the cell would squeeze the sentence or the name beside it to nothing in
+  // a narrow column, and the tag truncates with its own tooltip.
+  const tag =
+    reason &&
+    (advice ? (
+      // No stopPropagation: TaskList's control selector begins with `button`,
+      // so the row's click-to-select, its double-click and its dragstart all
+      // skip this.
+      <>
+        <button
+          type="button"
+          {...openHover}
+          className="glim-eyebrow max-w-[45%] shrink-0 truncate rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5
+            transition-colors hover:bg-carbon-surface3 hover:text-carbon-textSub"
+          onClick={() => setWhyOpen(true)}
+        >
+          {t(reason)}
+        </button>
+        {openTip.node}
+      </>
+    ) : (
+      <Tip
+        tip={slim && failure ? <FailureDetail failure={failure} t={t} /> : t(reason)}
+        className="glim-eyebrow max-w-[45%] shrink-0 truncate"
+      >
+        {t(reason)}
+      </Tip>
+    ));
   return (
     <div className="min-w-0">
       <div className="flex min-w-0 items-center gap-1.5">
@@ -768,47 +808,17 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
                 placeholder gets no extension tacked onto it. */}
             {task.name && task.name !== task.url && task.ext ? `${task.name}.${task.ext}` : task.name || task.url}
           </div>
+          {slim && tag}
         </div>
       </div>
       {tip.node}
       {whyOpen && reason && (
         <FailureAdvice task={task} base={base} reasonLabel={reason} onClose={() => setWhyOpen(false)} />
       )}
-      {failure && (
+      {failure && !slim && (
+        // No box of its own, because the shade step is the separation.
         <div className={`mt-0.5 flex items-center gap-1.5 text-meta ${parked}`}>
-          {/* The typed cause leads the line as a tag rather than a second
-              sentence: a column reading "disk full" four times is one fact
-              about this box, where four hoster sentences that each mean it are
-              four things to read. Quiet eyebrow type and never the accent,
-              since a settled failure is not activity, and no box of its own,
-              because the shade step is the separation.
-
-              Capped at 45% rather than left to size itself: a tag free to run
-              the width of the cell would squeeze the sentence to nothing in a
-              narrow column. The sentence keeps the larger half, and the tag
-              truncates with its own tooltip. */}
-          {reason &&
-            (advice ? (
-              // No stopPropagation: TaskList's control selector begins with
-              // `button`, so the row's click-to-select, its double-click and
-              // its dragstart all skip this.
-              <>
-                <button
-                  type="button"
-                  {...openHover}
-                  className="glim-eyebrow max-w-[45%] shrink-0 truncate rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5
-                    transition-colors hover:bg-carbon-surface3 hover:text-carbon-textSub"
-                  onClick={() => setWhyOpen(true)}
-                >
-                  {t(reason)}
-                </button>
-                {openTip.node}
-              </>
-            ) : (
-              <Tip tip={t(reason)} className="glim-eyebrow max-w-[45%] shrink-0 truncate">
-                {t(reason)}
-              </Tip>
-            ))}
+          {tag}
           {/* `min-w-0` and no `flex-1`: it sizes to its text and is the only
               thing on the line that may shrink, so it takes the whole shortfall
               and the glyph stays beside the sentence it belongs to instead of
@@ -914,6 +924,14 @@ function packageAvailMixed(items: Task[]): boolean {
   return items.some((x) => x.online === 'online') && items.some((x) => x.online === 'offline');
 }
 
+/** PackageAvailDot is a package row's availability dot, named like its links' dots. */
+function PackageAvailDot({ items, t }: { items: Task[]; t: Translate }) {
+  const mixed = packageAvailMixed(items);
+  const avail = packageAvailStatus(items);
+  const title = mixed ? t('task.partlyOffline') : avail ? t(availChip[avail].key) : undefined;
+  return <AvailDot avail={avail} mixed={mixed} title={title} />;
+}
+
 /**
  * AvailCell is the collector's own column: is this link there or not. The dot
  * carries the availability verdict, and the one waiting reason a staged row can
@@ -921,13 +939,10 @@ function packageAvailMixed(items: Task[]): boolean {
  * state word there would read "collected" on all of them.
  */
 function AvailCell({ task, t }: { task: Task; t: Translate }) {
-  // The typed cause carries the detail, as a tooltip rather than a second word
-  // on the line. "Host would not say" is the verdict and it is what the column
-  // is for; whether the host was rate-limiting us or simply down is the next
-  // question, and it belongs one hover away, not in the width of the cell.
-  const why = task.reason ? reasonKey[task.reason] : undefined;
+  // The dot names its verdict and nothing else, so every dot of one colour
+  // says the same word. The typed cause is the tag on the name's line.
   const avail = task.online;
-  const dot = <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
+  const dot = <AvailDot avail={avail} title={avail ? t(availChip[avail].key) : undefined} />;
   if (task.waiting !== 'premium') return dot;
   // The one waiting reason a staged row carries: what starting it would run
   // into, which is news here and not after the click.
@@ -1885,7 +1900,7 @@ export const COLUMNS: ColumnDef[] = [
     // Once its downloads are in, its archives speak for it.
     aggregate: (items, ctx) =>
       ctx.profile === 'collector' || packageStatus(items) === 'collected' ? (
-        <AvailDot avail={packageAvailStatus(items)} mixed={packageAvailMixed(items)} />
+        <PackageAvailDot items={items} t={ctx.t} />
       ) : (
         <PackageStatusCell items={items} ctx={ctx} />
       ),

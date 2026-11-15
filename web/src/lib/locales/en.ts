@@ -63,7 +63,6 @@ export const en = {
 
   // Badge-sized names for a typed failure. They sit next to a task's own error
   // text, so each one is the category and not the sentence.
-  'task.reason.gone': 'Gone',
   'task.reason.auth': 'Sign-in required',
   'task.reason.limit': 'Hoster limit',
   'task.reason.unavailable': 'Host unavailable',
@@ -463,6 +462,7 @@ export const en = {
   'task.recheck': 'Recheck',
   'task.online': 'Online',
   'task.offline': 'Offline',
+  'task.partlyOffline': 'Partly offline',
   'task.retryPending': 'Retrying automatically',
   'task.forced': 'Set to start now',
   'task.folder': 'Folder',
