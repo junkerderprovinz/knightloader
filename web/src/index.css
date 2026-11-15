@@ -666,15 +666,14 @@ body {
 /* The shaded list's grounds (lib/listShade.ts), see-through so they sit on
    whatever card holds the list, and mixed toward the text colour like the
    hover steps above, so one set serves light, dark and OLED. A package's links
-   alternate between the first two, a far smaller step than the one up to its
-   header, and the hover stands above all three. */
+   alternate between the card's own ground and a faint step, a quiet zebra, its
+   header stands a hair above that, and the hover above all three. */
 :root,
 [data-theme] {
-  --list-band-odd:   color-mix(in srgb, var(--carbon-text) 3%, transparent);
-  --list-band-even:  color-mix(in srgb, var(--carbon-text) 6%, transparent);
-  --list-band-head:  color-mix(in srgb, var(--carbon-text) 11%, transparent);
-  --list-band-hover: color-mix(in srgb, var(--carbon-text) 16%, transparent);
-  --list-band-gap:   6px;
+  --list-band-odd:   transparent;
+  --list-band-even:  color-mix(in srgb, var(--carbon-text) 2%, transparent);
+  --list-band-head:  color-mix(in srgb, var(--carbon-text) 4%, transparent);
+  --list-band-hover: color-mix(in srgb, var(--carbon-text) 7%, transparent);
 }
 
 /* The house font is Noto Sans, shipped with the app (the imports in main.tsx)
@@ -1053,11 +1052,9 @@ body {
   box-shadow: inset 0 0 0 999px var(--item-hue-soft);
 }
 
-/* The shaded list's bands, with a strip of the page's ground before every
-   package but the first, so the bands read as stacked on the page. Ahead of
-   the selected row's rules and no more specific, so a selection still fills
-   the row. The hover is written here because a Tailwind hover utility cannot
-   reach past an unlayered background. */
+/* The shaded list's bands. Ahead of the selected row's rules and no more
+   specific, so a selection still fills the row. The hover is written here
+   because a Tailwind hover utility cannot reach past an unlayered background. */
 :where([data-shade]) > [data-band='odd'] {
   background-color: var(--list-band-odd);
 }
@@ -1069,10 +1066,6 @@ body {
 }
 :where([data-shade]) > [data-band]:is(:hover, :has(:focus-visible)) {
   background-color: var(--list-band-hover);
-}
-:where([data-shade]) > .kl-band-seam {
-  border-top: var(--list-band-gap) solid var(--carbon-bg);
-  background-clip: padding-box;
 }
 
 /* The wash on a selected list row. A class rather than a `bg-accent/20`

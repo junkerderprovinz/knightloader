@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -95,6 +96,14 @@ describe('the shaded list', () => {
     expect(['d', 'e'].map((id) => band(link(id)))).toEqual(['odd', 'even']);
   });
 
+  it('runs one package straight into the next, with no strip of ground between them', async () => {
+    await show([
+      ['Films', FILMS],
+      ['Music', MUSIC],
+    ]);
+    expect(folder('Music')!.className).not.toContain('kl-band-seam');
+  });
+
   it('shades the list until the switch is turned off, and again once it is on', async () => {
     await show([['Films', FILMS]]);
     expect(tree().hasAttribute('data-shade')).toBe(true);
@@ -103,6 +112,38 @@ describe('the shaded list', () => {
     expect(tree().hasAttribute('data-shade')).toBe(false);
     await act(async () => setListShade(true));
     expect(tree().hasAttribute('data-shade')).toBe(true);
+  });
+});
+
+describe('the shades', () => {
+  // Vitest runs from web/.
+  const css = readFileSync('src/index.css', 'utf8');
+  /** How much of the text colour a band mixes in, in percent. A clear band mixes none. */
+  const share = (band: string) => {
+    const value = new RegExp(`--list-band-${band}:\\s*([^;]+);`).exec(css)?.[1].trim();
+    if (value === 'transparent') return 0;
+    const pct = /var\(--carbon-text\)\s+([\d.]+)%/.exec(value ?? '')?.[1];
+    if (pct === undefined) throw new Error(`--list-band-${band} is no mix of the text colour: ${value}`);
+    return Number(pct);
+  };
+
+  it('alternates the files barely, closer to a quiet zebra than to bands', () => {
+    expect(share('even') - share('odd')).toBeGreaterThan(0);
+    expect(share('even') - share('odd')).toBeLessThanOrEqual(2.5);
+  });
+
+  it('sets the package header only a hair above its files', () => {
+    expect(share('head')).toBeGreaterThan(share('even'));
+    expect(share('head') - share('even')).toBeLessThanOrEqual(2.5);
+  });
+
+  it('keeps the hover above every shade', () => {
+    expect(share('hover')).toBeGreaterThan(share('head'));
+  });
+
+  it('leaves no gap between packages', () => {
+    expect(css).not.toContain('--list-band-gap');
+    expect(css).not.toContain('kl-band-seam');
   });
 });
 

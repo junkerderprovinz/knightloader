@@ -1131,13 +1131,12 @@ function PackageRow({
       }}
       // Unshaded, the header wears the links' own ground, as in JDownloader:
       // the folder glyph and the bold name set it apart. The shaded list
-      // (lib/listShade.ts) gives it its band's head instead, and the seam
-      // becomes a gap before it. The selected state paints over either with
-      // .glim-row-selected.
+      // (lib/listShade.ts) gives it its band's head instead. The selected
+      // state paints over either with .glim-row-selected.
       className={`glim-row relative grid cursor-pointer select-none items-center ${
         hued ? `glim-hue glim-tint ${torrent.status === 'running' ? 'glim-active' : ''}` : ''
       } ${allSelected ? 'glim-row-selected' : ''} ${
-        divider ? 'kl-band-seam border-t border-carbon-border/60' : ''
+        divider ? 'border-t border-carbon-border/60' : ''
       } ${ROW_EDGES} py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
     >
       {columns.map((col) => (

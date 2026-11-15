@@ -121,9 +121,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   the first start. The macOS app fetches it when it first starts.
 - **Downloads and the link collector shade their rows,** so you can see at a
   glance which files belong to which package, also in the dark themes and on
-  a wide screen. A package's header stands a step above its files, the files
-  alternate faintly, and a narrow gap separates one package from the next.
-  "Shade the lists" under Settings, Appearance turns it off in this browser
+  a wide screen. The files alternate faintly, like a quiet zebra, and a
+  package's header stands a hair above them. "Shade the lists" under
+  Settings, Appearance turns it off in this browser
   ([#177](https://github.com/junkerderprovinz/knightloader/issues/177)).
 
 ### Removed
