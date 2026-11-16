@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 )
 
 // maxPage caps how much of a page is read. A file page is a few hundred
@@ -37,10 +39,11 @@ var (
 	ErrSignInBlocked   = errors.New("the site takes no sign-ins from this address")
 	ErrSignInFailed    = errors.New("the site did not sign the login in")
 	ErrNoLogin         = errors.New("there is no login to sign in with")
+	ErrNotActivated    = errors.New("the account is not activated yet, so activate it with the link from the site's welcome mail")
 
-	// ErrSignInHere is a site that takes the login only with a second
-	// factor, which the user enters on the site's own page through the
-	// sign-in browser.
+	// ErrSignInHere is a site whose sign-in with a second factor the client
+	// cannot go through, so the user signs in on the site's own page through
+	// the sign-in browser.
 	ErrSignInHere = errors.New("the site asks for a second factor at sign-in, so sign in on its own page")
 
 	// errSignedOut is a session the site has ended, which a new sign-in
@@ -509,16 +512,87 @@ func (c *Client) SignIn(ctx context.Context, user, password string, solve func(c
 	switch {
 	case s.signedIn():
 		return s, nil
+	case strings.Contains(r.body, "op=resend_activation"):
+		return nil, ErrNotActivated
 	case c.pat.RefusedLogin.MatchString(r.body):
 		return nil, ErrLoginRefused
 	case c.pat.BlockedLogin.MatchString(r.body):
 		return nil, ErrSignInBlocked
-	case readPage(r.body, c.pat).asksForCode():
-		return nil, ErrSignInHere
-	case c.pat.WrongCaptcha.MatchString(r.body):
+	}
+	if err := askCode(s, readPage(r.body, c.pat), action.String(), false); err != nil {
+		return nil, err
+	}
+	if c.pat.WrongCaptcha.MatchString(r.body) {
 		return nil, ErrCaptchaRefused
 	}
 	return nil, ErrSignInFailed
+}
+
+// CodeError is a sign-in that waits for the one-time code of a second
+// factor. The code goes into the form the password brought up, in the
+// session the password opened, since a site that mails the code mails a new
+// one for every sign-in.
+type CodeError struct {
+	// Wrong is a code the site turned down, asking for another.
+	Wrong bool
+	s     *Session
+	form  Form
+	field string
+	at    string
+}
+
+func (e *CodeError) Error() string { return e.Unwrap().Error() }
+
+func (e *CodeError) Unwrap() error {
+	if e.Wrong {
+		return ownlogin.ErrWrongCode
+	}
+	return ownlogin.ErrNeedsCode
+}
+
+// askCode is the CodeError for pg, read at the address at, nil when pg holds
+// no form for a second factor's code. A form that also asks for a captcha is
+// left to the site's own page.
+func askCode(s *Session, pg page, at string, wrong bool) error {
+	f, field := pg.codeForm()
+	switch {
+	case f == nil:
+		return nil
+	case widgetPattern.MatchString(f.inner) || imagePattern.MatchString(f.inner):
+		return ErrSignInHere
+	}
+	return &CodeError{Wrong: wrong, s: s, form: *f, field: field, at: at}
+}
+
+// SendCode sends code in the form e waits with and returns the session it
+// signs in. A code the site turns down comes back as a CodeError with Wrong
+// set and the form the site asks again with.
+func (c *Client) SendCode(ctx context.Context, e *CodeError, code string) (*Session, error) {
+	fields := maps.Clone(e.form.Fields)
+	for name, values := range e.form.buttons {
+		fields[name] = values
+	}
+	fields.Set(e.field, code)
+	action, err := url.Parse(e.at)
+	if err == nil {
+		action, err = action.Parse(e.form.Action)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("the form for the code goes nowhere: %w", err)
+	}
+	r, err := e.s.do(ctx, http.MethodPost, action.String(), fields, e.at)
+	switch {
+	case err != nil:
+		return nil, err
+	case e.s.signedIn():
+		return e.s, nil
+	}
+	if err := askCode(e.s, readPage(r.body, c.pat), action.String(), true); err != nil {
+		return nil, err
+	}
+	// The site neither took the code nor asked again, in words the client
+	// knows.
+	return nil, ErrSignInHere
 }
 
 // Account reads the account page of a signed-in session.

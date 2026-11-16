@@ -73,10 +73,18 @@ type Account struct {
 	// Direct sends a premium download from the file page straight on.
 	Direct bool
 	// TwoFactor answers the right password with the script's form for a
-	// one-time code, as a site with two-factor sign-in does, and signs in
-	// only through SignedIn.
+	// one-time code, as a site with two-factor sign-in does, which signs in
+	// with SecondFactor, as does SignedIn.
 	TwoFactor bool
+	// CodeCaptcha puts a Turnstile check on the form for the code.
+	CodeCaptcha bool
+	// Inactive answers the right password with the script's page for an
+	// account whose welcome mail was not opened yet.
+	Inactive bool
 }
+
+// SecondFactor is the one code the form for a second factor takes.
+const SecondFactor = "246810"
 
 // Server answers for the files and accounts it was given. Links name it as
 // Host, and a client pointed at URL reaches it.
@@ -101,8 +109,12 @@ type Server struct {
 	premiumCode  bool
 	challenge    int
 	signIns      int
+	codes        int
 	posts        []url.Values
 	requests     []string
+	// halfway are the sessions the password opened that wait for the code,
+	// by their cookie, with the user each belongs to.
+	halfway map[string]string
 }
 
 // New starts a server for host that closes when the test ends. own holds
@@ -112,7 +124,8 @@ func New(t *testing.T, host string, own fs.FS) *Server {
 	if own != nil {
 		pages = template.Must(pages.ParseFS(own, "*.html"))
 	}
-	s := &Server{Host: host, pages: pages, files: map[string]File{}, accounts: map[string]Account{}, sessions: map[string]string{}}
+	s := &Server{Host: host, pages: pages, files: map[string]File{}, accounts: map[string]Account{}, sessions: map[string]string{},
+		halfway: map[string]string{}}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
 	return s
@@ -179,11 +192,18 @@ func (s *Server) PremiumCaptcha() {
 	s.premiumCode = true
 }
 
-// SignIns is how many sign-in forms came in.
+// SignIns is how many sign-in forms with a password came in.
 func (s *Server) SignIns() int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.signIns
+}
+
+// Codes is how many forms with a second factor's code came in.
+func (s *Server) Codes() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.codes
 }
 
 // Posts is every download form that came in, oldest first.
@@ -216,6 +236,8 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(Picture)
 	case r.URL.Path == "/login.html":
 		s.render(w, "login.html", s.loginData())
+	case r.URL.Path == "/" && r.PostForm.Get("op") == "login" && r.PostForm.Has("code"):
+		s.secondFactor(w, r)
 	case r.URL.Path == "/" && r.PostForm.Get("op") == "login":
 		s.signIn(w, r)
 	case r.URL.Path == "/" && r.URL.Query().Get("op") == "my_account":
@@ -248,12 +270,59 @@ func (s *Server) signIn(w http.ResponseWriter, r *http.Request) {
 		s.render(w, "login.html", data)
 		return
 	}
-	if a.TwoFactor {
-		fmt.Fprint(w, `<html><body><h2>Enter the code we sent you</h2><form method="POST" action="/">`+
-			`<input type="hidden" name="op" value="login"><input type="text" name="code" maxlength="6">`+
-			`<input type="submit" value="Submit"></form></body></html>`)
+	switch {
+	case a.Inactive:
+		fmt.Fprint(w, `<html><body><div class="err">Your account is not confirmed yet.</div>`+
+			`<a href="/?op=resend_activation">Resend activation email</a></body></html>`)
+	case a.TwoFactor:
+		halfway := rand.Text()
+		s.halfway[halfway] = user
+		http.SetCookie(w, &http.Cookie{Name: "pending", Value: halfway, Path: "/", HttpOnly: true})
+		s.codeForm(w, a, false)
+	default:
+		s.open(w, r, user)
+	}
+}
+
+// codeForm is the script's form for a second factor's code.
+func (s *Server) codeForm(w http.ResponseWriter, a Account, wrong bool) {
+	var b strings.Builder
+	b.WriteString(`<html><body><h2>Enter the code we sent you</h2>`)
+	if wrong {
+		b.WriteString(`<div class="err">Wrong code</div>`)
+	}
+	b.WriteString(`<form method="POST" action="/"><input type="hidden" name="op" value="login">` +
+		`<input type="hidden" name="token" value="2fa-579fb198"><input type="text" name="code" maxlength="6">`)
+	if a.CodeCaptcha {
+		b.WriteString(`<div class="cf-turnstile" data-sitekey="` + SiteKey + `"></div>`)
+	}
+	b.WriteString(`<input type="submit" value="Submit"></form></body></html>`)
+	fmt.Fprint(w, b.String())
+}
+
+// secondFactor takes the code into the session the password opened.
+func (s *Server) secondFactor(w http.ResponseWriter, r *http.Request) {
+	s.codes++
+	c, err := r.Cookie("pending")
+	user := ""
+	if err == nil {
+		user = s.halfway[c.Value]
+	}
+	if user == "" || r.PostForm.Get("token") != "2fa-579fb198" {
+		s.render(w, "login.html", s.loginData())
 		return
 	}
+	if r.PostForm.Get("code") != SecondFactor {
+		s.codeForm(w, s.accounts[user], true)
+		return
+	}
+	delete(s.halfway, c.Value)
+	s.open(w, r, user)
+}
+
+// open signs user in on a new session and sends the browser to the account
+// page.
+func (s *Server) open(w http.ResponseWriter, r *http.Request, user string) {
 	session := rand.Text()
 	s.sessions[session] = user
 	http.SetCookie(w, &http.Cookie{Name: "login", Value: user, Path: "/"})

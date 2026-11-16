@@ -309,7 +309,7 @@ func browserJar(t *testing.T, site sitelogin.Site, host, cookies string) string 
 	return sitelogin.JarFromCookies(site, held, time.Now())
 }
 
-func TestAKatFileLoginThatWantsASecondFactorIsSignedInOnTheSitesOwnPage(t *testing.T) {
+func TestAKatFileLoginThatWantsASecondFactorCanStillBeSignedInOnTheSitesOwnPage(t *testing.T) {
 	srv := xfstest.New(t, katfile.Site.Host, nil)
 	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(1, 0, 0), TrafficMB: 51200, TwoFactor: true})
 	a := newCrawlApp(t, false)
@@ -318,9 +318,9 @@ func TestAKatFileLoginThatWantsASecondFactorIsSignedInOnTheSitesOwnPage(t *testi
 	if err := a.SetHosterLogin("katfile.com", "fox", "badger"); err != nil {
 		t.Fatal(err)
 	}
-	waitFor(t, "the row asking for a sign-in on the site's page", func() bool {
+	waitFor(t, "the row asking for the code", func() bool {
 		row, ok := loginRow(a, "katfile.com")
-		return ok && row.Status == hosterauth.StatusRejected && row.SignInHere && row.Code == "ownSignInHere"
+		return ok && row.Status == hosterauth.StatusRejected && row.AskCode && row.Code == "ownCodeNeeded"
 	})
 	if row, _ := loginRow(a, "katfile.com"); row.SignInSite != katfile.Site.ID {
 		t.Errorf("the row offers the sign-in browser for %q, want %q", row.SignInSite, katfile.Site.ID)
@@ -343,6 +343,63 @@ func TestAKatFileLoginThatWantsASecondFactorIsSignedInOnTheSitesOwnPage(t *testi
 	}
 	if n := srv.SignIns(); n != 1 {
 		t.Errorf("signed in %d times with the password, want only the try that met the code form", n)
+	}
+}
+
+func TestADdownloadCodeFromTheLoginWindowSignsTheLoginIn(t *testing.T) {
+	srv := ddltest.New(t)
+	srv.AddAccount("fox", ddltest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(1, 0, 0), TrafficMB: 150000, TwoFactor: true})
+	a := newCrawlApp(t, false)
+	b := useDdownload(a, srv)
+	ctx := context.Background()
+
+	if err := a.SetHosterLogin("ddownload.com", "fox", "badger"); err != nil {
+		t.Fatal(err)
+	}
+	answerTurnstile(t, a, srv.URL+"/login")
+	waitFor(t, "the row asking for the code", func() bool {
+		row, ok := loginRow(a, "ddownload.com")
+		return ok && row.AskCode && row.Code == "ownCodeNeeded"
+	})
+
+	row, err := a.SaveHosterLogin(ctx, "ddownload.com", "fox", accounts.Redacted, "135790")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !row.AskCode || row.Code != "ownCodeWrong" {
+		t.Errorf("row = %+v, want the wrong code asked for again", row)
+	}
+	row, err = a.SaveHosterLogin(ctx, "ddownload.com", "fox", accounts.Redacted, ddltest.SecondFactor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Status != hosterauth.StatusActive || row.Tier != "premium" || row.AskCode {
+		t.Errorf("row = %+v, want the active premium login", row)
+	}
+	if !b.Premium() {
+		t.Error("the code did not sign the login in")
+	}
+	if n, codes := srv.SignIns(), srv.Codes(); n != 1 || codes != 2 {
+		t.Errorf("sent the password %d times and a code %d times, want the password once and both codes into its form", n, codes)
+	}
+}
+
+func TestAnXFSAccountNotActivatedYetSaysSoOnItsRow(t *testing.T) {
+	srv := xfstest.New(t, katfile.Site.Host, nil)
+	srv.AddAccount("fox", xfstest.Account{Password: "badger", Premium: true, Until: time.Now().AddDate(1, 0, 0), Inactive: true})
+	a := newCrawlApp(t, false)
+	useXFS(a, katfile.Site, srv.URL, srv.Client())
+
+	row, err := a.SaveHosterLogin(context.Background(), "katfile.com", "fox", "badger", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "the row asking for the activation", func() bool {
+		row, _ = loginRow(a, "katfile.com")
+		return row.Status == hosterauth.StatusRejected && row.Code == "ownActivate"
+	})
+	if row.HandedOver || row.AskCode {
+		t.Errorf("row = %+v, want the login kept and no code asked for", row)
 	}
 }
 
