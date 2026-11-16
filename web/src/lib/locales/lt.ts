@@ -1414,6 +1414,8 @@ export const lt: Dict = {
   'accounts.hoster.codeEnded': 'Seansas baigėsi. Įvesk naują kodą, kad vėl prisijungtum.',
   'accounts.hoster.codeActivate': 'Hosteris sako, kad ši paskyra dar neaktyvinta. Tą patį jis sako ir tada, kai trūksta dviejų veiksnių kodo. Jei paskyra aktyvi, įvesk kodą ir bandyk dar kartą.',
   'accounts.hoster.codeNewAddress': 'Hosteris nori, kad naują IP adresą patvirtintum nuoroda, kurią jis tau atsiuntė el. paštu. Jei paskyra prisijungia su dviejų veiksnių kodu, įvesk jį čia ir bandyk dar kartą.',
+  'accounts.hoster.codeDidNotHelp': 'Hosteris ir su kodu atsakė taip pat, vadinasi, pati paskyra dar laukia aktyvinimo. Atidaryk nuorodą iš hosterio pasisveikinimo laiško (pažiūrėk ir į šlamšto aplanką) arba paklausk hosterio pagalbos tarnybos, tada bandyk dar kartą.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hosteris ir su kodu atsakė taip pat ir vis dar nori, kad patvirtintum naują IP adresą. Atidaryk nuorodą iš jo naujausio laiško, tada bandyk dar kartą.',
   'accounts.hoster.testing': 'Tikrinamas ryšys…',
   'accounts.hoster.connected': 'Prijungta',
   'accounts.hoster.signInHereHint': 'Ar svetainė jungiantis prašo kodo? Prisijunk čia jos pačios puslapyje, slaptažodžiu ir kodu. KnightLoader pasilieka seansą, niekada ne tai, ką rašai.',

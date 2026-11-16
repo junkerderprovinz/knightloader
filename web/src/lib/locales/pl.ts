@@ -1406,6 +1406,8 @@ export const pl: Dict = {
   'accounts.hoster.codeEnded': 'Sesja się skończyła. Wpisz nowy kod, żeby zalogować się ponownie.',
   'accounts.hoster.codeActivate': 'Hoster podaje, że to konto nie jest jeszcze aktywowane. To samo podaje, gdy brakuje kodu dwuskładnikowego. Jeśli konto jest aktywne, wpisz kod i spróbuj ponownie.',
   'accounts.hoster.codeNewAddress': 'Hoster chce, żeby nowy adres IP potwierdzić linkiem, który wysłał ci mailem. Jeśli konto loguje się kodem dwuskładnikowym, wpisz go tutaj i spróbuj ponownie.',
+  'accounts.hoster.codeDidNotHelp': 'Hoster z kodem odpowiedział tak samo, więc samo konto wciąż czeka na aktywację. Otwórz link z powitalnego maila od hostera (zajrzyj też do folderu spam) albo zapytaj pomoc techniczną hostera, potem spróbuj ponownie.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hoster z kodem odpowiedział tak samo i nadal chce, żeby potwierdzić nowy adres IP. Otwórz link z jego ostatniego maila, potem spróbuj ponownie.',
   'accounts.hoster.testing': 'Testowanie połączenia…',
   'accounts.hoster.connected': 'Połączone',
   'accounts.hoster.signInHereHint': 'Czy strona prosi przy logowaniu o kod? Zaloguj się tutaj na jej własnej stronie, hasłem i kodem. KnightLoader zachowuje sesję, nigdy to, co wpisujesz.',

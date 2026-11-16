@@ -1413,6 +1413,8 @@ export const et: Dict = {
   'accounts.hoster.codeEnded': 'Seanss on lõppenud. Uuesti sisselogimiseks sisesta uus kood.',
   'accounts.hoster.codeActivate': 'Hosteri sõnul pole see konto veel aktiveeritud. Sama ütleb ta ka siis, kui kaheastmelise kinnituse kood puudub. Kui konto on aktiivne, sisesta kood ja proovi uuesti.',
   'accounts.hoster.codeNewAddress': 'Hoster tahab, et kinnitaksid uue IP-aadressi lingiga, mille ta sulle e-postiga saatis. Kui konto logib sisse kaheastmelise kinnituse koodiga, sisesta see siia ja proovi uuesti.',
+  'accounts.hoster.codeDidNotHelp': 'Hoster andis koodiga sama vastuse, seega ootab konto ise veel aktiveerimist. Ava hosteri tervituskirjas olev link (vaata ka rämpsposti kausta) või küsi hosteri toelt ja proovi siis uuesti.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hoster andis koodiga sama vastuse ja tahab endiselt, et uus IP-aadress kinnitataks. Ava link tema viimasest kirjast ja proovi siis uuesti.',
   'accounts.hoster.testing': 'Ühendust testitakse…',
   'accounts.hoster.connected': 'Ühendatud',
   'accounts.hoster.signInHereHint': 'Kas sait küsib sisselogimisel koodi? Logi siin tema enda lehel sisse, parooli ja koodiga. KnightLoader jätab alles seansi, mitte kunagi seda, mida sa trükid.',

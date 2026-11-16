@@ -1413,6 +1413,8 @@ export const zh: Dict = {
   'accounts.hoster.codeEnded': '会话已结束。输入新的验证码重新登录。',
   'accounts.hoster.codeActivate': '网盘表示这个账户尚未激活。缺少双重验证码时它也会这样说。如果账户已经激活，请输入验证码后重试。',
   'accounts.hoster.codeNewAddress': '网盘要求通过它发到你邮箱的链接确认新的 IP 地址。如果这个账户用双重验证码登录，请在这里输入验证码后重试。',
+  'accounts.hoster.codeDidNotHelp': '即使输入了验证码，网盘的回答也一样，说明账户本身仍在等待激活。请打开网盘欢迎邮件中的链接（也看看垃圾邮件文件夹），或者询问网盘客服，然后重试。',
+  'accounts.hoster.codeDidNotHelpAddress': '即使输入了验证码，网盘的回答也一样，它仍要求确认新的 IP 地址。请打开它最近一封邮件中的链接，然后重试。',
   'accounts.hoster.testing': '正在测试连接…',
   'accounts.hoster.connected': '已连接',
   'accounts.hoster.signInHereHint': '网站登录时要验证码？在这里打开它自己的页面，用密码和验证码登录。KnightLoader 只保存会话，从不保存你输入的内容。',

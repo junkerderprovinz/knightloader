@@ -1413,6 +1413,8 @@ export const ms: Dict = {
   'accounts.hoster.codeEnded': 'Sesi sudah tamat. Masukkan kod baharu untuk log masuk semula.',
   'accounts.hoster.codeActivate': 'Hoster menyatakan akaun ini belum diaktifkan. Ia menyatakan perkara yang sama apabila kod dua faktor tiada. Jika akaun sudah aktif, masukkan kod dan cuba lagi.',
   'accounts.hoster.codeNewAddress': 'Hoster mahu alamat IP baharu disahkan melalui pautan yang dihantarnya kepada anda melalui e-mel. Jika akaun log masuk dengan kod dua faktor, masukkan kod itu di sini dan cuba lagi.',
+  'accounts.hoster.codeDidNotHelp': 'Hoster memberi jawapan yang sama walaupun dengan kod, jadi akaun itu sendiri masih menunggu untuk diaktifkan. Buka pautan dalam e-mel alu-aluan daripada hoster (semak juga folder spam) atau tanya sokongan hoster, kemudian cuba lagi.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hoster memberi jawapan yang sama walaupun dengan kod dan masih mahu alamat IP baharu disahkan. Buka pautan dalam e-mel terbaharunya, kemudian cuba lagi.',
   'accounts.hoster.testing': 'Sedang menguji sambungan…',
   'accounts.hoster.connected': 'Bersambung',
   'accounts.hoster.signInHereHint': 'Adakah laman ini meminta kod semasa anda log masuk? Log masuk di sini pada halamannya sendiri, dengan kata laluan dan kod. KnightLoader menyimpan sesi, bukan apa yang anda taip.',

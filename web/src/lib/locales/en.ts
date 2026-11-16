@@ -1760,6 +1760,8 @@ export const en = {
   'accounts.hoster.codeEnded': 'The session has ended. Enter a new code to sign in again.',
   'accounts.hoster.codeActivate': 'The hoster says this account is not activated yet. It says the same when the two-factor code is missing. If the account is active, enter the code and try again.',
   'accounts.hoster.codeNewAddress': 'The hoster wants the new IP address confirmed through the link it emailed. If the account signs in with a two-factor code, enter it here and try again.',
+  'accounts.hoster.codeDidNotHelp': 'The hoster gave the same answer with the code, so the account itself is still waiting for its activation. Open the link from the hoster’s welcome mail (check the spam folder too) or ask the hoster’s support, then try again.',
+  'accounts.hoster.codeDidNotHelpAddress': 'The hoster gave the same answer with the code and still wants the new IP address confirmed. Open the link in its latest mail, then try again.',
   'accounts.hoster.testing': 'Testing the connection…',
   'accounts.hoster.connected': 'Connected',
   'accounts.hoster.signInHereHint': 'Does the site ask for a code when you sign in? Sign in on its own page here, with your password and the code. KnightLoader keeps the session, never what you type.',

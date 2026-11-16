@@ -1413,6 +1413,8 @@ export const tr: Dict = {
   'accounts.hoster.codeEnded': 'Oturum sona erdi. Yeniden giriş yapmak için yeni bir kod gir.',
   'accounts.hoster.codeActivate': 'Hoster bu hesabın henüz etkinleştirilmediğini söylüyor. İki adımlı doğrulama kodu eksik olduğunda da aynısını söylüyor. Hesap etkinse kodu gir ve yeniden dene.',
   'accounts.hoster.codeNewAddress': 'Hoster yeni IP adresinin sana e-postayla gönderdiği bağlantıyla onaylanmasını istiyor. Hesap iki adımlı doğrulama koduyla giriş yapıyorsa kodu buraya gir ve yeniden dene.',
+  'accounts.hoster.codeDidNotHelp': 'Hoster kodla da aynı yanıtı verdi, yani hesabın kendisi hâlâ etkinleştirilmeyi bekliyor. Hoster’ın hoş geldin e-postasındaki bağlantıyı aç (spam klasörüne de bak) ya da hoster’ın destek ekibine sor, sonra yeniden dene.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hoster kodla da aynı yanıtı verdi ve yeni IP adresinin onaylanmasını hâlâ istiyor. Son e-postasındaki bağlantıyı aç, sonra yeniden dene.',
   'accounts.hoster.testing': 'Bağlantı sınanıyor…',
   'accounts.hoster.connected': 'Bağlı',
   'accounts.hoster.signInHereHint': 'Site oturum açarken kod mu istiyor? Burada sitenin kendi sayfasında parola ve kodla oturum aç. KnightLoader oturumu saklar, yazdıklarını asla saklamaz.',

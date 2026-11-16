@@ -1413,6 +1413,8 @@ export const gl: Dict = {
   'accounts.hoster.codeEnded': 'A sesión rematou. Introduce un código novo para volver entrar.',
   'accounts.hoster.codeActivate': 'O aloxador di que esta conta aínda non está activada. Di o mesmo cando falta o código de dobre factor. Se a conta está activa, introduce o código e téntao de novo.',
   'accounts.hoster.codeNewAddress': 'O aloxador quere que confirmes o novo enderezo IP coa ligazón que che enviou por correo. Se a conta entra cun código de dobre factor, introdúceo aquí e téntao de novo.',
+  'accounts.hoster.codeDidNotHelp': 'O aloxador deu a mesma resposta co código, así que a propia conta aínda agarda a activación. Abre a ligazón do correo de benvida do aloxador (mira tamén no cartafol de spam) ou pregunta ao soporte do aloxador, e despois téntao de novo.',
+  'accounts.hoster.codeDidNotHelpAddress': 'O aloxador deu a mesma resposta co código e segue querendo que confirmes o novo enderezo IP. Abre a ligazón do seu último correo e despois téntao de novo.',
   'accounts.hoster.testing': 'Probando a conexión…',
   'accounts.hoster.connected': 'Conectada',
   'accounts.hoster.signInHereHint': 'O sitio pídeche un código ao iniciar sesión? Inicia sesión aquí na súa propia páxina, co contrasinal e o código. KnightLoader garda a sesión, nunca o que escribes.',

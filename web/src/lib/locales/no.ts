@@ -1416,6 +1416,8 @@ export const no: Dict = {
   'accounts.hoster.codeEnded': 'Økten er over. Skriv inn en ny kode for å logge inn igjen.',
   'accounts.hoster.codeActivate': 'Hosteren sier at denne kontoen ikke er aktivert ennå. Det samme sier den når tofaktorkoden mangler. Er kontoen aktiv, skriver du inn koden og prøver igjen.',
   'accounts.hoster.codeNewAddress': 'Hosteren vil ha den nye IP-adressen bekreftet via lenken den sendte deg på e-post. Logger kontoen inn med en tofaktorkode, skriver du den inn her og prøver igjen.',
+  'accounts.hoster.codeDidNotHelp': 'Hosteren ga samme svar med koden, så selve kontoen venter fortsatt på å bli aktivert. Åpne lenken i velkomstmailen fra hosteren (sjekk også søppelpostmappen), eller spør hosterens kundestøtte, og prøv deretter igjen.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hosteren ga samme svar med koden og vil fortsatt ha den nye IP-adressen bekreftet. Åpne lenken i den siste mailen fra den, og prøv deretter igjen.',
   'accounts.hoster.testing': 'Tester tilkoblingen…',
   'accounts.hoster.connected': 'Tilkoblet',
   'accounts.hoster.signInHereHint': 'Ber nettstedet om en kode når du logger inn? Logg inn her på dets egen side, med passord og kode. KnightLoader tar vare på økten, aldri det du skriver.',

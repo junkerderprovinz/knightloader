@@ -1414,6 +1414,8 @@ export const hu: Dict = {
   'accounts.hoster.codeEnded': 'A munkamenet lejárt. Az újabb bejelentkezéshez írj be egy új kódot.',
   'accounts.hoster.codeActivate': 'A tárhely szerint ez a fiók még nincs aktiválva. Ugyanezt mondja akkor is, ha hiányzik a kétlépcsős kód. Ha a fiók aktív, írd be a kódot, és próbáld újra.',
   'accounts.hoster.codeNewAddress': 'A tárhely azt kéri, hogy az új IP-címet erősítsd meg az e-mailben küldött linkkel. Ha a fiók kétlépcsős kóddal jelentkezik be, írd be ide a kódot, és próbáld újra.',
+  'accounts.hoster.codeDidNotHelp': 'A tárhely a kóddal is ugyanezt válaszolta, vagyis maga a fiók még aktiválásra vár. Nyisd meg a tárhely üdvözlő levelében lévő linket (a spam mappát is nézd meg), vagy kérdezd meg a tárhely ügyfélszolgálatát, aztán próbáld újra.',
+  'accounts.hoster.codeDidNotHelpAddress': 'A tárhely a kóddal is ugyanezt válaszolta, és továbbra is kéri az új IP-cím megerősítését. Nyisd meg a legutóbbi levelében lévő linket, aztán próbáld újra.',
   'accounts.hoster.testing': 'Kapcsolat tesztelése…',
   'accounts.hoster.connected': 'Csatlakoztatva',
   'accounts.hoster.signInHereHint': 'Kódot kér az oldal bejelentkezéskor? Jelentkezz be itt a saját oldalán, a jelszóval és a kóddal. A KnightLoader a munkamenetet tartja meg, sosem azt, amit beírsz.',

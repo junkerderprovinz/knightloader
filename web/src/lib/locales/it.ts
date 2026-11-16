@@ -1405,6 +1405,8 @@ export const it: Dict = {
   'accounts.hoster.codeEnded': 'La sessione è terminata. Inserisci un nuovo codice per accedere di nuovo.',
   'accounts.hoster.codeActivate': 'L’hoster dice che questo account non è ancora attivato. Dice la stessa cosa quando manca il codice a due fattori. Se l’account è attivo, inserisci il codice e riprova.',
   'accounts.hoster.codeNewAddress': 'L’hoster vuole che il nuovo indirizzo IP venga confermato con il link che ti ha mandato per email. Se l’account accede con un codice a due fattori, inseriscilo qui e riprova.',
+  'accounts.hoster.codeDidNotHelp': 'L’hoster ha dato la stessa risposta anche con il codice, quindi è l’account stesso ad aspettare ancora l’attivazione. Apri il link della mail di benvenuto dell’hoster (controlla anche la cartella spam) o chiedi al supporto dell’hoster, poi riprova.',
+  'accounts.hoster.codeDidNotHelpAddress': 'L’hoster ha dato la stessa risposta anche con il codice e vuole ancora che il nuovo indirizzo IP venga confermato. Apri il link della sua ultima mail, poi riprova.',
   'accounts.hoster.testing': 'Prova della connessione…',
   'accounts.hoster.connected': 'Collegato',
   'accounts.hoster.signInHereHint': 'Il sito ti chiede un codice all’accesso? Accedi qui sulla sua pagina, con password e codice. KnightLoader tiene la sessione, mai quello che scrivi.',

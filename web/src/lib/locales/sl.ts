@@ -1413,6 +1413,8 @@ export const sl: Dict = {
   'accounts.hoster.codeEnded': 'Seja je potekla. Vnesi novo kodo, da se znova prijaviš.',
   'accounts.hoster.codeActivate': 'Gostitelj pravi, da ta račun še ni aktiviran. Enako pravi tudi, ko manjka dvostopenjska koda. Če je račun aktiven, vnesi kodo in poskusi znova.',
   'accounts.hoster.codeNewAddress': 'Gostitelj želi, da novi naslov IP potrdiš s povezavo, ki ti jo je poslal po e-pošti. Če se račun prijavlja z dvostopenjsko kodo, jo vnesi tukaj in poskusi znova.',
+  'accounts.hoster.codeDidNotHelp': 'Gostitelj je tudi s kodo odgovoril enako, zato račun sam še vedno čaka na aktivacijo. Odpri povezavo iz pozdravnega e-sporočila gostitelja (poglej tudi v mapo z neželeno pošto) ali vprašaj podporo gostitelja, nato poskusi znova.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Gostitelj je tudi s kodo odgovoril enako in še vedno želi, da potrdiš novi naslov IP. Odpri povezavo iz njegovega zadnjega e-sporočila, nato poskusi znova.',
   'accounts.hoster.testing': 'Preizkušanje povezave…',
   'accounts.hoster.connected': 'Povezan',
   'accounts.hoster.signInHereHint': 'Ali spletno mesto ob prijavi zahteva kodo? Prijavi se tukaj na njegovi lastni strani, z geslom in kodo. KnightLoader obdrži sejo, nikoli tega, kar vtipkaš.',

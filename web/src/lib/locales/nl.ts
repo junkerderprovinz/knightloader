@@ -1405,6 +1405,8 @@ export const nl: Dict = {
   'accounts.hoster.codeEnded': 'De sessie is afgelopen. Vul een nieuwe code in om opnieuw in te loggen.',
   'accounts.hoster.codeActivate': 'De hoster zegt dat dit account nog niet geactiveerd is. Dat zegt hij ook als de tweestapscode ontbreekt. Is het account actief, vul dan de code in en probeer het opnieuw.',
   'accounts.hoster.codeNewAddress': 'De hoster wil het nieuwe IP-adres bevestigd zien via de link die hij je heeft gemaild. Meldt het account zich aan met een tweestapscode, vul die dan hier in en probeer het opnieuw.',
+  'accounts.hoster.codeDidNotHelp': 'De hoster gaf met de code hetzelfde antwoord, dus het account zelf wacht nog op activering. Open de link uit de welkomstmail van de hoster (kijk ook in de spammap) of vraag het de support van de hoster, en probeer het daarna opnieuw.',
+  'accounts.hoster.codeDidNotHelpAddress': 'De hoster gaf met de code hetzelfde antwoord en wil het nieuwe IP-adres nog steeds bevestigd zien. Open de link uit zijn laatste mail en probeer het daarna opnieuw.',
   'accounts.hoster.testing': 'Verbinding wordt getest…',
   'accounts.hoster.connected': 'Verbonden',
   'accounts.hoster.signInHereHint': 'Vraagt de site om een code als je je aanmeldt? Meld je hier aan op zijn eigen pagina, met wachtwoord en code. KnightLoader bewaart de sessie, nooit wat je typt.',

@@ -1413,6 +1413,8 @@ export const is: Dict = {
   'accounts.hoster.codeEnded': 'Lotunni er lokið. Sláðu inn nýjan kóða til að skrá þig inn aftur.',
   'accounts.hoster.codeActivate': 'Hýsingaraðilinn segir að þessi aðgangur sé ekki virkjaður enn. Hann segir það sama þegar tveggja þrepa kóðann vantar. Ef aðgangurinn er virkur skaltu slá inn kóðann og reyna aftur.',
   'accounts.hoster.codeNewAddress': 'Hýsingaraðilinn vill að nýja IP-talan sé staðfest með tenglinum sem hann sendi þér í tölvupósti. Ef aðgangurinn skráir sig inn með tveggja þrepa kóða skaltu slá hann inn hér og reyna aftur.',
+  'accounts.hoster.codeDidNotHelp': 'Hýsingaraðilinn gaf sama svar með kóðanum, svo aðgangurinn sjálfur bíður enn eftir virkjun. Opnaðu tengilinn í velkomupósti hýsingaraðilans (skoðaðu líka ruslpóstmöppuna) eða spurðu þjónustuver hýsingaraðilans og reyndu svo aftur.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hýsingaraðilinn gaf sama svar með kóðanum og vill enn að nýja IP-talan sé staðfest. Opnaðu tengilinn í nýjasta pósti hans og reyndu svo aftur.',
   'accounts.hoster.testing': 'Prófa tenginguna…',
   'accounts.hoster.connected': 'Tengt',
   'accounts.hoster.signInHereHint': 'Biður vefurinn um kóða þegar þú skráir þig inn? Skráðu þig inn hér á hans eigin síðu, með lykilorði og kóða. KnightLoader geymir lotuna, aldrei það sem þú slærð inn.',

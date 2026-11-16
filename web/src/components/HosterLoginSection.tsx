@@ -486,6 +486,12 @@ const CODE_NOTES: Record<string, TranslationKey> = {
   ownNewAddress: 'accounts.hoster.codeNewAddress',
 };
 
+// The same refusals once a code did not get past them either.
+const CODE_REFUSED: Record<string, TranslationKey> = {
+  ownActivate: 'accounts.hoster.codeDidNotHelp',
+  ownNewAddress: 'accounts.hoster.codeDidNotHelpAddress',
+};
+
 /** offersCode reports whether a code could get the login in. */
 const offersCode = (login?: HosterLogin | null) => !!login && (!!login.askCode || !!login.codeMayHelp);
 
@@ -510,7 +516,6 @@ function HosterLoginDialog({
   onSaved: () => Promise<void>;
 }) {
   const { t } = useT();
-  const { toast } = useToast();
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<HosterHost | null>(
     editing ? { id: editing.host, label: editing.host } : null,
@@ -524,8 +529,12 @@ function HosterLoginDialog({
   // The fields as last saved, so a connected login offers Save again once
   // either changes.
   const [savedAs, setSavedAs] = useState<{ username: string; password: string } | null>(null);
-  // The code is sent once and kept nowhere.
+  // The code is sent once and kept nowhere. withCode is whether the last
+  // save sent one.
   const [code, setCode] = useState('');
+  const [withCode, setWithCode] = useState(false);
+  // Why the last save did not reach the hoster, said in the window itself.
+  const [failure, setFailure] = useState('');
   const mounted = useRef(true);
   useEffect(
     () => () => {
@@ -561,19 +570,20 @@ function HosterLoginDialog({
   async function doSave() {
     if (!picked) return;
     setSaving(true);
+    setFailure('');
     try {
       const row = await saveHosterLogin(picked.id, username, password, code || undefined);
       if (!mounted.current) return;
       setTested(row);
+      setWithCode(code !== '');
+      setCode('');
       setSavedAs({ username, password });
       await onSaved();
     } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), 'fail');
+      // The code stays, since the hoster never saw it.
+      if (mounted.current) setFailure(e instanceof Error ? e.message : String(e));
     } finally {
-      if (mounted.current) {
-        setCode('');
-        setSaving(false);
-      }
+      if (mounted.current) setSaving(false);
     }
   }
 
@@ -588,14 +598,17 @@ function HosterLoginDialog({
   const codeOk = tested?.askCode ? CODE.test(code) : code === '' || CODE.test(code);
   const canSave = username.trim() !== '' && password.trim() !== '' && (!asksCode || codeOk);
   const connected = tested?.status === 'active' && savedAs?.username === username && savedAs.password === password;
-  // Only a code the hoster turned down is the person's to correct, so only
-  // that one reads as an error.
-  const codeWrong = tested?.code === 'ownCodeWrong';
-  const codeNote = t(CODE_NOTES[tested?.code ?? ''] ?? 'accounts.hoster.codeNeeded');
+  // Only a code the hoster turned down, or one that did not get past its
+  // refusal, reads as an error.
+  const refused = withCode ? CODE_REFUSED[tested?.code ?? ''] : undefined;
+  const codeWrong = tested?.code === 'ownCodeWrong' || refused !== undefined;
+  const codeNote = t(refused ?? CODE_NOTES[tested?.code ?? ''] ?? 'accounts.hoster.codeNeeded');
   // Beside the code field its own note says why the hoster refused.
   const outcome =
     saving || tested?.status === 'queued' ? (
       <TestNote tone="neutral">{t('accounts.hoster.testing')}</TestNote>
+    ) : failure ? (
+      <TestNote tone="fail">{failure}</TestNote>
     ) : !tested || asksCode ? null : tested.status === 'active' ? (
       <TestNote tone="ok">{t('accounts.hoster.connected')}</TestNote>
     ) : (

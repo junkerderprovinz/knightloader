@@ -1405,6 +1405,8 @@ export const fr: Dict = {
   'accounts.hoster.codeEnded': 'La session a pris fin. Saisissez un nouveau code pour vous reconnecter.',
   'accounts.hoster.codeActivate': 'L’hébergeur indique que ce compte n’est pas encore activé. Il dit la même chose quand le code à deux facteurs manque. Si le compte est actif, saisissez le code et réessayez.',
   'accounts.hoster.codeNewAddress': 'L’hébergeur veut que la nouvelle adresse IP soit confirmée par le lien qu’il vous a envoyé par e-mail. Si le compte se connecte avec un code à deux facteurs, saisissez-le ici et réessayez.',
+  'accounts.hoster.codeDidNotHelp': 'L’hébergeur a donné la même réponse avec le code, le compte lui-même attend donc encore son activation. Ouvrez le lien de l’e-mail de bienvenue de l’hébergeur (regardez aussi dans les spams) ou demandez au support de l’hébergeur, puis réessayez.',
+  'accounts.hoster.codeDidNotHelpAddress': 'L’hébergeur a donné la même réponse avec le code et veut toujours que la nouvelle adresse IP soit confirmée. Ouvrez le lien de son dernier e-mail, puis réessayez.',
   'accounts.hoster.testing': 'Test de la connexion…',
   'accounts.hoster.connected': 'Connecté',
   'accounts.hoster.signInHereHint': 'Le site demande un code à la connexion ? Connectez-vous ici sur sa propre page, avec le mot de passe et le code. KnightLoader garde la session, jamais ce que vous tapez.',

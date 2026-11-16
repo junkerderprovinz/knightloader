@@ -1413,6 +1413,8 @@ export const sv: Dict = {
   'accounts.hoster.codeEnded': 'Sessionen är slut. Skriv in en ny kod för att logga in igen.',
   'accounts.hoster.codeActivate': 'Värden säger att det här kontot inte är aktiverat än. Samma sak säger den när tvåfaktorskoden saknas. Om kontot är aktivt, skriv in koden och försök igen.',
   'accounts.hoster.codeNewAddress': 'Värden vill att den nya IP-adressen bekräftas via länken den mejlade dig. Om kontot loggar in med en tvåfaktorskod, skriv in den här och försök igen.',
+  'accounts.hoster.codeDidNotHelp': 'Värden gav samma svar med koden, så själva kontot väntar fortfarande på att aktiveras. Öppna länken i värdens välkomstmejl (titta i skräppostmappen också) eller fråga värdens support, och försök sedan igen.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Värden gav samma svar med koden och vill fortfarande att den nya IP-adressen bekräftas. Öppna länken i dess senaste mejl och försök sedan igen.',
   'accounts.hoster.testing': 'Testar anslutningen…',
   'accounts.hoster.connected': 'Ansluten',
   'accounts.hoster.signInHereHint': 'Ber webbplatsen om en kod när du loggar in? Logga in här på dess egen sida, med lösenord och kod. KnightLoader sparar sessionen, aldrig det du skriver.',

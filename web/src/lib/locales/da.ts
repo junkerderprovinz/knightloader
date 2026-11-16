@@ -1413,6 +1413,8 @@ export const da: Dict = {
   'accounts.hoster.codeEnded': 'Sessionen er udløbet. Indtast en ny kode for at logge ind igen.',
   'accounts.hoster.codeActivate': 'Hosteren siger, at denne konto ikke er aktiveret endnu. Det samme siger den, når tofaktorkoden mangler. Er kontoen aktiv, så indtast koden og prøv igen.',
   'accounts.hoster.codeNewAddress': 'Hosteren vil have den nye IP-adresse bekræftet via linket, den har mailet dig. Logger kontoen ind med en tofaktorkode, så indtast den her og prøv igen.',
+  'accounts.hoster.codeDidNotHelp': 'Hosteren gav samme svar med koden, så selve kontoen venter stadig på at blive aktiveret. Åbn linket i hosterens velkomstmail (kig også i spammappen), eller spørg hosterens support, og prøv så igen.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hosteren gav samme svar med koden og vil stadig have den nye IP-adresse bekræftet. Åbn linket i dens seneste mail, og prøv så igen.',
   'accounts.hoster.testing': 'Tester forbindelsen…',
   'accounts.hoster.connected': 'Forbundet',
   'accounts.hoster.signInHereHint': 'Beder siden om en kode, når du logger ind? Log ind her på dens egen side med adgangskode og kode. KnightLoader gemmer sessionen, aldrig det, du skriver.',

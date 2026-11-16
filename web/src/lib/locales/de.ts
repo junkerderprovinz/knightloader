@@ -1554,6 +1554,8 @@ export const de: Dict = {
   'accounts.hoster.codeEnded': 'Die Sitzung ist abgelaufen. Gib einen neuen Code ein, um dich wieder anzumelden.',
   'accounts.hoster.codeActivate': 'Der Hoster meldet, dass das Konto noch nicht aktiviert ist. Dasselbe meldet er, wenn der Zwei-Faktor-Code fehlt. Ist das Konto aktiv, gib den Code ein und versuch es noch einmal.',
   'accounts.hoster.codeNewAddress': 'Der Hoster möchte die neue IP-Adresse über den Link bestätigt haben, den er dir gemailt hat. Meldet sich das Konto mit einem Zwei-Faktor-Code an, gib ihn hier ein und versuch es noch einmal.',
+  'accounts.hoster.codeDidNotHelp': 'Der Hoster hat mit dem Code dasselbe geantwortet, das Konto selbst wartet also noch auf die Aktivierung. Öffne den Link aus der Willkommensmail des Hosters (schau auch im Spam-Ordner nach) oder frag beim Support des Hosters nach und versuch es dann noch einmal.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Der Hoster hat mit dem Code dasselbe geantwortet und möchte die neue IP-Adresse weiterhin bestätigt haben. Öffne den Link aus seiner letzten Mail und versuch es dann noch einmal.',
   'accounts.hoster.testing': 'Verbindung wird getestet…',
   'accounts.hoster.connected': 'Verbunden',
   'accounts.hoster.signInHereHint': 'Fragt die Seite beim Anmelden nach einem Code? Dann meld dich hier auf ihrer eigenen Seite an, mit Passwort und Code. KnightLoader behält die Sitzung, nie das, was du tippst.',

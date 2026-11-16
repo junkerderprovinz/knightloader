@@ -1413,6 +1413,8 @@ export const sk: Dict = {
   'accounts.hoster.codeEnded': 'Relácia skončila. Zadaj nový kód a prihlás sa znova.',
   'accounts.hoster.codeActivate': 'Hoster uvádza, že tento účet ešte nie je aktivovaný. To isté uvádza, keď chýba dvojfaktorový kód. Ak je účet aktívny, zadaj kód a skús to znova.',
   'accounts.hoster.codeNewAddress': 'Hoster chce, aby si novú IP adresu potvrdil odkazom, ktorý ti poslal e-mailom. Ak sa účet prihlasuje dvojfaktorovým kódom, zadaj ho sem a skús to znova.',
+  'accounts.hoster.codeDidNotHelp': 'Hoster s kódom odpovedal rovnako, takže samotný účet stále čaká na aktiváciu. Otvor odkaz z uvítacieho e-mailu od hostera (pozri aj do priečinka spam) alebo sa opýtaj podpory hostera a potom to skús znova.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hoster s kódom odpovedal rovnako a stále chce potvrdiť novú IP adresu. Otvor odkaz z jeho posledného e-mailu a potom to skús znova.',
   'accounts.hoster.testing': 'Testuje sa pripojenie…',
   'accounts.hoster.connected': 'Pripojený',
   'accounts.hoster.signInHereHint': 'Chce stránka pri prihlásení kód? Prihlás sa tu na jej vlastnej stránke, heslom a kódom. KnightLoader si nechá reláciu, nikdy to, čo píšeš.',

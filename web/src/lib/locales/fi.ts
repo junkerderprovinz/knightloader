@@ -1413,6 +1413,8 @@ export const fi: Dict = {
   'accounts.hoster.codeEnded': 'Istunto on päättynyt. Syötä uusi koodi kirjautuaksesi uudelleen.',
   'accounts.hoster.codeActivate': 'Hosterin mukaan tätä tiliä ei ole vielä aktivoitu. Se sanoo saman myös silloin, kun kaksivaiheisen tunnistuksen koodi puuttuu. Jos tili on aktiivinen, syötä koodi ja yritä uudelleen.',
   'accounts.hoster.codeNewAddress': 'Hosteri haluaa, että uusi IP-osoite vahvistetaan linkillä, jonka se lähetti sinulle sähköpostiin. Jos tili kirjautuu kaksivaiheisen tunnistuksen koodilla, syötä koodi tähän ja yritä uudelleen.',
+  'accounts.hoster.codeDidNotHelp': 'Hosteri antoi saman vastauksen myös koodin kanssa, joten itse tili odottaa yhä aktivointia. Avaa hosterin tervetuloviestin linkki (katso myös roskapostikansio) tai kysy hosterin tuesta, ja yritä sitten uudelleen.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hosteri antoi saman vastauksen myös koodin kanssa ja haluaa yhä uuden IP-osoitteen vahvistettavan. Avaa sen viimeisimmän viestin linkki ja yritä sitten uudelleen.',
   'accounts.hoster.testing': 'Yhteyttä testataan…',
   'accounts.hoster.connected': 'Yhdistetty',
   'accounts.hoster.signInHereHint': 'Pyytääkö sivusto koodia kirjautuessasi? Kirjaudu tässä sen omalla sivulla salasanalla ja koodilla. KnightLoader säilyttää istunnon, ei koskaan sitä, mitä kirjoitat.',

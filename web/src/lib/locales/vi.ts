@@ -1413,6 +1413,8 @@ export const vi: Dict = {
   'accounts.hoster.codeEnded': 'Phiên đã kết thúc. Hãy nhập mã mới để đăng nhập lại.',
   'accounts.hoster.codeActivate': 'Hoster cho biết tài khoản này chưa được kích hoạt. Hoster cũng báo như vậy khi thiếu mã xác thực hai yếu tố. Nếu tài khoản đã kích hoạt, hãy nhập mã rồi thử lại.',
   'accounts.hoster.codeNewAddress': 'Hoster muốn bạn xác nhận địa chỉ IP mới qua liên kết đã gửi cho bạn qua email. Nếu tài khoản đăng nhập bằng mã xác thực hai yếu tố, hãy nhập mã ở đây rồi thử lại.',
+  'accounts.hoster.codeDidNotHelp': 'Hoster vẫn trả lời như cũ dù đã có mã, nên chính tài khoản vẫn đang chờ kích hoạt. Hãy mở liên kết trong email chào mừng của hoster (xem cả thư mục spam) hoặc hỏi bộ phận hỗ trợ của hoster, rồi thử lại.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hoster vẫn trả lời như cũ dù đã có mã và vẫn muốn bạn xác nhận địa chỉ IP mới. Hãy mở liên kết trong email mới nhất của hoster, rồi thử lại.',
   'accounts.hoster.testing': 'Đang kiểm tra kết nối…',
   'accounts.hoster.connected': 'Đã kết nối',
   'accounts.hoster.signInHereHint': 'Trang có hỏi mã khi bạn đăng nhập không? Hãy đăng nhập tại đây trên trang riêng của nó, bằng mật khẩu và mã. KnightLoader giữ phiên, không bao giờ giữ những gì bạn gõ.',

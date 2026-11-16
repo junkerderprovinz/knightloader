@@ -1413,6 +1413,8 @@ export const ko: Dict = {
   'accounts.hoster.codeEnded': '세션이 끝났습니다. 다시 로그인하려면 새 코드를 입력하세요.',
   'accounts.hoster.codeActivate': '호스터가 이 계정이 아직 활성화되지 않았다고 합니다. 2단계 인증 코드가 빠졌을 때도 같은 응답을 보냅니다. 계정이 활성 상태라면 코드를 입력하고 다시 시도하세요.',
   'accounts.hoster.codeNewAddress': '호스터가 이메일로 보낸 링크로 새 IP 주소를 확인해 달라고 합니다. 계정이 2단계 인증 코드로 로그인한다면 여기에 코드를 입력하고 다시 시도하세요.',
+  'accounts.hoster.codeDidNotHelp': '코드를 넣어도 호스터가 같은 응답을 보냈으므로 계정 자체가 아직 활성화를 기다리고 있습니다. 호스터의 환영 메일에 있는 링크를 열거나(스팸함도 확인하세요) 호스터 지원팀에 문의한 다음 다시 시도하세요.',
+  'accounts.hoster.codeDidNotHelpAddress': '코드를 넣어도 호스터가 같은 응답을 보냈고, 여전히 새 IP 주소를 확인해 달라고 합니다. 호스터가 가장 최근에 보낸 메일의 링크를 연 다음 다시 시도하세요.',
   'accounts.hoster.testing': '연결 테스트 중…',
   'accounts.hoster.connected': '연결됨',
   'accounts.hoster.signInHereHint': '로그인할 때 코드를 묻는 사이트인가요? 여기서 사이트 자체 페이지에 암호와 코드로 로그인하세요. KnightLoader는 세션만 보관하고, 입력한 내용은 절대 보관하지 않습니다.',

@@ -1415,6 +1415,8 @@ export const ro: Dict = {
   'accounts.hoster.codeEnded': 'Sesiunea s-a încheiat. Introdu un cod nou ca să te autentifici din nou.',
   'accounts.hoster.codeActivate': 'Hosterul spune că acest cont nu este încă activat. Spune același lucru și când lipsește codul de autentificare în doi pași. Dacă contul este activ, introdu codul și încearcă din nou.',
   'accounts.hoster.codeNewAddress': 'Hosterul vrea ca noua adresă IP să fie confirmată prin linkul pe care ți l-a trimis pe e-mail. Dacă contul se autentifică cu un cod în doi pași, introdu-l aici și încearcă din nou.',
+  'accounts.hoster.codeDidNotHelp': 'Hosterul a dat același răspuns și cu codul, deci contul însuși încă așteaptă activarea. Deschide linkul din e-mailul de bun venit al hosterului (verifică și dosarul de spam) sau întreabă suportul hosterului, apoi încearcă din nou.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hosterul a dat același răspuns și cu codul și tot vrea ca noua adresă IP să fie confirmată. Deschide linkul din cel mai recent e-mail al lui, apoi încearcă din nou.',
   'accounts.hoster.testing': 'Se testează conexiunea…',
   'accounts.hoster.connected': 'Conectat',
   'accounts.hoster.signInHereHint': 'Site-ul îți cere un cod la autentificare? Autentifică-te aici pe pagina lui, cu parola și codul. KnightLoader păstrează sesiunea, niciodată ce tastezi.',

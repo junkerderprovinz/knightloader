@@ -1414,6 +1414,8 @@ export const lv: Dict = {
   'accounts.hoster.codeEnded': 'Sesija ir beigusies. Ievadi jaunu kodu, lai pieteiktos vēlreiz.',
   'accounts.hoster.codeActivate': 'Hosteris norāda, ka šis konts vēl nav aktivizēts. To pašu tas norāda arī tad, ja trūkst divpakāpju koda. Ja konts ir aktīvs, ievadi kodu un mēģini vēlreiz.',
   'accounts.hoster.codeNewAddress': 'Hosteris grib, lai jauno IP adresi apstiprini ar saiti, ko tas tev nosūtīja e-pastā. Ja konts piesakās ar divpakāpju kodu, ievadi to šeit un mēģini vēlreiz.',
+  'accounts.hoster.codeDidNotHelp': 'Hosteris arī ar kodu atbildēja tāpat, tātad pats konts vēl gaida aktivizēšanu. Atver saiti no hostera sveiciena e-pasta (paskaties arī surogātpasta mapē) vai pajautā hostera atbalstam, pēc tam mēģini vēlreiz.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hosteris arī ar kodu atbildēja tāpat un joprojām grib, lai jauno IP adresi apstiprini. Atver saiti no tā jaunākā e-pasta, pēc tam mēģini vēlreiz.',
   'accounts.hoster.testing': 'Notiek savienojuma pārbaude…',
   'accounts.hoster.connected': 'Savienots',
   'accounts.hoster.signInHereHint': 'Vai vietne pieteikšanās laikā prasa kodu? Piesakies šeit tās pašas lapā ar paroli un kodu. KnightLoader patur sesiju, nekad to, ko tu raksti.',

@@ -1414,6 +1414,8 @@ export const eu: Dict = {
   'accounts.hoster.codeEnded': 'Saioa amaitu da. Idatzi kode berri bat berriro sartzeko.',
   'accounts.hoster.codeActivate': 'Ostalariaren arabera, kontu hau ez dago oraindik aktibatuta. Gauza bera esaten du bi urratseko kodea falta denean. Kontua aktibo badago, idatzi kodea eta saiatu berriro.',
   'accounts.hoster.codeNewAddress': 'Ostalariak IP helbide berria posta bidez bidali dizun estekarekin berrestea nahi du. Kontuak bi urratseko kode batekin hasten badu saioa, idatzi hemen eta saiatu berriro.',
+  'accounts.hoster.codeDidNotHelp': 'Ostalariak erantzun bera eman du kodearekin ere, beraz, kontua bera aktibatzeko zain dago oraindik. Ireki ostalariaren ongietorri-mezuko esteka (begiratu spam karpetan ere) edo galdetu ostalariaren laguntza-zerbitzuari, eta gero saiatu berriro.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Ostalariak erantzun bera eman du kodearekin ere, eta IP helbide berria berrestea nahi du oraindik. Ireki bere azken mezuko esteka, eta gero saiatu berriro.',
   'accounts.hoster.testing': 'Konexioa probatzen…',
   'accounts.hoster.connected': 'Konektatuta',
   'accounts.hoster.signInHereHint': 'Guneak koderik eskatzen al du saioa hastean? Hasi saioa hemen bere orrian, pasahitzarekin eta kodearekin. KnightLoader-ek saioa gordetzen du, inoiz ez idazten duzuna.',

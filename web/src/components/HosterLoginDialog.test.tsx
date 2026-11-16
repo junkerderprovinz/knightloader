@@ -19,6 +19,8 @@ let saves: { host: string; username: string; password: string; code?: string }[]
 let answers: Partial<HosterLogin>[];
 /** The rows the login list answers with. */
 let listed: HosterLogin[];
+/** A refusal the next save gets instead of a row. */
+let refuse: string | undefined;
 
 const row = (r: Partial<HosterLogin>): HosterLogin => ({
   host: 'rapidgator.net',
@@ -57,6 +59,7 @@ beforeEach(() => {
   saves = [];
   answers = [];
   listed = [];
+  refuse = undefined;
   vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal('IntersectionObserver', OffScreen);
   vi.stubGlobal(
@@ -65,6 +68,7 @@ beforeEach(() => {
       if (url === '/api/hosterauth/logins' && init?.method === 'POST') {
         const body = JSON.parse(String(init.body));
         saves.push(body);
+        if (refuse) return new Response(JSON.stringify({ error: refuse }), { status: 502 });
         const saved = row(answers.shift() ?? {});
         listed = [saved];
         return reply(saved);
@@ -166,6 +170,36 @@ describe('the hoster login window', () => {
     expect(saves.map((s) => s.code)).toEqual([undefined, '482913']);
     expect(codeField()).toBeNull();
     expect(button(en['accounts.hoster.connected'])!.disabled).toBe(true);
+  });
+
+  it.each([
+    ['ownActivate', 'accounts.hoster.codeDidNotHelp'],
+    ['ownNewAddress', 'accounts.hoster.codeDidNotHelpAddress'],
+  ] as const)('says so when the hoster answers %s with the code as well', async (refusal, note) => {
+    answers = [
+      { status: 'rejected', code: refusal, codeMayHelp: true },
+      { status: 'rejected', code: refusal, codeMayHelp: true },
+    ];
+    await fillIn();
+    await save();
+    type(codeField()!, '482913');
+    await save();
+    expect(saves.map((s) => s.code)).toEqual([undefined, '482913']);
+    const shown = document.getElementById('hoster-code-note')!;
+    expect(shown.textContent).toBe(en[note]);
+    expect(shown.getAttribute('role')).toBe('alert');
+    expect(codeField()!.value).toBe('');
+  });
+
+  it('says in the window why a save with a code did not go through, and keeps the code', async () => {
+    answers = [{ status: 'rejected', code: 'ownActivate', codeMayHelp: true }];
+    await fillIn();
+    await save();
+    type(codeField()!, '482913');
+    refuse = 'rapidgator: Rapidgator could not be reached';
+    await save();
+    expect(dialog()!.querySelector('[role="status"]')?.textContent).toBe('rapidgator: Rapidgator could not be reached');
+    expect(codeField()!.value).toBe('482913');
   });
 
   it('waits for a login another backend checks and says Connected once it is', async () => {

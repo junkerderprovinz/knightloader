@@ -1413,6 +1413,8 @@ export const id: Dict = {
   'accounts.hoster.codeEnded': 'Sesinya sudah berakhir. Masukkan kode baru untuk login lagi.',
   'accounts.hoster.codeActivate': 'Hoster bilang akun ini belum diaktifkan. Hoster juga bilang begitu kalau kode dua faktornya tidak ada. Kalau akunnya sudah aktif, masukkan kodenya lalu coba lagi.',
   'accounts.hoster.codeNewAddress': 'Hoster ingin alamat IP baru dikonfirmasi lewat tautan yang dikirimnya ke email kamu. Kalau akun ini login dengan kode dua faktor, masukkan kodenya di sini lalu coba lagi.',
+  'accounts.hoster.codeDidNotHelp': 'Hoster memberi jawaban yang sama meski dengan kode, jadi akunnya sendiri masih menunggu diaktifkan. Buka tautan di email sambutan dari hoster (cek juga folder spam) atau tanyakan ke dukungan hoster, lalu coba lagi.',
+  'accounts.hoster.codeDidNotHelpAddress': 'Hoster memberi jawaban yang sama meski dengan kode dan masih ingin alamat IP baru dikonfirmasi. Buka tautan di email terbarunya, lalu coba lagi.',
   'accounts.hoster.testing': 'Menguji koneksi…',
   'accounts.hoster.connected': 'Terhubung',
   'accounts.hoster.signInHereHint': 'Situs meminta kode saat kamu masuk? Masuk di sini di halamannya sendiri, dengan kata sandi dan kodenya. KnightLoader menyimpan sesinya, tidak pernah apa yang kamu ketik.',

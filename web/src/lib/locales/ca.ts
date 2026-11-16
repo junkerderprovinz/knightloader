@@ -1413,6 +1413,8 @@ export const ca: Dict = {
   'accounts.hoster.codeEnded': 'La sessió s’ha acabat. Introdueix un codi nou per tornar a iniciar la sessió.',
   'accounts.hoster.codeActivate': 'L’allotjador diu que aquest compte encara no està activat. Diu el mateix quan hi falta el codi de doble factor. Si el compte està actiu, introdueix el codi i torna-ho a provar.',
   'accounts.hoster.codeNewAddress': 'L’allotjador vol que confirmis la nova adreça IP amb l’enllaç que t’ha enviat per correu. Si el compte inicia la sessió amb un codi de doble factor, introdueix-lo aquí i torna-ho a provar.',
+  'accounts.hoster.codeDidNotHelp': 'L’allotjador ha donat la mateixa resposta amb el codi, així que el compte mateix encara espera l’activació. Obre l’enllaç del correu de benvinguda de l’allotjador (mira també la carpeta de correu brossa) o pregunta al suport de l’allotjador, i després torna-ho a provar.',
+  'accounts.hoster.codeDidNotHelpAddress': 'L’allotjador ha donat la mateixa resposta amb el codi i encara vol que confirmis la nova adreça IP. Obre l’enllaç del seu correu més recent i després torna-ho a provar.',
   'accounts.hoster.testing': 'S’està provant la connexió…',
   'accounts.hoster.connected': 'Connectat',
   'accounts.hoster.signInHereHint': 'El lloc et demana un codi en iniciar la sessió? Inicia-la aquí a la seva pròpia pàgina, amb la contrasenya i el codi. KnightLoader es queda la sessió, mai el que escrius.',
