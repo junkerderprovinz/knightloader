@@ -898,14 +898,14 @@ describe('a hoster login with two-factor sign-in', () => {
 
   async function saveLogin() {
     await openNewLogin();
-    expect(field('Two-factor code')).toBeUndefined();
+    expect(field('Sign-in code')).toBeUndefined();
     await act(async () => button('Save').click());
   }
 
   it('leaves the code field out of a new login until the hoster asks for one', async () => {
     const posted = stubSaves([{ host: 'rapidgator.net', username: 'john', status: 'active', enabled: true }]);
     await openNewLogin();
-    expect(field('Two-factor code')).toBeUndefined();
+    expect(field('Sign-in code')).toBeUndefined();
     await act(async () => button('Save').click());
 
     expect(posted).toEqual([{ host: 'rapidgator.net', username: 'john', password: 'hunter2' }]);
@@ -916,7 +916,7 @@ describe('a hoster login with two-factor sign-in', () => {
     stubSaves([], { stored: [{ host: 'rapidgator.net', username: 'john', status: 'rejected', code, enabled: true }] });
     await openStored();
     expect(field('Password')).toBeDefined();
-    expect(field('Two-factor code')).toBeUndefined();
+    expect(field('Sign-in code')).toBeUndefined();
   });
 
   it('keeps the code field on a login whose session ended, and signs in with the new code', async () => {
@@ -928,7 +928,7 @@ describe('a hoster login with two-factor sign-in', () => {
       'The session has ended. Enter a new code to sign in again.',
     );
     expect(button('Save').disabled).toBe(true);
-    type(field('Two-factor code')!, '482913');
+    type(field('Sign-in code')!, '482913');
     await act(async () => button('Save').click());
 
     expect(posted).toEqual([{ host: 'rapidgator.net', username: 'john', password: '********', code: '482913' }]);
@@ -938,7 +938,7 @@ describe('a hoster login with two-factor sign-in', () => {
     const posted = stubSaves([asking('ownCodeNeeded'), { host: 'rapidgator.net', username: 'john', status: 'active', enabled: true }]);
     await saveLogin();
 
-    const code = field('Two-factor code')!;
+    const code = field('Sign-in code')!;
     expect(code.getAttribute('inputmode')).toBe('numeric');
     expect(code.getAttribute('autocomplete')).toBe('one-time-code');
     expect(button('Save').disabled).toBe(true);
@@ -956,12 +956,12 @@ describe('a hoster login with two-factor sign-in', () => {
   it('says so when the hoster turned the code down, and clears it for the next', async () => {
     stubSaves([asking('ownCodeNeeded'), asking('ownCodeWrong')]);
     await saveLogin();
-    type(field('Two-factor code')!, '000000');
+    type(field('Sign-in code')!, '000000');
     await act(async () => button('Save').click());
 
     expect(document.querySelector('[role="dialog"] [role="alert"]')?.textContent).toBe(
-      'That code did not work. Enter the one the app shows now.',
+      'That code did not work. Enter the current one from the app or the newest mail.',
     );
-    expect(field('Two-factor code')!.value).toBe('');
+    expect(field('Sign-in code')!.value).toBe('');
   });
 });
