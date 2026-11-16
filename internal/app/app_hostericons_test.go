@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"hash/crc32"
+	"io/fs"
 	"maps"
 	"net"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"testing/fstest"
 	"time"
 )
 
@@ -803,5 +805,65 @@ func TestPruningTheIconFilesDropsExpiredOnesFirst(t *testing.T) {
 	}
 	if _, err := os.Stat(icon); err != nil {
 		t.Errorf("the icon within its TTL was dropped before the expired miss: %v", err)
+	}
+}
+
+// stubShippedIcons puts overrides and set in place of the icons that ship with
+// the binary for one test.
+func stubShippedIcons(t *testing.T, overrides, set fstest.MapFS) {
+	t.Helper()
+	prev := shippedIcons
+	shippedIcons = []fs.FS{overrides, set}
+	t.Cleanup(func() { shippedIcons = prev })
+}
+
+func TestAnOverrideWinsOverTheShippedSet(t *testing.T) {
+	stubShippedIcons(t,
+		fstest.MapFS{"example.org.svg": {Data: []byte("<svg/>")}},
+		fstest.MapFS{"example.org.png": {Data: []byte("shipped png")}},
+	)
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		t.Error("the site was asked for an icon that ships with the binary")
+		return nil, "", errors.New("unreachable")
+	})
+	got, ct, err := (&App{DataDir: t.TempDir()}).HosterIcon("example.org")
+	if err != nil || string(got) != "<svg/>" || ct != "image/svg+xml" {
+		t.Errorf("HosterIcon = %q (%s), %v, want the override", got, ct, err)
+	}
+}
+
+func TestAShippedIconAnswersAtOnceWithoutAskingTheSite(t *testing.T) {
+	stubShippedIcons(t, fstest.MapFS{}, fstest.MapFS{"example.org.png": {Data: []byte("shipped png")}})
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		t.Error("the site was asked for an icon that ships with the binary")
+		return nil, "", errors.New("unreachable")
+	})
+	a := &App{DataDir: t.TempDir()}
+	for _, host := range []string{"example.org", "www.example.org", "dl3.example.org", "HTTPS://Example.org/file/1"} {
+		got, ct, err := a.HosterIcon(host)
+		if err != nil || string(got) != "shipped png" || ct != "image/png" {
+			t.Errorf("HosterIcon(%q) = %q (%s), %v, want the shipped PNG", host, got, ct, err)
+		}
+	}
+}
+
+func TestAHostThatShipsNoIconIsFetchedFromTheSite(t *testing.T) {
+	stubShippedIcons(t, fstest.MapFS{"example.org.png": {Data: []byte("override")}}, fstest.MapFS{"example.org.png": {Data: []byte("set")}})
+	var calls atomic.Int32
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		calls.Add(1)
+		return pngBytes(32, 32), "image/png", nil
+	})
+	a := &App{DataDir: t.TempDir()}
+
+	if _, _, err := a.HosterIcon("example.net"); !errors.Is(err, ErrIconPending) {
+		t.Fatalf("HosterIcon(example.net) = %v, want a fetch", err)
+	}
+	<-a.fetchHosterIcon("example.net")
+	if n := calls.Load(); n != 1 {
+		t.Errorf("the site was asked %d times, want once", n)
+	}
+	if _, ct, err := a.HosterIcon("example.net"); err != nil || ct != "image/png" {
+		t.Errorf("HosterIcon after the fetch = %q, %v, want the fetched PNG", ct, err)
 	}
 }

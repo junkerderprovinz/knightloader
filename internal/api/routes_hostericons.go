@@ -1,10 +1,10 @@
 package api
 
-// The site icon beside a hoster row (app_hostericons.go owns the fetching and
-// the cache), one host at a time or many at once. Neither answer of the single
-// route short of an icon is an error status, because a browser logs each one
-// as a failed load: a host without an icon gets a 204, and one the instance is
-// still fetching gets a 202.
+// The site icon beside a hoster row (app_hostericons.go owns the shipped set,
+// the fetching and the cache), one host at a time or many at once. Neither
+// answer of the single route short of an icon is an error status, because a
+// browser logs each one as a failed load: a host without an icon gets a 204,
+// and one the instance is still fetching gets a 202.
 
 import (
 	"crypto/sha256"
@@ -44,7 +44,7 @@ type iconBatch struct {
 const iconCSP = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
 
 func registerHosterIcons(reg *Registry, a *app.App) {
-	reg.Add(http.MethodGet, "/api/hosters/icon", "one host's own site icon, fetched by this instance and cached on disk",
+	reg.Add(http.MethodGet, "/api/hosters/icon", "one host's site icon, shipped with the binary or fetched by this instance and cached on disk",
 		hosterIconHandler(a.HosterIcon))
 	// A picker shows a screenful of hosters at once, and a browser opens six
 	// connections to the instance, so one request per icon queues the page
@@ -75,8 +75,13 @@ func hosterIconsHandler(lookup func(host string) ([]byte, string, error)) http.H
 				out.Icons[host] = "data:" + ct + ";base64," + base64.StdEncoding.EncodeToString(body)
 			}
 		}
-		// The answer changes as pending icons arrive.
-		w.Header().Set("Cache-Control", "no-store")
+		// The answer changes as pending icons arrive. Without them it stays
+		// the same, and it is private for the same reason a single icon is.
+		if len(out.Pending) == 0 {
+			w.Header().Set("Cache-Control", "private, max-age=604800")
+		} else {
+			w.Header().Set("Cache-Control", "no-store")
+		}
 		writeJSON(w, out)
 	}
 }
