@@ -10,7 +10,7 @@
 // here too, always, since KnightLoader picks a sign-in up by itself: each says
 // who it signs in as and where from, or how to sign in, and opens
 // SiteLoginDialog rather than a password form.
-import { useCallback, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import {
   type HosterHost,
   type HosterLogin,
@@ -29,7 +29,7 @@ import { type SignInWays, nextStep, siteForHost, sourceNote, unreadableBrowsers,
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
-import { IconAccounts, IconBack, IconClose, IconSave, IconSignIn, IconTrash } from '../lib/icons';
+import { IconAccounts, IconBack, IconCheck, IconClose, IconSave, IconSignIn, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 import { SiteLoginDialog, SiteState } from './SiteLoginDialog';
 import { SignInBrowserWindow, SignInHereButton, useSignInBrowserAvailable } from './SignInBrowserWindow';
@@ -38,6 +38,10 @@ import { SettingRow } from '../pages/settings/controls';
 // Faster than the 30s account health poll, since a new login moves from queued
 // to active or rejected within seconds to minutes.
 const POLL_MS = 8000;
+
+// The login window follows a login JD is still checking more closely, since
+// somebody is looking at it.
+const TEST_POLL_MS = 2000;
 
 /** HosterLogins is the logins, the sites signed into through the browser and the host list. */
 export interface HosterLogins {
@@ -471,7 +475,25 @@ const REDACTED = '********';
 // The six digits an authenticator app shows.
 const CODE = /^\d{6}$/;
 
-/** HosterLoginDialog stores one login. */
+// Why the code field is there, by the row's code. Rapidgator answers a
+// two-factor login without its code with either of the last two at times,
+// so the code is offered there as well.
+const CODE_NOTES: Record<string, TranslationKey> = {
+  ownCodeNeeded: 'accounts.hoster.codeNeeded',
+  ownCodeWrong: 'accounts.hoster.codeWrong',
+  ownCodeEnded: 'accounts.hoster.codeEnded',
+  ownActivate: 'accounts.hoster.codeActivate',
+  ownNewAddress: 'accounts.hoster.codeNewAddress',
+};
+
+/** offersCode reports whether a code could get the login in. */
+const offersCode = (login?: HosterLogin | null) => !!login && (!!login.askCode || !!login.codeMayHelp);
+
+/**
+ * HosterLoginDialog stores one login and stays open to test it: it says
+ * "Connected" once the hoster takes the login, or why not, and offers the code
+ * of a second factor where one could help.
+ */
 function HosterLoginDialog({
   hosts,
   sites,
@@ -496,10 +518,35 @@ function HosterLoginDialog({
   const [username, setUsername] = useState(editing?.username ?? '');
   const [password, setPassword] = useState(editing ? REDACTED : '');
   const [saving, setSaving] = useState(false);
-  // The row of a login the hoster takes only with a second factor's code,
-  // whose field the form then shows. The code is sent once and kept nowhere.
-  const [asked, setAsked] = useState<HosterLogin | null>(editing?.askCode ? editing : null);
+  // The row the last save came back with, followed while JD checks it. A
+  // login opened while a code could get it in starts out on its own row.
+  const [tested, setTested] = useState<HosterLogin | null>(offersCode(editing) ? editing! : null);
+  // The fields as last saved, so a connected login offers Save again once
+  // either changes.
+  const [savedAs, setSavedAs] = useState<{ username: string; password: string } | null>(null);
+  // The code is sent once and kept nowhere.
   const [code, setCode] = useState('');
+  const mounted = useRef(true);
+  useEffect(
+    () => () => {
+      mounted.current = false;
+    },
+    [],
+  );
+
+  const waitingOn = tested?.status === 'queued' ? tested.host : null;
+  useEffect(() => {
+    if (!waitingOn) return;
+    const timer = window.setInterval(() => {
+      void fetchHosterLogins()
+        .then((rows) => {
+          const now = rows.find((r) => r.host === waitingOn);
+          if (now && now.status !== 'queued' && mounted.current) setTested(now);
+        })
+        .catch(() => {});
+    }, TEST_POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [waitingOn]);
 
   // A site signed into through the browser has its own row, and stands in for
   // JD's entry of the same host, whose password login the site does not take.
@@ -516,18 +563,17 @@ function HosterLoginDialog({
     setSaving(true);
     try {
       const row = await saveHosterLogin(picked.id, username, password, code || undefined);
+      if (!mounted.current) return;
+      setTested(row);
+      setSavedAs({ username, password });
       await onSaved();
-      if (row.askCode) {
-        setAsked(row);
-        return;
-      }
-      toast(t('accounts.saved'), 'ok');
-      onClose();
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'fail');
     } finally {
-      setCode('');
-      setSaving(false);
+      if (mounted.current) {
+        setCode('');
+        setSaving(false);
+      }
     }
   }
 
@@ -537,15 +583,24 @@ function HosterLoginDialog({
     : editing
       ? t('accounts.editCredentialTitle', { service: picked.label })
       : t('accounts.addAccountTitle', { service: picked.label });
-  const canSave = username.trim() !== '' && password.trim() !== '' && (!asked || CODE.test(code));
-  // Why the field is there. Only a code the hoster turned down is the
-  // person's to correct, so only that one reads as an error.
-  const codeWrong = asked?.code === 'ownCodeWrong';
-  const codeNote = codeWrong
-    ? t('accounts.hoster.codeWrong')
-    : asked?.code === 'ownCodeEnded'
-      ? t('accounts.hoster.codeEnded')
-      : t('accounts.hoster.codeNeeded');
+  const asksCode = offersCode(tested);
+  // A refusal a code only may get past can be tested again without one.
+  const codeOk = tested?.askCode ? CODE.test(code) : code === '' || CODE.test(code);
+  const canSave = username.trim() !== '' && password.trim() !== '' && (!asksCode || codeOk);
+  const connected = tested?.status === 'active' && savedAs?.username === username && savedAs.password === password;
+  // Only a code the hoster turned down is the person's to correct, so only
+  // that one reads as an error.
+  const codeWrong = tested?.code === 'ownCodeWrong';
+  const codeNote = t(CODE_NOTES[tested?.code ?? ''] ?? 'accounts.hoster.codeNeeded');
+  // Beside the code field its own note says why the hoster refused.
+  const outcome =
+    saving || tested?.status === 'queued' ? (
+      <TestNote tone="neutral">{t('accounts.hoster.testing')}</TestNote>
+    ) : !tested || asksCode ? null : tested.status === 'active' ? (
+      <TestNote tone="ok">{t('accounts.hoster.connected')}</TestNote>
+    ) : (
+      <TestNote tone={tested.status === 'rejected' ? 'fail' : 'neutral'}>{loginDetail(t, tested)}</TestNote>
+    );
 
   return (
     <Modal
@@ -565,7 +620,9 @@ function HosterLoginDialog({
           <>
             {/* A new login's form leads back to the list it was picked from;
                 an edit stays on its host and offers the way out. */}
-            {editing ? (
+            {connected ? (
+              <Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={onClose} />
+            ) : editing ? (
               <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
             ) : (
               <Button
@@ -581,9 +638,15 @@ function HosterLoginDialog({
               />
             )}
             <span className="flex-1" />
-            <Button icon={<IconSave />} onClick={() => void doSave()} disabled={saving || !canSave}>
-              {saving ? t('accounts.saving') : t('accounts.save')}
-            </Button>
+            {connected ? (
+              <Button icon={<IconCheck />} disabled>
+                {t('accounts.hoster.connected')}
+              </Button>
+            ) : (
+              <Button icon={<IconSave />} onClick={() => void doSave()} disabled={saving || !canSave}>
+                {saving ? t('accounts.saving') : t('accounts.save')}
+              </Button>
+            )}
           </>
         ) : (
           <>
@@ -609,8 +672,16 @@ function HosterLoginDialog({
           <SettingRow control="long" label={t('accounts.passwordField')} hint={t('accounts.hoster.passwordCustody')}>
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </SettingRow>
-          {asked && (
+          {outcome && <div data-new="login-test">{outcome}</div>}
+          {asksCode && (
             <div data-new="hoster-code" className="flex flex-col gap-1.5">
+              <p
+                id="hoster-code-note"
+                role={codeWrong ? 'alert' : undefined}
+                className={`text-meta ${codeWrong ? 'text-statusFail' : 'text-carbon-textMuted'}`}
+              >
+                {codeNote}
+              </p>
               <SettingRow control="long" label={t('accounts.hoster.codeField')} hint={t('accounts.hoster.codeHint')}>
                 <TextInput
                   autoFocus
@@ -628,13 +699,6 @@ function HosterLoginDialog({
                   }}
                 />
               </SettingRow>
-              <p
-                id="hoster-code-note"
-                role={codeWrong ? 'alert' : undefined}
-                className={`text-meta ${codeWrong ? 'text-statusFail' : 'text-carbon-textMuted'}`}
-              >
-                {codeNote}
-              </p>
             </div>
           )}
           {editing?.signInSite && (
@@ -653,5 +717,22 @@ function HosterLoginDialog({
         </div>
       )}
     </Modal>
+  );
+}
+
+const TONES = {
+  ok: ['text-statusOk', 'bg-statusOkSolid'],
+  fail: ['text-statusFail', 'bg-statusFailSolid'],
+  neutral: ['text-statusNeutral', 'bg-statusNeutralSolid'],
+} as const;
+
+/** TestNote is what testing a login came to, in the colours of the row's states. */
+function TestNote({ tone, children }: { tone: keyof typeof TONES; children: ReactNode }) {
+  const [text, dot] = TONES[tone];
+  return (
+    <p role="status" className={`flex items-start gap-2 text-sm font-medium ${text}`}>
+      <span className={`mt-[0.5em] h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${dot}`} />
+      <span>{children}</span>
+    </p>
   );
 }

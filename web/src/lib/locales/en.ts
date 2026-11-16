@@ -1758,6 +1758,10 @@ export const en = {
   'accounts.hoster.codeNeeded': 'The hoster asks for a two-factor code before it takes this login.',
   'accounts.hoster.codeWrong': 'That code did not work. Enter the one the app shows now.',
   'accounts.hoster.codeEnded': 'The session has ended. Enter a new code to sign in again.',
+  'accounts.hoster.codeActivate': 'The hoster says this account is not activated yet. It says the same when the two-factor code is missing. If the account is active, enter the code and try again.',
+  'accounts.hoster.codeNewAddress': 'The hoster wants the new IP address confirmed through the link it emailed. If the account signs in with a two-factor code, enter it here and try again.',
+  'accounts.hoster.testing': 'Testing the connection…',
+  'accounts.hoster.connected': 'Connected',
   'accounts.hoster.signInHereHint': 'Does the site ask for a code when you sign in? Sign in on its own page here, with your password and the code. KnightLoader keeps the session, never what you type.',
   'accounts.hoster.passwordCustody':
     'The password goes to the JDownloader backend, which stores it and does the actual login. KnightLoader itself does not keep it.',
@@ -4190,6 +4194,7 @@ export const en = {
   'whatsnew.change.hostSelect': 'The "{name}" filter in the link collector has a button beside each host that selects all of its links in the list. Select the mirror hosts you do not need and delete them in one go.',
   'whatsnew.change.jdDefaultRules': 'The move from JDownloader takes its default rules along. The rules for .rev and .par2 files add those files disabled, which any Packagizer rule can do with "{name}", and the rule for a folder per package switches on "{switch}".',
   'whatsnew.change.packageNameGuess': 'A Packagizer rule with <jd:packagename> names a pasted link\'s package the way the link collector would, instead of calling it "package".',
+  'whatsnew.change.loginTest': 'After "{save}" the hoster login window stays open, tests the login and says "{connected}" or why the hoster turned it down.',
   'whatsnew.change.updateSwitch': 'KnightLoader’s own row has one switch too, "{name}". It looks for a new version and installs it wherever KnightLoader can replace itself.',
   'whatsnew.change.oled': '{oled} under {theme} puts the dark look on true black for OLED and AMOLED screens. It counts whenever the dark look shows, also when it follows the system, and each device keeps its own choice.',
   'whatsnew.change.systemAccent': 'The wand swatch at the start of {accent} takes the system\'s colour: Material You on Android 12 and newer, the accent colour of Windows, macOS or Linux in the desktop app, and the system colour in Firefox and Safari. Where the system has none, the swatch isn\'t there. Choosing it changes only this device, and the others keep the instance\'s colour.',

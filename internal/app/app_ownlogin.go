@@ -315,7 +315,7 @@ func (a *App) ownLoginState(host string) (hosterauth.OwnState, bool) {
 			st := h.be.Status()
 			return hosterauth.OwnState{
 				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Code: string(st.Code),
-				Activate: st.Activate, NewAddress: st.NewAddress,
+				Activate: st.Activate, NewAddress: st.NewAddress, CodeMayHelp: st.CodeMayHelp,
 				Handed: st.Handed, Premium: st.Premium,
 				Expiry: st.Expiry, TrafficLeft: st.TrafficLeft, TrafficMax: st.TrafficMax,
 			}, true

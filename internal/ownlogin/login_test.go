@@ -154,7 +154,7 @@ func TestAResumedSessionTheHosterRejectedAsksForANewCode(t *testing.T) {
 }
 
 func TestARefusalWaitingForAMailedLinkKeepsWhichOneInTheStatus(t *testing.T) {
-	for _, refusal := range []*LoginError{{Msg: "activate first", Activate: true}, {Msg: "confirm the address", NewAddress: true}} {
+	for _, refusal := range []*LoginError{{Msg: "activate first", Activate: true, CodeMayHelp: true}, {Msg: "confirm the address", NewAddress: true}} {
 		s := (&codeHoster{}).signer(0)
 		s.Login = func(context.Context, string, string, string) (string, Account, error) { return "", Account{}, refusal }
 		l := NewLogin(s)
@@ -162,7 +162,7 @@ func TestARefusalWaitingForAMailedLinkKeepsWhichOneInTheStatus(t *testing.T) {
 
 		st := l.Check(context.Background())
 
-		if !st.Refused || st.Activate != refusal.Activate || st.NewAddress != refusal.NewAddress {
+		if !st.Refused || st.Activate != refusal.Activate || st.NewAddress != refusal.NewAddress || st.CodeMayHelp != refusal.CodeMayHelp {
 			t.Errorf("refused with %+v, the login reads as %+v", refusal, st)
 		}
 	}

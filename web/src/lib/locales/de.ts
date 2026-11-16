@@ -1552,6 +1552,10 @@ export const de: Dict = {
   'accounts.hoster.codeNeeded': 'Der Hoster verlangt einen Zwei-Faktor-Code, bevor er diese Anmeldung annimmt.',
   'accounts.hoster.codeWrong': 'Der Code hat nicht gepasst. Gib den ein, den die App gerade zeigt.',
   'accounts.hoster.codeEnded': 'Die Sitzung ist abgelaufen. Gib einen neuen Code ein, um dich wieder anzumelden.',
+  'accounts.hoster.codeActivate': 'Der Hoster meldet, dass das Konto noch nicht aktiviert ist. Dasselbe meldet er, wenn der Zwei-Faktor-Code fehlt. Ist das Konto aktiv, gib den Code ein und versuch es noch einmal.',
+  'accounts.hoster.codeNewAddress': 'Der Hoster möchte die neue IP-Adresse über den Link bestätigt haben, den er dir gemailt hat. Meldet sich das Konto mit einem Zwei-Faktor-Code an, gib ihn hier ein und versuch es noch einmal.',
+  'accounts.hoster.testing': 'Verbindung wird getestet…',
+  'accounts.hoster.connected': 'Verbunden',
   'accounts.hoster.signInHereHint': 'Fragt die Seite beim Anmelden nach einem Code? Dann meld dich hier auf ihrer eigenen Seite an, mit Passwort und Code. KnightLoader behält die Sitzung, nie das, was du tippst.',
   'accounts.hoster.passwordCustody': 'Das Passwort geht an das JDownloader-Backend, das es speichert und den eigentlichen Login durchführt. KnightLoader selbst behält es nicht.',
 
@@ -3952,6 +3956,7 @@ export const de: Dict = {
   'whatsnew.change.hostSelect': 'Der Filter „{name}“ im Linksammler hat neben jedem Hoster einen Knopf, der alle seine Links in der Liste auswählt. So wählst du die Mirror-Hoster, die du nicht brauchst, und löschst sie in einem Rutsch.',
   'whatsnew.change.jdDefaultRules': 'Der Umzug von JDownloader nimmt die Standardregeln mit. Die Regeln für .rev- und .par2-Dateien fügen diese Dateien deaktiviert hinzu, was jede Packagizer-Regel mit „{name}“ kann, und die Regel für einen Ordner pro Paket schaltet „{switch}“ ein.',
   'whatsnew.change.packageNameGuess': 'Eine Packagizer-Regel mit <jd:packagename> benennt das Paket eines eingefügten Links so, wie es der Linksammler tun würde, statt es „package“ zu nennen.',
+  'whatsnew.change.loginTest': 'Nach „{save}“ bleibt das Fenster des Hoster-Kontos offen, testet die Anmeldung und zeigt „{connected}“ oder warum der Hoster sie abgelehnt hat.',
   'whatsnew.change.updateSwitch': 'Auch die eigene Zeile von KnightLoader hat nur noch einen Schalter, „{name}“. Er sucht nach einer neuen Version und installiert sie überall dort, wo KnightLoader sich selbst ersetzen kann.',
   'whatsnew.change.oled': '{oled} unter {theme} setzt das dunkle Design auf echtes Schwarz, für OLED- und AMOLED-Bildschirme. Es gilt, sobald das dunkle Design zu sehen ist, auch wenn es dem System folgt, und jedes Gerät merkt sich seine eigene Wahl.',
   'whatsnew.change.systemAccent': 'Das Farbfeld mit dem Zauberstab am Anfang von {accent} übernimmt die Farbe deines Systems: Material You ab Android 12, die Akzentfarbe von Windows, macOS oder Linux in der Desktop-App und die Systemfarbe in Firefox und Safari. Wo das System keine hat, gibt es das Feld nicht. Die Wahl gilt nur für dieses Gerät, und die anderen behalten die Farbe der Instanz.',

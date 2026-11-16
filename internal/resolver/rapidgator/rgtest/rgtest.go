@@ -37,6 +37,10 @@ type Account struct {
 	// give it. Rapidgator answers a missing code and a wrong one alike.
 	TwoFactor bool
 	Code      string
+	// NoCode is what a two-factor login without a code is answered with,
+	// "Error: Invalid auth code" when empty. Some accounts get the
+	// activation refusal instead.
+	NoCode string
 }
 
 // File is one file the server holds.
@@ -367,6 +371,8 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case acct == nil || acct.Password != r.Form.Get("password"):
 		answer(w, http.StatusUnauthorized, "Error: Login or password is wrong", nil)
+	case acct.TwoFactor && r.Form.Get("code") == "" && acct.NoCode != "":
+		answer(w, http.StatusUnauthorized, acct.NoCode, nil)
 	case acct.TwoFactor && (r.Form.Get("code") == "" || r.Form.Get("code") != acct.Code):
 		answer(w, http.StatusUnauthorized, "Error: Invalid auth code", nil)
 	default:

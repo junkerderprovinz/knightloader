@@ -286,6 +286,30 @@ func TestARapidgatorRefusalWaitingForAMailedLinkNamesItsStepOnTheRow(t *testing.
 	}
 }
 
+func TestATwoFactorRapidgatorLoginRefusedAsNotActivatedOffersTheCode(t *testing.T) {
+	a := newCrawlApp(t, false)
+	srv := rgtest.New(t)
+	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913",
+		NoCode: "Error: Please activate your account! Before you can login, you must activate your account with the link sent to your email address."})
+	useRapidgator(a, srv)
+	ctx := context.Background()
+
+	row, err := a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "hunter2", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Code != "ownActivate" || !row.CodeMayHelp {
+		t.Fatalf("the code-less sign-in = %+v, want the activation refusal offering the code", row)
+	}
+	row, err = a.SaveHosterLogin(ctx, "rg.to", "john@example.com", accounts.Redacted, "482913")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.Status != hosterauth.StatusActive {
+		t.Errorf("the sign-in with the code = %+v, want it active", row)
+	}
+}
+
 // signInWithCode saves a two-factor Rapidgator login on a and signs it in
 // with its code, as the login window does.
 func signInWithCode(t *testing.T, a *App) *rgtest.Server {

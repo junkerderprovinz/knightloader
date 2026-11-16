@@ -558,8 +558,16 @@ func TestALoginKnightLoaderSignsInWithItselfIsKeptFromJD(t *testing.T) {
 		t.Errorf("row refused until the account is activated = %+v, want rejected with its own code", got)
 	}
 	own = OwnState{Checked: true, Refused: true, NewAddress: true, Detail: "rapidgator: confirm this address"}
-	if got := row(); got.Status != StatusRejected || got.Code != codeOwnNewAddress || got.Detail != own.Detail {
+	if got := row(); got.Status != StatusRejected || got.Code != codeOwnNewAddress || got.Detail != own.Detail || got.CodeMayHelp {
 		t.Errorf("row refused until the new address is confirmed = %+v, want rejected with its own code", got)
+	}
+	for _, own = range []OwnState{
+		{Checked: true, Refused: true, Activate: true, CodeMayHelp: true},
+		{Checked: true, Refused: true, NewAddress: true, CodeMayHelp: true},
+	} {
+		if got := row(); !got.CodeMayHelp || got.AskCode {
+			t.Errorf("row refused with %+v = %+v, want it offering the code without asking for it", own, got)
+		}
 	}
 
 	r.Enabled = func(string) bool { return false }

@@ -72,6 +72,13 @@ export const RELEASES: Release[] = [
       },
       // Drawn only while a hoster waits for a code.
       { id: 'hoster-code', to: ACCOUNTS, text: 'whatsnew.change.hosterCode', names: { name: 'accounts.hoster.codeField' } },
+      // Drawn in the hoster login window once it has tested a login.
+      {
+        id: 'login-test',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.loginTest',
+        names: { save: 'accounts.save', connected: 'accounts.hoster.connected' },
+      },
       // Drawn only on a login that waits for a code or a sign-in.
       {
         id: 'login-waits',
@@ -84,6 +91,12 @@ export const RELEASES: Release[] = [
         to: ['/settings/help'],
         text: 'whatsnew.change.componentsSwitch',
         names: { name: 'settings.info.componentsTitle', auto: 'settings.info.componentsAuto', now: 'settings.info.updateNow' },
+      },
+      {
+        id: 'update-switch',
+        to: ['/settings/help'],
+        text: 'whatsnew.change.updateSwitch',
+        names: { name: 'settings.look.updatesAutoUpdate' },
       },
       { id: 'debrid-declined', text: 'whatsnew.change.debridDeclined' },
       {

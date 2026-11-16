@@ -852,5 +852,10 @@ func TestRefusalsThatWaitForAMailedLinkNameTheirOwnStep(t *testing.T) {
 		if le.Activate != tc.activate || le.NewAddress != tc.newAddress {
 			t.Errorf("%q: Activate %v, NewAddress %v, want %v, %v", tc.details, le.Activate, le.NewAddress, tc.activate, tc.newAddress)
 		}
+		// Rapidgator answers a two-factor account without its code with
+		// either of the two as well.
+		if want := tc.activate || tc.newAddress; le.CodeMayHelp != want {
+			t.Errorf("%q: CodeMayHelp %v, want %v", tc.details, le.CodeMayHelp, want)
+		}
 	}
 }
