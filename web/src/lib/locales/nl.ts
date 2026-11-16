@@ -1380,6 +1380,8 @@ export const nl: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader controleert deze login bij de hoster.',
   'accounts.hoster.detail.ownInvalid': 'De hoster heeft deze login geweigerd. Controleer het e-mailadres en het wachtwoord.',
   'accounts.hoster.detail.ownCaptcha': 'De hoster wil dat er een captcha wordt opgelost voordat hij deze login aanneemt, en KnightLoader kan die niet beantwoorden. Log één keer in een browser in bij de hoster en los hem daar op, en zet deze login daarna uit en weer aan.',
+  'accounts.hoster.detail.ownActivate': 'De hoster zegt dat dit account nog niet geactiveerd is. Activeer het met de link uit de welkomstmail van de hoster (kijk ook in de spammap), en zet deze login daarna uit en weer aan.',
+  'accounts.hoster.detail.ownNewAddress': 'De hoster zag een aanmelding vanaf een nieuw IP-adres en wil dat je die bevestigt via de link die hij net heeft gemaild. Bevestig het, en zet deze login daarna uit en weer aan.',
   'accounts.hoster.detail.signingIn': 'KnightLoader meldt zich aan met deze login. De hoster vraagt eerst om een captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'De hoster vraagt de tweestapscode uit je authenticator-app. Open de login en vul de code in.',
   'accounts.hoster.detail.ownCodeWrong': 'De hoster heeft de tweestapscode niet geaccepteerd. Open de login en vul de huidige code in.',

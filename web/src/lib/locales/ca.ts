@@ -1388,6 +1388,8 @@ export const ca: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader està comprovant aquest inici de sessió amb l’allotjador.',
   'accounts.hoster.detail.ownInvalid': 'L’allotjador ha rebutjat aquest inici de sessió. Comprova l’adreça electrònica i la contrasenya.',
   'accounts.hoster.detail.ownCaptcha': 'L’allotjador vol que es resolgui un captcha abans d’acceptar aquest inici de sessió, i KnightLoader no en pot respondre cap. Inicia la sessió a l’allotjador una vegada en un navegador i resol-lo allà, i després desactiva aquest inici de sessió i torna’l a activar.',
+  'accounts.hoster.detail.ownActivate': 'L’allotjador diu que aquest compte encara no està activat. Activa’l amb l’enllaç del correu de benvinguda de l’allotjador (mira també la carpeta de correu brossa), i després desactiva aquest inici de sessió i torna’l a activar.',
+  'accounts.hoster.detail.ownNewAddress': 'L’allotjador ha vist un inici de sessió des d’una adreça IP nova i vol que el confirmis amb l’enllaç que t’acaba d’enviar per correu. Confirma’l, i després desactiva aquest inici de sessió i torna’l a activar.',
   'accounts.hoster.detail.signingIn': 'KnightLoader està iniciant sessió amb aquestes dades. El servei demana primer un captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'L’allotjador vol el codi de doble factor de la teva aplicació d’autenticació. Obre l’inici de sessió i introdueix-lo.',
   'accounts.hoster.detail.ownCodeWrong': 'L’allotjador no ha acceptat el codi de doble factor. Obre l’inici de sessió i introdueix el codi actual.',

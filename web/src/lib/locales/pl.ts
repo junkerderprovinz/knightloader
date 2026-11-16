@@ -1381,6 +1381,8 @@ export const pl: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader sprawdza to logowanie u hostera.',
   'accounts.hoster.detail.ownInvalid': 'Hoster odrzucił to logowanie. Sprawdź adres e-mail i hasło.',
   'accounts.hoster.detail.ownCaptcha': 'Hoster chce, żeby przed przyjęciem tego logowania rozwiązać captchę, a KnightLoader nie potrafi jej rozwiązać. Zaloguj się raz do hostera w przeglądarce i rozwiąż ją tam, potem wyłącz to logowanie i włącz je ponownie.',
+  'accounts.hoster.detail.ownActivate': 'Hoster podaje, że to konto nie jest jeszcze aktywowane. Aktywuj je linkiem z powitalnego maila od hostera (zajrzyj też do folderu spam), potem wyłącz to logowanie i włącz je ponownie.',
+  'accounts.hoster.detail.ownNewAddress': 'Hoster zauważył logowanie z nowego adresu IP i chce, żeby potwierdzić je linkiem, który właśnie wysłał mailem. Potwierdź je, potem wyłącz to logowanie i włącz je ponownie.',
   'accounts.hoster.detail.signingIn': 'KnightLoader loguje się tym logowaniem. Hosting najpierw prosi o captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hoster prosi o kod dwuskładnikowy z twojej aplikacji uwierzytelniającej. Otwórz logowanie i wpisz go.',
   'accounts.hoster.detail.ownCodeWrong': 'Hoster nie przyjął kodu dwuskładnikowego. Otwórz logowanie i wpisz aktualny kod.',

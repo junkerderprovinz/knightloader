@@ -1391,6 +1391,8 @@ export const no: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader sjekker denne innloggingen hos hosteren.',
   'accounts.hoster.detail.ownInvalid': 'Hosteren avviste denne innloggingen. Sjekk e-postadressen og passordet.',
   'accounts.hoster.detail.ownCaptcha': 'Hosteren vil ha løst en captcha før den godtar denne innloggingen, og KnightLoader kan ikke svare på den. Logg inn hos hosteren én gang i en nettleser og løs den der, og slå deretter denne innloggingen av og på igjen.',
+  'accounts.hoster.detail.ownActivate': 'Hosteren sier at denne kontoen ikke er aktivert ennå. Aktiver den med lenken i velkomstmailen fra hosteren (sjekk også søppelpostmappen), og slå deretter denne innloggingen av og på igjen.',
+  'accounts.hoster.detail.ownNewAddress': 'Hosteren så en innlogging fra en ny IP-adresse og vil ha den bekreftet via lenken den nettopp sendte på e-post. Bekreft den, og slå deretter denne innloggingen av og på igjen.',
   'accounts.hoster.detail.signingIn': 'KnightLoader logger inn med denne innloggingen. Verten ber først om en captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hosteren ber om tofaktorkoden fra autentiseringsappen din. Åpne innloggingen og skriv den inn.',
   'accounts.hoster.detail.ownCodeWrong': 'Hosteren godtok ikke tofaktorkoden. Åpne innloggingen og skriv inn den gjeldende.',

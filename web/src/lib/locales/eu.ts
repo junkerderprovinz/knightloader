@@ -1389,6 +1389,8 @@ export const eu: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader saio-hasiera hau egiaztatzen ari da ostalariarekin.',
   'accounts.hoster.detail.ownInvalid': 'Ostalariak saio-hasiera hau baztertu du. Egiaztatu helbide elektronikoa eta pasahitza.',
   'accounts.hoster.detail.ownCaptcha': 'Ostalariak captcha bat ebaztea nahi du saio-hasiera hau onartu aurretik, eta KnightLoaderrek ezin dio erantzun. Hasi saioa ostalarian behin nabigatzaile batean eta ebatzi han, eta gero itzali saio-hasiera hau eta piztu berriro.',
+  'accounts.hoster.detail.ownActivate': 'Ostalariaren arabera, kontu hau ez dago oraindik aktibatuta. Aktibatu ostalariaren ongietorri-mezuko estekarekin (begiratu spam karpetan ere), eta gero itzali saio-hasiera hau eta piztu berriro.',
+  'accounts.hoster.detail.ownNewAddress': 'Ostalariak IP helbide berri batetik saio-hasiera bat ikusi du, eta posta bidez bidali berri duen estekarekin berrestea nahi du. Berretsi, eta gero itzali saio-hasiera hau eta piztu berriro.',
   'accounts.hoster.detail.signingIn': 'KnightLoader saio-hasiera honekin sartzen ari da. Zerbitzuak captcha bat eskatzen du lehenik.',
   'accounts.hoster.detail.ownCodeNeeded': 'Ostalariak zure autentifikazio-aplikazioko bi urratseko kodea eskatzen du. Ireki saio-hasiera eta idatzi.',
   'accounts.hoster.detail.ownCodeWrong': 'Ostalariak ez du bi urratseko kodea onartu. Ireki saio-hasiera eta idatzi oraingoa.',

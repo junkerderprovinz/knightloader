@@ -1741,6 +1741,8 @@ export const en = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader is checking this login with the hoster.',
   'accounts.hoster.detail.ownInvalid': 'The hoster turned this login down. Check the email address and password.',
   'accounts.hoster.detail.ownCaptcha': 'The hoster wants a captcha solved before it takes this login, and KnightLoader cannot answer one. Sign in to the hoster once in a browser and solve it there, then switch this login off and on again.',
+  'accounts.hoster.detail.ownActivate': 'The hoster says this account is not activated yet. Activate it with the link from the hoster’s welcome mail (check the spam folder too), then switch this login off and on again.',
+  'accounts.hoster.detail.ownNewAddress': 'The hoster saw a sign-in from a new IP address and wants it confirmed through the link it just emailed. Confirm it, then switch this login off and on again.',
   'accounts.hoster.detail.signingIn': 'KnightLoader is signing in with this login. The hoster asks for a captcha first.',
   'accounts.hoster.detail.ownCodeNeeded': 'The hoster wants the two-factor code from your authenticator app. Open the login and enter it.',
   'accounts.hoster.detail.ownCodeWrong': 'The hoster did not accept the two-factor code. Open the login and enter the current one.',

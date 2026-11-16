@@ -3,6 +3,7 @@ package rapidgator
 import (
 	"bytes"
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -819,6 +820,37 @@ func TestARefusedSignInIsLoggedInRapidgatorsWordsWithoutTheLogin(t *testing.T) {
 	for _, secret := range []string{email, password, "letmein", "000000"} {
 		if strings.Contains(out.String(), secret) {
 			t.Errorf("the log carries %q", secret)
+		}
+	}
+}
+
+func TestAnAccountWaitingForItsActivationSaysSo(t *testing.T) {
+	err := classify("user/login", http.StatusUnauthorized, "Error: Please activate your account! Before you can login, you must activate your account with the link sent to your email address.")
+
+	var le *LoginError
+	if !errors.As(err, &le) || !strings.Contains(le.Msg, "activat") {
+		t.Fatalf("an account waiting for its activation reads as %v, want the activation named", err)
+	}
+	if strings.Contains(le.Msg, "password") {
+		t.Errorf("the activation refusal blames the password: %s", le.Msg)
+	}
+}
+
+func TestRefusalsThatWaitForAMailedLinkNameTheirOwnStep(t *testing.T) {
+	for _, tc := range []struct {
+		details              string
+		activate, newAddress bool
+	}{
+		{details: "Error: Please activate your account! Before you can login, you must activate your account with the link sent to your email address.", activate: true},
+		{details: "Error: Login from unusual IP. Please confirm it with the link sent to your email address.", newAddress: true},
+		{details: "Error: Login or password is wrong"},
+	} {
+		var le *LoginError
+		if !errors.As(classify("user/login", http.StatusUnauthorized, tc.details), &le) {
+			t.Fatalf("%q is no login refusal", tc.details)
+		}
+		if le.Activate != tc.activate || le.NewAddress != tc.newAddress {
+			t.Errorf("%q: Activate %v, NewAddress %v, want %v, %v", tc.details, le.Activate, le.NewAddress, tc.activate, tc.newAddress)
 		}
 	}
 }

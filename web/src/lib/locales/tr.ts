@@ -1388,6 +1388,8 @@ export const tr: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader bu girişi hoster’da denetliyor.',
   'accounts.hoster.detail.ownInvalid': 'Hoster bu girişi reddetti. E-posta adresini ve parolayı kontrol et.',
   'accounts.hoster.detail.ownCaptcha': 'Hoster bu girişi kabul etmeden önce bir captcha çözülmesini istiyor ve KnightLoader buna yanıt veremez. Hoster’a bir kez tarayıcıda giriş yapıp orada çöz, sonra bu girişi kapatıp yeniden aç.',
+  'accounts.hoster.detail.ownActivate': 'Hoster bu hesabın henüz etkinleştirilmediğini söylüyor. Hoster’ın hoş geldin e-postasındaki bağlantıyla etkinleştir (spam klasörüne de bak), sonra bu girişi kapatıp yeniden aç.',
+  'accounts.hoster.detail.ownNewAddress': 'Hoster yeni bir IP adresinden giriş gördü ve bunun az önce e-postayla gönderdiği bağlantıyla onaylanmasını istiyor. Onayla, sonra bu girişi kapatıp yeniden aç.',
   'accounts.hoster.detail.signingIn': 'KnightLoader bu girişle oturum açıyor. Barındırıcı önce bir captcha istiyor.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hoster, kimlik doğrulama uygulamandaki iki adımlı doğrulama kodunu istiyor. Girişi aç ve kodu gir.',
   'accounts.hoster.detail.ownCodeWrong': 'Hoster iki adımlı doğrulama kodunu kabul etmedi. Girişi aç ve güncel kodu gir.',

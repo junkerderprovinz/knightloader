@@ -1390,6 +1390,8 @@ export const ro: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader verifică această autentificare la hoster.',
   'accounts.hoster.detail.ownInvalid': 'Hosterul a respins această autentificare. Verifică adresa de e-mail și parola.',
   'accounts.hoster.detail.ownCaptcha': 'Hosterul vrea să fie rezolvat un captcha înainte să accepte această autentificare, iar KnightLoader nu îl poate rezolva. Autentifică-te o dată la hoster într-un browser și rezolvă-l acolo, apoi dezactivează această autentificare și activeaz-o din nou.',
+  'accounts.hoster.detail.ownActivate': 'Hosterul spune că acest cont nu este încă activat. Activează-l cu linkul din e-mailul de bun venit al hosterului (verifică și dosarul de spam), apoi dezactivează această autentificare și activeaz-o din nou.',
+  'accounts.hoster.detail.ownNewAddress': 'Hosterul a văzut o autentificare de la o adresă IP nouă și vrea să o confirmi prin linkul pe care tocmai l-a trimis pe e-mail. Confirm-o, apoi dezactivează această autentificare și activeaz-o din nou.',
   'accounts.hoster.detail.signingIn': 'KnightLoader se autentifică cu aceste date. Serviciul cere mai întâi un captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hosterul cere codul de autentificare în doi pași din aplicația ta de autentificare. Deschide autentificarea și introdu-l.',
   'accounts.hoster.detail.ownCodeWrong': 'Hosterul n-a acceptat codul de autentificare în doi pași. Deschide autentificarea și introdu codul curent.',

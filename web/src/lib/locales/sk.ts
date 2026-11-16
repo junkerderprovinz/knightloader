@@ -1388,6 +1388,8 @@ export const sk: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader overuje toto prihlásenie u hostera.',
   'accounts.hoster.detail.ownInvalid': 'Hoster toto prihlásenie odmietol. Skontroluj e-mailovú adresu a heslo.',
   'accounts.hoster.detail.ownCaptcha': 'Hoster chce pred prijatím tohto prihlásenia vyriešiť captchu a KnightLoader ju vyriešiť nevie. Prihlás sa raz k hosteru v prehliadači a vyrieš ju tam, potom toto prihlásenie vypni a znova zapni.',
+  'accounts.hoster.detail.ownActivate': 'Hoster uvádza, že tento účet ešte nie je aktivovaný. Aktivuj ho odkazom z uvítacieho e-mailu od hostera (pozri aj do priečinka spam), potom toto prihlásenie vypni a znova zapni.',
+  'accounts.hoster.detail.ownNewAddress': 'Hoster zaznamenal prihlásenie z novej IP adresy a chce ho potvrdiť odkazom, ktorý práve poslal e-mailom. Potvrď ho, potom toto prihlásenie vypni a znova zapni.',
   'accounts.hoster.detail.signingIn': 'KnightLoader sa prihlasuje týmto prihlásením. Hoster najprv chce captchu.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hoster chce dvojfaktorový kód z tvojej overovacej aplikácie. Otvor prihlásenie a zadaj ho.',
   'accounts.hoster.detail.ownCodeWrong': 'Hoster dvojfaktorový kód neprijal. Otvor prihlásenie a zadaj aktuálny.',

@@ -1388,6 +1388,8 @@ export const ko: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader가 호스터에서 이 로그인을 확인하고 있습니다.',
   'accounts.hoster.detail.ownInvalid': '호스터가 이 로그인을 거부했습니다. 이메일 주소와 암호를 확인하세요.',
   'accounts.hoster.detail.ownCaptcha': '호스터가 이 로그인을 받기 전에 캡차를 풀라고 요구하는데, KnightLoader는 캡차에 답할 수 없습니다. 브라우저에서 호스터에 한 번 로그인해 거기서 캡차를 푼 다음, 이 로그인을 껐다가 다시 켜세요.',
+  'accounts.hoster.detail.ownActivate': '호스터에 따르면 이 계정은 아직 활성화되지 않았습니다. 호스터의 환영 메일에 있는 링크로 활성화한 다음(스팸함도 확인하세요), 이 로그인을 껐다가 다시 켜세요.',
+  'accounts.hoster.detail.ownNewAddress': '호스터가 새 IP 주소에서의 로그인을 확인하고, 방금 이메일로 보낸 링크로 확인해 달라고 합니다. 확인한 다음 이 로그인을 껐다가 다시 켜세요.',
   'accounts.hoster.detail.signingIn': 'KnightLoader가 이 로그인으로 로그인하는 중입니다. 호스터가 먼저 캡차를 요구합니다.',
   'accounts.hoster.detail.ownCodeNeeded': '호스터가 인증 앱의 2단계 인증 코드를 요구합니다. 로그인을 열고 코드를 입력하세요.',
   'accounts.hoster.detail.ownCodeWrong': '호스터가 2단계 인증 코드를 받아들이지 않았습니다. 로그인을 열고 현재 코드를 입력하세요.',

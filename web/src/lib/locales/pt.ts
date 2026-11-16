@@ -1380,6 +1380,8 @@ export const pt: Dict = {
   'accounts.hoster.detail.ownChecking': 'O KnightLoader está a verificar este acesso junto do hoster.',
   'accounts.hoster.detail.ownInvalid': 'O hoster recusou este acesso. Verifica o endereço de email e a palavra-passe.',
   'accounts.hoster.detail.ownCaptcha': 'O hoster quer que um captcha seja resolvido antes de aceitar este acesso, e o KnightLoader não consegue responder. Inicia sessão uma vez no hoster num navegador e resolve-o lá, depois desativa este acesso e volta a ativá-lo.',
+  'accounts.hoster.detail.ownActivate': 'O hoster diz que esta conta ainda não está ativada. Ativa-a com a ligação do email de boas-vindas do hoster (vê também a pasta de spam), depois desativa este acesso e volta a ativá-lo.',
+  'accounts.hoster.detail.ownNewAddress': 'O hoster viu um início de sessão a partir de um novo endereço IP e quer que o confirmes através da ligação que acabou de enviar por email. Confirma-o, depois desativa este acesso e volta a ativá-lo.',
   'accounts.hoster.detail.signingIn': 'O KnightLoader está a iniciar sessão com este acesso. O serviço pede primeiro um captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'O hoster pede o código de dois fatores da tua aplicação de autenticação. Abre o acesso e introduz o código.',
   'accounts.hoster.detail.ownCodeWrong': 'O hoster não aceitou o código de dois fatores. Abre o acesso e introduz o atual.',

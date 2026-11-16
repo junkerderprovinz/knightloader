@@ -1388,6 +1388,8 @@ export const id: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader sedang memeriksa login ini ke hoster.',
   'accounts.hoster.detail.ownInvalid': 'Hoster menolak login ini. Periksa alamat email dan kata sandinya.',
   'accounts.hoster.detail.ownCaptcha': 'Hoster ingin captcha diselesaikan dulu sebelum menerima login ini, dan KnightLoader tidak bisa menjawabnya. Login sekali ke hoster lewat browser dan selesaikan di sana, lalu matikan login ini dan nyalakan lagi.',
+  'accounts.hoster.detail.ownActivate': 'Hoster bilang akun ini belum diaktifkan. Aktifkan lewat tautan di email sambutan dari hoster (cek juga folder spam), lalu matikan login ini dan nyalakan lagi.',
+  'accounts.hoster.detail.ownNewAddress': 'Hoster melihat login dari alamat IP baru dan ingin itu dikonfirmasi lewat tautan yang baru saja dikirim lewat email. Konfirmasi, lalu matikan login ini dan nyalakan lagi.',
   'accounts.hoster.detail.signingIn': 'KnightLoader sedang masuk dengan login ini. Hoster meminta captcha lebih dulu.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hoster meminta kode dua faktor dari aplikasi autentikatormu. Buka login ini dan masukkan kodenya.',
   'accounts.hoster.detail.ownCodeWrong': 'Hoster tidak menerima kode dua faktor itu. Buka login ini dan masukkan kode yang sekarang.',

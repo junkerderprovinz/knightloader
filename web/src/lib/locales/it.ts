@@ -1380,6 +1380,8 @@ export const it: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader sta verificando questo accesso presso l’hoster.',
   'accounts.hoster.detail.ownInvalid': 'L’hoster ha rifiutato questo accesso. Controlla indirizzo email e password.',
   'accounts.hoster.detail.ownCaptcha': 'L’hoster vuole che venga risolto un captcha prima di accettare questo accesso, e KnightLoader non può rispondere. Accedi una volta all’hoster da un browser e risolvilo lì, poi disattiva questo accesso e riattivalo.',
+  'accounts.hoster.detail.ownActivate': 'L’hoster dice che questo account non è ancora attivato. Attivalo con il link della mail di benvenuto dell’hoster (controlla anche la cartella spam), poi disattiva questo accesso e riattivalo.',
+  'accounts.hoster.detail.ownNewAddress': 'L’hoster ha visto un accesso da un nuovo indirizzo IP e vuole che venga confermato con il link che ha appena inviato per email. Confermalo, poi disattiva questo accesso e riattivalo.',
   'accounts.hoster.detail.signingIn': 'KnightLoader sta accedendo con questi dati. L’hoster chiede prima un captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'L’hoster chiede il codice a due fattori della tua app di autenticazione. Apri l’accesso e inseriscilo.',
   'accounts.hoster.detail.ownCodeWrong': 'L’hoster non ha accettato il codice a due fattori. Apri l’accesso e inserisci quello attuale.',

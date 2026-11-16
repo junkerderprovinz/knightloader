@@ -711,6 +711,31 @@ it('keeps every connected debrid account in the download order, and says why one
   expect(rows[0].querySelector('[aria-label^="The last check"]')).toBeNull();
 });
 
+it.each([
+  [
+    'ownActivate',
+    'The hoster says this account is not activated yet. Activate it with the link from the hoster’s welcome mail (check the spam folder too), then switch this login off and on again.',
+  ],
+  [
+    'ownNewAddress',
+    'The hoster saw a sign-in from a new IP address and wants it confirmed through the link it just emailed. Confirm it, then switch this login off and on again.',
+  ],
+])('says what a hoster login refused with %s waits for, not to check the password', async (code, words) => {
+  const refused = { host: 'rapidgator.net', username: 'john', status: 'rejected', code, enabled: true };
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      if (url === '/api/hosterauth/logins') return reply([refused]);
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
+      return reply([]);
+    }),
+  );
+  await act(async () => root.render(page));
+  const row = [...card('Hoster accounts').querySelectorAll('tr')].find((r) => r.textContent?.includes('rapidgator.net'))!;
+  expect(row.querySelector(`[aria-label="${words}"]`)).not.toBeNull();
+});
+
 /** stubPriority answers the download order with `rows` and records what the card saves. */
 function stubPriority(rows: unknown[], saved: unknown[]) {
   const debrid = { id: 'torbox', label: 'TorBox', kind: 'apiKey', group: 'debrid', whereUrl: '' };

@@ -1388,6 +1388,8 @@ export const vi: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader đang kiểm tra đăng nhập này với hoster.',
   'accounts.hoster.detail.ownInvalid': 'Hoster đã từ chối đăng nhập này. Hãy kiểm tra địa chỉ email và mật khẩu.',
   'accounts.hoster.detail.ownCaptcha': 'Hoster muốn giải một captcha trước khi chấp nhận đăng nhập này, và KnightLoader không trả lời được. Hãy đăng nhập vào hoster một lần trong trình duyệt và giải ở đó, rồi tắt đăng nhập này và bật lại.',
+  'accounts.hoster.detail.ownActivate': 'Hoster cho biết tài khoản này chưa được kích hoạt. Hãy kích hoạt bằng liên kết trong email chào mừng của hoster (xem cả thư mục spam), rồi tắt đăng nhập này và bật lại.',
+  'accounts.hoster.detail.ownNewAddress': 'Hoster thấy một lần đăng nhập từ địa chỉ IP mới và muốn bạn xác nhận qua liên kết vừa gửi qua email. Hãy xác nhận, rồi tắt đăng nhập này và bật lại.',
   'accounts.hoster.detail.signingIn': 'KnightLoader đang đăng nhập bằng thông tin này. Dịch vụ sẽ yêu cầu captcha trước.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hoster yêu cầu mã xác thực hai yếu tố từ ứng dụng xác thực của bạn. Hãy mở mục đăng nhập và nhập mã.',
   'accounts.hoster.detail.ownCodeWrong': 'Hoster không chấp nhận mã xác thực hai yếu tố. Hãy mở mục đăng nhập và nhập mã hiện tại.',

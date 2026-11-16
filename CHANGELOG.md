@@ -179,6 +179,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Linksnappy confirms a sign-in from a new place through a link it emails, and
   the account's check now tells you to open that link rather than showing
   Linksnappy's bare "Two-Factor Verification Required".
+- **A Rapidgator login that waits for an emailed link says which one.** An
+  account Rapidgator has not activated yet points you to the link in its
+  welcome mail, and a sign-in from a new IP address to the link Rapidgator just
+  sent to confirm it. Both told you to check the password before.
 - **YouTube gives yt-dlp all its formats again.** yt-dlp needs a JavaScript
   runtime to read YouTube's player, and the desktop app had none, so some
   formats were missing. The desktop app fetches Deno during the install, or at

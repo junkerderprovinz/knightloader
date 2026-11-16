@@ -1389,6 +1389,8 @@ export const lt: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader tikrina šį prisijungimą pas hosterį.',
   'accounts.hoster.detail.ownInvalid': 'Hosteris atmetė šį prisijungimą. Patikrink el. pašto adresą ir slaptažodį.',
   'accounts.hoster.detail.ownCaptcha': 'Hosteris prieš priimdamas šį prisijungimą nori, kad būtų išspręsta captcha, o KnightLoader į ją atsakyti negali. Vieną kartą prisijunk prie hosterio naršyklėje ir išspręsk ją ten, tada išjunk šį prisijungimą ir vėl įjunk.',
+  'accounts.hoster.detail.ownActivate': 'Hosteris sako, kad ši paskyra dar neaktyvinta. Aktyvink ją nuoroda iš hosterio pasisveikinimo laiško (pažiūrėk ir į šlamšto aplanką), tada išjunk šį prisijungimą ir vėl įjunk.',
+  'accounts.hoster.detail.ownNewAddress': 'Hosteris pastebėjo prisijungimą iš naujo IP adreso ir nori, kad jį patvirtintum nuoroda, kurią ką tik atsiuntė el. paštu. Patvirtink jį, tada išjunk šį prisijungimą ir vėl įjunk.',
   'accounts.hoster.detail.signingIn': 'KnightLoader jungiasi su šiuo prisijungimu. Talpykla pirmiausia prašo captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hosteris prašo dviejų veiksnių kodo iš tavo autentifikavimo programėlės. Atverk prisijungimą ir įvesk jį.',
   'accounts.hoster.detail.ownCodeWrong': 'Hosteris nepriėmė dviejų veiksnių kodo. Atverk prisijungimą ir įvesk dabartinį.',

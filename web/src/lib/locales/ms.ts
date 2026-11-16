@@ -1388,6 +1388,8 @@ export const ms: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader sedang menyemak log masuk ini dengan hoster.',
   'accounts.hoster.detail.ownInvalid': 'Hoster menolak log masuk ini. Semak alamat e-mel dan kata laluan.',
   'accounts.hoster.detail.ownCaptcha': 'Hoster mahu captcha diselesaikan sebelum menerima log masuk ini, dan KnightLoader tidak dapat menjawabnya. Log masuk ke hoster sekali dalam pelayar dan selesaikan di sana, kemudian matikan log masuk ini dan hidupkan semula.',
+  'accounts.hoster.detail.ownActivate': 'Hoster menyatakan akaun ini belum diaktifkan. Aktifkan dengan pautan dalam e-mel alu-aluan daripada hoster (semak juga folder spam), kemudian matikan log masuk ini dan hidupkan semula.',
+  'accounts.hoster.detail.ownNewAddress': 'Hoster nampak log masuk dari alamat IP baharu dan mahu ia disahkan melalui pautan yang baru dihantar melalui e-mel. Sahkan, kemudian matikan log masuk ini dan hidupkan semula.',
   'accounts.hoster.detail.signingIn': 'KnightLoader sedang log masuk dengan log masuk ini. Hos meminta captcha dahulu.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hoster meminta kod dua faktor daripada apl pengesah anda. Buka log masuk ini dan masukkan kod itu.',
   'accounts.hoster.detail.ownCodeWrong': 'Hoster tidak menerima kod dua faktor itu. Buka log masuk ini dan masukkan kod semasa.',

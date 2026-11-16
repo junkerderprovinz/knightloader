@@ -1388,6 +1388,8 @@ export const zh: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader 正在向网盘核对这个登录。',
   'accounts.hoster.detail.ownInvalid': '网盘拒绝了这个登录。检查邮箱地址和密码。',
   'accounts.hoster.detail.ownCaptcha': '网盘要求先完成验证码才接受这个登录，而 KnightLoader 无法回答验证码。请在浏览器中登录一次网盘并在那里完成验证，然后把这个登录关闭再重新打开。',
+  'accounts.hoster.detail.ownActivate': '网盘表示这个账户尚未激活。请用网盘欢迎邮件中的链接激活它（也看看垃圾邮件文件夹），然后把这个登录关闭再重新打开。',
+  'accounts.hoster.detail.ownNewAddress': '网盘发现有来自新 IP 地址的登录，要求通过它刚发送的邮件中的链接确认。确认后，把这个登录关闭再重新打开。',
   'accounts.hoster.detail.signingIn': 'KnightLoader 正在用这个登录登录。网盘会先要求一个验证码。',
   'accounts.hoster.detail.ownCodeNeeded': '网盘要你认证应用里的双重验证码。打开这个登录，输入验证码。',
   'accounts.hoster.detail.ownCodeWrong': '网盘没有接受这个双重验证码。打开这个登录，输入当前的验证码。',

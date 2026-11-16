@@ -1390,6 +1390,8 @@ export const he: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader בודק את ההתחברות הזו מול המארח.',
   'accounts.hoster.detail.ownInvalid': 'המארח דחה את ההתחברות הזו. בדוק את כתובת הדוא״ל ואת הסיסמה.',
   'accounts.hoster.detail.ownCaptcha': 'המארח רוצה שיפתרו captcha לפני שהוא מקבל את ההתחברות הזו, ו-KnightLoader לא יכול לענות עליו. התחבר למארח פעם אחת בדפדפן ופתור אותו שם, ואז כבה את ההתחברות הזו והדלק אותה שוב.',
+  'accounts.hoster.detail.ownActivate': 'המארח אומר שהחשבון הזה עוד לא הופעל. הפעל אותו בקישור שבמייל הפתיחה של המארח (בדוק גם בתיקיית הספאם), ואז כבה את ההתחברות הזו והדלק אותה שוב.',
+  'accounts.hoster.detail.ownNewAddress': 'המארח זיהה התחברות מכתובת IP חדשה ורוצה שתאשר אותה בקישור שהוא שלח עכשיו במייל. אשר אותה, ואז כבה את ההתחברות הזו והדלק אותה שוב.',
   'accounts.hoster.detail.signingIn': 'KnightLoader מתחבר עם ההתחברות הזו. המארח מבקש קודם קאפצ׳ה.',
   'accounts.hoster.detail.ownCodeNeeded': 'המארח מבקש את קוד האימות הדו־שלבי מאפליקציית האימות שלך. פתח את ההתחברות והזן אותו.',
   'accounts.hoster.detail.ownCodeWrong': 'המארח לא קיבל את קוד האימות הדו־שלבי. פתח את ההתחברות והזן את הקוד הנוכחי.',

@@ -152,3 +152,18 @@ func TestAResumedSessionTheHosterRejectedAsksForANewCode(t *testing.T) {
 		t.Errorf("Saved heard %q, want the rejected token dropped", kept)
 	}
 }
+
+func TestARefusalWaitingForAMailedLinkKeepsWhichOneInTheStatus(t *testing.T) {
+	for _, refusal := range []*LoginError{{Msg: "activate first", Activate: true}, {Msg: "confirm the address", NewAddress: true}} {
+		s := (&codeHoster{}).signer(0)
+		s.Login = func(context.Context, string, string, string) (string, Account, error) { return "", Account{}, refusal }
+		l := NewLogin(s)
+		l.SetLogin("user", "pass")
+
+		st := l.Check(context.Background())
+
+		if !st.Refused || st.Activate != refusal.Activate || st.NewAddress != refusal.NewAddress {
+			t.Errorf("refused with %+v, the login reads as %+v", refusal, st)
+		}
+	}
+}

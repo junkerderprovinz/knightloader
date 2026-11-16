@@ -1388,6 +1388,8 @@ export const et: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader kontrollib seda sisselogimist hosteri juures.',
   'accounts.hoster.detail.ownInvalid': 'Hoster lükkas selle sisselogimise tagasi. Kontrolli e-posti aadressi ja parooli.',
   'accounts.hoster.detail.ownCaptcha': 'Hoster tahab enne selle sisselogimise vastuvõtmist lahendatud captchat, ja KnightLoader ei oska seda lahendada. Logi brauseris korra hosterisse sisse ja lahenda see seal, siis lülita see sisselogimine välja ja uuesti sisse.',
+  'accounts.hoster.detail.ownActivate': 'Hosteri sõnul pole see konto veel aktiveeritud. Aktiveeri see hosteri tervituskirjas oleva lingiga (vaata ka rämpsposti kausta), siis lülita see sisselogimine välja ja uuesti sisse.',
+  'accounts.hoster.detail.ownNewAddress': 'Hoster märkas sisselogimist uuelt IP-aadressilt ja tahab, et kinnitaksid selle lingiga, mille ta just e-postiga saatis. Kinnita see, siis lülita see sisselogimine välja ja uuesti sisse.',
   'accounts.hoster.detail.signingIn': 'KnightLoader logib selle sisselogimisega sisse. Teenus küsib enne captchat.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hoster tahab kaheastmelise kinnituse koodi sinu autentimisrakendusest. Ava sisselogimine ja sisesta see.',
   'accounts.hoster.detail.ownCodeWrong': 'Hoster ei võtnud kaheastmelise kinnituse koodi vastu. Ava sisselogimine ja sisesta praegune kood.',

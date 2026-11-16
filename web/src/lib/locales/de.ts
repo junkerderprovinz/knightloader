@@ -1535,6 +1535,8 @@ export const de: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader prüft diese Anmeldung gerade beim Hoster.',
   'accounts.hoster.detail.ownInvalid': 'Der Hoster hat diese Anmeldung abgelehnt. Prüf E-Mail-Adresse und Passwort.',
   'accounts.hoster.detail.ownCaptcha': 'Der Hoster will ein Captcha gelöst haben, bevor er diese Anmeldung annimmt, und das kann KnightLoader nicht. Melde dich einmal im Browser beim Hoster an und löse es dort, dann schalte diese Anmeldung aus und wieder ein.',
+  'accounts.hoster.detail.ownActivate': 'Laut Hoster ist dieses Konto noch nicht aktiviert. Aktiviere es über den Link in der Willkommensmail des Hosters (schau auch im Spam-Ordner nach), dann schalte diese Anmeldung aus und wieder ein.',
+  'accounts.hoster.detail.ownNewAddress': 'Der Hoster hat eine Anmeldung von einer neuen IP-Adresse bemerkt und will sie über den Link bestätigt haben, den er dir gerade per Mail geschickt hat. Bestätige sie, dann schalte diese Anmeldung aus und wieder ein.',
   'accounts.hoster.detail.signingIn': 'KnightLoader meldet sich mit diesen Daten an. Der Hoster verlangt vorher ein Captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'Der Hoster will den Zwei-Faktor-Code aus deiner Authenticator-App. Öffne die Anmeldung und gib ihn ein.',
   'accounts.hoster.detail.ownCodeWrong': 'Der Hoster hat den Zwei-Faktor-Code nicht angenommen. Öffne die Anmeldung und gib den aktuellen ein.',

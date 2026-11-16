@@ -1388,6 +1388,8 @@ export const sl: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader preverja to prijavo pri gostitelju.',
   'accounts.hoster.detail.ownInvalid': 'Gostitelj je to prijavo zavrnil. Preveri e-poštni naslov in geslo.',
   'accounts.hoster.detail.ownCaptcha': 'Gostitelj želi, da se pred sprejemom te prijave reši captcha, KnightLoader pa nanjo ne zna odgovoriti. Enkrat se prijavi pri gostitelju v brskalniku in jo reši tam, nato to prijavo izklopi in znova vklopi.',
+  'accounts.hoster.detail.ownActivate': 'Gostitelj pravi, da ta račun še ni aktiviran. Aktiviraj ga s povezavo iz pozdravnega e-sporočila gostitelja (poglej tudi v mapo z neželeno pošto), nato to prijavo izklopi in znova vklopi.',
+  'accounts.hoster.detail.ownNewAddress': 'Gostitelj je zaznal prijavo z novega naslova IP in želi, da jo potrdiš s povezavo, ki ti jo je pravkar poslal po e-pošti. Potrdi jo, nato to prijavo izklopi in znova vklopi.',
   'accounts.hoster.detail.signingIn': 'KnightLoader se prijavlja s to prijavo. Ponudnik najprej zahteva captcho.',
   'accounts.hoster.detail.ownCodeNeeded': 'Gostitelj zahteva dvostopenjsko kodo iz tvoje aplikacije za preverjanje pristnosti. Odpri prijavo in jo vnesi.',
   'accounts.hoster.detail.ownCodeWrong': 'Gostitelj ni sprejel dvostopenjske kode. Odpri prijavo in vnesi trenutno.',

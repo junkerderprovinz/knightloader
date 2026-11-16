@@ -1380,6 +1380,8 @@ export const fr: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader vérifie ces identifiants auprès de l’hébergeur.',
   'accounts.hoster.detail.ownInvalid': 'L’hébergeur a refusé ces identifiants. Vérifiez l’adresse e-mail et le mot de passe.',
   'accounts.hoster.detail.ownCaptcha': 'L’hébergeur veut qu’un captcha soit résolu avant d’accepter ces identifiants, et KnightLoader ne sait pas y répondre. Connectez-vous une fois à l’hébergeur dans un navigateur et résolvez-le là-bas, puis désactivez ces identifiants et réactivez-les.',
+  'accounts.hoster.detail.ownActivate': 'L’hébergeur indique que ce compte n’est pas encore activé. Activez-le avec le lien de l’e-mail de bienvenue de l’hébergeur (regardez aussi dans les spams), puis désactivez ces identifiants et réactivez-les.',
+  'accounts.hoster.detail.ownNewAddress': 'L’hébergeur a vu une connexion depuis une nouvelle adresse IP et veut qu’elle soit confirmée par le lien qu’il vient d’envoyer par e-mail. Confirmez-la, puis désactivez ces identifiants et réactivez-les.',
   'accounts.hoster.detail.signingIn': 'KnightLoader se connecte avec ces identifiants. L’hébergeur demande d’abord un captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'L’hébergeur demande le code à deux facteurs de votre application d’authentification. Ouvrez les identifiants et saisissez-le.',
   'accounts.hoster.detail.ownCodeWrong': 'L’hébergeur n’a pas accepté le code à deux facteurs. Ouvrez les identifiants et saisissez le code actuel.',

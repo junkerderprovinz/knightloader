@@ -1388,6 +1388,8 @@ export const gl: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader está a comprobar este acceso co aloxador.',
   'accounts.hoster.detail.ownInvalid': 'O aloxador rexeitou este acceso. Comproba o enderezo de correo e o contrasinal.',
   'accounts.hoster.detail.ownCaptcha': 'O aloxador quere que se resolva un captcha antes de aceptar este acceso, e KnightLoader non pode respondelo. Inicia sesión unha vez no aloxador nun navegador e resólveo alí, despois desactiva este acceso e vólveo activar.',
+  'accounts.hoster.detail.ownActivate': 'O aloxador di que esta conta aínda non está activada. Actívaa coa ligazón do correo de benvida do aloxador (mira tamén no cartafol de spam), despois desactiva este acceso e vólveo activar.',
+  'accounts.hoster.detail.ownNewAddress': 'O aloxador viu un inicio de sesión desde un novo enderezo IP e quere que o confirmes coa ligazón que acaba de enviarche por correo. Confírmao, despois desactiva este acceso e vólveo activar.',
   'accounts.hoster.detail.signingIn': 'KnightLoader está a iniciar sesión con este acceso. O servizo pide antes un captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'O aloxador pide o código de dobre factor da túa aplicación de autenticación. Abre o acceso e introdúceo.',
   'accounts.hoster.detail.ownCodeWrong': 'O aloxador non aceptou o código de dobre factor. Abre o acceso e introduce o actual.',

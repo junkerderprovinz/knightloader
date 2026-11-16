@@ -1388,6 +1388,8 @@ export const sv: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader kontrollerar den här inloggningen hos värden.',
   'accounts.hoster.detail.ownInvalid': 'Värden avvisade den här inloggningen. Kontrollera e-postadressen och lösenordet.',
   'accounts.hoster.detail.ownCaptcha': 'Värden vill att en captcha löses innan den tar emot den här inloggningen, och KnightLoader kan inte svara på den. Logga in hos värden en gång i en webbläsare och lös den där, och stäng sedan av den här inloggningen och slå på den igen.',
+  'accounts.hoster.detail.ownActivate': 'Värden säger att det här kontot inte är aktiverat än. Aktivera det med länken i värdens välkomstmejl (titta i skräppostmappen också), och stäng sedan av den här inloggningen och slå på den igen.',
+  'accounts.hoster.detail.ownNewAddress': 'Värden såg en inloggning från en ny IP-adress och vill att den bekräftas via länken den just mejlade. Bekräfta den, och stäng sedan av den här inloggningen och slå på den igen.',
   'accounts.hoster.detail.signingIn': 'KnightLoader loggar in med den här inloggningen. Värden vill först ha en captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'Värden vill ha tvåfaktorskoden från din autentiseringsapp. Öppna inloggningen och skriv in den.',
   'accounts.hoster.detail.ownCodeWrong': 'Värden godtog inte tvåfaktorskoden. Öppna inloggningen och skriv in den aktuella.',

@@ -60,6 +60,11 @@ const (
 	codeOwnOff      = "ownOff"
 	codeSigningIn   = "signingIn"
 
+	// The codes of such a login waiting for the user to open a link the
+	// hoster mailed, by OwnState.Activate and OwnState.NewAddress.
+	codeOwnActivate   = "ownActivate"
+	codeOwnNewAddress = "ownNewAddress"
+
 	// The codes of such a login waiting for the one-time code of a second
 	// factor, by OwnState.Code.
 	codeOwnCodeNeeded = "ownCodeNeeded"
@@ -608,6 +613,10 @@ type OwnState struct {
 	Detail  string
 	// Captcha is a refusal until the user solves a captcha at the hoster.
 	Captcha bool
+	// Activate is a refusal until the user activates the account through
+	// the hoster's welcome mail, and NewAddress one until the user confirms
+	// the address the sign-in came from through the link the hoster mailed.
+	Activate, NewAddress bool
 	// Code is a refusal until the user enters the one-time code of a second
 	// factor: "needed", "wrong" or "ended", as ownlogin.CodeAsk words it.
 	Code string
@@ -644,6 +653,10 @@ func (o OwnState) row(host, username string) LoginState {
 		st.Status, st.Code, st.Detail, st.AskCode = StatusRejected, codeAsks[o.Code], o.Detail, true
 	case o.Refused && o.Captcha:
 		st.Status, st.Code, st.Detail = StatusRejected, codeOwnCaptcha, o.Detail
+	case o.Refused && o.Activate:
+		st.Status, st.Code, st.Detail = StatusRejected, codeOwnActivate, o.Detail
+	case o.Refused && o.NewAddress:
+		st.Status, st.Code, st.Detail = StatusRejected, codeOwnNewAddress, o.Detail
 	case o.Refused:
 		st.Status, st.Code, st.Detail = StatusRejected, codeOwnInvalid, o.Detail
 	default:

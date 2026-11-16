@@ -1389,6 +1389,8 @@ export const lv: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader pārbauda šo pieteikšanos pie hostera.',
   'accounts.hoster.detail.ownInvalid': 'Hosteris noraidīja šo pieteikšanos. Pārbaudi e-pasta adresi un paroli.',
   'accounts.hoster.detail.ownCaptcha': 'Hosteris pirms šīs pieteikšanās pieņemšanas grib, lai tiktu atrisināta captcha, bet KnightLoader uz to atbildēt nevar. Vienreiz piesakies hosterī pārlūkā un atrisini to tur, pēc tam izslēdz šo pieteikšanos un ieslēdz atkal.',
+  'accounts.hoster.detail.ownActivate': 'Hosteris norāda, ka šis konts vēl nav aktivizēts. Aktivizē to ar saiti no hostera sveiciena e-pasta (paskaties arī surogātpasta mapē), pēc tam izslēdz šo pieteikšanos un ieslēdz atkal.',
+  'accounts.hoster.detail.ownNewAddress': 'Hosteris pamanīja pieteikšanos no jaunas IP adreses un grib, lai to apstiprini ar saiti, ko tas tikko nosūtīja e-pastā. Apstiprini to, pēc tam izslēdz šo pieteikšanos un ieslēdz atkal.',
   'accounts.hoster.detail.signingIn': 'KnightLoader piesakās ar šo pieteikšanos. Mitinātājs vispirms prasa captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hosteris prasa divpakāpju kodu no tavas autentifikācijas lietotnes. Atver pieteikšanos un ievadi to.',
   'accounts.hoster.detail.ownCodeWrong': 'Hosteris nepieņēma divpakāpju kodu. Atver pieteikšanos un ievadi pašreizējo.',

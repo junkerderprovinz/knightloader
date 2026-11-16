@@ -1388,6 +1388,8 @@ export const ja: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader がホスターでこのログインを確認しています。',
   'accounts.hoster.detail.ownInvalid': 'ホスターがこのログインを拒否しました。メールアドレスとパスワードを確認してください。',
   'accounts.hoster.detail.ownCaptcha': 'ホスターはこのログインを受け付ける前にキャプチャの解答を求めていますが、KnightLoader は答えられません。ブラウザーで一度ホスターにログインしてそこで解き、このログインをオフにしてからもう一度オンにしてください。',
+  'accounts.hoster.detail.ownActivate': 'ホスターによると、このアカウントはまだ有効化されていません。ホスターからのウェルカムメールにあるリンクで有効化し（迷惑メールフォルダーも確認してください）、このログインをオフにしてからもう一度オンにしてください。',
+  'accounts.hoster.detail.ownNewAddress': 'ホスターが新しい IP アドレスからのログインを検知し、送ったばかりのメールのリンクで確認するよう求めています。確認したら、このログインをオフにしてからもう一度オンにしてください。',
   'accounts.hoster.detail.signingIn': 'KnightLoader がこのログインでサインインしています。ホスターは先にキャプチャを求めます。',
   'accounts.hoster.detail.ownCodeNeeded': 'ホスターが認証アプリの二段階認証コードを求めています。ログインを開いてコードを入力してください。',
   'accounts.hoster.detail.ownCodeWrong': 'ホスターが二段階認証コードを受け付けませんでした。ログインを開いて現在のコードを入力してください。',

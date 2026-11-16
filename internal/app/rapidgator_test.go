@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"slices"
 	"strings"
@@ -264,6 +265,29 @@ func TestARefusedRapidgatorLoginStillTakesACode(t *testing.T) {
 	}
 	if row.Status != hosterauth.StatusActive {
 		t.Errorf("saved again with the code = %+v, want the active row", row)
+	}
+}
+
+func TestARapidgatorRefusalWaitingForAMailedLinkNamesItsStepOnTheRow(t *testing.T) {
+	for details, code := range map[string]string{
+		"Error: Please activate your account! Before you can login, you must activate your account with the link sent to your email address.": "ownActivate",
+		"Error: Login from unusual IP. Please confirm it with the link sent to your email address.":                                           "ownNewAddress",
+	} {
+		a := newCrawlApp(t, false)
+		srv := rgServer(t)
+		srv.Fail("user/login", http.StatusUnauthorized, details)
+		useRapidgator(a, srv)
+
+		row, err := a.SaveHosterLogin(context.Background(), "rg.to", "john@example.com", "hunter2", "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if row.Status != hosterauth.StatusRejected || row.Code != code {
+			t.Errorf("refused with %q, the row reads %+v, want %s", details, row, code)
+		}
+		if listed, _ := loginRow(a, "rg.to"); listed.Code != code {
+			t.Errorf("refused with %q, the accounts page lists %+v, want %s", details, listed, code)
+		}
 	}
 }
 

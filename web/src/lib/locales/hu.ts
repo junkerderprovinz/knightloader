@@ -1389,6 +1389,8 @@ export const hu: Dict = {
   'accounts.hoster.detail.ownChecking': 'A KnightLoader ellenőrzi ezt a bejelentkezést a tárhelynél.',
   'accounts.hoster.detail.ownInvalid': 'A tárhely elutasította ezt a bejelentkezést. Ellenőrizd az e-mail-címet és a jelszót.',
   'accounts.hoster.detail.ownCaptcha': 'A tárhely captcha megoldását kéri, mielőtt elfogadja ezt a bejelentkezést, a KnightLoader pedig nem tud rá válaszolni. Jelentkezz be egyszer a tárhelyre böngészőben, és ott oldd meg, aztán kapcsold ki és újra be ezt a bejelentkezést.',
+  'accounts.hoster.detail.ownActivate': 'A tárhely szerint ez a fiók még nincs aktiválva. Aktiváld a tárhely üdvözlő levelében lévő linkkel (a spam mappát is nézd meg), aztán kapcsold ki és újra be ezt a bejelentkezést.',
+  'accounts.hoster.detail.ownNewAddress': 'A tárhely bejelentkezést észlelt egy új IP-címről, és azt kéri, hogy erősítsd meg a most e-mailben küldött linkkel. Erősítsd meg, aztán kapcsold ki és újra be ezt a bejelentkezést.',
   'accounts.hoster.detail.signingIn': 'A KnightLoader most jelentkezik be ezzel a bejelentkezéssel. A tárhely előbb captchát kér.',
   'accounts.hoster.detail.ownCodeNeeded': 'A tárhely a hitelesítő alkalmazásod kétlépcsős kódját kéri. Nyisd meg a bejelentkezést, és írd be.',
   'accounts.hoster.detail.ownCodeWrong': 'A tárhely nem fogadta el a kétlépcsős kódot. Nyisd meg a bejelentkezést, és írd be az aktuálisat.',

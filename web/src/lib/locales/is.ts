@@ -1388,6 +1388,8 @@ export const is: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader er að athuga þessa innskráningu hjá hýsingaraðilanum.',
   'accounts.hoster.detail.ownInvalid': 'Hýsingaraðilinn hafnaði þessari innskráningu. Athugaðu netfangið og lykilorðið.',
   'accounts.hoster.detail.ownCaptcha': 'Hýsingaraðilinn vill að captcha sé leyst áður en hann tekur við þessari innskráningu, og KnightLoader getur ekki svarað henni. Skráðu þig einu sinni inn hjá hýsingaraðilanum í vafra og leystu hana þar, slökktu svo á þessari innskráningu og kveiktu aftur.',
+  'accounts.hoster.detail.ownActivate': 'Hýsingaraðilinn segir að þessi aðgangur sé ekki virkjaður enn. Virkjaðu hann með tenglinum í velkomupósti hýsingaraðilans (skoðaðu líka ruslpóstmöppuna), slökktu svo á þessari innskráningu og kveiktu aftur.',
+  'accounts.hoster.detail.ownNewAddress': 'Hýsingaraðilinn sá innskráningu frá nýrri IP-tölu og vill að hún sé staðfest með tenglinum sem hann var að senda í tölvupósti. Staðfestu hana, slökktu svo á þessari innskráningu og kveiktu aftur.',
   'accounts.hoster.detail.signingIn': 'KnightLoader skráir sig inn með þessari innskráningu. Hýsillinn biður fyrst um captcha.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hýsingaraðilinn biður um tveggja þrepa kóðann úr auðkenningarforritinu þínu. Opnaðu innskráninguna og sláðu hann inn.',
   'accounts.hoster.detail.ownCodeWrong': 'Hýsingaraðilinn samþykkti ekki tveggja þrepa kóðann. Opnaðu innskráninguna og sláðu inn núgildandi kóða.',

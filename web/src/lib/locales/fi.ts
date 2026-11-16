@@ -1388,6 +1388,8 @@ export const fi: Dict = {
   'accounts.hoster.detail.ownChecking': 'KnightLoader tarkistaa tätä kirjautumista hosterilta.',
   'accounts.hoster.detail.ownInvalid': 'Hosteri hylkäsi tämän kirjautumisen. Tarkista sähköpostiosoite ja salasana.',
   'accounts.hoster.detail.ownCaptcha': 'Hosteri haluaa captchan ratkaistuksi ennen kuin se hyväksyy tämän kirjautumisen, eikä KnightLoader osaa ratkaista sitä. Kirjaudu hosteriin kerran selaimessa ja ratkaise se siellä, ja kytke sitten tämä kirjautuminen pois ja takaisin päälle.',
+  'accounts.hoster.detail.ownActivate': 'Hosterin mukaan tätä tiliä ei ole vielä aktivoitu. Aktivoi se hosterin tervetuloviestin linkillä (katso myös roskapostikansio), ja kytke sitten tämä kirjautuminen pois ja takaisin päälle.',
+  'accounts.hoster.detail.ownNewAddress': 'Hosteri huomasi kirjautumisen uudesta IP-osoitteesta ja haluaa sen vahvistettavan linkillä, jonka se juuri lähetti sähköpostiin. Vahvista se, ja kytke sitten tämä kirjautuminen pois ja takaisin päälle.',
   'accounts.hoster.detail.signingIn': 'KnightLoader kirjautuu näillä tiedoilla. Palvelu pyytää ensin captchan.',
   'accounts.hoster.detail.ownCodeNeeded': 'Hosteri pyytää kaksivaiheisen tunnistuksen koodia todennussovelluksestasi. Avaa kirjautuminen ja syötä koodi.',
   'accounts.hoster.detail.ownCodeWrong': 'Hosteri ei hyväksynyt kaksivaiheisen tunnistuksen koodia. Avaa kirjautuminen ja syötä nykyinen koodi.',
