@@ -107,6 +107,7 @@ func main() {
 	// A JD named in KL_JD is kept current here too; without one the daily run
 	// has nothing to ask.
 	a.StartJDAutoUpdate()
+	a.StartOfflineHosterCheck()
 	// Only a JD this program started itself runs on the Java it fetched.
 	if a.SwitchJava != nil {
 		a.StartJavaAutoUpdate()

@@ -168,6 +168,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   picker show their logo at once instead of waiting for KnightLoader to fetch
   it from each site, and some that never got one have it now. Hosts outside
   that list are still looked up on their own site.
+- **Offline hosters are left out of the account picker.** A hoster is
+  offline when its site no longer answers. Links to it still go to
+  JDownloader as before. KnightLoader asks such a site again once a week and
+  shows the hoster as soon as it answers.
 
 ### Removed
 

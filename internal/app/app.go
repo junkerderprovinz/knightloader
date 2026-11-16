@@ -494,6 +494,9 @@ type App struct {
 	// iconCache is the hoster-icon cache (app_hostericons.go), embedded so its
 	// fields stay in that file. It is built on first use.
 	iconCache
+	// offlineHosterState is which offline hosters answer again
+	// (app_offlinehosters.go), the same way.
+	offlineHosterState
 	// trackerListState is the public tracker list (app_torrentrules.go), the
 	// same way.
 	trackerListState
