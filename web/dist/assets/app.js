@@ -1072,6 +1072,7 @@ Instances of this version refuse a relay call that is not stamped against being 
 - **The Help card points to Discord instead of email.** Next to GitHub, a Discord button opens KnightLoader's server, in the web interface, the extension's settings and the phone app.
 - **An account's options sit right on its row.** Point at a row on the accounts page, or tab into it, and a button for each option comes in at its end, in the same order on every card. On a touch screen they are always there.
 - **Hoster logos come with KnightLoader.** The hosters in the "add a login" picker show their logo at once instead of waiting for KnightLoader to fetch it from each site, and some that never got one have it now.
+- **Offline hosters are left out of the account picker.** A hoster is offline when its site no longer answers. Links to it still go to JDownloader as before. KnightLoader asks such a site again once a week and shows the hoster as soon as it answers.
 
 ## 🗑️ Removed
 
@@ -1999,6 +2000,7 @@ Instances of this version refuse a relay call that is not stamped against being 
 - **The Help card points to Discord instead of email.** Next to GitHub, a Discord button opens KnightLoader's server, in the web interface, the extension's settings and the phone app.
 - **An account's options sit right on its row.** Point at a row on the accounts page, or tab into it, and a button for each option comes in at its end, in the same order on every card. On a touch screen they are always there.
 - **Hoster logos come with KnightLoader.** The hosters in the "add a login" picker show their logo at once instead of waiting for KnightLoader to fetch it from each site, and some that never got one have it now.
+- **Offline hosters are left out of the account picker.** A hoster is offline when its site no longer answers. Links to it still go to JDownloader as before. KnightLoader asks such a site again once a week and shows the hoster as soon as it answers.
 
 ## 🗑️ Removed
 

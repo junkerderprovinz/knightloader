@@ -1,6 +1,6 @@
 package app
 
-// Offline hosters are hosters JD knows whose site no longer answers. The
+// Offline hosters are hosters JD knows whose site does not answer. The
 // picker leaves them out, since a login for a hoster that is gone helps
 // nobody, but links to them still go to JD. The list ships with the binary
 // (scripts/hostericons writes it), and a weekly check brings a hoster back

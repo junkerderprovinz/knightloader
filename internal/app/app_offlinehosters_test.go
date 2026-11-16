@@ -12,7 +12,7 @@ import (
 )
 
 // offlineSidecar stands in for a JD that has a plugin for ddownload.com
-// and for gone.example.com, whose site no longer answers.
+// and for gone.example.com, whose site does not answer.
 func offlineSidecar(t *testing.T) *App {
 	t.Helper()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
