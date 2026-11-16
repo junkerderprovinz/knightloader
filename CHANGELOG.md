@@ -190,15 +190,33 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   and the overview ask for a new code rather than trying the password again,
   which could get the account locked.
 - **ddownload, KatFile, Clicknupload, FileSpace and Uploadrar logins with
-  two-factor sign-in work.** Their code only goes into the site's own page, so
-  the login's row offers **Sign in here**, which opens that page in the
-  sign-in browser. Sign in there with your password and the code, and
-  KnightLoader downloads on the session you signed in to. When the session
-  ends, the row asks for a new sign-in instead of trying the password again.
+  two-factor sign-in work.** Once the site asks for the code, the login's
+  window shows a field for the six digits. KnightLoader puts them into the
+  site's own code form, in the session the password opened, so the site sends
+  no second code, and a wrong code asks for the next one. Where the code form
+  also wants a captcha, the login's row offers **Sign in here**, which opens
+  the site's page in the sign-in browser, and KnightLoader downloads on the
+  session you signed in to there. When that session ends, the row asks for a
+  new sign-in instead of trying the password again.
+- **A ddownload, KatFile, Clicknupload, FileSpace or Uploadrar account that is
+  not activated yet says so.** The login's row points you to the link in the
+  site's welcome mail. It told you to check the password before.
+- **Linksnappy signs in once and keeps the session.** KnightLoader signed in
+  afresh for the host list, for every unlock and for every account check, and
+  Linksnappy can mail a confirmation for each sign-in. The session is kept
+  sealed like your passwords, also across a restart, and KnightLoader checks
+  it the way JDownloader does and signs in again only once Linksnappy has
+  ended it.
 - **A Linksnappy account that waits for an emailed confirmation says so.**
   Linksnappy confirms a sign-in from a new place through a link it emails, and
-  the account's check now tells you to open that link rather than showing
-  Linksnappy's bare "Two-Factor Verification Required".
+  the account's check tells you to open that link and names the page
+  Linksnappy gives for it, instead of showing Linksnappy's bare "Two-Factor
+  Verification Required".
+- **filer.net premium accounts read as JDownloader reads them.** KnightLoader
+  looked for fields filer.net's live API may not send, so a premium account
+  could read as free or as out of traffic. A refusal that comes without
+  filer.net's usual answer counts as a wrong password too, instead of handing
+  the login to JDownloader.
 - **A Rapidgator login that waits for an emailed link says which one.** An
   account Rapidgator has not activated yet points you to the link in its
   welcome mail, and a sign-in from a new IP address to the link Rapidgator just
