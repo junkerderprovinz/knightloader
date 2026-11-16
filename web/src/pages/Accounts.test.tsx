@@ -909,7 +909,7 @@ describe('a hoster login with two-factor sign-in', () => {
     await act(async () => button('Save').click());
 
     expect(posted).toEqual([{ host: 'rapidgator.net', username: 'john', password: 'hunter2' }]);
-    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Connected');
   });
 
   it.each(['ownInvalid', 'ownActivate', 'ownNewAddress'])('edits a login refused with %s without the code field', async (code) => {
@@ -950,7 +950,7 @@ describe('a hoster login with two-factor sign-in', () => {
       { host: 'rapidgator.net', username: 'john', password: 'hunter2' },
       { host: 'rapidgator.net', username: 'john', password: 'hunter2', code: '482913' },
     ]);
-    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Connected');
   });
 
   it('says so when the hoster turned the code down, and clears it for the next', async () => {
