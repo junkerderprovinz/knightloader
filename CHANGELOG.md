@@ -157,6 +157,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   end, such as Refresh, Disable, Edit credential and Remove, in the same order
   on every card. The menu behind the gear is gone, and on a touch screen the
   buttons are always there.
+- **Hoster logos come with KnightLoader.** The hosters in the "add a login"
+  picker show their logo at once instead of waiting for KnightLoader to fetch
+  it from each site, and some that never got one have it now. Hosts outside
+  that list are still looked up on their own site.
 
 ### Removed
 
