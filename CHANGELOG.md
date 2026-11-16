@@ -152,6 +152,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Discord button opens KnightLoader's server, and the sentence above it names
   GitHub and Discord. The extension's settings and the phone app's About card
   do the same.
+- **An account's options sit right on its row.** Point at a row on the
+  accounts page, or tab into it, and a button for each option comes in at its
+  end, such as Refresh, Disable, Edit credential and Remove, in the same order
+  on every card. The menu behind the gear is gone, and on a touch screen the
+  buttons are always there.
 
 ### Removed
 

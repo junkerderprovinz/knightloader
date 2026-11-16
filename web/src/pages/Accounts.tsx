@@ -485,34 +485,29 @@ function AccountsTable({
           onEdit: () => onEdit(a),
           // A credential from the container's environment cannot be removed here.
           onRemove: a.fromEnv ? undefined : () => onRemove(a),
-          menu: server
+          actions: server
             ? undefined
             : [
                 {
-                  id: 'actions',
-                  items: [
-                    {
-                      id: 'refresh',
-                      label: t('accounts.refresh'),
-                      icon: <IconRetry width={16} height={16} />,
-                      onSelect: () => onRefresh(a),
-                    },
-                    ...(renewable
-                      ? [
-                          {
-                            id: 'renew',
-                            label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
-                            icon: <IconExternalLink width={16} height={16} />,
-                            // Only with an expiry and somewhere to renew.
-                            disabled: !a.expiry || !svc?.whereUrl,
-                            onSelect: () => {
-                              if (svc?.whereUrl) openExternal(svc.whereUrl);
-                            },
-                          },
-                        ]
-                      : []),
-                  ],
+                  id: 'refresh',
+                  label: t('accounts.refresh'),
+                  icon: <IconRetry width={16} height={16} />,
+                  onSelect: () => onRefresh(a),
                 },
+                ...(renewable
+                  ? [
+                      {
+                        id: 'renew',
+                        label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
+                        icon: <IconExternalLink width={16} height={16} />,
+                        // Only with an expiry and somewhere to renew.
+                        disabled: !a.expiry || !svc?.whereUrl,
+                        onSelect: () => {
+                          if (svc?.whereUrl) openExternal(svc.whereUrl);
+                        },
+                      },
+                    ]
+                  : []),
               ],
         };
       })}

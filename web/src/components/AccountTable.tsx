@@ -6,8 +6,8 @@ import { fmtDate, fmtGB } from '../lib/format';
 import { IconBadge, useTooltip } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { HosterIcon } from './HosterIcon';
-import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu, type MenuGroup } from './ContextMenu';
-import { IconGear } from '../lib/icons';
+import { ContextMenu, anchorFromEvent, useContextMenu } from './ContextMenu';
+import { IconPencil, IconPower, IconTrash } from '../lib/icons';
 
 /**
  * AccountTraffic is an allowance in one of the three shapes services report:
@@ -39,14 +39,47 @@ export interface AccountRow {
   traffic?: AccountTraffic;
   /**
    * Absent for an account that is in use whenever it is stored, such as a
-   * site's sign-in. The card's gear (AccountSwitches) and the row's menu
-   * switch it; the row only says when it is disabled.
+   * site's sign-in. The card's gear (AccountSwitches) and the row's own
+   * button switch it; the row only says when it is disabled.
    */
   onToggle?: (enabled: boolean) => void;
-  /** Extra entries for this row's own menu, on top of Edit and Remove. */
-  menu?: MenuGroup[];
+  /** The row's own options, shown before the switch, Edit and Remove. */
+  actions?: AccountAction[];
   onEdit: () => void;
   onRemove?: () => void;
+}
+
+/** AccountAction is one option of a row, drawn as a button at the row's end. */
+export interface AccountAction {
+  id: string;
+  label: string;
+  icon: ReactNode;
+  disabled?: boolean;
+  onSelect: () => void;
+}
+
+/**
+ * rowActions is every option of a row in the order all cards share: the
+ * row's own, then the switch, Edit and Remove. Remove is last and looks like
+ * the others, since the dialog it opens does the warning.
+ */
+function rowActions(row: AccountRow, t: ReturnType<typeof useT>['t']): AccountAction[] {
+  const glyph = { width: 16, height: 16 };
+  return [
+    ...(row.actions ?? []),
+    ...(row.onToggle
+      ? [
+          {
+            id: 'switch',
+            label: row.enabled ? t('menu.disable') : t('menu.enable'),
+            icon: <IconPower {...glyph} />,
+            onSelect: () => row.onToggle?.(!row.enabled),
+          },
+        ]
+      : []),
+    { id: 'edit', label: t('accounts.edit'), icon: <IconPencil {...glyph} />, onSelect: row.onEdit },
+    ...(row.onRemove ? [{ id: 'remove', label: t('accounts.remove'), icon: <IconTrash {...glyph} />, onSelect: row.onRemove }] : []),
+  ];
 }
 
 /**
@@ -172,7 +205,7 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
           </tr>
         </thead>
         <tbody className="divide-y divide-carbon-border/40">
-          {rows.map((row, i) => {
+          {rows.map((row) => {
             const off = !!row.onToggle && !row.enabled;
             return (
               // The whole row opens its account, and a right click its menu
@@ -210,19 +243,18 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
                   <TrafficCell traffic={row.traffic} />
                 </td>
                 <td className="px-2 py-0 text-end">
-                  <span className="glim-row-actions inline-flex">
-                    <IconBadge
-                      hue={i}
-                      icon={<IconGear width={16} height={16} />}
-                      title={t('accounts.rowActions')}
-                      aria-label={t('accounts.rowActions')}
-                      aria-haspopup="menu"
-                      aria-expanded={menuKey === row.key}
-                      onClick={(e) => {
-                        setMenuKey(row.key);
-                        menu.openAt(anchorBelow(e.currentTarget));
-                      }}
-                    />
+                  <span className="glim-row-actions inline-flex items-center gap-1">
+                    {rowActions(row, t).map((a, j) => (
+                      <IconBadge
+                        key={a.id}
+                        quiet
+                        hue={j}
+                        icon={a.icon}
+                        title={a.label}
+                        disabled={a.disabled}
+                        onClick={a.onSelect}
+                      />
+                    ))}
                   </span>
                 </td>
               </tr>
@@ -239,43 +271,7 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
             menu.close();
             setMenuKey(null);
           }}
-          groups={[
-            ...(open.menu ?? []),
-            {
-              id: 'switch',
-              items: open.onToggle
-                ? [
-                    {
-                      id: 'switch',
-                      label: open.enabled ? t('menu.disable') : t('menu.enable'),
-                      onSelect: () => open.onToggle?.(!open.enabled),
-                    },
-                  ]
-                : [],
-            },
-            {
-              id: 'edit',
-              items: [
-                {
-                  id: 'edit',
-                  label: t('accounts.edit'),
-                  onSelect: open.onEdit,
-                },
-              ],
-            },
-            {
-              id: 'remove',
-              items: open.onRemove
-                ? [
-                    {
-                      id: 'remove',
-                      label: t('accounts.remove'),
-                      onSelect: open.onRemove,
-                    },
-                  ]
-                : [],
-            },
-          ]}
+          groups={[{ id: 'actions', items: rowActions(open, t) }]}
         />
       )}
     </div>

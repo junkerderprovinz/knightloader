@@ -201,19 +201,17 @@ it('opens the site from its window and offers no way to paste cookies', async ()
   expect(calls.some((c) => c.method === 'POST')).toBe(false);
 });
 
-it('forgets a session the extension passed on from the row menu, after asking', async () => {
+it('forgets a session the extension passed on from its row, after asking', async () => {
   await renderCard();
-  await act(async () => row('YouTube')!.querySelector<HTMLButtonElement>('[aria-label="Account actions"]')!.click());
-  await act(async () => button('Remove')!.click());
+  await act(async () => row('YouTube')!.querySelector<HTMLButtonElement>('[aria-label="Remove"]')!.click());
   expect(calls.some((c) => c.url.endsWith('/remove'))).toBe(false);
   await act(async () => button('Remove')!.click());
   expect(calls.some((c) => c.url === '/api/sitelogins/youtube/remove' && c.method === 'POST')).toBe(true);
 });
 
-it('removes a session read from the browser from the row menu too, after asking, and leaves the browser alone', async () => {
+it('removes a session read from the browser from its row too, after asking, and leaves the browser alone', async () => {
   await renderCard();
-  await act(async () => row('Patreon')!.querySelector<HTMLButtonElement>('[aria-label="Account actions"]')!.click());
-  await act(async () => button('Remove')!.click());
+  await act(async () => row('Patreon')!.querySelector<HTMLButtonElement>('[aria-label="Remove"]')!.click());
   await act(async () => button('Remove')!.click());
   expect(calls.some((c) => c.url === '/api/sitelogins/patreon/remove' && c.method === 'POST')).toBe(true);
   expect(document.body.textContent).not.toContain('sign out of Patreon in');

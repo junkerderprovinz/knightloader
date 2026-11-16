@@ -173,17 +173,12 @@ export function UsenetServersSection({
             onToggle: (v) => void onToggle(r, v),
             onEdit: () => setEditing(asSave(r)),
             onRemove: () => setConfirming(r),
-            menu: [
+            actions: [
               {
-                id: 'actions',
-                items: [
-                  {
-                    id: 'test',
-                    label: t('accounts.usenet.test'),
-                    icon: <IconCheck width={16} height={16} />,
-                    onSelect: () => void onTest(r),
-                  },
-                ],
+                id: 'test',
+                label: t('accounts.usenet.test'),
+                icon: <IconCheck width={16} height={16} />,
+                onSelect: () => void onTest(r),
               },
             ],
           }))}

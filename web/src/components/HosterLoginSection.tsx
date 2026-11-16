@@ -29,7 +29,7 @@ import { type SignInWays, nextStep, siteForHost, sourceNote, unreadableBrowsers,
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
-import { IconAccounts, IconBack, IconClose, IconSave, IconTrash } from '../lib/icons';
+import { IconAccounts, IconBack, IconClose, IconSave, IconSignIn, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 import { SiteLoginDialog, SiteState } from './SiteLoginDialog';
 import { SignInBrowserWindow, SignInHereButton, useSignInBrowserAvailable } from './SignInBrowserWindow';
@@ -144,7 +144,7 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
 function siteLoginRow(
   site: SiteLogin,
   ways: SignInWays,
-  actions: { onEdit: () => void; onRemove: () => void },
+  handlers: { onEdit: () => void; onRemove: () => void },
   here?: { label: string; onSelect: () => void },
 ): AccountRow {
   return {
@@ -154,9 +154,9 @@ function siteLoginRow(
     enabled: true,
     status: <SiteLoginStatus site={site} ways={ways} />,
     expiry: site.expires,
-    onEdit: actions.onEdit,
-    onRemove: site.state !== 'signedOut' ? actions.onRemove : undefined,
-    menu: here ? [{ id: 'actions', items: [{ id: 'signin-here', ...here }] }] : undefined,
+    onEdit: handlers.onEdit,
+    onRemove: site.state !== 'signedOut' ? handlers.onRemove : undefined,
+    actions: here ? [{ id: 'signin-here', icon: <IconSignIn width={16} height={16} />, ...here }] : undefined,
   };
 }
 
@@ -181,7 +181,7 @@ function signInPageOf(login: HosterLogin): SiteLogin {
 /** hosterLoginRow is one login as an AccountTable row. here opens the sign-in browser on the hoster's own page. */
 function hosterLoginRow(
   row: HosterLogin,
-  actions: { onToggle: (v: boolean) => void; onEdit: () => void; onRemove: () => void },
+  handlers: { onToggle: (v: boolean) => void; onEdit: () => void; onRemove: () => void },
   here?: { label: string; onSelect: () => void },
 ): AccountRow {
   return {
@@ -194,8 +194,8 @@ function hosterLoginRow(
     expiry: row.expiry,
     // JD reports bytes left and max; without a max the row shows a dash.
     traffic: { used: Math.max(0, (row.trafficMax ?? 0) - (row.trafficLeft ?? 0)), limit: row.trafficMax ?? 0 },
-    ...actions,
-    menu: here ? [{ id: 'actions', items: [{ id: 'signin-here', ...here }] }] : undefined,
+    ...handlers,
+    actions: here ? [{ id: 'signin-here', icon: <IconSignIn width={16} height={16} />, ...here }] : undefined,
   };
 }
 
