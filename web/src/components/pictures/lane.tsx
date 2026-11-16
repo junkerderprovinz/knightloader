@@ -133,7 +133,7 @@ export function Name({
       onClick={onOpen}
       aria-haspopup="dialog"
       className="flex h-full w-full min-w-0 flex-col justify-center rounded-[var(--radius-control)] text-start
-        transition-colors hover:bg-carbon-hover"
+        transition-colors hover:bg-hover"
     >
       {words}
     </button>

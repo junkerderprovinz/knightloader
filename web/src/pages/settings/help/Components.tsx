@@ -191,7 +191,7 @@ function ComponentRow({
             target="_blank"
             rel="noreferrer noopener"
             onClick={followExternal}
-            className="underline decoration-carbon-border underline-offset-2 hover:text-carbon-text hover:decoration-current"
+            className="underline decoration-carbon-border underline-offset-2 hover:text-accentInk hover:decoration-current"
           >
             {shown}
           </a>

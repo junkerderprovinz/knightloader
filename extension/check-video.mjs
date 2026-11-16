@@ -1206,10 +1206,10 @@ const PAGE_LABELS = {
   const lined = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, , body]) => /inset 0 0 0 1px|(^|[;\s])border(-top|-bottom|-left|-right)?:/.test(body)).map(([, sel]) => sel.replace(/\/\*[\s\S]*?\*\//g, '').trim());
   if (lined.join() !== '.menu') fail(`inside the menu these draw a line: ${lined.filter((s) => s !== '.menu').join(', ')}`);
   if (!/background: var\(--surface3\)/.test(rule('.segments')) || !/padding: 0\.2rem/.test(rule('.segments'))) fail('a format rail is not the groove one surface below its sub-card, padded 0.2rem');
-  // A list is plain rows packed close, unfilled at rest and one surface up
-  // under the pointer; only the picked rows are filled.
+  // A list is plain rows packed close, unfilled at rest and lit in the
+  // accent's hover under the pointer; only the picked rows are filled.
   if (!/background: transparent/.test(rule('.menu .list button')) || !/height: 26px/.test(rule('.menu .list button')) || !/gap: 0/.test(rule('.list'))) fail('a list row is not a plain 26px row packed close to the next');
-  if (!/background: var\(--surface3\)/.test(css.slice(css.indexOf('.list button:not([aria-checked="true"]):hover')).split('}')[0])) fail('a list row does not rise one surface under the pointer');
+  if (!/background: var\(--hover\)/.test(css.slice(css.indexOf('.list button:not([aria-checked="true"]):hover')).split('}')[0])) fail('a list row does not light in the accent under the pointer');
   if (!/background: var\(--accent\)/.test(rule('.menu .list [aria-checked="true"]'))) fail('a picked row is not filled with the accent');
 
   // Every list of choices is one column, so it reads top to bottom like the

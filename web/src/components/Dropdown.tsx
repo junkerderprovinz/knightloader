@@ -47,11 +47,11 @@ export type DropdownWidth = 'fill' | 'widest' | 'shrink' | 'value';
 const LOOK: Record<DropdownLook, string> = {
   field: `${FIELD_TRIGGER} items-center gap-2 ps-3 pe-2.5 text-start text-sm`,
   dense: `${FIELD_TRIGGER} items-center gap-1 ps-2 pe-1.5 text-start text-xs`,
-  // bg-carbon-surface3/70 on the search box's surface2, and the hover one step
-  // further, as the clear button beside it does.
+  // bg-carbon-surface3/70 on the search box's surface2, and the accent's hover,
+  // as the clear button beside it has.
   inset: `glim-focus-drawn h-6 cursor-pointer items-center gap-1 rounded-[var(--radius-control)]
     bg-carbon-surface3/70 ps-2 pe-1.5 text-start text-xs text-carbon-textSub outline-none transition-colors
-    hover:bg-carbon-surface3 hover:text-carbon-text focus-visible:shadow-[0_0_0_var(--focus-ring-width)_var(--focus-ring)]`,
+    hover:bg-hover hover:text-carbon-text focus-visible:shadow-[0_0_0_var(--focus-ring-width)_var(--focus-ring)]`,
 };
 
 const WIDTH: Record<DropdownWidth, string> = {

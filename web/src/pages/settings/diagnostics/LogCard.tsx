@@ -88,7 +88,7 @@ export function LogCard({ hue }: { hue: number }) {
             type="button"
             onClick={() => setTask('')}
             className="rounded-[var(--radius-pill)] px-2 py-1 text-meta text-carbon-textMuted
-              transition-colors hover:bg-carbon-hover hover:text-carbon-text"
+              transition-colors hover:bg-hover hover:text-carbon-text"
           >
             {t('settings.diagnostics.logTaskClear')}
           </button>
@@ -158,10 +158,8 @@ function TaskChip({ id, label, onTask }: { id: string; label: string; onTask: (i
         aria-label={label}
         {...tipHoverProps}
         onClick={() => onTask(id)}
-        // hoverRaised, because hover moves up the ramp from surface3 and
-        // plain hover sits below it.
         className="rounded-[var(--radius-pill)] bg-carbon-surface3 px-1.5 text-carbon-text
-          transition-colors hover:bg-carbon-hoverRaised"
+          transition-colors hover:bg-hover"
       >
         {id}
       </button>

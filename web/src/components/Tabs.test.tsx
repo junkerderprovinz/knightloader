@@ -145,7 +145,7 @@ describe('a rail on the sidebar ground', () => {
   it('gives idle tabs the sidebar colour and its row hover, and keeps the lit one the accent', () => {
     const { on, off } = rail(true);
     expect(off).toContain('bg-carbon-sidebar');
-    expect(off).toContain('hover:bg-carbon-hover');
+    expect(off).toContain('hover:bg-hover');
     expect(off).not.toContain('bg-carbon-surface2');
     expect(on).toContain('bg-accent');
     expect(on).not.toContain('bg-carbon-sidebar');

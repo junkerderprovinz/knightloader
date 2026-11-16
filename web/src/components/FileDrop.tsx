@@ -190,7 +190,7 @@ function TorrentFileRow({
   onToggle: () => void;
 }) {
   return (
-    <label className="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-xs text-carbon-textSub transition-colors hover:bg-carbon-hover">
+    <label className="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-xs text-carbon-textSub transition-colors hover:bg-hover">
       <Tip dir="ltr" tip={path} className="min-w-0 flex-1 truncate text-start">
         {path}
       </Tip>

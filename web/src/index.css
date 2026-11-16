@@ -38,6 +38,9 @@
   /* Hover for anything already filled with surface3. Tailwind only emits a
      utility for a key named in @theme; a missing key fails silently. */
   --color-carbon-hoverRaised: var(--carbon-hover-raised);
+  /* The accent's hover (rule 21): hover:bg-hover on anything the pointer can
+     reach, a button, a row, a menu entry or a tile. */
+  --color-hover: var(--hover);
   --color-toggleOff: var(--toggle-off);
 
   --color-accent: var(--accent);
@@ -311,7 +314,7 @@ body {
 .glim-window-button:focus-visible {
   outline: none;
 }
-/* A blank control on the ground, so it hovers to --carbon-hover (rule 21).
+/* A blank control on the ground, so it hovers to --hover (rule 21).
    Close hovers like the other two: it hides or quits the way the native
    button does, and nothing is lost that a red warning would guard. */
 .glim-window-square {
@@ -328,7 +331,7 @@ body {
   height: 1rem;
 }
 .glim-window-button:hover .glim-window-square {
-  background-color: var(--carbon-hover);
+  background-color: var(--hover);
   color: var(--carbon-text);
 }
 .glim-window-button:focus-visible .glim-window-square {
@@ -486,8 +489,8 @@ body {
     --accent-contrast:   #161616;
     --accent-soft:       rgba(252, 196, 25, 0.14);
 
-    --status-info-text:    #836407;
-    --status-info-bg:      rgba(131, 100, 7, 0.12);
+    --status-info-text:    #7C5F07;
+    --status-info-bg:      rgba(124, 95, 7, 0.12);
     --status-info-solid:   #A87D00;
 
     --status-ok-text:      #0e6027;
@@ -562,8 +565,8 @@ body {
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
 
-  --status-info-text:    #836407;
-  --status-info-bg:      rgba(131, 100, 7, 0.12);
+  --status-info-text:    #7C5F07;
+  --status-info-bg:      rgba(124, 95, 7, 0.12);
   --status-info-solid:   #A87D00;
 
   --status-ok-text:      #0e6027;
@@ -636,15 +639,17 @@ body {
 /* The accent used as ink: text or a line-drawn glyph on the page's own ground.
    It is the accent moved in OKLab onto a lightness step, keeping its hue: down
    to --ink-l-light on the light theme, up to --ink-l-dark on the dark ones.
-   OKLab's lightness follows the eye, so every preset reads at 5.2 to 5.9:1 on
-   white. An accent already past the step is its own ink. applyAccent sets
-   --accent-ink-light or --accent-ink-dark only where a picked colour would
-   still miss 4.5:1 on a theme's card (lib/contrast.ts). light-dark() picks the
-   side by the color-scheme the theme blocks set, so a rainbow position needs
-   no twin per theme either (inkCss). */
+   OKLab's lightness follows the eye, so every preset reads at nearly the same
+   contrast. The light step is set on surface2, the darkest ground accent text
+   stands on in the light theme: the presets read at 4.6 to 5.3:1 on it and 5.7
+   to 6.4:1 on white. An accent already past the step is its own ink.
+   applyAccent sets --accent-ink-light or --accent-ink-dark only where a picked
+   colour would still miss 4.5:1 on a theme's card (lib/contrast.ts).
+   light-dark() picks the side by the color-scheme the theme blocks set, so a
+   rainbow position needs no twin per theme either (inkCss). */
 :root,
 [data-theme] {
-  --ink-l-light: 0.52;
+  --ink-l-light: 0.5;
   --ink-l-dark: 0.74;
   --accent-ink: light-dark(var(--accent-ink-light, oklab(from var(--accent) min(l, var(--ink-l-light)) calc(a * min(1, var(--ink-l-light) / l)) calc(b * min(1, var(--ink-l-light) / l)))), var(--accent-ink-dark, oklab(from var(--accent) max(l, var(--ink-l-dark)) calc(a * min(1, (1 - var(--ink-l-dark)) / (1 - l))) calc(b * min(1, (1 - var(--ink-l-dark)) / (1 - l))))));
   /* The same ink for a line-drawn glyph. Rainbow never colours text, so a hued
@@ -675,6 +680,30 @@ body {
   --status-ok-hover:   color-mix(in srgb, var(--status-ok-solid) 85%, var(--carbon-text));
   --status-fail-hover: color-mix(in srgb, var(--status-fail-solid) 85%, var(--carbon-text));
   --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
+}
+
+/* The ground of whatever the pointer is over, in the accent's hue (GlimStone
+   rule 21). A button, a row, a menu entry and a tile all take this one colour,
+   so two things lit side by side never differ. It keeps the OKLab lightness of
+   surface3, which lifts a row off the card and a quiet button off surface2
+   while the text and the secondary text on it keep 4.5:1. On the dark themes it
+   sits 0.007 below surface3, where a saturated green would otherwise take the
+   secondary text under 4.5:1. The chroma is a share of the accent's own, so a
+   grey accent leaves surface3's grey. Declared again inside a rainbow
+   position, so the hover takes the position's hue there, and in reactive mode
+   only once the position lights up. */
+:root,
+[data-theme],
+[data-rainbow] .glim-hue {
+  --hover-chroma: 0.3;
+  --hover: light-dark(oklab(from var(--accent) 0.861 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))), oklab(from var(--accent) 0.432 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))));
+}
+
+/* OLED moves surface3 one Carbon step down, and the hover with it. data-oled
+   counts only while dark shows, and the light half is the one above. */
+[data-oled],
+[data-oled][data-rainbow] .glim-hue {
+  --hover: light-dark(oklab(from var(--accent) 0.861 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))), oklab(from var(--accent) 0.338 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))));
 }
 
 /* The contrast step, for anyone whose system asks for more contrast. The
@@ -755,14 +784,14 @@ body {
 /* The shaded list's grounds (lib/listShade.ts), see-through so they sit on
    whatever card holds the list, and mixed toward the text colour like the
    hover steps above, so one set serves light, dark and OLED. A package's links
-   alternate between the card's own ground and a faint step, a quiet zebra, its
-   header stands a hair above that, and the hover above all three. */
+   alternate between the card's own ground and a faint step, a quiet zebra, and
+   its header stands a hair above that. A hovered row takes --hover like every
+   other row. */
 :root,
 [data-theme] {
   --list-band-odd:   transparent;
   --list-band-even:  color-mix(in srgb, var(--carbon-text) 2%, transparent);
   --list-band-head:  color-mix(in srgb, var(--carbon-text) 4%, transparent);
-  --list-band-hover: color-mix(in srgb, var(--carbon-text) 7%, transparent);
 }
 
 /* The house font is Noto Sans, shipped with the app (the imports in main.tsx)
@@ -834,10 +863,13 @@ body {
 .glim-well .glim-field {
   background-color: var(--carbon-surface3);
 }
-/* A trigger's hover and a text field's focus step up from the tier the fields
-   stand on here. The input inside a field that draws its own box takes the
-   step with it, or it would show as a patch of the tier below. */
-.glim-well button.glim-field:hover,
+/* A trigger hovers to the accent's --hover, as everywhere. A text field's
+   focus steps up from the tier the fields stand on here, and the input inside
+   a field that draws its own box takes the step with it, or it would show as a
+   patch of the tier below. */
+.glim-well button.glim-field:hover {
+  background-color: var(--hover);
+}
 :is(.glim-well, .glim-subcard) :is(input, textarea).glim-field:focus,
 :is(.glim-well, .glim-subcard) .glim-field:has(input:focus),
 :is(.glim-well, .glim-subcard) .glim-field:has(input:focus) input {
@@ -846,7 +878,7 @@ body {
 
 /* A sub-card groups rows inside a card: flat, on the well's colour and at the
    card's radius. Fields and neutral buttons in it move one step up the ramp,
-   as fields do in a well, and their hover moves with them. Its name sits in
+   as fields do in a well, and hover to the accent's --hover. Its name sits in
    the notch on its top edge, so it is `relative` for the badge and stands a
    little further from what comes before it, which the badge's upper half
    reaches into. */
@@ -872,12 +904,7 @@ body {
 }
 .glim-subcard button.glim-field:hover,
 .glim-subcard :is(button, a).bg-carbon-surface2:not(.glim-badge-quiet):hover {
-  background-color: var(--carbon-hover-raised);
-}
-/* The accent tint of a filled button (.glim-btn-subtle), from the tier a
-   button on a subcard hovers to. */
-.glim-subcard :is(button, a).glim-btn-subtle:not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) {
-  background-color: color-mix(in srgb, var(--carbon-hover-raised), var(--btn-tint) 22%);
+  background-color: var(--hover);
 }
 
 /* Eyebrow label: small, uppercase, quiet. Above hero figures, and as the tag
@@ -915,14 +942,14 @@ body {
   -moz-appearance: textfield;
 }
 
-/* A button on a surface2 tile stands one tier up the surface ramp and hovers
-   one more, or it would have no ground of its own. Unlayered, so it wins over
+/* A button on a surface2 tile stands one tier up the surface ramp, or it
+   would have no ground of its own, and hovers to the accent's --hover. Unlayered, so it wins over
    the fill the button's kind brings. */
 .kl-raised-btn {
   background-color: var(--carbon-surface3);
 }
 .kl-raised-btn:hover {
-  background-color: var(--carbon-hover-raised);
+  background-color: var(--hover);
 }
 
 /* Illustrations (pairing/pairingArt.tsx, components/GroupNet.tsx). A picture
@@ -1108,6 +1135,7 @@ body {
   --color-accentGlyph: var(--item-hue-glyph);
   --accent-hover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
   --color-accentHover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
+  --color-hover: var(--hover);
 }
 
 /* Opt-in: the element's glyph takes the hue too, so a nav or tab bar reads as a
@@ -1161,7 +1189,7 @@ body {
   background-color: var(--list-band-head);
 }
 :where([data-shade]) > [data-band]:is(:hover, :has(:focus-visible)) {
-  background-color: var(--list-band-hover);
+  background-color: var(--hover);
 }
 
 /* The wash on a selected list row. A class rather than a `bg-accent/20`
@@ -1239,10 +1267,10 @@ body {
   align-items: center;
   gap: 0.25rem;
   padding-inline: 1.5rem 0.5rem;
-  background: linear-gradient(to left, var(--carbon-surface3) calc(100% - 1rem), transparent);
+  background: linear-gradient(to left, var(--hover) calc(100% - 1rem), transparent);
 }
 .kl-accounts .kl-col-actions > .glim-row-actions:dir(rtl) {
-  background: linear-gradient(to right, var(--carbon-surface3) calc(100% - 1rem), transparent);
+  background: linear-gradient(to right, var(--hover) calc(100% - 1rem), transparent);
 }
 @media (hover: none) {
   .kl-accounts .kl-col-actions {
@@ -1361,10 +1389,11 @@ body {
 .glim-badge-quiet:active .glim-btn-glyph { scale: 1; }
 
 /* Every other button takes the colour too when it is reached for: its glyph
-   in the accent, and a filled one's ground a step up the ramp with a little of
-   the accent in it. A bare one has no ground to tint, so its words take the
-   accent as well; a filled one keeps its words in the text colour, which the
-   accent on a tinted ground would not be legible against. Under a rainbow a
+   in the accent, and a filled one's ground the accent's --hover, the colour a
+   row, a menu entry and a tile take under the pointer. A bare one has no ground
+   to light, so its words take the accent as well; a filled one keeps its words
+   in the text colour, which the accent on a lit ground would not be legible
+   against. Under a rainbow a
    badge with a palette position takes its own hue, and every other button
    its place among the page's buttons, which takePageHue() sets inline. The
    ring still marks keyboard focus. */
@@ -1376,11 +1405,8 @@ body {
 [data-rainbow] .glim-tint-badge.glim-btn-subtle {
   --btn-tint: var(--item-hue-glyph);
 }
-.glim-btn-subtle:not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) {
-  background-color: color-mix(in srgb, var(--carbon-surface3), var(--btn-tint) 22%);
-}
-.glim-btn-neutral:not(:disabled):is(:hover, :focus-visible) {
-  background-color: color-mix(in srgb, var(--carbon-hover-raised), var(--btn-tint) 22%);
+:is(.glim-btn-neutral, .glim-btn-subtle):not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) {
+  background-color: var(--hover);
 }
 :is(.glim-btn-neutral, .glim-btn-subtle):not(.glim-badge-quiet):not(:disabled):is(:hover, :focus-visible) > .glim-btn-glyph,
 .glim-btn-bare:not(:disabled):is(:hover, :focus-visible) {
@@ -3777,7 +3803,7 @@ body {
   box-shadow: var(--elevation), var(--hairline);
 }
 .kl-popup:hover {
-  background-color: var(--carbon-surface2);
+  background-color: var(--hover);
 }
 .kl-popup-open {
   display: flex;

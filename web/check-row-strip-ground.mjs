@@ -2,12 +2,10 @@
 // its own.
 //
 // A surface token is a second opinion about what the row underneath paints. A
-// link row hovers to `--carbon-hover` at half alpha over the card, which no
-// surface token matches, and in Rainbow mode it carries a hue wash that no grey
-// token has: measured in the dark theme, the hovered row is rgb(45,45,45) and
-// the strip meant to match it rgb(57,57,57); in the light theme rgb(239,239,239)
-// against rgb(232,232,232). So the row publishes what it paints as
-// `--row-ground` and anything lying on it reads that.
+// link row hovers to the accent's `--hover`, which no surface token matches,
+// and in Rainbow mode it carries a hue wash on top that no grey token has. So
+// the row publishes what it paints as `--row-ground` and anything lying on it
+// reads that.
 //
 // Such a strip is, in a file that draws list rows (one carrying
 // `data-row-key`), a class list that pins a flex run of controls over a row's

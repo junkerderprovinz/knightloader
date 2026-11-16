@@ -107,7 +107,7 @@ export function ColumnMenu({
                 transition-colors ${
                   disabled
                     ? 'cursor-not-allowed text-carbon-textMuted'
-                    : 'text-carbon-text hover:bg-carbon-hover'
+                    : 'text-carbon-text hover:bg-hover'
                 }`}
             >
               <Mark on={shown} />
@@ -123,7 +123,7 @@ export function ColumnMenu({
         role="menuitem"
         onClick={onReset}
         className="flex w-full items-center rounded-[var(--radius-control)] px-2 py-1.5 text-start text-[12px]
-          text-carbon-textSub transition-colors hover:bg-carbon-hover hover:text-carbon-text"
+          text-carbon-textSub transition-colors hover:bg-hover hover:text-carbon-text"
       >
         {t('columns.reset')}
       </button>

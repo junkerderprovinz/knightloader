@@ -316,7 +316,7 @@ jobs:
       - name: List column widths
         run: node check-column-widths.mjs
 
-      - name: Hover ramp
+      - name: Every hover lights up in the accent
         run: node check-hover-ramp.mjs
 
       - name: Search query parser
@@ -516,6 +516,9 @@ jobs:
 
       - name: Every motion level declares every dial
         run: node extension/check-motion.mjs
+
+      - name: Every hover lights up in the accent
+        run: node extension/check-hover.mjs
 
       - name: Instances that are away
         run: node extension/check-away.mjs

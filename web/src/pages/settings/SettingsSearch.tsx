@@ -427,7 +427,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
                       }}
                       className={`flex w-full flex-col items-start gap-0.5 px-4 py-2 text-start text-sm
                         transition-colors outline-none ${
-                          isActive ? 'bg-carbon-hover text-carbon-text' : 'text-carbon-textSub'
+                          isActive ? 'bg-hover text-carbon-text' : 'text-carbon-textSub'
                         }`}
                     >
                       <span className="w-full truncate">{item.name}</span>

@@ -219,7 +219,7 @@ export function TorrentFileRow({
       onKeyDown={onKeyDown}
       style={{ ...hueVars(row.index), gridTemplateColumns: 'var(--kl-cols)', ...slide } as CSSProperties}
       className={`glim-hue glim-tint select-none ${look} relative grid items-center ${ROW_EDGES} py-[var(--row-pad)] transition-colors
-        hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
+        hover:bg-hover has-[:focus-visible]:bg-hover`}
     >
       {columns.map((col) => {
         const node = cell(col);

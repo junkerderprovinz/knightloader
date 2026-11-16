@@ -297,7 +297,7 @@ function VariablesMenu({
           role="menuitem"
           onClick={() => onPick(v.tag)}
           className="flex w-full flex-col gap-0.5 rounded-[var(--radius-control)] px-2 py-1.5 text-start
-            transition-colors hover:bg-carbon-hover"
+            transition-colors hover:bg-hover"
         >
           <span className="glim-num text-[12px] text-carbon-text" dir="ltr">
             {v.tag}

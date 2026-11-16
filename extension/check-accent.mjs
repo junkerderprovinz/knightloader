@@ -83,6 +83,16 @@ function page(ua, { stored = {}, system = 'rgb(224, 56, 62)', instance } = {}) {
 }
 
 {
+  // The stylesheet and the engine move the accent onto the web UI's steps, or
+  // the light ink would sit a shade off the web UI's on surface2.
+  const step = (text, re) => Number(re.exec(text)?.[1]);
+  const engine = step(read('src', 'appearance.js'), /const INK_LIGHTNESS = \{ light: ([\d.]+)/);
+  const sheet = step(read('src', 'glimstone.css'), /^  --ink-l-light: ([\d.]+);/m);
+  check(`appearance.js takes the light ink to ${engine}, the web UI to ${web.INK_LIGHTNESS.light}`, engine === web.INK_LIGHTNESS.light);
+  check(`glimstone.css takes the light ink to ${sheet}, the web UI to ${web.INK_LIGHTNESS.light}`, sheet === web.INK_LIGHTNESS.light);
+}
+
+{
   const { ctx, props } = page(FIREFOX);
   ctx.applyAccent('system');
   check(`Firefox paints the system's colour, got ${props['--accent']}`, props['--accent'] === '#E0383E');

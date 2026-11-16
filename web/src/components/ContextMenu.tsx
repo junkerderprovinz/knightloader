@@ -436,9 +436,9 @@ function Panel({
                     className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-start text-[12px]
                       transition-colors outline-none disabled:opacity-35 disabled:pointer-events-none
                       ${item.checked ? 'text-carbon-text' : 'text-carbon-textSub'}
-                      hover:bg-carbon-hover hover:text-carbon-text
-                      focus-visible:bg-carbon-hover focus-visible:text-carbon-text
-                      ${openHere ? 'bg-carbon-hover text-carbon-text' : ''}`}
+                      hover:bg-hover hover:text-carbon-text
+                      focus-visible:bg-hover focus-visible:text-carbon-text
+                      ${openHere ? 'bg-hover text-carbon-text' : ''}`}
                   >
                     {/* The gutter sets every glyph to 14px whatever size the
                         caller passed, and stays without an icon so labels line

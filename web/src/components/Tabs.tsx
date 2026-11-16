@@ -134,9 +134,8 @@ const SIZE = {
   md: 'gap-2 px-3 py-2 text-sm',
 } as const;
 
-// An idle tab on the sidebar's ground hovers as a sidebar row does, one step up
-// the ramp from that ground in both themes.
-const SIDEBAR_OFF = 'bg-carbon-sidebar text-carbon-textMuted hover:bg-carbon-hover hover:text-carbon-text';
+// An idle tab on the sidebar's ground hovers as a sidebar row does.
+const SIDEBAR_OFF = 'bg-carbon-sidebar text-carbon-textMuted hover:bg-hover hover:text-carbon-text';
 
 // A well segment reads bigger than a chip at the same stage, so it has its own
 // padding; `sm` suits TaskProperties' smaller selectors.
@@ -559,10 +558,10 @@ export function Tabs(props: TabsProps) {
               ${look} ${grip}`
           : isWell
           ? // An idle segment has no fill of its own and shows the surface3
-            // groove, so its hover is the step above that (rule 21). The
-            // chosen one is filled with the colour its selector was counted.
+            // groove until the pointer lights it (rule 21). The chosen one is
+            // filled with the colour its selector was counted.
             `${segBase} glim-nav-row ${pages ? '' : 'glim-hue'} justify-center text-center leading-snug ${WELL_SIZE[size]}
-              ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hoverRaised hover:text-carbon-text'}
+              ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-hover hover:text-carbon-text'}
               flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
           : `${segBase} glim-nav-row glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
               SIZE[size]
