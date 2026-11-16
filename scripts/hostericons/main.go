@@ -17,9 +17,9 @@
 // overrides, which win over the set.
 //
 // Before any of that every host's site is asked whether it answers, and the
-// unreachable ones go to assets/hoster-icons/unreachable.txt, which keeps
-// them out of the picker and out of the set. The hosts left without an icon
-// are printed, one per line.
+// offline ones go to assets/hoster-icons/offline.txt, which keeps them out
+// of the picker and out of the set. The hosts left without an icon are
+// printed, one per line.
 package main
 
 import (
@@ -78,7 +78,7 @@ func main() {
 	}
 	log.SetFlags(0)
 	// A filtering resolver, as many home networks run, would count hosters
-	// as unreachable that answer everywhere else.
+	// as offline that answer everywhere else.
 	if *dns != "" {
 		net.DefaultResolver = &net.Resolver{
 			PreferGo: true,
@@ -97,12 +97,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	listPath := filepath.Join(*out, "unreachable.txt")
-	unreachable, err := checkReach(hosts, listPath)
+	listPath := filepath.Join(*out, "offline.txt")
+	offline, err := checkOffline(hosts, listPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	hosts = slices.DeleteFunc(hosts, func(h string) bool { return unreachable[h] != "" })
+	hosts = slices.DeleteFunc(hosts, func(h string) bool { return offline[h] != "" })
 
 	overrideDir, setDir := filepath.Join(*out, "overrides"), filepath.Join(*out, "set")
 	kept, err := iconNames(setDir)
@@ -137,7 +137,7 @@ func main() {
 			fetch = append(fetch, h)
 		}
 	}
-	log.Printf("%d reachable hosts in the picker, %d with a logo in the page, %d with an override; fetching %d", len(hosts),
+	log.Printf("%d online hosts in the picker, %d with a logo in the page, %d with an override; fetching %d", len(hosts),
 		countCovered(hosts, bundled), countCovered(hosts, overrides), len(fetch))
 
 	found := fetchAll(fetch, bestIcon)
@@ -224,11 +224,11 @@ var otherLogo = map[string]string{
 	"wayshare.cc":     "a sign-in button",
 }
 
-// checkReach asks whether each host's site answers, for the picker's hosts
+// checkOffline asks whether each host's site answers, for the picker's hosts
 // and those already in the list at path, which an instance leaves out of
-// the picker. It writes the unreachable ones back to path and returns them
+// the picker. It writes the offline ones back to path and returns them
 // with the reason.
-func checkReach(hosts []string, path string) (map[string]string, error) {
+func checkOffline(hosts []string, path string) (map[string]string, error) {
 	listed, err := os.ReadFile(path)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return nil, err
@@ -252,7 +252,7 @@ func checkReach(hosts []string, path string) (map[string]string, error) {
 		for range workers {
 			wg.Go(func() {
 				for h := range queue {
-					why := app.Reachability(context.Background(), h)
+					why := app.OfflineReason(context.Background(), h)
 					mu.Lock()
 					if why == "" {
 						delete(out, h)
@@ -274,7 +274,7 @@ func checkReach(hosts []string, path string) (map[string]string, error) {
 	// second try with fewer.
 	var again []string
 	for h, why := range out {
-		if why == app.UnreachableNoAnswer {
+		if why == app.OfflineNoAnswer {
 			again = append(again, h)
 		}
 	}
@@ -286,7 +286,7 @@ func checkReach(hosts []string, path string) (map[string]string, error) {
 			fmt.Fprintf(&b, "%s\t%s\n", h, why)
 		}
 	}
-	log.Printf("%d of %d hosts are unreachable", len(out), len(check))
+	log.Printf("%d of %d hosts are offline", len(out), len(check))
 	return out, os.WriteFile(path, []byte(b.String()), 0o644)
 }
 

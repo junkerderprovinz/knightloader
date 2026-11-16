@@ -57,13 +57,13 @@ func (a *App) StartHosterAuth() {
 // HosterHosts lists the hosts the "add a login" picker offers. Debrid services
 // are left out because KnightLoader speaks to each of them itself, on the
 // debrid card, and a login handed to JD would route the same service a second
-// way. Unreachable hosters are left out too (app_unreachable.go).
+// way. Offline hosters are left out too (app_offlinehosters.go).
 func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
 	skip := debridServiceDomains()
 	all := a.hosterAuth().Hosts(ctx)
 	out := make([]hosterauth.Host, 0, len(all))
 	for _, h := range all {
-		if key := serviceKey(h.ID); skip[key] || multihostersLeftOut[key] || a.hiddenUnreachable(key) {
+		if key := serviceKey(h.ID); skip[key] || multihostersLeftOut[key] || a.hiddenOffline(key) {
 			continue
 		}
 		out = append(out, h)

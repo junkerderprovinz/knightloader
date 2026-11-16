@@ -1,6 +1,6 @@
 package app
 
-// Unreachable hosters are hosters JD knows whose site no longer answers. The
+// Offline hosters are hosters JD knows whose site no longer answers. The
 // picker leaves them out, since a login for a hoster that is gone helps
 // nobody, but links to them still go to JD. The list ships with the binary
 // (scripts/hostericons writes it), and a weekly check brings a hoster back
@@ -20,12 +20,12 @@ import (
 	hostericons "github.com/junkerderprovinz/knightloader/assets/hoster-icons"
 )
 
-// unreachableHosts are the hosters the shipped list names, by bare domain.
-var unreachableHosts = parseUnreachable(hostericons.Unreachable)
+// offlineHosters are the hosters the shipped list names, by bare domain.
+var offlineHosters = parseOfflineHosters(hostericons.Offline)
 
-// parseUnreachable reads the shipped list: one host per line, then a tab and
-// the reason.
-func parseUnreachable(list string) map[string]bool {
+// parseOfflineHosters reads the shipped list: one host per line, then a tab
+// and the reason.
+func parseOfflineHosters(list string) map[string]bool {
 	out := map[string]bool{}
 	for _, line := range strings.Split(list, "\n") {
 		if host, _, _ := strings.Cut(strings.TrimSpace(line), "\t"); host != "" {
@@ -38,40 +38,40 @@ func parseUnreachable(list string) map[string]bool {
 // The first check waits a few minutes after start, out of the way of
 // everything a start does, and then runs once a week.
 const (
-	unreachableFirstCheck = 5 * time.Minute
-	unreachableEvery      = 7 * 24 * time.Hour
+	offlineFirstCheck = 5 * time.Minute
+	offlineEvery      = 7 * 24 * time.Hour
 )
 
-// StartUnreachableCheck starts the weekly check of the unreachable hosters.
+// StartOfflineHosterCheck starts the weekly check of the offline hosters.
 // The binaries call it rather than New, which every test calls. Close stops
 // it.
-func (a *App) StartUnreachableCheck() {
+func (a *App) StartOfflineHosterCheck() {
 	a.spawn(func() {
-		a.tickLoop(unreachableFirstCheck, unreachableEvery, func() { a.recheckUnreachable(a.ctx) })
+		a.tickLoop(offlineFirstCheck, offlineEvery, func() { a.recheckOfflineHosters(a.ctx) })
 	})
 }
 
-// hostReachability is Reachability, a variable so tests can stand in for the
+// hostOfflineReason is OfflineReason, a variable so tests can stand in for the
 // network.
-var hostReachability = Reachability
+var hostOfflineReason = OfflineReason
 
-// recheckUnreachable asks every unreachable hoster's site once, a few at a
+// recheckOfflineHosters asks every offline hoster's site once, a few at a
 // time, and keeps which of them answer.
-func (a *App) recheckUnreachable(ctx context.Context) {
+func (a *App) recheckOfflineHosters(ctx context.Context) {
 	slots := make(chan struct{}, 8)
 	var wg sync.WaitGroup
-	for host := range unreachableHosts {
+	for host := range offlineHosters {
 		wg.Go(func() {
 			slots <- struct{}{}
-			back := hostReachability(ctx, host) == ""
+			back := hostOfflineReason(ctx, host) == ""
 			<-slots
-			a.unreachableMu.Lock()
+			a.offlineMu.Lock()
 			if a.answering == nil {
 				a.answering = map[string]bool{}
 			}
 			was := a.answering[host]
 			a.answering[host] = back
-			a.unreachableMu.Unlock()
+			a.offlineMu.Unlock()
 			if back && !was {
 				log.Printf("hosters: %s answers again and is back in the account picker", host)
 			}
@@ -80,39 +80,39 @@ func (a *App) recheckUnreachable(ctx context.Context) {
 	wg.Wait()
 }
 
-// hiddenUnreachable reports whether the picker leaves host out.
-func (a *App) hiddenUnreachable(host string) bool {
-	if !unreachableHosts[host] {
+// hiddenOffline reports whether the picker leaves host out.
+func (a *App) hiddenOffline(host string) bool {
+	if !offlineHosters[host] {
 		return false
 	}
-	a.unreachableMu.Lock()
-	defer a.unreachableMu.Unlock()
+	a.offlineMu.Lock()
+	defer a.offlineMu.Unlock()
 	return !a.answering[host]
 }
 
-// unreachableState is embedded in App: which unreachable hosters the last
+// offlineHosterState is embedded in App: which offline hosters the last
 // check found answering.
-type unreachableState struct {
-	unreachableMu sync.Mutex
-	answering     map[string]bool
+type offlineHosterState struct {
+	offlineMu sync.Mutex
+	answering map[string]bool
 }
 
-// The reasons Reachability gives for an unreachable site.
+// The reasons OfflineReason gives for a site that is offline.
 const (
-	UnreachableNoDNS    = "no DNS entry"
-	UnreachableNoAnswer = "no answer within 10 s"
-	UnreachableParked   = "parked or for sale"
+	OfflineNoDNS    = "no DNS entry"
+	OfflineNoAnswer = "no answer within 10 s"
+	OfflineParked   = "parked or for sale"
 )
 
 // reachTimeout is how long one address of a site gets to answer.
 const reachTimeout = 10 * time.Second
 
-// Reachability says why host's site is unreachable, or "" when it answers.
+// OfflineReason says why host's site is offline, or "" when it answers.
 // Any HTTP status is an answer, since a hoster behind a challenge page is
 // still there, but a parking or for-sale page is not the hoster.
-func Reachability(ctx context.Context, host string) string {
+func OfflineReason(ctx context.Context, host string) string {
 	if _, err := net.DefaultResolver.LookupHost(ctx, host); err != nil {
-		return UnreachableNoDNS
+		return OfflineNoDNS
 	}
 	return answers(ctx, "https://"+host, "http://"+host)
 }
@@ -134,11 +134,11 @@ func answers(ctx context.Context, origins ...string) string {
 			return ""
 		}
 		if from, err := url.Parse(origin); err == nil && from.Hostname() != resp.Request.URL.Hostname() {
-			return UnreachableParked + " (" + resp.Request.URL.Hostname() + ")"
+			return OfflineParked + " (" + resp.Request.URL.Hostname() + ")"
 		}
-		return UnreachableParked
+		return OfflineParked
 	}
-	return UnreachableNoAnswer
+	return OfflineNoAnswer
 }
 
 // forSale finds what a parking or domain sale page says or loads.

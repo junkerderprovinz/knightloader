@@ -11,9 +11,9 @@ import (
 	jdresolver "github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
 
-// unreachableSidecar stands in for a JD that has a plugin for ddownload.com
+// offlineSidecar stands in for a JD that has a plugin for ddownload.com
 // and for gone.example.com, whose site no longer answers.
-func unreachableSidecar(t *testing.T) *App {
+func offlineSidecar(t *testing.T) *App {
 	t.Helper()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/accounts/listPremiumHoster" {
@@ -24,9 +24,9 @@ func unreachableSidecar(t *testing.T) *App {
 	}))
 	t.Cleanup(srv.Close)
 	t.Setenv("KL_JD", srv.URL)
-	prev := unreachableHosts
-	unreachableHosts = map[string]bool{"gone.example.com": true}
-	t.Cleanup(func() { unreachableHosts = prev })
+	prev := offlineHosters
+	offlineHosters = map[string]bool{"gone.example.com": true}
+	t.Cleanup(func() { offlineHosters = prev })
 	return newQueueApp(t)
 }
 
@@ -38,8 +38,8 @@ func offered(a *App) map[string]bool {
 	return out
 }
 
-func TestThePickerHidesAnUnreachableHoster(t *testing.T) {
-	a := unreachableSidecar(t)
+func TestThePickerHidesAnOfflineHoster(t *testing.T) {
+	a := offlineSidecar(t)
 	got := offered(a)
 	if got["gone.example.com"] {
 		t.Error("the picker offers a hoster whose site does not answer")
@@ -49,23 +49,23 @@ func TestThePickerHidesAnUnreachableHoster(t *testing.T) {
 	}
 }
 
-func TestALinkToAnUnreachableHosterStillGoesToJD(t *testing.T) {
-	a := unreachableSidecar(t)
+func TestALinkToAnOfflineHosterStillGoesToJD(t *testing.T) {
+	a := offlineSidecar(t)
 	if _, err := a.hosterAuth().Reconcile(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	if !jdresolver.FileHoster("gone.example.com") {
-		t.Error("a link to an unreachable hoster is no longer JD's to fetch")
+		t.Error("a link to an offline hoster is no longer JD's to fetch")
 	}
 }
 
-func TestAnUnreachableHosterThatAnswersAgainReappears(t *testing.T) {
-	a := unreachableSidecar(t)
-	prev := hostReachability
-	hostReachability = func(context.Context, string) string { return "" }
-	t.Cleanup(func() { hostReachability = prev })
+func TestAnOfflineHosterThatAnswersAgainReappears(t *testing.T) {
+	a := offlineSidecar(t)
+	prev := hostOfflineReason
+	hostOfflineReason = func(context.Context, string) string { return "" }
+	t.Cleanup(func() { hostOfflineReason = prev })
 
-	a.recheckUnreachable(context.Background())
+	a.recheckOfflineHosters(context.Background())
 	if !offered(a)["gone.example.com"] {
 		t.Error("a hoster that answers again is still hidden")
 	}
@@ -89,7 +89,7 @@ func TestAParkingOrForSalePageIsNotTheHoster(t *testing.T) {
 	}
 }
 
-func TestReachabilityNamesWhyASiteIsUnreachable(t *testing.T) {
+func TestOfflineReasonNamesWhyASiteIsOffline(t *testing.T) {
 	allowLocalIcons(t)
 	live := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
@@ -104,15 +104,15 @@ func TestReachabilityNamesWhyASiteIsUnreachable(t *testing.T) {
 
 	ctx := context.Background()
 	if got := answers(ctx, gone.URL, live.URL); got != "" {
-		t.Errorf("a site that answers, even with a 403, counts as unreachable: %q", got)
+		t.Errorf("a site that answers, even with a 403, counts as offline: %q", got)
 	}
-	if got := answers(ctx, forSale.URL); !strings.HasPrefix(got, UnreachableParked) {
-		t.Errorf("a page that sells the domain = %q, want %q", got, UnreachableParked)
+	if got := answers(ctx, forSale.URL); !strings.HasPrefix(got, OfflineParked) {
+		t.Errorf("a page that sells the domain = %q, want %q", got, OfflineParked)
 	}
-	if got := answers(ctx, gone.URL); got != UnreachableNoAnswer {
-		t.Errorf("a site that refuses every connection = %q, want %q", got, UnreachableNoAnswer)
+	if got := answers(ctx, gone.URL); got != OfflineNoAnswer {
+		t.Errorf("a site that refuses every connection = %q, want %q", got, OfflineNoAnswer)
 	}
-	if got := Reachability(ctx, "no-such-host.invalid"); got != UnreachableNoDNS {
-		t.Errorf("a name without an address = %q, want %q", got, UnreachableNoDNS)
+	if got := OfflineReason(ctx, "no-such-host.invalid"); got != OfflineNoDNS {
+		t.Errorf("a name without an address = %q, want %q", got, OfflineNoDNS)
 	}
 }
