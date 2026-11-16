@@ -227,25 +227,20 @@ func TestARapidgatorLoginTakesItsTwoFactorCodeUpFront(t *testing.T) {
 	srv := rgtest.New(t)
 	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913"})
 	useRapidgator(a, srv)
-	ctx := context.Background()
 
-	i := slices.IndexFunc(a.HosterHosts(ctx), func(h hosterauth.Host) bool { return h.ID == "rapidgator.net" })
-	if i < 0 || !a.HosterHosts(ctx)[i].TwoFactor {
-		t.Error("the picker does not offer Rapidgator's login a two-factor code")
-	}
-	row, err := a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "hunter2", "482913")
+	row, err := a.SaveHosterLogin(context.Background(), "rg.to", "john@example.com", "hunter2", "482913")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if row.Status != hosterauth.StatusActive || row.Tier != "premium" || !row.TwoFactor {
-		t.Errorf("saved with the code up front = %+v, want the active premium row that takes a code", row)
+	if row.Status != hosterauth.StatusActive || row.Tier != "premium" {
+		t.Errorf("saved with the code up front = %+v, want the active premium row", row)
 	}
 	if n := srv.Logins(); n != 1 {
 		t.Errorf("signed in %d times, want once, with the code", n)
 	}
 }
 
-func TestARefusedRapidgatorLoginStillTakesACode(t *testing.T) {
+func TestARefusedRapidgatorLoginAsksForTheCodeOnlyOnceThePasswordIsRight(t *testing.T) {
 	a := newCrawlApp(t, false)
 	srv := rgtest.New(t)
 	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913"})
@@ -256,15 +251,15 @@ func TestARefusedRapidgatorLoginStillTakesACode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if row.Code != "ownInvalid" || !row.TwoFactor {
-		t.Fatalf("a refused login = %+v, want it refused and still taking a code", row)
+	if row.Code != "ownInvalid" || row.AskCode {
+		t.Fatalf("a wrong password = %+v, want it refused without asking for a code", row)
 	}
-	row, err = a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "hunter2", "482913")
+	row, err = a.SaveHosterLogin(ctx, "rg.to", "john@example.com", "hunter2", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if row.Status != hosterauth.StatusActive {
-		t.Errorf("saved again with the code = %+v, want the active row", row)
+	if row.Code != "ownCodeNeeded" || !row.AskCode {
+		t.Errorf("the right password = %+v, want the row asking for the code", row)
 	}
 }
 
@@ -282,8 +277,8 @@ func TestARapidgatorRefusalWaitingForAMailedLinkNamesItsStepOnTheRow(t *testing.
 		if err != nil {
 			t.Fatal(err)
 		}
-		if row.Status != hosterauth.StatusRejected || row.Code != code {
-			t.Errorf("refused with %q, the row reads %+v, want %s", details, row, code)
+		if row.Status != hosterauth.StatusRejected || row.Code != code || row.AskCode {
+			t.Errorf("refused with %q, the row reads %+v, want %s without asking for a code", details, row, code)
 		}
 		if listed, _ := loginRow(a, "rg.to"); listed.Code != code {
 			t.Errorf("refused with %q, the accounts page lists %+v, want %s", details, listed, code)

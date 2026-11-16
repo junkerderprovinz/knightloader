@@ -1410,7 +1410,6 @@ export const lt: Dict = {
 
   'accounts.hoster.codeField': 'Dviejų veiksnių kodas',
   'accounts.hoster.codeHint': 'Šešiaženklis kodas, kurį rodo tavo autentifikavimo programėlė. KnightLoader su juo prisijungia vieną kartą ir jo nesaugo.',
-  'accounts.hoster.codeOptionalHint': 'Palik tuščią, nebent paskyra jungiasi su dviejų veiksnių kodu. KnightLoader jį panaudoja vieną kartą ir nesaugo.',
   'accounts.hoster.codeNeeded': 'Hosteris prašo dviejų veiksnių kodo, prieš priimdamas šį prisijungimą.',
   'accounts.hoster.codeWrong': 'Šis kodas netiko. Įvesk tą, kurį programėlė rodo dabar.',
   'accounts.hoster.codeEnded': 'Seansas baigėsi. Įvesk naują kodą, kad vėl prisijungtum.',

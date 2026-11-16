@@ -855,11 +855,10 @@ describe('a hoster login with two-factor sign-in', () => {
   };
 
   /**
-   * The server answers each save with the next of `rows`, lists `stored` as
-   * the logins there are, and offers Rapidgator as taking a code up front
-   * where `twoFactor` is set.
+   * The server answers each save with the next of `rows` and lists `stored`
+   * as the logins there are.
    */
-  function stubSaves(rows: unknown[], { stored = [] as unknown[], twoFactor = false } = {}) {
+  function stubSaves(rows: unknown[], { stored = [] as unknown[] } = {}) {
     const posted: Record<string, unknown>[] = [];
     vi.stubGlobal(
       'fetch',
@@ -869,7 +868,7 @@ describe('a hoster login with two-factor sign-in', () => {
           return reply(rows[posted.length - 1]);
         }
         if (url === '/api/hosterauth/logins') return reply(stored);
-        if (url === '/api/hosterauth/hosts') return reply([{ id: 'rapidgator.net', label: 'rapidgator.net', twoFactor }]);
+        if (url === '/api/hosterauth/hosts') return reply([{ id: 'rapidgator.net', label: 'rapidgator.net' }]);
         if (url === '/api/settings') return reply({ premiumOnly: false });
         if (url === '/api/features') return reply({ modules: [], pages: [] });
         return reply([]);
@@ -891,50 +890,48 @@ describe('a hoster login with two-factor sign-in', () => {
     type(field('Password')!, 'hunter2');
   }
 
+  async function openStored() {
+    await act(async () => root.render(page));
+    const row = [...card('Hoster accounts').querySelectorAll<HTMLElement>('tr')].find((r) => r.textContent?.includes('rapidgator.net'))!;
+    await act(async () => row.querySelector('td')!.click());
+  }
+
   async function saveLogin() {
     await openNewLogin();
     expect(field('Two-factor code')).toBeUndefined();
     await act(async () => button('Save').click());
   }
 
-  it('offers the code up front for a hoster that takes one, and sends it only when filled', async () => {
-    const active = { host: 'rapidgator.net', username: 'john', status: 'active', enabled: true, twoFactor: true };
-    const posted = stubSaves([active, active], { twoFactor: true });
+  it('leaves the code field out of a new login until the hoster asks for one', async () => {
+    const posted = stubSaves([{ host: 'rapidgator.net', username: 'john', status: 'active', enabled: true }]);
     await openNewLogin();
-    expect(field('Two-factor code')).toBeDefined();
-    expect(button('Save').disabled).toBe(false);
+    expect(field('Two-factor code')).toBeUndefined();
     await act(async () => button('Save').click());
 
-    await addIn('Hoster accounts');
-    const tile = [...document.querySelectorAll<HTMLButtonElement>('[data-new="hoster-logos"] button')].find((b) =>
-      b.textContent?.startsWith('rapidgator.net'),
-    )!;
-    await act(async () => tile.click());
-    type(field('Username')!, 'john');
-    type(field('Password')!, 'hunter2');
-    type(field('Two-factor code')!, '4829');
+    expect(posted).toEqual([{ host: 'rapidgator.net', username: 'john', password: 'hunter2' }]);
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it.each(['ownInvalid', 'ownActivate', 'ownNewAddress'])('edits a login refused with %s without the code field', async (code) => {
+    stubSaves([], { stored: [{ host: 'rapidgator.net', username: 'john', status: 'rejected', code, enabled: true }] });
+    await openStored();
+    expect(field('Password')).toBeDefined();
+    expect(field('Two-factor code')).toBeUndefined();
+  });
+
+  it('keeps the code field on a login whose session ended, and signs in with the new code', async () => {
+    const posted = stubSaves([{ host: 'rapidgator.net', username: 'john', status: 'active', enabled: true }], {
+      stored: [asking('ownCodeEnded')],
+    });
+    await openStored();
+    expect(document.querySelector('#hoster-code-note')?.textContent).toBe(
+      'The session has ended. Enter a new code to sign in again.',
+    );
     expect(button('Save').disabled).toBe(true);
     type(field('Two-factor code')!, '482913');
     await act(async () => button('Save').click());
 
-    expect(posted).toEqual([
-      { host: 'rapidgator.net', username: 'john', password: 'hunter2' },
-      { host: 'rapidgator.net', username: 'john', password: 'hunter2', code: '482913' },
-    ]);
-  });
-
-  it('lets a refused login that takes a code sign in with one, and clears it after the save', async () => {
-    const refused = { host: 'rapidgator.net', username: 'john', status: 'rejected', code: 'ownInvalid', enabled: true, twoFactor: true };
-    const posted = stubSaves([{ ...refused, code: 'ownCodeWrong', askCode: true }], { stored: [refused], twoFactor: true });
-    await act(async () => root.render(page));
-    const row = [...card('Hoster accounts').querySelectorAll<HTMLElement>('tr')].find((r) => r.textContent?.includes('rapidgator.net'))!;
-    await act(async () => row.querySelector('td')!.click());
-
-    type(field('Two-factor code')!, '482913');
-    await act(async () => button('Save').click());
-
     expect(posted).toEqual([{ host: 'rapidgator.net', username: 'john', password: '********', code: '482913' }]);
-    expect(field('Two-factor code')!.value).toBe('');
   });
 
   it('asks for the code the hoster wants and signs in with it, keeping the window open until then', async () => {

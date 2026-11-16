@@ -124,9 +124,6 @@ type Signer struct {
 	Age time.Duration
 	// None is the error a download without a stored login fails with.
 	None error
-	// Codes is set for a hoster whose sign-in takes the one-time code of a
-	// second factor.
-	Codes bool
 }
 
 // Session is a signed-in login.
@@ -201,9 +198,6 @@ func (l *Login) Ready() bool {
 	return l.user != "" && !l.status.Refused && (!l.status.Checked || l.status.Premium) &&
 		time.Now().After(l.benched) && !l.Handed()
 }
-
-// TakesCode reports whether the hoster's sign-in takes a two-factor code.
-func (l *Login) TakesCode() bool { return l.s.Codes }
 
 // Status is what the hoster made of the stored login.
 func (l *Login) Status() Status {

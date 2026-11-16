@@ -1411,7 +1411,6 @@ export const ar: Dict = {
 
   'accounts.hoster.codeField': 'رمز التحقق الثنائي',
   'accounts.hoster.codeHint': 'الرمز المكوّن من ستة أرقام الذي يعرضه تطبيق المصادقة. يسجّل KnightLoader الدخول به مرة واحدة ولا يحتفظ به.',
-  'accounts.hoster.codeOptionalHint': 'اتركه فارغًا ما لم يكن الحساب يسجّل الدخول برمز تحقق بخطوتين. يستخدمه KnightLoader مرة واحدة ولا يحتفظ به.',
   'accounts.hoster.codeNeeded': 'يطلب المستضيف رمز تحقق ثنائي قبل أن يقبل تسجيل الدخول هذا.',
   'accounts.hoster.codeWrong': 'لم ينجح هذا الرمز. أدخل الرمز الذي يعرضه التطبيق الآن.',
   'accounts.hoster.codeEnded': 'انتهت الجلسة. أدخل رمزًا جديدًا لتسجيل الدخول من جديد.',

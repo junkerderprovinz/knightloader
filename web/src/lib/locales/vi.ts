@@ -1409,7 +1409,6 @@ export const vi: Dict = {
 
   'accounts.hoster.codeField': 'Mã xác thực hai yếu tố',
   'accounts.hoster.codeHint': 'Mã sáu chữ số mà ứng dụng xác thực của bạn hiển thị. KnightLoader dùng mã này đăng nhập một lần và không lưu lại.',
-  'accounts.hoster.codeOptionalHint': 'Để trống, trừ khi tài khoản đăng nhập bằng mã xác thực hai bước. KnightLoader chỉ dùng mã này một lần và không lưu lại.',
   'accounts.hoster.codeNeeded': 'Hoster yêu cầu mã xác thực hai yếu tố trước khi chấp nhận đăng nhập này.',
   'accounts.hoster.codeWrong': 'Mã này không dùng được. Hãy nhập mã ứng dụng đang hiển thị.',
   'accounts.hoster.codeEnded': 'Phiên đã kết thúc. Hãy nhập mã mới để đăng nhập lại.',

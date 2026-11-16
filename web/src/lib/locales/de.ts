@@ -1550,7 +1550,6 @@ export const de: Dict = {
   'accounts.hoster.searchHosts': 'Hoster durchsuchen…',
   'accounts.hoster.codeField': 'Zwei-Faktor-Code',
   'accounts.hoster.codeHint': 'Der sechsstellige Code, den deine Authenticator-App zeigt. KnightLoader meldet sich einmal damit an und behält ihn nicht.',
-  'accounts.hoster.codeOptionalHint': 'Bleibt leer, außer das Konto meldet sich mit einem Zwei-Faktor-Code an. KnightLoader nutzt ihn einmal und behält ihn nicht.',
   'accounts.hoster.codeNeeded': 'Der Hoster verlangt einen Zwei-Faktor-Code, bevor er diese Anmeldung annimmt.',
   'accounts.hoster.codeWrong': 'Der Code hat nicht gepasst. Gib den ein, den die App gerade zeigt.',
   'accounts.hoster.codeEnded': 'Die Sitzung ist abgelaufen. Gib einen neuen Code ein, um dich wieder anzumelden.',

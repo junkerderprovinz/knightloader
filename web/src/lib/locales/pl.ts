@@ -1402,7 +1402,6 @@ export const pl: Dict = {
 
   'accounts.hoster.codeField': 'Kod dwuskładnikowy',
   'accounts.hoster.codeHint': 'Sześciocyfrowy kod, który pokazuje twoja aplikacja uwierzytelniająca. KnightLoader loguje się nim raz i go nie przechowuje.',
-  'accounts.hoster.codeOptionalHint': 'Zostaw puste, chyba że konto loguje się kodem dwuskładnikowym. KnightLoader użyje go raz i go nie przechowuje.',
   'accounts.hoster.codeNeeded': 'Hoster prosi o kod dwuskładnikowy, zanim przyjmie to logowanie.',
   'accounts.hoster.codeWrong': 'Ten kod nie zadziałał. Wpisz ten, który aplikacja pokazuje teraz.',
   'accounts.hoster.codeEnded': 'Sesja się skończyła. Wpisz nowy kod, żeby zalogować się ponownie.',

@@ -537,11 +537,7 @@ function HosterLoginDialog({
     : editing
       ? t('accounts.editCredentialTitle', { service: picked.label })
       : t('accounts.addAccountTitle', { service: picked.label });
-  // A hoster whose sign-in takes a code offers the field before it asks for
-  // one, so a login it turned down can still get there.
-  const takesCode = !!editing?.twoFactor || !!(picked && hosts.find((h) => h.id === picked.id)?.twoFactor);
-  const canSave =
-    username.trim() !== '' && password.trim() !== '' && (asked ? CODE.test(code) : code === '' || CODE.test(code));
+  const canSave = username.trim() !== '' && password.trim() !== '' && (!asked || CODE.test(code));
   // Why the field is there. Only a code the hoster turned down is the
   // person's to correct, so only that one reads as an error.
   const codeWrong = asked?.code === 'ownCodeWrong';
@@ -613,21 +609,17 @@ function HosterLoginDialog({
           <SettingRow control="long" label={t('accounts.passwordField')} hint={t('accounts.hoster.passwordCustody')}>
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </SettingRow>
-          {(asked || takesCode) && (
+          {asked && (
             <div data-new="hoster-code" className="flex flex-col gap-1.5">
-              <SettingRow
-                control="long"
-                label={t('accounts.hoster.codeField')}
-                hint={t(asked ? 'accounts.hoster.codeHint' : 'accounts.hoster.codeOptionalHint')}
-              >
+              <SettingRow control="long" label={t('accounts.hoster.codeField')} hint={t('accounts.hoster.codeHint')}>
                 <TextInput
-                  autoFocus={asked !== null}
+                  autoFocus
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   pattern="[0-9]{6}"
                   maxLength={6}
                   aria-invalid={codeWrong && code === ''}
-                  aria-describedby={asked ? 'hoster-code-note' : undefined}
+                  aria-describedby="hoster-code-note"
                   className="tabular-nums tracking-[0.2em]"
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -636,15 +628,13 @@ function HosterLoginDialog({
                   }}
                 />
               </SettingRow>
-              {asked && (
-                <p
-                  id="hoster-code-note"
-                  role={codeWrong ? 'alert' : undefined}
-                  className={`text-meta ${codeWrong ? 'text-statusFail' : 'text-carbon-textMuted'}`}
-                >
-                  {codeNote}
-                </p>
-              )}
+              <p
+                id="hoster-code-note"
+                role={codeWrong ? 'alert' : undefined}
+                className={`text-meta ${codeWrong ? 'text-statusFail' : 'text-carbon-textMuted'}`}
+              >
+                {codeNote}
+              </p>
             </div>
           )}
           {editing?.signInSite && (

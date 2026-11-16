@@ -57,7 +57,7 @@ func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.U
 	b := &Backend{client: c, onUpdate: onUpdate, sleep: hoster.Sleep, inspectPause: 500 * time.Millisecond}
 	b.Login = ownlogin.NewLogin(ownlogin.Signer{
 		Login: c.Login, Account: c.User, Reason: reason, Expired: func(err error) bool { return errors.Is(err, errSession) },
-		Age: sessionAge, None: ErrNoLogin, Codes: true,
+		Age: sessionAge, None: ErrNoLogin,
 	})
 	b.Tasks = ownlogin.NewTasks(b.Login, eng, onUpdate, ownlogin.Config{
 		Name: "Rapidgator", Unlock: b.unlock,

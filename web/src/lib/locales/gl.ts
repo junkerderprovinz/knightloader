@@ -1409,7 +1409,6 @@ export const gl: Dict = {
 
   'accounts.hoster.codeField': 'Código de dobre factor',
   'accounts.hoster.codeHint': 'O código de seis cifras que mostra a túa aplicación de autenticación. KnightLoader inicia sesión con el unha soa vez e non o garda.',
-  'accounts.hoster.codeOptionalHint': 'Déixao baleiro salvo que a conta inicie sesión cun código de dous factores. KnightLoader úsao unha soa vez e non o garda.',
   'accounts.hoster.codeNeeded': 'O aloxador pide un código de dobre factor antes de aceptar este acceso.',
   'accounts.hoster.codeWrong': 'Ese código non funcionou. Introduce o que mostra agora a aplicación.',
   'accounts.hoster.codeEnded': 'A sesión rematou. Introduce un código novo para volver entrar.',

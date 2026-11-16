@@ -66,9 +66,6 @@ func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
 		if skip[serviceKey(h.ID)] || multihostersLeftOut[serviceKey(h.ID)] {
 			continue
 		}
-		if own := a.ownHosterAt(h.ID); own != nil {
-			h.TwoFactor = own.be.TakesCode()
-		}
 		out = append(out, h)
 	}
 	return out

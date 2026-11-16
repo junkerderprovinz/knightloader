@@ -34,7 +34,6 @@ type ownBackend interface {
 	Check(ctx context.Context) ownlogin.Status
 	SignIn(ctx context.Context, code string) ownlogin.Status
 	RestoreSession(token string)
-	TakesCode() bool
 	Status() ownlogin.Status
 }
 
@@ -315,7 +314,7 @@ func (a *App) ownLoginState(host string) (hosterauth.OwnState, bool) {
 		if h.site == hostalias.Canonical(host) {
 			st := h.be.Status()
 			return hosterauth.OwnState{
-				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Code: string(st.Code), TwoFactor: h.be.TakesCode(),
+				Checked: st.Checked, Refused: st.Refused, Detail: st.Err, Captcha: st.Captcha, Code: string(st.Code),
 				Activate: st.Activate, NewAddress: st.NewAddress,
 				Handed: st.Handed, Premium: st.Premium,
 				Expiry: st.Expiry, TrafficLeft: st.TrafficLeft, TrafficMax: st.TrafficMax,

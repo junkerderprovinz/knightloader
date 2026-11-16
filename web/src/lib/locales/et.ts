@@ -1409,7 +1409,6 @@ export const et: Dict = {
 
   'accounts.hoster.codeField': 'Kaheastmelise kinnituse kood',
   'accounts.hoster.codeHint': 'Kuuekohaline kood, mida su autentimisrakendus näitab. KnightLoader logib sellega korra sisse ega jäta seda alles.',
-  'accounts.hoster.codeOptionalHint': 'Jäta tühjaks, kui konto ei logi sisse kaheastmelise koodiga. KnightLoader kasutab seda korra ega jäta seda alles.',
   'accounts.hoster.codeNeeded': 'Hoster küsib enne selle sisselogimise vastuvõtmist kaheastmelise kinnituse koodi.',
   'accounts.hoster.codeWrong': 'See kood ei sobinud. Sisesta see, mida rakendus praegu näitab.',
   'accounts.hoster.codeEnded': 'Seanss on lõppenud. Uuesti sisselogimiseks sisesta uus kood.',

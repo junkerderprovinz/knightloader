@@ -1409,7 +1409,6 @@ export const id: Dict = {
 
   'accounts.hoster.codeField': 'Kode dua faktor',
   'accounts.hoster.codeHint': 'Kode enam digit yang ditampilkan aplikasi autentikatormu. KnightLoader memakainya sekali untuk login dan tidak menyimpannya.',
-  'accounts.hoster.codeOptionalHint': 'Biarkan kosong kecuali akun login dengan kode dua faktor. KnightLoader memakainya sekali dan tidak menyimpannya.',
   'accounts.hoster.codeNeeded': 'Hoster meminta kode dua faktor sebelum menerima login ini.',
   'accounts.hoster.codeWrong': 'Kode itu tidak berhasil. Masukkan kode yang sedang ditampilkan aplikasi.',
   'accounts.hoster.codeEnded': 'Sesinya sudah berakhir. Masukkan kode baru untuk login lagi.',

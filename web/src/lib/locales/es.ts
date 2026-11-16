@@ -1401,7 +1401,6 @@ export const es: Dict = {
 
   'accounts.hoster.codeField': 'Código de doble factor',
   'accounts.hoster.codeHint': 'El código de seis cifras que muestra tu app de autenticación. KnightLoader inicia sesión con él una sola vez y no lo guarda.',
-  'accounts.hoster.codeOptionalHint': 'Déjalo vacío salvo que la cuenta inicie sesión con un código de dos factores. KnightLoader lo usa una sola vez y no lo guarda.',
   'accounts.hoster.codeNeeded': 'El hoster pide un código de doble factor antes de aceptar este acceso.',
   'accounts.hoster.codeWrong': 'Ese código no funcionó. Introduce el que muestra ahora la app.',
   'accounts.hoster.codeEnded': 'La sesión terminó. Introduce un código nuevo para volver a entrar.',

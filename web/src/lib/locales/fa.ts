@@ -1409,7 +1409,6 @@ export const fa: Dict = {
 
   'accounts.hoster.codeField': 'کد تأیید دومرحله‌ای',
   'accounts.hoster.codeHint': 'کد شش‌رقمی‌ای که برنامهٔ احراز هویتت نشان می‌دهد. KnightLoader یک بار با آن وارد می‌شود و آن را نگه نمی‌دارد.',
-  'accounts.hoster.codeOptionalHint': 'خالی بگذار، مگر این‌که حساب با کد تأیید دومرحله‌ای وارد شود. KnightLoader یک بار از آن استفاده می‌کند و آن را نگه نمی‌دارد.',
   'accounts.hoster.codeNeeded': 'میزبان پیش از پذیرفتن این ورود، کد تأیید دومرحله‌ای می‌خواهد.',
   'accounts.hoster.codeWrong': 'این کد کار نکرد. کدی را که برنامه همین حالا نشان می‌دهد وارد کن.',
   'accounts.hoster.codeEnded': 'نشست تمام شده است. برای ورود دوباره یک کد تازه وارد کن.',

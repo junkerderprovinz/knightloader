@@ -2938,8 +2938,6 @@ export async function testFeed(url: string, titleFilter = ''): Promise<FeedTest>
 export interface HosterHost {
   id: string;
   label: string;
-  /** The host's sign-in takes a two-factor code. */
-  twoFactor?: boolean;
 }
 
 /**
@@ -2971,8 +2969,6 @@ export interface HosterLogin {
   /** The hoster takes the login again only with the one-time code of its
    *  second factor, which `code` says why. */
   askCode?: boolean;
-  /** The login's sign-in takes a two-factor code, which may be entered at any time. */
-  twoFactor?: boolean;
   /** The sign-in browser's id for the hoster's own sign-in page, for a login
    *  that can be signed in there, and whether it waits for that. */
   signInSite?: string;

@@ -1409,7 +1409,6 @@ export const cs: Dict = {
 
   'accounts.hoster.codeField': 'Dvoufázový kód',
   'accounts.hoster.codeHint': 'Šestimístný kód, který ukazuje tvoje ověřovací aplikace. KnightLoader se s ním jednou přihlásí a neuchová si ho.',
-  'accounts.hoster.codeOptionalHint': 'Nech prázdné, pokud se účet nepřihlašuje dvoufázovým kódem. KnightLoader ho použije jednou a neuchová si ho.',
   'accounts.hoster.codeNeeded': 'Hoster chce dvoufázový kód, než toto přihlášení přijme.',
   'accounts.hoster.codeWrong': 'Tenhle kód nefungoval. Zadej ten, který aplikace ukazuje teď.',
   'accounts.hoster.codeEnded': 'Relace skončila. Zadej nový kód a přihlas se znovu.',

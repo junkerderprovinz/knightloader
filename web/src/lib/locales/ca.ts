@@ -1409,7 +1409,6 @@ export const ca: Dict = {
 
   'accounts.hoster.codeField': 'Codi de doble factor',
   'accounts.hoster.codeHint': 'El codi de sis xifres que mostra la teva aplicació d’autenticació. KnightLoader inicia la sessió amb ell una sola vegada i no el desa.',
-  'accounts.hoster.codeOptionalHint': 'Deixa-ho en blanc tret que el compte iniciï la sessió amb un codi de dos factors. KnightLoader el fa servir una sola vegada i no el desa.',
   'accounts.hoster.codeNeeded': 'L’allotjador demana un codi de doble factor abans d’acceptar aquest inici de sessió.',
   'accounts.hoster.codeWrong': 'Aquest codi no ha funcionat. Introdueix el que mostra ara l’aplicació.',
   'accounts.hoster.codeEnded': 'La sessió s’ha acabat. Introdueix un codi nou per tornar a iniciar la sessió.',

@@ -1410,7 +1410,6 @@ export const eu: Dict = {
 
   'accounts.hoster.codeField': 'Bi urratseko kodea',
   'accounts.hoster.codeHint': 'Zure autentifikazio-aplikazioak erakusten duen sei digituko kodea. KnightLoader-ek behin hasten du saioa harekin, eta ez du gordetzen.',
-  'accounts.hoster.codeOptionalHint': 'Utzi hutsik, kontuak bi urratseko kode batekin hasten ez badu saioa. KnightLoader-ek behin erabiltzen du, eta ez du gordetzen.',
   'accounts.hoster.codeNeeded': 'Ostalariak bi urratseko kodea eskatzen du saio-hasiera hau onartu aurretik.',
   'accounts.hoster.codeWrong': 'Kode horrek ez du balio izan. Idatzi aplikazioak orain erakusten duena.',
   'accounts.hoster.codeEnded': 'Saioa amaitu da. Idatzi kode berri bat berriro sartzeko.',

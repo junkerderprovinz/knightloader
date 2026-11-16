@@ -1410,7 +1410,6 @@ export const hi: Dict = {
 
   'accounts.hoster.codeField': 'दो-चरणीय कोड',
   'accounts.hoster.codeHint': 'आपके ऑथेंटिकेटर ऐप में दिखने वाला छह अंकों का कोड। KnightLoader इससे एक बार साइन इन करता है और इसे नहीं रखता।',
-  'accounts.hoster.codeOptionalHint': 'इसे खाली छोड़ें, जब तक खाता दो-चरणीय कोड से साइन इन न करता हो। KnightLoader इसे एक बार इस्तेमाल करता है और इसे नहीं रखता।',
   'accounts.hoster.codeNeeded': 'यह लॉगिन स्वीकार करने से पहले होस्टर दो-चरणीय कोड माँगता है।',
   'accounts.hoster.codeWrong': 'यह कोड काम नहीं आया। ऐप में अभी दिख रहा कोड डालें।',
   'accounts.hoster.codeEnded': 'सत्र समाप्त हो गया है। दोबारा साइन इन करने के लिए नया कोड डालें।',

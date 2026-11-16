@@ -1409,7 +1409,6 @@ export const ms: Dict = {
 
   'accounts.hoster.codeField': 'Kod dua faktor',
   'accounts.hoster.codeHint': 'Kod enam digit yang dipaparkan oleh apl pengesah anda. KnightLoader log masuk dengannya sekali sahaja dan tidak menyimpannya.',
-  'accounts.hoster.codeOptionalHint': 'Biarkan kosong melainkan akaun log masuk dengan kod dua faktor. KnightLoader menggunakannya sekali sahaja dan tidak menyimpannya.',
   'accounts.hoster.codeNeeded': 'Hoster meminta kod dua faktor sebelum menerima log masuk ini.',
   'accounts.hoster.codeWrong': 'Kod itu tidak berjaya. Masukkan kod yang dipaparkan apl sekarang.',
   'accounts.hoster.codeEnded': 'Sesi sudah tamat. Masukkan kod baharu untuk log masuk semula.',
