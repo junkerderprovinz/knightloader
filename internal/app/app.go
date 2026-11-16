@@ -686,6 +686,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		return nil, err
 	}
 	a.Accounts = acc
+	linksnappySessions.store.Store(acc)
 	a.forgetPastedJars()
 	if err := a.openVPN(); err != nil {
 		st.Close()
