@@ -15,7 +15,7 @@ import (
 )
 
 func registerHosterAuth(reg *Registry, a *app.App) {
-	reg.Add(http.MethodGet, "/api/hosterauth/hosts", "hosts the 'add a login' picker offers - JD's own list, or a curated fallback",
+	reg.Add(http.MethodGet, "/api/hosterauth/hosts", "hosts the 'add a login' picker offers - JD's own list without unreachable hosters, or a curated fallback",
 		func(w http.ResponseWriter, r *http.Request) {
 			ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 			defer cancel()

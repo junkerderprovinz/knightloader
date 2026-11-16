@@ -494,6 +494,9 @@ type App struct {
 	// iconCache is the hoster-icon cache (app_hostericons.go), embedded so its
 	// fields stay in that file. It is built on first use.
 	iconCache
+	// unreachableState is which unreachable hosters answer again
+	// (app_unreachable.go), the same way.
+	unreachableState
 	// trackerListState is the public tracker list (app_torrentrules.go), the
 	// same way.
 	trackerListState

@@ -1,6 +1,7 @@
 // Package hostericons holds the hoster icons that ship in the binary, each
 // named <host>.png or <host>.svg: the ones the owner puts in overrides by
-// hand, and the set scripts/hostericons fetches and writes.
+// hand, and the set scripts/hostericons fetches and writes. The same script
+// writes the list of unreachable hosters.
 package hostericons
 
 import (
@@ -15,3 +16,9 @@ var (
 	Overrides, _ = fs.Sub(files, "overrides")
 	Set, _       = fs.Sub(files, "set")
 )
+
+// Unreachable lists the hosters whose site did not answer, one per line as
+// the host, a tab and the reason.
+//
+//go:embed unreachable.txt
+var Unreachable string

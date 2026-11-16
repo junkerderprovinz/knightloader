@@ -167,6 +167,7 @@ func main() {
 	a.StartAccountHealthNow()
 	a.StartYtdlpAutoUpdate()
 	a.StartJDAutoUpdate()
+	a.StartUnreachableCheck()
 	// Signed in to a site in a browser on this machine means signed in here;
 	// in a container this does nothing.
 	a.StartBrowserSessions()
