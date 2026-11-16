@@ -252,7 +252,7 @@ func classify(method string, status int, details string) error {
 	case has("invalid auth code"):
 		return &LoginError{Msg: "rapidgator: the account signs in with a two-factor code, so enter the one the authenticator app shows", Err: ownlogin.ErrNeedsCode}
 	case has("activate your account"):
-		return &LoginError{Activate: true, CodeMayHelp: true, Msg: "rapidgator: Rapidgator wants the account activated first, through the link it emailed when the account was made"}
+		return notActivated()
 	case has("unusual ip"):
 		return &LoginError{NewAddress: true, CodeMayHelp: true, Msg: "rapidgator: Rapidgator wants this address confirmed through the link it emailed to the account"}
 	case has("login or password is wrong", "e-mail or password", "password cannot be blank", "login or password is missing"):
@@ -271,6 +271,12 @@ func classify(method string, status int, details string) error {
 		return errSession
 	}
 	return &APIError{Status: status, Details: details}
+}
+
+// notActivated is Rapidgator calling the account not activated, which it
+// also answers some two-factor accounts with that came without their code.
+func notActivated() *LoginError {
+	return &LoginError{Activate: true, CodeMayHelp: true, Msg: "rapidgator: Rapidgator wants the account activated first, through the link it emailed when the account was made"}
 }
 
 // Page reads the public page of a file link, which needs no login.

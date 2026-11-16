@@ -150,6 +150,7 @@ func (a *App) ownHosters(eng ownlogin.Downloader) []*ownHoster {
 	// link held for premium only was waiting for.
 	rg := rapidgator.NewBackend(rapidgator.NewClient(rapidgator.DefaultSite, hc), eng, a.onUpdate)
 	rg.Checked, rg.Moved, rg.Saved = a.refreshPremiumHolds, a.ownLoginMoved, a.keepOwnSession(rapidgator.Site)
+	rg.Solve = a.solveFor(rapidgator.Site)
 	rgFree := rapidgator.NewFreeBackend(rapidgator.NewClient(rapidgator.DefaultSite, hc), eng, a.onUpdate)
 	a.own = append(a.own, &ownHoster{id: rapidgator.ResolverID, site: rapidgator.Site,
 		normalize: rapidgator.Normalize, be: rg, res: rapidgator.Resolver{Backend: rg},

@@ -125,8 +125,10 @@ type Signer struct {
 	Expired func(error) bool
 	// Age is how long a token is used before signing in afresh, 0 for as
 	// long as the hoster takes it. A token opened with a code is kept as
-	// long as the hoster takes it, since signing in afresh needs a new code.
-	Age time.Duration
+	// long as the hoster takes it, since signing in afresh needs a new code,
+	// and so is one Keep reports. Nil Keep keeps none.
+	Age  time.Duration
+	Keep func(token string) bool
 	// None is the error a download without a stored login fails with.
 	None error
 }
@@ -266,7 +268,8 @@ func (l *Login) Session(ctx context.Context, fresh bool) (Session, error) {
 	if asked != nil {
 		return Session{}, asked
 	}
-	if cur.Token != "" && (coded || !fresh && (l.s.Age == 0 || time.Since(cur.at) < l.s.Age)) {
+	kept := l.s.Keep != nil && l.s.Keep(cur.Token)
+	if cur.Token != "" && (coded || kept || !fresh && (l.s.Age == 0 || time.Since(cur.at) < l.s.Age)) {
 		acct, err := l.s.Account(ctx, cur.Token)
 		if err == nil {
 			cur.Account = acct

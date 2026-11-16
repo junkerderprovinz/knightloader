@@ -213,8 +213,8 @@ func TestATwoFactorRapidgatorLoginIsSavedAndThenSignedInWithItsCode(t *testing.T
 	if row.AskCode || row.Status != hosterauth.StatusActive || row.Tier != "premium" {
 		t.Errorf("saved with the code = %+v, want the active premium row", row)
 	}
-	if n := srv.Logins(); n != 2 {
-		t.Errorf("signed in %d times, want once without the code and once with it", n)
+	if n, codes := srv.Logins(), srv.SiteCodes(); n != 1 || !slices.Equal(codes, []string{"", "482913"}) {
+		t.Errorf("signed in %d times through the API and on the website with %q, want the API once and the code once", n, codes)
 	}
 	cred, err := a.Accounts.GetCredential(hosterauth.Service, "rg.to")
 	if err != nil || cred.Password != "hunter2" || strings.Contains(fmt.Sprintf("%+v", cred), "482913") {
@@ -235,8 +235,8 @@ func TestARapidgatorLoginTakesItsTwoFactorCodeUpFront(t *testing.T) {
 	if row.Status != hosterauth.StatusActive || row.Tier != "premium" {
 		t.Errorf("saved with the code up front = %+v, want the active premium row", row)
 	}
-	if n := srv.Logins(); n != 1 {
-		t.Errorf("signed in %d times, want once, with the code", n)
+	if n, codes := srv.Logins(), srv.SiteCodes(); n != 0 || !slices.Equal(codes, []string{"482913"}) {
+		t.Errorf("signed in %d times through the API and on the website with %q, want once, with the code", n, codes)
 	}
 }
 
@@ -271,6 +271,8 @@ func TestARapidgatorRefusalWaitingForAMailedLinkNamesItsStepOnTheRow(t *testing.
 		a := newCrawlApp(t, false)
 		srv := rgServer(t)
 		srv.Fail("user/login", http.StatusUnauthorized, details)
+		// The website signs such a login in, unless it cannot be read.
+		srv.BreakSite()
 		useRapidgator(a, srv)
 
 		row, err := a.SaveHosterLogin(context.Background(), "rg.to", "john@example.com", "hunter2", "")
@@ -286,11 +288,11 @@ func TestARapidgatorRefusalWaitingForAMailedLinkNamesItsStepOnTheRow(t *testing.
 	}
 }
 
-func TestATwoFactorRapidgatorLoginRefusedAsNotActivatedOffersTheCode(t *testing.T) {
+func TestARapidgatorLoginTheAPICallsNotActivatedConnectsThroughTheWebsite(t *testing.T) {
 	a := newCrawlApp(t, false)
 	srv := rgtest.New(t)
 	srv.AddAccount(rgtest.Account{Email: "john@example.com", Password: "hunter2", Premium: true, TwoFactor: true, Code: "482913",
-		NoCode: "Error: Please activate your account! Before you can login, you must activate your account with the link sent to your email address."})
+		APIRefuses: "Error: Please activate your account! Before you can login, you must activate your account with the link sent to your email address."})
 	useRapidgator(a, srv)
 	ctx := context.Background()
 
@@ -298,15 +300,18 @@ func TestATwoFactorRapidgatorLoginRefusedAsNotActivatedOffersTheCode(t *testing.
 	if err != nil {
 		t.Fatal(err)
 	}
-	if row.Code != "ownActivate" || !row.CodeMayHelp {
-		t.Fatalf("the code-less sign-in = %+v, want the activation refusal offering the code", row)
+	if row.Code != "ownCodeNeeded" || !row.AskCode {
+		t.Fatalf("the code-less sign-in = %+v, want the website asking for the code", row)
 	}
 	row, err = a.SaveHosterLogin(ctx, "rg.to", "john@example.com", accounts.Redacted, "482913")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if row.Status != hosterauth.StatusActive {
-		t.Errorf("the sign-in with the code = %+v, want it active", row)
+	if row.Status != hosterauth.StatusActive || row.Tier != "premium" {
+		t.Errorf("the sign-in with the code = %+v, want it active on premium", row)
+	}
+	if got := srv.SiteCodes(); len(got) != 2 || got[1] != "482913" {
+		t.Errorf("the website was sent the codes %q, want the code once", got)
 	}
 }
 
@@ -347,8 +352,8 @@ func TestARapidgatorSessionOpenedWithACodeOutlivesARestart(t *testing.T) {
 		row, ok := loginRow(a, "rg.to")
 		return ok && row.Status == hosterauth.StatusActive && row.Tier == "premium"
 	})
-	if n := srv.Logins(); n != 2 {
-		t.Errorf("signed in %d times, want only the two before the restart", n)
+	if n, codes := srv.Logins(), srv.SiteCodes(); n != 1 || len(codes) != 2 {
+		t.Errorf("signed in %d times through the API and %d on the website, want only the sign-ins before the restart", n, len(codes))
 	}
 }
 
@@ -363,8 +368,8 @@ func TestAKeptRapidgatorSessionRapidgatorEndedAsksForANewCode(t *testing.T) {
 		row, ok := loginRow(a, "rg.to")
 		return ok && row.AskCode && row.Code == "ownCodeEnded"
 	})
-	if n := srv.Logins(); n != 2 {
-		t.Errorf("signed in %d times, want no try with the password alone", n)
+	if n, codes := srv.Logins(), srv.SiteCodes(); n != 1 || len(codes) != 2 {
+		t.Errorf("signed in %d times through the API and %d on the website, want no try with the password alone", n, len(codes))
 	}
 	if cred := keptSession(t, a); !cred.IsZero() {
 		t.Error("the session Rapidgator ended is still kept")

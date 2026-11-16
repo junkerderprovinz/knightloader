@@ -37,10 +37,9 @@ type Account struct {
 	// give it. Rapidgator answers a missing code and a wrong one alike.
 	TwoFactor bool
 	Code      string
-	// NoCode is what a two-factor login without a code is answered with,
-	// "Error: Invalid auth code" when empty. Some accounts get the
-	// activation refusal instead.
-	NoCode string
+	// APIRefuses is what the API answers every sign-in of the account with,
+	// while the website signs it in.
+	APIRefuses string
 }
 
 // File is one file the server holds.
@@ -69,6 +68,13 @@ type Server struct {
 	secs     int
 	pauses   int
 	sessions map[string]*freeRun
+	// site is the website's signed-in sessions by their user__ cookie,
+	// siteCodes the two-factor code of every sign-in posted to it, and
+	// siteCaptcha a sign-in page that asks for a captcha.
+	site        map[string]*Account
+	siteCodes   []string
+	siteCaptcha bool
+	siteBroken  bool
 }
 
 // freeRun is one free download on its way through the website.
@@ -99,6 +105,7 @@ func New(t *testing.T) *Server {
 		fail:     map[string][]failure{},
 		secs:     180,
 		sessions: map[string]*freeRun{},
+		site:     map[string]*Account{},
 	}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
@@ -209,11 +216,35 @@ func (s *Server) Add(id string, f File) string {
 	return "https://rapidgator.net/file/" + id + "/" + f.Name + ".html"
 }
 
-// Expire ends every session handed out so far.
+// Expire ends every session handed out so far, the website's too.
 func (s *Server) Expire() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	clear(s.tokens)
+	clear(s.site)
+}
+
+// SiteCaptcha has the website's sign-in page ask for a captcha.
+func (s *Server) SiteCaptcha() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.siteCaptcha = true
+}
+
+// BreakSite has the website answer every sign-in with a page that names
+// nothing.
+func (s *Server) BreakSite() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.siteBroken = true
+}
+
+// SiteCodes is the two-factor code of every sign-in posted to the website,
+// "" for one without, oldest first.
+func (s *Server) SiteCodes() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.siteCodes...)
 }
 
 // Fail makes the next call of method, such as "file/download", answer with
@@ -277,6 +308,14 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		http.ServeContent(w, r, f.Name, time.Time{}, bytes.NewReader(f.Body))
+	case path == "/auth/login":
+		s.signIn(w, r)
+	case strings.HasPrefix(path, "/auth/captcha/v/"):
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(CaptchaImage)
+	case path == "/profile/index":
+		s.profile(w, r)
+	case strings.HasPrefix(path, "/file/") && s.premiumPage(w, r, strings.TrimPrefix(path, "/file/")):
 	case strings.HasPrefix(path, "/file/"):
 		s.page(w, r, strings.TrimPrefix(path, "/file/"))
 	default:
@@ -369,10 +408,10 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	s.logins++
 	acct := s.accounts[r.Form.Get("login")]
 	switch {
+	case acct != nil && acct.APIRefuses != "":
+		answer(w, http.StatusUnauthorized, acct.APIRefuses, nil)
 	case acct == nil || acct.Password != r.Form.Get("password"):
 		answer(w, http.StatusUnauthorized, "Error: Login or password is wrong", nil)
-	case acct.TwoFactor && r.Form.Get("code") == "" && acct.NoCode != "":
-		answer(w, http.StatusUnauthorized, acct.NoCode, nil)
 	case acct.TwoFactor && (r.Form.Get("code") == "" || r.Form.Get("code") != acct.Code):
 		answer(w, http.StatusUnauthorized, "Error: Invalid auth code", nil)
 	default:
@@ -408,4 +447,111 @@ func answer(w http.ResponseWriter, status int, details string, response any) {
 		body["details"] = details
 	}
 	_ = json.NewEncoder(w).Encode(body)
+}
+
+// csrf is the token the website's sign-in form carries and wants back.
+const csrf = "c5rf-t0ken"
+
+// CaptchaImage is the picture of the sign-in page's captcha, and
+// CaptchaAnswer the one answer it takes.
+var CaptchaImage = []byte("\x89PNG\r\n\x1a\nrapidgator-captcha")
+
+const CaptchaAnswer = "k7m2q"
+
+// signIn answers the website's sign-in page and the form posted from it, with
+// the markers JDownloader's plugin reads.
+func (s *Server) signIn(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	if r.Method != http.MethodPost {
+		s.loginPage(w, "")
+		return
+	}
+	_ = r.ParseForm()
+	code := r.PostForm.Get("LoginForm[twoStepAuthCode]")
+	s.siteCodes = append(s.siteCodes, code)
+	acct := s.accounts[r.PostForm.Get("LoginForm[email]")]
+	switch {
+	case s.siteBroken:
+		fmt.Fprint(w, "<html><body><p>Please try again later.</p></body></html>")
+	case r.PostForm.Get("_csrf") != csrf:
+		s.loginPage(w, "The request could not be verified.")
+	case s.siteCaptcha && r.PostForm.Get("LoginForm[verifyCode]") != CaptchaAnswer:
+		s.loginPage(w, "The verification code is incorrect.")
+	case acct == nil || acct.Password != r.PostForm.Get("LoginForm[password]"):
+		s.loginPage(w, "Wrong e-mail or password.")
+	case acct.TwoFactor && (code == "" || code != acct.Code):
+		s.loginPage(w, "Invalid auth code")
+	default:
+		session := strings.ToLower(rand.Text())[:20]
+		s.site[session] = acct
+		http.SetCookie(w, &http.Cookie{Name: "user__", Value: session, Path: "/"})
+		http.SetCookie(w, &http.Cookie{Name: "PHPSESSID", Value: "web" + session[:8], Path: "/"})
+		http.Redirect(w, r, "/profile/index", http.StatusFound)
+	}
+}
+
+func (s *Server) loginPage(w http.ResponseWriter, problem string) {
+	fmt.Fprint(w, "<html><body>")
+	if problem != "" {
+		fmt.Fprintf(w, "<div class=\"errorSummary\"><ul><li>%s</li></ul></div>", problem)
+	}
+	fmt.Fprintf(w, "<form id=\"login\" action=\"/auth/login\" method=\"post\">"+
+		"<input type=\"hidden\" name=\"_csrf\" value=\"%s\" />"+
+		"<input type=\"text\" name=\"LoginForm[email]\" value=\"\" />"+
+		"<input type=\"password\" name=\"LoginForm[password]\" value=\"\" />"+
+		"<input type=\"text\" name=\"LoginForm[twoStepAuthCode]\" value=\"\" />", csrf)
+	if s.siteCaptcha {
+		fmt.Fprint(w, "<img src=\"/auth/captcha/v/5f3a9c\" alt=\"\" /><input type=\"text\" name=\"LoginForm[verifyCode]\" />")
+	}
+	fmt.Fprint(w, "<input type=\"submit\" value=\"Login\" /></form></body></html>")
+}
+
+// signedIn is the account of the website session r carries, nil for none.
+func (s *Server) signedIn(r *http.Request) *Account {
+	c, err := r.Cookie("user__")
+	if err != nil {
+		return nil
+	}
+	return s.site[c.Value]
+}
+
+// profile is the page that says what the account is, as the website words it.
+func (s *Server) profile(w http.ResponseWriter, r *http.Request) {
+	acct := s.signedIn(r)
+	if acct == nil {
+		http.Redirect(w, r, "/auth/login", http.StatusFound)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	plan := "Free"
+	if acct.Premium {
+		plan = "Premium"
+	}
+	fmt.Fprintf(w, "<html><body><a href=\"/auth/logout\">Logout</a>"+
+		"<div>Account:&nbsp;<a href=\"/article/premium\">%s</a></div>", plan)
+	if acct.Premium && !acct.PremiumEnd.IsZero() {
+		fmt.Fprintf(w, "<p>Premium services will end on %s.<br /></p>", acct.PremiumEnd.Format("2006-01-02"))
+	}
+	if acct.TrafficTotal > 0 {
+		fmt.Fprintf(w, "<table><tr><td>Bandwith available</td><td>%d MB of %d MB</td></tr></table>",
+			acct.TrafficLeft>>20, acct.TrafficTotal>>20)
+	}
+	fmt.Fprint(w, "</body></html>")
+}
+
+// premiumPage answers a file page for a premium website session with the
+// premium download link, and leaves every other request to page.
+func (s *Server) premiumPage(w http.ResponseWriter, r *http.Request, rest string) bool {
+	acct := s.signedIn(r)
+	if acct == nil || !acct.Premium {
+		return false
+	}
+	id, _, _ := strings.Cut(rest, "/")
+	if _, ok := s.files[id]; !ok {
+		return false
+	}
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	link := s.URL + "/download/" + id + "?r=download/index&session_id=" + rand.Text()
+	fmt.Fprintf(w, "<html><body><a href=\"/auth/logout\">Logout</a><script>var premium_download_link = '%s';</script></body></html>", link)
+	return true
 }
