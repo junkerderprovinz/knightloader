@@ -1069,6 +1069,7 @@ Instances of this version refuse a relay call that is not stamped against being 
 - **The JDownloader import brings the default rules along.** The .rev and .par2 rules arrive as rules that add those files disabled, and "Create Subfolder by Packagename" turns on "Put each package in its own subfolder". The rules that still cannot come over each say why. Reported by @Kayn2106 ([#289](https://github.com/junkerderprovinz/knightloader/issues/289)).
 - **The Help card points to Discord instead of email.** Next to GitHub, a Discord button opens KnightLoader's server, in the web interface, the extension's settings and the phone app.
 - **An account's options sit right on its row.** Point at a row on the accounts page, or tab into it, and a button for each option comes in at its end, in the same order on every card. On a touch screen they are always there.
+- **Hoster logos come with KnightLoader.** The hosters in the "add a login" picker show their logo at once instead of waiting for KnightLoader to fetch it from each site, and some that never got one have it now.
 
 ## 🗑️ Removed
 
@@ -1992,6 +1993,7 @@ Instances of this version refuse a relay call that is not stamped against being 
 - **The JDownloader import brings the default rules along.** The .rev and .par2 rules arrive as rules that add those files disabled, and "Create Subfolder by Packagename" turns on "Put each package in its own subfolder". The rules that still cannot come over each say why. Reported by @Kayn2106 ([#289](https://github.com/junkerderprovinz/knightloader/issues/289)).
 - **The Help card points to Discord instead of email.** Next to GitHub, a Discord button opens KnightLoader's server, in the web interface, the extension's settings and the phone app.
 - **An account's options sit right on its row.** Point at a row on the accounts page, or tab into it, and a button for each option comes in at its end, in the same order on every card. On a touch screen they are always there.
+- **Hoster logos come with KnightLoader.** The hosters in the "add a login" picker show their logo at once instead of waiting for KnightLoader to fetch it from each site, and some that never got one have it now.
 
 ## 🗑️ Removed
 
