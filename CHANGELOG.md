@@ -117,6 +117,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   week, and only downloads what is newer. "Update now" does it all at once.
   If you had switched off the automatic update of yt-dlp or JDownloader, the
   new switch stays off for you.
+- **KnightLoader's own row has one switch too, "Automatically update".** It
+  looks for a new version and, in the desktop app, installs it. A container
+  or a Flatpak only looks and says how it is updated. If you had switched off
+  either of the two old switches, the new one stays off for you.
+- **The hoster login window tests the login right away.** After Save it stays
+  open and says "Connected" once the hoster takes the login, or why it did
+  not, so you can correct it and save again without reopening anything.
 - **The installer fetches yt-dlp like the other components.** On Windows and
   Linux it lands in the data folder during the install, checked against
   yt-dlp's own checksums, so the copy KnightLoader keeps current is there from
@@ -192,6 +199,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   account Rapidgator has not activated yet points you to the link in its
   welcome mail, and a sign-in from a new IP address to the link Rapidgator just
   sent to confirm it. Both told you to check the password before.
+- **A Rapidgator account with two-factor sign-in that reads as not activated
+  gets the code field.** Rapidgator sometimes answers such an account without
+  its code that it is not activated or signs in from a new address, so the
+  login window offers the code for both and tests the login again with it.
 - **YouTube gives yt-dlp all its formats again.** yt-dlp needs a JavaScript
   runtime to read YouTube's player, and the desktop app had none, so some
   formats were missing. The desktop app fetches Deno during the install, or at
