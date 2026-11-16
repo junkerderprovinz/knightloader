@@ -11,10 +11,15 @@
 // full list. Each icon comes from the site itself through the same fetch an
 // instance runs, or from Google's or DuckDuckGo's icon service where that
 // one is larger: the services see only the public list of hosters here,
-// never an instance's own. Icons already in the set are kept unless -refresh
-// is given. With -import the folder's files are normalised into the
-// overrides, which win over the set. The hosts left without an icon are
-// printed, one per line.
+// never an instance's own. A host without a usable icon gets the logo its
+// front page shows at the top. Icons already in the set are kept unless
+// -refresh is given. With -import the folder's files are normalised into the
+// overrides, which win over the set.
+//
+// Before any of that every host's site is asked whether it answers, and the
+// unreachable ones go to assets/hoster-icons/unreachable.txt, which keeps
+// them out of the picker and out of the set. The hosts left without an icon
+// are printed, one per line.
 package main
 
 import (
@@ -32,6 +37,7 @@ import (
 	"image/png"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -64,12 +70,24 @@ func main() {
 	refresh := flag.Bool("refresh", false, "fetch every icon again, not only the missing ones")
 	out := flag.String("out", filepath.Join("assets", "hoster-icons"), "the folder holding overrides and set")
 	marks := flag.String("marks", filepath.Join("web", "src", "lib", "hosterLogos.ts"), "the page's list of bundled logos")
+	dns := flag.String("dns", "1.1.1.1:53", "the DNS server every name is looked up with, empty for the system's")
 	flag.Parse()
 	if *hostsFrom == "" {
 		flag.Usage()
 		os.Exit(2)
 	}
 	log.SetFlags(0)
+	// A filtering resolver, as many home networks run, would count hosters
+	// as unreachable that answer everywhere else.
+	if *dns != "" {
+		net.DefaultResolver = &net.Resolver{
+			PreferGo: true,
+			Dial: func(ctx context.Context, network, _ string) (net.Conn, error) {
+				var d net.Dialer
+				return d.DialContext(ctx, network, *dns)
+			},
+		}
+	}
 
 	hosts, err := pickerHosts(*hostsFrom, *token)
 	if err != nil {
@@ -79,43 +97,54 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	listPath := filepath.Join(*out, "unreachable.txt")
+	unreachable, err := checkReach(hosts, listPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	hosts = slices.DeleteFunc(hosts, func(h string) bool { return unreachable[h] != "" })
+
 	overrideDir, setDir := filepath.Join(*out, "overrides"), filepath.Join(*out, "set")
-	if *importDir != "" {
-		n, err := importOverrides(*importDir, overrideDir)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("%d overrides imported from %s", n, *importDir)
+	kept, err := iconNames(setDir)
+	if err != nil {
+		log.Fatal(err)
 	}
 	overrides, err := iconNames(overrideDir)
 	if err != nil {
 		log.Fatal(err)
 	}
-	kept, err := iconNames(setDir)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var wanted []string
-	for _, h := range hosts {
-		if !covered(h, bundled) && !covered(h, overrides) {
-			wanted = append(wanted, h)
+	wanted := uncovered(hosts, bundled, overrides)
+	if *importDir != "" {
+		var missing []string
+		for _, h := range wanted {
+			if kept[h] == "" {
+				missing = append(missing, h)
+			}
 		}
+		n, err := importOverrides(*importDir, overrideDir, missing)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("%d overrides imported from %s", n, *importDir)
+		if overrides, err = iconNames(overrideDir); err != nil {
+			log.Fatal(err)
+		}
+		wanted = uncovered(hosts, bundled, overrides)
 	}
 	var fetch []string
 	for _, h := range wanted {
-		if _, bad := otherBrand[h]; !bad && (*refresh || kept[h] == "") {
+		if _, bad := otherIcon[h]; !bad && (*refresh || kept[h] == "") {
 			fetch = append(fetch, h)
 		}
 	}
-	log.Printf("%d hosts in the picker, %d with a logo in the page, %d with an override; fetching %d", len(hosts),
+	log.Printf("%d reachable hosts in the picker, %d with a logo in the page, %d with an override; fetching %d", len(hosts),
 		countCovered(hosts, bundled), countCovered(hosts, overrides), len(fetch))
 
-	found := fetchAll(fetch)
+	found := fetchAll(fetch, bestIcon)
 	icons := map[string]icon{}
 	for _, h := range wanted {
-		if why, bad := otherBrand[h]; bad {
-			log.Printf("left out, %s: %s", h, why)
+		if why, bad := otherIcon[h]; bad {
+			log.Printf("site icon left out, %s: %s", h, why)
 			continue
 		}
 		if ic, ok := found[h]; ok {
@@ -127,6 +156,27 @@ func main() {
 			}
 			icons[h] = ic
 		}
+	}
+	for _, group := range dropShared(icons) {
+		log.Printf("left out, one image under unrelated hosts: %s", strings.Join(group, ", "))
+	}
+
+	// A host without a usable site icon often still shows its logo at the top
+	// of its front page.
+	var bare []string
+	for _, h := range wanted {
+		if _, ok := icons[h]; ok {
+			continue
+		}
+		if why, bad := otherLogo[h]; bad {
+			log.Printf("header logo left out, %s: %s", h, why)
+			continue
+		}
+		bare = append(bare, h)
+	}
+	log.Printf("looking for the header logo of %d hosts", len(bare))
+	for h, ic := range fetchAll(bare, pageLogo) {
+		icons[h] = ic
 	}
 	for _, group := range dropShared(icons) {
 		log.Printf("left out, one image under unrelated hosts: %s", strings.Join(group, ", "))
@@ -151,14 +201,93 @@ func main() {
 	}
 }
 
-// otherBrand are hosts whose site or icon service answers with somebody
-// else's icon, and why. Every check here passes such an icon, so this list
-// comes from looking at the set.
-var otherBrand = map[string]string{
-	"bootyexpo.net": "an empty frame",
-	"dr-farfar.net": "Google's mark",
-	"pornoid.cz":    "the web host's parking page",
-	"uptomega.net":  "a file-sharing script's default, which other hosters show as well",
+// otherIcon are hosts whose site icon, or the icon services' copy of it, is
+// somebody else's, and why, and otherLogo those whose header logo is. Every
+// check here passes such a picture, so these lists come from looking at the
+// set.
+var otherIcon = map[string]string{
+	"bootyexpo.net":    "an empty frame",
+	"dosyaupload.com":  "a stock upload cloud, which other hosters show as well",
+	"dr-farfar.net":    "Google's mark",
+	"oraloverdose.com": "the network's mark, which its other sites show as well",
+	"pornoid.cz":       "the web host's parking page",
+	"uptomega.net":     "a file-sharing script's default, which other hosters show as well",
+}
+
+var otherLogo = map[string]string{
+	"brazzers.com":    "the payment provider's",
+	"fileland.io":     "the domain registrar's parking page",
+	"filepv.com":      "KatFile's",
+	"mundofile.com":   "the file-sharing script's default",
+	"nxtfiledrop.com": "a menu arrow",
+	"sharing.wtf":     "a shuffle button",
+	"wayshare.cc":     "a sign-in button",
+}
+
+// checkReach asks whether each host's site answers, for the picker's hosts
+// and those already in the list at path, which an instance leaves out of
+// the picker. It writes the unreachable ones back to path and returns them
+// with the reason.
+func checkReach(hosts []string, path string) (map[string]string, error) {
+	listed, err := os.ReadFile(path)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, err
+	}
+	check := slices.Clone(hosts)
+	for _, line := range strings.Split(string(listed), "\n") {
+		if host, _, _ := strings.Cut(strings.TrimSpace(line), "\t"); host != "" {
+			check = append(check, host)
+		}
+	}
+	slices.Sort(check)
+	check = slices.Compact(check)
+
+	var (
+		mu  sync.Mutex
+		wg  sync.WaitGroup
+		out = map[string]string{}
+	)
+	ask := func(hosts []string, workers int) {
+		queue := make(chan string)
+		for range workers {
+			wg.Go(func() {
+				for h := range queue {
+					why := app.Reachability(context.Background(), h)
+					mu.Lock()
+					if why == "" {
+						delete(out, h)
+					} else {
+						out[h] = why
+					}
+					mu.Unlock()
+				}
+			})
+		}
+		for _, h := range hosts {
+			queue <- h
+		}
+		close(queue)
+		wg.Wait()
+	}
+	ask(check, 24)
+	// A site that was only slow with two dozen others asked at once gets a
+	// second try with fewer.
+	var again []string
+	for h, why := range out {
+		if why == app.UnreachableNoAnswer {
+			again = append(again, h)
+		}
+	}
+	ask(again, 4)
+
+	var b strings.Builder
+	for _, h := range check {
+		if why := out[h]; why != "" {
+			fmt.Fprintf(&b, "%s\t%s\n", h, why)
+		}
+	}
+	log.Printf("%d of %d hosts are unreachable", len(out), len(check))
+	return out, os.WriteFile(path, []byte(b.String()), 0o644)
 }
 
 // pickerHosts reads the list /api/hosterauth/hosts serves from a URL or a
@@ -251,6 +380,18 @@ func covered(host string, names map[string]string) bool {
 	return false
 }
 
+// uncovered returns the hosts that neither the page nor an override has a
+// logo for.
+func uncovered(hosts []string, bundled, overrides map[string]string) []string {
+	var out []string
+	for _, h := range hosts {
+		if !covered(h, bundled) && !covered(h, overrides) {
+			out = append(out, h)
+		}
+	}
+	return out
+}
+
 func countCovered(hosts []string, names map[string]string) int {
 	n := 0
 	for _, h := range hosts {
@@ -270,9 +411,9 @@ type icon struct {
 	pixels [32]byte
 }
 
-// fetchAll fetches the hosts a few at a time and returns those that got an
-// icon.
-func fetchAll(hosts []string) map[string]icon {
+// fetchAll runs find for the hosts a few at a time and returns those that
+// got an icon.
+func fetchAll(hosts []string, find func(host string) (icon, string, error)) map[string]icon {
 	var (
 		mu  sync.Mutex
 		wg  sync.WaitGroup
@@ -282,7 +423,7 @@ func fetchAll(hosts []string) map[string]icon {
 	for range 12 {
 		wg.Go(func() {
 			for h := range queue {
-				ic, from, err := bestIcon(h)
+				ic, from, err := find(h)
 				mu.Lock()
 				if err == nil {
 					out[h] = ic
@@ -353,13 +494,18 @@ func bestIcon(host string) (icon, string, error) {
 
 var serviceClient = &http.Client{Timeout: 20 * time.Second}
 
-// get fetches an icon service's answer. Both answer an unknown host with a
+// browserAgent stands in for Go's own User-Agent, which many hosters answer
+// with a 403.
+const browserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
+
+// get fetches an image. The icon services answer an unknown host with a
 // placeholder and an error status, so only a 200 counts.
 func get(ctx context.Context, rawURL string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("User-Agent", browserAgent)
 	resp, err := serviceClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -582,9 +728,9 @@ func writeSet(dir string, icons map[string]icon) error {
 	return nil
 }
 
-// importOverrides normalises every <host>.<ext> logo in from into dir,
-// replacing an override the host had.
-func importOverrides(from, dir string) (int, error) {
+// importOverrides normalises every logo in from into dir, replacing an
+// override the host had. importHost reads the host from the file name.
+func importOverrides(from, dir string, missing []string) (int, error) {
 	entries, err := os.ReadDir(from)
 	if err != nil {
 		return 0, err
@@ -595,9 +741,12 @@ func importOverrides(from, dir string) (int, error) {
 	}
 	n := 0
 	for _, e := range entries {
-		ext := filepath.Ext(e.Name())
-		host := strings.TrimPrefix(strings.ToLower(strings.TrimSuffix(e.Name(), ext)), "www.")
-		if e.IsDir() || !strings.Contains(host, ".") {
+		if e.IsDir() {
+			continue
+		}
+		host := importHost(e.Name(), missing)
+		if host == "" {
+			log.Printf("%s: names no host, or more than one", e.Name())
 			continue
 		}
 		body, err := os.ReadFile(filepath.Join(from, e.Name()))
@@ -620,4 +769,32 @@ func importOverrides(from, dir string) (int, error) {
 		n++
 	}
 	return n, nil
+}
+
+// imageExts are the extensions an imported file may carry. Its bytes decide
+// the format either way.
+var imageExts = []string{".png", ".svg", ".webp", ".jpg", ".jpeg", ".gif", ".ico", ".bmp"}
+
+// importHost is the host an imported file is for: its name without an image
+// extension or a leading www., or for a bare name such as "analoverdose" the
+// one host in missing that is that name under some top-level domain.
+func importHost(file string, missing []string) string {
+	name := strings.ToLower(file)
+	if ext := filepath.Ext(name); slices.Contains(imageExts, ext) {
+		name = strings.TrimSuffix(name, ext)
+	}
+	name = strings.TrimPrefix(name, "www.")
+	if strings.Contains(name, ".") {
+		return name
+	}
+	match := ""
+	for _, h := range missing {
+		if dot := strings.LastIndexByte(h, '.'); dot > 0 && h[:dot] == name {
+			if match != "" {
+				return ""
+			}
+			match = h
+		}
+	}
+	return match
 }
