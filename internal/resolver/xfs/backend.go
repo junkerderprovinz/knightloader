@@ -47,6 +47,12 @@ type LoginState struct {
 	// SignInHere is a login that waits for the user to sign in on the site's
 	// own page, through the sign-in browser.
 	SignInHere bool
+	// Activate is a refusal until the user activates the account through
+	// the site's welcome mail.
+	Activate bool
+	// Code is a refusal until the user enters the one-time code of a second
+	// factor, "" for none.
+	Code ownlogin.CodeAsk
 	// Err is why the last look found nothing out, nil when it did. What an
 	// earlier look found is kept beside it.
 	Err error
@@ -101,6 +107,8 @@ type Backend struct {
 	// ownPage is a session the user signed in to on the site's own page,
 	// which once it ends wants that again rather than the password.
 	ownPage bool
+	// asked is the sign-in that waits for a second factor's code.
+	asked *CodeError
 
 	stateMu sync.Mutex
 	state   LoginState
@@ -139,7 +147,7 @@ func (b *Backend) LoginStatus() (st LoginState, signingIn bool) {
 // that was changed, switched off or removed.
 func (b *Backend) Forget() {
 	b.signMu.Lock()
-	b.session, b.resumed, b.ownPage = nil, true, false
+	b.session, b.resumed, b.ownPage, b.asked = nil, true, false, nil
 	b.signMu.Unlock()
 	b.save(Kept{})
 	b.stateMu.Lock()
@@ -153,7 +161,7 @@ func (b *Backend) Forget() {
 // belongs to.
 func (b *Backend) UseSession(ctx context.Context, cookies string) {
 	b.signMu.Lock()
-	b.session, b.resumed, b.ownPage = b.client.Resume(cookies), true, true
+	b.session, b.resumed, b.ownPage, b.asked = b.client.Resume(cookies), true, true, nil
 	b.signMu.Unlock()
 	b.save(Kept{Cookies: cookies, OwnPage: true})
 	b.CheckLogin(ctx, false)
@@ -213,6 +221,9 @@ func (b *Backend) signedIn(ctx context.Context, taskID string, signIn bool) (*Se
 	if b.ownPage || b.waitsForOwnPage() {
 		return nil, ErrSignInHere
 	}
+	if b.asked != nil {
+		return nil, b.asked
+	}
 	if !signIn {
 		return nil, nil
 	}
@@ -226,11 +237,72 @@ func (b *Backend) signedIn(ctx context.Context, taskID string, signIn bool) (*Se
 	})
 	b.setSigning(false)
 	if err != nil {
+		var asked *CodeError
+		if errors.As(err, &asked) {
+			b.asked = asked
+		}
 		return nil, err
 	}
-	b.session = s
-	b.save(Kept{Cookies: s.Cookies()})
+	b.signedInAs(s)
 	return s, nil
+}
+
+// signedInAs takes up s, a session the password opened. The caller holds
+// signMu.
+func (b *Backend) signedInAs(s *Session) {
+	b.session, b.resumed, b.ownPage, b.asked = s, true, false, nil
+	b.save(Kept{Cookies: s.Cookies()})
+}
+
+// SignInCode signs the stored login in with the one-time code of its second
+// factor: into the form the last sign-in brought up where there is one, and
+// right after the password otherwise. The code is used once and kept nowhere.
+func (b *Backend) SignInCode(ctx context.Context, code string) {
+	if _, _, ok := b.credentials(); !ok {
+		b.Forget()
+		return
+	}
+	if err := b.sendCode(ctx, code); err != nil {
+		b.learn(err, nil)
+		b.Fail(err, misread(err))
+		return
+	}
+	b.CheckLogin(ctx, false)
+}
+
+func (b *Backend) sendCode(ctx context.Context, code string) error {
+	b.signMu.Lock()
+	defer b.signMu.Unlock()
+	b.setSigning(true)
+	defer b.setSigning(false)
+	asked := b.asked
+	if asked == nil {
+		user, password, _ := b.credentials()
+		s, err := b.client.SignIn(ctx, user, password, func(ctx context.Context, c Captcha) (string, error) {
+			return b.solve(ctx, "", c)
+		})
+		if err == nil {
+			b.signedInAs(s)
+			return nil
+		}
+		if !errors.As(err, &asked) {
+			return err
+		}
+	}
+	s, err := b.client.SendCode(ctx, asked, code)
+	if err != nil {
+		// A code that did not reach the site can go into the same form again.
+		var again *CodeError
+		switch {
+		case errors.As(err, &again):
+			b.asked = again
+		case errors.Is(err, ErrSignInHere):
+			b.asked = nil
+		}
+		return err
+	}
+	b.signedInAs(s)
+	return nil
 }
 
 func (b *Backend) waitsForOwnPage() bool {
@@ -269,6 +341,12 @@ func (b *Backend) learn(err error, acct *Account) {
 		b.state = LoginState{Refused: true}
 	case errors.Is(err, ErrSignInHere):
 		b.state = LoginState{SignInHere: true}
+	case errors.Is(err, ErrNotActivated):
+		b.state = LoginState{Refused: true, Activate: true}
+	case errors.Is(err, ownlogin.ErrWrongCode):
+		b.state = LoginState{Refused: true, Code: ownlogin.CodeWrong}
+	case errors.Is(err, ownlogin.ErrNeedsCode):
+		b.state = LoginState{Refused: true, Code: ownlogin.CodeNeeded}
 	default:
 		b.state.Err = err
 	}
@@ -541,7 +619,8 @@ func reasonOf(err error) core.Reason {
 		return core.ReasonCaptcha
 	case errors.Is(err, ErrPremiumOnly), errors.Is(err, ErrPassword), errors.Is(err, ErrPasswordRefused),
 		errors.Is(err, ErrPremiumExpired), errors.Is(err, ErrLoginRefused), errors.Is(err, ErrSignInBlocked),
-		errors.Is(err, ErrSignInFailed), errors.Is(err, ErrNoLogin), errors.Is(err, ErrSignInHere):
+		errors.Is(err, ErrSignInFailed), errors.Is(err, ErrNoLogin), errors.Is(err, ErrSignInHere), errors.Is(err, ErrNotActivated),
+		errors.Is(err, ownlogin.ErrNeedsCode), errors.Is(err, ownlogin.ErrWrongCode):
 		return core.ReasonAuth
 	case errors.As(err, &w):
 		return core.ReasonUnavailable

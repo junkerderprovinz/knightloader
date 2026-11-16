@@ -24,18 +24,39 @@ import (
 // the plain password and a session cookie, linkgen answering a bare object)
 // follow ResolveURL's linksnappy.py. Everything decodes loosely, so a renamed
 // field makes unlocking fail with an error instead of producing a bad link.
+//
+// A sign-in from a new place waits for a link Linksnappy mails, so the session
+// cookie is kept and checked on USERDETAILS, as JDownloader's plugin does, and
+// the password goes out only once the session stops working.
 type Linksnappy struct {
 	user string
 	pass string
 	base string
 	hc   *http.Client
 
+	// Sessions keeps the session cookie beyond this client, nil for this
+	// client alone.
+	Sessions SessionStore
+
+	// smu lets one check of the session run at a time, so calls that start
+	// together share one sign-in.
+	smu sync.Mutex
+
 	mu sync.Mutex
-	// loggedIn is when AUTHENTICATE last succeeded, zero once a torrent call
-	// has failed.
+	// loggedIn is when the session was last found working, zero once a call
+	// on it has failed.
 	loggedIn time.Time
 	// started is the torrents START has been sent for (see start).
 	started map[string]bool
+}
+
+// SessionStore keeps a login's session cookies, written as a Cookie header,
+// across the clients built for it and across restarts.
+type SessionStore interface {
+	// Session is the cookies kept for the login, "" for none.
+	Session(user, pass string) string
+	// KeepSession keeps cookies for the login, "" to forget them.
+	KeepSession(user, pass, cookies string)
 }
 
 func NewLinksnappy(user, pass string) *Linksnappy {
@@ -52,10 +73,12 @@ func (*Linksnappy) Label() string { return "Linksnappy" }
 
 // lsEnvelope is the wrapper FILEHOSTS, AUTHENTICATE and USERDETAILS share.
 // Error is false on success and a sentence on failure, hence the RawMessage.
+// Redirect is the page of the website a refusal points to.
 type lsEnvelope struct {
-	Status string          `json:"status"`
-	Error  json.RawMessage `json:"error"`
-	Return json.RawMessage `json:"return"`
+	Status   string          `json:"status"`
+	Error    json.RawMessage `json:"error"`
+	Return   json.RawMessage `json:"return"`
+	Redirect string          `json:"redirect"`
 }
 
 // errText is the sentence the service sent, or "" when it reported no error.
@@ -74,7 +97,7 @@ func lsSentence(raw json.RawMessage) string {
 }
 
 // lsError is a call the service refused, in its own words.
-type lsError struct{ path, msg string }
+type lsError struct{ path, msg, redirect string }
 
 func (e *lsError) Error() string { return "linksnappy " + e.path + ": " + e.msg }
 
@@ -115,10 +138,11 @@ func (l *Linksnappy) envelope(ctx context.Context, path string, q url.Values, ou
 		return fmt.Errorf("linksnappy %s: unreadable answer", path)
 	}
 	if env.Status != "OK" {
-		if msg := env.errText(); msg != "" {
-			return &lsError{path: path, msg: msg}
+		msg := env.errText()
+		if msg == "" {
+			msg = "refused without a reason"
 		}
-		return fmt.Errorf("linksnappy %s: refused without a reason", path)
+		return &lsError{path: path, msg: msg, redirect: env.Redirect}
 	}
 	if out != nil && len(env.Return) > 0 {
 		// The call succeeded, so an unexpected shape only leaves out empty.
@@ -127,21 +151,18 @@ func (l *Linksnappy) envelope(ctx context.Context, path string, q url.Values, ou
 	return nil
 }
 
-// Authenticate logs in and keeps the session cookie. It is exported so that
-// saving an account checks the credential itself.
+// Authenticate proves the login: on the session kept for it while
+// USERDETAILS still takes that, and by signing in otherwise. It is exported so
+// that saving an account checks the credential itself.
 func (l *Linksnappy) Authenticate(ctx context.Context) error {
 	if l.user == "" || l.pass == "" {
 		return errors.New("linksnappy: a username and a password are required")
 	}
-	err := l.envelope(ctx, "/AUTHENTICATE", url.Values{
-		"username": {l.user},
-		"password": {l.pass},
-	}, nil)
-	// A sign-in from a new place waits for the link Linksnappy emails, and
-	// the API takes no code that could stand in for it.
-	var refused *lsError
-	if errors.As(err, &refused) && strings.Contains(strings.ToLower(refused.msg), "two-factor verification required") {
-		return errors.New("linksnappy: open the link Linksnappy emailed to confirm this sign-in, then test the account again")
+	l.smu.Lock()
+	defer l.smu.Unlock()
+	working, err := l.resume(ctx)
+	if err == nil && !working {
+		err = l.signIn(ctx)
 	}
 	if err == nil {
 		l.mu.Lock()
@@ -151,12 +172,148 @@ func (l *Linksnappy) Authenticate(ctx context.Context) error {
 	return err
 }
 
+// resume reports whether the session in hand, or else the one kept, still
+// works. Only a refusal in Linksnappy's own words counts as the session gone,
+// so an outage costs no sign-in.
+func (l *Linksnappy) resume(ctx context.Context) (bool, error) {
+	if l.cookies() == "" {
+		kept := l.kept()
+		if kept == "" {
+			return false, nil
+		}
+		l.setCookies(kept)
+	}
+	err := l.envelope(ctx, "/USERDETAILS", nil, nil)
+	var refused *lsError
+	switch {
+	case err == nil:
+		l.keep()
+		return true, nil
+	case errors.As(err, &refused):
+		l.dropCookies()
+		l.keep()
+		return false, nil
+	}
+	return false, err
+}
+
+// signIn sends the password to AUTHENTICATE for a new session.
+func (l *Linksnappy) signIn(ctx context.Context) error {
+	err := l.envelope(ctx, "/AUTHENTICATE", url.Values{
+		"username": {l.user},
+		"password": {l.pass},
+	}, nil)
+	// A sign-in from a new place waits for the link Linksnappy emails, and
+	// the API takes no code that could stand in for it.
+	var refused *lsError
+	if errors.As(err, &refused) && strings.Contains(strings.ToLower(refused.msg), "two-factor verification required") {
+		if page := l.page(refused.redirect); page != "" {
+			return errors.New("linksnappy: open the link Linksnappy emailed to confirm this sign-in, or confirm it at " + page + ", then test the account again")
+		}
+		return errors.New("linksnappy: open the link Linksnappy emailed to confirm this sign-in, then test the account again")
+	}
+	if err == nil {
+		l.keep()
+	}
+	return err
+}
+
+// page resolves ref, the page a refusal points to, against the site, "" for
+// none.
+func (l *Linksnappy) page(ref string) string {
+	if ref == "" {
+		return ""
+	}
+	u, err := l.site().Parse(ref)
+	if err != nil {
+		return ""
+	}
+	return u.String()
+}
+
+// site is the address the session cookies are set for.
+func (l *Linksnappy) site() *url.URL {
+	u, _ := url.Parse(l.base)
+	return u
+}
+
+// cookies writes the session's cookies as a Cookie header, "" for none.
+func (l *Linksnappy) cookies() string {
+	var parts []string
+	for _, c := range l.hc.Jar.Cookies(l.site()) {
+		parts = append(parts, c.Name+"="+c.Value)
+	}
+	return strings.Join(parts, "; ")
+}
+
+func (l *Linksnappy) setCookies(header string) {
+	list, err := http.ParseCookie(header)
+	if err != nil {
+		return
+	}
+	for _, c := range list {
+		c.Path = "/"
+	}
+	l.hc.Jar.SetCookies(l.site(), list)
+}
+
+// dropCookies ends the session in hand.
+func (l *Linksnappy) dropCookies() {
+	list := l.hc.Jar.Cookies(l.site())
+	for _, c := range list {
+		c.Path, c.MaxAge = "/", -1
+	}
+	l.hc.Jar.SetCookies(l.site(), list)
+}
+
+func (l *Linksnappy) kept() string {
+	if l.Sessions == nil {
+		return ""
+	}
+	return l.Sessions.Session(l.user, l.pass)
+}
+
+// keep hands the session in hand to Sessions where it differs from the one
+// kept.
+func (l *Linksnappy) keep() {
+	if l.Sessions == nil {
+		return
+	}
+	if now := l.cookies(); now != l.kept() {
+		l.Sessions.KeepSession(l.user, l.pass, now)
+	}
+}
+
+// lsSessionAge is how long a session found working serves the calls before
+// USERDETAILS is asked again. The cookie lasts far longer, but what Linksnappy
+// answers once it drops a session is not known.
+const lsSessionAge = 10 * time.Minute
+
+// login proves the login unless it was found working within lsSessionAge.
+func (l *Linksnappy) login(ctx context.Context) error {
+	l.mu.Lock()
+	fresh := !l.loggedIn.IsZero() && time.Since(l.loggedIn) < lsSessionAge
+	l.mu.Unlock()
+	if fresh {
+		return nil
+	}
+	return l.Authenticate(ctx)
+}
+
+// logout makes the next call check the session first. A refused call may be
+// the session gone stale.
+func (l *Linksnappy) logout() {
+	l.mu.Lock()
+	l.loggedIn = time.Time{}
+	l.mu.Unlock()
+}
+
 // Hosts asks /FILEHOSTS, a map keyed by domain whose entries carry Status as a
 // string ("1" for up) and sometimes the hoster's other domains as alias. It
 // logs in first, as JDownloader and pyLoad do, since only the account's own
 // list says through canDownload which hosts it may fetch from.
 func (l *Linksnappy) Hosts(ctx context.Context) (map[string]bool, error) {
-	if err := l.Authenticate(ctx); err != nil {
+	if err := l.login(ctx); err != nil {
 		return nil, err
 	}
 	var hosts map[string]struct {
@@ -197,7 +354,7 @@ type lsGenerated struct {
 }
 
 func (l *Linksnappy) Unlock(ctx context.Context, link string) (Direct, error) {
-	if err := l.Authenticate(ctx); err != nil {
+	if err := l.login(ctx); err != nil {
 		return Direct{}, err
 	}
 	q := url.Values{"genLinks": {`{"link":` + strconv.Quote(link) + `}`}}
@@ -228,6 +385,8 @@ func (l *Linksnappy) Unlock(ctx context.Context, link string) (Direct, error) {
 	var env lsEnvelope
 	if json.Unmarshal(raw, &env) == nil {
 		if msg := env.errText(); msg != "" {
+			// The refusal may be the session gone, which the next call checks.
+			l.logout()
 			return Direct{}, fmt.Errorf("linksnappy /linkgen: %s", msg)
 		}
 	}
@@ -237,7 +396,7 @@ func (l *Linksnappy) Unlock(ctx context.Context, link string) (Direct, error) {
 // Account reads /USERDETAILS. Its field names come from third-party clients
 // only, so every one of them is optional.
 func (l *Linksnappy) Account(ctx context.Context) (AccountInfo, error) {
-	if err := l.Authenticate(ctx); err != nil {
+	if err := l.login(ctx); err != nil {
 		return AccountInfo{}, err
 	}
 	var d struct {

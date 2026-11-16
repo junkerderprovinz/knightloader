@@ -124,6 +124,9 @@ func (a *App) SetHosterLogin(host, username, password string) error {
 // hoster wants one. The code is stored nowhere.
 func (a *App) SaveHosterLogin(ctx context.Context, host, username, password, code string) (hosterauth.LoginState, error) {
 	own := a.ownHosterAt(host)
+	if b := a.xfsCodeTaker(host); b != nil && code != "" {
+		return a.saveXFSLoginWithCode(ctx, b, host, username, password, code)
+	}
 	if own == nil {
 		if err := a.SetHosterLogin(host, username, password); err != nil {
 			return hosterauth.LoginState{}, err

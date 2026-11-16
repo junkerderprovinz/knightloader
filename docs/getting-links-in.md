@@ -647,16 +647,22 @@ ddownload's own address. KnightLoader keeps the session, so a restart needs
 no new sign-in and no new captcha. The login stays with KnightLoader and does
 not go to JDownloader.
 
-An account with two-factor sign-in cannot be signed in from here, since the
-code only goes into ddownload's own page. The login's row then reads **Needs a
-sign-in**. Choose **Sign in here** in its row menu or in its window, sign in
-on ddownload's page in the sign-in browser with your password and the code,
-and KnightLoader takes the session from there. It keeps that session like any
+An account with two-factor sign-in works too. When ddownload asks for the
+code, the login's row reads **Needs a code** and its window shows a field for
+the six digits. KnightLoader puts them into ddownload's own code form, in the
+session the password opened, so ddownload sends no second code, and a code it
+turns down asks for the next one. The code is used once and stored nowhere.
+An account that is not activated yet says so on its row and points you to the
+link in ddownload's welcome mail.
+
+Where the code form also asks for a captcha, the row reads **Needs a sign-in**
+instead. Choose **Sign in here** in its row menu or in its window, sign in on
+ddownload's page in the sign-in browser with your password and the code, and
+KnightLoader takes the session from there. It keeps that session like any
 other, and once ddownload ends it the row asks for a new sign-in rather than
-KnightLoader trying the password again, also after a restart, so ddownload
-mails you no code you did not ask for. **Sign in here** is there for every
-login of these sites, so you can use it whenever a sign-in from here does not
-get through.
+KnightLoader trying the password again, also after a restart. **Sign in here**
+is there for every login of these sites, so you can use it whenever a sign-in
+from here does not get through.
 
 Without premium the download is free, and ddownload shows the same captcha
 before each file and a countdown of about a minute. Between two free
