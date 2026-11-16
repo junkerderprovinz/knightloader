@@ -487,8 +487,8 @@ function appStatus(
 
 /**
  * AppUpdates checks GitHub for a newer release on request. A container is
- * updated by its container manager, so both switches are greyed out there and
- * a check points at the release. The desktop build updates itself in the
+ * updated by its container manager, so there its switch only looks on opening
+ * and a check points at the release. The desktop build updates itself in the
  * background (desktop/updates.go), and a check there also tells whether a
  * downloaded version waits for the next start. Once a check found a newer
  * one, Install fetches it at once: the copy installed for all users starts
@@ -567,9 +567,9 @@ function AppUpdates({ deployment, fromStore, register }: { deployment: string; f
   // never before the stored switch has resolved and not on every settings
   // edit. The desktop build that updates itself checks on its own.
   useEffect(() => {
-    if (!updatesItself && cfg.autoUpdateCheck) void onCheck();
+    if (!updatesItself && cfg.autoUpdate) void onCheck();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cfg.autoUpdateCheck]);
+  }, [cfg.autoUpdate]);
 
   const available = !!check?.checked && check.available;
   // Not while an update is being put in place.
@@ -601,19 +601,9 @@ function AppUpdates({ deployment, fromStore, register }: { deployment: string; f
         </>
       }
       settings={
-        <>
-          {/* The desktop build checks on its own and has no use for this
-              switch. */}
-          {!updatesItself && (
-            <ToggleRow
-              label={t('settings.look.updatesAuto')}
-              hint={t('settings.look.updatesAutoCheckHint')}
-              checked={cfg.autoUpdateCheck}
-              onChange={(v) => patch({ autoUpdateCheck: v })}
-            />
-          )}
-          {/* A container and a Flatpak cannot replace themselves, so there
-              the row is disabled and says why. */}
+        // A container and a Flatpak cannot replace themselves, so there the
+        // switch only looks and says who installs.
+        <div data-new="update-switch">
           <ToggleRow
             label={t('settings.look.updatesAutoUpdate')}
             hint={
@@ -623,13 +613,10 @@ function AppUpdates({ deployment, fromStore, register }: { deployment: string; f
                   ? t('settings.look.updatesAutoUpdateHint')
                   : t('settings.look.updatesAutoUpdateContainerHint')
             }
-            checked={updatesItself && cfg.autoUpdate}
-            disabled={!updatesItself}
-            // A key press still reaches a greyed-out switch, and a container keeps
-            // the stored value as it is.
-            onChange={(v) => updatesItself && patch({ autoUpdate: v })}
+            checked={cfg.autoUpdate}
+            onChange={(v) => patch({ autoUpdate: v })}
           />
-        </>
+        </div>
       }
     />
   );

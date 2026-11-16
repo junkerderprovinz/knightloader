@@ -403,18 +403,12 @@ type Settings struct {
 	TorrentCard  bool `json:"torrentCard"`
 	FinishedCard bool `json:"finishedCard"`
 
-	// AutoUpdateCheck has a container's Components card ask GitHub for a newer
-	// release once when it opens. A container is updated through its container
-	// manager, so this only asks; the desktop build checks on its own, see
-	// AutoUpdate. On by default.
-	AutoUpdateCheck bool `json:"autoUpdateCheck"`
-
 	// AutoUpdate lets the desktop build download a newer release once a day
 	// and put it in place for the next start (desktop/updates.go). A container
-	// cannot replace itself from the inside and reads it nowhere. On by
-	// default, since an app nobody updates keeps its bugs. The copy installed
-	// for all users on Windows keeps it in a file of its own; see
-	// KeepAutoUpdateIn.
+	// or a Flatpak cannot replace itself, so there it has the Components card
+	// ask GitHub for a newer release once when it opens. On by default, since
+	// an app nobody updates keeps its bugs. The copy installed for all users
+	// on Windows keeps it in a file of its own; see KeepAutoUpdateIn.
 	AutoUpdate bool `json:"autoUpdate"`
 
 	// KeepAwake asks the desktop build to keep the computer from going to
@@ -837,7 +831,6 @@ func Defaults() Settings {
 		PreParserEnabled:     true,
 		KeepAwake:            true,
 		AutoUpdate:           true,
-		AutoUpdateCheck:      true,
 		ComponentsAutoUpdate: true,
 		// AutoConfirm and AddAtTop are usable at their zero value: nothing is
 		// auto-confirmed and nothing is reordered. AutoStart is the one of the
@@ -998,6 +991,24 @@ func migrate(raw []byte, n Settings) Settings {
 	n = migrateLabels(raw, n)
 	n = migrateUploadLimit(raw, n)
 	n = migrateComponentsAutoUpdate(raw, n)
+	n = migrateAutoUpdateCheck(raw, n)
+	return n
+}
+
+// migrateAutoUpdateCheck folds the switch that only looked for a release into
+// AutoUpdate. A container showed only that one and the desktop build only
+// AutoUpdate, the other staying at its default of on, so either being off is
+// the user's choice. A file without autoUpdate predates both and keeps the
+// default.
+func migrateAutoUpdateCheck(raw []byte, n Settings) Settings {
+	var old struct {
+		Update *bool `json:"autoUpdate"`
+		Check  *bool `json:"autoUpdateCheck"`
+	}
+	if err := json.Unmarshal(raw, &old); err != nil || old.Update == nil || old.Check == nil {
+		return n
+	}
+	n.AutoUpdate = *old.Update && *old.Check
 	return n
 }
 

@@ -189,6 +189,58 @@ func TestAutoUpdateIsOnForAnInstallThatNeverSawIt(t *testing.T) {
 	}
 }
 
+func TestTheUpdateSwitchKeepsWhatTheVisibleOneSaid(t *testing.T) {
+	for _, tc := range []struct {
+		file string
+		want bool
+	}{
+		{`{"autoUpdate": true, "autoUpdateCheck": true}`, true},
+		{`{"autoUpdate": true, "autoUpdateCheck": false}`, false},
+		{`{"autoUpdate": false, "autoUpdateCheck": true}`, false},
+		{`{"autoUpdate": true}`, true},
+	} {
+		dir := t.TempDir()
+		if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(tc.file), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		st, err := Load(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := st.Get().AutoUpdate; got != tc.want {
+			t.Errorf("%s: autoUpdate is %v, want %v", tc.file, got, tc.want)
+		}
+	}
+}
+
+func TestTheOldUpdateCheckSwitchIsNotWrittenBack(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"autoUpdate": true, "autoUpdateCheck": false}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	st, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.Set(st.Get()); err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(filepath.Join(dir, "settings.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var saved map[string]any
+	if err := json.Unmarshal(b, &saved); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := saved["autoUpdateCheck"]; ok {
+		t.Error("the saved file still carries autoUpdateCheck")
+	}
+	if saved["autoUpdate"] != false {
+		t.Errorf("the saved file says autoUpdate %v, want the false the old switch said", saved["autoUpdate"])
+	}
+}
+
 func TestComponentsUpdateOnTheirOwnOnAFreshInstall(t *testing.T) {
 	st, err := Load(t.TempDir())
 	if err != nil {

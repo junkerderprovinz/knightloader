@@ -69,7 +69,6 @@
   "bottomBarLabels": "both",
   "torrentCard": true,
   "finishedCard": true,
-  "autoUpdateCheck": false,
   "autoUpdate": true,
   "packagizer": {
     "rules": [

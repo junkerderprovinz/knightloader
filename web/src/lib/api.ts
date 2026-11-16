@@ -706,9 +706,8 @@ export interface Settings {
    *  of their own (lib/listCards.ts). The app reads them too. */
   torrentCard: boolean;
   finishedCard: boolean;
-  /** Kept as stored; no build acts on it (internal/settings). */
-  autoUpdateCheck: boolean;
-  /** Downloads a newer release for the next start. Only the desktop build acts on it. */
+  /** Downloads a newer release for the next start on the desktop build, and
+   *  looks for one on opening the Info card where KnightLoader cannot replace itself. */
   autoUpdate: boolean;
   /** Holds off sleep while a download runs. Only the desktop build acts on it. */
   keepAwake: boolean;

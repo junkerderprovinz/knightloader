@@ -1318,7 +1318,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'settings.info.componentsIntro',
       rows: [
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
-        { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoCheckHint' },
         { key: 'settings.info.componentsAuto', hint: 'settings.info.componentsAutoHint' },
       ],
       // The container build and the Flatpak use their own sentences for
