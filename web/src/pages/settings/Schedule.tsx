@@ -1130,7 +1130,7 @@ function TimeColumn({
             className={`block w-full rounded-[var(--radius-control)] px-1.5 py-1 text-center text-sm transition-colors ${
               on
                 ? 'bg-accent text-accentContrast'
-                : 'text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text'
+                : 'text-carbon-textSub hover:bg-hover hover:text-carbon-text'
             }`}
           >
             {pad2(v)}

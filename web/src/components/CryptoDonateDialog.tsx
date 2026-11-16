@@ -86,7 +86,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
               className={`glim-hue rounded-[var(--radius-pill)] px-3 py-1 text-xs font-medium transition-colors ${
                 n.id === network.id
                   ? 'bg-accent text-accentContrast'
-                  : 'bg-carbon-surface3 text-carbon-textSub hover:bg-carbon-hoverRaised hover:text-carbon-text'
+                  : 'bg-carbon-surface3 text-carbon-textSub hover:bg-hover hover:text-carbon-text'
               }`}
             >
               {n.name}

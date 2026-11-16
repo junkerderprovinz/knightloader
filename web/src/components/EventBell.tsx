@@ -114,7 +114,7 @@ function EventRow({ event, onJump }: { event: LoggedEvent; onJump: (target: Even
         // aria-describedby.
         {...tipHoverProps}
         onClick={() => onJump(target)}
-        className={`${shared} hover:bg-carbon-hover`}
+        className={`${shared} hover:bg-hover`}
       >
         {body}
       </button>

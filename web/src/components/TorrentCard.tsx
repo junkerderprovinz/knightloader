@@ -71,7 +71,7 @@ export function TorrentCard({ settings, hue }: { settings: Settings | null; hue?
         onClick={() => navigate('/downloads?card=torrents')}
         aria-label={t('overview.torrents.open')}
         className="grid grid-cols-1 gap-5 rounded-[var(--radius-control)] bg-carbon-surface2 p-4 text-start
-          transition-colors hover:bg-carbon-surface3 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+          transition-colors hover:bg-hover lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
       >
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <Figure label={t('status.leeching')} value={String(data.leeching)} />

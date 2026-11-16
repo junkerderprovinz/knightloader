@@ -114,10 +114,8 @@ body {
   --carbon-surface2:   #393939;
   --carbon-surface3:   #525252;
   --carbon-hover:      #353535;
-  /* Hover for anything already filled with surface3 (GlimStone rule 21):
-     one step further from the surface, lighter here and darker in the light
-     ramp, which is why it is a token and not a filter. --carbon-hover would
-     dim it. */
+  /* The step above surface3, lighter here and darker in the light ramp, as
+     the web UI keeps it for a field's focus. A hover takes --hover instead. */
   --carbon-hover-raised: #6f6f6f;
   --carbon-border:     #393939;
   /* The track of a switch that is off. OLED leaves it here, where surface3
@@ -238,8 +236,8 @@ body {
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
 
-  --status-info-text:    #836407;
-  --status-info-bg:      rgba(131, 100, 7, 0.12);
+  --status-info-text:    #7C5F07;
+  --status-info-bg:      rgba(124, 95, 7, 0.12);
   --status-info-solid:   #A87D00;
 
   --status-ok-text:      #0e6027;
@@ -341,8 +339,8 @@ body {
     --accent-contrast:   #161616;
     --accent-soft:       rgba(252, 196, 25, 0.14);
 
-    --status-info-text:    #836407;
-    --status-info-bg:      rgba(131, 100, 7, 0.12);
+    --status-info-text:    #7C5F07;
+    --status-info-bg:      rgba(124, 95, 7, 0.12);
     --status-info-solid:   #A87D00;
 
     --status-ok-text:      #0e6027;
@@ -412,7 +410,7 @@ body {
    color-scheme the theme blocks set. */
 :root,
 [data-theme] {
-  --ink-l-light: 0.52;
+  --ink-l-light: 0.5;
   --ink-l-dark: 0.74;
   --accent-ink: light-dark(var(--accent-ink-light, oklab(from var(--accent) min(l, var(--ink-l-light)) calc(a * min(1, var(--ink-l-light) / l)) calc(b * min(1, var(--ink-l-light) / l)))), var(--accent-ink-dark, oklab(from var(--accent) max(l, var(--ink-l-dark)) calc(a * min(1, (1 - var(--ink-l-dark)) / (1 - l))) calc(b * min(1, (1 - var(--ink-l-dark)) / (1 - l))))));
   /* The same ink for a line-drawn glyph. Rainbow never colours text, so a hued
@@ -437,6 +435,26 @@ body {
   --status-ok-hover:   color-mix(in srgb, var(--status-ok-solid) 85%, var(--carbon-text));
   --status-fail-hover: color-mix(in srgb, var(--status-fail-solid) 85%, var(--carbon-text));
   --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
+}
+
+/* The ground of whatever the pointer is over, the web UI's --hover: surface3's
+   OKLab lightness in the accent's hue, one colour for a button, a row, a menu
+   entry and a tile, with the text on it at 4.5:1 for any picked colour. The
+   dark side sits 0.007 below surface3, where a saturated green would take the
+   secondary text under 4.5:1. Declared again inside a rainbow position, so
+   the hover takes the position's hue there. */
+:root,
+[data-theme],
+[data-rainbow] .glim-hue {
+  --hover-chroma: 0.3;
+  --hover: light-dark(oklab(from var(--accent) 0.861 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))), oklab(from var(--accent) 0.432 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))));
+}
+
+/* OLED moves surface3 one Carbon step down, and the hover with it. data-oled
+   counts only while dark shows, and the light half is the one above. */
+[data-oled],
+[data-oled][data-rainbow] .glim-hue {
+  --hover: light-dark(oklab(from var(--accent) 0.861 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))), oklab(from var(--accent) 0.338 calc(a * var(--hover-chroma)) calc(b * var(--hover-chroma))));
 }
 
 /* The contrast step, for anyone whose system asks for more contrast, the web
@@ -628,7 +646,7 @@ body {
 .glim-seg--hug button { flex: 1 0 auto; }
 .glim-seg--hug.glim-seg--squeezed button { flex: 1 1 0; }
 
-.glim-seg button:hover { color: var(--carbon-text); }
+.glim-seg button:hover { background: var(--hover); color: var(--carbon-text); }
 
 .glim-seg button[aria-pressed="true"] {
   background: var(--accent);
@@ -677,8 +695,8 @@ body {
   cursor: pointer;
   transition: color 150ms ease, background-color 150ms ease;
 }
-/* Already on surface3, so it wears .glim-btn-neutral and hovers to a tinted
-   --carbon-hover-raised (rules 21 and 40). */
+/* Already on surface3, so it wears .glim-btn-neutral and hovers to the
+   accent's --hover (rules 21 and 40). */
 .glim-reset svg { display: block; }
 
 .glim-axis { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -709,7 +727,7 @@ body {
 /* No hover on a disabled control. The segment rule names aria-pressed="false"
    because a :not(:disabled) on the hover would outrank the pressed rule it
    currently ties with; every segment carries the attribute. */
-.glim-seg button[aria-pressed="false"]:disabled:hover { color: var(--carbon-text-sub); }
+.glim-seg button[aria-pressed="false"]:disabled:hover { background: transparent; color: var(--carbon-text-sub); }
 
 /* The notice that stands in for a control the environment does not permit
    (GlimStone 1.15.0, packages/react/src/UnavailableNotice.tsx). It is a
@@ -1066,8 +1084,8 @@ body {
 }
 /* Only a pickable card looks pressable. */
 .glim-instance[role='radio'] { cursor: pointer; }
-/* Filled with surface2, so it hovers one step up to surface3 (rule 21). */
-.glim-instance[role='radio']:hover { background: var(--carbon-surface3); }
+/* Lit in the accent's --hover under the pointer (rule 21). */
+.glim-instance[role='radio']:hover { background: var(--hover); }
 /* The chosen card gets a ring like a selected swatch: a gap in the page
    colour, then the accent. */
 .glim-instance[aria-checked='true'] {
@@ -1188,7 +1206,7 @@ body {
   text-align: start;
   cursor: pointer;
 }
-.glim-menu button:hover { background: var(--carbon-hover); }
+.glim-menu button:hover { background: var(--hover); }
 .glim-menu button:disabled { opacity: .5; cursor: default; background: transparent; }
 
 /* The language listbox, the web UI's pattern of a field-shaped button that
@@ -1214,9 +1232,9 @@ body {
   transition: background-color 150ms ease;
 }
 /* A trigger opens something rather than taking text, so it answers the
-   pointer one step up the ramp (rule 21) and keeps its ring on focus, since
-   it has no caret to show where the keys go (rule 14). */
-.glim-listbox-trigger:hover { background: var(--carbon-surface3); }
+   pointer with the accent's --hover (rule 21) and keeps its ring on focus,
+   since it has no caret to show where the keys go (rule 14). */
+.glim-listbox-trigger:hover { background: var(--hover); }
 .glim-listbox-trigger:focus-visible { outline: 0; box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring); }
 .glim-listbox-caret { margin-inline-start: auto; opacity: .7; }
 /* The open list starts where the trigger's text starts, ends with the trigger
@@ -1253,7 +1271,7 @@ body {
   text-align: start;
   cursor: pointer;
 }
-.glim-listbox-option:hover { background: var(--carbon-hover); }
+.glim-listbox-option:hover { background: var(--hover); }
 .glim-listbox-option[aria-selected='true'] { background: var(--accent); color: var(--accent-contrast); }
 /* The flag: a fixed box so every label starts at the same x, whatever the
    flag's own aspect ratio. */
@@ -1398,8 +1416,7 @@ body {
   font-weight: 500;
   transition: background-color 150ms ease, color 150ms ease;
 }
-/* On surface3 already, so it hovers to --carbon-hover-raised (rule 21). */
-.glim-crypto-chains .glim-crypto-chip:hover { background: var(--carbon-hover-raised); color: var(--carbon-text); }
+.glim-crypto-chains .glim-crypto-chip:hover { background: var(--hover); color: var(--carbon-text); }
 .glim-crypto-chains .glim-crypto-chip[aria-selected='true'] { background: var(--accent); color: var(--accent-contrast); }
 /* What a donor on this chain has to know, where they would look for it. */
 .glim-crypto-note { margin: 0; font-size: var(--text-meta); color: var(--status-warn-text); text-align: center; }
@@ -1440,10 +1457,10 @@ body {
 .glim-crypto-coins .glim-crypto-tile[aria-selected='true'] svg { color: var(--accent-contrast); }
 
 /* Rule 40: every button takes the accent when the pointer or the keyboard
-   reaches it. A surface-filled button mixes 22% of --btn-tint into its hovered
-   ground, one step up the ramp, and turns its glyph to the tint, while its
-   words keep the text colour. A bare glyph button has no ground to tint, so
-   only its glyph turns. Under rainbow takePageHue() in appearance.js sets the
+   reaches it. A surface-filled button hovers to --hover, the colour a row and
+   a menu entry take, and turns its glyph to the tint, while its words keep the
+   text colour. A bare glyph button has no ground to light, so only its glyph
+   turns. Under rainbow takePageHue() in appearance.js sets the
    tint inline to the button's place on the page. The extension's glyphs stand
    bare in their buttons, where the reference wraps them in .glim-btn-glyph. */
 .glim-btn-neutral,
@@ -1451,11 +1468,8 @@ body {
 .glim-btn-bare {
   --btn-tint: var(--accent-glyph);
 }
-.glim-btn-subtle:not(:disabled):is(:hover, :focus-visible) {
-  background-color: color-mix(in srgb, var(--carbon-surface3), var(--btn-tint) 22%);
-}
-.glim-btn-neutral:not(:disabled):is(:hover, :focus-visible) {
-  background-color: color-mix(in srgb, var(--carbon-hover-raised), var(--btn-tint) 22%);
+:is(.glim-btn-neutral, .glim-btn-subtle):not(:disabled):is(:hover, :focus-visible) {
+  background-color: var(--hover);
 }
 :is(.glim-btn-neutral, .glim-btn-subtle):not(:disabled):is(:hover, :focus-visible) > svg,
 .glim-btn-bare:not(:disabled):is(:hover, :focus-visible) {

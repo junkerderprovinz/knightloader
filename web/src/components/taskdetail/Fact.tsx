@@ -61,7 +61,7 @@ export function Fact({
             ref={copyButton}
             type="button"
             className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-0.5 text-meta
-              font-medium text-carbon-textSub transition duration-150 hover:bg-carbon-surface3
+              font-medium text-carbon-textSub transition duration-150 hover:bg-hover
               motion-safe:active:scale-[.97]"
             onClick={() => {
               // navigator.clipboard does not exist on a plain-http LAN address,

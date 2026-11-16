@@ -12,7 +12,7 @@
  * claim a release the files are not from. Bump it in the change that lifts the
  * ports.
  */
-const GLIMSTONE_VERSION = '4.5.3';
+const GLIMSTONE_VERSION = '4.5.4';
 
 const GLIMSTONE_REPO = 'https://github.com/junkerderprovinz/glimstone';
 
@@ -198,7 +198,7 @@ function contrastOn(hex) {
  * --ink-l-dark: on the light theme the ink sits at this OKLab lightness or
  * below, on the dark ones at this one or above.
  */
-const INK_LIGHTNESS = { light: 0.52, dark: 0.74 };
+const INK_LIGHTNESS = { light: 0.5, dark: 0.74 };
 
 const inkLinear = (v) => {
   const s = v / 255;

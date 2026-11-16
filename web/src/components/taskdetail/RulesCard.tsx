@@ -33,7 +33,7 @@ export function RulesCard({ task, hue }: { task: Task; hue?: number }) {
               dir="ltr"
               className="inline-flex h-8 shrink-0 items-center rounded-[var(--radius-pill)] bg-carbon-surface2
                 px-3 text-meta font-medium text-carbon-textSub transition duration-150
-                hover:bg-carbon-surface3 hover:text-carbon-text motion-safe:active:scale-[.97]"
+                hover:bg-hover hover:text-carbon-text motion-safe:active:scale-[.97]"
             >
               {name}
             </Link>

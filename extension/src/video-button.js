@@ -61,7 +61,9 @@
     .kl {
       --surface: #262626; --surface2: #393939; --surface3: #525252; --raised: #6f6f6f; --text: #f4f4f4; --sub: #c6c6c6;
       --ok: #6fdc8c; --fail: #ff8389; --line: rgba(255, 255, 255, .08);
-      --knob: #c6c6c6; --track: rgba(255, 255, 255, .16); --hover: rgba(255, 255, 255, .05);
+      --knob: #c6c6c6; --track: rgba(255, 255, 255, .16);
+      /* GlimStone's --hover: surface3's lightness in the accent's hue. */
+      --hover: oklab(from var(--accent) 0.432 calc(a * 0.3) calc(b * 0.3));
       --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
       position: relative;
       font: 500 14px/1.4 "Noto Sans Variable", "Noto Sans", system-ui, sans-serif;
@@ -73,7 +75,8 @@
     .kl[data-theme="light"] {
       --surface: #ffffff; --surface2: #e8e8e8; --surface3: #d1d1d1; --raised: #c6c6c6; --text: #161616; --sub: #525252;
       --ok: #0e6027; --fail: #da1e28; --line: rgba(0, 0, 0, .08);
-      --knob: #6f6f6f; --track: rgba(0, 0, 0, .12); --hover: rgba(0, 0, 0, .04);
+      --knob: #6f6f6f; --track: rgba(0, 0, 0, .12);
+      --hover: oklab(from var(--accent) 0.861 calc(a * 0.3) calc(b * 0.3));
       --elevation: 0 1px 2px rgba(0, 0, 0, .10), 0 16px 36px -26px rgba(0, 0, 0, .45);
     }
     .kl.shown { opacity: 1; pointer-events: auto; }
@@ -192,10 +195,10 @@
     .choices > * + .label { margin-top: 10px; }
     /* Every list is one column of plain rows, the same whether one or several
        can be picked, with the sizes lined up at the end. Only the picked ones
-       are filled, and a row rises one surface under the pointer. */
+       are filled, and a row lights in the accent under the pointer. */
     .list { display: flex; flex-direction: column; gap: 0; }
     .menu .list button { gap: 8px; height: 26px; padding-block: 0; padding-inline: 10px; background: transparent; }
-    .list button:not([aria-checked="true"]):hover { background: var(--surface3); }
+    .list button:not([aria-checked="true"]):hover { background: var(--hover); }
     .menu .list [aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); }
     .list .aside { margin-inline-start: auto; color: var(--sub); font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; }
     .list button:hover .aside, .list [aria-checked="true"] .aside { color: inherit; }
@@ -217,7 +220,7 @@
       flex: 1 1 0; min-width: 52px; min-height: 30px; flex-direction: column; justify-content: center; gap: 0;
       padding: 6px; border-radius: min(var(--radius), 5px); font-size: 12.5px; line-height: 1.15;
     }
-    .segments button:not([aria-checked="true"]):not(:disabled):hover { background: var(--raised); }
+    .segments button:not([aria-checked="true"]):not(:disabled):hover { background: var(--hover); }
     /* The line under a name may wrap inside its own segment, so the
        segments keep one width. */
     .segments .aside { color: var(--sub); font-size: 10.5px; font-weight: 400; white-space: normal; text-align: center; }

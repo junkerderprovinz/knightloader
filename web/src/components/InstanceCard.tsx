@@ -126,7 +126,7 @@ export function InstanceRow({
       {onOpen ? (
         <button
           onClick={onOpen}
-          className="flex w-full items-center gap-2.5 px-4 py-4 text-start transition-colors hover:bg-carbon-hover/50"
+          className="flex w-full items-center gap-2.5 px-4 py-4 text-start transition-colors hover:bg-hover"
         >
           {body}
         </button>
@@ -297,7 +297,7 @@ function KindButton({ label, onOpen, children }: { label: string; onOpen: () => 
         {...hover}
         aria-label={label}
         onClick={onOpen}
-        className={`${KIND_BADGE} outline-none transition-colors hover:bg-carbon-hover hover:text-carbon-text
+        className={`${KIND_BADGE} outline-none transition-colors hover:bg-hover hover:text-carbon-text
           focus-visible:shadow-[0_0_0_var(--focus-ring-width)_var(--focus-ring)]`}
       >
         {children}

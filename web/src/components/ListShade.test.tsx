@@ -145,8 +145,8 @@ describe('the shades', () => {
     expect(share('head') - share('even')).toBeLessThanOrEqual(2.5);
   });
 
-  it('keeps the hover above every shade', () => {
-    expect(share('hover')).toBeGreaterThan(share('head'));
+  it('lights a hovered row in the accent over every shade', () => {
+    expect(css).toMatch(/:where\(\[data-shade\]\) > \[data-band\]:is\(:hover, :has\(:focus-visible\)\) \{\s*background-color: var\(--hover\);/);
   });
 
   it('leaves no gap between packages', () => {

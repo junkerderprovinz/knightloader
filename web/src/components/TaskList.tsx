@@ -427,7 +427,7 @@ function FilesTwisty({ open, onToggle, focusable }: { open: boolean; onToggle: (
         aria-label={label}
         {...hover}
         className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)] text-carbon-textSub
-          transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
+          transition-colors hover:bg-hover hover:text-carbon-text"
       >
         <Twisty open={open} />
       </button>
@@ -552,7 +552,7 @@ function TaskRow({
       className={`glim-row glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dnd.look(unit)} ${
         selection?.ids.has(task.id) ? 'glim-row-selected' : ''
       } relative grid items-center ${ROW_EDGES} py-[var(--row-pad)] transition-colors
-        hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
+        hover:bg-hover has-[:focus-visible]:bg-hover`}
     >
       {columns.map((col) => {
         const node = col.render(task, ctx);
@@ -812,7 +812,7 @@ function PackageName({
         aria-label={label}
         {...hover}
         className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)] text-carbon-textSub
-          transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
+          transition-colors hover:bg-hover hover:text-carbon-text"
       >
         <Twisty open={!collapsed} />
       </button>
@@ -1138,7 +1138,7 @@ function PackageRow({
         hued ? `glim-hue glim-tint ${torrent.status === 'running' ? 'glim-active' : ''}` : ''
       } ${allSelected ? 'glim-row-selected' : ''} ${
         divider ? 'border-t border-carbon-border/60' : ''
-      } ${ROW_EDGES} py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
+      } ${ROW_EDGES} py-[var(--row-pad)] transition-colors hover:bg-hover has-[:focus-visible]:bg-hover ${dnd.look(unit)}`}
     >
       {columns.map((col) => (
         <div
@@ -1543,7 +1543,7 @@ function Header({
                 aria-haspopup="dialog"
                 aria-expanded={filterOpen === col.id}
                 onClick={(e) => openFilter(col.id, e.currentTarget)}
-                className={`relative me-1 grid h-5 w-5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors hover:bg-carbon-hover hover:text-carbon-text ${
+                className={`relative me-1 grid h-5 w-5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors hover:bg-hover hover:text-carbon-text ${
                   filters[col.id]?.active ? 'text-carbon-text' : 'text-carbon-textMuted'
                 }`}
               >
@@ -1650,7 +1650,7 @@ function HeaderTip({ onDone }: { onDone: () => void }) {
         aria-label={t('common.close')}
         title={t('common.close')}
         onClick={onDone}
-        className="grid h-5 w-5 place-items-center rounded-[var(--radius-control)] hover:bg-carbon-surface3 hover:text-carbon-text"
+        className="grid h-5 w-5 place-items-center rounded-[var(--radius-control)] hover:bg-hover hover:text-carbon-text"
       >
         <IconClose width={10} height={10} />
       </button>

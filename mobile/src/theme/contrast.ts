@@ -101,7 +101,7 @@ export function contrastOn(hex: string): string {
  * --ink-l-dark: on the light theme the ink sits at this OKLab lightness or
  * below, on the dark ones at this one or above.
  */
-export const INK_LIGHTNESS = { light: 0.52, dark: 0.74 } as const;
+export const INK_LIGHTNESS = { light: 0.5, dark: 0.74 } as const;
 
 type Oklab = [number, number, number];
 

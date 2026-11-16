@@ -232,7 +232,7 @@ function VpnTable({
             return (
               <tr
                 key={p.id}
-                className="glim-row cursor-pointer transition-colors hover:bg-carbon-surface3"
+                className="glim-row cursor-pointer transition-colors hover:bg-hover"
                 onClick={(e) => {
                   if (!(e.target as Element).closest('button, a, [role="switch"], [role="note"]')) onEdit(p);
                 }}

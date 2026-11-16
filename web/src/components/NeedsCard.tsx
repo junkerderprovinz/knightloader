@@ -219,7 +219,7 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
               key={need.key}
               data-need={need.kind}
               className="relative flex flex-wrap items-center gap-x-3.5 gap-y-2 rounded-[var(--radius-control)] px-2 py-3
-                hover:bg-carbon-hover md:flex-nowrap"
+                hover:bg-hover md:flex-nowrap"
             >
               <span
                 aria-hidden

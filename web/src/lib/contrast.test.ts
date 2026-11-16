@@ -13,7 +13,7 @@ const EXTREMES = {
 };
 
 // The grounds accent text sits on in each theme: the page and the card.
-const LIGHT_GROUNDS = ['#FFFFFF'];
+const LIGHT_GROUNDS = ['#FFFFFF', '#e8e8e8'];
 const DARK_GROUNDS = ['#161616', '#262626'];
 const OLED_GROUNDS = ['#000000', '#161616'];
 
@@ -98,9 +98,21 @@ describe('the OKLab steps', () => {
   it('give every preset nearly the same contrast as text on white', () => {
     for (const a of ACCENTS) {
       const r = contrastRatio(darkenTo(a.hex, INK_LIGHTNESS.light), '#FFFFFF');
-      expect(r, a.name).toBeGreaterThanOrEqual(5.2);
-      expect(r, a.name).toBeLessThanOrEqual(5.9);
+      expect(r, a.name).toBeGreaterThanOrEqual(5.7);
+      expect(r, a.name).toBeLessThanOrEqual(6.4);
     }
+  });
+
+  it('give every preset 4.5:1 on surface2, the darkest ground accent text meets in the light theme', () => {
+    for (const a of ACCENTS) {
+      const r = contrastRatio(darkenTo(a.hex, INK_LIGHTNESS.light), '#e8e8e8');
+      expect(r, a.name).toBeGreaterThanOrEqual(4.6);
+      expect(r, a.name).toBeLessThanOrEqual(5.3);
+    }
+  });
+
+  it('take Sunflower to #7C5F07 in the light theme', () => {
+    expect(darkenTo('#FCC419', INK_LIGHTNESS.light)).toBe('#7C5F07');
   });
 
   it('give every preset at least 8.8:1 on white under the contrast step', () => {

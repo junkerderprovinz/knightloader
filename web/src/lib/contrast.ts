@@ -97,9 +97,9 @@ export function contrastOn(hex: string): string {
  * below, on the dark ones at this one or above. index.css's contrast step
  * (prefers-contrast: more) takes the second pair.
  */
-export const INK_LIGHTNESS = { light: 0.52, dark: 0.74, lightMore: 0.4, darkMore: 0.84 } as const;
+export const INK_LIGHTNESS = { light: 0.5, dark: 0.74, lightMore: 0.4, darkMore: 0.84 } as const;
 
-type Oklab = [number, number, number];
+export type Oklab = [number, number, number];
 
 const linear = (v: number) => {
   const s = v / 255;
@@ -110,7 +110,7 @@ const gamma = (v: number) => (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1
 // OKLab's lightness follows what the eye sees, so one step gives every hue
 // nearly the same contrast, where a mix toward black in sRGB lands blue far
 // darker than yellow.
-function oklabOf(hex: string): Oklab {
+export function oklabOf(hex: string): Oklab {
   const [r, g, b] = rgb(hex).map(linear) as Rgb;
   const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
   const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
@@ -124,7 +124,7 @@ function oklabOf(hex: string): Oklab {
 
 // Each channel is clipped into sRGB, as the browser does: a step toward white
 // can leave it by a hair.
-function srgbOf([L, a, b]: Oklab): string {
+export function srgbOf([L, a, b]: Oklab): string {
   const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
   const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
   const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;

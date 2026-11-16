@@ -246,7 +246,7 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
               // with a bubble beside it keeps every card's rows level.
               <tr
                 key={row.key}
-                className="glim-row h-11 cursor-pointer transition-colors hover:bg-carbon-surface3 focus-within:bg-carbon-surface3"
+                className="glim-row h-11 cursor-pointer transition-colors hover:bg-hover focus-within:bg-carbon-surface3"
                 onClick={(e) => {
                   if (!(e.target as Element).closest('button, a, [role="note"]')) row.onEdit();
                 }}

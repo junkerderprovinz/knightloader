@@ -43,7 +43,7 @@ export function Fold({
           the (i) sits above that layer, so asking what it is opens nothing. */}
       <div
         className="relative -mx-2 flex items-center gap-x-4 rounded-[var(--radius-control)] px-2 py-1.5
-          transition-colors hover:bg-carbon-hover"
+          transition-colors hover:bg-hover"
       >
         <span className="flex min-w-0 items-center">
           <button

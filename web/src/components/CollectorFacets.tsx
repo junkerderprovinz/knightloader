@@ -137,7 +137,7 @@ function FacetRow({
   const row = (
     <label
       className="flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1 text-xs
-        text-carbon-textSub transition-colors hover:bg-carbon-hover"
+        text-carbon-textSub transition-colors hover:bg-hover"
     >
       <Tip tip={label} className="min-w-0 flex-1 truncate">
         {label}
