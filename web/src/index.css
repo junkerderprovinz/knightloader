@@ -1197,6 +1197,84 @@ body {
   }
 }
 
+/* An account table (AccountTable.tsx) never scrolls sideways. Its name and
+   status share what the fixed columns leave, and the plan, expiry and traffic
+   columns go as its well narrows. Under a pointer the row's buttons lie over
+   the row's end on the row's own ground while they show, so they take no
+   column. On a touch screen they always show and keep a column of their own,
+   which costs room sooner, and the narrowest well puts the status under the
+   name. */
+.kl-accounts {
+  container-type: inline-size;
+}
+.kl-accounts :is(.kl-col-plan, .kl-col-expiry, .kl-col-traffic),
+.kl-accounts .kl-status-under {
+  display: none;
+}
+@container (min-width: 34rem) {
+  .kl-accounts :is(.kl-col-plan, .kl-col-expiry) {
+    display: table-cell;
+  }
+}
+@container (min-width: 43rem) {
+  .kl-accounts .kl-col-traffic {
+    display: table-cell;
+  }
+}
+@container (min-width: 64rem) {
+  .kl-accounts th.kl-col-traffic {
+    width: 14rem;
+  }
+}
+.kl-accounts .kl-col-actions {
+  position: relative;
+  width: 0;
+  padding: 0;
+}
+.kl-accounts .kl-col-actions > .glim-row-actions {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-inline: 1.5rem 0.5rem;
+  background: linear-gradient(to left, var(--carbon-surface3) calc(100% - 1rem), transparent);
+}
+.kl-accounts .kl-col-actions > .glim-row-actions:dir(rtl) {
+  background: linear-gradient(to right, var(--carbon-surface3) calc(100% - 1rem), transparent);
+}
+@media (hover: none) {
+  .kl-accounts .kl-col-actions {
+    width: var(--row-actions);
+    padding-inline-end: 0.5rem;
+  }
+  .kl-accounts .kl-col-actions > .glim-row-actions {
+    position: static;
+    justify-content: flex-end;
+    padding: 0;
+    background: none;
+  }
+  @container (max-width: 34rem) {
+    .kl-accounts .kl-col-status {
+      display: none;
+    }
+    .kl-accounts .kl-status-under {
+      display: block;
+    }
+  }
+  @container (max-width: 44rem) {
+    .kl-accounts :is(.kl-col-plan, .kl-col-expiry) {
+      display: none;
+    }
+  }
+  @container (max-width: 56rem) {
+    .kl-accounts .kl-col-traffic {
+      display: none;
+    }
+  }
+}
+
 /* A carried list row (TaskList.tsx) floats over the rows it passes, so it
    paints the card's ground under its see-through mark. In rainbow mode the
    wash and the mark are inset shadows, which would take the lift's shadow's

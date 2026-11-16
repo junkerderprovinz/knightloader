@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node column-drag.mjs && node rainbow-hover.mjs"
+    "test": "node column-drag.mjs && node rainbow-hover.mjs && node account-tables.mjs"
   },
   "devDependencies": {
     "playwright": "1.65.0"

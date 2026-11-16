@@ -101,6 +101,24 @@ it('leaves out the options a row does not have and keeps a disabled one in its p
   expect(buttons[0].disabled).toBe(true);
 });
 
+it('shows a name cut short to fit its column whole in a tooltip, and a name that fits without one', () => {
+  vi.useFakeTimers();
+  try {
+    draw([row('long-hoster-name', <span>Signed in</span>), row('short', <span>Signed in</span>)]);
+    const names = [...host.querySelectorAll<HTMLElement>('tbody tr td:first-child .truncate')];
+    Object.defineProperty(names[0], 'scrollWidth', { value: 240 });
+    Object.defineProperty(names[0], 'clientWidth', { value: 80 });
+    for (const name of names) {
+      act(() => name.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })));
+      act(() => vi.advanceTimersByTime(1000));
+    }
+    const tips = [...document.querySelectorAll('[role="tooltip"]')].map((t) => t.textContent);
+    expect(tips).toEqual(['long-hoster-name']);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
 it('shows the row’s buttons under the pointer, with the focus inside the row and always on a touch screen', () => {
   draw([{ ...row('torbox', <span>Signed in</span>), onRemove: () => {} }]);
   const tr = host.querySelector('tbody tr')!;

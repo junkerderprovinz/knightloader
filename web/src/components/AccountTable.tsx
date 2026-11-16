@@ -1,6 +1,6 @@
 // The table shared by the debrid and hoster account cards. Both get the same
 // columns, and a column one card cannot fill shows a dash.
-import { useState, type ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
 import { fmtDate, fmtGB } from '../lib/format';
 import { IconBadge, useTooltip } from './ui';
@@ -167,6 +167,32 @@ function UnknownTraffic() {
   );
 }
 
+/** Clipped is a name cut short to fit its column, shown whole in a tooltip while it is cut. */
+function Clipped({ text }: { text: string }) {
+  const [cut, setCut] = useState(false);
+  const tip = useTooltip<HTMLSpanElement>(cut ? text : null);
+  const { ref, onMouseEnter, onMouseLeave } = tip.triggerProps;
+  return (
+    <>
+      <span
+        ref={ref}
+        className="block truncate"
+        aria-describedby={cut ? tip.triggerProps['aria-describedby'] : undefined}
+        onMouseEnter={() => {
+          const el = ref.current;
+          const now = !!el && el.scrollWidth > el.clientWidth;
+          setCut(now);
+          if (now) onMouseEnter();
+        }}
+        onMouseLeave={onMouseLeave}
+      >
+        {text}
+      </span>
+      {cut && tip.node}
+    </>
+  );
+}
+
 /** DisabledStatus stands in for the status of an account that is switched off. */
 function DisabledStatus() {
   const { t } = useT();
@@ -187,19 +213,23 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
   const [menuKey, setMenuKey] = useState<string | null>(null);
   const open = rows.find((r) => r.key === menuKey);
 
+  const most = Math.max(0, ...rows.map((r) => rowActions(r, t).length));
+  // The touch layout's column for the buttons, wide enough for the row with the most.
+  const room = { '--row-actions': `calc(${most} * var(--btn-h) + ${Math.max(most - 1, 0) * 0.25 + 0.5}rem)` } as CSSProperties;
+
   return (
     // relative keeps the sr-only header cell inside this scroller. Placed
     // against the page, it would widen the whole page on a phone.
-    <div data-new="account-rows" className="glim-well relative overflow-x-auto p-0">
-      <table className="w-full min-w-[46rem] border-collapse text-sm" aria-label={label}>
+    <div data-new="account-rows" className="kl-accounts glim-well relative overflow-x-auto p-0" style={room}>
+      <table className="w-full table-fixed border-collapse text-sm" aria-label={label}>
         <thead>
           <tr className="text-start text-xs text-carbon-textMuted">
-            <th className="px-4 py-3 text-start font-medium">{t('accounts.col.service')}</th>
-            <th className="px-2 py-3 text-start font-medium">{t('accounts.col.status')}</th>
-            <th className="px-2 py-3 text-start font-medium">{t('accounts.col.tier')}</th>
-            <th className="px-2 py-3 text-start font-medium">{t('accounts.col.expiry')}</th>
-            <th className="w-52 px-2 py-3 text-start font-medium">{t('accounts.col.traffic')}</th>
-            <th className="w-10 px-2 py-3">
+            <th className="truncate px-4 py-3 text-start font-medium">{t('accounts.col.service')}</th>
+            <th className="kl-col-status w-36 truncate px-2 py-3 text-start font-medium">{t('accounts.col.status')}</th>
+            <th className="kl-col-plan w-20 truncate px-2 py-3 text-start font-medium">{t('accounts.col.tier')}</th>
+            <th className="kl-col-expiry w-36 truncate px-2 py-3 text-start font-medium">{t('accounts.col.expiry')}</th>
+            <th className="kl-col-traffic w-44 truncate px-2 py-3 text-start font-medium">{t('accounts.col.traffic')}</th>
+            <th className="kl-col-actions">
               <span className="sr-only">{t('accounts.rowActions')}</span>
             </th>
           </tr>
@@ -207,6 +237,7 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
         <tbody className="divide-y divide-carbon-border/40">
           {rows.map((row) => {
             const off = !!row.onToggle && !row.enabled;
+            const status = off ? <DisabledStatus /> : row.status;
             return (
               // The whole row opens its account, and a right click its menu
               // (GlimStone, "Lists"). A press on one of the row's own controls
@@ -215,7 +246,7 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
               // with a bubble beside it keeps every card's rows level.
               <tr
                 key={row.key}
-                className="glim-row h-11 cursor-pointer transition-colors hover:bg-carbon-surface3"
+                className="glim-row h-11 cursor-pointer transition-colors hover:bg-carbon-surface3 focus-within:bg-carbon-surface3"
                 onClick={(e) => {
                   if (!(e.target as Element).closest('button, a, [role="note"]')) row.onEdit();
                 }}
@@ -225,25 +256,28 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
                   menu.openAt(anchorFromEvent(e));
                 }}
               >
-                <td className={`px-4 py-0 font-medium ${off ? 'text-carbon-textMuted' : 'text-carbon-text'}`}>
-                  <span className="inline-flex items-center gap-2">
+                <td className={`overflow-hidden px-4 py-0 font-medium ${off ? 'text-carbon-textMuted' : 'text-carbon-text'}`}>
+                  <span className="flex min-w-0 items-center gap-2">
                     {/* Faded with the name, so a disabled account reads as resting at a glance. */}
-                    <span className={off ? 'opacity-50 grayscale' : undefined}>
+                    <span className={`shrink-0 ${off ? 'opacity-50 grayscale' : ''}`}>
                       <HosterIcon host={row.iconHost} />
                     </span>
-                    {row.label}
+                    <span className="min-w-0">
+                      <Clipped text={row.label} />
+                      <span className="kl-status-under font-normal">{status}</span>
+                    </span>
                   </span>
                 </td>
-                <td className="px-2 py-0">{off ? <DisabledStatus /> : row.status}</td>
-                <td className="px-2 py-0">
+                <td className="kl-col-status overflow-hidden px-2 py-0">{status}</td>
+                <td className="kl-col-plan truncate px-2 py-0">
                   <TierCell tier={row.tier} />
                 </td>
-                <td className="glim-num whitespace-nowrap px-2 py-0 text-carbon-textSub">{fmtDate(row.expiry) || '-'}</td>
-                <td className="px-2 py-0 text-carbon-textSub">
+                <td className="kl-col-expiry glim-num truncate px-2 py-0 text-carbon-textSub">{fmtDate(row.expiry) || '-'}</td>
+                <td className="kl-col-traffic overflow-hidden px-2 py-0 text-carbon-textSub">
                   <TrafficCell traffic={row.traffic} />
                 </td>
-                <td className="px-2 py-0 text-end">
-                  <span className="glim-row-actions inline-flex items-center gap-1">
+                <td className="kl-col-actions py-0">
+                  <span className="glim-row-actions">
                     {rowActions(row, t).map((a, j) => (
                       <IconBadge
                         key={a.id}
