@@ -73,7 +73,8 @@ jobs:
             # manifest, release.yml and the extension's version route.
             # check-module-lines.mjs reads the module codes from the two
             # routes files, check-one-name.mjs the app's English and German,
-            # and lib/taskError.test.ts the failure codes.
+            # check-root-layers.mjs the extension's stylesheet, and
+            # lib/taskError.test.ts the failure codes.
             web:
               - 'web/**'
               - 'mobile/app.json'
@@ -81,6 +82,7 @@ jobs:
               - 'mobile/src/i18n/en.ts'
               - 'mobile/src/i18n/de.ts'
               - 'extension/src/manifest.json'
+              - 'extension/src/glimstone.css'
               - '.github/workflows/release.yml'
               - 'internal/api/routes_browsertools.go'
               - 'internal/api/routes_features.go'
@@ -388,6 +390,9 @@ jobs:
 
       - name: The version on a download card is the one it downloads
         run: node check-version-sources.mjs
+
+      - name: A layered root token is not shadowed by an unlayered default
+        run: node check-root-layers.mjs
 
       - name: A stretched plot does not decide its card's height
         run: node check-stretched-svg-height.mjs
