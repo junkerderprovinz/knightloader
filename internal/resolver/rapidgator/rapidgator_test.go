@@ -735,8 +735,8 @@ func TestATwoFactorLoginAsksForTheCodeAndSignsInWithIt(t *testing.T) {
 	}
 	b.Download("t1", link, nil, 1)
 	awaitHandoff(t, eng)
-	if n := srv.Logins(); n != 1 {
-		t.Errorf("the API was asked %d times, want once without the code before the website took it", n)
+	if n := srv.Logins(); n != 2 {
+		t.Errorf("signed in %d times, want once without the code and once with it", n)
 	}
 	for _, q := range srv.Queries() {
 		if strings.Contains(q, "482913") {
@@ -793,8 +793,8 @@ func TestAnEndedTwoFactorSessionAsksForANewCodeRatherThanThePassword(t *testing.
 	if st := b.Status(); !st.Refused || st.Code != ownlogin.CodeEnded {
 		t.Errorf("the login reads as %+v, want it asking for a new code", st)
 	}
-	if got := srv.SiteCodes(); len(got) != 1 || srv.Logins() != 0 {
-		t.Errorf("signed in on the website with %q and %d times through the API, want only the sign-in with the code", got, srv.Logins())
+	if n := srv.Logins(); n != 1 {
+		t.Errorf("signed in %d times, want only the sign-in with the code", n)
 	}
 	if b.Handed() {
 		t.Error("the login went to JDownloader, which cannot enter a code either")
