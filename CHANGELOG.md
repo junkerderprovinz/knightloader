@@ -199,6 +199,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Linksnappy confirms a sign-in from a new place through a link it emails, and
   the account's check now tells you to open that link rather than showing
   Linksnappy's bare "Two-Factor Verification Required".
+- **Keep2Share, FileBoom, TezFiles and Nitroflare logins get past a captcha
+  at sign-in.** When the site wants one before it takes the login,
+  KnightLoader hands it to your captcha solver or the captcha prompt, the same
+  way as for free downloads, and signs in with the answer. A Keep2Share
+  sign-in the site holds off for a while no longer reads as a wrong password.
+  KnightLoader waits and tries again. Nitroflare gets the email address in
+  lower case, like JDownloader sends it.
 - **A Rapidgator login that waits for an emailed link says which one.** An
   account Rapidgator has not activated yet points you to the link in its
   welcome mail, and a sign-in from a new IP address to the link Rapidgator just
