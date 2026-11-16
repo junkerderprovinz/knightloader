@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 )
 
@@ -105,12 +108,28 @@ func (e *expiry) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Login signs in and reads the account the token belongs to.
-func (c *Client) Login(ctx context.Context, user, password string) (string, Account, error) {
+// Login signs in and reads the account the token belongs to. A captcha the
+// sign-in asks for goes to ask, once, as JDownloader's plugin answers it, and
+// turns the login down where ask is nil.
+func (c *Client) Login(ctx context.Context, user, password string, ask func(hoster.Captcha) (string, error)) (string, Account, error) {
 	var out struct {
 		Token string `json:"auth_token"`
 	}
-	if err := c.call(ctx, "login", map[string]any{"username": user, "password": password}, &out); err != nil {
+	in := map[string]any{"username": user, "password": password}
+	refusal, err := c.do(ctx, "login", in, &out)
+	if code := captchaCode(refusal); code != 0 && ask != nil {
+		if err := c.answerSignIn(ctx, code, in, ask); err != nil {
+			return "", Account{}, err
+		}
+		refusal, err = c.do(ctx, "login", in, &out)
+		if captchaCode(refusal) != 0 {
+			return "", Account{}, errCaptchaRefused
+		}
+	}
+	if refusal != nil {
+		return "", Account{}, refusal.classify("login")
+	}
+	if err != nil {
 		return "", Account{}, err
 	}
 	if out.Token == "" {
@@ -188,6 +207,72 @@ func (c *Client) Link(ctx context.Context, token, id string) (string, error) {
 	return out.URL, nil
 }
 
+// answerSignIn has ask answer the captcha a sign-in was refused with, the
+// image captcha or for code 33 a reCAPTCHA, and puts the answer into in.
+func (c *Client) answerSignIn(ctx context.Context, code int, in map[string]any, ask func(hoster.Captcha) (string, error)) error {
+	if code != 33 {
+		challenge, image, err := c.captcha(ctx)
+		if err != nil {
+			return err
+		}
+		answer, err := ask(hoster.Captcha{Kind: hoster.Image, Image: image, PageURL: c.api})
+		if err != nil {
+			return err
+		}
+		in["captcha_challenge"], in["captcha_response"] = challenge, answer
+		return nil
+	}
+	challenge, page, key, err := c.recaptcha(ctx)
+	if err != nil {
+		return err
+	}
+	token, err := ask(hoster.Captcha{Kind: hoster.Recaptcha, SiteKey: key, PageURL: page})
+	if err != nil {
+		return err
+	}
+	in["re_captcha_challenge"], in["re_captcha_response"] = challenge, token
+	return nil
+}
+
+// siteKey finds the key of the reCAPTCHA on its page.
+var siteKey = regexp.MustCompile(`(?:data-sitekey\s*=|sitekey["']?\s*:)\s*["']([\w-]{20,})["']`)
+
+// recaptcha asks for a reCAPTCHA and reads the page it sits on for its key.
+// The API names the page over http on the site's main domain, so the page is
+// read where the API answers, which keeps it on https.
+func (c *Client) recaptcha(ctx context.Context) (challenge, page, key string, err error) {
+	var out struct {
+		Challenge string `json:"challenge"`
+		URL       string `json:"captcha_url"`
+	}
+	if err := c.call(ctx, "requestReCaptcha", map[string]any{}, &out); err != nil {
+		return "", "", "", err
+	}
+	u, err := url.Parse(out.URL)
+	if out.Challenge == "" || err != nil || u.Path == "" {
+		return "", "", "", errors.New("requestReCaptcha was answered without a challenge and its page")
+	}
+	page = c.api + u.RequestURI()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, page, nil)
+	if err != nil {
+		return "", "", "", err
+	}
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return "", "", "", err
+	}
+	defer resp.Body.Close()
+	html, err := io.ReadAll(io.LimitReader(resp.Body, maxBody))
+	if err != nil {
+		return "", "", "", err
+	}
+	m := siteKey.FindSubmatch(html)
+	if resp.StatusCode != http.StatusOK || m == nil {
+		return "", "", "", fmt.Errorf("the reCAPTCHA page answered %d without a key", resp.StatusCode)
+	}
+	return out.Challenge, page, string(m[1]), nil
+}
+
 // call posts in as JSON to an API method and decodes the answer into out.
 func (c *Client) call(ctx context.Context, method string, in, out any) error {
 	refusal, err := c.do(ctx, method, in, out)
@@ -260,10 +345,24 @@ type apiError struct {
 	wait time.Duration
 }
 
+// captchaCode is the errorCode of a refusal that asks for a captcha, 0 for
+// none.
+func captchaCode(e *apiError) int {
+	var code int
+	if e == nil || json.Unmarshal(e.code, &code) != nil {
+		return 0
+	}
+	if code == 30 || code == 31 || code == 33 {
+		return code
+	}
+	return 0
+}
+
 // classify reads a refusal of the API. Codes 21 and 42 only say the download
 // is not possible, and the code in their errors list says why, in the same
 // numbers the API uses on their own. Code 2 is a malformed request at status
-// 400 and spent traffic at 406.
+// 400, which at a sign-in is the site holding the address off for a while,
+// and spent traffic at 406.
 func (e apiError) classify(method string) error {
 	var code int
 	if json.Unmarshal(e.code, &code) != nil {
@@ -279,8 +378,10 @@ func (e apiError) classify(method string) error {
 	}
 	login := method == "login"
 	switch {
-	case code == 2 && e.status == http.StatusBadRequest && login, code == 70:
+	case code == 70:
 		return &LoginError{Msg: "the login was turned down, so check the email address and password"}
+	case code == 2 && e.status == http.StatusBadRequest && login:
+		return ErrBusy
 	case code == 2 && e.status == http.StatusBadRequest, code == 20, code == 23:
 		return ErrGone
 	case code == 22:

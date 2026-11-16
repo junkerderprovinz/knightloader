@@ -15,16 +15,20 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/keep2share/k2stest"
 )
 
+// answers answers an image captcha with code and a reCAPTCHA with token.
 type answers struct {
-	mu       sync.Mutex
-	code     string
-	captchas []hoster.Captcha
+	mu          sync.Mutex
+	code, token string
+	captchas    []hoster.Captcha
 }
 
 func (a *answers) solve(_ context.Context, _ string, c hoster.Captcha) (string, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.captchas = append(a.captchas, c)
+	if c.Kind == hoster.Recaptcha {
+		return a.token, nil
+	}
 	return a.code, nil
 }
 
