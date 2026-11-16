@@ -252,7 +252,7 @@ func classify(method string, status int, details string) error {
 	case has("invalid auth code"):
 		return &LoginError{Msg: "rapidgator: the account signs in with a two-factor code, so enter the one the authenticator app shows", Err: ownlogin.ErrNeedsCode}
 	case has("activate your account"):
-		return &LoginError{Activate: true, CodeMayHelp: true, Msg: "rapidgator: Rapidgator wants the account activated first, through the link it emailed when the account was made"}
+		return &LoginError{Activate: true, CodeMayHelp: true, Msg: "rapidgator: Rapidgator wants the account's email address activated first, through the link in its activation mail"}
 	case has("unusual ip"):
 		return &LoginError{NewAddress: true, CodeMayHelp: true, Msg: "rapidgator: Rapidgator wants this address confirmed through the link it emailed to the account"}
 	case has("login or password is wrong", "e-mail or password", "password cannot be blank", "login or password is missing"):

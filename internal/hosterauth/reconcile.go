@@ -611,7 +611,7 @@ type OwnState struct {
 	// Captcha is a refusal until the user solves a captcha at the hoster.
 	Captcha bool
 	// Activate is a refusal until the user activates the account through
-	// the hoster's welcome mail, and NewAddress one until the user confirms
+	// the hoster's activation mail, and NewAddress one until the user confirms
 	// the address the sign-in came from through the link the hoster mailed.
 	Activate, NewAddress bool
 	// CodeMayHelp is such a refusal that the hoster also gives a login with

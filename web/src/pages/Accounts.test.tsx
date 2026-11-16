@@ -714,7 +714,7 @@ it('keeps every connected debrid account in the download order, and says why one
 it.each([
   [
     'ownActivate',
-    'The hoster says this account is not activated yet. Activate it with the link from the hoster’s welcome mail (check the spam folder too), then switch this login off and on again.',
+    'The hoster says the email address of this account is not activated yet. Activate it with the link in the hoster’s activation mail (check the spam folder too), then sign in again.',
   ],
   [
     'ownNewAddress',

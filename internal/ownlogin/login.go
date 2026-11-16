@@ -80,7 +80,7 @@ type LoginError struct {
 	// only the user can do.
 	Captcha bool
 	// Activate is an account the hoster wants activated through the link
-	// of its welcome mail, and NewAddress a sign-in from an address the
+	// of its activation mail, and NewAddress a sign-in from an address the
 	// hoster wants confirmed through a link it mailed.
 	Activate, NewAddress bool
 	// CodeMayHelp is a refusal the hoster also gives a login with a second
