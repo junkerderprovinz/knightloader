@@ -46,6 +46,8 @@ var (
 // LoginError is filer.net turning the login down.
 type LoginError = ownlogin.LoginError
 
+var errRefused = &LoginError{Msg: "filer.net: filer.net turned the login down, so check the email address and password"}
+
 // APIError is an answer of the API nothing else here explains, in
 // filer.net's own words.
 type APIError struct {
@@ -113,27 +115,61 @@ func (f fileInfo) file() File {
 // Login reads the account behind the login. The API keeps no session and
 // takes the email address and password with every call that needs them.
 func (c *Client) Login(ctx context.Context, user, password string) (string, Account, error) {
-	var out struct {
-		Premium     bool   `json:"premium"`
-		Until       number `json:"until"`
-		Traffic     number `json:"traffic"`
-		TrafficLeft number `json:"traffic_left"`
-	}
 	req, err := c.request(ctx, http.MethodGet, "/profile.json", nil)
 	if err != nil {
 		return "", Account{}, err
 	}
 	req.SetBasicAuth(user, password)
-	if _, err := c.call(c.hc, req, &out); err != nil {
+	var raw json.RawMessage
+	if _, err := c.call(c.hc, req, &raw); err != nil {
 		return "", Account{}, err
+	}
+	a, err := readProfile(raw)
+	return "", a, err
+}
+
+// defaultMaxTraffic is the daily traffic of a premium plan whose profile
+// names none, as JDownloader's plugin assumes.
+const defaultMaxTraffic = 125 << 30
+
+// readProfile reads the account from the data of profile.json. JDownloader's
+// plugin, which runs against the live API, reads the plan from state, the
+// traffic left from traffic and the total from maxtraffic. The documentation
+// names premium, traffic for the total and traffic_left instead, so a profile
+// with traffic_left is read that way.
+func readProfile(raw json.RawMessage) (Account, error) {
+	var out struct {
+		State       string  `json:"state"`
+		Premium     bool    `json:"premium"`
+		Until       number  `json:"until"`
+		Traffic     number  `json:"traffic"`
+		MaxTraffic  number  `json:"maxtraffic"`
+		TrafficLeft *number `json:"traffic_left"`
+	}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return Account{}, fmt.Errorf("filer.net: the profile does not read: %w", err)
+	}
+	a := Account{Premium: out.Premium}
+	if out.State != "" {
+		a.Premium = !strings.EqualFold(out.State, "free")
+	}
+	if !a.Premium {
+		return a, nil
+	}
+	left, total := out.Traffic, out.MaxTraffic
+	if out.TrafficLeft != nil {
+		left, total = *out.TrafficLeft, max(out.MaxTraffic, out.Traffic)
+	}
+	if total == 0 {
+		total = defaultMaxTraffic
 	}
 	// The traffic left goes below zero after a download larger than what was
 	// left, and fills up again over the day.
-	a := Account{Premium: out.Premium, TrafficMax: int64(out.Traffic), TrafficLeft: max(int64(out.TrafficLeft), 0)}
+	a.TrafficLeft, a.TrafficMax = max(int64(left), 0), int64(total)
 	if out.Until > 0 {
 		a.Expiry = time.Unix(int64(out.Until), 0).UTC()
 	}
-	return "", a, nil
+	return a, nil
 }
 
 // File reads the name and size of the file id, which needs no login.
@@ -243,6 +279,11 @@ func (c *Client) call(hc *http.Client, req *http.Request, out any) (*http.Respon
 		Data   json.RawMessage `json:"data"`
 	}
 	if err := json.Unmarshal(body, &env); err != nil {
+		// JDownloader's plugin reads every 401 to a call with the login as
+		// the login turned down, one without the envelope included.
+		if _, _, auth := req.BasicAuth(); auth && resp.StatusCode == http.StatusUnauthorized {
+			return nil, errRefused
+		}
 		if resp.StatusCode != http.StatusOK {
 			return nil, &APIError{HTTP: resp.StatusCode, Status: http.StatusText(resp.StatusCode)}
 		}
@@ -266,7 +307,7 @@ func (c *Client) call(hc *http.Client, req *http.Request, out any) (*http.Respon
 func classify(httpStatus, code int, status string) error {
 	switch strings.ToLower(strings.TrimSpace(status)) {
 	case "invalid credentials":
-		return &LoginError{Msg: "filer.net: filer.net turned the login down, so check the email address and password"}
+		return errRefused
 	case "authentication failed":
 		return ErrSignIn
 	case "account suspended":
