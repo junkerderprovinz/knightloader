@@ -136,7 +136,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   from, or how to sign in, sits in the (i) beside the state. The site's
   window keeps its buttons in the footer, with Close first and, until you are
   signed in, opening the site last as the one step forward.
-- **KnightLoader follows GlimStone 4.5.2,** and the Version card names it.
+- **KnightLoader follows GlimStone 4.5.3,** and the Version card names it.
   Accent text reads equally well in every colour, and the contrast goes up
   when the system asks for more, Windows contrast themes included. Lists and
   menus take PageUp and PageDown, Home and End and jumps by letter, and screen
