@@ -230,16 +230,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   filer.net's usual answer counts as a wrong password too, instead of handing
   the login to JDownloader.
 - **A Rapidgator login that waits for an emailed link says which one.** An
-  account Rapidgator has not activated yet points you to the link in its
-  welcome mail, and a sign-in from a new IP address to the link Rapidgator just
-  sent to confirm it. Both told you to check the password before.
-- **Rapidgator accounts the API turns away sign in through the website.**
-  When Rapidgator's API calls an account not activated, wants a new address
-  confirmed or asks for a two-factor code, KnightLoader signs in on
-  Rapidgator's website instead, the way JDownloader does, and downloads on
-  that session. A two-factor code goes to the website once and is never
-  stored. A captcha on the sign-in page goes to your captcha solvers or the
-  captcha prompt.
+  account whose email address Rapidgator has not activated yet points you to
+  the link in Rapidgator's activation mail (check the spam folder too), and a
+  sign-in from a new IP address to the link Rapidgator just sent to confirm
+  it. Both told you to check the password before.
 - **YouTube gives yt-dlp all its formats again.** yt-dlp needs a JavaScript
   runtime to read YouTube's player, and the desktop app had none, so some
   formats were missing. The desktop app fetches Deno during the install, or at
