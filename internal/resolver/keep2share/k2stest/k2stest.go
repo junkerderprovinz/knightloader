@@ -27,8 +27,10 @@ type Account struct {
 	// Traffic is the bytes left for today. Downloading a file takes its size
 	// off once.
 	Traffic int64
-	// Captcha has every sign-in answered with a reCAPTCHA request.
-	Captcha bool
+	// Captcha has every sign-in answered with a reCAPTCHA request until one
+	// comes with Token, and ImageCaptcha the same with the image captcha and
+	// Code.
+	Captcha, ImageCaptcha bool
 }
 
 // File is one file the server holds.
@@ -43,6 +45,13 @@ type File struct {
 const Code = "48213"
 
 var Picture = []byte("PNG k2s captcha")
+
+// SiteKey is the key on the reCAPTCHA page, and Token the one answer it
+// takes.
+const (
+	SiteKey = "6LcYcN0SAAAAABtMlxKj7X0hRxOY8_2U86kI1vbb"
+	Token   = "03AFcWeA-solved"
+)
 
 // Server answers for the accounts and files it was given. A client pointed at
 // URL reaches it.
@@ -62,6 +71,8 @@ type Server struct {
 	freeWait   int
 	challenges map[string]bool
 	keys       map[string]string
+	// recaptchas are the challenges requestReCaptcha handed out.
+	recaptchas map[string]bool
 }
 
 type failure struct {
@@ -83,6 +94,7 @@ func New(t *testing.T, domain string) *Server {
 		freeWait:   30,
 		challenges: map[string]bool{},
 		keys:       map[string]string{},
+		recaptchas: map[string]bool{},
 	}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
@@ -158,6 +170,13 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "image/png")
 		_, _ = w.Write(Picture)
+	case path == "/api/v2/reCaptcha.html" && r.Method == http.MethodGet:
+		if !s.recaptchas[r.URL.Query().Get("id")] {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write([]byte(`<html><body><form method="post"><div class="g-recaptcha" data-sitekey="` + SiteKey + `"></div></form></body></html>`))
 	case strings.HasPrefix(path, "/api/v2/"):
 		s.api(w, r, strings.TrimPrefix(path, "/api/v2/"))
 	case strings.HasPrefix(path, "/download/"):
@@ -186,6 +205,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request, method string) {
 		Challenge string   `json:"captcha_challenge"`
 		Response  string   `json:"captcha_response"`
 		FreeKey   string   `json:"free_download_key"`
+
+		ReChallenge string `json:"re_captcha_challenge"`
+		ReResponse  string `json:"re_captcha_response"`
 	}
 	if r.Method != http.MethodPost || json.NewDecoder(r.Body).Decode(&in) != nil {
 		answer(w, http.StatusBadRequest, map[string]any{"status": "error", "code": 400, "errorCode": 2, "message": "Invalid request params"})
@@ -199,7 +221,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request, method string) {
 	notAuthorized := map[string]any{"message": "You are not authorized for this action", "status": "error", "code": 403, "errorCode": 10}
 	switch method {
 	case "login":
-		s.login(w, in.Username, in.Password)
+		s.login(w, in.Username, in.Password, s.passed(in.Challenge, in.Response, Code, s.challenges),
+			s.passed(in.ReChallenge, in.ReResponse, Token, s.recaptchas))
 	case "accountInfo":
 		acct := s.tokens[in.AuthToken]
 		if acct == nil {
@@ -219,6 +242,13 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request, method string) {
 		s.challenges[challenge] = true
 		answer(w, http.StatusOK, map[string]any{"status": "success", "code": 200, "challenge": challenge,
 			"captcha_url": s.URL + "/api/v2/captcha?id=" + challenge})
+	case "requestReCaptcha":
+		challenge := strings.ToLower(rand.Text())[:13]
+		s.recaptchas[challenge] = true
+		// The live API names the page on its own domain over http, whatever
+		// address it was asked at.
+		answer(w, http.StatusOK, map[string]any{"status": "success", "code": 200, "challenge": challenge,
+			"captcha_url": "http://" + s.domain + "/api/v2/reCaptcha.html?id=" + challenge})
 	case "getUrl":
 		acct := s.tokens[in.AuthToken]
 		if in.AuthToken != "" && acct == nil {
@@ -235,11 +265,25 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request, method string) {
 	}
 }
 
-func (s *Server) login(w http.ResponseWriter, user, password string) {
+// passed reports whether challenge, one of those handed out, came with want,
+// and uses the challenge up either way.
+func (s *Server) passed(challenge, response, want string, handed map[string]bool) bool {
+	if challenge == "" {
+		return false
+	}
+	ok := handed[challenge] && response == want
+	delete(handed, challenge)
+	return ok
+}
+
+func (s *Server) login(w http.ResponseWriter, user, password string, image, recaptcha bool) {
 	s.logins++
 	acct := s.accounts[user]
 	switch {
-	case acct != nil && acct.Captcha:
+	case acct != nil && acct.ImageCaptcha && !image:
+		answer(w, http.StatusNotAcceptable, map[string]any{"message": "Please verify your request via captcha challenge",
+			"status": "error", "code": 406, "errorCode": 30})
+	case acct != nil && acct.Captcha && !recaptcha:
 		answer(w, http.StatusNotAcceptable, map[string]any{"message": "Please verify your request via re captcha challenge",
 			"status": "error", "code": 406, "errorCode": 33})
 	case acct == nil || acct.Password != password:

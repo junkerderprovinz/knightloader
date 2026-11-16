@@ -64,6 +64,11 @@ description = "Invented credentials that are test fixtures for the parsers that 
 # internal/resolver/googledrive/gdtest serves a folder page carrying two
 # made-up Google API keys, since the client finds the files API's key by its
 # shape, the first of such a pair.
+#
+# internal/resolver/nitroflare/client.go carries the site key of Nitroflare's
+# reCAPTCHA, and the k2stest fake the one its page shows. A site key is public,
+# it sits in the page of every visitor. The fakes of both take a made-up
+# reCAPTCHA answer.
 regexes = [
   '''demo:s3cret''',
   '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
@@ -78,4 +83,7 @@ regexes = [
   '''kl_7Qa-Zb0_cD''',
   '''AIzaInventedFilesKeyOfTheGdtestFake0000''',
   '''AIzaInventedSecondKeyOfTheGdtestPage000''',
+  '''6Lenx_USAAAAAF5L1pmTWvWcH73dipAEzNnmNLgy''',
+  '''6LcYcN0SAAAAABtMlxKj7X0hRxOY8_2U86kI1vbb''',
+  '''03AFcWeA-solved''',
 ]

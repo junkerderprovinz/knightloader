@@ -158,12 +158,14 @@ func (a *App) ownHosters(eng ownlogin.Downloader) []*ownHoster {
 	for _, h := range keep2share.Hosts {
 		b := keep2share.NewBackend(h, keep2share.NewClient(h.API, hc), eng, a.onUpdate)
 		b.Checked, b.Moved, b.Saved = a.refreshPremiumHolds, a.ownLoginMoved, a.keepOwnSession(h.Site)
+		b.Solve = a.solveFor(h.Site)
 		fb := keep2share.NewFreeBackend(h, keep2share.NewClient(h.API, hc), eng, a.onUpdate)
 		a.own = append(a.own, &ownHoster{id: h.ID, site: h.Site, normalize: h.Normalize, be: b, res: keep2share.Resolver{Backend: b},
 			free: a.newOwnFree(h.ID+"-free", h.Site, keep2share.FreeResolver{Host: h}, fb.Free, fb, b.Handed)})
 	}
 	nf := nitroflare.NewBackend(nitroflare.NewClient(nitroflare.DefaultSite, hc), eng, a.onUpdate)
 	nf.Checked, nf.Moved, nf.Saved = a.refreshPremiumHolds, a.ownLoginMoved, a.keepOwnSession(nitroflare.Site)
+	nf.Solve = a.solveFor(nitroflare.Site)
 	a.own = append(a.own, &ownHoster{id: nitroflare.ResolverID, site: nitroflare.Site,
 		normalize: nitroflare.Normalize, be: nf, res: nitroflare.Resolver{Backend: nf}})
 	fn := filer.NewBackend(filer.NewClient(filer.DefaultSite, hc), eng, a.onUpdate)

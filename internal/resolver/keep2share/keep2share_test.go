@@ -529,6 +529,7 @@ func TestTheAPIsRefusalsReadAsTheirCause(t *testing.T) {
 		{"getUrl", 403, `73`, 0, ErrDenied},
 		{"login", 403, `77`, 0, ErrDenied},
 		{"login", 406, `71`, 0, ErrBusy},
+		{"login", 400, `2`, 0, ErrBusy},
 		{"login", 400, `"captcha_need_wait"`, 0, ErrBusy},
 	}
 	for _, c := range cases {
