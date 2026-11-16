@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hoster"
 	"github.com/junkerderprovinz/knightloader/internal/ownlogin"
 )
 
@@ -30,6 +31,10 @@ type Backend struct {
 	*ownlogin.Login
 	*ownlogin.Tasks
 
+	// Solve answers a captcha the API asks for. Nil answers none, which
+	// turns the login down.
+	Solve hoster.Solve
+
 	client   *Client
 	onUpdate func(taskID string, u core.Update)
 	// inspectPause spaces the questions of one Inspect, as JDownloader's
@@ -41,7 +46,7 @@ func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.U
 	b := &Backend{client: c, onUpdate: onUpdate, inspectPause: 500 * time.Millisecond}
 	// The API has no second factor to send a code with.
 	signIn := func(ctx context.Context, user, password, _ string) (string, ownlogin.Account, error) {
-		return c.Login(ctx, user, password)
+		return c.Login(ctx, user, password, b.ask(ctx, ""))
 	}
 	b.Login = ownlogin.NewLogin(ownlogin.Signer{Login: signIn, Reason: reason, None: ErrNoLogin})
 	b.Tasks = ownlogin.NewTasks(b.Login, eng, onUpdate, ownlogin.Config{Name: "Nitroflare", Unlock: b.unlock})
@@ -76,11 +81,23 @@ func (b *Backend) unlock(ctx context.Context, taskID, link string, _ func(time.D
 		b.Bench(spentBench)
 		return "", 0, ErrTraffic
 	}
-	direct, err := b.client.Link(ctx, s.User, s.Password, id)
+	direct, err := b.client.Link(ctx, s.User, s.Password, id, b.ask(ctx, taskID))
 	if errors.Is(err, ErrTraffic) {
 		b.Bench(spentBench)
 	}
 	return direct, f.Size, err
+}
+
+// ask answers the API's captchas through Solve for the download taskID, ""
+// for a sign-in, and is nil without Solve.
+func (b *Backend) ask(ctx context.Context, taskID string) Ask {
+	switch {
+	case b.Solve == nil:
+		return nil
+	case taskID == "":
+		return func(c hoster.Captcha) (string, error) { return hoster.AskAlone(ctx, b.Solve, c) }
+	}
+	return func(c hoster.Captcha) (string, error) { return b.Ask(ctx, taskID, "Nitroflare", b.Solve, c) }
 }
 
 // reason is the cause a failed download is reported with.
@@ -94,6 +111,8 @@ func reason(err error) core.Reason {
 		return core.ReasonAuth
 	case errors.Is(err, ErrTraffic):
 		return core.ReasonLimit
+	case errors.Is(err, hoster.ErrNoAnswer), errors.Is(err, errCaptchaRefused):
+		return core.ReasonCaptcha
 	case errors.As(err, &api) && api.Status >= http.StatusInternalServerError:
 		return core.ReasonUnavailable
 	}

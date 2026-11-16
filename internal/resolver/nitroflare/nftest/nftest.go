@@ -28,9 +28,13 @@ type Account struct {
 	// TrafficLeft is what is left of TrafficMax. Downloading a file takes its
 	// size off.
 	TrafficLeft int64
-	// Captcha has every call with the login answered with a captcha request.
+	// Captcha has every call with the login answered with a captcha request
+	// until solveCaptcha has taken Token for it.
 	Captcha bool
 }
+
+// Token is the one answer solveCaptcha takes.
+const Token = "03AFcWeA-solved"
 
 // File is one file the server holds.
 type File struct {
@@ -50,6 +54,9 @@ type Server struct {
 	files    map[string]File
 	fail     map[string][]failure
 	requests []string
+	// passed are the users whose answer solveCaptcha took, waiting for the
+	// call that says so.
+	passed map[string]bool
 }
 
 type failure struct {
@@ -60,7 +67,7 @@ type failure struct {
 
 // New starts a server that closes when the test ends.
 func New(t *testing.T) *Server {
-	s := &Server{accounts: map[string]*Account{}, files: map[string]File{}, fail: map[string][]failure{}}
+	s := &Server{accounts: map[string]*Account{}, files: map[string]File{}, fail: map[string][]failure{}, passed: map[string]bool{}}
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
 	return s
@@ -126,6 +133,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request, method string) {
 		return
 	}
 	switch method {
+	case "solveCaptcha":
+		s.solveCaptcha(w, r, q)
 	case "getFileInfo":
 		s.fileInfo(w, strings.Split(q.Get("files"), ","))
 	case "getKeyInfo":
@@ -167,6 +176,30 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request, method string) {
 		}
 	default:
 		answer(w, http.StatusOK, map[string]any{"type": "error", "message": "Bad input", "code": 3})
+	}
+}
+
+// solveCaptcha takes the answer to the captcha, posted as response, and then
+// the call with solved=1 that lets the user's calls through again. It answers
+// in plain words, as the live API does.
+func (s *Server) solveCaptcha(w http.ResponseWriter, r *http.Request, q url.Values) {
+	user := q.Get("user")
+	switch {
+	case r.Method == http.MethodPost:
+		if r.PostFormValue("response") != Token {
+			_, _ = w.Write([]byte("failed"))
+			return
+		}
+		s.passed[user] = true
+		_, _ = w.Write([]byte("passed"))
+	case q.Get("solved") == "1" && s.passed[user]:
+		delete(s.passed, user)
+		if acct := s.accounts[user]; acct != nil {
+			acct.Captcha = false
+		}
+		_, _ = w.Write([]byte("ok"))
+	default:
+		http.Error(w, "nothing to confirm", http.StatusBadRequest)
 	}
 }
 
