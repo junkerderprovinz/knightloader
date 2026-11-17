@@ -4331,6 +4331,8 @@ export const en = {
   'signInBrowser.back': 'Back',
   'signInBrowser.reload': 'Reload',
   'signInBrowser.done': 'Done',
+  'signInBrowser.signedInTitle': 'You are signed in to {site}',
+  'signInBrowser.signedInNext': 'Click {button} below, and KnightLoader keeps the session.',
   'signInBrowser.openAgain': 'Open again',
   'signInBrowser.openInBrowser': 'Open in browser',
   'signInBrowser.blocked': 'This window only opens {site} and the pages it signs you in with, so {host} stays closed.',

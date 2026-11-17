@@ -4104,6 +4104,8 @@ export const hr: Dict = {
   'signInBrowser.back': 'Natrag',
   'signInBrowser.reload': 'Ponovno učitaj',
   'signInBrowser.done': 'Gotovo',
+  'signInBrowser.signedInTitle': 'Prijava na {site} je uspjela',
+  'signInBrowser.signedInNext': 'Klikni dolje na {button} i KnightLoader će zadržati sesiju.',
   'signInBrowser.openAgain': 'Ponovno otvori',
   'signInBrowser.openInBrowser': 'Otvori u pregledniku',
   'signInBrowser.blocked': 'Ovaj prozor otvara samo {site} i stranice preko kojih se tamo prijavljuješ, pa {host} ostaje zatvoren.',

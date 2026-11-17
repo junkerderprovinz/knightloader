@@ -4091,6 +4091,8 @@ export const hu: Dict = {
   'signInBrowser.back': 'Vissza',
   'signInBrowser.reload': 'Újratöltés',
   'signInBrowser.done': 'Kész',
+  'signInBrowser.signedInTitle': 'Bejelentkeztél ide: {site}',
+  'signInBrowser.signedInNext': 'Kattints lent a {button} gombra, és a KnightLoader megtartja a munkamenetet.',
   'signInBrowser.openAgain': 'Megnyitás újra',
   'signInBrowser.openInBrowser': 'Megnyitás böngészőben',
   'signInBrowser.blocked': 'Ez az ablak csak a(z) {site} oldalt és azokat az oldalakat nyitja meg, amelyeken keresztül ott bejelentkezel, így a(z) {host} zárva marad.',

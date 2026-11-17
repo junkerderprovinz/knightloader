@@ -4090,6 +4090,8 @@ export const sv: Dict = {
   'signInBrowser.back': 'Tillbaka',
   'signInBrowser.reload': 'Läs in igen',
   'signInBrowser.done': 'Klar',
+  'signInBrowser.signedInTitle': 'Du är inloggad på {site}',
+  'signInBrowser.signedInNext': 'Klicka på {button} längst ner, så behåller KnightLoader sessionen.',
   'signInBrowser.openAgain': 'Öppna igen',
   'signInBrowser.openInBrowser': 'Öppna i webbläsaren',
   'signInBrowser.blocked': 'Det här fönstret öppnar bara {site} och sidorna du loggar in där med, så {host} förblir stängd.',

@@ -4090,6 +4090,8 @@ export const vi: Dict = {
   'signInBrowser.back': 'Quay lại',
   'signInBrowser.reload': 'Tải lại',
   'signInBrowser.done': 'Xong',
+  'signInBrowser.signedInTitle': 'Bạn đã đăng nhập vào {site}',
+  'signInBrowser.signedInNext': 'Nhấp {button} ở bên dưới, KnightLoader sẽ giữ lại phiên.',
   'signInBrowser.openAgain': 'Mở lại',
   'signInBrowser.openInBrowser': 'Mở trong trình duyệt',
   'signInBrowser.blocked': 'Cửa sổ này chỉ mở {site} và các trang bạn dùng để đăng nhập vào đó, nên {host} vẫn đóng.',

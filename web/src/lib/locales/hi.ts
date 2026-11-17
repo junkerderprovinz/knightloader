@@ -4091,6 +4091,8 @@ export const hi: Dict = {
   'signInBrowser.back': 'वापस',
   'signInBrowser.reload': 'फिर से लोड करें',
   'signInBrowser.done': 'हो गया',
+  'signInBrowser.signedInTitle': 'आप {site} में साइन इन हो गए हैं',
+  'signInBrowser.signedInNext': 'नीचे {button} पर क्लिक करें, KnightLoader सेशन रख लेगा।',
   'signInBrowser.openAgain': 'फिर से खोलें',
   'signInBrowser.openInBrowser': 'ब्राउज़र में खोलें',
   'signInBrowser.blocked': 'यह विंडो सिर्फ़ {site} और वे पेज खोलती है जिनसे आप वहाँ साइन इन करते हैं, इसलिए {host} बंद रहता है।',

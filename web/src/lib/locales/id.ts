@@ -4090,6 +4090,8 @@ export const id: Dict = {
   'signInBrowser.back': 'Kembali',
   'signInBrowser.reload': 'Muat ulang',
   'signInBrowser.done': 'Selesai',
+  'signInBrowser.signedInTitle': 'Kamu sudah masuk ke {site}',
+  'signInBrowser.signedInNext': 'Klik {button} di bawah, lalu KnightLoader menyimpan sesinya.',
   'signInBrowser.openAgain': 'Buka lagi',
   'signInBrowser.openInBrowser': 'Buka di peramban',
   'signInBrowser.blocked': 'Jendela ini hanya membuka {site} dan halaman yang kamu pakai untuk masuk ke sana, jadi {host} tetap tertutup.',

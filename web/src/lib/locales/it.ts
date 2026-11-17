@@ -4074,6 +4074,8 @@ export const it: Dict = {
   'signInBrowser.back': 'Indietro',
   'signInBrowser.reload': 'Ricarica',
   'signInBrowser.done': 'Fatto',
+  'signInBrowser.signedInTitle': 'Hai effettuato l’accesso a {site}',
+  'signInBrowser.signedInNext': 'Fai clic su {button} in basso e KnightLoader terrà la sessione.',
   'signInBrowser.openAgain': 'Riapri',
   'signInBrowser.openInBrowser': 'Apri nel browser',
   'signInBrowser.blocked': 'Questa finestra apre solo {site} e le pagine con cui vi accedi, quindi {host} resta chiuso.',

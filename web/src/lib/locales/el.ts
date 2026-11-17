@@ -4091,6 +4091,8 @@ export const el: Dict = {
   'signInBrowser.back': 'Πίσω',
   'signInBrowser.reload': 'Επαναφόρτωση',
   'signInBrowser.done': 'Τέλος',
+  'signInBrowser.signedInTitle': 'Συνδέθηκες στο {site}',
+  'signInBrowser.signedInNext': 'Πάτησε {button} παρακάτω και το KnightLoader θα κρατήσει τη συνεδρία.',
   'signInBrowser.openAgain': 'Άνοιγμα ξανά',
   'signInBrowser.openInBrowser': 'Άνοιγμα στον περιηγητή',
   'signInBrowser.blocked': 'Αυτό το παράθυρο ανοίγει μόνο το {site} και τις σελίδες μέσω των οποίων συνδέεσαι εκεί, οπότε το {host} μένει κλειστό.',

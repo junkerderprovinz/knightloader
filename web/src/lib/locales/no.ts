@@ -4093,6 +4093,8 @@ export const no: Dict = {
   'signInBrowser.back': 'Tilbake',
   'signInBrowser.reload': 'Last inn på nytt',
   'signInBrowser.done': 'Ferdig',
+  'signInBrowser.signedInTitle': 'Du er logget inn på {site}',
+  'signInBrowser.signedInNext': 'Klikk på {button} nederst, så beholder KnightLoader økten.',
   'signInBrowser.openAgain': 'Åpne igjen',
   'signInBrowser.openInBrowser': 'Åpne i nettleseren',
   'signInBrowser.blocked': 'Dette vinduet åpner bare {site} og sidene du logger inn der med, så {host} forblir stengt.',

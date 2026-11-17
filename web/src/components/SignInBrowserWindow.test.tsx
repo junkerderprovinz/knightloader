@@ -36,8 +36,14 @@ const extension: GroupApp = { id: 'm1', name: 'Firefox', deployment: 'extension'
 const reply = (body: unknown) =>
   new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
+let socket: QuietSocket | undefined;
+
 class QuietSocket {
   readyState = 0;
+  onmessage: ((ev: { data: unknown }) => void) | null = null;
+  constructor() {
+    socket = this;
+  }
   send() {}
   close() {}
 }
@@ -51,6 +57,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   calls = [];
   opened = [];
+  socket = undefined;
   apps = [];
   listed = patreon;
   vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
@@ -113,6 +120,13 @@ async function open(site: SiteLogin, onClose = () => {}) {
   });
 }
 
+const footerButtons = () => [...document.querySelectorAll<HTMLButtonElement>('.glim-modal-foot button')];
+const doneButton = () => document.querySelector<HTMLButtonElement>('[data-signin-done]')!;
+
+async function hear(msg: unknown) {
+  await act(async () => socket!.onmessage!({ data: JSON.stringify(msg) }));
+}
+
 const browserButton = () =>
   [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === en['signInBrowser.openInBrowser']);
 
@@ -168,4 +182,36 @@ it('offers no browser on a hoster login, which only signs in on its own page', a
   await open({ ...patreon, id: 'katfile', name: 'katfile.com', loginUrl: '', readsBrowsers: false });
   expect(browserButton()).toBeUndefined();
   expect(document.body.textContent).not.toContain('KnightLoader extension');
+});
+
+it('keeps Done shut until the site reports the sign-in, then says so over the page', async () => {
+  await open(patreon);
+  expect(doneButton().disabled).toBe(true);
+  expect(document.body.textContent).not.toContain('You are signed in to Patreon');
+
+  await hear({ type: 'login', login: { ...patreon, state: 'signedIn', account: 'Jane Doe' } });
+  expect(doneButton().disabled).toBe(false);
+  const note = document.querySelector('.kl-signed-in [role="status"]')!;
+  expect(note.textContent).toContain('You are signed in to Patreon');
+  expect(note.textContent).toContain('Signed in as Jane Doe');
+  expect(note.textContent).toContain('Click Done below, and KnightLoader keeps the session.');
+
+  await hear({ type: 'login', login: patreon });
+  expect(doneButton().disabled).toBe(true);
+  expect(document.querySelector('.kl-signed-in')).toBeNull();
+});
+
+it('keeps the sign-in note when a blocked page has its say', async () => {
+  await open(patreon);
+  await hear({ type: 'login', login: { ...patreon, state: 'signedIn' } });
+  await hear({ type: 'blocked', host: 'ads.example' });
+  expect(document.querySelector('.kl-signed-in')).not.toBeNull();
+  expect(doneButton().disabled).toBe(false);
+});
+
+it('starts the row with Back in words and ends it with Done', async () => {
+  await open(patreon);
+  const row = footerButtons();
+  expect(row[0].textContent).toBe(en['signInBrowser.back']);
+  expect(row[row.length - 1]).toBe(doneButton());
 });

@@ -4091,6 +4091,8 @@ export const bg: Dict = {
   'signInBrowser.back': 'Назад',
   'signInBrowser.reload': 'Презареди',
   'signInBrowser.done': 'Готово',
+  'signInBrowser.signedInTitle': 'Влезе в {site}',
+  'signInBrowser.signedInNext': 'Натисни {button} отдолу и KnightLoader ще запази сесията.',
   'signInBrowser.openAgain': 'Отвори отново',
   'signInBrowser.openInBrowser': 'Отвори в браузъра',
   'signInBrowser.blocked': 'Този прозорец отваря само {site} и страниците, през които влизаш там, така че {host} остава затворен.',
