@@ -60,6 +60,56 @@ func TestAWindowShowsOnlyTheSiteAndItsSignInProvidersAtTheTop(t *testing.T) {
 			"https://www.google.com/search?q=x":            false,
 			"https://www.patreon.com/":                     false,
 		},
+		"instagram": {
+			"https://www.instagram.com/accounts/login/":           true,
+			"https://accountscenter.instagram.com/":               true,
+			"https://www.facebook.com/dialog/oauth?client_id=124": true,
+			"https://m.facebook.com/login.php":                    true,
+			"https://accounts.google.com/":                        false,
+			"https://www.threads.net/":                            false,
+		},
+		"facebook": {
+			"https://www.facebook.com/login/":              true,
+			"https://www.facebook.com/checkpoint/":         true,
+			"https://accountscenter.facebook.com/":         true,
+			"https://www.instagram.com/accounts/login/":    false,
+			"https://accounts.google.com/ServiceLogin":     false,
+			"https://l.facebook.com.example.com/l.php?u=x": false,
+		},
+		"x": {
+			"https://x.com/i/flow/login":               true,
+			"https://twitter.com/i/flow/login":         true,
+			"https://accounts.google.com/gsi/select":   true,
+			"https://appleid.apple.com/auth/authorize": true,
+			"https://t.co/abc":                         false,
+			"https://www.facebook.com/":                false,
+		},
+		"tiktok": {
+			"https://www.tiktok.com/login":              true,
+			"https://accounts.google.com/o/oauth2/auth": true,
+			"https://appleid.apple.com/auth/authorize":  true,
+			"https://www.facebook.com/dialog/oauth":     true,
+			"https://www.douyin.com/":                   false,
+		},
+		"reddit": {
+			"https://www.reddit.com/login/":             true,
+			"https://accounts.google.com/o/oauth2/auth": true,
+			"https://appleid.apple.com/auth/authorize":  true,
+			"https://www.facebook.com/":                 false,
+		},
+		"vimeo": {
+			"https://vimeo.com/log_in":                  true,
+			"https://accounts.google.com/o/oauth2/auth": true,
+			"https://appleid.apple.com/auth/authorize":  true,
+			"https://www.facebook.com/":                 false,
+		},
+		// Twitch signs in on its own pages alone.
+		"twitch": {
+			"https://www.twitch.tv/login":      true,
+			"https://passport.twitch.tv/login": true,
+			"https://accounts.google.com/":     false,
+			"https://www.amazon.com/ap/signin": false,
+		},
 	} {
 		list := allowListFor(site(t, id))
 		for link, want := range cases {

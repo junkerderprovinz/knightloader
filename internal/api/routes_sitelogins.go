@@ -1,15 +1,16 @@
 package api
 
 // Sites signed into through the browser (internal/sitelogin): the accounts
-// page's tiles, its Sign in, and the session the extension hands over. What
-// travels back says who is signed in, never the session.
+// page's rows and picker, its Sign in, and the session the extension hands
+// over. What travels back says who is signed in, never the session.
 //
-// GET /api/sitelogins lists every site, and begin, check, remove and the
+// GET /api/sitelogins lists every site, and add, begin, check, remove and the
 // extension's handover answer with one, in this shape:
 //
 //	{"id": "patreon", "name": "Patreon", "host": "patreon.com",
 //	 "loginUrl": "https://www.patreon.com/login", "domains": ["patreon.com"],
 //	 "use": "always",                  // or "onNeed": only after a sign-in failure
+//	 "added": true,                    // has a row; false is offered in the picker
 //	 "state": "signedIn",              // signedOut, expired or unchecked
 //	 "account": "Jane Doe",            // where the site names it
 //	 "expires": "2027-01-01T00:00:00Z", // where the cookies say
@@ -18,19 +19,20 @@ package api
 //	 "browser": "Firefox (default-release)", // with source "browser" only
 //	 "unreadable": ["Chrome"],         // browsers whose cookies could not be read
 //	 "readsBrowsers": true,            // false in a container, which reads none
-//	 "disconnected": false,            // removed here; the browsers' sign-in is not used
 //	 "handsOver": true}                // an extension of the group may read the site
 //
-// GET /api/sitelogins/handover lists for the extension each site's id, name,
-// host, loginUrl, domains, waiting and signIn, the names of the cookies only a
-// signed-in session carries. The extension asks with ?reads=patreon,youtube,
-// the sites its browser lets it read, which is what handsOver above counts. A
-// handover with an empty cookies list signs the extension's session out; a set
-// without the site's cookies is refused (422).
+// GET /api/sitelogins/handover lists for the extension each added site's id,
+// name, host, loginUrl, domains, waiting and signIn, the names of the cookies
+// only a signed-in session carries. The extension asks with
+// ?reads=patreon,youtube, the sites its browser lets it read, which is what
+// handsOver above counts. A handover with an empty cookies list signs the
+// extension's session out; a set without the site's cookies is refused (422),
+// and so is a site that is not added (409).
 //
-// Remove disconnects a site whatever its session came from: the extension's
-// is forgotten, a browser's is no longer read, and the browser stays signed
-// in. begin, reconnect and a new hand-over connect it again.
+// Add gives a site its row. Remove takes it away whatever its session came
+// from: the stored one is forgotten, the browsers here stop being read for
+// the site, and the browser stays signed in. add, begin and the sign-in
+// browser add it again.
 
 import (
 	"errors"
@@ -80,8 +82,15 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 			writeSiteLogin(w, st, err)
 		})
 
+	reg.Add(http.MethodPost, "/api/sitelogins/{id}/add",
+		"give a site a row on the accounts page, taking up the sign-in a browser here already holds",
+		func(w http.ResponseWriter, r *http.Request) {
+			st, err := a.AddSiteLogin(r.PathValue("id"))
+			writeSiteLogin(w, st, err)
+		})
+
 	reg.Add(http.MethodPost, "/api/sitelogins/{id}/remove",
-		"sign a site out here: forget the session the extension handed over and stop using the browsers' sign-in, which the browser keeps, until the site is signed in through KnightLoader again",
+		"take a site's row away: forget its stored session and stop reading the browsers for it, which stay signed in, until it is added again",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
 			if err := a.RemoveSiteLogin(id); err != nil {
@@ -92,15 +101,8 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 			writeSiteLogin(w, st, err)
 		})
 
-	reg.Add(http.MethodPost, "/api/sitelogins/{id}/reconnect",
-		"use the browsers' sign-in to a site that was removed here again",
-		func(w http.ResponseWriter, r *http.Request) {
-			st, err := a.ReconnectSiteLogin(r.PathValue("id"))
-			writeSiteLogin(w, st, err)
-		})
-
 	reg.Add(http.MethodGet, "/api/sitelogins/handover",
-		"the sites the browser extension can hand a session over for, and which this instance waits for",
+		"the added sites the browser extension can hand a session over for, and which this instance waits for",
 		func(w http.ResponseWriter, r *http.Request) {
 			if q := r.URL.Query(); q.Has("reads") {
 				if c, ok := federation.CallerOf(r.Context()); ok && c.Kind == relay.KindExtension {
@@ -112,6 +114,9 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 			states := a.SiteLogins()
 			out := make([]handoverSite, 0, len(states))
 			for _, s := range states {
+				if !s.Added {
+					continue
+				}
 				out = append(out, handoverSite{
 					ID: s.ID, Name: s.Name, Host: s.Host, LoginURL: s.LoginURL,
 					Domains: s.Domains, SignIn: s.SignInCookies(), Waiting: s.Waiting,
@@ -156,6 +161,8 @@ func writeSiteLoginError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, app.ErrNoSuchSite):
 		http.Error(w, err.Error(), http.StatusNotFound)
+	case errors.Is(err, app.ErrSiteNotAdded):
+		http.Error(w, err.Error()+": add it there first.", http.StatusConflict)
 	case errors.Is(err, app.ErrNoSiteSession):
 		http.Error(w, err.Error()+": sign in to the site in the browser first, then hand it over again.",
 			http.StatusUnprocessableEntity)

@@ -1,27 +1,31 @@
 // Type-only imports: these types belong to the modules that own their data, so
 // they are named here rather than restated.
-import type { LabelMode } from './labelModes';
-import type { EventProgramRow } from './eventprograms';
-import type { EventTargetRow } from './eventtargets';
-import type { Shape } from './appearance';
-import type { Theme } from './theme';
-import { socketURL, withBase } from './basePath';
-import { type LiveStream, type StreamHandlers, openDesktopStream } from './desktop';
+import type { LabelMode } from "./labelModes";
+import type { EventProgramRow } from "./eventprograms";
+import type { EventTargetRow } from "./eventtargets";
+import type { Shape } from "./appearance";
+import type { Theme } from "./theme";
+import { socketURL, withBase } from "./basePath";
+import {
+  type LiveStream,
+  type StreamHandlers,
+  openDesktopStream,
+} from "./desktop";
 
 export type TaskStatus =
-  | 'collected'
-  | 'queued'
-  | 'running'
-  | 'paused'
-  | 'extracting'
-  | 'done'
-  | 'error';
+  | "collected"
+  | "queued"
+  | "running"
+  | "paused"
+  | "extracting"
+  | "done"
+  | "error";
 
 // Availability is what a check said about the link itself, separate from
 // whether a download has been attempted. 'uncheckable' means the host refused
 // to say (a 429, a 503, a transport error); treating it as 'offline' would let
 // one flaky minute get a live link deleted.
-export type Availability = '' | 'online' | 'offline' | 'uncheckable';
+export type Availability = "" | "online" | "offline" | "uncheckable";
 
 // Reason is the typed cause of a failure; Task.error is the sentence beside it.
 // It stays an open string because the taxonomy grows on the server, and a
@@ -41,7 +45,7 @@ export interface Task {
   package: string;
   resolver: string;
   /** Absent when no hoster is on the other end of the link. */
-  mode?: 'free' | 'premium';
+  mode?: "free" | "premium";
   /** The backend the user pinned this task to, as a service id. Absent leaves
    *  the choice to the ranking. */
   resolverPin?: string;
@@ -80,7 +84,7 @@ export interface Task {
   nextTry?: string;
   priority: number;
   position: number;
-  checksum?: 'ok' | 'failed';
+  checksum?: "ok" | "failed";
 
   /** What a Packagizer rule attached; nothing in the app acts on it. */
   comment?: string;
@@ -175,7 +179,20 @@ export interface Task {
    * server updates whenever an account or the settings change. Callers fall
    * back for values a newer server may add.
    */
-  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'spare' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap' | 'module' | 'premium' | 'ffmpeg';
+  waiting?:
+    | "slot"
+    | "host"
+    | "forced"
+    | "disabled"
+    | "spare"
+    | "captcha"
+    | "account"
+    | "halted"
+    | "disk"
+    | "volumeCap"
+    | "module"
+    | "premium"
+    | "ffmpeg";
   /**
    * When the bytes stopped, so the age of a stall is computed on every render.
    * Not persisted: it describes a connection this process holds open.
@@ -193,7 +210,7 @@ export interface Task {
   archivePart?: number;
   /** How the last unpacking of this file's archive ended, on every part of the
    *  set. Kept by the server, so it outlives the job after a restart. */
-  unpack?: 'done' | 'error' | 'password';
+  unpack?: "done" | "error" | "password";
 
   /** How many files a torrent has, once that is known; absent for everything
    *  else and for a magnet whose swarm has not sent its list. The files
@@ -202,7 +219,7 @@ export interface Task {
   torrentFileCount?: number;
   /** What Play opens in a torrent of several files: the largest selected
    *  file that is audio or video. Absent when none of them is. */
-  torrentMedia?: 'audio' | 'video';
+  torrentMedia?: "audio" | "video";
   /** A debrid service's progress on a torrent it is still fetching for this
    *  task, before any of it comes here. Absent at every other time. */
   remote?: RemoteFetch;
@@ -250,7 +267,7 @@ export interface RemoteFetch {
 /** core.Declined: a code the interface words, or else the service's own words. */
 export interface Declined {
   service: string;
-  code?: 'private' | 'notCached' | 'stalled';
+  code?: "private" | "notCached" | "stalled";
   reason?: string;
 }
 
@@ -260,7 +277,7 @@ export interface Declined {
  * par2 blocks once the check has found them.
  */
 export interface RepairProgress {
-  stage: 'waiting' | 'verifying' | 'fetching' | 'repairing' | (string & {});
+  stage: "waiting" | "verifying" | "fetching" | "repairing" | (string & {});
   progress?: number;
   damaged?: number;
   recovery?: number;
@@ -283,8 +300,15 @@ export interface TorrentFileView extends TorrentFile {
 
 /** fetchTorrentFiles lists a torrent task's files, empty for a magnet whose
  *  swarm has not sent the list yet. */
-export async function fetchTorrentFiles(id: string, base = '/api'): Promise<TorrentFileView[]> {
-  return (await json<TorrentFileView[] | null>(await fetch(`${base}/tasks/${id}/torrent-files`))) ?? [];
+export async function fetchTorrentFiles(
+  id: string,
+  base = "/api",
+): Promise<TorrentFileView[]> {
+  return (
+    (await json<TorrentFileView[] | null>(
+      await fetch(`${base}/tasks/${id}/torrent-files`),
+    )) ?? []
+  );
 }
 
 /**
@@ -292,16 +316,22 @@ export async function fetchTorrentFiles(id: string, base = '/api'): Promise<Torr
  * answers with its files. A running torrent carries on with the new choice and
  * keeps what it has; a finished one refuses, as does a choice of no file.
  */
-export async function selectTorrentFiles(id: string, paths: string[], base = '/api'): Promise<TorrentFileView[]> {
+export async function selectTorrentFiles(
+  id: string,
+  paths: string[],
+  base = "/api",
+): Promise<TorrentFileView[]> {
   return (
-    (await json<TorrentFileView[] | null>(await post(`${base}/tasks/${id}/torrent-files`, { selectedPaths: paths }))) ?? []
+    (await json<TorrentFileView[] | null>(
+      await post(`${base}/tasks/${id}/torrent-files`, { selectedPaths: paths }),
+    )) ?? []
   );
 }
 
 /** core.PieceRun: `len` units in a row that share a state. 'lost' is an
  *  article no server has, or a block the par2 check found bad. */
 export interface PieceRun {
-  state: 'missing' | 'done' | 'lost' | (string & {});
+  state: "missing" | "done" | "lost" | (string & {});
   len: number;
 }
 
@@ -312,7 +342,7 @@ export interface PieceRun {
  * file order, and each head is the unit an open connection is writing at.
  */
 export interface PieceMap {
-  unit: 'bytes' | 'articles' | 'blocks' | (string & {});
+  unit: "bytes" | "articles" | "blocks" | (string & {});
   total: number;
   runs: PieceRun[];
   heads?: number[];
@@ -323,7 +353,10 @@ export interface PieceMap {
  * can say: a torrent, a task that is not being fetched, and the first moment
  * after an HTTP download is asked about.
  */
-export async function fetchPieces(id: string, base = '/api'): Promise<PieceMap | null> {
+export async function fetchPieces(
+  id: string,
+  base = "/api",
+): Promise<PieceMap | null> {
   return json<PieceMap | null>(await fetch(`${base}/tasks/${id}/pieces`));
 }
 
@@ -681,7 +714,7 @@ export interface Settings {
   accent: string;
   /** The theme last chosen in this interface, empty until one is (app/Layout.tsx).
    *  Each browser keeps its own; the extension follows this one. */
-  theme?: Theme | '';
+  theme?: Theme | "";
   rainbow: boolean;
   rainbowReactive: boolean;
   rainbowRotate: boolean;
@@ -814,7 +847,7 @@ export interface TrafficState {
 }
 
 /** Which shape of secret a service needs (accounts.Kind). */
-export type ServiceKind = 'apiKey' | 'usernamePassword';
+export type ServiceKind = "apiKey" | "usernamePassword";
 
 /**
  * Which section of the accounts page a service belongs to (accounts.Group).
@@ -822,7 +855,8 @@ export type ServiceKind = 'apiKey' | 'usernamePassword';
  * id. 'hoster' is listed so the type matches the wire, though that section is
  * built from the hoster logins rather than the catalogue.
  */
-export type ServiceGroup = 'debrid' | 'hoster' | 'captchaSolver' | 'remoteServer';
+export type ServiceGroup =
+  "debrid" | "hoster" | "captchaSolver" | "remoteServer";
 
 /**
  * One entry of GET /api/accounts/catalogue, mirroring accounts.Service. The
@@ -842,7 +876,7 @@ export interface CatalogueService {
   passLabel?: CredentialField;
 }
 
-export type CredentialField = 'apiUser' | 'apiKey' | 'customerId' | 'email';
+export type CredentialField = "apiUser" | "apiKey" | "customerId" | "email";
 
 /** The body of a credential POST or verify call. */
 export interface AccountCredential {
@@ -1014,11 +1048,11 @@ export interface BulkResult {
  * server decides which classes it implements.
  */
 export const CLEANUP_CLASSES = [
-  'finished',
-  'offline',
-  'disabled',
-  'duplicates',
-  'incompleteArchives',
+  "finished",
+  "offline",
+  "disabled",
+  "duplicates",
+  "incompleteArchives",
 ] as const;
 
 export type CleanupClass = (typeof CLEANUP_CLASSES)[number];
@@ -1100,7 +1134,7 @@ export interface ContainerStaged {
  */
 export interface ContainerHandedOver {
   kind: string;
-  handedTo: 'jd';
+  handedTo: "jd";
   /** Seconds the handover address stays fetchable. */
   expiresIn: number;
 }
@@ -1111,13 +1145,14 @@ export interface ContainerHandedOver {
  * it has fetched them.
  */
 export interface ContainerSentToUsenet {
-  kind: 'nzb';
-  handedTo: 'usenet';
+  kind: "nzb";
+  handedTo: "usenet";
   service: string;
   own?: boolean;
 }
 
-export type ContainerResult = ContainerStaged | ContainerHandedOver | ContainerSentToUsenet;
+export type ContainerResult =
+  ContainerStaged | ContainerHandedOver | ContainerSentToUsenet;
 
 /**
  * ApiError is a refusal the server explained. `code` and `params` make it
@@ -1137,7 +1172,12 @@ export class ApiError extends Error {
 
   // The name stays "Error", so String(e) reads "Error: …" like any other
   // failure and the call sites that strip that prefix show the server's words.
-  constructor(message: string, code?: string, params?: Record<string, string | number>, status?: number) {
+  constructor(
+    message: string,
+    code?: string,
+    params?: Record<string, string | number>,
+    status?: number,
+  ) {
     super(message);
     this.code = code;
     this.params = params;
@@ -1174,7 +1214,7 @@ export async function refusal(r: Response): Promise<ApiError> {
       params?: Record<string, string | number>;
       field?: string;
     };
-    if (p && typeof p.error === 'string') {
+    if (p && typeof p.error === "string") {
       const e = new ApiError(p.error, p.code, p.params, r.status);
       e.field = p.field;
       return e;
@@ -1203,17 +1243,19 @@ export async function ok(r: Response): Promise<Response> {
 
 const post = (path: string, body: unknown) =>
   fetch(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 
 // apiBase returns the API prefix for an instance ('' = this instance).
 export const apiBase = (instance: string): string =>
-  instance ? `/api/instances/${encodeURIComponent(instance)}` : '/api';
+  instance ? `/api/instances/${encodeURIComponent(instance)}` : "/api";
 
-export async function fetchTasks(base = '/api'): Promise<Task[]> {
-  return ((await json<OlderTask[]>(await fetch(`${base}/tasks`))) ?? []).map(parkedAsDisabled);
+export async function fetchTasks(base = "/api"): Promise<Task[]> {
+  return ((await json<OlderTask[]>(await fetch(`${base}/tasks`))) ?? []).map(
+    parkedAsDisabled,
+  );
 }
 
 /** A task as a peer on an older build sends it, with Hold beside the enabled switch. */
@@ -1226,7 +1268,8 @@ type OlderTask = Task & { hold?: boolean };
 function parkedAsDisabled(t: OlderTask): Task {
   if (!t.hold) return t;
   const { hold: _hold, ...task } = t;
-  const waiting = (task.waiting as string | undefined) === 'hold' ? 'disabled' : task.waiting;
+  const waiting =
+    (task.waiting as string | undefined) === "hold" ? "disabled" : task.waiting;
   return { ...task, enabled: false, waiting };
 }
 
@@ -1235,7 +1278,7 @@ function parkedAsDisabled(t: OlderTask): Task {
  * inline and a download prompt. It is opened directly as a link so the
  * browser's own download and viewer handling applies.
  */
-export const taskFileURL = (id: string, base = '/api'): string =>
+export const taskFileURL = (id: string, base = "/api"): string =>
   withBase(`${base}/tasks/${encodeURIComponent(id)}/file`);
 
 /**
@@ -1244,7 +1287,7 @@ export const taskFileURL = (id: string, base = '/api'): string =>
  * reads at most 32 MB into memory, forwards no Range header and relabels the
  * answer as application/json.
  */
-export const isLocalBase = (base: string): boolean => base === '/api';
+export const isLocalBase = (base: string): boolean => base === "/api";
 
 /**
  * What GET /api/tasks/{id}/file would answer, asked with HEAD. The status is
@@ -1265,15 +1308,21 @@ export interface TaskFileHead {
   ranges: boolean;
 }
 
-export async function taskFileHead(id: string, base = '/api'): Promise<TaskFileHead> {
-  const r = await fetch(taskFileURL(id, base), { method: 'HEAD' });
-  const len = Number(r.headers.get('Content-Length') ?? '');
+export async function taskFileHead(
+  id: string,
+  base = "/api",
+): Promise<TaskFileHead> {
+  const r = await fetch(taskFileURL(id, base), { method: "HEAD" });
+  const len = Number(r.headers.get("Content-Length") ?? "");
   return {
     ok: r.ok,
     status: r.status,
     bytes: Number.isFinite(len) ? len : 0,
-    contentType: (r.headers.get('Content-Type') ?? '').split(';')[0].trim().toLowerCase(),
-    ranges: (r.headers.get('Accept-Ranges') ?? '').toLowerCase() === 'bytes',
+    contentType: (r.headers.get("Content-Type") ?? "")
+      .split(";")[0]
+      .trim()
+      .toLowerCase(),
+    ranges: (r.headers.get("Accept-Ranges") ?? "").toLowerCase() === "bytes",
   };
 }
 
@@ -1281,12 +1330,14 @@ export async function taskFileHead(id: string, base = '/api'): Promise<TaskFileH
  * hosterIconURL is a host's site icon, cached by the server. A host without
  * one answers 204, and one the server is still fetching answers 202.
  */
-export const hosterIconURL = (host: string, base = '/api'): string =>
+export const hosterIconURL = (host: string, base = "/api"): string =>
   withBase(`${base}/hosters/icon?host=${encodeURIComponent(host)}`);
 
 /** hosterIconsURL asks for the site icons of several hosts in one request. */
-export const hosterIconsURL = (hosts: string[], base = '/api'): string =>
-  withBase(`${base}/hosters/icons?${hosts.map((h) => `host=${encodeURIComponent(h)}`).join('&')}`);
+export const hosterIconsURL = (hosts: string[], base = "/api"): string =>
+  withBase(
+    `${base}/hosters/icons?${hosts.map((h) => `host=${encodeURIComponent(h)}`).join("&")}`,
+  );
 
 /**
  * HosterIconBatch is what /hosters/icons answers. Every host asked for is in
@@ -1302,10 +1353,14 @@ export interface HosterIconBatch {
   retryAfter: number;
 }
 
-export async function addLinks(links: string, pkg: string, base = '/api'): Promise<Task[]> {
+export async function addLinks(
+  links: string,
+  pkg: string,
+  base = "/api",
+): Promise<Task[]> {
   const r = await fetch(`${base}/links`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ links, package: pkg }),
   });
   return (await json<Task[]>(r)) ?? [];
@@ -1339,11 +1394,11 @@ export interface AddLinksOptions {
 export async function addLinksWithOptions(
   links: string,
   opts: AddLinksOptions,
-  base = '/api',
+  base = "/api",
 ): Promise<Task[]> {
   const r = await fetch(`${base}/links`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ links, ...opts }),
   });
   return (await json<Task[]>(r)) ?? [];
@@ -1366,23 +1421,31 @@ export interface StartResult {
 }
 
 // startTasks moves collected tasks into the download queue (empty = start all).
-export const startTasks = async (ids: string[], base = '/api'): Promise<StartResult> => {
+export const startTasks = async (
+  ids: string[],
+  base = "/api",
+): Promise<StartResult> => {
   const r = await fetch(`${base}/tasks/start`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ids }),
   });
   // An older instance answers 204 with no body.
   return (
-    (await json<StartResult>(r)) ?? { started: ids.length, skipped: 0, released: false, blocked: false }
+    (await json<StartResult>(r)) ?? {
+      started: ids.length,
+      skipped: 0,
+      released: false,
+      blocked: false,
+    }
   );
 };
 
 // setPackage moves tasks into a package (empty name = ungrouped).
-export const setPackage = (ids: string[], pkg: string, base = '/api') =>
+export const setPackage = (ids: string[], pkg: string, base = "/api") =>
   fetch(`${base}/tasks/package`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ids, package: pkg }),
   });
 
@@ -1393,33 +1456,47 @@ export const setPackage = (ids: string[], pkg: string, base = '/api') =>
  * being unpacked or recording a live stream, a folder name already taken and a
  * folder that cannot be renamed are refused with the reason.
  */
-export const renamePackage = async (ids: string[], name: string, base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/tasks/package/rename`, { ids, name })));
+export const renamePackage = async (
+  ids: string[],
+  name: string,
+  base = "/api",
+) =>
+  json<BulkResult>(
+    await ok(await post(`${base}/tasks/package/rename`, { ids, name })),
+  );
 
 /**
  * restartTasks re-runs finished or failed tasks (empty ids = all failed).
  * `reasons` narrows that to the named causes, '' being the unclassified group;
  * with ids as well, the server intersects the two.
  */
-export const restartTasks = (ids: string[], base = '/api', reasons?: Reason[]) =>
+export const restartTasks = (
+  ids: string[],
+  base = "/api",
+  reasons?: Reason[],
+) =>
   fetch(`${base}/tasks/restart`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     // Omitted when empty, so an older instance sees the body it expects.
-    body: JSON.stringify(reasons && reasons.length > 0 ? { ids, reasons } : { ids }),
+    body: JSON.stringify(
+      reasons && reasons.length > 0 ? { ids, reasons } : { ids },
+    ),
   });
 
-export const pause = (id: string, base = '/api') =>
-  fetch(`${base}/tasks/${id}/pause`, { method: 'POST' });
-export const resume = (id: string, base = '/api') =>
-  fetch(`${base}/tasks/${id}/resume`, { method: 'POST' });
+export const pause = (id: string, base = "/api") =>
+  fetch(`${base}/tasks/${id}/pause`, { method: "POST" });
+export const resume = (id: string, base = "/api") =>
+  fetch(`${base}/tasks/${id}/resume`, { method: "POST" });
 // remove drops a task from the list; withFiles also deletes what was downloaded.
-export const remove = (id: string, base = '/api', withFiles = false) =>
-  fetch(`${base}/tasks/${id}${withFiles ? '?files=1' : ''}`, { method: 'DELETE' });
+export const remove = (id: string, base = "/api", withFiles = false) =>
+  fetch(`${base}/tasks/${id}${withFiles ? "?files=1" : ""}`, {
+    method: "DELETE",
+  });
 
 // recheckTasks re-resolves collected links and refreshes their online state
 // (empty = every collected link).
-export const recheckTasks = (ids: string[], base = '/api') =>
+export const recheckTasks = (ids: string[], base = "/api") =>
   post(`${base}/tasks/recheck`, { ids });
 
 /**
@@ -1462,7 +1539,7 @@ export interface ExtractJob {
   endedAt?: string;
 }
 
-export async function fetchExtractJobs(base = '/api'): Promise<ExtractJob[]> {
+export async function fetchExtractJobs(base = "/api"): Promise<ExtractJob[]> {
   return (await json<ExtractJob[]>(await fetch(`${base}/extract`))) ?? [];
 }
 
@@ -1471,10 +1548,13 @@ export async function fetchExtractJobs(base = '/api'): Promise<ExtractJob[]> {
  * switch says. When some rows are refused the server answers 207; the refusal
  * is thrown while the started jobs show up on the stream as usual.
  */
-export async function startExtraction(ids: string[], base = '/api'): Promise<ExtractJob[]> {
+export async function startExtraction(
+  ids: string[],
+  base = "/api",
+): Promise<ExtractJob[]> {
   const r = await fetch(`${base}/extract/start`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ids }),
   });
   if (r.status === 207) {
@@ -1486,18 +1566,24 @@ export async function startExtraction(ids: string[], base = '/api'): Promise<Ext
 
 // abortExtraction stops one unpacking and removes its half-written output. It
 // throws when the job has already finished, so the button does not look dead.
-export async function abortExtraction(id: string, base = '/api'): Promise<void> {
+export async function abortExtraction(
+  id: string,
+  base = "/api",
+): Promise<void> {
   const r = await post(`${base}/extract/${id}/abort`, {});
   if (!r.ok) throw new ApiError((await r.text()).trim() || String(r.status));
 }
 
 // setPriority lifts or drops tasks in the wait queue (-2..2, higher runs first).
-export const setPriority = (ids: string[], priority: number, base = '/api') =>
+export const setPriority = (ids: string[], priority: number, base = "/api") =>
   post(`${base}/tasks/priority`, { ids, priority });
 
 // moveTasks reorders the queue by hand.
-export const moveTasks = (ids: string[], where: 'top' | 'bottom', base = '/api') =>
-  post(`${base}/tasks/move`, { ids, where });
+export const moveTasks = (
+  ids: string[],
+  where: "top" | "bottom",
+  base = "/api",
+) => post(`${base}/tasks/move`, { ids, where });
 
 /**
  * The per-task overrides the properties panel sends. The server leaves any
@@ -1530,8 +1616,11 @@ export interface TaskOptionsPatch {
 }
 
 // setTaskOptions applies per-task overrides; omitted fields stay as they are.
-export const setTaskOptions = (ids: string[], opts: TaskOptionsPatch, base = '/api') =>
-  post(`${base}/tasks/options`, { ids, ...opts });
+export const setTaskOptions = (
+  ids: string[],
+  opts: TaskOptionsPatch,
+  base = "/api",
+) => post(`${base}/tasks/options`, { ids, ...opts });
 
 /** One backend a selection can be pinned to (app.PinChoice). */
 export interface PinChoice {
@@ -1541,8 +1630,15 @@ export interface PinChoice {
 }
 
 /** fetchPinChoices lists the backends every one of `ids` can be pinned to, best first. */
-export async function fetchPinChoices(ids: string[], base = '/api'): Promise<PinChoice[]> {
-  return (await json<PinChoice[] | null>(await post(`${base}/tasks/backends`, { ids }))) ?? [];
+export async function fetchPinChoices(
+  ids: string[],
+  base = "/api",
+): Promise<PinChoice[]> {
+  return (
+    (await json<PinChoice[] | null>(
+      await post(`${base}/tasks/backends`, { ids }),
+    )) ?? []
+  );
 }
 
 // Operations on a whole selection go out as one request, since a route per id
@@ -1555,39 +1651,68 @@ export async function fetchPinChoices(ids: string[], base = '/api'): Promise<Pin
  * also releases Hold, which an older build keeps apart from the switch; this
  * build takes that call as one more enable.
  */
-export async function setEnabled(ids: string[], enabled: boolean, base = '/api'): Promise<BulkResult> {
-  const done = await json<BulkResult>(await ok(await post(`${base}/tasks/enabled`, { ids, enabled })));
-  if (enabled && base !== '/api') await post(`${base}/tasks/hold`, { ids, hold: false }).catch(() => undefined);
+export async function setEnabled(
+  ids: string[],
+  enabled: boolean,
+  base = "/api",
+): Promise<BulkResult> {
+  const done = await json<BulkResult>(
+    await ok(await post(`${base}/tasks/enabled`, { ids, enabled })),
+  );
+  if (enabled && base !== "/api")
+    await post(`${base}/tasks/hold`, { ids, hold: false }).catch(
+      () => undefined,
+    );
   return done;
 }
 
 /** setCategory files a selection under a category by its id, or under none for ''. */
-export const setCategory = async (ids: string[], category: string, base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/tasks/category`, { ids, category })));
+export const setCategory = async (
+  ids: string[],
+  category: string,
+  base = "/api",
+) =>
+  json<BulkResult>(
+    await ok(await post(`${base}/tasks/category`, { ids, category })),
+  );
 
 /** setForced marks a selection to run ahead of the concurrency limits. */
-export const setForced = async (ids: string[], forced: boolean, base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/tasks/force`, { ids, forced })));
+export const setForced = async (
+  ids: string[],
+  forced: boolean,
+  base = "/api",
+) =>
+  json<BulkResult>(
+    await ok(await post(`${base}/tasks/force`, { ids, forced })),
+  );
 
 /** pauseTasks pauses the running and waiting links of a selection and leaves the rest alone. */
-export const pauseTasks = async (ids: string[], base = '/api') =>
+export const pauseTasks = async (ids: string[], base = "/api") =>
   json<BulkResult>(await ok(await post(`${base}/tasks/pause`, { ids })));
 
 /** resumeTasks puts the paused links of a selection back in the wait queue. */
-export const resumeTasks = async (ids: string[], base = '/api') =>
+export const resumeTasks = async (ids: string[], base = "/api") =>
   json<BulkResult>(await ok(await post(`${base}/tasks/resume`, { ids })));
 
 /** stopSeeding ends the seeding of the finished torrents of a selection, also across a restart. */
-export const stopSeeding = async (ids: string[], base = '/api') =>
+export const stopSeeding = async (ids: string[], base = "/api") =>
   json<BulkResult>(await ok(await post(`${base}/tasks/seeding/stop`, { ids })));
 
 /** startSeeding seeds the stopped torrents of a selection again, to the seeding targets counted from now. */
-export const startSeeding = async (ids: string[], base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/tasks/seeding/start`, { ids })));
+export const startSeeding = async (ids: string[], base = "/api") =>
+  json<BulkResult>(
+    await ok(await post(`${base}/tasks/seeding/start`, { ids })),
+  );
 
 /** deleteTasks removes a selection from the list; `withFiles` also erases what was downloaded. */
-export const deleteTasks = async (ids: string[], withFiles = false, base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/tasks/delete`, { ids, files: withFiles })));
+export const deleteTasks = async (
+  ids: string[],
+  withFiles = false,
+  base = "/api",
+) =>
+  json<BulkResult>(
+    await ok(await post(`${base}/tasks/delete`, { ids, files: withFiles })),
+  );
 
 /** UnpackedWeight is how much of what unpacking wrote a removal with files erases. */
 export interface UnpackedWeight {
@@ -1600,40 +1725,60 @@ export interface UnpackedWeight {
  * what unpacking wrote. Which of it stays is the server's rule, so the
  * confirmation counts by this answer rather than working it out again.
  */
-export const unpackedWeight = async (ids: string[], base = '/api') =>
-  json<UnpackedWeight>(await ok(await post(`${base}/tasks/unpacked-weight`, { ids })));
+export const unpackedWeight = async (ids: string[], base = "/api") =>
+  json<UnpackedWeight>(
+    await ok(await post(`${base}/tasks/unpacked-weight`, { ids })),
+  );
 
 /**
  * undoDelete puts back the rows one removal took. An expired or spent token
  * restores nothing without an error; the returned count says what happened.
  */
-export const undoDelete = async (token: string, base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/tasks/undo-delete`, { token })));
+export const undoDelete = async (token: string, base = "/api") =>
+  json<BulkResult>(
+    await ok(await post(`${base}/tasks/undo-delete`, { token })),
+  );
 
 // The cleanup routes are not forwarded to peers, so they take no base.
 
 /** cleanupPreview reports which tasks a class would take, so the confirmation can list them. */
 export const cleanupPreview = async (cls: CleanupClass) =>
-  json<BulkResult>(await ok(await fetch(`/api/cleanup/${encodeURIComponent(cls)}`)));
+  json<BulkResult>(
+    await ok(await fetch(`/api/cleanup/${encodeURIComponent(cls)}`)),
+  );
 
 /**
  * runCleanup removes everything in a class, as long as it still selects what the
  * preview with this digest showed. Otherwise it fails with the code
  * cleanupChanged and removes nothing.
  */
-export const runCleanup = async (cls: CleanupClass, digest: string, withFiles = false) =>
-  json<BulkResult>(await ok(await post(`/api/cleanup/${encodeURIComponent(cls)}`, { digest, files: withFiles })));
+export const runCleanup = async (
+  cls: CleanupClass,
+  digest: string,
+  withFiles = false,
+) =>
+  json<BulkResult>(
+    await ok(
+      await post(`/api/cleanup/${encodeURIComponent(cls)}`, {
+        digest,
+        files: withFiles,
+      }),
+    ),
+  );
 
 /**
  * fetchSkipped lists the links that were folded into one already in the list,
  * oldest first, so a link that vanished on paste has an explanation.
  */
 export async function fetchSkipped(): Promise<SkippedLink[]> {
-  return (await json<SkippedLink[]>(await fetch('/api/collector/skipped'))) ?? [];
+  return (
+    (await json<SkippedLink[]>(await fetch("/api/collector/skipped"))) ?? []
+  );
 }
 
 /** clearSkipped empties that trace. */
-export const clearSkipped = () => fetch('/api/collector/skipped', { method: 'DELETE' });
+export const clearSkipped = () =>
+  fetch("/api/collector/skipped", { method: "DELETE" });
 
 /**
  * uploadContainer sends a .txt/.dlc/.ccf/.rsdf/.nzb file. A link list, RSDF,
@@ -1643,12 +1788,17 @@ export const clearSkipped = () => fetch('/api/collector/skipped', { method: 'DEL
  * "0 links added". A failure throws the server's sentence, with a code when
  * nothing here can open the file.
  */
-export async function uploadContainer(file: File, pkg = ''): Promise<ContainerResult> {
+export async function uploadContainer(
+  file: File,
+  pkg = "",
+): Promise<ContainerResult> {
   const form = new FormData();
-  form.append('file', file);
-  if (pkg) form.append('package', pkg);
+  form.append("file", file);
+  if (pkg) form.append("package", pkg);
   // No Content-Type header: the browser has to set the multipart boundary.
-  return json<ContainerResult>(await fetch('/api/containers', { method: 'POST', body: form }));
+  return json<ContainerResult>(
+    await fetch("/api/containers", { method: "POST", body: form }),
+  );
 }
 
 /** The preview POST /api/torrents/parse returns: the file tree, with the files
@@ -1671,8 +1821,10 @@ export interface TorrentTree {
  *  failure throws the server's sentence. */
 export async function parseTorrentUpload(file: File): Promise<TorrentTree> {
   const form = new FormData();
-  form.append('file', file);
-  return json<TorrentTree>(await fetch('/api/torrents/parse', { method: 'POST', body: form }));
+  form.append("file", file);
+  return json<TorrentTree>(
+    await fetch("/api/torrents/parse", { method: "POST", body: form }),
+  );
 }
 
 /**
@@ -1689,9 +1841,9 @@ export async function stageTorrent(
   selectedPaths?: string[],
 ): Promise<Task | null> {
   return json<Task | null>(
-    await fetch('/api/torrents', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/api/torrents", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uri, package: pkg, selectedPaths }),
     }),
   );
@@ -1699,7 +1851,7 @@ export async function stageTorrent(
 
 /** fetchOptions returns the choices the settings and cleanup menus offer. */
 export async function fetchOptions(): Promise<ApiOptions> {
-  return json<ApiOptions>(await fetch('/api/options'));
+  return json<ApiOptions>(await fetch("/api/options"));
 }
 
 // GET /api/diskspace takes no base: a peer answers 403, so a row built from it
@@ -1755,7 +1907,7 @@ export interface DiskReport {
 }
 
 export async function fetchDiskSpace(): Promise<DiskReport> {
-  return json<DiskReport>(await fetch('/api/diskspace'));
+  return json<DiskReport>(await fetch("/api/diskspace"));
 }
 
 /**
@@ -1764,7 +1916,8 @@ export async function fetchDiskSpace(): Promise<DiskReport> {
  * its raw id. "unused" and "unknown" are not faults and never make `status`
  * worse than ok.
  */
-export type HealthState = 'ok' | 'degraded' | 'failed' | 'unused' | 'unknown' | (string & {});
+export type HealthState =
+  "ok" | "degraded" | "failed" | "unused" | "unknown" | (string & {});
 
 export interface HealthSubsystem {
   /** A stable id the UI translates: store, queue, disk, jd, ytdlp, accounts,
@@ -1826,10 +1979,10 @@ export interface HealthReport {
  * answers 403.
  */
 export async function fetchHealthReport(): Promise<HealthReport> {
-  return json<HealthReport>(await fetch('/api/health/detail'));
+  return json<HealthReport>(await fetch("/api/health/detail"));
 }
 
-export type VolumeCapAction = 'report' | 'pause' | 'throttle';
+export type VolumeCapAction = "report" | "pause" | "throttle";
 
 /**
  * One bucket of the volume curve. `key` is bucketed in the server's local
@@ -1856,7 +2009,7 @@ export interface VolumeBucket {
  */
 export interface VolumeCurve {
   /** Days up to 92 days, months beyond; the server decides from the span's length. */
-  unit: 'day' | 'month';
+  unit: "day" | "month";
   /** Newest last, gaps filled with a zero bucket. */
   buckets: VolumeBucket[];
   /** The zone the server bucketed by, so the chart can say whose calendar it is. */
@@ -1882,11 +2035,13 @@ export interface VolumeUsage {
 }
 
 export async function fetchVolumeCurve(span: string): Promise<VolumeCurve> {
-  return json<VolumeCurve>(await fetch(`/api/stats/volume?span=${encodeURIComponent(span)}`));
+  return json<VolumeCurve>(
+    await fetch(`/api/stats/volume?span=${encodeURIComponent(span)}`),
+  );
 }
 
 export async function fetchVolumeUsage(): Promise<VolumeUsage> {
-  return json<VolumeUsage>(await fetch('/api/stats/volume/usage'));
+  return json<VolumeUsage>(await fetch("/api/stats/volume/usage"));
 }
 
 /** One of the torrents sending most right now (app.TorrentUploader). */
@@ -1921,10 +2076,10 @@ export interface TorrentOverview {
 }
 
 export async function fetchTorrentOverview(): Promise<TorrentOverview> {
-  return json<TorrentOverview>(await fetch('/api/stats/torrents'));
+  return json<TorrentOverview>(await fetch("/api/stats/torrents"));
 }
 
-export async function fetchQueue(base = '/api'): Promise<QueueState> {
+export async function fetchQueue(base = "/api"): Promise<QueueState> {
   return json<QueueState>(await fetch(`${base}/queue`));
 }
 
@@ -1942,9 +2097,17 @@ export interface ScheduleSuspension {
  * fetchScheduleSuspension reads the timetable's answer for its suspension and
  * for how many schedules there are to suspend.
  */
-export async function fetchScheduleSuspension(): Promise<ScheduleSuspension & { schedules: number }> {
-  const s = await json<ScheduleSuspension & { entries: unknown[] | null }>(await fetch('/api/schedule'));
-  return { suspended: s.suspended, suspendedUntil: s.suspendedUntil, schedules: s.entries?.length ?? 0 };
+export async function fetchScheduleSuspension(): Promise<
+  ScheduleSuspension & { schedules: number }
+> {
+  const s = await json<ScheduleSuspension & { entries: unknown[] | null }>(
+    await fetch("/api/schedule"),
+  );
+  return {
+    suspended: s.suspended,
+    suspendedUntil: s.suspendedUntil,
+    schedules: s.entries?.length ?? 0,
+  };
 }
 
 /**
@@ -1953,10 +2116,12 @@ export async function fetchScheduleSuspension(): Promise<ScheduleSuspension & { 
  * resumeSchedule. It answers with the whole ScheduleState, which carries the
  * suspension.
  */
-export async function suspendSchedule(span: { minutes: number } | { until: string } | null): Promise<ScheduleSuspension> {
-  const r = await fetch('/api/schedule/suspend', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+export async function suspendSchedule(
+  span: { minutes: number } | { until: string } | null,
+): Promise<ScheduleSuspension> {
+  const r = await fetch("/api/schedule/suspend", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(span ?? {}),
   });
   return json<ScheduleSuspension>(r);
@@ -1964,13 +2129,15 @@ export async function suspendSchedule(span: { minutes: number } | { until: strin
 
 /** resumeSchedule lets the schedules apply again at once. */
 export async function resumeSchedule(): Promise<ScheduleSuspension> {
-  return json<ScheduleSuspension>(await fetch('/api/schedule/suspend', { method: 'DELETE' }));
+  return json<ScheduleSuspension>(
+    await fetch("/api/schedule/suspend", { method: "DELETE" }),
+  );
 }
 
 /** setQueue toggles the master switch and/or arms the stop mark. */
 export async function setQueue(
   patch: { halted?: boolean; stopMark?: string; quiet?: boolean },
-  base = '/api',
+  base = "/api",
 ): Promise<QueueState> {
   return json<QueueState>(await post(`${base}/queue`, patch));
 }
@@ -1990,7 +2157,7 @@ export interface QueueSelection {
 }
 
 /** The four steps the manual order understands. Anything finer is a drag. */
-export type QueueMove = 'top' | 'up' | 'down' | 'bottom';
+export type QueueMove = "top" | "up" | "down" | "bottom";
 
 /** One of the seven priorities. The id is translated as `priority.<id>`. */
 export interface PriorityChoice {
@@ -2046,8 +2213,14 @@ export interface StopResult {
 }
 
 /** queueMove changes where a selection or a whole package sits in the wait order. */
-export const queueMove = async (sel: QueueSelection, where: QueueMove, base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/queue/move`, { ...sel, where })));
+export const queueMove = async (
+  sel: QueueSelection,
+  where: QueueMove,
+  base = "/api",
+) =>
+  json<BulkResult>(
+    await ok(await post(`${base}/queue/move`, { ...sel, where })),
+  );
 
 /**
  * reorderTasks writes the drag-and-drop order for one band, the tasks sharing
@@ -2055,38 +2228,50 @@ export const queueMove = async (sel: QueueSelection, where: QueueMove, base = '/
  * may be a subset, read as "these tasks, in this order, in the slots they
  * already hold".
  */
-export const reorderTasks = async (ids: string[], base = '/api') =>
+export const reorderTasks = async (ids: string[], base = "/api") =>
   json<BulkResult>(await ok(await post(`${base}/tasks/reorder`, { ids })));
 
 /** queuePriority puts a selection at one of the seven. */
-export const queuePriority = async (sel: QueueSelection, priority: number, base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/queue/priority`, { ...sel, priority })));
+export const queuePriority = async (
+  sel: QueueSelection,
+  priority: number,
+  base = "/api",
+) =>
+  json<BulkResult>(
+    await ok(await post(`${base}/queue/priority`, { ...sel, priority })),
+  );
 
 /** queueForce starts a selection now: front of the queue, switched on, released. */
-export const queueForce = async (sel: QueueSelection, base = '/api') =>
+export const queueForce = async (sel: QueueSelection, base = "/api") =>
   json<BulkResult>(await ok(await post(`${base}/queue/force`, sel)));
 
 /** queueEnabled is the bulk switch: a selection, a package, or `all` disabled links. */
-export const queueEnabled = async (sel: QueueSelection, enabled: boolean, base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/queue/enabled`, { ...sel, enabled })));
+export const queueEnabled = async (
+  sel: QueueSelection,
+  enabled: boolean,
+  base = "/api",
+) =>
+  json<BulkResult>(
+    await ok(await post(`${base}/queue/enabled`, { ...sel, enabled })),
+  );
 
 /** fetchPriorities is the menu's source of truth, so it cannot offer a value the server clamps away. */
-export const fetchPriorities = async (base = '/api') =>
+export const fetchPriorities = async (base = "/api") =>
   json<PriorityChoice[]>(await fetch(`${base}/queue/priorities`));
 
-export const fetchCounters = async (base = '/api') =>
+export const fetchCounters = async (base = "/api") =>
   json<QueueCounters>(await fetch(`${base}/queue/counters`));
 
 /** fetchStopCost weighs the hard stop and stops nothing. */
-export const fetchStopCost = async (base = '/api') =>
+export const fetchStopCost = async (base = "/api") =>
   json<StopCost>(await fetch(`${base}/queue/stop`));
 
 /** stopAll stops every transfer in flight and halts the queue behind them. */
-export const stopAll = async (base = '/api') =>
+export const stopAll = async (base = "/api") =>
   json<StopResult>(await ok(await post(`${base}/queue/stop`, {})));
 
 export async function fetchSettings(): Promise<Settings> {
-  return json<Settings>(await fetch('/api/settings'));
+  return json<Settings>(await fetch("/api/settings"));
 }
 
 /**
@@ -2094,23 +2279,28 @@ export async function fetchSettings(): Promise<Settings> {
  * to another field survives. A named object field such as reconnect is still
  * replaced whole.
  */
-export async function patchSettings(patch: Partial<Settings>): Promise<Settings> {
-  const r = await fetch('/api/settings', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+export async function patchSettings(
+  patch: Partial<Settings>,
+): Promise<Settings> {
+  const r = await fetch("/api/settings", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patch),
   });
   return json<Settings>(r);
 }
 
 export async function fetchAccounts(): Promise<Account[]> {
-  return (await json<Account[]>(await fetch('/api/accounts'))) ?? [];
+  return (await json<Account[]>(await fetch("/api/accounts"))) ?? [];
 }
 
 // fetchAccountCatalogue lists every service a credential can be stored for,
 // configured or not.
 export async function fetchAccountCatalogue(): Promise<CatalogueService[]> {
-  return (await json<CatalogueService[]>(await fetch('/api/accounts/catalogue'))) ?? [];
+  return (
+    (await json<CatalogueService[]>(await fetch("/api/accounts/catalogue"))) ??
+    []
+  );
 }
 
 // verifyAccountCredential checks a credential against its service without
@@ -2120,32 +2310,52 @@ export async function verifyAccountCredential(
   account: string,
   cred: AccountCredential,
 ): Promise<VerifyResult> {
-  return json<VerifyResult>(await post('/api/accounts/verify', { service, account, ...cred }));
+  return json<VerifyResult>(
+    await post("/api/accounts/verify", { service, account, ...cred }),
+  );
 }
 
 // saveAccountCredential stores one account's credential.
-export async function saveAccountCredential(service: string, account: string, cred: AccountCredential): Promise<void> {
-  await ok(await post('/api/accounts', { service, account, ...cred }));
+export async function saveAccountCredential(
+  service: string,
+  account: string,
+  cred: AccountCredential,
+): Promise<void> {
+  await ok(await post("/api/accounts", { service, account, ...cred }));
 }
 
 // removeAccountCredential clears one account's credential: the server reads an
 // empty credential as a delete.
-export async function removeAccountCredential(service: string, account: string): Promise<void> {
-  await ok(await post('/api/accounts', { service, account }));
+export async function removeAccountCredential(
+  service: string,
+  account: string,
+): Promise<void> {
+  await ok(await post("/api/accounts", { service, account }));
 }
 
-export async function setAccountLabel(service: string, account: string, label: string): Promise<void> {
-  await ok(await post('/api/accounts/label', { service, account, label }));
+export async function setAccountLabel(
+  service: string,
+  account: string,
+  label: string,
+): Promise<void> {
+  await ok(await post("/api/accounts/label", { service, account, label }));
 }
 
 // setAccountEnabled switches an account off as if its credential were missing.
-export async function setAccountEnabled(service: string, account: string, enabled: boolean): Promise<void> {
-  await ok(await post('/api/accounts/enabled', { service, account, enabled }));
+export async function setAccountEnabled(
+  service: string,
+  account: string,
+  enabled: boolean,
+): Promise<void> {
+  await ok(await post("/api/accounts/enabled", { service, account, enabled }));
 }
 
 // testAccount re-checks a stored account, the per-row "Refresh".
-export async function testAccount(service: string, account: string): Promise<Account> {
-  return json<Account>(await post('/api/accounts/test', { service, account }));
+export async function testAccount(
+  service: string,
+  account: string,
+): Promise<Account> {
+  return json<Account>(await post("/api/accounts/test", { service, account }));
 }
 
 // The end-of-queue action runs after a cancellable countdown once the queue has
@@ -2180,7 +2390,14 @@ export interface IdleActionConfig {
  * can read the result.
  */
 export interface IdleCommandCheck {
-  problem?: 'empty' | 'notFound' | 'notExecutable' | 'permission' | 'timeout' | 'exit' | 'notSupported';
+  problem?:
+    | "empty"
+    | "notFound"
+    | "notExecutable"
+    | "permission"
+    | "timeout"
+    | "exit"
+    | "notSupported";
   /** What the program name resolves to, by the same lookup the run uses. */
   resolvedPath?: string;
   /** The exact argument vector, resolved program first. */
@@ -2227,32 +2444,36 @@ export interface IdleActionState {
 }
 
 export async function fetchIdleAction(): Promise<IdleActionState> {
-  return json<IdleActionState>(await fetch('/api/idle-action'));
+  return json<IdleActionState>(await fetch("/api/idle-action"));
 }
 
 /** cancelIdleAction calls off a countdown in progress, without disarming the
  *  feature for the next time the queue goes idle. */
 export async function cancelIdleAction(): Promise<IdleActionState> {
-  return json<IdleActionState>(await ok(await post('/api/idle-action/cancel', {})));
+  return json<IdleActionState>(
+    await ok(await post("/api/idle-action/cancel", {})),
+  );
 }
 
 /** fetchIdleActions is the menu's source of truth, so it cannot offer an
  *  action this build does not implement. */
 export async function fetchIdleActions(): Promise<string[]> {
-  return (await json<string[]>(await fetch('/api/idle-action/actions'))) ?? [];
+  return (await json<string[]>(await fetch("/api/idle-action/actions"))) ?? [];
 }
 
 /** checkIdleCommand resolves the stored command and reports what it found,
  *  without running it. */
 export async function checkIdleCommand(): Promise<IdleCommandCheck> {
-  return json<IdleCommandCheck>(await ok(await post('/api/idle-action/check', {})));
+  return json<IdleCommandCheck>(
+    await ok(await post("/api/idle-action/check", {})),
+  );
 }
 
 /** runIdleCommand runs the stored command once, as the countdown would. The
  *  server answers 409 unless the configured action is 'command', so a test
  *  never quits the process or suspends the machine. */
 export async function runIdleCommand(): Promise<IdleRun> {
-  return json<IdleRun>(await ok(await post('/api/idle-action/run', {})));
+  return json<IdleRun>(await ok(await post("/api/idle-action/run", {})));
 }
 
 /**
@@ -2261,7 +2482,9 @@ export async function runIdleCommand(): Promise<IdleRun> {
  * button was pressed.
  */
 export async function abortActivity(kind: string): Promise<number> {
-  const r = await ok(await post(`/api/activity/${encodeURIComponent(kind)}/abort`, {}));
+  const r = await ok(
+    await post(`/api/activity/${encodeURIComponent(kind)}/abort`, {}),
+  );
   return (await json<{ cancelled: number }>(r))?.cancelled ?? 0;
 }
 
@@ -2280,9 +2503,14 @@ export interface ResolverInfo {
  * highest first, after the hand-arranged order and JD's per-host boost. With
  * `host` it narrows to the chain that host walks.
  */
-export async function fetchResolverPriority(host?: string): Promise<ResolverInfo[]> {
-  const q = host ? `?host=${encodeURIComponent(host)}` : '';
-  return (await json<ResolverInfo[]>(await fetch(`/api/resolvers/priority${q}`))) ?? [];
+export async function fetchResolverPriority(
+  host?: string,
+): Promise<ResolverInfo[]> {
+  const q = host ? `?host=${encodeURIComponent(host)}` : "";
+  return (
+    (await json<ResolverInfo[]>(await fetch(`/api/resolvers/priority${q}`))) ??
+    []
+  );
 }
 
 /**
@@ -2290,12 +2518,14 @@ export async function fetchResolverPriority(host?: string): Promise<ResolverInfo
  * the automatic one. It answers with the server's re-read, since blanks and
  * repeats are dropped on the way in.
  */
-export async function saveResolverPriority(order: string[]): Promise<ResolverInfo[]> {
+export async function saveResolverPriority(
+  order: string[],
+): Promise<ResolverInfo[]> {
   return (
     (await json<ResolverInfo[]>(
-      await fetch('/api/resolvers/priority', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/resolvers/priority", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order }),
       }),
     )) ?? []
@@ -2310,7 +2540,7 @@ export interface JDStatus {
   version?: number;
   detail?: string;
   /** How far the desktop build has come with its own JDownloader while it is not configured yet. */
-  setup?: 'starting' | 'failed';
+  setup?: "starting" | "failed";
   /** How much of the Java runtime has arrived meanwhile; setupTotal is -1 while unknown. */
   setupDone?: number;
   setupTotal?: number;
@@ -2323,18 +2553,21 @@ export interface JDStatus {
 }
 
 export async function fetchJDStatus(): Promise<JDStatus> {
-  return json<JDStatus>(await fetch('/api/resolvers/jd'));
+  return json<JDStatus>(await fetch("/api/resolvers/jd"));
 }
 
 /** Has the desktop build set up its own JDownloader again after a try that failed. */
 export async function retryJDSetup(): Promise<JDStatus> {
-  return json<JDStatus>(await fetch('/api/resolvers/jd/setup', { method: 'POST' }));
+  return json<JDStatus>(
+    await fetch("/api/resolvers/jd/setup", { method: "POST" }),
+  );
 }
 
 /** What one component's update came to; "waits" is an update JDownloader
  *  installs once none of its downloads runs, "skipped" a copy that is not
  *  KnightLoader's to update, such as one on PATH. */
-export type ComponentState = 'checking' | 'updated' | 'current' | 'waits' | 'skipped' | 'failed';
+export type ComponentState =
+  "checking" | "updated" | "current" | "waits" | "skipped" | "failed";
 
 export interface ComponentResult {
   state: ComponentState;
@@ -2353,12 +2586,12 @@ export interface ComponentUpdate {
 /** Starts Update now, which asks after every component at once and fetches
  *  what is newer. A run under way is left to finish. */
 export async function startComponentUpdate(): Promise<ComponentUpdate> {
-  return json(await fetch('/api/components/update', { method: 'POST' }));
+  return json(await fetch("/api/components/update", { method: "POST" }));
 }
 
 /** How far Update now has come. */
 export async function fetchComponentUpdate(): Promise<ComponentUpdate> {
-  return json(await fetch('/api/components/update'));
+  return json(await fetch("/api/components/update"));
 }
 
 /**
@@ -2441,7 +2674,13 @@ export interface YtdlpLive {
 
 /** The "Variante" row kinds a yt-dlp link stages, in creation order. A fixed
  *  set, so it is not fetched from /api/options. */
-export const YTDLP_VARIANT_KINDS = ['video', 'audio', 'thumbnail', 'subtitle', 'description'] as const;
+export const YTDLP_VARIANT_KINDS = [
+  "video",
+  "audio",
+  "thumbnail",
+  "subtitle",
+  "description",
+] as const;
 export type YtdlpVariantKind = (typeof YTDLP_VARIANT_KINDS)[number];
 
 /**
@@ -2462,11 +2701,20 @@ export interface YtdlpHosterPreset {
   audioBitrate?: string;
 }
 
-export async function fetchHosterPreset(host: string, base = '/api'): Promise<YtdlpHosterPreset> {
-  return json<YtdlpHosterPreset>(await fetch(`${base}/ytdlp/preset?host=${encodeURIComponent(host)}`));
+export async function fetchHosterPreset(
+  host: string,
+  base = "/api",
+): Promise<YtdlpHosterPreset> {
+  return json<YtdlpHosterPreset>(
+    await fetch(`${base}/ytdlp/preset?host=${encodeURIComponent(host)}`),
+  );
 }
 
-export async function saveHosterPreset(host: string, preset: YtdlpHosterPreset, base = '/api'): Promise<void> {
+export async function saveHosterPreset(
+  host: string,
+  preset: YtdlpHosterPreset,
+  base = "/api",
+): Promise<void> {
   const r = await post(`${base}/ytdlp/preset`, { host, ...preset });
   if (!r.ok) throw new ApiError((await r.text()).trim() || String(r.status));
 }
@@ -2482,8 +2730,13 @@ export interface YtdlpHostMenus {
   known: boolean;
 }
 
-export async function fetchHosterFormats(host: string, base = '/api'): Promise<YtdlpHostMenus> {
-  return json<YtdlpHostMenus>(await fetch(`${base}/ytdlp/formats?host=${encodeURIComponent(host)}`));
+export async function fetchHosterFormats(
+  host: string,
+  base = "/api",
+): Promise<YtdlpHostMenus> {
+  return json<YtdlpHostMenus>(
+    await fetch(`${base}/ytdlp/formats?host=${encodeURIComponent(host)}`),
+  );
 }
 
 // Sites signed into through the browser (internal/sitelogin). An instance
@@ -2491,15 +2744,16 @@ export async function fetchHosterFormats(host: string, base = '/api'): Promise<Y
 // and the extension passes it on from any other. It never comes back: a
 // site's row says who it signs in as and where from, nothing more.
 
-export type SiteLoginStateName = 'signedOut' | 'signedIn' | 'expired' | 'unchecked';
+export type SiteLoginStateName =
+  "signedOut" | "signedIn" | "expired" | "unchecked";
 
 /**
  * Where a session came from: read from a browser on this computer, passed on
  * by the extension, or from KnightLoader's own sign-in browser.
  */
-export type SiteLoginSource = 'browser' | 'extension' | 'kl-browser' | '';
+export type SiteLoginSource = "browser" | "extension" | "kl-browser" | "";
 
-/** One site signed into through the browser, a row of the hoster accounts. */
+/** One site signed into through the browser: a row of the hoster accounts once added, a tile of their picker before. */
 export interface SiteLogin {
   id: string;
   name: string;
@@ -2511,7 +2765,7 @@ export interface SiteLogin {
   /** Further hosts its links come from, such as a short-link domain. */
   links?: string[];
   /** "always": the session goes with every link; "onNeed": only with one that asks for a sign-in. */
-  use?: 'always' | 'onNeed';
+  use?: "always" | "onNeed";
   state: SiteLoginStateName;
   /** Who the session signs in as, where the site says. */
   account?: string;
@@ -2524,34 +2778,35 @@ export interface SiteLogin {
   unreadable: string[];
   /** Whether this instance reads the browsers on its computer; false in a container. */
   readsBrowsers: boolean;
-  /** Removed here: the browsers' sign-in is not used until the site is signed in through KnightLoader again. */
-  disconnected: boolean;
+  /** Whether the site has a row. One that was not added is offered in the picker, and its session is not used. */
+  added: boolean;
   /** Whether the extension in a browser of the group may read the site, so a sign-in there reaches this instance. */
   handsOver?: boolean;
 }
 
 export async function fetchSiteLogins(): Promise<SiteLogin[]> {
-  return (await json<SiteLogin[]>(await fetch('/api/sitelogins'))) ?? [];
+  return (await json<SiteLogin[]>(await fetch("/api/sitelogins"))) ?? [];
 }
 
-const siteLoginPath = (id: string, action: string) => `/api/sitelogins/${encodeURIComponent(id)}/${action}`;
+const siteLoginPath = (id: string, action: string) =>
+  `/api/sitelogins/${encodeURIComponent(id)}/${action}`;
 
 export async function checkSiteLogin(id: string): Promise<SiteLogin> {
-  return json<SiteLogin>(await post(siteLoginPath(id, 'check'), {}));
+  return json<SiteLogin>(await post(siteLoginPath(id, "check"), {}));
 }
 
 export async function removeSiteLogin(id: string): Promise<SiteLogin> {
-  return json<SiteLogin>(await post(siteLoginPath(id, 'remove'), {}));
+  return json<SiteLogin>(await post(siteLoginPath(id, "remove"), {}));
 }
 
-/** beginSiteLogin signs a site in through KnightLoader, which uses the browsers' sign-in to a removed site again. */
+/** beginSiteLogin adds a site and waits for its sign-in. */
 export async function beginSiteLogin(id: string): Promise<SiteLogin> {
-  return json<SiteLogin>(await post(siteLoginPath(id, 'begin'), {}));
+  return json<SiteLogin>(await post(siteLoginPath(id, "begin"), {}));
 }
 
-/** reconnectSiteLogin uses the browsers' sign-in to a removed site again, without a new sign-in. */
-export async function reconnectSiteLogin(id: string): Promise<SiteLogin> {
-  return json<SiteLogin>(await post(siteLoginPath(id, 'reconnect'), {}));
+/** addSiteLogin gives a site its row, with the sign-in a browser here already holds. */
+export async function addSiteLogin(id: string): Promise<SiteLogin> {
+  return json<SiteLogin>(await post(siteLoginPath(id, "add"), {}));
 }
 
 // The sign-in browser (internal/signinbrowser): a browser KnightLoader runs
@@ -2564,23 +2819,34 @@ export interface SignInBrowserStatus {
 }
 
 export async function fetchSignInBrowser(): Promise<SignInBrowserStatus> {
-  return json<SignInBrowserStatus>(await fetch('/api/signinbrowser'));
+  return json<SignInBrowserStatus>(await fetch("/api/signinbrowser"));
 }
 
 /** openSignInBrowser opens the sign-in browser on a site's login page, sized in CSS pixels. */
-export async function openSignInBrowser(id: string, width: number, height: number, scale: number): Promise<SiteLogin> {
-  return json<SiteLogin>(await post(`/api/signinbrowser/${encodeURIComponent(id)}/open`, { width, height, scale }));
+export async function openSignInBrowser(
+  id: string,
+  width: number,
+  height: number,
+  scale: number,
+): Promise<SiteLogin> {
+  return json<SiteLogin>(
+    await post(`/api/signinbrowser/${encodeURIComponent(id)}/open`, {
+      width,
+      height,
+      scale,
+    }),
+  );
 }
 
 /** closeSignInBrowser closes it, storing the session it holds, and answers how its site stands. */
 export async function closeSignInBrowser(): Promise<SiteLogin | null> {
-  const r = await post('/api/signinbrowser/close', {});
+  const r = await post("/api/signinbrowser/close", {});
   return r.status === 204 ? null : json<SiteLogin>(r);
 }
 
 /** signInBrowserSocket streams the page: JPEG frames and its state down, the user's input up. */
 export function signInBrowserSocket(): WebSocket {
-  return new WebSocket(socketURL('/api/signinbrowser/stream'));
+  return new WebSocket(socketURL("/api/signinbrowser/stream"));
 }
 
 // Header profiles hold a user's own request headers for one origin: a session
@@ -2610,11 +2876,11 @@ export interface HeaderProfileLine {
 
 /** The placeholder a stored value is re-sent as, the same string
  *  accounts.Redacted uses. */
-export const REDACTED_HEADER = '********';
+export const REDACTED_HEADER = "********";
 
 /** fetchHeaderProfiles is every stored profile: origin and header names. */
 export async function fetchHeaderProfiles(): Promise<HeaderProfile[]> {
-  return (await json<HeaderProfile[]>(await fetch('/api/hostheaders'))) ?? [];
+  return (await json<HeaderProfile[]>(await fetch("/api/hostheaders"))) ?? [];
 }
 
 /** saveHeaderProfile stores or replaces the profile for one origin and answers
@@ -2623,14 +2889,20 @@ export async function fetchHeaderProfiles(): Promise<HeaderProfile[]> {
 export async function saveHeaderProfile(
   origin: string,
   headers: HeaderProfileLine[],
-  id = '',
+  id = "",
 ): Promise<HeaderProfile[]> {
-  return json<HeaderProfile[]>(await post('/api/hostheaders', { id, origin, headers }));
+  return json<HeaderProfile[]>(
+    await post("/api/hostheaders", { id, origin, headers }),
+  );
 }
 
 /** deleteHeaderProfile removes one profile. An unknown name answers 404. */
 export async function deleteHeaderProfile(id: string): Promise<void> {
-  await ok(await fetch(`/api/hostheaders/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+  await ok(
+    await fetch(`/api/hostheaders/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+  );
 }
 
 // A media hook is the address a drawer calls once a package has finished and
@@ -2704,24 +2976,30 @@ export interface MediaHookSave {
 /** fetchMediaHooks is every stored address in stored order, which is the
  *  order the Categories picker offers. */
 export async function fetchMediaHooks(): Promise<MediaHook[]> {
-  return (await json<MediaHook[]>(await fetch('/api/mediahooks'))) ?? [];
+  return (await json<MediaHook[]>(await fetch("/api/mediahooks"))) ?? [];
 }
 
 /** saveMediaHook stores or replaces one address and answers the whole listing. */
 export async function saveMediaHook(h: MediaHookSave): Promise<MediaHook[]> {
-  return json<MediaHook[]>(await post('/api/mediahooks', h));
+  return json<MediaHook[]>(await post("/api/mediahooks", h));
 }
 
 /** deleteMediaHook removes one address and its sealed header value. Refused
  *  with 409 while a category still points at it. */
 export async function deleteMediaHook(id: string): Promise<void> {
-  await ok(await fetch(`/api/mediahooks/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+  await ok(
+    await fetch(`/api/mediahooks/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+  );
 }
 
 /** testMediaHook calls one stored address once and reports what came back. A
  *  failed call still answers 200, so read `ok` on the result. */
 export async function testMediaHook(id: string): Promise<MediaHookResult> {
-  return json<MediaHookResult>(await post(`/api/mediahooks/${encodeURIComponent(id)}/test`, {}));
+  return json<MediaHookResult>(
+    await post(`/api/mediahooks/${encodeURIComponent(id)}/test`, {}),
+  );
 }
 
 // The media servers quiet mode watches. As with a media hook, the token is
@@ -2746,7 +3024,7 @@ export interface PlaybackSettings {
   holdExtraction: boolean;
 }
 
-export type PlaybackKind = 'plex' | 'jellyfin' | 'emby';
+export type PlaybackKind = "plex" | "jellyfin" | "emby";
 
 export interface PlaybackServer {
   /** Made up from the kind on the first save. */
@@ -2783,7 +3061,12 @@ export interface PlaybackStatus {
   active: boolean;
   since?: string;
   streams: PlaybackStream[];
-  servers: { id: string; checkedAt: string; ok: boolean; failure?: PlaybackFailure }[];
+  servers: {
+    id: string;
+    checkedAt: string;
+    ok: boolean;
+    failure?: PlaybackFailure;
+  }[];
 }
 
 export interface PlaybackView {
@@ -2809,22 +3092,30 @@ export interface PlaybackCheck {
 }
 
 export async function fetchPlayback(): Promise<PlaybackView> {
-  return json<PlaybackView>(await fetch('/api/playback'));
+  return json<PlaybackView>(await fetch("/api/playback"));
 }
 
 /** savePlaybackServer stores or replaces one server and answers the whole view. */
-export async function savePlaybackServer(s: PlaybackServerSave): Promise<PlaybackView> {
-  return json<PlaybackView>(await post('/api/playback/servers', s));
+export async function savePlaybackServer(
+  s: PlaybackServerSave,
+): Promise<PlaybackView> {
+  return json<PlaybackView>(await post("/api/playback/servers", s));
 }
 
 export async function deletePlaybackServer(id: string): Promise<void> {
-  await ok(await fetch(`/api/playback/servers/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+  await ok(
+    await fetch(`/api/playback/servers/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+  );
 }
 
 /** testPlaybackServer asks one server once. A failed question still answers
  *  200, so read `ok`. */
 export async function testPlaybackServer(id: string): Promise<PlaybackCheck> {
-  return json<PlaybackCheck>(await post(`/api/playback/servers/${encodeURIComponent(id)}/test`, {}));
+  return json<PlaybackCheck>(
+    await post(`/api/playback/servers/${encodeURIComponent(id)}/test`, {}),
+  );
 }
 
 /** UsenetServer is one own Usenet server as settings.UsenetServer stores it. */
@@ -2857,22 +3148,34 @@ export interface UsenetServerSave extends UsenetServer {
 }
 
 export async function fetchUsenetServers(): Promise<UsenetServerRow[]> {
-  return (await json<UsenetServerRow[]>(await fetch('/api/usenet/servers'))) ?? [];
+  return (
+    (await json<UsenetServerRow[]>(await fetch("/api/usenet/servers"))) ?? []
+  );
 }
 
 /** saveUsenetServer stores or adds one server and answers the whole listing. */
-export async function saveUsenetServer(s: UsenetServerSave): Promise<UsenetServerRow[]> {
-  return json<UsenetServerRow[]>(await post('/api/usenet/servers', s));
+export async function saveUsenetServer(
+  s: UsenetServerSave,
+): Promise<UsenetServerRow[]> {
+  return json<UsenetServerRow[]>(await post("/api/usenet/servers", s));
 }
 
 export async function deleteUsenetServer(id: string): Promise<void> {
-  await ok(await fetch(`/api/usenet/servers/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+  await ok(
+    await fetch(`/api/usenet/servers/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+  );
 }
 
 /** testUsenetServer logs in as the form has it. A refused login still answers
  *  200, so read `ok`. */
-export async function testUsenetServer(s: UsenetServerSave): Promise<{ ok: boolean; detail: string }> {
-  return json<{ ok: boolean; detail: string }>(await post('/api/usenet/servers/test', s));
+export async function testUsenetServer(
+  s: UsenetServerSave,
+): Promise<{ ok: boolean; detail: string }> {
+  return json<{ ok: boolean; detail: string }>(
+    await post("/api/usenet/servers/test", s),
+  );
 }
 
 /**
@@ -2916,7 +3219,7 @@ export interface FeedTest {
 
 /** fetchFeeds is the status table under the subscription rows. */
 export async function fetchFeeds(): Promise<FeedStatus[]> {
-  return (await json<FeedStatus[]>(await ok(await fetch('/api/feeds')))) ?? [];
+  return (await json<FeedStatus[]>(await ok(await fetch("/api/feeds")))) ?? [];
 }
 
 /**
@@ -2925,9 +3228,19 @@ export async function fetchFeeds(): Promise<FeedStatus[]> {
  * invalid row throws the server's 400 sentence; an unreadable feed comes back
  * with `error` set.
  */
-export async function testFeed(url: string, titleFilter = ''): Promise<FeedTest> {
-  const r = await ok(await post('/api/feeds/test', { url, titleFilter }));
-  return (await json<FeedTest>(r)) ?? { title: '', entries: [], total: 0, matched: 0 };
+export async function testFeed(
+  url: string,
+  titleFilter = "",
+): Promise<FeedTest> {
+  const r = await ok(await post("/api/feeds/test", { url, titleFilter }));
+  return (
+    (await json<FeedTest>(r)) ?? {
+      title: "",
+      entries: [],
+      total: 0,
+      matched: 0,
+    }
+  );
 }
 
 // Native hoster logins are written into the headless JD sidecar's account
@@ -2945,7 +3258,7 @@ export interface HosterHost {
  * The sync status of a stored login against JD. 'queued' means JD has not
  * checked it yet and must not read as a wrong password.
  */
-export type HosterLoginStatus = 'queued' | 'active' | 'rejected' | 'off';
+export type HosterLoginStatus = "queued" | "active" | "rejected" | "off";
 
 /** One stored native hoster login and its status - hosterauth.LoginState. Never the password. */
 export interface HosterLogin {
@@ -2981,12 +3294,14 @@ export interface HosterLogin {
 
 /** fetchHosterHosts is the "add a login" picker's host list. */
 export async function fetchHosterHosts(): Promise<HosterHost[]> {
-  return (await json<HosterHost[]>(await fetch('/api/hosterauth/hosts'))) ?? [];
+  return (await json<HosterHost[]>(await fetch("/api/hosterauth/hosts"))) ?? [];
 }
 
 /** fetchHosterLogins is every stored native hoster login and its sync status. */
 export async function fetchHosterLogins(): Promise<HosterLogin[]> {
-  return (await json<HosterLogin[]>(await fetch('/api/hosterauth/logins'))) ?? [];
+  return (
+    (await json<HosterLogin[]>(await fetch("/api/hosterauth/logins"))) ?? []
+  );
 }
 
 /**
@@ -3000,25 +3315,30 @@ export async function saveHosterLogin(
   password: string,
   code?: string,
 ): Promise<HosterLogin> {
-  return json<HosterLogin>(await post('/api/hosterauth/logins', { host, username, password, code }));
+  return json<HosterLogin>(
+    await post("/api/hosterauth/logins", { host, username, password, code }),
+  );
 }
 
 /** setHosterLoginEnabled takes a login out of JD's list or puts it back,
  *  keeping the sealed credential so no password has to be retyped. */
-export async function setHosterLoginEnabled(host: string, enabled: boolean): Promise<void> {
-  await ok(await post('/api/hosterauth/logins/enabled', { host, enabled }));
+export async function setHosterLoginEnabled(
+  host: string,
+  enabled: boolean,
+): Promise<void> {
+  await ok(await post("/api/hosterauth/logins/enabled", { host, enabled }));
 }
 
 /** removeHosterLogin clears one host's stored native login. */
 export async function removeHosterLogin(host: string): Promise<void> {
-  await ok(await post('/api/hosterauth/logins/remove', { host }));
+  await ok(await post("/api/hosterauth/logins/remove", { host }));
 }
 
 // A captcha is a hoster or login gate asking a human something before a
 // download can continue. CaptchaChallenge mirrors captcha.Challenge and
 // CaptchaResolution mirrors app.CaptchaResolution.
 
-export type CaptchaKind = 'image' | 'click' | 'widget' | 'unsupported';
+export type CaptchaKind = "image" | "click" | "widget" | "unsupported";
 
 /** The payload for 'image' and 'click'; the kind alone decides between a
  *  text box and a click surface. */
@@ -3032,7 +3352,7 @@ export interface CaptchaImagePayload {
 export interface CaptchaWidgetPayload {
   /** Which script the widget page loads; the rest of the payload looks the
    *  same for every vendor. The page renders reCAPTCHA and hCaptcha only. */
-  vendor: 'recaptcha' | 'hcaptcha' | 'turnstile';
+  vendor: "recaptcha" | "hcaptcha" | "turnstile";
   siteKey: string;
   siteUrl: string;
   contextUrl: string;
@@ -3060,7 +3380,8 @@ export interface CaptchaChallenge {
   kind: CaptchaKind;
   /** Instructions a human reads, in whatever language the hoster wrote them. */
   prompt?: string;
-  payload?: CaptchaImagePayload | CaptchaWidgetPayload | CaptchaUnsupportedPayload;
+  payload?:
+    CaptchaImagePayload | CaptchaWidgetPayload | CaptchaUnsupportedPayload;
   /** When this stops being answerable. The zero time "0001-01-01T00:00:00Z"
    *  means the source could not say, not that it has expired. */
   expiresAt: string;
@@ -3073,7 +3394,7 @@ export interface CaptchaChallenge {
 
 /** captcha.SolverReport. */
 export interface CaptchaSolverReport {
-  state: 'waiting' | 'solving' | 'stopped';
+  state: "waiting" | "solving" | "stopped";
   /** The service at work, by its display name. */
   solver?: string;
   /** When a waiting solver takes over. */
@@ -3093,14 +3414,15 @@ export interface CaptchaSolverRefusal {
 }
 
 /** How far a skipped challenge's effect reaches (captcha.AbortScope). */
-export type CaptchaAbortScope = 'skip-once' | 'blacklist-hoster' | 'blacklist-everywhere';
+export type CaptchaAbortScope =
+  "skip-once" | "blacklist-hoster" | "blacklist-everywhere";
 
 /** One challenge's end, as broadcast over the hub. */
 export interface CaptchaResolution {
   id: string;
   taskId?: string;
   host: string;
-  reason: 'solved' | 'expired' | 'aborted' | 'timedOut' | 'resolved';
+  reason: "solved" | "expired" | "aborted" | "timedOut" | "resolved";
   /** How the answer to a test captcha compared, set when one was solved. */
   test?: TestCaptchaResult;
   /** Set for a test captcha however it ended, so a timeout leaves no
@@ -3131,13 +3453,18 @@ export interface TestCaptchaResult {
  * reconnect in a background tab must not count.
  */
 export async function fetchCaptchas(): Promise<CaptchaChallenge[]> {
-  return (await json<CaptchaChallenge[]>(await fetch('/api/captcha?watch=0'))) ?? [];
+  return (
+    (await json<CaptchaChallenge[]>(await fetch("/api/captcha?watch=0"))) ?? []
+  );
 }
 
 /** refreshCaptchas polls the source right now instead of waiting for the next
  *  automatic check, and returns what it found. */
 export async function refreshCaptchas(): Promise<CaptchaChallenge[]> {
-  return (await json<CaptchaChallenge[]>(await post('/api/captcha/refresh', {}))) ?? [];
+  return (
+    (await json<CaptchaChallenge[]>(await post("/api/captcha/refresh", {}))) ??
+    []
+  );
 }
 
 /**
@@ -3159,20 +3486,35 @@ export async function answerCaptcha(
  * With solvers it goes to the captcha accounts too, which bill it. A refusal
  * carries the code 'noCaptchaAccount' when no captcha account could take it.
  */
-export async function createTestCaptcha(solvers: boolean, kind: TestCaptchaKind = 'image'): Promise<CaptchaChallenge> {
-  return json<CaptchaChallenge>(await post('/api/captcha/test', { solvers, kind }));
+export async function createTestCaptcha(
+  solvers: boolean,
+  kind: TestCaptchaKind = "image",
+): Promise<CaptchaChallenge> {
+  return json<CaptchaChallenge>(
+    await post("/api/captcha/test", { solvers, kind }),
+  );
 }
 
 /** The kinds of test captcha: a picture, or a vendor's widget on its always-passing test key. */
-export const TEST_CAPTCHA_KINDS = ['image', 'turnstile', 'hcaptcha', 'recaptcha'] as const;
+export const TEST_CAPTCHA_KINDS = [
+  "image",
+  "turnstile",
+  "hcaptcha",
+  "recaptcha",
+] as const;
 export type TestCaptchaKind = (typeof TEST_CAPTCHA_KINDS)[number];
 
 /**
  * skipCaptcha gives up on one challenge. JD keeps its own blacklist for the
  * two blacklist scopes, so nothing here has to remember it.
  */
-export async function skipCaptcha(id: string, scope: CaptchaAbortScope): Promise<void> {
-  await ok(await post(`/api/captcha/${encodeURIComponent(id)}/skip`, { scope }));
+export async function skipCaptcha(
+  id: string,
+  scope: CaptchaAbortScope,
+): Promise<void> {
+  await ok(
+    await post(`/api/captcha/${encodeURIComponent(id)}/skip`, { scope }),
+  );
 }
 
 /**
@@ -3180,7 +3522,9 @@ export async function skipCaptcha(id: string, scope: CaptchaAbortScope): Promise
  * widget, so the windows watching stop holding the paid solvers back for it.
  */
 export async function reportCaptchaUnanswerable(id: string): Promise<void> {
-  await ok(await post(`/api/captcha/${encodeURIComponent(id)}/unanswerable`, {}));
+  await ok(
+    await post(`/api/captcha/${encodeURIComponent(id)}/unanswerable`, {}),
+  );
 }
 
 /**
@@ -3189,7 +3533,11 @@ export async function reportCaptchaUnanswerable(id: string): Promise<void> {
  * already at work on it carries on.
  */
 export async function withdrawCaptchaUnanswerable(id: string): Promise<void> {
-  await ok(await fetch(`/api/captcha/${encodeURIComponent(id)}/unanswerable`, { method: 'DELETE' }));
+  await ok(
+    await fetch(`/api/captcha/${encodeURIComponent(id)}/unanswerable`, {
+      method: "DELETE",
+    }),
+  );
 }
 
 /**
@@ -3201,20 +3549,22 @@ export async function withdrawCaptchaUnanswerable(id: string): Promise<void> {
 export function captchaWidgetUrl(ch: CaptchaChallenge, lang: string): string {
   const p = (ch.payload ?? {}) as CaptchaWidgetPayload;
   const q = new URLSearchParams();
-  if (p.vendor) q.set('vendor', p.vendor);
-  if (p.siteKey) q.set('siteKey', p.siteKey);
-  if (p.type) q.set('type', p.type);
-  if (p.enterprise) q.set('enterprise', '1');
-  if (p.v3Action) q.set('v3Action', p.v3Action);
-  if (p.secureToken) q.set('secureToken', p.secureToken);
-  if (lang) q.set('lang', lang);
-  if (ch.host) q.set('host', ch.host);
-  if (ch.prompt) q.set('prompt', ch.prompt);
-  return withBase(`/api/captcha/${encodeURIComponent(ch.id)}/widget?${q.toString()}`);
+  if (p.vendor) q.set("vendor", p.vendor);
+  if (p.siteKey) q.set("siteKey", p.siteKey);
+  if (p.type) q.set("type", p.type);
+  if (p.enterprise) q.set("enterprise", "1");
+  if (p.v3Action) q.set("v3Action", p.v3Action);
+  if (p.secureToken) q.set("secureToken", p.secureToken);
+  if (lang) q.set("lang", lang);
+  if (ch.host) q.set("host", ch.host);
+  if (ch.prompt) q.set("prompt", ch.prompt);
+  return withBase(
+    `/api/captcha/${encodeURIComponent(ch.id)}/widget?${q.toString()}`,
+  );
 }
 
 export async function fetchAuth(): Promise<AuthState> {
-  return json<AuthState>(await fetch('/api/auth'));
+  return json<AuthState>(await fetch("/api/auth"));
 }
 
 /**
@@ -3223,8 +3573,8 @@ export async function fetchAuth(): Promise<AuthState> {
  * an ApiError with status 429; a request for a code or a rejected code are
  * returned, since the sign-in is still in progress.
  */
-export async function login(password: string, code = ''): Promise<LoginResult> {
-  const r = await post('/api/auth/login', { password, code });
+export async function login(password: string, code = ""): Promise<LoginResult> {
+  const r = await post("/api/auth/login", { password, code });
   if (r.ok) return json<LoginResult>(r);
   const text = (await r.text()).trim();
   try {
@@ -3244,7 +3594,7 @@ export async function login(password: string, code = ''): Promise<LoginResult> {
 export interface ResetCodePlace {
   /** `container` and `process` are the server's own output, `file` a file in
    *  its data folder. */
-  place: 'container' | 'process' | 'file';
+  place: "container" | "process" | "file";
   file?: string;
   /** The data folder, which only the desktop app names. */
   dir?: string;
@@ -3256,7 +3606,7 @@ export interface ResetCodePlace {
  * could write nowhere refuses with the code `resetUnavailable`.
  */
 export async function askForResetCode(): Promise<ResetCodePlace> {
-  return json<ResetCodePlace>(await post('/api/auth/reset', {}));
+  return json<ResetCodePlace>(await post("/api/auth/reset", {}));
 }
 
 /** What a password reset took away. Every other session ends as well. */
@@ -3277,7 +3627,9 @@ export async function resetPassword(
   code: string,
   password: string,
 ): Promise<AuthState & { removed?: ResetRemoved }> {
-  return json<AuthState & { removed?: ResetRemoved }>(await post('/api/auth/reset/finish', { code, password }));
+  return json<AuthState & { removed?: ResetRemoved }>(
+    await post("/api/auth/reset/finish", { code, password }),
+  );
 }
 
 /** What POST /api/auth/2fa/begin hands back: shown once, armed by nothing. */
@@ -3292,19 +3644,21 @@ export interface TOTPEnrolment {
 
 /** setupTOTP starts an enrolment. Nothing is armed until confirmTOTP succeeds. */
 export async function setupTOTP(): Promise<TOTPEnrolment> {
-  return json<TOTPEnrolment>(await post('/api/auth/2fa/begin', {}));
+  return json<TOTPEnrolment>(await post("/api/auth/2fa/begin", {}));
 }
 
 /** confirmTOTP arms the factor and answers with the recovery codes. The server
  *  keeps only their hashes, so this is the one time they are shown. */
 export async function confirmTOTP(code: string): Promise<string[]> {
-  const r = await json<{ recoveryCodes: string[] }>(await post('/api/auth/2fa/confirm', { code }));
+  const r = await json<{ recoveryCodes: string[] }>(
+    await post("/api/auth/2fa/confirm", { code }),
+  );
   return r.recoveryCodes ?? [];
 }
 
 /** disableTOTP turns the factor off. It costs the same proof as using it. */
 export async function disableTOTP(code: string): Promise<void> {
-  await json<unknown>(await post('/api/auth/2fa/disable', { code }));
+  await json<unknown>(await post("/api/auth/2fa/disable", { code }));
 }
 
 /** One registered credential, as the settings card lists it. */
@@ -3340,18 +3694,23 @@ export interface PasskeyStatus {
 }
 
 export async function fetchPasskeys(): Promise<PasskeyStatus> {
-  return json<PasskeyStatus>(await fetch('/api/auth/passkeys'));
+  return json<PasskeyStatus>(await fetch("/api/auth/passkeys"));
 }
 
 /** passkeysInBrowser reports whether this browser can do WebAuthn at all. */
 export function passkeysInBrowser(): boolean {
-  return typeof window !== 'undefined' && typeof window.PublicKeyCredential === 'function';
+  return (
+    typeof window !== "undefined" &&
+    typeof window.PublicKeyCredential === "function"
+  );
 }
 
 // The base64url of the WebAuthn JSON, written out to keep a dependency off the
 // sign-in path. The server omits padding, so it is added back before atob.
 function fromB64url(s: string): ArrayBuffer {
-  const padded = s.replace(/-/g, '+').replace(/_/g, '/') + '=='.slice(0, (4 - (s.length % 4)) % 4);
+  const padded =
+    s.replace(/-/g, "+").replace(/_/g, "/") +
+    "==".slice(0, (4 - (s.length % 4)) % 4);
   const raw = atob(padded);
   // A plain ArrayBuffer, because WebAuthn wants a BufferSource that cannot be
   // a SharedArrayBuffer, which `new Uint8Array(n)` is typed to allow.
@@ -3363,9 +3722,9 @@ function fromB64url(s: string): ArrayBuffer {
 
 function toB64url(buf: ArrayBuffer): string {
   const bytes = new Uint8Array(buf);
-  let raw = '';
+  let raw = "";
   for (const b of bytes) raw += String.fromCharCode(b);
-  return btoa(raw).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(raw).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 /** The fields of the server's options that arrive as base64url and have to
@@ -3387,9 +3746,10 @@ type RequestOptions = {
  * DOMException and are left to the caller, whose message is the useful one.
  */
 export async function registerPasskey(name: string): Promise<void> {
-  const begun = await json<{ ceremonyId: string; options: { publicKey?: CreationOptions } & CreationOptions }>(
-    await post('/api/auth/passkey/register/begin', {}),
-  );
+  const begun = await json<{
+    ceremonyId: string;
+    options: { publicKey?: CreationOptions } & CreationOptions;
+  }>(await post("/api/auth/passkey/register/begin", {}));
   const opts = (begun.options.publicKey ?? begun.options) as CreationOptions;
   const cred = (await navigator.credentials.create({
     publicKey: {
@@ -3402,15 +3762,15 @@ export async function registerPasskey(name: string): Promise<void> {
       excludeCredentials: (opts.excludeCredentials ?? []).map((c) => ({
         ...c,
         id: fromB64url(c.id),
-        type: 'public-key' as const,
+        type: "public-key" as const,
         transports: c.transports as AuthenticatorTransport[] | undefined,
       })),
     },
   })) as PublicKeyCredential | null;
-  if (!cred) throw new Error('no credential');
+  if (!cred) throw new Error("no credential");
   const response = cred.response as AuthenticatorAttestationResponse;
   await json<unknown>(
-    await post('/api/auth/passkey/register/finish', {
+    await post("/api/auth/passkey/register/finish", {
       ceremonyId: begun.ceremonyId,
       name,
       credential: {
@@ -3430,9 +3790,10 @@ export async function registerPasskey(name: string): Promise<void> {
 /** signInWithPasskey is the other direction: a challenge, a signature, a
  *  session cookie. */
 export async function signInWithPasskey(): Promise<AuthState> {
-  const begun = await json<{ ceremonyId: string; options: { publicKey?: RequestOptions } & RequestOptions }>(
-    await post('/api/auth/passkey/login/begin', {}),
-  );
+  const begun = await json<{
+    ceremonyId: string;
+    options: { publicKey?: RequestOptions } & RequestOptions;
+  }>(await post("/api/auth/passkey/login/begin", {}));
   const opts = (begun.options.publicKey ?? begun.options) as RequestOptions;
   const cred = (await navigator.credentials.get({
     publicKey: {
@@ -3441,15 +3802,15 @@ export async function signInWithPasskey(): Promise<AuthState> {
       allowCredentials: (opts.allowCredentials ?? []).map((c) => ({
         ...c,
         id: fromB64url(c.id),
-        type: 'public-key' as const,
+        type: "public-key" as const,
         transports: c.transports as AuthenticatorTransport[] | undefined,
       })),
     },
   })) as PublicKeyCredential | null;
-  if (!cred) throw new Error('no credential');
+  if (!cred) throw new Error("no credential");
   const response = cred.response as AuthenticatorAssertionResponse;
   return json<AuthState>(
-    await post('/api/auth/passkey/login/finish', {
+    await post("/api/auth/passkey/login/finish", {
       ceremonyId: begun.ceremonyId,
       credential: {
         id: cred.id,
@@ -3459,7 +3820,9 @@ export async function signInWithPasskey(): Promise<AuthState> {
           clientDataJSON: toB64url(response.clientDataJSON),
           authenticatorData: toB64url(response.authenticatorData),
           signature: toB64url(response.signature),
-          userHandle: response.userHandle ? toB64url(response.userHandle) : null,
+          userHandle: response.userHandle
+            ? toB64url(response.userHandle)
+            : null,
         },
         clientExtensionResults: cred.getClientExtensionResults(),
       },
@@ -3470,31 +3833,38 @@ export async function signInWithPasskey(): Promise<AuthState> {
 export async function renamePasskey(id: string, name: string): Promise<void> {
   await ok(
     await fetch(`/api/auth/passkeys/${encodeURIComponent(id)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     }),
   );
 }
 
 export async function removePasskey(id: string): Promise<void> {
-  await ok(await fetch(`/api/auth/passkeys/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+  await ok(
+    await fetch(`/api/auth/passkeys/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+  );
 }
 
 // logout ends the current session. It throws on a non-2xx answer as well as
 // on a network failure, so callers can report a failed sign-out.
 export async function logout(): Promise<void> {
-  const r = await fetch('/api/auth/logout', { method: 'POST' });
+  const r = await fetch("/api/auth/logout", { method: "POST" });
   if (!r.ok) throw new Error(await r.text());
 }
 
 // setPassword sets, changes or (with an empty next) removes the password lock.
 // A new password of the wrong length is refused with the code passwordTooShort
 // or passwordTooLong.
-export async function setPassword(current: string, next: string): Promise<AuthState> {
-  const r = await fetch('/api/auth/password', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+export async function setPassword(
+  current: string,
+  next: string,
+): Promise<AuthState> {
+  const r = await fetch("/api/auth/password", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ current, new: next }),
   });
   return json<AuthState>(r);
@@ -3505,10 +3875,15 @@ export async function setPassword(current: string, next: string): Promise<AuthSt
 // as "Authorization: Bearer <secret>"; this UI never does.
 
 /** One right a token can carry (apitoken.Scope). */
-export type TokenScope = 'read' | 'add' | 'control' | 'admin';
+export type TokenScope = "read" | "add" | "control" | "admin";
 
 /** Every right, in the server's canonical order. */
-export const TOKEN_SCOPES: readonly TokenScope[] = ['read', 'add', 'control', 'admin'];
+export const TOKEN_SCOPES: readonly TokenScope[] = [
+  "read",
+  "add",
+  "control",
+  "admin",
+];
 
 /** One token's metadata. Never the secret. */
 export interface ApiToken {
@@ -3528,13 +3903,16 @@ export interface NewApiToken extends ApiToken {
 }
 
 export async function fetchTokens(): Promise<ApiToken[]> {
-  return (await json<ApiToken[]>(await fetch('/api/tokens'))) ?? [];
+  return (await json<ApiToken[]>(await fetch("/api/tokens"))) ?? [];
 }
 
-export async function createToken(name: string, scopes: readonly TokenScope[]): Promise<NewApiToken> {
-  const r = await fetch('/api/tokens', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+export async function createToken(
+  name: string,
+  scopes: readonly TokenScope[],
+): Promise<NewApiToken> {
+  const r = await fetch("/api/tokens", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, scopes }),
   });
   return json<NewApiToken>(r);
@@ -3542,7 +3920,8 @@ export async function createToken(name: string, scopes: readonly TokenScope[]): 
 
 /** revokeToken pulls one device's credential without touching the shared
  *  password or any other token. */
-export const revokeToken = (id: string) => fetch(`/api/tokens/${encodeURIComponent(id)}`, { method: 'DELETE' });
+export const revokeToken = (id: string) =>
+  fetch(`/api/tokens/${encodeURIComponent(id)}`, { method: "DELETE" });
 
 /** One AI client set up for /mcp, with the token made for it. */
 export interface McpClientRow {
@@ -3566,7 +3945,7 @@ export interface McpOverview {
 }
 
 export async function fetchMcp(): Promise<McpOverview> {
-  return json<McpOverview>(await fetch('/api/mcp'));
+  return json<McpOverview>(await fetch("/api/mcp"));
 }
 
 /** createMcpClient issues the client's token; the secret is in this answer only. */
@@ -3575,9 +3954,9 @@ export async function createMcpClient(
   name: string,
   scopes: readonly TokenScope[],
 ): Promise<{ client: McpClientRow; secret: string }> {
-  const r = await fetch('/api/mcp/clients', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const r = await fetch("/api/mcp/clients", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ kind, name, scopes }),
   });
   return json(r);
@@ -3585,7 +3964,11 @@ export async function createMcpClient(
 
 /** removeMcpClient drops the client and revokes its token. */
 export async function removeMcpClient(id: string): Promise<void> {
-  await ok(await fetch(`/api/mcp/clients/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+  await ok(
+    await fetch(`/api/mcp/clients/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+  );
 }
 
 /** One URL this instance might answer on (api.ReachableAddress). */
@@ -3628,7 +4011,7 @@ export interface RemoteAccessInfo {
 }
 
 export async function fetchRemoteAccess(): Promise<RemoteAccessInfo> {
-  return json<RemoteAccessInfo>(await fetch('/api/remote-access'));
+  return json<RemoteAccessInfo>(await fetch("/api/remote-access"));
 }
 
 /**
@@ -3636,12 +4019,16 @@ export async function fetchRemoteAccess(): Promise<RemoteAccessInfo> {
  * is optional because the page may talk to an older server or a peer; empty
  * and absent are handled alike.
  */
-export async function fetchHealth(): Promise<{ status: string; version: string; commit?: string }> {
-  return json(await fetch('/api/health'));
+export async function fetchHealth(): Promise<{
+  status: string;
+  version: string;
+  commit?: string;
+}> {
+  return json(await fetch("/api/health"));
 }
 
 export async function fetchExtensionVersion(): Promise<{ version: string }> {
-  return json(await fetch('/api/browser-extension/version'));
+  return json(await fetch("/api/browser-extension/version"));
 }
 
 export interface UpdateCheck {
@@ -3655,12 +4042,12 @@ export interface UpdateCheck {
 }
 
 export async function fetchUpdateCheck(): Promise<UpdateCheck> {
-  return json(await fetch('/api/system/update-check'));
+  return json(await fetch("/api/system/update-check"));
 }
 
 /** How far an update the desktop build was asked to install has come. */
 export interface UpdateProgress {
-  state: '' | 'downloading' | 'starting' | 'started' | 'ready' | 'failed';
+  state: "" | "downloading" | "starting" | "started" | "ready" | "failed";
   version?: string;
   done?: number;
   /** -1 while the size is unknown. */
@@ -3669,12 +4056,12 @@ export interface UpdateProgress {
 }
 
 export async function fetchUpdateProgress(): Promise<UpdateProgress> {
-  return json(await fetch('/api/system/update-install'));
+  return json(await fetch("/api/system/update-install"));
 }
 
 /** Starts installing the newest release on the desktop build; the answer is where it starts. */
 export async function installUpdate(): Promise<UpdateProgress> {
-  return json(await fetch('/api/system/update-install', { method: 'POST' }));
+  return json(await fetch("/api/system/update-install", { method: "POST" }));
 }
 
 /** One external program a media download runs, as it stands on this machine. */
@@ -3723,7 +4110,7 @@ export interface MediaToolsStatus {
 /** Which yt-dlp, ffmpeg and ffprobe this instance runs. Makes no outside call,
  *  since every settings load and diagnostics bundle reads it. */
 export async function fetchMediaTools(): Promise<MediaToolsStatus> {
-  return json(await fetch('/api/mediatools'));
+  return json(await fetch("/api/mediatools"));
 }
 
 /** Deletes the fetched copy and its record and answers the resulting status. */
@@ -3731,7 +4118,7 @@ export async function fetchMediaTools(): Promise<MediaToolsStatus> {
 // fetchDiagnostics is called again right before a download, so the bundle
 // reflects the moment it was pulled.
 export async function fetchDiagnostics(): Promise<Diagnostics> {
-  return json<Diagnostics>(await fetch('/api/diagnostics'));
+  return json<Diagnostics>(await fetch("/api/diagnostics"));
 }
 
 // The start report, the log, the file owners and the self-test answer the
@@ -3792,7 +4179,9 @@ export interface StartupReport {
  * never trigger. The boot reading in Diagnostics.startup is kept.
  */
 export async function runStartupCheck(): Promise<StartupReport> {
-  return json<StartupReport>(await fetch('/api/diagnostics/startup', { method: 'POST' }));
+  return json<StartupReport>(
+    await fetch("/api/diagnostics/startup", { method: "POST" }),
+  );
 }
 
 /**
@@ -3853,7 +4242,7 @@ export interface TaskLog {
   lines: LogLine[];
   /** Where the lines were looked for. Always 'memory', so a double-click does
    *  not read rotated files off an array volume. */
-  scanned: 'memory' | 'memory+file';
+  scanned: "memory" | "memory+file";
   /** Always true: only some log calls record which download they are about. */
   partial: boolean;
 }
@@ -3863,16 +4252,19 @@ export interface TaskLog {
  * buffer) and what dropped out in between. `limit` takes the oldest matching
  * lines, so the cursor advances without skipping.
  */
-export async function fetchLogTail(since: number, limit?: number): Promise<LogTail> {
+export async function fetchLogTail(
+  since: number,
+  limit?: number,
+): Promise<LogTail> {
   const q = new URLSearchParams({ since: String(since) });
-  if (limit !== undefined) q.set('limit', String(limit));
+  if (limit !== undefined) q.set("limit", String(limit));
   return json<LogTail>(await fetch(`/api/diagnostics/log?${q.toString()}`));
 }
 
 /** Whether the log is being written to disk, where, how big, and what to try
  *  when it is not. */
 export async function fetchLogFileState(): Promise<LogFileState> {
-  return json<LogFileState>(await fetch('/api/diagnostics/logfile'));
+  return json<LogFileState>(await fetch("/api/diagnostics/logfile"));
 }
 
 /**
@@ -3882,7 +4274,9 @@ export async function fetchLogFileState(): Promise<LogFileState> {
  * isLocalBase first.
  */
 export async function fetchTaskLog(id: string): Promise<TaskLog> {
-  return json<TaskLog>(await fetch(`/api/diagnostics/task/${encodeURIComponent(id)}`));
+  return json<TaskLog>(
+    await fetch(`/api/diagnostics/task/${encodeURIComponent(id)}`),
+  );
 }
 
 /** logFileHref is the download address of one log file, used as a plain href
@@ -3982,7 +4376,7 @@ export interface FolderOwnership {
 /** fetchFileOwner reports who this instance writes files as. It only reads,
  *  so a page may refresh it freely. */
 export async function fetchFileOwner(): Promise<FileOwnerIdentity> {
-  return json<FileOwnerIdentity>(await fetch('/api/fileowner'));
+  return json<FileOwnerIdentity>(await fetch("/api/fileowner"));
 }
 
 /**
@@ -3992,8 +4386,12 @@ export async function fetchFileOwner(): Promise<FileOwnerIdentity> {
  * into; anything else is refused with a 400 rather than skipped, so a report
  * is never silently partial.
  */
-export async function checkFolderOwners(dirs?: string[]): Promise<FolderOwnerReport> {
-  return json<FolderOwnerReport>(await post('/api/fileowner/check', dirs ? { dirs } : {}));
+export async function checkFolderOwners(
+  dirs?: string[],
+): Promise<FolderOwnerReport> {
+  return json<FolderOwnerReport>(
+    await post("/api/fileowner/check", dirs ? { dirs } : {}),
+  );
 }
 
 /**
@@ -4001,7 +4399,7 @@ export async function checkFolderOwners(dirs?: string[]): Promise<FolderOwnerRep
  * `unknown` means it is configured and this build cannot find out. Neither is
  * "off".
  */
-export type SelfTestStatus = 'pass' | 'warn' | 'fail' | 'skipped' | 'unknown';
+export type SelfTestStatus = "pass" | "warn" | "fail" | "skipped" | "unknown";
 
 /** One check, mirroring internal/selftest.Result field for field. */
 export interface SelfTestResult {
@@ -4080,19 +4478,21 @@ export interface SelfTestRequestView {
  * providers are not asked twice and rate-limited.
  */
 export async function startSelfTest(): Promise<SelfTestRun> {
-  return json<SelfTestRun>(await fetch('/api/selftest', { method: 'POST' }));
+  return json<SelfTestRun>(await fetch("/api/selftest", { method: "POST" }));
 }
 
 /** fetchSelfTest returns the current or last run; an unchecked instance
  *  answers a run with an empty id rather than a 404. */
 export async function fetchSelfTest(): Promise<SelfTestRun> {
-  return json<SelfTestRun>(await fetch('/api/selftest'));
+  return json<SelfTestRun>(await fetch("/api/selftest"));
 }
 
 /** The caller times this for the clock comparison. no-store, because a cached
  *  timestamp would be reported as drift. */
 export async function fetchRequestView(): Promise<SelfTestRequestView> {
-  return json<SelfTestRequestView>(await fetch('/api/selftest/request', { cache: 'no-store' }));
+  return json<SelfTestRequestView>(
+    await fetch("/api/selftest/request", { cache: "no-store" }),
+  );
 }
 
 /**
@@ -4123,7 +4523,7 @@ export interface StorageInfo {
 
 /** One completed maintenance pass, exactly as the server recorded it. */
 export interface MaintenanceRun {
-  kind: 'check' | 'compact' | 'analyze';
+  kind: "check" | "compact" | "analyze";
   at: string;
   durationMs: number;
   /** False for a check that found damage and for one that could not run; `error` tells them apart. */
@@ -4145,7 +4545,7 @@ export interface MaintenanceRun {
 export interface MaintenanceState {
   storage: StorageInfo;
   /** '' when idle. The page polls while this is non-empty and stops when it clears. */
-  running: '' | 'check' | 'compact' | 'analyze';
+  running: "" | "check" | "compact" | "analyze";
   intervalDays: number;
   compactOnSchedule: boolean;
   nextRunAt: string | null;
@@ -4153,7 +4553,7 @@ export interface MaintenanceState {
 }
 
 export async function fetchMaintenance(): Promise<MaintenanceState> {
-  return json<MaintenanceState>(await fetch('/api/system/maintenance'));
+  return json<MaintenanceState>(await fetch("/api/system/maintenance"));
 }
 
 /**
@@ -4163,11 +4563,13 @@ export async function fetchMaintenance(): Promise<MaintenanceState> {
  * throws an ApiError with status 409, whose body is the state document rather
  * than a sentence: check the status and show settings.dbmaint.busy.
  */
-export async function startMaintenance(action: 'check' | 'compact' | 'analyze'): Promise<MaintenanceState> {
+export async function startMaintenance(
+  action: "check" | "compact" | "analyze",
+): Promise<MaintenanceState> {
   return json<MaintenanceState>(
-    await fetch('/api/system/maintenance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/api/system/maintenance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
     }),
   );
@@ -4196,20 +4598,20 @@ export interface DeploymentInfo {
 }
 
 export async function fetchDeploymentInfo(): Promise<DeploymentInfo> {
-  return json<DeploymentInfo>(await fetch('/api/system/deployment'));
+  return json<DeploymentInfo>(await fetch("/api/system/deployment"));
 }
 
 export async function requestQuit(): Promise<{ status: string }> {
-  return json(await fetch('/api/system/quit', { method: 'POST' }));
+  return json(await fetch("/api/system/quit", { method: "POST" }));
 }
 
 export async function requestRestart(): Promise<{ status: string }> {
-  return json(await fetch('/api/system/restart', { method: 'POST' }));
+  return json(await fetch("/api/system/restart", { method: "POST" }));
 }
 
 /** Where a backup archive streams from. Opened directly so the browser handles
  *  a download of several hundred MB. */
-export const BACKUP_DOWNLOAD_URL = '/api/system/backup';
+export const BACKUP_DOWNLOAD_URL = "/api/system/backup";
 
 /** One automatic backup in the data folder. */
 export interface AutoBackupFile {
@@ -4243,7 +4645,7 @@ export interface AutoBackupState {
 }
 
 export async function fetchAutoBackups(): Promise<AutoBackupState> {
-  return json<AutoBackupState>(await fetch('/api/system/backups'));
+  return json<AutoBackupState>(await fetch("/api/system/backups"));
 }
 
 /** autoBackupHref is the download address of one automatic backup, used as a
@@ -4264,24 +4666,32 @@ export interface RestoreReport {
   paired: boolean;
   /** restored: the backup's login password takes over. kept: this instance keeps
    *  its own. none: the instance has no login password after the restore. */
-  login: 'restored' | 'kept' | 'none';
+  login: "restored" | "kept" | "none";
 }
 
 /** checkRestore validates a backup without staging it. */
-export async function checkRestore(file: File, appKey = ''): Promise<RestoreReport> {
+export async function checkRestore(
+  file: File,
+  appKey = "",
+): Promise<RestoreReport> {
   const body = new FormData();
-  if (appKey.trim()) body.append('appKey', appKey.trim());
-  body.append('file', file);
-  return json(await fetch('/api/system/restore/check', { method: 'POST', body }));
+  if (appKey.trim()) body.append("appKey", appKey.trim());
+  body.append("file", file);
+  return json(
+    await fetch("/api/system/restore/check", { method: "POST", body }),
+  );
 }
 
 /** uploadRestore stages a backup. appKey is the KL_APP_KEY of the instance
  *  that made it, for one sealed under another key than this instance's. */
-export async function uploadRestore(file: File, appKey = ''): Promise<RestoreResult> {
+export async function uploadRestore(
+  file: File,
+  appKey = "",
+): Promise<RestoreResult> {
   const body = new FormData();
-  if (appKey.trim()) body.append('appKey', appKey.trim());
-  body.append('file', file);
-  return json(await fetch('/api/system/restore', { method: 'POST', body }));
+  if (appKey.trim()) body.append("appKey", appKey.trim());
+  body.append("file", file);
+  return json(await fetch("/api/system/restore", { method: "POST", body }));
 }
 
 /** Why a JDownloader item stays behind or changes on the way in. `code` keys
@@ -4295,8 +4705,15 @@ export interface JDImportReason {
 /** One thing a JDownloader import can write. Never carries a password. */
 export interface JDImportItem {
   id: string;
-  group: 'accounts' | 'settings' | 'packagizer' | 'filter' | 'downloads';
-  kind: 'hoster' | 'debrid' | 'passwords' | 'folder' | 'rule' | 'exception' | 'package';
+  group: "accounts" | "settings" | "packagizer" | "filter" | "downloads";
+  kind:
+    | "hoster"
+    | "debrid"
+    | "passwords"
+    | "folder"
+    | "rule"
+    | "exception"
+    | "package";
   name: string;
   /** The user name of an account, or the download folder stored here now. */
   detail?: string;
@@ -4337,25 +4754,28 @@ export interface JDImportReport {
 /** readJDImportFile reads an uploaded zip of a JDownloader cfg folder. */
 export async function readJDImportFile(file: File): Promise<JDImportPreview> {
   const body = new FormData();
-  body.append('file', file);
-  return json(await fetch('/api/jdimport/read', { method: 'POST', body }));
+  body.append("file", file);
+  return json(await fetch("/api/jdimport/read", { method: "POST", body }));
 }
 
 /** readJDImportPath reads a cfg folder, a JDownloader folder or a zip by its path on the server. */
 export async function readJDImportPath(path: string): Promise<JDImportPreview> {
-  return json(await post('/api/jdimport/read', { path }));
+  return json(await post("/api/jdimport/read", { path }));
 }
 
 /** applyJDImport takes over the ticked items of a preview. A preview older
  *  than half an hour is refused with the code "jdimport.expired", one that
  *  newer reads pushed out with "jdimport.replaced", and one the server no
  *  longer holds, after a restart for instance, with "jdimport.unknown". */
-export async function applyJDImport(token: string, ids: string[]): Promise<JDImportReport> {
-  return json(await post('/api/jdimport/apply', { token, ids }));
+export async function applyJDImport(
+  token: string,
+  ids: string[],
+): Promise<JDImportReport> {
+  return json(await post("/api/jdimport/apply", { token, ids }));
 }
 
 export async function fetchInstances(): Promise<Instance[]> {
-  return (await json<Instance[]>(await fetch('/api/instances'))) ?? [];
+  return (await json<Instance[]>(await fetch("/api/instances"))) ?? [];
 }
 
 /**
@@ -4373,7 +4793,9 @@ export interface DiscoveredInstance {
 }
 
 export async function fetchDiscovered(): Promise<DiscoveredInstance[]> {
-  return (await json<DiscoveredInstance[]>(await fetch('/api/discovery'))) ?? [];
+  return (
+    (await json<DiscoveredInstance[]>(await fetch("/api/discovery"))) ?? []
+  );
 }
 
 /**
@@ -4385,20 +4807,24 @@ export async function addInstance(
   name: string,
   url: string,
 ): Promise<{ online: boolean; refused: boolean }> {
-  const r = await fetch('/api/instances', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const r = await fetch("/api/instances", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, url }),
   });
   return json(r);
 }
 
 export const removeInstance = async (name: string) =>
-  ok(await fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' }));
+  ok(
+    await fetch(`/api/instances/${encodeURIComponent(name)}`, {
+      method: "DELETE",
+    }),
+  );
 
 /** Which relay an instance uses. 'off' suits instances that all sit on one
  *  network and find each other through local discovery. */
-export type RelayMode = 'project' | 'own' | 'off';
+export type RelayMode = "project" | "own" | "off";
 
 /** GET and PUT /api/relay/config. The relay key is never in it, not even
  *  masked; `keySet` is all that is reported. */
@@ -4417,7 +4843,7 @@ export interface RelayConfig {
 }
 
 export async function fetchRelayConfig(): Promise<RelayConfig> {
-  return json<RelayConfig>(await fetch('/api/relay/config'));
+  return json<RelayConfig>(await fetch("/api/relay/config"));
 }
 
 /**
@@ -4439,9 +4865,9 @@ export async function saveRelayConfig(
   if (serve !== undefined) body.serve = serve;
   if (mode !== undefined) body.mode = mode;
   return json<RelayConfig>(
-    await fetch('/api/relay/config', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/api/relay/config", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }),
   );
@@ -4551,18 +4977,24 @@ export interface GroupApp {
  * the relay right now. The extension opens its socket only for the length of
  * a call, so for it that is the normal state, not a fault.
  */
-export function pairedBetweenCalls(app: Pick<GroupApp, 'deployment' | 'connected' | 'approved'>): boolean {
-  return app.deployment === 'extension' && app.approved && !app.connected;
+export function pairedBetweenCalls(
+  app: Pick<GroupApp, "deployment" | "connected" | "approved">,
+): boolean {
+  return app.deployment === "extension" && app.approved && !app.connected;
 }
 
 export async function fetchConnect(): Promise<ConnectInfo> {
-  return json<ConnectInfo>(await fetch('/api/connect'));
+  return json<ConnectInfo>(await fetch("/api/connect"));
 }
 
 /** activateConnect mints this instance's phrase and answers with it. This is
  *  the one time it comes back without the password. */
-export async function activateConnect(): Promise<{ phrase: string; qr?: QRMatrix; info: ConnectInfo }> {
-  return json(await fetch('/api/connect/activate', { method: 'POST' }));
+export async function activateConnect(): Promise<{
+  phrase: string;
+  qr?: QRMatrix;
+  info: ConnectInfo;
+}> {
+  return json(await fetch("/api/connect/activate", { method: "POST" }));
 }
 
 /**
@@ -4571,19 +5003,27 @@ export async function activateConnect(): Promise<{ phrase: string; qr?: QRMatrix
  * `position` for 'unknown_word', `count` for 'word_count'.
  */
 export class PhraseRejected extends Error {
-  reason: 'word_count' | 'unknown_word' | 'checksum';
+  reason: "word_count" | "unknown_word" | "checksum";
   word: string;
   position: number;
   count: number;
 
-  constructor(body: { error?: string; reason?: string; word?: string; position?: number; count?: number }) {
-    super(body.error ?? 'phrase rejected');
-    this.name = 'PhraseRejected';
+  constructor(body: {
+    error?: string;
+    reason?: string;
+    word?: string;
+    position?: number;
+    count?: number;
+  }) {
+    super(body.error ?? "phrase rejected");
+    this.name = "PhraseRejected";
     // An unknown code falls back to 'checksum', the one reason that needs no
     // specifics and is true of every rejected phrase.
     this.reason =
-      body.reason === 'word_count' || body.reason === 'unknown_word' ? body.reason : 'checksum';
-    this.word = body.word ?? '';
+      body.reason === "word_count" || body.reason === "unknown_word"
+        ? body.reason
+        : "checksum";
+    this.word = body.word ?? "";
     this.position = body.position ?? 0;
     this.count = body.count ?? 0;
   }
@@ -4591,9 +5031,9 @@ export class PhraseRejected extends Error {
 
 /** joinConnect is the other half: every instance after the first. */
 export async function joinConnect(phrase: string): Promise<ConnectInfo> {
-  const r = await fetch('/api/connect/join', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const r = await fetch("/api/connect/join", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phrase }),
   });
   if (!r.ok) {
@@ -4608,7 +5048,12 @@ export async function joinConnect(phrase: string): Promise<ConnectInfo> {
       throw new Error(raw.trim() || `${r.status}`);
     }
     if (body?.reason) throw new PhraseRejected(body);
-    throw new ApiError(body?.error ?? `${r.status}`, body?.code, undefined, r.status);
+    throw new ApiError(
+      body?.error ?? `${r.status}`,
+      body?.code,
+      undefined,
+      r.status,
+    );
   }
   return json(r);
 }
@@ -4617,10 +5062,12 @@ export async function joinConnect(phrase: string): Promise<ConnectInfo> {
  * revealConnect shows the phrase again. It needs the password whenever one is
  * set, since the phrase is the key to every instance in the group.
  */
-export async function revealConnect(password: string): Promise<{ phrase: string; qr?: QRMatrix }> {
-  const r = await fetch('/api/connect/reveal', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+export async function revealConnect(
+  password: string,
+): Promise<{ phrase: string; qr?: QRMatrix }> {
+  const r = await fetch("/api/connect/reveal", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password }),
   });
   return json(r);
@@ -4630,7 +5077,9 @@ export async function revealConnect(password: string): Promise<{ phrase: string;
  *  instance of it; the phrase entered again brings it back as a new device
  *  that waits for approval. */
 export async function removeApp(id: string): Promise<void> {
-  const r = await fetch(`/api/connect/apps/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  const r = await fetch(`/api/connect/apps/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
   if (!r.ok) throw new Error(await r.text());
 }
 
@@ -4638,35 +5087,43 @@ export async function removeApp(id: string): Promise<void> {
  *  it. It forgets the phrase, and entered there again the phrase brings it
  *  back as a new device that waits for approval. */
 export async function removeMember(id: string): Promise<void> {
-  const r = await fetch(`/api/connect/members/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  const r = await fetch(`/api/connect/members/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
   if (!r.ok) throw new Error(await r.text());
 }
 
 /** approveDevice lets a device that entered the words act in the group, on
  *  every instance of it. */
 export async function approveDevice(id: string): Promise<void> {
-  const r = await fetch(`/api/connect/devices/${encodeURIComponent(id)}/approve`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: '{}',
-  });
+  const r = await fetch(
+    `/api/connect/devices/${encodeURIComponent(id)}/approve`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    },
+  );
   if (!r.ok) throw new Error(await r.text());
 }
 
 /** refuseDevice turns such a device away on every instance; its key is
  *  revoked there for good. */
 export async function refuseDevice(id: string): Promise<void> {
-  const r = await fetch(`/api/connect/devices/${encodeURIComponent(id)}/refuse`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: '{}',
-  });
+  const r = await fetch(
+    `/api/connect/devices/${encodeURIComponent(id)}/refuse`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    },
+  );
   if (!r.ok) throw new Error(await r.text());
 }
 
 /** leaveConnect forgets the secret and stops dialling the relay. */
 export async function leaveConnect(): Promise<void> {
-  const r = await fetch('/api/connect', { method: 'DELETE' });
+  const r = await fetch("/api/connect", { method: "DELETE" });
   if (!r.ok) throw new Error(await r.text());
 }
 
@@ -4692,11 +5149,17 @@ export function connectWS(
   let stream: LiveStream | null = null;
   let closed = false;
   const sendVisibility = () => {
-    stream?.send(JSON.stringify({ type: 'visibility', visible: document.visibilityState === 'visible' }));
+    stream?.send(
+      JSON.stringify({
+        type: "visibility",
+        visible: document.visibilityState === "visible",
+      }),
+    );
   };
   const handlers: StreamHandlers = {
     onOpen: () => {
-      if (kinds && kinds.length > 0) stream?.send(JSON.stringify({ type: 'subscribe', kinds }));
+      if (kinds && kinds.length > 0)
+        stream?.send(JSON.stringify({ type: "subscribe", kinds }));
       if (reportVisibility) sendVisibility();
     },
     onMessage: (raw) => {
@@ -4716,17 +5179,19 @@ export function connectWS(
     if (closed) return;
     stream = openDesktopStream(handlers) ?? openSocket(handlers);
   };
-  if (reportVisibility) document.addEventListener('visibilitychange', sendVisibility);
+  if (reportVisibility)
+    document.addEventListener("visibilitychange", sendVisibility);
   open();
   return () => {
     closed = true;
-    if (reportVisibility) document.removeEventListener('visibilitychange', sendVisibility);
+    if (reportVisibility)
+      document.removeEventListener("visibilitychange", sendVisibility);
     stream?.close();
   };
 }
 
 function openSocket(h: StreamHandlers): LiveStream {
-  const ws = new WebSocket(socketURL('/api/ws'));
+  const ws = new WebSocket(socketURL("/api/ws"));
   ws.onopen = h.onOpen;
   ws.onmessage = (e) => h.onMessage(e.data);
   ws.onclose = h.onClose;
@@ -4751,16 +5216,16 @@ function openSocket(h: StreamHandlers): LiveStream {
 
 /** A value a provider's connect form asks for. */
 export type VpnField =
-  | 'config'
-  | 'privateKey'
-  | 'address'
-  | 'accountNumber'
-  | 'token'
-  | 'username'
-  | 'password'
-  | 'location';
+  | "config"
+  | "privateKey"
+  | "address"
+  | "accountNumber"
+  | "token"
+  | "username"
+  | "password"
+  | "location";
 
-export type VpnConnState = 'idle' | 'connecting' | 'connected' | 'failed';
+export type VpnConnState = "idle" | "connecting" | "connected" | "failed";
 
 export interface VpnProvider {
   id: string;
@@ -4816,36 +5281,40 @@ export interface VpnState {
 async function vpnRoute(path: string, init?: RequestInit): Promise<VpnState> {
   const r = await fetch(`/api/vpn${path}`, init);
   if (r.status === 404 || r.status === 405) {
-    const { mockVpn } = await import('./vpnMock');
+    const { mockVpn } = await import("./vpnMock");
     return mockVpn(path, init);
   }
   return json<VpnState>(r);
 }
 
-export const fetchVpn = (): Promise<VpnState> => vpnRoute('');
+export const fetchVpn = (): Promise<VpnState> => vpnRoute("");
 
 /**
  * connectVpn makes `id` the provider the VPN uses, ending any other
  * connection. Empty fields keep the stored login.
  */
-export const connectVpn = (id: string, fields: Partial<Record<VpnField, string>>): Promise<VpnState> =>
+export const connectVpn = (
+  id: string,
+  fields: Partial<Record<VpnField, string>>,
+): Promise<VpnState> =>
   vpnRoute(`/${encodeURIComponent(id)}/connect`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ fields }),
   });
 
 /** disconnectVpn ends the connection; downloads then use the machine's own one. */
-export const disconnectVpn = (): Promise<VpnState> => vpnRoute('/disconnect', { method: 'POST' });
+export const disconnectVpn = (): Promise<VpnState> =>
+  vpnRoute("/disconnect", { method: "POST" });
 
 /** forgetVpn deletes a provider's stored login, disconnecting it first. */
 export const forgetVpn = (id: string): Promise<VpnState> =>
-  vpnRoute(`/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  vpnRoute(`/${encodeURIComponent(id)}`, { method: "DELETE" });
 
 /** setVpnRoutes says which downloads go through the VPN. */
 export const setVpnRoutes = (routes: VpnRoutes): Promise<VpnState> =>
-  vpnRoute('/routes', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+  vpnRoute("/routes", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(routes),
   });

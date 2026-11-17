@@ -1,6 +1,6 @@
-import type { SiteLogin } from './api';
-import { appAddress } from './basePath';
-import type { TranslationKey } from './i18n';
+import type { SiteLogin } from "./api";
+import { appAddress } from "./basePath";
+import type { TranslationKey } from "./i18n";
 
 /** What a site's row and window say of its sign-in. */
 export interface StateNote {
@@ -9,17 +9,18 @@ export interface StateNote {
 }
 
 /** Whether a session is there and used. One the site did not answer about is still used. */
-export const signedIn = (site: SiteLogin) => site.state === 'signedIn' || site.state === 'unchecked';
+export const signedIn = (site: SiteLogin) =>
+  site.state === "signedIn" || site.state === "unchecked";
 
 /** stateNote words a site's state. */
 export function stateNote(site: SiteLogin): StateNote {
   if (signedIn(site)) {
     return site.account
-      ? { key: 'siteLogins.signedInAs', vars: { account: site.account } }
-      : { key: 'siteLogins.signedIn' };
+      ? { key: "siteLogins.signedInAs", vars: { account: site.account } }
+      : { key: "siteLogins.signedIn" };
   }
-  if (site.state === 'expired') return { key: 'siteLogins.expired' };
-  return { key: 'siteLogins.signedOut' };
+  if (site.state === "expired") return { key: "siteLogins.expired" };
+  return { key: "siteLogins.signedOut" };
 }
 
 /**
@@ -27,14 +28,17 @@ export function stateNote(site: SiteLogin): StateNote {
  * browser's session the site turned down.
  */
 export function sourceNote(site: SiteLogin): StateNote | undefined {
-  if (site.disconnected && !signedIn(site)) return { key: 'siteLogins.disconnected' };
-  if (site.state === 'expired' && site.source === 'browser' && site.browser) {
-    return { key: 'siteLogins.turnedDown', vars: { site: site.name, browser: site.browser } };
+  if (site.state === "expired" && site.source === "browser" && site.browser) {
+    return {
+      key: "siteLogins.turnedDown",
+      vars: { site: site.name, browser: site.browser },
+    };
   }
   if (!signedIn(site)) return undefined;
-  if (site.source === 'browser' && site.browser) return { key: 'siteLogins.fromBrowser', vars: { browser: site.browser } };
-  if (site.source === 'extension') return { key: 'siteLogins.fromExtension' };
-  if (site.source === 'kl-browser') return { key: 'siteLogins.fromKlBrowser' };
+  if (site.source === "browser" && site.browser)
+    return { key: "siteLogins.fromBrowser", vars: { browser: site.browser } };
+  if (site.source === "extension") return { key: "siteLogins.fromExtension" };
+  if (site.source === "kl-browser") return { key: "siteLogins.fromKlBrowser" };
   return undefined;
 }
 
@@ -53,10 +57,14 @@ export function readsBrowsers(sites: SiteLogin[]): boolean {
  * working session: in the browser where the instance reads the sign-in, and
  * in KnightLoader's own window anywhere else.
  */
-export function nextStep(site: SiteLogin, ways: SignInWays): StateNote | undefined {
-  // A removed site is not picked up from the browser, so its window says how.
-  if (signedIn(site) || site.disconnected) return undefined;
-  const key = ways.readsBrowsers ? 'siteLogins.signInHere' : 'siteLogins.signInInKl';
+export function nextStep(
+  site: SiteLogin,
+  ways: SignInWays,
+): StateNote | undefined {
+  if (signedIn(site)) return undefined;
+  const key = ways.readsBrowsers
+    ? "siteLogins.signInHere"
+    : "siteLogins.signInInKl";
   return { key, vars: { site: site.name } };
 }
 
@@ -66,7 +74,10 @@ export function nextStep(site: SiteLogin, ways: SignInWays): StateNote | undefin
  * says it. A tab the user closed is left alone.
  */
 export function confirmInTab(tab: Window | null, site: string): void {
-  if (tab && !tab.closed) tab.location.replace(`${appAddress()}/signedin?site=${encodeURIComponent(site)}`);
+  if (tab && !tab.closed)
+    tab.location.replace(
+      `${appAddress()}/signedin?site=${encodeURIComponent(site)}`,
+    );
 }
 
 /** unreadableBrowsers is every browser any site could not be read from, once each. */
@@ -75,10 +86,17 @@ export function unreadableBrowsers(sites: SiteLogin[]): string[] {
 }
 
 /** siteForHost is the site a bare hostname belongs to, by its own domains or the hosts its links come from. */
-export function siteForHost(host: string, sites: SiteLogin[]): SiteLogin | undefined {
+export function siteForHost(
+  host: string,
+  sites: SiteLogin[],
+): SiteLogin | undefined {
   const h = host.toLowerCase();
   if (!h) return undefined;
-  return sites.find((s) => s.domains.some((d) => h === d || h.endsWith(`.${d}`)) || (s.links ?? []).includes(h));
+  return sites.find(
+    (s) =>
+      s.domains.some((d) => h === d || h.endsWith(`.${d}`)) ||
+      (s.links ?? []).includes(h),
+  );
 }
 
 /**
@@ -87,8 +105,17 @@ export function siteForHost(host: string, sites: SiteLogin[]): SiteLogin | undef
  * site KnightLoader borrows a sign-in for. `again` is a site that has a
  * session, which most likely ran out.
  */
-export function signInFor(reason: string | undefined, host: string, sites: SiteLogin[]): { site: SiteLogin; again: boolean } | undefined {
-  if (reason !== 'membersOnly' && reason !== 'botCheck' && reason !== 'signInRequired') return undefined;
+export function signInFor(
+  reason: string | undefined,
+  host: string,
+  sites: SiteLogin[],
+): { site: SiteLogin; again: boolean } | undefined {
+  if (
+    reason !== "membersOnly" &&
+    reason !== "botCheck" &&
+    reason !== "signInRequired"
+  )
+    return undefined;
   const site = siteForHost(host, sites);
-  return site && { site, again: site.state !== 'signedOut' };
+  return site && { site, again: site.state !== "signedOut" };
 }

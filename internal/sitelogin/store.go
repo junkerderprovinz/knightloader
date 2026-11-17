@@ -55,6 +55,43 @@ func (s *Store) Disconnected(id string) bool {
 	return err == nil && cred.APIKey != ""
 }
 
+// addedService files the sites added on the accounts page, each of which has
+// a row there and its session in use.
+const addedService = "sitelogins-added"
+
+// SetAdded adds a site to the accounts page, or with added false takes it off.
+func (s *Store) SetAdded(id string, added bool) error {
+	if _, ok := Lookup(id); !ok {
+		return errors.New("sitelogin: no such site " + id)
+	}
+	var cred accounts.Credential
+	if added {
+		cred.APIKey = "added"
+	}
+	return s.accounts.SetCredential(addedService, id, cred)
+}
+
+// Added reports whether a site was added on the accounts page.
+func (s *Store) Added(id string) bool {
+	cred, err := s.accounts.GetCredential(addedService, id)
+	return err == nil && cred.APIKey != ""
+}
+
+// rowsService files the one mark that says the sites in use before sites
+// were added one by one have been added.
+const rowsService = "sitelogins-rows"
+
+// SetRowsTakenOver marks the sites in use as added, once.
+func (s *Store) SetRowsTakenOver() error {
+	return s.accounts.SetCredential(rowsService, "taken-over", accounts.Credential{APIKey: "yes"})
+}
+
+// RowsTakenOver reports whether SetRowsTakenOver ran.
+func (s *Store) RowsTakenOver() bool {
+	cred, err := s.accounts.GetCredential(rowsService, "taken-over")
+	return err == nil && cred.APIKey != ""
+}
+
 // readerService files, per site, the browsers whose extension said it may
 // read the site's cookies, by their ids in the group.
 const readerService = "sitelogins-readers"

@@ -1,9 +1,11 @@
 package app
 
 // Sites signed into through the user's browser (internal/sitelogin): the
-// accounts page's tiles, the wait between its Sign in and the session that
-// turns up in a browser here or is handed over by the extension, and who each
-// session signs in as. app_browsersessions.go reads the browsers.
+// sites added on the accounts page, the wait between its Sign in and the
+// session that turns up in a browser here or is handed over by the extension,
+// and who each session signs in as. A site has a row and its session in use
+// once it is added, like a hoster account. app_browsersessions.go reads the
+// browsers.
 
 import (
 	"context"
@@ -18,6 +20,10 @@ import (
 
 // ErrNoSuchSite is a site id the catalogue does not have.
 var ErrNoSuchSite = errors.New("there is no such site to sign in to")
+
+// ErrSiteNotAdded is a hand-over for a site that is not added on the
+// accounts page, which a hand-over never adds by itself.
+var ErrSiteNotAdded = errors.New("this site is not added on the accounts page")
 
 // ErrNoSiteSession is a hand-over that holds no cookie of the site, such as
 // one made before signing in.
@@ -43,11 +49,13 @@ var siteLoginCheck = func(ctx context.Context, site sitelogin.Site, jar string) 
 	return sitelogin.Check(ctx, siteLoginClient, site, jar, time.Now())
 }
 
-// SiteLoginState is one tile of the accounts page: the site and what is known
+// SiteLoginState is one site of the accounts page: the site and what is known
 // of its session, never the session itself.
 type SiteLoginState struct {
 	sitelogin.Site
 	sitelogin.Status
+	// Added says the site has a row, and not only an entry in the picker.
+	Added bool `json:"added"`
 	// Waiting is true from Sign in until a session arrives or the wait ends.
 	Waiting bool `json:"waiting"`
 	// Source is where the session comes from: SourceBrowser, SourceExtension,
@@ -62,9 +70,6 @@ type SiteLoginState struct {
 	// ReadsBrowsers says this instance reads the browsers on its computer,
 	// which one in a container never does.
 	ReadsBrowsers bool `json:"readsBrowsers"`
-	// Disconnected says the site was removed here and the browsers' sign-in
-	// to it is not used until it is signed in through KnightLoader again.
-	Disconnected bool `json:"disconnected"`
 	// HandsOver says the extension in a browser of the group may read the
 	// site's cookies, so a sign-in there reaches this instance.
 	HandsOver bool `json:"handsOver"`
@@ -117,7 +122,8 @@ func (a *App) siteLogins() *siteLoginState {
 
 func (a *App) siteStore() *sitelogin.Store { return sitelogin.NewStore(a.Accounts) }
 
-// SiteLogins lists every site on offer, in the catalogue's order.
+// SiteLogins lists every site on offer, in the catalogue's order: the added
+// ones with their sessions, the others for the picker.
 func (a *App) SiteLogins() []SiteLoginState {
 	out := make([]SiteLoginState, 0, len(sitelogin.Sites))
 	for _, site := range sitelogin.Sites {
@@ -136,14 +142,15 @@ func (a *App) CheckSiteLogin(id string) (SiteLoginState, error) {
 	return a.siteLoginState(site, true), nil
 }
 
-// BeginSiteLogin starts the wait for a site's session, which turns up in a
-// browser here or is handed over by the extension once the user has signed in.
+// BeginSiteLogin adds a site and starts the wait for its session, which
+// turns up in a browser here or is handed over by the extension once the user
+// has signed in.
 func (a *App) BeginSiteLogin(id string) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
 	}
-	if err := a.connect(site); err != nil {
+	if err := a.addSite(site); err != nil {
 		return SiteLoginState{}, err
 	}
 	st := a.siteLogins()
@@ -153,14 +160,14 @@ func (a *App) BeginSiteLogin(id string) (SiteLoginState, error) {
 	return a.siteLoginState(site, false), nil
 }
 
-// ReconnectSiteLogin uses the browsers' sign-in to a site that was removed
-// here again, without waiting for a new one.
-func (a *App) ReconnectSiteLogin(id string) (SiteLoginState, error) {
+// AddSiteLogin gives a site its row, taking up the sign-in a browser here
+// already holds.
+func (a *App) AddSiteLogin(id string) (SiteLoginState, error) {
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
 	}
-	if err := a.connect(site); err != nil {
+	if err := a.addSite(site); err != nil {
 		return SiteLoginState{}, err
 	}
 	return a.siteLoginState(site, false), nil
@@ -177,9 +184,13 @@ func (a *App) NoteSiteReaders(app string, reads []string) error {
 	return nil
 }
 
-// connect clears a site's mark not to use the browsers' sign-in, and the last
-// read of them, which a disconnected site never made.
-func (a *App) connect(site sitelogin.Site) error {
+// addSite adds a site and clears its mark not to read the browsers for it,
+// along with the last read of them, which a site that was not added never
+// made.
+func (a *App) addSite(site sitelogin.Site) error {
+	if err := a.siteStore().SetAdded(site.ID, true); err != nil {
+		return err
+	}
 	if err := a.siteStore().SetDisconnected(site.ID, false); err != nil {
 		return err
 	}
@@ -197,6 +208,9 @@ func (a *App) HandOverSiteSession(id string, cookies []sitelogin.BrowserCookie) 
 	site, ok := sitelogin.Lookup(id)
 	if !ok {
 		return SiteLoginState{}, ErrNoSuchSite
+	}
+	if !a.siteStore().Added(id) {
+		return SiteLoginState{}, ErrSiteNotAdded
 	}
 	if len(cookies) == 0 {
 		if err := a.forgetHandedOver(id); err != nil {
@@ -227,7 +241,7 @@ func (a *App) storeSiteSession(id, jar string) (SiteLoginState, error) {
 	if err := a.siteStore().Set(id, jar); err != nil {
 		return SiteLoginState{}, err
 	}
-	if err := a.connect(site); err != nil {
+	if err := a.addSite(site); err != nil {
 		return SiteLoginState{}, err
 	}
 	st := a.siteLogins()
@@ -238,11 +252,14 @@ func (a *App) storeSiteSession(id, jar string) (SiteLoginState, error) {
 	return a.siteLoginState(site, false), nil
 }
 
-// RemoveSiteLogin signs a site out here: it forgets the session the
-// extension handed over and stops using the browsers' sign-in, which the
-// browser keeps, until the site is signed in through KnightLoader again.
+// RemoveSiteLogin takes a site's row away: it forgets the stored session and
+// stops reading the browsers for the site, which stay signed in, until it is
+// added again.
 func (a *App) RemoveSiteLogin(id string) error {
 	if err := a.forgetHandedOver(id); err != nil {
+		return err
+	}
+	if err := a.siteStore().SetAdded(id, false); err != nil {
 		return err
 	}
 	if err := a.siteStore().SetDisconnected(id, true); err != nil {
@@ -277,7 +294,7 @@ func (a *App) forgetHandedOver(id string) error {
 func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 	st := a.siteLogins()
 	now := time.Now()
-	out := SiteLoginState{Site: site, Unreadable: []string{}}
+	out := SiteLoginState{Site: site, Unreadable: []string{}, Added: a.siteStore().Added(site.ID)}
 
 	st.mu.Lock()
 	if until, ok := st.waiting[site.ID]; ok && now.After(until) {
@@ -287,8 +304,11 @@ func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 	last, known := st.checked[site.ID]
 	out.ReadsBrowsers = st.read != nil
 	st.mu.Unlock()
-	out.Disconnected = a.siteStore().Disconnected(site.ID)
 	out.HandsOver = slices.ContainsFunc(a.siteStore().Readers(site.ID), a.Federation.StillMember)
+	if !out.Added {
+		out.Status = sitelogin.Status{State: sitelogin.SignedOut}
+		return out
+	}
 
 	age := browserScanFresh
 	switch {

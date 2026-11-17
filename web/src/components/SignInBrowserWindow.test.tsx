@@ -28,7 +28,7 @@ const patreon: SiteLogin = {
   state: 'signedOut',
   unreadable: [],
   readsBrowsers: true,
-  disconnected: false,
+  added: true,
 };
 const fromFirefox: SiteLogin = { ...patreon, state: 'signedIn', account: 'Jane Doe', source: 'browser', browser: 'Firefox' };
 const extension: GroupApp = { id: 'm1', name: 'Firefox', deployment: 'extension', connected: true, approved: true, lastSeen: 0 };

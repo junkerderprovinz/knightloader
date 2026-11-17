@@ -51,7 +51,7 @@ const extra = {
       browser: 'Firefox',
       unreadable: [],
       readsBrowsers: true,
-      disconnected: false,
+      added: true,
       expires: '2027-02-01T00:00:00Z',
     },
     {
@@ -64,7 +64,7 @@ const extra = {
       source: 'extension',
       unreadable: [],
       readsBrowsers: true,
-      disconnected: false,
+      added: true,
     },
   ],
   '/api/signinbrowser': { available: true, browser: 'Chromium', site: '' },

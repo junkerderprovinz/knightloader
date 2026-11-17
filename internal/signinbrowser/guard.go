@@ -15,8 +15,14 @@ import (
 // providers are the hosts a site sends people to for signing in with another
 // account, by site id. Each is one host, not its domain: all of google.com
 // would let the window open search results and Google's page translator.
+// Facebook and Twitch sign in on their own domains alone.
 var providers = map[string][]string{
-	"patreon": {"accounts.google.com", "appleid.apple.com", "www.facebook.com", "m.facebook.com"},
+	"instagram": {"www.facebook.com", "m.facebook.com"},
+	"patreon":   {"accounts.google.com", "appleid.apple.com", "www.facebook.com", "m.facebook.com"},
+	"reddit":    {"accounts.google.com", "appleid.apple.com"},
+	"tiktok":    {"accounts.google.com", "appleid.apple.com", "www.facebook.com", "m.facebook.com"},
+	"vimeo":     {"accounts.google.com", "appleid.apple.com"},
+	"x":         {"accounts.google.com", "appleid.apple.com"},
 	// Google's sign-in ends on its consent and recovery pages before it hands
 	// over to YouTube.
 	"youtube": {"accounts.google.com", "consent.google.com", "gds.google.com", "myaccount.google.com"},
