@@ -270,11 +270,11 @@ func checkOffline(hosts []string, path string) (map[string]string, error) {
 		wg.Wait()
 	}
 	ask(check, 24)
-	// A site that was only slow with two dozen others asked at once gets a
-	// second try with fewer.
+	// A site that was only slow with two dozen others asked at once, or sent
+	// a broken page once, gets a second try with fewer.
 	var again []string
 	for h, why := range out {
-		if why == app.OfflineNoAnswer {
+		if why != app.OfflineNoDNS {
 			again = append(again, h)
 		}
 	}
