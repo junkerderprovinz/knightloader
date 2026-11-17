@@ -51,7 +51,7 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
-    version: '2.8.4',
+    version: '2.9.0',
     changes: [
       {
         id: 'site-logins',
