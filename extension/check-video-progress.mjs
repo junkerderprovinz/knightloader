@@ -70,7 +70,7 @@ function makeChrome() {
       executeScript: async () => [],
     },
     declarativeNetRequest: { updateEnabledRulesets: async () => {} },
-    tabs: { query: async () => [], create: async (o) => { tabs.push(o.url); }, onRemoved: event() },
+    tabs: { query: async () => [], create: async (o) => { tabs.push(o.url); }, onRemoved: event(), onUpdated: event() },
   };
   return { chrome, tabs };
 }

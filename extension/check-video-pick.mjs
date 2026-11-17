@@ -86,6 +86,7 @@ function makeChrome({ popupOpens = true } = {}) {
     tabs: {
       query: async () => [],
       onRemoved: event(),
+      onUpdated: event(),
       sendMessage: async (tabId, msg, opts) => void seen.told.push({ tabId, frameId: opts?.frameId, msg }),
     },
   };

@@ -73,6 +73,30 @@ func TestTheMarkNotToUseTheBrowserIsKeptPerSite(t *testing.T) {
 	}
 }
 
+func TestEachBrowserSaysForItselfWhetherItReadsASite(t *testing.T) {
+	s := openStore(t)
+	if got := s.Readers("patreon"); len(got) != 0 {
+		t.Fatalf("a site starts out read by %v", got)
+	}
+	for _, app := range []string{"browser-a", "browser-b"} {
+		if err := s.SetReader("patreon", app, true); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := s.SetReader("patreon", "browser-a", false); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Join(s.Readers("patreon"), ","); got != "browser-b" {
+		t.Errorf("patreon is read by %q, want browser-b alone", got)
+	}
+	if got := s.Readers("youtube"); len(got) != 0 {
+		t.Errorf("youtube is read by %v, want nobody", got)
+	}
+	if err := s.SetReader("example", "browser-a", true); err == nil {
+		t.Error("a site that is not on offer got a reader")
+	}
+}
+
 func openStore(t *testing.T) *Store {
 	t.Helper()
 	a, err := accounts.Open(t.TempDir())

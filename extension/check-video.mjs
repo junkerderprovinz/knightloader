@@ -140,6 +140,7 @@ function makeChrome(store, { granted = ['<all_urls>'] } = {}) {
       query: async ({ url }) => [{ id: 7, url: url[0] }],
       create: async (o) => { calls.tabs.push(o.url); },
       onRemoved: event(),
+      onUpdated: event(),
     },
   };
   return { chrome, calls, live, session };

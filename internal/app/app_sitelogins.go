@@ -8,6 +8,7 @@ package app
 import (
 	"context"
 	"errors"
+	"slices"
 	"sync"
 	"time"
 
@@ -64,6 +65,9 @@ type SiteLoginState struct {
 	// Disconnected says the site was removed here and the browsers' sign-in
 	// to it is not used until it is signed in through KnightLoader again.
 	Disconnected bool `json:"disconnected"`
+	// HandsOver says the extension in a browser of the group may read the
+	// site's cookies, so a sign-in there reaches this instance.
+	HandsOver bool `json:"handsOver"`
 }
 
 type siteCheck struct {
@@ -160,6 +164,17 @@ func (a *App) ReconnectSiteLogin(id string) (SiteLoginState, error) {
 		return SiteLoginState{}, err
 	}
 	return a.siteLoginState(site, false), nil
+}
+
+// NoteSiteReaders records which sites the extension in browser app may read,
+// as it says each time it lists them.
+func (a *App) NoteSiteReaders(app string, reads []string) error {
+	for _, site := range sitelogin.Sites {
+		if err := a.siteStore().SetReader(site.ID, app, slices.Contains(reads, site.ID)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // connect clears a site's mark not to use the browsers' sign-in, and the last
@@ -273,6 +288,7 @@ func (a *App) siteLoginState(site sitelogin.Site, fresh bool) SiteLoginState {
 	out.ReadsBrowsers = st.read != nil
 	st.mu.Unlock()
 	out.Disconnected = a.siteStore().Disconnected(site.ID)
+	out.HandsOver = slices.ContainsFunc(a.siteStore().Readers(site.ID), a.Federation.StillMember)
 
 	age := browserScanFresh
 	switch {

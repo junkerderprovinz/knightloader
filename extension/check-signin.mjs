@@ -16,6 +16,10 @@
  *      two signed-in stores the one that changed last.
  *   5. Only a change to a listed site's sign-in cookie outside a private store
  *      wakes the watcher, and nothing is read or sent while it is off.
+ *   6. Each list tells the instances which sites this browser may read, also
+ *      right after the browser allowed one and once after switching off. An
+ *      instance waiting for a sign-in gets the session again, and a tab on a
+ *      site's sign-in page wakes the watcher.
  *
  * Run by CI and by hand: `node extension/check-signin.mjs`
  */
@@ -158,15 +162,19 @@ const fn = (ctx, name) => {
 function group({ lists = { a: [patreon], b: [patreon] }, answer = () => ({ status: 200, body: JSON.stringify({ state: 'signedIn', account: 'Jane Doe' }) }) } = {}) {
   const siblings = Object.keys(lists).map((id) => ({ instanceId: id, name: id === 'a' ? 'attic' : 'cellar' }));
   const sent = [];
+  const asked = [];
   const call = async (id, method, path, body) => {
-    if (method === 'GET' && path === '/api/sitelogins/handover') return { status: 200, body: JSON.stringify(lists[id]) };
+    if (method === 'GET' && path.startsWith('/api/sitelogins/handover?')) {
+      asked.push(`${id}:${new URL(path, 'https://x').searchParams.get('reads')}`);
+      return { status: 200, body: JSON.stringify(lists[id]) };
+    }
     if (method === 'POST') {
       sent.push({ id, path, cookies: JSON.parse(body).cookies });
       return answer(id, path);
     }
     return { status: 404, body: '' };
   };
-  return { siblings, call, sent };
+  return { siblings, call, sent, asked };
 }
 
 const sentSummary = (sent) => sent.map((s) => `${s.id}:${s.path.split('/')[3]}:${s.cookies.map((c) => c.value).join('+') || 'none'}`).join(' ');
@@ -392,6 +400,52 @@ const signedIn = () => makeChrome({ granted: ['cookies'], origins: ['https://pat
   const g = group();
   await fn(ctx, 'syncSignIns')(g.siblings, g.call);
   if (g.sent.length || b.read.length) fail(`switched off, a sync read ${b.read.length} times and sent ${sentSummary(g.sent)}`);
+}
+
+// 6. What the instances hear, and an instance that waits.
+{
+  const b = signedIn();
+  const ctx = load(b.chrome);
+  const g = group();
+  await fn(ctx, 'syncSignIns')(g.siblings, g.call);
+  if (g.asked.join(' ') !== 'a: b: a:patreon b:patreon') fail(`a first sync asked ${g.asked.join(' ')}, want the lists and then the site this browser reads`);
+  const again = group();
+  await fn(ctx, 'syncSignIns')(again.siblings, again.call);
+  if (again.asked.join(' ') !== 'a:patreon b:patreon') fail(`the next sync asked ${again.asked.join(' ')}, want each list once with the site this browser reads`);
+
+  const waits = group({ lists: { a: [{ ...patreon, waiting: true }], b: [patreon] } });
+  await fn(ctx, 'syncSignIns')(waits.siblings, waits.call);
+  if (sentSummary(waits.sent) !== 'a:patreon:S1+D1') fail(`with one instance waiting, sent ${sentSummary(waits.sent)}, want the same session to that one again`);
+
+  b.store.signinEnabled = false;
+  const off = group();
+  await fn(ctx, 'syncSignIns')(off.siblings, off.call);
+  if (off.asked.join(' ') !== 'a: b:' || off.sent.length) fail(`switched off, a sync asked ${off.asked.join(' ')} and sent ${sentSummary(off.sent)}, want the lists once saying nothing is read`);
+  const quiet = group();
+  await fn(ctx, 'syncSignIns')(quiet.siblings, quiet.call);
+  if (quiet.asked.length) fail(`switched off and said so, the next sync asked ${quiet.asked.join(' ')}`);
+}
+{
+  // Without the access, the lists say this browser reads nothing.
+  const ctx = load(makeChrome({ storage: { signinSites: [patreon] } }).chrome);
+  const g = group();
+  await fn(ctx, 'syncSignIns')(g.siblings, g.call);
+  if (g.asked.join(' ') !== 'a: b:') fail(`without the access, a sync asked ${g.asked.join(' ')}, want lists that read nothing`);
+}
+{
+  const ctx = load(makeChrome().chrome);
+  const opened = fn(ctx, 'signInPageOpened');
+  const cases = [
+    ['https://www.patreon.com/login', true],
+    ['https://www.patreon.com/login?ru=%2Fhome', true],
+    ['https://www.patreon.com/home', false],
+    ['https://patreon.com.example/login', false],
+    ['not an address', false],
+  ];
+  for (const [url, want] of cases) {
+    const got = opened([patreon, { ...youtube, loginUrl: undefined }], url);
+    if (got !== want) fail(`signInPageOpened(${url}) = ${got}, want ${want}`);
+  }
 }
 
 if (problems.length) {

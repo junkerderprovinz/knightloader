@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/sitelogin"
@@ -306,5 +307,74 @@ func TestRemovingDisconnectsASiteUntilItIsSignedInAgain(t *testing.T) {
 	}
 	if status, _ := owner(http.MethodPost, "/api/sitelogins/example/reconnect", ""); status != http.StatusNotFound {
 		t.Errorf("reconnecting an unknown site = %d, want 404", status)
+	}
+}
+
+func handsOver(t *testing.T, owner func(method, path, body string) (int, []byte)) map[string]bool {
+	t.Helper()
+	_, listed := owner(http.MethodGet, "/api/sitelogins", "")
+	var rows []struct {
+		ID        string `json:"id"`
+		HandsOver bool   `json:"handsOver"`
+	}
+	if err := json.Unmarshal(listed, &rows); err != nil {
+		t.Fatalf("not a list of sites: %v (%s)", err, listed)
+	}
+	out := map[string]bool{}
+	for _, r := range rows {
+		out[r.ID] = r.HandsOver
+	}
+	return out
+}
+
+// The window offers the user's own browser only where an extension of the
+// group said it may read the site, since nothing else hands the sign-in over.
+func TestASiteHandsOverWhileAnExtensionOfTheGroupMayReadIt(t *testing.T) {
+	t.Parallel()
+	a, _, _, _, owner := groupServer(t)
+	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
+	approve := func(kind string) func(string, ed25519.PublicKey) {
+		return func(id string, key ed25519.PublicKey) {
+			if _, _, err := a.Federation.Approve(id, key, kind); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	browser := signedCall(t, "browser-reads", relay.KindExtension, serve, approve(relay.KindExtension))
+	other := signedCall(t, "browser-other", relay.KindExtension, serve, approve(relay.KindExtension))
+	phone := signedCall(t, "phone-reads", relay.KindMobile, serve, approve(relay.KindMobile))
+
+	if got := handsOver(t, owner); got["patreon"] || got["youtube"] {
+		t.Fatalf("before any extension said so, the sites hand over %v", got)
+	}
+	phone(http.MethodGet, "/api/sitelogins/handover?reads=patreon", "")
+	owner(http.MethodGet, "/api/sitelogins/handover?reads=patreon", "")
+	if got := handsOver(t, owner); got["patreon"] {
+		t.Errorf("a phone or the owner saying it reads patreon made it hand over: %v", got)
+	}
+
+	if status, body := browser(http.MethodGet, "/api/sitelogins/handover?reads=patreon", ""); status != http.StatusOK {
+		t.Fatalf("the extension's list = %d (%s)", status, body)
+	}
+	if got := handsOver(t, owner); !got["patreon"] || got["youtube"] {
+		t.Errorf("with the extension reading patreon, the sites hand over %v", got)
+	}
+	browser(http.MethodGet, "/api/sitelogins/handover", "")
+	other(http.MethodGet, "/api/sitelogins/handover?reads=", "")
+	if got := handsOver(t, owner); !got["patreon"] {
+		t.Errorf("a list that says nothing, or another browser's, took patreon away: %v", got)
+	}
+
+	browser(http.MethodGet, "/api/sitelogins/handover?reads=", "")
+	if got := handsOver(t, owner); got["patreon"] {
+		t.Errorf("the extension no longer reads patreon, and it still hands over: %v", got)
+	}
+
+	browser(http.MethodGet, "/api/sitelogins/handover?reads=patreon,youtube", "")
+	if err := a.Federation.RemoveApp(idAs("browser-reads", relay.KindExtension), time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if got := handsOver(t, owner); got["patreon"] || got["youtube"] {
+		t.Errorf("a browser taken out of the group still hands over %v", got)
 	}
 }

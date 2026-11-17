@@ -265,7 +265,13 @@ extension is installed or updated, when it starts again more than ten minutes
 after the last sync, right after the phrase is entered on the settings page,
 when the popup or the settings page opens while no site is known yet, and once
 the browser grants the access. It keeps the list, so
-a click can ask for the access before anything else is awaited.
+a click can ask for the access before anything else is awaited. Each ask
+carries `?reads=patreon,youtube`, the sites this browser lets the extension
+read, and asks again in the same sync when that set has changed. The instance
+keeps it per browser and lists a site as `handsOver` while a browser still in
+the group reads it. Its sign-in window offers the user's own browser only
+then, or where it reads the browsers on its computer, and otherwise says what
+is missing. Switched off, the extension says once that it reads nothing.
 
 The access is `cookies` on the listed sites' own domains
 (`https://patreon.com/*` and `https://*.patreon.com/*`), kept for good. Both
@@ -288,11 +294,14 @@ in when one of the site's sign-in cookies is there. Of several, the one whose
 sign-in cookie changed last wins, then the one handed over before, then the
 default store. `cookies.onChanged` wakes the background for a change to a
 listed site's sign-in cookie outside a private store, and the burst a sign-in
-sets becomes one sync two seconds after it settles.
+sets becomes one sync two seconds after it settles. A tab that opens a listed
+site's `loginUrl` wakes it too, since a browser signed in already may change no
+cookie there.
 
 What went to which instance is kept as a SHA-256 digest of the sign-in
 cookies, never the session itself. A session goes out again only when the
-digest changes, so a tracking cookie changing sends nothing. A hand-over is
+digest changes, so a tracking cookie changing sends nothing, or when the
+instance lists the site as `waiting` after a sign-in began there. A hand-over is
 `POST /api/sitelogins/{id}/handover` with the site's cookies, sealed through
 the relay. The instance takes it from the extension alone, never from the
 phone or another instance. It keeps only the site's own live cookies, writes

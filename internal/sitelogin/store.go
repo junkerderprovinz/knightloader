@@ -2,6 +2,8 @@ package sitelogin
 
 import (
 	"errors"
+	"slices"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 )
@@ -51,6 +53,38 @@ func (s *Store) SetDisconnected(id string, off bool) error {
 func (s *Store) Disconnected(id string) bool {
 	cred, err := s.accounts.GetCredential(offService, id)
 	return err == nil && cred.APIKey != ""
+}
+
+// readerService files, per site, the browsers whose extension said it may
+// read the site's cookies, by their ids in the group.
+const readerService = "sitelogins-readers"
+
+// SetReader records whether the extension in browser app may read a site's
+// cookies and so passes its sign-in on.
+func (s *Store) SetReader(id, app string, reads bool) error {
+	if _, ok := Lookup(id); !ok {
+		return errors.New("sitelogin: no such site " + id)
+	}
+	readers := s.Readers(id)
+	if slices.Contains(readers, app) == reads {
+		return nil
+	}
+	if reads {
+		readers = append(readers, app)
+	} else {
+		readers = slices.DeleteFunc(readers, func(r string) bool { return r == app })
+	}
+	return s.accounts.SetCredential(readerService, id, accounts.Credential{APIKey: strings.Join(readers, " ")})
+}
+
+// Readers lists the browsers whose extension said it may read a site's
+// cookies.
+func (s *Store) Readers(id string) []string {
+	cred, err := s.accounts.GetCredential(readerService, id)
+	if err != nil {
+		return nil
+	}
+	return strings.Fields(cred.APIKey)
 }
 
 // Session returns a site's stored cookies.txt, or "". A decryption failure

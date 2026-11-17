@@ -18,12 +18,15 @@ package api
 //	 "browser": "Firefox (default-release)", // with source "browser" only
 //	 "unreadable": ["Chrome"],         // browsers whose cookies could not be read
 //	 "readsBrowsers": true,            // false in a container, which reads none
-//	 "disconnected": false}            // removed here; the browsers' sign-in is not used
+//	 "disconnected": false,            // removed here; the browsers' sign-in is not used
+//	 "handsOver": true}                // an extension of the group may read the site
 //
 // GET /api/sitelogins/handover lists for the extension each site's id, name,
 // host, loginUrl, domains, waiting and signIn, the names of the cookies only a
-// signed-in session carries. A handover with an empty cookies list signs the
-// extension's session out; a set without the site's cookies is refused (422).
+// signed-in session carries. The extension asks with ?reads=patreon,youtube,
+// the sites its browser lets it read, which is what handsOver above counts. A
+// handover with an empty cookies list signs the extension's session out; a set
+// without the site's cookies is refused (422).
 //
 // Remove disconnects a site whatever its session came from: the extension's
 // is forgotten, a browser's is no longer read, and the browser stays signed
@@ -31,7 +34,9 @@ package api
 
 import (
 	"errors"
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
@@ -97,6 +102,13 @@ func registerSiteLogins(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/sitelogins/handover",
 		"the sites the browser extension can hand a session over for, and which this instance waits for",
 		func(w http.ResponseWriter, r *http.Request) {
+			if q := r.URL.Query(); q.Has("reads") {
+				if c, ok := federation.CallerOf(r.Context()); ok && c.Kind == relay.KindExtension {
+					if err := a.NoteSiteReaders(c.ID, strings.Split(q.Get("reads"), ",")); err != nil {
+						log.Printf("sitelogins: could not record which sites a browser reads: %v", err)
+					}
+				}
+			}
 			states := a.SiteLogins()
 			out := make([]handoverSite, 0, len(states))
 			for _, s := range states {

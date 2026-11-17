@@ -276,10 +276,14 @@ This needs access to cookies on those sites, which your browser asks you for
 once when you click Allow in the popup or the settings. If taking over
 downloads or finding media already has access to cookies and all websites,
 nothing is asked. From then on, the extension reads the cookies of the listed
-sites continuously: when the browser starts, when you join a group, and every
-time one of their sign-in cookies changes. It reads the normal windows and
-each Firefox container, never a private window, and never the cookies of any
-other site. It sends a sign-in only when it differs from the one it last sent.
+sites continuously: when the browser starts, when you join a group, every
+time one of their sign-in cookies changes and when a tab opens one of their
+sign-in pages. It reads the normal windows and each Firefox container, never a
+private window, and never the cookies of any other site. It sends a sign-in
+only when it differs from the one it last sent, or when an instance is waiting
+for it. It tells your instances which of the listed sites it may read, so
+their sign-in window offers your own browser only where the sign-in can reach
+them.
 The switch "Pass my sign-ins to KnightLoader" in the settings turns this off
 and gives the access back.
 
