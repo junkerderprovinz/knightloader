@@ -4076,8 +4076,6 @@ export const zh: Dict = {
   'signInBrowser.done': '完成',
   'signInBrowser.openAgain': '再次打开',
   'signInBrowser.openInBrowser': '在浏览器中打开',
-  'signInBrowser.ownBrowserPair': '要在你自己的浏览器里登录 {site}，请在那里装上 KnightLoader 扩展，并把它与这个实例配对。',
-  'signInBrowser.ownBrowserAllow': '要在你自己的浏览器里登录 {site}，请允许那里的 KnightLoader 扩展转交你的登录状态。这一项在扩展的设置里打开。',
   'signInBrowser.blocked': '这个窗口只打开 {site} 和你在那里登录时用到的页面，所以 {host} 不会打开。',
   'signInBrowser.refused': 'Google 拒绝了这个浏览器。请改为在你自己的浏览器里登录 YouTube，再让扩展移交会话。',
   'signInBrowser.closedIdle': '五分钟没有输入，浏览器已关闭。',

@@ -4072,8 +4072,6 @@ export const ru: Dict = {
   'signInBrowser.done': 'Готово',
   'signInBrowser.openAgain': 'Открыть снова',
   'signInBrowser.openInBrowser': 'Открыть в браузере',
-  'signInBrowser.ownBrowserPair': 'Чтобы войти в {site} в своём браузере, установите в нём расширение KnightLoader и сопрягите его с этим экземпляром.',
-  'signInBrowser.ownBrowserAllow': 'Чтобы войти в {site} в своём браузере, разрешите расширению KnightLoader в нём передавать ваши входы. Это включается в его настройках.',
   'signInBrowser.blocked': 'Это окно открывает только {site} и страницы, через которые вы туда входите, поэтому {host} остаётся закрытым.',
   'signInBrowser.refused': 'Google отклонил этот браузер. Войдите в YouTube в своём браузере и дайте расширению передать сеанс.',
   'signInBrowser.closedIdle': 'Браузер закрылся после пяти минут без ввода.',

@@ -4090,8 +4090,6 @@ export const ar: Dict = {
   'signInBrowser.done': 'تم',
   'signInBrowser.openAgain': 'افتح مجددًا',
   'signInBrowser.openInBrowser': 'فتح في المتصفح',
-  'signInBrowser.ownBrowserPair': 'لتسجّل الدخول إلى {site} في متصفحك أنت، ثبّت إضافة KnightLoader فيه واقرنها بهذا المثيل.',
-  'signInBrowser.ownBrowserAllow': 'لتسجّل الدخول إلى {site} في متصفحك أنت، اسمح لإضافة KnightLoader فيه بأن تنقل تسجيلات دخولك. تفعّل ذلك من إعداداتها.',
   'signInBrowser.blocked': 'هذه النافذة لا تفتح إلا {site} والصفحات التي تسجّل الدخول بها هناك، لذا يبقى {host} مغلقًا.',
   'signInBrowser.refused': 'رفضت Google هذا المتصفح. سجّل الدخول إلى YouTube في متصفحك أنت بدلًا من ذلك ودع الإضافة تسلّم الجلسة.',
   'signInBrowser.closedIdle': 'أُغلق المتصفح بعد خمس دقائق دون أي إدخال.',

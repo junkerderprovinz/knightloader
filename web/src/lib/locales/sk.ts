@@ -4102,8 +4102,6 @@ export const sk: Dict = {
   'signInBrowser.done': 'Hotovo',
   'signInBrowser.openAgain': 'Otvoriť znova',
   'signInBrowser.openInBrowser': 'Otvoriť v prehliadači',
-  'signInBrowser.ownBrowserPair': 'Ak sa chceš do služby {site} prihlásiť vo svojom prehliadači, nainštaluj doň rozšírenie KnightLoader a spáruj ho s touto inštanciou.',
-  'signInBrowser.ownBrowserAllow': 'Ak sa chceš do služby {site} prihlásiť vo svojom prehliadači, dovoľ tamojšiemu rozšíreniu KnightLoader odovzdávať tvoje prihlásenia. Zapneš to v jeho nastaveniach.',
   'signInBrowser.blocked': 'Toto okno otvára len {site} a stránky, cez ktoré sa tam prihlasuješ, takže {host} zostáva zatvorený.',
   'signInBrowser.refused': 'Google tento prehliadač odmietol. Prihlás sa radšej do YouTube vo svojom prehliadači a nechaj rozšírenie odovzdať reláciu.',
   'signInBrowser.closedIdle': 'Prehliadač sa zavrel po piatich minútach bez vstupu.',

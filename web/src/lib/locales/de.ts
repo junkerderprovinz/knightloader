@@ -4093,8 +4093,6 @@ export const de: Dict = {
   'signInBrowser.done': 'Fertig',
   'signInBrowser.openAgain': 'Wieder öffnen',
   'signInBrowser.openInBrowser': 'Im Browser öffnen',
-  'signInBrowser.ownBrowserPair': 'Um dich in deinem eigenen Browser bei {site} anzumelden, installiere dort die KnightLoader-Erweiterung und kopple sie mit dieser Instanz.',
-  'signInBrowser.ownBrowserAllow': 'Um dich in deinem eigenen Browser bei {site} anzumelden, lass die KnightLoader-Erweiterung dort deine Anmeldungen weitergeben. Das schaltest du in ihren Einstellungen ein.',
   'signInBrowser.blocked': 'Dieses Fenster öffnet nur {site} und die Seiten, über die du dich dort anmeldest. {host} bleibt deshalb zu.',
   'signInBrowser.refused': 'Google hat diesen Browser abgewiesen. Melde dich stattdessen in deinem eigenen Browser bei YouTube an und lass die Erweiterung die Sitzung übergeben.',
   'signInBrowser.closedIdle': 'Der Browser hat sich nach fünf Minuten ohne Eingabe geschlossen.',

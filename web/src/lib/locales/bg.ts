@@ -4093,8 +4093,6 @@ export const bg: Dict = {
   'signInBrowser.done': 'Готово',
   'signInBrowser.openAgain': 'Отвори отново',
   'signInBrowser.openInBrowser': 'Отвори в браузъра',
-  'signInBrowser.ownBrowserPair': 'За да влезеш в {site} в собствения си браузър, инсталирай там разширението KnightLoader и го сдвои с тази инстанция.',
-  'signInBrowser.ownBrowserAllow': 'За да влезеш в {site} в собствения си браузър, позволи на разширението KnightLoader там да предава входовете ти. Включваш това в настройките му.',
   'signInBrowser.blocked': 'Този прозорец отваря само {site} и страниците, през които влизаш там, така че {host} остава затворен.',
   'signInBrowser.refused': 'Google отхвърли този браузър. Влез в YouTube в собствения си браузър и остави разширението да предаде сесията.',
   'signInBrowser.closedIdle': 'Браузърът се затвори след пет минути без въвеждане.',

@@ -16,7 +16,7 @@ import { openTab } from '../lib/external';
 import { fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { message } from '../lib/intake';
-import { type SignInWays, confirmInTab, nextStep, picksUpFromBrowser, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
+import { type SignInWays, confirmInTab, nextStep, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { IconClose, IconExternalLink, IconTrash } from '../lib/icons';
 import { Button, Modal } from './ui';
@@ -177,7 +177,7 @@ export function SiteLoginDialog({
           {signingIn && !reconnectable && (
             <SignInHereButton site={site} hue={hue} disabled={busy} onChanged={(s) => show(s, false)} />
           )}
-          {signingIn && picksUpFromBrowser(site, ways) && (
+          {signingIn && ways.readsBrowsers && (
             <Button icon={<IconExternalLink />} disabled={busy} onClick={openSite}>
               {t('siteLogins.open', { site: site.name })}
             </Button>

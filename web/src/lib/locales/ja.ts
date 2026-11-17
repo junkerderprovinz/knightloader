@@ -4089,8 +4089,6 @@ export const ja: Dict = {
   'signInBrowser.done': '完了',
   'signInBrowser.openAgain': 'もう一度開く',
   'signInBrowser.openInBrowser': 'ブラウザーで開く',
-  'signInBrowser.ownBrowserPair': '自分のブラウザーで {site} にサインインするには、そのブラウザーに KnightLoader 拡張機能を入れて、このインスタンスとペアリングしてください。',
-  'signInBrowser.ownBrowserAllow': '自分のブラウザーで {site} にサインインするには、そのブラウザーの KnightLoader 拡張機能にサインインの引き渡しを許可してください。拡張機能の設定でオンにできます。',
   'signInBrowser.blocked': 'このウィンドウで開けるのは {site} と、そこへのサインインに使うページだけなので、{host} は開きません。',
   'signInBrowser.refused': 'Google にこのブラウザーを拒否されました。代わりに自分のブラウザーで YouTube にサインインし、拡張機能にセッションを引き渡してください。',
   'signInBrowser.closedIdle': '5 分間入力がなかったため、ブラウザーを閉じました。',

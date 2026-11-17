@@ -4080,8 +4080,6 @@ export const ko: Dict = {
   'signInBrowser.done': '완료',
   'signInBrowser.openAgain': '다시 열기',
   'signInBrowser.openInBrowser': '브라우저에서 열기',
-  'signInBrowser.ownBrowserPair': '내 브라우저에서 {site}에 로그인하려면 그 브라우저에 KnightLoader 확장 프로그램을 설치하고 이 인스턴스와 페어링하세요.',
-  'signInBrowser.ownBrowserAllow': '내 브라우저에서 {site}에 로그인하려면 그 브라우저의 KnightLoader 확장 프로그램이 로그인을 넘겨 주도록 허용하세요. 확장 프로그램 설정에서 켤 수 있습니다.',
   'signInBrowser.blocked': '이 창은 {site}와 그곳에 로그인할 때 쓰는 페이지만 열기 때문에 {host}는 열리지 않습니다.',
   'signInBrowser.refused': 'Google이 이 브라우저를 거부했습니다. 대신 자신의 브라우저에서 YouTube에 로그인하고 확장 프로그램이 세션을 넘기게 하세요.',
   'signInBrowser.closedIdle': '5분 동안 입력이 없어 브라우저가 닫혔습니다.',

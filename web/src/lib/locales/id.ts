@@ -4092,8 +4092,6 @@ export const id: Dict = {
   'signInBrowser.done': 'Selesai',
   'signInBrowser.openAgain': 'Buka lagi',
   'signInBrowser.openInBrowser': 'Buka di peramban',
-  'signInBrowser.ownBrowserPair': 'Untuk masuk ke {site} di peramban Anda sendiri, pasang ekstensi KnightLoader di sana lalu pasangkan dengan instance ini.',
-  'signInBrowser.ownBrowserAllow': 'Untuk masuk ke {site} di peramban Anda sendiri, izinkan ekstensi KnightLoader di sana meneruskan sesi masuk Anda. Itu dinyalakan di pengaturannya.',
   'signInBrowser.blocked': 'Jendela ini hanya membuka {site} dan halaman yang kamu pakai untuk masuk ke sana, jadi {host} tetap tertutup.',
   'signInBrowser.refused': 'Google menolak peramban ini. Masuklah ke YouTube di perambanmu sendiri dan biarkan ekstensi menyerahkan sesinya.',
   'signInBrowser.closedIdle': 'Peramban tertutup setelah lima menit tanpa masukan.',

@@ -4081,8 +4081,6 @@ export const fa: Dict = {
   'signInBrowser.done': 'تمام',
   'signInBrowser.openAgain': 'باز کردن دوباره',
   'signInBrowser.openInBrowser': 'باز کردن در مرورگر',
-  'signInBrowser.ownBrowserPair': 'برای ورود به {site} در مرورگر خودت، افزونهٔ KnightLoader را آنجا نصب کن و با این نمونه جفتش کن.',
-  'signInBrowser.ownBrowserAllow': 'برای ورود به {site} در مرورگر خودت، بگذار افزونهٔ KnightLoader در آن مرورگر ورودهایت را تحویل بدهد. این را در تنظیمات افزونه روشن می‌کنی.',
   'signInBrowser.blocked': 'این پنجره فقط {site} و صفحه‌هایی را باز می‌کند که با آن‌ها آنجا وارد می‌شوی، پس {host} بسته می‌ماند.',
   'signInBrowser.refused': 'Google این مرورگر را رد کرد. به‌جای آن در مرورگر خودت وارد YouTube شو و بگذار افزونه نشست را تحویل بدهد.',
   'signInBrowser.closedIdle': 'مرورگر پس از پنج دقیقه بدون ورودی بسته شد.',

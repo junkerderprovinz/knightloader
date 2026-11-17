@@ -4091,8 +4091,6 @@ export const tr: Dict = {
   'signInBrowser.done': 'Bitti',
   'signInBrowser.openAgain': 'Yeniden aç',
   'signInBrowser.openInBrowser': 'Tarayıcıda aç',
-  'signInBrowser.ownBrowserPair': '{site} için kendi tarayıcında oturum açmak istersen, oraya KnightLoader uzantısını kur ve bu örnekle eşleştir.',
-  'signInBrowser.ownBrowserAllow': '{site} için kendi tarayıcında oturum açmak istersen, oradaki KnightLoader uzantısının oturumlarını devretmesine izin ver. Bunu uzantının ayarlarından açarsın.',
   'signInBrowser.blocked': 'Bu pencere yalnızca {site} sitesini ve orada oturum açtığın sayfaları açar, bu yüzden {host} kapalı kalır.',
   'signInBrowser.refused': 'Google bu tarayıcıyı reddetti. Bunun yerine kendi tarayıcında YouTube oturumu aç ve oturumu uzantının devretmesine izin ver.',
   'signInBrowser.closedIdle': 'Tarayıcı beş dakika boyunca giriş olmadığı için kapandı.',

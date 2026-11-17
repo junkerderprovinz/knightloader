@@ -4083,8 +4083,6 @@ export const es: Dict = {
   'signInBrowser.done': 'Listo',
   'signInBrowser.openAgain': 'Abrir de nuevo',
   'signInBrowser.openInBrowser': 'Abrir en el navegador',
-  'signInBrowser.ownBrowserPair': 'Para iniciar sesión en {site} en tu propio navegador, instala allí la extensión de KnightLoader y emparéjala con esta instancia.',
-  'signInBrowser.ownBrowserAllow': 'Para iniciar sesión en {site} en tu propio navegador, deja que la extensión de KnightLoader de ese navegador entregue tus sesiones. Lo activas en sus ajustes.',
   'signInBrowser.blocked': 'Esta ventana solo abre {site} y las páginas con las que inicias sesión allí, así que {host} se queda cerrado.',
   'signInBrowser.refused': 'Google ha rechazado este navegador. Inicia sesión en YouTube en tu propio navegador y deja que la extensión entregue la sesión.',
   'signInBrowser.closedIdle': 'El navegador se cerró tras cinco minutos sin actividad.',

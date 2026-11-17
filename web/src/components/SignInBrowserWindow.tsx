@@ -16,7 +16,7 @@ import {
 import { openTab } from '../lib/external';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { message } from '../lib/intake';
-import { confirmInTab, picksUpFromBrowser, useSignInWays } from '../lib/siteLogins';
+import { confirmInTab } from '../lib/siteLogins';
 import {
   type PageInput,
   type PageStream,
@@ -83,16 +83,10 @@ export function SignInBrowserWindow({
   const [attempt, setAttempt] = useState(0);
   const [shown, setShown] = useState({ width: 0, height: 0 });
   const [elsewhere, setElsewhere] = useState(false);
-  // The user's own browser helps only where something reads the sign-in back
-  // from it: the browsers on this computer, or an extension of the group that
-  // may read the site. Elsewhere the window says what is missing. A hoster's
-  // own page has no login address and is signed in to here only.
-  const ways = useSignInWays([site], !!site.loginUrl);
-  const ownBrowser = !!site.loginUrl && picksUpFromBrowser(site, ways);
-  const ownBrowserMissing =
-    !site.loginUrl || ownBrowser
-      ? ''
-      : t(ways.extensionPaired ? 'signInBrowser.ownBrowserAllow' : 'signInBrowser.ownBrowserPair', { site: site.name });
+  // The user's own browser helps only where this instance reads the sign-in
+  // back from the browsers on its computer. A hoster's own page has no login
+  // address and is signed in to here only.
+  const ownBrowser = !!site.loginUrl && site.readsBrowsers;
   const tab = useRef<Window | null>(null);
 
   const panel = useRef<HTMLDivElement>(null);
@@ -404,11 +398,6 @@ export function SignInBrowserWindow({
             <Button kind="secondary" icon={<IconExternalLink />} data-new="open-in-browser" disabled={busy} onClick={openElsewhere}>
               {t('signInBrowser.openInBrowser')}
             </Button>
-          )}
-          {ownBrowserMissing && (
-            <span className="max-w-sm text-meta text-carbon-textSub" dir="auto">
-              {ownBrowserMissing}
-            </span>
           )}
           {(phase === 'closed' || phase === 'failed') && (
             <Button kind="secondary" icon={<IconRetry />} onClick={() => setAttempt((n) => n + 1)} disabled={busy}>

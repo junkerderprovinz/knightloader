@@ -4076,8 +4076,6 @@ export const it: Dict = {
   'signInBrowser.done': 'Fatto',
   'signInBrowser.openAgain': 'Riapri',
   'signInBrowser.openInBrowser': 'Apri nel browser',
-  'signInBrowser.ownBrowserPair': 'Per accedere a {site} dal tuo browser, installa lì l’estensione KnightLoader e associala a questa istanza.',
-  'signInBrowser.ownBrowserAllow': 'Per accedere a {site} dal tuo browser, lascia che l’estensione KnightLoader di quel browser passi i tuoi accessi. Lo attivi nelle sue impostazioni.',
   'signInBrowser.blocked': 'Questa finestra apre solo {site} e le pagine con cui vi accedi, quindi {host} resta chiuso.',
   'signInBrowser.refused': 'Google ha rifiutato questo browser. Accedi invece a YouTube nel tuo browser e lascia che l’estensione passi la sessione.',
   'signInBrowser.closedIdle': 'Il browser si è chiuso dopo cinque minuti senza input.',

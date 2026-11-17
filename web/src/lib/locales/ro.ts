@@ -4101,8 +4101,6 @@ export const ro: Dict = {
   'signInBrowser.done': 'Gata',
   'signInBrowser.openAgain': 'Deschide din nou',
   'signInBrowser.openInBrowser': 'Deschide în browser',
-  'signInBrowser.ownBrowserPair': 'Ca să te autentifici pe {site} în propriul browser, instalează acolo extensia KnightLoader și împerechea-o cu această instanță.',
-  'signInBrowser.ownBrowserAllow': 'Ca să te autentifici pe {site} în propriul browser, lasă extensia KnightLoader de acolo să transmită mai departe autentificările tale. Asta se pornește din setările ei.',
   'signInBrowser.blocked': 'Fereastra asta deschide doar {site} și paginile prin care te autentifici acolo, așa că {host} rămâne închis.',
   'signInBrowser.refused': 'Google a respins acest browser. Autentifică-te mai bine pe YouTube în browserul tău și lasă extensia să predea sesiunea.',
   'signInBrowser.closedIdle': 'Browserul s-a închis după cinci minute fără activitate.',

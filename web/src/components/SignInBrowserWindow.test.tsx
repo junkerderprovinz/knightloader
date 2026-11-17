@@ -151,23 +151,17 @@ it('leaves a tab the user closed alone', async () => {
   expect(tab.shown).toEqual([]);
 });
 
-it('offers the browser where the extension of the group can hand the sign-in over', async () => {
+it('offers no browser in a container, also with an extension that can hand the sign-in over', async () => {
   apps = [extension];
   await open({ ...patreon, readsBrowsers: false, handsOver: true });
-  expect(browserButton()).toBeDefined();
+  expect(browserButton()).toBeUndefined();
+  expect(document.body.textContent).not.toContain('KnightLoader extension');
 });
 
-it('says to let the extension pass sign-ins on where it may not read the site', async () => {
-  apps = [extension];
+it('offers no browser in a container without an extension and names none', async () => {
   await open({ ...patreon, readsBrowsers: false });
   expect(browserButton()).toBeUndefined();
-  expect(document.body.textContent).toContain(en['signInBrowser.ownBrowserAllow'].replace('{site}', 'Patreon'));
-});
-
-it('offers no browser where nothing could pick the sign-in up from there, and says what would', async () => {
-  await open({ ...patreon, readsBrowsers: false });
-  expect(browserButton()).toBeUndefined();
-  expect(document.body.textContent).toContain(en['signInBrowser.ownBrowserPair'].replace('{site}', 'Patreon'));
+  expect(document.body.textContent).not.toContain('KnightLoader extension');
 });
 
 it('offers no browser on a hoster login, which only signs in on its own page', async () => {

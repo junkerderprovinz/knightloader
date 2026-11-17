@@ -4094,8 +4094,6 @@ export const lt: Dict = {
   'signInBrowser.done': 'Baigta',
   'signInBrowser.openAgain': 'Atidaryti vėl',
   'signInBrowser.openInBrowser': 'Atidaryti naršyklėje',
-  'signInBrowser.ownBrowserPair': 'Kad prisijungtum prie „{site}“ savo naršyklėje, įdiek ten KnightLoader plėtinį ir susiek jį su šiuo egzemplioriumi.',
-  'signInBrowser.ownBrowserAllow': 'Kad prisijungtum prie „{site}“ savo naršyklėje, leisk ten esančiam KnightLoader plėtiniui perduoti tavo prisijungimus. Tai įjungiama jo nustatymuose.',
   'signInBrowser.blocked': 'Šis langas atidaro tik „{site}“ ir puslapius, per kuriuos ten prisijungi, todėl {host} lieka uždarytas.',
   'signInBrowser.refused': '„Google“ atmetė šią naršyklę. Verčiau prisijunk prie „YouTube“ savo naršyklėje ir leisk plėtiniui perduoti seansą.',
   'signInBrowser.closedIdle': 'Naršyklė užsidarė po penkių minučių be įvesties.',

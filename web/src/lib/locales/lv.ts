@@ -4083,8 +4083,6 @@ export const lv: Dict = {
   'signInBrowser.done': 'Gatavs',
   'signInBrowser.openAgain': 'Atvērt vēlreiz',
   'signInBrowser.openInBrowser': 'Atvērt pārlūkā',
-  'signInBrowser.ownBrowserPair': 'Lai pieteiktos vietnē {site} savā pārlūkā, instalē tur KnightLoader paplašinājumu un sapāro to ar šo instanci.',
-  'signInBrowser.ownBrowserAllow': 'Lai pieteiktos vietnē {site} savā pārlūkā, ļauj tur esošajam KnightLoader paplašinājumam nodot tālāk tavas pieteikšanās. To ieslēdz tā iestatījumos.',
   'signInBrowser.blocked': 'Šis logs atver tikai {site} un lapas, ar kurām tu tur piesakies, tāpēc {host} paliek slēgts.',
   'signInBrowser.refused': 'Google noraidīja šo pārlūku. Piesakies YouTube savā pārlūkā un ļauj paplašinājumam nodot sesiju.',
   'signInBrowser.closedIdle': 'Pārlūks aizvērās pēc piecām minūtēm bez ievades.',

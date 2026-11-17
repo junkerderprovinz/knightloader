@@ -4093,8 +4093,6 @@ export const hi: Dict = {
   'signInBrowser.done': 'हो गया',
   'signInBrowser.openAgain': 'फिर से खोलें',
   'signInBrowser.openInBrowser': 'ब्राउज़र में खोलें',
-  'signInBrowser.ownBrowserPair': 'अपने ब्राउज़र में {site} में साइन इन करने के लिए, वहाँ KnightLoader एक्सटेंशन जोड़ें और उसे इस इंस्टेंस से पेयर करें।',
-  'signInBrowser.ownBrowserAllow': 'अपने ब्राउज़र में {site} में साइन इन करने के लिए, वहाँ के KnightLoader एक्सटेंशन को आपके साइन इन आगे पहुँचाने दें। यह उसकी सेटिंग्स में चालू होता है।',
   'signInBrowser.blocked': 'यह विंडो सिर्फ़ {site} और वे पेज खोलती है जिनसे आप वहाँ साइन इन करते हैं, इसलिए {host} बंद रहता है।',
   'signInBrowser.refused': 'Google ने इस ब्राउज़र को लौटा दिया। इसकी जगह अपने ब्राउज़र में YouTube में साइन इन करें और एक्सटेंशन को सेशन सौंपने दें।',
   'signInBrowser.closedIdle': 'पाँच मिनट तक कोई इनपुट न होने पर ब्राउज़र बंद हो गया।',

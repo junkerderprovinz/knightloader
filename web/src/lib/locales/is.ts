@@ -4088,8 +4088,6 @@ export const is: Dict = {
   'signInBrowser.done': 'Lokið',
   'signInBrowser.openAgain': 'Opna aftur',
   'signInBrowser.openInBrowser': 'Opna í vafra',
-  'signInBrowser.ownBrowserPair': 'Til að skrá þig inn á {site} í þínum eigin vafra skaltu setja KnightLoader-viðbótina upp þar og para hana við þetta tilvik.',
-  'signInBrowser.ownBrowserAllow': 'Til að skrá þig inn á {site} í þínum eigin vafra skaltu leyfa KnightLoader-viðbótinni þar að koma innskráningunum þínum áfram. Þú kveikir á því í stillingum hennar.',
   'signInBrowser.blocked': 'Þessi gluggi opnar aðeins {site} og síðurnar sem þú skráir þig inn með þar, svo {host} helst lokað.',
   'signInBrowser.refused': 'Google hafnaði þessum vafra. Skráðu þig frekar inn á YouTube í þínum eigin vafra og láttu viðbótina afhenda setuna.',
   'signInBrowser.closedIdle': 'Vafrinn lokaðist eftir fimm mínútur án innsláttar.',

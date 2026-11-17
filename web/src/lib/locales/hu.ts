@@ -4093,8 +4093,6 @@ export const hu: Dict = {
   'signInBrowser.done': 'Kész',
   'signInBrowser.openAgain': 'Megnyitás újra',
   'signInBrowser.openInBrowser': 'Megnyitás böngészőben',
-  'signInBrowser.ownBrowserPair': 'Ha a saját böngésződben szeretnél bejelentkezni ide: {site}, telepítsd oda a KnightLoader bővítményt, és párosítsd ezzel a példánnyal.',
-  'signInBrowser.ownBrowserAllow': 'Ha a saját böngésződben szeretnél bejelentkezni ide: {site}, engedd, hogy az ottani KnightLoader bővítmény továbbadja a bejelentkezéseidet. Ezt a beállításaiban kapcsolod be.',
   'signInBrowser.blocked': 'Ez az ablak csak a(z) {site} oldalt és azokat az oldalakat nyitja meg, amelyeken keresztül ott bejelentkezel, így a(z) {host} zárva marad.',
   'signInBrowser.refused': 'A Google elutasította ezt a böngészőt. Inkább a saját böngésződben jelentkezz be a YouTube-ra, és hagyd, hogy a bővítmény átadja a munkamenetet.',
   'signInBrowser.closedIdle': 'A böngésző öt perc tétlenség után bezárult.',

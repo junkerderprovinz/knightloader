@@ -4088,8 +4088,6 @@ export const eu: Dict = {
   'signInBrowser.done': 'Eginda',
   'signInBrowser.openAgain': 'Ireki berriro',
   'signInBrowser.openInBrowser': 'Ireki nabigatzailean',
-  'signInBrowser.ownBrowserPair': '{site} gunean zure nabigatzailetik saioa hasteko, instalatu bertan KnightLoader luzapena eta parekatu instantzia honekin.',
-  'signInBrowser.ownBrowserAllow': '{site} gunean zure nabigatzailetik saioa hasteko, utzi bertako KnightLoader luzapenari zure saioak pasatzen. Haren ezarpenetan aktibatzen da.',
   'signInBrowser.blocked': 'Leiho honek {site} eta bertan saioa hasteko orriak bakarrik irekitzen ditu, beraz {host} itxita geratzen da.',
   'signInBrowser.refused': 'Google-k nabigatzaile hau baztertu du. Hasi saioa YouTuben zure nabigatzailean eta utzi luzapenari saioa pasatzen.',
   'signInBrowser.closedIdle': 'Nabigatzailea itxi egin da bost minutuz sarrerarik gabe egon ondoren.',

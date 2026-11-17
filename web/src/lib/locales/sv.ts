@@ -4092,8 +4092,6 @@ export const sv: Dict = {
   'signInBrowser.done': 'Klar',
   'signInBrowser.openAgain': 'Öppna igen',
   'signInBrowser.openInBrowser': 'Öppna i webbläsaren',
-  'signInBrowser.ownBrowserPair': 'Vill du logga in på {site} i din egen webbläsare installerar du KnightLoader-tillägget där och parkopplar det med den här instansen.',
-  'signInBrowser.ownBrowserAllow': 'Vill du logga in på {site} i din egen webbläsare låter du KnightLoader-tillägget där lämna över dina inloggningar. Det slår du på i tilläggets inställningar.',
   'signInBrowser.blocked': 'Det här fönstret öppnar bara {site} och sidorna du loggar in där med, så {host} förblir stängd.',
   'signInBrowser.refused': 'Google avvisade den här webbläsaren. Logga i stället in på YouTube i din egen webbläsare och låt tillägget lämna över sessionen.',
   'signInBrowser.closedIdle': 'Webbläsaren stängdes efter fem minuter utan inmatning.',

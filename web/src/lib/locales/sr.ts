@@ -4106,8 +4106,6 @@ export const sr: Dict = {
   'signInBrowser.done': 'Готово',
   'signInBrowser.openAgain': 'Поново отвори',
   'signInBrowser.openInBrowser': 'Отвори у прегледачу',
-  'signInBrowser.ownBrowserPair': 'Да би се пријавио на {site} у свом прегледачу, инсталирај тамо KnightLoader додатак и упари га са овом инстанцом.',
-  'signInBrowser.ownBrowserAllow': 'Да би се пријавио на {site} у свом прегледачу, дозволи тамошњем KnightLoader додатку да прослеђује твоје пријаве. То укључујеш у његовим подешавањима.',
   'signInBrowser.blocked': 'Овај прозор отвара само {site} и странице преко којих се тамо пријављујеш, па {host} остаје затворен.',
   'signInBrowser.refused': 'Google је одбио овај прегледач. Радије се пријави на YouTube у свом прегледачу и пусти проширење да преда сесију.',
   'signInBrowser.closedIdle': 'Прегледач се затворио после пет минута без уноса.',

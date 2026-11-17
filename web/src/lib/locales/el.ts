@@ -4093,8 +4093,6 @@ export const el: Dict = {
   'signInBrowser.done': 'Τέλος',
   'signInBrowser.openAgain': 'Άνοιγμα ξανά',
   'signInBrowser.openInBrowser': 'Άνοιγμα στον περιηγητή',
-  'signInBrowser.ownBrowserPair': 'Για να συνδεθείς στο {site} από τον δικό σου περιηγητή, εγκατάστησε εκεί την επέκταση KnightLoader και κάνε σύζευξη με αυτή την εγκατάσταση.',
-  'signInBrowser.ownBrowserAllow': 'Για να συνδεθείς στο {site} από τον δικό σου περιηγητή, άφησε την επέκταση KnightLoader εκεί να μεταφέρει τις συνδέσεις σου. Το ενεργοποιείς στις ρυθμίσεις της.',
   'signInBrowser.blocked': 'Αυτό το παράθυρο ανοίγει μόνο το {site} και τις σελίδες μέσω των οποίων συνδέεσαι εκεί, οπότε το {host} μένει κλειστό.',
   'signInBrowser.refused': 'Η Google απέρριψε αυτόν τον περιηγητή. Συνδέσου καλύτερα στο YouTube στον δικό σου περιηγητή και άφησε την επέκταση να παραδώσει τη συνεδρία.',
   'signInBrowser.closedIdle': 'Ο περιηγητής έκλεισε μετά από πέντε λεπτά χωρίς ενέργεια.',

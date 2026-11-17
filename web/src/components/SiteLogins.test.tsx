@@ -230,19 +230,11 @@ it('tells the tab the site opened in that it can go once the sign-in arrives', a
   }
 });
 
-it('offers no own browser in a container whose extension may not read the site, and says why', async () => {
-  sites = [{ ...signedOut(patreon), readsBrowsers: false }];
-  await renderCard();
-  await act(async () => row('Patreon')!.click());
-  expect(button('Open Patreon')).toBeUndefined();
-  expect(document.querySelector('[role="dialog"]')!.textContent).toContain(en['siteLogins.signInAllow'].replace('{site}', 'Patreon'));
-});
-
-it('opens the site in a container whose extension may read it', async () => {
+it('offers no Open button in a container, also where the extension may read the site', async () => {
   sites = [{ ...signedOut(patreon), readsBrowsers: false, handsOver: true }];
   await renderCard();
   await act(async () => row('Patreon')!.click());
-  expect(button('Open Patreon')).toBeDefined();
+  expect(button('Open Patreon')).toBeUndefined();
 });
 
 it('forgets a session the extension passed on from its row, after asking', async () => {

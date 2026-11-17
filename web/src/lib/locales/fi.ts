@@ -4093,8 +4093,6 @@ export const fi: Dict = {
   'signInBrowser.done': 'Valmis',
   'signInBrowser.openAgain': 'Avaa uudelleen',
   'signInBrowser.openInBrowser': 'Avaa selaimessa',
-  'signInBrowser.ownBrowserPair': 'Jos haluat kirjautua palveluun {site} omassa selaimessasi, asenna sinne KnightLoader-laajennus ja pariuta se tämän instanssin kanssa.',
-  'signInBrowser.ownBrowserAllow': 'Jos haluat kirjautua palveluun {site} omassa selaimessasi, anna siellä olevan KnightLoader-laajennuksen välittää kirjautumisesi. Sen saat päälle laajennuksen asetuksista.',
   'signInBrowser.blocked': 'Tämä ikkuna avaa vain palvelun {site} ja sivut, joiden kautta kirjaudut sinne, joten {host} pysyy kiinni.',
   'signInBrowser.refused': 'Google torjui tämän selaimen. Kirjaudu sen sijaan YouTubeen omassa selaimessasi ja anna laajennuksen siirtää istunto.',
   'signInBrowser.closedIdle': 'Selain sulkeutui viiden minuutin toimettomuuden jälkeen.',

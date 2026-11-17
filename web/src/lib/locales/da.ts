@@ -4078,8 +4078,6 @@ export const da: Dict = {
   'signInBrowser.done': 'Færdig',
   'signInBrowser.openAgain': 'Åbn igen',
   'signInBrowser.openInBrowser': 'Åbn i browseren',
-  'signInBrowser.ownBrowserPair': 'Vil du logge ind på {site} i din egen browser, så installer KnightLoader-udvidelsen der og par den med denne instans.',
-  'signInBrowser.ownBrowserAllow': 'Vil du logge ind på {site} i din egen browser, så lad KnightLoader-udvidelsen der give dine logins videre. Det slår du til i dens indstillinger.',
   'signInBrowser.blocked': 'Dette vindue åbner kun {site} og de sider, du logger ind der med, så {host} forbliver lukket.',
   'signInBrowser.refused': 'Google afviste denne browser. Log i stedet ind på YouTube i din egen browser, og lad udvidelsen give sessionen videre.',
   'signInBrowser.closedIdle': 'Browseren lukkede efter fem minutter uden input.',

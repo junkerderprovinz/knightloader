@@ -4091,8 +4091,6 @@ export const th: Dict = {
   'signInBrowser.done': 'เสร็จสิ้น',
   'signInBrowser.openAgain': 'เปิดอีกครั้ง',
   'signInBrowser.openInBrowser': 'เปิดในเบราว์เซอร์',
-  'signInBrowser.ownBrowserPair': 'หากต้องการเข้าสู่ระบบ {site} ในเบราว์เซอร์ของคุณเอง ให้ติดตั้งส่วนขยาย KnightLoader ในเบราว์เซอร์นั้นแล้วจับคู่กับอินสแตนซ์นี้',
-  'signInBrowser.ownBrowserAllow': 'หากต้องการเข้าสู่ระบบ {site} ในเบราว์เซอร์ของคุณเอง ให้อนุญาตให้ส่วนขยาย KnightLoader ในเบราว์เซอร์นั้นส่งต่อการเข้าสู่ระบบของคุณ เปิดได้ในการตั้งค่าของส่วนขยาย',
   'signInBrowser.blocked': 'หน้าต่างนี้เปิดได้เฉพาะ {site} และหน้าที่ใช้เข้าสู่ระบบที่นั่น {host} จึงยังปิดอยู่',
   'signInBrowser.refused': 'Google ปฏิเสธเบราว์เซอร์นี้ ให้เข้าสู่ระบบ YouTube ในเบราว์เซอร์ของคุณเองแทน แล้วให้ส่วนขยายส่งต่อเซสชัน',
   'signInBrowser.closedIdle': 'เบราว์เซอร์ปิดไปหลังจากไม่มีการป้อนข้อมูลห้านาที',

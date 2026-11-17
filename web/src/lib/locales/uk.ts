@@ -4093,8 +4093,6 @@ export const uk: Dict = {
   'signInBrowser.done': 'Готово',
   'signInBrowser.openAgain': 'Відкрити знову',
   'signInBrowser.openInBrowser': 'Відкрити в браузері',
-  'signInBrowser.ownBrowserPair': 'Щоб увійти до {site} у власному браузері, встановіть у ньому розширення KnightLoader і спаруйте його з цим екземпляром.',
-  'signInBrowser.ownBrowserAllow': 'Щоб увійти до {site} у власному браузері, дозвольте розширенню KnightLoader у ньому передавати ваші входи. Це вмикається в його налаштуваннях.',
   'signInBrowser.blocked': 'Це вікно відкриває лише {site} і сторінки, через які ви туди входите, тож {host} лишається закритим.',
   'signInBrowser.refused': 'Google відхилив цей браузер. Увійдіть у YouTube у своєму браузері й дозвольте розширенню передати сеанс.',
   'signInBrowser.closedIdle': 'Браузер закрився після п’яти хвилин без введення.',

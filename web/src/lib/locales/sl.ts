@@ -4091,8 +4091,6 @@ export const sl: Dict = {
   'signInBrowser.done': 'Končano',
   'signInBrowser.openAgain': 'Znova odpri',
   'signInBrowser.openInBrowser': 'Odpri v brskalniku',
-  'signInBrowser.ownBrowserPair': 'Če se želiš v {site} prijaviti v svojem brskalniku, vanj namesti razširitev KnightLoader in jo seznani s to instanco.',
-  'signInBrowser.ownBrowserAllow': 'Če se želiš v {site} prijaviti v svojem brskalniku, dovoli tamkajšnji razširitvi KnightLoader, da predaja tvoje prijave. To vklopiš v njenih nastavitvah.',
   'signInBrowser.blocked': 'To okno odpre le {site} in strani, prek katerih se tam prijaviš, zato {host} ostane zaprt.',
   'signInBrowser.refused': 'Google je ta brskalnik zavrnil. Raje se prijavi v YouTube v svojem brskalniku in pusti razširitvi, da preda sejo.',
   'signInBrowser.closedIdle': 'Brskalnik se je zaprl po petih minutah brez vnosa.',

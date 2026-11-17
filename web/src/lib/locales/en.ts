@@ -4333,8 +4333,6 @@ export const en = {
   'signInBrowser.done': 'Done',
   'signInBrowser.openAgain': 'Open again',
   'signInBrowser.openInBrowser': 'Open in browser',
-  'signInBrowser.ownBrowserPair': 'To sign in to {site} in your own browser, add the KnightLoader extension there and pair it with this instance.',
-  'signInBrowser.ownBrowserAllow': 'To sign in to {site} in your own browser, let the KnightLoader extension there pass your sign-ins on. You switch that on in its settings.',
   'signInBrowser.blocked': 'This window only opens {site} and the pages it signs you in with, so {host} stays closed.',
   'signInBrowser.refused': 'Google turned this browser away. Sign in to YouTube in your own browser instead and let the extension hand the session over.',
   'signInBrowser.closedIdle': 'The browser closed after five minutes without input.',

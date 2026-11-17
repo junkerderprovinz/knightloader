@@ -4092,8 +4092,6 @@ export const ms: Dict = {
   'signInBrowser.done': 'Selesai',
   'signInBrowser.openAgain': 'Buka semula',
   'signInBrowser.openInBrowser': 'Buka dalam pelayar',
-  'signInBrowser.ownBrowserPair': 'Untuk log masuk ke {site} dalam pelayar anda sendiri, pasang sambungan KnightLoader di situ dan gandingkannya dengan instans ini.',
-  'signInBrowser.ownBrowserAllow': 'Untuk log masuk ke {site} dalam pelayar anda sendiri, benarkan sambungan KnightLoader di situ menyerahkan log masuk anda. Anda menghidupkannya dalam tetapannya.',
   'signInBrowser.blocked': 'Tetingkap ini hanya membuka {site} dan halaman yang anda gunakan untuk log masuk ke sana, jadi {host} kekal tertutup.',
   'signInBrowser.refused': 'Google menolak pelayar ini. Sebaliknya, log masuk ke YouTube dalam pelayar anda sendiri dan biarkan sambungan menyerahkan sesinya.',
   'signInBrowser.closedIdle': 'Pelayar ditutup selepas lima minit tanpa input.',

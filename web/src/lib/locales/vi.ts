@@ -4092,8 +4092,6 @@ export const vi: Dict = {
   'signInBrowser.done': 'Xong',
   'signInBrowser.openAgain': 'Mở lại',
   'signInBrowser.openInBrowser': 'Mở trong trình duyệt',
-  'signInBrowser.ownBrowserPair': 'Để đăng nhập vào {site} trong trình duyệt của bạn, hãy cài tiện ích KnightLoader vào đó và ghép nối nó với phiên bản này.',
-  'signInBrowser.ownBrowserAllow': 'Để đăng nhập vào {site} trong trình duyệt của bạn, hãy cho phép tiện ích KnightLoader ở đó chuyển giao các phiên đăng nhập của bạn. Bạn bật việc này trong phần cài đặt của tiện ích.',
   'signInBrowser.blocked': 'Cửa sổ này chỉ mở {site} và các trang bạn dùng để đăng nhập vào đó, nên {host} vẫn đóng.',
   'signInBrowser.refused': 'Google đã từ chối trình duyệt này. Hãy đăng nhập YouTube trong trình duyệt của bạn và để tiện ích chuyển giao phiên.',
   'signInBrowser.closedIdle': 'Trình duyệt đã đóng sau năm phút không có thao tác.',

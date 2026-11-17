@@ -4083,8 +4083,6 @@ export const et: Dict = {
   'signInBrowser.done': 'Valmis',
   'signInBrowser.openAgain': 'Ava uuesti',
   'signInBrowser.openInBrowser': 'Ava brauseris',
-  'signInBrowser.ownBrowserPair': 'Kui tahad saidile {site} oma brauseris sisse logida, paigalda sinna KnightLoaderi laiendus ja seo see selle eksemplariga.',
-  'signInBrowser.ownBrowserAllow': 'Kui tahad saidile {site} oma brauseris sisse logida, luba seal oleval KnightLoaderi laiendusel sinu sisselogimised edasi anda. Selle lülitad sisse laienduse seadetes.',
   'signInBrowser.blocked': 'See aken avab ainult {site} ja lehed, mille kaudu sa sinna sisse logid, seega {host} jääb suletuks.',
   'signInBrowser.refused': 'Google lükkas selle brauseri tagasi. Logi YouTube’i hoopis oma brauseris sisse ja lase laiendusel seanss üle anda.',
   'signInBrowser.closedIdle': 'Brauser sulgus pärast viit minutit ilma sisestuseta.',

@@ -4075,8 +4075,6 @@ export const nl: Dict = {
   'signInBrowser.done': 'Klaar',
   'signInBrowser.openAgain': 'Opnieuw openen',
   'signInBrowser.openInBrowser': 'Openen in browser',
-  'signInBrowser.ownBrowserPair': 'Om je in je eigen browser bij {site} aan te melden, installeer je daar de KnightLoader-extensie en koppel je die aan deze instantie.',
-  'signInBrowser.ownBrowserAllow': 'Om je in je eigen browser bij {site} aan te melden, laat je de KnightLoader-extensie daar je aanmeldingen doorgeven. Dat zet je aan in haar instellingen.',
   'signInBrowser.blocked': 'Dit venster opent alleen {site} en de pagina’s waarmee je je daar aanmeldt, dus {host} blijft dicht.',
   'signInBrowser.refused': 'Google heeft deze browser geweigerd. Meld je in plaats daarvan in je eigen browser aan bij YouTube en laat de extensie de sessie doorgeven.',
   'signInBrowser.closedIdle': 'De browser is na vijf minuten zonder invoer gesloten.',

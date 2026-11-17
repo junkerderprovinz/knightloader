@@ -4102,8 +4102,6 @@ export const cs: Dict = {
   'signInBrowser.done': 'Hotovo',
   'signInBrowser.openAgain': 'Otevřít znovu',
   'signInBrowser.openInBrowser': 'Otevřít v prohlížeči',
-  'signInBrowser.ownBrowserPair': 'Chceš-li se ke službě {site} přihlásit ve svém prohlížeči, nainstaluj do něj rozšíření KnightLoader a spáruj ho s touto instancí.',
-  'signInBrowser.ownBrowserAllow': 'Chceš-li se ke službě {site} přihlásit ve svém prohlížeči, dovol tamnímu rozšíření KnightLoader předávat tvá přihlášení. Zapneš to v jeho nastavení.',
   'signInBrowser.blocked': 'Toto okno otevírá jen {site} a stránky, přes které se tam přihlašuješ, takže {host} zůstává zavřený.',
   'signInBrowser.refused': 'Google tento prohlížeč odmítl. Přihlas se raději k YouTube ve svém prohlížeči a nech rozšíření předat relaci.',
   'signInBrowser.closedIdle': 'Prohlížeč se zavřel po pěti minutách bez vstupu.',
