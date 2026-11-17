@@ -4120,5 +4120,5 @@ export const fi: Dict = {
   'siteLogins.turnedDown': '{site} hylkäsi kirjautumisen selaimesta {browser}',
   'siteLogins.disconnected': 'Poistettu KnightLoaderista. Selain pysyy kirjautuneena.',
   'siteLogins.reconnect': 'Käytä selaimen kirjautumista taas',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Kirjaudu palveluun {site} tässä ikkunassa. KnightLoader säilyttää istunnon, ei koskaan kirjoittamaasi.',
 };

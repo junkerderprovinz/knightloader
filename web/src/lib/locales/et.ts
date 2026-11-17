@@ -4110,5 +4110,5 @@ export const et: Dict = {
   'siteLogins.turnedDown': '{site} lükkas brauseri {browser} sisselogimise tagasi',
   'siteLogins.disconnected': 'KnightLoaderist eemaldatud. Brauser jääb sisselogituks.',
   'siteLogins.reconnect': 'Kasuta uuesti brauseri sisselogimist',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Logi saidile {site} sisse siinses aknas. KnightLoader jätab meelde seansi, mitte kunagi seda, mida sisestad.',
 };

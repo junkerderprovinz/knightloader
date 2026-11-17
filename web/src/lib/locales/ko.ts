@@ -4107,5 +4107,5 @@ export const ko: Dict = {
   'siteLogins.turnedDown': '{site}에서 {browser}의 로그인을 받아 주지 않았습니다',
   'siteLogins.disconnected': 'KnightLoader에서 제거했습니다. 브라우저는 로그인된 채로 있습니다.',
   'siteLogins.reconnect': '브라우저 로그인 다시 사용',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': '여기 창에서 {site}에 로그인하세요. KnightLoader는 세션만 보관하고 입력한 내용은 절대 보관하지 않습니다.',
 };

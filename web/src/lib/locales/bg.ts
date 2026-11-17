@@ -4120,5 +4120,5 @@ export const bg: Dict = {
   'siteLogins.turnedDown': '{site} отхвърли входа от {browser}',
   'siteLogins.disconnected': 'Премахнато от KnightLoader. Браузърът остава с вход.',
   'siteLogins.reconnect': 'Използвай отново входа от браузъра',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Влез в {site} в прозореца тук. KnightLoader пази сесията, но никога написаното от теб.',
 };

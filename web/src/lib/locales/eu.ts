@@ -4115,5 +4115,5 @@ export const eu: Dict = {
   'siteLogins.turnedDown': '{site} guneak {browser} nabigatzaileko saioa baztertu du',
   'siteLogins.disconnected': 'KnightLoaderretik kendua. Nabigatzaileak saioa hasita jarraitzen du.',
   'siteLogins.reconnect': 'Erabili berriro nabigatzaileko saioa',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Hasi saioa {site} gunean hemen dagoen leihoan. KnightLoaderrek saioa gordetzen du, inoiz ez idazten duzuna.',
 };

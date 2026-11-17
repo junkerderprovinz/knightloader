@@ -4108,5 +4108,5 @@ export const fa: Dict = {
   'siteLogins.turnedDown': '{site} ورود از {browser} را نپذیرفت',
   'siteLogins.disconnected': 'از KnightLoader برداشته شد. مرورگرت همچنان وارد شده می‌ماند.',
   'siteLogins.reconnect': 'دوباره از ورود مرورگر استفاده کن',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'در پنجرهٔ همین‌جا وارد {site} شو. KnightLoader نشست را نگه می‌دارد، نه آنچه را تایپ می‌کنی.',
 };

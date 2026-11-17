@@ -4121,5 +4121,5 @@ export const lt: Dict = {
   'siteLogins.turnedDown': '„{site}“ atmetė prisijungimą iš {browser}',
   'siteLogins.disconnected': 'Pašalinta iš KnightLoader. Naršyklė lieka prisijungusi.',
   'siteLogins.reconnect': 'Vėl naudoti naršyklės prisijungimą',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Prisijunk prie „{site}“ čia esančiame lange. KnightLoader išsaugo sesiją, bet niekada to, ką įvedi.',
 };

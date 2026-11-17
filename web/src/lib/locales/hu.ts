@@ -4120,5 +4120,5 @@ export const hu: Dict = {
   'siteLogins.turnedDown': 'A(z) {site} elutasította a bejelentkezést innen: {browser}',
   'siteLogins.disconnected': 'Eltávolítva a KnightLoaderből. A böngésződ bejelentkezve marad.',
   'siteLogins.reconnect': 'A böngésző bejelentkezésének újbóli használata',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Jelentkezz be ide: {site} az itteni ablakban. A KnightLoader a munkamenetet őrzi meg, soha nem azt, amit begépelsz.',
 };

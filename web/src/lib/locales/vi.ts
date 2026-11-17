@@ -4119,5 +4119,5 @@ export const vi: Dict = {
   'siteLogins.turnedDown': '{site} đã từ chối phiên đăng nhập từ {browser}',
   'siteLogins.disconnected': 'Đã gỡ khỏi KnightLoader. Trình duyệt vẫn đăng nhập.',
   'siteLogins.reconnect': 'Dùng lại đăng nhập của trình duyệt',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Hãy đăng nhập vào {site} trong cửa sổ này. KnightLoader giữ phiên đăng nhập, không bao giờ giữ những gì bạn gõ.',
 };

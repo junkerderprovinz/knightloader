@@ -4122,5 +4122,5 @@ export const no: Dict = {
   'siteLogins.turnedDown': '{site} avviste innloggingen fra {browser}',
   'siteLogins.disconnected': 'Fjernet fra KnightLoader. Nettleseren er fortsatt logget inn.',
   'siteLogins.reconnect': 'Bruk innloggingen fra nettleseren igjen',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Logg inn på {site} i vinduet her. KnightLoader beholder økten, aldri det du skriver.',
 };

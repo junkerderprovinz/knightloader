@@ -4129,5 +4129,5 @@ export const sk: Dict = {
   'siteLogins.turnedDown': 'Služba {site} odmietla prihlásenie z {browser}',
   'siteLogins.disconnected': 'Odstránené z KnightLoadera. Prehliadač zostáva prihlásený.',
   'siteLogins.reconnect': 'Znova použiť prihlásenie z prehliadača',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Prihlás sa do služby {site} v okne tu. KnightLoader si ponechá reláciu, nikdy to, čo napíšeš.',
 };

@@ -4120,5 +4120,5 @@ export const el: Dict = {
   'siteLogins.turnedDown': 'Το {site} απέρριψε τη σύνδεση από {browser}',
   'siteLogins.disconnected': 'Αφαιρέθηκε από το KnightLoader. Ο περιηγητής σου μένει συνδεδεμένος.',
   'siteLogins.reconnect': 'Χρήση ξανά της σύνδεσης του περιηγητή',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Συνδέσου στο {site} στο παράθυρο εδώ. Το KnightLoader κρατά τη συνεδρία, ποτέ όσα πληκτρολογείς.',
 };

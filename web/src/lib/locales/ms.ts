@@ -4119,5 +4119,5 @@ export const ms: Dict = {
   'siteLogins.turnedDown': '{site} menolak log masuk daripada {browser}',
   'siteLogins.disconnected': 'Dibuang daripada KnightLoader. Pelayar anda kekal log masuk.',
   'siteLogins.reconnect': 'Guna log masuk pelayar semula',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Log masuk ke {site} dalam tetingkap ini. KnightLoader menyimpan sesinya, tidak pernah apa yang anda taip.',
 };

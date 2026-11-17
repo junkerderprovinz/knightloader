@@ -4106,5 +4106,5 @@ export const ca: Dict = {
   'siteLogins.turnedDown': '{site} ha rebutjat la sessió de {browser}',
   'siteLogins.disconnected': 'S’ha tret de KnightLoader. El navegador continua amb la sessió iniciada.',
   'siteLogins.reconnect': 'Torna a fer servir la sessió del navegador',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Inicia la sessió a {site} a la finestra d’aquí. KnightLoader es queda la sessió, mai el que escrius.',
 };

@@ -4108,5 +4108,5 @@ export const fr: Dict = {
   'siteLogins.turnedDown': '{site} a refusé la connexion venant de {browser}',
   'siteLogins.disconnected': 'Retiré de KnightLoader. Votre navigateur reste connecté.',
   'siteLogins.reconnect': 'Utiliser de nouveau la connexion du navigateur',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Connectez-vous à {site} dans la fenêtre ici. KnightLoader garde la session, jamais ce que vous saisissez.',
 };

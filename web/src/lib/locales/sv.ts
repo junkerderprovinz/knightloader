@@ -4119,5 +4119,5 @@ export const sv: Dict = {
   'siteLogins.turnedDown': '{site} nekade inloggningen från {browser}',
   'siteLogins.disconnected': 'Borttagen från KnightLoader. Webbläsaren förblir inloggad.',
   'siteLogins.reconnect': 'Använd webbläsarens inloggning igen',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Logga in på {site} i fönstret här. KnightLoader behåller sessionen, aldrig det du skriver.',
 };

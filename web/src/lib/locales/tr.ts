@@ -4118,5 +4118,5 @@ export const tr: Dict = {
   'siteLogins.turnedDown': '{site}, {browser} üzerinden gelen oturumu reddetti',
   'siteLogins.disconnected': 'KnightLoader’dan kaldırıldı. Tarayıcın oturumu açık kalır.',
   'siteLogins.reconnect': 'Tarayıcının oturumunu yeniden kullan',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Buradaki pencerede {site} için oturum aç. KnightLoader oturumu saklar, yazdıklarını asla saklamaz.',
 };

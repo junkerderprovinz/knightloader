@@ -4116,5 +4116,5 @@ export const ja: Dict = {
   'siteLogins.turnedDown': '{site} が {browser} からのサインインを受け付けませんでした',
   'siteLogins.disconnected': 'KnightLoader から削除しました。ブラウザーはサインインしたままです。',
   'siteLogins.reconnect': 'ブラウザーのサインインをもう一度使う',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'ここのウィンドウで {site} にサインインしてください。KnightLoader が保持するのはセッションだけで、入力した内容は保持しません。',
 };

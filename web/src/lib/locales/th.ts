@@ -4118,5 +4118,5 @@ export const th: Dict = {
   'siteLogins.turnedDown': '{site} ปฏิเสธการเข้าสู่ระบบจาก {browser}',
   'siteLogins.disconnected': 'นำออกจาก KnightLoader แล้ว เบราว์เซอร์ยังเข้าสู่ระบบอยู่',
   'siteLogins.reconnect': 'ใช้การเข้าสู่ระบบจากเบราว์เซอร์อีกครั้ง',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'เข้าสู่ระบบ {site} ในหน้าต่างตรงนี้ KnightLoader เก็บเฉพาะเซสชัน ไม่เก็บสิ่งที่คุณพิมพ์เลย',
 };

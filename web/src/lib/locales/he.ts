@@ -4136,5 +4136,5 @@ export const he: Dict = {
   'siteLogins.turnedDown': '{site} דחה את ההתחברות מ-{browser}',
   'siteLogins.disconnected': 'הוסר מ-KnightLoader. הדפדפן נשאר מחובר.',
   'siteLogins.reconnect': 'להשתמש שוב בהתחברות מהדפדפן',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'התחבר ל-{site} בחלון כאן. KnightLoader שומר את ההתחברות, אף פעם לא את מה שאתה מקליד.',
 };

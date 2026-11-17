@@ -4099,5 +4099,5 @@ export const ru: Dict = {
   'siteLogins.turnedDown': '{site} отклонил вход из {browser}',
   'siteLogins.disconnected': 'Удалено из KnightLoader. Браузер остаётся в аккаунте.',
   'siteLogins.reconnect': 'Снова использовать вход из браузера',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Войдите в {site} в окне здесь. KnightLoader сохраняет сессию, но никогда не сохраняет то, что вы вводите.',
 };

@@ -4120,5 +4120,5 @@ export const hi: Dict = {
   'siteLogins.turnedDown': '{site} ने {browser} से आया साइन इन ठुकरा दिया',
   'siteLogins.disconnected': 'KnightLoader से हटा दिया गया। आपका ब्राउज़र साइन इन ही रहता है।',
   'siteLogins.reconnect': 'ब्राउज़र का साइन इन फिर से इस्तेमाल करें',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'यहाँ की विंडो में {site} में साइन इन करें। KnightLoader सत्र को सहेजता है, आप जो टाइप करते हैं उसे कभी नहीं।',
 };

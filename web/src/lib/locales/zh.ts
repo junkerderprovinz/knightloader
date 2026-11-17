@@ -4103,5 +4103,5 @@ export const zh: Dict = {
   'siteLogins.turnedDown': '{site} 拒绝了来自 {browser} 的登录状态',
   'siteLogins.disconnected': '已从 KnightLoader 移除。浏览器仍保持登录。',
   'siteLogins.reconnect': '再次使用浏览器的登录',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': '在这里的窗口中登录 {site}。KnightLoader 只保留会话，绝不保留你输入的内容。',
 };

@@ -4110,5 +4110,5 @@ export const lv: Dict = {
   'siteLogins.turnedDown': 'Vietne {site} noraidīja pieteikšanos no {browser}',
   'siteLogins.disconnected': 'Noņemts no KnightLoader. Pārlūks paliek pieteicies.',
   'siteLogins.reconnect': 'Atkal izmantot pārlūka pieteikšanos',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Piesakies vietnē {site} šeit esošajā logā. KnightLoader saglabā sesiju, nekad to, ko ievadi.',
 };

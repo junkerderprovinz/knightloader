@@ -4133,5 +4133,5 @@ export const sr: Dict = {
   'siteLogins.turnedDown': '{site} је одбио пријаву из {browser}',
   'siteLogins.disconnected': 'Уклоњено из KnightLoader-а. Прегледач остаје пријављен.',
   'siteLogins.reconnect': 'Поново користи пријаву из прегледача',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Пријави се на {site} у прозору овде. KnightLoader чува сесију, никад оно што укуцаш.',
 };

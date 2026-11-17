@@ -4120,5 +4120,5 @@ export const uk: Dict = {
   'siteLogins.turnedDown': '{site} відхилив вхід із {browser}',
   'siteLogins.disconnected': 'Вилучено з KnightLoader. Браузер лишається в обліковому записі.',
   'siteLogins.reconnect': 'Знову використати вхід із браузера',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Увійдіть до {site} у вікні тут. KnightLoader зберігає сесію, але ніколи те, що ви вводите.',
 };

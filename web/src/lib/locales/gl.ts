@@ -4116,5 +4116,5 @@ export const gl: Dict = {
   'siteLogins.turnedDown': '{site} rexeitou a sesión de {browser}',
   'siteLogins.disconnected': 'Quitado de KnightLoader. O navegador segue coa sesión iniciada.',
   'siteLogins.reconnect': 'Volver usar a sesión do navegador',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Inicia sesión en {site} na xanela de aquí. KnightLoader garda a sesión, nunca o que escribes.',
 };

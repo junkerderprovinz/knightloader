@@ -4102,5 +4102,5 @@ export const nl: Dict = {
   'siteLogins.turnedDown': '{site} heeft de aanmelding uit {browser} geweigerd',
   'siteLogins.disconnected': 'Uit KnightLoader verwijderd. Je browser blijft aangemeld.',
   'siteLogins.reconnect': 'Aanmelding uit de browser weer gebruiken',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Meld je aan bij {site} in het venster hier. KnightLoader bewaart de sessie, nooit wat je typt.',
 };

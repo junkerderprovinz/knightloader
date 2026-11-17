@@ -4128,5 +4128,5 @@ export const ro: Dict = {
   'siteLogins.turnedDown': '{site} a respins autentificarea din {browser}',
   'siteLogins.disconnected': 'Eliminat din KnightLoader. Browserul rămâne autentificat.',
   'siteLogins.reconnect': 'Folosește din nou autentificarea din browser',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'Autentifică-te pe {site} în fereastra de aici. KnightLoader păstrează sesiunea, niciodată ce tastezi.',
 };

@@ -4117,5 +4117,5 @@ export const ar: Dict = {
   'siteLogins.turnedDown': 'رفض {site} تسجيل الدخول القادم من {browser}',
   'siteLogins.disconnected': 'أُزيل من KnightLoader. يبقى متصفحك مسجّل الدخول.',
   'siteLogins.reconnect': 'استخدم تسجيل الدخول من المتصفح من جديد',
-  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
+  'siteLogins.signInInKl': 'سجّل الدخول إلى {site} في النافذة هنا. يحتفظ KnightLoader بالجلسة ولا يحتفظ أبدًا بما تكتبه.',
 };
