@@ -232,6 +232,7 @@ export function HosterLoginSection({
     <div className="flex flex-col gap-3">
       {hasRows && (
         <AccountTable
+          tableId="hoster"
           label={t('accounts.hoster.title')}
           rows={[
             ...rows.map((row) =>
