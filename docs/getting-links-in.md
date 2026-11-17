@@ -153,7 +153,8 @@ key, and a result counts only when its files have the same names and sizes.
 Each tracker is asked about each torrent once: when the torrent finishes, and
 for the torrents already done when you switch cross-seeding on or change a
 key. `cross-seed-asked.json` in the data folder remembers every answer, and a
-tracker that failed is asked again once its key or address changes. A torrent
+tracker that failed is asked again once its key or address changes. Removing
+a task forgets its answers, so a torrent you add again is asked about again. A torrent
 with files left out is skipped, since its twin needs every file.
 
 A twin goes into KnightLoader's qBittorrent with its check skipped, tagged

@@ -292,6 +292,35 @@ func TestRemovingATaskTakesItsTwinOutOfQBittorrent(t *testing.T) {
 	}
 }
 
+func TestATorrentAddedAgainAfterItsRemovalIsAskedAboutAgain(t *testing.T) {
+	t.Parallel()
+	r := crossSeedApp(t)
+	r.switchOn(t, nil)
+	asked := r.ops.questions()
+	r.a.Remove(r.task.ID, false)
+	deadline := time.Now().Add(10 * time.Second)
+	for r.bt.Has(r.twin) {
+		if time.Now().After(deadline) {
+			t.Fatal("the twin of the removed task stayed in qBittorrent")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	again := *r.task
+	again.ID = "album-again"
+	r.a.mu.Lock()
+	r.a.tasks[again.ID] = &again
+	r.a.mu.Unlock()
+	r.a.offerCrossSeed(&again)
+	r.settle(t)
+	if n := r.ops.questions(); n == asked {
+		t.Fatal("OPS was not asked again about the torrent added once more")
+	}
+	if !r.bt.Has(r.twin) {
+		t.Error("the twin of the torrent added once more was not injected")
+	}
+}
+
 func TestATorrentWithFilesLeftOutIsNotCrossSeeded(t *testing.T) {
 	t.Parallel()
 	r := crossSeedApp(t)

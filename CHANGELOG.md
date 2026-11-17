@@ -53,7 +53,8 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Cross-seeding.** A finished torrent is looked for on your other trackers
   and seeded there too, from the same files. RED and OPS ask each other's API
   for the twin with your API key, and any other tracker is searched through
-  Prowlarr or Jackett. Each tracker is asked about each torrent once. The
+  Prowlarr or Jackett. Each tracker is asked about each torrent once, and
+  again when you remove the torrent and add it once more. The
   twin goes into KnightLoader's qBittorrent without a check, seeding from your
   files or from hardlinks, symlinks or reflinks in a folder you pick, and
   leaves with its task. Settings, Torrents has a test for every key and lists

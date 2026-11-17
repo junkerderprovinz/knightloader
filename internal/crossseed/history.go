@@ -36,6 +36,9 @@ type Answer struct {
 // asked twice, across restarts.
 type History struct {
 	path string
+	// saveMu keeps two saves from writing the same file at once, the older
+	// answers last.
+	saveMu sync.Mutex
 
 	mu      sync.Mutex
 	answers map[string]Answer
@@ -94,6 +97,20 @@ func (h *History) ForgetErrors(tracker string) {
 	}
 }
 
+// Forget drops every answer about the torrent with hash, so each tracker is
+// asked again should it come back.
+func (h *History) Forget(hash string) {
+	suffix := " " + strings.ToLower(hash)
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for k := range h.answers {
+		if strings.HasSuffix(k, suffix) {
+			delete(h.answers, k)
+			h.dirty = true
+		}
+	}
+}
+
 // Injected is every twin injected for the torrent with hash.
 func (h *History) Injected(hash string) []string {
 	suffix := " " + strings.ToLower(hash)
@@ -110,6 +127,8 @@ func (h *History) Injected(hash string) []string {
 
 // Save writes the history when it changed.
 func (h *History) Save() error {
+	h.saveMu.Lock()
+	defer h.saveMu.Unlock()
 	h.mu.Lock()
 	if !h.dirty {
 		h.mu.Unlock()

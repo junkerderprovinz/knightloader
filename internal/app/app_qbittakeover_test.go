@@ -100,7 +100,7 @@ func TestATwinLeftWhileQBittorrentWasAwayGoesWithItsLinksAtTheNextStart(t *testi
 	off := torrentstest.New()
 	off.FailNext(torrents.ErrOff)
 	r.a.UseTorrents(off)
-	r.a.dropCrossSeedsNow(context.Background(), gone, true)
+	r.a.dropTwins(context.Background(), gone, r.a.xsAsked.Injected(hashOrphan), true)
 
 	r.put(hashLeft, torrents.Tag+","+CrossSeedTag, filepath.Join(r.dl, "links", "RED"))
 	r.put(hashStray, torrents.Tag+","+CrossSeedTag, r.dl)

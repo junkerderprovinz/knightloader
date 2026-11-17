@@ -50,3 +50,29 @@ func TestAnUnreadableHistoryStartsEmpty(t *testing.T) {
 		t.Fatal("an unreadable file answered")
 	}
 }
+
+func TestATorrentForgottenIsAskedAgainOnEveryTracker(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "asked.json")
+	h := OpenHistory(path)
+	h.Note("RED", "aa", Answer{Result: ResultNone})
+	h.Note("OPS", "AA", Answer{Result: ResultInjected, InfoHash: "bb"})
+	h.Note(DaemonKey, "aa", Answer{Result: ResultHanded})
+	h.Note("OPS", "cc", Answer{Result: ResultNone})
+	h.Forget("AA")
+	if err := h.Save(); err != nil {
+		t.Fatal(err)
+	}
+
+	h = OpenHistory(path)
+	for _, tracker := range []string{"RED", "OPS", DaemonKey} {
+		if h.Asked(tracker, "aa") {
+			t.Errorf("%s still counts as asked about the forgotten torrent", tracker)
+		}
+	}
+	if len(h.Injected("aa")) != 0 {
+		t.Error("the forgotten torrent still has its twin")
+	}
+	if !h.Asked("OPS", "cc") {
+		t.Error("another torrent was forgotten with it")
+	}
+}

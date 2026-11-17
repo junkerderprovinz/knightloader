@@ -249,24 +249,34 @@ func folderName(tracker string) string {
 	return name
 }
 
-// dropCrossSeeds takes the twins of a removed task out of qBittorrent. A
-// twin seeding from linked files takes them along when the task's files go;
-// one seeding from the task's own files leaves them to the removal.
+// dropCrossSeeds takes the twins of a removed task out of qBittorrent and
+// forgets what the trackers said about it, so that the torrent added once
+// more is asked about again. A twin seeding from linked files takes them
+// along when the task's files go, and one seeding from the task's own files
+// leaves them to the removal.
 func (a *App) dropCrossSeeds(t *core.Task, files bool) {
-	if a.xsAsked == nil || t.InfoHash == "" || len(a.xsAsked.Injected(t.InfoHash)) == 0 {
+	if a.xsAsked == nil || t.InfoHash == "" {
+		return
+	}
+	twins := a.xsAsked.Injected(t.InfoHash)
+	a.xsAsked.Forget(t.InfoHash)
+	if err := a.xsAsked.Save(); err != nil {
+		log.Printf("cross-seed: the answers could not be written: %v", err)
+	}
+	if len(twins) == 0 {
 		return
 	}
 	a.spawn(func() {
 		ctx, cancel := context.WithTimeout(a.ctx, time.Minute)
 		defer cancel()
-		a.dropCrossSeedsNow(ctx, t, files)
+		a.dropTwins(ctx, t, twins, files)
 	})
 }
 
-// dropCrossSeedsNow is dropCrossSeeds while the caller waits. Twins that
-// qBittorrent could not be asked to let go are kept for its next start.
-func (a *App) dropCrossSeedsNow(ctx context.Context, t *core.Task, files bool) {
-	twins := a.xsAsked.Injected(t.InfoHash)
+// dropTwins takes twins of the removed task t out of qBittorrent while the
+// caller waits. Those qBittorrent could not be asked to let go are kept for
+// its next start.
+func (a *App) dropTwins(ctx context.Context, t *core.Task, twins []string, files bool) {
 	own := filepath.Dir(t.File)
 	left := map[string]leftTorrent{}
 	keep := func(h string) { left[strings.ToLower(h)] = leftTorrent{Files: files && t.File != "", Keep: own} }
