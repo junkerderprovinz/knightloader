@@ -253,6 +253,12 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **A paid Patreon post says that it needs a sign-in.** It fails at once
   instead of being retried, and the download row offers signing in to
   Patreon.
+- **Signing in to Patreon or YouTube from your own browser works in the
+  container.** "Open in browser" in a site's sign-in window only shows where
+  the sign-in can reach KnightLoader, and otherwise says what is missing: the
+  extension, or its permission to pass sign-ins on. Once you sign in in the
+  tab, the extension hands the sign-in over, also when that browser was
+  signed in already, and the tab says you can close it.
 - **The JDownloader import explains a folder the container cannot see.** The
   folder picker says when a path is not mapped into the container and points
   to the Unraid shares path in the template
