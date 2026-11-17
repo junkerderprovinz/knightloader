@@ -15,6 +15,7 @@ let root: Root;
 let host: HTMLDivElement;
 let calls: string[];
 let opened: string[];
+let tab: { opener: unknown; closed: boolean; document: Document; location: { replace: (url: string) => void }; went: string[]; shown: string[] };
 let apps: GroupApp[];
 let listed: SiteLogin;
 
@@ -56,9 +57,10 @@ beforeEach(() => {
   vi.stubGlobal('WebSocket', QuietSocket);
   vi.stubGlobal('ResizeObserver', StillBox);
   vi.stubGlobal('IntersectionObserver', StillBox);
+  tab = newTab();
   vi.stubGlobal('open', (url: string) => {
     opened.push(url);
-    return null;
+    return tab;
   });
   vi.stubGlobal(
     'fetch',
@@ -83,6 +85,19 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// A tab as window.open hands it back: an empty page of this origin, which
+// notes the links followed in it and the address it is sent to.
+function newTab() {
+  const doc = document.implementation.createHTMLDocument('');
+  const t = { opener: window as unknown, closed: false, document: doc, went: [] as string[], shown: [] as string[], location: { replace: (url: string) => t.shown.push(url) } };
+  doc.addEventListener('click', (e) => {
+    const a = e.target as HTMLAnchorElement;
+    t.went.push(`${a.href} ${a.rel}`);
+    e.preventDefault();
+  });
+  return t;
+}
+
 async function open(site: SiteLogin, onClose = () => {}) {
   await act(async () => {
     root.render(
@@ -105,7 +120,9 @@ it('opens the site in the browser and closes once KnightLoader reads the sign-in
   const onClose = vi.fn();
   await open(patreon, onClose);
   await act(async () => browserButton()!.click());
-  expect(opened).toEqual(['https://www.patreon.com/login']);
+  expect(opened).toEqual(['']);
+  expect(tab.went).toEqual(['https://www.patreon.com/login noreferrer']);
+  expect(tab.opener).toBeNull();
   expect(calls).toContain('/api/sitelogins/patreon/begin');
   expect(document.body.textContent).toContain('Sign in to Patreon in your browser. KnightLoader picks it up by itself.');
 
@@ -120,20 +137,41 @@ it('opens the site in the browser and closes once KnightLoader reads the sign-in
   });
   expect(calls).toContain('/api/signinbrowser/close');
   expect(onClose).toHaveBeenCalled();
+  expect(tab.shown).toEqual([`${location.origin}/signedin?site=Patreon`]);
+});
+
+it('leaves a tab the user closed alone', async () => {
+  await open(patreon);
+  await act(async () => browserButton()!.click());
+  tab.closed = true;
+  listed = fromFirefox;
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(3000);
+  });
+  expect(tab.shown).toEqual([]);
 });
 
 it('offers the browser where the extension of the group can hand the sign-in over', async () => {
   apps = [extension];
-  await open({ ...patreon, readsBrowsers: false });
+  await open({ ...patreon, readsBrowsers: false, handsOver: true });
   expect(browserButton()).toBeDefined();
 });
 
-it('offers no browser where nothing could pick the sign-in up from there', async () => {
+it('says to let the extension pass sign-ins on where it may not read the site', async () => {
+  apps = [extension];
   await open({ ...patreon, readsBrowsers: false });
   expect(browserButton()).toBeUndefined();
+  expect(document.body.textContent).toContain(en['signInBrowser.ownBrowserAllow'].replace('{site}', 'Patreon'));
+});
+
+it('offers no browser where nothing could pick the sign-in up from there, and says what would', async () => {
+  await open({ ...patreon, readsBrowsers: false });
+  expect(browserButton()).toBeUndefined();
+  expect(document.body.textContent).toContain(en['signInBrowser.ownBrowserPair'].replace('{site}', 'Patreon'));
 });
 
 it('offers no browser on a hoster login, which only signs in on its own page', async () => {
-  await open({ ...patreon, id: 'katfile', name: 'katfile.com', loginUrl: '' });
+  await open({ ...patreon, id: 'katfile', name: 'katfile.com', loginUrl: '', readsBrowsers: false });
   expect(browserButton()).toBeUndefined();
+  expect(document.body.textContent).not.toContain('KnightLoader extension');
 });

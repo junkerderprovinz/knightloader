@@ -11,12 +11,13 @@ import { SettingsPage } from '../pages/Settings';
 import { QuickAdd } from '../pages/QuickAdd';
 import { TrayOverview } from '../pages/TrayOverview';
 import { LinkPopup } from '../pages/LinkPopup';
+import { SignedIn } from '../pages/SignedIn';
 import { ToastProvider } from '../lib/toast';
 import { I18nProvider } from '../lib/i18n';
 import { TabIndicator } from '../components/TabIndicator';
 import { WindowBar } from '../components/WindowBar';
 import { RainbowProvider } from '../lib/useRainbow';
-import { basePath } from '../lib/basePath';
+import { basePath, withBase } from '../lib/basePath';
 import { useHidden } from '../lib/sidebarPrefs';
 
 /** Home is the overview, or the download list for whoever switched it off. */
@@ -31,6 +32,15 @@ export function AppRouter() {
     return (
       <I18nProvider>
         <LinkPopup />
+      </I18nProvider>
+    );
+  }
+  // The tab a site's sign-in was opened in ends on this page, which asks the
+  // API for nothing either.
+  if (window.location.pathname === withBase('/signedin')) {
+    return (
+      <I18nProvider>
+        <SignedIn />
       </I18nProvider>
     );
   }

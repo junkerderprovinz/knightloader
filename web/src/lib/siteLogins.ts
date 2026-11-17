@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { type SiteLogin, fetchConnect } from './api';
+import { appAddress } from './basePath';
 import type { TranslationKey } from './i18n';
 
 /** What a site's row and window say of its sign-in. */
@@ -70,15 +71,38 @@ export function useSignInWays(sites: SiteLogin[], enabled = true): SignInWays {
 }
 
 /**
+ * picksUpFromBrowser is whether a sign-in to the site in the user's own
+ * browser reaches this instance: it reads the browsers on its computer, or an
+ * extension of its group may read the site.
+ */
+export function picksUpFromBrowser(site: SiteLogin, ways: SignInWays): boolean {
+  return ways.readsBrowsers || !!site.handsOver;
+}
+
+/**
  * nextStep is the one thing that signs a site in, for a site without a
  * working session. A container with no extension in its group has no browser
- * to pick a sign-in up from, so the step names the extension.
+ * to pick a sign-in up from, so the step names the extension, and one whose
+ * extension may not read the site says to allow it.
  */
 export function nextStep(site: SiteLogin, ways: SignInWays): StateNote | undefined {
   // A removed site is not picked up from the browser, so its window says how.
   if (signedIn(site) || site.disconnected) return undefined;
-  const key = ways.readsBrowsers || ways.extensionPaired ? 'siteLogins.signInHere' : 'siteLogins.signInExtension';
+  const key = picksUpFromBrowser(site, ways)
+    ? 'siteLogins.signInHere'
+    : ways.extensionPaired
+      ? 'siteLogins.signInAllow'
+      : 'siteLogins.signInExtension';
   return { key, vars: { site: site.name } };
+}
+
+/**
+ * confirmInTab turns the tab a site was opened in into KnightLoader's word
+ * that it has the sign-in and the tab can go, as a site that signs an app in
+ * says it. A tab the user closed is left alone.
+ */
+export function confirmInTab(tab: Window | null, site: string): void {
+  if (tab && !tab.closed) tab.location.replace(`${appAddress()}/signedin?site=${encodeURIComponent(site)}`);
 }
 
 /** unreadableBrowsers is every browser any site could not be read from, once each. */

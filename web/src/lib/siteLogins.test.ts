@@ -86,10 +86,16 @@ describe('nextStep', () => {
       key: 'siteLogins.signInHere',
       vars: { site: 'Patreon' },
     });
-    expect(nextStep(site({ state: 'expired' }), { readsBrowsers: false, extensionPaired: true })?.key).toBe('siteLogins.signInHere');
+    expect(nextStep(site({ state: 'expired', handsOver: true }), { readsBrowsers: false, extensionPaired: true })?.key).toBe('siteLogins.signInHere');
   });
   it('points a container without a paired extension at the extension', () => {
     expect(nextStep(site({}), { readsBrowsers: false, extensionPaired: false })?.key).toBe('siteLogins.signInExtension');
+  });
+  it('asks for the extension to pass sign-ins on where it may not read the site', () => {
+    expect(nextStep(site({}), { readsBrowsers: false, extensionPaired: true })).toEqual({
+      key: 'siteLogins.signInAllow',
+      vars: { site: 'Patreon' },
+    });
   });
   it('has nothing to say while signed in', () => {
     expect(nextStep(site({ state: 'signedIn' }), { readsBrowsers: false, extensionPaired: false })).toBeUndefined();

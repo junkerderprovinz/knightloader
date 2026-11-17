@@ -2526,6 +2526,8 @@ export interface SiteLogin {
   readsBrowsers: boolean;
   /** Removed here: the browsers' sign-in is not used until the site is signed in through KnightLoader again. */
   disconnected: boolean;
+  /** Whether the extension in a browser of the group may read the site, so a sign-in there reaches this instance. */
+  handsOver?: boolean;
 }
 
 export async function fetchSiteLogins(): Promise<SiteLogin[]> {

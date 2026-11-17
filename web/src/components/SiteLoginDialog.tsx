@@ -12,11 +12,11 @@ import {
   reconnectSiteLogin,
   removeSiteLogin,
 } from '../lib/api';
-import { openExternal } from '../lib/external';
+import { openTab } from '../lib/external';
 import { fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { message } from '../lib/intake';
-import { type SignInWays, nextStep, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
+import { type SignInWays, confirmInTab, nextStep, picksUpFromBrowser, signedIn, sourceNote, stateNote } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { IconClose, IconExternalLink, IconTrash } from '../lib/icons';
 import { Button, Modal } from './ui';
@@ -72,6 +72,7 @@ export function SiteLoginDialog({
   const [error, setError] = useState('');
   const heard = useRef({ onChanged, onSignedIn, onClose });
   heard.current = { onChanged, onSignedIn, onClose };
+  const tab = useRef<Window | null>(null);
 
   const show = useCallback(
     (next: SiteLogin, arrived: boolean) => {
@@ -98,7 +99,10 @@ export function SiteLoginDialog({
     const timer = window.setInterval(() => {
       void fetchSiteLogins().then((all) => {
         const latest = all.find((s) => s.id === site.id);
-        if (latest && signedIn(latest)) show(latest, true);
+        if (latest && signedIn(latest)) {
+          confirmInTab(tab.current, latest.name);
+          show(latest, true);
+        }
       }, () => {});
     }, SIGNED_OUT_POLL_MS);
     return () => window.clearInterval(timer);
@@ -135,7 +139,7 @@ export function SiteLoginDialog({
   // The site opens first, while the click still lets it. A removed site is
   // signed in through KnightLoader too, so the browser's sign-in counts again.
   const openSite = () => {
-    openExternal(site.loginUrl);
+    tab.current = openTab(site.loginUrl);
     if (site.disconnected) void beginSiteLogin(site.id).then((next) => show(next, signedIn(next)), showError);
   };
 
@@ -173,7 +177,7 @@ export function SiteLoginDialog({
           {signingIn && !reconnectable && (
             <SignInHereButton site={site} hue={hue} disabled={busy} onChanged={(s) => show(s, false)} />
           )}
-          {signingIn && (
+          {signingIn && picksUpFromBrowser(site, ways) && (
             <Button icon={<IconExternalLink />} disabled={busy} onClick={openSite}>
               {t('siteLogins.open', { site: site.name })}
             </Button>

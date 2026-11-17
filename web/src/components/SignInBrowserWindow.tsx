@@ -13,10 +13,10 @@ import {
   fetchSiteLogins,
   openSignInBrowser,
 } from '../lib/api';
-import { openExternal } from '../lib/external';
+import { openTab } from '../lib/external';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { message } from '../lib/intake';
-import { useSignInWays } from '../lib/siteLogins';
+import { confirmInTab, picksUpFromBrowser, useSignInWays } from '../lib/siteLogins';
 import {
   type PageInput,
   type PageStream,
@@ -84,10 +84,16 @@ export function SignInBrowserWindow({
   const [shown, setShown] = useState({ width: 0, height: 0 });
   const [elsewhere, setElsewhere] = useState(false);
   // The user's own browser helps only where something reads the sign-in back
-  // from it: the browsers on this computer, or the extension in the group. A
-  // hoster's own page has no login address and is signed in to here only.
+  // from it: the browsers on this computer, or an extension of the group that
+  // may read the site. Elsewhere the window says what is missing. A hoster's
+  // own page has no login address and is signed in to here only.
   const ways = useSignInWays([site], !!site.loginUrl);
-  const ownBrowser = !!site.loginUrl && (ways.readsBrowsers || ways.extensionPaired);
+  const ownBrowser = !!site.loginUrl && picksUpFromBrowser(site, ways);
+  const ownBrowserMissing =
+    !site.loginUrl || ownBrowser
+      ? ''
+      : t(ways.extensionPaired ? 'signInBrowser.ownBrowserAllow' : 'signInBrowser.ownBrowserPair', { site: site.name });
+  const tab = useRef<Window | null>(null);
 
   const panel = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -229,7 +235,7 @@ export function SignInBrowserWindow({
   // begins makes the browsers here be read every few seconds and tells the
   // extension to hand the session over.
   const openElsewhere = () => {
-    openExternal(site.loginUrl);
+    tab.current = openTab(site.loginUrl);
     setElsewhere(true);
     setNotice({ kind: 'elsewhere' });
     void beginSiteLogin(site.id).catch(() => {});
@@ -244,12 +250,13 @@ export function SignInBrowserWindow({
         const latest = all.find((s) => s.id === site.id);
         if (latest && signedIn(latest) && (latest.source === 'browser' || latest.source === 'extension')) {
           window.clearInterval(timer);
+          confirmInTab(tab.current, site.name);
           void finishing.current();
         }
       }, () => {});
     }, ELSEWHERE_POLL_MS);
     return () => window.clearInterval(timer);
-  }, [elsewhere, site.id]);
+  }, [elsewhere, site.id, site.name]);
 
   const focusPage = () => sink.current?.focus({ preventScroll: true });
 
@@ -397,6 +404,11 @@ export function SignInBrowserWindow({
             <Button kind="secondary" icon={<IconExternalLink />} data-new="open-in-browser" disabled={busy} onClick={openElsewhere}>
               {t('signInBrowser.openInBrowser')}
             </Button>
+          )}
+          {ownBrowserMissing && (
+            <span className="max-w-sm text-meta text-carbon-textSub" dir="auto">
+              {ownBrowserMissing}
+            </span>
           )}
           {(phase === 'closed' || phase === 'failed') && (
             <Button kind="secondary" icon={<IconRetry />} onClick={() => setAttempt((n) => n + 1)} disabled={busy}>

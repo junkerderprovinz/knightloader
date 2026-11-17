@@ -13,6 +13,29 @@ export function openExternal(url: string): void {
 }
 
 /**
+ * openTab opens url in a new tab and hands the tab back, so the page can show
+ * something else there later. The tab starts empty and follows a link of its
+ * own, so the site gets neither this page as its referrer nor a handle on it,
+ * as noopener and noreferrer would keep them. The desktop build hands the
+ * address to the system browser and gets no tab back.
+ */
+export function openTab(url: string): Window | null {
+  if (isDesktop()) {
+    void openURL(url);
+    return null;
+  }
+  const tab = window.open('', '_blank');
+  if (!tab) return null;
+  tab.opener = null;
+  const go = tab.document.createElement('a');
+  go.href = url;
+  go.rel = 'noreferrer';
+  tab.document.body.append(go);
+  go.click();
+  return tab;
+}
+
+/**
  * The onClick of an anchor that leads out of the app. In a browser the anchor
  * does its own work, so middle-click and copy-link keep working.
  */

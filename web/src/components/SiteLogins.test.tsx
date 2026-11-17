@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { GroupApp, SiteLogin, Task } from '../lib/api';
 import { I18nProvider } from '../lib/i18n';
+import { en } from '../lib/locales/en';
 import { ToastProvider } from '../lib/toast';
 import { FailureAdvice } from './FailureAdvice';
 import { HosterLoginSection, useHosterLogins } from './HosterLoginSection';
@@ -17,6 +18,18 @@ let calls: { url: string; method: string; body?: unknown }[];
 let opened: string[];
 let sites: SiteLogin[];
 let apps: GroupApp[];
+let shown: string[];
+
+// A tab as window.open hands it back: an empty page whose followed links land
+// in opened and whose address the page sets lands in shown.
+function newTab() {
+  const doc = document.implementation.createHTMLDocument('');
+  doc.addEventListener('click', (e) => {
+    opened.push((e.target as HTMLAnchorElement).href);
+    e.preventDefault();
+  });
+  return { opener: window, closed: false, document: doc, location: { replace: (u: string) => shown.push(u) } };
+}
 
 const patreon: SiteLogin = {
   id: 'patreon',
@@ -78,10 +91,8 @@ beforeEach(() => {
   apps = [browserExtension];
   vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal('IntersectionObserver', OffScreen);
-  vi.stubGlobal('open', (url: string) => {
-    opened.push(url);
-    return null;
-  });
+  shown = [];
+  vi.stubGlobal('open', newTab);
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init?: RequestInit) => {
@@ -199,6 +210,39 @@ it('opens the site from its window and offers no way to paste cookies', async ()
   await act(async () => button('Open Patreon')!.click());
   expect(opened).toEqual(['https://www.patreon.com/login']);
   expect(calls.some((c) => c.method === 'POST')).toBe(false);
+});
+
+it('tells the tab the site opened in that it can go once the sign-in arrives', async () => {
+  vi.useFakeTimers();
+  try {
+    sites = [signedOut(patreon)];
+    await renderCard();
+    await act(async () => row('Patreon')!.click());
+    await act(async () => button('Open Patreon')!.click());
+    expect(opened).toEqual(['https://www.patreon.com/login']);
+    sites = [patreon];
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+    expect(shown).toEqual([`${location.origin}/signedin?site=Patreon`]);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it('offers no own browser in a container whose extension may not read the site, and says why', async () => {
+  sites = [{ ...signedOut(patreon), readsBrowsers: false }];
+  await renderCard();
+  await act(async () => row('Patreon')!.click());
+  expect(button('Open Patreon')).toBeUndefined();
+  expect(document.querySelector('[role="dialog"]')!.textContent).toContain(en['siteLogins.signInAllow'].replace('{site}', 'Patreon'));
+});
+
+it('opens the site in a container whose extension may read it', async () => {
+  sites = [{ ...signedOut(patreon), readsBrowsers: false, handsOver: true }];
+  await renderCard();
+  await act(async () => row('Patreon')!.click());
+  expect(button('Open Patreon')).toBeDefined();
 });
 
 it('forgets a session the extension passed on from its row, after asking', async () => {
