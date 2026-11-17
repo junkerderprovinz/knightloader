@@ -119,7 +119,9 @@ export function explainFailure(
 function quotaWords(t: Translate, params: Record<string, string>, vars: Record<string, string>) {
   const when = params.resetsAt ? new Date(params.resetsAt) : null;
   const resetsAt =
-    when && !Number.isNaN(when.getTime()) ? when.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '';
+    when && !Number.isNaN(when.getTime())
+      ? when.toLocaleString(undefined, { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : '';
   const at = { ...vars, service: params.service ?? '', resetsAt };
   return {
     line: t(params.service ? 'failure.quotaUsed.lineService' : 'failure.quotaUsed.line', at),

@@ -129,7 +129,7 @@ const GO_ZERO_YEAR = 1;
 
 // Cached per locale: building an Intl.DateTimeFormat per row per repaint makes
 // long lists stutter.
-const dateFormats = new Map<string, Intl.DateTimeFormat>();
+const dateFormats = new Map<string, { short: Intl.DateTimeFormat; year: Intl.DateTimeFormat }>();
 
 // <html lang> follows the language picker, which spares this module the i18n
 // provider. Empty means the runtime's default.
@@ -137,26 +137,38 @@ function uiLocale(): string {
   return document.documentElement.lang || '';
 }
 
-function dateFormat(locale: string): Intl.DateTimeFormat {
+function dateFormat(locale: string) {
   let f = dateFormats.get(locale);
   if (!f) {
-    // With the time, since two downloads from one afternoon are common.
-    f = new Intl.DateTimeFormat(locale || undefined, { dateStyle: 'short', timeStyle: 'short' });
+    f = {
+      // With the time, since two downloads from one afternoon are common.
+      short: new Intl.DateTimeFormat(locale || undefined, { dateStyle: 'short', timeStyle: 'short' }),
+      year: new Intl.DateTimeFormat(locale || undefined, { year: 'numeric' }),
+    };
     dateFormats.set(locale, f);
   }
   return f;
 }
 
 /**
- * fmtDate prints a timestamp in the reader's locale, short form. Absent,
- * unparseable and Go zero timestamps print as empty rather than as
- * "Invalid Date" or year one.
+ * fmtDate prints a timestamp in the reader's locale, short form with the year
+ * in full. Absent, unparseable and Go zero timestamps print as empty rather
+ * than as "Invalid Date" or year one.
  */
 export function fmtDate(iso: string | undefined, locale = uiLocale()): string {
   if (!iso) return '';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime()) || d.getUTCFullYear() <= GO_ZERO_YEAR) return '';
-  return isolate(dateFormat(locale).format(d));
+  // The short style keeps each locale's order, separators and clock but cuts
+  // the year to two digits in most of them, and 26 could be any century.
+  const { short, year } = dateFormat(locale);
+  const full = year.formatToParts(d).find((p) => p.type === 'year')!.value;
+  return isolate(
+    short
+      .formatToParts(d)
+      .map((p) => (p.type === 'year' ? full : p.value))
+      .join(''),
+  );
 }
 
 /**

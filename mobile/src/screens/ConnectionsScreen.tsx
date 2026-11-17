@@ -125,7 +125,7 @@ function seenAt(lang: string, unix: number): string {
   const when = new Date(unix * 1000).toLocaleString(lang, {
     day: 'numeric',
     month: 'numeric',
-    year: '2-digit',
+    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   });

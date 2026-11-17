@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 
-import { SIZE_UNITS, fmtBytes, fmtEta, fmtRate, fmtSpeed, fmtTotal, fmtUptime, splitRate } from './format';
+import { SIZE_UNITS, fmtBytes, fmtDate, fmtEta, fmtRate, fmtSpeed, fmtTotal, fmtUptime, splitRate } from './format';
 import { fmtSkew } from './selftest';
 
 describe('durations', () => {
@@ -49,5 +49,21 @@ describe('sizes and speeds', () => {
       ['MB', 1e6],
       ['GB', 1e9],
     ]);
+  });
+});
+
+describe('dates', () => {
+  // Midday UTC, so the day is the same in every time zone the suite runs in.
+  const noon = '2026-11-17T12:00:00Z';
+
+  it("writes the year with four digits in each locale's own order", () => {
+    expect(fmtDate(noon, 'de-DE')).toContain('17.11.2026');
+    expect(fmtDate(noon, 'en-US')).toContain('11/17/2026');
+    expect(fmtDate(noon, 'ko')).toContain('2026. 11. 17.');
+    expect(fmtDate(noon, 'eu')).toContain('2026/11/17');
+  });
+
+  it("writes the year of the locale's own calendar in full", () => {
+    expect(fmtDate(noon, 'th')).toContain('17/11/2569');
   });
 });
