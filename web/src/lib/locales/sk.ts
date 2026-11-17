@@ -4114,8 +4114,6 @@ export const sk: Dict = {
   'siteLogins.fromBrowser': 'z {browser}',
   'siteLogins.fromExtension': 'z rozšírenia prehliadača',
   'siteLogins.signInHere': 'Prihlás sa v prehliadači do služby {site}. KnightLoader si to prevezme sám.',
-  'siteLogins.signInExtension': 'Prihlás sa do služby {site} v prehliadači s rozšírením KnightLoader. Rozšírenie prihlásenie odovzdá ďalej.',
-  'siteLogins.signInAllow': 'Dovoľ rozšíreniu KnightLoader vo svojom prehliadači odovzdávať tvoje prihlásenia a potom sa tam prihlás do služby {site}. Zapneš to v nastaveniach rozšírenia.',
   'signedIn.title': 'Prihlásené do služby {site}',
   'signedIn.titleBare': 'Prihlásené',
   'signedIn.body': 'KnightLoader už prihlásenie má. Túto kartu môžeš zavrieť.',
@@ -4131,4 +4129,5 @@ export const sk: Dict = {
   'siteLogins.turnedDown': 'Služba {site} odmietla prihlásenie z {browser}',
   'siteLogins.disconnected': 'Odstránené z KnightLoadera. Prehliadač zostáva prihlásený.',
   'siteLogins.reconnect': 'Znova použiť prihlásenie z prehliadača',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

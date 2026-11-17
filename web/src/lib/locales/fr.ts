@@ -4093,8 +4093,6 @@ export const fr: Dict = {
   'siteLogins.fromBrowser': 'depuis {browser}',
   'siteLogins.fromExtension': 'depuis l’extension de navigateur',
   'siteLogins.signInHere': 'Connectez-vous à {site} dans votre navigateur. KnightLoader récupère la connexion tout seul.',
-  'siteLogins.signInExtension': 'Connectez-vous à {site} dans un navigateur qui a l’extension KnightLoader. L’extension transmet la connexion.',
-  'siteLogins.signInAllow': 'Laissez l’extension KnightLoader de votre navigateur transmettre vos connexions, puis connectez-vous à {site} dans ce navigateur. Cela s’active dans les paramètres de l’extension.',
   'signedIn.title': 'Connecté à {site}',
   'signedIn.titleBare': 'Connecté',
   'signedIn.body': 'KnightLoader a la connexion. Vous pouvez fermer cet onglet.',
@@ -4110,4 +4108,5 @@ export const fr: Dict = {
   'siteLogins.turnedDown': '{site} a refusé la connexion venant de {browser}',
   'siteLogins.disconnected': 'Retiré de KnightLoader. Votre navigateur reste connecté.',
   'siteLogins.reconnect': 'Utiliser de nouveau la connexion du navigateur',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

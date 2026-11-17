@@ -4100,8 +4100,6 @@ export const eu: Dict = {
   'siteLogins.fromBrowser': '{browser} nabigatzailetik',
   'siteLogins.fromExtension': 'nabigatzailearen luzapenetik',
   'siteLogins.signInHere': 'Hasi saioa {site} gunean nabigatzailean. KnightLoaderrek berak hartuko du.',
-  'siteLogins.signInExtension': 'Hasi saioa {site} gunean KnightLoader luzapena duen nabigatzaile batean. Luzapenak pasatuko du saioa.',
-  'siteLogins.signInAllow': 'Utzi zure nabigatzaileko KnightLoader luzapenari zure saioak pasatzen, eta gero hasi saioa {site} gunean bertan. Luzapenaren ezarpenetan aktibatzen da.',
   'signedIn.title': 'Saioa hasita {site} gunean',
   'signedIn.titleBare': 'Saioa hasita',
   'signedIn.body': 'KnightLoaderrek badu saioa. Fitxa hau itxi dezakezu.',
@@ -4117,4 +4115,5 @@ export const eu: Dict = {
   'siteLogins.turnedDown': '{site} guneak {browser} nabigatzaileko saioa baztertu du',
   'siteLogins.disconnected': 'KnightLoaderretik kendua. Nabigatzaileak saioa hasita jarraitzen du.',
   'siteLogins.reconnect': 'Erabili berriro nabigatzaileko saioa',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

@@ -33,7 +33,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "bg": [
       "skipped.reason.sameLink",
@@ -67,7 +68,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "ca": [
       "skipped.reason.sameLink",
@@ -101,7 +103,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "cs": [
       "skipped.reason.sameLink",
@@ -135,7 +138,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "da": [
       "skipped.reason.sameLink",
@@ -169,7 +173,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "el": [
       "skipped.reason.sameLink",
@@ -203,7 +208,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "es": [
       "skipped.reason.sameLink",
@@ -237,7 +243,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "et": [
       "skipped.reason.sameLink",
@@ -271,7 +278,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "eu": [
       "skipped.reason.sameLink",
@@ -305,7 +313,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "fa": [
       "skipped.reason.sameLink",
@@ -339,7 +348,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "fi": [
       "skipped.reason.sameLink",
@@ -373,7 +383,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "fr": [
       "skipped.reason.sameLink",
@@ -407,7 +418,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "gl": [
       "skipped.reason.sameLink",
@@ -441,7 +453,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "he": [
       "skipped.reason.sameLink",
@@ -475,7 +488,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "hi": [
       "skipped.reason.sameLink",
@@ -509,7 +523,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "hr": [
       "skipped.reason.sameLink",
@@ -543,7 +558,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "hu": [
       "skipped.reason.sameLink",
@@ -577,7 +593,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "id": [
       "skipped.reason.sameLink",
@@ -611,7 +628,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "is": [
       "skipped.reason.sameLink",
@@ -645,7 +663,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "it": [
       "skipped.reason.sameLink",
@@ -679,7 +698,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "ja": [
       "skipped.reason.sameLink",
@@ -713,7 +733,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "ko": [
       "skipped.reason.sameLink",
@@ -747,7 +768,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "lt": [
       "skipped.reason.sameLink",
@@ -781,7 +803,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "lv": [
       "skipped.reason.sameLink",
@@ -815,7 +838,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "ms": [
       "skipped.reason.sameLink",
@@ -849,7 +873,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "nl": [
       "skipped.reason.sameLink",
@@ -883,7 +908,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "no": [
       "skipped.reason.sameLink",
@@ -917,7 +943,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "pl": [
       "skipped.reason.sameLink",
@@ -951,7 +978,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "pt": [
       "skipped.reason.sameLink",
@@ -985,7 +1013,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "ro": [
       "skipped.reason.sameLink",
@@ -1019,7 +1048,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "ru": [
       "skipped.reason.sameLink",
@@ -1053,7 +1083,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "sk": [
       "skipped.reason.sameLink",
@@ -1087,7 +1118,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "sl": [
       "skipped.reason.sameLink",
@@ -1121,7 +1153,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "sr": [
       "skipped.reason.sameLink",
@@ -1155,7 +1188,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "sv": [
       "skipped.reason.sameLink",
@@ -1189,7 +1223,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "th": [
       "skipped.reason.sameLink",
@@ -1223,7 +1258,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "tr": [
       "skipped.reason.sameLink",
@@ -1257,7 +1293,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "uk": [
       "skipped.reason.sameLink",
@@ -1291,7 +1328,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "vi": [
       "skipped.reason.sameLink",
@@ -1325,7 +1363,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ],
     "zh": [
       "skipped.reason.sameLink",
@@ -1359,7 +1398,8 @@
       "accounts.paused.volumeHostUntil",
       "accounts.paused.otherUntil",
       "accounts.paused.otherHostUntil",
-      "accounts.paused.retry"
+      "accounts.paused.retry",
+      "siteLogins.signInInKl"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

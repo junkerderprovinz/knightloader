@@ -4102,8 +4102,6 @@ export const ar: Dict = {
   'siteLogins.fromBrowser': 'من {browser}',
   'siteLogins.fromExtension': 'من إضافة المتصفح',
   'siteLogins.signInHere': 'سجّل الدخول إلى {site} في متصفحك. سيلتقطه KnightLoader بنفسه.',
-  'siteLogins.signInExtension': 'سجّل الدخول إلى {site} في متصفح فيه إضافة KnightLoader. ستنقل الإضافة تسجيل الدخول.',
-  'siteLogins.signInAllow': 'اسمح لإضافة KnightLoader في متصفحك بأن تنقل تسجيلات دخولك، ثم سجّل الدخول إلى {site} هناك. تفعّل ذلك من إعدادات الإضافة.',
   'signedIn.title': 'تم تسجيل الدخول إلى {site}',
   'signedIn.titleBare': 'تم تسجيل الدخول',
   'signedIn.body': 'صار تسجيل الدخول لدى KnightLoader. يمكنك إغلاق علامة التبويب هذه.',
@@ -4119,4 +4117,5 @@ export const ar: Dict = {
   'siteLogins.turnedDown': 'رفض {site} تسجيل الدخول القادم من {browser}',
   'siteLogins.disconnected': 'أُزيل من KnightLoader. يبقى متصفحك مسجّل الدخول.',
   'siteLogins.reconnect': 'استخدم تسجيل الدخول من المتصفح من جديد',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

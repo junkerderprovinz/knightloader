@@ -4103,8 +4103,6 @@ export const tr: Dict = {
   'siteLogins.fromBrowser': '{browser} üzerinden',
   'siteLogins.fromExtension': 'tarayıcı uzantısı üzerinden',
   'siteLogins.signInHere': 'Tarayıcında {site} için oturum aç. KnightLoader bunu kendiliğinden alır.',
-  'siteLogins.signInExtension': 'KnightLoader uzantısı olan bir tarayıcıda {site} için oturum aç. Uzantı oturumu devreder.',
-  'siteLogins.signInAllow': 'Tarayıcındaki KnightLoader uzantısının oturumlarını devretmesine izin ver, sonra orada {site} için oturum aç. Bunu uzantının ayarlarından açarsın.',
   'signedIn.title': '{site} için oturum açıldı',
   'signedIn.titleBare': 'Oturum açıldı',
   'signedIn.body': 'Oturum artık KnightLoader\'da. Bu sekmeyi kapatabilirsin.',
@@ -4120,4 +4118,5 @@ export const tr: Dict = {
   'siteLogins.turnedDown': '{site}, {browser} üzerinden gelen oturumu reddetti',
   'siteLogins.disconnected': 'KnightLoader’dan kaldırıldı. Tarayıcın oturumu açık kalır.',
   'siteLogins.reconnect': 'Tarayıcının oturumunu yeniden kullan',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

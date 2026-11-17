@@ -4088,8 +4088,6 @@ export const zh: Dict = {
   'siteLogins.fromBrowser': '来自 {browser}',
   'siteLogins.fromExtension': '来自浏览器扩展',
   'siteLogins.signInHere': '在浏览器里登录 {site}，KnightLoader 会自己接手。',
-  'siteLogins.signInExtension': '在装有 KnightLoader 扩展的浏览器里登录 {site}，扩展会把登录状态转交过来。',
-  'siteLogins.signInAllow': '先允许浏览器里的 KnightLoader 扩展转交你的登录状态，再在那里登录 {site}。这一项在扩展的设置里打开。',
   'signedIn.title': '已登录 {site}',
   'signedIn.titleBare': '已登录',
   'signedIn.body': 'KnightLoader 已经拿到登录状态，你可以关闭这个标签页了。',
@@ -4105,4 +4103,5 @@ export const zh: Dict = {
   'siteLogins.turnedDown': '{site} 拒绝了来自 {browser} 的登录状态',
   'siteLogins.disconnected': '已从 KnightLoader 移除。浏览器仍保持登录。',
   'siteLogins.reconnect': '再次使用浏览器的登录',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

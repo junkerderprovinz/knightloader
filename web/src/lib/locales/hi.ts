@@ -4105,8 +4105,6 @@ export const hi: Dict = {
   'siteLogins.fromBrowser': '{browser} से',
   'siteLogins.fromExtension': 'ब्राउज़र एक्सटेंशन से',
   'siteLogins.signInHere': 'अपने ब्राउज़र में {site} में साइन इन करें। KnightLoader इसे अपने आप ले लेता है।',
-  'siteLogins.signInExtension': '{site} में ऐसे ब्राउज़र में साइन इन करें जिसमें KnightLoader एक्सटेंशन हो। एक्सटेंशन साइन इन आगे पहुँचा देता है।',
-  'siteLogins.signInAllow': 'अपने ब्राउज़र के KnightLoader एक्सटेंशन को आपके साइन इन आगे पहुँचाने दें, फिर वहीं {site} में साइन इन करें। यह एक्सटेंशन की सेटिंग्स में चालू होता है।',
   'signedIn.title': '{site} में साइन इन हो गया',
   'signedIn.titleBare': 'साइन इन हो गया',
   'signedIn.body': 'साइन इन अब KnightLoader के पास है। आप यह टैब बंद कर सकते हैं।',
@@ -4122,4 +4120,5 @@ export const hi: Dict = {
   'siteLogins.turnedDown': '{site} ने {browser} से आया साइन इन ठुकरा दिया',
   'siteLogins.disconnected': 'KnightLoader से हटा दिया गया। आपका ब्राउज़र साइन इन ही रहता है।',
   'siteLogins.reconnect': 'ब्राउज़र का साइन इन फिर से इस्तेमाल करें',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

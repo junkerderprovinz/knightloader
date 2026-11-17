@@ -4103,8 +4103,6 @@ export const sl: Dict = {
   'siteLogins.fromBrowser': 'iz {browser}',
   'siteLogins.fromExtension': 'iz razširitve brskalnika',
   'siteLogins.signInHere': 'V brskalniku se prijavi v {site}. KnightLoader to prevzame sam.',
-  'siteLogins.signInExtension': 'Prijavi se v {site} v brskalniku z razširitvijo KnightLoader. Razširitev bo prijavo predala naprej.',
-  'siteLogins.signInAllow': 'Dovoli razširitvi KnightLoader v svojem brskalniku, da predaja tvoje prijave, nato pa se tam prijavi v {site}. To vklopiš v nastavitvah razširitve.',
   'signedIn.title': 'Prijavljeno v {site}',
   'signedIn.titleBare': 'Prijavljeno',
   'signedIn.body': 'KnightLoader ima prijavo. Ta zavihek lahko zapreš.',
@@ -4120,4 +4118,5 @@ export const sl: Dict = {
   'siteLogins.turnedDown': '{site} je zavrnil prijavo iz {browser}',
   'siteLogins.disconnected': 'Odstranjeno iz KnightLoaderja. Brskalnik ostane prijavljen.',
   'siteLogins.reconnect': 'Znova uporabi prijavo iz brskalnika',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

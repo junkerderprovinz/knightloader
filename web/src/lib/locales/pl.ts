@@ -4089,8 +4089,6 @@ export const pl: Dict = {
   'siteLogins.fromBrowser': 'z przeglądarki {browser}',
   'siteLogins.fromExtension': 'z rozszerzenia przeglądarki',
   'siteLogins.signInHere': 'Zaloguj się do {site} w przeglądarce. KnightLoader sam to przejmie.',
-  'siteLogins.signInExtension': 'Zaloguj się do {site} w przeglądarce z rozszerzeniem KnightLoader. Rozszerzenie przekaże logowanie dalej.',
-  'siteLogins.signInAllow': 'Pozwól rozszerzeniu KnightLoader w swojej przeglądarce przekazywać Twoje logowania, a potem zaloguj się tam do {site}. Włączysz to w ustawieniach rozszerzenia.',
   'signedIn.title': 'Zalogowano do {site}',
   'signedIn.titleBare': 'Zalogowano',
   'signedIn.body': 'KnightLoader ma już logowanie. Możesz zamknąć tę kartę.',
@@ -4106,4 +4104,5 @@ export const pl: Dict = {
   'siteLogins.turnedDown': '{site} odrzucił logowanie z przeglądarki {browser}',
   'siteLogins.disconnected': 'Usunięto z KnightLoadera. Przeglądarka pozostaje zalogowana.',
   'siteLogins.reconnect': 'Użyj znowu logowania z przeglądarki',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

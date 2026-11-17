@@ -4104,8 +4104,6 @@ export const vi: Dict = {
   'siteLogins.fromBrowser': 'từ {browser}',
   'siteLogins.fromExtension': 'từ tiện ích trình duyệt',
   'siteLogins.signInHere': 'Hãy đăng nhập vào {site} trong trình duyệt. KnightLoader sẽ tự nhận.',
-  'siteLogins.signInExtension': 'Hãy đăng nhập vào {site} trong một trình duyệt có tiện ích KnightLoader. Tiện ích sẽ chuyển giao phiên đăng nhập.',
-  'siteLogins.signInAllow': 'Hãy cho phép tiện ích KnightLoader trong trình duyệt của bạn chuyển giao các phiên đăng nhập của bạn, rồi đăng nhập vào {site} ở đó. Bạn bật việc này trong phần cài đặt của tiện ích.',
   'signedIn.title': 'Đã đăng nhập vào {site}',
   'signedIn.titleBare': 'Đã đăng nhập',
   'signedIn.body': 'KnightLoader đã có phiên đăng nhập. Bạn có thể đóng thẻ này.',
@@ -4121,4 +4119,5 @@ export const vi: Dict = {
   'siteLogins.turnedDown': '{site} đã từ chối phiên đăng nhập từ {browser}',
   'siteLogins.disconnected': 'Đã gỡ khỏi KnightLoader. Trình duyệt vẫn đăng nhập.',
   'siteLogins.reconnect': 'Dùng lại đăng nhập của trình duyệt',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

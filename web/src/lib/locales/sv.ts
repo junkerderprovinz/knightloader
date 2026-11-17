@@ -4104,8 +4104,6 @@ export const sv: Dict = {
   'siteLogins.fromBrowser': 'från {browser}',
   'siteLogins.fromExtension': 'från webbläsartillägget',
   'siteLogins.signInHere': 'Logga in på {site} i webbläsaren. KnightLoader plockar upp det själv.',
-  'siteLogins.signInExtension': 'Logga in på {site} i en webbläsare som har KnightLoader-tillägget. Tillägget lämnar över inloggningen.',
-  'siteLogins.signInAllow': 'Låt KnightLoader-tillägget i din webbläsare lämna över dina inloggningar och logga sedan in på {site} där. Det slår du på i tilläggets inställningar.',
   'signedIn.title': 'Inloggad på {site}',
   'signedIn.titleBare': 'Inloggad',
   'signedIn.body': 'KnightLoader har inloggningen. Du kan stänga den här fliken.',
@@ -4121,4 +4119,5 @@ export const sv: Dict = {
   'siteLogins.turnedDown': '{site} nekade inloggningen från {browser}',
   'siteLogins.disconnected': 'Borttagen från KnightLoader. Webbläsaren förblir inloggad.',
   'siteLogins.reconnect': 'Använd webbläsarens inloggning igen',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

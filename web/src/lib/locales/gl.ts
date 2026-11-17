@@ -4101,8 +4101,6 @@ export const gl: Dict = {
   'siteLogins.fromBrowser': 'desde {browser}',
   'siteLogins.fromExtension': 'desde a extensión do navegador',
   'siteLogins.signInHere': 'Inicia sesión en {site} no navegador. KnightLoader cóllea el só.',
-  'siteLogins.signInExtension': 'Inicia sesión en {site} nun navegador que teña a extensión de KnightLoader. A extensión entrega a sesión.',
-  'siteLogins.signInAllow': 'Deixa que a extensión de KnightLoader do teu navegador entregue as túas sesións e despois inicia sesión en {site} alí. Actívalo na configuración da extensión.',
   'signedIn.title': 'Sesión iniciada en {site}',
   'signedIn.titleBare': 'Sesión iniciada',
   'signedIn.body': 'KnightLoader xa ten a sesión. Podes pechar esta lapela.',
@@ -4118,4 +4116,5 @@ export const gl: Dict = {
   'siteLogins.turnedDown': '{site} rexeitou a sesión de {browser}',
   'siteLogins.disconnected': 'Quitado de KnightLoader. O navegador segue coa sesión iniciada.',
   'siteLogins.reconnect': 'Volver usar a sesión do navegador',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

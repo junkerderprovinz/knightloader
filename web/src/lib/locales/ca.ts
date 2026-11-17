@@ -4091,8 +4091,6 @@ export const ca: Dict = {
   'siteLogins.fromBrowser': 'de {browser}',
   'siteLogins.fromExtension': 'de l’extensió del navegador',
   'siteLogins.signInHere': 'Inicia la sessió a {site} al navegador. KnightLoader l’agafa tot sol.',
-  'siteLogins.signInExtension': 'Inicia la sessió a {site} en un navegador que tingui l’extensió de KnightLoader. L’extensió traspassa la sessió.',
-  'siteLogins.signInAllow': 'Deixa que l’extensió de KnightLoader del teu navegador traspassi les teves sessions i després inicia la sessió a {site} allà. Ho actives a la configuració de l’extensió.',
   'signedIn.title': 'Sessió iniciada a {site}',
   'signedIn.titleBare': 'Sessió iniciada',
   'signedIn.body': 'KnightLoader ja té la sessió. Pots tancar aquesta pestanya.',
@@ -4108,4 +4106,5 @@ export const ca: Dict = {
   'siteLogins.turnedDown': '{site} ha rebutjat la sessió de {browser}',
   'siteLogins.disconnected': 'S’ha tret de KnightLoader. El navegador continua amb la sessió iniciada.',
   'siteLogins.reconnect': 'Torna a fer servir la sessió del navegador',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

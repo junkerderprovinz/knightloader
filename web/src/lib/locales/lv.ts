@@ -4095,8 +4095,6 @@ export const lv: Dict = {
   'siteLogins.fromBrowser': 'no {browser}',
   'siteLogins.fromExtension': 'no pārlūka paplašinājuma',
   'siteLogins.signInHere': 'Piesakies vietnē {site} savā pārlūkā. KnightLoader to pārņems pats.',
-  'siteLogins.signInExtension': 'Piesakies vietnē {site} pārlūkā, kurā ir KnightLoader paplašinājums. Paplašinājums pieteikšanos nodos tālāk.',
-  'siteLogins.signInAllow': 'Ļauj sava pārlūka KnightLoader paplašinājumam nodot tālāk tavas pieteikšanās un tad piesakies tur vietnē {site}. To ieslēdz paplašinājuma iestatījumos.',
   'signedIn.title': 'Pieteicies vietnē {site}',
   'signedIn.titleBare': 'Pieteicies',
   'signedIn.body': 'KnightLoader pieteikšanos jau ir saņēmis. Šo cilni vari aizvērt.',
@@ -4112,4 +4110,5 @@ export const lv: Dict = {
   'siteLogins.turnedDown': 'Vietne {site} noraidīja pieteikšanos no {browser}',
   'siteLogins.disconnected': 'Noņemts no KnightLoader. Pārlūks paliek pieteicies.',
   'siteLogins.reconnect': 'Atkal izmantot pārlūka pieteikšanos',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

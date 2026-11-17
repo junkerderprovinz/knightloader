@@ -4090,8 +4090,6 @@ export const da: Dict = {
   'siteLogins.fromBrowser': 'fra {browser}',
   'siteLogins.fromExtension': 'fra browserudvidelsen',
   'siteLogins.signInHere': 'Log ind på {site} i din browser. KnightLoader henter det selv.',
-  'siteLogins.signInExtension': 'Log ind på {site} i en browser med KnightLoader-udvidelsen. Udvidelsen giver dit login videre.',
-  'siteLogins.signInAllow': 'Lad KnightLoader-udvidelsen i din browser give dine logins videre, og log så ind på {site} der. Det slår du til i udvidelsens indstillinger.',
   'signedIn.title': 'Logget ind på {site}',
   'signedIn.titleBare': 'Logget ind',
   'signedIn.body': 'KnightLoader har dit login. Du kan lukke denne fane.',
@@ -4107,4 +4105,5 @@ export const da: Dict = {
   'siteLogins.turnedDown': '{site} afviste login fra {browser}',
   'siteLogins.disconnected': 'Fjernet fra KnightLoader. Din browser er stadig logget ind.',
   'siteLogins.reconnect': 'Brug browserens login igen',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

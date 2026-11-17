@@ -4103,8 +4103,6 @@ export const th: Dict = {
   'siteLogins.fromBrowser': 'จาก {browser}',
   'siteLogins.fromExtension': 'จากส่วนขยายเบราว์เซอร์',
   'siteLogins.signInHere': 'เข้าสู่ระบบ {site} ในเบราว์เซอร์ แล้ว KnightLoader จะรับไปเอง',
-  'siteLogins.signInExtension': 'เข้าสู่ระบบ {site} ในเบราว์เซอร์ที่มีส่วนขยาย KnightLoader แล้วส่วนขยายจะส่งต่อการเข้าสู่ระบบให้',
-  'siteLogins.signInAllow': 'อนุญาตให้ส่วนขยาย KnightLoader ในเบราว์เซอร์ของคุณส่งต่อการเข้าสู่ระบบของคุณ แล้วเข้าสู่ระบบ {site} ในเบราว์เซอร์นั้น เปิดได้ในการตั้งค่าของส่วนขยาย',
   'signedIn.title': 'เข้าสู่ระบบ {site} แล้ว',
   'signedIn.titleBare': 'เข้าสู่ระบบแล้ว',
   'signedIn.body': 'KnightLoader ได้รับการเข้าสู่ระบบแล้ว ปิดแท็บนี้ได้เลย',
@@ -4120,4 +4118,5 @@ export const th: Dict = {
   'siteLogins.turnedDown': '{site} ปฏิเสธการเข้าสู่ระบบจาก {browser}',
   'siteLogins.disconnected': 'นำออกจาก KnightLoader แล้ว เบราว์เซอร์ยังเข้าสู่ระบบอยู่',
   'siteLogins.reconnect': 'ใช้การเข้าสู่ระบบจากเบราว์เซอร์อีกครั้ง',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

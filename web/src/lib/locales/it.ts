@@ -4088,8 +4088,6 @@ export const it: Dict = {
   'siteLogins.fromBrowser': 'da {browser}',
   'siteLogins.fromExtension': 'dall’estensione del browser',
   'siteLogins.signInHere': 'Accedi a {site} nel browser. KnightLoader prende l’accesso da solo.',
-  'siteLogins.signInExtension': 'Accedi a {site} in un browser con l’estensione KnightLoader. L’estensione passa l’accesso.',
-  'siteLogins.signInAllow': 'Lascia che l’estensione KnightLoader del tuo browser passi i tuoi accessi, poi accedi lì a {site}. Lo attivi nelle impostazioni dell’estensione.',
   'signedIn.title': 'Accesso a {site} effettuato',
   'signedIn.titleBare': 'Accesso effettuato',
   'signedIn.body': 'KnightLoader ha l’accesso. Puoi chiudere questa scheda.',
@@ -4105,4 +4103,5 @@ export const it: Dict = {
   'siteLogins.turnedDown': '{site} ha rifiutato l’accesso da {browser}',
   'siteLogins.disconnected': 'Rimosso da KnightLoader. Il browser resta connesso.',
   'siteLogins.reconnect': 'Usa di nuovo l’accesso del browser',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

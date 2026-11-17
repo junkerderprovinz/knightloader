@@ -4104,8 +4104,6 @@ export const id: Dict = {
   'siteLogins.fromBrowser': 'dari {browser}',
   'siteLogins.fromExtension': 'dari ekstensi peramban',
   'siteLogins.signInHere': 'Masuklah ke {site} di peramban. KnightLoader mengambilnya sendiri.',
-  'siteLogins.signInExtension': 'Masuklah ke {site} di peramban yang terpasang ekstensi KnightLoader. Ekstensi itu yang meneruskan sesi masuknya.',
-  'siteLogins.signInAllow': 'Izinkan ekstensi KnightLoader di peramban Anda meneruskan sesi masuk Anda, lalu masuklah ke {site} di sana. Itu dinyalakan di pengaturan ekstensi.',
   'signedIn.title': 'Sudah masuk ke {site}',
   'signedIn.titleBare': 'Sudah masuk',
   'signedIn.body': 'KnightLoader sudah memegang sesi masuknya. Anda boleh menutup tab ini.',
@@ -4121,4 +4119,5 @@ export const id: Dict = {
   'siteLogins.turnedDown': '{site} menolak sesi masuk dari {browser}',
   'siteLogins.disconnected': 'Dihapus dari KnightLoader. Peramban tetap masuk.',
   'siteLogins.reconnect': 'Gunakan lagi login dari peramban',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

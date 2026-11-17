@@ -82,24 +82,21 @@ describe('sourceNote', () => {
 
 describe('nextStep', () => {
   it('says to sign in in the browser where KnightLoader picks it up', () => {
-    expect(nextStep(site({}), { readsBrowsers: true, extensionPaired: false })).toEqual({
+    expect(nextStep(site({}), { readsBrowsers: true })).toEqual({
       key: 'siteLogins.signInHere',
       vars: { site: 'Patreon' },
     });
-    expect(nextStep(site({ state: 'expired', handsOver: true }), { readsBrowsers: false, extensionPaired: true })?.key).toBe('siteLogins.signInHere');
   });
-  it('points a container without a paired extension at the extension', () => {
-    expect(nextStep(site({}), { readsBrowsers: false, extensionPaired: false })?.key).toBe('siteLogins.signInExtension');
-  });
-  it('asks for the extension to pass sign-ins on where it may not read the site', () => {
-    expect(nextStep(site({}), { readsBrowsers: false, extensionPaired: true })).toEqual({
-      key: 'siteLogins.signInAllow',
+  it('points a container at the sign-in window, whatever extension its group has', () => {
+    expect(nextStep(site({}), { readsBrowsers: false })).toEqual({
+      key: 'siteLogins.signInInKl',
       vars: { site: 'Patreon' },
     });
+    expect(nextStep(site({ state: 'expired', handsOver: true }), { readsBrowsers: false })?.key).toBe('siteLogins.signInInKl');
   });
   it('has nothing to say while signed in', () => {
-    expect(nextStep(site({ state: 'signedIn' }), { readsBrowsers: false, extensionPaired: false })).toBeUndefined();
-    expect(nextStep(site({ state: 'unchecked' }), { readsBrowsers: true, extensionPaired: false })).toBeUndefined();
+    expect(nextStep(site({ state: 'signedIn' }), { readsBrowsers: false })).toBeUndefined();
+    expect(nextStep(site({ state: 'unchecked' }), { readsBrowsers: true })).toBeUndefined();
   });
 });
 
@@ -107,7 +104,7 @@ describe('a site removed here', () => {
   it('says the browser stays signed in, and names no step that would not sign it in', () => {
     const removed = site({ disconnected: true });
     expect(sourceNote(removed)).toEqual({ key: 'siteLogins.disconnected' });
-    expect(nextStep(removed, { readsBrowsers: true, extensionPaired: false })).toBeUndefined();
+    expect(nextStep(removed, { readsBrowsers: true })).toBeUndefined();
   });
 });
 

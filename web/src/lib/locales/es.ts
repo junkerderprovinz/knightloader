@@ -4095,8 +4095,6 @@ export const es: Dict = {
   'siteLogins.fromBrowser': 'de {browser}',
   'siteLogins.fromExtension': 'de la extensión del navegador',
   'siteLogins.signInHere': 'Inicia sesión en {site} en tu navegador. KnightLoader la recoge por sí solo.',
-  'siteLogins.signInExtension': 'Inicia sesión en {site} en un navegador que tenga la extensión de KnightLoader. La extensión entrega la sesión.',
-  'siteLogins.signInAllow': 'Deja que la extensión de KnightLoader de tu navegador entregue tus sesiones y luego inicia sesión en {site} allí. Lo activas en los ajustes de la extensión.',
   'signedIn.title': 'Sesión iniciada en {site}',
   'signedIn.titleBare': 'Sesión iniciada',
   'signedIn.body': 'KnightLoader ya tiene la sesión. Puedes cerrar esta pestaña.',
@@ -4112,4 +4110,5 @@ export const es: Dict = {
   'siteLogins.turnedDown': '{site} rechazó la sesión de {browser}',
   'siteLogins.disconnected': 'Quitado de KnightLoader. Tu navegador sigue con la sesión iniciada.',
   'siteLogins.reconnect': 'Volver a usar la sesión del navegador',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

@@ -175,11 +175,12 @@ it('lists a site nobody signed in to with the one step that signs it in', async 
   expect(row('Patreon')?.textContent).not.toContain('Sign in to Patreon');
 });
 
-it('points at the browser extension on an instance that reads no browser while none of the group has the extension', async () => {
+it('points at the sign-in window on an instance that reads no browser, with or without an extension in the group', async () => {
   sites = [{ ...signedOut(patreon), readsBrowsers: false }];
-  apps = [{ ...browserExtension, deployment: 'mobile' }];
+  apps = [browserExtension];
   await renderCard();
-  expect(hint('Patreon')).toContain('KnightLoader extension');
+  expect(hint('Patreon')).toContain('in the window here');
+  expect(hint('Patreon')).not.toContain('extension');
   expect(hint('Patreon')).not.toContain('picks it up by itself');
 });
 

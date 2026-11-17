@@ -4106,8 +4106,6 @@ export const lt: Dict = {
   'siteLogins.fromBrowser': 'iš {browser}',
   'siteLogins.fromExtension': 'iš naršyklės plėtinio',
   'siteLogins.signInHere': 'Prisijunk prie „{site}“ savo naršyklėje. KnightLoader tai perims pats.',
-  'siteLogins.signInExtension': 'Prisijunk prie „{site}“ naršyklėje, kurioje įdiegtas KnightLoader plėtinys. Plėtinys prisijungimą perduos.',
-  'siteLogins.signInAllow': 'Leisk savo naršyklės KnightLoader plėtiniui perduoti tavo prisijungimus, tada prisijunk ten prie „{site}“. Tai įjungiama plėtinio nustatymuose.',
   'signedIn.title': 'Prisijungta prie „{site}“',
   'signedIn.titleBare': 'Prisijungta',
   'signedIn.body': 'KnightLoader jau turi prisijungimą. Šį skirtuką gali uždaryti.',
@@ -4123,4 +4121,5 @@ export const lt: Dict = {
   'siteLogins.turnedDown': '„{site}“ atmetė prisijungimą iš {browser}',
   'siteLogins.disconnected': 'Pašalinta iš KnightLoader. Naršyklė lieka prisijungusi.',
   'siteLogins.reconnect': 'Vėl naudoti naršyklės prisijungimą',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

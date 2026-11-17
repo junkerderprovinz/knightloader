@@ -4104,8 +4104,6 @@ export const ms: Dict = {
   'siteLogins.fromBrowser': 'daripada {browser}',
   'siteLogins.fromExtension': 'daripada sambungan pelayar',
   'siteLogins.signInHere': 'Log masuk ke {site} dalam pelayar anda. KnightLoader akan mengambilnya sendiri.',
-  'siteLogins.signInExtension': 'Log masuk ke {site} dalam pelayar yang ada sambungan KnightLoader. Sambungan itu akan menyerahkan log masuk tersebut.',
-  'siteLogins.signInAllow': 'Benarkan sambungan KnightLoader dalam pelayar anda menyerahkan log masuk anda, kemudian log masuk ke {site} di situ. Anda menghidupkannya dalam tetapan sambungan itu.',
   'signedIn.title': 'Sudah log masuk ke {site}',
   'signedIn.titleBare': 'Sudah log masuk',
   'signedIn.body': 'KnightLoader sudah ada log masuk itu. Anda boleh menutup tab ini.',
@@ -4121,4 +4119,5 @@ export const ms: Dict = {
   'siteLogins.turnedDown': '{site} menolak log masuk daripada {browser}',
   'siteLogins.disconnected': 'Dibuang daripada KnightLoader. Pelayar anda kekal log masuk.',
   'siteLogins.reconnect': 'Guna log masuk pelayar semula',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

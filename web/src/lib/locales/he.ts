@@ -4121,8 +4121,6 @@ export const he: Dict = {
   'siteLogins.fromBrowser': 'מ-{browser}',
   'siteLogins.fromExtension': 'מהרחבת הדפדפן',
   'siteLogins.signInHere': 'התחבר ל-{site} בדפדפן. KnightLoader יקלוט את זה בעצמו.',
-  'siteLogins.signInExtension': 'התחבר ל-{site} בדפדפן שמותקנת בו ההרחבה של KnightLoader. ההרחבה מעבירה את ההתחברות הלאה.',
-  'siteLogins.signInAllow': 'אפשר להרחבה של KnightLoader בדפדפן שלך להעביר את ההתחברויות שלך, ואז התחבר שם ל-{site}. מפעילים את זה בהגדרות ההרחבה.',
   'signedIn.title': 'מחובר ל-{site}',
   'signedIn.titleBare': 'מחובר',
   'signedIn.body': 'ההתחברות כבר אצל KnightLoader. אפשר לסגור את הכרטיסייה הזו.',
@@ -4138,4 +4136,5 @@ export const he: Dict = {
   'siteLogins.turnedDown': '{site} דחה את ההתחברות מ-{browser}',
   'siteLogins.disconnected': 'הוסר מ-KnightLoader. הדפדפן נשאר מחובר.',
   'siteLogins.reconnect': 'להשתמש שוב בהתחברות מהדפדפן',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

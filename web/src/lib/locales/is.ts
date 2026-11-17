@@ -4100,8 +4100,6 @@ export const is: Dict = {
   'siteLogins.fromBrowser': 'úr {browser}',
   'siteLogins.fromExtension': 'úr vafraviðbótinni',
   'siteLogins.signInHere': 'Skráðu þig inn á {site} í vafranum. KnightLoader nær í það sjálfkrafa.',
-  'siteLogins.signInExtension': 'Skráðu þig inn á {site} í vafra sem er með KnightLoader-viðbótina. Viðbótin kemur innskráningunni áfram.',
-  'siteLogins.signInAllow': 'Leyfðu KnightLoader-viðbótinni í vafranum þínum að koma innskráningunum þínum áfram og skráðu þig svo inn á {site} þar. Þú kveikir á því í stillingum viðbótarinnar.',
   'signedIn.title': 'Innskráning á {site} virk',
   'signedIn.titleBare': 'Innskráning virk',
   'signedIn.body': 'KnightLoader er komið með innskráninguna. Þú getur lokað þessum flipa.',
@@ -4117,4 +4115,5 @@ export const is: Dict = {
   'siteLogins.turnedDown': '{site} hafnaði innskráningunni úr {browser}',
   'siteLogins.disconnected': 'Fjarlægt úr KnightLoader. Vafrinn er áfram innskráður.',
   'siteLogins.reconnect': 'Nota innskráningu vafrans aftur',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

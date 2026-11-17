@@ -4105,8 +4105,6 @@ export const fi: Dict = {
   'siteLogins.fromBrowser': 'selaimesta {browser}',
   'siteLogins.fromExtension': 'selainlaajennuksesta',
   'siteLogins.signInHere': 'Kirjaudu palveluun {site} selaimessasi. KnightLoader poimii kirjautumisen itse.',
-  'siteLogins.signInExtension': 'Kirjaudu palveluun {site} selaimessa, jossa on KnightLoader-laajennus. Laajennus välittää kirjautumisen eteenpäin.',
-  'siteLogins.signInAllow': 'Anna selaimesi KnightLoader-laajennuksen välittää kirjautumisesi ja kirjaudu sitten siellä palveluun {site}. Sen saat päälle laajennuksen asetuksista.',
   'signedIn.title': 'Kirjautunut palveluun {site}',
   'signedIn.titleBare': 'Kirjautunut',
   'signedIn.body': 'KnightLoaderilla on nyt kirjautuminen. Voit sulkea tämän välilehden.',
@@ -4122,4 +4120,5 @@ export const fi: Dict = {
   'siteLogins.turnedDown': '{site} hylkäsi kirjautumisen selaimesta {browser}',
   'siteLogins.disconnected': 'Poistettu KnightLoaderista. Selain pysyy kirjautuneena.',
   'siteLogins.reconnect': 'Käytä selaimen kirjautumista taas',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

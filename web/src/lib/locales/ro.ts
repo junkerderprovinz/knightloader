@@ -4113,8 +4113,6 @@ export const ro: Dict = {
   'siteLogins.fromBrowser': 'din {browser}',
   'siteLogins.fromExtension': 'din extensia de browser',
   'siteLogins.signInHere': 'Autentifică-te pe {site} în browser. KnightLoader o preia singur.',
-  'siteLogins.signInExtension': 'Autentifică-te pe {site} într-un browser care are extensia KnightLoader. Extensia transmite mai departe autentificarea.',
-  'siteLogins.signInAllow': 'Lasă extensia KnightLoader din browserul tău să transmită mai departe autentificările tale, apoi autentifică-te acolo pe {site}. Asta se pornește din setările extensiei.',
   'signedIn.title': 'Autentificat pe {site}',
   'signedIn.titleBare': 'Autentificat',
   'signedIn.body': 'KnightLoader are acum autentificarea. Poți închide această filă.',
@@ -4130,4 +4128,5 @@ export const ro: Dict = {
   'siteLogins.turnedDown': '{site} a respins autentificarea din {browser}',
   'siteLogins.disconnected': 'Eliminat din KnightLoader. Browserul rămâne autentificat.',
   'siteLogins.reconnect': 'Folosește din nou autentificarea din browser',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

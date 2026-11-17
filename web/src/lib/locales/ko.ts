@@ -4092,8 +4092,6 @@ export const ko: Dict = {
   'siteLogins.fromBrowser': '{browser}에서',
   'siteLogins.fromExtension': '브라우저 확장 프로그램에서',
   'siteLogins.signInHere': '브라우저에서 {site}에 로그인하세요. KnightLoader가 알아서 가져옵니다.',
-  'siteLogins.signInExtension': 'KnightLoader 확장 프로그램이 설치된 브라우저에서 {site}에 로그인하세요. 확장 프로그램이 로그인을 넘겨 줍니다.',
-  'siteLogins.signInAllow': '브라우저의 KnightLoader 확장 프로그램이 로그인을 넘겨 주도록 허용한 뒤 그 브라우저에서 {site}에 로그인하세요. 확장 프로그램 설정에서 켤 수 있습니다.',
   'signedIn.title': '{site}에 로그인됨',
   'signedIn.titleBare': '로그인됨',
   'signedIn.body': 'KnightLoader가 로그인을 받았습니다. 이 탭은 닫아도 됩니다.',
@@ -4109,4 +4107,5 @@ export const ko: Dict = {
   'siteLogins.turnedDown': '{site}에서 {browser}의 로그인을 받아 주지 않았습니다',
   'siteLogins.disconnected': 'KnightLoader에서 제거했습니다. 브라우저는 로그인된 채로 있습니다.',
   'siteLogins.reconnect': '브라우저 로그인 다시 사용',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

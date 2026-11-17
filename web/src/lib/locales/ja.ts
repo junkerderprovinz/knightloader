@@ -4101,8 +4101,6 @@ export const ja: Dict = {
   'siteLogins.fromBrowser': '{browser} から',
   'siteLogins.fromExtension': 'ブラウザー拡張機能から',
   'siteLogins.signInHere': 'ブラウザーで {site} にサインインしてください。KnightLoader が自動で引き継ぎます。',
-  'siteLogins.signInExtension': 'KnightLoader 拡張機能を入れたブラウザーで {site} にサインインしてください。拡張機能がサインインを引き渡します。',
-  'siteLogins.signInAllow': 'ブラウザーの KnightLoader 拡張機能にサインインの引き渡しを許可してから、そこで {site} にサインインしてください。拡張機能の設定でオンにできます。',
   'signedIn.title': '{site} にサインインしました',
   'signedIn.titleBare': 'サインインしました',
   'signedIn.body': 'KnightLoader がサインインを受け取りました。このタブは閉じてかまいません。',
@@ -4118,4 +4116,5 @@ export const ja: Dict = {
   'siteLogins.turnedDown': '{site} が {browser} からのサインインを受け付けませんでした',
   'siteLogins.disconnected': 'KnightLoader から削除しました。ブラウザーはサインインしたままです。',
   'siteLogins.reconnect': 'ブラウザーのサインインをもう一度使う',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

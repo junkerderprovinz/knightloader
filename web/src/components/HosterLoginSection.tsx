@@ -25,7 +25,7 @@ import {
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
-import { type SignInWays, nextStep, siteForHost, sourceNote, unreadableBrowsers, useSignInWays } from '../lib/siteLogins';
+import { type SignInWays, nextStep, siteForHost, sourceNote, readsBrowsers, unreadableBrowsers } from '../lib/siteLogins';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
@@ -136,7 +136,7 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
     }
   }
 
-  const ways = useSignInWays(sites);
+  const ways = { readsBrowsers: readsBrowsers(sites) };
   return { logins, sites, ways, hosts, load, toggle, toggleAll, remove, putSite, removeSite };
 }
 

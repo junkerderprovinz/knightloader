@@ -4084,8 +4084,6 @@ export const ru: Dict = {
   'siteLogins.fromBrowser': 'из {browser}',
   'siteLogins.fromExtension': 'через расширение браузера',
   'siteLogins.signInHere': 'Войдите в {site} в браузере. KnightLoader сам подхватит вход.',
-  'siteLogins.signInExtension': 'Войдите в {site} в браузере с расширением KnightLoader. Расширение передаст вход.',
-  'siteLogins.signInAllow': 'Разрешите расширению KnightLoader в вашем браузере передавать ваши входы, а затем войдите там в {site}. Это включается в настройках расширения.',
   'signedIn.title': 'Вход в {site} выполнен',
   'signedIn.titleBare': 'Вход выполнен',
   'signedIn.body': 'KnightLoader получил вход. Эту вкладку можно закрыть.',
@@ -4101,4 +4099,5 @@ export const ru: Dict = {
   'siteLogins.turnedDown': '{site} отклонил вход из {browser}',
   'siteLogins.disconnected': 'Удалено из KnightLoader. Браузер остаётся в аккаунте.',
   'siteLogins.reconnect': 'Снова использовать вход из браузера',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

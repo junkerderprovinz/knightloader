@@ -4093,8 +4093,6 @@ export const fa: Dict = {
   'siteLogins.fromBrowser': 'از {browser}',
   'siteLogins.fromExtension': 'از افزونهٔ مرورگر',
   'siteLogins.signInHere': 'در مرورگرت وارد {site} شو. KnightLoader خودش آن را برمی‌دارد.',
-  'siteLogins.signInExtension': 'در مرورگری که افزونهٔ KnightLoader را دارد وارد {site} شو. افزونه ورود را تحویل می‌دهد.',
-  'siteLogins.signInAllow': 'بگذار افزونهٔ KnightLoader در مرورگرت ورودهایت را تحویل بدهد و بعد همان‌جا وارد {site} شو. این را در تنظیمات افزونه روشن می‌کنی.',
   'signedIn.title': 'وارد {site} شدی',
   'signedIn.titleBare': 'وارد شدی',
   'signedIn.body': 'ورود حالا دست KnightLoader است. می‌توانی این زبانه را ببندی.',
@@ -4110,4 +4108,5 @@ export const fa: Dict = {
   'siteLogins.turnedDown': '{site} ورود از {browser} را نپذیرفت',
   'siteLogins.disconnected': 'از KnightLoader برداشته شد. مرورگرت همچنان وارد شده می‌ماند.',
   'siteLogins.reconnect': 'دوباره از ورود مرورگر استفاده کن',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

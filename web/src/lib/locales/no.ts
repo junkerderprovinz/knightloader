@@ -4107,8 +4107,6 @@ export const no: Dict = {
   'siteLogins.fromBrowser': 'fra {browser}',
   'siteLogins.fromExtension': 'fra nettleserutvidelsen',
   'siteLogins.signInHere': 'Logg inn på {site} i nettleseren. KnightLoader plukker det opp av seg selv.',
-  'siteLogins.signInExtension': 'Logg inn på {site} i en nettleser som har KnightLoader-utvidelsen. Utvidelsen gir innloggingen videre.',
-  'siteLogins.signInAllow': 'La KnightLoader-utvidelsen i nettleseren din gi innloggingene dine videre, og logg så inn på {site} der. Det slår du på i innstillingene til utvidelsen.',
   'signedIn.title': 'Logget inn på {site}',
   'signedIn.titleBare': 'Logget inn',
   'signedIn.body': 'KnightLoader har innloggingen. Du kan lukke denne fanen.',
@@ -4124,4 +4122,5 @@ export const no: Dict = {
   'siteLogins.turnedDown': '{site} avviste innloggingen fra {browser}',
   'siteLogins.disconnected': 'Fjernet fra KnightLoader. Nettleseren er fortsatt logget inn.',
   'siteLogins.reconnect': 'Bruk innloggingen fra nettleseren igjen',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

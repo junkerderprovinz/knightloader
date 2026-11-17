@@ -4087,8 +4087,6 @@ export const nl: Dict = {
   'siteLogins.fromBrowser': 'uit {browser}',
   'siteLogins.fromExtension': 'van de browserextensie',
   'siteLogins.signInHere': 'Meld je in je browser aan bij {site}. KnightLoader neemt het vanzelf over.',
-  'siteLogins.signInExtension': 'Meld je aan bij {site} in een browser met de KnightLoader-extensie. De extensie geeft de aanmelding door.',
-  'siteLogins.signInAllow': 'Laat de KnightLoader-extensie in je browser je aanmeldingen doorgeven en meld je daar dan aan bij {site}. Dat zet je aan in de instellingen van de extensie.',
   'signedIn.title': 'Aangemeld bij {site}',
   'signedIn.titleBare': 'Aangemeld',
   'signedIn.body': 'KnightLoader heeft de aanmelding. Je kunt dit tabblad sluiten.',
@@ -4104,4 +4102,5 @@ export const nl: Dict = {
   'siteLogins.turnedDown': '{site} heeft de aanmelding uit {browser} geweigerd',
   'siteLogins.disconnected': 'Uit KnightLoader verwijderd. Je browser blijft aangemeld.',
   'siteLogins.reconnect': 'Aanmelding uit de browser weer gebruiken',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

@@ -4105,8 +4105,6 @@ export const el: Dict = {
   'siteLogins.fromBrowser': 'από {browser}',
   'siteLogins.fromExtension': 'από την επέκταση περιηγητή',
   'siteLogins.signInHere': 'Συνδέσου στο {site} από τον περιηγητή σου. Το KnightLoader παίρνει τη σύνδεση μόνο του.',
-  'siteLogins.signInExtension': 'Συνδέσου στο {site} σε έναν περιηγητή που έχει την επέκταση KnightLoader. Η επέκταση μεταφέρει τη σύνδεση.',
-  'siteLogins.signInAllow': 'Άφησε την επέκταση KnightLoader στον περιηγητή σου να μεταφέρει τις συνδέσεις σου και μετά συνδέσου εκεί στο {site}. Το ενεργοποιείς στις ρυθμίσεις της επέκτασης.',
   'signedIn.title': 'Συνδέθηκες στο {site}',
   'signedIn.titleBare': 'Συνδέθηκες',
   'signedIn.body': 'Το KnightLoader έχει πλέον τη σύνδεση. Μπορείς να κλείσεις αυτή την καρτέλα.',
@@ -4122,4 +4120,5 @@ export const el: Dict = {
   'siteLogins.turnedDown': 'Το {site} απέρριψε τη σύνδεση από {browser}',
   'siteLogins.disconnected': 'Αφαιρέθηκε από το KnightLoader. Ο περιηγητής σου μένει συνδεδεμένος.',
   'siteLogins.reconnect': 'Χρήση ξανά της σύνδεσης του περιηγητή',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

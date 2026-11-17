@@ -4105,8 +4105,6 @@ export const hu: Dict = {
   'siteLogins.fromBrowser': 'innen: {browser}',
   'siteLogins.fromExtension': 'a böngészőbővítményből',
   'siteLogins.signInHere': 'Jelentkezz be a böngésződben ide: {site}. A KnightLoader magától átveszi.',
-  'siteLogins.signInExtension': 'Jelentkezz be ide: {site} egy olyan böngészőben, amelyben ott van a KnightLoader bővítmény. A bővítmény továbbadja a bejelentkezést.',
-  'siteLogins.signInAllow': 'Engedd, hogy a böngésződ KnightLoader bővítménye továbbadja a bejelentkezéseidet, aztán jelentkezz be ott ide: {site}. Ezt a bővítmény beállításaiban kapcsolod be.',
   'signedIn.title': 'Bejelentkezve ide: {site}',
   'signedIn.titleBare': 'Bejelentkezve',
   'signedIn.body': 'A KnightLoadernél már megvan a bejelentkezés. Ezt a lapot bezárhatod.',
@@ -4122,4 +4120,5 @@ export const hu: Dict = {
   'siteLogins.turnedDown': 'A(z) {site} elutasította a bejelentkezést innen: {browser}',
   'siteLogins.disconnected': 'Eltávolítva a KnightLoaderből. A böngésződ bejelentkezve marad.',
   'siteLogins.reconnect': 'A böngésző bejelentkezésének újbóli használata',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };

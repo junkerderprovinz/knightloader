@@ -4095,8 +4095,6 @@ export const et: Dict = {
   'siteLogins.fromBrowser': 'brauserist {browser}',
   'siteLogins.fromExtension': 'brauserilaiendusest',
   'siteLogins.signInHere': 'Logi brauseris saidile {site} sisse. KnightLoader võtab selle ise üle.',
-  'siteLogins.signInExtension': 'Logi saidile {site} sisse brauseris, kus on KnightLoaderi laiendus. Laiendus annab sisselogimise edasi.',
-  'siteLogins.signInAllow': 'Luba oma brauseri KnightLoaderi laiendusel sinu sisselogimised edasi anda ja logi siis seal saidile {site} sisse. Selle lülitad sisse laienduse seadetes.',
   'signedIn.title': 'Saidile {site} sisse logitud',
   'signedIn.titleBare': 'Sisse logitud',
   'signedIn.body': 'KnightLoaderil on sisselogimine olemas. Võid selle vahekaardi sulgeda.',
@@ -4112,4 +4110,5 @@ export const et: Dict = {
   'siteLogins.turnedDown': '{site} lükkas brauseri {browser} sisselogimise tagasi',
   'siteLogins.disconnected': 'KnightLoaderist eemaldatud. Brauser jääb sisselogituks.',
   'siteLogins.reconnect': 'Kasuta uuesti brauseri sisselogimist',
+  'siteLogins.signInInKl': 'Sign in to {site} in the window here. KnightLoader keeps the session, never what you type.',
 };
