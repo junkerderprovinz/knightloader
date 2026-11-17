@@ -177,6 +177,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   offline when its site no longer answers. Links to it still go to
   JDownloader as before. KnightLoader asks such a site again once a week and
   shows the hoster as soon as it answers.
+- **The sign-in window tells you when you are signed in.** A message in the
+  middle of the window asks you to click Done, and Done only works from then
+  on. Back sits on the other side of the footer and says what it does.
 
 ### Removed
 
@@ -187,6 +190,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Fixed
 
+- **Every date shows the full year,** such as an account's expiry date, in
+  the web interface and in the phone app. Some languages printed only its
+  last two digits.
 - **Rapidgator accounts with two-factor sign-in work.** When Rapidgator asks
   for the code, the login's window shows one more field for the six digits
   from your authenticator app, and KnightLoader signs in with it once without
