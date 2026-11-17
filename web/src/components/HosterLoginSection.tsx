@@ -562,7 +562,7 @@ function HosterLoginDialog({
   const configured = new Set(existing.map((e) => e.host));
   const brands: Brand[] = hosts
     .filter((h) => !configured.has(h.id) && !siteForHost(h.id, sites))
-    .map((h) => ({ id: h.id, name: h.label, host: h.id }))
+    .map((h) => ({ id: h.id, name: h.label, host: h.id, sub: h.id }))
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
   const pick = (id: string) => setPicked(hosts.find((h) => h.id === id) ?? null);
