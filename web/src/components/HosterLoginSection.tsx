@@ -232,6 +232,7 @@ export function HosterLoginSection({
     <div className="flex flex-col gap-3">
       {hasRows && (
         <AccountTable
+          tableId="hoster"
           label={t('accounts.hoster.title')}
           rows={[
             ...rows.map((row) =>
@@ -562,7 +563,7 @@ function HosterLoginDialog({
   const configured = new Set(existing.map((e) => e.host));
   const brands: Brand[] = hosts
     .filter((h) => !configured.has(h.id) && !siteForHost(h.id, sites))
-    .map((h) => ({ id: h.id, name: h.label, host: h.id }))
+    .map((h) => ({ id: h.id, name: h.label, host: h.id, sub: h.id }))
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
   const pick = (id: string) => setPicked(hosts.find((h) => h.id === id) ?? null);

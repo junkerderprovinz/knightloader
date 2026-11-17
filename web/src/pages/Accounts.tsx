@@ -283,7 +283,7 @@ export function Accounts() {
           {t('accounts.debrid.title')}
         </SectionTitle>
         {debridRows.length > 0 ? (
-          <AccountsTable label={t('accounts.debrid.title')} rows={debridRows} {...tableProps} />
+          <AccountsTable tableId="debrid" label={t('accounts.debrid.title')} rows={debridRows} {...tableProps} />
         ) : (
           <EmptyState
             nested
@@ -326,7 +326,7 @@ export function Accounts() {
             {t('accounts.server.title')}
           </SectionTitle>
           {serverRows.length > 0 ? (
-            <AccountsTable label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
+            <AccountsTable tableId="server" label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
           ) : (
             <EmptyState
               nested
@@ -352,7 +352,7 @@ export function Accounts() {
           {t('accounts.captcha.title')}
         </SectionTitle>
         {solverRows.length > 0 ? (
-          <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
+          <AccountsTable tableId="captcha" label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
         ) : (
           <EmptyState
             nested
@@ -450,6 +450,7 @@ interface TableActions {
 }
 
 function AccountsTable({
+  tableId,
   label,
   rows,
   catalogue,
@@ -458,10 +459,11 @@ function AccountsTable({
   onToggle,
   onRemove,
   onEdit,
-}: TableActions & { label: string; rows: Account[] }) {
+}: TableActions & { tableId: string; label: string; rows: Account[] }) {
   const { t } = useT();
   return (
     <AccountTable
+      tableId={tableId}
       label={label}
       rows={rows.map((a): AccountRow => {
         const svc = catalogue.get(a.service);

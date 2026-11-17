@@ -163,6 +163,7 @@ export function UsenetServersSection({
         />
       ) : (
         <AccountTable
+          tableId="usenet"
           label={t('accounts.usenet.title')}
           rows={rows.map((r) => ({
             key: r.id,

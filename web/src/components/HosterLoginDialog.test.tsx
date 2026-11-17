@@ -104,8 +104,8 @@ function HosterCard() {
   );
 }
 
-/** Opens the window, picks Rapidgator and fills in the login. */
-async function fillIn() {
+/** Opens the window on its picker of hosters. */
+async function openPicker() {
   await act(async () =>
     root.render(
       <I18nProvider>
@@ -116,9 +116,17 @@ async function fillIn() {
     ),
   );
   await act(async () => button('Add')!.click());
-  const tile = [...document.querySelectorAll<HTMLElement>('.glim-readme-btn-unit')].find(
+}
+
+const rapidgatorTile = () =>
+  [...document.querySelectorAll<HTMLElement>('.glim-readme-btn-unit')].find(
     (li) => li.querySelector('.glim-readme-btn-name')?.textContent === 'rapidgator.net',
   )!;
+
+/** Opens the window, picks Rapidgator and fills in the login. */
+async function fillIn() {
+  await openPicker();
+  const tile = rapidgatorTile();
   await act(async () => (tile.querySelector('button') ?? tile).click());
   type(document.querySelector<HTMLInputElement>('input[autocomplete="off"]')!, 'john@example.com');
   type(passwordField()!, 'hunter2');
@@ -127,6 +135,13 @@ async function fillIn() {
 const save = () => act(async () => button(en['accounts.save'])!.click());
 
 describe('the hoster login window', () => {
+  // The debrid and Usenet pickers show a brand's site under its name while the
+  // pointer is on the tile, and the hoster picker reads the same.
+  it('shows each hoster’s site under its name on the tile', async () => {
+    await openPicker();
+    expect(rapidgatorTile().querySelector('.glim-readme-btn-sub')?.textContent).toBe('rapidgator.net');
+  });
+
   it('stays open after Save and says Connected once the hoster takes the login', async () => {
     await fillIn();
     await save();

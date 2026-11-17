@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../lib/i18n';
 import { IconRetry } from '../lib/icons';
+import { peekUIState, writeUIState } from '../lib/uistate';
 import { AccountTable, type AccountRow } from './AccountTable';
 import { InfoBubble } from './ui';
 
@@ -20,6 +21,7 @@ class OffScreen {
 
 beforeEach(() => {
   vi.stubGlobal('IntersectionObserver', OffScreen);
+  vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })));
   host = document.createElement('div');
   document.body.append(host);
   root = createRoot(host);
@@ -28,6 +30,7 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root.unmount());
   host.remove();
+  for (const table of ['debrid', 'hoster', 'usenet']) writeUIState(`accounts.columns.${table}`, undefined);
   vi.unstubAllGlobals();
 });
 
@@ -45,11 +48,11 @@ interface NodeFs {
   readFileSync(path: string, encoding: 'utf8'): string;
 }
 
-const draw = (rows: AccountRow[]) =>
+const draw = (rows: AccountRow[], tableId = 'debrid') =>
   act(() =>
     root.render(
       <I18nProvider>
-        <AccountTable label="Accounts" rows={rows} />
+        <AccountTable tableId={tableId} label="Accounts" rows={rows} />
       </I18nProvider>,
     ),
   );
@@ -130,4 +133,142 @@ it('shows the row’s buttons under the pointer, with the focus inside the row a
   const css = fs.readFileSync('src/index.css', 'utf8');
   expect(css).toMatch(/\.glim-row:is\(:hover, :focus-within\) \.glim-row-actions/);
   expect(css).toMatch(/@media \(hover: none\) \{\s*\.glim-row-actions \{\s*opacity: 1;/);
+});
+
+/** Each column's share of the table, in percent, as its header carries it; the name takes what is left. */
+function widths(): Record<string, number> {
+  const [, status, plan, expiry, traffic] = [...host.querySelectorAll<HTMLElement>('thead th')].map(
+    (th) => parseFloat(th.style.getPropertyValue('--kl-share')) * 100,
+  );
+  return { status, plan, expiry, traffic, name: 100 - status - plan - expiry - traffic };
+}
+
+function expectSameWidths(a: Record<string, number>, b: Record<string, number>) {
+  for (const col of Object.keys(b)) expect(a[col]).toBeCloseTo(b[col], 6);
+}
+
+/** The resize handles in the header, from the name and status edge on. */
+const handles = () => [...host.querySelectorAll<HTMLElement>('thead [role="separator"]')];
+
+function drawWide(tableId = 'debrid') {
+  draw([row('torbox', <span>Signed in</span>)], tableId);
+  Object.defineProperty(host.querySelector('table'), 'offsetWidth', { configurable: true, value: 1000 });
+}
+
+function dragBy(handle: HTMLElement, dx: number) {
+  const at = (type: string, clientX: number) =>
+    act(() => handle.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX })));
+  at('pointerdown', 500);
+  at('pointermove', 500 + dx / 2);
+  at('pointermove', 500 + dx);
+  at('pointerup', 500 + dx);
+}
+
+describe('column widths', () => {
+  beforeEach(() => {
+    HTMLElement.prototype.setPointerCapture = () => {};
+  });
+
+  it('gives the status more room than the name and spreads the rest over plan, expiry and traffic', () => {
+    drawWide();
+    const w = widths();
+    expect(w.status).toBeGreaterThanOrEqual(w.name);
+    expect(w.status).toBeGreaterThanOrEqual(24);
+    expect(w.name).toBeLessThanOrEqual(30);
+    expect(w.plan).toBeGreaterThanOrEqual(10);
+    expect(w.expiry).toBeGreaterThanOrEqual(14);
+    expect(w.traffic).toBeGreaterThanOrEqual(18);
+  });
+
+  it('puts a handle on every column edge but the row buttons', () => {
+    drawWide();
+    expect(handles()).toHaveLength(4);
+    expect(host.querySelector('thead th.kl-col-actions [role="separator"]')).toBeNull();
+  });
+
+  it('moves room between the two columns beside the edge that is dragged', () => {
+    drawWide();
+    const before = widths();
+    dragBy(handles()[1], -50);
+    const after = widths();
+    expect(after.plan).toBeCloseTo(before.plan + 5, 1);
+    expect(after.status).toBeCloseTo(before.status - 5, 1);
+    expect(after.name).toBeCloseTo(before.name, 1);
+    expect(after.expiry).toBeCloseTo(before.expiry, 1);
+    expect(after.traffic).toBeCloseTo(before.traffic, 1);
+  });
+
+  it('stops a column at its minimum, so the table never grows past its card', () => {
+    drawWide();
+    const before = widths();
+    dragBy(handles()[0], 5000);
+    const after = widths();
+    expect(after.status).toBeGreaterThan(5);
+    expect(after.status).toBeLessThan(before.status);
+    expect(after.name).toBeCloseTo(before.name + before.status - after.status, 1);
+    expect(after.status + after.plan + after.expiry + after.traffic + after.name).toBeCloseTo(100, 1);
+
+    dragBy(handles()[0], -5000);
+    expect(widths().name).toBeGreaterThan(5);
+  });
+
+  it('gives a column its own width back on a double-click on its handle', () => {
+    drawWide();
+    const before = widths();
+    dragBy(handles()[2], -80);
+    expect(widths().expiry).not.toBeCloseTo(before.expiry, 1);
+    act(() => handles()[2].dispatchEvent(new MouseEvent('dblclick', { bubbles: true })));
+    expectSameWidths(widths(), before);
+  });
+
+  it('remembers the widths of each table on its own', () => {
+    drawWide('hoster');
+    const before = widths();
+    dragBy(handles()[0], -100);
+    const dragged = widths();
+    expect(peekUIState('accounts.columns.hoster', null)).not.toBeNull();
+    expect(peekUIState('accounts.columns.usenet', null)).toBeNull();
+
+    act(() => root.unmount());
+    root = createRoot(host);
+    drawWide('usenet');
+    expectSameWidths(widths(), before);
+
+    act(() => root.unmount());
+    root = createRoot(host);
+    drawWide('hoster');
+    expectSameWidths(widths(), dragged);
+  });
+
+  it('widens a column from the keyboard', () => {
+    drawWide();
+    const before = widths();
+    const handle = handles()[3];
+    expect(handle.tabIndex).toBe(0);
+    act(() => handle.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true })));
+    expect(widths().traffic).toBeGreaterThan(before.traffic);
+    expect(widths().expiry).toBeLessThan(before.expiry);
+  });
+
+  // A column a narrow card leaves out hands its room to the columns still
+  // shown, and the row buttons' column on a touch screen comes off first.
+  it('sizes each header from the shares of the columns shown, less the row buttons', () => {
+    const fs = (globalThis as unknown as { process: { getBuiltinModule(id: 'node:fs'): NodeFs } }).process.getBuiltinModule('node:fs');
+    const css = fs.readFileSync('src/index.css', 'utf8');
+    expect(css).toMatch(/width: calc\(var\(--kl-share\) \/ var\(--kl-sum\) \* \(100cqw - var\(--kl-buttons\)\)\);/);
+    const blocks = css
+      .split('@container')
+      .slice(1)
+      .map((piece) => {
+        let depth = 0;
+        for (let i = 0; i < piece.length; i++) {
+          if (piece[i] === '{') depth++;
+          else if (piece[i] === '}' && --depth === 0) return piece.slice(0, i);
+        }
+        return piece;
+      });
+    const hiding = blocks.filter((b) => /\.kl-accounts [^{]*kl-col-(status|plan|expiry|traffic)[^{]*\{\s*display/.test(b));
+    expect(hiding).toHaveLength(5);
+    for (const rule of hiding) expect(rule).toMatch(/--kl-sum:/);
+  });
 });
