@@ -334,9 +334,10 @@ func webAddress(raw string) bool {
 }
 
 // checkCrossSeed refuses an announce address that is not on its site's
-// tracker, an indexer or daemon that is not on the web, and a link mode
-// without a full path to link into. An address is left out of a message, in
-// case it carries a key, and a masked announce address is the stored one.
+// tracker, an indexer or daemon that is not on the web, and a link mode or a
+// folder shared with the daemon without a full path. An address is left out
+// of a message, in case it carries a key, and a masked announce address is
+// the stored one.
 func checkCrossSeed(c settings.CrossSeed, refuse func(string, error) error) error {
 	for _, g := range []struct {
 		field string
@@ -362,6 +363,9 @@ func checkCrossSeed(c settings.CrossSeed, refuse func(string, error) error) erro
 	}
 	if c.Daemon.URL != "" && !webAddress(c.Daemon.URL) {
 		return refuse("crossSeed.daemon.url", errors.New("the cross-seed daemon address is not an http or https address"))
+	}
+	if c.Daemon.Folder != "" && !filepath.IsAbs(c.Daemon.Folder) {
+		return refuse("crossSeed.daemon.folder", errors.New("the folder shared with the cross-seed daemon needs its full path"))
 	}
 	return nil
 }

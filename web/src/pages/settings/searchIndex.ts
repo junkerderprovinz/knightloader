@@ -1025,6 +1025,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.torrents.crossSeedCategory', hint: 'settings.torrents.crossSeedCategoryHint' },
         { key: 'settings.torrents.crossSeedDaemon', hint: 'settings.torrents.crossSeedDaemonHint' },
         { key: 'settings.torrents.crossSeedDaemonUrl', hint: 'settings.torrents.crossSeedDaemonUrlHint' },
+        { key: 'settings.torrents.crossSeedDaemonFolder', hint: 'settings.torrents.crossSeedDaemonFolderHint' },
         { key: 'settings.torrents.crossSeedLog', hint: 'settings.torrents.crossSeedLogHint' },
       ],
       also: [

@@ -172,9 +172,21 @@ reason, and `cross-seed.jsonl` in the data folder keeps them all. "Test key",
 
 If you run [cross-seed](https://www.cross-seed.org/) yourself, give its address
 and API key instead. KnightLoader then hands it each finished torrent through
-its webhook, by its info hash and the path of its files, and searches nothing
-itself. A daemon that cannot reach KnightLoader's qBittorrent searches by the
-files at that path, so it needs to see them under the same path.
+its webhook and searches nothing itself. The daemon cannot reach
+KnightLoader's qBittorrent, so give both a shared folder, one the daemon can
+reach as well, and set three of the daemon's options: `torrentDir` to
+`torrents` in that folder, `outputDir` to `found` in it, and `action` to
+`save`. KnightLoader puts each finished torrent's `.torrent` into `torrents`
+and hands the daemon its info hash. Every 30 seconds it looks into `found`:
+a twin with exactly the files of one of your finished torrents goes into
+qBittorrent like the twins KnightLoader finds itself, and one that matches
+none, such as a partial match, is refused and logged. Either way the file
+leaves `found`. Removing a task takes its `.torrent` out of `torrents`.
+
+Without a shared folder, the daemon gets the path of the files instead, so it
+has to see your downloads under the same path, and what it finds has to go to
+a torrent client of its own. A torrent added by magnet link always goes by its
+path, since KnightLoader has no `.torrent` of it.
 
 **Extra trackers** help a torrent with few peers. Type addresses in, or give
 the address of a public list such as

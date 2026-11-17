@@ -59,8 +59,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   files or from hardlinks, symlinks or reflinks in a folder you pick, and
   leaves with its task. Settings, Torrents has a test for every key and lists
   the latest twins, and `cross-seed.jsonl` in the data folder keeps them all.
-  Your own cross-seed daemon can take each finished torrent instead, with the
-  path of its files, so it does not need to reach KnightLoader's qBittorrent.
+  Your own cross-seed daemon can take each finished torrent instead. Give it
+  a folder you share with it, and KnightLoader leaves each `.torrent` there
+  for it and seeds every twin it saves back, so it never has to reach
+  KnightLoader's qBittorrent.
   What the twins send counts in the overview's torrent totals.
 
 ### Changed

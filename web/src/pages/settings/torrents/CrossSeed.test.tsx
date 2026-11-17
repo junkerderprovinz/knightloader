@@ -121,6 +121,13 @@ describe('the cross-seed card', () => {
     expect(host.textContent).toContain(en['settings.torrents.crossSeedTestOkAccount']);
   });
 
+  it('shows the folder shared with the daemon under its address', async () => {
+    await show({ ...on, daemon: { url: 'http://cross-seed:2468', apiKey: '', folder: '/mnt/cross-seed' } });
+    expect(host.textContent).toContain(en['settings.torrents.crossSeedDaemonFolder']);
+    const values = [...host.querySelectorAll('input')].map((i) => i.value);
+    expect(values).toContain('/mnt/cross-seed');
+  });
+
   it('lists the log newest first with each result and reason', async () => {
     await show(on);
     const rows = [...host.querySelectorAll('li')].filter(

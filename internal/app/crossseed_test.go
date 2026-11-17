@@ -321,6 +321,81 @@ func TestATorrentAddedAgainAfterItsRemovalIsAskedAboutAgain(t *testing.T) {
 	}
 }
 
+// daemonHooked is a fake cross-seed daemon that takes every webhook.
+type daemonHooked struct {
+	mu     sync.Mutex
+	hashes []string
+}
+
+func (d *daemonHooked) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	d.mu.Lock()
+	d.hashes = append(d.hashes, r.PostFormValue("infoHash"))
+	d.mu.Unlock()
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (d *daemonHooked) handed() []string {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return slices.Clone(d.hashes)
+}
+
+func TestATwinTheDaemonFindsSeedsInKnightLoadersQBittorrent(t *testing.T) {
+	t.Parallel()
+	r := crossSeedApp(t)
+	d := &daemonHooked{}
+	srv := httptest.NewServer(d)
+	t.Cleanup(srv.Close)
+	folder := t.TempDir()
+	r.switchOn(t, func(c *settings.CrossSeed) {
+		c.Daemon = settings.CrossSeedDaemon{URL: srv.URL, APIKey: "daemon-key", Folder: folder}
+	})
+	hash := strings.ToLower(r.task.InfoHash)
+	if got := d.handed(); len(got) != 1 || got[0] != hash {
+		t.Fatalf("the daemon was handed %v", got)
+	}
+	kept := filepath.Join(folder, "torrents", hash+".torrent")
+	if _, err := os.Stat(kept); err != nil {
+		t.Fatalf("the torrent is not in the shared folder: %v", err)
+	}
+
+	b, err := torrent.DecodeBytes(r.task.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cands, err := crossseed.Candidates(b, crossseed.OPS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	twin, err := crossseed.Build(cands[0], "https://home.opsfet.ch/pk/announce")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(folder, "found"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(folder, "found", "[audio][OPS]Album["+r.twin+"].torrent"), twin, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	r.a.xsRunner.TakeFinds(context.Background())
+	added := r.added(t)
+	if len(added) != 1 || !added[0].Complete || added[0].Dir != r.downloads {
+		t.Fatalf("the twin the daemon found was added as %+v", added)
+	}
+
+	r.a.Remove(r.task.ID, false)
+	deadline := time.Now().Add(10 * time.Second)
+	for r.bt.Has(r.twin) {
+		if time.Now().After(deadline) {
+			t.Fatal("the twin the daemon found stayed in qBittorrent after its task went")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if _, err := os.Stat(kept); !os.IsNotExist(err) {
+		t.Errorf("the torrent of the removed task stayed in the shared folder: %v", err)
+	}
+}
+
 func TestATorrentWithFilesLeftOutIsNotCrossSeeded(t *testing.T) {
 	t.Parallel()
 	r := crossSeedApp(t)

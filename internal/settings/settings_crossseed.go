@@ -56,10 +56,13 @@ type TorznabIndexer struct {
 }
 
 // CrossSeedDaemon is the user's cross-seed daemon, which takes each finished
-// torrent through its webhook.
+// torrent through its webhook. Folder, when set, is a folder the daemon can
+// reach too, where KnightLoader leaves the torrents and the daemon leaves
+// the twins it finds.
 type CrossSeedDaemon struct {
 	URL    string `json:"url"`
 	APIKey string `json:"apiKey"`
+	Folder string `json:"folder"`
 }
 
 func mask(v string) string {
@@ -153,7 +156,7 @@ func (c CrossSeed) sanitized() CrossSeed {
 	}
 	c.LinkDir = strings.TrimSpace(c.LinkDir)
 	c.Category = strings.TrimSpace(c.Category)
-	c.Daemon.URL, c.Daemon.APIKey = strings.TrimSpace(c.Daemon.URL), strings.TrimSpace(c.Daemon.APIKey)
+	c.Daemon.URL, c.Daemon.APIKey, c.Daemon.Folder = strings.TrimSpace(c.Daemon.URL), strings.TrimSpace(c.Daemon.APIKey), strings.TrimSpace(c.Daemon.Folder)
 	return c
 }
 

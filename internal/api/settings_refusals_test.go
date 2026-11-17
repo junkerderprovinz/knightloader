@@ -157,6 +157,11 @@ func TestARefusedSaveNamesItsField(t *testing.T) {
 			field: "torrent.crossSeed.daemon.url",
 		},
 		{
+			name:  "a folder shared with the daemon that is not a full path",
+			patch: `{"torrent":{"crossSeed":{"daemon":{"url":"http://cross-seed:2468","folder":"cross-seed"}}}}`,
+			field: "torrent.crossSeed.daemon.folder",
+		},
+		{
 			name:  "a Usenet server whose host carries a path",
 			patch: `{"usenetServers":[{"id":"main","host":"news.example.com/x@y","connections":4,"enabled":true}]}`,
 			field: "usenetServers.0",

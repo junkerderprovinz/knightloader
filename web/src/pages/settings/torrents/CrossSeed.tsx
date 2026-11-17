@@ -42,7 +42,7 @@ export interface CrossSeedSettings {
   linkMode: LinkMode | '';
   linkDir: string;
   category: string;
-  daemon: { url: string; apiKey: string };
+  daemon: { url: string; apiKey: string; folder: string };
 }
 
 export const CROSS_SEED_DEFAULTS: CrossSeedSettings = {
@@ -53,7 +53,7 @@ export const CROSS_SEED_DEFAULTS: CrossSeedSettings = {
   linkMode: 'none',
   linkDir: '',
   category: '',
-  daemon: { url: '', apiKey: '' },
+  daemon: { url: '', apiKey: '', folder: '' },
 };
 
 /** The mask for a stored secret, as reconnect.RedactedPassword has it. */
@@ -389,6 +389,18 @@ function DaemonFields({
           hint={t('settings.torrents.crossSeedDaemonKeyHint')}
         >
           <SecretInput value={c.daemon.apiKey} onValue={(apiKey) => set({ apiKey })} />
+        </SettingRow>
+        <SettingRow
+          control="long"
+          label={t('settings.torrents.crossSeedDaemonFolder')}
+          hint={t('settings.torrents.crossSeedDaemonFolderHint')}
+        >
+          <SettingPathInput
+            field="torrent.crossSeed.daemon.folder"
+            value={c.daemon.folder}
+            title={t('settings.torrents.crossSeedDaemonFolder')}
+            onValue={(folder) => set({ folder })}
+          />
         </SettingRow>
       </div>
       <CrossSeedTest

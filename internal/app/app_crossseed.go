@@ -60,6 +60,7 @@ func (a *App) startCrossSeed(c settings.CrossSeed) {
 		History: a.xsAsked,
 		Log:     a.xsLog,
 		Inject:  a.injectCrossSeed,
+		Sources: a.finishedSources,
 	})
 	a.applyCrossSeed(c, true)
 }
@@ -103,7 +104,7 @@ func (a *App) applyCrossSeed(c settings.CrossSeed, boot bool) {
 	a.xsWas = c
 	if c.Enabled {
 		if c.Daemon.URL != "" {
-			conf.Daemon = crossseed.NewDaemon(c.Daemon.URL, c.Daemon.APIKey)
+			conf.Daemon = crossseed.NewDaemon(c.Daemon.URL, c.Daemon.APIKey, c.Daemon.Folder)
 		}
 		for _, name := range []string{crossseed.RED.Name, crossseed.OPS.Name} {
 			if acc := accountOn(c, name); acc.Ready() {
@@ -128,7 +129,9 @@ func (a *App) applyCrossSeed(c settings.CrossSeed, boot bool) {
 			a.xsAsked.ForgetErrors(crossseed.IndexerKey(x.Name))
 		}
 	}
-	if was.Daemon != c.Daemon {
+	// A daemon is often away for a while, so what it could not be handed is
+	// handed again at each start as well.
+	if boot || was.Daemon != c.Daemon {
 		a.xsAsked.ForgetErrors(crossseed.DaemonKey)
 	}
 	changed := was.RED != c.RED || was.OPS != c.OPS || !slices.Equal(was.Indexers, c.Indexers) || was.Daemon != c.Daemon
@@ -139,6 +142,11 @@ func (a *App) applyCrossSeed(c settings.CrossSeed, boot bool) {
 
 // offerFinishedTorrents offers every finished torrent of the list.
 func (a *App) offerFinishedTorrents() {
+	a.xsRunner.Offer(a.finishedSources()...)
+}
+
+// finishedSources are the finished torrents of the list that may have twins.
+func (a *App) finishedSources() []crossseed.Source {
 	a.mu.Lock()
 	var done []core.Task
 	for _, t := range a.tasks {
@@ -153,7 +161,7 @@ func (a *App) offerFinishedTorrents() {
 			srcs = append(srcs, src)
 		}
 	}
-	a.xsRunner.Offer(srcs...)
+	return srcs
 }
 
 // offerCrossSeed offers a torrent that has just finished.
@@ -263,6 +271,11 @@ func (a *App) dropCrossSeeds(t *core.Task, files bool) {
 	if err := a.xsAsked.Save(); err != nil {
 		log.Printf("cross-seed: the answers could not be written: %v", err)
 	}
+	if d := a.crossSeedConfig().Daemon; d != nil {
+		if err := d.Forget(t.InfoHash); err != nil {
+			log.Printf("cross-seed: the torrent of %s could not be taken out of the daemon's folder: %v", t.Name, err)
+		}
+	}
 	if len(twins) == 0 {
 		return
 	}
@@ -337,7 +350,7 @@ func (a *App) TestCrossSeed(ctx context.Context, c settings.CrossSeed, what stri
 		x := c.Indexers[index]
 		return "", crossseed.NewTorznab(x.Name, x.URL, x.APIKey).Caps(ctx)
 	case "daemon":
-		return "", crossseed.NewDaemon(c.Daemon.URL, c.Daemon.APIKey).Ping(ctx)
+		return "", crossseed.NewDaemon(c.Daemon.URL, c.Daemon.APIKey, c.Daemon.Folder).Ping(ctx)
 	}
 	return "", fmt.Errorf("%q is not a part of cross-seeding to test", what)
 }

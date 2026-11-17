@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -32,6 +33,12 @@ func (in *injections) inject(_ context.Context, _ Source, f Found) error {
 	return nil
 }
 
+func (in *injections) refuseWith(err error) {
+	in.mu.Lock()
+	defer in.mu.Unlock()
+	in.refuse = err
+}
+
 func (in *injections) all() []Found {
 	in.mu.Lock()
 	defer in.mu.Unlock()
@@ -43,6 +50,8 @@ type rig struct {
 	in     *injections
 	log    *Log
 	hist   *History
+	// sources are the finished torrents a find of the daemon is matched to.
+	sources []Source
 }
 
 func startRig(t *testing.T, conf Config) *rig {
@@ -54,6 +63,7 @@ func startRig(t *testing.T, conf Config) *rig {
 		History: r.hist,
 		Log:     r.log,
 		Inject:  r.in.inject,
+		Sources: func() []Source { return r.sources },
 	})
 	t.Cleanup(r.runner.Close)
 	return r
@@ -200,17 +210,14 @@ func TestADaemonTakesTheTorrentInsteadOfASearch(t *testing.T) {
 	d := &fakeDaemon{}
 	srv := httptest.NewServer(d)
 	defer srv.Close()
-	r := startRig(t, Config{Gazelle: []Account{opsAt(t, g)}, Daemon: NewDaemon(srv.URL, "daemon-key")})
+	r := startRig(t, Config{Gazelle: []Account{opsAt(t, g)}, Daemon: NewDaemon(srv.URL, "daemon-key", "")})
 	src := redSource(t)
 	r.runner.Offer(src)
 	r.settle(t)
 	r.runner.Offer(src)
 	r.settle(t)
-	if got := d.handed(); len(got) != 1 || got[0] != src.Hash {
-		t.Fatalf("the daemon was handed %v, want the torrent once", got)
-	}
-	if want := filepath.Join(src.Dir, src.Name); d.paths[0] != want {
-		t.Errorf("the daemon was handed the path %q, want %q", d.paths[0], want)
+	if got, want := d.handedPaths(), filepath.Join(src.Dir, src.Name); len(got) != 1 || got[0] != want {
+		t.Fatalf("the daemon was handed %q, want %q once", got, want)
 	}
 	if len(g.keys) != 0 {
 		t.Error("OPS was asked although the daemon searches")
@@ -269,5 +276,80 @@ func TestAnInjectionTheClientCannotTakeNowIsAskedForAgain(t *testing.T) {
 	r.settle(t)
 	if len(r.in.all()) != 1 {
 		t.Fatal("the twin was not injected on the next look")
+	}
+}
+
+// daemonFolderRig is a runner that hands its torrents to a daemon sharing a
+// folder with it, after the RED album finished, and the folder the daemon
+// saves its finds in.
+func daemonFolderRig(t *testing.T) (*rig, Source, string) {
+	t.Helper()
+	folder := t.TempDir()
+	_, daemon := daemonAt(t, folder)
+	r := startRig(t, Config{Daemon: daemon})
+	src := redSource(t)
+	r.sources = []Source{src}
+	r.runner.Offer(src)
+	r.settle(t)
+	found := filepath.Join(folder, "found")
+	if err := os.MkdirAll(found, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	return r, src, found
+}
+
+func TestATwinTheDaemonSavesIsInjectedBesideItsTorrent(t *testing.T) {
+	r, src, found := daemonFolderRig(t)
+	twin := hashWithSource(t, "OPS")
+	saved := filepath.Join(found, "[audio][OPS]album["+twin+"].torrent")
+	writeFile(t, saved, string(redTorrent("OPS")))
+	r.runner.TakeFinds(context.Background())
+
+	got := r.in.all()
+	if len(got) != 1 || got[0].Tracker != "OPS" || got[0].Hash != twin {
+		t.Fatalf("injected %+v, want the OPS twin", got)
+	}
+	if _, err := os.Stat(saved); !os.IsNotExist(err) {
+		t.Errorf("the find stayed in the folder once it was injected: %v", err)
+	}
+	if twins := r.hist.Injected(src.Hash); len(twins) != 1 || twins[0] != twin {
+		t.Errorf("the twins of the torrent are %v", twins)
+	}
+	if e := r.entries(t); len(e) != 2 || e[0].Result != ResultInjected || e[0].Tracker != "OPS" {
+		t.Errorf("log %+v", e)
+	}
+}
+
+func TestAFindWithTheFilesOfNoFinishedTorrentIsRefused(t *testing.T) {
+	r, _, found := daemonFolderRig(t)
+	other := "d8:announce20:http://tracker.x/ann4:infod6:lengthi7e4:name5:other12:piece lengthi16384e6:pieces20:" + pieces20 + "ee"
+	saved := filepath.Join(found, "[unknown][Elsewhere]other.torrent")
+	writeFile(t, saved, other)
+	r.runner.TakeFinds(context.Background())
+
+	if got := r.in.all(); len(got) != 0 {
+		t.Fatalf("injected %+v", got)
+	}
+	if _, err := os.Stat(saved); !os.IsNotExist(err) {
+		t.Errorf("the refused find stayed in the folder: %v", err)
+	}
+	if e := r.entries(t); len(e) != 2 || e[0].Result != ResultRefused || e[0].Tracker != "Elsewhere" {
+		t.Errorf("log %+v", e)
+	}
+}
+
+func TestAFindTheClientCannotTakeNowWaitsForTheNextLook(t *testing.T) {
+	r, _, found := daemonFolderRig(t)
+	saved := filepath.Join(found, "[audio][OPS]album.torrent")
+	writeFile(t, saved, string(redTorrent("OPS")))
+	r.in.refuseWith(ErrNotNow)
+	r.runner.TakeFinds(context.Background())
+	if _, err := os.Stat(saved); err != nil {
+		t.Fatalf("the find went although nothing took it: %v", err)
+	}
+	r.in.refuseWith(nil)
+	r.runner.TakeFinds(context.Background())
+	if got := r.in.all(); len(got) != 1 {
+		t.Fatalf("injected %+v at the next look", got)
 	}
 }
