@@ -174,8 +174,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   it from each site, and some that never got one have it now. Hosts outside
   that list are still looked up on their own site.
 - **Offline hosters are left out of the account picker.** A hoster is
-  offline when its site no longer answers. Links to it still go to
-  JDownloader as before. KnightLoader asks such a site again once a week and
+  offline when its site no longer answers, or when it shows a parked domain,
+  a web host's placeholder or a different site instead. Links to it still go
+  to JDownloader as before. KnightLoader asks such a site again once a week and
   shows the hoster as soon as it answers.
 - **The sign-in window tells you when you are signed in.** A message in the
   middle of the window asks you to click Done, and Done only works from then
