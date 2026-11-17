@@ -152,7 +152,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   menus take PageUp and PageDown, Home and End and jumps by letter, and screen
   readers hear how many rows are picked. A switch that is on draws its knob in
   the accent's ink, so it stays easy to see in the light theme, and a group
-  inside a card carries its name as a badge on its top edge.
+  inside a card carries its name as a badge on its top edge. The desktop
+  installer follows PommelPorter 1.2.2, so its folder picker lights up in the
+  accent colour as well.
 - **The JDownloader import brings the default rules along.** The .rev and
   .par2 rules arrive as rules that add those files disabled, and "Create
   Subfolder by Packagename" turns on "Put each package in its own subfolder".
