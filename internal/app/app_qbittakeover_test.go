@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"net/http"
 	"net/http/httptest"
 	"path/filepath"
 	"slices"
@@ -129,5 +130,37 @@ func TestTheTorrentsTheEngineRunsStartAgainWithQBittorrent(t *testing.T) {
 	}
 	if got := r.q.Get(hashTask); got == nil || strings.HasPrefix(got.State, "paused") {
 		t.Errorf("a torrent the engine runs is %+v", got)
+	}
+}
+
+// qBittorrent starts tied to no interface, so the torrents it restores reach
+// nobody until it is told one, and by then each of them stands as
+// KnightLoader wants it.
+func TestQBittorrentIsToldItsInterfaceOnlyOnceItsTorrentsAreTakenOver(t *testing.T) {
+	r := takeOverApp(t)
+	r.put(hashTask, torrents.Tag, r.dl)
+	r.put(hashOrphan, torrents.Tag, r.dl)
+	var early []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.URL.Path == "/api/v2/app/setPreferences" {
+			if got := r.q.Get(hashTask); got == nil || !strings.HasPrefix(got.State, "paused") {
+				early = append(early, "the task's torrent still ran")
+			}
+			if r.q.Get(hashOrphan) != nil {
+				early = append(early, "the orphan was still there")
+			}
+		}
+		r.q.ServeHTTP(w, req)
+	}))
+	t.Cleanup(srv.Close)
+	c, err := qbittorrent.New(srv.URL, "knightloader", "secret")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.a.prepareQBit(context.Background(), c); err != nil {
+		t.Fatal(err)
+	}
+	if len(early) > 0 {
+		t.Errorf("qBittorrent was told its interface while %v", early)
 	}
 }

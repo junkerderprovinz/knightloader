@@ -98,17 +98,16 @@ var newTorrentClient = func(a *App) torrents.Client { return torrents.QBit(a.qbi
 // qBittorrent.
 func (a *App) UseTorrents(c torrents.Client) { a.Engine.UseTorrents(c) }
 
-// prepareQBit gives a qBittorrent that has just started the torrent settings,
-// before any torrent reaches it, and takes over the torrents it kept.
+// prepareQBit takes over the torrents a qBittorrent that has just started
+// kept, and only then gives it the torrent settings with the interface it
+// started without, so none of them reaches anybody before KnightLoader has
+// stopped those it does not run.
 func (a *App) prepareQBit(ctx context.Context, c *qbittorrent.Client) error {
-	at := func(context.Context) (*qbittorrent.Client, error) { return c, nil }
-	if err := torrents.QBit(at).Configure(ctx, a.Engine.TorrentPrefs()); err != nil {
-		return err
-	}
 	if err := a.takeOverTorrents(ctx, c); err != nil {
 		log.Printf("qBittorrent's torrents could not all be taken over, and those KnightLoader does not start run on: %v", err)
 	}
-	return nil
+	at := func(context.Context) (*qbittorrent.Client, error) { return c, nil }
+	return torrents.QBit(at).Configure(ctx, a.Engine.TorrentPrefs())
 }
 
 var errQBitOff = fmt.Errorf("qBittorrent is not running in this KnightLoader: %w", torrents.ErrOff)

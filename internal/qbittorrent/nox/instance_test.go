@@ -179,6 +179,19 @@ func TestTheProxyOfTheMomentIsInTheSettingsBeforeItStarts(t *testing.T) {
 	wantLines(t, readConfig(t, profile), "Network", `Proxy\Type=SOCKS5_PW`, `Proxy\Port=41080`)
 }
 
+func TestWithAPrepareItsQBittorrentStartsTiedToNothing(t *testing.T) {
+	profile := t.TempDir()
+	in := Start(Options{
+		Binary:  fakeBinary(t, fakeGood),
+		Profile: profile,
+		Version: "4.5.5",
+		Prepare: func(context.Context, *qbittorrent.Client) error { return nil },
+	})
+	t.Cleanup(func() { _ = in.Stop() })
+	ready(t, in)
+	wantLines(t, readConfig(t, profile), "BitTorrent", `Session\Interface=knightloader-vpn`)
+}
+
 func TestTheStatusNamesTheProcessThatRuns(t *testing.T) {
 	in := startFake(t, fakeGood, t.TempDir())
 	ready(t, in)

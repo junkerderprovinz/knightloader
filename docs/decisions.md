@@ -450,9 +450,11 @@ everything that has qBittorrent fetch from the web by itself, RSS and the
 peer country lookup, and hands it only .torrent files and magnet links.
 
 qBittorrent starts the torrents it kept on its own, and 4.5 has no setting
-that starts them stopped. So the first thing KnightLoader does once it
-answers is stop every torrent of its tag and start those the engine runs
-and the twins of tasks on the list. A torrent whose task is gone is taken
+that starts them stopped. So it starts tied to a network interface that does
+not exist, where they reach nobody, and the first thing KnightLoader does
+once it answers is stop every torrent of its tag and start those the engine
+runs and the twins of tasks on the list. Only then does qBittorrent get its
+settings with the real interface. A torrent whose task is gone is taken
 out without its files, since KnightLoader deleted the files of a task
 removed with them itself. Only a twin seeding from links keeps a note, in
 `torrents-left.json`, when qBittorrent could not be reached as its task left,

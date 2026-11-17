@@ -24,6 +24,9 @@ type Config struct {
 	// Proxy is the SOCKS5 proxy every connection goes through from the
 	// start on, nil for none.
 	Proxy *Proxy
+	// Hold starts qBittorrent tied to no interface, as a proxy does, until
+	// whoever prepares it names one.
+	Hold bool
 }
 
 // Proxy is a SOCKS5 proxy with a login.
@@ -33,9 +36,10 @@ type Proxy struct {
 	User, Pass string
 }
 
-// startBound is the interface qBittorrent is tied to when it starts with a
-// proxy: none of that name exists, so nothing goes out until KnightLoader
-// ties it to loopback, past the torrents it restores and starts on its own.
+// startBound is the interface qBittorrent is tied to when it starts held or
+// with a proxy: none of that name exists, so nothing goes out until
+// KnightLoader names the real one, past the torrents it restores and starts
+// on its own.
 const startBound = "knightloader-vpn"
 
 // ConfigPath is qBittorrent's settings file for a qBittorrent started with
@@ -121,7 +125,14 @@ func WriteConfig(profile string, c Config) error {
 func proxySections(c Config) []iniSection {
 	px := c.Proxy
 	if px == nil {
-		return []iniSection{{"Network", [][2]string{{`Proxy\Type`, "None"}}}}
+		bound := ""
+		if c.Hold {
+			bound = startBound
+		}
+		return []iniSection{
+			{"Network", [][2]string{{`Proxy\Type`, "None"}}},
+			{"BitTorrent", [][2]string{{`Session\Interface`, bound}, {`Session\InterfaceName`, bound}}},
+		}
 	}
 	network := [][2]string{
 		{`Proxy\Type`, "SOCKS5_PW"},

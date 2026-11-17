@@ -64,7 +64,8 @@ type Options struct {
 	// account can read.
 	Key *appkey.Key
 	// Prepare runs after each start, once the WebUI answers, and before the
-	// instance counts as running.
+	// instance counts as running. With a Prepare, qBittorrent starts tied to
+	// no interface, and Prepare names the real one.
 	Prepare func(ctx context.Context, c *qbittorrent.Client) error
 	Logf    func(format string, args ...any)
 }
@@ -209,7 +210,7 @@ func (in *Instance) run(ctx context.Context) error {
 			return err
 		}
 	}
-	conf := Config{Port: login.Port, Username: login.Username, Password: login.Password, Version: in.opts.Version}
+	conf := Config{Port: login.Port, Username: login.Username, Password: login.Password, Version: in.opts.Version, Hold: in.opts.Prepare != nil}
 	if in.opts.Proxy != nil {
 		conf.Proxy = in.opts.Proxy()
 	}

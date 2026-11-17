@@ -206,3 +206,23 @@ func TestWithoutAProxyNoneIsLeftFromALastRun(t *testing.T) {
 	}
 	wantLines(t, readConfig(t, profile), "Network", `Proxy\Type=None`)
 }
+
+func TestAQBittorrentThatIsPreparedStartsTiedToNothing(t *testing.T) {
+	profile := t.TempDir()
+	if err := WriteConfig(profile, Config{Port: 18080, Username: "knightloader", Password: "x", Version: "4.5.5", Hold: true}); err != nil {
+		t.Fatal(err)
+	}
+	wantLines(t, readConfig(t, profile), "BitTorrent",
+		`Session\Interface=knightloader-vpn`, `Session\InterfaceName=knightloader-vpn`)
+}
+
+func TestAQBittorrentNobodyPreparesKeepsNoTieFromALastRun(t *testing.T) {
+	profile := t.TempDir()
+	if err := WriteConfig(profile, Config{Port: 18080, Username: "knightloader", Password: "x", Version: "4.5.5", Hold: true}); err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteConfig(profile, Config{Port: 18080, Username: "knightloader", Password: "x", Version: "4.5.5"}); err != nil {
+		t.Fatal(err)
+	}
+	wantLines(t, readConfig(t, profile), "BitTorrent", `Session\Interface=`, `Session\InterfaceName=`)
+}
