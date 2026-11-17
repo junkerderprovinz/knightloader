@@ -4100,6 +4100,8 @@ export const cs: Dict = {
   'signInBrowser.back': 'Zpět',
   'signInBrowser.reload': 'Načíst znovu',
   'signInBrowser.done': 'Hotovo',
+  'signInBrowser.signedInTitle': 'Přihlášení ke službě {site} proběhlo',
+  'signInBrowser.signedInNext': 'Klikni dole na {button} a KnightLoader si relaci ponechá.',
   'signInBrowser.openAgain': 'Otevřít znovu',
   'signInBrowser.openInBrowser': 'Otevřít v prohlížeči',
   'signInBrowser.blocked': 'Toto okno otevírá jen {site} a stránky, přes které se tam přihlašuješ, takže {host} zůstává zavřený.',

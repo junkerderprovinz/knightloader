@@ -4076,6 +4076,8 @@ export const da: Dict = {
   'signInBrowser.back': 'Tilbage',
   'signInBrowser.reload': 'Genindlæs',
   'signInBrowser.done': 'Færdig',
+  'signInBrowser.signedInTitle': 'Du er logget ind på {site}',
+  'signInBrowser.signedInNext': 'Klik på {button} nederst, så beholder KnightLoader sessionen.',
   'signInBrowser.openAgain': 'Åbn igen',
   'signInBrowser.openInBrowser': 'Åbn i browseren',
   'signInBrowser.blocked': 'Dette vindue åbner kun {site} og de sider, du logger ind der med, så {host} forbliver lukket.',

@@ -28,13 +28,12 @@ import {
   wheelMessage,
 } from '../lib/signInBrowser';
 import { useToast } from '../lib/toast';
-import { IconBack, IconBrowser, IconConfirm, IconExternalLink, IconRetry, IconSignIn } from '../lib/icons';
+import { IconBack, IconBrowser, IconCheckDrawn, IconConfirm, IconExternalLink, IconRetry, IconSignIn } from '../lib/icons';
 import { Button, Modal } from './ui';
 
 type Notice =
   | { kind: 'blocked'; host: string }
   | { kind: 'elsewhere' }
-  | { kind: 'signedIn'; account?: string }
   | { kind: 'refused' }
   | { kind: 'closed'; reason: string };
 
@@ -79,6 +78,8 @@ export function SignInBrowserWindow({
   const [host, setHost] = useState('');
   const [canGoBack, setCanGoBack] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
+  // Apart from the notice, which a blocked page can replace for a while.
+  const [signedInAs, setSignedInAs] = useState<{ account?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [shown, setShown] = useState({ width: 0, height: 0 });
@@ -115,6 +116,7 @@ export function SignInBrowserWindow({
     setPhase('starting');
     setError('');
     setNotice(null);
+    setSignedInAs(null);
     vp.current = viewportFor(box.clientWidth, box.clientHeight, window.devicePixelRatio || 1);
     fit();
 
@@ -151,7 +153,7 @@ export function SignInBrowserWindow({
               case 'login': {
                 const login = msg.login as SiteLogin;
                 heard.current.onChanged?.(login);
-                setNotice(signedIn(login) ? { kind: 'signedIn', account: login.account } : null);
+                setSignedInAs(signedIn(login) ? { account: login.account } : null);
                 break;
               }
               case 'closed':
@@ -341,25 +343,19 @@ export function SignInBrowserWindow({
   const noticeText =
     notice?.kind === 'blocked'
       ? t('signInBrowser.blocked', { site: site.name, host: notice.host })
-      : notice?.kind === 'signedIn'
-        ? notice.account
-          ? t('siteLogins.signedInAs', { account: notice.account })
-          : t('siteLogins.signedIn')
-        : notice?.kind === 'elsewhere'
-          ? t('siteLogins.signInHere', { site: site.name })
-          : notice?.kind === 'refused'
-            ? t('signInBrowser.refused')
-            : notice?.kind === 'closed'
-              ? t(CLOSED[notice.reason] ?? 'signInBrowser.closedGone')
-              : '';
-  const noticeTone =
-    notice?.kind === 'signedIn'
-      ? 'bg-statusOkBg text-statusOk'
       : notice?.kind === 'elsewhere'
-        ? 'bg-statusNeutralBg text-statusNeutral'
-        : notice
-          ? 'bg-statusWarnBg text-statusWarn'
-          : '';
+        ? t('siteLogins.signInHere', { site: site.name })
+        : notice?.kind === 'refused'
+          ? t('signInBrowser.refused')
+          : notice?.kind === 'closed'
+            ? t(CLOSED[notice.reason] ?? 'signInBrowser.closedGone')
+            : '';
+  const noticeTone =
+    notice?.kind === 'elsewhere'
+      ? 'bg-statusNeutralBg text-statusNeutral'
+      : notice
+        ? 'bg-statusWarnBg text-statusWarn'
+        : '';
 
   return (
     <Modal
@@ -371,29 +367,33 @@ export function SignInBrowserWindow({
       onClose={() => void finish()}
       footer={
         <>
-          <Button
-            kind="secondary"
-            icon={<IconBack className="rtl:-scale-x-100" />}
-            title={t('signInBrowser.back')}
-            disabled={!live || !canGoBack}
-            onClick={() => send({ type: 'back' })}
-          />
-          <Button
-            kind="secondary"
-            icon={<IconRetry />}
-            title={t('signInBrowser.reload')}
-            disabled={!live}
-            onClick={() => send({ type: 'reload' })}
-          />
-          <span
-            className="inline-flex min-w-0 items-center gap-1.5 text-meta text-carbon-textSub"
-            title={host || undefined}
-            dir="ltr"
-          >
-            <IconBrowser width={14} height={14} className="shrink-0" />
-            <span className="truncate">{host || site.host}</span>
-          </span>
-          <span className="flex-1" />
+          {/* The page's own controls hold the start of the row, so Back stays
+              there when a narrow window wraps the row. */}
+          <div className="flex min-w-0 flex-[1_1_16rem] items-center gap-3">
+            <Button
+              kind="secondary"
+              icon={<IconBack className="rtl:-scale-x-100" />}
+              disabled={!live || !canGoBack}
+              onClick={() => send({ type: 'back' })}
+            >
+              {t('signInBrowser.back')}
+            </Button>
+            <Button
+              kind="secondary"
+              icon={<IconRetry />}
+              title={t('signInBrowser.reload')}
+              disabled={!live}
+              onClick={() => send({ type: 'reload' })}
+            />
+            <span
+              className="inline-flex min-w-0 items-center gap-1.5 text-meta text-carbon-textSub"
+              title={host || undefined}
+              dir="ltr"
+            >
+              <IconBrowser width={14} height={14} className="shrink-0" />
+              <span className="truncate">{host || site.host}</span>
+            </span>
+          </div>
           {ownBrowser && (
             <Button kind="secondary" icon={<IconExternalLink />} data-new="open-in-browser" disabled={busy} onClick={openElsewhere}>
               {t('signInBrowser.openInBrowser')}
@@ -404,7 +404,7 @@ export function SignInBrowserWindow({
               {t('signInBrowser.openAgain')}
             </Button>
           )}
-          <Button data-signin-done icon={<IconConfirm />} onClick={() => void finish()} disabled={busy}>
+          <Button data-signin-done icon={<IconConfirm />} onClick={() => void finish()} disabled={busy || !signedInAs}>
             {t('signInBrowser.done')}
           </Button>
         </>
@@ -416,7 +416,7 @@ export function SignInBrowserWindow({
         {/* The window's own surface under the tint, since the page beneath
             can be any colour. */}
         {(noticeText || error) && (
-          <div className="pointer-events-none absolute inset-x-3 top-3 z-10 rounded-[var(--radius-control)] bg-carbon-surface shadow-[var(--elevation)]">
+          <div className="pointer-events-none absolute inset-x-3 top-3 z-20 rounded-[var(--radius-control)] bg-carbon-surface shadow-[var(--elevation)]">
             <p
               role="status"
               dir="auto"
@@ -424,6 +424,28 @@ export function SignInBrowserWindow({
             >
               {error ? `${t('signInBrowser.failed')} ${error}` : noticeText}
             </p>
+          </div>
+        )}
+        {signedInAs && (
+          <div className="kl-signed-in pointer-events-none absolute inset-0 z-10 grid place-items-center bg-carbon-background/60 p-6">
+            <div
+              role="status"
+              dir="auto"
+              className="kl-signed-in-card flex max-w-sm flex-col items-center gap-2 rounded-[var(--radius-card)] bg-carbon-surface px-6 py-5 text-center shadow-[var(--elevation)]"
+            >
+              <span className="mb-1 grid size-12 place-items-center rounded-[var(--radius-pill)] bg-statusOkBg text-statusOk">
+                <IconCheckDrawn width={22} height={22} />
+              </span>
+              <p className="text-base font-semibold text-carbon-text">
+                {t('signInBrowser.signedInTitle', { site: site.name })}
+              </p>
+              {signedInAs.account && (
+                <p className="text-sm text-carbon-textSub">{t('siteLogins.signedInAs', { account: signedInAs.account })}</p>
+              )}
+              <p className="text-sm text-carbon-textSub">
+                {t('signInBrowser.signedInNext', { button: t('signInBrowser.done') })}
+              </p>
+            </div>
           </div>
         )}
         <div
@@ -474,9 +496,15 @@ export function SignInBrowserWindow({
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
                 // Out of the page and onto Done, where a second Escape closes.
+                // Done takes no focus before the sign-in, so the row's first
+                // button does.
                 e.preventDefault();
                 e.stopPropagation();
-                panel.current?.closest('[role="dialog"]')?.querySelector<HTMLElement>('[data-signin-done]')?.focus();
+                const dialog = panel.current?.closest('[role="dialog"]');
+                (
+                  dialog?.querySelector<HTMLElement>('[data-signin-done]:enabled') ??
+                  dialog?.querySelector<HTMLElement>('.glim-modal-foot button:enabled')
+                )?.focus();
                 return;
               }
               const input = keyMessage(e.nativeEvent, mac);

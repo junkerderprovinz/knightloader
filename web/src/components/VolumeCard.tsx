@@ -192,7 +192,7 @@ export function VolumeCard({ hue }: { hue?: number }) {
         locale || undefined,
         byDay
           ? { day: '2-digit', month: '2-digit', timeZone: 'UTC' }
-          : { month: 'short', year: '2-digit', timeZone: 'UTC' },
+          : { month: 'short', year: 'numeric', timeZone: 'UTC' },
       ),
     [locale, byDay],
   );

@@ -4077,6 +4077,8 @@ export const ca: Dict = {
   'signInBrowser.back': 'Enrere',
   'signInBrowser.reload': 'Torna a carregar',
   'signInBrowser.done': 'Fet',
+  'signInBrowser.signedInTitle': 'Has iniciat la sessió a {site}',
+  'signInBrowser.signedInNext': 'Fes clic a {button} a baix i KnightLoader es quedarà la sessió.',
   'signInBrowser.openAgain': 'Torna a obrir',
   'signInBrowser.openInBrowser': 'Obre al navegador',
   'signInBrowser.blocked': 'Aquesta finestra només obre {site} i les pàgines amb què hi inicies la sessió, així que {host} es queda tancat.',

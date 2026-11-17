@@ -4078,6 +4078,8 @@ export const ko: Dict = {
   'signInBrowser.back': '뒤로',
   'signInBrowser.reload': '새로 고침',
   'signInBrowser.done': '완료',
+  'signInBrowser.signedInTitle': '{site}에 로그인했습니다',
+  'signInBrowser.signedInNext': '아래에서 {button} 버튼을 클릭하면 KnightLoader가 세션을 보관합니다.',
   'signInBrowser.openAgain': '다시 열기',
   'signInBrowser.openInBrowser': '브라우저에서 열기',
   'signInBrowser.blocked': '이 창은 {site}와 그곳에 로그인할 때 쓰는 페이지만 열기 때문에 {host}는 열리지 않습니다.',

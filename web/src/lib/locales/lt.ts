@@ -4092,6 +4092,8 @@ export const lt: Dict = {
   'signInBrowser.back': 'Atgal',
   'signInBrowser.reload': 'Įkelti iš naujo',
   'signInBrowser.done': 'Baigta',
+  'signInBrowser.signedInTitle': 'Prisijungei prie „{site}“',
+  'signInBrowser.signedInNext': 'Spustelėk apačioje {button}, ir KnightLoader pasiliks seansą.',
   'signInBrowser.openAgain': 'Atidaryti vėl',
   'signInBrowser.openInBrowser': 'Atidaryti naršyklėje',
   'signInBrowser.blocked': 'Šis langas atidaro tik „{site}“ ir puslapius, per kuriuos ten prisijungi, todėl {host} lieka uždarytas.',

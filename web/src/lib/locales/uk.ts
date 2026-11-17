@@ -4091,6 +4091,8 @@ export const uk: Dict = {
   'signInBrowser.back': 'Назад',
   'signInBrowser.reload': 'Оновити',
   'signInBrowser.done': 'Готово',
+  'signInBrowser.signedInTitle': 'Ви ввійшли в {site}',
+  'signInBrowser.signedInNext': 'Натисніть унизу {button}, і KnightLoader збереже сеанс.',
   'signInBrowser.openAgain': 'Відкрити знову',
   'signInBrowser.openInBrowser': 'Відкрити в браузері',
   'signInBrowser.blocked': 'Це вікно відкриває лише {site} і сторінки, через які ви туди входите, тож {host} лишається закритим.',

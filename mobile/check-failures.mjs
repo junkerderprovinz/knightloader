@@ -123,6 +123,10 @@ expect(
   'Das Download-Volumen bei Debrid-Link für rapidgator.net ist aufgebraucht.',
 );
 
+// Midday UTC, so the day is the same in every time zone the check runs in.
+const resets = explainFailure(t, { ...quota, errorParams: { host: 'rapidgator.net', resetsAt: '2026-11-17T12:00:00Z' } })?.next ?? '';
+if (!/\b2026\b/.test(resets)) problems.push(`a reset time carries the year in full: got ${JSON.stringify(resets)}`);
+
 const go = readFileSync(join(here, '..', 'internal', 'core', 'errorcode.go'), 'utf8');
 const codes = [...go.matchAll(/ErrorCode = "(\w+)"/g)].map((m) => m[1]);
 if (codes.length < 20) problems.push(`found only ${codes.length} codes in internal/core/errorcode.go`);

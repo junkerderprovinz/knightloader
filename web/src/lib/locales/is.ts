@@ -4086,6 +4086,8 @@ export const is: Dict = {
   'signInBrowser.back': 'Til baka',
   'signInBrowser.reload': 'Endurhlaða',
   'signInBrowser.done': 'Lokið',
+  'signInBrowser.signedInTitle': 'Innskráning á {site} tókst',
+  'signInBrowser.signedInNext': 'Smelltu á {button} hér fyrir neðan og KnightLoader heldur setunni.',
   'signInBrowser.openAgain': 'Opna aftur',
   'signInBrowser.openInBrowser': 'Opna í vafra',
   'signInBrowser.blocked': 'Þessi gluggi opnar aðeins {site} og síðurnar sem þú skráir þig inn með þar, svo {host} helst lokað.',

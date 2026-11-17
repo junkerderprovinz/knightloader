@@ -4090,6 +4090,8 @@ export const ms: Dict = {
   'signInBrowser.back': 'Kembali',
   'signInBrowser.reload': 'Muat semula',
   'signInBrowser.done': 'Selesai',
+  'signInBrowser.signedInTitle': 'Anda sudah log masuk ke {site}',
+  'signInBrowser.signedInNext': 'Klik {button} di bawah, dan KnightLoader akan menyimpan sesinya.',
   'signInBrowser.openAgain': 'Buka semula',
   'signInBrowser.openInBrowser': 'Buka dalam pelayar',
   'signInBrowser.blocked': 'Tetingkap ini hanya membuka {site} dan halaman yang anda gunakan untuk log masuk ke sana, jadi {host} kekal tertutup.',

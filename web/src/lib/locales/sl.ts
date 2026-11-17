@@ -4089,6 +4089,8 @@ export const sl: Dict = {
   'signInBrowser.back': 'Nazaj',
   'signInBrowser.reload': 'Znova naloži',
   'signInBrowser.done': 'Končano',
+  'signInBrowser.signedInTitle': 'Prijava v {site} je uspela',
+  'signInBrowser.signedInNext': 'Klikni spodaj {button} in KnightLoader bo obdržal sejo.',
   'signInBrowser.openAgain': 'Znova odpri',
   'signInBrowser.openInBrowser': 'Odpri v brskalniku',
   'signInBrowser.blocked': 'To okno odpre le {site} in strani, prek katerih se tam prijaviš, zato {host} ostane zaprt.',

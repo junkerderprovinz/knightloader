@@ -4073,6 +4073,8 @@ export const nl: Dict = {
   'signInBrowser.back': 'Terug',
   'signInBrowser.reload': 'Opnieuw laden',
   'signInBrowser.done': 'Klaar',
+  'signInBrowser.signedInTitle': 'Je bent aangemeld bij {site}',
+  'signInBrowser.signedInNext': 'Klik onderaan op {button}, dan bewaart KnightLoader de sessie.',
   'signInBrowser.openAgain': 'Opnieuw openen',
   'signInBrowser.openInBrowser': 'Openen in browser',
   'signInBrowser.blocked': 'Dit venster opent alleen {site} en de pagina’s waarmee je je daar aanmeldt, dus {host} blijft dicht.',

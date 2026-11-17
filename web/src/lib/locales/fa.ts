@@ -4079,6 +4079,8 @@ export const fa: Dict = {
   'signInBrowser.back': 'بازگشت',
   'signInBrowser.reload': 'بارگذاری دوباره',
   'signInBrowser.done': 'تمام',
+  'signInBrowser.signedInTitle': 'وارد {site} شدی',
+  'signInBrowser.signedInNext': 'پایین روی {button} کلیک کن تا KnightLoader نشست را نگه دارد.',
   'signInBrowser.openAgain': 'باز کردن دوباره',
   'signInBrowser.openInBrowser': 'باز کردن در مرورگر',
   'signInBrowser.blocked': 'این پنجره فقط {site} و صفحه‌هایی را باز می‌کند که با آن‌ها آنجا وارد می‌شوی، پس {host} بسته می‌ماند.',

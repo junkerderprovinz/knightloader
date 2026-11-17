@@ -4070,6 +4070,8 @@ export const ru: Dict = {
   'signInBrowser.back': 'Назад',
   'signInBrowser.reload': 'Обновить',
   'signInBrowser.done': 'Готово',
+  'signInBrowser.signedInTitle': 'Вы вошли в {site}',
+  'signInBrowser.signedInNext': 'Нажмите внизу {button}, и KnightLoader сохранит сеанс.',
   'signInBrowser.openAgain': 'Открыть снова',
   'signInBrowser.openInBrowser': 'Открыть в браузере',
   'signInBrowser.blocked': 'Это окно открывает только {site} и страницы, через которые вы туда входите, поэтому {host} остаётся закрытым.',

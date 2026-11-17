@@ -4074,6 +4074,8 @@ export const zh: Dict = {
   'signInBrowser.back': '返回',
   'signInBrowser.reload': '重新加载',
   'signInBrowser.done': '完成',
+  'signInBrowser.signedInTitle': '你已登录 {site}',
+  'signInBrowser.signedInNext': '点击下方的 {button}，KnightLoader 就会保留会话。',
   'signInBrowser.openAgain': '再次打开',
   'signInBrowser.openInBrowser': '在浏览器中打开',
   'signInBrowser.blocked': '这个窗口只打开 {site} 和你在那里登录时用到的页面，所以 {host} 不会打开。',

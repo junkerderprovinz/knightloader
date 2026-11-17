@@ -4081,6 +4081,8 @@ export const et: Dict = {
   'signInBrowser.back': 'Tagasi',
   'signInBrowser.reload': 'Laadi uuesti',
   'signInBrowser.done': 'Valmis',
+  'signInBrowser.signedInTitle': 'Oled teenusesse {site} sisse logitud',
+  'signInBrowser.signedInNext': 'Klõpsa all nuppu {button} ja KnightLoader jätab seansi alles.',
   'signInBrowser.openAgain': 'Ava uuesti',
   'signInBrowser.openInBrowser': 'Ava brauseris',
   'signInBrowser.blocked': 'See aken avab ainult {site} ja lehed, mille kaudu sa sinna sisse logid, seega {host} jääb suletuks.',

@@ -4087,6 +4087,8 @@ export const ja: Dict = {
   'signInBrowser.back': '戻る',
   'signInBrowser.reload': '再読み込み',
   'signInBrowser.done': '完了',
+  'signInBrowser.signedInTitle': '{site} にサインインしました',
+  'signInBrowser.signedInNext': '下の「{button}」をクリックすると、KnightLoader がセッションを保持します。',
   'signInBrowser.openAgain': 'もう一度開く',
   'signInBrowser.openInBrowser': 'ブラウザーで開く',
   'signInBrowser.blocked': 'このウィンドウで開けるのは {site} と、そこへのサインインに使うページだけなので、{host} は開きません。',

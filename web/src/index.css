@@ -2673,6 +2673,12 @@ body {
     animation-delay: calc(var(--motion-content-dur) * 4);
   }
 
+  /* The sign-in window has seen the sign-in: the page dims, the note arrives
+     the way a window does and its checkmark is drawn once it has. */
+  .kl-signed-in { animation: glim-fade-in var(--motion-scrim-dur) ease backwards; }
+  .kl-signed-in-card { animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) backwards; }
+  .kl-signed-in-card .glim-check-draw { animation-delay: var(--motion-modal-dur); }
+
   /* The desktop app's popup pops up from its corner with a tilt and springs
      into place, and shrinks back into the corner when it goes. Meanwhile the
      knight celebrates: the mark hops and lands squashed, the sword swings to
@@ -2834,6 +2840,9 @@ body {
   /* The popup fades in and out and its knight stands still. */
   :root:not([data-motion="storm"]) .kl-popup { animation: glim-fade-in 160ms ease backwards; }
   :root:not([data-motion="storm"]) .kl-popup.kl-popup-leave { animation: kl-popup-out 160ms ease forwards; }
+  /* The sign-in note fades in like a window, its checkmark already drawn. */
+  :root:not([data-motion="storm"]) .kl-signed-in { animation: glim-fade-in 160ms ease backwards; }
+  :root:not([data-motion="storm"]) .kl-signed-in-card { animation: glim-fade-in 160ms ease backwards; }
 
   /* The storm restored, with the values from its token block. */
   :root[data-motion="storm"] .glim-page-enter {
@@ -2850,6 +2859,13 @@ body {
   :root[data-motion="storm"] .glim-modal-backdrop { animation: glim-fade-in var(--motion-scrim-dur) ease both; }
   :root[data-motion="storm"] .glim-modal-card {
     animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) both;
+  }
+  :root[data-motion="storm"] .kl-signed-in { animation: glim-fade-in var(--motion-scrim-dur) ease backwards; }
+  :root[data-motion="storm"] .kl-signed-in-card {
+    animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) backwards;
+  }
+  :root[data-motion="storm"] .kl-signed-in-card .glim-check-draw {
+    animation: glim-check-draw var(--motion-check-dur) ease-out var(--motion-modal-dur) both;
   }
   :root[data-motion="storm"] .glim-locate {
     animation: glim-locate-ring calc(var(--motion-confirm-dur) * 2) ease-out;

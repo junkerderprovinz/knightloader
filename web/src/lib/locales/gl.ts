@@ -4087,6 +4087,8 @@ export const gl: Dict = {
   'signInBrowser.back': 'Atrás',
   'signInBrowser.reload': 'Recargar',
   'signInBrowser.done': 'Feito',
+  'signInBrowser.signedInTitle': 'Iniciaches sesión en {site}',
+  'signInBrowser.signedInNext': 'Preme {button} abaixo e KnightLoader gardará a sesión.',
   'signInBrowser.openAgain': 'Abrir de novo',
   'signInBrowser.openInBrowser': 'Abrir no navegador',
   'signInBrowser.blocked': 'Esta xanela só abre {site} e as páxinas coas que inicias sesión alí, así que {host} queda pechado.',

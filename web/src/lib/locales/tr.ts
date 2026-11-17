@@ -4089,6 +4089,8 @@ export const tr: Dict = {
   'signInBrowser.back': 'Geri',
   'signInBrowser.reload': 'Yeniden yükle',
   'signInBrowser.done': 'Bitti',
+  'signInBrowser.signedInTitle': '{site} için oturum açtın',
+  'signInBrowser.signedInNext': 'Aşağıdaki {button} düğmesine tıkla, KnightLoader oturumu saklar.',
   'signInBrowser.openAgain': 'Yeniden aç',
   'signInBrowser.openInBrowser': 'Tarayıcıda aç',
   'signInBrowser.blocked': 'Bu pencere yalnızca {site} sitesini ve orada oturum açtığın sayfaları açar, bu yüzden {host} kapalı kalır.',

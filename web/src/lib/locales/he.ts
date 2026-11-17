@@ -4107,6 +4107,8 @@ export const he: Dict = {
   'signInBrowser.back': 'חזרה',
   'signInBrowser.reload': 'טעינה מחדש',
   'signInBrowser.done': 'סיום',
+  'signInBrowser.signedInTitle': 'התחברת אל {site}',
+  'signInBrowser.signedInNext': 'לחץ למטה על {button}, ו-KnightLoader ישמור את ההפעלה.',
   'signInBrowser.openAgain': 'פתיחה מחדש',
   'signInBrowser.openInBrowser': 'פתיחה בדפדפן',
   'signInBrowser.blocked': 'החלון הזה פותח רק את {site} ואת הדפים שדרכם מתחברים אליו, אז {host} נשאר סגור.',

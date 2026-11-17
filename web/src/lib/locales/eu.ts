@@ -4086,6 +4086,8 @@ export const eu: Dict = {
   'signInBrowser.back': 'Atzera',
   'signInBrowser.reload': 'Birkargatu',
   'signInBrowser.done': 'Eginda',
+  'signInBrowser.signedInTitle': 'Saioa hasi duzu {site} gunean',
+  'signInBrowser.signedInNext': 'Sakatu behean {button}, eta KnightLoaderrek gordeko du saioa.',
   'signInBrowser.openAgain': 'Ireki berriro',
   'signInBrowser.openInBrowser': 'Ireki nabigatzailean',
   'signInBrowser.blocked': 'Leiho honek {site} eta bertan saioa hasteko orriak bakarrik irekitzen ditu, beraz {host} itxita geratzen da.',

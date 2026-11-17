@@ -4099,6 +4099,8 @@ export const ro: Dict = {
   'signInBrowser.back': 'Înapoi',
   'signInBrowser.reload': 'Reîncarcă',
   'signInBrowser.done': 'Gata',
+  'signInBrowser.signedInTitle': 'Te-ai autentificat pe {site}',
+  'signInBrowser.signedInNext': 'Apasă {button} jos, iar KnightLoader păstrează sesiunea.',
   'signInBrowser.openAgain': 'Deschide din nou',
   'signInBrowser.openInBrowser': 'Deschide în browser',
   'signInBrowser.blocked': 'Fereastra asta deschide doar {site} și paginile prin care te autentifici acolo, așa că {host} rămâne închis.',

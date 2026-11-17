@@ -4089,6 +4089,8 @@ export const th: Dict = {
   'signInBrowser.back': 'ย้อนกลับ',
   'signInBrowser.reload': 'โหลดใหม่',
   'signInBrowser.done': 'เสร็จสิ้น',
+  'signInBrowser.signedInTitle': 'คุณเข้าสู่ระบบ {site} แล้ว',
+  'signInBrowser.signedInNext': 'คลิก {button} ด้านล่าง แล้ว KnightLoader จะเก็บเซสชันไว้',
   'signInBrowser.openAgain': 'เปิดอีกครั้ง',
   'signInBrowser.openInBrowser': 'เปิดในเบราว์เซอร์',
   'signInBrowser.blocked': 'หน้าต่างนี้เปิดได้เฉพาะ {site} และหน้าที่ใช้เข้าสู่ระบบที่นั่น {host} จึงยังปิดอยู่',

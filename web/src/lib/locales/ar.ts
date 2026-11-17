@@ -4088,6 +4088,8 @@ export const ar: Dict = {
   'signInBrowser.back': 'رجوع',
   'signInBrowser.reload': 'إعادة التحميل',
   'signInBrowser.done': 'تم',
+  'signInBrowser.signedInTitle': 'سجّلت الدخول إلى {site}',
+  'signInBrowser.signedInNext': 'اضغط على {button} في الأسفل، وسيحتفظ KnightLoader بالجلسة.',
   'signInBrowser.openAgain': 'افتح مجددًا',
   'signInBrowser.openInBrowser': 'فتح في المتصفح',
   'signInBrowser.blocked': 'هذه النافذة لا تفتح إلا {site} والصفحات التي تسجّل الدخول بها هناك، لذا يبقى {host} مغلقًا.',

@@ -4091,6 +4091,8 @@ export const fi: Dict = {
   'signInBrowser.back': 'Takaisin',
   'signInBrowser.reload': 'Lataa uudelleen',
   'signInBrowser.done': 'Valmis',
+  'signInBrowser.signedInTitle': 'Olet kirjautunut palveluun {site}',
+  'signInBrowser.signedInNext': 'Napsauta alhaalla {button}, niin KnightLoader säilyttää istunnon.',
   'signInBrowser.openAgain': 'Avaa uudelleen',
   'signInBrowser.openInBrowser': 'Avaa selaimessa',
   'signInBrowser.blocked': 'Tämä ikkuna avaa vain palvelun {site} ja sivut, joiden kautta kirjaudut sinne, joten {host} pysyy kiinni.',

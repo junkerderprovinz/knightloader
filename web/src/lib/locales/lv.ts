@@ -4081,6 +4081,8 @@ export const lv: Dict = {
   'signInBrowser.back': 'Atpakaļ',
   'signInBrowser.reload': 'Pārlādēt',
   'signInBrowser.done': 'Gatavs',
+  'signInBrowser.signedInTitle': 'Pieteikšanās vietnē {site} izdevās',
+  'signInBrowser.signedInNext': 'Noklikšķini apakšā uz {button}, un KnightLoader paturēs sesiju.',
   'signInBrowser.openAgain': 'Atvērt vēlreiz',
   'signInBrowser.openInBrowser': 'Atvērt pārlūkā',
   'signInBrowser.blocked': 'Šis logs atver tikai {site} un lapas, ar kurām tu tur piesakies, tāpēc {host} paliek slēgts.',
