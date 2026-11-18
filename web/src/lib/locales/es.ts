@@ -509,6 +509,9 @@ export const es: Dict = {
   'settings.rowHeight.medium': 'Media',
   'settings.rowHeight.comfortable': 'Holgada',
   'settings.listShade.title': 'Sombrear las listas',
+  'settings.listShade.off': 'Desactivado',
+  'settings.listShade.moderate': 'Moderado',
+  'settings.listShade.strong': 'Alto contraste',
   'settings.listShade.hint':
     'Destaca un poco la cabecera de cada paquete en Descargas y en el colector de enlaces y da a sus archivos una franja suave, para que veas de un vistazo qué archivos son de cada paquete. La elección solo vale en este navegador.',
   'settings.labels': 'Etiquetas',

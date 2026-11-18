@@ -509,6 +509,9 @@ export const fr: Dict = {
   'settings.rowHeight.medium': 'Moyenne',
   'settings.rowHeight.comfortable': 'Aérée',
   'settings.listShade.title': 'Ombrer les listes',
+  'settings.listShade.off': 'Désactivé',
+  'settings.listShade.moderate': 'Modéré',
+  'settings.listShade.strong': 'Contraste élevé',
   'settings.listShade.hint':
     'Démarque légèrement l\'en-tête de chaque paquet dans Téléchargements et le collecteur de liens et raye discrètement ses fichiers, pour voir d\'un coup d\'œil quels fichiers appartiennent à quel paquet. Ce choix ne vaut que dans ce navigateur.',
   'settings.labels': 'Libellés',

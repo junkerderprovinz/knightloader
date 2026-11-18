@@ -517,6 +517,9 @@ export const fa: Dict = {
   'settings.rowHeight.medium': 'متوسط',
   'settings.rowHeight.comfortable': 'جادار',
   'settings.listShade.title': 'سایه‌زدن فهرست‌ها',
+  'settings.listShade.off': 'خاموش',
+  'settings.listShade.moderate': 'ملایم',
+  'settings.listShade.strong': 'کنتراست بالا',
   'settings.listShade.hint':
     'سرِ هر بسته را در دانلودها و گردآور پیوندها کمی متمایز می‌کند و به فایل‌هایش راه‌راه ملایمی می‌دهد تا با یک نگاه ببینی کدام فایل‌ها مال کدام بسته‌اند. این انتخاب فقط در همین مرورگر نگه داشته می‌شود.',
   'settings.labels': 'برچسب‌ها',

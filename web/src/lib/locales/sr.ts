@@ -517,6 +517,9 @@ export const sr: Dict = {
   'settings.rowHeight.medium': 'Средње',
   'settings.rowHeight.comfortable': 'Прозрачно',
   'settings.listShade.title': 'Сенчење спискова',
+  'settings.listShade.off': 'Искључено',
+  'settings.listShade.moderate': 'Умерено',
+  'settings.listShade.strong': 'Висок контраст',
   'settings.listShade.hint':
     'Благо истиче заглавље сваког пакета у Преузимањима и Сакупљачу линкова и даје његовим датотекама нежне пруге, па на први поглед видиш које датотеке припадају ком пакету. Избор важи само у овом прегледачу.',
   'settings.labels': 'Ознаке',

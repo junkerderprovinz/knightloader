@@ -517,6 +517,9 @@ export const hr: Dict = {
   'settings.rowHeight.medium': 'Srednje',
   'settings.rowHeight.comfortable': 'Prozračno',
   'settings.listShade.title': 'Zasjenjivanje popisa',
+  'settings.listShade.off': 'Isključeno',
+  'settings.listShade.moderate': 'Umjereno',
+  'settings.listShade.strong': 'Visoki kontrast',
   'settings.listShade.hint':
     'Blago ističe zaglavlje svakog paketa u Preuzimanjima i Sakupljaču poveznica i daje njegovim datotekama nježne pruge, pa na prvi pogled vidiš koje datoteke pripadaju kojem paketu. Izbor vrijedi samo u ovom pregledniku.',
   'settings.labels': 'Oznake',

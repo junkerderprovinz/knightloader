@@ -517,6 +517,9 @@ export const sv: Dict = {
   'settings.rowHeight.medium': 'Mellan',
   'settings.rowHeight.comfortable': 'Luftig',
   'settings.listShade.title': 'Skugga listorna',
+  'settings.listShade.off': 'Av',
+  'settings.listShade.moderate': 'Måttlig',
+  'settings.listShade.strong': 'Hög kontrast',
   'settings.listShade.hint':
     'Framhäver varje pakets rubrikrad en aning i Nedladdningar och Länksamlaren och ger dess filer svaga ränder, så att du med en blick ser vilka filer som hör till vilket paket. Valet gäller bara i den här webbläsaren.',
   'settings.labels': 'Etiketter',

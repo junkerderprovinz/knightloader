@@ -60,20 +60,22 @@ export type ListRow =
     };
 
 /** The ground a row takes in the shaded list (lib/listShade.ts). */
-export type RowBand = 'head' | 'odd' | 'even';
+export type RowBand = 'head' | 'head-alt' | 'odd' | 'even';
 
 /**
- * rowBands gives each row its shade: a package header heads its band, and the
- * rows under it alternate by their place among the drawn rows of that
+ * rowBands gives each row its shade: a package header heads its band, every
+ * second header in the other head shade so folded packages stand apart, and
+ * the rows under it alternate by their place among the drawn rows of that
  * package. Counted off the drawn rows rather than off posinset, so a torrent's
  * open files and a filter that hides a link never leave two neighbours alike.
  */
 export function rowBands(rows: ListRow[]): RowBand[] {
   let at = 0;
+  let heads = 0;
   return rows.map((row) => {
     if (row.kind === 'package') {
       at = 0;
-      return 'head';
+      return heads++ % 2 === 0 ? 'head' : 'head-alt';
     }
     at++;
     return at % 2 === 1 ? 'odd' : 'even';

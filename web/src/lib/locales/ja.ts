@@ -517,6 +517,9 @@ export const ja: Dict = {
   'settings.rowHeight.medium': '中',
   'settings.rowHeight.comfortable': 'ゆったり',
   'settings.listShade.title': 'リストに陰影をつける',
+  'settings.listShade.off': 'オフ',
+  'settings.listShade.moderate': '控えめ',
+  'settings.listShade.strong': 'ハイコントラスト',
   'settings.listShade.hint':
     'ダウンロードとリンクコレクターで、各パッケージの見出し行を少し目立たせ、そのファイルに淡い縞模様をつけます。どのファイルがどのパッケージのものか、ひと目でわかります。この選択はこのブラウザーにだけ保存されます。',
   'settings.labels': 'ラベル',

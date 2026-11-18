@@ -519,6 +519,9 @@ export const he: Dict = {
   'settings.rowHeight.medium': 'בינוני',
   'settings.rowHeight.comfortable': 'מרווח',
   'settings.listShade.title': 'הצללת הרשימות',
+  'settings.listShade.off': 'כבוי',
+  'settings.listShade.moderate': 'מתון',
+  'settings.listShade.strong': 'ניגודיות גבוהה',
   'settings.listShade.hint':
     'מבדיל מעט את שורת הכותרת של כל חבילה בהורדות ובאוסף הקישורים ומוסיף לקבצים שלה פסים עדינים, כך שרואים במבט אחד אילו קבצים שייכים לאיזו חבילה. הבחירה נשמרת רק בדפדפן הזה.',
   'settings.labels': 'תוויות',

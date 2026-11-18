@@ -561,6 +561,9 @@ export const de: Dict = {
   'settings.rowHeight.medium': 'Mittel',
   'settings.rowHeight.comfortable': 'Bequem',
   'settings.listShade.title': 'Listen schattieren',
+  'settings.listShade.off': 'Aus',
+  'settings.listShade.moderate': 'Moderat',
+  'settings.listShade.strong': 'Kontrastreich',
   'settings.listShade.hint':
     'Hebt unter Downloads und im Linksammler die Kopfzeile jedes Pakets leicht ab und gibt seinen Dateien einen feinen Streifen. So siehst du auf einen Blick, welche Dateien zu welchem Paket gehören. Die Wahl gilt nur in diesem Browser.',
   'settings.labels': 'Beschriftungen',

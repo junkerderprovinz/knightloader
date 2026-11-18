@@ -518,6 +518,9 @@ export const uk: Dict = {
   'settings.rowHeight.medium': 'Середньо',
   'settings.rowHeight.comfortable': 'Просторо',
   'settings.listShade.title': 'Затіняти списки',
+  'settings.listShade.off': 'Вимк.',
+  'settings.listShade.moderate': 'Помірно',
+  'settings.listShade.strong': 'Високий контраст',
   'settings.listShade.hint':
     'Трохи виділяє рядок заголовка кожного пакета в Завантаженнях і Збирачі посилань і дає його файлам ледь помітні смуги, щоб з першого погляду було видно, які файли до якого пакета належать. Вибір зберігається лише в цьому браузері.',
   'settings.labels': 'Підписи',

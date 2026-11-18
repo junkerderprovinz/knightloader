@@ -517,6 +517,9 @@ export const fi: Dict = {
   'settings.rowHeight.medium': 'Keskikokoinen',
   'settings.rowHeight.comfortable': 'Väljä',
   'settings.listShade.title': 'Varjosta luettelot',
+  'settings.listShade.off': 'Pois',
+  'settings.listShade.moderate': 'Maltillinen',
+  'settings.listShade.strong': 'Korkea kontrasti',
   'settings.listShade.hint':
     'Erottaa jokaisen paketin otsikkorivin hieman Latauksissa ja Linkkikerääjässä ja raidoittaa sen tiedostot hienovaraisesti, joten näet yhdellä silmäyksellä, mitkä tiedostot kuuluvat mihinkin pakettiin. Valinta pätee vain tässä selaimessa.',
   'settings.labels': 'Nimikkeet',

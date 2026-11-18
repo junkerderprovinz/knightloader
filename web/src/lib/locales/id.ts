@@ -517,6 +517,9 @@ export const id: Dict = {
   'settings.rowHeight.medium': 'Sedang',
   'settings.rowHeight.comfortable': 'Lega',
   'settings.listShade.title': 'Beri bayangan pada daftar',
+  'settings.listShade.off': 'Nonaktif',
+  'settings.listShade.moderate': 'Sedang',
+  'settings.listShade.strong': 'Kontras tinggi',
   'settings.listShade.hint':
     'Membedakan sedikit baris judul setiap paket di Unduhan dan Pengumpul tautan dan memberi file-filenya belang samar, sehingga sekilas terlihat file mana milik paket mana. Pilihan ini hanya disimpan di browser ini.',
   'settings.labels': 'Label',

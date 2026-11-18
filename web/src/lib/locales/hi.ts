@@ -518,6 +518,9 @@ export const hi: Dict = {
   'settings.rowHeight.medium': 'मध्यम',
   'settings.rowHeight.comfortable': 'खुला',
   'settings.listShade.title': 'सूचियों में छाया',
+  'settings.listShade.off': 'बंद',
+  'settings.listShade.moderate': 'मध्यम',
+  'settings.listShade.strong': 'उच्च कंट्रास्ट',
   'settings.listShade.hint':
     'डाउनलोड और लिंक संग्राहक में हर पैकेज की शीर्ष पंक्ति को थोड़ा अलग दिखाता है और उसकी फ़ाइलों को हल्की धारियाँ देता है, ताकि एक नज़र में दिखे कि कौन-सी फ़ाइलें किस पैकेज की हैं। यह चुनाव केवल इसी ब्राउज़र में रहता है।',
   'settings.labels': 'लेबल',

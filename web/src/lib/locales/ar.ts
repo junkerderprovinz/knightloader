@@ -519,6 +519,9 @@ export const ar: Dict = {
   'settings.rowHeight.medium': 'متوسط',
   'settings.rowHeight.comfortable': 'مريح',
   'settings.listShade.title': 'تظليل القوائم',
+  'settings.listShade.off': 'إيقاف',
+  'settings.listShade.moderate': 'معتدل',
+  'settings.listShade.strong': 'تباين عالٍ',
   'settings.listShade.hint':
     'يميّز رأس كل حزمة بدرجة لون في التنزيلات ومجمّع الروابط ويضيف إلى ملفاتها تخطيطًا خفيفًا، فتعرف بنظرة أي الملفات تنتمي إلى أي حزمة. يُحفظ الاختيار في هذا المتصفح فقط.',
   'settings.labels': 'التسميات',

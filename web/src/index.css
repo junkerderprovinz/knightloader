@@ -792,6 +792,14 @@ body {
   --list-band-odd:   transparent;
   --list-band-even:  color-mix(in srgb, var(--carbon-text) 2%, transparent);
   --list-band-head:  color-mix(in srgb, var(--carbon-text) 4%, transparent);
+  --list-band-head-alt: color-mix(in srgb, var(--carbon-text) 7%, transparent);
+}
+/* High contrast: the same bands, each a clear step apart, for a screen or an
+   eye on which the moderate shades run together. */
+:where([data-shade='strong']) {
+  --list-band-even:  color-mix(in srgb, var(--carbon-text) 5%, transparent);
+  --list-band-head:  color-mix(in srgb, var(--carbon-text) 9%, transparent);
+  --list-band-head-alt: color-mix(in srgb, var(--carbon-text) 15%, transparent);
 }
 
 /* The house font is Noto Sans, shipped with the app (the imports in main.tsx)
@@ -1187,6 +1195,9 @@ body {
 }
 :where([data-shade]) > [data-band='head'] {
   background-color: var(--list-band-head);
+}
+:where([data-shade]) > [data-band='head-alt'] {
+  background-color: var(--list-band-head-alt);
 }
 :where([data-shade]) > [data-band]:is(:hover, :has(:focus-visible)) {
   background-color: var(--hover);

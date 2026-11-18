@@ -517,6 +517,9 @@ export const zh: Dict = {
   'settings.rowHeight.medium': '中等',
   'settings.rowHeight.comfortable': '宽松',
   'settings.listShade.title': '列表加底纹',
+  'settings.listShade.off': '关闭',
+  'settings.listShade.moderate': '适中',
+  'settings.listShade.strong': '高对比度',
   'settings.listShade.hint':
     '在下载和链接收集器中让每个包的标题行稍微突出，并给其中的文件加上浅浅的条纹，一眼就能看出哪些文件属于哪个包。此选择只保存在此浏览器中。',
   'settings.labels': '标签',

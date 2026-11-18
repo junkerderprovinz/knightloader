@@ -586,6 +586,9 @@ export const en = {
   'settings.rowHeight.medium': 'Medium',
   'settings.rowHeight.comfortable': 'Comfortable',
   'settings.listShade.title': 'Shade the lists',
+  'settings.listShade.off': 'Off',
+  'settings.listShade.moderate': 'Moderate',
+  'settings.listShade.strong': 'High contrast',
   'settings.listShade.hint':
     'Sets each package\'s header a shade apart in Downloads and the link collector and stripes its files faintly, so you can tell at a glance which files belong to which package. The choice is kept in this browser only.',
   'settings.labels': 'Labels',

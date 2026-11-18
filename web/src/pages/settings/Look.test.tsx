@@ -96,16 +96,18 @@ it('keeps OLED in this browser and out of the instance settings', () => {
   expect(patch).not.toHaveBeenCalledWith(expect.objectContaining({ oled: expect.anything() }));
 });
 
-it('shades the lists from the start and keeps turning it off in this browser', () => {
+it('shades the lists moderately from the start and keeps another level in this browser', () => {
   const patch = renderLook();
-  const shade = () =>
-    [...host.querySelectorAll<HTMLButtonElement>('[role="switch"]')].find(
-      (s) => s.getAttribute('aria-label') === 'Shade the lists',
-    )!;
-  expect(shade().getAttribute('aria-checked')).toBe('true');
-  act(() => shade().click());
-  expect(shade().getAttribute('aria-checked')).toBe('false');
+  const level = (name: string) =>
+    [...host.querySelectorAll<HTMLElement>('[data-new="list-shade"] [role="tab"]')].find((tab) => tab.textContent?.trim() === name)!;
+  const picked = (name: string) => (level(name).getAttribute('aria-selected') ?? level(name).getAttribute('aria-checked')) === 'true';
+  expect(picked('Moderate')).toBe(true);
+  act(() => level('High contrast').click());
+  expect(localStorage.getItem('kl-list-shade')).toBe('strong');
+  act(() => level('Off').click());
   expect(localStorage.getItem('kl-list-shade')).toBe('off');
+  act(() => level('Moderate').click());
+  expect(localStorage.getItem('kl-list-shade')).toBeNull();
   expect(patch).not.toHaveBeenCalled();
 });
 

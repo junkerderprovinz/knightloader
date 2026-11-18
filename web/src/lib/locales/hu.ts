@@ -518,6 +518,9 @@ export const hu: Dict = {
   'settings.rowHeight.medium': 'Közepes',
   'settings.rowHeight.comfortable': 'Tágas',
   'settings.listShade.title': 'Listák árnyékolása',
+  'settings.listShade.off': 'Ki',
+  'settings.listShade.moderate': 'Mérsékelt',
+  'settings.listShade.strong': 'Nagy kontraszt',
   'settings.listShade.hint':
     'A Letöltésekben és a Linkgyűjtőben kissé kiemeli minden csomag fejlécsorát, a fájljait pedig halványan csíkozza, így egy pillantással látod, melyik fájl melyik csomaghoz tartozik. A választás csak ebben a böngészőben érvényes.',
   'settings.labels': 'Feliratok',

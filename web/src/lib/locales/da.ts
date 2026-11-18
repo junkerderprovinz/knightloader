@@ -517,6 +517,9 @@ export const da: Dict = {
   'settings.rowHeight.medium': 'Mellem',
   'settings.rowHeight.comfortable': 'Luftig',
   'settings.listShade.title': 'Skraver listerne',
+  'settings.listShade.off': 'Fra',
+  'settings.listShade.moderate': 'Moderat',
+  'settings.listShade.strong': 'Høj kontrast',
   'settings.listShade.hint':
     'Fremhæver hver pakkes overskrift en anelse i Downloads og Linksamleren og giver dens filer svage striber, så du med et blik kan se, hvilke filer der hører til hvilken pakke. Valget gælder kun i denne browser.',
   'settings.labels': 'Etiketter',

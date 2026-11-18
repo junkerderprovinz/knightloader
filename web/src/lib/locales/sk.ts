@@ -517,6 +517,9 @@ export const sk: Dict = {
   'settings.rowHeight.medium': 'Stredná',
   'settings.rowHeight.comfortable': 'Vzdušná',
   'settings.listShade.title': 'Tieňovať zoznamy',
+  'settings.listShade.off': 'Vypnuté',
+  'settings.listShade.moderate': 'Stredné',
+  'settings.listShade.strong': 'Vysoký kontrast',
   'settings.listShade.hint':
     'Jemne odlíši záhlavie každého balíka v Sťahovaní a v Zberači odkazov a jeho súbory striedavo podfarbí, takže na prvý pohľad vidíš, ktoré súbory patria ku ktorému balíku. Voľba platí len v tomto prehliadači.',
   'settings.labels': 'Označenia',

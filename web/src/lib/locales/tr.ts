@@ -517,6 +517,9 @@ export const tr: Dict = {
   'settings.rowHeight.medium': 'Orta',
   'settings.rowHeight.comfortable': 'Rahat',
   'settings.listShade.title': 'Listeleri gölgelendir',
+  'settings.listShade.off': 'Kapalı',
+  'settings.listShade.moderate': 'Orta',
+  'settings.listShade.strong': 'Yüksek kontrast',
   'settings.listShade.hint':
     'İndirmeler ve Bağlantı toplayıcıda her paketin başlık satırını biraz öne çıkarır ve dosyalarına hafif çizgiler verir, böylece hangi dosyanın hangi pakete ait olduğunu bir bakışta görürsün. Seçim yalnızca bu tarayıcıda saklanır.',
   'settings.labels': 'Etiketler',

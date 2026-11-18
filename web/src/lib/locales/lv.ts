@@ -518,6 +518,9 @@ export const lv: Dict = {
   'settings.rowHeight.medium': 'Vidējs',
   'settings.rowHeight.comfortable': 'Plašs',
   'settings.listShade.title': 'Ēnot sarakstus',
+  'settings.listShade.off': 'Izslēgts',
+  'settings.listShade.moderate': 'Mērens',
+  'settings.listShade.strong': 'Augsts kontrasts',
   'settings.listShade.hint':
     'Lejupielādēs un Saišu savācējā nedaudz izceļ katras pakas virsrindu un tās failiem piešķir smalkas svītras, lai vienā skatienā redzētu, kuri faili pieder kurai pakai. Izvēle ir spēkā tikai šajā pārlūkā.',
   'settings.labels': 'Uzraksti',

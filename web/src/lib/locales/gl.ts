@@ -517,6 +517,9 @@ export const gl: Dict = {
   'settings.rowHeight.medium': 'Media',
   'settings.rowHeight.comfortable': 'Folgada',
   'settings.listShade.title': 'Sombrear as listas',
+  'settings.listShade.off': 'Desactivado',
+  'settings.listShade.moderate': 'Moderado',
+  'settings.listShade.strong': 'Alto contraste',
   'settings.listShade.hint':
     'Destaca un pouco a cabeceira de cada paquete en Descargas e no colector de ligazóns e dálles aos seus ficheiros unha franxa suave, para que vexas dunha ollada que ficheiros son de cada paquete. A elección só vale neste navegador.',
   'settings.labels': 'Etiquetas',

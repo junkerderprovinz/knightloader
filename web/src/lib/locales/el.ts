@@ -518,6 +518,9 @@ export const el: Dict = {
   'settings.rowHeight.medium': 'Μεσαίο',
   'settings.rowHeight.comfortable': 'Άνετο',
   'settings.listShade.title': 'Σκίαση λιστών',
+  'settings.listShade.off': 'Ανενεργό',
+  'settings.listShade.moderate': 'Μέτριο',
+  'settings.listShade.strong': 'Υψηλή αντίθεση',
   'settings.listShade.hint':
     'Ξεχωρίζει ελαφρά την κεφαλίδα κάθε πακέτου στις Λήψεις και στον Συλλέκτη συνδέσμων και δίνει στα αρχεία του απαλές ρίγες, ώστε να βλέπεις με μια ματιά ποια αρχεία ανήκουν σε ποιο πακέτο. Η επιλογή ισχύει μόνο σε αυτό το πρόγραμμα περιήγησης.',
   'settings.labels': 'Ετικέτες',

@@ -509,6 +509,9 @@ export const nl: Dict = {
   'settings.rowHeight.medium': 'Middel',
   'settings.rowHeight.comfortable': 'Ruim',
   'settings.listShade.title': 'Lijsten arceren',
+  'settings.listShade.off': 'Uit',
+  'settings.listShade.moderate': 'Gematigd',
+  'settings.listShade.strong': 'Hoog contrast',
   'settings.listShade.hint':
     'Laat de kopregel van elk pakket in Downloads en de Linkverzamelaar iets afsteken en geeft de bestanden ervan zachte strepen, zodat je in één oogopslag ziet welke bestanden bij welk pakket horen. De keuze geldt alleen in deze browser.',
   'settings.labels': 'Labels',

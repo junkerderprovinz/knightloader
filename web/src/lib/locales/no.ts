@@ -520,6 +520,9 @@ export const no: Dict = {
   'settings.rowHeight.medium': 'Middels',
   'settings.rowHeight.comfortable': 'Luftig',
   'settings.listShade.title': 'Skyggelegg listene',
+  'settings.listShade.off': 'Av',
+  'settings.listShade.moderate': 'Moderat',
+  'settings.listShade.strong': 'Høy kontrast',
   'settings.listShade.hint':
     'Fremhever overskriften til hver pakke litt i Nedlastinger og Linksamleren og gir filene svake striper, så du ser med et blikk hvilke filer som hører til hvilken pakke. Valget gjelder bare i denne nettleseren.',
   'settings.labels': 'Etiketter',

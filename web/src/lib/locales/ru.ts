@@ -510,6 +510,9 @@ export const ru: Dict = {
   'settings.rowHeight.medium': 'Средне',
   'settings.rowHeight.comfortable': 'Просторно',
   'settings.listShade.title': 'Затенять списки',
+  'settings.listShade.off': 'Выкл.',
+  'settings.listShade.moderate': 'Умеренно',
+  'settings.listShade.strong': 'Высокий контраст',
   'settings.listShade.hint':
     'Слегка выделяет строку заголовка каждого пакета в Загрузках и Сборщике ссылок и даёт его файлам едва заметную полосатость, чтобы с первого взгляда было видно, какие файлы к какому пакету относятся. Выбор хранится только в этом браузере.',
   'settings.labels': 'Подписи',

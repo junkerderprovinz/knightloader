@@ -518,6 +518,9 @@ export const bg: Dict = {
   'settings.rowHeight.medium': 'Средно',
   'settings.rowHeight.comfortable': 'Просторно',
   'settings.listShade.title': 'Засенчване на списъците',
+  'settings.listShade.off': 'Изкл.',
+  'settings.listShade.moderate': 'Умерено',
+  'settings.listShade.strong': 'Висок контраст',
   'settings.listShade.hint':
     'Отделя леко заглавния ред на всеки пакет в Изтегляния и Събирача на връзки и дава на файловете му фини ивици, така че с един поглед виждаш кои файлове към кой пакет принадлежат. Изборът важи само в този браузър.',
   'settings.labels': 'Надписи',

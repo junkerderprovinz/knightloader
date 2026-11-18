@@ -518,6 +518,9 @@ export const lt: Dict = {
   'settings.rowHeight.medium': 'Vidutinis',
   'settings.rowHeight.comfortable': 'Erdvus',
   'settings.listShade.title': 'Šešėliuoti sąrašus',
+  'settings.listShade.off': 'Išjungta',
+  'settings.listShade.moderate': 'Vidutinis',
+  'settings.listShade.strong': 'Didelis kontrastas',
   'settings.listShade.hint':
     'Atsisiuntimuose ir Nuorodų rinkiklyje šiek tiek išskiria kiekvieno paketo antraštės eilutę ir jo failams suteikia švelnias juostas, kad iš pirmo žvilgsnio matytum, kurie failai kuriam paketui priklauso. Pasirinkimas galioja tik šioje naršyklėje.',
   'settings.labels': 'Etiketės',

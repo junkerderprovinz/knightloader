@@ -509,6 +509,9 @@ export const pt: Dict = {
   'settings.rowHeight.medium': 'Média',
   'settings.rowHeight.comfortable': 'Folgada',
   'settings.listShade.title': 'Sombrear as listas',
+  'settings.listShade.off': 'Desativado',
+  'settings.listShade.moderate': 'Moderado',
+  'settings.listShade.strong': 'Alto contraste',
   'settings.listShade.hint':
     'Destaca um pouco o cabeçalho de cada pacote em Transferências e no coletor de links e dá aos seus ficheiros uma risca suave, para veres num relance que ficheiros pertencem a que pacote. A escolha só vale neste navegador.',
   'settings.labels': 'Rótulos',

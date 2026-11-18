@@ -517,6 +517,9 @@ export const ca: Dict = {
   'settings.rowHeight.medium': 'Mitjana',
   'settings.rowHeight.comfortable': 'Àmplia',
   'settings.listShade.title': 'Ombreja les llistes',
+  'settings.listShade.off': 'Desactivat',
+  'settings.listShade.moderate': 'Moderat',
+  'settings.listShade.strong': 'Alt contrast',
   'settings.listShade.hint':
     'Destaca lleugerament la capçalera de cada paquet a Baixades i al recol·lector d\'enllaços i dona als seus fitxers una ratlla suau, perquè vegis d\'un cop d\'ull quins fitxers són de cada paquet. L\'elecció només val en aquest navegador.',
   'settings.labels': 'Etiquetes',

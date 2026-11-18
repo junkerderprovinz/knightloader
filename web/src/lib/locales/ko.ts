@@ -517,6 +517,9 @@ export const ko: Dict = {
   'settings.rowHeight.medium': '보통',
   'settings.rowHeight.comfortable': '넉넉하게',
   'settings.listShade.title': '목록에 음영 넣기',
+  'settings.listShade.off': '끄기',
+  'settings.listShade.moderate': '보통',
+  'settings.listShade.strong': '고대비',
   'settings.listShade.hint':
     '다운로드와 링크 수집기에서 각 패키지의 머리 행을 조금 돋보이게 하고 그 파일에 옅은 줄무늬를 넣어, 어떤 파일이 어느 패키지에 속하는지 한눈에 보이게 합니다. 이 선택은 이 브라우저에만 저장됩니다.',
   'settings.labels': '레이블',

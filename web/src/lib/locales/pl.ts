@@ -510,6 +510,9 @@ export const pl: Dict = {
   'settings.rowHeight.medium': 'Średnia',
   'settings.rowHeight.comfortable': 'Przestronna',
   'settings.listShade.title': 'Cieniuj listy',
+  'settings.listShade.off': 'Wyłączone',
+  'settings.listShade.moderate': 'Umiarkowane',
+  'settings.listShade.strong': 'Wysoki kontrast',
   'settings.listShade.hint':
     'Lekko wyróżnia wiersz nagłówka każdego pakietu w Pobieraniach i Kolektorze linków, a jego pliki subtelnie przeplata paskami, więc od razu widzisz, które pliki należą do którego pakietu. Wybór obowiązuje tylko w tej przeglądarce.',
   'settings.labels': 'Etykiety',

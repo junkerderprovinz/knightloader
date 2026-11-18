@@ -40,6 +40,9 @@ import {
   IconRefresh,
   IconRetry,
   IconRowComfortable,
+  IconShadeModerate,
+  IconShadeOff,
+  IconShadeStrong,
   IconRowCompact,
   IconRowMedium,
   IconSignOut,
@@ -63,7 +66,7 @@ import { isDesktop } from '../../lib/desktop';
 import { LABEL_AXES, LABEL_MODES, LABEL_SETTING, asLabelMode, setLabelMode, useLabelMode, type LabelAxis, type LabelMode } from '../../lib/labelModes';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { ROW_HEIGHTS, setRowHeight, useRowHeight, type RowHeight } from '../../lib/rowHeight';
-import { setListShade, useListShade } from '../../lib/listShade';
+import { LIST_SHADES, setListShade, useListShade, type ListShade } from '../../lib/listShade';
 import { useResource } from '../../lib/useResource';
 import {
   ACCENTS,
@@ -177,6 +180,12 @@ const ROW_GLYPHS: Record<RowHeight, (p: GlyphProps) => ReactNode> = {
   compact: IconRowCompact,
   medium: IconRowMedium,
   comfortable: IconRowComfortable,
+};
+
+const SHADE_GLYPHS: Record<ListShade, (p: GlyphProps) => ReactNode> = {
+  off: IconShadeOff,
+  moderate: IconShadeModerate,
+  strong: IconShadeStrong,
 };
 
 const LABEL_AXIS_NAMES: Record<LabelAxis, TranslationKey> = {
@@ -769,12 +778,22 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           />
         </SettingRow>
         <div data-new="list-shade">
-          <ToggleRow
-            label={t('settings.listShade.title')}
-            hint={t('settings.listShade.hint')}
-            checked={listShade}
-            onChange={setListShade}
-          />
+          <SettingRow label={t('settings.listShade.title')} hint={t('settings.listShade.hint')}>
+            <Tabs
+              label={t('settings.listShade.title')}
+              variant="well"
+              size="sm"
+              inline
+              hug
+              labelled
+              active={listShade}
+              onSelect={(id) => setListShade(id as ListShade)}
+              items={LIST_SHADES.map((s) => {
+                const Glyph = SHADE_GLYPHS[s];
+                return { id: s, label: t(`settings.listShade.${s}` as TranslationKey), icon: <Glyph width={16} height={16} /> };
+              })}
+            />
+          </SettingRow>
         </div>
       </Card>
       )}

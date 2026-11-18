@@ -517,6 +517,9 @@ export const sl: Dict = {
   'settings.rowHeight.medium': 'Srednje',
   'settings.rowHeight.comfortable': 'Zračno',
   'settings.listShade.title': 'Senči sezname',
+  'settings.listShade.off': 'Izklopljeno',
+  'settings.listShade.moderate': 'Zmerno',
+  'settings.listShade.strong': 'Visok kontrast',
   'settings.listShade.hint':
     'V Prenosih in Zbiralniku povezav rahlo poudari glavo vsakega paketa in njegovim datotekam doda nežne proge, da na prvi pogled vidiš, katere datoteke spadajo h kateremu paketu. Izbira velja samo v tem brskalniku.',
   'settings.labels': 'Oznake',

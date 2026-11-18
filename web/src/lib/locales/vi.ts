@@ -517,6 +517,9 @@ export const vi: Dict = {
   'settings.rowHeight.medium': 'Vừa',
   'settings.rowHeight.comfortable': 'Thoáng',
   'settings.listShade.title': 'Tô bóng danh sách',
+  'settings.listShade.off': 'Tắt',
+  'settings.listShade.moderate': 'Vừa phải',
+  'settings.listShade.strong': 'Tương phản cao',
   'settings.listShade.hint':
     'Làm nổi nhẹ hàng tiêu đề của mỗi gói trong Tải xuống và Bộ thu liên kết, đồng thời tô sọc mờ cho các tệp của gói, để bạn nhìn qua là biết tệp nào thuộc gói nào. Lựa chọn chỉ được giữ trong trình duyệt này.',
   'settings.labels': 'Nhãn',

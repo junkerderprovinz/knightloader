@@ -517,6 +517,9 @@ export const is: Dict = {
   'settings.rowHeight.medium': 'Miðlungs',
   'settings.rowHeight.comfortable': 'Rúmt',
   'settings.listShade.title': 'Skyggja listana',
+  'settings.listShade.off': 'Slökkt',
+  'settings.listShade.moderate': 'Hóflegt',
+  'settings.listShade.strong': 'Mikil birtuskil',
   'settings.listShade.hint':
     'Aðgreinir hauslínu hvers pakka örlítið í Niðurhali og Tenglasafnaranum og gefur skrám hans daufar rendur, svo þú sérð í sjónhendingu hvaða skrár tilheyra hvaða pakka. Valið gildir aðeins í þessum vafra.',
   'settings.labels': 'Merkingar',

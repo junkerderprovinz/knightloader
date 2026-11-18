@@ -518,6 +518,9 @@ export const ro: Dict = {
   'settings.rowHeight.medium': 'Mediu',
   'settings.rowHeight.comfortable': 'Aerisit',
   'settings.listShade.title': 'Umbrește listele',
+  'settings.listShade.off': 'Dezactivat',
+  'settings.listShade.moderate': 'Moderat',
+  'settings.listShade.strong': 'Contrast ridicat',
   'settings.listShade.hint':
     'Evidențiază ușor rândul de antet al fiecărui pachet în Descărcări și în colectorul de linkuri și dă fișierelor lui o dungă discretă, ca să vezi dintr-o privire ce fișiere țin de ce pachet. Alegerea e păstrată doar în acest browser.',
   'settings.labels': 'Etichete',

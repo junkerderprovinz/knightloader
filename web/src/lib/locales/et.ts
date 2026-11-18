@@ -517,6 +517,9 @@ export const et: Dict = {
   'settings.rowHeight.medium': 'Keskmine',
   'settings.rowHeight.comfortable': 'Avar',
   'settings.listShade.title': 'Varjuta loendeid',
+  'settings.listShade.off': 'Väljas',
+  'settings.listShade.moderate': 'Mõõdukas',
+  'settings.listShade.strong': 'Suur kontrast',
   'settings.listShade.hint':
     'Tõstab jaotistes Allalaadimised ja Linkide koguja iga paki päiserea veidi esile ja annab selle failidele õrnad triibud, nii näed ühe pilguga, millised failid millisesse pakki kuuluvad. Valik kehtib ainult selles brauseris.',
   'settings.labels': 'Sildid',

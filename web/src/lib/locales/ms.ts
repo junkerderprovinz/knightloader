@@ -517,6 +517,9 @@ export const ms: Dict = {
   'settings.rowHeight.medium': 'Sederhana',
   'settings.rowHeight.comfortable': 'Selesa',
   'settings.listShade.title': 'Lorek bayang pada senarai',
+  'settings.listShade.off': 'Mati',
+  'settings.listShade.moderate': 'Sederhana',
+  'settings.listShade.strong': 'Kontras tinggi',
   'settings.listShade.hint':
     'Membezakan sedikit baris tajuk setiap pakej dalam Muat turun dan Pengumpul pautan dan memberi failnya jalur samar, jadi anda nampak sepintas lalu fail mana milik pakej mana. Pilihan ini hanya disimpan dalam pelayar ini.',
   'settings.labels': 'Label',

@@ -517,6 +517,9 @@ export const cs: Dict = {
   'settings.rowHeight.medium': 'Střední',
   'settings.rowHeight.comfortable': 'Vzdušná',
   'settings.listShade.title': 'Stínovat seznamy',
+  'settings.listShade.off': 'Vypnuto',
+  'settings.listShade.moderate': 'Střední',
+  'settings.listShade.strong': 'Vysoký kontrast',
   'settings.listShade.hint':
     'Jemně odliší záhlaví každého balíčku ve Stahování a ve Sběrači odkazů a jeho soubory střídavě podbarví, takže na první pohled vidíš, které soubory patří ke kterému balíčku. Volba platí jen v tomto prohlížeči.',
   'settings.labels': 'Popisky',

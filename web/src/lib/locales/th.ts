@@ -517,6 +517,9 @@ export const th: Dict = {
   'settings.rowHeight.medium': 'ปานกลาง',
   'settings.rowHeight.comfortable': 'โปร่ง',
   'settings.listShade.title': 'แรเงารายการ',
+  'settings.listShade.off': 'ปิด',
+  'settings.listShade.moderate': 'ปานกลาง',
+  'settings.listShade.strong': 'คอนทราสต์สูง',
   'settings.listShade.hint':
     'ทำให้แถวหัวของแต่ละแพ็กเกจในการดาวน์โหลดและตัวเก็บลิงก์เด่นขึ้นเล็กน้อย และให้ไฟล์ในแพ็กเกจมีแถบสลับจาง ๆ คุณจึงเห็นได้ทันทีว่าไฟล์ใดอยู่ในแพ็กเกจใด ตัวเลือกนี้เก็บไว้ในเบราว์เซอร์นี้เท่านั้น',
   'settings.labels': 'ป้ายกำกับ',

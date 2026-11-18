@@ -518,6 +518,9 @@ export const eu: Dict = {
   'settings.rowHeight.medium': 'Ertaina',
   'settings.rowHeight.comfortable': 'Zabala',
   'settings.listShade.title': 'Itzaldu zerrendak',
+  'settings.listShade.off': 'Desaktibatuta',
+  'settings.listShade.moderate': 'Moderatua',
+  'settings.listShade.strong': 'Kontraste handia',
   'settings.listShade.hint':
     'Pakete bakoitzaren goiburua apur bat nabarmentzen du Deskargak eta Esteka biltzailea ataletan, eta bere fitxategiei marra leun bat ematen die, begirada batean ikus dezazun zein fitxategi den zein paketerena. Aukera nabigatzaile honetan bakarrik gordetzen da.',
   'settings.labels': 'Etiketak',

@@ -509,6 +509,9 @@ export const it: Dict = {
   'settings.rowHeight.medium': 'Media',
   'settings.rowHeight.comfortable': 'Ariosa',
   'settings.listShade.title': 'Ombreggia le liste',
+  'settings.listShade.off': 'Disattivato',
+  'settings.listShade.moderate': 'Moderato',
+  'settings.listShade.strong': 'Contrasto elevato',
   'settings.listShade.hint':
     'Distingue un po\' l\'intestazione di ogni pacchetto in Download e nel raccoglitore di link e dà ai suoi file una leggera striatura, così vedi a colpo d\'occhio quali file appartengono a quale pacchetto. La scelta vale solo in questo browser.',
   'settings.labels': 'Etichette',
