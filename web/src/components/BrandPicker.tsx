@@ -6,7 +6,8 @@
 // without its fitting of long words, which several hundred hosters would each
 // pay for: a brand's name is cut with an ellipsis instead. Under the pointer a
 // tile lights up in its brand's colour, never the accent ("Brand tiles").
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
+import { pickMatches, pickSearchKey, pickTileKey } from '../lib/picker';
 import { HosterIcon, hostPaint, monogramPaint, type Paint } from './HosterIcon';
 import { SearchBox } from './SearchBox';
 import { InfoBubble } from './ui';
@@ -30,9 +31,12 @@ export interface Brand {
   unavailable?: string;
 }
 
-/** Whether a brand's name holds what was typed. */
+/** Whether every word typed turns up in the brand's name, id, second line or host. */
 export const brandMatches = (b: Brand, query: string): boolean =>
-  b.name.toLowerCase().includes(query.trim().toLowerCase());
+  pickMatches(query, [b.name, b.id, b.sub ?? '', b.host ?? '']);
+
+/** The part of the window a picker's search and tiles share: every list of tiles in it. */
+const pickArea = (el: Element): HTMLElement | null => el.closest<HTMLElement>('[role="dialog"]');
 
 /** siteOf is the site an address belongs to, as a second line: its host without "www". */
 export function siteOf(address: string): string {
@@ -41,6 +45,11 @@ export function siteOf(address: string): string {
   } catch {
     return '';
   }
+}
+
+function tileKey(e: KeyboardEvent<HTMLUListElement>) {
+  const area = pickArea(e.currentTarget) ?? e.currentTarget;
+  if (pickTileKey(e.key, e.target as Element, area, area.querySelector<HTMLElement>('.glim-picker-search input'))) e.preventDefault();
 }
 
 export function BrandPicker({
@@ -55,7 +64,7 @@ export function BrandPicker({
 }) {
   if (brands.length === 0) return <p className="px-2 py-6 text-center text-sm text-carbon-textMuted">{none}</p>;
   return (
-    <ul data-new="account-picker" className="glim-provider-pick">
+    <ul data-new="account-picker" className="glim-provider-pick" onKeyDown={tileKey}>
       {brands.map((b) => (
         <BrandTile key={b.id} brand={b} onPick={onPick} />
       ))}
@@ -123,9 +132,21 @@ export function PickerSearch({
   onChange: (next: string) => void;
   placeholder: string;
 }) {
+  const key = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (!pickSearchKey(e.key, value, pickArea(e.currentTarget), () => onChange(''))) return;
+    // Escape empties the field and goes no further, so the window stays open.
+    e.preventDefault();
+    e.stopPropagation();
+  };
   return (
     <div data-new="picker-search-field" className="glim-picker-search w-64 max-w-full">
-      <SearchBox value={value} onChange={onChange} label={placeholder} autoFocus={!matchMedia('(hover: none)').matches} />
+      <SearchBox
+        value={value}
+        onChange={onChange}
+        label={placeholder}
+        onKeyDown={key}
+        autoFocus={!matchMedia('(hover: none)').matches}
+      />
     </div>
   );
 }

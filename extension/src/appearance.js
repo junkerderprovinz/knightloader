@@ -12,7 +12,7 @@
  * claim a release the files are not from. Bump it in the change that lifts the
  * ports.
  */
-const GLIMSTONE_VERSION = '4.5.4';
+const GLIMSTONE_VERSION = '4.5.5';
 
 const GLIMSTONE_REPO = 'https://github.com/junkerderprovinz/glimstone';
 

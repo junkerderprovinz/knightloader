@@ -10,6 +10,7 @@
 // from the same picker and get rows here too, in one order with the hosters:
 // each says who it signs in as and where from, or how to sign in, and opens
 // SiteLoginDialog rather than a password form.
+import { pageLang } from '../lib/picker';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import {
   type HosterHost,
@@ -367,7 +368,7 @@ export function HosterLoginSection({
 
 /** byLabel puts the hosters and the sites in one order, by the name each row shows. */
 function byLabel(a: AccountRow, b: AccountRow): number {
-  return a.label.localeCompare(b.label, undefined, { sensitivity: 'base' });
+  return a.label.localeCompare(b.label, pageLang(), { sensitivity: 'base' });
 }
 
 /** ConfirmRemoveLogin asks first, since a stored password or session cannot be read back. */
@@ -604,7 +605,7 @@ function HosterLoginDialog({
       .filter((h) => !configured.has(h.id) && !siteForHost(h.id, sites))
       .map((h) => ({ id: h.id, name: h.label, host: h.id, sub: h.id })),
     ...sites.filter((s) => !s.listed).map((s) => ({ id: SITE_BRAND + s.id, name: s.name, host: s.host, sub: s.host })),
-  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+  ].sort((a, b) => a.name.localeCompare(b.name, pageLang(), { sensitivity: 'base' }));
 
   const pick = (id: string) => {
     const site = id.startsWith(SITE_BRAND) ? sites.find((s) => SITE_BRAND + s.id === id) : undefined;

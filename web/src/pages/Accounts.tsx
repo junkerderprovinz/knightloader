@@ -10,6 +10,7 @@
 // captcha accounts.
 // Every card adds its own kind through the Add button at the end of its
 // heading, as every other list card in the app does.
+import { pageLang } from '../lib/picker';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   type Account,
@@ -796,7 +797,7 @@ function CredentialDialog({
         held: connected,
       };
     })
-    .sort((x, y) => x.name.localeCompare(y.name));
+    .sort((x, y) => x.name.localeCompare(y.name, pageLang(), { sensitivity: 'base' }));
 
   return (
     <Modal

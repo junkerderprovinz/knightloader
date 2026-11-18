@@ -181,3 +181,35 @@ it('names the site an address belongs to', () => {
   expect(siteOf('https://www.premiumize.me/account')).toBe('premiumize.me');
   expect(siteOf('')).toBe('');
 });
+
+const key = (el: Element, k: string) => act(() => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true })));
+const buttons = () => [...host.querySelectorAll<HTMLButtonElement>('li button')];
+
+it('finds a brand by any of its words, without minding accents or hyphens', () => {
+  const brand: Brand = { id: 'zeitplaene', name: 'Zeitpläne Off-site', sub: 'example.org' };
+  expect(brandMatches(brand, 'zeitplane offsite')).toBe(true);
+  expect(brandMatches(brand, 'example')).toBe(true);
+  expect(brandMatches(brand, 'zeitplaene')).toBe(true);
+  expect(brandMatches(brand, 'other')).toBe(false);
+});
+
+it('moves across the tiles with the arrow keys and up into the search', () => {
+  act(() => root.render(<Window onPick={() => {}} />));
+  buttons()[0].focus();
+  key(buttons()[0], 'ArrowRight');
+  expect(document.activeElement).toBe(buttons()[1]);
+  key(buttons()[1], 'Home');
+  expect(document.activeElement).toBe(buttons()[0]);
+  key(buttons()[0], 'ArrowUp');
+  expect(document.activeElement).toBe(field());
+});
+
+it('goes down from the search into the tiles, and Enter picks the one tile a query leaves', () => {
+  const picked: string[] = [];
+  act(() => root.render(<Window onPick={(id) => picked.push(id)} />));
+  key(field()!, 'ArrowDown');
+  expect(document.activeElement).toBe(buttons()[0]);
+  type('alldeb');
+  key(field()!, 'Enter');
+  expect(picked).toEqual(['alldebrid']);
+});
