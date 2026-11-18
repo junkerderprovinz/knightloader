@@ -68,7 +68,7 @@ function allSites(lists) {
   return [...byId.values()];
 }
 
-/** The site names as a list in the page's language, such as "Patreon and YouTube". */
+/** The site names as a list in the page's language, such as "Instagram, Patreon and YouTube". */
 function siteNames(sites) {
   const names = sites.map((s) => s.name);
   try {

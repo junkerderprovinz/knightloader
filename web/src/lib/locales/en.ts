@@ -4182,8 +4182,8 @@ export const en = {
   'whatsnew.change.videoAnySite': 'The browser extension’s video button shows on other sites too, on a video you are watching, once your instance says yt-dlp can download the page.',
   'whatsnew.change.videoAddSites': 'Video sites can be added in the extension’s settings, each with its own switch and its own defaults for what a click downloads.',
   'whatsnew.change.videoYtdlp': 'The video button always downloads with yt-dlp, also on a site whose links your instance hands to JDownloader, such as archive.org.',
-  'whatsnew.change.siteLogins': 'Patreon and YouTube have rows under "{name}" that say who is signed in and where the sign-in came from: your browser, the browser extension or the sign-in browser. A row offers "{remove}", and its window "{again}".',
-  'whatsnew.change.signInHere': '"{name}" opens the sign-in browser in a window, so you can sign in without the extension. It is on the Patreon and YouTube rows and on the logins of ddownload, KatFile, Clicknupload, FileSpace and Uploadrar.',
+  'whatsnew.change.siteLogins': 'Patreon, YouTube, Instagram, X, Facebook, TikTok, Twitch, Vimeo and Reddit sign in with your browser\'s session. Add one under "{name}" like any account, and its row says who is signed in and where the sign-in came from: your browser, the browser extension or the sign-in browser. A row offers "{remove}".',
+  'whatsnew.change.signInHere': '"{name}" opens the sign-in browser in a window, so you can sign in without the extension. It is on the rows of Patreon, YouTube and the other sites, and on the logins of ddownload, KatFile, Clicknupload, FileSpace and Uploadrar.',
   'whatsnew.change.openInBrowser': '"{name}" in a site\'s sign-in window opens it in your own browser, where your password manager can fill in the login. KnightLoader picks the sign-in up from there by itself.',
   'whatsnew.change.hosterCode': 'When Rapidgator asks for a two-factor code, the hoster login window shows a "{name}" field for it.',
   'whatsnew.change.loginWaits': 'A login that waits for a code or a sign-in says "{code}" or "{signIn}" on its row.',
@@ -4320,9 +4320,7 @@ export const en = {
   'siteLogins.status': 'Status',
   'siteLogins.statusHint': 'Read from the stored session. The session itself never leaves this server.',
   'siteLogins.expires': 'Session runs until',
-  'siteLogins.signOut': 'Sign out',
   'siteLogins.signedInToast': 'Signed in to {site}.',
-  'siteLogins.signedOutToast': 'Signed out of {site}.',
   'signInBrowser.signInHere': 'Sign in here',
   'signInBrowser.hint': 'This is a browser running on your server, so you can sign in to {site} here without the extension. Once you are signed in, KnightLoader keeps the session. It does not keep what you type.',
   'signInBrowser.page': 'The {site} page',
@@ -4361,8 +4359,6 @@ export const en = {
   'failure.signInRequired.next': 'Needs a signed-in session, which KnightLoader borrows from your browser for the sites under Hoster accounts.',
   'siteLogins.fromKlBrowser': 'from KnightLoader\'s sign-in browser',
   'siteLogins.turnedDown': '{site} turned down the sign-in from {browser}',
-  'siteLogins.disconnected': 'Removed from KnightLoader. Your browser stays signed in.',
-  'siteLogins.reconnect': 'Use the browser\'s sign-in again',
 } as const;
 
 export type TranslationKey = keyof typeof en;

@@ -82,6 +82,7 @@ it('paints a hoster login that waits for a sign-in or a code in the danger colou
     toggleAll: async () => {},
     remove: async () => {},
     putSite: () => {},
+    addSite: async () => undefined,
     removeSite: async () => {},
   };
   act(() =>

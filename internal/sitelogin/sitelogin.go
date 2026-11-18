@@ -56,8 +56,8 @@ const (
 	OnNeed Use = "onNeed"
 )
 
-// Sites is every site offered, in the order the page shows them. The cookie
-// names are the ones yt-dlp's extractor for the site takes a sign-in from.
+// Sites is every site offered, by name. The cookie names are the ones
+// yt-dlp's extractor for the site takes a sign-in from.
 var Sites = []Site{
 	{
 		ID:       "facebook",

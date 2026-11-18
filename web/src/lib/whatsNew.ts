@@ -57,7 +57,7 @@ export const RELEASES: Release[] = [
         id: 'site-logins',
         to: ACCOUNTS,
         text: 'whatsnew.change.siteLogins',
-        names: { name: 'accounts.hoster.title', remove: 'accounts.remove', again: 'siteLogins.reconnect' },
+        names: { name: 'accounts.hoster.title', remove: 'accounts.remove' },
       },
       // Drawn in the windows a site's row and an XFS hoster's login open, where
       // this computer can start a sign-in browser.
