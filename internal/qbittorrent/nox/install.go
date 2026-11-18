@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/checksum"
 	"github.com/junkerderprovinz/knightloader/internal/ghrelease"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
@@ -87,9 +88,15 @@ func loadRecord(dir string) (*Record, error) {
 // arrived of how much, with -1 while the total is unknown.
 func Install(ctx context.Context, dataDir string, v Version, progress func(done, total int64)) (rec Record, current bool, err error) {
 	in := installer{
-		goos:   runtime.GOOS,
-		goarch: runtime.GOARCH,
-		lookup: ghrelease.Tagged,
+		goos:    runtime.GOOS,
+		goarch:  runtime.GOARCH,
+		running: buildinfo.Version,
+		lookup: func(ctx context.Context, repo, tag string) (ghrelease.Release, error) {
+			if tag == "" {
+				return ghrelease.Latest(ctx, repo)
+			}
+			return ghrelease.Tagged(ctx, repo, tag)
+		},
 		fetch: func(ctx context.Context, a ghrelease.Asset, dst string) error {
 			return download(ctx, a, dst, progress)
 		},
@@ -100,9 +107,11 @@ func Install(ctx context.Context, dataDir string, v Version, progress func(done,
 
 // installer is Install with GitHub and the run of the program replaceable:
 // ghrelease only talks to GitHub's own hosts, so a test cannot stand in for
-// them over HTTP.
+// them over HTTP. running is the KnightLoader version, and a lookup of tag ""
+// reads the latest release.
 type installer struct {
 	goos, goarch string
+	running      string
 	lookup       func(ctx context.Context, repo, tag string) (ghrelease.Release, error)
 	fetch        func(ctx context.Context, a ghrelease.Asset, dst string) error
 	smoke        func(ctx context.Context, bin string) (string, error)
@@ -166,7 +175,11 @@ func (in installer) install(ctx context.Context, dataDir string, v Version, prog
 		return Record{}, false, fmt.Errorf("the build fetched as qBittorrent %s says it is %q", v.Version, got)
 	}
 
-	rec := Record{Version: v.Version, Libtorrent: v.Libtorrent, Repo: repo, Tag: pin.Tag, Asset: pin.Name, SHA256: want, FetchedAt: time.Now().UTC()}
+	tag := pin.releaseTag(in.running)
+	if tag == "" {
+		tag = "latest"
+	}
+	rec := Record{Version: v.Version, Libtorrent: v.Libtorrent, Repo: repo, Tag: tag, Asset: pin.Name, SHA256: want, FetchedAt: time.Now().UTC()}
 	b, err := json.MarshalIndent(rec, "", "  ")
 	if err != nil {
 		return Record{}, false, err
@@ -187,24 +200,25 @@ func (in installer) vouch(ctx context.Context, repo string, pin Asset) (ghreleas
 	if pin.SHA256 != "" {
 		return ghrelease.Asset{
 			Name: pin.Name,
-			URL:  "https://github.com/" + repo + "/releases/download/" + pin.Tag + "/" + pin.Name,
+			URL:  pin.url(in.running),
 			Size: pin.Size,
 		}, pin.SHA256, nil
 	}
-	rel, err := in.lookup(ctx, repo, pin.Tag)
+	tag := pin.releaseTag(in.running)
+	rel, err := in.lookup(ctx, repo, tag)
 	if err != nil {
-		return ghrelease.Asset{}, "", fmt.Errorf("the release %s of %s could not be read: %w", pin.Tag, repo, err)
+		return ghrelease.Asset{}, "", fmt.Errorf("%s of %s could not be read: %w", releaseName(tag), repo, err)
 	}
 	asset, ok := rel.Find(pin.Name)
 	if !ok {
-		return ghrelease.Asset{}, "", fmt.Errorf("release %s of %s has no %s", pin.Tag, repo, pin.Name)
+		return ghrelease.Asset{}, "", fmt.Errorf("%s of %s has no %s", releaseName(tag), repo, pin.Name)
 	}
 	if d := asset.SHA256(); d != "" {
 		return asset, d, nil
 	}
 	sums, ok := rel.Find(sumsAsset)
 	if !ok {
-		return ghrelease.Asset{}, "", fmt.Errorf("release %s of %s gives no SHA-256 for %s, so it cannot be verified", pin.Tag, repo, pin.Name)
+		return ghrelease.Asset{}, "", fmt.Errorf("%s of %s gives no SHA-256 for %s, so it cannot be verified", releaseName(tag), repo, pin.Name)
 	}
 	f, err := os.CreateTemp("", "kl-sums-")
 	if err != nil {
@@ -218,7 +232,7 @@ func (in installer) vouch(ctx context.Context, repo string, pin Asset) (ghreleas
 	}
 	raw, err := os.ReadFile(name)
 	if err != nil || len(raw) > maxSumsBytes {
-		return ghrelease.Asset{}, "", fmt.Errorf("the %s of %s cannot be read", sumsAsset, pin.Tag)
+		return ghrelease.Asset{}, "", fmt.Errorf("the %s of %s cannot be read", sumsAsset, releaseName(tag))
 	}
 	list, err := checksum.ParseHashFile(bytes.NewReader(raw))
 	if err != nil {
@@ -229,7 +243,7 @@ func (in installer) vouch(ctx context.Context, repo string, pin Asset) (ghreleas
 			return asset, strings.ToLower(s.Hex), nil
 		}
 	}
-	return ghrelease.Asset{}, "", fmt.Errorf("the %s of %s has no entry for %s", sumsAsset, pin.Tag, pin.Name)
+	return ghrelease.Asset{}, "", fmt.Errorf("the %s of %s has no entry for %s", sumsAsset, releaseName(tag), pin.Name)
 }
 
 func download(ctx context.Context, a ghrelease.Asset, dst string, progress func(done, total int64)) error {

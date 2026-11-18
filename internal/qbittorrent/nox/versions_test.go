@@ -21,7 +21,7 @@ func TestEveryVersionHasABuildForEachPlatformKnightLoaderShipsOn(t *testing.T) {
 		for _, p := range []string{"linux-amd64", "linux-arm64", "windows-amd64", "windows-arm64", "darwin-arm64", "darwin-amd64"} {
 			goos, goarch, _ := strings.Cut(p, "-")
 			a, ok := v.AssetFor(goos, goarch)
-			if !ok || a.Tag == "" || a.Name == "" {
+			if !ok || a.Name == "" {
 				t.Errorf("%s has no build for %s", v.Version, p)
 			}
 		}
@@ -95,3 +95,58 @@ func TestEveryPinnedDigestIsSHA256Hex(t *testing.T) {
 		}
 	}
 }
+
+// Every KnightLoader release carries the builds of its own, so the table
+// names no release for them, only the digest the release has to match.
+func TestOwnBuildsNameNoReleaseAndArePinned(t *testing.T) {
+	for _, v := range Versions().Versions {
+		for p, a := range v.Assets {
+			if a.Repo != "" {
+				continue
+			}
+			if a.Tag != "" || !isSHA256(a.SHA256) {
+				t.Errorf("%s %s names the release %q with digest %q", v.Version, p, a.Tag, a.SHA256)
+			}
+		}
+	}
+}
+
+func TestEveryVersionPinsTheSourcesOfItsOwnBuilds(t *testing.T) {
+	for _, v := range Versions().Versions {
+		want := map[string]bool{
+			"qBittorrent-" + v.Version + "-source.tar.gz":   true,
+			"libtorrent-" + v.Libtorrent + "-source.tar.gz": true,
+		}
+		for _, s := range v.Sources {
+			if !isSHA256(s.SHA256) {
+				t.Errorf("%s %s has digest %q", v.Version, s.Name, s.SHA256)
+			}
+			delete(want, s.Name)
+		}
+		if len(want) > 0 {
+			t.Errorf("%s pins no %v", v.Version, want)
+		}
+	}
+}
+
+func TestAReleaseBuildFetchesFromItsOwnReleaseAndAnyOtherFromTheLatest(t *testing.T) {
+	t.Setenv(releasesEnv, "")
+	own := Asset{Name: "qbittorrent-nox-5.0.5-windows-amd64.zip"}
+	theirs := Asset{Repo: "userdocs/qbittorrent-nox-static", Tag: "release-5.0.5_v2.0.11", Name: "x86_64-qbittorrent-nox"}
+	for _, tc := range []struct {
+		running string
+		a       Asset
+		want    string
+	}{
+		{"v3.0.0", own, "https://github.com/junkerderprovinz/knightloader/releases/download/v3.0.0/qbittorrent-nox-5.0.5-windows-amd64.zip"},
+		{"v3.1.0-rc.1", own, "https://github.com/junkerderprovinz/knightloader/releases/download/v3.1.0-rc.1/qbittorrent-nox-5.0.5-windows-amd64.zip"},
+		{"dev", own, "https://github.com/junkerderprovinz/knightloader/releases/latest/download/qbittorrent-nox-5.0.5-windows-amd64.zip"},
+		{"feat-qbittorrent", own, "https://github.com/junkerderprovinz/knightloader/releases/latest/download/qbittorrent-nox-5.0.5-windows-amd64.zip"},
+		{"v3.0.0", theirs, "https://github.com/userdocs/qbittorrent-nox-static/releases/download/release-5.0.5_v2.0.11/x86_64-qbittorrent-nox"},
+	} {
+		if got := tc.a.url(tc.running); got != tc.want {
+			t.Errorf("%s %s: %s, want %s", tc.running, tc.a.Name, got, tc.want)
+		}
+	}
+}
+

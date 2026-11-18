@@ -22,7 +22,9 @@ type fakeRelease struct {
 	files   map[string][]byte
 	release ghrelease.Release
 	lookups int
+	tags    []string
 	fetched []string
+	urls    []string
 	version string
 }
 
@@ -32,10 +34,12 @@ func (f *fakeRelease) installer(goos, goarch string) installer {
 		goarch: goarch,
 		lookup: func(ctx context.Context, repo, tag string) (ghrelease.Release, error) {
 			f.lookups++
+			f.tags = append(f.tags, tag)
 			return f.release, nil
 		},
 		fetch: func(ctx context.Context, a ghrelease.Asset, dst string) error {
 			f.fetched = append(f.fetched, a.Name)
+			f.urls = append(f.urls, a.URL)
 			b, ok := f.files[a.Name]
 			if !ok {
 				return errors.New("404")
@@ -190,7 +194,7 @@ func TestAZippedBuildIsUnpackedWithItsFolders(t *testing.T) {
 		"tls/qopensslbackend.dll": "MZ plugin",
 		"COPYING":                 "GPL",
 	})
-	pin := Version{Version: "4.5.5", Assets: map[string]Asset{"windows-amd64": {Tag: "qbittorrent-nox-v4.5.5", Name: "qbittorrent-nox-4.5.5-windows-amd64.zip", SHA256: digest(body)}}}
+	pin := Version{Version: "4.5.5", Assets: map[string]Asset{"windows-amd64": {Name: "qbittorrent-nox-4.5.5-windows-amd64.zip", SHA256: digest(body)}}}
 	f := &fakeRelease{files: map[string][]byte{pin.Assets["windows-amd64"].Name: body}, version: "4.5.5"}
 	if _, _, err := f.installer("windows", "amd64").install(context.Background(), data, pin, nil); err != nil {
 		t.Fatal(err)
@@ -250,7 +254,7 @@ func TestTheVersionLineIsRead(t *testing.T) {
 }
 
 func TestAReleaseThatCannotBeFoundNamesWhereItWasLookedFor(t *testing.T) {
-	pin := Version{Version: "4.6.7", Assets: map[string]Asset{"windows-amd64": {Repo: "someone/builds", Tag: "qbittorrent-nox-v4.6.7", Name: "b.zip"}}}
+	pin := Version{Version: "4.6.7", Assets: map[string]Asset{"windows-amd64": {Repo: "someone/builds", Tag: "builds-4.6.7", Name: "b.zip"}}}
 	in := installer{
 		goos: "windows", goarch: "amd64",
 		lookup: func(context.Context, string, string) (ghrelease.Release, error) {
@@ -258,7 +262,7 @@ func TestAReleaseThatCannotBeFoundNamesWhereItWasLookedFor(t *testing.T) {
 		},
 	}
 	_, _, err := in.install(context.Background(), t.TempDir(), pin, nil)
-	if err == nil || !strings.Contains(err.Error(), "someone/builds") || !strings.Contains(err.Error(), "qbittorrent-nox-v4.6.7") {
+	if err == nil || !strings.Contains(err.Error(), "someone/builds") || !strings.Contains(err.Error(), "builds-4.6.7") {
 		t.Fatalf("err = %v", err)
 	}
 }
@@ -286,5 +290,45 @@ func TestAZippedBuildNamesWhereItsProgramLies(t *testing.T) {
 	}
 	if filepath.Base(filepath.Dir(ran)) != "MacOS" {
 		t.Fatalf("the smoke test ran %q", ran)
+	}
+}
+
+func TestAnOwnBuildIsFetchedFromTheKnightLoaderReleaseThatRuns(t *testing.T) {
+	t.Setenv(releasesEnv, "")
+	body := zipOf(t, map[string]string{"qbittorrent-nox.exe": "MZ nox"})
+	pin := Version{Version: "5.0.5", Assets: map[string]Asset{"windows-amd64": {Name: "qbittorrent-nox-5.0.5-windows-amd64.zip", SHA256: digest(body)}}}
+	f := &fakeRelease{files: map[string][]byte{pin.Assets["windows-amd64"].Name: body}, version: "5.0.5"}
+	in := f.installer("windows", "amd64")
+	in.running = "v3.0.0"
+	rec, _, err := in.install(context.Background(), t.TempDir(), pin, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "https://github.com/junkerderprovinz/knightloader/releases/download/v3.0.0/qbittorrent-nox-5.0.5-windows-amd64.zip"
+	if len(f.urls) != 1 || f.urls[0] != want || f.lookups != 0 {
+		t.Fatalf("fetched %v after %d lookups, want %s alone", f.urls, f.lookups, want)
+	}
+	if rec.Tag != "v3.0.0" || rec.Repo != defaultReleases {
+		t.Errorf("recorded %s at %s", rec.Repo, rec.Tag)
+	}
+}
+
+func TestAnOwnBuildWithoutADigestIsVouchedForByTheLatestRelease(t *testing.T) {
+	t.Setenv(releasesEnv, "")
+	body := zipOf(t, map[string]string{"qbittorrent-nox.exe": "MZ nox"})
+	name := "qbittorrent-nox-5.0.5-windows-amd64.zip"
+	pin := Version{Version: "5.0.5", Assets: map[string]Asset{"windows-amd64": {Name: name}}}
+	f := &fakeRelease{
+		files:   map[string][]byte{name: body},
+		release: ghrelease.Release{Assets: []ghrelease.Asset{{Name: name, Digest: "sha256:" + digest(body)}}},
+		version: "5.0.5",
+	}
+	in := f.installer("windows", "amd64")
+	in.running = "dev"
+	if _, _, err := in.install(context.Background(), t.TempDir(), pin, nil); err != nil {
+		t.Fatal(err)
+	}
+	if len(f.tags) != 1 || f.tags[0] != "" {
+		t.Errorf("looked up the releases %q, want the latest alone", f.tags)
 	}
 }

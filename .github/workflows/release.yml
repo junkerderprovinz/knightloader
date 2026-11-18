@@ -374,6 +374,15 @@ jobs:
           (cd dist && sha256sum *.zip *.exe knightloader-*linux-*-installer *.flatpak *.apk *.aab > checksums.txt)
           cat dist/checksums.txt
 
+      # The Windows and macOS apps fetch qBittorrent from the release of the
+      # version they are, so each release carries every build of it this
+      # project makes, with its sources and its own SHA256SUMS. A dispatched
+      # run gathers them as well, so a missing build shows before a tag.
+      - name: qBittorrent builds
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/nox-assets.sh nox
+
       # Only from a pushed tag. checksums.txt is named explicitly rather than
       # widening the glob to dist/*.
       - name: Publish
@@ -381,7 +390,7 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/knightloader-*linux-*-installer dist/*.flatpak dist/*.apk dist/*.aab dist/checksums.txt
+        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/knightloader-*linux-*-installer dist/*.flatpak dist/*.apk dist/*.aab dist/checksums.txt nox/*
 
   # The KnightLoader image and the self-hostable relay image, which the
   # settings page's run command for a private relay points at. Only a pushed

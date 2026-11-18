@@ -24,26 +24,33 @@
           "sha256": "669dff31353c07c2b64c6df5ccc647fa233e27b40fdb78b1349d79598451c9dd"
         },
         "windows-amd64": {
-          "tag": "qbittorrent-nox-v4.5.5",
           "name": "qbittorrent-nox-4.5.5-windows-amd64.zip",
           "size": 15906141,
           "sha256": "22fe849faf639f8c58ed33fb5a7b95b0be6349b447991494603b2aea25ed68aa"
         },
         "darwin-arm64": {
-          "tag": "qbittorrent-nox-v4.5.5",
           "name": "qbittorrent-nox-4.5.5-darwin-arm64.zip",
           "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
           "size": 37641289,
           "sha256": "d7996195b443030b1743e00806f296ec71589cf14fd8bdb718ca67ca312d58e5"
         },
         "darwin-amd64": {
-          "tag": "qbittorrent-nox-v4.5.5",
           "name": "qbittorrent-nox-4.5.5-darwin-amd64.zip",
           "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
           "size": 37529413,
           "sha256": "6f9200fb3a0d8b71471e88e0efb0e7328357b7092c8988e991e5e32074d8eb5d"
         }
-      }
+      },
+      "sources": [
+        {
+          "name": "qBittorrent-4.5.5-source.tar.gz",
+          "sha256": "73b01138f3681c0c7ef891a59a0fb038557c511dc16576752f772c244720d0c2"
+        },
+        {
+          "name": "libtorrent-1.2.19-source.tar.gz",
+          "sha256": "eee8e99548dc5eb5e643e49db9202f4f97112c032dba883dfdc8144af5b6e40e"
+        }
+      ]
     },
     {
       "version": "4.6.7",
@@ -66,26 +73,33 @@
           "sha256": "fff8c7060695112ec83c3f05a9ad69b668b058513731a28ffac7e1c094c6e865"
         },
         "windows-amd64": {
-          "tag": "qbittorrent-nox-v4.6.7",
           "name": "qbittorrent-nox-4.6.7-windows-amd64.zip",
           "size": 16308328,
           "sha256": "ece0b131910302cd20b9f7b8f5afa464d5d799db0b7a90a0af0cb947f9bbfcbf"
         },
         "darwin-arm64": {
-          "tag": "qbittorrent-nox-v4.6.7",
           "name": "qbittorrent-nox-4.6.7-darwin-arm64.zip",
           "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
           "size": 38020133,
           "sha256": "d58049f6e951e3343182ae872bfad0048a89936931ad2f574e362197709bdb58"
         },
         "darwin-amd64": {
-          "tag": "qbittorrent-nox-v4.6.7",
           "name": "qbittorrent-nox-4.6.7-darwin-amd64.zip",
           "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
           "size": 37916885,
           "sha256": "87d445693e837d96253541db29794832a2f1975571458ca5d753b3b53c7e5d90"
         }
-      }
+      },
+      "sources": [
+        {
+          "name": "qBittorrent-4.6.7-source.tar.gz",
+          "sha256": "bfda6e6d57d419ec2c61162327988ea919f55ee7a80700b3754793a6d7f3545c"
+        },
+        {
+          "name": "libtorrent-1.2.19-source.tar.gz",
+          "sha256": "eee8e99548dc5eb5e643e49db9202f4f97112c032dba883dfdc8144af5b6e40e"
+        }
+      ]
     },
     {
       "version": "5.0.5",
@@ -108,26 +122,33 @@
           "sha256": "b3a536012063ad5ddc168ba32f535d645b868658376be1611e486088a2417374"
         },
         "windows-amd64": {
-          "tag": "qbittorrent-nox-v5.0.5",
           "name": "qbittorrent-nox-5.0.5-windows-amd64.zip",
           "size": 16500775,
           "sha256": "a1d145ea4494519d7febef4efbd34cbe0846580cc4acd02b316f07bdd54f401f"
         },
         "darwin-arm64": {
-          "tag": "qbittorrent-nox-v5.0.5",
           "name": "qbittorrent-nox-5.0.5-darwin-arm64.zip",
           "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
           "size": 38275845,
           "sha256": "3caef7137afdaaf2a8b543783ad3f8de969e335df90ff2e7772f0530345fc399"
         },
         "darwin-amd64": {
-          "tag": "qbittorrent-nox-v5.0.5",
           "name": "qbittorrent-nox-5.0.5-darwin-amd64.zip",
           "bin": "qbittorrent-nox.app/Contents/MacOS/qbittorrent-nox",
           "size": 38203022,
           "sha256": "a709b0bbff0bbf7bfc89818b7973df38b5de86fabd7c6289bc58d75948281b99"
         }
-      }
+      },
+      "sources": [
+        {
+          "name": "qBittorrent-5.0.5-source.tar.gz",
+          "sha256": "79b030565fa392a6bc267b24f538d7b8e762f607ee734b3d459b19c61c168b73"
+        },
+        {
+          "name": "libtorrent-2.0.11-source.tar.gz",
+          "sha256": "f0db58580f4f29ade6cc40fa4ba80e2c9a70c90265cd77332d3cdec37ecf1e6d"
+        }
+      ]
     }
   ]
 }

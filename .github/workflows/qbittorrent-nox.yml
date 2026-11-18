@@ -2,28 +2,28 @@ name: qbittorrent-nox
 
 # Builds the qbittorrent-nox the Windows and macOS apps run, without a window
 # (GUI=OFF, as qBittorrent's own macOS CI builds it), at the pinned qBittorrent
-# and libtorrent versions, and publishes it with its sources as a release that
-# internal/qbittorrent/nox/versions.json points at. Linux and the container
-# take userdocs/qbittorrent-nox-static instead.
+# and libtorrent versions. Linux and the container take
+# userdocs/qbittorrent-nox-static instead.
 #
-# The release goes to the repository in the QBITTORRENT_RELEASES variable, or
-# to this one, as qbittorrent-nox-v<version>, never marked latest so the app's
-# own update check does not see it. Publishing elsewhere needs a token with
-# contents: write there in the QBITTORRENT_RELEASES_TOKEN secret.
+# Publishing puts the builds and their sources into the draft release
+# qbittorrent-nox, which only the maintainers see and which does not expire
+# as a workflow artifact does. release.yml takes them from there into every
+# KnightLoader release, which the apps fetch them from, once the digests this
+# run prints are in internal/qbittorrent/nox/versions.json.
 
 on:
   workflow_dispatch:
     inputs:
       qbittorrent:
         description: qBittorrent version
-        default: "4.5.5"
+        default: "5.0.5"
         required: true
       libtorrent:
         description: libtorrent version
-        default: "1.2.19"
+        default: "2.0.11"
         required: true
       publish:
-        description: Publish the release
+        description: Put the builds into the qbittorrent-nox draft
         type: boolean
         default: false
 
@@ -207,6 +207,8 @@ jobs:
       matrix:
         pin: ${{ fromJSON(needs.versions.outputs.pins) }}
     runs-on: ubuntu-24.04
+    # Two runs at once would each create the draft.
+    concurrency: qbittorrent-nox-draft
     permissions:
       contents: write
     steps:
@@ -222,15 +224,14 @@ jobs:
             "https://github.com/qbittorrent/qBittorrent/archive/refs/tags/release-${{ matrix.pin.qbittorrent }}.tar.gz"
           curl -fsSL -o "dist/libtorrent-${{ matrix.pin.libtorrent }}-source.tar.gz" \
             "https://github.com/arvidn/libtorrent/releases/download/v${{ matrix.pin.libtorrent }}/libtorrent-rasterbar-${{ matrix.pin.libtorrent }}.tar.gz"
-          cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
-      - name: Publish
+          cd dist && sha256sum * > "qbittorrent-nox-${{ matrix.pin.qbittorrent }}-SHA256SUMS" && cat qbittorrent-nox-*-SHA256SUMS
+      - name: Into the draft
         env:
-          GH_TOKEN: ${{ secrets.QBITTORRENT_RELEASES_TOKEN || github.token }}
-          REPO: ${{ vars.QBITTORRENT_RELEASES || github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          tag="qbittorrent-nox-v${{ matrix.pin.qbittorrent }}"
-          target=()
-          if [ "$REPO" = "${{ github.repository }}" ]; then target=(--target "${{ github.sha }}"); fi
-          gh release create "$tag" dist/* --repo "$REPO" "${target[@]}" --latest=false \
-            --title "qbittorrent-nox ${{ matrix.pin.qbittorrent }} (libtorrent ${{ matrix.pin.libtorrent }})" \
-            --notes "qbittorrent-nox ${{ matrix.pin.qbittorrent }} built without a window against libtorrent ${{ matrix.pin.libtorrent }} and Qt ${QT_VERSION}, for KnightLoader on Windows and macOS. qBittorrent is free software under the GPL and libtorrent under the BSD licence; both sources are attached."
+          if ! gh release view qbittorrent-nox --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create qbittorrent-nox --repo "$GITHUB_REPOSITORY" --draft \
+              --title "qbittorrent-nox builds" \
+              --notes "qbittorrent-nox built without a window, for KnightLoader on Windows and macOS, kept here for every KnightLoader release to carry. qBittorrent is free software under the GPL and libtorrent under the BSD licence. Both sources are attached."
+          fi
+          gh release upload qbittorrent-nox dist/* --repo "$GITHUB_REPOSITORY" --clobber

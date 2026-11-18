@@ -85,7 +85,8 @@ update nor "Update now" moves it. Picking another version fetches it and
 restarts qBittorrent, and if the fetch fails, the one running carries on. The
 Linux build and the container take the static build of
 [userdocs/qbittorrent-nox-static](https://github.com/userdocs/qbittorrent-nox-static),
-the Windows and macOS apps one built for KnightLoader, and every download is
+the Windows and macOS apps one built for KnightLoader, which every
+KnightLoader release carries with its sources, and every download is
 checked against the SHA-256 that ships with KnightLoader before it runs.
 qBittorrent keeps its settings and torrents in `qbittorrent` in the data
 folder. `KL_QBITTORRENT=0` leaves it off, and torrents then fail with that

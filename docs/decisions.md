@@ -424,8 +424,10 @@ runs its JDownloader. The version is pinned in
 `internal/qbittorrent/nox/versions.json`, with the SHA-256 of every build, and
 moves only when somebody picks another one. Linux and the container fetch the
 static build from userdocs/qbittorrent-nox-static at run time. Windows and
-macOS fetch a build without a window that `qbittorrent-nox.yml` makes and
-publishes with its sources.
+macOS fetch a build without a window that `qbittorrent-nox.yml` makes. Every
+KnightLoader release carries those builds with their sources, and an app
+fetches them from the release it is, so the files always match its table and
+no release of their own is needed.
 
 Every torrent runs in it. KnightLoader keeps the decisions it made before,
 where a torrent lands, which files it fetches, which trackers it may use and

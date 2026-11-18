@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -33,19 +34,29 @@ type Version struct {
 	Whitelists []string         `json:"whitelists"`
 	Note       string           `json:"note"`
 	Assets     map[string]Asset `json:"assets"`
+	// Sources are the source archives of the builds without Repo, which every
+	// KnightLoader release carries beside them, as the GPL asks.
+	Sources []Source `json:"sources"`
 }
 
-// Asset is one build of a version. A build without Repo comes from the release
-// location (ReleaseLocation), where this project's own builds are published.
+// Asset is one build of a version. A build without Repo is this project's
+// own, which every KnightLoader release at ReleaseLocation carries, so it
+// names no release of its own.
 type Asset struct {
 	Repo string `json:"repo,omitempty"`
-	Tag  string `json:"tag"`
+	Tag  string `json:"tag,omitempty"`
 	Name string `json:"name"`
 	// Bin is the program's path inside a zipped build, when it is not
 	// qbittorrent-nox at the top, such as inside a macOS app bundle.
 	Bin    string `json:"bin,omitempty"`
 	Size   int64  `json:"size,omitempty"`
 	SHA256 string `json:"sha256,omitempty"`
+}
+
+// Source is a source archive and its digest.
+type Source struct {
+	Name   string `json:"name"`
+	SHA256 string `json:"sha256"`
 }
 
 func (a Asset) from() string {
@@ -55,8 +66,41 @@ func (a Asset) from() string {
 	return ReleaseLocation()
 }
 
-// The repository the Windows and macOS builds are published in. A fork or a
-// separate build repository is set with KL_QBITTORRENT_RELEASES.
+// releaseTag is the release that carries a for a KnightLoader of version
+// running, or "" for the latest. An own build comes from the release that
+// runs, whose files match its table, and a build that is no release takes the
+// latest.
+func (a Asset) releaseTag(running string) string {
+	if a.Repo != "" {
+		return a.Tag
+	}
+	if releaseVersion.MatchString(running) {
+		return running
+	}
+	return ""
+}
+
+var releaseVersion = regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$`)
+
+// url is where a is downloaded from, for a KnightLoader that runs as version
+// running.
+func (a Asset) url(running string) string {
+	base := "https://github.com/" + a.from() + "/releases/"
+	if tag := a.releaseTag(running); tag != "" {
+		return base + "download/" + tag + "/" + a.Name
+	}
+	return base + "latest/download/" + a.Name
+}
+
+func releaseName(tag string) string {
+	if tag == "" {
+		return "the latest release"
+	}
+	return "release " + tag
+}
+
+// The repository whose KnightLoader releases carry the Windows and macOS
+// builds. A fork that builds its own sets KL_QBITTORRENT_RELEASES.
 const (
 	releasesEnv     = "KL_QBITTORRENT_RELEASES"
 	defaultReleases = "junkerderprovinz/knightloader"
