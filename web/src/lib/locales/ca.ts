@@ -3985,7 +3985,7 @@ export const ca: Dict = {
   'settings.vpn.state.connecting': 'Connectant',
   'settings.vpn.state.failed': 'Error',
   'settings.vpn.state.saved': 'Configurat',
-  'settings.vpn.portForwardingHint': '{name} pot redirigir un port a KnightLoader. Els torrents no el poden fer servir, perquè arriben a la VPN a través d\'un servidor intermediari que no accepta connexions entrants.',
+  'settings.vpn.portForwardingHint': '{name} pot redirigir un port a KnightLoader. Els torrents continuen passant per la VPN, però només cap a fora: els altres parells no hi arriben pel port redirigit.',
   'settings.vpn.noPortForwardingHint': 'Els altres peers no poden connectar-se a tu a través de {name}. Els torrents encara es baixen, però troben menys peers i fan menys seed.',
   'settings.vpn.custom': 'Configuració WireGuard pròpia',
   'settings.vpn.note.kaspersky': 'La configuració de Kaspersky deixa de funcionar si passa 24 hores sense fer-se servir, i serveix per a un dispositiu. Llavors crea’n una de nova a My Kaspersky.',

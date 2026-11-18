@@ -38,7 +38,6 @@ import { openWhatsNew, useWhatsNew } from '../../../lib/useWhatsNew';
 import { NewsGlyph } from '../../../components/whatsnew/WhatsNew';
 import { Dropdown } from '../../../components/Dropdown';
 import { useDraft } from '../context';
-import { SettingRow } from '../controls';
 
 // The Components card holds what KnightLoader updates or follows, one line
 // each: the name, a short status where there is one, a button where there is
@@ -834,17 +833,17 @@ function QBittorrentRow() {
       href={version ? `https://github.com/qbittorrent/qBittorrent/releases/tag/release-${encodeURIComponent(version)}` : 'https://www.qbittorrent.org/'}
       status={qbitStatus(t, st)}
       actions={
-        (st?.state === 'failed' || st?.state === 'off') && (
-          <GlyphButton icon={<IconRetry />} title={t('common.retry')} onClick={() => void onRetry()} />
-        )
-      }
-      settings={
-        st &&
-        st.versions.length > 0 && (
-          <>
-            <SettingRow control="short" label={t('settings.info.qbitVersion')} hint={t('settings.info.qbitVersionHint')}>
+        <>
+          {(st?.state === 'failed' || st?.state === 'off') && (
+            <GlyphButton icon={<IconRetry />} title={t('common.retry')} onClick={() => void onRetry()} />
+          )}
+          {st && st.versions.length > 0 && (
+            <>
               <Dropdown
+                look="dense"
+                width="value"
                 label={t('settings.info.qbitVersion')}
+                tip={t('settings.info.qbitVersion')}
                 value={chosen?.version ?? null}
                 options={st.versions.map((v) => ({
                   value: v.version,
@@ -852,14 +851,16 @@ function QBittorrentRow() {
                 }))}
                 onChange={(v) => void onPick(v).catch(() => {})}
               />
-            </SettingRow>
-            <p className="text-sm text-carbon-textSub">
-              {chosen && chosen.whitelists.length > 0
-                ? t('settings.info.qbitOnList', { trackers: chosen.whitelists.join(', ') })
-                : `${t('settings.info.qbitOffList')} ${t('settings.info.qbitOlderClients')}`}
-            </p>
-          </>
-        )
+              <InfoBubble
+                tip={`${t('settings.info.qbitVersionHint')} ${
+                  chosen && chosen.whitelists.length > 0
+                    ? t('settings.info.qbitOnList', { trackers: chosen.whitelists.join(', ') })
+                    : `${t('settings.info.qbitOffList')} ${t('settings.info.qbitOlderClients')}`
+                }`}
+              />
+            </>
+          )}
+        </>
       }
     />
   );

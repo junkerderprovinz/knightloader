@@ -4015,7 +4015,7 @@ export const he: Dict = {
   'settings.vpn.state.connecting': 'מתחבר',
   'settings.vpn.state.failed': 'נכשל',
   'settings.vpn.state.saved': 'מוגדר',
-  'settings.vpn.portForwardingHint': '{name} יכול להעביר פורט ל-KnightLoader. הטורנטים לא יכולים להשתמש בו, כי הם מגיעים ל-VPN דרך פרוקסי שלא מקבל חיבורים נכנסים.',
+  'settings.vpn.portForwardingHint': '{name} יכול להעביר פורט ל-KnightLoader. הטורנטים עדיין עוברים דרך ה-VPN, אבל רק כלפי חוץ: עמיתים אחרים לא מגיעים אליהם דרך הפורט המועבר.',
   'settings.vpn.noPortForwardingHint': 'עמיתים אחרים לא יכולים להתחבר אליך דרך {name}. הטורנטים עדיין יורדים, אבל הם מוצאים פחות עמיתים ומזריעים פחות.',
   'settings.vpn.custom': 'תצורת WireGuard משלך',
   'settings.vpn.note.kaspersky': 'התצורה של Kaspersky מפסיקה לעבוד אם לא משתמשים בה 24 שעות, והיא למכשיר אחד. במקרה כזה צור חדשה ב-My Kaspersky.',

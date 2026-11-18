@@ -3987,7 +3987,7 @@ export const fr: Dict = {
   'settings.vpn.state.connecting': 'Connexion',
   'settings.vpn.state.failed': 'Échec',
   'settings.vpn.state.saved': 'Configuré',
-  'settings.vpn.portForwardingHint': '{name} peut rediriger un port vers KnightLoader. Les torrents ne peuvent pas s\'en servir, car ils rejoignent le VPN par un proxy qui n\'accepte aucune connexion entrante.',
+  'settings.vpn.portForwardingHint': '{name} peut rediriger un port vers KnightLoader. Les torrents passent quand même par le VPN, mais seulement vers l\'extérieur : les autres pairs ne les joignent pas par le port redirigé.',
   'settings.vpn.noPortForwardingHint': 'Les autres peers ne peuvent pas se connecter à toi via {name}. Les torrents se téléchargent quand même, mais trouvent moins de peers et sont moins partagés.',
   'settings.vpn.custom': 'Config WireGuard personnelle',
   'settings.vpn.note.kaspersky': 'La configuration de Kaspersky cesse de fonctionner si elle reste 24 heures inutilisée, et elle vaut pour un appareil. Créez-en alors une nouvelle dans My Kaspersky.',

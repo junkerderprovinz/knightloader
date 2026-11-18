@@ -3997,7 +3997,7 @@ export const tr: Dict = {
   'settings.vpn.state.connecting': 'Bağlanıyor',
   'settings.vpn.state.failed': 'Başarısız',
   'settings.vpn.state.saved': 'Kurulu',
-  'settings.vpn.portForwardingHint': '{name}, KnightLoader\'a bir port yönlendirebilir. Torrentler bunu kullanamaz, çünkü VPN\'e gelen bağlantı kabul etmeyen bir proxy üzerinden ulaşırlar.',
+  'settings.vpn.portForwardingHint': '{name}, KnightLoader\'a bir port yönlendirebilir. Torrentler yine de VPN\'den geçer, ama yalnızca dışarıya doğru: diğer eşler yönlendirilen bağlantı noktası üzerinden onlara ulaşamaz.',
   'settings.vpn.noPortForwardingHint': 'Diğer peer\'ler {name} üzerinden sana bağlanamaz. Torrentler yine iner, ama daha az peer bulur ve daha az seed eder.',
   'settings.vpn.custom': 'Kendi WireGuard yapılandırman',
   'settings.vpn.note.kaspersky': 'Kaspersky yapılandırması 24 saat kullanılmazsa çalışmayı bırakır ve tek cihaz içindir. Bu olduğunda My Kaspersky’de yenisini oluştur.',

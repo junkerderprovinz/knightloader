@@ -4012,7 +4012,7 @@ export const sr: Dict = {
   'settings.vpn.state.connecting': 'Повезивање',
   'settings.vpn.state.failed': 'Неуспешно',
   'settings.vpn.state.saved': 'Подешено',
-  'settings.vpn.portForwardingHint': '{name} може да проследи порт у KnightLoader. Торенти не могу да га користе, јер до VPN-а стижу преко проксија који не прима долазне везе.',
+  'settings.vpn.portForwardingHint': '{name} може да проследи порт у KnightLoader. Торенти и даље иду кроз VPN, али само ка споља: други пирови не долазе до њих кроз прослеђени порт.',
   'settings.vpn.noPortForwardingHint': 'Други пирови не могу да се повежу са тобом преко {name}. Торенти се и даље преузимају, али налазе мање пирова и мање сидују.',
   'settings.vpn.custom': 'Сопствена WireGuard конфигурација',
   'settings.vpn.note.kaspersky': 'Kaspersky конфигурација престаје да ради ако се 24 сата не користи, и важи за један уређај. Тада направи нову у My Kaspersky.',

@@ -4007,7 +4007,7 @@ export const ro: Dict = {
   'settings.vpn.state.connecting': 'Se conectează',
   'settings.vpn.state.failed': 'Eșuat',
   'settings.vpn.state.saved': 'Configurat',
-  'settings.vpn.portForwardingHint': '{name} poate redirecționa un port către KnightLoader. Torrentele nu îl pot folosi, pentru că ajung la VPN printr-un proxy care nu acceptă conexiuni de intrare.',
+  'settings.vpn.portForwardingHint': '{name} poate redirecționa un port către KnightLoader. Torrentele trec totuși prin VPN, dar doar spre exterior: ceilalți parteneri nu ajung la ele prin portul redirecționat.',
   'settings.vpn.noPortForwardingHint': 'Ceilalți peeri nu se pot conecta la tine prin {name}. Torrentele se descarcă în continuare, dar găsesc mai puțini peeri și fac mai puțin seed.',
   'settings.vpn.custom': 'Configurație WireGuard proprie',
   'settings.vpn.note.kaspersky': 'Configurația Kaspersky nu mai funcționează dacă rămâne nefolosită 24 de ore și e valabilă pentru un dispozitiv. Atunci creează una nouă în My Kaspersky.',

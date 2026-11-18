@@ -3999,7 +3999,7 @@ export const hi: Dict = {
   'settings.vpn.state.connecting': 'जुड़ रहा है',
   'settings.vpn.state.failed': 'विफल',
   'settings.vpn.state.saved': 'सेट अप है',
-  'settings.vpn.portForwardingHint': '{name} KnightLoader के लिए एक पोर्ट फ़ॉरवर्ड कर सकता है। टॉरेंट इसका इस्तेमाल नहीं कर सकते, क्योंकि वे ऐसे प्रॉक्सी के ज़रिए VPN तक पहुँचते हैं जो आने वाले कनेक्शन नहीं लेता।',
+  'settings.vpn.portForwardingHint': '{name} KnightLoader के लिए एक पोर्ट फ़ॉरवर्ड कर सकता है। टोरेंट फिर भी VPN से ही जाते हैं, पर केवल बाहर की ओर: दूसरे पीयर फ़ॉरवर्ड किए गए पोर्ट से उन तक नहीं पहुँच पाते।',
   'settings.vpn.noPortForwardingHint': 'दूसरे पीयर {name} के ज़रिए आपसे नहीं जुड़ सकते। टॉरेंट फिर भी डाउनलोड होते हैं, पर उन्हें कम पीयर मिलते हैं और वे कम सीड करते हैं।',
   'settings.vpn.custom': 'अपना WireGuard कॉन्फ़िग',
   'settings.vpn.note.kaspersky': 'Kaspersky का कॉन्फ़िगरेशन 24 घंटे इस्तेमाल न होने पर काम करना बंद कर देता है, और यह एक डिवाइस के लिए होता है। तब My Kaspersky में नया बनाएँ।',

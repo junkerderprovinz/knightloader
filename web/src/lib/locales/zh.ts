@@ -3982,7 +3982,7 @@ export const zh: Dict = {
   'settings.vpn.state.connecting': '连接中',
   'settings.vpn.state.failed': '失败',
   'settings.vpn.state.saved': '已设置',
-  'settings.vpn.portForwardingHint': '{name} 可以把一个端口转发给 KnightLoader。种子用不了它，因为种子通过一个不接受传入连接的代理连到 VPN。',
+  'settings.vpn.portForwardingHint': '{name} 可以把一个端口转发给 KnightLoader。种子仍然走 VPN，但只能向外连接：其他节点无法通过转发的端口连到它们。',
   'settings.vpn.noPortForwardingHint': '其他节点无法通过 {name} 连接到你。种子仍可下载，但找到的节点更少，做种也更少。',
   'settings.vpn.custom': '自有 WireGuard 配置',
   'settings.vpn.note.kaspersky': 'Kaspersky 的配置若 24 小时未使用就会失效，且只适用于一台设备。届时请在 My Kaspersky 中重新创建。',

@@ -132,6 +132,12 @@ const detail = (name: string) => group(name).querySelector('[role="status"] [rol
 /** The version number of a row, and where it leads. */
 const version = (name: string) => group(name).querySelector('.glim-num')!;
 const href = (name: string) => version(name).querySelector('a')?.getAttribute('href');
+/** Every info bubble on a row outside its status, as a screen reader hears them. */
+const bubbles = (name: string) =>
+  [...group(name).querySelectorAll('[role="note"]')]
+    .filter((n) => !n.closest('[role="status"]'))
+    .map((n) => n.getAttribute('aria-label') ?? '')
+    .join(' ');
 const names = () => [...host.querySelectorAll('section h3')].map((h) => h.textContent);
 
 const switches = (within: Element) =>
@@ -189,7 +195,8 @@ describe('the Components card', () => {
     await draw();
     const rowsWith = (what: string) =>
       [...host.querySelectorAll('section')].filter((s) => s.querySelector(what)).map((s) => s.querySelector('h3')?.textContent);
-    expect(rowsWith('section > span button')).toEqual([]);
+    // qBittorrent's version picker is a setting, always there, not something to do.
+    expect(rowsWith('section > span button:not([aria-haspopup])')).toEqual([]);
   });
 
   it('gives the components one switch, below them, and KnightLoader its own', async () => {
@@ -535,11 +542,18 @@ describe('the qBittorrent KnightLoader runs', () => {
     expect(href('qBittorrent')).toBe('https://github.com/qbittorrent/qBittorrent/releases/tag/release-4.5.5');
   });
 
-  it('offers the versions to hold, the recommended one marked, and says which trackers list it', async () => {
+  it('offers the versions to hold on the row itself, the recommended one marked', async () => {
     await draw();
     const row = group('qBittorrent');
-    expect(row.textContent).toContain('4.5.5, recommended');
-    expect(row.textContent).toContain('On the public client list of OPS.');
+    expect(row.querySelector('button[aria-haspopup]')!.textContent).toContain('4.5.5, recommended');
+    expect(row.querySelector('.col-span-full')).toBeNull();
+  });
+
+  it('says in a bubble why the version stays and which trackers list it', async () => {
+    await draw();
+    expect(group('qBittorrent').textContent).not.toContain('On the public client list of OPS.');
+    expect(bubbles('qBittorrent')).toContain('Private trackers let in only the qBittorrent versions on their list');
+    expect(bubbles('qBittorrent')).toContain('On the public client list of OPS.');
   });
 
   it('writes a version picked to the torrent settings', async () => {
@@ -555,7 +569,7 @@ describe('the qBittorrent KnightLoader runs', () => {
 
   it('warns about a held version no tracker list names', async () => {
     await draw({ torrent: { engineVersion: '4.6.7' } } as unknown as Partial<Settings>);
-    expect(group('qBittorrent').textContent).toContain('Not on any public client list KnightLoader knows of.');
+    expect(bubbles('qBittorrent')).toContain('Not on any public client list KnightLoader knows of.');
   });
 
   it('points trackers that let in only older clients to the older versions', async () => {
@@ -571,12 +585,12 @@ describe('the qBittorrent KnightLoader runs', () => {
     answers[QBIT] = qbit({ ...three, state: 'running', version: '5.0.5' });
     await draw();
     expect(group('qBittorrent').textContent).toContain('5.0.5, recommended');
-    expect(group('qBittorrent').textContent).toContain('Some private trackers let in only older clients.');
+    expect(bubbles('qBittorrent')).toContain('Some private trackers let in only older clients.');
 
     act(() => root.unmount());
     root = createRoot(host);
     await draw({ torrent: { engineVersion: '4.5.5' } } as unknown as Partial<Settings>);
-    expect(group('qBittorrent').textContent).not.toContain('Some private trackers let in only older clients.');
+    expect(bubbles('qBittorrent')).not.toContain('Some private trackers let in only older clients.');
   });
 
   it('says why it is not running and starts it again on request', async () => {
