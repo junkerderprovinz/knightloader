@@ -138,4 +138,12 @@ describe('the cross-seed card', () => {
       expect.stringContaining('not whole'),
     ]);
   });
+
+  it('writes each log entry as one line of a log, the reason beside it', async () => {
+    await show(on);
+    const rows = [...host.querySelectorAll('li')].filter((li) => li.textContent?.includes('not whole'));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].querySelector('p')).toBeNull();
+    expect(rows[0].closest('ul')!.className).toContain('font-mono');
+  });
 });

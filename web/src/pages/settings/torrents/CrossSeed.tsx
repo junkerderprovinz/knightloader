@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   IconBadge,
-  LabelBadge,
   SectionTitle,
   TextInput,
   ToggleRow,
@@ -86,6 +85,13 @@ const RESULT_TONE: Record<LogEntry['result'], 'ok' | 'warn' | 'fail' | undefined
 };
 
 const LOG_LINES = 20;
+
+const RESULT_CLASS: Record<'ok' | 'warn' | 'fail' | 'none', string> = {
+  ok: 'bg-statusOkBg text-statusOk',
+  warn: 'bg-statusWarnBg text-statusWarn',
+  fail: 'bg-statusFailBg text-statusFail',
+  none: 'bg-carbon-surface3 text-carbon-textSub',
+};
 
 /**
  * CrossSeedCard sets up cross-seeding: the two Gazelle sites, the Torznab
@@ -523,23 +529,24 @@ function CrossSeedLog() {
       {entries.length === 0 ? (
         <p className="text-sm text-carbon-textMuted">{t('settings.torrents.crossSeedLogEmpty')}</p>
       ) : (
-        <ul className="flex flex-col divide-y divide-carbon-border">
+        <ul className="max-h-96 overflow-auto rounded-[var(--radius-control)] bg-carbon-surface2 p-3 font-mono text-meta leading-relaxed">
           {entries.map((e, i) => (
-            <li
-              key={`${e.time}-${e.infoHash}-${i}`}
-              className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 first:pt-0 last:pb-0"
-            >
-              <LabelBadge
-                label={t(`settings.torrents.crossSeedResult.${e.result}` as TranslationKey)}
-                tone={RESULT_TONE[e.result]}
-              />
-              <span className="min-w-0 flex-1 truncate text-sm text-carbon-text" title={e.name}>
+            <li key={`${e.time}-${e.infoHash}-${i}`} className="flex min-w-0 items-baseline gap-2 whitespace-nowrap">
+              <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(e.time)}</span>
+              <span className={`shrink-0 rounded-[var(--radius-pill)] px-1.5 ${RESULT_CLASS[RESULT_TONE[e.result] ?? 'none']}`}>
+                {t(`settings.torrents.crossSeedResult.${e.result}` as TranslationKey)}
+              </span>
+              <span className="min-w-0 truncate text-carbon-text" title={e.name}>
                 {e.name}
               </span>
-              <span className="glim-num w-full text-xs text-carbon-textMuted sm:w-auto sm:shrink-0">
-                {e.tracker === 'daemon' ? t('settings.torrents.crossSeedDaemon') : e.tracker} · {fmtDate(e.time)}
+              <span className="shrink-0 text-carbon-textSub">
+                {e.tracker === 'daemon' ? t('settings.torrents.crossSeedDaemon') : e.tracker}
               </span>
-              {e.reason && <p className="w-full text-xs text-carbon-textSub first-letter:uppercase">{e.reason}</p>}
+              {e.reason && (
+                <span className="min-w-0 flex-1 truncate text-carbon-textSub first-letter:uppercase" title={e.reason}>
+                  {e.reason}
+                </span>
+              )}
             </li>
           ))}
         </ul>
